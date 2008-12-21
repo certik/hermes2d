@@ -1,0 +1,15 @@
+# This is the file Make.config.example modified for Debian and Ubuntu.
+# Adjust if needed and save as Make.config
+
+
+CC = gcc
+OPT = -O3 -DNDEBUG
+
+
+UMFPACK_INCLUDES = -I/usr/include/suitesparse/
+UMFPACK_LIBS = -lumfpack -lamd -lblas
+
+
+INCLUDES = $(UMFPACK_INCLUDES)
+LIBS = -lgfortran -lglut -lJudy $(UMFPACK_LIBS)
+

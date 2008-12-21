@@ -1,0 +1,31 @@
+# This is the file Make.config.example modified for MacOS.
+# Adjust if needed and save as Make.config
+
+
+CC = gcc
+OPT = -O3 -DNDEBUG
+
+
+# The UMFPACK base directory variable. This might be the only thing you
+# need to change here.
+UMFPACK_DIR = /opt/umfpack
+
+UMFPACK_INCLUDES = -I$(UMFPACK_DIR)/UMFPACK/Include \
+                   -I$(UMFPACK_DIR)/UFconfig \
+                   -I$(UMFPACK_DIR)/AMD/Include
+		   
+UMFPACK_LIBS = -framework Accelerate \
+               -L$(UMFPACK_DIR)/UMFPACK/Lib \
+               -L$(UMFPACK_DIR)/AMD/Lib \
+               -lumfpack -lamd
+
+
+CUSTOM_INCLUDES = -I/usr/X11/include
+CUSTOM_LIBS = -lstdc++ /usr/X11/lib/libX11.dylib /usr/X11/lib/libGL.dylib \
+              /usr/X11/lib/libGLU.dylib -framework OpenGL -framework GLUT
+
+
+INCLUDES = $(UMFPACK_INCLUDES) $(CUSTOM_INCLUDES)
+LIBS = -lgfortran /sw/lib/libglut.a /usr/local/lib/libJudy.a $(UMFPACK_LIBS) $(CUSTOM_LIBS)
+
+
