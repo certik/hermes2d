@@ -1,0 +1,94 @@
+################################################################################
+#
+#  This is an example Make.config file. It determines which compiler to use,
+#  how to compile and link with UMFPACK on your machine, etc. The purpose of
+#  this file is to ensure that the variables 'CC', 'OPT', 'INCLUDES' and 'LIBS'
+#  are defined. Modify the lines below and save as 'Make.config'.
+
+
+################################################################################
+#
+#  Prerequisities:
+#
+#  1. Hermes2D uses UMFPACK as the default solver due to its high performance.
+#     Please refer to http://www.cise.ufl.edu/research/sparse/umfpack/
+#     and install all three packages (UMFPACK, AMD, UFconfig) according to
+#     the instructions. Alternatively, these packages may already be prepared
+#     for you in your Linux distribution.
+#
+#  2. Two more utility libraries are required: 'freeglut' and the 'Judy' sparse
+#     array library. Consult your distribution's package management system,
+#     or visit http://freeglut.sourceforge.net/ and http://judy.sourceforge.net/
+
+
+################################################################################
+#
+#  Step 1: Which compiler to use
+
+# 'gcc' is the default, but you can try 'icc' if you have the Intel Compiler
+CC = gcc
+
+# Compiler directives to build optimized vesions of the library.
+OPT = -O3 -DNDEBUG
+
+
+################################################################################
+#
+#  Step 2: UMFPACK configuration
+
+# The UMFPACK base directory variable. This might be the only thing you
+# need to change here.
+UMFPACK_DIR = /opt/umfpack
+
+# The following tells the compiler where to look for UMFPACK include files
+UMFPACK_INCLUDES = -I$(UMFPACK_DIR)/UMFPACK/Include \
+                   -I$(UMFPACK_DIR)/UFconfig \
+                   -I$(UMFPACK_DIR)/AMD/Include
+
+# This variable lists the libraries required by UMFPACK, along with
+# the directories where to find them
+UMFPACK_LIBS = -lumfpack -lamd -lblas \
+               -L$(UMFPACK_DIR)/UMFPACK/Lib \
+               -L$(UMFPACK_DIR)/AMD/Lib
+
+
+################################################################################
+#
+#  Step 3: Specify the includes and libs for any other solver (optional)
+
+CUSTOM_INCLUDES = 
+
+CUSTOM_LIBS = 
+
+
+################################################################################
+#
+#  This is the final list of includes and libraries used by Hermes2D
+
+INCLUDES = $(UMFPACK_INCLUDES) $(CUSTOM_INCLUDES)
+
+LIBS = -lgfortran -lglut -lJudy $(UMFPACK_LIBS) $(CUSTOM_LIBS)
+
+
+################################################################################
+#
+#  Troubleshooting:
+#
+#  * If the linker is unable to find a library, you can specify where to
+#    find it by including the option -L<full-path-to-the-lib>
+#
+#  * In order to be able to link with Fortran libraries (BLAS, LAPACK), 
+#    older versions of gcc (3.4) require the Fortran compatibility layer:
+#    -lg2c  (Failure to include this option may result in unresolved references)
+#
+#  * For newer versions of gcc (4.0+), the compatibility library is
+#    included by -lgfortran
+#
+#  * For UMFPACK you may want to use Goto BLAS, ie., -lgoto instead of -lblas
+#
+#  * On some AMD systems, BLAS is called ACML (AMD core math library): -lacml
+#
+#  * Hermes2D needs the 'freeglut' library, not the original 'glut' library.
+#
+
+# --EOF--

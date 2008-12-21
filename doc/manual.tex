@@ -1,0 +1,93 @@
+\documentclass[11pt]{article}
+
+% The following is for A4 paper
+\usepackage[a4paper,hmargin=4cm,top=4.5cm,bottom=4cm]{geometry}
+% If you want letter, comment out the above line and use 10pt in the documentclass.
+
+\usepackage{graphicx}
+\usepackage{listings}
+\usepackage{color}
+\usepackage[pdftex,pdfborder={0 0 0.3}]{hyperref}
+
+\usepackage{makeidx}
+\makeindex
+
+\parindent=0pt
+\parskip=1.4ex plus 0.5ex minus 0.2ex
+
+\definecolor{bkgnd}{rgb}{0.92, 0.92, 0.92}
+\definecolor{keyword}{rgb}{0, 0, 0.5}
+\definecolor{comment}{rgb}{0, 0.4, 0}
+
+\lstset{language=C++,
+  basicstyle=\tt\footnotesize,
+  backgroundcolor=\color{bkgnd},
+  keywordstyle=\color{keyword}\bfseries,
+  commentstyle=\color{comment},
+  showstringspaces=false,
+  frame=single,framerule=0pt,
+  xleftmargin=3pt,xrightmargin=3pt,
+  aboveskip=9pt,belowskip=1pt
+  }
+
+
+\newcommand{\bfu}{\mbox{\boldmath $u$}}
+\newcommand{\bfv}{\mbox{\boldmath $v$}}
+\newcommand{\bfw}{\mbox{\boldmath $w$}}
+\newcommand{\bfx}{\mbox{\boldmath $x$}}
+\newcommand{\bfE}{\mbox{\boldmath $E$}}
+\newcommand{\bfH}{\mbox{\boldmath $H$}}
+\def\Hcurl{{\bfH({\rm curl})}}
+
+\newcommand{\dd}[2]{\frac{\partial #1}{\partial #2}}
+\newcommand{\dx}{\;\mbox{d}\bfx}
+
+
+\begin{document}
+
+\input{title.tex}
+
+\setcounter{page}{1}
+\pagestyle{plain}
+\renewcommand{\thepage}{\roman{page}}
+\tableofcontents
+\newpage
+\setcounter{page}{1}
+\renewcommand{\thepage}{\arabic{page}}
+
+
+\section{Introduction}
+\label{ch:intro}
+\input{intro.tex}
+
+\section{Installation}
+\label{ch:install}
+\input{install.tex}
+
+\section{Getting Started}
+\label{ch:getstart}
+\input{getstart.tex}
+\clearpage
+
+\newpage
+\section{Library Reference}
+\label{ch:libref}
+\input{libref.tex}
+
+\newpage
+\section{Examples}
+\label{ch:examples}
+\input{examples.tex}
+
+\newpage
+\appendix
+\section{Weak Forms}
+\label{ch:integralforms}
+\input{intforms.tex}
+
+\newpage
+\input{references.tex}
+
+\printindex
+
+\end{document}

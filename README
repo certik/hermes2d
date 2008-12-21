@@ -1,0 +1,25 @@
+Welcome to Hermes 2D.
+
+Documentation
+=============
+
+Hermes2D manual is contained in the directory 'doc/'.
+
+Developer documentation can be compiled by running 'doxygen' in 'src/'.
+
+
+Compilation
+===========
+
+If you are using a Debian-based system, install the required libraries first:
+
+  apt-get install libjudy-dev freeglut3-dev
+
+To compile the library and/or the examples, edit the file Make.config.example
+and save as Make.config, then type 'make'.
+
+Alternatively, if you use Debian or MacOS, you can review one of the predefined
+files Make.config.Debian, etc., save as Make.config and type 'make'.
+
+If you have more than one CPU, you can use "make -j N" where N is
+the number of CPUs of your computer.
