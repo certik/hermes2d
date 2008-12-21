@@ -98,6 +98,8 @@ cdef extern from "hermes2d.h":
 
     cdef struct c_MeshFunction "MeshFunction":
         RefMap* get_refmap()
+        #scalar get_pt_value(double x, double y, int item)
+        scalar get_pt_value(double x, double y)
 
     cdef struct c_Solution "Solution":
         void set_zero(c_Mesh *m)

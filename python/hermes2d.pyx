@@ -111,6 +111,10 @@ cdef class MeshFunction(ScalarFunction):
         cdef c_MeshFunction *m = <c_MeshFunction *>(self.thisptr)
         return l2_norm(m)
 
+    def get_pt_value(self, x, y):
+        cdef c_MeshFunction *m = <c_MeshFunction *>(self.thisptr)
+        return m.get_pt_value(x, y)
+
 cdef class Solution(MeshFunction):
 
     def __cinit__(self):
