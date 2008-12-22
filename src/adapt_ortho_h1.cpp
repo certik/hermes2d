@@ -686,6 +686,75 @@ void H1OrthoHP::adapt(double thr, bool h_only, int strat)
 }
 
 
+///// Unrefinements /////////////////////////////////////////////////////////////////////////////////
+
+void H1OrthoHP::unrefine(Solution* sln1, Solution* sln2, double thr)
+{
+  
+  if (!have_errors)
+    error("Element errors have to be calculated first, see calc_error().");
+
+  Mesh* mesh1 = spaces[0]->get_mesh();
+  Mesh* mesh2 = spaces[1]->get_mesh();
+
+
+  int k = 0;
+  if (mesh1 == mesh2) // single mesh
+  {
+    Element* e;
+    for_all_inactive_elements(e, mesh1)
+    {
+      bool found = true;
+      for (int i = 0; i < 4; i++)
+        if (e->sons[i] != NULL && ((!e->sons[i]->active) || (e->sons[i]->is_curved())))
+          { found = false;  break; }
+  
+      if (found)
+      {
+        double sum1 = 0.0, sum2 = 0.0;
+        int max1 = 0, max2 = 0;
+        for (int i = 0; i < 4; i++)
+          if (e->sons[i] != NULL) 
+          {
+            sum1 += errors[0][e->sons[i]->id];
+            sum2 += errors[1][e->sons[i]->id];
+            int oo = spaces[0]->get_element_order(e->sons[i]->id);
+            if (oo > max1) max1 = oo;
+            oo = spaces[1]->get_element_order(e->sons[i]->id);
+            if (oo > max2) max2 = oo;
+          }
+        if ((sum1 < thr * errors[esort[0][1]][esort[0][0]]) && 
+            (sum2 < thr * errors[esort[0][1]][esort[0][0]]))
+        {
+          mesh1->unrefine_element(e->id);
+          mesh2->unrefine_element(e->id);
+          errors[0][e->id] = sum1;
+          errors[1][e->id] = sum2;
+          spaces[0]->set_element_order(e->id, max1);
+          spaces[1]->set_element_order(e->id, max2);
+          k++; // number of unrefined elements
+        }
+      }
+    }
+    for_all_active_elements(e, mesh1)
+    {
+      for (int i = 0; i < 2; i++)
+        if (errors[i][e->id] < thr/4 * errors[esort[0][1]][esort[0][0]])
+        {
+          int oo = get_h_order(spaces[i]->get_element_order(e->id));
+          spaces[i]->set_element_order(e->id, std::max(oo - 1, 1));
+          k++;
+        }
+    }
+  }
+  else
+    info("not implemented yet.");
+
+  verbose("Unrefined %d elements.", k);
+  have_errors = false;
+}
+
+
 //// error calculation /////////////////////////////////////////////////////////////////////////////
 
 static double** cmp_err;
@@ -960,5 +1029,6 @@ double H1OrthoHP::calc_energy_error_n(int n, ...)
   }
   
   have_errors = true;
+  total_err = total_error / total_norm;
   return sqrt(total_error / total_norm);
 }

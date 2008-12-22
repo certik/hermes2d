@@ -92,6 +92,8 @@ public:
   /// and performs their optimal hp-refinement. 
   void adapt(double thr, bool h_only = false, int strat = 0);
 
+  /// Unrefines the elements with the smallest error
+  void unrefine(Solution* sln1, Solution* sln2, double thr);
 
   /// Internal. Used by adapt(). Can be utilized in specialized adaptivity
   /// procedures, for which adapt() is not sufficient.
