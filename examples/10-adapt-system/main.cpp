@@ -68,7 +68,6 @@ int main(int argc, char* argv[])
   OrderView  xoview("X polynomial orders", 0, 0, 800, 800);
   OrderView  yoview("Y polynomial orders", 810, 0, 800, 800);
 
-
   GnuplotGraph graph;
   graph.set_captions("Error Convergence", "Degrees of Freedom", "Error [%]");
   graph.add_row("hp-adaptivity", "k", "-", "o");
