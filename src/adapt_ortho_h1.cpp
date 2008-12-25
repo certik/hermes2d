@@ -694,15 +694,16 @@ void H1OrthoHP::unrefine(Solution* sln1, Solution* sln2, double thr)
   if (!have_errors)
     error("Element errors have to be calculated first, see calc_error().");
 
-  Mesh* mesh1 = spaces[0]->get_mesh();
-  Mesh* mesh2 = spaces[1]->get_mesh();
+  Mesh* mesh[2];
+  mesh[0] = spaces[0]->get_mesh();
+  mesh[1] = spaces[1]->get_mesh();
 
 
   int k = 0;
-  if (mesh1 == mesh2) // single mesh
+  if (mesh[0] == mesh[1]) // single mesh
   {
     Element* e;
-    for_all_inactive_elements(e, mesh1)
+    for_all_inactive_elements(e, mesh[0])
     {
       bool found = true;
       for (int i = 0; i < 4; i++)
@@ -726,8 +727,8 @@ void H1OrthoHP::unrefine(Solution* sln1, Solution* sln2, double thr)
         if ((sum1 < thr * errors[esort[0][1]][esort[0][0]]) && 
             (sum2 < thr * errors[esort[0][1]][esort[0][0]]))
         {
-          mesh1->unrefine_element(e->id);
-          mesh2->unrefine_element(e->id);
+          mesh[0]->unrefine_element(e->id);
+          mesh[1]->unrefine_element(e->id);
           errors[0][e->id] = sum1;
           errors[1][e->id] = sum2;
           spaces[0]->set_element_order(e->id, max1);
@@ -736,7 +737,7 @@ void H1OrthoHP::unrefine(Solution* sln1, Solution* sln2, double thr)
         }
       }
     }
-    for_all_active_elements(e, mesh1)
+    for_all_active_elements(e, mesh[0])
     {
       for (int i = 0; i < 2; i++)
         if (errors[i][e->id] < thr/4 * errors[esort[0][1]][esort[0][0]])
@@ -747,9 +748,49 @@ void H1OrthoHP::unrefine(Solution* sln1, Solution* sln2, double thr)
         }
     }
   }
-  else
-    info("not implemented yet.");
-
+  else // multimesh
+  {
+    for (int m = 0; m < 2; m++)
+    {
+      Element* e;
+      for_all_inactive_elements(e, mesh[m])
+      {
+        bool found = true;
+        for (int i = 0; i < 4; i++)
+          if (e->sons[i] != NULL && ((!e->sons[i]->active) || (e->sons[i]->is_curved())))
+            { found = false;  break; }
+    
+        if (found)
+        {
+          double sum = 0.0;
+          int max = 0;
+          for (int i = 0; i < 4; i++)
+            if (e->sons[i] != NULL) 
+            {
+              sum += errors[m][e->sons[i]->id];
+              int oo = spaces[m]->get_element_order(e->sons[i]->id);
+              if (oo > max) max = oo;
+            }
+          if ((sum < thr * errors[esort[0][1]][esort[0][0]]))
+          {
+            mesh[m]->unrefine_element(e->id);
+            errors[m][e->id] = sum;
+            spaces[m]->set_element_order(e->id, max);
+            k++; // number of unrefined elements
+          }
+        }
+      }
+      for_all_active_elements(e, mesh[m])
+      {
+        if (errors[m][e->id] < thr/4 * errors[esort[0][1]][esort[0][0]])
+        {
+          int oo = get_h_order(spaces[m]->get_element_order(e->id));
+          spaces[m]->set_element_order(e->id, std::max(oo - 1, 1));
+          k++;
+        }
+      }
+    }
+  }
   verbose("Unrefined %d elements.", k);
   have_errors = false;
 }
