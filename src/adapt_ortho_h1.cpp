@@ -917,6 +917,8 @@ public:
     set_quad_2d(sln1->get_quad_2d());
   }
   
+  ~ErrorFn() { free(); }
+  
   void free()
   {
     free_sub_tables(&tables);
