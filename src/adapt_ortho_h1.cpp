@@ -626,6 +626,7 @@ void H1OrthoHP::adapt(double thr, bool h_only, int strat)
             }
           }  
           int ii = idx[id][j];
+          current = get_h_order(spaces[j]->get_element_order(id));
           if (ii >= 0) 
           {
             if (split[ii] != max_ref)
@@ -641,8 +642,13 @@ void H1OrthoHP::adapt(double thr, bool h_only, int strat)
           if (ii < 0) // element not refined at all
           {
             split[k] = max_ref;
-            for (int r = 0; r < 4; r++)
-              p[k][r] = h_only ? current : std::max(1, (current+1)/2);
+            if (split[k] == 0)
+              for (int r = 0; r < 4; r++)
+                p[k][r] = h_only ? current : std::max(1, (current+1)/2);
+            else { // aniso refinements
+              p[k][0] = h_only ? current : std::max(1, 2*(current+1)/3);
+              p[k][1] = h_only ? current : std::max(1, 2*(current+1)/3);
+            }
             esort[k][0] = id;
             esort[k][1] = j;
             k++;
