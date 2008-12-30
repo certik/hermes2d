@@ -27,6 +27,12 @@ scalar bilinear_form_0_1(RealFunction* fu, RealFunction* fv, RefMap* ru, RefMap*
 
 scalar bilinear_form_1_0(RealFunction* fu, RealFunction* fv, RefMap* ru, RefMap* rv)
   { return int_a_dudx_dvdy_b_dudy_dvdx(lambda, fu, mu, fv, ru, rv); }
+
+/*scalar bilinear_form_0_1(RealFunction* fu, RealFunction* fv, RefMap* ru, RefMap* rv)
+  { return (lambda + mu) * int_dudy_dvdx(fu, fv, ru, rv); }
+
+scalar bilinear_form_1_0(RealFunction* fu, RealFunction* fv, RefMap* ru, RefMap* rv)
+  { return (lambda + mu) * int_dudx_dvdy(fu, fv, ru, rv); }*/
   
 scalar bilinear_form_1_1(RealFunction* fu, RealFunction* fv, RefMap* ru, RefMap* rv)
   { return int_a_dudx_dvdx_b_dudy_dvdy(mu, fu, lambda+2*mu, fv, ru, rv); }
@@ -116,7 +122,7 @@ int main(int argc, char* argv[])
     hp.adapt(thr, false, 1);
 
     graph.add_values(0, xdisp.get_num_dofs() + ydisp.get_num_dofs(), error);
-    graph.save("conv_h1.txt");
+    graph.save("conv.txt");
     
   }
   
