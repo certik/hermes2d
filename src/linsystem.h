@@ -103,6 +103,7 @@ protected:
   bool values_changed;
   bool struct_changed;
   bool want_dir_contrib;
+  bool have_spaces;
   
   friend class RefSystem;
   

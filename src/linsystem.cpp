@@ -78,9 +78,10 @@ LinSystem::LinSystem(WeakForm* wf, Solver* solver)
   memset(sp_seq, -1, sizeof(int) * wf->neq);
   pss = new PrecalcShapeset*[wf->neq];
   num_user_pss = 0;
+  
   values_changed = true;
   struct_changed = true;
-  
+  have_spaces = false;
   want_dir_contrib = true;
 }
 
@@ -104,6 +105,7 @@ void LinSystem::set_spaces(int n, ...)
     spaces[i] = (i < n) ? va_arg(ap, Space*) : spaces[n-1];
   va_end(ap);
   memset(sp_seq, -1, sizeof(int) * wf->neq);
+  have_spaces = true;
 }
 
 
@@ -280,6 +282,10 @@ static int get_num_indices(Page** pages, int ndofs)
 
 void LinSystem::create_matrix(bool rhsonly)
 {
+  // sanity check
+  if (!have_spaces)
+    error("Before assemble(), you need to call set_spaces().");
+  
   // check if we can reuse the matrix structure
   bool up_to_date = true;
   for (int i = 0; i < wf->neq; i++)
@@ -798,4 +804,3 @@ void warn_order()
     warned_order = true;
   }
 }
-

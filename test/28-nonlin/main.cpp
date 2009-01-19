@@ -15,40 +15,34 @@
 #include "hermes2d.h"
 #include "solver_umfpack.h"
 
-scalar bc_values(int marker, double x, double y)
-{
-  return 1 / hypot(x, y); 
-}
-
-
-#include "forms.h"
 
 Solution uprev;
+
+#include "forms.h"
 
 scalar residual(RealFunction* vi, RefMap* ri)
 {
   RefMap* ru = uprev.get_refmap();
-  return int_grad_u_grad_v(uprev, vi, ru, ri) +
-         int_u3(uprev, ru);
+  return int_grad_u_grad_v(&uprev, vi, ru, ri) +
+         int_u3(&uprev, ru);
 }
 
 scalar jacobian(RealFunction* vj, RealFunction* vi, RefMap* rj, RefMap* ri)
 {
   RefMap* ru = uprev.get_refmap();
-  return int_grad_u_grad_v(fu, fv, ru, rv) +
-         3*int_u2_vj_vi(uprev, vj, vi, ru, rj, ri); 
+  return int_grad_u_grad_v(vj, vi, rj, ri) +
+         3*int_u2_vj_vi(&uprev, vj, vi, ru, rj, ri); 
 }
 
 
-scalar biform(RealFunction* fu, RealFunction* fv, RefMap* ru, RefMap* rv)
+scalar bc_values(int marker, double x, double y)
 {
-  return int_grad_u_grad_v(fu, fv, ru, rv);
+  return 1.0 / hypot(x, y); 
 }
-
 
 scalar exact(double x, double y, scalar& dx, scalar& dy)
 {
-  return 1 / hypot(x, y);
+  return 1.0 / hypot(x, y);
 }
 
 
@@ -69,25 +63,34 @@ int main(int argc, char* argv[])
   space.assign_dofs();
   
   WeakForm wf(1);
-  wf.add_biform(0, 0, biform);
+  wf.add_biform(0, 0, jacobian, UNSYM, ANY, 1, &uprev);
+  wf.add_liform(0, residual, ANY, 1, &uprev);
   
   UmfpackSolver umfpack;
-  LinSystem sys(&wf, &umfpack);
-  sys.set_spaces(1, &space);
-  sys.set_pss(1, &pss);
+  NonlinSystem nls(&wf, &umfpack);
+  nls.set_spaces(1, &space);
+  nls.set_pss(1, &pss);
   
-  Solution sln;
-  sys.assemble();
-  sys.solve(1, &sln);
+  ScalarView view("Iteration", 0, 0, 850, 800);
+  ScalarView errview("Error", 850, 0, 850, 800);
   
-  ScalarView view;
-  view.show(&sln);
+  uprev.set_zero(&mesh);
   
-  ScalarView view2;
-  ExactSolution esln(&mesh, exact);
-  view2.show(&esln);
+  do
+  {
+    Solution sln;
+    nls.assemble();
+    nls.solve(1, &sln);
+    info("Residuum L2 norm: %g\n", nls.get_residuum_l2_norm());
+    
+    ExactSolution exsln(&mesh, exact);
+    DiffFilter err(&sln, &exsln);
+    view.show(&sln);
+    errview.show(&err);
+    errview.wait_for_keypress();
+  }
+  while (nls.get_residuum_l2_norm() > 1e-3);
   
   View::wait();
   return 0;
 }
-
