@@ -50,7 +50,7 @@ public:
   void assemble(bool rhsonly = false);
   void assemble_rhs_only() { assemble(true); }
   bool solve(int n, ...);
-  virtual void free();
+  void free();
 
   void save_matrix_matlab(const char* filename, const char* varname = "A");
   void save_rhs_matlab(const char* filename, const char* varname = "b");
@@ -81,6 +81,7 @@ protected:
 
   scalar* RHS; ///< assembled right-hand side
   scalar* Dir; ///< contributions to the RHS from Dirichlet DOFs
+  scalar* Vec; ///< last solution vector
 
   void create_matrix(bool rhsonly);
   void precalc_sparse_structure(Page** pages);
@@ -101,6 +102,7 @@ protected:
   int num_user_pss;
   bool values_changed;
   bool struct_changed;
+  bool want_dir_contrib;
   
   friend class RefSystem;
   

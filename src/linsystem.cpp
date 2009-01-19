@@ -69,7 +69,7 @@ LinSystem::LinSystem(WeakForm* wf, Solver* solver)
   slv_ctx = solver->new_context(false);
   
   Ap = Ai = NULL;
-  Ax = RHS = Dir = NULL;
+  Ax = RHS = Dir = Vec = NULL;
   mat_row = solver->is_row_oriented();
   mat_sym = false;
   
@@ -80,6 +80,8 @@ LinSystem::LinSystem(WeakForm* wf, Solver* solver)
   num_user_pss = 0;
   values_changed = true;
   struct_changed = true;
+  
+  want_dir_contrib = true;
 }
 
 
@@ -138,6 +140,7 @@ void LinSystem::free()
   if (Ax != NULL) { ::free(Ax); Ax = NULL; }
   if (RHS != NULL) { ::free(RHS); RHS = NULL; }
   if (Dir != NULL) { ::free(Dir); Dir = NULL; }
+  if (Vec != NULL) { ::free(Vec); Vec = NULL; }
   solver->free_data(slv_ctx);
 } 
 
@@ -642,10 +645,9 @@ void LinSystem::assemble(bool rhsonly)
   }
 
   // add to RHS the dirichlet contributions
-  // NOTE: these Dirichlet contributions are 
-  // erased in NonlinSystem_assemble_newton() 
-  for (i = 0; i < ndofs; i++)
-    RHS[i] += Dir[i];
+  if (want_dir_contrib)
+    for (i = 0; i < ndofs; i++)
+      RHS[i] += Dir[i];
 
   verbose("  (stages: %d, time: %g sec)", stages.size(), end_time());
   for (i = 0; i < wf->neq; i++) delete spss[i];
@@ -676,8 +678,9 @@ bool LinSystem::solve(int n, ...)
   }
   
   // solve the system
-  scalar* vec = new scalar[ndofs];
-  solver->solve(slv_ctx, ndofs, Ap, Ai, Ax, false, RHS, vec);
+  if (Vec != NULL) ::free(Vec);
+  Vec = (scalar*) malloc(ndofs * sizeof(scalar));
+  solver->solve(slv_ctx, ndofs, Ap, Ai, Ax, false, RHS, Vec);
   verbose("  (total solve time: %g sec)", end_time());
       
   // initialize the Solution classes
@@ -688,12 +691,11 @@ bool LinSystem::solve(int n, ...)
   for (int i = 0; i < n; i++)
   {
     Solution* sln = va_arg(ap, Solution*);
-    sln->set_fe_solution(spaces[i], pss[i], vec);
+    sln->set_fe_solution(spaces[i], pss[i], Vec);
   }
   va_end(ap);
   verbose("Exported solution in %g sec", end_time());
   
-  delete [] vec;
   return true;
 }
 
