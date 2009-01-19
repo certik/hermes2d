@@ -94,14 +94,13 @@ bool exists(const char* filename)
 
 int main(int argc, char* argv[])
 {
-  hermes2d_initialize(&argc, argv);
   verbose_mode = false;
 
   struct 
   {
     int width, height, palsteps;
     double consteps, conorig;
-    bool scale, video, hq;
+    bool scale, video, hq, contours;
     double min, max;
     char filename[256];
     char scaleformat[50];
@@ -116,6 +115,7 @@ int main(int argc, char* argv[])
   options.max = 0.0;
   options.hq = false;
   options.palsteps = 50;
+  options.contours = false;
   options.consteps = 0.1;
   options.conorig = 0.0;
   strcpy(options.filename, "frame%04d.bmp");
@@ -153,8 +153,8 @@ int main(int argc, char* argv[])
       case 'f': strcpy(options.filename, optarg); break;
       case 'q': options.hq = true; break;
       case 't': strcpy(options.scaleformat, optarg); break;
-      case 'p': options.palsteps = atoi(optarg); break;
-      case 'k': options.consteps = atof(optarg); break;
+      case 'p': options.palsteps = atoi(optarg); options.contours = true; break;
+      case 'k': options.consteps = atof(optarg); options.contours = true; break;
       case 'o': options.conorig = atof(optarg); break;
       default:  print_help(); return EXIT_FAILURE;
     }
@@ -175,7 +175,8 @@ int main(int argc, char* argv[])
   linview.set_num_palette_steps(options.palsteps);
 
   #ifdef CONTOURS
-  linview.show_contours(options.consteps, options.conorig);  
+  if (options.contours)
+    linview.show_contours(options.consteps, options.conorig);
   #endif
 
   linview.switch_to(0);
@@ -190,7 +191,7 @@ int main(int argc, char* argv[])
       if (!exists(filename))
       { 
         linview.switch_to(i);
-        usleep(100000); // fucking intel GL driver
+        //usleep(100000); // fucking intel GL driver
         linview.save_screenshot(filename, options.hq);
       }
       else
@@ -198,6 +199,7 @@ int main(int argc, char* argv[])
     }
   }
   
-  hermes2d_finalize();
+  View::wait();
   return EXIT_SUCCESS;
 }
+

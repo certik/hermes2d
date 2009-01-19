@@ -29,6 +29,7 @@ class Solution;
 class MeshFunction;
   
 
+
 ///  
 ///
 ///
@@ -51,6 +52,9 @@ public:
   /// Assembles the jacobian and the residuum vector.
   void assemble();
 
+  /// Performs one Newton iteration, stores the result in the given Solutions.
+  bool solve(int n, ...);
+  
   /// returns the L2-norm of the residuum
   double get_residuum_l2_norm() const { return res_l2; }
   /// returns the L1-norm of the residuum  

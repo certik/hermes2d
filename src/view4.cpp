@@ -629,6 +629,7 @@ void OrderView::on_key_down(unsigned char key, int x, int y)
 void OrderView::load_data(const char* filename)
 {
   ord.load_data(filename);
+  init_order_palette();
   glut_init();
   update_layout();
   

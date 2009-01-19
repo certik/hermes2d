@@ -33,7 +33,6 @@ NonlinSystem::NonlinSystem(WeakForm* wf, Solver* solver)
 {
   alpha = 1.0;
   res_l2 = res_l1 = res_max = -1.0;
-  // todo
   
   // tell LinSystem not to add Dirichlet contributions to the RHS
   want_dir_contrib = false;
@@ -42,9 +41,11 @@ NonlinSystem::NonlinSystem(WeakForm* wf, Solver* solver)
 
 void NonlinSystem::set_ic(MeshFunction* fn) 
 {
+  if (!have_spaces)
+    error("You need to call set_ic() after calling set_spaces().");
+  
   // todo
 }
-
 
 
 void NonlinSystem::assemble()
@@ -62,37 +63,61 @@ void NonlinSystem::assemble()
   }
   res_l2 = sqrt(res_l2);
     
-  // replace RHS with J(Y_n)*Y_n - alpha*F(Y_n)
-  scalar *tmp = new scalar[ndofs];
-  A_times_vec(tmp);            
+  // multiply RHS by -alpha
   for (int i = 0; i < ndofs; i++)
-    RHS[i] = tmp[i] - alpha*RHS[i]; 
-  delete [] tmp;
+    RHS[i] *= -alpha; 
 }
 
 
-void NonlinSystem::A_times_vec(scalar* result)
+bool NonlinSystem::solve(int n, ...)
 {
-  if (!mat_sym)
+  // The solve() function is almost identical to the original one in LinSystem
+  // except that Y_{n+1} = Y_{n} + dY_{n+1}
+  begin_time();
+  
+  // perform symbolic analysis of the matrix
+  if (struct_changed)
   {
-    if (mat_row) // CSR
-    {
-      for (int i = 0, n = 0; i < ndofs; i++)
-        for (result[i] = 0; n < Ap[i+1]; n++)
-          result[i] += Ax[n] * Vec[Ai[n]];
-    }
-    else // CSC
-    {
-      memset(result, 0, sizeof(scalar) * ndofs);
-      for (int j = 0, n = 0; j < ndofs; j++)
-        for ( ; n < Ap[j+1]; n++)
-          result[Ai[n]] += Ax[n] * Vec[j];
-    }
-  }
-  else
+    solver->analyze(slv_ctx, ndofs, Ap, Ai, Ax, false);
+    struct_changed = false;
+  }  
+  
+  // factorize the stiffness matrix, if needed
+  if (struct_changed || values_changed)
   {
-    error("not implemented yet for symmetric matrices");
+    solver->factorize(slv_ctx, ndofs, Ap, Ai, Ax, false);
+    values_changed = false;
   }
+  
+  // solve the system
+  scalar* delta = (scalar*) malloc(ndofs * sizeof(scalar));
+  solver->solve(slv_ctx, ndofs, Ap, Ai, Ax, false, RHS, delta);
+  verbose("  (total solve time: %g sec)", end_time());
+  
+  // if not initialized by set_ic(), assume Vec is a zero vector
+  if (Vec == NULL)
+  {
+    Vec = (scalar*) malloc(ndofs * sizeof(scalar));
+    memset(Vec, 0, ndofs * sizeof(scalar));
+  }
+    
+  // add the increment dY_{n+1} to the previous solution vector
+  for (int i = 0; i < ndofs; i++)
+    Vec[i] += delta[i];
+  ::free(delta);
+      
+  // initialize the Solution classes
+  begin_time();
+  va_list ap;
+  va_start(ap, n);
+  if (n > wf->neq) n = wf->neq;
+  for (int i = 0; i < n; i++)
+  {
+    Solution* sln = va_arg(ap, Solution*);
+    sln->set_fe_solution(spaces[i], pss[i], Vec);
+  }
+  va_end(ap);
+  verbose("Exported solution in %g sec", end_time());
+  
+  return true;
 }
-
-

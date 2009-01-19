@@ -1,8 +1,8 @@
 include ../../Make.config
 
-HERMES = ../../lib/libhermes2d-$(CC)-O-real.a
-FLAGS  = -O3 -DNDEBUG
-#FLAGS = -ggdb
+HERMES = ../../lib/libhermes2d-$(CC)-g-real.a
+#FLAGS  = -O3 -DNDEBUG
+FLAGS = -ggdb
 
 all: linview vecview ordview
 
