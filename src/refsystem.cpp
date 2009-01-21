@@ -95,6 +95,7 @@ void RefSystem::assemble(bool rhsonly)
   
   memcpy(spaces, ref_spaces, sizeof(Space*) * wf->neq);
   memcpy(pss, coarse->pss, sizeof(PrecalcShapeset*) * wf->neq);
+  have_spaces = true;
 
   LinSystem::assemble(rhsonly);
 }
