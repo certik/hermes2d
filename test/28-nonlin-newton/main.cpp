@@ -90,8 +90,8 @@ int main(int argc, char* argv[])
   nls.set_spaces(1, &space);
   nls.set_pss(1, &pss);
   
-  ScalarView view("Iteration", 0, 0, 850, 800);
-  ScalarView errview("Error", 850, 0, 850, 800);
+  ScalarView view("Iteration", 0, 0, 880, 800);
+  ScalarView errview("Error", 900, 0, 880, 800);
   
   // uprev must contain the dirichlet lift at the beginning
   // TODO: make a new function of Solution for this
