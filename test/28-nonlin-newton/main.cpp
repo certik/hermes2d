@@ -15,6 +15,7 @@
 #include "hermes2d.h"
 #include "solver_umfpack.h"
 
+//#define DEBUG_ORDER
 
 Solution uprev;
 
@@ -23,15 +24,15 @@ Solution uprev;
 scalar residual(RealFunction* vi, RefMap* ri)
 {
   RefMap* ru = uprev.get_refmap();
-  return int_grad_u_grad_v(&uprev, vi, ru, ri) +
-         int_u3(&uprev, ru);
+  return int_grad_U_grad_v(&uprev, vi, ri, ri) +
+         int_u3_v(&uprev, vi, ru, ri);
 }
 
 scalar jacobian(RealFunction* vj, RealFunction* vi, RefMap* rj, RefMap* ri)
 {
   RefMap* ru = uprev.get_refmap();
   return int_grad_u_grad_v(vj, vi, rj, ri) +
-         3*int_u2_vj_vi(&uprev, vj, vi, ru, rj, ri); 
+         3*int_u2_vj_vi(&uprev, vj, vi, ru, rj, ri);
 }
 
 
@@ -53,6 +54,8 @@ int main(int argc, char* argv[])
   mesh.refine_all_elements(1);
   mesh.refine_all_elements();
   mesh.refine_towards_boundary(1, 3);
+  mesh.refine_all_elements();
+  mesh.refine_all_elements();
 
   H1Shapeset shapeset;
   PrecalcShapeset pss(&shapeset);
@@ -74,25 +77,37 @@ int main(int argc, char* argv[])
   ScalarView view("Iteration", 0, 0, 850, 800);
   ScalarView errview("Error", 850, 0, 850, 800);
   
-  //uprev.set_zero(&mesh);
+  // uprev must contain the dirichlet lift at the beginning
+  // TODO: make a new function of Solution for this
   scalar vec[space.get_num_dofs()];
   memset(vec, 0, sizeof(vec));
   uprev.set_fe_solution(&space, &pss, vec);
   
+  int it = 1;
+  double l2e;
   do
   {
+    info("\n---- Iteration %d ---------------------------------------\n", it++);
+    
     Solution sln;
     nls.assemble();
     nls.solve(1, &sln);
     info("Residuum L2 norm: %g\n", nls.get_residuum_l2_norm());
     
+    view.show(&sln);
+    
     ExactSolution exsln(&mesh, exact);
     DiffFilter err(&sln, &exsln);
-    view.show(&sln);
     errview.show(&err);
     errview.wait_for_keypress();
+    
+    l2e = l2_error(&sln, &exsln);
+    info("L2 error: %g", l2e);
+    
+    uprev = sln;
   }
-  while (nls.get_residuum_l2_norm() > 1e-3);
+  while (nls.get_residuum_l2_norm() > 1e-4);
+  //while (l2e > 1e-5);
   
   View::wait();
   return 0;

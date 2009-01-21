@@ -52,7 +52,7 @@ void NonlinSystem::assemble()
 { 
   // assemble J(Y_n) and store in A, assemble F(Y_n) and store in RHS
   LinSystem::assemble();
-  
+
   // calculate norms of the residual F(Y_n)
   res_l2 = res_l1 = res_max = 0.0;
   for (int i = 0; i < ndofs; i++)
@@ -65,7 +65,7 @@ void NonlinSystem::assemble()
     
   // multiply RHS by -alpha
   for (int i = 0; i < ndofs; i++)
-    RHS[i] *= -alpha; 
+    RHS[i] *= -alpha;
 }
 
 
