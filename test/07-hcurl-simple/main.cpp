@@ -64,7 +64,7 @@ int main(int argc, char* argv[])
   hermes2d_initialize(&argc, argv);
 
   Mesh mesh;
-  mesh.load("lshape2q.mesh");
+  mesh.load("lshape2.mesh");
   mesh.refine_towards_vertex(0, 5);
 
   HcurlShapesetLegendre shapeset;

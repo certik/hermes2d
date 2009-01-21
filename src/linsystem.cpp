@@ -589,7 +589,7 @@ void LinSystem::assemble(bool rhsonly)
       // assemble surface integrals now: loop through boundary edges of the element
       for (int edge = 0; edge < e[0]->nvert; edge++)
       {
-        if (!bnd[edge] || !e[0]->en[edge]->bnd) continue;
+        if (!bnd[edge]/* || !e[0]->en[edge]->bnd*/) continue;
         marker = ep[edge].marker;
   
         // obtain the list of shape functions which are nonzero on this edge
