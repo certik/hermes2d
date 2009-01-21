@@ -74,7 +74,10 @@ int main(int argc, char* argv[])
   ScalarView view("Iteration", 0, 0, 850, 800);
   ScalarView errview("Error", 850, 0, 850, 800);
   
-  uprev.set_zero(&mesh);
+  //uprev.set_zero(&mesh);
+  scalar vec[space.get_num_dofs()];
+  memset(vec, 0, sizeof(vec));
+  uprev.set_fe_solution(&space, &pss, vec);
   
   do
   {
