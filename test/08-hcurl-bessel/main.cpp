@@ -80,10 +80,8 @@ scalar exact1(double x, double y, scalar& dx, scalar& dy)
 
 int main(int argc, char* argv[])
 {
-  hermes2d_initialize(&argc, argv);
-  
   Mesh mesh;
-  mesh.load("lshape3q.mesh");
+  mesh.load("lshape3.mesh");
   mesh.refine_towards_vertex(0, 5);
   mesh.refine_all_elements();
   
@@ -122,6 +120,6 @@ int main(int argc, char* argv[])
   view3.show_contours(0.07);
   view3.show(&mag, EPS_HIGH);
 
-  hermes2d_finalize();
+  View::wait();
   return 0;
 }

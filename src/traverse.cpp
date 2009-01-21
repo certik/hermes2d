@@ -165,7 +165,7 @@ void Traverse::set_boundary_info(State* s, bool* bnd, EdgePos* ep)
   {
     for (int i = 0; i < 3; i++)
     {
-      if ((bnd[i] = (s->bnd[i] /*&& e->en[i]->bnd*/)))
+      if ((bnd[i] = (s->bnd[i] && e->en[i]->bnd)))
       {
         ep[i].lo = (double) s->lo[i] / ONE;
         ep[i].hi = (double) s->hi[i] / ONE;
@@ -174,10 +174,10 @@ void Traverse::set_boundary_info(State* s, bool* bnd, EdgePos* ep)
   }
   else
   {
-    bnd[0] = (s->cr.b == 0)   /*&& e->en[0]->bnd*/;  // moved this to linsystem.cpp:583 (r102)
-    bnd[1] = (s->cr.r == ONE) /*&& e->en[1]->bnd*/;
-    bnd[2] = (s->cr.t == ONE) /*&& e->en[2]->bnd*/;
-    bnd[3] = (s->cr.l == 0)   /*&& e->en[3]->bnd*/;
+    bnd[0] = (s->cr.b == 0)   && e->en[0]->bnd;  // moved this to linsystem.cpp:583 (r102)
+    bnd[1] = (s->cr.r == ONE) && e->en[1]->bnd;
+    bnd[2] = (s->cr.t == ONE) && e->en[2]->bnd;
+    bnd[3] = (s->cr.l == 0)   && e->en[3]->bnd;
 
     if (bnd[0]) { ep[0].lo = (double) s->cr.l / ONE;        ep[0].hi = (double) s->cr.r / ONE; }
     if (bnd[1]) { ep[1].lo = (double) s->cr.b / ONE;        ep[1].hi = (double) s->cr.t / ONE; }

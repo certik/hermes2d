@@ -134,11 +134,7 @@ void __verbose_fn(const char* msg, ...);
 #else
   // Linux
   #ifdef NDEBUG
-    #ifdef __PRETTY_FUNCTION__
-      #define __ASSERT_FUNCTION __PRETTY_FUNCTION__
-    #else
-      #define __ASSERT_FUNCTION "<unknown function>"
-    #endif
+    #define __ASSERT_FUNCTION __PRETTY_FUNCTION__
   #else
     #ifndef __ASSERT_FUNCTION
       #define __ASSERT_FUNCTION "<unknown function>"
