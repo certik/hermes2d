@@ -1,6 +1,6 @@
 include ../../Make.config
 
-NAME   = nonlin-newton
+NAME   = nonlin-fixed
 HERMES = ../../lib/libhermes2d-$(CC)-g-real.a
 FLAGS  = -ggdb 
 #FLAGS  = -O3 -DNDEBUG
