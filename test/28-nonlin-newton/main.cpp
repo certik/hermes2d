@@ -15,7 +15,9 @@
 #include "hermes2d.h"
 #include "solver_umfpack.h"
 
-//#define DEBUG_ORDER
+const double A = 0.05;
+const double B = 0.5;
+
 
 Solution uprev;
 
@@ -23,10 +25,15 @@ Solution uprev;
 
 scalar residual(RealFunction* vi, RefMap* ri)
 {
-  RefMap* ru = uprev.get_refmap();
   return int_grad_U_grad_v(&uprev, vi, ri, ri) +
-         int_u3_v(&uprev, vi, ru, ri);
+         int_u3_v(&uprev, vi, ri, ri);
 }
+
+scalar residual_surf(RealFunction* vi, RefMap* ri, EdgePos* ep)
+{
+  return 1.0/(sqr(B)) * surf_int_v(vi, ri, ep);
+}
+
 
 scalar jacobian(RealFunction* vj, RealFunction* vi, RefMap* rj, RefMap* ri)
 {
@@ -36,9 +43,16 @@ scalar jacobian(RealFunction* vj, RealFunction* vi, RefMap* rj, RefMap* ri)
 }
 
 
+int bc_types(int marker)
+{
+  if (marker == 1)
+    return BC_ESSENTIAL;
+  return BC_NATURAL;
+}
+
 scalar bc_values(int marker, double x, double y)
 {
-  return 1.0 / hypot(x, y); 
+  if (marker == 1) return 1.0 / A; 
 }
 
 scalar exact(double x, double y, scalar& dx, scalar& dy)
@@ -61,6 +75,7 @@ int main(int argc, char* argv[])
   PrecalcShapeset pss(&shapeset);
   
   H1Space space(&mesh, &shapeset);
+  space.set_bc_types(bc_types);
   space.set_bc_values(bc_values);
   space.set_uniform_order(3);
   space.assign_dofs();
@@ -68,6 +83,7 @@ int main(int argc, char* argv[])
   WeakForm wf(1);
   wf.add_biform(0, 0, jacobian, UNSYM, ANY, 1, &uprev);
   wf.add_liform(0, residual, ANY, 1, &uprev);
+  wf.add_liform_surf(0, residual_surf, 2);
   
   UmfpackSolver umfpack;
   NonlinSystem nls(&wf, &umfpack);
