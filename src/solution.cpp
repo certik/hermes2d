@@ -187,10 +187,12 @@ void Solution::assign(Solution* sln)
   elem_coefs[1] = sln->elem_coefs[1];  sln->elem_coefs[1] = NULL;
   elem_orders = sln->elem_orders;      sln->elem_orders = NULL;
   dxdy_buffer = sln->dxdy_buffer;      sln->dxdy_buffer = NULL;
+  num_coefs = sln->num_coefs;          sln->num_coefs = 0;
+  num_elems = sln->num_elems;          sln->num_elems = 0;
 
   type = sln->type;
   num_components = sln->num_components;
-  
+
   sln->type = UNDEF;
   memset(sln->tables, 0, sizeof(sln->tables));
 }
