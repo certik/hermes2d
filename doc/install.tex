@@ -44,7 +44,6 @@ produce the following files in {\tt hermes2d/lib}:
    libhermes2d-gcc-g-cplx.a
    libhermes2d-gcc-O-cplx.a
 \end{verbatim}}
-
 These are different versions of the library, depending on whether it is a debugging
 or optimized ({\tt g} or {\tt O}) and real or complex build. 
 
@@ -71,6 +70,7 @@ In each project subdirectory, use the following {\tt Makefile}:
 \begin{lstlisting}
  include ../Make.config
  NAME = name-of-executable
+ SRCS = main.cpp
  HLIB = $(HERMES)/lib/libhermes2d-$(CC)-O-real.a
  FLAGS = $(OPT)
  #FLAGS = -ggdb  # for debugging
@@ -78,13 +78,15 @@ In each project subdirectory, use the following {\tt Makefile}:
 \end{lstlisting}
 The file {\tt Make.common} may contain rules used by all projects:
 \begin{lstlisting}
- $(NAME): main.o $(HERMES)
-         $(CC) main.o -o $@ $(HLIB) $(LIBS) -pthread
- main.o: main.cpp
-         $(CC) $(FLAGS) $(INCLUDES) -c $< -o $@
- clean:
-         rm -f $(NAME) *.o
+ OBJS = $(SRCS:.cpp=.o)
+ $(NAME): $(OBJS) $(HLIB)
+       $(CC) $(OBJS) -o $@ $(HLIB) $(LIBS) -pthread
+ %.o: %.cpp $(HLIB)
+       $(CC) $(FLAGS) -I$(HERMES)/include $(INCLUDES) -c $< -o $@
 \end{lstlisting}
+
+% clean:
+%         rm -f $(NAME) *.o
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
