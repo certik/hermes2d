@@ -141,7 +141,7 @@ void LinSystem::free()
   if (Ai != NULL) { ::free(Ai); Ai = NULL; }
   if (Ax != NULL) { ::free(Ax); Ax = NULL; }
   if (RHS != NULL) { ::free(RHS); RHS = NULL; }
-  if (Dir != NULL) { ::free(Dir); Dir = NULL; }
+  if (Dir != NULL) { ::free(Dir-1); Dir = NULL; }
   if (Vec != NULL) { ::free(Vec); Vec = NULL; }
   solver->free_data(slv_ctx);
 } 
@@ -350,7 +350,7 @@ void LinSystem::create_matrix(bool rhsonly)
   memset(Ax, 0, sizeof(scalar) * Ap[ndofs]);
   
   RHS = (scalar*) malloc(sizeof(scalar) * ndofs);
-  Dir = (scalar*) malloc(sizeof(scalar) * ndofs);
+  Dir = (scalar*) malloc(sizeof(scalar) * (ndofs + 1)) + 1;
   if (RHS == NULL || Dir == NULL) error("Out of memory. Error allocating the RHS vector.");
   memset(RHS, 0, sizeof(scalar) * ndofs);
   memset(Dir, 0, sizeof(scalar) * ndofs);
