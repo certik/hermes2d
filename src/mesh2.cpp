@@ -352,6 +352,7 @@ void Mesh::load_old(const char* filename)
       refine_element(id, ref);
     }
   }
+  ninitial = elements.get_num_items();
   
   // update refmap coefs of curvilinear elements
   Element* e;
@@ -561,6 +562,7 @@ void Mesh::load(const char* filename, bool debug)
       refine_element(id, ref);
     }
   }
+  ninitial = elements.get_num_items();
 
   mesh_parser_free();
   seq = g_mesh_seq++;
@@ -735,7 +737,7 @@ void Mesh::create(int nv, double2* verts, int nt, int4* tris,
     }
   }
   
-  nbase = nactive = nt + nq;
+  nbase = nactive = ninitial = nt + nq;
   seq = g_mesh_seq++;
 }
 
@@ -916,7 +918,7 @@ void Mesh::copy(const Mesh* mesh)
   nbase = mesh->nbase;
   nactive = mesh->nactive;
   ntopvert = mesh->ntopvert;
-  zero_remap = mesh->zero_remap;
+  ninitial = mesh->ninitial;
   seq = mesh->seq;
 }
 
@@ -973,7 +975,7 @@ void Mesh::copy_base(Mesh* mesh)
       enew->cm = new CurvMap(e->cm);
   }
   
-  nbase = nactive = mesh->nbase;
+  nbase = nactive = ninitial = mesh->nbase;
   ntopvert = mesh->ntopvert;
   seq = g_mesh_seq++;
 }
@@ -1193,7 +1195,6 @@ void Mesh::load_raw(FILE* f)
         n->elem[j] = get_element((int) (long) n->elem[j]);
   
   #undef input
-  zero_remap = 0;
   seq++;
 }
 
