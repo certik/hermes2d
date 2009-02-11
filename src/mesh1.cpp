@@ -700,17 +700,21 @@ void Mesh::unrefine_element(int id)
 
 void Mesh::unrefine_all_elements(bool keep_initial)
 {
-  // find inactive elements with active sons and unrefine them
+  // find inactive elements with active sons
+  std::vector<int> list;
   Element* e;
   for_all_inactive_elements(e, this)
   {
-    if (keep_initial && e->id < ninitial) continue;
-      
     bool found = true;
     for (int i = 0; i < 4; i++)
-      if (e->sons[i] != NULL && !e->sons[i]->active)
+      if (e->sons[i] != NULL && (!e->sons[i]->active ||
+          (keep_initial && e->sons[i]->id < ninitial))  )
         { found = false; break; }
       
-    if (found) unrefine_element(e->id);
+    if (found) list.push_back(e->id);
   }
+  
+  // unrefine the found elements
+  for (int i = 0; i < list.size(); i++)
+    unrefine_element(list[i]);
 }
