@@ -228,7 +228,7 @@ public:
   /// after refine_all_elements(), this function reverts the mesh to its
   /// original state. However, it is not exactly an inverse to
   /// refine_all_elements().
-  void unrefine_all_elements();
+  void unrefine_all_elements(bool keep_initial = true);
   
   void transform(double2x2 m, double2 t);
   void transform(void (*fn)(double* x, double* y));
@@ -241,8 +241,6 @@ public:
   /// For internal use.
   int get_edge_sons(Element* e, int edge, int& son1, int& son2);
   /// For internal use.
-  void set_zero_remap(int id) { zero_remap = id; }
-  /// For internal use.
   unsigned get_seq() const { return seq; }
   /// For internal use.
   Element* get_element_fast(int id) const { return &(elements[id]);}
@@ -252,8 +250,7 @@ protected:
 
   Array<Element> elements;
   int nbase, ntopvert;
-  int nactive;
-  int zero_remap;
+  int nactive, ninitial;
   unsigned seq;
   
   Element* create_triangle(int marker, Node* v0, Node* v1, Node* v2, CurvMap* cm);

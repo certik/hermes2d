@@ -133,7 +133,7 @@ unsigned g_mesh_seq = 0;
 
 Mesh::Mesh() : HashTable()
 {
-  nbase = nactive = ntopvert = zero_remap = 0;
+  nbase = nactive = ntopvert = ninitial = 0;
   seq = g_mesh_seq++;
 }
 
@@ -142,7 +142,6 @@ Element* Mesh::get_element(int id) const
 {
   if (id < 0 || id >= elements.get_size())
     error("invalid element id number.");
-  if (!id) id = zero_remap;
   return &(elements[id]);
 }
 
@@ -699,12 +698,14 @@ void Mesh::unrefine_element(int id)
 }
 
 
-void Mesh::unrefine_all_elements()
+void Mesh::unrefine_all_elements(bool keep_initial)
 {
   // find inactive elements with active sons and unrefine them
   Element* e;
   for_all_inactive_elements(e, this)
   {
+    if (keep_initial && e->id < ninitial) continue;
+      
     bool found = true;
     for (int i = 0; i < 4; i++)
       if (e->sons[i] != NULL && !e->sons[i]->active)
