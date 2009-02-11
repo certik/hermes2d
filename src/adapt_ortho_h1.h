@@ -99,7 +99,11 @@ public:
   /// procedures, for which adapt() is not sufficient.
   static void get_optimal_refinement(Element* e, int order, Solution* rsln, int& split, int p[4], int q[4], bool aniso = true, bool h_adapt = false);
 
-  // TODO: error retrieval fns
+  /// Internal. Functions to obtain errors of individual elements.
+  double get_element_error(int component, int id) const { return errors[component][id]; }
+  int2*  get_sorted_elements() const { return esort; }
+  int    get_total_active_elements() const { return nact; }
+  
 
 protected:
 

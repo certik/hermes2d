@@ -764,7 +764,8 @@ int view_set_title_body(void* param)
 void View::set_title(const char* title)
 {
   this->title = title;
-  cross_thread_call(view_set_title_body, this);
+  if (window_id >= 0)
+    cross_thread_call(view_set_title_body, this);
 }
 
 
