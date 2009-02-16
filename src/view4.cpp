@@ -19,6 +19,8 @@
 
 // $Id: view4.cpp 1086 2008-10-21 09:05:44Z jakub $
 
+#ifndef NOGLUT
+
 #include <GL/freeglut.h>
 #include "common.h"
 #include "view.h"
@@ -680,7 +682,7 @@ const char* OrderView::get_help_text() const
 
 //// Matrix View ///////////////////////////////////////////////////////////////////////////////////
 
-MatrixView::MatrixView(const char* title, int x, int y, int width, int height)
+/*MatrixView::MatrixView(const char* title, int x, int y, int width, int height)
           : View(title, x, y, width, height)
 {
   Ap = NULL;
@@ -910,4 +912,7 @@ const char* MatrixView::get_help_text() const
   "  Red - unsymmetric element\n"
   "  Magenta - antisymmetric element\n"
   "  Grey - stored zero element";
-}
+}*/
+
+
+#endif // NOGLUT

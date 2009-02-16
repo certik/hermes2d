@@ -25,6 +25,12 @@
 #include "common.h"
 #include "linear.h"
 
+// default window size and position
+#define DEFAULT_WINDOW_POS  int x = -1, int y = -1, int width = 1000, int height = 800
+
+
+// you can define NOGLUT to turn off all OpenGL stuff in Hermes2D
+#ifndef NOGLUT
 
 /// \brief Represents a simple visualization window.
 ///
@@ -40,7 +46,7 @@ class View
 public:
   
   View(const char* title, int x, int y, int width, int height);
-  ~View();
+  virtual ~View();
 
   int  create();
   void close();
@@ -180,11 +186,8 @@ protected:
 };
 
 
-void glut_init();
-void finish_glut_main_loop(bool force = false);
-
-
-#define DEFAULT_WINDOW_POS int x = -1, int y = -1, int width = 1000, int height = 800
+void glut_init(); // deprecated, don't use
+void finish_glut_main_loop(bool force = false);  // deprecated, don't use
 
 
 /// \brief Displays a mesh.
@@ -416,9 +419,9 @@ protected:
 };
 
 
-class DiscreteProblem;
+/*class DiscreteProblem;
 
-/// \brief Displays the sparse structure of a matrix.
+/// \brief Displays the sparse structure of a matrix.   TODO: update this for LinSystem
 ///
 /// MatrixView is a debugging tool for the visualization of the sparse structure
 /// of a matrix associated with a discrete problem. Nonzero matrix elements are
@@ -456,7 +459,7 @@ protected:
   virtual void scale_dispatch() {}
   virtual const char* get_help_text() const;
 
-};
+};*/
 
 
 
@@ -495,5 +498,126 @@ void View::center_mesh(TYPE* vertices, int nvert)
   update_log_scale();
 }
 
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// If compiling without OpenGL support, replace all View-based classes with empty stubs, which
+// only show a warning that no OpenGL support has been compiled in. The reason for having the 
+// empty classes is that you don't have to modify projects using the GL features: all visualization
+// will just be skipped.
+
+#else // NOGLUT 
+
+
+class View
+{
+public:
+  View() {}
+  View(const char* title, int x, int y, int width, int height) {}
+  ~View() {}
+  int  create() {}
+  void close() {}
+  void set_title(const char* title) {}
+  void set_min_max_range(double min, double max) {}
+  void auto_min_max_range() {}
+  void get_min_max_range(double& min, double& max) {}
+  void show_scale(bool show = true) {}
+  void set_scale_position(int horz, int vert) {}
+  void set_scale_size(int width, int height, int numticks) {}
+  void set_scale_format(const char* fmt) {}
+  void save_screenshot(const char* bmpname, bool high_quality = false) {}
+  void save_numbered_screenshot(const char* format, int number, bool high_quality = false) {}
+  void set_palette(int type) {}
+  void set_num_palette_steps(int num) {}
+  void set_palette_filter(bool linear) {}
+  void wait_for_keypress() {}
+  void wait_for_close() {}
+  void wait_for_draw() {}
+  static void wait() {}
+};
+
+
+class MeshView : public View
+{
+public:
+  MeshView(const char* title = "MeshView", DEFAULT_WINDOW_POS) {}
+  virtual ~MeshView() {}
+  void show(Mesh* mesh)
+     { info("MeshView: Hermes2D compiled without OpenGL support, skipping visualization."); }
+};
+
+
+class ScalarView : public View
+{
+public:
+  ScalarView(const char* title = "ScalarView", DEFAULT_WINDOW_POS) {}
+  virtual ~ScalarView() {}
+  void show(MeshFunction* sln, double eps = EPS_NORMAL, int item = FN_VAL_0,
+            MeshFunction* xdisp = NULL, MeshFunction* ydisp = NULL, double dmult = 1.0)
+     { info("ScalarView: Hermes2D compiled without OpenGL support, skipping visualization."); }
+  void show_mesh(bool show = true) {}
+  void show_contours(double step, double orig = 0.0) {}
+  void hide_contours() {}
+  void set_3d_mode(bool enable = true) {}
+  void load_data(const char* filename) {}
+  void save_data(const char* filename) {}
+  void save_numbered(const char* format, int number) {}
+};
+
+
+class BaseView : public ScalarView
+{
+public:
+  BaseView(const char* title = "BaseView", DEFAULT_WINDOW_POS) {}
+  virtual ~BaseView() {}
+  void show(Space* space, double eps = EPS_LOW, int item = FN_VAL_0)
+     { info("BaseView: Hermes2D compiled without OpenGL support, skipping visualization."); }
+};
+
+
+class OrderView : public View
+{
+public:
+  OrderView(const char* title = "OrderView", DEFAULT_WINDOW_POS) {}
+  void show(Space* space)
+     { info("OrderView: Hermes2D compiled without OpenGL support, skipping visualization."); }
+  void load_data(const char* filename) {}
+  void save_data(const char* filename) {}
+  void save_numbered(const char* format, int number) {}
+};
+
+
+class VectorView : public View
+{
+public:
+  VectorView(const char* title = "VectorView", DEFAULT_WINDOW_POS) {}
+  void show(MeshFunction* vsln, double eps = EPS_NORMAL)
+     { info("VectorView: Hermes2D compiled without OpenGL support, skipping visualization."); }
+  void show(MeshFunction* xsln, MeshFunction* ysln, double eps = EPS_NORMAL)
+     { info("VectorView: Hermes2D compiled without OpenGL support, skipping visualization."); }
+  void show(MeshFunction* xsln, MeshFunction* ysln, double eps, int xitem, int yitem)
+     { info("VectorView: Hermes2D compiled without OpenGL support, skipping visualization."); }
+  void set_grid_type(bool hexa) {}
+  void load_data(const char* filename) {}
+  void save_data(const char* filename) {}
+  void save_numbered(const char* format, int number) {}
+};
+
+
+class VectorBaseView : public VectorView
+{
+public:
+  VectorBaseView(const char* title = "BaseView", DEFAULT_WINDOW_POS) {}
+  virtual ~VectorBaseView() {} 
+  void show(Space* space)
+     { info("VectorBaseView: Hermes2D compiled without OpenGL support, skipping visualization."); }
+};
+
+
+void glut_init() {}
+void finish_glut_main_loop(bool force = false) {}
+
+
+#endif // NOGLUT
 
 #endif

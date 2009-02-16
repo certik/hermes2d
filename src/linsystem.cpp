@@ -531,7 +531,7 @@ void LinSystem::assemble(bool rhsonly)
         {
           if (!tra && (k = am->dof[i]) < 0) continue;
           fv->set_active_shape(am->idx[i]);
-          
+
           if (!sym) // unsymmetric block
           {
             for (j = 0; j < an->cnt; j++) {
@@ -550,7 +550,7 @@ void LinSystem::assemble(bool rhsonly)
             }
           }
         }
-        
+
         // insert the local stiffness matrix into the global one
         insert_block(mat, am->dof, an->dof, am->cnt, an->cnt);
 

@@ -1,7 +1,7 @@
 include ../Make.config
 
 # -axN -parallel
-FLAGS = -fmessage-length=0 -fPIC
+FLAGS = -fmessage-length=0 -fPIC $(CONFIG)
 
 SRCS = hash.cpp mesh1.cpp mesh2.cpp regul.cpp refmap.cpp curved.cpp \
        transform.cpp traverse.cpp \

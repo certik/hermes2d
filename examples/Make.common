@@ -1,9 +1,9 @@
 
 $(NAME): main.o $(HERMES)
-	$(CC) main.o -o $@ $(HERMES) $(LIBS) -pthread
+	$(LD) main.o -o $@ $(HERMES) $(LIBS) -lglut -pthread
 
 main.o: main.cpp ../../Make.config ../../include/*.h
-	$(CC) -c $(FLAGS) $< -o $@ -I../../include $(INCLUDES)
+	$(CC) $(FLAGS) $(CONFIG) -c $< -o $@ -I../../include $(INCLUDES)
 
 clean:
 	rm -f $(NAME) *.o core core.[0-9]*

@@ -19,6 +19,8 @@
 
 // $Id: view2.cpp 1086 2008-10-21 09:05:44Z jakub $
 
+#ifndef NOGLUT
+
 #include <GL/freeglut.h>
 #include "common.h"
 #include "view.h"
@@ -600,3 +602,6 @@ const char* ScalarView::get_help_text() const
   "  * - increase Z scale\n"
   "  / - decrease Z scale";
 }
+
+
+#endif // NOGLUT

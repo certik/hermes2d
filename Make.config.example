@@ -27,6 +27,7 @@
 
 # 'gcc' is the default, but you can try 'icc' if you have the Intel Compiler
 CC = gcc
+LD = g++
 
 # Compiler directives to build optimized vesions of the library.
 OPT = -O3 -DNDEBUG
@@ -68,6 +69,9 @@ CUSTOM_LIBS =
 INCLUDES = $(UMFPACK_INCLUDES) $(CUSTOM_INCLUDES)
 
 LIBS = -lgfortran -lglut -lJudy $(UMFPACK_LIBS) $(CUSTOM_LIBS)
+
+# If you don't want GLUT support, remove -lglut from LIBS and uncomment this line:
+#CONFIG = -DNOGLUT
 
 
 ################################################################################
