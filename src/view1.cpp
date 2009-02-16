@@ -19,6 +19,8 @@
 
 // $Id: view1.cpp 1086 2008-10-21 09:05:44Z jakub $
 
+#ifndef NOGLUT
+
 #include <GL/freeglut.h>
 #ifndef WIN32
   #include <sys/time.h>
@@ -1334,3 +1336,6 @@ void View::set_scale_format(const char* fmt)
   strncpy(scale_fmt, fmt, 19);
   if (window_id >= 0) { update_layout(); post_redisplay(); }
 }
+
+
+#endif // NOGLUT

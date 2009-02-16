@@ -68,9 +68,6 @@ protected:
   double alpha;
   double res_l2, res_l1, res_max;
 
-  /// Calculates the product of the stiffness matrix with the solution vector.
-  void A_times_vec(scalar* result);
-
 };
 
 

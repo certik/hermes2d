@@ -19,6 +19,8 @@
 
 // $Id: view3.cpp 1086 2008-10-21 09:05:44Z jakub $
 
+#ifndef NOGLUT
+
 #include <GL/freeglut.h>
 #include "common.h"
 #include "view.h"
@@ -479,3 +481,6 @@ const char* VectorView::get_help_text() const
   "  F1 - this help\n"
   "  Esc, Q - quit";
 }
+
+
+#endif // NOGLUT
