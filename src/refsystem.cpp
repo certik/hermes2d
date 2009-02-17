@@ -25,11 +25,12 @@
 
 
   
-RefSystem::RefSystem(LinSystem* coarse, int order_increase)
-         : LinSystem(coarse->wf, coarse->solver)
+RefSystem::RefSystem(LinSystem* base, int order_increase, int refinement)
+         : LinSystem(base->wf, base->solver)
 {
-  this->coarse = coarse;
+  this->base = base;
   order_inc = order_increase;
+  this->refinement = refinement;
   ref_meshes = NULL;
   ref_spaces = NULL;
 }
@@ -64,11 +65,11 @@ void RefSystem::assemble(bool rhsonly)
   // copy meshes from the coarse problem, refine them
   for (i = 0; i < wf->neq; i++)
   {
-    Mesh* cmesh = coarse->spaces[i]->get_mesh();
+    Mesh* mesh = base->spaces[i]->get_mesh();
     
     // check if we already have the same mesh
     for (j = 0; j < i; j++)
-      if (cmesh->get_seq() == coarse->spaces[j]->get_mesh()->get_seq())
+      if (mesh->get_seq() == base->spaces[j]->get_mesh()->get_seq())
         break;
       
     if (j < i) // yes
@@ -78,8 +79,9 @@ void RefSystem::assemble(bool rhsonly)
     else // no, copy and refine the coarse one
     {
       Mesh* rmesh = new Mesh;
-      rmesh->copy(cmesh);
-      rmesh->refine_all_elements();
+      rmesh->copy(mesh);
+      if (refinement ==  1) rmesh->refine_all_elements();
+      if (refinement == -1) rmesh->unrefine_all_elements();
       ref_meshes[i] = rmesh;
     }
   }
@@ -88,13 +90,35 @@ void RefSystem::assemble(bool rhsonly)
   int dofs = 0;
   for (i = 0; i < wf->neq; i++)
   {
-    ref_spaces[i] = coarse->spaces[i]->dup(ref_meshes[i]);
-    ref_spaces[i]->copy_orders(coarse->spaces[i], order_inc);
+    ref_spaces[i] = base->spaces[i]->dup(ref_meshes[i]);
+    if (refinement == -1)
+    {
+      Element* re;
+      for_all_active_elements(re, ref_meshes[i])
+      {
+        Mesh* mesh = base->spaces[i]->get_mesh();
+        Element* e = mesh->get_element(re->id);
+        int max_o = 0;
+        if (e->active) 
+          max_o = get_h_order(base->spaces[i]->get_element_order(e->id));
+        else
+          for (int son = 0; son < 4; son++)
+          {
+            int o = get_h_order(base->spaces[i]->get_element_order(e->sons[son]->id));
+            if (o > max_o) max_o = o;
+          }
+        ref_spaces[i]->set_element_order(re->id, max_o + order_inc);
+      }
+
+    }
+    else
+      ref_spaces[i]->copy_orders(base->spaces[i], order_inc);
+
     dofs += ref_spaces[i]->assign_dofs(dofs);
   }
   
   memcpy(spaces, ref_spaces, sizeof(Space*) * wf->neq);
-  memcpy(pss, coarse->pss, sizeof(PrecalcShapeset*) * wf->neq);
+  memcpy(pss, base->pss, sizeof(PrecalcShapeset*) * wf->neq);
   have_spaces = true;
 
   LinSystem::assemble(rhsonly);

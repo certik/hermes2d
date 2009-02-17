@@ -32,7 +32,7 @@ class RefSystem : public LinSystem
 {
 public:
   
-  RefSystem(LinSystem* coarse, int order_increase = 1);
+  RefSystem(LinSystem* base, int order_increase = 1, int refinement = 1);
   virtual ~RefSystem();
 
   /// Do not call in this class
@@ -51,8 +51,9 @@ public:
 
 protected:
 
-  LinSystem* coarse;
+  LinSystem* base;
   int order_inc;
+  int refinement;
 
   Mesh**  ref_meshes;
   Space** ref_spaces;
