@@ -116,6 +116,10 @@ public:
   
   /// \return The current transformation matrix.
   Trf* get_ctm() const { return ctm; }
+  
+  /// \return The depth of the current transformation.
+  int get_depth() const { return top; }
+
 
 protected:
 
