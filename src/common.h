@@ -30,7 +30,6 @@
 #include <assert.h>
 #include <pthread.h>
 #include <math.h>
-#include <time.h>
 
 // STL stuff
 #include <vector>

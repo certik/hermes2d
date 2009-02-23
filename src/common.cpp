@@ -22,12 +22,7 @@
 #include "common.h"
 
 
-//#ifndef NDEBUG
-  bool verbose_mode = true;
-//#else
-//  bool verbose_mode = false;
-//#endif
-
+bool verbose_mode = true;
 bool warn_integration = true;
 
 
@@ -90,11 +85,21 @@ void __hermes2d_fread(void* ptr, size_t size, size_t nitems, FILE* stream, const
 }
 
 
+//// timing stuff //////////////////////////////////////////////////////////////////////////////////
+
+/*#ifndef WIN32
+  #include <sys/time.h>
+#else*/
+  #include <time.h>
+//#endif
+
+
 static const int max_stack = 50;
 static clock_t tick_stack[max_stack];
 static int ts_top = 0;
 
-void begin_time()
+
+void begin_time() // TODO: make this return wall time on both Linux and Win32
 {
   if (ts_top < max_stack) tick_stack[ts_top] = clock();
   else warn("Timing stack overflow.");
