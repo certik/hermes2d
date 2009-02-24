@@ -66,11 +66,11 @@ LinSystem::LinSystem(WeakForm* wf, Solver* solver)
 {
   this->wf = wf;
   this->solver = solver;
-  slv_ctx = solver->new_context(false);
+  slv_ctx = solver ? solver->new_context(false) : NULL;
   
   Ap = Ai = NULL;
   Ax = RHS = Dir = Vec = NULL;
-  mat_row = solver->is_row_oriented();
+  mat_row = solver ? solver->is_row_oriented() : true;
   mat_sym = false;
   
   spaces = new Space*[wf->neq];
@@ -92,7 +92,7 @@ LinSystem::~LinSystem()
   delete [] spaces;
   delete [] sp_seq;
   delete [] pss;
-  solver->free_context(slv_ctx);
+  if (solver) solver->free_context(slv_ctx);
 }
 
 
@@ -143,7 +143,7 @@ void LinSystem::free()
   if (RHS != NULL) { ::free(RHS); RHS = NULL; }
   if (Dir != NULL) { ::free(Dir-1); Dir = NULL; }
   if (Vec != NULL) { ::free(Vec); Vec = NULL; }
-  solver->free_data(slv_ctx);
+  if (solver) solver->free_data(slv_ctx);
 } 
 
 
@@ -667,6 +667,7 @@ void LinSystem::assemble(bool rhsonly)
 
 bool LinSystem::solve(int n, ...)
 {
+  if (!solver) error("Cannot solve -- no solver was provided.");
   begin_time();
   
   // perform symbolic analysis of the matrix
