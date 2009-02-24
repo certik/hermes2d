@@ -40,7 +40,7 @@ class LinSystem
 {
 public:
 
-  LinSystem(WeakForm* wf, Solver* solver);
+  LinSystem(WeakForm* wf, Solver* solver = NULL);
   virtual ~LinSystem();
 
   void set_spaces(int n, ...);
