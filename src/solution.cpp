@@ -166,6 +166,7 @@ Solution::Solution()
   elem_orders = NULL;
   dxdy_buffer = NULL;
   num_coefs = num_elems = 0;
+  num_dofs = -1;
   
   set_quad_2d(&g_quad_2d_std);
 }
@@ -340,6 +341,7 @@ void Solution::set_fe_solution(Space* space, PrecalcShapeset* pss, scalar* vec, 
 
   num_components = pss->get_num_components();
   type = SLN;
+  num_dofs = space->get_num_dofs();
 
   // copy the mesh   TODO: share meshes between solutions
   mesh = new Mesh;
@@ -429,6 +431,7 @@ void Solution::set_exact(Mesh* mesh, scalar (*exactfn)(double x, double y, scala
   exactfn1 = exactfn;
   num_components = 1;
   type = EXACT;
+  num_dofs = -1;
 }
 
 
@@ -439,6 +442,7 @@ void Solution::set_exact(Mesh* mesh, scalar2& (*exactfn)(double x, double y, sca
   exactfn2 = exactfn;
   num_components = 2;
   type = EXACT;
+  num_dofs = -1;
 }
 
 
@@ -450,6 +454,7 @@ void Solution::set_const(Mesh* mesh, scalar c)
   cnst[1] = 0.0;
   num_components = 1;
   type = CNST;
+  num_dofs = -1;
 }
 
 
@@ -461,6 +466,7 @@ void Solution::set_const(Mesh* mesh, scalar c0, scalar c1)
   cnst[1] = c1;
   num_components = 2;
   type = CNST;
+  num_dofs = -1;
 }
 
 
