@@ -125,6 +125,10 @@ public:
   /// enough for calculations.
   virtual scalar get_pt_value(double x, double y, int item = FN_VAL_0);
 
+  /// Returns the number of degrees of freedom of the solution.
+  /// Returns -1 for exact or constant solutions.
+  int get_num_dofs() const { return num_dofs; };
+
 
 public:
 
@@ -150,6 +154,7 @@ protected:
   int* elem_coefs[2];  ///< array of pointers into mono_coefs
   int* elem_orders;    ///< stored element orders
   int num_coefs, num_elems;
+  int num_dofs;
 
   scalar   (*exactfn1)(double x, double y, scalar& dx,  scalar& dy);
   scalar2& (*exactfn2)(double x, double y, scalar2& dx, scalar2& dy);
