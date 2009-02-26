@@ -381,7 +381,7 @@ int main(int argc, char* argv[])
       if (stab) { delete [] delta_K;   delete [] tau_K; }
       
      // visualization
-      magview.show(&xsln, &ysln);
+      magview.show(&xsln, &ysln, EPS_LOW);
       pressview.show(&psln);
 
       // solve fine problem
