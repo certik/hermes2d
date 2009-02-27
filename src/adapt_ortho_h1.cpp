@@ -356,8 +356,8 @@ void H1OrthoHP::calc_projection_errors(Element* e, int order, Solution* rsln,
 }
 
 
-void H1OrthoHP::get_optimal_refinement(Element* e, int order, Solution* rsln,
-                                       int& split, int p[4], int q[4], bool aniso, bool h_adapt)
+void H1OrthoHP::get_optimal_refinement(Element* e, int order, Solution* rsln, int& split, int p[4], int q[4], 
+                                       bool h_only, bool iso_only, int max_order)
 {
   int i, j, k, n = 0;
   const int maxcand = 300;
@@ -365,11 +365,13 @@ void H1OrthoHP::get_optimal_refinement(Element* e, int order, Solution* rsln,
   order = std::max(get_h_order(order), get_v_order(order));
   bool tri = e->is_triangle();
 
-  // calculate maximal order of elements
+  // calculate default maximal order of elements
   // linear elements = 9
   // curvilinear elements = depends on iro_cache (how curved they are)
-  int max_order = (20 - e->iro_cache)/2 - 1;
-
+  if (max_order == -1) 
+    max_order = (20 - e->iro_cache)/2 - 1; // default
+  else 
+    max_order = std::min( max_order, (20 - e->iro_cache)/2 - 1); // user specified
  
   
   struct Cand
@@ -400,11 +402,11 @@ void H1OrthoHP::get_optimal_refinement(Element* e, int order, Solution* rsln,
     cand[n].p[0] = (q0); \
     cand[n++].p[1] = (q1); }
 
-  if (h_adapt)
+  if (h_only)
   {
     make_p_cand(order);
     make_hp_cand(order, order, order, order);
-    if ((!tri) && (e->iro_cache < 8) && aniso) {
+    if ((!tri) && (e->iro_cache < 8) && !iso_only) {
       make_ani_cand(order, order, 1);
       make_ani_cand(order, order, 2);
     }
@@ -428,7 +430,7 @@ void H1OrthoHP::get_optimal_refinement(Element* e, int order, Solution* rsln,
     //prepare anisotropic candidates
     //only for quadrilaterals
     //too distorted (curved) elements cannot have aniso refinement (produces even worse elements)
-    if ((!tri) && (e->iro_cache < 8) && aniso) {
+    if ((!tri) && (e->iro_cache < 8) && !iso_only) {
       p0 = 2 * (order+1) / 3;
       int p_max = std::min(max_order, order+1);
       p1 = std::min(p0 + 3, p_max);    
@@ -520,14 +522,13 @@ void H1OrthoHP::get_optimal_refinement(Element* e, int order, Solution* rsln,
 
 //// adapt /////////////////////////////////////////////////////////////////////////////////////////
 
-void H1OrthoHP::adapt(double thr, bool h_only, int strat)
+void H1OrthoHP::adapt(double thr, int strat, bool h_only, bool iso_only, int max_order)
 {
   
   if (!have_errors)
     error("Element errors have to be calculated first, see calc_error().");
 
-  bool aniso = true;
-  
+ 
   int i, j, l;
   int max_id = -1;  
   Mesh* mesh[10]; 
@@ -572,13 +573,13 @@ void H1OrthoHP::adapt(double thr, bool h_only, int strat)
     e = mesh[comp]->get_element(id);
     int current = spaces[comp]->get_element_order(id);
     
-    if (!h_only || aniso)
-      get_optimal_refinement(e, current, rsln[comp], split[i], p[i], q[i], aniso, h_only);
-    else
+    if (h_only && iso_only)
     {
       p[i][0] = p[i][1] = p[i][2] = p[i][3] = current;
       q[i][0] = q[i][1] = q[i][2] = q[i][3] = current;
     }
+    else
+      get_optimal_refinement(e, current, rsln[comp], split[i], p[i], q[i], h_only, iso_only, max_order);
 
     idx[id][comp] = i;
     err0 = err;

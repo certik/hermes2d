@@ -343,8 +343,9 @@ void L2OrthoHP::calc_projection_errors(Element* e, int order, Solution* rsln,
 }
 
 
-void L2OrthoHP::get_optimal_refinement(Element* e, int order, Solution* rsln,
-                                       int& split, int p[4], bool aniso, bool h_adapt)
+void L2OrthoHP::get_optimal_refinement(Element* e, int order, Solution* rsln, int& split, int p[4], 
+                                       bool h_only, bool iso_only, int max_order)
+
 {
   int i, j, k, n = 0;
   const int maxcand = 300;
@@ -355,7 +356,11 @@ void L2OrthoHP::get_optimal_refinement(Element* e, int order, Solution* rsln,
   // calculate maximal order of elements
   // linear elements = 9
   // curvilinear elements = depends on iro_cache (how curved they are)
-  int max_order = (20 - e->iro_cache)/2 - 2;
+  if (max_order == -1) 
+    max_order = (20 - e->iro_cache)/2 - 2; // default
+  else 
+    max_order = std::min( max_order, (20 - e->iro_cache)/2 - 2); // user specified
+  
   
   struct Cand
   {
@@ -386,7 +391,7 @@ void L2OrthoHP::get_optimal_refinement(Element* e, int order, Solution* rsln,
     cand[n++].p[1] = (q1); }\
 
 
-  if (h_adapt)
+  if (h_only)
   {
     make_p_cand(order);
     make_hp_cand(order, order, order, order);
@@ -413,7 +418,7 @@ void L2OrthoHP::get_optimal_refinement(Element* e, int order, Solution* rsln,
     // prepare anisotropic candidates
     // only for quadrilaterals
     // too distorted (curved) elements cannot have aniso refinement (produces even worse elements)
-    if ((!tri) && (e->iro_cache < 8) && aniso) {
+    if ((!tri) && (e->iro_cache < 8) && !iso_only) {
       p0 = 2 * (order+1) / 3;
       int p_max = std::min(max_order, order+1);
       p1 = std::min(p0 + 3, p_max);    
@@ -507,13 +512,12 @@ void L2OrthoHP::get_optimal_refinement(Element* e, int order, Solution* rsln,
 
 //// adapt /////////////////////////////////////////////////////////////////////////////////////////
 
-void L2OrthoHP::adapt(double thr, int strat)
+void L2OrthoHP::adapt(double thr, int strat, bool h_only, bool iso_only, int max_order)
 {
   
   if (!have_errors)
     error("Element errors have to be calculated first, see calc_error().");
   
-  bool h_only = false;
 
   int i, j;  
   Mesh* mesh[10]; 
@@ -548,10 +552,10 @@ void L2OrthoHP::adapt(double thr, int strat)
     
     //verbose("Refining element #%d, Component #%d, Error %g%%", e_id, comp, errors[comp][e_id]);
 
-    if (!h_only)
-      get_optimal_refinement(e, current, rsln[comp], split, p);
-    else
+    if (h_only && iso_only)
       p[0] = p[1] = p[2] = p[3] = current;
+    else
+      get_optimal_refinement(e, current, rsln[comp], split, p, h_only, iso_only, max_order);
 
     if (split < 0)
       spaces[comp]->set_element_order(id, p[0]);

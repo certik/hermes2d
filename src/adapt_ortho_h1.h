@@ -90,14 +90,15 @@ public:
 
   /// Selects elements to refine (based on results from calc_error() or calc_energy_error())
   /// and performs their optimal hp-refinement. 
-  void adapt(double thr, bool h_only = false, int strat = 0);
+  void adapt(double thr, int strat = 0, bool h_only = false, bool iso_only = false, int max_order = -1);
 
   /// Unrefines the elements with the smallest error
   void unrefine(Solution* sln1, Solution* sln2, double thr);
 
   /// Internal. Used by adapt(). Can be utilized in specialized adaptivity
   /// procedures, for which adapt() is not sufficient.
-  static void get_optimal_refinement(Element* e, int order, Solution* rsln, int& split, int p[4], int q[4], bool aniso = true, bool h_adapt = false);
+  static void get_optimal_refinement(Element* e, int order, Solution* rsln, int& split, int p[4], int q[4], 
+                                     bool h_only = false, bool iso_only = false, int max_order = -1);
 
   /// Internal. Functions to obtain errors of individual elements.
   double get_element_error(int component, int id) const { return errors[component][id]; }
