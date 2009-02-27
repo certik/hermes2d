@@ -80,12 +80,13 @@ public:
 
   /// Selects elements to refine (based on results from calc_error() or calc_energy_error())
   /// and performs their optimal hp-refinement. 
-  void adapt(double thr, int strat = 0, bool aniso = true);
-
+  void adapt(double thr, int strat = 0, bool h_only = false, bool iso_only = false, int max_order = -1);
+ 
 
   /// Internal. Used by adapt(). Can be utilized in specialized adaptivity
   /// procedures, for which adapt() is not sufficient.
-  static void get_optimal_refinement(Element* e, int order, Solution* rsln, int& split, int p[4], bool aniso = true, bool h_adapt = false);
+  static void get_optimal_refinement(Element* e, int order, Solution* rsln, int& split, int p[4], 
+                                     bool h_only = false, bool iso_only = false, int max_order = -1);
 
 
 protected:
