@@ -373,7 +373,8 @@ void H1OrthoHP::get_optimal_refinement(Element* e, int order, Solution* rsln, in
   else 
     max_order = std::min( max_order, (20 - e->iro_cache)/2 - 1); // user specified
  
-  
+  int min_order = 2;
+
   struct Cand
   {
     double error;
@@ -418,8 +419,8 @@ void H1OrthoHP::get_optimal_refinement(Element* e, int order, Solution* rsln, in
       make_p_cand(p0);
     
     //prepare hp-candidates
-    p0 = (order+1) / 2;
-    p1 = std::min(p0 + 3, order);
+    p0 = std::max(min_order, (order+1) / 2);
+    p1 = std::max(min_order, std::min(p0 + 3, order));
     int q0, q1, q2, q3;
     for (q0 = p0; q0 <= p1; q0++)
       for (q1 = p0; q1 <= p1; q1++)
