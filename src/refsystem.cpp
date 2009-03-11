@@ -102,12 +102,19 @@ void RefSystem::assemble(bool rhsonly)
         if (e->active) 
           max_o = get_h_order(base->spaces[i]->get_element_order(e->id));
         else
+        {
           for (int son = 0; son < 4; son++)
           {
-            int o = get_h_order(base->spaces[i]->get_element_order(e->sons[son]->id));
-            if (o > max_o) max_o = o;
+            if (e->sons[son] != NULL)
+            {
+              //max_o += get_h_order(base->spaces[i]->get_element_order(e->sons[son]->id));
+              int o = get_h_order(base->spaces[i]->get_element_order(e->sons[son]->id));
+              if (o > max_o) max_o = o;
+            }
           }
-        ref_spaces[i]->set_element_order(re->id, max_o + order_inc);
+          max_o = std::max(1, max_o);
+        }
+        ref_spaces[i]->set_element_order(re->id, std::max(1, ((int) max_o) + order_inc));
       }
 
     }

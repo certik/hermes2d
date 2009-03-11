@@ -245,6 +245,9 @@ void RefMap::calc_const_inv_ref_map()
                      { element->vn[1]->y - element->vn[0]->y,  element->vn[k]->y - element->vn[0]->y } };
 
   const_jacobian = 0.25 * (m[0][0] * m[1][1] - m[0][1] * m[1][0]);
+  if (const_jacobian <= 0.0)
+      error("Element #%d is concave or badly oriented.", element->id);
+
   double ij = 0.5 / const_jacobian;
 
   const_inv_ref_map[0][0] =  m[1][1] * ij;

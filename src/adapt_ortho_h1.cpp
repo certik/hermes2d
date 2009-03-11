@@ -353,6 +353,9 @@ void H1OrthoHP::calc_projection_errors(Element* e, int order, Solution* rsln,
     }
     perr[i] = error * 0.25;
   }
+
+  rsln->enable_transform(true);
+
 }
 
 
@@ -569,7 +572,6 @@ void H1OrthoHP::adapt(double thr, int strat, bool h_only, bool iso_only, int max
     // refine all elements whose error is bigger than some portion of maximal error
     if ((strat == 1) && (err < thr * errors[esort[0][1]][esort[0][0]])) { nref = i; break; }
 
-    
     Element* e;
     e = mesh[comp]->get_element(id);
     int current = spaces[comp]->get_element_order(id);
