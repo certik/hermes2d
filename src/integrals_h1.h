@@ -312,7 +312,7 @@ inline double int_w_nabla_u_v(RealFunction* w1, RealFunction* w2,
   w1->set_quad_order(o, FN_VAL);
   w2->set_quad_order(o, FN_VAL);
   fu->set_quad_order(o);
-  fv->set_quad_order(o);
+  fv->set_quad_order(o, FN_VAL);
 
   double *dudx, *dudy;
   fu->get_dx_dy_values(dudx, dudy);

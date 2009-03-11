@@ -161,8 +161,8 @@ void Space::copy_orders(Space* space, int inc)
     if (oo < 0) error("Source space has an uninitialized order (element id = %d)", e->id);
     
     int mo = shapeset->get_max_order();
-    int ho = std::min(get_h_order(oo) + inc, mo);
-    int vo = std::min(get_v_order(oo) + inc, mo);        
+    int ho = std::max(1, std::min(get_h_order(oo) + inc, mo));
+    int vo = std::max(1, std::min(get_v_order(oo) + inc, mo));        
     oo = e->is_triangle() ? ho : make_quad_order(ho, vo);
     
     check_order(oo);
