@@ -128,6 +128,8 @@ public:
   /// If the point (x, y) does not lie in e, then (xi1, xi2) will not lie in the reference domain.
   void untransform(Element* e, double x, double y, double& xi1, double& xi2);
 
+  /// Calculates the inverse Jacobi matrix of reference map at a particular point (xi1, xi2).
+  void inv_ref_map_at_point(double xi1, double xi2, double& x, double& y, double2x2& m);
 
   /// See Transformable::push_transform()
   virtual void push_transform(int son);
@@ -197,8 +199,6 @@ protected:
   /// matrix alone. This is added to the total integration order in weak form itegrals.
   int calc_inv_ref_order();  
     
-  /// Calculates the inverse Jacobi matrix of reference map at a particular point (xi1, xi2).
-  void inv_ref_map_at_point(double xi1, double xi2, double& x, double& y, double2x2& m);
 
   void init_node(Node** pp);
   void free_node(Node* node);

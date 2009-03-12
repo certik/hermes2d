@@ -65,7 +65,7 @@ int main(int argc, char* argv[])
 
   Mesh mesh;
   mesh.load("lshape2.mesh");
-  mesh.refine_towards_vertex(0, 5);
+  mesh.refine_towards_vertex(11, 5);
 
   HcurlShapesetLegendre shapeset;
   PrecalcShapeset pss(&shapeset);
@@ -93,7 +93,7 @@ int main(int argc, char* argv[])
   ScalarView view1("X component", 100, 50, 900, 900);
   view1.show(&real, EPS_HIGH, FN_VAL_0);
   view1.set_min_max_range(0, 5);
-  
+
   ScalarView view2("Y component", 200, 150, 900, 900);
   view2.show(&real, EPS_HIGH, FN_VAL_1);
   view2.set_min_max_range(0, 5);

@@ -12,6 +12,13 @@ scalar linear_form(RealFunction* fv, RefMap* rv)
   return int_v(fv, rv);
 }
 
+void der(int n, scalar* a, scalar* out)
+{
+  for (int i = 0; i < n; i++)
+  {
+    out[i] = a[i];
+  }
+}
 
 int main(int argc, char* argv[])
 {

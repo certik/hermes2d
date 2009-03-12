@@ -281,13 +281,13 @@ void SimpleFilter::precalculate(int order, int mask)
   replace_cur_node(node);
 }
 
-scalar SimpleFilter::get_pt_value(double x, double y, int item)
+scalar SimpleFilter::get_pt_value(double x, double y, int it)
 {
-  if (item & (FN_DX | FN_DY | FN_DXX | FN_DYY | FN_DXY))
+  if (it & (FN_DX | FN_DY | FN_DXX | FN_DYY | FN_DXY))
     error("Filter not defined for derivatives.");
   scalar val[4];
   for (int i = 0; i < num; i++)
-    val[i] = sln[i]->get_pt_value(x, y, item);
+    val[i] = sln[i]->get_pt_value(x, y, item[i]);
  
   scalar result;
 

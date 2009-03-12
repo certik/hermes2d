@@ -117,7 +117,16 @@ public:
 
   /// Returns solution value or derivatives at element e, in its reference domain point (xi1, xi2).
   /// 'item' controls the returned value: 0 = value, 1 = dx, 2 = dy, 3 = dxx, 4 = dyy, 5 = dxy.
+  /// NOTE: This function should be used for postprocessing only, it is not effective 
+  /// enough for calculations.
   scalar get_ref_value(Element* e, double xi1, double xi2, int component = 0, int item = 0);
+
+  /// Returns solution value or derivatives (correctly transformed) at element e, in its reference 
+  /// domain point (xi1, xi2). 'item' controls the returned value: 0 = value, 1 = dx, 2 = dy, 
+  /// 3 = dxx, 4 = dyy, 5 = dxy.  
+  /// NOTE: This function should be used for postprocessing only, it is not effective 
+  /// enough for calculations.
+  scalar get_ref_value_transformed(Element* e, double xi1, double xi2, int a, int b);
 
   /// Returns solution value or derivatives at the physical domain point (x, y).
   /// 'item' controls the returned value: FN_VAL_0, FN_VAL_1, FN_DX_0, FN_DX_1, FN_DY_0,....
