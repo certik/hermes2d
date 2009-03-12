@@ -376,7 +376,7 @@ void H1OrthoHP::get_optimal_refinement(Element* e, int order, Solution* rsln, in
   else 
     max_order = std::min( max_order, (20 - e->iro_cache)/2 - 1); // user specified
  
-  int min_order = 1;
+  int min_order = 2;
 
   struct Cand
   {

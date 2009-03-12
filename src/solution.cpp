@@ -963,6 +963,43 @@ static inline bool is_in_ref_domain(Element* e, double xi1, double xi2)
 }
 
 
+scalar Solution::get_ref_value_transformed(Element* e, double xi1, double xi2, int a, int b)
+{
+
+  if (num_components == 1)
+  {
+    if (b == 0)
+      return get_ref_value(e, xi1, xi2, a, b);
+    if (b == 1 || b == 2) 
+    {
+      double2x2 m; 
+      double xx, yy;
+      refmap->inv_ref_map_at_point(xi1, xi2, xx, yy, m);
+      scalar dx = get_ref_value(e_last = e, xi1, xi2, a, 1);
+      scalar dy = get_ref_value(e, xi1, xi2, a, 2);
+      if (b == 1) return m[0][0]*dx + m[0][1]*dy; // FN_DX
+      if (b == 2) return m[1][0]*dx + m[1][1]*dy; // FN_DY
+      error("Getting second derivatives of the solution: Not implemented yet.");
+    }
+  }
+  else // vector solution
+  {
+    if (b == 0) 
+    {
+      double2x2 m; 
+      double xx, yy;
+      refmap->inv_ref_map_at_point(xi1, xi2, xx, yy, m);
+      scalar vx = get_ref_value(e, xi1, xi2, 0, 0);
+      scalar vy = get_ref_value(e, xi1, xi2, 1, 0);
+      if (a == 0) return m[0][0]*vx + m[0][1]*vy; // FN_VAL_0
+      if (a == 1) return m[1][0]*vx + m[1][1]*vy; // FN_VAL_1
+    }
+    else
+      error("Getting derivatives of the vector solution: Not implemented yet.");
+  }
+
+}
+
 scalar Solution::get_pt_value(double x, double y, int item)
 {
   double xi1, xi2;
@@ -973,9 +1010,6 @@ scalar Solution::get_pt_value(double x, double y, int item)
   if (mask >= 0x40) { a = 1; mask >>= 6; }
   while (!(mask & 1)) { mask >>= 1; b++; }
   
-  if (b > 0) error("Getting derivatives of the solution: Not implemented yet.");
-  // we have to transform derivatives properly
-
   if (type == EXACT)
   {
     if (num_components == 1) 
@@ -1007,7 +1041,7 @@ scalar Solution::get_pt_value(double x, double y, int item)
           "not calculated yet or you used the assignment operator which destroys "
           "the solution on its right-hand side.");
   }
-  
+
   // try the last visited element and its neighbours
   if (e_last != NULL) 
   {
@@ -1022,7 +1056,10 @@ scalar Solution::get_pt_value(double x, double y, int item)
         refmap->set_active_element(elem[i]);
         refmap->untransform(elem[i], x, y, xi1, xi2);
         if (is_in_ref_domain(elem[i], xi1, xi2)) 
-          return get_ref_value(elem[i], xi1, xi2, a, b);
+        {
+          e_last = elem[i];
+          return get_ref_value_transformed(elem[i], xi1, xi2, a, b);
+        }
       }
   }
 
@@ -1033,7 +1070,10 @@ scalar Solution::get_pt_value(double x, double y, int item)
     refmap->set_active_element(e);
     refmap->untransform(e, x, y, xi1, xi2);
     if (is_in_ref_domain(e, xi1, xi2)) 
-      return get_ref_value(e_last = e, xi1, xi2, a, b);
+    {
+      e_last = e;
+      return get_ref_value_transformed(e, xi1, xi2, a, b);
+    }
   }
 
   warn("Point (%g, %g) does not lie in any element.", x, y);
