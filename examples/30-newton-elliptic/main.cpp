@@ -24,7 +24,7 @@ double TEMP_BDY = 100.0;          // This temperature corresponds to the bdy mar
 // positive in the entire domain!
 double lam(double T) { return 1 + pow(T,2); } 
 double dlam_dT(double T) { return 2*pow(T,1); }
-
+                                                                                                                      
 // definition of boundary conditions
 int T_bc_type(int marker)
   { return (marker == 5) ? BC_ESSENTIAL : BC_NATURAL; }
@@ -62,9 +62,12 @@ inline double J(RealFunction* Tprev, RealFunction* fu,
   mv = rv->get_inv_ref_map(o); 
   double* jac = ru->get_jacobian(o); 
   for (int i = 0; i < np; i++, mu++, mv++) {
+    //    result0 += pt[i][2] * jac[i] * (
+    //  dlam_dT(Tprev_val[i]) * vval[i] * (dTprev_dx[i]*t_dudx + dTprev_dy[i]*t_dudy)
+    //  + lam(Tprev_val[i]) * (t_dvdx*t_dudx + t_dvdy*t_dudy)); 
     result0 += pt[i][2] * jac[i] * (
-      dlam_dT(Tprev_val[i]) * vval[i] * (dTprev_dx[i]*t_dudx + dTprev_dy[i]*t_dudy)
-      + lam(Tprev_val[i]) * (t_dvdx*t_dudx + t_dvdy*t_dudy)); 
+      dlam_dT(Tprev_val[i]) * uval[i] * (dTprev_dx[i]*t_dvdx + dTprev_dy[i]*t_dvdy)
+      + lam(Tprev_val[i]) * (t_dudx*t_dvdx + t_dudy*t_dvdy)); 
   }
 
   return result0;
@@ -157,11 +160,12 @@ int main(int argc, char* argv[])
   NonlinSystem nsys(&wf, &umfpack);
   nsys.set_spaces(1, &T);
   nsys.set_pss(1, &pss);
+  nsys.set_alpha(NEWTON_ALPHA);
 
   // defining zero initial condition for the Newton's 
   // iteration (fixme - Tprev.set_zero(&mesh) used above 
   // should be enough to do this.
-  nsys.set_newton_ic_zero(ndofs);
+  nsys.set_vec_zero();
 
   // main loop
   int count = 0;
@@ -172,7 +176,7 @@ int main(int argc, char* argv[])
     info("\n*** Iteration %d ***", ++count);
     
     // assemble
-    nsys.assemble_newton(NEWTON_ALPHA);
+    nsys.assemble();
 
     /* DEBUG
     // output matrix and RHS in Matlab format
@@ -187,10 +191,10 @@ int main(int argc, char* argv[])
     */
  
     // solve
-    nsys.solve_newton(1, &Tsln);
+    nsys.solve(1, &Tsln);
 
     // calculate the residuum
-    residuum_norm = nsys.compute_residuum_max_norm();
+    residuum_norm = nsys.get_residuum_max_norm();
     info("Residuum max norm = %g\n", residuum_norm);
     
     // visualization of intermediate Newton's iterations
