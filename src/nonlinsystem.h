@@ -46,6 +46,9 @@ public:
   /// You can pass a pointer to a Solution or to a Filter.
   void set_ic(MeshFunction* fn);
 
+  /// Sets the solution coefficient vector to zero
+  void set_vec_zero();
+
   /// Adjusts the iteration coefficient. The default value for alpha is 1.
   void set_alpha(double alpha) { this->alpha = alpha; }
 

@@ -47,6 +47,15 @@ void NonlinSystem::set_ic(MeshFunction* fn)
   // todo
 }
 
+void NonlinSystem::set_vec_zero() 
+{
+  if (Vec != NULL) ::free(Vec);
+  Vec = (scalar*) malloc(ndofs * sizeof(scalar));
+  for(int i=0; i<ndofs; i++) Vec[i] = 0;
+}
+
+
+
 
 void NonlinSystem::assemble()
 { 
