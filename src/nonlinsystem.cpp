@@ -26,6 +26,7 @@
 #include "precalc.h"
 #include "refmap.h"
 #include "solution.h"
+#include "integrals_h1.h"
 
 
 NonlinSystem::NonlinSystem(WeakForm* wf, Solver* solver)
@@ -39,12 +40,34 @@ NonlinSystem::NonlinSystem(WeakForm* wf, Solver* solver)
 }
 
 
-void NonlinSystem::set_ic(MeshFunction* fn) 
+static MeshFunction* tmp_w;
+
+static scalar projection_biform(RealFunction* fu, RealFunction* fv, RefMap* ru, RefMap* rv)
+{  return int_u_v(fu, fv, ru, rv); }
+
+static scalar projection_liform(RealFunction* fv, RefMap* rv)
+{  return int_w_v(tmp_w, fv, rv); }
+
+
+void NonlinSystem::set_ic(MeshFunction* fn, Solution* result) 
 {
   if (!have_spaces)
     error("You need to call set_ic() after calling set_spaces().");
+
+  WeakForm* wf_orig = wf;
   
-  // todo
+  WeakForm wf_proj(1);
+  wf = &wf_proj;
+  wf->add_biform(0, 0, projection_biform);
+  wf->add_liform(0, projection_liform, ANY, 1, fn);
+
+  want_dir_contrib = true;
+  tmp_w = fn;
+  assemble();
+  LinSystem::solve(1, result);
+  want_dir_contrib = false;
+
+  wf = wf_orig;
 }
 
 void NonlinSystem::set_vec_zero() 

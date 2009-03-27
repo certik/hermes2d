@@ -110,6 +110,33 @@ inline double int_u_v(RealFunction* fu, RealFunction* fv, RefMap* ru, RefMap* rv
   return result;
 }
 
+inline scalar int_w_v(ScalarFunction* w, RealFunction* fu, RefMap* ru)
+{
+  Quad2D* quad = fu->get_quad_2d();
+
+  int o = fu->get_fn_order() + w->get_fn_order() + ru->get_inv_ref_order();
+  limit_order(o);
+  fu->set_quad_order(o, FN_VAL);
+  w->set_quad_order(o, FN_VAL);
+
+  double* uval = fu->get_fn_values();
+  scalar* wval = w->get_fn_values();
+
+  scalar result = 0.0;
+  double3* pt = quad->get_points(o);
+  int np = quad->get_num_points(o);
+  if (ru->is_jacobian_const()){ 
+    for (int i = 0; i < np; i++)
+      result += pt[i][2] * (uval[i] * wval[i]); 
+    result *= ru->get_const_jacobian(); 
+  } 
+  else { 
+    double* jac = ru->get_jacobian(o); 
+    for (int i = 0; i < np; i++) 
+      result += pt[i][2] * jac[i] * (uval[i] * wval[i]); 
+  }
+  return result;
+}
 
 inline double int_F_u(double (*F)(double x, double y), RealFunction* fu, RefMap* ru)
 {
@@ -377,6 +404,24 @@ inline double int_u_v_over_x(RealFunction* fu, RealFunction* fv, RefMap* ru, Ref
   h1_integrate_expression(uval[i] * vval[i] / x[i]);
   return result;
 }
+
+inline double int_u_v_over_y(RealFunction* fu, RealFunction* fv, RefMap* ru, RefMap* rv)
+{
+  Quad2D* quad = fu->get_quad_2d();
+
+  int o = fu->get_fn_order() + fv->get_fn_order() + ru->get_inv_ref_order() + 4;
+  limit_order(o);
+  fu->set_quad_order(o);
+  fv->set_quad_order(o);
+  double *uval, *vval;
+  uval = fu->get_fn_values();
+  vval = fv->get_fn_values();
+  double* y = ru->get_phys_y(o);
+
+  h1_integrate_expression(uval[i] * vval[i] / y[i]);
+  return result;
+}
+
 
 inline double int_F_u_v(double (*F)(double x, double y),
         RealFunction* fu, RealFunction* fv, RefMap* ru, RefMap* rv)
