@@ -94,11 +94,9 @@ int main(int argc, char* argv[])
   ScalarView errview("Error", 900, 0, 880, 800);
   
   // uprev must contain the dirichlet lift at the beginning
-  // TODO: make a new function of Solution for this
-  scalar vec[space.get_num_dofs()];
-  memset(vec, 0, sizeof(vec));
-  uprev.set_fe_solution(&space, &pss, vec);
-  
+  uprev.set_const(&mesh, 0.0);
+  nls.set_ic(&uprev, &uprev);
+
   int it = 1;
   double l2e;
   do
@@ -115,7 +113,7 @@ int main(int argc, char* argv[])
     ExactSolution exsln(&mesh, exact);
     DiffFilter err(&sln, &exsln);
     errview.show(&err);
-    errview.wait_for_keypress();
+//     errview.wait_for_keypress();
     
     l2e = l2_error(&sln, &exsln);
     info("L2 error: %g", l2e);
