@@ -44,7 +44,7 @@ public:
 
   /// Sets the initial coefficient vector so that it represents the given function.
   /// You can pass a pointer to a Solution or to a Filter.
-  /// Returns pointer to projected Solution (satisfies Dirichlet BC)
+  /// The projected Solution is returned in "result" (it satisfies Dirichlet BC)
   void set_ic(MeshFunction* fn, Solution* result);
 
   /// Sets the solution coefficient vector to zero
