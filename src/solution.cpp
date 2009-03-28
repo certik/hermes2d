@@ -91,15 +91,15 @@ public:
     double3* pt;
     for (mode = 0; mode <= 1; mode++)
     {
-      for (k = 1; k <= 10; k++)
+      for (k = 0; k <= 10; k++)
       {
         np[mode][k] = n = mode ? sqr(k+1) : (k+1)*(k+2)/2;
         tables[mode][k] = pt = new double3[n];
         
         for (i = k, m = 0; i >= 0; i--)
           for (j = k; j >= (mode ? 0 : k-i); j--, m++) {
-            pt[m][0] = cos(j * M_PI / k);
-            pt[m][1] = cos(i * M_PI / k);
+            pt[m][0] = k ? cos(j * M_PI / k) : 1.0;
+            pt[m][1] = k ? cos(i * M_PI / k) : 1.0;
             pt[m][2] = 1.0;
           }
       }
@@ -309,9 +309,9 @@ double** Solution::calc_mono_matrix(int o, int*& perm)
   // loop through all chebyshev points
   double** mat = new_matrix<double>(n, n);
   for (k = o, row = 0; k >= 0; k--) {
-    y = cos(k * M_PI / o);
+    y = o ? cos(k * M_PI / o) : 1.0;
     for (l = o; l >= (mode ? 0 : o-k); l--, row++) {
-      x = cos(l * M_PI / o);
+      x = o ? cos(l * M_PI / o) : 1.0;
 
       // each row of the matrix contains all the monomials x^i*y^j
       for (i = 0, yn = 1.0, m = n-1;  i <= o;  i++, yn *= y)
@@ -660,9 +660,9 @@ void Solution::precalculate(int order, int mask)
           if (oldmask & idx2mask[k][l])
           {
             // copy the old table if we have it already
-            memcpy(node->values[l][k], cur_node->values[l][k], np * sizeof(scalar));
+            memcpy(result, cur_node->values[l][k], np * sizeof(scalar));
           }
-          else
+          else 
           {
             // calculate the solution values using Horner's scheme
             scalar* mono = dxdy_coefs[l][k];
