@@ -63,6 +63,8 @@ Space* H1Space::dup(Mesh* mesh) const
 
 //// dof assignment ////////////////////////////////////////////////////////////////////////////////
 
+const int UNASSIGNED = -2;
+
 void H1Space::assign_vertex_dofs()
 {
   // Before assigning vertex DOFs, we must know which boundary vertex nodes are part of
@@ -77,7 +79,6 @@ void H1Space::assign_vertex_dofs()
   // is misused for this purpose, since it stores nothing at this point. Also assume
   // that all DOFs are unassigned.
   int i, j;
-  const int UNASSIGNED = -2;
   for (i = 0; i < mesh->get_max_node_id(); i++)
   {
     ndata[i].n = BC_NATURAL;
@@ -103,49 +104,53 @@ void H1Space::assign_vertex_dofs()
   // loop through all elements and assign vertex, edge and bubble dofs
   for_all_active_elements(e, mesh)
   {
-    for (i = 0; i < e->nvert; i++)
+    int order = get_element_order(e->id);
+    if (order > 0)
     {
-      // vertex dofs
-      Node* vn = e->vn[i];
-      NodeData* nd = ndata + vn->id;
-      if (nd->dof == UNASSIGNED && !vn->is_constrained_vertex())
+      for (i = 0; i < e->nvert; i++)
       {
-        if (nd->n == BC_ESSENTIAL || is_fixed_vertex(vn->id))
+        // vertex dofs
+        Node* vn = e->vn[i];
+        NodeData* nd = ndata + vn->id;
+        if (nd->dof == UNASSIGNED && !vn->is_constrained_vertex())
         {
-          nd->dof = -1;
-        }
-        else
-        {
-          nd->dof = next_dof;
-          next_dof += stride;
-        }
-        nd->n = 1;
-      }
-      
-      // edge dofs
-      Node* en = e->en[i];
-      nd = ndata + en->id;
-      if (nd->dof == UNASSIGNED)
-      {
-        // if the edge node is not constrained, assign it dofs
-        if (en->ref > 1 || en->bnd || mesh->peek_vertex_node(en->p1, en->p2) != NULL)
-        {
-          int ndofs = get_edge_order_internal(en) - 1;
-          nd->n = ndofs;
-    
-          if (en->bnd && bc_type_callback(en->marker) == BC_ESSENTIAL)
+          if (nd->n == BC_ESSENTIAL || is_fixed_vertex(vn->id))
           {
             nd->dof = -1;
           }
           else
           {
             nd->dof = next_dof;
-            next_dof += ndofs * stride;
+            next_dof += stride;
           }
+          nd->n = 1;
         }
-        else // constrained edge node
+        
+        // edge dofs
+        Node* en = e->en[i];
+        nd = ndata + en->id;
+        if (nd->dof == UNASSIGNED)
         {
-          nd->n = -1;
+          // if the edge node is not constrained, assign it dofs
+          if (en->ref > 1 || en->bnd || mesh->peek_vertex_node(en->p1, en->p2) != NULL)
+          {
+            int ndofs = get_edge_order_internal(en) - 1;
+            nd->n = ndofs;
+      
+            if (en->bnd && bc_type_callback(en->marker) == BC_ESSENTIAL)
+            {
+              nd->dof = -1;
+            }
+            else
+            {
+              nd->dof = next_dof;
+              next_dof += ndofs * stride;
+            }
+          }
+          else // constrained edge node
+          {
+            nd->n = -1;
+          }
         }
       }
     }
@@ -154,8 +159,7 @@ void H1Space::assign_vertex_dofs()
     shapeset->set_mode(e->get_mode());
     ElementData* ed = &edata[e->id];
     ed->bdof = next_dof;
-    if (ed->order == 0) error("Element orders cannot be zero in H1 space (id = #%d).", e->id);
-    ed->n = shapeset->get_num_bubbles(ed->order);
+    ed->n = order ? shapeset->get_num_bubbles(ed->order) : 0;
     next_dof += ed->n * stride;
   }
 }
@@ -179,7 +183,8 @@ void H1Space::get_vertex_assembly_list(Element* e, int iv, AsmList* al)
   Node* vn = e->vn[iv];
   NodeData* nd = &ndata[vn->id];
   int index = shapeset->get_vertex_index(iv);
-  
+  if (get_element_order(e->id) == 0) return;
+
   if (!vn->is_constrained_vertex()) // unconstrained
   {
     al->add_triplet(index, nd->dof, (nd->dof >= 0) ? 1.0 : *(nd->vertex_bc_coef));
@@ -197,6 +202,7 @@ void H1Space::get_edge_assembly_list_internal(Element* e, int ie, AsmList* al)
 {
   Node* en = e->en[ie];
   NodeData* nd = &ndata[en->id];
+  if (get_element_order(e->id) == 0) return;
 
   if (nd->n >= 0) // unconstrained
   {

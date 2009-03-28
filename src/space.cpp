@@ -207,6 +207,8 @@ int Space::get_edge_order_internal(Node* en)
       o2 = get_v_order(edata[e[1]->id].order);
   }
   
+  if (o1 == 0) return o2 == 1000 ? 0 : o2;
+  if (o2 == 0) return o1 == 1000 ? 0 : o1;
   return std::min(o1, o2);
 }
 
@@ -380,13 +382,14 @@ void Space::precalculate_projection_matrix(int nv, double**& mat, double*& p)
 
 void Space::update_edge_bc(Element* e, EdgePos* ep)
 {
+  const int UNASSIGNED = -2;
   if (e->active)
   {
     Node* en = e->en[ep->edge];
     NodeData* nd = &ndata[en->id];
     nd->edge_bc_proj = NULL;
     
-    if (en->bnd && bc_type_callback(en->marker) == BC_ESSENTIAL)
+    if (nd->dof != UNASSIGNED && en->bnd && bc_type_callback(en->marker) == BC_ESSENTIAL)
     {
       int order = get_edge_order_internal(en);
       ep->marker = en->marker;
