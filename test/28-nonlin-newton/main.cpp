@@ -146,6 +146,8 @@ int main(int argc, char* argv[])
   nls.set_ic(&Tprev, &Tprev);
   //view.show(&Tprev);    
   //View::wait();
+  view.show(&uprev);
+  view.wait_for_keypress();
 
   // time stepping
   for(int n = 1; n<=NSTEP; n++) {

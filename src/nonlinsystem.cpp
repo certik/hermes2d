@@ -43,10 +43,10 @@ NonlinSystem::NonlinSystem(WeakForm* wf, Solver* solver)
 static MeshFunction* tmp_w;
 
 static scalar projection_biform(RealFunction* fu, RealFunction* fv, RefMap* ru, RefMap* rv)
-{  return int_u_v(fu, fv, ru, rv); }
+{  return /*int_grad_u_grad_v(fu, fv, ru, rv)*/ + int_u_v(fu, fv, ru, rv); }
 
 static scalar projection_liform(RealFunction* fv, RefMap* rv)
-{  return int_w_v(tmp_w, fv, rv); }
+{  return /*int_grad_w_grad_v(tmp_w, fv, rv)*/ + int_w_v(tmp_w, fv, rv); }
 
 
 void NonlinSystem::set_ic(MeshFunction* fn, Solution* result) 
