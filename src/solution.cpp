@@ -482,6 +482,17 @@ void Solution::set_zero_2(Mesh* mesh)
 }
 
 
+void Solution::set_dirichlet_lift(Space* space, PrecalcShapeset* pss)
+{
+  int ndofs = space->get_num_dofs();
+  scalar *temp = new scalar[ndofs];
+  for (int i = 0; i < ndofs; i++) temp[i] = 0;
+  set_fe_solution(space, pss, temp);
+  delete [] temp;
+}
+
+
+
 void Solution::enable_transform(bool enable)
 {
   if (transform != enable) free_tables();

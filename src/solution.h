@@ -99,6 +99,9 @@ public:
   void set_zero(Mesh* mesh);
   void set_zero_2(Mesh* mesh); // two-component (Hcurl) zero
 
+  /// Sets solution equal to Dirichlet lift only, solution vector = 0
+  void set_dirichlet_lift(Space* space, PrecalcShapeset* pss);
+  
   /// Enables or disables transformation of the solution derivatives (H1 case)
   /// or values (vector (Hcurl) case). This means FN_DX_0 and FN_DY_0 or
   /// FN_VAL_0 and FN_VAL_1 will or will not be returned premultiplied by the reference

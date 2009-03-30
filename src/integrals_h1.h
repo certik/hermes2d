@@ -307,6 +307,40 @@ inline double int_grad_u_grad_v(RealFunction* fu, RealFunction* fv, RefMap* ru, 
   return result;
 }
 
+inline scalar int_grad_w_grad_v(ScalarFunction* w, RealFunction* fu, RefMap* ru)
+{
+  Quad2D* quad = fu->get_quad_2d();
+  RefMap* rv = ru;
+  
+  int o = fu->get_fn_order() + w->get_fn_order() + ru->get_inv_ref_order();
+  limit_order(o);
+  fu->set_quad_order(o);
+  w->set_quad_order(o);
+
+  double *dudx, *dudy;
+  scalar *dwdx, *dwdy;
+  fu->get_dx_dy_values(dudx, dudy);
+  w->get_dx_dy_values(dwdx, dwdy);
+
+  scalar result = 0.0;
+  double3* pt = quad->get_points(o);
+  int np = quad->get_num_points(o); 
+  double2x2 *mu;
+  if (ru->is_jacobian_const()) { 
+    mu = ru->get_const_inv_ref_map(); 
+    for (int i = 0; i < np; i++) 
+      result += pt[i][2] * (t_dudx * dwdx[i] + t_dudy * dwdy[i]);
+    result *= ru->get_const_jacobian();
+  } 
+  else { 
+    mu = ru->get_inv_ref_map(o); 
+    double* jac = ru->get_jacobian(o); 
+    for (int i = 0; i < np; i++, mu++) 
+      result += pt[i][2] * jac[i] * (t_dudx * dwdx[i] + t_dudy * dwdy[i]); 
+  }
+  return result;
+}
+
 
 inline double int_x_grad_u_grad_v(RealFunction* fu, RealFunction* fv, RefMap* ru, RefMap* rv)
 {
