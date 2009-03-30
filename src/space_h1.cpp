@@ -374,7 +374,7 @@ void H1Space::update_constrained_nodes(Element* e, EdgeInfo* ei0, EdgeInfo* ei1,
   NodeData* nd;
 
   if (get_element_order(e->id) == 0) return;
-  
+
   // on non-refined elements all we have to do is update edge nodes lying on constrained edges
   if (e->active)
   {
