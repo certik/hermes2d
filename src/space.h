@@ -123,7 +123,7 @@ public:
   /// Returns element polynomial order.
   int  get_element_order(int id) const;
   /// Sets the same polynomial order for all elements in the mesh.
-  void set_uniform_order(int tri_order, int quad_order = 0);
+  void set_uniform_order(int order, int marker = ANY);
   /// Sets the order automatically assigned to all newly created elements.
   /// (The order of these is normally undefined and has to be set explicitly.)
   void set_default_order(int tri_order, int quad_order = 0);
@@ -260,6 +260,8 @@ protected:
   std::vector<void*> extra_data;    
   void free_extra_data();
 
+  void propage_zero_orders(Element* e);
+      
 public:
 
   int (*bc_type_callback)(int);

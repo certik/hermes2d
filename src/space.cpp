@@ -112,21 +112,23 @@ int Space::get_element_order(int id) const
 }
 
 
-void Space::set_uniform_order(int tri_order, int quad_order)
+void Space::set_uniform_order(int order, int marker)
 {
   resize_tables();
-  if (quad_order == 0) quad_order = make_quad_order(tri_order, tri_order);
-  check_order(tri_order);
-  check_order(quad_order);
+  check_order(order);
+  int quad_order = make_quad_order(order, order);
   
   Element* e;
   for_all_active_elements(e, mesh)
   {
-    ElementData* ed = &edata[e->id];
-    if (e->is_triangle())
-      ed->order = tri_order;
-    else
-      ed->order = quad_order;
+    if (marker == ANY || e->marker == marker)
+    {
+      ElementData* ed = &edata[e->id];
+      if (e->is_triangle())
+        ed->order = order;
+      else
+        ed->order = quad_order;
+    }
   }
   seq++;
 }
@@ -222,6 +224,15 @@ void Space::set_mesh(Mesh* mesh)
 }
 
 
+void Space::propage_zero_orders(Element* e)
+{
+  set_element_order(e->id, 0);
+  if (!e->active) 
+    for (int i = 0; i < 4; i++)
+      if (e->sons[i] != NULL) 
+        propage_zero_orders(e->sons[i]);
+}
+
 //// dof assignment ////////////////////////////////////////////////////////////////////////////////
 
 int Space::assign_dofs(int first_dof, int stride)
@@ -232,6 +243,9 @@ int Space::assign_dofs(int first_dof, int stride)
   resize_tables();
 
   Element* e;
+  for_all_base_elements(e, mesh)
+    if (get_element_order(e->id) == 0) propage_zero_orders(e);
+  
   for_all_active_elements(e, mesh)
     if (e->id >= esize || edata[e->id].order < 0)
       error("Uninitialized element order (id = #%d).", e->id);

@@ -52,6 +52,9 @@ enum // element modes
 };
 
 
+const int ANY = -1234;
+
+
 // min/max macros for Win32
 #ifdef _MSC_VER
 #include <minmax.h>
