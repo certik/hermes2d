@@ -39,9 +39,6 @@ enum SymFlag
   SYM = 1
 };
 
-// 
-const int ANY = 0;
-
 
 /// \brief Represents the weak formulation of a problem.
 ///
