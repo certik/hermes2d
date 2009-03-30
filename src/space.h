@@ -260,7 +260,7 @@ protected:
   std::vector<void*> extra_data;    
   void free_extra_data();
 
-  void propage_zero_orders(Element* e);
+  void propagate_zero_orders(Element* e);
       
 public:
 

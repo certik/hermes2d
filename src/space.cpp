@@ -224,13 +224,13 @@ void Space::set_mesh(Mesh* mesh)
 }
 
 
-void Space::propage_zero_orders(Element* e)
+void Space::propagate_zero_orders(Element* e)
 {
   set_element_order(e->id, 0);
   if (!e->active) 
     for (int i = 0; i < 4; i++)
       if (e->sons[i] != NULL) 
-        propage_zero_orders(e->sons[i]);
+        propagate_zero_orders(e->sons[i]);
 }
 
 //// dof assignment ////////////////////////////////////////////////////////////////////////////////
@@ -244,7 +244,8 @@ int Space::assign_dofs(int first_dof, int stride)
 
   Element* e;
   for_all_base_elements(e, mesh)
-    if (get_element_order(e->id) == 0) propage_zero_orders(e);
+    if (get_element_order(e->id) == 0)
+      propagate_zero_orders(e);
   
   for_all_active_elements(e, mesh)
     if (e->id >= esize || edata[e->id].order < 0)
