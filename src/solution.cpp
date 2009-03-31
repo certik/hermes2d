@@ -2,7 +2,7 @@
 //
 // Copyright 2005-2008 Jakub Cerveny <jakub.cerveny@gmail.com>
 // Copyright 2005-2008 Lenka Dubcova <dubcova@gmail.com>
-// Copyright 2005-2008 Pavel Solin <solin@utep.edu>
+// Copyright 2005-2008 Pavel Solin <solin@unr.edu>
 //
 // Hermes2D is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -364,13 +364,14 @@ void Solution::set_fe_solution(Space* space, PrecalcShapeset* pss, scalar* vec, 
   {
     mode = e->get_mode();
     o = space->get_element_order(e->id);
-    o = std::max(get_h_order(o), get_v_order(o));    // FIXME: Hcurl !!!
+    o = std::max(get_h_order(o), get_v_order(o));
     for (k = 0; k < e->nvert; k++) {
       int eo = space->get_edge_order(e, k);
       if (eo > o) o = eo;
     } // FIXME: eo tam jeste porad necemu vadi...
-    // in Hcurl: order of functions is one higher than element order
-    if ((space->get_shapeset())->get_num_components() == 2) o++; 
+    
+    // Hcurl: actual order of functions is one higher than element order
+    if ((space->get_shapeset())->get_num_components() == 2) o++;
     
     num_coefs += mode ? sqr(o+1) : (o+1)*(o+2)/2;
     elem_orders[e->id] = o;
@@ -1090,4 +1091,3 @@ scalar Solution::get_pt_value(double x, double y, int item)
   warn("Point (%g, %g) does not lie in any element.", x, y);
   return NAN;
 }
-

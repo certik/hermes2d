@@ -14,8 +14,8 @@ int main(int argc, char* argv[])
   space.set_uniform_order(5);
   
   // set up the weak formulation
-  WeakForm wf(1);
-  wf.set_eqn(0, "[u,v] = (2*v)");
+  WeakForm wf;
+  wf.set_eqn("[u,v] = (2*v)");
 
   PardisoSolver solver;
   Solution sln;
