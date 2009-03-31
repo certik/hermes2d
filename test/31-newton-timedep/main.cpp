@@ -141,11 +141,11 @@ int main(int argc, char* argv[])
   
   // initial condition at zero time level
   Tprev.set_const(&mesh, 0.0);
-  //view.show(&Tprev);    
-  //View::wait();
+  view.show(&Tprev);    
+  view.wait_for_keypress();
   nls.set_ic(&Tprev, &Tprev);
-  //view.show(&Tprev);    
-  //View::wait();
+  view.show(&Tprev);    
+  view.wait_for_keypress();
 
   // time stepping
   for(int n = 1; n<=NSTEP; n++) {
@@ -168,7 +168,7 @@ int main(int argc, char* argv[])
       info("Residuum L2 norm: %g\n", res_l2_norm);
       view.show(&sln);    
       Titer = sln;
-      View::wait();
+      view.wait_for_keypress();
     }
     while (res_l2_norm > 1e-4);
 
