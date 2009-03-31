@@ -162,3 +162,11 @@ IDEAS FOR A NEW DISCRETE PROBLEM INTERFACE
   eig.solve(&sln);
 
 
+  LSFEM:
+
+  "(u1*v1) + tau * (v1*(u1prev*u1_x + u2prev*u1_y) + u1*(u1prev*v1_x + u2prev*v1_y))"
+  "        + tau^2 * (u1prev*u1_x + u2prev*u1_y) * (u1prev*v1_x + u2prev*v1_y)"
+
+  t1 = (u1prev*u1_x + u2prev*u1_y);
+  t2 = (u1prev*v1_x + u2prev*v1_y);
+  result = u1*v1 + tau*(u1*t2 + v1*t1) + tau*tau*t1*t2;
