@@ -48,7 +48,7 @@ void WeakForm::add_biform(int i, int j, biform_vol_t fn, SymFlag sym, int area, 
     error("\"sym\" must be -1, 0 or 1.");
   if (sym < 0 && i == j)
     error("Only off-diagonal forms can be antisymmetric.");
-  if (area != ANY && -area > areas.size())
+  if (area != ANY && area < 0 && -area > areas.size())
     error("Invalid area number.");
   if (bfvol.size() > 100)
     warn("Large number of forms (> 100). Is this the intent?");
@@ -62,7 +62,7 @@ void WeakForm::add_biform_surf(int i, int j, biform_surf_t fn, int area, int nx,
 {
   if (i < 0 || i >= neq || j < 0 || j >= neq)
     error("Invalid equation number.");
-  if (area != ANY && -area > areas.size())
+  if (area != ANY && area < 0 && -area > areas.size())
     error("Invalid area number.");
   
   BiFormSurf form = { i, j, area, fn };
@@ -74,7 +74,7 @@ void WeakForm::add_liform(int i, liform_vol_t fn, int area, int nx, ...)
 {
   if (i < 0 || i >= neq)
     error("Invalid equation number.");
-  if (area != ANY && -area > areas.size())
+  if (area != ANY && area < 0 && -area > areas.size())
     error("Invalid area number.");
   
   LiFormVol form = { i, area, fn };
@@ -86,7 +86,7 @@ void WeakForm::add_liform_surf(int i, liform_surf_t fn, int area, int nx, ...)
 {
   if (i < 0 || i >= neq)
     error("Invalid equation number.");
-  if (area != ANY && -area > areas.size())
+  if (area != ANY && area < 0 && -area > areas.size())
     error("Invalid area number.");
   
   LiFormSurf form = { i, area, fn };
