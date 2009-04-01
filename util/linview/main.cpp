@@ -191,7 +191,7 @@ int main(int argc, char* argv[])
       if (!exists(filename))
       { 
         linview.switch_to(i);
-        usleep(1000000); // bad intel GL driver
+        usleep(100000); // bad intel GL driver
         linview.save_screenshot(filename, options.hq);
       }
       else

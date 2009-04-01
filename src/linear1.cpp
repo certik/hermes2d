@@ -711,7 +711,7 @@ void Linearizer::process_solution(MeshFunction* sln, int item, double eps, doubl
     Node* node;
     for_all_vertex_nodes(node, mesh)
     {
-      if (id2id[node->id] < 0)
+      if (id2id[node->id] < 0 && node->ref != TOP_LEVEL_REF)
         if (node->p1 < 0)
           id2id[node->id] = get_vertex(node->id, node->id, node->x, node->y, 0);
         else if (id2id[node->p1] >= 0 && id2id[node->p2] >= 0)

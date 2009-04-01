@@ -172,6 +172,21 @@ public:
         unused.push_back(i);
   }
   
+  /// Adds an unused item at the end of the array and skips its ID forever.
+  /// This is a special-purpose function used to create empty element slots.
+  void skip_slot()
+  {
+    if (!(size & PAGE_MASK))
+    {
+      T* new_page = new T[PAGE_SIZE];
+      pages.push_back(new_page);
+    }
+    T* item = pages[size >> PAGE_BITS] + (size & PAGE_MASK);
+    item->id = size++;
+    item->used = 0;
+    nitems++;
+  }
+  
   int get_size() const { return size; }
   int get_num_items() const { return nitems; }
   

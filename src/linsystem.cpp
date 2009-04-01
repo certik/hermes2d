@@ -205,13 +205,14 @@ void LinSystem::precalc_sparse_structure(Page** pages)
   {
     // obtain assembly lists for the element at all spaces
     for (i = 0; i < wf->neq; i++)
-      spaces[i]->get_element_assembly_list(e[i], al + i);
+      if (e[i] != NULL)
+        spaces[i]->get_element_assembly_list(e[i], al + i);
       // todo: neziskavat znova, pokud se element nezmenil
 
     // go through all equation-blocks of the local stiffness matrix
     for (m = 0; m < wf->neq; m++)
       for (n = 0; n < wf->neq; n++)
-        if (blocks[m][n])
+        if (blocks[m][n] && e[m] != NULL && e[n] != NULL)
         {
           am = al + m;
           an = al + n;
@@ -500,11 +501,14 @@ void LinSystem::assemble(bool rhsonly)
     while ((e = trav.get_next_state(bnd, ep)) != NULL)
     {
       // set maximum integration order for use in integrals, see limit_order()
-      update_limit_table(e[0]->get_mode());
+      for (i = 0; i < s->idx.size(); i++)
+        if (e[i] != NULL)
+         { update_limit_table(e[i]->get_mode()); break; }
   
       // obtain assembly lists for the element at all spaces, set appropriate mode for each pss
       for (i = 0; i < s->idx.size(); i++)
       {
+        if (e[i] == NULL) continue;
         j = s->idx[i];
         spaces[j]->get_element_assembly_list(e[i], al+j);
         // todo: neziskavat znova, pokud se element nezmenil
@@ -519,6 +523,7 @@ void LinSystem::assemble(bool rhsonly)
       for (ww = 0; ww < s->bfvol.size(); ww++)
       {
         WeakForm::BiFormVol* bfv = s->bfvol[ww];
+        if (e[bfv->i] == NULL || e[bfv->j] == NULL) continue;
         if (bfv->area != ANY && !wf->is_in_area(marker, bfv->area)) continue;
         m = bfv->i;  fv = spss[m];  am = &al[m];
         n = bfv->j;  fu = pss[n];   an = &al[n];
@@ -574,6 +579,7 @@ void LinSystem::assemble(bool rhsonly)
       for (ww = 0; ww < s->lfvol.size(); ww++)
       {
         WeakForm::LiFormVol* lfv = s->lfvol[ww];
+        if (e[lfv->i] == NULL) continue;
         if (lfv->area != ANY && !wf->is_in_area(marker, lfv->area)) continue;
         m = lfv->i;  fv = spss[m];  am = &al[m];
         
@@ -594,6 +600,7 @@ void LinSystem::assemble(bool rhsonly)
   
         // obtain the list of shape functions which are nonzero on this edge
         for (i = 0; i < s->idx.size(); i++) {
+          if (e[i] == NULL) continue;
           j = s->idx[i];
           if ((nat[j] = (spaces[j]->bc_type_callback(marker) == BC_NATURAL)))
             spaces[j]->get_edge_assembly_list(e[i], edge, al + j);
@@ -603,6 +610,7 @@ void LinSystem::assemble(bool rhsonly)
         for (ww = 0; ww < s->bfsurf.size(); ww++)
         {
           WeakForm::BiFormSurf* bfs = s->bfsurf[ww];
+          if (e[bfs->i] == NULL || e[bfs->j] == NULL) continue;
           if (bfs->area != ANY && !wf->is_in_area(marker, bfs->area)) continue;
           m = bfs->i;  fv = spss[m];  am = &al[m];
           n = bfs->j;  fu = pss[n];   an = &al[n];
@@ -631,6 +639,7 @@ void LinSystem::assemble(bool rhsonly)
         for (ww = 0; ww < s->lfsurf.size(); ww++)
         {
           WeakForm::LiFormSurf* lfs = s->lfsurf[ww];
+          if (e[lfs->i] == NULL) continue;
           if (lfs->area != ANY && !wf->is_in_area(marker, lfs->area)) continue;
           m = lfs->i;  fv = spss[m];  am = &al[m];
 

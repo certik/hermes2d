@@ -228,7 +228,7 @@ public:
   /// after refine_all_elements(), this function reverts the mesh to its
   /// original state. However, it is not exactly an inverse to
   /// refine_all_elements().
-  void unrefine_all_elements(bool keep_initial = true);
+  void unrefine_all_elements(bool keep_initial_refinements = true);
   
   void transform(double2x2 m, double2 t);
   void transform(void (*fn)(double* x, double* y));
@@ -324,6 +324,9 @@ struct EdgePos
   Element* base; ///< for internal use
   Space *space, *space_u, *space_v; ///< for internal use
 };
+
+
+const int TOP_LEVEL_REF = 123456;
 
 
 #endif
