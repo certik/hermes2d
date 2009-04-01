@@ -698,7 +698,7 @@ void Mesh::unrefine_element(int id)
 }
 
 
-void Mesh::unrefine_all_elements(bool keep_initial)
+void Mesh::unrefine_all_elements(bool keep_initial_refinements)
 {
   // find inactive elements with active sons
   std::vector<int> list;
@@ -708,7 +708,7 @@ void Mesh::unrefine_all_elements(bool keep_initial)
     bool found = true;
     for (int i = 0; i < 4; i++)
       if (e->sons[i] != NULL && (!e->sons[i]->active ||
-          (keep_initial && e->sons[i]->id < ninitial))  )
+          (keep_initial_refinements && e->sons[i]->id < ninitial))  )
         { found = false; break; }
       
     if (found) list.push_back(e->id);

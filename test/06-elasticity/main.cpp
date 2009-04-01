@@ -55,33 +55,10 @@ int main(int argc, char* argv[])
   ydisp.set_uniform_order(6);
   ndofs += ydisp.assign_dofs(ndofs);
 
-/*  DiscreteProblem dp;
-  dp.set_num_equations(2);
-  dp.set_spaces(2, &xdisp, &ydisp);
-  dp.set_pss(1, &pss);
-
-#if 1
-  dp.set_bilinear_form(0, 0, bilinear_form_0_0);
-  dp.set_bilinear_form(0, 1, bilinear_form_0_1);
-  dp.set_bilinear_form(1, 0, bilinear_form_1_0);
-  dp.set_bilinear_form(1, 1, bilinear_form_1_1);
-#else
-  dp.set_bilinear_form(0, 0, NULL, bilinear_form_0_0);
-  dp.set_bilinear_form(0, 1, BF_SYM);
-  dp.set_bilinear_form(1, 0, bilinear_form_1_0);
-  dp.set_bilinear_form(1, 1, NULL, bilinear_form_1_1);
-#endif
-  dp.set_linear_form(1, linear_form_1);
-  
-  Solution xsln, ysln;
-  dp.create_matrix();
-  dp.assemble_matrix_and_rhs();
-  dp.solve_system(2, &xsln, &ysln);*/
-  
   WeakForm wf(2);
   wf.add_biform(0, 0, bilinear_form_0_0);
-  wf.add_biform(0, 1, bilinear_form_0_1);
-  wf.add_biform(1, 0, bilinear_form_1_0);
+  wf.add_biform(0, 1, bilinear_form_0_1, SYM);
+  //wf.add_biform(1, 0, bilinear_form_1_0);
   wf.add_biform(1, 1, bilinear_form_1_1);
   wf.add_liform(1, linear_form_1);
   

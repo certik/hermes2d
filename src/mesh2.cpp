@@ -178,9 +178,6 @@ Nurbs* Mesh::reverse_nurbs(Nurbs* nurbs)
 }
 
 
-const int TOP_LEVEL_REF = 123456;
-
-
 void Mesh::load_old(const char* filename)
 {
   int i, j, k, n, maj, min;
@@ -428,6 +425,7 @@ void Mesh::load(const char* filename, bool debug)
   {
     // read and check vertex indices
     int nv = elem->n, idx[5];
+    if (!nv) { elements.skip_slot(); continue; }
     if (nv < 4 || nv > 5)
       error("%s: element #%d: wrong number of vertex indices.", filename, i);
     if (!mesh_parser_get_ints(elem, nv, &idx[0], &idx[1], &idx[2], &idx[3], &idx[4]))

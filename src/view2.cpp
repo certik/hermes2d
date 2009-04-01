@@ -213,7 +213,7 @@ void ScalarView::on_display()
     glBegin(GL_LINES);
     for (i = 0; i < lin.get_num_edges(); i++) // todo: we could draw only left-right, top-bottom ones
     {
-      if (lines || edges[i][2] > 0)
+      if (lines || !edges[i][2])
       {
         glVertex2d(tvert[edges[i][0]][0], tvert[edges[i][0]][1]);
         glVertex2d(tvert[edges[i][1]][0], tvert[edges[i][1]][1]);

@@ -37,7 +37,7 @@ int main(int argc, char* argv[])
   sys.set_spaces(1, &space);
   sys.set_pss(1, &pss);
 
-  mesh.load("square0.mesh");
+  mesh.load("square1.mesh");
   mesh.refine_all_elements();
   mesh.refine_all_elements();
 

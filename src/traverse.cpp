@@ -213,16 +213,17 @@ Element** Traverse::get_next_state(bool* bnd, EdgePos* ep)
       if (fn != NULL)
       {
         for (i = 0; i < num; i++)
-        {
-          if (s->trans[i] > 0)
+          if (s->e[i] != NULL)
           {
-            if (fn[i]->get_transform() == subs[i])
-              fn[i]->pop_transform();
-            subs[i] = fn[i]->get_transform();
+            if (s->trans[i] > 0)
+            {
+              if (fn[i]->get_transform() == subs[i])
+                fn[i]->pop_transform();
+              subs[i] = fn[i]->get_transform();
+            }
+            else if (s->trans[i] < 0)
+              fn[i]->reset_transform();
           }
-          else if (s->trans[i] < 0)
-            fn[i]->reset_transform();
-        }
       }
       top--;
     }
@@ -230,26 +231,35 @@ Element** Traverse::get_next_state(bool* bnd, EdgePos* ep)
     // the stack is empty, take next base element
     if (top <= 0) 
     {
-      // no more base elements? we're finished
-      if (id >= meshes[0]->get_num_base_elements())
-        return NULL;
-      
-      // push the state of the new base element
+      // push the state of a new base element
       s = push_state();
       static const Rect unity = { 0, 0, ONE, ONE };
       s->cr = unity;
-      for (i = 0; i < num; i++)
+      while (1)
       {
-        s->e[i] = meshes[i]->get_element(id);
-        if (s->e[i]->active && fn != NULL) fn[i]->set_active_element(s->e[i]);
-        s->er[i] = unity;
-        subs[i] = 0;
+        // no more base elements? we're finished
+        if (id >= meshes[0]->get_num_base_elements())
+          return NULL;
+        
+        int nused = 0;
+        for (i = 0; i < num; i++)
+        {
+          s->e[i] = meshes[i]->get_element(id);
+          if (!s->e[i]->used) { s->e[i] = NULL; continue; }
+          if (s->e[i]->active && fn != NULL) fn[i]->set_active_element(s->e[i]);
+          s->er[i] = unity;
+          subs[i] = 0;
+          nused++;
+          base = s->e[i];
+        }
+
+        if (nused) break;
+        id++;
       }
-      
-      base = s->e[0];
+
       tri = base->is_triangle();
       id++;
-      
+
       if (tri)
       {
         for (i = 0; i < 3; i++)
@@ -266,26 +276,28 @@ Element** Traverse::get_next_state(bool* bnd, EdgePos* ep)
     if (fn != NULL)
     {
       for (i = 0; i < num; i++)
-      {  
-        if (s->trans[i] > 0)
-        {
-          if (fn[i]->get_transform() == subs[i])
-            fn[i]->push_transform(s->trans[i]-1);
-          subs[i] = fn[i]->get_transform();
+        if (s->e[i] != NULL)
+        {  
+          if (s->trans[i] > 0)
+          {
+            if (fn[i]->get_transform() == subs[i])
+              fn[i]->push_transform(s->trans[i]-1);
+            subs[i] = fn[i]->get_transform();
+          }
+          else if (s->trans[i] < 0)
+          {
+            fn[i]->set_active_element(s->e[i]);
+            if (!tri) init_transforms(fn[i], &s->cr, s->er + i);
+            subs[i] = fn[i]->get_transform();
+          }
         }
-        else if (s->trans[i] < 0)
-        {
-          fn[i]->set_active_element(s->e[i]);
-          if (!tri) init_transforms(fn[i], &s->cr, s->er + i);
-          subs[i] = fn[i]->get_transform();
-        }
-      }
     }
     
     // is this the leaf state?
     bool leaf = true;
     for (i = 0; i < num; i++)
-      if (!s->e[i]->active) { leaf = false; break; }
+      if (s->e[i] != NULL)
+        if (!s->e[i]->active) { leaf = false; break; }
         
     // if yes, set boundary flags and return the state
     if (leaf)
@@ -302,18 +314,19 @@ Element** Traverse::get_next_state(bool* bnd, EdgePos* ep)
       {
         State* ns = push_state();
         for (i = 0; i < num; i++)
-        {
-          if (s->e[i]->active)
+          if (s->e[i] != NULL)
           {
-            ns->e[i] = s->e[i];
-            ns->trans[i] = son+1;
+            if (s->e[i]->active)
+            {
+              ns->e[i] = s->e[i];
+              ns->trans[i] = son+1;
+            }
+            else
+            {
+              ns->e[i] = s->e[i]->sons[son];
+              if (ns->e[i]->active) ns->trans[i] = -1;
+            }
           }
-          else
-          {
-            ns->e[i] = s->e[i]->sons[son];
-            if (ns->e[i]->active) ns->trans[i] = -1;
-          }
-        }
         
         // determine boundary flags and positions for the new state
         if (son < 3)
@@ -342,7 +355,7 @@ Element** Traverse::get_next_state(bool* bnd, EdgePos* ep)
       // obtain split types and son numbers for the current rectangle on all elements
       int split = 0;
       for (i = 0; i < num; i++)
-        if (!s->e[i]->active)
+        if (s->e[i] != NULL && !s->e[i]->active)
           split |= get_split_and_sons(s->e[i], &s->cr, s->er + i, sons[i]);
       
       // both splits: recur to four sons
@@ -354,19 +367,20 @@ Element** Traverse::get_next_state(bool* bnd, EdgePos* ep)
           move_to_son(&ns->cr, &s->cr, son);
           
           for (i = 0; i < num; i++)
-          {
-            if (s->e[i]->active)
+            if (s->e[i] != NULL)
             {
-              ns->e[i] = s->e[i];
-              ns->trans[i] = son+1;
+              if (s->e[i]->active)
+              {
+                ns->e[i] = s->e[i];
+                ns->trans[i] = son+1;
+              }
+              else
+              {
+                ns->e[i] = s->e[i]->sons[sons[i][son] & 3];
+                move_to_son(ns->er + i, s->er + i, sons[i][son]);
+                if (ns->e[i]->active) ns->trans[i] = -1;
+              }
             }
-            else
-            {
-              ns->e[i] = s->e[i]->sons[sons[i][son] & 3];
-              move_to_son(ns->er + i, s->er + i, sons[i][son]);
-              if (ns->e[i]->active) ns->trans[i] = -1;
-            }
-          }
         }
       }
       // v or h split, recur to two sons
@@ -382,19 +396,20 @@ Element** Traverse::get_next_state(bool* bnd, EdgePos* ep)
           
           j = (son == 4 || son == 6) ? 0 : 2;
           for (i = 0; i < num; i++)
-          {
-            if (s->e[i]->active)
+            if (s->e[i] != NULL)
             {
-              ns->e[i] = s->e[i];
-              ns->trans[i] = son+1;
+              if (s->e[i]->active)
+              {
+                ns->e[i] = s->e[i];
+                ns->trans[i] = son+1;
+              }
+              else
+              {
+                ns->e[i] = s->e[i]->sons[sons[i][j] & 3];
+                move_to_son(ns->er + i, s->er + i, sons[i][j]);
+                if (ns->e[i]->active) ns->trans[i] = -1;
+              }
             }
-            else
-            {
-              ns->e[i] = s->e[i]->sons[sons[i][j] & 3];
-              move_to_son(ns->er + i, s->er + i, sons[i][j]);
-              if (ns->e[i]->active) ns->trans[i] = -1;
-            }
-          }
         }
       }
       // no splits, recur to one son
@@ -404,18 +419,19 @@ Element** Traverse::get_next_state(bool* bnd, EdgePos* ep)
         memcpy(&ns->cr, &s->cr, sizeof(Rect));
         
         for (i = 0; i < num; i++)
-        {
-          if (s->e[i]->active)
+          if (s->e[i] != NULL)
           {
-            ns->e[i] = s->e[i];
+            if (s->e[i]->active)
+            {
+              ns->e[i] = s->e[i];
+            }
+            else
+            {
+              ns->e[i] = s->e[i]->sons[sons[i][0] & 3];
+              move_to_son(ns->er + i, s->er + i, sons[i][0]);
+              if (ns->e[i]->active) ns->trans[i] = -1;
+            }
           }
-          else
-          {
-            ns->e[i] = s->e[i]->sons[sons[i][0] & 3];
-            move_to_son(ns->er + i, s->er + i, sons[i][0]);
-            if (ns->e[i]->active) ns->trans[i] = -1;
-          }
-        }
       }
     }
   }
