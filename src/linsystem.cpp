@@ -143,7 +143,11 @@ void LinSystem::free()
   if (RHS != NULL) { ::free(RHS); RHS = NULL; }
   if (Dir != NULL) { ::free(Dir-1); Dir = NULL; }
   if (Vec != NULL) { ::free(Vec); Vec = NULL; }
+
   if (solver) solver->free_data(slv_ctx);
+
+  struct_changed = values_changed = true;
+  memset(sp_seq, -1, sizeof(int) * wf->neq);
 } 
 
 
