@@ -443,7 +443,7 @@ inline double int_u_v_over_y(RealFunction* fu, RealFunction* fv, RefMap* ru, Ref
 {
   Quad2D* quad = fu->get_quad_2d();
 
-  int o = fu->get_fn_order() + fv->get_fn_order() + ru->get_inv_ref_order() + 4;
+  int o = fu->get_fn_order() + fv->get_fn_order() + ru->get_inv_ref_order() + 10;
   limit_order(o);
   fu->set_quad_order(o);
   fv->set_quad_order(o);
