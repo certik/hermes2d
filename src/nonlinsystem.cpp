@@ -42,14 +42,19 @@ NonlinSystem::NonlinSystem(WeakForm* wf, Solver* solver)
 
 static MeshFunction* tmp_w;
 
-static scalar projection_biform(RealFunction* fu, RealFunction* fv, RefMap* ru, RefMap* rv)
-{  return /*int_grad_u_grad_v(fu, fv, ru, rv)*/ + int_u_v(fu, fv, ru, rv); }
+static scalar H1projection_biform(RealFunction* fu, RealFunction* fv, RefMap* ru, RefMap* rv)
+{  return int_grad_u_grad_v(fu, fv, ru, rv) + int_u_v(fu, fv, ru, rv); }
 
-static scalar projection_liform(RealFunction* fv, RefMap* rv)
-{  return /*int_grad_w_grad_v(tmp_w, fv, rv)*/ + int_w_v(tmp_w, fv, rv); }
+static scalar H1projection_liform(RealFunction* fv, RefMap* rv)
+{  return int_grad_w_grad_v(tmp_w, fv, rv) + int_w_v(tmp_w, fv, rv); }
 
+static scalar L2projection_biform(RealFunction* fu, RealFunction* fv, RefMap* ru, RefMap* rv)
+{  return int_u_v(fu, fv, ru, rv); }
 
-void NonlinSystem::set_ic(MeshFunction* fn, Solution* result) 
+static scalar L2projection_liform(RealFunction* fv, RefMap* rv)
+{  return int_w_v(tmp_w, fv, rv); }
+
+void NonlinSystem::set_ic(MeshFunction* fn, Solution* result, int proj_norm) 
 {
   if (!have_spaces)
     error("You need to call set_ic() after calling set_spaces().");
@@ -58,16 +63,23 @@ void NonlinSystem::set_ic(MeshFunction* fn, Solution* result)
   
   WeakForm wf_proj(1);
   wf = &wf_proj;
-  wf->add_biform(0, 0, projection_biform);
-  wf->add_liform(0, projection_liform, ANY, 1, fn);
+  if (proj_norm == 1)  {
+    wf->add_biform(0, 0, H1projection_biform);
+    wf->add_liform(0, H1projection_liform, ANY, 1, fn);
+  }
+  else  {
+    wf->add_biform(0, 0, L2projection_biform);
+    wf->add_liform(0, L2projection_liform, ANY, 1, fn);
+  }
 
   want_dir_contrib = true;
   tmp_w = fn;
-  assemble();
+  LinSystem::assemble();
   LinSystem::solve(1, result);
   want_dir_contrib = false;
 
   wf = wf_orig;
+
 }
 
 void NonlinSystem::set_vec_zero() 
