@@ -14,8 +14,8 @@
 //
 
 // time step and number of time steps
-double TAU = 0.1;
-int NSTEP = 50;
+double TAU = 1e-7;
+int NSTEP = 200;
 
 // thermal conductivity (temperature-dependent)
 // for any u, this function has to be  positive in the entire domain!
@@ -25,15 +25,15 @@ double dlam_dT(double T) { return 2*T; }
 
 int bc_types(int marker)
 {
-/*  if (marker == 4 || marker == 1 || marker == 3) return BC_ESSENTIAL;*/
-  if (marker == 4) return BC_ESSENTIAL;
+ if (marker == 4 || marker == 1 || marker == 3) return BC_ESSENTIAL;
+//   if (marker == 4) return BC_ESSENTIAL;
   else return BC_NATURAL;
 }
 
 scalar bc_values(int marker, double x, double y)
 {
-/*  if (marker == 4 || marker == 1 || marker == 3) return 100;*/
-  if (marker == 4) return -4.0 * sqr(y) + 4.0 * y; 
+ if (marker == 4 || marker == 1 || marker == 3) return 100;
+//   if (marker == 4) return -4.0 * sqr(y) + 4.0 * y; 
   else return 0.0;
 }
 
@@ -124,12 +124,16 @@ int main(int argc, char* argv[])
   nls.set_pss(1, &pss);
 
   char title[100];  
-  ScalarView view("", 0, 0, 880, 800);
+  ScalarView view("", 0, 0, 600, 600);
+  ScalarView view2("", 700, 0, 600, 600);
   
   // initial condition at zero time level
   Tprev.set_const(&mesh, 0.0);
   nls.set_ic(&Tprev, &Tprev);
   Titer.copy(&Tprev);
+//   Tprev.set_const(&mesh, 0.0);
+//   Titer.copy(&Tprev);
+//   nls.set_ic(&Titer, &Titer);
 
   // view initial guess for Newton's method
   // satisfies BC conditions 
@@ -170,11 +174,13 @@ int main(int argc, char* argv[])
 //       view.wait_for_keypress();
 
       Titer = sln;
+        
     }
     while (res_l2_norm > 1e-4);
 
     // visualization of solution on the n-th time level
     sprintf(title, "Time level %d", n);
+    view.set_min_max_range(90,100);
     view.set_title(title);
     view.show(&Titer);    
     //view.wait_for_keypress();
