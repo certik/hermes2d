@@ -153,7 +153,7 @@ int main(int argc, char* argv[])
     // actually needed only when space changes
     // otherwise initial solution vector is that one 
     // from the previous time level
-    nls.set_ic(&Titer, &Titer);
+    //nls.set_ic(&Titer, &Titer);
  
     int it = 1; 
     double res_l2_norm; 
@@ -166,7 +166,6 @@ int main(int argc, char* argv[])
 
       res_l2_norm = nls.get_residuum_l2_norm(); 
       info("Residuum L2 norm: %g\n", res_l2_norm);
-
       // want to see Newtons iterations       
 //       sprintf(title, "Time level %d, Newton iteration %d", n, it-1);
 //       view.set_title(title);
