@@ -4,24 +4,31 @@
 // 
 //  Nonlinear solver test:
 //
-//  PDE: non stationary heat transfer with nonlinear thermal conductuvity
-//  dT/dt - div[lambda(T)grad T] = 0
+//  PDE: non-stationary heat transfer with nonlinear thermal conductivity
+//  HEATCAP*dT/dt - div[lambda(T)grad T] = 0
 //
 //  Domain: square
 //
 //  BC:  T = 100 on the left, top and bottom edges
 //       dT/dn = 0 on the right edge
 //
+//  Time-stepping: either implicit Euler or Crank-Nicolson
+//
 
-// time step and number of time steps
-double TAU = 1e-7;
-int NSTEP = 200;
+/********** Problem parameters ***********/ 
+
+int TIME_DISCR = 2;   // 1 for implicit Euler, 2 for Crank-Nicolson
+int PROJ_TYPE = 2;    // 1 for H1 projections, 2 for L2 projections
+double HEATCAP = 1e6; // heat capacity
+double TAU = 0.5;     // time step
+int NSTEP = 100;      // number of time steps to do
 
 // thermal conductivity (temperature-dependent)
 // for any u, this function has to be  positive in the entire domain!
 double lam(double T) { return 1.0 + T*T; } 
 double dlam_dT(double T) { return 2*T; }
 
+/********** Definition of boundary conditions ***********/ 
 
 int bc_types(int marker)
 {
@@ -37,10 +44,11 @@ scalar bc_values(int marker, double x, double y)
   else return 0.0;
 }
 
-Solution Tprev, // previous time step solution, for the implicit Euler method
-         Titer; // solution converging during the Newton's iteration
 
-inline double F(RealFunction* Tprev, RealFunction* Titer, RealFunction* fu, RefMap* ru)
+/********** Definition of Jacobian matrices and residual vectors ***********/ 
+
+// Residuum for the Euler time discretization
+inline double F_euler(RealFunction* Tprev, RealFunction* Titer, RealFunction* fu, RefMap* ru)
 {
   Quad2D* quad = fu->get_quad_2d();
   RefMap* rv = ru;
@@ -58,16 +66,15 @@ inline double F(RealFunction* Tprev, RealFunction* Titer, RealFunction* fu, RefM
   Titer->get_dx_dy_values(dTiter_dx, dTiter_dy);
   fu->get_dx_dy_values(dudx, dudy);
 
-  h1_integrate_dd_expression(( (Titer_val[i] - Tprev_val[i])*uval[i]/TAU + 
+  // u is a test function
+  h1_integrate_dd_expression(( HEATCAP*(Titer_val[i] - Tprev_val[i])*uval[i]/TAU + 
                                lam(Titer_val[i]) * (dTiter_dx[i]*t_dudx + dTiter_dy[i]*t_dudy)));
 
   return result;
 }
 
-scalar linear_form_0(RealFunction* fv, RefMap* rv)
-{ return F(&Tprev, &Titer, fv, rv); }
-
-inline double J(RealFunction* Titer, RealFunction* fu, 
+// Jacobian matrix for the implicit Euler time discretization
+inline double J_euler(RealFunction* Titer, RealFunction* fu, 
                 RealFunction* fv, RefMap* ru, RefMap* rv)
 {
   Quad2D* quad = fu->get_quad_2d();
@@ -87,18 +94,92 @@ inline double J(RealFunction* Titer, RealFunction* fu,
   fu->get_dx_dy_values(dudx, dudy);
   fv->get_dx_dy_values(dvdx, dvdy);
 
-  h1_integrate_dd_expression(( vval[i] * uval[i]/TAU +
+  // u is a basis function, v a test function
+  h1_integrate_dd_expression(( HEATCAP * uval[i] * vval[i] / TAU +
                                dlam_dT(Titer_val[i]) * uval[i] * (dTiter_dx[i]*t_dvdx + dTiter_dy[i]*t_dvdy) +
                                lam(Titer_val[i]) * (t_dudx*t_dvdx + t_dudy*t_dvdy)));
 
   return result;
 }
 
-scalar bilinear_form_0_0(RealFunction* fu, RealFunction* fv, RefMap* ru, RefMap* rv)
-{ return J(&Titer, fu, fv, ru, rv); }
+// Residuum for the Crank-Nicolson time discretization
+inline double F_cranic(RealFunction* Tprev, RealFunction* Titer, RealFunction* fu, RefMap* ru)
+{
+  Quad2D* quad = fu->get_quad_2d();
+  RefMap* rv = ru;
 
+  int o = 3 * Titer->get_fn_order() + fu->get_fn_order() + ru->get_inv_ref_order();
+  limit_order(o);
+  Tprev->set_quad_order(o);
+  Titer->set_quad_order(o);
+  fu->set_quad_order(o);
+
+  double* Titer_val = Titer->get_fn_values();
+  double* Tprev_val = Tprev->get_fn_values();
+  double* uval = fu->get_fn_values();
+  double *dTiter_dx, *dTiter_dy, *dTprev_dx, *dTprev_dy, *dudx, *dudy;
+  Titer->get_dx_dy_values(dTiter_dx, dTiter_dy);
+  Tprev->get_dx_dy_values(dTprev_dx, dTprev_dy);
+  fu->get_dx_dy_values(dudx, dudy);
+
+  // u is a test function
+  h1_integrate_dd_expression(( HEATCAP * (Titer_val[i] - Tprev_val[i]) * uval[i] / TAU + 
+                               0.5 * lam(Titer_val[i]) * (dTiter_dx[i]*t_dudx + dTiter_dy[i]*t_dudy) +
+                               0.5 * lam(Tprev_val[i]) * (dTprev_dx[i]*t_dudx + dTprev_dy[i]*t_dudy)
+                            ));
+
+  return result;
+}
+
+// Jacobian matrix for the Crank-Nicolson time discretization
+inline double J_cranic(RealFunction* Titer, RealFunction* fu, 
+                RealFunction* fv, RefMap* ru, RefMap* rv)
+{
+  Quad2D* quad = fu->get_quad_2d();
+
+  int o = 2 * Titer->get_fn_order() + fu->get_fn_order() + fv->get_fn_order() + ru->get_inv_ref_order();
+  limit_order(o);
+  Titer->set_quad_order(o);
+  fu->set_quad_order(o);
+  fv->set_quad_order(o);
+
+  double* Titer_val = Titer->get_fn_values();
+  double* uval = fu->get_fn_values();
+  double* vval = fv->get_fn_values();
+
+  double *dTiter_dx, *dTiter_dy, *dudx, *dudy, *dvdx, *dvdy;
+  Titer->get_dx_dy_values(dTiter_dx, dTiter_dy);
+  fu->get_dx_dy_values(dudx, dudy);
+  fv->get_dx_dy_values(dvdx, dvdy);
+
+  // u is a basis function, v a test function
+  h1_integrate_dd_expression(( HEATCAP * uval[i] * vval[i] / TAU +
+                               0.5 * dlam_dT(Titer_val[i]) * uval[i] * (dTiter_dx[i]*t_dvdx + dTiter_dy[i]*t_dvdy) +
+                               0.5 * lam(Titer_val[i]) * (t_dudx*t_dvdx + t_dudy*t_dvdy)
+                            ));
+
+  return result;
+}
+
+/********** Definition of linear and bilinear forms for Hermes ***********/ 
+
+Solution Tprev, // previous time step solution, for the time integration method
+         Titer; // solution converging during the Newton's iteration
+
+// Implicit Euler method (1st-order in time)
+scalar linear_form_0_euler(RealFunction* fv, RefMap* rv)
+{ return F_euler(&Tprev, &Titer, fv, rv); }
+scalar bilinear_form_0_0_euler(RealFunction* fu, RealFunction* fv, RefMap* ru, RefMap* rv)
+{ return J_euler(&Titer, fu, fv, ru, rv); }
+
+// Crank-Nicolson method (2nd-order in time)
+scalar linear_form_0_cranic(RealFunction* fv, RefMap* rv)
+{ return F_cranic(&Tprev, &Titer, fv, rv); }
+scalar bilinear_form_0_0_cranic(RealFunction* fu, RealFunction* fv, RefMap* ru, RefMap* rv)
+{ return J_cranic(&Titer, fu, fv, ru, rv); }
 
 // *************************************************************
+
 int main(int argc, char* argv[])
 {
   Mesh mesh;
@@ -115,9 +196,15 @@ int main(int argc, char* argv[])
   space.assign_dofs();
 
   WeakForm wf(1);
-  wf.add_biform(0, 0, bilinear_form_0_0, UNSYM, ANY, 1, &Titer);
-  wf.add_liform(0, linear_form_0, ANY, 2, &Titer, &Tprev);
-  
+  if(TIME_DISCR == 1) {
+    wf.add_biform(0, 0, bilinear_form_0_0_euler, UNSYM, ANY, 1, &Titer);
+    wf.add_liform(0, linear_form_0_euler, ANY, 2, &Titer, &Tprev);
+  }
+  else {
+    wf.add_biform(0, 0, bilinear_form_0_0_cranic, UNSYM, ANY, 1, &Titer);
+    wf.add_liform(0, linear_form_0_cranic, ANY, 2, &Titer, &Tprev);
+  }
+
   UmfpackSolver umfpack;
   NonlinSystem nls(&wf, &umfpack);
   nls.set_spaces(1, &space);
@@ -127,23 +214,19 @@ int main(int argc, char* argv[])
   ScalarView view("", 0, 0, 600, 600);
   ScalarView view2("", 700, 0, 600, 600);
   
-  // initial condition at zero time level
+  // setting initial condition at zero time level
   Tprev.set_const(&mesh, 0.0);
-  nls.set_ic(&Tprev, &Tprev);
+  nls.set_ic(&Tprev, &Tprev, PROJ_TYPE);
   Titer.copy(&Tprev);
-//   Tprev.set_const(&mesh, 0.0);
-//   Titer.copy(&Tprev);
-//   nls.set_ic(&Titer, &Titer);
 
-  // view initial guess for Newton's method
-  // satisfies BC conditions 
-  sprintf(title, "Initial iteration");
-  view.set_title(title);
-  view.show(&Titer);    
-  view.wait_for_keypress();
+  // view initial guess for Newton's method 
+  //sprintf(title, "Initial guess for the Newton's method");
+  //view.set_title(title);
+  //view.show(&Titer);    
+  //view.wait_for_keypress();
 
   Solution sln;
- // time stepping
+  // time stepping
   for(int n = 1; n <= NSTEP; n++) 
   {
 
@@ -159,7 +242,7 @@ int main(int argc, char* argv[])
     double res_l2_norm; 
     do
     {
-      info("\n---- Time step %d, iter %d ---------------------------------------\n", n, it++);
+      info("\n---- Time step %d, Newton iter %d ---------------------------------\n", n, it++);
     
       nls.assemble();
       nls.solve(1, &sln);
@@ -179,7 +262,7 @@ int main(int argc, char* argv[])
 
     // visualization of solution on the n-th time level
     sprintf(title, "Time level %d", n);
-    view.set_min_max_range(90,100);
+    //view.set_min_max_range(90,100);
     view.set_title(title);
     view.show(&Titer);    
     //view.wait_for_keypress();
