@@ -18,7 +18,7 @@
 /********** Problem parameters ***********/ 
 
 int TIME_DISCR = 2;   // 1 for implicit Euler, 2 for Crank-Nicolson
-int PROJ_TYPE = 2;    // 1 for H1 projections, 2 for L2 projections
+int PROJ_TYPE = 1;    // 1 for H1 projections, 0 for L2 projections
 double HEATCAP = 1e6; // heat capacity
 double TAU = 0.5;     // time step
 int NSTEP = 100;      // number of time steps to do
