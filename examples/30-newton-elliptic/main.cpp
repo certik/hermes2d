@@ -16,7 +16,7 @@
 
 /********** Problem parameters ***********/ 
 
-int PROJ_TYPE = 2;    // 1 for H1 projections, 2 for L2 projections
+int PROJ_TYPE = 0;    // 1 for H1 projections, 0 for L2 projections
 
 // thermal conductivity (temperature-dependent)
 // for any u, this function has to be  positive in the entire domain!
