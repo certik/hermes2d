@@ -504,10 +504,13 @@ void LinSystem::assemble(bool rhsonly)
     Element** e;
     while ((e = trav.get_next_state(bnd, ep)) != NULL)
     {
-      // set maximum integration order for use in integrals, see limit_order()
+      // find a non-NULL e[i]
+      Element* e0;
       for (i = 0; i < s->idx.size(); i++)
-        if (e[i] != NULL)
-         { update_limit_table(e[i]->get_mode()); break; }
+        if ((e0 = e[i]) != NULL) break;
+          
+      // set maximum integration order for use in integrals, see limit_order()
+      update_limit_table(e0->get_mode());
   
       // obtain assembly lists for the element at all spaces, set appropriate mode for each pss
       for (i = 0; i < s->idx.size(); i++)
@@ -520,8 +523,8 @@ void LinSystem::assemble(bool rhsonly)
         spss[j]->set_master_transform();
         refmap[j].set_active_element(e[i]);
         refmap[j].force_transform(pss[j]->get_transform(), pss[j]->get_ctm());
-        marker = e[i]->marker;
       }
+      marker = e0->marker;
       
       //// assemble volume bilinear forms //////////////////////////////////////
       for (ww = 0; ww < s->bfvol.size(); ww++)
@@ -597,9 +600,9 @@ void LinSystem::assemble(bool rhsonly)
 
       
       // assemble surface integrals now: loop through boundary edges of the element
-      for (int edge = 0; edge < e[0]->nvert; edge++)
+      for (int edge = 0; edge < e0->nvert; edge++)
       {
-        if (!bnd[edge]/* || !e[0]->en[edge]->bnd*/) continue;
+        if (!bnd[edge]/* || !e0->en[edge]->bnd*/) continue;
         marker = ep[edge].marker;
   
         // obtain the list of shape functions which are nonzero on this edge
