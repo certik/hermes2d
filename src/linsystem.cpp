@@ -508,7 +508,8 @@ void LinSystem::assemble(bool rhsonly)
       Element* e0;
       for (i = 0; i < s->idx.size(); i++)
         if ((e0 = e[i]) != NULL) break;
-          
+      if (e0 == NULL) continue;
+      
       // set maximum integration order for use in integrals, see limit_order()
       update_limit_table(e0->get_mode());
   
