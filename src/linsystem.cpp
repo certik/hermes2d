@@ -520,8 +520,8 @@ void LinSystem::assemble(bool rhsonly)
         spss[j]->set_master_transform();
         refmap[j].set_active_element(e[i]);
         refmap[j].force_transform(pss[j]->get_transform(), pss[j]->get_ctm());
+        marker = e[i]->marker;
       }
-      marker = e[0]->marker;
       
       //// assemble volume bilinear forms //////////////////////////////////////
       for (ww = 0; ww < s->bfvol.size(); ww++)
