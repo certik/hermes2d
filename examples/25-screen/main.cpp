@@ -296,7 +296,7 @@ int main(int argc, char* argv[])
     graph.add_values(0, space.get_num_dofs(), error);
     graph.save("convergence.txt");
     
-     // fine (reference) problem
+    // fine (reference) problem
     RefSystem ref(&sys);
     ref.assemble();
     ref.solve(1, &rsln);
