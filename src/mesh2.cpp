@@ -421,6 +421,7 @@ void Mesh::load(const char* filename, bool debug)
   
   // create elements
   MItem* elem = sym->data->list;
+  nactive = 0;
   for (i = 0; i < n; i++, elem = elem->next)
   {
     // read and check vertex indices
@@ -446,8 +447,9 @@ void Mesh::load(const char* filename, bool debug)
       Node *v3 = &nodes[idx[3]];
       create_quad(idx[4], v0, v1, v2, v3, NULL);
     }
+    nactive++;
   }
-  nbase = nactive = n;
+  nbase = n;
   
   //// boundaries //////////////////////////////////////////////////////////////
   
