@@ -160,7 +160,10 @@ State* Traverse::push_state()
 
 void Traverse::set_boundary_info(State* s, bool* bnd, EdgePos* ep)
 {
-  Element* e = s->e[0];
+  Element* e;
+  for (int i = 0; i < num; i++)
+    if ((e = s->e[i]) != NULL) break;
+  
   if (tri)
   {
     for (int i = 0; i < 3; i++)
