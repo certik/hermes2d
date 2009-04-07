@@ -3,8 +3,6 @@
 #include "function.h"
 
 // 
-//  Nonlinear solver test:
-//
 //  PDE: stationary heat transfer with nonlinear thermal conductivity
 //  - div[lambda(T)grad T] = 0
 //
@@ -71,7 +69,8 @@ inline double J(RealFunction* Titer, RealFunction* fu,
 {
   Quad2D* quad = fu->get_quad_2d();
 
-  int o = 2 * Titer->get_fn_order() + fu->get_fn_order() + fv->get_fn_order() + ru->get_inv_ref_order();
+  int o = 2 * Titer->get_fn_order() + fu->get_fn_order() 
+     + fv->get_fn_order() + ru->get_inv_ref_order();
   limit_order(o);
   Titer->set_quad_order(o);
   fu->set_quad_order(o);
@@ -87,8 +86,9 @@ inline double J(RealFunction* Titer, RealFunction* fu,
   fv->get_dx_dy_values(dvdx, dvdy);
 
   // u is a basis function, v a test function
-  h1_integrate_dd_expression(( dlam_dT(Titer_val[i]) * uval[i] * (dTiter_dx[i]*t_dvdx + dTiter_dy[i]*t_dvdy) +
-                               lam(Titer_val[i]) * (t_dudx*t_dvdx + t_dudy*t_dvdy)));
+  h1_integrate_dd_expression(( dlam_dT(Titer_val[i]) * uval[i] 
+    * (dTiter_dx[i]*t_dvdx + dTiter_dy[i]*t_dvdy) +
+    lam(Titer_val[i]) * (t_dudx*t_dvdx + t_dudy*t_dvdy)));
 
   return result;
 }
@@ -131,9 +131,9 @@ int main(int argc, char* argv[])
   char title[100];  
   ScalarView view("", 0, 0, 600, 600);
   ScalarView view2("", 700, 0, 600, 600);
-  
-  // setting initial condition for the Newton's method
-  Titer.set_const(&mesh, 0.0);
+
+  // setting the Dirichlet lift to be the initial condition
+  Titer.set_dirichlet_lift(&space, &pss);
   nls.set_ic(&Titer, &Titer, PROJ_TYPE);
 
   // view initial guess for Newton's method 
