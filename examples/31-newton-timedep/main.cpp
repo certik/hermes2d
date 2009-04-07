@@ -2,8 +2,6 @@
 #include "solver_umfpack.h"
 
 // 
-//  Nonlinear solver test:
-//
 //  PDE: non-stationary heat transfer with nonlinear thermal conductivity
 //  HEATCAP*dT/dt - div[lambda(T)grad T] = 0
 //
@@ -214,16 +212,16 @@ int main(int argc, char* argv[])
   ScalarView view("", 0, 0, 600, 600);
   ScalarView view2("", 700, 0, 600, 600);
   
-  // setting initial condition at zero time level
-  Tprev.set_const(&mesh, 0.0);
+  // setting the Dirichlet lift to be the initial condition
+  Tprev.set_dirichlet_lift(&space, &pss);
   nls.set_ic(&Tprev, &Tprev, PROJ_TYPE);
   Titer.copy(&Tprev);
 
   // view initial guess for Newton's method 
-  //sprintf(title, "Initial guess for the Newton's method");
-  //view.set_title(title);
-  //view.show(&Titer);    
-  //view.wait_for_keypress();
+  sprintf(title, "Initial guess for the Newton's method");
+  view.set_title(title);
+  view.show(&Titer);    
+  view.wait_for_keypress();
 
   Solution sln;
   // time stepping
