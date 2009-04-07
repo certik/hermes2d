@@ -314,19 +314,22 @@ Element** Traverse::get_next_state(bool* bnd, EdgePos* ep)
       {
         State* ns = push_state();
         for (i = 0; i < num; i++)
-          if (s->e[i] != NULL)
+        {
+          if (s->e[i] == NULL)
           {
-            if (s->e[i]->active)
-            {
-              ns->e[i] = s->e[i];
-              ns->trans[i] = son+1;
-            }
-            else
-            {
-              ns->e[i] = s->e[i]->sons[son];
-              if (ns->e[i]->active) ns->trans[i] = -1;
-            }
+            ns->e[i] = NULL;
           }
+          else if (s->e[i]->active)
+          {
+            ns->e[i] = s->e[i];
+            ns->trans[i] = son+1;
+          }
+          else
+          {
+            ns->e[i] = s->e[i]->sons[son];
+            if (ns->e[i]->active) ns->trans[i] = -1;
+          }
+        }
         
         // determine boundary flags and positions for the new state
         if (son < 3)
@@ -367,20 +370,23 @@ Element** Traverse::get_next_state(bool* bnd, EdgePos* ep)
           move_to_son(&ns->cr, &s->cr, son);
           
           for (i = 0; i < num; i++)
-            if (s->e[i] != NULL)
+          {
+            if (s->e[i] == NULL)
             {
-              if (s->e[i]->active)
-              {
-                ns->e[i] = s->e[i];
-                ns->trans[i] = son+1;
-              }
-              else
-              {
-                ns->e[i] = s->e[i]->sons[sons[i][son] & 3];
-                move_to_son(ns->er + i, s->er + i, sons[i][son]);
-                if (ns->e[i]->active) ns->trans[i] = -1;
-              }
+              ns->e[i] = NULL;
             }
+            else if (s->e[i]->active)
+            {
+              ns->e[i] = s->e[i];
+              ns->trans[i] = son+1;
+            }
+            else
+            {
+              ns->e[i] = s->e[i]->sons[sons[i][son] & 3];
+              move_to_son(ns->er + i, s->er + i, sons[i][son]);
+              if (ns->e[i]->active) ns->trans[i] = -1;
+            }
+          }
         }
       }
       // v or h split, recur to two sons
@@ -396,20 +402,23 @@ Element** Traverse::get_next_state(bool* bnd, EdgePos* ep)
           
           j = (son == 4 || son == 6) ? 0 : 2;
           for (i = 0; i < num; i++)
-            if (s->e[i] != NULL)
+          {
+            if (s->e[i] == NULL)
             {
-              if (s->e[i]->active)
-              {
-                ns->e[i] = s->e[i];
-                ns->trans[i] = son+1;
-              }
-              else
-              {
-                ns->e[i] = s->e[i]->sons[sons[i][j] & 3];
-                move_to_son(ns->er + i, s->er + i, sons[i][j]);
-                if (ns->e[i]->active) ns->trans[i] = -1;
-              }
+              ns->e[i] = NULL;
             }
+            else if (s->e[i]->active)
+            {
+              ns->e[i] = s->e[i];
+              ns->trans[i] = son+1;
+            }
+            else
+            {
+              ns->e[i] = s->e[i]->sons[sons[i][j] & 3];
+              move_to_son(ns->er + i, s->er + i, sons[i][j]);
+              if (ns->e[i]->active) ns->trans[i] = -1;
+            }
+          }
         }
       }
       // no splits, recur to one son
@@ -419,19 +428,22 @@ Element** Traverse::get_next_state(bool* bnd, EdgePos* ep)
         memcpy(&ns->cr, &s->cr, sizeof(Rect));
         
         for (i = 0; i < num; i++)
-          if (s->e[i] != NULL)
+        {
+          if (s->e[i] == NULL)
           {
-            if (s->e[i]->active)
-            {
-              ns->e[i] = s->e[i];
-            }
-            else
-            {
-              ns->e[i] = s->e[i]->sons[sons[i][0] & 3];
-              move_to_son(ns->er + i, s->er + i, sons[i][0]);
-              if (ns->e[i]->active) ns->trans[i] = -1;
-            }
+            ns->e[i] = NULL;
           }
+          else if (s->e[i]->active)
+          {
+            ns->e[i] = s->e[i];
+          }
+          else
+          {
+            ns->e[i] = s->e[i]->sons[sons[i][0] & 3];
+            move_to_son(ns->er + i, s->er + i, sons[i][0]);
+            if (ns->e[i]->active) ns->trans[i] = -1;
+          }
+        }
       }
     }
   }
