@@ -80,7 +80,10 @@ void __hermes2d_fwrite(const void* ptr, size_t size, size_t nitems, FILE* stream
 
 void __hermes2d_fread(void* ptr, size_t size, size_t nitems, FILE* stream, const char* fname)
 {
-  if (fread(ptr, size, nitems, stream) != nitems || ferror(stream))
+  size_t ret = fread(ptr, size, nitems, stream);
+  if (ret < nitems)
+    __error_fn(fname, "Premature end of file.");
+  else if (ferror(stream))
     __error_fn(fname, "Error reading file: %s", strerror(ferror(stream)));
 }
 

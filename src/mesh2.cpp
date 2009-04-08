@@ -1039,24 +1039,31 @@ void Mesh::save_raw(FILE* f)
   
   // dump all elements
   Element* e;
-  for_all_elements(e, this)
+  for (int id = 0; id < get_max_element_id(); id++)
   {
-    output(e->id, int);
-    unsigned bits = e->nvert | (e->active << 30) | (e->used << 31);
-    output(bits, unsigned);
-    output(e->marker, int);
-    output(e->userdata, int);
-    output(e->iro_cache, int);
-    
-    for (i = 0; i < e->nvert; i++)
-      output(e->vn[i]->id, int);
-    
-    if (e->active)
-      for (i = 0; i < e->nvert; i++)
-        output(e->en[i]->id, int);
-    else
-      for (i = 0; i < 4; i++)
-        output(e->sons[i] ? e->sons[i]->id : null, int);
+    if (id < nbase || (e = get_element_fast(id))->used)
+    {
+      output(e->id, int);
+      unsigned bits = e->nvert | (e->active << 30) | (e->used << 31);
+      output(bits, unsigned);
+      
+      if (e->used)
+      {
+        output(e->marker, int);
+        output(e->userdata, int);
+        output(e->iro_cache, int);
+        
+        for (i = 0; i < e->nvert; i++)
+          output(e->vn[i]->id, int);
+        
+        if (e->active)
+          for (i = 0; i < e->nvert; i++)
+            output(e->en[i]->id, int);
+        else
+          for (i = 0; i < 4; i++)
+            output(e->sons[i] ? e->sons[i]->id : null, int);
+      }
+    }
   }
   
   // TODO: curved elements
@@ -1142,51 +1149,54 @@ void Mesh::load_raw(FILE* f)
     if (id < 0 || id >= me) error("Corrupt data.");
     Element* e = &(elements[id]);
     e->id = id;
-    e->used = 1;
     
     unsigned bits;
     input(bits, unsigned);
     e->nvert  =  bits & 0x3fffffff;
     e->active = (bits >> 30) & 0x1;
+    e->used   = (bits >> 31) & 0x1;
     
-    input(e->marker, int);
-    input(e->userdata, int);
-    input(e->iro_cache, int);
-    
-    // load vertex node ids
-    for (j = 0; j < e->nvert; j++)
+    if (e->used)
     {
-      input(id, int);
-      if (id < 0 || id >= mv) error("Corrupt data.");
-      e->vn[j] = get_node(id);
-    }
-    
-    if (e->active)
-    {
-      // load edge node ids
+      input(e->marker, int);
+      input(e->userdata, int);
+      input(e->iro_cache, int);
+      
+      // load vertex node ids
       for (j = 0; j < e->nvert; j++)
       {
         input(id, int);
         if (id < 0 || id >= mv) error("Corrupt data.");
-        e->en[j] = get_node(id);
+        e->vn[j] = get_node(id);
       }
-    }
-    else
-    {
-      // load son ids
-      for (j = 0; j < 4; j++)
+      
+      if (e->active)
       {
-        input(id, int);
-        if (id < 0)
-          e->sons[j] = NULL;
-        else if (id < me)
-          e->sons[j] = &(elements[id]);
-        else
-          error("Corrupt data.");
+        // load edge node ids
+        for (j = 0; j < e->nvert; j++)
+        {
+          input(id, int);
+          if (id < 0 || id >= mv) error("Corrupt data.");
+          e->en[j] = get_node(id);
+        }
+      }
+      else
+      {
+        // load son ids
+        for (j = 0; j < 4; j++)
+        {
+          input(id, int);
+          if (id < 0)
+            e->sons[j] = NULL;
+          else if (id < me)
+            e->sons[j] = &(elements[id]);
+          else
+            error("Corrupt data.");
+        }
       }
     }
   }
-  elements.post_load_scan();
+  elements.post_load_scan(nbase);
 
   // update edge node element pointers
   Node* n;

@@ -162,10 +162,10 @@ public:
   /// Counts the items in the array and registers unused items.
   /// This is a special-purpose function, used after loading the array
   /// from file.
-  void post_load_scan()
+  void post_load_scan(int start = 0)
   {
     nitems = 0;
-    for (int i = 0; i < size; i++)
+    for (int i = start; i < size; i++)
       if (get_item(i).used)
         nitems++;
       else
