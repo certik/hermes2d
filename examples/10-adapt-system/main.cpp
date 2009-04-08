@@ -119,7 +119,7 @@ int main(int argc, char* argv[])
                                           bilinear_form_0_0, bilinear_form_0_1,
                                           bilinear_form_1_0, bilinear_form_1_1) * 100;
     if (error < tol) break;
-    hp.adapt(thr, false, 1);
+    hp.adapt(thr);
 
     graph.add_values(0, xdisp.get_num_dofs() + ydisp.get_num_dofs(), error);
     graph.save("conv.txt");

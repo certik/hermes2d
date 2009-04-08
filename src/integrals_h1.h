@@ -29,7 +29,6 @@
 // for expression without partial derivatives - the variables e, quad, o must be already
 // defined and initialized
 #define h1_integrate_expression(exp) \
-  double result = 0.0; \
   {double3* pt = quad->get_points(o); \
   int np = quad->get_num_points(o); \
   if (ru->is_jacobian_const()){ \
@@ -48,7 +47,6 @@
 // for expressions containing partial derivatives (ie. their transformations)
 // - the variables e, quad, o must be already defined and initialized
 #define h1_integrate_dd_expression(exp) \
-  double result = 0.0; \
   {double3* pt = quad->get_points(o); \
   int np = quad->get_num_points(o); \
   double2x2 *mv, *mu; \
@@ -86,8 +84,9 @@ inline double int_u(RealFunction* fu, RefMap* ru)
   fu->set_quad_order(o, FN_VAL);
 
   double* uval = fu->get_fn_values();
+  
+  double result = 0.0;
   h1_integrate_expression(uval[i]);
-
   return result;
 }
 
@@ -106,9 +105,11 @@ inline double int_u_v(RealFunction* fu, RealFunction* fv, RefMap* ru, RefMap* rv
   double* uval = fu->get_fn_values();
   double* vval = fv->get_fn_values();
 
+  double result = 0.0;
   h1_integrate_expression(uval[i] * vval[i]);
   return result;
 }
+
 
 inline scalar int_w_v(ScalarFunction* w, RealFunction* fu, RefMap* ru)
 {
@@ -138,6 +139,7 @@ inline scalar int_w_v(ScalarFunction* w, RealFunction* fu, RefMap* ru)
   return result;
 }
 
+
 inline double int_F_u(double (*F)(double x, double y), RealFunction* fu, RefMap* ru)
 {
   Quad2D* quad = fu->get_quad_2d();
@@ -150,6 +152,7 @@ inline double int_F_u(double (*F)(double x, double y), RealFunction* fu, RefMap*
   double* x = ru->get_phys_x(o);
   double* y = ru->get_phys_y(o);
 
+  double result = 0.0;
   h1_integrate_expression(uval[i] * F(x[i], y[i]));
   return result;
 }
@@ -168,6 +171,7 @@ inline double int_x_u(RealFunction* fu, RefMap* ru)
   double* uval = fu->get_fn_values();
   double* x = ru->get_phys_x(o);
 
+  double result = 0.0;
   h1_integrate_expression(x[i] * uval[i]);
   return result;
 }
@@ -188,6 +192,7 @@ inline double int_x_u_v(RealFunction* fu, RealFunction* fv, RefMap* ru, RefMap* 
   double* vval = fv->get_fn_values();
   double* x = ru->get_phys_x(o);
 
+  double result = 0.0;
   h1_integrate_expression(x[i] * uval[i] * vval[i]);
   return result;
 }
@@ -206,6 +211,7 @@ inline double int_u_dvdx(RealFunction* fu, RealFunction* fv, RefMap* ru, RefMap*
   double *dvdx = fv->get_dx_values();
   double *dvdy = fv->get_dy_values();
 
+  double result = 0.0;
   h1_integrate_dd_expression(uval[i] * t_dvdx);
   return result;
 }
@@ -224,6 +230,7 @@ inline double int_u_dvdy(RealFunction* fu, RealFunction* fv, RefMap* ru, RefMap*
   double *dvdx = fv->get_dx_values();
   double *dvdy = fv->get_dy_values();
 
+  double result = 0.0;
   h1_integrate_dd_expression(uval[i] * t_dvdy);
   return result;
 }
@@ -246,6 +253,7 @@ inline double int_dudx_dvdx(RealFunction* fu, RealFunction* fv, RefMap* ru, RefM
   fu->get_dx_dy_values(dudx, dudy);
   fv->get_dx_dy_values(dvdx, dvdy);
 
+  double result = 0.0;
   h1_integrate_dd_expression(t_dudx * t_dvdx);
   return result;
 }
@@ -264,6 +272,7 @@ inline double int_dudy_dvdy(RealFunction* fu, RealFunction* fv, RefMap* ru, RefM
   fu->get_dx_dy_values(dudx, dudy);
   fv->get_dx_dy_values(dvdx, dvdy);
 
+  double result = 0.0;
   h1_integrate_dd_expression(t_dudy * t_dvdy);
   return result;
 }
@@ -282,6 +291,7 @@ inline double int_dudx_dvdy(RealFunction* fu, RealFunction* fv, RefMap* ru, RefM
   fu->get_dx_dy_values(dudx, dudy);
   fv->get_dx_dy_values(dvdx, dvdy);
 
+  double result = 0.0;
   h1_integrate_dd_expression(t_dudx * t_dvdy);
   return result;
 }
@@ -303,9 +313,11 @@ inline double int_grad_u_grad_v(RealFunction* fu, RealFunction* fv, RefMap* ru, 
   fu->get_dx_dy_values(dudx, dudy);
   fv->get_dx_dy_values(dvdx, dvdy);
 
+  double result = 0.0;
   h1_integrate_dd_expression(t_dudx * t_dvdx + t_dudy * t_dvdy);
   return result;
 }
+
 
 inline scalar int_grad_w_grad_v(ScalarFunction* w, RealFunction* fu, RefMap* ru)
 {
@@ -356,6 +368,7 @@ inline double int_x_grad_u_grad_v(RealFunction* fu, RealFunction* fv, RefMap* ru
   fv->get_dx_dy_values(dvdx, dvdy);
   double* x = ru->get_phys_x(o);
 
+  double result = 0.0;
   h1_integrate_dd_expression(x[i] * (t_dudx * t_dvdx + t_dudy * t_dvdy));
   return result;
 }
@@ -381,6 +394,7 @@ inline double int_w_nabla_u_v(RealFunction* w1, RealFunction* w2,
   double* w1val = w1->get_fn_values();
   double* w2val = w2->get_fn_values();
 
+  double result = 0.0;
   h1_integrate_dd_expression((w1val[i] * t_dudx + w2val[i] * t_dudy) * vval[i]);
   return result;
 }
@@ -399,6 +413,7 @@ inline double int_a_dudx_dvdx_b_dudy_dvdy(double a, RealFunction* fu, double b, 
   fu->get_dx_dy_values(dudx, dudy);
   fv->get_dx_dy_values(dvdx, dvdy);
 
+  double result = 0.0;
   h1_integrate_dd_expression(a * t_dudx * t_dvdx + b * t_dudy * t_dvdy);
   return result;
 }
@@ -417,6 +432,7 @@ inline double int_a_dudx_dvdy_b_dudy_dvdx(double a, RealFunction* fu, double b, 
   fu->get_dx_dy_values(dudx, dudy);
   fv->get_dx_dy_values(dvdx, dvdy);
 
+  double result = 0.0;
   h1_integrate_dd_expression(a * t_dudx * t_dvdy + b * t_dudy * t_dvdx);
   return result;
 }
@@ -435,9 +451,11 @@ inline double int_u_v_over_x(RealFunction* fu, RealFunction* fv, RefMap* ru, Ref
   vval = fv->get_fn_values();
   double* x = ru->get_phys_x(o);
 
+  double result = 0.0;
   h1_integrate_expression(uval[i] * vval[i] / x[i]);
   return result;
 }
+
 
 inline double int_u_v_over_y(RealFunction* fu, RealFunction* fv, RefMap* ru, RefMap* rv)
 {
@@ -452,6 +470,7 @@ inline double int_u_v_over_y(RealFunction* fu, RealFunction* fv, RefMap* ru, Ref
   vval = fv->get_fn_values();
   double* y = ru->get_phys_y(o);
 
+  double result = 0.0;
   h1_integrate_expression(uval[i] * vval[i] / y[i]);
   return result;
 }
@@ -472,6 +491,7 @@ inline double int_F_u_v(double (*F)(double x, double y),
   double* x = ru->get_phys_x(o);
   double* y = ru->get_phys_y(o);
 
+  double result = 0.0;
   h1_integrate_expression(uval[i] * vval[i] * F(x[i], y[i]));
   return result;
 }
@@ -491,6 +511,7 @@ inline double int_x_a_dudx_dvdx_b_dudy_dvdy(double a, RealFunction* fu, double b
   fv->get_dx_dy_values(dvdx, dvdy);
   double* x = ru->get_phys_x(o);
 
+  double result = 0.0;
   h1_integrate_dd_expression((x[i] * (a * t_dudx * t_dvdx + b * t_dudy * t_dvdy)));
   return result;
 }
@@ -512,6 +533,7 @@ inline double int_x_dudx_dvdy(RealFunction* fu, RealFunction* fv, RefMap* ru, Re
   fv->get_dx_dy_values(dvdx, dvdy);
   double* x = ru->get_phys_x(o);
 
+  double result = 0.0;
   h1_integrate_dd_expression(x[i] * t_dudx * t_dvdy);
   return result;
 }
@@ -534,6 +556,7 @@ inline double int_x2_dudx_dvdx(RealFunction* fu, RealFunction* fv, RefMap* ru, R
   fv->get_dx_dy_values(dvdx, dvdy);
   double* x = ru->get_phys_x(o);
 
+  double result = 0.0;
   h1_integrate_dd_expression(sqr(x[i]) * t_dudx * t_dvdx);
   return result;
 }
@@ -554,6 +577,7 @@ inline double int_xy_dudx_dvdy(RealFunction* fu, RealFunction* fv, RefMap* ru, R
   double* x = ru->get_phys_x(o);
   double* y = ru->get_phys_y(o);
 
+  double result = 0.0;
   h1_integrate_dd_expression(x[i] * y[i] * t_dudx * t_dvdy);
   return result;
 }
@@ -574,6 +598,7 @@ inline double int_yx_dudy_dvdx(RealFunction* fu, RealFunction* fv, RefMap* ru, R
   double* x = ru->get_phys_x(o);
   double* y = ru->get_phys_y(o);
 
+  double result = 0.0;
   h1_integrate_dd_expression(y[i] * x[i] * t_dudy * t_dvdx);
   return result;
 }
@@ -593,6 +618,7 @@ inline double int_y2_dudy_dvdy(RealFunction* fu, RealFunction* fv, RefMap* ru, R
   fv->get_dx_dy_values(dvdx, dvdy);
   double* y = ru->get_phys_y(o);
 
+  double result = 0.0;
   h1_integrate_dd_expression(sqr(y[i]) * t_dudy * t_dvdy);
   return result;
 }
@@ -612,6 +638,7 @@ inline double int_x_dudx_v(RealFunction* fu, RealFunction* fv, RefMap* ru, RefMa
   double* vval = fv->get_fn_values();
   double* x = ru->get_phys_x(o);
 
+  double result = 0.0;
   h1_integrate_dd_expression(x[i] * t_dudx * vval[i]);
   return result;
 }
@@ -631,6 +658,7 @@ inline double int_y_dudy_v(RealFunction* fu, RealFunction* fv, RefMap* ru, RefMa
   double* vval = fv->get_fn_values();
   double* y = ru->get_phys_y(o);
 
+  double result = 0.0;
   h1_integrate_dd_expression(y[i] * t_dudy * vval[i]);
   return result;
 }
@@ -656,6 +684,7 @@ inline double int_h1_error(Function<T>* fu, Function<T>* fv, RefMap* ru, RefMap*
   fu->get_dx_dy_values(dudx, dudy);
   fv->get_dx_dy_values(dvdx, dvdy);
 
+  double result = 0.0;
   h1_integrate_expression(sqr(fnu[i] - fnv[i]) + sqr(dudx[i] - dvdx[i]) + sqr(dudy[i] - dvdy[i]));
   return result;
 }
@@ -679,6 +708,7 @@ inline double int_h1_semi_error(Function<T>* fu, Function<T>* fv, RefMap* ru, Re
   fu->get_dx_dy_values(dudx, dudy);
   fv->get_dx_dy_values(dvdx, dvdy);
   
+  double result = 0.0;
   h1_integrate_expression(sqr(dudx[i] - dvdx[i]) + sqr(dudy[i] - dvdy[i]));
   return result;
 }
@@ -698,6 +728,7 @@ inline double int_l2_error(Function<T>* fu, Function<T>* fv, RefMap* ru, RefMap*
   scalar* fnu = fu->get_fn_values();
   scalar* fnv = fv->get_fn_values();
 
+  double result = 0.0;
   h1_integrate_expression(sqr(fnu[i] - fnv[i]));
   return result;
 }
@@ -718,6 +749,7 @@ inline double int_dx_error(Function<T>* fu, Function<T>* fv, RefMap* ru, RefMap*
   fu->get_dx_dy_values(dudx, dudy);
   fv->get_dx_dy_values(dvdx, dvdy);
 
+  double result = 0.0;
   h1_integrate_expression(sqr(dudx[i] - dvdx[i]));
   return result;
 }
@@ -738,6 +770,7 @@ inline double int_dy_error(Function<T>* fu, Function<T>* fv, RefMap* ru, RefMap*
   fu->get_dx_dy_values(dudx, dudy);
   fv->get_dx_dy_values(dvdx, dvdy);
 
+  double result = 0.0;
   h1_integrate_expression(sqr(dudy[i] - dvdy[i]));
   return result;
 }
@@ -756,6 +789,7 @@ inline double int_h1_norm(Function<T>* fu, RefMap* ru)
   scalar *dudx, *dudy;
   fu->get_dx_dy_values(dudx, dudy);
   
+  double result = 0.0;
   h1_integrate_expression(sqr(fnu[i]) + sqr(dudx[i]) + sqr(dudy[i]));
   return result;
 }
@@ -774,6 +808,7 @@ inline double int_h1_seminorm(Function<T>* fu, RefMap* ru)
   scalar *dudx, *dudy;
   fu->get_dx_dy_values(dudx, dudy);
   
+  double result = 0.0;
   h1_integrate_expression(sqr(dudx[i]) + sqr(dudy[i]));
   return result;
 }
@@ -789,11 +824,12 @@ inline double int_l2_norm(Function<T>* fu, RefMap* ru)
   fu->set_quad_order(o, FN_VAL);
 
   scalar* fnu = fu->get_fn_values();
+  
+  double result = 0.0;
   h1_integrate_expression(sqr(fnu[i]));
   return result;
 }
 
-#undef norm
 
 //// surface integrals /////////////////////////////////////////////////////////////////////////////
 

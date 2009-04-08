@@ -105,6 +105,7 @@ double error_fn_h1(MeshFunction* sln1, MeshFunction* sln2, RefMap* ru, RefMap* r
   sln1->get_dx_dy_values(dudx, dudy);
   sln2->get_dx_dy_values(dvdx, dvdy);
 
+  double result = 0.0;
   h1_integrate_expression(sqr(uval[i] - vval[i]) + 
                           sqr(dudx[i] - dvdx[i]) + sqr(dudy[i] - dvdy[i]));
   return result;
@@ -124,6 +125,7 @@ double norm_fn_h1(MeshFunction* sln, RefMap* ru)
   uval = sln->get_fn_values();
   sln->get_dx_dy_values(dudx, dudy);
   
+  double result = 0.0;
   h1_integrate_expression(sqr(uval[i]) + sqr(dudx[i]) + sqr(dudy[i]));
   return result;
 }
@@ -157,6 +159,7 @@ double error_fn_l2(MeshFunction* sln1, MeshFunction* sln2, RefMap* ru, RefMap* r
   uval = sln1->get_fn_values();
   vval = sln2->get_fn_values();
 
+  double result = 0.0;
   h1_integrate_expression(sqr(uval[i] - vval[i]));
   return result;
 }
@@ -174,6 +177,7 @@ double norm_fn_l2(MeshFunction* sln, RefMap* ru)
 
   scalar* uval = sln->get_fn_values();
   
+  double result = 0.0;
   h1_integrate_expression(sqr(uval[i]));
   return result;
 }
@@ -213,6 +217,7 @@ double error_fn_hc(MeshFunction* sln1, MeshFunction* sln2, RefMap* ru, RefMap* r
   scalar *vval0 = sln2->get_fn_values(0), *vval1 = sln2->get_fn_values(1); 
   scalar *vdx1  = sln2->get_dx_values(1), *vdy0  = sln2->get_dy_values(0); 
 
+  double result = 0.0;
   h1_integrate_expression(sqr(uval0[i] - vval0[i]) + sqr(uval1[i] - vval1[i]) +
                           sqr((udx1[i] - udy0[i]) - (vdx1[i] - vdy0[i])));
   return result;
@@ -232,6 +237,7 @@ double norm_fn_hc(MeshFunction* sln, RefMap* ru)
   scalar *uval0 = sln->get_fn_values(0), *uval1 = sln->get_fn_values(1); 
   scalar *udx1  = sln->get_dx_values(1), *udy0  = sln->get_dy_values(0); 
 
+  double result = 0.0;
   h1_integrate_expression(sqr(uval0[i]) + sqr(uval1[i]) + sqr(udx1[i] - udy0[i]));
   return result;
 }
