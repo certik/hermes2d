@@ -2,181 +2,150 @@
 #include "solver_umfpack.h"
 
 // 
-//  Nonlinear solver test:
+//  PDE: non-stationary complex Schroedinger equation 
+//  ih \partial \psi/\partial t = -h^2/(2m) \Delta \psi +
+//  g \psi |\psi|^2 + 1/2 m \omega^2 (x^2 + y^2) \psi
 //
-//  PDE: non-stationary heat transfer with nonlinear thermal conductivity
-//  HEATCAP*dT/dt - div[lambda(T)grad T] = 0
+//  Domain: square of edge length 2 centered at origin
 //
-//  Domain: square
-//
-//  BC:  T = 100 on the left, top and bottom edges
-//       dT/dn = 0 on the right edge
+//  BC:  homogeneous Dirichlet everywhere on th eboundary
 //
 //  Time-stepping: either implicit Euler or Crank-Nicolson
 //
 
-/********** Problem parameters ***********/ 
+//#include <complex.h>
 
-int TIME_DISCR = 2;   // 1 for implicit Euler, 2 for Crank-Nicolson
+/********** Problem parameters ***********/ 
+double H = 1;         //Planck constant 6.626068e-34;
+double M = 1; 
+double G = 1; 
+double OMEGA = 1;     
+int TIME_DISCR = 1;   // 1 for implicit Euler, 2 for Crank-Nicolson
 int PROJ_TYPE = 2;    // 1 for H1 projections, 2 for L2 projections
-double HEATCAP = 1e6; // heat capacity
 double TAU = 0.5;     // time step
 int NSTEP = 100;      // number of time steps to do
 
-// thermal conductivity (temperature-dependent)
-// for any u, this function has to be  positive in the entire domain!
-double lam(double T) { return 1.0 + T*T; } 
-double dlam_dT(double T) { return 2*T; }
+/********** Definition of initial conditions ***********/ 
+
+scalar fn_init(double x, double y, scalar& dx, scalar& dy) {
+  return exp(-x*x - y*y);
+}
 
 /********** Definition of boundary conditions ***********/ 
 
 int bc_types(int marker)
 {
- if (marker == 4 || marker == 1 || marker == 3) return BC_ESSENTIAL;
-//   if (marker == 4) return BC_ESSENTIAL;
-  else return BC_NATURAL;
+  return BC_ESSENTIAL;
 }
 
-scalar bc_values(int marker, double x, double y)
+complex bc_values(int marker, double x, double y)
 {
- if (marker == 4 || marker == 1 || marker == 3) return 100;
-//   if (marker == 4) return -4.0 * sqr(y) + 4.0 * y; 
-  else return 0.0;
+  return complex(0.0, 0.0);
 }
-
 
 /********** Definition of Jacobian matrices and residual vectors ***********/ 
 
 // Residuum for the Euler time discretization
-inline double F_euler(RealFunction* Tprev, RealFunction* Titer, RealFunction* fu, RefMap* ru)
+inline complex F_euler(ScalarFunction* Psi_prev, ScalarFunction* Psi_iter, RealFunction* fu, RefMap* ru)
 {
+  scalar ii = complex(0.0, 1.0);  // imaginary unit, ii^2 = -1
+
   Quad2D* quad = fu->get_quad_2d();
   RefMap* rv = ru;
 
-  int o = 3 * Titer->get_fn_order() + fu->get_fn_order() + ru->get_inv_ref_order();
+  //not sure here:
+  int o = 3 * Psi_iter->get_fn_order() + fu->get_fn_order() + ru->get_inv_ref_order();
   limit_order(o);
-  Tprev->set_quad_order(o, FN_VAL);
-  Titer->set_quad_order(o);
+  Psi_prev->set_quad_order(o, FN_VAL);
+  Psi_iter->set_quad_order(o);
   fu->set_quad_order(o);
 
-  double* Titer_val = Titer->get_fn_values();
-  double* Tprev_val = Tprev->get_fn_values();
+  scalar* Psi_iter_val = Psi_iter->get_fn_values();
+  scalar* Psi_prev_val = Psi_prev->get_fn_values();
+  scalar* dPsi_iter_dx, *dPsi_iter_dy;
   double* uval = fu->get_fn_values();
-  double *dTiter_dx, *dTiter_dy, *dudx, *dudy;
-  Titer->get_dx_dy_values(dTiter_dx, dTiter_dy);
+  double *dudx, *dudy;
+  Psi_iter->get_dx_dy_values(dPsi_iter_dx, dPsi_iter_dy);
   fu->get_dx_dy_values(dudx, dudy);
 
+  // obtain physical coordinates of int. points
+  double* x = ru->get_phys_x(o);  
+  double* y = ru->get_phys_y(o);  
+
   // u is a test function
-  h1_integrate_dd_expression(( HEATCAP*(Titer_val[i] - Tprev_val[i])*uval[i]/TAU + 
-                               lam(Titer_val[i]) * (dTiter_dx[i]*t_dudx + dTiter_dy[i]*t_dudy)));
+  h1_integrate_dd_expression(( 
+    ii * H * (Psi_iter_val[i] - Psi_prev_val[i]) * uval[i] / TAU 
+    - H*H/(2*M) * (dPsi_iter_dx[i]*t_dudx + dPsi_iter_dy[i]*t_dudy)
+    - G * Psi_iter_val[i] *  Psi_iter_val[i] * conj(Psi_iter_val[i]) * uval[i]
+    - .5*M*OMEGA*OMEGA * (x[i]*x[i] + y[i]*y[i]) * Psi_iter_val[i] * uval[i]
+  ));
 
   return result;
 }
 
 // Jacobian matrix for the implicit Euler time discretization
-inline double J_euler(RealFunction* Titer, RealFunction* fu, 
+inline complex J_euler(ScalarFunction* Psi_iter, RealFunction* fu, 
                 RealFunction* fv, RefMap* ru, RefMap* rv)
 {
+  scalar ii = complex(0.0, 1.0);  // imaginary unit, ii^2 = -1
+
   Quad2D* quad = fu->get_quad_2d();
 
-  int o = 2 * Titer->get_fn_order() + fu->get_fn_order() + fv->get_fn_order() + ru->get_inv_ref_order();
+  int o = 2 * Psi_iter->get_fn_order() + fu->get_fn_order() + fv->get_fn_order() + ru->get_inv_ref_order();
   limit_order(o);
-  Titer->set_quad_order(o);
+  Psi_iter->set_quad_order(o);
   fu->set_quad_order(o);
   fv->set_quad_order(o);
 
-  double* Titer_val = Titer->get_fn_values();
+  scalar* Psi_iter_val = Psi_iter->get_fn_values();
+  scalar *dPsi_iter_dx, *dPsi_iter_dy;
   double* uval = fu->get_fn_values();
   double* vval = fv->get_fn_values();
-
-  double *dTiter_dx, *dTiter_dy, *dudx, *dudy, *dvdx, *dvdy;
-  Titer->get_dx_dy_values(dTiter_dx, dTiter_dy);
+  double *dudx, *dudy, *dvdx, *dvdy;
+  Psi_iter->get_dx_dy_values(dPsi_iter_dx, dPsi_iter_dy);
   fu->get_dx_dy_values(dudx, dudy);
   fv->get_dx_dy_values(dvdx, dvdy);
 
-  // u is a basis function, v a test function
-  h1_integrate_dd_expression(( HEATCAP * uval[i] * vval[i] / TAU +
-                               dlam_dT(Titer_val[i]) * uval[i] * (dTiter_dx[i]*t_dvdx + dTiter_dy[i]*t_dvdy) +
-                               lam(Titer_val[i]) * (t_dudx*t_dvdx + t_dudy*t_dvdy)));
-
-  return result;
-}
-
-// Residuum for the Crank-Nicolson time discretization
-inline double F_cranic(RealFunction* Tprev, RealFunction* Titer, RealFunction* fu, RefMap* ru)
-{
-  Quad2D* quad = fu->get_quad_2d();
-  RefMap* rv = ru;
-
-  int o = 3 * Titer->get_fn_order() + fu->get_fn_order() + ru->get_inv_ref_order();
-  limit_order(o);
-  Tprev->set_quad_order(o);
-  Titer->set_quad_order(o);
-  fu->set_quad_order(o);
-
-  double* Titer_val = Titer->get_fn_values();
-  double* Tprev_val = Tprev->get_fn_values();
-  double* uval = fu->get_fn_values();
-  double *dTiter_dx, *dTiter_dy, *dTprev_dx, *dTprev_dy, *dudx, *dudy;
-  Titer->get_dx_dy_values(dTiter_dx, dTiter_dy);
-  Tprev->get_dx_dy_values(dTprev_dx, dTprev_dy);
-  fu->get_dx_dy_values(dudx, dudy);
-
-  // u is a test function
-  h1_integrate_dd_expression(( HEATCAP * (Titer_val[i] - Tprev_val[i]) * uval[i] / TAU + 
-                               0.5 * lam(Titer_val[i]) * (dTiter_dx[i]*t_dudx + dTiter_dy[i]*t_dudy) +
-                               0.5 * lam(Tprev_val[i]) * (dTprev_dx[i]*t_dudx + dTprev_dy[i]*t_dudy)
-                            ));
-
-  return result;
-}
-
-// Jacobian matrix for the Crank-Nicolson time discretization
-inline double J_cranic(RealFunction* Titer, RealFunction* fu, 
-                RealFunction* fv, RefMap* ru, RefMap* rv)
-{
-  Quad2D* quad = fu->get_quad_2d();
-
-  int o = 2 * Titer->get_fn_order() + fu->get_fn_order() + fv->get_fn_order() + ru->get_inv_ref_order();
-  limit_order(o);
-  Titer->set_quad_order(o);
-  fu->set_quad_order(o);
-  fv->set_quad_order(o);
-
-  double* Titer_val = Titer->get_fn_values();
-  double* uval = fu->get_fn_values();
-  double* vval = fv->get_fn_values();
-
-  double *dTiter_dx, *dTiter_dy, *dudx, *dudy, *dvdx, *dvdy;
-  Titer->get_dx_dy_values(dTiter_dx, dTiter_dy);
-  fu->get_dx_dy_values(dudx, dudy);
-  fv->get_dx_dy_values(dvdx, dvdy);
+  // obtain physical coordinates of int. points
+  double* x = ru->get_phys_x(o);  
+  double* y = ru->get_phys_y(o);  
 
   // u is a basis function, v a test function
-  h1_integrate_dd_expression(( HEATCAP * uval[i] * vval[i] / TAU +
-                               0.5 * dlam_dT(Titer_val[i]) * uval[i] * (dTiter_dx[i]*t_dvdx + dTiter_dy[i]*t_dvdy) +
-                               0.5 * lam(Titer_val[i]) * (t_dudx*t_dvdx + t_dudy*t_dvdy)
-                            ));
+  h1_integrate_dd_expression(( 
+    ii * H * uval[i] * vval[i] / TAU 
+    - H*H/(2*M) * (t_dudx*t_dvdx + t_dudy*t_dvdy)
+    - 2* G * uval[i] *  Psi_iter_val[i] * conj(Psi_iter_val[i]) * vval[i]
+    - G * Psi_iter_val[i] *  Psi_iter_val[i] * conj(uval[i]) * vval[i]
+    - .5*M*OMEGA*OMEGA * (x[i]*x[i] + y[i]*y[i]) * uval[i] * vval[i]
+  ));
 
+  /* old code from the heat transfer equation
+  h1_integrate_dd_expression(( HEATCAP * uval[i] * vval[i] / TAU +
+                               dlam_dT(Psi_iter_val[i]) * uval[i] * (dPsi_iter_dx[i]*t_dvdx + 
+                               dPsi_iter_dy[i]*t_dvdy) +
+                               lam(Psi_iter_val[i]) * (t_dudx*t_dvdx + t_dudy*t_dvdy)));
+  */
   return result;
 }
 
 /********** Definition of linear and bilinear forms for Hermes ***********/ 
 
-Solution Tprev, // previous time step solution, for the time integration method
-         Titer; // solution converging during the Newton's iteration
+Solution Psi_prev, // previous time step solution, for the time integration method
+         Psi_iter; // solution converging during the Newton's iteration
 
 // Implicit Euler method (1st-order in time)
-scalar linear_form_0_euler(RealFunction* fv, RefMap* rv)
-{ return F_euler(&Tprev, &Titer, fv, rv); }
-scalar bilinear_form_0_0_euler(RealFunction* fu, RealFunction* fv, RefMap* ru, RefMap* rv)
-{ return J_euler(&Titer, fu, fv, ru, rv); }
+complex linear_form_0_euler(RealFunction* fv, RefMap* rv)
+{ return F_euler(&Psi_prev, &Psi_iter, fv, rv); }
+complex bilinear_form_0_0_euler(RealFunction* fu, RealFunction* fv, RefMap* ru, RefMap* rv)
+{ return J_euler(&Psi_iter, fu, fv, ru, rv); }
 
+/*
 // Crank-Nicolson method (2nd-order in time)
 scalar linear_form_0_cranic(RealFunction* fv, RefMap* rv)
-{ return F_cranic(&Tprev, &Titer, fv, rv); }
+{ return F_cranic(&Psi_prev, &Psi_iter, fv, rv); }
 scalar bilinear_form_0_0_cranic(RealFunction* fu, RealFunction* fv, RefMap* ru, RefMap* rv)
-{ return J_cranic(&Titer, fu, fv, ru, rv); }
+{ return J_cranic(&Psi_iter, fu, fv, ru, rv); }
+*/
 
 // *************************************************************
 
@@ -197,12 +166,16 @@ int main(int argc, char* argv[])
 
   WeakForm wf(1);
   if(TIME_DISCR == 1) {
-    wf.add_biform(0, 0, bilinear_form_0_0_euler, UNSYM, ANY, 1, &Titer);
-    wf.add_liform(0, linear_form_0_euler, ANY, 2, &Titer, &Tprev);
+    wf.add_biform(0, 0, bilinear_form_0_0_euler, UNSYM, ANY, 1, &Psi_iter);
+    wf.add_liform(0, linear_form_0_euler, ANY, 2, &Psi_iter, &Psi_prev);
   }
   else {
-    wf.add_biform(0, 0, bilinear_form_0_0_cranic, UNSYM, ANY, 1, &Titer);
-    wf.add_liform(0, linear_form_0_cranic, ANY, 2, &Titer, &Tprev);
+    printf("Crank-Nicolson not implemented yet.\n");
+    exit(0);
+    /*
+    wf.add_biform(0, 0, bilinear_form_0_0_cranic, UNSYM, ANY, 1, &Psi_iter);
+    wf.add_liform(0, linear_form_0_cranic, ANY, 2, &Psi_iter, &Psi_prev);
+    */
   }
 
   UmfpackSolver umfpack;
@@ -215,14 +188,14 @@ int main(int argc, char* argv[])
   ScalarView view2("", 700, 0, 600, 600);
   
   // setting initial condition at zero time level
-  Tprev.set_const(&mesh, 0.0);
-  nls.set_ic(&Tprev, &Tprev, PROJ_TYPE);
-  Titer.copy(&Tprev);
+  Psi_prev.set_exact(&mesh, fn_init);
+  nls.set_ic(&Psi_prev, &Psi_prev, PROJ_TYPE);
+  Psi_iter.copy(&Psi_prev);
 
   // view initial guess for Newton's method 
   //sprintf(title, "Initial guess for the Newton's method");
   //view.set_title(title);
-  //view.show(&Titer);    
+  //view.show(&Psi_iter);    
   //view.wait_for_keypress();
 
   Solution sln;
@@ -236,7 +209,7 @@ int main(int argc, char* argv[])
     // actually needed only when space changes
     // otherwise initial solution vector is that one 
     // from the previous time level
-    //nls.set_ic(&Titer, &Titer);
+    //nls.set_ic(&Psi_iter, &Psi_iter);
  
     int it = 1; 
     double res_l2_norm; 
@@ -255,7 +228,7 @@ int main(int argc, char* argv[])
 //       view.show(&sln);    
 //       view.wait_for_keypress();
 
-      Titer = sln;
+      Psi_iter = sln;
         
     }
     while (res_l2_norm > 1e-4);
@@ -264,11 +237,11 @@ int main(int argc, char* argv[])
     sprintf(title, "Time level %d", n);
     //view.set_min_max_range(90,100);
     view.set_title(title);
-    view.show(&Titer);    
+    view.show(&Psi_iter);    
     //view.wait_for_keypress();
 
-    // copying result of the Newton's iteration into Tprev
-    Tprev.copy(&Titer);
+    // copying result of the Newton's iteration into Psi_prev
+    Psi_prev.copy(&Psi_iter);
   }  
 
   View::wait();
