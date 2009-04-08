@@ -822,10 +822,13 @@ void Mesh::save(const char* filename)
   // save elements
   fprintf(f, "}\n\nelements =\n{");
   bool first = true;
-  for_all_base_elements(e, this)
+  for (i = 0; i < get_num_base_elements(); i++)
   {
     const char* nl = first ? "\n" : ",\n";  first = false;
-    if (e->is_triangle())
+    e = get_element_fast(i);
+    if (!e->used)
+      fprintf(f, "%s  { }", nl);
+    else if (e->is_triangle())
       fprintf(f, "%s  { %d, %d, %d, %d }", nl, e->vn[0]->id, e->vn[1]->id, e->vn[2]->id, e->marker);
     else
       fprintf(f, "%s  { %d, %d, %d, %d, %d }", nl, e->vn[0]->id, e->vn[1]->id, e->vn[2]->id, e->vn[3]->id, e->marker);
