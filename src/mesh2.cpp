@@ -1041,7 +1041,7 @@ void Mesh::save_raw(FILE* f)
   Element* e;
   for (int id = 0; id < get_max_element_id(); id++)
   {
-    if (id < nbase || (e = get_element_fast(id))->used)
+    if ((e = get_element_fast(id))->used || id < nbase)
     {
       output(e->id, int);
       unsigned bits = e->nvert | (e->active << 30) | (e->used << 31);
