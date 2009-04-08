@@ -22,13 +22,13 @@ double G = 1;
 double OMEGA = 1;     
 int TIME_DISCR = 1;   // 1 for implicit Euler, 2 for Crank-Nicolson
 int PROJ_TYPE = 2;    // 1 for H1 projections, 2 for L2 projections
-double TAU = 0.5;     // time step
-int NSTEP = 100;      // number of time steps to do
+double TAU = 0.001;     // time step
+int NSTEP = 1000;      // number of time steps to do
 
 /********** Definition of initial conditions ***********/ 
 
 scalar fn_init(double x, double y, scalar& dx, scalar& dy) {
-  return exp(-x*x - y*y);
+  return complex(exp(-10*(x*x + y*y)), 0);
 }
 
 /********** Definition of boundary conditions ***********/ 
@@ -73,6 +73,7 @@ inline complex F_euler(ScalarFunction* Psi_prev, ScalarFunction* Psi_iter, RealF
   double* y = ru->get_phys_y(o);  
 
   // u is a test function
+  scalar result;
   h1_integrate_dd_expression(( 
     ii * H * (Psi_iter_val[i] - Psi_prev_val[i]) * uval[i] / TAU 
     - H*H/(2*M) * (dPsi_iter_dx[i]*t_dudx + dPsi_iter_dy[i]*t_dudy)
@@ -111,11 +112,12 @@ inline complex J_euler(ScalarFunction* Psi_iter, RealFunction* fu,
   double* y = ru->get_phys_y(o);  
 
   // u is a basis function, v a test function
+  scalar result;
   h1_integrate_dd_expression(( 
     ii * H * uval[i] * vval[i] / TAU 
     - H*H/(2*M) * (t_dudx*t_dvdx + t_dudy*t_dvdy)
     - 2* G * uval[i] *  Psi_iter_val[i] * conj(Psi_iter_val[i]) * vval[i]
-    - G * Psi_iter_val[i] *  Psi_iter_val[i] * conj(uval[i]) * vval[i]
+    - G * Psi_iter_val[i] *  Psi_iter_val[i] * uval[i] * vval[i]
     - .5*M*OMEGA*OMEGA * (x[i]*x[i] + y[i]*y[i]) * uval[i] * vval[i]
   ));
 
@@ -193,10 +195,12 @@ int main(int argc, char* argv[])
   Psi_iter.copy(&Psi_prev);
 
   // view initial guess for Newton's method 
-  //sprintf(title, "Initial guess for the Newton's method");
-  //view.set_title(title);
-  //view.show(&Psi_iter);    
-  //view.wait_for_keypress();
+  /*
+  sprintf(title, "Initial guess for the Newton's method");
+  view.set_title(title);
+  view.show(&Psi_iter);    
+  view.wait_for_keypress();
+  */
 
   Solution sln;
   // time stepping
@@ -223,10 +227,12 @@ int main(int argc, char* argv[])
       res_l2_norm = nls.get_residuum_l2_norm(); 
       info("Residuum L2 norm: %g\n", res_l2_norm);
       // want to see Newtons iterations       
-//       sprintf(title, "Time level %d, Newton iteration %d", n, it-1);
-//       view.set_title(title);
-//       view.show(&sln);    
-//       view.wait_for_keypress();
+      /*
+       sprintf(title, "Time level %d, Newton iteration %d", n, it-1);
+       view.set_title(title);
+       view.show(&sln);    
+       view.wait_for_keypress();
+      */
 
       Psi_iter = sln;
         
