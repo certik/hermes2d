@@ -62,7 +62,7 @@ int main(int argc, char* argv[])
   //view1.show(&sln);
   view1.show(&sln, EPS_HIGH, FN_VAL_0);*/
   
-  Solution sln;
+  /*Solution sln;
   sln.load("bessel.sln.gz");
   
   Solution cpy;
@@ -72,7 +72,13 @@ int main(int argc, char* argv[])
   MagFilter mag(&real);
   ScalarView view3("Magnitude of real(E)", 100, 50, 1000, 900);
   view3.set_min_max_range(0, 1);
-  view3.show(&mag);
+  view3.show(&mag);*/
+  
+  Solution sln;
+  sln.load("/home/jakub/Fz.sln.gz");
+  
+  ScalarView view;
+  view.show(&sln);
   
   View::wait();
   return 0;
