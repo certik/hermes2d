@@ -1,8 +1,8 @@
 include ../../Make.config
 
-NAME   = enea
-HERMES = ../../lib/libhermes2d-$(CC)-g-real.a
-FLAGS  = -ggdb 
-#FLAGS  = -O3 -DNDEBUG
+NAME   = schrot
+SRCS = main.cpp
+HERMES = ../../lib/libhermes2d-$(CC)-g-complex.a
+FLAGS = $(OPT) -ggdb -DCOMPLEX
 
 include ../Make.common
