@@ -58,6 +58,7 @@ inline double F(RealFunction* Titer, RealFunction* fu, RefMap* ru)
   fu->get_dx_dy_values(dudx, dudy);
 
   // u is a test function
+  double result;
   h1_integrate_dd_expression(( lam(Titer_val[i]) * (dTiter_dx[i]*t_dudx + dTiter_dy[i]*t_dudy)));
 
   return result;
@@ -86,6 +87,7 @@ inline double J(RealFunction* Titer, RealFunction* fu,
   fv->get_dx_dy_values(dvdx, dvdy);
 
   // u is a basis function, v a test function
+  double result;
   h1_integrate_dd_expression(( dlam_dT(Titer_val[i]) * uval[i] 
     * (dTiter_dx[i]*t_dvdx + dTiter_dy[i]*t_dvdy) +
     lam(Titer_val[i]) * (t_dudx*t_dvdx + t_dudy*t_dvdy)));
