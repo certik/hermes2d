@@ -93,6 +93,7 @@ inline double int_dudx_w_nabla_v(RealFunction* w1, RealFunction* w2,
   double* w1val = w1->get_fn_values();
   double* w2val = w2->get_fn_values();
 
+  double result;
   h1_integrate_dd_expression((t_dudx) * (w1val[i] * t_dvdx + w2val[i] * t_dvdy));
   return result;
 }
@@ -118,6 +119,7 @@ inline double int_dudy_w_nabla_v(RealFunction* w1, RealFunction* w2,
   double* w1val = w1->get_fn_values();
   double* w2val = w2->get_fn_values();
 
+  double result;
   h1_integrate_dd_expression((t_dudy) * (w1val[i] * t_dvdx + w2val[i] * t_dvdy));
   return result;
 }
