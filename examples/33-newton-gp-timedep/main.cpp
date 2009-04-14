@@ -22,9 +22,10 @@ double G = 1;
 double OMEGA = 1;     
 int TIME_DISCR = 2;    // 1 for implicit Euler, 2 for Crank-Nicolson
 int PROJ_TYPE = 2;     // 1 for H1 projections, 2 for L2 projections
-double TAU = 0.002;     // time step
-int NSTEP = 1000;      // number of time steps to do
+double T_FINAL = 2;    // time interval length
+double TAU = 0.001;    // time step
 int P_INIT = 2;        // initial polynomial degree
+int REF_INIT = 4;      // number of initial uniform refinements
 
 /********** Definition of initial conditions ***********/ 
 
@@ -232,7 +233,7 @@ int main(int argc, char* argv[])
 {
   Mesh mesh;
   mesh.load("square.mesh");
-  for(int i = 0; i < 5; i++) mesh.refine_all_elements();
+  for(int i = 0; i < REF_INIT; i++) mesh.refine_all_elements();
   
   H1Shapeset shapeset;
   PrecalcShapeset pss(&shapeset);
@@ -260,7 +261,8 @@ int main(int argc, char* argv[])
 
   char title[100];  
   ScalarView view("", 0, 0, 700, 600);
-  
+  //view.set_min_max_range(-0.5,0.5);
+
   // setting initial condition at zero time level
   Psi_prev.set_exact(&mesh, fn_init);
   nls.set_ic(&Psi_prev, &Psi_prev, PROJ_TYPE);
@@ -276,7 +278,8 @@ int main(int argc, char* argv[])
 
   Solution sln;
   // time stepping
-  for(int n = 1; n <= NSTEP; n++) 
+  int nstep = (int)(T_FINAL/TAU + 0.5);
+  for(int n = 1; n <= nstep; n++) 
   {
 
     info("\n---- Time step %d -----------------------------------------------", n);
@@ -317,6 +320,14 @@ int main(int argc, char* argv[])
     view.set_title(title);
     view.show(&Psi_iter);    
     //view.wait_for_keypress();
+
+    // uncomment one of the following lines to generate a series of video frames
+    //view.save_numbered_screenshot("sol%03d.bmp", n, true);
+    //pview.save_numbered_screenshot("pressure%03d.bmp", i, true);
+    // the frames can then be converted to a video file with the command
+    // mencoder "mf://velocity*.bmp" -mf fps=20 -o velocity.avi -ovc lavc -lavcopts vcodec=mpeg4
+
+
 
     // copying result of the Newton's iteration into Psi_prev
     Psi_prev.copy(&Psi_iter);
