@@ -526,7 +526,7 @@ void H1OrthoHP::get_optimal_refinement(Element* e, int order, Solution* rsln, in
 
 //// adapt /////////////////////////////////////////////////////////////////////////////////////////
 
-void H1OrthoHP::adapt(double thr, int strat, bool h_only, bool iso_only, int max_order)
+bool H1OrthoHP::adapt(double thr, int strat, bool h_only, bool iso_only, int max_order)
 {
   
   if (!have_errors)
@@ -572,6 +572,8 @@ void H1OrthoHP::adapt(double thr, int strat, bool h_only, bool iso_only, int max
     // refine all elements whose error is bigger than some portion of maximal error
     if ((strat == 1) && (err < thr * errors[esort[0][1]][esort[0][0]])) { nref = i; break; }
 
+    if ((strat == 2) && (err < thr)) { nref = i; break; }
+    
     Element* e;
     e = mesh[comp]->get_element(id);
     int current = spaces[comp]->get_element_order(id);
@@ -589,6 +591,9 @@ void H1OrthoHP::adapt(double thr, int strat, bool h_only, bool iso_only, int max
     processed_error += err; 
   }
 
+  bool done = false;
+  if (nref == 0) done = true;
+  
   int k = nref;
   for (i = 0; i < nref; i++)
   {
@@ -693,12 +698,15 @@ void H1OrthoHP::adapt(double thr, int strat, bool h_only, bool iso_only, int max
 
   verbose("Refined %d elements.", i);
   have_errors = false;
+  if (strat == 2 && done == true) have_errors = true; // space without changes
+  
+  return done;
 }
 
 
 ///// Unrefinements /////////////////////////////////////////////////////////////////////////////////
 
-void H1OrthoHP::unrefine(Solution* sln1, Solution* sln2, double thr)
+void H1OrthoHP::unrefine(double thr)
 {
   
   if (!have_errors)
@@ -718,7 +726,7 @@ void H1OrthoHP::unrefine(Solution* sln1, Solution* sln2, double thr)
       bool found = true;
       for (int i = 0; i < 4; i++)
         if (e->sons[i] != NULL && ((!e->sons[i]->active) || (e->sons[i]->is_curved())))
-          { found = false;  break; }
+      { found = false;  break; }
   
       if (found)
       {
@@ -726,16 +734,16 @@ void H1OrthoHP::unrefine(Solution* sln1, Solution* sln2, double thr)
         int max1 = 0, max2 = 0;
         for (int i = 0; i < 4; i++)
           if (e->sons[i] != NULL) 
-          {
-            sum1 += errors[0][e->sons[i]->id];
-            sum2 += errors[1][e->sons[i]->id];
-            int oo = spaces[0]->get_element_order(e->sons[i]->id);
-            if (oo > max1) max1 = oo;
-            oo = spaces[1]->get_element_order(e->sons[i]->id);
-            if (oo > max2) max2 = oo;
-          }
+        {
+          sum1 += errors[0][e->sons[i]->id];
+          sum2 += errors[1][e->sons[i]->id];
+          int oo = spaces[0]->get_element_order(e->sons[i]->id);
+          if (oo > max1) max1 = oo;
+          oo = spaces[1]->get_element_order(e->sons[i]->id);
+          if (oo > max2) max2 = oo;
+        }
         if ((sum1 < thr * errors[esort[0][1]][esort[0][0]]) && 
-            (sum2 < thr * errors[esort[0][1]][esort[0][0]]))
+             (sum2 < thr * errors[esort[0][1]][esort[0][0]]))
         {
           mesh[0]->unrefine_element(e->id);
           mesh[1]->unrefine_element(e->id);
@@ -751,11 +759,11 @@ void H1OrthoHP::unrefine(Solution* sln1, Solution* sln2, double thr)
     {
       for (int i = 0; i < 2; i++)
         if (errors[i][e->id] < thr/4 * errors[esort[0][1]][esort[0][0]])
-        {
-          int oo = get_h_order(spaces[i]->get_element_order(e->id));
-          spaces[i]->set_element_order(e->id, std::max(oo - 1, 1));
-          k++;
-        }
+      {
+        int oo = get_h_order(spaces[i]->get_element_order(e->id));
+        spaces[i]->set_element_order(e->id, std::max(oo - 1, 1));
+        k++;
+      }
     }
   }
   else // multimesh
@@ -768,7 +776,7 @@ void H1OrthoHP::unrefine(Solution* sln1, Solution* sln2, double thr)
         bool found = true;
         for (int i = 0; i < 4; i++)
           if (e->sons[i] != NULL && ((!e->sons[i]->active) || (e->sons[i]->is_curved())))
-            { found = false;  break; }
+        { found = false;  break; }
     
         if (found)
         {
@@ -776,12 +784,13 @@ void H1OrthoHP::unrefine(Solution* sln1, Solution* sln2, double thr)
           int max = 0;
           for (int i = 0; i < 4; i++)
             if (e->sons[i] != NULL) 
-            {
-              sum += errors[m][e->sons[i]->id];
-              int oo = spaces[m]->get_element_order(e->sons[i]->id);
-              if (oo > max) max = oo;
-            }
+          {
+            sum += errors[m][e->sons[i]->id];
+            int oo = spaces[m]->get_element_order(e->sons[i]->id);
+            if (oo > max) max = oo;
+          }
           if ((sum < thr * errors[esort[0][1]][esort[0][0]]))
+          //if ((sum < 0.1 * thr))
           {
             mesh[m]->unrefine_element(e->id);
             errors[m][e->id] = sum;
@@ -804,7 +813,6 @@ void H1OrthoHP::unrefine(Solution* sln1, Solution* sln2, double thr)
   verbose("Unrefined %d elements.", k);
   have_errors = false;
 }
-
 
 //// error calculation /////////////////////////////////////////////////////////////////////////////
 
