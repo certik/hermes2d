@@ -26,7 +26,7 @@ PUBLIC_INCLUDES = array.h common.h curved.h discrete.h filter.h \
        space_h1.h space_hcurl.h space_l2.h transform.h traverse.h \
        view.h adapt_ortho_h1.h adapt_ortho_hcurl.h adapt_ortho_l2.h \
        solver.h solver_umfpack.h solver_pardiso.h linsystem.h nonlinsystem.h \
-       weakform.h refsystem.h asmlist.h
+       weakform.h refsystem.h asmlist.h refsystem2.h
 
 
 

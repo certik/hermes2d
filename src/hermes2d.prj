@@ -113,7 +113,8 @@ module.include.files=\
 	refsystem.h\
 	mesh_lexer.h\
 	mesh_parser.h\
-	nonlinsystem.h
+	nonlinsystem.h\
+	refsystem2.h
 
 module.source.name=.
 module.source.type=

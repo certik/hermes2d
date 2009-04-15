@@ -27,6 +27,7 @@
 
 class Solution;
 class MeshFunction;
+template<class Base> class RefSystem2;
   
 
 
@@ -72,6 +73,8 @@ protected:
 
   double alpha;
   double res_l2, res_l1, res_max;
+
+  friend class RefSystem2<NonlinSystem>;
 
 };
 

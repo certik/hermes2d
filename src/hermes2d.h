@@ -41,6 +41,7 @@
 #include "linsystem.h"
 #include "nonlinsystem.h"
 #include "refsystem.h"
+#include "refsystem2.h"
 
 #include "integrals_h1.h"
 #include "integrals_hcurl.h"
