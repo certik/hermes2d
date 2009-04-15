@@ -92,8 +92,10 @@ void NonlinSystem::set_vec_zero()
 
 
 
-void NonlinSystem::assemble()
+void NonlinSystem::assemble(bool rhsonly)
 { 
+  if (rhsonly) error("rhsonly has no meaning in NonlinSystem.");
+  
   // assemble J(Y_n) and store in A, assemble F(Y_n) and store in RHS
   LinSystem::assemble();
 

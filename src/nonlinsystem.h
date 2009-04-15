@@ -56,7 +56,7 @@ public:
   void set_alpha(double alpha) { this->alpha = alpha; }
 
   /// Assembles the jacobian and the residuum vector.
-  void assemble();
+  void assemble(bool rhsonly = false);
 
   /// Performs one Newton iteration, stores the result in the given Solutions.
   bool solve(int n, ...);
