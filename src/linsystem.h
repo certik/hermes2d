@@ -29,7 +29,6 @@ class PrecalcShapeset;
 class WeakForm;
 class Solver;
 struct Page;
-template<class Base> class RefSystem2;
 
 
 ///  
@@ -107,7 +106,6 @@ protected:
   bool have_spaces;
   
   friend class RefSystem;
-  friend class RefSystem2<LinSystem>;
   
 };
 

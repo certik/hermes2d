@@ -25,14 +25,12 @@
 class Mesh;
 
 
-
-template<class Base>
-class RefSystem2 : public Base
+class RefNonlinSystem : public NonlinSystem
 {
 public:
   
-  RefSystem2(Base* base, int order_increase = 1, int refinement = 1)
-          : Base(base->wf, base->solver)
+  RefNonlinSystem(NonlinSystem* base, int order_increase = 1, int refinement = 1)
+          : NonlinSystem(base->wf, base->solver)
   {
     this->base = base;
     order_inc = order_increase;
@@ -41,7 +39,7 @@ public:
     ref_spaces = NULL;
   }
 
-  virtual ~RefSystem2()
+  virtual ~RefNonlinSystem()
   {
     free_ref_data();
   }
@@ -62,18 +60,18 @@ public:
   
   /// Creates reference (fine) meshes and spaces and assembles the 
   /// reference system.
-  void assemble(bool rhsonly = false)
+  void prepare()
   {
     int i, j;
     
     // get rid of any previous data
     free_ref_data();
     
-    ref_meshes = new Mesh*[Base::wf->neq];
-    ref_spaces = new Space*[Base::wf->neq];
+    ref_meshes = new Mesh*[NonlinSystem::wf->neq];
+    ref_spaces = new Space*[NonlinSystem::wf->neq];
     
     // copy meshes from the coarse problem, refine them
-    for (i = 0; i < Base::wf->neq; i++)
+    for (i = 0; i < NonlinSystem::wf->neq; i++)
     {
       Mesh* mesh = base->spaces[i]->get_mesh();
       
@@ -98,7 +96,7 @@ public:
     
     // duplicate spaces from the coarse problem, assign reference orders and dofs
     int dofs = 0;
-    for (i = 0; i < Base::wf->neq; i++)
+    for (i = 0; i < NonlinSystem::wf->neq; i++)
     {
       ref_spaces[i] = base->spaces[i]->dup(ref_meshes[i]);
       if (refinement == -1)
@@ -134,11 +132,15 @@ public:
       dofs += ref_spaces[i]->assign_dofs(dofs);
     }
     
-    memcpy(Base::spaces, ref_spaces, sizeof(Space*) * Base::wf->neq);
-    memcpy(Base::pss, base->pss, sizeof(PrecalcShapeset*) * Base::wf->neq);
-    Base::have_spaces = true;
+    memcpy(NonlinSystem::spaces, ref_spaces, sizeof(Space*) * NonlinSystem::wf->neq);
+    memcpy(NonlinSystem::pss, base->pss, sizeof(PrecalcShapeset*) * NonlinSystem::wf->neq);
+    NonlinSystem::have_spaces = true;
   
-    Base::assemble(rhsonly);
+  }
+    
+  void assemble()
+  {
+    NonlinSystem::assemble();
   }
 
   
@@ -151,7 +153,7 @@ public:
     // free reference meshes
     if (ref_meshes != NULL)
     {
-      for (i = 0; i < Base::wf->neq; i++)
+      for (i = 0; i < NonlinSystem::wf->neq; i++)
       {
         for (j = 0; j < i; j++)
           if (ref_meshes[j] == ref_meshes[i])
@@ -167,7 +169,7 @@ public:
     // free reference spaces
     if (ref_spaces != NULL)
     {
-      for (i = 0; i < Base::wf->neq; i++)
+      for (i = 0; i < NonlinSystem::wf->neq; i++)
         delete ref_spaces[i];
       
       delete [] ref_spaces;
@@ -179,7 +181,7 @@ public:
 
 protected:
 
-  Base* base;
+  NonlinSystem* base;
   int order_inc;
   int refinement;
 

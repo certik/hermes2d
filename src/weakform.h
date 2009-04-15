@@ -30,7 +30,6 @@ class NonlinSystem;
 class Space;
 class MeshFunction;
 struct EdgePos;
-template<class Base> class RefSystem2;
   
 
 // Bilinear form symmetry flag, see WeakForm::add_biform
@@ -121,8 +120,7 @@ protected:
   friend class LinSystem;
   friend class NonlinSystem;
   friend class RefSystem;
-  friend class RefSystem2<LinSystem>;
-  friend class RefSystem2<NonlinSystem>;
+  friend class RefNonlinSystem;
 
 
 private: 

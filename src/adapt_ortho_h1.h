@@ -90,10 +90,10 @@ public:
 
   /// Selects elements to refine (based on results from calc_error() or calc_energy_error())
   /// and performs their optimal hp-refinement. 
-  void adapt(double thr, int strat = 0, bool h_only = false, bool iso_only = false, int max_order = -1);
+  bool adapt(double thr, int strat = 0, bool h_only = false, bool iso_only = false, int max_order = -1);
 
   /// Unrefines the elements with the smallest error
-  void unrefine(Solution* sln1, Solution* sln2, double thr);
+  void unrefine(double thr);
 
   /// Internal. Used by adapt(). Can be utilized in specialized adaptivity
   /// procedures, for which adapt() is not sufficient.
