@@ -133,7 +133,7 @@ int main(int argc, char* argv[])
     // unrefinements
     if (n % 10 == 2) {
       mesh.copy(&basemesh);
-      space.set_uniform_order(2);
+      space.set_uniform_order(P_INIT);
     }
     
     int at = 0;
