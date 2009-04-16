@@ -1,5 +1,6 @@
 /********** Definition of Jacobian matrices and residual vectors ***********/ // Residuum for the Euler time discretization
 
+// Residuum for the Euler time discretization
 inline double F_euler(RealFunction* Tprev, RealFunction* Titer, RealFunction* fu, RefMap* ru)
 {
   Quad2D* quad = fu->get_quad_2d();
@@ -19,7 +20,7 @@ inline double F_euler(RealFunction* Tprev, RealFunction* Titer, RealFunction* fu
   fu->get_dx_dy_values(dudx, dudy);
 
   // u is a test function
-  double result;
+  double result = 0.0;
   h1_integrate_dd_expression(( HEATCAP*(Titer_val[i] - Tprev_val[i])*uval[i]/TAU + 
                                lam(Titer_val[i]) * (dTiter_dx[i]*t_dudx + dTiter_dy[i]*t_dudy)));
 
@@ -48,7 +49,7 @@ inline double J_euler(RealFunction* Titer, RealFunction* fu,
   fv->get_dx_dy_values(dvdx, dvdy);
 
   // u is a basis function, v a test function
-  double result;
+  double result = 0.0;
   h1_integrate_dd_expression(( HEATCAP * uval[i] * vval[i] / TAU +
                                dlam_dT(Titer_val[i]) * uval[i] * (dTiter_dx[i]*t_dvdx + dTiter_dy[i]*t_dvdy) +
                                lam(Titer_val[i]) * (t_dudx*t_dvdx + t_dudy*t_dvdy)));
@@ -77,7 +78,7 @@ inline double F_cranic(RealFunction* Tprev, RealFunction* Titer, RealFunction* f
   fu->get_dx_dy_values(dudx, dudy);
 
   // u is a test function
-  double result;
+  double result = 0.0;
   h1_integrate_dd_expression(( HEATCAP * (Titer_val[i] - Tprev_val[i]) * uval[i] / TAU + 
                                0.5 * lam(Titer_val[i]) * (dTiter_dx[i]*t_dudx + dTiter_dy[i]*t_dudy) +
                                0.5 * lam(Tprev_val[i]) * (dTprev_dx[i]*t_dudx + dTprev_dy[i]*t_dudy)
@@ -108,7 +109,7 @@ inline double J_cranic(RealFunction* Titer, RealFunction* fu,
   fv->get_dx_dy_values(dvdx, dvdy);
 
   // u is a basis function, v a test function
-  double result;
+  double result = 0.0;
   h1_integrate_dd_expression(( HEATCAP * uval[i] * vval[i] / TAU +
                                0.5 * dlam_dT(Titer_val[i]) * uval[i] * (dTiter_dx[i]*t_dvdx + dTiter_dy[i]*t_dvdy) +
                                0.5 * lam(Titer_val[i]) * (t_dudx*t_dvdx + t_dudy*t_dvdy)
