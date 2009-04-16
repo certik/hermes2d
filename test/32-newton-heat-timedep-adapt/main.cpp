@@ -2,12 +2,10 @@
 #include "solver_umfpack.h"
 
 // 
-//  Nonlinear solver test:
-//
-//  hp-adaptivity with dynamical meshes
-//
 //  PDE: non-stationary heat transfer with nonlinear thermal conductivity
 //  HEATCAP*dT/dt - div[lambda(T)grad T] = 0
+//
+//  hp-adaptivity with dynamical meshes
 //
 //  Domain: square
 //
@@ -113,7 +111,7 @@ int main(int argc, char* argv[])
   
   // initial condition at zero time level
   Tprev.set_const(&mesh, 0.0);
-  nls.set_ic(&Tprev, &Tprev);
+  nls.set_ic(&Tprev, &Tprev, PROJ_TYPE);
   Titer.copy(&Tprev);
 
   // view initial guess for Newton's method
