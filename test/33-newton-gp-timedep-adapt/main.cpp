@@ -25,7 +25,7 @@ double G = 1;
 double OMEGA = 1;     
 int TIME_DISCR = 2;    // 1 for implicit Euler, 2 for Crank-Nicolson
 int PROJ_TYPE = 1;     // 1 for H1 projections, 0 for L2 projections
-double T_FINAL = 2.0;    // time interval length
+double T_FINAL = 2.0;  // time interval length
 double TAU = 0.005;    // time step
 int P_INIT = 2;        // initial polynomial degree
 int REF_INIT = 2;      // number of initial uniform refinements
@@ -120,7 +120,7 @@ int main(int argc, char* argv[])
   view.set_title(title);
   view.show(&Psi_prev);    
   ordview.show(&space);
-  view.wait_for_keypress(); // this may cause graphics problems
+  //view.wait_for_keypress(); // this may cause graphics problems
 
   Solution sln, rsln;
   // time stepping
