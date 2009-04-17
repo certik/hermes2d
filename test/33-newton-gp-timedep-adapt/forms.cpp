@@ -26,7 +26,7 @@ inline complex F_euler(ScalarFunction* Psi_prev, ScalarFunction* Psi_iter, RealF
   double* y = ru->get_phys_y(o);  
 
   // u is a test function
-  scalar result = complex(0.0, 0.0);
+  scalar result = 0.0;
   h1_integrate_dd_expression(( 
     ii * H * (Psi_iter_val[i] - Psi_prev_val[i]) * uval[i] / TAU 
     - H*H/(2*M) * (dPsi_iter_dx[i]*t_dudx + dPsi_iter_dy[i]*t_dudy)
@@ -107,7 +107,7 @@ inline complex F_cranic(ScalarFunction* Psi_prev, ScalarFunction* Psi_iter, Real
   double* y = ru->get_phys_y(o);  
 
   // u is a test function
-  scalar result = complex(0.0, 0.0);
+  scalar result = 0.0;
   h1_integrate_dd_expression(( 
     ii * H * (Psi_iter_val[i] - Psi_prev_val[i]) * uval[i] / TAU 
     - 0.5*H*H/(2*M) * (dPsi_iter_dx[i]*t_dudx + dPsi_iter_dy[i]*t_dudy)
@@ -148,7 +148,7 @@ inline complex J_cranic(ScalarFunction* Psi_iter, RealFunction* fu,
   double* y = ru->get_phys_y(o);  
 
   // u is a basis function, v a test function
-  scalar result = complex(0.0, 0.0);
+  scalar result = 0.0;
   h1_integrate_dd_expression(( 
     ii * H * uval[i] * vval[i] / TAU 
     - 0.5*H*H/(2*M) * (t_dudx*t_dvdx + t_dudy*t_dvdy)
