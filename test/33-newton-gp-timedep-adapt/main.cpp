@@ -24,28 +24,23 @@ double M = 1;
 double G = 1; 
 double OMEGA = 1;     
 int TIME_DISCR = 2;    // 1 for implicit Euler, 2 for Crank-Nicolson
-int PROJ_TYPE = 1;     // 1 for H1 projections, 2 for L2 projections
-double T_FINAL = 2;    // time interval length
-double TAU = 0.001;    // time step
+int PROJ_TYPE = 1;     // 1 for H1 projections, 0 for L2 projections
+double T_FINAL = 2.0;    // time interval length
+double TAU = 0.005;    // time step
 int P_INIT = 2;        // initial polynomial degree
-int REF_INIT = 3;      // number of initial uniform refinements
+int REF_INIT = 2;      // number of initial uniform refinements
+
+// adaptivity parameters
+double space_tol = 0.005;
+double thr = 0.3;
+bool h_only = false;
+bool iso_only = false;
+int max_P = 5; // maximal polynomial order allowed in adaptivity (because of too complicated integrals)
 
 /********** Definition of initial conditions ***********/ 
 
 scalar fn_init(double x, double y, scalar& dx, scalar& dy) {
-  return complex(exp(-10*(x*x + y*y)), 0);
-}
-
-/********** Definition of boundary conditions ***********/ 
-
-int bc_types(int marker)
-{
-  return BC_ESSENTIAL;
-}
-
-complex bc_values(int marker, double x, double y)
-{
-  return complex(0.0, 0.0);
+  return exp(-10*(x*x + y*y));
 }
 
 /********** Definition of Jacobian matrices and residual vectors ***********/ 
@@ -83,8 +78,6 @@ int main(int argc, char* argv[])
   PrecalcShapeset pss(&shapeset);
   
   H1Space space(&mesh, &shapeset);
-  space.set_bc_types(bc_types);
-  space.set_bc_values(bc_values);
   space.set_uniform_order(P_INIT);
   space.assign_dofs();    
 
@@ -105,6 +98,10 @@ int main(int argc, char* argv[])
 
   char title[100];  
   ScalarView view("", 0, 0, 600, 600);
+  ScalarView realview("", 0, 0, 600, 600);
+  ScalarView imagview("", 700, 0, 600, 600);
+  ScalarView magview("", 700, 700, 600, 600);
+  ScalarView angleview("", 700, 700, 600, 600);
   OrderView ordview("Polynomial Orders", 0, 700, 600, 600);
   
   GnuplotGraph graph_err;
@@ -116,16 +113,14 @@ int main(int argc, char* argv[])
   
   // setting initial condition at zero time level
   Psi_prev.set_exact(&mesh, fn_init);
-  nls.set_ic(&Psi_prev, &Psi_prev, PROJ_TYPE);
-  Psi_iter.copy(&Psi_prev);
+  Psi_iter.set_exact(&mesh, fn_init);
+  nls.set_ic(&Psi_iter, &Psi_iter, PROJ_TYPE);
 
-  // view initial guess for Newton's method
-  // satisfies BC conditions 
-  sprintf(title, "Initial iteration");
+  sprintf(title, "Initial condititon");
   view.set_title(title);
-  view.show(&Psi_iter);    
+  view.show(&Psi_prev);    
   ordview.show(&space);
-  //view.wait_for_keypress(); // this may cause graphics problems
+  view.wait_for_keypress(); // this may cause graphics problems
 
   Solution sln, rsln;
   // time stepping
@@ -151,7 +146,7 @@ int main(int argc, char* argv[])
     
       int it = 1; 
       double res_l2_norm; 
-      //space.assign_dofs();    
+      space.assign_dofs();    
       if (n > 1 || at > 1) nls.set_ic(&rsln, &Psi_iter);
       else nls.set_ic(&Psi_iter, &Psi_iter);
       do
@@ -166,7 +161,7 @@ int main(int argc, char* argv[])
    
         Psi_iter.copy(&sln);          
       }
-      while (res_l2_norm > 1e-4);
+      while (res_l2_norm > 1e-3);
             
       // reference solution
       it = 1;
@@ -186,43 +181,63 @@ int main(int argc, char* argv[])
   
         Psi_iter.copy(&rsln);          
       }
-      while (res_l2_norm > 1e-4);
+      while (res_l2_norm > 1e-3);
+
+      // visualization of intermediate solution 
+      // and mesh during adaptivity
+      sprintf(title, "Magnitude, Time level %d", n);
+      magview.set_title(title);
+      AbsFilter mag(&sln);
+      magview.show(&mag);            // to see the magnitude of the solution
+      ordview.show(&space);          // to see hp-mesh during the process
 
       H1OrthoHP hp(1, &space);
       err = hp.calc_error(&sln, &rsln) * 100;
       info("Error: %g", err);
-      if (err < 0.001) done = true;
-      else hp.adapt(0.3, 1);
-      space.assign_dofs();    
-
-      // visualization of intermediate solution 
-      // and mesh during adaptivity
-      sprintf(title, "Time level %d", n);
-      //view.set_min_max_range(-1,1);
-      view.set_title(title);
-      //view.show(&Psi_iter);    // to see reference solution
-      view.show(&sln);           // to see the solution
-      ordview.show(&space);
+      if (err < space_tol) done = true;
+      else hp.adapt(thr, 1, h_only, iso_only, max_P);
 
     }
     while (!done);
       
     // visualization of solution
-    sprintf(title, "Time level %d", n);
-    view.set_min_max_range(90,100);
-    view.set_title(title);
-    //view.show(&Psi_iter);    // to see reference solution
-    view.show(&sln);           // to see the solution
+    sprintf(title, "Real Component, Time level %d", n);
+    realview.set_title(title);    
+    RealFilter real(&sln);
+    realview.show(&real);       // to see the solution - real component
+    
+    sprintf(title, "Imag Component, Time level %d", n);
+    imagview.set_title(title);
+    ImagFilter imag(&sln);
+    imagview.show(&imag);      // to see the solution - imag component
+    
+    sprintf(title, "Magnitude, Time level %d", n);
+    magview.set_title(title);
+    AbsFilter mag(&sln);
+    magview.show(&mag);      // to see the magnitude of the solution
+    
+    sprintf(title, "Angle, Time level %d", n);
+    angleview.set_title(title);
+    AngleFilter angle(&sln);
+    angleview.show(&angle);      // to see the angle of the solution
+    
     ordview.show(&space);      // to see hp-mesh
-    //view.wait_for_keypress();
 
+    // to save solutions
+/*    #define DIR "/home/lenka/storage1/results/090417-newton/"
+    ordview.save_numbered(DIR "mesh%04d.lin", n);
+    realview.save_numbered(DIR "realsln%04d.lin", n);
+    imagview.save_numbered(DIR "imagsln%04d.lin", n);
+    magview.save_numbered(DIR "magsln%04d.lin", n);
+    angleview.save_numbered(DIR "anglesln%04d.lin", n);*/
+    
     graph_err.add_values(0, n, err);
     graph_err.save("error.txt");
     graph_dofs.add_values(0, n, space.get_num_dofs());
     graph_dofs.save("dofs.txt");
     
     // copying result of the Newton's iteration into Psi_prev
-    Psi_prev.copy(&Psi_iter);
+    Psi_prev.copy(&rsln);
   }  
 
   View::wait();
