@@ -220,6 +220,12 @@ class AbsFilter : public SimpleFilter
   public: AbsFilter(MeshFunction* sln1, int item1 = FN_VAL);
 };
 
+/// Computes the angle of a complex solution.
+class AngleFilter : public SimpleFilter
+{
+  public: AngleFilter(MeshFunction* sln1, int item1 = FN_VAL);
+};
+
 
 /// VonMisesFilter is a postprocessing filter for visualizing elastic stresses in a body.
 /// It calculates the stress tensor and applies the Von Mises equivalent stress formula
