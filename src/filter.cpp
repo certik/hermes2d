@@ -490,6 +490,21 @@ AbsFilter::AbsFilter(MeshFunction* sln1, int item1)
           : SimpleFilter(abs_fn_1, sln1, item1) {}
                         
             
+static void angle_fn_1(int n, scalar* v1, scalar* result)
+{
+#ifndef COMPLEX
+  for (int i = 0; i < n; i++)
+    result[i] = 0.0;
+#else
+  for (int i = 0; i < n; i++)
+    result[i] = atan2( v1[i].imag(), v1[i].real() );
+#endif
+}
+
+AngleFilter::AngleFilter(MeshFunction* sln1, int item1)
+  : SimpleFilter(angle_fn_1, sln1, item1) {}
+                        
+            
 //// VonMisesFilter ////////////////////////////////////////////////////////////////////////////////
 
 #ifndef COMPLEX

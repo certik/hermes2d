@@ -526,7 +526,7 @@ void H1OrthoHP::get_optimal_refinement(Element* e, int order, Solution* rsln, in
 
 //// adapt /////////////////////////////////////////////////////////////////////////////////////////
 
-bool H1OrthoHP::adapt(double thr, int strat, bool h_only, bool iso_only, int max_order)
+bool H1OrthoHP::adapt(double thr, int strat, bool h_only, bool iso_only, int max_order, double to_be_processed)
 {
   
   if (!have_errors)
@@ -573,6 +573,11 @@ bool H1OrthoHP::adapt(double thr, int strat, bool h_only, bool iso_only, int max
     if ((strat == 1) && (err < thr * errors[esort[0][1]][esort[0][0]])) { nref = i; break; }
 
     if ((strat == 2) && (err < thr)) { nref = i; break; }
+    
+    if ((strat == 3) && 
+        ( (err < thr * errors[esort[0][1]][esort[0][0]]) || 
+          ( processed_error > 1.5 * to_be_processed )) ) 
+      { nref = i; break; }
     
     Element* e;
     e = mesh[comp]->get_element(id);
