@@ -200,7 +200,8 @@ int main(int argc, char* argv[])
       sprintf(title, "Time level %d", n);
       //view.set_min_max_range(-1,1);
       view.set_title(title);
-      view.show(&Psi_iter);    
+      //view.show(&Psi_iter);    // to see reference solution
+      view.show(&sln);           // to see the solution
       ordview.show(&space);
 
     }
@@ -210,8 +211,9 @@ int main(int argc, char* argv[])
     sprintf(title, "Time level %d", n);
     view.set_min_max_range(90,100);
     view.set_title(title);
-    view.show(&Psi_iter);    
-    ordview.show(&space);
+    //view.show(&Psi_iter);    // to see reference solution
+    view.show(&sln);           // to see the solution
+    ordview.show(&space);      // to see hp-mesh
     //view.wait_for_keypress();
 
     graph_err.add_values(0, n, err);
