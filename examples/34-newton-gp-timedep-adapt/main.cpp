@@ -141,7 +141,7 @@ int main(int argc, char* argv[])
     info("\n---- Time step %d -----------------------------------------------------------------", n);
     
     // unrefinements
-    if (n % UNREF_FREQ == 0) {              // unrefine every 10th step
+    if (n % UNREF_FREQ == 0) {              // frequency of unrefinements
       mesh.copy(&basemesh);
       space.set_uniform_order(P_INIT);
     }
