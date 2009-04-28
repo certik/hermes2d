@@ -29,6 +29,8 @@ extern unsigned g_mesh_seq;
 
 //// load //////////////////////////////////////////////////////////////////////////////////////////
 
+/*************** OLD OLD OLD ***************************************************************/
+
 #define eof_error error("premature end of file")
 
 char* Mesh::get_line(FILE* f)
@@ -360,6 +362,8 @@ void Mesh::load_old(const char* filename)
   fclose(f);  
   seq = g_mesh_seq++;
 }
+
+/*************** OLD OLD OLD ***************************************************************/
 
 
 //// load_new //////////////////////////////////////////////////////////////////////////////////////
@@ -1062,6 +1066,8 @@ void Mesh::save_raw(FILE* f)
         else
           for (i = 0; i < 4; i++)
             output(e->sons[i] ? e->sons[i]->id : null, int);
+          
+        if (e->is_curved()) error("Not implemented for curved elements yet.");
       }
     }
   }

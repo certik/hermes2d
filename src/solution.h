@@ -141,7 +141,10 @@ public:
   /// Returns -1 for exact or constant solutions.
   int get_num_dofs() const { return num_dofs; };
 
+  /// Multiplies the function represented by this class by the given coefficient.
+  void multiply(scalar coef);
 
+  
 public:
 
   /// Internal. Used by LinSystem::solve(). Should not be called directly
@@ -171,6 +174,7 @@ protected:
   scalar   (*exactfn1)(double x, double y, scalar& dx,  scalar& dy);
   scalar2& (*exactfn2)(double x, double y, scalar2& dx, scalar2& dy);
   scalar   cnst[2];
+  scalar   exact_mult;
 
   virtual void precalculate(int order, int mask);
   
