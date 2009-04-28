@@ -63,6 +63,10 @@ int main(int argc, char* argv[])
   view.show(&sln);
   
   /*view.wait_for_keypress();
+  sln.multiply(2);
+  view.show(&sln);*/
+  
+  /*view.wait_for_keypress();
   xx = 3.0;
   sys.assemble_rhs_only();
   sys.solve(1, &sln);

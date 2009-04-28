@@ -160,6 +160,7 @@ Solution::Solution()
   own_mesh = false;
   num_components = 0;
   e_last = NULL;
+  exact_mult = 1.0;
   
   mono_coefs = NULL;
   elem_coefs[0] = elem_coefs[1] = NULL;
@@ -432,6 +433,7 @@ void Solution::set_exact(Mesh* mesh, scalar (*exactfn)(double x, double y, scala
   exactfn1 = exactfn;
   num_components = 1;
   type = EXACT;
+  exact_mult = 1.0;
   num_dofs = -1;
 }
 
@@ -443,6 +445,7 @@ void Solution::set_exact(Mesh* mesh, scalar2& (*exactfn)(double x, double y, sca
   exactfn2 = exactfn;
   num_components = 2;
   type = EXACT;
+  exact_mult = 1.0;
   num_dofs = -1;
 }
 
@@ -498,6 +501,27 @@ void Solution::enable_transform(bool enable)
 {
   if (transform != enable) free_tables();
   transform = enable;
+}
+
+
+void Solution::multiply(scalar coef)
+{
+  if (type == SLN)
+  {
+    for (int i = 0; i < num_coefs; i++)
+      mono_coefs[i] *= coef;
+  }
+  else if (type == CNST)
+  {
+    cnst[0] *= coef;
+    cnst[1] *= coef;
+  }
+  else if (type == EXACT)
+  {
+    exact_mult *= coef;
+  }
+  else 
+    error("Uninitialized solution.");
 }
 
 
@@ -755,9 +779,9 @@ void Solution::precalculate(int order, int mask)
       {
         scalar val, dx = 0.0, dy = 0.0;
         val = exactfn1(x[i], y[i], dx, dy);
-        node->values[0][0][i] = val;
-        node->values[0][1][i] = dx;
-        node->values[0][2][i] = dy;
+        node->values[0][0][i] = val * exact_mult;
+        node->values[0][1][i] = dx * exact_mult;
+        node->values[0][2][i] = dy * exact_mult;
       }
     }
     else
@@ -767,9 +791,9 @@ void Solution::precalculate(int order, int mask)
         scalar2 dx = { 0.0, 0.0 }, dy = { 0.0, 0.0 };
         scalar2& val = exactfn2(x[i], y[i], dx, dy);
         for (j = 0; j < 2; j++) {
-          node->values[j][0][i] = val[j];
-          node->values[j][1][i] = dx[j];
-          node->values[j][2][i] = dy[j];
+          node->values[j][0][i] = val[j] * exact_mult;
+          node->values[j][1][i] = dx[j] * exact_mult;
+          node->values[j][2][i] = dy[j] * exact_mult;
         }
       }
     }
@@ -906,15 +930,24 @@ void Solution::load(const char* filename)
       delete [] temp;
     #endif
   }
-  else
+  else if (hdr.ss == sizeof(scalar))
   {
     #ifndef COMPLEX
-      error("Cannot load complex solution in real code.");
+      warn("Ignoring imaginary part of the complex solution since this is not COMPLEX code.");
+      scalar* temp = new double[num_coefs*2];
+      hermes2d_fread(temp, sizeof(scalar), num_coefs*2, f);
+      mono_coefs = new double[num_coefs];
+      for (i = 0; i < num_coefs; i++)
+        mono_coefs[i] = temp[2*i];
+      delete [] temp;
+      
     #else
-      mono_coefs = new scalar[num_coefs];
+      mono_coefs = new scalar[num_coefs];;
       hermes2d_fread(mono_coefs, sizeof(scalar), num_coefs, f);
     #endif
   }
+  else
+    error("Corrupt solution file.");
   
   // load element orders
   num_elems = hdr.ne;
@@ -944,7 +977,7 @@ void Solution::load(const char* filename)
 }
 
 
-//// getting solution values ///////////////////////////////////////////////////////////////////////////////////
+//// getting solution values in arbitrary points ///////////////////////////////////////////////////////////////
 
 scalar Solution::get_ref_value(Element* e, double xi1, double xi2, int component, int item)
 {
