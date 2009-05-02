@@ -24,13 +24,13 @@ int TIME_DISCR = 2;        // 1 for implicit Euler, 2 for Crank-Nicolson
 int PROJ_TYPE = 1;         // 1 for H1 projections, 0 for L2 projections
 double HEATCAP = 1e6;      // heat capacity
 double TAU = 0.5;          // time step
-int NSTEP = 100;           // number of time steps to do
+int NSTEP = 1000;          // number of time steps to do
 double NEWTON_TOL = 1e-3;  // convergence criterion for the Newton's method 
 
 // thermal conductivity (temperature-dependent
 // for any u, this function has to be  positive in the entire domain!
-double lam(double T) { return 1.0 + T*T; } 
-double dlam_dT(double T) { return 2*T; }
+double lam(double T)  { return 10 + 0.1*pow(T, 2); } 
+double dlam_dT(double T) { return 0.1*2*pow(T, 1); }
 
 /********** Definition of boundary conditions ***********/ 
 
@@ -288,6 +288,7 @@ int main(int argc, char* argv[])
     Tprev.copy(&Titer);
   }  
 
+  printf("Click into the image window and press 'q' to finish.\n");
   View::wait();
   return 0;
 }
