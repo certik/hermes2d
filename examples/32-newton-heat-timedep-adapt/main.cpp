@@ -1,6 +1,11 @@
 #include "hermes2d.h"
 #include "solver_umfpack.h"
 
+//
+//  This example shows how to combine automatic adaptivity with the Newton's 
+//  method for a nonlinear time-dependent PDE discretized implicitly in time
+//  (using implicit Euler or Crank-Nicolson). Unrefinements are allowed. 
+//  Some problem parameters can be changed below. 
 // 
 //  PDE: non-stationary heat transfer with nonlinear thermal conductivity
 //  HEATCAP*dT/dt - div[lambda(T)grad T] = 0
