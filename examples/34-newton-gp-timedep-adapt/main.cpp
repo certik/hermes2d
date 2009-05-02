@@ -1,6 +1,12 @@
 #include "hermes2d.h"
 #include "solver_umfpack.h"
 
+//
+//  This example shows how to combine automatic adaptivity with the Newton's 
+//  method for a nonlinear complex-valued time-dependent PDE (the Gross-Pitaevski 
+//  equation describing the behavior of Einstein-Bose quantum gases) 
+//  discretized implicitly in time (via implicit Euler or Crank-Nicolson). 
+//  Some problem parameters can be changed below. 
 // 
 //  PDE: non-stationary complex Gross-Pitaevski equation
 //  describing resonances in Bose-Einstein condensates
@@ -25,9 +31,9 @@ double G = 1;
 double OMEGA = 1;     
 int TIME_DISCR = 2;                // 1 for implicit Euler, 2 for Crank-Nicolson
 int PROJ_TYPE = 1;                 // 1 for H1 projections, 0 for L2 projections
-double T_FINAL = 2.0;              // time interval length
+double T_FINAL = 200.0;            // time interval length
 double TAU = 0.005;                // time step
-int P_INIT = 2;                    // initial polynomial degree
+int P_INIT = 1;                    // initial polynomial degree
 int REF_INIT = 2;                  // number of initial uniform refinements
 
 // Newton parameters
@@ -40,11 +46,14 @@ int UNREF_FREQ = 1;                // every UNREF_FREQth time step the mesh
                                    // is unrefined
 double SPACE_L2_TOL = 1.0;         // stopping criterion for hp-adaptivity 
                                    // (relative error between reference and coarse solution in percent)
-double thr = 0.3;
-bool h_only = false;
+double THR = 0.3;
+int STRATEGY = 1;                  // adaptive strategy (0, 1, 2 or 3)
+bool H_ONLY = false;               // only perform h-adaptivity
 bool iso_only = false;
 int MAX_P = 5;                     // maximum polynomial order allowed in hp-adaptivity 
                                    // had to be limited due to complicated integrals
+int SHOW_MESHES_IN_TIME_STEP = 0;  // if nonzero, all meshes during every time step are 
+                                   // shown, else only meshes at the end of every time step.
 
 /********** Definition of initial conditions ***********/ 
 
@@ -195,19 +204,21 @@ int main(int argc, char* argv[])
 
       // visualization of intermediate solution 
       // and mesh during adaptivity
-      sprintf(title, "Magnitude, time level %d", n);
-      magview.set_title(title);
-      AbsFilter mag(&sln);
-      magview.show(&mag);            // to see the magnitude of the solution
-      sprintf(title, "hp-mesh, time level %d", n);
-      ordview.set_title(title);
-      ordview.show(&space);          // to see hp-mesh during the process
+      if(SHOW_MESHES_IN_TIME_STEP) {
+        sprintf(title, "Magnitude, time level %d", n);
+        magview.set_title(title);
+        AbsFilter mag(&sln);
+        magview.show(&mag);            // to see the magnitude of the solution
+        sprintf(title, "hp-mesh, time level %d", n);
+        ordview.set_title(title);
+        ordview.show(&space);          // to see hp-mesh during the process
+      }
 
       H1OrthoHP hp(1, &space);
       err = hp.calc_error(&sln, &rsln) * 100;   // relative l2-error in percent
       info("Error: %g", err);
       if (err < SPACE_L2_TOL) done = true;
-      else hp.adapt(thr, 1, h_only, iso_only, MAX_P);
+      else hp.adapt(THR, STRATEGY, H_ONLY, iso_only, MAX_P);
 
     }
     while (!done);
@@ -242,12 +253,12 @@ int main(int argc, char* argv[])
     ordview.show(&space);      // to see hp-mesh
 
     // to save solutions
-/*    #define DIR "/home/lenka/storage1/results/090417-newton/"
-    ordview.save_numbered(DIR "mesh%04d.lin", n);
-    realview.save_numbered(DIR "realsln%04d.lin", n);
-    imagview.save_numbered(DIR "imagsln%04d.lin", n);
-    magview.save_numbered(DIR "magsln%04d.lin", n);
-    angleview.save_numbered(DIR "anglesln%04d.lin", n);*/
+    ordview.save_numbered_screenshot("./video/mesh%04d.bmp", n, true);
+    //realview.save_numbered(DIR "realsln%04d.lin", n);
+    //imagview.save_numbered(DIR "imagsln%04d.lin", n);
+    //magview.save_numbered_screenshot("./video/sol%04d.bmp", n, true);
+    //angleview.save_numbered(DIR "anglesln%04d.lin", n);
+
     
     graph_err.add_values(0, n, err);
     graph_err.save("error.txt");
@@ -256,6 +267,7 @@ int main(int argc, char* argv[])
     
     // copying result of the Newton's iteration into Psi_prev
     Psi_prev.copy(&rsln);
+    printf("hello\n");
   }  
 
   View::wait();
