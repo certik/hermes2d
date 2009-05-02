@@ -11,6 +11,10 @@
 //  BC:  T = 100 on the left, top and bottom edges
 //       dT/dn = 0 on the right edge
 //
+//  This example does not contain automatic adaptivity, its 
+//  purpose is to show how to use the Newton's method 
+//  for a nonlinear PDE problem. Some problem parameters 
+//  can be changed below.
 
 /********** Problem parameters ***********/ 
 
@@ -139,11 +143,12 @@ int main(int argc, char* argv[])
   nls.set_ic(&Titer, &Titer, PROJ_TYPE);
 
   // view initial guess for Newton's method 
+  /*
   sprintf(title, "Initial guess for the Newton's method");
   view.set_title(title);
   view.show(&Titer);    
   view.wait_for_keypress();
-
+  */
   Solution sln;
     
   int it = 1; 
@@ -161,6 +166,7 @@ int main(int argc, char* argv[])
     sprintf(title, "Newton iteration %d", it-1);
     view.set_title(title);
     view.show(&sln);    
+    printf("Click into the image window and press any key to proceed.\n");
     view.wait_for_keypress();
 
     Titer = sln;
@@ -168,7 +174,7 @@ int main(int argc, char* argv[])
   }
   while (res_l2_norm > 1e-4);
 
-  View::wait();
+  //View::wait();
   return 0;
 }
 
