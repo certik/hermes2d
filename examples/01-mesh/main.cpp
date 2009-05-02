@@ -32,6 +32,8 @@ int main(int argc, char* argv[])
   printf("  press 'm' to hide element numbers,\n");
   printf("  press 's' to save a screenshot,\n");
   printf("  press 'q' to finish.\n");
+
+  // wait for keyboard or mouse input
   View::wait();
   return 0;
 }
