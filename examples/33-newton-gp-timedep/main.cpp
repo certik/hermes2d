@@ -1,6 +1,12 @@
 #include "hermes2d.h"
 #include "solver_umfpack.h"
 
+//
+//  This example demonstrates the employment of the Newton's method for
+//  a nonlinear complex-valued time-dependent PDE (the Gross-Pitaevski 
+//  equation describing the behavior of Einstein-Bose quantum gases) 
+//  discretized implicitly in time (via implicit Euler or Crank-Nicolson). 
+//  Some problem parameters can be changed below. 
 // 
 //  PDE: non-stationary complex Gross-Pitaevski equation
 //  describing resonances in Bose-Einstein condensates
@@ -17,16 +23,17 @@
 
 /********** Problem parameters ***********/ 
 
-double H = 1;         //Planck constant 6.626068e-34;
+double H = 1;              //Planck constant 6.626068e-34;
 double M = 1; 
 double G = 1; 
 double OMEGA = 1;     
-int TIME_DISCR = 2;    // 1 for implicit Euler, 2 for Crank-Nicolson
-int PROJ_TYPE = 2;     // 1 for H1 projections, 2 for L2 projections
-double T_FINAL = 2;    // time interval length
-double TAU = 0.001;    // time step
-int P_INIT = 2;        // initial polynomial degree
-int REF_INIT = 3;      // number of initial uniform refinements
+int TIME_DISCR = 2;        // 1 for implicit Euler, 2 for Crank-Nicolson
+int PROJ_TYPE = 2;         // 1 for H1 projections, 2 for L2 projections
+double T_FINAL = 2;        // time interval length
+double TAU = 0.001;        // time step
+int P_INIT = 2;            // initial polynomial degree
+int REF_INIT = 3;          // number of initial uniform refinements
+double NEWTON_TOL = 1e-3;  // convergence criterion for the Newton's method 
 
 /********** Definition of initial conditions ***********/ 
 
@@ -153,7 +160,7 @@ int main(int argc, char* argv[])
       Psi_iter = sln;
         
     }
-    while (res_l2_norm > 1e-4);
+    while (res_l2_norm > NEWTON_TOL);
 
     // visualization of solution on the n-th time level
     sprintf(title, "Time level %d", n);
@@ -174,6 +181,7 @@ int main(int argc, char* argv[])
     Psi_prev.copy(&Psi_iter);
   }  
 
+  printf("Click into the image window and press 'q' to finish.\n");
   View::wait();
   return 0;
 }
