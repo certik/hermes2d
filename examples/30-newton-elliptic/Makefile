@@ -1,6 +1,6 @@
 include ../../Make.config
 
-NAME   = newton-elliptic 
+NAME   = run 
 HERMES = ../../lib/libhermes2d-$(CC)-g-real.a
 #FLAGS  = -O3 -DNDEBUG
 FLAGS  = -ggdb 
