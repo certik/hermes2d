@@ -1,6 +1,32 @@
 #include "hermes2d.h"
 #include "solver_umfpack.h"
 
+// 
+//  PDE: -Laplace u = 0
+//
+//  Known exact solution, see functions fn() and fndd() 
+//
+//  Domain: L-shape domain, see the file lshape.mesh
+//
+//  BC:  Dirichlet, given by exact solution
+//
+//  In addition to the L-shape domain problem, this is another example that allows you to compare 
+//  h- and hp-adaptivity from the point of view of both CPU time requirements and discrete problem 
+//  size, look at the quality of the a-posteriori error estimator used by Hermes (exact error is also)
+//  provided, etc. The following problem parameters can be changed easily:
+//
+
+int P_INIT = 1;           // initial polynomial degree in mesh
+double THRESHOLD = 0.3;   // the adaptivity algorithm goes on until THRESHOLD*total_error is processed
+                          // (see adapt_h1.cpp for explanation)
+int STRATEGY = 0;         // refinement strategy (0, 1, 2, 3 - see adapt_h1.cpp for explanation)
+int H_ONLY = 0;           // if H_ONLY == 0 then full hp-adaptivity takes place, otherwise
+                          // h-adaptivity is used. Use this parameter to check that indeed adaptive 
+                          // hp-FEM converges much faster than adaptive h-FEM
+double ERR_STOP = 0.01;  // adaptivity process stops when error wrt. exact solution in H1 norm 
+                          // is less than this number 
+int NDOF_STOP = 40000;    // adaptivity process stops when the number of degrees of freedom grows over 
+                          // this limit. This is mainly to prevent h-adaptivity to go on forever.  
 
 static double fn(double x, double y)
 {
@@ -44,13 +70,15 @@ int main(int argc, char* argv[])
 {
   Mesh mesh;
   mesh.load("square_quad.mesh");
-  
+  if(P_INIT == 1) mesh.refine_all_elements();  // this is because there are no degrees of freedom 
+                                               // on the coarse mesh lshape.mesh if P_INIT == 1
+ 
   H1ShapesetOrtho shapeset;
   PrecalcShapeset pss(&shapeset);
 
   H1Space space(&mesh, &shapeset);
   space.set_bc_values(bc_values);
-  space.set_uniform_order(2);
+  space.set_uniform_order(P_INIT);
   
   WeakForm wf(1);
   wf.add_biform(0, 0, bilinear_form, SYM);
@@ -101,8 +129,8 @@ int main(int argc, char* argv[])
     graph.add_values(1, space.get_num_dofs(), estim);
     graph.save("convergence.gp");
     
-    if (error < 0.01) break;
-    hp.adapt(0.3);
+    if (error < ERR_STOP || ls.get_num_dofs() >= NDOF_STOP) break;
+    hp.adapt(THRESHOLD, STRATEGY, H_ONLY);
   }
 
   verbose("\nTotal run time: %g sec", end_time());
