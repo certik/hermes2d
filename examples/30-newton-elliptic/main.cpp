@@ -18,7 +18,8 @@
 
 /********** Problem parameters ***********/ 
 
-int PROJ_TYPE = 0;    // 1 for H1 projections, 0 for L2 projections
+int PROJ_TYPE = 0;         // 1 for H1 projections, 0 for L2 projections
+double NEWTON_TOL = 1e-3;  // convergence criterion for the Newton's method 
 
 // thermal conductivity (temperature-dependent)
 // for any u, this function has to be  positive in the entire domain!
@@ -171,7 +172,7 @@ int main(int argc, char* argv[])
     Titer = sln;
        
   }
-  while (res_l2_norm > 1e-4);
+  while (res_l2_norm > NEWTON_TOL);
 
   //View::wait();
   return 0;
