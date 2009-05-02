@@ -1,6 +1,7 @@
 #include "hermes2d.h"
 
-// This example shows you how to load a mesh 
+// This example shows you how to load a mesh, perform various types
+// of initial refinements, and use keyboard and mouse controls. 
 
 int main(int argc, char* argv[])
 {
