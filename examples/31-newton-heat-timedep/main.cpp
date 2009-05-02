@@ -2,9 +2,9 @@
 #include "solver_umfpack.h"
 
 //
-//  This example demonstrates the employment of the Newton;s method to 
-//  a nonlinear PDE discretized in time using an implicit time-stepping 
-//  method (implicit Euler or Crank-Nicolson). Some problem parameters can 
+//  This example demonstrates the employment of the Newton's method to 
+//  a nonlinear time-dependent PDE discretized implicitly in time  
+//  (via implicit Euler or Crank-Nicolson). Some problem parameters can 
 //  be changed below. 
 //
 //  PDE: non-stationary heat transfer with nonlinear thermal conductivity
@@ -20,11 +20,12 @@
 
 /********** Problem parameters ***********/ 
 
-int TIME_DISCR = 2;   // 1 for implicit Euler, 2 for Crank-Nicolson
-int PROJ_TYPE = 1;    // 1 for H1 projections, 0 for L2 projections
-double HEATCAP = 1e6; // heat capacity
-double TAU = 0.5;     // time step
-int NSTEP = 100;      // number of time steps to do
+int TIME_DISCR = 2;        // 1 for implicit Euler, 2 for Crank-Nicolson
+int PROJ_TYPE = 1;         // 1 for H1 projections, 0 for L2 projections
+double HEATCAP = 1e6;      // heat capacity
+double TAU = 0.5;          // time step
+int NSTEP = 100;           // number of time steps to do
+double NEWTON_TOL = 1e-3;  // convergence criterion for the Newton's method 
 
 // thermal conductivity (temperature-dependent
 // for any u, this function has to be  positive in the entire domain!
@@ -266,7 +267,7 @@ int main(int argc, char* argv[])
       Titer = sln;
         
     }
-    while (res_l2_norm > 1e-4);
+    while (res_l2_norm > NEWTON_TOL);
 
     // visualization of solution on the n-th time level
     sprintf(title, "Time level %d", n);
