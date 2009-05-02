@@ -46,10 +46,11 @@ int UNREF_FREQ = 1;                // every UNREF_FREQth time step the mesh
                                    // is unrefined
 double SPACE_L2_TOL = 1.0;         // stopping criterion for hp-adaptivity 
                                    // (relative error between reference and coarse solution in percent)
-double THR = 0.3;
+double THR = 0.3;                  // parameter of the adaptivity procedure indicating how many 
+                                   // refinements will be done per adaptivity step
 int STRATEGY = 1;                  // adaptive strategy (0, 1, 2 or 3)
 bool H_ONLY = false;               // only perform h-adaptivity
-bool iso_only = false;
+bool ISO_ONLY = false;             // only consider isotropic refinements
 int MAX_P = 5;                     // maximum polynomial order allowed in hp-adaptivity 
                                    // had to be limited due to complicated integrals
 int SHOW_MESHES_IN_TIME_STEP = 0;  // if nonzero, all meshes during every time step are 
@@ -218,7 +219,7 @@ int main(int argc, char* argv[])
       err = hp.calc_error(&sln, &rsln) * 100;   // relative l2-error in percent
       info("Error: %g", err);
       if (err < SPACE_L2_TOL) done = true;
-      else hp.adapt(THR, STRATEGY, H_ONLY, iso_only, MAX_P);
+      else hp.adapt(THR, STRATEGY, H_ONLY, ISO_ONLY, MAX_P);
 
     }
     while (!done);
@@ -253,13 +254,9 @@ int main(int argc, char* argv[])
     ordview.show(&space);      // to see hp-mesh
 
     // to save solutions
-    ordview.save_numbered_screenshot("./video/mesh%04d.bmp", n, true);
-    //realview.save_numbered(DIR "realsln%04d.lin", n);
-    //imagview.save_numbered(DIR "imagsln%04d.lin", n);
+    //ordview.save_numbered_screenshot("./video/mesh%04d.bmp", n, true);
     //magview.save_numbered_screenshot("./video/sol%04d.bmp", n, true);
-    //angleview.save_numbered(DIR "anglesln%04d.lin", n);
 
-    
     graph_err.add_values(0, n, err);
     graph_err.save("error.txt");
     graph_dofs.add_values(0, n, space.get_num_dofs());
@@ -270,6 +267,7 @@ int main(int argc, char* argv[])
     printf("hello\n");
   }  
 
+  printf("Click into the image window and press 'q' to finish.\n");
   View::wait();
   return 0;
 }
