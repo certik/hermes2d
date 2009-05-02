@@ -2,6 +2,10 @@
 #include "solver_umfpack.h"
 #include "function.h"
 
+//
+//  The purpose of this example is to show how to use the Newton's 
+//  method for a stationary nonlinear PDE problem. Some problem 
+//  parameters can be changed below.
 // 
 //  PDE: stationary heat transfer with nonlinear thermal conductivity
 //  - div[lambda(T)grad T] = 0
@@ -11,10 +15,6 @@
 //  BC:  T = 100 on the left, top and bottom edges
 //       dT/dn = 0 on the right edge
 //
-//  This example does not contain automatic adaptivity, its 
-//  purpose is to show how to use the Newton's method 
-//  for a nonlinear PDE problem. Some problem parameters 
-//  can be changed below.
 
 /********** Problem parameters ***********/ 
 
@@ -40,7 +40,6 @@ scalar bc_values(int marker, double x, double y)
 //   if (marker == 4) return -4.0 * sqr(y) + 4.0 * y; 
   else return 0.0;
 }
-
 
 /********** Definition of Jacobian matrices and residual vectors ***********/ 
 
