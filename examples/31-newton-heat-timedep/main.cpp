@@ -1,7 +1,12 @@
 #include "hermes2d.h"
 #include "solver_umfpack.h"
 
-// 
+//
+//  This example demonstrates the employment of the Newton;s method to 
+//  a nonlinear PDE discretized in time using an implicit time-stepping 
+//  method (implicit Euler or Crank-Nicolson). Some problem parameters can 
+//  be changed below. 
+//
 //  PDE: non-stationary heat transfer with nonlinear thermal conductivity
 //  HEATCAP*dT/dt - div[lambda(T)grad T] = 0
 //
@@ -224,7 +229,8 @@ int main(int argc, char* argv[])
   // view initial guess for Newton's method 
   sprintf(title, "Initial guess for the Newton's method");
   view.set_title(title);
-  view.show(&Titer);    
+  view.show(&Titer);
+  printf("Click into the image window and press any key.\n");    
   view.wait_for_keypress();
 
   Solution sln;
@@ -268,6 +274,14 @@ int main(int argc, char* argv[])
     view.set_title(title);
     view.show(&Titer);    
     //view.wait_for_keypress();
+
+    // uncomment one of the following lines to generate a series of video frames
+    //vview.save_numbered_screenshot("velocity%03d.bmp", i, true);
+    //pview.save_numbered_screenshot("pressure%03d.bmp", i, true);
+    // the frames can then be converted to a video file with the command
+    // mencoder "mf://velocity*.bmp" -mf fps=20 -o velocity.avi -ovc lavc -lavcopts vcodec=mpeg4
+
+
 
     // copying result of the Newton's iteration into Tprev
     Tprev.copy(&Titer);
