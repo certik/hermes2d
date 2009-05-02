@@ -23,8 +23,8 @@ double NEWTON_TOL = 1e-3;  // convergence criterion for the Newton's method
 
 // thermal conductivity (temperature-dependent)
 // for any u, this function has to be  positive in the entire domain!
-double lam(double T) { return 1.0 + T*T; } 
-double dlam_dT(double T) { return 2*T; }
+double lam(double T) { return 10 + 0.1*pow(T, 2); } 
+double dlam_dT(double T) { return 0.1*2*pow(T, 1); }
 
 /********** Definition of boundary conditions ***********/ 
 
