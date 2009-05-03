@@ -1,39 +1,45 @@
-//  Newton BC example:
-//
-//  (Stationary heat transfer with constant temperature on Gamma_3, insulated
-//   walls Gamma_2, Gamma_4 and Netwon-type cooling on Gamma_1).
-//
-//  PDE:  -\Delta u = 0
-//
-//  BC:   u = t1              on  Gamma_3
-//        du/dn = 0           on  Gamma_2 & Gamma_4
-//        du/dn = h*(u - t0)  on  Gamma_1
-//
-//  (Note that the last BC can be written in the form  du/dn - h*u = -h*t0 )
-
 #include "hermes2d.h"
 #include "solver_umfpack.h"
 
-const double t1 = 100.0;
-const double t0 = 20.0;
-const double h  = 1.0;
+// This example is a continuation of examples 03, 04 and 05. It explains
+// how to use Newton boundary conditions.
+//
+// PDE: Laplace equation -Laplace u = 0 (this equation describes, among 
+// many other things, also stationary heat transfer in a homogeneous linear 
+// material).
+//
+// BC: u = T1 ... fixed temperature on Gamma_3 (Dirichlet)
+//     du/dn = 0 ... insulated wall on Gamma_2 and Gamma_4 (Neumann)
+//     du/dn = H*(u - T0) ... heat flux on Gamma_1 (Newton)
+//
+// (Note that the last BC can be written in the form  du/dn - H*u = -h*T0 )
+//
+// You can play with the parameters below: 
+// 
+
+double T1 = 30.0;            // prescribed temperature on Gamma_3 
+double T0 = 20.0;            // outer temperature on Gamma_1
+double H  = 0.05;            // heat flux on Gamma_1
+int P_INIT = 6;              // uniform polynomial degree in the mesh  
+int UNIFORM_REF_LEVEL = 2;   // number of initial uniform mesh refinements
+int CORNER_REF_LEVEL = 8;    // number of mesh refinements towards the re-entrant corner
 
 
 int bc_types(int marker)
   { return (marker == 3) ? BC_ESSENTIAL : BC_NATURAL; }
 
 scalar bc_values(int marker, double x, double y)
-  { return (marker == 3) ? t1 : 0.0; }
+  { return (marker == 3) ? T1 : 0.0; }
 
 
 scalar bilinear_form(RealFunction* fu, RealFunction* fv, RefMap* ru, RefMap* rv)
   { return int_grad_u_grad_v(fu, fv, ru, rv); }
 
 scalar bilinear_form_surf_Gamma_1(RealFunction* fu, RealFunction* fv, RefMap* ru, RefMap* rv, EdgePos* ep)
-  { return h * surf_int_u_v(fu, fv, ru, rv, ep); }
+  { return H * surf_int_u_v(fu, fv, ru, rv, ep); }
 
 scalar linear_form_surf_Gamma_1(RealFunction* fv, RefMap* rv, EdgePos* ep)
-  { return t0 * h * surf_int_v(fv, rv, ep); }
+  { return T0 * H * surf_int_v(fv, rv, ep); }
 
 
 int main(int argc, char* argv[])
@@ -41,6 +47,8 @@ int main(int argc, char* argv[])
   // load the mesh file
   Mesh mesh;
   mesh.load("domain.mesh");
+  for(int i=0; i<UNIFORM_REF_LEVEL; i++) mesh.refine_all_elements();
+  mesh.refine_towards_vertex(3, CORNER_REF_LEVEL);
 
   // initialize the shapeset and the cache
   H1Shapeset shapeset;
@@ -50,7 +58,7 @@ int main(int argc, char* argv[])
   H1Space space(&mesh, &shapeset);
   space.set_bc_types(bc_types);
   space.set_bc_values(bc_values);
-  space.set_uniform_order(6);
+  space.set_uniform_order(P_INIT);
   space.assign_dofs();
 
   // initialize the weak formulation
