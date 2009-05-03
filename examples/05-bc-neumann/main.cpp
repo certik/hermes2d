@@ -4,15 +4,23 @@
 // This example is a continuation of examples 03 and 04. It shows 
 // you how to use Neumann boundary conditions.
 //
-// PDE: Poisson equation -Laplace u = f, where f = -1 
+// PDE: Poisson equation -Laplace u = f, where f = CONST_F
 //
-// The exact solution to this problem has a singular (infinite) 
-// gradient at the re-entrant corner. You can play with the 
-// initial polynomial degree P_INIT, with the number of refinements 
-// towards the re-entrant corner, etc. 
+// BC: u = 0 on Gamma_4 (edges meeting at the re-entrant corner)
+//     du/dn = CONST_GAMMA_1 on Gamma_1 (bottom edge)
+//     du/dn = CONST_GAMMA_2 on Gamma_2 (top edge, circular arc, and right-most edge)
+//     du/dn = CONST_GAMMA_3 on Gamma_3 (left-most edge)
+//
+// You can play with the parameters below. For most choices of the four constants,
+// the solution has a singular (infinite) gradient at the re-entrant corner. Therefore
+// we visualize not only the solution but also the gradient magnitude. 
 
-int P_INIT = 2;             // initial polynomial degree in all elements
-int CORNER_REF_LEVEL = 10;  // number of mesh refinements towards the re-entrant corner
+double CONST_F = -1.0;        // right-hand side
+double CONST_GAMMA_1 = -0.5;  // outer normal derivative on Gamma_1 
+double CONST_GAMMA_2 = 1.0;   // outer normal derivative on Gamma_2 
+double CONST_GAMMA_3 = -0.5;  // outer normal derivative on Gamma_3 
+int P_INIT = 4;               // initial polynomial degree in all elements
+int CORNER_REF_LEVEL = 10;    // number of mesh refinements towards the re-entrant corner
 
 int bc_types(int marker)
 {
@@ -24,8 +32,7 @@ int bc_types(int marker)
 
 scalar bc_values(int marker, double x, double y)
 {
-  if (marker == 4) return 0.0; // Dirichlet BC value
-  else return 0.0;             // Neumann BC value
+  return 0.0; // Dirichlet BC value
 }
 
 scalar bilinear_form(RealFunction* fu, RealFunction* fv, RefMap* ru, RefMap* rv)
@@ -35,12 +42,22 @@ scalar bilinear_form(RealFunction* fu, RealFunction* fv, RefMap* ru, RefMap* rv)
 
 scalar linear_form(RealFunction* fv, RefMap* rv)
 {
-  return -int_v(fv, rv);
+  return CONST_F*int_v(fv, rv);
+}
+
+scalar linear_form_surf_Gamma_1(RealFunction* fv, RefMap* rv, EdgePos* ep)
+{
+  return CONST_GAMMA_1 * surf_int_v(fv, rv, ep);
 }
 
 scalar linear_form_surf_Gamma_2(RealFunction* fv, RefMap* rv, EdgePos* ep)
 {
-  return 1.0 * surf_int_v(fv, rv, ep);
+  return CONST_GAMMA_2 * surf_int_v(fv, rv, ep);
+}
+
+scalar linear_form_surf_Gamma_3(RealFunction* fv, RefMap* rv, EdgePos* ep)
+{
+  return CONST_GAMMA_3 * surf_int_v(fv, rv, ep);
 }
 
 
@@ -66,7 +83,9 @@ int main(int argc, char* argv[])
   WeakForm wf(1);
   wf.add_biform(0, 0, bilinear_form);
   wf.add_liform(0, linear_form);
+  wf.add_liform_surf(0, linear_form_surf_Gamma_1, 1);
   wf.add_liform_surf(0, linear_form_surf_Gamma_2, 2);
+  wf.add_liform_surf(0, linear_form_surf_Gamma_3, 3);
   
   // initialize the linear system and solver
   UmfpackSolver umfpack;
@@ -84,10 +103,9 @@ int main(int argc, char* argv[])
   view.show(&sln);
 
   // TODO: show gradient magnitude
+  ScalarView grad_view("Solution", 0, 650, 600, 600);
 
 
-
- 
   printf("Waiting for keyboard or mouse input.\n");
   View::wait();
   return 0;
