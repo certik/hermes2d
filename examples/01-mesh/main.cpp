@@ -19,8 +19,8 @@ int main(int argc, char* argv[])
   mesh.refine_element(114, 1);         // refines element #114 anisotropically
   
   // display the mesh
-  MeshView mview("Hello world!", 100, 100, 500, 500);
-  mview.show(&mesh);
+  MeshView mview("Hello world!", 100, 100, 500, 500);  // (100, 100) is the upper left corner position
+  mview.show(&mesh);                                   // 500 x 500 is the window size
   
   // practice some keyboard and mouse controls
   printf("Click into the image window and:\n");
