@@ -10,11 +10,13 @@ int main(int argc, char* argv[])
   mesh.load("domain.mesh");
 
   // perform some sample initial refinements
-  mesh.refine_element(1);              // refines element #1
-  mesh.refine_element(2);              // refines element #2
   mesh.refine_all_elements();          // refines all elements
-  mesh.refine_towards_boundary(4, 3);  // refines all elements along boundary 4,
-                                       // this is repeated three times
+  mesh.refine_towards_vertex(3, 4);    // refines mesh towards vertex #3 (4x)
+  mesh.refine_towards_boundary(2, 4);  // refines all elements along boundary 2 (4x)
+  mesh.refine_element(86, 0);          // refines element #86 isotropically
+  mesh.refine_element(112, 0);         // refines element #112 isotropically
+  mesh.refine_element(84, 2);          // refines element #84 anisotropically
+  mesh.refine_element(114, 1);         // refines element #114 anisotropically
   
   // display the mesh
   MeshView mview("Hello world!", 100, 100, 500, 500);
@@ -22,12 +24,11 @@ int main(int argc, char* argv[])
   
   // practice some keyboard and mouse controls
   printf("Click into the image window and:\n");
-  printf("  press 'm' to show element numbers\n");
-  printf("    -- note that indices start high since some refinements took place already,\n");
-  printf("  resize your window and press 'c' to center the mesh,\n");
-  printf("  zoom into the corner using the right mouse button\n"); 
-  printf("    -- now you can read the numbers of small elements,\n");
-  printf("  move the mesh around using the left mouse button,\n");
+  printf("  press 'm' to show element numbers,\n");
+  printf("  enlarge your window and press 'c' to center the mesh,\n");
+  printf("  zoom into the mesh using the right mouse button\n"); 
+  printf("  and move the mesh around using the left mouse button\n");
+  printf("    -- in this way you can read the numbers of all elements,\n");
   printf("  press 'c' to center the mesh again,\n");
   printf("  press 'm' to hide element numbers,\n");
   printf("  press 's' to save a screenshot,\n");
