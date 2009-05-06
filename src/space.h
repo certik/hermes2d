@@ -158,6 +158,10 @@ public:
   /// Returns true if the space is ready for computation, false otherwise.
   bool is_up_to_date() const { return was_assigned && mesh_seq == mesh->get_seq(); }
   
+  /// Sets polynomial orders to elements created by mesh regularization
+  /// using "parents"
+  void distribute_orders(Mesh* mesh, int* parents);
+      
 public:
   
   /// Obtains an assembly list for the given element.

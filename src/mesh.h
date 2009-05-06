@@ -217,7 +217,7 @@ public:
   /// due to incompatible refinements, the element refinement hierarchy
   /// is removed and all elements become top-level elements. Also, total
   /// regularization does not work on curved elements.
-  void regularize(int n);
+  int* regularize(int n);
   
   /// Recursively removes all son elements of the given element and
   /// makes it active.
@@ -268,7 +268,11 @@ protected:
   void   save_refinements(FILE* f, Element* e, int id, bool& first);
   void   save_nurbs(FILE* f, int p1, int p2, Nurbs* nurbs);
 
+  int* parents;
+  int parents_size;
+  
   int  get_edge_degree(Node* v1, Node* v2);
+  void assign_parent(Element* e, int i);
   void regularize_triangle(Element* e);
   void regularize_quad(Element* e);
   void flatten();

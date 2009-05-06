@@ -65,7 +65,7 @@ int main(int argc, char* argv[])
 
   sys.assemble();
   sys.solve(1, &sln);
-
+  
   ScalarView view1("Solution - triangles", 200, 150, 1000, 900);
   view1.show(&sln);
   

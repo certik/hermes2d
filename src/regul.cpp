@@ -113,13 +113,11 @@ void Mesh::regularize_triangle(Element* e)
     
   }
   
-  // use userdata to store id of parent 
+  // store id of parent 
   if (!e->active)
   {
     for (i = 0; i < 4; i++)
-    {
-      if (e->sons[i] != NULL) e->sons[i]->userdata = e->userdata;
-    }
+      assign_parent(e, i);
   }
 }
 
@@ -217,14 +215,14 @@ void Mesh::regularize_quad(Element* e)
        {
          refine_element(e->id, 2);
          for (i = 0; i < 4; i++)
-           if (e->sons[i] != NULL) e->sons[i]->userdata = e->userdata;                   
+           assign_parent(e, i);
          n = 2; m = 3;
        }  
        else if (eo[1] == 1 && eo[3] == 1) 
        {
          refine_element(e->id, 1);
          for (i = 0; i < 4; i++)
-           if (e->sons[i] != NULL) e->sons[i]->userdata = e->userdata;                   
+           assign_parent(e, i);
          n = 0; m = 1;
        }  
        
@@ -235,14 +233,11 @@ void Mesh::regularize_quad(Element* e)
     
   }
   
-  // use userdata to store id of parent 
+  // store id of parent 
   if (!e->active)
   {
     for (i = 0; i < 4; i++)
-    {
-      if (e->sons[i] != NULL) 
-        e->sons[i]->userdata = e->userdata;
-    }
+      assign_parent(e, i);
   }
 }
 
@@ -266,6 +261,7 @@ void Mesh::flatten()
     *ee = *e;
     ee->id = temp;
     idx[e->id] = temp;
+    parents[ee->id] = parents[e->id];
   }
 
   elements.copy(new_elements);
@@ -279,7 +275,22 @@ void Mesh::flatten()
 }
 
 
-void Mesh::regularize(int n)
+void Mesh::assign_parent(Element* e, int i)
+{
+  if (e->sons[i] != NULL) 
+  {
+    if (e->sons[i]->id >= parents_size)  
+    {
+      parents_size = 2 * parents_size;  
+      parents = (int*) realloc(parents, sizeof(int) * parents_size);
+    }
+  
+    parents[e->sons[i]->id] = parents[e->id];         
+  }
+}
+
+
+int* Mesh::regularize(int n)
 {
   int i, j, k, k1, k2;
   bool ok;
@@ -293,10 +304,10 @@ void Mesh::regularize(int n)
     reg = true;
   }
   
+  parents_size = 2*get_max_element_id();
+  parents = (int*) malloc(sizeof(int) * parents_size); 
   for_all_active_elements(e, this)
-  {
-    e->userdata = e->id;
-  }
+    parents[e->id] = e->id;
   
   do
   {
@@ -315,8 +326,8 @@ void Mesh::regularize(int n)
         if (get_edge_degree(e->vn[i], e->vn[j]) > n)
         {
           refine_element(e->id, /*iso*/ 0);
-          for (i = 0; i < 4; i++)
-            if (e->sons[i] != NULL) e->sons[i]->userdata = e->userdata;          
+          for (i = 0; i < 4; i++) 
+            assign_parent(e, i);
           ok = false;
           break;
         }
@@ -339,5 +350,7 @@ void Mesh::regularize(int n)
     }
     flatten();
   }
+  
+  return parents;
   
 }
