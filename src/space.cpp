@@ -233,6 +233,25 @@ void Space::propagate_zero_orders(Element* e)
         propagate_zero_orders(e->sons[i]);
 }
 
+
+void Space::distribute_orders(Mesh* mesh, int* parents)
+{
+  int num = mesh->get_max_element_id(); 
+  int orders[num+1];  
+  Element* e;
+  for_all_active_elements(e, mesh)
+  {
+    int p = get_element_order(parents[e->id]);
+    if (e->is_triangle() && (get_v_order(p) != 0)) 
+      p = std::max(get_h_order(p), get_v_order(p));
+    orders[e->id] = p;   
+  }
+  for_all_active_elements(e, mesh)
+    set_element_order(e->id, orders[e->id]);
+
+}
+
+
 //// dof assignment ////////////////////////////////////////////////////////////////////////////////
 
 int Space::assign_dofs(int first_dof, int stride)
@@ -456,24 +475,6 @@ void Space::free_extra_data()
   for (int i = 0; i < extra_data.size(); i++)
     delete [] (scalar*) extra_data[i];
   extra_data.clear();
-}
-
-
-void Space::distribute_orders(Mesh* mesh, int* parents)
-{
-  int num = mesh->get_max_element_id(); 
-  int orders[num+1];  
-  Element* e;
-  for_all_active_elements(e, mesh)
-  {
-    int p = get_element_order(parents[e->id]);
-    if (e->is_triangle() && (get_v_order(p) != 0)) 
-      p = std::max(get_h_order(p), get_v_order(p));
-    orders[e->id] = p;   
-  }
-  for_all_active_elements(e, mesh)
-    set_element_order(e->id, orders[e->id]);
-
 }
 
 
