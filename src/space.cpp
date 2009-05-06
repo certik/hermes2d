@@ -459,6 +459,24 @@ void Space::free_extra_data()
 }
 
 
+void Space::distribute_orders(Mesh* mesh, int* parents)
+{
+  int num = mesh->get_max_element_id(); 
+  int orders[num+1];  
+  Element* e;
+  for_all_active_elements(e, mesh)
+  {
+    int p = get_element_order(parents[e->id]);
+    if (e->is_triangle() && (get_v_order(p) != 0)) 
+      p = std::max(get_h_order(p), get_v_order(p));
+    orders[e->id] = p;   
+  }
+  for_all_active_elements(e, mesh)
+    set_element_order(e->id, orders[e->id]);
+
+}
+
+
 /*void Space::dump_node_info()
 {
   Node* n;
