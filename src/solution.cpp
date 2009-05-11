@@ -930,7 +930,7 @@ void Solution::load(const char* filename)
       delete [] temp;
     #endif
   }
-  else if (hdr.ss == sizeof(scalar))
+  else if (hdr.ss == 2*sizeof(double))
   {
     #ifndef COMPLEX
       warn("Ignoring imaginary part of the complex solution since this is not COMPLEX code.");
