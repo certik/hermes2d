@@ -245,6 +245,8 @@ public:
   /// For internal use.
   unsigned get_seq() const { return seq; }
   /// For internal use.
+  void set_seq(unsigned seq) { this->seq = seq; }
+  /// For internal use.
   Element* get_element_fast(int id) const { return &(elements[id]);}
   
 
