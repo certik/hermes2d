@@ -75,7 +75,7 @@ int main(int argc, char* argv[])
   view3.show(&mag);*/
   
   Solution sln;
-  sln.load("/home/jakub/Fr.sln.gz");
+  sln.load("/home/jakub/Fr-sln");
   
   ScalarView view;
   view.show(&sln);
