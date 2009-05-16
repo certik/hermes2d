@@ -72,7 +72,7 @@ int main(int argc, char* argv[])
   ScalarView view("Solution");
   view.show(&sln);
   
-  // wait for keyboar or mouse input
+  // wait for keyboard or mouse input
   printf("Click into the image window and press 'q' to finish.\n");
   View::wait();
   return 0;
