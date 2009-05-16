@@ -2,7 +2,9 @@
 #include "solver_umfpack.h"
 
 // This example is a continuation of examples 03, 04 and 05. It explains
-// how to use Newton boundary conditions.
+// how to use Newton boundary conditions, and again it shows how a Filter
+// is used to visualize the solution gradient (which is infinite at the 
+// re-entrant corner again) 
 //
 // PDE: Laplace equation -Laplace u = 0 (this equation describes, among 
 // many other things, also stationary heat transfer in a homogeneous linear 
@@ -22,7 +24,7 @@ double T0 = 20.0;            // outer temperature on Gamma_1
 double H  = 0.05;            // heat flux on Gamma_1
 int P_INIT = 6;              // uniform polynomial degree in the mesh  
 int UNIFORM_REF_LEVEL = 2;   // number of initial uniform mesh refinements
-int CORNER_REF_LEVEL = 8;    // number of mesh refinements towards the re-entrant corner
+int CORNER_REF_LEVEL = 12;   // number of mesh refinements towards the re-entrant corner
 
 
 int bc_types(int marker)
@@ -82,6 +84,14 @@ int main(int argc, char* argv[])
   ScalarView view("Solution");
   view.show(&sln);
   
+  // compute and show gradient magnitude
+  // (note that the infinite gradient at the re-entrant 
+  // corner will be truncated for visualization purposes)
+  ScalarView gradview("Gradient");
+  MagFilter grad(&sln, &sln, FN_DX, FN_DY);
+  gradview.show(&grad);
+
+  // waiting for keyboard or mouse input
   View::wait();
   return 0;
 }
