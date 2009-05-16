@@ -1,26 +1,57 @@
 #include "hermes2d.h"
 #include "solver_umfpack.h"
 
-const double epsilon1 = 1.0;  // permittivity in Omega_1
-const double epsilon2 = 10.0; // permittivity in Omega_2
+// This example shows how to run automatic hp-adaptivity in Hermes.
+// The underlying problem is a simple model of an electrostatic 
+// micromotor. We strongly recommend that you run the model 
+// with hp-adaptivity first (H_ONLY = 0) and then with h-adaptivity
+// (H_ONLY = 1 and P_INIT = 1, H_ONLY = 1 and P_INIT = 2). Compare 
+// convergence graphs (produced automatically and easy to visualize 
+// using Gnuplot) and CPU times. You'll see a difference!
+//
+// Additional adaptivity examples on this level are 21-lshape (that
+// one has an exact solution) and 22-layer (that one shows multiple-level
+// hanging nodes nicely). 
+//
+// PDE: -div[eps_r grad phi] = 0
+//
+// BC: phi = 0 V on Gamma_1
+//     phi = VOLTAGE on Gamma_2
+//     u_2 = 0 on Gamma_1
+//     du/dn = 0 on the axis of (planar) symmetry and outer boundary
+//     
+// The following parameters can be changed: 
+// 
 
-const double tol = 0.01; // error tolerance in percent
-const double thr = 0.3;  // error threshold for element refinement
+int P_INIT = 1;           // initial polynomial degree in mesh
+double ERR_STOP = 0.01;   // stopping criterion for hp-adaptivity
+                          // (rel. error tolerance between the reference 
+                          // and coarse solution in percent)
+double THRESHOLD = 0.3;   // error threshold for element refinement
+int STRATEGY = 0;         // refinement strategy (0, 1, 2, 3 - see adapt_h1.cpp for explanation)
+int H_ONLY = 0;           // if H_ONLY == 0 then full hp-adaptivity takes place, otherwise
+                          // h-adaptivity is used. Use this parameter to check that indeed adaptive 
+                          // hp-FEM converges much faster than adaptive h-FEM
+int NDOF_STOP = 40000;    // adaptivity process stops when the number of degrees of freedom grows over 
+                          // this limit. This is mainly to prevent h-adaptivity to go on forever.  
+double EPS1 = 1.0;        // permittivity in Omega_1
+double EPS2 = 10.0;       // permittivity in Omega_2
+double VOLTAGE = 50.0;    // voltage on the stator
 
 
 scalar bc_values(int marker, double x, double y)
 {  
-  return (marker == 2) ? 50.0 : 0.0;
+  return (marker == 2) ? VOLTAGE : 0.0;
 }
 
 scalar biform1(RealFunction* fu, RealFunction* fv, RefMap* ru, RefMap* rv)
 {
-  return epsilon1 * int_grad_u_grad_v(fu, fv, ru, rv);
+  return EPS1 * int_grad_u_grad_v(fu, fv, ru, rv);
 }
 
 scalar biform2(RealFunction* fu, RealFunction* fv, RefMap* ru, RefMap* rv)
 {
-  return epsilon2 * int_grad_u_grad_v(fu, fv, ru, rv);
+  return EPS2 * int_grad_u_grad_v(fu, fv, ru, rv);
 }
 
 
@@ -34,7 +65,7 @@ int main(int argc, char* argv[])
   
   H1Space space(&mesh, &shapeset);
   space.set_bc_values(bc_values);
-  space.set_uniform_order(1);
+  space.set_uniform_order(P_INIT);
   
   WeakForm wf(1);
   wf.add_biform(0, 0, biform1, SYM, 1);
@@ -48,9 +79,11 @@ int main(int argc, char* argv[])
   Solution sln, rsln;
   UmfpackSolver solver;
   
-  GnuplotGraph graph("Error convergence");
-  graph.add_row("hp-adaptivity", "k", "-","o");
+  GnuplotGraph graph;
   graph.set_log_y();
+  graph.set_captions("Error Convergence", "Degrees of Freedom", "Error [%]");
+  graph.add_row("error estimate", "-", "o");
+
 
   int it = 1;
   while (1)
@@ -79,10 +112,12 @@ int main(int argc, char* argv[])
     // calculate errors and adapt the solution
     H1OrthoHP hp(1, &space);
     double error = hp.calc_error(&sln, &rsln) * 100;
+
     graph.add_values(0, space.get_num_dofs(), error);
-    graph.save("motor_conv_hp.txt");
-    if (error < tol) break;
-    hp.adapt(thr);
+    graph.save("convergence.gp");
+
+    if (error < ERR_STOP || ls.get_num_dofs() >= NDOF_STOP) break;
+    hp.adapt(THRESHOLD, STRATEGY, H_ONLY);
   }
   
   // show the fine solution - this is the final result, about
