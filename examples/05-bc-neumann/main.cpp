@@ -2,7 +2,8 @@
 #include "solver_umfpack.h"
 
 // This example is a continuation of examples 03 and 04. It shows 
-// you how to use Neumann boundary conditions.
+// you how to use Neumann boundary conditions. In addition, you will 
+// see how a Filter is used to visualize gradient of the solution 
 //
 // PDE: Poisson equation -Laplace u = f, where f = CONST_F
 //
@@ -12,15 +13,15 @@
 //     du/dn = CONST_GAMMA_3 on Gamma_3 (left-most edge)
 //
 // You can play with the parameters below. For most choices of the four constants,
-// the solution has a singular (infinite) gradient at the re-entrant corner. Therefore
-// we visualize not only the solution but also the gradient magnitude. 
+// the solution has a singular (infinite) gradient at the re-entrant corner. 
+// Therefore we visualize not only the solution but also its gradient. 
 
 double CONST_F = -1.0;        // right-hand side
 double CONST_GAMMA_1 = -0.5;  // outer normal derivative on Gamma_1 
 double CONST_GAMMA_2 = 1.0;   // outer normal derivative on Gamma_2 
 double CONST_GAMMA_3 = -0.5;  // outer normal derivative on Gamma_3 
 int P_INIT = 4;               // initial polynomial degree in all elements
-int CORNER_REF_LEVEL = 10;    // number of mesh refinements towards the re-entrant corner
+int CORNER_REF_LEVEL = 12;    // number of mesh refinements towards the re-entrant corner
 
 int bc_types(int marker)
 {
@@ -102,8 +103,12 @@ int main(int argc, char* argv[])
   ScalarView view("Solution", 0, 0, 600, 600);
   view.show(&sln);
 
-  // TODO: show gradient magnitude
-  ScalarView grad_view("Solution", 0, 650, 600, 600);
+  // compute and show gradient magnitude
+  // (note that the infinite gradient at the re-entrant 
+  // corner will be truncated for visualization purposes)
+  ScalarView gradview("Gradient", 650, 0, 600, 600);
+  MagFilter grad(&sln, &sln, FN_DX, FN_DY);
+  gradview.show(&grad);
 
 
   printf("Waiting for keyboard or mouse input.\n");
