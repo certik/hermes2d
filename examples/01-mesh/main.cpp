@@ -25,6 +25,7 @@ int main(int argc, char* argv[])
   // practice some keyboard and mouse controls
   printf("Click into the image window and:\n");
   printf("  press 'm' to show element numbers,\n");
+  printf("  press 'b' to toggle boundary markers,\n");
   printf("  enlarge your window and press 'c' to center the mesh,\n");
   printf("  zoom into the mesh using the right mouse button\n"); 
   printf("  and move the mesh around using the left mouse button\n");
