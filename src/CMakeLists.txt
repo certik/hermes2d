@@ -16,10 +16,12 @@ set(SRC
        )
 
 find_package(JUDY REQUIRED)
+include_directories(${JUDY_INCLUDE_DIR})
+
 find_package(GLUT REQUIRED)
 
 macro(LIBRARY_SETTINGS BIN)
-    target_link_libraries(${BIN} glut Judy pthread)
+    target_link_libraries(${BIN} glut ${JUDY_LIBRARY} pthread)
 endmacro(LIBRARY_SETTINGS)
 
 
