@@ -19,7 +19,7 @@ find_package(JUDY REQUIRED)
 find_package(GLUT REQUIRED)
 
 macro(LIBRARY_SETTINGS BIN)
-    target_link_libraries(${BIN} glut Judy)
+    target_link_libraries(${BIN} glut Judy pthread)
 endmacro(LIBRARY_SETTINGS)
 
 
