@@ -13,13 +13,31 @@ Compilation
 
 If you are using a Debian-based system, install the required libraries first:
 
-  apt-get install libjudy-dev freeglut3-dev
+$ apt-get install cmake g++ libjudy-dev freeglut3-dev libsuitesparse-dev
 
-To compile the library and/or the examples, edit the file Make.config.example
-and save as Make.config, then type 'make'.
+If you want to use Python, install also:
 
-Alternatively, if you use Debian or MacOS, you can review one of the predefined
-files Make.config.Debian, etc., save as Make.config and type 'make'.
+$ apt-get install python-dev python-numpy python-scipy cython
+
+Configure:
+
+$ cmake .
+
+Build:
+
+$ make
 
 If you have more than one CPU, you can use "make -j N" where N is
 the number of CPUs of your computer.
+
+More options
+------------
+
+You can turn on and off various components to build, some examples:
+
+cmake -DWITH_PYTHON=yes -DWITH_UMFPACK=yes -DWITH_EXAMPLES=yes .
+
+Alternatively, create CMake.vars and set the variables in there:
+
+set(WITH_UMFPACK YES)
+set(WITH_EXAMPLES YES)
