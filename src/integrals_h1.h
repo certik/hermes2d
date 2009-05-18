@@ -140,6 +140,26 @@ inline scalar int_w_v(ScalarFunction* w, RealFunction* fu, RefMap* ru)
 }
 
 
+inline scalar surf_int_w_u_v(ScalarFunction* w, RealFunction* fu, RealFunction* fv, RefMap* ru, RefMap* rv)
+{
+  Quad2D* quad = fu->get_quad_2d();
+
+  int o = w->get_fn_order() + fu->get_fn_order() + fv->get_fn_order() + ru->get_inv_ref_order();
+  limit_order(o);
+  fu->set_quad_order(o, FN_VAL);
+  fv->set_quad_order(o, FN_VAL);
+  w->set_quad_order(o, FN_VAL);
+
+  double* uval = fu->get_fn_values();
+  double* vval = fv->get_fn_values();
+  scalar* wval = w->get_fn_values();
+  
+  scalar result = 0.0;
+  h1_integrate_expression(wval[i] * uval[i] * vval[i]);
+  return result;
+}
+
+
 inline double int_F_u(double (*F)(double x, double y), RealFunction* fu, RefMap* ru)
 {
   Quad2D* quad = fu->get_quad_2d();
@@ -910,6 +930,27 @@ inline double surf_int_u_v(RealFunction* fu, RealFunction* fv, RefMap* ru, RefMa
   double result = 0.0;
   for (int i = 0; i < quad2d->get_num_points(eo); i++)
     result += pt[i][2] * uval[i] * vval[i] * tan[i][2];
+
+  return result * 0.5;
+}
+
+inline scalar surf_int_w_u_v(ScalarFunction* w, RealFunction* fu, RealFunction* fv, RefMap* ru, RefMap* rv, EdgePos* ep)
+{
+  Quad2D* quad2d = ru->get_quad_2d();
+  int eo = quad2d->get_edge_points(ep->edge);
+
+  fu->set_quad_order(eo, FN_VAL);
+  fv->set_quad_order(eo, FN_VAL);
+  w->set_quad_order(eo, FN_VAL);
+  double* uval = fu->get_fn_values();
+  double* vval = fv->get_fn_values();
+  scalar* wval = w->get_fn_values();
+  double3* tan = ru->get_tangent(ep->edge);
+
+  double3* pt = quad2d->get_points(eo);
+  scalar result = 0.0;
+  for (int i = 0; i < quad2d->get_num_points(eo); i++)
+    result += pt[i][2] * wval[i] * uval[i] * vval[i] * tan[i][2];
 
   return result * 0.5;
 }
