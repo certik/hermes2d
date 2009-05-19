@@ -89,7 +89,7 @@ int main(int argc, char* argv[])
 
   // visualize the solution
   ScalarView view("Von Mises stress [Pa]", 50, 50, 1200, 600);
-  VonMisesFilter stress(&xsln, &ysln, mu, lambda);
+  VonMisesFilter stress(&xsln, &ysln, lambda, mu);
   view.show(&stress, EPS_HIGH, FN_VAL_0, &xsln, &ysln, 1.5e5);
   
   View::wait();
