@@ -67,6 +67,10 @@ if(WITH_TESTS)
 	add_subdirectory(test)
 endif(WITH_TESTS)
 
+if(WITH_PYTHON)
+	add_subdirectory(python)
+endif(WITH_PYTHON)
+
 # Documentation
 # This doesn't work yet:
 #add_subdirectory(doc)
