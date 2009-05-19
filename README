@@ -33,11 +33,11 @@ the number of CPUs of your computer.
 More options
 ------------
 
-You can turn on and off various components to build, some examples:
+You can turn on and off various components to build, just create the CMake.vars
+file and add the following:
 
-cmake -DWITH_PYTHON=yes -DWITH_UMFPACK=yes -DWITH_EXAMPLES=yes .
+set(WITH_EXAMPLES NO)
+set(WITH_PYTHON YES)
 
-Alternatively, create CMake.vars and set the variables in there:
-
-set(WITH_UMFPACK YES)
-set(WITH_EXAMPLES YES)
+(and any other option that you would like to change, see CMakeLists.txt for the
+whole list).
