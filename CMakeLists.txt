@@ -13,11 +13,11 @@ set(DEBUG NO)
 
 # real/complex version of the library (you can build either of both)
 set(REAL     YES)
-set(COMPLEX  NO)
+set(COMPLEX  YES)
 
 # optional functionality
 set(WITH_PYTHON   NO)
-set(WITH_EXAMPLES NO)
+set(WITH_EXAMPLES YES)
 set(WITH_TESTS    NO)
 
 # allow to override the default values in CMake.vars
