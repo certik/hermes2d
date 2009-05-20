@@ -170,6 +170,9 @@ Solution::Solution()
   num_dofs = -1;
   
   set_quad_2d(&g_quad_2d_std);
+
+  Ylen = 0;
+  Y = NULL;
 }
 
 
@@ -421,6 +424,10 @@ void Solution::set_fe_solution(Space* space, PrecalcShapeset* pss, scalar* vec, 
   }
 
   init_dxdy_buffer();
+
+  Ylen = space->get_num_dofs();
+  Y = new scalar[Ylen];
+  memcpy(Y, vec, Ylen * sizeof(scalar));
 }
 
 

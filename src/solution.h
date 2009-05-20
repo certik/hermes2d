@@ -150,6 +150,12 @@ public:
   /// Internal. Used by LinSystem::solve(). Should not be called directly
   virtual void set_fe_solution(Space* space, PrecalcShapeset* pss, scalar* vec, double dir = 1.0);
 
+  /// Returns the pointer to the Y vector
+  virtual void get_fe_solution(int *Ylen, scalar **Y) {
+      *Ylen = this->Ylen;
+      *Y = this->Y;
+  }
+
   /// Internal.
   virtual void set_active_element(Element* e);
 
@@ -170,6 +176,9 @@ protected:
   int* elem_orders;    ///< stored element orders
   int num_coefs, num_elems;
   int num_dofs;
+
+  int Ylen;
+  scalar *Y; ///< The Y vector of the coefficients with respect to the basis
 
   scalar   (*exactfn1)(double x, double y, scalar& dx,  scalar& dy);
   scalar2& (*exactfn2)(double x, double y, scalar2& dx, scalar2& dy);
