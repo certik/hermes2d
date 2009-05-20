@@ -45,10 +45,10 @@ cdef scalar bilinear_form_sym_0_0_1_1(RealFunction* fu, RealFunction* fv,
     RefMap* ru, RefMap* rv):
   return int_grad_u_grad_v(fu, fv, ru, rv) / Re + int_u_v(fu, fv, ru, rv) / tau
 
-cdef scalar linear_form_0(RealFunction* fv, RefMap* rv, void *data):
+cdef scalar linear_form_0(RealFunction* fv, RefMap* rv):
     return int_u_v(<RealFunction *>(xprev.thisptr), fv, rv, rv) / tau
 
-cdef scalar linear_form_1(RealFunction* fv, RefMap* rv, void *data):
+cdef scalar linear_form_1(RealFunction* fv, RefMap* rv):
     return int_u_v(<RealFunction *>(yprev.thisptr), fv, rv, rv) / tau
 
 def set_forms(WeakForm wf, Solution xprev2, Solution yprev2):
