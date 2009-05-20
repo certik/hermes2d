@@ -248,6 +248,7 @@ cdef extern from "hermes2d.h":
 
     cdef struct c_View "View":
         void set_title(char *title)
+    void View_wait "View::wait"()
 
     cdef struct c_ScalarView "ScalarView":
         void show(c_MeshFunction *s, ...)
