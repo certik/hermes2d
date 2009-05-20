@@ -1,4 +1,4 @@
-from hermes2d cimport scalar, RealFunction, RefMap, DiscreteProblem, \
+from hermes2d.hermes2d cimport scalar, RealFunction, RefMap, WeakForm, \
         int_grad_u_grad_v, int_v, H1Space, EdgePos, surf_int_G_v, surf_int_v, \
         surf_int_u_v, BC_ESSENTIAL, BC_NATURAL
 
@@ -28,10 +28,10 @@ cdef scalar bc_values_06(int marker, double x, double y):
         return 100.
     return 0.
 
-def set_forms(DiscreteProblem dp):
-    dp.thisptr.set_bilinear_form(0, 0, &bilinear_form, NULL,
-            &bilinear_form_surf_06)
-    dp.thisptr.set_linear_form(0, NULL, &linear_form_surf_06);
+def set_forms(WeakForm dp):
+    dp.thisptr.add_biform(0, 0, &bilinear_form)
+    dp.thisptr.add_biform_surf(0, 0, &bilinear_form_surf_06)
+    dp.thisptr.add_liform_surf(0, &linear_form_surf_06)
 
 def set_bc(H1Space space):
     space.thisptr.set_bc_types(&bc_type_06)

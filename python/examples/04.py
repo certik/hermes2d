@@ -1,9 +1,10 @@
 #! /usr/bin/env python
 
-from hermes2d import finalize, Mesh, H1Shapeset, PrecalcShapeset, H1Space, \
-        DiscreteProblem, Solution, ScalarView
+from hermes2d import (Mesh, H1Shapeset, PrecalcShapeset, H1Space,
+        LinSystem, Solution, ScalarView, WeakForm, DummySolver)
 
-from c06 import set_bc, set_forms
+from hermes2d.examples.c04 import set_bc
+from hermes2d.forms import set_forms
 
 mesh = Mesh()
 mesh.load("domain.mesh")
@@ -25,18 +26,18 @@ xprev = Solution()
 yprev = Solution()
 
 # initialize the discrete problem
-dp = DiscreteProblem()
-dp.set_num_equations(1)
-dp.set_spaces(space)
-dp.set_pss(pss)
-set_forms(dp)
+wf = WeakForm()
+set_forms(wf, -4)
 
+solver = DummySolver()
+sys = LinSystem(wf, solver)
+sys.set_spaces(space)
+sys.set_pss(pss)
+
+# assemble the stiffness matrix and solve the system
+sys.assemble()
 sln = Solution()
-dp.create_matrix()
-dp.assemble_matrix_and_rhs()
-dp.solve_system(sln)
+sys.solve_system(sln)
 
 view = ScalarView("Solution")
 view.show(sln)
-
-finalize()
