@@ -608,7 +608,9 @@ cdef class Linearizer:
         self.thisptr.load_data(filename)
 
 cdef class View:
-    pass
+
+    def wait(self):
+        View_wait()
 
 cdef class ScalarView(View):
     cdef c_ScalarView *thisptr

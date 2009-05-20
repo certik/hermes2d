@@ -11,3 +11,4 @@ mesh.refine_all_elements()
 
 mview = MeshView("Hello world!", 100, 100, 500, 500)
 mview.show(mesh)
+mview.wait()

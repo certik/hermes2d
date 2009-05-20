@@ -18,3 +18,4 @@ space.assign_dofs();
 
 bview = BaseView()
 bview.show(space)
+bview.wait()
