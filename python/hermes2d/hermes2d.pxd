@@ -54,7 +54,7 @@ cdef extern from "hermes2d.h":
     int c_EPS_NORMAL "EPS_NORMAL"
     int c_EPS_HIGH "EPS_HIGH"
     int c_verbose_mode "verbose_mode"
-    int c_info_mode "info_mode"
+    #int c_info_mode "info_mode"
     int c_warn_integration "warn_integration"
 
     ctypedef double double3[3]
