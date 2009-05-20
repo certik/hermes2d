@@ -157,20 +157,20 @@ cdef class Solution(MeshFunction):
         (<c_Solution *>(self.thisptr)).set_fe_solution(s.thisptr, pss.thisptr,
                 pvec)
 
-    def get_fe_solution(self):
-        """
-        Returns the Y coefficients vector as a numpy array.
-        """
-        cdef int Ylen
-        cdef scalar *Y
-        (<c_Solution *>(self.thisptr)).get_fe_solution(&Ylen, &Y)
-        if not (Ylen > 0 and Y != NULL):
-            raise Exception("Ylen (%d) or Y is not valid." % Ylen)
-        from numpy import empty
-        cdef ndarray vec = empty([Ylen], dtype="double")
-        cdef scalar *pvec = <scalar *>vec.data
-        memcpy(pvec, Y, Ylen*sizeof(scalar))
-        return vec
+    #def get_fe_solution(self):
+    #    """
+    #    Returns the Y coefficients vector as a numpy array.
+    #    """
+    #    cdef int Ylen
+    #    cdef scalar *Y
+    #    (<c_Solution *>(self.thisptr)).get_fe_solution(&Ylen, &Y)
+    #    if not (Ylen > 0 and Y != NULL):
+    #        raise Exception("Ylen (%d) or Y is not valid." % Ylen)
+    #    from numpy import empty
+    #    cdef ndarray vec = empty([Ylen], dtype="double")
+    #    cdef scalar *pvec = <scalar *>vec.data
+    #    memcpy(pvec, Y, Ylen*sizeof(scalar))
+    #    return vec
 
 cdef class Filter(MeshFunction):
     pass
@@ -326,18 +326,18 @@ cdef class LinSystem:
         Ap, Ai, Ax = self.get_matrix_csc()
         return csc_matrix((Ax, Ai, Ap))
 
-    def get_rhs(self):
-        """
-        Return the RHS as a numpy array
-        """
-        cdef scalar *rhs
-        cdef int n
-        self.thisptr.get_rhs(rhs, n)
-        from numpy import empty
-        cdef ndarray vec = empty([n], dtype="double")
-        cdef double *pvec = <double *>vec.data
-        memcpy(pvec, rhs, n*sizeof(double))
-        return vec
+    #def get_rhs(self):
+    #    """
+    #    Return the RHS as a numpy array
+    #    """
+    #    cdef scalar *rhs
+    #    cdef int n
+    #    self.thisptr.get_rhs(rhs, n)
+    #    from numpy import empty
+    #    cdef ndarray vec = empty([n], dtype="double")
+    #    cdef double *pvec = <double *>vec.data
+    #    memcpy(pvec, rhs, n*sizeof(double))
+    #    return vec
 
 cdef class RefSystem(LinSystem):
 
@@ -347,11 +347,11 @@ cdef class RefSystem(LinSystem):
     def assemble(self):
         (<c_RefSystem *>(self.thisptr)).assemble()
 
-    def get_ref_space(self, int eq):
-        cdef c_H1Space *r = <c_H1Space *>(
-                (<c_RefSystem *>(self.thisptr)).get_ref_space(eq)
-            )
-        return H1Space_from_c_H1Space(r)
+    #def get_ref_space(self, int eq):
+    #    cdef c_H1Space *r = <c_H1Space *>(
+    #            (<c_RefSystem *>(self.thisptr)).get_ref_space(eq)
+    #        )
+    #    return H1Space_from_c_H1Space(r)
 
 
 #cdef class DiscreteProblem:
@@ -718,6 +718,8 @@ cdef class VectorView(View):
 
 def init_hermes2d_wrappers():
     init_global_empty_tuple()
+
+cdef int c_info_mode
 
 def set_verbose(verbose):
     """
