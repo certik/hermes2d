@@ -61,6 +61,7 @@ public:
   int get_matrix_size() const;
   void get_matrix(int*& Ap, int*& Ai, scalar*& Ax, int& size) const
     { Ap = this->Ap; Ai = this->Ai; Ax = this->Ax; size = ndofs; }
+  void get_rhs(scalar*& RHS, int& size) const { RHS = this->RHS; size=ndofs; }
 
 
 protected:

@@ -326,18 +326,18 @@ cdef class LinSystem:
         Ap, Ai, Ax = self.get_matrix_csc()
         return csc_matrix((Ax, Ai, Ap))
 
-    #def get_rhs(self):
-    #    """
-    #    Return the RHS as a numpy array
-    #    """
-    #    cdef scalar *rhs
-    #    cdef int n
-    #    self.thisptr.get_rhs(rhs, n)
-    #    from numpy import empty
-    #    cdef ndarray vec = empty([n], dtype="double")
-    #    cdef double *pvec = <double *>vec.data
-    #    memcpy(pvec, rhs, n*sizeof(double))
-    #    return vec
+    def get_rhs(self):
+        """
+        Return the RHS as a numpy array
+        """
+        cdef scalar *rhs
+        cdef int n
+        self.thisptr.get_rhs(rhs, n)
+        from numpy import empty
+        cdef ndarray vec = empty([n], dtype="double")
+        cdef double *pvec = <double *>vec.data
+        memcpy(pvec, rhs, n*sizeof(double))
+        return vec
 
 cdef class RefSystem(LinSystem):
 
