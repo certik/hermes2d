@@ -614,10 +614,6 @@ public:
 };
 
 
-void glut_init() {}
-void finish_glut_main_loop(bool force = false) {}
-
-
 #endif // NOGLUT
 
 #endif

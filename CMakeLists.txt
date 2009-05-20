@@ -19,6 +19,7 @@ set(COMPLEX  YES)
 set(WITH_PYTHON   NO)
 set(WITH_EXAMPLES YES)
 set(WITH_TESTS    NO)
+set(WITH_GLUT     YES)
 
 # allow to override the default values in CMake.vars
 if(EXISTS ${PROJECT_SOURCE_DIR}/CMake.vars)
@@ -53,6 +54,10 @@ else(DEBUG)
     endif(COMPLEX)
     set(CMAKE_BUILD_TYPE Release)
 endif(DEBUG)
+
+if(NOT WITH_GLUT)
+    add_definitions(-DNOGLUT)
+endif(NOT WITH_GLUT)
 
 
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
@@ -96,4 +101,5 @@ message("Versions to build: ${VERS}")
 message("Build with Python: ${WITH_PYTHON}")
 message("Build with examples: ${WITH_EXAMPLES}")
 message("Build with tests: ${WITH_TESTS}")
+message("Build with GLUT: ${WITH_GLUT}")
 message("\n")
