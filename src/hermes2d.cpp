@@ -21,7 +21,6 @@
 
 #include "common.h"
 #include "hermes2d.h"
-#include "view.h"
 
 
 void hermes2d_initialize(int* argc, char* argv[])
@@ -33,7 +32,9 @@ void hermes2d_initialize(int* argc, char* argv[])
 void hermes2d_finalize(bool force_quit)
 {
   warn("this function is deprecated.");
-  finish_glut_main_loop(force_quit);
+  #ifndef NOGLUT
+      finish_glut_main_loop(force_quit);
+  #endif
   //free_ortho_base();
   // TODO: free matrices in curved.cpp
   // TODO: free bases in H1OrthoHp, ...
