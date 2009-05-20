@@ -1,9 +1,9 @@
 #! /usr/bin/env python
 
-from hermes2d import finalize, Mesh, H1Shapeset, PrecalcShapeset, H1Space, \
-        DiscreteProblem, Solution, ScalarView, VectorView
+from hermes2d import Mesh, H1Shapeset, PrecalcShapeset, H1Space, \
+        LinSystem, WeakForm, DummySolver, Solution, ScalarView, VectorView
 
-from c08 import set_bc, set_forms
+from hermes2d.examples.c08 import set_bc, set_forms
 
 mesh = Mesh()
 mesh.load("cylinder4.mesh")
@@ -35,12 +35,8 @@ xprev.set_zero(mesh)
 yprev.set_zero(mesh)
 
 # initialize the discrete problem
-dp = DiscreteProblem()
-dp.set_num_equations(3)
-dp.set_spaces(xvel, yvel, press)
-dp.set_pss(pss)
-dp.set_external_fns(xprev, yprev)
-set_forms(dp, xprev, yprev)
+wf = WeakForm(3)
+set_forms(wf, xprev, yprev)
 
 # visualize the solution
 vview = VectorView("velocity [m/s]", 0, 0, 1200, 350)
@@ -50,17 +46,20 @@ vview.show_scale(False)
 pview.show_scale(False)
 pview.show_mesh(False)
 
-# assemble the stiffness matrix and solve the system
-dp.create_matrix();
+solver = DummySolver()
+sys = LinSystem(wf, solver)
+sys.set_spaces(xvel, yvel, press)
+sys.set_pss(pss)
+#dp.set_external_fns(xprev, yprev)
 
 EPS_LOW = 0.0014
 
 for i in range(1000):
     print "*** Iteration %d ***" % i
     psln = Solution()
-    dp.assemble_matrix_and_rhs()
-    dp.solve_system(xprev, yprev, psln)
+    sys.assemble()
+    sys.solve_system(xprev, yprev, psln)
     vview.show(xprev, yprev, 2*EPS_LOW)
     pview.show(psln)
 
-finalize()
+vview.wait()

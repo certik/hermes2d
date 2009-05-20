@@ -3,8 +3,10 @@ cdef extern from "math.h":
     double c_sqrt "sqrt"(double x)
 
 cdef extern from "stdlib.h":
-    ctypedef int size_t
+    ctypedef unsigned long size_t
     void *malloc (size_t size)
+    void free(void *mem)
+    void *memcpy(void *dst, void *src, long n)
 
 cdef extern from "arrayobject.h":
 
@@ -22,14 +24,25 @@ cdef extern from "Python.h":
     void Py_INCREF(PyObject *x)
     void Py_DECREF(PyObject *x)
 
+cdef extern from "stdcython.h":
+    void init_global_empty_tuple()
+    object PY_NEW(object t)
 
 cdef extern from "hermes2d.h":
 
+    # This is just the C++ "delete" statement
+    void delete(...)
+
     void hermes2d_initialize(int* argc, char* argv[])
     void hermes2d_finalize()
+    #void finish_glut_main_loop(int force_quit)
     int BC_ESSENTIAL "BC_ESSENTIAL"
     int BC_NATURAL "BC_NATURAL"
     int BC_NONE "BC_NONE"
+    int ANTISYM "ANTISYM"
+    int UNSYM "UNSYM"
+    int SYM "SYM"
+    int ANY "ANY"
     int c_FN_VAL "FN_VAL"
     int c_FN_DX "FN_DX"
     int c_FN_DY "FN_DY"
@@ -41,7 +54,11 @@ cdef extern from "hermes2d.h":
     int c_EPS_NORMAL "EPS_NORMAL"
     int c_EPS_HIGH "EPS_HIGH"
     int c_verbose_mode "verbose_mode"
+    int c_info_mode "info_mode"
     int c_warn_integration "warn_integration"
+
+    ctypedef double double3[3]
+    ctypedef int int3[3]
 
     cdef struct c_Element "Element":
         int marker
@@ -57,7 +74,6 @@ cdef extern from "hermes2d.h":
         void refine_towards_boundary(int marker, int depth)
         c_Element* get_element(int id)
     c_Mesh *new_Mesh "new Mesh" ()
-    void del_Mesh "delete" (c_Mesh *mesh)
 
     ctypedef struct c_H1Shapeset "H1Shapeset"
     c_H1Shapeset *new_H1Shapeset "new H1Shapeset" ()
@@ -83,6 +99,7 @@ cdef extern from "hermes2d.h":
     ctypedef struct RealFunction "Function<double>":
         c_Element* get_active_element()
     cdef struct RefMap "RefMap"
+    ctypedef struct c_ScalarFunction "Function<scalar>"
 
 
     ctypedef scalar (*BiFormFnVol)(RealFunction *fu, RealFunction *fv,
@@ -104,6 +121,7 @@ cdef extern from "hermes2d.h":
     cdef struct c_Solution "Solution":
         void set_zero(c_Mesh *m)
         void set_fe_solution(c_H1Space *s, c_PrecalcShapeset *pss, scalar *vec)
+        void get_fe_solution(int *Ylen, scalar **Y)
     c_Solution *new_Solution "new Solution" ()
 
     cdef struct c_VonMisesFilter "VonMisesFilter"
@@ -125,40 +143,83 @@ cdef extern from "hermes2d.h":
     c_SquareFilter *new_SquareFilter "new SquareFilter" (c_MeshFunction *sln1,
             int item1)
 
+    cdef struct c_WeakForm "WeakForm":
+        void add_biform(int i, int j, ...)
+        void add_biform_surf(int i, int j, ...)
+        void add_liform(int i, ...)
+        void add_liform_data(int i, void *data)
+        void add_liform_surf(int i, ...)
+    c_WeakForm *new_WeakForm "new WeakForm" (int neq)
 
-    cdef struct c_DiscreteProblem "DiscreteProblem":
-        void set_num_equations(int neq)
+    cdef struct c_Solver "Solver":
+        pass
+
+    cdef struct c_LinSystem "LinSystem":
         void set_spaces(int n, ...)
-        void set_external_fns(int n, ...)
         void set_pss(int n, ...)
-        void set_bilinear_form(int i, int j, ...)
-        void set_linear_form(int i, ...)
-        void create_matrix()
-        void set_quiet(int quiet)
-        void assemble_matrix_and_rhs()
-        void solve_system(int n, ...)
+        void copy(c_LinSystem *sys)
+        void assemble()
+        int solve(int n, ...)
         void save_matrix_matlab(char *filename, char *varname)
-        void save_matrix_coo(char *filename)
         void get_matrix(int *Ap, int *Ai, scalar *Ax, int size)
-        void copy(c_DiscreteProblem *ep)
-        void free_matrix()
-    c_DiscreteProblem *new_DiscreteProblem "new DiscreteProblem" ()
+        void get_rhs(scalar *RHS, int size)
+    c_LinSystem *new_LinSystem "new LinSystem" (c_WeakForm *wf,
+            c_Solver *solver)
+
+    cdef struct c_RefSystem "RefSystem":
+        void assemble()
+        c_H1Space *get_ref_space(int eq)
+    c_RefSystem *new_RefSystem "new RefSystem" (c_LinSystem *ls)
+
+    #cdef struct c_DiscreteProblem "DiscreteProblem":
+    #    void set_num_equations(int neq)
+    #    void set_external_fns(int n, ...)
+    #    void set_bilinear_form(int i, int j, ...)
+    #    void set_linear_form(int i, ...)
+    #    void create_matrix()
+    #    void set_quiet(int quiet)
+    #    void assemble_matrix_and_rhs()
+    #    void solve_system(int n, ...)
+    #    void save_matrix_coo(char *filename)
+    #    void free_matrix()
+    #c_DiscreteProblem *new_DiscreteProblem "new DiscreteProblem" ()
 
     cdef struct c_L2OrthoHP "L2OrthoHP":
         #double calc_error(c_Solution *sln, c_Solution *rsln)
         double calc_error(...)
+        double calc_error_n(int n, ...)
         void adapt(double thr, int strat)
     c_L2OrthoHP *new_L2OrthoHP "new L2OrthoHP" (int num, ...)
 
     cdef struct c_H1OrthoHP "H1OrthoHP":
         #double calc_error(c_Solution *sln, c_Solution *rsln)
+        int num
         double calc_error(...)
+        double calc_error_n(int n, ...)
         void adapt(double thr, int strat)
     c_H1OrthoHP *new_H1OrthoHP "new H1OrthoHP" (int num, ...)
+
+    cdef struct c_Linearizer "Linearizer":
+        void process_solution(c_MeshFunction* sln, ...)
+        void lock_data()
+        void unlock_data()
+        double3* get_vertices()
+        int get_num_vertices()
+        int3* get_triangles()
+        int get_num_triangles()
+        int3* get_edges()
+        int get_num_edges()
+        double get_min_value()
+        double get_max_value()
+        void save_data(char* filename)
+        void load_data(char* filename)
+    c_Linearizer *new_Linearizer "new Linearizer" ()
+
 
     double int_u(RealFunction* fu, RefMap* ru)
     double int_l2_norm(RealFunction* fu, RefMap* ru)
     double l2_norm(c_MeshFunction* fu)
+    double h1_norm(c_MeshFunction* fu)
     double integrate(c_MeshFunction *sln)
     double int_grad_u_grad_v(RealFunction *fu, RealFunction *fv,
             RefMap *ru, RefMap *rv)
@@ -194,6 +255,7 @@ cdef extern from "hermes2d.h":
         void show_scale(int show)
         void set_min_max_range(double min, double max)
         void set_title(char *title)
+        void wait()
     c_ScalarView *new_ScalarView "new ScalarView" (char *title, ...)
 
     cdef struct c_BaseView "BaseView":
@@ -214,13 +276,34 @@ cdef extern from "hermes2d.h":
         void set_min_max_range(double min, double max)
     c_VectorView *new_VectorView "new VectorView" (char *title, ...)
 
-    cdef struct c_MatrixView "MatrixView":
-        void show(c_DiscreteProblem *ep)
-    c_MatrixView *new_MatrixView "new MatrixView" (char *title, ...)
+    #cdef struct c_MatrixView "MatrixView":
+    #    pass
+        #void show(c_DiscreteProblem *ep)
+    #c_MatrixView *new_MatrixView "new MatrixView" (char *title, ...)
+
+cdef extern from "dummy_solver.h":
+
+    cdef struct c_DummySolver "DummySolver":
+        pass
+    c_DummySolver *new_DummySolver "new DummySolver" ()
 
 
-cdef class DiscreteProblem:
-    cdef c_DiscreteProblem *thisptr
+cdef class LinSystem:
+    cdef c_LinSystem *thisptr
+    cdef object _spaces
+    cdef object _pss
+
+cdef class RefSystem(LinSystem):
+    pass
+
+cdef class Solver:
+    cdef c_Solver *thisptr
+
+cdef class DummySolver(Solver):
+    pass
+
+cdef class WeakForm:
+    cdef c_WeakForm *thisptr
 
 cdef class H1Space:
     cdef c_H1Space *thisptr
