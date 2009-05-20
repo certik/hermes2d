@@ -41,3 +41,10 @@ set(WITH_PYTHON YES)
 
 (and any other option that you would like to change, see CMakeLists.txt for the
 whole list).
+
+Install hermes
+--------------
+
+cmake -DCMAKE_INSTALL_PREFIX=~/lib .
+make
+make install
