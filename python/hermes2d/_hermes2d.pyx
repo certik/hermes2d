@@ -157,21 +157,20 @@ cdef class Solution(MeshFunction):
         (<c_Solution *>(self.thisptr)).set_fe_solution(s.thisptr, pss.thisptr,
                 pvec)
 
-    # the get_fe_solution() method is is not yet implemented in the C++ hermes:
-    #def get_fe_solution(self):
-    #    """
-    #    Returns the Y coefficients vector as a numpy array.
-    #    """
-    #    cdef int Ylen
-    #    cdef scalar *Y
-    #    (<c_Solution *>(self.thisptr)).get_fe_solution(&Ylen, &Y)
-    #    if not (Ylen > 0 and Y != NULL):
-    #        raise Exception("Ylen (%d) or Y is not valid." % Ylen)
-    #    from numpy import empty
-    #    cdef ndarray vec = empty([Ylen], dtype="double")
-    #    cdef scalar *pvec = <scalar *>vec.data
-    #    memcpy(pvec, Y, Ylen*sizeof(scalar))
-    #    return vec
+    def get_fe_solution(self):
+        """
+        Returns the Y coefficients vector as a numpy array.
+        """
+        cdef int Ylen
+        cdef scalar *Y
+        (<c_Solution *>(self.thisptr)).get_fe_solution(&Ylen, &Y)
+        if not (Ylen > 0 and Y != NULL):
+            raise Exception("Ylen (%d) or Y is not valid." % Ylen)
+        from numpy import empty
+        cdef ndarray vec = empty([Ylen], dtype="double")
+        cdef scalar *pvec = <scalar *>vec.data
+        memcpy(pvec, Y, Ylen*sizeof(scalar))
+        return vec
 
 cdef class Filter(MeshFunction):
     pass
