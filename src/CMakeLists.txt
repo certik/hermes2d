@@ -3,11 +3,13 @@ set(SRC
        transform.cpp traverse.cpp
        shapeset.cpp precalc.cpp solution.cpp filter.cpp
        space.cpp space_h1.cpp space_hcurl.cpp space_l2.cpp
+       space_hdiv.cpp
        linear1.cpp linear2.cpp linear3.cpp graph.cpp
        view1.cpp view2.cpp view3.cpp view4.cpp
        quad_std.cpp
        shapeset_h1_ortho.cpp shapeset_h1_beuchler.cpp shapeset_h1_quad.cpp
        shapeset_hc_legendre.cpp shapeset_hc_gradleg.cpp
+       shapeset_hd_legendre.cpp
        qsort.cpp norm.cpp
        adapt_ortho_h1.cpp adapt_ortho_hcurl.cpp adapt_ortho_l2.cpp
        common.cpp matrix.cpp hermes2d.cpp weakform.cpp linsystem.cpp

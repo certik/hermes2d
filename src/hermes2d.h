@@ -28,10 +28,12 @@
 #include "space_h1.h"
 #include "space_hcurl.h"
 #include "space_l2.h"
+#include "space_hdiv.h"
 
 #include "quad_all.h"
 #include "shapeset_h1_all.h"
 #include "shapeset_hc_all.h"
+#include "shapeset_hd_all.h"
 
 #include "refmap.h"
 #include "discrete.h" //
