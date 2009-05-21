@@ -1,4 +1,4 @@
-from hermes2d.hermes2d cimport scalar, H1Space, BC_ESSENTIAL
+from hermes2d._hermes2d cimport scalar, H1Space, BC_ESSENTIAL
 
 cdef int bc_type_04(int marker):
     return BC_ESSENTIAL

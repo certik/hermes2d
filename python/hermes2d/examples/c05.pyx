@@ -1,4 +1,4 @@
-from hermes2d.hermes2d cimport scalar, RealFunction, RefMap, WeakForm, \
+from hermes2d._hermes2d cimport scalar, RealFunction, RefMap, WeakForm, \
         H1Space, EdgePos, surf_int_G_v, \
         BC_ESSENTIAL, BC_NATURAL
 
