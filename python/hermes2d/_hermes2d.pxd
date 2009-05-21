@@ -54,6 +54,8 @@ cdef extern from "hermes2d.h":
     int c_EPS_NORMAL "EPS_NORMAL"
     int c_EPS_HIGH "EPS_HIGH"
     int c_verbose_mode "verbose_mode"
+    # The "info_mode" is not yet implemented in the C++ hermes2d, it should
+    # control the verbosity of the info messages:
     #int c_info_mode "info_mode"
     int c_warn_integration "warn_integration"
 

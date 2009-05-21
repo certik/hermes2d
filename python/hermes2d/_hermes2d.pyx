@@ -347,6 +347,8 @@ cdef class RefSystem(LinSystem):
     def assemble(self):
         (<c_RefSystem *>(self.thisptr)).assemble()
 
+    # this is commented out, because get_ref_space() is not yet implemented in
+    # C++ hermes2d
     #def get_ref_space(self, int eq):
     #    cdef c_H1Space *r = <c_H1Space *>(
     #            (<c_RefSystem *>(self.thisptr)).get_ref_space(eq)
@@ -719,6 +721,8 @@ cdef class VectorView(View):
 def init_hermes2d_wrappers():
     init_global_empty_tuple()
 
+# this is defined here for now, but when the C++ hermes2d has this implemented,
+# it should be declared in there.
 cdef int c_info_mode
 
 def set_verbose(verbose):
