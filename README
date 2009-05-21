@@ -42,6 +42,12 @@ set(WITH_PYTHON YES)
 (and any other option that you would like to change, see CMakeLists.txt for the
 whole list).
 
+If you are on OS X, you have to disable GLUT as the glut library is not easily
+installable on OS X. To do so, just put the following line into your
+CMake.vars:
+
+set(WITH_GLUT NO)
+
 Install hermes
 --------------
 
