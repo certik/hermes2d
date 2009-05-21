@@ -157,6 +157,7 @@ cdef class Solution(MeshFunction):
         (<c_Solution *>(self.thisptr)).set_fe_solution(s.thisptr, pss.thisptr,
                 pvec)
 
+    # the get_fe_solution() method is is not yet implemented in the C++ hermes:
     #def get_fe_solution(self):
     #    """
     #    Returns the Y coefficients vector as a numpy array.
