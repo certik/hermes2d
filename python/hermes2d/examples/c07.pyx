@@ -1,4 +1,4 @@
-from hermes2d.hermes2d cimport scalar, RealFunction, RefMap, WeakForm, \
+from hermes2d._hermes2d cimport scalar, RealFunction, RefMap, WeakForm, \
         int_grad_u_grad_v, int_v, H1Space, EdgePos, surf_int_G_v, surf_int_v, \
         surf_int_u_v, SYM, int_a_dudx_dvdy_b_dudy_dvdx, \
         int_a_dudx_dvdx_b_dudy_dvdy, BC_ESSENTIAL, BC_NATURAL

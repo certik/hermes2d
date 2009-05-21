@@ -2,7 +2,7 @@
 
 import os
 
-from hermes2d import *
+from _hermes2d import *
 from plot import sln2png, plot_sln_mpl, plot_sln_mayavi, ScalarView
 from runtests import test
 
