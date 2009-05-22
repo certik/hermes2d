@@ -184,7 +184,7 @@ void PrecalcShapeset::dump_info(int quad, const char* filename)
   {
     if ((key & 7) == quad)
     {
-      fprintf(f, "PRIMARY TABLE, mode=%d, index=%d\n", (key >> 3) & 1, max_index[mode] - (key >> 4));
+      fprintf(f, "PRIMARY TABLE, mode=%ld, index=%ld\n", (key >> 3) & 1, max_index[mode] - (key >> 4));
       unsigned long idx = 0;
       void** nodes = (void**) JudyLFirst(*sub, &idx, NULL);
       while (nodes != NULL)
@@ -194,7 +194,7 @@ void PrecalcShapeset::dump_info(int quad, const char* filename)
         void** pp = (void**) JudyLFirst(*nodes, &order, NULL);
         while (pp != NULL)
         {
-          fprintf(f, "%d ", order); n3++;
+          fprintf(f, "%ld ", order); n3++;
           size += ((Node*) *pp)->size;
           pp = JudyLNext(*nodes, &order, NULL);
         }
@@ -206,11 +206,11 @@ void PrecalcShapeset::dump_info(int quad, const char* filename)
     sub = JudyLNext(tables, &key, NULL); m1++;
   }
   
-  fprintf(f, "Number of primary tables: %d (%d for all quadratures)\n"
+  fprintf(f, "Number of primary tables: %ld (%ld for all quadratures)\n"
              "Avg. size of sub table:   %g\n"
              "Avg. number of nodes:     %g\n"
-             "Total number of nodes:    %d\n"
-             "Total size of all nodes:  %d bytes\n", 
+             "Total number of nodes:    %ld\n"
+             "Total size of all nodes:  %ld bytes\n",
               n1, m1, (double) n2 / n1, (double) n3 / n2, n3, size);
   fclose(f);
 }
