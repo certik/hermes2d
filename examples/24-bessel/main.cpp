@@ -1,6 +1,35 @@
 #include "hermes2d.h"
 #include "solver_umfpack.h"
 
+//
+//  PDE: time-harmonic Maxwell's equations
+//
+//  Known exact solution, see functions exact_sol_val(), exact_sol(), exact()
+//
+//  Domain: L-shape domain
+//
+//  Meshes: you can use either "lshape3q.mesh" (quadrilateral mesh) or
+//          "lshape3t.mesh" (triangular mesh). See the command mesh.load(...) below.
+//
+//  BC: perfect conductor on boundary markers 1 and 6 (essential BC)
+//      impedance boundary condition on rest of boundary (natural BC)
+//
+//  This example comes with an exact solution, and it describes the diffraction
+//  of an electromagnetic wave from a re-entrant corner. The following problem
+//  parameters can be changed easily:
+//
+
+int P_INIT = 2;           // initial polynomial degree in mesh
+double THRESHOLD = 0.3;   // the adaptivity algorithm goes on until THRESHOLD*total_error is processed
+                          // (see adapt_hcurl.cpp for explanation)
+int STRATEGY = 1;         // refinement strategy (0, 1, 2, 3 - see adapt_hcurl.cpp for explanation)
+int H_ONLY = 1;           // if H_ONLY == 0 then full hp-adaptivity takes place, otherwise
+                          // h-adaptivity is used. Use this parameter to check that indeed adaptive
+                          // hp-FEM converges much faster than adaptive h-FEM
+double ERR_STOP = 0.01;   // adaptivity process stops when error wrt. exact solution in H1 norm
+                          // is less than this number
+int NDOF_STOP = 40000;    // adaptivity process stops when the number of degrees of freedom grows over
+                          // this limit. This is mainly to prevent h-adaptivity to go on forever.
 const double mu_r   = 1.0;
 const double kappa  = 1.0;
 const double lambda = 1.0;
@@ -74,7 +103,7 @@ static void exact_sol(double x, double y, scalar& e0, scalar& e1, scalar& e1dx, 
 
 scalar2& exact(double x, double y, scalar2& dx, scalar2& dy)
 {
-  scalar2 ex;
+  static scalar2 ex;
   exact_sol(x,y, ex[0], ex[1], dx[1], dy[0]);
   return ex;
 }
@@ -145,7 +174,7 @@ int main(int argc, char* argv[])
   HcurlSpace space(&mesh, &shapeset);
   space.set_bc_types(bc_types);
   space.set_bc_values(bc_values);
-  space.set_uniform_order(1);
+  space.set_uniform_order(P_INIT);
 
   WeakForm wf(1);
   wf.add_biform(0, 0, bilinear_form, SYM);
@@ -199,10 +228,10 @@ int main(int argc, char* argv[])
     HcurlOrthoHP hp(1, &space);
     double estim = hp.calc_error(&sln, &rsln) * 100;
     info("\nError estimate: %g%%", estim);
-    if (estim < 0.01) break;
+    if (estim < ERR_STOP || sys.get_num_dofs() >= NDOF_STOP) break;
     
     // adapt the mesh&space and repeat
-    hp.adapt(0.3, 1);
+    hp.adapt(THRESHOLD, STRATEGY, H_ONLY);
   }
   verbose("\nTotal running time: %g sec", end_time());
 
