@@ -63,7 +63,7 @@ def plot_sln_mpl(sln, method="default"):
         #plt.colorbar()
         plt.title('Solution')
     else:
-        raise NotImplementedError("Unknown method (%s)" % method)
+        raise ValueError("Unknown method (%s)" % method)
 
 def plot_sln_mayavi(sln):
     """
