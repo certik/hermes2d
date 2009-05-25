@@ -8,36 +8,62 @@ def sln2png(sln, filename):
     from enthought.mayavi.mlab import savefig
     savefig(filename)
 
-def plot_sln_mpl(sln):
+def plot_sln_mpl(sln, method="default"):
     """
     Plots the Solution() instance sln using Linearizer() and matplotlib.
 
-    Currently only a very simple version is implemented, that takes the
-    vertices from linearizer and interpolates them. More sophisticated version
-    should take the triangles.
+    method = "default" ... creates a plot using triangles (the triangles are
+                not interpolated, so sometimes one can see small defects)
+    method = "contour" ... takes the vertices from linearizer and interpolates
+                them using contour and contourf (it doesn't take into account
+                the triangulation, so one can see the defects from the convex
+                hull approximation)
     """
     lin = Linearizer()
     lin.process_solution(sln)
-    vert = lin.get_vertices()
-    from numpy import min, max, linspace
-    from matplotlib.mlab import griddata
-    import matplotlib.pyplot as plt
-    # make up data.
-    #npts = int(raw_input('enter # of random points to plot:'))
-    npts = 200
-    x = vert[:, 0]
-    y = vert[:, 1]
-    z = vert[:, 2]
-    # define grid.
-    xi = linspace(min(x), max(x), 100)
-    yi = linspace(min(y), max(y), 100)
-    # grid the data.
-    zi = griddata(x,y,z,xi,yi)
-    # contour the gridded data, plotting dots at the nonuniform data points.
-    CS = plt.contour(xi,yi,zi,15,linewidths=0.5,colors='k')
-    CS = plt.contourf(xi,yi,zi,15,cmap=plt.cm.jet)
-    plt.colorbar() # draw colorbar
-    plt.title('Solution (%d points)' % npts)
+    v = lin.get_vertices()
+    if method=="contour":
+        from numpy import min, max, linspace
+        from matplotlib.mlab import griddata
+        import matplotlib.pyplot as plt
+        x = v[:, 0]
+        y = v[:, 1]
+        z = v[:, 2]
+        # define grid.
+        xi = linspace(min(x), max(x), 100)
+        yi = linspace(min(y), max(y), 100)
+        # grid the data.
+        zi = griddata(x, y, z, xi, yi)
+        # contour the gridded data, plotting dots at the nonuniform data points.
+        CS = plt.contour(xi, yi, zi, 15, linewidths=0.5, colors='k')
+        CS = plt.contourf(xi, yi, zi, 15, cmap=plt.cm.jet)
+        plt.colorbar()
+        plt.title('Solution')
+    elif method == "default":
+        from numpy import array
+        import matplotlib.collections as collections
+        import matplotlib.pyplot as plt
+        verts = []
+        vals = []
+        for t in lin.get_triangles():
+            triangle = tuple([tuple(v[n][:2]) for n in t])
+            val = sum([v[n][2] for n in t])
+            vals.append(val/3.)
+            verts.append(triangle)
+        vals = array(vals)
+        col = collections.PolyCollection(verts, linewidths=0, antialiaseds=0)
+        col.set_array(vals)
+        col.set_cmap(plt.cm.jet)
+        fig = plt.figure()
+        ax = fig.gca()
+        ax.add_collection(col)
+        ax.set_xlim(-1, 1)
+        ax.set_ylim(-1, 1)
+        ax.set_aspect("equal")
+        #plt.colorbar()
+        plt.title('Solution')
+    else:
+        raise NotImplementedError("Unknown method (%s)" % method)
 
 def plot_sln_mayavi(sln):
     """
@@ -77,7 +103,8 @@ class ScalarView(object):
     def wait(self):
         pass
 
-    def show(self, sln, show=True, lib="mpl", notebook=False, filename="a.png"):
+    def show(self, sln, show=True, lib="mpl", notebook=False, filename="a.png",
+            **options):
         """
         Shows the solution.
 
@@ -89,7 +116,7 @@ class ScalarView(object):
                 notebook == False)
         """
         if lib == "mpl":
-            plot_sln_mpl(sln)
+            plot_sln_mpl(sln, **options)
             import pylab
             if show:
                 if notebook:
