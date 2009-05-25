@@ -1,14 +1,14 @@
 #include "hermes2d.h"
 #include "solver_umfpack.h"
 
-// This example is a continuation of example 08-time-dep. This time, the 
+// This example is a continuation of example 08-time-dep. This time, the
 // time-dependent laminar incompressible Navier-Stokes equations are
 // discretized in time via the implicit Euler method and the Newton's
 // iteration is performed in every time step. We encourage you to compare
-// the naive linearization method with the Newton's iteration via the 
+// the naive linearization method with the Newton's iteration via the
 // NEWTON_ON option.
 //
-// PDE: incompressible Navier-Stokes equations in the form 
+// PDE: incompressible Navier-Stokes equations in the form
 // \partial v / \partial t - \Delta v / Re + (v \cdot \nabla) v + \nabla p = 0,
 // div v = 0
 //
@@ -18,24 +18,26 @@
 //
 // TODO: Implement Crank-Nicolson so that comparisons with implicit Euler can be made
 //
-// The following parameters can be changed: 
-// 
+// The following parameters can be changed:
+//
 
-int NEWTON_ON = 1;             // if NEWTON_ON == 1 then the Newton's iteration is performed 
+int NEWTON_ON = 1;             // if NEWTON_ON == 1 then the Newton's iteration is performed
                                // in every time step. Otherwise the convective term is linearized
-                               // using the velocities from the previous time step (as in example 
-                               // 08-time-dep) 
-double RE = 1000.0;            // Reynolds number  
+                               // using the velocities from the previous time step (as in example
+                               // 08-time-dep)
+double RE = 200.0;             // Reynolds number
 double VEL_INLET = 1.0;        // inlet velocity (reached after STARTUP_TIME)
-double STARTUP_TIME = 1.0;     // during this time, inlet velocity increases gradually 
-                               // from 0 to VEL_INLET, then it stays constant 
-double TAU = 0.05;             // time step
-double FINAL_TIME = 30.0;      // length of time interval
+double STARTUP_TIME = 1.0;     // during this time, inlet velocity increases gradually
+                               // from 0 to VEL_INLET, then it stays constant
+double TAU = 0.1;              // time step
+double FINAL_TIME = 30000.0;   // length of time interval
 int P_INIT_VEL = 2;            // initial polynomial degree for velocity components
 int P_INIT_PRESSURE = 1;       // initial polynomial degree for pressure
-                               // Note: P_INIT_VEL should always be greater than 
+                               // Note: P_INIT_VEL should always be greater than
                                // P_INIT_PRESSURE because of the inf-sup condition
-double NEWTON_TOL = 1e-3;      // convergence criterion for the Newton's method 
+double NEWTON_TOL = 1e-3;      // convergence criterion for the Newton's method
+double H = 5;                  // domain height (necessary to define the parabolic
+                               // velocity profile at inlet)
 
 // to better understand boundary conditions
 int marker_bottom = 1;
@@ -44,7 +46,8 @@ int marker_top = 3;
 int marker_left = 4;
 int marker_obstacle = 5;
 
-double TIME = 0;               // global time variable
+// global time variable
+double TIME = 0;
 
 // same as int_u_dvdx() but now 'v' is a solution
 inline double int_u_dvdx_II(RealFunction* fu, RealFunction* fv, RefMap* ru, RefMap* rv)
@@ -87,7 +90,7 @@ inline double int_u_dvdy_II(RealFunction* fu, RealFunction* fv, RefMap* ru, RefM
 #define int_dudx_v_II(fu, fv, ru, rv) int_u_dvdx_II(fv, fu, rv, ru)
 #define int_dudy_v_II(fu, fv, ru, rv) int_u_dvdy_II(fv, fu, rv, ru)
 
-// same as int_grad_u_grad_v but now fu is a solution 
+// same as int_grad_u_grad_v but now fu is a solution
 inline double int_grad_u_grad_v_II(RealFunction* fu, RealFunction* fv, RefMap* ru, RefMap* rv)
 {
   Quad2D* quad = fu->get_quad_2d();
@@ -189,11 +192,11 @@ scalar xvel_bc_value(int marker, double x, double y) {
   if (marker == 4) {
     // time-dependent inlet velocity
     //double val_y = VEL_INLET; //constant profile
-    double val_y = VEL_INLET * 4*y*(1-y); //parabolic profile with peak VEL_INLET at y = 0.5
+    double val_y = VEL_INLET * y*(H-y) / (H/2.)/(H/2.); //parabolic profile with peak VEL_INLET at y = H/2
     if (TIME <= STARTUP_TIME) return val_y * TIME/STARTUP_TIME;
-    else return val_y; 
+    else return val_y;
   }
-  else return 0; 
+  else return 0;
 }
 
 int yvel_bc_type(int marker) {
@@ -207,7 +210,7 @@ int press_bc_type(int marker)
 // velocities from the previous time step and for the Newton's iteration
 Solution xprev, yprev, pprev, xiter, yiter, piter;
 
-// bilinear and linear forms corresponding to simple linearization 
+// bilinear and linear forms corresponding to simple linearization
 // of convective term
 scalar bilinear_form_sym_0_0_1_1(RealFunction* fu, RealFunction* fv, RefMap* ru, RefMap* rv)
   { return int_grad_u_grad_v(fu, fv, ru, rv) / RE +
@@ -246,7 +249,7 @@ scalar newton_bilinear_form_unsym_1_1(RealFunction* fu, RealFunction* fv, RefMap
 scalar newton_F_0(RealFunction* fv, RefMap* rv)
   { return   int_u_v(&xiter, fv, xiter.get_refmap(), rv) / TAU
            - int_u_v(&xprev, fv, xprev.get_refmap(), rv) / TAU
-           + int_grad_u_grad_v_II(&xiter, fv, xiter.get_refmap(), rv) / RE   // The 'II' version of int_grad_u_grad_v() 
+           + int_grad_u_grad_v_II(&xiter, fv, xiter.get_refmap(), rv) / RE   // The 'II' version of int_grad_u_grad_v()
              // does exactly the same as the original function, but it assumes that the first argument is a Solution.
              // This inconsistency has historical reasons and we are going to eliminate it soon.
            + int_w_nabla_u_v_II(&xiter, &yiter, &xiter, fv, xiter.get_refmap(), rv)
@@ -258,7 +261,7 @@ scalar newton_F_1(RealFunction* fv, RefMap* rv)
            + int_grad_u_grad_v_II(&yiter, fv, yiter.get_refmap(), rv) / RE
            + int_w_nabla_u_v_II(&xiter, &yiter, &yiter, fv, yiter.get_refmap(), rv)
            - int_u_dvdy(&piter, fv, piter.get_refmap(), rv); }
-   
+
 scalar newton_F_2(RealFunction* fv, RefMap* rv)
   { return   int_dudx_v_II(&xiter, fv, xiter.get_refmap(), rv)
            + int_dudy_v_II(&yiter, fv, yiter.get_refmap(), rv); }
@@ -268,12 +271,44 @@ int main(int argc, char* argv[])
 {
   // load the mesh file
   Mesh mesh;
-  mesh.load("cylinder4.mesh");
-  //mesh.load("plain_channel.mesh");
-  //for (int i = 0; i < 5; i++) mesh.refine_all_elements();
-  mesh.refine_towards_boundary(1, 3);
-  mesh.refine_towards_boundary(3, 2);
-  mesh.refine_towards_boundary(5, 2);
+  mesh.load("domain.mesh");
+
+  // a-priori mesh refinements
+  mesh.refine_element(3, 2);
+  mesh.refine_element(0, 0);
+  mesh.refine_element(1, 1);
+  mesh.refine_element(2, 0);
+  mesh.refine_element(4, 2);
+  mesh.refine_element(5, 2);
+  mesh.refine_element(6, 2);
+  mesh.refine_element(7, 2);
+  mesh.refine_element(8, 2);
+  mesh.refine_element(9, 0);
+  mesh.refine_element(10, 1);
+  mesh.refine_element(11, 0);
+  mesh.refine_element(12, 2);
+  mesh.refine_element(13, 2);
+  mesh.refine_element(14, 0);
+  mesh.refine_element(15, 0);
+  mesh.refine_element(26, 0);
+  mesh.refine_element(27, 0);
+  mesh.refine_element(32, 2);
+  mesh.refine_element(33, 2);
+  mesh.refine_element(34, 2);
+  mesh.refine_element(35, 2);
+  mesh.refine_element(46, 0);
+  mesh.refine_element(47, 0);
+  mesh.refine_element(48, 0);
+  mesh.refine_element(49, 0);
+  mesh.refine_all_elements();
+  mesh.refine_towards_boundary(5, 4, false);
+  mesh.refine_towards_boundary(1, 4);
+  mesh.refine_towards_boundary(3, 4);
+
+  // display the mesh
+  //MeshView mview("Hello world!", 100, 100, 1100, 400);
+  //mview.show(&mesh);
+  //mview.wait_for_keypress();
 
   // initialize the shapeset and the cache
   H1ShapesetBeuchler shapeset;
@@ -320,7 +355,7 @@ int main(int argc, char* argv[])
     wf.add_liform(0, newton_F_0, ANY, 5, &xprev, &yprev, &xiter, &yiter, &piter);
     wf.add_liform(1, newton_F_1, ANY, 5, &xprev, &yprev, &xiter, &yiter, &piter);
     wf.add_liform(2, newton_F_2, ANY, 2, &xiter, &yiter);
-  } 
+  }
   else {
     wf.add_biform(0, 0, bilinear_form_sym_0_0_1_1, SYM);
     wf.add_biform(0, 0, simple_bilinear_form_unsym_0_0_1_1, UNSYM, ANY, 2, &xprev, &yprev);
@@ -333,19 +368,19 @@ int main(int argc, char* argv[])
   }
 
   // visualization
-  VectorView vview("velocity [m/s]", 0, 0, 1200, 470);
-  ScalarView pview("pressure [Pa]", 0, 530, 1200, 470);
-  //vview.set_min_max_range(0, 1.7);
+  VectorView vview("velocity [m/s]", 0, 0, 1500, 470);
+  ScalarView pview("pressure [Pa]", 0, 530, 1500, 470);
+  vview.set_min_max_range(0, 1.6);
   //pview.set_min_max_range(-0.9, 1.0);
   pview.show_mesh(true);
 
-  // matrix solver 
+  // matrix solver
   UmfpackSolver umfpack;
 
-  // linear system 
+  // linear system
   LinSystem linsys(&wf, &umfpack);
 
-  // nonlinear system 
+  // nonlinear system
   NonlinSystem nonsys(&wf, &umfpack);
 
   if (NEWTON_ON) {
@@ -361,7 +396,7 @@ int main(int argc, char* argv[])
 
   // main loop
   char title[100];
-  int num_time_steps = FINAL_TIME / TAU; 
+  int num_time_steps = FINAL_TIME / TAU;
   for (int i = 1; i <= num_time_steps; i++)
   {
     TIME += TAU;
@@ -381,29 +416,29 @@ int main(int argc, char* argv[])
       piter.copy(&pprev);
 
       Solution xsln, ysln, psln;
-      int it = 1; 
-      double res_l2_norm; 
+      int it = 1;
+      double res_l2_norm;
       do
       {
         info("\n---- Time step %d, Newton iter %d ---------------------------------\n", i, it++);
-    
+
         // assemble and solve
         nonsys.assemble();
         nonsys.solve(3, &xsln, &ysln, &psln);
 
-        res_l2_norm = nonsys.get_residuum_l2_norm(); 
+        res_l2_norm = nonsys.get_residuum_l2_norm();
         info("Residuum L2 norm: %g\n", res_l2_norm);
-        // want to see Newtons iterations       
+        // want to see Newtons iterations
         //sprintf(title, "Time level %d, Newton iteration %d", i, it-1);
         //vview.set_title(title);
-        //vview.show(&xsln, &ysln, EPS_LOW);    
+        //vview.show(&xsln, &ysln, EPS_LOW);
         //pview.show(&psln);
         //pview.wait_for_keypress();
 
         xiter = xsln;
         yiter = ysln;
         piter = psln;
-        
+
       }
       while (res_l2_norm > NEWTON_TOL);
 
