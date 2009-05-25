@@ -812,10 +812,6 @@ cdef class VectorView(View):
 def init_hermes2d_wrappers():
     init_global_empty_tuple()
 
-# this is defined here for now, but when the C++ hermes2d has this implemented,
-# it should be declared in there.
-cdef int c_info_mode
-
 def set_verbose(verbose):
     """
     Sets the global verbose_mode variable.
