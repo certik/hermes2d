@@ -114,6 +114,7 @@ inline double magn(complex x) { return std::abs(x); }
 
 
 extern bool verbose_mode;
+extern bool info_mode;
 extern bool warn_integration;
 void __error_fn(const char* fname, const char* msg, ...);
 void __warn_fn(const char* fname, const char* msg, ...);
