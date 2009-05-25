@@ -35,3 +35,19 @@ def get_lib():
     """
     this_dir = os.path.abspath(os.path.dirname(__file__))
     return this_dir
+
+def raises(ExpectedException, code):
+    """
+    Tests, that the "code" raises the ExpectedException exception.
+
+    If so, returns True, otherwise False.
+    """
+    assert isinstance(code, str)
+    import sys
+    frame = sys._getframe(1)
+    loc = frame.f_locals.copy()
+    try:
+        exec code in frame.f_globals, loc
+    except ExpectedException:
+        return True
+    return False
