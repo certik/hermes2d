@@ -1,33 +1,79 @@
 #include "hermes2d.h"
 #include "solver_umfpack.h"
 
-const double Re = 700;  // Reynolds number  FIXME - char. length is not 1
-const double tau = 0.05; // time step
+// The time-dependent laminar incompressible Navier-Stokes equations are
+// discretized in time via the implicit Euler method. The convective term
+// is linearized simply by replacing the velocity in front of the nabla
+// operator with the velocity from last time step.
+//
+// PDE: incompressible Navier-Stokes equations in the form
+// \partial v / \partial t - \Delta v / Re + (v \cdot \nabla) v + \nabla p = 0,
+// div v = 0
+//
+// BC: u_1 is a time-dependent constant and u_2 = 0 on Gamma_4 (inlet)
+//     u_1 = u_2 = 0 on Gamma_1 (bottom), Gamma_3 (top) and Gamma_5 (obstacle)
+//     "do nothing" on Gamma_2 (outlet)
+//
+// TODO: Implement Crank-Nicolson so that comparisons with implicit Euler can be made
+//
+// The following parameters can be changed:
+//
 
-const int marker_bottom = 1;
-const int marker_right  = 2;
+double RE = 200.0;             // Reynolds number
+double VEL_INLET = 1.0;        // inlet velocity (reached after STARTUP_TIME)
+double STARTUP_TIME = 1.0;     // during this time, inlet velocity increases gradually
+                               // from 0 to VEL_INLET, then it stays constant
+double TAU = 0.1;              // time step
+double FINAL_TIME = 3000.0;    // length of time interval
+int P_INIT_VEL = 2;            // initial polynomial degree for velocity components
+int P_INIT_PRESSURE = 1;       // initial polynomial degree for pressure
+                               // Note: P_INIT_VEL should always be greater than
+                               // P_INIT_PRESSURE because of the inf-sup condition
+double H = 5;                  // domain height (necessary to define the parabolic
+                               // velocity profile at inlet)
 
+//  to better understand boundary conditions
+int marker_bottom = 1;
+int marker_right  = 2;
+int marker_top = 3;
+int marker_left = 4;
+int marker_obstacle = 5;
+
+// global time variable
+double TIME = 0;
 
 // definition of boundary conditions
-int xvel_bc_type(int marker)
-  { return (marker != 2) ? BC_ESSENTIAL : BC_NONE; }
+int xvel_bc_type(int marker) {
+  if (marker == 2) return BC_NONE;
+  else return BC_ESSENTIAL;
+}
 
-scalar xvel_bc_value(int marker, double x, double y)
-  { return (marker != 5) ? 1 : 0; }
-
-int yvel_bc_type(int marker)
-  { return (marker != 2) ? BC_ESSENTIAL : BC_NONE; }
+int yvel_bc_type(int marker) {
+  if (marker == 2) return BC_NONE;
+  else return BC_ESSENTIAL;
+}
 
 int press_bc_type(int marker)
   { return BC_NONE; }
+
+scalar xvel_bc_value(int marker, double x, double y) {
+  if (marker == 4) {
+    // time-dependent inlet velocity
+    //double val_y = VEL_INLET; //constant profile
+    double val_y = VEL_INLET * y*(H-y) / (H/2.)/(H/2.); //parabolic profile with peak VEL_INLET at y = H/2
+    if (TIME <= STARTUP_TIME) return val_y * TIME/STARTUP_TIME;
+    else return val_y;
+  }
+  else return 0;
+}
 
 
 // velocities from the previous time step
 Solution xprev, yprev;
 
 scalar bilinear_form_sym_0_0_1_1(RealFunction* fu, RealFunction* fv, RefMap* ru, RefMap* rv)
-  { return int_grad_u_grad_v(fu, fv, ru, rv) / Re +
-           int_u_v(fu, fv, ru, rv) / tau; }
+  { return int_grad_u_grad_v(fu, fv, ru, rv) / RE +
+           int_u_v(fu, fv, ru, rv) / TAU; }
 
 scalar bilinear_form_unsym_0_0_1_1(RealFunction* fu, RealFunction* fv, RefMap* ru, RefMap* rv)
   { return int_w_nabla_u_v(&xprev, &yprev, fu, fv, ru, rv); }
@@ -39,19 +85,56 @@ scalar bilinear_form_unsym_1_2(RealFunction* fp, RealFunction* fv, RefMap* rp, R
   { return -int_u_dvdy(fp, fv, rp, rv); }
 
 scalar linear_form_0(RealFunction* fv, RefMap* rv)
-  { return int_u_v(&xprev, fv, xprev.get_refmap(), rv) / tau; }
+  { return int_u_v(&xprev, fv, xprev.get_refmap(), rv) / TAU; }
 
 scalar linear_form_1(RealFunction* fv, RefMap* rv)
-  { return int_u_v(&yprev, fv, yprev.get_refmap(), rv) / tau; }
+  { return int_u_v(&yprev, fv, yprev.get_refmap(), rv) / TAU; }
 
 
 int main(int argc, char* argv[])
 {
   // load the mesh file
   Mesh mesh;
-  mesh.load("cylinder4.mesh");
-  mesh.refine_towards_boundary(5, 3);
+  mesh.load("domain.mesh");
 
+  // a-priori mesh refinements
+  mesh.refine_element(3, 2);
+  mesh.refine_element(0, 0);
+  mesh.refine_element(1, 1);
+  mesh.refine_element(2, 0);
+  mesh.refine_element(4, 2);
+  mesh.refine_element(5, 2);
+  mesh.refine_element(6, 2);
+  mesh.refine_element(7, 2);
+  mesh.refine_element(8, 2);
+  mesh.refine_element(9, 0);
+  mesh.refine_element(10, 1);
+  mesh.refine_element(11, 0);
+  mesh.refine_element(12, 2);
+  mesh.refine_element(13, 2);
+  mesh.refine_element(14, 0);
+  mesh.refine_element(15, 0);
+  mesh.refine_element(26, 0);
+  mesh.refine_element(27, 0);
+  mesh.refine_element(32, 2);
+  mesh.refine_element(33, 2);
+  mesh.refine_element(34, 2);
+  mesh.refine_element(35, 2);
+  mesh.refine_element(46, 0);
+  mesh.refine_element(47, 0);
+  mesh.refine_element(48, 0);
+  mesh.refine_element(49, 0);
+  mesh.refine_all_elements();
+  mesh.refine_towards_boundary(5, 4, false);
+  mesh.refine_towards_boundary(1, 4);
+  mesh.refine_towards_boundary(3, 4);
+
+  // display the mesh
+  //MeshView mview("Hello world!", 100, 100, 1100, 400);
+  //mview.show(&mesh);
+  //mview.wait_for_keypress();
+
+  // initialize the shapeset and the cache
   H1ShapesetBeuchler shapeset;
   PrecalcShapeset pss(&shapeset);
 
@@ -67,9 +150,9 @@ int main(int argc, char* argv[])
   press.set_bc_types(press_bc_type);
 
   // set velocity and pressure polynomial degrees
-  xvel.set_uniform_order(2);
-  yvel.set_uniform_order(2);
-  press.set_uniform_order(1);
+  xvel.set_uniform_order(P_INIT_VEL);
+  yvel.set_uniform_order(P_INIT_VEL);
+  press.set_uniform_order(P_INIT_PRESSURE);
 
   // assign degrees of freedom
   int ndofs = 0;
@@ -93,10 +176,10 @@ int main(int argc, char* argv[])
   wf.add_liform(1, linear_form_1, ANY, 1, &yprev);
 
   // visualization
-  VectorView vview("velocity [m/s]", 0, 0, 1200, 470);
-  ScalarView pview("pressure [Pa]", 0, 500, 1200, 470);
-  vview.set_min_max_range(0, 1.9);
-  pview.set_min_max_range(-0.9, 0.9);
+  VectorView vview("velocity [m/s]", 0, 0, 1500, 470);
+  ScalarView pview("pressure [Pa]", 0, 530, 1500, 470);
+  vview.set_min_max_range(0, 1.6);
+  //pview.set_min_max_range(-0.9, 0.9);
   pview.show_mesh(false);
 
   // set up the linear system
@@ -106,19 +189,34 @@ int main(int argc, char* argv[])
   sys.set_pss(1, &pss);
 
   // main loop
-  for (int i = 0; i < 1000; i++)
+  char title[100];
+  int num_time_steps = FINAL_TIME / TAU;
+  for (int i = 1; i <= num_time_steps; i++)
   {
-    info("\n*** Iteration %d ***", i);
-    
+    TIME += TAU;
+
+    info("\n---- Time step %d, time = %g -----------------------------------", i, TIME);
+
+    // this is needed to update the time-dependent boundary conditions
+    ndofs = 0;
+    ndofs += xvel.assign_dofs(ndofs);
+    ndofs += yvel.assign_dofs(ndofs);
+    ndofs += press.assign_dofs(ndofs);
+
     // assemble and solve
     Solution xsln, ysln, psln;
+    psln.set_zero(&mesh);
     sys.assemble();
     sys.solve(3, &xsln, &ysln, &psln);
 
     // visualization
+    sprintf(title, "Velocity, time %g", TIME);
+    vview.set_title(title);
     vview.show(&xprev, &yprev, EPS_LOW);
+    sprintf(title, "Pressure, time %g", TIME);
+    pview.set_title(title);
     pview.show(&psln);
-    
+
     // uncomment one of the following lines to generate a series of video frames
     //vview.save_numbered_screenshot("velocity%03d.bmp", i, true);
     //pview.save_numbered_screenshot("pressure%03d.bmp", i, true);
