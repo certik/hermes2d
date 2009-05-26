@@ -15,6 +15,8 @@ If you are using a Debian-based system, install the required libraries first:
 
 $ apt-get install cmake g++ libjudy-dev freeglut3-dev libsuitesparse-dev
 
+(Note: cmake has to be at least version 2.6 or later)
+
 If you want to use Python, install also:
 
 $ apt-get install python-dev python-numpy python-scipy cython
