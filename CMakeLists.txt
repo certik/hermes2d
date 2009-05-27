@@ -20,6 +20,7 @@ set(WITH_PYTHON   NO)
 set(WITH_EXAMPLES YES)
 set(WITH_TESTS    NO)
 set(WITH_GLUT     YES)
+set(WITH_UTIL     YES)
 
 # allow to override the default values in CMake.vars
 if(EXISTS ${PROJECT_SOURCE_DIR}/CMake.vars)
@@ -76,6 +77,10 @@ if(WITH_PYTHON)
 	add_subdirectory(python)
 endif(WITH_PYTHON)
 
+if(WITH_UTIL)
+	add_subdirectory(util)
+endif(WITH_UTIL)
+
 # Documentation
 # This doesn't work yet:
 #add_subdirectory(doc)
@@ -102,4 +107,5 @@ message("Build with Python: ${WITH_PYTHON}")
 message("Build with examples: ${WITH_EXAMPLES}")
 message("Build with tests: ${WITH_TESTS}")
 message("Build with GLUT: ${WITH_GLUT}")
+message("Build with util: ${WITH_UTIL}")
 message("\n")
