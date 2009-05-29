@@ -1,3 +1,7 @@
+if(NOT WITH_GLUT)
+    message(FATAL_ERROR "util/linview must be compiled with GLUT")
+endif(NOT WITH_GLUT)
+
 macro(LINVIEW_SETTINGS VIEW)
     add_executable(${PROJECT_NAME} main.cpp)
     include_directories(${hermes2d_SOURCE_DIR}/src)
