@@ -98,32 +98,6 @@ int main(int argc, char* argv[])
   mesh.load("domain.mesh");
 
   // a-priori mesh refinements
-  mesh.refine_element(3, 2);
-  mesh.refine_element(0, 0);
-  mesh.refine_element(1, 1);
-  mesh.refine_element(2, 0);
-  mesh.refine_element(4, 2);
-  mesh.refine_element(5, 2);
-  mesh.refine_element(6, 2);
-  mesh.refine_element(7, 2);
-  mesh.refine_element(8, 2);
-  mesh.refine_element(9, 0);
-  mesh.refine_element(10, 1);
-  mesh.refine_element(11, 0);
-  mesh.refine_element(12, 2);
-  mesh.refine_element(13, 2);
-  mesh.refine_element(14, 0);
-  mesh.refine_element(15, 0);
-  mesh.refine_element(26, 0);
-  mesh.refine_element(27, 0);
-  mesh.refine_element(32, 2);
-  mesh.refine_element(33, 2);
-  mesh.refine_element(34, 2);
-  mesh.refine_element(35, 2);
-  mesh.refine_element(46, 0);
-  mesh.refine_element(47, 0);
-  mesh.refine_element(48, 0);
-  mesh.refine_element(49, 0);
   mesh.refine_all_elements();
   mesh.refine_towards_boundary(5, 4, false);
   mesh.refine_towards_boundary(1, 4);
