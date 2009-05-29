@@ -37,6 +37,7 @@ VectorView::VectorView(const char* title, int x, int y, int width, int height)
   mode = 0;
   lines = false;
   pmode = false;
+  length_coef = 1.0;
 }
 
 
@@ -92,11 +93,11 @@ void VectorView::plot_arrow(double x, double y, double xval, double yval, double
   double real_mag = sqrt(sqr(xval) + sqr(yval));
   double mag = real_mag;
   if (real_mag > max) mag = max;
-  double length = mag/max * gs;
+  double length = mag/max * gs * length_coef;
   double width = 0.1 * gs;
   if (mode == 1) width *= 1.2;
-  double xnew = x + gs * xval * mag / (max * real_mag);
-  double ynew = y - gs * yval * mag / (max * real_mag);
+  double xnew = x + gs * xval * mag / (max * real_mag) * length_coef;
+  double ynew = y - gs * yval * mag / (max * real_mag) * length_coef;
   
 
   if ((mag)/(max - min) < 1e-5)
@@ -210,7 +211,7 @@ void VectorView::on_display()
   // draw all triangles
   int3* xtris = vec.get_triangles();
   
-  if (mode == 0) glEnable(GL_TEXTURE_1D);
+  if (mode != 1) glEnable(GL_TEXTURE_1D);
   glBindTexture(GL_TEXTURE_1D, 1);
   glBegin(GL_TRIANGLES);
   glColor3f(0.95,0.95,0.95);
@@ -263,109 +264,112 @@ void VectorView::on_display()
   }
   
   // draw arrows
-  for (i = 0; i < vec.get_num_triangles(); i++)
+  if (mode != 2)
   {
-    double miny = 1e100;
-    int idx, k, l1, l2, r2, r1, s;
-    double lry, x;
-    double mr, ml, lx, rx, xval, yval;     
-    
-    double wh = window_height + gt, ww = window_width + gs;
-    if ((tvert[xtris[i][0]][0] < -gs) && (tvert[xtris[i][1]][0] < -gs) && (tvert[xtris[i][2]][0] < -gs)) continue;
-    if ((tvert[xtris[i][0]][0] >  ww) && (tvert[xtris[i][1]][0] >  ww) && (tvert[xtris[i][2]][0] >  ww)) continue;
-    if ((tvert[xtris[i][0]][1] < -gt) && (tvert[xtris[i][1]][1] < -gt) && (tvert[xtris[i][2]][1] < -gt)) continue;
-    if ((tvert[xtris[i][0]][1] >  wh) && (tvert[xtris[i][1]][1] >  wh) && (tvert[xtris[i][2]][1] >  wh)) continue;
-    
-    // find vertex with min y-coordinate    
-    for (k = 0; k < 3; k++)
-      if (tvert[xtris[i][k]][1] < miny)
-        miny = tvert[xtris[i][idx = k]][1];
-    l1 = r1 = xtris[i][idx];
-    l2 = xtris[i][n_vert(idx)];
-    r2 = xtris[i][p_vert(idx)];
-      
-    // plane of x and y values on triangle
-    double a[2], b[2], c[2], d[2];
-    for (int n = 0; n < 2; n++)
+    for (i = 0; i < vec.get_num_triangles(); i++)
     {
-      a[n] = (tvert[l1][1] - tvert[l2][1])*(vert[r1][2 +n] - vert[r2][2+n]) - (vert[l1][2+n] - vert[l2][2+n])*(tvert[r1][1] - tvert[r2][1]);
-      b[n] = (vert[l1][2+n] - vert[l2][2+n])*(tvert[r1][0] - tvert[r2][0]) - (tvert[l1][0] - tvert[l2][0])*(vert[r1][2+n] - vert[r2][2+n]);
-      c[n] = (tvert[l1][0] - tvert[l2][0])*(tvert[r1][1] - tvert[r2][1]) - (tvert[l1][1] - tvert[l2][1])*(tvert[r1][0] - tvert[r2][0]);
-      d[n] = -a[n] * tvert[l1][0] - b[n] * tvert[l1][1] - c[n] * vert[l1][2+n];
-      a[n] /= c[n]; b[n] /= c[n]; d[n] /= c[n];
-    }      
-    
-    s = (int) ceil((tvert[l1][1] - gy)/gt);  // first step
-    lry = gy + s*gt;
-    bool shift = hexa && (s & 1);
-    
-    // if there are two points with min y-coordinate, switch to the next segment
-    if ((tvert[l1][1] == tvert[l2][1]) || (tvert[r1][1] == tvert[r2][1]))
-      if (tvert[l1][1] == tvert[l2][1])
-        {l1 = l2; l2 = r2;}
-      else if (tvert[r1][1] == tvert[r2][1])
-        {r1 = r2; r2 = l2;}
-    
-    // slope of the left and right segment
-    ml = (tvert[l1][0] - tvert[l2][0])/(tvert[l1][1] - tvert[l2][1]);   
-    mr = (tvert[r1][0] - tvert[r2][0])/(tvert[r1][1] - tvert[r2][1]);  
-    // x-coordinates of the endpoints of the first line
-    lx = tvert[l1][0] + ml * (lry - (tvert[l1][1]));  
-    rx = tvert[r1][0] + mr * (lry - (tvert[r1][1]));
-    
-    if (lry < -gt)
-    {
-      k = (int) floor(-lry/gt);
-      lry += gt * k;
-      lx += k * ml * gt;
-      rx += k * mr * gt;
-    }  
-    
-    // while we are in triangle
-    while (((lry < tvert[l2][1]) || (lry < tvert[r2][1])) && (lry < wh))
-    {      
-      // while we are in the segment              
-      while (((lry <= tvert[l2][1]) && (lry <= tvert[r2][1])) && (lry < wh))
-      {
-        double gz = gx;
-        if (shift) gz -= 0.5*gs;
-        s = (int) ceil((lx - gz)/gs); 
-        x = gz + s*gs; 
-        if (hexa) shift = !shift;
+      double miny = 1e100;
+      int idx, k, l1, l2, r2, r1, s;
+      double lry, x;
+      double mr, ml, lx, rx, xval, yval;
+
+      double wh = window_height + gt, ww = window_width + gs;
+      if ((tvert[xtris[i][0]][0] < -gs) && (tvert[xtris[i][1]][0] < -gs) && (tvert[xtris[i][2]][0] < -gs)) continue;
+      if ((tvert[xtris[i][0]][0] >  ww) && (tvert[xtris[i][1]][0] >  ww) && (tvert[xtris[i][2]][0] >  ww)) continue;
+      if ((tvert[xtris[i][0]][1] < -gt) && (tvert[xtris[i][1]][1] < -gt) && (tvert[xtris[i][2]][1] < -gt)) continue;
+      if ((tvert[xtris[i][0]][1] >  wh) && (tvert[xtris[i][1]][1] >  wh) && (tvert[xtris[i][2]][1] >  wh)) continue;
+
+      // find vertex with min y-coordinate
+      for (k = 0; k < 3; k++)
+        if (tvert[xtris[i][k]][1] < miny)
+          miny = tvert[xtris[i][idx = k]][1];
+      l1 = r1 = xtris[i][idx];
+      l2 = xtris[i][n_vert(idx)];
+      r2 = xtris[i][p_vert(idx)];
         
-        if (x < -gs)
+      // plane of x and y values on triangle
+      double a[2], b[2], c[2], d[2];
+      for (int n = 0; n < 2; n++)
+      {
+        a[n] = (tvert[l1][1] - tvert[l2][1])*(vert[r1][2 +n] - vert[r2][2+n]) - (vert[l1][2+n] - vert[l2][2+n])*(tvert[r1][1] - tvert[r2][1]);
+        b[n] = (vert[l1][2+n] - vert[l2][2+n])*(tvert[r1][0] - tvert[r2][0]) - (tvert[l1][0] - tvert[l2][0])*(vert[r1][2+n] - vert[r2][2+n]);
+        c[n] = (tvert[l1][0] - tvert[l2][0])*(tvert[r1][1] - tvert[r2][1]) - (tvert[l1][1] - tvert[l2][1])*(tvert[r1][0] - tvert[r2][0]);
+        d[n] = -a[n] * tvert[l1][0] - b[n] * tvert[l1][1] - c[n] * vert[l1][2+n];
+        a[n] /= c[n]; b[n] /= c[n]; d[n] /= c[n];
+      }
+
+      s = (int) ceil((tvert[l1][1] - gy)/gt);  // first step
+      lry = gy + s*gt;
+      bool shift = hexa && (s & 1);
+
+      // if there are two points with min y-coordinate, switch to the next segment
+      if ((tvert[l1][1] == tvert[l2][1]) || (tvert[r1][1] == tvert[r2][1]))
+        if (tvert[l1][1] == tvert[l2][1])
+          {l1 = l2; l2 = r2;}
+        else if (tvert[r1][1] == tvert[r2][1])
+          {r1 = r2; r2 = l2;}
+
+      // slope of the left and right segment
+      ml = (tvert[l1][0] - tvert[l2][0])/(tvert[l1][1] - tvert[l2][1]);
+      mr = (tvert[r1][0] - tvert[r2][0])/(tvert[r1][1] - tvert[r2][1]);
+      // x-coordinates of the endpoints of the first line
+      lx = tvert[l1][0] + ml * (lry - (tvert[l1][1]));
+      rx = tvert[r1][0] + mr * (lry - (tvert[r1][1]));
+
+      if (lry < -gt)
+      {
+        k = (int) floor(-lry/gt);
+        lry += gt * k;
+        lx += k * ml * gt;
+        rx += k * mr * gt;
+      }
+
+      // while we are in triangle
+      while (((lry < tvert[l2][1]) || (lry < tvert[r2][1])) && (lry < wh))
+      {
+        // while we are in the segment
+        while (((lry <= tvert[l2][1]) && (lry <= tvert[r2][1])) && (lry < wh))
         {
-          k = (int) floor(-x/gs);
-          x += gs * k;
+          double gz = gx;
+          if (shift) gz -= 0.5*gs;
+          s = (int) ceil((lx - gz)/gs);
+          x = gz + s*gs;
+          if (hexa) shift = !shift;
+
+          if (x < -gs)
+          {
+            k = (int) floor(-x/gs);
+            x += gs * k;
+          }
+          // go along the line
+          while ((x < rx) && (x < ww))
+          {
+            // plot the arrow
+            xval = -a[0]*x - b[0]*lry - d[0];
+            yval = -a[1]*x - b[1]*lry - d[1];
+            plot_arrow(x, lry, xval, yval, max, min, gs);
+            x += gs;
+          }
+          // move to the next line
+          lx += ml*gt;
+          rx += mr*gt;
+          lry += gt;
         }
-        // go along the line
-        while ((x < rx) && (x < ww))
-        {          
-          // plot the arrow         
-          xval = -a[0]*x - b[0]*lry - d[0];
-          yval = -a[1]*x - b[1]*lry - d[1];           
-          plot_arrow(x, lry, xval, yval, max, min, gs);
-          x += gs;
+        // change segment
+        if (lry >= tvert[l2][1]) {
+          l1 = l2; l2 = r2;
+          ml = (tvert[l1][0] - tvert[l2][0])/(tvert[l1][1] - tvert[l2][1]);
+          lx = tvert[l1][0] + ml * (lry - (tvert[l1][1]));
         }
-        // move to the next line
-        lx += ml*gt;  
-        rx += mr*gt;
-        lry += gt;
-      }
-      // change segment
-      if (lry >= tvert[l2][1]) {
-        l1 = l2; l2 = r2; 
-        ml = (tvert[l1][0] - tvert[l2][0])/(tvert[l1][1] - tvert[l2][1]);
-        lx = tvert[l1][0] + ml * (lry - (tvert[l1][1])); 
-      }
-      else {
-        r1 = r2; r2 = l2; 
-        mr = (tvert[r1][0] - tvert[r2][0])/(tvert[r1][1] - tvert[r2][1]); 
-        rx = tvert[r1][0] + mr * (lry - (tvert[r1][1]));
+        else {
+          r1 = r2; r2 = l2;
+          mr = (tvert[r1][0] - tvert[r2][0])/(tvert[r1][1] - tvert[r2][1]);
+          rx = tvert[r1][0] + mr * (lry - (tvert[r1][1]));
+        }
       }
     }
   }
-  
+
   delete [] tvert;
   vec.unlock_data();
 }
@@ -413,11 +417,17 @@ void VectorView::on_key_down(unsigned char key, int x, int y)
       break;
         
     case 'b':
-      if (mode) mode = 0;
-      else mode = 1;
+      mode++;
+      if (mode > 2) mode = 0;
       post_redisplay();
       break;
-    
+
+    case '*':
+    case '/':
+      if (key == '*') length_coef *= 1.1; else length_coef /= 1.1;
+      post_redisplay();
+      break;
+
     default:
       View::on_key_down(key, x, y);
       break;
@@ -470,7 +480,9 @@ const char* VectorView::get_help_text() const
   "Controls:\n"
   "  Left mouse - pan\n"
   "  Right mouse - zoom\n"
-  "  B - toggle view mode\n"
+  "  B - toggle view mode (type of arrows x no arrows)\n"
+  "  * - extend arrows\n"
+  "  / - shorten arrows\n"
   "  C - center image\n"
   "  F - toggle smooth palette\n"
   "  X - toggle hexagonal grid\n"
