@@ -3,8 +3,8 @@
 """
 Program to execute tests using the py.test like interface.
 
-The advantage over py.test is that it only depends on sympy and should just
-work in any circumstances. See "sympy.test?" for documentation.
+The advantage over py.test is that it only depends on hermes and should just
+work in any circumstances. See "hermes.test?" for documentation.
 """
 
 import os
@@ -14,12 +14,6 @@ from optparse import OptionParser
 from hermes2d import test
 
 def main():
-    #bintest_dir = os.path.abspath(os.path.dirname(__file__))         # bin/test
-    #sympy_top  = os.path.split(bintest_dir)[0]      # ../
-    #sympy_dir  = os.path.join(sympy_top, 'sympy')  # ../sympy/
-    #if os.path.isdir(sympy_dir):
-    #   sys.path.insert(0, sympy_top)
-
     parser = OptionParser()
     parser.add_option("-v", "--verbose", action="store_true", dest="verbose",
             default=False)
