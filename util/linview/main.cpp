@@ -2,6 +2,7 @@
 #include <GL/glut.h>
 #include <unistd.h>
 #include <getopt.h>
+#include <typeinfo>
 
 
 template<class Base>
@@ -17,6 +18,21 @@ public:
   {
     Base::load_data(names[n]);
     update_title();
+  }
+
+  void cycle_palette()
+  {
+    this->on_key_down('p', 0, 0);
+  }
+
+  void cycle_arrows()
+  {
+    this->on_key_down('b', 0, 0);
+  }
+
+  void cycle_mesh()
+  {
+    this->on_key_down('m', 0, 0);
   }
 
   int get_num() const { return num; }
@@ -71,6 +87,7 @@ void print_help()
          "  -M, --max=value      scale maximum value\n"
          "  -v, --video          capture video frames on keypress\n"
          "  -c, --just-convert   just converts an image to a bmp file\n"
+         "  -e, --show-mesh      shows a mesh, not a solution\n"
          "  -f, --filename       video frame file name template\n"
          "  -q, --highquality    render high quality video\n"
          "  -t, --scale-format   scale printf number format (default %%.3g)\n"
@@ -101,7 +118,7 @@ int main(int argc, char* argv[])
   {
     int width, height, palsteps;
     double consteps, conorig;
-    bool scale, video, just_convert, hq, contours;
+    bool scale, video, just_convert, show_mesh, hq, contours;
     double min, max;
     char filename[256];
     char scaleformat[50];
@@ -113,6 +130,7 @@ int main(int argc, char* argv[])
   options.scale = false;
   options.video = false;
   options.just_convert = false;
+  options.show_mesh = false;
   options.min = 0.0;
   options.max = 0.0;
   options.hq = false;
@@ -132,6 +150,7 @@ int main(int argc, char* argv[])
     { "scale",        0, NULL, 's' },
     { "video",        0, NULL, 'v' },
     { "just-convert", 0, NULL, 'c' },
+    { "show-mesh",    0, NULL, 'e' },
     { "help",         0, NULL, '?' },
     { "filename",     1, NULL, 'f' },
     { "highquality",  0, NULL, 'q' },
@@ -143,7 +162,7 @@ int main(int argc, char* argv[])
   };
 
   int opt, long_idx;
-  while ((opt = getopt_long(argc, argv, "w:h:m:M:svcqf:t:p:k:o:?", long_opts, &long_idx)) != -1)
+  while ((opt = getopt_long(argc, argv, "w:h:m:M:sevcqf:t:p:k:o:?", long_opts, &long_idx)) != -1)
   {
     switch (opt)
     {
@@ -154,6 +173,7 @@ int main(int argc, char* argv[])
       case 's': options.scale = true; break;
       case 'v': options.video = true; break;
       case 'c': options.just_convert = true; break;
+      case 'e': options.show_mesh = true; break;
       case 'f': strcpy(options.filename, optarg); break;
       case 'q': options.hq = true; break;
       case 't': strcpy(options.scaleformat, optarg); break;
@@ -183,6 +203,16 @@ int main(int argc, char* argv[])
     linview.show_contours(options.consteps, options.conorig);
   #endif
 
+  if (options.show_mesh) {
+    linview.cycle_palette();
+    linview.cycle_palette();
+    linview.cycle_palette();
+    linview.cycle_arrows();
+    linview.cycle_arrows();
+    // if linview is a VectorView, then we need to turn on the mesh:
+    if (typeid(linview) == typeid(LinView<VectorView>))
+      linview.cycle_mesh();
+  }
   linview.switch_to(0);
 
   if (options.video)
