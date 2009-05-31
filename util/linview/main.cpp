@@ -70,6 +70,7 @@ void print_help()
          "  -m, --min=value      scale minimum value\n"
          "  -M, --max=value      scale maximum value\n"
          "  -v, --video          capture video frames on keypress\n"
+         "  -c, --just-convert   just converts an image to a bmp file\n"
          "  -f, --filename       video frame file name template\n"
          "  -q, --highquality    render high quality video\n"
          "  -t, --scale-format   scale printf number format (default %%.3g)\n"
@@ -100,7 +101,7 @@ int main(int argc, char* argv[])
   {
     int width, height, palsteps;
     double consteps, conorig;
-    bool scale, video, hq, contours;
+    bool scale, video, just_convert, hq, contours;
     double min, max;
     char filename[256];
     char scaleformat[50];
@@ -111,6 +112,7 @@ int main(int argc, char* argv[])
   options.height = 750;
   options.scale = false;
   options.video = false;
+  options.just_convert = false;
   options.min = 0.0;
   options.max = 0.0;
   options.hq = false;
@@ -129,6 +131,7 @@ int main(int argc, char* argv[])
     { "max",          1, NULL, 'M' },
     { "scale",        0, NULL, 's' },
     { "video",        0, NULL, 'v' },
+    { "just-convert", 0, NULL, 'c' },
     { "help",         0, NULL, '?' },
     { "filename",     1, NULL, 'f' },
     { "highquality",  0, NULL, 'q' },
@@ -140,7 +143,7 @@ int main(int argc, char* argv[])
   };
   
   int opt, long_idx;
-  while ((opt = getopt_long(argc, argv, "w:h:m:M:svqf:t:p:k:o:?", long_opts, &long_idx)) != -1)
+  while ((opt = getopt_long(argc, argv, "w:h:m:M:svcqf:t:p:k:o:?", long_opts, &long_idx)) != -1)
   {
     switch (opt)
     {
@@ -150,6 +153,7 @@ int main(int argc, char* argv[])
       case 'M': sscanf(optarg, "%lf", &options.max); break;
       case 's': options.scale = true; break;
       case 'v': options.video = true; break;
+      case 'c': options.just_convert = true; break;
       case 'f': strcpy(options.filename, optarg); break;
       case 'q': options.hq = true; break;
       case 't': strcpy(options.scaleformat, optarg); break;
@@ -183,7 +187,8 @@ int main(int argc, char* argv[])
 
   if (options.video)
   {
-    linview.wait_for_keypress();
+    if (not options.just_convert)
+        linview.wait_for_keypress();
     for (int i = 0; i < linview.get_num(); i++)
     {
       char filename[100];
@@ -199,7 +204,8 @@ int main(int argc, char* argv[])
     }
   }
   
-  View::wait();
+  if (not options.just_convert)
+      View::wait();
   return EXIT_SUCCESS;
 }
 
