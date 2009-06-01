@@ -226,3 +226,25 @@ class ScalarView(object):
 
         else:
             raise NotImplementedError("Unknown library '%s'" % lib)
+
+class MeshView(object):
+
+    def __init__(self, name="Solution", x=0, y=0, w=50, h=50):
+        self._name = name
+        self._x = x
+        self._y = y
+        self._w = w
+        self._h = h
+
+    def wait(self):
+        pass
+
+    def show(self, mesh, show=True, lib="glut", notebook=False,
+            filename="a.png", **options):
+        if lib == "glut":
+            from _hermes2d import MeshView
+            m = MeshView(self._name, self._x, self._y, self._w, self._h)
+            m.show(mesh)
+            m.wait()
+        else:
+            raise NotImplementedError("Unknown library '%s'" % lib)
