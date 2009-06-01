@@ -246,5 +246,10 @@ class MeshView(object):
             m = MeshView(self._name, self._x, self._y, self._w, self._h)
             m.show(mesh)
             m.wait()
+        elif lib == "pyglet":
+            from hermes2d import Solution
+            sln = Solution()
+            sln.set_zero(mesh)
+            plot_sln_pyglet(sln)
         else:
             raise NotImplementedError("Unknown library '%s'" % lib)
