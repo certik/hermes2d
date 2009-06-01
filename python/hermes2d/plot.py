@@ -111,7 +111,12 @@ def plot_sln_mayavi(sln, notebook=False):
     # to just call .view(0, 0), which seems to be working fine.
     return s
 
-def plot_sln_pyglet(sln):
+def plot_sln_pyglet(sln, just_mesh=False):
+    """
+    Plots the "sln" using pyglet.
+
+    just_mesh ... only shows the mesh, but not the solution
+    """
     from numpy import concatenate, array
     import pylab
     import pyglet
@@ -148,11 +153,18 @@ def plot_sln_pyglet(sln):
         window.clear()
         camera.update()
         camera.focus(window.width, window.height)
-        pyglet.graphics.draw_indexed(len(v), pyglet.gl.GL_TRIANGLES,
-                vertices_indices,
-                ('v2f', vertices_coordinates),
-                ('c3B', colors)
-                )
+        if just_mesh:
+            pyglet.graphics.draw_indexed(len(v), pyglet.gl.GL_LINES,
+                    vertices_indices,
+                    ('v2f', vertices_coordinates),
+                    ('c3B', len(v)*[1, 1, 1])
+                    )
+        else:
+            pyglet.graphics.draw_indexed(len(v), pyglet.gl.GL_TRIANGLES,
+                    vertices_indices,
+                    ('v2f', vertices_coordinates),
+                    ('c3B', colors)
+                    )
         camera.hud_mode(window.width, window.height)
 
     pyglet.clock.schedule(lambda _: None)
@@ -290,6 +302,6 @@ class MeshView(object):
             from hermes2d import Solution
             sln = Solution()
             sln.set_zero(mesh)
-            plot_sln_pyglet(sln)
+            plot_sln_pyglet(sln, just_mesh=True)
         else:
             raise NotImplementedError("Unknown library '%s'" % lib)
