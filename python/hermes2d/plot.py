@@ -111,6 +111,93 @@ def plot_sln_mayavi(sln, notebook=False):
     # to just call .view(0, 0), which seems to be working fine.
     return s
 
+def plot_sln_pyglet(sln):
+    from numpy import concatenate, array
+    import pylab
+    import pyglet
+    from pyglet_camera import Camera
+    from math import pi
+    l = Linearizer()
+    l.process_solution(sln)
+    v = l.get_vertices()
+    t = l.get_triangles()
+    vertices_indices = concatenate(t)
+    vertices_coordinates = concatenate(v[:, :2])
+    colors = v[:, 2]
+    c = pylab.get_cmap("jet")
+    d = lambda x: c(x)[:3]
+    colors = (colors-colors.min())/(colors.max()-colors.min())
+    print "converting colors..."
+    colors = [d(x) for x in colors]
+    print "    done."
+    colors = concatenate(colors)
+    colors = array(colors*255, dtype=int)
+
+    window = pyglet.window.Window()
+    # adjust the camera so that the whole mesh is seen:
+    x_length = v[:, 0].max() - v[:, 0].min()
+    y_length = v[:, 1].max() - v[:, 1].min()
+    max_length = max(x_length, y_length)/2.
+    camera = Camera((0, 0), max_length)
+
+    pyglet.gl.glClearColor(1, 1, 1, 1)
+
+
+    @window.event
+    def on_draw():
+        window.clear()
+        camera.update()
+        camera.focus(window.width, window.height)
+        pyglet.graphics.draw_indexed(len(v), pyglet.gl.GL_TRIANGLES,
+                vertices_indices,
+                ('v2f', vertices_coordinates),
+                ('c3B', colors)
+                )
+        camera.hud_mode(window.width, window.height)
+
+    pyglet.clock.schedule(lambda _: None)
+
+    @window.event
+    def on_key_press(symbol, modifiers):
+        if symbol in [pyglet.window.key.Q, pyglet.window.key.ESCAPE]:
+            window.close()
+        elif symbol == pyglet.window.key.LEFT:
+            camera.pan(camera.scale, +pi/2)
+        elif symbol == pyglet.window.key.RIGHT:
+            camera.pan(camera.scale, -pi/2)
+        elif symbol == pyglet.window.key.UP:
+            camera.pan(camera.scale, pi)
+        elif symbol == pyglet.window.key.DOWN:
+            camera.pan(camera.scale, 0)
+        elif symbol == pyglet.window.key.COMMA:
+            camera.tilt(-1)
+        elif symbol == pyglet.window.key.PERIOD:
+            camera.tilt(+1)
+        elif symbol == pyglet.window.key.PAGEUP:
+            camera.zoom(2)
+        elif symbol == pyglet.window.key.PAGEDOWN:
+            camera.zoom(0.5)
+
+    @window.event
+    def on_mouse_scroll(x, y, scroll_x, scroll_y):
+        if scroll_y > 0:
+            camera.zoom(0.5)
+        else:
+            camera.zoom(2)
+
+    @window.event
+    def on_mouse_drag(x, y, dx, dy, buttons, modifiers):
+        if buttons & pyglet.window.mouse.LEFT:
+            camera.move(-dx, -dy)
+        elif buttons & pyglet.window.mouse.RIGHT:
+            scale = 1.03
+            if dy > 0:
+                scale = 1/scale
+            camera.zoom(scale)
+
+    print "plotting"
+    pyglet.app.run()
+
 class ScalarView(object):
 
     def __init__(self, x=0, y=0, w=50, h=50, name="Solution"):
@@ -161,6 +248,12 @@ class ScalarView(object):
                     mlab.savefig(filename)
                 else:
                     mlab.show()
+        elif lib == "pyglet":
+            if show and not notebook:
+                plot_sln_pyglet(sln)
+            else:
+                ValueError("pyglet only works with show=True and notebook=False")
+
         else:
             raise NotImplementedError("Unknown library '%s'" % lib)
 
