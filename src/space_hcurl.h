@@ -39,6 +39,7 @@ public:
 
   virtual Space* dup(Mesh* mesh) const;
 
+  virtual int get_type() const { return 1; }
 
 protected:
     

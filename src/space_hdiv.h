@@ -17,7 +17,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Hermes2D.  If not, see <http://www.gnu.org/licenses/>.
 
-// $Id: space_hcurl.h 1086 2008-10-21 09:05:44Z jakub $
+// $Id: space_hdiv.h 1086 2009-05-21 15:05:44Z lenka $
 
 #ifndef __HERMES2D_SPACE_HDIV_H
 #define __HERMES2D_SPACE_HDIV_H
@@ -25,6 +25,11 @@
 #include "space.h"
 
 
+/// HdivSpace represents a space of vector functions with continuous normal
+/// components over a domain (mesh).
+///
+///
+///
 class HdivSpace : public Space
 {
 public:
@@ -34,6 +39,7 @@ public:
 
   virtual Space* dup(Mesh* mesh) const;
 
+  virtual int get_type() const { return 2; }
 
 protected:
 

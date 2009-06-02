@@ -40,6 +40,8 @@ public:
 
   virtual int get_edge_order(Element* e, int edge);
 
+  virtual int get_type() const { return 3; }
+
 protected:
   
   struct L2Data

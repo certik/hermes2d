@@ -46,6 +46,8 @@ public:
 
   virtual Space* dup(Mesh* mesh) const;
 
+  virtual int get_type() const { return 0; }
+
 protected:
   
   virtual void assign_vertex_dofs();

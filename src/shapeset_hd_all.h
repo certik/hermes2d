@@ -31,7 +31,7 @@
 class HdivShapesetLegendre : public Shapeset
 {
   public: HdivShapesetLegendre();
-  virtual int get_id() const { return 10; }
+  virtual int get_id() const { return 20; }
 };
 
 
