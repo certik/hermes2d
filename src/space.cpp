@@ -387,6 +387,7 @@ void Space::precalculate_projection_matrix(int nv, double**& mat, double*& p)
 {
   int n = shapeset->get_max_order() + 1 - nv;
   mat = new_matrix<double>(n, n);
+  int component = get_type() == 2 ? 1 : 0;
   
   Quad1DStd quad1d;
   //shapeset->set_mode(MODE_TRIANGLE);
@@ -402,8 +403,8 @@ void Space::precalculate_projection_matrix(int nv, double**& mat, double*& p)
       double val = 0.0;
       for (int k = 0; k < quad1d.get_num_points(o); k++)
       {
-        val += pt[k][1] * shapeset->get_fn_value(ii, pt[k][0], -1.0, 0)
-                        * shapeset->get_fn_value(ij, pt[k][0], -1.0, 0);
+        val += pt[k][1] * shapeset->get_fn_value(ii, pt[k][0], -1.0, component)
+                        * shapeset->get_fn_value(ij, pt[k][0], -1.0, component);
       }
       mat[i][j] = val;
     }

@@ -87,6 +87,8 @@ double* Shapeset::calculate_constrained_edge_combination(int order, int part, in
   
   // fill the matrix of the linear system
   n = order + 1 - ebias;
+  int space_type = get_id() / 10;
+  int component = space_type == 2 ? 1 : 0;
   double** a = new_matrix<double>(n, n);
   double* b = new double[n];
   for (i = 0; i < n; i++)
@@ -99,10 +101,10 @@ double* Shapeset::calculate_constrained_edge_combination(int order, int part, in
 
     // matrix row
     for (j = 0; j < n; j++)
-      a[i][j] = get_value(0, idx[j+ebias], p, -1.0, 0);
+      a[i][j] = get_value(0, idx[j+ebias], p, -1.0, component);
 
     // rhs    
-    b[i] = c * get_value(0, idx[order], lo*s + hi*r, -1.0, 0) - f_lo*s - f_hi*r;
+    b[i] = c * get_value(0, idx[order], lo*s + hi*r, -1.0, component) - f_lo*s - f_hi*r;
   }
 
   // solve the system

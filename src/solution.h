@@ -171,6 +171,8 @@ protected:
   int num_coefs, num_elems;
   int num_dofs;
 
+  int space_type;
+
   scalar   (*exactfn1)(double x, double y, scalar& dx,  scalar& dy);
   scalar2& (*exactfn2)(double x, double y, scalar2& dx, scalar2& dy);
   scalar   cnst[2];

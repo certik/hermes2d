@@ -35,13 +35,13 @@ HdivSpace::HdivSpace(Mesh* mesh, Shapeset* shapeset)
 {
   if (shapeset->get_num_components() < 2) error("HdivSpace requires a vector shapeset.");
 
-/*  if (!hdiv_proj_ref++)
+  if (!hdiv_proj_ref++)
   {
     precalculate_projection_matrix(0, hdiv_proj_mat, hdiv_chol_p);
   }
   
   proj_mat = hdiv_proj_mat;
-  chol_p   = hdiv_chol_p;*/
+  chol_p   = hdiv_chol_p;
 }
 
 
@@ -162,7 +162,7 @@ scalar* HdivSpace::get_bc_projection(EdgePos* ep, int order)
   assert(order >= 0);
   scalar* proj = new scalar[order + 1];
   
-/*  Quad1DStd quad1d;
+  Quad1DStd quad1d;
   scalar* rhs = proj;
   int mo = quad1d.get_max_order();
   double2* pt = quad1d.get_points(mo);
@@ -181,13 +181,13 @@ scalar* HdivSpace::get_bc_projection(EdgePos* ep, int order)
     {
       double t = (pt[j][0] + 1) * 0.5, s = 1.0 - t;
       ep->t = ep->lo * s + ep->hi * t;
-      rhs[i] += pt[j][1] * shapeset->get_fn_value(ii, pt[j][0], -1.0, 0)
+      rhs[i] += pt[j][1] * shapeset->get_fn_value(ii, pt[j][0], -1.0, 1)
                          * (bc_value_callback_by_edge(ep)) * el;
     }
   }
 
   // solve the system using a precalculated Cholesky decomposed projection matrix
-  cholsl(proj_mat, order + 1, chol_p, rhs, rhs);*/
+  cholsl(proj_mat, order + 1, chol_p, rhs, rhs);
 
   for (int i = 0; i < order+1; i++)
     proj[i] = 0.0;

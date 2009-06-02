@@ -338,6 +338,8 @@ void Solution::set_fe_solution(Space* space, PrecalcShapeset* pss, scalar* vec, 
   if (space->get_shapeset() != pss->get_shapeset())
     error("'space' and 'pss' must have the same shapesets.");
 
+  space_type = space->get_type();
+
   free();
 
   num_components = pss->get_num_components();
