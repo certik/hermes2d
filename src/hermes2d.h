@@ -47,6 +47,7 @@
 
 #include "integrals_h1.h"
 #include "integrals_hcurl.h"
+#include "integrals_hdiv.h"
 
 #include "solution.h"
 #include "filter.h"
