@@ -23,6 +23,7 @@
 
 
 bool verbose_mode = true;
+bool info_mode = true;
 bool warn_integration = true;
 
 
@@ -51,6 +52,7 @@ void __warn_fn(const char* fname, const char* msg, ...)
 
 void __info_fn(const char* msg, ...)
 {
+  if (!info_mode) return;
   char text[500];
   sprintf(text, "%s\n", msg);
   va_list arglist;
