@@ -55,6 +55,6 @@ set(WITH_GLUT NO)
 Install hermes
 --------------
 
-cmake -DCMAKE_INSTALL_PREFIX=~/lib .
+cmake -DCMAKE_INSTALL_PREFIX=~/usr .
 make
 make install
