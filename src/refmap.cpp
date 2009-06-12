@@ -186,7 +186,7 @@ void RefMap::calc_second_ref_map(int order)
     dyy = ref_map_pss.get_dyy_values();
     dxy = ref_map_pss.get_dxy_values();
     for (j = 0; j < np; j++)
-    {      
+    {
       k[j][0][0] += coefs[i][0] * dxx[j];
       k[j][0][1] += coefs[i][1] * dxx[j];
       k[j][1][0] += coefs[i][0] * dxy[j];
@@ -412,7 +412,7 @@ void RefMap::inv_ref_map_at_point(double xi1, double xi2, double& x, double& y, 
     double val = ref_map_shapeset.get_fn_value(indices[i], xi1, xi2, 0);
     x += coefs[i][0] * val;
     y += coefs[i][1] * val;
-    
+
     double dx =  ref_map_shapeset.get_dx_value(indices[i], xi1, xi2, 0);
     double dy =  ref_map_shapeset.get_dy_value(indices[i], xi1, xi2, 0);
     tmp[0][0] += coefs[i][0] * dx;
@@ -424,8 +424,8 @@ void RefMap::inv_ref_map_at_point(double xi1, double xi2, double& x, double& y, 
   // inverse matrix
   double jac = tmp[0][0] * tmp[1][1] - tmp[0][1] * tmp[1][0];
   m[0][0] =  tmp[1][1] / jac;
-  m[0][1] = -tmp[0][1] / jac;
-  m[1][0] = -tmp[1][0] / jac;
+  m[0][1] = -tmp[1][0] / jac;
+  m[1][0] = -tmp[0][1] / jac;
   m[1][1] =  tmp[0][0] / jac;
 }
 
@@ -433,7 +433,7 @@ void RefMap::inv_ref_map_at_point(double xi1, double xi2, double& x, double& y, 
 void RefMap::untransform(Element* e, double x, double y, double& xi1, double& xi2)
 {
   const double TOL = 1e-12;
- 
+
   if (is_const)
   {
     double dx = e->vn[0]->x - x;
@@ -443,15 +443,15 @@ void RefMap::untransform(Element* e, double x, double y, double& xi1, double& xi
   }
   else // Newton Method
   {
-    double xi1_old = 0.0, xi2_old = 0.0;  
+    double xi1_old = 0.0, xi2_old = 0.0;
     double vx, vy;
     double2x2 m;
     int it = 0; // number of Newton iterations
     while (1)
     {
       inv_ref_map_at_point(xi1_old, xi2_old, vx, vy, m);
-      xi1 = xi1_old - (m[0][0] * (vx - x) + m[0][1] * (vy - y));
-      xi2 = xi2_old - (m[1][0] * (vx - x) + m[1][1] * (vy - y));
+      xi1 = xi1_old - (m[0][0] * (vx - x) + m[1][0] * (vy - y));
+      xi2 = xi2_old - (m[0][1] * (vx - x) + m[1][1] * (vy - y));
       if (fabs(xi1 - xi1_old) < TOL && fabs(xi2 - xi2_old) < TOL) return;
       if (it > 1 && (xi1 > 1.5 || xi2 > 1.5 || xi1 < -1.5 || xi2 < -1.5)) return;
       if (it > 100) { warn("Could not find reference coordinates - Newton method did not converge."); return; }
@@ -509,7 +509,7 @@ void RefMap::free()
     pp = (Node**) JudyLNext(nodes, &idx, NULL);
   }
   JudyLFreeArray(&nodes, NULL);
-  
+
   if (overflow != NULL) { free_node(overflow); overflow = NULL; }
 }
 

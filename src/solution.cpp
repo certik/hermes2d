@@ -1068,8 +1068,9 @@ scalar Solution::get_ref_value_transformed(Element* e, double xi1, double xi2, i
       scalar dy = get_ref_value(e, xi1, xi2, a, 2);
       if (b == 1) return m[0][0]*dx + m[0][1]*dy; // FN_DX
       if (b == 2) return m[1][0]*dx + m[1][1]*dy; // FN_DY
-      error("Getting second derivatives of the solution: Not implemented yet.");
     }
+    else
+      error("Getting second derivatives of the solution: Not implemented yet.");
   }
   else // vector solution
   {
