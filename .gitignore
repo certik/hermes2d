@@ -1,2 +1,29 @@
+#
+# NOTE! Don't add files that are generated in specific
+# subdirectories here. Add them in the ".gitignore" file
+# in that subdirectory instead.
+#
+
+.*
+*.o
+*.o.*
+*.a
+*.so
+*.gz
+
+# top-level files
 CMake.vars
+!.gitignore
+
+# CMake generated files/dirs
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+CMakeFiles
+
 *~
+
+# kdevelop project files
+*.kdev*
+
+
