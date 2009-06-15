@@ -91,6 +91,7 @@ void print_help()
          "  -f, --filename       video frame file name template\n"
          "  -q, --highquality    render high quality video\n"
          "  -t, --scale-format   scale printf number format (default %%.3g)\n"
+         "  -d, --scale-width    fix scale width in pixels\n"
          "  -p, --pal-steps=val  number of palette steps\n"
          #ifdef CONTOURS
          "  -k, --cont-steps=val  interval of contour steps\n"
@@ -122,12 +123,14 @@ int main(int argc, char* argv[])
     double min, max;
     char filename[256];
     char scaleformat[50];
+    int scalewidth;
   }
   options;
 
   options.width = 1000;
   options.height = 750;
   options.scale = false;
+  options.scalewidth = -1;
   options.video = false;
   options.just_convert = false;
   options.show_mesh = false;
@@ -155,6 +158,7 @@ int main(int argc, char* argv[])
     { "filename",     1, NULL, 'f' },
     { "highquality",  0, NULL, 'q' },
     { "scale-format", 1, NULL, 't' },
+    { "scale-width",  1, NULL, 'd' },
     { "pal-steps",    1, NULL, 'p' },
     { "cont-steps",    1, NULL, 'k' },
     { "cont-orig",     1, NULL, 'o' },
@@ -162,7 +166,7 @@ int main(int argc, char* argv[])
   };
 
   int opt, long_idx;
-  while ((opt = getopt_long(argc, argv, "w:h:m:M:sevcqf:t:p:k:o:?", long_opts, &long_idx)) != -1)
+  while ((opt = getopt_long(argc, argv, "w:h:m:M:sevcqf:t:d:p:k:o:?", long_opts, &long_idx)) != -1)
   {
     switch (opt)
     {
@@ -177,6 +181,7 @@ int main(int argc, char* argv[])
       case 'f': strcpy(options.filename, optarg); break;
       case 'q': options.hq = true; break;
       case 't': strcpy(options.scaleformat, optarg); break;
+      case 'd': options.scalewidth = atoi(optarg); break;
       case 'p': options.palsteps = atoi(optarg); options.contours = true; break;
       case 'k': options.consteps = atof(optarg); options.contours = true; break;
       case 'o': options.conorig = atof(optarg); break;
@@ -197,6 +202,7 @@ int main(int argc, char* argv[])
   if (options.min != options.max)
     linview.set_min_max_range(options.min, options.max);
   linview.set_num_palette_steps(options.palsteps);
+  linview.fix_scale_width(options.scalewidth);
 
   #ifdef CONTOURS
   if (options.contours)
