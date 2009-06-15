@@ -62,6 +62,7 @@ public:
   void set_scale_position(int horz, int vert);
   void set_scale_size(int width, int height, int numticks);
   void set_scale_format(const char* fmt);
+  void fix_scale_width(int width = 80);
 
   /// Saves the current content of the window to a .BMP file.
   /// If 'high_quality' is true, an anti-aliased frame is rendered and saved.
@@ -136,6 +137,7 @@ protected:
   int scale_width, scale_height, labels_width;
   int scale_numticks, scale_box_height, scale_box_skip;
   char scale_fmt[20];
+  int scale_fixed_width;
   
   bool want_screenshot;
   static int screenshot_no;
@@ -526,6 +528,7 @@ public:
   void set_scale_position(int horz, int vert) {}
   void set_scale_size(int width, int height, int numticks) {}
   void set_scale_format(const char* fmt) {}
+  void fix_scale_width(int width = 80) {}
   void save_screenshot(const char* bmpname, bool high_quality = false) {}
   void save_numbered_screenshot(const char* format, int number, bool high_quality = false) {}
   void set_palette(int type) {}

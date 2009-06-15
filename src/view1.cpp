@@ -342,6 +342,7 @@ View::View(const char* title, int x, int y, int width, int height)
   scale_height = 320;
   scale_numticks = 9;
   strcpy(scale_fmt, "%.3g");
+  scale_fixed_width = -1;
   want_screenshot = false;
 }
 
@@ -1292,7 +1293,8 @@ void View::update_layout()
   lspace = rspace = labels_width = 0;
   if (b_scale)
   {
-    labels_width = measure_scale_labels();
+    labels_width = scale_fixed_width;
+    if (labels_width < 0) labels_width = measure_scale_labels();
     int space = scale_width + 8 + labels_width + margin;
     if (pos_horz == 0)
       { lspace = space;  scale_x = margin; }
@@ -1334,6 +1336,12 @@ void View::set_scale_size(int width, int height, int numticks)
 void View::set_scale_format(const char* fmt)
 {
   strncpy(scale_fmt, fmt, 19);
+  if (window_id >= 0) { update_layout(); post_redisplay(); }
+}
+
+void View::fix_scale_width(int width)
+{
+  scale_fixed_width = width;
   if (window_id >= 0) { update_layout(); post_redisplay(); }
 }
 
