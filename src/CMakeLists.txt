@@ -10,6 +10,7 @@ set(SRC
        shapeset_h1_ortho.cpp shapeset_h1_beuchler.cpp shapeset_h1_quad.cpp
        shapeset_hc_legendre.cpp shapeset_hc_gradleg.cpp
        shapeset_hd_legendre.cpp
+       shapeset_l2_legendre.cpp
        qsort.cpp norm.cpp
        adapt_ortho_h1.cpp adapt_ortho_hcurl.cpp adapt_ortho_l2.cpp
        common.cpp matrix.cpp hermes2d.cpp weakform.cpp linsystem.cpp

@@ -34,6 +34,7 @@
 #include "shapeset_h1_all.h"
 #include "shapeset_hc_all.h"
 #include "shapeset_hd_all.h"
+#include "shapeset_l2_all.h"
 
 #include "refmap.h"
 #include "discrete.h" //

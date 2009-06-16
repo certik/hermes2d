@@ -101,6 +101,19 @@
 #define Legendre9x(x) ((((109395.0 / 128.0 * (x) * (x) - 45045.0 / 32.0) * (x) * (x) + 45045.0 / 64.0) * (x) * (x) - 3465.0 / 32.0) * (x) * (x) + 315.0 / 128.0)
 #define Legendre10x(x) (2.0 / 256.0 * (x) * ((((230945.0 * (x) * (x) - 437580.0) * (x) * (x) + 270270.0) * (x) * (x) - 60060.0) * (x) * (x) + 3465.0))
 
+// second derivatives of Legendre polynomials
+#define Legendre0xx(x) (0.0)
+#define Legendre1xx(x) (0.0)
+#define Legendre2xx(x) (3.0)
+#define Legendre3xx(x) (15.0 * (x))
+#define Legendre4xx(x) (105.0 / 2.0 * (x) * (x) - 15.0 / 2.0)
+#define Legendre5xx(x) (105.0 / 2.0 * (x) * (3.0 * (x) * (x) - 1.0))
+#define Legendre6xx(x) ((3465.0 / 8.0 * (x) * (x) - 1890.0 / 8.0) * (x) * (x) + 105.0 / 8.0)
+#define Legendre7xx(x) (63.0 / 8.0 * (x) * ((143.0 * (x) * (x) - 110.0) * (x) * (x) + 15.0))
+#define Legendre8xx(x) (((45045.0 / 16.0 * (x) * (x) - 45045.0 / 16.0) * (x) * (x) + 10395.0 / 16.0) * (x) * (x) - 315.0 / 16.0)
+#define Legendre9xx(x) (45.0 / 16.0 * (x) * (((2431.0 * (x) * (x) - 3003.0) * (x) * (x) + 1001.0) * (x) * (x) - 77.0))
+#define Legendre10xx(x) ((((2078505.0 / 128.0 * (x) * (x) - 765765.0 / 32.0) * (x) * (x) + 675675.0 / 64.0) * (x) * (x) - 45045.0 / 32.0) * (x) * (x) + 3465.0 / 128.0)
+
 // first two Lobatto shape functions
 #define l0(x) ((1.0 - (x)) * 0.5)
 #define l1(x) ((1.0 + (x)) * 0.5)
