@@ -26,7 +26,9 @@ def get_include():
                 include_dirs=[hermes2d.get_include()])
     """
     this_dir = os.path.abspath(os.path.dirname(__file__))
-    return os.path.join(this_dir, "include")
+    include_dir = os.path.join(this_dir, "..", "..", "..",
+            "include", "hermes2d")
+    return os.path.join(include_dir)
 
 def get_lib():
     """
@@ -34,7 +36,8 @@ def get_lib():
     against.
     """
     this_dir = os.path.abspath(os.path.dirname(__file__))
-    return this_dir
+    lib_dir = os.path.join(this_dir, "..", "..")
+    return lib_dir
 
 def raises(ExpectedException, code):
     """
