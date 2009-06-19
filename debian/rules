@@ -7,6 +7,7 @@ configure: configure-stamp
 configure-stamp:
 	dh_testdir
 	-$(MAKE) distclean
+	/bin/echo -e "set(COMPLEX no)\nset(WITH_EXAMPLES no)\nset(WITH_PYTHON no)\nset(WITH_GLUT no)\nset(WITH_UTIL no)" > CMake.vars
 	cmake . -DCMAKE_INSTALL_PREFIX=/usr
 	touch $@
 
