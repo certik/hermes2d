@@ -6,7 +6,7 @@ configure: configure-stamp
 
 configure-stamp:
 	dh_testdir
-	-$(MAKE) distclean
+	[ ! -f Makefile ] || $(MAKE) clean
 	/bin/echo -e "set(COMPLEX no)\nset(WITH_EXAMPLES no)\nset(WITH_PYTHON no)\nset(WITH_GLUT no)\nset(WITH_UTIL no)" > CMake.vars
 	cmake . -DCMAKE_INSTALL_PREFIX=/usr
 	touch $@
@@ -26,7 +26,7 @@ clean:
 install: build
 	dh_testdir
 	dh_testroot
-	dh_clean -k
+	dh_prep
 	dh_install
 	dh_installdirs
 	$(MAKE) DESTDIR=$(CURDIR)/debian/libhermes2d install

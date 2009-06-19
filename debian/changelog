@@ -3,7 +3,8 @@ libhermes2d (1.0-1ubuntu2) jaunty; urgency=low
   * Long description added
   * Ondrej added to uploaders
   * XS-DM-Upload-Allowed: yes added
-  * debian/rules: Create CMake.vars with options, whitespace removed
+  * debian/rules: Create CMake.vars with options, whitespace removed, make
+                  clean fixed, so that it's lintian clean
   * debian/files: removed
   * debian/control: section changed to science
   * debian/README.Debian updated
