@@ -45,6 +45,6 @@ if(COMPLEX)
     LIBRARY_SETTINGS(${HERMES_CPLX_BIN})
 endif(COMPLEX)
 
-install(TARGETS ${HERMES_REAL_BIN} LIBRARY DESTINATION lib/python/hermes2d)
+install(TARGETS ${HERMES_REAL_BIN} LIBRARY DESTINATION lib)
 file(GLOB header_files "${CMAKE_CURRENT_SOURCE_DIR}/*.h")
-install(FILES ${header_files} DESTINATION lib/python/hermes2d/include)
+install(FILES ${header_files} DESTINATION include/hermes2d)
