@@ -6,6 +6,8 @@ libhermes2d (1.0-1ubuntu2) jaunty; urgency=low
   * debian/rules: Create CMake.vars with options, whitespace removed
   * debian/files: removed
   * debian/control: section changed to science
+  * debian/README.Debian updated
+  * debian/copyright made lintian clean
 
  -- Ondrej Certik <ondrej@certik.cz>  Fri, 19 Jun 2009 10:21:20 -0600
 

@@ -6,7 +6,7 @@ It was downloaded from:
 
     http://hpfem.math.unr.edu/projects/hermes2d-new/
 
-Upstream Author(s):
+Upstream Authors:
 
     Pavel Solin solin@unr.edu
     Jakub Cerveny jakub.cerveny@gmail.com
@@ -32,7 +32,7 @@ License:
    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA
 
 On Debian systems, the complete text of the GNU General
-Public License can be found in `/usr/share/common-licenses/GPL'.
+Public License can be found in `/usr/share/common-licenses/GPL-2'.
 
 The Debian packaging is:
 

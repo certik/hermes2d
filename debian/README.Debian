@@ -1,6 +1,9 @@
 libhermes2d for Debian
--------------------
+----------------------
 
-<possible notes regarding this package - if none, delete this file>
+The libraries are found in /usr/lib/* and it should just work. If you find a
+bug, please report either to Debian/Ubuntu bugtracker, or directly upstream at:
+
+http://hpfem.org/
 
  -- Pavel Karban <pkarban@gmail.com>  Thu, 04 Jun 2009 17:05:55 +0200
