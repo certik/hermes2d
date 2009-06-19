@@ -1,0 +1,12 @@
+Source: libhermes2d
+Section: multiverse/science
+Priority: extra
+Maintainer: Pavel Karban <pkarban@gmail.com>
+Build-Depends: debhelper (>= 7), libsuitesparse-dev (>= 3.2.0), libjudy-dev (>= 1.0.5), freeglut3-dev (>= 2.4.0)
+Standards-Version: 3.8.0
+Homepage: http://hpfem.math.unr.edu/projects/hermes2d-new/
+
+Package: libhermes2d
+Architecture: any
+Depends: ${shlibs:Depends}, libsuitesparse-3.2.0 (>= 3.2.0), libglu1-mesa (>= 3.4.0), libjudydebian1 (>= 1.0.5), freeglut3 (>= 2.4.0)
+Description: hp-FEM multiphysics solver
