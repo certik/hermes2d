@@ -12,11 +12,11 @@ configure-stamp:
 
 build: build-stamp
 
-build-stamp: configure-stamp  
-	dh_testdir	
+build-stamp: configure-stamp
+	dh_testdir
 	$(MAKE)
 
-clean: 
+clean:
 	dh_testdir
 	dh_testroot
 	rm -f build-stamp configure-stamp
@@ -29,14 +29,14 @@ install: build
 	dh_install
 	dh_installdirs
 	$(MAKE) DESTDIR=$(CURDIR)/debian/libhermes2d install
-	
+
 
 binary-indep: build install
 
 binary-arch: build install
 	dh_testdir
 	dh_testroot
-	dh_installchangelogs 
+	dh_installchangelogs
 	dh_installdocs
 	dh_installexamples
 #	dh_install
