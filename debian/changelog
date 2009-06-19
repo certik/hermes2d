@@ -9,7 +9,7 @@ libhermes2d (1.0-1ubuntu2) jaunty; urgency=low
 
  -- Ondrej Certik <ondrej@certik.cz>  Fri, 19 Jun 2009 10:21:20 -0600
 
-libhermes2d (1.0-1ubuntu1) jaunty unstable; urgency=low
+libhermes2d (1.0-1ubuntu1) jaunty; urgency=low
 
   * Initial Release.
 
