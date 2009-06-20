@@ -3,7 +3,7 @@ Section: science
 Priority: extra
 Maintainer: Pavel Karban <pkarban@gmail.com>
 Uploaders: Ondrej Certik <ondrej@certik.cz>
-Build-Depends: debhelper (>= 7), libsuitesparse-dev (>= 3.2.0), libjudy-dev (>= 1.0.5), freeglut3-dev (>= 2.4.0)
+Build-Depends: debhelper (>= 7), libsuitesparse-dev (>= 3.2.0), libjudy-dev (>= 1.0.5), freeglut3-dev (>= 2.4.0), cmake (>= 2.6.2-1)
 Standards-Version: 3.8.0
 Homepage: http://hpfem.math.unr.edu/projects/hermes2d-new/
 XS-DM-Upload-Allowed: yes
