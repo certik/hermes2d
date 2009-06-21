@@ -14,6 +14,7 @@
 # top-level files
 CMake.vars
 !.gitignore
+!.mailmap
 
 # CMake generated files/dirs
 CMakeCache.txt
