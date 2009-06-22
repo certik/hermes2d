@@ -449,6 +449,15 @@ cdef class LinSystem:
             raise NotImplementedError()
 
     def solve_system(self, *args):
+        """
+        Solves the linear system using scipy.
+
+        >>> 1 + 3
+        4
+        >>> 5 + 2
+        8
+
+        """
         cdef int n = len(args)
         cdef Solution a, b, c
         cdef ndarray vec

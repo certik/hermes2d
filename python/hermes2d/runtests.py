@@ -99,7 +99,7 @@ def doctest(*paths, **kwargs):
     if len(paths) > 0:
         t.add_paths(paths)
     else:
-        t.add_paths(["sympy"])
+        t.add_paths(["hermes2d"])
     return t.test()
 
 
@@ -276,7 +276,7 @@ class SymPyDocTests(object):
     def add_paths(self, paths):
         for path in paths:
             path2 = os.path.join(self._root_dir, *path.split("/"))
-            if path2.endswith(".py"):
+            if path2.endswith(".py") or path2.endswith(".pyx"):
                 self._tests.append(path2)
             else:
                 self._tests.extend(self.get_tests(path2))
@@ -312,7 +312,7 @@ class SymPyDocTests(object):
         from StringIO import StringIO
 
         rel_name = filename[len(self._root_dir)+1:]
-        module = rel_name.replace('/', '.')[:-3]
+        module = os.path.splitext(rel_name.replace('/', '.'))[0]
         setup_pprint()
         try:
             module = doctest._normalize_module(module)
@@ -345,8 +345,8 @@ class SymPyDocTests(object):
         Returns the root sympy directory.
         """
         this_file = os.path.abspath(__file__)
-        #sympy_dir = os.path.join(os.path.dirname(this_file), "..", "..")
-        sympy_dir = os.path.dirname(this_file)
+        sympy_dir = os.path.join(os.path.dirname(this_file), "..", "..")
+        sympy_dir = os.path.dirname(sympy_dir)
         sympy_dir = os.path.normpath(sympy_dir)
         return sympy_dir
 
@@ -366,8 +366,9 @@ class SymPyDocTests(object):
         wildcards = [dir]
         for i in range(level):
             wildcards.append(os.path.join(wildcards[-1], "*"))
-        p = [os.path.join(x, "*.py") for x in wildcards]
-        return p
+        p1 = [os.path.join(x, "*.py") for x in wildcards]
+        p2 = [os.path.join(x, "*.pyx") for x in wildcards]
+        return p1 + p2
 
     def is_on_blacklist(self, x):
         """
