@@ -928,7 +928,7 @@ cdef class Linearizer:
     It returns the triangles and vertices and you can then use it to visualize
     the solution.
 
-    Example:
+    Example::
 
         In [40]: l = Linearizer(sln)
 
@@ -974,17 +974,18 @@ cdef class Linearizer:
         x, y are the "x" and "y" coordinates of the vertex and "val" is the
         value of the solution at the vertex.
 
-        Example:
+        Example::
 
-        In [45]: l.get_vertices()
-        Out[45]:
-        array([[  0.00000000e+00,  -1.00000000e+00,  -2.22396971e-17],
-               [  1.00000000e+00,  -1.00000000e+00,  -1.64798730e-17],
-               [ -1.00000000e+00,   0.00000000e+00,   8.09899023e-17],
-               ...,
-               [  1.48437500e-01,  -1.56250000e-02,   1.62359362e-01],
-               [  1.32812500e-01,   0.00000000e+00,   1.56012622e-01],
-               [  1.32812500e-01,  -1.56250000e-02,   1.50562411e-01]])
+            In [45]: l.get_vertices()
+            Out[45]:
+            array([[  0.00000000e+00,  -1.00000000e+00,  -2.22396971e-17],
+                   [  1.00000000e+00,  -1.00000000e+00,  -1.64798730e-17],
+                   [ -1.00000000e+00,   0.00000000e+00,   8.09899023e-17],
+                   ...,
+                   [  1.48437500e-01,  -1.56250000e-02,   1.62359362e-01],
+                   [  1.32812500e-01,   0.00000000e+00,   1.56012622e-01],
+                   [  1.32812500e-01,  -1.56250000e-02,   1.50562411e-01]])
+
         """
         cdef double3 *vert = self.thisptr.get_vertices()
         cdef int nvert = self.thisptr.get_num_vertices()
@@ -1001,17 +1002,18 @@ cdef class Linearizer:
         The list contains triples of vertices IDs. Use get_vertices() to obtain
         vertices coordinates.
 
-        Example:
+        Example::
 
-        In [46]: l.get_triangles()
-        Out[46]:
-        array([[   3, 5448,   29],
-               [  27, 5445,   28],
-               [  29,   28,   26],
-               ...,
-               [5499, 5498, 5479],
-               [5510, 5493, 5491],
-               [5513, 5508, 5491]], dtype=int32)
+            In [46]: l.get_triangles()
+            Out[46]:
+            array([[   3, 5448,   29],
+                   [  27, 5445,   28],
+                   [  29,   28,   26],
+                   ...,
+                   [5499, 5498, 5479],
+                   [5510, 5493, 5491],
+                   [5513, 5508, 5491]], dtype=int32)
+
         """
         cdef int3 *tri = self.thisptr.get_triangles()
         cdef int ntri = self.thisptr.get_num_triangles()
@@ -1028,17 +1030,18 @@ cdef class Linearizer:
         The list contains triples of vertices IDs. Use get_vertices() to obtain
         vertices coordinates.
 
-        Example:
+        Example::
 
-        In [47]: l.get_edges()
-        Out[47]:
-        array([[   3,   27,    0],
-               [  27,   24,    0],
-               [  24,   30,    0],
-               ...,
-               [5339, 5070,    4],
-               [5070, 5077,    4],
-               [5077,   11,    4]], dtype=int32)
+            In [47]: l.get_edges()
+            Out[47]:
+            array([[   3,   27,    0],
+                   [  27,   24,    0],
+                   [  24,   30,    0],
+                   ...,
+                   [5339, 5070,    4],
+                   [5070, 5077,    4],
+                   [5077,   11,    4]], dtype=int32)
+
         """
         cdef int3 *edges = self.thisptr.get_edges()
         cdef int nedges = self.thisptr.get_num_edges()
