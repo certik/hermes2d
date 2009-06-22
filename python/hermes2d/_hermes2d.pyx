@@ -279,7 +279,7 @@ cdef class LinSystem:
             #self.thisptr.solve(n, a.thisptr)
             A = self.get_matrix()
             rhs = self.get_rhs()
-            from scipy.linalg import cg
+            from scipy.sparse.linalg import cg
             x, res = cg(A, rhs)
             a.set_fe_solution(self._spaces[0], self._pss[0], x)
         elif n == 2:
