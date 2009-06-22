@@ -356,6 +356,13 @@ class ScalarView(object):
                 the image to a.png
         filename ... the name of the filename if we are saving the image (e.g.
                 notebook == False)
+
+        Example:
+
+        >>> 1 + 1
+        2
+        >>> 1 + 2
+        3
         """
         self._lib = lib
         self._notebook = notebook
