@@ -32,7 +32,7 @@ def test_ScalarView_mpl_default():
     sys.assemble()
     A = sys.get_matrix()
     b = sys.get_rhs()
-    from scipy.linalg import cg
+    from scipy.sparse.linalg import cg
     x, res = cg(A, b)
     sln = Solution()
     sln.set_fe_solution(space, pss, x)
@@ -65,7 +65,7 @@ def test_ScalarView_mpl_default():
     sys.assemble()
     A = sys.get_matrix()
     b = sys.get_rhs()
-    from scipy.linalg import cg
+    from scipy.sparse.linalg import cg
     x, res = cg(A, b)
     sln = Solution()
     sln.set_fe_solution(space, pss, x)
@@ -98,7 +98,7 @@ def test_ScalarView_mpl_unknown():
     sys.assemble()
     A = sys.get_matrix()
     b = sys.get_rhs()
-    from scipy.linalg import cg
+    from scipy.sparse.linalg import cg
     x, res = cg(A, b)
     sln = Solution()
     sln.set_fe_solution(space, pss, x)

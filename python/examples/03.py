@@ -29,7 +29,7 @@ sys.set_pss(pss)
 sys.assemble()
 A = sys.get_matrix()
 b = sys.get_rhs()
-from scipy.linalg import cg
+from scipy.sparse.linalg import cg
 x, res = cg(A, b)
 sln = Solution()
 sln.set_fe_solution(space, pss, x)
