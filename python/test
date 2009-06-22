@@ -11,7 +11,7 @@ import os
 import sys
 from optparse import OptionParser
 
-from hermes2d import test
+from hermes2d import test, doctest
 
 def main():
     parser = OptionParser()
@@ -29,7 +29,12 @@ def main():
     ok = test(*args, **{"verbose": options.verbose, "kw": options.kw,
         "tb": options.tb, "pdb": options.pdb, "colors": options.colors})
     if ok:
-        sys.exit(0)
+        ok = doctest(*args, **{"verbose": options.verbose, "kw": options.kw,
+        "tb": options.tb, "pdb": options.pdb, "colors": options.colors})
+        if ok:
+            sys.exit(0)
+        else:
+            sys.exit(2)
     else:
         sys.exit(1)
 
