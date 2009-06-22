@@ -1,6 +1,16 @@
-To compile the manual, you need the following:
+Documentation
+-------------
+
+To compile the manual.pdf, you need the following:
 
   * pdfLaTeX
   * Inkscape (for SVG -> EPS conversion)
   * Bakoma fonts (TTF versions of Computer Modern - used by some SVG figures)
 
+Then do:
+
+$ make manual.pdf
+
+To compile the sphinx html docs, use:
+
+$ make html
