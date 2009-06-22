@@ -46,6 +46,10 @@ set(WITH_PYTHON YES)
 (and any other option that you would like to change, see CMakeLists.txt for the
 whole list).
 
+You can also easily generate it from a script (e.g. a debian/rules file) by:
+
+/bin/echo -e "set(COMPLEX no)\nset(WITH_EXAMPLES no)\nset(WITH_PYTHON yes)\nset(WITH_GLUT no)\nset(WITH_UTIL no)" > CMake.vars
+
 If you are on OS X, you have to disable GLUT as the glut library is not easily
 installable on OS X. To do so, just put the following line into your
 CMake.vars:
