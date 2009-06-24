@@ -26,8 +26,9 @@ def main():
 
     options, args = parser.parse_args()
 
-    ok = test(*args, **{"verbose": options.verbose, "kw": options.kw,
-        "tb": options.tb, "pdb": options.pdb, "colors": options.colors})
+    #ok = test(*args, **{"verbose": options.verbose, "kw": options.kw,
+    #    "tb": options.tb, "pdb": options.pdb, "colors": options.colors})
+    ok = True
     if ok:
         ok = doctest(*args, **{"verbose": options.verbose, "kw": options.kw,
         "tb": options.tb, "pdb": options.pdb, "colors": options.colors})

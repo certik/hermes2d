@@ -320,6 +320,7 @@ class SymPyDocTests(object):
         except:
             self._reporter.import_error(filename, sys.exc_info())
             return
+        print "tests", tests, module
 
         tests.sort()
         tests = [test for test in tests if len(test.examples) > 0]
