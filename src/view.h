@@ -35,7 +35,7 @@
 /// \brief Represents a simple visualization window.
 ///
 /// View is a base class providing a simple OpenGL visualization window.
-/// Its task is to define basic functionality, such as the ability of the 
+/// Its task is to define basic functionality, such as the ability of the
 /// window to be responsive even when the main program thread is busy
 /// with calculations (ie., the windows are run in a background thread),
 /// to provide zooming and panning capabilities for use by the descendant
@@ -44,7 +44,7 @@
 class View
 {
 public:
-  
+
   View(const char* title, int x, int y, int width, int height);
   virtual ~View();
 
@@ -74,15 +74,15 @@ public:
   void set_palette(int type);
   void set_num_palette_steps(int num);
   void set_palette_filter(bool linear);
-  
+
   void wait_for_keypress();
   void wait_for_close();
   void wait_for_draw();
-  
+
   static void wait();
 
 protected:
-    
+
   virtual void clear_background();
   static double get_tick_count();
 
@@ -103,14 +103,14 @@ protected:
   virtual void on_special_key(int key, int x, int y);
   virtual void on_entry(int state) {}
   virtual void on_close();
-    
+
   void post_redisplay();
   void safe_post_redisplay();
   template<class TYPE> void center_mesh(TYPE* vertices, int nvert);
   const float* get_palette_color(double x);
-    
+
 protected:
-  
+
   std::string title;
   int window_id;
   int window_x, window_y, window_width, window_height;
@@ -138,7 +138,7 @@ protected:
   int scale_numticks, scale_box_height, scale_box_skip;
   char scale_fmt[20];
   int scale_fixed_width;
-  
+
   bool want_screenshot;
   static int screenshot_no;
   std::string screenshot_filename;
@@ -146,31 +146,33 @@ protected:
   void update_scale();
   void update_log_scale();
 
-  double transform_x(double x) { return (x * scale + trans_x) + center_x; } 
+  double transform_x(double x) { return (x * scale + trans_x) + center_x; }
   double transform_y(double y) { return center_y - (y * scale + trans_y); }
-  
+  double untransform_x(double x) { return (x - center_x - trans_x) / scale; }
+  double untransform_y(double y) { return (center_y - y - trans_y) / scale; }
+
   void pre_display();
   void display_antialiased();
-  
+
   void set_ortho_projection(bool no_jitter = false);
   void set_3d_projection(int fov, double znear, double zfar);
-  
+
   void draw_text(double x, double y, const char* text, int align = -1);
   int  get_text_width(const char* text);
-  
+
   char *get_screenshot_file_name();
   void save_screenshot_internal(const char* filename);
-  
+
   virtual void scale_dispatch();
   virtual int measure_scale_labels();
   void draw_continuous_scale(char* title, bool righttext);
   void draw_discrete_scale(int numboxes, const char* boxnames[], const float boxcolors[][3]);
-  
+
   void create_palette();
   void update_tex_adjust();
   void set_title_internal(const char* text);
   void update_layout();
-  
+
   void draw_help();
   virtual const char* get_help_text() const { return ""; }
 
@@ -181,7 +183,7 @@ protected:
   friend void on_key_down_stub(unsigned char, int, int);
   friend void on_special_key_stub(int, int, int);
   friend void on_entry_stub(int);
-  friend void on_idle_stub();  
+  friend void on_idle_stub();
   friend void on_close_stub();
   friend int view_create_body(void* param);
   friend int view_set_title_body(void* param);
@@ -200,14 +202,14 @@ void finish_glut_main_loop(bool force = false);  // deprecated, don't use
 class MeshView : public View
 {
 public:
-  
+
   MeshView(const char* title = "MeshView", DEFAULT_WINDOW_POS);
   virtual ~MeshView();
 
   void show(Mesh* mesh);
 
 protected:
-  
+
   Linearizer lin;
 
   bool b_ids, b_markers;
@@ -223,7 +225,7 @@ protected:
   int nn, ne;
 
   float* get_marker_color(int marker);
-  
+
   virtual void on_display();
   virtual void on_key_down(unsigned char key, int x, int y);
   virtual void scale_dispatch() {}
@@ -245,12 +247,12 @@ public:
 
   void show(MeshFunction* sln, double eps = EPS_NORMAL, int item = FN_VAL_0,
             MeshFunction* xdisp = NULL, MeshFunction* ydisp = NULL, double dmult = 1.0);
-      
+
   void show_mesh(bool show = true) { lines = show; post_redisplay(); }
   void show_contours(double step, double orig = 0.0);
   void hide_contours() { contours = false; post_redisplay(); }
   void set_3d_mode(bool enable = true) { mode3d = enable; post_redisplay(); }
-  
+
   void load_data(const char* filename);
   void save_data(const char* filename);
   void save_numbered(const char* format, int number);
@@ -284,7 +286,7 @@ protected:
 /// \brief Visualizes the basis functions of a space.
 ///
 /// BaseView is a debugging tool for the visualization of the basis functions
-/// of a given space. 
+/// of a given space.
 ///
 class BaseView : public ScalarView
 {
@@ -294,7 +296,7 @@ public:
 
   void show(Space* space, double eps = EPS_LOW, int item = FN_VAL_0);
 
-  virtual ~BaseView() { free(); } 
+  virtual ~BaseView() { free(); }
 
 protected:
 
@@ -305,7 +307,7 @@ protected:
   double eps;
   int ndofs, item;
   int base_index;
-  
+
   void free();
   void update_solution();
   void update_title();
@@ -333,7 +335,7 @@ public:
   void save_numbered(const char* format, int number);
 
 protected:
-  
+
   Orderizer ord;
   bool b_orders;
 
@@ -366,7 +368,7 @@ public:
   void show(MeshFunction* vsln, double eps = EPS_NORMAL);
   void show(MeshFunction* xsln, MeshFunction* ysln, double eps = EPS_NORMAL);
   void show(MeshFunction* xsln, MeshFunction* ysln, double eps, int xitem, int yitem);
-  
+
   void set_grid_type(bool hexa) { this->hexa = hexa; post_redisplay(); };
 
   void load_data(const char* filename);
@@ -388,7 +390,7 @@ protected:
   virtual void on_mouse_move(int x, int y);
   virtual void on_key_down(unsigned char key, int x, int y);
   virtual const char* get_help_text() const;
-  
+
 };
 
 
@@ -401,7 +403,7 @@ public:
 
   void show(Space* space);
 
-  virtual ~VectorBaseView() { free(); } 
+  virtual ~VectorBaseView() { free(); }
 
 protected:
 
@@ -417,6 +419,74 @@ protected:
   void update_title();
 
   virtual void on_special_key(int key, int x, int y);
+  virtual const char* get_help_text() const;
+
+};
+
+
+/// \brief Visualizes streamlines of a vector PDE solution.
+///
+/// StreamView is a visualization window for all vector-valued PDE solutions (especially for flow problems).
+///
+class StreamView : public View
+{
+public:
+
+  StreamView(const char* title = "StreamView", DEFAULT_WINDOW_POS);
+  virtual ~StreamView();
+
+  /// Using velocity components (xsln, ysln) it creates streamlines that begin at the boundary with "marker"
+  /// and the distance between starting points is "step"
+  void show(MeshFunction* xsln, MeshFunction* ysln, int marker, double step, double eps = EPS_NORMAL);
+  void show(MeshFunction* xsln, MeshFunction* ysln, int marker, double step, double eps, int xitem, int yitem);
+
+  /// Creates additional streamline with strarting point (x,y)
+  /// Note: Can be called only after StreamView::show
+  void add_streamline(double x, double y);
+
+protected:
+
+  struct Node
+  {
+    bool leaf;
+    int level;
+    Node* sons[2];
+    int elements[100];
+    int num_elem;
+  };
+
+  Vectorizer vec;
+  double max_mag;
+  bool lines, pmode;
+
+  double initial_tau;
+  double min_tau;
+  double max_tau;
+  int num_stream;
+  double2** streamlines;
+  int* streamlength;
+  Node* root;
+  double root_x_min;
+  double root_x_max;
+  double root_y_min;
+  double root_y_max;
+
+  int find_triangle_in_tree(double x, double y, Node* father, double x_min, double x_max, double y_min, double y_max, double3& bar);
+  void add_element_to_tree(Node* father, int e_idx, double x_min, double x_max, double y_min, double y_max);
+  void build_tree();
+  void delete_tree(Node* father);
+
+  bool is_in_triangle(int idx, double x, double y, double3& bar);
+  bool get_solution_values(double x, double y, double& xval, double& yval);
+
+  int create_streamline(double x_start, double y_start, int idx);
+  void find_initial_points(int marker, double step, double2*& initial_points);
+  int find_initial_edge(int num_edges, int3* edges);
+
+  virtual void on_display();
+  virtual void on_mouse_move(int x, int y);
+  virtual void on_key_down(unsigned char key, int x, int y);
+  virtual void on_left_mouse_down(int x, int y);
   virtual const char* get_help_text() const;
 
 };
@@ -440,20 +510,20 @@ public:
 
   MatrixView(const char* title = "MatrixView", DEFAULT_WINDOW_POS);
   ~MatrixView();
-  
+
   void show(DiscreteProblem *ep);
 
 protected:
-  
+
   double2 verts[4];
-  
+
   int *Ap;
   unsigned *Ai;
   scalar *Ax;
   int size;
   double eps, max;
   double pointsize;
-  
+
   virtual void find_symmetry(int nz, int *sz);
   virtual void assign_color(int i, int j);
   virtual void on_display();
@@ -471,7 +541,7 @@ template<class TYPE>
 void View::center_mesh(TYPE* vertices, int nvert)
 {
   if (nvert <= 0) return;
-  
+
   // get mesh bounding box
   double xmin = 1e10, xmax = -1e10;
   double ymin = 1e10, ymax = -1e10;
@@ -484,16 +554,16 @@ void View::center_mesh(TYPE* vertices, int nvert)
   }
   double mesh_width  = xmax - xmin;
   double mesh_height = ymax - ymin;
-  
+
   double usable_width = window_width - 2*margin - lspace - rspace;
   double usable_height = window_height - 2*margin;
-  
+
   // align in the proper direction
   if (usable_width / usable_height < mesh_width / mesh_height)
     scale = usable_width / mesh_width;
   else
     scale = usable_height / mesh_height;
-  
+
   // center
   trans_x = -scale * (xmin + xmax) / 2;
   trans_y = -scale * (ymin + ymax) / 2;
@@ -505,11 +575,11 @@ void View::center_mesh(TYPE* vertices, int nvert)
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // If compiling without OpenGL support, replace all View-based classes with empty stubs, which
-// only show a warning that no OpenGL support has been compiled in. The reason for having the 
+// only show a warning that no OpenGL support has been compiled in. The reason for having the
 // empty classes is that you don't have to modify projects using the GL features: all visualization
 // will just be skipped.
 
-#else // NOGLUT 
+#else // NOGLUT
 
 
 class View
@@ -612,7 +682,7 @@ class VectorBaseView : public VectorView
 {
 public:
   VectorBaseView(const char* title = "BaseView", DEFAULT_WINDOW_POS) {}
-  virtual ~VectorBaseView() {} 
+  virtual ~VectorBaseView() {}
   void show(Space* space)
      { info("VectorBaseView: Hermes2D compiled without OpenGL support, skipping visualization."); }
 };

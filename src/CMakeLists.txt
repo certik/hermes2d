@@ -5,7 +5,7 @@ set(SRC
        space.cpp space_h1.cpp space_hcurl.cpp space_l2.cpp
        space_hdiv.cpp
        linear1.cpp linear2.cpp linear3.cpp graph.cpp
-       view1.cpp view2.cpp view3.cpp view4.cpp
+       view1.cpp view2.cpp view3.cpp view4.cpp view5.cpp
        quad_std.cpp
        shapeset_h1_ortho.cpp shapeset_h1_beuchler.cpp shapeset_h1_quad.cpp
        shapeset_hc_legendre.cpp shapeset_hc_gradleg.cpp
