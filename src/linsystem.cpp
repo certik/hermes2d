@@ -450,7 +450,7 @@ void LinSystem::assemble(bool rhsonly)
 {
   int i, j, k, l, m, n, ss, ww, marker;
   AsmList al[wf->neq], *am, *an;
-  bool bnd[4], nat[wf->neq];
+  bool bnd[4], nat[wf->neq], isempty[wf->neq];
   EdgePos ep[4];
   warned_order = false;
   
@@ -514,10 +514,11 @@ void LinSystem::assemble(bool rhsonly)
       update_limit_table(e0->get_mode());
   
       // obtain assembly lists for the element at all spaces, set appropriate mode for each pss
+      memset(isempty, 0, sizeof(bool) * wf->neq);
       for (i = 0; i < s->idx.size(); i++)
       {
-        if (e[i] == NULL) continue;
         j = s->idx[i];
+        if (e[i] == NULL) { isempty[j] = true; continue; }
         spaces[j]->get_element_assembly_list(e[i], al+j);
         // todo: neziskavat znova, pokud se element nezmenil
         spss[j]->set_active_element(e[i]);
@@ -531,7 +532,7 @@ void LinSystem::assemble(bool rhsonly)
       for (ww = 0; ww < s->bfvol.size(); ww++)
       {
         WeakForm::BiFormVol* bfv = s->bfvol[ww];
-        if (e[bfv->i] == NULL || e[bfv->j] == NULL) continue;
+        if (isempty[bfv->i] || isempty[bfv->j]) continue;
         if (bfv->area != ANY && !wf->is_in_area(marker, bfv->area)) continue;
         m = bfv->i;  fv = spss[m];  am = &al[m];
         n = bfv->j;  fu = pss[n];   an = &al[n];
@@ -587,7 +588,7 @@ void LinSystem::assemble(bool rhsonly)
       for (ww = 0; ww < s->lfvol.size(); ww++)
       {
         WeakForm::LiFormVol* lfv = s->lfvol[ww];
-        if (e[lfv->i] == NULL) continue;
+        if (isempty[lfv->i]) continue;
         if (lfv->area != ANY && !wf->is_in_area(marker, lfv->area)) continue;
         m = lfv->i;  fv = spss[m];  am = &al[m];
         
@@ -618,7 +619,7 @@ void LinSystem::assemble(bool rhsonly)
         for (ww = 0; ww < s->bfsurf.size(); ww++)
         {
           WeakForm::BiFormSurf* bfs = s->bfsurf[ww];
-          if (e[bfs->i] == NULL || e[bfs->j] == NULL) continue;
+          if (isempty[bfs->i] || isempty[bfs->j]) continue;
           if (bfs->area != ANY && !wf->is_in_area(marker, bfs->area)) continue;
           m = bfs->i;  fv = spss[m];  am = &al[m];
           n = bfs->j;  fu = pss[n];   an = &al[n];
@@ -647,7 +648,7 @@ void LinSystem::assemble(bool rhsonly)
         for (ww = 0; ww < s->lfsurf.size(); ww++)
         {
           WeakForm::LiFormSurf* lfs = s->lfsurf[ww];
-          if (e[lfs->i] == NULL) continue;
+          if (isempty[lfs->i]) continue;
           if (lfs->area != ANY && !wf->is_in_area(marker, lfs->area)) continue;
           m = lfs->i;  fv = spss[m];  am = &al[m];
 
