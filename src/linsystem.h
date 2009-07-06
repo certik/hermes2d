@@ -46,6 +46,14 @@ public:
   void set_spaces(int n, ...);
   void set_pss(int n, ...);
   void copy(LinSystem* sys);
+  Space* get_space(int n) {
+      //if (n < 0 || n >= this->wf->neq) error("Bad number of the space.");
+      return this->spaces[n];
+  }
+  PrecalcShapeset* get_pss(int n) {
+      //if (n < 0 || n >= this->wf->neq) error("Bad number of the space.");
+      return this->pss[n];
+  }
 
   void assemble(bool rhsonly = false);
   void assemble_rhs_only() { assemble(true); }
