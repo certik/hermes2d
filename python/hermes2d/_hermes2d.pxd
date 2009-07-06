@@ -1,6 +1,9 @@
 cdef extern from "math.h":
 
+    double c_sqr "sqr"(double x)
     double c_sqrt "sqrt"(double x)
+    double c_atan "atan"(double x)
+    double c_pi "M_PI"
 
 cdef extern from "stdlib.h":
     ctypedef unsigned long size_t
