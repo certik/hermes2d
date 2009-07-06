@@ -1,9 +1,15 @@
 from hermes2d import (Mesh, MeshView, H1Shapeset, PrecalcShapeset, H1Space,
-        WeakForm, Solution, DummySolver, LinSystem, ScalarView, RefSystem)
-
+        WeakForm, Solution, DummySolver, LinSystem, ScalarView, RefSystem,
+        H1OrthoHP, set_verbose)
 from hermes2d.examples.c22 import set_bc, set_forms
 
-# Create a mesh:
+threshold = 0.3
+strategy = 0
+h_only = False
+error_tol = 20
+
+set_verbose(False)
+
 mesh = Mesh()
 mesh.create([
         [0, 0],
@@ -31,27 +37,37 @@ space.set_uniform_order(1)
 wf = WeakForm(1)
 set_forms(wf)
 
-space.assign_dofs()
-
 sln = Solution()
-solver = DummySolver()
-sys = LinSystem(wf, solver)
-sys.set_spaces(space)
-sys.set_pss(pss)
-sys.assemble()
-sys.solve_system(sln)
-
 rsln = Solution()
-rsys = RefSystem(sys)
-rsys.assemble()
+solver = DummySolver()
 
-#A = rsys.get_matrix()
-#rhs = rsys.get_rhs()
-#from scipy.sparse.linalg import cg
-#x, res = cg(A, rhs)
-#rsln.set_fe_solution(rsys.spaces[0], rsys.pss[0], x)
+iter = 0
+while 1:
+    space.assign_dofs()
 
-rsys.solve_system(rsln)
+    sys = LinSystem(wf, solver)
+    sys.set_spaces(space)
+    sys.set_pss(pss)
+    sys.assemble()
+    sys.solve_system(sln)
 
-#view = ScalarView("Solution")
-#view.show(sln)
+    rsys = RefSystem(sys)
+    rsys.assemble()
+
+    rsys.solve_system(rsln)
+
+    hp = H1OrthoHP(space)
+    error =  hp.calc_error(sln, rsln)*100
+    print "iter=%02d, error=%5.2f%%" % (iter, error)
+    if error < error_tol:
+        break
+    hp.adapt(threshold, strategy, h_only)
+    iter += 1
+
+
+view = ScalarView("Solution")
+view.show(sln)
+
+#mview = MeshView("Mesh")
+#mview.show(mesh)
+#mview.wait()

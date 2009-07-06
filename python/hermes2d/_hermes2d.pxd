@@ -194,7 +194,7 @@ cdef extern from "hermes2d.h":
         #double calc_error(c_Solution *sln, c_Solution *rsln)
         double calc_error(...)
         double calc_error_n(int n, ...)
-        void adapt(double thr, int strat)
+        void adapt(double thr, int strat, int h_only)
     c_L2OrthoHP *new_L2OrthoHP "new L2OrthoHP" (int num, ...)
 
     cdef struct c_H1OrthoHP "H1OrthoHP":
@@ -202,7 +202,7 @@ cdef extern from "hermes2d.h":
         int num
         double calc_error(...)
         double calc_error_n(int n, ...)
-        void adapt(double thr, int strat)
+        void adapt(double thr, int strat, int h_only)
     c_H1OrthoHP *new_H1OrthoHP "new H1OrthoHP" (int num, ...)
 
     cdef struct c_Linearizer "Linearizer":
