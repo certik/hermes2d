@@ -330,6 +330,8 @@ cdef class LinSystem:
     def solve_system(self, *args):
         cdef int n = len(args)
         cdef Solution a, b, c
+        cdef ndarray vec
+        cdef scalar *pvec
         if n == 1:
             a = args[0]
             #self.thisptr.solve(n, a.thisptr)
@@ -337,7 +339,13 @@ cdef class LinSystem:
             rhs = self.get_rhs()
             from scipy.sparse.linalg import cg
             x, res = cg(A, rhs)
-            a.set_fe_solution(self._spaces[0], self._pss[0], x)
+            from numpy import array
+            vec = array(x, dtype="double")
+            pvec = <scalar *>vec.data
+            (<c_Solution *>(a.thisptr)).set_fe_solution(
+                    self.thisptr.get_space(0),
+                    self.thisptr.get_pss(0),
+                    pvec)
         elif n == 2:
             a, b = args
             self.thisptr.solve(n, a.thisptr, b.thisptr)
