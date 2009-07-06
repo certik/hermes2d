@@ -156,6 +156,7 @@ public:
   /// Loads the mesh from a file. Aborts the program on error.
   /// \param filename [in] The name of the file.
   void load_old(const char* filename);
+  void load_stream(FILE *f);
   
   void load(const char* filename, bool debug = false);
   

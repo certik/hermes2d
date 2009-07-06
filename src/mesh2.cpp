@@ -271,12 +271,19 @@ void check_quad(int i, Node *&v0, Node *&v1, Node *&v2, Node *&v3)
 
 void Mesh::load_old(const char* filename)
 {
-  int i, j, k, n, maj, min;
-  char* line;
-
   // open the mesh file
   FILE* f = fopen(filename, "r");
   if (f == NULL) error("could not open the mesh file %s", filename);
+  this->load_stream(f);
+}
+
+/*
+   Loads the mesh from a stream.
+*/
+void Mesh::load_stream(FILE *f)
+{
+  int i, j, k, n, maj, min;
+  char* line;
 
   // check file version
   if ((line = get_line(f)) == NULL) eof_error;
