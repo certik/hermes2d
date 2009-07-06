@@ -5,9 +5,10 @@ from hermes2d import (Mesh, H1Shapeset, PrecalcShapeset, H1Space,
 
 from hermes2d.examples.c04 import set_bc
 from hermes2d.forms import set_forms
+from hermes2d.examples import get_example_mesh
 
 mesh = Mesh()
-mesh.load("domain.mesh")
+mesh.load(get_example_mesh())
 #mesh.refine_element(0)
 #mesh.refine_all_elements()
 mesh.refine_towards_boundary(5, 3)

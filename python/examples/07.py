@@ -4,9 +4,10 @@ from hermes2d import Mesh, H1Shapeset, PrecalcShapeset, H1Space, \
         LinSystem, WeakForm, DummySolver, Solution, ScalarView, VonMisesFilter
 
 from hermes2d.examples.c07 import set_bc, set_forms
+from hermes2d.examples import get_sample_mesh
 
 mesh = Mesh()
-mesh.load("sample.mesh")
+mesh.load(get_sample_mesh())
 #mesh.refine_element(0)
 #mesh.refine_all_elements()
 #mesh.refine_towards_boundary(5, 3)
