@@ -6,7 +6,7 @@ from hermes2d.examples.c22 import set_bc, set_forms
 threshold = 0.3
 strategy = 0
 h_only = False
-error_tol = 20
+error_tol = 1
 
 set_verbose(False)
 
@@ -69,5 +69,4 @@ view = ScalarView("Solution")
 view.show(sln)
 
 #mview = MeshView("Mesh")
-#mview.show(mesh)
-#mview.wait()
+#mview.show(mesh, lib="mpl")
