@@ -277,6 +277,14 @@ void Mesh::load_old(const char* filename)
   this->load_stream(f);
 }
 
+void Mesh::load_str(char* mesh)
+{
+  // open the mesh file
+  FILE* f = fmemopen(mesh, strlen(mesh), "r");
+  if (f == NULL) error("could not create the read buffer");
+  this->load_stream(f);
+}
+
 /*
    Loads the mesh from a stream.
 */

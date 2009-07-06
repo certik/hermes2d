@@ -157,6 +157,7 @@ public:
   /// \param filename [in] The name of the file.
   void load_old(const char* filename);
   void load_stream(FILE *f);
+  void load_str(char* mesh);
   
   void load(const char* filename, bool debug = false);
   

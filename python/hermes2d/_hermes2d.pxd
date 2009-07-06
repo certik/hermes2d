@@ -67,6 +67,7 @@ cdef extern from "hermes2d.h":
 
     cdef struct c_Mesh "Mesh":
         void load(char* filename)
+        void load_str(char* mesh)
         void save(char* filename)
         void copy(c_Mesh *m)
         void refine_element(int id)

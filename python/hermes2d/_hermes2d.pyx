@@ -35,6 +35,9 @@ cdef class Mesh:
     def load(self, char* filename):
         self.thisptr.load(filename)
 
+    def load_str(self, char* mesh):
+        self.thisptr.load_str(mesh)
+
     def save(self, char* filename):
         self.thisptr.save(filename)
 
