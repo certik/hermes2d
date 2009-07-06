@@ -38,6 +38,59 @@ cdef class Mesh:
     def load_str(self, char* mesh):
         self.thisptr.load_str(mesh)
 
+    def create(self, nodes, elements, boundary, nurbs):
+        """
+        Creates a mesh from a list of nodes, elements, boundary and nurbs.
+
+        Example:
+
+        >>> m = hermes2d.Mesh()
+        >>> m.create([
+                    [0, -1],
+                    [1, -1],
+                    [-1, 0],
+                    [0, 0],
+                    [1, 0],
+                    [-1, 1],
+                    [0, 1],
+                    [0.707106781, 0.707106781],
+                ], [
+                    [0, 1, 4, 3, 0],
+                    [3, 4, 7, 0],
+                    [3, 7, 6, 0],
+                    [2, 3, 6, 5, 0],
+                ], [
+                    [0, 1, 1],
+                    [1, 4, 2],
+                    [3, 0, 4],
+                    [4, 7, 2],
+                    [7, 6, 2],
+                    [2, 3, 4],
+                    [6, 5, 2],
+                    [5, 2, 3],
+                ], [
+                    [4, 7, 45],
+                    [7, 6, 45],
+                ])
+
+        """
+        m = "1 0\n"
+        m += "%d\n" % len(nodes)
+        for node in nodes:
+            m += "%f %f\n" % tuple(node)
+        m += "%d\n" % len(elements)
+        for el in elements:
+            m += ("%d "*len(el)) % tuple(el)
+            m += "\n"
+        m += "%d\n" % len(boundary)
+        for b in boundary:
+            m += "%d %d %d\n" % tuple(b)
+        m += "%d\n" % len(nurbs)
+        for n in nurbs:
+            m += "%d %d\n0\n%f\n" % tuple(n)
+        m += "0\n"
+        self.load_str(m)
+
     def save(self, char* filename):
         self.thisptr.save(filename)
 
