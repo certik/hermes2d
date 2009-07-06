@@ -1,4 +1,4 @@
-from hermes2d import Linearizer
+from hermes2d import Linearizer, Solution
 
 def sln2png(sln, filename):
     """
@@ -8,7 +8,7 @@ def sln2png(sln, filename):
     from enthought.mayavi.mlab import savefig
     savefig(filename)
 
-def plot_sln_mpl(sln, method="default"):
+def plot_sln_mpl(sln, method="default", just_mesh=False):
     """
     Plots the Solution() instance sln using Linearizer() and matplotlib.
 
@@ -18,6 +18,8 @@ def plot_sln_mpl(sln, method="default"):
                 them using contour and contourf (it doesn't take into account
                 the triangulation, so one can see the defects from the convex
                 hull approximation)
+
+    just_mesh ... only shows the mesh, but not the solution
     """
     lin = Linearizer()
     lin.process_solution(sln)
@@ -52,7 +54,11 @@ def plot_sln_mpl(sln, method="default"):
             verts.append(triangle)
         verts = array(verts)
         vals = array(vals)
-        col = collections.PolyCollection(verts, linewidths=0, antialiaseds=0)
+        if just_mesh:
+            lw = 1
+        else:
+            lw = 0
+        col = collections.PolyCollection(verts, linewidths=lw, antialiaseds=0)
         col.set_array(vals)
         col.set_cmap(plt.cm.jet)
         fig = plt.figure()
@@ -132,5 +138,37 @@ class ScalarView(object):
                     mlab.savefig(filename)
                 else:
                     mlab.show()
+        else:
+            raise NotImplementedError("Unknown library '%s'" % lib)
+
+class MeshView(object):
+
+    def __init__(self, name="Solution", x=0, y=0, w=500, h=500):
+        self._name = name
+        self._x = x
+        self._y = y
+        self._w = w
+        self._h = h
+
+    def wait(self):
+        pass
+
+    def show(self, mesh, show=True, lib="glut", notebook=False,
+            filename="a.png", **options):
+        if lib == "glut":
+            from _hermes2d import MeshView
+            m = MeshView(self._name, self._x, self._y, self._w, self._h)
+            m.show(mesh)
+            m.wait()
+        elif lib == "mpl":
+            sln = Solution()
+            sln.set_zero(mesh)
+            plot_sln_mpl(sln, just_mesh=True)
+            import pylab
+            if show:
+                if notebook:
+                    pylab.savefig(filename)
+                else:
+                    pylab.show()
         else:
             raise NotImplementedError("Unknown library '%s'" % lib)
