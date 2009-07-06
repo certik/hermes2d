@@ -567,8 +567,8 @@ cdef class L2OrthoHP:
     def calc_error(self, MeshFunction sln, MeshFunction rsln):
         return self.thisptr.calc_error(sln.thisptr, rsln.thisptr)
 
-    def adapt(self, double thr, int strat=0):
-        self.thisptr.adapt(thr, strat)
+    def adapt(self, double thr, int strat=0, h_only=False):
+        self.thisptr.adapt(thr, strat, h_only)
 
 cdef class H1OrthoHP:
     cdef c_H1OrthoHP *thisptr
@@ -610,8 +610,8 @@ cdef class H1OrthoHP:
                 (<MeshFunction>(rsln_list[3])).thisptr,
                 )
 
-    def adapt(self, double thr, int strat=0):
-        self.thisptr.adapt(thr, strat)
+    def adapt(self, double thr, int strat=0, h_only=False):
+        self.thisptr.adapt(thr, strat, h_only)
 
 cdef class Linearizer:
     """
