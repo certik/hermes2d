@@ -3,7 +3,7 @@
 import os
 
 from _hermes2d import *
-from plot import sln2png, plot_sln_mpl, plot_sln_mayavi, ScalarView
+from plot import sln2png, plot_sln_mpl, plot_sln_mayavi, ScalarView, MeshView
 from runtests import test
 
 def get_pxd_include():

@@ -149,6 +149,12 @@ cdef H1Space H1Space_from_c_H1Space(c_H1Space *h):
     n.thisptr = h
     return n
 
+cdef Mesh Mesh_from_c_Mesh(c_Mesh *h):
+    cdef Mesh n
+    n = <Mesh>PY_NEW(Mesh)
+    n.thisptr = h
+    return n
+
 cdef class Transformable:
     pass
 
@@ -189,6 +195,10 @@ cdef class MeshFunction(ScalarFunction):
     def get_pt_value(self, x, y):
         cdef c_MeshFunction *m = <c_MeshFunction *>(self.thisptr)
         return m.get_pt_value(x, y)
+
+    def get_mesh(self):
+        cdef c_MeshFunction *m = <c_MeshFunction *>(self.thisptr)
+        return Mesh_from_c_Mesh(m.get_mesh())
 
 cdef class Solution(MeshFunction):
 
