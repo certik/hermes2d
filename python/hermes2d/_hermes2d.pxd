@@ -161,6 +161,8 @@ cdef extern from "hermes2d.h":
     cdef struct c_LinSystem "LinSystem":
         void set_spaces(int n, ...)
         void set_pss(int n, ...)
+        c_H1Space *get_space(int n)
+        c_PrecalcShapeset *get_pss(int n)
         void copy(c_LinSystem *sys)
         void assemble()
         int solve(int n, ...)
