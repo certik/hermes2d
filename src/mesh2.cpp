@@ -179,6 +179,95 @@ Nurbs* Mesh::reverse_nurbs(Nurbs* nurbs)
   return rev;
 }
 
+// computing vector length
+double vector_length(double a_1, double a_2) 
+{
+  return sqrt(sqr(a_1) + sqr(a_2));
+}
+
+// checking whether the points p, q, r lie on the same line
+bool same_line(double p_1, double p_2, double q_1, double q_2, double r_1, double r_2) 
+{
+  double pq_1 = q_1 - p_1, pq_2 = q_2 - p_2, pr_1 = r_1 - p_1, pr_2 = r_2 - p_2; 
+  double length_pq = vector_length(pq_1, pq_2);  
+  double length_pr = vector_length(pr_1, pr_2); 
+  double sin_angle = (pq_1*pr_2 - pq_2*pr_1)/(length_pq*length_pr);  
+  if(fabs(sin_angle) < 1e-8) return true;
+  else return false; 
+}
+
+// checking whether the angle of vectors 'a' and 'b' is between zero and Pi
+bool is_convex(double a_1, double a_2, double b_1, double b_2) 
+{
+  if(a_1*b_2 - a_2*b_1 > 1e-12) return true;
+  else return false; 
+}
+
+void check_triangle(int i, Node *&v0, Node *&v1, Node *&v2) 
+{
+  // checking that all edges have nonzero length
+  double 
+    length_1 = vector_length(v1->x - v0->x, v1->y - v0->y), 
+    length_2 = vector_length(v2->x - v1->x, v2->y - v1->y), 
+    length_3 = vector_length(v0->x - v2->x, v0->y - v2->y); 
+  if(length_1 < 1e-12 || length_2 < 1e-12 || length_3 < 1e-12) 
+    error("Edge of triangular element #%d has zero length.", i);
+
+  // checking that vertices do not lie on the same line
+  if(same_line(v0->x, v0->y, v1->x, v1->y, v2->x, v2->y))
+    error("Triangular element #%d: all vertices lie on the same line.", i);
+
+  // checking positive orientation. If not positive, swapping vertices
+  if (!is_convex(v1->x - v0->x, v1->y - v0->y, v2->x - v0->x, v2->y - v0->y)) {
+    warn("Triangular element #%d not positively oriented, swapping vertices.", i);
+    std::swap(v1, v2);
+  }
+}
+
+void check_quad(int i, Node *&v0, Node *&v1, Node *&v2, Node *&v3) 
+{
+  // checking that all edges have nonzero length
+  double 
+    length_1 = vector_length(v1->x - v0->x, v1->y - v0->y), 
+    length_2 = vector_length(v2->x - v1->x, v2->y - v1->y), 
+    length_3 = vector_length(v3->x - v2->x, v3->y - v2->y), 
+    length_4 = vector_length(v0->x - v3->x, v0->y - v3->y); 
+  if(length_1 < 1e-12 || length_2 < 1e-12 || length_3 < 1e-12 || length_4 < 1e-12) 
+    error("Edge of quad element #%d has zero length.", i);
+
+  // checking that both diagonals have nonzero length
+  double 
+    diag_1 = vector_length(v2->x - v0->x, v2->y - v0->y), 
+    diag_2 = vector_length(v3->x - v1->x, v3->y - v1->y); 
+  if(diag_1 < 1e-12 || diag_2 < 1e-12) 
+    error("Diagonal of quad element #%d has zero length.", i);
+
+  // checking that vertices v0, v1, v2 do not lie on the same line
+  if(same_line(v0->x, v0->y, v1->x, v1->y, v2->x, v2->y))
+    error("Quad element #%d: vertices v0, v1, v2 lie on the same line.", i);
+  // checking that vertices v0, v1, v3 do not lie on the same line
+  if(same_line(v0->x, v0->y, v1->x, v1->y, v3->x, v3->y))
+    error("Quad element #%d: vertices v0, v1, v3 lie on the same line.", i);
+  // checking that vertices v0, v2, v3 do not lie on the same line
+  if(same_line(v0->x, v0->y, v2->x, v2->y, v3->x, v3->y))
+    error("Quad element #%d: vertices v0, v2, v3 lie on the same line.", i);
+  // checking that vertices v1, v2, v3 do not lie on the same line
+  if(same_line(v1->x, v1->y, v2->x, v2->y, v3->x, v3->y))
+    error("Quad element #%d: vertices v1, v2, v3 lie on the same line.", i);
+
+  // checking that vertex v1 lies on the right of the diagonal v2-v0
+  int vertex_1_ok = is_convex(v1->x - v0->x, v1->y - v0->y, v2->x - v0->x, v2->y - v0->y);
+  if(!vertex_1_ok) error("Vertex v1 of quad element #%d does not lie on the right of the diagonal v2-v0.", i);
+  // checking that vertex v3 lies on the left of the diagonal v2-v0
+  int vertex_3_ok = is_convex(v2->x - v0->x, v2->y - v0->y, v3->x - v0->x, v3->y - v0->y);
+  if(!vertex_3_ok) error("Vertex v3 of quad element #%d does not lie on the left of the diagonal v2-v0.", i);
+  // checking that vertex v2 lies on the right of the diagonal v3-v1
+  int vertex_2_ok = is_convex(v2->x - v1->x, v2->y - v1->y, v3->x - v1->x, v3->y - v1->y);
+  if(!vertex_2_ok) error("Vertex v2 of quad element #%d does not lie on the right of the diagonal v3-v1.", i);
+  // checking that vertex v0 lies on the left of the diagonal v3-v1
+  int vertex_0_ok = is_convex(v3->x - v1->x, v3->y - v1->y, v0->x - v1->x, v0->y - v1->y);
+  if(!vertex_0_ok) error("Vertex v0 of quad element #%d does not lie on the left of the diagonal v2-v1.", i);
+}
 
 void Mesh::load_old(const char* filename)
 {
@@ -242,13 +331,13 @@ void Mesh::load_old(const char* filename)
     Node *v0 = &nodes[idx[0]], *v1 = &nodes[idx[1]], *v2 = &nodes[idx[2]];
     if (ret == 4)
     {
-      if ((v1->x - v0->x) * (v2->y - v0->y) < (v1->y - v0->y) * (v2->x - v0->x)) std::swap(v1, v2);
+      check_triangle(i, v0, v1, v2);
       create_triangle(idx[3], v0, v1, v2, NULL);
     }
     else 
     {
-      // todo: zajistit pravotocivou orientaci i u quadu
       Node *v3 = &nodes[idx[3]];
+      check_quad(i, v0, v1, v2, v3);
       create_quad(idx[4], v0, v1, v2, v3, NULL);
     }
   }
@@ -443,12 +532,13 @@ void Mesh::load(const char* filename, bool debug)
     Node *v0 = &nodes[idx[0]], *v1 = &nodes[idx[1]], *v2 = &nodes[idx[2]];
     if (nv == 4)
     {
-      if ((v1->x - v0->x) * (v2->y - v0->y) < (v1->y - v0->y) * (v2->x - v0->x)) std::swap(v1, v2);
+      check_triangle(i, v0, v1, v2);
       create_triangle(idx[3], v0, v1, v2, NULL);
     }
     else
     {
       Node *v3 = &nodes[idx[3]];
+      check_quad(i, v0, v1, v2, v3);
       create_quad(idx[4], v0, v1, v2, v3, NULL);
     }
     nactive++;
