@@ -42,3 +42,4 @@ sys.solve_system(sln)
 
 view = ScalarView("Solution")
 view.show(sln)
+view.wait()
