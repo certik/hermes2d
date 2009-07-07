@@ -61,7 +61,10 @@ def plot_sln_mpl(sln, method="default", just_mesh=False):
         col = collections.PolyCollection(verts, linewidths=lw, antialiaseds=0)
         col.set_array(vals)
         col.set_cmap(plt.cm.jet)
-        fig = plt.figure()
+        import pylab
+        pylab.ion()
+        fig = pylab.gcf()#plt.figure()
+        pylab.ioff()
         ax = fig.gca()
         ax.add_collection(col)
         ax.set_xlim(verts[:, :, 0].min(), verts[:, :, 0].max())
@@ -100,6 +103,8 @@ class ScalarView(object):
 
     def __init__(self, x=0, y=0, w=50, h=50, name="Solution"):
         self._name = name
+        self._lib = None
+        self._notebook = False
 
     def show_scale(self, *args):
         pass
@@ -108,7 +113,9 @@ class ScalarView(object):
         pass
 
     def wait(self):
-        pass
+        if self._lib == "mpl" and self._notebook == False:
+            import pylab
+            pylab.show()
 
     def show(self, sln, show=True, lib="mpl", notebook=False, filename="a.png",
             **options):
@@ -122,6 +129,8 @@ class ScalarView(object):
         filename ... the name of the filename if we are saving the image (e.g.
                 notebook == False)
         """
+        self._lib = lib
+        self._notebook = notebook
         if lib == "mpl":
             plot_sln_mpl(sln, **options)
             import pylab
@@ -129,7 +138,9 @@ class ScalarView(object):
                 if notebook:
                     pylab.savefig(filename)
                 else:
-                    pylab.show()
+                    pylab.ion()
+                    pylab.draw()
+                    pylab.ioff()
         elif lib == "mayavi":
             plot_sln_mayavi(sln)
             from enthought.mayavi import mlab

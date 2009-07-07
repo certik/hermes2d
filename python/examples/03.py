@@ -36,3 +36,4 @@ sln.set_fe_solution(space, pss, x)
 
 view = ScalarView("Solution")
 view.show(sln)
+view.wait()

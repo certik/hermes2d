@@ -41,6 +41,7 @@ sln = Solution()
 rsln = Solution()
 solver = DummySolver()
 
+view = ScalarView("Solution")
 iter = 0
 while 1:
     space.assign_dofs()
@@ -50,6 +51,7 @@ while 1:
     sys.set_pss(pss)
     sys.assemble()
     sys.solve_system(sln)
+    view.show(sln)
 
     rsys = RefSystem(sys)
     rsys.assemble()
@@ -65,8 +67,7 @@ while 1:
     iter += 1
 
 
-view = ScalarView("Solution")
-view.show(sln)
+view.wait()
 
 #mview = MeshView("Mesh")
 #mview.show(mesh, lib="mpl")
