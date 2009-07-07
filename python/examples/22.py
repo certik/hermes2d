@@ -7,6 +7,8 @@ threshold = 0.3
 strategy = 0
 h_only = False
 error_tol = 1
+interactive_plotting = False    # should the plot be interactively updated
+                                # during the calculation? (slower)
 
 set_verbose(False)
 
@@ -51,7 +53,8 @@ while 1:
     sys.set_pss(pss)
     sys.assemble()
     sys.solve_system(sln)
-    view.show(sln)
+    if interactive_plotting:
+        view.show(sln)
 
     rsys = RefSystem(sys)
     rsys.assemble()
@@ -67,6 +70,8 @@ while 1:
     iter += 1
 
 
+if not interactive_plotting:
+    view.show(sln)
 view.wait()
 
 #mview = MeshView("Mesh")
