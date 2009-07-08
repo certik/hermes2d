@@ -75,7 +75,7 @@ def plot_sln_mpl(sln, method="default", just_mesh=False):
     else:
         raise ValueError("Unknown method (%s)" % method)
 
-def plot_sln_mayavi(sln):
+def plot_sln_mayavi(sln, notebook=False):
     """
     Plots the Solution() instance sln using Linearizer() and matplotlib.
 
@@ -93,8 +93,9 @@ def plot_sln_mayavi(sln):
     y = vert[:, 1]
     z = zeros(len(y))
     t = vert[:, 2]
-    # the off screen rendering properly works only with VTK-5.2 or above:
-    mlab.options.offscreen = True
+    if notebook:
+        # the off screen rendering properly works only with VTK-5.2 or above:
+        mlab.options.offscreen = True
     s = mlab.triangular_mesh(x, y, z, triangles, scalars=t)
     mlab.view(azimuth=90, elevation=180)
     return s
@@ -142,7 +143,7 @@ class ScalarView(object):
                     pylab.draw()
                     pylab.ioff()
         elif lib == "mayavi":
-            plot_sln_mayavi(sln)
+            plot_sln_mayavi(sln, notebook=notebook)
             from enthought.mayavi import mlab
             if show:
                 if notebook:
