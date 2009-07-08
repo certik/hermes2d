@@ -97,7 +97,18 @@ def plot_sln_mayavi(sln, notebook=False):
         # the off screen rendering properly works only with VTK-5.2 or above:
         mlab.options.offscreen = True
     s = mlab.triangular_mesh(x, y, z, triangles, scalars=t)
-    mlab.view(azimuth=90, elevation=180)
+    mlab.view(0, 0)
+
+    # Below is a code that does exactly what the "View along the +Z axis"
+    # button does:
+    #scene = mlab.get_engine().current_scene.scene
+    #scene.camera.focal_point = [0, 0, 0]
+    #scene.camera.position = [0, 0, 1]
+    #scene.camera.view_up = [0, 1, 0]
+    #scene.renderer.reset_camera()
+    #scene.render()
+    # the above looks ok, but there is still quite a large margin, so we prefer
+    # to just call .view(0, 0), which seems to be working fine.
     return s
 
 class ScalarView(object):
