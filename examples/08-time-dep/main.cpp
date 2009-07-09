@@ -108,14 +108,17 @@ int main(int argc, char* argv[])
   //mview.show(&mesh);
   //mview.wait_for_keypress();
 
-  // initialize the shapeset and the cache
-  H1ShapesetBeuchler shapeset;
-  PrecalcShapeset pss(&shapeset);
+  // initialize the shapesets and the cache
+  H1ShapesetBeuchler shapeset_v;
+  PrecalcShapeset pss_v(&shapeset_v);
+  L2Shapeset shapeset_p;
+  PrecalcShapeset pss_p(&shapeset_p);
 
-  // spaces for velocities and pressure
-  H1Space xvel(&mesh, &shapeset);
-  H1Space yvel(&mesh, &shapeset);
-  H1Space press(&mesh, &shapeset);
+  // H1 spaces for velocities and L2 for pressure
+  H1Space xvel(&mesh, &shapeset_v);
+  H1Space yvel(&mesh, &shapeset_v);
+  //H1Space press(&mesh, &shapeset);
+  L2Space press(&mesh, &shapeset_p);
 
   // initialize boundary conditions
   xvel.set_bc_types(xvel_bc_type);
@@ -160,7 +163,7 @@ int main(int argc, char* argv[])
   UmfpackSolver umfpack;
   LinSystem sys(&wf, &umfpack);
   sys.set_spaces(3, &xvel, &yvel, &press);
-  sys.set_pss(1, &pss);
+  sys.set_pss(3, &pss_v, &pss_v, &pss_p);
 
   // main loop
   char title[100];
