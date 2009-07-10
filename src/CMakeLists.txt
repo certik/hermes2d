@@ -35,17 +35,50 @@ endmacro(LIBRARY_SETTINGS)
 
 # build real version:
 if(REAL)
-    add_library(${HERMES_REAL_BIN} SHARED ${SRC})
-    LIBRARY_SETTINGS(${HERMES_REAL_BIN})
+    if(DEBUG)
+        add_library(hermes2d-real-debug SHARED ${SRC})
+        set_target_properties(hermes2d-real-debug PROPERTIES COMPILE_FLAGS ${CMAKE_CXX_FLAGS_DEBUG})
+        LIBRARY_SETTINGS(hermes2d-real-debug)
+        install(TARGETS hermes2d-real-debug LIBRARY DESTINATION lib)
+    endif(DEBUG)
+    if(RELEASE)
+        add_library(hermes2d-real SHARED ${SRC})
+        set_target_properties(hermes2d-real PROPERTIES COMPILE_FLAGS ${CMAKE_CXX_FLAGS_RELEASE})
+        LIBRARY_SETTINGS(hermes2d-real)
+        install(TARGETS hermes2d-real LIBRARY DESTINATION lib)
+    endif(RELEASE)
 endif(REAL)
 
 # build complex version:
 if(COMPLEX)
-    add_library(${HERMES_CPLX_BIN} SHARED ${SRC})
-    set_target_properties(${HERMES_CPLX_BIN} PROPERTIES COMPILE_FLAGS -DCOMPLEX)
-    LIBRARY_SETTINGS(${HERMES_CPLX_BIN})
+    if(DEBUG)
+        add_library(hermes2d-cplx-debug SHARED ${SRC})
+        set_target_properties(hermes2d-cplx-debug PROPERTIES
+            COMPILE_FLAGS ${CMAKE_CXX_FLAGS_DEBUG}
+            COMPILE_FLAGS -DCOMPLEX)
+        LIBRARY_SETTINGS(hermes2d-cplx-debug)
+        install(TARGETS hermes2d-cplx-debug LIBRARY DESTINATION lib)
+    endif(DEBUG)
+    if(RELEASE)
+        add_library(hermes2d-cplx SHARED ${SRC})
+        set_target_properties(hermes2d-cplx PROPERTIES
+            COMPILE_FLAGS ${CMAKE_CXX_FLAGS_RELEASE}
+            COMPILE_FLAGS -DCOMPLEX)
+        LIBRARY_SETTINGS(hermes2d-cplx)
+        install(TARGETS hermes2d-cplx LIBRARY DESTINATION lib)
+    endif(RELEASE)
 endif(COMPLEX)
 
-install(TARGETS ${HERMES_REAL_BIN} LIBRARY DESTINATION lib)
+add_custom_target(debug)
+add_dependencies(debug
+    hermes2d-real-debug
+    hermes2d-cplx-debug)
+
+add_custom_target(release)
+add_dependencies(release
+    hermes2d-real
+    hermes2d-cplx)
+
 file(GLOB header_files "${CMAKE_CURRENT_SOURCE_DIR}/*.h")
 install(FILES ${header_files} DESTINATION include/hermes2d)
+
