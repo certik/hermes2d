@@ -60,6 +60,18 @@ CMake.vars:
 
 set(WITH_GLUT NO)
 
+
+For development, it is good to say (in global CMake.vars):
+
+	set(DEBUG YES) to compile debug versions
+	set(RELEASE YES) to compile release versions
+
+Then type:
+
+$ make debug    (to build debug versions)
+$ make release  (to build release versions)
+
+
 Install hermes
 --------------
 

@@ -10,6 +10,7 @@ cmake_minimum_required(VERSION 2.6)
 
 # build with debugging symbols
 set(DEBUG NO)
+set(RELEASE YES)
 
 # real/complex version of the library (you can build either of both)
 set(REAL     YES)
@@ -45,16 +46,16 @@ if(DEBUG)
     if(COMPLEX)
         set(HERMES_CPLX_BIN hermes2d-cplx-debug)
     endif(COMPLEX)
-    set(CMAKE_BUILD_TYPE Debug)
-else(DEBUG)
+endif(DEBUG)
+
+if(RELEASE)
     if(REAL)
         set(HERMES_REAL_BIN hermes2d-real)
     endif(REAL)
     if(COMPLEX)
         set(HERMES_CPLX_BIN hermes2d-cplx)
     endif(COMPLEX)
-    set(CMAKE_BUILD_TYPE Release)
-endif(DEBUG)
+endif(RELEASE)
 
 if(NOT WITH_GLUT)
     add_definitions(-DNOGLUT)
