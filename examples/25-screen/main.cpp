@@ -1,6 +1,38 @@
 #include "hermes2d.h"
 #include "solver_umfpack.h"
 
+//
+//  PDE: time-harmonic Maxwell's equations
+//
+//  Known exact solution, see the function exact()
+//
+//  Domain: square domain cut from the midpoint of the left edge to the center (center
+//          point of left edge duplicated)
+//
+//  Meshes: you can either use "screen-quad.mesh" (quadrilateral mesh) or
+//          "screen-tri.mesh" (triangular mesh). See the command mesh.load(...) below
+//
+//  BC: tangential component of solution taken from known exact solution (essential BC),
+//      see function bc_values(...) below
+//
+//  This example has a known exact solution. It describes an electromagnetic wave that hits
+//  a screen under the angle of 45 degrees, causing a singularity at the tip of the screen.
+//  Convergence graphs saved (both exact error and error estimate, and both wrt. dof number
+//  and cpu time). The following problem parameters can be changed easily:
+//
+
+int P_INIT = 1;           // initial polynomial degree in mesh
+double THRESHOLD = 0.5;   // the adaptivity algorithm goes on until THRESHOLD*total_error is processed
+                          // (see adapt_hcurl.cpp for explanation)
+int STRATEGY = 1;         // refinement strategy (0, 1, 2, 3 - see adapt_hcurl.cpp for explanation)
+int H_ONLY = 0;           // if H_ONLY == 0 then full hp-adaptivity takes place, otherwise
+                          // h-adaptivity is used. Use this parameter to check that indeed adaptive
+                          // hp-FEM converges much faster than adaptive h-FEM
+double ERR_STOP = 0.5;    // adaptivity process stops when error wrt. error estimate in H(curl) norm
+                          // is less than this number
+int NDOF_STOP = 40000;    // adaptivity process stops when the number of degrees of freedom grows over
+                          // this limit. This is mainly to prevent h-adaptivity to go on forever.
+
 const double e_0  = 8.8541878176 * 1e-12;
 const double mu_0 = 1.256 * 1e-6;
 const double k = 1.0;
@@ -237,7 +269,7 @@ int main(int argc, char* argv[])
   HcurlSpace space(&mesh, &shapeset);
   space.set_bc_types(bc_types);
   space.set_bc_values(bc_values);
-  space.set_uniform_order(1);
+  space.set_uniform_order(P_INIT);
 
   WeakForm wf(1);
   wf.add_biform(0, 0, bilinear_form, SYM);
@@ -251,19 +283,30 @@ int main(int argc, char* argv[])
   
   GnuplotGraph graph;
   graph.set_captions("Error Convergence for the Screen Problem in H(curl)", "Degrees of Freedom", "Error [%]");
-  graph.add_row("ortho adaptivity", "k", "-", "o");
+  graph.add_row("exact error", "k", "-", "o");
+  graph.add_row("error estimate", "k", "--");
   graph.set_log_y();
+
+  GnuplotGraph graph_cpu;
+  graph_cpu.set_captions("Error Convergence for the Screen Problem in H(curl)", "CPU Time", "Error [%]");
+  graph_cpu.add_row("exact error", "k", "-", "o");
+  graph_cpu.add_row("error estimate", "k", "--");
+  graph_cpu.set_log_y();
 
   UmfpackSolver umfpack;
   Solution sln, rsln;
   
   int it = 0;
   begin_time();
-  while (1)
+  bool done = false;
+  double cpu = 0.0;
+  do
   {
-    printf("\n\n---- it=%d ------------------------------------------------------------------\n\n", it++);
+    printf("\n---- it=%d ------------------------------------------------------------------\n\n", it++);
 
+    // enumerating basis functions
     space.assign_dofs();
+    begin_time();
     
     // coarse problem
     LinSystem sys(&wf, &umfpack);
@@ -271,6 +314,8 @@ int main(int argc, char* argv[])
     sys.set_pss(1, &pss);
     sys.assemble();
     sys.solve(1, &sln);
+
+    cpu += end_time();
     
     // visualization
     RealFilter real(&sln);
@@ -290,22 +335,39 @@ int main(int argc, char* argv[])
 
     ord.show(&space);
 
+    // calculating error wrt. exact solution
     ExactSolution ex(&mesh, exact);
     double error = 100 * hcurl_error(&sln, &ex);
-    info("Exact solution error: %g%%\n", error);
-    graph.add_values(0, space.get_num_dofs(), error);
-    graph.save("convergence.txt");
     
     // fine (reference) problem
+    begin_time();
     RefSystem ref(&sys);
     ref.assemble();
     ref.solve(1, &rsln);
 
+    // calculating error estimate wrt. fine mesh solution
     HcurlOrthoHP hp(1, &space);
-    if (hp.calc_error(&sln, &rsln) * 100 < 0.1) break;
-    hp.adapt(0.4, 1, false);
+    double estim = hp.calc_error(&sln, &rsln) * 100;
+    info("Exact solution error: %g%%", error);
+    info("Error estimate: %g%%", estim);
+
+    // mesh adaptation
+    if (estim < ERR_STOP || sys.get_num_dofs() >= NDOF_STOP) done = true;
+    hp.adapt(THRESHOLD, STRATEGY, H_ONLY);
+
+    // plotting convergence wrt. numer of dofs
+    graph.add_values(0, space.get_num_dofs(), error);
+    graph.add_values(1, space.get_num_dofs(), estim);
+    graph.save("conv_dof.gp");
+
+    // plotting convergence wrt. numer of dofs
+    cpu += end_time();
+    graph_cpu.add_values(0, cpu, error);
+    graph_cpu.add_values(1, cpu, estim);
+    graph_cpu.save("conv_cpu.gp");
   }
-  verbose("\nTotal running time: %g sec", end_time());
+  while (!done);
+  verbose("\nTotal run time: %g sec", end_time());
  
   View::wait();
   return 0;
