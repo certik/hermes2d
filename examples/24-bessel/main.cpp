@@ -15,15 +15,16 @@
 //      impedance boundary condition on rest of boundary (natural BC)
 //
 //  This example comes with an exact solution, and it describes the diffraction
-//  of an electromagnetic wave from a re-entrant corner. The following problem
-//  parameters can be changed easily:
+//  of an electromagnetic wave from a re-entrant corner. Convergence graphs saved
+//  (both exact error and error estimate, and both wrt. dof number and cpu time).
+//  The following problem parameters can be changed easily:
 //
 
 int P_INIT = 2;           // initial polynomial degree in mesh
 double THRESHOLD = 0.3;   // the adaptivity algorithm goes on until THRESHOLD*total_error is processed
                           // (see adapt_hcurl.cpp for explanation)
 int STRATEGY = 1;         // refinement strategy (0, 1, 2, 3 - see adapt_hcurl.cpp for explanation)
-int H_ONLY = 1;           // if H_ONLY == 0 then full hp-adaptivity takes place, otherwise
+int H_ONLY = 0;           // if H_ONLY == 0 then full hp-adaptivity takes place, otherwise
                           // h-adaptivity is used. Use this parameter to check that indeed adaptive
                           // hp-FEM converges much faster than adaptive h-FEM
 double ERR_STOP = 0.01;   // adaptivity process stops when error wrt. exact solution in H1 norm
@@ -34,11 +35,10 @@ const double mu_r   = 1.0;
 const double kappa  = 1.0;
 const double lambda = 1.0;
 
+//// exact solution ////////////////////////////////////////////////////////////////////////////////
+
 // Bessel function of the first kind, order n, defined in bessel.cpp
 double jv(double n, double x);
-
-
-//// exact solution ////////////////////////////////////////////////////////////////////////////////
 
 static void exact_sol_val(double x, double y, scalar& e0, scalar& e1)
 {
@@ -183,8 +183,15 @@ int main(int argc, char* argv[])
   
   GnuplotGraph graph;
   graph.set_captions("Error Convergence for the Bessel Problem in H(curl)", "Degrees of Freedom", "Error [%]");
-  graph.add_row("ortho adaptivity", "k", "-", "o");
+  graph.add_row("exact error", "k", "-", "o");
+  graph.add_row("error estimate", "k", "--");
   graph.set_log_y();
+
+  GnuplotGraph graph_cpu;
+  graph_cpu.set_captions("Error Convergence for the Bessel Problem in H(curl)", "CPU Time", "Error [%]");
+  graph_cpu.add_row("exact error", "k", "-", "o");
+  graph_cpu.add_row("error estimate", "k", "--");
+  graph_cpu.set_log_y();
 
   OrderView  ord("Polynomial Orders", 800, 100, 700, 600); 
   VectorView vecview("Real part of Electric Field - VectorView", 0, 100, 700, 600);
@@ -194,11 +201,16 @@ int main(int argc, char* argv[])
 
   int it = 0;
   begin_time();
-  while (1)
+  bool done = false;
+   double cpu = 0.0;
+  do
   {
-    printf("\n\n---- it=%d -----------------------------------------------------------\n\n", it++);
+    printf("\n---- it=%d -----------------------------------------------------------\n\n", it++);
 
+    // enumerating basis functions
     space.assign_dofs();
+
+    begin_time();
     ord.show(&space);
     
     // coarse problem
@@ -208,12 +220,11 @@ int main(int argc, char* argv[])
     sys.assemble();
     sys.solve(1, &sln);
 
-    // get the exact error of the solution
+    cpu += end_time();
+
+    // calculating error wrt. exact solution
     ExactSolution ex(&mesh, exact);
     double error = 100 * hcurl_error(&sln, &ex);
-    info("\nExact solution error: %g%%\n", error);
-    graph.add_values(0, space.get_num_dofs(), error);
-    graph.save("convergence.gp");
     
     // show real part of the solution
     RealFilter real(&sln);
@@ -221,18 +232,33 @@ int main(int argc, char* argv[])
     vecview.show(&real, EPS_HIGH);
     
     // fine (reference) problem
+    begin_time();
     RefSystem ref(&sys);
     ref.assemble();
     ref.solve(1, &rsln);
 
+    // calculating error estimate wrt. fine mesh solution
     HcurlOrthoHP hp(1, &space);
     double estim = hp.calc_error(&sln, &rsln) * 100;
-    info("\nError estimate: %g%%", estim);
-    if (estim < ERR_STOP || sys.get_num_dofs() >= NDOF_STOP) break;
+    info("Exact solution error: %g%%", error);
+    info("Error estimate: %g%%", estim);
+    if (estim < ERR_STOP || sys.get_num_dofs() >= NDOF_STOP) done=true;
     
-    // adapt the mesh&space and repeat
+    // mesh adaptation
     hp.adapt(THRESHOLD, STRATEGY, H_ONLY);
+
+    // plotting convergence wrt. numer of dofs
+    graph.add_values(0, space.get_num_dofs(), error);
+    graph.add_values(1, space.get_num_dofs(), estim);
+    graph.save("conv_dof.gp");
+
+    // plotting convergence wrt. numer of dofs
+    cpu += end_time();
+    graph_cpu.add_values(0, cpu, error);
+    graph_cpu.add_values(1, cpu, estim);
+    graph_cpu.save("conv_cpu.gp");
   }
+  while (!done);
   verbose("\nTotal running time: %g sec", end_time());
 
   View::wait();
