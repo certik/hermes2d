@@ -27,7 +27,7 @@
 ///
 /// H1OrthoHP is a fast hp-adaptivity module for continuous elements.
 /// Given a reference solution, it provides functions to calculate H1 or
-/// energy error estimates, acts as a container for the calculated errors 
+/// energy error estimates, acts as a container for the calculated errors
 /// and contains the "ortho" hp-adaptivty algorithm based on fast
 /// projections to an orthonormal set of functions.
 ///
@@ -36,7 +36,7 @@ class H1OrthoHP
 public:
 
   /// Initializes the class. 'num' is the number of mesh-space pairs to be adapted.
-  /// After 'num', exactly that many space pointers must follow. 
+  /// After 'num', exactly that many space pointers must follow.
   H1OrthoHP(int num, ...);
   ~H1OrthoHP();
 
@@ -89,8 +89,8 @@ public:
 
 
   /// Selects elements to refine (based on results from calc_error() or calc_energy_error())
-  /// and performs their optimal hp-refinement. 
-  bool adapt(double thr, int strat = 0, bool h_only = false, bool iso_only = false, 
+  /// and performs their optimal hp-refinement.
+  bool adapt(double thr, int strat = 0, bool h_only = false, bool iso_only = false, int regularize = -1,
              int max_order = -1, bool same_orders = false, double to_be_processed = 0.0);
 
   /// Unrefines the elements with the smallest error
@@ -98,14 +98,14 @@ public:
 
   /// Internal. Used by adapt(). Can be utilized in specialized adaptivity
   /// procedures, for which adapt() is not sufficient.
-  static void get_optimal_refinement(Element* e, int order, Solution* rsln, int& split, int p[4], int q[4], 
+  static void get_optimal_refinement(Element* e, int order, Solution* rsln, int& split, int p[4], int q[4],
                                      bool h_only = false, bool iso_only = false, int max_order = -1);
 
   /// Internal. Functions to obtain errors of individual elements.
   double get_element_error(int component, int id) const { return errors[component][id]; }
   int2*  get_sorted_elements() const { return esort; }
   int    get_total_active_elements() const { return nact; }
-  
+
 
 protected:
 
@@ -122,7 +122,7 @@ protected:
   double  total_err;
   int2* esort;
   int   nact;
-  
+
   // orthonormal basis tables
   static double3** obase[2][9];
   static int  basecnt[2][11];

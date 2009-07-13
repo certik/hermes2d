@@ -526,7 +526,8 @@ void H1OrthoHP::get_optimal_refinement(Element* e, int order, Solution* rsln, in
 
 //// adapt /////////////////////////////////////////////////////////////////////////////////////////
 
-bool H1OrthoHP::adapt(double thr, int strat, bool h_only, bool iso_only, int max_order, bool same_orders, double to_be_processed)
+bool H1OrthoHP::adapt(double thr, int strat, bool h_only, bool iso_only, int regularize,
+                      int max_order, bool same_orders, double to_be_processed)
 {
 
   if (!have_errors)
@@ -712,6 +713,23 @@ bool H1OrthoHP::adapt(double thr, int strat, bool h_only, bool iso_only, int max
           }
         spaces[i]->set_element_order(e->id, current);
       }
+    }
+  }
+
+  // mesh regularization
+  if (regularize >= 0)
+  {
+    if (regularize == 0)
+    {
+      regularize = 1;
+      warn("Total mesh regularization is not supported in adaptivity. 1-irregular mesh is used instead.");
+    }
+    for (i = 0; i < num; i++)
+    {
+      int* parents;
+      parents = mesh[i]->regularize(regularize);
+      spaces[i]->distribute_orders(mesh[i], parents);
+      delete [] parents;
     }
   }
 
