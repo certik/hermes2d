@@ -11,8 +11,86 @@ FN_ALL = c_FN_ALL
 EPS_NORMAL = c_EPS_NORMAL
 EPS_HIGH = c_EPS_HIGH
 
+cdef class Node:
+    cdef c_Node *thisptr
+
+    @property
+    def id(self):
+        return self.thisptr.id
+
+    @property
+    def ref(self):
+        return self.thisptr.ref
+
+    @property
+    def type(self):
+        return self.thisptr.type
+
+    @property
+    def bnd(self):
+        return self.thisptr.bnd
+
+    @property
+    def used(self):
+        return self.thisptr.used == 1
+
+    def __str__(self):
+        return "Node %d: coord=%r, used=%r" % (self.id, self.coord, self.used)
+
+    @property
+    def coord(self):
+        return self.thisptr.x, self.thisptr.y
+
 cdef class Element:
     cdef c_Element *thisptr
+
+    @property
+    def id(self):
+        return self.thisptr.id
+
+    @property
+    def nvert(self):
+        return self.thisptr.nvert
+
+    @property
+    def active(self):
+        return self.thisptr.active == 1
+
+    @property
+    def used(self):
+        return self.thisptr.used == 1
+
+    @property
+    def marker(self):
+        return self.thisptr.marker
+
+    @property
+    def nodes_vertex(self):
+        return [self.get_vertex_node(i) for i in range(self.nvert)]
+
+    @property
+    def nodes_edge(self):
+        return [self.get_edge_node(i) for i in range(self.nvert)]
+
+    def get_vertex_node(self, int id):
+        cdef Node n = Node()
+        n.thisptr = self.thisptr.vn[id]
+        return n
+
+    def get_edge_node(self, int id):
+        cdef Node n = Node()
+        n.thisptr = self.thisptr.en[id]
+        return n
+
+    def get_son_element(self, int id):
+        cdef Element e = Element()
+        e.thisptr = self.thisptr.sons[id]
+        return e
+
+    def __str__(self):
+        nodes_id = [node.id for node in self.nodes_vertex]
+        return "Element %d: nodes_id=%r, active=%r, marker=%d, used=%r" % \
+                (self.id, nodes_id, self.active, self.marker, self.used)
 
     def get_diameter(self):
         return self.thisptr.get_diameter()
@@ -37,6 +115,27 @@ cdef class Mesh:
 
     def load_str(self, char* mesh):
         self.thisptr.load_str(mesh)
+
+    @property
+    def num_elements(self):
+        return self.thisptr.get_num_elements()
+
+    @property
+    def num_base_elements(self):
+        return self.thisptr.get_num_base_elements()
+
+    @property
+    def num_active_elements(self):
+        return self.thisptr.get_num_active_elements()
+
+    @property
+    def max_element_id(self):
+        return self.thisptr.get_max_element_id()
+
+    def __str__(self):
+        return "Mesh with %d elements: active=%d, base=%d, max_id=%d" % \
+                (self.num_elements, self.num_active_elements,
+                        self.num_base_elements, self.max_element_id)
 
     def create(self, nodes, elements, boundary, nurbs):
         """
