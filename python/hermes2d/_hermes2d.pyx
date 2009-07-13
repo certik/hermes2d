@@ -137,6 +137,18 @@ cdef class Mesh:
                 (self.num_elements, self.num_active_elements,
                         self.num_base_elements, self.max_element_id)
 
+    def load_hermes(self, char* filename):
+        """
+        Loads a mesh (in the hermes format) from a file.
+
+        This uses a pyparsing reader. If you want to use the C++ flex reader,
+        use load().
+        """
+        from mesh import read_hermes_format
+        nodes, elements, boundary, nurbs = \
+                read_hermes_format(filename)
+        self.create(nodes, elements, boundary, nurbs)
+
     def create(self, nodes, elements, boundary, nurbs):
         """
         Creates a mesh from a list of nodes, elements, boundary and nurbs.
