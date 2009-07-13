@@ -63,8 +63,25 @@ cdef extern from "hermes2d.h":
     ctypedef double double3[3]
     ctypedef int int3[3]
 
+    cdef struct c_Node "Node":
+        int id
+        unsigned ref
+        unsigned type
+        unsigned bnd
+        unsigned used
+        double x, y
+
     cdef struct c_Element "Element":
+        int id
+        unsigned nvert
+        unsigned active
+        unsigned used
         int marker
+        int userdata
+        int iro_cache
+        c_Node* vn[4]
+        c_Node* en[4]
+        c_Element* sons[4]
         double get_area()
         double get_diameter()
 
@@ -77,6 +94,11 @@ cdef extern from "hermes2d.h":
         void refine_all_elements()
         void refine_towards_boundary(int marker, int depth)
         c_Element* get_element(int id)
+        int get_num_elements()
+        int get_num_base_elements()
+        int get_num_active_elements()
+        int get_max_element_id()
+
     c_Mesh *new_Mesh "new Mesh" ()
 
     ctypedef struct c_H1Shapeset "H1Shapeset"
