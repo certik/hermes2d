@@ -19,23 +19,31 @@
 // using the MULTI parameter.
 // 
 
-const bool MULTI = true;         // true = use multi-mesh, false = use single-mesh
-                                 // Note: in the single mesh option, the meshes are
-                                 // forced to be geometrically the same but the 
-                                 // polynomial degrees can still vary 
-int P_INIT_TEMP = 2;             // initial polynomial degrees in temperature mesh
-int P_INIT_DISP = 2;             // initial polynomial degrees for displacement meshes
-double ERR_STOP = 0.02;          // stopping criterion for hp-adaptivity
-                                 // (rel. error tolerance between the reference 
-                                 // and coarse solution in percent)
-double THRESHOLD_MULTI = 0.35;   // error threshold for element refinement (multi-mesh)
-double THRESHOLD_SINGLE = 0.7;   // error threshold for element refinement (single-mesh)
-int STRATEGY = 0;                // refinement strategy (0, 1, 2, 3 - see adapt_h1.cpp for explanation)
-int H_ONLY = 0;                  // if H_ONLY == 0 then full hp-adaptivity takes place, otherwise
-                                 // h-adaptivity is used. Use this parameter to check that indeed adaptive 
-                                 // hp-FEM converges much faster than adaptive h-FEM
-int NDOF_STOP = 40000;           // adaptivity process stops when the number of degrees of freedom grows over 
-                                 // this limit. This is mainly to prevent h-adaptivity to go on forever.  
+const bool MULTI = true;               // true = use multi-mesh, false = use single-mesh
+                                       // Note: in the single mesh option, the meshes are
+                                       // forced to be geometrically the same but the
+                                       // polynomial degrees can still vary
+const bool SAME_ORDERS = false;        // true = when single mesh is used it forces same pol. orders for components
+                                       // when multi mesh used, parameter is ignored
+const int MESH_REGULARITY = -1;        // specifies level of hanging nodes
+                                       // -1 is arbitrary level hangning nodes
+                                       // 1, 2, 3,... is 1-irregular mesh, 2-irregular mesh,...
+                                       // total regularization (0) is not supported in adaptivity
+const int P_INIT_TEMP = 2;             // initial polynomial degrees in temperature mesh
+const int P_INIT_DISP = 2;             // initial polynomial degrees for displacement meshes
+const double ERR_STOP = 0.02;          // stopping criterion for hp-adaptivity
+                                       // (rel. error tolerance between the reference
+                                       // and coarse solution in percent)
+const double THRESHOLD = 0.3;          // error threshold for element refinement (multi-mesh)
+const int STRATEGY = 0;                // refinement strategy (0, 1, 2, 3 - see adapt_h1.cpp for explanation)
+const bool H_ONLY = false;             // if H_ONLY == false then full hp-adaptivity takes place, otherwise
+                                       // h-adaptivity is used. Use this parameter to check that indeed adaptive
+                                       // hp-FEM converges much faster than adaptive h-FEM
+const bool ISO_ONLY = false;           // when ISO_ONLY = true, only isometric refinements are done,
+                                       // otherwise anisotropic refinements can be taken into account
+const int MAX_ORDER = 6;               // maximal order used during adaptivity
+const int NDOF_STOP = 40000;           // adaptivity process stops when the number of degrees of freedom grows over
+                                       // this limit. This is mainly to prevent h-adaptivity to go on forever.
 	
 double HEAT_SRC = 10000.0;       // heat source in the material (caused by induction heating)
 double TEMP_INNER = 50; 
@@ -126,7 +134,7 @@ int main(int argc, char* argv[])
 {
   // load the mesh file
   Mesh xmesh, ymesh, tmesh;
-  xmesh.load("domain_round_3.mesh"); // mester mesh
+  xmesh.load("domain_round_3.mesh"); // master mesh
   ymesh.copy(&xmesh);                // ydisp will share master mesh with xdisp
   tmesh.copy(&xmesh);                // temp will share master mesh with xdisp
 
@@ -233,7 +241,7 @@ int main(int argc, char* argv[])
     graph.add_values(0, xrsln.get_num_dofs() + yrsln.get_num_dofs() + trsln.get_num_dofs(), error);
     graph.save(MULTI ? "conv_m.gp" : "conv_s.gp");
     if (error < ERR_STOP || xdisp.get_num_dofs() + ydisp.get_num_dofs() + temp.get_num_dofs() >= NDOF_STOP) done = true;
-    else hp.adapt(MULTI ? THRESHOLD_MULTI : THRESHOLD_SINGLE, STRATEGY, H_ONLY, false, 6);
+    else hp.adapt(THRESHOLD, STRATEGY, H_ONLY, ISO_ONLY, MESH_REGULARITY, MAX_ORDER, SAME_ORDERS);
 
     cpu += end_time();
     graph_cpu.add_values(0, cpu, error);
