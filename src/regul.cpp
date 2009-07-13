@@ -40,80 +40,80 @@ void Mesh::regularize_triangle(Element* e)
   int i, j, k, k1, k2;
 
   Element* t[3];
-  
+
   int eo[3] = { get_edge_degree(e->vn[0], e->vn[1]),
                 get_edge_degree(e->vn[1], e->vn[2]),
                 get_edge_degree(e->vn[2], e->vn[0]) };
-  
+
   int sum = eo[0] + eo[1] + eo[2];
   if (sum == 3)
   {
     refine_element(e->id);
   }
-  else if (sum > 0)  
+  else if (sum > 0)
   {
     // remember the markers of the edge nodes
     int bnd[3] = { e->en[0]->bnd,    e->en[1]->bnd,    e->en[2]->bnd    };
     int mrk[3] = { e->en[0]->marker, e->en[1]->marker, e->en[2]->marker };
-  
+
     if (sum == 1)
-    {          
-      Node* v4;   
+    {
+      Node* v4;
       for(i = 0; i < 3; i++)
         if (eo[i] == 1) k = i;
       k1 = e->next_vert(k);
       k2 = e->prev_vert(k);
       v4 = peek_vertex_node(e->vn[k]->id, e->vn[k1]->id);
-      
+
       e->active = 0;
       nactive += 1;
       e->unref_all_nodes(this);
-  
+
       t[0] = create_triangle(e->marker, e->vn[k], v4, e->vn[k2], NULL);
       t[1] = create_triangle(e->marker, v4, e->vn[k1], e->vn[k2], NULL);
-          
+
       // set correct boundary status and markers for the new nodes
-      t[0]->en[2]->bnd = bnd[k2];  
-      t[1]->en[1]->bnd = bnd[k1];       
+      t[0]->en[2]->bnd = bnd[k2];
+      t[1]->en[1]->bnd = bnd[k1];
       t[0]->en[2]->marker = mrk[k2];
       t[1]->en[1]->marker = mrk[k1];
-      
+
       e->sons[0] = t[0];
       e->sons[1] = t[1];
       e->sons[2] = NULL;
       e->sons[3] = NULL;
     }
     else if (sum == 2)
-    {          
-      Node *v4, *v5;   
+    {
+      Node *v4, *v5;
       for(i = 0; i < 3; i++)
         if (eo[i] == 0) k = i;
       k1 = e->next_vert(k);
       k2 = e->prev_vert(k);
       v4 = peek_vertex_node(e->vn[k1]->id, e->vn[k2]->id);
       v5 = peek_vertex_node(e->vn[k2]->id, e->vn[k]->id);
-      
+
       e->active = 0;
       nactive += 2;
       e->unref_all_nodes(this);
-  
+
       t[0] = create_triangle(e->marker, e->vn[k], e->vn[k1], v4,  NULL);
       t[1] = create_triangle(e->marker, v4, v5, e->vn[k], NULL);
       t[2] = create_triangle(e->marker, v4, e->vn[k2], v5, NULL);
-          
+
       // set correct boundary status and markers for the new nodes
-      t[0]->en[0]->bnd = bnd[k];  
+      t[0]->en[0]->bnd = bnd[k];
       t[0]->en[0]->marker = mrk[k];
-      
+
       e->sons[0] = t[0];
       e->sons[1] = t[1];
       e->sons[2] = t[2];
       e->sons[3] = NULL;
     }
-    
+
   }
-  
-  // store id of parent 
+
+  // store id of parent
   if (!e->active)
   {
     for (i = 0; i < 4; i++)
@@ -125,50 +125,50 @@ void Mesh::regularize_triangle(Element* e)
 void Mesh::regularize_quad(Element* e)
 {
   int i, j, k, k1, k2, k3, n, m;
- Node *v4, *v5;   
+ Node *v4, *v5;
   Element* t[4];
-  
+
   int eo[4] = { get_edge_degree(e->vn[0], e->vn[1]),
                 get_edge_degree(e->vn[1], e->vn[2]),
                 get_edge_degree(e->vn[2], e->vn[3]),
                 get_edge_degree(e->vn[3], e->vn[0]) };
-  
+
   int sum = eo[0] + eo[1] + eo[2] + eo[3];
   if (sum == 4)
   {
     refine_element(e->id);
   }
-  else if (sum > 0)  
+  else if (sum > 0)
   {
     // remember the markers of the edge nodes
     int bnd[4] = { e->en[0]->bnd,    e->en[1]->bnd,    e->en[2]->bnd  ,  e->en[3]->bnd  };
     int mrk[4] = { e->en[0]->marker, e->en[1]->marker, e->en[2]->marker, e->en[3]->marker };
-  
+
     if (sum == 1)
-    {          
+    {
       for(i = 0; i < 4; i++)
         if (eo[i] == 1) k = i;
       k1 = e->next_vert(k);
       k2 = e->next_vert(k1);
       k3 = e->prev_vert(k);
       v4 = peek_vertex_node(e->vn[k]->id, e->vn[k1]->id);
-      
+
       e->active = 0;
       nactive += 2;
       e->unref_all_nodes(this);
-  
+
       t[0] = create_triangle(e->marker, e->vn[k], v4, e->vn[k3], NULL);
       t[1] = create_triangle(e->marker, v4, e->vn[k1], e->vn[k2], NULL);
       t[2] = create_triangle(e->marker, v4, e->vn[k2], e->vn[k3], NULL);
-          
+
       // set correct boundary status and markers for the new nodes
-      t[0]->en[2]->bnd = bnd[k3];  
-      t[1]->en[1]->bnd = bnd[k1];  
-      t[2]->en[1]->bnd = bnd[k2];     
-      t[0]->en[2]->marker = mrk[k3];  
-      t[1]->en[1]->marker = mrk[k1];  
-      t[2]->en[1]->marker = mrk[k2];     
-      
+      t[0]->en[2]->bnd = bnd[k3];
+      t[1]->en[1]->bnd = bnd[k1];
+      t[2]->en[1]->bnd = bnd[k2];
+      t[0]->en[2]->marker = mrk[k3];
+      t[1]->en[1]->marker = mrk[k1];
+      t[2]->en[1]->marker = mrk[k2];
+
       e->sons[0] = t[0];
       e->sons[1] = t[1];
       e->sons[2] = t[2];
@@ -188,21 +188,21 @@ void Mesh::regularize_quad(Element* e)
         k3 = e->prev_vert(k);
         v4 = peek_vertex_node(e->vn[k]->id, e->vn[k1]->id);
         v5 = peek_vertex_node(e->vn[k1]->id, e->vn[k2]->id);
-        
+
         e->active = 0;
         nactive += 3;
         e->unref_all_nodes(this);
-    
+
         t[0] = create_triangle(e->marker, e->vn[k1], v5, v4, NULL);
         t[1] = create_triangle(e->marker, v5, e->vn[k2], e->vn[k3], NULL);
         t[2] = create_triangle(e->marker, v4, v5, e->vn[k3], NULL);
         t[3] = create_triangle(e->marker, v4, e->vn[k3], e->vn[k], NULL);
-        
+
         t[1]->en[1]->bnd = bnd[k2];
         t[3]->en[1]->bnd = bnd[k3];
         t[1]->en[1]->marker = mrk[k2];
         t[3]->en[1]->marker = mrk[k3];
-        
+
         e->sons[0] = t[0];
         e->sons[1] = t[1];
         e->sons[2] = t[2];
@@ -211,29 +211,29 @@ void Mesh::regularize_quad(Element* e)
     }
     else //sum = 3
     {
-       if (eo[0] == 1 && eo[2] == 1) 
+       if (eo[0] == 1 && eo[2] == 1)
        {
          refine_element(e->id, 2);
          for (i = 0; i < 4; i++)
            assign_parent(e, i);
          n = 2; m = 3;
-       }  
-       else if (eo[1] == 1 && eo[3] == 1) 
+       }
+       else if (eo[1] == 1 && eo[3] == 1)
        {
          refine_element(e->id, 1);
          for (i = 0; i < 4; i++)
            assign_parent(e, i);
          n = 0; m = 1;
-       }  
-       
+       }
+
        regularize_quad(e->sons[n]);
        regularize_quad(e->sons[m]);
-   
+
     }
-    
+
   }
-  
-  // store id of parent 
+
+  // store id of parent
   if (!e->active)
   {
     for (i = 0; i < 4; i++)
@@ -250,7 +250,7 @@ void Mesh::flatten()
     if (node->elem[0] != NULL) node->elem[0] = (Element*) (node->elem[0]->id + 1);
     if (node->elem[1] != NULL) node->elem[1] = (Element*) (node->elem[1]->id + 1);
   }
-  
+
   int idx[elements.get_size()+1];
   Array<Element> new_elements;
   Element* e;
@@ -271,21 +271,21 @@ void Mesh::flatten()
   {
     if (node->elem[0] != NULL) node->elem[0] = &(elements[idx[((int) (long) node->elem[0]) - 1]]);
     if (node->elem[1] != NULL) node->elem[1] = &(elements[idx[((int) (long) node->elem[1]) - 1]]);
-  }  
+  }
 }
 
 
 void Mesh::assign_parent(Element* e, int i)
 {
-  if (e->sons[i] != NULL) 
+  if (e->sons[i] != NULL)
   {
-    if (e->sons[i]->id >= parents_size)  
+    if (e->sons[i]->id >= parents_size)
     {
-      parents_size = 2 * parents_size;  
+      parents_size = 2 * parents_size;
       parents = (int*) realloc(parents, sizeof(int) * parents_size);
     }
-  
-    parents[e->sons[i]->id] = parents[e->id];         
+
+    parents[e->sons[i]->id] = parents[e->id];
   }
 }
 
@@ -297,40 +297,57 @@ int* Mesh::regularize(int n)
   bool reg = false;
   int iso = 0;
   Element* e;
-  
-  if (n < 1) 
+
+  if (n < 1)
   {
     n = 1;
     reg = true;
   }
-  
+
   parents_size = 2*get_max_element_id();
-  parents = (int*) malloc(sizeof(int) * parents_size); 
+  parents = (int*) malloc(sizeof(int) * parents_size);
   for_all_active_elements(e, this)
     parents[e->id] = e->id;
-  
+
   do
   {
     ok = true;
     for_all_active_elements(e, this)
     {
-      for(i = 0; i < e->nvert; i++)
+      int iso = -1;
+      if (e->is_triangle())
       {
-        j = e->next_vert(i);
-        
-        if (e->nvert == 4)
+        for(i = 0; i < e->nvert; i++)
         {
-          if (i % 2) iso = 1;
-          else iso = 2;
+          j = e->next_vert(i);
+          if (get_edge_degree(e->vn[i], e->vn[j]) > n)
+            { iso = 0; ok = false; break; }
         }
-        if (get_edge_degree(e->vn[i], e->vn[j]) > n)
+      }
+      else
+      {
+        if (   ((get_edge_degree(e->vn[0], e->vn[1]) > n)  || (get_edge_degree(e->vn[2], e->vn[3]) > n))
+            && (get_edge_degree(e->vn[1], e->vn[2]) <= n) && (get_edge_degree(e->vn[3], e->vn[0]) <= n) )
+          { iso = 2; ok = false; }
+        else if (    (get_edge_degree(e->vn[0], e->vn[1]) <= n)  && (get_edge_degree(e->vn[2], e->vn[3]) <= n)
+                  && ((get_edge_degree(e->vn[1], e->vn[2]) > n) || (get_edge_degree(e->vn[3], e->vn[0]) > n)) )
+          { iso = 1; ok = false; }
+        else
         {
-          refine_element(e->id, /*iso*/ 0);
-          for (i = 0; i < 4; i++) 
-            assign_parent(e, i);
-          ok = false;
-          break;
+          for(i = 0; i < e->nvert; i++)
+          {
+            j = e->next_vert(i);
+            if (get_edge_degree(e->vn[i], e->vn[j]) > n)
+              { iso = 0; ok = false; break; }
+          }
         }
+      }
+
+      if (iso >= 0)
+      {
+        refine_element(e->id, iso);
+        for (i = 0; i < 4; i++)
+          assign_parent(e, i);
       }
     }
   }
@@ -342,7 +359,7 @@ int* Mesh::regularize(int n)
     for_all_active_elements(e,this)
     {
       if (e->is_curved()) error("Regularization of curved elements is not supported.");
-    
+
       if (e->is_triangle())
         regularize_triangle(e);
       else
@@ -350,7 +367,7 @@ int* Mesh::regularize(int n)
     }
     flatten();
   }
-  
+
   return parents;
-  
+
 }
