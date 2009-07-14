@@ -286,5 +286,10 @@ class MeshView(object):
                     pylab.savefig(filename)
                 else:
                     pylab.show()
+        elif lib == "pyglet":
+            from hermes2d import Solution
+            sln = Solution()
+            sln.set_zero(mesh)
+            plot_sln_pyglet(sln)
         else:
             raise NotImplementedError("Unknown library '%s'" % lib)
