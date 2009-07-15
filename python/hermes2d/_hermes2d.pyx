@@ -1038,3 +1038,8 @@ def set_warn_integration(warn_integration):
 #    finish_glut_main_loop(False)
 
 init_hermes2d_wrappers()
+
+cdef api void set_trace(int i):
+    print "a number was passed in:", i
+    import run
+    run.run()
