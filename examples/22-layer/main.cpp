@@ -1,7 +1,6 @@
 #include "hermes2d.h"
 #include "solver_umfpack.h"
 
-// 
 //  PDE: -Laplace u = 0
 //
 //  Known exact solution, see functions fn() and fndd() 
@@ -10,23 +9,29 @@
 //
 //  BC:  Dirichlet, given by exact solution
 //
-//  In addition to the L-shape domain problem, this is another example that allows you to compare 
-//  h- and hp-adaptivity from the point of view of both CPU time requirements and discrete problem 
-//  size, look at the quality of the a-posteriori error estimator used by Hermes (exact error is also)
-//  provided, etc. The following problem parameters can be changed easily:
-//
+//  This is another example that allows you to compare h- and hp-adaptivity from the point of view
+//  of both CPU time requirements and discrete problem size, look at the quality of the a-posteriori
+//  error estimator used by Hermes (exact error is also provided), etc. We also suggest to change
+//  the parameter MESH_REGULARITY to see the influence of hanging nodes on the adaptive process.
+//  The following problem parameters can be changed easily:
 
-int P_INIT = 1;           // initial polynomial degree in mesh
-double THRESHOLD = 0.3;   // the adaptivity algorithm goes on until THRESHOLD*total_error is processed
-                          // (see adapt_h1.cpp for explanation)
-int STRATEGY = 0;         // refinement strategy (0, 1, 2, 3 - see adapt_h1.cpp for explanation)
-int H_ONLY = 0;           // if H_ONLY == 0 then full hp-adaptivity takes place, otherwise
-                          // h-adaptivity is used. Use this parameter to check that indeed adaptive 
-                          // hp-FEM converges much faster than adaptive h-FEM
-double ERR_STOP = 0.01;  // adaptivity process stops when error wrt. exact solution in H1 norm 
-                          // is less than this number 
-int NDOF_STOP = 40000;    // adaptivity process stops when the number of degrees of freedom grows over 
-                          // this limit. This is mainly to prevent h-adaptivity to go on forever.  
+const int P_INIT = 1;           // initial polynomial degree in mesh
+const double THRESHOLD = 0.3;   // the adaptivity algorithm goes on until THRESHOLD*total_error is processed
+                                // (see adapt_h1.cpp for explanation)
+const int STRATEGY = 0;         // refinement strategy (0, 1, 2, 3 - see adapt_h1.cpp for explanation)
+const bool H_ONLY = false;      // if H_ONLY == false then full hp-adaptivity takes place, otherwise
+                                // h-adaptivity is used. Use this parameter to check that indeed adaptive
+                                // hp-FEM converges much faster than adaptive h-FEM
+const bool ISO_ONLY = false;    // when ISO_ONLY = true, only isotropic refinements are done,
+                                // otherwise also anisotropic refinements are allowed
+const int MESH_REGULARITY = -1; // specifies maximum allowed level of hanging nodes
+                                // -1 ... arbitrary level hangning nodes
+                                // 1, 2, 3,... means 1-irregular mesh, 2-irregular mesh, etc.
+                                // total regularization (0) is not supported in adaptivity
+const double ERR_STOP = 0.01;   // adaptivity process stops when error wrt. exact solution in H1 norm
+                                // is less than this number
+const int NDOF_STOP = 40000;    // adaptivity process stops when the number of degrees of freedom grows over
+                                // this limit. This is mainly to prevent h-adaptivity to go on forever.
 
 static double fn(double x, double y)
 {
@@ -41,7 +46,6 @@ static double fndd(double x, double y, double& dx, double& dy)
   dy = 60 * (y+0.25) / u;
   return fn(x, y);
 }
-
 
 scalar bc_values(int marker, double x, double y)
 {  
@@ -64,7 +68,6 @@ scalar linear_form(RealFunction* fv, RefMap* rv)
 {
   return -int_F_v(rhs, fv, rv);
 }
-
 
 int main(int argc, char* argv[])
 {
@@ -93,47 +96,71 @@ int main(int argc, char* argv[])
   graph.add_row("exact error", "k", "-", "o");
   graph.add_row("error estimate", "k", "--");
 
+  GnuplotGraph graph_cpu;
+  graph_cpu.set_captions("Error Convergence for the Inner Layer Problem", "CPU Time", "Error Estimate [%]");
+  graph_cpu.add_row("exact error", "k", "-", "o");
+  graph_cpu.add_row("error estimate", "k", "--");
+  graph_cpu.set_log_y();
+
   Solution sln, rsln;
   UmfpackSolver umfpack;
 
   int it = 1;
-  begin_time();
-  while (1)
+  bool done = false;
+  double cpu = 0.0;
+  do
   {
     info("\n---- it=%d ------------------------------------------------------------------\n", it++);
+    begin_time();
 
+    // enumerating basis functions
     space.assign_dofs();
     
+    // coarse problem
     LinSystem ls(&wf, &umfpack);
     ls.set_spaces(1, &space);
     ls.set_pss(1, &pss);
     ls.assemble();
     ls.solve(1, &sln);
     
+    cpu += end_time();
+
+    // view the solution
     sview.show(&sln);
     oview.show(&space);
 
+    // fine mesh (reference) problem
+    begin_time();
     RefSystem rs(&ls);
     rs.assemble();
     rs.solve(1, &rsln);
 
+    // calculate error wrt. exact solution
     ExactSolution exact(&mesh, fndd);
     double error = h1_error(&sln, &exact) * 100;
     info("\nExact solution error: %g%%", error);
 
     H1OrthoHP hp(1, &space);
-    double estim = hp.calc_error(&sln, &rsln) * 100;
-    info("Estimate of error: %g%%", estim);
+    double err_est = hp.calc_error(&sln, &rsln) * 100;
+    info("Estimate of error: %g%%", err_est);
     
-    graph.add_values(0, space.get_num_dofs(), error);
-    graph.add_values(1, space.get_num_dofs(), estim);
-    graph.save("convergence.gp");
-    
-    if (error < ERR_STOP || ls.get_num_dofs() >= NDOF_STOP) break;
-    hp.adapt(THRESHOLD, STRATEGY, H_ONLY);
-  }
+    if (err_est < ERR_STOP || ls.get_num_dofs() >= NDOF_STOP) done = true;
+    else hp.adapt(THRESHOLD, STRATEGY, H_ONLY, ISO_ONLY, MESH_REGULARITY);
+    cpu += end_time();
 
-  verbose("\nTotal run time: %g sec", end_time());
+    // plotting convergence wrt. number of dofs
+    graph.add_values(0, space.get_num_dofs(), error);
+    graph.add_values(1, space.get_num_dofs(), err_est);
+    graph.save("conv_dof.gp");
+    
+    // plotting convergence wrt. cpu time
+    graph_cpu.add_values(0, cpu, error);
+    graph_cpu.add_values(1, cpu, err_est);
+    graph_cpu.save("conv_cpu.gp");
+  }
+  while (done == false);
+  verbose("\nTotal run time: %g sec", cpu);
+
   View::wait();
   return 0;
 }
