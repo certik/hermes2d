@@ -34,6 +34,6 @@ install(FILES tests/test_basics.py tests/test_examples.py tests/test_plots.py
     DESTINATION lib/python/hermes2d/tests
     )
 
-install(FILES _hermes2d.pxd dummy_solver.h config.h stdcython.h
+install(FILES _hermes2d.pxd dummy_solver.h config.h stdcython.h _hermes2d_api.h
     DESTINATION lib/python/hermes2d/include
     )
