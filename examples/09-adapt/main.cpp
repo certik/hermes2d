@@ -21,18 +21,18 @@
 // BC: phi = 0 V on Gamma_1 (left edge and also the rest of the outer
 //               boundary
 //     phi = VOLTAGE on Gamma_2 (boundary of stator)
-//     
-// The following parameters can be changed: 
+//
+// The following parameters can be changed:
 
-const int P_INIT = 1;             // initial polynomial degree in mesh
-const double THRESHOLD = 0.3;     // error threshold for element refinement
-const int STRATEGY = 0;           // refinement strategy (0, 1, 2, 3 - see adapt_h1.cpp for explanation)
+const int P_INIT = 2;             // initial polynomial degree in mesh
+const double THRESHOLD = 0.2;     // error threshold for element refinement
+const int STRATEGY = 1;           // refinement strategy (0, 1, 2, 3 - see adapt_h1.cpp for explanation)
 const bool H_ONLY = false;        // if H_ONLY == false then full hp-adaptivity takes place, otherwise
                                   // h-adaptivity is used. Use this parameter to check that indeed adaptive
                                   // hp-FEM converges much faster than adaptive h-FEM
 const bool ISO_ONLY = false;      // when ISO_ONLY = true, only isotropic refinements are done,
                                   // otherwise also anisotropic refinements are allowed
-const int MESH_REGULARITY = 1;    // specifies maximum allowed level of hanging nodes
+const int MESH_REGULARITY = -1;   // specifies maximum allowed level of hanging nodes
                                   // -1 ... arbitrary level hangning nodes
                                   // 1, 2, 3,... means 1-irregular mesh, 2-irregular mesh, etc.
                                   // total regularization (0) is not supported in adaptivity
@@ -46,7 +46,7 @@ const double VOLTAGE = 50.0;      // voltage on the stator
 
 
 scalar bc_values(int marker, double x, double y)
-{  
+{
   return (marker == 2) ? VOLTAGE : 0.0;
 }
 
@@ -68,23 +68,23 @@ int main(int argc, char* argv[])
 
   H1Shapeset shapeset;
   PrecalcShapeset pss(&shapeset);
-  
+
   H1Space space(&mesh, &shapeset);
   space.set_bc_values(bc_values);
   space.set_uniform_order(P_INIT);
-  
+
   WeakForm wf(1);
   wf.add_biform(0, 0, biform1, SYM, 1);
   wf.add_biform(0, 0, biform2, SYM, 2);
-  
+
   ScalarView sview("Coarse solution", 0, 0, 600, 1000);
   VectorView gview("Gradient", 610, 0, 600, 1000);
   OrderView  oview("Polynomial orders", 1220, 0, 600, 1000);
   //gview.set_min_max_range(0.0, 400.0);
-  
+
   Solution sln, rsln;
   UmfpackSolver solver;
-  
+
   GnuplotGraph graph;
   graph.set_captions("Error Convergence for the Micromotor Problem", "Degrees of Freedom", "Error Estimate [%]");
   graph.add_row("error estimate", "-", "o");
@@ -105,7 +105,7 @@ int main(int argc, char* argv[])
 
     // enumerating basis functions
     space.assign_dofs();
-  
+
     // solve the coarse problem
     LinSystem ls(&wf, &solver);
     ls.set_spaces(1, &space);
@@ -114,7 +114,7 @@ int main(int argc, char* argv[])
     ls.solve(1, &sln);
 
     cpu += end_time();
-    
+
     // view the solution -- this can be slow; for illustration only
     sview.show(&sln);
     gview.show(&sln, &sln, EPS_NORMAL, FN_DX_0, FN_DY_0);
@@ -125,7 +125,7 @@ int main(int argc, char* argv[])
     RefSystem rs(&ls);
     rs.assemble();
     rs.solve(1, &rsln);
-    
+
     // calculate element errors and total error estimate
     H1OrthoHP hp(1, &space);
     double err_est = hp.calc_error(&sln, &rsln) * 100;
@@ -146,11 +146,11 @@ int main(int argc, char* argv[])
   }
   while (done == false);
   verbose("\nTotal running time: %g sec", cpu);
-  
+
   // show the fine solution - this is the final result, about
   // one order of magnitude more accurate than the coarse solution
   sview.set_title("Fine solution");
-  sview.show(&rsln); 
+  sview.show(&rsln);
   gview.show(&rsln, &rsln, EPS_HIGH, FN_DX_0, FN_DY_0);
 
   View::wait();
