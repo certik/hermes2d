@@ -10,45 +10,52 @@
 // BC: u_1 = u_2 = 0 on Gamma_1 (left edge)
 //     du_2/dn = f on Gamma_2 (upper edge)
 //     du_1/dn = du_2/dn = 0 elsewhere, including two horizontal 
-//                           cracks inside the domain.
+//               cracks inside the domain. The width of the cracks
+//               is currently zero, it can be set in the mesh file
+//               via the parameter 'w'.
 //     
-// The following parameters can be played with: 
-// (Make sure that you compare the multimesh hp-FEM with the single-mesh
-// one via the parameter MULTI, and also hp- and h-adaptivity via the 
-// parameter H_ONLY!). The width (opening) of the cracks can be set
-// via the parameter 'w' at the beginning of the mesh file. Currently
-// w = 0.  
-// 
+// The following parameters can be played with:  
 
-const bool MULTI = true;  // true = use multi-mesh, false = use single-mesh
-                          // Note: in the single mesh option, the meshes are
-                          // forced to be geometrically the same but the 
-                          // polynomial degrees can still vary 
-int P_INIT = 1;           // initial polynomial degree in mesh
-double ERR_STOP = 1e-2;   // stopping criterion for hp-adaptivity
-                          // (rel. error tolerance between the reference 
-                          // and coarse solution in percent)
-double THRESHOLD_MULTI = 0.35;   // error threshold for element refinement (multi-mesh)
-double THRESHOLD_SINGLE = 0.7;   // error threshold for element refinement (single-mesh)
-int STRATEGY = 0;         // refinement strategy (0, 1, 2, 3 - see adapt_h1.cpp for explanation)
-int H_ONLY = 0;           // if H_ONLY == 0 then full hp-adaptivity takes place, otherwise
-                          // h-adaptivity is used. Use this parameter to check that indeed adaptive 
-                          // hp-FEM converges much faster than adaptive h-FEM
-int NDOF_STOP = 40000;    // adaptivity process stops when the number of degrees of freedom grows over 
-                          // this limit. This is mainly to prevent h-adaptivity to go on forever.  
+const bool MULTI = true;             // true = use multi-mesh, false = use single-mesh
+                                     // Note: in the single mesh option, the meshes are
+                                     // forced to be geometrically the same but the 
+                                     // polynomial degrees can still vary 
+const bool SAME_ORDERS = true;       // true = when single mesh is used it forces same pol. 
+                                     // orders for components
+                                     // when multi mesh used, parameter is ignored
+const int P_INIT = 1;                // initial polynomial degree in mesh
+const bool H_ONLY = false;           // if H_ONLY == false then full hp-adaptivity takes place, otherwise
+                                     // h-adaptivity is used. Use this parameter to check that indeed adaptive 
+                                     // hp-FEM converges much faster than adaptive h-FEM
+const int STRATEGY = 0;              // refinement strategy (0, 1, 2, 3 - see adapt_h1.cpp for explanation)
+const double THRESHOLD_MULTI = 0.35; // error threshold for element refinement (multi-mesh)
+const double THRESHOLD_SINGLE = 0.7; // error threshold for element refinement (single-mesh)
+const int MESH_REGULARITY = -1;      // specifies level of hanging nodes
+                                     // -1 is arbitrary level hangning nodes
+                                     // 1, 2, 3,... is 1-irregular mesh, 2-irregular mesh,...
+                                     // total regularization (0) is not supported in adaptivity
+const bool ISO_ONLY = false;         // when ISO_ONLY = true, only isometric refinements are done,
+                                     // otherwise anisotropic refinements can be taken into account
+const int MAX_ORDER = 10;            // maximal order used during adaptivity
+const double ERR_STOP = 1e-2;        // stopping criterion for hp-adaptivity
+                                     // (rel. error tolerance between the reference 
+                                     // and coarse solution in percent)
+const int NDOF_STOP = 40000;         // adaptivity process stops when the number of 
+                                     // degrees of freedom grows over this limit. This is 
+                                     // mainly to prevent h-adaptivity to go on forever.  
+// other equation parameters
 const double E  = 200e9;  // Young modulus for steel: 200 GPa
 const double nu = 0.3;    // Poisson ratio
 const double f  = 1e3;    // load force: 10^5 N
 const double lambda = (E * nu) / ((1 + nu) * (1 - 2*nu));
 const double mu = E / (2*(1 + nu));
 
+// boundary markers
 const int marker_left = 1;
 const int marker_top = 2;
 
-
 int bc_types_xy(int marker)
   { return (marker == marker_left) ? BC_ESSENTIAL : BC_NATURAL; }
-
 
 scalar bilinear_form_0_0(RealFunction* fu, RealFunction* fv, RefMap* ru, RefMap* rv)
   { return int_a_dudx_dvdx_b_dudy_dvdy(lambda+2*mu, fu, mu, fv, ru, rv); }
@@ -64,7 +71,6 @@ scalar bilinear_form_1_1(RealFunction* fu, RealFunction* fv, RefMap* ru, RefMap*
 
 scalar linear_form_1_surf_top(RealFunction* fv, RefMap* rv, EdgePos* ep)
   { return -f * surf_int_v(fv, rv, ep); }
-
 
 int main(int argc, char* argv[])
 {
@@ -101,12 +107,12 @@ int main(int argc, char* argv[])
   OrderView  yoview("Y polynomial orders", 810, 0, 800, 800);
 
   GnuplotGraph graph;
-  graph.set_captions("", "Degrees of Freedom", "Error Estimate [\%]");
+  graph.set_captions("", "Degrees of Freedom", "Error Estimate [%]");
   graph.add_row(MULTI ? "multi-mesh" : "single-mesh", "k", "-", "O");
   graph.set_log_y();
 
   GnuplotGraph graph_cpu;
-  graph_cpu.set_captions("", "CPU", "Error Estimate [\%]");
+  graph_cpu.set_captions("", "CPU", "Error Estimate [%]");
   graph_cpu.set_log_y();
   graph_cpu.add_row(MULTI ? "multi-mesh" : "single-mesh", "k", "-", "o");
 
@@ -121,9 +127,9 @@ int main(int argc, char* argv[])
   double cpu = 0.0;
   do
   {
-    begin_time();
 
     info("\n---- Iteration %d ---------------------------------------------\n", it++);
+    begin_time();
 	  
     //calculating the number of degrees of freedom
     ndofs = xdisp.assign_dofs();
@@ -155,14 +161,14 @@ int main(int argc, char* argv[])
                                           bilinear_form_0_0, bilinear_form_0_1,
                                           bilinear_form_1_0, bilinear_form_1_1) * 100;
     if (err_est < ERR_STOP || xdisp.get_num_dofs() + ydisp.get_num_dofs() >= NDOF_STOP) done = true;
-    else hp.adapt(MULTI ? THRESHOLD_MULTI : THRESHOLD_SINGLE, STRATEGY, H_ONLY, false, 6);
+    else hp.adapt(MULTI ? THRESHOLD_MULTI : THRESHOLD_SINGLE, STRATEGY, H_ONLY, ISO_ONLY, MESH_REGULARITY, MAX_ORDER, SAME_ORDERS);
 
     cpu += end_time();
 
     graph.add_values(0, xdisp.get_num_dofs() + ydisp.get_num_dofs(), err_est);
-    graph.save(MULTI ? "conv_m.gp" : "conv_s.gp");
+    graph.save(MULTI ? "conv_dof_m.gp" : "conv_dof_s.gp");
     graph_cpu.add_values(0, cpu, err_est);
-    graph_cpu.save(MULTI ? "cpu_m.gp" : "cpu_s.gp");
+    graph_cpu.save(MULTI ? "conv_cpu_m.gp" : "conv_cpu_s.gp");
     info("Error estimate: %g \%", err_est);
    
   }
