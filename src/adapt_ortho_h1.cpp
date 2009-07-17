@@ -42,6 +42,8 @@ H1OrthoHP::H1OrthoHP(int num, ...)
     spaces[i] = va_arg(ap, Space*);
   va_end(ap);
 
+  error_fn = int_h1_error;
+  norm_fn = int_h1_norm;
 
   memset(errors, 0, sizeof(errors));
   esort = NULL;
@@ -925,8 +927,8 @@ double H1OrthoHP::calc_error_n(int n, ...)
         RefMap* crm = sln[j]->get_refmap();
         RefMap* frm = rsln[j]->get_refmap();
 
-        double err  = int_h1_error(sln[j], rsln[j], crm, frm);
-        total_norm += int_h1_norm (rsln[j], frm);
+        double err  = error_fn(sln[j], rsln[j], crm, frm);
+        total_norm += norm_fn(rsln[j], frm);
 
         errors[j][e->id] += err / norms[j];
         total_error += err;
