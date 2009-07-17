@@ -60,6 +60,12 @@ public:
   /// pointers are passed, followed by n fine solution pointers.
   double calc_error_n(int n, ...);
 
+  /// Sets functions to calculate element errors and norms
+  /// one can choose from implemented functions in integrals_h1.h or implement own ones
+  /// int_h1_error/int_h1_norm are default, call this function only to change them
+  void set_error_fns(double (*fn_e)(ScalarFunction*, ScalarFunction*, RefMap*, RefMap*),
+                     double (*fn_n)(ScalarFunction*, RefMap*))
+    {  error_fn = fn_e;  norm_fn = fn_n; };
 
   typedef scalar (*biform_t)(ScalarFunction* fu, ScalarFunction* fv, RefMap* ru, RefMap* rv);
 
@@ -122,6 +128,9 @@ protected:
   double  total_err;
   int2* esort;
   int   nact;
+
+  double (*error_fn)(ScalarFunction*, ScalarFunction*, RefMap*, RefMap*);
+  double (*norm_fn)(ScalarFunction*, RefMap*);
 
   // orthonormal basis tables
   static double3** obase[2][9];
