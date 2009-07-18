@@ -4,7 +4,14 @@
 // The time-dependent laminar incompressible Navier-Stokes equations are
 // discretized in time via the implicit Euler method. The convective term
 // is linearized simply by replacing the velocity in front of the nabla
-// operator with the velocity from last time step.
+// operator with the velocity from last time step. Velocity is approximated
+// using continuous elements, and pressure by means or discontinuous (L2)
+// elements. This makes the velocity discretely divergence-free, meaning
+// that the integral of div(v) over every element is zero. The problem
+// has a steady symmetric solution which is unstable. Note that after some
+// time (around t = 100), numerical errors induce oscillations. The
+// approximation becomes unsteady and thus diverges from the exact solution.
+// Interestingly, this happens even with a completely symmetric mesh.
 //
 // PDE: incompressible Navier-Stokes equations in the form
 // \partial v / \partial t - \Delta v / Re + (v \cdot \nabla) v + \nabla p = 0,
@@ -16,23 +23,22 @@
 //
 // TODO: Implement Crank-Nicolson so that comparisons with implicit Euler can be made
 //
-// The following parameters can be changed:
-//
+// The following parameters can be played with:
 
-double RE = 200.0;             // Reynolds number
-double VEL_INLET = 1.0;        // inlet velocity (reached after STARTUP_TIME)
-double STARTUP_TIME = 1.0;     // during this time, inlet velocity increases gradually
-                               // from 0 to VEL_INLET, then it stays constant
-double TAU = 0.1;              // time step
-double FINAL_TIME = 3000.0;    // length of time interval
-int P_INIT_VEL = 2;            // initial polynomial degree for velocity components
-int P_INIT_PRESSURE = 1;       // initial polynomial degree for pressure
-                               // Note: P_INIT_VEL should always be greater than
-                               // P_INIT_PRESSURE because of the inf-sup condition
-double H = 5;                  // domain height (necessary to define the parabolic
-                               // velocity profile at inlet)
+const double RE = 1000.0;            // Reynolds number
+const double VEL_INLET = 1.0;        // inlet velocity (reached after STARTUP_TIME)
+const double STARTUP_TIME = 1.0;     // during this time, inlet velocity increases gradually
+                                     // from 0 to VEL_INLET, then it stays constant
+const double TAU = 0.5;              // time step
+const double FINAL_TIME = 3000.0;    // length of time interval
+const int P_INIT_VEL = 2;            // polynomial degree for velocity components
+const int P_INIT_PRESSURE = 1;       // polynomial degree for pressure
+                                     // Note: P_INIT_VEL should always be greater than
+                                     // P_INIT_PRESSURE because of the inf-sup condition
+const double H = 5.0;                // domain height (necessary to define the parabolic
+                                     // velocity profile at inlet)
 
-//  to better understand boundary conditions
+//  boundary markers
 int marker_bottom = 1;
 int marker_right  = 2;
 int marker_top = 3;
@@ -67,7 +73,6 @@ scalar xvel_bc_value(int marker, double x, double y) {
   else return 0;
 }
 
-
 // velocities from the previous time step
 Solution xprev, yprev;
 
@@ -95,7 +100,7 @@ int main(int argc, char* argv[])
 {
   // load the mesh file
   Mesh mesh;
-  mesh.load("domain.mesh");
+  mesh.load("domain-quad.mesh"); // unstructured triangular mesh available in domain-tri.mesh
 
   // a-priori mesh refinements
   mesh.refine_all_elements();
@@ -104,18 +109,20 @@ int main(int argc, char* argv[])
   mesh.refine_towards_boundary(3, 4);
 
   // display the mesh
-  //MeshView mview("Hello world!", 100, 100, 1100, 400);
+  //MeshView mview("Navier-Stokes Example - Mesh", 100, 100, 1100, 400);
   //mview.show(&mesh);
   //mview.wait_for_keypress();
 
-  // initialize the shapeset and the cache
-  H1ShapesetBeuchler shapeset;
-  PrecalcShapeset pss(&shapeset);
+  // initialize the shapesets and the cache
+  H1ShapesetBeuchler shapeset_h1;
+  PrecalcShapeset pss_h1(&shapeset_h1);
+  L2Shapeset shapeset_l2;
+  PrecalcShapeset pss_l2(&shapeset_l2);
 
-  // spaces for velocities and pressure
-  H1Space xvel(&mesh, &shapeset);
-  H1Space yvel(&mesh, &shapeset);
-  H1Space press(&mesh, &shapeset);
+  // H1 spaces for velocities and L2 for pressure
+  H1Space xvel(&mesh, &shapeset_h1);
+  H1Space yvel(&mesh, &shapeset_h1);
+  L2Space press(&mesh, &shapeset_l2);
 
   // initialize boundary conditions
   xvel.set_bc_types(xvel_bc_type);
@@ -153,14 +160,17 @@ int main(int argc, char* argv[])
   VectorView vview("velocity [m/s]", 0, 0, 1500, 470);
   ScalarView pview("pressure [Pa]", 0, 530, 1500, 470);
   vview.set_min_max_range(0, 1.6);
-  //pview.set_min_max_range(-0.9, 0.9);
   pview.show_mesh(false);
+  // fixing scale width (for nicer videos). Note: creation of videos is
+  // discussed in a separate example
+  vview.fix_scale_width(5);
+  pview.fix_scale_width(5);
 
   // set up the linear system
   UmfpackSolver umfpack;
   LinSystem sys(&wf, &umfpack);
   sys.set_spaces(3, &xvel, &yvel, &press);
-  sys.set_pss(1, &pss);
+  sys.set_pss(3, &pss_h1, &pss_h1, &pss_l2);
 
   // main loop
   char title[100];
@@ -190,12 +200,6 @@ int main(int argc, char* argv[])
     sprintf(title, "Pressure, time %g", TIME);
     pview.set_title(title);
     pview.show(&psln);
-
-    // uncomment one of the following lines to generate a series of video frames
-    //vview.save_numbered_screenshot("velocity%03d.bmp", i, true);
-    //pview.save_numbered_screenshot("pressure%03d.bmp", i, true);
-    // the frames can then be converted to a video file with the command
-    // mencoder "mf://velocity*.bmp" -mf fps=20 -o velocity.avi -ovc lavc -lavcopts vcodec=mpeg4
 
     xprev = xsln;
     yprev = ysln;
