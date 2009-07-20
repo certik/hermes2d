@@ -3,7 +3,8 @@ Welcome to Hermes 2D.
 Documentation
 =============
 
-Hermes2D manual is contained in the directory 'doc/'.
+Hermes2D manual is contained in the directory 'tutorial/tex/'. Type 'make' there
+to build the make the pdf file.
 
 Developer documentation can be compiled by running 'doxygen' in 'src/'.
 
@@ -33,6 +34,11 @@ $ make
 
 If you have more than one CPU, you can use "make -j N" where N is
 the number of CPUs of your computer.
+
+To build the tutorial examples type:
+
+$ make tutorial
+
 
 More options
 ------------
