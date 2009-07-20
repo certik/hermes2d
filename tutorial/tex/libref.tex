@@ -1,0 +1,310 @@
+
+
+This section describes all classes and methods visible to the user (i.e., the Hermes2D API).
+
+
+% TODO: what is scalar, double2, etc.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{Mesh File Format}
+\index{Mesh!file format}
+\label{meshformat}
+
+Hermes2D mesh files are ASCII text files containing variable assignments of the form
+\begin{lstlisting}
+assignment := var_name "=" item [ ";" ]
+      item := expression | list
+      list := "{" item "," item "," ... "}"
+\end{lstlisting}
+The semicolon after assignment is optional. Line comments start with \verb"#". Expressions
+are standard C expressions containing real numbers, case-sensitive variable names,
+brackets and the operators {\tt +}, {\tt -}, {\tt *}, {\tt /}.
+Additionally, the power operator \verb"^" is available.
+You can also use the following C math functions
+\begin{lstlisting}
+acos, asin, atan, atan2, cos, cosh, sin, sinh, tan, tanh,
+exp, log, log10, exp2, log2, pow, sqrt, cbrt, hypot,
+abs, fabs, floor, ceil, mod, fmod,
+\end{lstlisting}
+and the constants {\tt pi} and {\tt PI}.
+The following table lists reserved variable names and their format. At least
+the variables {\tt vertices}, {\tt elements} and {\tt boundaries} must be defined
+in the mesh file.
+\begin{center}
+\begin{tabular}{|l|l|}
+\hline
+Name & Description \\
+\hline \hline
+{\tt vertices} & List of real $\{x, y\}$ pairs defining mesh vertices. \\
+\hline
+{\tt elements} & List of integer $n$-tuples, where $n$ is 4 for triangles\\
+               & and 5 for quadrilaterals. The first $n-1$ integers are zero-\\
+               & based vertex indices and the last is the element marker.\\
+               & The vertices must be listed in counter-clockwise order.\\
+\hline
+{\tt boundaries} & List of integer triples of the form $\{ v_1, v_2, m \}$, where \\
+                 & $(v_1, v_2)$ identify a mesh edge and $m$ is an edge marker. \\
+\hline
+{\tt curves} & List of tuples either of the form $\{ v_1, v_2, a \}$ or of the form \\
+             & $\{ v1, v2, d, points, knots \}$. The first defines an $a$-degree \\
+             & circular arc on the edge $(v_1, v_2)$. The latter defines a\\
+             & NURBS curve, see below for details. \\
+\hline
+{\tt refinements} & List of integer pairs $\{ i, r \}$, where $i$ is a zero-based \\
+                  & element number and $r$ is the type of refinement to be \\
+                  & performed on the element after the mesh is loaded (0 --\\
+                  &  isotropic, 1 -- horizontal, 2 -- vertical). \\
+\hline
+\end{tabular}
+\end{center}
+
+\index{NURBS}
+A NURBS curve is defined by its degree, control points with weights and the knot
+vector. The degree $d$ is a positive integer, usually 1, 2, 3 or 5. Lines and polylines
+are of degree 1, circles have degree 2 and free-form curves are of degree 3 or 5.
+
+The control points $p_i,\; i = 0 \dots n$, are the main tool for changing the shape of
+the curve. A curve of degree $d$ must have at least $d+1$ control points. In Hermes2D,
+the endpoints of the edge are always assumed to be the first and last control points
+and therefore only the inner control points are listed in the mesh file.
+All control points have an associated weight $w_i \geq 0$ which influences
+the shape of the curve near the corresponding control point.
+If $w_i = 0$ then $p_i$ has no effect on the shape.
+As $w_i$ increases, the curve is pulled towards $p_i$. In the above definition of
+the variable {\tt curves}, $points$ is a list of real-valued triples.
+
+The knot vector is a sequence of $m+1$ values that determines how much and where the
+control points influence the shape. The relation $m = n+d+1$ must hold. The sequence is
+nondecreasing, $t_i \leq t_{i+1}$, and divides the whole interval $[0,1]$ into smaller
+intervals which determine the area of influence of the control points. Since the curve
+has to start and end at the edge vertices, the knot vector in Hermes2D always starts
+with $d+1$ zeros and ends with $d+1$ ones. Only the inner knots are listed in the
+above definition of the variable {\tt curves}, where $knots$ is a simple list of real values.
+
+\label{sec:nurbs}
+
+% TODO: example of a NURBS in the mesh file
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{Mesh Class}
+\index{Mesh!class}
+
+\newcommand{\desc}[1]{
+  \vspace{-0.9ex}
+  \hangindent=4mm \hangafter=0
+  #1
+}
+
+The {\tt Mesh} class represents an irregular, hybrid, curvilinear finite element mesh.
+The class contains methods and algoriths to load, save and refine the mesh. Please
+note that the class stores geometrical information only. All FEM-related information,
+such as element polynomial orders, are stored in the {\tt Space} class, described in
+the next section.
+
+\medskip
+\begin{lstlisting}
+void Mesh::load(const char* filename);
+\end{lstlisting}
+\desc{Loads the mesh from a text file whose format is given in Section \ref{meshformat}.
+Aborts the program on error.}
+
+
+\medskip
+\begin{lstlisting}
+void Mesh::save(const char* filename);
+\end{lstlisting}
+\desc{Saves the mesh, including all refinements, to a text file. Please note that the resulting
+file will contain no comments and no temporary variables. Take caution not to overwrite
+meshes that you created by hand.}
+
+
+\medskip
+\begin{lstlisting}
+void Mesh::copy(const Mesh* mesh);
+\end{lstlisting}
+\desc{Initializes the mesh so that it contains a copy of another mesh, pointed to by the argument.}
+
+
+\medskip
+\begin{lstlisting}
+int Mesh::get_num_elements() const;
+int Mesh::get_num_base_elements() const;
+int Mesh::get_num_active_elements() const;
+\end{lstlisting}
+\desc{These methods return the total number of elements (active or inactive), the number of
+top-level elements (those defined in the mesh file), and the number of currently active
+elements (those that participate in the computation).}
+
+
+\medskip
+\label{sec:meshmethods}
+\begin{lstlisting}
+ void Mesh::refine_element(int id, int refinement = 0);
+\end{lstlisting}
+\desc{Refines an element: {\tt id} is the zero-based number of the element.
+{\tt refinement} is ignored for triangles, but if the element is a quad, 0 means
+refine in both directions, 1 means refine horizontally (with respect to the reference
+domain) and 2 means refine vertically.}
+
+
+\medskip
+\begin{lstlisting}
+ void Mesh::refine_all_elements(int refinement = 0);
+\end{lstlisting}
+\desc{Refines all active elements in the mesh. {\tt refinement} has the same meaning
+as in {\tt refine\_element()}.}
+
+
+\medskip
+\begin{lstlisting}
+ void Mesh::refine_by_criterion(int (*criterion)(Element* e),
+                                int depth);
+\end{lstlisting}
+\desc{Selects elements to refine according to a given criterion and
+performs {\tt depth} levels of refinements of the selected elements.
+The criterion function receives a pointer to an element to be considered.
+It must return -1 if the element is not to be refined, 0 if it
+should be refined uniformly, 1 if it is a quad and should be split
+horizontally or 2 if it is a quad and should be split vertically.}
+
+
+\medskip
+\begin{lstlisting}
+ void Mesh::refine_towards_vertex(int vertex_id, int depth);
+\end{lstlisting}
+\desc{Performs repeated refinements of elements containing the given vertex.
+      A mesh graded towards the vertex is created.}
+
+
+\medskip
+\begin{lstlisting}
+ void Mesh::refine_towards_boundary(int marker, int depth,
+                                    bool aniso = true);
+\end{lstlisting}
+\desc{Performs repeated refinements of elements touching a part of the
+boundary marked by {\tt marker}. Elements touching both by an edge or
+by a vertex are refined. {\tt aniso} allows or disables anisotropic
+splits of quads.}
+
+
+\medskip
+\begin{lstlisting}
+ void Mesh::regularize(int n);
+\end{lstlisting}
+\desc{Regularizes the mesh by refining elements with hanging nodes of
+  degree more than $n$. As a result, $n$-irregular mesh is obtained.
+  If $n = 0$, completely regular mesh is created. In this case, however,
+  due to incompatible refinements, the element refinement hierarchy
+  is removed and all elements become top-level elements. Also, total
+  regularization does not work on curved elements.}
+
+
+\medskip
+\begin{lstlisting}
+ void Mesh::unrefine_element(int id);
+\end{lstlisting}
+\desc{Recursively removes all son elements of the given element and
+  makes it active.}
+
+
+\medskip
+\begin{lstlisting}
+ void Mesh::unrefine_all_elements();
+\end{lstlisting}
+\desc{Unrefines all elements with immediate active sons. In effect, this
+  shaves off one layer of refinements from the mesh. If done immediately
+  after {\tt refine\_all\_elements()}, this function reverts the mesh to its
+  original state. However, it is not exactly an inverse to
+  {\tt refine\_all\_elements()}.}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{Space Class}
+\label{sec:space}
+
+The Space class represents a finite element space over a domain defined by {\tt mesh}, spanned
+by basis functions constructed using {\tt shapeset}. It serves as a base class for {\tt H1Space},
+{\tt HcurlSpace} and {\tt L2Space}, all of which inherit the methods described below.
+
+\medskip
+\begin{lstlisting}
+ Space(Mesh* mesh, Shapeset* shapeset);
+\end{lstlisting}
+\desc{Constructor.}
+
+
+
+\index{Space!class}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{WeakForm Class}
+\label{sec:weakform}
+\index{WeakForm!class}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{LinSystem Class}
+
+\index{LinSystem!class}
+
+\label{sec:multimesh}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{Solution Class}
+\label{sec:solution}
+\index{Solution!class}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{Automatic Adaptivity}
+\label{sec:h1adapt}
+
+\index{Energy norm}
+\index{Norm!energy}
+
+\label{sec:calc_energy_norm}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{Visualization}
+
+\subsubsection{ScalarView Class}
+\index{ScalarView!class}
+
+\subsubsection{VectorView Class}
+\index{VectorView!class}
+
+\subsubsection{OrderView Class}
+\subsubsection{MeshView, BaseView, MatrixView}
+\subsubsection{List of Hot-keys}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{Postprocessing}
+
+\index{Norm!$H^1$}
+\index{Norm!$L^2$}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{Exporting Results}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{Using Custom Solvers}
