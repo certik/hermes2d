@@ -24,12 +24,14 @@
 #include "refsystem.h"
 
 
-  
+
 RefSystem::RefSystem(LinSystem* base, int order_increase, int refinement)
          : LinSystem(base->wf, base->solver)
 {
   this->base = base;
-  order_inc = order_increase;
+  order_inc = new int[base->wf->neq];
+  for (int i = 0; i < base->wf->neq; i++)
+    order_inc[i] = order_increase;
   this->refinement = refinement;
   ref_meshes = NULL;
   ref_spaces = NULL;
@@ -38,6 +40,7 @@ RefSystem::RefSystem(LinSystem* base, int order_increase, int refinement)
 RefSystem::~RefSystem()
 {
   free_ref_data();
+  delete [] order_inc;
 }
 
 
@@ -52,26 +55,37 @@ void RefSystem::set_pss(int n, ...)
 }
 
 
+void RefSystem::set_order_increase(int* order_increase)
+{
+  for (int i = 0; i < base->wf->neq; i++)
+  {
+    if ((order_increase[i] < -5) || (order_increase[i] > 5))
+      error("Wrong length of array (must be equal to the number of equations).");
+    order_inc[i] = order_increase[i];
+  }
+}
+
+
 void RefSystem::assemble(bool rhsonly)
 {
   int i, j;
-  
+
   // get rid of any previous data
   free_ref_data();
-  
+
   ref_meshes = new Mesh*[wf->neq];
   ref_spaces = new Space*[wf->neq];
-  
+
   // copy meshes from the coarse problem, refine them
   for (i = 0; i < wf->neq; i++)
   {
     Mesh* mesh = base->spaces[i]->get_mesh();
-    
+
     // check if we already have the same mesh
     for (j = 0; j < i; j++)
       if (mesh->get_seq() == base->spaces[j]->get_mesh()->get_seq())
         break;
-      
+
     if (j < i) // yes
     {
       ref_meshes[i] = ref_meshes[j];
@@ -85,7 +99,7 @@ void RefSystem::assemble(bool rhsonly)
       ref_meshes[i] = rmesh;
     }
   }
-  
+
   // duplicate spaces from the coarse problem, assign reference orders and dofs
   int dofs = 0;
   for (i = 0; i < wf->neq; i++)
@@ -99,7 +113,7 @@ void RefSystem::assemble(bool rhsonly)
         Mesh* mesh = base->spaces[i]->get_mesh();
         Element* e = mesh->get_element(re->id);
         int max_o = 0;
-        if (e->active) 
+        if (e->active)
           max_o = get_h_order(base->spaces[i]->get_element_order(e->id));
         else
         {
@@ -114,16 +128,16 @@ void RefSystem::assemble(bool rhsonly)
           }
           max_o = std::max(1, max_o);
         }
-        ref_spaces[i]->set_element_order(re->id, std::max(1, ((int) max_o) + order_inc));
+        ref_spaces[i]->set_element_order(re->id, std::max(1, ((int) max_o) + order_inc[i]));
       }
 
     }
     else
-      ref_spaces[i]->copy_orders(base->spaces[i], order_inc);
+      ref_spaces[i]->copy_orders(base->spaces[i], order_inc[i]);
 
     dofs += ref_spaces[i]->assign_dofs(dofs);
   }
-  
+
   memcpy(spaces, ref_spaces, sizeof(Space*) * wf->neq);
   memcpy(pss, base->pss, sizeof(PrecalcShapeset*) * wf->neq);
   have_spaces = true;
@@ -135,7 +149,7 @@ void RefSystem::assemble(bool rhsonly)
 void RefSystem::free_ref_data()
 {
   int i, j;
-  
+
   // free reference meshes
   if (ref_meshes != NULL)
   {
@@ -144,20 +158,20 @@ void RefSystem::free_ref_data()
       for (j = 0; j < i; j++)
         if (ref_meshes[j] == ref_meshes[i])
           break;
-      
+
       if (i == j) delete ref_meshes[i];
     }
-    
+
     delete [] ref_meshes;
     ref_meshes = NULL;
   }
-  
+
   // free reference spaces
   if (ref_spaces != NULL)
   {
     for (i = 0; i < wf->neq; i++)
       delete ref_spaces[i];
-    
+
     delete [] ref_spaces;
     ref_spaces = NULL;
   }
