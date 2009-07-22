@@ -12,7 +12,9 @@ def get_pxd_include():
     Returns an absolute path to *.pxd files that are needed in order to build
     something against hermes2d.
     """
-    return get_include()
+    this_dir = os.path.abspath(os.path.dirname(__file__))
+    include_dir = os.path.join(this_dir, "include")
+    return os.path.join(include_dir)
 
 def get_include():
     """
