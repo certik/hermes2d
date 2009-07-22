@@ -17,6 +17,8 @@ endmacro(LINVIEW_SETTINGS)
 
 project(linview)
 LINVIEW_SETTINGS(ScalarView)
+set_target_properties(linview PROPERTIES
+    COMPILE_FLAGS "-DWHATVIEW=ScalarView -DCONTOURS")
 
 project(vecview)
 LINVIEW_SETTINGS(VectorView)
