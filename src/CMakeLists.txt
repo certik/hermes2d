@@ -54,16 +54,14 @@ if(COMPLEX)
     if(DEBUG)
         add_library(hermes2d-cplx-debug SHARED ${SRC})
         set_target_properties(hermes2d-cplx-debug PROPERTIES
-            COMPILE_FLAGS ${CMAKE_CXX_FLAGS_DEBUG}
-            COMPILE_FLAGS -DCOMPLEX)
+            COMPILE_FLAGS "${CMAKE_CXX_FLAGS_DEBUG} -DCOMPLEX")
         LIBRARY_SETTINGS(hermes2d-cplx-debug)
         install(TARGETS hermes2d-cplx-debug LIBRARY DESTINATION lib)
     endif(DEBUG)
     if(RELEASE)
         add_library(hermes2d-cplx SHARED ${SRC})
         set_target_properties(hermes2d-cplx PROPERTIES
-            COMPILE_FLAGS ${CMAKE_CXX_FLAGS_RELEASE}
-            COMPILE_FLAGS -DCOMPLEX)
+            COMPILE_FLAGS "${CMAKE_CXX_FLAGS_RELEASE} -DCOMPLEX")
         LIBRARY_SETTINGS(hermes2d-cplx)
         install(TARGETS hermes2d-cplx LIBRARY DESTINATION lib)
     endif(RELEASE)
