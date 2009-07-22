@@ -2,8 +2,9 @@
 #include "solver_umfpack.h"
 
 //  This example shows how to solve a time-dependent PDE discretized
-//  in time via the implicit Euler method. The St. Vitus cathedral
-//  in Prague responds to changes in the surrounding air temperature
+//  in time via the implicit Euler method. The St. Vitus Cathedral
+//  in Prague (http://en.wikipedia.org/wiki/St._Vitus_Cathedral)
+//  responds to changes in the surrounding air temperature
 //  during one 24-hour cycle.
 //
 //  PDE: non-stationary heat transfer equation
