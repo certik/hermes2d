@@ -1069,6 +1069,9 @@ cdef api void insert_int_array(char *name, int *A, int len):
     """
     global_namespace.update({name: array_int_c2numpy(A, len)})
 
+cdef api object get_symbol(char *name):
+    return global_namespace.get(name)
+
 cdef ndarray array_int_c2numpy(int *A, int len):
     from numpy import empty
     cdef ndarray vec = empty([len], dtype="int32")
@@ -1082,6 +1085,14 @@ cdef ndarray array_double_c2numpy(double *A, int len):
     cdef double *pvec = <double *>vec.data
     memcpy(pvec, A, len*sizeof(double))
     return vec
+
+cdef api void array_double_numpy2c_inplace(object A_n, double **A_c, int *n):
+    cdef ndarray A = A_n
+    if not (A.nd == 1 and A.strides[0] == sizeof(double)):
+        from numpy import array
+        A = array(A.flat, dtype="double")
+    n[0] = len(A)
+    A_c[0] = <double *>(A.data)
 
 cdef api object run_cmd(char *text, object namespace):
     try:
