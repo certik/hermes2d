@@ -489,19 +489,9 @@ cdef class LinSystem:
         cdef scalar *Ax
         self.thisptr.get_matrix(Ap, Ai, Ax, n)
         nnz = Ap[n]
-        from numpy import zeros
-        cdef ndarray aAp = zeros(n+1, dtype="int32")
-        cdef ndarray aAi = zeros(nnz, dtype="int32")
-        cdef ndarray aAx = zeros(nnz, dtype="double")
-        cdef int *pAp = <int *>aAp.data
-        cdef int *pAi = <int *>aAi.data
-        cdef double *pAx = <double *>aAx.data
-        cdef int i
-        for i in range(n+1):
-            pAp[i] = Ap[i]
-        for i in range(nnz):
-            pAi[i] = Ai[i]
-            pAx[i] = Ax[i]
+        aAp = array_int_c2numpy(Ap, n+1)
+        aAi = array_int_c2numpy(Ai, nnz)
+        aAx = array_double_c2numpy(Ax, nnz)
         return aAp, aAi, aAx
 
     def get_matrix(self):
@@ -519,11 +509,7 @@ cdef class LinSystem:
         cdef scalar *rhs
         cdef int n
         self.thisptr.get_rhs(rhs, n)
-        from numpy import empty
-        cdef ndarray vec = empty([n], dtype="double")
-        cdef double *pvec = <double *>vec.data
-        memcpy(pvec, rhs, n*sizeof(double))
-        return vec
+        return array_double_c2numpy(rhs, n)
 
 cdef class RefSystem(LinSystem):
 
@@ -804,10 +790,7 @@ cdef class Linearizer:
         """
         cdef double3 *vert = self.thisptr.get_vertices()
         cdef int nvert = self.thisptr.get_num_vertices()
-        from numpy import empty
-        cdef ndarray vec = empty([3*nvert], dtype="double")
-        cdef double *pvec = <double *>vec.data
-        memcpy(pvec, vert, 3*nvert*sizeof(double))
+        cdef ndarray vec = array_double_c2numpy(<double *>vert, 3*nvert)
         return vec.reshape((nvert, 3))
 
     def get_num_vertices(self):
@@ -834,10 +817,7 @@ cdef class Linearizer:
         """
         cdef int3 *tri = self.thisptr.get_triangles()
         cdef int ntri = self.thisptr.get_num_triangles()
-        from numpy import empty
-        cdef ndarray vec = empty([3*ntri], dtype="int32")
-        cdef int *pvec = <int *>vec.data
-        memcpy(pvec, tri, 3*ntri*sizeof(int))
+        cdef ndarray vec = array_int_c2numpy(<int *>tri, 3*ntri)
         return vec.reshape((ntri, 3))
 
     def get_num_triangles(self):
@@ -864,10 +844,7 @@ cdef class Linearizer:
         """
         cdef int3 *edges = self.thisptr.get_edges()
         cdef int nedges = self.thisptr.get_num_edges()
-        from numpy import empty
-        cdef ndarray vec = empty([3*nedges], dtype="int32")
-        cdef int *pvec = <int *>vec.data
-        memcpy(pvec, edges, 3*nedges*sizeof(int))
+        cdef ndarray vec = array_int_c2numpy(<int *>edges, 3*nedges)
         return vec.reshape((nedges, 3))
 
     def get_num_edges(self):
