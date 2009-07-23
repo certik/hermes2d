@@ -1042,11 +1042,14 @@ init_hermes2d_wrappers()
 import sys
 import traceback
 
-global_namespace = {"verbose": True}
+global_namespace = {"verbose": False}
 
 cdef api void cmd(char *text):
     n = run_cmd(text, global_namespace)
     global_namespace.update(n)
+
+cdef api void set_verbose_cmd(int verbose):
+    global_namespace["verbose"] = verbose
 
 cdef api void insert_int(char *name, int i):
     """
