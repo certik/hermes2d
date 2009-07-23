@@ -38,6 +38,7 @@ cdef extern from "hermes2d.h":
 
     void hermes2d_initialize(int* argc, char* argv[])
     void hermes2d_finalize()
+    void throw_exception(char *msg)
     #void finish_glut_main_loop(int force_quit)
     int BC_ESSENTIAL "BC_ESSENTIAL"
     int BC_NATURAL "BC_NATURAL"

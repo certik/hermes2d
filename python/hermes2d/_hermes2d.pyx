@@ -1115,8 +1115,7 @@ cdef api object run_cmd(char *text, object namespace):
             print namespace
         return namespace
     except:
-        print("Exception raised")
         etype, value, tb = sys.exc_info()
         s = "".join(traceback.format_exception(etype, value, tb))
-        print s
-        print ("-"*40)
+        s = "Exception raised in the Python code:\n" + s
+        throw_exception(s)
