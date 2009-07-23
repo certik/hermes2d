@@ -1076,11 +1076,7 @@ cdef api void insert_double_array(char *name, double *A, int len):
 
     This prints "[ 1.  5.  3.]" (this is how the NumPy array is printed).
     """
-    from numpy import empty
-    cdef ndarray vec = empty([len], dtype="double")
-    cdef double *pvec = <double *>vec.data
-    memcpy(pvec, A, len*sizeof(double))
-    global_namespace.update({name: vec})
+    global_namespace.update({name: array_double_c2numpy(A, len)})
 
 cdef api void insert_int_array(char *name, int *A, int len):
     """
@@ -1094,11 +1090,21 @@ cdef api void insert_int_array(char *name, int *A, int len):
 
     This prints "[1  5  3]" (this is how the NumPy array is printed).
     """
+    global_namespace.update({name: array_int_c2numpy(A, len)})
+
+cdef ndarray array_int_c2numpy(int *A, int len):
     from numpy import empty
     cdef ndarray vec = empty([len], dtype="int32")
     cdef int *pvec = <int *>vec.data
     memcpy(pvec, A, len*sizeof(int))
-    global_namespace.update({name: vec})
+    return vec
+
+cdef ndarray array_double_c2numpy(double *A, int len):
+    from numpy import empty
+    cdef ndarray vec = empty([len], dtype="double")
+    cdef double *pvec = <double *>vec.data
+    memcpy(pvec, A, len*sizeof(double))
+    return vec
 
 cdef api object run_cmd(char *text, object namespace):
     try:
