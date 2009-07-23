@@ -1039,7 +1039,32 @@ def set_warn_integration(warn_integration):
 
 init_hermes2d_wrappers()
 
-cdef api void set_trace(int i):
-    print "a number was passed in:", i
-    import run
-    run.run()
+import sys
+import traceback
+
+global_namespace = {"verbose": True}
+
+cdef api void cmd(char *text):
+    n = run_cmd(text, global_namespace)
+    global_namespace.update(n)
+
+cdef api object run_cmd(char *text, object namespace):
+    try:
+        verbose = namespace.get("verbose")
+        if verbose:
+            print "got a text:", text
+        if verbose:
+            print "evaluting in the namespace:"
+            print namespace
+        code = compile(text, "", "exec")
+        eval(code, {}, namespace)
+        if verbose:
+            print "new namespace:"
+            print namespace
+        return namespace
+    except:
+        print("Exception raised")
+        etype, value, tb = sys.exc_info()
+        s = "".join(traceback.format_exception(etype, value, tb))
+        print s
+        print ("-"*40)

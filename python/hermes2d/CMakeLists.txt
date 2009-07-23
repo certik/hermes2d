@@ -1,6 +1,7 @@
 add_subdirectory(examples)
 cython_add_module(_hermes2d dummy_solver.cpp stdcython.c)
 target_link_libraries(_hermes2d ${HERMES_REAL_BIN})
+set_property(TARGET _hermes2d PROPERTY COMPILE_FLAGS "-g")
 if(WITH_PYTHON_UMFPACK)
     find_package(UMFPACK REQUIRED)
     include_directories(${UMFPACK_INCLUDE_DIR} ${AMD_INCLUDE_DIR})
