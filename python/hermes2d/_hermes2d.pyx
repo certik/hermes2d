@@ -1048,6 +1048,55 @@ cdef api void cmd(char *text):
     n = run_cmd(text, global_namespace)
     global_namespace.update(n)
 
+cdef api void insert_int(char *name, int i):
+    """
+    Inserts the int "i" into the global namespace.
+
+    Example:
+
+    insert_int("a", 34);
+    cmd("print a");
+
+    This prints "34".
+    """
+    global_namespace.update({name: i})
+
+cdef api void insert_double_array(char *name, double *A, int len):
+    """
+    Inserts an array of doubles into the global namespace as a NumPy array.
+
+    Example:
+
+    double a[3] = {1, 5, 3};
+    insert_double_array("A", a, 3);
+    cmd("print A");
+
+    This prints "[ 1.  5.  3.]" (this is how the NumPy array is printed).
+    """
+    from numpy import empty
+    cdef ndarray vec = empty([len], dtype="double")
+    cdef double *pvec = <double *>vec.data
+    memcpy(pvec, A, len*sizeof(double))
+    global_namespace.update({name: vec})
+
+cdef api void insert_int_array(char *name, int *A, int len):
+    """
+    Inserts an array of ints into the global namespace as a NumPy array.
+
+    Example:
+
+    int a[3] = {1, 5, 3};
+    insert_double_array("A", a, 3);
+    cmd("print A");
+
+    This prints "[1  5  3]" (this is how the NumPy array is printed).
+    """
+    from numpy import empty
+    cdef ndarray vec = empty([len], dtype="int32")
+    cdef int *pvec = <int *>vec.data
+    memcpy(pvec, A, len*sizeof(int))
+    global_namespace.update({name: vec})
+
 cdef api object run_cmd(char *text, object namespace):
     try:
         verbose = namespace.get("verbose")
