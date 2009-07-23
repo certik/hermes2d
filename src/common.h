@@ -23,6 +23,7 @@
 #define __HERMES2D_COMMON_H
 
 // common headers
+#include <stdexcept>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -166,5 +167,6 @@ void begin_time();
 double cur_time();
 double end_time();
 
+void throw_exception(char *text);
 
 #endif

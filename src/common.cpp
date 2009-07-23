@@ -127,3 +127,8 @@ double end_time()
   if (ts_top >= max_stack) return -1.0;
   return (double) (clock() - tick_stack[ts_top]) / CLOCKS_PER_SEC;
 }
+
+void throw_exception(char *text)
+{
+    throw std::runtime_error(text);
+}
