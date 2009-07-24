@@ -26,7 +26,7 @@
 
 #### Just change the following: ################################################
 
-MAIN = manual.tex
+MAIN = tutorial.tex
 
 IMGDIR = img
 

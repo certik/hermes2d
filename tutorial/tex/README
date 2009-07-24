@@ -1,4 +1,4 @@
-To compile the manual, you need the following:
+To compile the tutorial, you need the following:
 
   * pdfLaTeX
   * Inkscape (for SVG -> EPS conversion)
