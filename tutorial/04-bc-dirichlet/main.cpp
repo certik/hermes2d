@@ -1,22 +1,25 @@
 #include "hermes2d.h"
 #include "solver_umfpack.h"
 
-// This example is a continuation of example 03. It shows you how
+// This example is a continuation of example 03. It illustrates how
 // to use nonhomogeneous (nonzero) Dirichlet boundary conditions.
 //
-// PDE: Poisson equation -Laplace u = f, where f = -4 corresponds
-// to the function x^2 + y^2. Since also the Dirichlet boundary
-// conditions correspond to the same function, u(x) = x^2 + y^2
-// is the exact solution of this problem.
+// PDE: Poisson equation -Laplace u = CONST_F, where CONST_F is
+// a constant right-hand side. It is not difficult to see that
+// the function u(x,y) = (-CONST_F/4)*(x^2 + y^2) satisfies the
+// above PDE. Since also the Dirichlet boundary conditions
+// correspond to u(x,y), this function is the exact solution
+// of the problem.
 //
 // Note that since the exact solution is a quadratic polynomial,
 // Hermes will compute it exactly if all mesh elements have polynomial
-// degree at least 2 (because then the exact solution lies in the
+// degrees at least 2 (then the exact solution lies in the
 // finite element space). If you choose at least one element to be
 // linear, Hermes will only find an approximation, You can try this
 // easily, just redefine below P_INIT to 1. You can also play with
 // the number of initial uniform refinements UNIFORM_REF_LEVEL.
 
+double CONST_F = -4.0;       // constant right-hand side
 int P_INIT = 2;              // initial polynomial degree in all elements
 int UNIFORM_REF_LEVEL = 3;   // number of initial uniform mesh refinements
 
@@ -29,7 +32,7 @@ int bc_types(int marker)
 scalar bc_values(int marker, double x, double y)
 {
   // this is the Dirichlet BC value for all markers
-  return x*x + y*y;
+  return (-CONST_F/4.0)*(x*x + y*y);
 }
 
 scalar bilinear_form(RealFunction* fu, RealFunction* fv, RefMap* ru, RefMap* rv)
@@ -39,7 +42,7 @@ scalar bilinear_form(RealFunction* fu, RealFunction* fv, RefMap* ru, RefMap* rv)
 
 scalar linear_form(RealFunction* fv, RefMap* rv)
 {
-  return -4*int_v(fv, rv);
+  return CONST_F*int_v(fv, rv);
 }
 
 
