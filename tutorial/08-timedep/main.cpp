@@ -21,14 +21,14 @@
 //  The following parameters can be played with:
 
 const int P_INIT = 1;            // polynomial degree of elements
-const double T_INIT = 10;        // temperature of bottom and initial temperature
+const double T_INIT = 10;        // temperature of the ground (also initial temperature)
 const double ALPHA = 10;         // heat flux coefficient for Newton's boundary condition
-const double LAMBDA = 50;        // thermal conductivity of the material
+const double LAMBDA = 1e5;       // thermal conductivity of the material
 const double HEATCAP = 1e6;      // heat capacity
-const double RHO = 1;            // material density
+const double RHO = 3000;         // material density
 const int INIT_REF_NUM = 4;      // number of initial uniform refinements
-const double TAU = 300.0;        // time step
-const double FINAL_TIME = 86400; // length of time interval (24 hours)
+const double TAU = 300.0;        // time step in seconds
+const double FINAL_TIME = 86400; // length of time interval (24 hours) in seconds
 double TIME = 0;
 
 // time-dependent exterior temperature
@@ -37,21 +37,20 @@ double temp_ext(double t) {
 }
 
 // boundary markers
-int marker_bottom = 1;
-int marker_wall = 2;
+int marker_ground = 1;
+int marker_air = 2;
 
 /********** boundary conditions ***********/
 
 int bc_types(int marker)
 {
-  if (marker == marker_wall) return BC_NATURAL;
-  else return BC_ESSENTIAL;
+  if (marker == marker_ground) return BC_ESSENTIAL;
+  else return BC_NATURAL;
 }
 
 scalar bc_values(int marker, double x, double y)
 {
-  if (marker == marker_wall) return 0;
-  else return T_INIT;
+  if (marker == marker_ground) return T_INIT;
 }
 
 /********** linear and bilinear forms ***********/
@@ -59,7 +58,7 @@ scalar bc_values(int marker, double x, double y)
 // previous time step solution
 Solution Tprev;
 
-// Implicit Euler method ... dT/dt approximated by (T - T_prev)/TAU
+// Implicit Euler method ... dT/dt approximated by (Tnew - Tprev)/TAU
 // volumetric forms
 scalar bilinear_form_0_0_euler(RealFunction* fu, RealFunction* fv, RefMap* ru, RefMap* rv)
 {
@@ -80,7 +79,7 @@ scalar bilinear_form_0_0_surf(RealFunction* fu, RealFunction* fv, RefMap* ru, Re
 
 scalar linear_form_0_surf(RealFunction* fv, RefMap* rv, EdgePos *ep)
 {
-  return LAMBDA * ALPHA * temp_ext(TIME) * surf_int_v(fv, rv, ep);
+  return LAMBDA * ALPHA * temp_ext(TIME + TAU) * surf_int_v(fv, rv, ep);
 }
 
 // *************************************************************
@@ -108,10 +107,10 @@ int main(int argc, char* argv[])
 
   // weak formulation
   WeakForm wf(1);
-  wf.add_biform(0, 0, bilinear_form_0_0_euler, UNSYM, ANY, 1, &Tprev);
+  wf.add_biform(0, 0, bilinear_form_0_0_euler, UNSYM, ANY, 0);
   wf.add_liform(0, linear_form_0_euler, ANY, 1, &Tprev);
-  wf.add_biform_surf(0, 0, bilinear_form_0_0_surf, ANY, 0, marker_wall);
-  wf.add_liform_surf(0, linear_form_0_surf, ANY, 0, marker_wall);
+  wf.add_biform_surf(0, 0, bilinear_form_0_0_surf, ANY, 0, marker_air);
+  wf.add_liform_surf(0, linear_form_0_surf, ANY, 0, marker_air);
 
   // matrix solver
   UmfpackSolver umfpack;
@@ -133,27 +132,30 @@ int main(int argc, char* argv[])
   Tview.fix_scale_width(3);
 
   // time stepping
-  Solution T_new;
+  Solution Tnew;
   int nsteps = (int)(FINAL_TIME/TAU + 0.5);
+  bool rhsonly = false;
   for(int n = 1; n <= nsteps; n++)
   {
 
     info("\n---- Time %3.5f, time step %d, ext_temp %g ----------", TIME, n, temp_ext(TIME));
 
     // assemble and solve
-    ls.assemble();
-    ls.solve(1, &T_new);
+    ls.assemble(rhsonly);
+    rhsonly = true;
+    ls.solve(1, &Tnew);
+
+    // shifting the time variable
+    TIME += TAU;
 
     // visualization of solution
     sprintf(title, "Time %3.2f, exterior temperature %3.5f", TIME, temp_ext(TIME));
     Tview.set_title(title);
-    Tview.show(&T_new);
+    Tview.show(&Tnew);
     //Tview.wait_for_keypress();
 
-    // copying the T_new into T_prev
-    Tprev.copy(&T_new);
-
-    TIME += TAU;
+    // copying Tnew into Tprev
+    Tprev = Tnew;
   }
 
   // Note: a separate example shows how to create videos
