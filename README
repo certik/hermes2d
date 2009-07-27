@@ -1,10 +1,12 @@
-Welcome to Hermes 2D.
+Welcome to Hermes2D!
+
+This is a README file for Linux.
 
 Documentation
 =============
 
-Hermes2D manual is contained in the directory 'tutorial/tex/'. Type 'make' there
-to build the make the pdf file.
+Hermes2D tutorial can be found in the directory 'tutorial/tex/'. Type 'make' there
+to build the pdf file.
 
 Developer documentation can be compiled by running 'doxygen' in 'src/'.
 
@@ -20,7 +22,7 @@ $ apt-get install cmake g++ libjudy-dev freeglut3-dev libsuitesparse-dev
 
 If you want to use Python, install also:
 
-$ apt-get install python-dev python-numpy python-scipy cython matplotlib
+$ apt-get install python-dev python-numpy python-scipy cython python-matplotlib
 
 (matplotlib has to be at least 0.98.5.2 or higher)
 
@@ -78,8 +80,8 @@ $ make debug    (to build debug versions)
 $ make release  (to build release versions)
 
 
-Install hermes
---------------
+Install Hermes2D
+----------------
 
 cmake -DCMAKE_INSTALL_PREFIX=~/usr .
 make
