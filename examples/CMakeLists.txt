@@ -23,3 +23,5 @@ add_subdirectory(newton-ns-timedep)
 add_subdirectory(ns-timedep-adapt)
 add_subdirectory(hdiv)
 add_subdirectory(l2)
+add_subdirectory(smooth)
+
