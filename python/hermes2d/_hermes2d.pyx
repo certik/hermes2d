@@ -762,8 +762,6 @@ cdef class Linearizer:
 
     """
 
-    cdef c_Linearizer *thisptr
-
     def __cinit__(self):
         self.thisptr = new_Linearizer()
 
@@ -771,7 +769,6 @@ cdef class Linearizer:
         delete(self.thisptr)
 
     def process_solution(self, MeshFunction sln):
-        cdef Function s = <Function>sln
         self.thisptr.process_solution(<c_MeshFunction *>sln.thisptr)
 
     def get_vertices(self):
@@ -867,6 +864,22 @@ cdef class Linearizer:
 
     def load_data(self, char* filename):
         self.thisptr.load_data(filename)
+
+cdef class Vectorizer(Linearizer):
+
+    def __cinit__(self):
+        self.thisptr = <c_Linearizer *>new_Vectorizer()
+
+    # this segfaults:
+    #def __dealloc__(self):
+    #    delete(<c_Vectorizer *>(self.thisptr))
+
+    def process_solution(self, MeshFunction xsln, int xitem,
+            MeshFunction ysln, int yitem, double eps=0.1):
+        (<c_Vectorizer *>(self.thisptr)).process_solution(
+                <c_MeshFunction *>xsln.thisptr, xitem,
+                <c_MeshFunction *>ysln.thisptr, yitem,
+                eps)
 
 cdef class View:
 

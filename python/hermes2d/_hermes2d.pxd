@@ -61,8 +61,10 @@ cdef extern from "hermes2d.h":
     int c_info_mode "info_mode"
     int c_warn_integration "warn_integration"
 
+    ctypedef double double4[4]
     ctypedef double double3[3]
     ctypedef int int3[3]
+    ctypedef int int2[2]
 
     cdef struct c_Node "Node":
         int id
@@ -245,6 +247,13 @@ cdef extern from "hermes2d.h":
         void load_data(char* filename)
     c_Linearizer *new_Linearizer "new Linearizer" ()
 
+    cdef struct c_Vectorizer "Vectorizer":
+        void process_solution(c_MeshFunction* xsln, ...)
+        double4* get_vertices()
+        int2* get_dashes()
+        int get_num_dashes()
+    c_Vectorizer *new_Vectorizer "new Vectorizer" ()
+
 
     double int_u(RealFunction* fu, RefMap* ru)
     double int_l2_norm(RealFunction* fu, RefMap* ru)
@@ -352,4 +361,10 @@ cdef class MeshFunction(ScalarFunction):
     pass
 
 cdef class Solution(MeshFunction):
+    pass
+
+cdef class Linearizer:
+    cdef c_Linearizer *thisptr
+
+cdef class Vectorizer(Linearizer):
     pass
