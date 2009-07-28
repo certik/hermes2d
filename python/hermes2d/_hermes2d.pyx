@@ -888,6 +888,13 @@ cdef class Vectorizer(Linearizer):
         cdef ndarray vec = array_double_c2numpy(<double *>vert, 4*nvert)
         return vec.reshape((nvert, 4))
 
+    def get_dashes(self):
+        cdef c_Vectorizer *_self = <c_Vectorizer *>(self.thisptr)
+        cdef int2 *dashes = _self.get_dashes()
+        cdef int ndashes = _self.get_num_dashes()
+        cdef ndarray vec = array_int_c2numpy(<int *>dashes, 2*ndashes)
+        return vec.reshape((ndashes, 2))
+
 cdef class View:
 
     def wait(self):
