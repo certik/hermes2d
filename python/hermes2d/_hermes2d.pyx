@@ -311,13 +311,19 @@ cdef class MeshFunction(ScalarFunction):
         cdef c_MeshFunction *m = <c_MeshFunction *>(self.thisptr)
         return Mesh_from_c_Mesh(m.get_mesh())
 
+cdef api object Solution_from_C(c_Solution *s):
+    cdef Solution n
+    n = <Solution>PY_NEW(Solution)
+    n.thisptr = <c_Function *>s
+    return n
+
 cdef class Solution(MeshFunction):
 
     def __cinit__(self):
         self.thisptr = <c_Function *>new_Solution()
 
-    def __dealloc__(self):
-        delete(self.thisptr)
+    #def __dealloc__(self):
+    #    delete(self.thisptr)
 
     def set_zero(self, Mesh m):
         (<c_Solution *>(self.thisptr)).set_zero(m.thisptr)
@@ -1068,6 +1074,9 @@ cdef api void insert_int_array(char *name, int *A, int len):
     This prints "[1  5  3]" (this is how the NumPy array is printed).
     """
     global_namespace.update({name: array_int_c2numpy(A, len)})
+
+cdef api void insert_object(char *name, object o):
+    global_namespace.update({name: o})
 
 cdef api object get_symbol(char *name):
     return global_namespace.get(name)
