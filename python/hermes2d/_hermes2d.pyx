@@ -874,12 +874,19 @@ cdef class Vectorizer(Linearizer):
     #def __dealloc__(self):
     #    delete(<c_Vectorizer *>(self.thisptr))
 
-    def process_solution(self, MeshFunction xsln, int xitem,
-            MeshFunction ysln, int yitem, double eps=0.1):
+    def process_solution(self, MeshFunction xsln, MeshFunction ysln,
+            int xitem=c_FN_VAL_0, int yitem=c_FN_VAL_0, double eps=c_EPS_LOW):
         (<c_Vectorizer *>(self.thisptr)).process_solution(
                 <c_MeshFunction *>xsln.thisptr, xitem,
                 <c_MeshFunction *>ysln.thisptr, yitem,
                 eps)
+
+    def get_vertices(self):
+        cdef c_Vectorizer *_self = <c_Vectorizer *>(self.thisptr)
+        cdef double4 *vert = _self.get_vertices()
+        cdef int nvert = self.thisptr.get_num_vertices()
+        cdef ndarray vec = array_double_c2numpy(<double *>vert, 4*nvert)
+        return vec.reshape((nvert, 4))
 
 cdef class View:
 
