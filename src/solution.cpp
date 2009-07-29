@@ -264,6 +264,8 @@ void Solution::free()
     delete mesh;
     own_mesh = false;
   }
+
+  free_tables();
 }
 
 
