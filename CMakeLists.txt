@@ -68,6 +68,12 @@ add_subdirectory(src)
 
 if(WITH_EXAMPLES)
 	add_subdirectory(examples)
+    add_subdirectory(tutorial EXCLUDE_FROM_ALL)
+    add_custom_target(tutorial)
+    add_custom_command(
+        TARGET	tutorial
+        COMMAND make -C ${CMAKE_BINARY_DIR}/tutorial
+    )
 endif(WITH_EXAMPLES)
 
 if(WITH_TESTS)
@@ -81,13 +87,6 @@ endif(WITH_PYTHON)
 if(WITH_UTIL)
 	add_subdirectory(util)
 endif(WITH_UTIL)
-
-add_subdirectory(tutorial EXCLUDE_FROM_ALL)
-add_custom_target(tutorial)
-add_custom_command(
-	TARGET	tutorial
-	COMMAND make -C ${CMAKE_BINARY_DIR}/tutorial
-)
 
 # Documentation
 # This doesn't work yet:
