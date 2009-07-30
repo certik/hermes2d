@@ -199,7 +199,7 @@ bool same_line(double p_1, double p_2, double q_1, double q_2, double r_1, doubl
 // checking whether the angle of vectors 'a' and 'b' is between zero and Pi
 bool is_convex(double a_1, double a_2, double b_1, double b_2) 
 {
-  if(a_1*b_2 - a_2*b_1 > 1e-12) return true;
+  if(a_1*b_2 - a_2*b_1 > 0) return true;
   else return false; 
 }
 
@@ -210,8 +210,8 @@ void check_triangle(int i, Node *&v0, Node *&v1, Node *&v2)
     length_1 = vector_length(v1->x - v0->x, v1->y - v0->y), 
     length_2 = vector_length(v2->x - v1->x, v2->y - v1->y), 
     length_3 = vector_length(v0->x - v2->x, v0->y - v2->y); 
-  if(length_1 < 1e-12 || length_2 < 1e-12 || length_3 < 1e-12) 
-    error("Edge of triangular element #%d has zero length.", i);
+  if(length_1 < 1e-14 || length_2 < 1e-14 || length_3 < 1e-14)
+    error("Edge of triangular element #%d has length less than 1e-14.", i);
 
   // checking that vertices do not lie on the same line
   if(same_line(v0->x, v0->y, v1->x, v1->y, v2->x, v2->y))
@@ -232,15 +232,15 @@ void check_quad(int i, Node *&v0, Node *&v1, Node *&v2, Node *&v3)
     length_2 = vector_length(v2->x - v1->x, v2->y - v1->y), 
     length_3 = vector_length(v3->x - v2->x, v3->y - v2->y), 
     length_4 = vector_length(v0->x - v3->x, v0->y - v3->y); 
-  if(length_1 < 1e-12 || length_2 < 1e-12 || length_3 < 1e-12 || length_4 < 1e-12) 
-    error("Edge of quad element #%d has zero length.", i);
+  if(length_1 < 1e-14 || length_2 < 1e-14 || length_3 < 1e-14 || length_4 < 1e-14)
+    error("Edge of quad element #%d has length less than 1e-14.", i);
 
   // checking that both diagonals have nonzero length
   double 
     diag_1 = vector_length(v2->x - v0->x, v2->y - v0->y), 
     diag_2 = vector_length(v3->x - v1->x, v3->y - v1->y); 
-  if(diag_1 < 1e-12 || diag_2 < 1e-12) 
-    error("Diagonal of quad element #%d has zero length.", i);
+  if(diag_1 < 1e-14 || diag_2 < 1e-14)
+    error("Diagonal of quad element #%d has length less than 1e-14.", i);
 
   // checking that vertices v0, v1, v2 do not lie on the same line
   if(same_line(v0->x, v0->y, v1->x, v1->y, v2->x, v2->y))
