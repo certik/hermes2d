@@ -19,6 +19,7 @@ set(COMPLEX  YES)
 # optional functionality
 set(WITH_PYTHON   NO)
 set(WITH_EXAMPLES YES)
+set(WITH_TUTORIAL YES)
 set(WITH_TESTS    NO)
 set(WITH_GLUT     YES)
 set(WITH_UTIL     YES)
@@ -70,6 +71,15 @@ if(WITH_EXAMPLES)
 	add_subdirectory(examples)
 endif(WITH_EXAMPLES)
 
+if(WITH_TUTORIAL)
+    add_subdirectory(tutorial EXCLUDE_FROM_ALL)
+    add_custom_target(tutorial)
+    add_custom_command(
+        TARGET	tutorial
+        COMMAND make -C ${CMAKE_BINARY_DIR}/tutorial
+    )
+endif(WITH_TUTORIAL)
+
 if(WITH_PYTHON)
 	add_subdirectory(python)
 endif(WITH_PYTHON)
@@ -77,13 +87,6 @@ endif(WITH_PYTHON)
 if(WITH_UTIL)
 	add_subdirectory(util)
 endif(WITH_UTIL)
-
-add_subdirectory(tutorial EXCLUDE_FROM_ALL)
-add_custom_target(tutorial)
-add_custom_command(
-	TARGET	tutorial
-	COMMAND make -C ${CMAKE_BINARY_DIR}/tutorial
-)
 
 # Documentation
 # This doesn't work yet:
@@ -109,6 +112,7 @@ message("---------------------")
 message("Versions to build: ${VERS}")
 message("Build with Python: ${WITH_PYTHON}")
 message("Build with examples: ${WITH_EXAMPLES}")
+message("Build with tutorial: ${WITH_TUTORIAL}")
 message("Build with GLUT: ${WITH_GLUT}")
 message("Build with util: ${WITH_UTIL}")
 message("\n")
