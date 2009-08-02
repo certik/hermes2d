@@ -8,7 +8,7 @@ def sln2png(sln, filename):
     from enthought.mayavi.mlab import savefig
     savefig(filename)
 
-def plot_sln_mpl(sln, method="default", just_mesh=False):
+def plot_sln_mpl(sln, method="default", just_mesh=False, axes=None):
     """
     Plots the Solution() instance sln using Linearizer() and matplotlib.
 
@@ -45,6 +45,9 @@ def plot_sln_mpl(sln, method="default", just_mesh=False):
         from numpy import array
         import matplotlib.collections as collections
         import matplotlib.pyplot as plt
+        from pylab import gca
+        if axes is None:
+            axes = gca()
         verts = []
         vals = []
         for t in lin.get_triangles():
@@ -61,11 +64,7 @@ def plot_sln_mpl(sln, method="default", just_mesh=False):
         col = collections.PolyCollection(verts, linewidths=lw, antialiaseds=0)
         col.set_array(vals)
         col.set_cmap(plt.cm.jet)
-        import pylab
-        pylab.ion()
-        fig = pylab.gcf()#plt.figure()
-        pylab.ioff()
-        ax = fig.gca()
+        ax = axes
         ax.add_collection(col)
         ax.set_xlim(verts[:, :, 0].min(), verts[:, :, 0].max())
         ax.set_ylim(verts[:, :, 1].min(), verts[:, :, 1].max())
