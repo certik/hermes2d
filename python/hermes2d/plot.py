@@ -44,9 +44,9 @@ def plot_sln_mpl(sln, method="default", just_mesh=False, axes=None):
     elif method == "default":
         from numpy import array
         import matplotlib.collections as collections
-        import matplotlib.pyplot as plt
-        from pylab import gca
+        #import matplotlib.pyplot as plt
         if axes is None:
+            from pylab import gca
             axes = gca()
         verts = []
         vals = []
@@ -63,14 +63,14 @@ def plot_sln_mpl(sln, method="default", just_mesh=False, axes=None):
             lw = 0
         col = collections.PolyCollection(verts, linewidths=lw, antialiaseds=0)
         col.set_array(vals)
-        col.set_cmap(plt.cm.jet)
+        #col.set_cmap(plt.cm.jet)
         ax = axes
         ax.add_collection(col)
         ax.set_xlim(verts[:, :, 0].min(), verts[:, :, 0].max())
         ax.set_ylim(verts[:, :, 1].min(), verts[:, :, 1].max())
         ax.set_aspect("equal")
         #plt.colorbar()
-        plt.title('Solution')
+        #plt.title('Solution')
     else:
         raise ValueError("Unknown method (%s)" % method)
 
@@ -213,8 +213,8 @@ def plot_mesh_mpl1(nodes, elements, polynomial_orders=None, colors=None):
 
 def plot_mesh_mpl2(nodes, elements, orders=None, colors=None, axes=None,
         plot_nodes=True):
-    from pylab import gca
     if axes is None:
+        from pylab import gca
         axes = gca()
 
     #if orders is None:
