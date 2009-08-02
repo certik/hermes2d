@@ -130,8 +130,13 @@ def plot_mesh_mpl(mesh):
 
     polynomial_orders = [1, 1, 1, 3, 1, 6, 7, 4, 2, 2, 1, 2, 1, 1]
     #polynomial_orders = [1] * len(elements)
-    color_polynomial_orders = {1:'#aaaaaa', 3:'#56789a', 8:'#ff0000',
-            6:'#123456', 4:'#00ff00', 2:'#bcdef0', 7:"#bcde00"}
+    #color_polynomial_orders = {1:'#aaaaaa', 3:'#56789a', 8:'#ff0000',
+    #        6:'#123456', 4:'#00ff00', 2:'#bcdef0', 7:"#bcde00"}
+    color_polynomial_orders = {
+            0: 0x000000, 1: 0x000684, 2: 0x3250fc, 3: 0x36c4ee, 4: 0x04eabc,
+            5: 0x62ff2a, 6: 0xfdff07, 7: 0xffa044, 8: 0xff1111, 9: 0xb02c2c,
+            10: 0x820f97 }
+
 
     _plot_mesh_mpl(nodes, elements, polynomial_orders, color_polynomial_orders)
 
