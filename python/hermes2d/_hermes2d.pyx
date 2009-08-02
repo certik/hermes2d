@@ -185,6 +185,10 @@ cdef class Mesh:
                 ])
 
         """
+        if boundary is None:
+            boundary = []
+        if nurbs is None:
+            nurbs = []
         m = "1 0\n"
         m += "%d\n" % len(nodes)
         for node in nodes:
