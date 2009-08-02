@@ -211,7 +211,8 @@ def plot_mesh_mpl1(nodes, elements, polynomial_orders=None, colors=None):
     sp.autoscale_view()
     return sp.figure
 
-def plot_mesh_mpl2(nodes, elements, orders=None, colors=None, axes=None):
+def plot_mesh_mpl2(nodes, elements, orders=None, colors=None, axes=None,
+        plot_nodes=True):
     from pylab import gca
     if axes is None:
         axes = gca()
@@ -246,11 +247,12 @@ def plot_mesh_mpl2(nodes, elements, orders=None, colors=None, axes=None):
         if orders:
             axes.text(x_avg, y_avg, str(orders[i]))
 
-    # plot nodes:
-    for n in nodes:
-        x = n[0]
-        y = n[1]
-        axes.plot([x], [y], 's', color=(150/255., 0, 0))
+    if plot_nodes:
+        # plot nodes:
+        for n in nodes:
+            x = n[0]
+            y = n[1]
+            axes.plot([x], [y], 's', color=(150/255., 0, 0))
     return axes.figure
 
 
