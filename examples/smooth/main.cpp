@@ -114,6 +114,10 @@ int main(int argc, char* argv[])
     double error = h1_error(&sln, &exact) * 100;
     info("Exact solution error: %g%%", error);
 
+    // plotting convergence wrt. number of dofs
+    graph.add_values(0, space.get_num_dofs(), error);
+    graph.save("conv_dof.gp");
+
     // view the solution
     sview.show(&sln);
     oview.show(&space);
@@ -129,10 +133,6 @@ int main(int argc, char* argv[])
       actual_poly_degree++;
       space.set_uniform_order(actual_poly_degree);
     }
-
-    // plotting convergence wrt. number of dofs
-    graph.add_values(0, space.get_num_dofs(), error);
-    graph.save("conv_dof.gp");
   }
   while (done == false);
 
