@@ -132,18 +132,20 @@ def plot_mesh_mpl(mesh):
     #polynomial_orders = [1] * len(elements)
     #color_polynomial_orders = {1:'#aaaaaa', 3:'#56789a', 8:'#ff0000',
     #        6:'#123456', 4:'#00ff00', 2:'#bcdef0', 7:"#bcde00"}
-    color_polynomial_orders = {0: '#000000', 1: '#000684', 2: '#3250fc',
-            3: '#36c4ee', 4: '#04eabc', 5: '#62ff2a', 6: '#fdff07',
-            7: '#ffa044', 8: '#ff1111', 9: '#b02c2c', 10: '#820f97'}
 
 
-    _plot_mesh_mpl(nodes, elements, polynomial_orders, color_polynomial_orders)
+    _plot_mesh_mpl(nodes, elements, polynomial_orders)
 
 def _plot_mesh_mpl(nodes, elements, polynomial_orders=None, colors=None):
     import numpy as np
     from matplotlib.path import Path
     from matplotlib.patches import PathPatch
     import matplotlib.pyplot as pyplot
+
+    if colors is None:
+        colors = {0: '#000000', 1: '#000684', 2: '#3250fc',
+            3: '#36c4ee', 4: '#04eabc', 5: '#62ff2a', 6: '#fdff07',
+            7: '#ffa044', 8: '#ff1111', 9: '#b02c2c', 10: '#820f97'}
 
     # check that if orders and elements match (if orders are passed in)
     if polynomial_orders is not None:
