@@ -111,7 +111,7 @@ def plot_sln_mayavi(sln, notebook=False):
     # to just call .view(0, 0), which seems to be working fine.
     return s
 
-def plot_mesh_mpl(mesh):
+def plot_hermes_mesh_mpl(mesh):
     # XXX: extract the mesh from hermes here:
     nodes = ((0.6, 0), (0.7, 0), (0.59396969619669993, 0.084852813742385721),
             (0.7, 0.1), (0.51428571428571435, 0.30904725218262763), (0.6,
@@ -128,19 +128,16 @@ def plot_mesh_mpl(mesh):
             17), (14, 15, 16, 17), (0, 19, 1), (19, 18, 1), (21, 7, 8), (20,
                 21, 8))
 
-    polynomial_orders = [1, 1, 1, 3, 1, 6, 7, 4, 2, 2, 1, 2, 1, 1]
-    #polynomial_orders = [1] * len(elements)
-    #color_polynomial_orders = {1:'#aaaaaa', 3:'#56789a', 8:'#ff0000',
-    #        6:'#123456', 4:'#00ff00', 2:'#bcdef0', 7:"#bcde00"}
+    return plot_mesh_mpl(nodes, elements)
 
-
-    _plot_mesh_mpl(nodes, elements, polynomial_orders)
-
-def _plot_mesh_mpl(nodes, elements, polynomial_orders=None, colors=None):
+def plot_mesh_mpl(nodes, elements, polynomial_orders=None, colors=None):
     import numpy as np
     from matplotlib.path import Path
     from matplotlib.patches import PathPatch
     import matplotlib.pyplot as pyplot
+
+    if polynomial_orders is None:
+        polynomial_orders = [1] * len(elements)
 
     if colors is None:
         colors = {0: '#000000', 1: '#000684', 2: '#3250fc',
@@ -213,8 +210,7 @@ def _plot_mesh_mpl(nodes, elements, polynomial_orders=None, colors=None):
     sp.set_title('Mesh using path & Patches')
 
     sp.autoscale_view()
-    pyplot.show()
-
+    return sp.figure
 
 
 class ScalarView(object):
@@ -290,12 +286,12 @@ class MeshView(object):
             m.show(mesh)
             m.wait()
         elif lib == "mpl":
-            plot_mesh_mpl(mesh)
-            import pylab
+            p = plot_hermes_mesh_mpl(mesh)
             if show:
                 if notebook:
-                    pylab.savefig(filename)
+                    p.savefig(filename)
                 else:
-                    pylab.show()
+                    p.show()
+            return p
         else:
             raise NotImplementedError("Unknown library '%s'" % lib)
