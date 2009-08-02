@@ -128,9 +128,9 @@ def plot_hermes_mesh_mpl(mesh):
             17), (14, 15, 16, 17), (0, 19, 1), (19, 18, 1), (21, 7, 8), (20,
                 21, 8))
 
-    return plot_mesh_mpl(nodes, elements)
+    return plot_mesh_mpl1(nodes, elements)
 
-def plot_mesh_mpl(nodes, elements, polynomial_orders=None, colors=None):
+def plot_mesh_mpl1(nodes, elements, polynomial_orders=None, colors=None):
     import numpy as np
     from matplotlib.path import Path
     from matplotlib.patches import PathPatch
@@ -211,6 +211,42 @@ def plot_mesh_mpl(nodes, elements, polynomial_orders=None, colors=None):
 
     sp.autoscale_view()
     return sp.figure
+
+def plot_mesh_mpl2(nodes, elements, orders=None, colors=None):
+    from pylab import plot, text, gcf
+
+    if orders is None:
+        orders = [1] * len(elements)
+
+    if colors is None:
+        colors = {0: '#000000', 1: '#000684', 2: '#3250fc',
+            3: '#36c4ee', 4: '#04eabc', 5: '#62ff2a', 6: '#fdff07',
+            7: '#ffa044', 8: '#ff1111', 9: '#b02c2c', 10: '#820f97'}
+
+    # check that if orders and elements match (if orders are passed in)
+    if orders is not None:
+        assert len(elements) == len(orders)
+    # plot nodes first
+    for n in nodes:
+        x = n[0]
+        y = n[1]
+        plot([x], [y], 'o')
+    # join nodes with lines:
+    for i, e in enumerate(elements):
+        x_avg = 0
+        y_avg = 0
+        for k in range(len(e)):
+            n1 = e[k-1]
+            n2 = e[k]
+            x1, y1 = nodes[n1]
+            x2, y2 = nodes[n2]
+            x_avg += x2
+            y_avg += y2
+            plot([x1, x2], [y1, y2], "k-")
+        x_avg /= len(e)
+        y_avg /= len(e)
+        text(x_avg, y_avg, str(orders[i]))
+    return gcf()
 
 
 class ScalarView(object):
