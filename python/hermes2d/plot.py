@@ -215,8 +215,8 @@ def plot_mesh_mpl1(nodes, elements, polynomial_orders=None, colors=None):
 def plot_mesh_mpl2(nodes, elements, orders=None, colors=None):
     from pylab import plot, text, gcf
 
-    if orders is None:
-        orders = [1] * len(elements)
+    #if orders is None:
+    #    orders = [1] * len(elements)
 
     if colors is None:
         colors = {0: '#000000', 1: '#000684', 2: '#3250fc',
@@ -226,11 +226,7 @@ def plot_mesh_mpl2(nodes, elements, orders=None, colors=None):
     # check that if orders and elements match (if orders are passed in)
     if orders is not None:
         assert len(elements) == len(orders)
-    # plot nodes first
-    for n in nodes:
-        x = n[0]
-        y = n[1]
-        plot([x], [y], 'o')
+
     # join nodes with lines:
     for i, e in enumerate(elements):
         x_avg = 0
@@ -242,10 +238,19 @@ def plot_mesh_mpl2(nodes, elements, orders=None, colors=None):
             x2, y2 = nodes[n2]
             x_avg += x2
             y_avg += y2
-            plot([x1, x2], [y1, y2], "k-")
+            plot([x1, x2], [y1, y2], "-",
+                    color=(0, 0, 150/255.), lw=2)
         x_avg /= len(e)
         y_avg /= len(e)
-        text(x_avg, y_avg, str(orders[i]))
+        if orders:
+            text(x_avg, y_avg, str(orders[i]))
+
+    # plot nodes:
+    for n in nodes:
+        x = n[0]
+        y = n[1]
+        plot([x], [y], 's', color=(150/255., 0, 0))
+
     return gcf()
 
 
