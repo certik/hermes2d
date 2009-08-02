@@ -111,6 +111,107 @@ def plot_sln_mayavi(sln, notebook=False):
     # to just call .view(0, 0), which seems to be working fine.
     return s
 
+def plot_mesh_mpl(mesh):
+    # XXX: extract the mesh from hermes here:
+    nodes = ((0.6, 0), (0.7, 0), (0.59396969619669993, 0.084852813742385721),
+            (0.7, 0.1), (0.51428571428571435, 0.30904725218262763), (0.6,
+                0.36055512754639885), (0.7, 0.36055512754639885), (0, 0.6), (0,
+                    0.7), (0.084852813742385721, 0.59396969619669993), (0.1,
+                        0.7), (0.30904725218262763, 0.51428571428571435),
+                    (0.36055512754639885, 0.6), (0.36055512754639885, 0.7),
+                    (0.6, 0.6), (0.7, 0.6), (0.7, 0.7), (0.6, 0.7), (0.7,
+                        -0.1), (0.62928932188134523, -0.070710678118654766),
+                    (-0.1, 0.7), (-0.070710678118654766, 0.62928932188134523))
+
+    elements = ((0, 1, 3, 2), (2, 3, 5, 4), (6, 5, 3), (8, 7, 9, 10), (10, 9,
+        11, 12), (13, 10, 12), (4, 5, 12, 11), (5, 6, 15, 14), (13, 12, 14,
+            17), (14, 15, 16, 17), (0, 19, 1), (19, 18, 1), (21, 7, 8), (20,
+                21, 8))
+
+    polynomial_orders = [1, 1, 1, 3, 1, 6, 7, 4, 2, 2, 1, 2, 1, 1]
+    #polynomial_orders = [1] * len(elements)
+    color_polynomial_orders = {1:'#aaaaaa', 3:'#56789a', 8:'#ff0000',
+            6:'#123456', 4:'#00ff00', 2:'#bcdef0', 7:"#bcde00"}
+
+    _plot_mesh_mpl(nodes, elements, polynomial_orders, color_polynomial_orders)
+
+def _plot_mesh_mpl(nodes, elements, orders=None, colors=None):
+    import numpy as np
+    from matplotlib.path import Path
+    from matplotlib.patches import PathPatch
+    import matplotlib.pyplot as pyplot
+    from pylab import plot, show, text
+
+    # check that if orders and elements match (if orders are passed in)
+    if orders is not None:
+        assert len(elements) == len(orders)
+
+    path_polynomial_orders = {}
+    pathpatch_polynomial_orders = {}
+    vertices_polynomial_orders = {}
+    codes_polynomial_orders = {}
+
+    for key, value in colors.items():
+        if not key in polynomial_orders:
+            continue
+        path_polynomial_orders[key] = 'path will be added later'
+        pathpatch_polynomial_orders[key] = 'patchPath will be added later'
+        vertices_polynomial_orders[key] = []
+        codes_polynomial_orders[key] = []
+
+    # join nodes with lines:
+    for i, e in enumerate(elements):
+        x_avg = 0
+        y_avg = 0
+        for k, node_index in enumerate(e):
+            vertices_polynomial_orders[orders[i]].append(nodes[node_index])
+            if k == 0:
+                codes_polynomial_orders[orders[i]].append(Path.MOVETO)
+            else:
+                codes_polynomial_orders[orders[i]].append(Path.LINETO)
+
+        vertices_polynomial_orders[orders[i]].append((0,0))
+        codes_polynomial_orders[orders[i]].append(Path.CLOSEPOLY)
+
+
+    for key, color in colors.items():
+        if not key in polynomial_orders:
+            continue
+        vertices_polynomial_orders[key] = np.array(vertices_polynomial_orders[key], float)
+        path_polynomial_orders[key] = Path(vertices_polynomial_orders[key], codes_polynomial_orders[key])
+        pathpatch_polynomial_orders[key] = PathPatch(path_polynomial_orders[key], facecolor=color, edgecolor='green')
+
+
+    fig = pyplot.figure()
+    sp = fig.add_subplot(111)
+
+    for key, patch in pathpatch_polynomial_orders.items():
+        sp.add_patch(patch)
+
+    for i, e in enumerate(elements):
+        x_avg = 0
+        y_avg = 0
+        for k, node_index in enumerate(e):
+            x1, y1 = nodes[e[k-1]]
+            x2, y2 = nodes[e[k]]
+
+            x_avg += x2
+            y_avg += y2
+
+        x_avg /= len(e)
+        y_avg /= len(e)
+        sp.text(x_avg, y_avg, str(orders[i]))
+
+    #for key,vertices in vertices_polynomial_orders.items():
+    #    sp.dataLim.update_from_data_xy(vertices)
+
+    sp.set_title('Mesh using path & Patches')
+
+    sp.autoscale_view()
+    pyplot.show()
+
+
+
 class ScalarView(object):
 
     def __init__(self, x=0, y=0, w=50, h=50, name="Solution"):
@@ -184,9 +285,7 @@ class MeshView(object):
             m.show(mesh)
             m.wait()
         elif lib == "mpl":
-            sln = Solution()
-            sln.set_zero(mesh)
-            plot_sln_mpl(sln, just_mesh=True)
+            plot_mesh_mpl(mesh)
             import pylab
             if show:
                 if notebook:
