@@ -212,8 +212,10 @@ def plot_mesh_mpl1(nodes, elements, polynomial_orders=None, colors=None):
     sp.autoscale_view()
     return sp.figure
 
-def plot_mesh_mpl2(nodes, elements, orders=None, colors=None):
-    from pylab import plot, text, gcf
+def plot_mesh_mpl2(nodes, elements, orders=None, colors=None, axes=None):
+    from pylab import gca
+    if axes is None:
+        axes = gca()
 
     #if orders is None:
     #    orders = [1] * len(elements)
@@ -238,20 +240,19 @@ def plot_mesh_mpl2(nodes, elements, orders=None, colors=None):
             x2, y2 = nodes[n2]
             x_avg += x2
             y_avg += y2
-            plot([x1, x2], [y1, y2], "-",
+            axes.plot([x1, x2], [y1, y2], "-",
                     color=(0, 0, 150/255.), lw=2)
         x_avg /= len(e)
         y_avg /= len(e)
         if orders:
-            text(x_avg, y_avg, str(orders[i]))
+            axes.text(x_avg, y_avg, str(orders[i]))
 
     # plot nodes:
     for n in nodes:
         x = n[0]
         y = n[1]
-        plot([x], [y], 's', color=(150/255., 0, 0))
-
-    return gcf()
+        axes.plot([x], [y], 's', color=(150/255., 0, 0))
+    return axes.figure
 
 
 class ScalarView(object):
