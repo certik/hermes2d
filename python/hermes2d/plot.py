@@ -140,7 +140,6 @@ def _plot_mesh_mpl(nodes, elements, polynomial_orders=None, colors=None):
     from matplotlib.path import Path
     from matplotlib.patches import PathPatch
     import matplotlib.pyplot as pyplot
-    from pylab import plot, show, text
 
     # check that if orders and elements match (if orders are passed in)
     if polynomial_orders is not None:
