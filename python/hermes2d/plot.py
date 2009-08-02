@@ -135,7 +135,7 @@ def plot_mesh_mpl(mesh):
 
     _plot_mesh_mpl(nodes, elements, polynomial_orders, color_polynomial_orders)
 
-def _plot_mesh_mpl(nodes, elements, orders=None, colors=None):
+def _plot_mesh_mpl(nodes, elements, polynomial_orders=None, colors=None):
     import numpy as np
     from matplotlib.path import Path
     from matplotlib.patches import PathPatch
@@ -143,8 +143,8 @@ def _plot_mesh_mpl(nodes, elements, orders=None, colors=None):
     from pylab import plot, show, text
 
     # check that if orders and elements match (if orders are passed in)
-    if orders is not None:
-        assert len(elements) == len(orders)
+    if polynomial_orders is not None:
+        assert len(elements) == len(polynomial_orders)
 
     path_polynomial_orders = {}
     pathpatch_polynomial_orders = {}
@@ -164,14 +164,14 @@ def _plot_mesh_mpl(nodes, elements, orders=None, colors=None):
         x_avg = 0
         y_avg = 0
         for k, node_index in enumerate(e):
-            vertices_polynomial_orders[orders[i]].append(nodes[node_index])
+            vertices_polynomial_orders[polynomial_orders[i]].append(nodes[node_index])
             if k == 0:
-                codes_polynomial_orders[orders[i]].append(Path.MOVETO)
+                codes_polynomial_orders[polynomial_orders[i]].append(Path.MOVETO)
             else:
-                codes_polynomial_orders[orders[i]].append(Path.LINETO)
+                codes_polynomial_orders[polynomial_orders[i]].append(Path.LINETO)
 
-        vertices_polynomial_orders[orders[i]].append((0,0))
-        codes_polynomial_orders[orders[i]].append(Path.CLOSEPOLY)
+        vertices_polynomial_orders[polynomial_orders[i]].append((0,0))
+        codes_polynomial_orders[polynomial_orders[i]].append(Path.CLOSEPOLY)
 
 
     for key, color in colors.items():
@@ -200,7 +200,7 @@ def _plot_mesh_mpl(nodes, elements, orders=None, colors=None):
 
         x_avg /= len(e)
         y_avg /= len(e)
-        sp.text(x_avg, y_avg, str(orders[i]))
+        sp.text(x_avg, y_avg, str(polynomial_orders[i]))
 
     #for key,vertices in vertices_polynomial_orders.items():
     #    sp.dataLim.update_from_data_xy(vertices)
