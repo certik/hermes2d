@@ -1144,6 +1144,12 @@ cdef api object run_cmd(char *text, object namespace):
             print "new namespace:"
             print namespace
         return namespace
+    except SystemExit, e:
+        try:
+            exit_code = int(e)
+        except:
+            exit_code = -1
+        exit(exit_code)
     except:
         etype, value, tb = sys.exc_info()
         s = "".join(traceback.format_exception(etype, value, tb))

@@ -11,6 +11,8 @@ cdef extern from "stdlib.h":
     void free(void *mem)
     void *memcpy(void *dst, void *src, long n)
 
+    void exit(int exit_code)
+
 cdef extern from "arrayobject.h":
 
     ctypedef int intp
