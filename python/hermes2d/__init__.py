@@ -14,7 +14,7 @@ def get_pxd_include():
     """
     this_dir = os.path.abspath(os.path.dirname(__file__))
     include_dir = os.path.join(this_dir, "include")
-    return os.path.join(include_dir)
+    return os.path.normpath(include_dir)
 
 def get_include():
     """
@@ -31,7 +31,7 @@ def get_include():
     this_dir = os.path.abspath(os.path.dirname(__file__))
     include_dir = os.path.join(this_dir, "..", "..", "..",
             "include", "hermes2d")
-    return os.path.join(include_dir)
+    return os.path.normpath(include_dir)
 
 def get_lib():
     """
@@ -40,7 +40,7 @@ def get_lib():
     """
     this_dir = os.path.abspath(os.path.dirname(__file__))
     lib_dir = os.path.join(this_dir, "..", "..")
-    return lib_dir
+    return os.path.normpath(lib_dir)
 
 def raises(ExpectedException, code):
     """
