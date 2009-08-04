@@ -8,7 +8,7 @@ def sln2png(sln, filename):
     from enthought.mayavi.mlab import savefig
     savefig(filename)
 
-def plot_sln_mpl(sln, method="default", just_mesh=False):
+def plot_sln_mpl(sln, method="default", just_mesh=False, axes=None):
     """
     Plots the Solution() instance sln using Linearizer() and matplotlib.
 
@@ -44,7 +44,10 @@ def plot_sln_mpl(sln, method="default", just_mesh=False):
     elif method == "default":
         from numpy import array
         import matplotlib.collections as collections
-        import matplotlib.pyplot as plt
+        #import matplotlib.pyplot as plt
+        if axes is None:
+            from pylab import gca
+            axes = gca()
         verts = []
         vals = []
         for t in lin.get_triangles():
@@ -60,18 +63,14 @@ def plot_sln_mpl(sln, method="default", just_mesh=False):
             lw = 0
         col = collections.PolyCollection(verts, linewidths=lw, antialiaseds=0)
         col.set_array(vals)
-        col.set_cmap(plt.cm.jet)
-        import pylab
-        pylab.ion()
-        fig = pylab.gcf()#plt.figure()
-        pylab.ioff()
-        ax = fig.gca()
+        #col.set_cmap(plt.cm.jet)
+        ax = axes
         ax.add_collection(col)
         ax.set_xlim(verts[:, :, 0].min(), verts[:, :, 0].max())
         ax.set_ylim(verts[:, :, 1].min(), verts[:, :, 1].max())
         ax.set_aspect("equal")
         #plt.colorbar()
-        plt.title('Solution')
+        #plt.title('Solution')
     else:
         raise ValueError("Unknown method (%s)" % method)
 
@@ -110,6 +109,147 @@ def plot_sln_mayavi(sln, notebook=False):
     # the above looks ok, but there is still quite a large margin, so we prefer
     # to just call .view(0, 0), which seems to be working fine.
     return s
+
+def plot_hermes_mesh_mpl(mesh, method="simple"):
+    if method == "simple":
+        return plot_mesh_mpl_simple(mesh.nodes, mesh.elements)
+    elif method == "orders":
+        return plot_mesh_mpl_orders(mesh.nodes, mesh.elements)
+    else:
+        raise ValueError("Unknown method")
+
+def plot_mesh_mpl_orders(nodes, elements, polynomial_orders=None, colors=None):
+    """
+    This plots the mesh together with polynomial orders.
+    """
+    import numpy as np
+    from matplotlib.path import Path
+    from matplotlib.patches import PathPatch
+    import matplotlib.pyplot as pyplot
+
+    if polynomial_orders is None:
+        polynomial_orders = [1] * len(elements)
+
+    if colors is None:
+        colors = {0: '#000000', 1: '#000684', 2: '#3250fc',
+            3: '#36c4ee', 4: '#04eabc', 5: '#62ff2a', 6: '#fdff07',
+            7: '#ffa044', 8: '#ff1111', 9: '#b02c2c', 10: '#820f97'}
+
+    # check that if orders and elements match (if orders are passed in)
+    if polynomial_orders is not None:
+        assert len(elements) == len(polynomial_orders)
+
+    path_polynomial_orders = {}
+    pathpatch_polynomial_orders = {}
+    vertices_polynomial_orders = {}
+    codes_polynomial_orders = {}
+
+    for key, value in colors.items():
+        if not key in polynomial_orders:
+            continue
+        path_polynomial_orders[key] = 'path will be added later'
+        pathpatch_polynomial_orders[key] = 'patchPath will be added later'
+        vertices_polynomial_orders[key] = []
+        codes_polynomial_orders[key] = []
+
+    # join nodes with lines:
+    for i, e in enumerate(elements):
+        x_avg = 0
+        y_avg = 0
+        for k, node_index in enumerate(e):
+            vertices_polynomial_orders[polynomial_orders[i]].append(nodes[node_index])
+            if k == 0:
+                codes_polynomial_orders[polynomial_orders[i]].append(Path.MOVETO)
+            else:
+                codes_polynomial_orders[polynomial_orders[i]].append(Path.LINETO)
+
+        vertices_polynomial_orders[polynomial_orders[i]].append((0,0))
+        codes_polynomial_orders[polynomial_orders[i]].append(Path.CLOSEPOLY)
+
+
+    for key, color in colors.items():
+        if not key in polynomial_orders:
+            continue
+        vertices_polynomial_orders[key] = np.array(vertices_polynomial_orders[key], float)
+        path_polynomial_orders[key] = Path(vertices_polynomial_orders[key], codes_polynomial_orders[key])
+        pathpatch_polynomial_orders[key] = PathPatch(path_polynomial_orders[key], facecolor=color, edgecolor='green')
+
+
+    fig = pyplot.figure()
+    sp = fig.add_subplot(111)
+
+    for key, patch in pathpatch_polynomial_orders.items():
+        sp.add_patch(patch)
+
+    for i, e in enumerate(elements):
+        x_avg = 0
+        y_avg = 0
+        for k, node_index in enumerate(e):
+            x1, y1 = nodes[e[k-1]]
+            x2, y2 = nodes[e[k]]
+
+            x_avg += x2
+            y_avg += y2
+
+        x_avg /= len(e)
+        y_avg /= len(e)
+        sp.text(x_avg, y_avg, str(polynomial_orders[i]))
+
+    #for key,vertices in vertices_polynomial_orders.items():
+    #    sp.dataLim.update_from_data_xy(vertices)
+
+    sp.set_title('Mesh using path & Patches')
+
+    sp.autoscale_view()
+    return sp.figure
+
+def plot_mesh_mpl_simple(nodes, elements, orders=None, colors=None, axes=None,
+        plot_nodes=True):
+    """
+    This plots the mesh using simple mpl plot commands.
+    """
+    if axes is None:
+        from pylab import gca
+        axes = gca()
+
+    #if orders is None:
+    #    orders = [1] * len(elements)
+
+    if colors is None:
+        colors = {0: '#000000', 1: '#000684', 2: '#3250fc',
+            3: '#36c4ee', 4: '#04eabc', 5: '#62ff2a', 6: '#fdff07',
+            7: '#ffa044', 8: '#ff1111', 9: '#b02c2c', 10: '#820f97'}
+
+    # check that if orders and elements match (if orders are passed in)
+    if orders is not None:
+        assert len(elements) == len(orders)
+
+    # join nodes with lines:
+    for i, e in enumerate(elements):
+        x_avg = 0
+        y_avg = 0
+        for k in range(len(e)):
+            n1 = e[k-1]
+            n2 = e[k]
+            x1, y1 = nodes[n1]
+            x2, y2 = nodes[n2]
+            x_avg += x2
+            y_avg += y2
+            axes.plot([x1, x2], [y1, y2], "-",
+                    color=(0, 0, 150/255.), lw=2)
+        x_avg /= len(e)
+        y_avg /= len(e)
+        if orders:
+            axes.text(x_avg, y_avg, str(orders[i]))
+
+    if plot_nodes:
+        # plot nodes:
+        for n in nodes:
+            x = n[0]
+            y = n[1]
+            axes.plot([x], [y], 's', color=(150/255., 0, 0))
+    return axes.figure
+
 
 class ScalarView(object):
 
@@ -184,14 +324,14 @@ class MeshView(object):
             m.show(mesh)
             m.wait()
         elif lib == "mpl":
-            sln = Solution()
-            sln.set_zero(mesh)
-            plot_sln_mpl(sln, just_mesh=True)
-            import pylab
+            p = plot_hermes_mesh_mpl(mesh, **options)
             if show:
                 if notebook:
-                    pylab.savefig(filename)
+                    p.savefig(filename)
                 else:
+                    p.show()
+                    import pylab
                     pylab.show()
+            return p
         else:
             raise NotImplementedError("Unknown library '%s'" % lib)

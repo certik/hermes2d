@@ -237,6 +237,10 @@ cdef class Mesh:
                 ])
 
         """
+        if boundary is None:
+            boundary = []
+        if nurbs is None:
+            nurbs = []
         m = "1 0\n"
         m += "%d\n" % len(nodes)
         for node in nodes:
@@ -270,6 +274,17 @@ cdef class Mesh:
         cdef Element e = Element()
         e.thisptr = self.thisptr.get_element(id)
         return e
+
+    def plot(self, *args, **kwargs):
+        """
+        Plots the mesh and shows it to the user.
+
+        It passes all arguments to the MeshView.show() function, so read its
+        documentation for the meaning.
+        """
+        from hermes2d import MeshView
+        m = MeshView()
+        m.show(self, *args, **kwargs)
 
 cdef class H1Shapeset:
     cdef c_H1Shapeset *thisptr
