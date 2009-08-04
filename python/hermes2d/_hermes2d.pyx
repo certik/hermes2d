@@ -69,6 +69,10 @@ cdef class Element:
         return [self.get_vertex_node(i) for i in range(self.nvert)]
 
     @property
+    def nodes_vertex_id(self):
+        return [node.id for node in self.nodes_vertex]
+
+    @property
     def nodes_edge(self):
         return [self.get_edge_node(i) for i in range(self.nvert)]
 
@@ -98,6 +102,12 @@ cdef class Element:
     def get_area(self):
         return self.thisptr.get_area()
 
+def get_node_id(node):
+    # This function is used in nodes.sort() in the Mesh class.
+    # Cython doesn't yet support lambda functions, nor closures.
+    return node.id
+
+
 cdef class Mesh:
     cdef c_Mesh *thisptr
 
@@ -115,6 +125,48 @@ cdef class Mesh:
 
     def load_str(self, char* mesh):
         self.thisptr.load_str(mesh)
+
+    @property
+    def elements_markers(self):
+        """
+        Return the list of elements (as ids), together with their markers.
+
+        This is equaivalent to the format of the elements argument to the
+        Mesh.create() method.
+        """
+        element_list = []
+        for i in range(self.num_elements):
+            el = self.get_element(i)
+            element_list.append(el.nodes_vertex_id + [el.marker])
+        return element_list
+
+    @property
+    def elements(self):
+        """
+        Return the list of elements (as ids).
+        """
+        element_list = []
+        for i in range(self.num_elements):
+            el = self.get_element(i)
+            element_list.append(el.nodes_vertex_id)
+        return element_list
+
+    @property
+    def nodes(self):
+        # This is a really slow implementation, but it gets the job
+        # done for now. Later on, we should get the list of nodes from C++
+        # directly.
+        nodes = []
+        for i in range(self.num_elements):
+            el = self.get_element(i)
+            nodes.extend(el.nodes_vertex)
+        node_dict = {}
+        for node in nodes:
+            node_dict[node.id] = node
+        nodes = node_dict.values()
+        nodes.sort(key=get_node_id)
+        nodes_coord = [node.coord for node in nodes]
+        return nodes_coord
 
     @property
     def num_elements(self):

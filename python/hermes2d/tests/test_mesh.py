@@ -1,5 +1,5 @@
 from hermes2d.mesh import read_hermes_format_str, ParseError
-from hermes2d import raises
+from hermes2d import raises, Mesh
 
 mesh1 = """\
 vertices =
@@ -779,3 +779,89 @@ boundaries =
 
     nodes, elements, boundaries, _ = read_hermes_format_str(mesh % "3/2")
     assert compare(nodes, ((0, -1), (1.5, 0.70710678100000002)))
+
+def test_mesh_create1():
+    mesh = Mesh()
+    mesh.create([
+           [0, 0],
+           [1, 0],
+           [1, 1],
+           [0, 1],
+       ], [
+           [2, 3, 0, 1, 0],
+       ], [
+           [0, 1, 1],
+           [1, 2, 1],
+           [2, 3, 1],
+           [3, 0, 1],
+       ], [])
+    assert compare(mesh.nodes, [[0, 0], [1, 0], [1, 1], [0, 1]])
+    assert mesh.elements_markers == [[2, 3, 0, 1, 0]]
+    assert mesh.elements == [[2, 3, 0, 1]]
+    # not yet implemented:
+    #assert mesh.boundaries == [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 0, 1]]
+    #assert mesh.nurbs is None
+
+def test_mesh_create2():
+    m = Mesh()
+    m.create([
+            [0, -1],
+            [1, -1],
+            [-1, 0],
+            [0, 0],
+            [1, 0],
+            [-1, 1],
+            [0, 1],
+            [0.707106781, 0.707106781],
+        ], [
+            [0, 1, 4, 3, 0],
+            [3, 4, 7, 0],
+            [3, 7, 6, 0],
+            [2, 3, 6, 5, 0],
+        ], [
+            [0, 1, 1],
+            [1, 4, 2],
+            [3, 0, 4],
+            [4, 7, 2],
+            [7, 6, 2],
+            [2, 3, 4],
+            [6, 5, 2],
+            [5, 2, 3],
+        ], [
+            [4, 7, 45],
+            [7, 6, 45],
+        ])
+    assert compare(m.nodes, [
+            [0, -1],
+            [1, -1],
+            [-1, 0],
+            [0, 0],
+            [1, 0],
+            [-1, 1],
+            [0, 1],
+            [0.707106781, 0.707106781],
+        ], eps=1e-4)
+    assert m.elements_markers == [
+            [0, 1, 4, 3, 0],
+            [3, 4, 7, 0],
+            [3, 7, 6, 0],
+            [2, 3, 6, 5, 0],
+        ]
+    assert m.elements == [
+            [0, 1, 4, 3],
+            [3, 4, 7],
+            [3, 7, 6],
+            [2, 3, 6, 5],
+        ]
+    # This is not yet implemented:
+    #assert m.boundaries == [
+    #        [0, 1, 1],
+    #        [1, 4, 2],
+    #        [3, 0, 4],
+    #        [4, 7, 2],
+    #        [7, 6, 2],
+    #        [2, 3, 4],
+    #        [6, 5, 2],
+    #        [5, 2, 3],
+    #    ]
+    #assert mesh.nurbs == ...
