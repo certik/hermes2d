@@ -3,7 +3,8 @@
 import os
 
 from _hermes2d import *
-from plot import sln2png, plot_sln_mpl, plot_sln_mayavi, ScalarView, MeshView
+from plot import (sln2png, plot_sln_mpl, plot_sln_mayavi, ScalarView, MeshView,
+        plot_mesh_mpl_orders, plot_mesh_mpl_simple)
 from runtests import test
 from demos import demo_layer
 

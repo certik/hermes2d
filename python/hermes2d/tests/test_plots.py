@@ -1,9 +1,9 @@
-from hermes2d import Mesh, H1Shapeset, PrecalcShapeset, H1Space, \
-        WeakForm, Solution, ScalarView, LinSystem, DummySolver, raises
-
+from hermes2d import (Mesh, H1Shapeset, PrecalcShapeset, H1Space, WeakForm,
+        Solution, ScalarView, LinSystem, DummySolver, raises, MeshView,
+        set_verbose)
 from hermes2d.forms import set_forms
-
 from hermes2d.examples import get_example_mesh
+set_verbose(False)
 
 domain_mesh = get_example_mesh()
 
@@ -105,3 +105,44 @@ def test_ScalarView_mpl_unknown():
 
     view = ScalarView("Solution")
     assert raises(ValueError, 'view.show(sln, show=False, method="something_unknown_123")')
+
+def test_plot_mesh1a():
+    mesh = Mesh()
+    mesh.load(domain_mesh)
+
+    view = MeshView("Solution")
+    view.show(mesh, lib="mpl", method="simple", show=False)
+
+def test_plot_mesh1b():
+    mesh = Mesh()
+    mesh.load(domain_mesh)
+
+    view = MeshView("Solution")
+    view.show(mesh, lib="mpl", method="orders", show=False)
+
+def test_plot_mesh1c():
+    mesh = Mesh()
+    mesh.load(domain_mesh)
+
+    view = MeshView("Solution")
+    assert raises(ValueError, 'view.show(mesh, lib="mpl", method="something_unknown_123")')
+
+# doesn't work on a refined mesh:
+def _test_plot_mesh2():
+    mesh = Mesh()
+    mesh.load(domain_mesh)
+    mesh.refine_element(0)
+
+    view = MeshView("Solution")
+    view.show(mesh, lib="mpl", show=False)
+
+# doesn't work on a refined mesh:
+def _test_plot_mesh3():
+    mesh = Mesh()
+    mesh.load(domain_mesh)
+    mesh.refine_all_elements()
+    mesh.refine_all_elements()
+    mesh.refine_all_elements()
+
+    view = MeshView("Solution")
+    view.show(mesh, lib="mpl", show=False)
