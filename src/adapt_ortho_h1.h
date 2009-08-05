@@ -96,7 +96,7 @@ public:
 
   /// Selects elements to refine (based on results from calc_error() or calc_energy_error())
   /// and performs their optimal hp-refinement.
-  bool adapt(double thr, int strat = 0, bool h_only = false, bool iso_only = false, int regularize = -1,
+  bool adapt(double thr, int strat = 0, int adapt_type = 0, bool iso_only = false, int regularize = -1,
              int max_order = -1, bool same_orders = false, double to_be_processed = 0.0);
 
   /// Unrefines the elements with the smallest error

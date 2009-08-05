@@ -528,7 +528,7 @@ void H1OrthoHP::get_optimal_refinement(Element* e, int order, Solution* rsln, in
 
 //// adapt /////////////////////////////////////////////////////////////////////////////////////////
 
-bool H1OrthoHP::adapt(double thr, int strat, bool h_only, bool iso_only, int regularize,
+bool H1OrthoHP::adapt(double thr, int strat, int adapt_type, bool iso_only, int regularize,
                       int max_order, bool same_orders, double to_be_processed)
 {
 
@@ -559,6 +559,7 @@ bool H1OrthoHP::adapt(double thr, int strat, bool h_only, bool iso_only, int reg
   int nref = nact;
   double err0 = 1000.0;
   double processed_error = 0.0;
+  bool h_only = adapt_type == 1 ? true : false;
 
   for (i = 0; i < nact; i++)
   {
@@ -586,11 +587,19 @@ bool H1OrthoHP::adapt(double thr, int strat, bool h_only, bool iso_only, int reg
     e = mesh[comp]->get_element(id);
     int current = spaces[comp]->get_element_order(id);
 
-    if (h_only && iso_only)
+    // p-adaptivity
+    if (adapt_type == 2)
+    {
+      split[i] = -1;
+      p[i][0] = q[i][0] = std::min(9, get_h_order(current) + 1);
+    }
+    // h-adaptivity
+    else if (adapt_type == 1 && iso_only)
     {
       p[i][0] = p[i][1] = p[i][2] = p[i][3] = current;
       q[i][0] = q[i][1] = q[i][2] = q[i][3] = current;
     }
+    // hp-adaptivity
     else
       get_optimal_refinement(e, current, rsln[comp], split[i], p[i], q[i], h_only, iso_only, max_order);
 
