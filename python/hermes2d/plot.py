@@ -112,9 +112,9 @@ def plot_sln_mayavi(sln, notebook=False):
 
 def plot_hermes_mesh_mpl(mesh, method="simple"):
     if method == "simple":
-        return plot_mesh_mpl_simple(mesh.nodes, mesh.elements)
+        return plot_mesh_mpl_simple(mesh.nodes_dict, mesh.elements)
     elif method == "orders":
-        return plot_mesh_mpl_orders(mesh.nodes, mesh.elements)
+        return plot_mesh_mpl_orders(mesh.nodes_dict, mesh.elements)
     else:
         raise ValueError("Unknown method")
 
@@ -244,6 +244,8 @@ def plot_mesh_mpl_simple(nodes, elements, orders=None, colors=None, axes=None,
 
     if plot_nodes:
         # plot nodes:
+        if isinstance(nodes, dict):
+            nodes = nodes.values()
         for n in nodes:
             x = n[0]
             y = n[1]
