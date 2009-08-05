@@ -344,13 +344,13 @@ cdef class H1Space:
     def copy_orders(self, H1Space s, int inc=0):
         self.thisptr.copy_orders(s.thisptr, inc)
 
-cdef H1Space H1Space_from_c_H1Space(c_H1Space *h):
+cdef api object H1Space_from_C(c_H1Space *h):
     cdef H1Space n
     n = <H1Space>PY_NEW(H1Space)
     n.thisptr = h
     return n
 
-cdef Mesh Mesh_from_c_Mesh(c_Mesh *h):
+cdef api object Mesh_from_C(c_Mesh *h):
     cdef Mesh n
     n = <Mesh>PY_NEW(Mesh)
     n.thisptr = h
@@ -399,7 +399,7 @@ cdef class MeshFunction(ScalarFunction):
 
     def get_mesh(self):
         cdef c_MeshFunction *m = <c_MeshFunction *>(self.thisptr)
-        return Mesh_from_c_Mesh(m.get_mesh())
+        return Mesh_from_C(m.get_mesh())
 
 cdef api object Solution_from_C(c_Solution *s):
     cdef Solution n
@@ -621,7 +621,7 @@ cdef class RefSystem(LinSystem):
     #    cdef c_H1Space *r = <c_H1Space *>(
     #            (<c_RefSystem *>(self.thisptr)).get_ref_space(eq)
     #        )
-    #    return H1Space_from_c_H1Space(r)
+    #    return H1Space_from_C(r)
 
 
 #cdef class DiscreteProblem:
