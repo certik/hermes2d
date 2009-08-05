@@ -1,6 +1,6 @@
 from hermes2d import (Mesh, H1Shapeset, PrecalcShapeset, H1Space, WeakForm,
         Solution, ScalarView, LinSystem, DummySolver, raises, MeshView,
-        set_verbose)
+        set_verbose, plot_mesh_mpl_simple, plot_mesh_mpl_orders)
 from hermes2d.forms import set_forms
 from hermes2d.examples import get_example_mesh
 set_verbose(False)
@@ -112,6 +112,10 @@ def test_plot_mesh1a():
 
     view = MeshView("Solution")
     view.show(mesh, lib="mpl", method="simple", show=False)
+    plot_mesh_mpl_simple(mesh.nodes, mesh.elements)
+    plot_mesh_mpl_simple(mesh.nodes_dict, mesh.elements)
+    plot_mesh_mpl_simple(mesh.nodes, mesh.elements, plot_nodes=False)
+    plot_mesh_mpl_simple(mesh.nodes_dict, mesh.elements, plot_nodes=False)
 
 def test_plot_mesh1b():
     mesh = Mesh()
@@ -119,6 +123,8 @@ def test_plot_mesh1b():
 
     view = MeshView("Solution")
     view.show(mesh, lib="mpl", method="orders", show=False)
+    plot_mesh_mpl_orders(mesh.nodes, mesh.elements)
+    plot_mesh_mpl_orders(mesh.nodes_dict, mesh.elements)
 
 def test_plot_mesh1c():
     mesh = Mesh()
@@ -127,22 +133,56 @@ def test_plot_mesh1c():
     view = MeshView("Solution")
     assert raises(ValueError, 'view.show(mesh, lib="mpl", method="something_unknown_123")')
 
-# doesn't work on a refined mesh:
-def _test_plot_mesh2():
+def test_plot_mesh2():
     mesh = Mesh()
     mesh.load(domain_mesh)
     mesh.refine_element(0)
 
     view = MeshView("Solution")
-    view.show(mesh, lib="mpl", show=False)
+    view.show(mesh, lib="mpl", method="simple", show=False)
+    plot_mesh_mpl_simple(mesh.nodes_dict, mesh.elements)
+    plot_mesh_mpl_simple(mesh.nodes_dict, mesh.elements, plot_nodes=False)
+    view.show(mesh, lib="mpl", method="orders", show=False)
+    plot_mesh_mpl_orders(mesh.nodes_dict, mesh.elements)
 
-# doesn't work on a refined mesh:
-def _test_plot_mesh3():
+def test_plot_mesh3a():
     mesh = Mesh()
     mesh.load(domain_mesh)
-    mesh.refine_all_elements()
     mesh.refine_all_elements()
     mesh.refine_all_elements()
 
     view = MeshView("Solution")
     view.show(mesh, lib="mpl", show=False)
+
+def test_plot_mesh3b():
+    mesh = Mesh()
+    mesh.load(domain_mesh)
+    mesh.refine_all_elements()
+    mesh.refine_all_elements()
+
+    plot_mesh_mpl_simple(mesh.nodes_dict, mesh.elements)
+
+def test_plot_mesh3c():
+    mesh = Mesh()
+    mesh.load(domain_mesh)
+    mesh.refine_all_elements()
+    mesh.refine_all_elements()
+
+    plot_mesh_mpl_simple(mesh.nodes_dict, mesh.elements, plot_nodes=False)
+
+def test_plot_mesh3d():
+    mesh = Mesh()
+    mesh.load(domain_mesh)
+    mesh.refine_all_elements()
+    mesh.refine_all_elements()
+
+    view = MeshView("Solution")
+    view.show(mesh, lib="mpl", method="orders", show=False)
+
+def test_plot_mesh3e():
+    mesh = Mesh()
+    mesh.load(domain_mesh)
+    mesh.refine_all_elements()
+    mesh.refine_all_elements()
+
+    plot_mesh_mpl_orders(mesh.nodes_dict, mesh.elements)

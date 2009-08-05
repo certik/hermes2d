@@ -148,11 +148,19 @@ cdef class Mesh:
         element_list = []
         for i in range(self.num_elements):
             el = self.get_element(i)
-            element_list.append(el.nodes_vertex_id)
+            if el.active:
+                element_list.append(el.nodes_vertex_id)
         return element_list
 
     @property
     def nodes(self):
+        """
+        Returns a list of nodes coordinates.
+
+        However, this is only usable if you don't refine.
+
+        Use nodes_dict for more usable implementation.
+        """
         # This is a really slow implementation, but it gets the job
         # done for now. Later on, we should get the list of nodes from C++
         # directly.
@@ -167,6 +175,21 @@ cdef class Mesh:
         nodes.sort(key=get_node_id)
         nodes_coord = [node.coord for node in nodes]
         return nodes_coord
+
+    @property
+    def nodes_dict(self):
+        """
+        Returns a dict of all active nodes coordinates.
+        """
+        nodes = []
+        for i in range(self.num_elements):
+            el = self.get_element(i)
+            if el.active:
+                nodes.extend(el.nodes_vertex)
+        node_dict = {}
+        for node in nodes:
+            node_dict[node.id] = node.coord
+        return node_dict
 
     @property
     def num_elements(self):
