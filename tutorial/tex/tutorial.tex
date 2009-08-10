@@ -1343,7 +1343,7 @@ none of these approaches is suitable for Hermes: The rigorous guaranteed error
 estimates only exist for very simple problems, such as linear elliptic PDEs,
 and thus they are far from PDE-independent. Heuristic techniques are not
 employed in Hermes for the same reason, and moreover since such criteria
-lack a transparent relation to the approximation error.
+lack a transparent relation to the true approximation error.
 
 Adaptive low-order FEM is known to be notoriously ineffcient, and practitioners
 are rightfully skeptical of it. The reason is illustrated in Figure 13.
@@ -1358,24 +1358,25 @@ FEM, and $hp$-FEM.}
 
 These convergence curves are typical representative examples, confirmed with
 many numerical experiments of independent researchers, and supported with
-theory. The horizontal axis shows an increasing number of degrees of freedom
-(= size of the stiffness matrix) during automatic adaptivity, and the vertical
-one shows the approximation error in logarithmic scale. Note that in all
-three cases, the error drops very fast during a short initial phase of adaptivity.
-However, with both linear and quadratic FEM, the convergence slows
+theory. The horizontal axis shows (in linear scale) the number of degrees of freedom
+(= size of the stiffness matrix) that increases during automatic adaptivity. The
+vertical one shows the approximation error (in logarithmic scale). Note that in all
+three cases, the error drops very fast during a short initial phase of the adaptive
+computation. However, with both linear and quadratic FEM, the convergence slows
 down dramatically as the adaptivity progresses. Note that the low-order FEM
 is doomed to such slow convergence by its poor approximation properties ---
-an excellent adaptivity algorithm cannot improve it substantially, but a bad
-algorithm can make it even worse.
+an excellent adaptivity algorithm cannot improve it (and a bad
+algorithm can make it even worse).
 
 In order to obtain fast, usable adaptivity (the green curve in Figure \ref{fig:conv}), one
 has to resort to adaptive $hp$-FEM \cite{solin1}. The $hp$-FEM takes advantage of two
 facts:
 
 \begin{itemize}
-\item large high-degree elements approximate smooth parts of solution much
-better than small linear ones,
-\item this holds the other way where the solution is not smooth.
+\item Large high-degree elements approximate smooth parts of solution much
+better than small linear ones. We created the example {\em smooth} to illustrate
+this fact. Check it out, the results are impressive.
+\item This holds the other way where the solution is not smooth.
 \end{itemize}
 
 Automatic adaptivity in the $hp$-FEM is substantially different from adaptivity
@@ -1389,21 +1390,30 @@ Figure \ref{fig:refinements} shows several example refinements for a fourth-orde
   \label{fig:refinements}
 \end{figure}
 
-Due to this large number of refinement options, classical error estimators (that
-provide a constant error estimate per element) cannot be used to guide au-
+Due to the large number of refinement options, classical error estimators (that
+provide a constant error estimate per element) cannot be used to guide au\-
 tomatic $hp$-adaptivity. For this, one needs to know the {\it shape} of the
-approximation error. A meaningful information about the shape of error can be
-retrieved from a {\it reference solution}: In each step of the adaptive process, the
-current mesh is refined globally in both {\it h} and {\it p}, and one computes a new
-approximation on the fine (reference) mesh. The reference solution is much
-more accurate than the current mesh solution, and thus subtracting the two
-gives an excellent PDE-independent error estimate that can be used to guide
-$hp$-adaptivity.
+approximation error.
 
-The obvious disadvantage of the reference solution is its high computational cost, especially
-in 3D. We would not mind at all replacing it with some cheaper
-technique that also is PDE-independent, works for elements of high order and
-can be successfully used to guide $hp$-adaptivity!
+In analogy to the most successful adaptive ODE solvers,
+Hermes uses a pair of approximations with different orders of accuracy to obtain
+this information: {\em coarse mesh solution} and {\em
+fine mesh solution}. The initial coarse mesh is read from the mesh file,
+and the initial fine mesh is created through its global refinement both in
+{\it h} and {\it p}.
+The fine mesh solution is the approximation of interest both during the adaptive
+process and at the end of computation. The coarse mesh
+solution represents its low-order part.
+
+Both these solutions are evolved during the adaptive process
+in a PDE-inde\-pen\-dent manner, based on the discrepancies between global and local
+orthogonal projections. (Sometimes we replace the global orthogonal projection with
+the solve on the coarse mesh, the difference is negligible.)
+
+The obvious disadvantage of this approach to adaptivity is its higher computational cost,
+especially in 3D. We are aware of this fact and would not mind at all replacing it with
+some cheaper technique (that also is PDE-independent, works for elements of high orders,
+and can be successfully used to guide $hp$-adaptivity).
 
 \subsection{Adaptivity Example -- Electrostatic Micromotor}
 
@@ -1458,10 +1468,10 @@ linear system. However, for most problems, this can be automated using the class
 handles all the temporary reference meshes and spaces transparently. All it needs is a pointer to our coarse
 {\tt LinSystem}. The calculation of the reference solution is as simple as the following:
 \begin{lstlisting}
- // solve the fine (reference) problem
+ // solve the fine mesh problem
  RefSystem rs(&ls);
  rs.assemble();
- rs.solve(1, &rsln);
+ rs.solve(1, &sln_fine);
 \end{lstlisting}
 
 In the third and last step of each iteration, we refine our mesh and polynomial degrees stored
@@ -1475,20 +1485,22 @@ $$e = \frac{|| u - u_{ref} ||_{H^1}}{|| u_{ref} ||_{H^1}}.$$
 In the code this looks as follows:
 \begin{lstlisting}
  H1OrthoHP hp(1, &space);
- double err_est = hp.calc_error(&sln, &rsln) * 100;
+ double err_est = hp.calc_error(&sln_coarse, &sln_fine) * 100;
 \end{lstlisting}
 
-Finally, if {\tt err\_est} is still above the threshold {\tt ERR\_STOP} and the problem size
-below the threshold {\tt NDOF\_STOP}, we perform one adaptivity step:
+Finally, if {\tt err\_est} is still above the threshold {\tt ERR\_STOP}, we perform one
+adaptivity step:
 
 \begin{lstlisting}
-if (err_est < ERR_STOP || ls.get_num_dofs () >= NDOF_STOP)
-  done = true;
-else hp.adapt(THRESHOLD, STRATEGY, H_ONLY, ISO_ONLY,
-              MESH_REGULARITY);
+ if (err_est < ERR_STOP) done = true;
+ else {
+   hp.adapt(THRESHOLD, STRATEGY, ADAPT_TYPE, ISO_ONLY, MESH_REGULARITY);
+   ndofs = space.assign_dofs();
+   if (ndofs >= NDOF_STOP) done = true;
+ }
 \end{lstlisting}
 
-The parameters {\tt THRESHOLD}, {\tt STRATEGY}, {\tt H\_ONLY}, {\tt ISO\_ONLY}, {\tt MESH\_REGULARI\break TY}
+The parameters {\tt THRESHOLD}, {\tt STRATEGY}, {\tt ADAPT\_TYPE}, {\tt ISO\_ONLY}, {\tt MESH\_REGULARI\break TY}
 have the following meaning: {\tt STRATEGY} indicates which adaptive strategy we
 want to use.
 \begin{itemize}
@@ -1500,9 +1512,13 @@ times maximum element error.
 \item {\tt STRATEGY == 2}: Refine all elements whose error is bigger than {\tt THRESHOLD}.
 \end{itemize}
 
-If {\tt H\_ONLY == false}, $hp$-adaptivity is performed (default). If {\tt H\_ONLY == true},
-the algorithm does $h$-adaptivity only. This option is there for comparison
-purposes. The parameter {\tt ISO\_ONLY} determines whether quadrilateral elements
+If {\tt ADAPT\_TYPE == 0}, $hp$-adaptivity is performed (default). If {\tt ADAPT\_TYPE == 1},
+the algorithm does $h$-adaptivity (fixed polynomial degrees of elements). This option is there
+for comparison purposes. With {\tt ADAPT\_TYPE == 2} the algorithm does pure $p$-adaptivity (element
+geometries fixed). This option
+is there for completeness, adaptive $p$-FEM is not useful in practice.
+
+The parameter {\tt ISO\_ONLY} determines whether quadrilateral elements
 can be split anisotropically (into two elements). The parameter {\tt MESH\_REGULA\break RITY}
 specifies maximum allowed level of hanging nodes: {\tt -1} means arbitrary-level
 hanging nodes (default), and {\tt 1, 2, 3, ... } means 1-irregular mesh,
