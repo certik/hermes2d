@@ -12,27 +12,29 @@
 //     u_2 = 0 on Gamma_1
 //
 // The following parameters can be changed:
-//
 
+int P_INIT = 8;                                            // initial polynomial degree in all elements
+
+// problem constants
 const double E  = 200e9;                                   // Young modulus (steel)
 const double nu = 0.3;                                     // Poisson ratio
 const double f  = 1e4;                                     // external force
+const double lambda = (E * nu) / ((1 + nu) * (1 - 2*nu));  // first Lame constant
+const double mu = E / (2*(1 + nu));                        // second Lame constant
 
-const double lambda = (E * nu) / ((1 + nu) * (1 - 2*nu));  // Lame constant
-const double mu = E / (2*(1 + nu));                        // Lame constant
-
-int P_INIT = 8;
-
+// boundary condition types (x-displacement)
 int bc_types_x(int marker)
   { return BC_NATURAL; }
 
+// boundary condition types (y-displacement)
 int bc_types_y(int marker)
   { return (marker == 1) ? BC_ESSENTIAL : BC_NATURAL; }
 
+// function values for Dirichlet boundary markers (y-displacement)
 double bc_values_y(EdgePos* ep)
   { return (ep->marker == 3) ? f : 0.0; }
 
-
+// bilinear forms
 scalar bilinear_form_0_0(RealFunction* fu, RealFunction* fv, RefMap* ru, RefMap* rv)
   { return int_a_dudx_dvdx_b_dudy_dvdy(lambda+2*mu, fu, mu, fv, ru, rv); }
 
@@ -42,9 +44,9 @@ scalar bilinear_form_0_1(RealFunction* fu, RealFunction* fv, RefMap* ru, RefMap*
 scalar bilinear_form_1_1(RealFunction* fu, RealFunction* fv, RefMap* ru, RefMap* rv)
   { return int_a_dudx_dvdx_b_dudy_dvdy(mu, fu, lambda+2*mu, fv, ru, rv); }
 
+// linear form
 scalar linear_form_1_surf(RealFunction* fv, RefMap* rv, EdgePos* ep)
   { return surf_int_G_v(fv, rv, ep); }
-
 
 int main(int argc, char* argv[])
 {
@@ -71,9 +73,9 @@ int main(int argc, char* argv[])
 
   // initialize the weak formulation
   WeakForm wf(2);
-  wf.add_biform(0, 0, bilinear_form_0_0, SYM);  // note that only one symmetric part is
+  wf.add_biform(0, 0, bilinear_form_0_0, SYM);  // Note that only one symmetric part is
   wf.add_biform(0, 1, bilinear_form_0_1, SYM);  // added in the case of symmetric bilinear
-  wf.add_biform(1, 1, bilinear_form_1_1, SYM);  // forms
+  wf.add_biform(1, 1, bilinear_form_1_1, SYM);  // forms.
   wf.add_liform_surf(1, linear_form_1_surf);
 
   // initialize the linear system and solver
@@ -92,6 +94,8 @@ int main(int argc, char* argv[])
   VonMisesFilter stress(&xsln, &ysln, lambda, mu);
   view.show(&stress, EPS_HIGH, FN_VAL_0, &xsln, &ysln, 1.5e5);
 
+  // wait for keyboard or mouse input
+  printf("Waiting for keyboard or mouse input.\n");
   View::wait();
   return 0;
 }
