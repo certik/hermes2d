@@ -1,9 +1,8 @@
 #include "hermes2d.h"
 #include "solver_umfpack.h"
 
-// This example is a continuation of examples 03 and 04. It shows
-// you how to use Neumann boundary conditions. In addition, you will
-// see how a Filter is used to visualize gradient of the solution
+// This example shows how to define Neumann boundary conditions. In addition,
+// you will see how a Filter is used to visualize gradient of the solution
 //
 // PDE: Poisson equation -Laplace u = f, where f = CONST_F
 //
@@ -23,24 +22,27 @@ double CONST_GAMMA_3 = -0.5;  // outer normal derivative on Gamma_3
 int P_INIT = 4;               // initial polynomial degree in all elements
 int CORNER_REF_LEVEL = 12;    // number of mesh refinements towards the re-entrant corner
 
+// boundary condition types
+// Note: natural means Neumann, Newton, or any other type of condition
+// where the solution value is not prescribed.
 int bc_types(int marker)
 {
-  // Note: essential means Dirichlet (prescribed is value of solution at the boundary).
-  // Natural means Neumann, Newton, or any other type of condition where the solution
-  // value is not prescribed.
   return (marker == 4) ? BC_ESSENTIAL : BC_NATURAL;
 }
 
+// function values for Dirichlet boundary markers
 scalar bc_values(int marker, double x, double y)
 {
-  return 0.0; // Dirichlet BC value
+  return 0.0;
 }
 
+// bilinear form
 scalar bilinear_form(RealFunction* fu, RealFunction* fv, RefMap* ru, RefMap* rv)
 {
   return int_grad_u_grad_v(fu, fv, ru, rv);
 }
 
+// linear forms
 scalar linear_form(RealFunction* fv, RefMap* rv)
 {
   return CONST_F*int_v(fv, rv);
@@ -60,7 +62,6 @@ scalar linear_form_surf_Gamma_3(RealFunction* fv, RefMap* rv, EdgePos* ep)
 {
   return CONST_GAMMA_3 * surf_int_v(fv, rv, ep);
 }
-
 
 int main(int argc, char* argv[])
 {
@@ -105,12 +106,12 @@ int main(int argc, char* argv[])
 
   // compute and show gradient magnitude
   // (note that the infinite gradient at the re-entrant
-  // corner will be truncated for visualization purposes)
+  // corner needs to be truncated for visualization purposes)
   ScalarView gradview("Gradient", 650, 0, 600, 600);
   MagFilter grad(&sln, &sln, FN_DX, FN_DY);
   gradview.show(&grad);
 
-
+  // wait for keyboard or mouse input
   printf("Waiting for keyboard or mouse input.\n");
   View::wait();
   return 0;

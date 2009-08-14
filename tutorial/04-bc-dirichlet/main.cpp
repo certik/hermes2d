@@ -1,45 +1,47 @@
 #include "hermes2d.h"
 #include "solver_umfpack.h"
 
-// This example is a continuation of example 03. It illustrates how
-// to use nonhomogeneous (nonzero) Dirichlet boundary conditions.
+// This example illustrates how to use nonhomogeneous (nonzero)
+// Dirichlet boundary conditions.
 //
 // PDE: Poisson equation -Laplace u = CONST_F, where CONST_F is
 // a constant right-hand side. It is not difficult to see that
 // the function u(x,y) = (-CONST_F/4)*(x^2 + y^2) satisfies the
 // above PDE. Since also the Dirichlet boundary conditions
-// correspond to u(x,y), this function is the exact solution
-// of the problem.
+// are chosen to match u(x,y), this function is the exact
+// solution.
 //
 // Note that since the exact solution is a quadratic polynomial,
-// Hermes will compute it exactly if all mesh elements have polynomial
-// degrees at least 2 (then the exact solution lies in the
-// finite element space). If you choose at least one element to be
-// linear, Hermes will only find an approximation, You can try this
-// easily, just redefine below P_INIT to 1. You can also play with
-// the number of initial uniform refinements UNIFORM_REF_LEVEL.
+// Hermes will compute it exactly if all mesh elements are quadratic
+// or higher (then the exact solution lies in the finite element space).
+// If some elements in the mesh are linear, Hermes will only find
+// an approximation, Below you can play with the parameters CONST_F,
+// P_INIT, and UNIFORM_REF_LEVEL.
 
 double CONST_F = -4.0;       // constant right-hand side
 int P_INIT = 2;              // initial polynomial degree in all elements
 int UNIFORM_REF_LEVEL = 3;   // number of initial uniform mesh refinements
 
+// boundary condition types
+// Note: essential means Dirichlet (prescribed is value of solution at the boundary).
 int bc_types(int marker)
 {
-  // all markers denote the essential (Dirichlet) boundary condition
   return BC_ESSENTIAL;
 }
 
+// function values for Dirichlet boundary markers
 scalar bc_values(int marker, double x, double y)
 {
-  // this is the Dirichlet BC value for all markers
   return (-CONST_F/4.0)*(x*x + y*y);
 }
 
+// bilinear form
 scalar bilinear_form(RealFunction* fu, RealFunction* fv, RefMap* ru, RefMap* rv)
 {
   return int_grad_u_grad_v(fu, fv, ru, rv);
 }
 
+// linear form
 scalar linear_form(RealFunction* fv, RefMap* rv)
 {
   return CONST_F*int_v(fv, rv);
@@ -84,6 +86,7 @@ int main(int argc, char* argv[])
   ScalarView view("Solution");
   view.show(&sln);
 
+  // wait for keyboard or mouse input
   printf("Waiting for keyboard or mouse input.\n");
   View::wait();
   return 0;
