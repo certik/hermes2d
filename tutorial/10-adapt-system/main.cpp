@@ -78,21 +78,40 @@ int bc_types_xy(int marker)
   { return (marker == marker_left) ? BC_ESSENTIAL : BC_NATURAL; }
 
 // bilinear forms
-scalar bilinear_form_0_0(RealFunction* fu, RealFunction* fv, RefMap* ru, RefMap* rv)
-  { return int_a_dudx_dvdx_b_dudy_dvdy(lambda+2*mu, fu, mu, fv, ru, rv); }
+template<typename Real, typename Scalar>
+Scalar bilinear_form_0_0(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+{
+  return (lambda + 2*mu) * int_dudx_dvdx<Real, Scalar>(n, wt, u, v) +
+                      mu * int_dudy_dvdy<Real, Scalar>(n, wt, u, v);
+}
 
-scalar bilinear_form_0_1(RealFunction* fu, RealFunction* fv, RefMap* ru, RefMap* rv)
-  { return int_a_dudx_dvdy_b_dudy_dvdx(lambda, fv, mu, fu, rv, ru); }
+template<typename Real, typename Scalar>
+Scalar bilinear_form_0_1(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+{
+  return lambda * int_dudy_dvdx<Real, Scalar>(n, wt, u, v) +
+             mu * int_dudx_dvdy<Real, Scalar>(n, wt, u, v);
+}
 
-scalar bilinear_form_1_0(RealFunction* fu, RealFunction* fv, RefMap* ru, RefMap* rv)
-  { return int_a_dudx_dvdy_b_dudy_dvdx(lambda, fu, mu, fv, ru, rv); }
+template<typename Real, typename Scalar>
+Scalar bilinear_form_1_0(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+{
+  return     mu * int_dudy_dvdx<Real, Scalar>(n, wt, u, v) +
+         lambda * int_dudx_dvdy<Real, Scalar>(n, wt, u, v);
+}
 
-scalar bilinear_form_1_1(RealFunction* fu, RealFunction* fv, RefMap* ru, RefMap* rv)
-  { return int_a_dudx_dvdx_b_dudy_dvdy(mu, fu, lambda+2*mu, fv, ru, rv); }
+template<typename Real, typename Scalar>
+Scalar bilinear_form_1_1(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+{
+  return              mu * int_dudx_dvdx<Real, Scalar>(n, wt, u, v) +
+         (lambda + 2*mu) * int_dudy_dvdy<Real, Scalar>(n, wt, u, v);
+}
 
-// linear form
-scalar linear_form_1_surf_top(RealFunction* fv, RefMap* rv, EdgePos* ep)
-  { return -f * surf_int_v(fv, rv, ep); }
+template<typename Real, typename Scalar>
+Scalar linear_form_surf_1(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+{
+  return -f * int_v<Real, Scalar>(n, wt, v);
+}
+////////////////////////////////////////////////////////////////////////////////////////////////
 
 int main(int argc, char* argv[])
 {
@@ -126,10 +145,10 @@ int main(int argc, char* argv[])
 
   // initialize the weak formulation
   WeakForm wf(2);
-  wf.add_biform(0, 0, bilinear_form_0_0, SYM);
-  wf.add_biform(0, 1, bilinear_form_0_1, SYM);
-  wf.add_biform(1, 1, bilinear_form_1_1, SYM);
-  wf.add_liform_surf(1, linear_form_1_surf_top, marker_top);
+  wf.add_biform(0, 0, callback(bilinear_form_0_0), SYM);  // note that only one symmetric part is
+  wf.add_biform(0, 1, callback(bilinear_form_0_1), SYM);  // added in the case of symmetric bilinear
+  wf.add_biform(1, 1, callback(bilinear_form_1_1), SYM);  // forms
+  wf.add_liform_surf(1, callback(linear_form_surf_1), marker_top);
 
   // visualization of solution and meshes
   OrderView  xoview("X polynomial orders", 0, 0, 500, 500);
@@ -196,10 +215,13 @@ int main(int argc, char* argv[])
 
     // calculate element errors and total error estimate
     H1OrthoHP hp(2, &xdisp, &ydisp);
-    double err_est = hp.calc_energy_error_2(&x_sln_coarse, &y_sln_coarse, &x_sln_fine, &y_sln_fine,
-                                          bilinear_form_0_0, bilinear_form_0_1,
-                                          bilinear_form_1_0, bilinear_form_1_1) * 100;
-    info("Estimate of error: %g%%", err_est);
+    hp.set_biform(0, 0, bilinear_form_0_0<scalar, scalar>, bilinear_form_0_0<Ord, Ord>);
+    hp.set_biform(0, 1, bilinear_form_0_1<scalar, scalar>, bilinear_form_0_1<Ord, Ord>);
+    hp.set_biform(1, 0, bilinear_form_1_0<scalar, scalar>, bilinear_form_1_0<Ord, Ord>);
+    hp.set_biform(1, 1, bilinear_form_1_1<scalar, scalar>, bilinear_form_1_1<Ord, Ord>);
+    double err_est = hp.calc_error_2(&x_sln_coarse, &y_sln_coarse, &x_sln_fine, &y_sln_fine) * 100;
+
+    info("\nEstimate of error: %g%%", err_est);
 
     // time measurement
     cpu += end_time();
@@ -221,8 +243,6 @@ int main(int argc, char* argv[])
       if (ndofs >= NDOF_STOP) done = true;
     }
 
-    // time measurement
-    cpu += end_time();
   }
   while (!done);
   verbose("Total running time: %g sec", cpu);
