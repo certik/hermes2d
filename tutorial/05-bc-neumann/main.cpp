@@ -16,9 +16,7 @@
 // Therefore we visualize not only the solution but also its gradient.
 
 double CONST_F = -1.0;        // right-hand side
-double CONST_GAMMA_1 = -0.5;  // outer normal derivative on Gamma_1
-double CONST_GAMMA_2 = 1.0;   // outer normal derivative on Gamma_2
-double CONST_GAMMA_3 = -0.5;  // outer normal derivative on Gamma_3
+double CONST_GAMMA[3] = {-0.5, 1.0, -0.5}; // outer normal derivative on Gamma_1,2,3
 int P_INIT = 4;               // initial polynomial degree in all elements
 int CORNER_REF_LEVEL = 12;    // number of mesh refinements towards the re-entrant corner
 
@@ -36,31 +34,22 @@ scalar bc_values(int marker, double x, double y)
   return 0.0;
 }
 
-// bilinear form
-scalar bilinear_form(RealFunction* fu, RealFunction* fv, RefMap* ru, RefMap* rv)
+template<typename Real, typename Scalar>
+Scalar bilinear_form(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
-  return int_grad_u_grad_v(fu, fv, ru, rv);
+  return int_grad_u_grad_v<Real, Scalar>(n, wt, u, v);
 }
 
-// linear forms
-scalar linear_form(RealFunction* fv, RefMap* rv)
+template<typename Real, typename Scalar>
+Scalar linear_form(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
-  return CONST_F*int_v(fv, rv);
+  return CONST_F*int_v<Real, Scalar>(n, wt, v);
 }
 
-scalar linear_form_surf_Gamma_1(RealFunction* fv, RefMap* rv, EdgePos* ep)
+template<typename Real, typename Scalar>
+Scalar linear_form_surf(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
-  return CONST_GAMMA_1 * surf_int_v(fv, rv, ep);
-}
-
-scalar linear_form_surf_Gamma_2(RealFunction* fv, RefMap* rv, EdgePos* ep)
-{
-  return CONST_GAMMA_2 * surf_int_v(fv, rv, ep);
-}
-
-scalar linear_form_surf_Gamma_3(RealFunction* fv, RefMap* rv, EdgePos* ep)
-{
-  return CONST_GAMMA_3 * surf_int_v(fv, rv, ep);
+  return CONST_GAMMA[e->marker - 1] * int_v<Real, Scalar>(n, wt, v);
 }
 
 int main(int argc, char* argv[])
@@ -83,11 +72,9 @@ int main(int argc, char* argv[])
 
   // initialize the weak formulation
   WeakForm wf(1);
-  wf.add_biform(0, 0, bilinear_form);
-  wf.add_liform(0, linear_form);
-  wf.add_liform_surf(0, linear_form_surf_Gamma_1, 1);
-  wf.add_liform_surf(0, linear_form_surf_Gamma_2, 2);
-  wf.add_liform_surf(0, linear_form_surf_Gamma_3, 3);
+  wf.add_biform(0, 0, callback(bilinear_form));
+  wf.add_liform(0, callback(linear_form));
+  wf.add_liform_surf(0, callback(linear_form_surf));
 
   // initialize the linear system and solver
   UmfpackSolver umfpack;
