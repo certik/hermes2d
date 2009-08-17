@@ -29,18 +29,26 @@ int bc_types(int marker)
 
 // function values for Dirichlet boundary markers
 scalar bc_values(int marker, double x, double y)
-  { return (marker == 3) ? T1 : 0.0; }
+  { return T1; }
 
-// bilinear forms
-scalar bilinear_form(RealFunction* fu, RealFunction* fv, RefMap* ru, RefMap* rv)
-  { return int_grad_u_grad_v(fu, fv, ru, rv); }
+template<typename Real, typename Scalar>
+Scalar bilinear_form(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+{
+  return int_grad_u_grad_v<Real, Scalar>(n, wt, u, v);
+}
 
-scalar bilinear_form_surf_Gamma_1(RealFunction* fu, RealFunction* fv, RefMap* ru, RefMap* rv, EdgePos* ep)
-  { return H * surf_int_u_v(fu, fv, ru, rv, ep); }
+template<typename Real, typename Scalar>
+Scalar bilinear_form_surf(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+{
+  return H * int_u_v<Real, Scalar>(n, wt, u, v);
+}
 
-// linear form
-scalar linear_form_surf_Gamma_1(RealFunction* fv, RefMap* rv, EdgePos* ep)
-  { return T0 * H * surf_int_v(fv, rv, ep); }
+template<typename Real, typename Scalar>
+Scalar linear_form_surf(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+{
+  return T0 * H * int_v<Real, Scalar>(n, wt, v);
+}
+
 
 int main(int argc, char* argv[])
 {
@@ -63,9 +71,9 @@ int main(int argc, char* argv[])
 
   // initialize the weak formulation
   WeakForm wf(1);
-  wf.add_biform(0, 0, bilinear_form);
-  wf.add_biform_surf(0, 0, bilinear_form_surf_Gamma_1, 1);
-  wf.add_liform_surf(0, linear_form_surf_Gamma_1, 1);
+  wf.add_biform(0, 0, callback(bilinear_form));
+  wf.add_biform_surf(0, 0, callback(bilinear_form_surf), 1);
+  wf.add_liform_surf(0, callback(linear_form_surf), 1);
 
   // initialize the linear system and solver
   UmfpackSolver umfpack;

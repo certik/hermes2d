@@ -20,16 +20,18 @@
 double CONST_F = 2.0;   // Constant right-hand side.
 int P_INIT = 5;         // Uniform polynomial degree of mesh elements.
 
-// bilinear form
-scalar bilinear_form(RealFunction* fu, RealFunction* fv, RefMap* ru, RefMap* rv)
+// return the value \int \nabla u . \nabla v dx
+template<typename Real, typename Scalar>
+Scalar bilinear_form(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
-  return int_grad_u_grad_v(fu, fv, ru, rv); // returns \int \nabla u . \nabla v dx
+  return int_grad_u_grad_v<Real, Scalar>(n, wt, u, v);
 }
 
-// linear form
-scalar linear_form(RealFunction* fv, RefMap* rv)
+// return the value \int v dx
+template<typename Real, typename Scalar>
+Scalar linear_form(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
-  return CONST_F*int_v(fv, rv); // returns \int v dx
+  return CONST_F * int_v<Real, Scalar>(n, wt, v);
 }
 
 int main(int argc, char* argv[])
@@ -52,8 +54,8 @@ int main(int argc, char* argv[])
 
   // initialize the weak formulation
   WeakForm wf(1);
-  wf.add_biform(0, 0, bilinear_form);
-  wf.add_liform(0, linear_form);
+  wf.add_biform(0, 0, callback(bilinear_form));
+  wf.add_liform(0, callback(linear_form));
 
   // initialize the linear system and solver
   UmfpackSolver umfpack;
