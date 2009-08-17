@@ -74,16 +74,16 @@ scalar bc_values(int marker, double x, double y)
   return (marker == 2) ? VOLTAGE : 0.0;
 }
 
-// bilinear form to be evaluated in Omega_1
-scalar biform1(RealFunction* fu, RealFunction* fv, RefMap* ru, RefMap* rv)
+template<typename Real, typename Scalar>
+Scalar biform1(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
-  return EPS1 * int_grad_u_grad_v(fu, fv, ru, rv);
+  return EPS1 * int_grad_u_grad_v<Real, Scalar>(n, wt, u, v);
 }
 
-// bilinear form to be evaluated in Omega_1
-scalar biform2(RealFunction* fu, RealFunction* fv, RefMap* ru, RefMap* rv)
+template<typename Real, typename Scalar>
+Scalar biform2(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
-  return EPS2 * int_grad_u_grad_v(fu, fv, ru, rv);
+  return EPS2 * int_grad_u_grad_v<Real, Scalar>(n, wt, u, v);
 }
 
 int main(int argc, char* argv[])
@@ -106,8 +106,8 @@ int main(int argc, char* argv[])
 
   // initialize the weak formulation
   WeakForm wf(1);
-  wf.add_biform(0, 0, biform1, SYM, 1);
-  wf.add_biform(0, 0, biform2, SYM, 2);
+  wf.add_biform(0, 0, callback(biform1), SYM, 1);
+  wf.add_biform(0, 0, callback(biform2), SYM, 2);
 
   // visualize solution, gradient, and mesh
   ScalarView sview("Coarse solution", 0, 0, 600, 1000);
