@@ -1,18 +1,25 @@
 #include "hermes2d.h"
 #include "solver_umfpack.h"
 
-//  This example tests L2 space and L2 shapeset.
-//  It projects continuous function x^3 + y^3 onto L2 space in L2 norm.
-//  When zero order used, solution is a piecewice constant function.
+// This example shows how to use the L2 finite element space and L2 shapeset.
+// As a sample problem, a continuous function x^3 + y^3 is projected onto the
+// L2 finite element space in the L2 norm. When zero-order is used, the result
+// is a piecewice constant function.
+//
+// The following parameters can be changed:
 
-scalar bilinear_form(RealFunction* fu, RealFunction* fv, RefMap* ru, RefMap* rv)
-{
-  return int_u_v(fu, fv, ru, rv);
-}
+const int P_INIT = 1;
 
+// projected function
 double F(double x, double y)
 {
   return x*x*x + y*y*y;
+}
+
+// bilinear and linear form defining the projection
+scalar bilinear_form(RealFunction* fu, RealFunction* fv, RefMap* ru, RefMap* rv)
+{
+  return int_u_v(fu, fv, ru, rv);
 }
 
 scalar linear_form(RealFunction* fv, RefMap* rv)
@@ -20,55 +27,69 @@ scalar linear_form(RealFunction* fv, RefMap* rv)
   return int_F_v(F, fv, rv);
 }
 
+// boundary conditions
 int bc_types(int marker)
 {
    return BC_NONE;
 }
 
-int P_INIT = 0;
-
 int main(int argc, char* argv[])
 {
-  if (argc < 2) error("Missing mesh parameter.");
+  if (argc < 2) error("Missing mesh file name parameter.");
 
+  // load the mesh
   Mesh mesh;
   mesh.load(argv[1]);
-  mesh.refine_all_elements();
+
+  // uniform mesh refinements
   mesh.refine_all_elements();
   mesh.refine_all_elements();
   mesh.refine_all_elements();
   mesh.refine_all_elements();
 
+  // initialize the shapeset and the cache
   L2Shapeset shapeset;
-  L2Space space(&mesh, &shapeset);
   PrecalcShapeset pss(&shapeset);
 
+  // create the L2 space
+  L2Space space(&mesh, &shapeset);
   space.set_bc_types(bc_types);
+
+  // set uniform polynomial degrees
   space.set_uniform_order(P_INIT);
+
+  // enumerate basis functions
   space.assign_dofs();
 
 /*  BaseView bview;
   bview.show(&space);
-  bview.wait_for_close();*/
+  bview.wait_for_close();
+*/
 
   Solution sln;
+
+  // matrix solver
   UmfpackSolver umfpack;
 
+  // initialize the weak formulation
   WeakForm wf(1);
   wf.add_biform(0, 0, bilinear_form);
   wf.add_liform(0, linear_form);
 
+  // assemble and solve the finite element problem
   LinSystem sys(&wf, &umfpack);
   sys.set_spaces(1, &space);
   sys.set_pss(1, &pss);
-
   sys.assemble();
   sys.solve(1, &sln);
 
+  // visualize the solution
   ScalarView view1("Solution 1");
   view1.show(&sln);
   view1.wait_for_keypress();
 
+  // wait for keyboard or mouse input
+  printf("Waiting for keyboard or mouse input.\n");
   View::wait();
   return 0;
 }
