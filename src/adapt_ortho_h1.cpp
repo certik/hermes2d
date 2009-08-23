@@ -560,6 +560,7 @@ bool H1OrthoHP::adapt(double thr, int strat, int adapt_type, bool iso_only, int 
   double err0 = 1000.0;
   double processed_error = 0.0;
   bool h_only = adapt_type == 1 ? true : false;
+  int successfully_refined = 0;
 
   for (i = 0; i < nact; i++)
   {
@@ -592,16 +593,21 @@ bool H1OrthoHP::adapt(double thr, int strat, int adapt_type, bool iso_only, int 
     {
       split[i] = -1;
       p[i][0] = q[i][0] = std::min(9, get_h_order(current) + 1);
+      if (get_h_order(current) < p[i][0]) successfully_refined++;
     }
     // h-adaptivity
     else if (adapt_type == 1 && iso_only)
     {
       p[i][0] = p[i][1] = p[i][2] = p[i][3] = current;
       q[i][0] = q[i][1] = q[i][2] = q[i][3] = current;
+      successfully_refined++;
     }
     // hp-adaptivity
     else
+    {
       get_optimal_refinement(e, current, rsln[comp], split[i], p[i], q[i], h_only, iso_only, max_order);
+      successfully_refined++;
+    }
 
     idx[id][comp] = i;
     err0 = err;
@@ -610,6 +616,11 @@ bool H1OrthoHP::adapt(double thr, int strat, int adapt_type, bool iso_only, int 
 
   bool done = false;
   if (nref == 0) done = true;
+  else if (successfully_refined == 0)
+  {
+    warn("\nNone of the elements selected for refinement could be refined.\nAdaptivity step not successful, returning 'true'.");
+    done = true;
+  }
 
   int k = nref;
   for (i = 0; i < nref; i++)
@@ -748,7 +759,7 @@ bool H1OrthoHP::adapt(double thr, int strat, int adapt_type, bool iso_only, int 
     rsln[j]->enable_transform(true);
 
 
-  verbose("Refined %d elements.", i);
+  verbose("Refined %d elements.", successfully_refined + (k - nref));
   have_errors = false;
   if (strat == 2 && done == true) have_errors = true; // space without changes
 
