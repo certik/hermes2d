@@ -30,7 +30,11 @@ class NonlinSystem;
 class Space;
 class MeshFunction;
 struct EdgePos;
-  
+class Ord;
+template<typename T> class Func;
+template<typename T> class Geom;
+template<typename T> class ExtData;
+
 
 // Bilinear form symmetry flag, see WeakForm::add_biform
 enum SymFlag
@@ -49,43 +53,44 @@ enum SymFlag
 /// a (neq x neq) matrix of bilinear forms a_mn(u,v) and L(V) is a neq-component vector
 /// of linear forms l(v). U and V are the vectors of basis and test functions.
 ///
-/// 
+///
 ///
 class WeakForm
 {
 public:
-  
-  WeakForm(int neq);  
+
+  WeakForm(int neq);
 
   int def_area(int n, ...);
 
-  typedef scalar (*biform_vol_t) (RealFunction*, RealFunction*, RefMap*, RefMap*);
-  typedef scalar (*biform_surf_t)(RealFunction*, RealFunction*, RefMap*, RefMap*, EdgePos*);
-  typedef scalar (*liform_vol_t) (RealFunction*, RefMap*);
-  typedef scalar (*liform_surf_t)(RealFunction*, RefMap*, EdgePos*);
+  typedef scalar (*biform_val_t) (int n, double *wt, Func<double> *u, Func<double> *v, Geom<double> *e, ExtData<scalar> *);
+  typedef Ord (*biform_ord_t) (int n, double *wt, Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *);
+  typedef scalar (*liform_val_t)(int n, double *wt, Func<double> *v, Geom<double> *e, ExtData<scalar> *);
+  typedef Ord (*liform_ord_t)(int n, double *wt, Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *);
 
-  void add_biform(int i, int j, biform_vol_t fn, SymFlag sym = UNSYM, int area = ANY, int nx = 0, ...);
-  void add_biform_surf(int i, int j, biform_surf_t fn, int area = ANY, int nx = 0, ...);
 
-  void add_liform(int i, liform_vol_t fn, int area = ANY, int nx = 0, ...);
-  void add_liform_surf(int i, liform_surf_t fn, int area = ANY, int nx = 0, ...);
+  void add_biform(int i, int j, biform_val_t fn, biform_ord_t ord, SymFlag sym = UNSYM, int area = ANY, int nx = 0, ...);
+  void add_biform_surf(int i, int j, biform_val_t fn, biform_ord_t ord, int area = ANY, int nx = 0, ...);
+
+  void add_liform(int i, liform_val_t fn, liform_ord_t ord, int area = ANY, int nx = 0, ...);
+  void add_liform_surf(int i, liform_val_t fn, liform_ord_t ord, int area = ANY, int nx = 0, ...);
 
   void set_ext_fns(void* fn, int nx, ...);
 
 
 protected:
-  
+
   int neq;
 
   struct Area  {  /*std::string name;*/  std::vector<int> markers;  };
 
   std::vector<Area> areas;
 
-  struct BiFormVol   {  int i, j, sym, area;  biform_vol_t  fn;  std::vector<MeshFunction*> ext;  };
-  struct BiFormSurf  {  int i, j, area;       biform_surf_t fn;  std::vector<MeshFunction*> ext;  };
-  struct LiFormVol   {  int i, area;          liform_vol_t  fn;  std::vector<MeshFunction*> ext;  };
-  struct LiFormSurf  {  int i, area;          liform_surf_t fn;  std::vector<MeshFunction*> ext;  };
-  
+  struct BiFormVol   {  int i, j, sym, area;  biform_val_t  fn;  biform_ord_t  ord;  std::vector<MeshFunction*> ext;  };
+  struct BiFormSurf  {  int i, j, area;       biform_val_t  fn;  biform_ord_t  ord;  std::vector<MeshFunction*> ext;  };
+  struct LiFormVol   {  int i, area;          liform_val_t  fn;  liform_ord_t  ord;  std::vector<MeshFunction*> ext;  };
+  struct LiFormSurf  {  int i, area;          liform_val_t  fn;  liform_ord_t  ord;  std::vector<MeshFunction*> ext;  };
+
   std::vector<BiFormVol>  bfvol;
   std::vector<BiFormSurf> bfsurf;
   std::vector<LiFormVol>  lfvol;
@@ -98,12 +103,12 @@ protected:
     std::vector<Mesh*> meshes;
     std::vector<Transformable*> fns;
     std::vector<MeshFunction*> ext;
-    
+
     std::vector<BiFormVol*>  bfvol;
     std::vector<BiFormSurf*> bfsurf;
     std::vector<LiFormVol*>  lfvol;
     std::vector<LiFormSurf*> lfsurf;
-    
+
     std::set<int> idx_set;
     std::set<unsigned> seq_set;
     std::set<MeshFunction*> ext_set;
@@ -111,10 +116,10 @@ protected:
 
   void get_stages(Space** spaces, std::vector<Stage>& stages, bool rhsonly);
   bool** get_blocks();
-  
+
   bool is_in_area(int marker, int area) const
     { return area >= 0 ? area == marker : is_in_area_2(marker, area); }
-    
+
   bool is_sym() const { return false; /* not impl. yet */ }
 
   friend class LinSystem;
@@ -123,8 +128,8 @@ protected:
   friend class RefNonlinSystem;
 
 
-private: 
- 
+private:
+
   Stage* find_stage(std::vector<Stage>& stages, int ii, int jj,
                     Mesh* m1, Mesh* m2, std::vector<MeshFunction*>& ext);
 
