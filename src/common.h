@@ -114,6 +114,11 @@ inline double magn(double x) { return fabs(x); }
 inline double magn(complex x) { return std::abs(x); }
 #endif
 
+inline double conj(double a) {  return a; }
+#ifdef COMPLEX
+inline complex conj(complex a) { return std::conj(a); }
+#endif
+
 #define is_int(x) ((int) (x) == (x))
 
 
