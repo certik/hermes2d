@@ -40,7 +40,7 @@ WeakForm::WeakForm(int neq)
   va_end(ap)
 
 
-void WeakForm::add_biform(int i, int j, biform_vol_t fn, SymFlag sym, int area, int nx, ...)
+void WeakForm::add_biform(int i, int j, biform_val_t fn, biform_ord_t ord, SymFlag sym, int area, int nx, ...)
 {
   if (i < 0 || i >= neq || j < 0 || j >= neq)
     error("Invalid equation number.");
@@ -53,43 +53,43 @@ void WeakForm::add_biform(int i, int j, biform_vol_t fn, SymFlag sym, int area, 
   if (bfvol.size() > 100)
     warn("Large number of forms (> 100). Is this the intent?");
 
-  BiFormVol form = { i, j, sym, area, fn };
+  BiFormVol form = { i, j, sym, area, fn, ord };
   init_ext;
   bfvol.push_back(form);
 }
 
-void WeakForm::add_biform_surf(int i, int j, biform_surf_t fn, int area, int nx, ...)
+void WeakForm::add_biform_surf(int i, int j, biform_val_t fn, biform_ord_t ord, int area, int nx, ...)
 {
   if (i < 0 || i >= neq || j < 0 || j >= neq)
     error("Invalid equation number.");
   if (area != ANY && area < 0 && -area > areas.size())
     error("Invalid area number.");
 
-  BiFormSurf form = { i, j, area, fn };
+  BiFormSurf form = { i, j, area, fn, ord };
   init_ext;
   bfsurf.push_back(form);
 }
 
-void WeakForm::add_liform(int i, liform_vol_t fn, int area, int nx, ...)
+void WeakForm::add_liform(int i, liform_val_t fn, liform_ord_t ord, int area, int nx, ...)
 {
   if (i < 0 || i >= neq)
     error("Invalid equation number.");
   if (area != ANY && area < 0 && -area > areas.size())
     error("Invalid area number.");
 
-  LiFormVol form = { i, area, fn };
+  LiFormVol form = { i, area, fn, ord };
   init_ext;
   lfvol.push_back(form);
 }
 
-void WeakForm::add_liform_surf(int i, liform_surf_t fn, int area, int nx, ...)
+void WeakForm::add_liform_surf(int i, liform_val_t fn, liform_ord_t ord, int area, int nx, ...)
 {
   if (i < 0 || i >= neq)
     error("Invalid equation number.");
   if (area != ANY && area < 0 && -area > areas.size())
     error("Invalid area number.");
 
-  LiFormSurf form = { i, area, fn };
+  LiFormSurf form = { i, area, fn, ord };
   init_ext;
   lfsurf.push_back(form);
 }
