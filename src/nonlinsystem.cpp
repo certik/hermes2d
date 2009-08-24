@@ -40,19 +40,42 @@ NonlinSystem::NonlinSystem(WeakForm* wf, Solver* solver)
 }
 
 
-static MeshFunction* tmp_w;
+template<typename Real, typename Scalar>
+Scalar H1projection_biform(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+{
+  Scalar result = 0;
+  for (int i = 0; i < n; i++)
+    result += wt[i] * (u->val[i] * v->val[i] + u->dx[i] * v->dx[i] + u->dy[i] * v->dy[i]);
+  return result;
+}
 
-static scalar H1projection_biform(RealFunction* fu, RealFunction* fv, RefMap* ru, RefMap* rv)
-{  return int_grad_u_grad_v(fu, fv, ru, rv) + int_u_v(fu, fv, ru, rv); }
+template<typename Real, typename Scalar>
+Scalar H1projection_liform(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+{
+  Scalar result = 0;
+  for (int i = 0; i < n; i++)
+    result += wt[i] * (ext->fn[0]->val[i] * v->val[i] + ext->fn[0]->dx[i] * v->dx[i] + ext->fn[0]->dy[i] * v->dy[i]);
+  return result;
+}
 
-static scalar H1projection_liform(RealFunction* fv, RefMap* rv)
-{  return int_grad_w_grad_v(tmp_w, fv, rv) + int_w_v(tmp_w, fv, rv); }
+template<typename Real, typename Scalar>
+Scalar L2projection_biform(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+{
+  Scalar result = 0;
+  for (int i = 0; i < n; i++)
+    result += wt[i] * (u->val[i] * v->val[i]);
+  return result;
+}
 
-static scalar L2projection_biform(RealFunction* fu, RealFunction* fv, RefMap* ru, RefMap* rv)
-{  return int_u_v(fu, fv, ru, rv); }
+template<typename Real, typename Scalar>
+Scalar L2projection_liform(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+{
+  Scalar result = 0;
+  for (int i = 0; i < n; i++)
+    result += wt[i] * (ext->fn[0]->val[i] * v->val[i]);
+  return result;
+}
 
-static scalar L2projection_liform(RealFunction* fv, RefMap* rv)
-{  return int_w_v(tmp_w, fv, rv); }
 
 void NonlinSystem::set_ic(MeshFunction* fn, Solution* result, int proj_norm)
 {
@@ -64,16 +87,15 @@ void NonlinSystem::set_ic(MeshFunction* fn, Solution* result, int proj_norm)
   WeakForm wf_proj(1);
   wf = &wf_proj;
   if (proj_norm == 1)  {
-    wf->add_biform(0, 0, H1projection_biform);
-    wf->add_liform(0, H1projection_liform, ANY, 1, fn);
+    wf->add_biform(0, 0, H1projection_biform<double, scalar>, H1projection_biform<Ord, Ord>);
+    wf->add_liform(0, H1projection_liform<double, scalar>, H1projection_liform<Ord, Ord>, ANY, 1, fn);
   }
   else  {
-    wf->add_biform(0, 0, L2projection_biform);
-    wf->add_liform(0, L2projection_liform, ANY, 1, fn);
+    wf->add_biform(0, 0, L2projection_biform<double, scalar>, L2projection_biform<Ord, Ord>);
+    wf->add_liform(0, L2projection_liform<double, scalar>, L2projection_liform<Ord, Ord>, ANY, 1, fn);
   }
 
   want_dir_contrib = true;
-  tmp_w = fn;
   LinSystem::assemble();
   LinSystem::solve(1, result);
   want_dir_contrib = false;

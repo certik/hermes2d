@@ -72,6 +72,8 @@ public:
   /// Returns a pointer to the shapeset which is being precalculated.
   Shapeset* get_shapeset() const { return shapeset; }
 
+  /// Returns type of space (0 - H1, 1 - Hcurl, 2 - Hdiv)
+  int get_type() const { return shapeset->get_id() / 10;}
 
   /// Internal. Use set_active_element() instead.
   void set_mode(int mode);

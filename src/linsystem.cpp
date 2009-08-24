@@ -21,7 +21,6 @@
 
 #include "common.h"
 #include "linsystem.h"
-#include "weakform.h"
 #include "solver.h"
 #include "traverse.h"
 #include "space.h"
@@ -526,6 +525,7 @@ void LinSystem::assemble(bool rhsonly)
       }
       marker = e0->marker;
 
+      init_cache();
       //// assemble volume bilinear forms //////////////////////////////////////
       for (ww = 0; ww < s->bfvol.size(); ww++)
       {
@@ -548,7 +548,7 @@ void LinSystem::assemble(bool rhsonly)
           {
             for (j = 0; j < an->cnt; j++) {
               fu->set_active_shape(an->idx[j]);
-              bi = bfv->fn(fu, fv, refmap+n, refmap+m) * an->coef[j] * am->coef[i];
+              bi = eval_form(bfv, fu, fv, refmap+n, refmap+m) * an->coef[j] * am->coef[i];
               if (an->dof[j] < 0) Dir[k] -= bi; else mat[i][j] = bi;
             }
           }
@@ -557,7 +557,7 @@ void LinSystem::assemble(bool rhsonly)
             for (j = 0; j < an->cnt; j++) {
               if (j < i && an->dof[j] >= 0) continue;
               fu->set_active_shape(an->idx[j]);
-              bi = bfv->fn(fu, fv, refmap+n, refmap+m) * an->coef[j] * am->coef[i];
+              bi = eval_form(bfv, fu, fv, refmap+n, refmap+m) * an->coef[j] * am->coef[i];
               if (an->dof[j] < 0) Dir[k] -= bi; else mat[i][j] = mat[j][i] = bi;
             }
           }
@@ -594,7 +594,7 @@ void LinSystem::assemble(bool rhsonly)
         {
           if (am->dof[i] < 0) continue;
           fv->set_active_shape(am->idx[i]);
-          RHS[am->dof[i]] += lfv->fn(fv, refmap+m) * am->coef[i];
+          RHS[am->dof[i]] += eval_form(lfv, fv, refmap+m) * am->coef[i];
         }
       }
 
@@ -602,7 +602,7 @@ void LinSystem::assemble(bool rhsonly)
       // assemble surface integrals now: loop through boundary edges of the element
       for (int edge = 0; edge < e0->nvert; edge++)
       {
-        if (!bnd[edge]/* || !e0->en[edge]->bnd*/) continue;
+        if (!bnd[edge]) continue;
         marker = ep[edge].marker;
 
         // obtain the list of shape functions which are nonzero on this edge
@@ -613,7 +613,7 @@ void LinSystem::assemble(bool rhsonly)
             spaces[j]->get_edge_assembly_list(e[i], edge, al + j);
         }
 
-        //// assemble surface bilinear forms ///////////////////////////////////
+        // assemble surface bilinear forms ///////////////////////////////////
         for (ww = 0; ww < s->bfsurf.size(); ww++)
         {
           WeakForm::BiFormSurf* bfs = s->bfsurf[ww];
@@ -635,14 +635,14 @@ void LinSystem::assemble(bool rhsonly)
             for (j = 0; j < an->cnt; j++)
             {
               fu->set_active_shape(an->idx[j]);
-              bi = bfs->fn(fu, fv, refmap+n, refmap+m, ep+edge) * an->coef[j] * am->coef[i];
+              bi = eval_form(bfs, fu, fv, refmap+n, refmap+m, ep+edge) * an->coef[j] * am->coef[i];
               if (an->dof[j] >= 0) mat[i][j] = bi; else Dir[k] -= bi;
             }
           }
           insert_block(mat, am->dof, an->dof, am->cnt, an->cnt);
         }
 
-        //// assemble surface linear forms /////////////////////////////////////
+        // assemble surface linear forms /////////////////////////////////////
         for (ww = 0; ww < s->lfsurf.size(); ww++)
         {
           WeakForm::LiFormSurf* lfs = s->lfsurf[ww];
@@ -658,10 +658,11 @@ void LinSystem::assemble(bool rhsonly)
           {
             if (am->dof[i] < 0) continue;
             fv->set_active_shape(am->idx[i]);
-            RHS[am->dof[i]] += lfs->fn(fv, refmap+m, ep+edge) * am->coef[i];
+            RHS[am->dof[i]] += eval_form(lfs, fv, refmap+m, ep+edge) * am->coef[i];
           }
         }
       }
+      delete_cache();
     }
     trav.finish();
   }
@@ -676,6 +677,236 @@ void LinSystem::assemble(bool rhsonly)
   delete [] buffer;
 
   if (!rhsonly) values_changed = true;
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// Initialize integration order for external functions
+ExtData<Ord>* LinSystem::init_ext_fns_ord(std::vector<MeshFunction *> &ext)
+{
+  ExtData<Ord>* fake_ext = new ExtData<Ord>;
+  fake_ext->nf = ext.size();
+  Func<Ord>** fake_ext_fn = new Func<Ord>*[fake_ext->nf];
+  for (int i = 0; i < fake_ext->nf; i++)
+    fake_ext_fn[i] = init_fn_ord(ext[i]->get_fn_order());
+  fake_ext->fn = fake_ext_fn;
+
+  return fake_ext;
+}
+
+// Initialize external functions (obtain values, derivatives,...)
+ExtData<scalar>* LinSystem::init_ext_fns(std::vector<MeshFunction *> &ext, RefMap *rm, const int order)
+{
+  ExtData<scalar>* ext_data = new ExtData<scalar>;
+  Func<scalar>** ext_fn = new Func<scalar>*[ext.size()];
+  for (int i = 0; i < ext.size(); i++)
+    ext_fn[i] = init_fn(ext[i], rm, order);
+  ext_data->nf = ext.size();
+  ext_data->fn = ext_fn;
+
+  return ext_data;
+
+}
+
+// Initialize shape function values and derivatives (fill in the cache)
+Func<double>* LinSystem::get_fn(PrecalcShapeset *fu, RefMap *rm, const int order)
+{
+  Key key(256 - fu->get_active_shape(), order, fu->get_transform(), fu->get_shapeset()->get_id());
+  if (cache_fn[key] == NULL)
+    cache_fn[key] = init_fn(fu, rm, order);
+
+  return cache_fn[key];
+}
+
+// Caching transformed values
+void LinSystem::init_cache()
+{
+  for (int i = 0; i < 32; i++)
+  {
+    cache_e[i] = NULL;
+    cache_jwt[i] = NULL;
+  }
+}
+
+void LinSystem::delete_cache()
+{
+  for (int i = 0; i < 32; i++)
+  {
+    if (cache_e[i] != NULL)
+    {
+      cache_e[i]->free(); delete cache_e[i];
+      delete [] cache_jwt[i];
+    }
+  }
+  for (std::map<Key, Func<double>*>::const_iterator it = cache_fn.begin(); it != cache_fn.end(); it++)
+  {
+    (it->second)->free_fn(); delete (it->second);
+  }
+  cache_fn.clear();
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// Actual evaluation of volume bilinear form (calculates integral)
+scalar LinSystem::eval_form(WeakForm::BiFormVol *bf, PrecalcShapeset *fu, PrecalcShapeset *fv, RefMap *ru, RefMap *rv)
+{
+  // determine the integration order
+  int inc = (fu->get_num_components() == 2) ? 1 : 0;
+  Func<Ord>* ou = init_fn_ord(fu->get_fn_order() + inc);
+  Func<Ord>* ov = init_fn_ord(fv->get_fn_order() + inc);
+  ExtData<Ord>* fake_ext = init_ext_fns_ord(bf->ext);
+
+  double fake_wt = 1.0;
+  Geom<Ord>* fake_e = init_geom_ord();
+  Ord o = bf->ord(1, &fake_wt, ou, ov, fake_e, fake_ext);
+  int order = ru->get_inv_ref_order();
+  order += o.get_order();
+  limit_order(order);
+
+  ou->free_ord(); delete ou;
+  ov->free_ord(); delete ov;
+  delete fake_e;
+  fake_ext->free_ord(); delete fake_ext;
+
+  // eval the form
+  Quad2D* quad = fu->get_quad_2d();
+  double3* pt = quad->get_points(order);
+  int np = quad->get_num_points(order);
+
+  // init geometry and jacobian*weights
+  if (cache_e[order] == NULL)
+  {
+    cache_e[order] = init_geom_vol(ru, order);
+    double* jac = ru->get_jacobian(order);
+    cache_jwt[order] = new double[np];
+    for(int i = 0; i < np; i++)
+      cache_jwt[order][i] = pt[i][2] * jac[i];
+  }
+  Geom<double>* e = cache_e[order];
+  double* jwt = cache_jwt[order];
+
+  // function values and values of external functions
+  Func<double>* u = get_fn(fu, ru, order);
+  Func<double>* v = get_fn(fv, rv, order);
+  ExtData<scalar>* ext = init_ext_fns(bf->ext, rv, order);
+
+  scalar res = bf->fn(np, jwt, u, v, e, ext);
+
+  ext->free(); delete ext;
+  return res;
+}
+
+
+// Actual evaluation of volume linear form (calculates integral)
+scalar LinSystem::eval_form(WeakForm::LiFormVol *lf, PrecalcShapeset *fv, RefMap *rv)
+{
+  // determine the integration order
+  int inc = (fv->get_num_components() == 2) ? 1 : 0;
+  Func<Ord>* ov = init_fn_ord(fv->get_fn_order() + inc);
+  ExtData<Ord>* fake_ext = init_ext_fns_ord(lf->ext);
+
+  double fake_wt = 1.0;
+  Geom<Ord>* fake_e = init_geom_ord();
+  Ord o = lf->ord(1, &fake_wt, ov, fake_e, fake_ext);
+  int order = rv->get_inv_ref_order();
+  order += o.get_order();
+  limit_order(order);
+
+  ov->free_ord(); delete ov;
+  delete fake_e;
+  fake_ext->free_ord(); delete fake_ext;
+
+  // eval the form
+  Quad2D* quad = fv->get_quad_2d();
+  double3* pt = quad->get_points(order);
+  int np = quad->get_num_points(order);
+
+  // init geometry and jacobian*weights
+  if (cache_e[order] == NULL)
+  {
+    cache_e[order] = init_geom_vol(rv, order);
+    double* jac = rv->get_jacobian(order);
+    cache_jwt[order] = new double[np];
+    for(int i = 0; i < np; i++)
+      cache_jwt[order][i] = pt[i][2] * jac[i];
+  }
+  Geom<double>* e = cache_e[order];
+  double* jwt = cache_jwt[order];
+
+  // function values and values of external functions
+  Func<double>* v = get_fn(fv, rv, order);
+  ExtData<scalar>* ext = init_ext_fns(lf->ext, rv, order);
+
+  scalar res = lf->fn(np, jwt, v, e, ext);
+
+  ext->free(); delete ext;
+  return res;
+
+}
+
+
+// Actual evaluation of surface bilinear form (calculates integral)
+scalar LinSystem::eval_form(WeakForm::BiFormSurf *bf, PrecalcShapeset *fu, PrecalcShapeset *fv, RefMap *ru, RefMap *rv, EdgePos* ep)
+{
+  // eval the form
+  Quad2D* quad = fu->get_quad_2d();
+  int eo = quad->get_edge_points(ep->edge);
+  double3* pt = quad->get_points(eo);
+  int np = quad->get_num_points(eo);
+
+  // init geometry and jacobian*weights
+  if (cache_e[eo] == NULL)
+  {
+    cache_e[eo] = init_geom_surf(ru, ep, eo);
+    double3* tan = ru->get_tangent(ep->edge);
+    cache_jwt[eo] = new double[np];
+    for(int i = 0; i < np; i++)
+      cache_jwt[eo][i] = pt[i][2] * tan[i][2];
+  }
+  Geom<double>* e = cache_e[eo];
+  double* jwt = cache_jwt[eo];
+
+  // function values and values of external functions
+  Func<double>* u = get_fn(fu, ru, eo);
+  Func<double>* v = get_fn(fv, rv, eo);
+  ExtData<scalar>* ext = init_ext_fns(bf->ext, rv, eo);
+
+  scalar res = bf->fn(np, jwt, u, v, e, ext);
+
+  ext->free(); delete ext;
+  return 0.5 * res;
+}
+
+
+// Actual evaluation of surface linear form (calculates integral)
+scalar LinSystem::eval_form(WeakForm::LiFormSurf *lf, PrecalcShapeset *fv, RefMap *rv, EdgePos* ep)
+{
+  // eval the form
+  Quad2D* quad = fv->get_quad_2d();
+  int eo = quad->get_edge_points(ep->edge);
+  double3* pt = quad->get_points(eo);
+  int np = quad->get_num_points(eo);
+
+  // init geometry and jacobian*weights
+  if (cache_e[eo] == NULL)
+  {
+    cache_e[eo] = init_geom_surf(rv, ep, eo);
+    double3* tan = rv->get_tangent(ep->edge);
+    cache_jwt[eo] = new double[np];
+    for(int i = 0; i < np; i++)
+      cache_jwt[eo][i] = pt[i][2] * tan[i][2];
+  }
+  Geom<double>* e = cache_e[eo];
+  double* jwt = cache_jwt[eo];
+
+  // function values and values of external functions
+  Func<double>* v = get_fn(fv, rv, eo);
+  ExtData<scalar>* ext = init_ext_fns(lf->ext, rv, eo);
+
+  scalar res = lf->fn(np, jwt, v, e, ext);
+
+  ext->free(); delete ext;
+  return 0.5 * res;
 }
 
 
