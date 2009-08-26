@@ -50,7 +50,7 @@ static int default_order_table_quad[] =
   24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24
 };
 
-int  g_max_order;
+int  g_max_order, g_safe_max_order;
 int* g_order_table_quad = default_order_table_quad;
 int* g_order_table_tri  = default_order_table_tri;
 int* g_order_table = NULL;
@@ -1040,6 +1040,7 @@ void update_limit_table(int mode)
 {
   g_quad_2d_std.set_mode(mode);
   g_max_order = g_quad_2d_std.get_max_order();
+  g_safe_max_order = g_quad_2d_std.get_safe_max_order();
   g_order_table = (mode == MODE_TRIANGLE) ? g_order_table_tri : g_order_table_quad;
 }
 
