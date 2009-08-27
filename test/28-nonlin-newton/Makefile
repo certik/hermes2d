@@ -1,8 +1,0 @@
-include ../../Make.config
-
-NAME   = enea
-HERMES = ../../lib/libhermes2d-$(CC)-g-real.a
-FLAGS  = -ggdb 
-#FLAGS  = -O3 -DNDEBUG
-
-include ../Make.common
