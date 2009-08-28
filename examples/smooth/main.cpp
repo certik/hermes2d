@@ -5,8 +5,8 @@
 //  This example shows that the worst thing you can ever do is to approximate
 //  smooth parts of solutions with uniform low-order meshes. The exact solution
 //  to this Poisson problem is u(x,y) = sin(x)*sin(y), defined in the square
-//  (0, pi)x(0, pi). Below, set H_ONLY = false for pure p-adaptivity (without
-//  any spatial refinements), and H_ONLY = true for h-adaptivity. Compare the
+//  (0, pi)x(0, pi). Below, set H_REFIN = false for pure p-adaptivity (without
+//  any spatial refinements), and H_REFIN = true for h-adaptivity. Compare the
 //  convergence curves.
 //
 //  PDE: -Laplace u = f
@@ -22,7 +22,7 @@
 
 
 const int P_INIT = 1;             // initial polynomial degree in mesh
-const bool H_ONLY = false;        // if H_ONLY == true then Hermes will do uniform h-refinements,
+const bool H_REFIN = false;        // if H_REFIN == true then Hermes will do uniform h-refinements,
                                   // otherwise p-refinements
 const int INIT_REF_NUM = 1;       // number of initial uniform mesh refinements: use 0 for one
                                   // element only, 1 for 4 elements, 2 for 15 elements, etc.
@@ -125,17 +125,20 @@ int main(int argc, char* argv[])
     sview.wait_for_keypress();
 
     // refine the mesh uniformly either in 'h' or 'p'
-    if (H_ONLY == true) {
+    if (H_REFIN == true) {
       mesh.refine_all_elements();
       space.set_uniform_order(actual_poly_degree);
     }
     else {
       actual_poly_degree++;
-      space.set_uniform_order(actual_poly_degree);
+      if(actual_poly_degree > 10) done = true;
+      else space.set_uniform_order(actual_poly_degree);
     }
   }
   while (done == false);
 
+  // wait for keyboard or mouse input
+  printf("Waiting for keyboard or mouse input.\n");
   View::wait();
   return 0;
 }
