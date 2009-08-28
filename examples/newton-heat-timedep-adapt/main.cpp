@@ -1,7 +1,6 @@
 #include "hermes2d.h"
 #include "solver_umfpack.h"
 
-//
 //  This example shows how to combine automatic adaptivity with the Newton's
 //  method for a nonlinear time-dependent PDE discretized implicitly in time
 //  (using implicit Euler or Crank-Nicolson). Unrefinements are allowed.
@@ -17,37 +16,64 @@
 //  BC:  T = 100 on the left, top and bottom edges
 //       dT/dn = 0 on the right edge
 //
+//  The following parameters can be changed:
 
-/********** Problem parameters ***********/
+// adaptivity parameters
+const int P_INIT = 2;             // Initial polynomial degree of all mesh elements.
+const int REF_INIT = 2;           // Number of initial refinements.
+const int UNREF_FREQ = 1;         // Every UNREF_FREQth time step the mesh is unrefined.
+const double SPACE_L2_TOL = 0.5;  // Stopping criterion for hp-adaptivity
+                                  // (relative error between reference and coarse solution in percent).
+const double THRESHOLD = 0.3;     // This is a quantitative parameter of the adapt(...) function and 
+                                  // it has different meanings for various adaptive strategies (see below).
+const int STRATEGY = 0;           // Adaptive strategy:
+                                  // STRATEGY = 0 ... refine elements until sqrt(THRESHOLD) times total 
+                                  //   error is processed. If more elements have similar errors, refine 
+                                  //   all to keep the mesh symmetric.
+                                  // STRATEGY = 1 ... refine all elements whose error is larger  
+                                  //   than THRESHOLD times maximum element error.
+                                  // STRATEGY = 2 ... refine all elements whose error is larger 
+                                  //   than THRESHOLD.
+                                  // More adaptive strategies can be created in adapt_ortho_h1.cpp.
+const int ADAPT_TYPE = 0;         // Type of automatic adaptivity:
+                                  // ADAPT_TYPE = 0 ... adaptive hp-FEM (default),
+                                  // ADAPT_TYPE = 1 ... adaptive h-FEM, 
+                                  // ADAPT_TYPE = 2 ... adaptive p-FEM. 
+const bool ISO_ONLY = false;      // Isotropic refinement flag (concerns quadrilateral elements only).
+                                  // ISO_ONLY = false ... anisotropic refinement of quad elements
+                                  // is allowed (default), 
+                                  // ISO_ONLY = true ... only isotropic refinements of quad elements
+                                  // are allowed.
+const int MESH_REGULARITY = -1;   // Maximum allowed level of hanging nodes:
+                                  // MESH_REGULARITY = -1 ... arbitrary level hangning nodes (default),
+                                  // MESH_REGULARITY = 1 ... at most one-level hanging nodes,
+                                  // MESH_REGULARITY = 2 ... at most two-level hanging nodes, etc.  
+                                  // Note that regular meshes are not supported, this is due to 
+                                  // their notoriously bad performance. 
+const double ERR_STOP = 0.15;     // Stopping criterion for adaptivity (rel. error tolerance between the
+                                  // fine mesh and coarse mesh solution in percent).
+const int NDOF_STOP = 50000;      // Adaptivity process stops when the number of degrees of freedom grows 
+                                  // over this limit. This is to prevent h-adaptivity to go on forever.
 
-int TIME_DISCR = 1;   // 1 for implicit Euler, 2 for Crank-Nicolson
-int PROJ_TYPE = 1;    // 1 for H1 projections, 0 for L2 projections
-double HEATCAP = 1e6; // heat capacity
-double TAU = 5;       // time step
-double T_FINAL = 600; // time interval length
-int P_INIT = 2;       // initial uniform polynomial order
-int REF_INIT = 2;     // number of initial refinements
+// time discretization parameters
+const int TIME_DISCR = 1;         // 1 for implicit Euler, 2 for Crank-Nicolson
+const int PROJ_TYPE = 1;          // 1 for H1 projections, 0 for L2 projections
+const double HEATCAP = 1e6;       // heat capacity
+const double TAU = 5;             // time step
+const double T_FINAL = 600;       // time interval length
 
 // Newton parameters
-double NEWTON_TOL_COARSE = 0.05;   // stopping criterion for Newton on coarse mesh
-double NEWTON_TOL_REF = 0.5;       // stopping criterion for Newton on fine mesh
+const double NEWTON_TOL_COARSE = 0.05;   // stopping criterion for Newton on coarse mesh
+const double NEWTON_TOL_REF = 0.5;       // stopping criterion for Newton on fine mesh
                                    // (the ref. solution does not to be super accurate)
-// adaptivity parameters
-int UNREF_FREQ = 1;                // every UNREF_FREQth time step the mesh
-                                   // is unrefined
-double SPACE_L2_TOL = 0.5;         // stopping criterion for hp-adaptivity
-                                   // (relative error between reference and coarse solution in percent)
-double thr = 0.3;
-bool h_only = false;
-bool iso_only = false;
 
-// thermal conductivity (temperature-dependent
-// for any u, this function has to be  positive in the entire domain!
+// thermal conductivity (nonlinear, temperature-dependent
+// for any u, this function has to be positive in the entire 
+// to ensure solvability!
 double lam(double T) { return 10 + 0.1*pow(T, 2); }
 double dlam_dT(double T) { return 0.1*2*pow(T, 1); }
 
-/********** Definition of boundary conditions ***********/
-
+// boundary conditions
 int bc_types(int marker)
 {
   if (marker == 1) return BC_ESSENTIAL;
@@ -60,11 +86,11 @@ scalar bc_values(int marker, double x, double y)
   else return 0.0;
 }
 
-/********** Definition of Jacobian matrices and residual vectors ***********/
+// Jacobian matrices and residual vectors
 
 # include "forms.cpp"
 
-/********** Definition of linear and bilinear forms for Hermes ***********/
+// linear and bilinear forms
 
 Solution Tprev, // previous time step solution, for the time integration method
          Titer; // solution converging during the Newton's iteration
@@ -81,25 +107,30 @@ scalar linear_form_0_cranic(RealFunction* fv, RefMap* rv)
 scalar bilinear_form_0_0_cranic(RealFunction* fu, RealFunction* fv, RefMap* ru, RefMap* rv)
 { return J_cranic(&Titer, fu, fv, ru, rv); }
 
-// *************************************************************
-
 int main(int argc, char* argv[])
 {
+  // load the mesh
   Mesh mesh, basemesh;
   basemesh.load("square.mesh");
   for(int i = 0; i < REF_INIT; i++) basemesh.refine_all_elements();
   mesh.copy(&basemesh);
   mesh.refine_towards_boundary(1,3);
 
+  // initialize the shapeset and the cache
   H1Shapeset shapeset;
   PrecalcShapeset pss(&shapeset);
 
+  // create finite element space 
   H1Space space(&mesh, &shapeset);
   space.set_bc_types(bc_types);
   space.set_bc_values(bc_values);
   space.set_uniform_order(P_INIT);
   space.assign_dofs();
 
+  // enumerate basis functions
+  space.assign_dofs();
+
+  // initialize the weak formulation
   WeakForm wf(1);
   if(TIME_DISCR == 1) {
     wf.add_biform(0, 0, bilinear_form_0_0_euler, UNSYM, ANY, 1, &Titer);
@@ -110,18 +141,25 @@ int main(int argc, char* argv[])
     wf.add_liform(0, linear_form_0_cranic, ANY, 2, &Titer, &Tprev);
   }
 
-  UmfpackSolver umfpack;
-  NonlinSystem nls(&wf, &umfpack);
+  // matrix solver
+  UmfpackSolver solver;
+ 
+  // nonlinear system class
+  NonlinSystem nls(&wf, &solver);
   nls.set_spaces(1, &space);
   nls.set_pss(1, &pss);
 
-  char title[100];
-  ScalarView view("", 0, 0, 600, 600);
-  OrderView ordview("", 700, 0, 600, 600);
+  // visualize solution and mesh
+  ScalarView view("", 0, 0, 700, 600);
+  view.fix_scale_width(60);
+  OrderView ordview("", 700, 0, 700, 600);
 
+  // error estimate as a function of physical time 
   GnuplotGraph graph_err;
   graph_err.set_captions("","Time step","Error");
   graph_err.add_row();
+
+  // error estimate as a function of DOF
   GnuplotGraph graph_dofs;
   graph_dofs.set_captions("","Time step","DOFs");
   graph_dofs.add_row();
@@ -134,86 +172,90 @@ int main(int argc, char* argv[])
 
   // view initial guess for Newton's method
   // satisfies BC conditions
+  char title[100];
   sprintf(title, "Initial iteration");
   view.set_title(title);
   view.show(&Titer);
   ordview.show(&space);
   //view.wait_for_keypress(); // this may cause graphics problems
 
-  Solution sln, rsln;
-  // time stepping
+  // time stepping loop
   int nstep = (int)(T_FINAL/TAU + 0.5);
+  double cpu = 0.0;
+  Solution sln_coarse, sln_fine;
   for(int n = 1; n <= nstep; n++)
   {
 
     info("\n---- Time step %d -----------------------------------------------------------------", n);
 
-    // unrefinements
-    if (n % UNREF_FREQ == 0) {              // frequency of unrefinements
+    // time measurement
+    begin_time();
+
+    // perform periodic unrefinements
+    if (n % UNREF_FREQ == 0) {     
       mesh.copy(&basemesh);
       space.set_uniform_order(P_INIT);
       space.assign_dofs();
     }
 
-    int at = 0;
+    // adaptivity loop
+    int at = 0, ndofs;
     bool done = false;
-    double err;
+    double err_est, cpu;
     do
     {
      info("\n---- Time step %d, adaptivity step %d ---------------------------------------------\n", n, ++at);
 
-
+      // Newton's loop for coarse mesh solution
       int it = 1;
       double res_l2_norm;
-      if (n > 1 || at > 1) nls.set_ic(&rsln, &Titer);
+      if (n > 1 || at > 1) nls.set_ic(&sln_fine, &Titer);
       else nls.set_ic(&Titer, &Titer);
       do
       {
-        info("\n---- Time step %d, adaptivity step %d, Newton step %d -----------------------------\n", n, at, it++);
+        info("\n---- Time step %d, adaptivity step %d, Newton step %d (Coarse mesh solution)-------\n", n, at, it++);
 
         nls.assemble();
-        nls.solve(1, &sln);
+        nls.solve(1, &sln_coarse);
 
         res_l2_norm = nls.get_residuum_l2_norm();
-        info("Residuum L2 norm: %g\n", res_l2_norm);
+        info("Residuum L2 norm: %g", res_l2_norm);
 
-        Titer.copy(&sln);
+        Titer.copy(&sln_coarse);
       }
       while (res_l2_norm > NEWTON_TOL_COARSE);
 
-      // reference solution
+      // Newton's loop for fine mesh solution
       it = 1;
       RefNonlinSystem rs(&nls);
       rs.prepare();
-      if (n > 1 || at > 1) rs.set_ic(&rsln, &Titer);
+      if (n > 1 || at > 1) rs.set_ic(&sln_fine, &Titer);
       else rs.set_ic(&Titer, &Titer);
       do
       {
-        info("\n---- Time step %d, adaptivity step %d, Newton step %d (Reference solution) --------\n", n, at, it++);
+        info("\n---- Time step %d, adaptivity step %d, Newton step %d (Fine mesh solution) --------\n", n, at, it++);
 
         rs.assemble();
-        rs.solve(1, &rsln);
+        rs.solve(1, &sln_fine);
 
         res_l2_norm = rs.get_residuum_l2_norm();
-        info("Residuum L2 norm: %g\n", res_l2_norm);
+        info("Residuum L2 norm: %g", res_l2_norm);
 
-        Titer.copy(&rsln);
+        Titer.copy(&sln_fine);
       }
       while (res_l2_norm > NEWTON_TOL_REF);
 
+      // calculate error estimate wrt. fine mesh solution
       H1OrthoHP hp(1, &space);
-      err = hp.calc_error(&sln, &rsln) * 100;
-      info("Error: %g", err);
-      if (err < SPACE_L2_TOL) done = true;
-      else hp.adapt(thr, 1, h_only, iso_only);
-      space.assign_dofs();
+      err_est = hp.calc_error(&sln_coarse, &sln_fine) * 100;
+      info("Error estimate: %g%", err_est);
 
       // visualization of solution on the n-th time level
       sprintf(title, "Temperature, time level %d", n);
       //view.set_min_max_range(0,100);
       view.set_title(title);
       //view.show(&Titer);    // to see reference solution
-      view.show(&sln);        // to see the solution
+      view.show(&sln_fine);        // to see the solution
 
       // visualization of mesh on the n-th time level
       sprintf(title, "hp-mesh, time level %d", n);
@@ -221,11 +263,21 @@ int main(int argc, char* argv[])
       ordview.show(&space);   // to see hp-mesh
       //view.wait_for_keypress();
 
+      // if err_est too large, adapt the mesh 
+      if (err_est < SPACE_L2_TOL) done = true;
+      else {
+        hp.adapt(THRESHOLD, STRATEGY, ADAPT_TYPE, ISO_ONLY, MESH_REGULARITY);
+        ndofs = space.assign_dofs();
+        if (ndofs >= NDOF_STOP) done = true;
+      }
+
+      // time measurement
+      cpu += end_time();
     }
     while (!done);
 
-
-    graph_err.add_values(0, n, err);
+    // add entry to both time and DOF error graphs
+    graph_err.add_values(0, n, err_est);
     graph_err.save("error.txt");
     graph_dofs.add_values(0, n, space.get_num_dofs());
     graph_dofs.save("dofs.txt");
@@ -234,6 +286,12 @@ int main(int argc, char* argv[])
     Tprev.copy(&Titer);
   }
 
+  // time measurement
+  cpu += end_time();
+  verbose("Total running time: %g sec", cpu);
+
+  // wait for keyboard or mouse input
+  printf("Waiting for keyboard or mouse input.\n");
   View::wait();
   return 0;
 }

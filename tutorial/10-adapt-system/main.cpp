@@ -159,7 +159,7 @@ int main(int argc, char* argv[])
   Solution x_sln_fine, y_sln_fine;
   do
   {
-    info("\n---- Iteration %d ---------------------------------------------\n", it++);
+    info("\n---- Adaptivity step %d ---------------------------------------------\n", it++);
 
     // time measurement
     begin_time();
@@ -199,7 +199,7 @@ int main(int argc, char* argv[])
     double err_est = hp.calc_energy_error_2(&x_sln_coarse, &y_sln_coarse, &x_sln_fine, &y_sln_fine,
                                           bilinear_form_0_0, bilinear_form_0_1,
                                           bilinear_form_1_0, bilinear_form_1_1) * 100;
-    info("\nEstimate of error: %g%%", err_est);
+    info("Estimate of error: %g%%", err_est);
 
     // time measurement
     cpu += end_time();
@@ -220,9 +220,9 @@ int main(int argc, char* argv[])
       ndofs += ydisp.assign_dofs(ndofs);
       if (ndofs >= NDOF_STOP) done = true;
     }
-    //if (err_est < ERR_STOP || xdisp.get_num_dofs() + ydisp.get_num_dofs() >= NDOF_STOP) done = true;
-    //else hp.adapt(THRESHOLD, STRATEGY, ADAPT_TYPE, ISO_ONLY, MESH_REGULARITY, MAX_ORDER, SAME_ORDERS);
 
+    // time measurement
+    cpu += end_time();
   }
   while (!done);
   verbose("Total running time: %g sec", cpu);
