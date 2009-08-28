@@ -67,7 +67,6 @@ int bc_types(int marker)
   return BC_ESSENTIAL;
 }
 
-// TODO: obtain tangent from EdgePos
 double2 tau[5] = { { 0, 0}, { 1, 0 },  { 0, 1 }, { -1, 0 }, { 0, -1 } };
 
 complex bc_values(int marker, double x, double y)
@@ -76,10 +75,10 @@ complex bc_values(int marker, double x, double y)
   return exact0(x, y, dx, dy)*tau[marker][0] + exact1(x, y, dx, dy)*tau[marker][1];
 }
 
-// bilinear form
-complex bilinear_form(RealFunction* fu, RealFunction* fv, RefMap* ru, RefMap* rv)
+template<typename Real, typename Scalar>
+Scalar bilinear_form(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
-  return int_curl_e_curl_f(fu, fv, ru, rv) - int_e_f(fu, fv, ru, rv);
+  return int_curl_e_curl_f<Real, Scalar>(n, wt, u, v) - int_e_f<Real, Scalar>(n, wt, u, v);
 }
 
 int main(int argc, char* argv[])
@@ -87,7 +86,7 @@ int main(int argc, char* argv[])
   // load the mesh
   Mesh mesh;
   mesh.load("screen-quad.mesh");
-  //mesh.load("screen-tri.mesh");
+//    mesh.load("screen-tri.mesh");
 
   // initialize the shapeset and the cache
   HcurlShapeset shapeset;
@@ -104,7 +103,7 @@ int main(int argc, char* argv[])
 
   // initialize the weak formulation
   WeakForm wf(1);
-  wf.add_biform(0, 0, bilinear_form, SYM);
+  wf.add_biform(0, 0, callback(bilinear_form), SYM);
 
   // visualize solution and mesh
   ScalarView Xview_r("Electric field X - real",   0, 0, 320, 320);
@@ -154,7 +153,8 @@ int main(int argc, char* argv[])
     cpu += end_time();
 
     // calculating error wrt. exact solution
-    ExactSolution ex(&mesh, exact);
+    Solution ex;
+    ex.set_exact(&mesh, exact);
     double error = 100 * hcurl_error(&sln_coarse, &ex);
     info("Exact solution error: %g%%", error);
 

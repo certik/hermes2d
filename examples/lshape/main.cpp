@@ -27,7 +27,7 @@ const int STRATEGY = 0;           // Adaptive strategy:
                                   // STRATEGY = 2 ... refine all elements whose error is larger
                                   //   than THRESHOLD.
                                   // More adaptive strategies can be created in adapt_ortho_h1.cpp.
-const int ADAPT_TYPE = 1;         // Type of automatic adaptivity:
+const int ADAPT_TYPE = 0;         // Type of automatic adaptivity:
                                   // ADAPT_TYPE = 0 ... adaptive hp-FEM (default),
                                   // ADAPT_TYPE = 1 ... adaptive h-FEM,
                                   // ADAPT_TYPE = 2 ... adaptive p-FEM.
@@ -72,9 +72,10 @@ scalar bc_values(int marker, double x, double y)
 }
 
 // bilinear form corresponding to the Laplace equation
-scalar bilinear_form(RealFunction* fu, RealFunction* fv, RefMap* ru, RefMap* rv)
+template<typename Real, typename Scalar>
+Scalar bilinear_form(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
-  return int_grad_u_grad_v(fu, fv, ru, rv);
+  return int_grad_u_grad_v<Real, Scalar>(n, wt, u, v);
 }
 
 int main(int argc, char* argv[])
@@ -99,7 +100,7 @@ int main(int argc, char* argv[])
 
   // initialize the weak formulation
   WeakForm wf(1);
-  wf.add_biform(0, 0, bilinear_form, SYM);
+  wf.add_biform(0, 0, callback(bilinear_form), SYM);
 
   // visualize solution and mesh
   ScalarView sview("Coarse solution", 0, 100, 798, 700);

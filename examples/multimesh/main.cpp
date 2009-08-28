@@ -77,55 +77,89 @@ const double g = 9.81;
 const double alpha = 13e-6;      // see http://hyperphysics.phy-astr.gsu.edu/hbase/tables/thexp.html
 
 //  Boundary markers:
-//  1 - bottom
-//  3 - top
-//  2 - left & right
-//  4 - holes
+const int marker_bottom = 1;
+const int marker_sides = 2;
+const int marker_top = 3;
+const int marker_holes = 4;
 
 // boundary markers
 int bc_types_x(int marker)
-  { return (marker == 1) ? BC_ESSENTIAL : BC_NATURAL; }
+  { return (marker == marker_bottom) ? BC_ESSENTIAL : BC_NATURAL; }
 
 int bc_types_y(int marker)
-  { return (marker == 1) ? BC_ESSENTIAL : BC_NATURAL; }
+  { return (marker == marker_bottom) ? BC_ESSENTIAL : BC_NATURAL; }
 
 int bc_types_t(int marker)
-  { return (marker == 4) ? BC_ESSENTIAL : BC_NATURAL; }
+  { return (marker == marker_holes) ? BC_ESSENTIAL : BC_NATURAL; }
 
 double bc_values_t(int marker, double x, double y)
-  { return (marker == 4) ? TEMP_INNER : HEAT_FLUX_OUTER; }
+  { return TEMP_INNER; }
 
-// bilinear forms
-scalar bilinear_form_unsym_0_0(RealFunction* fu, RealFunction* fv, RefMap* ru, RefMap* rv)
-  { return int_a_dudx_dvdx_b_dudy_dvdy(l2m, fu, mu, fv, ru, rv); }
 
-scalar bilinear_form_unsym_0_1(RealFunction* fu, RealFunction* fv, RefMap* ru, RefMap* rv)
-  { return int_a_dudx_dvdy_b_dudy_dvdx(lambda, fv, mu, fu, rv, ru); }
+template<typename Real, typename Scalar>
+Scalar bilinear_form_0_0(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+{
+  return l2m * int_dudx_dvdx<Real, Scalar>(n, wt, u, v) +
+          mu * int_dudy_dvdy<Real, Scalar>(n, wt, u, v);
+}
 
-scalar bilinear_form_unsym_0_2(RealFunction* fu, RealFunction* fv, RefMap* ru, RefMap* rv)
-  { return -(3*lambda + 2*mu) * alpha * int_dudx_v(fu, fv, ru, rv); }
+template<typename Real, typename Scalar>
+Scalar bilinear_form_0_1(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+{
+  return lambda * int_dudy_dvdx<Real, Scalar>(n, wt, u, v) +
+             mu * int_dudx_dvdy<Real, Scalar>(n, wt, u, v);
+}
 
-scalar bilinear_form_unsym_1_0(RealFunction* fu, RealFunction* fv, RefMap* ru, RefMap* rv)
-  { return int_a_dudx_dvdy_b_dudy_dvdx(lambda, fu, mu, fv, ru, rv); }
+template<typename Real, typename Scalar>
+Scalar bilinear_form_0_2(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+{
+  return - (3*lambda + 2*mu) * alpha * int_dudx_v<Real, Scalar>(n, wt, u, v);
+}
 
-scalar bilinear_form_unsym_1_1(RealFunction* fu, RealFunction* fv, RefMap* ru, RefMap* rv)
-  { return int_a_dudx_dvdx_b_dudy_dvdy(mu, fu, l2m, fv, ru, rv); }
+template<typename Real, typename Scalar>
+Scalar bilinear_form_1_0(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+{
+  return     mu * int_dudy_dvdx<Real, Scalar>(n, wt, u, v) +
+         lambda * int_dudx_dvdy<Real, Scalar>(n, wt, u, v);
+}
 
-scalar bilinear_form_unsym_1_2(RealFunction* fu, RealFunction* fv, RefMap* ru, RefMap* rv)
-  { return -(3*lambda + 2*mu) * alpha * int_dudy_v(fu, fv, ru, rv); }
+template<typename Real, typename Scalar>
+Scalar bilinear_form_1_1(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+{
+  return  mu * int_dudx_dvdx<Real, Scalar>(n, wt, u, v) +
+         l2m * int_dudy_dvdy<Real, Scalar>(n, wt, u, v);
+}
 
-scalar bilinear_form_unsym_2_2(RealFunction* fu, RealFunction* fv, RefMap* ru, RefMap* rv)
-  { return int_grad_u_grad_v(fu, fv, ru, rv); }
+template<typename Real, typename Scalar>
+Scalar bilinear_form_1_2(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+{
+  return - (3*lambda + 2*mu) * alpha * int_dudy_v<Real, Scalar>(n, wt, u, v);
+}
 
-// linear form
-scalar linear_form_1(RealFunction* fv, RefMap* rv)
-  { return -g * rho * int_v(fv, rv); }
+template<typename Real, typename Scalar>
+Scalar bilinear_form_2_2(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+{
+  return int_grad_u_grad_v<Real, Scalar>(n, wt, u, v);
+}
 
-scalar linear_form_2(RealFunction* fv, RefMap* rv)
-  { return HEAT_SRC * int_v(fv, rv); }
+template<typename Real, typename Scalar>
+Scalar linear_form_1(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+{
+  return -g * rho * int_v<Real, Scalar>(n, wt, v);
+}
 
-scalar linear_form_surf_2(RealFunction* fv, RefMap* rv, EdgePos* ep)
-  { return surf_int_G_v(fv, rv, ep); }
+template<typename Real, typename Scalar>
+Scalar linear_form_2(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+{
+  return HEAT_SRC * int_v<Real, Scalar>(n, wt, v);
+}
+
+template<typename Real, typename Scalar>
+Scalar linear_form_surf_2(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+{
+  return HEAT_FLUX_OUTER * int_v<Real, Scalar>(n, wt, v);
+}
+
 
 int main(int argc, char* argv[])
 {
@@ -159,15 +193,15 @@ int main(int argc, char* argv[])
 
   // initialize the weak formulation
   WeakForm wf(3);
-  wf.add_biform(0, 0, bilinear_form_unsym_0_0);
-  wf.add_biform(0, 1, bilinear_form_unsym_0_1, SYM);
-  wf.add_biform(0, 2, bilinear_form_unsym_0_2);
-  wf.add_biform(1, 1, bilinear_form_unsym_1_1);
-  wf.add_biform(1, 2, bilinear_form_unsym_1_2);
-  wf.add_biform(2, 2, bilinear_form_unsym_2_2);
-  wf.add_liform(1, linear_form_1);
-  wf.add_liform(2, linear_form_2);
-  wf.add_liform_surf(2, linear_form_surf_2);
+  wf.add_biform(0, 0, callback(bilinear_form_0_0));
+  wf.add_biform(0, 1, callback(bilinear_form_0_1), SYM);
+  wf.add_biform(0, 2, callback(bilinear_form_0_2));
+  wf.add_biform(1, 1, callback(bilinear_form_1_1));
+  wf.add_biform(1, 2, callback(bilinear_form_1_2));
+  wf.add_biform(2, 2, callback(bilinear_form_2_2));
+  wf.add_liform(1, callback(linear_form_1));
+  wf.add_liform(2, callback(linear_form_2));
+  wf.add_liform_surf(2, callback(linear_form_surf_2));
 
   // visualization
   OrderView xord("X displacement poly degrees", 0, 0, 850, 400);
@@ -241,11 +275,16 @@ int main(int argc, char* argv[])
 
     // calculate element errors and total error estimate
     H1OrthoHP hp(3, &xdisp, &ydisp, &temp);
-    double err_est = hp.calc_energy_error_n(3, &x_sln_coarse, &y_sln_coarse, &t_sln_coarse, &x_sln_fine, &y_sln_fine, &t_sln_fine,
-                   bilinear_form_unsym_0_0, bilinear_form_unsym_0_1, bilinear_form_unsym_0_2,
-                   bilinear_form_unsym_1_0, bilinear_form_unsym_1_1, bilinear_form_unsym_1_2,
-                   NULL,                    NULL,                    bilinear_form_unsym_2_2) * 100;
-    info("Estimate of error: %g%%", err_est);
+    hp.set_biform(0, 0, bilinear_form_0_0<scalar, scalar>, bilinear_form_0_0<Ord, Ord>);
+    hp.set_biform(0, 1, bilinear_form_0_1<scalar, scalar>, bilinear_form_0_1<Ord, Ord>);
+    hp.set_biform(0, 2, bilinear_form_0_2<scalar, scalar>, bilinear_form_0_2<Ord, Ord>);
+    hp.set_biform(1, 0, bilinear_form_1_0<scalar, scalar>, bilinear_form_1_0<Ord, Ord>);
+    hp.set_biform(1, 1, bilinear_form_1_1<scalar, scalar>, bilinear_form_1_1<Ord, Ord>);
+    hp.set_biform(1, 2, bilinear_form_1_2<scalar, scalar>, bilinear_form_1_2<Ord, Ord>);
+    hp.set_biform(2, 2, bilinear_form_2_2<scalar, scalar>, bilinear_form_2_2<Ord, Ord>);
+    double err_est = hp.calc_error_n(3, &x_sln_coarse, &y_sln_coarse, &t_sln_coarse, &x_sln_fine, &y_sln_fine, &t_sln_fine) * 100;
+
+    info("\nEstimate of error: %g%%", err_est);
 
     // time measurement
     cpu += end_time();

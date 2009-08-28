@@ -22,7 +22,7 @@
 const int P_INIT = 2;             // Initial polynomial degree of all mesh elements.
 const int REF_INIT = 2;           // Number of initial refinements.
 const int UNREF_FREQ = 1;         // Every UNREF_FREQth time step the mesh is unrefined.
-const double SPACE_L2_TOL = 0.5;  // Stopping criterion for hp-adaptivity
+const double SPACE_H1_TOL = 0.5;  // Stopping criterion for hp-adaptivity
                                   // (relative error between reference and coarse solution in percent).
 const double THRESHOLD = 0.3;     // This is a quantitative parameter of the adapt(...) function and
                                   // it has different meanings for various adaptive strategies (see below).
@@ -70,8 +70,10 @@ const double NEWTON_TOL_REF = 0.5;       // stopping criterion for Newton on fin
 // thermal conductivity (nonlinear, temperature-dependent
 // for any u, this function has to be positive in the entire
 // to ensure solvability!
-double lam(double T) { return 10 + 0.1*pow(T, 2); }
-double dlam_dT(double T) { return 0.1*2*pow(T, 1); }
+template<typename Real>
+Real lam(Real T) { return 10 + 0.1*pow(T, 2); }
+template<typename Real>
+Real dlam_dT(Real T) { return 0.1*2*pow(T, 1); }
 
 // boundary conditions
 int bc_types(int marker)
@@ -82,30 +84,61 @@ int bc_types(int marker)
 
 scalar bc_values(int marker, double x, double y)
 {
-  if (marker == 1) return 100;
-  else return 0.0;
+  return 100;
 }
 
 // Jacobian matrices and residual vectors
 
-# include "forms.cpp"
+// Residuum for the implicit Euler time discretization
+template<typename Real, typename Scalar>
+Scalar F_euler(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+{
+  Scalar result = 0;
+  Func<Scalar>* titer = ext->fn[0];
+  Func<Scalar>* tprev = ext->fn[1];
+  for (int i = 0; i < n; i++)
+    result += wt[i] * (HEATCAP*(titer->val[i] - tprev->val[i]) * v->val[i] / TAU +
+                       lam(titer->val[i]) * (titer->dx[i] * v->dx[i] + titer->dy[i] * v->dy[i]));
+  return result;
+}
 
-// linear and bilinear forms
+template<typename Real, typename Scalar>
+Scalar J_euler(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+{
+  Scalar result = 0;
+  Func<Scalar>* titer = ext->fn[0];
+  for (int i = 0; i < n; i++)
+    result += wt[i] * (HEATCAP * u->val[i] * v->val[i] / TAU +
+                       dlam_dT(titer->val[i]) * u->val[i] * (titer->dx[i] * v->dx[i] + titer->dy[i] * v->dy[i]) +
+                       lam(titer->val[i]) * (u->dx[i] * v->dx[i] + u->dy[i] * v->dy[i]));
+  return result;
+}
 
-Solution Tprev, // previous time step solution, for the time integration method
-         Titer; // solution converging during the Newton's iteration
+// Residuum for the implicit Euler time discretization
+template<typename Real, typename Scalar>
+Scalar F_cranic(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+{
+  Scalar result = 0;
+  Func<Scalar>* titer = ext->fn[0];
+  Func<Scalar>* tprev = ext->fn[1];
+  for (int i = 0; i < n; i++)
+    result += wt[i] * (HEATCAP * (titer->val[i] - tprev->val[i]) * v->val[i] / TAU +
+                       0.5 * lam(titer->val[i]) * (titer->dx[i] * v->dx[i] + titer->dy[i] * v->dy[i]) +
+                       0.5 * lam(tprev->val[i]) * (tprev->dx[i] * v->dx[i] + tprev->dy[i] * v->dy[i]));
+  return result;
+}
 
-// Implicit Euler method (1st-order in time)
-scalar linear_form_0_euler(RealFunction* fv, RefMap* rv)
-{ return F_euler(&Tprev, &Titer, fv, rv); }
-scalar bilinear_form_0_0_euler(RealFunction* fu, RealFunction* fv, RefMap* ru, RefMap* rv)
-{ return J_euler(&Titer, fu, fv, ru, rv); }
-
-// Crank-Nicolson method (2nd-order in time)
-scalar linear_form_0_cranic(RealFunction* fv, RefMap* rv)
-{ return F_cranic(&Tprev, &Titer, fv, rv); }
-scalar bilinear_form_0_0_cranic(RealFunction* fu, RealFunction* fv, RefMap* ru, RefMap* rv)
-{ return J_cranic(&Titer, fu, fv, ru, rv); }
+template<typename Real, typename Scalar>
+Scalar J_cranic(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+{
+  Scalar result = 0;
+  Func<Scalar>* titer = ext->fn[0];
+  for (int i = 0; i < n; i++)
+    result += wt[i] * (HEATCAP * u->val[i] * v->val[i] / TAU +
+                       0.5 * dlam_dT(titer->val[i]) * u->val[i] * (titer->dx[i] * v->dx[i] + titer->dy[i] * v->dy[i]) +
+                       0.5 * lam(titer->val[i]) * (u->dx[i] * v->dx[i] + u->dy[i] * v->dy[i]));
+  return result;
+}
 
 int main(int argc, char* argv[])
 {
@@ -130,15 +163,18 @@ int main(int argc, char* argv[])
   // enumerate basis functions
   space.assign_dofs();
 
+  Solution Tprev, // previous time step solution, for the time integration method
+           Titer; // solution converging during the Newton's iteration
+
   // initialize the weak formulation
   WeakForm wf(1);
   if(TIME_DISCR == 1) {
-    wf.add_biform(0, 0, bilinear_form_0_0_euler, UNSYM, ANY, 1, &Titer);
-    wf.add_liform(0, linear_form_0_euler, ANY, 2, &Titer, &Tprev);
+    wf.add_biform(0, 0, callback(J_euler), UNSYM, ANY, 1, &Titer);
+    wf.add_liform(0, callback(F_euler), ANY, 2, &Titer, &Tprev);
   }
   else {
-    wf.add_biform(0, 0, bilinear_form_0_0_cranic, UNSYM, ANY, 1, &Titer);
-    wf.add_liform(0, linear_form_0_cranic, ANY, 2, &Titer, &Tprev);
+    wf.add_biform(0, 0, callback(J_cranic), UNSYM, ANY, 1, &Titer);
+    wf.add_liform(0, callback(F_cranic), ANY, 2, &Titer, &Tprev);
   }
 
   // matrix solver
@@ -167,8 +203,8 @@ int main(int argc, char* argv[])
   // initial condition at zero time level
   //Tprev.set_const(&mesh, 0.0);
   Tprev.set_dirichlet_lift(&space, &pss);
-  nls.set_ic(&Tprev, &Tprev, PROJ_TYPE);
-  Titer.copy(&Tprev);
+  Titer.set_dirichlet_lift(&space, &pss);
+  nls.set_ic(&Titer, &Titer, PROJ_TYPE);
 
   // view initial guess for Newton's method
   // satisfies BC conditions
@@ -264,7 +300,7 @@ int main(int argc, char* argv[])
       //view.wait_for_keypress();
 
       // if err_est too large, adapt the mesh
-      if (err_est < SPACE_L2_TOL) done = true;
+      if (err_est < SPACE_H1_TOL) done = true;
       else {
         hp.adapt(THRESHOLD, STRATEGY, ADAPT_TYPE, ISO_ONLY, MESH_REGULARITY);
         ndofs = space.assign_dofs();

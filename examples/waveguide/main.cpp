@@ -95,72 +95,64 @@ bool in_load(double x, double y)
 double gam(int marker, double x, double y)
 {
   if (ALIGN_MESH && marker == 1) return 0.03;
-  if (!ALIGN_MESH && in_load(x,y)) return 0.03;
+  if (!ALIGN_MESH && in_load(x,y)) {
+    double cx = -0.152994121;  double cy =  0.030598824;
+    double r = sqrt(sqr(cx - x) + sqr(cy - y));
+    return (0.03 + 1)/2.0 - (0.03 - 1) * atan(10.0*(r -  0.043273273)) / M_PI;
+  }
   return 0.0;
 }
+double gam(int marker, Ord x, Ord y)
+{  return 0.0; }
+
 
 // relative permittivity as a function of x, y
 double er(int marker, double x, double y)
 {
   if (ALIGN_MESH && marker == 1) return 7.5;
-  if (!ALIGN_MESH && in_load(x,y)) return 7.5;
+  if (!ALIGN_MESH && in_load(x,y)) {
+    double cx = -0.152994121;  double cy =  0.030598824;
+    double r = sqrt(sqr(cx - x) + sqr(cy - y));
+    return (7.5 + 1)/2.0 - (7.5 - 1) * atan(10.0*(r -  0.043273273)) / M_PI;
+  }
   return 1.0;
 }
+double er(int marker, Ord x, Ord y)
+{  return 1.0; }
 
-// surface current generating the waves
-void current1(double x, double y, scalar& F0, scalar& F1)
-{
-  F0 = 0.0;
-  F1 = complex(0.0,  omega * J);
-}
-
-// custom integral
-inline scalar int_fn_e_f(double (*fn)(int, double, double), RealFunction* fe, RealFunction* ff, RefMap* re, RefMap* rf)
-{
-  Quad2D* quad = re->get_quad_2d();
-  int o = fe->get_fn_order() + ff->get_fn_order() + 2 + re->get_inv_ref_order();
-  limit_order(o);
-  fe->set_quad_order(o, FN_VAL);
-  ff->set_quad_order(o, FN_VAL);
-
-  int marker = re->get_active_element()->marker;
-  double* x = re->get_phys_x(o);
-  double* y = re->get_phys_y(o);
-
-  double *e0 = fe->get_fn_values(0), *e1 = fe->get_fn_values(1);
-  double *f0 = ff->get_fn_values(0), *f1 = ff->get_fn_values(1);
-
-  scalar c;
-  scalar result = 0.0;
-  hcurl_integrate_jac_expression(( c = fn(marker, x[i], y[i]),
-                                 c * (((*me)[0][0]*e0[i] + (*me)[0][1]*e1[i]) * ((*mf)[0][0]*f0[i] + (*mf)[0][1]*f1[i]) +
-                                 ((*me)[1][0]*e0[i] + (*me)[1][1]*e1[i]) * ((*mf)[1][0]*f0[i] + (*mf)[1][1]*f1[i]))));
-  return result;
-
-}
 
 // bilinear form
-complex bilinear_form(RealFunction* fu, RealFunction* fv, RefMap* ru, RefMap* rv)
+template<typename Real, typename Scalar>
+Scalar bilinear_form(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
-   complex ikappa = complex(0.0, kappa);
-   return   1.0/mu_r * int_curl_e_curl_f(fu, fv, ru, rv)
-          - ikappa * sqrt(mu_0 / e_0) * int_fn_e_f(gam, fu, fv, ru, rv)
-          - sqr(kappa) * int_fn_e_f(er, fu, fv, ru, rv);
+  complex ikappa = complex(0.0, kappa);
+  return 1.0/mu_r * int_curl_e_curl_f<Real, Scalar>(n, wt, u, v) -
+         ikappa * sqrt(mu_0 / e_0) * int_F_e_f<Real, Scalar>(n, wt, gam, u, v, e) -
+         sqr(kappa) * int_F_e_f<Real, Scalar>(n, wt, er, u, v, e);
 }
 
 // surface linear form
-complex linear_form_surf(RealFunction* fv, RefMap* refmap, EdgePos* ep)
+template<typename Real, typename Scalar>
+Scalar linear_form_surf(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
-  if (ep->marker == 2) return 0;
-  return surf_int_F_f(current1, fv, refmap, ep);
+  complex ii = complex(0.0, 1.0);
+  return ii * omega * J * int_v1<Real, Scalar>(n, wt, v); // just second component of v, since J = (0, J)
 }
+
+// error calculation
+template<typename Real, typename Scalar>
+Scalar hcurl_form_kappa(int n, double *wt, Func<Scalar> *u, Func<Scalar> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+{
+  return int_curl_e_curl_f<Scalar, Scalar>(n, wt, u, v) + sqr(kappa) * int_e_f<Scalar, Scalar>(n, wt, u, v);
+}
+
 
 int main(int argc, char* argv[])
 {
   // load the mesh
   Mesh mesh;
   if (ALIGN_MESH) mesh.load("oven_load_circle.mesh");
-  else mesh.load("oven_load_square.mesh");
+  else  mesh.load("oven_load_square.mesh");
 
   // initialize the shapeset and the cache
   HcurlShapeset shapeset;
@@ -176,8 +168,8 @@ int main(int argc, char* argv[])
 
   // initialize the weak formulation
   WeakForm wf(1);
-  wf.add_biform(0, 0, bilinear_form);
-  wf.add_liform_surf(0, linear_form_surf);
+  wf.add_biform(0, 0, callback(bilinear_form));
+  wf.add_liform_surf(0, callback(linear_form_surf));
 
   // visualize solution and mesh
   VectorView eview("Electric field",0,0,800, 590);
@@ -236,10 +228,9 @@ int main(int argc, char* argv[])
 
     // calculate error estimate wrt. fine mesh solution
     HcurlOrthoHP hp(1, &space);
-    hp.set_kappa(sqr(kappa));
+    hp.set_biform(0, 0, callback(hcurl_form_kappa));
     double err_est = hp.calc_error(&sln_coarse, &sln_fine) * 100;
     info("Hcurl error estimate: %g%%", hcurl_error(&sln_coarse, &sln_fine) * 100);
-    info("Adapt error estimate: %g%%", err_est);
 
     // add entry to DOF convergence graph
     graph.add_values(0, space.get_num_dofs(), err_est);
