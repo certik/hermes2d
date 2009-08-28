@@ -136,50 +136,51 @@ int bc_types(int marker)
     return BC_NATURAL; // impedance
 }
 
-// TODO: obtain tangent from EdgePos
-double2 tau[7] = { { 0, 0 }, { 1, 0 }, { 0, 1 }, { -1, 0 }, { 0, -1 }, { 1, 0 }, { 0, 1 } };
 
-complex bc_values(int marker, double x, double y)
+template<typename Real, typename Scalar>
+Scalar bilinear_form(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
-  if (marker == 1 || marker == 6) return 0;
-
-  double r = sqrt(x*x + y*y), theta = atan2(y, x);
-  if (theta < 0) theta += 2.0*M_PI;
-  double j13    = jv(-1.0/3.0, r),    j23    = jv(+2.0/3.0, r);
-  double cost   = cos(theta),         sint   = sin(theta);
-  double cos23t = cos(2.0/3.0*theta), sin23t = sin(2.0/3.0*theta);
-
-  double Etau = tau[marker][0] * (cos23t*sint*j13 - 2.0/(3.0*r)*j23*(cos23t*sint + sin23t*cost)) +
-                tau[marker][1] * (-cos23t*cost*j13 + 2.0/(3.0*r)*j23*(cos23t*cost - sin23t*sint));
-
-  return complex(cos23t*j23, -Etau);
+  return 1.0/mu_r * int_curl_e_curl_f<Real, Scalar>(n, wt, u, v) -
+         sqr(kappa) * int_e_f<Real, Scalar>(n, wt, u, v);
 }
 
-// bilinear and linear forms
-complex bilinear_form(RealFunction* fu, RealFunction* fv, RefMap* ru, RefMap* rv)
+template<typename Real, typename Scalar>
+Scalar bilinear_form_surf(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
-  return    1.0/mu_r * int_curl_e_curl_f(fu, fv, ru, rv)
-        - sqr(kappa) * int_e_f(fu, fv, ru, rv);
+  complex ii = complex(0.0, 1.0);
+  return ii * (-kappa) * int_e_tau_f_tau<Real, Scalar>(n, wt, u, v, e);
 }
 
-complex bilinear_form_surf(RealFunction* fu, RealFunction* fv, RefMap* ru, RefMap* rv, EdgePos* ep)
+scalar linear_form_surf(int n, double *wt, Func<double> *v, Geom<double> *e, ExtData<scalar> *ext)
 {
-  if (ep->marker == 1 || ep->marker == 6) return 0;
-  return complex(0.0, -kappa * surf_int_e_tau_f_tau(fu, fv, ru, rv, ep));
-}
+  scalar result = 0;
+  for (int i = 0; i < n; i++)
+  {
+    double r = sqrt(e->x[i] * e->x[i] + e->y[i] * e->y[i]);
+    double theta = atan2(e->y[i], e->x[i]);
+    if (theta < 0) theta += 2.0*M_PI;
+    double j13    = jv(-1.0/3.0, r),    j23    = jv(+2.0/3.0, r);
+    double cost   = cos(theta),         sint   = sin(theta);
+    double cos23t = cos(2.0/3.0*theta), sin23t = sin(2.0/3.0*theta);
 
-complex linear_form_surf(RealFunction* fv, RefMap* refmap, EdgePos* ep)
-{
-  if (ep->marker == 1 || ep->marker == 6) return 0;
-  return surf_int_G_tau_f_tau(fv, refmap, ep);
+    double Etau = e->tx[i] * (cos23t*sint*j13 - 2.0/(3.0*r)*j23*(cos23t*sint + sin23t*cost)) +
+                  e->ty[i] * (-cos23t*cost*j13 + 2.0/(3.0*r)*j23*(cos23t*cost - sin23t*sint));
+
+    result += wt[i] * complex(cos23t*j23, -Etau) * ((v->val0[i] * e->tx[i] + v->val1[i] * e->ty[i]));
+  }
+  return result;
 }
+// maximal polynomial order to integrate surface linear form
+Ord linear_form_surf_ord(int n, double *wt, Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext)
+  {  return Ord(v->val[0].get_max_order());  }
+
 
 int main(int argc, char* argv[])
 {
   // load the mesh
   Mesh mesh;
   mesh.load("lshape3q.mesh");
-  //mesh.load("lshape3t.mesh");
+//   mesh.load("lshape3t.mesh");
 
   // initialize the shapeset and the cache
   HcurlShapeset shapeset;
@@ -188,7 +189,6 @@ int main(int argc, char* argv[])
   // create finite element space
   HcurlSpace space(&mesh, &shapeset);
   space.set_bc_types(bc_types);
-  space.set_bc_values(bc_values);
   space.set_uniform_order(P_INIT);
 
   // enumerate basis functions
@@ -196,9 +196,9 @@ int main(int argc, char* argv[])
 
   // initialize the weak formulation
   WeakForm wf(1);
-  wf.add_biform(0, 0, bilinear_form, SYM);
-  wf.add_biform_surf(0, 0, bilinear_form_surf);
-  wf.add_liform_surf(0, linear_form_surf);
+  wf.add_biform(0, 0, callback(bilinear_form), SYM);
+  wf.add_biform_surf(0, 0, callback(bilinear_form_surf));
+  wf.add_liform_surf(0, linear_form_surf, linear_form_surf_ord);
 
   // visualize solution and mesh
   OrderView  ordview("Polynomial Orders", 800, 100, 700, 600);
@@ -245,8 +245,8 @@ int main(int argc, char* argv[])
 
     // calculating error wrt. exact solution
     ExactSolution ex(&mesh, exact);
-    double error = 100 * hcurl_error(&sln_coarse, &ex);
-    info("Exact solution error: %g%%", error);
+    double err = 100 * hcurl_error(&sln_coarse, &ex);
+    info("Exact solution error: %g%%", err);
 
     // show real part of the solution and mesh
     ordview.show(&space);
@@ -268,12 +268,12 @@ int main(int argc, char* argv[])
     info("Error estimate: %g%%", err_est);
 
     // add entry to DOF convergence graph
-    graph.add_values(0, space.get_num_dofs(), error);
+    graph.add_values(0, space.get_num_dofs(), err);
     graph.add_values(1, space.get_num_dofs(), err_est);
     graph.save("conv_dof.gp");
 
     // add entry to CPU convergence graph
-    graph_cpu.add_values(0, cpu, error);
+    graph_cpu.add_values(0, cpu, err);
     graph_cpu.add_values(1, cpu, err_est);
     graph_cpu.save("conv_cpu.gp");
 

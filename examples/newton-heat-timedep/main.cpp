@@ -29,8 +29,10 @@ double NEWTON_TOL = 1e-3;  // convergence criterion for the Newton's method
 
 // thermal conductivity (temperature-dependent
 // for any u, this function has to be  positive in the entire domain!
-double lam(double T)  { return 10 + 0.1*pow(T, 2); }
-double dlam_dT(double T) { return 0.1*2*pow(T, 1); }
+template<typename Real>
+Real lam(Real T) { return 10 + 0.1*pow(T, 2); }
+template<typename Real>
+Real dlam_dT(Real T) { return 0.1*2*pow(T, 1); }
 
 /********** Definition of boundary conditions ***********/
 
@@ -43,148 +45,63 @@ int bc_types(int marker)
 
 scalar bc_values(int marker, double x, double y)
 {
- if (marker == 4 || marker == 1 || marker == 3) return 100;
-//   if (marker == 4) return -4.0 * sqr(y) + 4.0 * y;
-  else return 0.0;
+ return 100;
+// return -4.0 * sqr(y) + 4.0 * y;
 }
 
 
 /********** Definition of Jacobian matrices and residual vectors ***********/
 
-// Residuum for the Euler time discretization
-inline double F_euler(RealFunction* Tprev, RealFunction* Titer, RealFunction* fu, RefMap* ru)
+// Residuum for the implicit Euler time discretization
+template<typename Real, typename Scalar>
+Scalar F_euler(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
-  Quad2D* quad = fu->get_quad_2d();
-  RefMap* rv = ru;
-
-  int o = 3 * Titer->get_fn_order() + fu->get_fn_order() + ru->get_inv_ref_order();
-  limit_order(o);
-  Tprev->set_quad_order(o, FN_VAL);
-  Titer->set_quad_order(o);
-  fu->set_quad_order(o);
-
-  double* Titer_val = Titer->get_fn_values();
-  double* Tprev_val = Tprev->get_fn_values();
-  double* uval = fu->get_fn_values();
-  double *dTiter_dx, *dTiter_dy, *dudx, *dudy;
-  Titer->get_dx_dy_values(dTiter_dx, dTiter_dy);
-  fu->get_dx_dy_values(dudx, dudy);
-
-  // u is a test function
-  double result;
-  h1_integrate_dd_expression(( HEATCAP*(Titer_val[i] - Tprev_val[i])*uval[i]/TAU +
-                               lam(Titer_val[i]) * (dTiter_dx[i]*t_dudx + dTiter_dy[i]*t_dudy)));
-
+  Scalar result = 0;
+  Func<Scalar>* titer = ext->fn[0];
+  Func<Scalar>* tprev = ext->fn[1];
+  for (int i = 0; i < n; i++)
+    result += wt[i] * (HEATCAP*(titer->val[i] - tprev->val[i]) * v->val[i] / TAU +
+                       lam(titer->val[i]) * (titer->dx[i] * v->dx[i] + titer->dy[i] * v->dy[i]));
   return result;
 }
 
-// Jacobian matrix for the implicit Euler time discretization
-inline double J_euler(RealFunction* Titer, RealFunction* fu,
-                RealFunction* fv, RefMap* ru, RefMap* rv)
+template<typename Real, typename Scalar>
+Scalar J_euler(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
-  Quad2D* quad = fu->get_quad_2d();
-
-  int o = 2 * Titer->get_fn_order() + fu->get_fn_order() + fv->get_fn_order() + ru->get_inv_ref_order();
-  limit_order(o);
-  Titer->set_quad_order(o);
-  fu->set_quad_order(o);
-  fv->set_quad_order(o);
-
-  double* Titer_val = Titer->get_fn_values();
-  double* uval = fu->get_fn_values();
-  double* vval = fv->get_fn_values();
-
-  double *dTiter_dx, *dTiter_dy, *dudx, *dudy, *dvdx, *dvdy;
-  Titer->get_dx_dy_values(dTiter_dx, dTiter_dy);
-  fu->get_dx_dy_values(dudx, dudy);
-  fv->get_dx_dy_values(dvdx, dvdy);
-
-  // u is a basis function, v a test function
-  double result;
-  h1_integrate_dd_expression(( HEATCAP * uval[i] * vval[i] / TAU +
-                               dlam_dT(Titer_val[i]) * uval[i] * (dTiter_dx[i]*t_dvdx + dTiter_dy[i]*t_dvdy) +
-                               lam(Titer_val[i]) * (t_dudx*t_dvdx + t_dudy*t_dvdy)));
-
+  Scalar result = 0;
+  Func<Scalar>* titer = ext->fn[0];
+  for (int i = 0; i < n; i++)
+    result += wt[i] * (HEATCAP * u->val[i] * v->val[i] / TAU +
+                       dlam_dT(titer->val[i]) * u->val[i] * (titer->dx[i] * v->dx[i] + titer->dy[i] * v->dy[i]) +
+                       lam(titer->val[i]) * (u->dx[i] * v->dx[i] + u->dy[i] * v->dy[i]));
   return result;
 }
 
-// Residuum for the Crank-Nicolson time discretization
-inline double F_cranic(RealFunction* Tprev, RealFunction* Titer, RealFunction* fu, RefMap* ru)
+// Residuum for the implicit Euler time discretization
+template<typename Real, typename Scalar>
+Scalar F_cranic(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
-  Quad2D* quad = fu->get_quad_2d();
-  RefMap* rv = ru;
-
-  int o = 3 * Titer->get_fn_order() + fu->get_fn_order() + ru->get_inv_ref_order();
-  limit_order(o);
-  Tprev->set_quad_order(o);
-  Titer->set_quad_order(o);
-  fu->set_quad_order(o);
-
-  double* Titer_val = Titer->get_fn_values();
-  double* Tprev_val = Tprev->get_fn_values();
-  double* uval = fu->get_fn_values();
-  double *dTiter_dx, *dTiter_dy, *dTprev_dx, *dTprev_dy, *dudx, *dudy;
-  Titer->get_dx_dy_values(dTiter_dx, dTiter_dy);
-  Tprev->get_dx_dy_values(dTprev_dx, dTprev_dy);
-  fu->get_dx_dy_values(dudx, dudy);
-
-  // u is a test function
-  double result;
-  h1_integrate_dd_expression(( HEATCAP * (Titer_val[i] - Tprev_val[i]) * uval[i] / TAU +
-                               0.5 * lam(Titer_val[i]) * (dTiter_dx[i]*t_dudx + dTiter_dy[i]*t_dudy) +
-                               0.5 * lam(Tprev_val[i]) * (dTprev_dx[i]*t_dudx + dTprev_dy[i]*t_dudy)
-                            ));
-
+  Scalar result = 0;
+  Func<Scalar>* titer = ext->fn[0];
+  Func<Scalar>* tprev = ext->fn[1];
+  for (int i = 0; i < n; i++)
+    result += wt[i] * (HEATCAP * (titer->val[i] - tprev->val[i]) * v->val[i] / TAU +
+                       0.5 * lam(titer->val[i]) * (titer->dx[i] * v->dx[i] + titer->dy[i] * v->dy[i]) +
+                       0.5 * lam(tprev->val[i]) * (tprev->dx[i] * v->dx[i] + tprev->dy[i] * v->dy[i]));
   return result;
 }
 
-// Jacobian matrix for the Crank-Nicolson time discretization
-inline double J_cranic(RealFunction* Titer, RealFunction* fu,
-                RealFunction* fv, RefMap* ru, RefMap* rv)
+template<typename Real, typename Scalar>
+Scalar J_cranic(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
-  Quad2D* quad = fu->get_quad_2d();
-
-  int o = 2 * Titer->get_fn_order() + fu->get_fn_order() + fv->get_fn_order() + ru->get_inv_ref_order();
-  limit_order(o);
-  Titer->set_quad_order(o);
-  fu->set_quad_order(o);
-  fv->set_quad_order(o);
-
-  double* Titer_val = Titer->get_fn_values();
-  double* uval = fu->get_fn_values();
-  double* vval = fv->get_fn_values();
-
-  double *dTiter_dx, *dTiter_dy, *dudx, *dudy, *dvdx, *dvdy;
-  Titer->get_dx_dy_values(dTiter_dx, dTiter_dy);
-  fu->get_dx_dy_values(dudx, dudy);
-  fv->get_dx_dy_values(dvdx, dvdy);
-
-  // u is a basis function, v a test function
-  double result;
-  h1_integrate_dd_expression(( HEATCAP * uval[i] * vval[i] / TAU +
-                               0.5 * dlam_dT(Titer_val[i]) * uval[i] * (dTiter_dx[i]*t_dvdx + dTiter_dy[i]*t_dvdy) +
-                               0.5 * lam(Titer_val[i]) * (t_dudx*t_dvdx + t_dudy*t_dvdy)
-                            ));
-
+  Scalar result = 0;
+  Func<Scalar>* titer = ext->fn[0];
+  for (int i = 0; i < n; i++)
+    result += wt[i] * (HEATCAP * u->val[i] * v->val[i] / TAU +
+                       0.5 * dlam_dT(titer->val[i]) * u->val[i] * (titer->dx[i] * v->dx[i] + titer->dy[i] * v->dy[i]) +
+                       0.5 * lam(titer->val[i]) * (u->dx[i] * v->dx[i] + u->dy[i] * v->dy[i]));
   return result;
 }
-
-/********** Definition of linear and bilinear forms for Hermes ***********/
-
-Solution Tprev, // previous time step solution, for the time integration method
-         Titer; // solution converging during the Newton's iteration
-
-// Implicit Euler method (1st-order in time)
-scalar linear_form_0_euler(RealFunction* fv, RefMap* rv)
-{ return F_euler(&Tprev, &Titer, fv, rv); }
-scalar bilinear_form_0_0_euler(RealFunction* fu, RealFunction* fv, RefMap* ru, RefMap* rv)
-{ return J_euler(&Titer, fu, fv, ru, rv); }
-
-// Crank-Nicolson method (2nd-order in time)
-scalar linear_form_0_cranic(RealFunction* fv, RefMap* rv)
-{ return F_cranic(&Tprev, &Titer, fv, rv); }
-scalar bilinear_form_0_0_cranic(RealFunction* fu, RealFunction* fv, RefMap* ru, RefMap* rv)
-{ return J_cranic(&Titer, fu, fv, ru, rv); }
 
 // *************************************************************
 
@@ -203,14 +120,17 @@ int main(int argc, char* argv[])
   space.set_uniform_order(1);
   space.assign_dofs();
 
+  Solution Tprev, // previous time step solution, for the time integration method
+           Titer; // solution converging during the Newton's iteration
+
   WeakForm wf(1);
   if(TIME_DISCR == 1) {
-    wf.add_biform(0, 0, bilinear_form_0_0_euler, UNSYM, ANY, 1, &Titer);
-    wf.add_liform(0, linear_form_0_euler, ANY, 2, &Titer, &Tprev);
+    wf.add_biform(0, 0, callback(J_euler), UNSYM, ANY, 1, &Titer);
+    wf.add_liform(0, callback(F_euler), ANY, 2, &Titer, &Tprev);
   }
   else {
-    wf.add_biform(0, 0, bilinear_form_0_0_cranic, UNSYM, ANY, 1, &Titer);
-    wf.add_liform(0, linear_form_0_cranic, ANY, 2, &Titer, &Tprev);
+    wf.add_biform(0, 0, callback(J_cranic), UNSYM, ANY, 1, &Titer);
+    wf.add_liform(0, callback(F_cranic), ANY, 2, &Titer, &Tprev);
   }
 
   UmfpackSolver umfpack;
@@ -223,16 +143,16 @@ int main(int argc, char* argv[])
   ScalarView view2("", 700, 0, 600, 600);
 
   // setting the Dirichlet lift to be the initial condition
+  Titer.set_dirichlet_lift(&space, &pss);
   Tprev.set_dirichlet_lift(&space, &pss);
-  nls.set_ic(&Tprev, &Tprev, PROJ_TYPE);
-  Titer.copy(&Tprev);
+  nls.set_ic(&Titer, &Titer, PROJ_TYPE);
 
   // view initial guess for Newton's method
-  sprintf(title, "Initial guess for the Newton's method");
-  view.set_title(title);
-  view.show(&Titer);
-  printf("Click into the image window and press any key.\n");
-  view.wait_for_keypress();
+//   sprintf(title, "Initial guess for the Newton's method");
+//   view.set_title(title);
+//   view.show(&Titer);
+//   printf("Click into the image window and press any key.\n");
+//   view.wait_for_keypress();
 
   Solution sln;
   // time stepping
