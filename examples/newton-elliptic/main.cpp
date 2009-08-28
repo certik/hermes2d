@@ -23,8 +23,10 @@ double NEWTON_TOL = 1e-3;  // convergence criterion for the Newton's method
 
 // thermal conductivity (temperature-dependent)
 // for any u, this function has to be  positive in the entire domain!
-double lam(double T) { return 10 + 0.1*pow(T, 2); }
-double dlam_dT(double T) { return 0.1*2*pow(T, 1); }
+template<typename Real>
+Real lam(Real T) { return 10 + 0.1*pow(T, 2); }
+template<typename Real>
+Real dlam_dT(Real T) { return 0.1*2*pow(T, 1); }
 
 /********** Definition of boundary conditions ***********/
 
@@ -37,78 +39,34 @@ int bc_types(int marker)
 
 scalar bc_values(int marker, double x, double y)
 {
- if (marker == 4 || marker == 1 || marker == 3) return 100;
-//   if (marker == 4) return -4.0 * sqr(y) + 4.0 * y;
-  else return 0.0;
+ return 100;
+// return -4.0 * sqr(y) + 4.0 * y;
 }
 
 /********** Definition of Jacobian matrices and residual vectors ***********/
 
-// Residuum
-inline double F(RealFunction* Titer, RealFunction* fu, RefMap* ru)
+template<typename Real, typename Scalar>
+Scalar residuum(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
-  Quad2D* quad = fu->get_quad_2d();
-  RefMap* rv = ru;
-
-  int o = 3 * Titer->get_fn_order() + fu->get_fn_order() + ru->get_inv_ref_order();
-  limit_order(o);
-  Titer->set_quad_order(o);
-  fu->set_quad_order(o);
-
-  double* Titer_val = Titer->get_fn_values();
-  double* uval = fu->get_fn_values();
-  double *dTiter_dx, *dTiter_dy, *dudx, *dudy;
-  Titer->get_dx_dy_values(dTiter_dx, dTiter_dy);
-  fu->get_dx_dy_values(dudx, dudy);
-
-  // u is a test function
-  double result;
-  h1_integrate_dd_expression(( lam(Titer_val[i]) * (dTiter_dx[i]*t_dudx + dTiter_dy[i]*t_dudy)));
-
+  Scalar result = 0;
+  Func<Scalar>* titer = ext->fn[0];
+  for (int i = 0; i < n; i++)
+    result += wt[i] * (lam(titer->val[i]) * (titer->dx[i] * v->dx[i] + titer->dy[i] * v->dy[i]));
   return result;
 }
 
-// Jacobian matrix
-inline double J(RealFunction* Titer, RealFunction* fu,
-                RealFunction* fv, RefMap* ru, RefMap* rv)
+template<typename Real, typename Scalar>
+Scalar jacobian(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
-  Quad2D* quad = fu->get_quad_2d();
-
-  int o = 2 * Titer->get_fn_order() + fu->get_fn_order()
-     + fv->get_fn_order() + ru->get_inv_ref_order();
-  limit_order(o);
-  Titer->set_quad_order(o);
-  fu->set_quad_order(o);
-  fv->set_quad_order(o);
-
-  double* Titer_val = Titer->get_fn_values();
-  double* uval = fu->get_fn_values();
-  double* vval = fv->get_fn_values();
-
-  double *dTiter_dx, *dTiter_dy, *dudx, *dudy, *dvdx, *dvdy;
-  Titer->get_dx_dy_values(dTiter_dx, dTiter_dy);
-  fu->get_dx_dy_values(dudx, dudy);
-  fv->get_dx_dy_values(dvdx, dvdy);
-
-  // u is a basis function, v a test function
-  double result;
-  h1_integrate_dd_expression(( dlam_dT(Titer_val[i]) * uval[i]
-    * (dTiter_dx[i]*t_dvdx + dTiter_dy[i]*t_dvdy) +
-    lam(Titer_val[i]) * (t_dudx*t_dvdx + t_dudy*t_dvdy)));
-
+  Scalar result = 0;
+  Func<Scalar>* titer = ext->fn[0];
+  for (int i = 0; i < n; i++)
+    result += wt[i] * (dlam_dT(titer->val[i]) * u->val[i] * (titer->dx[i] * v->dx[i] + titer->dy[i] * v->dy[i]) +
+                       lam(titer->val[i]) * (u->dx[i] * v->dx[i] + u->dy[i] * v->dy[i]));
   return result;
 }
 
-/********** Definition of linear and bilinear forms for Hermes ***********/
-
-Solution Titer; // solution converging during the Newton's iteration
-
-scalar linear_form_0(RealFunction* fv, RefMap* rv)
-{ return F(&Titer, fv, rv); }
-scalar bilinear_form_0_0(RealFunction* fu, RealFunction* fv, RefMap* ru, RefMap* rv)
-{ return J(&Titer, fu, fv, ru, rv); }
-
-// *************************************************************
+/******************************************************************************/
 
 int main(int argc, char* argv[])
 {
@@ -125,9 +83,11 @@ int main(int argc, char* argv[])
   space.set_uniform_order(1);
   space.assign_dofs();
 
+  Solution Titer;
+
   WeakForm wf(1);
-  wf.add_biform(0, 0, bilinear_form_0_0, UNSYM, ANY, 1, &Titer);
-  wf.add_liform(0, linear_form_0, ANY, 1, &Titer);
+  wf.add_biform(0, 0, callback(jacobian), UNSYM, ANY, 1, &Titer);
+  wf.add_liform(0, callback(residuum), ANY, 1, &Titer);
 
   UmfpackSolver umfpack;
   NonlinSystem nls(&wf, &umfpack);

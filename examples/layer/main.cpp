@@ -50,7 +50,7 @@ const int NDOF_STOP = 40000;      // Adaptivity process stops when the number of
                                   // over this limit. This is to prevent h-adaptivity to go on forever.
 
 // problem constants
-const double SLOPE = 200;       // slope of the step inside the domain
+double SLOPE = 200;       // slope of the step inside the domain
 
 // exact solution
 static double fn(double x, double y)
@@ -74,41 +74,43 @@ scalar bc_values(int marker, double x, double y)
 }
 
 // bilinear form for the Poisson equation
-scalar bilinear_form(RealFunction* fu, RealFunction* fv, RefMap* ru, RefMap* rv)
+template<typename Real, typename Scalar>
+Scalar bilinear_form(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
-  return int_grad_u_grad_v(fu, fv, ru, rv);
+  return int_grad_u_grad_v<Real, Scalar>(n, wt, u, v);
 }
 
-// right-hand side corresponding to the manufactured solution above
-double rhs(double x, double y)
+template<typename Real>
+Real rhs(Real x, Real y)
 {
-  double t2 = sqr(y + 0.25) + sqr(x - 1.25);
-  double t = sqrt(t2);
-  double u = (sqr(M_PI - 3.0*t)*sqr(SLOPE) + 9.0);
-  return
-  27.0/2.0 * sqr(2.0*y + 0.5) * (M_PI - 3.0*t) * pow(SLOPE,3.0) / (sqr(u) * t2) +
-  27.0/2.0 * sqr(2.0*x - 2.5) * (M_PI - 3.0*t) * pow(SLOPE,3.0) / (sqr(u) * t2) -
-   9.0/4.0 * sqr(2.0*y + 0.5) * SLOPE / (u * pow(t,3.0)) -
-   9.0/4.0 * sqr(2.0*x - 2.5) * SLOPE / (u * pow(t,3.0)) +
-    18.0 * SLOPE / (u * t);
+  Real t2 = sqr(y + 0.25) + sqr(x - 1.25);
+  Real t = sqrt(t2);
+  Real u = (sqr(M_PI - 3.0*t)*sqr(SLOPE) + 9.0);
+  return 27.0/2.0 * sqr(2.0*y + 0.5) * (M_PI - 3.0*t) * pow(SLOPE,3.0) / (sqr(u) * t2) +
+         27.0/2.0 * sqr(2.0*x - 2.5) * (M_PI - 3.0*t) * pow(SLOPE,3.0) / (sqr(u) * t2) -
+          9.0/4.0 * sqr(2.0*y + 0.5) * SLOPE / (u * pow(t,3.0)) -
+          9.0/4.0 * sqr(2.0*x - 2.5) * SLOPE / (u * pow(t,3.0)) +
+          18.0 * SLOPE / (u * t);
 }
 
-// linear form
-scalar linear_form(RealFunction* fv, RefMap* rv)
+template<typename Real, typename Scalar>
+Scalar linear_form(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
-  return -int_F_v(rhs, fv, rv);
+  return -int_F_v<Real, Scalar>(n, wt, rhs, v, e);
 }
+
 
 int main(int argc, char* argv[])
 {
   // load the mesh
   Mesh mesh;
   mesh.load("square_quad.mesh");
+//   mesh.load("square_tri.mesh");
   if(P_INIT == 1) mesh.refine_all_elements();  // this is because there are no degrees of freedom
                                                // on the coarse mesh lshape.mesh if P_INIT == 1
 
   // initialize the shapeset and the cache
-  H1ShapesetOrtho shapeset;
+  H1Shapeset shapeset;
   PrecalcShapeset pss(&shapeset);
 
   // create finite element space
@@ -121,8 +123,8 @@ int main(int argc, char* argv[])
 
   // initialize the weak formulation
   WeakForm wf(1);
-  wf.add_biform(0, 0, bilinear_form, SYM);
-  wf.add_liform(0, linear_form);
+  wf.add_biform(0, 0, callback(bilinear_form), SYM);
+  wf.add_liform(0, callback(linear_form));
 
   // visualize solution and mesh
   ScalarView sview("Coarse solution", 0, 100, 798, 700);
