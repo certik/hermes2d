@@ -15,7 +15,7 @@
 //    Moreover, you can turn off and on anisotropic element refinements via the ISO_ONLY
 //  parameter to see how important they are for the efficient resolution of boundary
 //  layers, and change some more adaptivity parameters below. For large K and with
-//  ISO_ONLY = 0, you'll see many levels of hanging nodes. 
+//  ISO_ONLY = 0, you'll see many levels of hanging nodes.
 //
 //  PDE: -Laplace u + K*K*u = const
 //
@@ -28,58 +28,53 @@
 const int INIT_REF_NUM = 1;       // number of initial mesh refinements (the original mesh is just one element)
 const int INIT_REF_NUM_BDY = 0;   // number of initial mesh refinements towards the boundary
 const int P_INIT = 1;             // Initial polynomial degree of all mesh elements.
-const double THRESHOLD = 0.3;     // This is a quantitative parameter of the adapt(...) function and 
+const double THRESHOLD = 0.3;     // This is a quantitative parameter of the adapt(...) function and
                                   // it has different meanings for various adaptive strategies (see below).
 const int STRATEGY = 0;           // Adaptive strategy:
-                                  // STRATEGY = 0 ... refine elements until sqrt(THRESHOLD) times total 
-                                  //   error is processed. If more elements have similar errors, refine 
+                                  // STRATEGY = 0 ... refine elements until sqrt(THRESHOLD) times total
+                                  //   error is processed. If more elements have similar errors, refine
                                   //   all to keep the mesh symmetric.
-                                  // STRATEGY = 1 ... refine all elements whose error is larger  
+                                  // STRATEGY = 1 ... refine all elements whose error is larger
                                   //   than THRESHOLD times maximum element error.
-                                  // STRATEGY = 2 ... refine all elements whose error is larger 
+                                  // STRATEGY = 2 ... refine all elements whose error is larger
                                   //   than THRESHOLD.
                                   // More adaptive strategies can be created in adapt_ortho_h1.cpp.
 const int ADAPT_TYPE = 0;         // Type of automatic adaptivity:
                                   // ADAPT_TYPE = 0 ... adaptive hp-FEM (default),
-                                  // ADAPT_TYPE = 1 ... adaptive h-FEM, 
-                                  // ADAPT_TYPE = 2 ... adaptive p-FEM. 
+                                  // ADAPT_TYPE = 1 ... adaptive h-FEM,
+                                  // ADAPT_TYPE = 2 ... adaptive p-FEM.
 const bool ISO_ONLY = false;      // Isotropic refinement flag (concerns quadrilateral elements only).
                                   // ISO_ONLY = false ... anisotropic refinement of quad elements
-                                  // is allowed (default), 
+                                  // is allowed (default),
                                   // ISO_ONLY = true ... only isotropic refinements of quad elements
                                   // are allowed.
 const int MESH_REGULARITY = -1;   // Maximum allowed level of hanging nodes:
                                   // MESH_REGULARITY = -1 ... arbitrary level hangning nodes (default),
                                   // MESH_REGULARITY = 1 ... at most one-level hanging nodes,
-                                  // MESH_REGULARITY = 2 ... at most two-level hanging nodes, etc.  
-                                  // Note that regular meshes are not supported, this is due to 
-                                  // their notoriously bad performance. 
+                                  // MESH_REGULARITY = 2 ... at most two-level hanging nodes, etc.
+                                  // Note that regular meshes are not supported, this is due to
+                                  // their notoriously bad performance.
 const double ERR_STOP = 0.6;      // Stopping criterion for adaptivity (rel. error tolerance between the
                                   // fine mesh and coarse mesh solution in percent).
-const int NDOF_STOP = 100000;     // Adaptivity process stops when the number of degrees of freedom grows 
+const int NDOF_STOP = 100000;     // Adaptivity process stops when the number of degrees of freedom grows
                                   // over this limit. This is to prevent h-adaptivity to go on forever.
 
 // problem constants
 const double K = 1e3;             // Equation parameter.
 const double CONST_F = 1e6;       // Constant right-hand side (set to be roughly K*K for scaling purposes).
 
-// bilinear form
-scalar bilinear_form(RealFunction* fu, RealFunction* fv, RefMap* ru, RefMap* rv)
+template<typename Real, typename Scalar>
+Scalar bilinear_form(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
-  return int_grad_u_grad_v(fu, fv, ru, rv) + K*K*int_u_v(fu, fv, ru, rv);
+  return int_grad_u_grad_v<Real, Scalar>(n, wt, u, v) + K*K * int_u_v<Real, Scalar>(n, wt, u, v);
 }
 
-// right-hand side
-double rhs(double x, double y)
+template<typename Real, typename Scalar>
+Scalar linear_form(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
-  return CONST_F;
+  return CONST_F * int_v<Real, Scalar>(n, wt, v);
 }
 
-// linear form
-scalar linear_form(RealFunction* fv, RefMap* rv)
-{
-  return int_F_v(rhs, fv, rv);
-}
 
 int main(int argc, char* argv[])
 {
@@ -95,9 +90,8 @@ int main(int argc, char* argv[])
   H1ShapesetOrtho shapeset;
   PrecalcShapeset pss(&shapeset);
 
-  // create finite element space 
+  // create finite element space
   H1Space space(&mesh, &shapeset);
-  //space.set_bc_values(bc_values);
   space.set_uniform_order(P_INIT);
 
   // enumerate basis functions
@@ -105,8 +99,8 @@ int main(int argc, char* argv[])
 
   // initialize the weak formulation
   WeakForm wf(1);
-  wf.add_biform(0, 0, bilinear_form, SYM);
-  wf.add_liform(0, linear_form);
+  wf.add_biform(0, 0, callback(bilinear_form), SYM);
+  wf.add_liform(0, callback(linear_form));
 
   // visualize solution and mesh
   ScalarView sview("Coarse solution", 0, 100, 798, 700);
@@ -121,7 +115,7 @@ int main(int argc, char* argv[])
   graph.add_row("error estimate", "k", "--");
   graph.set_log_y();
 
-  // convergence graph wrt. CPU time 
+  // convergence graph wrt. CPU time
   GnuplotGraph graph_cpu;
   graph_cpu.set_captions("Error Convergence for the Singularly Perturbed Problem", "CPU Time", "Error Estimate [%]");
   graph_cpu.add_row("error estimate", "k", "--");
@@ -167,15 +161,15 @@ int main(int argc, char* argv[])
     double err_est = hp.calc_error(&sln_coarse, &sln_fine) * 100;
     info("Estimate of error: %g%%", err_est);
 
-    // add entry to DOF convergence graph 
+    // add entry to DOF convergence graph
     graph.add_values(0, space.get_num_dofs(), err_est);
     graph.save("conv_dof.gp");
 
-    // add entry to CPU convergence graph 
+    // add entry to CPU convergence graph
     graph_cpu.add_values(0, cpu, err_est);
     graph_cpu.save("conv_cpu.gp");
 
-    // if err_est too large, adapt the mesh 
+    // if err_est too large, adapt the mesh
     if (err_est < ERR_STOP) done = true;
     else {
       hp.adapt(THRESHOLD, STRATEGY, ADAPT_TYPE, ISO_ONLY, MESH_REGULARITY);

@@ -4,7 +4,7 @@
 //  This example has a known exact solution. It describes an electromagnetic wave that hits
 //  a screen under the angle of 45 degrees, causing a singularity at the tip of the screen.
 //  Convergence graphs saved (both exact error and error estimate, and both wrt. dof number
-//  and cpu time). 
+//  and cpu time).
 //
 //  PDE: time-harmonic Maxwell's equations
 //
@@ -22,35 +22,35 @@
 // The following parameters can be changed:
 
 const int P_INIT = 1;             // Initial polynomial degree of all mesh elements.
-const double THRESHOLD = 0.5;     // This is a quantitative parameter of the adapt(...) function and 
+const double THRESHOLD = 0.5;     // This is a quantitative parameter of the adapt(...) function and
                                   // it has different meanings for various adaptive strategies (see below).
 const int STRATEGY = 1;           // Adaptive strategy:
-                                  // STRATEGY = 0 ... refine elements until sqrt(THRESHOLD) times total 
-                                  //   error is processed. If more elements have similar errors, refine 
+                                  // STRATEGY = 0 ... refine elements until sqrt(THRESHOLD) times total
+                                  //   error is processed. If more elements have similar errors, refine
                                   //   all to keep the mesh symmetric.
-                                  // STRATEGY = 1 ... refine all elements whose error is larger  
+                                  // STRATEGY = 1 ... refine all elements whose error is larger
                                   //   than THRESHOLD times maximum element error.
-                                  // STRATEGY = 2 ... refine all elements whose error is larger 
+                                  // STRATEGY = 2 ... refine all elements whose error is larger
                                   //   than THRESHOLD.
                                   // More adaptive strategies can be created in adapt_ortho_h1.cpp.
 const int ADAPT_TYPE = 0;         // Type of automatic adaptivity:
                                   // ADAPT_TYPE = 0 ... adaptive hp-FEM (default),
-                                  // ADAPT_TYPE = 1 ... adaptive h-FEM, 
-                                  // ADAPT_TYPE = 2 ... adaptive p-FEM. 
+                                  // ADAPT_TYPE = 1 ... adaptive h-FEM,
+                                  // ADAPT_TYPE = 2 ... adaptive p-FEM.
 const bool ISO_ONLY = false;      // Isotropic refinement flag (concerns quadrilateral elements only).
                                   // ISO_ONLY = false ... anisotropic refinement of quad elements
-                                  // is allowed (default), 
+                                  // is allowed (default),
                                   // ISO_ONLY = true ... only isotropic refinements of quad elements
                                   // are allowed.
 const int MESH_REGULARITY = -1;   // Maximum allowed level of hanging nodes:
                                   // MESH_REGULARITY = -1 ... arbitrary level hangning nodes (default),
                                   // MESH_REGULARITY = 1 ... at most one-level hanging nodes,
-                                  // MESH_REGULARITY = 2 ... at most two-level hanging nodes, etc.  
-                                  // Note that regular meshes are not supported, this is due to 
-                                  // their notoriously bad performance. 
+                                  // MESH_REGULARITY = 2 ... at most two-level hanging nodes, etc.
+                                  // Note that regular meshes are not supported, this is due to
+                                  // their notoriously bad performance.
 const double ERR_STOP = 0.5;      // Stopping criterion for adaptivity (rel. error tolerance between the
                                   // fine mesh and coarse mesh solution in percent).
-const int NDOF_STOP = 40000;      // Adaptivity process stops when the number of degrees of freedom grows 
+const int NDOF_STOP = 40000;      // Adaptivity process stops when the number of degrees of freedom grows
                                   // over this limit. This is to prevent h-adaptivity to go on forever.
 
 // problem constants
@@ -61,13 +61,12 @@ const double k = 1.0;
 // exact solution
 #include "exact_sol.cpp"
 
-// boundary conditions 
+// boundary conditions
 int bc_types(int marker)
 {
   return BC_ESSENTIAL;
 }
 
-// TODO: obtain tangent from EdgePos
 double2 tau[5] = { { 0, 0}, { 1, 0 },  { 0, 1 }, { -1, 0 }, { 0, -1 } };
 
 complex bc_values(int marker, double x, double y)
@@ -76,10 +75,10 @@ complex bc_values(int marker, double x, double y)
   return exact0(x, y, dx, dy)*tau[marker][0] + exact1(x, y, dx, dy)*tau[marker][1];
 }
 
-// bilinear form 
-complex bilinear_form(RealFunction* fu, RealFunction* fv, RefMap* ru, RefMap* rv)
+template<typename Real, typename Scalar>
+Scalar bilinear_form(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
-  return int_curl_e_curl_f(fu, fv, ru, rv) - int_e_f(fu, fv, ru, rv);
+  return int_curl_e_curl_f<Real, Scalar>(n, wt, u, v) - int_e_f<Real, Scalar>(n, wt, u, v);
 }
 
 int main(int argc, char* argv[])
@@ -87,13 +86,13 @@ int main(int argc, char* argv[])
   // load the mesh
   Mesh mesh;
   mesh.load("screen-quad.mesh");
-  //mesh.load("screen-tri.mesh");
+//    mesh.load("screen-tri.mesh");
 
   // initialize the shapeset and the cache
   HcurlShapeset shapeset;
   PrecalcShapeset pss(&shapeset);
 
-  // create finite element space 
+  // create finite element space
   HcurlSpace space(&mesh, &shapeset);
   space.set_bc_types(bc_types);
   space.set_bc_values(bc_values);
@@ -104,7 +103,7 @@ int main(int argc, char* argv[])
 
   // initialize the weak formulation
   WeakForm wf(1);
-  wf.add_biform(0, 0, bilinear_form, SYM);
+  wf.add_biform(0, 0, callback(bilinear_form), SYM);
 
   // visualize solution and mesh
   ScalarView Xview_r("Electric field X - real",   0, 0, 320, 320);
@@ -123,7 +122,7 @@ int main(int argc, char* argv[])
   graph.add_row("error estimate", "k", "--");
   graph.set_log_y();
 
-  // convergence graph wrt. CPU time 
+  // convergence graph wrt. CPU time
   GnuplotGraph graph_cpu;
   graph_cpu.set_captions("Error Convergence for the Screen Problem in H(curl)", "CPU Time", "Error [%]");
   graph_cpu.add_row("exact error", "k", "-", "o");
@@ -154,7 +153,8 @@ int main(int argc, char* argv[])
     cpu += end_time();
 
     // calculating error wrt. exact solution
-    ExactSolution ex(&mesh, exact);
+    Solution ex;
+    ex.set_exact(&mesh, exact);
     double error = 100 * hcurl_error(&sln_coarse, &ex);
     info("Exact solution error: %g%%", error);
 
@@ -188,17 +188,17 @@ int main(int argc, char* argv[])
     double err_est = hp.calc_error(&sln_coarse, &sln_fine) * 100;
     info("Error estimate: %g%%", err_est);
 
-    // add entry to DOF convergence graph 
+    // add entry to DOF convergence graph
     graph.add_values(0, space.get_num_dofs(), error);
     graph.add_values(1, space.get_num_dofs(), err_est);
     graph.save("conv_dof.gp");
 
-    // add entry to CPU convergence graph 
+    // add entry to CPU convergence graph
     graph_cpu.add_values(0, cpu, error);
     graph_cpu.add_values(1, cpu, err_est);
     graph_cpu.save("conv_cpu.gp");
 
-    // if err_est too large, adapt the mesh 
+    // if err_est too large, adapt the mesh
     if (err_est < ERR_STOP) done = true;
     else {
       hp.adapt(THRESHOLD, STRATEGY, ADAPT_TYPE, ISO_ONLY, MESH_REGULARITY);

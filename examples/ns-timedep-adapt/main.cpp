@@ -43,18 +43,18 @@ const int marker_obstacle = 5;
 double current_time = 0;
 
 // adaptivity
-const double space_tol = 0.1;
+const double space_tol = 0.5;
 const double thr = 0.3;
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // definition of boundary conditions
 int xvel_bc_type(int marker) {
-  if (marker == 2) return BC_NONE;
+  if (marker == marker_right) return BC_NONE;
   else return BC_ESSENTIAL;
 }
 
 int yvel_bc_type(int marker) {
-  if (marker == 2) return BC_NONE;
+  if (marker == marker_right) return BC_NONE;
   else return BC_ESSENTIAL;
 }
 
@@ -62,7 +62,7 @@ int press_bc_type(int marker)
   { return BC_NONE; }
 
 scalar xvel_bc_value(int marker, double x, double y) {
-  if (marker == 4) {
+  if (marker == marker_left) {
     // time-dependent inlet velocity
     //double val_y = VEL_INLET; //constant profile
     double val_y = VEL_INLET * y*(H-y) / (H/2.)/(H/2.); //parabolic profile with peak VEL_INLET at y = H/2
@@ -74,27 +74,35 @@ scalar xvel_bc_value(int marker, double x, double y) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// velocities from the previous time step
-Solution xprev, yprev;
+template<typename Real, typename Scalar>
+Scalar bilinear_form_sym_0_0_1_1(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+{
+  return int_grad_u_grad_v<Real, Scalar>(n, wt, u, v) / RE + int_u_v<Real, Scalar>(n, wt, u, v) / TAU;
+}
 
-scalar bilinear_form_sym_0_0_1_1(RealFunction* fu, RealFunction* fv, RefMap* ru, RefMap* rv)
-  { return int_grad_u_grad_v(fu, fv, ru, rv) / RE +
-           int_u_v(fu, fv, ru, rv) / TAU; }
+template<typename Real, typename Scalar>
+Scalar bilinear_form_unsym_0_0_1_1(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+{
+  return int_w_nabla_u_v<Real, Scalar>(n, wt, ext->fn[0], ext->fn[1], u, v);
+}
 
-scalar bilinear_form_unsym_0_0_1_1(RealFunction* fu, RealFunction* fv, RefMap* ru, RefMap* rv)
-  { return int_w_nabla_u_v(&xprev, &yprev, fu, fv, ru, rv); }
+template<typename Real, typename Scalar>
+Scalar linear_form(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+{
+  return int_u_v<Real, Scalar>(n, wt, ext->fn[0], v) / TAU;
+}
 
-scalar bilinear_form_unsym_0_2(RealFunction* fp, RealFunction* fv, RefMap* rp, RefMap* rv)
-  { return -int_u_dvdx(fp, fv, rp, rv); }
+template<typename Real, typename Scalar>
+Scalar bilinear_form_unsym_0_2(int n, double *wt, Func<Real> *p, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+{
+  return - int_u_dvdx<Real, Scalar>(n, wt, p, v);
+}
 
-scalar bilinear_form_unsym_1_2(RealFunction* fp, RealFunction* fv, RefMap* rp, RefMap* rv)
-  { return -int_u_dvdy(fp, fv, rp, rv); }
-
-scalar linear_form_0(RealFunction* fv, RefMap* rv)
-  { return int_u_v(&xprev, fv, xprev.get_refmap(), rv) / TAU; }
-
-scalar linear_form_1(RealFunction* fv, RefMap* rv)
-  { return int_u_v(&yprev, fv, yprev.get_refmap(), rv) / TAU; }
+template<typename Real, typename Scalar>
+Scalar bilinear_form_unsym_1_2(int n, double *wt, Func<Real> *p, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+{
+  return - int_u_dvdy<Real, Scalar>(n, wt, p, v);
+}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Magnitude of velocity filter
@@ -237,7 +245,7 @@ int main(int argc, char* argv[])
   mesh.refine_towards_boundary(3, 2);
 
   // initialize the shapeset and the cache
-  H1ShapesetBeuchler shapeset;
+  H1Shapeset shapeset;
   PrecalcShapeset pss(&shapeset);
 
   // spaces for velocities and pressure
@@ -263,19 +271,20 @@ int main(int argc, char* argv[])
   ndofs += press.assign_dofs(ndofs);
 
   // initial BC: xprev and yprev are zero
+  Solution xprev, yprev;
   xprev.set_zero(&mesh);
   yprev.set_zero(&mesh);
 
   // set up weak formulation
   WeakForm wf(3);
-  wf.add_biform(0, 0, bilinear_form_sym_0_0_1_1, SYM);
-  wf.add_biform(0, 0, bilinear_form_unsym_0_0_1_1, UNSYM, ANY, 2, &xprev, &yprev);
-  wf.add_biform(1, 1, bilinear_form_sym_0_0_1_1, SYM);
-  wf.add_biform(1, 1, bilinear_form_unsym_0_0_1_1, UNSYM, ANY, 2, &xprev, &yprev);
-  wf.add_biform(0, 2, bilinear_form_unsym_0_2, ANTISYM);
-  wf.add_biform(1, 2, bilinear_form_unsym_1_2, ANTISYM);
-  wf.add_liform(0, linear_form_0, ANY, 1, &xprev);
-  wf.add_liform(1, linear_form_1, ANY, 1, &yprev);
+  wf.add_biform(0, 0, callback(bilinear_form_sym_0_0_1_1), SYM);
+  wf.add_biform(0, 0, callback(bilinear_form_unsym_0_0_1_1), UNSYM, ANY, 2, &xprev, &yprev);
+  wf.add_biform(1, 1, callback(bilinear_form_sym_0_0_1_1), SYM);
+  wf.add_biform(1, 1, callback(bilinear_form_unsym_0_0_1_1), UNSYM, ANY, 2, &xprev, &yprev);
+  wf.add_biform(0, 2, callback(bilinear_form_unsym_0_2), ANTISYM);
+  wf.add_biform(1, 2, callback(bilinear_form_unsym_1_2), ANTISYM);
+  wf.add_liform(0, callback(linear_form), ANY, 1, &xprev);
+  wf.add_liform(1, callback(linear_form), ANY, 1, &yprev);
 
   // visualization
   VectorView vview("velocity [m/s]", 0, 0, 1500, 470);
@@ -320,7 +329,7 @@ int main(int argc, char* argv[])
      // visualization
       sprintf(title, "Velocity, time %g", current_time);
       vview.set_title(title);
-      vview.show(&xprev, &yprev, EPS_LOW);
+      vview.show(&xsln, &ysln, EPS_LOW);
       sprintf(title, "Pressure, time %g", current_time);
       pview.set_title(title);
       pview.show(&psln);
