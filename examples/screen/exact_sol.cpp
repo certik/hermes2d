@@ -182,7 +182,7 @@ static void exact_sol(double x, double y, scalar& u0, scalar& u1, scalar& u1dx, 
 
 scalar2& exact(double x, double y, scalar2& dx, scalar2& dy)
 {
-  scalar2 ex;
+  static scalar2 ex;
   exact_sol(x,y, ex[0], ex[1], dx[1], dy[0]);
 
   dx[0] = 0.0; // not important
