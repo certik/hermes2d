@@ -193,6 +193,7 @@ void Solution::assign(Solution* sln)
   num_elems = sln->num_elems;          sln->num_elems = 0;
 
   type = sln->type;
+  space_type = sln->space_type;
   num_components = sln->num_components;
 
   sln->type = UNDEF;
@@ -211,6 +212,7 @@ void Solution::copy(const Solution* sln)
   own_mesh = true;
 
   type = sln->type;
+  space_type = sln->space_type;
   num_components = sln->num_components;
 
   if (sln->type == SLN) // standard solution: copy coefficient arrays
