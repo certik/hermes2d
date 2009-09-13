@@ -1,5 +1,6 @@
 from hermes2d import Linearizer, Solution
 
+
 def sln2png(sln, filename):
     """
     Creates a nice png image of the Solution sln.
@@ -118,68 +119,115 @@ def plot_hermes_mesh_mpl(mesh, method="simple"):
     else:
         raise ValueError("Unknown method")
 
-def plot_mesh_mpl_orders(nodes, elements, polynomial_orders=None, colors=None):
+def plot_mesh_mpl_orders(nodes, elements, curves=None, polynomial_orders=None, colors=None):
     """
     This plots the mesh together with polynomial orders.
     """
+    import math
     import numpy as np
     from matplotlib.path import Path
     from matplotlib.patches import PathPatch
     import matplotlib.pyplot as pyplot
 
-    if polynomial_orders is None:
-        polynomial_orders = [1] * len(elements)
+    def calc_control_point(sp,ep,ang):
+        a = (180.0 - ang) / 180.0 * math.pi;
+
+        x = 1.0 / math.tan(a * 0.5);
+        
+        cx = 0.5*((ep[0] + sp[0]) + (ep[1] - sp[1]) * x);
+        cy = 0.5*((ep[1] + sp[1]) - (ep[0] - sp[0]) * x);
+            
+        return (cx,cy)
+
+    #curves should be defined like this:
+    #curves = { 1:(4,7,45), 2:(7,6,45) } where 1,2 are the element indices to which curve associates with
+    #so that it can be drawn with color, its element it associates
+    #
+    #redefine_curves()
+    #redefine above curve like --- { 1:(4, control_point, 7), 2:(7, control_point, 6), ... }
+    #that's like, { 1:(4, (x,y), 7), 2:(7, (x,y), 6), ... } where 4,6,7 are node indices, 1,2 are element indices
+    def redefine_curves():
+        nurbs = {}
+        for k, c in curves.items():
+            cp = calc_control_point(nodes[c[0]],nodes[c[1]],c[2])
+            nurbs[k] = ([c[0],cp,c[1]])
+        return nurbs
 
     if colors is None:
-        colors = {0: '#000000', 1: '#000684', 2: '#3250fc',
+        colors = {1: '#000684', 2: '#3250fc',
             3: '#36c4ee', 4: '#04eabc', 5: '#62ff2a', 6: '#fdff07',
             7: '#ffa044', 8: '#ff1111', 9: '#b02c2c', 10: '#820f97'}
 
     # check that if orders and elements match (if orders are passed in)
     if polynomial_orders is not None:
         assert len(elements) == len(polynomial_orders)
+    else:
+        polynomial_orders = [1] * len(elements)
+
+    #redefine given curve data by calculateing control points
+    if curves == None:
+        nurbs = {}
+    else:
+        nurbs = redefine_curves()
 
     path_polynomial_orders = {}
     pathpatch_polynomial_orders = {}
     vertices_polynomial_orders = {}
     codes_polynomial_orders = {}
 
-    for key, value in colors.items():
-        if not key in polynomial_orders:
-            continue
-        path_polynomial_orders[key] = 'path will be added later'
-        pathpatch_polynomial_orders[key] = 'patchPath will be added later'
+    for key,value in colors.items():
+        path_polynomial_orders[key] = None
+        pathpatch_polynomial_orders[key] = None
         vertices_polynomial_orders[key] = []
         codes_polynomial_orders[key] = []
 
+
+    #plot curves
+    for k, n in nurbs.items():
+        j = polynomial_orders[k]
+
+        vertices_polynomial_orders[j].append(nodes[n[0]])
+        codes_polynomial_orders[j].append(Path.MOVETO)
+
+        vertices_polynomial_orders[j].append(n[1])
+        codes_polynomial_orders[j].append(Path.CURVE3)
+
+        vertices_polynomial_orders[j].append(nodes[n[2]])
+        codes_polynomial_orders[j].append(Path.CURVE3)
+ 
+        vertices_polynomial_orders[j].append((0,0))
+        codes_polynomial_orders[j].append(Path.CLOSEPOLY)
+
+
     # join nodes with lines:
     for i, e in enumerate(elements):
-        x_avg = 0
-        y_avg = 0
         for k, node_index in enumerate(e):
-            vertices_polynomial_orders[polynomial_orders[i]].append(nodes[node_index])
+            j = polynomial_orders[i]
+                
+            vertices_polynomial_orders[j].append(nodes[node_index])
+            
             if k == 0:
-                codes_polynomial_orders[polynomial_orders[i]].append(Path.MOVETO)
+                codes_polynomial_orders[j].append(Path.MOVETO)
             else:
-                codes_polynomial_orders[polynomial_orders[i]].append(Path.LINETO)
-
-        vertices_polynomial_orders[polynomial_orders[i]].append((0,0))
-        codes_polynomial_orders[polynomial_orders[i]].append(Path.CLOSEPOLY)
+                codes_polynomial_orders[j].append(Path.LINETO)
+            
+        vertices_polynomial_orders[j].append((0,0))
+        codes_polynomial_orders[j].append(Path.CLOSEPOLY)
 
 
     for key, color in colors.items():
-        if not key in polynomial_orders:
-            continue
-        vertices_polynomial_orders[key] = np.array(vertices_polynomial_orders[key], float)
-        path_polynomial_orders[key] = Path(vertices_polynomial_orders[key], codes_polynomial_orders[key])
-        pathpatch_polynomial_orders[key] = PathPatch(path_polynomial_orders[key], facecolor=color, edgecolor='green')
+        if len(vertices_polynomial_orders[key]) != 0:
+            vertices_polynomial_orders[key] = np.array(vertices_polynomial_orders[key], float)
+            path_polynomial_orders[key] = Path(vertices_polynomial_orders[key], codes_polynomial_orders[key])
+            pathpatch_polynomial_orders[key] = PathPatch(path_polynomial_orders[key], facecolor=color, edgecolor=color)
 
 
     fig = pyplot.figure()
     sp = fig.add_subplot(111)
 
-    for key, patch in pathpatch_polynomial_orders.items():
-        sp.add_patch(patch)
+    for key,patch in pathpatch_polynomial_orders.items():
+        if patch != None:
+            sp.add_patch(patch)
 
     for i, e in enumerate(elements):
         x_avg = 0
@@ -194,9 +242,6 @@ def plot_mesh_mpl_orders(nodes, elements, polynomial_orders=None, colors=None):
         x_avg /= len(e)
         y_avg /= len(e)
         sp.text(x_avg, y_avg, str(polynomial_orders[i]))
-
-    #for key,vertices in vertices_polynomial_orders.items():
-    #    sp.dataLim.update_from_data_xy(vertices)
 
     sp.set_title('Mesh using path & Patches')
 
