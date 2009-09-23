@@ -37,6 +37,9 @@
 #include <string>
 #include <set>
 
+// platform compatibility stuff
+#include "compat.h"
+
 #include <Judy.h>
 
 
