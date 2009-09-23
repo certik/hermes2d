@@ -16,6 +16,8 @@ set(SRC
        common.cpp matrix.cpp hermes2d.cpp weakform.cpp linsystem.cpp
        nonlinsystem.cpp refsystem.cpp
        mesh_parser.cpp mesh_lexer.cpp
+
+       compat/fmemopen.cpp
        )
 
 find_package(JUDY REQUIRED)
@@ -31,6 +33,12 @@ macro(LIBRARY_SETTINGS BIN)
         target_link_libraries(${BIN} glut)
     endif(WITH_GLUT)
 endmacro(LIBRARY_SETTINGS)
+
+
+INCLUDE (CheckFunctionExists)
+CHECK_FUNCTION_EXISTS(fmemopen HAVE_FMEMOPEN)
+CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/config.h.in
+    ${CMAKE_CURRENT_BINARY_DIR}/config.h)
 
 
 # build real version:
