@@ -45,7 +45,11 @@ if(REAL)
         add_library(hermes2d-real SHARED ${SRC})
         set_target_properties(hermes2d-real PROPERTIES COMPILE_FLAGS ${CMAKE_CXX_FLAGS_RELEASE})
         LIBRARY_SETTINGS(hermes2d-real)
-        install(TARGETS hermes2d-real LIBRARY DESTINATION lib)
+        install(TARGETS hermes2d-real
+            RUNTIME DESTINATION bin
+            ARCHIVE DESTINATION lib
+            LIBRARY DESTINATION lib
+        )
     endif(RELEASE)
 endif(REAL)
 

@@ -15,12 +15,21 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/config.h.in ${CMAKE_CURRENT_SOURCE_DI
 
 cython_add_module(forms)
 target_link_libraries(forms ${HERMES_REAL_BIN})
-install(TARGETS forms LIBRARY DESTINATION lib/python/hermes2d)
+install(TARGETS forms
+            RUNTIME DESTINATION lib/python/hermes2d
+            ARCHIVE DESTINATION lib/python/hermes2d
+            LIBRARY DESTINATION lib/python/hermes2d
+        )
+
 set_target_properties(forms PROPERTIES
     INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib/python/hermes2d"
     )
 
-install(TARGETS _hermes2d LIBRARY DESTINATION lib/python/hermes2d)
+install(TARGETS _hermes2d
+            RUNTIME DESTINATION lib/python/hermes2d
+            ARCHIVE DESTINATION lib/python/hermes2d
+            LIBRARY DESTINATION lib/python/hermes2d
+        )
 set_target_properties(_hermes2d PROPERTIES
     INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib/python/hermes2d"
     )
