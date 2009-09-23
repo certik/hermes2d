@@ -1,4 +1,4 @@
-#include "../compat.h"
+#include "../common.h"
 
 #ifndef HAVE_FMEMOPEN
 
