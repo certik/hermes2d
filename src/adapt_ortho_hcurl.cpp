@@ -42,6 +42,19 @@ HcurlOrthoHP::HcurlOrthoHP(int num, ...)
     spaces[i] = va_arg(ap, Space*);
   va_end(ap);
 
+  for (int i = 0; i < num; i++)
+    for (int j = 0; j < num; j++)
+    {
+      if (i == j) {
+        form[i][j] = hcurl_form<double, scalar>;
+        ord[i][j]  = hcurl_form<Ord, Ord>;
+      }
+      else {
+        form[i][j] = NULL;
+        ord[i][j]  = NULL;
+      }
+    }
+
   memset(errors, 0, sizeof(errors));
   esort = NULL;
   have_errors = false;
@@ -507,9 +520,11 @@ void HcurlOrthoHP::get_optimal_refinement(Element* e, int order, Solution* rsln,
   {
     make_p_cand(order);
     make_hp_cand(order, order, order, order);
-    make_ani_cand(order, order, 1);
-    make_ani_cand(order, order, 2);
-
+    if ((!tri) && (!iso_only))
+    {
+      make_ani_cand(order, order, 1);
+      make_ani_cand(order, order, 2);
+    }
   }
   else {
     // prepare p-candidates
@@ -561,7 +576,7 @@ void HcurlOrthoHP::get_optimal_refinement(Element* e, int order, Solution* rsln,
       c->dofs = 0;
       for (j = 0; j < 4; j++)
       {
-        c->error += herr[j][c->p[j]] * 0.25;
+        c->error += herr[j][c->p[j]];// * 0.25;
         if (tri)
         {
           if (j < 3) {
@@ -583,7 +598,7 @@ void HcurlOrthoHP::get_optimal_refinement(Element* e, int order, Solution* rsln,
       c->error = 0.0;
       c->dofs = 0;
       for (j = 0; j < 2 ; j++) {
-        c->error += herr[ (c->split == 1) ? j+4 : j+6 ][c->p[j]] * 0.5;
+        c->error += herr[ (c->split == 1) ? j+4 : j+6 ][c->p[j]];// * 0.5;
         c->dofs += 3 * (c->p[j] + 1) + 2 * c->p[j] * (c->p[j] + 1);
       }
       c->dofs += std::min(c->p[0], c->p[1]) + 1;
@@ -628,13 +643,11 @@ void HcurlOrthoHP::get_optimal_refinement(Element* e, int order, Solution* rsln,
   split = cand[imax].split;
   memcpy(p, cand[imax].p, 4*sizeof(int));
 
-  //verbose("Selected Candidate #%d: Orders %d %d %d %d\n", imax, p[0],p[1],p[2],p[3]);
 }
 
 
 //// adapt /////////////////////////////////////////////////////////////////////////////////////////
-
-void HcurlOrthoHP::adapt(double thr, int strat, bool h_only, bool iso_only, int max_order)
+bool HcurlOrthoHP::adapt(double thr, int strat, int adapt_type, bool iso_only, int regularize, int max_order)
 {
   if (!have_errors)
     error("Element errors have to be calculated first, see calc_error().");
@@ -647,8 +660,10 @@ void HcurlOrthoHP::adapt(double thr, int strat, bool h_only, bool iso_only, int 
     rsln[j]->enable_transform(false);
   }
 
+  bool h_only = adapt_type == 1 ? true : false;
   double err0 = 1000.0;
   double processed_error = 0.0;
+  int successfully_refined = 0;
   for (i = 0; i < nact; i++)
   {
     int comp = esort[i][1];
@@ -670,11 +685,25 @@ void HcurlOrthoHP::adapt(double thr, int strat, bool h_only, bool iso_only, int 
     int p[4];
     int current = spaces[comp]->get_element_order(id);
 
-    //verbose("Refining element #%d, Component #%d, Error %g%%", e_id, comp, errors[comp][e_id]);
-    if (h_only && iso_only)
+
+    // p-adaptivity
+    if (adapt_type == 2)
+    {
+      split = -1;
+      p[0] = std::min(9, get_h_order(current) + 1);
+      if (get_h_order(current) < p[0]) successfully_refined++;
+    }
+    // h-adaptivity
+    else if ((adapt_type == 1 && iso_only) || (adapt_type == 1 && e->is_triangle()))
+    {
       p[0] = p[1] = p[2] = p[3] = current;
+    }
+    // hp-adaptivity
     else
+    {
       get_optimal_refinement(e, current, rsln[comp], split, p, h_only, iso_only, max_order);
+      successfully_refined++;
+    }
 
     if (split < 0)
       spaces[comp]->set_element_order(id, p[0]);
@@ -693,11 +722,37 @@ void HcurlOrthoHP::adapt(double thr, int strat, bool h_only, bool iso_only, int 
     processed_error += err;
   }
 
+  bool done = false;
+  if (successfully_refined == 0)
+  {
+    warn("\nNone of the elements selected for refinement could be refined.\nAdaptivity step not successful, returning 'true'.");
+    done = true;
+  }
+
+  // mesh regularization
+  if (regularize >= 0)
+  {
+    if (regularize == 0)
+    {
+      regularize = 1;
+      warn("Total mesh regularization is not supported in adaptivity. 1-irregular mesh is used instead.");
+    }
+    for (i = 0; i < num; i++)
+    {
+      int* parents;
+      parents = mesh[i]->regularize(regularize);
+      spaces[i]->distribute_orders(mesh[i], parents);
+      delete [] parents;
+    }
+  }
+
   for (j = 0; j < num; j++)
     rsln[j]->enable_transform(true);
 
   verbose("Refined %d elements.", i);
   have_errors = false;
+
+  return done;
 }
 
 
@@ -711,163 +766,142 @@ static int compare(const void* p1, const void* p2)
   return cmp_err[(*e1)[1]][(*e1)[0]] < cmp_err[(*e2)[1]][(*e2)[0]] ? 1 : -1;
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-double HcurlOrthoHP::calc_error_n(int n, ...)
+void HcurlOrthoHP::set_biform(int i, int j, biform_val_t bi_form, biform_ord_t bi_ord)
 {
-  int i, j, k;
+  if (i < 0 || i >= num || j < 0 || j >= num)
+    error("Invalid equation number.");
 
-  if (n != num) error("Wrong number of solutions.");
-
-  va_list ap;
-  va_start(ap, n);
-  for (i = 0; i < n; i++) {
-    sln[i] = va_arg(ap, Solution*);
-    sln[i]->enable_transform(true);
-  }
-  for (i = 0; i < n; i++) {
-    rsln[i] = va_arg(ap, Solution*);
-    rsln[i]->enable_transform(true);
-  }
-  va_end(ap);
-
-  nact = 0;
-  for (j = 0; j < num; j++)
-    nact += sln[j]->get_mesh()->get_num_active_elements();
-  if (esort != NULL) delete [] esort;
-  esort = new int2[nact];
-
-  double total_error = 0.0,
-         total_norm  = 0.0;
-
-  for (j = k = 0; j < num; j++)
-  {
-    Mesh* cmesh = sln[j]->get_mesh();
-    Mesh* fmesh = rsln[j]->get_mesh();
-
-    int max = cmesh->get_max_element_id();
-    if (errors[j] != NULL) delete [] errors[j];
-    errors[j] = new double[max];
-    memset(errors[j], 0, sizeof(double) * max);
-
-    Element* e;
-    for_all_active_elements(e, cmesh)
-    {
-      sln[j]->set_active_element(e);
-      update_limit_table(e->get_mode());
-      for (i = 0; i < 4; i++)
-      {
-        sln[j]->push_transform(i);
-
-        Element* fe = fmesh->get_element(e->id);
-        if (fe->active || fe->sons[i] == NULL || !fe->sons[i]->active)
-          error("Bad reference solution.");
-        rsln[j]->set_active_element(fe->sons[i]);
-
-        RefMap* crm = sln[j]->get_refmap();
-        RefMap* frm = rsln[j]->get_refmap();
-
-        double err  = int_hcurl_error(sln[j], rsln[j], crm, frm, kappa);
-        total_norm += int_hcurl_norm (rsln[j], frm, kappa);
-
-        errors[j][e->id] += err;
-        total_error += err;
-
-        sln[j]->pop_transform();
-      }
-      esort[k][0] = e->id;
-      esort[k++][1] = j;
-    }
-
-    for_all_inactive_elements(e, cmesh)
-      errors[j][e->id] = -1.0;
-  }
-
-  assert(k == nact);
-  cmp_err = errors;
-  qsort(esort, nact, sizeof(int2), compare);
-
-  have_errors = true;
-  total_err = total_error;
-  //printf("total error %g, total norm %g \n", total_error, total_norm);
-
-  return sqrt(total_error / total_norm);
+  form[i][j] = bi_form;
+  ord[i][j] = bi_ord;
 }
 
 
-//// energy errors /////////////////////////////////////////////////////////////////////////////////
-
-class ErrorFn : public ScalarFunction
+scalar HcurlOrthoHP::eval_error(biform_val_t bi_fn, biform_ord_t bi_ord,
+                             MeshFunction *sln1, MeshFunction *sln2, MeshFunction *rsln1, MeshFunction *rsln2,
+                             RefMap *rv1,        RefMap *rv2,        RefMap *rrv1,        RefMap *rrv2)
 {
-public:
+  // determine the integration order
+  int inc = (rsln1->get_num_components() == 2) ? 1 : 0;
+  Func<Ord>* ou = init_fn_ord(rsln1->get_fn_order() + inc);
+  Func<Ord>* ov = init_fn_ord(rsln2->get_fn_order() + inc);
 
-  // ErrorFn subtracts two solutions. Used as input to the bilinear (energy) forms.
-  ErrorFn(Solution* sln1, Solution* sln2)
+  double fake_wt = 1.0;
+  Geom<Ord>* fake_e = init_geom_ord();
+  Ord o = bi_ord(1, &fake_wt, ou, ov, fake_e, NULL);
+  int order = rrv1->get_inv_ref_order();
+  order += o.get_order();
+  limit_order(order);
+
+  ou->free_ord(); delete ou;
+  ov->free_ord(); delete ov;
+  delete fake_e;
+
+  // eval the form
+  Quad2D* quad = sln1->get_quad_2d();
+  double3* pt = quad->get_points(order);
+  int np = quad->get_num_points(order);
+
+  // init geometry and jacobian*weights
+  Geom<double>* e = init_geom_vol(rrv1, order);
+  double* jac = rrv1->get_jacobian(order);
+  double* jwt = new double[np];
+  for(int i = 0; i < np; i++)
+    jwt[i] = pt[i][2] * jac[i];
+
+  // function values and values of external functions
+  Func<scalar>* err1 = init_fn(sln1, rv1, order);
+  Func<scalar>* err2 = init_fn(sln2, rv2, order);
+  Func<scalar>* v1 = init_fn(rsln1, rrv1, order);
+  Func<scalar>* v2 = init_fn(rsln2, rrv2, order);
+
+  for (int i = 0; i < np; i++)
   {
-    this->sln1 = sln1;
-    this->sln2 = sln2;
-
-    element = sln1->get_active_element();
-    order = std::max(sln1->get_fn_order(), sln2->get_fn_order());
-    num_components = 2;
-    assert(sln1->get_num_components() == 2);
-
-    tables = NULL;
-    sub_tables = &tables;
-    update_nodes_ptr();
-
-    set_quad_2d(sln1->get_quad_2d());
+    err1->val0[i] = err1->val0[i] - v1->val0[i];
+    err1->val1[i] = err1->val1[i] - v1->val1[i];
+    err1->curl[i] = err1->curl[i] - v1->curl[i];
+    err2->val0[i] = err2->val0[i] - v2->val0[i];
+    err2->val1[i] = err2->val1[i] - v2->val1[i];
+    err2->curl[i] = err2->curl[i] - v2->curl[i];
   }
 
-  void free()
-  {
-    free_sub_tables(&tables);
-  }
+  scalar res = bi_fn(np, jwt, err1, err2, e, NULL);
 
-protected:
+  e->free(); delete e;
+  delete [] jwt;
+  err1->free_fn(); delete err1;
+  err2->free_fn(); delete err2;
+  v1->free_fn(); delete v1;
+  v2->free_fn(); delete v2;
 
-  Solution *sln1, *sln2;
-  void* tables;
-
-  virtual void precalculate(int order, int mask)
-  {
-    Quad2D* quad = quads[cur_quad];
-    int np = quad->get_num_points(order);
-    assert(!(mask & ~FN_DEFAULT));
-    Node* node = new_node(FN_DEFAULT, np);
-
-    sln1->set_quad_order(order, FN_DEFAULT);
-    sln2->set_quad_order(order, FN_DEFAULT);
-
-    // solution values (x and y components for both - sln1, sln2)
-    scalar *val1[2], *val2[2];
-    scalar *d1dx[2], *d2dx[2];
-    scalar *d1dy[2], *d2dy[2];
-
-    for (int j = 0; j < 2; j++)
-    {
-      val1[j] = sln1->get_fn_values(j);
-      val2[j] = sln2->get_fn_values(j);
-      d1dx[j] = sln1->get_dx_values(j);
-      d2dx[j] = sln2->get_dx_values(j);
-      d1dy[j] = sln1->get_dy_values(j);
-      d2dy[j] = sln2->get_dy_values(j);
-    }
-
-    for (int j = 0; j < 2; j++)
-      for (int i = 0; i < np; i++)
-      {
-        node->values[j][0][i] = val1[j][i] - 2.0 * val2[j][i];
-        node->values[j][1][i] = d1dx[j][i] - 4.0 * d2dx[j][i];
-        node->values[j][2][i] = d1dy[j][i] - 4.0 * d2dy[j][i];
-      }
-
-    replace_cur_node(node);
-  }
-
-};
+  return res;
+}
 
 
-double HcurlOrthoHP::calc_energy_error_n(int n, ...)
+scalar HcurlOrthoHP::eval_norm(biform_val_t bi_fn, biform_ord_t bi_ord,
+                            MeshFunction *rsln1, MeshFunction *rsln2, RefMap *rrv1, RefMap *rrv2)
+{
+  // determine the integration order
+  int inc = (rsln1->get_num_components() == 2) ? 1 : 0;
+  Func<Ord>* ou = init_fn_ord(rsln1->get_fn_order() + inc);
+  Func<Ord>* ov = init_fn_ord(rsln2->get_fn_order() + inc);
+
+  double fake_wt = 1.0;
+  Geom<Ord>* fake_e = init_geom_ord();
+  Ord o = bi_ord(1, &fake_wt, ou, ov, fake_e, NULL);
+  int order = rrv1->get_inv_ref_order();
+  order += o.get_order();
+  limit_order(order);
+
+  ou->free_ord(); delete ou;
+  ov->free_ord(); delete ov;
+  delete fake_e;
+
+  // eval the form
+  Quad2D* quad = rsln1->get_quad_2d();
+  double3* pt = quad->get_points(order);
+  int np = quad->get_num_points(order);
+
+  // init geometry and jacobian*weights
+  Geom<double>* e = init_geom_vol(rrv1, order);
+  double* jac = rrv1->get_jacobian(order);
+  double* jwt = new double[np];
+  for(int i = 0; i < np; i++)
+    jwt[i] = pt[i][2] * jac[i];
+
+  // function values
+  Func<scalar>* v1 = init_fn(rsln1, rrv1, order);
+  Func<scalar>* v2 = init_fn(rsln2, rrv2, order);
+
+  scalar res = bi_fn(np, jwt, v1, v2, e, NULL);
+
+  e->free(); delete e;
+  delete [] jwt;
+  v1->free_fn(); delete v1;
+  v2->free_fn(); delete v2;
+
+  return res;
+}
+
+
+double HcurlOrthoHP::calc_error(MeshFunction* sln, MeshFunction* rsln)
+{
+  if (num != 1) error("Wrong number of solutions.");
+
+  return calc_error_n(1, sln, rsln);
+}
+
+
+double HcurlOrthoHP::calc_error_2(MeshFunction* sln1, MeshFunction* sln2, MeshFunction* rsln1, MeshFunction* rsln2)
+{
+  if (num != 2) error("Wrong number of solutions.");
+
+  return calc_error_n(2, sln1, sln2, rsln1, rsln2);
+}
+
+
+double HcurlOrthoHP::calc_error_n(int n, ...)
 {
   int i, j, k;
 
@@ -878,16 +912,12 @@ double HcurlOrthoHP::calc_energy_error_n(int n, ...)
   va_start(ap, n);
   for (i = 0; i < n; i++) {
     sln[i] = va_arg(ap, Solution*);
-    sln[i]->enable_transform(false);
+    sln[i]->set_quad_2d(&g_quad_2d_std);
   }
   for (i = 0; i < n; i++) {
     rsln[i] = va_arg(ap, Solution*);
-    rsln[i]->enable_transform(false);
+    rsln[i]->set_quad_2d(&g_quad_2d_std);
   }
-  biform_t bi[10][10];
-  for (i = 0; i < n; i++)
-    for (j = 0; j < n; j++)
-      bi[i][j] = va_arg(ap, biform_t);
   va_end(ap);
 
   // prepare multi-mesh traversal and error arrays
@@ -911,45 +941,42 @@ double HcurlOrthoHP::calc_energy_error_n(int n, ...)
   }
 
   double total_norm = 0.0;
+  double norms[num];
+  memset(norms, 0, num*sizeof(double));
   double total_error = 0.0;
   if (esort != NULL) delete [] esort;
   esort = new int2[nact];
 
-  //
-  ErrorFn* err[num];
   Element** ee;
   trav.begin(2*num, meshes, tr);
   while ((ee = trav.get_next_state(NULL, NULL)) != NULL)
   {
     for (i = 0; i < num; i++)
-      err[i] = new ErrorFn(sln[i], rsln[i]);
-
-    for (i = 0; i < num; i++)
     {
-      RefMap* rm1 = rsln[i]->get_refmap();
+      RefMap* rmi = sln[i]->get_refmap();
+      RefMap* rrmi = rsln[i]->get_refmap();
       for (j = 0; j < num; j++)
       {
-        RefMap* rm2 = rsln[j]->get_refmap();
+        RefMap* rmj = sln[j]->get_refmap();
+        RefMap* rrmj = rsln[j]->get_refmap();
         double e, t;
-        #ifndef COMPLEX
-        if (bi[i][j] != NULL) {
-          e = 0.25 * fabs(bi[i][j]( err[i],  err[j], rm1, rm2));
-          t = fabs(bi[i][j](rsln[i], rsln[j], rm1, rm2));
+        if (form[i][j] != NULL)
+        {
+          #ifndef COMPLEX
+          e = fabs(eval_error(form[i][j], ord[i][j], sln[i], sln[j], rsln[i], rsln[j], rmi, rmj, rrmi, rrmj));
+          t = fabs(eval_norm(form[i][j], ord[i][j], rsln[i], rsln[j], rrmi, rrmj));
+          #else
+          e = std::abs(eval_error(form[i][j], ord[i][j], sln[i], sln[j], rsln[i], rsln[j], rmi, rmj, rrmi, rrmj));
+          t = std::abs(eval_norm(form[i][j], ord[i][j], rsln[i], rsln[j], rrmi, rrmj));
+          #endif
         }
-        #else
-        if (bi[i][j] != NULL) {
-          e = 0.25 * std::abs(bi[i][j]( err[i],  err[j], rm1, rm2));
-          t = std::abs(bi[i][j](rsln[i], rsln[j], rm1, rm2));
-        }
-        #endif
 
+        norms[i] += t;
         total_norm  += t;
         total_error += e;
         errors[i][ee[i]->id] += e;
       }
     }
-    for (i = 0; i < num; i++)
-      delete err[i];
   }
   trav.finish();
 
@@ -959,20 +986,16 @@ double HcurlOrthoHP::calc_energy_error_n(int n, ...)
     for_all_active_elements(e, meshes[i]) {
       esort[k][0] = e->id;
       esort[k++][1] = i;
+      errors[i][e->id] /= norms[i];
     }
 
   assert(k == nact);
   cmp_err = errors;
   qsort(esort, nact, sizeof(int2), compare);
 
-  for (i = 0; i < num; i++)
-  {
-    sln[i]->enable_transform(true);
-    rsln[i]->enable_transform(true);
-  }
 
   have_errors = true;
-  printf("total error %g, total norm %g \n", total_error, total_norm);
+  total_err = total_error / total_norm;
   return sqrt(total_error / total_norm);
 }
 

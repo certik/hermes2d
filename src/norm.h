@@ -40,6 +40,9 @@ double h1_norm(MeshFunction* sln);
 double hcurl_error(MeshFunction* sln1, MeshFunction* sln2);
 double hcurl_norm(MeshFunction* sln);
 
+double hcurl_l2error(MeshFunction* sln1, MeshFunction* sln2);
+double hcurl_l2norm(MeshFunction* sln);
+
 #endif
 
 #endif
