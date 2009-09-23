@@ -345,9 +345,7 @@ void LinSystem::create_matrix(bool rhsonly)
   delete [] pages;
 
   // shrink Ai to the actual size
-  int* oldAi = Ai;
   Ai = (int*) realloc(Ai, sizeof(int) * pos);
-  if (oldAi != Ai) warn("Realloc moved Ai when shrinking.");
 
   // allocate matrix values, RHS and Dir
   Ax  = (scalar*) malloc(sizeof(scalar) * Ap[ndofs]);
