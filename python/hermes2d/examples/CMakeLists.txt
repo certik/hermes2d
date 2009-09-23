@@ -22,7 +22,11 @@ add_example(c07)
 add_example(c08)
 add_example(c22)
 
-install(TARGETS c04 c05 c06 c07 c08 c22 LIBRARY DESTINATION lib/python/hermes2d/examples)
+install(TARGETS c04 c05 c06 c07 c08 c22
+            RUNTIME DESTINATION lib/python/hermes2d/examples
+            ARCHIVE DESTINATION lib/python/hermes2d/examples
+            LIBRARY DESTINATION lib/python/hermes2d/examples
+        )
 
 install(FILES __init__.py domain.mesh sample.mesh cylinder4.mesh
     DESTINATION lib/python/hermes2d/examples
