@@ -1,1 +1,2 @@
 #cmakedefine HAVE_FMEMOPEN
+#cmakedefine HAVE_LOG2

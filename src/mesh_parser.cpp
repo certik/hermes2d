@@ -169,7 +169,9 @@ static void init_symbols()
   add_built_in("log", (void*) log, 1);
   add_built_in("log10", (void*) log10, 1);
   add_built_in("exp2", (void*) exp2, 1);
+#ifdef HAVE_LOG2
   add_built_in("log2", (void*) log2, 1);
+#endif
   add_built_in("pow", (void*) pow, 2);
   add_built_in("sqrt", (void*) sqrt, 1);
   add_built_in("cbrt", (void*) cbrt, 1);
