@@ -43,7 +43,7 @@ public:
 	Ord(int o) { order = o; }
 
 	int get_order() const { return order; }
-  int get_max_order() const {return 19;} // TODO: different max order for triangles and quads
+  int get_max_order() const {return 50;} // TODO: different max order for triangles and quads
 
 	Ord operator+(const Ord &o) { return Ord(std::max(this->order, o.order)); }
 	Ord operator-(const Ord &o) { return Ord(std::max(this->order, o.order)); }

@@ -95,10 +95,6 @@ double error_fn_h1(MeshFunction* sln1, MeshFunction* sln2, RefMap* ru, RefMap* r
   sln1->set_quad_order(o);
   sln2->set_quad_order(o);
 
-  /*double3* pt = quad->get_points(o);
-  double* jac = ru->get_jacobian(o);
-  int np = quad->get_num_points(o);*/
-
   scalar *uval, *vval, *dudx, *dudy, *dvdx, *dvdy;
   uval = sln1->get_fn_values();
   vval = sln2->get_fn_values();
@@ -254,6 +250,61 @@ double hcurl_error(MeshFunction* sln1, MeshFunction* sln2)
 double hcurl_norm(MeshFunction* sln)
 {
   return calc_norm(norm_fn_hc, sln);
+}
+
+
+
+// function used to calculate error in Hcurl norm
+double error_fn_hcl2(MeshFunction* sln1, MeshFunction* sln2, RefMap* ru, RefMap* rv)
+{
+  Quad2D* quad = sln1->get_quad_2d();
+
+  int o = 2 * std::max(sln1->get_fn_order(), sln2->get_fn_order()) + 2 + ru->get_inv_ref_order();
+  limit_order(o);
+
+  sln1->set_quad_order(o);
+  sln2->set_quad_order(o);
+
+
+  scalar *uval0 = sln1->get_fn_values(0), *uval1 = sln1->get_fn_values(1);
+  scalar *vval0 = sln2->get_fn_values(0), *vval1 = sln2->get_fn_values(1);
+
+  double result = 0.0;
+  h1_integrate_expression(sqr(uval0[i] - vval0[i]) + sqr(uval1[i] - vval1[i]));
+  return result;
+}
+
+
+// function used to calculate Hcurl norm
+double norm_fn_hcl2(MeshFunction* sln, RefMap* ru)
+{
+  Quad2D* quad = sln->get_quad_2d();
+
+  int o = 2 * sln->get_fn_order() + 2 + ru->get_inv_ref_order();
+  limit_order(o);
+
+  sln->set_quad_order(o);
+
+  scalar *uval0 = sln->get_fn_values(0), *uval1 = sln->get_fn_values(1);
+  scalar *udx1  = sln->get_dx_values(1), *udy0  = sln->get_dy_values(0);
+
+  double result = 0.0;
+  h1_integrate_expression(sqr(uval0[i]) + sqr(uval1[i]));
+  return result;
+}
+
+
+double hcurl_l2error(MeshFunction* sln1, MeshFunction* sln2)
+{
+  double error = calc_error(error_fn_hcl2, sln1, sln2);
+  double norm = calc_norm(norm_fn_hcl2, sln2);
+  return error / norm;
+}
+
+
+double hcurl_l2norm(MeshFunction* sln)
+{
+  return calc_norm(norm_fn_hcl2, sln);
 }
 
 #endif
