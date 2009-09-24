@@ -111,25 +111,36 @@ def plot_sln_mayavi(sln, notebook=False):
     # to just call .view(0, 0), which seems to be working fine.
     return s
 
-def plot_hermes_mesh_mpl(mesh, method="simple"):
+def plot_hermes_mesh_mpl(mesh, space=None, method="simple", legend=True):
     if method == "simple":
         return plot_mesh_mpl_simple(mesh.nodes_dict, mesh.elements)
     elif method == "orders":
-        return plot_mesh_mpl_orders(mesh.nodes_dict, mesh.elements)
+        if space != None:
+            return plot_mesh_mpl_orders(mesh.nodes_dict, mesh.elements, polynomial_orders=mesh.get_elements_order(space))
+        else:
+            return plot_mesh_mpl_orders(mesh.nodes_dict, mesh.elements)  
     else:
         raise ValueError("Unknown method")
 
-def plot_mesh_mpl_orders(nodes, elements, curves=None, polynomial_orders=None, colors=None):
+
+def plot_mesh_mpl_orders(nodes, elements, curves=None, polynomial_orders=None, colors=None, legend=True):
     """
     This plots the mesh together with polynomial orders.
+
+    >>> plot_mesh_mpl_orders([(0,-a), (a,-a), (-a,0), (0,0), (a,0), (-a,a), (0,a), (a*b,a*b) ], \
+    [ (0, 1, 4, 3), (3, 4, 7), (3, 7, 6), (2, 3, 6, 5) ], None, [1,2,3,4])
+    <figure>
     """
+
     import math
+
     import numpy as np
     from matplotlib.path import Path
     from matplotlib.patches import PathPatch
+    from matplotlib.patches import Rectangle    
     import matplotlib.pyplot as pyplot
 
-    def calc_control_point(sp,ep,ang):
+    def calc_control_point(sp, ep, ang):
         a = (180.0 - ang) / 180.0 * math.pi;
 
         x = 1.0 / math.tan(a * 0.5);
@@ -139,32 +150,32 @@ def plot_mesh_mpl_orders(nodes, elements, curves=None, polynomial_orders=None, c
             
         return (cx,cy)
 
-    #curves should be defined like this:
-    #curves = { 1:(4,7,45), 2:(7,6,45) } where 1,2 are the element indices to which curve associates with
-    #so that it can be drawn with color, its element it associates
+    # Curves should be defined like this:
+    # curves = { 1:(4,7,45), 2:(7,6,45) } where 1, 2 are the element indices to which 
+    # curve associates with so that it can be drawn with color its element it associates.
     #
-    #redefine_curves()
-    #redefine above curve like --- { 1:(4, control_point, 7), 2:(7, control_point, 6), ... }
-    #that's like, { 1:(4, (x,y), 7), 2:(7, (x,y), 6), ... } where 4,6,7 are node indices, 1,2 are element indices
+    # redefine_curves()
+    # Redefine above curves like this: {1:(4, control_point, 7), 2:(7, control_point, 6), ...}.
+    # That is like, {1:(4, (x,y), 7), 2:(7, (x,y), 6), ...} where 4,6,7 are node indices; 1,2 are element indices.
     def redefine_curves():
         nurbs = {}
         for k, c in curves.items():
-            cp = calc_control_point(nodes[c[0]],nodes[c[1]],c[2])
-            nurbs[k] = ([c[0],cp,c[1]])
+            cp = calc_control_point(nodes[c[0]], nodes[c[1]], c[2])
+            nurbs[k] = ([c[0], cp, c[1]])
         return nurbs
 
     if colors is None:
-        colors = {1: '#000684', 2: '#3250fc',
+        colors = {0: '#000000', 1: '#000684', 2: '#3250fc',
             3: '#36c4ee', 4: '#04eabc', 5: '#62ff2a', 6: '#fdff07',
             7: '#ffa044', 8: '#ff1111', 9: '#b02c2c', 10: '#820f97'}
 
-    # check that if orders and elements match (if orders are passed in)
+    # Check that if orders and elements match (if orders are passed in).
     if polynomial_orders is not None:
         assert len(elements) == len(polynomial_orders)
     else:
         polynomial_orders = [1] * len(elements)
 
-    #redefine given curve data by calculateing control points
+    # Redefine given curve data by calculateing control points.
     if curves == None:
         nurbs = {}
     else:
@@ -182,7 +193,7 @@ def plot_mesh_mpl_orders(nodes, elements, curves=None, polynomial_orders=None, c
         codes_polynomial_orders[key] = []
 
 
-    #plot curves
+    # Plot curves
     for k, n in nurbs.items():
         j = polynomial_orders[k]
 
@@ -199,7 +210,7 @@ def plot_mesh_mpl_orders(nodes, elements, curves=None, polynomial_orders=None, c
         codes_polynomial_orders[j].append(Path.CLOSEPOLY)
 
 
-    # join nodes with lines:
+    # Join nodes with lines
     for i, e in enumerate(elements):
         for k, node_index in enumerate(e):
             j = polynomial_orders[i]
@@ -219,8 +230,7 @@ def plot_mesh_mpl_orders(nodes, elements, curves=None, polynomial_orders=None, c
         if len(vertices_polynomial_orders[key]) != 0:
             vertices_polynomial_orders[key] = np.array(vertices_polynomial_orders[key], float)
             path_polynomial_orders[key] = Path(vertices_polynomial_orders[key], codes_polynomial_orders[key])
-            pathpatch_polynomial_orders[key] = PathPatch(path_polynomial_orders[key], facecolor=color, edgecolor=color)
-
+            pathpatch_polynomial_orders[key] = PathPatch(path_polynomial_orders[key], facecolor=color, edgecolor='#000000')
 
     fig = pyplot.figure()
     sp = fig.add_subplot(111)
@@ -229,21 +239,76 @@ def plot_mesh_mpl_orders(nodes, elements, curves=None, polynomial_orders=None, c
         if patch != None:
             sp.add_patch(patch)
 
-    for i, e in enumerate(elements):
-        x_avg = 0
-        y_avg = 0
-        for k, node_index in enumerate(e):
-            x1, y1 = nodes[e[k-1]]
-            x2, y2 = nodes[e[k]]
+    if not legend:
+        for i, e in enumerate(elements):
+            x_avg = 0
+            y_avg = 0
+            for k, node_index in enumerate(e):
+                x1, y1 = nodes[e[k-1]]
+                x2, y2 = nodes[e[k]]
 
-            x_avg += x2
-            y_avg += y2
+                x_avg += x2
+                y_avg += y2
 
-        x_avg /= len(e)
-        y_avg /= len(e)
-        sp.text(x_avg, y_avg, str(polynomial_orders[i]))
+            x_avg /= len(e)
+            y_avg /= len(e)
+            sp.text(x_avg, y_avg, str(polynomial_orders[i]))
+    
+    # Create legend
+    if legend:
+        def split_nodes():
+            x = []
+            y = []
 
-    sp.set_title('Mesh using path & Patches')
+            if isinstance(nodes, dict):
+                _nodes = nodes.items()
+            else:
+                _nodes = enumerate(nodes)
+            for k, pnt in _nodes:
+                x.append(pnt[0])
+                y.append(pnt[1])
+                
+            return (x,y)
+
+        def get_max(what='x'):
+            x, y = split_nodes()
+            
+            if what == 'x':
+                return max(x)
+            else:
+                return max(y)
+
+        def get_min(what='x'):
+            x, y = split_nodes()
+
+            if what == 'x':
+                return min(x)
+            else:
+                return min(y)
+                
+        maxX = get_max('x')
+        maxY = get_max('y')
+
+        minX = get_min('x')
+        minY = get_min('y')
+        
+        unique_polynomial_orders = list(set(polynomial_orders))
+		
+        dy = (maxY - minY) / 20
+        dx = (maxX - minX) / 20
+    
+        y = minY + dy
+        x = maxX + dx
+    
+        for i in unique_polynomial_orders:
+            p = Rectangle(xy=(x, y), width=dx, height=dy, fill=True, facecolor=colors[i])
+            sp.add_patch(p)
+            sp.text(x + dx + (dx/2), y + (dy/4), str(i))
+            y += dy
+
+        sp.text(x, y + (dy/2), str('Orders'))
+
+    sp.set_title('Mesh')
 
     sp.autoscale_view()
     return sp.figure
@@ -351,6 +416,7 @@ class ScalarView(object):
         else:
             raise NotImplementedError("Unknown library '%s'" % lib)
 
+
 class MeshView(object):
 
     def __init__(self, name="Solution", x=0, y=0, w=500, h=500):
@@ -360,10 +426,11 @@ class MeshView(object):
         self._w = w
         self._h = h
 
+
     def wait(self):
         pass
 
-    def show(self, mesh, show=True, lib="glut", notebook=False,
+    def show(self, mesh, show=True, lib="glut", notebook=False, space=None, 
             filename="a.png", **options):
         if lib == "glut":
             from _hermes2d import MeshView
@@ -371,7 +438,7 @@ class MeshView(object):
             m.show(mesh)
             m.wait()
         elif lib == "mpl":
-            p = plot_hermes_mesh_mpl(mesh, **options)
+            p = plot_hermes_mesh_mpl(mesh, space=space, **options)
             if show:
                 if notebook:
                     p.savefig(filename)

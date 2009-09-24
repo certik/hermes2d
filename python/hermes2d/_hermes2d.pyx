@@ -224,6 +224,21 @@ cdef class Mesh:
                 read_hermes_format(filename)
         self.create(nodes, elements, boundary, nurbs)
 
+    def get_elements_order(self, space):
+        orders_list = []
+        
+        for i in range(self.num_elements):
+            el = self.get_element(i)
+            if el.active:
+                order = space.get_element_order(i)
+                
+                h = order & ((1 << 5) - 1)
+                v = order >> 5
+                
+                orders_list.append(int((h+v)/2))
+
+        return orders_list
+
     def create(self, nodes, elements, boundary, nurbs):
         """
         Creates a mesh from a list of nodes, elements, boundary and nurbs.
@@ -343,6 +358,9 @@ cdef class H1Space:
 
     def copy_orders(self, H1Space s, int inc=0):
         self.thisptr.copy_orders(s.thisptr, inc)
+
+    def get_element_order(self, int el_id):
+        return self.thisptr.get_element_order(el_id)
 
 cdef api object H1Space_from_C(c_H1Space *h):
     cdef H1Space n

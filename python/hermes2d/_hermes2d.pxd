@@ -6,6 +6,7 @@ cdef extern from "math.h":
     double c_pi "M_PI"
 
 cdef extern from "stdlib.h":
+
     ctypedef unsigned long size_t
     void *malloc (size_t size)
     void free(void *mem)
@@ -122,6 +123,7 @@ cdef extern from "hermes2d.h":
         void set_uniform_order(int tri_order)
         int assign_dofs(int first_dof, int stride)
         void copy_orders(c_H1Space *s, int inc)
+        int get_element_order(int id)
         void set_bc_types(int (*bc_type_callback)(int marker))
         void set_bc_values(scalar (*bc_value_callback_by_coord)(int marker,
             double x, double y))
