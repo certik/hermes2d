@@ -186,3 +186,17 @@ def test_plot_mesh3e():
     mesh.refine_all_elements()
 
     plot_mesh_mpl_orders(mesh.nodes_dict, mesh.elements)
+
+def test_plot_mesh4():
+    mesh = Mesh()
+    mesh.load(domain_mesh)
+
+    view = MeshView("Solution")
+    view.show(mesh, lib="mpl", show=False, method="orders")
+
+def test_plot_mesh5():
+    mesh = Mesh()
+    mesh.load(domain_mesh)
+
+    view = MeshView("Solution")
+    view.show(mesh, lib="mpl", show=False, method="orders", legend=True)
