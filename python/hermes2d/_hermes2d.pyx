@@ -633,13 +633,11 @@ cdef class RefSystem(LinSystem):
     def assemble(self):
         (<c_RefSystem *>(self.thisptr)).assemble()
 
-    # this is commented out, because get_ref_space() is not yet implemented in
-    # C++ hermes2d
-    #def get_ref_space(self, int eq):
-    #    cdef c_H1Space *r = <c_H1Space *>(
-    #            (<c_RefSystem *>(self.thisptr)).get_ref_space(eq)
-    #        )
-    #    return H1Space_from_C(r)
+    def get_ref_space(self, int eq):
+        cdef c_H1Space *r = <c_H1Space *>(
+                (<c_RefSystem *>(self.thisptr)).get_ref_space(eq)
+            )
+        return H1Space_from_C(r)
 
 
 #cdef class DiscreteProblem:

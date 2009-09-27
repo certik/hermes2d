@@ -40,6 +40,10 @@ public:
   /// Do not call in this class
   void set_pss(int n, ...);
 
+  Space* get_ref_space(int n) {
+      return this->ref_spaces[n];
+  }
+
   /// Sets different order increases for components
   /// The length of array "order_increase" must be equal to the number of equations
   void set_order_increase(int* order_increase);
