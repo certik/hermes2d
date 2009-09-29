@@ -74,6 +74,7 @@ LinSystem::LinSystem(WeakForm* wf, Solver* solver)
 
   spaces = new Space*[wf->neq];
   sp_seq = new int[wf->neq];
+  wf_seq = -1;
   memset(sp_seq, -1, sizeof(int) * wf->neq);
   pss = new PrecalcShapeset*[wf->neq];
   num_user_pss = 0;
@@ -147,6 +148,7 @@ void LinSystem::free()
 
   struct_changed = values_changed = true;
   memset(sp_seq, -1, sizeof(int) * wf->neq);
+  wf_seq = -1;
 }
 
 
@@ -295,6 +297,8 @@ void LinSystem::create_matrix(bool rhsonly)
   for (int i = 0; i < wf->neq; i++)
     if (spaces[i]->get_seq() != sp_seq[i])
       { up_to_date = false; break; }
+  if (wf->get_seq() != wf_seq)
+    up_to_date = false;
 
   // if yes, just zero the values and we're done
   if (up_to_date)
@@ -357,9 +361,10 @@ void LinSystem::create_matrix(bool rhsonly)
   memset(RHS, 0, sizeof(scalar) * ndofs);
   memset(Dir, 0, sizeof(scalar) * ndofs);
 
-  // save space seq numbers, so we can detect their changes
+  // save space seq numbers and weakform seq number, so we can detect their changes
   for (i = 0; i < wf->neq; i++)
     sp_seq[i] = spaces[i]->get_seq();
+  wf_seq = wf->get_seq();
 
   struct_changed = true;
 }
