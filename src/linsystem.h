@@ -168,6 +168,7 @@ protected:
   int mat_size;
 
   int* sp_seq;
+  int wf_seq;
   int num_user_pss;
   bool values_changed;
   bool struct_changed;

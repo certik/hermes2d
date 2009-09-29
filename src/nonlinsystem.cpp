@@ -77,32 +77,52 @@ Scalar L2projection_liform(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtD
 }
 
 
-void NonlinSystem::set_ic(MeshFunction* fn, Solution* result, int proj_norm)
+void NonlinSystem::set_ic_n(int proj_norm, int n, ...)
 {
   if (!have_spaces)
     error("You need to call set_ic() after calling set_spaces().");
+  if (n != wf->neq || n > 10)
+    error("Wrong number of initial conditions.");
+
+  int i;
+  MeshFunction* fn[10];
+  Solution* result[10];
+
+  va_list ap;
+  va_start(ap, n);
+  for (i = 0; i < n; i++)
+    fn[i] = va_arg(ap, MeshFunction*);
+  for (i = 0; i < n; i++)
+    result[i] = va_arg(ap, Solution*);
+  va_end(ap);
 
   WeakForm* wf_orig = wf;
 
-  WeakForm wf_proj(1);
+  WeakForm wf_proj(n);
   wf = &wf_proj;
-  if (proj_norm == 1)  {
-    wf->add_biform(0, 0, H1projection_biform<double, scalar>, H1projection_biform<Ord, Ord>);
-    wf->add_liform(0, H1projection_liform<double, scalar>, H1projection_liform<Ord, Ord>, ANY, 1, fn);
-  }
-  else  {
-    wf->add_biform(0, 0, L2projection_biform<double, scalar>, L2projection_biform<Ord, Ord>);
-    wf->add_liform(0, L2projection_liform<double, scalar>, L2projection_liform<Ord, Ord>, ANY, 1, fn);
-  }
+  if (proj_norm == 1)
+    for (i = 0; i < n; i++)
+    {
+      wf->add_biform(i, i, H1projection_biform<double, scalar>, H1projection_biform<Ord, Ord>);
+      wf->add_liform(i, H1projection_liform<double, scalar>, H1projection_liform<Ord, Ord>, ANY, 1, fn[i]);
+    }
+  else
+    for (i = 0; i < n; i++)
+    {
+      wf->add_biform(i, i, L2projection_biform<double, scalar>, L2projection_biform<Ord, Ord>);
+      wf->add_liform(i, L2projection_liform<double, scalar>, L2projection_liform<Ord, Ord>, ANY, 1, fn[i]);
+    }
 
   want_dir_contrib = true;
   LinSystem::assemble();
-  LinSystem::solve(1, result);
+  LinSystem::solve(n, result[0], result[1], result[2], result[3], result[4],
+                      result[5], result[6], result[7], result[8], result[9]);
   want_dir_contrib = false;
 
   wf = wf_orig;
-
+  wf_seq = -1;
 }
+
 
 void NonlinSystem::set_vec_zero()
 {

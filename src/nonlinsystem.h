@@ -42,11 +42,17 @@ public:
   /// Initializes the class and sets zero initial coefficient vector.
   NonlinSystem(WeakForm* wf, Solver* solver);
 
-  /// Sets the initial coefficient vector so that it represents the given function.
-  /// You can pass a pointer to a Solution or to a Filter.
-  /// The projected Solution is returned in "result" (it satisfies Dirichlet BC)
+  /// Sets the initial coefficient vector so that it represents the given function(s).
+  /// You can pass pointer(s) to Solution(s) or to a Filter(s).
+  /// The projected Solution(s) are returned in "result" (satisfy Dirichlet BC)
   /// You can specify in which norm "fn" should be projected: 0 - L2 norm, 1 - H1 norm
-  void set_ic(MeshFunction* fn, Solution* result, int proj_norm = 1);
+  void set_ic(MeshFunction* fn, Solution* result, int proj_norm = 1)
+    {  set_ic_n(proj_norm, 1, fn, result);  }
+
+  void set_ic(MeshFunction* fn1, MeshFunction* fn2, Solution* result1, Solution* result2, int proj_norm = 1)
+    {  set_ic_n(proj_norm, 2, fn1, fn2, result1, result2);  }
+
+  void set_ic_n(int proj_norm, int n, ...);
 
   /// Sets the solution coefficient vector to zero
   void set_vec_zero();

@@ -77,10 +77,14 @@ public:
 
   void set_ext_fns(void* fn, int nx, ...);
 
+  /// Internal. Used by LinSystem to detect changes in the weakform.
+  int get_seq() const { return seq; }
+
 
 protected:
 
   int neq;
+  int seq;
 
   struct Area  {  /*std::string name;*/  std::vector<int> markers;  };
 
