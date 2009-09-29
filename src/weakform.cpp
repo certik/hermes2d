@@ -30,6 +30,7 @@
 WeakForm::WeakForm(int neq)
 {
   this->neq = neq;
+  seq = 0;
 }
 
 
@@ -56,6 +57,7 @@ void WeakForm::add_biform(int i, int j, biform_val_t fn, biform_ord_t ord, SymFl
   BiFormVol form = { i, j, sym, area, fn, ord };
   init_ext;
   bfvol.push_back(form);
+  seq++;
 }
 
 void WeakForm::add_biform_surf(int i, int j, biform_val_t fn, biform_ord_t ord, int area, int nx, ...)
@@ -68,6 +70,7 @@ void WeakForm::add_biform_surf(int i, int j, biform_val_t fn, biform_ord_t ord, 
   BiFormSurf form = { i, j, area, fn, ord };
   init_ext;
   bfsurf.push_back(form);
+  seq++;
 }
 
 void WeakForm::add_liform(int i, liform_val_t fn, liform_ord_t ord, int area, int nx, ...)
@@ -80,6 +83,7 @@ void WeakForm::add_liform(int i, liform_val_t fn, liform_ord_t ord, int area, in
   LiFormVol form = { i, area, fn, ord };
   init_ext;
   lfvol.push_back(form);
+  seq++;
 }
 
 void WeakForm::add_liform_surf(int i, liform_val_t fn, liform_ord_t ord, int area, int nx, ...)
@@ -92,6 +96,7 @@ void WeakForm::add_liform_surf(int i, liform_val_t fn, liform_ord_t ord, int are
   LiFormSurf form = { i, area, fn, ord };
   init_ext;
   lfsurf.push_back(form);
+  seq++;
 }
 
 
