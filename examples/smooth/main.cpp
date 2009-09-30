@@ -41,24 +41,25 @@ static double fndd(double x, double y, double& dx, double& dy)
   return fn(x, y);
 }
 
-template<typename Real, typename Scalar>
-Scalar bilinear_form(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+scalar bc_values(int marker, double x, double y)
 {
-  return int_grad_u_grad_v<Real, Scalar>(n, wt, u, v);
+  return 0;
 }
 
-template<typename Real>
-Real rhs(Real x, Real y)
+scalar bilinear_form(RealFunction* fu, RealFunction* fv, RefMap* ru, RefMap* rv)
 {
-  return 2 * sin(x) * sin(y);
+  return int_grad_u_grad_v(fu, fv, ru, rv);
 }
 
-template<typename Real, typename Scalar>
-Scalar linear_form(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+double rhs(double x, double y)
 {
-  return int_F_v<Real, Scalar>(n, wt, rhs, v, e);
+  return 2*sin(x)*sin(y);
 }
 
+scalar linear_form(RealFunction* fv, RefMap* rv)
+{
+  return int_F_v(rhs, fv, rv);
+}
 
 int main(int argc, char* argv[])
 {
@@ -70,16 +71,17 @@ int main(int argc, char* argv[])
     exit(0);
   }
 
-  H1Shapeset shapeset;
+  H1ShapesetOrtho shapeset;
   PrecalcShapeset pss(&shapeset);
 
   H1Space space(&mesh, &shapeset);
+  space.set_bc_values(bc_values);
   int actual_poly_degree = P_INIT;
   space.set_uniform_order(actual_poly_degree);
 
   WeakForm wf(1);
-  wf.add_biform(0, 0, callback(bilinear_form), SYM);
-  wf.add_liform(0, callback(linear_form));
+  wf.add_biform(0, 0, bilinear_form, SYM);
+  wf.add_liform(0, linear_form);
 
   ScalarView sview("Coarse solution", 0, 100, 798, 700);
   OrderView  oview("Polynomial orders", 800, 100, 798, 700);
@@ -124,15 +126,12 @@ int main(int argc, char* argv[])
 
     // refine the mesh uniformly either in 'h' or 'p'
     if (H_REFIN == true) {
-      if (error < 0.2) done = true;
-      else {
-        mesh.refine_all_elements();
-        space.set_uniform_order(actual_poly_degree);
-      }
+      mesh.refine_all_elements();
+      space.set_uniform_order(actual_poly_degree);
     }
     else {
       actual_poly_degree++;
-      if (actual_poly_degree > 10) done = true;
+      if(actual_poly_degree > 10) done = true;
       else space.set_uniform_order(actual_poly_degree);
     }
   }

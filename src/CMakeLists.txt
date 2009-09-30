@@ -14,7 +14,7 @@ set(SRC
        qsort.cpp norm.cpp
        adapt_ortho_h1.cpp adapt_ortho_hcurl.cpp adapt_ortho_l2.cpp
        common.cpp matrix.cpp hermes2d.cpp weakform.cpp linsystem.cpp
-       refsystem.cpp nonlinsystem.cpp forms.cpp
+       nonlinsystem.cpp refsystem.cpp
        mesh_parser.cpp mesh_lexer.cpp
 
        compat/fmemopen.cpp

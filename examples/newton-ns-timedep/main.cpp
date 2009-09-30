@@ -23,7 +23,8 @@
 
 int NEWTON_ON = 1;             // if NEWTON_ON == 1 then the Newton's iteration is performed
                                // in every time step. Otherwise the convective term is linearized
-                               // using the velocities from the previous time step
+                               // using the velocities from the previous time step (as in example
+                               // 08-time-dep)
 double RE = 200.0;             // Reynolds number
 double VEL_INLET = 1.0;        // inlet velocity (reached after STARTUP_TIME)
 double STARTUP_TIME = 1.0;     // during this time, inlet velocity increases gradually
@@ -48,14 +49,147 @@ int marker_obstacle = 5;
 // global time variable
 double TIME = 0;
 
+// same as int_u_dvdx() but now 'v' is a solution
+inline double int_u_dvdx_II(RealFunction* fu, RealFunction* fv, RefMap* ru, RefMap* rv)
+{
+  Quad2D* quad = fu->get_quad_2d();
+
+  int o = fu->get_fn_order() + fv->get_fn_order() + ru->get_inv_ref_order();
+  limit_order(o);
+  fu->set_quad_order(o);
+  fv->set_quad_order(o);
+
+  double *uval = fu->get_fn_values();
+  double *dvdx, *dvdy;
+  fv->get_dx_dy_values(dvdx, dvdy); // 'v' solution => derivatives already transformed to physical element
+
+  double result = 0.0;
+  h1_integrate_dd_expression(uval[i] * dvdx[i]);
+  return result;
+}
+
+// same as int_u_dvdy() but now 'v' is a solution
+inline double int_u_dvdy_II(RealFunction* fu, RealFunction* fv, RefMap* ru, RefMap* rv)
+{
+  Quad2D* quad = fu->get_quad_2d();
+
+  int o = fu->get_fn_order() + fv->get_fn_order() + ru->get_inv_ref_order();
+  limit_order(o);
+  fu->set_quad_order(o);
+  fv->set_quad_order(o);
+
+  double *uval = fu->get_fn_values();
+  double *dvdx, *dvdy;
+  fv->get_dx_dy_values(dvdx, dvdy); // 'v' solution => derivatives already transformed to physical element
+
+  double result = 0.0;
+  h1_integrate_dd_expression(uval[i] * dvdy[i]);
+  return result;
+}
+
+#define int_dudx_v_II(fu, fv, ru, rv) int_u_dvdx_II(fv, fu, rv, ru)
+#define int_dudy_v_II(fu, fv, ru, rv) int_u_dvdy_II(fv, fu, rv, ru)
+
+// same as int_grad_u_grad_v but now fu is a solution
+inline double int_grad_u_grad_v_II(RealFunction* fu, RealFunction* fv, RefMap* ru, RefMap* rv)
+{
+  Quad2D* quad = fu->get_quad_2d();
+
+  int o = fu->get_fn_order() + fv->get_fn_order() + ru->get_inv_ref_order();
+  limit_order(o);
+  fu->set_quad_order(o);
+  fv->set_quad_order(o);
+
+  double *dudx, *dudy, *dvdx, *dvdy;
+  fu->get_dx_dy_values(dudx, dudy); // 'u' solution => derivatives already transformed to physical element
+  fv->get_dx_dy_values(dvdx, dvdy);
+
+  double result = 0.0;
+  h1_integrate_dd_expression(dudx[i] * t_dvdx + dudy[i] * t_dvdy);
+  return result;
+}
+
+// same as int_w_nabla_u_v() but now 'u' is a solution
+inline double int_w_nabla_u_v_II(RealFunction* w1, RealFunction* w2,
+                              RealFunction* fu, RealFunction* fv, RefMap* ru, RefMap* rv)
+{
+  Quad2D* quad = fu->get_quad_2d();
+
+  int o = fu->get_fn_order() + fv->get_fn_order() +
+          w1->get_fn_order() + ru->get_inv_ref_order();
+  limit_order(o);
+
+  w1->set_quad_order(o, FN_VAL);
+  w2->set_quad_order(o, FN_VAL);
+  fu->set_quad_order(o);
+  fv->set_quad_order(o, FN_VAL);
+
+  double *dudx, *dudy;
+  fu->get_dx_dy_values(dudx, dudy); // 'u' solution => derivatives already transformed to physical element
+  double* vval = fv->get_fn_values();
+  double* w1val = w1->get_fn_values();
+  double* w2val = w2->get_fn_values();
+
+  double result = 0.0;
+  h1_integrate_dd_expression((w1val[i] * dudx[i] + w2val[i] * dudy[i]) * vval[i]);
+  return result;
+}
+
+inline double int_u_dvdx_w(RealFunction* fu, RealFunction* fv, RealFunction* fw, RefMap* ru, RefMap* rv, RefMap* rw)
+// assumes that 'v' is a solution
+{
+  Quad2D* quad = fu->get_quad_2d();
+
+  int o = fu->get_fn_order() + fv->get_fn_order() +
+          fw->get_fn_order() + ru->get_inv_ref_order();
+
+  limit_order(o);
+  fu->set_quad_order(o, FN_VAL);
+  fv->set_quad_order(o);
+  fw->set_quad_order(o, FN_VAL);
+
+  double* uval = fu->get_fn_values();
+  double* wval = fw->get_fn_values();
+  double *dvdx, *dvdy;
+  fv->get_dx_dy_values(dvdx, dvdy); // 'v' solution => derivatives already transformed to physical element
+
+  double result = 0.0;
+  h1_integrate_dd_expression(uval[i] * dvdx[i] * wval[i]);
+  return result;
+}
+
+inline double int_u_dvdy_w(RealFunction* fu, RealFunction* fv, RealFunction* fw, RefMap* ru, RefMap* rv, RefMap* rw)
+// assumes that 'v' is a solution
+{
+  Quad2D* quad = fu->get_quad_2d();
+
+  int o = fu->get_fn_order() + fv->get_fn_order() +
+          fw->get_fn_order() + ru->get_inv_ref_order();
+
+  limit_order(o);
+  fu->set_quad_order(o, FN_VAL);
+  fv->set_quad_order(o);
+  fw->set_quad_order(o, FN_VAL);
+
+  double* uval = fu->get_fn_values();
+  double* wval = fw->get_fn_values();
+  double *dvdx, *dvdy;
+  fv->get_dx_dy_values(dvdx, dvdy); // 'v' solution => derivatives already transformed to physical element
+
+  double result = 0.0;
+  h1_integrate_dd_expression(uval[i] * dvdy[i] * wval[i]);
+  return result;
+}
+
+
 // definition of boundary conditions
 int xvel_bc_type(int marker) {
-  if (marker == marker_right) return BC_NONE;
+  if (marker == 2) return BC_NONE;
   else return BC_ESSENTIAL;
 }
 
 scalar xvel_bc_value(int marker, double x, double y) {
-  if (marker == marker_left) {
+  if (marker == 4) {
     // time-dependent inlet velocity
     //double val_y = VEL_INLET; //constant profile
     double val_y = VEL_INLET * y*(H-y) / (H/2.)/(H/2.); //parabolic profile with peak VEL_INLET at y = H/2
@@ -66,127 +200,71 @@ scalar xvel_bc_value(int marker, double x, double y) {
 }
 
 int yvel_bc_type(int marker) {
-  if (marker == marker_right) return BC_NONE;
+  if (marker == 2) return BC_NONE;
   else return BC_ESSENTIAL;
 }
 
 int press_bc_type(int marker)
   { return BC_NONE; }
 
-////////////////////////////////////////////////////////////////////////////////////////////////////
+// velocities from the previous time step and for the Newton's iteration
+Solution xprev, yprev, pprev, xiter, yiter, piter;
+
 // bilinear and linear forms corresponding to simple linearization
 // of convective term
-template<typename Real, typename Scalar>
-Scalar bilinear_form_sym_0_0_1_1(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
-{
-  return int_grad_u_grad_v<Real, Scalar>(n, wt, u, v) / RE + int_u_v<Real, Scalar>(n, wt, u, v) / TAU;
-}
+scalar bilinear_form_sym_0_0_1_1(RealFunction* fu, RealFunction* fv, RefMap* ru, RefMap* rv)
+  { return int_grad_u_grad_v(fu, fv, ru, rv) / RE +
+           int_u_v(fu, fv, ru, rv) / TAU; }
 
-template<typename Real, typename Scalar>
-Scalar simple_bilinear_form_unsym_0_0_1_1(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
-{
-  return int_w_nabla_u_v<Real, Scalar>(n, wt, ext->fn[0], ext->fn[1], u, v);
-}
+scalar simple_bilinear_form_unsym_0_0_1_1(RealFunction* fu, RealFunction* fv, RefMap* ru, RefMap* rv)
+  { return int_w_nabla_u_v(&xprev, &yprev, fu, fv, ru, rv); }
 
-template<typename Real, typename Scalar>
-Scalar simple_linear_form(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
-{
-  return int_u_v<Real, Scalar>(n, wt, ext->fn[0], v) / TAU;
-}
+scalar simple_linear_form_0(RealFunction* fv, RefMap* rv)
+  { return int_u_v(&xprev, fv, xprev.get_refmap(), rv) / TAU; }
 
-template<typename Real, typename Scalar>
-Scalar bilinear_form_unsym_0_2(int n, double *wt, Func<Real> *p, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
-{
-  return - int_u_dvdx<Real, Scalar>(n, wt, p, v);
-}
+scalar simple_linear_form_1(RealFunction* fv, RefMap* rv)
+  { return int_u_v(&yprev, fv, yprev.get_refmap(), rv) / TAU; }
 
-template<typename Real, typename Scalar>
-Scalar bilinear_form_unsym_1_2(int n, double *wt, Func<Real> *p, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
-{
-  return - int_u_dvdy<Real, Scalar>(n, wt, p, v);
-}
+scalar bilinear_form_unsym_0_2(RealFunction* fp, RealFunction* fv, RefMap* rp, RefMap* rv)
+  { return -int_u_dvdx(fp, fv, rp, rv); }
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+scalar bilinear_form_unsym_1_2(RealFunction* fp, RealFunction* fv, RefMap* rp, RefMap* rv)
+  { return -int_u_dvdy(fp, fv, rp, rv); }
+
 // bilinear and linear forms corresponding to the Newton's method
-template<typename Real, typename Scalar>
-Scalar newton_bilinear_form_unsym_0_0(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
-{
-  Scalar result = 0;
-  Func<Scalar>* vx = ext->fn[0];
-  Func<Scalar>* vy = ext->fn[1];
-  for (int i = 0; i < n; i++)
-    result += wt[i] * ((vx->val[i] * u->dx[i] + vy->val[i] * u->dy[i]) * v->val[i] + u->val[i] * v->val[i] * vx->dx[i]);
-  return result;
-}
+scalar newton_bilinear_form_unsym_0_0(RealFunction* fu, RealFunction* fv, RefMap* ru, RefMap* rv)
+  { return   int_w_nabla_u_v(&xprev, &yprev, fu, fv, ru, rv)
+           + int_u_dvdx_w(fu, &xprev, fv, ru, xprev.get_refmap(), rv); }
 
-template<typename Real, typename Scalar>
-Scalar newton_bilinear_form_unsym_0_1(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
-{
-  Scalar result = 0;
-  Func<Scalar>* vx = ext->fn[0];
-  for (int i = 0; i < n; i++)
-    result += wt[i] * (u->val[i] * v->val[i] * vx->dy[i]);
-  return result;
-}
+scalar newton_bilinear_form_unsym_0_1(RealFunction* fu, RealFunction* fv, RefMap* ru, RefMap* rv)
+  { return int_u_dvdy_w(fu, &xprev, fv, ru, xprev.get_refmap(), rv); }
 
-template<typename Real, typename Scalar>
-Scalar newton_bilinear_form_unsym_1_0(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
-{
-  Scalar result = 0;
-  Func<Scalar>* vy = ext->fn[0];
-  for (int i = 0; i < n; i++)
-    result += wt[i] * (u->val[i] * v->val[i] * vy->dx[i]);
-  return result;
-}
+scalar newton_bilinear_form_unsym_1_0(RealFunction* fu, RealFunction* fv, RefMap* ru, RefMap* rv)
+  { return int_u_dvdx_w(fu, &yprev, fv, ru, yprev.get_refmap(), rv); }
 
-template<typename Real, typename Scalar>
-Scalar newton_bilinear_form_unsym_1_1(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
-{
-  Scalar result = 0;
-  Func<Scalar>* vx = ext->fn[0];
-  Func<Scalar>* vy = ext->fn[1];
-  for (int i = 0; i < n; i++)
-    result += wt[i] * ((vx->val[i] * u->dx[i] + vy->val[i] * u->dy[i]) * v->val[i] + u->val[i] * v->val[i] * vy->dy[i]);
-  return result;
-}
+scalar newton_bilinear_form_unsym_1_1(RealFunction* fu, RealFunction* fv, RefMap* ru, RefMap* rv)
+  { return   int_w_nabla_u_v(&xprev, &yprev, fu, fv, ru, rv)
+           + int_u_dvdy_w(fu, &yprev, fv, ru, yprev.get_refmap(), rv); }
 
-template<typename Real, typename Scalar>
-Scalar newton_F_0(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
-{
-  Scalar result = 0;
-  Func<Scalar>* xpr = ext->fn[0];  Func<Scalar>* ypr = ext->fn[1];
-  Func<Scalar>* xit = ext->fn[2];  Func<Scalar>* yit = ext->fn[3];  Func<Scalar>* pit = ext->fn[4];
-  for (int i = 0; i < n; i++)
-    result += wt[i] * ((xit->val[i] - xpr->val[i]) * v->val[i] / TAU +
-                       (xit->dx[i] * v->dx[i] + xit->dy[i] * v->dy[i]) / RE +
-                       (xit->val[i] * xit->dx[i] + yit->val[i] * xit->dy[i]) * v->val[i] -
-                       (pit->val[i] * v->dx[i]));
-  return result;
-}
+scalar newton_F_0(RealFunction* fv, RefMap* rv)
+  { return   int_u_v(&xiter, fv, xiter.get_refmap(), rv) / TAU
+           - int_u_v(&xprev, fv, xprev.get_refmap(), rv) / TAU
+           + int_grad_u_grad_v_II(&xiter, fv, xiter.get_refmap(), rv) / RE   // The 'II' version of int_grad_u_grad_v()
+             // does exactly the same as the original function, but it assumes that the first argument is a Solution.
+             // This inconsistency has historical reasons and we are going to eliminate it soon.
+           + int_w_nabla_u_v_II(&xiter, &yiter, &xiter, fv, xiter.get_refmap(), rv)
+           - int_u_dvdx(&piter, fv, piter.get_refmap(), rv); }
 
-template<typename Real, typename Scalar>
-Scalar newton_F_1(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
-{
-  Scalar result = 0;
-  Func<Scalar>* xpr = ext->fn[0];  Func<Scalar>* ypr = ext->fn[1];
-  Func<Scalar>* xit = ext->fn[2];  Func<Scalar>* yit = ext->fn[3];  Func<Scalar>* pit = ext->fn[4];
-  for (int i = 0; i < n; i++)
-    result += wt[i] * ((yit->val[i] - ypr->val[i]) * v->val[i] / TAU +
-                       (yit->dx[i] * v->dx[i] + yit->dy[i] * v->dy[i]) / RE +
-                       (xit->val[i] * yit->dx[i] + yit->val[i] * yit->dy[i]) * v->val[i] -
-                       (pit->val[i] * v->dy[i]));
-  return result;
-}
+scalar newton_F_1(RealFunction* fv, RefMap* rv)
+  { return   int_u_v(&yiter, fv, yiter.get_refmap(), rv) / TAU
+           - int_u_v(&yprev, fv, yprev.get_refmap(), rv) / TAU
+           + int_grad_u_grad_v_II(&yiter, fv, yiter.get_refmap(), rv) / RE
+           + int_w_nabla_u_v_II(&xiter, &yiter, &yiter, fv, yiter.get_refmap(), rv)
+           - int_u_dvdy(&piter, fv, piter.get_refmap(), rv); }
 
-template<typename Real, typename Scalar>
-Scalar newton_F_2(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
-{
-  Scalar result = 0;
-  Func<Scalar>* xit = ext->fn[0];  Func<Scalar>* yit = ext->fn[1];
-  for (int i = 0; i < n; i++)
-    result += wt[i] * (xit->dx[i] * v->val[i] + yit->dy[i] * v->val[i]);
-  return result;
-}
+scalar newton_F_2(RealFunction* fv, RefMap* rv)
+  { return   int_dudx_v_II(&xiter, fv, xiter.get_refmap(), rv)
+           + int_dudy_v_II(&yiter, fv, yiter.get_refmap(), rv); }
 
 
 int main(int argc, char* argv[])
@@ -200,6 +278,11 @@ int main(int argc, char* argv[])
   mesh.refine_towards_boundary(5, 4, false);
   mesh.refine_towards_boundary(1, 4);
   mesh.refine_towards_boundary(3, 4);
+
+  // display the mesh
+  //MeshView mview("Hello world!", 100, 100, 1100, 400);
+  //mview.show(&mesh);
+  //mview.wait_for_keypress();
 
   // initialize the shapeset and the cache
   H1ShapesetBeuchler shapeset;
@@ -227,38 +310,35 @@ int main(int argc, char* argv[])
   ndofs += yvel.assign_dofs(ndofs);
   ndofs += press.assign_dofs(ndofs);
 
-  // velocities from the previous time step and for the Newton's iteration
-  Solution xprev, yprev, xiter, yiter, piter;
+  // initial condition: xprev and yprev are zero
   xprev.set_zero(&mesh);
   yprev.set_zero(&mesh);
-  xiter.set_zero(&mesh);
-  yiter.set_zero(&mesh);
-  piter.set_zero(&mesh);
+  pprev.set_zero(&mesh);
 
   // set up weak formulation
   WeakForm wf(3);
   if (NEWTON_ON) {
-    wf.add_biform(0, 0, callback(bilinear_form_sym_0_0_1_1), SYM);
-    wf.add_biform(0, 0, callback(newton_bilinear_form_unsym_0_0), UNSYM, ANY, 2, &xprev, &yprev);
-    wf.add_biform(0, 1, callback(newton_bilinear_form_unsym_0_1), UNSYM, ANY, 2, &xprev, &yprev);
-    wf.add_biform(0, 2, callback(bilinear_form_unsym_0_2), ANTISYM);
-    wf.add_biform(1, 0, callback(newton_bilinear_form_unsym_1_0), UNSYM, ANY, 2, &xprev, &yprev);
-    wf.add_biform(1, 1, callback(bilinear_form_sym_0_0_1_1), SYM);
-    wf.add_biform(1, 1, callback(newton_bilinear_form_unsym_1_1), UNSYM, ANY, 2, &xprev, &yprev);
-    wf.add_biform(1, 2, callback(bilinear_form_unsym_1_2), ANTISYM);
-    wf.add_liform(0, callback(newton_F_0), ANY, 5, &xprev, &yprev, &xiter, &yiter, &piter);
-    wf.add_liform(1, callback(newton_F_1), ANY, 5, &xprev, &yprev, &xiter, &yiter, &piter);
-    wf.add_liform(2, callback(newton_F_2), ANY, 2, &xiter, &yiter);
+    wf.add_biform(0, 0, bilinear_form_sym_0_0_1_1, SYM);
+    wf.add_biform(0, 0, newton_bilinear_form_unsym_0_0, UNSYM, ANY, 2, &xprev, &yprev);
+    wf.add_biform(0, 1, newton_bilinear_form_unsym_0_1, UNSYM, ANY, 2, &xprev, &yprev);
+    wf.add_biform(0, 2, bilinear_form_unsym_0_2, ANTISYM);
+    wf.add_biform(1, 0, newton_bilinear_form_unsym_1_0, UNSYM, ANY, 2, &xprev, &yprev);
+    wf.add_biform(1, 1, bilinear_form_sym_0_0_1_1, SYM);
+    wf.add_biform(1, 1, newton_bilinear_form_unsym_1_1, UNSYM, ANY, 2, &xprev, &yprev);
+    wf.add_biform(1, 2, bilinear_form_unsym_1_2, ANTISYM);
+    wf.add_liform(0, newton_F_0, ANY, 5, &xprev, &yprev, &xiter, &yiter, &piter);
+    wf.add_liform(1, newton_F_1, ANY, 5, &xprev, &yprev, &xiter, &yiter, &piter);
+    wf.add_liform(2, newton_F_2, ANY, 2, &xiter, &yiter);
   }
   else {
-    wf.add_biform(0, 0, callback(bilinear_form_sym_0_0_1_1), SYM);
-    wf.add_biform(0, 0, callback(simple_bilinear_form_unsym_0_0_1_1), UNSYM, ANY, 2, &xprev, &yprev);
-    wf.add_biform(1, 1, callback(bilinear_form_sym_0_0_1_1), SYM);
-    wf.add_biform(1, 1, callback(simple_bilinear_form_unsym_0_0_1_1), UNSYM, ANY, 2, &xprev, &yprev);
-    wf.add_biform(0, 2, callback(bilinear_form_unsym_0_2), ANTISYM);
-    wf.add_biform(1, 2, callback(bilinear_form_unsym_1_2), ANTISYM);
-    wf.add_liform(0, callback(simple_linear_form), ANY, 1, &xprev);
-    wf.add_liform(1, callback(simple_linear_form), ANY, 1, &yprev);
+    wf.add_biform(0, 0, bilinear_form_sym_0_0_1_1, SYM);
+    wf.add_biform(0, 0, simple_bilinear_form_unsym_0_0_1_1, UNSYM, ANY, 2, &xprev, &yprev);
+    wf.add_biform(1, 1, bilinear_form_sym_0_0_1_1, SYM);
+    wf.add_biform(1, 1, simple_bilinear_form_unsym_0_0_1_1, UNSYM, ANY, 2, &xprev, &yprev);
+    wf.add_biform(0, 2, bilinear_form_unsym_0_2, ANTISYM);
+    wf.add_biform(1, 2, bilinear_form_unsym_1_2, ANTISYM);
+    wf.add_liform(0, simple_linear_form_0, ANY, 1, &xprev);
+    wf.add_liform(1, simple_linear_form_1, ANY, 1, &yprev);
   }
 
   // visualization
@@ -304,6 +384,10 @@ int main(int argc, char* argv[])
     ndofs += press.assign_dofs(ndofs);
 
     if (NEWTON_ON) {
+      // initialize the Newton's iteration
+      xiter.copy(&xprev);
+      yiter.copy(&yprev);
+      piter.copy(&pprev);
 
       Solution xsln, ysln, psln;
       int it = 1;
@@ -343,6 +427,7 @@ int main(int argc, char* argv[])
       // copying result of the Newton's iteration into xprev, yprev
       xprev.copy(&xiter);
       yprev.copy(&yiter);
+      pprev.copy(&piter);
     }
     else {
       // assemble and solve

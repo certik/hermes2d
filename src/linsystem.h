@@ -23,9 +23,6 @@
 #define __HERMES2D_LINSYSTEM_H
 
 #include "matrix.h"
-#include "forms.h"
-#include "weakform.h"
-#include <map>
 
 class Space;
 class PrecalcShapeset;
@@ -34,7 +31,7 @@ class Solver;
 struct Page;
 
 
-///
+///  
 ///
 ///
 ///
@@ -99,63 +96,6 @@ protected:
   void precalc_sparse_structure(Page** pages);
   void insert_block(scalar** mat, int* iidx, int* jidx, int ilen, int jlen);
 
-  ExtData<Ord>* init_ext_fns_ord(std::vector<MeshFunction *> &ext);
-  ExtData<scalar>* init_ext_fns(std::vector<MeshFunction *> &ext, RefMap *rm, const int order);
-  Func<double>* get_fn(PrecalcShapeset *fu, RefMap *rm, const int order);
-
-  // Key for caching transformed function values on elements
-  struct Key
-  {
-    int index;
-    int order;
-    int sub_idx;
-    int shapeset_type;
-
-    Key(int index, int order, int sub_idx, int shapeset_type)
-    {
-      this->index = index;
-      this->order = order;
-      this->sub_idx = sub_idx;
-      this->shapeset_type = shapeset_type;
-    }
-  };
-
-  struct Compare
-  {
-    bool operator()(Key a, Key b) const
-    {
-      if (a.index < b.index) return true;
-      else if (a.index > b.index) return false;
-      else
-      {
-        if (a.order < b.order) return true;
-        else if (a.order > b.order) return false;
-        else
-        {
-          if (a.sub_idx < b.sub_idx) return true;
-          else if (a.sub_idx > b.sub_idx) return false;
-          else
-          {
-            if (a.shapeset_type < b.shapeset_type) return true;
-            else return false;
-          }
-        }
-      }
-    }
-  };
-
-  // Caching transformed values for element
-  std::map<Key, Func<double>*, Compare> cache_fn;
-  Geom<double>* cache_e[32];
-  double* cache_jwt[32];
-
-  void init_cache();
-  void delete_cache();
-
-  scalar eval_form(WeakForm::BiFormVol *bf, PrecalcShapeset *fu, PrecalcShapeset *fv, RefMap *ru, RefMap *rv);
-  scalar eval_form(WeakForm::LiFormVol *lf, PrecalcShapeset *fv, RefMap *rv);
-  scalar eval_form(WeakForm::BiFormSurf *bf, PrecalcShapeset *fu, PrecalcShapeset *fv, RefMap *ru, RefMap *rv, EdgePos* ep);
-  scalar eval_form(WeakForm::LiFormSurf *lf, PrecalcShapeset *fv, RefMap *rv, EdgePos* ep);
 
   scalar** get_matrix_buffer(int n)
   {
@@ -173,9 +113,9 @@ protected:
   bool struct_changed;
   bool want_dir_contrib;
   bool have_spaces;
-
+  
   friend class RefSystem;
-
+  
 };
 
 
@@ -184,27 +124,26 @@ protected:
 extern void set_order_limit_table(int* tri_table, int* quad_table, int n);
 
 // limit_order is used in integrals
-extern int  g_safe_max_order;
 extern int  g_max_order;
 extern int* g_order_table;
 
 #ifndef DEBUG_ORDER
   #define limit_order(o) \
-    if (o > g_safe_max_order) { o = g_safe_max_order; warn_order(); } \
+    if (o > g_max_order) { o = g_max_order; warn_order(); } \
     o = g_order_table[o];
   #define limit_order_nowarn(o) \
-    if (o > g_safe_max_order) o = g_safe_max_order; \
+    if (o > g_max_order) o = g_max_order; \
     o = g_order_table[o];
 #else
   #define limit_order(o) \
     if (o > g_max_order) warn_order(); \
-    o = g_safe_max_order;
+    o = g_max_order;
   #define limit_order_nowarn(o) \
-    o = g_safe_max_order;
+    o = g_max_order;
 #endif
 
 extern void warn_order();
 extern void update_limit_table(int mode);
 
-
+    
 #endif

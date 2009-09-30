@@ -44,7 +44,7 @@ double NEWTON_TOL_REF = 0.5;       // stopping criterion for Newton on fine mesh
 // adaptivity parameters
 int UNREF_FREQ = 1;                // every UNREF_FREQth time step the mesh
                                    // is unrefined
-double SPACE_H1_TOL = 1.0;         // stopping criterion for hp-adaptivity
+double SPACE_L2_TOL = 1.0;         // stopping criterion for hp-adaptivity
                                    // (relative error between reference and coarse solution in percent)
 double THR = 0.3;                  // parameter of the adaptivity procedure indicating how many
                                    // refinements will be done per adaptivity step
@@ -58,35 +58,30 @@ int SHOW_MESHES_IN_TIME_STEP = 0;  // if nonzero, all meshes during every time s
 
 /********** Definition of initial conditions ***********/
 
-scalar fn_init(double x, double y, scalar& dx, scalar& dy)
-{
-  scalar val = exp(-20*(x*x + y*y));
-  dx = val * (-40.0*x);
-  dy = val * (-40.0*y);
-  return val;
+scalar fn_init(double x, double y, scalar& dx, scalar& dy) {
+  return exp(-20*(x*x + y*y));
 }
 
 /********** Definition of Jacobian matrices and residual vectors ***********/
 
-# include "integrals.cpp"
+# include "forms.cpp"
 
 /********** Definition of linear and bilinear forms for Hermes ***********/
 
-// Implicit Euler method (1st-order in time)
-template<typename Real, typename Scalar>
-Scalar residuum_euler(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
-{  return F_euler(n, wt, v, e, ext);  }
-template<typename Real, typename Scalar>
-Scalar jacobian_euler(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
-{  return J_euler(n, wt, u, v, e, ext);  }
+Solution Psi_prev, // previous time step solution, for the time integration method
+         Psi_iter; // solution converging during the Newton's iteration
 
 // Implicit Euler method (1st-order in time)
-template<typename Real, typename Scalar>
-Scalar residuum_cranic(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
-{  return F_cranic(n, wt, v, e, ext);  }
-template<typename Real, typename Scalar>
-Scalar jacobian_cranic(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
-{  return J_cranic(n, wt, u, v, e, ext);  }
+complex linear_form_0_euler(RealFunction* fv, RefMap* rv)
+{ return F_euler(&Psi_prev, &Psi_iter, fv, rv); }
+complex bilinear_form_0_0_euler(RealFunction* fu, RealFunction* fv, RefMap* ru, RefMap* rv)
+{ return J_euler(&Psi_iter, fu, fv, ru, rv); }
+
+// Crank-Nicolson method (2nd-order in time)
+complex linear_form_0_cranic(RealFunction* fv, RefMap* rv)
+{ return F_cranic(&Psi_prev, &Psi_iter, fv, rv); }
+complex bilinear_form_0_0_cranic(RealFunction* fu, RealFunction* fv, RefMap* ru, RefMap* rv)
+{ return J_cranic(&Psi_iter, fu, fv, ru, rv); }
 
 
 // *************************************************************
@@ -105,17 +100,14 @@ int main(int argc, char* argv[])
   space.set_uniform_order(P_INIT);
   space.assign_dofs();
 
-  Solution Psi_prev, // previous time step solution, for the time integration method
-           Psi_iter; // solution converging during the Newton's iteration
-
   WeakForm wf(1);
   if(TIME_DISCR == 1) {
-    wf.add_biform(0, 0, callback(jacobian_euler), UNSYM, ANY, 1, &Psi_iter);
-    wf.add_liform(0, callback(residuum_euler), ANY, 2, &Psi_iter, &Psi_prev);
+    wf.add_biform(0, 0, bilinear_form_0_0_euler, UNSYM, ANY, 1, &Psi_iter);
+    wf.add_liform(0, linear_form_0_euler, ANY, 2, &Psi_iter, &Psi_prev);
   }
   else {
-    wf.add_biform(0, 0, callback(jacobian_cranic), UNSYM, ANY, 1, &Psi_iter);
-    wf.add_liform(0, callback(residuum_cranic), ANY, 2, &Psi_iter, &Psi_prev);
+    wf.add_biform(0, 0, bilinear_form_0_0_cranic, UNSYM, ANY, 1, &Psi_iter);
+    wf.add_liform(0, linear_form_0_cranic, ANY, 2, &Psi_iter, &Psi_prev);
   }
 
   UmfpackSolver umfpack;
@@ -224,9 +216,9 @@ int main(int argc, char* argv[])
       }
 
       H1OrthoHP hp(1, &space);
-      err = hp.calc_error(&sln, &rsln) * 100;   // relative h1-error in percent
-      info("Error: %g %g", err, l2_error(&sln, &rsln) * 100);
-      if (err < SPACE_H1_TOL) done = true;
+      err = hp.calc_error(&sln, &rsln) * 100;   // relative l2-error in percent
+      info("Error: %g", err);
+      if (err < SPACE_L2_TOL) done = true;
       else hp.adapt(THR, STRATEGY, H_ONLY, ISO_ONLY, MAX_P);
 
     }

@@ -45,8 +45,8 @@
 
 enum // node types
 {
-  TYPE_VERTEX = 0,
-  TYPE_EDGE = 1
+  TYPE_VERTEX = 0, 
+  TYPE_EDGE = 1 
 };
 
 enum // element modes
@@ -112,11 +112,6 @@ inline double sqr(complex x) { return std::norm(x); }
 inline double magn(double x) { return fabs(x); }
 #ifdef COMPLEX
 inline double magn(complex x) { return std::abs(x); }
-#endif
-
-inline double conj(double a) {  return a; }
-#ifdef COMPLEX
-inline complex conj(complex a) { return std::conj(a); }
 #endif
 
 #define is_int(x) ((int) (x) == (x))

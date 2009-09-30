@@ -17,20 +17,14 @@ double F(double x, double y)
 }
 
 // bilinear and linear form defining the projection
-template<typename Real, typename Scalar>
-Scalar bilinear_form(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+scalar bilinear_form(RealFunction* fu, RealFunction* fv, RefMap* ru, RefMap* rv)
 {
-  return int_u_v<Real, Scalar>(n, wt, u, v);
+  return int_u_v(fu, fv, ru, rv);
 }
 
-// return the value \int v dx
-template<typename Real, typename Scalar>
-Scalar linear_form(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+scalar linear_form(RealFunction* fv, RefMap* rv)
 {
-  Scalar result = 0;
-  for (int i = 0; i < n; i++)
-    result += wt[i] * ((pow(e->x[i], 3) + pow(e->y[i], 3)) * v->val[i]);
-  return result;
+  return int_F_v(F, fv, rv);
 }
 
 // boundary conditions
@@ -79,8 +73,8 @@ int main(int argc, char* argv[])
 
   // initialize the weak formulation
   WeakForm wf(1);
-  wf.add_biform(0, 0, callback(bilinear_form));
-  wf.add_liform(0, callback(linear_form));
+  wf.add_biform(0, 0, bilinear_form);
+  wf.add_liform(0, linear_form);
 
   // assemble and solve the finite element problem
   LinSystem sys(&wf, &umfpack);
