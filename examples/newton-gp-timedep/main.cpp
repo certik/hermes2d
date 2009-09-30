@@ -1,4 +1,3 @@
-#define DEBUG_ORDER
 #include "hermes2d.h"
 #include "solver_umfpack.h"
 
@@ -28,8 +27,8 @@ double H = 1;              //Planck constant 6.626068e-34;
 double M = 1;
 double G = 1;
 double OMEGA = 1;
-int TIME_DISCR = 1;        // 1 for implicit Euler, 2 for Crank-Nicolson
-int PROJ_TYPE = 0;         // 0 for L2 projections, 1 for H1 projections
+int TIME_DISCR = 2;        // 1 for implicit Euler, 2 for Crank-Nicolson
+int PROJ_TYPE = 2;         // 1 for H1 projections, 2 for L2 projections
 double T_FINAL = 2;        // time interval length
 double TAU = 0.001;        // time step
 int P_INIT = 2;            // initial polynomial degree
@@ -38,33 +37,42 @@ double NEWTON_TOL = 1e-3;  // convergence criterion for the Newton's method
 
 /********** Definition of initial conditions ***********/
 
-scalar fn_init(double x, double y, scalar& dx, scalar& dy)
+scalar fn_init(double x, double y, scalar& dx, scalar& dy) {
+  return complex(exp(-10*(x*x + y*y)), 0);
+}
+
+/********** Definition of boundary conditions ***********/
+
+int bc_types(int marker)
 {
-  scalar val = exp(-10*(x*x + y*y));
-  dx = val * (-20.0 * x);
-  dy = val * (-20.0 * y);
-  return val;
+  return BC_ESSENTIAL;
+}
+
+complex bc_values(int marker, double x, double y)
+{
+  return complex(0.0, 0.0);
 }
 
 /********** Definition of Jacobian matrices and residual vectors ***********/
 
-# include "integrals.cpp"
+# include "forms.cpp"
+
+/********** Definition of linear and bilinear forms for Hermes ***********/
+
+Solution Psi_prev, // previous time step solution, for the time integration method
+         Psi_iter; // solution converging during the Newton's iteration
 
 // Implicit Euler method (1st-order in time)
-template<typename Real, typename Scalar>
-Scalar residuum_euler(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
-{  return F_euler(n, wt, v, e, ext);  }
-template<typename Real, typename Scalar>
-Scalar jacobian_euler(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
-{  return J_euler(n, wt, u, v, e, ext);  }
+complex linear_form_0_euler(RealFunction* fv, RefMap* rv)
+{ return F_euler(&Psi_prev, &Psi_iter, fv, rv); }
+complex bilinear_form_0_0_euler(RealFunction* fu, RealFunction* fv, RefMap* ru, RefMap* rv)
+{ return J_euler(&Psi_iter, fu, fv, ru, rv); }
 
-// Implicit Euler method (1st-order in time)
-template<typename Real, typename Scalar>
-Scalar residuum_cranic(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
-{  return F_cranic(n, wt, v, e, ext);  }
-template<typename Real, typename Scalar>
-Scalar jacobian_cranic(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
-{  return J_cranic(n, wt, u, v, e, ext);  }
+// Crank-Nicolson method (2nd-order in time)
+complex linear_form_0_cranic(RealFunction* fv, RefMap* rv)
+{ return F_cranic(&Psi_prev, &Psi_iter, fv, rv); }
+complex bilinear_form_0_0_cranic(RealFunction* fu, RealFunction* fv, RefMap* ru, RefMap* rv)
+{ return J_cranic(&Psi_iter, fu, fv, ru, rv); }
 
 
 // *************************************************************
@@ -79,20 +87,19 @@ int main(int argc, char* argv[])
   PrecalcShapeset pss(&shapeset);
 
   H1Space space(&mesh, &shapeset);
+  space.set_bc_types(bc_types);
+  space.set_bc_values(bc_values);
   space.set_uniform_order(P_INIT);
   space.assign_dofs();
 
-  Solution Psi_prev, // previous time step solution, for the time integration method
-           Psi_iter; // solution converging during the Newton's iteration
-
   WeakForm wf(1);
   if(TIME_DISCR == 1) {
-    wf.add_biform(0, 0, callback(jacobian_euler), UNSYM, ANY, 1, &Psi_iter);
-    wf.add_liform(0, callback(residuum_euler), ANY, 2, &Psi_iter, &Psi_prev);
+    wf.add_biform(0, 0, bilinear_form_0_0_euler, UNSYM, ANY, 1, &Psi_iter);
+    wf.add_liform(0, linear_form_0_euler, ANY, 2, &Psi_iter, &Psi_prev);
   }
   else {
-    wf.add_biform(0, 0, callback(jacobian_cranic), UNSYM, ANY, 1, &Psi_iter);
-    wf.add_liform(0, callback(residuum_cranic), ANY, 2, &Psi_iter, &Psi_prev);
+    wf.add_biform(0, 0, bilinear_form_0_0_cranic, UNSYM, ANY, 1, &Psi_iter);
+    wf.add_liform(0, linear_form_0_cranic, ANY, 2, &Psi_iter, &Psi_prev);
   }
 
   UmfpackSolver umfpack;
@@ -106,15 +113,16 @@ int main(int argc, char* argv[])
 
   // setting initial condition at zero time level
   Psi_prev.set_exact(&mesh, fn_init);
-  Psi_iter.set_exact(&mesh, fn_init);
-  nls.set_ic(&Psi_iter, &Psi_iter, PROJ_TYPE);
+  nls.set_ic(&Psi_prev, &Psi_prev, PROJ_TYPE);
+  Psi_iter.copy(&Psi_prev);
 
   // view initial guess for Newton's method
-//   sprintf(title, "Initial guess for the Newton's method");
-//   view.set_title(title);
-//   view.show(&Psi_iter);
-//   view.wait_for_keypress();
-
+  /*
+  sprintf(title, "Initial guess for the Newton's method");
+  view.set_title(title);
+  view.show(&Psi_iter);
+  view.wait_for_keypress();
+  */
 
   Solution sln;
   // time stepping
@@ -142,11 +150,12 @@ int main(int argc, char* argv[])
       res_l2_norm = nls.get_residuum_l2_norm();
       info("Residuum L2 norm: %g\n", res_l2_norm);
       // want to see Newtons iterations
-//        sprintf(title, "Time level %d, Newton iteration %d", n, it-1);
-//        view.set_title(title);
-//        view.show(&sln);
-//        view.wait_for_keypress();
-
+      /*
+       sprintf(title, "Time level %d, Newton iteration %d", n, it-1);
+       view.set_title(title);
+       view.show(&sln);
+       view.wait_for_keypress();
+      */
 
       Psi_iter = sln;
 

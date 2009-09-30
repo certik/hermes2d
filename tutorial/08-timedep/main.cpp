@@ -55,34 +55,35 @@ int bc_types(int marker)
 // function values for Dirichlet boundary markers
 scalar bc_values(int marker, double x, double y)
 {
-  return T_INIT;
+  if (marker == marker_ground) return T_INIT;
 }
 
-template<typename Real, typename Scalar>
-Scalar bilinear_form(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+// previous time step solution
+Solution Tprev;
+
+// Implicit Euler method ... dT/dt approximated by (Tnew - Tprev)/TAU
+// bilinear forms
+scalar bilinear_form_0_0_euler(RealFunction* fu, RealFunction* fv, RefMap* ru, RefMap* rv)
 {
-  return HEATCAP * RHO * int_u_v<Real, Scalar>(n, wt, u, v) / TAU +
-         LAMBDA * int_grad_u_grad_v<Real, Scalar>(n, wt, u, v);
+  return HEATCAP * RHO * int_u_v(fu, fv, ru, rv) / TAU
+    + LAMBDA * int_grad_u_grad_v(fu, fv, ru, rv);
 }
 
-template<typename Real, typename Scalar>
-Scalar linear_form(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+scalar bilinear_form_0_0_surf(RealFunction* fu, RealFunction* fv, RefMap* ru, RefMap* rv, EdgePos *ep)
 {
-  return HEATCAP * RHO * int_u_v<Real, Scalar>(n, wt, ext->fn[0], v) / TAU;
+  return LAMBDA * ALPHA * surf_int_u_v(fu, fv, ru, rv, ep);
 }
 
-template<typename Real, typename Scalar>
-Scalar bilinear_form_surf(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+// linear forms
+scalar linear_form_0_euler(RealFunction* fv, RefMap* rv)
 {
-  return LAMBDA * ALPHA * int_u_v<Real, Scalar>(n, wt, u, v);
+  return HEATCAP * RHO * int_u_v(&Tprev, fv, Tprev.get_refmap(), rv) / TAU;
 }
 
-template<typename Real, typename Scalar>
-Scalar linear_form_surf(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+scalar linear_form_0_surf(RealFunction* fv, RefMap* rv, EdgePos *ep)
 {
-  return LAMBDA * ALPHA * temp_ext(TIME) * int_v<Real, Scalar>(n, wt, v);
+  return LAMBDA * ALPHA * temp_ext(TIME + TAU) * surf_int_v(fv, rv, ep);
 }
-
 
 int main(int argc, char* argv[])
 {
@@ -105,16 +106,12 @@ int main(int argc, char* argv[])
   // enumerate basis functions
   space.assign_dofs();
 
-  // set initial condition
-  Solution tsln;
-  tsln.set_const(&mesh, T_INIT);
-
   // weak formulation
   WeakForm wf(1);
-  wf.add_biform(0, 0, bilinear_form<double, double>, bilinear_form<Ord, Ord>);
-  wf.add_biform_surf(0, 0, bilinear_form_surf<double, double>, bilinear_form_surf<Ord, Ord>, marker_air);
-  wf.add_liform(0, linear_form<double, double>, linear_form<Ord, Ord>, ANY, 1, &tsln);
-  wf.add_liform_surf(0, linear_form_surf<double, double>, linear_form_surf<Ord, Ord>, marker_air);
+  wf.add_biform(0, 0, bilinear_form_0_0_euler, SYM, ANY);
+  wf.add_liform(0, linear_form_0_euler, ANY, 1, &Tprev);
+  wf.add_biform_surf(0, 0, bilinear_form_0_0_surf, marker_air);
+  wf.add_liform_surf(0, linear_form_0_surf, marker_air);
 
   // matrix solver
   UmfpackSolver umfpack;
@@ -123,6 +120,9 @@ int main(int argc, char* argv[])
   LinSystem ls(&wf, &umfpack);
   ls.set_spaces(1, &space);
   ls.set_pss(1, &pss);
+
+  // set initial condition
+  Tprev.set_const(&mesh, T_INIT);
 
   // visualisation
   ScalarView Tview("Temperature", 0, 0, 450, 600);
@@ -133,6 +133,7 @@ int main(int argc, char* argv[])
   Tview.fix_scale_width(3);
 
   // time stepping
+  Solution Tnew;
   int nsteps = (int)(FINAL_TIME/TAU + 0.5);
   bool rhsonly = false;
   for(int n = 1; n <= nsteps; n++)
@@ -143,7 +144,7 @@ int main(int argc, char* argv[])
     // assemble and solve
     ls.assemble(rhsonly);
     rhsonly = true;
-    ls.solve(1, &tsln);
+    ls.solve(1, &Tnew);
 
     // shifting the time variable
     TIME += TAU;
@@ -151,9 +152,11 @@ int main(int argc, char* argv[])
     // visualization of solution
     sprintf(title, "Time %3.2f, exterior temperature %3.5f", TIME, temp_ext(TIME));
     Tview.set_title(title);
-    Tview.show(&tsln);
+    Tview.show(&Tnew);
     //Tview.wait_for_keypress();
 
+    // copying Tnew into Tprev
+    Tprev = Tnew;
   }
 
   // Note: a separate example shows how to create videos

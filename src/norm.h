@@ -31,7 +31,7 @@ double calc_norm(double (*fn)(MeshFunction*, RefMap*), MeshFunction* sln);
 
 double l2_error(MeshFunction* sln1, MeshFunction* sln2);
 double l2_norm(MeshFunction* sln);
-
+ 
 double h1_error(MeshFunction* sln1, MeshFunction* sln2);
 double h1_norm(MeshFunction* sln);
 
@@ -40,9 +40,6 @@ double h1_norm(MeshFunction* sln);
 double hcurl_error(MeshFunction* sln1, MeshFunction* sln2);
 double hcurl_norm(MeshFunction* sln);
 
-double hcurl_l2error(MeshFunction* sln1, MeshFunction* sln2);
-double hcurl_l2norm(MeshFunction* sln);
-
 #endif
-
+ 
 #endif

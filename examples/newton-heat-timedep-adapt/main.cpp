@@ -22,37 +22,37 @@
 const int P_INIT = 2;             // Initial polynomial degree of all mesh elements.
 const int REF_INIT = 2;           // Number of initial refinements.
 const int UNREF_FREQ = 1;         // Every UNREF_FREQth time step the mesh is unrefined.
-const double SPACE_H1_TOL = 0.5;  // Stopping criterion for hp-adaptivity
+const double SPACE_L2_TOL = 0.5;  // Stopping criterion for hp-adaptivity
                                   // (relative error between reference and coarse solution in percent).
-const double THRESHOLD = 0.3;     // This is a quantitative parameter of the adapt(...) function and
+const double THRESHOLD = 0.3;     // This is a quantitative parameter of the adapt(...) function and 
                                   // it has different meanings for various adaptive strategies (see below).
 const int STRATEGY = 0;           // Adaptive strategy:
-                                  // STRATEGY = 0 ... refine elements until sqrt(THRESHOLD) times total
-                                  //   error is processed. If more elements have similar errors, refine
+                                  // STRATEGY = 0 ... refine elements until sqrt(THRESHOLD) times total 
+                                  //   error is processed. If more elements have similar errors, refine 
                                   //   all to keep the mesh symmetric.
-                                  // STRATEGY = 1 ... refine all elements whose error is larger
+                                  // STRATEGY = 1 ... refine all elements whose error is larger  
                                   //   than THRESHOLD times maximum element error.
-                                  // STRATEGY = 2 ... refine all elements whose error is larger
+                                  // STRATEGY = 2 ... refine all elements whose error is larger 
                                   //   than THRESHOLD.
                                   // More adaptive strategies can be created in adapt_ortho_h1.cpp.
 const int ADAPT_TYPE = 0;         // Type of automatic adaptivity:
                                   // ADAPT_TYPE = 0 ... adaptive hp-FEM (default),
-                                  // ADAPT_TYPE = 1 ... adaptive h-FEM,
-                                  // ADAPT_TYPE = 2 ... adaptive p-FEM.
+                                  // ADAPT_TYPE = 1 ... adaptive h-FEM, 
+                                  // ADAPT_TYPE = 2 ... adaptive p-FEM. 
 const bool ISO_ONLY = false;      // Isotropic refinement flag (concerns quadrilateral elements only).
                                   // ISO_ONLY = false ... anisotropic refinement of quad elements
-                                  // is allowed (default),
+                                  // is allowed (default), 
                                   // ISO_ONLY = true ... only isotropic refinements of quad elements
                                   // are allowed.
 const int MESH_REGULARITY = -1;   // Maximum allowed level of hanging nodes:
                                   // MESH_REGULARITY = -1 ... arbitrary level hangning nodes (default),
                                   // MESH_REGULARITY = 1 ... at most one-level hanging nodes,
-                                  // MESH_REGULARITY = 2 ... at most two-level hanging nodes, etc.
-                                  // Note that regular meshes are not supported, this is due to
-                                  // their notoriously bad performance.
+                                  // MESH_REGULARITY = 2 ... at most two-level hanging nodes, etc.  
+                                  // Note that regular meshes are not supported, this is due to 
+                                  // their notoriously bad performance. 
 const double ERR_STOP = 0.15;     // Stopping criterion for adaptivity (rel. error tolerance between the
                                   // fine mesh and coarse mesh solution in percent).
-const int NDOF_STOP = 50000;      // Adaptivity process stops when the number of degrees of freedom grows
+const int NDOF_STOP = 50000;      // Adaptivity process stops when the number of degrees of freedom grows 
                                   // over this limit. This is to prevent h-adaptivity to go on forever.
 
 // time discretization parameters
@@ -68,12 +68,10 @@ const double NEWTON_TOL_REF = 0.5;       // stopping criterion for Newton on fin
                                    // (the ref. solution does not to be super accurate)
 
 // thermal conductivity (nonlinear, temperature-dependent
-// for any u, this function has to be positive in the entire
+// for any u, this function has to be positive in the entire 
 // to ensure solvability!
-template<typename Real>
-Real lam(Real T) { return 10 + 0.1*pow(T, 2); }
-template<typename Real>
-Real dlam_dT(Real T) { return 0.1*2*pow(T, 1); }
+double lam(double T) { return 10 + 0.1*pow(T, 2); }
+double dlam_dT(double T) { return 0.1*2*pow(T, 1); }
 
 // boundary conditions
 int bc_types(int marker)
@@ -84,61 +82,30 @@ int bc_types(int marker)
 
 scalar bc_values(int marker, double x, double y)
 {
-  return 100;
+  if (marker == 1) return 100;
+  else return 0.0;
 }
 
 // Jacobian matrices and residual vectors
 
-// Residuum for the implicit Euler time discretization
-template<typename Real, typename Scalar>
-Scalar F_euler(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
-{
-  Scalar result = 0;
-  Func<Scalar>* titer = ext->fn[0];
-  Func<Scalar>* tprev = ext->fn[1];
-  for (int i = 0; i < n; i++)
-    result += wt[i] * (HEATCAP*(titer->val[i] - tprev->val[i]) * v->val[i] / TAU +
-                       lam(titer->val[i]) * (titer->dx[i] * v->dx[i] + titer->dy[i] * v->dy[i]));
-  return result;
-}
+# include "forms.cpp"
 
-template<typename Real, typename Scalar>
-Scalar J_euler(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
-{
-  Scalar result = 0;
-  Func<Scalar>* titer = ext->fn[0];
-  for (int i = 0; i < n; i++)
-    result += wt[i] * (HEATCAP * u->val[i] * v->val[i] / TAU +
-                       dlam_dT(titer->val[i]) * u->val[i] * (titer->dx[i] * v->dx[i] + titer->dy[i] * v->dy[i]) +
-                       lam(titer->val[i]) * (u->dx[i] * v->dx[i] + u->dy[i] * v->dy[i]));
-  return result;
-}
+// linear and bilinear forms
 
-// Residuum for the implicit Euler time discretization
-template<typename Real, typename Scalar>
-Scalar F_cranic(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
-{
-  Scalar result = 0;
-  Func<Scalar>* titer = ext->fn[0];
-  Func<Scalar>* tprev = ext->fn[1];
-  for (int i = 0; i < n; i++)
-    result += wt[i] * (HEATCAP * (titer->val[i] - tprev->val[i]) * v->val[i] / TAU +
-                       0.5 * lam(titer->val[i]) * (titer->dx[i] * v->dx[i] + titer->dy[i] * v->dy[i]) +
-                       0.5 * lam(tprev->val[i]) * (tprev->dx[i] * v->dx[i] + tprev->dy[i] * v->dy[i]));
-  return result;
-}
+Solution Tprev, // previous time step solution, for the time integration method
+         Titer; // solution converging during the Newton's iteration
 
-template<typename Real, typename Scalar>
-Scalar J_cranic(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
-{
-  Scalar result = 0;
-  Func<Scalar>* titer = ext->fn[0];
-  for (int i = 0; i < n; i++)
-    result += wt[i] * (HEATCAP * u->val[i] * v->val[i] / TAU +
-                       0.5 * dlam_dT(titer->val[i]) * u->val[i] * (titer->dx[i] * v->dx[i] + titer->dy[i] * v->dy[i]) +
-                       0.5 * lam(titer->val[i]) * (u->dx[i] * v->dx[i] + u->dy[i] * v->dy[i]));
-  return result;
-}
+// Implicit Euler method (1st-order in time)
+scalar linear_form_0_euler(RealFunction* fv, RefMap* rv)
+{ return F_euler(&Tprev, &Titer, fv, rv); }
+scalar bilinear_form_0_0_euler(RealFunction* fu, RealFunction* fv, RefMap* ru, RefMap* rv)
+{ return J_euler(&Titer, fu, fv, ru, rv); }
+
+// Crank-Nicolson method (2nd-order in time)
+scalar linear_form_0_cranic(RealFunction* fv, RefMap* rv)
+{ return F_cranic(&Tprev, &Titer, fv, rv); }
+scalar bilinear_form_0_0_cranic(RealFunction* fu, RealFunction* fv, RefMap* ru, RefMap* rv)
+{ return J_cranic(&Titer, fu, fv, ru, rv); }
 
 int main(int argc, char* argv[])
 {
@@ -153,7 +120,7 @@ int main(int argc, char* argv[])
   H1Shapeset shapeset;
   PrecalcShapeset pss(&shapeset);
 
-  // create finite element space
+  // create finite element space 
   H1Space space(&mesh, &shapeset);
   space.set_bc_types(bc_types);
   space.set_bc_values(bc_values);
@@ -163,23 +130,20 @@ int main(int argc, char* argv[])
   // enumerate basis functions
   space.assign_dofs();
 
-  Solution Tprev, // previous time step solution, for the time integration method
-           Titer; // solution converging during the Newton's iteration
-
   // initialize the weak formulation
   WeakForm wf(1);
   if(TIME_DISCR == 1) {
-    wf.add_biform(0, 0, callback(J_euler), UNSYM, ANY, 1, &Titer);
-    wf.add_liform(0, callback(F_euler), ANY, 2, &Titer, &Tprev);
+    wf.add_biform(0, 0, bilinear_form_0_0_euler, UNSYM, ANY, 1, &Titer);
+    wf.add_liform(0, linear_form_0_euler, ANY, 2, &Titer, &Tprev);
   }
   else {
-    wf.add_biform(0, 0, callback(J_cranic), UNSYM, ANY, 1, &Titer);
-    wf.add_liform(0, callback(F_cranic), ANY, 2, &Titer, &Tprev);
+    wf.add_biform(0, 0, bilinear_form_0_0_cranic, UNSYM, ANY, 1, &Titer);
+    wf.add_liform(0, linear_form_0_cranic, ANY, 2, &Titer, &Tprev);
   }
 
   // matrix solver
   UmfpackSolver solver;
-
+ 
   // nonlinear system class
   NonlinSystem nls(&wf, &solver);
   nls.set_spaces(1, &space);
@@ -190,7 +154,7 @@ int main(int argc, char* argv[])
   view.fix_scale_width(60);
   OrderView ordview("", 700, 0, 700, 600);
 
-  // error estimate as a function of physical time
+  // error estimate as a function of physical time 
   GnuplotGraph graph_err;
   graph_err.set_captions("","Time step","Error");
   graph_err.add_row();
@@ -203,8 +167,8 @@ int main(int argc, char* argv[])
   // initial condition at zero time level
   //Tprev.set_const(&mesh, 0.0);
   Tprev.set_dirichlet_lift(&space, &pss);
-  Titer.set_dirichlet_lift(&space, &pss);
-  nls.set_ic(&Titer, &Titer, PROJ_TYPE);
+  nls.set_ic(&Tprev, &Tprev, PROJ_TYPE);
+  Titer.copy(&Tprev);
 
   // view initial guess for Newton's method
   // satisfies BC conditions
@@ -228,7 +192,7 @@ int main(int argc, char* argv[])
     begin_time();
 
     // perform periodic unrefinements
-    if (n % UNREF_FREQ == 0) {
+    if (n % UNREF_FREQ == 0) {     
       mesh.copy(&basemesh);
       space.set_uniform_order(P_INIT);
       space.assign_dofs();
@@ -299,8 +263,8 @@ int main(int argc, char* argv[])
       ordview.show(&space);   // to see hp-mesh
       //view.wait_for_keypress();
 
-      // if err_est too large, adapt the mesh
-      if (err_est < SPACE_H1_TOL) done = true;
+      // if err_est too large, adapt the mesh 
+      if (err_est < SPACE_L2_TOL) done = true;
       else {
         hp.adapt(THRESHOLD, STRATEGY, ADAPT_TYPE, ISO_ONLY, MESH_REGULARITY);
         ndofs = space.assign_dofs();

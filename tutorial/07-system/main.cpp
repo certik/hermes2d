@@ -34,33 +34,19 @@ int bc_types_y(int marker)
 double bc_values_y(EdgePos* ep)
   { return (ep->marker == 3) ? f : 0.0; }
 
-template<typename Real, typename Scalar>
-Scalar bilinear_form_0_0(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
-{
-  return (lambda + 2*mu) * int_dudx_dvdx<Real, Scalar>(n, wt, u, v) +
-                      mu * int_dudy_dvdy<Real, Scalar>(n, wt, u, v);
-}
+// bilinear forms
+scalar bilinear_form_0_0(RealFunction* fu, RealFunction* fv, RefMap* ru, RefMap* rv)
+  { return int_a_dudx_dvdx_b_dudy_dvdy(lambda+2*mu, fu, mu, fv, ru, rv); }
 
-template<typename Real, typename Scalar>
-Scalar bilinear_form_0_1(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
-{
-  return lambda * int_dudy_dvdx<Real, Scalar>(n, wt, u, v) +
-             mu * int_dudx_dvdy<Real, Scalar>(n, wt, u, v);
-}
+scalar bilinear_form_0_1(RealFunction* fu, RealFunction* fv, RefMap* ru, RefMap* rv)
+  { return int_a_dudx_dvdy_b_dudy_dvdx(lambda, fv, mu, fu, rv, ru); }
 
-template<typename Real, typename Scalar>
-Scalar bilinear_form_1_1(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
-{
-  return              mu * int_dudx_dvdx<Real, Scalar>(n, wt, u, v) +
-         (lambda + 2*mu) * int_dudy_dvdy<Real, Scalar>(n, wt, u, v);
-}
+scalar bilinear_form_1_1(RealFunction* fu, RealFunction* fv, RefMap* ru, RefMap* rv)
+  { return int_a_dudx_dvdx_b_dudy_dvdy(mu, fu, lambda+2*mu, fv, ru, rv); }
 
-template<typename Real, typename Scalar>
-Scalar linear_form_surf_1(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
-{
-  return f * int_v<Real, Scalar>(n, wt, v);
-}
-
+// linear form
+scalar linear_form_1_surf(RealFunction* fv, RefMap* rv, EdgePos* ep)
+  { return surf_int_G_v(fv, rv, ep); }
 
 int main(int argc, char* argv[])
 {
@@ -81,15 +67,16 @@ int main(int argc, char* argv[])
   // create the y displacement space
   H1Space ydisp(&mesh, &shapeset);
   ydisp.set_bc_types(bc_types_y);
-  ydisp.set_uniform_order(P_INIT);
+  ydisp.set_bc_values(bc_values_y);
+  ydisp.set_uniform_order(8);
   ndofs += ydisp.assign_dofs(ndofs);
 
   // initialize the weak formulation
   WeakForm wf(2);
-  wf.add_biform(0, 0, callback(bilinear_form_0_0), SYM);  // note that only one symmetric part is
-  wf.add_biform(0, 1, callback(bilinear_form_0_1), SYM);  // added in the case of symmetric bilinear
-  wf.add_biform(1, 1, callback(bilinear_form_1_1), SYM);  // forms
-  wf.add_liform_surf(1, callback(linear_form_surf_1), 3);
+  wf.add_biform(0, 0, bilinear_form_0_0, SYM);  // Note that only one symmetric part is
+  wf.add_biform(0, 1, bilinear_form_0_1, SYM);  // added in the case of symmetric bilinear
+  wf.add_biform(1, 1, bilinear_form_1_1, SYM);  // forms.
+  wf.add_liform_surf(1, linear_form_1_surf);
 
   // initialize the linear system and solver
   UmfpackSolver umfpack;
