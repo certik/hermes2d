@@ -370,6 +370,8 @@ class ScalarView(object):
         self._lib = None
         self._notebook = False
 
+        self._figure = None
+
     def show_scale(self, *args):
         pass
 
@@ -396,15 +398,28 @@ class ScalarView(object):
         self._lib = lib
         self._notebook = notebook
         if lib == "mpl":
-            plot_sln_mpl(sln, **options)
+            import wx
+            app = wx.App(redirect=False, clearSigInt=False)
+            import matplotlib
+            matplotlib.use('WXAgg')
+            from matplotlib import pyplot as plt
+            plt.interactive(True)
             import pylab
+            #pylab.ion()
+            if self._figure is None:
+                self._figure = pylab.figure()
+            plot_sln_mpl(sln, axes=self._figure.gca(), **options)
             if show:
                 if notebook:
                     pylab.savefig(filename)
                 else:
-                    pylab.ion()
-                    pylab.draw()
-                    pylab.ioff()
+                    print "drawing!"
+                    #pylab.draw()
+                    #pylab.ioff()
+                    #pylab.show()
+                    import inputhook
+                    inputhook.inputhook_wx3()
+                    print "  done"
         elif lib == "mayavi":
             plot_sln_mayavi(sln, notebook=notebook)
             from enthought.mayavi import mlab

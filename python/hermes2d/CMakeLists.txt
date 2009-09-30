@@ -34,7 +34,10 @@ set_target_properties(_hermes2d PROPERTIES
     INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib/python/hermes2d"
     )
 
-install(FILES __init__.py plot.py runtests.py mesh.py demos.py
+install(FILES
+    __init__.py plot.py runtests.py mesh.py demos.py
+    inputhook.py
+
     DESTINATION lib/python/hermes2d
     )
 
