@@ -23,7 +23,13 @@
 #define __HERMES2D_QUAD_H
 
 #include "common.h"
+#include "config.h"
 
+#ifdef EXTREME_QUAD
+  const int g_max_quad = 99;
+#else
+  const int g_max_quad = 24;
+#endif
 
 /// Quad1D is a base class for all 1D quadrature points.
 ///

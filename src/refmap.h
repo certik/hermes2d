@@ -162,7 +162,7 @@ protected:
   double const_jacobian;
   double2x2 const_inv_ref_map;
 
-  static const int max_tables = 30;
+  static const int max_tables = g_max_quad + 1 + 4;
 
   struct Node
   {

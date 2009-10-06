@@ -27,7 +27,7 @@
 #include "precalc.h"
 #include "refmap.h"
 #include "solution.h"
-
+#include "config.h"
 
 
 void qsort_int(int* pbase, size_t total_elems); // defined in qsort.cpp
@@ -41,14 +41,27 @@ static int default_order_table_tri[] =
   20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20
 };
 
+#ifdef EXTREME_QUAD
+static int default_order_table_quad[] =
+{
+  1, 1, 3, 3, 5, 5, 7, 7, 9, 9, 11, 11, 13, 13, 15, 15,
+  17, 17, 19, 19, 21, 21, 23, 23, 25, 25, 27, 27, 29, 29, 31, 31,
+  33, 33, 35, 35, 37, 37, 39, 39, 41, 41, 43, 43, 45, 45, 47, 47,
+  49, 49, 51, 51, 53, 53, 55, 55, 57, 57, 59, 59, 61, 61, 63, 63,
+  65, 65, 67, 67, 69, 69, 71, 71, 73, 73, 75, 75, 77, 77, 79, 79,
+  81, 81, 83, 83, 85, 85, 87, 87, 89, 89, 91, 91, 93, 93, 95, 95,
+  97, 97, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99
+};
+#else
 static int default_order_table_quad[] =
 {
   1, 1, 3, 3, 5, 5, 7, 7, 9, 9, 11, 11, 13, 13, 15, 15, 17,
   17, 19, 19, 21, 21, 23, 23, 24, 24, 24, 24, 24, 24, 24,
-  24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24,
-  24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24,
-  24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24
+  24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24,
+  24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24,
+  24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24
 };
+#endif
 
 int  g_max_order, g_safe_max_order;
 int* g_order_table_quad = default_order_table_quad;
@@ -726,7 +739,7 @@ Func<double>* LinSystem::get_fn(PrecalcShapeset *fu, RefMap *rm, const int order
 // Caching transformed values
 void LinSystem::init_cache()
 {
-  for (int i = 0; i < 32; i++)
+  for (int i = 0; i < g_max_quad + 1 + 4; i++)
   {
     cache_e[i] = NULL;
     cache_jwt[i] = NULL;
@@ -735,7 +748,7 @@ void LinSystem::init_cache()
 
 void LinSystem::delete_cache()
 {
-  for (int i = 0; i < 32; i++)
+  for (int i = 0; i < g_max_quad + 1 + 4; i++)
   {
     if (cache_e[i] != NULL)
     {
