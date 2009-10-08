@@ -18,6 +18,33 @@ cdef class Nurbs:
     def degree(self):
         return self.thisptr.degree
 
+    @property
+    def np(self):
+        return self.thisptr.np
+
+    @property
+    def pt(self):
+        cdef double3 *pt = self.thisptr.pt
+        cdef int np = self.thisptr.np
+        cdef ndarray vec = array_double_c2numpy(<double *>pt, 3*np)
+        return vec.reshape((np, 3))
+
+    @property
+    def nk(self):
+        return self.thisptr.nk
+
+    @property
+    def kv(self):
+        cdef double *kv = self.thisptr.kv
+        cdef int nk = self.thisptr.nk
+        cdef ndarray vec = array_double_c2numpy(<double *>kv, nk)
+        return vec
+        #return vec.reshape((kv,))
+
+    @property
+    def ref(self):
+        return self.thisptr.nk
+
 cdef class CurvMap:
     cdef c_CurvMap *thisptr
 
@@ -26,6 +53,8 @@ cdef class CurvMap:
         return self.thisptr.order
 
     def get_nurbs(self, int k):
+        if self.thisptr.nurbs[k] == NULL:
+            raise Exception("The edge %d has no nurbs assigned." % k)
         cdef Nurbs n = Nurbs()
         n.thisptr = self.thisptr.nurbs[k]
         return n
@@ -102,6 +131,8 @@ cdef class Element:
 
     @property
     def curved_map(self):
+        if self.thisptr.cm == NULL:
+            raise Exception("Element has no curved edges.")
         cdef CurvMap cm = CurvMap()
         cm.thisptr = self.thisptr.cm
         return cm
