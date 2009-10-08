@@ -11,6 +11,13 @@ FN_ALL = c_FN_ALL
 EPS_NORMAL = c_EPS_NORMAL
 EPS_HIGH = c_EPS_HIGH
 
+cdef class CurvMap:
+    cdef c_CurvMap *thisptr
+
+    @property
+    def order(self):
+        return self.thisptr.order
+
 cdef class Node:
     cdef c_Node *thisptr
 
@@ -80,6 +87,12 @@ cdef class Element:
         cdef Node n = Node()
         n.thisptr = self.thisptr.vn[id]
         return n
+
+    @property
+    def curved_map(self):
+        cdef CurvMap cm = CurvMap()
+        cm.thisptr = self.thisptr.cm
+        return cm
 
     def get_edge_node(self, int id):
         cdef Node n = Node()
