@@ -74,7 +74,7 @@ cdef extern from "hermes2d.h":
     cdef struct c_Nurbs "Nurbs":
         int degree
         int np
-        double3 pt
+        double3 *pt
         int nk
         double *kv
         int ref
