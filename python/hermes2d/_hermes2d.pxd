@@ -71,9 +71,18 @@ cdef extern from "hermes2d.h":
     ctypedef int int3[3]
     ctypedef int int2[2]
 
+    cdef struct c_Nurbs "Nurbs":
+        int degree
+        int np
+        double3 pt
+        int nk
+        double *kv
+        int ref
+
     cdef struct c_CurvMap "CurvMap":
         int toplevel
         int order
+        c_Nurbs* nurbs[4]
 
     cdef struct c_Node "Node":
         int id

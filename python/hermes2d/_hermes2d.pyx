@@ -11,12 +11,24 @@ FN_ALL = c_FN_ALL
 EPS_NORMAL = c_EPS_NORMAL
 EPS_HIGH = c_EPS_HIGH
 
+cdef class Nurbs:
+    cdef c_Nurbs *thisptr
+
+    @property
+    def degree(self):
+        return self.thisptr.degree
+
 cdef class CurvMap:
     cdef c_CurvMap *thisptr
 
     @property
     def order(self):
         return self.thisptr.order
+
+    def get_nurbs(self, int k):
+        cdef Nurbs n = Nurbs()
+        n.thisptr = self.thisptr.nurbs[k]
+        return n
 
 cdef class Node:
     cdef c_Node *thisptr
