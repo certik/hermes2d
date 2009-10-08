@@ -71,6 +71,10 @@ cdef extern from "hermes2d.h":
     ctypedef int int3[3]
     ctypedef int int2[2]
 
+    cdef struct c_CurvMap "CurvMap":
+        int toplevel
+        int order
+
     cdef struct c_Node "Node":
         int id
         unsigned ref
@@ -90,6 +94,7 @@ cdef extern from "hermes2d.h":
         c_Node* vn[4]
         c_Node* en[4]
         c_Element* sons[4]
+        c_CurvMap* cm
         double get_area()
         double get_diameter()
 
