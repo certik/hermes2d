@@ -265,6 +265,8 @@ void Solution::free()
     own_mesh = false;
   }
 
+  e_last = NULL;
+
   free_tables();
 }
 
