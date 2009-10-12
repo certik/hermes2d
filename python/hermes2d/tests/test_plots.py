@@ -193,10 +193,3 @@ def test_plot_mesh4():
 
     view = MeshView("Solution")
     view.show(mesh, lib="mpl", show=False, method="orders")
-
-def test_plot_mesh5():
-    mesh = Mesh()
-    mesh.load(domain_mesh)
-
-    view = MeshView("Solution")
-    view.show(mesh, lib="mpl", show=False, method="orders", legend=True)
