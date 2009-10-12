@@ -25,14 +25,14 @@
 #include "solution.h"
 
 struct UniData;
-  
 
-/// Filter is a general postprocessing class, intended for visualization. 
+
+/// Filter is a general postprocessing class, intended for visualization.
 /// The output of Filter is an arbitrary combination of up to three input functions,
 /// which usually are Solutions to PDEs, but can also be other Filters.
 ///
 /// (This class cannot be instantiated.)
-/// 
+///
 class Filter : public MeshFunction
 {
 public:
@@ -46,12 +46,13 @@ public:
   virtual void set_quad_2d(Quad2D* quad_2d);
   virtual void set_active_element(Element* e);
   virtual void free();
+  virtual void reinit();
 
   virtual void push_transform(int son);
   virtual void pop_transform();
 
 protected:
-  
+
   int num;
   MeshFunction* sln[4];
   uint64 sln_sub[4];
@@ -67,7 +68,7 @@ protected:
 
 
 /// SimpleFilter is a base class for predefined simple filters (MagFilter, DiffFilter...).
-/// The 'simplicity' lies in the fact that only one value per input function can be 
+/// The 'simplicity' lies in the fact that only one value per input function can be
 /// combined (e.g., not a value and a derivative). If this is not sufficient, a full-fledged
 /// filter must be derived from the Filter class (see VonMisesFilter). SimpleFilter is also
 /// intended for the user to be able to easily create custom filters only by supplying the
@@ -77,14 +78,14 @@ protected:
 /// optionally the 'item' for each argument, which can be any of FN_VAL_0, FN_DX_0, FN_DY_0
 /// etc.
 ///
-/// SimpleFilter is vector-valued, if at least one input function is vector-valued and 
+/// SimpleFilter is vector-valued, if at least one input function is vector-valued and
 /// both components are specified in 'item', e.g., item1 = FN_DX (which is FN_DX_0 | FN_DX_1).
 /// Otherwise it is scalar-valued.
 ///
 class SimpleFilter : public Filter
 {
 public:
-  
+
   SimpleFilter(void (*filter_fn)(int n, scalar* val1, scalar* result),
                MeshFunction* sln1, int item1 = FN_VAL);
 
@@ -98,6 +99,7 @@ public:
   SimpleFilter(void (*filter_fn)(int n, scalar* val1, scalar* val2, scalar* val3, scalar* val4, scalar* result),
                MeshFunction* sln1, MeshFunction* sln2, MeshFunction* sln3, MeshFunction* sln4,
                int item1 = FN_VAL, int item2 = FN_VAL, int item3 = FN_VAL, int item4 = FN_VAL);
+
 
   virtual scalar get_pt_value(double x, double y, int item = FN_VAL_0);
 
@@ -124,7 +126,7 @@ protected:
 class DXDYFilter : public Filter
 {
 public:
-  
+
   // one input (val1), one result (rslt), all including derivatives
   typedef void (*filter_fn_1_t)(int n, scalar* val1, scalar* val1_dx, scalar* val1_dy,
                                        scalar* rslt, scalar* rslt_dx, scalar* rslt_dy);
@@ -169,7 +171,7 @@ protected:
 
 
 /// MagFilter takes two functions representing the components of a vector function and
-/// calculates the vector magnitude, sqrt(x^2 + y^2). 
+/// calculates the vector magnitude, sqrt(x^2 + y^2).
 /// \brief Calculates the magnitude of a vector function.
 class MagFilter : public SimpleFilter
 {
@@ -206,7 +208,7 @@ class RealFilter : public SimpleFilter
 };
 
 
-/// ImagFilter puts the imaginary part of the input function to the real part of the 
+/// ImagFilter puts the imaginary part of the input function to the real part of the
 /// output, allowing it to be visualized.
 class ImagFilter : public SimpleFilter
 {
@@ -229,20 +231,20 @@ class AngleFilter : public SimpleFilter
 
 /// VonMisesFilter is a postprocessing filter for visualizing elastic stresses in a body.
 /// It calculates the stress tensor and applies the Von Mises equivalent stress formula
-/// to obtain the resulting stress measure. 
-/// \brief Calculates the Von Mises stress. 
+/// to obtain the resulting stress measure.
+/// \brief Calculates the Von Mises stress.
 class VonMisesFilter : public Filter
 {
 public: // TODO: cylindrical coordinates
-   
-  VonMisesFilter(MeshFunction* sln1, MeshFunction* sln2, double lambda, double mu, 
+
+  VonMisesFilter(MeshFunction* sln1, MeshFunction* sln2, double lambda, double mu,
                  int cyl = 0, int item1 = FN_VAL, int item2 = FN_VAL);
 
   virtual scalar get_pt_value(double x, double y, int item = FN_VAL_0)
   { error("Not implemented yet");  }
 
 protected:
-  
+
   double lambda, mu;
   int cyl, item1, item2;
 
@@ -258,17 +260,17 @@ class LinearFilter : public Filter
 {
   public: LinearFilter(MeshFunction* old);
           LinearFilter(MeshFunction* older, MeshFunction* old, double tau_frac = 1);
-  
+
   virtual scalar get_pt_value(double x, double y, int item = FN_VAL_0)
   { error("Not implemented yet");  }
 
-  protected: 
-  
-    double tau_frac;   
+  protected:
+
+    double tau_frac;
 
     virtual void precalculate(int order, int mask);
     void init_components();
-    virtual void set_active_element(Element* e); 
+    virtual void set_active_element(Element* e);
 
 
 };
