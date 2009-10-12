@@ -823,13 +823,34 @@ void Solution::precalculate(int order, int mask)
     // evaluate the exact solution
     if (num_components == 1)
     {
-      for (i = 0; i < np; i++)
+      // untransform values
+      if (!transform)
       {
-        scalar val, dx = 0.0, dy = 0.0;
-        val = exactfn1(x[i], y[i], dx, dy);
-        node->values[0][0][i] = val * exact_mult;
-        node->values[0][1][i] = dx * exact_mult;
-        node->values[0][2][i] = dy * exact_mult;
+        double2x2 *mat, *m;
+        int mstep = 0;
+        mat = refmap->get_const_inv_ref_map();
+        if (!refmap->is_jacobian_const()) { mat = refmap->get_inv_ref_map(order); mstep = 1; }
+
+        for (i = 0, m = mat; i < np; i++, m += mstep)
+        {
+          double jac = (*m)[0][0] *  (*m)[1][1] - (*m)[1][0] *  (*m)[0][1];
+          scalar val, dx = 0.0, dy = 0.0;
+          val = exactfn1(x[i], y[i], dx, dy);
+          node->values[0][0][i] = val * exact_mult;
+          node->values[0][1][i] = (  (*m)[1][1]*dx - (*m)[0][1]*dy) / jac * exact_mult;
+          node->values[0][2][i] = (- (*m)[1][0]*dx + (*m)[0][0]*dy) / jac * exact_mult;
+        }
+      }
+      else
+      {
+        for (i = 0; i < np; i++)
+        {
+          scalar val, dx = 0.0, dy = 0.0;
+          val = exactfn1(x[i], y[i], dx, dy);
+          node->values[0][0][i] = val * exact_mult;
+          node->values[0][1][i] = dx * exact_mult;
+          node->values[0][2][i] = dy * exact_mult;
+        }
       }
     }
     else
