@@ -100,7 +100,7 @@ void edge(int p)
       "  return -(l1(x) * Legendre%dx(y));\n"
       "}\n\n",
     i,i,i,i,i,    i,i, i,i,i,i,i,i,i,i
-    );    
+    );
 
     printf
     (
@@ -186,7 +186,7 @@ void edge(int p)
      i,i,i, i,i,i, i,i,i,  i,i, i,i,   i,i
     );
   }
-  else 
+  else
      {
     printf
     (
@@ -246,7 +246,7 @@ void edge(int p)
       "  return l1(x) * Legendre%dx(y);\n"
       "}\n\n",
     i,i,i,i,i,    i,i, i,i
-    );    
+    );
 
     printf
     (
@@ -402,8 +402,8 @@ int main(int argc, char* argv[])
   edge(10);
   bubble(10,10);
 
-  printf("static Shapeset::shape_fn_t leg_quad_fn_a[] = \n{\n");      
-  
+  printf("static Shapeset::shape_fn_t leg_quad_fn_a[] = \n{\n");
+
   printf("  leg_quad_p0_e1_a, leg_quad_p0_e1_a, leg_quad_p0_e2_a, leg_quad_p0_e2_a, leg_quad_p0_e3_a_0, leg_quad_p0_e3_a_1, leg_quad_p0_e4_a_0, leg_quad_p0_e4_a_1, \n");
 
   for (j = 1; j <= 10; j++)
@@ -425,7 +425,7 @@ int main(int argc, char* argv[])
       indices1[i][j] = 0;
       indices2[i][j] = 0;
     }
- 
+
   for (int i = 0; i <= 10; i++)
     for (int j = 2; j <= 10 + 1; j++)
     {
@@ -438,17 +438,17 @@ int main(int argc, char* argv[])
     {
       printf("  leg_quad_p%dp%d_b2_a, ", i,j);
       indices2[i-1][j] = k;
-      k++;    
-    } 
+      k++;
+    }
   printf("};\n\n");
 
 
 
 
-  printf("static Shapeset::shape_fn_t leg_quad_fn_b[] = \n{\n");  
+  printf("static Shapeset::shape_fn_t leg_quad_fn_b[] = \n{\n");
 
   printf("  leg_quad_p0_e1_b_0, leg_quad_p0_e1_b_1, leg_quad_p0_e2_b_0, leg_quad_p0_e2_b_1,  leg_quad_p0_e3_b, leg_quad_p0_e3_b, leg_quad_p0_e4_b, leg_quad_p0_e4_b, \n");
-    
+
   for (j = 1; j <= 10; j++)
   {
     if (!(j%2))
@@ -456,7 +456,7 @@ int main(int argc, char* argv[])
     else
       printf("  leg_quad_p%d_e1_b, leg_quad_p%d_e1_b, leg_quad_p%d_e2_b, leg_quad_p%d_e2_b, leg_quad_p%d_e3_b, leg_quad_p%d_e3_b, leg_quad_p%d_e4_b, leg_quad_p%d_e4_b, ", j,j,j,j,j,j,j,j);
     printf("\n");
-  }  
+  }
   printf("\n");
 
   for (int i = 0; i <= 10; i++)
@@ -469,8 +469,8 @@ int main(int argc, char* argv[])
   printf("};\n\n");
 
 
-  printf("static Shapeset::shape_fn_t leg_quad_fn_ax[] = \n{\n");      
-  
+  printf("static Shapeset::shape_fn_t leg_quad_fn_ax[] = \n{\n");
+
   printf("  leg_quad_p0_e1_ax, leg_quad_p0_e1_ax, leg_quad_p0_e2_ax, leg_quad_p0_e2_ax, leg_quad_p0_e3_ax_0, leg_quad_p0_e3_ax_1, leg_quad_p0_e4_ax_0, leg_quad_p0_e4_ax_1, \n");
 
   for (j = 1; j <= 10; j++)
@@ -494,10 +494,10 @@ int main(int argc, char* argv[])
 
 
 
-  printf("static Shapeset::shape_fn_t leg_quad_fn_bx[] = \n{\n");  
+  printf("static Shapeset::shape_fn_t leg_quad_fn_bx[] = \n{\n");
 
   printf("  leg_quad_p0_e1_bx_0, leg_quad_p0_e1_bx_1, leg_quad_p0_e2_bx_0, leg_quad_p0_e2_bx_1,  leg_quad_p0_e3_bx, leg_quad_p0_e3_bx, leg_quad_p0_e4_bx, leg_quad_p0_e4_bx, \n");
-    
+
   for (j = 1; j <= 10; j++)
   {
     if ((j%2))
@@ -505,7 +505,7 @@ int main(int argc, char* argv[])
     else
       printf("  leg_quad_p%d_e1_bx_0, leg_quad_p%d_e1_bx_1, leg_quad_p%d_e2_bx_0, leg_quad_p%d_e2_bx_1, leg_quad_p%d_e3_bx, leg_quad_p%d_e3_bx, leg_quad_p%d_e4_bx, leg_quad_p%d_e4_bx, ", j,j,j,j,j,j,j,j);
     printf("\n");
-  }  
+  }
   printf("\n");
   for (int i = 0; i <= 10; i++)
     for (int j = 2; j <= 10 + 1; j++)
@@ -517,8 +517,8 @@ int main(int argc, char* argv[])
   printf("};\n\n");
 
 
-  printf("static Shapeset::shape_fn_t leg_quad_fn_ay[] = \n{\n");      
-  
+  printf("static Shapeset::shape_fn_t leg_quad_fn_ay[] = \n{\n");
+
   printf("  leg_quad_p0_e1_ay, leg_quad_p0_e1_ay, leg_quad_p0_e2_ay, leg_quad_p0_e2_ay, leg_quad_p0_e3_ay_0, leg_quad_p0_e3_ay_1, leg_quad_p0_e4_ay_0, leg_quad_p0_e4_ay_1, \n");
 
   for (j = 1; j <= 10; j++)
@@ -542,10 +542,10 @@ int main(int argc, char* argv[])
 
 
 
-  printf("static Shapeset::shape_fn_t leg_quad_fn_by[] = \n{\n");  
+  printf("static Shapeset::shape_fn_t leg_quad_fn_by[] = \n{\n");
 
   printf("  leg_quad_p0_e1_by_0, leg_quad_p0_e1_by_1, leg_quad_p0_e2_by_0, leg_quad_p0_e2_by_1,  leg_quad_p0_e3_by, leg_quad_p0_e3_by, leg_quad_p0_e4_by, leg_quad_p0_e4_by, \n");
-    
+
   for (j = 1; j <= 10; j++)
   {
     if ((j%2))
@@ -553,12 +553,12 @@ int main(int argc, char* argv[])
     else
       printf("  leg_quad_p%d_e1_by_0, leg_quad_p%d_e1_by_1, leg_quad_p%d_e2_by_0, leg_quad_p%d_e2_by_1, leg_quad_p%d_e3_by, leg_quad_p%d_e3_by, leg_quad_p%d_e4_by, leg_quad_p%d_e4_by, ", j,j,j,j,j,j,j,j);
     printf("\n");
-  }  
+  }
   printf("\n");
   int s = 88;
   for (int i = 0; i <= 10; i++)
     for (int j = 2; j <= 10 + 1; j++)
-    { 
+    {
       printf("  leg_quad_p%dp%d_b1_by, ", i,j);
       s++;
     }
@@ -571,7 +571,7 @@ int main(int argc, char* argv[])
 
 ////////////////////////////////////////////////////////////////////////////
 
- 
+
   for (int i = 0; i <= 10; i++)
     for (int j = 0; j <= 10; j++)
     {
@@ -583,8 +583,8 @@ int main(int argc, char* argv[])
           {
             if (indices1[k][l] != 0) printf("%d,", indices1[k][l]);
             if (indices2[k][l] != 0) printf("%d,", indices2[k][l]);
-          } 
-        printf("};\n  ");      
+          }
+        printf("};\n  ");
       }
     }
 
@@ -610,12 +610,12 @@ int main(int argc, char* argv[])
     printf(" NULL, NULL, NULL, NULL, NULL, NULL16\n");
   }
   printf("};\n\n");
- 
+
   printf("#define zero16  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,\n\n");
   printf("static int leg_quad_bubble_count[] =\n{\n");
   //printf("  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, zero16\n");
   for (i = 0; i < 1; i++)
-  {  
+  {
     printf("  0,  ");
     for (j = 1; j <= 10; j++)
     {
@@ -624,7 +624,7 @@ int main(int argc, char* argv[])
     printf("0,  0,  0,  0,  0, zero16 \n");
   }
   for (i = 1; i <= 10; i++)
-  {  
+  {
     printf("  ");
     for (j = 0; j <= 10; j++)
     {
@@ -656,8 +656,8 @@ int main(int argc, char* argv[])
 
   printf("#define oo make_quad_order\n\n");
 
-  printf("static int leg_quad_index_to_order[] = \n{\n");      
-  
+  printf("static int leg_quad_index_to_order[] = \n{\n");
+
   for (j = 0; j <= 10; j++)
   {
     printf(" oo(1,%d), oo(1,%d),  oo(1,%d), oo(1,%d), oo(%d,1), oo(%d,1), oo(%d,1), oo(%d,1), \n", j,j,j,j,j,j,j,j);

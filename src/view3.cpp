@@ -59,20 +59,20 @@ void VectorView::show(MeshFunction* xsln, MeshFunction* ysln, double eps)
 void VectorView::show(MeshFunction* xsln, MeshFunction* ysln, double eps, int xitem, int yitem)
 {
   vec.process_solution(xsln, xitem, ysln, yitem, eps);
-  
-  if (range_auto) { range_min = vec.get_min_value(); 
+
+  if (range_auto) { range_min = vec.get_min_value();
                     range_max = vec.get_max_value(); }
-                    
+
   glut_init();
   update_layout();
-                    
+
   if (window_id < 0)
   {
     vec.lock_data();
     center_mesh(vec.get_vertices(), vec.get_num_vertices());
     vec.unlock_data();
   }
-  
+
   create();
   wait_for_draw();
 }
@@ -83,7 +83,7 @@ inline int p_vert(int i) { return (i+2) % 3; }
 
 
 void VectorView::plot_arrow(double x, double y, double xval, double yval, double max, double min, double gs)
-{  
+{
   if (mode == 1)
     glColor3f(0.0,0.0,0.0);
   else
@@ -98,27 +98,27 @@ void VectorView::plot_arrow(double x, double y, double xval, double yval, double
   if (mode == 1) width *= 1.2;
   double xnew = x + gs * xval * mag / (max * real_mag) * length_coef;
   double ynew = y - gs * yval * mag / (max * real_mag) * length_coef;
-  
+
 
   if ((mag)/(max - min) < 1e-5)
   {
-    glTranslated(x,y,0.0); 
-  
+    glTranslated(x,y,0.0);
+
     glBegin(GL_QUADS);
     glVertex2d( width,  width);
     glVertex2d( width, -width);
     glVertex2d(-width, -width);
     glVertex2d(-width,  width);
-    glEnd();        
+    glEnd();
   }
   else
   {
-  
+
     glBegin(GL_LINES);
     glVertex2d(x,y);
     glVertex2d(xnew, ynew);
     glEnd();
-  
+
     glTranslated(x,y,0.0);
     glRotated(atan2(-yval,xval) * 180.0/M_PI, 0.0, 0.0, 1.0);
 
@@ -127,16 +127,16 @@ void VectorView::plot_arrow(double x, double y, double xval, double yval, double
     glVertex2d(length - 2 * width,  width);
     glVertex2d(length - 2 * width, -width);
     glEnd();
-  } 
-   
+  }
+
   glLoadIdentity();
-      
+
   if (mode == 1)
   {
     const float* color = get_palette_color((mag - min)/(max - min)); //  0.0 -- 1.0
     glColor3f(color[0], color[1], color[2]);
 
-    
+
     if (mag/(max - min) < 1e-5)
     {
       glBegin(GL_QUADS);
@@ -144,16 +144,16 @@ void VectorView::plot_arrow(double x, double y, double xval, double yval, double
       glVertex2d( width, -width);
       glVertex2d(-width, -width);
       glVertex2d(-width,  width);
-      glEnd();        
+      glEnd();
     }
     else
     {
-    
+
       glBegin(GL_LINES);
       glVertex2d(x,y);
       glVertex2d(xnew, ynew);
       glEnd();
-    
+
       glTranslated(x - 1, y,0.0);
       glRotated(atan2(-yval,xval) * 180.0/M_PI, 0.0, 0.0, 1.0);
 
@@ -162,10 +162,10 @@ void VectorView::plot_arrow(double x, double y, double xval, double yval, double
       glVertex2d(length - 2 * width,  width);
       glVertex2d(length - 2 * width, -width);
       glEnd();
-      
+
       glLoadIdentity();
     }
-  }              
+  }
 }
 
 
@@ -180,9 +180,9 @@ void VectorView::on_display()
   // initial grid point and grid step
   double gt = gs;
   if (hexa) gt *= sqrt(3.0)/2.0;
-  
+
   double max_length = 0.0;
-  
+
   // transform all vertices
   vec.lock_data();
   int i;
@@ -194,13 +194,13 @@ void VectorView::on_display()
   {
     tvert[i][0] = transform_x(vert[i][0]);
     tvert[i][1] = transform_y(vert[i][1]);
-    
+
     // find max length of vectors
     double length = sqr(vert[i][2]) + sqr(vert[i][3]);
     if (length > max_length) max_length = length;
   }
   max_length = sqrt(max_length);
-  
+
   // value range
   double min = range_min, max = range_max;
   if (range_auto) { min = vec.get_min_value(); max = vec.get_max_value(); }
@@ -210,7 +210,7 @@ void VectorView::on_display()
 
   // draw all triangles
   int3* xtris = vec.get_triangles();
-  
+
   if (mode != 1) glEnable(GL_TEXTURE_1D);
   glBindTexture(GL_TEXTURE_1D, 1);
   glBegin(GL_TRIANGLES);
@@ -220,18 +220,18 @@ void VectorView::on_display()
     double mag = sqrt(sqr(vert[xtris[i][0]][2]) + sqr(vert[xtris[i][0]][3]));
     glTexCoord2d((mag -min) * irange * tex_scale + tex_shift, 0.0);
     glVertex2d(tvert[xtris[i][0]][0], tvert[xtris[i][0]][1]);
-    
+
     mag = sqrt(sqr(vert[xtris[i][1]][2]) + sqr(vert[xtris[i][1]][3]));
-    glTexCoord2d((mag -min) * irange * tex_scale + tex_shift, 0.0);    
+    glTexCoord2d((mag -min) * irange * tex_scale + tex_shift, 0.0);
     glVertex2d(tvert[xtris[i][1]][0], tvert[xtris[i][1]][1]);
-    
+
     mag = sqrt(sqr(vert[xtris[i][2]][2]) + sqr(vert[xtris[i][2]][3]));
     glTexCoord2d((mag -min) * irange * tex_scale + tex_shift, 0.0);
-    glVertex2d(tvert[xtris[i][2]][0], tvert[xtris[i][2]][1]);    
+    glVertex2d(tvert[xtris[i][2]][0], tvert[xtris[i][2]][1]);
   }
-  glEnd();   
-  glDisable(GL_TEXTURE_1D); 
-  
+  glEnd();
+  glDisable(GL_TEXTURE_1D);
+
   // draw all edges
   /*if (mode == 0) glColor3f(0.3, 0.3, 0.3);
   else*/ glColor3f(0.5, 0.5, 0.5);
@@ -246,7 +246,7 @@ void VectorView::on_display()
     }
   }
   glEnd();
-  
+
   // draw dashed edges
   if (lines)
   {
@@ -262,7 +262,7 @@ void VectorView::on_display()
     glEnd();
     glDisable(GL_LINE_STIPPLE);
   }
-  
+
   // draw arrows
   if (mode != 2)
   {
@@ -286,7 +286,7 @@ void VectorView::on_display()
       l1 = r1 = xtris[i][idx];
       l2 = xtris[i][n_vert(idx)];
       r2 = xtris[i][p_vert(idx)];
-        
+
       // plane of x and y values on triangle
       double a[2], b[2], c[2], d[2];
       for (int n = 0; n < 2; n++)
@@ -394,7 +394,7 @@ void VectorView::on_key_down(unsigned char key, int x, int y)
       lines = !lines;
       post_redisplay();
       break;
-    
+
     case 'l':
       pmode = !pmode;
       post_redisplay();
@@ -407,15 +407,15 @@ void VectorView::on_key_down(unsigned char key, int x, int y)
       post_redisplay();
       //reset_zoom();
       break;
-      
+
    case 'f':
       set_palette_filter(pal_filter != GL_LINEAR);
       break;
-    
+
     case 'x':
       set_grid_type(!hexa);
       break;
-        
+
     case 'b':
       mode++;
       if (mode > 2) mode = 0;
@@ -441,16 +441,16 @@ void VectorView::load_data(const char* filename)
 {
   vec.lock_data();
   vec.load_data(filename);
-  if (range_auto) { range_min = vec.get_min_value(); 
+  if (range_auto) { range_min = vec.get_min_value();
                     range_max = vec.get_max_value(); }
   glut_init();
   update_layout();
-                    
+
   if (window_id < 0)
   {
     center_mesh(vec.get_vertices(), vec.get_num_vertices());
   }
-  
+
   create();
   vec.unlock_data();
   wait_for_draw();
@@ -459,7 +459,7 @@ void VectorView::load_data(const char* filename)
 
 void VectorView::save_data(const char* filename)
 {
-  if (vec.get_num_triangles() <= 0) 
+  if (vec.get_num_triangles() <= 0)
     error("No data to save.");
   vec.save_data(filename);
 }
@@ -475,7 +475,7 @@ void VectorView::save_numbered(const char* format, int number)
 
 const char* VectorView::get_help_text() const
 {
-  return 
+  return
   "VectorView\n\n"
   "Controls:\n"
   "  Left mouse - pan\n"

@@ -22,7 +22,7 @@
 #ifndef __HERMES2D_SHAPESET_HC_ALL_H
 #define __HERMES2D_SHAPESET_HC_ALL_H
 
-#ifdef COMPLEX 
+#ifdef COMPLEX
 
 #include "shapeset.h"
 

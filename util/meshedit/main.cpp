@@ -16,9 +16,9 @@ static MeshEdit* instance;
 class MeshEdit : public MeshView
 {
 public:
-  
+
   MeshEdit();
-    
+
   void run(Mesh* mesh)
   {
     this->mesh = mesh;
@@ -26,7 +26,7 @@ public:
   }
 
 protected:
-  
+
   Mesh* mesh;
   int foc_node;
   Nurbs* foc_nurbs;
@@ -36,7 +36,7 @@ protected:
   bool hide;
   bool b_lines;
 
-  double untransform_x(double x) { return (x - trans_x - center_x) / scale; } 
+  double untransform_x(double x) { return (x - trans_x - center_x) / scale; }
   double untransform_y(double y) { return (center_y - y - trans_y) / scale; }
 
   void draw_circle(double x, double y, double r, int n);
@@ -53,7 +53,7 @@ protected:
   virtual void on_left_mouse_up(int x, int y);
   virtual void on_key_down(unsigned char key, int x, int y);
   virtual void on_mouse_wheel(int wheel, int dir, int x, int y);
-  
+
   friend void on_mouse_wheel_stub(int, int, int, int);
 };
 
@@ -73,7 +73,7 @@ MeshEdit::MeshEdit()
 }
 
 
-void on_mouse_wheel_stub(int wheel, int dir, int x, int y) 
+void on_mouse_wheel_stub(int wheel, int dir, int x, int y)
   {  instance->on_mouse_wheel(wheel, dir, x, y); }
 
 void MeshEdit::on_create()
@@ -95,14 +95,14 @@ void MeshEdit::draw_circle(double x, double y, double r, int n)
 void MeshEdit::draw_nurbs(Nurbs* nurbs)
 {
   glEnable(GL_BLEND);
-  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); 
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
   glColor4f(0, 0.7, 0, 0.4);
   glBegin(GL_LINE_STRIP);
   for (int i = 0; i < nurbs->np; i++)
     glVertex2d(transform_x(nurbs->pt[i][0]), transform_y(nurbs->pt[i][1]));
   glEnd();
   glDisable(GL_BLEND);
-  
+
   for (int i = 1; i < nurbs->np-1; i++)
   {
     glBegin(GL_POLYGON);
@@ -119,7 +119,7 @@ void MeshEdit::on_display()
   draw_template();
   if (hide) return;
   glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-  
+
   // draw nurbs control points
   Element* e;
   for_all_base_elements(e, mesh)
@@ -127,7 +127,7 @@ void MeshEdit::on_display()
       for (int i = 0; i < e->nvert; i++)
         if (e->cm->nurbs[i])
           draw_nurbs(e->cm->nurbs[i]);
-  
+
   // draw nurbs focus
   if (foc_nurbs != NULL)
   {
@@ -138,14 +138,14 @@ void MeshEdit::on_display()
     draw_circle(x, y, 7, 20);
     glEnd();
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-    
+
     // print weight
     char text[200];
     glColor3f(0, 0, 0);
     sprintf(text, "%g", foc_nurbs->pt[nurbs_node][2]);
     draw_text(x, y-17, text, 0);
   }
-  
+
   // draw vertex nodes
   glColor3f(1, 0, 0);
   Node* node;
@@ -155,7 +155,7 @@ void MeshEdit::on_display()
     draw_circle(transform_x(node->x), transform_y(node->y), 4, 10);
     glEnd();
   }
-  
+
   // draw node focus
   if (foc_node >= 0)
   {
@@ -167,7 +167,7 @@ void MeshEdit::on_display()
     draw_circle(x, y, 7, 20);
     glEnd();
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-    
+
     // print weight
     char text[200];
     glColor3f(0, 0, 0);
@@ -181,7 +181,7 @@ void MeshEdit::hit_test_nodes(int mx, int my)
 {
   foc_node = -1;
   foc_nurbs = NULL;
-  
+
   // hit-test vertex nodes
   Node* node;
   for_all_vertex_nodes(node, mesh)
@@ -192,7 +192,7 @@ void MeshEdit::hit_test_nodes(int mx, int my)
       return;
     }
   }
-  
+
   // hit-test nurbs nodes
   Element* e;
   for_all_base_elements(e, mesh)
@@ -219,7 +219,7 @@ void MeshEdit::move_vertex_node(Node* node, double x, double y)
 {
   node->x = x;
   node->y = y;
-  
+
   // handle curved elements
   Element* e;
   for_all_base_elements(e, mesh)
@@ -280,7 +280,7 @@ void MeshEdit::on_mouse_move(int x, int y)
   else
   {
     MeshView::on_mouse_move(x, y);
-    
+
     if (!hide)
     {
       int old_foc = foc_node;
@@ -288,7 +288,7 @@ void MeshEdit::on_mouse_move(int x, int y)
       hit_test_nodes(x, y);
       if (old_foc != foc_node || old_nurbs != foc_nurbs) post_redisplay();
     }
-  }  
+  }
 }
 
 
@@ -299,7 +299,7 @@ void MeshEdit::on_left_mouse_down(int x, int y)
   else
     MeshView::on_left_mouse_down(x, y);
 }
-  
+
 
 void MeshEdit::on_left_mouse_up(int x, int y)
 {
@@ -316,20 +316,20 @@ void MeshEdit::on_key_down(unsigned char key, int x, int y)
       mesh->save(mesh_file_name);
       info("Mesh saved.");
       break;
-    
+
     case 'n':
       hide = !hide;
       post_redisplay();
       break;
-    
+
     case 'm':
       break;
-    
+
     case 'l':
       b_lines = !b_lines;
       post_redisplay();
       break;
-    
+
     default:
       MeshView::on_key_down(key, x, y);
       break;
@@ -355,7 +355,7 @@ void MeshEdit::on_mouse_wheel(int wheel, int dir, int x, int y)
 void MeshEdit::draw_template()
 {
   // here you can place an arbitrary drawing, such as an airfoil which you want to fit your mesh to
-  
+
   glColor3f(0, 0, 0);
   glBegin(GL_LINE_STRIP);
   for (double x = 0.0, dx = 0.0; x <= 1.000000001; dx += 0.00001, x += dx)
@@ -377,14 +377,14 @@ int main(int argc, char* argv[])
 
   verbose_mode = false;
   mesh_file_name = argv[1];
-  
+
   Mesh mesh;
   mesh.load(mesh_file_name);
-  
+
   MeshEdit me;
   instance = &me;
   me.run(&mesh);
-  
+
   View::wait();
   return 0;
 }

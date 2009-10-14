@@ -35,7 +35,7 @@ Space::Space(Mesh* mesh, Shapeset* shapeset)
   mesh_seq = -1;
   seq = 0;
   was_assigned = false;
-  
+
   set_bc_types(NULL);
   set_bc_values((scalar (*)(int, double, double)) NULL);
   set_bc_values((scalar (*)(EdgePos*)) NULL);
@@ -50,7 +50,7 @@ Space::~Space()
 
 void Space::free()
 {
-  free_extra_data(); 
+  free_extra_data();
   if (nsize) { ::free(ndata); nsize = 0; }
   if (esize) { ::free(edata); esize = 0; }
 }
@@ -69,7 +69,7 @@ void Space::resize_tables()
     for (int i = oldsize; i < nsize; i++)
       ndata[i].edge_bc_proj = NULL;
   }
-  
+
   if (esize < mesh->get_max_element_id())
   {
     int oldsize = esize;
@@ -117,7 +117,7 @@ void Space::set_uniform_order(int order, int marker)
   resize_tables();
   check_order(order);
   int quad_order = make_quad_order(order, order);
-  
+
   Element* e;
   for_all_active_elements(e, mesh)
   {
@@ -161,12 +161,12 @@ void Space::copy_orders(Space* space, int inc)
   {
     int oo = space->get_element_order(e->id);
     if (oo < 0) error("Source space has an uninitialized order (element id = %d)", e->id);
-    
+
     int mo = shapeset->get_max_order();
     int ho = std::max(1, std::min(get_h_order(oo) + inc, mo));
-    int vo = std::max(1, std::min(get_v_order(oo) + inc, mo));        
+    int vo = std::max(1, std::min(get_v_order(oo) + inc, mo));
     oo = e->is_triangle() ? ho : make_quad_order(ho, vo);
-    
+
     check_order(oo);
     copy_orders_recurrent(mesh->get_element/*sic!*/(e->id), oo);
   }
@@ -178,7 +178,7 @@ int Space::get_edge_order(Element* e, int edge)
 {
   Node* en = e->en[edge];
   if (en->id >= nsize || edge >= e->nvert) return 0;
-    
+
   if (ndata[en->id].n == -1)
     return get_edge_order_internal(ndata[en->id].base); // constrained node
   else
@@ -200,7 +200,7 @@ int Space::get_edge_order_internal(Node* en)
     else
       o1 = get_v_order(edata[e[0]->id].order);
   }
-  
+
   if (e[1] != NULL)
   {
     if (e[1]->is_triangle() || en == e[1]->en[0] || en == e[1]->en[2])
@@ -208,7 +208,7 @@ int Space::get_edge_order_internal(Node* en)
     else
       o2 = get_v_order(edata[e[1]->id].order);
   }
-  
+
   if (o1 == 0) return o2 == 1000 ? 0 : o2;
   if (o2 == 0) return o1 == 1000 ? 0 : o1;
   return std::min(o1, o2);
@@ -227,24 +227,24 @@ void Space::set_mesh(Mesh* mesh)
 void Space::propagate_zero_orders(Element* e)
 {
   set_element_order(e->id, 0);
-  if (!e->active) 
+  if (!e->active)
     for (int i = 0; i < 4; i++)
-      if (e->sons[i] != NULL) 
+      if (e->sons[i] != NULL)
         propagate_zero_orders(e->sons[i]);
 }
 
 
 void Space::distribute_orders(Mesh* mesh, int* parents)
 {
-  int num = mesh->get_max_element_id(); 
-  int orders[num+1];  
+  int num = mesh->get_max_element_id();
+  int orders[num+1];
   Element* e;
   for_all_active_elements(e, mesh)
   {
     int p = get_element_order(parents[e->id]);
-    if (e->is_triangle() && (get_v_order(p) != 0)) 
+    if (e->is_triangle() && (get_v_order(p) != 0))
       p = std::max(get_h_order(p), get_v_order(p));
-    orders[e->id] = p;   
+    orders[e->id] = p;
   }
   for_all_active_elements(e, mesh)
     set_element_order(e->id, orders[e->id]);
@@ -258,25 +258,25 @@ int Space::assign_dofs(int first_dof, int stride)
 {
   if (first_dof < 0) error("Invalid first_dof.");
   if (stride < 1)    error("Invalid stride.");
-  
+
   resize_tables();
 
   Element* e;
   for_all_base_elements(e, mesh)
     if (get_element_order(e->id) == 0)
       propagate_zero_orders(e);
-  
+
   for_all_active_elements(e, mesh)
     if (e->id >= esize || edata[e->id].order < 0)
       error("Uninitialized element order (id = #%d).", e->id);
-  
+
   this->first_dof = next_dof = first_dof;
   this->stride = stride;
-  
+
   assign_vertex_dofs();
   assign_edge_dofs();
   assign_bubble_dofs();
-  
+
   free_extra_data();
   update_bc_dofs();
   update_constraints();
@@ -310,7 +310,7 @@ void Space::get_element_assembly_list(Element* e, AsmList* al)
   if (!is_up_to_date())
     error("The space is out of date. You need to update it with assign_dofs()"
           " any time the mesh changes.");
-  
+
   // add vertex, edge and bubble functions to the assembly list
   al->clear();
   shapeset->set_mode(e->get_mode());
@@ -388,12 +388,12 @@ void Space::precalculate_projection_matrix(int nv, double**& mat, double*& p)
   int n = shapeset->get_max_order() + 1 - nv;
   mat = new_matrix<double>(n, n);
   int component = get_type() == 2 ? 1 : 0;
-  
+
   Quad1DStd quad1d;
   //shapeset->set_mode(MODE_TRIANGLE);
   shapeset->set_mode(MODE_QUAD);
   for (int i = 0; i < n; i++)
-  {    
+  {
     for (int j = i; j < n; j++)
     {
       int o = i + j + 4;
@@ -409,7 +409,7 @@ void Space::precalculate_projection_matrix(int nv, double**& mat, double*& p)
       mat[i][j] = val;
     }
   }
-  
+
   p = new double[n];
   choldc(mat, n, p);
 }
@@ -423,14 +423,14 @@ void Space::update_edge_bc(Element* e, EdgePos* ep)
     Node* en = e->en[ep->edge];
     NodeData* nd = &ndata[en->id];
     nd->edge_bc_proj = NULL;
-    
+
     if (nd->dof != UNASSIGNED && en->bnd && bc_type_callback(en->marker) == BC_ESSENTIAL)
     {
       int order = get_edge_order_internal(en);
       ep->marker = en->marker;
       nd->edge_bc_proj = get_bc_projection(ep, order);
       extra_data.push_back(nd->edge_bc_proj);
-      
+
       int i = ep->edge, j = e->next_vert(i);
       ndata[e->vn[i]->id].vertex_bc_coef = nd->edge_bc_proj + 0;
       ndata[e->vn[j]->id].vertex_bc_coef = nd->edge_bc_proj + 1;
@@ -439,7 +439,7 @@ void Space::update_edge_bc(Element* e, EdgePos* ep)
   else
   {
     int n, son1, son2;
-    if (mesh->get_edge_sons(e, ep->edge, son1, son2) == 2) 
+    if (mesh->get_edge_sons(e, ep->edge, son1, son2) == 2)
     {
       double mid = (ep->lo + ep->hi) * 0.5, tmp = ep->hi;
       ep->hi = mid;

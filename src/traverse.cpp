@@ -51,7 +51,7 @@ static int get_split_and_sons(Element* e, Rect* cr, Rect* er, int4& sons)
 {
   uint64 hmid = (er->l + er->r) >> 1;
   uint64 vmid = (er->t + er->b) >> 1;
-  
+
   if (e->bsplit())
   {
     if (cr->r <= hmid && cr->t <= vmid)
@@ -99,7 +99,7 @@ static void move_to_son(Rect* rnew, Rect* rold, int son)
   uint64 hmid = (rold->l + rold->r) >> 1;
   uint64 vmid = (rold->t + rold->b) >> 1;
   memcpy(rnew, rold, sizeof(Rect));
-  
+
   switch (son)
   {
     case 0: rnew->r = hmid; rnew->t = vmid; break;
@@ -118,13 +118,13 @@ static void init_transforms(Transformable* fn, Rect* cr, Rect* er)
 {
   Rect r;
   memcpy(&r, er, sizeof(Rect));
-  
+
   while (cr->l > r.l || cr->r < r.r || cr->b > r.b || cr->t < r.t)
   {
     uint64 hmid = (r.l + r.r) >> 1;
     uint64 vmid = (r.t + r.b) >> 1;
     int son;
-  
+
     if (cr->r <= hmid && cr->t <= vmid) son = 0;
     else if (cr->l >= hmid && cr->t <= vmid) son = 1;
     else if (cr->l >= hmid && cr->b >= vmid) son = 2;
@@ -134,24 +134,24 @@ static void init_transforms(Transformable* fn, Rect* cr, Rect* er)
     else if (cr->t <= vmid) son = 4;
     else if (cr->b >= vmid) son = 5;
     else assert(0);
-      
+
     fn->push_transform(son);
     move_to_son(&r, &r, son);
-  }  
+  }
 }
 
 
 State* Traverse::push_state()
 {
   if (top >= size) error("Stack overflow. Increase stack size.");
-  
+
   if (stack[top].e == NULL)
   {
     stack[top].e = new Element*[num];
     stack[top].er = new Rect[num];
     stack[top].trans = new int[num];
   }
-  
+
   stack[top].visited = false;
   memset(stack[top].trans, 0, num * sizeof(int));
   return stack + top++;
@@ -163,7 +163,7 @@ void Traverse::set_boundary_info(State* s, bool* bnd, EdgePos* ep)
   Element* e;
   for (int i = 0; i < num; i++)
     if ((e = s->e[i]) != NULL) break;
-  
+
   if (tri)
   {
     for (int i = 0; i < 3; i++)
@@ -207,7 +207,7 @@ Element** Traverse::get_next_state(bool* bnd, EdgePos* ep)
   while (1)
   {
     int i, j, son;
-    
+
     // if the top state was visited already, we are returning through it:
     // undo all its transformations, pop it and continue with a non-visited one
     State* s;
@@ -230,9 +230,9 @@ Element** Traverse::get_next_state(bool* bnd, EdgePos* ep)
       }
       top--;
     }
-    
+
     // the stack is empty, take next base element
-    if (top <= 0) 
+    if (top <= 0)
     {
       // push the state of a new base element
       s = push_state();
@@ -243,7 +243,7 @@ Element** Traverse::get_next_state(bool* bnd, EdgePos* ep)
         // no more base elements? we're finished
         if (id >= meshes[0]->get_num_base_elements())
           return NULL;
-        
+
         int nused = 0;
         for (i = 0; i < num; i++)
         {
@@ -273,14 +273,14 @@ Element** Traverse::get_next_state(bool* bnd, EdgePos* ep)
         }
       }
     }
-    
+
     // entering a new state: perform the transformations for it
     s->visited = true;
     if (fn != NULL)
     {
       for (i = 0; i < num; i++)
         if (s->e[i] != NULL)
-        {  
+        {
           if (s->trans[i] > 0)
           {
             if (fn[i]->get_transform() == subs[i])
@@ -295,13 +295,13 @@ Element** Traverse::get_next_state(bool* bnd, EdgePos* ep)
           }
         }
     }
-    
+
     // is this the leaf state?
     bool leaf = true;
     for (i = 0; i < num; i++)
       if (s->e[i] != NULL)
         if (!s->e[i]->active) { leaf = false; break; }
-        
+
     // if yes, set boundary flags and return the state
     if (leaf)
     {
@@ -309,7 +309,7 @@ Element** Traverse::get_next_state(bool* bnd, EdgePos* ep)
         set_boundary_info(s, bnd, ep);
       return s->e;
     }
-    
+
     // triangle: push son states
     if (tri)
     {
@@ -333,7 +333,7 @@ Element** Traverse::get_next_state(bool* bnd, EdgePos* ep)
             if (ns->e[i]->active) ns->trans[i] = -1;
           }
         }
-        
+
         // determine boundary flags and positions for the new state
         if (son < 3)
         {
@@ -363,7 +363,7 @@ Element** Traverse::get_next_state(bool* bnd, EdgePos* ep)
       for (i = 0; i < num; i++)
         if (s->e[i] != NULL && !s->e[i]->active)
           split |= get_split_and_sons(s->e[i], &s->cr, s->er + i, sons[i]);
-      
+
       // both splits: recur to four sons
       if (split == 3)
       {
@@ -371,7 +371,7 @@ Element** Traverse::get_next_state(bool* bnd, EdgePos* ep)
         {
           State* ns = push_state();
           move_to_son(&ns->cr, &s->cr, son);
-          
+
           for (i = 0; i < num; i++)
           {
             if (s->e[i] == NULL)
@@ -397,12 +397,12 @@ Element** Traverse::get_next_state(bool* bnd, EdgePos* ep)
       {
         int son0 = 4, son1 = 5;
         if (split == 2) { son0 = 6; son1 = 7; }
-        
+
         for (son = son0; son <= son1; son++)
         {
           State* ns = push_state();
           move_to_son(&ns->cr, &s->cr, son);
-          
+
           j = (son == 4 || son == 6) ? 0 : 2;
           for (i = 0; i < num; i++)
           {
@@ -429,7 +429,7 @@ Element** Traverse::get_next_state(bool* bnd, EdgePos* ep)
       {
         State* ns = push_state();
         memcpy(&ns->cr, &s->cr, sizeof(Rect));
-        
+
         for (i = 0; i < num; i++)
         {
           if (s->e[i] == NULL)
@@ -456,22 +456,22 @@ Element** Traverse::get_next_state(bool* bnd, EdgePos* ep)
 void Traverse::begin(int n, Mesh** meshes, Transformable** fn)
 {
   //if (stack != NULL) finish();
-    
+
   assert(n > 0);
   num = n;
-    
+
   this->meshes = meshes;
   this->fn = fn;
-  
+
   top = 0;
   size = 256;
   stack = new State[size];
   memset(stack, 0, size * sizeof(State));
-  
+
   sons = new int4[num];
   subs = new uint64[num];
   id = 0;
-  
+
   // todo: check that meshes are compatible
 }
 
@@ -488,14 +488,14 @@ void free_state(State* state)
 void Traverse::finish()
 {
   if (stack == NULL) return;
-  
+
   for (int i = 0; i < size; i++)
     if (stack[i].e != NULL)
       free_state(stack + i);
-    
+
   delete [] stack;
   stack = NULL;
-    
+
   delete [] subs;
   delete [] sons;
 }
@@ -508,14 +508,14 @@ uint64 Traverse::init_idx(Rect* cr, Rect* er)
 {
   Rect r;
   memcpy(&r, er, sizeof(Rect));
-  
-  uint64 idx = 0;  
+
+  uint64 idx = 0;
   while (cr->l > r.l || cr->r < r.r || cr->b > r.b || cr->t < r.t)
   {
     uint64 hmid = (r.l + r.r) >> 1;
     uint64 vmid = (r.t + r.b) >> 1;
     int son;
-  
+
     if (cr->r <= hmid && cr->t <= vmid) { son = 0; r.r = hmid; r.t = vmid; }
     else if (cr->l >= hmid && cr->t <= vmid) { son = 1; r.l = hmid; r.t = vmid; }
     else if (cr->l >= hmid && cr->b >= vmid) { son = 2; r.l = hmid; r.b = vmid; }
@@ -525,9 +525,9 @@ uint64 Traverse::init_idx(Rect* cr, Rect* er)
     else if (cr->r <= hmid) { son = 6; r.r = hmid; }
     else if (cr->l >= hmid) { son = 7; r.l = hmid; }
     else assert(0);
-      
+
     idx = (idx << 3) + son + 1;
-  }  
+  }
   return idx;
 }
 
@@ -540,7 +540,7 @@ void Traverse::union_recurrent(Rect* cr, Element** e, Rect* er, uint64* idx, Ele
   bool leaf = true;
   for (i = 0; i < num; i++)
     if (!e[i]->active) { leaf = false; break; }
-    
+
   // if yes, store the element transformation indices
   if (leaf)
   {
@@ -559,17 +559,17 @@ void Traverse::union_recurrent(Rect* cr, Element** e, Rect* er, uint64* idx, Ele
     return;
   }
 
-  // state arrays 
+  // state arrays
   Element* e_new[num];
   Rect er_new[num], cr_new;
   int4 sons[num];
   uint64 idx_new[num];
   memcpy(idx_new, idx, sizeof(idx_new));
-  
+
   if (tri)
   {
     // visit all sons of the triangle
-    unimesh->refine_element(uni->id);    
+    unimesh->refine_element(uni->id);
     for (son = 0; son <= 3; son++)
     {
       for (i = 0; i < num; i++)
@@ -590,12 +590,12 @@ void Traverse::union_recurrent(Rect* cr, Element** e, Rect* er, uint64* idx, Ele
     for (i = 0; i < num; i++)
       if (!e[i]->active)
         split |= get_split_and_sons(e[i], cr, er + i, sons[i]);
-  
+
     // both splits: recur to four sons
     if (split == 3)
     {
       unimesh->refine_element(uni->id, 0);
-      
+
       for (son = 0; son <= 3; son++)
       {
         move_to_son(&cr_new, cr, son);
@@ -617,10 +617,10 @@ void Traverse::union_recurrent(Rect* cr, Element** e, Rect* er, uint64* idx, Ele
     else if (split > 0)
     {
       unimesh->refine_element(uni->id, split);
-  
+
       int son0 = 4, son1 = 5;
       if (split == 2) { son0 = 6; son1 = 7; }
-      
+
       for (son = son0; son <= son1; son++)
       {
         move_to_son(&cr_new, cr, son);
@@ -664,17 +664,17 @@ UniData** Traverse::construct_union_mesh(Mesh* unimesh)
   int i;
   Element* e[num];
   Rect er[num], cr;
-  
+
   this->unimesh = unimesh;
   unimesh->copy_base(meshes[0]);
-  
+
   udsize = 0;
   unidata = new UniData*[num];
   memset(unidata, 0, sizeof(UniData*) * num);
-  
+
   uint64 idx[num];
   memset(idx, 0, sizeof(idx));
-  
+
   for (id = 0; id < meshes[0]->get_num_base_elements(); id++)
   {
     for (i = 0; i < num; i++)
@@ -687,6 +687,6 @@ UniData** Traverse::construct_union_mesh(Mesh* unimesh)
     tri = base->is_triangle();
     union_recurrent(&cr, e, er, idx, unimesh->get_element(id));
   }
-  
+
   return unidata;
 }

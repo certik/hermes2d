@@ -45,7 +45,7 @@
         -+-        -+-         -+-            */
 
 
-/// Constrained edge functions are constructed by subtracting the linear part (ie., two 
+/// Constrained edge functions are constructed by subtracting the linear part (ie., two
 /// vertex functions) from the constraining edge function and expressing the rest as a
 /// linear combination of standard edge functions. This function determines the coefficients
 /// of such linear combination by forming and solving a simple linear system.
@@ -54,17 +54,17 @@ double* Shapeset::calculate_constrained_edge_combination(int order, int part, in
 {
   assert((order - ebias) >= 0);
   assert(part >= 0);
-  
+
   int i, j, n;
-  
+
   // determine the interval of the edge
   for (n = 2; n <= part; n <<= 1)
     part -= n;
-  
+
   double n2 = 2.0 / n;
   double hi = -((double) part * n2 - 1.0);
   double lo = -((double) (part + 1) * n2 - 1.0);
-  
+
   int idx[16];
   ori = ori ? 0 : 1;
   for (i = 0; i <= order; i++)
@@ -84,7 +84,7 @@ double* Shapeset::calculate_constrained_edge_combination(int order, int part, in
     // so that its vectors are not shortened and fit the large constraining fn.
     c = (hi - lo) / 2.0;
   }
-  
+
   // fill the matrix of the linear system
   n = order + 1 - ebias;
   int space_type = get_id() / 10;
@@ -103,7 +103,7 @@ double* Shapeset::calculate_constrained_edge_combination(int order, int part, in
     for (j = 0; j < n; j++)
       a[i][j] = get_value(0, idx[j+ebias], p, -1.0, component);
 
-    // rhs    
+    // rhs
     b[i] = c * get_value(0, idx[order], lo*s + hi*r, -1.0, component) - f_lo*s - f_hi*r;
   }
 
@@ -116,7 +116,7 @@ double* Shapeset::calculate_constrained_edge_combination(int order, int part, in
   // cleanup
   delete [] iperm;
   delete [] a;
- 
+
   return b;
 }
 
@@ -127,8 +127,8 @@ double* Shapeset::calculate_constrained_edge_combination(int order, int part, in
 ///
 double* Shapeset::get_constrained_edge_combination(int order, int part, int ori, int& nitems)
 {
-  int index = 2*((max_order + 1 - ebias)*part + (order - ebias)) + ori; 
-  
+  int index = 2*((max_order + 1 - ebias)*part + (order - ebias)) + ori;
+
   // allocate/reallocate the array if necessary
   if (comb_table == NULL)
   {
@@ -142,21 +142,21 @@ double* Shapeset::get_constrained_edge_combination(int order, int part, int ori,
     // adjust table_size to accommodate the required depth
     int old_size = table_size;
     while (index >= table_size) table_size *= 2;
-      
+
     // reallocate the table
     verbose("Shapeset::get_constrained_edge_combination(): realloc to table_size=%d\n", table_size);
     comb_table = (double**) realloc(comb_table, table_size * sizeof(double*));
     memset(comb_table + old_size, 0, (table_size - old_size) * sizeof(double*));
   }
-  
+
   // do we have the required linear combination yet?
   if (comb_table[index] == NULL)
   {
     // no, calculate it
     comb_table[index] = calculate_constrained_edge_combination(order, part, ori);
   }
-  
-  nitems = order + 1 - ebias; 
+
+  nitems = order + 1 - ebias;
   return comb_table[index];
 }
 
@@ -169,7 +169,7 @@ void Shapeset::free_constrained_edge_combinations()
     for (int i = 0; i < table_size; i++)
       if (comb_table[i] != NULL)
         delete [] comb_table[i];
-        
+
     free(comb_table);
     comb_table = NULL;
   }
@@ -196,7 +196,7 @@ double Shapeset::get_constrained_value(int n, int index, double x, double y, int
   sum = 0.0;
   shape_fn_t* table = shape_table[n][mode][component];
   for (i = 0; i < nc; i++)
-    sum += comb[i] * table[get_edge_index(edge, ori, i+ebias)](x, y); 
+    sum += comb[i] * table[get_edge_index(edge, ori, i+ebias)](x, y);
 
   return sum;
 }

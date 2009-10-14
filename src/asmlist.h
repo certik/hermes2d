@@ -34,10 +34,10 @@
 class AsmList
 {
 public:
-  
+
   int* idx;      ///< array of shape function indices
   int* dof;      ///< array of basis function numbers (DOFs)
-  scalar* coef;  ///< array of coefficients 
+  scalar* coef;  ///< array of coefficients
   int cnt;       ///< the number of items in the arrays idx, dof and coef
   int cap;       ///< internal
 
@@ -52,11 +52,11 @@ public:
   {
     free(idx);
     free(dof);
-    free(coef);    
+    free(coef);
   }
-  
+
   void clear() { cnt = 0; }
-  
+
   inline void add_triplet(int i, int d, scalar c)
   {
     if (cnt >= cap) enlarge();
@@ -64,9 +64,9 @@ public:
     dof[cnt] = d;
     coef[cnt++] = c;
   }
-  
+
 protected:
-  
+
   // this is the only non-inline method; defined in space.cpp
   void enlarge();
 

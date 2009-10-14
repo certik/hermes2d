@@ -37,7 +37,7 @@ extern Quad2DLin quad_lin;
 
 //// vertices and triangles ////////////////////////////////////////////////////////////////////////
 
-Vectorizer::Vectorizer() 
+Vectorizer::Vectorizer()
           : Linearizer()
 {
   verts = NULL;
@@ -97,7 +97,7 @@ int Vectorizer::get_vertex(int p1, int p2, double x, double y, double xvalue, do
   #define getvalx(i) (xval[i].real())
   #define getvaly(i) (yval[i].real())
   #define getmag(i) (sqrt(sqr(xval[i].real()) + sqr(yval[i].real())))
-#endif  
+#endif
 #define midmag(i) (sqrt(sqr(midval[2][i]) + sqr(midval[3][i])))
 #define magvert(i) (sqr(verts[i][2]) + sqr(verts[i][3]))
 
@@ -119,7 +119,7 @@ void Vectorizer::process_triangle(int iv0, int iv1, int iv2, int level,
         double m = getmag(i);
         if (finite(m) && fabs(m) > max) max = fabs(m);
       }
-      
+
       if (curved)
       {
         RefMap* refmap = xsln->get_refmap();
@@ -128,7 +128,7 @@ void Vectorizer::process_triangle(int iv0, int iv1, int iv2, int level,
       }
       idx = tri_indices[0];
     }
-    
+
     // obtain linearized values and coordinates at the midpoints
     double midval[4][3];
     for (i = 0; i < 4; i++)
@@ -137,7 +137,7 @@ void Vectorizer::process_triangle(int iv0, int iv1, int iv2, int level,
       midval[i][1] = (verts[iv1][i] + verts[iv2][i])*0.5;
       midval[i][2] = (verts[iv2][i] + verts[iv0][i])*0.5;
     };
-    
+
     // determine whether or not to split the element
     bool split;
     if (eps >= 1.0)
@@ -148,11 +148,11 @@ void Vectorizer::process_triangle(int iv0, int iv1, int iv2, int level,
     else
     {
       // calculate the approximate error of linearizing the normalized solution
-      double err = fabs(getmag(idx[0]) - midmag(0)) + 
-                   fabs(getmag(idx[1]) - midmag(1)) + 
+      double err = fabs(getmag(idx[0]) - midmag(0)) +
+                   fabs(getmag(idx[1]) - midmag(1)) +
                    fabs(getmag(idx[2]) - midmag(2));
       split = !finite(err) || err > max*3*eps;
-      
+
       // do the same for the curvature
       if (curved && !split)
       {
@@ -164,7 +164,7 @@ void Vectorizer::process_triangle(int iv0, int iv1, int iv2, int level,
         }
         split = (cerr > cden*2.5e-4);
       }
-      
+
       // do extra tests at level 0, so as not to miss some functions with zero error at edge midpoints
       if (level == 0 && !split)
       {
@@ -182,7 +182,7 @@ void Vectorizer::process_triangle(int iv0, int iv1, int iv2, int level,
           midval[0][i] = phx[idx[i]];
           midval[1][i] = phy[idx[i]];
         }
-        
+
       // obtain mid-edge vertices
       int mid0 = get_vertex(iv0, iv1, midval[0][0], midval[1][0], getvalx(idx[0]), getvaly(idx[0]));
       int mid1 = get_vertex(iv1, iv2, midval[0][1], midval[1][1], getvalx(idx[1]), getvaly(idx[1]));
@@ -211,7 +211,7 @@ void Vectorizer::process_quad(int iv0, int iv1, int iv2, int iv3, int level,
   a = (magvert(a) > magvert(b)) ? a : b;
 
   int flip = (a == iv1 || a == iv3) ? 1 : 0;
-    
+
   if (level < LIN_MAX_LEVEL)
   {
     int i;
@@ -226,7 +226,7 @@ void Vectorizer::process_quad(int iv0, int iv1, int iv2, int iv3, int level,
         double m = getmag(i);
         if (finite(m) && fabs(m) > max) max = fabs(m);
       }
-        
+
       if (curved)
       {
         RefMap* refmap = xsln->get_refmap();
@@ -260,15 +260,15 @@ void Vectorizer::process_quad(int iv0, int iv1, int iv2, int iv3, int level,
       // the value of the middle point is not the average of the four vertex values, since quad == 2 triangles
       midval[2][4] = flip ? (verts[iv0][2] + verts[iv2][2]) * 0.5 : (verts[iv1][2] + verts[iv3][2]) * 0.5;
       midval[3][4] = flip ? (verts[iv0][3] + verts[iv2][3]) * 0.5 : (verts[iv1][3] + verts[iv3][3]) * 0.5;
-      
+
       // calculate the approximate error of linearizing the normalized solution
-      double err = fabs(getmag(idx[0]) - midmag(0)) + 
-                   fabs(getmag(idx[1]) - midmag(1)) + 
-                   fabs(getmag(idx[2]) - midmag(2)) + 
-                   fabs(getmag(idx[3]) - midmag(3)) + 
+      double err = fabs(getmag(idx[0]) - midmag(0)) +
+                   fabs(getmag(idx[1]) - midmag(1)) +
+                   fabs(getmag(idx[2]) - midmag(2)) +
+                   fabs(getmag(idx[3]) - midmag(3)) +
                    fabs(getmag(idx[4]) - midmag(4));
       split = !finite(err) || err > max*4*eps;
-      
+
       // do the same for the curvature
       if (curved && !split)
       {
@@ -280,7 +280,7 @@ void Vectorizer::process_quad(int iv0, int iv1, int iv2, int iv3, int level,
         }
         split = (cerr > cden*2.5e-4);
       }
-      
+
       // do extra tests at level 0, so as not to miss functions with zero error at edge midpoints
       if (level == 0 && !split)
       {
@@ -300,7 +300,7 @@ void Vectorizer::process_quad(int iv0, int iv1, int iv2, int iv3, int level,
           midval[0][i] = phx[idx[i]];
           midval[1][i] = phy[idx[i]];
         }
-      
+
       // obtain mid-edge and mid-element vertices
       int mid0 = get_vertex(iv0,  iv1,  midval[0][0], midval[1][0], getvalx(idx[0]), getvaly(idx[0]));
       int mid1 = get_vertex(iv1,  iv2,  midval[0][1], midval[1][1], getvalx(idx[1]), getvaly(idx[1]));
@@ -317,7 +317,7 @@ void Vectorizer::process_quad(int iv0, int iv1, int iv2, int iv3, int level,
     }
   }
 
-  // output two linear triangles, 
+  // output two linear triangles,
   if (!flip)
   {
     add_triangle(iv3, iv0, iv1);
@@ -357,7 +357,7 @@ void Vectorizer::find_min_max()
   }
   max_val = sqrt(max_val);
   min_val = sqrt(min_val);
-  
+
 }
 
 
@@ -366,7 +366,7 @@ void Vectorizer::find_min_max()
 void Vectorizer::process_solution(MeshFunction* xsln, int xitem, MeshFunction* ysln, int yitem, double eps)
 {
   int i;
-  
+
   lock_data();
   begin_time();
 
@@ -414,14 +414,14 @@ void Vectorizer::process_solution(MeshFunction* xsln, int xitem, MeshFunction* y
 
   xsln->set_quad_2d((Quad2D*) &quad_lin);
   ysln->set_quad_2d((Quad2D*) &quad_lin);
-  
+
   if (!xitem) error("'xitem' cannot be zero.");
   if (!yitem) error("'yitem' cannot be zero.");
   get_gv_a_b(xitem, xia, xib);
   get_gv_a_b(yitem, yia, yib);
   if (xib >= 6) error("Invalid 'xitem'.");
   if (yib >= 6) error("Invalid 'yitem'.");
-  
+
   max = 1e-10;
   trav.begin(2, meshes, fns);
   Element** e;
@@ -436,7 +436,7 @@ void Vectorizer::process_solution(MeshFunction* xsln, int xitem, MeshFunction* y
     {
       double fx = getvalx(i);
       double fy = getvaly(i);
-      if (fabs(sqrt(fx*fx + fy*fy)) > max) max = fabs(sqrt(fx*fx + fy*fy)); 
+      if (fabs(sqrt(fx*fx + fy*fy)) > max) max = fabs(sqrt(fx*fx + fy*fy));
     }
   }
   trav.finish();
@@ -449,10 +449,10 @@ void Vectorizer::process_solution(MeshFunction* xsln, int xitem, MeshFunction* y
     ysln->set_quad_order(0, yitem);
     scalar* xval = xsln->get_values(xia, xib);
     scalar* yval = ysln->get_values(yia, yib);
-    
+
     double* x = xsln->get_refmap()->get_phys_x(0);
     double* y = ysln->get_refmap()->get_phys_y(0);
-    
+
     int iv[4];
     for (i = 0; i < e[0]->nvert; i++)
     {
@@ -469,8 +469,8 @@ void Vectorizer::process_solution(MeshFunction* xsln, int xitem, MeshFunction* y
       process_triangle(iv[0], iv[1], iv[2], 0, NULL, NULL, NULL, NULL, NULL);
     else
       process_quad(iv[0], iv[1], iv[2], iv[3], 0, NULL, NULL, NULL, NULL, NULL);
-      
-    // process edges and dashes (bold line for edge in both meshes, dashed line for edge in one of the meshes)  
+
+    // process edges and dashes (bold line for edge in both meshes, dashed line for edge in one of the meshes)
     Trf* xctm = xsln->get_ctm();
     Trf* yctm = ysln->get_ctm();
     double r[4] = { -1.0, 1.0, 1.0, -1.0 };
@@ -481,32 +481,32 @@ void Vectorizer::process_solution(MeshFunction* xsln, int xitem, MeshFunction* y
       double px = ref[i][0];
       double py = ref[i][1];
       // for odd edges (1, 3) we check x coordinate after ctm transformation, if it's the same (1 or -1) in both meshes => bold
-      if (i & 1) {     
-        if ((xctm->m[0]*px + xctm->t[0] == r[i]) && (yctm->m[0]*px + yctm->t[0] == r[i]))  
+      if (i & 1) {
+        if ((xctm->m[0]*px + xctm->t[0] == r[i]) && (yctm->m[0]*px + yctm->t[0] == r[i]))
           bold = true;
       }
-      // for even edges (0, 4) we check y coordinate after ctm transformation, if it's the same (-1 or 1) in both meshes => bold    
+      // for even edges (0, 4) we check y coordinate after ctm transformation, if it's the same (-1 or 1) in both meshes => bold
       else {
-        if ((xctm->m[1]*py + xctm->t[1] == r[i]) && (yctm->m[1]*py + yctm->t[1] == r[i])) 
+        if ((xctm->m[1]*py + xctm->t[1] == r[i]) && (yctm->m[1]*py + yctm->t[1] == r[i]))
           bold = true;
       }
       int j = e[0]->next_vert(i);
       // we draw a line only if both edges lies on the boundary or if the line is from left top to right bottom
       if (((e[0]->en[i]->bnd) && (e[1]->en[i]->bnd)) ||
          (verts[iv[i]][1] < verts[iv[j]][1]) ||
-         (verts[iv[i]][1] == verts[iv[j]][1] && verts[iv[i]][0] < verts[iv[j]][0]))  
-      {   
-        if (bold) 
+         (verts[iv[i]][1] == verts[iv[j]][1] && verts[iv[i]][0] < verts[iv[j]][0]))
+      {
+        if (bold)
           process_edge(iv[i], iv[j], e[0]->en[i]->marker);
         else
           process_dash(iv[i], iv[j]);
-      }    
-    }       
+      }
+    }
   }
   trav.finish();
-   
+
   find_min_max();
-    
+
   verbose("Vectorizer: %d verts, %d tris in %0.3g sec", nv, nt, end_time());
   //if (verbose_mode) print_hash_stats();
   unlock_data();
@@ -514,7 +514,7 @@ void Vectorizer::process_solution(MeshFunction* xsln, int xitem, MeshFunction* y
    // select old quadratrues
   xsln->set_quad_2d(old_quad_x);
   ysln->set_quad_2d(old_quad_y);
-  
+
   // clean up
   ::free(hash_table);
   ::free(info);
@@ -529,7 +529,7 @@ void Vectorizer::save_data(const char* filename)
   FILE* f = fopen(filename, "wb");
   if (f == NULL) error("Could not open %s for writing.", filename);
   lock_data();
-  
+
   if (fwrite("H2DV\001\000\000\000", 1, 8, f) != 8 ||
       fwrite(&nv, sizeof(int), 1, f) != 1 ||
       fwrite(verts, sizeof(double4), nv, f) != nv ||
@@ -542,7 +542,7 @@ void Vectorizer::save_data(const char* filename)
   {
     error("Error writing data to %s", filename);
   }
-  
+
   unlock_data();
   fclose(f);
 }
@@ -553,11 +553,11 @@ void Vectorizer::load_data(const char* filename)
   FILE* f = fopen(filename, "rb");
   if (f == NULL) error("Could not open %s for reading.", filename);
   lock_data();
-  
+
   struct { char magic[4]; int ver; } hdr;
   if (fread(&hdr, sizeof(hdr), 1, f) != 1)
     error("Error reading %s", filename);
-  
+
   if (hdr.magic[0] != 'H' || hdr.magic[1] != '2' || hdr.magic[2] != 'D' || hdr.magic[3] != 'V')
     error("%s is not a Hermes2D Vectorizer file.", filename);
   if (hdr.ver > 1)
@@ -569,13 +569,13 @@ void Vectorizer::load_data(const char* filename)
     lin_init_array(array, type, c, n); \
     if (fread(array, sizeof(type), n, f) != n) \
       error("Error reading " what " from %s", filename);
-  
+
   read_array(verts, double4, nv, cv, "vertices");
   read_array(tris,  int3,    nt, ct, "triangles");
   read_array(edges, int3,    ne, ce, "edges");
   read_array(dashes, int2,   nd, cd, "dashes");
-    
-  find_min_max();  
+
+  find_min_max();
   unlock_data();
   fclose(f);
 }

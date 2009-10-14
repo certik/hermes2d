@@ -30,7 +30,7 @@ class NonlinSystem;
 class Space;
 class MeshFunction;
 struct EdgePos;
-  
+
 
 // Bilinear form symmetry flag, see WeakForm::add_biform
 enum SymFlag
@@ -49,13 +49,13 @@ enum SymFlag
 /// a (neq x neq) matrix of bilinear forms a_mn(u,v) and L(V) is a neq-component vector
 /// of linear forms l(v). U and V are the vectors of basis and test functions.
 ///
-/// 
+///
 ///
 class WeakForm
 {
 public:
-  
-  WeakForm(int neq);  
+
+  WeakForm(int neq);
 
   int def_area(int n, ...);
 
@@ -74,7 +74,7 @@ public:
 
 
 protected:
-  
+
   int neq;
 
   struct Area  {  /*std::string name;*/  std::vector<int> markers;  };
@@ -85,7 +85,7 @@ protected:
   struct BiFormSurf  {  int i, j, area;       biform_surf_t fn;  std::vector<MeshFunction*> ext;  };
   struct LiFormVol   {  int i, area;          liform_vol_t  fn;  std::vector<MeshFunction*> ext;  };
   struct LiFormSurf  {  int i, area;          liform_surf_t fn;  std::vector<MeshFunction*> ext;  };
-  
+
   std::vector<BiFormVol>  bfvol;
   std::vector<BiFormSurf> bfsurf;
   std::vector<LiFormVol>  lfvol;
@@ -98,12 +98,12 @@ protected:
     std::vector<Mesh*> meshes;
     std::vector<Transformable*> fns;
     std::vector<MeshFunction*> ext;
-    
+
     std::vector<BiFormVol*>  bfvol;
     std::vector<BiFormSurf*> bfsurf;
     std::vector<LiFormVol*>  lfvol;
     std::vector<LiFormSurf*> lfsurf;
-    
+
     std::set<int> idx_set;
     std::set<unsigned> seq_set;
     std::set<MeshFunction*> ext_set;
@@ -111,10 +111,10 @@ protected:
 
   void get_stages(Space** spaces, std::vector<Stage>& stages, bool rhsonly);
   bool** get_blocks();
-  
+
   bool is_in_area(int marker, int area) const
     { return area >= 0 ? area == marker : is_in_area_2(marker, area); }
-    
+
   bool is_sym() const { return false; /* not impl. yet */ }
 
   friend class LinSystem;
@@ -123,8 +123,8 @@ protected:
   friend class RefNonlinSystem;
 
 
-private: 
- 
+private:
+
   Stage* find_stage(std::vector<Stage>& stages, int ii, int jj,
                     Mesh* m1, Mesh* m2, std::vector<MeshFunction*>& ext);
 

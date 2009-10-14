@@ -49,7 +49,7 @@ void Node::unref_element(HashTable* ht, Element* e)
     // remove the element from the array 'elem'
     if (elem[0] == e) elem[0] = NULL;
     else if (elem[1] == e) elem[1] = NULL;
-      
+
     if (!--ref) ht->remove_edge_node(id);
   }
 }
@@ -57,7 +57,7 @@ void Node::unref_element(HashTable* ht, Element* e)
 
 void Element::ref_all_nodes()
 {
-  for (int i = 0; i < nvert; i++) 
+  for (int i = 0; i < nvert; i++)
   {
     vn[i]->ref_element();
     en[i]->ref_element(this);
@@ -91,14 +91,14 @@ double Element::get_area() const
   ay = vn[1]->y - vn[0]->y;
   bx = vn[2]->x - vn[0]->x;
   by = vn[2]->y - vn[0]->y;
-  
+
   double area = 0.5*(ax*by - ay*bx);
   if (is_triangle()) return area;
-    
+
   ax = bx; ay = by;
   bx = vn[3]->x - vn[0]->x;
   by = vn[3]->y - vn[0]->y;
-  
+
   return area + 0.5*(ax*by - ay*bx);
 }
 
@@ -149,7 +149,7 @@ Element* Mesh::get_element(int id) const
 int Mesh::get_edge_sons(Element* e, int edge, int& son1, int& son2)
 {
   assert(!e->active);
-      
+
   if (!e->is_triangle())
   {
     if (e->sons[2] == NULL) // horz quad
@@ -160,12 +160,12 @@ int Mesh::get_edge_sons(Element* e, int edge, int& son1, int& son2)
     }
     else if (e->sons[0] == NULL) // vert quad
     {
-      if (edge == 1 || edge == 3) { son1 = (edge == 1) ? 3 : 2; return 1; } 
+      if (edge == 1 || edge == 3) { son1 = (edge == 1) ? 3 : 2; return 1; }
               else if (edge == 0) { son1 = 2; son2 = 3; return 2; }
                              else { son1 = 3; son2 = 2; return 2; }
     }
   }
-  
+
   // triangle or 4-son quad
   son1 = edge;
   son2 = e->next_vert(edge);
@@ -178,13 +178,13 @@ int Mesh::get_edge_sons(Element* e, int edge, int& son1, int& son2)
 /*  node and son numbering on a triangle:
 
                     vn[2]                                       vn[2]
-  
+
                       *                                           *
                      / \                                         / \
                     /   \                                       /   \
                    /     \                                     /     \
                   /       \                                   / son[2]\
-                 /         \                                 /_________\ 
+                 /         \                                 /_________\
         en[2]   /           \   en[1]                 vn[0] *           * vn[1]
                *             *                       vn[1]  *-----------*  vn[0]
               /               \                     vn[2] *  \         /  * vn[2]
@@ -195,11 +195,11 @@ int Mesh::get_edge_sons(Element* e, int edge, int& son1, int& son2)
          /                         \                 /         \  *  /         \
         *-------------*-------------*               *-----------*   *-----------*
                                                vn[0]      vn[1] vn[2] vn[0]      vn[1]
-    vn[0]           en[0]           vn[1]                                                             
-  
-  
+    vn[0]           en[0]           vn[1]
+
+
    node and son numbering on a quad:          refinement '0':
-  
+
     vn[3]           en[2]           vn[2]       vn[3]        vn[2] vn[3]        vn[2]
 
         *-------------*-------------*               *------------* *------------*
@@ -254,7 +254,7 @@ Element* Mesh::create_triangle(int marker, Node* v0, Node* v1, Node* v2, CurvMap
   e->nvert = 3;
   e->iro_cache = -1;
   e->cm = cm;
-    
+
   // set vertex and edge node pointers
   e->vn[0] = v0;
   e->vn[1] = v1;
@@ -280,7 +280,7 @@ Element* Mesh::create_quad(int marker, Node* v0, Node* v1, Node* v2, Node* v3, C
   e->nvert = 4;
   e->iro_cache = -1;
   e->cm = cm;
-  
+
   // set vertex and edge node pointers
   e->vn[0] = v0;
   e->vn[1] = v1;
@@ -303,25 +303,25 @@ static CurvMap* create_son_curv_map(Element* e, int son)
   // if the top three bits of part are nonzero, we would overflow
   // -- make the element non-curvilinear
   if (e->cm->part & 0xe000000000000000ULL) return NULL;
-    
+
   // if the parent element is already almost straight-edged,
   // the son will be even more straight-edged
   if (e->iro_cache == 0) return NULL;
 
   CurvMap* cm = new CurvMap;
-  if (e->cm->toplevel == false) 
+  if (e->cm->toplevel == false)
   {
     cm->parent = e->cm->parent;
     cm->part = (e->cm->part << 3) + son + 1;
-  }  
-  else 
+  }
+  else
   {
     cm->parent = e;
     cm->part = (son + 1);
-  }  
+  }
   cm->toplevel = false;
   cm->order = 4;
-  
+
   return cm;
 }
 
@@ -336,10 +336,10 @@ void Mesh::refine_triangle(Element* e)
   Node* x0 = get_vertex_node(e->vn[0]->id, e->vn[1]->id);
   Node* x1 = get_vertex_node(e->vn[1]->id, e->vn[2]->id);
   Node* x2 = get_vertex_node(e->vn[2]->id, e->vn[0]->id);
-  
+
   CurvMap* cm[4];
   memset(cm, 0, sizeof(cm));
-  
+
   // adjust mid-edge coordinates if this is a curved element
   if (e->is_curved())
   {
@@ -348,12 +348,12 @@ void Mesh::refine_triangle(Element* e)
     x0->x = pt[0][0]; x0->y = pt[0][1];
     x1->x = pt[1][0]; x1->y = pt[1][1];
     x2->x = pt[2][0]; x2->y = pt[2][1];
-    
+
     // create CurvMaps for sons (pointer to parent element, part)
     for (int i = 0; i < 4; i++)
-      cm[i] = create_son_curv_map(e, i);    
-  }  
- 
+      cm[i] = create_son_curv_map(e, i);
+  }
+
   // create the four sons
   Element* sons[4];
   sons[0] = create_triangle(e->marker, e->vn[0], x0, x2, cm[0]);
@@ -365,7 +365,7 @@ void Mesh::refine_triangle(Element* e)
   for (int i = 0; i < 4; i++)
     if (sons[i]->is_curved())
       sons[i]->cm->update_refmap_coefs(sons[i]);
-  
+
   // deactivate this element and unregister from its nodes
   e->active = 0;
   nactive += 3;
@@ -392,7 +392,7 @@ void Mesh::refine_quad(Element* e, int refinement)
 {
   int i, j;
   Element* sons[4];
-  
+
   // remember the markers of the edge nodes
   int bnd[4] = { e->en[0]->bnd,    e->en[1]->bnd,    e->en[2]->bnd,    e->en[3]->bnd    };
   int mrk[4] = { e->en[0]->marker, e->en[1]->marker, e->en[2]->marker, e->en[3]->marker };
@@ -405,7 +405,7 @@ void Mesh::refine_quad(Element* e, int refinement)
 
   CurvMap* cm[4];
   memset(cm, 0, sizeof(cm));
-    
+
   // default refinement: one quad to four quads
   if (refinement == 0)
   {
@@ -415,7 +415,7 @@ void Mesh::refine_quad(Element* e, int refinement)
     Node* x2 = get_vertex_node(e->vn[2]->id, e->vn[3]->id);
     Node* x3 = get_vertex_node(e->vn[3]->id, e->vn[0]->id);
     Node* mid = get_vertex_node(x0->id, x2->id);
-    
+
     // adjust mid-edge coordinates if this is a curved element
     if (e->is_curved())
     {
@@ -426,21 +426,21 @@ void Mesh::refine_quad(Element* e, int refinement)
       x2->x = pt[2][0];  x2->y = pt[2][1];
       x3->x = pt[3][0];  x3->y = pt[3][1];
       mid->x = pt[4][0]; mid->y = pt[4][1];
-            
+
       // create CurvMaps for sons (pointer to parent element, part)
       for (i = 0; i < 4; i++)
-        cm[i] = create_son_curv_map(e, i);      
+        cm[i] = create_son_curv_map(e, i);
     }
-    
+
     // create the four sons
     sons[0] = create_quad(e->marker, e->vn[0], x0, mid, x3, cm[0]);
     sons[1] = create_quad(e->marker, x0, e->vn[1], x1, mid, cm[1]);
     sons[2] = create_quad(e->marker, mid, x1, e->vn[2], x2, cm[2]);
     sons[3] = create_quad(e->marker, x3, mid, x2, e->vn[3], cm[3]);
     nactive += 4;
-    
+
     // set correct boundary markers for the new edge nodes
-    for (i = 0; i < 4; i++) 
+    for (i = 0; i < 4; i++)
     {
       j = (i > 0) ? i-1 : 3;
       sons[i]->en[j]->bnd = bnd[j];  sons[i]->en[j]->marker = mrk[j];
@@ -453,7 +453,7 @@ void Mesh::refine_quad(Element* e, int refinement)
   {
     Node* x1 = get_vertex_node(e->vn[1]->id, e->vn[2]->id);
     Node* x3 = get_vertex_node(e->vn[3]->id, e->vn[0]->id);
-    
+
     // adjust mid-edge coordinates if this is a curved element
     if (e->is_curved())
     {
@@ -461,17 +461,17 @@ void Mesh::refine_quad(Element* e, int refinement)
       e->cm->get_mid_edge_points(e, pt, 2);
       x1->x = pt[0][0];  x1->y = pt[0][1];
       x3->x = pt[1][0];  x3->y = pt[1][1];
-    
+
       // create CurvMaps for sons (pointer to parent element, part)
       for (i = 0; i < 2; i++)
-        cm[i] = create_son_curv_map(e, i + 4);      
+        cm[i] = create_son_curv_map(e, i + 4);
     }
-    
+
     sons[0] = create_quad(e->marker, e->vn[0], e->vn[1], x1, x3, cm[0]);
     sons[1] = create_quad(e->marker, x3, x1, e->vn[2], e->vn[3], cm[1]);
     sons[2] = sons[3] = NULL;
     nactive += 2;
-    
+
     sons[0]->en[0]->bnd = bnd[0];  sons[0]->en[0]->marker = mrk[0];
     sons[0]->en[1]->bnd = bnd[1];  sons[0]->en[1]->marker = mrk[1];
     sons[0]->en[3]->bnd = bnd[3];  sons[0]->en[3]->marker = mrk[3];
@@ -486,7 +486,7 @@ void Mesh::refine_quad(Element* e, int refinement)
   {
     Node* x0 = get_vertex_node(e->vn[0]->id, e->vn[1]->id);
     Node* x2 = get_vertex_node(e->vn[2]->id, e->vn[3]->id);
-    
+
     // adjust mid-edge coordinates if this is a curved element
     if (e->is_curved())
     {
@@ -494,17 +494,17 @@ void Mesh::refine_quad(Element* e, int refinement)
       e->cm->get_mid_edge_points(e, pt, 2);
       x0->x = pt[0][0];  x0->y = pt[0][1];
       x2->x = pt[1][0];  x2->y = pt[1][1];
-      
+
       // create CurvMaps for sons (pointer to parent element, part)
       for (i = 0; i < 2; i++)
-        cm[i] = create_son_curv_map(e, i + 6);        
+        cm[i] = create_son_curv_map(e, i + 6);
     }
-    
+
     sons[0] = sons[1] = NULL;
     sons[2] = create_quad(e->marker, e->vn[0], x0, x2, e->vn[3], cm[0]);
     sons[3] = create_quad(e->marker, x0, e->vn[1], e->vn[2], x2, cm[1]);
     nactive += 2;
-    
+
     sons[2]->en[0]->bnd = bnd[0];  sons[2]->en[0]->marker = mrk[0];
     sons[2]->en[2]->bnd = bnd[2];  sons[2]->en[2]->marker = mrk[2];
     sons[2]->en[3]->bnd = bnd[3];  sons[2]->en[3]->marker = mrk[3];
@@ -515,18 +515,18 @@ void Mesh::refine_quad(Element* e, int refinement)
     sons[2]->vn[2]->bnd = bnd[2];
   }
   else assert(0);
-  
+
   // update coefficients of curved reference mapping
   for (i = 0; i < 4; i++)
     if (sons[i] != NULL && sons[i]->cm != NULL)
       sons[i]->cm->update_refmap_coefs(sons[i]);
-    
+
   // optimization: iro never gets worse
   if (e->iro_cache == 0)
     for (i = 0; i < 4; i++)
       if (sons[i] != NULL)
         sons[i]->iro_cache = 0;
-    
+
   // copy son pointers (could not have been done earlier because of the union)
   memcpy(e->sons, sons, sizeof(sons));
 }
@@ -536,7 +536,7 @@ void Mesh::unrefine_element_internal(Element* e)
 {
   assert(!e->active);
   int i, s1, s2;
-  
+
   // obtain markers and bnds from son elements
   int mrk[4], bnd[4];
   for (i = 0; i < e->nvert; i++)
@@ -546,7 +546,7 @@ void Mesh::unrefine_element_internal(Element* e)
     mrk[i] = e->sons[s1]->en[i]->marker;
     bnd[i] = e->sons[s1]->en[i]->bnd;
   }
-  
+
   // remove all sons
   for (i = 0; i < 4; i++)
   {
@@ -559,15 +559,15 @@ void Mesh::unrefine_element_internal(Element* e)
       nactive--;
     }
   }
-  
+
   // recreate edge nodes
   for (i = 0; i < e->nvert; i++)
     e->en[i] = get_edge_node(e->vn[i]->id, e->vn[e->next_vert(i)]->id);
-  
+
   e->ref_all_nodes();
   e->active = 1;
   nactive++;
-  
+
   // restore edge node markers and bnds
   for (i = 0; i < e->nvert; i++)
   {
@@ -584,12 +584,12 @@ void Mesh::refine_element(int id, int refinement)
   Element* e = get_element(id);
   if (!e->used) error("invalid element id number.");
   if (!e->active) error("attempt to refine element #%d which has been refined already.", e->id);
-    
+
   if (e->is_triangle())
     refine_triangle(e);
   else
     refine_quad(e, refinement);
-  
+
   seq = g_mesh_seq++;
 }
 
@@ -643,20 +643,20 @@ static int rtb_criterion(Element* e)
   for (i = 0; i < e->nvert; i++)
     if (e->en[i]->marker == rtb_marker || rtb_vert[e->vn[i]->id])
       break;
-    
+
   if (i >= e->nvert) return -1;
   if (e->is_triangle() || !rtb_aniso) return 0;
-    
+
   if ((e->en[0]->marker == rtb_marker && !rtb_vert[e->vn[2]->id] && !rtb_vert[e->vn[3]->id]) ||
       (e->en[2]->marker == rtb_marker && !rtb_vert[e->vn[0]->id] && !rtb_vert[e->vn[1]->id]) ||
-      (e->en[0]->marker == rtb_marker && e->en[2]->marker == rtb_marker && 
+      (e->en[0]->marker == rtb_marker && e->en[2]->marker == rtb_marker &&
        e->en[1]->marker != rtb_marker && e->en[3]->marker != rtb_marker)) return 1;
-  
+
   if ((e->en[1]->marker == rtb_marker && !rtb_vert[e->vn[3]->id] && !rtb_vert[e->vn[0]->id]) ||
       (e->en[3]->marker == rtb_marker && !rtb_vert[e->vn[1]->id] && !rtb_vert[e->vn[2]->id]) ||
-      (e->en[1]->marker == rtb_marker && e->en[3]->marker == rtb_marker && 
+      (e->en[1]->marker == rtb_marker && e->en[3]->marker == rtb_marker &&
        e->en[0]->marker != rtb_marker && e->en[2]->marker != rtb_marker)) return 2;
-  
+
   return 0;
 }
 
@@ -664,19 +664,19 @@ void Mesh::refine_towards_boundary(int marker, int depth, bool aniso)
 {
   rtb_marker = marker;
   rtb_aniso  = aniso;
-  
+
   for (int i = 0; i < depth; i++)
   {
     int size = get_max_node_id()+1;
     rtb_vert = new char[size];
     memset(rtb_vert, 0, sizeof(char) * size);
-    
+
     Element* e;
     for_all_active_elements(e, this)
       for (int j = 0; j < e->nvert; j++)
         if (e->en[j]->marker == marker)
           rtb_vert[e->vn[j]->id] = rtb_vert[e->vn[e->next_vert(j)]->id] = 1;
-    
+
     refine_by_criterion(rtb_criterion, 1);
     delete [] rtb_vert;
   }
@@ -710,10 +710,10 @@ void Mesh::unrefine_all_elements(bool keep_initial_refinements)
       if (e->sons[i] != NULL && (!e->sons[i]->active ||
           (keep_initial_refinements && e->sons[i]->id < ninitial))  )
         { found = false; break; }
-      
+
     if (found) list.push_back(e->id);
   }
-  
+
   // unrefine the found elements
   for (int i = 0; i < list.size(); i++)
     unrefine_element(list[i]);

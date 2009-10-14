@@ -31,8 +31,8 @@
 class Quad1DStd : public Quad1D
 {
   public: Quad1DStd();
-    
-  virtual void dummy_fn() {}  
+
+  virtual void dummy_fn() {}
 };
 
 
@@ -41,8 +41,8 @@ class Quad2DStd : public Quad2D
 {
   public:  Quad2DStd();
           ~Quad2DStd();
-  
-  virtual void dummy_fn() {}  
+
+  virtual void dummy_fn() {}
 };
 
 

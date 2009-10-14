@@ -37,7 +37,7 @@ H1Space::H1Space(Mesh* mesh, Shapeset* shapeset)
   {
     // fixme: separate projection matrices for different shapesets
     precalculate_projection_matrix(2, h1_proj_mat, h1_chol_p);
-  }  
+  }
   proj_mat = h1_proj_mat;
   chol_p   = h1_chol_p;
 }
@@ -71,7 +71,7 @@ void H1Space::assign_vertex_dofs()
   // a natural BC and which are part of an essential BC. The critical are those which
   // lie at an interface of both types of BCs and which must be treated as belonging
   // to the essential part. Unfortunately this has to be done on a per-space basis, as
-  // the markers may have different meanings in different spaces. There is no way to 
+  // the markers may have different meanings in different spaces. There is no way to
   // look at the adjacent edge nodes given a vertex node, thus we have to walk through
   // all elements in the mesh.
 
@@ -100,7 +100,7 @@ void H1Space::assign_vertex_dofs()
       }
     }
   }
-  
+
   // loop through all elements and assign vertex, edge and bubble dofs
   for_all_active_elements(e, mesh)
   {
@@ -125,7 +125,7 @@ void H1Space::assign_vertex_dofs()
           }
           nd->n = 1;
         }
-        
+
         // edge dofs
         Node* en = e->en[i];
         nd = ndata + en->id;
@@ -136,7 +136,7 @@ void H1Space::assign_vertex_dofs()
           {
             int ndofs = get_edge_order_internal(en) - 1;
             nd->n = ndofs;
-      
+
             if (en->bnd && bc_type_callback(en->marker) == BC_ESSENTIAL)
             {
               nd->dof = -1;
@@ -154,7 +154,7 @@ void H1Space::assign_vertex_dofs()
         }
       }
     }
-    
+
     // bubble dofs
     shapeset->set_mode(e->get_mode());
     ElementData* ed = &edata[e->id];
@@ -169,7 +169,7 @@ void H1Space::assign_edge_dofs()
 {
   // TODO: remove this fn, we now assign all dofs at once
 }
-  
+
 void H1Space::assign_bubble_dofs()
 {
   // TODO: remove this fn, we now assign all dofs at once
@@ -248,7 +248,7 @@ scalar* H1Space::get_bc_projection(EdgePos* ep, int order)
 {
   assert(order >= 1);
   scalar* proj = new scalar[order + 1];
-  
+
   // obtain linear part of the projection
   ep->t = ep->lo;
   proj[0] = bc_value_callback_by_edge(ep);
@@ -550,7 +550,7 @@ bool H1Space::is_fixed_vertex(int id) const
   for (int i = 0; i < fixed_vertices.size(); i++)
     if (fixed_vertices[i].id == id)
       return true;
-    
+
   return false;
 }
 
@@ -565,6 +565,6 @@ void H1Space::post_assign()
     NodeData* nd = &ndata[fixed_vertices[i].id];
     nd->vertex_bc_coef = fixv;
     extra_data.push_back(fixv);
-  }  
+  }
 }
 

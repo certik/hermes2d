@@ -27,7 +27,7 @@
 ///
 /// L2OrthoHP is a fast hp-adaptivity module for continuous elements.
 /// Given a reference solution, it provides functions to calculate H1 or
-/// energy error estimates, acts as a container for the calculated errors 
+/// energy error estimates, acts as a container for the calculated errors
 /// and contains the "ortho" hp-adaptivty algorithm based on fast
 /// projections to an orthonormal set of functions.
 ///
@@ -38,7 +38,7 @@ class L2OrthoHP
 public:
 
   /// Initializes the class. 'num' is the number of mesh-space pairs to be adapted.
-  /// After 'num', exactly that many space pointers must follow. 
+  /// After 'num', exactly that many space pointers must follow.
   L2OrthoHP(int num, ...);
   ~L2OrthoHP();
 
@@ -64,13 +64,13 @@ public:
 
 
   /// Selects elements to refine (based on results from calc_error() or calc_energy_error())
-  /// and performs their optimal hp-refinement. 
+  /// and performs their optimal hp-refinement.
   void adapt(double thr, int strat = 0, bool h_only = false, bool iso_only = false, int max_order = -1);
 
 
   /// Internal. Used by adapt(). Can be utilized in specialized adaptivity
   /// procedures, for which adapt() is not sufficient.
-  static void get_optimal_refinement(Element* e, int order, Solution* rsln, int& split, int p[4], 
+  static void get_optimal_refinement(Element* e, int order, Solution* rsln, int& split, int p[4],
                                      bool h_only = false, bool iso_only = false, int max_order = -1);
 
 
@@ -91,7 +91,7 @@ protected:
   double  total_err;
   int2* esort;
   int   nact;
-  
+
   // orthonormal basis tables
   static double3** obase[2][9];
   static int  basecnt[2][11];

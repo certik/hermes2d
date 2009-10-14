@@ -43,22 +43,22 @@ void MeshView::show(Mesh* mesh)
 {
   glut_init();
   update_layout();
-  
+
   Solution sln;
   sln.set_zero(mesh);
   lin.process_solution(&sln);
   lin.lock_data();
   center_mesh(lin.get_vertices(), lin.get_num_vertices());
   lin.unlock_data();
-  
+
   int i;
-  
+
   if (elems != NULL) delete [] elems;
   ne = mesh->get_max_element_id()+1;
   elems = new ObjInfo[ne];
   for (i = 0; i < ne; i++)
     elems[i].id = -1;
-  
+
   Element* e;
   for_all_active_elements(e, mesh)
   {
@@ -73,7 +73,7 @@ void MeshView::show(Mesh* mesh)
     oi->x /= e->nvert;
     oi->y /= e->nvert;
   }
-  
+
   create();
   wait_for_draw();
 }
@@ -85,7 +85,7 @@ void MeshView::on_display()
   glDisable(GL_TEXTURE_1D);
   glDisable(GL_LIGHTING);
   glDisable(GL_DEPTH_TEST);
-  
+
   // transform all vertices
   lin.lock_data();
   int i, nv = lin.get_num_vertices();
@@ -96,7 +96,7 @@ void MeshView::on_display()
     tvert[i][0] = transform_x(vert[i][0]);
     tvert[i][1] = transform_y(vert[i][1]);
   }
-  
+
   // draw all triangles
   int3* tris = lin.get_triangles();
   glColor3f(0.9, 0.9, 0.9);
@@ -108,18 +108,18 @@ void MeshView::on_display()
     glVertex2d(tvert[tris[i][2]][0], tvert[tris[i][2]][1]);
   }
   glEnd();
-  
+
   // draw all edges
   glLineStipple(5, 0x5555);
   int3* edges = lin.get_edges();
   for (i = 0; i < lin.get_num_edges(); i++)
   {
     int mrk = b_markers ? edges[i][2] : 0;
-    
+
     if (!edges[i][2] &&
         (tvert[edges[i][0]][1] == tvert[edges[i][1]][1] && tvert[edges[i][0]][0] < tvert[edges[i][1]][0] ||
          tvert[edges[i][0]][1] < tvert[edges[i][1]][1])) continue;
-    
+
     float* color = get_marker_color(mrk);
     glColor3f(color[0], color[1], color[2]);
     glLineWidth(mrk ? 1.5 : 1.0);
@@ -127,7 +127,7 @@ void MeshView::on_display()
       glVertex2d(tvert[edges[i][0]][0], tvert[edges[i][0]][1]);
       glVertex2d(tvert[edges[i][1]][0], tvert[edges[i][1]][1]);
     glEnd();
-    
+
     if (mrk)
     {
       glEnable(GL_LINE_STIPPLE);
@@ -140,7 +140,7 @@ void MeshView::on_display()
     }
   }
   glLineWidth(1.0);
-  
+
   // draw element ids
   if (b_ids)
   {
@@ -153,7 +153,7 @@ void MeshView::on_display()
       draw_text(transform_x(elems[i].x), transform_y(elems[i].y), text, 0);
     }
   }
-  
+
   delete [] tvert;
   lin.unlock_data();
 }
@@ -170,7 +170,7 @@ void MeshView::on_key_down(unsigned char key, int x, int y)
       post_redisplay();
       //reset_zoom();
       break;
-    
+
     case 'b':
       b_markers = !b_markers;
       post_redisplay();
@@ -203,7 +203,7 @@ float* MeshView::get_marker_color(int marker)
     { 0.3, 0.5, 1.0 },
     { 0.8, 0.8, 0.0 },
   };
-  
+
   if (marker == 0)
     return edgecol;
   else if (marker > 0 && marker < 8)
@@ -227,7 +227,7 @@ MeshView::~MeshView()
 
 const char* MeshView::get_help_text() const
 {
-  return 
+  return
   "MeshView\n"
   "Controls:\n"
   "  Left mouse - pan\n"
@@ -297,7 +297,7 @@ void BaseView::update_solution()
 void BaseView::update_title()
 {
   char text[500];
-  sprintf(text, "%s - dof = %d%s", title.c_str(), base_index, 
+  sprintf(text, "%s - dof = %d%s", title.c_str(), base_index,
           (base_index < 0) ? " (Dirichlet lift)" : "");
   set_title_internal(text);
 }
@@ -316,7 +316,7 @@ void BaseView::on_special_key(int key, int x, int y)
       if (base_index < ndofs-1) base_index++;
       update_solution();
       break;
-      
+
     default:
       ScalarView::on_special_key(key, x, y);
   }
@@ -325,7 +325,7 @@ void BaseView::on_special_key(int key, int x, int y)
 
 const char* BaseView::get_help_text() const
 {
-  return 
+  return
   "BaseView\n\n"
   "Controls:\n"
   "  Left mouse - pan\n"
@@ -387,7 +387,7 @@ void VectorBaseView::update_solution()
 void VectorBaseView::update_title()
 {
   char text[500];
-  sprintf(text, "%s - dof = %d%s", title.c_str(), base_index, 
+  sprintf(text, "%s - dof = %d%s", title.c_str(), base_index,
           (base_index < 0) ? " (Dirichlet lift)" : "");
   set_title_internal(text);
 }
@@ -406,7 +406,7 @@ void VectorBaseView::on_special_key(int key, int x, int y)
       if (base_index < ndofs-1) base_index++;
       update_solution();
       break;
-      
+
     default:
       VectorView::on_special_key(key, x, y);
   }
@@ -415,7 +415,7 @@ void VectorBaseView::on_special_key(int key, int x, int y)
 
 const char* VectorBaseView::get_help_text() const
 {
-  return 
+  return
   "VectorBaseView\n\n"
   "Controls:\n"
   "  Left mouse - pan\n"
@@ -437,7 +437,7 @@ const char* VectorBaseView::get_help_text() const
 //// OrderView /////////////////////////////////////////////////////////////////////////////////////
 
 OrderView::OrderView(const char* title, int x, int y, int width, int height)
-         : View(title, x, y, width, height) 
+         : View(title, x, y, width, height)
 {
   b_scale = true;
   b_orders = false;
@@ -458,18 +458,18 @@ void OrderView::show(Space* space)
 {
   if (!space->is_up_to_date())
     error("The space is not up to date.");
-  
-  ord.lock_data();  
+
+  ord.lock_data();
   ord.process_solution(space);
   init_order_palette();
   glut_init();
   update_layout();
-  
+
   if (window_id < 0)
   {
     center_mesh(ord.get_vertices(), ord.get_num_vertices());
   }
-  
+
   create();
   ord.unlock_data();
   wait_for_draw();
@@ -485,7 +485,7 @@ void OrderView::init_order_palette()
     if ((int) vert[i][2] < min) min = (int) vert[i][2];
     if ((int) vert[i][2] > max) max = (int) vert[i][2];
   }
-  
+
   num_boxes = max - min + 1;
   char* buf = text_buffer;
   for (int i = 0; i < num_boxes; i++)
@@ -497,12 +497,12 @@ void OrderView::init_order_palette()
       order_colors[i+min][1] = (float) ((order_palette[i+min] >> 8) & 0xff) / 0xff;
       order_colors[i+min][2] = (float) (order_palette[i+min] & 0xff) / 0xff;
     }*/
-    
+
     sprintf(buf, "%d", i + min);
     box_names[i] = buf;
     buf += strlen(buf)+1;
   }
-  
+
   scale_height = num_boxes * scale_box_height + (num_boxes-1) * scale_box_skip;
   order_min = min;
 }
@@ -514,7 +514,7 @@ void OrderView::on_display()
   glDisable(GL_TEXTURE_1D);
   glDisable(GL_LIGHTING);
   glDisable(GL_DEPTH_TEST);
- 
+
   // transform all vertices
   ord.lock_data();
   int i, nv = ord.get_num_vertices();
@@ -525,7 +525,7 @@ void OrderView::on_display()
     tvert[i][0] = transform_x(vert[i][0]);
     tvert[i][1] = transform_y(vert[i][1]);
   }
-  
+
   // draw all triangles
   int3* tris = ord.get_triangles();
   glBegin(GL_TRIANGLES);
@@ -535,13 +535,13 @@ void OrderView::on_display()
     color = order_colors[(int) vert[tris[i][0]][2]];
     //get_palette_color((vert[tris[i][0]][2] - 1) / 9.0);
     glColor3f(color[0], color[1], color[2]);
-    
+
     glVertex2d(tvert[tris[i][0]][0], tvert[tris[i][0]][1]);
     glVertex2d(tvert[tris[i][1]][0], tvert[tris[i][1]][1]);
     glVertex2d(tvert[tris[i][2]][0], tvert[tris[i][2]][1]);
   }
   glEnd();
-  
+
   // draw all edges
   if (pal_type == 0)
     glColor3f(0.4, 0.4, 0.4);
@@ -575,11 +575,11 @@ void OrderView::on_display()
           glColor3f(0, 0, 0);
         else
           glColor3f(1, 1, 1);
-        
+
         draw_text(tvert[lvert[i]][0], tvert[lvert[i]][1], ltext[i], 0);
       }
   }
-    
+
   delete [] tvert;
   ord.unlock_data();
 }
@@ -606,21 +606,21 @@ void OrderView::on_key_down(unsigned char key, int x, int y)
       ord.unlock_data();
       post_redisplay();
       break;
-    
+
     case 'm':
       b_orders = !b_orders;
       post_redisplay();
       break;
-        
+
     case 'p':
     {
       pal_type++;
-      if (pal_type > 2) pal_type = 0; 
+      if (pal_type > 2) pal_type = 0;
       init_order_palette();
       post_redisplay();
       break;
     }
-    
+
     default:
       View::on_key_down(key, x, y);
       break;
@@ -634,14 +634,14 @@ void OrderView::load_data(const char* filename)
   init_order_palette();
   glut_init();
   update_layout();
-  
+
   if (window_id < 0)
   {
     ord.lock_data();
     center_mesh(ord.get_vertices(), ord.get_num_vertices());
     ord.unlock_data();
   }
-  
+
   create();
   wait_for_draw();
 }
@@ -649,7 +649,7 @@ void OrderView::load_data(const char* filename)
 
 void OrderView::save_data(const char* filename)
 {
-  if (ord.get_num_triangles() <= 0) 
+  if (ord.get_num_triangles() <= 0)
     error("No data to save.");
   ord.save_data(filename);
 }
@@ -665,7 +665,7 @@ void OrderView::save_numbered(const char* format, int number)
 
 const char* OrderView::get_help_text() const
 {
-  return 
+  return
   "OrderView\n\n"
   "Controls:\n"
   "  Left mouse - pan\n"
@@ -697,8 +697,8 @@ const char* OrderView::get_help_text() const
 
 
 static inline bool is_zero(scalar x, double eps)
-{ 
-#ifndef COMPLEX      
+{
+#ifndef COMPLEX
   return (fabs(x) < eps);
 #else
   return (norm(x) < sqr(eps));
@@ -707,7 +707,7 @@ static inline bool is_zero(scalar x, double eps)
 
 const unsigned MARK_ZERO = (0 << 30),
                MARK_SYMM = (1 << 30),
-               MARK_ANTISYMM = ((unsigned) 2 << 30), 
+               MARK_ANTISYMM = ((unsigned) 2 << 30),
                MARK_NOSYMM = ((unsigned) 3 << 30),
                MARK_MASK = (0x3FFFFFFF);
 
@@ -723,36 +723,36 @@ static inline int find_entry(unsigned *Ai, int i, int lo, int hi)
     else if (i > (Ai[k] & MARK_MASK))
       lo = k + 1;
     else
-      return k;  
+      return k;
     if (lo > hi)
-      return -1;        
+      return -1;
   }
 }
 
 
 void MatrixView::find_symmetry(int nz, int *sz)
 {
-  *sz = 0;  
-  
+  *sz = 0;
+
   int i,j,k;
   for (i = 0; i < size; i++)
   {
     for (j = 0; j < Ap[i+1] - Ap[i]; j++)
-    { 
+    {
       int row = (Ai[Ap[i] + j] & MARK_MASK);
       if (is_zero(Ax[Ap[i] + j], max*eps))
       {
         Ai[Ap[i] + j] |= MARK_ZERO; // zero entry
         (*sz)++;
-      }  
+      }
       else
-      { 
+      {
         k = find_entry(Ai, i, Ap[row], Ap[row + 1] - 1);
         if (k == -1)
         {
-          Ai[Ap[i] + j] |= MARK_NOSYMM; // nonsymmetric entry (other one is not in the matrix at all)     
+          Ai[Ap[i] + j] |= MARK_NOSYMM; // nonsymmetric entry (other one is not in the matrix at all)
           continue;
-        }  
+        }
         if (is_zero(Ax[k] - Ax[Ap[i] + j], eps))
           Ai[Ap[i] + j] |= MARK_SYMM;  //symmetric entries
         else
@@ -761,10 +761,10 @@ void MatrixView::find_symmetry(int nz, int *sz)
             Ai[Ap[i] + j] |= MARK_ANTISYMM;   //antisymetric entries
           else
             Ai[Ap[i] + j] |= MARK_NOSYMM;  //nonsymmetric entries (different values)
-        }  
-      }   
+        }
+      }
     }
-  }        
+  }
 }
 
 
@@ -772,18 +772,18 @@ void MatrixView::show(DiscreteProblem *ep)
 {
   int *App, *Aii;
   ep->get_matrix(App, Aii, Ax, size);
-  
+
   int nz = App[size];
   int sz;
-  
+
   if (Ap != NULL) delete [] Ap;
   Ap = new int[size+1];
   memcpy(Ap, App, (size+1)*sizeof(int));
-  
+
   if (Ai != NULL) delete [] Ai;
   Ai = new unsigned[nz];
   memcpy(Ai, Aii, nz*sizeof(unsigned));
-  
+
   max = 0.0;
   for (int i = 0; i < size; i++)
     #ifndef COMPLEX
@@ -793,9 +793,9 @@ void MatrixView::show(DiscreteProblem *ep)
       if (std::abs(Ax[Ap[i]]) > max)
         max = std::abs(Ax[Ap[i]]);
     #endif
-  
+
   find_symmetry(nz, &sz);
-  
+
   verts[0][0] = -0.5*pointsize;            verts[0][1] = -0.5*pointsize;
   verts[1][0] = -0.5*pointsize;            verts[1][1] =  0.5*pointsize + size - 1;
   verts[2][0] =  0.5*pointsize + size - 1; verts[2][1] =  0.5*pointsize + size - 1;
@@ -804,7 +804,7 @@ void MatrixView::show(DiscreteProblem *ep)
   glut_init();
   update_layout();
   center_mesh(verts, 4);
-  
+
   create();
   update_title(nz, sz);
   wait_for_draw();
@@ -815,7 +815,7 @@ void MatrixView::assign_color(int i, int j)
 {
   static double c[4][3] = { {0.8, 0.8, 0.8}, {0.0, 0.0, 1.0}, {1.0, 0.0, 1.0}, {1.0, 0.0, 0.0} };
   int col = (Ai[Ap[i] + j] >> 30);
-  glColor3f(c[col][0], c[col][1], c[col][2]);      
+  glColor3f(c[col][0], c[col][1], c[col][2]);
 }
 
 
@@ -825,15 +825,15 @@ void MatrixView::on_display()
   glDisable(GL_TEXTURE_1D);
   glDisable(GL_LIGHTING);
   glDisable(GL_DEPTH_TEST);
-   
+
   int i, j;
-  
+
   for (i = 0; i < size; i++)
   {
     for (j = 0; j < Ap[i+1] - Ap[i]; j++)
-    { 
+    {
       assign_color(i, j);
-      int idx = (Ai[Ap[i] + j] & 0x3FFFFFFF);        
+      int idx = (Ai[Ap[i] + j] & 0x3FFFFFFF);
       double ps = pointsize*scale;
       if (ps < 1.0)
       {
@@ -853,9 +853,9 @@ void MatrixView::on_display()
         glVertex2d(x - ps/2.0, y + ps/2.0);
         glEnd();
       }
-    }  
+    }
   }
-  
+
   glBegin(GL_LINE_LOOP);
   glColor3f(0.0, 0.0, 0.0);
   for (i = 0; i < 4; i++)
@@ -872,7 +872,7 @@ void MatrixView::on_key_down(unsigned char key, int x, int y)
       center_mesh(verts, 4);
       post_redisplay();
       break;
-       
+
     default:
       View::on_key_down(key, x, y);
       break;
@@ -897,7 +897,7 @@ MatrixView::~MatrixView()
 
 const char* MatrixView::get_help_text() const
 {
-  return 
+  return
   "MatrixView\n\n"
   "Controls:\n"
   "  Left mouse - pan\n"

@@ -74,7 +74,7 @@ static void* new_block(int size)
   return p;
 }
 
-static void free_mem() 
+static void free_mem()
 {
   // dump all blocks at once - no need to walk through the linked lists etc.
   for (int i = 0; i < pages.size(); i++)
@@ -87,7 +87,7 @@ static inline MItem* new_item()
 
 static inline MSymbol* new_symbol()
   { return (MSymbol*) new_block(sizeof(MSymbol)); }
-  
+
 static inline char* new_string(const char* str)
   { char* p = (char*) new_block((strlen(str)+1 +3) & ~3);
     return strcpy(p, str); }
@@ -114,7 +114,7 @@ static MSymbol* get_symbol(const char* name)
   while (s != NULL && strcmp(s->name, name))
     s = s->next_hash;
   if (s != NULL) return s;
-    
+
   s = new_symbol();
   s->name = new_string(name);
   s->data = NULL;
@@ -153,7 +153,7 @@ static void add_const(const char* name, double val)
 static void init_symbols()
 {
   memset(symbol_table, 0, sizeof(symbol_table));
-  
+
   // add the standard math library functions
   add_built_in("acos", (void*) acos, 1);
   add_built_in("asin", (void*) asin, 1);
@@ -182,7 +182,7 @@ static void init_symbols()
   add_built_in("floor", (void*) floor, 1);
   add_built_in("mod", (void*) fmod, 2);
   add_built_in("fmod", (void*) fmod, 2);
-  
+
   // add the constants pi and PI
   add_const("pi", M_PI);
   add_const("PI", M_PI);
@@ -199,7 +199,7 @@ static void init_symbols()
     assig  := ident "=" item [";"]
     item   := expr | list
     list   := "{" item {"," item} "}"
-    
+
     expr   := list_ident | term | term "+" term | term "-" term
     term   := power | power "*" power | power "/" power
     power  := factor | factor "^" factor
@@ -216,15 +216,15 @@ static double eval_fn(MSymbol* sym)
 {
   double args[4];
   unsigned narg = 0;
-  
-  if (!follows(MT_KET)) 
+
+  if (!follows(MT_KET))
   {
     while (narg < 4)
     {
       MItem* exp = expression();
       if (exp->n >= 0) serror("invalid use of list.");
       args[narg++] = exp->val;
-      
+
       if (follows(MT_KET)) break;
       if (!follows(MT_COMMA)) serror("',' expected.");
       next_token();
@@ -234,12 +234,12 @@ static double eval_fn(MSymbol* sym)
 
   if (narg < (unsigned long) sym->data) serror("too few arguments to '%s'.", sym->name);
   if (narg > (unsigned long) sym->data) serror("too many arguments to '%s'.", sym->name);
-  
+
   if (narg == 1)
     return ((double (*)(double)) sym->built_in)(args[0]);
   else if (narg == 2)
     return ((double (*)(double, double)) sym->built_in)(args[0], args[1]);
-  
+
   error("Internal error.");
 }
 
@@ -269,7 +269,7 @@ static double factor()
     if (sym == NULL)
       serror("unknown identifier '%s'.", token->text);
     next_token();
-    
+
     if (follows(MT_BRA))
     {
       if (sym->built_in == NULL)
@@ -326,13 +326,13 @@ static MItem* expression()
     {
       next_token();
       // only "=", "}", ";" or "," must follow
-      if (!follows(MT_EQUAL) && !follows(MT_END) && 
+      if (!follows(MT_EQUAL) && !follows(MT_END) &&
           !follows(MT_COMMA) && !follows(MT_SEMICOL))
         serror("invalid use of list.");
       return list->data;
     }
   }
-  
+
   // handle unary + and -
   double unary = 1.0;
   if (follows(MT_PLUS) || follows(MT_MINUS))
@@ -340,27 +340,27 @@ static MItem* expression()
     if (follows(MT_MINUS)) unary = -1.0;
     next_token();
   }
-  
+
   double result = unary * term();
   while (follows(MT_PLUS) || follows(MT_MINUS))
   {
     if (follows(MT_PLUS)) { next_token(); result += term(); }
                      else { next_token(); result -= term(); }
   }
-  
+
   MItem* it = new_item();
   it->n = -1;
   it->val = result;
   return it;
 }
- 
+
 
 static void list(MItem* parent)
 {
   parent->list = NULL;
   parent->n = 0;
   if (follows(MT_END)) { next_token(); return; }
-  
+
   parent->list = item();
   parent->n++;
   MItem* it = parent->list;
@@ -371,7 +371,7 @@ static void list(MItem* parent)
     parent->n++;
     it = it->next;
   };
-  
+
   if (!follows(MT_END)) serror("'}' expected.");
   next_token();
 }
@@ -386,7 +386,7 @@ static MItem* item()
     list(it);
     return it;
   }
-  else 
+  else
     return expression();
 }
 
@@ -396,15 +396,15 @@ static void assignment(bool debug)
   if (!follows(MT_IDENT)) serror("identifier expected.");
   MSymbol* sym = get_symbol(token->text);
   next_token();
-  
+
   if (!follows(MT_EQUAL)) serror("'=' expected.");
   next_token();
-  
+
   sym->data = item();
-  
+
   // semicolon is optional
   if (follows(MT_SEMICOL)) next_token();
-  
+
   // print numerical temporary variables
   if (debug)
     if (sym->data->n < 0)

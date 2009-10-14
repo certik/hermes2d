@@ -31,8 +31,8 @@ void ludcmp(double** a, int n, int* indx, double* d)
   for (i = 0; i < n; i++)
   {
     big=0.0;
-    for (j = 0; j < n; j++) 
-      if ((temp = fabs(a[i][j])) > big) 
+    for (j = 0; j < n; j++)
+      if ((temp = fabs(a[i][j])) > big)
         big = temp;
     if (big == 0.0) error("Singular matrix!");
     vv[i] = 1.0 / big;
@@ -70,7 +70,7 @@ void ludcmp(double** a, int n, int* indx, double* d)
     }
     indx[j] = imax;
     if (a[j][j] == 0.0) a[j][j] = TINY;
-    if (j != n-1) 
+    if (j != n-1)
     {
       dum = 1.0 / (a[j][j]);
       for (i = j+1; i < n; i++) a[i][j] *= dum;
@@ -91,7 +91,7 @@ void choldc(double **a, int n, double p[])
       k = i;
       while (--k >= 0)
         sum -= a[i][k] * a[j][k];
-      
+
       if (i == j)
       {
         if (sum <= 0.0)

@@ -100,7 +100,7 @@ void nurbs_edge(Element* e, Nurbs* nurbs, int edge, double t, double& x, double&
     d_x /= sum * sum;
     d_y  = d_y * sum - y * d_sum;
     d_y /= sum * sum;
-    
+
     x /= sum;
     y /= sum;
 
@@ -170,10 +170,10 @@ void nurbs_edge_0(Element* e, Nurbs* nurbs, int edge, double t, double& x, doubl
 
   dx += 0.5 * (e->vn[va]->x - e->vn[vb]->x);
   dy += 0.5 * (e->vn[va]->y - e->vn[vb]->y);
-  
+
   dx = (dx * k - x * (-0.5) * t) / (k * k); // derivative of fraction
   dy = (dy * k - y * (-0.5) * t) / (k * k);
-  
+
   x = x / k;
   y = y / k;
 
@@ -209,7 +209,7 @@ void calc_ref_map_tri(Element* e, Nurbs** nurbs, double xi_1, double xi_2,
     y_dx += e->vn[j]->y * lx_a;
     y_dy += e->vn[j]->y * ly_a;
 
-    if (!(((ref_vert[0][va][0] == xi_1) && (ref_vert[0][va][1] == xi_2)) || 
+    if (!(((ref_vert[0][va][0] == xi_1) && (ref_vert[0][va][1] == xi_2)) ||
           ((ref_vert[0][vb][0] == xi_1) && (ref_vert[0][vb][1] == xi_2))))
     {
       // edge part
@@ -217,7 +217,7 @@ void calc_ref_map_tri(Element* e, Nurbs** nurbs, double xi_1, double xi_2,
       nurbs_edge_0(e, nurbs[j], j, t, fx, fy, dfx, dfy);
       x    += fx * l_a  * l_b;
       y    += fy * l_a  * l_b;
-      
+
       x_dx += fx * lx_a * l_b  +  fx * l_a * lx_b  +  dfx * l_a * l_b * (lx_b - lx_a);
       x_dy += fx * ly_a * l_b  +  fx * l_a * ly_b  +  dfx * l_a * l_b * (ly_b - ly_a);
       y_dx += fy * lx_a * l_b  +  fy * l_a * lx_b  +  dfy * l_a * l_b * (lx_b - lx_a);
@@ -240,15 +240,15 @@ void calc_ref_map_quad(Element* e, Nurbs** nurbs, double xi_1, double xi_2,
   nurbs_edge(e, nurbs[3], 3, -xi_2, ex[3], ey[3], dex[3], dey[3]); dex[3] = -dex[3]; dey[3] = -dey[3];
 
   x = (1-xi_2)/2.0 * ex[0] + (1+xi_1)/2.0 * ex[1] +
-      (1+xi_2)/2.0 * ex[2] + (1-xi_1)/2.0 * ex[3] - 
+      (1+xi_2)/2.0 * ex[2] + (1-xi_1)/2.0 * ex[3] -
       (1-xi_1)*(1-xi_2)/4.0 * e->vn[0]->x - (1+xi_1)*(1-xi_2)/4.0 * e->vn[1]->x -
       (1+xi_1)*(1+xi_2)/4.0 * e->vn[2]->x - (1-xi_1)*(1+xi_2)/4.0 * e->vn[3]->x;
-  y = (1-xi_2)/2.0 * ey[0] + (1+xi_1)/2.0 * ey[1] + 
-      (1+xi_2)/2.0 * ey[2] + (1-xi_1)/2.0 * ey[3] - 
+  y = (1-xi_2)/2.0 * ey[0] + (1+xi_1)/2.0 * ey[1] +
+      (1+xi_2)/2.0 * ey[2] + (1-xi_1)/2.0 * ey[3] -
       (1-xi_1)*(1-xi_2)/4.0 * e->vn[0]->y - (1+xi_1)*(1-xi_2)/4.0 * e->vn[1]->y -
       (1+xi_1)*(1+xi_2)/4.0 * e->vn[2]->y - (1-xi_1)*(1+xi_2)/4.0 * e->vn[3]->y;
-                  
-  x_dx = (1-xi_2)/2.0 * dex[0] + (0.5) * ex[1] + (1+xi_2)/2.0 * dex[2] + (-0.5) * ex[3] + 
+
+  x_dx = (1-xi_2)/2.0 * dex[0] + (0.5) * ex[1] + (1+xi_2)/2.0 * dex[2] + (-0.5) * ex[3] +
          (1-xi_2)/4.0 * e->vn[0]->x - (1-xi_2)/4.0 * e->vn[1]->x - (1+xi_2)/4.0 * e->vn[2]->x + (1+xi_2)/4.0 * e->vn[3]->x;
   x_dy = -0.5 * ex[0] + (1+xi_1)/2.0 * dex[1] + (0.5) * ex[2] + (1-xi_1)/2.0 * dex[3] +
          (1-xi_1)/4.0 * e->vn[0]->x + (1+xi_1)/4.0 * e->vn[1]->x - (1+xi_1)/4.0 * e->vn[2]->x - (1-xi_1)/4.0 * e->vn[3]->x;
@@ -329,7 +329,7 @@ void precalculate_cholesky_projection_matrix_edge()
       }
       edge_proj_matrix[i][j] = edge_proj_matrix[j][i] = val;
     }
-  } 
+  }
 
   // Cholesky factorization of matrix
   edge_p = new double[n];
@@ -382,19 +382,19 @@ void precalculate_cholesky_projection_matrices_bubble()
   ref_map_pss.set_mode(MODE_TRIANGLE);
   int order = ref_map_shapeset.get_max_order();
   int n = ref_map_shapeset.get_num_bubbles(order);
-  
+
   // calculate projection matrix of maximum order
   bubble_proj_matrix_tri = calculate_bubble_projection_matrix_h1(order);
 
   // Cholesky factorization of matrix
   bubble_tri_p = new double[n];
   choldc(bubble_proj_matrix_tri, n, bubble_tri_p);
-  
+
   // quads
   ref_map_pss.set_mode(MODE_QUAD);
   order = ref_map_shapeset.get_max_order();
   n = ref_map_shapeset.get_num_bubbles(make_quad_order(order, order));
-  
+
   // calculate projection matrix of maximum order
   bubble_proj_matrix_quad = calculate_bubble_projection_matrix_h1(make_quad_order(order, order));
 
@@ -445,22 +445,22 @@ void calc_edge_projection(Element* e, int edge, Nurbs** nurbs, int order, double
       old[i][j] = new double[np];
       memset(old[i][j], 0, sizeof(double) * np);
     }
-*/    
+*/
   // values of nonpolynomial function in two vertices
   double2 fa, fa_x, fa_y, fb, fb_x, fb_y;
   calc_ref_map(e, nurbs, ref_vert[mode][edge][0], ref_vert[mode][edge][1], fa, fa_x, fa_y);
   calc_ref_map(e, nurbs, ref_vert[mode][e->next_vert(edge)][0], ref_vert[mode][e->next_vert(edge)][1], fb, fb_x, fb_y);
-    
+
   double2* pt = quad1d.get_points(mo1);
   for (int j = 0; j < np; j++)  // over all integration points
   {
-  
+
     double2 x, v, fn_x, fn_y;
     double t = pt[j][0];
     edge_coord(e, edge, t, x, v);
-    
+
     calc_ref_map(e, nurbs, x[0], x[1], fn[j], fn_x, fn_y);
- 
+
     for (int part = 0; part < 2; part++)
     {
       fn[j][part] = fn[j][part] - (fa[part] + (t+1)/2.0 * (fb[part] - fa[part]));
@@ -516,22 +516,22 @@ void calc_edge_projection2(Element* e, int edge, Nurbs** nurbs, int order, doubl
       old[i][j] = new double[np];
       memset(old[i][j], 0, sizeof(double) * np);
     }
-*/    
+*/
   // values of nonpolynomial function in two vertices
   double2 fa, fa_x, fa_y, fb, fb_x, fb_y;
   calc_ref_map(e, nurbs, ref_vert[mode][edge][0], ref_vert[mode][edge][1], fa, fa_x, fa_y);
   calc_ref_map(e, nurbs, ref_vert[mode][e->next_vert(edge)][0], ref_vert[mode][e->next_vert(edge)][1], fb, fb_x, fb_y);
-    
+
   double2* pt = quad1d.get_points(mo1);
   for (int j = 0; j < np; j++)  // over all integration points
   {
-  
+
     double2 x, v, fn_x, fn_y;
     double t = pt[j][0];
     edge_coord(e, edge, t, x, v);
-    
+
     calc_ref_map(e, nurbs, x[0], x[1], fn[j], fn_x, fn_y);
- 
+
     for (int part = 0; part < 2; part++)
     {
       fn[j][part] = fn[j][part] - (fa[part] + (t+1)/2.0 * (fb[part] - fa[part]));
@@ -567,7 +567,7 @@ void calc_edge_projection2(Element* e, int edge, Nurbs** nurbs, int order, doubl
 
 void old_projection(Element* e, int order, double2* proj, double* old[2][2])
 {
-  
+
   int mo2 = quad2d.get_max_order();
   int np = quad2d.get_num_points(mo2);
 
@@ -580,7 +580,7 @@ void old_projection(Element* e, int order, double2* proj, double* old[2][2])
     ref_map_pss.set_quad_order(mo2);
     ref_map_pss.get_dx_dy_values(vd[0], vd[1]);
     //vd[0] = ref_map_pss.get_fn_values();
-    
+
     for (int m = 0; m < 2; m++)   // part 0 or 1
       for (int l = 0; l < 2; l++) // derivative - x or y
         for (int j = 0; j < np; j++)
@@ -595,7 +595,7 @@ void old_projection(Element* e, int order, double2* proj, double* old[2][2])
       ref_map_pss.set_quad_order(mo2);
       ref_map_pss.get_dx_dy_values(ed[0], ed[1]);
       //ed[0] = ref_map_pss.get_fn_values();
-      
+
       for (int m = 0; m < 2; m++)  //part 0 or 1
         for (int l = 0; l < 2; l++)  //derivative  x or y
           for (int j = 0; j < np; j++)
@@ -606,7 +606,7 @@ void old_projection(Element* e, int order, double2* proj, double* old[2][2])
 
 void old_projection2(Element* e, int order, double2* proj, double* old[2])
 {
-  
+
   int mo2 = quad2d.get_max_order();
   int np = quad2d.get_num_points(mo2);
 
@@ -618,7 +618,7 @@ void old_projection2(Element* e, int order, double2* proj, double* old[2])
     ref_map_pss.set_active_shape(index_v);
     ref_map_pss.set_quad_order(mo2);
     vd = ref_map_pss.get_fn_values();
-    
+
     for (int m = 0; m < 2; m++)   // part 0 or 1
       for (int j = 0; j < np; j++)
         old[m][j] += proj[k][m] * vd[j];
@@ -631,7 +631,7 @@ void old_projection2(Element* e, int order, double2* proj, double* old[2])
       ref_map_pss.set_active_shape(index_e);
       ref_map_pss.set_quad_order(mo2);
       ed = ref_map_pss.get_fn_values();
-      
+
       for (int m = 0; m < 2; m++)  //part 0 or 1
         for (int j = 0; j < np; j++)
           old[m][j] += proj[e->nvert + k * (order-1) + ii][m] * ed[j];
@@ -689,7 +689,7 @@ void calc_bubble_projection(Element* e, Nurbs** nurbs, int order, double2* proj)
       ref_map_pss.set_quad_order(mo2);
       ref_map_pss.get_dx_dy_values(dx, dy);
       //dx = ref_map_pss.get_fn_values();
-      
+
       for (int j = 0; j < np; j++) // over all integration points
         rhside[part][i] += pt[j][2] * (dx[j] * (fn_dx[j][part] - old[part][0][j]) + dy[j] * (fn_dy[j][part] - old[part][1][j]));
         //rhside[part][i] += pt[j][2] * (dx[j] * (fn[j][part] - old[part][0][j]));
@@ -754,7 +754,7 @@ void calc_bubble_projection2(Element* e, Nurbs** nurbs, int order, double2* proj
       ref_map_pss.set_active_shape(index_i);
       ref_map_pss.set_quad_order(mo2);
       bfn = ref_map_pss.get_fn_values();
-      
+
       for (int j = 0; j < np; j++) // over all integration points
         rhside[part][i] += pt[j][2] * (bfn[j] * (fn[j][part] - old[part][j]));
     }
@@ -794,14 +794,14 @@ void ref_map_projection(Element* e, Nurbs** nurbs, int order, double2* proj)
 void CurvMap::update_refmap_coefs(Element* e, int order)
 {
   ref_map_pss.set_quad_2d(&quad2d);
-  
+
   // calculation of projection matrices
   if (edge_proj_matrix == NULL) precalculate_cholesky_projection_matrix_edge();
   if (bubble_proj_matrix_tri == NULL) precalculate_cholesky_projection_matrices_bubble();
 
   ref_map_pss.set_mode(e->get_mode());
   ref_map_shapeset.set_mode(e->get_mode());
-  
+
   int nv = e->nvert;
   int ne = order - 1;
   int qo = e->is_quad() ? make_quad_order(order, order) : order;

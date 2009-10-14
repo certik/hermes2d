@@ -24,7 +24,7 @@ void** assoc_ins(void** array, KeyType key, int hash_size = default_assoc_hash_s
 {
   typedef AssocKV<KeyType> KV;
   KV** ht = (KV**) *array;
-  
+
   if (ht == NULL)
   {
     // create a new hash table
@@ -32,14 +32,14 @@ void** assoc_ins(void** array, KeyType key, int hash_size = default_assoc_hash_s
     ht = (KV**) (*array = malloc(hash_size * sizeof(KV*)));
     memset(ht, 0, hash_size * sizeof(KV*));
   }
-  
+
   //KV** pp = ht + ((key * (KeyType) 0x29F5C7612A3B39CE) & (hash_size-1));
   KV** pp =  ht + ((key * 0x29F5C765) & (hash_size-1));
   KV*  kv = *pp;
-  
+
   const int init_cap = 2;
   const int pair_size = sizeof(KeyType) + sizeof(void*);
-  
+
   if (kv == NULL)
   {
     // create a new key-value table
@@ -64,19 +64,19 @@ void** assoc_ins(void** array, KeyType key, int hash_size = default_assoc_hash_s
         lo = mid+1;
       else
         return &(kv->kv[mid].val); // found it!
-      
+
       if (lo > hi)
       {
         // not found -- insert a new key-value pair
         if (key > midkey) mid++;
-        
+
         if (kv->size >= kv->cap)
         {
           // reallocate the table if necessary
           kv->cap *= 2;
           kv = *pp = (KV*) realloc(kv, sizeof(KV) + kv->cap*pair_size);
         }
-        
+
         // shift the rest and insert the new pair
         memmove(kv->kv + mid+1, kv->kv + mid, (kv->size - mid)*pair_size);
         kv->size++;
@@ -95,7 +95,7 @@ void assoc_forall(void** array, void (*fn)(KeyType key, void* val), int hash_siz
   typedef AssocKV<KeyType> KV;
   KV** ht = (KV**) *array;
   if (ht == NULL) return;
-    
+
   for (int i = 0; i < hash_size; i++)
   {
     KV* kv = ht[i];
@@ -112,11 +112,11 @@ void assoc_free(void** array, int hash_size = default_assoc_hash_size)
   typedef AssocKV<KeyType> KV;
   KV** ht = (KV**) *array;
   if (ht == NULL) return;
-    
+
   for (int i = 0; i < hash_size; i++)
     if (ht[i] != NULL)
       free(ht[i]);
-    
+
   free(ht);
   *ht = NULL;
 }
@@ -128,7 +128,7 @@ void assoc_dump(void** array, int hash_size = default_assoc_hash_size)
   typedef AssocKV<KeyType> KV;
   KV** ht = (KV**) *array;
   if (ht == NULL) return;
-    
+
   for (int i = 0; i < hash_size; i++)
   {
     KV* kv = ht[i];

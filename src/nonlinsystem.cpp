@@ -34,7 +34,7 @@ NonlinSystem::NonlinSystem(WeakForm* wf, Solver* solver)
 {
   alpha = 1.0;
   res_l2 = res_l1 = res_max = -1.0;
-  
+
   // tell LinSystem not to add Dirichlet contributions to the RHS
   want_dir_contrib = false;
 }
@@ -54,13 +54,13 @@ static scalar L2projection_biform(RealFunction* fu, RealFunction* fv, RefMap* ru
 static scalar L2projection_liform(RealFunction* fv, RefMap* rv)
 {  return int_w_v(tmp_w, fv, rv); }
 
-void NonlinSystem::set_ic(MeshFunction* fn, Solution* result, int proj_norm) 
+void NonlinSystem::set_ic(MeshFunction* fn, Solution* result, int proj_norm)
 {
   if (!have_spaces)
     error("You need to call set_ic() after calling set_spaces().");
 
   WeakForm* wf_orig = wf;
-  
+
   WeakForm wf_proj(1);
   wf = &wf_proj;
   if (proj_norm == 1)  {
@@ -82,7 +82,7 @@ void NonlinSystem::set_ic(MeshFunction* fn, Solution* result, int proj_norm)
 
 }
 
-void NonlinSystem::set_vec_zero() 
+void NonlinSystem::set_vec_zero()
 {
   if (Vec != NULL) ::free(Vec);
   Vec = (scalar*) malloc(ndofs * sizeof(scalar));
@@ -93,9 +93,9 @@ void NonlinSystem::set_vec_zero()
 
 
 void NonlinSystem::assemble(bool rhsonly)
-{ 
+{
   if (rhsonly) error("rhsonly has no meaning in NonlinSystem.");
-  
+
   // assemble J(Y_n) and store in A, assemble F(Y_n) and store in RHS
   LinSystem::assemble();
 
@@ -108,7 +108,7 @@ void NonlinSystem::assemble(bool rhsonly)
     if (magn(RHS[i]) > res_max) res_max = magn(RHS[i]);
   }
   res_l2 = sqrt(res_l2);
-    
+
   // multiply RHS by -alpha
   for (int i = 0; i < ndofs; i++)
     RHS[i] *= -alpha;
@@ -120,38 +120,38 @@ bool NonlinSystem::solve(int n, ...)
   // The solve() function is almost identical to the original one in LinSystem
   // except that Y_{n+1} = Y_{n} + dY_{n+1}
   begin_time();
-  
+
   // perform symbolic analysis of the matrix
   if (struct_changed)
   {
     solver->analyze(slv_ctx, ndofs, Ap, Ai, Ax, false);
     struct_changed = false;
-  }  
-  
+  }
+
   // factorize the stiffness matrix, if needed
   if (struct_changed || values_changed)
   {
     solver->factorize(slv_ctx, ndofs, Ap, Ai, Ax, false);
     values_changed = false;
   }
-  
+
   // solve the system
   scalar* delta = (scalar*) malloc(ndofs * sizeof(scalar));
   solver->solve(slv_ctx, ndofs, Ap, Ai, Ax, false, RHS, delta);
   verbose("  (total solve time: %g sec)", end_time());
-  
+
   // if not initialized by set_ic(), assume Vec is a zero vector
   if (Vec == NULL)
   {
     Vec = (scalar*) malloc(ndofs * sizeof(scalar));
     memset(Vec, 0, ndofs * sizeof(scalar));
   }
-    
+
   // add the increment dY_{n+1} to the previous solution vector
   for (int i = 0; i < ndofs; i++)
     Vec[i] += delta[i];
   ::free(delta);
-      
+
   // initialize the Solution classes
   begin_time();
   va_list ap;
@@ -164,6 +164,6 @@ bool NonlinSystem::solve(int n, ...)
   }
   va_end(ap);
   verbose("Exported solution in %g sec", end_time());
-  
+
   return true;
 }

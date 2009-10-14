@@ -29,7 +29,7 @@ struct Element;
 
 /// \brief Represents one NURBS curve.
 ///
-/// The structure Nurbs defines one curved edge, or, more precisely, 
+/// The structure Nurbs defines one curved edge, or, more precisely,
 /// the control points and other data for one NURBS curve.
 ///
 /// A good introduction to NURBS curves can be found <a href=
@@ -40,7 +40,7 @@ struct Nurbs
 {
   Nurbs() { ref = 0; twin = false; };
   void unref();
-  
+
   int degree;  ///< curve degree (2=quadratic, etc.)
   int np;      ///< number of control points
   double3* pt; ///< control points and their weights
@@ -48,14 +48,14 @@ struct Nurbs
   double* kv;  ///< knot vector
   int ref;     ///< reference counter (the structure is deleted when this reaches zero)
   bool twin;   ///< true on internal curved edges for the second (artificial) Nurbs
-  bool arc;     ///< true if this is in fact a circular arc 
+  bool arc;     ///< true if this is in fact a circular arc
   double angle; ///< arc angle
 };
 
 
-/// CurvMap is a structure storing complete information on the curved edges of 
-/// an element. There are two variants of this structure. The first if for 
-/// top-level (master mesh) elements. 
+/// CurvMap is a structure storing complete information on the curved edges of
+/// an element. There are two variants of this structure. The first if for
+/// top-level (master mesh) elements.
 ///
 struct CurvMap
 {
@@ -94,9 +94,9 @@ struct CurvMap
   // prvni co udela, ze smaze stare 'coefs', pokud nejsou NULL,
   // pote zprojektuje nove koeficienty
   void update_refmap_coefs(Element* e);
-  
+
   void get_mid_edge_points(Element* e, double2* pt, int n);
-  
+
 };
 
 

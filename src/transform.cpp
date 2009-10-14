@@ -23,7 +23,7 @@
 #include "transform.h"
 
 
-Trf tri_trf[4] = 
+Trf tri_trf[4] =
 {
   { { 0.5,  0.5 }, { -0.5, -0.5 } }, // son 0
   { { 0.5,  0.5 }, {  0.5, -0.5 } }, // son 1

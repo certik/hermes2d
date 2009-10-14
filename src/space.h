@@ -43,7 +43,7 @@ enum
 /// The Space class represents a finite element space over a domain defined by 'mesh', spanned
 /// by basis functions constructed using 'shapeset'. It serves as a base class for H1Space,
 /// HcurlSpace and L2Space, since most of the functionality is common for all the spaces.
-/// 
+///
 /// There are four main functions the Space class provides:
 /// <ol>
 ///    <li> It handles the Dirichlet boundary conditions. The user sets a callback determining
@@ -54,21 +54,21 @@ enum
 ///
 ///         On Dirichlet edges the Space class calls another callback, set by either of the two
 ///         functions set_bc_values(). The obtained scalar values are projected onto the available
-///         edge shape functions on each edge. This way the Dirichlet lift is obtained, which 
-///         matches as closely as possible the user-defined boundary data. Two kinds of value 
+///         edge shape functions on each edge. This way the Dirichlet lift is obtained, which
+///         matches as closely as possible the user-defined boundary data. Two kinds of value
 ///         callback functions are defined: the first provides the absolute coordinates on the edge
-///         in question, while the second is supposed to return the Dirichlet value based on two 
-///         vertex indices and a parameter in the range [0,1], representing the position on the 
-///         edge. The user can set any one of the two callbacks, whichever suits her better. If 
+///         in question, while the second is supposed to return the Dirichlet value based on two
+///         vertex indices and a parameter in the range [0,1], representing the position on the
+///         edge. The user can set any one of the two callbacks, whichever suits her better. If
 ///         both are set, the "EdgePos" one takes precedence.
 ///
-///         If one or more of the BC callbacks are not set, default ones are used. The default 
+///         If one or more of the BC callbacks are not set, default ones are used. The default
 ///         BC type is BC_ESSENTIAL for the whole boundary. The default BC value is zero for all
 ///         markers.
 ///
-///    <li> It stores element polynomial degrees, or 'orders'. All active elements need to have 
+///    <li> It stores element polynomial degrees, or 'orders'. All active elements need to have
 ///         an order set for the Space to be valid. Individual orders can be set by calling
-///         set_element_order(). You can also set the same order for all elements using 
+///         set_element_order(). You can also set the same order for all elements using
 ///         set_uniform_order(). Quadrilateral elements can have different orders in the vertical
 ///         and horizontal directions. It is therefore necessary to form the order using the macro
 ///         make_quad_order() when calling the aforementioned functions.
@@ -76,19 +76,19 @@ enum
 ///    <li> It builds and enumerates the basis functions. After all element orders have been set,
 ///         you must call the function assign_dofs(). This function assigns the DOF (degree-of-
 ///         freedom) numbers to basis functions, starting with 'first_dof' (optional parameter).
-///         It also determines constraining relationships in the mesh due to hanging nodes and 
-///         builds constrained basis functions. The total number of basis functions can then 
+///         It also determines constraining relationships in the mesh due to hanging nodes and
+///         builds constrained basis functions. The total number of basis functions can then
 ///         be obtained by calling get_dof_count(). Standard basis functions are assigned positive
-///         numbers from 'first_dof' to ('first_dof' + (get_dof_count() - 1) * 'stride'). All 
-///         shape functions belonging to the Dirichlet lift are assigned DOF number of -1. This 
+///         numbers from 'first_dof' to ('first_dof' + (get_dof_count() - 1) * 'stride'). All
+///         shape functions belonging to the Dirichlet lift are assigned DOF number of -1. This
 ///         way the Dirichlet lift becomes a (virtual) basis function. This simplifies assembling.
 ///
 ///    <li> Finally, and most importantly, the Space is able to deliver a list of shape functions
 ///         existing on each element. Such a list is called an "assembly list" and is represented
-///         by the class AsmList. The assembly list contains the triplets (idx, dof, coef). 
+///         by the class AsmList. The assembly list contains the triplets (idx, dof, coef).
 ///         'idx' is the shape function index, as understood by the Shapeset. 'dof' is the number
 ///         of the basis function, whose part the shape function forms. 'coef' is a real constant,
-///         with which the shape function must be multiplied in order to fit into the basis 
+///         with which the shape function must be multiplied in order to fit into the basis
 ///         function. This is typically 1, but can be less than that for constrained functions.
 ///         Constrained vertex functions can belong to more than one basis functions. This
 ///         results in more triplets with the same 'idx'. However, the assembling procedure or
@@ -106,7 +106,7 @@ enum
 class Space
 {
 public:
-  
+
   Space(Mesh* mesh, Shapeset* shapeset);
   virtual ~Space();
   virtual void free();
@@ -117,7 +117,7 @@ public:
   void set_bc_values(scalar (*bc_value_callback_by_coord)(int marker, double x, double y));
   /// Sets the BC values callback function, which takes parametric edge position.
   void set_bc_values(scalar (*bc_value_callback_by_edge)(EdgePos* ep)); // for EdgePos, see mesh.h
-  
+
   /// Sets element polynomial order.
   void set_element_order(int id, int order);
   /// Returns element polynomial order.
@@ -129,12 +129,12 @@ public:
   void set_default_order(int tri_order, int quad_order = 0);
 
   /// Copies element orders from another space. 'inc' is an optional order
-  /// increase. If the source space has a coarser mesh, the orders are distributed 
+  /// increase. If the source space has a coarser mesh, the orders are distributed
   /// recursively. This is useful for reference solution spaces.
   void copy_orders(Space* space, int inc = 0);
   /// Internal. Obtains the order of an edge, according to the minimum rule.
   virtual int get_edge_order(Element* e, int edge);
-  
+
   /// \brief Builds basis functions and assigns DOF numbers to them.
   /// \details This functions must be called \b after assigning element orders, and \b before
   /// using the space in a computation, otherwise an error will occur.
@@ -147,33 +147,33 @@ public:
   int get_num_dofs() const { return (next_dof - first_dof) / stride; }
   /// \brief Returns the DOF number of the last basis function.
   int get_max_dof() const { return next_dof - stride; }
-  
+
   Shapeset* get_shapeset() const { return shapeset; }
   Mesh* get_mesh() const { return mesh; }
   void set_mesh(Mesh* mesh);
 
   /// Creates a copy of the space. For internal use (see RefSystem).
   virtual Space* dup(Mesh* mesh) const = 0;
-  
+
   /// Returns true if the space is ready for computation, false otherwise.
   bool is_up_to_date() const { return was_assigned && mesh_seq == mesh->get_seq(); }
-  
+
   /// Sets polynomial orders to elements created by Mesh::regularize() using "parents".
   void distribute_orders(Mesh* mesh, int* parents);
-      
+
 public:
-  
+
   /// Obtains an assembly list for the given element.
   void get_element_assembly_list(Element* e, AsmList* al);
 
   /// Obtains an edge assembly list (contains shape functions that are nonzero on the specified edge).
   void get_edge_assembly_list(Element* e, int edge, AsmList* al);
-  
+
 protected:
 
   Mesh* mesh;
   Shapeset* shapeset;
-  
+
   int default_tri_order, default_quad_order;
   int first_dof, next_dof;
   int stride;
@@ -189,7 +189,7 @@ protected:
   union NodeData
   {
     struct // regular node
-    { 
+    {
       int dof;
       union {
         scalar* edge_bc_proj;
@@ -198,18 +198,18 @@ protected:
       int n; // # of dofs
     };
     struct // constrained vertex node
-    { 
-      BaseComponent* baselist; 
+    {
+      BaseComponent* baselist;
       int ncomponents;
     };
     struct // constrained edge node
-    { 
-      Node* base; 
+    {
+      Node* base;
       int part;
     };
     NodeData() : edge_bc_proj(NULL), dof(0) {}
   };
-  
+
   struct ElementData
   {
     int order;
@@ -219,18 +219,18 @@ protected:
   NodeData* ndata;    ///< node data table
   ElementData* edata; ///< element data table
   int nsize, esize;
-  
+
   virtual int get_edge_order_internal(Node* en);
 
   /// \brief Updates internal node and element tables.
   /// \details Since meshes only contain geometric information, the Space class keeps two
-  /// tables with FEM-related information. The first one, 'ndata', contains DOF numbers 
-  /// and other things for each node. The second table, 'edata', holds element orders 
+  /// tables with FEM-related information. The first one, 'ndata', contains DOF numbers
+  /// and other things for each node. The second table, 'edata', holds element orders
   /// and bubble DOF numbers. Both tables are directly indexed by the node and element
-  /// id's. The function resize_tables() is called to check whether the tables are large 
+  /// id's. The function resize_tables() is called to check whether the tables are large
   /// enough to contain all node and element id's, and to reallocate them if not.
   virtual void resize_tables();
-  
+
   void check_order(int order);
   void copy_orders_recurrent(Element* e, int order);
 
@@ -255,16 +255,16 @@ protected:
   /// to hanging nodes in the mesh. As this is space-specific, this function is reimplemented
   /// in H1Space and HcurlSpace.
   virtual void update_constraints() {}
-    
+
   /// Auxiliary function the descendants may implement to perform additional tasks after
   /// the DOFs have been assigned.
   virtual void post_assign() {}
-    
-  std::vector<void*> extra_data;    
+
+  std::vector<void*> extra_data;
   void free_extra_data();
 
   void propagate_zero_orders(Element* e);
-      
+
 public:
 
   int (*bc_type_callback)(int);

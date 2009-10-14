@@ -84,7 +84,7 @@ inline double int_u(RealFunction* fu, RefMap* ru)
   fu->set_quad_order(o, FN_VAL);
 
   double* uval = fu->get_fn_values();
-  
+
   double result = 0.0;
   h1_integrate_expression(uval[i]);
   return result;
@@ -126,15 +126,15 @@ inline scalar int_w_v(ScalarFunction* w, RealFunction* fu, RefMap* ru)
   scalar result = 0.0;
   double3* pt = quad->get_points(o);
   int np = quad->get_num_points(o);
-  if (ru->is_jacobian_const()){ 
+  if (ru->is_jacobian_const()){
     for (int i = 0; i < np; i++)
-      result += pt[i][2] * (uval[i] * wval[i]); 
-    result *= ru->get_const_jacobian(); 
-  } 
-  else { 
-    double* jac = ru->get_jacobian(o); 
-    for (int i = 0; i < np; i++) 
-      result += pt[i][2] * jac[i] * (uval[i] * wval[i]); 
+      result += pt[i][2] * (uval[i] * wval[i]);
+    result *= ru->get_const_jacobian();
+  }
+  else {
+    double* jac = ru->get_jacobian(o);
+    for (int i = 0; i < np; i++)
+      result += pt[i][2] * jac[i] * (uval[i] * wval[i]);
   }
   return result;
 }
@@ -153,7 +153,7 @@ inline scalar surf_int_w_u_v(ScalarFunction* w, RealFunction* fu, RealFunction* 
   double* uval = fu->get_fn_values();
   double* vval = fv->get_fn_values();
   scalar* wval = w->get_fn_values();
-  
+
   scalar result = 0.0;
   h1_integrate_expression(wval[i] * uval[i] * vval[i]);
   return result;
@@ -207,7 +207,7 @@ inline double int_x_u_v(RealFunction* fu, RealFunction* fv, RefMap* ru, RefMap* 
   limit_order(o);
   fu->set_quad_order(o);
   fv->set_quad_order(o);
-  
+
   double* uval = fu->get_fn_values();
   double* vval = fv->get_fn_values();
   double* x = ru->get_phys_x(o);
@@ -343,7 +343,7 @@ inline scalar int_grad_w_grad_v(ScalarFunction* w, RealFunction* fu, RefMap* ru)
 {
   Quad2D* quad = fu->get_quad_2d();
   RefMap* rv = ru;
-  
+
   int o = fu->get_fn_order() + w->get_fn_order() + ru->get_inv_ref_order();
   limit_order(o);
   fu->set_quad_order(o);
@@ -356,19 +356,19 @@ inline scalar int_grad_w_grad_v(ScalarFunction* w, RealFunction* fu, RefMap* ru)
 
   scalar result = 0.0;
   double3* pt = quad->get_points(o);
-  int np = quad->get_num_points(o); 
+  int np = quad->get_num_points(o);
   double2x2 *mu;
-  if (ru->is_jacobian_const()) { 
-    mu = ru->get_const_inv_ref_map(); 
-    for (int i = 0; i < np; i++) 
+  if (ru->is_jacobian_const()) {
+    mu = ru->get_const_inv_ref_map();
+    for (int i = 0; i < np; i++)
       result += pt[i][2] * (t_dudx * dwdx[i] + t_dudy * dwdy[i]);
     result *= ru->get_const_jacobian();
-  } 
-  else { 
-    mu = ru->get_inv_ref_map(o); 
-    double* jac = ru->get_jacobian(o); 
-    for (int i = 0; i < np; i++, mu++) 
-      result += pt[i][2] * jac[i] * (t_dudx * dwdx[i] + t_dudy * dwdy[i]); 
+  }
+  else {
+    mu = ru->get_inv_ref_map(o);
+    double* jac = ru->get_jacobian(o);
+    for (int i = 0; i < np; i++, mu++)
+      result += pt[i][2] * jac[i] * (t_dudx * dwdx[i] + t_dudy * dwdy[i]);
   }
   return result;
 }
@@ -751,7 +751,7 @@ inline double int_h1_semi_error(Function<T>* fu, Function<T>* fv, RefMap* ru, Re
 {
   Quad2D* quad = fu->get_quad_2d();
   assert(quad == fv->get_quad_2d());
-  
+
   int o = std::max(2*fu->get_fn_order(), 2*fv->get_fn_order()) + ru->get_inv_ref_order();
   limit_order(o);
   fu->set_quad_order(o);
@@ -759,11 +759,11 @@ inline double int_h1_semi_error(Function<T>* fu, Function<T>* fv, RefMap* ru, Re
 
   scalar* fnu = fu->get_fn_values();
   scalar* fnv = fv->get_fn_values();
-  
+
   scalar *dudx, *dudy, *dvdx, *dvdy;
   fu->get_dx_dy_values(dudx, dudy);
   fv->get_dx_dy_values(dvdx, dvdy);
-  
+
   double result = 0.0;
   h1_integrate_expression(sqr(dudx[i] - dvdx[i]) + sqr(dudy[i] - dvdy[i]));
   return result;
@@ -844,7 +844,7 @@ inline double int_h1_norm(Function<T>* fu, RefMap* ru)
   scalar* fnu = fu->get_fn_values();
   scalar *dudx, *dudy;
   fu->get_dx_dy_values(dudx, dudy);
-  
+
   double result = 0.0;
   h1_integrate_expression(sqr(fnu[i]) + sqr(dudx[i]) + sqr(dudy[i]));
   return result;
@@ -855,15 +855,15 @@ template<typename T>
 inline double int_h1_seminorm(Function<T>* fu, RefMap* ru)
 {
   Quad2D* quad = fu->get_quad_2d();
-  
+
   int o = 2*fu->get_fn_order() + ru->get_inv_ref_order();
   limit_order(o);
   fu->set_quad_order(o);
-  
+
   scalar* fnu = fu->get_fn_values();
   scalar *dudx, *dudy;
   fu->get_dx_dy_values(dudx, dudy);
-  
+
   double result = 0.0;
   h1_integrate_expression(sqr(dudx[i]) + sqr(dudy[i]));
   return result;
@@ -880,7 +880,7 @@ inline double int_l2_norm(Function<T>* fu, RefMap* ru)
   fu->set_quad_order(o, FN_VAL);
 
   scalar* fnu = fu->get_fn_values();
-  
+
   double result = 0.0;
   h1_integrate_expression(sqr(fnu[i]));
   return result;
@@ -916,7 +916,7 @@ inline double surf_int_x_v(RealFunction* fv, RefMap* rv, EdgePos* ep)
   double* vval = fv->get_fn_values();
   double3* tan = rv->get_tangent(ep->edge);
   double* x = rv->get_phys_x(eo);
-  
+
   double3* pt = quad2d->get_points(eo);
   double result = 0.0;
   for (int i = 0; i < quad2d->get_num_points(eo); i++)

@@ -31,7 +31,7 @@ class Solver;
 struct Page;
 
 
-///  
+///
 ///
 ///
 ///
@@ -113,9 +113,9 @@ protected:
   bool struct_changed;
   bool want_dir_contrib;
   bool have_spaces;
-  
+
   friend class RefSystem;
-  
+
 };
 
 
@@ -145,5 +145,5 @@ extern int* g_order_table;
 extern void warn_order();
 extern void update_limit_table(int mode);
 
-    
+
 #endif

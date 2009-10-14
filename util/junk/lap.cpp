@@ -12,14 +12,14 @@ int main(int argc, char* argv[])
   // create an H1 space
   H1Space space(&mesh);
   space.set_uniform_order(5);
-  
+
   // set up the weak formulation
   WeakForm wf;
   wf.set_eqn("[u,v] = (2*v)");
 
   PardisoSolver solver;
   Solution sln;
-  
+
   // assemble and solve the linear system
   LinSystem sys(&wf, &solver);
   sys.set_spaces(1, &space);
@@ -29,6 +29,6 @@ int main(int argc, char* argv[])
   // show the result
   ScalarView view("Solution");
   view.show(&sln);
-  
+
   return 0;
 }

@@ -10,7 +10,7 @@ void Array::save_raw(FILE* f)
   hermes2d_fwrite(&append_only, sizeof(int), 1, f);
   hermes2d_fwrite(&itemsize, sizeof(int), 1, f);
   hermes2d_fwrite(&pagesize, sizeof(int), 1, f);
-  
+
   int npages = pages.size();
   hermes2d_fwrite(&npages, sizeof(int), 1, f);
   for (int i = 0; i < npages; i++)
@@ -27,11 +27,11 @@ void Array::load_raw(FILE* f)
     error("Not a Hermes2D Array file.");
   if (hdr.ver > 1)
     error("Unsupported file version.", filename);
-  
+
   hermes2d_fread(&size, sizeof(int), 1, f);
   hermes2d_fread(&nitems, sizeof(int), 1, f);
   hermes2d_fread(&append_only, sizeof(int), 1, f);
-  
+
   int itemsize, pagesize;
   hermes2d_fread(&itemsize, sizeof(int), 1, f);
   hermes2d_fread(&pagesize, sizeof(int), 1, f);
@@ -39,7 +39,7 @@ void Array::load_raw(FILE* f)
     error("Item size mismatch.");
   if (pagesize != PAGE_SIZE)
     error("Page size mismatch.");
-  
+
   int i, npages;
   hermes2d_fread(&npages, sizeof(int), 1, f);
   pages.clear();
@@ -49,7 +49,7 @@ void Array::load_raw(FILE* f)
     pages.push_back(new_page);
     hermes2d_fread(new_page, itemsize, PAGE_SIZE, f);
   }
-  
+
   unused.clear();
   for (i = 0; i < size; i++)
     if (!get_item(i).used)

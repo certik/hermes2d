@@ -26,20 +26,20 @@
 
 
 PrecalcShapeset::PrecalcShapeset(Shapeset* shapeset)
-               : RealFunction() 
+               : RealFunction()
 {
   this->shapeset = shapeset;
   master_pss = NULL;
   num_components = shapeset->get_num_components();
   assert(num_components == 1 || num_components == 2);
   tables = NULL;
-  update_max_index();  
+  update_max_index();
   set_quad_2d(&g_quad_2d_std);
 }
 
 
 PrecalcShapeset::PrecalcShapeset(PrecalcShapeset* pss)
-               : RealFunction() 
+               : RealFunction()
 {
   while (pss->is_slave())
     pss = pss->master_pss;
@@ -65,7 +65,7 @@ void PrecalcShapeset::set_quad_2d(Quad2D* quad_2d)
 {
   //((master_pss != NULL) ? master_pss : this)->set_quad_2d(quad_2d);
   RealFunction::set_quad_2d(quad_2d);
-  
+
   mode = 0;
   set_active_shape(0); // fixme: strasne zalezi na poradi volani set_quad_2d, set_active_element, set_active_shape
   // tohle je kvuli padani v push_transform volanem hned po set_quad_2d a set_active_element, bez set_active_shape
@@ -73,10 +73,10 @@ void PrecalcShapeset::set_quad_2d(Quad2D* quad_2d)
 
 
 void PrecalcShapeset::set_active_shape(int index)
-{  
+{
   // Each precalculated table is accessed and uniquely identified by the
   // following seven items:
-  // 
+  //
   //   - cur_quad:  quadrature table selector (0-7)
   //   - mode:      mode of the shape function (triangle/quad)
   //   - index:     shape function index
@@ -86,17 +86,17 @@ void PrecalcShapeset::set_active_shape(int index)
   //   - val/d/dd:  values, dx, dy, ddx, ddy (0-4)
   //
   // The table database is implemented as a three-way chained Judy array.
-  // The key to the first Judy array ('tables') is formed by cur_quad, 
+  // The key to the first Judy array ('tables') is formed by cur_quad,
   // mode and index. This gives a pointer to the second Judy array, which
   // is indexed solely by sub_idx. The last Judy array is the node table,
   // understood by the base class and indexed by order. The component and
   // val/d/dd indices are used directly in the Node structure.
-  
+
   unsigned key = cur_quad | (mode << 3) | ((unsigned) (max_index[mode] - index) << 4);
   void** tab = (master_pss == NULL) ? &tables : &(master_pss->tables);
   sub_tables = (void**) JudyLIns(tab, key, NULL);
   update_nodes_ptr();
- 
+
   this->index = index;
   order = shapeset->get_order(index);
   order = std::max(get_h_order(order), get_v_order(order));
@@ -124,33 +124,33 @@ void PrecalcShapeset::set_mode(int mode)  // used in curved.cpp
 void PrecalcShapeset::precalculate(int order, int mask)
 {
   int i, j, k;
-  
+
   // initialization
   Quad2D* quad = get_quad_2d();
   quad->set_mode(mode);
   check_order(quad, order);
   int np = quad->get_num_points(order);
   double3* pt = quad->get_points(order);
-  
+
   int oldmask = (cur_node != NULL) ? cur_node->mask : 0;
   int newmask = mask | oldmask;
   Node* node = new_node(newmask, np);
 
-  // precalculate all required tables                             
+  // precalculate all required tables
   for (j = 0; j < num_components; j++)
   {
     for (k = 0; k < 6; k++)
     {
       if (newmask & idx2mask[k][j])
-        if (oldmask & idx2mask[k][j]) 
+        if (oldmask & idx2mask[k][j])
           memcpy(node->values[j][k], cur_node->values[j][k], np * sizeof(double));
         else
           for (i = 0; i < np; i++)
             node->values[j][k][i] = shapeset->get_value(k, index, ctm->m[0] * pt[i][0] + ctm->t[0],
                                                                   ctm->m[1] * pt[i][1] + ctm->t[1], j);
-    }        
+    }
   }
-    
+
   // remove the old node and attach the new one to the Judy array
   replace_cur_node(node);
 }
@@ -177,7 +177,7 @@ void PrecalcShapeset::dump_info(int quad, const char* filename)
 {
   FILE* f = fopen(filename, "w");
   if (f == NULL) error("Could not open %s for writing.", filename);
-  
+
   unsigned long key = 0, n1 = 0, m1 = 0, n2 = 0, n3 = 0, size = 0;
   void** sub = (void**) JudyLFirst(tables, &key, NULL);
   while (sub != NULL)
@@ -205,7 +205,7 @@ void PrecalcShapeset::dump_info(int quad, const char* filename)
     }
     sub = JudyLNext(tables, &key, NULL); m1++;
   }
-  
+
   fprintf(f, "Number of primary tables: %ld (%ld for all quadratures)\n"
              "Avg. size of sub table:   %g\n"
              "Avg. number of nodes:     %g\n"
@@ -225,7 +225,7 @@ PrecalcShapeset::~PrecalcShapeset()
 
   /*if (master_pss == NULL)
   {
-    verbose("~PrecalcShapeset(): peak size of precalculated tables: %d B (%0.1lf MB)%s", max_mem, 
+    verbose("~PrecalcShapeset(): peak size of precalculated tables: %d B (%0.1lf MB)%s", max_mem,
             (double) max_mem / (1024 * 1024), (this == &ref_map_pss) ? " (refmap)" : "");
   }*/
 }

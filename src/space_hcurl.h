@@ -42,21 +42,21 @@ public:
   virtual int get_type() const { return 1; }
 
 protected:
-    
+
   virtual void assign_vertex_dofs() {}
   virtual void assign_edge_dofs();
   virtual void assign_bubble_dofs();
-  
+
   virtual void get_vertex_assembly_list(Element* e, int iv, AsmList* al) {}
   virtual void get_edge_assembly_list_internal(Element* e, int ie, AsmList* al);
   virtual void get_bubble_assembly_list(Element* e, AsmList* al);
-    
+
   static double** hcurl_proj_mat;
   static double*  hcurl_chol_p;
   static int      hcurl_proj_ref;
 
   virtual scalar* get_bc_projection(EdgePos* ep, int order);
-    
+
   struct EdgeInfo
   {
     Node* node;
@@ -64,7 +64,7 @@ protected:
     int ori;
     double lo, hi;
   };
-  
+
   void update_constrained_nodes(Element* e, EdgeInfo* ei0, EdgeInfo* ei1, EdgeInfo* ei2, EdgeInfo* ei3);
   virtual void update_constraints();
 

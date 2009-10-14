@@ -67,18 +67,18 @@ LinSystem::LinSystem(WeakForm* wf, Solver* solver)
   this->wf = wf;
   this->solver = solver;
   slv_ctx = solver ? solver->new_context(false) : NULL;
-  
+
   Ap = Ai = NULL;
   Ax = RHS = Dir = Vec = NULL;
   mat_row = solver ? solver->is_row_oriented() : true;
   mat_sym = false;
-  
+
   spaces = new Space*[wf->neq];
   sp_seq = new int[wf->neq];
   memset(sp_seq, -1, sizeof(int) * wf->neq);
   pss = new PrecalcShapeset*[wf->neq];
   num_user_pss = 0;
-  
+
   values_changed = true;
   struct_changed = true;
   have_spaces = false;
@@ -148,7 +148,7 @@ void LinSystem::free()
 
   struct_changed = values_changed = true;
   memset(sp_seq, -1, sizeof(int) * wf->neq);
-} 
+}
 
 
 //// matrix structure precalculation ///////////////////////////////////////////////////////////////
@@ -220,7 +220,7 @@ void LinSystem::precalc_sparse_structure(Page** pages)
         {
           am = al + m;
           an = al + n;
-          
+
           // pretend assembling of the element stiffness matrix
           if (mat_row)
           {
@@ -290,13 +290,13 @@ void LinSystem::create_matrix(bool rhsonly)
   // sanity check
   if (!have_spaces)
     error("Before assemble(), you need to call set_spaces().");
-  
+
   // check if we can reuse the matrix structure
   bool up_to_date = true;
   for (int i = 0; i < wf->neq; i++)
     if (spaces[i]->get_seq() != sp_seq[i])
-      { up_to_date = false; break; } 
-      
+      { up_to_date = false; break; }
+
   // if yes, just zero the values and we're done
   if (up_to_date)
   {
@@ -351,7 +351,7 @@ void LinSystem::create_matrix(bool rhsonly)
   Ax  = (scalar*) malloc(sizeof(scalar) * Ap[ndofs]);
   if (Ax == NULL) error("Out of memory. Error allocating stiffness matrix (Ax).");
   memset(Ax, 0, sizeof(scalar) * Ap[ndofs]);
-  
+
   RHS = (scalar*) malloc(sizeof(scalar) * ndofs);
   Dir = (scalar*) malloc(sizeof(scalar) * (ndofs + 1)) + 1;
   if (RHS == NULL || Dir == NULL) error("Out of memory. Error allocating the RHS vector.");
@@ -386,7 +386,7 @@ void LinSystem::insert_block(scalar** mat, int* iidx, int* jidx, int ilen, int j
       int* ridx = Ai + Ap[row];
       int  rlen = Ap[row+1] - Ap[row];
       scalar* rval = Ax + Ap[row];
-  
+
       for (register int j = 0; j < jlen; j++)
       {
         register int col = jidx[j];
@@ -417,7 +417,7 @@ void LinSystem::insert_block(scalar** mat, int* iidx, int* jidx, int ilen, int j
       int* cidx = Ai + Ap[col];
       int  clen = Ap[col+1] - Ap[col];
       scalar* cval = Ax + Ap[col];
-  
+
       for (register int i = 0; i < ilen; i++)
       {
         register int row = iidx[i];
@@ -451,17 +451,17 @@ void LinSystem::assemble(bool rhsonly)
   bool bnd[4], nat[wf->neq], isempty[wf->neq];
   EdgePos ep[4];
   warned_order = false;
-  
+
   if (rhsonly && Ax == NULL)
     error("Cannot reassemble RHS only: matrix is has not been assembled yet.");
 
   // create the sparse structure
   create_matrix(rhsonly);
   if (!ndofs) return;
-    
+
   info("Assembling stiffness matrix...");
   begin_time();
-  
+
   // create slave pss's for test functions, init quadrature points
   PrecalcShapeset* spss[wf->neq];
   PrecalcShapeset *fu, *fv;
@@ -482,7 +482,7 @@ void LinSystem::assemble(bool rhsonly)
   // obtain a list of assembling stages
   std::vector<WeakForm::Stage> stages;
   wf->get_stages(spaces, stages, rhsonly);
-  
+
   // Loop through all assembling stages -- the purpose of this is increased performance
   // in multi-mesh calculations, where, e.g., only the right hand side uses two meshes.
   // In such a case, the bilinear forms are assembled over one mesh, and only the rhs
@@ -507,10 +507,10 @@ void LinSystem::assemble(bool rhsonly)
       for (i = 0; i < s->idx.size(); i++)
         if ((e0 = e[i]) != NULL) break;
       if (e0 == NULL) continue;
-      
+
       // set maximum integration order for use in integrals, see limit_order()
       update_limit_table(e0->get_mode());
-  
+
       // obtain assembly lists for the element at all spaces, set appropriate mode for each pss
       memset(isempty, 0, sizeof(bool) * wf->neq);
       for (i = 0; i < s->idx.size(); i++)
@@ -525,7 +525,7 @@ void LinSystem::assemble(bool rhsonly)
         refmap[j].force_transform(pss[j]->get_transform(), pss[j]->get_ctm());
       }
       marker = e0->marker;
-      
+
       //// assemble volume bilinear forms //////////////////////////////////////
       for (ww = 0; ww < s->bfvol.size(); ww++)
       {
@@ -581,7 +581,7 @@ void LinSystem::assemble(bool rhsonly)
                   Dir[an->dof[i]] -= mat[i][j];
         }
       }
-      
+
       //// assemble volume linear forms ////////////////////////////////////////
       for (ww = 0; ww < s->lfvol.size(); ww++)
       {
@@ -589,7 +589,7 @@ void LinSystem::assemble(bool rhsonly)
         if (isempty[lfv->i]) continue;
         if (lfv->area != ANY && !wf->is_in_area(marker, lfv->area)) continue;
         m = lfv->i;  fv = spss[m];  am = &al[m];
-        
+
         for (i = 0; i < am->cnt; i++)
         {
           if (am->dof[i] < 0) continue;
@@ -598,13 +598,13 @@ void LinSystem::assemble(bool rhsonly)
         }
       }
 
-      
+
       // assemble surface integrals now: loop through boundary edges of the element
       for (int edge = 0; edge < e0->nvert; edge++)
       {
         if (!bnd[edge]/* || !e0->en[edge]->bnd*/) continue;
         marker = ep[edge].marker;
-  
+
         // obtain the list of shape functions which are nonzero on this edge
         for (i = 0; i < s->idx.size(); i++) {
           if (e[i] == NULL) continue;
@@ -612,7 +612,7 @@ void LinSystem::assemble(bool rhsonly)
           if ((nat[j] = (spaces[j]->bc_type_callback(marker) == BC_NATURAL)))
             spaces[j]->get_edge_assembly_list(e[i], edge, al + j);
         }
-  
+
         //// assemble surface bilinear forms ///////////////////////////////////
         for (ww = 0; ww < s->bfsurf.size(); ww++)
         {
@@ -621,12 +621,12 @@ void LinSystem::assemble(bool rhsonly)
           if (bfs->area != ANY && !wf->is_in_area(marker, bfs->area)) continue;
           m = bfs->i;  fv = spss[m];  am = &al[m];
           n = bfs->j;  fu = pss[n];   an = &al[n];
-          
+
           if (!nat[m] || !nat[n]) continue;
           ep[edge].base = trav.get_base();
           ep[edge].space_v = spaces[m];
           ep[edge].space_u = spaces[n];
-  
+
           scalar bi, **mat = get_matrix_buffer(std::max(am->cnt, an->cnt));
           for (i = 0; i < am->cnt; i++)
           {
@@ -641,7 +641,7 @@ void LinSystem::assemble(bool rhsonly)
           }
           insert_block(mat, am->dof, an->dof, am->cnt, an->cnt);
         }
-        
+
         //// assemble surface linear forms /////////////////////////////////////
         for (ww = 0; ww < s->lfsurf.size(); ww++)
         {
@@ -685,27 +685,27 @@ bool LinSystem::solve(int n, ...)
 {
   if (!solver) error("Cannot solve -- no solver was provided.");
   begin_time();
-  
+
   // perform symbolic analysis of the matrix
   if (struct_changed)
   {
     solver->analyze(slv_ctx, ndofs, Ap, Ai, Ax, false);
     struct_changed = false;
-  }  
-  
+  }
+
   // factorize the stiffness matrix, if needed
   if (struct_changed || values_changed)
   {
     solver->factorize(slv_ctx, ndofs, Ap, Ai, Ax, false);
     values_changed = false;
   }
-  
+
   // solve the system
   if (Vec != NULL) ::free(Vec);
   Vec = (scalar*) malloc(ndofs * sizeof(scalar));
   solver->solve(slv_ctx, ndofs, Ap, Ai, Ax, false, RHS, Vec);
   verbose("  (total solve time: %g sec)", end_time());
-      
+
   // initialize the Solution classes
   begin_time();
   va_list ap;
@@ -718,7 +718,7 @@ bool LinSystem::solve(int n, ...)
   }
   va_end(ap);
   verbose("Exported solution in %g sec", end_time());
-  
+
   return true;
 }
 

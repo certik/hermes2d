@@ -23,7 +23,7 @@
 #include "shapeset_common.h"
 #include "shapeset_hc_all.h"
 
-#ifdef COMPLEX 
+#ifdef COMPLEX
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -83,25 +83,25 @@ inline double leg_tri_f1_by0(double x, double y)
 inline double leg_tri_f1_ax1(double x, double y)
 {
  return -leg_tri_f1_ax0(x, y);
- 
+
 }
 
 inline double leg_tri_f1_ay1(double x, double y)
 {
  return -leg_tri_f1_ay0(x, y);
- 
+
 }
 
 inline double leg_tri_f1_bx1(double x, double y)
 {
  return -leg_tri_f1_bx0(x, y);
- 
+
 }
 
 inline double leg_tri_f1_by1(double x, double y)
 {
  return -leg_tri_f1_by0(x, y);
- 
+
 }
 
 // number 2
@@ -148,25 +148,25 @@ inline double leg_tri_f2_by0(double x, double y)
 inline double leg_tri_f2_ax1(double x, double y)
 {
  return -leg_tri_f2_ax0(x, y);
- 
+
 }
 
 inline double leg_tri_f2_ay1(double x, double y)
 {
  return -leg_tri_f2_ay0(x, y);
- 
+
 }
 
 inline double leg_tri_f2_bx1(double x, double y)
 {
  return -leg_tri_f2_bx0(x, y);
- 
+
 }
 
 inline double leg_tri_f2_by1(double x, double y)
 {
  return -leg_tri_f2_by0(x, y);
- 
+
 }
 
 // number 3
@@ -213,25 +213,25 @@ inline double leg_tri_f3_by0(double x, double y)
 inline double leg_tri_f3_ax1(double x, double y)
 {
  return -leg_tri_f3_ax0(x, y);
- 
+
 }
 
 inline double leg_tri_f3_ay1(double x, double y)
 {
  return -leg_tri_f3_ay0(x, y);
- 
+
 }
 
 inline double leg_tri_f3_bx1(double x, double y)
 {
  return -leg_tri_f3_bx0(x, y);
- 
+
 }
 
 inline double leg_tri_f3_by1(double x, double y)
 {
  return -leg_tri_f3_by0(x, y);
- 
+
 }
 
 
@@ -644,7 +644,7 @@ inline double leg_tri_f10_ax(double x, double y)
 
 inline double leg_tri_f10_ay(double x, double y)
 {
-  double L3, L2, 
+  double L3, L2,
   L3y, L2y, Leg, Legy,  ky;
   L3 = lambda3(x,y); L2 = lambda2(x,y);
   L3y = lambda3y(x,y); L2y = lambda2y(x,y);
@@ -668,7 +668,7 @@ inline double leg_tri_f10_bx(double x, double y)
 
 inline double leg_tri_f10_by(double x, double y)
 {
-  double L3, L2, 
+  double L3, L2,
   L3y, L2y, Leg, Legy, ky;
   L3 = lambda3(x,y); L2 = lambda2(x,y);
   L3y = lambda3y(x,y); L2y = lambda2y(x,y);
@@ -709,7 +709,7 @@ inline double leg_tri_f11_ax(double x, double y)
 
 inline double leg_tri_f11_ay(double x, double y)
 {
-  double L1, L3, 
+  double L1, L3,
   L1y, L3y, Leg, Legy,  ky;
   L1 = lambda1(x,y); L3 = lambda3(x,y);
   L1y = lambda1y(x,y); L3y = lambda3y(x,y);
@@ -733,7 +733,7 @@ inline double leg_tri_f11_bx(double x, double y)
 
 inline double leg_tri_f11_by(double x, double y)
 {
-  double L1, L3, 
+  double L1, L3,
   L1y, L3y, Leg, Legy, ky;
   L1 = lambda1(x,y); L3 = lambda3(x,y);
   L1y = lambda1y(x,y); L3y = lambda3y(x,y);
@@ -774,7 +774,7 @@ inline double leg_tri_f12_ax(double x, double y)
 
 inline double leg_tri_f12_ay(double x, double y)
 {
-  double L2, L1, 
+  double L2, L1,
   L2y, L1y, Leg, Legy,  ky;
   L2 = lambda2(x,y); L1 = lambda1(x,y);
   L2y = lambda2y(x,y); L1y = lambda1y(x,y);
@@ -798,7 +798,7 @@ inline double leg_tri_f12_bx(double x, double y)
 
 inline double leg_tri_f12_by(double x, double y)
 {
-  double L2, L1, 
+  double L2, L1,
   L2y, L1y, Leg, Legy, ky;
   L2 = lambda2(x,y); L1 = lambda1(x,y);
   L2y = lambda2y(x,y); L1y = lambda1y(x,y);
@@ -1030,7 +1030,7 @@ inline double leg_tri_f16_ax(double x, double y)
 
 inline double leg_tri_f16_ay(double x, double y)
 {
-  double L3, L2, 
+  double L3, L2,
   L3y, L2y, Leg, Legy,  ky;
   L3 = lambda3(x,y); L2 = lambda2(x,y);
   L3y = lambda3y(x,y); L2y = lambda2y(x,y);
@@ -1054,7 +1054,7 @@ inline double leg_tri_f16_bx(double x, double y)
 
 inline double leg_tri_f16_by(double x, double y)
 {
-  double L3, L2, 
+  double L3, L2,
   L3y, L2y, Leg, Legy, ky;
   L3 = lambda3(x,y); L2 = lambda2(x,y);
   L3y = lambda3y(x,y); L2y = lambda2y(x,y);
@@ -1095,7 +1095,7 @@ inline double leg_tri_f17_ax(double x, double y)
 
 inline double leg_tri_f17_ay(double x, double y)
 {
-  double L1, L3, 
+  double L1, L3,
   L1y, L3y, Leg, Legy,  ky;
   L1 = lambda1(x,y); L3 = lambda3(x,y);
   L1y = lambda1y(x,y); L3y = lambda3y(x,y);
@@ -1119,7 +1119,7 @@ inline double leg_tri_f17_bx(double x, double y)
 
 inline double leg_tri_f17_by(double x, double y)
 {
-  double L1, L3, 
+  double L1, L3,
   L1y, L3y, Leg, Legy, ky;
   L1 = lambda1(x,y); L3 = lambda3(x,y);
   L1y = lambda1y(x,y); L3y = lambda3y(x,y);
@@ -1160,7 +1160,7 @@ inline double leg_tri_f18_ax(double x, double y)
 
 inline double leg_tri_f18_ay(double x, double y)
 {
-  double L2, L1, 
+  double L2, L1,
   L2y, L1y, Leg, Legy,  ky;
   L2 = lambda2(x,y); L1 = lambda1(x,y);
   L2y = lambda2y(x,y); L1y = lambda1y(x,y);
@@ -1184,7 +1184,7 @@ inline double leg_tri_f18_bx(double x, double y)
 
 inline double leg_tri_f18_by(double x, double y)
 {
-  double L2, L1, 
+  double L2, L1,
   L2y, L1y, Leg, Legy, ky;
   L2 = lambda2(x,y); L1 = lambda1(x,y);
   L2y = lambda2y(x,y); L1y = lambda1y(x,y);
@@ -1221,7 +1221,7 @@ inline double leg_tri_f19_ax(double x, double y)
   Leg1x = Legendre0x(l3 - l2) * (l3x - l2x);
   Leg2x = Legendre0x(l2 - l1) * (l2x - l1x);
   return l1x * l2 * l3 * Leg1 * Leg2 + l1 * l2x * l3 * Leg1 * Leg2 + l1 * l2 * l3x * Leg1 * Leg2 + l1 * l2 * l3 * Leg1x * Leg2 + l1 * l2 * l3 * Leg1 * Leg2x;
- 
+
 }
 
 inline double leg_tri_f19_ay(double x, double y)
@@ -1238,7 +1238,7 @@ inline double leg_tri_f19_ay(double x, double y)
 inline double leg_tri_f19_bx(double x, double y)
 {
   return 0.0;
- 
+
 }
 
 inline double leg_tri_f19_by(double x, double y)
@@ -1264,7 +1264,7 @@ inline double leg_tri_f20_b(double x, double y)
 inline double leg_tri_f20_ax(double x, double y)
 {
   return 0.0;
- 
+
 }
 
 inline double leg_tri_f20_ay(double x, double y)
@@ -1281,7 +1281,7 @@ inline double leg_tri_f20_bx(double x, double y)
   Leg1x = Legendre0x(l3 - l2) * (l3x - l2x);
   Leg2x = Legendre0x(l2 - l1) * (l2x - l1x);
   return l1x * l2 * l3 * Leg1 * Leg2 + l1 * l2x * l3 * Leg1 * Leg2 + l1 * l2 * l3x * Leg1 * Leg2 + l1 * l2 * l3 * Leg1x * Leg2 + l1 * l2 * l3 * Leg1 * Leg2x;
-  
+
 }
 
 inline double leg_tri_f20_by(double x, double y)
@@ -1607,7 +1607,7 @@ inline double leg_tri_f24_ax(double x, double y)
 
 inline double leg_tri_f24_ay(double x, double y)
 {
-  double L3, L2, 
+  double L3, L2,
   L3y, L2y, Leg, Legy,  ky;
   L3 = lambda3(x,y); L2 = lambda2(x,y);
   L3y = lambda3y(x,y); L2y = lambda2y(x,y);
@@ -1631,7 +1631,7 @@ inline double leg_tri_f24_bx(double x, double y)
 
 inline double leg_tri_f24_by(double x, double y)
 {
-  double L3, L2, 
+  double L3, L2,
   L3y, L2y, Leg, Legy, ky;
   L3 = lambda3(x,y); L2 = lambda2(x,y);
   L3y = lambda3y(x,y); L2y = lambda2y(x,y);
@@ -1672,7 +1672,7 @@ inline double leg_tri_f25_ax(double x, double y)
 
 inline double leg_tri_f25_ay(double x, double y)
 {
-  double L1, L3, 
+  double L1, L3,
   L1y, L3y, Leg, Legy,  ky;
   L1 = lambda1(x,y); L3 = lambda3(x,y);
   L1y = lambda1y(x,y); L3y = lambda3y(x,y);
@@ -1696,7 +1696,7 @@ inline double leg_tri_f25_bx(double x, double y)
 
 inline double leg_tri_f25_by(double x, double y)
 {
-  double L1, L3, 
+  double L1, L3,
   L1y, L3y, Leg, Legy, ky;
   L1 = lambda1(x,y); L3 = lambda3(x,y);
   L1y = lambda1y(x,y); L3y = lambda3y(x,y);
@@ -1737,7 +1737,7 @@ inline double leg_tri_f26_ax(double x, double y)
 
 inline double leg_tri_f26_ay(double x, double y)
 {
-  double L2, L1, 
+  double L2, L1,
   L2y, L1y, Leg, Legy,  ky;
   L2 = lambda2(x,y); L1 = lambda1(x,y);
   L2y = lambda2y(x,y); L1y = lambda1y(x,y);
@@ -1761,7 +1761,7 @@ inline double leg_tri_f26_bx(double x, double y)
 
 inline double leg_tri_f26_by(double x, double y)
 {
-  double L2, L1, 
+  double L2, L1,
   L2y, L1y, Leg, Legy, ky;
   L2 = lambda2(x,y); L1 = lambda1(x,y);
   L2y = lambda2y(x,y); L1y = lambda1y(x,y);
@@ -1798,7 +1798,7 @@ inline double leg_tri_f27_ax(double x, double y)
   Leg1x = Legendre0x(l3 - l2) * (l3x - l2x);
   Leg2x = Legendre1x(l2 - l1) * (l2x - l1x);
   return l1x * l2 * l3 * Leg1 * Leg2 + l1 * l2x * l3 * Leg1 * Leg2 + l1 * l2 * l3x * Leg1 * Leg2 + l1 * l2 * l3 * Leg1x * Leg2 + l1 * l2 * l3 * Leg1 * Leg2x;
- 
+
 }
 
 inline double leg_tri_f27_ay(double x, double y)
@@ -1815,7 +1815,7 @@ inline double leg_tri_f27_ay(double x, double y)
 inline double leg_tri_f27_bx(double x, double y)
 {
   return 0.0;
- 
+
 }
 
 inline double leg_tri_f27_by(double x, double y)
@@ -1841,7 +1841,7 @@ inline double leg_tri_f28_b(double x, double y)
 inline double leg_tri_f28_ax(double x, double y)
 {
   return 0.0;
- 
+
 }
 
 inline double leg_tri_f28_ay(double x, double y)
@@ -1858,7 +1858,7 @@ inline double leg_tri_f28_bx(double x, double y)
   Leg1x = Legendre0x(l3 - l2) * (l3x - l2x);
   Leg2x = Legendre1x(l2 - l1) * (l2x - l1x);
   return l1x * l2 * l3 * Leg1 * Leg2 + l1 * l2x * l3 * Leg1 * Leg2 + l1 * l2 * l3x * Leg1 * Leg2 + l1 * l2 * l3 * Leg1x * Leg2 + l1 * l2 * l3 * Leg1 * Leg2x;
-  
+
 }
 
 inline double leg_tri_f28_by(double x, double y)
@@ -1896,7 +1896,7 @@ inline double leg_tri_f29_ax(double x, double y)
   Leg1x = Legendre1x(l3 - l2) * (l3x - l2x);
   Leg2x = Legendre0x(l2 - l1) * (l2x - l1x);
   return l1x * l2 * l3 * Leg1 * Leg2 + l1 * l2x * l3 * Leg1 * Leg2 + l1 * l2 * l3x * Leg1 * Leg2 + l1 * l2 * l3 * Leg1x * Leg2 + l1 * l2 * l3 * Leg1 * Leg2x;
- 
+
 }
 
 inline double leg_tri_f29_ay(double x, double y)
@@ -1913,7 +1913,7 @@ inline double leg_tri_f29_ay(double x, double y)
 inline double leg_tri_f29_bx(double x, double y)
 {
   return 0.0;
- 
+
 }
 
 inline double leg_tri_f29_by(double x, double y)
@@ -1939,7 +1939,7 @@ inline double leg_tri_f30_b(double x, double y)
 inline double leg_tri_f30_ax(double x, double y)
 {
   return 0.0;
- 
+
 }
 
 inline double leg_tri_f30_ay(double x, double y)
@@ -1956,7 +1956,7 @@ inline double leg_tri_f30_bx(double x, double y)
   Leg1x = Legendre1x(l3 - l2) * (l3x - l2x);
   Leg2x = Legendre0x(l2 - l1) * (l2x - l1x);
   return l1x * l2 * l3 * Leg1 * Leg2 + l1 * l2x * l3 * Leg1 * Leg2 + l1 * l2 * l3x * Leg1 * Leg2 + l1 * l2 * l3 * Leg1x * Leg2 + l1 * l2 * l3 * Leg1 * Leg2x;
-  
+
 }
 
 inline double leg_tri_f30_by(double x, double y)
@@ -2192,7 +2192,7 @@ inline double leg_tri_f34_ax(double x, double y)
 
 inline double leg_tri_f34_ay(double x, double y)
 {
-  double L3, L2, 
+  double L3, L2,
   L3y, L2y, Leg, Legy,  ky;
   L3 = lambda3(x,y); L2 = lambda2(x,y);
   L3y = lambda3y(x,y); L2y = lambda2y(x,y);
@@ -2216,7 +2216,7 @@ inline double leg_tri_f34_bx(double x, double y)
 
 inline double leg_tri_f34_by(double x, double y)
 {
-  double L3, L2, 
+  double L3, L2,
   L3y, L2y, Leg, Legy, ky;
   L3 = lambda3(x,y); L2 = lambda2(x,y);
   L3y = lambda3y(x,y); L2y = lambda2y(x,y);
@@ -2257,7 +2257,7 @@ inline double leg_tri_f35_ax(double x, double y)
 
 inline double leg_tri_f35_ay(double x, double y)
 {
-  double L1, L3, 
+  double L1, L3,
   L1y, L3y, Leg, Legy,  ky;
   L1 = lambda1(x,y); L3 = lambda3(x,y);
   L1y = lambda1y(x,y); L3y = lambda3y(x,y);
@@ -2281,7 +2281,7 @@ inline double leg_tri_f35_bx(double x, double y)
 
 inline double leg_tri_f35_by(double x, double y)
 {
-  double L1, L3, 
+  double L1, L3,
   L1y, L3y, Leg, Legy, ky;
   L1 = lambda1(x,y); L3 = lambda3(x,y);
   L1y = lambda1y(x,y); L3y = lambda3y(x,y);
@@ -2322,7 +2322,7 @@ inline double leg_tri_f36_ax(double x, double y)
 
 inline double leg_tri_f36_ay(double x, double y)
 {
-  double L2, L1, 
+  double L2, L1,
   L2y, L1y, Leg, Legy,  ky;
   L2 = lambda2(x,y); L1 = lambda1(x,y);
   L2y = lambda2y(x,y); L1y = lambda1y(x,y);
@@ -2346,7 +2346,7 @@ inline double leg_tri_f36_bx(double x, double y)
 
 inline double leg_tri_f36_by(double x, double y)
 {
-  double L2, L1, 
+  double L2, L1,
   L2y, L1y, Leg, Legy, ky;
   L2 = lambda2(x,y); L1 = lambda1(x,y);
   L2y = lambda2y(x,y); L1y = lambda1y(x,y);
@@ -2383,7 +2383,7 @@ inline double leg_tri_f37_ax(double x, double y)
   Leg1x = Legendre0x(l3 - l2) * (l3x - l2x);
   Leg2x = Legendre2x(l2 - l1) * (l2x - l1x);
   return l1x * l2 * l3 * Leg1 * Leg2 + l1 * l2x * l3 * Leg1 * Leg2 + l1 * l2 * l3x * Leg1 * Leg2 + l1 * l2 * l3 * Leg1x * Leg2 + l1 * l2 * l3 * Leg1 * Leg2x;
- 
+
 }
 
 inline double leg_tri_f37_ay(double x, double y)
@@ -2400,7 +2400,7 @@ inline double leg_tri_f37_ay(double x, double y)
 inline double leg_tri_f37_bx(double x, double y)
 {
   return 0.0;
- 
+
 }
 
 inline double leg_tri_f37_by(double x, double y)
@@ -2426,7 +2426,7 @@ inline double leg_tri_f38_b(double x, double y)
 inline double leg_tri_f38_ax(double x, double y)
 {
   return 0.0;
- 
+
 }
 
 inline double leg_tri_f38_ay(double x, double y)
@@ -2443,7 +2443,7 @@ inline double leg_tri_f38_bx(double x, double y)
   Leg1x = Legendre0x(l3 - l2) * (l3x - l2x);
   Leg2x = Legendre2x(l2 - l1) * (l2x - l1x);
   return l1x * l2 * l3 * Leg1 * Leg2 + l1 * l2x * l3 * Leg1 * Leg2 + l1 * l2 * l3x * Leg1 * Leg2 + l1 * l2 * l3 * Leg1x * Leg2 + l1 * l2 * l3 * Leg1 * Leg2x;
-  
+
 }
 
 inline double leg_tri_f38_by(double x, double y)
@@ -2481,7 +2481,7 @@ inline double leg_tri_f39_ax(double x, double y)
   Leg1x = Legendre1x(l3 - l2) * (l3x - l2x);
   Leg2x = Legendre1x(l2 - l1) * (l2x - l1x);
   return l1x * l2 * l3 * Leg1 * Leg2 + l1 * l2x * l3 * Leg1 * Leg2 + l1 * l2 * l3x * Leg1 * Leg2 + l1 * l2 * l3 * Leg1x * Leg2 + l1 * l2 * l3 * Leg1 * Leg2x;
- 
+
 }
 
 inline double leg_tri_f39_ay(double x, double y)
@@ -2498,7 +2498,7 @@ inline double leg_tri_f39_ay(double x, double y)
 inline double leg_tri_f39_bx(double x, double y)
 {
   return 0.0;
- 
+
 }
 
 inline double leg_tri_f39_by(double x, double y)
@@ -2524,7 +2524,7 @@ inline double leg_tri_f40_b(double x, double y)
 inline double leg_tri_f40_ax(double x, double y)
 {
   return 0.0;
- 
+
 }
 
 inline double leg_tri_f40_ay(double x, double y)
@@ -2541,7 +2541,7 @@ inline double leg_tri_f40_bx(double x, double y)
   Leg1x = Legendre1x(l3 - l2) * (l3x - l2x);
   Leg2x = Legendre1x(l2 - l1) * (l2x - l1x);
   return l1x * l2 * l3 * Leg1 * Leg2 + l1 * l2x * l3 * Leg1 * Leg2 + l1 * l2 * l3x * Leg1 * Leg2 + l1 * l2 * l3 * Leg1x * Leg2 + l1 * l2 * l3 * Leg1 * Leg2x;
-  
+
 }
 
 inline double leg_tri_f40_by(double x, double y)
@@ -2579,7 +2579,7 @@ inline double leg_tri_f41_ax(double x, double y)
   Leg1x = Legendre2x(l3 - l2) * (l3x - l2x);
   Leg2x = Legendre0x(l2 - l1) * (l2x - l1x);
   return l1x * l2 * l3 * Leg1 * Leg2 + l1 * l2x * l3 * Leg1 * Leg2 + l1 * l2 * l3x * Leg1 * Leg2 + l1 * l2 * l3 * Leg1x * Leg2 + l1 * l2 * l3 * Leg1 * Leg2x;
- 
+
 }
 
 inline double leg_tri_f41_ay(double x, double y)
@@ -2596,7 +2596,7 @@ inline double leg_tri_f41_ay(double x, double y)
 inline double leg_tri_f41_bx(double x, double y)
 {
   return 0.0;
- 
+
 }
 
 inline double leg_tri_f41_by(double x, double y)
@@ -2622,7 +2622,7 @@ inline double leg_tri_f42_b(double x, double y)
 inline double leg_tri_f42_ax(double x, double y)
 {
   return 0.0;
- 
+
 }
 
 inline double leg_tri_f42_ay(double x, double y)
@@ -2639,7 +2639,7 @@ inline double leg_tri_f42_bx(double x, double y)
   Leg1x = Legendre2x(l3 - l2) * (l3x - l2x);
   Leg2x = Legendre0x(l2 - l1) * (l2x - l1x);
   return l1x * l2 * l3 * Leg1 * Leg2 + l1 * l2x * l3 * Leg1 * Leg2 + l1 * l2 * l3x * Leg1 * Leg2 + l1 * l2 * l3 * Leg1x * Leg2 + l1 * l2 * l3 * Leg1 * Leg2x;
-  
+
 }
 
 inline double leg_tri_f42_by(double x, double y)
@@ -2965,7 +2965,7 @@ inline double leg_tri_f46_ax(double x, double y)
 
 inline double leg_tri_f46_ay(double x, double y)
 {
-  double L3, L2, 
+  double L3, L2,
   L3y, L2y, Leg, Legy,  ky;
   L3 = lambda3(x,y); L2 = lambda2(x,y);
   L3y = lambda3y(x,y); L2y = lambda2y(x,y);
@@ -2989,7 +2989,7 @@ inline double leg_tri_f46_bx(double x, double y)
 
 inline double leg_tri_f46_by(double x, double y)
 {
-  double L3, L2, 
+  double L3, L2,
   L3y, L2y, Leg, Legy, ky;
   L3 = lambda3(x,y); L2 = lambda2(x,y);
   L3y = lambda3y(x,y); L2y = lambda2y(x,y);
@@ -3030,7 +3030,7 @@ inline double leg_tri_f47_ax(double x, double y)
 
 inline double leg_tri_f47_ay(double x, double y)
 {
-  double L1, L3, 
+  double L1, L3,
   L1y, L3y, Leg, Legy,  ky;
   L1 = lambda1(x,y); L3 = lambda3(x,y);
   L1y = lambda1y(x,y); L3y = lambda3y(x,y);
@@ -3054,7 +3054,7 @@ inline double leg_tri_f47_bx(double x, double y)
 
 inline double leg_tri_f47_by(double x, double y)
 {
-  double L1, L3, 
+  double L1, L3,
   L1y, L3y, Leg, Legy, ky;
   L1 = lambda1(x,y); L3 = lambda3(x,y);
   L1y = lambda1y(x,y); L3y = lambda3y(x,y);
@@ -3095,7 +3095,7 @@ inline double leg_tri_f48_ax(double x, double y)
 
 inline double leg_tri_f48_ay(double x, double y)
 {
-  double L2, L1, 
+  double L2, L1,
   L2y, L1y, Leg, Legy,  ky;
   L2 = lambda2(x,y); L1 = lambda1(x,y);
   L2y = lambda2y(x,y); L1y = lambda1y(x,y);
@@ -3119,7 +3119,7 @@ inline double leg_tri_f48_bx(double x, double y)
 
 inline double leg_tri_f48_by(double x, double y)
 {
-  double L2, L1, 
+  double L2, L1,
   L2y, L1y, Leg, Legy, ky;
   L2 = lambda2(x,y); L1 = lambda1(x,y);
   L2y = lambda2y(x,y); L1y = lambda1y(x,y);
@@ -3156,7 +3156,7 @@ inline double leg_tri_f49_ax(double x, double y)
   Leg1x = Legendre0x(l3 - l2) * (l3x - l2x);
   Leg2x = Legendre3x(l2 - l1) * (l2x - l1x);
   return l1x * l2 * l3 * Leg1 * Leg2 + l1 * l2x * l3 * Leg1 * Leg2 + l1 * l2 * l3x * Leg1 * Leg2 + l1 * l2 * l3 * Leg1x * Leg2 + l1 * l2 * l3 * Leg1 * Leg2x;
- 
+
 }
 
 inline double leg_tri_f49_ay(double x, double y)
@@ -3173,7 +3173,7 @@ inline double leg_tri_f49_ay(double x, double y)
 inline double leg_tri_f49_bx(double x, double y)
 {
   return 0.0;
- 
+
 }
 
 inline double leg_tri_f49_by(double x, double y)
@@ -3199,7 +3199,7 @@ inline double leg_tri_f50_b(double x, double y)
 inline double leg_tri_f50_ax(double x, double y)
 {
   return 0.0;
- 
+
 }
 
 inline double leg_tri_f50_ay(double x, double y)
@@ -3216,7 +3216,7 @@ inline double leg_tri_f50_bx(double x, double y)
   Leg1x = Legendre0x(l3 - l2) * (l3x - l2x);
   Leg2x = Legendre3x(l2 - l1) * (l2x - l1x);
   return l1x * l2 * l3 * Leg1 * Leg2 + l1 * l2x * l3 * Leg1 * Leg2 + l1 * l2 * l3x * Leg1 * Leg2 + l1 * l2 * l3 * Leg1x * Leg2 + l1 * l2 * l3 * Leg1 * Leg2x;
-  
+
 }
 
 inline double leg_tri_f50_by(double x, double y)
@@ -3254,7 +3254,7 @@ inline double leg_tri_f51_ax(double x, double y)
   Leg1x = Legendre1x(l3 - l2) * (l3x - l2x);
   Leg2x = Legendre2x(l2 - l1) * (l2x - l1x);
   return l1x * l2 * l3 * Leg1 * Leg2 + l1 * l2x * l3 * Leg1 * Leg2 + l1 * l2 * l3x * Leg1 * Leg2 + l1 * l2 * l3 * Leg1x * Leg2 + l1 * l2 * l3 * Leg1 * Leg2x;
- 
+
 }
 
 inline double leg_tri_f51_ay(double x, double y)
@@ -3271,7 +3271,7 @@ inline double leg_tri_f51_ay(double x, double y)
 inline double leg_tri_f51_bx(double x, double y)
 {
   return 0.0;
- 
+
 }
 
 inline double leg_tri_f51_by(double x, double y)
@@ -3297,7 +3297,7 @@ inline double leg_tri_f52_b(double x, double y)
 inline double leg_tri_f52_ax(double x, double y)
 {
   return 0.0;
- 
+
 }
 
 inline double leg_tri_f52_ay(double x, double y)
@@ -3314,7 +3314,7 @@ inline double leg_tri_f52_bx(double x, double y)
   Leg1x = Legendre1x(l3 - l2) * (l3x - l2x);
   Leg2x = Legendre2x(l2 - l1) * (l2x - l1x);
   return l1x * l2 * l3 * Leg1 * Leg2 + l1 * l2x * l3 * Leg1 * Leg2 + l1 * l2 * l3x * Leg1 * Leg2 + l1 * l2 * l3 * Leg1x * Leg2 + l1 * l2 * l3 * Leg1 * Leg2x;
-  
+
 }
 
 inline double leg_tri_f52_by(double x, double y)
@@ -3352,7 +3352,7 @@ inline double leg_tri_f53_ax(double x, double y)
   Leg1x = Legendre2x(l3 - l2) * (l3x - l2x);
   Leg2x = Legendre1x(l2 - l1) * (l2x - l1x);
   return l1x * l2 * l3 * Leg1 * Leg2 + l1 * l2x * l3 * Leg1 * Leg2 + l1 * l2 * l3x * Leg1 * Leg2 + l1 * l2 * l3 * Leg1x * Leg2 + l1 * l2 * l3 * Leg1 * Leg2x;
- 
+
 }
 
 inline double leg_tri_f53_ay(double x, double y)
@@ -3369,7 +3369,7 @@ inline double leg_tri_f53_ay(double x, double y)
 inline double leg_tri_f53_bx(double x, double y)
 {
   return 0.0;
- 
+
 }
 
 inline double leg_tri_f53_by(double x, double y)
@@ -3395,7 +3395,7 @@ inline double leg_tri_f54_b(double x, double y)
 inline double leg_tri_f54_ax(double x, double y)
 {
   return 0.0;
- 
+
 }
 
 inline double leg_tri_f54_ay(double x, double y)
@@ -3412,7 +3412,7 @@ inline double leg_tri_f54_bx(double x, double y)
   Leg1x = Legendre2x(l3 - l2) * (l3x - l2x);
   Leg2x = Legendre1x(l2 - l1) * (l2x - l1x);
   return l1x * l2 * l3 * Leg1 * Leg2 + l1 * l2x * l3 * Leg1 * Leg2 + l1 * l2 * l3x * Leg1 * Leg2 + l1 * l2 * l3 * Leg1x * Leg2 + l1 * l2 * l3 * Leg1 * Leg2x;
-  
+
 }
 
 inline double leg_tri_f54_by(double x, double y)
@@ -3450,7 +3450,7 @@ inline double leg_tri_f55_ax(double x, double y)
   Leg1x = Legendre3x(l3 - l2) * (l3x - l2x);
   Leg2x = Legendre0x(l2 - l1) * (l2x - l1x);
   return l1x * l2 * l3 * Leg1 * Leg2 + l1 * l2x * l3 * Leg1 * Leg2 + l1 * l2 * l3x * Leg1 * Leg2 + l1 * l2 * l3 * Leg1x * Leg2 + l1 * l2 * l3 * Leg1 * Leg2x;
- 
+
 }
 
 inline double leg_tri_f55_ay(double x, double y)
@@ -3467,7 +3467,7 @@ inline double leg_tri_f55_ay(double x, double y)
 inline double leg_tri_f55_bx(double x, double y)
 {
   return 0.0;
- 
+
 }
 
 inline double leg_tri_f55_by(double x, double y)
@@ -3493,7 +3493,7 @@ inline double leg_tri_f56_b(double x, double y)
 inline double leg_tri_f56_ax(double x, double y)
 {
   return 0.0;
- 
+
 }
 
 inline double leg_tri_f56_ay(double x, double y)
@@ -3510,7 +3510,7 @@ inline double leg_tri_f56_bx(double x, double y)
   Leg1x = Legendre3x(l3 - l2) * (l3x - l2x);
   Leg2x = Legendre0x(l2 - l1) * (l2x - l1x);
   return l1x * l2 * l3 * Leg1 * Leg2 + l1 * l2x * l3 * Leg1 * Leg2 + l1 * l2 * l3x * Leg1 * Leg2 + l1 * l2 * l3 * Leg1x * Leg2 + l1 * l2 * l3 * Leg1 * Leg2x;
-  
+
 }
 
 inline double leg_tri_f56_by(double x, double y)
@@ -3746,7 +3746,7 @@ inline double leg_tri_f60_ax(double x, double y)
 
 inline double leg_tri_f60_ay(double x, double y)
 {
-  double L3, L2, 
+  double L3, L2,
   L3y, L2y, Leg, Legy,  ky;
   L3 = lambda3(x,y); L2 = lambda2(x,y);
   L3y = lambda3y(x,y); L2y = lambda2y(x,y);
@@ -3770,7 +3770,7 @@ inline double leg_tri_f60_bx(double x, double y)
 
 inline double leg_tri_f60_by(double x, double y)
 {
-  double L3, L2, 
+  double L3, L2,
   L3y, L2y, Leg, Legy, ky;
   L3 = lambda3(x,y); L2 = lambda2(x,y);
   L3y = lambda3y(x,y); L2y = lambda2y(x,y);
@@ -3811,7 +3811,7 @@ inline double leg_tri_f61_ax(double x, double y)
 
 inline double leg_tri_f61_ay(double x, double y)
 {
-  double L1, L3, 
+  double L1, L3,
   L1y, L3y, Leg, Legy,  ky;
   L1 = lambda1(x,y); L3 = lambda3(x,y);
   L1y = lambda1y(x,y); L3y = lambda3y(x,y);
@@ -3835,7 +3835,7 @@ inline double leg_tri_f61_bx(double x, double y)
 
 inline double leg_tri_f61_by(double x, double y)
 {
-  double L1, L3, 
+  double L1, L3,
   L1y, L3y, Leg, Legy, ky;
   L1 = lambda1(x,y); L3 = lambda3(x,y);
   L1y = lambda1y(x,y); L3y = lambda3y(x,y);
@@ -3876,7 +3876,7 @@ inline double leg_tri_f62_ax(double x, double y)
 
 inline double leg_tri_f62_ay(double x, double y)
 {
-  double L2, L1, 
+  double L2, L1,
   L2y, L1y, Leg, Legy,  ky;
   L2 = lambda2(x,y); L1 = lambda1(x,y);
   L2y = lambda2y(x,y); L1y = lambda1y(x,y);
@@ -3900,7 +3900,7 @@ inline double leg_tri_f62_bx(double x, double y)
 
 inline double leg_tri_f62_by(double x, double y)
 {
-  double L2, L1, 
+  double L2, L1,
   L2y, L1y, Leg, Legy, ky;
   L2 = lambda2(x,y); L1 = lambda1(x,y);
   L2y = lambda2y(x,y); L1y = lambda1y(x,y);
@@ -3937,7 +3937,7 @@ inline double leg_tri_f63_ax(double x, double y)
   Leg1x = Legendre0x(l3 - l2) * (l3x - l2x);
   Leg2x = Legendre4x(l2 - l1) * (l2x - l1x);
   return l1x * l2 * l3 * Leg1 * Leg2 + l1 * l2x * l3 * Leg1 * Leg2 + l1 * l2 * l3x * Leg1 * Leg2 + l1 * l2 * l3 * Leg1x * Leg2 + l1 * l2 * l3 * Leg1 * Leg2x;
- 
+
 }
 
 inline double leg_tri_f63_ay(double x, double y)
@@ -3954,7 +3954,7 @@ inline double leg_tri_f63_ay(double x, double y)
 inline double leg_tri_f63_bx(double x, double y)
 {
   return 0.0;
- 
+
 }
 
 inline double leg_tri_f63_by(double x, double y)
@@ -3980,7 +3980,7 @@ inline double leg_tri_f64_b(double x, double y)
 inline double leg_tri_f64_ax(double x, double y)
 {
   return 0.0;
- 
+
 }
 
 inline double leg_tri_f64_ay(double x, double y)
@@ -3997,7 +3997,7 @@ inline double leg_tri_f64_bx(double x, double y)
   Leg1x = Legendre0x(l3 - l2) * (l3x - l2x);
   Leg2x = Legendre4x(l2 - l1) * (l2x - l1x);
   return l1x * l2 * l3 * Leg1 * Leg2 + l1 * l2x * l3 * Leg1 * Leg2 + l1 * l2 * l3x * Leg1 * Leg2 + l1 * l2 * l3 * Leg1x * Leg2 + l1 * l2 * l3 * Leg1 * Leg2x;
-  
+
 }
 
 inline double leg_tri_f64_by(double x, double y)
@@ -4035,7 +4035,7 @@ inline double leg_tri_f65_ax(double x, double y)
   Leg1x = Legendre1x(l3 - l2) * (l3x - l2x);
   Leg2x = Legendre3x(l2 - l1) * (l2x - l1x);
   return l1x * l2 * l3 * Leg1 * Leg2 + l1 * l2x * l3 * Leg1 * Leg2 + l1 * l2 * l3x * Leg1 * Leg2 + l1 * l2 * l3 * Leg1x * Leg2 + l1 * l2 * l3 * Leg1 * Leg2x;
- 
+
 }
 
 inline double leg_tri_f65_ay(double x, double y)
@@ -4052,7 +4052,7 @@ inline double leg_tri_f65_ay(double x, double y)
 inline double leg_tri_f65_bx(double x, double y)
 {
   return 0.0;
- 
+
 }
 
 inline double leg_tri_f65_by(double x, double y)
@@ -4078,7 +4078,7 @@ inline double leg_tri_f66_b(double x, double y)
 inline double leg_tri_f66_ax(double x, double y)
 {
   return 0.0;
- 
+
 }
 
 inline double leg_tri_f66_ay(double x, double y)
@@ -4095,7 +4095,7 @@ inline double leg_tri_f66_bx(double x, double y)
   Leg1x = Legendre1x(l3 - l2) * (l3x - l2x);
   Leg2x = Legendre3x(l2 - l1) * (l2x - l1x);
   return l1x * l2 * l3 * Leg1 * Leg2 + l1 * l2x * l3 * Leg1 * Leg2 + l1 * l2 * l3x * Leg1 * Leg2 + l1 * l2 * l3 * Leg1x * Leg2 + l1 * l2 * l3 * Leg1 * Leg2x;
-  
+
 }
 
 inline double leg_tri_f66_by(double x, double y)
@@ -4133,7 +4133,7 @@ inline double leg_tri_f67_ax(double x, double y)
   Leg1x = Legendre2x(l3 - l2) * (l3x - l2x);
   Leg2x = Legendre2x(l2 - l1) * (l2x - l1x);
   return l1x * l2 * l3 * Leg1 * Leg2 + l1 * l2x * l3 * Leg1 * Leg2 + l1 * l2 * l3x * Leg1 * Leg2 + l1 * l2 * l3 * Leg1x * Leg2 + l1 * l2 * l3 * Leg1 * Leg2x;
- 
+
 }
 
 inline double leg_tri_f67_ay(double x, double y)
@@ -4150,7 +4150,7 @@ inline double leg_tri_f67_ay(double x, double y)
 inline double leg_tri_f67_bx(double x, double y)
 {
   return 0.0;
- 
+
 }
 
 inline double leg_tri_f67_by(double x, double y)
@@ -4176,7 +4176,7 @@ inline double leg_tri_f68_b(double x, double y)
 inline double leg_tri_f68_ax(double x, double y)
 {
   return 0.0;
- 
+
 }
 
 inline double leg_tri_f68_ay(double x, double y)
@@ -4193,7 +4193,7 @@ inline double leg_tri_f68_bx(double x, double y)
   Leg1x = Legendre2x(l3 - l2) * (l3x - l2x);
   Leg2x = Legendre2x(l2 - l1) * (l2x - l1x);
   return l1x * l2 * l3 * Leg1 * Leg2 + l1 * l2x * l3 * Leg1 * Leg2 + l1 * l2 * l3x * Leg1 * Leg2 + l1 * l2 * l3 * Leg1x * Leg2 + l1 * l2 * l3 * Leg1 * Leg2x;
-  
+
 }
 
 inline double leg_tri_f68_by(double x, double y)
@@ -4231,7 +4231,7 @@ inline double leg_tri_f69_ax(double x, double y)
   Leg1x = Legendre3x(l3 - l2) * (l3x - l2x);
   Leg2x = Legendre1x(l2 - l1) * (l2x - l1x);
   return l1x * l2 * l3 * Leg1 * Leg2 + l1 * l2x * l3 * Leg1 * Leg2 + l1 * l2 * l3x * Leg1 * Leg2 + l1 * l2 * l3 * Leg1x * Leg2 + l1 * l2 * l3 * Leg1 * Leg2x;
- 
+
 }
 
 inline double leg_tri_f69_ay(double x, double y)
@@ -4248,7 +4248,7 @@ inline double leg_tri_f69_ay(double x, double y)
 inline double leg_tri_f69_bx(double x, double y)
 {
   return 0.0;
- 
+
 }
 
 inline double leg_tri_f69_by(double x, double y)
@@ -4274,7 +4274,7 @@ inline double leg_tri_f70_b(double x, double y)
 inline double leg_tri_f70_ax(double x, double y)
 {
   return 0.0;
- 
+
 }
 
 inline double leg_tri_f70_ay(double x, double y)
@@ -4291,7 +4291,7 @@ inline double leg_tri_f70_bx(double x, double y)
   Leg1x = Legendre3x(l3 - l2) * (l3x - l2x);
   Leg2x = Legendre1x(l2 - l1) * (l2x - l1x);
   return l1x * l2 * l3 * Leg1 * Leg2 + l1 * l2x * l3 * Leg1 * Leg2 + l1 * l2 * l3x * Leg1 * Leg2 + l1 * l2 * l3 * Leg1x * Leg2 + l1 * l2 * l3 * Leg1 * Leg2x;
-  
+
 }
 
 inline double leg_tri_f70_by(double x, double y)
@@ -4329,7 +4329,7 @@ inline double leg_tri_f71_ax(double x, double y)
   Leg1x = Legendre4x(l3 - l2) * (l3x - l2x);
   Leg2x = Legendre0x(l2 - l1) * (l2x - l1x);
   return l1x * l2 * l3 * Leg1 * Leg2 + l1 * l2x * l3 * Leg1 * Leg2 + l1 * l2 * l3x * Leg1 * Leg2 + l1 * l2 * l3 * Leg1x * Leg2 + l1 * l2 * l3 * Leg1 * Leg2x;
- 
+
 }
 
 inline double leg_tri_f71_ay(double x, double y)
@@ -4346,7 +4346,7 @@ inline double leg_tri_f71_ay(double x, double y)
 inline double leg_tri_f71_bx(double x, double y)
 {
   return 0.0;
- 
+
 }
 
 inline double leg_tri_f71_by(double x, double y)
@@ -4372,7 +4372,7 @@ inline double leg_tri_f72_b(double x, double y)
 inline double leg_tri_f72_ax(double x, double y)
 {
   return 0.0;
- 
+
 }
 
 inline double leg_tri_f72_ay(double x, double y)
@@ -4389,7 +4389,7 @@ inline double leg_tri_f72_bx(double x, double y)
   Leg1x = Legendre4x(l3 - l2) * (l3x - l2x);
   Leg2x = Legendre0x(l2 - l1) * (l2x - l1x);
   return l1x * l2 * l3 * Leg1 * Leg2 + l1 * l2x * l3 * Leg1 * Leg2 + l1 * l2 * l3x * Leg1 * Leg2 + l1 * l2 * l3 * Leg1x * Leg2 + l1 * l2 * l3 * Leg1 * Leg2x;
-  
+
 }
 
 inline double leg_tri_f72_by(double x, double y)
@@ -4715,7 +4715,7 @@ inline double leg_tri_f76_ax(double x, double y)
 
 inline double leg_tri_f76_ay(double x, double y)
 {
-  double L3, L2, 
+  double L3, L2,
   L3y, L2y, Leg, Legy,  ky;
   L3 = lambda3(x,y); L2 = lambda2(x,y);
   L3y = lambda3y(x,y); L2y = lambda2y(x,y);
@@ -4739,7 +4739,7 @@ inline double leg_tri_f76_bx(double x, double y)
 
 inline double leg_tri_f76_by(double x, double y)
 {
-  double L3, L2, 
+  double L3, L2,
   L3y, L2y, Leg, Legy, ky;
   L3 = lambda3(x,y); L2 = lambda2(x,y);
   L3y = lambda3y(x,y); L2y = lambda2y(x,y);
@@ -4780,7 +4780,7 @@ inline double leg_tri_f77_ax(double x, double y)
 
 inline double leg_tri_f77_ay(double x, double y)
 {
-  double L1, L3, 
+  double L1, L3,
   L1y, L3y, Leg, Legy,  ky;
   L1 = lambda1(x,y); L3 = lambda3(x,y);
   L1y = lambda1y(x,y); L3y = lambda3y(x,y);
@@ -4804,7 +4804,7 @@ inline double leg_tri_f77_bx(double x, double y)
 
 inline double leg_tri_f77_by(double x, double y)
 {
-  double L1, L3, 
+  double L1, L3,
   L1y, L3y, Leg, Legy, ky;
   L1 = lambda1(x,y); L3 = lambda3(x,y);
   L1y = lambda1y(x,y); L3y = lambda3y(x,y);
@@ -4845,7 +4845,7 @@ inline double leg_tri_f78_ax(double x, double y)
 
 inline double leg_tri_f78_ay(double x, double y)
 {
-  double L2, L1, 
+  double L2, L1,
   L2y, L1y, Leg, Legy,  ky;
   L2 = lambda2(x,y); L1 = lambda1(x,y);
   L2y = lambda2y(x,y); L1y = lambda1y(x,y);
@@ -4869,7 +4869,7 @@ inline double leg_tri_f78_bx(double x, double y)
 
 inline double leg_tri_f78_by(double x, double y)
 {
-  double L2, L1, 
+  double L2, L1,
   L2y, L1y, Leg, Legy, ky;
   L2 = lambda2(x,y); L1 = lambda1(x,y);
   L2y = lambda2y(x,y); L1y = lambda1y(x,y);
@@ -4906,7 +4906,7 @@ inline double leg_tri_f79_ax(double x, double y)
   Leg1x = Legendre0x(l3 - l2) * (l3x - l2x);
   Leg2x = Legendre5x(l2 - l1) * (l2x - l1x);
   return l1x * l2 * l3 * Leg1 * Leg2 + l1 * l2x * l3 * Leg1 * Leg2 + l1 * l2 * l3x * Leg1 * Leg2 + l1 * l2 * l3 * Leg1x * Leg2 + l1 * l2 * l3 * Leg1 * Leg2x;
- 
+
 }
 
 inline double leg_tri_f79_ay(double x, double y)
@@ -4923,7 +4923,7 @@ inline double leg_tri_f79_ay(double x, double y)
 inline double leg_tri_f79_bx(double x, double y)
 {
   return 0.0;
- 
+
 }
 
 inline double leg_tri_f79_by(double x, double y)
@@ -4949,7 +4949,7 @@ inline double leg_tri_f80_b(double x, double y)
 inline double leg_tri_f80_ax(double x, double y)
 {
   return 0.0;
- 
+
 }
 
 inline double leg_tri_f80_ay(double x, double y)
@@ -4966,7 +4966,7 @@ inline double leg_tri_f80_bx(double x, double y)
   Leg1x = Legendre0x(l3 - l2) * (l3x - l2x);
   Leg2x = Legendre5x(l2 - l1) * (l2x - l1x);
   return l1x * l2 * l3 * Leg1 * Leg2 + l1 * l2x * l3 * Leg1 * Leg2 + l1 * l2 * l3x * Leg1 * Leg2 + l1 * l2 * l3 * Leg1x * Leg2 + l1 * l2 * l3 * Leg1 * Leg2x;
-  
+
 }
 
 inline double leg_tri_f80_by(double x, double y)
@@ -5004,7 +5004,7 @@ inline double leg_tri_f81_ax(double x, double y)
   Leg1x = Legendre1x(l3 - l2) * (l3x - l2x);
   Leg2x = Legendre4x(l2 - l1) * (l2x - l1x);
   return l1x * l2 * l3 * Leg1 * Leg2 + l1 * l2x * l3 * Leg1 * Leg2 + l1 * l2 * l3x * Leg1 * Leg2 + l1 * l2 * l3 * Leg1x * Leg2 + l1 * l2 * l3 * Leg1 * Leg2x;
- 
+
 }
 
 inline double leg_tri_f81_ay(double x, double y)
@@ -5021,7 +5021,7 @@ inline double leg_tri_f81_ay(double x, double y)
 inline double leg_tri_f81_bx(double x, double y)
 {
   return 0.0;
- 
+
 }
 
 inline double leg_tri_f81_by(double x, double y)
@@ -5047,7 +5047,7 @@ inline double leg_tri_f82_b(double x, double y)
 inline double leg_tri_f82_ax(double x, double y)
 {
   return 0.0;
- 
+
 }
 
 inline double leg_tri_f82_ay(double x, double y)
@@ -5064,7 +5064,7 @@ inline double leg_tri_f82_bx(double x, double y)
   Leg1x = Legendre1x(l3 - l2) * (l3x - l2x);
   Leg2x = Legendre4x(l2 - l1) * (l2x - l1x);
   return l1x * l2 * l3 * Leg1 * Leg2 + l1 * l2x * l3 * Leg1 * Leg2 + l1 * l2 * l3x * Leg1 * Leg2 + l1 * l2 * l3 * Leg1x * Leg2 + l1 * l2 * l3 * Leg1 * Leg2x;
-  
+
 }
 
 inline double leg_tri_f82_by(double x, double y)
@@ -5102,7 +5102,7 @@ inline double leg_tri_f83_ax(double x, double y)
   Leg1x = Legendre2x(l3 - l2) * (l3x - l2x);
   Leg2x = Legendre3x(l2 - l1) * (l2x - l1x);
   return l1x * l2 * l3 * Leg1 * Leg2 + l1 * l2x * l3 * Leg1 * Leg2 + l1 * l2 * l3x * Leg1 * Leg2 + l1 * l2 * l3 * Leg1x * Leg2 + l1 * l2 * l3 * Leg1 * Leg2x;
- 
+
 }
 
 inline double leg_tri_f83_ay(double x, double y)
@@ -5119,7 +5119,7 @@ inline double leg_tri_f83_ay(double x, double y)
 inline double leg_tri_f83_bx(double x, double y)
 {
   return 0.0;
- 
+
 }
 
 inline double leg_tri_f83_by(double x, double y)
@@ -5145,7 +5145,7 @@ inline double leg_tri_f84_b(double x, double y)
 inline double leg_tri_f84_ax(double x, double y)
 {
   return 0.0;
- 
+
 }
 
 inline double leg_tri_f84_ay(double x, double y)
@@ -5162,7 +5162,7 @@ inline double leg_tri_f84_bx(double x, double y)
   Leg1x = Legendre2x(l3 - l2) * (l3x - l2x);
   Leg2x = Legendre3x(l2 - l1) * (l2x - l1x);
   return l1x * l2 * l3 * Leg1 * Leg2 + l1 * l2x * l3 * Leg1 * Leg2 + l1 * l2 * l3x * Leg1 * Leg2 + l1 * l2 * l3 * Leg1x * Leg2 + l1 * l2 * l3 * Leg1 * Leg2x;
-  
+
 }
 
 inline double leg_tri_f84_by(double x, double y)
@@ -5200,7 +5200,7 @@ inline double leg_tri_f85_ax(double x, double y)
   Leg1x = Legendre3x(l3 - l2) * (l3x - l2x);
   Leg2x = Legendre2x(l2 - l1) * (l2x - l1x);
   return l1x * l2 * l3 * Leg1 * Leg2 + l1 * l2x * l3 * Leg1 * Leg2 + l1 * l2 * l3x * Leg1 * Leg2 + l1 * l2 * l3 * Leg1x * Leg2 + l1 * l2 * l3 * Leg1 * Leg2x;
- 
+
 }
 
 inline double leg_tri_f85_ay(double x, double y)
@@ -5217,7 +5217,7 @@ inline double leg_tri_f85_ay(double x, double y)
 inline double leg_tri_f85_bx(double x, double y)
 {
   return 0.0;
- 
+
 }
 
 inline double leg_tri_f85_by(double x, double y)
@@ -5243,7 +5243,7 @@ inline double leg_tri_f86_b(double x, double y)
 inline double leg_tri_f86_ax(double x, double y)
 {
   return 0.0;
- 
+
 }
 
 inline double leg_tri_f86_ay(double x, double y)
@@ -5260,7 +5260,7 @@ inline double leg_tri_f86_bx(double x, double y)
   Leg1x = Legendre3x(l3 - l2) * (l3x - l2x);
   Leg2x = Legendre2x(l2 - l1) * (l2x - l1x);
   return l1x * l2 * l3 * Leg1 * Leg2 + l1 * l2x * l3 * Leg1 * Leg2 + l1 * l2 * l3x * Leg1 * Leg2 + l1 * l2 * l3 * Leg1x * Leg2 + l1 * l2 * l3 * Leg1 * Leg2x;
-  
+
 }
 
 inline double leg_tri_f86_by(double x, double y)
@@ -5298,7 +5298,7 @@ inline double leg_tri_f87_ax(double x, double y)
   Leg1x = Legendre4x(l3 - l2) * (l3x - l2x);
   Leg2x = Legendre1x(l2 - l1) * (l2x - l1x);
   return l1x * l2 * l3 * Leg1 * Leg2 + l1 * l2x * l3 * Leg1 * Leg2 + l1 * l2 * l3x * Leg1 * Leg2 + l1 * l2 * l3 * Leg1x * Leg2 + l1 * l2 * l3 * Leg1 * Leg2x;
- 
+
 }
 
 inline double leg_tri_f87_ay(double x, double y)
@@ -5315,7 +5315,7 @@ inline double leg_tri_f87_ay(double x, double y)
 inline double leg_tri_f87_bx(double x, double y)
 {
   return 0.0;
- 
+
 }
 
 inline double leg_tri_f87_by(double x, double y)
@@ -5341,7 +5341,7 @@ inline double leg_tri_f88_b(double x, double y)
 inline double leg_tri_f88_ax(double x, double y)
 {
   return 0.0;
- 
+
 }
 
 inline double leg_tri_f88_ay(double x, double y)
@@ -5358,7 +5358,7 @@ inline double leg_tri_f88_bx(double x, double y)
   Leg1x = Legendre4x(l3 - l2) * (l3x - l2x);
   Leg2x = Legendre1x(l2 - l1) * (l2x - l1x);
   return l1x * l2 * l3 * Leg1 * Leg2 + l1 * l2x * l3 * Leg1 * Leg2 + l1 * l2 * l3x * Leg1 * Leg2 + l1 * l2 * l3 * Leg1x * Leg2 + l1 * l2 * l3 * Leg1 * Leg2x;
-  
+
 }
 
 inline double leg_tri_f88_by(double x, double y)
@@ -5396,7 +5396,7 @@ inline double leg_tri_f89_ax(double x, double y)
   Leg1x = Legendre5x(l3 - l2) * (l3x - l2x);
   Leg2x = Legendre0x(l2 - l1) * (l2x - l1x);
   return l1x * l2 * l3 * Leg1 * Leg2 + l1 * l2x * l3 * Leg1 * Leg2 + l1 * l2 * l3x * Leg1 * Leg2 + l1 * l2 * l3 * Leg1x * Leg2 + l1 * l2 * l3 * Leg1 * Leg2x;
- 
+
 }
 
 inline double leg_tri_f89_ay(double x, double y)
@@ -5413,7 +5413,7 @@ inline double leg_tri_f89_ay(double x, double y)
 inline double leg_tri_f89_bx(double x, double y)
 {
   return 0.0;
- 
+
 }
 
 inline double leg_tri_f89_by(double x, double y)
@@ -5439,7 +5439,7 @@ inline double leg_tri_f90_b(double x, double y)
 inline double leg_tri_f90_ax(double x, double y)
 {
   return 0.0;
- 
+
 }
 
 inline double leg_tri_f90_ay(double x, double y)
@@ -5456,7 +5456,7 @@ inline double leg_tri_f90_bx(double x, double y)
   Leg1x = Legendre5x(l3 - l2) * (l3x - l2x);
   Leg2x = Legendre0x(l2 - l1) * (l2x - l1x);
   return l1x * l2 * l3 * Leg1 * Leg2 + l1 * l2x * l3 * Leg1 * Leg2 + l1 * l2 * l3x * Leg1 * Leg2 + l1 * l2 * l3 * Leg1x * Leg2 + l1 * l2 * l3 * Leg1 * Leg2x;
-  
+
 }
 
 inline double leg_tri_f90_by(double x, double y)
@@ -5692,7 +5692,7 @@ inline double leg_tri_f94_ax(double x, double y)
 
 inline double leg_tri_f94_ay(double x, double y)
 {
-  double L3, L2, 
+  double L3, L2,
   L3y, L2y, Leg, Legy,  ky;
   L3 = lambda3(x,y); L2 = lambda2(x,y);
   L3y = lambda3y(x,y); L2y = lambda2y(x,y);
@@ -5716,7 +5716,7 @@ inline double leg_tri_f94_bx(double x, double y)
 
 inline double leg_tri_f94_by(double x, double y)
 {
-  double L3, L2, 
+  double L3, L2,
   L3y, L2y, Leg, Legy, ky;
   L3 = lambda3(x,y); L2 = lambda2(x,y);
   L3y = lambda3y(x,y); L2y = lambda2y(x,y);
@@ -5757,7 +5757,7 @@ inline double leg_tri_f95_ax(double x, double y)
 
 inline double leg_tri_f95_ay(double x, double y)
 {
-  double L1, L3, 
+  double L1, L3,
   L1y, L3y, Leg, Legy,  ky;
   L1 = lambda1(x,y); L3 = lambda3(x,y);
   L1y = lambda1y(x,y); L3y = lambda3y(x,y);
@@ -5781,7 +5781,7 @@ inline double leg_tri_f95_bx(double x, double y)
 
 inline double leg_tri_f95_by(double x, double y)
 {
-  double L1, L3, 
+  double L1, L3,
   L1y, L3y, Leg, Legy, ky;
   L1 = lambda1(x,y); L3 = lambda3(x,y);
   L1y = lambda1y(x,y); L3y = lambda3y(x,y);
@@ -5822,7 +5822,7 @@ inline double leg_tri_f96_ax(double x, double y)
 
 inline double leg_tri_f96_ay(double x, double y)
 {
-  double L2, L1, 
+  double L2, L1,
   L2y, L1y, Leg, Legy,  ky;
   L2 = lambda2(x,y); L1 = lambda1(x,y);
   L2y = lambda2y(x,y); L1y = lambda1y(x,y);
@@ -5846,7 +5846,7 @@ inline double leg_tri_f96_bx(double x, double y)
 
 inline double leg_tri_f96_by(double x, double y)
 {
-  double L2, L1, 
+  double L2, L1,
   L2y, L1y, Leg, Legy, ky;
   L2 = lambda2(x,y); L1 = lambda1(x,y);
   L2y = lambda2y(x,y); L1y = lambda1y(x,y);
@@ -5883,7 +5883,7 @@ inline double leg_tri_f97_ax(double x, double y)
   Leg1x = Legendre0x(l3 - l2) * (l3x - l2x);
   Leg2x = Legendre6x(l2 - l1) * (l2x - l1x);
   return l1x * l2 * l3 * Leg1 * Leg2 + l1 * l2x * l3 * Leg1 * Leg2 + l1 * l2 * l3x * Leg1 * Leg2 + l1 * l2 * l3 * Leg1x * Leg2 + l1 * l2 * l3 * Leg1 * Leg2x;
- 
+
 }
 
 inline double leg_tri_f97_ay(double x, double y)
@@ -5900,7 +5900,7 @@ inline double leg_tri_f97_ay(double x, double y)
 inline double leg_tri_f97_bx(double x, double y)
 {
   return 0.0;
- 
+
 }
 
 inline double leg_tri_f97_by(double x, double y)
@@ -5926,7 +5926,7 @@ inline double leg_tri_f98_b(double x, double y)
 inline double leg_tri_f98_ax(double x, double y)
 {
   return 0.0;
- 
+
 }
 
 inline double leg_tri_f98_ay(double x, double y)
@@ -5943,7 +5943,7 @@ inline double leg_tri_f98_bx(double x, double y)
   Leg1x = Legendre0x(l3 - l2) * (l3x - l2x);
   Leg2x = Legendre6x(l2 - l1) * (l2x - l1x);
   return l1x * l2 * l3 * Leg1 * Leg2 + l1 * l2x * l3 * Leg1 * Leg2 + l1 * l2 * l3x * Leg1 * Leg2 + l1 * l2 * l3 * Leg1x * Leg2 + l1 * l2 * l3 * Leg1 * Leg2x;
-  
+
 }
 
 inline double leg_tri_f98_by(double x, double y)
@@ -5981,7 +5981,7 @@ inline double leg_tri_f99_ax(double x, double y)
   Leg1x = Legendre1x(l3 - l2) * (l3x - l2x);
   Leg2x = Legendre5x(l2 - l1) * (l2x - l1x);
   return l1x * l2 * l3 * Leg1 * Leg2 + l1 * l2x * l3 * Leg1 * Leg2 + l1 * l2 * l3x * Leg1 * Leg2 + l1 * l2 * l3 * Leg1x * Leg2 + l1 * l2 * l3 * Leg1 * Leg2x;
- 
+
 }
 
 inline double leg_tri_f99_ay(double x, double y)
@@ -5998,7 +5998,7 @@ inline double leg_tri_f99_ay(double x, double y)
 inline double leg_tri_f99_bx(double x, double y)
 {
   return 0.0;
- 
+
 }
 
 inline double leg_tri_f99_by(double x, double y)
@@ -6024,7 +6024,7 @@ inline double leg_tri_f100_b(double x, double y)
 inline double leg_tri_f100_ax(double x, double y)
 {
   return 0.0;
- 
+
 }
 
 inline double leg_tri_f100_ay(double x, double y)
@@ -6041,7 +6041,7 @@ inline double leg_tri_f100_bx(double x, double y)
   Leg1x = Legendre1x(l3 - l2) * (l3x - l2x);
   Leg2x = Legendre5x(l2 - l1) * (l2x - l1x);
   return l1x * l2 * l3 * Leg1 * Leg2 + l1 * l2x * l3 * Leg1 * Leg2 + l1 * l2 * l3x * Leg1 * Leg2 + l1 * l2 * l3 * Leg1x * Leg2 + l1 * l2 * l3 * Leg1 * Leg2x;
-  
+
 }
 
 inline double leg_tri_f100_by(double x, double y)
@@ -6079,7 +6079,7 @@ inline double leg_tri_f101_ax(double x, double y)
   Leg1x = Legendre2x(l3 - l2) * (l3x - l2x);
   Leg2x = Legendre4x(l2 - l1) * (l2x - l1x);
   return l1x * l2 * l3 * Leg1 * Leg2 + l1 * l2x * l3 * Leg1 * Leg2 + l1 * l2 * l3x * Leg1 * Leg2 + l1 * l2 * l3 * Leg1x * Leg2 + l1 * l2 * l3 * Leg1 * Leg2x;
- 
+
 }
 
 inline double leg_tri_f101_ay(double x, double y)
@@ -6096,7 +6096,7 @@ inline double leg_tri_f101_ay(double x, double y)
 inline double leg_tri_f101_bx(double x, double y)
 {
   return 0.0;
- 
+
 }
 
 inline double leg_tri_f101_by(double x, double y)
@@ -6122,7 +6122,7 @@ inline double leg_tri_f102_b(double x, double y)
 inline double leg_tri_f102_ax(double x, double y)
 {
   return 0.0;
- 
+
 }
 
 inline double leg_tri_f102_ay(double x, double y)
@@ -6139,7 +6139,7 @@ inline double leg_tri_f102_bx(double x, double y)
   Leg1x = Legendre2x(l3 - l2) * (l3x - l2x);
   Leg2x = Legendre4x(l2 - l1) * (l2x - l1x);
   return l1x * l2 * l3 * Leg1 * Leg2 + l1 * l2x * l3 * Leg1 * Leg2 + l1 * l2 * l3x * Leg1 * Leg2 + l1 * l2 * l3 * Leg1x * Leg2 + l1 * l2 * l3 * Leg1 * Leg2x;
-  
+
 }
 
 inline double leg_tri_f102_by(double x, double y)
@@ -6177,7 +6177,7 @@ inline double leg_tri_f103_ax(double x, double y)
   Leg1x = Legendre3x(l3 - l2) * (l3x - l2x);
   Leg2x = Legendre3x(l2 - l1) * (l2x - l1x);
   return l1x * l2 * l3 * Leg1 * Leg2 + l1 * l2x * l3 * Leg1 * Leg2 + l1 * l2 * l3x * Leg1 * Leg2 + l1 * l2 * l3 * Leg1x * Leg2 + l1 * l2 * l3 * Leg1 * Leg2x;
- 
+
 }
 
 inline double leg_tri_f103_ay(double x, double y)
@@ -6194,7 +6194,7 @@ inline double leg_tri_f103_ay(double x, double y)
 inline double leg_tri_f103_bx(double x, double y)
 {
   return 0.0;
- 
+
 }
 
 inline double leg_tri_f103_by(double x, double y)
@@ -6220,7 +6220,7 @@ inline double leg_tri_f104_b(double x, double y)
 inline double leg_tri_f104_ax(double x, double y)
 {
   return 0.0;
- 
+
 }
 
 inline double leg_tri_f104_ay(double x, double y)
@@ -6237,7 +6237,7 @@ inline double leg_tri_f104_bx(double x, double y)
   Leg1x = Legendre3x(l3 - l2) * (l3x - l2x);
   Leg2x = Legendre3x(l2 - l1) * (l2x - l1x);
   return l1x * l2 * l3 * Leg1 * Leg2 + l1 * l2x * l3 * Leg1 * Leg2 + l1 * l2 * l3x * Leg1 * Leg2 + l1 * l2 * l3 * Leg1x * Leg2 + l1 * l2 * l3 * Leg1 * Leg2x;
-  
+
 }
 
 inline double leg_tri_f104_by(double x, double y)
@@ -6275,7 +6275,7 @@ inline double leg_tri_f105_ax(double x, double y)
   Leg1x = Legendre4x(l3 - l2) * (l3x - l2x);
   Leg2x = Legendre2x(l2 - l1) * (l2x - l1x);
   return l1x * l2 * l3 * Leg1 * Leg2 + l1 * l2x * l3 * Leg1 * Leg2 + l1 * l2 * l3x * Leg1 * Leg2 + l1 * l2 * l3 * Leg1x * Leg2 + l1 * l2 * l3 * Leg1 * Leg2x;
- 
+
 }
 
 inline double leg_tri_f105_ay(double x, double y)
@@ -6292,7 +6292,7 @@ inline double leg_tri_f105_ay(double x, double y)
 inline double leg_tri_f105_bx(double x, double y)
 {
   return 0.0;
- 
+
 }
 
 inline double leg_tri_f105_by(double x, double y)
@@ -6318,7 +6318,7 @@ inline double leg_tri_f106_b(double x, double y)
 inline double leg_tri_f106_ax(double x, double y)
 {
   return 0.0;
- 
+
 }
 
 inline double leg_tri_f106_ay(double x, double y)
@@ -6335,7 +6335,7 @@ inline double leg_tri_f106_bx(double x, double y)
   Leg1x = Legendre4x(l3 - l2) * (l3x - l2x);
   Leg2x = Legendre2x(l2 - l1) * (l2x - l1x);
   return l1x * l2 * l3 * Leg1 * Leg2 + l1 * l2x * l3 * Leg1 * Leg2 + l1 * l2 * l3x * Leg1 * Leg2 + l1 * l2 * l3 * Leg1x * Leg2 + l1 * l2 * l3 * Leg1 * Leg2x;
-  
+
 }
 
 inline double leg_tri_f106_by(double x, double y)
@@ -6373,7 +6373,7 @@ inline double leg_tri_f107_ax(double x, double y)
   Leg1x = Legendre5x(l3 - l2) * (l3x - l2x);
   Leg2x = Legendre1x(l2 - l1) * (l2x - l1x);
   return l1x * l2 * l3 * Leg1 * Leg2 + l1 * l2x * l3 * Leg1 * Leg2 + l1 * l2 * l3x * Leg1 * Leg2 + l1 * l2 * l3 * Leg1x * Leg2 + l1 * l2 * l3 * Leg1 * Leg2x;
- 
+
 }
 
 inline double leg_tri_f107_ay(double x, double y)
@@ -6390,7 +6390,7 @@ inline double leg_tri_f107_ay(double x, double y)
 inline double leg_tri_f107_bx(double x, double y)
 {
   return 0.0;
- 
+
 }
 
 inline double leg_tri_f107_by(double x, double y)
@@ -6416,7 +6416,7 @@ inline double leg_tri_f108_b(double x, double y)
 inline double leg_tri_f108_ax(double x, double y)
 {
   return 0.0;
- 
+
 }
 
 inline double leg_tri_f108_ay(double x, double y)
@@ -6433,7 +6433,7 @@ inline double leg_tri_f108_bx(double x, double y)
   Leg1x = Legendre5x(l3 - l2) * (l3x - l2x);
   Leg2x = Legendre1x(l2 - l1) * (l2x - l1x);
   return l1x * l2 * l3 * Leg1 * Leg2 + l1 * l2x * l3 * Leg1 * Leg2 + l1 * l2 * l3x * Leg1 * Leg2 + l1 * l2 * l3 * Leg1x * Leg2 + l1 * l2 * l3 * Leg1 * Leg2x;
-  
+
 }
 
 inline double leg_tri_f108_by(double x, double y)
@@ -6471,7 +6471,7 @@ inline double leg_tri_f109_ax(double x, double y)
   Leg1x = Legendre6x(l3 - l2) * (l3x - l2x);
   Leg2x = Legendre0x(l2 - l1) * (l2x - l1x);
   return l1x * l2 * l3 * Leg1 * Leg2 + l1 * l2x * l3 * Leg1 * Leg2 + l1 * l2 * l3x * Leg1 * Leg2 + l1 * l2 * l3 * Leg1x * Leg2 + l1 * l2 * l3 * Leg1 * Leg2x;
- 
+
 }
 
 inline double leg_tri_f109_ay(double x, double y)
@@ -6488,7 +6488,7 @@ inline double leg_tri_f109_ay(double x, double y)
 inline double leg_tri_f109_bx(double x, double y)
 {
   return 0.0;
- 
+
 }
 
 inline double leg_tri_f109_by(double x, double y)
@@ -6514,7 +6514,7 @@ inline double leg_tri_f110_b(double x, double y)
 inline double leg_tri_f110_ax(double x, double y)
 {
   return 0.0;
- 
+
 }
 
 inline double leg_tri_f110_ay(double x, double y)
@@ -6531,7 +6531,7 @@ inline double leg_tri_f110_bx(double x, double y)
   Leg1x = Legendre6x(l3 - l2) * (l3x - l2x);
   Leg2x = Legendre0x(l2 - l1) * (l2x - l1x);
   return l1x * l2 * l3 * Leg1 * Leg2 + l1 * l2x * l3 * Leg1 * Leg2 + l1 * l2 * l3x * Leg1 * Leg2 + l1 * l2 * l3 * Leg1x * Leg2 + l1 * l2 * l3 * Leg1 * Leg2x;
-  
+
 }
 
 inline double leg_tri_f110_by(double x, double y)
@@ -6857,7 +6857,7 @@ inline double leg_tri_f114_ax(double x, double y)
 
 inline double leg_tri_f114_ay(double x, double y)
 {
-  double L3, L2, 
+  double L3, L2,
   L3y, L2y, Leg, Legy,  ky;
   L3 = lambda3(x,y); L2 = lambda2(x,y);
   L3y = lambda3y(x,y); L2y = lambda2y(x,y);
@@ -6881,7 +6881,7 @@ inline double leg_tri_f114_bx(double x, double y)
 
 inline double leg_tri_f114_by(double x, double y)
 {
-  double L3, L2, 
+  double L3, L2,
   L3y, L2y, Leg, Legy, ky;
   L3 = lambda3(x,y); L2 = lambda2(x,y);
   L3y = lambda3y(x,y); L2y = lambda2y(x,y);
@@ -6922,7 +6922,7 @@ inline double leg_tri_f115_ax(double x, double y)
 
 inline double leg_tri_f115_ay(double x, double y)
 {
-  double L1, L3, 
+  double L1, L3,
   L1y, L3y, Leg, Legy,  ky;
   L1 = lambda1(x,y); L3 = lambda3(x,y);
   L1y = lambda1y(x,y); L3y = lambda3y(x,y);
@@ -6946,7 +6946,7 @@ inline double leg_tri_f115_bx(double x, double y)
 
 inline double leg_tri_f115_by(double x, double y)
 {
-  double L1, L3, 
+  double L1, L3,
   L1y, L3y, Leg, Legy, ky;
   L1 = lambda1(x,y); L3 = lambda3(x,y);
   L1y = lambda1y(x,y); L3y = lambda3y(x,y);
@@ -6987,7 +6987,7 @@ inline double leg_tri_f116_ax(double x, double y)
 
 inline double leg_tri_f116_ay(double x, double y)
 {
-  double L2, L1, 
+  double L2, L1,
   L2y, L1y, Leg, Legy,  ky;
   L2 = lambda2(x,y); L1 = lambda1(x,y);
   L2y = lambda2y(x,y); L1y = lambda1y(x,y);
@@ -7011,7 +7011,7 @@ inline double leg_tri_f116_bx(double x, double y)
 
 inline double leg_tri_f116_by(double x, double y)
 {
-  double L2, L1, 
+  double L2, L1,
   L2y, L1y, Leg, Legy, ky;
   L2 = lambda2(x,y); L1 = lambda1(x,y);
   L2y = lambda2y(x,y); L1y = lambda1y(x,y);
@@ -7048,7 +7048,7 @@ inline double leg_tri_f117_ax(double x, double y)
   Leg1x = Legendre0x(l3 - l2) * (l3x - l2x);
   Leg2x = Legendre7x(l2 - l1) * (l2x - l1x);
   return l1x * l2 * l3 * Leg1 * Leg2 + l1 * l2x * l3 * Leg1 * Leg2 + l1 * l2 * l3x * Leg1 * Leg2 + l1 * l2 * l3 * Leg1x * Leg2 + l1 * l2 * l3 * Leg1 * Leg2x;
- 
+
 }
 
 inline double leg_tri_f117_ay(double x, double y)
@@ -7065,7 +7065,7 @@ inline double leg_tri_f117_ay(double x, double y)
 inline double leg_tri_f117_bx(double x, double y)
 {
   return 0.0;
- 
+
 }
 
 inline double leg_tri_f117_by(double x, double y)
@@ -7091,7 +7091,7 @@ inline double leg_tri_f118_b(double x, double y)
 inline double leg_tri_f118_ax(double x, double y)
 {
   return 0.0;
- 
+
 }
 
 inline double leg_tri_f118_ay(double x, double y)
@@ -7108,7 +7108,7 @@ inline double leg_tri_f118_bx(double x, double y)
   Leg1x = Legendre0x(l3 - l2) * (l3x - l2x);
   Leg2x = Legendre7x(l2 - l1) * (l2x - l1x);
   return l1x * l2 * l3 * Leg1 * Leg2 + l1 * l2x * l3 * Leg1 * Leg2 + l1 * l2 * l3x * Leg1 * Leg2 + l1 * l2 * l3 * Leg1x * Leg2 + l1 * l2 * l3 * Leg1 * Leg2x;
-  
+
 }
 
 inline double leg_tri_f118_by(double x, double y)
@@ -7146,7 +7146,7 @@ inline double leg_tri_f119_ax(double x, double y)
   Leg1x = Legendre1x(l3 - l2) * (l3x - l2x);
   Leg2x = Legendre6x(l2 - l1) * (l2x - l1x);
   return l1x * l2 * l3 * Leg1 * Leg2 + l1 * l2x * l3 * Leg1 * Leg2 + l1 * l2 * l3x * Leg1 * Leg2 + l1 * l2 * l3 * Leg1x * Leg2 + l1 * l2 * l3 * Leg1 * Leg2x;
- 
+
 }
 
 inline double leg_tri_f119_ay(double x, double y)
@@ -7163,7 +7163,7 @@ inline double leg_tri_f119_ay(double x, double y)
 inline double leg_tri_f119_bx(double x, double y)
 {
   return 0.0;
- 
+
 }
 
 inline double leg_tri_f119_by(double x, double y)
@@ -7189,7 +7189,7 @@ inline double leg_tri_f120_b(double x, double y)
 inline double leg_tri_f120_ax(double x, double y)
 {
   return 0.0;
- 
+
 }
 
 inline double leg_tri_f120_ay(double x, double y)
@@ -7206,7 +7206,7 @@ inline double leg_tri_f120_bx(double x, double y)
   Leg1x = Legendre1x(l3 - l2) * (l3x - l2x);
   Leg2x = Legendre6x(l2 - l1) * (l2x - l1x);
   return l1x * l2 * l3 * Leg1 * Leg2 + l1 * l2x * l3 * Leg1 * Leg2 + l1 * l2 * l3x * Leg1 * Leg2 + l1 * l2 * l3 * Leg1x * Leg2 + l1 * l2 * l3 * Leg1 * Leg2x;
-  
+
 }
 
 inline double leg_tri_f120_by(double x, double y)
@@ -7244,7 +7244,7 @@ inline double leg_tri_f121_ax(double x, double y)
   Leg1x = Legendre2x(l3 - l2) * (l3x - l2x);
   Leg2x = Legendre5x(l2 - l1) * (l2x - l1x);
   return l1x * l2 * l3 * Leg1 * Leg2 + l1 * l2x * l3 * Leg1 * Leg2 + l1 * l2 * l3x * Leg1 * Leg2 + l1 * l2 * l3 * Leg1x * Leg2 + l1 * l2 * l3 * Leg1 * Leg2x;
- 
+
 }
 
 inline double leg_tri_f121_ay(double x, double y)
@@ -7261,7 +7261,7 @@ inline double leg_tri_f121_ay(double x, double y)
 inline double leg_tri_f121_bx(double x, double y)
 {
   return 0.0;
- 
+
 }
 
 inline double leg_tri_f121_by(double x, double y)
@@ -7287,7 +7287,7 @@ inline double leg_tri_f122_b(double x, double y)
 inline double leg_tri_f122_ax(double x, double y)
 {
   return 0.0;
- 
+
 }
 
 inline double leg_tri_f122_ay(double x, double y)
@@ -7304,7 +7304,7 @@ inline double leg_tri_f122_bx(double x, double y)
   Leg1x = Legendre2x(l3 - l2) * (l3x - l2x);
   Leg2x = Legendre5x(l2 - l1) * (l2x - l1x);
   return l1x * l2 * l3 * Leg1 * Leg2 + l1 * l2x * l3 * Leg1 * Leg2 + l1 * l2 * l3x * Leg1 * Leg2 + l1 * l2 * l3 * Leg1x * Leg2 + l1 * l2 * l3 * Leg1 * Leg2x;
-  
+
 }
 
 inline double leg_tri_f122_by(double x, double y)
@@ -7342,7 +7342,7 @@ inline double leg_tri_f123_ax(double x, double y)
   Leg1x = Legendre3x(l3 - l2) * (l3x - l2x);
   Leg2x = Legendre4x(l2 - l1) * (l2x - l1x);
   return l1x * l2 * l3 * Leg1 * Leg2 + l1 * l2x * l3 * Leg1 * Leg2 + l1 * l2 * l3x * Leg1 * Leg2 + l1 * l2 * l3 * Leg1x * Leg2 + l1 * l2 * l3 * Leg1 * Leg2x;
- 
+
 }
 
 inline double leg_tri_f123_ay(double x, double y)
@@ -7359,7 +7359,7 @@ inline double leg_tri_f123_ay(double x, double y)
 inline double leg_tri_f123_bx(double x, double y)
 {
   return 0.0;
- 
+
 }
 
 inline double leg_tri_f123_by(double x, double y)
@@ -7385,7 +7385,7 @@ inline double leg_tri_f124_b(double x, double y)
 inline double leg_tri_f124_ax(double x, double y)
 {
   return 0.0;
- 
+
 }
 
 inline double leg_tri_f124_ay(double x, double y)
@@ -7402,7 +7402,7 @@ inline double leg_tri_f124_bx(double x, double y)
   Leg1x = Legendre3x(l3 - l2) * (l3x - l2x);
   Leg2x = Legendre4x(l2 - l1) * (l2x - l1x);
   return l1x * l2 * l3 * Leg1 * Leg2 + l1 * l2x * l3 * Leg1 * Leg2 + l1 * l2 * l3x * Leg1 * Leg2 + l1 * l2 * l3 * Leg1x * Leg2 + l1 * l2 * l3 * Leg1 * Leg2x;
-  
+
 }
 
 inline double leg_tri_f124_by(double x, double y)
@@ -7440,7 +7440,7 @@ inline double leg_tri_f125_ax(double x, double y)
   Leg1x = Legendre4x(l3 - l2) * (l3x - l2x);
   Leg2x = Legendre3x(l2 - l1) * (l2x - l1x);
   return l1x * l2 * l3 * Leg1 * Leg2 + l1 * l2x * l3 * Leg1 * Leg2 + l1 * l2 * l3x * Leg1 * Leg2 + l1 * l2 * l3 * Leg1x * Leg2 + l1 * l2 * l3 * Leg1 * Leg2x;
- 
+
 }
 
 inline double leg_tri_f125_ay(double x, double y)
@@ -7457,7 +7457,7 @@ inline double leg_tri_f125_ay(double x, double y)
 inline double leg_tri_f125_bx(double x, double y)
 {
   return 0.0;
- 
+
 }
 
 inline double leg_tri_f125_by(double x, double y)
@@ -7483,7 +7483,7 @@ inline double leg_tri_f126_b(double x, double y)
 inline double leg_tri_f126_ax(double x, double y)
 {
   return 0.0;
- 
+
 }
 
 inline double leg_tri_f126_ay(double x, double y)
@@ -7500,7 +7500,7 @@ inline double leg_tri_f126_bx(double x, double y)
   Leg1x = Legendre4x(l3 - l2) * (l3x - l2x);
   Leg2x = Legendre3x(l2 - l1) * (l2x - l1x);
   return l1x * l2 * l3 * Leg1 * Leg2 + l1 * l2x * l3 * Leg1 * Leg2 + l1 * l2 * l3x * Leg1 * Leg2 + l1 * l2 * l3 * Leg1x * Leg2 + l1 * l2 * l3 * Leg1 * Leg2x;
-  
+
 }
 
 inline double leg_tri_f126_by(double x, double y)
@@ -7538,7 +7538,7 @@ inline double leg_tri_f127_ax(double x, double y)
   Leg1x = Legendre5x(l3 - l2) * (l3x - l2x);
   Leg2x = Legendre2x(l2 - l1) * (l2x - l1x);
   return l1x * l2 * l3 * Leg1 * Leg2 + l1 * l2x * l3 * Leg1 * Leg2 + l1 * l2 * l3x * Leg1 * Leg2 + l1 * l2 * l3 * Leg1x * Leg2 + l1 * l2 * l3 * Leg1 * Leg2x;
- 
+
 }
 
 inline double leg_tri_f127_ay(double x, double y)
@@ -7555,7 +7555,7 @@ inline double leg_tri_f127_ay(double x, double y)
 inline double leg_tri_f127_bx(double x, double y)
 {
   return 0.0;
- 
+
 }
 
 inline double leg_tri_f127_by(double x, double y)
@@ -7581,7 +7581,7 @@ inline double leg_tri_f128_b(double x, double y)
 inline double leg_tri_f128_ax(double x, double y)
 {
   return 0.0;
- 
+
 }
 
 inline double leg_tri_f128_ay(double x, double y)
@@ -7598,7 +7598,7 @@ inline double leg_tri_f128_bx(double x, double y)
   Leg1x = Legendre5x(l3 - l2) * (l3x - l2x);
   Leg2x = Legendre2x(l2 - l1) * (l2x - l1x);
   return l1x * l2 * l3 * Leg1 * Leg2 + l1 * l2x * l3 * Leg1 * Leg2 + l1 * l2 * l3x * Leg1 * Leg2 + l1 * l2 * l3 * Leg1x * Leg2 + l1 * l2 * l3 * Leg1 * Leg2x;
-  
+
 }
 
 inline double leg_tri_f128_by(double x, double y)
@@ -7636,7 +7636,7 @@ inline double leg_tri_f129_ax(double x, double y)
   Leg1x = Legendre6x(l3 - l2) * (l3x - l2x);
   Leg2x = Legendre1x(l2 - l1) * (l2x - l1x);
   return l1x * l2 * l3 * Leg1 * Leg2 + l1 * l2x * l3 * Leg1 * Leg2 + l1 * l2 * l3x * Leg1 * Leg2 + l1 * l2 * l3 * Leg1x * Leg2 + l1 * l2 * l3 * Leg1 * Leg2x;
- 
+
 }
 
 inline double leg_tri_f129_ay(double x, double y)
@@ -7653,7 +7653,7 @@ inline double leg_tri_f129_ay(double x, double y)
 inline double leg_tri_f129_bx(double x, double y)
 {
   return 0.0;
- 
+
 }
 
 inline double leg_tri_f129_by(double x, double y)
@@ -7679,7 +7679,7 @@ inline double leg_tri_f130_b(double x, double y)
 inline double leg_tri_f130_ax(double x, double y)
 {
   return 0.0;
- 
+
 }
 
 inline double leg_tri_f130_ay(double x, double y)
@@ -7696,7 +7696,7 @@ inline double leg_tri_f130_bx(double x, double y)
   Leg1x = Legendre6x(l3 - l2) * (l3x - l2x);
   Leg2x = Legendre1x(l2 - l1) * (l2x - l1x);
   return l1x * l2 * l3 * Leg1 * Leg2 + l1 * l2x * l3 * Leg1 * Leg2 + l1 * l2 * l3x * Leg1 * Leg2 + l1 * l2 * l3 * Leg1x * Leg2 + l1 * l2 * l3 * Leg1 * Leg2x;
-  
+
 }
 
 inline double leg_tri_f130_by(double x, double y)
@@ -7734,7 +7734,7 @@ inline double leg_tri_f131_ax(double x, double y)
   Leg1x = Legendre7x(l3 - l2) * (l3x - l2x);
   Leg2x = Legendre0x(l2 - l1) * (l2x - l1x);
   return l1x * l2 * l3 * Leg1 * Leg2 + l1 * l2x * l3 * Leg1 * Leg2 + l1 * l2 * l3x * Leg1 * Leg2 + l1 * l2 * l3 * Leg1x * Leg2 + l1 * l2 * l3 * Leg1 * Leg2x;
- 
+
 }
 
 inline double leg_tri_f131_ay(double x, double y)
@@ -7751,7 +7751,7 @@ inline double leg_tri_f131_ay(double x, double y)
 inline double leg_tri_f131_bx(double x, double y)
 {
   return 0.0;
- 
+
 }
 
 inline double leg_tri_f131_by(double x, double y)
@@ -7777,7 +7777,7 @@ inline double leg_tri_f132_b(double x, double y)
 inline double leg_tri_f132_ax(double x, double y)
 {
   return 0.0;
- 
+
 }
 
 inline double leg_tri_f132_ay(double x, double y)
@@ -7794,7 +7794,7 @@ inline double leg_tri_f132_bx(double x, double y)
   Leg1x = Legendre7x(l3 - l2) * (l3x - l2x);
   Leg2x = Legendre0x(l2 - l1) * (l2x - l1x);
   return l1x * l2 * l3 * Leg1 * Leg2 + l1 * l2x * l3 * Leg1 * Leg2 + l1 * l2 * l3x * Leg1 * Leg2 + l1 * l2 * l3 * Leg1x * Leg2 + l1 * l2 * l3 * Leg1 * Leg2x;
-  
+
 }
 
 inline double leg_tri_f132_by(double x, double y)
@@ -7811,7 +7811,7 @@ inline double leg_tri_f132_by(double x, double y)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static Shapeset::shape_fn_t leg_tri_fn_a[] = 
+static Shapeset::shape_fn_t leg_tri_fn_a[] =
 {
   leg_tri_f1_a0,  leg_tri_f1_a1,  leg_tri_f2_a0,  leg_tri_f2_a1,  leg_tri_f3_a0,  leg_tri_f3_a1,
   leg_tri_f4_a,  leg_tri_f5_a,   leg_tri_f6_a,   leg_tri_f7_a0,  leg_tri_f7_a1,  leg_tri_f8_a0,
@@ -7832,7 +7832,7 @@ static Shapeset::shape_fn_t leg_tri_fn_a[] =
   leg_tri_f82_a,  leg_tri_f83_a,  leg_tri_f84_a,  leg_tri_f85_a,  leg_tri_f86_a,  leg_tri_f87_a,
   leg_tri_f88_a,  leg_tri_f89_a,  leg_tri_f90_a,  leg_tri_f91_a,  leg_tri_f92_a,  leg_tri_f93_a,
   leg_tri_f94_a,  leg_tri_f95_a,  leg_tri_f96_a,  leg_tri_f97_a,  leg_tri_f98_a,  leg_tri_f99_a,
-  leg_tri_f100_a,  leg_tri_f101_a,  leg_tri_f102_a,  leg_tri_f103_a,  leg_tri_f104_a,  leg_tri_f105_a, 
+  leg_tri_f100_a,  leg_tri_f101_a,  leg_tri_f102_a,  leg_tri_f103_a,  leg_tri_f104_a,  leg_tri_f105_a,
   leg_tri_f106_a,  leg_tri_f107_a,  leg_tri_f108_a,  leg_tri_f109_a,  leg_tri_f110_a,  leg_tri_f111_a0,
   leg_tri_f111_a1, leg_tri_f112_a0, leg_tri_f112_a1, leg_tri_f113_a0, leg_tri_f113_a1, leg_tri_f114_a,
   leg_tri_f115_a,  leg_tri_f116_a,  leg_tri_f117_a,  leg_tri_f118_a,  leg_tri_f119_a,  leg_tri_f120_a,
@@ -7840,7 +7840,7 @@ static Shapeset::shape_fn_t leg_tri_fn_a[] =
   leg_tri_f127_a,  leg_tri_f128_a,  leg_tri_f129_a,  leg_tri_f130_a,  leg_tri_f131_a,  leg_tri_f132_a
 };
 
-static Shapeset::shape_fn_t leg_tri_fn_b[] = 
+static Shapeset::shape_fn_t leg_tri_fn_b[] =
 {
   leg_tri_f1_b0,  leg_tri_f1_b1,  leg_tri_f2_b0,  leg_tri_f2_b1,  leg_tri_f3_b0,
   leg_tri_f3_b1,  leg_tri_f4_b,  leg_tri_f5_b,   leg_tri_f6_b,   leg_tri_f7_b0,
@@ -7874,7 +7874,7 @@ static Shapeset::shape_fn_t leg_tri_fn_b[] =
   leg_tri_f128_b,  leg_tri_f129_b,  leg_tri_f130_b,  leg_tri_f131_b,  leg_tri_f132_b
 };
 
-static Shapeset::shape_fn_t leg_tri_fn_ax[] = 
+static Shapeset::shape_fn_t leg_tri_fn_ax[] =
 {
   leg_tri_f1_ax0,  leg_tri_f1_ax1,  leg_tri_f2_ax0,  leg_tri_f2_ax1,  leg_tri_f3_ax0,  leg_tri_f3_ax1,
   leg_tri_f4_ax,  leg_tri_f5_ax,   leg_tri_f6_ax,   leg_tri_f7_ax0,  leg_tri_f7_ax1,  leg_tri_f8_ax0,
@@ -7895,7 +7895,7 @@ static Shapeset::shape_fn_t leg_tri_fn_ax[] =
   leg_tri_f82_ax,  leg_tri_f83_ax,  leg_tri_f84_ax,  leg_tri_f85_ax,  leg_tri_f86_ax,  leg_tri_f87_ax,
   leg_tri_f88_ax,  leg_tri_f89_ax,  leg_tri_f90_ax,  leg_tri_f91_ax,  leg_tri_f92_ax,  leg_tri_f93_ax,
   leg_tri_f94_ax,  leg_tri_f95_ax,  leg_tri_f96_ax,  leg_tri_f97_ax,  leg_tri_f98_ax,  leg_tri_f99_ax,
-  leg_tri_f100_ax,  leg_tri_f101_ax,  leg_tri_f102_ax,  leg_tri_f103_ax,  leg_tri_f104_ax,  leg_tri_f105_ax, 
+  leg_tri_f100_ax,  leg_tri_f101_ax,  leg_tri_f102_ax,  leg_tri_f103_ax,  leg_tri_f104_ax,  leg_tri_f105_ax,
   leg_tri_f106_ax,  leg_tri_f107_ax,  leg_tri_f108_ax,  leg_tri_f109_ax,  leg_tri_f110_ax,  leg_tri_f111_ax0,
   leg_tri_f111_ax1, leg_tri_f112_ax0, leg_tri_f112_ax1, leg_tri_f113_ax0, leg_tri_f113_ax1, leg_tri_f114_ax,
   leg_tri_f115_ax,  leg_tri_f116_ax,  leg_tri_f117_ax,  leg_tri_f118_ax,  leg_tri_f119_ax,  leg_tri_f120_ax,
@@ -7903,7 +7903,7 @@ static Shapeset::shape_fn_t leg_tri_fn_ax[] =
   leg_tri_f127_ax,  leg_tri_f128_ax,  leg_tri_f129_ax,  leg_tri_f130_ax,  leg_tri_f131_ax,  leg_tri_f132_ax
 };
 
-static Shapeset::shape_fn_t leg_tri_fn_ay[] = 
+static Shapeset::shape_fn_t leg_tri_fn_ay[] =
 {
   leg_tri_f1_ay0,  leg_tri_f1_ay1,  leg_tri_f2_ay0,  leg_tri_f2_ay1,  leg_tri_f3_ay0,  leg_tri_f3_ay1,
   leg_tri_f4_ay,  leg_tri_f5_ay,   leg_tri_f6_ay,   leg_tri_f7_ay0,  leg_tri_f7_ay1,  leg_tri_f8_ay0,
@@ -7924,7 +7924,7 @@ static Shapeset::shape_fn_t leg_tri_fn_ay[] =
   leg_tri_f82_ay,  leg_tri_f83_ay,  leg_tri_f84_ay,  leg_tri_f85_ay,  leg_tri_f86_ay,  leg_tri_f87_ay,
   leg_tri_f88_ay,  leg_tri_f89_ay,  leg_tri_f90_ay,  leg_tri_f91_ay,  leg_tri_f92_ay,  leg_tri_f93_ay,
   leg_tri_f94_ay,  leg_tri_f95_ay,  leg_tri_f96_ay,  leg_tri_f97_ay,  leg_tri_f98_ay,  leg_tri_f99_ay,
-  leg_tri_f100_ay,  leg_tri_f101_ay,  leg_tri_f102_ay,  leg_tri_f103_ay,  leg_tri_f104_ay,  leg_tri_f105_ay, 
+  leg_tri_f100_ay,  leg_tri_f101_ay,  leg_tri_f102_ay,  leg_tri_f103_ay,  leg_tri_f104_ay,  leg_tri_f105_ay,
   leg_tri_f106_ay,  leg_tri_f107_ay,  leg_tri_f108_ay,  leg_tri_f109_ay,  leg_tri_f110_ay,  leg_tri_f111_ay0,
   leg_tri_f111_ay1, leg_tri_f112_ay0, leg_tri_f112_ay1, leg_tri_f113_ay0, leg_tri_f113_ay1, leg_tri_f114_ay,
   leg_tri_f115_ay,  leg_tri_f116_ay,  leg_tri_f117_ay,  leg_tri_f118_ay,  leg_tri_f119_ay,  leg_tri_f120_ay,
@@ -7933,7 +7933,7 @@ static Shapeset::shape_fn_t leg_tri_fn_ay[] =
 };
 
 
-static Shapeset::shape_fn_t leg_tri_fn_bx[] = 
+static Shapeset::shape_fn_t leg_tri_fn_bx[] =
 {
 leg_tri_f1_bx0,  leg_tri_f1_bx1,  leg_tri_f2_bx0,  leg_tri_f2_bx1,  leg_tri_f3_bx0,
   leg_tri_f3_bx1,  leg_tri_f4_bx,  leg_tri_f5_bx,   leg_tri_f6_bx,   leg_tri_f7_bx0,
@@ -7968,7 +7968,7 @@ leg_tri_f1_bx0,  leg_tri_f1_bx1,  leg_tri_f2_bx0,  leg_tri_f2_bx1,  leg_tri_f3_b
 };
 
 
-static Shapeset::shape_fn_t leg_tri_fn_by[] = 
+static Shapeset::shape_fn_t leg_tri_fn_by[] =
 {
 leg_tri_f1_by0,  leg_tri_f1_by1,  leg_tri_f2_by0,  leg_tri_f2_by1,  leg_tri_f3_by0,
   leg_tri_f3_by1,  leg_tri_f4_by,  leg_tri_f5_by,   leg_tri_f6_by,   leg_tri_f7_by0,
@@ -8013,13 +8013,13 @@ static int leg_tri_bubble_indices_all_orders[]=
   71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83,
   90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103, 104,
   108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 124 ,
-  131, 132, 133, 134, 135, 136, 137, 138, 139, 140, 141, 142, 143, 144, 145, 146, 147, 148, 149 
+  131, 132, 133, 134, 135, 136, 137, 138, 139, 140, 141, 142, 143, 144, 145, 146, 147, 148, 149
 };
 
 
-static int* leg_tri_bubble_indices[11] = 
+static int* leg_tri_bubble_indices[11] =
 {
-  NULL, NULL, 
+  NULL, NULL,
   leg_tri_bubble_indices_all_orders,
   leg_tri_bubble_indices_all_orders,
   leg_tri_bubble_indices_all_orders,
@@ -8038,17 +8038,17 @@ static int leg_tri_edge_indices_0[22] =  { 0, 1, 6, 6,  9, 10, 18, 18, 26, 27, 3
 static int leg_tri_edge_indices_1[22] =  { 2, 3, 7, 7, 11, 12, 19, 19, 28, 29, 40, 40, 53, 54, 69, 69, 86, 87, 106, 106 , 127, 128};
 static int leg_tri_edge_indices_2[22] =  { 4, 5, 8, 8, 13, 14, 20, 20, 30, 31, 41, 41, 55, 56, 70, 70, 88, 89, 107, 107 , 129, 130};
 
-static int* leg_tri_edge_indices[3] = 
+static int* leg_tri_edge_indices[3] =
 {
   leg_tri_edge_indices_0,
   leg_tri_edge_indices_1,
-  leg_tri_edge_indices_2  
+  leg_tri_edge_indices_2
 };
 
 static int leg_tri_vertex_indices[3] = { -1, -1, -1 };
 
 
-static int leg_tri_index_to_order[150] = 
+static int leg_tri_index_to_order[150] =
 {
   /*6*/  1,1,1,1,1,1,
   /*3*/  1,1,1,
@@ -8064,20 +8064,20 @@ static int leg_tri_index_to_order[150] =
 };
 
 
-static Shapeset::shape_fn_t* leg_tri_shape_fn_table[2] = 
-{ 
+static Shapeset::shape_fn_t* leg_tri_shape_fn_table[2] =
+{
   leg_tri_fn_a,
   leg_tri_fn_b
 };
 
-static Shapeset::shape_fn_t* leg_tri_shape_fn_table_x[2] = 
-{ 
+static Shapeset::shape_fn_t* leg_tri_shape_fn_table_x[2] =
+{
   leg_tri_fn_ax,
   leg_tri_fn_bx
 };
 
-static Shapeset::shape_fn_t* leg_tri_shape_fn_table_y[2] = 
-{ 
+static Shapeset::shape_fn_t* leg_tri_shape_fn_table_y[2] =
+{
   leg_tri_fn_ay,
   leg_tri_fn_by
 };
@@ -16399,99 +16399,99 @@ static double leg_quad_p11p10_b2_by(double x, double y)
   return l11(x) * Legendre10x(y);
 }
 
-static Shapeset::shape_fn_t leg_quad_fn_a[] = 
+static Shapeset::shape_fn_t leg_quad_fn_a[] =
 {
-  leg_quad_p0_e1_a, leg_quad_p0_e1_a, leg_quad_p0_e2_a, leg_quad_p0_e2_a, leg_quad_p0_e3_a_0, leg_quad_p0_e3_a_1, leg_quad_p0_e4_a_0, leg_quad_p0_e4_a_1, 
-  leg_quad_p1_e1_a, leg_quad_p1_e1_a, leg_quad_p1_e2_a, leg_quad_p1_e2_a, leg_quad_p1_e3_a, leg_quad_p1_e3_a, leg_quad_p1_e4_a, leg_quad_p1_e4_a, 
-  leg_quad_p2_e1_a, leg_quad_p2_e1_a, leg_quad_p2_e2_a, leg_quad_p2_e2_a, leg_quad_p2_e3_a_0, leg_quad_p2_e3_a_1, leg_quad_p2_e4_a_0, leg_quad_p2_e4_a_1, 
-  leg_quad_p3_e1_a, leg_quad_p3_e1_a, leg_quad_p3_e2_a, leg_quad_p3_e2_a, leg_quad_p3_e3_a, leg_quad_p3_e3_a, leg_quad_p3_e4_a, leg_quad_p3_e4_a, 
-  leg_quad_p4_e1_a, leg_quad_p4_e1_a, leg_quad_p4_e2_a, leg_quad_p4_e2_a, leg_quad_p4_e3_a_0, leg_quad_p4_e3_a_1, leg_quad_p4_e4_a_0, leg_quad_p4_e4_a_1, 
-  leg_quad_p5_e1_a, leg_quad_p5_e1_a, leg_quad_p5_e2_a, leg_quad_p5_e2_a, leg_quad_p5_e3_a, leg_quad_p5_e3_a, leg_quad_p5_e4_a, leg_quad_p5_e4_a, 
-  leg_quad_p6_e1_a, leg_quad_p6_e1_a, leg_quad_p6_e2_a, leg_quad_p6_e2_a, leg_quad_p6_e3_a_0, leg_quad_p6_e3_a_1, leg_quad_p6_e4_a_0, leg_quad_p6_e4_a_1, 
-  leg_quad_p7_e1_a, leg_quad_p7_e1_a, leg_quad_p7_e2_a, leg_quad_p7_e2_a, leg_quad_p7_e3_a, leg_quad_p7_e3_a, leg_quad_p7_e4_a, leg_quad_p7_e4_a, 
-  leg_quad_p8_e1_a, leg_quad_p8_e1_a, leg_quad_p8_e2_a, leg_quad_p8_e2_a, leg_quad_p8_e3_a_0, leg_quad_p8_e3_a_1, leg_quad_p8_e4_a_0, leg_quad_p8_e4_a_1, 
-  leg_quad_p9_e1_a, leg_quad_p9_e1_a, leg_quad_p9_e2_a, leg_quad_p9_e2_a, leg_quad_p9_e3_a, leg_quad_p9_e3_a, leg_quad_p9_e4_a, leg_quad_p9_e4_a, 
-  leg_quad_p10_e1_a, leg_quad_p10_e1_a, leg_quad_p10_e2_a, leg_quad_p10_e2_a, leg_quad_p10_e3_a_0, leg_quad_p10_e3_a_1, leg_quad_p10_e4_a_0, leg_quad_p10_e4_a_1, 
+  leg_quad_p0_e1_a, leg_quad_p0_e1_a, leg_quad_p0_e2_a, leg_quad_p0_e2_a, leg_quad_p0_e3_a_0, leg_quad_p0_e3_a_1, leg_quad_p0_e4_a_0, leg_quad_p0_e4_a_1,
+  leg_quad_p1_e1_a, leg_quad_p1_e1_a, leg_quad_p1_e2_a, leg_quad_p1_e2_a, leg_quad_p1_e3_a, leg_quad_p1_e3_a, leg_quad_p1_e4_a, leg_quad_p1_e4_a,
+  leg_quad_p2_e1_a, leg_quad_p2_e1_a, leg_quad_p2_e2_a, leg_quad_p2_e2_a, leg_quad_p2_e3_a_0, leg_quad_p2_e3_a_1, leg_quad_p2_e4_a_0, leg_quad_p2_e4_a_1,
+  leg_quad_p3_e1_a, leg_quad_p3_e1_a, leg_quad_p3_e2_a, leg_quad_p3_e2_a, leg_quad_p3_e3_a, leg_quad_p3_e3_a, leg_quad_p3_e4_a, leg_quad_p3_e4_a,
+  leg_quad_p4_e1_a, leg_quad_p4_e1_a, leg_quad_p4_e2_a, leg_quad_p4_e2_a, leg_quad_p4_e3_a_0, leg_quad_p4_e3_a_1, leg_quad_p4_e4_a_0, leg_quad_p4_e4_a_1,
+  leg_quad_p5_e1_a, leg_quad_p5_e1_a, leg_quad_p5_e2_a, leg_quad_p5_e2_a, leg_quad_p5_e3_a, leg_quad_p5_e3_a, leg_quad_p5_e4_a, leg_quad_p5_e4_a,
+  leg_quad_p6_e1_a, leg_quad_p6_e1_a, leg_quad_p6_e2_a, leg_quad_p6_e2_a, leg_quad_p6_e3_a_0, leg_quad_p6_e3_a_1, leg_quad_p6_e4_a_0, leg_quad_p6_e4_a_1,
+  leg_quad_p7_e1_a, leg_quad_p7_e1_a, leg_quad_p7_e2_a, leg_quad_p7_e2_a, leg_quad_p7_e3_a, leg_quad_p7_e3_a, leg_quad_p7_e4_a, leg_quad_p7_e4_a,
+  leg_quad_p8_e1_a, leg_quad_p8_e1_a, leg_quad_p8_e2_a, leg_quad_p8_e2_a, leg_quad_p8_e3_a_0, leg_quad_p8_e3_a_1, leg_quad_p8_e4_a_0, leg_quad_p8_e4_a_1,
+  leg_quad_p9_e1_a, leg_quad_p9_e1_a, leg_quad_p9_e2_a, leg_quad_p9_e2_a, leg_quad_p9_e3_a, leg_quad_p9_e3_a, leg_quad_p9_e4_a, leg_quad_p9_e4_a,
+  leg_quad_p10_e1_a, leg_quad_p10_e1_a, leg_quad_p10_e2_a, leg_quad_p10_e2_a, leg_quad_p10_e3_a_0, leg_quad_p10_e3_a_1, leg_quad_p10_e4_a_0, leg_quad_p10_e4_a_1,
 
   leg_quad_p0p2_b1_a,   leg_quad_p0p3_b1_a,   leg_quad_p0p4_b1_a,   leg_quad_p0p5_b1_a,   leg_quad_p0p6_b1_a,   leg_quad_p0p7_b1_a,   leg_quad_p0p8_b1_a,   leg_quad_p0p9_b1_a,   leg_quad_p0p10_b1_a,   leg_quad_p0p11_b1_a,   leg_quad_p1p2_b1_a,   leg_quad_p1p3_b1_a,   leg_quad_p1p4_b1_a,   leg_quad_p1p5_b1_a,   leg_quad_p1p6_b1_a,   leg_quad_p1p7_b1_a,   leg_quad_p1p8_b1_a,   leg_quad_p1p9_b1_a,   leg_quad_p1p10_b1_a,   leg_quad_p1p11_b1_a,   leg_quad_p2p2_b1_a,   leg_quad_p2p3_b1_a,   leg_quad_p2p4_b1_a,   leg_quad_p2p5_b1_a,   leg_quad_p2p6_b1_a,   leg_quad_p2p7_b1_a,   leg_quad_p2p8_b1_a,   leg_quad_p2p9_b1_a,   leg_quad_p2p10_b1_a,   leg_quad_p2p11_b1_a,   leg_quad_p3p2_b1_a,   leg_quad_p3p3_b1_a,   leg_quad_p3p4_b1_a,   leg_quad_p3p5_b1_a,   leg_quad_p3p6_b1_a,   leg_quad_p3p7_b1_a,   leg_quad_p3p8_b1_a,   leg_quad_p3p9_b1_a,   leg_quad_p3p10_b1_a,   leg_quad_p3p11_b1_a,   leg_quad_p4p2_b1_a,   leg_quad_p4p3_b1_a,   leg_quad_p4p4_b1_a,   leg_quad_p4p5_b1_a,   leg_quad_p4p6_b1_a,   leg_quad_p4p7_b1_a,   leg_quad_p4p8_b1_a,   leg_quad_p4p9_b1_a,   leg_quad_p4p10_b1_a,   leg_quad_p4p11_b1_a,   leg_quad_p5p2_b1_a,   leg_quad_p5p3_b1_a,   leg_quad_p5p4_b1_a,   leg_quad_p5p5_b1_a,   leg_quad_p5p6_b1_a,   leg_quad_p5p7_b1_a,   leg_quad_p5p8_b1_a,   leg_quad_p5p9_b1_a,   leg_quad_p5p10_b1_a,   leg_quad_p5p11_b1_a,   leg_quad_p6p2_b1_a,   leg_quad_p6p3_b1_a,   leg_quad_p6p4_b1_a,   leg_quad_p6p5_b1_a,   leg_quad_p6p6_b1_a,   leg_quad_p6p7_b1_a,   leg_quad_p6p8_b1_a,   leg_quad_p6p9_b1_a,   leg_quad_p6p10_b1_a,   leg_quad_p6p11_b1_a,   leg_quad_p7p2_b1_a,   leg_quad_p7p3_b1_a,   leg_quad_p7p4_b1_a,   leg_quad_p7p5_b1_a,   leg_quad_p7p6_b1_a,   leg_quad_p7p7_b1_a,   leg_quad_p7p8_b1_a,   leg_quad_p7p9_b1_a,   leg_quad_p7p10_b1_a,   leg_quad_p7p11_b1_a,   leg_quad_p8p2_b1_a,   leg_quad_p8p3_b1_a,   leg_quad_p8p4_b1_a,   leg_quad_p8p5_b1_a,   leg_quad_p8p6_b1_a,   leg_quad_p8p7_b1_a,   leg_quad_p8p8_b1_a,   leg_quad_p8p9_b1_a,   leg_quad_p8p10_b1_a,   leg_quad_p8p11_b1_a,   leg_quad_p9p2_b1_a,   leg_quad_p9p3_b1_a,   leg_quad_p9p4_b1_a,   leg_quad_p9p5_b1_a,   leg_quad_p9p6_b1_a,   leg_quad_p9p7_b1_a,   leg_quad_p9p8_b1_a,   leg_quad_p9p9_b1_a,   leg_quad_p9p10_b1_a,   leg_quad_p9p11_b1_a,   leg_quad_p10p2_b1_a,   leg_quad_p10p3_b1_a,   leg_quad_p10p4_b1_a,   leg_quad_p10p5_b1_a,   leg_quad_p10p6_b1_a,   leg_quad_p10p7_b1_a,   leg_quad_p10p8_b1_a,   leg_quad_p10p9_b1_a,   leg_quad_p10p10_b1_a,   leg_quad_p10p11_b1_a,   leg_quad_p2p0_b2_a,   leg_quad_p2p1_b2_a,   leg_quad_p2p2_b2_a,   leg_quad_p2p3_b2_a,   leg_quad_p2p4_b2_a,   leg_quad_p2p5_b2_a,   leg_quad_p2p6_b2_a,   leg_quad_p2p7_b2_a,   leg_quad_p2p8_b2_a,   leg_quad_p2p9_b2_a,   leg_quad_p2p10_b2_a,   leg_quad_p3p0_b2_a,   leg_quad_p3p1_b2_a,   leg_quad_p3p2_b2_a,   leg_quad_p3p3_b2_a,   leg_quad_p3p4_b2_a,   leg_quad_p3p5_b2_a,   leg_quad_p3p6_b2_a,   leg_quad_p3p7_b2_a,   leg_quad_p3p8_b2_a,   leg_quad_p3p9_b2_a,   leg_quad_p3p10_b2_a,   leg_quad_p4p0_b2_a,   leg_quad_p4p1_b2_a,   leg_quad_p4p2_b2_a,   leg_quad_p4p3_b2_a,   leg_quad_p4p4_b2_a,   leg_quad_p4p5_b2_a,   leg_quad_p4p6_b2_a,   leg_quad_p4p7_b2_a,   leg_quad_p4p8_b2_a,   leg_quad_p4p9_b2_a,   leg_quad_p4p10_b2_a,   leg_quad_p5p0_b2_a,   leg_quad_p5p1_b2_a,   leg_quad_p5p2_b2_a,   leg_quad_p5p3_b2_a,   leg_quad_p5p4_b2_a,   leg_quad_p5p5_b2_a,   leg_quad_p5p6_b2_a,   leg_quad_p5p7_b2_a,   leg_quad_p5p8_b2_a,   leg_quad_p5p9_b2_a,   leg_quad_p5p10_b2_a,   leg_quad_p6p0_b2_a,   leg_quad_p6p1_b2_a,   leg_quad_p6p2_b2_a,   leg_quad_p6p3_b2_a,   leg_quad_p6p4_b2_a,   leg_quad_p6p5_b2_a,   leg_quad_p6p6_b2_a,   leg_quad_p6p7_b2_a,   leg_quad_p6p8_b2_a,   leg_quad_p6p9_b2_a,   leg_quad_p6p10_b2_a,   leg_quad_p7p0_b2_a,   leg_quad_p7p1_b2_a,   leg_quad_p7p2_b2_a,   leg_quad_p7p3_b2_a,   leg_quad_p7p4_b2_a,   leg_quad_p7p5_b2_a,   leg_quad_p7p6_b2_a,   leg_quad_p7p7_b2_a,   leg_quad_p7p8_b2_a,   leg_quad_p7p9_b2_a,   leg_quad_p7p10_b2_a,   leg_quad_p8p0_b2_a,   leg_quad_p8p1_b2_a,   leg_quad_p8p2_b2_a,   leg_quad_p8p3_b2_a,   leg_quad_p8p4_b2_a,   leg_quad_p8p5_b2_a,   leg_quad_p8p6_b2_a,   leg_quad_p8p7_b2_a,   leg_quad_p8p8_b2_a,   leg_quad_p8p9_b2_a,   leg_quad_p8p10_b2_a,   leg_quad_p9p0_b2_a,   leg_quad_p9p1_b2_a,   leg_quad_p9p2_b2_a,   leg_quad_p9p3_b2_a,   leg_quad_p9p4_b2_a,   leg_quad_p9p5_b2_a,   leg_quad_p9p6_b2_a,   leg_quad_p9p7_b2_a,   leg_quad_p9p8_b2_a,   leg_quad_p9p9_b2_a,   leg_quad_p9p10_b2_a,   leg_quad_p10p0_b2_a,   leg_quad_p10p1_b2_a,   leg_quad_p10p2_b2_a,   leg_quad_p10p3_b2_a,   leg_quad_p10p4_b2_a,   leg_quad_p10p5_b2_a,   leg_quad_p10p6_b2_a,   leg_quad_p10p7_b2_a,   leg_quad_p10p8_b2_a,   leg_quad_p10p9_b2_a,   leg_quad_p10p10_b2_a,   leg_quad_p11p0_b2_a,   leg_quad_p11p1_b2_a,   leg_quad_p11p2_b2_a,   leg_quad_p11p3_b2_a,   leg_quad_p11p4_b2_a,   leg_quad_p11p5_b2_a,   leg_quad_p11p6_b2_a,   leg_quad_p11p7_b2_a,   leg_quad_p11p8_b2_a,   leg_quad_p11p9_b2_a,   leg_quad_p11p10_b2_a, };
 
-static Shapeset::shape_fn_t leg_quad_fn_b[] = 
+static Shapeset::shape_fn_t leg_quad_fn_b[] =
 {
-  leg_quad_p0_e1_b_0, leg_quad_p0_e1_b_1, leg_quad_p0_e2_b_0, leg_quad_p0_e2_b_1,  leg_quad_p0_e3_b, leg_quad_p0_e3_b, leg_quad_p0_e4_b, leg_quad_p0_e4_b, 
-  leg_quad_p1_e1_b, leg_quad_p1_e1_b, leg_quad_p1_e2_b, leg_quad_p1_e2_b, leg_quad_p1_e3_b, leg_quad_p1_e3_b, leg_quad_p1_e4_b, leg_quad_p1_e4_b, 
-  leg_quad_p2_e1_b_0, leg_quad_p2_e1_b_1, leg_quad_p2_e2_b_0, leg_quad_p2_e2_b_1, leg_quad_p2_e3_b, leg_quad_p2_e3_b, leg_quad_p2_e4_b, leg_quad_p2_e4_b, 
-  leg_quad_p3_e1_b, leg_quad_p3_e1_b, leg_quad_p3_e2_b, leg_quad_p3_e2_b, leg_quad_p3_e3_b, leg_quad_p3_e3_b, leg_quad_p3_e4_b, leg_quad_p3_e4_b, 
-  leg_quad_p4_e1_b_0, leg_quad_p4_e1_b_1, leg_quad_p4_e2_b_0, leg_quad_p4_e2_b_1, leg_quad_p4_e3_b, leg_quad_p4_e3_b, leg_quad_p4_e4_b, leg_quad_p4_e4_b, 
-  leg_quad_p5_e1_b, leg_quad_p5_e1_b, leg_quad_p5_e2_b, leg_quad_p5_e2_b, leg_quad_p5_e3_b, leg_quad_p5_e3_b, leg_quad_p5_e4_b, leg_quad_p5_e4_b, 
-  leg_quad_p6_e1_b_0, leg_quad_p6_e1_b_1, leg_quad_p6_e2_b_0, leg_quad_p6_e2_b_1, leg_quad_p6_e3_b, leg_quad_p6_e3_b, leg_quad_p6_e4_b, leg_quad_p6_e4_b, 
-  leg_quad_p7_e1_b, leg_quad_p7_e1_b, leg_quad_p7_e2_b, leg_quad_p7_e2_b, leg_quad_p7_e3_b, leg_quad_p7_e3_b, leg_quad_p7_e4_b, leg_quad_p7_e4_b, 
-  leg_quad_p8_e1_b_0, leg_quad_p8_e1_b_1, leg_quad_p8_e2_b_0, leg_quad_p8_e2_b_1, leg_quad_p8_e3_b, leg_quad_p8_e3_b, leg_quad_p8_e4_b, leg_quad_p8_e4_b, 
-  leg_quad_p9_e1_b, leg_quad_p9_e1_b, leg_quad_p9_e2_b, leg_quad_p9_e2_b, leg_quad_p9_e3_b, leg_quad_p9_e3_b, leg_quad_p9_e4_b, leg_quad_p9_e4_b, 
-  leg_quad_p10_e1_b_0, leg_quad_p10_e1_b_1, leg_quad_p10_e2_b_0, leg_quad_p10_e2_b_1, leg_quad_p10_e3_b, leg_quad_p10_e3_b, leg_quad_p10_e4_b, leg_quad_p10_e4_b, 
+  leg_quad_p0_e1_b_0, leg_quad_p0_e1_b_1, leg_quad_p0_e2_b_0, leg_quad_p0_e2_b_1,  leg_quad_p0_e3_b, leg_quad_p0_e3_b, leg_quad_p0_e4_b, leg_quad_p0_e4_b,
+  leg_quad_p1_e1_b, leg_quad_p1_e1_b, leg_quad_p1_e2_b, leg_quad_p1_e2_b, leg_quad_p1_e3_b, leg_quad_p1_e3_b, leg_quad_p1_e4_b, leg_quad_p1_e4_b,
+  leg_quad_p2_e1_b_0, leg_quad_p2_e1_b_1, leg_quad_p2_e2_b_0, leg_quad_p2_e2_b_1, leg_quad_p2_e3_b, leg_quad_p2_e3_b, leg_quad_p2_e4_b, leg_quad_p2_e4_b,
+  leg_quad_p3_e1_b, leg_quad_p3_e1_b, leg_quad_p3_e2_b, leg_quad_p3_e2_b, leg_quad_p3_e3_b, leg_quad_p3_e3_b, leg_quad_p3_e4_b, leg_quad_p3_e4_b,
+  leg_quad_p4_e1_b_0, leg_quad_p4_e1_b_1, leg_quad_p4_e2_b_0, leg_quad_p4_e2_b_1, leg_quad_p4_e3_b, leg_quad_p4_e3_b, leg_quad_p4_e4_b, leg_quad_p4_e4_b,
+  leg_quad_p5_e1_b, leg_quad_p5_e1_b, leg_quad_p5_e2_b, leg_quad_p5_e2_b, leg_quad_p5_e3_b, leg_quad_p5_e3_b, leg_quad_p5_e4_b, leg_quad_p5_e4_b,
+  leg_quad_p6_e1_b_0, leg_quad_p6_e1_b_1, leg_quad_p6_e2_b_0, leg_quad_p6_e2_b_1, leg_quad_p6_e3_b, leg_quad_p6_e3_b, leg_quad_p6_e4_b, leg_quad_p6_e4_b,
+  leg_quad_p7_e1_b, leg_quad_p7_e1_b, leg_quad_p7_e2_b, leg_quad_p7_e2_b, leg_quad_p7_e3_b, leg_quad_p7_e3_b, leg_quad_p7_e4_b, leg_quad_p7_e4_b,
+  leg_quad_p8_e1_b_0, leg_quad_p8_e1_b_1, leg_quad_p8_e2_b_0, leg_quad_p8_e2_b_1, leg_quad_p8_e3_b, leg_quad_p8_e3_b, leg_quad_p8_e4_b, leg_quad_p8_e4_b,
+  leg_quad_p9_e1_b, leg_quad_p9_e1_b, leg_quad_p9_e2_b, leg_quad_p9_e2_b, leg_quad_p9_e3_b, leg_quad_p9_e3_b, leg_quad_p9_e4_b, leg_quad_p9_e4_b,
+  leg_quad_p10_e1_b_0, leg_quad_p10_e1_b_1, leg_quad_p10_e2_b_0, leg_quad_p10_e2_b_1, leg_quad_p10_e3_b, leg_quad_p10_e3_b, leg_quad_p10_e4_b, leg_quad_p10_e4_b,
 
   leg_quad_p0p2_b1_b,   leg_quad_p0p3_b1_b,   leg_quad_p0p4_b1_b,   leg_quad_p0p5_b1_b,   leg_quad_p0p6_b1_b,   leg_quad_p0p7_b1_b,   leg_quad_p0p8_b1_b,   leg_quad_p0p9_b1_b,   leg_quad_p0p10_b1_b,   leg_quad_p0p11_b1_b,   leg_quad_p1p2_b1_b,   leg_quad_p1p3_b1_b,   leg_quad_p1p4_b1_b,   leg_quad_p1p5_b1_b,   leg_quad_p1p6_b1_b,   leg_quad_p1p7_b1_b,   leg_quad_p1p8_b1_b,   leg_quad_p1p9_b1_b,   leg_quad_p1p10_b1_b,   leg_quad_p1p11_b1_b,   leg_quad_p2p2_b1_b,   leg_quad_p2p3_b1_b,   leg_quad_p2p4_b1_b,   leg_quad_p2p5_b1_b,   leg_quad_p2p6_b1_b,   leg_quad_p2p7_b1_b,   leg_quad_p2p8_b1_b,   leg_quad_p2p9_b1_b,   leg_quad_p2p10_b1_b,   leg_quad_p2p11_b1_b,   leg_quad_p3p2_b1_b,   leg_quad_p3p3_b1_b,   leg_quad_p3p4_b1_b,   leg_quad_p3p5_b1_b,   leg_quad_p3p6_b1_b,   leg_quad_p3p7_b1_b,   leg_quad_p3p8_b1_b,   leg_quad_p3p9_b1_b,   leg_quad_p3p10_b1_b,   leg_quad_p3p11_b1_b,   leg_quad_p4p2_b1_b,   leg_quad_p4p3_b1_b,   leg_quad_p4p4_b1_b,   leg_quad_p4p5_b1_b,   leg_quad_p4p6_b1_b,   leg_quad_p4p7_b1_b,   leg_quad_p4p8_b1_b,   leg_quad_p4p9_b1_b,   leg_quad_p4p10_b1_b,   leg_quad_p4p11_b1_b,   leg_quad_p5p2_b1_b,   leg_quad_p5p3_b1_b,   leg_quad_p5p4_b1_b,   leg_quad_p5p5_b1_b,   leg_quad_p5p6_b1_b,   leg_quad_p5p7_b1_b,   leg_quad_p5p8_b1_b,   leg_quad_p5p9_b1_b,   leg_quad_p5p10_b1_b,   leg_quad_p5p11_b1_b,   leg_quad_p6p2_b1_b,   leg_quad_p6p3_b1_b,   leg_quad_p6p4_b1_b,   leg_quad_p6p5_b1_b,   leg_quad_p6p6_b1_b,   leg_quad_p6p7_b1_b,   leg_quad_p6p8_b1_b,   leg_quad_p6p9_b1_b,   leg_quad_p6p10_b1_b,   leg_quad_p6p11_b1_b,   leg_quad_p7p2_b1_b,   leg_quad_p7p3_b1_b,   leg_quad_p7p4_b1_b,   leg_quad_p7p5_b1_b,   leg_quad_p7p6_b1_b,   leg_quad_p7p7_b1_b,   leg_quad_p7p8_b1_b,   leg_quad_p7p9_b1_b,   leg_quad_p7p10_b1_b,   leg_quad_p7p11_b1_b,   leg_quad_p8p2_b1_b,   leg_quad_p8p3_b1_b,   leg_quad_p8p4_b1_b,   leg_quad_p8p5_b1_b,   leg_quad_p8p6_b1_b,   leg_quad_p8p7_b1_b,   leg_quad_p8p8_b1_b,   leg_quad_p8p9_b1_b,   leg_quad_p8p10_b1_b,   leg_quad_p8p11_b1_b,   leg_quad_p9p2_b1_b,   leg_quad_p9p3_b1_b,   leg_quad_p9p4_b1_b,   leg_quad_p9p5_b1_b,   leg_quad_p9p6_b1_b,   leg_quad_p9p7_b1_b,   leg_quad_p9p8_b1_b,   leg_quad_p9p9_b1_b,   leg_quad_p9p10_b1_b,   leg_quad_p9p11_b1_b,   leg_quad_p10p2_b1_b,   leg_quad_p10p3_b1_b,   leg_quad_p10p4_b1_b,   leg_quad_p10p5_b1_b,   leg_quad_p10p6_b1_b,   leg_quad_p10p7_b1_b,   leg_quad_p10p8_b1_b,   leg_quad_p10p9_b1_b,   leg_quad_p10p10_b1_b,   leg_quad_p10p11_b1_b,   leg_quad_p2p0_b2_b,   leg_quad_p2p1_b2_b,   leg_quad_p2p2_b2_b,   leg_quad_p2p3_b2_b,   leg_quad_p2p4_b2_b,   leg_quad_p2p5_b2_b,   leg_quad_p2p6_b2_b,   leg_quad_p2p7_b2_b,   leg_quad_p2p8_b2_b,   leg_quad_p2p9_b2_b,   leg_quad_p2p10_b2_b,   leg_quad_p3p0_b2_b,   leg_quad_p3p1_b2_b,   leg_quad_p3p2_b2_b,   leg_quad_p3p3_b2_b,   leg_quad_p3p4_b2_b,   leg_quad_p3p5_b2_b,   leg_quad_p3p6_b2_b,   leg_quad_p3p7_b2_b,   leg_quad_p3p8_b2_b,   leg_quad_p3p9_b2_b,   leg_quad_p3p10_b2_b,   leg_quad_p4p0_b2_b,   leg_quad_p4p1_b2_b,   leg_quad_p4p2_b2_b,   leg_quad_p4p3_b2_b,   leg_quad_p4p4_b2_b,   leg_quad_p4p5_b2_b,   leg_quad_p4p6_b2_b,   leg_quad_p4p7_b2_b,   leg_quad_p4p8_b2_b,   leg_quad_p4p9_b2_b,   leg_quad_p4p10_b2_b,   leg_quad_p5p0_b2_b,   leg_quad_p5p1_b2_b,   leg_quad_p5p2_b2_b,   leg_quad_p5p3_b2_b,   leg_quad_p5p4_b2_b,   leg_quad_p5p5_b2_b,   leg_quad_p5p6_b2_b,   leg_quad_p5p7_b2_b,   leg_quad_p5p8_b2_b,   leg_quad_p5p9_b2_b,   leg_quad_p5p10_b2_b,   leg_quad_p6p0_b2_b,   leg_quad_p6p1_b2_b,   leg_quad_p6p2_b2_b,   leg_quad_p6p3_b2_b,   leg_quad_p6p4_b2_b,   leg_quad_p6p5_b2_b,   leg_quad_p6p6_b2_b,   leg_quad_p6p7_b2_b,   leg_quad_p6p8_b2_b,   leg_quad_p6p9_b2_b,   leg_quad_p6p10_b2_b,   leg_quad_p7p0_b2_b,   leg_quad_p7p1_b2_b,   leg_quad_p7p2_b2_b,   leg_quad_p7p3_b2_b,   leg_quad_p7p4_b2_b,   leg_quad_p7p5_b2_b,   leg_quad_p7p6_b2_b,   leg_quad_p7p7_b2_b,   leg_quad_p7p8_b2_b,   leg_quad_p7p9_b2_b,   leg_quad_p7p10_b2_b,   leg_quad_p8p0_b2_b,   leg_quad_p8p1_b2_b,   leg_quad_p8p2_b2_b,   leg_quad_p8p3_b2_b,   leg_quad_p8p4_b2_b,   leg_quad_p8p5_b2_b,   leg_quad_p8p6_b2_b,   leg_quad_p8p7_b2_b,   leg_quad_p8p8_b2_b,   leg_quad_p8p9_b2_b,   leg_quad_p8p10_b2_b,   leg_quad_p9p0_b2_b,   leg_quad_p9p1_b2_b,   leg_quad_p9p2_b2_b,   leg_quad_p9p3_b2_b,   leg_quad_p9p4_b2_b,   leg_quad_p9p5_b2_b,   leg_quad_p9p6_b2_b,   leg_quad_p9p7_b2_b,   leg_quad_p9p8_b2_b,   leg_quad_p9p9_b2_b,   leg_quad_p9p10_b2_b,   leg_quad_p10p0_b2_b,   leg_quad_p10p1_b2_b,   leg_quad_p10p2_b2_b,   leg_quad_p10p3_b2_b,   leg_quad_p10p4_b2_b,   leg_quad_p10p5_b2_b,   leg_quad_p10p6_b2_b,   leg_quad_p10p7_b2_b,   leg_quad_p10p8_b2_b,   leg_quad_p10p9_b2_b,   leg_quad_p10p10_b2_b,   leg_quad_p11p0_b2_b,   leg_quad_p11p1_b2_b,   leg_quad_p11p2_b2_b,   leg_quad_p11p3_b2_b,   leg_quad_p11p4_b2_b,   leg_quad_p11p5_b2_b,   leg_quad_p11p6_b2_b,   leg_quad_p11p7_b2_b,   leg_quad_p11p8_b2_b,   leg_quad_p11p9_b2_b,   leg_quad_p11p10_b2_b, };
 
-static Shapeset::shape_fn_t leg_quad_fn_ax[] = 
+static Shapeset::shape_fn_t leg_quad_fn_ax[] =
 {
-  leg_quad_p0_e1_ax, leg_quad_p0_e1_ax, leg_quad_p0_e2_ax, leg_quad_p0_e2_ax, leg_quad_p0_e3_ax_0, leg_quad_p0_e3_ax_1, leg_quad_p0_e4_ax_0, leg_quad_p0_e4_ax_1, 
-  leg_quad_p1_e1_ax, leg_quad_p1_e1_ax, leg_quad_p1_e2_ax, leg_quad_p1_e2_ax, leg_quad_p1_e3_ax, leg_quad_p1_e3_ax, leg_quad_p1_e4_ax, leg_quad_p1_e4_ax, 
-  leg_quad_p2_e1_ax, leg_quad_p2_e1_ax, leg_quad_p2_e2_ax, leg_quad_p2_e2_ax, leg_quad_p2_e3_ax_0, leg_quad_p2_e3_ax_1, leg_quad_p2_e4_ax_0, leg_quad_p2_e4_ax_1, 
-  leg_quad_p3_e1_ax, leg_quad_p3_e1_ax, leg_quad_p3_e2_ax, leg_quad_p3_e2_ax, leg_quad_p3_e3_ax, leg_quad_p3_e3_ax, leg_quad_p3_e4_ax, leg_quad_p3_e4_ax, 
-  leg_quad_p4_e1_ax, leg_quad_p4_e1_ax, leg_quad_p4_e2_ax, leg_quad_p4_e2_ax, leg_quad_p4_e3_ax_0, leg_quad_p4_e3_ax_1, leg_quad_p4_e4_ax_0, leg_quad_p4_e4_ax_1, 
-  leg_quad_p5_e1_ax, leg_quad_p5_e1_ax, leg_quad_p5_e2_ax, leg_quad_p5_e2_ax, leg_quad_p5_e3_ax, leg_quad_p5_e3_ax, leg_quad_p5_e4_ax, leg_quad_p5_e4_ax, 
-  leg_quad_p6_e1_ax, leg_quad_p6_e1_ax, leg_quad_p6_e2_ax, leg_quad_p6_e2_ax, leg_quad_p6_e3_ax_0, leg_quad_p6_e3_ax_1, leg_quad_p6_e4_ax_0, leg_quad_p6_e4_ax_1, 
-  leg_quad_p7_e1_ax, leg_quad_p7_e1_ax, leg_quad_p7_e2_ax, leg_quad_p7_e2_ax, leg_quad_p7_e3_ax, leg_quad_p7_e3_ax, leg_quad_p7_e4_ax, leg_quad_p7_e4_ax, 
-  leg_quad_p8_e1_ax, leg_quad_p8_e1_ax, leg_quad_p8_e2_ax, leg_quad_p8_e2_ax, leg_quad_p8_e3_ax_0, leg_quad_p8_e3_ax_1, leg_quad_p8_e4_ax_0, leg_quad_p8_e4_ax_1, 
-  leg_quad_p9_e1_ax, leg_quad_p9_e1_ax, leg_quad_p9_e2_ax, leg_quad_p9_e2_ax, leg_quad_p9_e3_ax, leg_quad_p9_e3_ax, leg_quad_p9_e4_ax, leg_quad_p9_e4_ax, 
-  leg_quad_p10_e1_ax, leg_quad_p10_e1_ax, leg_quad_p10_e2_ax, leg_quad_p10_e2_ax, leg_quad_p10_e3_ax_0, leg_quad_p10_e3_ax_1, leg_quad_p10_e4_ax_0, leg_quad_p10_e4_ax_1, 
+  leg_quad_p0_e1_ax, leg_quad_p0_e1_ax, leg_quad_p0_e2_ax, leg_quad_p0_e2_ax, leg_quad_p0_e3_ax_0, leg_quad_p0_e3_ax_1, leg_quad_p0_e4_ax_0, leg_quad_p0_e4_ax_1,
+  leg_quad_p1_e1_ax, leg_quad_p1_e1_ax, leg_quad_p1_e2_ax, leg_quad_p1_e2_ax, leg_quad_p1_e3_ax, leg_quad_p1_e3_ax, leg_quad_p1_e4_ax, leg_quad_p1_e4_ax,
+  leg_quad_p2_e1_ax, leg_quad_p2_e1_ax, leg_quad_p2_e2_ax, leg_quad_p2_e2_ax, leg_quad_p2_e3_ax_0, leg_quad_p2_e3_ax_1, leg_quad_p2_e4_ax_0, leg_quad_p2_e4_ax_1,
+  leg_quad_p3_e1_ax, leg_quad_p3_e1_ax, leg_quad_p3_e2_ax, leg_quad_p3_e2_ax, leg_quad_p3_e3_ax, leg_quad_p3_e3_ax, leg_quad_p3_e4_ax, leg_quad_p3_e4_ax,
+  leg_quad_p4_e1_ax, leg_quad_p4_e1_ax, leg_quad_p4_e2_ax, leg_quad_p4_e2_ax, leg_quad_p4_e3_ax_0, leg_quad_p4_e3_ax_1, leg_quad_p4_e4_ax_0, leg_quad_p4_e4_ax_1,
+  leg_quad_p5_e1_ax, leg_quad_p5_e1_ax, leg_quad_p5_e2_ax, leg_quad_p5_e2_ax, leg_quad_p5_e3_ax, leg_quad_p5_e3_ax, leg_quad_p5_e4_ax, leg_quad_p5_e4_ax,
+  leg_quad_p6_e1_ax, leg_quad_p6_e1_ax, leg_quad_p6_e2_ax, leg_quad_p6_e2_ax, leg_quad_p6_e3_ax_0, leg_quad_p6_e3_ax_1, leg_quad_p6_e4_ax_0, leg_quad_p6_e4_ax_1,
+  leg_quad_p7_e1_ax, leg_quad_p7_e1_ax, leg_quad_p7_e2_ax, leg_quad_p7_e2_ax, leg_quad_p7_e3_ax, leg_quad_p7_e3_ax, leg_quad_p7_e4_ax, leg_quad_p7_e4_ax,
+  leg_quad_p8_e1_ax, leg_quad_p8_e1_ax, leg_quad_p8_e2_ax, leg_quad_p8_e2_ax, leg_quad_p8_e3_ax_0, leg_quad_p8_e3_ax_1, leg_quad_p8_e4_ax_0, leg_quad_p8_e4_ax_1,
+  leg_quad_p9_e1_ax, leg_quad_p9_e1_ax, leg_quad_p9_e2_ax, leg_quad_p9_e2_ax, leg_quad_p9_e3_ax, leg_quad_p9_e3_ax, leg_quad_p9_e4_ax, leg_quad_p9_e4_ax,
+  leg_quad_p10_e1_ax, leg_quad_p10_e1_ax, leg_quad_p10_e2_ax, leg_quad_p10_e2_ax, leg_quad_p10_e3_ax_0, leg_quad_p10_e3_ax_1, leg_quad_p10_e4_ax_0, leg_quad_p10_e4_ax_1,
 
   leg_quad_p0p2_b1_ax,   leg_quad_p0p3_b1_ax,   leg_quad_p0p4_b1_ax,   leg_quad_p0p5_b1_ax,   leg_quad_p0p6_b1_ax,   leg_quad_p0p7_b1_ax,   leg_quad_p0p8_b1_ax,   leg_quad_p0p9_b1_ax,   leg_quad_p0p10_b1_ax,   leg_quad_p0p11_b1_ax,   leg_quad_p1p2_b1_ax,   leg_quad_p1p3_b1_ax,   leg_quad_p1p4_b1_ax,   leg_quad_p1p5_b1_ax,   leg_quad_p1p6_b1_ax,   leg_quad_p1p7_b1_ax,   leg_quad_p1p8_b1_ax,   leg_quad_p1p9_b1_ax,   leg_quad_p1p10_b1_ax,   leg_quad_p1p11_b1_ax,   leg_quad_p2p2_b1_ax,   leg_quad_p2p3_b1_ax,   leg_quad_p2p4_b1_ax,   leg_quad_p2p5_b1_ax,   leg_quad_p2p6_b1_ax,   leg_quad_p2p7_b1_ax,   leg_quad_p2p8_b1_ax,   leg_quad_p2p9_b1_ax,   leg_quad_p2p10_b1_ax,   leg_quad_p2p11_b1_ax,   leg_quad_p3p2_b1_ax,   leg_quad_p3p3_b1_ax,   leg_quad_p3p4_b1_ax,   leg_quad_p3p5_b1_ax,   leg_quad_p3p6_b1_ax,   leg_quad_p3p7_b1_ax,   leg_quad_p3p8_b1_ax,   leg_quad_p3p9_b1_ax,   leg_quad_p3p10_b1_ax,   leg_quad_p3p11_b1_ax,   leg_quad_p4p2_b1_ax,   leg_quad_p4p3_b1_ax,   leg_quad_p4p4_b1_ax,   leg_quad_p4p5_b1_ax,   leg_quad_p4p6_b1_ax,   leg_quad_p4p7_b1_ax,   leg_quad_p4p8_b1_ax,   leg_quad_p4p9_b1_ax,   leg_quad_p4p10_b1_ax,   leg_quad_p4p11_b1_ax,   leg_quad_p5p2_b1_ax,   leg_quad_p5p3_b1_ax,   leg_quad_p5p4_b1_ax,   leg_quad_p5p5_b1_ax,   leg_quad_p5p6_b1_ax,   leg_quad_p5p7_b1_ax,   leg_quad_p5p8_b1_ax,   leg_quad_p5p9_b1_ax,   leg_quad_p5p10_b1_ax,   leg_quad_p5p11_b1_ax,   leg_quad_p6p2_b1_ax,   leg_quad_p6p3_b1_ax,   leg_quad_p6p4_b1_ax,   leg_quad_p6p5_b1_ax,   leg_quad_p6p6_b1_ax,   leg_quad_p6p7_b1_ax,   leg_quad_p6p8_b1_ax,   leg_quad_p6p9_b1_ax,   leg_quad_p6p10_b1_ax,   leg_quad_p6p11_b1_ax,   leg_quad_p7p2_b1_ax,   leg_quad_p7p3_b1_ax,   leg_quad_p7p4_b1_ax,   leg_quad_p7p5_b1_ax,   leg_quad_p7p6_b1_ax,   leg_quad_p7p7_b1_ax,   leg_quad_p7p8_b1_ax,   leg_quad_p7p9_b1_ax,   leg_quad_p7p10_b1_ax,   leg_quad_p7p11_b1_ax,   leg_quad_p8p2_b1_ax,   leg_quad_p8p3_b1_ax,   leg_quad_p8p4_b1_ax,   leg_quad_p8p5_b1_ax,   leg_quad_p8p6_b1_ax,   leg_quad_p8p7_b1_ax,   leg_quad_p8p8_b1_ax,   leg_quad_p8p9_b1_ax,   leg_quad_p8p10_b1_ax,   leg_quad_p8p11_b1_ax,   leg_quad_p9p2_b1_ax,   leg_quad_p9p3_b1_ax,   leg_quad_p9p4_b1_ax,   leg_quad_p9p5_b1_ax,   leg_quad_p9p6_b1_ax,   leg_quad_p9p7_b1_ax,   leg_quad_p9p8_b1_ax,   leg_quad_p9p9_b1_ax,   leg_quad_p9p10_b1_ax,   leg_quad_p9p11_b1_ax,   leg_quad_p10p2_b1_ax,   leg_quad_p10p3_b1_ax,   leg_quad_p10p4_b1_ax,   leg_quad_p10p5_b1_ax,   leg_quad_p10p6_b1_ax,   leg_quad_p10p7_b1_ax,   leg_quad_p10p8_b1_ax,   leg_quad_p10p9_b1_ax,   leg_quad_p10p10_b1_ax,   leg_quad_p10p11_b1_ax,   leg_quad_p2p0_b2_ax,   leg_quad_p2p1_b2_ax,   leg_quad_p2p2_b2_ax,   leg_quad_p2p3_b2_ax,   leg_quad_p2p4_b2_ax,   leg_quad_p2p5_b2_ax,   leg_quad_p2p6_b2_ax,   leg_quad_p2p7_b2_ax,   leg_quad_p2p8_b2_ax,   leg_quad_p2p9_b2_ax,   leg_quad_p2p10_b2_ax,   leg_quad_p3p0_b2_ax,   leg_quad_p3p1_b2_ax,   leg_quad_p3p2_b2_ax,   leg_quad_p3p3_b2_ax,   leg_quad_p3p4_b2_ax,   leg_quad_p3p5_b2_ax,   leg_quad_p3p6_b2_ax,   leg_quad_p3p7_b2_ax,   leg_quad_p3p8_b2_ax,   leg_quad_p3p9_b2_ax,   leg_quad_p3p10_b2_ax,   leg_quad_p4p0_b2_ax,   leg_quad_p4p1_b2_ax,   leg_quad_p4p2_b2_ax,   leg_quad_p4p3_b2_ax,   leg_quad_p4p4_b2_ax,   leg_quad_p4p5_b2_ax,   leg_quad_p4p6_b2_ax,   leg_quad_p4p7_b2_ax,   leg_quad_p4p8_b2_ax,   leg_quad_p4p9_b2_ax,   leg_quad_p4p10_b2_ax,   leg_quad_p5p0_b2_ax,   leg_quad_p5p1_b2_ax,   leg_quad_p5p2_b2_ax,   leg_quad_p5p3_b2_ax,   leg_quad_p5p4_b2_ax,   leg_quad_p5p5_b2_ax,   leg_quad_p5p6_b2_ax,   leg_quad_p5p7_b2_ax,   leg_quad_p5p8_b2_ax,   leg_quad_p5p9_b2_ax,   leg_quad_p5p10_b2_ax,   leg_quad_p6p0_b2_ax,   leg_quad_p6p1_b2_ax,   leg_quad_p6p2_b2_ax,   leg_quad_p6p3_b2_ax,   leg_quad_p6p4_b2_ax,   leg_quad_p6p5_b2_ax,   leg_quad_p6p6_b2_ax,   leg_quad_p6p7_b2_ax,   leg_quad_p6p8_b2_ax,   leg_quad_p6p9_b2_ax,   leg_quad_p6p10_b2_ax,   leg_quad_p7p0_b2_ax,   leg_quad_p7p1_b2_ax,   leg_quad_p7p2_b2_ax,   leg_quad_p7p3_b2_ax,   leg_quad_p7p4_b2_ax,   leg_quad_p7p5_b2_ax,   leg_quad_p7p6_b2_ax,   leg_quad_p7p7_b2_ax,   leg_quad_p7p8_b2_ax,   leg_quad_p7p9_b2_ax,   leg_quad_p7p10_b2_ax,   leg_quad_p8p0_b2_ax,   leg_quad_p8p1_b2_ax,   leg_quad_p8p2_b2_ax,   leg_quad_p8p3_b2_ax,   leg_quad_p8p4_b2_ax,   leg_quad_p8p5_b2_ax,   leg_quad_p8p6_b2_ax,   leg_quad_p8p7_b2_ax,   leg_quad_p8p8_b2_ax,   leg_quad_p8p9_b2_ax,   leg_quad_p8p10_b2_ax,   leg_quad_p9p0_b2_ax,   leg_quad_p9p1_b2_ax,   leg_quad_p9p2_b2_ax,   leg_quad_p9p3_b2_ax,   leg_quad_p9p4_b2_ax,   leg_quad_p9p5_b2_ax,   leg_quad_p9p6_b2_ax,   leg_quad_p9p7_b2_ax,   leg_quad_p9p8_b2_ax,   leg_quad_p9p9_b2_ax,   leg_quad_p9p10_b2_ax,   leg_quad_p10p0_b2_ax,   leg_quad_p10p1_b2_ax,   leg_quad_p10p2_b2_ax,   leg_quad_p10p3_b2_ax,   leg_quad_p10p4_b2_ax,   leg_quad_p10p5_b2_ax,   leg_quad_p10p6_b2_ax,   leg_quad_p10p7_b2_ax,   leg_quad_p10p8_b2_ax,   leg_quad_p10p9_b2_ax,   leg_quad_p10p10_b2_ax,   leg_quad_p11p0_b2_ax,   leg_quad_p11p1_b2_ax,   leg_quad_p11p2_b2_ax,   leg_quad_p11p3_b2_ax,   leg_quad_p11p4_b2_ax,   leg_quad_p11p5_b2_ax,   leg_quad_p11p6_b2_ax,   leg_quad_p11p7_b2_ax,   leg_quad_p11p8_b2_ax,   leg_quad_p11p9_b2_ax,   leg_quad_p11p10_b2_ax, };
 
-static Shapeset::shape_fn_t leg_quad_fn_bx[] = 
+static Shapeset::shape_fn_t leg_quad_fn_bx[] =
 {
-  leg_quad_p0_e1_bx_0, leg_quad_p0_e1_bx_1, leg_quad_p0_e2_bx_0, leg_quad_p0_e2_bx_1,  leg_quad_p0_e3_bx, leg_quad_p0_e3_bx, leg_quad_p0_e4_bx, leg_quad_p0_e4_bx, 
-  leg_quad_p1_e1_bx, leg_quad_p1_e1_bx, leg_quad_p1_e2_bx, leg_quad_p1_e2_bx, leg_quad_p1_e3_bx, leg_quad_p1_e3_bx, leg_quad_p1_e4_bx, leg_quad_p1_e4_bx, 
-  leg_quad_p2_e1_bx_0, leg_quad_p2_e1_bx_1, leg_quad_p2_e2_bx_0, leg_quad_p2_e2_bx_1, leg_quad_p2_e3_bx, leg_quad_p2_e3_bx, leg_quad_p2_e4_bx, leg_quad_p2_e4_bx, 
-  leg_quad_p3_e1_bx, leg_quad_p3_e1_bx, leg_quad_p3_e2_bx, leg_quad_p3_e2_bx, leg_quad_p3_e3_bx, leg_quad_p3_e3_bx, leg_quad_p3_e4_bx, leg_quad_p3_e4_bx, 
-  leg_quad_p4_e1_bx_0, leg_quad_p4_e1_bx_1, leg_quad_p4_e2_bx_0, leg_quad_p4_e2_bx_1, leg_quad_p4_e3_bx, leg_quad_p4_e3_bx, leg_quad_p4_e4_bx, leg_quad_p4_e4_bx, 
-  leg_quad_p5_e1_bx, leg_quad_p5_e1_bx, leg_quad_p5_e2_bx, leg_quad_p5_e2_bx, leg_quad_p5_e3_bx, leg_quad_p5_e3_bx, leg_quad_p5_e4_bx, leg_quad_p5_e4_bx, 
-  leg_quad_p6_e1_bx_0, leg_quad_p6_e1_bx_1, leg_quad_p6_e2_bx_0, leg_quad_p6_e2_bx_1, leg_quad_p6_e3_bx, leg_quad_p6_e3_bx, leg_quad_p6_e4_bx, leg_quad_p6_e4_bx, 
-  leg_quad_p7_e1_bx, leg_quad_p7_e1_bx, leg_quad_p7_e2_bx, leg_quad_p7_e2_bx, leg_quad_p7_e3_bx, leg_quad_p7_e3_bx, leg_quad_p7_e4_bx, leg_quad_p7_e4_bx, 
-  leg_quad_p8_e1_bx_0, leg_quad_p8_e1_bx_1, leg_quad_p8_e2_bx_0, leg_quad_p8_e2_bx_1, leg_quad_p8_e3_bx, leg_quad_p8_e3_bx, leg_quad_p8_e4_bx, leg_quad_p8_e4_bx, 
-  leg_quad_p9_e1_bx, leg_quad_p9_e1_bx, leg_quad_p9_e2_bx, leg_quad_p9_e2_bx, leg_quad_p9_e3_bx, leg_quad_p9_e3_bx, leg_quad_p9_e4_bx, leg_quad_p9_e4_bx, 
-  leg_quad_p10_e1_bx_0, leg_quad_p10_e1_bx_1, leg_quad_p10_e2_bx_0, leg_quad_p10_e2_bx_1, leg_quad_p10_e3_bx, leg_quad_p10_e3_bx, leg_quad_p10_e4_bx, leg_quad_p10_e4_bx, 
+  leg_quad_p0_e1_bx_0, leg_quad_p0_e1_bx_1, leg_quad_p0_e2_bx_0, leg_quad_p0_e2_bx_1,  leg_quad_p0_e3_bx, leg_quad_p0_e3_bx, leg_quad_p0_e4_bx, leg_quad_p0_e4_bx,
+  leg_quad_p1_e1_bx, leg_quad_p1_e1_bx, leg_quad_p1_e2_bx, leg_quad_p1_e2_bx, leg_quad_p1_e3_bx, leg_quad_p1_e3_bx, leg_quad_p1_e4_bx, leg_quad_p1_e4_bx,
+  leg_quad_p2_e1_bx_0, leg_quad_p2_e1_bx_1, leg_quad_p2_e2_bx_0, leg_quad_p2_e2_bx_1, leg_quad_p2_e3_bx, leg_quad_p2_e3_bx, leg_quad_p2_e4_bx, leg_quad_p2_e4_bx,
+  leg_quad_p3_e1_bx, leg_quad_p3_e1_bx, leg_quad_p3_e2_bx, leg_quad_p3_e2_bx, leg_quad_p3_e3_bx, leg_quad_p3_e3_bx, leg_quad_p3_e4_bx, leg_quad_p3_e4_bx,
+  leg_quad_p4_e1_bx_0, leg_quad_p4_e1_bx_1, leg_quad_p4_e2_bx_0, leg_quad_p4_e2_bx_1, leg_quad_p4_e3_bx, leg_quad_p4_e3_bx, leg_quad_p4_e4_bx, leg_quad_p4_e4_bx,
+  leg_quad_p5_e1_bx, leg_quad_p5_e1_bx, leg_quad_p5_e2_bx, leg_quad_p5_e2_bx, leg_quad_p5_e3_bx, leg_quad_p5_e3_bx, leg_quad_p5_e4_bx, leg_quad_p5_e4_bx,
+  leg_quad_p6_e1_bx_0, leg_quad_p6_e1_bx_1, leg_quad_p6_e2_bx_0, leg_quad_p6_e2_bx_1, leg_quad_p6_e3_bx, leg_quad_p6_e3_bx, leg_quad_p6_e4_bx, leg_quad_p6_e4_bx,
+  leg_quad_p7_e1_bx, leg_quad_p7_e1_bx, leg_quad_p7_e2_bx, leg_quad_p7_e2_bx, leg_quad_p7_e3_bx, leg_quad_p7_e3_bx, leg_quad_p7_e4_bx, leg_quad_p7_e4_bx,
+  leg_quad_p8_e1_bx_0, leg_quad_p8_e1_bx_1, leg_quad_p8_e2_bx_0, leg_quad_p8_e2_bx_1, leg_quad_p8_e3_bx, leg_quad_p8_e3_bx, leg_quad_p8_e4_bx, leg_quad_p8_e4_bx,
+  leg_quad_p9_e1_bx, leg_quad_p9_e1_bx, leg_quad_p9_e2_bx, leg_quad_p9_e2_bx, leg_quad_p9_e3_bx, leg_quad_p9_e3_bx, leg_quad_p9_e4_bx, leg_quad_p9_e4_bx,
+  leg_quad_p10_e1_bx_0, leg_quad_p10_e1_bx_1, leg_quad_p10_e2_bx_0, leg_quad_p10_e2_bx_1, leg_quad_p10_e3_bx, leg_quad_p10_e3_bx, leg_quad_p10_e4_bx, leg_quad_p10_e4_bx,
 
   leg_quad_p0p2_b1_bx,   leg_quad_p0p3_b1_bx,   leg_quad_p0p4_b1_bx,   leg_quad_p0p5_b1_bx,   leg_quad_p0p6_b1_bx,   leg_quad_p0p7_b1_bx,   leg_quad_p0p8_b1_bx,   leg_quad_p0p9_b1_bx,   leg_quad_p0p10_b1_bx,   leg_quad_p0p11_b1_bx,   leg_quad_p1p2_b1_bx,   leg_quad_p1p3_b1_bx,   leg_quad_p1p4_b1_bx,   leg_quad_p1p5_b1_bx,   leg_quad_p1p6_b1_bx,   leg_quad_p1p7_b1_bx,   leg_quad_p1p8_b1_bx,   leg_quad_p1p9_b1_bx,   leg_quad_p1p10_b1_bx,   leg_quad_p1p11_b1_bx,   leg_quad_p2p2_b1_bx,   leg_quad_p2p3_b1_bx,   leg_quad_p2p4_b1_bx,   leg_quad_p2p5_b1_bx,   leg_quad_p2p6_b1_bx,   leg_quad_p2p7_b1_bx,   leg_quad_p2p8_b1_bx,   leg_quad_p2p9_b1_bx,   leg_quad_p2p10_b1_bx,   leg_quad_p2p11_b1_bx,   leg_quad_p3p2_b1_bx,   leg_quad_p3p3_b1_bx,   leg_quad_p3p4_b1_bx,   leg_quad_p3p5_b1_bx,   leg_quad_p3p6_b1_bx,   leg_quad_p3p7_b1_bx,   leg_quad_p3p8_b1_bx,   leg_quad_p3p9_b1_bx,   leg_quad_p3p10_b1_bx,   leg_quad_p3p11_b1_bx,   leg_quad_p4p2_b1_bx,   leg_quad_p4p3_b1_bx,   leg_quad_p4p4_b1_bx,   leg_quad_p4p5_b1_bx,   leg_quad_p4p6_b1_bx,   leg_quad_p4p7_b1_bx,   leg_quad_p4p8_b1_bx,   leg_quad_p4p9_b1_bx,   leg_quad_p4p10_b1_bx,   leg_quad_p4p11_b1_bx,   leg_quad_p5p2_b1_bx,   leg_quad_p5p3_b1_bx,   leg_quad_p5p4_b1_bx,   leg_quad_p5p5_b1_bx,   leg_quad_p5p6_b1_bx,   leg_quad_p5p7_b1_bx,   leg_quad_p5p8_b1_bx,   leg_quad_p5p9_b1_bx,   leg_quad_p5p10_b1_bx,   leg_quad_p5p11_b1_bx,   leg_quad_p6p2_b1_bx,   leg_quad_p6p3_b1_bx,   leg_quad_p6p4_b1_bx,   leg_quad_p6p5_b1_bx,   leg_quad_p6p6_b1_bx,   leg_quad_p6p7_b1_bx,   leg_quad_p6p8_b1_bx,   leg_quad_p6p9_b1_bx,   leg_quad_p6p10_b1_bx,   leg_quad_p6p11_b1_bx,   leg_quad_p7p2_b1_bx,   leg_quad_p7p3_b1_bx,   leg_quad_p7p4_b1_bx,   leg_quad_p7p5_b1_bx,   leg_quad_p7p6_b1_bx,   leg_quad_p7p7_b1_bx,   leg_quad_p7p8_b1_bx,   leg_quad_p7p9_b1_bx,   leg_quad_p7p10_b1_bx,   leg_quad_p7p11_b1_bx,   leg_quad_p8p2_b1_bx,   leg_quad_p8p3_b1_bx,   leg_quad_p8p4_b1_bx,   leg_quad_p8p5_b1_bx,   leg_quad_p8p6_b1_bx,   leg_quad_p8p7_b1_bx,   leg_quad_p8p8_b1_bx,   leg_quad_p8p9_b1_bx,   leg_quad_p8p10_b1_bx,   leg_quad_p8p11_b1_bx,   leg_quad_p9p2_b1_bx,   leg_quad_p9p3_b1_bx,   leg_quad_p9p4_b1_bx,   leg_quad_p9p5_b1_bx,   leg_quad_p9p6_b1_bx,   leg_quad_p9p7_b1_bx,   leg_quad_p9p8_b1_bx,   leg_quad_p9p9_b1_bx,   leg_quad_p9p10_b1_bx,   leg_quad_p9p11_b1_bx,   leg_quad_p10p2_b1_bx,   leg_quad_p10p3_b1_bx,   leg_quad_p10p4_b1_bx,   leg_quad_p10p5_b1_bx,   leg_quad_p10p6_b1_bx,   leg_quad_p10p7_b1_bx,   leg_quad_p10p8_b1_bx,   leg_quad_p10p9_b1_bx,   leg_quad_p10p10_b1_bx,   leg_quad_p10p11_b1_bx,   leg_quad_p2p0_b2_bx,   leg_quad_p2p1_b2_bx,   leg_quad_p2p2_b2_bx,   leg_quad_p2p3_b2_bx,   leg_quad_p2p4_b2_bx,   leg_quad_p2p5_b2_bx,   leg_quad_p2p6_b2_bx,   leg_quad_p2p7_b2_bx,   leg_quad_p2p8_b2_bx,   leg_quad_p2p9_b2_bx,   leg_quad_p2p10_b2_bx,   leg_quad_p3p0_b2_bx,   leg_quad_p3p1_b2_bx,   leg_quad_p3p2_b2_bx,   leg_quad_p3p3_b2_bx,   leg_quad_p3p4_b2_bx,   leg_quad_p3p5_b2_bx,   leg_quad_p3p6_b2_bx,   leg_quad_p3p7_b2_bx,   leg_quad_p3p8_b2_bx,   leg_quad_p3p9_b2_bx,   leg_quad_p3p10_b2_bx,   leg_quad_p4p0_b2_bx,   leg_quad_p4p1_b2_bx,   leg_quad_p4p2_b2_bx,   leg_quad_p4p3_b2_bx,   leg_quad_p4p4_b2_bx,   leg_quad_p4p5_b2_bx,   leg_quad_p4p6_b2_bx,   leg_quad_p4p7_b2_bx,   leg_quad_p4p8_b2_bx,   leg_quad_p4p9_b2_bx,   leg_quad_p4p10_b2_bx,   leg_quad_p5p0_b2_bx,   leg_quad_p5p1_b2_bx,   leg_quad_p5p2_b2_bx,   leg_quad_p5p3_b2_bx,   leg_quad_p5p4_b2_bx,   leg_quad_p5p5_b2_bx,   leg_quad_p5p6_b2_bx,   leg_quad_p5p7_b2_bx,   leg_quad_p5p8_b2_bx,   leg_quad_p5p9_b2_bx,   leg_quad_p5p10_b2_bx,   leg_quad_p6p0_b2_bx,   leg_quad_p6p1_b2_bx,   leg_quad_p6p2_b2_bx,   leg_quad_p6p3_b2_bx,   leg_quad_p6p4_b2_bx,   leg_quad_p6p5_b2_bx,   leg_quad_p6p6_b2_bx,   leg_quad_p6p7_b2_bx,   leg_quad_p6p8_b2_bx,   leg_quad_p6p9_b2_bx,   leg_quad_p6p10_b2_bx,   leg_quad_p7p0_b2_bx,   leg_quad_p7p1_b2_bx,   leg_quad_p7p2_b2_bx,   leg_quad_p7p3_b2_bx,   leg_quad_p7p4_b2_bx,   leg_quad_p7p5_b2_bx,   leg_quad_p7p6_b2_bx,   leg_quad_p7p7_b2_bx,   leg_quad_p7p8_b2_bx,   leg_quad_p7p9_b2_bx,   leg_quad_p7p10_b2_bx,   leg_quad_p8p0_b2_bx,   leg_quad_p8p1_b2_bx,   leg_quad_p8p2_b2_bx,   leg_quad_p8p3_b2_bx,   leg_quad_p8p4_b2_bx,   leg_quad_p8p5_b2_bx,   leg_quad_p8p6_b2_bx,   leg_quad_p8p7_b2_bx,   leg_quad_p8p8_b2_bx,   leg_quad_p8p9_b2_bx,   leg_quad_p8p10_b2_bx,   leg_quad_p9p0_b2_bx,   leg_quad_p9p1_b2_bx,   leg_quad_p9p2_b2_bx,   leg_quad_p9p3_b2_bx,   leg_quad_p9p4_b2_bx,   leg_quad_p9p5_b2_bx,   leg_quad_p9p6_b2_bx,   leg_quad_p9p7_b2_bx,   leg_quad_p9p8_b2_bx,   leg_quad_p9p9_b2_bx,   leg_quad_p9p10_b2_bx,   leg_quad_p10p0_b2_bx,   leg_quad_p10p1_b2_bx,   leg_quad_p10p2_b2_bx,   leg_quad_p10p3_b2_bx,   leg_quad_p10p4_b2_bx,   leg_quad_p10p5_b2_bx,   leg_quad_p10p6_b2_bx,   leg_quad_p10p7_b2_bx,   leg_quad_p10p8_b2_bx,   leg_quad_p10p9_b2_bx,   leg_quad_p10p10_b2_bx,   leg_quad_p11p0_b2_bx,   leg_quad_p11p1_b2_bx,   leg_quad_p11p2_b2_bx,   leg_quad_p11p3_b2_bx,   leg_quad_p11p4_b2_bx,   leg_quad_p11p5_b2_bx,   leg_quad_p11p6_b2_bx,   leg_quad_p11p7_b2_bx,   leg_quad_p11p8_b2_bx,   leg_quad_p11p9_b2_bx,   leg_quad_p11p10_b2_bx, };
 
-static Shapeset::shape_fn_t leg_quad_fn_ay[] = 
+static Shapeset::shape_fn_t leg_quad_fn_ay[] =
 {
-  leg_quad_p0_e1_ay, leg_quad_p0_e1_ay, leg_quad_p0_e2_ay, leg_quad_p0_e2_ay, leg_quad_p0_e3_ay_0, leg_quad_p0_e3_ay_1, leg_quad_p0_e4_ay_0, leg_quad_p0_e4_ay_1, 
-  leg_quad_p1_e1_ay, leg_quad_p1_e1_ay, leg_quad_p1_e2_ay, leg_quad_p1_e2_ay, leg_quad_p1_e3_ay, leg_quad_p1_e3_ay, leg_quad_p1_e4_ay, leg_quad_p1_e4_ay, 
-  leg_quad_p2_e1_ay, leg_quad_p2_e1_ay, leg_quad_p2_e2_ay, leg_quad_p2_e2_ay, leg_quad_p2_e3_ay_0, leg_quad_p2_e3_ay_1, leg_quad_p2_e4_ay_0, leg_quad_p2_e4_ay_1, 
-  leg_quad_p3_e1_ay, leg_quad_p3_e1_ay, leg_quad_p3_e2_ay, leg_quad_p3_e2_ay, leg_quad_p3_e3_ay, leg_quad_p3_e3_ay, leg_quad_p3_e4_ay, leg_quad_p3_e4_ay, 
-  leg_quad_p4_e1_ay, leg_quad_p4_e1_ay, leg_quad_p4_e2_ay, leg_quad_p4_e2_ay, leg_quad_p4_e3_ay_0, leg_quad_p4_e3_ay_1, leg_quad_p4_e4_ay_0, leg_quad_p4_e4_ay_1, 
-  leg_quad_p5_e1_ay, leg_quad_p5_e1_ay, leg_quad_p5_e2_ay, leg_quad_p5_e2_ay, leg_quad_p5_e3_ay, leg_quad_p5_e3_ay, leg_quad_p5_e4_ay, leg_quad_p5_e4_ay, 
-  leg_quad_p6_e1_ay, leg_quad_p6_e1_ay, leg_quad_p6_e2_ay, leg_quad_p6_e2_ay, leg_quad_p6_e3_ay_0, leg_quad_p6_e3_ay_1, leg_quad_p6_e4_ay_0, leg_quad_p6_e4_ay_1, 
-  leg_quad_p7_e1_ay, leg_quad_p7_e1_ay, leg_quad_p7_e2_ay, leg_quad_p7_e2_ay, leg_quad_p7_e3_ay, leg_quad_p7_e3_ay, leg_quad_p7_e4_ay, leg_quad_p7_e4_ay, 
-  leg_quad_p8_e1_ay, leg_quad_p8_e1_ay, leg_quad_p8_e2_ay, leg_quad_p8_e2_ay, leg_quad_p8_e3_ay_0, leg_quad_p8_e3_ay_1, leg_quad_p8_e4_ay_0, leg_quad_p8_e4_ay_1, 
-  leg_quad_p9_e1_ay, leg_quad_p9_e1_ay, leg_quad_p9_e2_ay, leg_quad_p9_e2_ay, leg_quad_p9_e3_ay, leg_quad_p9_e3_ay, leg_quad_p9_e4_ay, leg_quad_p9_e4_ay, 
-  leg_quad_p10_e1_ay, leg_quad_p10_e1_ay, leg_quad_p10_e2_ay, leg_quad_p10_e2_ay, leg_quad_p10_e3_ay_0, leg_quad_p10_e3_ay_1, leg_quad_p10_e4_ay_0, leg_quad_p10_e4_ay_1, 
+  leg_quad_p0_e1_ay, leg_quad_p0_e1_ay, leg_quad_p0_e2_ay, leg_quad_p0_e2_ay, leg_quad_p0_e3_ay_0, leg_quad_p0_e3_ay_1, leg_quad_p0_e4_ay_0, leg_quad_p0_e4_ay_1,
+  leg_quad_p1_e1_ay, leg_quad_p1_e1_ay, leg_quad_p1_e2_ay, leg_quad_p1_e2_ay, leg_quad_p1_e3_ay, leg_quad_p1_e3_ay, leg_quad_p1_e4_ay, leg_quad_p1_e4_ay,
+  leg_quad_p2_e1_ay, leg_quad_p2_e1_ay, leg_quad_p2_e2_ay, leg_quad_p2_e2_ay, leg_quad_p2_e3_ay_0, leg_quad_p2_e3_ay_1, leg_quad_p2_e4_ay_0, leg_quad_p2_e4_ay_1,
+  leg_quad_p3_e1_ay, leg_quad_p3_e1_ay, leg_quad_p3_e2_ay, leg_quad_p3_e2_ay, leg_quad_p3_e3_ay, leg_quad_p3_e3_ay, leg_quad_p3_e4_ay, leg_quad_p3_e4_ay,
+  leg_quad_p4_e1_ay, leg_quad_p4_e1_ay, leg_quad_p4_e2_ay, leg_quad_p4_e2_ay, leg_quad_p4_e3_ay_0, leg_quad_p4_e3_ay_1, leg_quad_p4_e4_ay_0, leg_quad_p4_e4_ay_1,
+  leg_quad_p5_e1_ay, leg_quad_p5_e1_ay, leg_quad_p5_e2_ay, leg_quad_p5_e2_ay, leg_quad_p5_e3_ay, leg_quad_p5_e3_ay, leg_quad_p5_e4_ay, leg_quad_p5_e4_ay,
+  leg_quad_p6_e1_ay, leg_quad_p6_e1_ay, leg_quad_p6_e2_ay, leg_quad_p6_e2_ay, leg_quad_p6_e3_ay_0, leg_quad_p6_e3_ay_1, leg_quad_p6_e4_ay_0, leg_quad_p6_e4_ay_1,
+  leg_quad_p7_e1_ay, leg_quad_p7_e1_ay, leg_quad_p7_e2_ay, leg_quad_p7_e2_ay, leg_quad_p7_e3_ay, leg_quad_p7_e3_ay, leg_quad_p7_e4_ay, leg_quad_p7_e4_ay,
+  leg_quad_p8_e1_ay, leg_quad_p8_e1_ay, leg_quad_p8_e2_ay, leg_quad_p8_e2_ay, leg_quad_p8_e3_ay_0, leg_quad_p8_e3_ay_1, leg_quad_p8_e4_ay_0, leg_quad_p8_e4_ay_1,
+  leg_quad_p9_e1_ay, leg_quad_p9_e1_ay, leg_quad_p9_e2_ay, leg_quad_p9_e2_ay, leg_quad_p9_e3_ay, leg_quad_p9_e3_ay, leg_quad_p9_e4_ay, leg_quad_p9_e4_ay,
+  leg_quad_p10_e1_ay, leg_quad_p10_e1_ay, leg_quad_p10_e2_ay, leg_quad_p10_e2_ay, leg_quad_p10_e3_ay_0, leg_quad_p10_e3_ay_1, leg_quad_p10_e4_ay_0, leg_quad_p10_e4_ay_1,
 
   leg_quad_p0p2_b1_ay,   leg_quad_p0p3_b1_ay,   leg_quad_p0p4_b1_ay,   leg_quad_p0p5_b1_ay,   leg_quad_p0p6_b1_ay,   leg_quad_p0p7_b1_ay,   leg_quad_p0p8_b1_ay,   leg_quad_p0p9_b1_ay,   leg_quad_p0p10_b1_ay,   leg_quad_p0p11_b1_ay,   leg_quad_p1p2_b1_ay,   leg_quad_p1p3_b1_ay,   leg_quad_p1p4_b1_ay,   leg_quad_p1p5_b1_ay,   leg_quad_p1p6_b1_ay,   leg_quad_p1p7_b1_ay,   leg_quad_p1p8_b1_ay,   leg_quad_p1p9_b1_ay,   leg_quad_p1p10_b1_ay,   leg_quad_p1p11_b1_ay,   leg_quad_p2p2_b1_ay,   leg_quad_p2p3_b1_ay,   leg_quad_p2p4_b1_ay,   leg_quad_p2p5_b1_ay,   leg_quad_p2p6_b1_ay,   leg_quad_p2p7_b1_ay,   leg_quad_p2p8_b1_ay,   leg_quad_p2p9_b1_ay,   leg_quad_p2p10_b1_ay,   leg_quad_p2p11_b1_ay,   leg_quad_p3p2_b1_ay,   leg_quad_p3p3_b1_ay,   leg_quad_p3p4_b1_ay,   leg_quad_p3p5_b1_ay,   leg_quad_p3p6_b1_ay,   leg_quad_p3p7_b1_ay,   leg_quad_p3p8_b1_ay,   leg_quad_p3p9_b1_ay,   leg_quad_p3p10_b1_ay,   leg_quad_p3p11_b1_ay,   leg_quad_p4p2_b1_ay,   leg_quad_p4p3_b1_ay,   leg_quad_p4p4_b1_ay,   leg_quad_p4p5_b1_ay,   leg_quad_p4p6_b1_ay,   leg_quad_p4p7_b1_ay,   leg_quad_p4p8_b1_ay,   leg_quad_p4p9_b1_ay,   leg_quad_p4p10_b1_ay,   leg_quad_p4p11_b1_ay,   leg_quad_p5p2_b1_ay,   leg_quad_p5p3_b1_ay,   leg_quad_p5p4_b1_ay,   leg_quad_p5p5_b1_ay,   leg_quad_p5p6_b1_ay,   leg_quad_p5p7_b1_ay,   leg_quad_p5p8_b1_ay,   leg_quad_p5p9_b1_ay,   leg_quad_p5p10_b1_ay,   leg_quad_p5p11_b1_ay,   leg_quad_p6p2_b1_ay,   leg_quad_p6p3_b1_ay,   leg_quad_p6p4_b1_ay,   leg_quad_p6p5_b1_ay,   leg_quad_p6p6_b1_ay,   leg_quad_p6p7_b1_ay,   leg_quad_p6p8_b1_ay,   leg_quad_p6p9_b1_ay,   leg_quad_p6p10_b1_ay,   leg_quad_p6p11_b1_ay,   leg_quad_p7p2_b1_ay,   leg_quad_p7p3_b1_ay,   leg_quad_p7p4_b1_ay,   leg_quad_p7p5_b1_ay,   leg_quad_p7p6_b1_ay,   leg_quad_p7p7_b1_ay,   leg_quad_p7p8_b1_ay,   leg_quad_p7p9_b1_ay,   leg_quad_p7p10_b1_ay,   leg_quad_p7p11_b1_ay,   leg_quad_p8p2_b1_ay,   leg_quad_p8p3_b1_ay,   leg_quad_p8p4_b1_ay,   leg_quad_p8p5_b1_ay,   leg_quad_p8p6_b1_ay,   leg_quad_p8p7_b1_ay,   leg_quad_p8p8_b1_ay,   leg_quad_p8p9_b1_ay,   leg_quad_p8p10_b1_ay,   leg_quad_p8p11_b1_ay,   leg_quad_p9p2_b1_ay,   leg_quad_p9p3_b1_ay,   leg_quad_p9p4_b1_ay,   leg_quad_p9p5_b1_ay,   leg_quad_p9p6_b1_ay,   leg_quad_p9p7_b1_ay,   leg_quad_p9p8_b1_ay,   leg_quad_p9p9_b1_ay,   leg_quad_p9p10_b1_ay,   leg_quad_p9p11_b1_ay,   leg_quad_p10p2_b1_ay,   leg_quad_p10p3_b1_ay,   leg_quad_p10p4_b1_ay,   leg_quad_p10p5_b1_ay,   leg_quad_p10p6_b1_ay,   leg_quad_p10p7_b1_ay,   leg_quad_p10p8_b1_ay,   leg_quad_p10p9_b1_ay,   leg_quad_p10p10_b1_ay,   leg_quad_p10p11_b1_ay,   leg_quad_p2p0_b2_ay,   leg_quad_p2p1_b2_ay,   leg_quad_p2p2_b2_ay,   leg_quad_p2p3_b2_ay,   leg_quad_p2p4_b2_ay,   leg_quad_p2p5_b2_ay,   leg_quad_p2p6_b2_ay,   leg_quad_p2p7_b2_ay,   leg_quad_p2p8_b2_ay,   leg_quad_p2p9_b2_ay,   leg_quad_p2p10_b2_ay,   leg_quad_p3p0_b2_ay,   leg_quad_p3p1_b2_ay,   leg_quad_p3p2_b2_ay,   leg_quad_p3p3_b2_ay,   leg_quad_p3p4_b2_ay,   leg_quad_p3p5_b2_ay,   leg_quad_p3p6_b2_ay,   leg_quad_p3p7_b2_ay,   leg_quad_p3p8_b2_ay,   leg_quad_p3p9_b2_ay,   leg_quad_p3p10_b2_ay,   leg_quad_p4p0_b2_ay,   leg_quad_p4p1_b2_ay,   leg_quad_p4p2_b2_ay,   leg_quad_p4p3_b2_ay,   leg_quad_p4p4_b2_ay,   leg_quad_p4p5_b2_ay,   leg_quad_p4p6_b2_ay,   leg_quad_p4p7_b2_ay,   leg_quad_p4p8_b2_ay,   leg_quad_p4p9_b2_ay,   leg_quad_p4p10_b2_ay,   leg_quad_p5p0_b2_ay,   leg_quad_p5p1_b2_ay,   leg_quad_p5p2_b2_ay,   leg_quad_p5p3_b2_ay,   leg_quad_p5p4_b2_ay,   leg_quad_p5p5_b2_ay,   leg_quad_p5p6_b2_ay,   leg_quad_p5p7_b2_ay,   leg_quad_p5p8_b2_ay,   leg_quad_p5p9_b2_ay,   leg_quad_p5p10_b2_ay,   leg_quad_p6p0_b2_ay,   leg_quad_p6p1_b2_ay,   leg_quad_p6p2_b2_ay,   leg_quad_p6p3_b2_ay,   leg_quad_p6p4_b2_ay,   leg_quad_p6p5_b2_ay,   leg_quad_p6p6_b2_ay,   leg_quad_p6p7_b2_ay,   leg_quad_p6p8_b2_ay,   leg_quad_p6p9_b2_ay,   leg_quad_p6p10_b2_ay,   leg_quad_p7p0_b2_ay,   leg_quad_p7p1_b2_ay,   leg_quad_p7p2_b2_ay,   leg_quad_p7p3_b2_ay,   leg_quad_p7p4_b2_ay,   leg_quad_p7p5_b2_ay,   leg_quad_p7p6_b2_ay,   leg_quad_p7p7_b2_ay,   leg_quad_p7p8_b2_ay,   leg_quad_p7p9_b2_ay,   leg_quad_p7p10_b2_ay,   leg_quad_p8p0_b2_ay,   leg_quad_p8p1_b2_ay,   leg_quad_p8p2_b2_ay,   leg_quad_p8p3_b2_ay,   leg_quad_p8p4_b2_ay,   leg_quad_p8p5_b2_ay,   leg_quad_p8p6_b2_ay,   leg_quad_p8p7_b2_ay,   leg_quad_p8p8_b2_ay,   leg_quad_p8p9_b2_ay,   leg_quad_p8p10_b2_ay,   leg_quad_p9p0_b2_ay,   leg_quad_p9p1_b2_ay,   leg_quad_p9p2_b2_ay,   leg_quad_p9p3_b2_ay,   leg_quad_p9p4_b2_ay,   leg_quad_p9p5_b2_ay,   leg_quad_p9p6_b2_ay,   leg_quad_p9p7_b2_ay,   leg_quad_p9p8_b2_ay,   leg_quad_p9p9_b2_ay,   leg_quad_p9p10_b2_ay,   leg_quad_p10p0_b2_ay,   leg_quad_p10p1_b2_ay,   leg_quad_p10p2_b2_ay,   leg_quad_p10p3_b2_ay,   leg_quad_p10p4_b2_ay,   leg_quad_p10p5_b2_ay,   leg_quad_p10p6_b2_ay,   leg_quad_p10p7_b2_ay,   leg_quad_p10p8_b2_ay,   leg_quad_p10p9_b2_ay,   leg_quad_p10p10_b2_ay,   leg_quad_p11p0_b2_ay,   leg_quad_p11p1_b2_ay,   leg_quad_p11p2_b2_ay,   leg_quad_p11p3_b2_ay,   leg_quad_p11p4_b2_ay,   leg_quad_p11p5_b2_ay,   leg_quad_p11p6_b2_ay,   leg_quad_p11p7_b2_ay,   leg_quad_p11p8_b2_ay,   leg_quad_p11p9_b2_ay,   leg_quad_p11p10_b2_ay, };
 
-static Shapeset::shape_fn_t leg_quad_fn_by[] = 
+static Shapeset::shape_fn_t leg_quad_fn_by[] =
 {
-  leg_quad_p0_e1_by_0, leg_quad_p0_e1_by_1, leg_quad_p0_e2_by_0, leg_quad_p0_e2_by_1,  leg_quad_p0_e3_by, leg_quad_p0_e3_by, leg_quad_p0_e4_by, leg_quad_p0_e4_by, 
-  leg_quad_p1_e1_by, leg_quad_p1_e1_by, leg_quad_p1_e2_by, leg_quad_p1_e2_by, leg_quad_p1_e3_by, leg_quad_p1_e3_by, leg_quad_p1_e4_by, leg_quad_p1_e4_b, 
-  leg_quad_p2_e1_by_0, leg_quad_p2_e1_by_1, leg_quad_p2_e2_by_0, leg_quad_p2_e2_by_1, leg_quad_p2_e3_by, leg_quad_p2_e3_by, leg_quad_p2_e4_by, leg_quad_p2_e4_by, 
-  leg_quad_p3_e1_by, leg_quad_p3_e1_by, leg_quad_p3_e2_by, leg_quad_p3_e2_by, leg_quad_p3_e3_by, leg_quad_p3_e3_by, leg_quad_p3_e4_by, leg_quad_p3_e4_b, 
-  leg_quad_p4_e1_by_0, leg_quad_p4_e1_by_1, leg_quad_p4_e2_by_0, leg_quad_p4_e2_by_1, leg_quad_p4_e3_by, leg_quad_p4_e3_by, leg_quad_p4_e4_by, leg_quad_p4_e4_by, 
-  leg_quad_p5_e1_by, leg_quad_p5_e1_by, leg_quad_p5_e2_by, leg_quad_p5_e2_by, leg_quad_p5_e3_by, leg_quad_p5_e3_by, leg_quad_p5_e4_by, leg_quad_p5_e4_b, 
-  leg_quad_p6_e1_by_0, leg_quad_p6_e1_by_1, leg_quad_p6_e2_by_0, leg_quad_p6_e2_by_1, leg_quad_p6_e3_by, leg_quad_p6_e3_by, leg_quad_p6_e4_by, leg_quad_p6_e4_by, 
-  leg_quad_p7_e1_by, leg_quad_p7_e1_by, leg_quad_p7_e2_by, leg_quad_p7_e2_by, leg_quad_p7_e3_by, leg_quad_p7_e3_by, leg_quad_p7_e4_by, leg_quad_p7_e4_b, 
-  leg_quad_p8_e1_by_0, leg_quad_p8_e1_by_1, leg_quad_p8_e2_by_0, leg_quad_p8_e2_by_1, leg_quad_p8_e3_by, leg_quad_p8_e3_by, leg_quad_p8_e4_by, leg_quad_p8_e4_by, 
-  leg_quad_p9_e1_by, leg_quad_p9_e1_by, leg_quad_p9_e2_by, leg_quad_p9_e2_by, leg_quad_p9_e3_by, leg_quad_p9_e3_by, leg_quad_p9_e4_by, leg_quad_p9_e4_b, 
-  leg_quad_p10_e1_by_0, leg_quad_p10_e1_by_1, leg_quad_p10_e2_by_0, leg_quad_p10_e2_by_1, leg_quad_p10_e3_by, leg_quad_p10_e3_by, leg_quad_p10_e4_by, leg_quad_p10_e4_by, 
+  leg_quad_p0_e1_by_0, leg_quad_p0_e1_by_1, leg_quad_p0_e2_by_0, leg_quad_p0_e2_by_1,  leg_quad_p0_e3_by, leg_quad_p0_e3_by, leg_quad_p0_e4_by, leg_quad_p0_e4_by,
+  leg_quad_p1_e1_by, leg_quad_p1_e1_by, leg_quad_p1_e2_by, leg_quad_p1_e2_by, leg_quad_p1_e3_by, leg_quad_p1_e3_by, leg_quad_p1_e4_by, leg_quad_p1_e4_b,
+  leg_quad_p2_e1_by_0, leg_quad_p2_e1_by_1, leg_quad_p2_e2_by_0, leg_quad_p2_e2_by_1, leg_quad_p2_e3_by, leg_quad_p2_e3_by, leg_quad_p2_e4_by, leg_quad_p2_e4_by,
+  leg_quad_p3_e1_by, leg_quad_p3_e1_by, leg_quad_p3_e2_by, leg_quad_p3_e2_by, leg_quad_p3_e3_by, leg_quad_p3_e3_by, leg_quad_p3_e4_by, leg_quad_p3_e4_b,
+  leg_quad_p4_e1_by_0, leg_quad_p4_e1_by_1, leg_quad_p4_e2_by_0, leg_quad_p4_e2_by_1, leg_quad_p4_e3_by, leg_quad_p4_e3_by, leg_quad_p4_e4_by, leg_quad_p4_e4_by,
+  leg_quad_p5_e1_by, leg_quad_p5_e1_by, leg_quad_p5_e2_by, leg_quad_p5_e2_by, leg_quad_p5_e3_by, leg_quad_p5_e3_by, leg_quad_p5_e4_by, leg_quad_p5_e4_b,
+  leg_quad_p6_e1_by_0, leg_quad_p6_e1_by_1, leg_quad_p6_e2_by_0, leg_quad_p6_e2_by_1, leg_quad_p6_e3_by, leg_quad_p6_e3_by, leg_quad_p6_e4_by, leg_quad_p6_e4_by,
+  leg_quad_p7_e1_by, leg_quad_p7_e1_by, leg_quad_p7_e2_by, leg_quad_p7_e2_by, leg_quad_p7_e3_by, leg_quad_p7_e3_by, leg_quad_p7_e4_by, leg_quad_p7_e4_b,
+  leg_quad_p8_e1_by_0, leg_quad_p8_e1_by_1, leg_quad_p8_e2_by_0, leg_quad_p8_e2_by_1, leg_quad_p8_e3_by, leg_quad_p8_e3_by, leg_quad_p8_e4_by, leg_quad_p8_e4_by,
+  leg_quad_p9_e1_by, leg_quad_p9_e1_by, leg_quad_p9_e2_by, leg_quad_p9_e2_by, leg_quad_p9_e3_by, leg_quad_p9_e3_by, leg_quad_p9_e4_by, leg_quad_p9_e4_b,
+  leg_quad_p10_e1_by_0, leg_quad_p10_e1_by_1, leg_quad_p10_e2_by_0, leg_quad_p10_e2_by_1, leg_quad_p10_e3_by, leg_quad_p10_e3_by, leg_quad_p10_e4_by, leg_quad_p10_e4_by,
 
   leg_quad_p0p2_b1_by,   leg_quad_p0p3_b1_by,   leg_quad_p0p4_b1_by,   leg_quad_p0p5_b1_by,   leg_quad_p0p6_b1_by,   leg_quad_p0p7_b1_by,   leg_quad_p0p8_b1_by,   leg_quad_p0p9_b1_by,   leg_quad_p0p10_b1_by,   leg_quad_p0p11_b1_by,   leg_quad_p1p2_b1_by,   leg_quad_p1p3_b1_by,   leg_quad_p1p4_b1_by,   leg_quad_p1p5_b1_by,   leg_quad_p1p6_b1_by,   leg_quad_p1p7_b1_by,   leg_quad_p1p8_b1_by,   leg_quad_p1p9_b1_by,   leg_quad_p1p10_b1_by,   leg_quad_p1p11_b1_by,   leg_quad_p2p2_b1_by,   leg_quad_p2p3_b1_by,   leg_quad_p2p4_b1_by,   leg_quad_p2p5_b1_by,   leg_quad_p2p6_b1_by,   leg_quad_p2p7_b1_by,   leg_quad_p2p8_b1_by,   leg_quad_p2p9_b1_by,   leg_quad_p2p10_b1_by,   leg_quad_p2p11_b1_by,   leg_quad_p3p2_b1_by,   leg_quad_p3p3_b1_by,   leg_quad_p3p4_b1_by,   leg_quad_p3p5_b1_by,   leg_quad_p3p6_b1_by,   leg_quad_p3p7_b1_by,   leg_quad_p3p8_b1_by,   leg_quad_p3p9_b1_by,   leg_quad_p3p10_b1_by,   leg_quad_p3p11_b1_by,   leg_quad_p4p2_b1_by,   leg_quad_p4p3_b1_by,   leg_quad_p4p4_b1_by,   leg_quad_p4p5_b1_by,   leg_quad_p4p6_b1_by,   leg_quad_p4p7_b1_by,   leg_quad_p4p8_b1_by,   leg_quad_p4p9_b1_by,   leg_quad_p4p10_b1_by,   leg_quad_p4p11_b1_by,   leg_quad_p5p2_b1_by,   leg_quad_p5p3_b1_by,   leg_quad_p5p4_b1_by,   leg_quad_p5p5_b1_by,   leg_quad_p5p6_b1_by,   leg_quad_p5p7_b1_by,   leg_quad_p5p8_b1_by,   leg_quad_p5p9_b1_by,   leg_quad_p5p10_b1_by,   leg_quad_p5p11_b1_by,   leg_quad_p6p2_b1_by,   leg_quad_p6p3_b1_by,   leg_quad_p6p4_b1_by,   leg_quad_p6p5_b1_by,   leg_quad_p6p6_b1_by,   leg_quad_p6p7_b1_by,   leg_quad_p6p8_b1_by,   leg_quad_p6p9_b1_by,   leg_quad_p6p10_b1_by,   leg_quad_p6p11_b1_by,   leg_quad_p7p2_b1_by,   leg_quad_p7p3_b1_by,   leg_quad_p7p4_b1_by,   leg_quad_p7p5_b1_by,   leg_quad_p7p6_b1_by,   leg_quad_p7p7_b1_by,   leg_quad_p7p8_b1_by,   leg_quad_p7p9_b1_by,   leg_quad_p7p10_b1_by,   leg_quad_p7p11_b1_by,   leg_quad_p8p2_b1_by,   leg_quad_p8p3_b1_by,   leg_quad_p8p4_b1_by,   leg_quad_p8p5_b1_by,   leg_quad_p8p6_b1_by,   leg_quad_p8p7_b1_by,   leg_quad_p8p8_b1_by,   leg_quad_p8p9_b1_by,   leg_quad_p8p10_b1_by,   leg_quad_p8p11_b1_by,   leg_quad_p9p2_b1_by,   leg_quad_p9p3_b1_by,   leg_quad_p9p4_b1_by,   leg_quad_p9p5_b1_by,   leg_quad_p9p6_b1_by,   leg_quad_p9p7_b1_by,   leg_quad_p9p8_b1_by,   leg_quad_p9p9_b1_by,   leg_quad_p9p10_b1_by,   leg_quad_p9p11_b1_by,   leg_quad_p10p2_b1_by,   leg_quad_p10p3_b1_by,   leg_quad_p10p4_b1_by,   leg_quad_p10p5_b1_by,   leg_quad_p10p6_b1_by,   leg_quad_p10p7_b1_by,   leg_quad_p10p8_b1_by,   leg_quad_p10p9_b1_by,   leg_quad_p10p10_b1_by,   leg_quad_p10p11_b1_by,   leg_quad_p2p0_b2_by,   leg_quad_p2p1_b2_by,   leg_quad_p2p2_b2_by,   leg_quad_p2p3_b2_by,   leg_quad_p2p4_b2_by,   leg_quad_p2p5_b2_by,   leg_quad_p2p6_b2_by,   leg_quad_p2p7_b2_by,   leg_quad_p2p8_b2_by,   leg_quad_p2p9_b2_by,   leg_quad_p2p10_b2_by,   leg_quad_p3p0_b2_by,   leg_quad_p3p1_b2_by,   leg_quad_p3p2_b2_by,   leg_quad_p3p3_b2_by,   leg_quad_p3p4_b2_by,   leg_quad_p3p5_b2_by,   leg_quad_p3p6_b2_by,   leg_quad_p3p7_b2_by,   leg_quad_p3p8_b2_by,   leg_quad_p3p9_b2_by,   leg_quad_p3p10_b2_by,   leg_quad_p4p0_b2_by,   leg_quad_p4p1_b2_by,   leg_quad_p4p2_b2_by,   leg_quad_p4p3_b2_by,   leg_quad_p4p4_b2_by,   leg_quad_p4p5_b2_by,   leg_quad_p4p6_b2_by,   leg_quad_p4p7_b2_by,   leg_quad_p4p8_b2_by,   leg_quad_p4p9_b2_by,   leg_quad_p4p10_b2_by,   leg_quad_p5p0_b2_by,   leg_quad_p5p1_b2_by,   leg_quad_p5p2_b2_by,   leg_quad_p5p3_b2_by,   leg_quad_p5p4_b2_by,   leg_quad_p5p5_b2_by,   leg_quad_p5p6_b2_by,   leg_quad_p5p7_b2_by,   leg_quad_p5p8_b2_by,   leg_quad_p5p9_b2_by,   leg_quad_p5p10_b2_by,   leg_quad_p6p0_b2_by,   leg_quad_p6p1_b2_by,   leg_quad_p6p2_b2_by,   leg_quad_p6p3_b2_by,   leg_quad_p6p4_b2_by,   leg_quad_p6p5_b2_by,   leg_quad_p6p6_b2_by,   leg_quad_p6p7_b2_by,   leg_quad_p6p8_b2_by,   leg_quad_p6p9_b2_by,   leg_quad_p6p10_b2_by,   leg_quad_p7p0_b2_by,   leg_quad_p7p1_b2_by,   leg_quad_p7p2_b2_by,   leg_quad_p7p3_b2_by,   leg_quad_p7p4_b2_by,   leg_quad_p7p5_b2_by,   leg_quad_p7p6_b2_by,   leg_quad_p7p7_b2_by,   leg_quad_p7p8_b2_by,   leg_quad_p7p9_b2_by,   leg_quad_p7p10_b2_by,   leg_quad_p8p0_b2_by,   leg_quad_p8p1_b2_by,   leg_quad_p8p2_b2_by,   leg_quad_p8p3_b2_by,   leg_quad_p8p4_b2_by,   leg_quad_p8p5_b2_by,   leg_quad_p8p6_b2_by,   leg_quad_p8p7_b2_by,   leg_quad_p8p8_b2_by,   leg_quad_p8p9_b2_by,   leg_quad_p8p10_b2_by,   leg_quad_p9p0_b2_by,   leg_quad_p9p1_b2_by,   leg_quad_p9p2_b2_by,   leg_quad_p9p3_b2_by,   leg_quad_p9p4_b2_by,   leg_quad_p9p5_b2_by,   leg_quad_p9p6_b2_by,   leg_quad_p9p7_b2_by,   leg_quad_p9p8_b2_by,   leg_quad_p9p9_b2_by,   leg_quad_p9p10_b2_by,   leg_quad_p10p0_b2_by,   leg_quad_p10p1_b2_by,   leg_quad_p10p2_b2_by,   leg_quad_p10p3_b2_by,   leg_quad_p10p4_b2_by,   leg_quad_p10p5_b2_by,   leg_quad_p10p6_b2_by,   leg_quad_p10p7_b2_by,   leg_quad_p10p8_b2_by,   leg_quad_p10p9_b2_by,   leg_quad_p10p10_b2_by,   leg_quad_p11p0_b2_by,   leg_quad_p11p1_b2_by,   leg_quad_p11p2_b2_by,   leg_quad_p11p3_b2_by,   leg_quad_p11p4_b2_by,   leg_quad_p11p5_b2_by,   leg_quad_p11p6_b2_by,   leg_quad_p11p7_b2_by,   leg_quad_p11p8_b2_by,   leg_quad_p11p9_b2_by,   leg_quad_p11p10_b2_by, };
 
@@ -16615,7 +16615,7 @@ static int qb_0_1[] = { 88,};
   static int qb_10_8[] = { 88,89,90,91,92,93,94,95,198,98,199,99,200,100,201,101,202,102,203,103,204,104,205,105,206,209,108,210,109,211,110,212,111,213,112,214,113,215,114,216,115,217,220,118,221,119,222,120,223,121,224,122,225,123,226,124,227,125,228,231,128,232,129,233,130,234,131,235,132,236,133,237,134,238,135,239,242,138,243,139,244,140,245,141,246,142,247,143,248,144,249,145,250,253,148,254,149,255,150,256,151,257,152,258,153,259,154,260,155,261,264,158,265,159,266,160,267,161,268,162,269,163,270,164,271,165,272,275,168,276,169,277,170,278,171,279,172,280,173,281,174,282,175,283,286,178,287,179,288,180,289,181,290,182,291,183,292,184,293,185,294,297,188,298,189,299,190,300,191,301,192,302,193,303,194,304,195,305,};
   static int qb_10_9[] = { 88,89,90,91,92,93,94,95,96,198,98,199,99,200,100,201,101,202,102,203,103,204,104,205,105,206,106,207,209,108,210,109,211,110,212,111,213,112,214,113,215,114,216,115,217,116,218,220,118,221,119,222,120,223,121,224,122,225,123,226,124,227,125,228,126,229,231,128,232,129,233,130,234,131,235,132,236,133,237,134,238,135,239,136,240,242,138,243,139,244,140,245,141,246,142,247,143,248,144,249,145,250,146,251,253,148,254,149,255,150,256,151,257,152,258,153,259,154,260,155,261,156,262,264,158,265,159,266,160,267,161,268,162,269,163,270,164,271,165,272,166,273,275,168,276,169,277,170,278,171,279,172,280,173,281,174,282,175,283,176,284,286,178,287,179,288,180,289,181,290,182,291,183,292,184,293,185,294,186,295,297,188,298,189,299,190,300,191,301,192,302,193,303,194,304,195,305,196,306,};
   static int qb_10_10[] = { 88,89,90,91,92,93,94,95,96,97,198,98,199,99,200,100,201,101,202,102,203,103,204,104,205,105,206,106,207,107,208,209,108,210,109,211,110,212,111,213,112,214,113,215,114,216,115,217,116,218,117,219,220,118,221,119,222,120,223,121,224,122,225,123,226,124,227,125,228,126,229,127,230,231,128,232,129,233,130,234,131,235,132,236,133,237,134,238,135,239,136,240,137,241,242,138,243,139,244,140,245,141,246,142,247,143,248,144,249,145,250,146,251,147,252,253,148,254,149,255,150,256,151,257,152,258,153,259,154,260,155,261,156,262,157,263,264,158,265,159,266,160,267,161,268,162,269,163,270,164,271,165,272,166,273,167,274,275,168,276,169,277,170,278,171,279,172,280,173,281,174,282,175,283,176,284,177,285,286,178,287,179,288,180,289,181,290,182,291,183,292,184,293,185,294,186,295,187,296,297,188,298,189,299,190,300,191,301,192,302,193,303,194,304,195,305,196,306,197,307,};
-  
+
 
 #define NULL16 NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,  NULL, NULL, NULL, NULL, NULL,
 
@@ -16638,17 +16638,17 @@ static int* leg_quad_bubble_indices[] =
 
 static int leg_quad_bubble_count[] =
 {
-  0,  1,  2,  3,  4,  5,  6,  7,  8,  9,  10,  0,  0,  0,  0,  0, zero16 
-  1, 4, 7, 10, 13, 16, 19, 22, 25, 28, 31, 0,  0,  0,  0,  0, zero16 
-  2, 7, 12, 17, 22, 27, 32, 37, 42, 47, 52, 0,  0,  0,  0,  0, zero16 
-  3, 10, 17, 24, 31, 38, 45, 52, 59, 66, 73, 0,  0,  0,  0,  0, zero16 
-  4, 13, 22, 31, 40, 49, 58, 67, 76, 85, 94, 0,  0,  0,  0,  0, zero16 
-  5, 16, 27, 38, 49, 60, 71, 82, 93, 104, 115, 0,  0,  0,  0,  0, zero16 
-  6, 19, 32, 45, 58, 71, 84, 97, 110, 123, 136, 0,  0,  0,  0,  0, zero16 
-  7, 22, 37, 52, 67, 82, 97, 112, 127, 142, 157, 0,  0,  0,  0,  0, zero16 
-  8, 25, 42, 59, 76, 93, 110, 127, 144, 161, 178, 0,  0,  0,  0,  0, zero16 
-  9, 28, 47, 66, 85, 104, 123, 142, 161, 180, 199, 0,  0,  0,  0,  0, zero16 
-  10, 31, 52, 73, 94, 115, 136, 157, 178, 199, 220, 0,  0,  0,  0,  0, zero16 
+  0,  1,  2,  3,  4,  5,  6,  7,  8,  9,  10,  0,  0,  0,  0,  0, zero16
+  1, 4, 7, 10, 13, 16, 19, 22, 25, 28, 31, 0,  0,  0,  0,  0, zero16
+  2, 7, 12, 17, 22, 27, 32, 37, 42, 47, 52, 0,  0,  0,  0,  0, zero16
+  3, 10, 17, 24, 31, 38, 45, 52, 59, 66, 73, 0,  0,  0,  0,  0, zero16
+  4, 13, 22, 31, 40, 49, 58, 67, 76, 85, 94, 0,  0,  0,  0,  0, zero16
+  5, 16, 27, 38, 49, 60, 71, 82, 93, 104, 115, 0,  0,  0,  0,  0, zero16
+  6, 19, 32, 45, 58, 71, 84, 97, 110, 123, 136, 0,  0,  0,  0,  0, zero16
+  7, 22, 37, 52, 67, 82, 97, 112, 127, 142, 157, 0,  0,  0,  0,  0, zero16
+  8, 25, 42, 59, 76, 93, 110, 127, 144, 161, 178, 0,  0,  0,  0,  0, zero16
+  9, 28, 47, 66, 85, 104, 123, 142, 161, 180, 199, 0,  0,  0,  0,  0, zero16
+  10, 31, 52, 73, 94, 115, 136, 157, 178, 199, 220, 0,  0,  0,  0,  0, zero16
 };
 
 static int leg_quad_vertex_indices[4] ={-1, -1, -1, -1};
@@ -16671,19 +16671,19 @@ static int* leg_quad_edge_indices[4] =
 
 #define oo make_quad_order
 
-static int leg_quad_index_to_order[] = 
+static int leg_quad_index_to_order[] =
 {
- oo(1,0), oo(1,0),  oo(1,0), oo(1,0), oo(0,1), oo(0,1), oo(0,1), oo(0,1), 
- oo(1,1), oo(1,1),  oo(1,1), oo(1,1), oo(1,1), oo(1,1), oo(1,1), oo(1,1), 
- oo(1,2), oo(1,2),  oo(1,2), oo(1,2), oo(2,1), oo(2,1), oo(2,1), oo(2,1), 
- oo(1,3), oo(1,3),  oo(1,3), oo(1,3), oo(3,1), oo(3,1), oo(3,1), oo(3,1), 
- oo(1,4), oo(1,4),  oo(1,4), oo(1,4), oo(4,1), oo(4,1), oo(4,1), oo(4,1), 
- oo(1,5), oo(1,5),  oo(1,5), oo(1,5), oo(5,1), oo(5,1), oo(5,1), oo(5,1), 
- oo(1,6), oo(1,6),  oo(1,6), oo(1,6), oo(6,1), oo(6,1), oo(6,1), oo(6,1), 
- oo(1,7), oo(1,7),  oo(1,7), oo(1,7), oo(7,1), oo(7,1), oo(7,1), oo(7,1), 
- oo(1,8), oo(1,8),  oo(1,8), oo(1,8), oo(8,1), oo(8,1), oo(8,1), oo(8,1), 
- oo(1,9), oo(1,9),  oo(1,9), oo(1,9), oo(9,1), oo(9,1), oo(9,1), oo(9,1), 
- oo(1,10), oo(1,10),  oo(1,10), oo(1,10), oo(10,1), oo(10,1), oo(10,1), oo(10,1), 
+ oo(1,0), oo(1,0),  oo(1,0), oo(1,0), oo(0,1), oo(0,1), oo(0,1), oo(0,1),
+ oo(1,1), oo(1,1),  oo(1,1), oo(1,1), oo(1,1), oo(1,1), oo(1,1), oo(1,1),
+ oo(1,2), oo(1,2),  oo(1,2), oo(1,2), oo(2,1), oo(2,1), oo(2,1), oo(2,1),
+ oo(1,3), oo(1,3),  oo(1,3), oo(1,3), oo(3,1), oo(3,1), oo(3,1), oo(3,1),
+ oo(1,4), oo(1,4),  oo(1,4), oo(1,4), oo(4,1), oo(4,1), oo(4,1), oo(4,1),
+ oo(1,5), oo(1,5),  oo(1,5), oo(1,5), oo(5,1), oo(5,1), oo(5,1), oo(5,1),
+ oo(1,6), oo(1,6),  oo(1,6), oo(1,6), oo(6,1), oo(6,1), oo(6,1), oo(6,1),
+ oo(1,7), oo(1,7),  oo(1,7), oo(1,7), oo(7,1), oo(7,1), oo(7,1), oo(7,1),
+ oo(1,8), oo(1,8),  oo(1,8), oo(1,8), oo(8,1), oo(8,1), oo(8,1), oo(8,1),
+ oo(1,9), oo(1,9),  oo(1,9), oo(1,9), oo(9,1), oo(9,1), oo(9,1), oo(9,1),
+ oo(1,10), oo(1,10),  oo(1,10), oo(1,10), oo(10,1), oo(10,1), oo(10,1), oo(10,1),
 
   oo(0,2),  oo(0,3),  oo(0,4),  oo(0,5),  oo(0,6),  oo(0,7),  oo(0,8),  oo(0,9),  oo(0,10),  oo(0,11),  oo(1,2),  oo(1,3),  oo(1,4),  oo(1,5),  oo(1,6),  oo(1,7),  oo(1,8),  oo(1,9),  oo(1,10),  oo(1,11),  oo(2,2),  oo(2,3),  oo(2,4),  oo(2,5),  oo(2,6),  oo(2,7),  oo(2,8),  oo(2,9),  oo(2,10),  oo(2,11),  oo(3,2),  oo(3,3),  oo(3,4),  oo(3,5),  oo(3,6),  oo(3,7),  oo(3,8),  oo(3,9),  oo(3,10),  oo(3,11),  oo(4,2),  oo(4,3),  oo(4,4),  oo(4,5),  oo(4,6),  oo(4,7),  oo(4,8),  oo(4,9),  oo(4,10),  oo(4,11),  oo(5,2),  oo(5,3),  oo(5,4),  oo(5,5),  oo(5,6),  oo(5,7),  oo(5,8),  oo(5,9),  oo(5,10),  oo(5,11),  oo(6,2),  oo(6,3),  oo(6,4),  oo(6,5),  oo(6,6),  oo(6,7),  oo(6,8),  oo(6,9),  oo(6,10),  oo(6,11),  oo(7,2),  oo(7,3),  oo(7,4),  oo(7,5),  oo(7,6),  oo(7,7),  oo(7,8),  oo(7,9),  oo(7,10),  oo(7,11),  oo(8,2),  oo(8,3),  oo(8,4),  oo(8,5),  oo(8,6),  oo(8,7),  oo(8,8),  oo(8,9),  oo(8,10),  oo(8,11),  oo(9,2),  oo(9,3),  oo(9,4),  oo(9,5),  oo(9,6),  oo(9,7),  oo(9,8),  oo(9,9),  oo(9,10),  oo(9,11),  oo(10,2),  oo(10,3),  oo(10,4),  oo(10,5),  oo(10,6),  oo(10,7),  oo(10,8),  oo(10,9),  oo(10,10),  oo(10,11),  oo(2,0),  oo(2,1),  oo(2,2),  oo(2,3),  oo(2,4),  oo(2,5),  oo(2,6),  oo(2,7),  oo(2,8),  oo(2,9),  oo(2,10),  oo(3,0),  oo(3,1),  oo(3,2),  oo(3,3),  oo(3,4),  oo(3,5),  oo(3,6),  oo(3,7),  oo(3,8),  oo(3,9),  oo(3,10),  oo(4,0),  oo(4,1),  oo(4,2),  oo(4,3),  oo(4,4),  oo(4,5),  oo(4,6),  oo(4,7),  oo(4,8),  oo(4,9),  oo(4,10),  oo(5,0),  oo(5,1),  oo(5,2),  oo(5,3),  oo(5,4),  oo(5,5),  oo(5,6),  oo(5,7),  oo(5,8),  oo(5,9),  oo(5,10),  oo(6,0),  oo(6,1),  oo(6,2),  oo(6,3),  oo(6,4),  oo(6,5),  oo(6,6),  oo(6,7),  oo(6,8),  oo(6,9),  oo(6,10),  oo(7,0),  oo(7,1),  oo(7,2),  oo(7,3),  oo(7,4),  oo(7,5),  oo(7,6),  oo(7,7),  oo(7,8),  oo(7,9),  oo(7,10),  oo(8,0),  oo(8,1),  oo(8,2),  oo(8,3),  oo(8,4),  oo(8,5),  oo(8,6),  oo(8,7),  oo(8,8),  oo(8,9),  oo(8,10),  oo(9,0),  oo(9,1),  oo(9,2),  oo(9,3),  oo(9,4),  oo(9,5),  oo(9,6),  oo(9,7),  oo(9,8),  oo(9,9),  oo(9,10),  oo(10,0),  oo(10,1),  oo(10,2),  oo(10,3),  oo(10,4),  oo(10,5),  oo(10,6),  oo(10,7),  oo(10,8),  oo(10,9),  oo(10,10),  oo(11,0),  oo(11,1),  oo(11,2),  oo(11,3),  oo(11,4),  oo(11,5),  oo(11,6),  oo(11,7),  oo(11,8),  oo(11,9),  oo(11,10),
 };
@@ -16691,19 +16691,19 @@ static int leg_quad_index_to_order[] =
 
 
 
-static Shapeset::shape_fn_t* leg_quad_shape_fn_table[2] = 
-{ 
+static Shapeset::shape_fn_t* leg_quad_shape_fn_table[2] =
+{
   leg_quad_fn_a,
   leg_quad_fn_b
 };
 
-static Shapeset::shape_fn_t* leg_quad_shape_fn_table_x[2] = 
+static Shapeset::shape_fn_t* leg_quad_shape_fn_table_x[2] =
 {
   leg_quad_fn_ax,
   leg_quad_fn_bx
 };
 
-static Shapeset::shape_fn_t* leg_quad_shape_fn_table_y[2] = 
+static Shapeset::shape_fn_t* leg_quad_shape_fn_table_y[2] =
 {
   leg_quad_fn_ay,
   leg_quad_fn_by
@@ -16711,20 +16711,20 @@ static Shapeset::shape_fn_t* leg_quad_shape_fn_table_y[2] =
 
 //// triangle tables and class constructor ///////////////////////////////////////////////
 
-static Shapeset::shape_fn_t** leg_shape_fn_table[2] = 
-{ 
+static Shapeset::shape_fn_t** leg_shape_fn_table[2] =
+{
   leg_tri_shape_fn_table,
   leg_quad_shape_fn_table
 };
 
 
-static Shapeset::shape_fn_t** leg_shape_fn_table_x[2] = 
+static Shapeset::shape_fn_t** leg_shape_fn_table_x[2] =
 {
   leg_tri_shape_fn_table_x,
   leg_quad_shape_fn_table_x
 };
 
-static Shapeset::shape_fn_t** leg_shape_fn_table_y[2] = 
+static Shapeset::shape_fn_t** leg_shape_fn_table_y[2] =
 {
   leg_tri_shape_fn_table_y,
   leg_quad_shape_fn_table_y
@@ -16770,12 +16770,12 @@ static void check_leg_tri(Shapeset* shapeset)
 {
   shapeset->set_mode(MODE_TRIANGLE);
   for (int i = 1; i <= 10; i++)
-  { 
+  {
     int nb = shapeset->get_num_bubbles(i);
     if (nb != 3*(i-1) + (i-1)*(i-2))
       error("Wrong bubble count");
-    
-  } 
+
+  }
 
   int size_a  = sizeof(leg_tri_fn_a)  / sizeof(Shapeset::shape_fn_t);
   int size_b  = sizeof(leg_tri_fn_b)  / sizeof(Shapeset::shape_fn_t);
@@ -16783,7 +16783,7 @@ static void check_leg_tri(Shapeset* shapeset)
   int size_bx = sizeof(leg_tri_fn_bx) / sizeof(Shapeset::shape_fn_t);
   int size_ay = sizeof(leg_tri_fn_ay) / sizeof(Shapeset::shape_fn_t);
   int size_by = sizeof(leg_tri_fn_by) / sizeof(Shapeset::shape_fn_t);
-  
+
   if (size_a != size_b || size_a != size_ax || size_a != size_bx || size_a != size_ay || size_a != size_by)
     error("Function tables dont have equal length.");
 
@@ -16802,13 +16802,13 @@ HcurlShapesetLegendre::HcurlShapesetLegendre()
   shape_table[3] = NULL;
   shape_table[4] = NULL;
   shape_table[5] = NULL;
-  
+
   vertex_indices = leg_vertex_indices;
   edge_indices = leg_edge_indices;
   bubble_indices = leg_bubble_indices;
   bubble_count = leg_bubble_count;
   index_to_order = leg_index_to_order;
-  
+
   ref_vert[0][0][0] = -1.0;
   ref_vert[0][0][1] = -1.0;
   ref_vert[0][1][0] =  1.0;
@@ -16830,9 +16830,9 @@ HcurlShapesetLegendre::HcurlShapesetLegendre()
 
   max_index[0] = 149;
   max_index[1] = 307;
-  
+
   ebias = 0;
-  
+
   comb_table = NULL;
 
   check_leg_tri(this);

@@ -38,7 +38,7 @@ static void umfpack_status(int status)
   switch (status)
   {
     case UMFPACK_OK:                            info ("UMFPACK: OK status"); break;
-    case UMFPACK_WARNING_singular_matrix:       
+    case UMFPACK_WARNING_singular_matrix:
       warn ("UMFPACK: singular stiffness matrix!"); break;
     case UMFPACK_ERROR_out_of_memory:           error("UMFPACK: out of memory!");
     case UMFPACK_ERROR_argument_missing:        error("UMFPACK: argument missing");
@@ -262,7 +262,7 @@ void DiscreteProblem::create_matrix()
   int status = umfpack_symbolic(ndofs, ndofs, Ap, Ai, NULL, &Symbolic, NULL, NULL);
   if (status != UMFPACK_OK) umfpack_status(status);
   if (!quiet) verbose("  (time: %g sec)", end_time());
-    
+
   equi = (double*) malloc(sizeof(double) * ndofs);
   if (equi == NULL) error("Out of memory. Error allocating the equilibration vector.");
   for (int i = 0; i < ndofs; i++)
@@ -621,23 +621,23 @@ void DiscreteProblem::precalc_equi_coefs()
   int i, m;
   memset(equi, 0, sizeof(double) * ndofs);
   verbose("Precalculating equilibration coefficients...");
-  
+
   RefMap refmap;
   AsmList al;
   Element* e;
-  
+
   for (m = 0; m < neq; m++)
   {
     PrecalcShapeset* fu = pss[m];
     BiForm* bf = biform[m] + m;
     Mesh* mesh = spaces[m]->get_mesh();
-    
+
     for_all_active_elements(e, mesh)
     {
       update_limit_table(e->get_mode());
       fu->set_active_element(e);
       refmap.set_active_element(e);
-      
+
       spaces[m]->get_element_assembly_list(e, &al);
       for (i = 0; i < al.cnt; i++)
       {
@@ -654,7 +654,7 @@ void DiscreteProblem::precalc_equi_coefs()
       }
     }
   }
-  
+
   for (i = 0; i < ndofs; i++)
     equi[i] = sqrt(equi[i]);
   is_equi = true;
@@ -668,7 +668,7 @@ bool DiscreteProblem::solve_system(int n, ...)
   double control[UMFPACK_CONTROL];
   umfpack_defaults(control);
   if (is_equi) control[UMFPACK_SCALE] = 0;
-  
+
   if (!quiet) { verbose("Performing UMFPACK numeric analysis..."); begin_time(); }
   if (Numeric != NULL) umfpack_free_numeric(&Numeric);
   int status = ndofs ? umfpack_numeric(Ap, Ai, Ax, Symbolic, &Numeric, control, NULL) : UMFPACK_OK;
@@ -717,7 +717,7 @@ bool DiscreteProblem::solve_again(int n, ...)
   int status = ndofs ? umfpack_solve(UMFPACK_A, Ap, Ai, Ax, vec+1, RHS, Numeric, NULL, NULL) : UMFPACK_OK;
   if (!quiet) verbose("  (time: %g sec)", end_time());
   vec[0] = 1.0; // "dirichlet dof"
-  
+
   if (status != UMFPACK_OK)
   {
     umfpack_status(status);

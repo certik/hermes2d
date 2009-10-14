@@ -45,8 +45,8 @@
 
 enum // node types
 {
-  TYPE_VERTEX = 0, 
-  TYPE_EDGE = 1 
+  TYPE_VERTEX = 0,
+  TYPE_EDGE = 1
 };
 
 enum // element modes

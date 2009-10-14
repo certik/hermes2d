@@ -46,6 +46,6 @@ MSymbol* mesh_parser_find_symbol(const char* name);
 
 bool mesh_parser_get_doubles(MItem* list, int n, ...);
 bool mesh_parser_get_ints(MItem* list, int n, ...);
- 
+
 
 #endif

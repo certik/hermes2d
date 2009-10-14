@@ -58,7 +58,7 @@ def find_in_path( filename ):
         if os.path.exists(temppath):
             outpath=temppath
             break
-    return outpath 
+    return outpath
 
 class Config( object ):
     def python_version( self ):
@@ -69,7 +69,7 @@ class Config( object ):
                 return site_cfg.python_version
         else:
             return "%d.%d" % tuple(sys.version_info[:2])
-    
+
     def archlib( self ):
         if has_attr( site_cfg, 'archlib' ):
             return site_cfg.archlib

@@ -40,42 +40,42 @@ struct Element;
 class RefMap : public Transformable
 {
 public:
-  
+
   RefMap();
   ~RefMap() { free(); }
-  
+
   /// Sets the quadrature points in which the reference map will be evaluated.
   /// \param quad_2d [in] The quadrature points.
   void set_quad_2d(Quad2D* quad_2d);
 
   /// Returns the current quadrature points.
   Quad2D* get_quad_2d() const { return quad_2d; }
-  
+
   /// Returns the 1D quadrature for use in surface integrals.
   const Quad1D* get_quad_1d() const { return &quad_1d; }
-  
+
   /// Initializes the reference map for the specified element.
   /// Must be called prior to using all other functions in the class.
   virtual void set_active_element(Element* e);
-  
+
   /// Returns true if the jacobian of the reference map is constant (which
   /// is the case for non-curvilinear triangular elements), false otherwise.
   bool is_jacobian_const() const { return is_const; }
-  
+
   /// Returns the increase in the integration order due to the reference map.
   int get_inv_ref_order() const { return inv_ref_order; }
 
   /// If the jacobian of the reference map is constant, this is the fast
   /// way to obtain it.
   double get_const_jacobian() const { return const_jacobian; }
-  
-  /// If the reference map is constant, this is the fast way to obtain 
+
+  /// If the reference map is constant, this is the fast way to obtain
   /// its inverse matrix.
   double2x2* get_const_inv_ref_map() { return &const_inv_ref_map; }
 
   /// Returns the jacobian of the reference map precalculated at the integration
   /// points of the specified order. Intended for non-constant jacobian elements.
-  double* get_jacobian(int order) 
+  double* get_jacobian(int order)
   {
     if (cur_node->inv_ref_map/*sic!*/[order] == NULL) calc_inv_ref_map(order);
     return cur_node->jacobian[order];
@@ -105,7 +105,7 @@ public:
     if (cur_node->phys_x[order] == NULL) calc_phys_x(order);
     return cur_node->phys_x[order];
   }
-  
+
   /// Returns he y-coordinates of the integration points transformed to the
   /// physical domain of the element. Intended for integrals containing spatial
   /// variables.
@@ -114,7 +114,7 @@ public:
     if (cur_node->phys_y[order] == NULL) calc_phys_y(order);
     return cur_node->phys_y[order];
   }
-  
+
   /// Returns the triples [x,y,norm] of the tangent to the specified (possibly
   /// curved) edge at the 1D integration points along the edge. The maximum
   /// 1D quadrature rule is always used.
@@ -133,13 +133,13 @@ public:
 
   /// See Transformable::push_transform()
   virtual void push_transform(int son);
-  
+
   /// See Transformable::pop_transform()
   virtual void pop_transform();
-  
+
   /// Frees all data associated with the instance.
   void free();
-  
+
   /// For internal use only.
   void force_transform(uint64 sub_idx, Trf* ctm)
   {
@@ -152,7 +152,7 @@ public:
 
 
 protected:
-  
+
   Quad2D* quad_2d;
   int num_tables;
 
@@ -173,11 +173,11 @@ protected:
     double* phys_y[max_tables];
     double3* tan[4];
   };
-  
+
   void* nodes;
   Node* cur_node;
-  Node* overflow; 
-  
+  Node* overflow;
+
   void update_cur_node()
   {
     Node** pp = (sub_idx > max_idx) ? handle_overflow()
@@ -190,15 +190,15 @@ protected:
   void calc_const_inv_ref_map();
   void calc_second_ref_map(int order);
   bool is_parallelogram();
-  
+
   void calc_phys_x(int order);
   void calc_phys_y(int order);
   void calc_tangent(int edge);
 
   /// Finds the necessary quadrature degree needed to integrate the inverse reference mapping
   /// matrix alone. This is added to the total integration order in weak form itegrals.
-  int calc_inv_ref_order();  
-    
+  int calc_inv_ref_order();
+
 
   void init_node(Node** pp);
   void free_node(Node* node);

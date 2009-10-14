@@ -33,11 +33,11 @@ struct UniData
   Element* e;
   uint64 idx;
 };
-  
+
 
 /// Traverse is a multi-mesh traversal utility class. Given N meshes sharing the
-/// same base mesh it walks through all (pseudo-)elements of the union of all 
-/// the N meshes. 
+/// same base mesh it walks through all (pseudo-)elements of the union of all
+/// the N meshes.
 ///
 class Traverse
 {
@@ -52,20 +52,20 @@ public:
   UniData** construct_union_mesh(Mesh* unimesh);
 
 private:
-  
+
   int num;
   Mesh** meshes;
   Transformable** fn;
-  
+
   State* stack;
   int top, size;
-  
+
   int id;
   bool tri;
   Element* base;
   int4* sons;
   uint64* subs;
-  
+
   UniData** unidata;
   int udsize;
 
@@ -73,9 +73,9 @@ private:
   void set_boundary_info(State* s, bool* bnd, EdgePos* ep);
   void union_recurrent(Rect* cr, Element** e, Rect* er, uint64* idx, Element* uni);
   uint64 init_idx(Rect* cr, Rect* er);
-  
+
   Mesh* unimesh;
-  
+
 };
 
 

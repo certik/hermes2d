@@ -25,25 +25,25 @@
 
 //// 1D quadrature tables //////////////////////////////////////////////////////////////////////////
 
-static double2 std_pts_0_1_1d[] = 
+static double2 std_pts_0_1_1d[] =
 {
   { 0.0, 2.0 }
 };
 
-static double2 std_pts_2_3_1d[] = 
+static double2 std_pts_2_3_1d[] =
 {
   { -0.57735026918963,  1.0 }, //  { -1.0/sqrt(3.0), 1.0 },
   {  0.57735026918963,  1.0 }  //  {  1.0/sqrt(3.0), 1.0 },
 };
 
-static double2 std_pts_4_5_1d[] = 
+static double2 std_pts_4_5_1d[] =
 {
   { -0.77459666924148 /*-sqrt(3.0/5.0)*/,  5.0/9.0 },
   {  0.0,            8.0/9.0 },
   {  0.77459666924148 /*sqrt(3.0/5.0)*/,  5.0/9.0 }
 };
 
-static double2 std_pts_6_7_1d[] = 
+static double2 std_pts_6_7_1d[] =
 {
   { -0.86113631159405,  0.34785484513745 },
   { -0.33998104358486,  0.65214515486255 },
@@ -51,7 +51,7 @@ static double2 std_pts_6_7_1d[] =
   {  0.86113631159405,  0.34785484513745 }
 };
 
-static double2 std_pts_8_9_1d[] = 
+static double2 std_pts_8_9_1d[] =
 {
   { -0.90617984593866,  0.23692688505619 },
   { -0.53846931010568,  0.47862867049937 },
@@ -60,7 +60,7 @@ static double2 std_pts_8_9_1d[] =
   {  0.90617984593866,  0.23692688505619 }
 };
 
-static double2 std_pts_10_11_1d[] = 
+static double2 std_pts_10_11_1d[] =
 {
   { -0.93246951420315,  0.17132449237917 },
   { -0.66120938646627,  0.36076157304814 },
@@ -70,7 +70,7 @@ static double2 std_pts_10_11_1d[] =
   {  0.93246951420315,  0.17132449237917 }
 };
 
-static double2 std_pts_12_13_1d[] = 
+static double2 std_pts_12_13_1d[] =
 {
   { -0.94910791234276,  0.12948496616887 },
   { -0.74153118559939,  0.27970539148928 },
@@ -81,7 +81,7 @@ static double2 std_pts_12_13_1d[] =
   {  0.94910791234276,  0.12948496616887 }
 };
 
-static double2 std_pts_14_15_1d[] = 
+static double2 std_pts_14_15_1d[] =
 {
   { -0.96028985649754,  0.10122853629038 },
   { -0.79666647741363,  0.22238103445337 },
@@ -93,7 +93,7 @@ static double2 std_pts_14_15_1d[] =
   {  0.96028985649754,  0.10122853629038 }
 };
 
-static double2 std_pts_16_17_1d[] = 
+static double2 std_pts_16_17_1d[] =
 {
   { -0.96816023950763,  0.08127438836157 },
   { -0.83603110732664,  0.18064816069486 },
@@ -106,7 +106,7 @@ static double2 std_pts_16_17_1d[] =
   {  0.96816023950763,  0.08127438836157 }
 };
 
-static double2 std_pts_18_19_1d[] = 
+static double2 std_pts_18_19_1d[] =
 {
   { -0.97390652851717,  0.06667134430869 },
   { -0.86506336668898,  0.14945134915058 },
@@ -120,7 +120,7 @@ static double2 std_pts_18_19_1d[] =
   {  0.97390652851717,  0.06667134430869 }
 };
 
-static double2 std_pts_20_21_1d[] = 
+static double2 std_pts_20_21_1d[] =
 {
   { -0.97822865814606,  0.05566856711617 },
   { -0.88706259976810,  0.12558036946490 },
@@ -135,7 +135,7 @@ static double2 std_pts_20_21_1d[] =
   {  0.97822865814606,  0.05566856711617 }
 };
 
-static double2 std_pts_22_23_1d[] = 
+static double2 std_pts_22_23_1d[] =
 {
   { -0.98156063424672,  0.04717533638651 },
   { -0.90411725637047,  0.10693932599532 },
@@ -151,7 +151,7 @@ static double2 std_pts_22_23_1d[] =
   {  0.98156063424672,  0.04717533638651 }
 };
 
-static double2 std_pts_24_1d[] = 
+static double2 std_pts_24_1d[] =
 {
   { -0.98418305471859,  0.04048400476532 },
   { -0.91759839922298,  0.09212149983773 },
@@ -230,24 +230,24 @@ Quad1DStd::Quad1DStd()
 
 //// 2D quadrature tables (triangle) ///////////////////////////////////////////////////////////////
 
-static double3 std_pts_0_2d_tri[] = 
+static double3 std_pts_0_2d_tri[] =
 {
   { -1.0/3, -1.0/3, 2.0 }
 };
 
-static double3 std_pts_1_2d_tri[] = 
+static double3 std_pts_1_2d_tri[] =
 {
   { -1.0/3, -1.0/3, 2.0 }
 };
 
-static double3 std_pts_2_2d_tri[] = 
+static double3 std_pts_2_2d_tri[] =
 {
   { -2.0/3, -2.0/3, 2.0/3 },
   { -2.0/3,  1.0/3, 2.0/3 },
   {  1.0/3, -2.0/3, 2.0/3 }
 };
 
-static double3 std_pts_3_2d_tri[] = 
+static double3 std_pts_3_2d_tri[] =
 {
   { -1.0/3, -1.0/3, -1.125 },
   { -0.6, -0.6, 1.041666666666667 },
@@ -255,7 +255,7 @@ static double3 std_pts_3_2d_tri[] =
   {  0.2, -0.6, 1.041666666666667 }
 };
 
-static double3 std_pts_4_2d_tri[] = 
+static double3 std_pts_4_2d_tri[] =
 {
   { -0.108103018168070, -0.108103018168070,  0.446763179356022 },
   { -0.108103018168070, -0.783793963663860,  0.446763179356022 },
@@ -265,7 +265,7 @@ static double3 std_pts_4_2d_tri[] =
   {  0.633695145960918, -0.816847572980458,  0.219903487310644 }
 };
 
-static double3 std_pts_5_2d_tri[] = 
+static double3 std_pts_5_2d_tri[] =
 {
   { -1.0/3, -1.0/3,  0.45 },
   { -0.059715871789770, -0.059715871789770,  0.264788305577012 },
@@ -276,7 +276,7 @@ static double3 std_pts_5_2d_tri[] =
   {  0.594853970706174, -0.797426985353088,  0.251878361089654 }
 };
 
-static double3 std_pts_6_2d_tri[] = 
+static double3 std_pts_6_2d_tri[] =
 {
   { -0.501426509658180, -0.501426509658180,  0.233572551452758 },
   { -0.501426509658180,  0.002853019316358,  0.233572551452758 },
@@ -292,7 +292,7 @@ static double3 std_pts_6_2d_tri[] =
   { -0.893709900310366,  0.273004998242798,  0.165702151236748 }
 };
 
-static double3 std_pts_7_2d_tri[] = 
+static double3 std_pts_7_2d_tri[] =
 {
   { -1.0/3, -1.0/3, -0.299140088935364 },
   { -0.479308067841920, -0.479308067841920,  0.351230514866416 },
@@ -309,7 +309,7 @@ static double3 std_pts_7_2d_tri[] =
   { -0.902619369149368,  0.276888377139620,  0.154227521780514 }
 };
 
-static double3 std_pts_8_2d_tri[] = 
+static double3 std_pts_8_2d_tri[] =
 {
   { -1.0/3, -1.0/3,  0.288631215355574 },
   { -0.081414823414554, -0.081414823414554,  0.190183268534570 },
@@ -329,7 +329,7 @@ static double3 std_pts_8_2d_tri[] =
   { -0.983210445180084,  0.456984785910808,  0.054460628348870 }
 };
 
-static double3 std_pts_9_2d_tri[] = 
+static double3 std_pts_9_2d_tri[] =
 {
   { -1.0/3, -1.0/3,  0.194271592565598 },
   { -0.020634961602524, -0.020634961602524,  0.062669400454278 },
@@ -352,7 +352,7 @@ static double3 std_pts_9_2d_tri[] =
   { -0.926323175890528,  0.482397197568996,  0.086567078754578 }
 };
 
-static double3 std_pts_10_2d_tri[] = 
+static double3 std_pts_10_2d_tri[] =
 {
   { -1.0/3, -1.0/3,  0.181635980765508 },
   { -0.028844733232686, -0.028844733232686,  0.073451915512934 },
@@ -381,7 +381,7 @@ static double3 std_pts_10_2d_tri[] =
   { -0.980918369199402,  0.847311867175000,  0.018843333927466 }
 };
 
-static double3 std_pts_11_2d_tri[] = 
+static double3 std_pts_11_2d_tri[] =
 {
   {  0.069222096541516,  0.069222096541516,  0.001854012657922 },
   {  0.069222096541516, -1.138444193083034,  0.001854012657922 },
@@ -412,7 +412,7 @@ static double3 std_pts_11_2d_tri[] =
   { -0.957955966927668,  0.614978006319584,  0.041415319278282 }
 };
 
-static double3 std_pts_12_2d_tri[] = 
+static double3 std_pts_12_2d_tri[] =
 {
   { -0.023565220452390, -0.023565220452390,  0.051462132880910 },
   { -0.023565220452390, -0.952869559095220,  0.051462132880910 },
@@ -449,7 +449,7 @@ static double3 std_pts_12_2d_tri[] =
   { -0.948531898903340,  0.716028067088146,  0.034632462217318 }
 };
 
-static double3 std_pts_13_2d_tri[] = 
+static double3 std_pts_13_2d_tri[] =
 {
   { -0.333333333333333, -0.333333333333333,  0.105041846801604 },
   { -0.009903630120590, -0.009903630120590,  0.022560290418660 },
@@ -490,7 +490,7 @@ static double3 std_pts_13_2d_tri[] =
   { -0.955533846651820,  0.702819075668482,  0.031043573678090 }
 };
 
-static double3 std_pts_14_2d_tri[] = 
+static double3 std_pts_14_2d_tri[] =
 {
   { -0.022072179275642, -0.022072179275642,  0.043767162738858 },
   { -0.022072179275642, -0.955855641448714,  0.043767162738858 },
@@ -536,7 +536,7 @@ static double3 std_pts_14_2d_tri[] =
   { -0.997463338134256,  0.759514342740342,  0.010020457677002 }
 };
 
-static double3 std_pts_15_2d_tri[] = 
+static double3 std_pts_15_2d_tri[] =
 {
   {  0.013945833716486,  0.013945833716486,  0.003833751285698 },
   {  0.013945833716486, -1.027891667432972,  0.003833751285698 },
@@ -588,7 +588,7 @@ static double3 std_pts_15_2d_tri[] =
   { -0.975080381337602,  0.767929148184832,  0.015347885262098 }
 };
 
-static double3 std_pts_16_2d_tri[] = 
+static double3 std_pts_16_2d_tri[] =
 {
   { -0.333333333333333, -0.333333333333333,  0.093751394855284 },
   { -0.005238916103124, -0.005238916103124,  0.012811757157170 },
@@ -644,7 +644,7 @@ static double3 std_pts_16_2d_tri[] =
   { -0.971365359538638,  0.800798128173322,  0.013700109093084 }
 };
 
-static double3 std_pts_17_2d_tri[] = 
+static double3 std_pts_17_2d_tri[] =
 {
   { -0.333333333333333, -0.333333333333333,  0.066874398581606 },
   { -0.005658918886452, -0.005658918886452,  0.010186830881014 },
@@ -709,7 +709,7 @@ static double3 std_pts_17_2d_tri[] =
   { -0.970673635550344,  0.809251008191216,  0.013331264008330 }
 };
 
-static double3 std_pts_18_2d_tri[] = 
+static double3 std_pts_18_2d_tri[] =
 {
   { -0.333333333333333, -0.333333333333333,  0.061619879875294 },
   { -0.013310382738158, -0.013310382738158,  0.018144873358808 },
@@ -783,7 +783,7 @@ static double3 std_pts_18_2d_tri[] =
   { -1.070444030575898,  1.028694520010726,  0.000092375321588 }
 };
 
-static double3 std_pts_19_2d_tri[] = 
+static double3 std_pts_19_2d_tri[] =
 {
   { -0.333333333333333, -0.333333333333333,  0.065812662777838 },
   { -0.020780025853988, -0.020780025853988,  0.020661463782544 },
@@ -860,11 +860,11 @@ static double3 std_pts_19_2d_tri[] =
   { -0.979677761407444,  0.848688505241568,  0.007599857710604 }
 };
 
-static double3 std_pts_20_2d_tri[] =  
+static double3 std_pts_20_2d_tri[] =
 {
   // This rule sucks, because it has points outside the domain
   // and also maybe integrates incorrectly (we need to confirm this)
-  // 
+  //
   { -0.333333333333333, -0.333333333333333,  0.066114111083248 },
   {  0.001900928704400,  0.001900928704400,  0.001734038371326 },
   {  0.001900928704400, -1.003801857408800,  0.001734038371326 }, // BEWARE !
@@ -993,9 +993,9 @@ static double3* std_tables_2d_tri[21+3]=
 
 static double3* make_quad_table(int order, int& np)
 {
-  // points on a quad are calculated as a simple cartesian 
+  // points on a quad are calculated as a simple cartesian
   // product of 1D quadrature points...
-  
+
   np = sqr(std_np_1d[order]);
   double3* result = new double3[np];
   double2* table = std_tables_1d[order];
@@ -1009,7 +1009,7 @@ static double3* make_quad_table(int order, int& np)
       result[n][2] = table[i][1] * table[j][1];
     }
   }
-  
+
   return result;
 }
 
@@ -1019,7 +1019,7 @@ static double3* make_edge_table(double2& v1, double2& v2, int& np)
   np = std_np_1d[24];
   double3* result = new double3[np];
   double2* table = std_tables_1d[24];
-  
+
   for (int i = 0; i < np; i++)
   {
     double s = (table[i][0] + 1.0) * 0.5;
@@ -1028,7 +1028,7 @@ static double3* make_edge_table(double2& v1, double2& v2, int& np)
     result[i][1] = v1[1]*t + v2[1]*s;
     result[i][2] = table[i][1];
   }
-  
+
   return result;
 }
 
@@ -1043,7 +1043,7 @@ static double3** std_tables_2d[2] =
   std_tables_2d_quad
 };
 
-static int* std_np_2d[2] = 
+static int* std_np_2d[2] =
 {
   std_np_2d_tri,
   std_np_2d_quad
@@ -1056,7 +1056,7 @@ static int quad_pt_ref = 0;
 Quad2DStd::Quad2DStd()
 {
   mode = MODE_TRIANGLE;
-  
+
   ref_vert[0][0][0] = -1.0;
   ref_vert[0][0][1] = -1.0;
   ref_vert[0][1][0] =  1.0;
@@ -1085,14 +1085,14 @@ Quad2DStd::Quad2DStd()
   {
     for (i = 0; i <= max_order[1]; i++)
       std_tables_2d_quad[i] = make_quad_table(i, std_np_2d_quad[i]);
-    
+
     for (i = 0; i < 3; i++)
     {
       j = max_order[0]+1 + i;
       k = i < 2 ? i+1 : 0;
       std_tables_2d_tri[j] = make_edge_table(ref_vert[0][i], ref_vert[0][k], std_np_2d_tri[j]);
     }
-      
+
     for (i = 0; i < 4; i++)
     {
       j = max_order[1]+1 + i;
@@ -1107,16 +1107,16 @@ Quad2DStd::Quad2DStd()
 
 
 Quad2DStd::~Quad2DStd()
-{  
+{
   int i;
   if (!--quad_pt_ref)
   {
     for (i = 0; i <= max_order[1]; i++)
       delete [] std_tables_2d_quad[i];
-    
+
     for (i = 0; i < 3; i++)
       delete [] std_tables_2d_tri[max_order[0]+1 + i];
-    
+
     for (i = 0; i < 4; i++)
       delete [] std_tables_2d_quad[max_order[1]+1 + i];
   }

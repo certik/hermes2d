@@ -31,7 +31,7 @@
 ///
 /// This class is a generic dynamic array for storing nodes and elements of a mesh.
 /// All items contained in the array are assigned a unique id number. Internally,
-/// a list of unused items is maintained. Unused items (and their id numbers) are 
+/// a list of unused items is maintained. Unused items (and their id numbers) are
 /// reused when new items are added to the array. The type 'T' must contain the
 /// members 'id' and 'unused' in order to be usable by this class.
 ///
@@ -39,7 +39,7 @@ template<class T>
 class Array
 {
 protected:
-  
+
   std::vector<T*>  pages; // todo: standard array for maximum access speed
   std::vector<int> unused;
   int  size, nitems;
@@ -56,22 +56,22 @@ public:
     size = nitems = 0;
     append_only = false;
   }
-  
+
   Array(Array& array) { copy(array); }
-  
+
   ~Array() { free(); }
-  
+
   /// Makes this array to hold a copy of another one.
   void copy(const Array& array)
   {
     free();
-    
+
     pages = array.pages;
     unused = array.unused;
     size = array.size;
     nitems = array.nitems;
     append_only = array.append_only;
-    
+
     for (int i = 0; i < pages.size(); i++)
     {
       T* new_page = new T[PAGE_SIZE];
@@ -79,7 +79,7 @@ public:
       pages[i] = new_page;
     }
   }
-  
+
   /// Removes all elements from the array.
   void free()
   {
@@ -89,7 +89,7 @@ public:
     unused.clear();
     size = nitems = 0;
   }
-  
+
   /// Sets or resets the append-only mode. In append-only mode new
   /// elements are only added to the end of the array.
   /// This can be useful eg. when refining all elements of a mesh
@@ -100,9 +100,9 @@ public:
     this->append_only = append_only;
   }
 
-  /// Adds a new item to the array: either it is appended at the 
+  /// Adds a new item to the array: either it is appended at the
   /// end or an unused item is reused.
-  /// \return A reference to the newly allocated item of the array. 
+  /// \return A reference to the newly allocated item of the array.
   /// The item is assigned an id and its used flag is set to 1.
   T* add()
   {
@@ -128,7 +128,7 @@ public:
     nitems++;
     return item;
   }
-  
+
   /// Removes the given item from the array, ie., marks it as unused.
   /// Note that the array is never physically shrinked. This should not
   /// be a problem, since meshes tend to grow rather than become smaller.
@@ -142,9 +142,9 @@ public:
     unused.push_back(id);
     nitems--;
   }
-  
+
   /// Cleans the array and reserves space for up to 'size' items.
-  /// This is a special-purpose function, used for loading the array 
+  /// This is a special-purpose function, used for loading the array
   /// from file.
   void force_size(int size)
   {
@@ -158,7 +158,7 @@ public:
     }
     this->size = pages.size() * PAGE_SIZE;
   }
-  
+
   /// Counts the items in the array and registers unused items.
   /// This is a special-purpose function, used after loading the array
   /// from file.
@@ -171,7 +171,7 @@ public:
       else
         unused.push_back(i);
   }
-  
+
   /// Adds an unused item at the end of the array and skips its ID forever.
   /// This is a special-purpose function used to create empty element slots.
   void skip_slot()
@@ -186,13 +186,13 @@ public:
     item->used = 0;
     nitems++;
   }
-  
+
   int get_size() const { return size; }
   int get_num_items() const { return nitems; }
-  
+
   T& get_item(int id) const { return pages[id >> PAGE_BITS][id & PAGE_MASK]; }
-  T& operator[] (int id) const { return get_item(id); }  
-  
+  T& operator[] (int id) const { return get_item(id); }
+
 };
 
 

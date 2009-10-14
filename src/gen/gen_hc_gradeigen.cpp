@@ -93,7 +93,7 @@ void whitney(int i)
       "  return -(l1(x) * Legendre%dx(y));\n"
       "}\n\n",
     i,i,i,i,i,    i,i, i,i,i,i,i,i,i,i
-    );    
+    );
 
 
     printf
@@ -227,7 +227,7 @@ void edge_fn(int i, int j)
     "}\n\n",
     i, j, c2, i, j
   );
- 
+
   printf
   (
     "static double gradeigen_quad_l%d_l%d_bx(double x, double y)\n"
@@ -290,7 +290,7 @@ void edge_fn(int i, int j)
     "}\n\n",
     i, j, c2, i, j
   );
- 
+
   printf
   (
     "static double gradeigen_quad_l%d_l%d_ax(double x, double y)\n"
@@ -522,7 +522,7 @@ void bubble_fn(int p1, int p2)
       "static double gradeigen_quad_p%dp%d_bb_0_%d_b(double x, double y)\n"
       "{\n"
       "  return 0.0;\n"
-         
+
       "}\n\n",
       p1,p2,j,  p2,j,  p1,p2,j
     );
@@ -591,8 +591,8 @@ int main(int argc, char* argv[])
       }
   }
 
-  printf("static Shapeset::shape_fn_t gradeigen_quad_fn_a[] = \n{\n");      
-  
+  printf("static Shapeset::shape_fn_t gradeigen_quad_fn_a[] = \n{\n");
+
   printf("  gradeigen_quad_p0_e1_a_0, gradeigen_quad_p0_e1_a_1, gradeigen_quad_p0_e2_a, gradeigen_quad_p0_e2_a, gradeigen_quad_p0_e3_a_0, gradeigen_quad_p0_e3_a_1, gradeigen_quad_p0_e4_a, gradeigen_quad_p0_e4_a, \n");
 
   for (j = 2; j <= 11; j++)
@@ -608,29 +608,29 @@ int main(int argc, char* argv[])
   for (int p1 = 2; p1 <= 10; p1++)
   {
     for (int p2 = 2; p2 <= 10; p2++)
-    { 
+    {
       for (i = 2; i <= p1; i++)
       {
         for (j = 2; j <= p2; j++)
-        { 
+        {
           printf("  gradeigen_quad_p%dp%d_bb_%d_%d_a, ",p1, p2, i, j);
-          k++; 
+          k++;
           if (!(k%5)) printf("\n");
-          printf("  gradeigen_quad_p%dp%d_an_%d_%d_a, ",p1, p2, i, j); 
-          k++; 
+          printf("  gradeigen_quad_p%dp%d_an_%d_%d_a, ",p1, p2, i, j);
+          k++;
           if (!(k%5)) printf("\n");
         }
       }
       for (i = 2; i <= p1; i++)
-      { 
+      {
           printf("  gradeigen_quad_p%dp%d_bb_%d_0_a, ",p1, p2, i);
-          k++; 
-          if (!(k%5)) printf("\n");          
+          k++;
+          if (!(k%5)) printf("\n");
       }
       for (j = 2; j <= p2; j++)
       {
-          printf("  gradeigen_quad_p%dp%d_bb_0_%d_a, ",p1, p2, j); 
-          k++; 
+          printf("  gradeigen_quad_p%dp%d_bb_0_%d_a, ",p1, p2, j);
+          k++;
           if (!(k%5)) printf("\n");
       }
       printf("\n\n"); k = 0;
@@ -645,7 +645,7 @@ int main(int argc, char* argv[])
         for (j = 2; j <= p2; j++)
         {
           printf("  gradeigen_quad_p%dp%d_bb_0_%d_a,",p1,p2, j);
-          k++; 
+          k++;
           if (!(k%5)) printf("\n");
 		    }
       }
@@ -660,7 +660,7 @@ int main(int argc, char* argv[])
         for (i = 2; i <= p1; i++)
         {
           printf("  gradeigen_quad_p%dp%d_bb_%d_0_a,",p1,p2, i);
-          k++; 
+          k++;
           if (!(k%5)) printf("\n");
 		    }
       }
@@ -671,10 +671,10 @@ int main(int argc, char* argv[])
 
 
 
-  printf("static Shapeset::shape_fn_t gradeigen_quad_fn_b[] = \n{\n");  
+  printf("static Shapeset::shape_fn_t gradeigen_quad_fn_b[] = \n{\n");
 
   printf("  gradeigen_quad_p0_e1_b, gradeigen_quad_p0_e1_b, gradeigen_quad_p0_e2_b_0, gradeigen_quad_p0_e2_b_1,  gradeigen_quad_p0_e3_b, gradeigen_quad_p0_e3_b, gradeigen_quad_p0_e4_b_0, gradeigen_quad_p0_e4_b_1, \n");
-    
+
   for (j = 2; j <= 11; j++)
   {
     if (!(j%2))
@@ -682,35 +682,35 @@ int main(int argc, char* argv[])
     else
       printf("  gradeigen_quad_l%d_l0_b, gradeigen_quad_l%d_l0_b, gradeigen_quad_l1_l%d_b_0, gradeigen_quad_l1_l%d_b_1, gradeigen_quad_l%d_l1_b, gradeigen_quad_l%d_l1_b, gradeigen_quad_l0_l%d_b_0, gradeigen_quad_l0_l%d_b_1, ", j,j,j,j,j,j,j,j);
     printf("\n");
-  }  
+  }
   printf("\n");
   k = 0;
   for (int p1 = 2; p1 <= 10; p1++)
   {
     for (int p2 = 2; p2 <= 10; p2++)
-    { 
+    {
       for (i = 2; i <= p1; i++)
       {
         for (j = 2; j <= p2; j++)
-        { 
+        {
           printf("  gradeigen_quad_p%dp%d_bb_%d_%d_b, ",p1, p2, i, j);
-          k++; 
+          k++;
           if (!(k%5)) printf("\n");
-          printf("  gradeigen_quad_p%dp%d_an_%d_%d_b, ",p1, p2, i, j); 
-          k++; 
+          printf("  gradeigen_quad_p%dp%d_an_%d_%d_b, ",p1, p2, i, j);
+          k++;
           if (!(k%5)) printf("\n");
         }
       }
       for (i = 2; i <= p1; i++)
-      { 
+      {
           printf("  gradeigen_quad_p%dp%d_bb_%d_0_b, ",p1, p2, i);
-          k++; 
-          if (!(k%5)) printf("\n");          
+          k++;
+          if (!(k%5)) printf("\n");
       }
       for (j = 2; j <= p2; j++)
       {
-          printf("  gradeigen_quad_p%dp%d_bb_0_%d_b, ",p1, p2, j); 
-          k++; 
+          printf("  gradeigen_quad_p%dp%d_bb_0_%d_b, ",p1, p2, j);
+          k++;
           if (!(k%5)) printf("\n");
       }
       printf("\n\n"); k = 0;
@@ -725,7 +725,7 @@ int main(int argc, char* argv[])
         for (j = 2; j <= p2; j++)
         {
           printf("  gradeigen_quad_p%dp%d_bb_0_%d_b,",p1,p2, j);
-          k++; 
+          k++;
           if (!(k%5)) printf("\n");
 		    }
       }
@@ -740,7 +740,7 @@ int main(int argc, char* argv[])
         for (i = 2; i <= p1; i++)
         {
           printf("  gradeigen_quad_p%dp%d_bb_%d_0_b,",p1,p2, i);
-          k++; 
+          k++;
           if (!(k%5)) printf("\n");
 		    }
       }
@@ -749,8 +749,8 @@ int main(int argc, char* argv[])
   printf("};\n\n");
 
 
-  printf("static Shapeset::shape_fn_t gradeigen_quad_fn_ax[] = \n{\n");      
-  
+  printf("static Shapeset::shape_fn_t gradeigen_quad_fn_ax[] = \n{\n");
+
   printf("  gradeigen_quad_p0_e1_ax_0, gradeigen_quad_p0_e1_ax_1, gradeigen_quad_p0_e2_ax, gradeigen_quad_p0_e2_ax, gradeigen_quad_p0_e3_ax_0, gradeigen_quad_p0_e3_ax_1, gradeigen_quad_p0_e4_ax, gradeigen_quad_p0_e4_ax, \n");
 
   for (j = 2; j <= 11; j++)
@@ -766,29 +766,29 @@ int main(int argc, char* argv[])
   for (int p1 = 2; p1 <= 10; p1++)
   {
     for (int p2 = 2; p2 <= 10; p2++)
-    { 
+    {
       for (i = 2; i <= p1; i++)
       {
         for (j = 2; j <= p2; j++)
-        { 
+        {
           printf("  gradeigen_quad_p%dp%d_bb_%d_%d_ax, ",p1, p2, i, j);
-          k++; 
+          k++;
           if (!(k%5)) printf("\n");
-          printf("  gradeigen_quad_p%dp%d_an_%d_%d_ax, ",p1, p2, i, j); 
-          k++; 
+          printf("  gradeigen_quad_p%dp%d_an_%d_%d_ax, ",p1, p2, i, j);
+          k++;
           if (!(k%5)) printf("\n");
         }
       }
       for (i = 2; i <= p1; i++)
-      { 
+      {
           printf("  gradeigen_quad_p%dp%d_bb_%d_0_ax, ",p1, p2, i);
-          k++; 
-          if (!(k%5)) printf("\n");          
+          k++;
+          if (!(k%5)) printf("\n");
       }
       for (j = 2; j <= p2; j++)
       {
-          printf("  gradeigen_quad_p%dp%d_bb_0_%d_ax, ",p1, p2, j); 
-          k++; 
+          printf("  gradeigen_quad_p%dp%d_bb_0_%d_ax, ",p1, p2, j);
+          k++;
           if (!(k%5)) printf("\n");
       }
       printf("\n\n"); k = 0;
@@ -803,7 +803,7 @@ int main(int argc, char* argv[])
         for (j = 2; j <= p2; j++)
         {
           printf("  gradeigen_quad_p%dp%d_bb_0_%d_ax,",p1,p2, j);
-          k++; 
+          k++;
           if (!(k%5)) printf("\n");
 		    }
       }
@@ -818,7 +818,7 @@ int main(int argc, char* argv[])
         for (i = 2; i <= p1; i++)
         {
           printf("  gradeigen_quad_p%dp%d_bb_%d_0_ax,",p1,p2, i);
-          k++; 
+          k++;
           if (!(k%5)) printf("\n");
 		    }
       }
@@ -829,10 +829,10 @@ int main(int argc, char* argv[])
 
 
 
-  printf("static Shapeset::shape_fn_t gradeigen_quad_fn_bx[] = \n{\n");  
+  printf("static Shapeset::shape_fn_t gradeigen_quad_fn_bx[] = \n{\n");
 
   printf("  gradeigen_quad_p0_e1_bx, gradeigen_quad_p0_e1_bx, gradeigen_quad_p0_e2_bx_0, gradeigen_quad_p0_e2_bx_1,  gradeigen_quad_p0_e3_bx, gradeigen_quad_p0_e3_bx, gradeigen_quad_p0_e4_bx_0, gradeigen_quad_p0_e4_bx_1, \n");
-    
+
   for (j = 2; j <= 11; j++)
   {
     if (!(j%2))
@@ -840,35 +840,35 @@ int main(int argc, char* argv[])
     else
       printf("  gradeigen_quad_l%d_l0_bx, gradeigen_quad_l%d_l0_bx, gradeigen_quad_l1_l%d_bx_0, gradeigen_quad_l1_l%d_bx_1, gradeigen_quad_l%d_l1_bx, gradeigen_quad_l%d_l1_bx, gradeigen_quad_l0_l%d_bx_0, gradeigen_quad_l0_l%d_bx_1, ", j,j,j,j,j,j,j,j);
     printf("\n");
-  }  
+  }
   printf("\n");
   k = 0;
   for (int p1 = 2; p1 <= 10; p1++)
   {
     for (int p2 = 2; p2 <= 10; p2++)
-    { 
+    {
       for (i = 2; i <= p1; i++)
       {
         for (j = 2; j <= p2; j++)
-        { 
+        {
           printf("  gradeigen_quad_p%dp%d_bb_%d_%d_bx, ",p1, p2, i, j);
-          k++; 
+          k++;
           if (!(k%5)) printf("\n");
-          printf("  gradeigen_quad_p%dp%d_an_%d_%d_bx, ",p1, p2, i, j); 
-          k++; 
+          printf("  gradeigen_quad_p%dp%d_an_%d_%d_bx, ",p1, p2, i, j);
+          k++;
           if (!(k%5)) printf("\n");
         }
       }
       for (i = 2; i <= p1; i++)
-      { 
+      {
           printf("  gradeigen_quad_p%dp%d_bb_%d_0_bx, ",p1, p2, i);
-          k++; 
-          if (!(k%5)) printf("\n");          
+          k++;
+          if (!(k%5)) printf("\n");
       }
       for (j = 2; j <= p2; j++)
       {
-          printf("  gradeigen_quad_p%dp%d_bb_0_%d_bx, ",p1, p2, j); 
-          k++; 
+          printf("  gradeigen_quad_p%dp%d_bb_0_%d_bx, ",p1, p2, j);
+          k++;
           if (!(k%5)) printf("\n");
       }
       printf("\n\n"); k = 0;
@@ -883,7 +883,7 @@ int main(int argc, char* argv[])
         for (j = 2; j <= p2; j++)
         {
           printf("  gradeigen_quad_p%dp%d_bb_0_%d_bx,",p1,p2, j);
-          k++; 
+          k++;
           if (!(k%5)) printf("\n");
 		    }
       }
@@ -898,7 +898,7 @@ int main(int argc, char* argv[])
         for (i = 2; i <= p1; i++)
         {
           printf("  gradeigen_quad_p%dp%d_bb_%d_0_bx,",p1,p2, i);
-          k++; 
+          k++;
           if (!(k%5)) printf("\n");
 		    }
       }
@@ -907,8 +907,8 @@ int main(int argc, char* argv[])
   printf("};\n\n");
 
 
-  printf("static Shapeset::shape_fn_t gradeigen_quad_fn_ay[] = \n{\n");      
-  
+  printf("static Shapeset::shape_fn_t gradeigen_quad_fn_ay[] = \n{\n");
+
   printf("  gradeigen_quad_p0_e1_ay_0, gradeigen_quad_p0_e1_ay_1, gradeigen_quad_p0_e2_ay, gradeigen_quad_p0_e2_ay, gradeigen_quad_p0_e3_ay_0, gradeigen_quad_p0_e3_ay_1, gradeigen_quad_p0_e4_ay, gradeigen_quad_p0_e4_ay, \n");
 
   for (j = 2; j <= 11; j++)
@@ -924,29 +924,29 @@ int main(int argc, char* argv[])
   for (int p1 = 2; p1 <= 10; p1++)
   {
     for (int p2 = 2; p2 <= 10; p2++)
-    { 
+    {
       for (i = 2; i <= p1; i++)
       {
         for (j = 2; j <= p2; j++)
-        { 
+        {
           printf("  gradeigen_quad_p%dp%d_bb_%d_%d_ay, ",p1, p2, i, j);
-          k++; 
+          k++;
           if (!(k%5)) printf("\n");
-          printf("  gradeigen_quad_p%dp%d_an_%d_%d_ay, ",p1, p2, i, j); 
-          k++; 
+          printf("  gradeigen_quad_p%dp%d_an_%d_%d_ay, ",p1, p2, i, j);
+          k++;
           if (!(k%5)) printf("\n");
         }
       }
       for (i = 2; i <= p1; i++)
-      { 
+      {
           printf("  gradeigen_quad_p%dp%d_bb_%d_0_ay, ",p1, p2, i);
-          k++; 
-          if (!(k%5)) printf("\n");          
+          k++;
+          if (!(k%5)) printf("\n");
       }
       for (j = 2; j <= p2; j++)
       {
-          printf("  gradeigen_quad_p%dp%d_bb_0_%d_ay, ",p1, p2, j); 
-          k++; 
+          printf("  gradeigen_quad_p%dp%d_bb_0_%d_ay, ",p1, p2, j);
+          k++;
           if (!(k%5)) printf("\n");
       }
       printf("\n\n"); k = 0;
@@ -961,7 +961,7 @@ int main(int argc, char* argv[])
         for (j = 2; j <= p2; j++)
         {
           printf("  gradeigen_quad_p%dp%d_bb_0_%d_ay,",p1,p2, j);
-          k++; 
+          k++;
           if (!(k%5)) printf("\n");
 		    }
       }
@@ -976,7 +976,7 @@ int main(int argc, char* argv[])
         for (i = 2; i <= p1; i++)
         {
           printf("  gradeigen_quad_p%dp%d_bb_%d_0_ay,",p1,p2, i);
-          k++; 
+          k++;
           if (!(k%5)) printf("\n");
 		    }
       }
@@ -987,10 +987,10 @@ int main(int argc, char* argv[])
 
 
 
-  printf("static Shapeset::shape_fn_t gradeigen_quad_fn_by[] = \n{\n");  
+  printf("static Shapeset::shape_fn_t gradeigen_quad_fn_by[] = \n{\n");
 
   printf("  gradeigen_quad_p0_e1_by, gradeigen_quad_p0_e1_by, gradeigen_quad_p0_e2_by_0, gradeigen_quad_p0_e2_by_1,  gradeigen_quad_p0_e3_by, gradeigen_quad_p0_e3_by, gradeigen_quad_p0_e4_by_0, gradeigen_quad_p0_e4_by_1, \n");
-    
+
   for (j = 2; j <= 11; j++)
   {
     if (!(j%2))
@@ -998,35 +998,35 @@ int main(int argc, char* argv[])
     else
       printf("  gradeigen_quad_l%d_l0_by, gradeigen_quad_l%d_l0_by, gradeigen_quad_l1_l%d_by_0, gradeigen_quad_l1_l%d_by_1, gradeigen_quad_l%d_l1_by, gradeigen_quad_l%d_l1_by, gradeigen_quad_l0_l%d_by_0, gradeigen_quad_l0_l%d_by_1, ", j,j,j,j,j,j,j,j);
     printf("\n");
-  }  
+  }
   printf("\n");
   k = 0;
   for (int p1 = 2; p1 <= 10; p1++)
   {
     for (int p2 = 2; p2 <= 10; p2++)
-    { 
+    {
       for (i = 2; i <= p1; i++)
       {
         for (j = 2; j <= p2; j++)
-        { 
+        {
           printf("  gradeigen_quad_p%dp%d_bb_%d_%d_by, ",p1, p2, i, j);
-          k++; 
+          k++;
           if (!(k%5)) printf("\n");
-          printf("  gradeigen_quad_p%dp%d_an_%d_%d_by, ",p1, p2, i, j); 
-          k++; 
+          printf("  gradeigen_quad_p%dp%d_an_%d_%d_by, ",p1, p2, i, j);
+          k++;
           if (!(k%5)) printf("\n");
         }
       }
       for (i = 2; i <= p1; i++)
-      { 
+      {
           printf("  gradeigen_quad_p%dp%d_bb_%d_0_by, ",p1, p2, i);
-          k++; 
-          if (!(k%5)) printf("\n");          
+          k++;
+          if (!(k%5)) printf("\n");
       }
       for (j = 2; j <= p2; j++)
       {
-          printf("  gradeigen_quad_p%dp%d_bb_0_%d_by, ",p1, p2, j); 
-          k++; 
+          printf("  gradeigen_quad_p%dp%d_bb_0_%d_by, ",p1, p2, j);
+          k++;
           if (!(k%5)) printf("\n");
       }
       printf("\n\n"); k = 0;
@@ -1041,7 +1041,7 @@ int main(int argc, char* argv[])
         for (j = 2; j <= p2; j++)
         {
           printf("  gradeigen_quad_p%dp%d_bb_0_%d_by,",p1,p2, j);
-          k++; 
+          k++;
           if (!(k%5)) printf("\n");
 		    }
       }
@@ -1056,7 +1056,7 @@ int main(int argc, char* argv[])
         for (i = 2; i <= p1; i++)
         {
           printf("  gradeigen_quad_p%dp%d_bb_%d_0_by,",p1,p2, i);
-          k++; 
+          k++;
           if (!(k%5)) printf("\n");
 		    }
       }
@@ -1130,12 +1130,12 @@ int main(int argc, char* argv[])
     printf(" NULL, NULL, NULL, NULL, NULL, NULL, NULL16\n");
   }
   printf("};\n\n");
- 
+
   printf("#define zero16  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,\n\n");
   printf("static int gradeigen_quad_bubble_count[] =\n{\n");
   //printf("  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, zero16\n");
   for (i = 1; i <= 1; i++)
-  {  
+  {
     printf("  0,  ");
     for (j = 2; j <= 10; j++)
     {
@@ -1144,7 +1144,7 @@ int main(int argc, char* argv[])
     printf("0,  0,  0,  0,  0, 0, zero16 \n");
   }
   for (i = 2; i <= 10; i++)
-  {  
+  {
     printf("  ");
     for (j = 1; j <= 10; j++)
     {
@@ -1174,8 +1174,8 @@ int main(int argc, char* argv[])
 
   printf("#define oo make_quad_order\n\n");
 
-  printf("static int gradeigen_quad_index_to_order[] = \n{\n");      
-  
+  printf("static int gradeigen_quad_index_to_order[] = \n{\n");
+
   printf("  oo(0,1), oo(0,1), oo(1,0), oo(1,0), oo(0,1), oo(0,1), oo(1,0), oo(1,0),\n");
 
   for (j = 2; j <= 11; j++)
@@ -1187,29 +1187,29 @@ int main(int argc, char* argv[])
   for (int p1 = 2; p1 <= 10; p1++)
   {
     for (int p2 = 2; p2 <= 10; p2++)
-    { 
+    {
       for (i = 2; i <= p1; i++)
       {
         for (j = 2; j <= p2; j++)
-        { 
+        {
           printf("  oo(%d,%d),",p1, p2);
-          k++; 
+          k++;
           if (!(k%12)) printf("\n");
-          printf("  oo(%d,%d),",p1, p2); 
-          k++; 
+          printf("  oo(%d,%d),",p1, p2);
+          k++;
           if (!(k%12)) printf("\n");
         }
       }
       for (i = 2; i <= p1; i++)
-      { 
+      {
           printf("  oo(%d,%d),",p1, p2);
-          k++; 
-          if (!(k%12)) printf("\n");          
+          k++;
+          if (!(k%12)) printf("\n");
       }
       for (j = 2; j <= p2; j++)
       {
-          printf("  oo(%d,%d),",p1, p2); 
-          k++; 
+          printf("  oo(%d,%d),",p1, p2);
+          k++;
           if (!(k%12)) printf("\n");
       }
       printf("\n\n"); k = 0;
@@ -1224,7 +1224,7 @@ int main(int argc, char* argv[])
         for (j = 2; j <= p2; j++)
         {
           printf("  oo(%d,%d),",p1,p2);
-          k++; 
+          k++;
           if (!(k%12)) printf("\n");
 		    }
       }
@@ -1239,7 +1239,7 @@ int main(int argc, char* argv[])
         for (i = 2; i <= p1; i++)
         {
           printf("  oo(%d,%d),",p1,p2);
-          k++; 
+          k++;
           if (!(k%12)) printf("\n");
 		    }
       }

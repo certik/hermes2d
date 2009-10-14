@@ -90,19 +90,19 @@ public:
 
 
 protected:
-  
+
   int neq;
-    
+
   BiForm** biform;
   LiForm*  liform;
-  
+
   Space** spaces;
   PrecalcShapeset** pss;
   MeshFunction** extern_fns;
   int num_extern, num_user_pss;
 
   int ndofs;
-  
+
   int* Ap;    ///< indices of column beginnings
   int* Ai;    ///< element positions within columns
   scalar* Ax; ///< matrix values
@@ -111,7 +111,7 @@ protected:
   scalar* Dir;  ///< contributions to the RHS from Dirichlet DOFs
   scalar* vec;  ///< solution vector
   double* equi; ///< equilibration vector
-  
+
   void* Symbolic; ///< UMFPACK symbolic analysis result
   void* Numeric;  ///< UMFPACK numeric analysis result
 
@@ -121,7 +121,7 @@ protected:
   void free_solution_vector();
   void free_matrix_indices();
   void free_matrix_values();
-  
+
   scalar** get_matrix_buffer(int n)
   {
     if (n <= mat_size) return buffer;
@@ -134,7 +134,7 @@ protected:
 
   bool quiet;
   bool is_equi;
-  
+
 };
 
 

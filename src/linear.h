@@ -34,7 +34,7 @@ const double EPS_HIGH   = 0.0003;
 /// Linearizer is a utility class which converts a higher-order FEM solution defined on
 /// a curvilinear, irregular mesh to a linear FEM solution defined on a straight-edged,
 /// regular mesh. This is done by adaptive refinement of the higher-order mesh and its
-/// subsequent regularization. The linearized mesh can then be easily displayed or 
+/// subsequent regularization. The linearized mesh can then be easily displayed or
 /// exported to standard formats. The class correctly handles discontinuities in the
 /// solution (e.g., gradients or in Hcurl) by inserting double vertices where necessary.
 /// Linearizer also serves as a container for the resulting linearized mesh.
@@ -42,7 +42,7 @@ const double EPS_HIGH   = 0.0003;
 class Linearizer // (implemented in linear1.cpp)
 {
 public:
-  
+
   Linearizer();
   ~Linearizer();
 
@@ -64,7 +64,7 @@ public:
   int get_num_edges() const { return ne; }
 
   double get_min_value() const { return min_val; }
-  double get_max_value() const { return max_val; } 
+  double get_max_value() const { return max_val; }
 
   virtual void save_data(const char* filename);
   virtual void load_data(const char* filename);
@@ -73,7 +73,7 @@ public:
 
 
 protected:
-  
+
   MeshFunction* sln;
   int item, ia, ib;
 
@@ -105,7 +105,7 @@ protected:
 
   int add_vertex()
   {
-    if (nv >= cv) 
+    if (nv >= cv)
     {
       cv *= 2;
       verts = (double3*) realloc(verts, sizeof(double3) * cv);
@@ -136,24 +136,24 @@ protected:
     if (mask >= 0x40) { a = 1; mask >>= 6; }
     while (!(mask & 1)) { mask >>= 1; b++; }
   }
-    
+
   void process_triangle(int iv0, int iv1, int iv2, int level,
                         scalar* val, double* phx, double* phy, int* indices);
-  
+
   void process_quad(int iv0, int iv1, int iv2, int iv3, int level,
                     scalar* val, double* phx, double* phy, int* indices);
-  
+
   void process_edge(int iv1, int iv2, int marker);
   void regularize_triangle(int iv0, int iv1, int iv2, int mid0, int mid1, int mid2);
   void find_min_max();
   void print_hash_stats();
-  
+
   mutable pthread_mutex_t data_mutex;
 
 };
 
 
-/// Like the Linearizer, but generates a triangular mesh showing polynomial 
+/// Like the Linearizer, but generates a triangular mesh showing polynomial
 /// orders in a space, hence the funky name.
 ///
 class Orderizer : public Linearizer // (implemented in linear2.cpp)
@@ -165,14 +165,14 @@ public:
 
   void process_solution(Space* space);
 
-  int get_labels(int*& lvert, char**& ltext, double2*& lbox) const 
+  int get_labels(int*& lvert, char**& ltext, double2*& lbox) const
         { lvert = this->lvert; ltext = this->ltext; lbox = this->lbox; return nl; };
 
   virtual void save_data(const char* filename);
   virtual void load_data(const char* filename);
-        
+
 protected:
-  
+
   char  buffer[1000];
   char* labels[11][11];
 
@@ -185,7 +185,7 @@ protected:
 
 
 /// "Vectorizer" is a Linearizer for vector solutions. The only difference is
-/// that linearized vertices are vector-valued. Also, regularization of the 
+/// that linearized vertices are vector-valued. Also, regularization of the
 /// resulting mesh is not attempted. The class can handle different meshes in
 /// both X and Y components.
 ///
@@ -200,34 +200,34 @@ public:
 
   double4* get_vertices() const { return verts; }
   int get_num_vertices() const { return nv; }
-  
+
   int2* get_dashes() const { return dashes; }
   int get_num_dashes() const { return nd; }
 
   double get_min_value() const { return min_val; }
-  double get_max_value() const { return max_val; } 
-  
+  double get_max_value() const { return max_val; }
+
   virtual void save_data(const char* filename);
   virtual void load_data(const char* filename);
 
   void free();
-  
+
 protected:
 
   MeshFunction *xsln, *ysln;
   int xitem, yitem;
   int xia, xib, yia, yib;
   double4* verts;  ///< vertices: (x, y, xvalue, yvalue) quadruples
-  int2* dashes;   
+  int2* dashes;
   int nd, ed, cd;
-  
+
   int get_vertex(int p1, int p2, double x, double y, double xvalue, double yvalue);
-  int create_vertex(double x, double y, double xvalue, double yvalue);  
+  int create_vertex(double x, double y, double xvalue, double yvalue);
   void process_dash(int iv1, int iv2);
-    
+
   int add_vertex()
   {
-    if (nv >= cv) 
+    if (nv >= cv)
     {
       cv *= 2;
       verts = (double4*) realloc(verts, sizeof(double4) * cv);
@@ -249,7 +249,7 @@ protected:
     xsln->push_transform(son);
     if (ysln != xsln) ysln->push_transform(son);
   }
-  
+
   void pop_transform()
   {
     xsln->pop_transform();
@@ -258,12 +258,12 @@ protected:
 
   void process_triangle(int iv0, int iv1, int iv2, int level,
                         scalar* xval, scalar* yval, double* phx, double* phy, int* indices);
-  
+
   void process_quad(int iv0, int iv1, int iv2, int iv3, int level,
                     scalar* xval, scalar* yval, double* phx, double* phy, int* indices);
 
   void find_min_max();
- 
+
 };
 
 
