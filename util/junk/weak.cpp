@@ -5,7 +5,7 @@
 
   form    := type [ident "," ident ":"] expr
   type    := "vol" | "surf"
-  expr    := term | term "+" expr | term "-" expr 
+  expr    := term | term "+" expr | term "-" expr
   term    := power | power "*" term | power "/" term
   power   := factor | factor "^" expon
   expon   := number | "(" expr ")"
@@ -13,16 +13,16 @@
   partial := "x" | "y" | "xx" | "yy" | "xy"
   spvar   := "x" | "y"
 
-  
+
   TODO: complex unit
-  TODO: functions (norm, abs, 
+  TODO: functions (norm, abs,
   TODO: boolean & ternary expressions?
 
   operations: ROTx, ADD, SUB, MUL, DIV, NEG, SQR, CUB?, POW
   composites: LAPx, CNVx
   functions:  NRM, ABS
   reductions: SUM
-  
+
   order table: char[order1][order2]
 
 
@@ -91,12 +91,12 @@ IDEAS FOR A NEW DISCRETE PROBLEM INTERFACE
   wf.compile(); // optional
 
                     +
-                 /     \ 
-              *           * 
-            /   \       /   \ 
+                 /     \
+              *           *
+            /   \       /   \
           u_x   v_x   u_y   v_y
- 
- 
+
+
    R1 = MULdd(u_x, v_y)
    R2 = MULdd(u_y, v_y)
    R1 = ADD(R1, R2)
@@ -111,16 +111,16 @@ IDEAS FOR A NEW DISCRETE PROBLEM INTERFACE
 
 
    struct { (*op), result, char arg[8] }
-   
+
   registers:
-   
-    0: *u       12: 
+
+    0: *u       12:
     1: *u_x
     2: *u_y
     3: *u_xx
     4: *u_yy
     5: *u_xy
-   
+
     6: *v
     7: *v_x
     8: *v_y
@@ -147,15 +147,15 @@ IDEAS FOR A NEW DISCRETE PROBLEM INTERFACE
 
   surface: " <u,v>_subdom + ... "
 
-   
+
 
   EigSolver
   SlepcEigSolver eigsolver;
-   
+
   WeakForm mass(1), stiff(1);
   mass.set_eqn (0, "(u,v)");
   stiff.set_eqn(0, "[u,v] = 0");
-   
+
   EigSystem eig(&mass, &stif, &eigsolver);
   eig.set_spaces(1, &space);
   eig.assemble();

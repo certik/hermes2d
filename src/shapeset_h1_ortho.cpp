@@ -16831,7 +16831,7 @@ ortho2_f66y (double x, double y)
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-static Shapeset::shape_fn_t ortho2_tri_fn[] = 
+static Shapeset::shape_fn_t ortho2_tri_fn[] =
 {
   ortho2_f1,    ortho2_f2,    ortho2_f3,    ortho2_f4,    ortho2_f5,    ortho2_f6,    ortho2_f7_0,
   ortho2_f7_1,  ortho2_f8_0,  ortho2_f8_1,  ortho2_f9_0,  ortho2_f9_1,  ortho2_f10,   ortho2_f11,
@@ -16848,7 +16848,7 @@ static Shapeset::shape_fn_t ortho2_tri_fn[] =
 };
 
 
-static Shapeset::shape_fn_t ortho2_tri_fn_dx[] = 
+static Shapeset::shape_fn_t ortho2_tri_fn_dx[] =
 {
  ortho2_f1x,    ortho2_f2x,    ortho2_f3x,    ortho2_f4x,    ortho2_f5x,    ortho2_f6x,    ortho2_f7x_0,
   ortho2_f7x_1,  ortho2_f8x_0,  ortho2_f8x_1,  ortho2_f9x_0,  ortho2_f9x_1,  ortho2_f10x,   ortho2_f11x,
@@ -16864,7 +16864,7 @@ static Shapeset::shape_fn_t ortho2_tri_fn_dx[] =
   ortho2_f66x
 };
 
-static Shapeset::shape_fn_t ortho2_tri_fn_dy[] = 
+static Shapeset::shape_fn_t ortho2_tri_fn_dy[] =
 {
  ortho2_f1y,    ortho2_f2y,    ortho2_f3y,    ortho2_f4y,    ortho2_f5y,    ortho2_f6y,    ortho2_f7y_0,
   ortho2_f7y_1,  ortho2_f8y_0,  ortho2_f8y_1,  ortho2_f9y_0,  ortho2_f9y_1,  ortho2_f10y,   ortho2_f11y,
@@ -16880,7 +16880,7 @@ static Shapeset::shape_fn_t ortho2_tri_fn_dy[] =
   ortho2_f66y
 };
 
-static int ortho2_tri_bubble_indices_all_orders[] = 
+static int ortho2_tri_bubble_indices_all_orders[] =
 {
   12,
   16, 17,
@@ -16892,7 +16892,7 @@ static int ortho2_tri_bubble_indices_all_orders[] =
   70, 71, 72, 73, 74, 75, 76, 77
 };
 
-static int* ortho2_tri_bubble_indices[11] = 
+static int* ortho2_tri_bubble_indices[11] =
 {
   NULL, NULL, NULL,
   ortho2_tri_bubble_indices_all_orders,
@@ -16911,17 +16911,17 @@ static int ortho2_tri_edge_indices_0[22] =  { 0, 1, 1, 0, 3, 3, 6,  7,  13, 13, 
 static int ortho2_tri_edge_indices_1[22] =  { 1, 2, 2, 1, 4, 4, 8,  9,  14, 14, 20, 21, 28, 28, 36, 37, 46, 46, 56, 57, 68, 68 };
 static int ortho2_tri_edge_indices_2[22] =  { 2, 0, 0, 2, 5, 5, 10, 11, 15, 15, 22, 23, 29, 29, 38, 39, 47, 47, 58, 59, 69, 69 };
 
-static int* ortho2_tri_edge_indices[3] = 
+static int* ortho2_tri_edge_indices[3] =
 {
   ortho2_tri_edge_indices_0,
   ortho2_tri_edge_indices_1,
-  ortho2_tri_edge_indices_2  
+  ortho2_tri_edge_indices_2
 };
 
 static int ortho2_tri_vertex_indices[3] = { 0, 1, 2 };
 
 
-static int ortho2_tri_index_to_order[78] = 
+static int ortho2_tri_index_to_order[78] =
 {
   1, 1, 1, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 6,
   7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 8, 8, 8, 8, 8, 8, 8, 8, 8, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9,
@@ -16929,18 +16929,18 @@ static int ortho2_tri_index_to_order[78] =
 };
 
 
-static Shapeset::shape_fn_t* ortho2_tri_shape_fn_table[1] = 
-{ 
+static Shapeset::shape_fn_t* ortho2_tri_shape_fn_table[1] =
+{
   ortho2_tri_fn
 };
 
-static Shapeset::shape_fn_t* ortho2_tri_shape_fn_table_dx[1] = 
-{ 
+static Shapeset::shape_fn_t* ortho2_tri_shape_fn_table_dx[1] =
+{
   ortho2_tri_fn_dx
 };
 
-static Shapeset::shape_fn_t* ortho2_tri_shape_fn_table_dy[1] = 
-{ 
+static Shapeset::shape_fn_t* ortho2_tri_shape_fn_table_dy[1] =
+{
   ortho2_tri_fn_dy
 };
 
@@ -16950,21 +16950,21 @@ static Shapeset::shape_fn_t* ortho2_tri_shape_fn_table_dy[1] =
 #include "shapeset_h1_quad.h"
 
 
-static Shapeset::shape_fn_t** ortho2_shape_fn_table[2] = 
-{ 
+static Shapeset::shape_fn_t** ortho2_shape_fn_table[2] =
+{
   ortho2_tri_shape_fn_table,
   simple_quad_shape_fn_table
 };
 
 
-static Shapeset::shape_fn_t** ortho2_shape_fn_table_dx[2] = 
-{ 
+static Shapeset::shape_fn_t** ortho2_shape_fn_table_dx[2] =
+{
   ortho2_tri_shape_fn_table_dx,
   simple_quad_shape_fn_table_dx
 };
 
-static Shapeset::shape_fn_t** ortho2_shape_fn_table_dy[2] = 
-{ 
+static Shapeset::shape_fn_t** ortho2_shape_fn_table_dy[2] =
+{
   ortho2_tri_shape_fn_table_dy,
   simple_quad_shape_fn_table_dy
 };
@@ -17013,13 +17013,13 @@ H1ShapesetOrtho::H1ShapesetOrtho()
   shape_table[3] = NULL;
   shape_table[4] = NULL;
   shape_table[5] = NULL;
-  
+
   vertex_indices = ortho2_vertex_indices;
   edge_indices = ortho2_edge_indices;
   bubble_indices = ortho2_bubble_indices;
   bubble_count = ortho2_bubble_count;
   index_to_order = ortho2_index_to_order;
-  
+
   ref_vert[0][0][0] = -1.0;
   ref_vert[0][0][1] = -1.0;
   ref_vert[0][1][0] =  1.0;
@@ -17041,7 +17041,7 @@ H1ShapesetOrtho::H1ShapesetOrtho()
 
   max_index[0] = 77;
   max_index[1] = 136;
-  
+
   ebias = 2;
 
   comb_table = NULL;

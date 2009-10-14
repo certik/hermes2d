@@ -28,7 +28,7 @@
 
   form    := type [ident "," ident ":"] expr
   type    := "vol" | "surf"
-  expr    := term | term "+" expr | term "-" expr 
+  expr    := term | term "+" expr | term "-" expr
   term    := power | power "*" term | power "/" term
   power   := factor | factor "^" expon
   expon   := number | "(" expr ")"
@@ -71,7 +71,7 @@ static Node* make_tree(Token* token, Node* left, Node* right, Node* cond)
   n->right = right;
   n->cond = cond;
   return n;
-}     
+}
 
 
 NODE* factor(void)

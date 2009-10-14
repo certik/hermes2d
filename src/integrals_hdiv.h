@@ -46,7 +46,7 @@ inline T int_g_h(Function<T>* fg, Function<T>* fh, RefMap* rg, RefMap* rh)
   mh = rh->get_inv_ref_map(o);
   double* jac = rg->get_jacobian(o);
   for (int i = 0; i < np; i++, mg++, mh++)
-      result += pt[i][2] * jac[i] * (( (*mg)[1][1]*g0[i] - (*mg)[1][0]*g1[i]) * ( (*mh)[1][1]*h0[i] - (*mh)[1][0]*h1[i]) + 
+      result += pt[i][2] * jac[i] * (( (*mg)[1][1]*g0[i] - (*mg)[1][0]*g1[i]) * ( (*mh)[1][1]*h0[i] - (*mh)[1][0]*h1[i]) +
                                      (-(*mg)[0][1]*g0[i] + (*mg)[0][0]*g1[i]) * (-(*mh)[0][1]*h0[i] + (*mh)[0][0]*h1[i]));
 
   return result;

@@ -26,21 +26,21 @@
 #include "shapeset.h"
 
 
-/// \brief Caches precalculated shape function values. 
+/// \brief Caches precalculated shape function values.
 ///
-/// PrecalcShapeset is a cache of precalculated shape function values. 
+/// PrecalcShapeset is a cache of precalculated shape function values.
 ///
 ///
 class PrecalcShapeset : public RealFunction
 {
 public:
 
-  /// \brief Constructs a standard (master) precalculated shapeset class. 
+  /// \brief Constructs a standard (master) precalculated shapeset class.
   /// \param shapeset [in] Pointer to the shapeset to be precalculated.
   PrecalcShapeset(Shapeset* shapeset);
 
-  /// \brief Constructs a slave precalculated shapeset class. 
-  /// \details The slave instance does not hold any precalculated tables. 
+  /// \brief Constructs a slave precalculated shapeset class.
+  /// \details The slave instance does not hold any precalculated tables.
   /// Instead, it refers to those contained in the master instance. However,
   /// the slave can have different shape function active, different transform
   /// selected, etc. Slave pss's are used for test functions when calling
@@ -52,14 +52,14 @@ public:
   virtual ~PrecalcShapeset();
 
   virtual void set_quad_2d(Quad2D* quad_2d);
-  
+
   /// \brief Frees all precalculated tables.
   virtual void free();
 
   /// Ensures subsequent calls to get_active_element() will be returning 'e'.
-  /// Switches the class to the appropriate mode (triangle, quad). 
+  /// Switches the class to the appropriate mode (triangle, quad).
   virtual void set_active_element(Element* e);
-  
+
   /// Activates a shape function given by its index. The values of the shape function
   /// can then be obtained by setting the required integration rule order by calling
   /// set_quad_order() and after that calling get_values(), get_dx_values(), etc.
@@ -70,9 +70,9 @@ public:
   int get_active_shape() const { return index; };
 
   /// Returns a pointer to the shapeset which is being precalculated.
-  Shapeset* get_shapeset() const { return shapeset; } 
+  Shapeset* get_shapeset() const { return shapeset; }
 
-  
+
   /// Internal. Use set_active_element() instead.
   void set_mode(int mode);
 
@@ -85,12 +85,12 @@ public:
     stack[top] = *(master_pss->ctm);
     ctm = stack + top;
   }
-  
+
   void dump_info(int quad, const char* filename); // debug
-  
-  
+
+
 protected:
-  
+
   Shapeset* shapeset;
 
   void* tables; ///< primary Judy array of shapes
@@ -108,7 +108,7 @@ protected:
   void update_max_index();
 
   /// Forces a transform without using push_transform() etc.
-  /// Used by the Solution class. <b>For internal use only</b>. 
+  /// Used by the Solution class. <b>For internal use only</b>.
   void force_transform(uint64 sub_idx, Trf* ctm)
   {
     this->sub_idx = sub_idx;

@@ -410,7 +410,7 @@ class MeshView(object):
     def wait(self):
         pass
 
-    def show(self, mesh, show=True, lib="glut", notebook=False, space=None, 
+    def show(self, mesh, show=True, lib="glut", notebook=False, space=None,
             filename="a.png", **options):
         if lib == "glut":
             from _hermes2d import MeshView

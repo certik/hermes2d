@@ -27,11 +27,11 @@ int main(int argc, char* argv[])
   FILE* f = fopen(name, "r");
   mesh_parser_init(f, name);
   mesh_parser_run();
-  
+
   MSymbol* sym = mesh_parser_find_symbol("vertices");
   print_item(sym->data);
   printf("\n");
-  
+
   mesh_parser_free();
   return 0;
 }

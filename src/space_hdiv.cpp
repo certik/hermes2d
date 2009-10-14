@@ -39,7 +39,7 @@ HdivSpace::HdivSpace(Mesh* mesh, Shapeset* shapeset)
   {
     precalculate_projection_matrix(0, hdiv_proj_mat, hdiv_chol_p);
   }
-  
+
   proj_mat = hdiv_proj_mat;
   chol_p   = hdiv_chol_p;
 }
@@ -104,7 +104,7 @@ void HdivSpace::assign_bubble_dofs()
     ElementData* ed = &edata[e->id];
     ed->bdof = next_dof;
     ed->n = shapeset->get_num_bubbles(ed->order);
-    next_dof += ed->n * stride;    
+    next_dof += ed->n * stride;
   }
 }
 
@@ -161,12 +161,12 @@ scalar* HdivSpace::get_bc_projection(EdgePos* ep, int order)
 {
   assert(order >= 0);
   scalar* proj = new scalar[order + 1];
-  
+
   Quad1DStd quad1d;
   scalar* rhs = proj;
   int mo = quad1d.get_max_order();
   double2* pt = quad1d.get_points(mo);
-  
+
   Node* vn1 = mesh->get_node(ep->v1);
   Node* vn2 = mesh->get_node(ep->v2);
   double el = sqrt(sqr(vn1->x - vn2->x) + sqr(vn1->y - vn2->y));
@@ -230,7 +230,7 @@ void HdivSpace::update_constrained_nodes(Element* e, EdgeInfo* ei0, EdgeInfo* ei
   // the element has sons - update mid-edge constrained vertex nodes
   else
   {
-    
+
     // create new edge infos where we don't have them yet
     EdgeInfo ei_data[4];
     for (i = 0; i < e->nvert; i++)

@@ -48,7 +48,7 @@ static int3**    ord_edge[2]        = { ord_edge_tri, ord_edge_quad };
 static class Quad2DOrd : public Quad2D
 {
 public:
-  
+
   Quad2DOrd()
   {
     mode = MODE_TRIANGLE;
@@ -57,8 +57,8 @@ public:
     tables = ord_tables;
     np = ord_np;
   };
-  
-  virtual void dummy_fn() {} 
+
+  virtual void dummy_fn() {}
 
 } quad_ord;
 
@@ -73,7 +73,7 @@ Orderizer::Orderizer()
   lbox = NULL;
 
   nl = cl1 = cl2 = cl3 = 0;
-  
+
   for (int i = 0, p = 0; i <= 10; i++)
   {
     for (int j = 0; j <= 10; j++)
@@ -91,9 +91,9 @@ void Orderizer::process_solution(Space* space)
 {
   if (!space->is_up_to_date())
     error("The space is not up to date.");
-  
+
   int type = 1;
-  
+
   nv = nt = ne = nl = 0;
   del_slot = -1;
 
@@ -112,7 +112,7 @@ void Orderizer::process_solution(Space* space)
   info = NULL;
 
   int i, k, oo, o[6];
-  
+
   RefMap refmap;
   refmap.set_quad_2d(&quad_ord);
 
@@ -125,8 +125,8 @@ void Orderizer::process_solution(Space* space)
       o[k] = space->get_edge_order(e, k);
 
     refmap.set_active_element(e);
-    double* x = refmap.get_phys_x(type); 
-    double* y = refmap.get_phys_y(type); 
+    double* x = refmap.get_phys_x(type);
+    double* y = refmap.get_phys_y(type);
 
     double3* pt = quad_ord.get_points(type);
     int np = quad_ord.get_num_points(type);
@@ -138,28 +138,28 @@ void Orderizer::process_solution(Space* space)
       verts[index][0] = (x); \
       verts[index][1] = (y); \
       verts[index][2] = (val); }
-      
-    int mode = e->get_mode();  
+
+    int mode = e->get_mode();
     if (e->is_quad())
-    { 
+    {
       o[4] = get_h_order(oo);
       o[5] = get_v_order(oo);
     }
     make_vert(lvert[nl], x[0], y[0], o[4]);
-    
+
     for (i = 1; i < np; i++)
       make_vert(id[i-1], x[i], y[i], o[(int) pt[i][2]]);
 
     for (i = 0; i < num_elem[mode][type]; i++)
-      add_triangle(id[ord_elem[mode][type][i][0]], id[ord_elem[mode][type][i][1]], id[ord_elem[mode][type][i][2]]); 
+      add_triangle(id[ord_elem[mode][type][i][0]], id[ord_elem[mode][type][i][1]], id[ord_elem[mode][type][i][2]]);
 
     for (i = 0; i < num_edge[mode][type]; i++)
     {
       if (e->en[ord_edge[mode][type][i][2]]->bnd || (y[ord_edge[mode][type][i][0] + 1] < y[ord_edge[mode][type][i][1] + 1]) ||
-          ((y[ord_edge[mode][type][i][0] + 1] == y[ord_edge[mode][type][i][1] + 1]) && 
+          ((y[ord_edge[mode][type][i][0] + 1] == y[ord_edge[mode][type][i][1] + 1]) &&
            (x[ord_edge[mode][type][i][0] + 1] <  x[ord_edge[mode][type][i][1] + 1])))
       {
-        add_edge(id[ord_edge[mode][type][i][0]], id[ord_edge[mode][type][i][1]], 0); 
+        add_edge(id[ord_edge[mode][type][i][0]], id[ord_edge[mode][type][i][1]], 0);
       }
     }
 
@@ -175,7 +175,7 @@ void Orderizer::process_solution(Space* space)
     lbox[nl][1] = ymax - ymin;
     ltext[nl++] = labels[o[4]][o[5]];
   }
-  
+
   refmap.set_quad_2d(&g_quad_2d_std);
 }
 
@@ -195,17 +195,17 @@ void Orderizer::save_data(const char* filename)
   FILE* f = fopen(filename, "wb");
   if (f == NULL) error("Could not open %s for writing.", filename);
   lock_data();
-  
+
   int orders[nl], vo, ho;
   for (int i = 0; i < nl; i++)
   {
     if (strchr(ltext[i], '|'))
       sscanf(ltext[i], "%d|%d", &ho, &vo);
-    else 
+    else
       { sscanf(ltext[i], "%d", &ho); vo = ho; }
     orders[i] = make_quad_order(ho, vo);
   }
-  
+
   if (fwrite("H2DO\001\000\000\000", 1, 8, f) != 8 ||
       fwrite(&nv, sizeof(int), 1, f) != 1 ||
       fwrite(verts, sizeof(double3), nv, f) != nv ||
@@ -220,7 +220,7 @@ void Orderizer::save_data(const char* filename)
   {
     error("Error writing data to %s", filename);
   }
-  
+
   unlock_data();
   fclose(f);
 }
@@ -256,16 +256,16 @@ void Orderizer::load_data(const char* filename)
   lin_init_array(lbox, double2, cl3, nl);
   if (fread(lbox, sizeof(double2), nl, f) != nl)
     error("Error reading label bounding boxes from %s", filename);
-  
+
   int orders[nl];
   if (fread(orders, sizeof(int), nl, f) != nl)
     error("Error reading element orders from %s", filename);
-  
+
   lin_init_array(ltext, char*, cl2, nl);
   for (int i = 0; i < nl; i++)
     ltext[i] = labels[get_h_order(orders[i])][get_v_order(orders[i])];
-    
-  find_min_max();  
+
+  find_min_max();
   unlock_data();
   fclose(f);
 }

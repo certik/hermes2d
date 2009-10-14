@@ -6,8 +6,8 @@
 // (Such small cavity is present in every microwave oven). There is a circular
 // load located in the middle of the main cavity, defined through a different
 // permittivity -- see function in_load(...). One can either use a mesh that is
-// aligned to the load via curvilinear elements (ALIGN_MESH = true), or an unaligned 
-// mesh (ALIGN_MESH = false). Convergence graphs are saved both wrt. the dof number 
+// aligned to the load via curvilinear elements (ALIGN_MESH = true), or an unaligned
+// mesh (ALIGN_MESH = false). Convergence graphs are saved both wrt. the dof number
 // and cpu time.
 //
 // PDE: time-harmonic Maxwell's equations;
@@ -29,35 +29,35 @@
 const int P_INIT = 2;             // Initial polynomial degree of all mesh elements.
 const bool ALIGN_MESH = true;     // if ALIGN_MESH == true, curvilinear elements aligned with the
                                   // circular load are used, otherwise one uses a non-aligned mesh.
-const double THRESHOLD = 0.3;     // This is a quantitative parameter of the adapt(...) function and 
+const double THRESHOLD = 0.3;     // This is a quantitative parameter of the adapt(...) function and
                                   // it has different meanings for various adaptive strategies (see below).
 const int STRATEGY = 1;           // Adaptive strategy:
-                                  // STRATEGY = 0 ... refine elements until sqrt(THRESHOLD) times total 
-                                  //   error is processed. If more elements have similar errors, refine 
+                                  // STRATEGY = 0 ... refine elements until sqrt(THRESHOLD) times total
+                                  //   error is processed. If more elements have similar errors, refine
                                   //   all to keep the mesh symmetric.
-                                  // STRATEGY = 1 ... refine all elements whose error is larger  
+                                  // STRATEGY = 1 ... refine all elements whose error is larger
                                   //   than THRESHOLD times maximum element error.
-                                  // STRATEGY = 2 ... refine all elements whose error is larger 
+                                  // STRATEGY = 2 ... refine all elements whose error is larger
                                   //   than THRESHOLD.
                                   // More adaptive strategies can be created in adapt_ortho_h1.cpp.
 const int ADAPT_TYPE = 0;         // Type of automatic adaptivity:
                                   // ADAPT_TYPE = 0 ... adaptive hp-FEM (default),
-                                  // ADAPT_TYPE = 1 ... adaptive h-FEM, 
-                                  // ADAPT_TYPE = 2 ... adaptive p-FEM. 
+                                  // ADAPT_TYPE = 1 ... adaptive h-FEM,
+                                  // ADAPT_TYPE = 2 ... adaptive p-FEM.
 const bool ISO_ONLY = false;      // Isotropic refinement flag (concerns quadrilateral elements only).
                                   // ISO_ONLY = false ... anisotropic refinement of quad elements
-                                  // is allowed (default), 
+                                  // is allowed (default),
                                   // ISO_ONLY = true ... only isotropic refinements of quad elements
                                   // are allowed.
 const int MESH_REGULARITY = -1;   // Maximum allowed level of hanging nodes:
                                   // MESH_REGULARITY = -1 ... arbitrary level hangning nodes (default),
                                   // MESH_REGULARITY = 1 ... at most one-level hanging nodes,
-                                  // MESH_REGULARITY = 2 ... at most two-level hanging nodes, etc.  
-                                  // Note that regular meshes are not supported, this is due to 
-                                  // their notoriously bad performance. 
+                                  // MESH_REGULARITY = 2 ... at most two-level hanging nodes, etc.
+                                  // Note that regular meshes are not supported, this is due to
+                                  // their notoriously bad performance.
 const double ERR_STOP = 2.0;      // Stopping criterion for adaptivity (rel. error tolerance between the
                                   // fine mesh and coarse mesh solution in percent).
-const int NDOF_STOP = 40000;      // Adaptivity process stops when the number of degrees of freedom grows 
+const int NDOF_STOP = 40000;      // Adaptivity process stops when the number of degrees of freedom grows
                                   // over this limit. This is to prevent h-adaptivity to go on forever.
 
 
@@ -74,7 +74,7 @@ const double c = 1 / sqrt(e_0 * mu_0);
 const double kappa  = 2 * M_PI * freq * sqrt(e_0 * mu_0);
 const double J = 0.0000033333;
 
-// boundary conditions 
+// boundary conditions
 int e_bc_types(int marker)
 {
   if (marker == 2) return BC_ESSENTIAL; // perfect conductor
@@ -166,7 +166,7 @@ int main(int argc, char* argv[])
   HcurlShapeset shapeset;
   PrecalcShapeset pss(&shapeset);
 
-  // create finite element space 
+  // create finite element space
   HcurlSpace space(&mesh, &shapeset);
   space.set_bc_types(e_bc_types);
   space.set_uniform_order(P_INIT);
@@ -192,7 +192,7 @@ int main(int argc, char* argv[])
   graph.add_row("error estimate", "-", "o");
   graph.set_log_y();
 
-  // convergence graph wrt. CPU time 
+  // convergence graph wrt. CPU time
   GnuplotGraph graph_cpu;
   graph_cpu.set_captions("Error Convergence for the Waveguide Problem", "CPU Time", "Error Estimate [%]");
   graph_cpu.add_row("error estimate", "-", "o");
@@ -241,15 +241,15 @@ int main(int argc, char* argv[])
     info("Hcurl error estimate: %g%%", hcurl_error(&sln_coarse, &sln_fine) * 100);
     info("Adapt error estimate: %g%%", err_est);
 
-    // add entry to DOF convergence graph 
+    // add entry to DOF convergence graph
     graph.add_values(0, space.get_num_dofs(), err_est);
     graph.save("conv_dof.gp");
 
-    // add entry to CPU convergence graph 
+    // add entry to CPU convergence graph
     graph_cpu.add_values(0, cpu, err_est);
     graph_cpu.save("conv_cpu.gp");
 
-    // if err_est too large, adapt the mesh 
+    // if err_est too large, adapt the mesh
     if (err_est < ERR_STOP) done = true;
     else {
       hp.adapt(THRESHOLD, STRATEGY, ADAPT_TYPE, ISO_ONLY, MESH_REGULARITY);

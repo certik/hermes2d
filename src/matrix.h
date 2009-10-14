@@ -50,7 +50,7 @@ void transpose(T** matrix, int m, int n)
   for (int i = 0; i < min; i++)
     for (int j = i+1; j < min; j++)
       std::swap(matrix[i][j], matrix[j][i]);
-    
+
   if (m < n)
     for (int i = 0; i < m; i++)
       for (int j = m; j < n; j++)

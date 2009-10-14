@@ -93,7 +93,7 @@ void whitney(int i)
       "  return -(l1(x) * Legendre%dx(y));\n"
       "}\n\n",
     i,i,i,i,i,    i,i, i,i,i,i,i,i,i,i
-    );    
+    );
 
 
     printf
@@ -182,7 +182,7 @@ void whitney(int i)
 void edge_fn(int i, int j)
 {
  char c1, c2, c3, c4;
- 
+
  if ((j<2) && (i%2))
  {
   if (j == 1) { c1 = '-'; c2 = ' '; c3 = '-'; c4 = ' ';}
@@ -237,7 +237,7 @@ void edge_fn(int i, int j)
     "}\n\n",
     i, j, c2, i, j
   );
- 
+
   printf
   (
     "static double gradleg_quad_l%d_l%d_bx_0(double x, double y)\n"
@@ -290,7 +290,7 @@ void edge_fn(int i, int j)
  }
  else if ((i<2) && (j%2))
  {
-  
+
   if (i == 0) { c1 = '-'; c2 = ' '; c3 = '-'; c4 = ' ';}
   else {c2 = '-'; c1 = ' '; c3 = ' '; c4 = '-';}
   printf
@@ -325,7 +325,7 @@ void edge_fn(int i, int j)
     "}\n\n",
     i, j, c2, i, j
   );
- 
+
   printf
   (
     "static double gradleg_quad_l%d_l%d_ax_0(double x, double y)\n"
@@ -546,8 +546,8 @@ int main(int argc, char* argv[])
 
   bubble(10,10);
 
-  printf("static Shapeset::shape_fn_t gradleg_quad_fn_a[] = \n{\n");      
-  
+  printf("static Shapeset::shape_fn_t gradleg_quad_fn_a[] = \n{\n");
+
   printf("  gradleg_quad_p0_e1_a_0, gradleg_quad_p0_e1_a_1, gradleg_quad_p0_e2_a, gradleg_quad_p0_e2_a, gradleg_quad_p0_e3_a_0, gradleg_quad_p0_e3_a_1, gradleg_quad_p0_e4_a, gradleg_quad_p0_e4_a, \n");
 
   for (j = 2; j <= 11; j++)
@@ -569,7 +569,7 @@ int main(int argc, char* argv[])
       indices1[i][j] = 0;
       indices2[i][j] = 0;
     }
- 
+
   for (int i = 0; i <= 10; i++)
     for (int j = 2; j <= 10 + 1; j++)
     {
@@ -582,17 +582,17 @@ int main(int argc, char* argv[])
     {
       printf("  gradleg_quad_p%dp%d_b2_a, ", i,j);
       indices2[i-1][j] = k;
-      k++;    
-    } 
+      k++;
+    }
   printf("};\n\n");
 
 
 
 
-  printf("static Shapeset::shape_fn_t gradleg_quad_fn_b[] = \n{\n");  
+  printf("static Shapeset::shape_fn_t gradleg_quad_fn_b[] = \n{\n");
 
   printf("  gradleg_quad_p0_e1_b, gradleg_quad_p0_e1_b, gradleg_quad_p0_e2_b_0, gradleg_quad_p0_e2_b_1,  gradleg_quad_p0_e3_b, gradleg_quad_p0_e3_b, gradleg_quad_p0_e4_b_0, gradleg_quad_p0_e4_b_1, \n");
-    
+
   for (j = 2; j <= 11; j++)
   {
     if (!(j%2))
@@ -600,7 +600,7 @@ int main(int argc, char* argv[])
     else
       printf("  gradleg_quad_l%d_l0_b_0, gradleg_quad_l%d_l0_b_1, gradleg_quad_l1_l%d_b_0, gradleg_quad_l1_l%d_b_1, gradleg_quad_l%d_l1_b_0, gradleg_quad_l%d_l1_b_1, gradleg_quad_l0_l%d_b_0, gradleg_quad_l0_l%d_b_1, ", j,j,j,j,j,j,j,j);
     printf("\n");
-  }  
+  }
   printf("\n");
 
   for (int i = 0; i <= 10; i++)
@@ -613,8 +613,8 @@ int main(int argc, char* argv[])
   printf("};\n\n");
 
 
-  printf("static Shapeset::shape_fn_t gradleg_quad_fn_ax[] = \n{\n");      
-  
+  printf("static Shapeset::shape_fn_t gradleg_quad_fn_ax[] = \n{\n");
+
   printf("  gradleg_quad_p0_e1_ax_0, gradleg_quad_p0_e1_ax_1, gradleg_quad_p0_e2_ax, gradleg_quad_p0_e2_ax, gradleg_quad_p0_e3_ax_0, gradleg_quad_p0_e3_ax_1, gradleg_quad_p0_e4_ax, gradleg_quad_p0_e4_ax, \n");
 
   for (j = 2; j <= 11; j++)
@@ -638,10 +638,10 @@ int main(int argc, char* argv[])
 
 
 
-  printf("static Shapeset::shape_fn_t gradleg_quad_fn_bx[] = \n{\n");  
+  printf("static Shapeset::shape_fn_t gradleg_quad_fn_bx[] = \n{\n");
 
   printf("  gradleg_quad_p0_e1_bx, gradleg_quad_p0_e1_bx, gradleg_quad_p0_e2_bx_0, gradleg_quad_p0_e2_bx_1,  gradleg_quad_p0_e3_bx, gradleg_quad_p0_e3_bx, gradleg_quad_p0_e4_bx_0, gradleg_quad_p0_e4_bx_1, \n");
-    
+
   for (j = 2; j <= 11; j++)
   {
     if (!(j%2))
@@ -649,7 +649,7 @@ int main(int argc, char* argv[])
     else
       printf("  gradleg_quad_l%d_l0_bx_0, gradleg_quad_l%d_l0_bx_1, gradleg_quad_l1_l%d_bx_0, gradleg_quad_l1_l%d_bx_1, gradleg_quad_l%d_l1_bx_0, gradleg_quad_l%d_l1_bx_1, gradleg_quad_l0_l%d_bx_0, gradleg_quad_l0_l%d_bx_1, ", j,j,j,j,j,j,j,j);
     printf("\n");
-  }  
+  }
   printf("\n");
   for (int i = 0; i <= 10; i++)
     for (int j = 2; j <= 10 + 1; j++)
@@ -661,8 +661,8 @@ int main(int argc, char* argv[])
   printf("};\n\n");
 
 
-  printf("static Shapeset::shape_fn_t gradleg_quad_fn_ay[] = \n{\n");      
-  
+  printf("static Shapeset::shape_fn_t gradleg_quad_fn_ay[] = \n{\n");
+
   printf("  gradleg_quad_p0_e1_ay_0, gradleg_quad_p0_e1_ay_1, gradleg_quad_p0_e2_ay, gradleg_quad_p0_e2_ay, gradleg_quad_p0_e3_ay_0, gradleg_quad_p0_e3_ay_1, gradleg_quad_p0_e4_ay, gradleg_quad_p0_e4_ay, \n");
 
   for (j = 2; j <= 11; j++)
@@ -686,10 +686,10 @@ int main(int argc, char* argv[])
 
 
 
-  printf("static Shapeset::shape_fn_t gradleg_quad_fn_by[] = \n{\n");  
+  printf("static Shapeset::shape_fn_t gradleg_quad_fn_by[] = \n{\n");
 
   printf("  gradleg_quad_p0_e1_by, gradleg_quad_p0_e1_by, gradleg_quad_p0_e2_by_0, gradleg_quad_p0_e2_by_1,  gradleg_quad_p0_e3_by, gradleg_quad_p0_e3_by, gradleg_quad_p0_e4_by_0, gradleg_quad_p0_e4_by_1, \n");
-    
+
   for (j = 2; j <= 11; j++)
   {
     if (!(j%2))
@@ -697,12 +697,12 @@ int main(int argc, char* argv[])
     else
       printf("  gradleg_quad_l%d_l0_by_0, gradleg_quad_l%d_l0_by_1, gradleg_quad_l1_l%d_by_0, gradleg_quad_l1_l%d_by_1, gradleg_quad_l%d_l1_by_0, gradleg_quad_l%d_l1_by_1, gradleg_quad_l0_l%d_by_0, gradleg_quad_l0_l%d_by_1, ", j,j,j,j,j,j,j,j);
     printf("\n");
-  }  
+  }
   printf("\n");
   int s = 88;
   for (int i = 0; i <= 10; i++)
     for (int j = 2; j <= 10 + 1; j++)
-    { 
+    {
       printf("  gradleg_quad_p%dp%d_b1_by, ", i,j);
       s++;
     }
@@ -715,7 +715,7 @@ int main(int argc, char* argv[])
 
 ////////////////////////////////////////////////////////////////////////////
 
- 
+
   for (int i = 0; i <= 10; i++)
     for (int j = 0; j <= 10; j++)
     {
@@ -727,8 +727,8 @@ int main(int argc, char* argv[])
           {
             if (indices1[k][l] != 0) printf("%d,", indices1[k][l]);
             if (indices2[k][l] != 0) printf("%d,", indices2[k][l]);
-          } 
-        printf("};\n  ");      
+          }
+        printf("};\n  ");
       }
     }
 
@@ -754,12 +754,12 @@ int main(int argc, char* argv[])
     printf(" NULL, NULL, NULL, NULL, NULL, NULL16\n");
   }
   printf("};\n\n");
- 
+
   printf("#define zero16  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,\n\n");
   printf("static int gradleg_quad_bubble_count[] =\n{\n");
   //printf("  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, zero16\n");
   for (i = 0; i < 1; i++)
-  {  
+  {
     printf("  0,  ");
     for (j = 1; j <= 10; j++)
     {
@@ -768,7 +768,7 @@ int main(int argc, char* argv[])
     printf("0,  0,  0,  0,  0, zero16 \n");
   }
   for (i = 1; i <= 10; i++)
-  {  
+  {
     printf("  ");
     for (j = 0; j <= 10; j++)
     {
@@ -798,8 +798,8 @@ int main(int argc, char* argv[])
 
   printf("#define oo make_quad_order\n\n");
 
-  printf("static int gradleg_quad_index_to_order[] = \n{\n");      
-  
+  printf("static int gradleg_quad_index_to_order[] = \n{\n");
+
   printf("  oo(0,1), oo(0,1), oo(1,0), oo(1,0), oo(0,1), oo(0,1), oo(1,0), oo(1,0),\n");
 
   for (j = 2; j <= 11; j++)

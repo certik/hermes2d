@@ -40,7 +40,7 @@ public:
   /// in the mesh file) and makes it part of the Dirichlet lift with the given value.
   /// This is a special-purpose function which normally should not be needed.
   /// It is intended for fixing the solution of a system which would otherwise be singular
-  /// and for some reason a standard Dirichlet condition (with non-zero measure on the 
+  /// and for some reason a standard Dirichlet condition (with non-zero measure on the
   /// boundary) is not suitable.
   void fix_vertex(int id, scalar value = 0.0);
 
@@ -49,7 +49,7 @@ public:
   virtual int get_type() const { return 0; }
 
 protected:
-  
+
   virtual void assign_vertex_dofs();
   virtual void assign_edge_dofs();
   virtual void assign_bubble_dofs();
@@ -71,29 +71,29 @@ protected:
     int ori;
     double lo, hi;
   };
-    
-  inline void output_component(BaseComponent*& current, BaseComponent*& last, BaseComponent* min, 
+
+  inline void output_component(BaseComponent*& current, BaseComponent*& last, BaseComponent* min,
                                Node*& edge, BaseComponent*& edge_dofs);
-  
-  BaseComponent* merge_baselists(BaseComponent* l1, int n1, BaseComponent* l2, int n2, 
-                                 Node* edge, BaseComponent*& edge_dofs, int& ncomponents);                               
-  
+
+  BaseComponent* merge_baselists(BaseComponent* l1, int n1, BaseComponent* l2, int n2,
+                                 Node* edge, BaseComponent*& edge_dofs, int& ncomponents);
+
   void update_constrained_nodes(Element* e, EdgeInfo* ei0, EdgeInfo* ei1, EdgeInfo* ei2, EdgeInfo* ei3);
   virtual void update_constraints();
-  
+
   struct FixedVertex
   {
     int id;
     scalar value;
   };
-  
+
   std::vector<FixedVertex> fixed_vertices;
-  
+
   inline bool is_fixed_vertex(int id) const;
   virtual void post_assign();
-  
+
   //void dump_baselist(NodeData& nd);
-  
+
 };
 
 

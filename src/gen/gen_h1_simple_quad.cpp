@@ -62,17 +62,17 @@ void output_fn(int i, int j)
       "{\n"
       "  return -(%c l%d(x) * d2l%d(y));\n"
       "}\n\n",
-      i, j, c, i, j, 
-      i, j, c, i, j, 
-      i, j, c, i, j, 
-      i, j, c, i, j, 
-      i, j, c, i, j, 
       i, j, c, i, j,
-      i, j, c, i, j, 
-      i, j, c, i, j, 
-      i, j, c, i, j, 
-      i, j, c, i, j, 
-      i, j, c, i, j, 
+      i, j, c, i, j,
+      i, j, c, i, j,
+      i, j, c, i, j,
+      i, j, c, i, j,
+      i, j, c, i, j,
+      i, j, c, i, j,
+      i, j, c, i, j,
+      i, j, c, i, j,
+      i, j, c, i, j,
+      i, j, c, i, j,
       i, j, c, i, j
     );
   }
@@ -103,11 +103,11 @@ void output_fn(int i, int j)
       "{\n"
       "  return %c l%d(x) * d2l%d(y);\n"
       "}\n\n",
-      i, j, c, i, j, 
-      i, j, c, i, j, 
-      i, j, c, i, j, 
-      i, j, c, i, j, 
-      i, j, c, i, j, 
+      i, j, c, i, j,
+      i, j, c, i, j,
+      i, j, c, i, j,
+      i, j, c, i, j,
+      i, j, c, i, j,
       i, j, c, i, j
     );
   }
@@ -135,11 +135,11 @@ int main(int argc, char* argv[])
   printf("static Shapeset::shape_fn_t simple_quad_fn[] = \n"
          "{\n  "
   );
-  int r = 0;      
+  int r = 0;
   for (i = 0; i <= 10; i++)
   {
-    
-    for (j = 0; j <= 10; j++) 
+
+    for (j = 0; j <= 10; j++)
     {
       if (((i == 0 || i == 1) && (j & 1) && (j != 1)) || ((j == 0 || j == 1) && (i & 1) && (i != 1)))
       {
@@ -163,11 +163,11 @@ int main(int argc, char* argv[])
   printf("static Shapeset::shape_fn_t simple_quad_fn_dx[] =  \n"
          "{\n  "
   );
-  r = 0;      
+  r = 0;
   for (i = 0; i <= 10; i++)
   {
-    
-    for (j = 0; j <= 10; j++) 
+
+    for (j = 0; j <= 10; j++)
     {
       if (((i == 0 || i == 1) && (j & 1) && (j != 1)) || ((j == 0 || j == 1) && (i & 1) && (i != 1)))
       {
@@ -191,11 +191,11 @@ int main(int argc, char* argv[])
   printf("static Shapeset::shape_fn_t simple_quad_fn_dy[] =  \n"
          "{\n  "
   );
-  r = 0;      
+  r = 0;
   for (i = 0; i <= 10; i++)
   {
-    
-    for (j = 0; j <= 10; j++) 
+
+    for (j = 0; j <= 10; j++)
     {
       if (((i == 0 || i == 1) && (j & 1) && (j != 1)) || ((j == 0 || j == 1) && (i & 1) && (i != 1)))
       {
@@ -219,11 +219,11 @@ int main(int argc, char* argv[])
   printf("static Shapeset::shape_fn_t simple_quad_fn_dxx[] =  \n"
          "{\n  "
   );
-  r = 0;      
+  r = 0;
   for (i = 0; i <= 10; i++)
   {
-    
-    for (j = 0; j <= 10; j++) 
+
+    for (j = 0; j <= 10; j++)
     {
       if (((i == 0 || i == 1) && (j & 1) && (j != 1)) || ((j == 0 || j == 1) && (i & 1) && (i != 1)))
       {
@@ -247,11 +247,11 @@ int main(int argc, char* argv[])
   printf("static Shapeset::shape_fn_t simple_quad_fn_dxy[] =  \n"
          "{\n  "
   );
-  r = 0;      
+  r = 0;
   for (i = 0; i <= 10; i++)
   {
-    
-    for (j = 0; j <= 10; j++) 
+
+    for (j = 0; j <= 10; j++)
     {
       if (((i == 0 || i == 1) && (j & 1) && (j != 1)) || ((j == 0 || j == 1) && (i & 1) && (i != 1)))
       {
@@ -275,11 +275,11 @@ int main(int argc, char* argv[])
   printf("static Shapeset::shape_fn_t simple_quad_fn_dyy[] =  \n"
          "{\n  "
   );
-  r = 0;      
+  r = 0;
   for (i = 0; i <= 10; i++)
   {
-    
-    for (j = 0; j <= 10; j++) 
+
+    for (j = 0; j <= 10; j++)
     {
       if (((i == 0 || i == 1) && (j & 1) && (j != 1)) || ((j == 0 || j == 1) && (i & 1) && (i != 1)))
       {
@@ -337,7 +337,7 @@ int main(int argc, char* argv[])
   printf("\n\n");
 
 
-  printf("#define NULL16 NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,  NULL, NULL, NULL, NULL, NULL\n\n");  
+  printf("#define NULL16 NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,  NULL, NULL, NULL, NULL, NULL\n\n");
 
   printf("int* simple_quad_bubble_indices[] =\n{\n");
   printf("  NULL, NULL, NULL,    NULL,    NULL,    NULL,    NULL,    NULL,    NULL,    NULL,    NULL,     NULL, NULL, NULL, NULL, NULL, NULL16,\n");
@@ -354,7 +354,7 @@ int main(int argc, char* argv[])
     printf(" NULL, NULL, NULL, NULL, NULL, NULL16,\n");
   }
   printf("};\n\n");
-  
+
 
   printf("#define zero16  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0\n\n");
 
@@ -385,7 +385,7 @@ int main(int argc, char* argv[])
          "{\n"
          "  simple_quad_edge_indices_0,\n"
          "  simple_quad_edge_indices_1,\n"
-         "  simple_quad_edge_indices_2,\n" 
+         "  simple_quad_edge_indices_2,\n"
          "  simple_quad_edge_indices_3\n"
          "};\n"
  );

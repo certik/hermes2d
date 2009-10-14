@@ -48,7 +48,7 @@ void DrawMesh_quad(int steps)
       if (length > max) max = length;
     }
   }
-  
+
   for (int i = 0; i <= steps; i++)
   {
     for (int j = 0; j <= steps; j++)
@@ -69,7 +69,7 @@ void DrawMesh_quad(int steps)
 
       float* color = get_palette_entry(length/max); // rozsah je 0.0 -- 1.0
       glColor3f(color[0], color[1], color[2]);
- 
+
       glBegin(GL_LINES);
       glVertex2d(0.0,0.0);
       glVertex2d((length/max) * 2.0/steps,0.0);
@@ -84,7 +84,7 @@ void DrawMesh_quad(int steps)
         glVertex2d( z/2, -z/2);
         glVertex2d(-z/2, -z/2);
         glVertex2d(-z/2,  z/2);
-        glEnd();        
+        glEnd();
       }
       else
       {
@@ -98,18 +98,18 @@ void DrawMesh_quad(int steps)
       glVertex2d(2.0/steps,0.0);
       glVertex2d(4.0/(3.0*steps),0.01);
       glVertex2d(2.0/steps,0.0);
-      glVertex2d(4.0/(3.0*steps),-0.01);    
+      glVertex2d(4.0/(3.0*steps),-0.01);
       glEnd();
 */
       glLoadIdentity();
     }
   }
- 
+
 }
 
 void DrawMesh_tri(int steps)
 {
-  
+
   double max = 0.0;
   for (int i = 0; i <= steps; i++)
   {
@@ -124,7 +124,7 @@ void DrawMesh_tri(int steps)
       if (length > max) max = length;
     }
   }
-  
+
   for (int i = 0; i <= steps; i++)
   {
     for (int j = 0; j <= steps - i; j++)
@@ -145,7 +145,7 @@ void DrawMesh_tri(int steps)
 
       float* color = get_palette_entry(length/max); // rozsah je 0.0 -- 1.0
       glColor3f(color[0], color[1], color[2]);
- 
+
       glBegin(GL_LINES);
       glVertex2d(0.0,0.0);
       glVertex2d((length/max) * 2.0/steps,0.0);
@@ -160,7 +160,7 @@ void DrawMesh_tri(int steps)
         glVertex2d( z/2, -z/2);
         glVertex2d(-z/2, -z/2);
         glVertex2d(-z/2,  z/2);
-        glEnd();        
+        glEnd();
       }
       else
       {
@@ -174,12 +174,12 @@ void DrawMesh_tri(int steps)
       glVertex2d(2.0/steps,0.0);
       glVertex2d(4.0/(3.0*steps),0.01);
       glVertex2d(2.0/steps,0.0);
-      glVertex2d(4.0/(3.0*steps),-0.01);    
+      glVertex2d(4.0/(3.0*steps),-0.01);
       glEnd();
 */
     }
   }
- 
+
 }
 
 
@@ -195,13 +195,13 @@ void OnDisplay(void)
   glLineWidth(1.0);
   glBegin(GL_LINE_LOOP);
 
-  glVertex2d(-1, -1);  
+  glVertex2d(-1, -1);
   glVertex2d( 1, -1);
   glVertex2d(-1,  1);
   glEnd();
 
 /*
-  glVertex2d(-1,  1);  
+  glVertex2d(-1,  1);
   glVertex2d(-1, -1);
   glVertex2d( 1, -1);
   glVertex2d( 1,  1);
@@ -278,7 +278,7 @@ void OnKeyDown(unsigned char key, int x, int y)
 
 int main(int argc, char* argv[])
 {
-  // inicializace 
+  // inicializace
   glutInit(&argc, argv);
   glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE);
 

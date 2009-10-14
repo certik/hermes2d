@@ -23,7 +23,7 @@
 #include "shapeset_common.h"
 #include "shapeset_hc_all.h"
 
-#ifdef COMPLEX 
+#ifdef COMPLEX
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -260,8 +260,8 @@ static double gradleg_tri_p1_e1_ay(double x, double y)
  double l3, l3x, l3y, l2, l2x, l2y;
  double ker, kerx, kery, kerxy;
  l3 = lambda3(x,y); l3x = lambda3x(x,y); l3y = lambda3y(x,y);
-  l2 = lambda2(x,y); l2x = lambda2x(x,y); l2y = lambda2y(x,y); 
- ker = phi0(l3 - l2); kerx = phi0x(l3 - l2) * (l3x - l2x); 
+  l2 = lambda2(x,y); l2x = lambda2x(x,y); l2y = lambda2y(x,y);
+ ker = phi0(l3 - l2); kerx = phi0x(l3 - l2) * (l3x - l2x);
  kery = phi0x(l3 - l2) * (l3y - l2y); kerxy = phi0xx(l3 - l2) * (l3x - l2x) * (l3y - l2y);
  return  (l3x * l2y * ker + l3y * l2x * ker + l3x * l2 * kery + l3 * l2x * kery + l3y * l2 * kerx + l3 * l2y * kerx +  l3 * l2 * kerxy) / 1.0000000000000;
 }
@@ -271,8 +271,8 @@ static double gradleg_tri_p1_e1_bx(double x, double y)
  double l3, l3x, l3y, l2, l2x, l2y;
  double ker, kerx, kery, kerxy;
  l3 = lambda3(x,y); l3x = lambda3x(x,y); l3y = lambda3y(x,y);
-  l2 = lambda2(x,y); l2x = lambda2x(x,y); l2y = lambda2y(x,y); 
- ker = phi0(l3 - l2); kerx = phi0x(l3 - l2) * (l3x - l2x); 
+  l2 = lambda2(x,y); l2x = lambda2x(x,y); l2y = lambda2y(x,y);
+ ker = phi0(l3 - l2); kerx = phi0x(l3 - l2) * (l3x - l2x);
  kery = phi0x(l3 - l2) * (l3y - l2y); kerxy = phi0xx(l3 - l2) * (l3x - l2x) * (l3y - l2y);
  return  (l3x * l2y * ker + l3y * l2x * ker + l3x * l2 * kery + l3 * l2x * kery + l3y * l2 * kerx + l3 * l2y * kerx +  l3 * l2 * kerxy) / 1.0000000000000;
 }
@@ -316,8 +316,8 @@ static double gradleg_tri_p1_e2_ay(double x, double y)
  double l1, l1x, l1y, l3, l3x, l3y;
  double ker, kerx, kery, kerxy;
  l1 = lambda1(x,y); l1x = lambda1x(x,y); l1y = lambda1y(x,y);
-  l3 = lambda3(x,y); l3x = lambda3x(x,y); l3y = lambda3y(x,y); 
- ker = phi0(l1 - l3); kerx = phi0x(l1 - l3) * (l1x - l3x); 
+  l3 = lambda3(x,y); l3x = lambda3x(x,y); l3y = lambda3y(x,y);
+ ker = phi0(l1 - l3); kerx = phi0x(l1 - l3) * (l1x - l3x);
  kery = phi0x(l1 - l3) * (l1y - l3y); kerxy = phi0xx(l1 - l3) * (l1x - l3x) * (l1y - l3y);
  return  (l1x * l3y * ker + l1y * l3x * ker + l1x * l3 * kery + l1 * l3x * kery + l1y * l3 * kerx + l1 * l3y * kerx +  l1 * l3 * kerxy) / 1.0000000000000;
 }
@@ -327,8 +327,8 @@ static double gradleg_tri_p1_e2_bx(double x, double y)
  double l1, l1x, l1y, l3, l3x, l3y;
  double ker, kerx, kery, kerxy;
  l1 = lambda1(x,y); l1x = lambda1x(x,y); l1y = lambda1y(x,y);
-  l3 = lambda3(x,y); l3x = lambda3x(x,y); l3y = lambda3y(x,y); 
- ker = phi0(l1 - l3); kerx = phi0x(l1 - l3) * (l1x - l3x); 
+  l3 = lambda3(x,y); l3x = lambda3x(x,y); l3y = lambda3y(x,y);
+ ker = phi0(l1 - l3); kerx = phi0x(l1 - l3) * (l1x - l3x);
  kery = phi0x(l1 - l3) * (l1y - l3y); kerxy = phi0xx(l1 - l3) * (l1x - l3x) * (l1y - l3y);
  return  (l1x * l3y * ker + l1y * l3x * ker + l1x * l3 * kery + l1 * l3x * kery + l1y * l3 * kerx + l1 * l3y * kerx +  l1 * l3 * kerxy) / 1.0000000000000;
 }
@@ -372,8 +372,8 @@ static double gradleg_tri_p1_e3_ay(double x, double y)
  double l2, l2x, l2y, l1, l1x, l1y;
  double ker, kerx, kery, kerxy;
  l2 = lambda2(x,y); l2x = lambda2x(x,y); l2y = lambda2y(x,y);
-  l1 = lambda1(x,y); l1x = lambda1x(x,y); l1y = lambda1y(x,y); 
- ker = phi0(l2 - l1); kerx = phi0x(l2 - l1) * (l2x - l1x); 
+  l1 = lambda1(x,y); l1x = lambda1x(x,y); l1y = lambda1y(x,y);
+ ker = phi0(l2 - l1); kerx = phi0x(l2 - l1) * (l2x - l1x);
  kery = phi0x(l2 - l1) * (l2y - l1y); kerxy = phi0xx(l2 - l1) * (l2x - l1x) * (l2y - l1y);
  return  (l2x * l1y * ker + l2y * l1x * ker + l2x * l1 * kery + l2 * l1x * kery + l2y * l1 * kerx + l2 * l1y * kerx +  l2 * l1 * kerxy) / 1.0000000000000;
 }
@@ -383,8 +383,8 @@ static double gradleg_tri_p1_e3_bx(double x, double y)
  double l2, l2x, l2y, l1, l1x, l1y;
  double ker, kerx, kery, kerxy;
  l2 = lambda2(x,y); l2x = lambda2x(x,y); l2y = lambda2y(x,y);
-  l1 = lambda1(x,y); l1x = lambda1x(x,y); l1y = lambda1y(x,y); 
- ker = phi0(l2 - l1); kerx = phi0x(l2 - l1) * (l2x - l1x); 
+  l1 = lambda1(x,y); l1x = lambda1x(x,y); l1y = lambda1y(x,y);
+ ker = phi0(l2 - l1); kerx = phi0x(l2 - l1) * (l2x - l1x);
  kery = phi0x(l2 - l1) * (l2y - l1y); kerxy = phi0xx(l2 - l1) * (l2x - l1x) * (l2y - l1y);
  return  (l2x * l1y * ker + l2y * l1x * ker + l2x * l1 * kery + l2 * l1x * kery + l2y * l1 * kerx + l2 * l1y * kerx +  l2 * l1 * kerxy) / 1.0000000000000;
 }
@@ -447,8 +447,8 @@ static double gradleg_tri_p2_e1_ay_0(double x, double y)
  double l3, l3x, l3y, l2, l2x, l2y;
  double ker, kerx, kery, kerxy;
  l3 = lambda3(x,y); l3x = lambda3x(x,y); l3y = lambda3y(x,y);
-  l2 = lambda2(x,y); l2x = lambda2x(x,y); l2y = lambda2y(x,y); 
- ker = phi1(l3 - l2); kerx = phi1x(l3 - l2) * (l3x - l2x); 
+  l2 = lambda2(x,y); l2x = lambda2x(x,y); l2y = lambda2y(x,y);
+ ker = phi1(l3 - l2); kerx = phi1x(l3 - l2) * (l3x - l2x);
  kery = phi1x(l3 - l2) * (l3y - l2y); kerxy = phi1xx(l3 - l2) * (l3x - l2x) * (l3y - l2y);
  return  (l3x * l2y * ker + l3y * l2x * ker + l3x * l2 * kery + l3 * l2x * kery + l3y * l2 * kerx + l3 * l2y * kerx +  l3 * l2 * kerxy) / 1.0000000000000;
 }
@@ -463,8 +463,8 @@ static double gradleg_tri_p2_e1_bx_0(double x, double y)
  double l3, l3x, l3y, l2, l2x, l2y;
  double ker, kerx, kery, kerxy;
  l3 = lambda3(x,y); l3x = lambda3x(x,y); l3y = lambda3y(x,y);
-  l2 = lambda2(x,y); l2x = lambda2x(x,y); l2y = lambda2y(x,y); 
- ker = phi1(l3 - l2); kerx = phi1x(l3 - l2) * (l3x - l2x); 
+  l2 = lambda2(x,y); l2x = lambda2x(x,y); l2y = lambda2y(x,y);
+ ker = phi1(l3 - l2); kerx = phi1x(l3 - l2) * (l3x - l2x);
  kery = phi1x(l3 - l2) * (l3y - l2y); kerxy = phi1xx(l3 - l2) * (l3x - l2x) * (l3y - l2y);
  return  (l3x * l2y * ker + l3y * l2x * ker + l3x * l2 * kery + l3 * l2x * kery + l3y * l2 * kerx + l3 * l2y * kerx +  l3 * l2 * kerxy) / 1.0000000000000;
 }
@@ -533,8 +533,8 @@ static double gradleg_tri_p2_e2_ay_0(double x, double y)
  double l1, l1x, l1y, l3, l3x, l3y;
  double ker, kerx, kery, kerxy;
  l1 = lambda1(x,y); l1x = lambda1x(x,y); l1y = lambda1y(x,y);
-  l3 = lambda3(x,y); l3x = lambda3x(x,y); l3y = lambda3y(x,y); 
- ker = phi1(l1 - l3); kerx = phi1x(l1 - l3) * (l1x - l3x); 
+  l3 = lambda3(x,y); l3x = lambda3x(x,y); l3y = lambda3y(x,y);
+ ker = phi1(l1 - l3); kerx = phi1x(l1 - l3) * (l1x - l3x);
  kery = phi1x(l1 - l3) * (l1y - l3y); kerxy = phi1xx(l1 - l3) * (l1x - l3x) * (l1y - l3y);
  return  (l1x * l3y * ker + l1y * l3x * ker + l1x * l3 * kery + l1 * l3x * kery + l1y * l3 * kerx + l1 * l3y * kerx +  l1 * l3 * kerxy) / 1.0000000000000;
 }
@@ -549,8 +549,8 @@ static double gradleg_tri_p2_e2_bx_0(double x, double y)
  double l1, l1x, l1y, l3, l3x, l3y;
  double ker, kerx, kery, kerxy;
  l1 = lambda1(x,y); l1x = lambda1x(x,y); l1y = lambda1y(x,y);
-  l3 = lambda3(x,y); l3x = lambda3x(x,y); l3y = lambda3y(x,y); 
- ker = phi1(l1 - l3); kerx = phi1x(l1 - l3) * (l1x - l3x); 
+  l3 = lambda3(x,y); l3x = lambda3x(x,y); l3y = lambda3y(x,y);
+ ker = phi1(l1 - l3); kerx = phi1x(l1 - l3) * (l1x - l3x);
  kery = phi1x(l1 - l3) * (l1y - l3y); kerxy = phi1xx(l1 - l3) * (l1x - l3x) * (l1y - l3y);
  return  (l1x * l3y * ker + l1y * l3x * ker + l1x * l3 * kery + l1 * l3x * kery + l1y * l3 * kerx + l1 * l3y * kerx +  l1 * l3 * kerxy) / 1.0000000000000;
 }
@@ -619,8 +619,8 @@ static double gradleg_tri_p2_e3_ay_0(double x, double y)
  double l2, l2x, l2y, l1, l1x, l1y;
  double ker, kerx, kery, kerxy;
  l2 = lambda2(x,y); l2x = lambda2x(x,y); l2y = lambda2y(x,y);
-  l1 = lambda1(x,y); l1x = lambda1x(x,y); l1y = lambda1y(x,y); 
- ker = phi1(l2 - l1); kerx = phi1x(l2 - l1) * (l2x - l1x); 
+  l1 = lambda1(x,y); l1x = lambda1x(x,y); l1y = lambda1y(x,y);
+ ker = phi1(l2 - l1); kerx = phi1x(l2 - l1) * (l2x - l1x);
  kery = phi1x(l2 - l1) * (l2y - l1y); kerxy = phi1xx(l2 - l1) * (l2x - l1x) * (l2y - l1y);
  return  (l2x * l1y * ker + l2y * l1x * ker + l2x * l1 * kery + l2 * l1x * kery + l2y * l1 * kerx + l2 * l1y * kerx +  l2 * l1 * kerxy) / 1.0000000000000;
 }
@@ -635,8 +635,8 @@ static double gradleg_tri_p2_e3_bx_0(double x, double y)
  double l2, l2x, l2y, l1, l1x, l1y;
  double ker, kerx, kery, kerxy;
  l2 = lambda2(x,y); l2x = lambda2x(x,y); l2y = lambda2y(x,y);
-  l1 = lambda1(x,y); l1x = lambda1x(x,y); l1y = lambda1y(x,y); 
- ker = phi1(l2 - l1); kerx = phi1x(l2 - l1) * (l2x - l1x); 
+  l1 = lambda1(x,y); l1x = lambda1x(x,y); l1y = lambda1y(x,y);
+ ker = phi1(l2 - l1); kerx = phi1x(l2 - l1) * (l2x - l1x);
  kery = phi1x(l2 - l1) * (l2y - l1y); kerxy = phi1xx(l2 - l1) * (l2x - l1x) * (l2y - l1y);
  return  (l2x * l1y * ker + l2y * l1x * ker + l2x * l1 * kery + l2 * l1x * kery + l2y * l1 * kerx + l2 * l1y * kerx +  l2 * l1 * kerxy) / 1.0000000000000;
 }
@@ -668,14 +668,14 @@ static double gradleg_tri_p2_e3_by_1(double x, double y)
 static double gradleg_tri_p2_b1_a(double x, double y)
 {
  double l3, l2;
- l3 = lambda3(x,y); l2 = lambda2(x,y); 
+ l3 = lambda3(x,y); l2 = lambda2(x,y);
  return n11 * (l3 * l2 * Legendre0(l3 - l2));
 }
 
 static double gradleg_tri_p2_b1_b(double x, double y)
 {
  double l3, l2;
- l3 = lambda3(x,y); l2 = lambda2(x,y); 
+ l3 = lambda3(x,y); l2 = lambda2(x,y);
  return n12 * (l3 * l2 * Legendre0(l3 - l2));
 }
 
@@ -711,14 +711,14 @@ static double gradleg_tri_p2_b1_by(double x, double y)
 static double gradleg_tri_p2_b2_a(double x, double y)
 {
  double l1, l3;
- l1 = lambda1(x,y); l3 = lambda3(x,y); 
+ l1 = lambda1(x,y); l3 = lambda3(x,y);
  return n21 * (l1 * l3 * Legendre0(l1 - l3));
 }
 
 static double gradleg_tri_p2_b2_b(double x, double y)
 {
  double l1, l3;
- l1 = lambda1(x,y); l3 = lambda3(x,y); 
+ l1 = lambda1(x,y); l3 = lambda3(x,y);
  return n22 * (l1 * l3 * Legendre0(l1 - l3));
 }
 
@@ -754,14 +754,14 @@ static double gradleg_tri_p2_b2_by(double x, double y)
 static double gradleg_tri_p2_b3_a(double x, double y)
 {
  double l2, l1;
- l2 = lambda2(x,y); l1 = lambda1(x,y); 
+ l2 = lambda2(x,y); l1 = lambda1(x,y);
  return n31 * (l2 * l1 * Legendre0(l2 - l1));
 }
 
 static double gradleg_tri_p2_b3_b(double x, double y)
 {
  double l2, l1;
- l2 = lambda2(x,y); l1 = lambda1(x,y); 
+ l2 = lambda2(x,y); l1 = lambda1(x,y);
  return n32 * (l2 * l1 * Legendre0(l2 - l1));
 }
 
@@ -827,8 +827,8 @@ static double gradleg_tri_p3_e1_ay(double x, double y)
  double l3, l3x, l3y, l2, l2x, l2y;
  double ker, kerx, kery, kerxy;
  l3 = lambda3(x,y); l3x = lambda3x(x,y); l3y = lambda3y(x,y);
-  l2 = lambda2(x,y); l2x = lambda2x(x,y); l2y = lambda2y(x,y); 
- ker = phi2(l3 - l2); kerx = phi2x(l3 - l2) * (l3x - l2x); 
+  l2 = lambda2(x,y); l2x = lambda2x(x,y); l2y = lambda2y(x,y);
+ ker = phi2(l3 - l2); kerx = phi2x(l3 - l2) * (l3x - l2x);
  kery = phi2x(l3 - l2) * (l3y - l2y); kerxy = phi2xx(l3 - l2) * (l3x - l2x) * (l3y - l2y);
  return  (l3x * l2y * ker + l3y * l2x * ker + l3x * l2 * kery + l3 * l2x * kery + l3y * l2 * kerx + l3 * l2y * kerx +  l3 * l2 * kerxy) / 1.0000000000000;
 }
@@ -838,8 +838,8 @@ static double gradleg_tri_p3_e1_bx(double x, double y)
  double l3, l3x, l3y, l2, l2x, l2y;
  double ker, kerx, kery, kerxy;
  l3 = lambda3(x,y); l3x = lambda3x(x,y); l3y = lambda3y(x,y);
-  l2 = lambda2(x,y); l2x = lambda2x(x,y); l2y = lambda2y(x,y); 
- ker = phi2(l3 - l2); kerx = phi2x(l3 - l2) * (l3x - l2x); 
+  l2 = lambda2(x,y); l2x = lambda2x(x,y); l2y = lambda2y(x,y);
+ ker = phi2(l3 - l2); kerx = phi2x(l3 - l2) * (l3x - l2x);
  kery = phi2x(l3 - l2) * (l3y - l2y); kerxy = phi2xx(l3 - l2) * (l3x - l2x) * (l3y - l2y);
  return  (l3x * l2y * ker + l3y * l2x * ker + l3x * l2 * kery + l3 * l2x * kery + l3y * l2 * kerx + l3 * l2y * kerx +  l3 * l2 * kerxy) / 1.0000000000000;
 }
@@ -883,8 +883,8 @@ static double gradleg_tri_p3_e2_ay(double x, double y)
  double l1, l1x, l1y, l3, l3x, l3y;
  double ker, kerx, kery, kerxy;
  l1 = lambda1(x,y); l1x = lambda1x(x,y); l1y = lambda1y(x,y);
-  l3 = lambda3(x,y); l3x = lambda3x(x,y); l3y = lambda3y(x,y); 
- ker = phi2(l1 - l3); kerx = phi2x(l1 - l3) * (l1x - l3x); 
+  l3 = lambda3(x,y); l3x = lambda3x(x,y); l3y = lambda3y(x,y);
+ ker = phi2(l1 - l3); kerx = phi2x(l1 - l3) * (l1x - l3x);
  kery = phi2x(l1 - l3) * (l1y - l3y); kerxy = phi2xx(l1 - l3) * (l1x - l3x) * (l1y - l3y);
  return  (l1x * l3y * ker + l1y * l3x * ker + l1x * l3 * kery + l1 * l3x * kery + l1y * l3 * kerx + l1 * l3y * kerx +  l1 * l3 * kerxy) / 1.0000000000000;
 }
@@ -894,8 +894,8 @@ static double gradleg_tri_p3_e2_bx(double x, double y)
  double l1, l1x, l1y, l3, l3x, l3y;
  double ker, kerx, kery, kerxy;
  l1 = lambda1(x,y); l1x = lambda1x(x,y); l1y = lambda1y(x,y);
-  l3 = lambda3(x,y); l3x = lambda3x(x,y); l3y = lambda3y(x,y); 
- ker = phi2(l1 - l3); kerx = phi2x(l1 - l3) * (l1x - l3x); 
+  l3 = lambda3(x,y); l3x = lambda3x(x,y); l3y = lambda3y(x,y);
+ ker = phi2(l1 - l3); kerx = phi2x(l1 - l3) * (l1x - l3x);
  kery = phi2x(l1 - l3) * (l1y - l3y); kerxy = phi2xx(l1 - l3) * (l1x - l3x) * (l1y - l3y);
  return  (l1x * l3y * ker + l1y * l3x * ker + l1x * l3 * kery + l1 * l3x * kery + l1y * l3 * kerx + l1 * l3y * kerx +  l1 * l3 * kerxy) / 1.0000000000000;
 }
@@ -939,8 +939,8 @@ static double gradleg_tri_p3_e3_ay(double x, double y)
  double l2, l2x, l2y, l1, l1x, l1y;
  double ker, kerx, kery, kerxy;
  l2 = lambda2(x,y); l2x = lambda2x(x,y); l2y = lambda2y(x,y);
-  l1 = lambda1(x,y); l1x = lambda1x(x,y); l1y = lambda1y(x,y); 
- ker = phi2(l2 - l1); kerx = phi2x(l2 - l1) * (l2x - l1x); 
+  l1 = lambda1(x,y); l1x = lambda1x(x,y); l1y = lambda1y(x,y);
+ ker = phi2(l2 - l1); kerx = phi2x(l2 - l1) * (l2x - l1x);
  kery = phi2x(l2 - l1) * (l2y - l1y); kerxy = phi2xx(l2 - l1) * (l2x - l1x) * (l2y - l1y);
  return  (l2x * l1y * ker + l2y * l1x * ker + l2x * l1 * kery + l2 * l1x * kery + l2y * l1 * kerx + l2 * l1y * kerx +  l2 * l1 * kerxy) / 1.0000000000000;
 }
@@ -950,8 +950,8 @@ static double gradleg_tri_p3_e3_bx(double x, double y)
  double l2, l2x, l2y, l1, l1x, l1y;
  double ker, kerx, kery, kerxy;
  l2 = lambda2(x,y); l2x = lambda2x(x,y); l2y = lambda2y(x,y);
-  l1 = lambda1(x,y); l1x = lambda1x(x,y); l1y = lambda1y(x,y); 
- ker = phi2(l2 - l1); kerx = phi2x(l2 - l1) * (l2x - l1x); 
+  l1 = lambda1(x,y); l1x = lambda1x(x,y); l1y = lambda1y(x,y);
+ ker = phi2(l2 - l1); kerx = phi2x(l2 - l1) * (l2x - l1x);
  kery = phi2x(l2 - l1) * (l2y - l1y); kerxy = phi2xx(l2 - l1) * (l2x - l1x) * (l2y - l1y);
  return  (l2x * l1y * ker + l2y * l1x * ker + l2x * l1 * kery + l2 * l1x * kery + l2y * l1 * kerx + l2 * l1y * kerx +  l2 * l1 * kerxy) / 1.0000000000000;
 }
@@ -973,14 +973,14 @@ static double gradleg_tri_p3_e3_by(double x, double y)
 static double gradleg_tri_p3_b1_a(double x, double y)
 {
  double l3, l2;
- l3 = lambda3(x,y); l2 = lambda2(x,y); 
+ l3 = lambda3(x,y); l2 = lambda2(x,y);
  return n11 * (l3 * l2 * Legendre1(l3 - l2));
 }
 
 static double gradleg_tri_p3_b1_b(double x, double y)
 {
  double l3, l2;
- l3 = lambda3(x,y); l2 = lambda2(x,y); 
+ l3 = lambda3(x,y); l2 = lambda2(x,y);
  return n12 * (l3 * l2 * Legendre1(l3 - l2));
 }
 
@@ -1016,14 +1016,14 @@ static double gradleg_tri_p3_b1_by(double x, double y)
 static double gradleg_tri_p3_b2_a(double x, double y)
 {
  double l1, l3;
- l1 = lambda1(x,y); l3 = lambda3(x,y); 
+ l1 = lambda1(x,y); l3 = lambda3(x,y);
  return n21 * (l1 * l3 * Legendre1(l1 - l3));
 }
 
 static double gradleg_tri_p3_b2_b(double x, double y)
 {
  double l1, l3;
- l1 = lambda1(x,y); l3 = lambda3(x,y); 
+ l1 = lambda1(x,y); l3 = lambda3(x,y);
  return n22 * (l1 * l3 * Legendre1(l1 - l3));
 }
 
@@ -1059,14 +1059,14 @@ static double gradleg_tri_p3_b2_by(double x, double y)
 static double gradleg_tri_p3_b3_a(double x, double y)
 {
  double l2, l1;
- l2 = lambda2(x,y); l1 = lambda1(x,y); 
+ l2 = lambda2(x,y); l1 = lambda1(x,y);
  return n31 * (l2 * l1 * Legendre1(l2 - l1));
 }
 
 static double gradleg_tri_p3_b3_b(double x, double y)
 {
  double l2, l1;
- l2 = lambda2(x,y); l1 = lambda1(x,y); 
+ l2 = lambda2(x,y); l1 = lambda1(x,y);
  return n32 * (l2 * l1 * Legendre1(l2 - l1));
 }
 
@@ -1103,7 +1103,7 @@ static double gradleg_tri_p3_b3_by(double x, double y)
 static double gradleg_tri_b1_b1_1_a(double x, double y)
 {
  double l1, l2, l3;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
  return l1 * l2 * l3 * Legendre0(l3 - l2) * Legendre0(l2 - l1);
 }
 
@@ -1115,11 +1115,11 @@ static double gradleg_tri_b1_b1_1_b(double x, double y)
 static double gradleg_tri_b1_b1_1_ax(double x, double y)
 {
  double l1, l2, l3, l1x, l2x, l3x, L1, L2, L1x, L2x;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
- l1x = lambda1x(x,y); l2x = lambda2x(x,y); l3x = lambda3x(x,y); 
- L1 = Legendre0(l3 - l2); L2 = Legendre0(l2 - l1); 
- L1x = Legendre0x(l3 - l2) * (l3x - l2x); L2x = Legendre0x(l2 - l1) * (l2x - l1x); 
- return l1x * l2 *  l3 *  L1 *  L2 +          l1 * l2x * l3 *  L1 *  L2 +          l1 * l2 *  l3x * L1 *  L2 +          l1 * l2 *  l3 *  L1x * L2 +          l1 * l2 *  l3 *  L1 *  L2x; 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
+ l1x = lambda1x(x,y); l2x = lambda2x(x,y); l3x = lambda3x(x,y);
+ L1 = Legendre0(l3 - l2); L2 = Legendre0(l2 - l1);
+ L1x = Legendre0x(l3 - l2) * (l3x - l2x); L2x = Legendre0x(l2 - l1) * (l2x - l1x);
+ return l1x * l2 *  l3 *  L1 *  L2 +          l1 * l2x * l3 *  L1 *  L2 +          l1 * l2 *  l3x * L1 *  L2 +          l1 * l2 *  l3 *  L1x * L2 +          l1 * l2 *  l3 *  L1 *  L2x;
 }
 
 static double gradleg_tri_b1_b1_1_bx(double x, double y)
@@ -1130,11 +1130,11 @@ static double gradleg_tri_b1_b1_1_bx(double x, double y)
 static double gradleg_tri_b1_b1_1_ay(double x, double y)
 {
  double l1, l2, l3, l1y, l2y, l3y, L1, L2, L1y, L2y;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
- l1y = lambda1y(x,y); l2y = lambda2y(x,y); l3y = lambda3y(x,y); 
- L1 = Legendre0(l3 - l2); L2 = Legendre0(l2 - l1); 
- L1y = Legendre0x(l3 - l2) * (l3y - l2y); L2y = Legendre0x(l2 - l1) * (l2y - l1y); 
- return l1y * l2 *  l3 *  L1 *  L2 +          l1 * l2y * l3 *  L1 *  L2 +          l1 * l2 *  l3y * L1 *  L2 +          l1 * l2 *  l3 *  L1y * L2 +          l1 * l2 *  l3 *  L1 *  L2y; 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
+ l1y = lambda1y(x,y); l2y = lambda2y(x,y); l3y = lambda3y(x,y);
+ L1 = Legendre0(l3 - l2); L2 = Legendre0(l2 - l1);
+ L1y = Legendre0x(l3 - l2) * (l3y - l2y); L2y = Legendre0x(l2 - l1) * (l2y - l1y);
+ return l1y * l2 *  l3 *  L1 *  L2 +          l1 * l2y * l3 *  L1 *  L2 +          l1 * l2 *  l3y * L1 *  L2 +          l1 * l2 *  l3 *  L1y * L2 +          l1 * l2 *  l3 *  L1 *  L2y;
 }
 
 static double gradleg_tri_b1_b1_1_by(double x, double y)
@@ -1145,7 +1145,7 @@ static double gradleg_tri_b1_b1_1_by(double x, double y)
 static double gradleg_tri_b1_b1_2_b(double x, double y)
 {
  double l1, l2, l3;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
  return l1 * l2 * l3 * Legendre0(l3 - l2) * Legendre0(l2 - l1);
 }
 
@@ -1157,11 +1157,11 @@ static double gradleg_tri_b1_b1_2_a(double x, double y)
 static double gradleg_tri_b1_b1_2_bx(double x, double y)
 {
  double l1, l2, l3, l1x, l2x, l3x, L1, L2, L1x, L2x;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
- l1x = lambda1x(x,y); l2x = lambda2x(x,y); l3x = lambda3x(x,y); 
- L1 = Legendre0(l3 - l2); L2 = Legendre0(l2 - l1); 
- L1x = Legendre0x(l3 - l2) * (l3x - l2x); L2x = Legendre0x(l2 - l1) * (l2x - l1x); 
- return l1x * l2 *  l3 *  L1 *  L2 +          l1 * l2x * l3 *  L1 *  L2 +          l1 * l2 *  l3x * L1 *  L2 +          l1 * l2 *  l3 *  L1x * L2 +          l1 * l2 *  l3 *  L1 *  L2x; 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
+ l1x = lambda1x(x,y); l2x = lambda2x(x,y); l3x = lambda3x(x,y);
+ L1 = Legendre0(l3 - l2); L2 = Legendre0(l2 - l1);
+ L1x = Legendre0x(l3 - l2) * (l3x - l2x); L2x = Legendre0x(l2 - l1) * (l2x - l1x);
+ return l1x * l2 *  l3 *  L1 *  L2 +          l1 * l2x * l3 *  L1 *  L2 +          l1 * l2 *  l3x * L1 *  L2 +          l1 * l2 *  l3 *  L1x * L2 +          l1 * l2 *  l3 *  L1 *  L2x;
 }
 
 static double gradleg_tri_b1_b1_2_ax(double x, double y)
@@ -1172,11 +1172,11 @@ static double gradleg_tri_b1_b1_2_ax(double x, double y)
 static double gradleg_tri_b1_b1_2_by(double x, double y)
 {
  double l1, l2, l3, l1y, l2y, l3y, L1, L2, L1y, L2y;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
- l1y = lambda1y(x,y); l2y = lambda2y(x,y); l3y = lambda3y(x,y); 
- L1 = Legendre0(l3 - l2); L2 = Legendre0(l2 - l1); 
- L1y = Legendre0x(l3 - l2) * (l3y - l2y); L2y = Legendre0x(l2 - l1) * (l2y - l1y); 
- return l1y * l2 *  l3 *  L1 *  L2 +          l1 * l2y * l3 *  L1 *  L2 +          l1 * l2 *  l3y * L1 *  L2 +          l1 * l2 *  l3 *  L1y * L2 +          l1 * l2 *  l3 *  L1 *  L2y; 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
+ l1y = lambda1y(x,y); l2y = lambda2y(x,y); l3y = lambda3y(x,y);
+ L1 = Legendre0(l3 - l2); L2 = Legendre0(l2 - l1);
+ L1y = Legendre0x(l3 - l2) * (l3y - l2y); L2y = Legendre0x(l2 - l1) * (l2y - l1y);
+ return l1y * l2 *  l3 *  L1 *  L2 +          l1 * l2y * l3 *  L1 *  L2 +          l1 * l2 *  l3y * L1 *  L2 +          l1 * l2 *  l3 *  L1y * L2 +          l1 * l2 *  l3 *  L1 *  L2y;
 }
 
 static double gradleg_tri_b1_b1_2_ay(double x, double y)
@@ -1233,8 +1233,8 @@ static double gradleg_tri_p4_e1_ay_0(double x, double y)
  double l3, l3x, l3y, l2, l2x, l2y;
  double ker, kerx, kery, kerxy;
  l3 = lambda3(x,y); l3x = lambda3x(x,y); l3y = lambda3y(x,y);
-  l2 = lambda2(x,y); l2x = lambda2x(x,y); l2y = lambda2y(x,y); 
- ker = phi3(l3 - l2); kerx = phi3x(l3 - l2) * (l3x - l2x); 
+  l2 = lambda2(x,y); l2x = lambda2x(x,y); l2y = lambda2y(x,y);
+ ker = phi3(l3 - l2); kerx = phi3x(l3 - l2) * (l3x - l2x);
  kery = phi3x(l3 - l2) * (l3y - l2y); kerxy = phi3xx(l3 - l2) * (l3x - l2x) * (l3y - l2y);
  return  (l3x * l2y * ker + l3y * l2x * ker + l3x * l2 * kery + l3 * l2x * kery + l3y * l2 * kerx + l3 * l2y * kerx +  l3 * l2 * kerxy) / 1.0000000000000;
 }
@@ -1249,8 +1249,8 @@ static double gradleg_tri_p4_e1_bx_0(double x, double y)
  double l3, l3x, l3y, l2, l2x, l2y;
  double ker, kerx, kery, kerxy;
  l3 = lambda3(x,y); l3x = lambda3x(x,y); l3y = lambda3y(x,y);
-  l2 = lambda2(x,y); l2x = lambda2x(x,y); l2y = lambda2y(x,y); 
- ker = phi3(l3 - l2); kerx = phi3x(l3 - l2) * (l3x - l2x); 
+  l2 = lambda2(x,y); l2x = lambda2x(x,y); l2y = lambda2y(x,y);
+ ker = phi3(l3 - l2); kerx = phi3x(l3 - l2) * (l3x - l2x);
  kery = phi3x(l3 - l2) * (l3y - l2y); kerxy = phi3xx(l3 - l2) * (l3x - l2x) * (l3y - l2y);
  return  (l3x * l2y * ker + l3y * l2x * ker + l3x * l2 * kery + l3 * l2x * kery + l3y * l2 * kerx + l3 * l2y * kerx +  l3 * l2 * kerxy) / 1.0000000000000;
 }
@@ -1319,8 +1319,8 @@ static double gradleg_tri_p4_e2_ay_0(double x, double y)
  double l1, l1x, l1y, l3, l3x, l3y;
  double ker, kerx, kery, kerxy;
  l1 = lambda1(x,y); l1x = lambda1x(x,y); l1y = lambda1y(x,y);
-  l3 = lambda3(x,y); l3x = lambda3x(x,y); l3y = lambda3y(x,y); 
- ker = phi3(l1 - l3); kerx = phi3x(l1 - l3) * (l1x - l3x); 
+  l3 = lambda3(x,y); l3x = lambda3x(x,y); l3y = lambda3y(x,y);
+ ker = phi3(l1 - l3); kerx = phi3x(l1 - l3) * (l1x - l3x);
  kery = phi3x(l1 - l3) * (l1y - l3y); kerxy = phi3xx(l1 - l3) * (l1x - l3x) * (l1y - l3y);
  return  (l1x * l3y * ker + l1y * l3x * ker + l1x * l3 * kery + l1 * l3x * kery + l1y * l3 * kerx + l1 * l3y * kerx +  l1 * l3 * kerxy) / 1.0000000000000;
 }
@@ -1335,8 +1335,8 @@ static double gradleg_tri_p4_e2_bx_0(double x, double y)
  double l1, l1x, l1y, l3, l3x, l3y;
  double ker, kerx, kery, kerxy;
  l1 = lambda1(x,y); l1x = lambda1x(x,y); l1y = lambda1y(x,y);
-  l3 = lambda3(x,y); l3x = lambda3x(x,y); l3y = lambda3y(x,y); 
- ker = phi3(l1 - l3); kerx = phi3x(l1 - l3) * (l1x - l3x); 
+  l3 = lambda3(x,y); l3x = lambda3x(x,y); l3y = lambda3y(x,y);
+ ker = phi3(l1 - l3); kerx = phi3x(l1 - l3) * (l1x - l3x);
  kery = phi3x(l1 - l3) * (l1y - l3y); kerxy = phi3xx(l1 - l3) * (l1x - l3x) * (l1y - l3y);
  return  (l1x * l3y * ker + l1y * l3x * ker + l1x * l3 * kery + l1 * l3x * kery + l1y * l3 * kerx + l1 * l3y * kerx +  l1 * l3 * kerxy) / 1.0000000000000;
 }
@@ -1405,8 +1405,8 @@ static double gradleg_tri_p4_e3_ay_0(double x, double y)
  double l2, l2x, l2y, l1, l1x, l1y;
  double ker, kerx, kery, kerxy;
  l2 = lambda2(x,y); l2x = lambda2x(x,y); l2y = lambda2y(x,y);
-  l1 = lambda1(x,y); l1x = lambda1x(x,y); l1y = lambda1y(x,y); 
- ker = phi3(l2 - l1); kerx = phi3x(l2 - l1) * (l2x - l1x); 
+  l1 = lambda1(x,y); l1x = lambda1x(x,y); l1y = lambda1y(x,y);
+ ker = phi3(l2 - l1); kerx = phi3x(l2 - l1) * (l2x - l1x);
  kery = phi3x(l2 - l1) * (l2y - l1y); kerxy = phi3xx(l2 - l1) * (l2x - l1x) * (l2y - l1y);
  return  (l2x * l1y * ker + l2y * l1x * ker + l2x * l1 * kery + l2 * l1x * kery + l2y * l1 * kerx + l2 * l1y * kerx +  l2 * l1 * kerxy) / 1.0000000000000;
 }
@@ -1421,8 +1421,8 @@ static double gradleg_tri_p4_e3_bx_0(double x, double y)
  double l2, l2x, l2y, l1, l1x, l1y;
  double ker, kerx, kery, kerxy;
  l2 = lambda2(x,y); l2x = lambda2x(x,y); l2y = lambda2y(x,y);
-  l1 = lambda1(x,y); l1x = lambda1x(x,y); l1y = lambda1y(x,y); 
- ker = phi3(l2 - l1); kerx = phi3x(l2 - l1) * (l2x - l1x); 
+  l1 = lambda1(x,y); l1x = lambda1x(x,y); l1y = lambda1y(x,y);
+ ker = phi3(l2 - l1); kerx = phi3x(l2 - l1) * (l2x - l1x);
  kery = phi3x(l2 - l1) * (l2y - l1y); kerxy = phi3xx(l2 - l1) * (l2x - l1x) * (l2y - l1y);
  return  (l2x * l1y * ker + l2y * l1x * ker + l2x * l1 * kery + l2 * l1x * kery + l2y * l1 * kerx + l2 * l1y * kerx +  l2 * l1 * kerxy) / 1.0000000000000;
 }
@@ -1454,14 +1454,14 @@ static double gradleg_tri_p4_e3_by_1(double x, double y)
 static double gradleg_tri_p4_b1_a(double x, double y)
 {
  double l3, l2;
- l3 = lambda3(x,y); l2 = lambda2(x,y); 
+ l3 = lambda3(x,y); l2 = lambda2(x,y);
  return n11 * (l3 * l2 * Legendre2(l3 - l2));
 }
 
 static double gradleg_tri_p4_b1_b(double x, double y)
 {
  double l3, l2;
- l3 = lambda3(x,y); l2 = lambda2(x,y); 
+ l3 = lambda3(x,y); l2 = lambda2(x,y);
  return n12 * (l3 * l2 * Legendre2(l3 - l2));
 }
 
@@ -1497,14 +1497,14 @@ static double gradleg_tri_p4_b1_by(double x, double y)
 static double gradleg_tri_p4_b2_a(double x, double y)
 {
  double l1, l3;
- l1 = lambda1(x,y); l3 = lambda3(x,y); 
+ l1 = lambda1(x,y); l3 = lambda3(x,y);
  return n21 * (l1 * l3 * Legendre2(l1 - l3));
 }
 
 static double gradleg_tri_p4_b2_b(double x, double y)
 {
  double l1, l3;
- l1 = lambda1(x,y); l3 = lambda3(x,y); 
+ l1 = lambda1(x,y); l3 = lambda3(x,y);
  return n22 * (l1 * l3 * Legendre2(l1 - l3));
 }
 
@@ -1540,14 +1540,14 @@ static double gradleg_tri_p4_b2_by(double x, double y)
 static double gradleg_tri_p4_b3_a(double x, double y)
 {
  double l2, l1;
- l2 = lambda2(x,y); l1 = lambda1(x,y); 
+ l2 = lambda2(x,y); l1 = lambda1(x,y);
  return n31 * (l2 * l1 * Legendre2(l2 - l1));
 }
 
 static double gradleg_tri_p4_b3_b(double x, double y)
 {
  double l2, l1;
- l2 = lambda2(x,y); l1 = lambda1(x,y); 
+ l2 = lambda2(x,y); l1 = lambda1(x,y);
  return n32 * (l2 * l1 * Legendre2(l2 - l1));
 }
 
@@ -1584,7 +1584,7 @@ static double gradleg_tri_p4_b3_by(double x, double y)
 static double gradleg_tri_b1_b2_1_a(double x, double y)
 {
  double l1, l2, l3;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
  return l1 * l2 * l3 * Legendre0(l3 - l2) * Legendre1(l2 - l1);
 }
 
@@ -1596,11 +1596,11 @@ static double gradleg_tri_b1_b2_1_b(double x, double y)
 static double gradleg_tri_b1_b2_1_ax(double x, double y)
 {
  double l1, l2, l3, l1x, l2x, l3x, L1, L2, L1x, L2x;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
- l1x = lambda1x(x,y); l2x = lambda2x(x,y); l3x = lambda3x(x,y); 
- L1 = Legendre0(l3 - l2); L2 = Legendre1(l2 - l1); 
- L1x = Legendre0x(l3 - l2) * (l3x - l2x); L2x = Legendre1x(l2 - l1) * (l2x - l1x); 
- return l1x * l2 *  l3 *  L1 *  L2 +          l1 * l2x * l3 *  L1 *  L2 +          l1 * l2 *  l3x * L1 *  L2 +          l1 * l2 *  l3 *  L1x * L2 +          l1 * l2 *  l3 *  L1 *  L2x; 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
+ l1x = lambda1x(x,y); l2x = lambda2x(x,y); l3x = lambda3x(x,y);
+ L1 = Legendre0(l3 - l2); L2 = Legendre1(l2 - l1);
+ L1x = Legendre0x(l3 - l2) * (l3x - l2x); L2x = Legendre1x(l2 - l1) * (l2x - l1x);
+ return l1x * l2 *  l3 *  L1 *  L2 +          l1 * l2x * l3 *  L1 *  L2 +          l1 * l2 *  l3x * L1 *  L2 +          l1 * l2 *  l3 *  L1x * L2 +          l1 * l2 *  l3 *  L1 *  L2x;
 }
 
 static double gradleg_tri_b1_b2_1_bx(double x, double y)
@@ -1611,11 +1611,11 @@ static double gradleg_tri_b1_b2_1_bx(double x, double y)
 static double gradleg_tri_b1_b2_1_ay(double x, double y)
 {
  double l1, l2, l3, l1y, l2y, l3y, L1, L2, L1y, L2y;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
- l1y = lambda1y(x,y); l2y = lambda2y(x,y); l3y = lambda3y(x,y); 
- L1 = Legendre0(l3 - l2); L2 = Legendre1(l2 - l1); 
- L1y = Legendre0x(l3 - l2) * (l3y - l2y); L2y = Legendre1x(l2 - l1) * (l2y - l1y); 
- return l1y * l2 *  l3 *  L1 *  L2 +          l1 * l2y * l3 *  L1 *  L2 +          l1 * l2 *  l3y * L1 *  L2 +          l1 * l2 *  l3 *  L1y * L2 +          l1 * l2 *  l3 *  L1 *  L2y; 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
+ l1y = lambda1y(x,y); l2y = lambda2y(x,y); l3y = lambda3y(x,y);
+ L1 = Legendre0(l3 - l2); L2 = Legendre1(l2 - l1);
+ L1y = Legendre0x(l3 - l2) * (l3y - l2y); L2y = Legendre1x(l2 - l1) * (l2y - l1y);
+ return l1y * l2 *  l3 *  L1 *  L2 +          l1 * l2y * l3 *  L1 *  L2 +          l1 * l2 *  l3y * L1 *  L2 +          l1 * l2 *  l3 *  L1y * L2 +          l1 * l2 *  l3 *  L1 *  L2y;
 }
 
 static double gradleg_tri_b1_b2_1_by(double x, double y)
@@ -1626,7 +1626,7 @@ static double gradleg_tri_b1_b2_1_by(double x, double y)
 static double gradleg_tri_b1_b2_2_b(double x, double y)
 {
  double l1, l2, l3;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
  return l1 * l2 * l3 * Legendre0(l3 - l2) * Legendre1(l2 - l1);
 }
 
@@ -1638,11 +1638,11 @@ static double gradleg_tri_b1_b2_2_a(double x, double y)
 static double gradleg_tri_b1_b2_2_bx(double x, double y)
 {
  double l1, l2, l3, l1x, l2x, l3x, L1, L2, L1x, L2x;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
- l1x = lambda1x(x,y); l2x = lambda2x(x,y); l3x = lambda3x(x,y); 
- L1 = Legendre0(l3 - l2); L2 = Legendre1(l2 - l1); 
- L1x = Legendre0x(l3 - l2) * (l3x - l2x); L2x = Legendre1x(l2 - l1) * (l2x - l1x); 
- return l1x * l2 *  l3 *  L1 *  L2 +          l1 * l2x * l3 *  L1 *  L2 +          l1 * l2 *  l3x * L1 *  L2 +          l1 * l2 *  l3 *  L1x * L2 +          l1 * l2 *  l3 *  L1 *  L2x; 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
+ l1x = lambda1x(x,y); l2x = lambda2x(x,y); l3x = lambda3x(x,y);
+ L1 = Legendre0(l3 - l2); L2 = Legendre1(l2 - l1);
+ L1x = Legendre0x(l3 - l2) * (l3x - l2x); L2x = Legendre1x(l2 - l1) * (l2x - l1x);
+ return l1x * l2 *  l3 *  L1 *  L2 +          l1 * l2x * l3 *  L1 *  L2 +          l1 * l2 *  l3x * L1 *  L2 +          l1 * l2 *  l3 *  L1x * L2 +          l1 * l2 *  l3 *  L1 *  L2x;
 }
 
 static double gradleg_tri_b1_b2_2_ax(double x, double y)
@@ -1653,11 +1653,11 @@ static double gradleg_tri_b1_b2_2_ax(double x, double y)
 static double gradleg_tri_b1_b2_2_by(double x, double y)
 {
  double l1, l2, l3, l1y, l2y, l3y, L1, L2, L1y, L2y;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
- l1y = lambda1y(x,y); l2y = lambda2y(x,y); l3y = lambda3y(x,y); 
- L1 = Legendre0(l3 - l2); L2 = Legendre1(l2 - l1); 
- L1y = Legendre0x(l3 - l2) * (l3y - l2y); L2y = Legendre1x(l2 - l1) * (l2y - l1y); 
- return l1y * l2 *  l3 *  L1 *  L2 +          l1 * l2y * l3 *  L1 *  L2 +          l1 * l2 *  l3y * L1 *  L2 +          l1 * l2 *  l3 *  L1y * L2 +          l1 * l2 *  l3 *  L1 *  L2y; 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
+ l1y = lambda1y(x,y); l2y = lambda2y(x,y); l3y = lambda3y(x,y);
+ L1 = Legendre0(l3 - l2); L2 = Legendre1(l2 - l1);
+ L1y = Legendre0x(l3 - l2) * (l3y - l2y); L2y = Legendre1x(l2 - l1) * (l2y - l1y);
+ return l1y * l2 *  l3 *  L1 *  L2 +          l1 * l2y * l3 *  L1 *  L2 +          l1 * l2 *  l3y * L1 *  L2 +          l1 * l2 *  l3 *  L1y * L2 +          l1 * l2 *  l3 *  L1 *  L2y;
 }
 
 static double gradleg_tri_b1_b2_2_ay(double x, double y)
@@ -1668,7 +1668,7 @@ static double gradleg_tri_b1_b2_2_ay(double x, double y)
 static double gradleg_tri_b2_b1_1_a(double x, double y)
 {
  double l1, l2, l3;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
  return l1 * l2 * l3 * Legendre1(l3 - l2) * Legendre0(l2 - l1);
 }
 
@@ -1680,11 +1680,11 @@ static double gradleg_tri_b2_b1_1_b(double x, double y)
 static double gradleg_tri_b2_b1_1_ax(double x, double y)
 {
  double l1, l2, l3, l1x, l2x, l3x, L1, L2, L1x, L2x;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
- l1x = lambda1x(x,y); l2x = lambda2x(x,y); l3x = lambda3x(x,y); 
- L1 = Legendre1(l3 - l2); L2 = Legendre0(l2 - l1); 
- L1x = Legendre1x(l3 - l2) * (l3x - l2x); L2x = Legendre0x(l2 - l1) * (l2x - l1x); 
- return l1x * l2 *  l3 *  L1 *  L2 +          l1 * l2x * l3 *  L1 *  L2 +          l1 * l2 *  l3x * L1 *  L2 +          l1 * l2 *  l3 *  L1x * L2 +          l1 * l2 *  l3 *  L1 *  L2x; 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
+ l1x = lambda1x(x,y); l2x = lambda2x(x,y); l3x = lambda3x(x,y);
+ L1 = Legendre1(l3 - l2); L2 = Legendre0(l2 - l1);
+ L1x = Legendre1x(l3 - l2) * (l3x - l2x); L2x = Legendre0x(l2 - l1) * (l2x - l1x);
+ return l1x * l2 *  l3 *  L1 *  L2 +          l1 * l2x * l3 *  L1 *  L2 +          l1 * l2 *  l3x * L1 *  L2 +          l1 * l2 *  l3 *  L1x * L2 +          l1 * l2 *  l3 *  L1 *  L2x;
 }
 
 static double gradleg_tri_b2_b1_1_bx(double x, double y)
@@ -1695,11 +1695,11 @@ static double gradleg_tri_b2_b1_1_bx(double x, double y)
 static double gradleg_tri_b2_b1_1_ay(double x, double y)
 {
  double l1, l2, l3, l1y, l2y, l3y, L1, L2, L1y, L2y;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
- l1y = lambda1y(x,y); l2y = lambda2y(x,y); l3y = lambda3y(x,y); 
- L1 = Legendre1(l3 - l2); L2 = Legendre0(l2 - l1); 
- L1y = Legendre1x(l3 - l2) * (l3y - l2y); L2y = Legendre0x(l2 - l1) * (l2y - l1y); 
- return l1y * l2 *  l3 *  L1 *  L2 +          l1 * l2y * l3 *  L1 *  L2 +          l1 * l2 *  l3y * L1 *  L2 +          l1 * l2 *  l3 *  L1y * L2 +          l1 * l2 *  l3 *  L1 *  L2y; 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
+ l1y = lambda1y(x,y); l2y = lambda2y(x,y); l3y = lambda3y(x,y);
+ L1 = Legendre1(l3 - l2); L2 = Legendre0(l2 - l1);
+ L1y = Legendre1x(l3 - l2) * (l3y - l2y); L2y = Legendre0x(l2 - l1) * (l2y - l1y);
+ return l1y * l2 *  l3 *  L1 *  L2 +          l1 * l2y * l3 *  L1 *  L2 +          l1 * l2 *  l3y * L1 *  L2 +          l1 * l2 *  l3 *  L1y * L2 +          l1 * l2 *  l3 *  L1 *  L2y;
 }
 
 static double gradleg_tri_b2_b1_1_by(double x, double y)
@@ -1710,7 +1710,7 @@ static double gradleg_tri_b2_b1_1_by(double x, double y)
 static double gradleg_tri_b2_b1_2_b(double x, double y)
 {
  double l1, l2, l3;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
  return l1 * l2 * l3 * Legendre1(l3 - l2) * Legendre0(l2 - l1);
 }
 
@@ -1722,11 +1722,11 @@ static double gradleg_tri_b2_b1_2_a(double x, double y)
 static double gradleg_tri_b2_b1_2_bx(double x, double y)
 {
  double l1, l2, l3, l1x, l2x, l3x, L1, L2, L1x, L2x;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
- l1x = lambda1x(x,y); l2x = lambda2x(x,y); l3x = lambda3x(x,y); 
- L1 = Legendre1(l3 - l2); L2 = Legendre0(l2 - l1); 
- L1x = Legendre1x(l3 - l2) * (l3x - l2x); L2x = Legendre0x(l2 - l1) * (l2x - l1x); 
- return l1x * l2 *  l3 *  L1 *  L2 +          l1 * l2x * l3 *  L1 *  L2 +          l1 * l2 *  l3x * L1 *  L2 +          l1 * l2 *  l3 *  L1x * L2 +          l1 * l2 *  l3 *  L1 *  L2x; 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
+ l1x = lambda1x(x,y); l2x = lambda2x(x,y); l3x = lambda3x(x,y);
+ L1 = Legendre1(l3 - l2); L2 = Legendre0(l2 - l1);
+ L1x = Legendre1x(l3 - l2) * (l3x - l2x); L2x = Legendre0x(l2 - l1) * (l2x - l1x);
+ return l1x * l2 *  l3 *  L1 *  L2 +          l1 * l2x * l3 *  L1 *  L2 +          l1 * l2 *  l3x * L1 *  L2 +          l1 * l2 *  l3 *  L1x * L2 +          l1 * l2 *  l3 *  L1 *  L2x;
 }
 
 static double gradleg_tri_b2_b1_2_ax(double x, double y)
@@ -1737,11 +1737,11 @@ static double gradleg_tri_b2_b1_2_ax(double x, double y)
 static double gradleg_tri_b2_b1_2_by(double x, double y)
 {
  double l1, l2, l3, l1y, l2y, l3y, L1, L2, L1y, L2y;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
- l1y = lambda1y(x,y); l2y = lambda2y(x,y); l3y = lambda3y(x,y); 
- L1 = Legendre1(l3 - l2); L2 = Legendre0(l2 - l1); 
- L1y = Legendre1x(l3 - l2) * (l3y - l2y); L2y = Legendre0x(l2 - l1) * (l2y - l1y); 
- return l1y * l2 *  l3 *  L1 *  L2 +          l1 * l2y * l3 *  L1 *  L2 +          l1 * l2 *  l3y * L1 *  L2 +          l1 * l2 *  l3 *  L1y * L2 +          l1 * l2 *  l3 *  L1 *  L2y; 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
+ l1y = lambda1y(x,y); l2y = lambda2y(x,y); l3y = lambda3y(x,y);
+ L1 = Legendre1(l3 - l2); L2 = Legendre0(l2 - l1);
+ L1y = Legendre1x(l3 - l2) * (l3y - l2y); L2y = Legendre0x(l2 - l1) * (l2y - l1y);
+ return l1y * l2 *  l3 *  L1 *  L2 +          l1 * l2y * l3 *  L1 *  L2 +          l1 * l2 *  l3y * L1 *  L2 +          l1 * l2 *  l3 *  L1y * L2 +          l1 * l2 *  l3 *  L1 *  L2y;
 }
 
 static double gradleg_tri_b2_b1_2_ay(double x, double y)
@@ -1783,8 +1783,8 @@ static double gradleg_tri_p5_e1_ay(double x, double y)
  double l3, l3x, l3y, l2, l2x, l2y;
  double ker, kerx, kery, kerxy;
  l3 = lambda3(x,y); l3x = lambda3x(x,y); l3y = lambda3y(x,y);
-  l2 = lambda2(x,y); l2x = lambda2x(x,y); l2y = lambda2y(x,y); 
- ker = phi4(l3 - l2); kerx = phi4x(l3 - l2) * (l3x - l2x); 
+  l2 = lambda2(x,y); l2x = lambda2x(x,y); l2y = lambda2y(x,y);
+ ker = phi4(l3 - l2); kerx = phi4x(l3 - l2) * (l3x - l2x);
  kery = phi4x(l3 - l2) * (l3y - l2y); kerxy = phi4xx(l3 - l2) * (l3x - l2x) * (l3y - l2y);
  return  (l3x * l2y * ker + l3y * l2x * ker + l3x * l2 * kery + l3 * l2x * kery + l3y * l2 * kerx + l3 * l2y * kerx +  l3 * l2 * kerxy) / 1.0000000000000;
 }
@@ -1794,8 +1794,8 @@ static double gradleg_tri_p5_e1_bx(double x, double y)
  double l3, l3x, l3y, l2, l2x, l2y;
  double ker, kerx, kery, kerxy;
  l3 = lambda3(x,y); l3x = lambda3x(x,y); l3y = lambda3y(x,y);
-  l2 = lambda2(x,y); l2x = lambda2x(x,y); l2y = lambda2y(x,y); 
- ker = phi4(l3 - l2); kerx = phi4x(l3 - l2) * (l3x - l2x); 
+  l2 = lambda2(x,y); l2x = lambda2x(x,y); l2y = lambda2y(x,y);
+ ker = phi4(l3 - l2); kerx = phi4x(l3 - l2) * (l3x - l2x);
  kery = phi4x(l3 - l2) * (l3y - l2y); kerxy = phi4xx(l3 - l2) * (l3x - l2x) * (l3y - l2y);
  return  (l3x * l2y * ker + l3y * l2x * ker + l3x * l2 * kery + l3 * l2x * kery + l3y * l2 * kerx + l3 * l2y * kerx +  l3 * l2 * kerxy) / 1.0000000000000;
 }
@@ -1839,8 +1839,8 @@ static double gradleg_tri_p5_e2_ay(double x, double y)
  double l1, l1x, l1y, l3, l3x, l3y;
  double ker, kerx, kery, kerxy;
  l1 = lambda1(x,y); l1x = lambda1x(x,y); l1y = lambda1y(x,y);
-  l3 = lambda3(x,y); l3x = lambda3x(x,y); l3y = lambda3y(x,y); 
- ker = phi4(l1 - l3); kerx = phi4x(l1 - l3) * (l1x - l3x); 
+  l3 = lambda3(x,y); l3x = lambda3x(x,y); l3y = lambda3y(x,y);
+ ker = phi4(l1 - l3); kerx = phi4x(l1 - l3) * (l1x - l3x);
  kery = phi4x(l1 - l3) * (l1y - l3y); kerxy = phi4xx(l1 - l3) * (l1x - l3x) * (l1y - l3y);
  return  (l1x * l3y * ker + l1y * l3x * ker + l1x * l3 * kery + l1 * l3x * kery + l1y * l3 * kerx + l1 * l3y * kerx +  l1 * l3 * kerxy) / 1.0000000000000;
 }
@@ -1850,8 +1850,8 @@ static double gradleg_tri_p5_e2_bx(double x, double y)
  double l1, l1x, l1y, l3, l3x, l3y;
  double ker, kerx, kery, kerxy;
  l1 = lambda1(x,y); l1x = lambda1x(x,y); l1y = lambda1y(x,y);
-  l3 = lambda3(x,y); l3x = lambda3x(x,y); l3y = lambda3y(x,y); 
- ker = phi4(l1 - l3); kerx = phi4x(l1 - l3) * (l1x - l3x); 
+  l3 = lambda3(x,y); l3x = lambda3x(x,y); l3y = lambda3y(x,y);
+ ker = phi4(l1 - l3); kerx = phi4x(l1 - l3) * (l1x - l3x);
  kery = phi4x(l1 - l3) * (l1y - l3y); kerxy = phi4xx(l1 - l3) * (l1x - l3x) * (l1y - l3y);
  return  (l1x * l3y * ker + l1y * l3x * ker + l1x * l3 * kery + l1 * l3x * kery + l1y * l3 * kerx + l1 * l3y * kerx +  l1 * l3 * kerxy) / 1.0000000000000;
 }
@@ -1895,8 +1895,8 @@ static double gradleg_tri_p5_e3_ay(double x, double y)
  double l2, l2x, l2y, l1, l1x, l1y;
  double ker, kerx, kery, kerxy;
  l2 = lambda2(x,y); l2x = lambda2x(x,y); l2y = lambda2y(x,y);
-  l1 = lambda1(x,y); l1x = lambda1x(x,y); l1y = lambda1y(x,y); 
- ker = phi4(l2 - l1); kerx = phi4x(l2 - l1) * (l2x - l1x); 
+  l1 = lambda1(x,y); l1x = lambda1x(x,y); l1y = lambda1y(x,y);
+ ker = phi4(l2 - l1); kerx = phi4x(l2 - l1) * (l2x - l1x);
  kery = phi4x(l2 - l1) * (l2y - l1y); kerxy = phi4xx(l2 - l1) * (l2x - l1x) * (l2y - l1y);
  return  (l2x * l1y * ker + l2y * l1x * ker + l2x * l1 * kery + l2 * l1x * kery + l2y * l1 * kerx + l2 * l1y * kerx +  l2 * l1 * kerxy) / 1.0000000000000;
 }
@@ -1906,8 +1906,8 @@ static double gradleg_tri_p5_e3_bx(double x, double y)
  double l2, l2x, l2y, l1, l1x, l1y;
  double ker, kerx, kery, kerxy;
  l2 = lambda2(x,y); l2x = lambda2x(x,y); l2y = lambda2y(x,y);
-  l1 = lambda1(x,y); l1x = lambda1x(x,y); l1y = lambda1y(x,y); 
- ker = phi4(l2 - l1); kerx = phi4x(l2 - l1) * (l2x - l1x); 
+  l1 = lambda1(x,y); l1x = lambda1x(x,y); l1y = lambda1y(x,y);
+ ker = phi4(l2 - l1); kerx = phi4x(l2 - l1) * (l2x - l1x);
  kery = phi4x(l2 - l1) * (l2y - l1y); kerxy = phi4xx(l2 - l1) * (l2x - l1x) * (l2y - l1y);
  return  (l2x * l1y * ker + l2y * l1x * ker + l2x * l1 * kery + l2 * l1x * kery + l2y * l1 * kerx + l2 * l1y * kerx +  l2 * l1 * kerxy) / 1.0000000000000;
 }
@@ -1929,14 +1929,14 @@ static double gradleg_tri_p5_e3_by(double x, double y)
 static double gradleg_tri_p5_b1_a(double x, double y)
 {
  double l3, l2;
- l3 = lambda3(x,y); l2 = lambda2(x,y); 
+ l3 = lambda3(x,y); l2 = lambda2(x,y);
  return n11 * (l3 * l2 * Legendre3(l3 - l2));
 }
 
 static double gradleg_tri_p5_b1_b(double x, double y)
 {
  double l3, l2;
- l3 = lambda3(x,y); l2 = lambda2(x,y); 
+ l3 = lambda3(x,y); l2 = lambda2(x,y);
  return n12 * (l3 * l2 * Legendre3(l3 - l2));
 }
 
@@ -1972,14 +1972,14 @@ static double gradleg_tri_p5_b1_by(double x, double y)
 static double gradleg_tri_p5_b2_a(double x, double y)
 {
  double l1, l3;
- l1 = lambda1(x,y); l3 = lambda3(x,y); 
+ l1 = lambda1(x,y); l3 = lambda3(x,y);
  return n21 * (l1 * l3 * Legendre3(l1 - l3));
 }
 
 static double gradleg_tri_p5_b2_b(double x, double y)
 {
  double l1, l3;
- l1 = lambda1(x,y); l3 = lambda3(x,y); 
+ l1 = lambda1(x,y); l3 = lambda3(x,y);
  return n22 * (l1 * l3 * Legendre3(l1 - l3));
 }
 
@@ -2015,14 +2015,14 @@ static double gradleg_tri_p5_b2_by(double x, double y)
 static double gradleg_tri_p5_b3_a(double x, double y)
 {
  double l2, l1;
- l2 = lambda2(x,y); l1 = lambda1(x,y); 
+ l2 = lambda2(x,y); l1 = lambda1(x,y);
  return n31 * (l2 * l1 * Legendre3(l2 - l1));
 }
 
 static double gradleg_tri_p5_b3_b(double x, double y)
 {
  double l2, l1;
- l2 = lambda2(x,y); l1 = lambda1(x,y); 
+ l2 = lambda2(x,y); l1 = lambda1(x,y);
  return n32 * (l2 * l1 * Legendre3(l2 - l1));
 }
 
@@ -2059,7 +2059,7 @@ static double gradleg_tri_p5_b3_by(double x, double y)
 static double gradleg_tri_b1_b3_1_a(double x, double y)
 {
  double l1, l2, l3;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
  return l1 * l2 * l3 * Legendre0(l3 - l2) * Legendre2(l2 - l1);
 }
 
@@ -2071,11 +2071,11 @@ static double gradleg_tri_b1_b3_1_b(double x, double y)
 static double gradleg_tri_b1_b3_1_ax(double x, double y)
 {
  double l1, l2, l3, l1x, l2x, l3x, L1, L2, L1x, L2x;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
- l1x = lambda1x(x,y); l2x = lambda2x(x,y); l3x = lambda3x(x,y); 
- L1 = Legendre0(l3 - l2); L2 = Legendre2(l2 - l1); 
- L1x = Legendre0x(l3 - l2) * (l3x - l2x); L2x = Legendre2x(l2 - l1) * (l2x - l1x); 
- return l1x * l2 *  l3 *  L1 *  L2 +          l1 * l2x * l3 *  L1 *  L2 +          l1 * l2 *  l3x * L1 *  L2 +          l1 * l2 *  l3 *  L1x * L2 +          l1 * l2 *  l3 *  L1 *  L2x; 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
+ l1x = lambda1x(x,y); l2x = lambda2x(x,y); l3x = lambda3x(x,y);
+ L1 = Legendre0(l3 - l2); L2 = Legendre2(l2 - l1);
+ L1x = Legendre0x(l3 - l2) * (l3x - l2x); L2x = Legendre2x(l2 - l1) * (l2x - l1x);
+ return l1x * l2 *  l3 *  L1 *  L2 +          l1 * l2x * l3 *  L1 *  L2 +          l1 * l2 *  l3x * L1 *  L2 +          l1 * l2 *  l3 *  L1x * L2 +          l1 * l2 *  l3 *  L1 *  L2x;
 }
 
 static double gradleg_tri_b1_b3_1_bx(double x, double y)
@@ -2086,11 +2086,11 @@ static double gradleg_tri_b1_b3_1_bx(double x, double y)
 static double gradleg_tri_b1_b3_1_ay(double x, double y)
 {
  double l1, l2, l3, l1y, l2y, l3y, L1, L2, L1y, L2y;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
- l1y = lambda1y(x,y); l2y = lambda2y(x,y); l3y = lambda3y(x,y); 
- L1 = Legendre0(l3 - l2); L2 = Legendre2(l2 - l1); 
- L1y = Legendre0x(l3 - l2) * (l3y - l2y); L2y = Legendre2x(l2 - l1) * (l2y - l1y); 
- return l1y * l2 *  l3 *  L1 *  L2 +          l1 * l2y * l3 *  L1 *  L2 +          l1 * l2 *  l3y * L1 *  L2 +          l1 * l2 *  l3 *  L1y * L2 +          l1 * l2 *  l3 *  L1 *  L2y; 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
+ l1y = lambda1y(x,y); l2y = lambda2y(x,y); l3y = lambda3y(x,y);
+ L1 = Legendre0(l3 - l2); L2 = Legendre2(l2 - l1);
+ L1y = Legendre0x(l3 - l2) * (l3y - l2y); L2y = Legendre2x(l2 - l1) * (l2y - l1y);
+ return l1y * l2 *  l3 *  L1 *  L2 +          l1 * l2y * l3 *  L1 *  L2 +          l1 * l2 *  l3y * L1 *  L2 +          l1 * l2 *  l3 *  L1y * L2 +          l1 * l2 *  l3 *  L1 *  L2y;
 }
 
 static double gradleg_tri_b1_b3_1_by(double x, double y)
@@ -2101,7 +2101,7 @@ static double gradleg_tri_b1_b3_1_by(double x, double y)
 static double gradleg_tri_b1_b3_2_b(double x, double y)
 {
  double l1, l2, l3;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
  return l1 * l2 * l3 * Legendre0(l3 - l2) * Legendre2(l2 - l1);
 }
 
@@ -2113,11 +2113,11 @@ static double gradleg_tri_b1_b3_2_a(double x, double y)
 static double gradleg_tri_b1_b3_2_bx(double x, double y)
 {
  double l1, l2, l3, l1x, l2x, l3x, L1, L2, L1x, L2x;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
- l1x = lambda1x(x,y); l2x = lambda2x(x,y); l3x = lambda3x(x,y); 
- L1 = Legendre0(l3 - l2); L2 = Legendre2(l2 - l1); 
- L1x = Legendre0x(l3 - l2) * (l3x - l2x); L2x = Legendre2x(l2 - l1) * (l2x - l1x); 
- return l1x * l2 *  l3 *  L1 *  L2 +          l1 * l2x * l3 *  L1 *  L2 +          l1 * l2 *  l3x * L1 *  L2 +          l1 * l2 *  l3 *  L1x * L2 +          l1 * l2 *  l3 *  L1 *  L2x; 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
+ l1x = lambda1x(x,y); l2x = lambda2x(x,y); l3x = lambda3x(x,y);
+ L1 = Legendre0(l3 - l2); L2 = Legendre2(l2 - l1);
+ L1x = Legendre0x(l3 - l2) * (l3x - l2x); L2x = Legendre2x(l2 - l1) * (l2x - l1x);
+ return l1x * l2 *  l3 *  L1 *  L2 +          l1 * l2x * l3 *  L1 *  L2 +          l1 * l2 *  l3x * L1 *  L2 +          l1 * l2 *  l3 *  L1x * L2 +          l1 * l2 *  l3 *  L1 *  L2x;
 }
 
 static double gradleg_tri_b1_b3_2_ax(double x, double y)
@@ -2128,11 +2128,11 @@ static double gradleg_tri_b1_b3_2_ax(double x, double y)
 static double gradleg_tri_b1_b3_2_by(double x, double y)
 {
  double l1, l2, l3, l1y, l2y, l3y, L1, L2, L1y, L2y;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
- l1y = lambda1y(x,y); l2y = lambda2y(x,y); l3y = lambda3y(x,y); 
- L1 = Legendre0(l3 - l2); L2 = Legendre2(l2 - l1); 
- L1y = Legendre0x(l3 - l2) * (l3y - l2y); L2y = Legendre2x(l2 - l1) * (l2y - l1y); 
- return l1y * l2 *  l3 *  L1 *  L2 +          l1 * l2y * l3 *  L1 *  L2 +          l1 * l2 *  l3y * L1 *  L2 +          l1 * l2 *  l3 *  L1y * L2 +          l1 * l2 *  l3 *  L1 *  L2y; 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
+ l1y = lambda1y(x,y); l2y = lambda2y(x,y); l3y = lambda3y(x,y);
+ L1 = Legendre0(l3 - l2); L2 = Legendre2(l2 - l1);
+ L1y = Legendre0x(l3 - l2) * (l3y - l2y); L2y = Legendre2x(l2 - l1) * (l2y - l1y);
+ return l1y * l2 *  l3 *  L1 *  L2 +          l1 * l2y * l3 *  L1 *  L2 +          l1 * l2 *  l3y * L1 *  L2 +          l1 * l2 *  l3 *  L1y * L2 +          l1 * l2 *  l3 *  L1 *  L2y;
 }
 
 static double gradleg_tri_b1_b3_2_ay(double x, double y)
@@ -2143,7 +2143,7 @@ static double gradleg_tri_b1_b3_2_ay(double x, double y)
 static double gradleg_tri_b2_b2_1_a(double x, double y)
 {
  double l1, l2, l3;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
  return l1 * l2 * l3 * Legendre1(l3 - l2) * Legendre1(l2 - l1);
 }
 
@@ -2155,11 +2155,11 @@ static double gradleg_tri_b2_b2_1_b(double x, double y)
 static double gradleg_tri_b2_b2_1_ax(double x, double y)
 {
  double l1, l2, l3, l1x, l2x, l3x, L1, L2, L1x, L2x;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
- l1x = lambda1x(x,y); l2x = lambda2x(x,y); l3x = lambda3x(x,y); 
- L1 = Legendre1(l3 - l2); L2 = Legendre1(l2 - l1); 
- L1x = Legendre1x(l3 - l2) * (l3x - l2x); L2x = Legendre1x(l2 - l1) * (l2x - l1x); 
- return l1x * l2 *  l3 *  L1 *  L2 +          l1 * l2x * l3 *  L1 *  L2 +          l1 * l2 *  l3x * L1 *  L2 +          l1 * l2 *  l3 *  L1x * L2 +          l1 * l2 *  l3 *  L1 *  L2x; 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
+ l1x = lambda1x(x,y); l2x = lambda2x(x,y); l3x = lambda3x(x,y);
+ L1 = Legendre1(l3 - l2); L2 = Legendre1(l2 - l1);
+ L1x = Legendre1x(l3 - l2) * (l3x - l2x); L2x = Legendre1x(l2 - l1) * (l2x - l1x);
+ return l1x * l2 *  l3 *  L1 *  L2 +          l1 * l2x * l3 *  L1 *  L2 +          l1 * l2 *  l3x * L1 *  L2 +          l1 * l2 *  l3 *  L1x * L2 +          l1 * l2 *  l3 *  L1 *  L2x;
 }
 
 static double gradleg_tri_b2_b2_1_bx(double x, double y)
@@ -2170,11 +2170,11 @@ static double gradleg_tri_b2_b2_1_bx(double x, double y)
 static double gradleg_tri_b2_b2_1_ay(double x, double y)
 {
  double l1, l2, l3, l1y, l2y, l3y, L1, L2, L1y, L2y;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
- l1y = lambda1y(x,y); l2y = lambda2y(x,y); l3y = lambda3y(x,y); 
- L1 = Legendre1(l3 - l2); L2 = Legendre1(l2 - l1); 
- L1y = Legendre1x(l3 - l2) * (l3y - l2y); L2y = Legendre1x(l2 - l1) * (l2y - l1y); 
- return l1y * l2 *  l3 *  L1 *  L2 +          l1 * l2y * l3 *  L1 *  L2 +          l1 * l2 *  l3y * L1 *  L2 +          l1 * l2 *  l3 *  L1y * L2 +          l1 * l2 *  l3 *  L1 *  L2y; 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
+ l1y = lambda1y(x,y); l2y = lambda2y(x,y); l3y = lambda3y(x,y);
+ L1 = Legendre1(l3 - l2); L2 = Legendre1(l2 - l1);
+ L1y = Legendre1x(l3 - l2) * (l3y - l2y); L2y = Legendre1x(l2 - l1) * (l2y - l1y);
+ return l1y * l2 *  l3 *  L1 *  L2 +          l1 * l2y * l3 *  L1 *  L2 +          l1 * l2 *  l3y * L1 *  L2 +          l1 * l2 *  l3 *  L1y * L2 +          l1 * l2 *  l3 *  L1 *  L2y;
 }
 
 static double gradleg_tri_b2_b2_1_by(double x, double y)
@@ -2185,7 +2185,7 @@ static double gradleg_tri_b2_b2_1_by(double x, double y)
 static double gradleg_tri_b2_b2_2_b(double x, double y)
 {
  double l1, l2, l3;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
  return l1 * l2 * l3 * Legendre1(l3 - l2) * Legendre1(l2 - l1);
 }
 
@@ -2197,11 +2197,11 @@ static double gradleg_tri_b2_b2_2_a(double x, double y)
 static double gradleg_tri_b2_b2_2_bx(double x, double y)
 {
  double l1, l2, l3, l1x, l2x, l3x, L1, L2, L1x, L2x;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
- l1x = lambda1x(x,y); l2x = lambda2x(x,y); l3x = lambda3x(x,y); 
- L1 = Legendre1(l3 - l2); L2 = Legendre1(l2 - l1); 
- L1x = Legendre1x(l3 - l2) * (l3x - l2x); L2x = Legendre1x(l2 - l1) * (l2x - l1x); 
- return l1x * l2 *  l3 *  L1 *  L2 +          l1 * l2x * l3 *  L1 *  L2 +          l1 * l2 *  l3x * L1 *  L2 +          l1 * l2 *  l3 *  L1x * L2 +          l1 * l2 *  l3 *  L1 *  L2x; 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
+ l1x = lambda1x(x,y); l2x = lambda2x(x,y); l3x = lambda3x(x,y);
+ L1 = Legendre1(l3 - l2); L2 = Legendre1(l2 - l1);
+ L1x = Legendre1x(l3 - l2) * (l3x - l2x); L2x = Legendre1x(l2 - l1) * (l2x - l1x);
+ return l1x * l2 *  l3 *  L1 *  L2 +          l1 * l2x * l3 *  L1 *  L2 +          l1 * l2 *  l3x * L1 *  L2 +          l1 * l2 *  l3 *  L1x * L2 +          l1 * l2 *  l3 *  L1 *  L2x;
 }
 
 static double gradleg_tri_b2_b2_2_ax(double x, double y)
@@ -2212,11 +2212,11 @@ static double gradleg_tri_b2_b2_2_ax(double x, double y)
 static double gradleg_tri_b2_b2_2_by(double x, double y)
 {
  double l1, l2, l3, l1y, l2y, l3y, L1, L2, L1y, L2y;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
- l1y = lambda1y(x,y); l2y = lambda2y(x,y); l3y = lambda3y(x,y); 
- L1 = Legendre1(l3 - l2); L2 = Legendre1(l2 - l1); 
- L1y = Legendre1x(l3 - l2) * (l3y - l2y); L2y = Legendre1x(l2 - l1) * (l2y - l1y); 
- return l1y * l2 *  l3 *  L1 *  L2 +          l1 * l2y * l3 *  L1 *  L2 +          l1 * l2 *  l3y * L1 *  L2 +          l1 * l2 *  l3 *  L1y * L2 +          l1 * l2 *  l3 *  L1 *  L2y; 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
+ l1y = lambda1y(x,y); l2y = lambda2y(x,y); l3y = lambda3y(x,y);
+ L1 = Legendre1(l3 - l2); L2 = Legendre1(l2 - l1);
+ L1y = Legendre1x(l3 - l2) * (l3y - l2y); L2y = Legendre1x(l2 - l1) * (l2y - l1y);
+ return l1y * l2 *  l3 *  L1 *  L2 +          l1 * l2y * l3 *  L1 *  L2 +          l1 * l2 *  l3y * L1 *  L2 +          l1 * l2 *  l3 *  L1y * L2 +          l1 * l2 *  l3 *  L1 *  L2y;
 }
 
 static double gradleg_tri_b2_b2_2_ay(double x, double y)
@@ -2227,7 +2227,7 @@ static double gradleg_tri_b2_b2_2_ay(double x, double y)
 static double gradleg_tri_b3_b1_1_a(double x, double y)
 {
  double l1, l2, l3;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
  return l1 * l2 * l3 * Legendre2(l3 - l2) * Legendre0(l2 - l1);
 }
 
@@ -2239,11 +2239,11 @@ static double gradleg_tri_b3_b1_1_b(double x, double y)
 static double gradleg_tri_b3_b1_1_ax(double x, double y)
 {
  double l1, l2, l3, l1x, l2x, l3x, L1, L2, L1x, L2x;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
- l1x = lambda1x(x,y); l2x = lambda2x(x,y); l3x = lambda3x(x,y); 
- L1 = Legendre2(l3 - l2); L2 = Legendre0(l2 - l1); 
- L1x = Legendre2x(l3 - l2) * (l3x - l2x); L2x = Legendre0x(l2 - l1) * (l2x - l1x); 
- return l1x * l2 *  l3 *  L1 *  L2 +          l1 * l2x * l3 *  L1 *  L2 +          l1 * l2 *  l3x * L1 *  L2 +          l1 * l2 *  l3 *  L1x * L2 +          l1 * l2 *  l3 *  L1 *  L2x; 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
+ l1x = lambda1x(x,y); l2x = lambda2x(x,y); l3x = lambda3x(x,y);
+ L1 = Legendre2(l3 - l2); L2 = Legendre0(l2 - l1);
+ L1x = Legendre2x(l3 - l2) * (l3x - l2x); L2x = Legendre0x(l2 - l1) * (l2x - l1x);
+ return l1x * l2 *  l3 *  L1 *  L2 +          l1 * l2x * l3 *  L1 *  L2 +          l1 * l2 *  l3x * L1 *  L2 +          l1 * l2 *  l3 *  L1x * L2 +          l1 * l2 *  l3 *  L1 *  L2x;
 }
 
 static double gradleg_tri_b3_b1_1_bx(double x, double y)
@@ -2254,11 +2254,11 @@ static double gradleg_tri_b3_b1_1_bx(double x, double y)
 static double gradleg_tri_b3_b1_1_ay(double x, double y)
 {
  double l1, l2, l3, l1y, l2y, l3y, L1, L2, L1y, L2y;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
- l1y = lambda1y(x,y); l2y = lambda2y(x,y); l3y = lambda3y(x,y); 
- L1 = Legendre2(l3 - l2); L2 = Legendre0(l2 - l1); 
- L1y = Legendre2x(l3 - l2) * (l3y - l2y); L2y = Legendre0x(l2 - l1) * (l2y - l1y); 
- return l1y * l2 *  l3 *  L1 *  L2 +          l1 * l2y * l3 *  L1 *  L2 +          l1 * l2 *  l3y * L1 *  L2 +          l1 * l2 *  l3 *  L1y * L2 +          l1 * l2 *  l3 *  L1 *  L2y; 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
+ l1y = lambda1y(x,y); l2y = lambda2y(x,y); l3y = lambda3y(x,y);
+ L1 = Legendre2(l3 - l2); L2 = Legendre0(l2 - l1);
+ L1y = Legendre2x(l3 - l2) * (l3y - l2y); L2y = Legendre0x(l2 - l1) * (l2y - l1y);
+ return l1y * l2 *  l3 *  L1 *  L2 +          l1 * l2y * l3 *  L1 *  L2 +          l1 * l2 *  l3y * L1 *  L2 +          l1 * l2 *  l3 *  L1y * L2 +          l1 * l2 *  l3 *  L1 *  L2y;
 }
 
 static double gradleg_tri_b3_b1_1_by(double x, double y)
@@ -2269,7 +2269,7 @@ static double gradleg_tri_b3_b1_1_by(double x, double y)
 static double gradleg_tri_b3_b1_2_b(double x, double y)
 {
  double l1, l2, l3;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
  return l1 * l2 * l3 * Legendre2(l3 - l2) * Legendre0(l2 - l1);
 }
 
@@ -2281,11 +2281,11 @@ static double gradleg_tri_b3_b1_2_a(double x, double y)
 static double gradleg_tri_b3_b1_2_bx(double x, double y)
 {
  double l1, l2, l3, l1x, l2x, l3x, L1, L2, L1x, L2x;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
- l1x = lambda1x(x,y); l2x = lambda2x(x,y); l3x = lambda3x(x,y); 
- L1 = Legendre2(l3 - l2); L2 = Legendre0(l2 - l1); 
- L1x = Legendre2x(l3 - l2) * (l3x - l2x); L2x = Legendre0x(l2 - l1) * (l2x - l1x); 
- return l1x * l2 *  l3 *  L1 *  L2 +          l1 * l2x * l3 *  L1 *  L2 +          l1 * l2 *  l3x * L1 *  L2 +          l1 * l2 *  l3 *  L1x * L2 +          l1 * l2 *  l3 *  L1 *  L2x; 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
+ l1x = lambda1x(x,y); l2x = lambda2x(x,y); l3x = lambda3x(x,y);
+ L1 = Legendre2(l3 - l2); L2 = Legendre0(l2 - l1);
+ L1x = Legendre2x(l3 - l2) * (l3x - l2x); L2x = Legendre0x(l2 - l1) * (l2x - l1x);
+ return l1x * l2 *  l3 *  L1 *  L2 +          l1 * l2x * l3 *  L1 *  L2 +          l1 * l2 *  l3x * L1 *  L2 +          l1 * l2 *  l3 *  L1x * L2 +          l1 * l2 *  l3 *  L1 *  L2x;
 }
 
 static double gradleg_tri_b3_b1_2_ax(double x, double y)
@@ -2296,11 +2296,11 @@ static double gradleg_tri_b3_b1_2_ax(double x, double y)
 static double gradleg_tri_b3_b1_2_by(double x, double y)
 {
  double l1, l2, l3, l1y, l2y, l3y, L1, L2, L1y, L2y;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
- l1y = lambda1y(x,y); l2y = lambda2y(x,y); l3y = lambda3y(x,y); 
- L1 = Legendre2(l3 - l2); L2 = Legendre0(l2 - l1); 
- L1y = Legendre2x(l3 - l2) * (l3y - l2y); L2y = Legendre0x(l2 - l1) * (l2y - l1y); 
- return l1y * l2 *  l3 *  L1 *  L2 +          l1 * l2y * l3 *  L1 *  L2 +          l1 * l2 *  l3y * L1 *  L2 +          l1 * l2 *  l3 *  L1y * L2 +          l1 * l2 *  l3 *  L1 *  L2y; 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
+ l1y = lambda1y(x,y); l2y = lambda2y(x,y); l3y = lambda3y(x,y);
+ L1 = Legendre2(l3 - l2); L2 = Legendre0(l2 - l1);
+ L1y = Legendre2x(l3 - l2) * (l3y - l2y); L2y = Legendre0x(l2 - l1) * (l2y - l1y);
+ return l1y * l2 *  l3 *  L1 *  L2 +          l1 * l2y * l3 *  L1 *  L2 +          l1 * l2 *  l3y * L1 *  L2 +          l1 * l2 *  l3 *  L1y * L2 +          l1 * l2 *  l3 *  L1 *  L2y;
 }
 
 static double gradleg_tri_b3_b1_2_ay(double x, double y)
@@ -2357,8 +2357,8 @@ static double gradleg_tri_p6_e1_ay_0(double x, double y)
  double l3, l3x, l3y, l2, l2x, l2y;
  double ker, kerx, kery, kerxy;
  l3 = lambda3(x,y); l3x = lambda3x(x,y); l3y = lambda3y(x,y);
-  l2 = lambda2(x,y); l2x = lambda2x(x,y); l2y = lambda2y(x,y); 
- ker = phi5(l3 - l2); kerx = phi5x(l3 - l2) * (l3x - l2x); 
+  l2 = lambda2(x,y); l2x = lambda2x(x,y); l2y = lambda2y(x,y);
+ ker = phi5(l3 - l2); kerx = phi5x(l3 - l2) * (l3x - l2x);
  kery = phi5x(l3 - l2) * (l3y - l2y); kerxy = phi5xx(l3 - l2) * (l3x - l2x) * (l3y - l2y);
  return  (l3x * l2y * ker + l3y * l2x * ker + l3x * l2 * kery + l3 * l2x * kery + l3y * l2 * kerx + l3 * l2y * kerx +  l3 * l2 * kerxy) / 1.0000000000000;
 }
@@ -2373,8 +2373,8 @@ static double gradleg_tri_p6_e1_bx_0(double x, double y)
  double l3, l3x, l3y, l2, l2x, l2y;
  double ker, kerx, kery, kerxy;
  l3 = lambda3(x,y); l3x = lambda3x(x,y); l3y = lambda3y(x,y);
-  l2 = lambda2(x,y); l2x = lambda2x(x,y); l2y = lambda2y(x,y); 
- ker = phi5(l3 - l2); kerx = phi5x(l3 - l2) * (l3x - l2x); 
+  l2 = lambda2(x,y); l2x = lambda2x(x,y); l2y = lambda2y(x,y);
+ ker = phi5(l3 - l2); kerx = phi5x(l3 - l2) * (l3x - l2x);
  kery = phi5x(l3 - l2) * (l3y - l2y); kerxy = phi5xx(l3 - l2) * (l3x - l2x) * (l3y - l2y);
  return  (l3x * l2y * ker + l3y * l2x * ker + l3x * l2 * kery + l3 * l2x * kery + l3y * l2 * kerx + l3 * l2y * kerx +  l3 * l2 * kerxy) / 1.0000000000000;
 }
@@ -2443,8 +2443,8 @@ static double gradleg_tri_p6_e2_ay_0(double x, double y)
  double l1, l1x, l1y, l3, l3x, l3y;
  double ker, kerx, kery, kerxy;
  l1 = lambda1(x,y); l1x = lambda1x(x,y); l1y = lambda1y(x,y);
-  l3 = lambda3(x,y); l3x = lambda3x(x,y); l3y = lambda3y(x,y); 
- ker = phi5(l1 - l3); kerx = phi5x(l1 - l3) * (l1x - l3x); 
+  l3 = lambda3(x,y); l3x = lambda3x(x,y); l3y = lambda3y(x,y);
+ ker = phi5(l1 - l3); kerx = phi5x(l1 - l3) * (l1x - l3x);
  kery = phi5x(l1 - l3) * (l1y - l3y); kerxy = phi5xx(l1 - l3) * (l1x - l3x) * (l1y - l3y);
  return  (l1x * l3y * ker + l1y * l3x * ker + l1x * l3 * kery + l1 * l3x * kery + l1y * l3 * kerx + l1 * l3y * kerx +  l1 * l3 * kerxy) / 1.0000000000000;
 }
@@ -2459,8 +2459,8 @@ static double gradleg_tri_p6_e2_bx_0(double x, double y)
  double l1, l1x, l1y, l3, l3x, l3y;
  double ker, kerx, kery, kerxy;
  l1 = lambda1(x,y); l1x = lambda1x(x,y); l1y = lambda1y(x,y);
-  l3 = lambda3(x,y); l3x = lambda3x(x,y); l3y = lambda3y(x,y); 
- ker = phi5(l1 - l3); kerx = phi5x(l1 - l3) * (l1x - l3x); 
+  l3 = lambda3(x,y); l3x = lambda3x(x,y); l3y = lambda3y(x,y);
+ ker = phi5(l1 - l3); kerx = phi5x(l1 - l3) * (l1x - l3x);
  kery = phi5x(l1 - l3) * (l1y - l3y); kerxy = phi5xx(l1 - l3) * (l1x - l3x) * (l1y - l3y);
  return  (l1x * l3y * ker + l1y * l3x * ker + l1x * l3 * kery + l1 * l3x * kery + l1y * l3 * kerx + l1 * l3y * kerx +  l1 * l3 * kerxy) / 1.0000000000000;
 }
@@ -2529,8 +2529,8 @@ static double gradleg_tri_p6_e3_ay_0(double x, double y)
  double l2, l2x, l2y, l1, l1x, l1y;
  double ker, kerx, kery, kerxy;
  l2 = lambda2(x,y); l2x = lambda2x(x,y); l2y = lambda2y(x,y);
-  l1 = lambda1(x,y); l1x = lambda1x(x,y); l1y = lambda1y(x,y); 
- ker = phi5(l2 - l1); kerx = phi5x(l2 - l1) * (l2x - l1x); 
+  l1 = lambda1(x,y); l1x = lambda1x(x,y); l1y = lambda1y(x,y);
+ ker = phi5(l2 - l1); kerx = phi5x(l2 - l1) * (l2x - l1x);
  kery = phi5x(l2 - l1) * (l2y - l1y); kerxy = phi5xx(l2 - l1) * (l2x - l1x) * (l2y - l1y);
  return  (l2x * l1y * ker + l2y * l1x * ker + l2x * l1 * kery + l2 * l1x * kery + l2y * l1 * kerx + l2 * l1y * kerx +  l2 * l1 * kerxy) / 1.0000000000000;
 }
@@ -2545,8 +2545,8 @@ static double gradleg_tri_p6_e3_bx_0(double x, double y)
  double l2, l2x, l2y, l1, l1x, l1y;
  double ker, kerx, kery, kerxy;
  l2 = lambda2(x,y); l2x = lambda2x(x,y); l2y = lambda2y(x,y);
-  l1 = lambda1(x,y); l1x = lambda1x(x,y); l1y = lambda1y(x,y); 
- ker = phi5(l2 - l1); kerx = phi5x(l2 - l1) * (l2x - l1x); 
+  l1 = lambda1(x,y); l1x = lambda1x(x,y); l1y = lambda1y(x,y);
+ ker = phi5(l2 - l1); kerx = phi5x(l2 - l1) * (l2x - l1x);
  kery = phi5x(l2 - l1) * (l2y - l1y); kerxy = phi5xx(l2 - l1) * (l2x - l1x) * (l2y - l1y);
  return  (l2x * l1y * ker + l2y * l1x * ker + l2x * l1 * kery + l2 * l1x * kery + l2y * l1 * kerx + l2 * l1y * kerx +  l2 * l1 * kerxy) / 1.0000000000000;
 }
@@ -2578,14 +2578,14 @@ static double gradleg_tri_p6_e3_by_1(double x, double y)
 static double gradleg_tri_p6_b1_a(double x, double y)
 {
  double l3, l2;
- l3 = lambda3(x,y); l2 = lambda2(x,y); 
+ l3 = lambda3(x,y); l2 = lambda2(x,y);
  return n11 * (l3 * l2 * Legendre4(l3 - l2));
 }
 
 static double gradleg_tri_p6_b1_b(double x, double y)
 {
  double l3, l2;
- l3 = lambda3(x,y); l2 = lambda2(x,y); 
+ l3 = lambda3(x,y); l2 = lambda2(x,y);
  return n12 * (l3 * l2 * Legendre4(l3 - l2));
 }
 
@@ -2621,14 +2621,14 @@ static double gradleg_tri_p6_b1_by(double x, double y)
 static double gradleg_tri_p6_b2_a(double x, double y)
 {
  double l1, l3;
- l1 = lambda1(x,y); l3 = lambda3(x,y); 
+ l1 = lambda1(x,y); l3 = lambda3(x,y);
  return n21 * (l1 * l3 * Legendre4(l1 - l3));
 }
 
 static double gradleg_tri_p6_b2_b(double x, double y)
 {
  double l1, l3;
- l1 = lambda1(x,y); l3 = lambda3(x,y); 
+ l1 = lambda1(x,y); l3 = lambda3(x,y);
  return n22 * (l1 * l3 * Legendre4(l1 - l3));
 }
 
@@ -2664,14 +2664,14 @@ static double gradleg_tri_p6_b2_by(double x, double y)
 static double gradleg_tri_p6_b3_a(double x, double y)
 {
  double l2, l1;
- l2 = lambda2(x,y); l1 = lambda1(x,y); 
+ l2 = lambda2(x,y); l1 = lambda1(x,y);
  return n31 * (l2 * l1 * Legendre4(l2 - l1));
 }
 
 static double gradleg_tri_p6_b3_b(double x, double y)
 {
  double l2, l1;
- l2 = lambda2(x,y); l1 = lambda1(x,y); 
+ l2 = lambda2(x,y); l1 = lambda1(x,y);
  return n32 * (l2 * l1 * Legendre4(l2 - l1));
 }
 
@@ -2708,7 +2708,7 @@ static double gradleg_tri_p6_b3_by(double x, double y)
 static double gradleg_tri_b1_b4_1_a(double x, double y)
 {
  double l1, l2, l3;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
  return l1 * l2 * l3 * Legendre0(l3 - l2) * Legendre3(l2 - l1);
 }
 
@@ -2720,11 +2720,11 @@ static double gradleg_tri_b1_b4_1_b(double x, double y)
 static double gradleg_tri_b1_b4_1_ax(double x, double y)
 {
  double l1, l2, l3, l1x, l2x, l3x, L1, L2, L1x, L2x;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
- l1x = lambda1x(x,y); l2x = lambda2x(x,y); l3x = lambda3x(x,y); 
- L1 = Legendre0(l3 - l2); L2 = Legendre3(l2 - l1); 
- L1x = Legendre0x(l3 - l2) * (l3x - l2x); L2x = Legendre3x(l2 - l1) * (l2x - l1x); 
- return l1x * l2 *  l3 *  L1 *  L2 +          l1 * l2x * l3 *  L1 *  L2 +          l1 * l2 *  l3x * L1 *  L2 +          l1 * l2 *  l3 *  L1x * L2 +          l1 * l2 *  l3 *  L1 *  L2x; 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
+ l1x = lambda1x(x,y); l2x = lambda2x(x,y); l3x = lambda3x(x,y);
+ L1 = Legendre0(l3 - l2); L2 = Legendre3(l2 - l1);
+ L1x = Legendre0x(l3 - l2) * (l3x - l2x); L2x = Legendre3x(l2 - l1) * (l2x - l1x);
+ return l1x * l2 *  l3 *  L1 *  L2 +          l1 * l2x * l3 *  L1 *  L2 +          l1 * l2 *  l3x * L1 *  L2 +          l1 * l2 *  l3 *  L1x * L2 +          l1 * l2 *  l3 *  L1 *  L2x;
 }
 
 static double gradleg_tri_b1_b4_1_bx(double x, double y)
@@ -2735,11 +2735,11 @@ static double gradleg_tri_b1_b4_1_bx(double x, double y)
 static double gradleg_tri_b1_b4_1_ay(double x, double y)
 {
  double l1, l2, l3, l1y, l2y, l3y, L1, L2, L1y, L2y;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
- l1y = lambda1y(x,y); l2y = lambda2y(x,y); l3y = lambda3y(x,y); 
- L1 = Legendre0(l3 - l2); L2 = Legendre3(l2 - l1); 
- L1y = Legendre0x(l3 - l2) * (l3y - l2y); L2y = Legendre3x(l2 - l1) * (l2y - l1y); 
- return l1y * l2 *  l3 *  L1 *  L2 +          l1 * l2y * l3 *  L1 *  L2 +          l1 * l2 *  l3y * L1 *  L2 +          l1 * l2 *  l3 *  L1y * L2 +          l1 * l2 *  l3 *  L1 *  L2y; 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
+ l1y = lambda1y(x,y); l2y = lambda2y(x,y); l3y = lambda3y(x,y);
+ L1 = Legendre0(l3 - l2); L2 = Legendre3(l2 - l1);
+ L1y = Legendre0x(l3 - l2) * (l3y - l2y); L2y = Legendre3x(l2 - l1) * (l2y - l1y);
+ return l1y * l2 *  l3 *  L1 *  L2 +          l1 * l2y * l3 *  L1 *  L2 +          l1 * l2 *  l3y * L1 *  L2 +          l1 * l2 *  l3 *  L1y * L2 +          l1 * l2 *  l3 *  L1 *  L2y;
 }
 
 static double gradleg_tri_b1_b4_1_by(double x, double y)
@@ -2750,7 +2750,7 @@ static double gradleg_tri_b1_b4_1_by(double x, double y)
 static double gradleg_tri_b1_b4_2_b(double x, double y)
 {
  double l1, l2, l3;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
  return l1 * l2 * l3 * Legendre0(l3 - l2) * Legendre3(l2 - l1);
 }
 
@@ -2762,11 +2762,11 @@ static double gradleg_tri_b1_b4_2_a(double x, double y)
 static double gradleg_tri_b1_b4_2_bx(double x, double y)
 {
  double l1, l2, l3, l1x, l2x, l3x, L1, L2, L1x, L2x;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
- l1x = lambda1x(x,y); l2x = lambda2x(x,y); l3x = lambda3x(x,y); 
- L1 = Legendre0(l3 - l2); L2 = Legendre3(l2 - l1); 
- L1x = Legendre0x(l3 - l2) * (l3x - l2x); L2x = Legendre3x(l2 - l1) * (l2x - l1x); 
- return l1x * l2 *  l3 *  L1 *  L2 +          l1 * l2x * l3 *  L1 *  L2 +          l1 * l2 *  l3x * L1 *  L2 +          l1 * l2 *  l3 *  L1x * L2 +          l1 * l2 *  l3 *  L1 *  L2x; 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
+ l1x = lambda1x(x,y); l2x = lambda2x(x,y); l3x = lambda3x(x,y);
+ L1 = Legendre0(l3 - l2); L2 = Legendre3(l2 - l1);
+ L1x = Legendre0x(l3 - l2) * (l3x - l2x); L2x = Legendre3x(l2 - l1) * (l2x - l1x);
+ return l1x * l2 *  l3 *  L1 *  L2 +          l1 * l2x * l3 *  L1 *  L2 +          l1 * l2 *  l3x * L1 *  L2 +          l1 * l2 *  l3 *  L1x * L2 +          l1 * l2 *  l3 *  L1 *  L2x;
 }
 
 static double gradleg_tri_b1_b4_2_ax(double x, double y)
@@ -2777,11 +2777,11 @@ static double gradleg_tri_b1_b4_2_ax(double x, double y)
 static double gradleg_tri_b1_b4_2_by(double x, double y)
 {
  double l1, l2, l3, l1y, l2y, l3y, L1, L2, L1y, L2y;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
- l1y = lambda1y(x,y); l2y = lambda2y(x,y); l3y = lambda3y(x,y); 
- L1 = Legendre0(l3 - l2); L2 = Legendre3(l2 - l1); 
- L1y = Legendre0x(l3 - l2) * (l3y - l2y); L2y = Legendre3x(l2 - l1) * (l2y - l1y); 
- return l1y * l2 *  l3 *  L1 *  L2 +          l1 * l2y * l3 *  L1 *  L2 +          l1 * l2 *  l3y * L1 *  L2 +          l1 * l2 *  l3 *  L1y * L2 +          l1 * l2 *  l3 *  L1 *  L2y; 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
+ l1y = lambda1y(x,y); l2y = lambda2y(x,y); l3y = lambda3y(x,y);
+ L1 = Legendre0(l3 - l2); L2 = Legendre3(l2 - l1);
+ L1y = Legendre0x(l3 - l2) * (l3y - l2y); L2y = Legendre3x(l2 - l1) * (l2y - l1y);
+ return l1y * l2 *  l3 *  L1 *  L2 +          l1 * l2y * l3 *  L1 *  L2 +          l1 * l2 *  l3y * L1 *  L2 +          l1 * l2 *  l3 *  L1y * L2 +          l1 * l2 *  l3 *  L1 *  L2y;
 }
 
 static double gradleg_tri_b1_b4_2_ay(double x, double y)
@@ -2792,7 +2792,7 @@ static double gradleg_tri_b1_b4_2_ay(double x, double y)
 static double gradleg_tri_b2_b3_1_a(double x, double y)
 {
  double l1, l2, l3;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
  return l1 * l2 * l3 * Legendre1(l3 - l2) * Legendre2(l2 - l1);
 }
 
@@ -2804,11 +2804,11 @@ static double gradleg_tri_b2_b3_1_b(double x, double y)
 static double gradleg_tri_b2_b3_1_ax(double x, double y)
 {
  double l1, l2, l3, l1x, l2x, l3x, L1, L2, L1x, L2x;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
- l1x = lambda1x(x,y); l2x = lambda2x(x,y); l3x = lambda3x(x,y); 
- L1 = Legendre1(l3 - l2); L2 = Legendre2(l2 - l1); 
- L1x = Legendre1x(l3 - l2) * (l3x - l2x); L2x = Legendre2x(l2 - l1) * (l2x - l1x); 
- return l1x * l2 *  l3 *  L1 *  L2 +          l1 * l2x * l3 *  L1 *  L2 +          l1 * l2 *  l3x * L1 *  L2 +          l1 * l2 *  l3 *  L1x * L2 +          l1 * l2 *  l3 *  L1 *  L2x; 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
+ l1x = lambda1x(x,y); l2x = lambda2x(x,y); l3x = lambda3x(x,y);
+ L1 = Legendre1(l3 - l2); L2 = Legendre2(l2 - l1);
+ L1x = Legendre1x(l3 - l2) * (l3x - l2x); L2x = Legendre2x(l2 - l1) * (l2x - l1x);
+ return l1x * l2 *  l3 *  L1 *  L2 +          l1 * l2x * l3 *  L1 *  L2 +          l1 * l2 *  l3x * L1 *  L2 +          l1 * l2 *  l3 *  L1x * L2 +          l1 * l2 *  l3 *  L1 *  L2x;
 }
 
 static double gradleg_tri_b2_b3_1_bx(double x, double y)
@@ -2819,11 +2819,11 @@ static double gradleg_tri_b2_b3_1_bx(double x, double y)
 static double gradleg_tri_b2_b3_1_ay(double x, double y)
 {
  double l1, l2, l3, l1y, l2y, l3y, L1, L2, L1y, L2y;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
- l1y = lambda1y(x,y); l2y = lambda2y(x,y); l3y = lambda3y(x,y); 
- L1 = Legendre1(l3 - l2); L2 = Legendre2(l2 - l1); 
- L1y = Legendre1x(l3 - l2) * (l3y - l2y); L2y = Legendre2x(l2 - l1) * (l2y - l1y); 
- return l1y * l2 *  l3 *  L1 *  L2 +          l1 * l2y * l3 *  L1 *  L2 +          l1 * l2 *  l3y * L1 *  L2 +          l1 * l2 *  l3 *  L1y * L2 +          l1 * l2 *  l3 *  L1 *  L2y; 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
+ l1y = lambda1y(x,y); l2y = lambda2y(x,y); l3y = lambda3y(x,y);
+ L1 = Legendre1(l3 - l2); L2 = Legendre2(l2 - l1);
+ L1y = Legendre1x(l3 - l2) * (l3y - l2y); L2y = Legendre2x(l2 - l1) * (l2y - l1y);
+ return l1y * l2 *  l3 *  L1 *  L2 +          l1 * l2y * l3 *  L1 *  L2 +          l1 * l2 *  l3y * L1 *  L2 +          l1 * l2 *  l3 *  L1y * L2 +          l1 * l2 *  l3 *  L1 *  L2y;
 }
 
 static double gradleg_tri_b2_b3_1_by(double x, double y)
@@ -2834,7 +2834,7 @@ static double gradleg_tri_b2_b3_1_by(double x, double y)
 static double gradleg_tri_b2_b3_2_b(double x, double y)
 {
  double l1, l2, l3;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
  return l1 * l2 * l3 * Legendre1(l3 - l2) * Legendre2(l2 - l1);
 }
 
@@ -2846,11 +2846,11 @@ static double gradleg_tri_b2_b3_2_a(double x, double y)
 static double gradleg_tri_b2_b3_2_bx(double x, double y)
 {
  double l1, l2, l3, l1x, l2x, l3x, L1, L2, L1x, L2x;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
- l1x = lambda1x(x,y); l2x = lambda2x(x,y); l3x = lambda3x(x,y); 
- L1 = Legendre1(l3 - l2); L2 = Legendre2(l2 - l1); 
- L1x = Legendre1x(l3 - l2) * (l3x - l2x); L2x = Legendre2x(l2 - l1) * (l2x - l1x); 
- return l1x * l2 *  l3 *  L1 *  L2 +          l1 * l2x * l3 *  L1 *  L2 +          l1 * l2 *  l3x * L1 *  L2 +          l1 * l2 *  l3 *  L1x * L2 +          l1 * l2 *  l3 *  L1 *  L2x; 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
+ l1x = lambda1x(x,y); l2x = lambda2x(x,y); l3x = lambda3x(x,y);
+ L1 = Legendre1(l3 - l2); L2 = Legendre2(l2 - l1);
+ L1x = Legendre1x(l3 - l2) * (l3x - l2x); L2x = Legendre2x(l2 - l1) * (l2x - l1x);
+ return l1x * l2 *  l3 *  L1 *  L2 +          l1 * l2x * l3 *  L1 *  L2 +          l1 * l2 *  l3x * L1 *  L2 +          l1 * l2 *  l3 *  L1x * L2 +          l1 * l2 *  l3 *  L1 *  L2x;
 }
 
 static double gradleg_tri_b2_b3_2_ax(double x, double y)
@@ -2861,11 +2861,11 @@ static double gradleg_tri_b2_b3_2_ax(double x, double y)
 static double gradleg_tri_b2_b3_2_by(double x, double y)
 {
  double l1, l2, l3, l1y, l2y, l3y, L1, L2, L1y, L2y;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
- l1y = lambda1y(x,y); l2y = lambda2y(x,y); l3y = lambda3y(x,y); 
- L1 = Legendre1(l3 - l2); L2 = Legendre2(l2 - l1); 
- L1y = Legendre1x(l3 - l2) * (l3y - l2y); L2y = Legendre2x(l2 - l1) * (l2y - l1y); 
- return l1y * l2 *  l3 *  L1 *  L2 +          l1 * l2y * l3 *  L1 *  L2 +          l1 * l2 *  l3y * L1 *  L2 +          l1 * l2 *  l3 *  L1y * L2 +          l1 * l2 *  l3 *  L1 *  L2y; 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
+ l1y = lambda1y(x,y); l2y = lambda2y(x,y); l3y = lambda3y(x,y);
+ L1 = Legendre1(l3 - l2); L2 = Legendre2(l2 - l1);
+ L1y = Legendre1x(l3 - l2) * (l3y - l2y); L2y = Legendre2x(l2 - l1) * (l2y - l1y);
+ return l1y * l2 *  l3 *  L1 *  L2 +          l1 * l2y * l3 *  L1 *  L2 +          l1 * l2 *  l3y * L1 *  L2 +          l1 * l2 *  l3 *  L1y * L2 +          l1 * l2 *  l3 *  L1 *  L2y;
 }
 
 static double gradleg_tri_b2_b3_2_ay(double x, double y)
@@ -2876,7 +2876,7 @@ static double gradleg_tri_b2_b3_2_ay(double x, double y)
 static double gradleg_tri_b3_b2_1_a(double x, double y)
 {
  double l1, l2, l3;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
  return l1 * l2 * l3 * Legendre2(l3 - l2) * Legendre1(l2 - l1);
 }
 
@@ -2888,11 +2888,11 @@ static double gradleg_tri_b3_b2_1_b(double x, double y)
 static double gradleg_tri_b3_b2_1_ax(double x, double y)
 {
  double l1, l2, l3, l1x, l2x, l3x, L1, L2, L1x, L2x;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
- l1x = lambda1x(x,y); l2x = lambda2x(x,y); l3x = lambda3x(x,y); 
- L1 = Legendre2(l3 - l2); L2 = Legendre1(l2 - l1); 
- L1x = Legendre2x(l3 - l2) * (l3x - l2x); L2x = Legendre1x(l2 - l1) * (l2x - l1x); 
- return l1x * l2 *  l3 *  L1 *  L2 +          l1 * l2x * l3 *  L1 *  L2 +          l1 * l2 *  l3x * L1 *  L2 +          l1 * l2 *  l3 *  L1x * L2 +          l1 * l2 *  l3 *  L1 *  L2x; 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
+ l1x = lambda1x(x,y); l2x = lambda2x(x,y); l3x = lambda3x(x,y);
+ L1 = Legendre2(l3 - l2); L2 = Legendre1(l2 - l1);
+ L1x = Legendre2x(l3 - l2) * (l3x - l2x); L2x = Legendre1x(l2 - l1) * (l2x - l1x);
+ return l1x * l2 *  l3 *  L1 *  L2 +          l1 * l2x * l3 *  L1 *  L2 +          l1 * l2 *  l3x * L1 *  L2 +          l1 * l2 *  l3 *  L1x * L2 +          l1 * l2 *  l3 *  L1 *  L2x;
 }
 
 static double gradleg_tri_b3_b2_1_bx(double x, double y)
@@ -2903,11 +2903,11 @@ static double gradleg_tri_b3_b2_1_bx(double x, double y)
 static double gradleg_tri_b3_b2_1_ay(double x, double y)
 {
  double l1, l2, l3, l1y, l2y, l3y, L1, L2, L1y, L2y;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
- l1y = lambda1y(x,y); l2y = lambda2y(x,y); l3y = lambda3y(x,y); 
- L1 = Legendre2(l3 - l2); L2 = Legendre1(l2 - l1); 
- L1y = Legendre2x(l3 - l2) * (l3y - l2y); L2y = Legendre1x(l2 - l1) * (l2y - l1y); 
- return l1y * l2 *  l3 *  L1 *  L2 +          l1 * l2y * l3 *  L1 *  L2 +          l1 * l2 *  l3y * L1 *  L2 +          l1 * l2 *  l3 *  L1y * L2 +          l1 * l2 *  l3 *  L1 *  L2y; 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
+ l1y = lambda1y(x,y); l2y = lambda2y(x,y); l3y = lambda3y(x,y);
+ L1 = Legendre2(l3 - l2); L2 = Legendre1(l2 - l1);
+ L1y = Legendre2x(l3 - l2) * (l3y - l2y); L2y = Legendre1x(l2 - l1) * (l2y - l1y);
+ return l1y * l2 *  l3 *  L1 *  L2 +          l1 * l2y * l3 *  L1 *  L2 +          l1 * l2 *  l3y * L1 *  L2 +          l1 * l2 *  l3 *  L1y * L2 +          l1 * l2 *  l3 *  L1 *  L2y;
 }
 
 static double gradleg_tri_b3_b2_1_by(double x, double y)
@@ -2918,7 +2918,7 @@ static double gradleg_tri_b3_b2_1_by(double x, double y)
 static double gradleg_tri_b3_b2_2_b(double x, double y)
 {
  double l1, l2, l3;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
  return l1 * l2 * l3 * Legendre2(l3 - l2) * Legendre1(l2 - l1);
 }
 
@@ -2930,11 +2930,11 @@ static double gradleg_tri_b3_b2_2_a(double x, double y)
 static double gradleg_tri_b3_b2_2_bx(double x, double y)
 {
  double l1, l2, l3, l1x, l2x, l3x, L1, L2, L1x, L2x;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
- l1x = lambda1x(x,y); l2x = lambda2x(x,y); l3x = lambda3x(x,y); 
- L1 = Legendre2(l3 - l2); L2 = Legendre1(l2 - l1); 
- L1x = Legendre2x(l3 - l2) * (l3x - l2x); L2x = Legendre1x(l2 - l1) * (l2x - l1x); 
- return l1x * l2 *  l3 *  L1 *  L2 +          l1 * l2x * l3 *  L1 *  L2 +          l1 * l2 *  l3x * L1 *  L2 +          l1 * l2 *  l3 *  L1x * L2 +          l1 * l2 *  l3 *  L1 *  L2x; 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
+ l1x = lambda1x(x,y); l2x = lambda2x(x,y); l3x = lambda3x(x,y);
+ L1 = Legendre2(l3 - l2); L2 = Legendre1(l2 - l1);
+ L1x = Legendre2x(l3 - l2) * (l3x - l2x); L2x = Legendre1x(l2 - l1) * (l2x - l1x);
+ return l1x * l2 *  l3 *  L1 *  L2 +          l1 * l2x * l3 *  L1 *  L2 +          l1 * l2 *  l3x * L1 *  L2 +          l1 * l2 *  l3 *  L1x * L2 +          l1 * l2 *  l3 *  L1 *  L2x;
 }
 
 static double gradleg_tri_b3_b2_2_ax(double x, double y)
@@ -2945,11 +2945,11 @@ static double gradleg_tri_b3_b2_2_ax(double x, double y)
 static double gradleg_tri_b3_b2_2_by(double x, double y)
 {
  double l1, l2, l3, l1y, l2y, l3y, L1, L2, L1y, L2y;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
- l1y = lambda1y(x,y); l2y = lambda2y(x,y); l3y = lambda3y(x,y); 
- L1 = Legendre2(l3 - l2); L2 = Legendre1(l2 - l1); 
- L1y = Legendre2x(l3 - l2) * (l3y - l2y); L2y = Legendre1x(l2 - l1) * (l2y - l1y); 
- return l1y * l2 *  l3 *  L1 *  L2 +          l1 * l2y * l3 *  L1 *  L2 +          l1 * l2 *  l3y * L1 *  L2 +          l1 * l2 *  l3 *  L1y * L2 +          l1 * l2 *  l3 *  L1 *  L2y; 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
+ l1y = lambda1y(x,y); l2y = lambda2y(x,y); l3y = lambda3y(x,y);
+ L1 = Legendre2(l3 - l2); L2 = Legendre1(l2 - l1);
+ L1y = Legendre2x(l3 - l2) * (l3y - l2y); L2y = Legendre1x(l2 - l1) * (l2y - l1y);
+ return l1y * l2 *  l3 *  L1 *  L2 +          l1 * l2y * l3 *  L1 *  L2 +          l1 * l2 *  l3y * L1 *  L2 +          l1 * l2 *  l3 *  L1y * L2 +          l1 * l2 *  l3 *  L1 *  L2y;
 }
 
 static double gradleg_tri_b3_b2_2_ay(double x, double y)
@@ -2960,7 +2960,7 @@ static double gradleg_tri_b3_b2_2_ay(double x, double y)
 static double gradleg_tri_b4_b1_1_a(double x, double y)
 {
  double l1, l2, l3;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
  return l1 * l2 * l3 * Legendre3(l3 - l2) * Legendre0(l2 - l1);
 }
 
@@ -2972,11 +2972,11 @@ static double gradleg_tri_b4_b1_1_b(double x, double y)
 static double gradleg_tri_b4_b1_1_ax(double x, double y)
 {
  double l1, l2, l3, l1x, l2x, l3x, L1, L2, L1x, L2x;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
- l1x = lambda1x(x,y); l2x = lambda2x(x,y); l3x = lambda3x(x,y); 
- L1 = Legendre3(l3 - l2); L2 = Legendre0(l2 - l1); 
- L1x = Legendre3x(l3 - l2) * (l3x - l2x); L2x = Legendre0x(l2 - l1) * (l2x - l1x); 
- return l1x * l2 *  l3 *  L1 *  L2 +          l1 * l2x * l3 *  L1 *  L2 +          l1 * l2 *  l3x * L1 *  L2 +          l1 * l2 *  l3 *  L1x * L2 +          l1 * l2 *  l3 *  L1 *  L2x; 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
+ l1x = lambda1x(x,y); l2x = lambda2x(x,y); l3x = lambda3x(x,y);
+ L1 = Legendre3(l3 - l2); L2 = Legendre0(l2 - l1);
+ L1x = Legendre3x(l3 - l2) * (l3x - l2x); L2x = Legendre0x(l2 - l1) * (l2x - l1x);
+ return l1x * l2 *  l3 *  L1 *  L2 +          l1 * l2x * l3 *  L1 *  L2 +          l1 * l2 *  l3x * L1 *  L2 +          l1 * l2 *  l3 *  L1x * L2 +          l1 * l2 *  l3 *  L1 *  L2x;
 }
 
 static double gradleg_tri_b4_b1_1_bx(double x, double y)
@@ -2987,11 +2987,11 @@ static double gradleg_tri_b4_b1_1_bx(double x, double y)
 static double gradleg_tri_b4_b1_1_ay(double x, double y)
 {
  double l1, l2, l3, l1y, l2y, l3y, L1, L2, L1y, L2y;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
- l1y = lambda1y(x,y); l2y = lambda2y(x,y); l3y = lambda3y(x,y); 
- L1 = Legendre3(l3 - l2); L2 = Legendre0(l2 - l1); 
- L1y = Legendre3x(l3 - l2) * (l3y - l2y); L2y = Legendre0x(l2 - l1) * (l2y - l1y); 
- return l1y * l2 *  l3 *  L1 *  L2 +          l1 * l2y * l3 *  L1 *  L2 +          l1 * l2 *  l3y * L1 *  L2 +          l1 * l2 *  l3 *  L1y * L2 +          l1 * l2 *  l3 *  L1 *  L2y; 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
+ l1y = lambda1y(x,y); l2y = lambda2y(x,y); l3y = lambda3y(x,y);
+ L1 = Legendre3(l3 - l2); L2 = Legendre0(l2 - l1);
+ L1y = Legendre3x(l3 - l2) * (l3y - l2y); L2y = Legendre0x(l2 - l1) * (l2y - l1y);
+ return l1y * l2 *  l3 *  L1 *  L2 +          l1 * l2y * l3 *  L1 *  L2 +          l1 * l2 *  l3y * L1 *  L2 +          l1 * l2 *  l3 *  L1y * L2 +          l1 * l2 *  l3 *  L1 *  L2y;
 }
 
 static double gradleg_tri_b4_b1_1_by(double x, double y)
@@ -3002,7 +3002,7 @@ static double gradleg_tri_b4_b1_1_by(double x, double y)
 static double gradleg_tri_b4_b1_2_b(double x, double y)
 {
  double l1, l2, l3;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
  return l1 * l2 * l3 * Legendre3(l3 - l2) * Legendre0(l2 - l1);
 }
 
@@ -3014,11 +3014,11 @@ static double gradleg_tri_b4_b1_2_a(double x, double y)
 static double gradleg_tri_b4_b1_2_bx(double x, double y)
 {
  double l1, l2, l3, l1x, l2x, l3x, L1, L2, L1x, L2x;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
- l1x = lambda1x(x,y); l2x = lambda2x(x,y); l3x = lambda3x(x,y); 
- L1 = Legendre3(l3 - l2); L2 = Legendre0(l2 - l1); 
- L1x = Legendre3x(l3 - l2) * (l3x - l2x); L2x = Legendre0x(l2 - l1) * (l2x - l1x); 
- return l1x * l2 *  l3 *  L1 *  L2 +          l1 * l2x * l3 *  L1 *  L2 +          l1 * l2 *  l3x * L1 *  L2 +          l1 * l2 *  l3 *  L1x * L2 +          l1 * l2 *  l3 *  L1 *  L2x; 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
+ l1x = lambda1x(x,y); l2x = lambda2x(x,y); l3x = lambda3x(x,y);
+ L1 = Legendre3(l3 - l2); L2 = Legendre0(l2 - l1);
+ L1x = Legendre3x(l3 - l2) * (l3x - l2x); L2x = Legendre0x(l2 - l1) * (l2x - l1x);
+ return l1x * l2 *  l3 *  L1 *  L2 +          l1 * l2x * l3 *  L1 *  L2 +          l1 * l2 *  l3x * L1 *  L2 +          l1 * l2 *  l3 *  L1x * L2 +          l1 * l2 *  l3 *  L1 *  L2x;
 }
 
 static double gradleg_tri_b4_b1_2_ax(double x, double y)
@@ -3029,11 +3029,11 @@ static double gradleg_tri_b4_b1_2_ax(double x, double y)
 static double gradleg_tri_b4_b1_2_by(double x, double y)
 {
  double l1, l2, l3, l1y, l2y, l3y, L1, L2, L1y, L2y;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
- l1y = lambda1y(x,y); l2y = lambda2y(x,y); l3y = lambda3y(x,y); 
- L1 = Legendre3(l3 - l2); L2 = Legendre0(l2 - l1); 
- L1y = Legendre3x(l3 - l2) * (l3y - l2y); L2y = Legendre0x(l2 - l1) * (l2y - l1y); 
- return l1y * l2 *  l3 *  L1 *  L2 +          l1 * l2y * l3 *  L1 *  L2 +          l1 * l2 *  l3y * L1 *  L2 +          l1 * l2 *  l3 *  L1y * L2 +          l1 * l2 *  l3 *  L1 *  L2y; 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
+ l1y = lambda1y(x,y); l2y = lambda2y(x,y); l3y = lambda3y(x,y);
+ L1 = Legendre3(l3 - l2); L2 = Legendre0(l2 - l1);
+ L1y = Legendre3x(l3 - l2) * (l3y - l2y); L2y = Legendre0x(l2 - l1) * (l2y - l1y);
+ return l1y * l2 *  l3 *  L1 *  L2 +          l1 * l2y * l3 *  L1 *  L2 +          l1 * l2 *  l3y * L1 *  L2 +          l1 * l2 *  l3 *  L1y * L2 +          l1 * l2 *  l3 *  L1 *  L2y;
 }
 
 static double gradleg_tri_b4_b1_2_ay(double x, double y)
@@ -3075,8 +3075,8 @@ static double gradleg_tri_p7_e1_ay(double x, double y)
  double l3, l3x, l3y, l2, l2x, l2y;
  double ker, kerx, kery, kerxy;
  l3 = lambda3(x,y); l3x = lambda3x(x,y); l3y = lambda3y(x,y);
-  l2 = lambda2(x,y); l2x = lambda2x(x,y); l2y = lambda2y(x,y); 
- ker = phi6(l3 - l2); kerx = phi6x(l3 - l2) * (l3x - l2x); 
+  l2 = lambda2(x,y); l2x = lambda2x(x,y); l2y = lambda2y(x,y);
+ ker = phi6(l3 - l2); kerx = phi6x(l3 - l2) * (l3x - l2x);
  kery = phi6x(l3 - l2) * (l3y - l2y); kerxy = phi6xx(l3 - l2) * (l3x - l2x) * (l3y - l2y);
  return  (l3x * l2y * ker + l3y * l2x * ker + l3x * l2 * kery + l3 * l2x * kery + l3y * l2 * kerx + l3 * l2y * kerx +  l3 * l2 * kerxy) / 1.0000000000000;
 }
@@ -3086,8 +3086,8 @@ static double gradleg_tri_p7_e1_bx(double x, double y)
  double l3, l3x, l3y, l2, l2x, l2y;
  double ker, kerx, kery, kerxy;
  l3 = lambda3(x,y); l3x = lambda3x(x,y); l3y = lambda3y(x,y);
-  l2 = lambda2(x,y); l2x = lambda2x(x,y); l2y = lambda2y(x,y); 
- ker = phi6(l3 - l2); kerx = phi6x(l3 - l2) * (l3x - l2x); 
+  l2 = lambda2(x,y); l2x = lambda2x(x,y); l2y = lambda2y(x,y);
+ ker = phi6(l3 - l2); kerx = phi6x(l3 - l2) * (l3x - l2x);
  kery = phi6x(l3 - l2) * (l3y - l2y); kerxy = phi6xx(l3 - l2) * (l3x - l2x) * (l3y - l2y);
  return  (l3x * l2y * ker + l3y * l2x * ker + l3x * l2 * kery + l3 * l2x * kery + l3y * l2 * kerx + l3 * l2y * kerx +  l3 * l2 * kerxy) / 1.0000000000000;
 }
@@ -3131,8 +3131,8 @@ static double gradleg_tri_p7_e2_ay(double x, double y)
  double l1, l1x, l1y, l3, l3x, l3y;
  double ker, kerx, kery, kerxy;
  l1 = lambda1(x,y); l1x = lambda1x(x,y); l1y = lambda1y(x,y);
-  l3 = lambda3(x,y); l3x = lambda3x(x,y); l3y = lambda3y(x,y); 
- ker = phi6(l1 - l3); kerx = phi6x(l1 - l3) * (l1x - l3x); 
+  l3 = lambda3(x,y); l3x = lambda3x(x,y); l3y = lambda3y(x,y);
+ ker = phi6(l1 - l3); kerx = phi6x(l1 - l3) * (l1x - l3x);
  kery = phi6x(l1 - l3) * (l1y - l3y); kerxy = phi6xx(l1 - l3) * (l1x - l3x) * (l1y - l3y);
  return  (l1x * l3y * ker + l1y * l3x * ker + l1x * l3 * kery + l1 * l3x * kery + l1y * l3 * kerx + l1 * l3y * kerx +  l1 * l3 * kerxy) / 1.0000000000000;
 }
@@ -3142,8 +3142,8 @@ static double gradleg_tri_p7_e2_bx(double x, double y)
  double l1, l1x, l1y, l3, l3x, l3y;
  double ker, kerx, kery, kerxy;
  l1 = lambda1(x,y); l1x = lambda1x(x,y); l1y = lambda1y(x,y);
-  l3 = lambda3(x,y); l3x = lambda3x(x,y); l3y = lambda3y(x,y); 
- ker = phi6(l1 - l3); kerx = phi6x(l1 - l3) * (l1x - l3x); 
+  l3 = lambda3(x,y); l3x = lambda3x(x,y); l3y = lambda3y(x,y);
+ ker = phi6(l1 - l3); kerx = phi6x(l1 - l3) * (l1x - l3x);
  kery = phi6x(l1 - l3) * (l1y - l3y); kerxy = phi6xx(l1 - l3) * (l1x - l3x) * (l1y - l3y);
  return  (l1x * l3y * ker + l1y * l3x * ker + l1x * l3 * kery + l1 * l3x * kery + l1y * l3 * kerx + l1 * l3y * kerx +  l1 * l3 * kerxy) / 1.0000000000000;
 }
@@ -3187,8 +3187,8 @@ static double gradleg_tri_p7_e3_ay(double x, double y)
  double l2, l2x, l2y, l1, l1x, l1y;
  double ker, kerx, kery, kerxy;
  l2 = lambda2(x,y); l2x = lambda2x(x,y); l2y = lambda2y(x,y);
-  l1 = lambda1(x,y); l1x = lambda1x(x,y); l1y = lambda1y(x,y); 
- ker = phi6(l2 - l1); kerx = phi6x(l2 - l1) * (l2x - l1x); 
+  l1 = lambda1(x,y); l1x = lambda1x(x,y); l1y = lambda1y(x,y);
+ ker = phi6(l2 - l1); kerx = phi6x(l2 - l1) * (l2x - l1x);
  kery = phi6x(l2 - l1) * (l2y - l1y); kerxy = phi6xx(l2 - l1) * (l2x - l1x) * (l2y - l1y);
  return  (l2x * l1y * ker + l2y * l1x * ker + l2x * l1 * kery + l2 * l1x * kery + l2y * l1 * kerx + l2 * l1y * kerx +  l2 * l1 * kerxy) / 1.0000000000000;
 }
@@ -3198,8 +3198,8 @@ static double gradleg_tri_p7_e3_bx(double x, double y)
  double l2, l2x, l2y, l1, l1x, l1y;
  double ker, kerx, kery, kerxy;
  l2 = lambda2(x,y); l2x = lambda2x(x,y); l2y = lambda2y(x,y);
-  l1 = lambda1(x,y); l1x = lambda1x(x,y); l1y = lambda1y(x,y); 
- ker = phi6(l2 - l1); kerx = phi6x(l2 - l1) * (l2x - l1x); 
+  l1 = lambda1(x,y); l1x = lambda1x(x,y); l1y = lambda1y(x,y);
+ ker = phi6(l2 - l1); kerx = phi6x(l2 - l1) * (l2x - l1x);
  kery = phi6x(l2 - l1) * (l2y - l1y); kerxy = phi6xx(l2 - l1) * (l2x - l1x) * (l2y - l1y);
  return  (l2x * l1y * ker + l2y * l1x * ker + l2x * l1 * kery + l2 * l1x * kery + l2y * l1 * kerx + l2 * l1y * kerx +  l2 * l1 * kerxy) / 1.0000000000000;
 }
@@ -3221,14 +3221,14 @@ static double gradleg_tri_p7_e3_by(double x, double y)
 static double gradleg_tri_p7_b1_a(double x, double y)
 {
  double l3, l2;
- l3 = lambda3(x,y); l2 = lambda2(x,y); 
+ l3 = lambda3(x,y); l2 = lambda2(x,y);
  return n11 * (l3 * l2 * Legendre5(l3 - l2));
 }
 
 static double gradleg_tri_p7_b1_b(double x, double y)
 {
  double l3, l2;
- l3 = lambda3(x,y); l2 = lambda2(x,y); 
+ l3 = lambda3(x,y); l2 = lambda2(x,y);
  return n12 * (l3 * l2 * Legendre5(l3 - l2));
 }
 
@@ -3264,14 +3264,14 @@ static double gradleg_tri_p7_b1_by(double x, double y)
 static double gradleg_tri_p7_b2_a(double x, double y)
 {
  double l1, l3;
- l1 = lambda1(x,y); l3 = lambda3(x,y); 
+ l1 = lambda1(x,y); l3 = lambda3(x,y);
  return n21 * (l1 * l3 * Legendre5(l1 - l3));
 }
 
 static double gradleg_tri_p7_b2_b(double x, double y)
 {
  double l1, l3;
- l1 = lambda1(x,y); l3 = lambda3(x,y); 
+ l1 = lambda1(x,y); l3 = lambda3(x,y);
  return n22 * (l1 * l3 * Legendre5(l1 - l3));
 }
 
@@ -3307,14 +3307,14 @@ static double gradleg_tri_p7_b2_by(double x, double y)
 static double gradleg_tri_p7_b3_a(double x, double y)
 {
  double l2, l1;
- l2 = lambda2(x,y); l1 = lambda1(x,y); 
+ l2 = lambda2(x,y); l1 = lambda1(x,y);
  return n31 * (l2 * l1 * Legendre5(l2 - l1));
 }
 
 static double gradleg_tri_p7_b3_b(double x, double y)
 {
  double l2, l1;
- l2 = lambda2(x,y); l1 = lambda1(x,y); 
+ l2 = lambda2(x,y); l1 = lambda1(x,y);
  return n32 * (l2 * l1 * Legendre5(l2 - l1));
 }
 
@@ -3351,7 +3351,7 @@ static double gradleg_tri_p7_b3_by(double x, double y)
 static double gradleg_tri_b1_b5_1_a(double x, double y)
 {
  double l1, l2, l3;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
  return l1 * l2 * l3 * Legendre0(l3 - l2) * Legendre4(l2 - l1);
 }
 
@@ -3363,11 +3363,11 @@ static double gradleg_tri_b1_b5_1_b(double x, double y)
 static double gradleg_tri_b1_b5_1_ax(double x, double y)
 {
  double l1, l2, l3, l1x, l2x, l3x, L1, L2, L1x, L2x;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
- l1x = lambda1x(x,y); l2x = lambda2x(x,y); l3x = lambda3x(x,y); 
- L1 = Legendre0(l3 - l2); L2 = Legendre4(l2 - l1); 
- L1x = Legendre0x(l3 - l2) * (l3x - l2x); L2x = Legendre4x(l2 - l1) * (l2x - l1x); 
- return l1x * l2 *  l3 *  L1 *  L2 +          l1 * l2x * l3 *  L1 *  L2 +          l1 * l2 *  l3x * L1 *  L2 +          l1 * l2 *  l3 *  L1x * L2 +          l1 * l2 *  l3 *  L1 *  L2x; 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
+ l1x = lambda1x(x,y); l2x = lambda2x(x,y); l3x = lambda3x(x,y);
+ L1 = Legendre0(l3 - l2); L2 = Legendre4(l2 - l1);
+ L1x = Legendre0x(l3 - l2) * (l3x - l2x); L2x = Legendre4x(l2 - l1) * (l2x - l1x);
+ return l1x * l2 *  l3 *  L1 *  L2 +          l1 * l2x * l3 *  L1 *  L2 +          l1 * l2 *  l3x * L1 *  L2 +          l1 * l2 *  l3 *  L1x * L2 +          l1 * l2 *  l3 *  L1 *  L2x;
 }
 
 static double gradleg_tri_b1_b5_1_bx(double x, double y)
@@ -3378,11 +3378,11 @@ static double gradleg_tri_b1_b5_1_bx(double x, double y)
 static double gradleg_tri_b1_b5_1_ay(double x, double y)
 {
  double l1, l2, l3, l1y, l2y, l3y, L1, L2, L1y, L2y;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
- l1y = lambda1y(x,y); l2y = lambda2y(x,y); l3y = lambda3y(x,y); 
- L1 = Legendre0(l3 - l2); L2 = Legendre4(l2 - l1); 
- L1y = Legendre0x(l3 - l2) * (l3y - l2y); L2y = Legendre4x(l2 - l1) * (l2y - l1y); 
- return l1y * l2 *  l3 *  L1 *  L2 +          l1 * l2y * l3 *  L1 *  L2 +          l1 * l2 *  l3y * L1 *  L2 +          l1 * l2 *  l3 *  L1y * L2 +          l1 * l2 *  l3 *  L1 *  L2y; 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
+ l1y = lambda1y(x,y); l2y = lambda2y(x,y); l3y = lambda3y(x,y);
+ L1 = Legendre0(l3 - l2); L2 = Legendre4(l2 - l1);
+ L1y = Legendre0x(l3 - l2) * (l3y - l2y); L2y = Legendre4x(l2 - l1) * (l2y - l1y);
+ return l1y * l2 *  l3 *  L1 *  L2 +          l1 * l2y * l3 *  L1 *  L2 +          l1 * l2 *  l3y * L1 *  L2 +          l1 * l2 *  l3 *  L1y * L2 +          l1 * l2 *  l3 *  L1 *  L2y;
 }
 
 static double gradleg_tri_b1_b5_1_by(double x, double y)
@@ -3393,7 +3393,7 @@ static double gradleg_tri_b1_b5_1_by(double x, double y)
 static double gradleg_tri_b1_b5_2_b(double x, double y)
 {
  double l1, l2, l3;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
  return l1 * l2 * l3 * Legendre0(l3 - l2) * Legendre4(l2 - l1);
 }
 
@@ -3405,11 +3405,11 @@ static double gradleg_tri_b1_b5_2_a(double x, double y)
 static double gradleg_tri_b1_b5_2_bx(double x, double y)
 {
  double l1, l2, l3, l1x, l2x, l3x, L1, L2, L1x, L2x;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
- l1x = lambda1x(x,y); l2x = lambda2x(x,y); l3x = lambda3x(x,y); 
- L1 = Legendre0(l3 - l2); L2 = Legendre4(l2 - l1); 
- L1x = Legendre0x(l3 - l2) * (l3x - l2x); L2x = Legendre4x(l2 - l1) * (l2x - l1x); 
- return l1x * l2 *  l3 *  L1 *  L2 +          l1 * l2x * l3 *  L1 *  L2 +          l1 * l2 *  l3x * L1 *  L2 +          l1 * l2 *  l3 *  L1x * L2 +          l1 * l2 *  l3 *  L1 *  L2x; 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
+ l1x = lambda1x(x,y); l2x = lambda2x(x,y); l3x = lambda3x(x,y);
+ L1 = Legendre0(l3 - l2); L2 = Legendre4(l2 - l1);
+ L1x = Legendre0x(l3 - l2) * (l3x - l2x); L2x = Legendre4x(l2 - l1) * (l2x - l1x);
+ return l1x * l2 *  l3 *  L1 *  L2 +          l1 * l2x * l3 *  L1 *  L2 +          l1 * l2 *  l3x * L1 *  L2 +          l1 * l2 *  l3 *  L1x * L2 +          l1 * l2 *  l3 *  L1 *  L2x;
 }
 
 static double gradleg_tri_b1_b5_2_ax(double x, double y)
@@ -3420,11 +3420,11 @@ static double gradleg_tri_b1_b5_2_ax(double x, double y)
 static double gradleg_tri_b1_b5_2_by(double x, double y)
 {
  double l1, l2, l3, l1y, l2y, l3y, L1, L2, L1y, L2y;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
- l1y = lambda1y(x,y); l2y = lambda2y(x,y); l3y = lambda3y(x,y); 
- L1 = Legendre0(l3 - l2); L2 = Legendre4(l2 - l1); 
- L1y = Legendre0x(l3 - l2) * (l3y - l2y); L2y = Legendre4x(l2 - l1) * (l2y - l1y); 
- return l1y * l2 *  l3 *  L1 *  L2 +          l1 * l2y * l3 *  L1 *  L2 +          l1 * l2 *  l3y * L1 *  L2 +          l1 * l2 *  l3 *  L1y * L2 +          l1 * l2 *  l3 *  L1 *  L2y; 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
+ l1y = lambda1y(x,y); l2y = lambda2y(x,y); l3y = lambda3y(x,y);
+ L1 = Legendre0(l3 - l2); L2 = Legendre4(l2 - l1);
+ L1y = Legendre0x(l3 - l2) * (l3y - l2y); L2y = Legendre4x(l2 - l1) * (l2y - l1y);
+ return l1y * l2 *  l3 *  L1 *  L2 +          l1 * l2y * l3 *  L1 *  L2 +          l1 * l2 *  l3y * L1 *  L2 +          l1 * l2 *  l3 *  L1y * L2 +          l1 * l2 *  l3 *  L1 *  L2y;
 }
 
 static double gradleg_tri_b1_b5_2_ay(double x, double y)
@@ -3435,7 +3435,7 @@ static double gradleg_tri_b1_b5_2_ay(double x, double y)
 static double gradleg_tri_b2_b4_1_a(double x, double y)
 {
  double l1, l2, l3;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
  return l1 * l2 * l3 * Legendre1(l3 - l2) * Legendre3(l2 - l1);
 }
 
@@ -3447,11 +3447,11 @@ static double gradleg_tri_b2_b4_1_b(double x, double y)
 static double gradleg_tri_b2_b4_1_ax(double x, double y)
 {
  double l1, l2, l3, l1x, l2x, l3x, L1, L2, L1x, L2x;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
- l1x = lambda1x(x,y); l2x = lambda2x(x,y); l3x = lambda3x(x,y); 
- L1 = Legendre1(l3 - l2); L2 = Legendre3(l2 - l1); 
- L1x = Legendre1x(l3 - l2) * (l3x - l2x); L2x = Legendre3x(l2 - l1) * (l2x - l1x); 
- return l1x * l2 *  l3 *  L1 *  L2 +          l1 * l2x * l3 *  L1 *  L2 +          l1 * l2 *  l3x * L1 *  L2 +          l1 * l2 *  l3 *  L1x * L2 +          l1 * l2 *  l3 *  L1 *  L2x; 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
+ l1x = lambda1x(x,y); l2x = lambda2x(x,y); l3x = lambda3x(x,y);
+ L1 = Legendre1(l3 - l2); L2 = Legendre3(l2 - l1);
+ L1x = Legendre1x(l3 - l2) * (l3x - l2x); L2x = Legendre3x(l2 - l1) * (l2x - l1x);
+ return l1x * l2 *  l3 *  L1 *  L2 +          l1 * l2x * l3 *  L1 *  L2 +          l1 * l2 *  l3x * L1 *  L2 +          l1 * l2 *  l3 *  L1x * L2 +          l1 * l2 *  l3 *  L1 *  L2x;
 }
 
 static double gradleg_tri_b2_b4_1_bx(double x, double y)
@@ -3462,11 +3462,11 @@ static double gradleg_tri_b2_b4_1_bx(double x, double y)
 static double gradleg_tri_b2_b4_1_ay(double x, double y)
 {
  double l1, l2, l3, l1y, l2y, l3y, L1, L2, L1y, L2y;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
- l1y = lambda1y(x,y); l2y = lambda2y(x,y); l3y = lambda3y(x,y); 
- L1 = Legendre1(l3 - l2); L2 = Legendre3(l2 - l1); 
- L1y = Legendre1x(l3 - l2) * (l3y - l2y); L2y = Legendre3x(l2 - l1) * (l2y - l1y); 
- return l1y * l2 *  l3 *  L1 *  L2 +          l1 * l2y * l3 *  L1 *  L2 +          l1 * l2 *  l3y * L1 *  L2 +          l1 * l2 *  l3 *  L1y * L2 +          l1 * l2 *  l3 *  L1 *  L2y; 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
+ l1y = lambda1y(x,y); l2y = lambda2y(x,y); l3y = lambda3y(x,y);
+ L1 = Legendre1(l3 - l2); L2 = Legendre3(l2 - l1);
+ L1y = Legendre1x(l3 - l2) * (l3y - l2y); L2y = Legendre3x(l2 - l1) * (l2y - l1y);
+ return l1y * l2 *  l3 *  L1 *  L2 +          l1 * l2y * l3 *  L1 *  L2 +          l1 * l2 *  l3y * L1 *  L2 +          l1 * l2 *  l3 *  L1y * L2 +          l1 * l2 *  l3 *  L1 *  L2y;
 }
 
 static double gradleg_tri_b2_b4_1_by(double x, double y)
@@ -3477,7 +3477,7 @@ static double gradleg_tri_b2_b4_1_by(double x, double y)
 static double gradleg_tri_b2_b4_2_b(double x, double y)
 {
  double l1, l2, l3;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
  return l1 * l2 * l3 * Legendre1(l3 - l2) * Legendre3(l2 - l1);
 }
 
@@ -3489,11 +3489,11 @@ static double gradleg_tri_b2_b4_2_a(double x, double y)
 static double gradleg_tri_b2_b4_2_bx(double x, double y)
 {
  double l1, l2, l3, l1x, l2x, l3x, L1, L2, L1x, L2x;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
- l1x = lambda1x(x,y); l2x = lambda2x(x,y); l3x = lambda3x(x,y); 
- L1 = Legendre1(l3 - l2); L2 = Legendre3(l2 - l1); 
- L1x = Legendre1x(l3 - l2) * (l3x - l2x); L2x = Legendre3x(l2 - l1) * (l2x - l1x); 
- return l1x * l2 *  l3 *  L1 *  L2 +          l1 * l2x * l3 *  L1 *  L2 +          l1 * l2 *  l3x * L1 *  L2 +          l1 * l2 *  l3 *  L1x * L2 +          l1 * l2 *  l3 *  L1 *  L2x; 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
+ l1x = lambda1x(x,y); l2x = lambda2x(x,y); l3x = lambda3x(x,y);
+ L1 = Legendre1(l3 - l2); L2 = Legendre3(l2 - l1);
+ L1x = Legendre1x(l3 - l2) * (l3x - l2x); L2x = Legendre3x(l2 - l1) * (l2x - l1x);
+ return l1x * l2 *  l3 *  L1 *  L2 +          l1 * l2x * l3 *  L1 *  L2 +          l1 * l2 *  l3x * L1 *  L2 +          l1 * l2 *  l3 *  L1x * L2 +          l1 * l2 *  l3 *  L1 *  L2x;
 }
 
 static double gradleg_tri_b2_b4_2_ax(double x, double y)
@@ -3504,11 +3504,11 @@ static double gradleg_tri_b2_b4_2_ax(double x, double y)
 static double gradleg_tri_b2_b4_2_by(double x, double y)
 {
  double l1, l2, l3, l1y, l2y, l3y, L1, L2, L1y, L2y;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
- l1y = lambda1y(x,y); l2y = lambda2y(x,y); l3y = lambda3y(x,y); 
- L1 = Legendre1(l3 - l2); L2 = Legendre3(l2 - l1); 
- L1y = Legendre1x(l3 - l2) * (l3y - l2y); L2y = Legendre3x(l2 - l1) * (l2y - l1y); 
- return l1y * l2 *  l3 *  L1 *  L2 +          l1 * l2y * l3 *  L1 *  L2 +          l1 * l2 *  l3y * L1 *  L2 +          l1 * l2 *  l3 *  L1y * L2 +          l1 * l2 *  l3 *  L1 *  L2y; 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
+ l1y = lambda1y(x,y); l2y = lambda2y(x,y); l3y = lambda3y(x,y);
+ L1 = Legendre1(l3 - l2); L2 = Legendre3(l2 - l1);
+ L1y = Legendre1x(l3 - l2) * (l3y - l2y); L2y = Legendre3x(l2 - l1) * (l2y - l1y);
+ return l1y * l2 *  l3 *  L1 *  L2 +          l1 * l2y * l3 *  L1 *  L2 +          l1 * l2 *  l3y * L1 *  L2 +          l1 * l2 *  l3 *  L1y * L2 +          l1 * l2 *  l3 *  L1 *  L2y;
 }
 
 static double gradleg_tri_b2_b4_2_ay(double x, double y)
@@ -3519,7 +3519,7 @@ static double gradleg_tri_b2_b4_2_ay(double x, double y)
 static double gradleg_tri_b3_b3_1_a(double x, double y)
 {
  double l1, l2, l3;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
  return l1 * l2 * l3 * Legendre2(l3 - l2) * Legendre2(l2 - l1);
 }
 
@@ -3531,11 +3531,11 @@ static double gradleg_tri_b3_b3_1_b(double x, double y)
 static double gradleg_tri_b3_b3_1_ax(double x, double y)
 {
  double l1, l2, l3, l1x, l2x, l3x, L1, L2, L1x, L2x;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
- l1x = lambda1x(x,y); l2x = lambda2x(x,y); l3x = lambda3x(x,y); 
- L1 = Legendre2(l3 - l2); L2 = Legendre2(l2 - l1); 
- L1x = Legendre2x(l3 - l2) * (l3x - l2x); L2x = Legendre2x(l2 - l1) * (l2x - l1x); 
- return l1x * l2 *  l3 *  L1 *  L2 +          l1 * l2x * l3 *  L1 *  L2 +          l1 * l2 *  l3x * L1 *  L2 +          l1 * l2 *  l3 *  L1x * L2 +          l1 * l2 *  l3 *  L1 *  L2x; 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
+ l1x = lambda1x(x,y); l2x = lambda2x(x,y); l3x = lambda3x(x,y);
+ L1 = Legendre2(l3 - l2); L2 = Legendre2(l2 - l1);
+ L1x = Legendre2x(l3 - l2) * (l3x - l2x); L2x = Legendre2x(l2 - l1) * (l2x - l1x);
+ return l1x * l2 *  l3 *  L1 *  L2 +          l1 * l2x * l3 *  L1 *  L2 +          l1 * l2 *  l3x * L1 *  L2 +          l1 * l2 *  l3 *  L1x * L2 +          l1 * l2 *  l3 *  L1 *  L2x;
 }
 
 static double gradleg_tri_b3_b3_1_bx(double x, double y)
@@ -3546,11 +3546,11 @@ static double gradleg_tri_b3_b3_1_bx(double x, double y)
 static double gradleg_tri_b3_b3_1_ay(double x, double y)
 {
  double l1, l2, l3, l1y, l2y, l3y, L1, L2, L1y, L2y;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
- l1y = lambda1y(x,y); l2y = lambda2y(x,y); l3y = lambda3y(x,y); 
- L1 = Legendre2(l3 - l2); L2 = Legendre2(l2 - l1); 
- L1y = Legendre2x(l3 - l2) * (l3y - l2y); L2y = Legendre2x(l2 - l1) * (l2y - l1y); 
- return l1y * l2 *  l3 *  L1 *  L2 +          l1 * l2y * l3 *  L1 *  L2 +          l1 * l2 *  l3y * L1 *  L2 +          l1 * l2 *  l3 *  L1y * L2 +          l1 * l2 *  l3 *  L1 *  L2y; 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
+ l1y = lambda1y(x,y); l2y = lambda2y(x,y); l3y = lambda3y(x,y);
+ L1 = Legendre2(l3 - l2); L2 = Legendre2(l2 - l1);
+ L1y = Legendre2x(l3 - l2) * (l3y - l2y); L2y = Legendre2x(l2 - l1) * (l2y - l1y);
+ return l1y * l2 *  l3 *  L1 *  L2 +          l1 * l2y * l3 *  L1 *  L2 +          l1 * l2 *  l3y * L1 *  L2 +          l1 * l2 *  l3 *  L1y * L2 +          l1 * l2 *  l3 *  L1 *  L2y;
 }
 
 static double gradleg_tri_b3_b3_1_by(double x, double y)
@@ -3561,7 +3561,7 @@ static double gradleg_tri_b3_b3_1_by(double x, double y)
 static double gradleg_tri_b3_b3_2_b(double x, double y)
 {
  double l1, l2, l3;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
  return l1 * l2 * l3 * Legendre2(l3 - l2) * Legendre2(l2 - l1);
 }
 
@@ -3573,11 +3573,11 @@ static double gradleg_tri_b3_b3_2_a(double x, double y)
 static double gradleg_tri_b3_b3_2_bx(double x, double y)
 {
  double l1, l2, l3, l1x, l2x, l3x, L1, L2, L1x, L2x;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
- l1x = lambda1x(x,y); l2x = lambda2x(x,y); l3x = lambda3x(x,y); 
- L1 = Legendre2(l3 - l2); L2 = Legendre2(l2 - l1); 
- L1x = Legendre2x(l3 - l2) * (l3x - l2x); L2x = Legendre2x(l2 - l1) * (l2x - l1x); 
- return l1x * l2 *  l3 *  L1 *  L2 +          l1 * l2x * l3 *  L1 *  L2 +          l1 * l2 *  l3x * L1 *  L2 +          l1 * l2 *  l3 *  L1x * L2 +          l1 * l2 *  l3 *  L1 *  L2x; 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
+ l1x = lambda1x(x,y); l2x = lambda2x(x,y); l3x = lambda3x(x,y);
+ L1 = Legendre2(l3 - l2); L2 = Legendre2(l2 - l1);
+ L1x = Legendre2x(l3 - l2) * (l3x - l2x); L2x = Legendre2x(l2 - l1) * (l2x - l1x);
+ return l1x * l2 *  l3 *  L1 *  L2 +          l1 * l2x * l3 *  L1 *  L2 +          l1 * l2 *  l3x * L1 *  L2 +          l1 * l2 *  l3 *  L1x * L2 +          l1 * l2 *  l3 *  L1 *  L2x;
 }
 
 static double gradleg_tri_b3_b3_2_ax(double x, double y)
@@ -3588,11 +3588,11 @@ static double gradleg_tri_b3_b3_2_ax(double x, double y)
 static double gradleg_tri_b3_b3_2_by(double x, double y)
 {
  double l1, l2, l3, l1y, l2y, l3y, L1, L2, L1y, L2y;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
- l1y = lambda1y(x,y); l2y = lambda2y(x,y); l3y = lambda3y(x,y); 
- L1 = Legendre2(l3 - l2); L2 = Legendre2(l2 - l1); 
- L1y = Legendre2x(l3 - l2) * (l3y - l2y); L2y = Legendre2x(l2 - l1) * (l2y - l1y); 
- return l1y * l2 *  l3 *  L1 *  L2 +          l1 * l2y * l3 *  L1 *  L2 +          l1 * l2 *  l3y * L1 *  L2 +          l1 * l2 *  l3 *  L1y * L2 +          l1 * l2 *  l3 *  L1 *  L2y; 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
+ l1y = lambda1y(x,y); l2y = lambda2y(x,y); l3y = lambda3y(x,y);
+ L1 = Legendre2(l3 - l2); L2 = Legendre2(l2 - l1);
+ L1y = Legendre2x(l3 - l2) * (l3y - l2y); L2y = Legendre2x(l2 - l1) * (l2y - l1y);
+ return l1y * l2 *  l3 *  L1 *  L2 +          l1 * l2y * l3 *  L1 *  L2 +          l1 * l2 *  l3y * L1 *  L2 +          l1 * l2 *  l3 *  L1y * L2 +          l1 * l2 *  l3 *  L1 *  L2y;
 }
 
 static double gradleg_tri_b3_b3_2_ay(double x, double y)
@@ -3603,7 +3603,7 @@ static double gradleg_tri_b3_b3_2_ay(double x, double y)
 static double gradleg_tri_b4_b2_1_a(double x, double y)
 {
  double l1, l2, l3;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
  return l1 * l2 * l3 * Legendre3(l3 - l2) * Legendre1(l2 - l1);
 }
 
@@ -3615,11 +3615,11 @@ static double gradleg_tri_b4_b2_1_b(double x, double y)
 static double gradleg_tri_b4_b2_1_ax(double x, double y)
 {
  double l1, l2, l3, l1x, l2x, l3x, L1, L2, L1x, L2x;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
- l1x = lambda1x(x,y); l2x = lambda2x(x,y); l3x = lambda3x(x,y); 
- L1 = Legendre3(l3 - l2); L2 = Legendre1(l2 - l1); 
- L1x = Legendre3x(l3 - l2) * (l3x - l2x); L2x = Legendre1x(l2 - l1) * (l2x - l1x); 
- return l1x * l2 *  l3 *  L1 *  L2 +          l1 * l2x * l3 *  L1 *  L2 +          l1 * l2 *  l3x * L1 *  L2 +          l1 * l2 *  l3 *  L1x * L2 +          l1 * l2 *  l3 *  L1 *  L2x; 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
+ l1x = lambda1x(x,y); l2x = lambda2x(x,y); l3x = lambda3x(x,y);
+ L1 = Legendre3(l3 - l2); L2 = Legendre1(l2 - l1);
+ L1x = Legendre3x(l3 - l2) * (l3x - l2x); L2x = Legendre1x(l2 - l1) * (l2x - l1x);
+ return l1x * l2 *  l3 *  L1 *  L2 +          l1 * l2x * l3 *  L1 *  L2 +          l1 * l2 *  l3x * L1 *  L2 +          l1 * l2 *  l3 *  L1x * L2 +          l1 * l2 *  l3 *  L1 *  L2x;
 }
 
 static double gradleg_tri_b4_b2_1_bx(double x, double y)
@@ -3630,11 +3630,11 @@ static double gradleg_tri_b4_b2_1_bx(double x, double y)
 static double gradleg_tri_b4_b2_1_ay(double x, double y)
 {
  double l1, l2, l3, l1y, l2y, l3y, L1, L2, L1y, L2y;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
- l1y = lambda1y(x,y); l2y = lambda2y(x,y); l3y = lambda3y(x,y); 
- L1 = Legendre3(l3 - l2); L2 = Legendre1(l2 - l1); 
- L1y = Legendre3x(l3 - l2) * (l3y - l2y); L2y = Legendre1x(l2 - l1) * (l2y - l1y); 
- return l1y * l2 *  l3 *  L1 *  L2 +          l1 * l2y * l3 *  L1 *  L2 +          l1 * l2 *  l3y * L1 *  L2 +          l1 * l2 *  l3 *  L1y * L2 +          l1 * l2 *  l3 *  L1 *  L2y; 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
+ l1y = lambda1y(x,y); l2y = lambda2y(x,y); l3y = lambda3y(x,y);
+ L1 = Legendre3(l3 - l2); L2 = Legendre1(l2 - l1);
+ L1y = Legendre3x(l3 - l2) * (l3y - l2y); L2y = Legendre1x(l2 - l1) * (l2y - l1y);
+ return l1y * l2 *  l3 *  L1 *  L2 +          l1 * l2y * l3 *  L1 *  L2 +          l1 * l2 *  l3y * L1 *  L2 +          l1 * l2 *  l3 *  L1y * L2 +          l1 * l2 *  l3 *  L1 *  L2y;
 }
 
 static double gradleg_tri_b4_b2_1_by(double x, double y)
@@ -3645,7 +3645,7 @@ static double gradleg_tri_b4_b2_1_by(double x, double y)
 static double gradleg_tri_b4_b2_2_b(double x, double y)
 {
  double l1, l2, l3;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
  return l1 * l2 * l3 * Legendre3(l3 - l2) * Legendre1(l2 - l1);
 }
 
@@ -3657,11 +3657,11 @@ static double gradleg_tri_b4_b2_2_a(double x, double y)
 static double gradleg_tri_b4_b2_2_bx(double x, double y)
 {
  double l1, l2, l3, l1x, l2x, l3x, L1, L2, L1x, L2x;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
- l1x = lambda1x(x,y); l2x = lambda2x(x,y); l3x = lambda3x(x,y); 
- L1 = Legendre3(l3 - l2); L2 = Legendre1(l2 - l1); 
- L1x = Legendre3x(l3 - l2) * (l3x - l2x); L2x = Legendre1x(l2 - l1) * (l2x - l1x); 
- return l1x * l2 *  l3 *  L1 *  L2 +          l1 * l2x * l3 *  L1 *  L2 +          l1 * l2 *  l3x * L1 *  L2 +          l1 * l2 *  l3 *  L1x * L2 +          l1 * l2 *  l3 *  L1 *  L2x; 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
+ l1x = lambda1x(x,y); l2x = lambda2x(x,y); l3x = lambda3x(x,y);
+ L1 = Legendre3(l3 - l2); L2 = Legendre1(l2 - l1);
+ L1x = Legendre3x(l3 - l2) * (l3x - l2x); L2x = Legendre1x(l2 - l1) * (l2x - l1x);
+ return l1x * l2 *  l3 *  L1 *  L2 +          l1 * l2x * l3 *  L1 *  L2 +          l1 * l2 *  l3x * L1 *  L2 +          l1 * l2 *  l3 *  L1x * L2 +          l1 * l2 *  l3 *  L1 *  L2x;
 }
 
 static double gradleg_tri_b4_b2_2_ax(double x, double y)
@@ -3672,11 +3672,11 @@ static double gradleg_tri_b4_b2_2_ax(double x, double y)
 static double gradleg_tri_b4_b2_2_by(double x, double y)
 {
  double l1, l2, l3, l1y, l2y, l3y, L1, L2, L1y, L2y;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
- l1y = lambda1y(x,y); l2y = lambda2y(x,y); l3y = lambda3y(x,y); 
- L1 = Legendre3(l3 - l2); L2 = Legendre1(l2 - l1); 
- L1y = Legendre3x(l3 - l2) * (l3y - l2y); L2y = Legendre1x(l2 - l1) * (l2y - l1y); 
- return l1y * l2 *  l3 *  L1 *  L2 +          l1 * l2y * l3 *  L1 *  L2 +          l1 * l2 *  l3y * L1 *  L2 +          l1 * l2 *  l3 *  L1y * L2 +          l1 * l2 *  l3 *  L1 *  L2y; 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
+ l1y = lambda1y(x,y); l2y = lambda2y(x,y); l3y = lambda3y(x,y);
+ L1 = Legendre3(l3 - l2); L2 = Legendre1(l2 - l1);
+ L1y = Legendre3x(l3 - l2) * (l3y - l2y); L2y = Legendre1x(l2 - l1) * (l2y - l1y);
+ return l1y * l2 *  l3 *  L1 *  L2 +          l1 * l2y * l3 *  L1 *  L2 +          l1 * l2 *  l3y * L1 *  L2 +          l1 * l2 *  l3 *  L1y * L2 +          l1 * l2 *  l3 *  L1 *  L2y;
 }
 
 static double gradleg_tri_b4_b2_2_ay(double x, double y)
@@ -3687,7 +3687,7 @@ static double gradleg_tri_b4_b2_2_ay(double x, double y)
 static double gradleg_tri_b5_b1_1_a(double x, double y)
 {
  double l1, l2, l3;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
  return l1 * l2 * l3 * Legendre4(l3 - l2) * Legendre0(l2 - l1);
 }
 
@@ -3699,11 +3699,11 @@ static double gradleg_tri_b5_b1_1_b(double x, double y)
 static double gradleg_tri_b5_b1_1_ax(double x, double y)
 {
  double l1, l2, l3, l1x, l2x, l3x, L1, L2, L1x, L2x;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
- l1x = lambda1x(x,y); l2x = lambda2x(x,y); l3x = lambda3x(x,y); 
- L1 = Legendre4(l3 - l2); L2 = Legendre0(l2 - l1); 
- L1x = Legendre4x(l3 - l2) * (l3x - l2x); L2x = Legendre0x(l2 - l1) * (l2x - l1x); 
- return l1x * l2 *  l3 *  L1 *  L2 +          l1 * l2x * l3 *  L1 *  L2 +          l1 * l2 *  l3x * L1 *  L2 +          l1 * l2 *  l3 *  L1x * L2 +          l1 * l2 *  l3 *  L1 *  L2x; 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
+ l1x = lambda1x(x,y); l2x = lambda2x(x,y); l3x = lambda3x(x,y);
+ L1 = Legendre4(l3 - l2); L2 = Legendre0(l2 - l1);
+ L1x = Legendre4x(l3 - l2) * (l3x - l2x); L2x = Legendre0x(l2 - l1) * (l2x - l1x);
+ return l1x * l2 *  l3 *  L1 *  L2 +          l1 * l2x * l3 *  L1 *  L2 +          l1 * l2 *  l3x * L1 *  L2 +          l1 * l2 *  l3 *  L1x * L2 +          l1 * l2 *  l3 *  L1 *  L2x;
 }
 
 static double gradleg_tri_b5_b1_1_bx(double x, double y)
@@ -3714,11 +3714,11 @@ static double gradleg_tri_b5_b1_1_bx(double x, double y)
 static double gradleg_tri_b5_b1_1_ay(double x, double y)
 {
  double l1, l2, l3, l1y, l2y, l3y, L1, L2, L1y, L2y;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
- l1y = lambda1y(x,y); l2y = lambda2y(x,y); l3y = lambda3y(x,y); 
- L1 = Legendre4(l3 - l2); L2 = Legendre0(l2 - l1); 
- L1y = Legendre4x(l3 - l2) * (l3y - l2y); L2y = Legendre0x(l2 - l1) * (l2y - l1y); 
- return l1y * l2 *  l3 *  L1 *  L2 +          l1 * l2y * l3 *  L1 *  L2 +          l1 * l2 *  l3y * L1 *  L2 +          l1 * l2 *  l3 *  L1y * L2 +          l1 * l2 *  l3 *  L1 *  L2y; 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
+ l1y = lambda1y(x,y); l2y = lambda2y(x,y); l3y = lambda3y(x,y);
+ L1 = Legendre4(l3 - l2); L2 = Legendre0(l2 - l1);
+ L1y = Legendre4x(l3 - l2) * (l3y - l2y); L2y = Legendre0x(l2 - l1) * (l2y - l1y);
+ return l1y * l2 *  l3 *  L1 *  L2 +          l1 * l2y * l3 *  L1 *  L2 +          l1 * l2 *  l3y * L1 *  L2 +          l1 * l2 *  l3 *  L1y * L2 +          l1 * l2 *  l3 *  L1 *  L2y;
 }
 
 static double gradleg_tri_b5_b1_1_by(double x, double y)
@@ -3729,7 +3729,7 @@ static double gradleg_tri_b5_b1_1_by(double x, double y)
 static double gradleg_tri_b5_b1_2_b(double x, double y)
 {
  double l1, l2, l3;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
  return l1 * l2 * l3 * Legendre4(l3 - l2) * Legendre0(l2 - l1);
 }
 
@@ -3741,11 +3741,11 @@ static double gradleg_tri_b5_b1_2_a(double x, double y)
 static double gradleg_tri_b5_b1_2_bx(double x, double y)
 {
  double l1, l2, l3, l1x, l2x, l3x, L1, L2, L1x, L2x;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
- l1x = lambda1x(x,y); l2x = lambda2x(x,y); l3x = lambda3x(x,y); 
- L1 = Legendre4(l3 - l2); L2 = Legendre0(l2 - l1); 
- L1x = Legendre4x(l3 - l2) * (l3x - l2x); L2x = Legendre0x(l2 - l1) * (l2x - l1x); 
- return l1x * l2 *  l3 *  L1 *  L2 +          l1 * l2x * l3 *  L1 *  L2 +          l1 * l2 *  l3x * L1 *  L2 +          l1 * l2 *  l3 *  L1x * L2 +          l1 * l2 *  l3 *  L1 *  L2x; 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
+ l1x = lambda1x(x,y); l2x = lambda2x(x,y); l3x = lambda3x(x,y);
+ L1 = Legendre4(l3 - l2); L2 = Legendre0(l2 - l1);
+ L1x = Legendre4x(l3 - l2) * (l3x - l2x); L2x = Legendre0x(l2 - l1) * (l2x - l1x);
+ return l1x * l2 *  l3 *  L1 *  L2 +          l1 * l2x * l3 *  L1 *  L2 +          l1 * l2 *  l3x * L1 *  L2 +          l1 * l2 *  l3 *  L1x * L2 +          l1 * l2 *  l3 *  L1 *  L2x;
 }
 
 static double gradleg_tri_b5_b1_2_ax(double x, double y)
@@ -3756,11 +3756,11 @@ static double gradleg_tri_b5_b1_2_ax(double x, double y)
 static double gradleg_tri_b5_b1_2_by(double x, double y)
 {
  double l1, l2, l3, l1y, l2y, l3y, L1, L2, L1y, L2y;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
- l1y = lambda1y(x,y); l2y = lambda2y(x,y); l3y = lambda3y(x,y); 
- L1 = Legendre4(l3 - l2); L2 = Legendre0(l2 - l1); 
- L1y = Legendre4x(l3 - l2) * (l3y - l2y); L2y = Legendre0x(l2 - l1) * (l2y - l1y); 
- return l1y * l2 *  l3 *  L1 *  L2 +          l1 * l2y * l3 *  L1 *  L2 +          l1 * l2 *  l3y * L1 *  L2 +          l1 * l2 *  l3 *  L1y * L2 +          l1 * l2 *  l3 *  L1 *  L2y; 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
+ l1y = lambda1y(x,y); l2y = lambda2y(x,y); l3y = lambda3y(x,y);
+ L1 = Legendre4(l3 - l2); L2 = Legendre0(l2 - l1);
+ L1y = Legendre4x(l3 - l2) * (l3y - l2y); L2y = Legendre0x(l2 - l1) * (l2y - l1y);
+ return l1y * l2 *  l3 *  L1 *  L2 +          l1 * l2y * l3 *  L1 *  L2 +          l1 * l2 *  l3y * L1 *  L2 +          l1 * l2 *  l3 *  L1y * L2 +          l1 * l2 *  l3 *  L1 *  L2y;
 }
 
 static double gradleg_tri_b5_b1_2_ay(double x, double y)
@@ -3817,8 +3817,8 @@ static double gradleg_tri_p8_e1_ay_0(double x, double y)
  double l3, l3x, l3y, l2, l2x, l2y;
  double ker, kerx, kery, kerxy;
  l3 = lambda3(x,y); l3x = lambda3x(x,y); l3y = lambda3y(x,y);
-  l2 = lambda2(x,y); l2x = lambda2x(x,y); l2y = lambda2y(x,y); 
- ker = phi7(l3 - l2); kerx = phi7x(l3 - l2) * (l3x - l2x); 
+  l2 = lambda2(x,y); l2x = lambda2x(x,y); l2y = lambda2y(x,y);
+ ker = phi7(l3 - l2); kerx = phi7x(l3 - l2) * (l3x - l2x);
  kery = phi7x(l3 - l2) * (l3y - l2y); kerxy = phi7xx(l3 - l2) * (l3x - l2x) * (l3y - l2y);
  return  (l3x * l2y * ker + l3y * l2x * ker + l3x * l2 * kery + l3 * l2x * kery + l3y * l2 * kerx + l3 * l2y * kerx +  l3 * l2 * kerxy) / 1.0000000000000;
 }
@@ -3833,8 +3833,8 @@ static double gradleg_tri_p8_e1_bx_0(double x, double y)
  double l3, l3x, l3y, l2, l2x, l2y;
  double ker, kerx, kery, kerxy;
  l3 = lambda3(x,y); l3x = lambda3x(x,y); l3y = lambda3y(x,y);
-  l2 = lambda2(x,y); l2x = lambda2x(x,y); l2y = lambda2y(x,y); 
- ker = phi7(l3 - l2); kerx = phi7x(l3 - l2) * (l3x - l2x); 
+  l2 = lambda2(x,y); l2x = lambda2x(x,y); l2y = lambda2y(x,y);
+ ker = phi7(l3 - l2); kerx = phi7x(l3 - l2) * (l3x - l2x);
  kery = phi7x(l3 - l2) * (l3y - l2y); kerxy = phi7xx(l3 - l2) * (l3x - l2x) * (l3y - l2y);
  return  (l3x * l2y * ker + l3y * l2x * ker + l3x * l2 * kery + l3 * l2x * kery + l3y * l2 * kerx + l3 * l2y * kerx +  l3 * l2 * kerxy) / 1.0000000000000;
 }
@@ -3903,8 +3903,8 @@ static double gradleg_tri_p8_e2_ay_0(double x, double y)
  double l1, l1x, l1y, l3, l3x, l3y;
  double ker, kerx, kery, kerxy;
  l1 = lambda1(x,y); l1x = lambda1x(x,y); l1y = lambda1y(x,y);
-  l3 = lambda3(x,y); l3x = lambda3x(x,y); l3y = lambda3y(x,y); 
- ker = phi7(l1 - l3); kerx = phi7x(l1 - l3) * (l1x - l3x); 
+  l3 = lambda3(x,y); l3x = lambda3x(x,y); l3y = lambda3y(x,y);
+ ker = phi7(l1 - l3); kerx = phi7x(l1 - l3) * (l1x - l3x);
  kery = phi7x(l1 - l3) * (l1y - l3y); kerxy = phi7xx(l1 - l3) * (l1x - l3x) * (l1y - l3y);
  return  (l1x * l3y * ker + l1y * l3x * ker + l1x * l3 * kery + l1 * l3x * kery + l1y * l3 * kerx + l1 * l3y * kerx +  l1 * l3 * kerxy) / 1.0000000000000;
 }
@@ -3919,8 +3919,8 @@ static double gradleg_tri_p8_e2_bx_0(double x, double y)
  double l1, l1x, l1y, l3, l3x, l3y;
  double ker, kerx, kery, kerxy;
  l1 = lambda1(x,y); l1x = lambda1x(x,y); l1y = lambda1y(x,y);
-  l3 = lambda3(x,y); l3x = lambda3x(x,y); l3y = lambda3y(x,y); 
- ker = phi7(l1 - l3); kerx = phi7x(l1 - l3) * (l1x - l3x); 
+  l3 = lambda3(x,y); l3x = lambda3x(x,y); l3y = lambda3y(x,y);
+ ker = phi7(l1 - l3); kerx = phi7x(l1 - l3) * (l1x - l3x);
  kery = phi7x(l1 - l3) * (l1y - l3y); kerxy = phi7xx(l1 - l3) * (l1x - l3x) * (l1y - l3y);
  return  (l1x * l3y * ker + l1y * l3x * ker + l1x * l3 * kery + l1 * l3x * kery + l1y * l3 * kerx + l1 * l3y * kerx +  l1 * l3 * kerxy) / 1.0000000000000;
 }
@@ -3989,8 +3989,8 @@ static double gradleg_tri_p8_e3_ay_0(double x, double y)
  double l2, l2x, l2y, l1, l1x, l1y;
  double ker, kerx, kery, kerxy;
  l2 = lambda2(x,y); l2x = lambda2x(x,y); l2y = lambda2y(x,y);
-  l1 = lambda1(x,y); l1x = lambda1x(x,y); l1y = lambda1y(x,y); 
- ker = phi7(l2 - l1); kerx = phi7x(l2 - l1) * (l2x - l1x); 
+  l1 = lambda1(x,y); l1x = lambda1x(x,y); l1y = lambda1y(x,y);
+ ker = phi7(l2 - l1); kerx = phi7x(l2 - l1) * (l2x - l1x);
  kery = phi7x(l2 - l1) * (l2y - l1y); kerxy = phi7xx(l2 - l1) * (l2x - l1x) * (l2y - l1y);
  return  (l2x * l1y * ker + l2y * l1x * ker + l2x * l1 * kery + l2 * l1x * kery + l2y * l1 * kerx + l2 * l1y * kerx +  l2 * l1 * kerxy) / 1.0000000000000;
 }
@@ -4005,8 +4005,8 @@ static double gradleg_tri_p8_e3_bx_0(double x, double y)
  double l2, l2x, l2y, l1, l1x, l1y;
  double ker, kerx, kery, kerxy;
  l2 = lambda2(x,y); l2x = lambda2x(x,y); l2y = lambda2y(x,y);
-  l1 = lambda1(x,y); l1x = lambda1x(x,y); l1y = lambda1y(x,y); 
- ker = phi7(l2 - l1); kerx = phi7x(l2 - l1) * (l2x - l1x); 
+  l1 = lambda1(x,y); l1x = lambda1x(x,y); l1y = lambda1y(x,y);
+ ker = phi7(l2 - l1); kerx = phi7x(l2 - l1) * (l2x - l1x);
  kery = phi7x(l2 - l1) * (l2y - l1y); kerxy = phi7xx(l2 - l1) * (l2x - l1x) * (l2y - l1y);
  return  (l2x * l1y * ker + l2y * l1x * ker + l2x * l1 * kery + l2 * l1x * kery + l2y * l1 * kerx + l2 * l1y * kerx +  l2 * l1 * kerxy) / 1.0000000000000;
 }
@@ -4038,14 +4038,14 @@ static double gradleg_tri_p8_e3_by_1(double x, double y)
 static double gradleg_tri_p8_b1_a(double x, double y)
 {
  double l3, l2;
- l3 = lambda3(x,y); l2 = lambda2(x,y); 
+ l3 = lambda3(x,y); l2 = lambda2(x,y);
  return n11 * (l3 * l2 * Legendre6(l3 - l2));
 }
 
 static double gradleg_tri_p8_b1_b(double x, double y)
 {
  double l3, l2;
- l3 = lambda3(x,y); l2 = lambda2(x,y); 
+ l3 = lambda3(x,y); l2 = lambda2(x,y);
  return n12 * (l3 * l2 * Legendre6(l3 - l2));
 }
 
@@ -4081,14 +4081,14 @@ static double gradleg_tri_p8_b1_by(double x, double y)
 static double gradleg_tri_p8_b2_a(double x, double y)
 {
  double l1, l3;
- l1 = lambda1(x,y); l3 = lambda3(x,y); 
+ l1 = lambda1(x,y); l3 = lambda3(x,y);
  return n21 * (l1 * l3 * Legendre6(l1 - l3));
 }
 
 static double gradleg_tri_p8_b2_b(double x, double y)
 {
  double l1, l3;
- l1 = lambda1(x,y); l3 = lambda3(x,y); 
+ l1 = lambda1(x,y); l3 = lambda3(x,y);
  return n22 * (l1 * l3 * Legendre6(l1 - l3));
 }
 
@@ -4124,14 +4124,14 @@ static double gradleg_tri_p8_b2_by(double x, double y)
 static double gradleg_tri_p8_b3_a(double x, double y)
 {
  double l2, l1;
- l2 = lambda2(x,y); l1 = lambda1(x,y); 
+ l2 = lambda2(x,y); l1 = lambda1(x,y);
  return n31 * (l2 * l1 * Legendre6(l2 - l1));
 }
 
 static double gradleg_tri_p8_b3_b(double x, double y)
 {
  double l2, l1;
- l2 = lambda2(x,y); l1 = lambda1(x,y); 
+ l2 = lambda2(x,y); l1 = lambda1(x,y);
  return n32 * (l2 * l1 * Legendre6(l2 - l1));
 }
 
@@ -4168,7 +4168,7 @@ static double gradleg_tri_p8_b3_by(double x, double y)
 static double gradleg_tri_b1_b6_1_a(double x, double y)
 {
  double l1, l2, l3;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
  return l1 * l2 * l3 * Legendre0(l3 - l2) * Legendre5(l2 - l1);
 }
 
@@ -4180,11 +4180,11 @@ static double gradleg_tri_b1_b6_1_b(double x, double y)
 static double gradleg_tri_b1_b6_1_ax(double x, double y)
 {
  double l1, l2, l3, l1x, l2x, l3x, L1, L2, L1x, L2x;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
- l1x = lambda1x(x,y); l2x = lambda2x(x,y); l3x = lambda3x(x,y); 
- L1 = Legendre0(l3 - l2); L2 = Legendre5(l2 - l1); 
- L1x = Legendre0x(l3 - l2) * (l3x - l2x); L2x = Legendre5x(l2 - l1) * (l2x - l1x); 
- return l1x * l2 *  l3 *  L1 *  L2 +          l1 * l2x * l3 *  L1 *  L2 +          l1 * l2 *  l3x * L1 *  L2 +          l1 * l2 *  l3 *  L1x * L2 +          l1 * l2 *  l3 *  L1 *  L2x; 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
+ l1x = lambda1x(x,y); l2x = lambda2x(x,y); l3x = lambda3x(x,y);
+ L1 = Legendre0(l3 - l2); L2 = Legendre5(l2 - l1);
+ L1x = Legendre0x(l3 - l2) * (l3x - l2x); L2x = Legendre5x(l2 - l1) * (l2x - l1x);
+ return l1x * l2 *  l3 *  L1 *  L2 +          l1 * l2x * l3 *  L1 *  L2 +          l1 * l2 *  l3x * L1 *  L2 +          l1 * l2 *  l3 *  L1x * L2 +          l1 * l2 *  l3 *  L1 *  L2x;
 }
 
 static double gradleg_tri_b1_b6_1_bx(double x, double y)
@@ -4195,11 +4195,11 @@ static double gradleg_tri_b1_b6_1_bx(double x, double y)
 static double gradleg_tri_b1_b6_1_ay(double x, double y)
 {
  double l1, l2, l3, l1y, l2y, l3y, L1, L2, L1y, L2y;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
- l1y = lambda1y(x,y); l2y = lambda2y(x,y); l3y = lambda3y(x,y); 
- L1 = Legendre0(l3 - l2); L2 = Legendre5(l2 - l1); 
- L1y = Legendre0x(l3 - l2) * (l3y - l2y); L2y = Legendre5x(l2 - l1) * (l2y - l1y); 
- return l1y * l2 *  l3 *  L1 *  L2 +          l1 * l2y * l3 *  L1 *  L2 +          l1 * l2 *  l3y * L1 *  L2 +          l1 * l2 *  l3 *  L1y * L2 +          l1 * l2 *  l3 *  L1 *  L2y; 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
+ l1y = lambda1y(x,y); l2y = lambda2y(x,y); l3y = lambda3y(x,y);
+ L1 = Legendre0(l3 - l2); L2 = Legendre5(l2 - l1);
+ L1y = Legendre0x(l3 - l2) * (l3y - l2y); L2y = Legendre5x(l2 - l1) * (l2y - l1y);
+ return l1y * l2 *  l3 *  L1 *  L2 +          l1 * l2y * l3 *  L1 *  L2 +          l1 * l2 *  l3y * L1 *  L2 +          l1 * l2 *  l3 *  L1y * L2 +          l1 * l2 *  l3 *  L1 *  L2y;
 }
 
 static double gradleg_tri_b1_b6_1_by(double x, double y)
@@ -4210,7 +4210,7 @@ static double gradleg_tri_b1_b6_1_by(double x, double y)
 static double gradleg_tri_b1_b6_2_b(double x, double y)
 {
  double l1, l2, l3;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
  return l1 * l2 * l3 * Legendre0(l3 - l2) * Legendre5(l2 - l1);
 }
 
@@ -4222,11 +4222,11 @@ static double gradleg_tri_b1_b6_2_a(double x, double y)
 static double gradleg_tri_b1_b6_2_bx(double x, double y)
 {
  double l1, l2, l3, l1x, l2x, l3x, L1, L2, L1x, L2x;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
- l1x = lambda1x(x,y); l2x = lambda2x(x,y); l3x = lambda3x(x,y); 
- L1 = Legendre0(l3 - l2); L2 = Legendre5(l2 - l1); 
- L1x = Legendre0x(l3 - l2) * (l3x - l2x); L2x = Legendre5x(l2 - l1) * (l2x - l1x); 
- return l1x * l2 *  l3 *  L1 *  L2 +          l1 * l2x * l3 *  L1 *  L2 +          l1 * l2 *  l3x * L1 *  L2 +          l1 * l2 *  l3 *  L1x * L2 +          l1 * l2 *  l3 *  L1 *  L2x; 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
+ l1x = lambda1x(x,y); l2x = lambda2x(x,y); l3x = lambda3x(x,y);
+ L1 = Legendre0(l3 - l2); L2 = Legendre5(l2 - l1);
+ L1x = Legendre0x(l3 - l2) * (l3x - l2x); L2x = Legendre5x(l2 - l1) * (l2x - l1x);
+ return l1x * l2 *  l3 *  L1 *  L2 +          l1 * l2x * l3 *  L1 *  L2 +          l1 * l2 *  l3x * L1 *  L2 +          l1 * l2 *  l3 *  L1x * L2 +          l1 * l2 *  l3 *  L1 *  L2x;
 }
 
 static double gradleg_tri_b1_b6_2_ax(double x, double y)
@@ -4237,11 +4237,11 @@ static double gradleg_tri_b1_b6_2_ax(double x, double y)
 static double gradleg_tri_b1_b6_2_by(double x, double y)
 {
  double l1, l2, l3, l1y, l2y, l3y, L1, L2, L1y, L2y;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
- l1y = lambda1y(x,y); l2y = lambda2y(x,y); l3y = lambda3y(x,y); 
- L1 = Legendre0(l3 - l2); L2 = Legendre5(l2 - l1); 
- L1y = Legendre0x(l3 - l2) * (l3y - l2y); L2y = Legendre5x(l2 - l1) * (l2y - l1y); 
- return l1y * l2 *  l3 *  L1 *  L2 +          l1 * l2y * l3 *  L1 *  L2 +          l1 * l2 *  l3y * L1 *  L2 +          l1 * l2 *  l3 *  L1y * L2 +          l1 * l2 *  l3 *  L1 *  L2y; 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
+ l1y = lambda1y(x,y); l2y = lambda2y(x,y); l3y = lambda3y(x,y);
+ L1 = Legendre0(l3 - l2); L2 = Legendre5(l2 - l1);
+ L1y = Legendre0x(l3 - l2) * (l3y - l2y); L2y = Legendre5x(l2 - l1) * (l2y - l1y);
+ return l1y * l2 *  l3 *  L1 *  L2 +          l1 * l2y * l3 *  L1 *  L2 +          l1 * l2 *  l3y * L1 *  L2 +          l1 * l2 *  l3 *  L1y * L2 +          l1 * l2 *  l3 *  L1 *  L2y;
 }
 
 static double gradleg_tri_b1_b6_2_ay(double x, double y)
@@ -4252,7 +4252,7 @@ static double gradleg_tri_b1_b6_2_ay(double x, double y)
 static double gradleg_tri_b2_b5_1_a(double x, double y)
 {
  double l1, l2, l3;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
  return l1 * l2 * l3 * Legendre1(l3 - l2) * Legendre4(l2 - l1);
 }
 
@@ -4264,11 +4264,11 @@ static double gradleg_tri_b2_b5_1_b(double x, double y)
 static double gradleg_tri_b2_b5_1_ax(double x, double y)
 {
  double l1, l2, l3, l1x, l2x, l3x, L1, L2, L1x, L2x;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
- l1x = lambda1x(x,y); l2x = lambda2x(x,y); l3x = lambda3x(x,y); 
- L1 = Legendre1(l3 - l2); L2 = Legendre4(l2 - l1); 
- L1x = Legendre1x(l3 - l2) * (l3x - l2x); L2x = Legendre4x(l2 - l1) * (l2x - l1x); 
- return l1x * l2 *  l3 *  L1 *  L2 +          l1 * l2x * l3 *  L1 *  L2 +          l1 * l2 *  l3x * L1 *  L2 +          l1 * l2 *  l3 *  L1x * L2 +          l1 * l2 *  l3 *  L1 *  L2x; 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
+ l1x = lambda1x(x,y); l2x = lambda2x(x,y); l3x = lambda3x(x,y);
+ L1 = Legendre1(l3 - l2); L2 = Legendre4(l2 - l1);
+ L1x = Legendre1x(l3 - l2) * (l3x - l2x); L2x = Legendre4x(l2 - l1) * (l2x - l1x);
+ return l1x * l2 *  l3 *  L1 *  L2 +          l1 * l2x * l3 *  L1 *  L2 +          l1 * l2 *  l3x * L1 *  L2 +          l1 * l2 *  l3 *  L1x * L2 +          l1 * l2 *  l3 *  L1 *  L2x;
 }
 
 static double gradleg_tri_b2_b5_1_bx(double x, double y)
@@ -4279,11 +4279,11 @@ static double gradleg_tri_b2_b5_1_bx(double x, double y)
 static double gradleg_tri_b2_b5_1_ay(double x, double y)
 {
  double l1, l2, l3, l1y, l2y, l3y, L1, L2, L1y, L2y;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
- l1y = lambda1y(x,y); l2y = lambda2y(x,y); l3y = lambda3y(x,y); 
- L1 = Legendre1(l3 - l2); L2 = Legendre4(l2 - l1); 
- L1y = Legendre1x(l3 - l2) * (l3y - l2y); L2y = Legendre4x(l2 - l1) * (l2y - l1y); 
- return l1y * l2 *  l3 *  L1 *  L2 +          l1 * l2y * l3 *  L1 *  L2 +          l1 * l2 *  l3y * L1 *  L2 +          l1 * l2 *  l3 *  L1y * L2 +          l1 * l2 *  l3 *  L1 *  L2y; 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
+ l1y = lambda1y(x,y); l2y = lambda2y(x,y); l3y = lambda3y(x,y);
+ L1 = Legendre1(l3 - l2); L2 = Legendre4(l2 - l1);
+ L1y = Legendre1x(l3 - l2) * (l3y - l2y); L2y = Legendre4x(l2 - l1) * (l2y - l1y);
+ return l1y * l2 *  l3 *  L1 *  L2 +          l1 * l2y * l3 *  L1 *  L2 +          l1 * l2 *  l3y * L1 *  L2 +          l1 * l2 *  l3 *  L1y * L2 +          l1 * l2 *  l3 *  L1 *  L2y;
 }
 
 static double gradleg_tri_b2_b5_1_by(double x, double y)
@@ -4294,7 +4294,7 @@ static double gradleg_tri_b2_b5_1_by(double x, double y)
 static double gradleg_tri_b2_b5_2_b(double x, double y)
 {
  double l1, l2, l3;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
  return l1 * l2 * l3 * Legendre1(l3 - l2) * Legendre4(l2 - l1);
 }
 
@@ -4306,11 +4306,11 @@ static double gradleg_tri_b2_b5_2_a(double x, double y)
 static double gradleg_tri_b2_b5_2_bx(double x, double y)
 {
  double l1, l2, l3, l1x, l2x, l3x, L1, L2, L1x, L2x;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
- l1x = lambda1x(x,y); l2x = lambda2x(x,y); l3x = lambda3x(x,y); 
- L1 = Legendre1(l3 - l2); L2 = Legendre4(l2 - l1); 
- L1x = Legendre1x(l3 - l2) * (l3x - l2x); L2x = Legendre4x(l2 - l1) * (l2x - l1x); 
- return l1x * l2 *  l3 *  L1 *  L2 +          l1 * l2x * l3 *  L1 *  L2 +          l1 * l2 *  l3x * L1 *  L2 +          l1 * l2 *  l3 *  L1x * L2 +          l1 * l2 *  l3 *  L1 *  L2x; 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
+ l1x = lambda1x(x,y); l2x = lambda2x(x,y); l3x = lambda3x(x,y);
+ L1 = Legendre1(l3 - l2); L2 = Legendre4(l2 - l1);
+ L1x = Legendre1x(l3 - l2) * (l3x - l2x); L2x = Legendre4x(l2 - l1) * (l2x - l1x);
+ return l1x * l2 *  l3 *  L1 *  L2 +          l1 * l2x * l3 *  L1 *  L2 +          l1 * l2 *  l3x * L1 *  L2 +          l1 * l2 *  l3 *  L1x * L2 +          l1 * l2 *  l3 *  L1 *  L2x;
 }
 
 static double gradleg_tri_b2_b5_2_ax(double x, double y)
@@ -4321,11 +4321,11 @@ static double gradleg_tri_b2_b5_2_ax(double x, double y)
 static double gradleg_tri_b2_b5_2_by(double x, double y)
 {
  double l1, l2, l3, l1y, l2y, l3y, L1, L2, L1y, L2y;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
- l1y = lambda1y(x,y); l2y = lambda2y(x,y); l3y = lambda3y(x,y); 
- L1 = Legendre1(l3 - l2); L2 = Legendre4(l2 - l1); 
- L1y = Legendre1x(l3 - l2) * (l3y - l2y); L2y = Legendre4x(l2 - l1) * (l2y - l1y); 
- return l1y * l2 *  l3 *  L1 *  L2 +          l1 * l2y * l3 *  L1 *  L2 +          l1 * l2 *  l3y * L1 *  L2 +          l1 * l2 *  l3 *  L1y * L2 +          l1 * l2 *  l3 *  L1 *  L2y; 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
+ l1y = lambda1y(x,y); l2y = lambda2y(x,y); l3y = lambda3y(x,y);
+ L1 = Legendre1(l3 - l2); L2 = Legendre4(l2 - l1);
+ L1y = Legendre1x(l3 - l2) * (l3y - l2y); L2y = Legendre4x(l2 - l1) * (l2y - l1y);
+ return l1y * l2 *  l3 *  L1 *  L2 +          l1 * l2y * l3 *  L1 *  L2 +          l1 * l2 *  l3y * L1 *  L2 +          l1 * l2 *  l3 *  L1y * L2 +          l1 * l2 *  l3 *  L1 *  L2y;
 }
 
 static double gradleg_tri_b2_b5_2_ay(double x, double y)
@@ -4336,7 +4336,7 @@ static double gradleg_tri_b2_b5_2_ay(double x, double y)
 static double gradleg_tri_b3_b4_1_a(double x, double y)
 {
  double l1, l2, l3;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
  return l1 * l2 * l3 * Legendre2(l3 - l2) * Legendre3(l2 - l1);
 }
 
@@ -4348,11 +4348,11 @@ static double gradleg_tri_b3_b4_1_b(double x, double y)
 static double gradleg_tri_b3_b4_1_ax(double x, double y)
 {
  double l1, l2, l3, l1x, l2x, l3x, L1, L2, L1x, L2x;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
- l1x = lambda1x(x,y); l2x = lambda2x(x,y); l3x = lambda3x(x,y); 
- L1 = Legendre2(l3 - l2); L2 = Legendre3(l2 - l1); 
- L1x = Legendre2x(l3 - l2) * (l3x - l2x); L2x = Legendre3x(l2 - l1) * (l2x - l1x); 
- return l1x * l2 *  l3 *  L1 *  L2 +          l1 * l2x * l3 *  L1 *  L2 +          l1 * l2 *  l3x * L1 *  L2 +          l1 * l2 *  l3 *  L1x * L2 +          l1 * l2 *  l3 *  L1 *  L2x; 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
+ l1x = lambda1x(x,y); l2x = lambda2x(x,y); l3x = lambda3x(x,y);
+ L1 = Legendre2(l3 - l2); L2 = Legendre3(l2 - l1);
+ L1x = Legendre2x(l3 - l2) * (l3x - l2x); L2x = Legendre3x(l2 - l1) * (l2x - l1x);
+ return l1x * l2 *  l3 *  L1 *  L2 +          l1 * l2x * l3 *  L1 *  L2 +          l1 * l2 *  l3x * L1 *  L2 +          l1 * l2 *  l3 *  L1x * L2 +          l1 * l2 *  l3 *  L1 *  L2x;
 }
 
 static double gradleg_tri_b3_b4_1_bx(double x, double y)
@@ -4363,11 +4363,11 @@ static double gradleg_tri_b3_b4_1_bx(double x, double y)
 static double gradleg_tri_b3_b4_1_ay(double x, double y)
 {
  double l1, l2, l3, l1y, l2y, l3y, L1, L2, L1y, L2y;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
- l1y = lambda1y(x,y); l2y = lambda2y(x,y); l3y = lambda3y(x,y); 
- L1 = Legendre2(l3 - l2); L2 = Legendre3(l2 - l1); 
- L1y = Legendre2x(l3 - l2) * (l3y - l2y); L2y = Legendre3x(l2 - l1) * (l2y - l1y); 
- return l1y * l2 *  l3 *  L1 *  L2 +          l1 * l2y * l3 *  L1 *  L2 +          l1 * l2 *  l3y * L1 *  L2 +          l1 * l2 *  l3 *  L1y * L2 +          l1 * l2 *  l3 *  L1 *  L2y; 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
+ l1y = lambda1y(x,y); l2y = lambda2y(x,y); l3y = lambda3y(x,y);
+ L1 = Legendre2(l3 - l2); L2 = Legendre3(l2 - l1);
+ L1y = Legendre2x(l3 - l2) * (l3y - l2y); L2y = Legendre3x(l2 - l1) * (l2y - l1y);
+ return l1y * l2 *  l3 *  L1 *  L2 +          l1 * l2y * l3 *  L1 *  L2 +          l1 * l2 *  l3y * L1 *  L2 +          l1 * l2 *  l3 *  L1y * L2 +          l1 * l2 *  l3 *  L1 *  L2y;
 }
 
 static double gradleg_tri_b3_b4_1_by(double x, double y)
@@ -4378,7 +4378,7 @@ static double gradleg_tri_b3_b4_1_by(double x, double y)
 static double gradleg_tri_b3_b4_2_b(double x, double y)
 {
  double l1, l2, l3;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
  return l1 * l2 * l3 * Legendre2(l3 - l2) * Legendre3(l2 - l1);
 }
 
@@ -4390,11 +4390,11 @@ static double gradleg_tri_b3_b4_2_a(double x, double y)
 static double gradleg_tri_b3_b4_2_bx(double x, double y)
 {
  double l1, l2, l3, l1x, l2x, l3x, L1, L2, L1x, L2x;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
- l1x = lambda1x(x,y); l2x = lambda2x(x,y); l3x = lambda3x(x,y); 
- L1 = Legendre2(l3 - l2); L2 = Legendre3(l2 - l1); 
- L1x = Legendre2x(l3 - l2) * (l3x - l2x); L2x = Legendre3x(l2 - l1) * (l2x - l1x); 
- return l1x * l2 *  l3 *  L1 *  L2 +          l1 * l2x * l3 *  L1 *  L2 +          l1 * l2 *  l3x * L1 *  L2 +          l1 * l2 *  l3 *  L1x * L2 +          l1 * l2 *  l3 *  L1 *  L2x; 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
+ l1x = lambda1x(x,y); l2x = lambda2x(x,y); l3x = lambda3x(x,y);
+ L1 = Legendre2(l3 - l2); L2 = Legendre3(l2 - l1);
+ L1x = Legendre2x(l3 - l2) * (l3x - l2x); L2x = Legendre3x(l2 - l1) * (l2x - l1x);
+ return l1x * l2 *  l3 *  L1 *  L2 +          l1 * l2x * l3 *  L1 *  L2 +          l1 * l2 *  l3x * L1 *  L2 +          l1 * l2 *  l3 *  L1x * L2 +          l1 * l2 *  l3 *  L1 *  L2x;
 }
 
 static double gradleg_tri_b3_b4_2_ax(double x, double y)
@@ -4405,11 +4405,11 @@ static double gradleg_tri_b3_b4_2_ax(double x, double y)
 static double gradleg_tri_b3_b4_2_by(double x, double y)
 {
  double l1, l2, l3, l1y, l2y, l3y, L1, L2, L1y, L2y;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
- l1y = lambda1y(x,y); l2y = lambda2y(x,y); l3y = lambda3y(x,y); 
- L1 = Legendre2(l3 - l2); L2 = Legendre3(l2 - l1); 
- L1y = Legendre2x(l3 - l2) * (l3y - l2y); L2y = Legendre3x(l2 - l1) * (l2y - l1y); 
- return l1y * l2 *  l3 *  L1 *  L2 +          l1 * l2y * l3 *  L1 *  L2 +          l1 * l2 *  l3y * L1 *  L2 +          l1 * l2 *  l3 *  L1y * L2 +          l1 * l2 *  l3 *  L1 *  L2y; 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
+ l1y = lambda1y(x,y); l2y = lambda2y(x,y); l3y = lambda3y(x,y);
+ L1 = Legendre2(l3 - l2); L2 = Legendre3(l2 - l1);
+ L1y = Legendre2x(l3 - l2) * (l3y - l2y); L2y = Legendre3x(l2 - l1) * (l2y - l1y);
+ return l1y * l2 *  l3 *  L1 *  L2 +          l1 * l2y * l3 *  L1 *  L2 +          l1 * l2 *  l3y * L1 *  L2 +          l1 * l2 *  l3 *  L1y * L2 +          l1 * l2 *  l3 *  L1 *  L2y;
 }
 
 static double gradleg_tri_b3_b4_2_ay(double x, double y)
@@ -4420,7 +4420,7 @@ static double gradleg_tri_b3_b4_2_ay(double x, double y)
 static double gradleg_tri_b4_b3_1_a(double x, double y)
 {
  double l1, l2, l3;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
  return l1 * l2 * l3 * Legendre3(l3 - l2) * Legendre2(l2 - l1);
 }
 
@@ -4432,11 +4432,11 @@ static double gradleg_tri_b4_b3_1_b(double x, double y)
 static double gradleg_tri_b4_b3_1_ax(double x, double y)
 {
  double l1, l2, l3, l1x, l2x, l3x, L1, L2, L1x, L2x;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
- l1x = lambda1x(x,y); l2x = lambda2x(x,y); l3x = lambda3x(x,y); 
- L1 = Legendre3(l3 - l2); L2 = Legendre2(l2 - l1); 
- L1x = Legendre3x(l3 - l2) * (l3x - l2x); L2x = Legendre2x(l2 - l1) * (l2x - l1x); 
- return l1x * l2 *  l3 *  L1 *  L2 +          l1 * l2x * l3 *  L1 *  L2 +          l1 * l2 *  l3x * L1 *  L2 +          l1 * l2 *  l3 *  L1x * L2 +          l1 * l2 *  l3 *  L1 *  L2x; 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
+ l1x = lambda1x(x,y); l2x = lambda2x(x,y); l3x = lambda3x(x,y);
+ L1 = Legendre3(l3 - l2); L2 = Legendre2(l2 - l1);
+ L1x = Legendre3x(l3 - l2) * (l3x - l2x); L2x = Legendre2x(l2 - l1) * (l2x - l1x);
+ return l1x * l2 *  l3 *  L1 *  L2 +          l1 * l2x * l3 *  L1 *  L2 +          l1 * l2 *  l3x * L1 *  L2 +          l1 * l2 *  l3 *  L1x * L2 +          l1 * l2 *  l3 *  L1 *  L2x;
 }
 
 static double gradleg_tri_b4_b3_1_bx(double x, double y)
@@ -4447,11 +4447,11 @@ static double gradleg_tri_b4_b3_1_bx(double x, double y)
 static double gradleg_tri_b4_b3_1_ay(double x, double y)
 {
  double l1, l2, l3, l1y, l2y, l3y, L1, L2, L1y, L2y;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
- l1y = lambda1y(x,y); l2y = lambda2y(x,y); l3y = lambda3y(x,y); 
- L1 = Legendre3(l3 - l2); L2 = Legendre2(l2 - l1); 
- L1y = Legendre3x(l3 - l2) * (l3y - l2y); L2y = Legendre2x(l2 - l1) * (l2y - l1y); 
- return l1y * l2 *  l3 *  L1 *  L2 +          l1 * l2y * l3 *  L1 *  L2 +          l1 * l2 *  l3y * L1 *  L2 +          l1 * l2 *  l3 *  L1y * L2 +          l1 * l2 *  l3 *  L1 *  L2y; 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
+ l1y = lambda1y(x,y); l2y = lambda2y(x,y); l3y = lambda3y(x,y);
+ L1 = Legendre3(l3 - l2); L2 = Legendre2(l2 - l1);
+ L1y = Legendre3x(l3 - l2) * (l3y - l2y); L2y = Legendre2x(l2 - l1) * (l2y - l1y);
+ return l1y * l2 *  l3 *  L1 *  L2 +          l1 * l2y * l3 *  L1 *  L2 +          l1 * l2 *  l3y * L1 *  L2 +          l1 * l2 *  l3 *  L1y * L2 +          l1 * l2 *  l3 *  L1 *  L2y;
 }
 
 static double gradleg_tri_b4_b3_1_by(double x, double y)
@@ -4462,7 +4462,7 @@ static double gradleg_tri_b4_b3_1_by(double x, double y)
 static double gradleg_tri_b4_b3_2_b(double x, double y)
 {
  double l1, l2, l3;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
  return l1 * l2 * l3 * Legendre3(l3 - l2) * Legendre2(l2 - l1);
 }
 
@@ -4474,11 +4474,11 @@ static double gradleg_tri_b4_b3_2_a(double x, double y)
 static double gradleg_tri_b4_b3_2_bx(double x, double y)
 {
  double l1, l2, l3, l1x, l2x, l3x, L1, L2, L1x, L2x;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
- l1x = lambda1x(x,y); l2x = lambda2x(x,y); l3x = lambda3x(x,y); 
- L1 = Legendre3(l3 - l2); L2 = Legendre2(l2 - l1); 
- L1x = Legendre3x(l3 - l2) * (l3x - l2x); L2x = Legendre2x(l2 - l1) * (l2x - l1x); 
- return l1x * l2 *  l3 *  L1 *  L2 +          l1 * l2x * l3 *  L1 *  L2 +          l1 * l2 *  l3x * L1 *  L2 +          l1 * l2 *  l3 *  L1x * L2 +          l1 * l2 *  l3 *  L1 *  L2x; 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
+ l1x = lambda1x(x,y); l2x = lambda2x(x,y); l3x = lambda3x(x,y);
+ L1 = Legendre3(l3 - l2); L2 = Legendre2(l2 - l1);
+ L1x = Legendre3x(l3 - l2) * (l3x - l2x); L2x = Legendre2x(l2 - l1) * (l2x - l1x);
+ return l1x * l2 *  l3 *  L1 *  L2 +          l1 * l2x * l3 *  L1 *  L2 +          l1 * l2 *  l3x * L1 *  L2 +          l1 * l2 *  l3 *  L1x * L2 +          l1 * l2 *  l3 *  L1 *  L2x;
 }
 
 static double gradleg_tri_b4_b3_2_ax(double x, double y)
@@ -4489,11 +4489,11 @@ static double gradleg_tri_b4_b3_2_ax(double x, double y)
 static double gradleg_tri_b4_b3_2_by(double x, double y)
 {
  double l1, l2, l3, l1y, l2y, l3y, L1, L2, L1y, L2y;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
- l1y = lambda1y(x,y); l2y = lambda2y(x,y); l3y = lambda3y(x,y); 
- L1 = Legendre3(l3 - l2); L2 = Legendre2(l2 - l1); 
- L1y = Legendre3x(l3 - l2) * (l3y - l2y); L2y = Legendre2x(l2 - l1) * (l2y - l1y); 
- return l1y * l2 *  l3 *  L1 *  L2 +          l1 * l2y * l3 *  L1 *  L2 +          l1 * l2 *  l3y * L1 *  L2 +          l1 * l2 *  l3 *  L1y * L2 +          l1 * l2 *  l3 *  L1 *  L2y; 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
+ l1y = lambda1y(x,y); l2y = lambda2y(x,y); l3y = lambda3y(x,y);
+ L1 = Legendre3(l3 - l2); L2 = Legendre2(l2 - l1);
+ L1y = Legendre3x(l3 - l2) * (l3y - l2y); L2y = Legendre2x(l2 - l1) * (l2y - l1y);
+ return l1y * l2 *  l3 *  L1 *  L2 +          l1 * l2y * l3 *  L1 *  L2 +          l1 * l2 *  l3y * L1 *  L2 +          l1 * l2 *  l3 *  L1y * L2 +          l1 * l2 *  l3 *  L1 *  L2y;
 }
 
 static double gradleg_tri_b4_b3_2_ay(double x, double y)
@@ -4504,7 +4504,7 @@ static double gradleg_tri_b4_b3_2_ay(double x, double y)
 static double gradleg_tri_b5_b2_1_a(double x, double y)
 {
  double l1, l2, l3;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
  return l1 * l2 * l3 * Legendre4(l3 - l2) * Legendre1(l2 - l1);
 }
 
@@ -4516,11 +4516,11 @@ static double gradleg_tri_b5_b2_1_b(double x, double y)
 static double gradleg_tri_b5_b2_1_ax(double x, double y)
 {
  double l1, l2, l3, l1x, l2x, l3x, L1, L2, L1x, L2x;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
- l1x = lambda1x(x,y); l2x = lambda2x(x,y); l3x = lambda3x(x,y); 
- L1 = Legendre4(l3 - l2); L2 = Legendre1(l2 - l1); 
- L1x = Legendre4x(l3 - l2) * (l3x - l2x); L2x = Legendre1x(l2 - l1) * (l2x - l1x); 
- return l1x * l2 *  l3 *  L1 *  L2 +          l1 * l2x * l3 *  L1 *  L2 +          l1 * l2 *  l3x * L1 *  L2 +          l1 * l2 *  l3 *  L1x * L2 +          l1 * l2 *  l3 *  L1 *  L2x; 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
+ l1x = lambda1x(x,y); l2x = lambda2x(x,y); l3x = lambda3x(x,y);
+ L1 = Legendre4(l3 - l2); L2 = Legendre1(l2 - l1);
+ L1x = Legendre4x(l3 - l2) * (l3x - l2x); L2x = Legendre1x(l2 - l1) * (l2x - l1x);
+ return l1x * l2 *  l3 *  L1 *  L2 +          l1 * l2x * l3 *  L1 *  L2 +          l1 * l2 *  l3x * L1 *  L2 +          l1 * l2 *  l3 *  L1x * L2 +          l1 * l2 *  l3 *  L1 *  L2x;
 }
 
 static double gradleg_tri_b5_b2_1_bx(double x, double y)
@@ -4531,11 +4531,11 @@ static double gradleg_tri_b5_b2_1_bx(double x, double y)
 static double gradleg_tri_b5_b2_1_ay(double x, double y)
 {
  double l1, l2, l3, l1y, l2y, l3y, L1, L2, L1y, L2y;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
- l1y = lambda1y(x,y); l2y = lambda2y(x,y); l3y = lambda3y(x,y); 
- L1 = Legendre4(l3 - l2); L2 = Legendre1(l2 - l1); 
- L1y = Legendre4x(l3 - l2) * (l3y - l2y); L2y = Legendre1x(l2 - l1) * (l2y - l1y); 
- return l1y * l2 *  l3 *  L1 *  L2 +          l1 * l2y * l3 *  L1 *  L2 +          l1 * l2 *  l3y * L1 *  L2 +          l1 * l2 *  l3 *  L1y * L2 +          l1 * l2 *  l3 *  L1 *  L2y; 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
+ l1y = lambda1y(x,y); l2y = lambda2y(x,y); l3y = lambda3y(x,y);
+ L1 = Legendre4(l3 - l2); L2 = Legendre1(l2 - l1);
+ L1y = Legendre4x(l3 - l2) * (l3y - l2y); L2y = Legendre1x(l2 - l1) * (l2y - l1y);
+ return l1y * l2 *  l3 *  L1 *  L2 +          l1 * l2y * l3 *  L1 *  L2 +          l1 * l2 *  l3y * L1 *  L2 +          l1 * l2 *  l3 *  L1y * L2 +          l1 * l2 *  l3 *  L1 *  L2y;
 }
 
 static double gradleg_tri_b5_b2_1_by(double x, double y)
@@ -4546,7 +4546,7 @@ static double gradleg_tri_b5_b2_1_by(double x, double y)
 static double gradleg_tri_b5_b2_2_b(double x, double y)
 {
  double l1, l2, l3;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
  return l1 * l2 * l3 * Legendre4(l3 - l2) * Legendre1(l2 - l1);
 }
 
@@ -4558,11 +4558,11 @@ static double gradleg_tri_b5_b2_2_a(double x, double y)
 static double gradleg_tri_b5_b2_2_bx(double x, double y)
 {
  double l1, l2, l3, l1x, l2x, l3x, L1, L2, L1x, L2x;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
- l1x = lambda1x(x,y); l2x = lambda2x(x,y); l3x = lambda3x(x,y); 
- L1 = Legendre4(l3 - l2); L2 = Legendre1(l2 - l1); 
- L1x = Legendre4x(l3 - l2) * (l3x - l2x); L2x = Legendre1x(l2 - l1) * (l2x - l1x); 
- return l1x * l2 *  l3 *  L1 *  L2 +          l1 * l2x * l3 *  L1 *  L2 +          l1 * l2 *  l3x * L1 *  L2 +          l1 * l2 *  l3 *  L1x * L2 +          l1 * l2 *  l3 *  L1 *  L2x; 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
+ l1x = lambda1x(x,y); l2x = lambda2x(x,y); l3x = lambda3x(x,y);
+ L1 = Legendre4(l3 - l2); L2 = Legendre1(l2 - l1);
+ L1x = Legendre4x(l3 - l2) * (l3x - l2x); L2x = Legendre1x(l2 - l1) * (l2x - l1x);
+ return l1x * l2 *  l3 *  L1 *  L2 +          l1 * l2x * l3 *  L1 *  L2 +          l1 * l2 *  l3x * L1 *  L2 +          l1 * l2 *  l3 *  L1x * L2 +          l1 * l2 *  l3 *  L1 *  L2x;
 }
 
 static double gradleg_tri_b5_b2_2_ax(double x, double y)
@@ -4573,11 +4573,11 @@ static double gradleg_tri_b5_b2_2_ax(double x, double y)
 static double gradleg_tri_b5_b2_2_by(double x, double y)
 {
  double l1, l2, l3, l1y, l2y, l3y, L1, L2, L1y, L2y;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
- l1y = lambda1y(x,y); l2y = lambda2y(x,y); l3y = lambda3y(x,y); 
- L1 = Legendre4(l3 - l2); L2 = Legendre1(l2 - l1); 
- L1y = Legendre4x(l3 - l2) * (l3y - l2y); L2y = Legendre1x(l2 - l1) * (l2y - l1y); 
- return l1y * l2 *  l3 *  L1 *  L2 +          l1 * l2y * l3 *  L1 *  L2 +          l1 * l2 *  l3y * L1 *  L2 +          l1 * l2 *  l3 *  L1y * L2 +          l1 * l2 *  l3 *  L1 *  L2y; 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
+ l1y = lambda1y(x,y); l2y = lambda2y(x,y); l3y = lambda3y(x,y);
+ L1 = Legendre4(l3 - l2); L2 = Legendre1(l2 - l1);
+ L1y = Legendre4x(l3 - l2) * (l3y - l2y); L2y = Legendre1x(l2 - l1) * (l2y - l1y);
+ return l1y * l2 *  l3 *  L1 *  L2 +          l1 * l2y * l3 *  L1 *  L2 +          l1 * l2 *  l3y * L1 *  L2 +          l1 * l2 *  l3 *  L1y * L2 +          l1 * l2 *  l3 *  L1 *  L2y;
 }
 
 static double gradleg_tri_b5_b2_2_ay(double x, double y)
@@ -4588,7 +4588,7 @@ static double gradleg_tri_b5_b2_2_ay(double x, double y)
 static double gradleg_tri_b6_b1_1_a(double x, double y)
 {
  double l1, l2, l3;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
  return l1 * l2 * l3 * Legendre5(l3 - l2) * Legendre0(l2 - l1);
 }
 
@@ -4600,11 +4600,11 @@ static double gradleg_tri_b6_b1_1_b(double x, double y)
 static double gradleg_tri_b6_b1_1_ax(double x, double y)
 {
  double l1, l2, l3, l1x, l2x, l3x, L1, L2, L1x, L2x;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
- l1x = lambda1x(x,y); l2x = lambda2x(x,y); l3x = lambda3x(x,y); 
- L1 = Legendre5(l3 - l2); L2 = Legendre0(l2 - l1); 
- L1x = Legendre5x(l3 - l2) * (l3x - l2x); L2x = Legendre0x(l2 - l1) * (l2x - l1x); 
- return l1x * l2 *  l3 *  L1 *  L2 +          l1 * l2x * l3 *  L1 *  L2 +          l1 * l2 *  l3x * L1 *  L2 +          l1 * l2 *  l3 *  L1x * L2 +          l1 * l2 *  l3 *  L1 *  L2x; 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
+ l1x = lambda1x(x,y); l2x = lambda2x(x,y); l3x = lambda3x(x,y);
+ L1 = Legendre5(l3 - l2); L2 = Legendre0(l2 - l1);
+ L1x = Legendre5x(l3 - l2) * (l3x - l2x); L2x = Legendre0x(l2 - l1) * (l2x - l1x);
+ return l1x * l2 *  l3 *  L1 *  L2 +          l1 * l2x * l3 *  L1 *  L2 +          l1 * l2 *  l3x * L1 *  L2 +          l1 * l2 *  l3 *  L1x * L2 +          l1 * l2 *  l3 *  L1 *  L2x;
 }
 
 static double gradleg_tri_b6_b1_1_bx(double x, double y)
@@ -4615,11 +4615,11 @@ static double gradleg_tri_b6_b1_1_bx(double x, double y)
 static double gradleg_tri_b6_b1_1_ay(double x, double y)
 {
  double l1, l2, l3, l1y, l2y, l3y, L1, L2, L1y, L2y;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
- l1y = lambda1y(x,y); l2y = lambda2y(x,y); l3y = lambda3y(x,y); 
- L1 = Legendre5(l3 - l2); L2 = Legendre0(l2 - l1); 
- L1y = Legendre5x(l3 - l2) * (l3y - l2y); L2y = Legendre0x(l2 - l1) * (l2y - l1y); 
- return l1y * l2 *  l3 *  L1 *  L2 +          l1 * l2y * l3 *  L1 *  L2 +          l1 * l2 *  l3y * L1 *  L2 +          l1 * l2 *  l3 *  L1y * L2 +          l1 * l2 *  l3 *  L1 *  L2y; 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
+ l1y = lambda1y(x,y); l2y = lambda2y(x,y); l3y = lambda3y(x,y);
+ L1 = Legendre5(l3 - l2); L2 = Legendre0(l2 - l1);
+ L1y = Legendre5x(l3 - l2) * (l3y - l2y); L2y = Legendre0x(l2 - l1) * (l2y - l1y);
+ return l1y * l2 *  l3 *  L1 *  L2 +          l1 * l2y * l3 *  L1 *  L2 +          l1 * l2 *  l3y * L1 *  L2 +          l1 * l2 *  l3 *  L1y * L2 +          l1 * l2 *  l3 *  L1 *  L2y;
 }
 
 static double gradleg_tri_b6_b1_1_by(double x, double y)
@@ -4630,7 +4630,7 @@ static double gradleg_tri_b6_b1_1_by(double x, double y)
 static double gradleg_tri_b6_b1_2_b(double x, double y)
 {
  double l1, l2, l3;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
  return l1 * l2 * l3 * Legendre5(l3 - l2) * Legendre0(l2 - l1);
 }
 
@@ -4642,11 +4642,11 @@ static double gradleg_tri_b6_b1_2_a(double x, double y)
 static double gradleg_tri_b6_b1_2_bx(double x, double y)
 {
  double l1, l2, l3, l1x, l2x, l3x, L1, L2, L1x, L2x;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
- l1x = lambda1x(x,y); l2x = lambda2x(x,y); l3x = lambda3x(x,y); 
- L1 = Legendre5(l3 - l2); L2 = Legendre0(l2 - l1); 
- L1x = Legendre5x(l3 - l2) * (l3x - l2x); L2x = Legendre0x(l2 - l1) * (l2x - l1x); 
- return l1x * l2 *  l3 *  L1 *  L2 +          l1 * l2x * l3 *  L1 *  L2 +          l1 * l2 *  l3x * L1 *  L2 +          l1 * l2 *  l3 *  L1x * L2 +          l1 * l2 *  l3 *  L1 *  L2x; 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
+ l1x = lambda1x(x,y); l2x = lambda2x(x,y); l3x = lambda3x(x,y);
+ L1 = Legendre5(l3 - l2); L2 = Legendre0(l2 - l1);
+ L1x = Legendre5x(l3 - l2) * (l3x - l2x); L2x = Legendre0x(l2 - l1) * (l2x - l1x);
+ return l1x * l2 *  l3 *  L1 *  L2 +          l1 * l2x * l3 *  L1 *  L2 +          l1 * l2 *  l3x * L1 *  L2 +          l1 * l2 *  l3 *  L1x * L2 +          l1 * l2 *  l3 *  L1 *  L2x;
 }
 
 static double gradleg_tri_b6_b1_2_ax(double x, double y)
@@ -4657,11 +4657,11 @@ static double gradleg_tri_b6_b1_2_ax(double x, double y)
 static double gradleg_tri_b6_b1_2_by(double x, double y)
 {
  double l1, l2, l3, l1y, l2y, l3y, L1, L2, L1y, L2y;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
- l1y = lambda1y(x,y); l2y = lambda2y(x,y); l3y = lambda3y(x,y); 
- L1 = Legendre5(l3 - l2); L2 = Legendre0(l2 - l1); 
- L1y = Legendre5x(l3 - l2) * (l3y - l2y); L2y = Legendre0x(l2 - l1) * (l2y - l1y); 
- return l1y * l2 *  l3 *  L1 *  L2 +          l1 * l2y * l3 *  L1 *  L2 +          l1 * l2 *  l3y * L1 *  L2 +          l1 * l2 *  l3 *  L1y * L2 +          l1 * l2 *  l3 *  L1 *  L2y; 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
+ l1y = lambda1y(x,y); l2y = lambda2y(x,y); l3y = lambda3y(x,y);
+ L1 = Legendre5(l3 - l2); L2 = Legendre0(l2 - l1);
+ L1y = Legendre5x(l3 - l2) * (l3y - l2y); L2y = Legendre0x(l2 - l1) * (l2y - l1y);
+ return l1y * l2 *  l3 *  L1 *  L2 +          l1 * l2y * l3 *  L1 *  L2 +          l1 * l2 *  l3y * L1 *  L2 +          l1 * l2 *  l3 *  L1y * L2 +          l1 * l2 *  l3 *  L1 *  L2y;
 }
 
 static double gradleg_tri_b6_b1_2_ay(double x, double y)
@@ -4703,8 +4703,8 @@ static double gradleg_tri_p9_e1_ay(double x, double y)
  double l3, l3x, l3y, l2, l2x, l2y;
  double ker, kerx, kery, kerxy;
  l3 = lambda3(x,y); l3x = lambda3x(x,y); l3y = lambda3y(x,y);
-  l2 = lambda2(x,y); l2x = lambda2x(x,y); l2y = lambda2y(x,y); 
- ker = phi8(l3 - l2); kerx = phi8x(l3 - l2) * (l3x - l2x); 
+  l2 = lambda2(x,y); l2x = lambda2x(x,y); l2y = lambda2y(x,y);
+ ker = phi8(l3 - l2); kerx = phi8x(l3 - l2) * (l3x - l2x);
  kery = phi8x(l3 - l2) * (l3y - l2y); kerxy = phi8xx(l3 - l2) * (l3x - l2x) * (l3y - l2y);
  return  (l3x * l2y * ker + l3y * l2x * ker + l3x * l2 * kery + l3 * l2x * kery + l3y * l2 * kerx + l3 * l2y * kerx +  l3 * l2 * kerxy) / 1.0000000000000;
 }
@@ -4714,8 +4714,8 @@ static double gradleg_tri_p9_e1_bx(double x, double y)
  double l3, l3x, l3y, l2, l2x, l2y;
  double ker, kerx, kery, kerxy;
  l3 = lambda3(x,y); l3x = lambda3x(x,y); l3y = lambda3y(x,y);
-  l2 = lambda2(x,y); l2x = lambda2x(x,y); l2y = lambda2y(x,y); 
- ker = phi8(l3 - l2); kerx = phi8x(l3 - l2) * (l3x - l2x); 
+  l2 = lambda2(x,y); l2x = lambda2x(x,y); l2y = lambda2y(x,y);
+ ker = phi8(l3 - l2); kerx = phi8x(l3 - l2) * (l3x - l2x);
  kery = phi8x(l3 - l2) * (l3y - l2y); kerxy = phi8xx(l3 - l2) * (l3x - l2x) * (l3y - l2y);
  return  (l3x * l2y * ker + l3y * l2x * ker + l3x * l2 * kery + l3 * l2x * kery + l3y * l2 * kerx + l3 * l2y * kerx +  l3 * l2 * kerxy) / 1.0000000000000;
 }
@@ -4759,8 +4759,8 @@ static double gradleg_tri_p9_e2_ay(double x, double y)
  double l1, l1x, l1y, l3, l3x, l3y;
  double ker, kerx, kery, kerxy;
  l1 = lambda1(x,y); l1x = lambda1x(x,y); l1y = lambda1y(x,y);
-  l3 = lambda3(x,y); l3x = lambda3x(x,y); l3y = lambda3y(x,y); 
- ker = phi8(l1 - l3); kerx = phi8x(l1 - l3) * (l1x - l3x); 
+  l3 = lambda3(x,y); l3x = lambda3x(x,y); l3y = lambda3y(x,y);
+ ker = phi8(l1 - l3); kerx = phi8x(l1 - l3) * (l1x - l3x);
  kery = phi8x(l1 - l3) * (l1y - l3y); kerxy = phi8xx(l1 - l3) * (l1x - l3x) * (l1y - l3y);
  return  (l1x * l3y * ker + l1y * l3x * ker + l1x * l3 * kery + l1 * l3x * kery + l1y * l3 * kerx + l1 * l3y * kerx +  l1 * l3 * kerxy) / 1.0000000000000;
 }
@@ -4770,8 +4770,8 @@ static double gradleg_tri_p9_e2_bx(double x, double y)
  double l1, l1x, l1y, l3, l3x, l3y;
  double ker, kerx, kery, kerxy;
  l1 = lambda1(x,y); l1x = lambda1x(x,y); l1y = lambda1y(x,y);
-  l3 = lambda3(x,y); l3x = lambda3x(x,y); l3y = lambda3y(x,y); 
- ker = phi8(l1 - l3); kerx = phi8x(l1 - l3) * (l1x - l3x); 
+  l3 = lambda3(x,y); l3x = lambda3x(x,y); l3y = lambda3y(x,y);
+ ker = phi8(l1 - l3); kerx = phi8x(l1 - l3) * (l1x - l3x);
  kery = phi8x(l1 - l3) * (l1y - l3y); kerxy = phi8xx(l1 - l3) * (l1x - l3x) * (l1y - l3y);
  return  (l1x * l3y * ker + l1y * l3x * ker + l1x * l3 * kery + l1 * l3x * kery + l1y * l3 * kerx + l1 * l3y * kerx +  l1 * l3 * kerxy) / 1.0000000000000;
 }
@@ -4815,8 +4815,8 @@ static double gradleg_tri_p9_e3_ay(double x, double y)
  double l2, l2x, l2y, l1, l1x, l1y;
  double ker, kerx, kery, kerxy;
  l2 = lambda2(x,y); l2x = lambda2x(x,y); l2y = lambda2y(x,y);
-  l1 = lambda1(x,y); l1x = lambda1x(x,y); l1y = lambda1y(x,y); 
- ker = phi8(l2 - l1); kerx = phi8x(l2 - l1) * (l2x - l1x); 
+  l1 = lambda1(x,y); l1x = lambda1x(x,y); l1y = lambda1y(x,y);
+ ker = phi8(l2 - l1); kerx = phi8x(l2 - l1) * (l2x - l1x);
  kery = phi8x(l2 - l1) * (l2y - l1y); kerxy = phi8xx(l2 - l1) * (l2x - l1x) * (l2y - l1y);
  return  (l2x * l1y * ker + l2y * l1x * ker + l2x * l1 * kery + l2 * l1x * kery + l2y * l1 * kerx + l2 * l1y * kerx +  l2 * l1 * kerxy) / 1.0000000000000;
 }
@@ -4826,8 +4826,8 @@ static double gradleg_tri_p9_e3_bx(double x, double y)
  double l2, l2x, l2y, l1, l1x, l1y;
  double ker, kerx, kery, kerxy;
  l2 = lambda2(x,y); l2x = lambda2x(x,y); l2y = lambda2y(x,y);
-  l1 = lambda1(x,y); l1x = lambda1x(x,y); l1y = lambda1y(x,y); 
- ker = phi8(l2 - l1); kerx = phi8x(l2 - l1) * (l2x - l1x); 
+  l1 = lambda1(x,y); l1x = lambda1x(x,y); l1y = lambda1y(x,y);
+ ker = phi8(l2 - l1); kerx = phi8x(l2 - l1) * (l2x - l1x);
  kery = phi8x(l2 - l1) * (l2y - l1y); kerxy = phi8xx(l2 - l1) * (l2x - l1x) * (l2y - l1y);
  return  (l2x * l1y * ker + l2y * l1x * ker + l2x * l1 * kery + l2 * l1x * kery + l2y * l1 * kerx + l2 * l1y * kerx +  l2 * l1 * kerxy) / 1.0000000000000;
 }
@@ -4849,14 +4849,14 @@ static double gradleg_tri_p9_e3_by(double x, double y)
 static double gradleg_tri_p9_b1_a(double x, double y)
 {
  double l3, l2;
- l3 = lambda3(x,y); l2 = lambda2(x,y); 
+ l3 = lambda3(x,y); l2 = lambda2(x,y);
  return n11 * (l3 * l2 * Legendre7(l3 - l2));
 }
 
 static double gradleg_tri_p9_b1_b(double x, double y)
 {
  double l3, l2;
- l3 = lambda3(x,y); l2 = lambda2(x,y); 
+ l3 = lambda3(x,y); l2 = lambda2(x,y);
  return n12 * (l3 * l2 * Legendre7(l3 - l2));
 }
 
@@ -4892,14 +4892,14 @@ static double gradleg_tri_p9_b1_by(double x, double y)
 static double gradleg_tri_p9_b2_a(double x, double y)
 {
  double l1, l3;
- l1 = lambda1(x,y); l3 = lambda3(x,y); 
+ l1 = lambda1(x,y); l3 = lambda3(x,y);
  return n21 * (l1 * l3 * Legendre7(l1 - l3));
 }
 
 static double gradleg_tri_p9_b2_b(double x, double y)
 {
  double l1, l3;
- l1 = lambda1(x,y); l3 = lambda3(x,y); 
+ l1 = lambda1(x,y); l3 = lambda3(x,y);
  return n22 * (l1 * l3 * Legendre7(l1 - l3));
 }
 
@@ -4935,14 +4935,14 @@ static double gradleg_tri_p9_b2_by(double x, double y)
 static double gradleg_tri_p9_b3_a(double x, double y)
 {
  double l2, l1;
- l2 = lambda2(x,y); l1 = lambda1(x,y); 
+ l2 = lambda2(x,y); l1 = lambda1(x,y);
  return n31 * (l2 * l1 * Legendre7(l2 - l1));
 }
 
 static double gradleg_tri_p9_b3_b(double x, double y)
 {
  double l2, l1;
- l2 = lambda2(x,y); l1 = lambda1(x,y); 
+ l2 = lambda2(x,y); l1 = lambda1(x,y);
  return n32 * (l2 * l1 * Legendre7(l2 - l1));
 }
 
@@ -4979,7 +4979,7 @@ static double gradleg_tri_p9_b3_by(double x, double y)
 static double gradleg_tri_b1_b7_1_a(double x, double y)
 {
  double l1, l2, l3;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
  return l1 * l2 * l3 * Legendre0(l3 - l2) * Legendre6(l2 - l1);
 }
 
@@ -4991,11 +4991,11 @@ static double gradleg_tri_b1_b7_1_b(double x, double y)
 static double gradleg_tri_b1_b7_1_ax(double x, double y)
 {
  double l1, l2, l3, l1x, l2x, l3x, L1, L2, L1x, L2x;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
- l1x = lambda1x(x,y); l2x = lambda2x(x,y); l3x = lambda3x(x,y); 
- L1 = Legendre0(l3 - l2); L2 = Legendre6(l2 - l1); 
- L1x = Legendre0x(l3 - l2) * (l3x - l2x); L2x = Legendre6x(l2 - l1) * (l2x - l1x); 
- return l1x * l2 *  l3 *  L1 *  L2 +          l1 * l2x * l3 *  L1 *  L2 +          l1 * l2 *  l3x * L1 *  L2 +          l1 * l2 *  l3 *  L1x * L2 +          l1 * l2 *  l3 *  L1 *  L2x; 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
+ l1x = lambda1x(x,y); l2x = lambda2x(x,y); l3x = lambda3x(x,y);
+ L1 = Legendre0(l3 - l2); L2 = Legendre6(l2 - l1);
+ L1x = Legendre0x(l3 - l2) * (l3x - l2x); L2x = Legendre6x(l2 - l1) * (l2x - l1x);
+ return l1x * l2 *  l3 *  L1 *  L2 +          l1 * l2x * l3 *  L1 *  L2 +          l1 * l2 *  l3x * L1 *  L2 +          l1 * l2 *  l3 *  L1x * L2 +          l1 * l2 *  l3 *  L1 *  L2x;
 }
 
 static double gradleg_tri_b1_b7_1_bx(double x, double y)
@@ -5006,11 +5006,11 @@ static double gradleg_tri_b1_b7_1_bx(double x, double y)
 static double gradleg_tri_b1_b7_1_ay(double x, double y)
 {
  double l1, l2, l3, l1y, l2y, l3y, L1, L2, L1y, L2y;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
- l1y = lambda1y(x,y); l2y = lambda2y(x,y); l3y = lambda3y(x,y); 
- L1 = Legendre0(l3 - l2); L2 = Legendre6(l2 - l1); 
- L1y = Legendre0x(l3 - l2) * (l3y - l2y); L2y = Legendre6x(l2 - l1) * (l2y - l1y); 
- return l1y * l2 *  l3 *  L1 *  L2 +          l1 * l2y * l3 *  L1 *  L2 +          l1 * l2 *  l3y * L1 *  L2 +          l1 * l2 *  l3 *  L1y * L2 +          l1 * l2 *  l3 *  L1 *  L2y; 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
+ l1y = lambda1y(x,y); l2y = lambda2y(x,y); l3y = lambda3y(x,y);
+ L1 = Legendre0(l3 - l2); L2 = Legendre6(l2 - l1);
+ L1y = Legendre0x(l3 - l2) * (l3y - l2y); L2y = Legendre6x(l2 - l1) * (l2y - l1y);
+ return l1y * l2 *  l3 *  L1 *  L2 +          l1 * l2y * l3 *  L1 *  L2 +          l1 * l2 *  l3y * L1 *  L2 +          l1 * l2 *  l3 *  L1y * L2 +          l1 * l2 *  l3 *  L1 *  L2y;
 }
 
 static double gradleg_tri_b1_b7_1_by(double x, double y)
@@ -5021,7 +5021,7 @@ static double gradleg_tri_b1_b7_1_by(double x, double y)
 static double gradleg_tri_b1_b7_2_b(double x, double y)
 {
  double l1, l2, l3;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
  return l1 * l2 * l3 * Legendre0(l3 - l2) * Legendre6(l2 - l1);
 }
 
@@ -5033,11 +5033,11 @@ static double gradleg_tri_b1_b7_2_a(double x, double y)
 static double gradleg_tri_b1_b7_2_bx(double x, double y)
 {
  double l1, l2, l3, l1x, l2x, l3x, L1, L2, L1x, L2x;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
- l1x = lambda1x(x,y); l2x = lambda2x(x,y); l3x = lambda3x(x,y); 
- L1 = Legendre0(l3 - l2); L2 = Legendre6(l2 - l1); 
- L1x = Legendre0x(l3 - l2) * (l3x - l2x); L2x = Legendre6x(l2 - l1) * (l2x - l1x); 
- return l1x * l2 *  l3 *  L1 *  L2 +          l1 * l2x * l3 *  L1 *  L2 +          l1 * l2 *  l3x * L1 *  L2 +          l1 * l2 *  l3 *  L1x * L2 +          l1 * l2 *  l3 *  L1 *  L2x; 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
+ l1x = lambda1x(x,y); l2x = lambda2x(x,y); l3x = lambda3x(x,y);
+ L1 = Legendre0(l3 - l2); L2 = Legendre6(l2 - l1);
+ L1x = Legendre0x(l3 - l2) * (l3x - l2x); L2x = Legendre6x(l2 - l1) * (l2x - l1x);
+ return l1x * l2 *  l3 *  L1 *  L2 +          l1 * l2x * l3 *  L1 *  L2 +          l1 * l2 *  l3x * L1 *  L2 +          l1 * l2 *  l3 *  L1x * L2 +          l1 * l2 *  l3 *  L1 *  L2x;
 }
 
 static double gradleg_tri_b1_b7_2_ax(double x, double y)
@@ -5048,11 +5048,11 @@ static double gradleg_tri_b1_b7_2_ax(double x, double y)
 static double gradleg_tri_b1_b7_2_by(double x, double y)
 {
  double l1, l2, l3, l1y, l2y, l3y, L1, L2, L1y, L2y;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
- l1y = lambda1y(x,y); l2y = lambda2y(x,y); l3y = lambda3y(x,y); 
- L1 = Legendre0(l3 - l2); L2 = Legendre6(l2 - l1); 
- L1y = Legendre0x(l3 - l2) * (l3y - l2y); L2y = Legendre6x(l2 - l1) * (l2y - l1y); 
- return l1y * l2 *  l3 *  L1 *  L2 +          l1 * l2y * l3 *  L1 *  L2 +          l1 * l2 *  l3y * L1 *  L2 +          l1 * l2 *  l3 *  L1y * L2 +          l1 * l2 *  l3 *  L1 *  L2y; 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
+ l1y = lambda1y(x,y); l2y = lambda2y(x,y); l3y = lambda3y(x,y);
+ L1 = Legendre0(l3 - l2); L2 = Legendre6(l2 - l1);
+ L1y = Legendre0x(l3 - l2) * (l3y - l2y); L2y = Legendre6x(l2 - l1) * (l2y - l1y);
+ return l1y * l2 *  l3 *  L1 *  L2 +          l1 * l2y * l3 *  L1 *  L2 +          l1 * l2 *  l3y * L1 *  L2 +          l1 * l2 *  l3 *  L1y * L2 +          l1 * l2 *  l3 *  L1 *  L2y;
 }
 
 static double gradleg_tri_b1_b7_2_ay(double x, double y)
@@ -5063,7 +5063,7 @@ static double gradleg_tri_b1_b7_2_ay(double x, double y)
 static double gradleg_tri_b2_b6_1_a(double x, double y)
 {
  double l1, l2, l3;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
  return l1 * l2 * l3 * Legendre1(l3 - l2) * Legendre5(l2 - l1);
 }
 
@@ -5075,11 +5075,11 @@ static double gradleg_tri_b2_b6_1_b(double x, double y)
 static double gradleg_tri_b2_b6_1_ax(double x, double y)
 {
  double l1, l2, l3, l1x, l2x, l3x, L1, L2, L1x, L2x;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
- l1x = lambda1x(x,y); l2x = lambda2x(x,y); l3x = lambda3x(x,y); 
- L1 = Legendre1(l3 - l2); L2 = Legendre5(l2 - l1); 
- L1x = Legendre1x(l3 - l2) * (l3x - l2x); L2x = Legendre5x(l2 - l1) * (l2x - l1x); 
- return l1x * l2 *  l3 *  L1 *  L2 +          l1 * l2x * l3 *  L1 *  L2 +          l1 * l2 *  l3x * L1 *  L2 +          l1 * l2 *  l3 *  L1x * L2 +          l1 * l2 *  l3 *  L1 *  L2x; 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
+ l1x = lambda1x(x,y); l2x = lambda2x(x,y); l3x = lambda3x(x,y);
+ L1 = Legendre1(l3 - l2); L2 = Legendre5(l2 - l1);
+ L1x = Legendre1x(l3 - l2) * (l3x - l2x); L2x = Legendre5x(l2 - l1) * (l2x - l1x);
+ return l1x * l2 *  l3 *  L1 *  L2 +          l1 * l2x * l3 *  L1 *  L2 +          l1 * l2 *  l3x * L1 *  L2 +          l1 * l2 *  l3 *  L1x * L2 +          l1 * l2 *  l3 *  L1 *  L2x;
 }
 
 static double gradleg_tri_b2_b6_1_bx(double x, double y)
@@ -5090,11 +5090,11 @@ static double gradleg_tri_b2_b6_1_bx(double x, double y)
 static double gradleg_tri_b2_b6_1_ay(double x, double y)
 {
  double l1, l2, l3, l1y, l2y, l3y, L1, L2, L1y, L2y;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
- l1y = lambda1y(x,y); l2y = lambda2y(x,y); l3y = lambda3y(x,y); 
- L1 = Legendre1(l3 - l2); L2 = Legendre5(l2 - l1); 
- L1y = Legendre1x(l3 - l2) * (l3y - l2y); L2y = Legendre5x(l2 - l1) * (l2y - l1y); 
- return l1y * l2 *  l3 *  L1 *  L2 +          l1 * l2y * l3 *  L1 *  L2 +          l1 * l2 *  l3y * L1 *  L2 +          l1 * l2 *  l3 *  L1y * L2 +          l1 * l2 *  l3 *  L1 *  L2y; 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
+ l1y = lambda1y(x,y); l2y = lambda2y(x,y); l3y = lambda3y(x,y);
+ L1 = Legendre1(l3 - l2); L2 = Legendre5(l2 - l1);
+ L1y = Legendre1x(l3 - l2) * (l3y - l2y); L2y = Legendre5x(l2 - l1) * (l2y - l1y);
+ return l1y * l2 *  l3 *  L1 *  L2 +          l1 * l2y * l3 *  L1 *  L2 +          l1 * l2 *  l3y * L1 *  L2 +          l1 * l2 *  l3 *  L1y * L2 +          l1 * l2 *  l3 *  L1 *  L2y;
 }
 
 static double gradleg_tri_b2_b6_1_by(double x, double y)
@@ -5105,7 +5105,7 @@ static double gradleg_tri_b2_b6_1_by(double x, double y)
 static double gradleg_tri_b2_b6_2_b(double x, double y)
 {
  double l1, l2, l3;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
  return l1 * l2 * l3 * Legendre1(l3 - l2) * Legendre5(l2 - l1);
 }
 
@@ -5117,11 +5117,11 @@ static double gradleg_tri_b2_b6_2_a(double x, double y)
 static double gradleg_tri_b2_b6_2_bx(double x, double y)
 {
  double l1, l2, l3, l1x, l2x, l3x, L1, L2, L1x, L2x;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
- l1x = lambda1x(x,y); l2x = lambda2x(x,y); l3x = lambda3x(x,y); 
- L1 = Legendre1(l3 - l2); L2 = Legendre5(l2 - l1); 
- L1x = Legendre1x(l3 - l2) * (l3x - l2x); L2x = Legendre5x(l2 - l1) * (l2x - l1x); 
- return l1x * l2 *  l3 *  L1 *  L2 +          l1 * l2x * l3 *  L1 *  L2 +          l1 * l2 *  l3x * L1 *  L2 +          l1 * l2 *  l3 *  L1x * L2 +          l1 * l2 *  l3 *  L1 *  L2x; 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
+ l1x = lambda1x(x,y); l2x = lambda2x(x,y); l3x = lambda3x(x,y);
+ L1 = Legendre1(l3 - l2); L2 = Legendre5(l2 - l1);
+ L1x = Legendre1x(l3 - l2) * (l3x - l2x); L2x = Legendre5x(l2 - l1) * (l2x - l1x);
+ return l1x * l2 *  l3 *  L1 *  L2 +          l1 * l2x * l3 *  L1 *  L2 +          l1 * l2 *  l3x * L1 *  L2 +          l1 * l2 *  l3 *  L1x * L2 +          l1 * l2 *  l3 *  L1 *  L2x;
 }
 
 static double gradleg_tri_b2_b6_2_ax(double x, double y)
@@ -5132,11 +5132,11 @@ static double gradleg_tri_b2_b6_2_ax(double x, double y)
 static double gradleg_tri_b2_b6_2_by(double x, double y)
 {
  double l1, l2, l3, l1y, l2y, l3y, L1, L2, L1y, L2y;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
- l1y = lambda1y(x,y); l2y = lambda2y(x,y); l3y = lambda3y(x,y); 
- L1 = Legendre1(l3 - l2); L2 = Legendre5(l2 - l1); 
- L1y = Legendre1x(l3 - l2) * (l3y - l2y); L2y = Legendre5x(l2 - l1) * (l2y - l1y); 
- return l1y * l2 *  l3 *  L1 *  L2 +          l1 * l2y * l3 *  L1 *  L2 +          l1 * l2 *  l3y * L1 *  L2 +          l1 * l2 *  l3 *  L1y * L2 +          l1 * l2 *  l3 *  L1 *  L2y; 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
+ l1y = lambda1y(x,y); l2y = lambda2y(x,y); l3y = lambda3y(x,y);
+ L1 = Legendre1(l3 - l2); L2 = Legendre5(l2 - l1);
+ L1y = Legendre1x(l3 - l2) * (l3y - l2y); L2y = Legendre5x(l2 - l1) * (l2y - l1y);
+ return l1y * l2 *  l3 *  L1 *  L2 +          l1 * l2y * l3 *  L1 *  L2 +          l1 * l2 *  l3y * L1 *  L2 +          l1 * l2 *  l3 *  L1y * L2 +          l1 * l2 *  l3 *  L1 *  L2y;
 }
 
 static double gradleg_tri_b2_b6_2_ay(double x, double y)
@@ -5147,7 +5147,7 @@ static double gradleg_tri_b2_b6_2_ay(double x, double y)
 static double gradleg_tri_b3_b5_1_a(double x, double y)
 {
  double l1, l2, l3;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
  return l1 * l2 * l3 * Legendre2(l3 - l2) * Legendre4(l2 - l1);
 }
 
@@ -5159,11 +5159,11 @@ static double gradleg_tri_b3_b5_1_b(double x, double y)
 static double gradleg_tri_b3_b5_1_ax(double x, double y)
 {
  double l1, l2, l3, l1x, l2x, l3x, L1, L2, L1x, L2x;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
- l1x = lambda1x(x,y); l2x = lambda2x(x,y); l3x = lambda3x(x,y); 
- L1 = Legendre2(l3 - l2); L2 = Legendre4(l2 - l1); 
- L1x = Legendre2x(l3 - l2) * (l3x - l2x); L2x = Legendre4x(l2 - l1) * (l2x - l1x); 
- return l1x * l2 *  l3 *  L1 *  L2 +          l1 * l2x * l3 *  L1 *  L2 +          l1 * l2 *  l3x * L1 *  L2 +          l1 * l2 *  l3 *  L1x * L2 +          l1 * l2 *  l3 *  L1 *  L2x; 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
+ l1x = lambda1x(x,y); l2x = lambda2x(x,y); l3x = lambda3x(x,y);
+ L1 = Legendre2(l3 - l2); L2 = Legendre4(l2 - l1);
+ L1x = Legendre2x(l3 - l2) * (l3x - l2x); L2x = Legendre4x(l2 - l1) * (l2x - l1x);
+ return l1x * l2 *  l3 *  L1 *  L2 +          l1 * l2x * l3 *  L1 *  L2 +          l1 * l2 *  l3x * L1 *  L2 +          l1 * l2 *  l3 *  L1x * L2 +          l1 * l2 *  l3 *  L1 *  L2x;
 }
 
 static double gradleg_tri_b3_b5_1_bx(double x, double y)
@@ -5174,11 +5174,11 @@ static double gradleg_tri_b3_b5_1_bx(double x, double y)
 static double gradleg_tri_b3_b5_1_ay(double x, double y)
 {
  double l1, l2, l3, l1y, l2y, l3y, L1, L2, L1y, L2y;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
- l1y = lambda1y(x,y); l2y = lambda2y(x,y); l3y = lambda3y(x,y); 
- L1 = Legendre2(l3 - l2); L2 = Legendre4(l2 - l1); 
- L1y = Legendre2x(l3 - l2) * (l3y - l2y); L2y = Legendre4x(l2 - l1) * (l2y - l1y); 
- return l1y * l2 *  l3 *  L1 *  L2 +          l1 * l2y * l3 *  L1 *  L2 +          l1 * l2 *  l3y * L1 *  L2 +          l1 * l2 *  l3 *  L1y * L2 +          l1 * l2 *  l3 *  L1 *  L2y; 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
+ l1y = lambda1y(x,y); l2y = lambda2y(x,y); l3y = lambda3y(x,y);
+ L1 = Legendre2(l3 - l2); L2 = Legendre4(l2 - l1);
+ L1y = Legendre2x(l3 - l2) * (l3y - l2y); L2y = Legendre4x(l2 - l1) * (l2y - l1y);
+ return l1y * l2 *  l3 *  L1 *  L2 +          l1 * l2y * l3 *  L1 *  L2 +          l1 * l2 *  l3y * L1 *  L2 +          l1 * l2 *  l3 *  L1y * L2 +          l1 * l2 *  l3 *  L1 *  L2y;
 }
 
 static double gradleg_tri_b3_b5_1_by(double x, double y)
@@ -5189,7 +5189,7 @@ static double gradleg_tri_b3_b5_1_by(double x, double y)
 static double gradleg_tri_b3_b5_2_b(double x, double y)
 {
  double l1, l2, l3;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
  return l1 * l2 * l3 * Legendre2(l3 - l2) * Legendre4(l2 - l1);
 }
 
@@ -5201,11 +5201,11 @@ static double gradleg_tri_b3_b5_2_a(double x, double y)
 static double gradleg_tri_b3_b5_2_bx(double x, double y)
 {
  double l1, l2, l3, l1x, l2x, l3x, L1, L2, L1x, L2x;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
- l1x = lambda1x(x,y); l2x = lambda2x(x,y); l3x = lambda3x(x,y); 
- L1 = Legendre2(l3 - l2); L2 = Legendre4(l2 - l1); 
- L1x = Legendre2x(l3 - l2) * (l3x - l2x); L2x = Legendre4x(l2 - l1) * (l2x - l1x); 
- return l1x * l2 *  l3 *  L1 *  L2 +          l1 * l2x * l3 *  L1 *  L2 +          l1 * l2 *  l3x * L1 *  L2 +          l1 * l2 *  l3 *  L1x * L2 +          l1 * l2 *  l3 *  L1 *  L2x; 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
+ l1x = lambda1x(x,y); l2x = lambda2x(x,y); l3x = lambda3x(x,y);
+ L1 = Legendre2(l3 - l2); L2 = Legendre4(l2 - l1);
+ L1x = Legendre2x(l3 - l2) * (l3x - l2x); L2x = Legendre4x(l2 - l1) * (l2x - l1x);
+ return l1x * l2 *  l3 *  L1 *  L2 +          l1 * l2x * l3 *  L1 *  L2 +          l1 * l2 *  l3x * L1 *  L2 +          l1 * l2 *  l3 *  L1x * L2 +          l1 * l2 *  l3 *  L1 *  L2x;
 }
 
 static double gradleg_tri_b3_b5_2_ax(double x, double y)
@@ -5216,11 +5216,11 @@ static double gradleg_tri_b3_b5_2_ax(double x, double y)
 static double gradleg_tri_b3_b5_2_by(double x, double y)
 {
  double l1, l2, l3, l1y, l2y, l3y, L1, L2, L1y, L2y;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
- l1y = lambda1y(x,y); l2y = lambda2y(x,y); l3y = lambda3y(x,y); 
- L1 = Legendre2(l3 - l2); L2 = Legendre4(l2 - l1); 
- L1y = Legendre2x(l3 - l2) * (l3y - l2y); L2y = Legendre4x(l2 - l1) * (l2y - l1y); 
- return l1y * l2 *  l3 *  L1 *  L2 +          l1 * l2y * l3 *  L1 *  L2 +          l1 * l2 *  l3y * L1 *  L2 +          l1 * l2 *  l3 *  L1y * L2 +          l1 * l2 *  l3 *  L1 *  L2y; 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
+ l1y = lambda1y(x,y); l2y = lambda2y(x,y); l3y = lambda3y(x,y);
+ L1 = Legendre2(l3 - l2); L2 = Legendre4(l2 - l1);
+ L1y = Legendre2x(l3 - l2) * (l3y - l2y); L2y = Legendre4x(l2 - l1) * (l2y - l1y);
+ return l1y * l2 *  l3 *  L1 *  L2 +          l1 * l2y * l3 *  L1 *  L2 +          l1 * l2 *  l3y * L1 *  L2 +          l1 * l2 *  l3 *  L1y * L2 +          l1 * l2 *  l3 *  L1 *  L2y;
 }
 
 static double gradleg_tri_b3_b5_2_ay(double x, double y)
@@ -5231,7 +5231,7 @@ static double gradleg_tri_b3_b5_2_ay(double x, double y)
 static double gradleg_tri_b4_b4_1_a(double x, double y)
 {
  double l1, l2, l3;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
  return l1 * l2 * l3 * Legendre3(l3 - l2) * Legendre3(l2 - l1);
 }
 
@@ -5243,11 +5243,11 @@ static double gradleg_tri_b4_b4_1_b(double x, double y)
 static double gradleg_tri_b4_b4_1_ax(double x, double y)
 {
  double l1, l2, l3, l1x, l2x, l3x, L1, L2, L1x, L2x;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
- l1x = lambda1x(x,y); l2x = lambda2x(x,y); l3x = lambda3x(x,y); 
- L1 = Legendre3(l3 - l2); L2 = Legendre3(l2 - l1); 
- L1x = Legendre3x(l3 - l2) * (l3x - l2x); L2x = Legendre3x(l2 - l1) * (l2x - l1x); 
- return l1x * l2 *  l3 *  L1 *  L2 +          l1 * l2x * l3 *  L1 *  L2 +          l1 * l2 *  l3x * L1 *  L2 +          l1 * l2 *  l3 *  L1x * L2 +          l1 * l2 *  l3 *  L1 *  L2x; 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
+ l1x = lambda1x(x,y); l2x = lambda2x(x,y); l3x = lambda3x(x,y);
+ L1 = Legendre3(l3 - l2); L2 = Legendre3(l2 - l1);
+ L1x = Legendre3x(l3 - l2) * (l3x - l2x); L2x = Legendre3x(l2 - l1) * (l2x - l1x);
+ return l1x * l2 *  l3 *  L1 *  L2 +          l1 * l2x * l3 *  L1 *  L2 +          l1 * l2 *  l3x * L1 *  L2 +          l1 * l2 *  l3 *  L1x * L2 +          l1 * l2 *  l3 *  L1 *  L2x;
 }
 
 static double gradleg_tri_b4_b4_1_bx(double x, double y)
@@ -5258,11 +5258,11 @@ static double gradleg_tri_b4_b4_1_bx(double x, double y)
 static double gradleg_tri_b4_b4_1_ay(double x, double y)
 {
  double l1, l2, l3, l1y, l2y, l3y, L1, L2, L1y, L2y;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
- l1y = lambda1y(x,y); l2y = lambda2y(x,y); l3y = lambda3y(x,y); 
- L1 = Legendre3(l3 - l2); L2 = Legendre3(l2 - l1); 
- L1y = Legendre3x(l3 - l2) * (l3y - l2y); L2y = Legendre3x(l2 - l1) * (l2y - l1y); 
- return l1y * l2 *  l3 *  L1 *  L2 +          l1 * l2y * l3 *  L1 *  L2 +          l1 * l2 *  l3y * L1 *  L2 +          l1 * l2 *  l3 *  L1y * L2 +          l1 * l2 *  l3 *  L1 *  L2y; 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
+ l1y = lambda1y(x,y); l2y = lambda2y(x,y); l3y = lambda3y(x,y);
+ L1 = Legendre3(l3 - l2); L2 = Legendre3(l2 - l1);
+ L1y = Legendre3x(l3 - l2) * (l3y - l2y); L2y = Legendre3x(l2 - l1) * (l2y - l1y);
+ return l1y * l2 *  l3 *  L1 *  L2 +          l1 * l2y * l3 *  L1 *  L2 +          l1 * l2 *  l3y * L1 *  L2 +          l1 * l2 *  l3 *  L1y * L2 +          l1 * l2 *  l3 *  L1 *  L2y;
 }
 
 static double gradleg_tri_b4_b4_1_by(double x, double y)
@@ -5273,7 +5273,7 @@ static double gradleg_tri_b4_b4_1_by(double x, double y)
 static double gradleg_tri_b4_b4_2_b(double x, double y)
 {
  double l1, l2, l3;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
  return l1 * l2 * l3 * Legendre3(l3 - l2) * Legendre3(l2 - l1);
 }
 
@@ -5285,11 +5285,11 @@ static double gradleg_tri_b4_b4_2_a(double x, double y)
 static double gradleg_tri_b4_b4_2_bx(double x, double y)
 {
  double l1, l2, l3, l1x, l2x, l3x, L1, L2, L1x, L2x;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
- l1x = lambda1x(x,y); l2x = lambda2x(x,y); l3x = lambda3x(x,y); 
- L1 = Legendre3(l3 - l2); L2 = Legendre3(l2 - l1); 
- L1x = Legendre3x(l3 - l2) * (l3x - l2x); L2x = Legendre3x(l2 - l1) * (l2x - l1x); 
- return l1x * l2 *  l3 *  L1 *  L2 +          l1 * l2x * l3 *  L1 *  L2 +          l1 * l2 *  l3x * L1 *  L2 +          l1 * l2 *  l3 *  L1x * L2 +          l1 * l2 *  l3 *  L1 *  L2x; 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
+ l1x = lambda1x(x,y); l2x = lambda2x(x,y); l3x = lambda3x(x,y);
+ L1 = Legendre3(l3 - l2); L2 = Legendre3(l2 - l1);
+ L1x = Legendre3x(l3 - l2) * (l3x - l2x); L2x = Legendre3x(l2 - l1) * (l2x - l1x);
+ return l1x * l2 *  l3 *  L1 *  L2 +          l1 * l2x * l3 *  L1 *  L2 +          l1 * l2 *  l3x * L1 *  L2 +          l1 * l2 *  l3 *  L1x * L2 +          l1 * l2 *  l3 *  L1 *  L2x;
 }
 
 static double gradleg_tri_b4_b4_2_ax(double x, double y)
@@ -5300,11 +5300,11 @@ static double gradleg_tri_b4_b4_2_ax(double x, double y)
 static double gradleg_tri_b4_b4_2_by(double x, double y)
 {
  double l1, l2, l3, l1y, l2y, l3y, L1, L2, L1y, L2y;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
- l1y = lambda1y(x,y); l2y = lambda2y(x,y); l3y = lambda3y(x,y); 
- L1 = Legendre3(l3 - l2); L2 = Legendre3(l2 - l1); 
- L1y = Legendre3x(l3 - l2) * (l3y - l2y); L2y = Legendre3x(l2 - l1) * (l2y - l1y); 
- return l1y * l2 *  l3 *  L1 *  L2 +          l1 * l2y * l3 *  L1 *  L2 +          l1 * l2 *  l3y * L1 *  L2 +          l1 * l2 *  l3 *  L1y * L2 +          l1 * l2 *  l3 *  L1 *  L2y; 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
+ l1y = lambda1y(x,y); l2y = lambda2y(x,y); l3y = lambda3y(x,y);
+ L1 = Legendre3(l3 - l2); L2 = Legendre3(l2 - l1);
+ L1y = Legendre3x(l3 - l2) * (l3y - l2y); L2y = Legendre3x(l2 - l1) * (l2y - l1y);
+ return l1y * l2 *  l3 *  L1 *  L2 +          l1 * l2y * l3 *  L1 *  L2 +          l1 * l2 *  l3y * L1 *  L2 +          l1 * l2 *  l3 *  L1y * L2 +          l1 * l2 *  l3 *  L1 *  L2y;
 }
 
 static double gradleg_tri_b4_b4_2_ay(double x, double y)
@@ -5315,7 +5315,7 @@ static double gradleg_tri_b4_b4_2_ay(double x, double y)
 static double gradleg_tri_b5_b3_1_a(double x, double y)
 {
  double l1, l2, l3;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
  return l1 * l2 * l3 * Legendre4(l3 - l2) * Legendre2(l2 - l1);
 }
 
@@ -5327,11 +5327,11 @@ static double gradleg_tri_b5_b3_1_b(double x, double y)
 static double gradleg_tri_b5_b3_1_ax(double x, double y)
 {
  double l1, l2, l3, l1x, l2x, l3x, L1, L2, L1x, L2x;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
- l1x = lambda1x(x,y); l2x = lambda2x(x,y); l3x = lambda3x(x,y); 
- L1 = Legendre4(l3 - l2); L2 = Legendre2(l2 - l1); 
- L1x = Legendre4x(l3 - l2) * (l3x - l2x); L2x = Legendre2x(l2 - l1) * (l2x - l1x); 
- return l1x * l2 *  l3 *  L1 *  L2 +          l1 * l2x * l3 *  L1 *  L2 +          l1 * l2 *  l3x * L1 *  L2 +          l1 * l2 *  l3 *  L1x * L2 +          l1 * l2 *  l3 *  L1 *  L2x; 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
+ l1x = lambda1x(x,y); l2x = lambda2x(x,y); l3x = lambda3x(x,y);
+ L1 = Legendre4(l3 - l2); L2 = Legendre2(l2 - l1);
+ L1x = Legendre4x(l3 - l2) * (l3x - l2x); L2x = Legendre2x(l2 - l1) * (l2x - l1x);
+ return l1x * l2 *  l3 *  L1 *  L2 +          l1 * l2x * l3 *  L1 *  L2 +          l1 * l2 *  l3x * L1 *  L2 +          l1 * l2 *  l3 *  L1x * L2 +          l1 * l2 *  l3 *  L1 *  L2x;
 }
 
 static double gradleg_tri_b5_b3_1_bx(double x, double y)
@@ -5342,11 +5342,11 @@ static double gradleg_tri_b5_b3_1_bx(double x, double y)
 static double gradleg_tri_b5_b3_1_ay(double x, double y)
 {
  double l1, l2, l3, l1y, l2y, l3y, L1, L2, L1y, L2y;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
- l1y = lambda1y(x,y); l2y = lambda2y(x,y); l3y = lambda3y(x,y); 
- L1 = Legendre4(l3 - l2); L2 = Legendre2(l2 - l1); 
- L1y = Legendre4x(l3 - l2) * (l3y - l2y); L2y = Legendre2x(l2 - l1) * (l2y - l1y); 
- return l1y * l2 *  l3 *  L1 *  L2 +          l1 * l2y * l3 *  L1 *  L2 +          l1 * l2 *  l3y * L1 *  L2 +          l1 * l2 *  l3 *  L1y * L2 +          l1 * l2 *  l3 *  L1 *  L2y; 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
+ l1y = lambda1y(x,y); l2y = lambda2y(x,y); l3y = lambda3y(x,y);
+ L1 = Legendre4(l3 - l2); L2 = Legendre2(l2 - l1);
+ L1y = Legendre4x(l3 - l2) * (l3y - l2y); L2y = Legendre2x(l2 - l1) * (l2y - l1y);
+ return l1y * l2 *  l3 *  L1 *  L2 +          l1 * l2y * l3 *  L1 *  L2 +          l1 * l2 *  l3y * L1 *  L2 +          l1 * l2 *  l3 *  L1y * L2 +          l1 * l2 *  l3 *  L1 *  L2y;
 }
 
 static double gradleg_tri_b5_b3_1_by(double x, double y)
@@ -5357,7 +5357,7 @@ static double gradleg_tri_b5_b3_1_by(double x, double y)
 static double gradleg_tri_b5_b3_2_b(double x, double y)
 {
  double l1, l2, l3;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
  return l1 * l2 * l3 * Legendre4(l3 - l2) * Legendre2(l2 - l1);
 }
 
@@ -5369,11 +5369,11 @@ static double gradleg_tri_b5_b3_2_a(double x, double y)
 static double gradleg_tri_b5_b3_2_bx(double x, double y)
 {
  double l1, l2, l3, l1x, l2x, l3x, L1, L2, L1x, L2x;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
- l1x = lambda1x(x,y); l2x = lambda2x(x,y); l3x = lambda3x(x,y); 
- L1 = Legendre4(l3 - l2); L2 = Legendre2(l2 - l1); 
- L1x = Legendre4x(l3 - l2) * (l3x - l2x); L2x = Legendre2x(l2 - l1) * (l2x - l1x); 
- return l1x * l2 *  l3 *  L1 *  L2 +          l1 * l2x * l3 *  L1 *  L2 +          l1 * l2 *  l3x * L1 *  L2 +          l1 * l2 *  l3 *  L1x * L2 +          l1 * l2 *  l3 *  L1 *  L2x; 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
+ l1x = lambda1x(x,y); l2x = lambda2x(x,y); l3x = lambda3x(x,y);
+ L1 = Legendre4(l3 - l2); L2 = Legendre2(l2 - l1);
+ L1x = Legendre4x(l3 - l2) * (l3x - l2x); L2x = Legendre2x(l2 - l1) * (l2x - l1x);
+ return l1x * l2 *  l3 *  L1 *  L2 +          l1 * l2x * l3 *  L1 *  L2 +          l1 * l2 *  l3x * L1 *  L2 +          l1 * l2 *  l3 *  L1x * L2 +          l1 * l2 *  l3 *  L1 *  L2x;
 }
 
 static double gradleg_tri_b5_b3_2_ax(double x, double y)
@@ -5384,11 +5384,11 @@ static double gradleg_tri_b5_b3_2_ax(double x, double y)
 static double gradleg_tri_b5_b3_2_by(double x, double y)
 {
  double l1, l2, l3, l1y, l2y, l3y, L1, L2, L1y, L2y;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
- l1y = lambda1y(x,y); l2y = lambda2y(x,y); l3y = lambda3y(x,y); 
- L1 = Legendre4(l3 - l2); L2 = Legendre2(l2 - l1); 
- L1y = Legendre4x(l3 - l2) * (l3y - l2y); L2y = Legendre2x(l2 - l1) * (l2y - l1y); 
- return l1y * l2 *  l3 *  L1 *  L2 +          l1 * l2y * l3 *  L1 *  L2 +          l1 * l2 *  l3y * L1 *  L2 +          l1 * l2 *  l3 *  L1y * L2 +          l1 * l2 *  l3 *  L1 *  L2y; 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
+ l1y = lambda1y(x,y); l2y = lambda2y(x,y); l3y = lambda3y(x,y);
+ L1 = Legendre4(l3 - l2); L2 = Legendre2(l2 - l1);
+ L1y = Legendre4x(l3 - l2) * (l3y - l2y); L2y = Legendre2x(l2 - l1) * (l2y - l1y);
+ return l1y * l2 *  l3 *  L1 *  L2 +          l1 * l2y * l3 *  L1 *  L2 +          l1 * l2 *  l3y * L1 *  L2 +          l1 * l2 *  l3 *  L1y * L2 +          l1 * l2 *  l3 *  L1 *  L2y;
 }
 
 static double gradleg_tri_b5_b3_2_ay(double x, double y)
@@ -5399,7 +5399,7 @@ static double gradleg_tri_b5_b3_2_ay(double x, double y)
 static double gradleg_tri_b6_b2_1_a(double x, double y)
 {
  double l1, l2, l3;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
  return l1 * l2 * l3 * Legendre5(l3 - l2) * Legendre1(l2 - l1);
 }
 
@@ -5411,11 +5411,11 @@ static double gradleg_tri_b6_b2_1_b(double x, double y)
 static double gradleg_tri_b6_b2_1_ax(double x, double y)
 {
  double l1, l2, l3, l1x, l2x, l3x, L1, L2, L1x, L2x;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
- l1x = lambda1x(x,y); l2x = lambda2x(x,y); l3x = lambda3x(x,y); 
- L1 = Legendre5(l3 - l2); L2 = Legendre1(l2 - l1); 
- L1x = Legendre5x(l3 - l2) * (l3x - l2x); L2x = Legendre1x(l2 - l1) * (l2x - l1x); 
- return l1x * l2 *  l3 *  L1 *  L2 +          l1 * l2x * l3 *  L1 *  L2 +          l1 * l2 *  l3x * L1 *  L2 +          l1 * l2 *  l3 *  L1x * L2 +          l1 * l2 *  l3 *  L1 *  L2x; 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
+ l1x = lambda1x(x,y); l2x = lambda2x(x,y); l3x = lambda3x(x,y);
+ L1 = Legendre5(l3 - l2); L2 = Legendre1(l2 - l1);
+ L1x = Legendre5x(l3 - l2) * (l3x - l2x); L2x = Legendre1x(l2 - l1) * (l2x - l1x);
+ return l1x * l2 *  l3 *  L1 *  L2 +          l1 * l2x * l3 *  L1 *  L2 +          l1 * l2 *  l3x * L1 *  L2 +          l1 * l2 *  l3 *  L1x * L2 +          l1 * l2 *  l3 *  L1 *  L2x;
 }
 
 static double gradleg_tri_b6_b2_1_bx(double x, double y)
@@ -5426,11 +5426,11 @@ static double gradleg_tri_b6_b2_1_bx(double x, double y)
 static double gradleg_tri_b6_b2_1_ay(double x, double y)
 {
  double l1, l2, l3, l1y, l2y, l3y, L1, L2, L1y, L2y;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
- l1y = lambda1y(x,y); l2y = lambda2y(x,y); l3y = lambda3y(x,y); 
- L1 = Legendre5(l3 - l2); L2 = Legendre1(l2 - l1); 
- L1y = Legendre5x(l3 - l2) * (l3y - l2y); L2y = Legendre1x(l2 - l1) * (l2y - l1y); 
- return l1y * l2 *  l3 *  L1 *  L2 +          l1 * l2y * l3 *  L1 *  L2 +          l1 * l2 *  l3y * L1 *  L2 +          l1 * l2 *  l3 *  L1y * L2 +          l1 * l2 *  l3 *  L1 *  L2y; 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
+ l1y = lambda1y(x,y); l2y = lambda2y(x,y); l3y = lambda3y(x,y);
+ L1 = Legendre5(l3 - l2); L2 = Legendre1(l2 - l1);
+ L1y = Legendre5x(l3 - l2) * (l3y - l2y); L2y = Legendre1x(l2 - l1) * (l2y - l1y);
+ return l1y * l2 *  l3 *  L1 *  L2 +          l1 * l2y * l3 *  L1 *  L2 +          l1 * l2 *  l3y * L1 *  L2 +          l1 * l2 *  l3 *  L1y * L2 +          l1 * l2 *  l3 *  L1 *  L2y;
 }
 
 static double gradleg_tri_b6_b2_1_by(double x, double y)
@@ -5441,7 +5441,7 @@ static double gradleg_tri_b6_b2_1_by(double x, double y)
 static double gradleg_tri_b6_b2_2_b(double x, double y)
 {
  double l1, l2, l3;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
  return l1 * l2 * l3 * Legendre5(l3 - l2) * Legendre1(l2 - l1);
 }
 
@@ -5453,11 +5453,11 @@ static double gradleg_tri_b6_b2_2_a(double x, double y)
 static double gradleg_tri_b6_b2_2_bx(double x, double y)
 {
  double l1, l2, l3, l1x, l2x, l3x, L1, L2, L1x, L2x;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
- l1x = lambda1x(x,y); l2x = lambda2x(x,y); l3x = lambda3x(x,y); 
- L1 = Legendre5(l3 - l2); L2 = Legendre1(l2 - l1); 
- L1x = Legendre5x(l3 - l2) * (l3x - l2x); L2x = Legendre1x(l2 - l1) * (l2x - l1x); 
- return l1x * l2 *  l3 *  L1 *  L2 +          l1 * l2x * l3 *  L1 *  L2 +          l1 * l2 *  l3x * L1 *  L2 +          l1 * l2 *  l3 *  L1x * L2 +          l1 * l2 *  l3 *  L1 *  L2x; 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
+ l1x = lambda1x(x,y); l2x = lambda2x(x,y); l3x = lambda3x(x,y);
+ L1 = Legendre5(l3 - l2); L2 = Legendre1(l2 - l1);
+ L1x = Legendre5x(l3 - l2) * (l3x - l2x); L2x = Legendre1x(l2 - l1) * (l2x - l1x);
+ return l1x * l2 *  l3 *  L1 *  L2 +          l1 * l2x * l3 *  L1 *  L2 +          l1 * l2 *  l3x * L1 *  L2 +          l1 * l2 *  l3 *  L1x * L2 +          l1 * l2 *  l3 *  L1 *  L2x;
 }
 
 static double gradleg_tri_b6_b2_2_ax(double x, double y)
@@ -5468,11 +5468,11 @@ static double gradleg_tri_b6_b2_2_ax(double x, double y)
 static double gradleg_tri_b6_b2_2_by(double x, double y)
 {
  double l1, l2, l3, l1y, l2y, l3y, L1, L2, L1y, L2y;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
- l1y = lambda1y(x,y); l2y = lambda2y(x,y); l3y = lambda3y(x,y); 
- L1 = Legendre5(l3 - l2); L2 = Legendre1(l2 - l1); 
- L1y = Legendre5x(l3 - l2) * (l3y - l2y); L2y = Legendre1x(l2 - l1) * (l2y - l1y); 
- return l1y * l2 *  l3 *  L1 *  L2 +          l1 * l2y * l3 *  L1 *  L2 +          l1 * l2 *  l3y * L1 *  L2 +          l1 * l2 *  l3 *  L1y * L2 +          l1 * l2 *  l3 *  L1 *  L2y; 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
+ l1y = lambda1y(x,y); l2y = lambda2y(x,y); l3y = lambda3y(x,y);
+ L1 = Legendre5(l3 - l2); L2 = Legendre1(l2 - l1);
+ L1y = Legendre5x(l3 - l2) * (l3y - l2y); L2y = Legendre1x(l2 - l1) * (l2y - l1y);
+ return l1y * l2 *  l3 *  L1 *  L2 +          l1 * l2y * l3 *  L1 *  L2 +          l1 * l2 *  l3y * L1 *  L2 +          l1 * l2 *  l3 *  L1y * L2 +          l1 * l2 *  l3 *  L1 *  L2y;
 }
 
 static double gradleg_tri_b6_b2_2_ay(double x, double y)
@@ -5483,7 +5483,7 @@ static double gradleg_tri_b6_b2_2_ay(double x, double y)
 static double gradleg_tri_b7_b1_1_a(double x, double y)
 {
  double l1, l2, l3;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
  return l1 * l2 * l3 * Legendre6(l3 - l2) * Legendre0(l2 - l1);
 }
 
@@ -5495,11 +5495,11 @@ static double gradleg_tri_b7_b1_1_b(double x, double y)
 static double gradleg_tri_b7_b1_1_ax(double x, double y)
 {
  double l1, l2, l3, l1x, l2x, l3x, L1, L2, L1x, L2x;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
- l1x = lambda1x(x,y); l2x = lambda2x(x,y); l3x = lambda3x(x,y); 
- L1 = Legendre6(l3 - l2); L2 = Legendre0(l2 - l1); 
- L1x = Legendre6x(l3 - l2) * (l3x - l2x); L2x = Legendre0x(l2 - l1) * (l2x - l1x); 
- return l1x * l2 *  l3 *  L1 *  L2 +          l1 * l2x * l3 *  L1 *  L2 +          l1 * l2 *  l3x * L1 *  L2 +          l1 * l2 *  l3 *  L1x * L2 +          l1 * l2 *  l3 *  L1 *  L2x; 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
+ l1x = lambda1x(x,y); l2x = lambda2x(x,y); l3x = lambda3x(x,y);
+ L1 = Legendre6(l3 - l2); L2 = Legendre0(l2 - l1);
+ L1x = Legendre6x(l3 - l2) * (l3x - l2x); L2x = Legendre0x(l2 - l1) * (l2x - l1x);
+ return l1x * l2 *  l3 *  L1 *  L2 +          l1 * l2x * l3 *  L1 *  L2 +          l1 * l2 *  l3x * L1 *  L2 +          l1 * l2 *  l3 *  L1x * L2 +          l1 * l2 *  l3 *  L1 *  L2x;
 }
 
 static double gradleg_tri_b7_b1_1_bx(double x, double y)
@@ -5510,11 +5510,11 @@ static double gradleg_tri_b7_b1_1_bx(double x, double y)
 static double gradleg_tri_b7_b1_1_ay(double x, double y)
 {
  double l1, l2, l3, l1y, l2y, l3y, L1, L2, L1y, L2y;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
- l1y = lambda1y(x,y); l2y = lambda2y(x,y); l3y = lambda3y(x,y); 
- L1 = Legendre6(l3 - l2); L2 = Legendre0(l2 - l1); 
- L1y = Legendre6x(l3 - l2) * (l3y - l2y); L2y = Legendre0x(l2 - l1) * (l2y - l1y); 
- return l1y * l2 *  l3 *  L1 *  L2 +          l1 * l2y * l3 *  L1 *  L2 +          l1 * l2 *  l3y * L1 *  L2 +          l1 * l2 *  l3 *  L1y * L2 +          l1 * l2 *  l3 *  L1 *  L2y; 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
+ l1y = lambda1y(x,y); l2y = lambda2y(x,y); l3y = lambda3y(x,y);
+ L1 = Legendre6(l3 - l2); L2 = Legendre0(l2 - l1);
+ L1y = Legendre6x(l3 - l2) * (l3y - l2y); L2y = Legendre0x(l2 - l1) * (l2y - l1y);
+ return l1y * l2 *  l3 *  L1 *  L2 +          l1 * l2y * l3 *  L1 *  L2 +          l1 * l2 *  l3y * L1 *  L2 +          l1 * l2 *  l3 *  L1y * L2 +          l1 * l2 *  l3 *  L1 *  L2y;
 }
 
 static double gradleg_tri_b7_b1_1_by(double x, double y)
@@ -5525,7 +5525,7 @@ static double gradleg_tri_b7_b1_1_by(double x, double y)
 static double gradleg_tri_b7_b1_2_b(double x, double y)
 {
  double l1, l2, l3;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
  return l1 * l2 * l3 * Legendre6(l3 - l2) * Legendre0(l2 - l1);
 }
 
@@ -5537,11 +5537,11 @@ static double gradleg_tri_b7_b1_2_a(double x, double y)
 static double gradleg_tri_b7_b1_2_bx(double x, double y)
 {
  double l1, l2, l3, l1x, l2x, l3x, L1, L2, L1x, L2x;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
- l1x = lambda1x(x,y); l2x = lambda2x(x,y); l3x = lambda3x(x,y); 
- L1 = Legendre6(l3 - l2); L2 = Legendre0(l2 - l1); 
- L1x = Legendre6x(l3 - l2) * (l3x - l2x); L2x = Legendre0x(l2 - l1) * (l2x - l1x); 
- return l1x * l2 *  l3 *  L1 *  L2 +          l1 * l2x * l3 *  L1 *  L2 +          l1 * l2 *  l3x * L1 *  L2 +          l1 * l2 *  l3 *  L1x * L2 +          l1 * l2 *  l3 *  L1 *  L2x; 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
+ l1x = lambda1x(x,y); l2x = lambda2x(x,y); l3x = lambda3x(x,y);
+ L1 = Legendre6(l3 - l2); L2 = Legendre0(l2 - l1);
+ L1x = Legendre6x(l3 - l2) * (l3x - l2x); L2x = Legendre0x(l2 - l1) * (l2x - l1x);
+ return l1x * l2 *  l3 *  L1 *  L2 +          l1 * l2x * l3 *  L1 *  L2 +          l1 * l2 *  l3x * L1 *  L2 +          l1 * l2 *  l3 *  L1x * L2 +          l1 * l2 *  l3 *  L1 *  L2x;
 }
 
 static double gradleg_tri_b7_b1_2_ax(double x, double y)
@@ -5552,11 +5552,11 @@ static double gradleg_tri_b7_b1_2_ax(double x, double y)
 static double gradleg_tri_b7_b1_2_by(double x, double y)
 {
  double l1, l2, l3, l1y, l2y, l3y, L1, L2, L1y, L2y;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
- l1y = lambda1y(x,y); l2y = lambda2y(x,y); l3y = lambda3y(x,y); 
- L1 = Legendre6(l3 - l2); L2 = Legendre0(l2 - l1); 
- L1y = Legendre6x(l3 - l2) * (l3y - l2y); L2y = Legendre0x(l2 - l1) * (l2y - l1y); 
- return l1y * l2 *  l3 *  L1 *  L2 +          l1 * l2y * l3 *  L1 *  L2 +          l1 * l2 *  l3y * L1 *  L2 +          l1 * l2 *  l3 *  L1y * L2 +          l1 * l2 *  l3 *  L1 *  L2y; 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
+ l1y = lambda1y(x,y); l2y = lambda2y(x,y); l3y = lambda3y(x,y);
+ L1 = Legendre6(l3 - l2); L2 = Legendre0(l2 - l1);
+ L1y = Legendre6x(l3 - l2) * (l3y - l2y); L2y = Legendre0x(l2 - l1) * (l2y - l1y);
+ return l1y * l2 *  l3 *  L1 *  L2 +          l1 * l2y * l3 *  L1 *  L2 +          l1 * l2 *  l3y * L1 *  L2 +          l1 * l2 *  l3 *  L1y * L2 +          l1 * l2 *  l3 *  L1 *  L2y;
 }
 
 static double gradleg_tri_b7_b1_2_ay(double x, double y)
@@ -5613,8 +5613,8 @@ static double gradleg_tri_p10_e1_ay_0(double x, double y)
  double l3, l3x, l3y, l2, l2x, l2y;
  double ker, kerx, kery, kerxy;
  l3 = lambda3(x,y); l3x = lambda3x(x,y); l3y = lambda3y(x,y);
-  l2 = lambda2(x,y); l2x = lambda2x(x,y); l2y = lambda2y(x,y); 
- ker = phi9(l3 - l2); kerx = phi9x(l3 - l2) * (l3x - l2x); 
+  l2 = lambda2(x,y); l2x = lambda2x(x,y); l2y = lambda2y(x,y);
+ ker = phi9(l3 - l2); kerx = phi9x(l3 - l2) * (l3x - l2x);
  kery = phi9x(l3 - l2) * (l3y - l2y); kerxy = phi9xx(l3 - l2) * (l3x - l2x) * (l3y - l2y);
  return  (l3x * l2y * ker + l3y * l2x * ker + l3x * l2 * kery + l3 * l2x * kery + l3y * l2 * kerx + l3 * l2y * kerx +  l3 * l2 * kerxy) / 1.0000000000000;
 }
@@ -5629,8 +5629,8 @@ static double gradleg_tri_p10_e1_bx_0(double x, double y)
  double l3, l3x, l3y, l2, l2x, l2y;
  double ker, kerx, kery, kerxy;
  l3 = lambda3(x,y); l3x = lambda3x(x,y); l3y = lambda3y(x,y);
-  l2 = lambda2(x,y); l2x = lambda2x(x,y); l2y = lambda2y(x,y); 
- ker = phi9(l3 - l2); kerx = phi9x(l3 - l2) * (l3x - l2x); 
+  l2 = lambda2(x,y); l2x = lambda2x(x,y); l2y = lambda2y(x,y);
+ ker = phi9(l3 - l2); kerx = phi9x(l3 - l2) * (l3x - l2x);
  kery = phi9x(l3 - l2) * (l3y - l2y); kerxy = phi9xx(l3 - l2) * (l3x - l2x) * (l3y - l2y);
  return  (l3x * l2y * ker + l3y * l2x * ker + l3x * l2 * kery + l3 * l2x * kery + l3y * l2 * kerx + l3 * l2y * kerx +  l3 * l2 * kerxy) / 1.0000000000000;
 }
@@ -5699,8 +5699,8 @@ static double gradleg_tri_p10_e2_ay_0(double x, double y)
  double l1, l1x, l1y, l3, l3x, l3y;
  double ker, kerx, kery, kerxy;
  l1 = lambda1(x,y); l1x = lambda1x(x,y); l1y = lambda1y(x,y);
-  l3 = lambda3(x,y); l3x = lambda3x(x,y); l3y = lambda3y(x,y); 
- ker = phi9(l1 - l3); kerx = phi9x(l1 - l3) * (l1x - l3x); 
+  l3 = lambda3(x,y); l3x = lambda3x(x,y); l3y = lambda3y(x,y);
+ ker = phi9(l1 - l3); kerx = phi9x(l1 - l3) * (l1x - l3x);
  kery = phi9x(l1 - l3) * (l1y - l3y); kerxy = phi9xx(l1 - l3) * (l1x - l3x) * (l1y - l3y);
  return  (l1x * l3y * ker + l1y * l3x * ker + l1x * l3 * kery + l1 * l3x * kery + l1y * l3 * kerx + l1 * l3y * kerx +  l1 * l3 * kerxy) / 1.0000000000000;
 }
@@ -5715,8 +5715,8 @@ static double gradleg_tri_p10_e2_bx_0(double x, double y)
  double l1, l1x, l1y, l3, l3x, l3y;
  double ker, kerx, kery, kerxy;
  l1 = lambda1(x,y); l1x = lambda1x(x,y); l1y = lambda1y(x,y);
-  l3 = lambda3(x,y); l3x = lambda3x(x,y); l3y = lambda3y(x,y); 
- ker = phi9(l1 - l3); kerx = phi9x(l1 - l3) * (l1x - l3x); 
+  l3 = lambda3(x,y); l3x = lambda3x(x,y); l3y = lambda3y(x,y);
+ ker = phi9(l1 - l3); kerx = phi9x(l1 - l3) * (l1x - l3x);
  kery = phi9x(l1 - l3) * (l1y - l3y); kerxy = phi9xx(l1 - l3) * (l1x - l3x) * (l1y - l3y);
  return  (l1x * l3y * ker + l1y * l3x * ker + l1x * l3 * kery + l1 * l3x * kery + l1y * l3 * kerx + l1 * l3y * kerx +  l1 * l3 * kerxy) / 1.0000000000000;
 }
@@ -5785,8 +5785,8 @@ static double gradleg_tri_p10_e3_ay_0(double x, double y)
  double l2, l2x, l2y, l1, l1x, l1y;
  double ker, kerx, kery, kerxy;
  l2 = lambda2(x,y); l2x = lambda2x(x,y); l2y = lambda2y(x,y);
-  l1 = lambda1(x,y); l1x = lambda1x(x,y); l1y = lambda1y(x,y); 
- ker = phi9(l2 - l1); kerx = phi9x(l2 - l1) * (l2x - l1x); 
+  l1 = lambda1(x,y); l1x = lambda1x(x,y); l1y = lambda1y(x,y);
+ ker = phi9(l2 - l1); kerx = phi9x(l2 - l1) * (l2x - l1x);
  kery = phi9x(l2 - l1) * (l2y - l1y); kerxy = phi9xx(l2 - l1) * (l2x - l1x) * (l2y - l1y);
  return  (l2x * l1y * ker + l2y * l1x * ker + l2x * l1 * kery + l2 * l1x * kery + l2y * l1 * kerx + l2 * l1y * kerx +  l2 * l1 * kerxy) / 1.0000000000000;
 }
@@ -5801,8 +5801,8 @@ static double gradleg_tri_p10_e3_bx_0(double x, double y)
  double l2, l2x, l2y, l1, l1x, l1y;
  double ker, kerx, kery, kerxy;
  l2 = lambda2(x,y); l2x = lambda2x(x,y); l2y = lambda2y(x,y);
-  l1 = lambda1(x,y); l1x = lambda1x(x,y); l1y = lambda1y(x,y); 
- ker = phi9(l2 - l1); kerx = phi9x(l2 - l1) * (l2x - l1x); 
+  l1 = lambda1(x,y); l1x = lambda1x(x,y); l1y = lambda1y(x,y);
+ ker = phi9(l2 - l1); kerx = phi9x(l2 - l1) * (l2x - l1x);
  kery = phi9x(l2 - l1) * (l2y - l1y); kerxy = phi9xx(l2 - l1) * (l2x - l1x) * (l2y - l1y);
  return  (l2x * l1y * ker + l2y * l1x * ker + l2x * l1 * kery + l2 * l1x * kery + l2y * l1 * kerx + l2 * l1y * kerx +  l2 * l1 * kerxy) / 1.0000000000000;
 }
@@ -5834,14 +5834,14 @@ static double gradleg_tri_p10_e3_by_1(double x, double y)
 static double gradleg_tri_p10_b1_a(double x, double y)
 {
  double l3, l2;
- l3 = lambda3(x,y); l2 = lambda2(x,y); 
+ l3 = lambda3(x,y); l2 = lambda2(x,y);
  return n11 * (l3 * l2 * Legendre8(l3 - l2));
 }
 
 static double gradleg_tri_p10_b1_b(double x, double y)
 {
  double l3, l2;
- l3 = lambda3(x,y); l2 = lambda2(x,y); 
+ l3 = lambda3(x,y); l2 = lambda2(x,y);
  return n12 * (l3 * l2 * Legendre8(l3 - l2));
 }
 
@@ -5877,14 +5877,14 @@ static double gradleg_tri_p10_b1_by(double x, double y)
 static double gradleg_tri_p10_b2_a(double x, double y)
 {
  double l1, l3;
- l1 = lambda1(x,y); l3 = lambda3(x,y); 
+ l1 = lambda1(x,y); l3 = lambda3(x,y);
  return n21 * (l1 * l3 * Legendre8(l1 - l3));
 }
 
 static double gradleg_tri_p10_b2_b(double x, double y)
 {
  double l1, l3;
- l1 = lambda1(x,y); l3 = lambda3(x,y); 
+ l1 = lambda1(x,y); l3 = lambda3(x,y);
  return n22 * (l1 * l3 * Legendre8(l1 - l3));
 }
 
@@ -5920,14 +5920,14 @@ static double gradleg_tri_p10_b2_by(double x, double y)
 static double gradleg_tri_p10_b3_a(double x, double y)
 {
  double l2, l1;
- l2 = lambda2(x,y); l1 = lambda1(x,y); 
+ l2 = lambda2(x,y); l1 = lambda1(x,y);
  return n31 * (l2 * l1 * Legendre8(l2 - l1));
 }
 
 static double gradleg_tri_p10_b3_b(double x, double y)
 {
  double l2, l1;
- l2 = lambda2(x,y); l1 = lambda1(x,y); 
+ l2 = lambda2(x,y); l1 = lambda1(x,y);
  return n32 * (l2 * l1 * Legendre8(l2 - l1));
 }
 
@@ -5964,7 +5964,7 @@ static double gradleg_tri_p10_b3_by(double x, double y)
 static double gradleg_tri_b1_b8_1_a(double x, double y)
 {
  double l1, l2, l3;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
  return l1 * l2 * l3 * Legendre0(l3 - l2) * Legendre7(l2 - l1);
 }
 
@@ -5976,11 +5976,11 @@ static double gradleg_tri_b1_b8_1_b(double x, double y)
 static double gradleg_tri_b1_b8_1_ax(double x, double y)
 {
  double l1, l2, l3, l1x, l2x, l3x, L1, L2, L1x, L2x;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
- l1x = lambda1x(x,y); l2x = lambda2x(x,y); l3x = lambda3x(x,y); 
- L1 = Legendre0(l3 - l2); L2 = Legendre7(l2 - l1); 
- L1x = Legendre0x(l3 - l2) * (l3x - l2x); L2x = Legendre7x(l2 - l1) * (l2x - l1x); 
- return l1x * l2 *  l3 *  L1 *  L2 +          l1 * l2x * l3 *  L1 *  L2 +          l1 * l2 *  l3x * L1 *  L2 +          l1 * l2 *  l3 *  L1x * L2 +          l1 * l2 *  l3 *  L1 *  L2x; 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
+ l1x = lambda1x(x,y); l2x = lambda2x(x,y); l3x = lambda3x(x,y);
+ L1 = Legendre0(l3 - l2); L2 = Legendre7(l2 - l1);
+ L1x = Legendre0x(l3 - l2) * (l3x - l2x); L2x = Legendre7x(l2 - l1) * (l2x - l1x);
+ return l1x * l2 *  l3 *  L1 *  L2 +          l1 * l2x * l3 *  L1 *  L2 +          l1 * l2 *  l3x * L1 *  L2 +          l1 * l2 *  l3 *  L1x * L2 +          l1 * l2 *  l3 *  L1 *  L2x;
 }
 
 static double gradleg_tri_b1_b8_1_bx(double x, double y)
@@ -5991,11 +5991,11 @@ static double gradleg_tri_b1_b8_1_bx(double x, double y)
 static double gradleg_tri_b1_b8_1_ay(double x, double y)
 {
  double l1, l2, l3, l1y, l2y, l3y, L1, L2, L1y, L2y;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
- l1y = lambda1y(x,y); l2y = lambda2y(x,y); l3y = lambda3y(x,y); 
- L1 = Legendre0(l3 - l2); L2 = Legendre7(l2 - l1); 
- L1y = Legendre0x(l3 - l2) * (l3y - l2y); L2y = Legendre7x(l2 - l1) * (l2y - l1y); 
- return l1y * l2 *  l3 *  L1 *  L2 +          l1 * l2y * l3 *  L1 *  L2 +          l1 * l2 *  l3y * L1 *  L2 +          l1 * l2 *  l3 *  L1y * L2 +          l1 * l2 *  l3 *  L1 *  L2y; 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
+ l1y = lambda1y(x,y); l2y = lambda2y(x,y); l3y = lambda3y(x,y);
+ L1 = Legendre0(l3 - l2); L2 = Legendre7(l2 - l1);
+ L1y = Legendre0x(l3 - l2) * (l3y - l2y); L2y = Legendre7x(l2 - l1) * (l2y - l1y);
+ return l1y * l2 *  l3 *  L1 *  L2 +          l1 * l2y * l3 *  L1 *  L2 +          l1 * l2 *  l3y * L1 *  L2 +          l1 * l2 *  l3 *  L1y * L2 +          l1 * l2 *  l3 *  L1 *  L2y;
 }
 
 static double gradleg_tri_b1_b8_1_by(double x, double y)
@@ -6006,7 +6006,7 @@ static double gradleg_tri_b1_b8_1_by(double x, double y)
 static double gradleg_tri_b1_b8_2_b(double x, double y)
 {
  double l1, l2, l3;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
  return l1 * l2 * l3 * Legendre0(l3 - l2) * Legendre7(l2 - l1);
 }
 
@@ -6018,11 +6018,11 @@ static double gradleg_tri_b1_b8_2_a(double x, double y)
 static double gradleg_tri_b1_b8_2_bx(double x, double y)
 {
  double l1, l2, l3, l1x, l2x, l3x, L1, L2, L1x, L2x;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
- l1x = lambda1x(x,y); l2x = lambda2x(x,y); l3x = lambda3x(x,y); 
- L1 = Legendre0(l3 - l2); L2 = Legendre7(l2 - l1); 
- L1x = Legendre0x(l3 - l2) * (l3x - l2x); L2x = Legendre7x(l2 - l1) * (l2x - l1x); 
- return l1x * l2 *  l3 *  L1 *  L2 +          l1 * l2x * l3 *  L1 *  L2 +          l1 * l2 *  l3x * L1 *  L2 +          l1 * l2 *  l3 *  L1x * L2 +          l1 * l2 *  l3 *  L1 *  L2x; 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
+ l1x = lambda1x(x,y); l2x = lambda2x(x,y); l3x = lambda3x(x,y);
+ L1 = Legendre0(l3 - l2); L2 = Legendre7(l2 - l1);
+ L1x = Legendre0x(l3 - l2) * (l3x - l2x); L2x = Legendre7x(l2 - l1) * (l2x - l1x);
+ return l1x * l2 *  l3 *  L1 *  L2 +          l1 * l2x * l3 *  L1 *  L2 +          l1 * l2 *  l3x * L1 *  L2 +          l1 * l2 *  l3 *  L1x * L2 +          l1 * l2 *  l3 *  L1 *  L2x;
 }
 
 static double gradleg_tri_b1_b8_2_ax(double x, double y)
@@ -6033,11 +6033,11 @@ static double gradleg_tri_b1_b8_2_ax(double x, double y)
 static double gradleg_tri_b1_b8_2_by(double x, double y)
 {
  double l1, l2, l3, l1y, l2y, l3y, L1, L2, L1y, L2y;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
- l1y = lambda1y(x,y); l2y = lambda2y(x,y); l3y = lambda3y(x,y); 
- L1 = Legendre0(l3 - l2); L2 = Legendre7(l2 - l1); 
- L1y = Legendre0x(l3 - l2) * (l3y - l2y); L2y = Legendre7x(l2 - l1) * (l2y - l1y); 
- return l1y * l2 *  l3 *  L1 *  L2 +          l1 * l2y * l3 *  L1 *  L2 +          l1 * l2 *  l3y * L1 *  L2 +          l1 * l2 *  l3 *  L1y * L2 +          l1 * l2 *  l3 *  L1 *  L2y; 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
+ l1y = lambda1y(x,y); l2y = lambda2y(x,y); l3y = lambda3y(x,y);
+ L1 = Legendre0(l3 - l2); L2 = Legendre7(l2 - l1);
+ L1y = Legendre0x(l3 - l2) * (l3y - l2y); L2y = Legendre7x(l2 - l1) * (l2y - l1y);
+ return l1y * l2 *  l3 *  L1 *  L2 +          l1 * l2y * l3 *  L1 *  L2 +          l1 * l2 *  l3y * L1 *  L2 +          l1 * l2 *  l3 *  L1y * L2 +          l1 * l2 *  l3 *  L1 *  L2y;
 }
 
 static double gradleg_tri_b1_b8_2_ay(double x, double y)
@@ -6048,7 +6048,7 @@ static double gradleg_tri_b1_b8_2_ay(double x, double y)
 static double gradleg_tri_b2_b7_1_a(double x, double y)
 {
  double l1, l2, l3;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
  return l1 * l2 * l3 * Legendre1(l3 - l2) * Legendre6(l2 - l1);
 }
 
@@ -6060,11 +6060,11 @@ static double gradleg_tri_b2_b7_1_b(double x, double y)
 static double gradleg_tri_b2_b7_1_ax(double x, double y)
 {
  double l1, l2, l3, l1x, l2x, l3x, L1, L2, L1x, L2x;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
- l1x = lambda1x(x,y); l2x = lambda2x(x,y); l3x = lambda3x(x,y); 
- L1 = Legendre1(l3 - l2); L2 = Legendre6(l2 - l1); 
- L1x = Legendre1x(l3 - l2) * (l3x - l2x); L2x = Legendre6x(l2 - l1) * (l2x - l1x); 
- return l1x * l2 *  l3 *  L1 *  L2 +          l1 * l2x * l3 *  L1 *  L2 +          l1 * l2 *  l3x * L1 *  L2 +          l1 * l2 *  l3 *  L1x * L2 +          l1 * l2 *  l3 *  L1 *  L2x; 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
+ l1x = lambda1x(x,y); l2x = lambda2x(x,y); l3x = lambda3x(x,y);
+ L1 = Legendre1(l3 - l2); L2 = Legendre6(l2 - l1);
+ L1x = Legendre1x(l3 - l2) * (l3x - l2x); L2x = Legendre6x(l2 - l1) * (l2x - l1x);
+ return l1x * l2 *  l3 *  L1 *  L2 +          l1 * l2x * l3 *  L1 *  L2 +          l1 * l2 *  l3x * L1 *  L2 +          l1 * l2 *  l3 *  L1x * L2 +          l1 * l2 *  l3 *  L1 *  L2x;
 }
 
 static double gradleg_tri_b2_b7_1_bx(double x, double y)
@@ -6075,11 +6075,11 @@ static double gradleg_tri_b2_b7_1_bx(double x, double y)
 static double gradleg_tri_b2_b7_1_ay(double x, double y)
 {
  double l1, l2, l3, l1y, l2y, l3y, L1, L2, L1y, L2y;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
- l1y = lambda1y(x,y); l2y = lambda2y(x,y); l3y = lambda3y(x,y); 
- L1 = Legendre1(l3 - l2); L2 = Legendre6(l2 - l1); 
- L1y = Legendre1x(l3 - l2) * (l3y - l2y); L2y = Legendre6x(l2 - l1) * (l2y - l1y); 
- return l1y * l2 *  l3 *  L1 *  L2 +          l1 * l2y * l3 *  L1 *  L2 +          l1 * l2 *  l3y * L1 *  L2 +          l1 * l2 *  l3 *  L1y * L2 +          l1 * l2 *  l3 *  L1 *  L2y; 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
+ l1y = lambda1y(x,y); l2y = lambda2y(x,y); l3y = lambda3y(x,y);
+ L1 = Legendre1(l3 - l2); L2 = Legendre6(l2 - l1);
+ L1y = Legendre1x(l3 - l2) * (l3y - l2y); L2y = Legendre6x(l2 - l1) * (l2y - l1y);
+ return l1y * l2 *  l3 *  L1 *  L2 +          l1 * l2y * l3 *  L1 *  L2 +          l1 * l2 *  l3y * L1 *  L2 +          l1 * l2 *  l3 *  L1y * L2 +          l1 * l2 *  l3 *  L1 *  L2y;
 }
 
 static double gradleg_tri_b2_b7_1_by(double x, double y)
@@ -6090,7 +6090,7 @@ static double gradleg_tri_b2_b7_1_by(double x, double y)
 static double gradleg_tri_b2_b7_2_b(double x, double y)
 {
  double l1, l2, l3;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
  return l1 * l2 * l3 * Legendre1(l3 - l2) * Legendre6(l2 - l1);
 }
 
@@ -6102,11 +6102,11 @@ static double gradleg_tri_b2_b7_2_a(double x, double y)
 static double gradleg_tri_b2_b7_2_bx(double x, double y)
 {
  double l1, l2, l3, l1x, l2x, l3x, L1, L2, L1x, L2x;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
- l1x = lambda1x(x,y); l2x = lambda2x(x,y); l3x = lambda3x(x,y); 
- L1 = Legendre1(l3 - l2); L2 = Legendre6(l2 - l1); 
- L1x = Legendre1x(l3 - l2) * (l3x - l2x); L2x = Legendre6x(l2 - l1) * (l2x - l1x); 
- return l1x * l2 *  l3 *  L1 *  L2 +          l1 * l2x * l3 *  L1 *  L2 +          l1 * l2 *  l3x * L1 *  L2 +          l1 * l2 *  l3 *  L1x * L2 +          l1 * l2 *  l3 *  L1 *  L2x; 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
+ l1x = lambda1x(x,y); l2x = lambda2x(x,y); l3x = lambda3x(x,y);
+ L1 = Legendre1(l3 - l2); L2 = Legendre6(l2 - l1);
+ L1x = Legendre1x(l3 - l2) * (l3x - l2x); L2x = Legendre6x(l2 - l1) * (l2x - l1x);
+ return l1x * l2 *  l3 *  L1 *  L2 +          l1 * l2x * l3 *  L1 *  L2 +          l1 * l2 *  l3x * L1 *  L2 +          l1 * l2 *  l3 *  L1x * L2 +          l1 * l2 *  l3 *  L1 *  L2x;
 }
 
 static double gradleg_tri_b2_b7_2_ax(double x, double y)
@@ -6117,11 +6117,11 @@ static double gradleg_tri_b2_b7_2_ax(double x, double y)
 static double gradleg_tri_b2_b7_2_by(double x, double y)
 {
  double l1, l2, l3, l1y, l2y, l3y, L1, L2, L1y, L2y;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
- l1y = lambda1y(x,y); l2y = lambda2y(x,y); l3y = lambda3y(x,y); 
- L1 = Legendre1(l3 - l2); L2 = Legendre6(l2 - l1); 
- L1y = Legendre1x(l3 - l2) * (l3y - l2y); L2y = Legendre6x(l2 - l1) * (l2y - l1y); 
- return l1y * l2 *  l3 *  L1 *  L2 +          l1 * l2y * l3 *  L1 *  L2 +          l1 * l2 *  l3y * L1 *  L2 +          l1 * l2 *  l3 *  L1y * L2 +          l1 * l2 *  l3 *  L1 *  L2y; 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
+ l1y = lambda1y(x,y); l2y = lambda2y(x,y); l3y = lambda3y(x,y);
+ L1 = Legendre1(l3 - l2); L2 = Legendre6(l2 - l1);
+ L1y = Legendre1x(l3 - l2) * (l3y - l2y); L2y = Legendre6x(l2 - l1) * (l2y - l1y);
+ return l1y * l2 *  l3 *  L1 *  L2 +          l1 * l2y * l3 *  L1 *  L2 +          l1 * l2 *  l3y * L1 *  L2 +          l1 * l2 *  l3 *  L1y * L2 +          l1 * l2 *  l3 *  L1 *  L2y;
 }
 
 static double gradleg_tri_b2_b7_2_ay(double x, double y)
@@ -6132,7 +6132,7 @@ static double gradleg_tri_b2_b7_2_ay(double x, double y)
 static double gradleg_tri_b3_b6_1_a(double x, double y)
 {
  double l1, l2, l3;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
  return l1 * l2 * l3 * Legendre2(l3 - l2) * Legendre5(l2 - l1);
 }
 
@@ -6144,11 +6144,11 @@ static double gradleg_tri_b3_b6_1_b(double x, double y)
 static double gradleg_tri_b3_b6_1_ax(double x, double y)
 {
  double l1, l2, l3, l1x, l2x, l3x, L1, L2, L1x, L2x;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
- l1x = lambda1x(x,y); l2x = lambda2x(x,y); l3x = lambda3x(x,y); 
- L1 = Legendre2(l3 - l2); L2 = Legendre5(l2 - l1); 
- L1x = Legendre2x(l3 - l2) * (l3x - l2x); L2x = Legendre5x(l2 - l1) * (l2x - l1x); 
- return l1x * l2 *  l3 *  L1 *  L2 +          l1 * l2x * l3 *  L1 *  L2 +          l1 * l2 *  l3x * L1 *  L2 +          l1 * l2 *  l3 *  L1x * L2 +          l1 * l2 *  l3 *  L1 *  L2x; 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
+ l1x = lambda1x(x,y); l2x = lambda2x(x,y); l3x = lambda3x(x,y);
+ L1 = Legendre2(l3 - l2); L2 = Legendre5(l2 - l1);
+ L1x = Legendre2x(l3 - l2) * (l3x - l2x); L2x = Legendre5x(l2 - l1) * (l2x - l1x);
+ return l1x * l2 *  l3 *  L1 *  L2 +          l1 * l2x * l3 *  L1 *  L2 +          l1 * l2 *  l3x * L1 *  L2 +          l1 * l2 *  l3 *  L1x * L2 +          l1 * l2 *  l3 *  L1 *  L2x;
 }
 
 static double gradleg_tri_b3_b6_1_bx(double x, double y)
@@ -6159,11 +6159,11 @@ static double gradleg_tri_b3_b6_1_bx(double x, double y)
 static double gradleg_tri_b3_b6_1_ay(double x, double y)
 {
  double l1, l2, l3, l1y, l2y, l3y, L1, L2, L1y, L2y;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
- l1y = lambda1y(x,y); l2y = lambda2y(x,y); l3y = lambda3y(x,y); 
- L1 = Legendre2(l3 - l2); L2 = Legendre5(l2 - l1); 
- L1y = Legendre2x(l3 - l2) * (l3y - l2y); L2y = Legendre5x(l2 - l1) * (l2y - l1y); 
- return l1y * l2 *  l3 *  L1 *  L2 +          l1 * l2y * l3 *  L1 *  L2 +          l1 * l2 *  l3y * L1 *  L2 +          l1 * l2 *  l3 *  L1y * L2 +          l1 * l2 *  l3 *  L1 *  L2y; 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
+ l1y = lambda1y(x,y); l2y = lambda2y(x,y); l3y = lambda3y(x,y);
+ L1 = Legendre2(l3 - l2); L2 = Legendre5(l2 - l1);
+ L1y = Legendre2x(l3 - l2) * (l3y - l2y); L2y = Legendre5x(l2 - l1) * (l2y - l1y);
+ return l1y * l2 *  l3 *  L1 *  L2 +          l1 * l2y * l3 *  L1 *  L2 +          l1 * l2 *  l3y * L1 *  L2 +          l1 * l2 *  l3 *  L1y * L2 +          l1 * l2 *  l3 *  L1 *  L2y;
 }
 
 static double gradleg_tri_b3_b6_1_by(double x, double y)
@@ -6174,7 +6174,7 @@ static double gradleg_tri_b3_b6_1_by(double x, double y)
 static double gradleg_tri_b3_b6_2_b(double x, double y)
 {
  double l1, l2, l3;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
  return l1 * l2 * l3 * Legendre2(l3 - l2) * Legendre5(l2 - l1);
 }
 
@@ -6186,11 +6186,11 @@ static double gradleg_tri_b3_b6_2_a(double x, double y)
 static double gradleg_tri_b3_b6_2_bx(double x, double y)
 {
  double l1, l2, l3, l1x, l2x, l3x, L1, L2, L1x, L2x;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
- l1x = lambda1x(x,y); l2x = lambda2x(x,y); l3x = lambda3x(x,y); 
- L1 = Legendre2(l3 - l2); L2 = Legendre5(l2 - l1); 
- L1x = Legendre2x(l3 - l2) * (l3x - l2x); L2x = Legendre5x(l2 - l1) * (l2x - l1x); 
- return l1x * l2 *  l3 *  L1 *  L2 +          l1 * l2x * l3 *  L1 *  L2 +          l1 * l2 *  l3x * L1 *  L2 +          l1 * l2 *  l3 *  L1x * L2 +          l1 * l2 *  l3 *  L1 *  L2x; 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
+ l1x = lambda1x(x,y); l2x = lambda2x(x,y); l3x = lambda3x(x,y);
+ L1 = Legendre2(l3 - l2); L2 = Legendre5(l2 - l1);
+ L1x = Legendre2x(l3 - l2) * (l3x - l2x); L2x = Legendre5x(l2 - l1) * (l2x - l1x);
+ return l1x * l2 *  l3 *  L1 *  L2 +          l1 * l2x * l3 *  L1 *  L2 +          l1 * l2 *  l3x * L1 *  L2 +          l1 * l2 *  l3 *  L1x * L2 +          l1 * l2 *  l3 *  L1 *  L2x;
 }
 
 static double gradleg_tri_b3_b6_2_ax(double x, double y)
@@ -6201,11 +6201,11 @@ static double gradleg_tri_b3_b6_2_ax(double x, double y)
 static double gradleg_tri_b3_b6_2_by(double x, double y)
 {
  double l1, l2, l3, l1y, l2y, l3y, L1, L2, L1y, L2y;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
- l1y = lambda1y(x,y); l2y = lambda2y(x,y); l3y = lambda3y(x,y); 
- L1 = Legendre2(l3 - l2); L2 = Legendre5(l2 - l1); 
- L1y = Legendre2x(l3 - l2) * (l3y - l2y); L2y = Legendre5x(l2 - l1) * (l2y - l1y); 
- return l1y * l2 *  l3 *  L1 *  L2 +          l1 * l2y * l3 *  L1 *  L2 +          l1 * l2 *  l3y * L1 *  L2 +          l1 * l2 *  l3 *  L1y * L2 +          l1 * l2 *  l3 *  L1 *  L2y; 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
+ l1y = lambda1y(x,y); l2y = lambda2y(x,y); l3y = lambda3y(x,y);
+ L1 = Legendre2(l3 - l2); L2 = Legendre5(l2 - l1);
+ L1y = Legendre2x(l3 - l2) * (l3y - l2y); L2y = Legendre5x(l2 - l1) * (l2y - l1y);
+ return l1y * l2 *  l3 *  L1 *  L2 +          l1 * l2y * l3 *  L1 *  L2 +          l1 * l2 *  l3y * L1 *  L2 +          l1 * l2 *  l3 *  L1y * L2 +          l1 * l2 *  l3 *  L1 *  L2y;
 }
 
 static double gradleg_tri_b3_b6_2_ay(double x, double y)
@@ -6216,7 +6216,7 @@ static double gradleg_tri_b3_b6_2_ay(double x, double y)
 static double gradleg_tri_b4_b5_1_a(double x, double y)
 {
  double l1, l2, l3;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
  return l1 * l2 * l3 * Legendre3(l3 - l2) * Legendre4(l2 - l1);
 }
 
@@ -6228,11 +6228,11 @@ static double gradleg_tri_b4_b5_1_b(double x, double y)
 static double gradleg_tri_b4_b5_1_ax(double x, double y)
 {
  double l1, l2, l3, l1x, l2x, l3x, L1, L2, L1x, L2x;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
- l1x = lambda1x(x,y); l2x = lambda2x(x,y); l3x = lambda3x(x,y); 
- L1 = Legendre3(l3 - l2); L2 = Legendre4(l2 - l1); 
- L1x = Legendre3x(l3 - l2) * (l3x - l2x); L2x = Legendre4x(l2 - l1) * (l2x - l1x); 
- return l1x * l2 *  l3 *  L1 *  L2 +          l1 * l2x * l3 *  L1 *  L2 +          l1 * l2 *  l3x * L1 *  L2 +          l1 * l2 *  l3 *  L1x * L2 +          l1 * l2 *  l3 *  L1 *  L2x; 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
+ l1x = lambda1x(x,y); l2x = lambda2x(x,y); l3x = lambda3x(x,y);
+ L1 = Legendre3(l3 - l2); L2 = Legendre4(l2 - l1);
+ L1x = Legendre3x(l3 - l2) * (l3x - l2x); L2x = Legendre4x(l2 - l1) * (l2x - l1x);
+ return l1x * l2 *  l3 *  L1 *  L2 +          l1 * l2x * l3 *  L1 *  L2 +          l1 * l2 *  l3x * L1 *  L2 +          l1 * l2 *  l3 *  L1x * L2 +          l1 * l2 *  l3 *  L1 *  L2x;
 }
 
 static double gradleg_tri_b4_b5_1_bx(double x, double y)
@@ -6243,11 +6243,11 @@ static double gradleg_tri_b4_b5_1_bx(double x, double y)
 static double gradleg_tri_b4_b5_1_ay(double x, double y)
 {
  double l1, l2, l3, l1y, l2y, l3y, L1, L2, L1y, L2y;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
- l1y = lambda1y(x,y); l2y = lambda2y(x,y); l3y = lambda3y(x,y); 
- L1 = Legendre3(l3 - l2); L2 = Legendre4(l2 - l1); 
- L1y = Legendre3x(l3 - l2) * (l3y - l2y); L2y = Legendre4x(l2 - l1) * (l2y - l1y); 
- return l1y * l2 *  l3 *  L1 *  L2 +          l1 * l2y * l3 *  L1 *  L2 +          l1 * l2 *  l3y * L1 *  L2 +          l1 * l2 *  l3 *  L1y * L2 +          l1 * l2 *  l3 *  L1 *  L2y; 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
+ l1y = lambda1y(x,y); l2y = lambda2y(x,y); l3y = lambda3y(x,y);
+ L1 = Legendre3(l3 - l2); L2 = Legendre4(l2 - l1);
+ L1y = Legendre3x(l3 - l2) * (l3y - l2y); L2y = Legendre4x(l2 - l1) * (l2y - l1y);
+ return l1y * l2 *  l3 *  L1 *  L2 +          l1 * l2y * l3 *  L1 *  L2 +          l1 * l2 *  l3y * L1 *  L2 +          l1 * l2 *  l3 *  L1y * L2 +          l1 * l2 *  l3 *  L1 *  L2y;
 }
 
 static double gradleg_tri_b4_b5_1_by(double x, double y)
@@ -6258,7 +6258,7 @@ static double gradleg_tri_b4_b5_1_by(double x, double y)
 static double gradleg_tri_b4_b5_2_b(double x, double y)
 {
  double l1, l2, l3;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
  return l1 * l2 * l3 * Legendre3(l3 - l2) * Legendre4(l2 - l1);
 }
 
@@ -6270,11 +6270,11 @@ static double gradleg_tri_b4_b5_2_a(double x, double y)
 static double gradleg_tri_b4_b5_2_bx(double x, double y)
 {
  double l1, l2, l3, l1x, l2x, l3x, L1, L2, L1x, L2x;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
- l1x = lambda1x(x,y); l2x = lambda2x(x,y); l3x = lambda3x(x,y); 
- L1 = Legendre3(l3 - l2); L2 = Legendre4(l2 - l1); 
- L1x = Legendre3x(l3 - l2) * (l3x - l2x); L2x = Legendre4x(l2 - l1) * (l2x - l1x); 
- return l1x * l2 *  l3 *  L1 *  L2 +          l1 * l2x * l3 *  L1 *  L2 +          l1 * l2 *  l3x * L1 *  L2 +          l1 * l2 *  l3 *  L1x * L2 +          l1 * l2 *  l3 *  L1 *  L2x; 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
+ l1x = lambda1x(x,y); l2x = lambda2x(x,y); l3x = lambda3x(x,y);
+ L1 = Legendre3(l3 - l2); L2 = Legendre4(l2 - l1);
+ L1x = Legendre3x(l3 - l2) * (l3x - l2x); L2x = Legendre4x(l2 - l1) * (l2x - l1x);
+ return l1x * l2 *  l3 *  L1 *  L2 +          l1 * l2x * l3 *  L1 *  L2 +          l1 * l2 *  l3x * L1 *  L2 +          l1 * l2 *  l3 *  L1x * L2 +          l1 * l2 *  l3 *  L1 *  L2x;
 }
 
 static double gradleg_tri_b4_b5_2_ax(double x, double y)
@@ -6285,11 +6285,11 @@ static double gradleg_tri_b4_b5_2_ax(double x, double y)
 static double gradleg_tri_b4_b5_2_by(double x, double y)
 {
  double l1, l2, l3, l1y, l2y, l3y, L1, L2, L1y, L2y;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
- l1y = lambda1y(x,y); l2y = lambda2y(x,y); l3y = lambda3y(x,y); 
- L1 = Legendre3(l3 - l2); L2 = Legendre4(l2 - l1); 
- L1y = Legendre3x(l3 - l2) * (l3y - l2y); L2y = Legendre4x(l2 - l1) * (l2y - l1y); 
- return l1y * l2 *  l3 *  L1 *  L2 +          l1 * l2y * l3 *  L1 *  L2 +          l1 * l2 *  l3y * L1 *  L2 +          l1 * l2 *  l3 *  L1y * L2 +          l1 * l2 *  l3 *  L1 *  L2y; 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
+ l1y = lambda1y(x,y); l2y = lambda2y(x,y); l3y = lambda3y(x,y);
+ L1 = Legendre3(l3 - l2); L2 = Legendre4(l2 - l1);
+ L1y = Legendre3x(l3 - l2) * (l3y - l2y); L2y = Legendre4x(l2 - l1) * (l2y - l1y);
+ return l1y * l2 *  l3 *  L1 *  L2 +          l1 * l2y * l3 *  L1 *  L2 +          l1 * l2 *  l3y * L1 *  L2 +          l1 * l2 *  l3 *  L1y * L2 +          l1 * l2 *  l3 *  L1 *  L2y;
 }
 
 static double gradleg_tri_b4_b5_2_ay(double x, double y)
@@ -6300,7 +6300,7 @@ static double gradleg_tri_b4_b5_2_ay(double x, double y)
 static double gradleg_tri_b5_b4_1_a(double x, double y)
 {
  double l1, l2, l3;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
  return l1 * l2 * l3 * Legendre4(l3 - l2) * Legendre3(l2 - l1);
 }
 
@@ -6312,11 +6312,11 @@ static double gradleg_tri_b5_b4_1_b(double x, double y)
 static double gradleg_tri_b5_b4_1_ax(double x, double y)
 {
  double l1, l2, l3, l1x, l2x, l3x, L1, L2, L1x, L2x;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
- l1x = lambda1x(x,y); l2x = lambda2x(x,y); l3x = lambda3x(x,y); 
- L1 = Legendre4(l3 - l2); L2 = Legendre3(l2 - l1); 
- L1x = Legendre4x(l3 - l2) * (l3x - l2x); L2x = Legendre3x(l2 - l1) * (l2x - l1x); 
- return l1x * l2 *  l3 *  L1 *  L2 +          l1 * l2x * l3 *  L1 *  L2 +          l1 * l2 *  l3x * L1 *  L2 +          l1 * l2 *  l3 *  L1x * L2 +          l1 * l2 *  l3 *  L1 *  L2x; 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
+ l1x = lambda1x(x,y); l2x = lambda2x(x,y); l3x = lambda3x(x,y);
+ L1 = Legendre4(l3 - l2); L2 = Legendre3(l2 - l1);
+ L1x = Legendre4x(l3 - l2) * (l3x - l2x); L2x = Legendre3x(l2 - l1) * (l2x - l1x);
+ return l1x * l2 *  l3 *  L1 *  L2 +          l1 * l2x * l3 *  L1 *  L2 +          l1 * l2 *  l3x * L1 *  L2 +          l1 * l2 *  l3 *  L1x * L2 +          l1 * l2 *  l3 *  L1 *  L2x;
 }
 
 static double gradleg_tri_b5_b4_1_bx(double x, double y)
@@ -6327,11 +6327,11 @@ static double gradleg_tri_b5_b4_1_bx(double x, double y)
 static double gradleg_tri_b5_b4_1_ay(double x, double y)
 {
  double l1, l2, l3, l1y, l2y, l3y, L1, L2, L1y, L2y;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
- l1y = lambda1y(x,y); l2y = lambda2y(x,y); l3y = lambda3y(x,y); 
- L1 = Legendre4(l3 - l2); L2 = Legendre3(l2 - l1); 
- L1y = Legendre4x(l3 - l2) * (l3y - l2y); L2y = Legendre3x(l2 - l1) * (l2y - l1y); 
- return l1y * l2 *  l3 *  L1 *  L2 +          l1 * l2y * l3 *  L1 *  L2 +          l1 * l2 *  l3y * L1 *  L2 +          l1 * l2 *  l3 *  L1y * L2 +          l1 * l2 *  l3 *  L1 *  L2y; 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
+ l1y = lambda1y(x,y); l2y = lambda2y(x,y); l3y = lambda3y(x,y);
+ L1 = Legendre4(l3 - l2); L2 = Legendre3(l2 - l1);
+ L1y = Legendre4x(l3 - l2) * (l3y - l2y); L2y = Legendre3x(l2 - l1) * (l2y - l1y);
+ return l1y * l2 *  l3 *  L1 *  L2 +          l1 * l2y * l3 *  L1 *  L2 +          l1 * l2 *  l3y * L1 *  L2 +          l1 * l2 *  l3 *  L1y * L2 +          l1 * l2 *  l3 *  L1 *  L2y;
 }
 
 static double gradleg_tri_b5_b4_1_by(double x, double y)
@@ -6342,7 +6342,7 @@ static double gradleg_tri_b5_b4_1_by(double x, double y)
 static double gradleg_tri_b5_b4_2_b(double x, double y)
 {
  double l1, l2, l3;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
  return l1 * l2 * l3 * Legendre4(l3 - l2) * Legendre3(l2 - l1);
 }
 
@@ -6354,11 +6354,11 @@ static double gradleg_tri_b5_b4_2_a(double x, double y)
 static double gradleg_tri_b5_b4_2_bx(double x, double y)
 {
  double l1, l2, l3, l1x, l2x, l3x, L1, L2, L1x, L2x;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
- l1x = lambda1x(x,y); l2x = lambda2x(x,y); l3x = lambda3x(x,y); 
- L1 = Legendre4(l3 - l2); L2 = Legendre3(l2 - l1); 
- L1x = Legendre4x(l3 - l2) * (l3x - l2x); L2x = Legendre3x(l2 - l1) * (l2x - l1x); 
- return l1x * l2 *  l3 *  L1 *  L2 +          l1 * l2x * l3 *  L1 *  L2 +          l1 * l2 *  l3x * L1 *  L2 +          l1 * l2 *  l3 *  L1x * L2 +          l1 * l2 *  l3 *  L1 *  L2x; 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
+ l1x = lambda1x(x,y); l2x = lambda2x(x,y); l3x = lambda3x(x,y);
+ L1 = Legendre4(l3 - l2); L2 = Legendre3(l2 - l1);
+ L1x = Legendre4x(l3 - l2) * (l3x - l2x); L2x = Legendre3x(l2 - l1) * (l2x - l1x);
+ return l1x * l2 *  l3 *  L1 *  L2 +          l1 * l2x * l3 *  L1 *  L2 +          l1 * l2 *  l3x * L1 *  L2 +          l1 * l2 *  l3 *  L1x * L2 +          l1 * l2 *  l3 *  L1 *  L2x;
 }
 
 static double gradleg_tri_b5_b4_2_ax(double x, double y)
@@ -6369,11 +6369,11 @@ static double gradleg_tri_b5_b4_2_ax(double x, double y)
 static double gradleg_tri_b5_b4_2_by(double x, double y)
 {
  double l1, l2, l3, l1y, l2y, l3y, L1, L2, L1y, L2y;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
- l1y = lambda1y(x,y); l2y = lambda2y(x,y); l3y = lambda3y(x,y); 
- L1 = Legendre4(l3 - l2); L2 = Legendre3(l2 - l1); 
- L1y = Legendre4x(l3 - l2) * (l3y - l2y); L2y = Legendre3x(l2 - l1) * (l2y - l1y); 
- return l1y * l2 *  l3 *  L1 *  L2 +          l1 * l2y * l3 *  L1 *  L2 +          l1 * l2 *  l3y * L1 *  L2 +          l1 * l2 *  l3 *  L1y * L2 +          l1 * l2 *  l3 *  L1 *  L2y; 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
+ l1y = lambda1y(x,y); l2y = lambda2y(x,y); l3y = lambda3y(x,y);
+ L1 = Legendre4(l3 - l2); L2 = Legendre3(l2 - l1);
+ L1y = Legendre4x(l3 - l2) * (l3y - l2y); L2y = Legendre3x(l2 - l1) * (l2y - l1y);
+ return l1y * l2 *  l3 *  L1 *  L2 +          l1 * l2y * l3 *  L1 *  L2 +          l1 * l2 *  l3y * L1 *  L2 +          l1 * l2 *  l3 *  L1y * L2 +          l1 * l2 *  l3 *  L1 *  L2y;
 }
 
 static double gradleg_tri_b5_b4_2_ay(double x, double y)
@@ -6384,7 +6384,7 @@ static double gradleg_tri_b5_b4_2_ay(double x, double y)
 static double gradleg_tri_b6_b3_1_a(double x, double y)
 {
  double l1, l2, l3;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
  return l1 * l2 * l3 * Legendre5(l3 - l2) * Legendre2(l2 - l1);
 }
 
@@ -6396,11 +6396,11 @@ static double gradleg_tri_b6_b3_1_b(double x, double y)
 static double gradleg_tri_b6_b3_1_ax(double x, double y)
 {
  double l1, l2, l3, l1x, l2x, l3x, L1, L2, L1x, L2x;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
- l1x = lambda1x(x,y); l2x = lambda2x(x,y); l3x = lambda3x(x,y); 
- L1 = Legendre5(l3 - l2); L2 = Legendre2(l2 - l1); 
- L1x = Legendre5x(l3 - l2) * (l3x - l2x); L2x = Legendre2x(l2 - l1) * (l2x - l1x); 
- return l1x * l2 *  l3 *  L1 *  L2 +          l1 * l2x * l3 *  L1 *  L2 +          l1 * l2 *  l3x * L1 *  L2 +          l1 * l2 *  l3 *  L1x * L2 +          l1 * l2 *  l3 *  L1 *  L2x; 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
+ l1x = lambda1x(x,y); l2x = lambda2x(x,y); l3x = lambda3x(x,y);
+ L1 = Legendre5(l3 - l2); L2 = Legendre2(l2 - l1);
+ L1x = Legendre5x(l3 - l2) * (l3x - l2x); L2x = Legendre2x(l2 - l1) * (l2x - l1x);
+ return l1x * l2 *  l3 *  L1 *  L2 +          l1 * l2x * l3 *  L1 *  L2 +          l1 * l2 *  l3x * L1 *  L2 +          l1 * l2 *  l3 *  L1x * L2 +          l1 * l2 *  l3 *  L1 *  L2x;
 }
 
 static double gradleg_tri_b6_b3_1_bx(double x, double y)
@@ -6411,11 +6411,11 @@ static double gradleg_tri_b6_b3_1_bx(double x, double y)
 static double gradleg_tri_b6_b3_1_ay(double x, double y)
 {
  double l1, l2, l3, l1y, l2y, l3y, L1, L2, L1y, L2y;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
- l1y = lambda1y(x,y); l2y = lambda2y(x,y); l3y = lambda3y(x,y); 
- L1 = Legendre5(l3 - l2); L2 = Legendre2(l2 - l1); 
- L1y = Legendre5x(l3 - l2) * (l3y - l2y); L2y = Legendre2x(l2 - l1) * (l2y - l1y); 
- return l1y * l2 *  l3 *  L1 *  L2 +          l1 * l2y * l3 *  L1 *  L2 +          l1 * l2 *  l3y * L1 *  L2 +          l1 * l2 *  l3 *  L1y * L2 +          l1 * l2 *  l3 *  L1 *  L2y; 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
+ l1y = lambda1y(x,y); l2y = lambda2y(x,y); l3y = lambda3y(x,y);
+ L1 = Legendre5(l3 - l2); L2 = Legendre2(l2 - l1);
+ L1y = Legendre5x(l3 - l2) * (l3y - l2y); L2y = Legendre2x(l2 - l1) * (l2y - l1y);
+ return l1y * l2 *  l3 *  L1 *  L2 +          l1 * l2y * l3 *  L1 *  L2 +          l1 * l2 *  l3y * L1 *  L2 +          l1 * l2 *  l3 *  L1y * L2 +          l1 * l2 *  l3 *  L1 *  L2y;
 }
 
 static double gradleg_tri_b6_b3_1_by(double x, double y)
@@ -6426,7 +6426,7 @@ static double gradleg_tri_b6_b3_1_by(double x, double y)
 static double gradleg_tri_b6_b3_2_b(double x, double y)
 {
  double l1, l2, l3;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
  return l1 * l2 * l3 * Legendre5(l3 - l2) * Legendre2(l2 - l1);
 }
 
@@ -6438,11 +6438,11 @@ static double gradleg_tri_b6_b3_2_a(double x, double y)
 static double gradleg_tri_b6_b3_2_bx(double x, double y)
 {
  double l1, l2, l3, l1x, l2x, l3x, L1, L2, L1x, L2x;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
- l1x = lambda1x(x,y); l2x = lambda2x(x,y); l3x = lambda3x(x,y); 
- L1 = Legendre5(l3 - l2); L2 = Legendre2(l2 - l1); 
- L1x = Legendre5x(l3 - l2) * (l3x - l2x); L2x = Legendre2x(l2 - l1) * (l2x - l1x); 
- return l1x * l2 *  l3 *  L1 *  L2 +          l1 * l2x * l3 *  L1 *  L2 +          l1 * l2 *  l3x * L1 *  L2 +          l1 * l2 *  l3 *  L1x * L2 +          l1 * l2 *  l3 *  L1 *  L2x; 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
+ l1x = lambda1x(x,y); l2x = lambda2x(x,y); l3x = lambda3x(x,y);
+ L1 = Legendre5(l3 - l2); L2 = Legendre2(l2 - l1);
+ L1x = Legendre5x(l3 - l2) * (l3x - l2x); L2x = Legendre2x(l2 - l1) * (l2x - l1x);
+ return l1x * l2 *  l3 *  L1 *  L2 +          l1 * l2x * l3 *  L1 *  L2 +          l1 * l2 *  l3x * L1 *  L2 +          l1 * l2 *  l3 *  L1x * L2 +          l1 * l2 *  l3 *  L1 *  L2x;
 }
 
 static double gradleg_tri_b6_b3_2_ax(double x, double y)
@@ -6453,11 +6453,11 @@ static double gradleg_tri_b6_b3_2_ax(double x, double y)
 static double gradleg_tri_b6_b3_2_by(double x, double y)
 {
  double l1, l2, l3, l1y, l2y, l3y, L1, L2, L1y, L2y;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
- l1y = lambda1y(x,y); l2y = lambda2y(x,y); l3y = lambda3y(x,y); 
- L1 = Legendre5(l3 - l2); L2 = Legendre2(l2 - l1); 
- L1y = Legendre5x(l3 - l2) * (l3y - l2y); L2y = Legendre2x(l2 - l1) * (l2y - l1y); 
- return l1y * l2 *  l3 *  L1 *  L2 +          l1 * l2y * l3 *  L1 *  L2 +          l1 * l2 *  l3y * L1 *  L2 +          l1 * l2 *  l3 *  L1y * L2 +          l1 * l2 *  l3 *  L1 *  L2y; 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
+ l1y = lambda1y(x,y); l2y = lambda2y(x,y); l3y = lambda3y(x,y);
+ L1 = Legendre5(l3 - l2); L2 = Legendre2(l2 - l1);
+ L1y = Legendre5x(l3 - l2) * (l3y - l2y); L2y = Legendre2x(l2 - l1) * (l2y - l1y);
+ return l1y * l2 *  l3 *  L1 *  L2 +          l1 * l2y * l3 *  L1 *  L2 +          l1 * l2 *  l3y * L1 *  L2 +          l1 * l2 *  l3 *  L1y * L2 +          l1 * l2 *  l3 *  L1 *  L2y;
 }
 
 static double gradleg_tri_b6_b3_2_ay(double x, double y)
@@ -6468,7 +6468,7 @@ static double gradleg_tri_b6_b3_2_ay(double x, double y)
 static double gradleg_tri_b7_b2_1_a(double x, double y)
 {
  double l1, l2, l3;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
  return l1 * l2 * l3 * Legendre6(l3 - l2) * Legendre1(l2 - l1);
 }
 
@@ -6480,11 +6480,11 @@ static double gradleg_tri_b7_b2_1_b(double x, double y)
 static double gradleg_tri_b7_b2_1_ax(double x, double y)
 {
  double l1, l2, l3, l1x, l2x, l3x, L1, L2, L1x, L2x;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
- l1x = lambda1x(x,y); l2x = lambda2x(x,y); l3x = lambda3x(x,y); 
- L1 = Legendre6(l3 - l2); L2 = Legendre1(l2 - l1); 
- L1x = Legendre6x(l3 - l2) * (l3x - l2x); L2x = Legendre1x(l2 - l1) * (l2x - l1x); 
- return l1x * l2 *  l3 *  L1 *  L2 +          l1 * l2x * l3 *  L1 *  L2 +          l1 * l2 *  l3x * L1 *  L2 +          l1 * l2 *  l3 *  L1x * L2 +          l1 * l2 *  l3 *  L1 *  L2x; 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
+ l1x = lambda1x(x,y); l2x = lambda2x(x,y); l3x = lambda3x(x,y);
+ L1 = Legendre6(l3 - l2); L2 = Legendre1(l2 - l1);
+ L1x = Legendre6x(l3 - l2) * (l3x - l2x); L2x = Legendre1x(l2 - l1) * (l2x - l1x);
+ return l1x * l2 *  l3 *  L1 *  L2 +          l1 * l2x * l3 *  L1 *  L2 +          l1 * l2 *  l3x * L1 *  L2 +          l1 * l2 *  l3 *  L1x * L2 +          l1 * l2 *  l3 *  L1 *  L2x;
 }
 
 static double gradleg_tri_b7_b2_1_bx(double x, double y)
@@ -6495,11 +6495,11 @@ static double gradleg_tri_b7_b2_1_bx(double x, double y)
 static double gradleg_tri_b7_b2_1_ay(double x, double y)
 {
  double l1, l2, l3, l1y, l2y, l3y, L1, L2, L1y, L2y;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
- l1y = lambda1y(x,y); l2y = lambda2y(x,y); l3y = lambda3y(x,y); 
- L1 = Legendre6(l3 - l2); L2 = Legendre1(l2 - l1); 
- L1y = Legendre6x(l3 - l2) * (l3y - l2y); L2y = Legendre1x(l2 - l1) * (l2y - l1y); 
- return l1y * l2 *  l3 *  L1 *  L2 +          l1 * l2y * l3 *  L1 *  L2 +          l1 * l2 *  l3y * L1 *  L2 +          l1 * l2 *  l3 *  L1y * L2 +          l1 * l2 *  l3 *  L1 *  L2y; 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
+ l1y = lambda1y(x,y); l2y = lambda2y(x,y); l3y = lambda3y(x,y);
+ L1 = Legendre6(l3 - l2); L2 = Legendre1(l2 - l1);
+ L1y = Legendre6x(l3 - l2) * (l3y - l2y); L2y = Legendre1x(l2 - l1) * (l2y - l1y);
+ return l1y * l2 *  l3 *  L1 *  L2 +          l1 * l2y * l3 *  L1 *  L2 +          l1 * l2 *  l3y * L1 *  L2 +          l1 * l2 *  l3 *  L1y * L2 +          l1 * l2 *  l3 *  L1 *  L2y;
 }
 
 static double gradleg_tri_b7_b2_1_by(double x, double y)
@@ -6510,7 +6510,7 @@ static double gradleg_tri_b7_b2_1_by(double x, double y)
 static double gradleg_tri_b7_b2_2_b(double x, double y)
 {
  double l1, l2, l3;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
  return l1 * l2 * l3 * Legendre6(l3 - l2) * Legendre1(l2 - l1);
 }
 
@@ -6522,11 +6522,11 @@ static double gradleg_tri_b7_b2_2_a(double x, double y)
 static double gradleg_tri_b7_b2_2_bx(double x, double y)
 {
  double l1, l2, l3, l1x, l2x, l3x, L1, L2, L1x, L2x;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
- l1x = lambda1x(x,y); l2x = lambda2x(x,y); l3x = lambda3x(x,y); 
- L1 = Legendre6(l3 - l2); L2 = Legendre1(l2 - l1); 
- L1x = Legendre6x(l3 - l2) * (l3x - l2x); L2x = Legendre1x(l2 - l1) * (l2x - l1x); 
- return l1x * l2 *  l3 *  L1 *  L2 +          l1 * l2x * l3 *  L1 *  L2 +          l1 * l2 *  l3x * L1 *  L2 +          l1 * l2 *  l3 *  L1x * L2 +          l1 * l2 *  l3 *  L1 *  L2x; 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
+ l1x = lambda1x(x,y); l2x = lambda2x(x,y); l3x = lambda3x(x,y);
+ L1 = Legendre6(l3 - l2); L2 = Legendre1(l2 - l1);
+ L1x = Legendre6x(l3 - l2) * (l3x - l2x); L2x = Legendre1x(l2 - l1) * (l2x - l1x);
+ return l1x * l2 *  l3 *  L1 *  L2 +          l1 * l2x * l3 *  L1 *  L2 +          l1 * l2 *  l3x * L1 *  L2 +          l1 * l2 *  l3 *  L1x * L2 +          l1 * l2 *  l3 *  L1 *  L2x;
 }
 
 static double gradleg_tri_b7_b2_2_ax(double x, double y)
@@ -6537,11 +6537,11 @@ static double gradleg_tri_b7_b2_2_ax(double x, double y)
 static double gradleg_tri_b7_b2_2_by(double x, double y)
 {
  double l1, l2, l3, l1y, l2y, l3y, L1, L2, L1y, L2y;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
- l1y = lambda1y(x,y); l2y = lambda2y(x,y); l3y = lambda3y(x,y); 
- L1 = Legendre6(l3 - l2); L2 = Legendre1(l2 - l1); 
- L1y = Legendre6x(l3 - l2) * (l3y - l2y); L2y = Legendre1x(l2 - l1) * (l2y - l1y); 
- return l1y * l2 *  l3 *  L1 *  L2 +          l1 * l2y * l3 *  L1 *  L2 +          l1 * l2 *  l3y * L1 *  L2 +          l1 * l2 *  l3 *  L1y * L2 +          l1 * l2 *  l3 *  L1 *  L2y; 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
+ l1y = lambda1y(x,y); l2y = lambda2y(x,y); l3y = lambda3y(x,y);
+ L1 = Legendre6(l3 - l2); L2 = Legendre1(l2 - l1);
+ L1y = Legendre6x(l3 - l2) * (l3y - l2y); L2y = Legendre1x(l2 - l1) * (l2y - l1y);
+ return l1y * l2 *  l3 *  L1 *  L2 +          l1 * l2y * l3 *  L1 *  L2 +          l1 * l2 *  l3y * L1 *  L2 +          l1 * l2 *  l3 *  L1y * L2 +          l1 * l2 *  l3 *  L1 *  L2y;
 }
 
 static double gradleg_tri_b7_b2_2_ay(double x, double y)
@@ -6552,7 +6552,7 @@ static double gradleg_tri_b7_b2_2_ay(double x, double y)
 static double gradleg_tri_b8_b1_1_a(double x, double y)
 {
  double l1, l2, l3;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
  return l1 * l2 * l3 * Legendre7(l3 - l2) * Legendre0(l2 - l1);
 }
 
@@ -6564,11 +6564,11 @@ static double gradleg_tri_b8_b1_1_b(double x, double y)
 static double gradleg_tri_b8_b1_1_ax(double x, double y)
 {
  double l1, l2, l3, l1x, l2x, l3x, L1, L2, L1x, L2x;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
- l1x = lambda1x(x,y); l2x = lambda2x(x,y); l3x = lambda3x(x,y); 
- L1 = Legendre7(l3 - l2); L2 = Legendre0(l2 - l1); 
- L1x = Legendre7x(l3 - l2) * (l3x - l2x); L2x = Legendre0x(l2 - l1) * (l2x - l1x); 
- return l1x * l2 *  l3 *  L1 *  L2 +          l1 * l2x * l3 *  L1 *  L2 +          l1 * l2 *  l3x * L1 *  L2 +          l1 * l2 *  l3 *  L1x * L2 +          l1 * l2 *  l3 *  L1 *  L2x; 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
+ l1x = lambda1x(x,y); l2x = lambda2x(x,y); l3x = lambda3x(x,y);
+ L1 = Legendre7(l3 - l2); L2 = Legendre0(l2 - l1);
+ L1x = Legendre7x(l3 - l2) * (l3x - l2x); L2x = Legendre0x(l2 - l1) * (l2x - l1x);
+ return l1x * l2 *  l3 *  L1 *  L2 +          l1 * l2x * l3 *  L1 *  L2 +          l1 * l2 *  l3x * L1 *  L2 +          l1 * l2 *  l3 *  L1x * L2 +          l1 * l2 *  l3 *  L1 *  L2x;
 }
 
 static double gradleg_tri_b8_b1_1_bx(double x, double y)
@@ -6579,11 +6579,11 @@ static double gradleg_tri_b8_b1_1_bx(double x, double y)
 static double gradleg_tri_b8_b1_1_ay(double x, double y)
 {
  double l1, l2, l3, l1y, l2y, l3y, L1, L2, L1y, L2y;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
- l1y = lambda1y(x,y); l2y = lambda2y(x,y); l3y = lambda3y(x,y); 
- L1 = Legendre7(l3 - l2); L2 = Legendre0(l2 - l1); 
- L1y = Legendre7x(l3 - l2) * (l3y - l2y); L2y = Legendre0x(l2 - l1) * (l2y - l1y); 
- return l1y * l2 *  l3 *  L1 *  L2 +          l1 * l2y * l3 *  L1 *  L2 +          l1 * l2 *  l3y * L1 *  L2 +          l1 * l2 *  l3 *  L1y * L2 +          l1 * l2 *  l3 *  L1 *  L2y; 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
+ l1y = lambda1y(x,y); l2y = lambda2y(x,y); l3y = lambda3y(x,y);
+ L1 = Legendre7(l3 - l2); L2 = Legendre0(l2 - l1);
+ L1y = Legendre7x(l3 - l2) * (l3y - l2y); L2y = Legendre0x(l2 - l1) * (l2y - l1y);
+ return l1y * l2 *  l3 *  L1 *  L2 +          l1 * l2y * l3 *  L1 *  L2 +          l1 * l2 *  l3y * L1 *  L2 +          l1 * l2 *  l3 *  L1y * L2 +          l1 * l2 *  l3 *  L1 *  L2y;
 }
 
 static double gradleg_tri_b8_b1_1_by(double x, double y)
@@ -6594,7 +6594,7 @@ static double gradleg_tri_b8_b1_1_by(double x, double y)
 static double gradleg_tri_b8_b1_2_b(double x, double y)
 {
  double l1, l2, l3;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
  return l1 * l2 * l3 * Legendre7(l3 - l2) * Legendre0(l2 - l1);
 }
 
@@ -6606,11 +6606,11 @@ static double gradleg_tri_b8_b1_2_a(double x, double y)
 static double gradleg_tri_b8_b1_2_bx(double x, double y)
 {
  double l1, l2, l3, l1x, l2x, l3x, L1, L2, L1x, L2x;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
- l1x = lambda1x(x,y); l2x = lambda2x(x,y); l3x = lambda3x(x,y); 
- L1 = Legendre7(l3 - l2); L2 = Legendre0(l2 - l1); 
- L1x = Legendre7x(l3 - l2) * (l3x - l2x); L2x = Legendre0x(l2 - l1) * (l2x - l1x); 
- return l1x * l2 *  l3 *  L1 *  L2 +          l1 * l2x * l3 *  L1 *  L2 +          l1 * l2 *  l3x * L1 *  L2 +          l1 * l2 *  l3 *  L1x * L2 +          l1 * l2 *  l3 *  L1 *  L2x; 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
+ l1x = lambda1x(x,y); l2x = lambda2x(x,y); l3x = lambda3x(x,y);
+ L1 = Legendre7(l3 - l2); L2 = Legendre0(l2 - l1);
+ L1x = Legendre7x(l3 - l2) * (l3x - l2x); L2x = Legendre0x(l2 - l1) * (l2x - l1x);
+ return l1x * l2 *  l3 *  L1 *  L2 +          l1 * l2x * l3 *  L1 *  L2 +          l1 * l2 *  l3x * L1 *  L2 +          l1 * l2 *  l3 *  L1x * L2 +          l1 * l2 *  l3 *  L1 *  L2x;
 }
 
 static double gradleg_tri_b8_b1_2_ax(double x, double y)
@@ -6621,11 +6621,11 @@ static double gradleg_tri_b8_b1_2_ax(double x, double y)
 static double gradleg_tri_b8_b1_2_by(double x, double y)
 {
  double l1, l2, l3, l1y, l2y, l3y, L1, L2, L1y, L2y;
- l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y); 
- l1y = lambda1y(x,y); l2y = lambda2y(x,y); l3y = lambda3y(x,y); 
- L1 = Legendre7(l3 - l2); L2 = Legendre0(l2 - l1); 
- L1y = Legendre7x(l3 - l2) * (l3y - l2y); L2y = Legendre0x(l2 - l1) * (l2y - l1y); 
- return l1y * l2 *  l3 *  L1 *  L2 +          l1 * l2y * l3 *  L1 *  L2 +          l1 * l2 *  l3y * L1 *  L2 +          l1 * l2 *  l3 *  L1y * L2 +          l1 * l2 *  l3 *  L1 *  L2y; 
+ l1 = lambda1(x,y); l2 = lambda2(x,y); l3 = lambda3(x,y);
+ l1y = lambda1y(x,y); l2y = lambda2y(x,y); l3y = lambda3y(x,y);
+ L1 = Legendre7(l3 - l2); L2 = Legendre0(l2 - l1);
+ L1y = Legendre7x(l3 - l2) * (l3y - l2y); L2y = Legendre0x(l2 - l1) * (l2y - l1y);
+ return l1y * l2 *  l3 *  L1 *  L2 +          l1 * l2y * l3 *  L1 *  L2 +          l1 * l2 *  l3y * L1 *  L2 +          l1 * l2 *  l3 *  L1y * L2 +          l1 * l2 *  l3 *  L1 *  L2y;
 }
 
 static double gradleg_tri_b8_b1_2_ay(double x, double y)
@@ -6633,133 +6633,133 @@ static double gradleg_tri_b8_b1_2_ay(double x, double y)
  return 0.0;
 }
 
-static Shapeset::shape_fn_t gradleg_tri_fn_a[] = 
+static Shapeset::shape_fn_t gradleg_tri_fn_a[] =
 {
- gradleg_tri_p0_e1_a_0, gradleg_tri_p0_e1_a_1, gradleg_tri_p0_e2_a_0,  gradleg_tri_p0_e2_a_1, gradleg_tri_p0_e3_a_0, gradleg_tri_p0_e3_a_1, 
- gradleg_tri_p1_e1_a,   gradleg_tri_p1_e1_a,   gradleg_tri_p1_e2_a,    gradleg_tri_p1_e2_a,   gradleg_tri_p1_e3_a,   gradleg_tri_p1_e3_a,   
- gradleg_tri_p2_e1_a_0, gradleg_tri_p2_e1_a_1, gradleg_tri_p2_e2_a_0,  gradleg_tri_p2_e2_a_1, gradleg_tri_p2_e3_a_0, gradleg_tri_p2_e3_a_1, 
- gradleg_tri_p3_e1_a,   gradleg_tri_p3_e1_a,   gradleg_tri_p3_e2_a,    gradleg_tri_p3_e2_a,   gradleg_tri_p3_e3_a,   gradleg_tri_p3_e3_a,   
- gradleg_tri_p4_e1_a_0, gradleg_tri_p4_e1_a_1, gradleg_tri_p4_e2_a_0,  gradleg_tri_p4_e2_a_1, gradleg_tri_p4_e3_a_0, gradleg_tri_p4_e3_a_1, 
- gradleg_tri_p5_e1_a,   gradleg_tri_p5_e1_a,   gradleg_tri_p5_e2_a,    gradleg_tri_p5_e2_a,   gradleg_tri_p5_e3_a,   gradleg_tri_p5_e3_a,   
- gradleg_tri_p6_e1_a_0, gradleg_tri_p6_e1_a_1, gradleg_tri_p6_e2_a_0,  gradleg_tri_p6_e2_a_1, gradleg_tri_p6_e3_a_0, gradleg_tri_p6_e3_a_1, 
- gradleg_tri_p7_e1_a,   gradleg_tri_p7_e1_a,   gradleg_tri_p7_e2_a,    gradleg_tri_p7_e2_a,   gradleg_tri_p7_e3_a,   gradleg_tri_p7_e3_a,   
- gradleg_tri_p8_e1_a_0, gradleg_tri_p8_e1_a_1, gradleg_tri_p8_e2_a_0,  gradleg_tri_p8_e2_a_1, gradleg_tri_p8_e3_a_0, gradleg_tri_p8_e3_a_1, 
- gradleg_tri_p9_e1_a,   gradleg_tri_p9_e1_a,   gradleg_tri_p9_e2_a,    gradleg_tri_p9_e2_a,   gradleg_tri_p9_e3_a,   gradleg_tri_p9_e3_a,   
- gradleg_tri_p10_e1_a_0, gradleg_tri_p10_e1_a_1, gradleg_tri_p10_e2_a_0,  gradleg_tri_p10_e2_a_1, gradleg_tri_p10_e3_a_0, gradleg_tri_p10_e3_a_1, 
+ gradleg_tri_p0_e1_a_0, gradleg_tri_p0_e1_a_1, gradleg_tri_p0_e2_a_0,  gradleg_tri_p0_e2_a_1, gradleg_tri_p0_e3_a_0, gradleg_tri_p0_e3_a_1,
+ gradleg_tri_p1_e1_a,   gradleg_tri_p1_e1_a,   gradleg_tri_p1_e2_a,    gradleg_tri_p1_e2_a,   gradleg_tri_p1_e3_a,   gradleg_tri_p1_e3_a,
+ gradleg_tri_p2_e1_a_0, gradleg_tri_p2_e1_a_1, gradleg_tri_p2_e2_a_0,  gradleg_tri_p2_e2_a_1, gradleg_tri_p2_e3_a_0, gradleg_tri_p2_e3_a_1,
+ gradleg_tri_p3_e1_a,   gradleg_tri_p3_e1_a,   gradleg_tri_p3_e2_a,    gradleg_tri_p3_e2_a,   gradleg_tri_p3_e3_a,   gradleg_tri_p3_e3_a,
+ gradleg_tri_p4_e1_a_0, gradleg_tri_p4_e1_a_1, gradleg_tri_p4_e2_a_0,  gradleg_tri_p4_e2_a_1, gradleg_tri_p4_e3_a_0, gradleg_tri_p4_e3_a_1,
+ gradleg_tri_p5_e1_a,   gradleg_tri_p5_e1_a,   gradleg_tri_p5_e2_a,    gradleg_tri_p5_e2_a,   gradleg_tri_p5_e3_a,   gradleg_tri_p5_e3_a,
+ gradleg_tri_p6_e1_a_0, gradleg_tri_p6_e1_a_1, gradleg_tri_p6_e2_a_0,  gradleg_tri_p6_e2_a_1, gradleg_tri_p6_e3_a_0, gradleg_tri_p6_e3_a_1,
+ gradleg_tri_p7_e1_a,   gradleg_tri_p7_e1_a,   gradleg_tri_p7_e2_a,    gradleg_tri_p7_e2_a,   gradleg_tri_p7_e3_a,   gradleg_tri_p7_e3_a,
+ gradleg_tri_p8_e1_a_0, gradleg_tri_p8_e1_a_1, gradleg_tri_p8_e2_a_0,  gradleg_tri_p8_e2_a_1, gradleg_tri_p8_e3_a_0, gradleg_tri_p8_e3_a_1,
+ gradleg_tri_p9_e1_a,   gradleg_tri_p9_e1_a,   gradleg_tri_p9_e2_a,    gradleg_tri_p9_e2_a,   gradleg_tri_p9_e3_a,   gradleg_tri_p9_e3_a,
+ gradleg_tri_p10_e1_a_0, gradleg_tri_p10_e1_a_1, gradleg_tri_p10_e2_a_0,  gradleg_tri_p10_e2_a_1, gradleg_tri_p10_e3_a_0, gradleg_tri_p10_e3_a_1,
 
-  gradleg_tri_p2_b1_a,   gradleg_tri_p2_b2_a,   gradleg_tri_p2_b3_a,   gradleg_tri_p3_b1_a,   gradleg_tri_p3_b2_a,   gradleg_tri_p3_b3_a,   gradleg_tri_p4_b1_a,   gradleg_tri_p4_b2_a,   gradleg_tri_p4_b3_a,   gradleg_tri_p5_b1_a,   gradleg_tri_p5_b2_a,   gradleg_tri_p5_b3_a,   gradleg_tri_p6_b1_a,   gradleg_tri_p6_b2_a,   gradleg_tri_p6_b3_a,   gradleg_tri_p7_b1_a,   gradleg_tri_p7_b2_a,   gradleg_tri_p7_b3_a,   gradleg_tri_p8_b1_a,   gradleg_tri_p8_b2_a,   gradleg_tri_p8_b3_a,   gradleg_tri_p9_b1_a,   gradleg_tri_p9_b2_a,   gradleg_tri_p9_b3_a,   gradleg_tri_p10_b1_a,   gradleg_tri_p10_b2_a,   gradleg_tri_p10_b3_a, 
+  gradleg_tri_p2_b1_a,   gradleg_tri_p2_b2_a,   gradleg_tri_p2_b3_a,   gradleg_tri_p3_b1_a,   gradleg_tri_p3_b2_a,   gradleg_tri_p3_b3_a,   gradleg_tri_p4_b1_a,   gradleg_tri_p4_b2_a,   gradleg_tri_p4_b3_a,   gradleg_tri_p5_b1_a,   gradleg_tri_p5_b2_a,   gradleg_tri_p5_b3_a,   gradleg_tri_p6_b1_a,   gradleg_tri_p6_b2_a,   gradleg_tri_p6_b3_a,   gradleg_tri_p7_b1_a,   gradleg_tri_p7_b2_a,   gradleg_tri_p7_b3_a,   gradleg_tri_p8_b1_a,   gradleg_tri_p8_b2_a,   gradleg_tri_p8_b3_a,   gradleg_tri_p9_b1_a,   gradleg_tri_p9_b2_a,   gradleg_tri_p9_b3_a,   gradleg_tri_p10_b1_a,   gradleg_tri_p10_b2_a,   gradleg_tri_p10_b3_a,
 
   gradleg_tri_b1_b1_1_a, gradleg_tri_b1_b1_2_a,  gradleg_tri_b1_b2_1_a, gradleg_tri_b1_b2_2_a,  gradleg_tri_b2_b1_1_a, gradleg_tri_b2_b1_2_a,  gradleg_tri_b1_b3_1_a, gradleg_tri_b1_b3_2_a,  gradleg_tri_b2_b2_1_a, gradleg_tri_b2_b2_2_a,  gradleg_tri_b3_b1_1_a, gradleg_tri_b3_b1_2_a,  gradleg_tri_b1_b4_1_a, gradleg_tri_b1_b4_2_a,  gradleg_tri_b2_b3_1_a, gradleg_tri_b2_b3_2_a,  gradleg_tri_b3_b2_1_a, gradleg_tri_b3_b2_2_a,  gradleg_tri_b4_b1_1_a, gradleg_tri_b4_b1_2_a,  gradleg_tri_b1_b5_1_a, gradleg_tri_b1_b5_2_a,  gradleg_tri_b2_b4_1_a, gradleg_tri_b2_b4_2_a,  gradleg_tri_b3_b3_1_a, gradleg_tri_b3_b3_2_a,  gradleg_tri_b4_b2_1_a, gradleg_tri_b4_b2_2_a,  gradleg_tri_b5_b1_1_a, gradleg_tri_b5_b1_2_a,  gradleg_tri_b1_b6_1_a, gradleg_tri_b1_b6_2_a,  gradleg_tri_b2_b5_1_a, gradleg_tri_b2_b5_2_a,  gradleg_tri_b3_b4_1_a, gradleg_tri_b3_b4_2_a,  gradleg_tri_b4_b3_1_a, gradleg_tri_b4_b3_2_a,  gradleg_tri_b5_b2_1_a, gradleg_tri_b5_b2_2_a,  gradleg_tri_b6_b1_1_a, gradleg_tri_b6_b1_2_a,  gradleg_tri_b1_b7_1_a, gradleg_tri_b1_b7_2_a,  gradleg_tri_b2_b6_1_a, gradleg_tri_b2_b6_2_a,  gradleg_tri_b3_b5_1_a, gradleg_tri_b3_b5_2_a,  gradleg_tri_b4_b4_1_a, gradleg_tri_b4_b4_2_a,  gradleg_tri_b5_b3_1_a, gradleg_tri_b5_b3_2_a,  gradleg_tri_b6_b2_1_a, gradleg_tri_b6_b2_2_a,  gradleg_tri_b7_b1_1_a, gradleg_tri_b7_b1_2_a,  gradleg_tri_b1_b8_1_a, gradleg_tri_b1_b8_2_a,  gradleg_tri_b2_b7_1_a, gradleg_tri_b2_b7_2_a,  gradleg_tri_b3_b6_1_a, gradleg_tri_b3_b6_2_a,  gradleg_tri_b4_b5_1_a, gradleg_tri_b4_b5_2_a,  gradleg_tri_b5_b4_1_a, gradleg_tri_b5_b4_2_a,  gradleg_tri_b6_b3_1_a, gradleg_tri_b6_b3_2_a,  gradleg_tri_b7_b2_1_a, gradleg_tri_b7_b2_2_a,  gradleg_tri_b8_b1_1_a, gradleg_tri_b8_b1_2_a,
 
 
 };
 
-static Shapeset::shape_fn_t gradleg_tri_fn_b[] = 
+static Shapeset::shape_fn_t gradleg_tri_fn_b[] =
 {
- gradleg_tri_p0_e1_b_0, gradleg_tri_p0_e1_b_1, gradleg_tri_p0_e2_b_0,  gradleg_tri_p0_e2_b_1, gradleg_tri_p0_e3_b_0, gradleg_tri_p0_e3_b_1, 
- gradleg_tri_p1_e1_b,   gradleg_tri_p1_e1_b,   gradleg_tri_p1_e2_b,    gradleg_tri_p1_e2_b,   gradleg_tri_p1_e3_b,   gradleg_tri_p1_e3_b,   
- gradleg_tri_p2_e1_b_0, gradleg_tri_p2_e1_b_1, gradleg_tri_p2_e2_b_0,  gradleg_tri_p2_e2_b_1, gradleg_tri_p2_e3_b_0, gradleg_tri_p2_e3_b_1, 
- gradleg_tri_p3_e1_b,   gradleg_tri_p3_e1_b,   gradleg_tri_p3_e2_b,    gradleg_tri_p3_e2_b,   gradleg_tri_p3_e3_b,   gradleg_tri_p3_e3_b,   
- gradleg_tri_p4_e1_b_0, gradleg_tri_p4_e1_b_1, gradleg_tri_p4_e2_b_0,  gradleg_tri_p4_e2_b_1, gradleg_tri_p4_e3_b_0, gradleg_tri_p4_e3_b_1, 
- gradleg_tri_p5_e1_b,   gradleg_tri_p5_e1_b,   gradleg_tri_p5_e2_b,    gradleg_tri_p5_e2_b,   gradleg_tri_p5_e3_b,   gradleg_tri_p5_e3_b,   
- gradleg_tri_p6_e1_b_0, gradleg_tri_p6_e1_b_1, gradleg_tri_p6_e2_b_0,  gradleg_tri_p6_e2_b_1, gradleg_tri_p6_e3_b_0, gradleg_tri_p6_e3_b_1, 
- gradleg_tri_p7_e1_b,   gradleg_tri_p7_e1_b,   gradleg_tri_p7_e2_b,    gradleg_tri_p7_e2_b,   gradleg_tri_p7_e3_b,   gradleg_tri_p7_e3_b,   
- gradleg_tri_p8_e1_b_0, gradleg_tri_p8_e1_b_1, gradleg_tri_p8_e2_b_0,  gradleg_tri_p8_e2_b_1, gradleg_tri_p8_e3_b_0, gradleg_tri_p8_e3_b_1, 
- gradleg_tri_p9_e1_b,   gradleg_tri_p9_e1_b,   gradleg_tri_p9_e2_b,    gradleg_tri_p9_e2_b,   gradleg_tri_p9_e3_b,   gradleg_tri_p9_e3_b,   
- gradleg_tri_p10_e1_b_0, gradleg_tri_p10_e1_b_1, gradleg_tri_p10_e2_b_0,  gradleg_tri_p10_e2_b_1, gradleg_tri_p10_e3_b_0, gradleg_tri_p10_e3_b_1, 
+ gradleg_tri_p0_e1_b_0, gradleg_tri_p0_e1_b_1, gradleg_tri_p0_e2_b_0,  gradleg_tri_p0_e2_b_1, gradleg_tri_p0_e3_b_0, gradleg_tri_p0_e3_b_1,
+ gradleg_tri_p1_e1_b,   gradleg_tri_p1_e1_b,   gradleg_tri_p1_e2_b,    gradleg_tri_p1_e2_b,   gradleg_tri_p1_e3_b,   gradleg_tri_p1_e3_b,
+ gradleg_tri_p2_e1_b_0, gradleg_tri_p2_e1_b_1, gradleg_tri_p2_e2_b_0,  gradleg_tri_p2_e2_b_1, gradleg_tri_p2_e3_b_0, gradleg_tri_p2_e3_b_1,
+ gradleg_tri_p3_e1_b,   gradleg_tri_p3_e1_b,   gradleg_tri_p3_e2_b,    gradleg_tri_p3_e2_b,   gradleg_tri_p3_e3_b,   gradleg_tri_p3_e3_b,
+ gradleg_tri_p4_e1_b_0, gradleg_tri_p4_e1_b_1, gradleg_tri_p4_e2_b_0,  gradleg_tri_p4_e2_b_1, gradleg_tri_p4_e3_b_0, gradleg_tri_p4_e3_b_1,
+ gradleg_tri_p5_e1_b,   gradleg_tri_p5_e1_b,   gradleg_tri_p5_e2_b,    gradleg_tri_p5_e2_b,   gradleg_tri_p5_e3_b,   gradleg_tri_p5_e3_b,
+ gradleg_tri_p6_e1_b_0, gradleg_tri_p6_e1_b_1, gradleg_tri_p6_e2_b_0,  gradleg_tri_p6_e2_b_1, gradleg_tri_p6_e3_b_0, gradleg_tri_p6_e3_b_1,
+ gradleg_tri_p7_e1_b,   gradleg_tri_p7_e1_b,   gradleg_tri_p7_e2_b,    gradleg_tri_p7_e2_b,   gradleg_tri_p7_e3_b,   gradleg_tri_p7_e3_b,
+ gradleg_tri_p8_e1_b_0, gradleg_tri_p8_e1_b_1, gradleg_tri_p8_e2_b_0,  gradleg_tri_p8_e2_b_1, gradleg_tri_p8_e3_b_0, gradleg_tri_p8_e3_b_1,
+ gradleg_tri_p9_e1_b,   gradleg_tri_p9_e1_b,   gradleg_tri_p9_e2_b,    gradleg_tri_p9_e2_b,   gradleg_tri_p9_e3_b,   gradleg_tri_p9_e3_b,
+ gradleg_tri_p10_e1_b_0, gradleg_tri_p10_e1_b_1, gradleg_tri_p10_e2_b_0,  gradleg_tri_p10_e2_b_1, gradleg_tri_p10_e3_b_0, gradleg_tri_p10_e3_b_1,
 
-  gradleg_tri_p2_b1_b,   gradleg_tri_p2_b2_b,   gradleg_tri_p2_b3_b,   gradleg_tri_p3_b1_b,   gradleg_tri_p3_b2_b,   gradleg_tri_p3_b3_b,   gradleg_tri_p4_b1_b,   gradleg_tri_p4_b2_b,   gradleg_tri_p4_b3_b,   gradleg_tri_p5_b1_b,   gradleg_tri_p5_b2_b,   gradleg_tri_p5_b3_b,   gradleg_tri_p6_b1_b,   gradleg_tri_p6_b2_b,   gradleg_tri_p6_b3_b,   gradleg_tri_p7_b1_b,   gradleg_tri_p7_b2_b,   gradleg_tri_p7_b3_b,   gradleg_tri_p8_b1_b,   gradleg_tri_p8_b2_b,   gradleg_tri_p8_b3_b,   gradleg_tri_p9_b1_b,   gradleg_tri_p9_b2_b,   gradleg_tri_p9_b3_b,   gradleg_tri_p10_b1_b,   gradleg_tri_p10_b2_b,   gradleg_tri_p10_b3_b, 
+  gradleg_tri_p2_b1_b,   gradleg_tri_p2_b2_b,   gradleg_tri_p2_b3_b,   gradleg_tri_p3_b1_b,   gradleg_tri_p3_b2_b,   gradleg_tri_p3_b3_b,   gradleg_tri_p4_b1_b,   gradleg_tri_p4_b2_b,   gradleg_tri_p4_b3_b,   gradleg_tri_p5_b1_b,   gradleg_tri_p5_b2_b,   gradleg_tri_p5_b3_b,   gradleg_tri_p6_b1_b,   gradleg_tri_p6_b2_b,   gradleg_tri_p6_b3_b,   gradleg_tri_p7_b1_b,   gradleg_tri_p7_b2_b,   gradleg_tri_p7_b3_b,   gradleg_tri_p8_b1_b,   gradleg_tri_p8_b2_b,   gradleg_tri_p8_b3_b,   gradleg_tri_p9_b1_b,   gradleg_tri_p9_b2_b,   gradleg_tri_p9_b3_b,   gradleg_tri_p10_b1_b,   gradleg_tri_p10_b2_b,   gradleg_tri_p10_b3_b,
 
   gradleg_tri_b1_b1_1_b, gradleg_tri_b1_b1_2_b,  gradleg_tri_b1_b2_1_b, gradleg_tri_b1_b2_2_b,  gradleg_tri_b2_b1_1_b, gradleg_tri_b2_b1_2_b,  gradleg_tri_b1_b3_1_b, gradleg_tri_b1_b3_2_b,  gradleg_tri_b2_b2_1_b, gradleg_tri_b2_b2_2_b,  gradleg_tri_b3_b1_1_b, gradleg_tri_b3_b1_2_b,  gradleg_tri_b1_b4_1_b, gradleg_tri_b1_b4_2_b,  gradleg_tri_b2_b3_1_b, gradleg_tri_b2_b3_2_b,  gradleg_tri_b3_b2_1_b, gradleg_tri_b3_b2_2_b,  gradleg_tri_b4_b1_1_b, gradleg_tri_b4_b1_2_b,  gradleg_tri_b1_b5_1_b, gradleg_tri_b1_b5_2_b,  gradleg_tri_b2_b4_1_b, gradleg_tri_b2_b4_2_b,  gradleg_tri_b3_b3_1_b, gradleg_tri_b3_b3_2_b,  gradleg_tri_b4_b2_1_b, gradleg_tri_b4_b2_2_b,  gradleg_tri_b5_b1_1_b, gradleg_tri_b5_b1_2_b,  gradleg_tri_b1_b6_1_b, gradleg_tri_b1_b6_2_b,  gradleg_tri_b2_b5_1_b, gradleg_tri_b2_b5_2_b,  gradleg_tri_b3_b4_1_b, gradleg_tri_b3_b4_2_b,  gradleg_tri_b4_b3_1_b, gradleg_tri_b4_b3_2_b,  gradleg_tri_b5_b2_1_b, gradleg_tri_b5_b2_2_b,  gradleg_tri_b6_b1_1_b, gradleg_tri_b6_b1_2_b,  gradleg_tri_b1_b7_1_b, gradleg_tri_b1_b7_2_b,  gradleg_tri_b2_b6_1_b, gradleg_tri_b2_b6_2_b,  gradleg_tri_b3_b5_1_b, gradleg_tri_b3_b5_2_b,  gradleg_tri_b4_b4_1_b, gradleg_tri_b4_b4_2_b,  gradleg_tri_b5_b3_1_b, gradleg_tri_b5_b3_2_b,  gradleg_tri_b6_b2_1_b, gradleg_tri_b6_b2_2_b,  gradleg_tri_b7_b1_1_b, gradleg_tri_b7_b1_2_b,  gradleg_tri_b1_b8_1_b, gradleg_tri_b1_b8_2_b,  gradleg_tri_b2_b7_1_b, gradleg_tri_b2_b7_2_b,  gradleg_tri_b3_b6_1_b, gradleg_tri_b3_b6_2_b,  gradleg_tri_b4_b5_1_b, gradleg_tri_b4_b5_2_b,  gradleg_tri_b5_b4_1_b, gradleg_tri_b5_b4_2_b,  gradleg_tri_b6_b3_1_b, gradleg_tri_b6_b3_2_b,  gradleg_tri_b7_b2_1_b, gradleg_tri_b7_b2_2_b,  gradleg_tri_b8_b1_1_b, gradleg_tri_b8_b1_2_b,
 
 
 };
 
-static Shapeset::shape_fn_t gradleg_tri_fn_ax[] = 
+static Shapeset::shape_fn_t gradleg_tri_fn_ax[] =
 {
- gradleg_tri_p0_e1_ax_0, gradleg_tri_p0_e1_ax_1, gradleg_tri_p0_e2_ax_0,  gradleg_tri_p0_e2_ax_1, gradleg_tri_p0_e3_ax_0, gradleg_tri_p0_e3_ax_1, 
- gradleg_tri_p1_e1_ax,   gradleg_tri_p1_e1_ax,   gradleg_tri_p1_e2_ax,    gradleg_tri_p1_e2_ax,   gradleg_tri_p1_e3_ax,   gradleg_tri_p1_e3_ax,   
- gradleg_tri_p2_e1_ax_0, gradleg_tri_p2_e1_ax_1, gradleg_tri_p2_e2_ax_0,  gradleg_tri_p2_e2_ax_1, gradleg_tri_p2_e3_ax_0, gradleg_tri_p2_e3_ax_1, 
- gradleg_tri_p3_e1_ax,   gradleg_tri_p3_e1_ax,   gradleg_tri_p3_e2_ax,    gradleg_tri_p3_e2_ax,   gradleg_tri_p3_e3_ax,   gradleg_tri_p3_e3_ax,   
- gradleg_tri_p4_e1_ax_0, gradleg_tri_p4_e1_ax_1, gradleg_tri_p4_e2_ax_0,  gradleg_tri_p4_e2_ax_1, gradleg_tri_p4_e3_ax_0, gradleg_tri_p4_e3_ax_1, 
- gradleg_tri_p5_e1_ax,   gradleg_tri_p5_e1_ax,   gradleg_tri_p5_e2_ax,    gradleg_tri_p5_e2_ax,   gradleg_tri_p5_e3_ax,   gradleg_tri_p5_e3_ax,   
- gradleg_tri_p6_e1_ax_0, gradleg_tri_p6_e1_ax_1, gradleg_tri_p6_e2_ax_0,  gradleg_tri_p6_e2_ax_1, gradleg_tri_p6_e3_ax_0, gradleg_tri_p6_e3_ax_1, 
- gradleg_tri_p7_e1_ax,   gradleg_tri_p7_e1_ax,   gradleg_tri_p7_e2_ax,    gradleg_tri_p7_e2_ax,   gradleg_tri_p7_e3_ax,   gradleg_tri_p7_e3_ax,   
- gradleg_tri_p8_e1_ax_0, gradleg_tri_p8_e1_ax_1, gradleg_tri_p8_e2_ax_0,  gradleg_tri_p8_e2_ax_1, gradleg_tri_p8_e3_ax_0, gradleg_tri_p8_e3_ax_1, 
- gradleg_tri_p9_e1_ax,   gradleg_tri_p9_e1_ax,   gradleg_tri_p9_e2_ax,    gradleg_tri_p9_e2_ax,   gradleg_tri_p9_e3_ax,   gradleg_tri_p9_e3_ax,   
- gradleg_tri_p10_e1_ax_0, gradleg_tri_p10_e1_ax_1, gradleg_tri_p10_e2_ax_0,  gradleg_tri_p10_e2_ax_1, gradleg_tri_p10_e3_ax_0, gradleg_tri_p10_e3_ax_1, 
+ gradleg_tri_p0_e1_ax_0, gradleg_tri_p0_e1_ax_1, gradleg_tri_p0_e2_ax_0,  gradleg_tri_p0_e2_ax_1, gradleg_tri_p0_e3_ax_0, gradleg_tri_p0_e3_ax_1,
+ gradleg_tri_p1_e1_ax,   gradleg_tri_p1_e1_ax,   gradleg_tri_p1_e2_ax,    gradleg_tri_p1_e2_ax,   gradleg_tri_p1_e3_ax,   gradleg_tri_p1_e3_ax,
+ gradleg_tri_p2_e1_ax_0, gradleg_tri_p2_e1_ax_1, gradleg_tri_p2_e2_ax_0,  gradleg_tri_p2_e2_ax_1, gradleg_tri_p2_e3_ax_0, gradleg_tri_p2_e3_ax_1,
+ gradleg_tri_p3_e1_ax,   gradleg_tri_p3_e1_ax,   gradleg_tri_p3_e2_ax,    gradleg_tri_p3_e2_ax,   gradleg_tri_p3_e3_ax,   gradleg_tri_p3_e3_ax,
+ gradleg_tri_p4_e1_ax_0, gradleg_tri_p4_e1_ax_1, gradleg_tri_p4_e2_ax_0,  gradleg_tri_p4_e2_ax_1, gradleg_tri_p4_e3_ax_0, gradleg_tri_p4_e3_ax_1,
+ gradleg_tri_p5_e1_ax,   gradleg_tri_p5_e1_ax,   gradleg_tri_p5_e2_ax,    gradleg_tri_p5_e2_ax,   gradleg_tri_p5_e3_ax,   gradleg_tri_p5_e3_ax,
+ gradleg_tri_p6_e1_ax_0, gradleg_tri_p6_e1_ax_1, gradleg_tri_p6_e2_ax_0,  gradleg_tri_p6_e2_ax_1, gradleg_tri_p6_e3_ax_0, gradleg_tri_p6_e3_ax_1,
+ gradleg_tri_p7_e1_ax,   gradleg_tri_p7_e1_ax,   gradleg_tri_p7_e2_ax,    gradleg_tri_p7_e2_ax,   gradleg_tri_p7_e3_ax,   gradleg_tri_p7_e3_ax,
+ gradleg_tri_p8_e1_ax_0, gradleg_tri_p8_e1_ax_1, gradleg_tri_p8_e2_ax_0,  gradleg_tri_p8_e2_ax_1, gradleg_tri_p8_e3_ax_0, gradleg_tri_p8_e3_ax_1,
+ gradleg_tri_p9_e1_ax,   gradleg_tri_p9_e1_ax,   gradleg_tri_p9_e2_ax,    gradleg_tri_p9_e2_ax,   gradleg_tri_p9_e3_ax,   gradleg_tri_p9_e3_ax,
+ gradleg_tri_p10_e1_ax_0, gradleg_tri_p10_e1_ax_1, gradleg_tri_p10_e2_ax_0,  gradleg_tri_p10_e2_ax_1, gradleg_tri_p10_e3_ax_0, gradleg_tri_p10_e3_ax_1,
 
-  gradleg_tri_p2_b1_ax,   gradleg_tri_p2_b2_ax,   gradleg_tri_p2_b3_ax,   gradleg_tri_p3_b1_ax,   gradleg_tri_p3_b2_ax,   gradleg_tri_p3_b3_ax,   gradleg_tri_p4_b1_ax,   gradleg_tri_p4_b2_ax,   gradleg_tri_p4_b3_ax,   gradleg_tri_p5_b1_ax,   gradleg_tri_p5_b2_ax,   gradleg_tri_p5_b3_ax,   gradleg_tri_p6_b1_ax,   gradleg_tri_p6_b2_ax,   gradleg_tri_p6_b3_ax,   gradleg_tri_p7_b1_ax,   gradleg_tri_p7_b2_ax,   gradleg_tri_p7_b3_ax,   gradleg_tri_p8_b1_ax,   gradleg_tri_p8_b2_ax,   gradleg_tri_p8_b3_ax,   gradleg_tri_p9_b1_ax,   gradleg_tri_p9_b2_ax,   gradleg_tri_p9_b3_ax,   gradleg_tri_p10_b1_ax,   gradleg_tri_p10_b2_ax,   gradleg_tri_p10_b3_ax, 
+  gradleg_tri_p2_b1_ax,   gradleg_tri_p2_b2_ax,   gradleg_tri_p2_b3_ax,   gradleg_tri_p3_b1_ax,   gradleg_tri_p3_b2_ax,   gradleg_tri_p3_b3_ax,   gradleg_tri_p4_b1_ax,   gradleg_tri_p4_b2_ax,   gradleg_tri_p4_b3_ax,   gradleg_tri_p5_b1_ax,   gradleg_tri_p5_b2_ax,   gradleg_tri_p5_b3_ax,   gradleg_tri_p6_b1_ax,   gradleg_tri_p6_b2_ax,   gradleg_tri_p6_b3_ax,   gradleg_tri_p7_b1_ax,   gradleg_tri_p7_b2_ax,   gradleg_tri_p7_b3_ax,   gradleg_tri_p8_b1_ax,   gradleg_tri_p8_b2_ax,   gradleg_tri_p8_b3_ax,   gradleg_tri_p9_b1_ax,   gradleg_tri_p9_b2_ax,   gradleg_tri_p9_b3_ax,   gradleg_tri_p10_b1_ax,   gradleg_tri_p10_b2_ax,   gradleg_tri_p10_b3_ax,
 
   gradleg_tri_b1_b1_1_ax, gradleg_tri_b1_b1_2_ax,  gradleg_tri_b1_b2_1_ax, gradleg_tri_b1_b2_2_ax,  gradleg_tri_b2_b1_1_ax, gradleg_tri_b2_b1_2_ax,  gradleg_tri_b1_b3_1_ax, gradleg_tri_b1_b3_2_ax,  gradleg_tri_b2_b2_1_ax, gradleg_tri_b2_b2_2_ax,  gradleg_tri_b3_b1_1_ax, gradleg_tri_b3_b1_2_ax,  gradleg_tri_b1_b4_1_ax, gradleg_tri_b1_b4_2_ax,  gradleg_tri_b2_b3_1_ax, gradleg_tri_b2_b3_2_ax,  gradleg_tri_b3_b2_1_ax, gradleg_tri_b3_b2_2_ax,  gradleg_tri_b4_b1_1_ax, gradleg_tri_b4_b1_2_ax,  gradleg_tri_b1_b5_1_ax, gradleg_tri_b1_b5_2_ax,  gradleg_tri_b2_b4_1_ax, gradleg_tri_b2_b4_2_ax,  gradleg_tri_b3_b3_1_ax, gradleg_tri_b3_b3_2_ax,  gradleg_tri_b4_b2_1_ax, gradleg_tri_b4_b2_2_ax,  gradleg_tri_b5_b1_1_ax, gradleg_tri_b5_b1_2_ax,  gradleg_tri_b1_b6_1_ax, gradleg_tri_b1_b6_2_ax,  gradleg_tri_b2_b5_1_ax, gradleg_tri_b2_b5_2_ax,  gradleg_tri_b3_b4_1_ax, gradleg_tri_b3_b4_2_ax,  gradleg_tri_b4_b3_1_ax, gradleg_tri_b4_b3_2_ax,  gradleg_tri_b5_b2_1_ax, gradleg_tri_b5_b2_2_ax,  gradleg_tri_b6_b1_1_ax, gradleg_tri_b6_b1_2_ax,  gradleg_tri_b1_b7_1_ax, gradleg_tri_b1_b7_2_ax,  gradleg_tri_b2_b6_1_ax, gradleg_tri_b2_b6_2_ax,  gradleg_tri_b3_b5_1_ax, gradleg_tri_b3_b5_2_ax,  gradleg_tri_b4_b4_1_ax, gradleg_tri_b4_b4_2_ax,  gradleg_tri_b5_b3_1_ax, gradleg_tri_b5_b3_2_ax,  gradleg_tri_b6_b2_1_ax, gradleg_tri_b6_b2_2_ax,  gradleg_tri_b7_b1_1_ax, gradleg_tri_b7_b1_2_ax,  gradleg_tri_b1_b8_1_ax, gradleg_tri_b1_b8_2_ax,  gradleg_tri_b2_b7_1_ax, gradleg_tri_b2_b7_2_ax,  gradleg_tri_b3_b6_1_ax, gradleg_tri_b3_b6_2_ax,  gradleg_tri_b4_b5_1_ax, gradleg_tri_b4_b5_2_ax,  gradleg_tri_b5_b4_1_ax, gradleg_tri_b5_b4_2_ax,  gradleg_tri_b6_b3_1_ax, gradleg_tri_b6_b3_2_ax,  gradleg_tri_b7_b2_1_ax, gradleg_tri_b7_b2_2_ax,  gradleg_tri_b8_b1_1_ax, gradleg_tri_b8_b1_2_ax,
 
 
 };
 
-static Shapeset::shape_fn_t gradleg_tri_fn_bx[] = 
+static Shapeset::shape_fn_t gradleg_tri_fn_bx[] =
 {
- gradleg_tri_p0_e1_bx_0, gradleg_tri_p0_e1_bx_1, gradleg_tri_p0_e2_bx_0,  gradleg_tri_p0_e2_bx_1, gradleg_tri_p0_e3_bx_0, gradleg_tri_p0_e3_bx_1, 
- gradleg_tri_p1_e1_bx,   gradleg_tri_p1_e1_bx,   gradleg_tri_p1_e2_bx,    gradleg_tri_p1_e2_bx,   gradleg_tri_p1_e3_bx,   gradleg_tri_p1_e3_bx,   
- gradleg_tri_p2_e1_bx_0, gradleg_tri_p2_e1_bx_1, gradleg_tri_p2_e2_bx_0,  gradleg_tri_p2_e2_bx_1, gradleg_tri_p2_e3_bx_0, gradleg_tri_p2_e3_bx_1, 
- gradleg_tri_p3_e1_bx,   gradleg_tri_p3_e1_bx,   gradleg_tri_p3_e2_bx,    gradleg_tri_p3_e2_bx,   gradleg_tri_p3_e3_bx,   gradleg_tri_p3_e3_bx,   
- gradleg_tri_p4_e1_bx_0, gradleg_tri_p4_e1_bx_1, gradleg_tri_p4_e2_bx_0,  gradleg_tri_p4_e2_bx_1, gradleg_tri_p4_e3_bx_0, gradleg_tri_p4_e3_bx_1, 
- gradleg_tri_p5_e1_bx,   gradleg_tri_p5_e1_bx,   gradleg_tri_p5_e2_bx,    gradleg_tri_p5_e2_bx,   gradleg_tri_p5_e3_bx,   gradleg_tri_p5_e3_bx,   
- gradleg_tri_p6_e1_bx_0, gradleg_tri_p6_e1_bx_1, gradleg_tri_p6_e2_bx_0,  gradleg_tri_p6_e2_bx_1, gradleg_tri_p6_e3_bx_0, gradleg_tri_p6_e3_bx_1, 
- gradleg_tri_p7_e1_bx,   gradleg_tri_p7_e1_bx,   gradleg_tri_p7_e2_bx,    gradleg_tri_p7_e2_bx,   gradleg_tri_p7_e3_bx,   gradleg_tri_p7_e3_bx,   
- gradleg_tri_p8_e1_bx_0, gradleg_tri_p8_e1_bx_1, gradleg_tri_p8_e2_bx_0,  gradleg_tri_p8_e2_bx_1, gradleg_tri_p8_e3_bx_0, gradleg_tri_p8_e3_bx_1, 
- gradleg_tri_p9_e1_bx,   gradleg_tri_p9_e1_bx,   gradleg_tri_p9_e2_bx,    gradleg_tri_p9_e2_bx,   gradleg_tri_p9_e3_bx,   gradleg_tri_p9_e3_bx,   
- gradleg_tri_p10_e1_bx_0, gradleg_tri_p10_e1_bx_1, gradleg_tri_p10_e2_bx_0,  gradleg_tri_p10_e2_bx_1, gradleg_tri_p10_e3_bx_0, gradleg_tri_p10_e3_bx_1, 
+ gradleg_tri_p0_e1_bx_0, gradleg_tri_p0_e1_bx_1, gradleg_tri_p0_e2_bx_0,  gradleg_tri_p0_e2_bx_1, gradleg_tri_p0_e3_bx_0, gradleg_tri_p0_e3_bx_1,
+ gradleg_tri_p1_e1_bx,   gradleg_tri_p1_e1_bx,   gradleg_tri_p1_e2_bx,    gradleg_tri_p1_e2_bx,   gradleg_tri_p1_e3_bx,   gradleg_tri_p1_e3_bx,
+ gradleg_tri_p2_e1_bx_0, gradleg_tri_p2_e1_bx_1, gradleg_tri_p2_e2_bx_0,  gradleg_tri_p2_e2_bx_1, gradleg_tri_p2_e3_bx_0, gradleg_tri_p2_e3_bx_1,
+ gradleg_tri_p3_e1_bx,   gradleg_tri_p3_e1_bx,   gradleg_tri_p3_e2_bx,    gradleg_tri_p3_e2_bx,   gradleg_tri_p3_e3_bx,   gradleg_tri_p3_e3_bx,
+ gradleg_tri_p4_e1_bx_0, gradleg_tri_p4_e1_bx_1, gradleg_tri_p4_e2_bx_0,  gradleg_tri_p4_e2_bx_1, gradleg_tri_p4_e3_bx_0, gradleg_tri_p4_e3_bx_1,
+ gradleg_tri_p5_e1_bx,   gradleg_tri_p5_e1_bx,   gradleg_tri_p5_e2_bx,    gradleg_tri_p5_e2_bx,   gradleg_tri_p5_e3_bx,   gradleg_tri_p5_e3_bx,
+ gradleg_tri_p6_e1_bx_0, gradleg_tri_p6_e1_bx_1, gradleg_tri_p6_e2_bx_0,  gradleg_tri_p6_e2_bx_1, gradleg_tri_p6_e3_bx_0, gradleg_tri_p6_e3_bx_1,
+ gradleg_tri_p7_e1_bx,   gradleg_tri_p7_e1_bx,   gradleg_tri_p7_e2_bx,    gradleg_tri_p7_e2_bx,   gradleg_tri_p7_e3_bx,   gradleg_tri_p7_e3_bx,
+ gradleg_tri_p8_e1_bx_0, gradleg_tri_p8_e1_bx_1, gradleg_tri_p8_e2_bx_0,  gradleg_tri_p8_e2_bx_1, gradleg_tri_p8_e3_bx_0, gradleg_tri_p8_e3_bx_1,
+ gradleg_tri_p9_e1_bx,   gradleg_tri_p9_e1_bx,   gradleg_tri_p9_e2_bx,    gradleg_tri_p9_e2_bx,   gradleg_tri_p9_e3_bx,   gradleg_tri_p9_e3_bx,
+ gradleg_tri_p10_e1_bx_0, gradleg_tri_p10_e1_bx_1, gradleg_tri_p10_e2_bx_0,  gradleg_tri_p10_e2_bx_1, gradleg_tri_p10_e3_bx_0, gradleg_tri_p10_e3_bx_1,
 
-  gradleg_tri_p2_b1_bx,   gradleg_tri_p2_b2_bx,   gradleg_tri_p2_b3_bx,   gradleg_tri_p3_b1_bx,   gradleg_tri_p3_b2_bx,   gradleg_tri_p3_b3_bx,   gradleg_tri_p4_b1_bx,   gradleg_tri_p4_b2_bx,   gradleg_tri_p4_b3_bx,   gradleg_tri_p5_b1_bx,   gradleg_tri_p5_b2_bx,   gradleg_tri_p5_b3_bx,   gradleg_tri_p6_b1_bx,   gradleg_tri_p6_b2_bx,   gradleg_tri_p6_b3_bx,   gradleg_tri_p7_b1_bx,   gradleg_tri_p7_b2_bx,   gradleg_tri_p7_b3_bx,   gradleg_tri_p8_b1_bx,   gradleg_tri_p8_b2_bx,   gradleg_tri_p8_b3_bx,   gradleg_tri_p9_b1_bx,   gradleg_tri_p9_b2_bx,   gradleg_tri_p9_b3_bx,   gradleg_tri_p10_b1_bx,   gradleg_tri_p10_b2_bx,   gradleg_tri_p10_b3_bx, 
+  gradleg_tri_p2_b1_bx,   gradleg_tri_p2_b2_bx,   gradleg_tri_p2_b3_bx,   gradleg_tri_p3_b1_bx,   gradleg_tri_p3_b2_bx,   gradleg_tri_p3_b3_bx,   gradleg_tri_p4_b1_bx,   gradleg_tri_p4_b2_bx,   gradleg_tri_p4_b3_bx,   gradleg_tri_p5_b1_bx,   gradleg_tri_p5_b2_bx,   gradleg_tri_p5_b3_bx,   gradleg_tri_p6_b1_bx,   gradleg_tri_p6_b2_bx,   gradleg_tri_p6_b3_bx,   gradleg_tri_p7_b1_bx,   gradleg_tri_p7_b2_bx,   gradleg_tri_p7_b3_bx,   gradleg_tri_p8_b1_bx,   gradleg_tri_p8_b2_bx,   gradleg_tri_p8_b3_bx,   gradleg_tri_p9_b1_bx,   gradleg_tri_p9_b2_bx,   gradleg_tri_p9_b3_bx,   gradleg_tri_p10_b1_bx,   gradleg_tri_p10_b2_bx,   gradleg_tri_p10_b3_bx,
 
   gradleg_tri_b1_b1_1_bx, gradleg_tri_b1_b1_2_bx,  gradleg_tri_b1_b2_1_bx, gradleg_tri_b1_b2_2_bx,  gradleg_tri_b2_b1_1_bx, gradleg_tri_b2_b1_2_bx,  gradleg_tri_b1_b3_1_bx, gradleg_tri_b1_b3_2_bx,  gradleg_tri_b2_b2_1_bx, gradleg_tri_b2_b2_2_bx,  gradleg_tri_b3_b1_1_bx, gradleg_tri_b3_b1_2_bx,  gradleg_tri_b1_b4_1_bx, gradleg_tri_b1_b4_2_bx,  gradleg_tri_b2_b3_1_bx, gradleg_tri_b2_b3_2_bx,  gradleg_tri_b3_b2_1_bx, gradleg_tri_b3_b2_2_bx,  gradleg_tri_b4_b1_1_bx, gradleg_tri_b4_b1_2_bx,  gradleg_tri_b1_b5_1_bx, gradleg_tri_b1_b5_2_bx,  gradleg_tri_b2_b4_1_bx, gradleg_tri_b2_b4_2_bx,  gradleg_tri_b3_b3_1_bx, gradleg_tri_b3_b3_2_bx,  gradleg_tri_b4_b2_1_bx, gradleg_tri_b4_b2_2_bx,  gradleg_tri_b5_b1_1_bx, gradleg_tri_b5_b1_2_bx,  gradleg_tri_b1_b6_1_bx, gradleg_tri_b1_b6_2_bx,  gradleg_tri_b2_b5_1_bx, gradleg_tri_b2_b5_2_bx,  gradleg_tri_b3_b4_1_bx, gradleg_tri_b3_b4_2_bx,  gradleg_tri_b4_b3_1_bx, gradleg_tri_b4_b3_2_bx,  gradleg_tri_b5_b2_1_bx, gradleg_tri_b5_b2_2_bx,  gradleg_tri_b6_b1_1_bx, gradleg_tri_b6_b1_2_bx,  gradleg_tri_b1_b7_1_bx, gradleg_tri_b1_b7_2_bx,  gradleg_tri_b2_b6_1_bx, gradleg_tri_b2_b6_2_bx,  gradleg_tri_b3_b5_1_bx, gradleg_tri_b3_b5_2_bx,  gradleg_tri_b4_b4_1_bx, gradleg_tri_b4_b4_2_bx,  gradleg_tri_b5_b3_1_bx, gradleg_tri_b5_b3_2_bx,  gradleg_tri_b6_b2_1_bx, gradleg_tri_b6_b2_2_bx,  gradleg_tri_b7_b1_1_bx, gradleg_tri_b7_b1_2_bx,  gradleg_tri_b1_b8_1_bx, gradleg_tri_b1_b8_2_bx,  gradleg_tri_b2_b7_1_bx, gradleg_tri_b2_b7_2_bx,  gradleg_tri_b3_b6_1_bx, gradleg_tri_b3_b6_2_bx,  gradleg_tri_b4_b5_1_bx, gradleg_tri_b4_b5_2_bx,  gradleg_tri_b5_b4_1_bx, gradleg_tri_b5_b4_2_bx,  gradleg_tri_b6_b3_1_bx, gradleg_tri_b6_b3_2_bx,  gradleg_tri_b7_b2_1_bx, gradleg_tri_b7_b2_2_bx,  gradleg_tri_b8_b1_1_bx, gradleg_tri_b8_b1_2_bx,
 
 
 };
 
-static Shapeset::shape_fn_t gradleg_tri_fn_ay[] = 
+static Shapeset::shape_fn_t gradleg_tri_fn_ay[] =
 {
- gradleg_tri_p0_e1_ay_0, gradleg_tri_p0_e1_ay_1, gradleg_tri_p0_e2_ay_0,  gradleg_tri_p0_e2_ay_1, gradleg_tri_p0_e3_ay_0, gradleg_tri_p0_e3_ay_1, 
- gradleg_tri_p1_e1_ay,   gradleg_tri_p1_e1_ay,   gradleg_tri_p1_e2_ay,    gradleg_tri_p1_e2_ay,   gradleg_tri_p1_e3_ay,   gradleg_tri_p1_e3_ay,   
- gradleg_tri_p2_e1_ay_0, gradleg_tri_p2_e1_ay_1, gradleg_tri_p2_e2_ay_0,  gradleg_tri_p2_e2_ay_1, gradleg_tri_p2_e3_ay_0, gradleg_tri_p2_e3_ay_1, 
- gradleg_tri_p3_e1_ay,   gradleg_tri_p3_e1_ay,   gradleg_tri_p3_e2_ay,    gradleg_tri_p3_e2_ay,   gradleg_tri_p3_e3_ay,   gradleg_tri_p3_e3_ay,   
- gradleg_tri_p4_e1_ay_0, gradleg_tri_p4_e1_ay_1, gradleg_tri_p4_e2_ay_0,  gradleg_tri_p4_e2_ay_1, gradleg_tri_p4_e3_ay_0, gradleg_tri_p4_e3_ay_1, 
- gradleg_tri_p5_e1_ay,   gradleg_tri_p5_e1_ay,   gradleg_tri_p5_e2_ay,    gradleg_tri_p5_e2_ay,   gradleg_tri_p5_e3_ay,   gradleg_tri_p5_e3_ay,   
- gradleg_tri_p6_e1_ay_0, gradleg_tri_p6_e1_ay_1, gradleg_tri_p6_e2_ay_0,  gradleg_tri_p6_e2_ay_1, gradleg_tri_p6_e3_ay_0, gradleg_tri_p6_e3_ay_1, 
- gradleg_tri_p7_e1_ay,   gradleg_tri_p7_e1_ay,   gradleg_tri_p7_e2_ay,    gradleg_tri_p7_e2_ay,   gradleg_tri_p7_e3_ay,   gradleg_tri_p7_e3_ay,   
- gradleg_tri_p8_e1_ay_0, gradleg_tri_p8_e1_ay_1, gradleg_tri_p8_e2_ay_0,  gradleg_tri_p8_e2_ay_1, gradleg_tri_p8_e3_ay_0, gradleg_tri_p8_e3_ay_1, 
- gradleg_tri_p9_e1_ay,   gradleg_tri_p9_e1_ay,   gradleg_tri_p9_e2_ay,    gradleg_tri_p9_e2_ay,   gradleg_tri_p9_e3_ay,   gradleg_tri_p9_e3_ay,   
- gradleg_tri_p10_e1_ay_0, gradleg_tri_p10_e1_ay_1, gradleg_tri_p10_e2_ay_0,  gradleg_tri_p10_e2_ay_1, gradleg_tri_p10_e3_ay_0, gradleg_tri_p10_e3_ay_1, 
+ gradleg_tri_p0_e1_ay_0, gradleg_tri_p0_e1_ay_1, gradleg_tri_p0_e2_ay_0,  gradleg_tri_p0_e2_ay_1, gradleg_tri_p0_e3_ay_0, gradleg_tri_p0_e3_ay_1,
+ gradleg_tri_p1_e1_ay,   gradleg_tri_p1_e1_ay,   gradleg_tri_p1_e2_ay,    gradleg_tri_p1_e2_ay,   gradleg_tri_p1_e3_ay,   gradleg_tri_p1_e3_ay,
+ gradleg_tri_p2_e1_ay_0, gradleg_tri_p2_e1_ay_1, gradleg_tri_p2_e2_ay_0,  gradleg_tri_p2_e2_ay_1, gradleg_tri_p2_e3_ay_0, gradleg_tri_p2_e3_ay_1,
+ gradleg_tri_p3_e1_ay,   gradleg_tri_p3_e1_ay,   gradleg_tri_p3_e2_ay,    gradleg_tri_p3_e2_ay,   gradleg_tri_p3_e3_ay,   gradleg_tri_p3_e3_ay,
+ gradleg_tri_p4_e1_ay_0, gradleg_tri_p4_e1_ay_1, gradleg_tri_p4_e2_ay_0,  gradleg_tri_p4_e2_ay_1, gradleg_tri_p4_e3_ay_0, gradleg_tri_p4_e3_ay_1,
+ gradleg_tri_p5_e1_ay,   gradleg_tri_p5_e1_ay,   gradleg_tri_p5_e2_ay,    gradleg_tri_p5_e2_ay,   gradleg_tri_p5_e3_ay,   gradleg_tri_p5_e3_ay,
+ gradleg_tri_p6_e1_ay_0, gradleg_tri_p6_e1_ay_1, gradleg_tri_p6_e2_ay_0,  gradleg_tri_p6_e2_ay_1, gradleg_tri_p6_e3_ay_0, gradleg_tri_p6_e3_ay_1,
+ gradleg_tri_p7_e1_ay,   gradleg_tri_p7_e1_ay,   gradleg_tri_p7_e2_ay,    gradleg_tri_p7_e2_ay,   gradleg_tri_p7_e3_ay,   gradleg_tri_p7_e3_ay,
+ gradleg_tri_p8_e1_ay_0, gradleg_tri_p8_e1_ay_1, gradleg_tri_p8_e2_ay_0,  gradleg_tri_p8_e2_ay_1, gradleg_tri_p8_e3_ay_0, gradleg_tri_p8_e3_ay_1,
+ gradleg_tri_p9_e1_ay,   gradleg_tri_p9_e1_ay,   gradleg_tri_p9_e2_ay,    gradleg_tri_p9_e2_ay,   gradleg_tri_p9_e3_ay,   gradleg_tri_p9_e3_ay,
+ gradleg_tri_p10_e1_ay_0, gradleg_tri_p10_e1_ay_1, gradleg_tri_p10_e2_ay_0,  gradleg_tri_p10_e2_ay_1, gradleg_tri_p10_e3_ay_0, gradleg_tri_p10_e3_ay_1,
 
-  gradleg_tri_p2_b1_ay,   gradleg_tri_p2_b2_ay,   gradleg_tri_p2_b3_ay,   gradleg_tri_p3_b1_ay,   gradleg_tri_p3_b2_ay,   gradleg_tri_p3_b3_ay,   gradleg_tri_p4_b1_ay,   gradleg_tri_p4_b2_ay,   gradleg_tri_p4_b3_ay,   gradleg_tri_p5_b1_ay,   gradleg_tri_p5_b2_ay,   gradleg_tri_p5_b3_ay,   gradleg_tri_p6_b1_ay,   gradleg_tri_p6_b2_ay,   gradleg_tri_p6_b3_ay,   gradleg_tri_p7_b1_ay,   gradleg_tri_p7_b2_ay,   gradleg_tri_p7_b3_ay,   gradleg_tri_p8_b1_ay,   gradleg_tri_p8_b2_ay,   gradleg_tri_p8_b3_ay,   gradleg_tri_p9_b1_ay,   gradleg_tri_p9_b2_ay,   gradleg_tri_p9_b3_ay,   gradleg_tri_p10_b1_ay,   gradleg_tri_p10_b2_ay,   gradleg_tri_p10_b3_ay, 
+  gradleg_tri_p2_b1_ay,   gradleg_tri_p2_b2_ay,   gradleg_tri_p2_b3_ay,   gradleg_tri_p3_b1_ay,   gradleg_tri_p3_b2_ay,   gradleg_tri_p3_b3_ay,   gradleg_tri_p4_b1_ay,   gradleg_tri_p4_b2_ay,   gradleg_tri_p4_b3_ay,   gradleg_tri_p5_b1_ay,   gradleg_tri_p5_b2_ay,   gradleg_tri_p5_b3_ay,   gradleg_tri_p6_b1_ay,   gradleg_tri_p6_b2_ay,   gradleg_tri_p6_b3_ay,   gradleg_tri_p7_b1_ay,   gradleg_tri_p7_b2_ay,   gradleg_tri_p7_b3_ay,   gradleg_tri_p8_b1_ay,   gradleg_tri_p8_b2_ay,   gradleg_tri_p8_b3_ay,   gradleg_tri_p9_b1_ay,   gradleg_tri_p9_b2_ay,   gradleg_tri_p9_b3_ay,   gradleg_tri_p10_b1_ay,   gradleg_tri_p10_b2_ay,   gradleg_tri_p10_b3_ay,
 
   gradleg_tri_b1_b1_1_ay, gradleg_tri_b1_b1_2_ay,  gradleg_tri_b1_b2_1_ay, gradleg_tri_b1_b2_2_ay,  gradleg_tri_b2_b1_1_ay, gradleg_tri_b2_b1_2_ay,  gradleg_tri_b1_b3_1_ay, gradleg_tri_b1_b3_2_ay,  gradleg_tri_b2_b2_1_ay, gradleg_tri_b2_b2_2_ay,  gradleg_tri_b3_b1_1_ay, gradleg_tri_b3_b1_2_ay,  gradleg_tri_b1_b4_1_ay, gradleg_tri_b1_b4_2_ay,  gradleg_tri_b2_b3_1_ay, gradleg_tri_b2_b3_2_ay,  gradleg_tri_b3_b2_1_ay, gradleg_tri_b3_b2_2_ay,  gradleg_tri_b4_b1_1_ay, gradleg_tri_b4_b1_2_ay,  gradleg_tri_b1_b5_1_ay, gradleg_tri_b1_b5_2_ay,  gradleg_tri_b2_b4_1_ay, gradleg_tri_b2_b4_2_ay,  gradleg_tri_b3_b3_1_ay, gradleg_tri_b3_b3_2_ay,  gradleg_tri_b4_b2_1_ay, gradleg_tri_b4_b2_2_ay,  gradleg_tri_b5_b1_1_ay, gradleg_tri_b5_b1_2_ay,  gradleg_tri_b1_b6_1_ay, gradleg_tri_b1_b6_2_ay,  gradleg_tri_b2_b5_1_ay, gradleg_tri_b2_b5_2_ay,  gradleg_tri_b3_b4_1_ay, gradleg_tri_b3_b4_2_ay,  gradleg_tri_b4_b3_1_ay, gradleg_tri_b4_b3_2_ay,  gradleg_tri_b5_b2_1_ay, gradleg_tri_b5_b2_2_ay,  gradleg_tri_b6_b1_1_ay, gradleg_tri_b6_b1_2_ay,  gradleg_tri_b1_b7_1_ay, gradleg_tri_b1_b7_2_ay,  gradleg_tri_b2_b6_1_ay, gradleg_tri_b2_b6_2_ay,  gradleg_tri_b3_b5_1_ay, gradleg_tri_b3_b5_2_ay,  gradleg_tri_b4_b4_1_ay, gradleg_tri_b4_b4_2_ay,  gradleg_tri_b5_b3_1_ay, gradleg_tri_b5_b3_2_ay,  gradleg_tri_b6_b2_1_ay, gradleg_tri_b6_b2_2_ay,  gradleg_tri_b7_b1_1_ay, gradleg_tri_b7_b1_2_ay,  gradleg_tri_b1_b8_1_ay, gradleg_tri_b1_b8_2_ay,  gradleg_tri_b2_b7_1_ay, gradleg_tri_b2_b7_2_ay,  gradleg_tri_b3_b6_1_ay, gradleg_tri_b3_b6_2_ay,  gradleg_tri_b4_b5_1_ay, gradleg_tri_b4_b5_2_ay,  gradleg_tri_b5_b4_1_ay, gradleg_tri_b5_b4_2_ay,  gradleg_tri_b6_b3_1_ay, gradleg_tri_b6_b3_2_ay,  gradleg_tri_b7_b2_1_ay, gradleg_tri_b7_b2_2_ay,  gradleg_tri_b8_b1_1_ay, gradleg_tri_b8_b1_2_ay,
 
 
 };
 
-static Shapeset::shape_fn_t gradleg_tri_fn_by[] = 
+static Shapeset::shape_fn_t gradleg_tri_fn_by[] =
 {
- gradleg_tri_p0_e1_by_0, gradleg_tri_p0_e1_by_1, gradleg_tri_p0_e2_by_0,  gradleg_tri_p0_e2_by_1, gradleg_tri_p0_e3_by_0, gradleg_tri_p0_e3_by_1, 
- gradleg_tri_p1_e1_by,   gradleg_tri_p1_e1_by,   gradleg_tri_p1_e2_by,    gradleg_tri_p1_e2_by,   gradleg_tri_p1_e3_by,   gradleg_tri_p1_e3_by,   
- gradleg_tri_p2_e1_by_0, gradleg_tri_p2_e1_by_1, gradleg_tri_p2_e2_by_0,  gradleg_tri_p2_e2_by_1, gradleg_tri_p2_e3_by_0, gradleg_tri_p2_e3_by_1, 
- gradleg_tri_p3_e1_by,   gradleg_tri_p3_e1_by,   gradleg_tri_p3_e2_by,    gradleg_tri_p3_e2_by,   gradleg_tri_p3_e3_by,   gradleg_tri_p3_e3_by,   
- gradleg_tri_p4_e1_by_0, gradleg_tri_p4_e1_by_1, gradleg_tri_p4_e2_by_0,  gradleg_tri_p4_e2_by_1, gradleg_tri_p4_e3_by_0, gradleg_tri_p4_e3_by_1, 
- gradleg_tri_p5_e1_by,   gradleg_tri_p5_e1_by,   gradleg_tri_p5_e2_by,    gradleg_tri_p5_e2_by,   gradleg_tri_p5_e3_by,   gradleg_tri_p5_e3_by,   
- gradleg_tri_p6_e1_by_0, gradleg_tri_p6_e1_by_1, gradleg_tri_p6_e2_by_0,  gradleg_tri_p6_e2_by_1, gradleg_tri_p6_e3_by_0, gradleg_tri_p6_e3_by_1, 
- gradleg_tri_p7_e1_by,   gradleg_tri_p7_e1_by,   gradleg_tri_p7_e2_by,    gradleg_tri_p7_e2_by,   gradleg_tri_p7_e3_by,   gradleg_tri_p7_e3_by,   
- gradleg_tri_p8_e1_by_0, gradleg_tri_p8_e1_by_1, gradleg_tri_p8_e2_by_0,  gradleg_tri_p8_e2_by_1, gradleg_tri_p8_e3_by_0, gradleg_tri_p8_e3_by_1, 
- gradleg_tri_p9_e1_by,   gradleg_tri_p9_e1_by,   gradleg_tri_p9_e2_by,    gradleg_tri_p9_e2_by,   gradleg_tri_p9_e3_by,   gradleg_tri_p9_e3_by,   
- gradleg_tri_p10_e1_by_0, gradleg_tri_p10_e1_by_1, gradleg_tri_p10_e2_by_0,  gradleg_tri_p10_e2_by_1, gradleg_tri_p10_e3_by_0, gradleg_tri_p10_e3_by_1, 
+ gradleg_tri_p0_e1_by_0, gradleg_tri_p0_e1_by_1, gradleg_tri_p0_e2_by_0,  gradleg_tri_p0_e2_by_1, gradleg_tri_p0_e3_by_0, gradleg_tri_p0_e3_by_1,
+ gradleg_tri_p1_e1_by,   gradleg_tri_p1_e1_by,   gradleg_tri_p1_e2_by,    gradleg_tri_p1_e2_by,   gradleg_tri_p1_e3_by,   gradleg_tri_p1_e3_by,
+ gradleg_tri_p2_e1_by_0, gradleg_tri_p2_e1_by_1, gradleg_tri_p2_e2_by_0,  gradleg_tri_p2_e2_by_1, gradleg_tri_p2_e3_by_0, gradleg_tri_p2_e3_by_1,
+ gradleg_tri_p3_e1_by,   gradleg_tri_p3_e1_by,   gradleg_tri_p3_e2_by,    gradleg_tri_p3_e2_by,   gradleg_tri_p3_e3_by,   gradleg_tri_p3_e3_by,
+ gradleg_tri_p4_e1_by_0, gradleg_tri_p4_e1_by_1, gradleg_tri_p4_e2_by_0,  gradleg_tri_p4_e2_by_1, gradleg_tri_p4_e3_by_0, gradleg_tri_p4_e3_by_1,
+ gradleg_tri_p5_e1_by,   gradleg_tri_p5_e1_by,   gradleg_tri_p5_e2_by,    gradleg_tri_p5_e2_by,   gradleg_tri_p5_e3_by,   gradleg_tri_p5_e3_by,
+ gradleg_tri_p6_e1_by_0, gradleg_tri_p6_e1_by_1, gradleg_tri_p6_e2_by_0,  gradleg_tri_p6_e2_by_1, gradleg_tri_p6_e3_by_0, gradleg_tri_p6_e3_by_1,
+ gradleg_tri_p7_e1_by,   gradleg_tri_p7_e1_by,   gradleg_tri_p7_e2_by,    gradleg_tri_p7_e2_by,   gradleg_tri_p7_e3_by,   gradleg_tri_p7_e3_by,
+ gradleg_tri_p8_e1_by_0, gradleg_tri_p8_e1_by_1, gradleg_tri_p8_e2_by_0,  gradleg_tri_p8_e2_by_1, gradleg_tri_p8_e3_by_0, gradleg_tri_p8_e3_by_1,
+ gradleg_tri_p9_e1_by,   gradleg_tri_p9_e1_by,   gradleg_tri_p9_e2_by,    gradleg_tri_p9_e2_by,   gradleg_tri_p9_e3_by,   gradleg_tri_p9_e3_by,
+ gradleg_tri_p10_e1_by_0, gradleg_tri_p10_e1_by_1, gradleg_tri_p10_e2_by_0,  gradleg_tri_p10_e2_by_1, gradleg_tri_p10_e3_by_0, gradleg_tri_p10_e3_by_1,
 
-  gradleg_tri_p2_b1_by,   gradleg_tri_p2_b2_by,   gradleg_tri_p2_b3_by,   gradleg_tri_p3_b1_by,   gradleg_tri_p3_b2_by,   gradleg_tri_p3_b3_by,   gradleg_tri_p4_b1_by,   gradleg_tri_p4_b2_by,   gradleg_tri_p4_b3_by,   gradleg_tri_p5_b1_by,   gradleg_tri_p5_b2_by,   gradleg_tri_p5_b3_by,   gradleg_tri_p6_b1_by,   gradleg_tri_p6_b2_by,   gradleg_tri_p6_b3_by,   gradleg_tri_p7_b1_by,   gradleg_tri_p7_b2_by,   gradleg_tri_p7_b3_by,   gradleg_tri_p8_b1_by,   gradleg_tri_p8_b2_by,   gradleg_tri_p8_b3_by,   gradleg_tri_p9_b1_by,   gradleg_tri_p9_b2_by,   gradleg_tri_p9_b3_by,   gradleg_tri_p10_b1_by,   gradleg_tri_p10_b2_by,   gradleg_tri_p10_b3_by, 
+  gradleg_tri_p2_b1_by,   gradleg_tri_p2_b2_by,   gradleg_tri_p2_b3_by,   gradleg_tri_p3_b1_by,   gradleg_tri_p3_b2_by,   gradleg_tri_p3_b3_by,   gradleg_tri_p4_b1_by,   gradleg_tri_p4_b2_by,   gradleg_tri_p4_b3_by,   gradleg_tri_p5_b1_by,   gradleg_tri_p5_b2_by,   gradleg_tri_p5_b3_by,   gradleg_tri_p6_b1_by,   gradleg_tri_p6_b2_by,   gradleg_tri_p6_b3_by,   gradleg_tri_p7_b1_by,   gradleg_tri_p7_b2_by,   gradleg_tri_p7_b3_by,   gradleg_tri_p8_b1_by,   gradleg_tri_p8_b2_by,   gradleg_tri_p8_b3_by,   gradleg_tri_p9_b1_by,   gradleg_tri_p9_b2_by,   gradleg_tri_p9_b3_by,   gradleg_tri_p10_b1_by,   gradleg_tri_p10_b2_by,   gradleg_tri_p10_b3_by,
 
   gradleg_tri_b1_b1_1_by, gradleg_tri_b1_b1_2_by,  gradleg_tri_b1_b2_1_by, gradleg_tri_b1_b2_2_by,  gradleg_tri_b2_b1_1_by, gradleg_tri_b2_b1_2_by,  gradleg_tri_b1_b3_1_by, gradleg_tri_b1_b3_2_by,  gradleg_tri_b2_b2_1_by, gradleg_tri_b2_b2_2_by,  gradleg_tri_b3_b1_1_by, gradleg_tri_b3_b1_2_by,  gradleg_tri_b1_b4_1_by, gradleg_tri_b1_b4_2_by,  gradleg_tri_b2_b3_1_by, gradleg_tri_b2_b3_2_by,  gradleg_tri_b3_b2_1_by, gradleg_tri_b3_b2_2_by,  gradleg_tri_b4_b1_1_by, gradleg_tri_b4_b1_2_by,  gradleg_tri_b1_b5_1_by, gradleg_tri_b1_b5_2_by,  gradleg_tri_b2_b4_1_by, gradleg_tri_b2_b4_2_by,  gradleg_tri_b3_b3_1_by, gradleg_tri_b3_b3_2_by,  gradleg_tri_b4_b2_1_by, gradleg_tri_b4_b2_2_by,  gradleg_tri_b5_b1_1_by, gradleg_tri_b5_b1_2_by,  gradleg_tri_b1_b6_1_by, gradleg_tri_b1_b6_2_by,  gradleg_tri_b2_b5_1_by, gradleg_tri_b2_b5_2_by,  gradleg_tri_b3_b4_1_by, gradleg_tri_b3_b4_2_by,  gradleg_tri_b4_b3_1_by, gradleg_tri_b4_b3_2_by,  gradleg_tri_b5_b2_1_by, gradleg_tri_b5_b2_2_by,  gradleg_tri_b6_b1_1_by, gradleg_tri_b6_b1_2_by,  gradleg_tri_b1_b7_1_by, gradleg_tri_b1_b7_2_by,  gradleg_tri_b2_b6_1_by, gradleg_tri_b2_b6_2_by,  gradleg_tri_b3_b5_1_by, gradleg_tri_b3_b5_2_by,  gradleg_tri_b4_b4_1_by, gradleg_tri_b4_b4_2_by,  gradleg_tri_b5_b3_1_by, gradleg_tri_b5_b3_2_by,  gradleg_tri_b6_b2_1_by, gradleg_tri_b6_b2_2_by,  gradleg_tri_b7_b1_1_by, gradleg_tri_b7_b1_2_by,  gradleg_tri_b1_b8_1_by, gradleg_tri_b1_b8_2_by,  gradleg_tri_b2_b7_1_by, gradleg_tri_b2_b7_2_by,  gradleg_tri_b3_b6_1_by, gradleg_tri_b3_b6_2_by,  gradleg_tri_b4_b5_1_by, gradleg_tri_b4_b5_2_by,  gradleg_tri_b5_b4_1_by, gradleg_tri_b5_b4_2_by,  gradleg_tri_b6_b3_1_by, gradleg_tri_b6_b3_2_by,  gradleg_tri_b7_b2_1_by, gradleg_tri_b7_b2_2_by,  gradleg_tri_b8_b1_1_by, gradleg_tri_b8_b1_2_by,
 
 
 };
 
-static int gradleg_tri_bubble_indices_all_orders[] = { 
+static int gradleg_tri_bubble_indices_all_orders[] = {
  66, 67, 68,
  69, 70, 71, 93, 94,
  72, 73, 74, 95, 96, 97, 98,
@@ -6770,9 +6770,9 @@ static int gradleg_tri_bubble_indices_all_orders[] = {
  87, 88, 89, 135, 136, 137, 138, 139, 140, 141, 142, 143, 144, 145, 146, 147, 148,
  90, 91, 92, 149, 150, 151, 152, 153, 154, 155, 156, 157, 158, 159, 160, 161, 162, 163, 164,
 };
-  
 
-static int* gradleg_tri_bubble_indices[11] = 
+
+static int* gradleg_tri_bubble_indices[11] =
 {
   NULL, NULL,
   gradleg_tri_bubble_indices_all_orders,
@@ -6783,7 +6783,7 @@ static int* gradleg_tri_bubble_indices[11] =
   gradleg_tri_bubble_indices_all_orders,
   gradleg_tri_bubble_indices_all_orders,
   gradleg_tri_bubble_indices_all_orders,
-  gradleg_tri_bubble_indices_all_orders 
+  gradleg_tri_bubble_indices_all_orders
 };
 
 
@@ -6793,7 +6793,7 @@ static int gradleg_tri_edge_indices_0[22] =  {  0, 1, 6, 7, 12, 13, 18, 19, 24, 
 static int gradleg_tri_edge_indices_1[22] =  {  2, 3, 8, 9, 14, 15, 20, 21, 26, 27, 32, 33, 38, 39, 44, 45, 50, 51, 56, 57, 62, 63,};
 static int gradleg_tri_edge_indices_2[22] =  {  4, 5, 10, 11, 16, 17, 22, 23, 28, 29, 34, 35, 40, 41, 46, 47, 52, 53, 58, 59, 64, 65,};
 
-static int* gradleg_tri_edge_indices[3] = 
+static int* gradleg_tri_edge_indices[3] =
 {
   gradleg_tri_edge_indices_0,
   gradleg_tri_edge_indices_1,
@@ -6802,7 +6802,7 @@ static int* gradleg_tri_edge_indices[3] =
 
 static int gradleg_tri_vertex_indices[3] = { -1, -1, -1 };
 
-static int gradleg_tri_index_to_order[] = 
+static int gradleg_tri_index_to_order[] =
 {
  0, 0, 0, 0, 0, 0,
  1, 1, 1, 1, 1, 1,
@@ -6837,20 +6837,20 @@ static int gradleg_tri_index_to_order[] =
 
 
 
-static Shapeset::shape_fn_t* gradleg_tri_shape_fn_table[2] = 
-{ 
+static Shapeset::shape_fn_t* gradleg_tri_shape_fn_table[2] =
+{
   gradleg_tri_fn_a,
   gradleg_tri_fn_b
 };
 
-static Shapeset::shape_fn_t* gradleg_tri_shape_fn_table_x[2] = 
-{ 
+static Shapeset::shape_fn_t* gradleg_tri_shape_fn_table_x[2] =
+{
   gradleg_tri_fn_ax,
   gradleg_tri_fn_bx
 };
 
-static Shapeset::shape_fn_t* gradleg_tri_shape_fn_table_y[2] = 
-{ 
+static Shapeset::shape_fn_t* gradleg_tri_shape_fn_table_y[2] =
+{
   gradleg_tri_fn_ay,
   gradleg_tri_fn_by
 };
@@ -15450,99 +15450,99 @@ static double gradleg_quad_p11p10_b2_by(double x, double y)
   return l11(x) * Legendre10x(y);
 }
 
-static Shapeset::shape_fn_t gradleg_quad_fn_a[] = 
+static Shapeset::shape_fn_t gradleg_quad_fn_a[] =
 {
-  gradleg_quad_p0_e1_a_0, gradleg_quad_p0_e1_a_1, gradleg_quad_p0_e2_a, gradleg_quad_p0_e2_a, gradleg_quad_p0_e3_a_0, gradleg_quad_p0_e3_a_1, gradleg_quad_p0_e4_a, gradleg_quad_p0_e4_a, 
-  gradleg_quad_l2_l0_a, gradleg_quad_l2_l0_a, gradleg_quad_l1_l2_a, gradleg_quad_l1_l2_a, gradleg_quad_l2_l1_a, gradleg_quad_l2_l1_a, gradleg_quad_l0_l2_a, gradleg_quad_l0_l2_a, 
-  gradleg_quad_l3_l0_a_0, gradleg_quad_l3_l0_a_1, gradleg_quad_l1_l3_a_0, gradleg_quad_l1_l3_a_1,  gradleg_quad_l3_l1_a_0, gradleg_quad_l3_l1_a_1, gradleg_quad_l0_l3_a_0, gradleg_quad_l0_l3_a_1, 
-  gradleg_quad_l4_l0_a, gradleg_quad_l4_l0_a, gradleg_quad_l1_l4_a, gradleg_quad_l1_l4_a, gradleg_quad_l4_l1_a, gradleg_quad_l4_l1_a, gradleg_quad_l0_l4_a, gradleg_quad_l0_l4_a, 
-  gradleg_quad_l5_l0_a_0, gradleg_quad_l5_l0_a_1, gradleg_quad_l1_l5_a_0, gradleg_quad_l1_l5_a_1,  gradleg_quad_l5_l1_a_0, gradleg_quad_l5_l1_a_1, gradleg_quad_l0_l5_a_0, gradleg_quad_l0_l5_a_1, 
-  gradleg_quad_l6_l0_a, gradleg_quad_l6_l0_a, gradleg_quad_l1_l6_a, gradleg_quad_l1_l6_a, gradleg_quad_l6_l1_a, gradleg_quad_l6_l1_a, gradleg_quad_l0_l6_a, gradleg_quad_l0_l6_a, 
-  gradleg_quad_l7_l0_a_0, gradleg_quad_l7_l0_a_1, gradleg_quad_l1_l7_a_0, gradleg_quad_l1_l7_a_1,  gradleg_quad_l7_l1_a_0, gradleg_quad_l7_l1_a_1, gradleg_quad_l0_l7_a_0, gradleg_quad_l0_l7_a_1, 
-  gradleg_quad_l8_l0_a, gradleg_quad_l8_l0_a, gradleg_quad_l1_l8_a, gradleg_quad_l1_l8_a, gradleg_quad_l8_l1_a, gradleg_quad_l8_l1_a, gradleg_quad_l0_l8_a, gradleg_quad_l0_l8_a, 
-  gradleg_quad_l9_l0_a_0, gradleg_quad_l9_l0_a_1, gradleg_quad_l1_l9_a_0, gradleg_quad_l1_l9_a_1,  gradleg_quad_l9_l1_a_0, gradleg_quad_l9_l1_a_1, gradleg_quad_l0_l9_a_0, gradleg_quad_l0_l9_a_1, 
-  gradleg_quad_l10_l0_a, gradleg_quad_l10_l0_a, gradleg_quad_l1_l10_a, gradleg_quad_l1_l10_a, gradleg_quad_l10_l1_a, gradleg_quad_l10_l1_a, gradleg_quad_l0_l10_a, gradleg_quad_l0_l10_a, 
-  gradleg_quad_l11_l0_a_0, gradleg_quad_l11_l0_a_1, gradleg_quad_l1_l11_a_0, gradleg_quad_l1_l11_a_1,  gradleg_quad_l11_l1_a_0, gradleg_quad_l11_l1_a_1, gradleg_quad_l0_l11_a_0, gradleg_quad_l0_l11_a_1, 
+  gradleg_quad_p0_e1_a_0, gradleg_quad_p0_e1_a_1, gradleg_quad_p0_e2_a, gradleg_quad_p0_e2_a, gradleg_quad_p0_e3_a_0, gradleg_quad_p0_e3_a_1, gradleg_quad_p0_e4_a, gradleg_quad_p0_e4_a,
+  gradleg_quad_l2_l0_a, gradleg_quad_l2_l0_a, gradleg_quad_l1_l2_a, gradleg_quad_l1_l2_a, gradleg_quad_l2_l1_a, gradleg_quad_l2_l1_a, gradleg_quad_l0_l2_a, gradleg_quad_l0_l2_a,
+  gradleg_quad_l3_l0_a_0, gradleg_quad_l3_l0_a_1, gradleg_quad_l1_l3_a_0, gradleg_quad_l1_l3_a_1,  gradleg_quad_l3_l1_a_0, gradleg_quad_l3_l1_a_1, gradleg_quad_l0_l3_a_0, gradleg_quad_l0_l3_a_1,
+  gradleg_quad_l4_l0_a, gradleg_quad_l4_l0_a, gradleg_quad_l1_l4_a, gradleg_quad_l1_l4_a, gradleg_quad_l4_l1_a, gradleg_quad_l4_l1_a, gradleg_quad_l0_l4_a, gradleg_quad_l0_l4_a,
+  gradleg_quad_l5_l0_a_0, gradleg_quad_l5_l0_a_1, gradleg_quad_l1_l5_a_0, gradleg_quad_l1_l5_a_1,  gradleg_quad_l5_l1_a_0, gradleg_quad_l5_l1_a_1, gradleg_quad_l0_l5_a_0, gradleg_quad_l0_l5_a_1,
+  gradleg_quad_l6_l0_a, gradleg_quad_l6_l0_a, gradleg_quad_l1_l6_a, gradleg_quad_l1_l6_a, gradleg_quad_l6_l1_a, gradleg_quad_l6_l1_a, gradleg_quad_l0_l6_a, gradleg_quad_l0_l6_a,
+  gradleg_quad_l7_l0_a_0, gradleg_quad_l7_l0_a_1, gradleg_quad_l1_l7_a_0, gradleg_quad_l1_l7_a_1,  gradleg_quad_l7_l1_a_0, gradleg_quad_l7_l1_a_1, gradleg_quad_l0_l7_a_0, gradleg_quad_l0_l7_a_1,
+  gradleg_quad_l8_l0_a, gradleg_quad_l8_l0_a, gradleg_quad_l1_l8_a, gradleg_quad_l1_l8_a, gradleg_quad_l8_l1_a, gradleg_quad_l8_l1_a, gradleg_quad_l0_l8_a, gradleg_quad_l0_l8_a,
+  gradleg_quad_l9_l0_a_0, gradleg_quad_l9_l0_a_1, gradleg_quad_l1_l9_a_0, gradleg_quad_l1_l9_a_1,  gradleg_quad_l9_l1_a_0, gradleg_quad_l9_l1_a_1, gradleg_quad_l0_l9_a_0, gradleg_quad_l0_l9_a_1,
+  gradleg_quad_l10_l0_a, gradleg_quad_l10_l0_a, gradleg_quad_l1_l10_a, gradleg_quad_l1_l10_a, gradleg_quad_l10_l1_a, gradleg_quad_l10_l1_a, gradleg_quad_l0_l10_a, gradleg_quad_l0_l10_a,
+  gradleg_quad_l11_l0_a_0, gradleg_quad_l11_l0_a_1, gradleg_quad_l1_l11_a_0, gradleg_quad_l1_l11_a_1,  gradleg_quad_l11_l1_a_0, gradleg_quad_l11_l1_a_1, gradleg_quad_l0_l11_a_0, gradleg_quad_l0_l11_a_1,
 
   gradleg_quad_p0p2_b1_a,   gradleg_quad_p0p3_b1_a,   gradleg_quad_p0p4_b1_a,   gradleg_quad_p0p5_b1_a,   gradleg_quad_p0p6_b1_a,   gradleg_quad_p0p7_b1_a,   gradleg_quad_p0p8_b1_a,   gradleg_quad_p0p9_b1_a,   gradleg_quad_p0p10_b1_a,   gradleg_quad_p0p11_b1_a,   gradleg_quad_p1p2_b1_a,   gradleg_quad_p1p3_b1_a,   gradleg_quad_p1p4_b1_a,   gradleg_quad_p1p5_b1_a,   gradleg_quad_p1p6_b1_a,   gradleg_quad_p1p7_b1_a,   gradleg_quad_p1p8_b1_a,   gradleg_quad_p1p9_b1_a,   gradleg_quad_p1p10_b1_a,   gradleg_quad_p1p11_b1_a,   gradleg_quad_p2p2_b1_a,   gradleg_quad_p2p3_b1_a,   gradleg_quad_p2p4_b1_a,   gradleg_quad_p2p5_b1_a,   gradleg_quad_p2p6_b1_a,   gradleg_quad_p2p7_b1_a,   gradleg_quad_p2p8_b1_a,   gradleg_quad_p2p9_b1_a,   gradleg_quad_p2p10_b1_a,   gradleg_quad_p2p11_b1_a,   gradleg_quad_p3p2_b1_a,   gradleg_quad_p3p3_b1_a,   gradleg_quad_p3p4_b1_a,   gradleg_quad_p3p5_b1_a,   gradleg_quad_p3p6_b1_a,   gradleg_quad_p3p7_b1_a,   gradleg_quad_p3p8_b1_a,   gradleg_quad_p3p9_b1_a,   gradleg_quad_p3p10_b1_a,   gradleg_quad_p3p11_b1_a,   gradleg_quad_p4p2_b1_a,   gradleg_quad_p4p3_b1_a,   gradleg_quad_p4p4_b1_a,   gradleg_quad_p4p5_b1_a,   gradleg_quad_p4p6_b1_a,   gradleg_quad_p4p7_b1_a,   gradleg_quad_p4p8_b1_a,   gradleg_quad_p4p9_b1_a,   gradleg_quad_p4p10_b1_a,   gradleg_quad_p4p11_b1_a,   gradleg_quad_p5p2_b1_a,   gradleg_quad_p5p3_b1_a,   gradleg_quad_p5p4_b1_a,   gradleg_quad_p5p5_b1_a,   gradleg_quad_p5p6_b1_a,   gradleg_quad_p5p7_b1_a,   gradleg_quad_p5p8_b1_a,   gradleg_quad_p5p9_b1_a,   gradleg_quad_p5p10_b1_a,   gradleg_quad_p5p11_b1_a,   gradleg_quad_p6p2_b1_a,   gradleg_quad_p6p3_b1_a,   gradleg_quad_p6p4_b1_a,   gradleg_quad_p6p5_b1_a,   gradleg_quad_p6p6_b1_a,   gradleg_quad_p6p7_b1_a,   gradleg_quad_p6p8_b1_a,   gradleg_quad_p6p9_b1_a,   gradleg_quad_p6p10_b1_a,   gradleg_quad_p6p11_b1_a,   gradleg_quad_p7p2_b1_a,   gradleg_quad_p7p3_b1_a,   gradleg_quad_p7p4_b1_a,   gradleg_quad_p7p5_b1_a,   gradleg_quad_p7p6_b1_a,   gradleg_quad_p7p7_b1_a,   gradleg_quad_p7p8_b1_a,   gradleg_quad_p7p9_b1_a,   gradleg_quad_p7p10_b1_a,   gradleg_quad_p7p11_b1_a,   gradleg_quad_p8p2_b1_a,   gradleg_quad_p8p3_b1_a,   gradleg_quad_p8p4_b1_a,   gradleg_quad_p8p5_b1_a,   gradleg_quad_p8p6_b1_a,   gradleg_quad_p8p7_b1_a,   gradleg_quad_p8p8_b1_a,   gradleg_quad_p8p9_b1_a,   gradleg_quad_p8p10_b1_a,   gradleg_quad_p8p11_b1_a,   gradleg_quad_p9p2_b1_a,   gradleg_quad_p9p3_b1_a,   gradleg_quad_p9p4_b1_a,   gradleg_quad_p9p5_b1_a,   gradleg_quad_p9p6_b1_a,   gradleg_quad_p9p7_b1_a,   gradleg_quad_p9p8_b1_a,   gradleg_quad_p9p9_b1_a,   gradleg_quad_p9p10_b1_a,   gradleg_quad_p9p11_b1_a,   gradleg_quad_p10p2_b1_a,   gradleg_quad_p10p3_b1_a,   gradleg_quad_p10p4_b1_a,   gradleg_quad_p10p5_b1_a,   gradleg_quad_p10p6_b1_a,   gradleg_quad_p10p7_b1_a,   gradleg_quad_p10p8_b1_a,   gradleg_quad_p10p9_b1_a,   gradleg_quad_p10p10_b1_a,   gradleg_quad_p10p11_b1_a,   gradleg_quad_p2p0_b2_a,   gradleg_quad_p2p1_b2_a,   gradleg_quad_p2p2_b2_a,   gradleg_quad_p2p3_b2_a,   gradleg_quad_p2p4_b2_a,   gradleg_quad_p2p5_b2_a,   gradleg_quad_p2p6_b2_a,   gradleg_quad_p2p7_b2_a,   gradleg_quad_p2p8_b2_a,   gradleg_quad_p2p9_b2_a,   gradleg_quad_p2p10_b2_a,   gradleg_quad_p3p0_b2_a,   gradleg_quad_p3p1_b2_a,   gradleg_quad_p3p2_b2_a,   gradleg_quad_p3p3_b2_a,   gradleg_quad_p3p4_b2_a,   gradleg_quad_p3p5_b2_a,   gradleg_quad_p3p6_b2_a,   gradleg_quad_p3p7_b2_a,   gradleg_quad_p3p8_b2_a,   gradleg_quad_p3p9_b2_a,   gradleg_quad_p3p10_b2_a,   gradleg_quad_p4p0_b2_a,   gradleg_quad_p4p1_b2_a,   gradleg_quad_p4p2_b2_a,   gradleg_quad_p4p3_b2_a,   gradleg_quad_p4p4_b2_a,   gradleg_quad_p4p5_b2_a,   gradleg_quad_p4p6_b2_a,   gradleg_quad_p4p7_b2_a,   gradleg_quad_p4p8_b2_a,   gradleg_quad_p4p9_b2_a,   gradleg_quad_p4p10_b2_a,   gradleg_quad_p5p0_b2_a,   gradleg_quad_p5p1_b2_a,   gradleg_quad_p5p2_b2_a,   gradleg_quad_p5p3_b2_a,   gradleg_quad_p5p4_b2_a,   gradleg_quad_p5p5_b2_a,   gradleg_quad_p5p6_b2_a,   gradleg_quad_p5p7_b2_a,   gradleg_quad_p5p8_b2_a,   gradleg_quad_p5p9_b2_a,   gradleg_quad_p5p10_b2_a,   gradleg_quad_p6p0_b2_a,   gradleg_quad_p6p1_b2_a,   gradleg_quad_p6p2_b2_a,   gradleg_quad_p6p3_b2_a,   gradleg_quad_p6p4_b2_a,   gradleg_quad_p6p5_b2_a,   gradleg_quad_p6p6_b2_a,   gradleg_quad_p6p7_b2_a,   gradleg_quad_p6p8_b2_a,   gradleg_quad_p6p9_b2_a,   gradleg_quad_p6p10_b2_a,   gradleg_quad_p7p0_b2_a,   gradleg_quad_p7p1_b2_a,   gradleg_quad_p7p2_b2_a,   gradleg_quad_p7p3_b2_a,   gradleg_quad_p7p4_b2_a,   gradleg_quad_p7p5_b2_a,   gradleg_quad_p7p6_b2_a,   gradleg_quad_p7p7_b2_a,   gradleg_quad_p7p8_b2_a,   gradleg_quad_p7p9_b2_a,   gradleg_quad_p7p10_b2_a,   gradleg_quad_p8p0_b2_a,   gradleg_quad_p8p1_b2_a,   gradleg_quad_p8p2_b2_a,   gradleg_quad_p8p3_b2_a,   gradleg_quad_p8p4_b2_a,   gradleg_quad_p8p5_b2_a,   gradleg_quad_p8p6_b2_a,   gradleg_quad_p8p7_b2_a,   gradleg_quad_p8p8_b2_a,   gradleg_quad_p8p9_b2_a,   gradleg_quad_p8p10_b2_a,   gradleg_quad_p9p0_b2_a,   gradleg_quad_p9p1_b2_a,   gradleg_quad_p9p2_b2_a,   gradleg_quad_p9p3_b2_a,   gradleg_quad_p9p4_b2_a,   gradleg_quad_p9p5_b2_a,   gradleg_quad_p9p6_b2_a,   gradleg_quad_p9p7_b2_a,   gradleg_quad_p9p8_b2_a,   gradleg_quad_p9p9_b2_a,   gradleg_quad_p9p10_b2_a,   gradleg_quad_p10p0_b2_a,   gradleg_quad_p10p1_b2_a,   gradleg_quad_p10p2_b2_a,   gradleg_quad_p10p3_b2_a,   gradleg_quad_p10p4_b2_a,   gradleg_quad_p10p5_b2_a,   gradleg_quad_p10p6_b2_a,   gradleg_quad_p10p7_b2_a,   gradleg_quad_p10p8_b2_a,   gradleg_quad_p10p9_b2_a,   gradleg_quad_p10p10_b2_a,   gradleg_quad_p11p0_b2_a,   gradleg_quad_p11p1_b2_a,   gradleg_quad_p11p2_b2_a,   gradleg_quad_p11p3_b2_a,   gradleg_quad_p11p4_b2_a,   gradleg_quad_p11p5_b2_a,   gradleg_quad_p11p6_b2_a,   gradleg_quad_p11p7_b2_a,   gradleg_quad_p11p8_b2_a,   gradleg_quad_p11p9_b2_a,   gradleg_quad_p11p10_b2_a, };
 
-static Shapeset::shape_fn_t gradleg_quad_fn_b[] = 
+static Shapeset::shape_fn_t gradleg_quad_fn_b[] =
 {
-  gradleg_quad_p0_e1_b, gradleg_quad_p0_e1_b, gradleg_quad_p0_e2_b_0, gradleg_quad_p0_e2_b_1,  gradleg_quad_p0_e3_b, gradleg_quad_p0_e3_b, gradleg_quad_p0_e4_b_0, gradleg_quad_p0_e4_b_1, 
-  gradleg_quad_l2_l0_b, gradleg_quad_l2_l0_b, gradleg_quad_l1_l2_b, gradleg_quad_l1_l2_b, gradleg_quad_l2_l1_b, gradleg_quad_l2_l1_b, gradleg_quad_l0_l2_b,  gradleg_quad_l0_l2_b, 
-  gradleg_quad_l3_l0_b_0, gradleg_quad_l3_l0_b_1, gradleg_quad_l1_l3_b_0, gradleg_quad_l1_l3_b_1, gradleg_quad_l3_l1_b_0, gradleg_quad_l3_l1_b_1, gradleg_quad_l0_l3_b_0, gradleg_quad_l0_l3_b_1, 
-  gradleg_quad_l4_l0_b, gradleg_quad_l4_l0_b, gradleg_quad_l1_l4_b, gradleg_quad_l1_l4_b, gradleg_quad_l4_l1_b, gradleg_quad_l4_l1_b, gradleg_quad_l0_l4_b,  gradleg_quad_l0_l4_b, 
-  gradleg_quad_l5_l0_b_0, gradleg_quad_l5_l0_b_1, gradleg_quad_l1_l5_b_0, gradleg_quad_l1_l5_b_1, gradleg_quad_l5_l1_b_0, gradleg_quad_l5_l1_b_1, gradleg_quad_l0_l5_b_0, gradleg_quad_l0_l5_b_1, 
-  gradleg_quad_l6_l0_b, gradleg_quad_l6_l0_b, gradleg_quad_l1_l6_b, gradleg_quad_l1_l6_b, gradleg_quad_l6_l1_b, gradleg_quad_l6_l1_b, gradleg_quad_l0_l6_b,  gradleg_quad_l0_l6_b, 
-  gradleg_quad_l7_l0_b_0, gradleg_quad_l7_l0_b_1, gradleg_quad_l1_l7_b_0, gradleg_quad_l1_l7_b_1, gradleg_quad_l7_l1_b_0, gradleg_quad_l7_l1_b_1, gradleg_quad_l0_l7_b_0, gradleg_quad_l0_l7_b_1, 
-  gradleg_quad_l8_l0_b, gradleg_quad_l8_l0_b, gradleg_quad_l1_l8_b, gradleg_quad_l1_l8_b, gradleg_quad_l8_l1_b, gradleg_quad_l8_l1_b, gradleg_quad_l0_l8_b,  gradleg_quad_l0_l8_b, 
-  gradleg_quad_l9_l0_b_0, gradleg_quad_l9_l0_b_1, gradleg_quad_l1_l9_b_0, gradleg_quad_l1_l9_b_1, gradleg_quad_l9_l1_b_0, gradleg_quad_l9_l1_b_1, gradleg_quad_l0_l9_b_0, gradleg_quad_l0_l9_b_1, 
-  gradleg_quad_l10_l0_b, gradleg_quad_l10_l0_b, gradleg_quad_l1_l10_b, gradleg_quad_l1_l10_b, gradleg_quad_l10_l1_b, gradleg_quad_l10_l1_b, gradleg_quad_l0_l10_b,  gradleg_quad_l0_l10_b, 
-  gradleg_quad_l11_l0_b_0, gradleg_quad_l11_l0_b_1, gradleg_quad_l1_l11_b_0, gradleg_quad_l1_l11_b_1, gradleg_quad_l11_l1_b_0, gradleg_quad_l11_l1_b_1, gradleg_quad_l0_l11_b_0, gradleg_quad_l0_l11_b_1, 
+  gradleg_quad_p0_e1_b, gradleg_quad_p0_e1_b, gradleg_quad_p0_e2_b_0, gradleg_quad_p0_e2_b_1,  gradleg_quad_p0_e3_b, gradleg_quad_p0_e3_b, gradleg_quad_p0_e4_b_0, gradleg_quad_p0_e4_b_1,
+  gradleg_quad_l2_l0_b, gradleg_quad_l2_l0_b, gradleg_quad_l1_l2_b, gradleg_quad_l1_l2_b, gradleg_quad_l2_l1_b, gradleg_quad_l2_l1_b, gradleg_quad_l0_l2_b,  gradleg_quad_l0_l2_b,
+  gradleg_quad_l3_l0_b_0, gradleg_quad_l3_l0_b_1, gradleg_quad_l1_l3_b_0, gradleg_quad_l1_l3_b_1, gradleg_quad_l3_l1_b_0, gradleg_quad_l3_l1_b_1, gradleg_quad_l0_l3_b_0, gradleg_quad_l0_l3_b_1,
+  gradleg_quad_l4_l0_b, gradleg_quad_l4_l0_b, gradleg_quad_l1_l4_b, gradleg_quad_l1_l4_b, gradleg_quad_l4_l1_b, gradleg_quad_l4_l1_b, gradleg_quad_l0_l4_b,  gradleg_quad_l0_l4_b,
+  gradleg_quad_l5_l0_b_0, gradleg_quad_l5_l0_b_1, gradleg_quad_l1_l5_b_0, gradleg_quad_l1_l5_b_1, gradleg_quad_l5_l1_b_0, gradleg_quad_l5_l1_b_1, gradleg_quad_l0_l5_b_0, gradleg_quad_l0_l5_b_1,
+  gradleg_quad_l6_l0_b, gradleg_quad_l6_l0_b, gradleg_quad_l1_l6_b, gradleg_quad_l1_l6_b, gradleg_quad_l6_l1_b, gradleg_quad_l6_l1_b, gradleg_quad_l0_l6_b,  gradleg_quad_l0_l6_b,
+  gradleg_quad_l7_l0_b_0, gradleg_quad_l7_l0_b_1, gradleg_quad_l1_l7_b_0, gradleg_quad_l1_l7_b_1, gradleg_quad_l7_l1_b_0, gradleg_quad_l7_l1_b_1, gradleg_quad_l0_l7_b_0, gradleg_quad_l0_l7_b_1,
+  gradleg_quad_l8_l0_b, gradleg_quad_l8_l0_b, gradleg_quad_l1_l8_b, gradleg_quad_l1_l8_b, gradleg_quad_l8_l1_b, gradleg_quad_l8_l1_b, gradleg_quad_l0_l8_b,  gradleg_quad_l0_l8_b,
+  gradleg_quad_l9_l0_b_0, gradleg_quad_l9_l0_b_1, gradleg_quad_l1_l9_b_0, gradleg_quad_l1_l9_b_1, gradleg_quad_l9_l1_b_0, gradleg_quad_l9_l1_b_1, gradleg_quad_l0_l9_b_0, gradleg_quad_l0_l9_b_1,
+  gradleg_quad_l10_l0_b, gradleg_quad_l10_l0_b, gradleg_quad_l1_l10_b, gradleg_quad_l1_l10_b, gradleg_quad_l10_l1_b, gradleg_quad_l10_l1_b, gradleg_quad_l0_l10_b,  gradleg_quad_l0_l10_b,
+  gradleg_quad_l11_l0_b_0, gradleg_quad_l11_l0_b_1, gradleg_quad_l1_l11_b_0, gradleg_quad_l1_l11_b_1, gradleg_quad_l11_l1_b_0, gradleg_quad_l11_l1_b_1, gradleg_quad_l0_l11_b_0, gradleg_quad_l0_l11_b_1,
 
   gradleg_quad_p0p2_b1_b,   gradleg_quad_p0p3_b1_b,   gradleg_quad_p0p4_b1_b,   gradleg_quad_p0p5_b1_b,   gradleg_quad_p0p6_b1_b,   gradleg_quad_p0p7_b1_b,   gradleg_quad_p0p8_b1_b,   gradleg_quad_p0p9_b1_b,   gradleg_quad_p0p10_b1_b,   gradleg_quad_p0p11_b1_b,   gradleg_quad_p1p2_b1_b,   gradleg_quad_p1p3_b1_b,   gradleg_quad_p1p4_b1_b,   gradleg_quad_p1p5_b1_b,   gradleg_quad_p1p6_b1_b,   gradleg_quad_p1p7_b1_b,   gradleg_quad_p1p8_b1_b,   gradleg_quad_p1p9_b1_b,   gradleg_quad_p1p10_b1_b,   gradleg_quad_p1p11_b1_b,   gradleg_quad_p2p2_b1_b,   gradleg_quad_p2p3_b1_b,   gradleg_quad_p2p4_b1_b,   gradleg_quad_p2p5_b1_b,   gradleg_quad_p2p6_b1_b,   gradleg_quad_p2p7_b1_b,   gradleg_quad_p2p8_b1_b,   gradleg_quad_p2p9_b1_b,   gradleg_quad_p2p10_b1_b,   gradleg_quad_p2p11_b1_b,   gradleg_quad_p3p2_b1_b,   gradleg_quad_p3p3_b1_b,   gradleg_quad_p3p4_b1_b,   gradleg_quad_p3p5_b1_b,   gradleg_quad_p3p6_b1_b,   gradleg_quad_p3p7_b1_b,   gradleg_quad_p3p8_b1_b,   gradleg_quad_p3p9_b1_b,   gradleg_quad_p3p10_b1_b,   gradleg_quad_p3p11_b1_b,   gradleg_quad_p4p2_b1_b,   gradleg_quad_p4p3_b1_b,   gradleg_quad_p4p4_b1_b,   gradleg_quad_p4p5_b1_b,   gradleg_quad_p4p6_b1_b,   gradleg_quad_p4p7_b1_b,   gradleg_quad_p4p8_b1_b,   gradleg_quad_p4p9_b1_b,   gradleg_quad_p4p10_b1_b,   gradleg_quad_p4p11_b1_b,   gradleg_quad_p5p2_b1_b,   gradleg_quad_p5p3_b1_b,   gradleg_quad_p5p4_b1_b,   gradleg_quad_p5p5_b1_b,   gradleg_quad_p5p6_b1_b,   gradleg_quad_p5p7_b1_b,   gradleg_quad_p5p8_b1_b,   gradleg_quad_p5p9_b1_b,   gradleg_quad_p5p10_b1_b,   gradleg_quad_p5p11_b1_b,   gradleg_quad_p6p2_b1_b,   gradleg_quad_p6p3_b1_b,   gradleg_quad_p6p4_b1_b,   gradleg_quad_p6p5_b1_b,   gradleg_quad_p6p6_b1_b,   gradleg_quad_p6p7_b1_b,   gradleg_quad_p6p8_b1_b,   gradleg_quad_p6p9_b1_b,   gradleg_quad_p6p10_b1_b,   gradleg_quad_p6p11_b1_b,   gradleg_quad_p7p2_b1_b,   gradleg_quad_p7p3_b1_b,   gradleg_quad_p7p4_b1_b,   gradleg_quad_p7p5_b1_b,   gradleg_quad_p7p6_b1_b,   gradleg_quad_p7p7_b1_b,   gradleg_quad_p7p8_b1_b,   gradleg_quad_p7p9_b1_b,   gradleg_quad_p7p10_b1_b,   gradleg_quad_p7p11_b1_b,   gradleg_quad_p8p2_b1_b,   gradleg_quad_p8p3_b1_b,   gradleg_quad_p8p4_b1_b,   gradleg_quad_p8p5_b1_b,   gradleg_quad_p8p6_b1_b,   gradleg_quad_p8p7_b1_b,   gradleg_quad_p8p8_b1_b,   gradleg_quad_p8p9_b1_b,   gradleg_quad_p8p10_b1_b,   gradleg_quad_p8p11_b1_b,   gradleg_quad_p9p2_b1_b,   gradleg_quad_p9p3_b1_b,   gradleg_quad_p9p4_b1_b,   gradleg_quad_p9p5_b1_b,   gradleg_quad_p9p6_b1_b,   gradleg_quad_p9p7_b1_b,   gradleg_quad_p9p8_b1_b,   gradleg_quad_p9p9_b1_b,   gradleg_quad_p9p10_b1_b,   gradleg_quad_p9p11_b1_b,   gradleg_quad_p10p2_b1_b,   gradleg_quad_p10p3_b1_b,   gradleg_quad_p10p4_b1_b,   gradleg_quad_p10p5_b1_b,   gradleg_quad_p10p6_b1_b,   gradleg_quad_p10p7_b1_b,   gradleg_quad_p10p8_b1_b,   gradleg_quad_p10p9_b1_b,   gradleg_quad_p10p10_b1_b,   gradleg_quad_p10p11_b1_b,   gradleg_quad_p2p0_b2_b,   gradleg_quad_p2p1_b2_b,   gradleg_quad_p2p2_b2_b,   gradleg_quad_p2p3_b2_b,   gradleg_quad_p2p4_b2_b,   gradleg_quad_p2p5_b2_b,   gradleg_quad_p2p6_b2_b,   gradleg_quad_p2p7_b2_b,   gradleg_quad_p2p8_b2_b,   gradleg_quad_p2p9_b2_b,   gradleg_quad_p2p10_b2_b,   gradleg_quad_p3p0_b2_b,   gradleg_quad_p3p1_b2_b,   gradleg_quad_p3p2_b2_b,   gradleg_quad_p3p3_b2_b,   gradleg_quad_p3p4_b2_b,   gradleg_quad_p3p5_b2_b,   gradleg_quad_p3p6_b2_b,   gradleg_quad_p3p7_b2_b,   gradleg_quad_p3p8_b2_b,   gradleg_quad_p3p9_b2_b,   gradleg_quad_p3p10_b2_b,   gradleg_quad_p4p0_b2_b,   gradleg_quad_p4p1_b2_b,   gradleg_quad_p4p2_b2_b,   gradleg_quad_p4p3_b2_b,   gradleg_quad_p4p4_b2_b,   gradleg_quad_p4p5_b2_b,   gradleg_quad_p4p6_b2_b,   gradleg_quad_p4p7_b2_b,   gradleg_quad_p4p8_b2_b,   gradleg_quad_p4p9_b2_b,   gradleg_quad_p4p10_b2_b,   gradleg_quad_p5p0_b2_b,   gradleg_quad_p5p1_b2_b,   gradleg_quad_p5p2_b2_b,   gradleg_quad_p5p3_b2_b,   gradleg_quad_p5p4_b2_b,   gradleg_quad_p5p5_b2_b,   gradleg_quad_p5p6_b2_b,   gradleg_quad_p5p7_b2_b,   gradleg_quad_p5p8_b2_b,   gradleg_quad_p5p9_b2_b,   gradleg_quad_p5p10_b2_b,   gradleg_quad_p6p0_b2_b,   gradleg_quad_p6p1_b2_b,   gradleg_quad_p6p2_b2_b,   gradleg_quad_p6p3_b2_b,   gradleg_quad_p6p4_b2_b,   gradleg_quad_p6p5_b2_b,   gradleg_quad_p6p6_b2_b,   gradleg_quad_p6p7_b2_b,   gradleg_quad_p6p8_b2_b,   gradleg_quad_p6p9_b2_b,   gradleg_quad_p6p10_b2_b,   gradleg_quad_p7p0_b2_b,   gradleg_quad_p7p1_b2_b,   gradleg_quad_p7p2_b2_b,   gradleg_quad_p7p3_b2_b,   gradleg_quad_p7p4_b2_b,   gradleg_quad_p7p5_b2_b,   gradleg_quad_p7p6_b2_b,   gradleg_quad_p7p7_b2_b,   gradleg_quad_p7p8_b2_b,   gradleg_quad_p7p9_b2_b,   gradleg_quad_p7p10_b2_b,   gradleg_quad_p8p0_b2_b,   gradleg_quad_p8p1_b2_b,   gradleg_quad_p8p2_b2_b,   gradleg_quad_p8p3_b2_b,   gradleg_quad_p8p4_b2_b,   gradleg_quad_p8p5_b2_b,   gradleg_quad_p8p6_b2_b,   gradleg_quad_p8p7_b2_b,   gradleg_quad_p8p8_b2_b,   gradleg_quad_p8p9_b2_b,   gradleg_quad_p8p10_b2_b,   gradleg_quad_p9p0_b2_b,   gradleg_quad_p9p1_b2_b,   gradleg_quad_p9p2_b2_b,   gradleg_quad_p9p3_b2_b,   gradleg_quad_p9p4_b2_b,   gradleg_quad_p9p5_b2_b,   gradleg_quad_p9p6_b2_b,   gradleg_quad_p9p7_b2_b,   gradleg_quad_p9p8_b2_b,   gradleg_quad_p9p9_b2_b,   gradleg_quad_p9p10_b2_b,   gradleg_quad_p10p0_b2_b,   gradleg_quad_p10p1_b2_b,   gradleg_quad_p10p2_b2_b,   gradleg_quad_p10p3_b2_b,   gradleg_quad_p10p4_b2_b,   gradleg_quad_p10p5_b2_b,   gradleg_quad_p10p6_b2_b,   gradleg_quad_p10p7_b2_b,   gradleg_quad_p10p8_b2_b,   gradleg_quad_p10p9_b2_b,   gradleg_quad_p10p10_b2_b,   gradleg_quad_p11p0_b2_b,   gradleg_quad_p11p1_b2_b,   gradleg_quad_p11p2_b2_b,   gradleg_quad_p11p3_b2_b,   gradleg_quad_p11p4_b2_b,   gradleg_quad_p11p5_b2_b,   gradleg_quad_p11p6_b2_b,   gradleg_quad_p11p7_b2_b,   gradleg_quad_p11p8_b2_b,   gradleg_quad_p11p9_b2_b,   gradleg_quad_p11p10_b2_b, };
 
-static Shapeset::shape_fn_t gradleg_quad_fn_ax[] = 
+static Shapeset::shape_fn_t gradleg_quad_fn_ax[] =
 {
-  gradleg_quad_p0_e1_ax_0, gradleg_quad_p0_e1_ax_1, gradleg_quad_p0_e2_ax, gradleg_quad_p0_e2_ax, gradleg_quad_p0_e3_ax_0, gradleg_quad_p0_e3_ax_1, gradleg_quad_p0_e4_ax, gradleg_quad_p0_e4_ax, 
-  gradleg_quad_l2_l0_ax, gradleg_quad_l2_l0_ax, gradleg_quad_l1_l2_ax, gradleg_quad_l1_l2_ax, gradleg_quad_l2_l1_ax, gradleg_quad_l2_l1_ax, gradleg_quad_l0_l2_ax, gradleg_quad_l0_l2_ax, 
-  gradleg_quad_l3_l0_ax_0, gradleg_quad_l3_l0_ax_1, gradleg_quad_l1_l3_ax_0, gradleg_quad_l1_l3_ax_1,  gradleg_quad_l3_l1_ax_0, gradleg_quad_l3_l1_ax_1, gradleg_quad_l0_l3_ax_0, gradleg_quad_l0_l3_ax_1, 
-  gradleg_quad_l4_l0_ax, gradleg_quad_l4_l0_ax, gradleg_quad_l1_l4_ax, gradleg_quad_l1_l4_ax, gradleg_quad_l4_l1_ax, gradleg_quad_l4_l1_ax, gradleg_quad_l0_l4_ax, gradleg_quad_l0_l4_ax, 
-  gradleg_quad_l5_l0_ax_0, gradleg_quad_l5_l0_ax_1, gradleg_quad_l1_l5_ax_0, gradleg_quad_l1_l5_ax_1,  gradleg_quad_l5_l1_ax_0, gradleg_quad_l5_l1_ax_1, gradleg_quad_l0_l5_ax_0, gradleg_quad_l0_l5_ax_1, 
-  gradleg_quad_l6_l0_ax, gradleg_quad_l6_l0_ax, gradleg_quad_l1_l6_ax, gradleg_quad_l1_l6_ax, gradleg_quad_l6_l1_ax, gradleg_quad_l6_l1_ax, gradleg_quad_l0_l6_ax, gradleg_quad_l0_l6_ax, 
-  gradleg_quad_l7_l0_ax_0, gradleg_quad_l7_l0_ax_1, gradleg_quad_l1_l7_ax_0, gradleg_quad_l1_l7_ax_1,  gradleg_quad_l7_l1_ax_0, gradleg_quad_l7_l1_ax_1, gradleg_quad_l0_l7_ax_0, gradleg_quad_l0_l7_ax_1, 
-  gradleg_quad_l8_l0_ax, gradleg_quad_l8_l0_ax, gradleg_quad_l1_l8_ax, gradleg_quad_l1_l8_ax, gradleg_quad_l8_l1_ax, gradleg_quad_l8_l1_ax, gradleg_quad_l0_l8_ax, gradleg_quad_l0_l8_ax, 
-  gradleg_quad_l9_l0_ax_0, gradleg_quad_l9_l0_ax_1, gradleg_quad_l1_l9_ax_0, gradleg_quad_l1_l9_ax_1,  gradleg_quad_l9_l1_ax_0, gradleg_quad_l9_l1_ax_1, gradleg_quad_l0_l9_ax_0, gradleg_quad_l0_l9_ax_1, 
-  gradleg_quad_l10_l0_ax, gradleg_quad_l10_l0_ax, gradleg_quad_l1_l10_ax, gradleg_quad_l1_l10_ax, gradleg_quad_l10_l1_ax, gradleg_quad_l10_l1_ax, gradleg_quad_l0_l10_ax, gradleg_quad_l0_l10_ax, 
-  gradleg_quad_l11_l0_ax_0, gradleg_quad_l11_l0_ax_1, gradleg_quad_l1_l11_ax_0, gradleg_quad_l1_l11_ax_1,  gradleg_quad_l11_l1_ax_0, gradleg_quad_l11_l1_ax_1, gradleg_quad_l0_l11_ax_0, gradleg_quad_l0_l11_ax_1, 
+  gradleg_quad_p0_e1_ax_0, gradleg_quad_p0_e1_ax_1, gradleg_quad_p0_e2_ax, gradleg_quad_p0_e2_ax, gradleg_quad_p0_e3_ax_0, gradleg_quad_p0_e3_ax_1, gradleg_quad_p0_e4_ax, gradleg_quad_p0_e4_ax,
+  gradleg_quad_l2_l0_ax, gradleg_quad_l2_l0_ax, gradleg_quad_l1_l2_ax, gradleg_quad_l1_l2_ax, gradleg_quad_l2_l1_ax, gradleg_quad_l2_l1_ax, gradleg_quad_l0_l2_ax, gradleg_quad_l0_l2_ax,
+  gradleg_quad_l3_l0_ax_0, gradleg_quad_l3_l0_ax_1, gradleg_quad_l1_l3_ax_0, gradleg_quad_l1_l3_ax_1,  gradleg_quad_l3_l1_ax_0, gradleg_quad_l3_l1_ax_1, gradleg_quad_l0_l3_ax_0, gradleg_quad_l0_l3_ax_1,
+  gradleg_quad_l4_l0_ax, gradleg_quad_l4_l0_ax, gradleg_quad_l1_l4_ax, gradleg_quad_l1_l4_ax, gradleg_quad_l4_l1_ax, gradleg_quad_l4_l1_ax, gradleg_quad_l0_l4_ax, gradleg_quad_l0_l4_ax,
+  gradleg_quad_l5_l0_ax_0, gradleg_quad_l5_l0_ax_1, gradleg_quad_l1_l5_ax_0, gradleg_quad_l1_l5_ax_1,  gradleg_quad_l5_l1_ax_0, gradleg_quad_l5_l1_ax_1, gradleg_quad_l0_l5_ax_0, gradleg_quad_l0_l5_ax_1,
+  gradleg_quad_l6_l0_ax, gradleg_quad_l6_l0_ax, gradleg_quad_l1_l6_ax, gradleg_quad_l1_l6_ax, gradleg_quad_l6_l1_ax, gradleg_quad_l6_l1_ax, gradleg_quad_l0_l6_ax, gradleg_quad_l0_l6_ax,
+  gradleg_quad_l7_l0_ax_0, gradleg_quad_l7_l0_ax_1, gradleg_quad_l1_l7_ax_0, gradleg_quad_l1_l7_ax_1,  gradleg_quad_l7_l1_ax_0, gradleg_quad_l7_l1_ax_1, gradleg_quad_l0_l7_ax_0, gradleg_quad_l0_l7_ax_1,
+  gradleg_quad_l8_l0_ax, gradleg_quad_l8_l0_ax, gradleg_quad_l1_l8_ax, gradleg_quad_l1_l8_ax, gradleg_quad_l8_l1_ax, gradleg_quad_l8_l1_ax, gradleg_quad_l0_l8_ax, gradleg_quad_l0_l8_ax,
+  gradleg_quad_l9_l0_ax_0, gradleg_quad_l9_l0_ax_1, gradleg_quad_l1_l9_ax_0, gradleg_quad_l1_l9_ax_1,  gradleg_quad_l9_l1_ax_0, gradleg_quad_l9_l1_ax_1, gradleg_quad_l0_l9_ax_0, gradleg_quad_l0_l9_ax_1,
+  gradleg_quad_l10_l0_ax, gradleg_quad_l10_l0_ax, gradleg_quad_l1_l10_ax, gradleg_quad_l1_l10_ax, gradleg_quad_l10_l1_ax, gradleg_quad_l10_l1_ax, gradleg_quad_l0_l10_ax, gradleg_quad_l0_l10_ax,
+  gradleg_quad_l11_l0_ax_0, gradleg_quad_l11_l0_ax_1, gradleg_quad_l1_l11_ax_0, gradleg_quad_l1_l11_ax_1,  gradleg_quad_l11_l1_ax_0, gradleg_quad_l11_l1_ax_1, gradleg_quad_l0_l11_ax_0, gradleg_quad_l0_l11_ax_1,
 
   gradleg_quad_p0p2_b1_ax,   gradleg_quad_p0p3_b1_ax,   gradleg_quad_p0p4_b1_ax,   gradleg_quad_p0p5_b1_ax,   gradleg_quad_p0p6_b1_ax,   gradleg_quad_p0p7_b1_ax,   gradleg_quad_p0p8_b1_ax,   gradleg_quad_p0p9_b1_ax,   gradleg_quad_p0p10_b1_ax,   gradleg_quad_p0p11_b1_ax,   gradleg_quad_p1p2_b1_ax,   gradleg_quad_p1p3_b1_ax,   gradleg_quad_p1p4_b1_ax,   gradleg_quad_p1p5_b1_ax,   gradleg_quad_p1p6_b1_ax,   gradleg_quad_p1p7_b1_ax,   gradleg_quad_p1p8_b1_ax,   gradleg_quad_p1p9_b1_ax,   gradleg_quad_p1p10_b1_ax,   gradleg_quad_p1p11_b1_ax,   gradleg_quad_p2p2_b1_ax,   gradleg_quad_p2p3_b1_ax,   gradleg_quad_p2p4_b1_ax,   gradleg_quad_p2p5_b1_ax,   gradleg_quad_p2p6_b1_ax,   gradleg_quad_p2p7_b1_ax,   gradleg_quad_p2p8_b1_ax,   gradleg_quad_p2p9_b1_ax,   gradleg_quad_p2p10_b1_ax,   gradleg_quad_p2p11_b1_ax,   gradleg_quad_p3p2_b1_ax,   gradleg_quad_p3p3_b1_ax,   gradleg_quad_p3p4_b1_ax,   gradleg_quad_p3p5_b1_ax,   gradleg_quad_p3p6_b1_ax,   gradleg_quad_p3p7_b1_ax,   gradleg_quad_p3p8_b1_ax,   gradleg_quad_p3p9_b1_ax,   gradleg_quad_p3p10_b1_ax,   gradleg_quad_p3p11_b1_ax,   gradleg_quad_p4p2_b1_ax,   gradleg_quad_p4p3_b1_ax,   gradleg_quad_p4p4_b1_ax,   gradleg_quad_p4p5_b1_ax,   gradleg_quad_p4p6_b1_ax,   gradleg_quad_p4p7_b1_ax,   gradleg_quad_p4p8_b1_ax,   gradleg_quad_p4p9_b1_ax,   gradleg_quad_p4p10_b1_ax,   gradleg_quad_p4p11_b1_ax,   gradleg_quad_p5p2_b1_ax,   gradleg_quad_p5p3_b1_ax,   gradleg_quad_p5p4_b1_ax,   gradleg_quad_p5p5_b1_ax,   gradleg_quad_p5p6_b1_ax,   gradleg_quad_p5p7_b1_ax,   gradleg_quad_p5p8_b1_ax,   gradleg_quad_p5p9_b1_ax,   gradleg_quad_p5p10_b1_ax,   gradleg_quad_p5p11_b1_ax,   gradleg_quad_p6p2_b1_ax,   gradleg_quad_p6p3_b1_ax,   gradleg_quad_p6p4_b1_ax,   gradleg_quad_p6p5_b1_ax,   gradleg_quad_p6p6_b1_ax,   gradleg_quad_p6p7_b1_ax,   gradleg_quad_p6p8_b1_ax,   gradleg_quad_p6p9_b1_ax,   gradleg_quad_p6p10_b1_ax,   gradleg_quad_p6p11_b1_ax,   gradleg_quad_p7p2_b1_ax,   gradleg_quad_p7p3_b1_ax,   gradleg_quad_p7p4_b1_ax,   gradleg_quad_p7p5_b1_ax,   gradleg_quad_p7p6_b1_ax,   gradleg_quad_p7p7_b1_ax,   gradleg_quad_p7p8_b1_ax,   gradleg_quad_p7p9_b1_ax,   gradleg_quad_p7p10_b1_ax,   gradleg_quad_p7p11_b1_ax,   gradleg_quad_p8p2_b1_ax,   gradleg_quad_p8p3_b1_ax,   gradleg_quad_p8p4_b1_ax,   gradleg_quad_p8p5_b1_ax,   gradleg_quad_p8p6_b1_ax,   gradleg_quad_p8p7_b1_ax,   gradleg_quad_p8p8_b1_ax,   gradleg_quad_p8p9_b1_ax,   gradleg_quad_p8p10_b1_ax,   gradleg_quad_p8p11_b1_ax,   gradleg_quad_p9p2_b1_ax,   gradleg_quad_p9p3_b1_ax,   gradleg_quad_p9p4_b1_ax,   gradleg_quad_p9p5_b1_ax,   gradleg_quad_p9p6_b1_ax,   gradleg_quad_p9p7_b1_ax,   gradleg_quad_p9p8_b1_ax,   gradleg_quad_p9p9_b1_ax,   gradleg_quad_p9p10_b1_ax,   gradleg_quad_p9p11_b1_ax,   gradleg_quad_p10p2_b1_ax,   gradleg_quad_p10p3_b1_ax,   gradleg_quad_p10p4_b1_ax,   gradleg_quad_p10p5_b1_ax,   gradleg_quad_p10p6_b1_ax,   gradleg_quad_p10p7_b1_ax,   gradleg_quad_p10p8_b1_ax,   gradleg_quad_p10p9_b1_ax,   gradleg_quad_p10p10_b1_ax,   gradleg_quad_p10p11_b1_ax,   gradleg_quad_p2p0_b2_ax,   gradleg_quad_p2p1_b2_ax,   gradleg_quad_p2p2_b2_ax,   gradleg_quad_p2p3_b2_ax,   gradleg_quad_p2p4_b2_ax,   gradleg_quad_p2p5_b2_ax,   gradleg_quad_p2p6_b2_ax,   gradleg_quad_p2p7_b2_ax,   gradleg_quad_p2p8_b2_ax,   gradleg_quad_p2p9_b2_ax,   gradleg_quad_p2p10_b2_ax,   gradleg_quad_p3p0_b2_ax,   gradleg_quad_p3p1_b2_ax,   gradleg_quad_p3p2_b2_ax,   gradleg_quad_p3p3_b2_ax,   gradleg_quad_p3p4_b2_ax,   gradleg_quad_p3p5_b2_ax,   gradleg_quad_p3p6_b2_ax,   gradleg_quad_p3p7_b2_ax,   gradleg_quad_p3p8_b2_ax,   gradleg_quad_p3p9_b2_ax,   gradleg_quad_p3p10_b2_ax,   gradleg_quad_p4p0_b2_ax,   gradleg_quad_p4p1_b2_ax,   gradleg_quad_p4p2_b2_ax,   gradleg_quad_p4p3_b2_ax,   gradleg_quad_p4p4_b2_ax,   gradleg_quad_p4p5_b2_ax,   gradleg_quad_p4p6_b2_ax,   gradleg_quad_p4p7_b2_ax,   gradleg_quad_p4p8_b2_ax,   gradleg_quad_p4p9_b2_ax,   gradleg_quad_p4p10_b2_ax,   gradleg_quad_p5p0_b2_ax,   gradleg_quad_p5p1_b2_ax,   gradleg_quad_p5p2_b2_ax,   gradleg_quad_p5p3_b2_ax,   gradleg_quad_p5p4_b2_ax,   gradleg_quad_p5p5_b2_ax,   gradleg_quad_p5p6_b2_ax,   gradleg_quad_p5p7_b2_ax,   gradleg_quad_p5p8_b2_ax,   gradleg_quad_p5p9_b2_ax,   gradleg_quad_p5p10_b2_ax,   gradleg_quad_p6p0_b2_ax,   gradleg_quad_p6p1_b2_ax,   gradleg_quad_p6p2_b2_ax,   gradleg_quad_p6p3_b2_ax,   gradleg_quad_p6p4_b2_ax,   gradleg_quad_p6p5_b2_ax,   gradleg_quad_p6p6_b2_ax,   gradleg_quad_p6p7_b2_ax,   gradleg_quad_p6p8_b2_ax,   gradleg_quad_p6p9_b2_ax,   gradleg_quad_p6p10_b2_ax,   gradleg_quad_p7p0_b2_ax,   gradleg_quad_p7p1_b2_ax,   gradleg_quad_p7p2_b2_ax,   gradleg_quad_p7p3_b2_ax,   gradleg_quad_p7p4_b2_ax,   gradleg_quad_p7p5_b2_ax,   gradleg_quad_p7p6_b2_ax,   gradleg_quad_p7p7_b2_ax,   gradleg_quad_p7p8_b2_ax,   gradleg_quad_p7p9_b2_ax,   gradleg_quad_p7p10_b2_ax,   gradleg_quad_p8p0_b2_ax,   gradleg_quad_p8p1_b2_ax,   gradleg_quad_p8p2_b2_ax,   gradleg_quad_p8p3_b2_ax,   gradleg_quad_p8p4_b2_ax,   gradleg_quad_p8p5_b2_ax,   gradleg_quad_p8p6_b2_ax,   gradleg_quad_p8p7_b2_ax,   gradleg_quad_p8p8_b2_ax,   gradleg_quad_p8p9_b2_ax,   gradleg_quad_p8p10_b2_ax,   gradleg_quad_p9p0_b2_ax,   gradleg_quad_p9p1_b2_ax,   gradleg_quad_p9p2_b2_ax,   gradleg_quad_p9p3_b2_ax,   gradleg_quad_p9p4_b2_ax,   gradleg_quad_p9p5_b2_ax,   gradleg_quad_p9p6_b2_ax,   gradleg_quad_p9p7_b2_ax,   gradleg_quad_p9p8_b2_ax,   gradleg_quad_p9p9_b2_ax,   gradleg_quad_p9p10_b2_ax,   gradleg_quad_p10p0_b2_ax,   gradleg_quad_p10p1_b2_ax,   gradleg_quad_p10p2_b2_ax,   gradleg_quad_p10p3_b2_ax,   gradleg_quad_p10p4_b2_ax,   gradleg_quad_p10p5_b2_ax,   gradleg_quad_p10p6_b2_ax,   gradleg_quad_p10p7_b2_ax,   gradleg_quad_p10p8_b2_ax,   gradleg_quad_p10p9_b2_ax,   gradleg_quad_p10p10_b2_ax,   gradleg_quad_p11p0_b2_ax,   gradleg_quad_p11p1_b2_ax,   gradleg_quad_p11p2_b2_ax,   gradleg_quad_p11p3_b2_ax,   gradleg_quad_p11p4_b2_ax,   gradleg_quad_p11p5_b2_ax,   gradleg_quad_p11p6_b2_ax,   gradleg_quad_p11p7_b2_ax,   gradleg_quad_p11p8_b2_ax,   gradleg_quad_p11p9_b2_ax,   gradleg_quad_p11p10_b2_ax, };
 
-static Shapeset::shape_fn_t gradleg_quad_fn_bx[] = 
+static Shapeset::shape_fn_t gradleg_quad_fn_bx[] =
 {
-  gradleg_quad_p0_e1_bx, gradleg_quad_p0_e1_bx, gradleg_quad_p0_e2_bx_0, gradleg_quad_p0_e2_bx_1,  gradleg_quad_p0_e3_bx, gradleg_quad_p0_e3_bx, gradleg_quad_p0_e4_bx_0, gradleg_quad_p0_e4_bx_1, 
-  gradleg_quad_l2_l0_bx, gradleg_quad_l2_l0_bx, gradleg_quad_l1_l2_bx, gradleg_quad_l1_l2_bx, gradleg_quad_l2_l1_bx, gradleg_quad_l2_l1_bx, gradleg_quad_l0_l2_bx,  gradleg_quad_l0_l2_bx, 
-  gradleg_quad_l3_l0_bx_0, gradleg_quad_l3_l0_bx_1, gradleg_quad_l1_l3_bx_0, gradleg_quad_l1_l3_bx_1, gradleg_quad_l3_l1_bx_0, gradleg_quad_l3_l1_bx_1, gradleg_quad_l0_l3_bx_0, gradleg_quad_l0_l3_bx_1, 
-  gradleg_quad_l4_l0_bx, gradleg_quad_l4_l0_bx, gradleg_quad_l1_l4_bx, gradleg_quad_l1_l4_bx, gradleg_quad_l4_l1_bx, gradleg_quad_l4_l1_bx, gradleg_quad_l0_l4_bx,  gradleg_quad_l0_l4_bx, 
-  gradleg_quad_l5_l0_bx_0, gradleg_quad_l5_l0_bx_1, gradleg_quad_l1_l5_bx_0, gradleg_quad_l1_l5_bx_1, gradleg_quad_l5_l1_bx_0, gradleg_quad_l5_l1_bx_1, gradleg_quad_l0_l5_bx_0, gradleg_quad_l0_l5_bx_1, 
-  gradleg_quad_l6_l0_bx, gradleg_quad_l6_l0_bx, gradleg_quad_l1_l6_bx, gradleg_quad_l1_l6_bx, gradleg_quad_l6_l1_bx, gradleg_quad_l6_l1_bx, gradleg_quad_l0_l6_bx,  gradleg_quad_l0_l6_bx, 
-  gradleg_quad_l7_l0_bx_0, gradleg_quad_l7_l0_bx_1, gradleg_quad_l1_l7_bx_0, gradleg_quad_l1_l7_bx_1, gradleg_quad_l7_l1_bx_0, gradleg_quad_l7_l1_bx_1, gradleg_quad_l0_l7_bx_0, gradleg_quad_l0_l7_bx_1, 
-  gradleg_quad_l8_l0_bx, gradleg_quad_l8_l0_bx, gradleg_quad_l1_l8_bx, gradleg_quad_l1_l8_bx, gradleg_quad_l8_l1_bx, gradleg_quad_l8_l1_bx, gradleg_quad_l0_l8_bx,  gradleg_quad_l0_l8_bx, 
-  gradleg_quad_l9_l0_bx_0, gradleg_quad_l9_l0_bx_1, gradleg_quad_l1_l9_bx_0, gradleg_quad_l1_l9_bx_1, gradleg_quad_l9_l1_bx_0, gradleg_quad_l9_l1_bx_1, gradleg_quad_l0_l9_bx_0, gradleg_quad_l0_l9_bx_1, 
-  gradleg_quad_l10_l0_bx, gradleg_quad_l10_l0_bx, gradleg_quad_l1_l10_bx, gradleg_quad_l1_l10_bx, gradleg_quad_l10_l1_bx, gradleg_quad_l10_l1_bx, gradleg_quad_l0_l10_bx,  gradleg_quad_l0_l10_bx, 
-  gradleg_quad_l11_l0_bx_0, gradleg_quad_l11_l0_bx_1, gradleg_quad_l1_l11_bx_0, gradleg_quad_l1_l11_bx_1, gradleg_quad_l11_l1_bx_0, gradleg_quad_l11_l1_bx_1, gradleg_quad_l0_l11_bx_0, gradleg_quad_l0_l11_bx_1, 
+  gradleg_quad_p0_e1_bx, gradleg_quad_p0_e1_bx, gradleg_quad_p0_e2_bx_0, gradleg_quad_p0_e2_bx_1,  gradleg_quad_p0_e3_bx, gradleg_quad_p0_e3_bx, gradleg_quad_p0_e4_bx_0, gradleg_quad_p0_e4_bx_1,
+  gradleg_quad_l2_l0_bx, gradleg_quad_l2_l0_bx, gradleg_quad_l1_l2_bx, gradleg_quad_l1_l2_bx, gradleg_quad_l2_l1_bx, gradleg_quad_l2_l1_bx, gradleg_quad_l0_l2_bx,  gradleg_quad_l0_l2_bx,
+  gradleg_quad_l3_l0_bx_0, gradleg_quad_l3_l0_bx_1, gradleg_quad_l1_l3_bx_0, gradleg_quad_l1_l3_bx_1, gradleg_quad_l3_l1_bx_0, gradleg_quad_l3_l1_bx_1, gradleg_quad_l0_l3_bx_0, gradleg_quad_l0_l3_bx_1,
+  gradleg_quad_l4_l0_bx, gradleg_quad_l4_l0_bx, gradleg_quad_l1_l4_bx, gradleg_quad_l1_l4_bx, gradleg_quad_l4_l1_bx, gradleg_quad_l4_l1_bx, gradleg_quad_l0_l4_bx,  gradleg_quad_l0_l4_bx,
+  gradleg_quad_l5_l0_bx_0, gradleg_quad_l5_l0_bx_1, gradleg_quad_l1_l5_bx_0, gradleg_quad_l1_l5_bx_1, gradleg_quad_l5_l1_bx_0, gradleg_quad_l5_l1_bx_1, gradleg_quad_l0_l5_bx_0, gradleg_quad_l0_l5_bx_1,
+  gradleg_quad_l6_l0_bx, gradleg_quad_l6_l0_bx, gradleg_quad_l1_l6_bx, gradleg_quad_l1_l6_bx, gradleg_quad_l6_l1_bx, gradleg_quad_l6_l1_bx, gradleg_quad_l0_l6_bx,  gradleg_quad_l0_l6_bx,
+  gradleg_quad_l7_l0_bx_0, gradleg_quad_l7_l0_bx_1, gradleg_quad_l1_l7_bx_0, gradleg_quad_l1_l7_bx_1, gradleg_quad_l7_l1_bx_0, gradleg_quad_l7_l1_bx_1, gradleg_quad_l0_l7_bx_0, gradleg_quad_l0_l7_bx_1,
+  gradleg_quad_l8_l0_bx, gradleg_quad_l8_l0_bx, gradleg_quad_l1_l8_bx, gradleg_quad_l1_l8_bx, gradleg_quad_l8_l1_bx, gradleg_quad_l8_l1_bx, gradleg_quad_l0_l8_bx,  gradleg_quad_l0_l8_bx,
+  gradleg_quad_l9_l0_bx_0, gradleg_quad_l9_l0_bx_1, gradleg_quad_l1_l9_bx_0, gradleg_quad_l1_l9_bx_1, gradleg_quad_l9_l1_bx_0, gradleg_quad_l9_l1_bx_1, gradleg_quad_l0_l9_bx_0, gradleg_quad_l0_l9_bx_1,
+  gradleg_quad_l10_l0_bx, gradleg_quad_l10_l0_bx, gradleg_quad_l1_l10_bx, gradleg_quad_l1_l10_bx, gradleg_quad_l10_l1_bx, gradleg_quad_l10_l1_bx, gradleg_quad_l0_l10_bx,  gradleg_quad_l0_l10_bx,
+  gradleg_quad_l11_l0_bx_0, gradleg_quad_l11_l0_bx_1, gradleg_quad_l1_l11_bx_0, gradleg_quad_l1_l11_bx_1, gradleg_quad_l11_l1_bx_0, gradleg_quad_l11_l1_bx_1, gradleg_quad_l0_l11_bx_0, gradleg_quad_l0_l11_bx_1,
 
   gradleg_quad_p0p2_b1_bx,   gradleg_quad_p0p3_b1_bx,   gradleg_quad_p0p4_b1_bx,   gradleg_quad_p0p5_b1_bx,   gradleg_quad_p0p6_b1_bx,   gradleg_quad_p0p7_b1_bx,   gradleg_quad_p0p8_b1_bx,   gradleg_quad_p0p9_b1_bx,   gradleg_quad_p0p10_b1_bx,   gradleg_quad_p0p11_b1_bx,   gradleg_quad_p1p2_b1_bx,   gradleg_quad_p1p3_b1_bx,   gradleg_quad_p1p4_b1_bx,   gradleg_quad_p1p5_b1_bx,   gradleg_quad_p1p6_b1_bx,   gradleg_quad_p1p7_b1_bx,   gradleg_quad_p1p8_b1_bx,   gradleg_quad_p1p9_b1_bx,   gradleg_quad_p1p10_b1_bx,   gradleg_quad_p1p11_b1_bx,   gradleg_quad_p2p2_b1_bx,   gradleg_quad_p2p3_b1_bx,   gradleg_quad_p2p4_b1_bx,   gradleg_quad_p2p5_b1_bx,   gradleg_quad_p2p6_b1_bx,   gradleg_quad_p2p7_b1_bx,   gradleg_quad_p2p8_b1_bx,   gradleg_quad_p2p9_b1_bx,   gradleg_quad_p2p10_b1_bx,   gradleg_quad_p2p11_b1_bx,   gradleg_quad_p3p2_b1_bx,   gradleg_quad_p3p3_b1_bx,   gradleg_quad_p3p4_b1_bx,   gradleg_quad_p3p5_b1_bx,   gradleg_quad_p3p6_b1_bx,   gradleg_quad_p3p7_b1_bx,   gradleg_quad_p3p8_b1_bx,   gradleg_quad_p3p9_b1_bx,   gradleg_quad_p3p10_b1_bx,   gradleg_quad_p3p11_b1_bx,   gradleg_quad_p4p2_b1_bx,   gradleg_quad_p4p3_b1_bx,   gradleg_quad_p4p4_b1_bx,   gradleg_quad_p4p5_b1_bx,   gradleg_quad_p4p6_b1_bx,   gradleg_quad_p4p7_b1_bx,   gradleg_quad_p4p8_b1_bx,   gradleg_quad_p4p9_b1_bx,   gradleg_quad_p4p10_b1_bx,   gradleg_quad_p4p11_b1_bx,   gradleg_quad_p5p2_b1_bx,   gradleg_quad_p5p3_b1_bx,   gradleg_quad_p5p4_b1_bx,   gradleg_quad_p5p5_b1_bx,   gradleg_quad_p5p6_b1_bx,   gradleg_quad_p5p7_b1_bx,   gradleg_quad_p5p8_b1_bx,   gradleg_quad_p5p9_b1_bx,   gradleg_quad_p5p10_b1_bx,   gradleg_quad_p5p11_b1_bx,   gradleg_quad_p6p2_b1_bx,   gradleg_quad_p6p3_b1_bx,   gradleg_quad_p6p4_b1_bx,   gradleg_quad_p6p5_b1_bx,   gradleg_quad_p6p6_b1_bx,   gradleg_quad_p6p7_b1_bx,   gradleg_quad_p6p8_b1_bx,   gradleg_quad_p6p9_b1_bx,   gradleg_quad_p6p10_b1_bx,   gradleg_quad_p6p11_b1_bx,   gradleg_quad_p7p2_b1_bx,   gradleg_quad_p7p3_b1_bx,   gradleg_quad_p7p4_b1_bx,   gradleg_quad_p7p5_b1_bx,   gradleg_quad_p7p6_b1_bx,   gradleg_quad_p7p7_b1_bx,   gradleg_quad_p7p8_b1_bx,   gradleg_quad_p7p9_b1_bx,   gradleg_quad_p7p10_b1_bx,   gradleg_quad_p7p11_b1_bx,   gradleg_quad_p8p2_b1_bx,   gradleg_quad_p8p3_b1_bx,   gradleg_quad_p8p4_b1_bx,   gradleg_quad_p8p5_b1_bx,   gradleg_quad_p8p6_b1_bx,   gradleg_quad_p8p7_b1_bx,   gradleg_quad_p8p8_b1_bx,   gradleg_quad_p8p9_b1_bx,   gradleg_quad_p8p10_b1_bx,   gradleg_quad_p8p11_b1_bx,   gradleg_quad_p9p2_b1_bx,   gradleg_quad_p9p3_b1_bx,   gradleg_quad_p9p4_b1_bx,   gradleg_quad_p9p5_b1_bx,   gradleg_quad_p9p6_b1_bx,   gradleg_quad_p9p7_b1_bx,   gradleg_quad_p9p8_b1_bx,   gradleg_quad_p9p9_b1_bx,   gradleg_quad_p9p10_b1_bx,   gradleg_quad_p9p11_b1_bx,   gradleg_quad_p10p2_b1_bx,   gradleg_quad_p10p3_b1_bx,   gradleg_quad_p10p4_b1_bx,   gradleg_quad_p10p5_b1_bx,   gradleg_quad_p10p6_b1_bx,   gradleg_quad_p10p7_b1_bx,   gradleg_quad_p10p8_b1_bx,   gradleg_quad_p10p9_b1_bx,   gradleg_quad_p10p10_b1_bx,   gradleg_quad_p10p11_b1_bx,   gradleg_quad_p2p0_b2_bx,   gradleg_quad_p2p1_b2_bx,   gradleg_quad_p2p2_b2_bx,   gradleg_quad_p2p3_b2_bx,   gradleg_quad_p2p4_b2_bx,   gradleg_quad_p2p5_b2_bx,   gradleg_quad_p2p6_b2_bx,   gradleg_quad_p2p7_b2_bx,   gradleg_quad_p2p8_b2_bx,   gradleg_quad_p2p9_b2_bx,   gradleg_quad_p2p10_b2_bx,   gradleg_quad_p3p0_b2_bx,   gradleg_quad_p3p1_b2_bx,   gradleg_quad_p3p2_b2_bx,   gradleg_quad_p3p3_b2_bx,   gradleg_quad_p3p4_b2_bx,   gradleg_quad_p3p5_b2_bx,   gradleg_quad_p3p6_b2_bx,   gradleg_quad_p3p7_b2_bx,   gradleg_quad_p3p8_b2_bx,   gradleg_quad_p3p9_b2_bx,   gradleg_quad_p3p10_b2_bx,   gradleg_quad_p4p0_b2_bx,   gradleg_quad_p4p1_b2_bx,   gradleg_quad_p4p2_b2_bx,   gradleg_quad_p4p3_b2_bx,   gradleg_quad_p4p4_b2_bx,   gradleg_quad_p4p5_b2_bx,   gradleg_quad_p4p6_b2_bx,   gradleg_quad_p4p7_b2_bx,   gradleg_quad_p4p8_b2_bx,   gradleg_quad_p4p9_b2_bx,   gradleg_quad_p4p10_b2_bx,   gradleg_quad_p5p0_b2_bx,   gradleg_quad_p5p1_b2_bx,   gradleg_quad_p5p2_b2_bx,   gradleg_quad_p5p3_b2_bx,   gradleg_quad_p5p4_b2_bx,   gradleg_quad_p5p5_b2_bx,   gradleg_quad_p5p6_b2_bx,   gradleg_quad_p5p7_b2_bx,   gradleg_quad_p5p8_b2_bx,   gradleg_quad_p5p9_b2_bx,   gradleg_quad_p5p10_b2_bx,   gradleg_quad_p6p0_b2_bx,   gradleg_quad_p6p1_b2_bx,   gradleg_quad_p6p2_b2_bx,   gradleg_quad_p6p3_b2_bx,   gradleg_quad_p6p4_b2_bx,   gradleg_quad_p6p5_b2_bx,   gradleg_quad_p6p6_b2_bx,   gradleg_quad_p6p7_b2_bx,   gradleg_quad_p6p8_b2_bx,   gradleg_quad_p6p9_b2_bx,   gradleg_quad_p6p10_b2_bx,   gradleg_quad_p7p0_b2_bx,   gradleg_quad_p7p1_b2_bx,   gradleg_quad_p7p2_b2_bx,   gradleg_quad_p7p3_b2_bx,   gradleg_quad_p7p4_b2_bx,   gradleg_quad_p7p5_b2_bx,   gradleg_quad_p7p6_b2_bx,   gradleg_quad_p7p7_b2_bx,   gradleg_quad_p7p8_b2_bx,   gradleg_quad_p7p9_b2_bx,   gradleg_quad_p7p10_b2_bx,   gradleg_quad_p8p0_b2_bx,   gradleg_quad_p8p1_b2_bx,   gradleg_quad_p8p2_b2_bx,   gradleg_quad_p8p3_b2_bx,   gradleg_quad_p8p4_b2_bx,   gradleg_quad_p8p5_b2_bx,   gradleg_quad_p8p6_b2_bx,   gradleg_quad_p8p7_b2_bx,   gradleg_quad_p8p8_b2_bx,   gradleg_quad_p8p9_b2_bx,   gradleg_quad_p8p10_b2_bx,   gradleg_quad_p9p0_b2_bx,   gradleg_quad_p9p1_b2_bx,   gradleg_quad_p9p2_b2_bx,   gradleg_quad_p9p3_b2_bx,   gradleg_quad_p9p4_b2_bx,   gradleg_quad_p9p5_b2_bx,   gradleg_quad_p9p6_b2_bx,   gradleg_quad_p9p7_b2_bx,   gradleg_quad_p9p8_b2_bx,   gradleg_quad_p9p9_b2_bx,   gradleg_quad_p9p10_b2_bx,   gradleg_quad_p10p0_b2_bx,   gradleg_quad_p10p1_b2_bx,   gradleg_quad_p10p2_b2_bx,   gradleg_quad_p10p3_b2_bx,   gradleg_quad_p10p4_b2_bx,   gradleg_quad_p10p5_b2_bx,   gradleg_quad_p10p6_b2_bx,   gradleg_quad_p10p7_b2_bx,   gradleg_quad_p10p8_b2_bx,   gradleg_quad_p10p9_b2_bx,   gradleg_quad_p10p10_b2_bx,   gradleg_quad_p11p0_b2_bx,   gradleg_quad_p11p1_b2_bx,   gradleg_quad_p11p2_b2_bx,   gradleg_quad_p11p3_b2_bx,   gradleg_quad_p11p4_b2_bx,   gradleg_quad_p11p5_b2_bx,   gradleg_quad_p11p6_b2_bx,   gradleg_quad_p11p7_b2_bx,   gradleg_quad_p11p8_b2_bx,   gradleg_quad_p11p9_b2_bx,   gradleg_quad_p11p10_b2_bx, };
 
-static Shapeset::shape_fn_t gradleg_quad_fn_ay[] = 
+static Shapeset::shape_fn_t gradleg_quad_fn_ay[] =
 {
-  gradleg_quad_p0_e1_ay_0, gradleg_quad_p0_e1_ay_1, gradleg_quad_p0_e2_ay, gradleg_quad_p0_e2_ay, gradleg_quad_p0_e3_ay_0, gradleg_quad_p0_e3_ay_1, gradleg_quad_p0_e4_ay, gradleg_quad_p0_e4_ay, 
-  gradleg_quad_l2_l0_ay, gradleg_quad_l2_l0_ay, gradleg_quad_l1_l2_ay, gradleg_quad_l1_l2_ay, gradleg_quad_l2_l1_ay, gradleg_quad_l2_l1_ay, gradleg_quad_l0_l2_ay, gradleg_quad_l0_l2_ay, 
-  gradleg_quad_l3_l0_ay_0, gradleg_quad_l3_l0_ay_1, gradleg_quad_l1_l3_ay_0, gradleg_quad_l1_l3_ay_1,  gradleg_quad_l3_l1_ay_0, gradleg_quad_l3_l1_ay_1, gradleg_quad_l0_l3_ay_0, gradleg_quad_l0_l3_ay_1, 
-  gradleg_quad_l4_l0_ay, gradleg_quad_l4_l0_ay, gradleg_quad_l1_l4_ay, gradleg_quad_l1_l4_ay, gradleg_quad_l4_l1_ay, gradleg_quad_l4_l1_ay, gradleg_quad_l0_l4_ay, gradleg_quad_l0_l4_ay, 
-  gradleg_quad_l5_l0_ay_0, gradleg_quad_l5_l0_ay_1, gradleg_quad_l1_l5_ay_0, gradleg_quad_l1_l5_ay_1,  gradleg_quad_l5_l1_ay_0, gradleg_quad_l5_l1_ay_1, gradleg_quad_l0_l5_ay_0, gradleg_quad_l0_l5_ay_1, 
-  gradleg_quad_l6_l0_ay, gradleg_quad_l6_l0_ay, gradleg_quad_l1_l6_ay, gradleg_quad_l1_l6_ay, gradleg_quad_l6_l1_ay, gradleg_quad_l6_l1_ay, gradleg_quad_l0_l6_ay, gradleg_quad_l0_l6_ay, 
-  gradleg_quad_l7_l0_ay_0, gradleg_quad_l7_l0_ay_1, gradleg_quad_l1_l7_ay_0, gradleg_quad_l1_l7_ay_1,  gradleg_quad_l7_l1_ay_0, gradleg_quad_l7_l1_ay_1, gradleg_quad_l0_l7_ay_0, gradleg_quad_l0_l7_ay_1, 
-  gradleg_quad_l8_l0_ay, gradleg_quad_l8_l0_ay, gradleg_quad_l1_l8_ay, gradleg_quad_l1_l8_ay, gradleg_quad_l8_l1_ay, gradleg_quad_l8_l1_ay, gradleg_quad_l0_l8_ay, gradleg_quad_l0_l8_ay, 
-  gradleg_quad_l9_l0_ay_0, gradleg_quad_l9_l0_ay_1, gradleg_quad_l1_l9_ay_0, gradleg_quad_l1_l9_ay_1,  gradleg_quad_l9_l1_ay_0, gradleg_quad_l9_l1_ay_1, gradleg_quad_l0_l9_ay_0, gradleg_quad_l0_l9_ay_1, 
-  gradleg_quad_l10_l0_ay, gradleg_quad_l10_l0_ay, gradleg_quad_l1_l10_ay, gradleg_quad_l1_l10_ay, gradleg_quad_l10_l1_ay, gradleg_quad_l10_l1_ay, gradleg_quad_l0_l10_ay, gradleg_quad_l0_l10_ay, 
-  gradleg_quad_l11_l0_ay_0, gradleg_quad_l11_l0_ay_1, gradleg_quad_l1_l11_ay_0, gradleg_quad_l1_l11_ay_1,  gradleg_quad_l11_l1_ay_0, gradleg_quad_l11_l1_ay_1, gradleg_quad_l0_l11_ay_0, gradleg_quad_l0_l11_ay_1, 
+  gradleg_quad_p0_e1_ay_0, gradleg_quad_p0_e1_ay_1, gradleg_quad_p0_e2_ay, gradleg_quad_p0_e2_ay, gradleg_quad_p0_e3_ay_0, gradleg_quad_p0_e3_ay_1, gradleg_quad_p0_e4_ay, gradleg_quad_p0_e4_ay,
+  gradleg_quad_l2_l0_ay, gradleg_quad_l2_l0_ay, gradleg_quad_l1_l2_ay, gradleg_quad_l1_l2_ay, gradleg_quad_l2_l1_ay, gradleg_quad_l2_l1_ay, gradleg_quad_l0_l2_ay, gradleg_quad_l0_l2_ay,
+  gradleg_quad_l3_l0_ay_0, gradleg_quad_l3_l0_ay_1, gradleg_quad_l1_l3_ay_0, gradleg_quad_l1_l3_ay_1,  gradleg_quad_l3_l1_ay_0, gradleg_quad_l3_l1_ay_1, gradleg_quad_l0_l3_ay_0, gradleg_quad_l0_l3_ay_1,
+  gradleg_quad_l4_l0_ay, gradleg_quad_l4_l0_ay, gradleg_quad_l1_l4_ay, gradleg_quad_l1_l4_ay, gradleg_quad_l4_l1_ay, gradleg_quad_l4_l1_ay, gradleg_quad_l0_l4_ay, gradleg_quad_l0_l4_ay,
+  gradleg_quad_l5_l0_ay_0, gradleg_quad_l5_l0_ay_1, gradleg_quad_l1_l5_ay_0, gradleg_quad_l1_l5_ay_1,  gradleg_quad_l5_l1_ay_0, gradleg_quad_l5_l1_ay_1, gradleg_quad_l0_l5_ay_0, gradleg_quad_l0_l5_ay_1,
+  gradleg_quad_l6_l0_ay, gradleg_quad_l6_l0_ay, gradleg_quad_l1_l6_ay, gradleg_quad_l1_l6_ay, gradleg_quad_l6_l1_ay, gradleg_quad_l6_l1_ay, gradleg_quad_l0_l6_ay, gradleg_quad_l0_l6_ay,
+  gradleg_quad_l7_l0_ay_0, gradleg_quad_l7_l0_ay_1, gradleg_quad_l1_l7_ay_0, gradleg_quad_l1_l7_ay_1,  gradleg_quad_l7_l1_ay_0, gradleg_quad_l7_l1_ay_1, gradleg_quad_l0_l7_ay_0, gradleg_quad_l0_l7_ay_1,
+  gradleg_quad_l8_l0_ay, gradleg_quad_l8_l0_ay, gradleg_quad_l1_l8_ay, gradleg_quad_l1_l8_ay, gradleg_quad_l8_l1_ay, gradleg_quad_l8_l1_ay, gradleg_quad_l0_l8_ay, gradleg_quad_l0_l8_ay,
+  gradleg_quad_l9_l0_ay_0, gradleg_quad_l9_l0_ay_1, gradleg_quad_l1_l9_ay_0, gradleg_quad_l1_l9_ay_1,  gradleg_quad_l9_l1_ay_0, gradleg_quad_l9_l1_ay_1, gradleg_quad_l0_l9_ay_0, gradleg_quad_l0_l9_ay_1,
+  gradleg_quad_l10_l0_ay, gradleg_quad_l10_l0_ay, gradleg_quad_l1_l10_ay, gradleg_quad_l1_l10_ay, gradleg_quad_l10_l1_ay, gradleg_quad_l10_l1_ay, gradleg_quad_l0_l10_ay, gradleg_quad_l0_l10_ay,
+  gradleg_quad_l11_l0_ay_0, gradleg_quad_l11_l0_ay_1, gradleg_quad_l1_l11_ay_0, gradleg_quad_l1_l11_ay_1,  gradleg_quad_l11_l1_ay_0, gradleg_quad_l11_l1_ay_1, gradleg_quad_l0_l11_ay_0, gradleg_quad_l0_l11_ay_1,
 
   gradleg_quad_p0p2_b1_ay,   gradleg_quad_p0p3_b1_ay,   gradleg_quad_p0p4_b1_ay,   gradleg_quad_p0p5_b1_ay,   gradleg_quad_p0p6_b1_ay,   gradleg_quad_p0p7_b1_ay,   gradleg_quad_p0p8_b1_ay,   gradleg_quad_p0p9_b1_ay,   gradleg_quad_p0p10_b1_ay,   gradleg_quad_p0p11_b1_ay,   gradleg_quad_p1p2_b1_ay,   gradleg_quad_p1p3_b1_ay,   gradleg_quad_p1p4_b1_ay,   gradleg_quad_p1p5_b1_ay,   gradleg_quad_p1p6_b1_ay,   gradleg_quad_p1p7_b1_ay,   gradleg_quad_p1p8_b1_ay,   gradleg_quad_p1p9_b1_ay,   gradleg_quad_p1p10_b1_ay,   gradleg_quad_p1p11_b1_ay,   gradleg_quad_p2p2_b1_ay,   gradleg_quad_p2p3_b1_ay,   gradleg_quad_p2p4_b1_ay,   gradleg_quad_p2p5_b1_ay,   gradleg_quad_p2p6_b1_ay,   gradleg_quad_p2p7_b1_ay,   gradleg_quad_p2p8_b1_ay,   gradleg_quad_p2p9_b1_ay,   gradleg_quad_p2p10_b1_ay,   gradleg_quad_p2p11_b1_ay,   gradleg_quad_p3p2_b1_ay,   gradleg_quad_p3p3_b1_ay,   gradleg_quad_p3p4_b1_ay,   gradleg_quad_p3p5_b1_ay,   gradleg_quad_p3p6_b1_ay,   gradleg_quad_p3p7_b1_ay,   gradleg_quad_p3p8_b1_ay,   gradleg_quad_p3p9_b1_ay,   gradleg_quad_p3p10_b1_ay,   gradleg_quad_p3p11_b1_ay,   gradleg_quad_p4p2_b1_ay,   gradleg_quad_p4p3_b1_ay,   gradleg_quad_p4p4_b1_ay,   gradleg_quad_p4p5_b1_ay,   gradleg_quad_p4p6_b1_ay,   gradleg_quad_p4p7_b1_ay,   gradleg_quad_p4p8_b1_ay,   gradleg_quad_p4p9_b1_ay,   gradleg_quad_p4p10_b1_ay,   gradleg_quad_p4p11_b1_ay,   gradleg_quad_p5p2_b1_ay,   gradleg_quad_p5p3_b1_ay,   gradleg_quad_p5p4_b1_ay,   gradleg_quad_p5p5_b1_ay,   gradleg_quad_p5p6_b1_ay,   gradleg_quad_p5p7_b1_ay,   gradleg_quad_p5p8_b1_ay,   gradleg_quad_p5p9_b1_ay,   gradleg_quad_p5p10_b1_ay,   gradleg_quad_p5p11_b1_ay,   gradleg_quad_p6p2_b1_ay,   gradleg_quad_p6p3_b1_ay,   gradleg_quad_p6p4_b1_ay,   gradleg_quad_p6p5_b1_ay,   gradleg_quad_p6p6_b1_ay,   gradleg_quad_p6p7_b1_ay,   gradleg_quad_p6p8_b1_ay,   gradleg_quad_p6p9_b1_ay,   gradleg_quad_p6p10_b1_ay,   gradleg_quad_p6p11_b1_ay,   gradleg_quad_p7p2_b1_ay,   gradleg_quad_p7p3_b1_ay,   gradleg_quad_p7p4_b1_ay,   gradleg_quad_p7p5_b1_ay,   gradleg_quad_p7p6_b1_ay,   gradleg_quad_p7p7_b1_ay,   gradleg_quad_p7p8_b1_ay,   gradleg_quad_p7p9_b1_ay,   gradleg_quad_p7p10_b1_ay,   gradleg_quad_p7p11_b1_ay,   gradleg_quad_p8p2_b1_ay,   gradleg_quad_p8p3_b1_ay,   gradleg_quad_p8p4_b1_ay,   gradleg_quad_p8p5_b1_ay,   gradleg_quad_p8p6_b1_ay,   gradleg_quad_p8p7_b1_ay,   gradleg_quad_p8p8_b1_ay,   gradleg_quad_p8p9_b1_ay,   gradleg_quad_p8p10_b1_ay,   gradleg_quad_p8p11_b1_ay,   gradleg_quad_p9p2_b1_ay,   gradleg_quad_p9p3_b1_ay,   gradleg_quad_p9p4_b1_ay,   gradleg_quad_p9p5_b1_ay,   gradleg_quad_p9p6_b1_ay,   gradleg_quad_p9p7_b1_ay,   gradleg_quad_p9p8_b1_ay,   gradleg_quad_p9p9_b1_ay,   gradleg_quad_p9p10_b1_ay,   gradleg_quad_p9p11_b1_ay,   gradleg_quad_p10p2_b1_ay,   gradleg_quad_p10p3_b1_ay,   gradleg_quad_p10p4_b1_ay,   gradleg_quad_p10p5_b1_ay,   gradleg_quad_p10p6_b1_ay,   gradleg_quad_p10p7_b1_ay,   gradleg_quad_p10p8_b1_ay,   gradleg_quad_p10p9_b1_ay,   gradleg_quad_p10p10_b1_ay,   gradleg_quad_p10p11_b1_ay,   gradleg_quad_p2p0_b2_ay,   gradleg_quad_p2p1_b2_ay,   gradleg_quad_p2p2_b2_ay,   gradleg_quad_p2p3_b2_ay,   gradleg_quad_p2p4_b2_ay,   gradleg_quad_p2p5_b2_ay,   gradleg_quad_p2p6_b2_ay,   gradleg_quad_p2p7_b2_ay,   gradleg_quad_p2p8_b2_ay,   gradleg_quad_p2p9_b2_ay,   gradleg_quad_p2p10_b2_ay,   gradleg_quad_p3p0_b2_ay,   gradleg_quad_p3p1_b2_ay,   gradleg_quad_p3p2_b2_ay,   gradleg_quad_p3p3_b2_ay,   gradleg_quad_p3p4_b2_ay,   gradleg_quad_p3p5_b2_ay,   gradleg_quad_p3p6_b2_ay,   gradleg_quad_p3p7_b2_ay,   gradleg_quad_p3p8_b2_ay,   gradleg_quad_p3p9_b2_ay,   gradleg_quad_p3p10_b2_ay,   gradleg_quad_p4p0_b2_ay,   gradleg_quad_p4p1_b2_ay,   gradleg_quad_p4p2_b2_ay,   gradleg_quad_p4p3_b2_ay,   gradleg_quad_p4p4_b2_ay,   gradleg_quad_p4p5_b2_ay,   gradleg_quad_p4p6_b2_ay,   gradleg_quad_p4p7_b2_ay,   gradleg_quad_p4p8_b2_ay,   gradleg_quad_p4p9_b2_ay,   gradleg_quad_p4p10_b2_ay,   gradleg_quad_p5p0_b2_ay,   gradleg_quad_p5p1_b2_ay,   gradleg_quad_p5p2_b2_ay,   gradleg_quad_p5p3_b2_ay,   gradleg_quad_p5p4_b2_ay,   gradleg_quad_p5p5_b2_ay,   gradleg_quad_p5p6_b2_ay,   gradleg_quad_p5p7_b2_ay,   gradleg_quad_p5p8_b2_ay,   gradleg_quad_p5p9_b2_ay,   gradleg_quad_p5p10_b2_ay,   gradleg_quad_p6p0_b2_ay,   gradleg_quad_p6p1_b2_ay,   gradleg_quad_p6p2_b2_ay,   gradleg_quad_p6p3_b2_ay,   gradleg_quad_p6p4_b2_ay,   gradleg_quad_p6p5_b2_ay,   gradleg_quad_p6p6_b2_ay,   gradleg_quad_p6p7_b2_ay,   gradleg_quad_p6p8_b2_ay,   gradleg_quad_p6p9_b2_ay,   gradleg_quad_p6p10_b2_ay,   gradleg_quad_p7p0_b2_ay,   gradleg_quad_p7p1_b2_ay,   gradleg_quad_p7p2_b2_ay,   gradleg_quad_p7p3_b2_ay,   gradleg_quad_p7p4_b2_ay,   gradleg_quad_p7p5_b2_ay,   gradleg_quad_p7p6_b2_ay,   gradleg_quad_p7p7_b2_ay,   gradleg_quad_p7p8_b2_ay,   gradleg_quad_p7p9_b2_ay,   gradleg_quad_p7p10_b2_ay,   gradleg_quad_p8p0_b2_ay,   gradleg_quad_p8p1_b2_ay,   gradleg_quad_p8p2_b2_ay,   gradleg_quad_p8p3_b2_ay,   gradleg_quad_p8p4_b2_ay,   gradleg_quad_p8p5_b2_ay,   gradleg_quad_p8p6_b2_ay,   gradleg_quad_p8p7_b2_ay,   gradleg_quad_p8p8_b2_ay,   gradleg_quad_p8p9_b2_ay,   gradleg_quad_p8p10_b2_ay,   gradleg_quad_p9p0_b2_ay,   gradleg_quad_p9p1_b2_ay,   gradleg_quad_p9p2_b2_ay,   gradleg_quad_p9p3_b2_ay,   gradleg_quad_p9p4_b2_ay,   gradleg_quad_p9p5_b2_ay,   gradleg_quad_p9p6_b2_ay,   gradleg_quad_p9p7_b2_ay,   gradleg_quad_p9p8_b2_ay,   gradleg_quad_p9p9_b2_ay,   gradleg_quad_p9p10_b2_ay,   gradleg_quad_p10p0_b2_ay,   gradleg_quad_p10p1_b2_ay,   gradleg_quad_p10p2_b2_ay,   gradleg_quad_p10p3_b2_ay,   gradleg_quad_p10p4_b2_ay,   gradleg_quad_p10p5_b2_ay,   gradleg_quad_p10p6_b2_ay,   gradleg_quad_p10p7_b2_ay,   gradleg_quad_p10p8_b2_ay,   gradleg_quad_p10p9_b2_ay,   gradleg_quad_p10p10_b2_ay,   gradleg_quad_p11p0_b2_ay,   gradleg_quad_p11p1_b2_ay,   gradleg_quad_p11p2_b2_ay,   gradleg_quad_p11p3_b2_ay,   gradleg_quad_p11p4_b2_ay,   gradleg_quad_p11p5_b2_ay,   gradleg_quad_p11p6_b2_ay,   gradleg_quad_p11p7_b2_ay,   gradleg_quad_p11p8_b2_ay,   gradleg_quad_p11p9_b2_ay,   gradleg_quad_p11p10_b2_ay, };
 
-static Shapeset::shape_fn_t gradleg_quad_fn_by[] = 
+static Shapeset::shape_fn_t gradleg_quad_fn_by[] =
 {
-  gradleg_quad_p0_e1_by, gradleg_quad_p0_e1_by, gradleg_quad_p0_e2_by_0, gradleg_quad_p0_e2_by_1,  gradleg_quad_p0_e3_by, gradleg_quad_p0_e3_by, gradleg_quad_p0_e4_by_0, gradleg_quad_p0_e4_by_1, 
-  gradleg_quad_l2_l0_by, gradleg_quad_l2_l0_by, gradleg_quad_l1_l2_by, gradleg_quad_l1_l2_by, gradleg_quad_l2_l1_by, gradleg_quad_l2_l1_by, gradleg_quad_l0_l2_by,  gradleg_quad_l0_l2_by, 
-  gradleg_quad_l3_l0_by_0, gradleg_quad_l3_l0_by_1, gradleg_quad_l1_l3_by_0, gradleg_quad_l1_l3_by_1, gradleg_quad_l3_l1_by_0, gradleg_quad_l3_l1_by_1, gradleg_quad_l0_l3_by_0, gradleg_quad_l0_l3_by_1, 
-  gradleg_quad_l4_l0_by, gradleg_quad_l4_l0_by, gradleg_quad_l1_l4_by, gradleg_quad_l1_l4_by, gradleg_quad_l4_l1_by, gradleg_quad_l4_l1_by, gradleg_quad_l0_l4_by,  gradleg_quad_l0_l4_by, 
-  gradleg_quad_l5_l0_by_0, gradleg_quad_l5_l0_by_1, gradleg_quad_l1_l5_by_0, gradleg_quad_l1_l5_by_1, gradleg_quad_l5_l1_by_0, gradleg_quad_l5_l1_by_1, gradleg_quad_l0_l5_by_0, gradleg_quad_l0_l5_by_1, 
-  gradleg_quad_l6_l0_by, gradleg_quad_l6_l0_by, gradleg_quad_l1_l6_by, gradleg_quad_l1_l6_by, gradleg_quad_l6_l1_by, gradleg_quad_l6_l1_by, gradleg_quad_l0_l6_by,  gradleg_quad_l0_l6_by, 
-  gradleg_quad_l7_l0_by_0, gradleg_quad_l7_l0_by_1, gradleg_quad_l1_l7_by_0, gradleg_quad_l1_l7_by_1, gradleg_quad_l7_l1_by_0, gradleg_quad_l7_l1_by_1, gradleg_quad_l0_l7_by_0, gradleg_quad_l0_l7_by_1, 
-  gradleg_quad_l8_l0_by, gradleg_quad_l8_l0_by, gradleg_quad_l1_l8_by, gradleg_quad_l1_l8_by, gradleg_quad_l8_l1_by, gradleg_quad_l8_l1_by, gradleg_quad_l0_l8_by,  gradleg_quad_l0_l8_by, 
-  gradleg_quad_l9_l0_by_0, gradleg_quad_l9_l0_by_1, gradleg_quad_l1_l9_by_0, gradleg_quad_l1_l9_by_1, gradleg_quad_l9_l1_by_0, gradleg_quad_l9_l1_by_1, gradleg_quad_l0_l9_by_0, gradleg_quad_l0_l9_by_1, 
-  gradleg_quad_l10_l0_by, gradleg_quad_l10_l0_by, gradleg_quad_l1_l10_by, gradleg_quad_l1_l10_by, gradleg_quad_l10_l1_by, gradleg_quad_l10_l1_by, gradleg_quad_l0_l10_by,  gradleg_quad_l0_l10_by, 
-  gradleg_quad_l11_l0_by_0, gradleg_quad_l11_l0_by_1, gradleg_quad_l1_l11_by_0, gradleg_quad_l1_l11_by_1, gradleg_quad_l11_l1_by_0, gradleg_quad_l11_l1_by_1, gradleg_quad_l0_l11_by_0, gradleg_quad_l0_l11_by_1, 
+  gradleg_quad_p0_e1_by, gradleg_quad_p0_e1_by, gradleg_quad_p0_e2_by_0, gradleg_quad_p0_e2_by_1,  gradleg_quad_p0_e3_by, gradleg_quad_p0_e3_by, gradleg_quad_p0_e4_by_0, gradleg_quad_p0_e4_by_1,
+  gradleg_quad_l2_l0_by, gradleg_quad_l2_l0_by, gradleg_quad_l1_l2_by, gradleg_quad_l1_l2_by, gradleg_quad_l2_l1_by, gradleg_quad_l2_l1_by, gradleg_quad_l0_l2_by,  gradleg_quad_l0_l2_by,
+  gradleg_quad_l3_l0_by_0, gradleg_quad_l3_l0_by_1, gradleg_quad_l1_l3_by_0, gradleg_quad_l1_l3_by_1, gradleg_quad_l3_l1_by_0, gradleg_quad_l3_l1_by_1, gradleg_quad_l0_l3_by_0, gradleg_quad_l0_l3_by_1,
+  gradleg_quad_l4_l0_by, gradleg_quad_l4_l0_by, gradleg_quad_l1_l4_by, gradleg_quad_l1_l4_by, gradleg_quad_l4_l1_by, gradleg_quad_l4_l1_by, gradleg_quad_l0_l4_by,  gradleg_quad_l0_l4_by,
+  gradleg_quad_l5_l0_by_0, gradleg_quad_l5_l0_by_1, gradleg_quad_l1_l5_by_0, gradleg_quad_l1_l5_by_1, gradleg_quad_l5_l1_by_0, gradleg_quad_l5_l1_by_1, gradleg_quad_l0_l5_by_0, gradleg_quad_l0_l5_by_1,
+  gradleg_quad_l6_l0_by, gradleg_quad_l6_l0_by, gradleg_quad_l1_l6_by, gradleg_quad_l1_l6_by, gradleg_quad_l6_l1_by, gradleg_quad_l6_l1_by, gradleg_quad_l0_l6_by,  gradleg_quad_l0_l6_by,
+  gradleg_quad_l7_l0_by_0, gradleg_quad_l7_l0_by_1, gradleg_quad_l1_l7_by_0, gradleg_quad_l1_l7_by_1, gradleg_quad_l7_l1_by_0, gradleg_quad_l7_l1_by_1, gradleg_quad_l0_l7_by_0, gradleg_quad_l0_l7_by_1,
+  gradleg_quad_l8_l0_by, gradleg_quad_l8_l0_by, gradleg_quad_l1_l8_by, gradleg_quad_l1_l8_by, gradleg_quad_l8_l1_by, gradleg_quad_l8_l1_by, gradleg_quad_l0_l8_by,  gradleg_quad_l0_l8_by,
+  gradleg_quad_l9_l0_by_0, gradleg_quad_l9_l0_by_1, gradleg_quad_l1_l9_by_0, gradleg_quad_l1_l9_by_1, gradleg_quad_l9_l1_by_0, gradleg_quad_l9_l1_by_1, gradleg_quad_l0_l9_by_0, gradleg_quad_l0_l9_by_1,
+  gradleg_quad_l10_l0_by, gradleg_quad_l10_l0_by, gradleg_quad_l1_l10_by, gradleg_quad_l1_l10_by, gradleg_quad_l10_l1_by, gradleg_quad_l10_l1_by, gradleg_quad_l0_l10_by,  gradleg_quad_l0_l10_by,
+  gradleg_quad_l11_l0_by_0, gradleg_quad_l11_l0_by_1, gradleg_quad_l1_l11_by_0, gradleg_quad_l1_l11_by_1, gradleg_quad_l11_l1_by_0, gradleg_quad_l11_l1_by_1, gradleg_quad_l0_l11_by_0, gradleg_quad_l0_l11_by_1,
 
   gradleg_quad_p0p2_b1_by,   gradleg_quad_p0p3_b1_by,   gradleg_quad_p0p4_b1_by,   gradleg_quad_p0p5_b1_by,   gradleg_quad_p0p6_b1_by,   gradleg_quad_p0p7_b1_by,   gradleg_quad_p0p8_b1_by,   gradleg_quad_p0p9_b1_by,   gradleg_quad_p0p10_b1_by,   gradleg_quad_p0p11_b1_by,   gradleg_quad_p1p2_b1_by,   gradleg_quad_p1p3_b1_by,   gradleg_quad_p1p4_b1_by,   gradleg_quad_p1p5_b1_by,   gradleg_quad_p1p6_b1_by,   gradleg_quad_p1p7_b1_by,   gradleg_quad_p1p8_b1_by,   gradleg_quad_p1p9_b1_by,   gradleg_quad_p1p10_b1_by,   gradleg_quad_p1p11_b1_by,   gradleg_quad_p2p2_b1_by,   gradleg_quad_p2p3_b1_by,   gradleg_quad_p2p4_b1_by,   gradleg_quad_p2p5_b1_by,   gradleg_quad_p2p6_b1_by,   gradleg_quad_p2p7_b1_by,   gradleg_quad_p2p8_b1_by,   gradleg_quad_p2p9_b1_by,   gradleg_quad_p2p10_b1_by,   gradleg_quad_p2p11_b1_by,   gradleg_quad_p3p2_b1_by,   gradleg_quad_p3p3_b1_by,   gradleg_quad_p3p4_b1_by,   gradleg_quad_p3p5_b1_by,   gradleg_quad_p3p6_b1_by,   gradleg_quad_p3p7_b1_by,   gradleg_quad_p3p8_b1_by,   gradleg_quad_p3p9_b1_by,   gradleg_quad_p3p10_b1_by,   gradleg_quad_p3p11_b1_by,   gradleg_quad_p4p2_b1_by,   gradleg_quad_p4p3_b1_by,   gradleg_quad_p4p4_b1_by,   gradleg_quad_p4p5_b1_by,   gradleg_quad_p4p6_b1_by,   gradleg_quad_p4p7_b1_by,   gradleg_quad_p4p8_b1_by,   gradleg_quad_p4p9_b1_by,   gradleg_quad_p4p10_b1_by,   gradleg_quad_p4p11_b1_by,   gradleg_quad_p5p2_b1_by,   gradleg_quad_p5p3_b1_by,   gradleg_quad_p5p4_b1_by,   gradleg_quad_p5p5_b1_by,   gradleg_quad_p5p6_b1_by,   gradleg_quad_p5p7_b1_by,   gradleg_quad_p5p8_b1_by,   gradleg_quad_p5p9_b1_by,   gradleg_quad_p5p10_b1_by,   gradleg_quad_p5p11_b1_by,   gradleg_quad_p6p2_b1_by,   gradleg_quad_p6p3_b1_by,   gradleg_quad_p6p4_b1_by,   gradleg_quad_p6p5_b1_by,   gradleg_quad_p6p6_b1_by,   gradleg_quad_p6p7_b1_by,   gradleg_quad_p6p8_b1_by,   gradleg_quad_p6p9_b1_by,   gradleg_quad_p6p10_b1_by,   gradleg_quad_p6p11_b1_by,   gradleg_quad_p7p2_b1_by,   gradleg_quad_p7p3_b1_by,   gradleg_quad_p7p4_b1_by,   gradleg_quad_p7p5_b1_by,   gradleg_quad_p7p6_b1_by,   gradleg_quad_p7p7_b1_by,   gradleg_quad_p7p8_b1_by,   gradleg_quad_p7p9_b1_by,   gradleg_quad_p7p10_b1_by,   gradleg_quad_p7p11_b1_by,   gradleg_quad_p8p2_b1_by,   gradleg_quad_p8p3_b1_by,   gradleg_quad_p8p4_b1_by,   gradleg_quad_p8p5_b1_by,   gradleg_quad_p8p6_b1_by,   gradleg_quad_p8p7_b1_by,   gradleg_quad_p8p8_b1_by,   gradleg_quad_p8p9_b1_by,   gradleg_quad_p8p10_b1_by,   gradleg_quad_p8p11_b1_by,   gradleg_quad_p9p2_b1_by,   gradleg_quad_p9p3_b1_by,   gradleg_quad_p9p4_b1_by,   gradleg_quad_p9p5_b1_by,   gradleg_quad_p9p6_b1_by,   gradleg_quad_p9p7_b1_by,   gradleg_quad_p9p8_b1_by,   gradleg_quad_p9p9_b1_by,   gradleg_quad_p9p10_b1_by,   gradleg_quad_p9p11_b1_by,   gradleg_quad_p10p2_b1_by,   gradleg_quad_p10p3_b1_by,   gradleg_quad_p10p4_b1_by,   gradleg_quad_p10p5_b1_by,   gradleg_quad_p10p6_b1_by,   gradleg_quad_p10p7_b1_by,   gradleg_quad_p10p8_b1_by,   gradleg_quad_p10p9_b1_by,   gradleg_quad_p10p10_b1_by,   gradleg_quad_p10p11_b1_by,   gradleg_quad_p2p0_b2_by,   gradleg_quad_p2p1_b2_by,   gradleg_quad_p2p2_b2_by,   gradleg_quad_p2p3_b2_by,   gradleg_quad_p2p4_b2_by,   gradleg_quad_p2p5_b2_by,   gradleg_quad_p2p6_b2_by,   gradleg_quad_p2p7_b2_by,   gradleg_quad_p2p8_b2_by,   gradleg_quad_p2p9_b2_by,   gradleg_quad_p2p10_b2_by,   gradleg_quad_p3p0_b2_by,   gradleg_quad_p3p1_b2_by,   gradleg_quad_p3p2_b2_by,   gradleg_quad_p3p3_b2_by,   gradleg_quad_p3p4_b2_by,   gradleg_quad_p3p5_b2_by,   gradleg_quad_p3p6_b2_by,   gradleg_quad_p3p7_b2_by,   gradleg_quad_p3p8_b2_by,   gradleg_quad_p3p9_b2_by,   gradleg_quad_p3p10_b2_by,   gradleg_quad_p4p0_b2_by,   gradleg_quad_p4p1_b2_by,   gradleg_quad_p4p2_b2_by,   gradleg_quad_p4p3_b2_by,   gradleg_quad_p4p4_b2_by,   gradleg_quad_p4p5_b2_by,   gradleg_quad_p4p6_b2_by,   gradleg_quad_p4p7_b2_by,   gradleg_quad_p4p8_b2_by,   gradleg_quad_p4p9_b2_by,   gradleg_quad_p4p10_b2_by,   gradleg_quad_p5p0_b2_by,   gradleg_quad_p5p1_b2_by,   gradleg_quad_p5p2_b2_by,   gradleg_quad_p5p3_b2_by,   gradleg_quad_p5p4_b2_by,   gradleg_quad_p5p5_b2_by,   gradleg_quad_p5p6_b2_by,   gradleg_quad_p5p7_b2_by,   gradleg_quad_p5p8_b2_by,   gradleg_quad_p5p9_b2_by,   gradleg_quad_p5p10_b2_by,   gradleg_quad_p6p0_b2_by,   gradleg_quad_p6p1_b2_by,   gradleg_quad_p6p2_b2_by,   gradleg_quad_p6p3_b2_by,   gradleg_quad_p6p4_b2_by,   gradleg_quad_p6p5_b2_by,   gradleg_quad_p6p6_b2_by,   gradleg_quad_p6p7_b2_by,   gradleg_quad_p6p8_b2_by,   gradleg_quad_p6p9_b2_by,   gradleg_quad_p6p10_b2_by,   gradleg_quad_p7p0_b2_by,   gradleg_quad_p7p1_b2_by,   gradleg_quad_p7p2_b2_by,   gradleg_quad_p7p3_b2_by,   gradleg_quad_p7p4_b2_by,   gradleg_quad_p7p5_b2_by,   gradleg_quad_p7p6_b2_by,   gradleg_quad_p7p7_b2_by,   gradleg_quad_p7p8_b2_by,   gradleg_quad_p7p9_b2_by,   gradleg_quad_p7p10_b2_by,   gradleg_quad_p8p0_b2_by,   gradleg_quad_p8p1_b2_by,   gradleg_quad_p8p2_b2_by,   gradleg_quad_p8p3_b2_by,   gradleg_quad_p8p4_b2_by,   gradleg_quad_p8p5_b2_by,   gradleg_quad_p8p6_b2_by,   gradleg_quad_p8p7_b2_by,   gradleg_quad_p8p8_b2_by,   gradleg_quad_p8p9_b2_by,   gradleg_quad_p8p10_b2_by,   gradleg_quad_p9p0_b2_by,   gradleg_quad_p9p1_b2_by,   gradleg_quad_p9p2_b2_by,   gradleg_quad_p9p3_b2_by,   gradleg_quad_p9p4_b2_by,   gradleg_quad_p9p5_b2_by,   gradleg_quad_p9p6_b2_by,   gradleg_quad_p9p7_b2_by,   gradleg_quad_p9p8_b2_by,   gradleg_quad_p9p9_b2_by,   gradleg_quad_p9p10_b2_by,   gradleg_quad_p10p0_b2_by,   gradleg_quad_p10p1_b2_by,   gradleg_quad_p10p2_b2_by,   gradleg_quad_p10p3_b2_by,   gradleg_quad_p10p4_b2_by,   gradleg_quad_p10p5_b2_by,   gradleg_quad_p10p6_b2_by,   gradleg_quad_p10p7_b2_by,   gradleg_quad_p10p8_b2_by,   gradleg_quad_p10p9_b2_by,   gradleg_quad_p10p10_b2_by,   gradleg_quad_p11p0_b2_by,   gradleg_quad_p11p1_b2_by,   gradleg_quad_p11p2_b2_by,   gradleg_quad_p11p3_b2_by,   gradleg_quad_p11p4_b2_by,   gradleg_quad_p11p5_b2_by,   gradleg_quad_p11p6_b2_by,   gradleg_quad_p11p7_b2_by,   gradleg_quad_p11p8_b2_by,   gradleg_quad_p11p9_b2_by,   gradleg_quad_p11p10_b2_by, };
 
@@ -15667,7 +15667,7 @@ static int qb_0_1[] = { 88,};
   static int qb_10_8[] = { 88,89,90,91,92,93,94,95,198,98,199,99,200,100,201,101,202,102,203,103,204,104,205,105,206,209,108,210,109,211,110,212,111,213,112,214,113,215,114,216,115,217,220,118,221,119,222,120,223,121,224,122,225,123,226,124,227,125,228,231,128,232,129,233,130,234,131,235,132,236,133,237,134,238,135,239,242,138,243,139,244,140,245,141,246,142,247,143,248,144,249,145,250,253,148,254,149,255,150,256,151,257,152,258,153,259,154,260,155,261,264,158,265,159,266,160,267,161,268,162,269,163,270,164,271,165,272,275,168,276,169,277,170,278,171,279,172,280,173,281,174,282,175,283,286,178,287,179,288,180,289,181,290,182,291,183,292,184,293,185,294,297,188,298,189,299,190,300,191,301,192,302,193,303,194,304,195,305,};
   static int qb_10_9[] = { 88,89,90,91,92,93,94,95,96,198,98,199,99,200,100,201,101,202,102,203,103,204,104,205,105,206,106,207,209,108,210,109,211,110,212,111,213,112,214,113,215,114,216,115,217,116,218,220,118,221,119,222,120,223,121,224,122,225,123,226,124,227,125,228,126,229,231,128,232,129,233,130,234,131,235,132,236,133,237,134,238,135,239,136,240,242,138,243,139,244,140,245,141,246,142,247,143,248,144,249,145,250,146,251,253,148,254,149,255,150,256,151,257,152,258,153,259,154,260,155,261,156,262,264,158,265,159,266,160,267,161,268,162,269,163,270,164,271,165,272,166,273,275,168,276,169,277,170,278,171,279,172,280,173,281,174,282,175,283,176,284,286,178,287,179,288,180,289,181,290,182,291,183,292,184,293,185,294,186,295,297,188,298,189,299,190,300,191,301,192,302,193,303,194,304,195,305,196,306,};
   static int qb_10_10[] = { 88,89,90,91,92,93,94,95,96,97,198,98,199,99,200,100,201,101,202,102,203,103,204,104,205,105,206,106,207,107,208,209,108,210,109,211,110,212,111,213,112,214,113,215,114,216,115,217,116,218,117,219,220,118,221,119,222,120,223,121,224,122,225,123,226,124,227,125,228,126,229,127,230,231,128,232,129,233,130,234,131,235,132,236,133,237,134,238,135,239,136,240,137,241,242,138,243,139,244,140,245,141,246,142,247,143,248,144,249,145,250,146,251,147,252,253,148,254,149,255,150,256,151,257,152,258,153,259,154,260,155,261,156,262,157,263,264,158,265,159,266,160,267,161,268,162,269,163,270,164,271,165,272,166,273,167,274,275,168,276,169,277,170,278,171,279,172,280,173,281,174,282,175,283,176,284,177,285,286,178,287,179,288,180,289,181,290,182,291,183,292,184,293,185,294,186,295,187,296,297,188,298,189,299,190,300,191,301,192,302,193,303,194,304,195,305,196,306,197,307,};
-  
+
 
 #define NULL16 NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,  NULL, NULL, NULL, NULL, NULL,
 
@@ -15690,17 +15690,17 @@ static int* gradleg_quad_bubble_indices[] =
 
 static int gradleg_quad_bubble_count[] =
 {
-  0,  1,  2,  3,  4,  5,  6,  7,  8,  9,  10,  0,  0,  0,  0,  0, zero16 
-  1, 4, 7, 10, 13, 16, 19, 22, 25, 28, 31, 0,  0,  0,  0,  0, zero16 
-  2, 7, 12, 17, 22, 27, 32, 37, 42, 47, 52, 0,  0,  0,  0,  0, zero16 
-  3, 10, 17, 24, 31, 38, 45, 52, 59, 66, 73, 0,  0,  0,  0,  0, zero16 
-  4, 13, 22, 31, 40, 49, 58, 67, 76, 85, 94, 0,  0,  0,  0,  0, zero16 
-  5, 16, 27, 38, 49, 60, 71, 82, 93, 104, 115, 0,  0,  0,  0,  0, zero16 
-  6, 19, 32, 45, 58, 71, 84, 97, 110, 123, 136, 0,  0,  0,  0,  0, zero16 
-  7, 22, 37, 52, 67, 82, 97, 112, 127, 142, 157, 0,  0,  0,  0,  0, zero16 
-  8, 25, 42, 59, 76, 93, 110, 127, 144, 161, 178, 0,  0,  0,  0,  0, zero16 
-  9, 28, 47, 66, 85, 104, 123, 142, 161, 180, 199, 0,  0,  0,  0,  0, zero16 
-  10, 31, 52, 73, 94, 115, 136, 157, 178, 199, 220, 0,  0,  0,  0,  0, zero16 
+  0,  1,  2,  3,  4,  5,  6,  7,  8,  9,  10,  0,  0,  0,  0,  0, zero16
+  1, 4, 7, 10, 13, 16, 19, 22, 25, 28, 31, 0,  0,  0,  0,  0, zero16
+  2, 7, 12, 17, 22, 27, 32, 37, 42, 47, 52, 0,  0,  0,  0,  0, zero16
+  3, 10, 17, 24, 31, 38, 45, 52, 59, 66, 73, 0,  0,  0,  0,  0, zero16
+  4, 13, 22, 31, 40, 49, 58, 67, 76, 85, 94, 0,  0,  0,  0,  0, zero16
+  5, 16, 27, 38, 49, 60, 71, 82, 93, 104, 115, 0,  0,  0,  0,  0, zero16
+  6, 19, 32, 45, 58, 71, 84, 97, 110, 123, 136, 0,  0,  0,  0,  0, zero16
+  7, 22, 37, 52, 67, 82, 97, 112, 127, 142, 157, 0,  0,  0,  0,  0, zero16
+  8, 25, 42, 59, 76, 93, 110, 127, 144, 161, 178, 0,  0,  0,  0,  0, zero16
+  9, 28, 47, 66, 85, 104, 123, 142, 161, 180, 199, 0,  0,  0,  0,  0, zero16
+  10, 31, 52, 73, 94, 115, 136, 157, 178, 199, 220, 0,  0,  0,  0,  0, zero16
 };
 
 
@@ -15724,7 +15724,7 @@ static int* gradleg_quad_edge_indices[4] =
 
 #define oo make_quad_order
 
-static int gradleg_quad_index_to_order[] = 
+static int gradleg_quad_index_to_order[] =
 {
   oo(0,1), oo(0,1), oo(1,0), oo(1,0), oo(0,1), oo(0,1), oo(1,0), oo(1,0),
   oo(2,1), oo(2,1), oo(1,2), oo(1,2), oo(2,1), oo(2,1), oo(1,2), oo(1,2),
@@ -15743,19 +15743,19 @@ static int gradleg_quad_index_to_order[] =
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static Shapeset::shape_fn_t* gradleg_quad_shape_fn_table[2] = 
-{ 
+static Shapeset::shape_fn_t* gradleg_quad_shape_fn_table[2] =
+{
   gradleg_quad_fn_a,
   gradleg_quad_fn_b
 };
 
-static Shapeset::shape_fn_t* gradleg_quad_shape_fn_table_x[2] = 
+static Shapeset::shape_fn_t* gradleg_quad_shape_fn_table_x[2] =
 {
   gradleg_quad_fn_ax,
   gradleg_quad_fn_bx
 };
 
-static Shapeset::shape_fn_t* gradleg_quad_shape_fn_table_y[2] = 
+static Shapeset::shape_fn_t* gradleg_quad_shape_fn_table_y[2] =
 {
   gradleg_quad_fn_ay,
   gradleg_quad_fn_by
@@ -15763,20 +15763,20 @@ static Shapeset::shape_fn_t* gradleg_quad_shape_fn_table_y[2] =
 
 //// triangle tables and class constructor ///////////////////////////////////////////////
 
-static Shapeset::shape_fn_t** gradleg_shape_fn_table[2] = 
-{ 
+static Shapeset::shape_fn_t** gradleg_shape_fn_table[2] =
+{
   gradleg_tri_shape_fn_table,
   gradleg_quad_shape_fn_table
 };
 
 
-static Shapeset::shape_fn_t** gradleg_shape_fn_table_x[2] = 
+static Shapeset::shape_fn_t** gradleg_shape_fn_table_x[2] =
 {
   gradleg_tri_shape_fn_table_x,
   gradleg_quad_shape_fn_table_x
 };
 
-static Shapeset::shape_fn_t** gradleg_shape_fn_table_y[2] = 
+static Shapeset::shape_fn_t** gradleg_shape_fn_table_y[2] =
 {
   gradleg_tri_shape_fn_table_y,
   gradleg_quad_shape_fn_table_y
@@ -15822,12 +15822,12 @@ static void check_gradleg_tri(Shapeset* shapeset)
 {
   shapeset->set_mode(MODE_TRIANGLE);
   for (int i = 1; i <= 10; i++)
-  { 
+  {
     int nb = shapeset->get_num_bubbles(i);
     if (nb != 3*(i-1) + (i-1)*(i-2))
       error("Wrong bubble count");
-    
-  } 
+
+  }
 
   int size_a  = sizeof(gradleg_tri_fn_a)  / sizeof(Shapeset::shape_fn_t);
   int size_b  = sizeof(gradleg_tri_fn_b)  / sizeof(Shapeset::shape_fn_t);
@@ -15835,7 +15835,7 @@ static void check_gradleg_tri(Shapeset* shapeset)
   int size_bx = sizeof(gradleg_tri_fn_bx) / sizeof(Shapeset::shape_fn_t);
   int size_ay = sizeof(gradleg_tri_fn_ay) / sizeof(Shapeset::shape_fn_t);
   int size_by = sizeof(gradleg_tri_fn_by) / sizeof(Shapeset::shape_fn_t);
-  
+
   if (size_a != size_b || size_a != size_ax || size_a != size_bx || size_a != size_ay || size_a != size_by)
     error("Function tables dont have equal length.");
 
@@ -15854,13 +15854,13 @@ HcurlShapesetGradLeg::HcurlShapesetGradLeg()
   shape_table[3] = NULL;
   shape_table[4] = NULL;
   shape_table[5] = NULL;
-  
+
   vertex_indices = gradleg_vertex_indices;
   edge_indices = gradleg_edge_indices;
   bubble_indices = gradleg_bubble_indices;
   bubble_count = gradleg_bubble_count;
   index_to_order = gradleg_index_to_order;
-  
+
   ref_vert[0][0][0] = -1.0;
   ref_vert[0][0][1] = -1.0;
   ref_vert[0][1][0] =  1.0;
@@ -15882,9 +15882,9 @@ HcurlShapesetGradLeg::HcurlShapesetGradLeg()
 
   max_index[0] = 164;
   max_index[1] = 307;
-  
+
   ebias = 0;
-  
+
   comb_table = NULL;
 
   check_gradleg_tri(this);

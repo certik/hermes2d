@@ -23,7 +23,7 @@
 #define __HERMES2D_SOLVER_PARDISO_H
 
 #ifdef AIX
-#define F77_FUNC(func)  func     
+#define F77_FUNC(func)  func
 #else
 #define F77_FUNC(func)  func ## _
 #endif
@@ -34,8 +34,8 @@ extern  int F77_FUNC(pardisoinit)
     (void *, int *, int *);
 
 extern  int F77_FUNC(pardiso)
-    (void *, int *, int *, int *, int *, int *, 
-     double *, int *, int *, int *, int *, int *, 
+    (void *, int *, int *, int *, int *, int *,
+     double *, int *, int *, int *, int *, int *,
      int *, double *, double *, int *);
 
 
@@ -47,19 +47,19 @@ extern  int F77_FUNC(pardiso)
 
 /// \brief Pardiso solver wrapper class
 ///
-class PardisoSolver : public Solver  
+class PardisoSolver : public Solver
 {
 public:
-  
+
   PardisoSolver() { msglvl = 0;
                     memset(default_iparm, 0, sizeof(default_iparm)); }
-  
-  void set_iparm(int idx, double val) { default_iparm[idx] = val; }
-  void set_msglvl(int lvl) { msglvl = lvl; } 
 
-  
+  void set_iparm(int idx, double val) { default_iparm[idx] = val; }
+  void set_msglvl(int lvl) { msglvl = lvl; }
+
+
 protected:
-  
+
   virtual bool is_row_oriented()  { return true; }
   virtual bool handles_symmetry() { return true; }
 
@@ -75,31 +75,31 @@ protected:
     int* Ai1;
     int ndofs;
   };
-  
-  
+
+
   virtual void* new_context(bool sym)
   {
     Data* data = new Data;
     memset(data->pt, 0, sizeof(data->pt));
     data->Ap1 = NULL;
     data->Ai1 = NULL;
-    
+
     // matrix type (structurally symmetric / unsymmetric)
     #ifndef COMPLEX
     data->mtype = sym ? 1 : 11;
     #else
     data->mtype = sym ? 3 : 13;
     #endif
-    
+
     F77_FUNC(pardisoinit)(data->pt, &data->mtype, data->iparm);
-    
+
     // numbers of processors, value of OMP_NUM_THREADS
     char* var = getenv("OMP_NUM_THREADS");
     data->iparm[2] = var ? atoi(var) : 1;
-    
+
     return data;
   }
-  
+
   virtual void free_context(void* ctx)
   {
     delete (Data*) ctx;
@@ -110,7 +110,7 @@ protected:
   {
     Data* data = (Data*) ctx;
     if (data->Ap1 != NULL) free_data(ctx);
-    
+
     // convert Ap and Ai to Fortran one-based indexing - this sucks but there's no other way
     data->Ap1 = new int[n+1];
     data->Ai1 = new int[Ap[n]];
@@ -120,9 +120,9 @@ protected:
     for (int i = 0; i < Ap[n]; i++)
       data->Ai1[i] = Ai[i] + 1;
     data->ndofs = n;
- 
+
     // perform symbolic analysis
-    int phase = 11, maxfct = 1, mnum = 1, idum = 0, nrhs = 1, error; 
+    int phase = 11, maxfct = 1, mnum = 1, idum = 0, nrhs = 1, error;
     double ddum = 0.0;
     verbose("Pardiso: analyzing matrix...");
     F77_FUNC(pardiso)(data->pt, &maxfct, &mnum, &data->mtype, &phase,
@@ -131,12 +131,12 @@ protected:
     print_status(error);
     return error == 0;
   }
-  
-  
+
+
   virtual bool factorize(void* ctx, int n, int* Ap, int* Ai, scalar* Ax, bool sym)
   {
     Data* data = (Data*) ctx;
-    int phase = 22, maxfct = 1, mnum = 1, idum = 0, nrhs = 1, error; 
+    int phase = 22, maxfct = 1, mnum = 1, idum = 0, nrhs = 1, error;
     double ddum = 0.0;
     verbose("Pardiso: factorizing matrix...");
     F77_FUNC(pardiso)(data->pt, &maxfct, &mnum, &data->mtype, &phase,
@@ -145,13 +145,13 @@ protected:
     print_status(error);
     return error == 0;
   }
-  
-  
+
+
   virtual bool solve(void* ctx, int n, int* Ap, int* Ai, scalar* Ax, bool sym,
                      scalar* RHS, scalar* vec)
   {
     Data* data = (Data*) ctx;
-    int phase = 33, maxfct = 1, mnum = 1, idum = 0, nrhs = 1, error; 
+    int phase = 33, maxfct = 1, mnum = 1, idum = 0, nrhs = 1, error;
     double ddum = 0.0;
     verbose("Pardiso: solving system...");
     F77_FUNC(pardiso)(data->pt, &maxfct, &mnum, &data->mtype, &phase,
@@ -160,27 +160,27 @@ protected:
     print_status(error);
     return error == 0;
   }
-  
-  
+
+
   virtual void free_data(void* ctx)
   {
     Data* data = (Data*) ctx;
     if (data->Ap1 || data->Ai1)
     {
       // release factorization data
-      int phase = -1, maxfct = 1, mnum = 1, idum = 0, nrhs = 1, error; 
+      int phase = -1, maxfct = 1, mnum = 1, idum = 0, nrhs = 1, error;
       double ddum = 0.0;
       F77_FUNC(pardiso)(data->pt, &maxfct, &mnum, &data->mtype, &phase,
                         &data->ndofs, &ddum, data->Ap1, data->Ai1,
                         &idum, &nrhs, data->iparm, &msglvl, &ddum, &ddum, &error);
-      
+
       // release one-based arrays
       if (data->Ap1 != NULL) { delete [] data->Ap1;  data->Ap1 = NULL; }
       if (data->Ai1 != NULL) { delete [] data->Ai1;  data->Ai1 = NULL; }
     }
   }
 
-  
+
   virtual void print_status(int error)
   {
     switch (error)
@@ -197,8 +197,8 @@ protected:
       default: error("Uknown error.");
     }
   }
-  
-  
+
+
 };
 
 

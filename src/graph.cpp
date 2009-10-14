@@ -49,7 +49,7 @@ int Graph::add_row(const char* name, const char* color, const char* line, const 
   row.color = "k";
   row.line = "-";
   row.marker = "";
-  
+
   rows.push_back(row);
   set_row_style(rows.size()-1, color, line, marker);
   return rows.size()-1;
@@ -88,7 +88,7 @@ void Graph::add_values(int row, int n, double2* xy)
 
 
 void Graph::save_numbered(const char* filename, int number)
-{  
+{
   char buffer[1000];
   sprintf(buffer, filename, number);
   save(buffer);
@@ -100,12 +100,12 @@ void Graph::save_numbered(const char* filename, int number)
 void MatlabGraph::save(const char* filename)
 {
   int i, j, k;
-  
+
   if (!rows.size()) error("No data rows defined.");
-  
+
   FILE* f = fopen(filename, "w");
   if (f == NULL) error("Error writing to %s", filename);
-  
+
   if (!logx && !logy)
     fprintf(f, "plot(");
   else if (logx && !logy)
@@ -132,7 +132,7 @@ void MatlabGraph::save(const char* filename)
     if (i < rows.size()-1) fprintf(f, ", ");
   }
   fprintf(f, ");\n");
-  
+
   if (title.length()) fprintf(f, "title('%s');\n", title.c_str());
   if (xname.length()) fprintf(f, "xlabel('%s');\n", xname.c_str());
   if (yname.length()) fprintf(f, "ylabel('%s');\n", yname.c_str());
@@ -149,7 +149,7 @@ void MatlabGraph::save(const char* filename)
   }
   else
     fprintf(f, "legend off;\n");
-  
+
   fprintf(f, "grid %s;\n", grid ? "on" : "off");
 
   info("Graph saved. Run the file '%s' in Matlab.", filename);
@@ -200,12 +200,12 @@ static void get_style_types(std::string line, std::string mark, std::string col,
 void GnuplotGraph::save(const char* filename)
 {
   int i, j, k;
-  
+
   if (!rows.size()) error("No data rows defined.");
 
   FILE* f = fopen(filename, "w");
   if (f == NULL) error("Error writing to %s", filename);
-  
+
   fprintf(f, "set terminal postscript eps enhanced\n");
 
   int len = strlen(filename);
@@ -216,9 +216,9 @@ void GnuplotGraph::save(const char* filename)
   char* dot = strrchr(outname, '.');
   if (dot != NULL && dot > outname) *dot = 0;
   strcat(outname, ".eps");
-  
-  fprintf(f, "set output '%s'\n", outname);  
-  
+
+  fprintf(f, "set output '%s'\n", outname);
+
   fprintf(f, "set size 0.8, 0.8\n");
 
   if (logx && !logy)
@@ -242,8 +242,8 @@ void GnuplotGraph::save(const char* filename)
   {
     int ct, lt, pt;
     get_style_types(rows[i].line, rows[i].marker, rows[i].color, lt, pt, ct);
- 
-    if (lt == 0) 
+
+    if (lt == 0)
       fprintf(f, " '-' w p pointtype %d title '%s' ", pt, rows[i].name.c_str());
     else if (ct < 0)
       fprintf(f, " '-' w lp linetype %d pointtype %d title '%s' ", lt, pt, rows[i].name.c_str());
@@ -253,14 +253,14 @@ void GnuplotGraph::save(const char* filename)
     if (i < rows.size() - 1) fprintf(f, ", ");
   }
   fprintf(f,"\n");
-  
+
   for (i = 0; i < rows.size(); i++)
   {
     int rsize = rows[i].data.size();
     for (j = 0; j < rsize; j++)
       fprintf(f, "%.14g  %.14g\n", rows[i].data[j].x, rows[i].data[j].y);
     fprintf(f, "e\n");
-  }  
+  }
 
   fprintf(f, "set terminal x11\n");
   info("Graph saved. Process the file '%s' with gnuplot.", filename);

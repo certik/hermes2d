@@ -25,7 +25,7 @@
 
 
 HashTable::HashTable()
-{ 
+{
   v_table = NULL; e_table = NULL;
   nqueries = ncollisions = 0;
 }
@@ -82,14 +82,14 @@ void HashTable::rebuild()
 {
   memset(v_table, 0, (mask+1) * sizeof(Node*));
   memset(e_table, 0, (mask+1) * sizeof(Node*));
-  
+
   Node* node;
   for_all_nodes(node, this)
   {
     int p1 = node->p1, p2 = node->p2;
     if (p1 > p2) std::swap(p1, p2);
     int idx = hash(p1, p2);
-    
+
     if (node->type == TYPE_VERTEX)
     {
       node->next_hash = v_table[idx];

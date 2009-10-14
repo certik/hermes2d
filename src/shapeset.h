@@ -69,11 +69,11 @@
 class Shapeset
 {
 public:
-  
-  ~Shapeset() { free_constrained_edge_combinations(); } 
-  
+
+  ~Shapeset() { free_constrained_edge_combinations(); }
+
   /// Selects MODE_TRIANGLE or MODE_QUAD.
-  void set_mode(int mode) 
+  void set_mode(int mode)
   {
     check_mode;
     this->mode = mode;
@@ -81,20 +81,20 @@ public:
     nvert = (mode == MODE_TRIANGLE) ? 3 : 4;
     #endif
   }
-  
+
   /// Returns the current mode.
-  int get_mode() const { return mode; } 
-  
+  int get_mode() const { return mode; }
+
   /// Returns the maximum poly degree for all shape functions.
-  int get_max_order() const { return max_order; } 
-  
+  int get_max_order() const { return max_order; }
+
   /// Returns the highest shape function index.
-  int get_max_index() const { return max_index[mode]; } 
-  
+  int get_max_index() const { return max_index[mode]; }
+
   /// Returns 2 if this is a vector shapeset, 1 otherwise.
-  int get_num_components() const { return num_components; } 
-  
-  
+  int get_num_components() const { return num_components; }
+
+
   /// Returns the index of a vertex shape function associated with the specified vertex.
   int get_vertex_index(int vertex) const
   {
@@ -126,8 +126,8 @@ public:
     check_order(get_v_order(order));
     return bubble_count[mode][order];
   }
-  
-  /// Returns the index of a constrained edge function. 'part' is 0 or 1 for edge 
+
+  /// Returns the index of a constrained edge function. 'part' is 0 or 1 for edge
   /// halves, 2, 3, 4, 5 for edge quarters, etc. See shapeset.cpp.
   int get_constrained_edge_index(int edge, int order, int ori, int part) const
   {
@@ -145,10 +145,10 @@ public:
     }
     else return ((-1 - index) >> 3) & 15;
   }
-  
-  
+
+
   /// Obtains the value of the given shape function. (x,y) is a coordinate in the reference
-  /// domain, component is 0 for scalar shapesets and 0 or 1 for vector shapesets.  
+  /// domain, component is 0 for scalar shapesets and 0 or 1 for vector shapesets.
   inline double get_value(int n, int index, double x, double y, int component)
   {
     if (index >= 0)
@@ -159,7 +159,7 @@ public:
     else
       return get_constrained_value(n, index, x, y, component);
   }
-        
+
   inline double get_fn_value (int index, double x, double y, int component) { return get_value(0, index, x, y, component); }
   inline double get_dx_value (int index, double x, double y, int component) { return get_value(1, index, x, y, component); }
   inline double get_dy_value (int index, double x, double y, int component) { return get_value(2, index, x, y, component); }
@@ -167,9 +167,9 @@ public:
   inline double get_dyy_value(int index, double x, double y, int component) { return get_value(4, index, x, y, component); }
   inline double get_dxy_value(int index, double x, double y, int component) { return get_value(5, index, x, y, component); }
 
-  
+
   /// Returns the coordinates of the reference domain vertices.
-  double2* get_ref_vertex(int vertex) 
+  double2* get_ref_vertex(int vertex)
   {
     return &ref_vert[mode][vertex];
   }
@@ -179,10 +179,10 @@ public:
 
   /// Returns shapeset identifier. Internal.
   virtual int get_id() const = 0;
-  
-  
+
+
 protected:
-  
+
   int mode;
   int nvert;
 
@@ -199,17 +199,17 @@ protected:
   int max_index[2];
   int num_components;
 
-  int ebias; ///< 2 for H1 shapesets, 0 for H(curl) shapesets. It is the order of the 
-             ///< first edge function.  
-  
+  int ebias; ///< 2 for H1 shapesets, 0 for H(curl) shapesets. It is the order of the
+             ///< first edge function.
+
   double** comb_table;
   int table_size;
 
   double* calculate_constrained_edge_combination(int order, int part, int ori);
   double* get_constrained_edge_combination(int order, int part, int ori, int& nitems);
-  
+
   void    free_constrained_edge_combinations();
-  
+
   double get_constrained_value(int n, int index, double x, double y, int component);
 
 };

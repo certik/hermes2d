@@ -30,15 +30,15 @@
 class Quad1D
 {
 public:
-  
+
   double2* get_points(int order) const { return tables[order]; }
   int get_num_points(int order) const { return np[order]; };
-  
-  int get_max_order() const { return max_order; }  
+
+  int get_max_order() const { return max_order; }
   double get_ref_vertex(int n) const { return ref_vert[n]; }
 
 protected:
-  
+
   double2** tables;
   int* np;
 
@@ -57,7 +57,7 @@ class Quad2D
 public:
 
   void set_mode(int mode) { this->mode = mode; }
-  int  get_mode() const { return mode; } 
+  int  get_mode() const { return mode; }
 
   int get_num_points(int order)  const { return np[mode][order]; };
   double3* get_points(int order) const { assert(order < num_tables[mode]); return tables[mode][order]; }
@@ -66,11 +66,11 @@ public:
   int get_max_order() const { return max_order[mode]; }
   int get_safe_max_order() const { return safe_max_order[mode]; }
   int get_num_tables() const { return num_tables[mode]; }
-  
+
   double2* get_ref_vertex(int n) { return &ref_vert[mode][n]; }
-  
+
 protected:
-  
+
   int mode;
 
   double3*** tables;

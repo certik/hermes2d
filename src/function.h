@@ -25,7 +25,7 @@
 #include "common.h"
 #include "transform.h"
 #include "quad_all.h"
- 
+
 
 // Precalculation masks
 enum
@@ -62,7 +62,7 @@ const int FN_COMPONENT_1 = FN_VAL_1 | FN_DX_1 | FN_DY_1 | FN_DXX_1 | FN_DYY_1 | 
       error("Invalid node. Did you call set_quad_order()?");
   #define check_table(n, msg) \
     if (cur_node->values[component][n] == NULL) \
-      error(msg " not precalculated for component %d. Did you call set_quad_order() with correct mask?", component)      
+      error(msg " not precalculated for component %d. Did you call set_quad_order() with correct mask?", component)
 #else
   #define check_params
   #define check_table(n, msg)
@@ -78,21 +78,21 @@ const int FN_COMPONENT_1 = FN_VAL_1 | FN_DX_1 | FN_DY_1 | FN_DXX_1 | FN_DYY_1 | 
 /// get_dx_values(), etc.
 ///
 /// This class is a template for RealFunction and ScalarFunction, depending of which type the
-/// function values are. For example, shape functions are always real (see PrecalcShapeset), while 
+/// function values are. For example, shape functions are always real (see PrecalcShapeset), while
 /// the solution can be complex (see Solution).
 ///
 /// The design goal for this class is to define a single common interface for functions used as
 /// integrands in the weak formulation. It should not matter whether you are integrating a shape
-/// function or, for example, a previous solution of the PDE in time-dependent problems. 
-/// Ideally, you should also be able to apply the bilinear form not only to shape functions 
-/// during assembling, but also to the solution when calculating energy norms etc. The last 
+/// function or, for example, a previous solution of the PDE in time-dependent problems.
+/// Ideally, you should also be able to apply the bilinear form not only to shape functions
+/// during assembling, but also to the solution when calculating energy norms etc. The last
 /// feature is unfortunately limited to real code, because a PDE solution can be complex (hence
-/// Solution inherits from ScalarFunction), but shape functions are real and for efficiency 
+/// Solution inherits from ScalarFunction), but shape functions are real and for efficiency
 /// the bilinear form only takes RealFunction arguments.
 ///
 /// Since this class inherits from Transformable, you can obtain function values in integration
 /// points transformed to sub-areas of the current element (see push_transform(), pop_transform()).
-/// 
+///
 template<typename TYPE>
 class Function : public Transformable
 {
@@ -106,13 +106,13 @@ public:
 
   /// \brief Returns the polynomial degree of the function being represented by the class.
   int get_fn_order() const { return order; }
-  
+
   /// \brief Returns the number of components of the function being represented by the class.
   int get_num_components() const { return num_components; }
 
 
   /// Activates an integration rule of the specified order. Subsequent calls to
-  /// get_values(), get_dx_values() etc. will be returning function values at these points. 
+  /// get_values(), get_dx_values() etc. will be returning function values at these points.
   /// \param order [in] Integration rule order.
   /// \param mask [in] A combination of one or more of the constants FN_VAL, FN_DX, FN_DY,
   ///   FN_DXX, FN_DYY, FN_DXY specifying the values which should be precalculated. The default is
@@ -132,7 +132,7 @@ public:
   /// \brief Returns function values.
   /// \param component [in] The component of the function (0 or 1).
   /// \return The values of the function at all points of the current integration rule.
-  TYPE* get_fn_values(int component = 0) 
+  TYPE* get_fn_values(int component = 0)
   {
     check_params; check_table(0, "Function values");
     return cur_node->values[component][0];
@@ -194,36 +194,36 @@ public:
     check_params; check_table(5, "DXY values");
     return cur_node->values[component][5];
   }
-  
+
   /// For internal use.
   TYPE* get_values(int a, int b)
   {
     return cur_node->values[a][b];
   }
-  
-       
+
+
   /// \brief Selects the quadrature points in which the function will be evaluated.
   /// \details It is possible to switch back and forth between different quadrature
-  /// points: no precalculated values are freed. The standard quadrature is 
+  /// points: no precalculated values are freed. The standard quadrature is
   /// always selected by default already.
   /// \param quad_2d [in] The quadrature points.
   virtual void set_quad_2d(Quad2D* quad_2d);
 
   /// \brief Returns the current quadrature points.
   Quad2D* get_quad_2d() const { return quads[cur_quad]; }
-  
-  
+
+
   /// See Transformable::push_transform()
   virtual void push_transform(int son);
-  
+
   /// See Transformable::pop_transform()
   virtual void pop_transform();
-  
-  
+
+
   /// \brief Frees all precalculated tables.
   virtual void free() = 0;
-  
-  
+
+
 protected:
 
   /// precalculates the current function at the current integration points.
@@ -231,7 +231,7 @@ protected:
 
   int order;          ///< current function polynomial order
   int num_components; ///< number of vector components
-  
+
   struct Node
   {
     int mask;           ///< a combination of FN_XXX: specifies which tables are present
@@ -239,7 +239,7 @@ protected:
     TYPE* values[2][6]; ///< pointers to 'data'
     TYPE data[0];       ///< value tables
   };
-  
+
   void** sub_tables;  ///< pointer to the current secondary Judy array
   void** nodes;       ///< pointer to the current tertiary Judy array FIXME
   void** pp_cur_node;
@@ -331,14 +331,14 @@ template<typename TYPE>
 void Function<TYPE>::set_quad_2d(Quad2D* quad_2d)
 {
   int i;
-  
+
   // check to see if we already have the quadrature
   for (i = 0; i < 4; i++)
     if (quads[i] == quad_2d) {
       cur_quad = i;
       return;
     }
-      
+
   // if not, add the quadrature to a free slot
   for (i = 0; i < 4; i++)
     if (quads[i] == NULL) {
@@ -346,7 +346,7 @@ void Function<TYPE>::set_quad_2d(Quad2D* quad_2d)
       cur_quad = i;
       return;
     }
-    
+
   error("too many quadratures.");
 }
 
@@ -398,7 +398,7 @@ typename Function<TYPE>::Node* Function<TYPE>::new_node(int mask, int num_points
       }
   }
   // todo: maybe put here copying of the old node
-  
+
   total_mem += size;
   if (max_mem < total_mem) max_mem = total_mem;
   return node;

@@ -24,7 +24,7 @@
 
 #include "mesh.h"
 
-// 2D transform 
+// 2D transform
 struct Trf
 {
   double2 m; ///< 2x2 diagonal transformation matrix
@@ -52,7 +52,7 @@ public:
     reset_transform();
     element = NULL;
   }
-  
+
   virtual ~Transformable() {}
 
   /// Called by the assembling procedure and by other functions. In PrecalcShapeset it
@@ -72,15 +72,15 @@ public:
   {
     assert(element != NULL);
     if (top >= 20) error("Too deep transform.");
-    
+
     Trf* mat = stack + (++top);
     Trf* tr = (element->is_triangle() ? tri_trf + son : quad_trf + son);
-  
+
     mat->m[0] = ctm->m[0] * tr->m[0];
-    mat->m[1] = ctm->m[1] * tr->m[1];  
+    mat->m[1] = ctm->m[1] * tr->m[1];
     mat->t[0] = ctm->m[0] * tr->t[0] + ctm->t[0];
     mat->t[1] = ctm->m[1] * tr->t[1] + ctm->t[1];
-    
+
     ctm = mat;
     sub_idx = (sub_idx << 3) + son + 1; // see traverse.cpp if this changes
   }
@@ -94,29 +94,29 @@ public:
     ctm = stack + (--top);
     sub_idx = (sub_idx - 1) >> 3;
   }
-  
+
   /// Sets the current transform at once as if it was created by multiple calls to push_transform().
   /// \param idx [in] The number of the sub-element, as returned by get_transform().
   void set_transform(uint64 idx);
-  
+
   /// \return The current transform index.
   uint64 get_transform() const { return sub_idx; }
-  
+
   /// Empties the stack, loads identity transform.
   void reset_transform()
-  {  
+  {
     stack[0].m[0] = stack[0].m[1] = 1.0;
-    stack[0].t[0] = stack[0].t[1] = 0.0;  
+    stack[0].t[0] = stack[0].t[1] = 0.0;
     ctm = stack;
     top = sub_idx = 0;
   }
-  
+
   /// \return The jacobian of the current transformation matrix.
   double get_transform_jacobian() const { return ctm->m[0] * ctm->m[1]; }
-  
+
   /// \return The current transformation matrix.
   Trf* get_ctm() const { return ctm; }
-  
+
   /// \return The depth of the current transformation.
   int get_depth() const { return top; }
 

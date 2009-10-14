@@ -34,14 +34,14 @@ class PrecalcShapeset;
 /// MeshFunction is a base class for all classes representing an arbitrary function
 /// superimposed on a mesh (ie., domain). These include the Solution, ExactSolution
 /// and Filter classes, which define the concrete behavior and the way the function
-/// is (pre)calculated. Any such function can later be visualized. 
-/// 
+/// is (pre)calculated. Any such function can later be visualized.
+///
 /// (This is an abstract class and cannot be instantiated.)
 ///
 class MeshFunction : public ScalarFunction
 {
 public:
-  
+
   MeshFunction();
   virtual ~MeshFunction();
 
@@ -52,9 +52,9 @@ public:
   RefMap* get_refmap() { update_refmap(); return refmap; }
 
   virtual scalar get_pt_value(double x, double y, int item = FN_VAL_0) = 0;
-  
+
 protected:
-  
+
   int mode;
   Mesh* mesh;
   RefMap* refmap;
@@ -81,7 +81,7 @@ public:
 class Solution : public MeshFunction
 {
 public:
-  
+
   Solution();
   virtual ~Solution();
   virtual void free();
@@ -89,7 +89,7 @@ public:
   void assign(Solution* sln);
   Solution& operator = (Solution& sln) { assign(&sln); return *this; }
   void copy(const Solution* sln);
-  
+
   void set_exact(Mesh* mesh, scalar   (*exactfn)(double x, double y, scalar& dx , scalar& dy));
   void set_exact(Mesh* mesh, scalar2& (*exactfn)(double x, double y, scalar2& dx, scalar2& dy));
 
@@ -101,7 +101,7 @@ public:
 
   /// Sets solution equal to Dirichlet lift only, solution vector = 0
   void set_dirichlet_lift(Space* space, PrecalcShapeset* pss);
-  
+
   /// Enables or disables transformation of the solution derivatives (H1 case)
   /// or values (vector (Hcurl) case). This means FN_DX_0 and FN_DY_0 or
   /// FN_VAL_0 and FN_VAL_1 will or will not be returned premultiplied by the reference
@@ -112,28 +112,28 @@ public:
   /// element orders) to a binary file. On Linux, if `compress` is true, the file is
   /// compressed with gzip and a ".gz" suffix added to the file name.
   void save(const char* filename, bool compress = true);
-  
-  /// Loads the solution from a file previously created by Solution::save(). This completely 
+
+  /// Loads the solution from a file previously created by Solution::save(). This completely
   /// restores the solution in the memory. The file name has to include the ".gz" suffix,
   /// in which case the file is piped through gzip to decompress the data (Linux only).
   void load(const char* filename);
 
   /// Returns solution value or derivatives at element e, in its reference domain point (xi1, xi2).
   /// 'item' controls the returned value: 0 = value, 1 = dx, 2 = dy, 3 = dxx, 4 = dyy, 5 = dxy.
-  /// NOTE: This function should be used for postprocessing only, it is not effective 
+  /// NOTE: This function should be used for postprocessing only, it is not effective
   /// enough for calculations.
   scalar get_ref_value(Element* e, double xi1, double xi2, int component = 0, int item = 0);
 
-  /// Returns solution value or derivatives (correctly transformed) at element e, in its reference 
-  /// domain point (xi1, xi2). 'item' controls the returned value: 0 = value, 1 = dx, 2 = dy, 
-  /// 3 = dxx, 4 = dyy, 5 = dxy.  
-  /// NOTE: This function should be used for postprocessing only, it is not effective 
+  /// Returns solution value or derivatives (correctly transformed) at element e, in its reference
+  /// domain point (xi1, xi2). 'item' controls the returned value: 0 = value, 1 = dx, 2 = dy,
+  /// 3 = dxx, 4 = dyy, 5 = dxy.
+  /// NOTE: This function should be used for postprocessing only, it is not effective
   /// enough for calculations.
   scalar get_ref_value_transformed(Element* e, double xi1, double xi2, int a, int b);
 
   /// Returns solution value or derivatives at the physical domain point (x, y).
   /// 'item' controls the returned value: FN_VAL_0, FN_VAL_1, FN_DX_0, FN_DX_1, FN_DY_0,....
-  /// NOTE: This function should be used for postprocessing only, it is not effective 
+  /// NOTE: This function should be used for postprocessing only, it is not effective
   /// enough for calculations.
   virtual scalar get_pt_value(double x, double y, int item = FN_VAL_0);
 
@@ -144,7 +144,7 @@ public:
   /// Multiplies the function represented by this class by the given coefficient.
   void multiply(scalar coef);
 
-  
+
 public:
 
   /// Internal. Used by LinSystem::solve(). Should not be called directly
@@ -180,7 +180,7 @@ protected:
   scalar   exact_mult;
 
   virtual void precalculate(int order, int mask);
-  
+
   scalar* dxdy_coefs[2][6];
   scalar* dxdy_buffer;
 
@@ -189,7 +189,7 @@ protected:
   void free_tables();
 
   Element* e_last; ///< last visited element when getting solution values at specific points
-  
+
 };
 
 
@@ -201,14 +201,14 @@ protected:
 ///
 /// Please note that the same functionality can be obtained by using Solution::set_exact().
 /// This class is provided merely for convenience.
-/// 
+///
 class ExactSolution : public Solution
 {
 public:
-  
+
   ExactSolution(Mesh* mesh, scalar   (*exactfn)(double x, double y, scalar& dx , scalar& dy))
     { set_exact(mesh, exactfn); }
-     
+
   ExactSolution(Mesh* mesh, scalar2& (*exactfn)(double x, double y, scalar2& dx, scalar2& dy))
     { set_exact(mesh, exactfn); }
 

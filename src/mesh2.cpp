@@ -55,42 +55,42 @@ Nurbs* Mesh::load_nurbs(FILE* f, Node** en, int &p1, int &p2)
   int i;
   char* line;
   Nurbs* nurbs = new Nurbs;
-  
+
   // read the end point indices
   if ((line = get_line(f)) == NULL) eof_error;
   if (sscanf(line, "%d %d", &p1, &p2) != 2) error("error reading curved boundary data (end point indices)");
   *en = peek_edge_node(p1, p2);
   if (*en == NULL) error("error reading curved boundary data (edge %d-%d does not exist)", p1, p2);
-    
+
   // degree of curved edge
   if ((line = get_line(f)) == NULL) eof_error;
-  if (sscanf(line, "%d", &(nurbs->degree)) != 1) 
+  if (sscanf(line, "%d", &(nurbs->degree)) != 1)
     error("error reading curved boundary data for edge %d-%d (degree)", p1, p2);
-  
+
   // create a circular arc if degree == 0
   bool circle = (nurbs->degree == 0);
   if (circle) nurbs->degree = 2;
   nurbs->arc = circle;
-   
+
   // load control points of curved edge
   int inner = 1, outer;
   if (!circle)
   {
     if ((line = get_line(f)) == NULL) eof_error;
-    if (sscanf(line, "%d", &inner) != 1) 
+    if (sscanf(line, "%d", &inner) != 1)
       error("error reading curved boundary data for edge %d-%d (# of control points)", p1, p2);
   }
   nurbs->np = inner + 2;
-  
+
   // edge endpoints are also control points, with weight 1.0
-  nurbs->pt = new double3[nurbs->np];  
+  nurbs->pt = new double3[nurbs->np];
   nurbs->pt[0][0] = nodes[p1].x;
   nurbs->pt[0][1] = nodes[p1].y;
   nurbs->pt[0][2] = 1.0;
   nurbs->pt[inner+1][0] = nodes[p2].x;
   nurbs->pt[inner+1][1] = nodes[p2].y;
   nurbs->pt[inner+1][2] = 1.0;
-  
+
   if (!circle)
   {
     // load inner control points
@@ -106,7 +106,7 @@ Nurbs* Mesh::load_nurbs(FILE* f, Node** en, int &p1, int &p2)
     // load the arc angle
     if ((line = get_line(f)) == NULL) eof_error;
     double angle;
-    if (sscanf(line, "%lf", &angle) != 1) 
+    if (sscanf(line, "%lf", &angle) != 1)
       error("error reading curved boundary data for edge %d-%d (arc angle)", p1, p2);
     nurbs->angle = angle;
     angle = (180.0 - angle) / 180.0 * M_PI;
@@ -117,7 +117,7 @@ Nurbs* Mesh::load_nurbs(FILE* f, Node** en, int &p1, int &p2)
     nurbs->pt[1][1] = 0.5*((nurbs->pt[2][1] + nurbs->pt[0][1]) - (nurbs->pt[2][0] - nurbs->pt[0][0]) * x);
     nurbs->pt[1][2] = cos((M_PI - angle) * 0.5);
   }
-  
+
   // load the number of knot vector points
   inner = 0;
   if (!circle)
@@ -126,14 +126,14 @@ Nurbs* Mesh::load_nurbs(FILE* f, Node** en, int &p1, int &p2)
     if (sscanf(line, "%d", &(inner)) != 1)
       error("error reading curved boundary data for edge %d-%d (# of knot vector points)", p1, p2);
   }
-  
+
   nurbs->nk = nurbs->degree + nurbs->np + 1;
   outer = nurbs->nk - inner;
   if (outer & 1 == 1)
     error("error reading curved boundary data for edge %d-%d (wrong number of knot points)", p1, p2);
-    
-  // knot vector is completed by 0.0 on the left and by 1.0 on the right  
-  nurbs->kv = new double[nurbs->nk];    
+
+  // knot vector is completed by 0.0 on the left and by 1.0 on the right
+  nurbs->kv = new double[nurbs->nk];
   for (i = 0; i < outer/2; i++)
     nurbs->kv[i] = 0.0;
   for (i = outer/2; i < inner + outer/2; i++)
@@ -144,7 +144,7 @@ Nurbs* Mesh::load_nurbs(FILE* f, Node** en, int &p1, int &p2)
   }
   for (i = outer/2 + inner; i < nurbs->nk; i++)
     nurbs->kv[i] = 1.0;
-  
+
   nurbs->ref = 0;
   return nurbs;
 }
@@ -159,57 +159,57 @@ Nurbs* Mesh::reverse_nurbs(Nurbs* nurbs)
   Nurbs* rev = new Nurbs;
   *rev = *nurbs;
   rev->twin = true;
-  
+
   rev->pt = new double3[nurbs->np];
   for (int i = 0; i < nurbs->np; i++)
-  {  
+  {
     rev->pt[nurbs->np-1 - i][0] = nurbs->pt[i][0];
     rev->pt[nurbs->np-1 - i][1] = nurbs->pt[i][1];
     rev->pt[nurbs->np-1 - i][2] = nurbs->pt[i][2];
-  }  
-  
+  }
+
   rev->kv = new double[nurbs->nk];
-  for (int i = 0; i < nurbs->nk; i++)      
+  for (int i = 0; i < nurbs->nk; i++)
     rev->kv[i] = nurbs->kv[i];
-  for (int i = nurbs->degree + 1; i < nurbs->nk - nurbs->degree - 1; i++)      
+  for (int i = nurbs->degree + 1; i < nurbs->nk - nurbs->degree - 1; i++)
     rev->kv[nurbs->nk-1 - i] = 1.0 - nurbs->kv[i];
-  
+
   rev->arc = nurbs->arc;
   rev->angle = -nurbs->angle;
   return rev;
 }
 
 // computing vector length
-double vector_length(double a_1, double a_2) 
+double vector_length(double a_1, double a_2)
 {
   return sqrt(sqr(a_1) + sqr(a_2));
 }
 
 // checking whether the points p, q, r lie on the same line
-bool same_line(double p_1, double p_2, double q_1, double q_2, double r_1, double r_2) 
+bool same_line(double p_1, double p_2, double q_1, double q_2, double r_1, double r_2)
 {
-  double pq_1 = q_1 - p_1, pq_2 = q_2 - p_2, pr_1 = r_1 - p_1, pr_2 = r_2 - p_2; 
-  double length_pq = vector_length(pq_1, pq_2);  
-  double length_pr = vector_length(pr_1, pr_2); 
-  double sin_angle = (pq_1*pr_2 - pq_2*pr_1)/(length_pq*length_pr);  
+  double pq_1 = q_1 - p_1, pq_2 = q_2 - p_2, pr_1 = r_1 - p_1, pr_2 = r_2 - p_2;
+  double length_pq = vector_length(pq_1, pq_2);
+  double length_pr = vector_length(pr_1, pr_2);
+  double sin_angle = (pq_1*pr_2 - pq_2*pr_1)/(length_pq*length_pr);
   if(fabs(sin_angle) < 1e-8) return true;
-  else return false; 
+  else return false;
 }
 
 // checking whether the angle of vectors 'a' and 'b' is between zero and Pi
-bool is_convex(double a_1, double a_2, double b_1, double b_2) 
+bool is_convex(double a_1, double a_2, double b_1, double b_2)
 {
   if(a_1*b_2 - a_2*b_1 > 0) return true;
-  else return false; 
+  else return false;
 }
 
-void check_triangle(int i, Node *&v0, Node *&v1, Node *&v2) 
+void check_triangle(int i, Node *&v0, Node *&v1, Node *&v2)
 {
   // checking that all edges have nonzero length
-  double 
-    length_1 = vector_length(v1->x - v0->x, v1->y - v0->y), 
-    length_2 = vector_length(v2->x - v1->x, v2->y - v1->y), 
-    length_3 = vector_length(v0->x - v2->x, v0->y - v2->y); 
+  double
+    length_1 = vector_length(v1->x - v0->x, v1->y - v0->y),
+    length_2 = vector_length(v2->x - v1->x, v2->y - v1->y),
+    length_3 = vector_length(v0->x - v2->x, v0->y - v2->y);
   if(length_1 < 1e-14 || length_2 < 1e-14 || length_3 < 1e-14)
     error("Edge of triangular element #%d has length less than 1e-14.", i);
 
@@ -224,21 +224,21 @@ void check_triangle(int i, Node *&v0, Node *&v1, Node *&v2)
   }
 }
 
-void check_quad(int i, Node *&v0, Node *&v1, Node *&v2, Node *&v3) 
+void check_quad(int i, Node *&v0, Node *&v1, Node *&v2, Node *&v3)
 {
   // checking that all edges have nonzero length
-  double 
-    length_1 = vector_length(v1->x - v0->x, v1->y - v0->y), 
-    length_2 = vector_length(v2->x - v1->x, v2->y - v1->y), 
-    length_3 = vector_length(v3->x - v2->x, v3->y - v2->y), 
-    length_4 = vector_length(v0->x - v3->x, v0->y - v3->y); 
+  double
+    length_1 = vector_length(v1->x - v0->x, v1->y - v0->y),
+    length_2 = vector_length(v2->x - v1->x, v2->y - v1->y),
+    length_3 = vector_length(v3->x - v2->x, v3->y - v2->y),
+    length_4 = vector_length(v0->x - v3->x, v0->y - v3->y);
   if(length_1 < 1e-14 || length_2 < 1e-14 || length_3 < 1e-14 || length_4 < 1e-14)
     error("Edge of quad element #%d has length less than 1e-14.", i);
 
   // checking that both diagonals have nonzero length
-  double 
-    diag_1 = vector_length(v2->x - v0->x, v2->y - v0->y), 
-    diag_2 = vector_length(v3->x - v1->x, v3->y - v1->y); 
+  double
+    diag_1 = vector_length(v2->x - v0->x, v2->y - v0->y),
+    diag_2 = vector_length(v3->x - v1->x, v3->y - v1->y);
   if(diag_1 < 1e-14 || diag_2 < 1e-14)
     error("Diagonal of quad element #%d has length less than 1e-14.", i);
 
@@ -297,19 +297,19 @@ void Mesh::load_stream(FILE *f)
   if ((line = get_line(f)) == NULL) eof_error;
   if (sscanf(line, "%d %d", &maj, &min) != 2) error("could not read file version");
   if (maj > 1) error("unsupported file version");
-  
+
   // read the number of vertices
   if ((line = get_line(f)) == NULL) eof_error;
   if (sscanf(line, "%d", &n) != 1) error("could not read the number of vertices");
 
   // free all current data
   free();
-  
+
   // create a hash table large enough
   int size = DEFAULT_HASH_SIZE;
   while (size < 8*n) size *= 2;
   HashTable::init(size);
-  
+
   // load vertices: create top-level vertex nodes
   for (i = 0; i < n; i++)
   {
@@ -320,7 +320,7 @@ void Mesh::load_stream(FILE *f)
     node->bnd = 0;
     node->p1 = node->p2 = -1;
     node->next_hash = NULL;
-    
+
     if ((line = get_line(f)) == NULL) eof_error;
     if (sscanf(line, "%lf %lf", &node->x, &node->y) != 2) error("error reading vertex data");
   }
@@ -338,18 +338,18 @@ void Mesh::load_stream(FILE *f)
     int ret, idx[5];
     if ((ret = sscanf(line, "%d %d %d %d %d", idx, idx+1, idx+2, idx+3, idx+4)) != 4 && ret != 5)
       error("error reading elements");
-    
+
     for (j = 0; j < ret-1; j++)
       if (idx[j] < 0 || idx[j] >= ntopvert)
         error("error reading elements: node %d does not exist", idx[j]);
-    
+
     Node *v0 = &nodes[idx[0]], *v1 = &nodes[idx[1]], *v2 = &nodes[idx[2]];
     if (ret == 4)
     {
       check_triangle(i, v0, v1, v2);
       create_triangle(idx[3], v0, v1, v2, NULL);
     }
-    else 
+    else
     {
       Node *v3 = &nodes[idx[3]];
       check_quad(i, v0, v1, v2, v3);
@@ -375,14 +375,14 @@ void Mesh::load_stream(FILE *f)
     if (en == NULL) error("boundary data error (edge %d-%d does not exist)", v1, v2);
     en->marker = marker;
 
-    if (marker > 0) 
+    if (marker > 0)
     {
       nodes[v1].bnd = 1;
       nodes[v2].bnd = 1;
       en->bnd = 1;
     }
   }
-  
+
   // check that all boundary edges have a marker assigned
   for_all_edge_nodes(en, this)
     if (en->ref < 2 && en->marker == 0)
@@ -394,18 +394,18 @@ void Mesh::load_stream(FILE *f)
 
   // load curved edges
   for (i = 0; i < n; i++)
-  {       
-    // load the control points, knot vector, etc.    
+  {
+    // load the control points, knot vector, etc.
     Node* en;
     int p1, p2;
     Nurbs* nurbs = load_nurbs(f, &en, p1, p2);
-    
+
     // assign the nurbs to the elements sharing the edge node
     for (k = 0; k < 2; k++)
     {
       Element* e = en->elem[k];
       if (e == NULL) continue;
-        
+
       if (e->cm == NULL)
       {
         e->cm = new CurvMap;
@@ -413,23 +413,23 @@ void Mesh::load_stream(FILE *f)
         e->cm->toplevel = 1;
         e->cm->order = 4;
       }
-      
+
       int idx = -1;
       for (j = 0; j < e->nvert; j++)
         if (e->en[j] == en) { idx = j; break; }
       assert(idx >= 0);
-      
+
       if (e->vn[idx]->id == p1)
       {
         e->cm->nurbs[idx] = nurbs;
         nurbs->ref++;
-      }  
+      }
       else
       {
         Nurbs* nurbs_rev = reverse_nurbs(nurbs);
         e->cm->nurbs[idx] = nurbs_rev;
         nurbs_rev->ref++;
-      }  
+      }
     }
     if (!nurbs->ref) delete nurbs;
   }
@@ -437,8 +437,8 @@ void Mesh::load_stream(FILE *f)
   // read the number of initial refinements
   //if () eof_error;
   //if (sscanf(line, "%d", &n) != 1) error("could not read the number of initial refinements");
- 
-  if ((line = get_line(f)) == NULL || 
+
+  if ((line = get_line(f)) == NULL ||
       sscanf(line, "%d", &n) != 1)
   {
     warn("could not read the number of initial refinements");
@@ -456,14 +456,14 @@ void Mesh::load_stream(FILE *f)
     }
   }
   ninitial = elements.get_num_items();
-  
+
   // update refmap coefs of curvilinear elements
   Element* e;
   for_all_elements(e, this)
     if (e->cm != NULL)
       e->cm->update_refmap_coefs(e);
-    
-  fclose(f);  
+
+  fclose(f);
   seq = g_mesh_seq++;
 }
 
@@ -476,32 +476,32 @@ void Mesh::load(const char* filename, bool debug)
 {
   int i, j, k, n;
   Node* en;
-  
+
   // open the mesh file
   FILE* f = fopen(filename, "r");
   if (f == NULL) error("could not open the mesh file %s", filename);
 
   // free all current data
   free();
-  
+
   // parse the file
   mesh_parser_init(f, filename);
   mesh_parser_run(debug);
   fclose(f);
 
   //// vertices ////////////////////////////////////////////////////////////////
-  
+
   MSymbol* sym = mesh_parser_find_symbol("vertices");
   if (sym == NULL) error("%s: 'vertices' not found.", filename);
   n = sym->data->n;
   if (n < 0) error("%s: 'vertices' must be a list.", filename);
   if (n < 2) error("%s: invalid number of vertices.", filename);
-  
+
   // create a hash table large enough
   int size = DEFAULT_HASH_SIZE;
   while (size < 8*n) size *= 2;
   HashTable::init(size);
-  
+
   // create top-level vertex nodes
   MItem* pair = sym->data->list;
   for (i = 0; i < n; i++, pair = pair->next)
@@ -513,20 +513,20 @@ void Mesh::load(const char* filename, bool debug)
     node->bnd = 0;
     node->p1 = node->p2 = -1;
     node->next_hash = NULL;
-    
+
     if (!mesh_parser_get_doubles(pair, 2, &node->x, &node->y))
       error("%s: invalid vertex #%d.", filename, i);
   }
   ntopvert = n;
 
   //// elements ////////////////////////////////////////////////////////////////
-  
+
   sym = mesh_parser_find_symbol("elements");
   if (sym == NULL) error("%s: 'elements' not found.", filename);
   n = sym->data->n;
   if (n < 0) error("%s: 'elements' must be a list.", filename);
   if (n < 1) error("%s: no elements defined.", filename);
-  
+
   // create elements
   MItem* elem = sym->data->list;
   nactive = 0;
@@ -542,7 +542,7 @@ void Mesh::load(const char* filename, bool debug)
     for (j = 0; j < nv-1; j++)
       if (idx[j] < 0 || idx[j] >= ntopvert)
         error("%s: error creating element #%d: vertex #%d does not exist.", filename, i, idx[j]);
-    
+
     // create triangle/quad
     Node *v0 = &nodes[idx[0]], *v1 = &nodes[idx[1]], *v2 = &nodes[idx[2]];
     if (nv == 4)
@@ -559,15 +559,15 @@ void Mesh::load(const char* filename, bool debug)
     nactive++;
   }
   nbase = n;
-  
+
   //// boundaries //////////////////////////////////////////////////////////////
-  
+
   sym = mesh_parser_find_symbol("boundaries");
   if (sym != NULL)
   {
     n = sym->data->n;
     if (n < 0) error("%s: 'boundaries' must be a list.", filename);
-  
+
     // read boundary data
     MItem* triple = sym->data->list;
     for (i = 0; i < n; i++, triple = triple->next)
@@ -575,13 +575,13 @@ void Mesh::load(const char* filename, bool debug)
       int v1, v2, marker;
       if (!mesh_parser_get_ints(triple, 3, &v1, &v2, &marker))
         error("%s: invalid boundary data #%d.", filename, i);
-      
+
       en = peek_edge_node(v1, v2);
       if (en == NULL)
         error("%s: boundary data #%d: edge %d-%d does not exist", filename, i, v1, v2);
       en->marker = marker;
-  
-      if (marker > 0) 
+
+      if (marker > 0)
       {
         nodes[v1].bnd = 1;
         nodes[v2].bnd = 1;
@@ -589,35 +589,35 @@ void Mesh::load(const char* filename, bool debug)
       }
     }
   }
-  
+
   // check that all boundary edges have a marker assigned
   for_all_edge_nodes(en, this)
     if (en->ref < 2 && en->marker == 0)
       warn("boundary edge node does not have a boundary marker");
-  
+
   //// curves //////////////////////////////////////////////////////////////////
-    
+
   sym = mesh_parser_find_symbol("curves");
   if (sym != NULL)
   {
     n = sym->data->n;
     if (n < 0) error("%s: 'curves' must be a list.", filename);
-  
+
     // load curved edges
     MItem* curve = sym->data->list;
     for (i = 0; i < n; i++, curve = curve->next)
-    {       
-      // load the control points, knot vector, etc. 
+    {
+      // load the control points, knot vector, etc.
       Node* en;
       int p1, p2;
       Nurbs* nurbs = load_nurbs_new(curve, i, &en, p1, p2);
-      
+
       // assign the nurbs to the elements sharing the edge node
       for (k = 0; k < 2; k++)
       {
         Element* e = en->elem[k];
         if (e == NULL) continue;
-          
+
         if (e->cm == NULL)
         {
           e->cm = new CurvMap;
@@ -635,7 +635,7 @@ void Mesh::load(const char* filename, bool debug)
         {
           e->cm->nurbs[idx] = nurbs;
           nurbs->ref++;
-        }  
+        }
         else
         {
           Nurbs* nurbs_rev = reverse_nurbs(nurbs);
@@ -653,14 +653,14 @@ void Mesh::load(const char* filename, bool debug)
     if (e->cm != NULL)
       e->cm->update_refmap_coefs(e);
 
-  //// refinements /////////////////////////////////////////////////////////////  
+  //// refinements /////////////////////////////////////////////////////////////
 
   sym = mesh_parser_find_symbol("refinements");
   if (sym != NULL)
   {
     n = sym->data->n;
     if (n < 0) error("%s: 'refinements' must be a list.", filename);
-    
+
     // perform initial refinements
     MItem* pair = sym->data->list;
     for (i = 0; i < n; i++, pair = pair->next)
@@ -684,24 +684,24 @@ Nurbs* Mesh::load_nurbs_new(MItem* curve, int id, Node** en, int &p1, int &p2)
 {
   int i;
   Nurbs* nurbs = new Nurbs;
-  
+
   if (curve == NULL || curve->n < 0 || curve->n != 3 && curve->n != 5)
     error("invalid curve #%d.", id);
   bool circle = (curve->n == 3);
   nurbs->arc = circle;
-  
+
   // read the end point indices
   MItem* edge = curve->list;
   if (edge->n >= 0 || !is_int(edge->val))
     error("curve #%d: invalid edge definition.", id);
   p1 = (int) edge->val;
   edge = edge->next;
-  
+
   if (edge->n >= 0 || !is_int(edge->val))
     error("curve #%d: invalid edge definition.", id);
   p2 = (int) edge->val;
   edge = edge->next;
-  
+
   *en = peek_edge_node(p1, p2);
   if (*en == NULL)
     error("curve #%d: edge %d-%d does not exist.", id, p1, p2);
@@ -715,7 +715,7 @@ Nurbs* Mesh::load_nurbs_new(MItem* curve, int id, Node** en, int &p1, int &p2)
       error("curve #%d: invalid degee.", id);
     nurbs->degree = (int) deg->val;
   }
-  
+
   // get the number of control points
   MItem* pts = deg->next;
   int inner = 1, outer;
@@ -726,7 +726,7 @@ Nurbs* Mesh::load_nurbs_new(MItem* curve, int id, Node** en, int &p1, int &p2)
     inner = pts->n;
   }
   nurbs->np = inner + 2;
-  
+
   // edge endpoints are also control points, with weight 1.0
   nurbs->pt = new double3[nurbs->np];
   nurbs->pt[0][0] = nodes[p1].x;
@@ -735,7 +735,7 @@ Nurbs* Mesh::load_nurbs_new(MItem* curve, int id, Node** en, int &p1, int &p2)
   nurbs->pt[inner+1][0] = nodes[p2].x;
   nurbs->pt[inner+1][1] = nodes[p2].y;
   nurbs->pt[inner+1][2] = 1.0;
-  
+
   if (!circle)
   {
     // read inner control points
@@ -761,7 +761,7 @@ Nurbs* Mesh::load_nurbs_new(MItem* curve, int id, Node** en, int &p1, int &p2)
     nurbs->pt[1][1] = 0.5*((nurbs->pt[2][1] + nurbs->pt[0][1]) - (nurbs->pt[2][0] - nurbs->pt[0][0]) * x);
     nurbs->pt[1][2] = cos((M_PI - a) * 0.5);
   }
-  
+
   // get the number of knot vector points
   inner = 0;
   MItem* knot;
@@ -771,13 +771,13 @@ Nurbs* Mesh::load_nurbs_new(MItem* curve, int id, Node** en, int &p1, int &p2)
     if (knot->n < 0) error("curve #%d: invalid knot vector.", id);
     inner = knot->n;
   }
-  
+
   nurbs->nk = nurbs->degree + nurbs->np + 1;
   outer = nurbs->nk - inner;
   if (outer & 1 == 1)
     error("curve #%d: incorrect number of knot points.", id);
-    
-  // knot vector is completed by 0.0 on the left and by 1.0 on the right  
+
+  // knot vector is completed by 0.0 on the left and by 1.0 on the right
   nurbs->kv = new double[nurbs->nk];
   for (i = 0; i < outer/2; i++)
     nurbs->kv[i] = 0.0;
@@ -790,7 +790,7 @@ Nurbs* Mesh::load_nurbs_new(MItem* curve, int id, Node** en, int &p1, int &p2)
   }
   for (i = outer/2 + inner; i < nurbs->nk; i++)
     nurbs->kv[i] = 1.0;
-  
+
   nurbs->ref = 0;
   return nurbs;
 }
@@ -802,12 +802,12 @@ void Mesh::create(int nv, double2* verts, int nt, int4* tris,
                   int nq, int5* quads, int nm, int3* mark)
 {
   free();
-  
+
   // initialize hash table
   int size = 16;
   while (size < 2*nv) size *= 2;
   HashTable::init(size);
-  
+
   // create vertex nodes
   for (int i = 0; i < nv; i++)
   {
@@ -822,22 +822,22 @@ void Mesh::create(int nv, double2* verts, int nt, int4* tris,
     node->y = verts[i][1];
   }
   ntopvert = nv;
-  
+
   // create triangles
   for (int i = 0; i < nt; i++)
     create_triangle(tris[i][3], &nodes[tris[i][0]], &nodes[tris[i][1]], &nodes[tris[i][2]], NULL);
-  
+
   // create quads
   for (int i = 0; i < nq; i++)
     create_quad(quads[i][4], &nodes[quads[i][0]], &nodes[quads[i][1]], &nodes[quads[i][2]], &nodes[quads[i][3]], NULL);
-  
+
   // set boundary markers
   for (int i = 0; i < nm; i++)
   {
     Node* en = peek_edge_node(mark[i][0], mark[i][1]);
     if (en == NULL) error("boundary data error (edge does not exist)");
     en->marker = mark[i][2];
-    
+
     if (en->marker > 0)
     {
       nodes[mark[i][0]].bnd = 1;
@@ -845,7 +845,7 @@ void Mesh::create(int nv, double2* verts, int nt, int4* tris,
       en->bnd = 1;
     }
   }
-  
+
   nbase = nactive = ninitial = nt + nq;
   seq = g_mesh_seq++;
 }
@@ -896,7 +896,7 @@ void Mesh::save_nurbs(FILE* f, int p1, int p2, Nurbs* nurbs)
       fprintf(f, "{ %.16g, %.16g, %.16g }%s ",
                  nurbs->pt[i][0], nurbs->pt[i][1], nurbs->pt[i][2],
                  i < nurbs->np-2 ? "," : "");
-    
+
     fprintf(f, "}, { ", nurbs->nk - 2*(nurbs->degree+1));
     int max = nurbs->nk - (nurbs->degree+1);
     for (int i = nurbs->degree+1; i < max; i++)
@@ -917,12 +917,12 @@ void Mesh::save(const char* filename)
 {
   int i, mrk;
   Element* e;
-  
+
   // open output file
   FILE* f = fopen(filename, "w");
   if (f == NULL) error("Could not create mesh file.");
   //fprintf(f, "# hermes2d saved mesh\n\n");
-  
+
   // save vertices
   fprintf(f, "vertices =\n{\n");
   for (i = 0; i < ntopvert; i++)
@@ -942,7 +942,7 @@ void Mesh::save(const char* filename)
     else
       fprintf(f, "%s  { %d, %d, %d, %d, %d }", nl, e->vn[0]->id, e->vn[1]->id, e->vn[2]->id, e->vn[3]->id, e->marker);
   }
-  
+
   // save boundary markers
   fprintf(f, "\n}\n\nboundaries =\n{");
   first = true;
@@ -972,7 +972,7 @@ void Mesh::save(const char* filename)
   for_all_base_elements(e, this)
     save_refinements(f, e, e->id, first);
   if (!first) fprintf(f, "\n}\n\n");
-      
+
   seq = temp;
   fclose(f);
 }
@@ -983,20 +983,20 @@ void Mesh::save(const char* filename)
 void Mesh::copy(const Mesh* mesh)
 {
   int i;
-  
+
   free();
-  
+
   // copy nodes and elements
   HashTable::copy(mesh);
   elements.copy(mesh->elements);
-  
+
   Element* e;
   for_all_elements(e, this)
   {
     // update vertex node pointers
     for (i = 0; i < e->nvert; i++)
       e->vn[i] = &nodes[e->vn[i]->id];
-    
+
     if (e->active)
     {
       // update edge node pointers
@@ -1010,7 +1010,7 @@ void Mesh::copy(const Mesh* mesh)
         if (e->sons[i] != NULL)
           e->sons[i] = &elements[e->sons[i]->id];
     }
-    
+
     // copy CurvMap, update its parent
     if (e->cm != NULL)
     {
@@ -1019,14 +1019,14 @@ void Mesh::copy(const Mesh* mesh)
         e->cm->parent = &elements[e->cm->parent->id];
     }
   }
-  
+
   // update element pointers in edge nodes
   Node* node;
   for_all_edge_nodes(node, this)
     for (i = 0; i < 2; i++)
       if (node->elem[i] != NULL)
         node->elem[i] = &elements[node->elem[i]->id];
-      
+
   nbase = mesh->nbase;
   nactive = mesh->nactive;
   ntopvert = mesh->ntopvert;
@@ -1038,7 +1038,7 @@ void Mesh::copy(const Mesh* mesh)
 Node* Mesh::get_base_edge_node(Element* base, int edge)
 {
   while (!base->active) // we need to go down to an active element
-  { 
+  {
     int son1, son2;
     get_edge_sons(base, edge, son1, son2);
     base = base->sons[son1];
@@ -1051,7 +1051,7 @@ void Mesh::copy_base(Mesh* mesh)
 {
   free();
   HashTable::init();
-  
+
   // copy top-level vertex nodes
   for (int i = 0; i < mesh->get_max_node_id(); i++)
   {
@@ -1062,7 +1062,7 @@ void Mesh::copy_base(Mesh* mesh)
     memcpy(newnode, node, sizeof(Node));
     newnode->ref = TOP_LEVEL_REF;
   }
-  
+
   // copy base elements
   Element* e;
   for_all_base_elements(e, mesh)
@@ -1073,7 +1073,7 @@ void Mesh::copy_base(Mesh* mesh)
       enew = create_triangle(e->marker, v0, v1, v2, NULL);
     else
       enew = create_quad(e->marker, v0, v1, v2, &nodes[e->vn[3]->id], NULL);
-    
+
     // copy edge markers
     for (int j = 0; j < e->nvert; j++)
     {
@@ -1081,12 +1081,12 @@ void Mesh::copy_base(Mesh* mesh)
       enew->en[j]->bnd = en->bnd; // copy bnd data from the active el.
       enew->en[j]->marker = en->marker;
     }
-    
+
     enew->userdata = e->userdata;
     if (e->is_curved())
       enew->cm = new CurvMap(e->cm);
   }
-  
+
   nbase = nactive = ninitial = mesh->nbase;
   ntopvert = mesh->ntopvert;
   seq = g_mesh_seq++;
@@ -1099,24 +1099,24 @@ void Mesh::save_raw(FILE* f)
 {
   int i, nn, mm;
   int null = -1;
-  
+
   assert(sizeof(int) == 4);
   assert(sizeof(double) == 8);
-  
+
   hermes2d_fwrite("H2DM\001\000\000\000", 1, 8, f);
-  
+
   #define output(n, type) \
     hermes2d_fwrite(&(n), sizeof(type), 1, f)
-  
+
   output(nbase, int);
   output(ntopvert, int);
   output(nactive, int);
-  
+
   nn = nodes.get_num_items();
   mm = nodes.get_size();
   output(nn, int);
   output(mm, int);
-  
+
   // dump all nodes
   Node* n;
   for_all_nodes(n, this)
@@ -1124,7 +1124,7 @@ void Mesh::save_raw(FILE* f)
     output(n->id, int);
     unsigned bits = n->ref | (n->type << 29) | (n->bnd << 30) | (n->used << 31);
     output(bits, unsigned);
-    
+
     if (n->type == TYPE_VERTEX)
     {
       output(n->x, double);
@@ -1136,7 +1136,7 @@ void Mesh::save_raw(FILE* f)
       output(n->elem[0] ? n->elem[0]->id : null, int);
       output(n->elem[1] ? n->elem[1]->id : null, int);
     }
-    
+
     output(n->p1, int);
     output(n->p2, int);
   }
@@ -1145,7 +1145,7 @@ void Mesh::save_raw(FILE* f)
   mm = elements.get_size();
   output(nn, int);
   output(mm, int);
-  
+
   // dump all elements
   Element* e;
   for (int id = 0; id < get_max_element_id(); id++)
@@ -1155,30 +1155,30 @@ void Mesh::save_raw(FILE* f)
       output(e->id, int);
       unsigned bits = e->nvert | (e->active << 30) | (e->used << 31);
       output(bits, unsigned);
-      
+
       if (e->used)
       {
         output(e->marker, int);
         output(e->userdata, int);
         output(e->iro_cache, int);
-        
+
         for (i = 0; i < e->nvert; i++)
           output(e->vn[i]->id, int);
-        
+
         if (e->active)
           for (i = 0; i < e->nvert; i++)
             output(e->en[i]->id, int);
         else
           for (i = 0; i < 4; i++)
             output(e->sons[i] ? e->sons[i]->id : null, int);
-          
+
         if (e->is_curved()) error("Not implemented for curved elements yet.");
       }
     }
   }
-  
+
   // TODO: curved elements
-  
+
   #undef output
 }
 
@@ -1186,10 +1186,10 @@ void Mesh::save_raw(FILE* f)
 void Mesh::load_raw(FILE* f)
 {
   int i, j, nv, mv, ne, me, id;
-  
+
   assert(sizeof(int) == 4);
   assert(sizeof(double) == 8);
-  
+
   // check header
   struct { char magic[4]; int ver; } hdr;
   hermes2d_fread(&hdr, sizeof(hdr), 1, f);
@@ -1197,20 +1197,20 @@ void Mesh::load_raw(FILE* f)
     error("Not a Hermes2D raw mesh file.");
   if (hdr.ver > 1)
     error("Unsupported file version.");
-  
+
   #define input(n, type) \
     hermes2d_fread(&(n), sizeof(type), 1, f)
 
   free();
-  
+
   input(nbase, int);
   input(ntopvert, int);
   input(nactive, int);
-  
+
   input(nv, int);
   input(mv, int);
   nodes.force_size(mv);
-  
+
   // load nodes
   for (i = 0; i < nv; i++)
   {
@@ -1219,13 +1219,13 @@ void Mesh::load_raw(FILE* f)
     Node* n = &(nodes[id]);
     n->id = id;
     n->used = 1;
-    
+
     unsigned bits;
     input(bits, unsigned);
     n->ref  =  bits & 0x1fffffff;
     n->type = (bits >> 29) & 0x1;
     n->bnd  = (bits >> 30) & 0x1;
-    
+
     if (n->type == TYPE_VERTEX)
     {
       input(n->x, double);
@@ -1238,12 +1238,12 @@ void Mesh::load_raw(FILE* f)
       input(n->elem[0], int);
       input(n->elem[1], int);
     }
-    
+
     input(n->p1, int);
     input(n->p2, int);
   }
   nodes.post_load_scan();
-  
+
   int hsize = DEFAULT_HASH_SIZE;
   while (hsize < nv) hsize *= 2;
   HashTable::init(hsize);
@@ -1252,7 +1252,7 @@ void Mesh::load_raw(FILE* f)
   input(ne, int);
   input(me, int);
   elements.force_size(me);
-  
+
   // load elements
   for (i = 0; i < ne; i++)
   {
@@ -1260,19 +1260,19 @@ void Mesh::load_raw(FILE* f)
     if (id < 0 || id >= me) error("Corrupt data.");
     Element* e = &(elements[id]);
     e->id = id;
-    
+
     unsigned bits;
     input(bits, unsigned);
     e->nvert  =  bits & 0x3fffffff;
     e->active = (bits >> 30) & 0x1;
     e->used   = (bits >> 31) & 0x1;
-    
+
     if (e->used)
     {
       input(e->marker, int);
       input(e->userdata, int);
       input(e->iro_cache, int);
-      
+
       // load vertex node ids
       for (j = 0; j < e->nvert; j++)
       {
@@ -1280,7 +1280,7 @@ void Mesh::load_raw(FILE* f)
         if (id < 0 || id >= mv) error("Corrupt data.");
         e->vn[j] = get_node(id);
       }
-      
+
       if (e->active)
       {
         // load edge node ids
@@ -1317,7 +1317,7 @@ void Mesh::load_raw(FILE* f)
         n->elem[j] = NULL;
       else
         n->elem[j] = get_element((int) (long) n->elem[j]);
-  
+
   #undef input
   seq++;
 }
@@ -1330,11 +1330,11 @@ void Mesh::free()
   Element* e;
   for_all_elements(e, this)
     if (e->cm != NULL)
-    {    
+    {
       delete e->cm;
       e->cm = NULL; // fixme!!!
     }
-  
+
   elements.free();
   HashTable::free();
 }

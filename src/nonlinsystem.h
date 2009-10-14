@@ -27,18 +27,18 @@
 
 class Solution;
 class MeshFunction;
-  
 
 
-///  
+
 ///
 ///
 ///
 ///
-class NonlinSystem : public LinSystem 
+///
+class NonlinSystem : public LinSystem
 {
 public:
- 
+
   /// Initializes the class and sets zero initial coefficient vector.
   NonlinSystem(WeakForm* wf, Solver* solver);
 
@@ -59,10 +59,10 @@ public:
 
   /// Performs one Newton iteration, stores the result in the given Solutions.
   bool solve(int n, ...);
-  
+
   /// returns the L2-norm of the residuum
   double get_residuum_l2_norm() const { return res_l2; }
-  /// returns the L1-norm of the residuum  
+  /// returns the L1-norm of the residuum
   double get_residuum_l1_norm() const { return res_l1; }
   /// returns the L_inf-norm of the residuum
   double get_residuum_max_norm() const { return res_max; }

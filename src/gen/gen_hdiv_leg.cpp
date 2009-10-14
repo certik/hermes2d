@@ -102,7 +102,7 @@ void edge(int p)
       "  return (l1(x) * Legendre%dx(y));\n"
       "}\n\n",
     i,i,i,i,i,    i,i, i,i,i,i,i,i,i,i
-    );    
+    );
 
     printf
     (
@@ -188,7 +188,7 @@ void edge(int p)
      i,i,i, i,i,i, i,i,i,  i,i, i,i,   i,i
     );
   }
-  else 
+  else
      {
     printf
     (
@@ -248,7 +248,7 @@ void edge(int p)
       "  return -l1(x) * Legendre%dx(y);\n"
       "}\n\n",
     i,i,i,i,i,    i,i, i,i
-    );    
+    );
 
     printf
     (
@@ -405,8 +405,8 @@ int main(int argc, char* argv[])
   bubble(10,10);
 
 
-  printf("static Shapeset::shape_fn_t hdiv_leg_quad_fn_a[] = \n{\n");      
-  
+  printf("static Shapeset::shape_fn_t hdiv_leg_quad_fn_a[] = \n{\n");
+
   printf("  hdiv_leg_quad_p0_e1_a_0, hdiv_leg_quad_p0_e1_a_1, hdiv_leg_quad_p0_e2_a_0, hdiv_leg_quad_p0_e2_a_1,  hdiv_leg_quad_p0_e3_a, hdiv_leg_quad_p0_e3_a, hdiv_leg_quad_p0_e4_a, hdiv_leg_quad_p0_e4_a, \n");
 
   for (j = 1; j <= 10; j++)
@@ -428,7 +428,7 @@ int main(int argc, char* argv[])
       indices1[i][j] = 0;
       indices2[i][j] = 0;
     }
- 
+
   for (int i = 0; i <= 10; i++)
     for (int j = 2; j <= 10 + 1; j++)
     {
@@ -441,12 +441,12 @@ int main(int argc, char* argv[])
     {
       printf("  hdiv_leg_quad_p%dp%d_b2_a, ", i,j);
       indices2[i-1][j] = k;
-      k++;    
-    } 
+      k++;
+    }
   printf("};\n\n");
 
 
-  printf("static Shapeset::shape_fn_t hdiv_leg_quad_fn_b[] = \n{\n");  
+  printf("static Shapeset::shape_fn_t hdiv_leg_quad_fn_b[] = \n{\n");
 
   printf("  hdiv_leg_quad_p0_e1_b, hdiv_leg_quad_p0_e1_b, hdiv_leg_quad_p0_e2_b, hdiv_leg_quad_p0_e2_b, hdiv_leg_quad_p0_e3_b_0, hdiv_leg_quad_p0_e3_b_1, hdiv_leg_quad_p0_e4_b_0, hdiv_leg_quad_p0_e4_b_1, \n");
 
@@ -470,8 +470,8 @@ int main(int argc, char* argv[])
   printf("};\n\n");
 
 
-  printf("static Shapeset::shape_fn_t hdiv_leg_quad_fn_ax[] = \n{\n");      
-  
+  printf("static Shapeset::shape_fn_t hdiv_leg_quad_fn_ax[] = \n{\n");
+
   printf("  hdiv_leg_quad_p0_e1_ax_0, hdiv_leg_quad_p0_e1_ax_1, hdiv_leg_quad_p0_e2_ax_0, hdiv_leg_quad_p0_e2_ax_1,  hdiv_leg_quad_p0_e3_ax, hdiv_leg_quad_p0_e3_ax, hdiv_leg_quad_p0_e4_ax, hdiv_leg_quad_p0_e4_ax, \n");
 
   for (j = 1; j <= 10; j++)
@@ -494,7 +494,7 @@ int main(int argc, char* argv[])
   printf("};\n\n");
 
 
-  printf("static Shapeset::shape_fn_t hdiv_leg_quad_fn_bx[] = \n{\n");  
+  printf("static Shapeset::shape_fn_t hdiv_leg_quad_fn_bx[] = \n{\n");
 
   printf("  hdiv_leg_quad_p0_e1_bx, hdiv_leg_quad_p0_e1_bx, hdiv_leg_quad_p0_e2_bx, hdiv_leg_quad_p0_e2_bx, hdiv_leg_quad_p0_e3_bx_0, hdiv_leg_quad_p0_e3_bx_1, hdiv_leg_quad_p0_e4_bx_0, hdiv_leg_quad_p0_e4_bx_1, \n");
 
@@ -518,8 +518,8 @@ int main(int argc, char* argv[])
   printf("};\n\n");
 
 
-  printf("static Shapeset::shape_fn_t hdiv_leg_quad_fn_ay[] = \n{\n");      
-  
+  printf("static Shapeset::shape_fn_t hdiv_leg_quad_fn_ay[] = \n{\n");
+
   printf("  hdiv_leg_quad_p0_e1_ay_0, hdiv_leg_quad_p0_e1_ay_1, hdiv_leg_quad_p0_e2_ay_0, hdiv_leg_quad_p0_e2_ay_1,  hdiv_leg_quad_p0_e3_ay, hdiv_leg_quad_p0_e3_ay, hdiv_leg_quad_p0_e4_ay, hdiv_leg_quad_p0_e4_ay, \n");
 
   for (j = 1; j <= 10; j++)
@@ -542,7 +542,7 @@ int main(int argc, char* argv[])
   printf("};\n\n");
 
 
-  printf("static Shapeset::shape_fn_t hdiv_leg_quad_fn_by[] = \n{\n");  
+  printf("static Shapeset::shape_fn_t hdiv_leg_quad_fn_by[] = \n{\n");
 
   printf("  hdiv_leg_quad_p0_e1_by, hdiv_leg_quad_p0_e1_by, hdiv_leg_quad_p0_e2_by, hdiv_leg_quad_p0_e2_by, hdiv_leg_quad_p0_e3_by_0, hdiv_leg_quad_p0_e3_by_1, hdiv_leg_quad_p0_e4_by_0, hdiv_leg_quad_p0_e4_by_1, \n");
 
@@ -568,7 +568,7 @@ int main(int argc, char* argv[])
 
 ////////////////////////////////////////////////////////////////////////////
 
- 
+
   for (int i = 0; i <= 10; i++)
     for (int j = 0; j <= 10; j++)
     {
@@ -580,8 +580,8 @@ int main(int argc, char* argv[])
           {
             if (indices1[k][l] != 0) printf("%d,", indices1[k][l]);
             if (indices2[k][l] != 0) printf("%d,", indices2[k][l]);
-          } 
-        printf("};\n  ");      
+          }
+        printf("};\n  ");
       }
     }
 
@@ -607,12 +607,12 @@ int main(int argc, char* argv[])
     printf(" NULL, NULL, NULL, NULL, NULL, NULL16\n");
   }
   printf("};\n\n");
- 
+
   printf("#define zero16  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,\n\n");
   printf("static int hdiv_leg_quad_bubble_count[] =\n{\n");
   //printf("  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, zero16\n");
   for (i = 0; i < 1; i++)
-  {  
+  {
     printf("  0,  ");
     for (j = 1; j <= 10; j++)
     {
@@ -621,7 +621,7 @@ int main(int argc, char* argv[])
     printf("0,  0,  0,  0,  0, zero16 \n");
   }
   for (i = 1; i <= 10; i++)
-  {  
+  {
     printf("  ");
     for (j = 0; j <= 10; j++)
     {
@@ -653,8 +653,8 @@ int main(int argc, char* argv[])
 
   printf("#define oo make_quad_order\n\n");
 
-  printf("static int hdiv_leg_quad_index_to_order[] = \n{\n");      
-  
+  printf("static int hdiv_leg_quad_index_to_order[] = \n{\n");
+
   for (j = 0; j <= 10; j++)
   {
     printf(" oo(1,%d), oo(1,%d),  oo(1,%d), oo(1,%d), oo(%d,1), oo(%d,1), oo(%d,1), oo(%d,1), \n", j,j,j,j,j,j,j,j);

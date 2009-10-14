@@ -35,29 +35,29 @@ struct Node;
 class HashTable
 {
 public:
-  
+
   HashTable();
   ~HashTable() { free(); }
-  
+
   /// Retrieves a node by its id number.
-  Node* get_node(int id) const { return &(nodes[id]); }  
-  
+  Node* get_node(int id) const { return &(nodes[id]); }
+
   /// Returns the total number of nodes stored.
-  int get_num_nodes() const { return nodes.get_num_items(); }  
-  
-  /// Returns the maximum node id number plus one. 
+  int get_num_nodes() const { return nodes.get_num_items(); }
+
+  /// Returns the maximum node id number plus one.
   int get_max_node_id() const { return nodes.get_size(); }
-  
+
   /// Returns a vertex node with parent id's p1 and p2 if it exists, NULL otherwise.
   Node* peek_vertex_node(int p1, int p2);
-  
+
   /// Returns an edge node with parent id's p1 and p2 if it exists, NULL otherwise.
   Node* peek_edge_node(int p1, int p2);
 
-  
+
 // The following functions are used by the derived class Mesh:
-protected: 
-  
+protected:
+
   Array<Node> nodes; ///< Array storing all nodes
 
   static const int DEFAULT_HASH_SIZE = 0x20000; // 128K entries
@@ -90,14 +90,14 @@ protected:
 
   /// Removes a vertex node with parent id's p1 and p2.
   void remove_vertex_node(int id);
-  
+
   /// Removes an edge node with parent id's p1 and p2.
   void remove_edge_node(int id);
 
 
 // Internal members
 private:
-  
+
   Node** v_table; ///< Vertex node hash table
   Node** e_table; ///< Edge node hash table
 
@@ -105,7 +105,7 @@ private:
   int nqueries, ncollisions;
 
   int hash(int p1, int p2) { return (984120265*p1 + 125965121*p2) & mask; }
-  
+
   /// Searches a list of hash synonyms given the first list item.
   /// Returns the node matching the parent ids p1 and p2.
   Node* search_list(Node* node, int p1, int p2);

@@ -34,7 +34,7 @@
 L2OrthoHP::L2OrthoHP(int num, ...)
 {
   this->num = num;
-  
+
   va_list ap;
   va_start(ap, num);
   for (int i = 0; i < num; i++)
@@ -51,9 +51,9 @@ L2OrthoHP::L2OrthoHP(int num, ...)
 L2OrthoHP::~L2OrthoHP()
 {
   for (int i = 0; i < num; i++)
-    if (errors[i] != NULL) 
+    if (errors[i] != NULL)
       delete [] errors[i];
-    
+
   if (esort != NULL) delete [] esort;
 }
 
@@ -77,11 +77,11 @@ void L2OrthoHP::calc_ortho_base()
   // plus four son cut-outs of them (i.e. 5 times)
   for (i = 0; i < 9; i++)
   {
-    if ((i < 4) || (i >= 8)) 
+    if ((i < 4) || (i >= 8))
       obase[0][i] = new_matrix<double3>(66, 79); // tri
     obase[1][i] = new_matrix<double3>(121, 121); // quad
   }
-  
+
   // repeat for triangles and quads
   for (m = 0; m <= 1; m++)
   {
@@ -122,7 +122,7 @@ void L2OrthoHP::calc_ortho_base()
       for (j = 0; j < np; j++)
         for (k = 0; k < 3; k++)
           obase[m][8][i][j][k] = shapeset.get_value(k, idx[i], pt[j][0], pt[j][1], 0);
-  
+
     for (l = 0; l < num_sons; l++)
     {
       Trf* tr = (m ? quad_trf : tri_trf) + l;
@@ -148,7 +148,7 @@ void L2OrthoHP::calc_ortho_base()
             sum += obase[m][8][i][k][r] * obase[m][8][j][k][r];
           prod += pt[k][2] * sum;
         }
-        
+
         for (l = 0; l < 9; l++)
           if (m || l < 4 || l >= 8)
             for (k = 0; k < np; k++)
@@ -171,7 +171,7 @@ void L2OrthoHP::calc_ortho_base()
             for (r = 0; r < 1; r++)
               obase[m][l][i][k][r] /= norm;
     }
-    
+
     // check the orthonormal base
 /*    if (m) {
     for (i = 0; i < n; i++)
@@ -180,12 +180,12 @@ void L2OrthoHP::calc_ortho_base()
         double check = 0.0;
         for(int son = 4; son < 6; son++ )
           for (k = 0; k < np; k++)
-            check += pt[k][2] * (obase[m][son][i][k][0] * obase[m][son][j][k][0] + 
+            check += pt[k][2] * (obase[m][son][i][k][0] * obase[m][son][j][k][0] +
                                  obase[m][son][i][k][1] * obase[m][son][j][k][1] +
                                  obase[m][son][i][k][2] * obase[m][son][j][k][2]);
         check *= 0.5;
         if ((i == j && fabs(check - 1.0) > 1e-8) || (i != j && fabs(check) > 1e-8))
-          warn("Not orthonormal: base %d times base %d = %g", i, j , check);  
+          warn("Not orthonormal: base %d times base %d = %g", i, j , check);
       }
     }*/
   }
@@ -196,11 +196,11 @@ void L2OrthoHP::calc_ortho_base()
 void L2OrthoHP::free_ortho_base()
 {
   if (!obase_ready) return;
-    
+
   for (int i = 0; i < 5; i++)
     for (int j = 0; j < 2; j++)
       delete [] obase[j][i];
-    
+
   obase_ready = false;
 }
 
@@ -214,9 +214,9 @@ void L2OrthoHP::calc_projection_errors(Element* e, int order, Solution* rsln,
   int m = e->get_mode();
   double error;
   scalar prod;
-  
+
   if (!obase_ready) calc_ortho_base();
-    
+
   // select quadrature, obtain integration points and weights
   Quad2D* quad = &g_quad_2d_std;
   quad->set_mode(m);
@@ -227,7 +227,7 @@ void L2OrthoHP::calc_projection_errors(Element* e, int order, Solution* rsln,
   // everything is done on the reference domain
   // -- no reference mapping, no transformations
   rsln->enable_transform(false);
-  
+
   // obtain reference solution values on all four refined sons
   scalar* rval[4][3];
   Element* base = rsln->get_mesh()->get_element(e->id);
@@ -255,9 +255,9 @@ void L2OrthoHP::calc_projection_errors(Element* e, int order, Solution* rsln,
       for (j = basecnt[m][i-1]; j < basecnt[m][i]; j++)
       {
         for (k = 0, prod = 0.0; k < np; k++)
-          prod += pt[k][2] * (rval[son][0][k] * obase[m][8][j][k][0]);  
-                                                                        
-        for (k = 0; k < np; k++)                                        
+          prod += pt[k][2] * (rval[son][0][k] * obase[m][8][j][k][0]);
+
+        for (k = 0; k < np; k++)
           for (r = 0; r < 3; r++)
             proj[0][k][r] += obase[m][8][j][k][r] * prod;
       }
@@ -276,7 +276,7 @@ void L2OrthoHP::calc_projection_errors(Element* e, int order, Solution* rsln,
     const double my[4] = { 1.0, 1.0, 2.0, 2.0};
     const int sons[4][2] = { {0,1}, {3,2}, {0,3}, {1,2} };
     const int tr[4][2]   = { {6,7}, {6,7}, {4,5}, {4,5} };
-  
+
     for (son = 0; son < 4; son++) // 2 sons for vertical split, 2 sons for horizontal split
     {
       memset(proj, 0, sizeof(proj));
@@ -289,13 +289,13 @@ void L2OrthoHP::calc_projection_errors(Element* e, int order, Solution* rsln,
             for (k = 0; k < np; k++)
               prod += pt[k][2] * rval[sons[son][s]][0][k] * obase[m][tr[son][s]][j][k][0];
           prod *= 0.5;
-    
+
           for (s = 0; s < 2; s++)
             for (k = 0; k < np; k++)
               for (r = 0; r < 1; r++)
                 proj[s][k][r] += prod * obase[m][tr[son][s]][j][k][r];
         }
-      
+
         // calculate the error of the projection
         for (s = 0, error = 0.0; s < 2; s++)
           for (k = 0; k < np; k++)
@@ -315,8 +315,8 @@ void L2OrthoHP::calc_projection_errors(Element* e, int order, Solution* rsln,
       for (son = 0, prod = 0.0; son < 4; son++)
       {
         // (transforming to the quarter of the reference element)
-        double mm = (e->is_triangle() && son == 3) ? -2.0 : 2.0;  
-        
+        double mm = (e->is_triangle() && son == 3) ? -2.0 : 2.0;
+
         for (k = 0; k < np; k++)
         {
           prod += pt[k][2] * rval[son][0][k] * obase[m][son][j][k][0];
@@ -333,8 +333,8 @@ void L2OrthoHP::calc_projection_errors(Element* e, int order, Solution* rsln,
     // calculate the error of the projection
     for (son = 0, error = 0.0; son < 4; son++)
     {
-      double mm = (e->is_triangle() && son == 3) ? -2.0 : 2.0; 
-      
+      double mm = (e->is_triangle() && son == 3) ? -2.0 : 2.0;
+
       for (k = 0; k < np; k++)
         error += pt[k][2] * sqr(rval[son][0][k] - proj[son][k][0]);
     }
@@ -343,38 +343,38 @@ void L2OrthoHP::calc_projection_errors(Element* e, int order, Solution* rsln,
 }
 
 
-void L2OrthoHP::get_optimal_refinement(Element* e, int order, Solution* rsln, int& split, int p[4], 
+void L2OrthoHP::get_optimal_refinement(Element* e, int order, Solution* rsln, int& split, int p[4],
                                        bool h_only, bool iso_only, int max_order)
 
 {
   int i, j, k, n = 0;
   const int maxcand = 300;
-  
+
   order = std::max(get_h_order(order), get_v_order(order));
   bool tri = e->is_triangle();
 
   // calculate maximal order of elements
   // linear elements = 9
   // curvilinear elements = depends on iro_cache (how curved they are)
-  if (max_order == -1) 
+  if (max_order == -1)
     max_order = (20 - e->iro_cache)/2 - 2; // default
-  else 
+  else
     max_order = std::min( max_order, (20 - e->iro_cache)/2 - 2); // user specified
-  
-  
+
+
   struct Cand
   {
     double error;
     int dofs, split, p[4];
   };
   Cand cand[maxcand];
-  
+
   #define make_p_cand(q) { \
     assert(n < maxcand);   \
     cand[n].split = -1; \
     cand[n].p[1] = cand[n].p[2] = cand[n].p[3] = 0; \
     cand[n++].p[0] = (q); }
-  
+
   #define make_hp_cand(q0, q1, q2, q3) { \
     assert(n < maxcand);  \
     cand[n].split = 0; \
@@ -382,7 +382,7 @@ void L2OrthoHP::get_optimal_refinement(Element* e, int order, Solution* rsln, in
     cand[n].p[1] = (q1); \
     cand[n].p[2] = (q2); \
     cand[n++].p[3] = (q3); }
-    
+
   #define make_ani_cand(q0, q1, iso) { \
     assert(n < maxcand);  \
     cand[n].split = iso; \
@@ -404,7 +404,7 @@ void L2OrthoHP::get_optimal_refinement(Element* e, int order, Solution* rsln, in
     int p0, p1 = std::min(max_order, order+1);
     for (p0 = order; p0 <= p1; p0++)
       make_p_cand(p0);
-    
+
     // prepare hp-candidates
     p0 = (order+1) / 2;
     p1 = std::min(p0 + 3, order);
@@ -414,17 +414,17 @@ void L2OrthoHP::get_optimal_refinement(Element* e, int order, Solution* rsln, in
         for (q2 = p0; q2 <= p1; q2++)
           for (q3 = p0; q3 <= p1; q3++)
             make_hp_cand(q0, q1, q2, q3);
-  
+
     // prepare anisotropic candidates
     // only for quadrilaterals
     // too distorted (curved) elements cannot have aniso refinement (produces even worse elements)
     if ((!tri) && (e->iro_cache < 8) && !iso_only) {
       p0 = 2 * (order+1) / 3;
       int p_max = std::min(max_order, order+1);
-      p1 = std::min(p0 + 3, p_max);    
+      p1 = std::min(p0 + 3, p_max);
       for (q0 = p0; q0 <= p1; q0++)
         for (q1 = p0; q1 <= p1; q1++) {
-          if ((q0 < order+1) || (q1 < order+1)) {      
+          if ((q0 < order+1) || (q1 < order+1)) {
             make_ani_cand(q0, q1, 1);
             make_ani_cand(q0, q1, 2);
           }
@@ -434,7 +434,7 @@ void L2OrthoHP::get_optimal_refinement(Element* e, int order, Solution* rsln, in
   // calculate (partial) projection errors
   double herr[8][11], perr[11];
   calc_projection_errors(e, order, rsln, herr, perr);
-        
+
   // evaluate candidates (sum partial projection errors, calculate dofs)
   double avg = 0.0;
   double dev = 0.0;
@@ -479,15 +479,15 @@ void L2OrthoHP::get_optimal_refinement(Element* e, int order, Solution* rsln, in
     //verbose("Cand #%d: Orders %d %d %d %d, Error %g, Dofs %d", i, c->p[0],c->p[1],c->p[2],c->p[3],c->error, c->dofs);
 
     if (!i || c->error <= cand[0].error)
-    { 
-      avg += log10(c->error); 
+    {
+      avg += log10(c->error);
       dev += sqr(log10(c->error));
-      k++; 
+      k++;
     }
   }
   avg /= k;  // mean
   dev /= k;  // second moment
-  dev = sqrt(dev - sqr(avg));  // deviation is square root of variance   
+  dev = sqrt(dev - sqr(avg));  // deviation is square root of variance
 
   // select an above-average candidate with the steepest error decrease
   int imax = 0;
@@ -514,17 +514,17 @@ void L2OrthoHP::get_optimal_refinement(Element* e, int order, Solution* rsln, in
 
 void L2OrthoHP::adapt(double thr, int strat, bool h_only, bool iso_only, int max_order)
 {
-  
+
   if (!have_errors)
     error("Element errors have to be calculated first, see calc_error().");
-  
 
-  int i, j;  
-  Mesh* mesh[10]; 
+
+  int i, j;
+  Mesh* mesh[10];
   for (j = 0; j < num; j++) {
     mesh[j] = spaces[j]->get_mesh();
-    rsln[j]->set_quad_2d(&g_quad_2d_std);  
-    rsln[j]->enable_transform(false); 
+    rsln[j]->set_quad_2d(&g_quad_2d_std);
+    rsln[j]->enable_transform(false);
   }
 
   double err0 = 1000.0;
@@ -543,13 +543,13 @@ void L2OrthoHP::adapt(double thr, int strat, bool h_only, bool iso_only, int max
     // second refinement strategy:
     // refine all elements whose error is bigger than some portion of maximal error
     if ((strat == 1) && (err < thr * errors[esort[0][1]][esort[0][0]])) break;
-    
+
     Element* e;
     e = mesh[comp]->get_element(id);
     int split = 0;
     int p[4];
     int current = spaces[comp]->get_element_order(id);
-    
+
     //verbose("Refining element #%d, Component #%d, Error %g%%", e_id, comp, errors[comp][e_id]);
 
     if (h_only && iso_only)
@@ -563,17 +563,17 @@ void L2OrthoHP::adapt(double thr, int strat, bool h_only, bool iso_only, int max
       mesh[comp]->refine_element(id);
       for (j = 0; j < 4; j++)
         spaces[comp]->set_element_order(e->sons[j]->id, p[j]);
-    }   
+    }
     else {
       mesh[comp]->refine_element(id, split);
       for (j = 0; j < 2; j++)
         spaces[comp]->set_element_order(e->sons[ (split == 1) ? j : j+2 ]->id, p[j]);
-    }  
+    }
 
     err0 = err;
-    processed_error += err; 
+    processed_error += err;
   }
-  
+
   for (j = 0; j < num; j++)
     rsln[j]->enable_transform(true);
 
@@ -587,10 +587,10 @@ void L2OrthoHP::adapt(double thr, int strat, bool h_only, bool iso_only, int max
 
 static double** cmp_err;
 static int compare(const void* p1, const void* p2)
-{ 
+{
   const int2 (*e1) = ((const int2*) p1);
   const int2 (*e2) = ((const int2*) p2);
-  return cmp_err[(*e1)[1]][(*e1)[0]] < cmp_err[(*e2)[1]][(*e2)[0]] ? 1 : -1; 
+  return cmp_err[(*e1)[1]][(*e1)[0]] < cmp_err[(*e2)[1]][(*e2)[0]] ? 1 : -1;
 }
 
 
@@ -599,7 +599,7 @@ double L2OrthoHP::calc_error_n(int n, ...)
   int i, j, k;
 
   if (n != num) error("Wrong number of solutions.");
-  
+
   va_list ap;
   va_start(ap, n);
   for (i = 0; i < n; i++) {
@@ -611,7 +611,7 @@ double L2OrthoHP::calc_error_n(int n, ...)
     rsln[i]->enable_transform(true);
   }
   va_end(ap);
-  
+
   nact = 0;
   for (j = 0; j < num; j++)
     nact += sln[j]->get_mesh()->get_num_active_elements();
@@ -620,17 +620,17 @@ double L2OrthoHP::calc_error_n(int n, ...)
 
   double total_error = 0.0,
          total_norm  = 0.0;
-  
+
   for (j = k = 0; j < num; j++)
   {
     Mesh* cmesh = sln[j]->get_mesh();
     Mesh* fmesh = rsln[j]->get_mesh();
-    
+
     int max = cmesh->get_max_element_id();
     if (errors[j] != NULL) delete [] errors[j];
     errors[j] = new double[max];
     memset(errors[j], 0, sizeof(double) * max);
-    
+
     Element* e;
     for_all_active_elements(e, cmesh)
     {
@@ -639,38 +639,38 @@ double L2OrthoHP::calc_error_n(int n, ...)
       for (i = 0; i < 4; i++)
       {
         sln[j]->push_transform(i);
-  
+
         Element* fe = fmesh->get_element(e->id);
         if (fe->active || fe->sons[i] == NULL || !fe->sons[i]->active)
           error("Bad reference solution.");
         rsln[j]->set_active_element(fe->sons[i]);
-  
+
         RefMap* crm = sln[j]->get_refmap();
         RefMap* frm = rsln[j]->get_refmap();
-  
+
         double err  = int_h1_error(sln[j], rsln[j], crm, frm);
         total_norm += int_h1_norm (rsln[j], frm);
-  
+
         errors[j][e->id] += err;
         total_error += err;
-  
+
         sln[j]->pop_transform();
       }
       esort[k][0] = e->id;
       esort[k++][1] = j;
     }
-    
+
     for_all_inactive_elements(e, cmesh)
       errors[j][e->id] = -1.0;
   }
-  
+
   assert(k == nact);
   cmp_err = errors;
   qsort(esort, nact, sizeof(int2), compare);
-  
+
   have_errors = true;
   total_err = total_error;
   printf("total error %g, total norm %g \n", total_error, total_norm);
-  
+
   return sqrt(total_error / total_norm);
 }

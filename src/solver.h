@@ -34,12 +34,12 @@ class NonlinSystem;
 ///  discrete system. The user never directly calls any of the methods of this
 ///  class.
 ///
-///  The linear solver can be direct or iterative, although the analyze() and 
+///  The linear solver can be direct or iterative, although the analyze() and
 ///  factorize() methods are clearly designed for direct solvers. These
 ///  methods are optional and do not have to be implemented by iterative solvers.
 ///
 ///  Another feature geared towards direct solvers is the possibility to store
-///  auxiliary data (usually factorization data) between the calls to analyze(), 
+///  auxiliary data (usually factorization data) between the calls to analyze(),
 ///  factorize() and solve() in an arbitrary data structure called "context".
 ///  This way the factorization can be reused to solve for different right hand
 ///  sides and/or different, but structurally identical matrices.
@@ -47,7 +47,7 @@ class NonlinSystem;
 class Solver
 {
 protected:
-  
+
   /// Must return true if the solvers expects compressed row (CSR) format.
   /// Otherwise LinSystem assumes the compressed column (CSC) format.
   virtual bool is_row_oriented() = 0;
@@ -65,16 +65,16 @@ protected:
   /// Frees the data block created by new_context(). Called by LinSystem on destruction.
   virtual void free_context(void *ctx) {}
 
-    
+
   /// After the sparse structure of the matrix is calculated, LinSystem calls
   /// this function to give the solver a chance to analyze the matrix and store
   /// the results for reuse in the execution context. If the solver does not
-  /// support the reuse of structural analysis, this method does not have to be 
+  /// support the reuse of structural analysis, this method does not have to be
   /// implemented.  \return true on success, false otherwise.
   virtual bool analyze(void* ctx, int n, int* Ap, int* Ai, scalar* Ax, bool sym) {}
-  
-  /// Called by LinSystem after the stiffness matrix has been assembled. 
-  /// Direct solvers should implement this function and store the result 
+
+  /// Called by LinSystem after the stiffness matrix has been assembled.
+  /// Direct solvers should implement this function and store the result
   /// of the factorization in the execution context, so that it can be used
   /// many times by solve() for different right hand sides.
   /// \return true on success, false otherwise.
@@ -89,11 +89,11 @@ protected:
   /// \param Ap, Ai, Ax [in] the matrix in CSR or CSC format
   /// \param sym [in] true if the matrix is symmetric and only the upper half is stored.
   /// \param RHS [in] right hand side vector
-  /// \param vec [in/out] solution vector 
+  /// \param vec [in/out] solution vector
   /// \return true on success, false otherwise.
   virtual bool solve(void* ctx, int n, int* Ap, int* Ai, scalar* Ax, bool sym,
                      scalar* RHS, scalar* vec) = 0;
-  
+
   /// Must free all auxiliary data created in the calls to analyze() and/or factorize().
   virtual void free_data(void* ctx) {}
 

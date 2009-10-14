@@ -23,14 +23,14 @@
 #define __HERMES2D_SOLVER_UMFPACK_H
 
 
-#include <umfpack.h> 
+#include <umfpack.h>
 // To use the UmfpackSolver class, you need to install the UMFPACK solver
 // on your machine. For instructions, see http://www.cise.ufl.edu/research/sparse/umfpack/
 //
 // If UMFPACK is installed on your machine, but the compiler is unable to find
 // umfpack.h, try using the -I compiler directive with a path to the UMFPACK includes.
 //
-// If the project compiles, but you get linker errors, make sure you are using 
+// If the project compiles, but you get linker errors, make sure you are using
 // -lumfpack and -lamd on the command line. You may want to point out the library
 // paths to the linker using the -L directive. If you get weird Fortran-related
 // error messages, try including the Fortran compatibility layer: -lgfortran
@@ -71,34 +71,34 @@
 
 /// \brief UMFPACK solver wrapper class
 ///
-class UmfpackSolver : public Solver  
+class UmfpackSolver : public Solver
 {
 public:
-  
+
   UmfpackSolver() { umfpack_defaults(control_array); }
-  
+
   /// Adjusts UMFPACK control parameters. See UMFPACK documentation.
   void control(int idx, double value) { control_array[idx] = value; }
-  
+
   /// Retrieves detailed UMFPACK statistics. See UMFPACK documentation.
   double get_info(int idx) const { return info_array[idx]; }
-  
-  
+
+
 protected:
-  
+
   virtual bool is_row_oriented()  { return false; }
   virtual bool handles_symmetry() { return false; }
 
   double control_array[UMFPACK_CONTROL];
   double info_array[UMFPACK_INFO];
-  
+
 
   struct Data
   {
     void* symbolic;
     void* numeric;
   };
-  
+
   virtual void* new_context(bool sym)
   {
     Data* data = new Data;
@@ -106,13 +106,13 @@ protected:
     data->numeric = NULL;
     return data;
   }
-  
+
   virtual void free_context(void* ctx)
   {
     delete (Data*) ctx;
   }
-  
-  
+
+
   virtual bool analyze(void* ctx, int n, int* Ap, int* Ai, scalar* Ax, bool sym)
   {
     Data* data = (Data*) ctx;
@@ -123,8 +123,8 @@ protected:
     print_status(status);
     return status == UMFPACK_OK;
   }
-  
-  
+
+
   virtual bool factorize(void* ctx, int n, int* Ap, int* Ai, scalar* Ax, bool sym)
   {
     Data* data = (Data*) ctx;
@@ -136,8 +136,8 @@ protected:
     print_status(status);
     return status == UMFPACK_OK;
   }
-  
-  
+
+
   virtual bool solve(void* ctx, int n, int* Ap, int* Ai, scalar* Ax, bool sym,
                      scalar* RHS, scalar* vec)
   {
@@ -149,8 +149,8 @@ protected:
     print_status(status);
     return status == UMFPACK_OK;
   }
-  
-  
+
+
   virtual void free_data(void* ctx)
   {
     Data* data = (Data*) ctx;

@@ -54,20 +54,20 @@ public:
 
   virtual void save(const char* filename) = 0;
   void save_numbered(const char* filename, int number);
-  
+
   // todo: clear
 
 protected:
-  
+
   std::string title, xname, yname;
   bool logx, logy, legend, grid;
-  
+
   struct Values
   {
     double x, y;
   };
 
-  struct Row 
+  struct Row
   {
     std::string name, color, line, marker;
     std::vector<Values> data;
@@ -83,10 +83,10 @@ protected:
 class MatlabGraph : public Graph
 {
 public:
-  
+
   MatlabGraph(const char* title = NULL, const char* x_axis_name = NULL, const char* y_axis_name = NULL)
       : Graph(title, x_axis_name, y_axis_name) {}
-        
+
   virtual void save(const char* filename);
 
 };
@@ -97,10 +97,10 @@ public:
 class GnuplotGraph : public Graph
 {
 public:
-  
+
   GnuplotGraph(const char* title = NULL, const char* x_axis_name = NULL, const char* y_axis_name = NULL)
        : Graph(title, x_axis_name, y_axis_name) {}
-        
+
   virtual void save(const char* filename);
 
 };

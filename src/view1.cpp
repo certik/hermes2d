@@ -77,7 +77,7 @@ void glut_init()
 static void wake_up_timer(int)
 {
   glutTimerFunc(timer_ms, wake_up_timer, 0);
-  
+
   // Also, this is a good place to perform a cross thread call,
   // if one is scheduled
   if (ctc_function != NULL)
@@ -92,7 +92,7 @@ static void wake_up_timer(int)
 
 
 /// This is the GLUT main loop running in a separate thread, so
-/// that the windows are responsive at all times. 
+/// that the windows are responsive at all times.
 static void* main_loop_thread(void*)
 {
   thread_running = true;
@@ -129,7 +129,7 @@ static struct sync_init_1
     pthread_cond_init (&ctc_result_cv, NULL);
     pthread_cond_init (&pe_cv, NULL);
   }
-  ~sync_init_1() 
+  ~sync_init_1()
   {
     pthread_mutex_destroy(&ctc_mutex);
     pthread_mutex_destroy(&pe_mutex);
@@ -143,7 +143,7 @@ dummy_sync_init_struct_1;
 /// GLUT does not like certain functions, such as glutCreateWindow,
 /// to be called from a different thread than the one running the main
 /// loop. This functions causes the main loop thread to call the
-/// specified function. Then it waits for its completion and returns 
+/// specified function. Then it waits for its completion and returns
 /// its result.
 static int cross_thread_call(int (*function)(void*), void* param = NULL)
 {
@@ -152,7 +152,7 @@ static int cross_thread_call(int (*function)(void*), void* param = NULL)
   ctc_function = function;
   ctc_param = param;
   start_glut_main_loop();
-  pthread_cond_wait(&ctc_result_cv, &ctc_mutex);  
+  pthread_cond_wait(&ctc_result_cv, &ctc_mutex);
   //printf("cross thread call successful, return code %d\n", ctc_result);
   pthread_mutex_unlock(&ctc_mutex);
   return ctc_result;
@@ -176,20 +176,20 @@ void finish_glut_main_loop(bool force)
 
 //// handler stubs /////////////////////////////////////////////////////////////////////////////////
 
-void on_display_stub(void) 
-{ 
+void on_display_stub(void)
+{
   View* wnd = wnd_instance[glutGetWindow()];
   if (wnd != NULL) wnd->pre_display();
 }
 
 void on_reshape_stub(int width, int height)
-{ 
+{
   View* wnd = wnd_instance[glutGetWindow()];
   if (wnd != NULL) wnd->on_reshape(width, height);
 }
 
-void on_mouse_move_stub(int x, int y) 
-{ 
+void on_mouse_move_stub(int x, int y)
+{
   View* wnd = wnd_instance[glutGetWindow()];
   if (wnd != NULL) wnd->on_mouse_move(x, y);
 }
@@ -232,13 +232,13 @@ void on_mouse_click_stub(int button, int state, int x, int y)
         wnd->on_right_mouse_double_click(x, y);
       else
         wnd->on_middle_mouse_double_click(x, y);
-        
+
       last_tick = 0;
       return;
     }
     last_tick = tick;
   }
-  
+
   // call proper click handler
   if (button == GLUT_LEFT_BUTTON)
   {
@@ -268,7 +268,7 @@ void on_close_stub()
 {
   num_windows--;
   int id = glutGetWindow();
-  if (wnd_instance[id] != NULL) 
+  if (wnd_instance[id] != NULL)
   {
     wnd_instance[id]->on_close();
     wnd_instance[id]->window_id = -1;
@@ -293,7 +293,7 @@ static struct sync_init_2 // FIXME: this should be inside the View instance
     pthread_cond_init (&wait_close_cv, NULL);
     pthread_cond_init (&wait_draw_cv, NULL);
   }
-  ~sync_init_2() 
+  ~sync_init_2()
   {
     pthread_mutex_destroy(&wait_keypress_mutex);
     pthread_mutex_destroy(&wait_close_mutex);
@@ -361,7 +361,7 @@ View::~View()
 int view_create_body(void* param)
 {
   View* instance = (View*) param;
-  
+
   // create the window
   glutInitWindowPosition(instance->window_x, instance->window_y);
   glutInitWindowSize(instance->window_width, instance->window_height);
@@ -383,7 +383,7 @@ int view_create_body(void* param)
   glutSpecialFunc(on_special_key_stub);
   glutEntryFunc(on_entry_stub);
   glutCloseFunc(on_close_stub);
-  
+
   instance->on_create();
   return instance->window_id;
 }
@@ -442,33 +442,33 @@ void View::pre_display()
 {
   //info("display: lock");
   pthread_mutex_lock(&wait_draw_mutex);
-  
+
   if (!hq_frame)
   {
     clear_background();
     on_display();
   }
-  else 
+  else
   {
     display_antialiased();
     hq_frame = false;
   }
-  
+
   if (b_help) draw_help();
   else if (b_scale) scale_dispatch();
 
   glFlush();
   glFinish();
-  
+
   if (want_screenshot)
   {
     glReadBuffer(GL_BACK_LEFT);
     save_screenshot_internal(screenshot_filename.c_str());
     want_screenshot = false;
-  } 
-  
+  }
+
   glutSwapBuffers();
-  
+
   frame_ready = true;
   //info("display: broadcast");
   pthread_cond_broadcast(&wait_draw_cv);
@@ -477,15 +477,15 @@ void View::pre_display()
 }
 
 
-static float jitter16[16][2] = 
+static float jitter16[16][2] =
 {
-  { 0.4375, 0.4375 }, { 0.1875, 0.5625 }, 
-  { 0.9375, 1.1875 }, { 0.4375, 0.9375-1 }, 
-  { 0.6875, 0.5625 }, { 0.1875, 0.0625 }, 
-  { 0.6875, 0.3125 }, { 0.1875, 0.3125 }, 
-  { 0.4375, 0.1875 }, { 0.9375-1, 0.4375 }, 
-  { 0.6875, 0.8125 }, { 0.4375, 0.6875 }, 
-  { 0.6875, 0.0625 }, { 0.9375, 0.9375 }, 
+  { 0.4375, 0.4375 }, { 0.1875, 0.5625 },
+  { 0.9375, 1.1875 }, { 0.4375, 0.9375-1 },
+  { 0.6875, 0.5625 }, { 0.1875, 0.0625 },
+  { 0.6875, 0.3125 }, { 0.1875, 0.3125 },
+  { 0.4375, 0.1875 }, { 0.9375-1, 0.4375 },
+  { 0.6875, 0.8125 }, { 0.4375, 0.6875 },
+  { 0.6875, 0.0625 }, { 0.9375, 0.9375 },
   { 1.1875, 0.8125 }, { 0.9375, 0.6875 }
 };
 
@@ -511,11 +511,11 @@ void View::set_ortho_projection(bool no_jitter)
 {
   double jx = no_jitter ? 0.0 : jitter_x;
   double jy = no_jitter ? 0.0 : jitter_y;
-  
+
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
   glOrtho(jx, window_width + jx, window_height-1 + jy, -1 + jy, -10, 10);
-  
+
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
 }
@@ -533,7 +533,7 @@ void View::set_3d_projection(int fov, double znear, double zfar)
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
   glFrustum(left - offsx, right - offsx, bottom - offsy, top - offsy, znear, zfar);
-  
+
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
 }
@@ -545,7 +545,7 @@ void View::on_reshape(int width, int height)
   window_height = height;
   update_layout();
   glViewport(0, 0, width, height);
-  
+
   /*printf("winx=%d, winy=%d, ww=%d, wh=%d, width=%d, height=%d\n", glutGet(GLUT_WINDOW_X), glutGet(GLUT_WINDOW_Y),
          glutGet(GLUT_WINDOW_WIDTH), glutGet(GLUT_WINDOW_HEIGHT), width, height);*/
 }
@@ -586,7 +586,7 @@ void View::on_mouse_move(int x, int y)
     pos_vert = (y < window_height/2);
     if (pos_horz != oldh || pos_vert != oldv) { update_layout(); post_redisplay(); }
   }
-  else 
+  else
   {
     bool oldf = scale_focused;
     scale_focused = (x >= scale_x && x <= scale_x + scale_width &&
@@ -655,7 +655,7 @@ void View::on_key_down(unsigned char key, int x, int y)
       close();
       break;
     }
-    
+
     case 's':
     {
       const char *file_name = get_screenshot_file_name();
@@ -663,16 +663,16 @@ void View::on_key_down(unsigned char key, int x, int y)
       save_screenshot_internal(file_name);
       break;
     }
-    
+
     case 'p':
     {
       pal_type++;
-      if (pal_type > 3) pal_type = 0; 
+      if (pal_type > 3) pal_type = 0;
       create_palette();
       post_redisplay();
       break;
     }
-    
+
     default:
       signal(&wait_keypress_mutex, &wait_keypress_cv);
       break;
@@ -684,7 +684,7 @@ void View::on_special_key(int key, int x, int y)
 {
   switch (key)
   {
-    case GLUT_KEY_F1: 
+    case GLUT_KEY_F1:
       b_help = !b_help;
       post_redisplay();
       break;
@@ -786,7 +786,7 @@ void View::set_title_internal(const char* text)
 const float* View::get_palette_color(double x)
 {
   static float color[3];
-  
+
   if (pal_type == 0)
   {
     if (x < 0.0) x = 0.0;
@@ -802,7 +802,7 @@ const float* View::get_palette_color(double x)
   else
     color[0] = color[1] = color[2] = 1.0;
   return color;
-  
+
   /*if (n == num_pal_entries) return palette_data[n];
   float s = x - (double) n;
   float t = 1.0 - s;
@@ -840,7 +840,7 @@ void View::create_palette()
   }
   for (i = pal_steps; i < 256; i++)
     memcpy(palette[i], palette[pal_steps-1], 3);
-  
+
   glBindTexture(GL_TEXTURE_1D, 1);
   glTexImage1D(GL_TEXTURE_1D, 0, 3, 256, 0, GL_RGB, GL_UNSIGNED_BYTE, palette);
 #ifndef GL_CLAMP_TO_EDGE // fixme: this is needed on Windows
@@ -905,7 +905,7 @@ void View::auto_min_max_range()
 void View::get_min_max_range(double& min, double& max)
 {
   min = range_min;
-  max = range_max; 
+  max = range_max;
 }
 
 
@@ -922,7 +922,7 @@ void View::draw_text(double x, double y, const char* text, int align)
 
   glDisable(GL_TEXTURE_1D);
   glDisable(GL_LIGHTING);
-  
+
   glRasterPos2d((int) (x+0.5), (int) (y+0.5));
   glutBitmapString(font, (const unsigned char*) text);
 }
@@ -940,21 +940,21 @@ void View::draw_help()
   set_ortho_projection(true);
   glDisable(GL_DEPTH_TEST);
   glDisable(GL_LIGHTING);
-  glDisable(GL_TEXTURE_1D);  
+  glDisable(GL_TEXTURE_1D);
   glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-  
+
   const char* text = get_help_text();
-  
+
   int n = 1;
   for (const char* p = text; *p; p++)
     if (*p == '\n') n++;
-      
+
   int width = get_text_width(text);
   int height = n * glutBitmapHeight(GLUT_BITMAP_9_BY_15);
   int x = 10, y = 10, b = 6;
-  
+
   glEnable(GL_BLEND);
-  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); 
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
   glColor4f(1.0, 1.0, 1.0, 0.65);
   glBegin(GL_QUADS);
     glVertex2d(x, y+height+2*b);
@@ -962,7 +962,7 @@ void View::draw_help()
     glVertex2d(x+width+2*b, y);
     glVertex2d(x, y);
   glEnd();
-  
+
   glDisable(GL_BLEND);
   glColor3f(0, 0, 0);
   draw_text(x+b, y+b+7, text);
@@ -998,7 +998,7 @@ const word BITMAP_ID = 0x4D42;
 #pragma pack(1)
 
 struct BitmapFileHeader
-{ 
+{
   word  type;
   dword size;
   word  reserved1;
@@ -1006,7 +1006,7 @@ struct BitmapFileHeader
   dword off_bits;
 };
 
-struct BitmapInfoHeader 
+struct BitmapInfoHeader
 {
   dword size;
   dword width;
@@ -1044,7 +1044,7 @@ void View::save_screenshot_internal(const char *file_name)
   FILE* file = fopen(file_name, "wb");
   if (file == NULL)
     error("Could not open '%s' for writing", file_name);
-  
+
   // fill in bitmap header
   file_header.type = BITMAP_ID;
   file_header.size = sizeof(BitmapFileHeader) +  sizeof(BitmapInfoHeader) +
@@ -1067,10 +1067,10 @@ void View::save_screenshot_internal(const char *file_name)
   info_header.ydpi = 2835; // 72 dpi
   info_header.clr_used = 0;
   info_header.clr_important = 0;
-  
+
   if (fwrite(&info_header, sizeof(info_header), 1, file) != 1)
     error("Error writing bitmap header\n");
-  
+
   // write image pixels
   if (fwrite((GLubyte*) pixels, 1, info_header.size_image, file) != info_header.size_image)
     error("Error writing pixel data\n");
@@ -1116,7 +1116,7 @@ int View::measure_scale_labels()
     if (w > result) result = w;
   }
   return result;
-  
+
 /*  char text[100];
   sprintf(text, scale_fmt, -0.000123456789123456789);
   return get_text_width(text);*/
@@ -1127,17 +1127,17 @@ void View::draw_continuous_scale(char* title, bool righttext)
 {
   int i, n;
   double y0 = scale_y + scale_height;
-  
+
   set_ortho_projection(true);
   glDisable(GL_DEPTH_TEST);
   glDisable(GL_LIGHTING);
-  glDisable(GL_TEXTURE_1D);  
+  glDisable(GL_TEXTURE_1D);
   glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-  
-  // background 
+
+  // background
   const int b = 5;
   glEnable(GL_BLEND);
-  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); 
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
   glColor4f(1.0, 1.0, 1.0, 0.65);
   int rt = righttext ? 0 : labels_width + 8;
   glBegin(GL_QUADS);
@@ -1156,7 +1156,7 @@ void View::draw_continuous_scale(char* title, bool righttext)
   glVertex2d(scale_x + scale_width + 1, scale_y + scale_height + 1);
   glVertex2d(scale_x + scale_width + 1, scale_y);
   glEnd();
-  
+
   glEnable(GL_TEXTURE_1D);
   glBindTexture(GL_TEXTURE_1D, 1);
   glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
@@ -1168,7 +1168,7 @@ void View::draw_continuous_scale(char* title, bool righttext)
   glVertex2d(scale_x + scale_width, scale_y + scale_height);
   glVertex2d(scale_x + 1, scale_y + scale_height);
   glEnd();
-  
+
   // focus
   glDisable(GL_TEXTURE_1D);
   if (scale_focused)
@@ -1182,7 +1182,7 @@ void View::draw_continuous_scale(char* title, bool righttext)
     glVertex2d(scale_x + 1, scale_y + scale_height);
     glEnd();
   }
-  
+
   // ticks
   glColor3f(0, 0, 0);
   glDisable(GL_BLEND);
@@ -1198,7 +1198,7 @@ void View::draw_continuous_scale(char* title, bool righttext)
     glVertex2d(scale_x + scale_width, y0);
   }
   glEnd();
-  
+
   // labels
   for (i = 0; i <= scale_numticks+1; i++)
   {
@@ -1211,8 +1211,8 @@ void View::draw_continuous_scale(char* title, bool righttext)
       draw_text(scale_x + scale_width + 8, y0, text);
     else
       draw_text(scale_x - 8, y0, text, 1);
-  }  
-  
+  }
+
   //if (title != NULL) draw_text(x, y-18, title);
   //if (title != NULL) draw_text(x, y+height+25, title);
 }
@@ -1223,13 +1223,13 @@ void View::draw_discrete_scale(int numboxes, const char* boxnames[], const float
   set_ortho_projection(true);
   glDisable(GL_DEPTH_TEST);
   glDisable(GL_LIGHTING);
-  glDisable(GL_TEXTURE_1D);  
+  glDisable(GL_TEXTURE_1D);
   glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-  
-  // background 
+
+  // background
   const int b = 5;
   glEnable(GL_BLEND);
-  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); 
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
   glColor4f(1.0, 1.0, 1.0, 0.65);
   glBegin(GL_QUADS);
   glVertex2d(scale_x - b, scale_y - b);
@@ -1237,7 +1237,7 @@ void View::draw_discrete_scale(int numboxes, const char* boxnames[], const float
   glVertex2d(scale_x + scale_width + b+1, scale_y + scale_height + b+1);
   glVertex2d(scale_x + scale_width + b+1, scale_y - b);
   glEnd();
-  
+
   // boxes
   glDisable(GL_BLEND);
   int y = scale_y;
@@ -1250,7 +1250,7 @@ void View::draw_discrete_scale(int numboxes, const char* boxnames[], const float
     glVertex2d(scale_x + scale_width + 1, y + scale_box_height + 1);
     glVertex2d(scale_x + scale_width + 1, y);
     glEnd();
-    
+
     const float* color = boxcolors[numboxes-1-i];
     float bcolor[3] = { color[0], color[1], color[2] };
     if (scale_focused) {
@@ -1258,7 +1258,7 @@ void View::draw_discrete_scale(int numboxes, const char* boxnames[], const float
       bcolor[1] = color[1]*0.7 + 1.0*0.3;
       bcolor[2] = color[2]*0.7 + 1.0*0.3;
     }
-    
+
     glColor3f(bcolor[0], bcolor[1], bcolor[2]);
     glBegin(GL_QUADS);
     glVertex2d(scale_x+1, y+1);
@@ -1266,17 +1266,17 @@ void View::draw_discrete_scale(int numboxes, const char* boxnames[], const float
     glVertex2d(scale_x + scale_width, y + scale_box_height);
     glVertex2d(scale_x + scale_width, y+1);
     glEnd();
-    
+
     if ((color[0] + color[1] + color[2]) / 3 > 0.5)
       glColor3f(0, 0, 0);
     else
       glColor3f(1, 1, 1);
-    
+
     int a = scale_x + scale_width/2;
     int b = y + scale_box_height/2;
     draw_text(a, b, boxnames[numboxes-1-i], 0);
     draw_text(a+1, b, boxnames[numboxes-1-i], 0);
-    
+
     y += scale_box_height + scale_box_skip;
   }
 }
@@ -1298,15 +1298,15 @@ void View::update_layout()
     int space = scale_width + 8 + labels_width + margin;
     if (pos_horz == 0)
       { lspace = space;  scale_x = margin; }
-    else 
+    else
       { rspace = space;  scale_x = window_width - margin - scale_width; }
-      
+
     if (pos_vert == 0)
       scale_y = window_height - margin - scale_height;
     else
       scale_y = margin;
   }
-    
+
   center_x = ((double) window_width - 2*margin - lspace - rspace) / 2 + margin + lspace;
   center_y = (double) window_height / 2;
 }

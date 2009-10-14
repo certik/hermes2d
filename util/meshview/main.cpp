@@ -11,7 +11,7 @@ int main(int argc, char* argv[])
 
   Mesh mesh;
   mesh.load(argv[1], true);
-  
+
   MeshView mv;
   mv.show(&mesh);
 
