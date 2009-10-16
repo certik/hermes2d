@@ -20,6 +20,7 @@ add_subdirectory(newton-np-timedep-adapt-system)
 add_subdirectory(iron-water)
 add_subdirectory(saphir)
 add_subdirectory(elmag-field)
+add_subdirectory(sea-breeze)
 
 if(WITH_TRILINOS)
   add_subdirectory(trilinos-linear)
@@ -32,4 +33,3 @@ else(WITH_TRILINOS)
   add_subdirectory(newton-gp-timedep)
   add_subdirectory(newton-gp-timedep-adapt)
 endif(WITH_TRILINOS)
-
