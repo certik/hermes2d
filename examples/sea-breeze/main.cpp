@@ -79,31 +79,50 @@ scalar xvel_bc_value(int marker, double x, double y) {
 template<typename Real, typename Scalar>
 Scalar bilinear_form_sym_0_0_1_1(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
-  return int_grad_u_grad_v<Real, Scalar>(n, wt, u, v) / RE + int_u_v<Real, Scalar>(n, wt, u, v) / TAU;
+    Scalar result = 0;
+    for (int i = 0; i < n; i++)
+        result += wt[i] * (
+                (u->dx[i] * v->dx[i] + u->dy[i] * v->dy[i]) / RE +
+                (u->val[i] * v->val[i]) / TAU
+                );
+    return result;
 }
 
 template<typename Real, typename Scalar>
 Scalar bilinear_form_unsym_0_0_1_1(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
-  return int_w_nabla_u_v<Real, Scalar>(n, wt, ext->fn[0], ext->fn[1], u, v);
+    Scalar result = 0;
+    for (int i = 0; i < n; i++)
+        result += wt[i] * (ext->fn[0]->val[i] * u->dx[i]
+                + ext->fn[1]->val[i] * u->dy[i]) * v->val[i];
+    return result;
 }
 
 template<typename Real, typename Scalar>
 Scalar linear_form(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
-  return int_u_v<Real, Scalar>(n, wt, ext->fn[0], v) / TAU;
+    Scalar result = 0;
+    for (int i = 0; i < n; i++)
+        result += wt[i] * (ext->fn[0]->val[i] * v->val[i]) / TAU;
+    return result;
 }
 
 template<typename Real, typename Scalar>
 Scalar bilinear_form_unsym_0_2(int n, double *wt, Func<Real> *p, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
-  return - int_u_dvdx<Real, Scalar>(n, wt, p, v);
+    Scalar result = 0;
+    for (int i = 0; i < n; i++)
+        result += wt[i] * (- v->dx[i] * p->val[i]);
+    return result;
 }
 
 template<typename Real, typename Scalar>
 Scalar bilinear_form_unsym_1_2(int n, double *wt, Func<Real> *p, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
-  return - int_u_dvdy<Real, Scalar>(n, wt, p, v);
+    Scalar result = 0;
+    for (int i = 0; i < n; i++)
+        result += wt[i] * (- v->dy[i] * p->val[i]);
+    return result;
 }
 
 
