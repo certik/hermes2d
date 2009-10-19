@@ -415,9 +415,9 @@ int main(int argc, char* argv[])
 
   // a-priori mesh refinements
   mesh.refine_all_elements();
-  mesh.refine_towards_boundary(5, 4, false);
-  mesh.refine_towards_boundary(1, 4);
-  mesh.refine_towards_boundary(3, 4);
+  //mesh.refine_towards_boundary(5, 4, false);
+  //mesh.refine_towards_boundary(1, 4);
+  //mesh.refine_towards_boundary(3, 4);
 
   // display the mesh
   //MeshView mview("Navier-Stokes Example - Mesh", 100, 100, 1100, 400);
