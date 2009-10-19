@@ -268,6 +268,26 @@ Scalar B_ij(int _i, int _j, int n, double *wt, Func<Real> *u, Func<Real> *v, Geo
 }
 
 template<typename Real, typename Scalar>
+Scalar S_ij(int _i, int _j, int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+{
+    Scalar result = 0;
+    for (int i = 0; i < n; i++)
+        result += wt[i] * (
+                A_x(_i, _j, ext->fn[0]->val[i],
+                    ext->fn[1]->val[i],
+                    ext->fn[2]->val[i],
+                    ext->fn[3]->val[i])
+                * u->val[i] * v->val[i] +
+                A_z(_i, _j, ext->fn[0]->val[i],
+                    ext->fn[1]->val[i],
+                    ext->fn[2]->val[i],
+                    ext->fn[3]->val[i])
+                * u->val[i] * v->val[i]
+                );
+    return result;
+}
+
+template<typename Real, typename Scalar>
 Scalar B_00(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
     return B_ij(0, 0, n, wt, u, v, e, ext);
@@ -400,6 +420,102 @@ Scalar l_3(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext
     return result;
 }
 
+template<typename Real, typename Scalar>
+Scalar S_00(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+{
+    return S_ij(0, 0, n, wt, u, v, e, ext);
+}
+
+template<typename Real, typename Scalar>
+Scalar S_01(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+{
+    return S_ij(0, 1, n, wt, u, v, e, ext);
+}
+
+template<typename Real, typename Scalar>
+Scalar S_02(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+{
+    return S_ij(0, 2, n, wt, u, v, e, ext);
+}
+
+template<typename Real, typename Scalar>
+Scalar S_03(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+{
+    return S_ij(0, 3, n, wt, u, v, e, ext);
+}
+
+template<typename Real, typename Scalar>
+Scalar S_10(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+{
+    return S_ij(1, 0, n, wt, u, v, e, ext);
+}
+
+template<typename Real, typename Scalar>
+Scalar S_11(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+{
+    return S_ij(1, 1, n, wt, u, v, e, ext);
+}
+
+template<typename Real, typename Scalar>
+Scalar S_12(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+{
+    return S_ij(1, 2, n, wt, u, v, e, ext);
+}
+
+template<typename Real, typename Scalar>
+Scalar S_13(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+{
+    return S_ij(1, 3, n, wt, u, v, e, ext);
+}
+
+template<typename Real, typename Scalar>
+Scalar S_20(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+{
+    return S_ij(2, 0, n, wt, u, v, e, ext);
+}
+
+template<typename Real, typename Scalar>
+Scalar S_21(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+{
+    return S_ij(2, 1, n, wt, u, v, e, ext);
+}
+
+template<typename Real, typename Scalar>
+Scalar S_22(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+{
+    return S_ij(2, 2, n, wt, u, v, e, ext);
+}
+
+template<typename Real, typename Scalar>
+Scalar S_23(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+{
+    return S_ij(2, 3, n, wt, u, v, e, ext);
+}
+
+template<typename Real, typename Scalar>
+Scalar S_30(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+{
+    return S_ij(3, 0, n, wt, u, v, e, ext);
+}
+
+template<typename Real, typename Scalar>
+Scalar S_31(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+{
+    return S_ij(3, 1, n, wt, u, v, e, ext);
+}
+
+template<typename Real, typename Scalar>
+Scalar S_32(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+{
+    return S_ij(3, 2, n, wt, u, v, e, ext);
+}
+
+template<typename Real, typename Scalar>
+Scalar S_33(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+{
+    return S_ij(3, 3, n, wt, u, v, e, ext);
+}
+
 Ord B_order(int n, double *wt, Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext)
 {
      return Ord(20);
@@ -496,6 +612,40 @@ int main(int argc, char* argv[])
           &w3_prev, &w4_prev);
   wf.add_biform(3, 3, callback_bf(B_33), UNSYM, ANY, 4, &w0_prev, &w1_prev,
           &w3_prev, &w4_prev);
+
+  wf.add_biform_surf(0, 0, callback_bf(S_00), UNSYM, ANY, 4, &w0_prev, &w1_prev,
+          &w3_prev, &w4_prev);
+  wf.add_biform_surf(0, 1, callback_bf(S_01), UNSYM, ANY, 4, &w0_prev, &w1_prev,
+          &w3_prev, &w4_prev);
+  wf.add_biform_surf(0, 2, callback_bf(S_02), UNSYM, ANY, 4, &w0_prev, &w1_prev,
+          &w3_prev, &w4_prev);
+  wf.add_biform_surf(0, 3, callback_bf(S_03), UNSYM, ANY, 4, &w0_prev, &w1_prev,
+          &w3_prev, &w4_prev);
+  wf.add_biform_surf(1, 0, callback_bf(S_10), UNSYM, ANY, 4, &w0_prev, &w1_prev,
+          &w3_prev, &w4_prev);
+  wf.add_biform_surf(1, 1, callback_bf(S_11), UNSYM, ANY, 4, &w0_prev, &w1_prev,
+          &w3_prev, &w4_prev);
+  wf.add_biform_surf(1, 2, callback_bf(S_12), UNSYM, ANY, 4, &w0_prev, &w1_prev,
+          &w3_prev, &w4_prev);
+  wf.add_biform_surf(1, 3, callback_bf(S_13), UNSYM, ANY, 4, &w0_prev, &w1_prev,
+          &w3_prev, &w4_prev);
+  wf.add_biform_surf(2, 0, callback_bf(S_20), UNSYM, ANY, 4, &w0_prev, &w1_prev,
+          &w3_prev, &w4_prev);
+  wf.add_biform_surf(2, 1, callback_bf(S_21), UNSYM, ANY, 4, &w0_prev, &w1_prev,
+          &w3_prev, &w4_prev);
+  wf.add_biform_surf(2, 2, callback_bf(S_22), UNSYM, ANY, 4, &w0_prev, &w1_prev,
+          &w3_prev, &w4_prev);
+  wf.add_biform_surf(2, 3, callback_bf(S_23), UNSYM, ANY, 4, &w0_prev, &w1_prev,
+          &w3_prev, &w4_prev);
+  wf.add_biform_surf(3, 0, callback_bf(S_30), UNSYM, ANY, 4, &w0_prev, &w1_prev,
+          &w3_prev, &w4_prev);
+  wf.add_biform_surf(3, 1, callback_bf(S_31), UNSYM, ANY, 4, &w0_prev, &w1_prev,
+          &w3_prev, &w4_prev);
+  wf.add_biform_surf(3, 2, callback_bf(S_32), UNSYM, ANY, 4, &w0_prev, &w1_prev,
+          &w3_prev, &w4_prev);
+  wf.add_biform_surf(3, 3, callback_bf(S_33), UNSYM, ANY, 4, &w0_prev, &w1_prev,
+          &w3_prev, &w4_prev);
+
   wf.add_liform(0, callback(l_0), ANY, 4, &w0_prev, &w1_prev,
           &w3_prev, &w4_prev);
   wf.add_liform(1, callback(l_1), ANY, 4, &w0_prev, &w1_prev,
