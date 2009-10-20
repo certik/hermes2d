@@ -40,6 +40,7 @@ class Ord
 {
 public:
 
+	Ord() { order = 0; }
 	Ord(int o) { order = o; }
 
 	int get_order() const { return order; }
