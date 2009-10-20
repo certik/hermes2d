@@ -117,15 +117,13 @@ def test_example_05():
 
     mesh = Mesh()
     mesh.load(domain_mesh)
-    #mesh.refine_element(0)
-    #mesh.refine_all_elements()
-    mesh.refine_towards_boundary(5, 3)
+    mesh.refine_towards_vertex(3, 12)
     shapeset = H1Shapeset()
     pss = PrecalcShapeset(shapeset)
 
     # create an H1 space
     space = H1Space(mesh, shapeset)
-    space.set_uniform_order(5)
+    space.set_uniform_order(4)
 
     set_bc(space)
 
@@ -146,8 +144,8 @@ def test_example_05():
     sys.set_pss(pss)
     sys.assemble()
     sys.solve_system(sln)
-    assert abs(sln.l2_norm() - 0.72722) < 1e-4
-    assert abs(sln.h1_norm() - 1.49274) < 1e-4
+    assert abs(sln.l2_norm() - 0.535833) < 1e-4
+    assert abs(sln.h1_norm() - 1.332908) < 1e-4
 
 def test_example_06():
     from hermes2d.examples.c06 import set_bc, set_forms

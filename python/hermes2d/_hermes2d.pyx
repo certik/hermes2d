@@ -392,6 +392,9 @@ cdef class Mesh:
     def refine_towards_boundary(self, int marker, int depth):
         self.thisptr.refine_towards_boundary(marker, depth)
 
+    def refine_towards_vertex(self, int marker, int depth):
+        self.thisptr.refine_towards_vertex(marker, depth)
+
     def get_element(self, int id):
         cdef Element e = Element()
         e.thisptr = self.thisptr.get_element(id)
