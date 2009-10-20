@@ -12,13 +12,13 @@ mesh = Mesh()
 mesh.load(get_example_mesh())
 #mesh.refine_element(0)
 #mesh.refine_all_elements()
-mesh.refine_towards_boundary(5, 3)
+mesh.refine_towards_vertex(3, 12)
 shapeset = H1Shapeset()
 pss = PrecalcShapeset(shapeset)
 
 # create an H1 space
 space = H1Space(mesh, shapeset)
-space.set_uniform_order(5)
+space.set_uniform_order(4)
 
 set_bc(space)
 

@@ -115,6 +115,7 @@ cdef extern from "hermes2d.h":
         void refine_element(int id)
         void refine_all_elements()
         void refine_towards_boundary(int marker, int depth)
+        void refine_towards_vertex(int marker, int depth)
         c_Element* get_element(int id)
         int get_num_elements()
         int get_num_base_elements()
@@ -150,6 +151,21 @@ cdef extern from "hermes2d.h":
     cdef struct RefMap "RefMap"
     ctypedef struct c_ScalarFunction "Function<scalar>"
 
+    ctypedef struct FuncReal "Func<double>":
+        pass
+    ctypedef struct GeomReal "Geom<double>":
+        int marker
+    ctypedef struct ExtDataReal "ExtData<double>":
+        FuncReal **fn
+    ctypedef struct FuncOrd "Func<Ord>":
+        pass
+    ctypedef struct GeomOrd "Geom<Ord>":
+        pass
+    ctypedef struct ExtDataOrd "ExtData<Ord>":
+        pass
+    ctypedef struct c_Ord "Ord":
+        pass
+    c_Ord create_Ord "Ord"(int n)
 
     ctypedef scalar (*BiFormFnVol)(RealFunction *fu, RealFunction *fv,
             RefMap *ru, RefMap *rv)
@@ -275,34 +291,35 @@ cdef extern from "hermes2d.h":
     c_Vectorizer *new_Vectorizer "new Vectorizer" ()
 
 
-    double int_u(RealFunction* fu, RefMap* ru)
+    double int_u "int_u<double, double>"(int n, double *wt, FuncReal *u)
     double int_l2_norm(RealFunction* fu, RefMap* ru)
     double l2_norm(c_MeshFunction* fu)
     double h1_norm(c_MeshFunction* fu)
     double integrate(c_MeshFunction *sln)
-    double int_grad_u_grad_v(RealFunction *fu, RealFunction *fv,
-            RefMap *ru, RefMap *rv)
-    double int_x_grad_u_grad_v(RealFunction *fu, RealFunction *fv,
-            RefMap *ru, RefMap *rv)
-    double int_u_dvdx(RealFunction *fu, RealFunction *fv,
-            RefMap *ru, RefMap *rv)
-    double int_u_dvdy(RealFunction *fu, RealFunction *fv,
-            RefMap *ru, RefMap *rv)
-    double int_u_v(RealFunction *fu, RealFunction *fv,
-            RefMap *ru, RefMap *rv)
+    double int_grad_u_grad_v "int_grad_u_grad_v<double, double>"(int n,
+            double *wt, FuncReal *u, FuncReal *v)
+    double int_x_grad_u_grad_v "int_x_grad_u_grad_v<double, double>"(int n,
+            double *wt, FuncReal *u, FuncReal *v)
+    double int_u_dvdx "int_u_dvdx<double, double>"(...)
+    double int_u_dvdy "int_u_dvdy<double, double>"(...)
+    double int_u_v "int_u_v<double, double>"(int n, double *wt, FuncReal *u,
+            FuncReal *v)
     double int_F_u_v(...)
-    double int_F_v(...)
-    double int_v(RealFunction *fv, RefMap *rv)
-    double int_w_nabla_u_v(RealFunction *w1, RealFunction *w2,
-            RealFunction *fu, RealFunction *fv, RefMap *ru, RefMap *rv)
-    double surf_int_G_v(RealFunction *fv, RefMap *rv, EdgePos *ep)
-    double surf_int_v(RealFunction *fv, RefMap *rv, EdgePos *ep)
-    double surf_int_u_v(RealFunction *fu, RealFunction *fv,
-            RefMap *ru, RefMap *rv, EdgePos *ep)
-    double int_a_dudx_dvdx_b_dudy_dvdy(double a, RealFunction *fu, double b,
-            RealFunction *fv, RefMap *ru, RefMap *rv)
-    double int_a_dudx_dvdy_b_dudy_dvdx(double a, RealFunction *fu, double b,
-            RealFunction *fv, RefMap *ru, RefMap *rv)
+    double int_F_v "int_F_v<double, double>"(...)
+    double int_v "int_v<double, double>"(int n, double *wt, FuncReal *v)
+    double int_w_nabla_u_v "int_w_nabla_u_v<double, double>"(...)
+    #double surf_int_G_v(RealFunction *fv, RefMap *rv, EdgePos *ep)
+    #double surf_int_v(RealFunction *fv, RefMap *rv, EdgePos *ep)
+    #double surf_int_u_v(RealFunction *fu, RealFunction *fv,
+    #        RefMap *ru, RefMap *rv, EdgePos *ep)
+    #double int_a_dudx_dvdx_b_dudy_dvdy(double a, RealFunction *fu, double b,
+    #        RealFunction *fv, RefMap *ru, RefMap *rv)
+    #double int_a_dudx_dvdy_b_dudy_dvdx(double a, RealFunction *fu, double b,
+    #        RealFunction *fv, RefMap *ru, RefMap *rv)
+    double int_dudx_dvdx "int_dudx_dvdx<double, double>"(...)
+    double int_dudx_dvdy "int_dudx_dvdy<double, double>"(...)
+    double int_dudy_dvdy "int_dudy_dvdy<double, double>"(...)
+    double int_dudy_dvdx "int_dudy_dvdx<double, double>"(...)
 
 
     cdef struct c_View "View":
