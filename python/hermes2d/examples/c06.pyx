@@ -1,21 +1,23 @@
-from hermes2d._hermes2d cimport scalar, RealFunction, RefMap, WeakForm, \
-        int_grad_u_grad_v, int_v, H1Space, EdgePos, surf_int_G_v, surf_int_v, \
-        surf_int_u_v, BC_ESSENTIAL, BC_NATURAL
+from hermes2d._hermes2d cimport scalar, FuncReal, GeomReal, WeakForm, \
+        int_grad_u_grad_v, int_v, malloc, ExtDataReal, c_Ord, create_Ord, \
+        FuncOrd, GeomOrd, ExtDataOrd, int_u_v, BC_NATURAL, BC_ESSENTIAL, \
+        H1Space
 
-cdef scalar bilinear_form(RealFunction *fu, RealFunction *fv,
-        RefMap *ru, RefMap *rv):
-    return int_grad_u_grad_v(fu, fv, ru, rv)
+cdef scalar bilinear_form(int n, double *wt, FuncReal *u, FuncReal *v, GeomReal
+        *e, ExtDataReal *ext):
+    return int_grad_u_grad_v(n, wt, u, v)
 
-cdef scalar bilinear_form_surf_06(RealFunction *fu, RealFunction *fv,
-        RefMap *ru, RefMap *rv, EdgePos* ep):
-    if ep.marker != 1:
+cdef scalar bilinear_form_surf_06(int n, double *wt, FuncReal *u, FuncReal *v,
+        GeomReal *e, ExtDataReal *ext):
+    if e.marker != 1:
         return 0.
-    return surf_int_u_v(fu, fv, ru, rv, ep)
+    return int_u_v(n, wt, u, v)
 
-cdef scalar linear_form_surf_06(RealFunction *fv, RefMap *rv, EdgePos* ep):
-    if ep.marker != 1:
+cdef scalar linear_form_surf_06(int n, double *wt, FuncReal *v, GeomReal *e,
+        ExtDataReal *ext):
+    if e.marker != 1:
         return 0.
-    return 20. * surf_int_v(fv, rv, ep)
+    return 20. * int_v(n, wt, v)
 
 cdef int bc_type_06(int marker):
     if marker == 3:
@@ -28,10 +30,18 @@ cdef scalar bc_values_06(int marker, double x, double y):
         return 100.
     return 0.
 
+cdef c_Ord _order_bf(int n, double *wt, FuncOrd *u, FuncOrd *v, GeomOrd
+        *e, ExtDataOrd *ext):
+    return create_Ord(20)
+
+cdef c_Ord _order_lf(int n, double *wt, FuncOrd *u, GeomOrd
+        *e, ExtDataOrd *ext):
+    return create_Ord(20)
+
 def set_forms(WeakForm dp):
-    dp.thisptr.add_biform(0, 0, &bilinear_form)
-    dp.thisptr.add_biform_surf(0, 0, &bilinear_form_surf_06)
-    dp.thisptr.add_liform_surf(0, &linear_form_surf_06)
+    dp.thisptr.add_biform(0, 0, &bilinear_form, &_order_bf)
+    dp.thisptr.add_biform_surf(0, 0, &bilinear_form_surf_06, &_order_bf)
+    dp.thisptr.add_liform_surf(0, &linear_form_surf_06, &_order_lf)
 
 def set_bc(H1Space space):
     space.thisptr.set_bc_types(&bc_type_06)
