@@ -373,8 +373,8 @@ void L2OrthoHP::get_optimal_refinement(Element* e, int order, Solution* rsln, in
     double error;
     int dofs, split, p[4];
   };
-  Cand cand[maxcand];
-
+  AUTOLA_CL(Cand, cand, maxcand);
+  
   #define make_p_cand(q) { \
     assert(n < maxcand);   \
     cand[n].split = -1; \

@@ -231,7 +231,10 @@ protected:
     int mask;           ///< a combination of FN_XXX: specifies which tables are present
     int size;           ///< size in bytes of this struct (for maintaining total_mem)
     TYPE* values[2][6]; ///< pointers to 'data'
-    TYPE data[0];       ///< value tables
+    TYPE data[1];       ///< value tables. The length may vary.
+  private: //operation that are not allowed due to the variable length of the Node structure
+    Node(const Node& org) {}; ///< Copy constructor is disabled.
+    Node& operator=(const Node& other) { return *this; }; ///< Assignment is not allowed.
   };
 
   void** sub_tables;  ///< pointer to the current secondary Judy array
@@ -243,11 +246,12 @@ protected:
   void update_nodes_ptr()
   {
     if (sub_idx > max_idx) handle_overflow_idx();
-    else nodes = (void**) JudyLIns(sub_tables, sub_idx, NULL);
+    else nodes = (void**) JudyLIns(sub_tables, (Word_t)sub_idx, NULL);
+    debug_assert((sub_idx >> (sizeof(Word_t) * 8)) == 0, "E index is larger than JudyLins can contain (Function::update_nodes_ptr)\n");
   }
 
   /// For internal use only.
-  void force_transform(uint64 sub_idx, Trf* ctm)
+  void force_transform(uint64_t sub_idx, Trf* ctm)
   {
     this->sub_idx = sub_idx;
     this->ctm = ctm;
@@ -378,7 +382,7 @@ typename Function<TYPE>::Node* Function<TYPE>::new_node(int mask, int num_points
   while (m) { nt += m & 1; m >>= 1; }
 
   // allocate a node including its data part, init table pointers
-  int size = sizeof(Node) + sizeof(TYPE) * num_points * nt;
+  int size = offsetof(Node, data) + sizeof(TYPE) * num_points * nt; //Due to impl. reasons, the structure Node has non-zero length of data even though they can be zero.
   Node* node = (Node*) malloc(size);
   node->mask = mask;
   node->size = size;

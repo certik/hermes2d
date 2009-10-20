@@ -30,7 +30,7 @@
 /// and contains the "ortho" hp-adaptivty algorithm based on fast
 /// projections to an orthonormal set of functions.
 ///
-class H1OrthoHP
+class PUBLIC_API H1OrthoHP
 {
 public:
 
@@ -69,7 +69,7 @@ public:
 
   /// Internal. Used by adapt(). Can be utilized in specialized adaptivity
   /// procedures, for which adapt() is not sufficient.
-  static void get_optimal_refinement(Element* e, int order, Solution* rsln, int& split, int p[4], int q[4],
+  static void get_optimal_refinement(Element* e, int order, Solution* rsln, int& split, int4 p, int4 q,
                                      bool h_only = false, bool iso_only = false, int max_order = -1);
 
   /// Internal. Functions to obtain errors of individual elements.

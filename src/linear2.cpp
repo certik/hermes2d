@@ -189,8 +189,9 @@ void Orderizer::save_data(const char* filename)
   FILE* f = fopen(filename, "wb");
   if (f == NULL) error("Could not open %s for writing.", filename);
   lock_data();
-
-  int orders[nl], vo, ho;
+  
+  AUTOLA_OR(int, orders, nl);
+  int vo, ho;
   for (int i = 0; i < nl; i++)
   {
     if (strchr(ltext[i], '|'))
@@ -250,8 +251,8 @@ void Orderizer::load_data(const char* filename)
   lin_init_array(lbox, double2, cl3, nl);
   if (fread(lbox, sizeof(double2), nl, f) != nl)
     error("Error reading label bounding boxes from %s", filename);
-
-  int orders[nl];
+  
+  AUTOLA_OR(int, orders, nl);
   if (fread(orders, sizeof(int), nl, f) != nl)
     error("Error reading element orders from %s", filename);
 

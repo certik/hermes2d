@@ -57,10 +57,11 @@ static int default_order_table_quad[] =
 };
 #endif
 
-int  g_max_order, g_safe_max_order;
+PUBLIC_API int  g_max_order;
+PUBLIC_API int  g_safe_max_order;
 int* g_order_table_quad = default_order_table_quad;
 int* g_order_table_tri  = default_order_table_tri;
-int* g_order_table = NULL;
+PUBLIC_API int* g_order_table = NULL;
 bool warned_order = false;
 //extern bool warned_order;
 extern void update_limit_table(int mode);
@@ -201,8 +202,9 @@ static inline void page_add_ij(Page** pages, int i, int j)
 void LinSystem::precalc_sparse_structure(Page** pages)
 {
   int i, j, m, n;
-  AsmList al[wf->neq], *am, *an;
-  Mesh* meshes[wf->neq];
+  AUTOLA_CL(AsmList, al, wf->neq);
+  AsmList *am, *an;
+  AUTOLA_OR(Mesh*, meshes, wf->neq);
   bool** blocks = wf->get_blocks();
 
   // init multi-mesh traversal
@@ -343,7 +345,7 @@ void LinSystem::create_matrix(bool rhsonly)
   if (Ai == NULL) error("Out of memory. Could not allocate the array Ai.");
 
   // sort the indices and remove duplicities, insert into Ai
-  int i, pos = 0, num;
+  int i, pos = 0;
   for (i = 0; i < ndofs; i++)
   {
     Ap[i] = pos;
@@ -457,9 +459,10 @@ void LinSystem::insert_block(scalar** mat, int* iidx, int* jidx, int ilen, int j
 
 void LinSystem::assemble(bool rhsonly)
 {
-  int i, j, k, l, m, n, ss, ww, marker;
-  AsmList al[wf->neq], *am, *an;
-  bool bnd[4], nat[wf->neq], isempty[wf->neq];
+  int i, j, k, m, n, ss, ww, marker;
+  AUTOLA_CL(AsmList, al, wf->neq);
+  AsmList *am, *an;
+  bool bnd[4]; AUTOLA_OR(bool, nat, wf->neq); AUTOLA_OR(bool, isempty, wf->neq);
   EdgePos ep[4];
   warned_order = false;
 
@@ -474,9 +477,9 @@ void LinSystem::assemble(bool rhsonly)
   begin_time();
 
   // create slave pss's for test functions, init quadrature points
-  PrecalcShapeset* spss[wf->neq];
+  AUTOLA_OR(PrecalcShapeset*, spss, wf->neq);
   PrecalcShapeset *fu, *fv;
-  RefMap refmap[wf->neq];
+  AUTOLA_CL(RefMap, refmap, wf->neq);
   for (i = 0; i < wf->neq; i++)
   {
     spss[i] = new PrecalcShapeset(pss[i]);
@@ -530,6 +533,17 @@ void LinSystem::assemble(bool rhsonly)
         if (e[i] == NULL) { isempty[j] = true; continue; }
         spaces[j]->get_element_assembly_list(e[i], al+j);
         // todo: neziskavat znova, pokud se element nezmenil
+        
+        //DEBUG
+        //debug_log("I element (LinSystem::assemble): %d\n", e[i]->id);
+        //AsmList* asm_list = al+j;
+        //for(int l = 0; l < asm_list->cnt; l++)
+        //{
+        //  debug_log("   (idx, dof, coef): (%d, %d, %g)\n", asm_list->idx[l], asm_list->dof[l], asm_list->coef[l]);
+        //}
+        //debug_log("\n");
+        //DEBUG-END
+
         spss[j]->set_active_element(e[i]);
         spss[j]->set_master_transform();
         refmap[j].set_active_element(e[i]);
@@ -553,6 +567,14 @@ void LinSystem::assemble(bool rhsonly)
         scalar bi, **mat = get_matrix_buffer(std::max(am->cnt, an->cnt));
         for (i = 0; i < am->cnt; i++)
         {
+          //DEBUG
+          if (tra)
+          {
+            debug_log("! k will not be set\n");
+            debug_log("  inx_v:\t%d\n", am->dof[i]);
+            debug_log("  i:\t%d\n", i);
+          }
+          //DEBUG-END
           if (!tra && (k = am->dof[i]) < 0) continue;
           fv->set_active_shape(am->idx[i]);
 
@@ -678,6 +700,12 @@ void LinSystem::assemble(bool rhsonly)
     }
     trav.finish();
   }
+
+  ////DEBUG
+  //debug_log("! DOFs before adding Dir[i]\n");
+  //for(int i = 0; i < ndofs; i++)
+  //  debug_log("  (dof, RHS): %d, %g\n", i, RHS[i]);
+  ////DEBUG-END
 
   // add to RHS the dirichlet contributions
   if (want_dir_contrib)
@@ -1048,7 +1076,7 @@ void set_order_limit_table(int* tri_table, int* quad_table, int n)
 }
 
 
-void update_limit_table(int mode)
+PUBLIC_API void update_limit_table(int mode)
 {
   g_quad_2d_std.set_mode(mode);
   g_max_order = g_quad_2d_std.get_max_order();
@@ -1057,7 +1085,7 @@ void update_limit_table(int mode)
 }
 
 
-void warn_order()
+PUBLIC_API void warn_order()
 {
   if (!warned_order && warn_integration)
   {

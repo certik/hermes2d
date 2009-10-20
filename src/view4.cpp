@@ -51,7 +51,9 @@ void MeshView::show(Mesh* mesh)
   elems = new ObjInfo[ne];
   for (i = 0; i < ne; i++)
     elems[i].id = -1;
-
+  
+  int active_element_cnt = 0;
+  float min_error = -1, max_error = -1;
   Element* e;
   for_all_active_elements(e, mesh)
   {
@@ -59,14 +61,13 @@ void MeshView::show(Mesh* mesh)
     oi->id = e->id;
     oi->type = e->marker;
     oi->x = oi->y = 0.0;
-    for (i = 0; i < e->nvert; i++) {
+    for (unsigned i = 0; i < e->nvert; i++) {
       oi->x += e->vn[i]->x;
       oi->y += e->vn[i]->y;
     }
     oi->x /= e->nvert;
     oi->y /= e->nvert;
-  }
-
+  }  
   create();
   wait_for_draw();
 }
@@ -92,7 +93,7 @@ void MeshView::on_display()
 
   // draw all triangles
   int3* tris = lin.get_triangles();
-  glColor3f(0.9, 0.9, 0.9);
+  glColor3f(0.9f, 0.9f, 0.9f);
   glBegin(GL_TRIANGLES);
   for (i = 0; i < lin.get_num_triangles(); i++)
   {
@@ -115,7 +116,7 @@ void MeshView::on_display()
 
     float* color = get_marker_color(mrk);
     glColor3f(color[0], color[1], color[2]);
-    glLineWidth(mrk ? 1.5 : 1.0);
+    glLineWidth(mrk ? 1.5f : 1.0f);
     glBegin(GL_LINES);
       glVertex2d(tvert[edges[i][0]][0], tvert[edges[i][0]][1]);
       glVertex2d(tvert[edges[i][1]][0], tvert[edges[i][1]][1]);
@@ -124,7 +125,7 @@ void MeshView::on_display()
     if (mrk)
     {
       glEnable(GL_LINE_STIPPLE);
-      glColor3f(0.4, 0.4, 0.4);
+      glColor3f(0.4f, 0.4f, 0.4f);
       glBegin(GL_LINES);
         glVertex2d(tvert[edges[i][0]][0], tvert[edges[i][0]][1]);
         glVertex2d(tvert[edges[i][1]][0], tvert[edges[i][1]][1]);
@@ -183,18 +184,18 @@ void MeshView::on_key_down(unsigned char key, int x, int y)
 
 float* MeshView::get_marker_color(int marker)
 {
-  static float edgecol[3] = { 0.3, 0.3, 0.3 };
+  static float edgecol[3] = { 0.3f, 0.3f, 0.3f };
   static float randcol[3];
   static float mc[8][3] =
   {
-    { 1.0, 0.3, 0.3 },
-    { 0.0, 0.9, 0.0 },
-    { 0.0, 0.0, 0.7 },
-    { 1.0, 1.0, 0.2 },
-    { 0.7, 0.0, 0.0 },
-    { 0.0, 0.5, 0.0 },
-    { 0.3, 0.5, 1.0 },
-    { 0.8, 0.8, 0.0 },
+    { 1.0f, 0.3f, 0.3f },
+    { 0.0f, 0.9f, 0.0f },
+    { 0.0f, 0.0f, 0.7f },
+    { 1.0f, 1.0f, 0.2f },
+    { 0.7f, 0.0f, 0.0f },
+    { 0.0f, 0.5f, 0.0f },
+    { 0.3f, 0.5f, 1.0f },
+    { 0.8f, 0.8f, 0.0f },
   };
 
   if (marker == 0)
@@ -359,8 +360,8 @@ void VectorBaseView::show(Space* space)
 
 void VectorBaseView::free()
 {
-  if (pss != NULL) { delete [] pss; pss = NULL; }
-  if (sln != NULL) { delete [] sln; sln = NULL; }
+  if (pss != NULL) { delete pss; pss = NULL; }
+  if (sln != NULL) { delete sln; sln = NULL; }
 }
 
 
@@ -537,11 +538,11 @@ void OrderView::on_display()
 
   // draw all edges
   if (pal_type == 0)
-    glColor3f(0.4, 0.4, 0.4);
+    glColor3f(0.4f, 0.4f, 0.4f);
   else if (pal_type == 1)
-    glColor3f(1.0, 1.0, 1.0);
+    glColor3f(1.0f, 1.0f, 1.0f);
   else
-    glColor3f(0.0, 0.0, 0.0);
+    glColor3f(0.0f, 0.0f, 0.0f);
   glBegin(GL_LINES);
   int3* edges = ord.get_edges();
   for (i = 0; i < ord.get_num_edges(); i++)

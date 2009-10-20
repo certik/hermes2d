@@ -77,7 +77,7 @@ bool HcurlOrthoHP::obase_ready = false;
 
 void HcurlOrthoHP::calc_ortho_base()
 {
-  int i, j, k, l, m, ii, nb, np, o;
+  int i, j, k, l, m, ii, nb, np;
   int n, idx[220];
 
   HcurlShapesetGradLeg shapeset;
@@ -915,8 +915,8 @@ double HcurlOrthoHP::calc_error_n(int n, ...)
   va_end(ap);
 
   // prepare multi-mesh traversal and error arrays
-  Mesh* meshes[2*num];
-  Transformable* tr[2*num];
+  AUTOLA_OR(Mesh*, meshes, 2*num);
+  AUTOLA_OR(Transformable*, tr, 2*num);
   Traverse trav;
   nact = 0;
   for (i = 0; i < num; i++)

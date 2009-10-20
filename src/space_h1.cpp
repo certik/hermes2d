@@ -74,7 +74,7 @@ void H1Space::assign_vertex_dofs()
   // that all DOFs are unassigned.
   int i, j;
   for (i = 0; i < mesh->get_max_node_id(); i++)
-  {
+  { //QUESTION: no distinguishing between constrained and unconstrained nodes (may overwrite baselist (ptr) because NodeData is union = memory leak + crash) 
     ndata[i].n = BC_NATURAL;
     ndata[i].dof = UNASSIGNED;
   }
@@ -106,7 +106,9 @@ void H1Space::assign_vertex_dofs()
         // vertex dofs
         Node* vn = e->vn[i];
         NodeData* nd = ndata + vn->id;
-        if (nd->dof == UNASSIGNED && !vn->is_constrained_vertex())
+        //QUESTION: invalid order of conditions; contents of NodeData differs whether is it constrained and unconstrained vertex; children should never play with unions!
+        //ORIGINAL: if (nd->dof == UNASSIGNED && !vn->is_constrained_vertex()) 
+        if (!vn->is_constrained_vertex() && nd->dof == UNASSIGNED)
         {
           if (nd->n == BC_ESSENTIAL || is_fixed_vertex(vn->id))
           {
@@ -123,7 +125,7 @@ void H1Space::assign_vertex_dofs()
         // edge dofs
         Node* en = e->en[i];
         nd = ndata + en->id;
-        if (nd->dof == UNASSIGNED)
+        if (nd->dof == UNASSIGNED) //QUESTION: constents of NodeData depends on whether it is constrained or not
         {
           // if the edge node is not constrained, assign it dofs
           if (en->ref > 1 || en->bnd || mesh->peek_vertex_node(en->p1, en->p2) != NULL)
@@ -156,6 +158,18 @@ void H1Space::assign_vertex_dofs()
     ed->n = order ? shapeset->get_num_bubbles(ed->order) : 0;
     next_dof += ed->n * stride;
   }
+
+  //DEBUG: find nodes with invalid dof
+  for(int i = 0; i < mesh->get_max_node_id(); i++)
+  {
+    if (ndata[i].dof < UNASSIGNED)
+    {
+      debug_log("! found invalid node (H1Space::assign_vertex_dofs) 3\n");
+      debug_log("  node id:\t%d\n", i);
+      debug_log("  dof:\t%d\n", ndata[i].dof);
+    }
+  }
+  //DEBUG-END
 }
 
 
@@ -179,15 +193,47 @@ void H1Space::get_vertex_assembly_list(Element* e, int iv, AsmList* al)
   int index = shapeset->get_vertex_index(iv);
   if (get_element_order(e->id) == 0) return;
 
+  //DEBUG
+  if (nd->dof < -1)
+  {
+    debug_log("! insane dof (H1Space::get_vertex_assembly_list)\n");
+    debug_log("  dof:\t%d\n", nd->dof);
+    debug_log("  node id:\t%d\n", vn->id);
+    debug_log("  element id:\t%d\n", e->id);
+  }
+  //DEBUG-END
+
   if (!vn->is_constrained_vertex()) // unconstrained
   {
     al->add_triplet(index, nd->dof, (nd->dof >= 0) ? 1.0 : *(nd->vertex_bc_coef));
+    //DEBUG
+    if (nd->dof < -1)
+    {
+      debug_log("! insane dof (H1Space::get_vertex_assembly_list)\n");
+      debug_log("  element coord: (%f, %f) x (%f, %f)\n", (float)e->vn[0]->x, (float)e->vn[2]->y, (float)e->vn[2]->x, (float)e->vn[0]->y);
+      debug_log("  iv, vn->id:\t%d, %d\n", iv, vn->id);
+      debug_log("  vertex inx:\t%d\n", index);
+      debug_log("  *nd->vertex_bc_coef:\t%g\n", *nd->vertex_bc_coef);
+      debug_log("  nd->vertex_bc_coef:\t%p\n", nd->vertex_bc_coef);
+    }
+    //DEBUG-END
   }
   else // constrained
   {
+    //debug_log("! B cause of the triplet\n");
     for (int j = 0; j < nd->ncomponents; j++)
       if (nd->baselist[j].coef != (scalar) 0)
+      {
         al->add_triplet(index, nd->baselist[j].dof, nd->baselist[j].coef);
+        //DEBUG
+        if (nd->baselist[j].dof < -2)
+        {
+          debug_log("! invalid triplet assignment\n");
+          debug_log("  j: %d\n", j);
+          debug_log("  vn->id: %d\n", vn->id);
+        }
+        //DEBUG-END
+      }
   }
 }
 
@@ -197,6 +243,16 @@ void H1Space::get_edge_assembly_list_internal(Element* e, int ie, AsmList* al)
   Node* en = e->en[ie];
   NodeData* nd = &ndata[en->id];
   if (get_element_order(e->id) == 0) return;
+
+  //DEBUG
+  if (nd->dof < -1)
+  {
+    debug_log("! insane dof (H1Space::get_edge_assembly_list_internal)\n");
+    debug_log("  dof:\t%d\n", nd->dof);
+    debug_log("  node id:\t%d\n", en->id);
+    debug_log("  element id:\t%d\n", e->id);
+  }
+  //DEBUG-END
 
   if (nd->n >= 0) // unconstrained
   {
@@ -209,7 +265,21 @@ void H1Space::get_edge_assembly_list_internal(Element* e, int ie, AsmList* al)
     else
     {
       for (int j = 0; j < nd->n; j++)
+      {
         al->add_triplet(shapeset->get_edge_index(ie, 0, j+2), -1, nd->edge_bc_proj[j+2]);
+        //DEBUG
+        int dof = shapeset->get_edge_index(ie, 0, j+2);
+        if (dof < -1)
+        {
+          debug_log("! insane dof (H1Space::get_edge_assembly_list_internal)\n");
+          debug_log("  element coord: (%f, %f) x (%f, %f)\n", (float)e->vn[0]->x, (float)e->vn[2]->y, (float)e->vn[2]->x, (float)e->vn[0]->y);
+          debug_log("  ie, en->id:\t%d, %d\n", ie, en->id);
+          debug_log("  nd->edge_bc_proj[j+2]:\t%g\n", nd->edge_bc_proj[j+2]);
+          debug_log("  j+2:\t%d\n", j+2);
+          debug_log("  nd->vertex_bc_coef:\t%p\n", nd->vertex_bc_coef);
+        }
+        //DEBUG-END
+      }
     }
   }
   else // constrained
@@ -229,6 +299,15 @@ void H1Space::get_bubble_assembly_list(Element* e, AsmList* al)
 {
   ElementData* ed = &edata[e->id];
   if (!ed->n) return;
+
+  //DEBUG
+  if (ed->bdof < -1)
+  {
+    debug_log("! insane bdof (H1Space::get_bubble_assembly_list)\n");
+    debug_log("  bdof:\t%d\n", ed->bdof);
+    debug_log("  element id:\t%d\n", e->id);
+  }
+  //DEBUG-END
 
   int* indices = shapeset->get_bubble_indices(ed->order);
   for (int i = 0, dof = ed->bdof; i < ed->n; i++, dof += stride)
@@ -292,11 +371,18 @@ inline void H1Space::output_component(BaseComponent*& current, BaseComponent*& l
   }
 
   // leave space for edge node dofs if they belong in front of the current minimum dof
-  if (edge != NULL && ndata[edge->id].dof <= min->dof)
+  if (edge != NULL && ndata[edge->id].dof <= min->dof) //QUESTION: NodeData zavisi na tom, zda-li je vrchol constraint nebo unconstraint
   {
     edge_dofs = current;
+
     // (reserve space only if the edge dofs are not in the list yet)
-    if (ndata[edge->id].dof != min->dof) current += ndata[edge->id].n;
+    if (ndata[edge->id].dof != min->dof) { //QUESTION: Kdyz .n > 1 && ndata[edge->id].dof == min->dof, tak se nic nerezervuje, ale funkce "update_constrained_nodes" predpoklada, ze ano
+      current += ndata[edge->id].n;
+      //DEBUG
+      for(int i = 0; i < ndata[edge->id].n; i++)
+        edge_dofs[i].dof = 0xbfbfbfbf;
+      //DEBUG-END
+    }
     edge = NULL;
   }
 
@@ -315,20 +401,27 @@ Space::BaseComponent* H1Space::merge_baselists(BaseComponent* l1, int n1, BaseCo
 {
   // estimate the upper bound of the result size
   int max_result = n1 + n2;
-  if (edge != NULL) max_result += ndata[edge->id].n;
+  if (edge != NULL) max_result += ndata[edge->id].n; //QUESTION: ndata nebo edata? (preklep + dusledek hloupeho jmenne konvence)
 
-  BaseComponent* result = (BaseComponent*) malloc(max_result * sizeof(BaseComponent));
+  BaseComponent* result = (BaseComponent*) malloc(max_result * sizeof(BaseComponent)); //MAGIC: proc nepouzil new, ktere vyvola default constructor
   BaseComponent* current = result;
   BaseComponent* last = NULL;
 
+  //DEBUG
+  for(int i = 0; i < max_result; i++)
+    result[i].dof = 0xeeffeeff;
+  edge_dofs = (BaseComponent*)(0xddccddcc);
+  //DEBUG-END
+
+  //PICUS_CASE: proc popsat veci jednoduse, kdyz jsou popsat slozite, napr. misto mergesort uzit komentar nize
   // main loop - always output the component with smaller dof so that we get a sorted array
   int i1 = 0, i2 = 0;
   while (i1 < n1 && i2 < n2)
   {
     if (l1[i1].dof < l2[i2].dof)
-      output_component(current, last, l1 + i1++, edge, edge_dofs);
+      output_component(current, last, l1 + i1++, edge, edge_dofs); //PICUS_CASE: jenom picus napise l1 + i1++ namisto l1 + i1 a i1++ v nasledujicim radku
     else
-      output_component(current, last, l2 + i2++, edge, edge_dofs);
+      output_component(current, last, l2 + i2++, edge, edge_dofs); //PICUS_CASE: podobne, picus obrovsky obecny
   }
 
   // finish the longer baselist
@@ -339,14 +432,28 @@ Space::BaseComponent* H1Space::merge_baselists(BaseComponent* l1, int n1, BaseCo
   if (edge != NULL)
   {
     edge_dofs = current;
-    current += ndata[edge->id].n;
+    current += ndata[edge->id].n; //QUESTION: ndata nebo edata? (preklep + dusledek hloupeho jmenne konvence)
+    //DEBUG
+    for(int i = 0; i < ndata[edge->id].n; i++)
+      edge_dofs[i].dof = 0xafafafaf;
+    //DEBUG-END
   }
 
   // if we produced less components than we expected, reallocate the resulting array
   // ...this should be OK as we are always shrinking the array so no copying should occur
-  ncomponents = current - result;
-  if (ncomponents < max_result)
-    return (BaseComponent*) realloc(result, ncomponents * sizeof(BaseComponent));
+  ncomponents = current - result; //PICUS_CASE: pointerova artimetika, what a picus.
+  if (ncomponents < max_result) //PICUS_CASE: realloc je zavisly na implementaci a i pri zmensovani muze zpusobovat presun, aby se zkompaktil heap
+  {
+    //ORIG: return (BaseComponent*) realloc(result, ncomponents * sizeof(BaseComponent)); //PICUS_CASE: heap miluje spoustu malych bloku s jeste mensimi mezerami mezi nimi
+    //PICUS_PATCH
+    BaseComponent* reallocated_result = (BaseComponent*) realloc(result, ncomponents * sizeof(BaseComponent)); //PICUS_CASE: heap miluje spoustu malych bloku s jeste mensimi mezerami mezi nimi
+    if (edge_dofs != NULL)
+    {
+      edge_dofs = reallocated_result + (edge_dofs - result);
+    }
+    return reallocated_result;
+    //PICUS_PATCH-END
+  }
   else
     return result;
 }
@@ -451,6 +558,7 @@ void H1Space::update_constrained_nodes(Element* e, EdgeInfo* ei0, EdgeInfo* ei1,
       // set edge node coefs to function values of the edge functions
       double mid = (ei[i]->lo + ei[i]->hi) * 0.5;
       nd = &ndata[en->id];
+      BaseComponent* edge_dofs_tmp = edge_dofs; //DEBUG
       for (k = 0; k < nd->n; k++, edge_dofs++)
       {
         edge_dofs->dof = nd->dof + k*stride;
@@ -458,6 +566,37 @@ void H1Space::update_constrained_nodes(Element* e, EdgeInfo* ei0, EdgeInfo* ei1,
       }
 
       //dump_baselist(ndata[mid_vn->id]);
+      //DEBUG: check for validity of the baselis
+      BaseComponent* components = ndata[mid_vn->id].baselist;
+      int inx_found = -1;
+      for(int i = 0; i < ndata[mid_vn->id].ncomponents; i++)
+      {
+        if (components[i].dof < -2)
+          inx_found = i;
+      }
+      if (inx_found >= 0)
+      {
+        debug_log("! found invalid unfilled components (H1Space::update_constrained_nodes)\n");
+        debug_log("  result\n");
+        for(int i = 0; i < ndata[mid_vn->id].ncomponents; i++)
+        {
+          debug_log("   %d. item (dof, coef): %d (%x), %g\n", i, components[i].dof, components[i].dof, components[i].coef);
+        }
+        debug_log("  edge ptr, ndata[en->id].n, ndata[en->id].dof: %p, %d, %d\n", en, ndata[en->id].n, ndata[en->id].dof);
+        debug_log("  ncomponent: %d\n", ndata[mid_vn->id].ncomponents);
+        debug_log("  components, edge_dofs, edge_dofs after: %p, %p, %p\n", components, edge_dofs_tmp, edge_dofs);
+        for(int i = 0; i < 2; i++)
+        {
+          debug_log("  input: %d\n", i);
+          debug_log("    nc: %d\n", nc[i]);
+          for(int k = 0; k < nc[i]; k++)
+          {
+            debug_log("    %d. item of bl (dof, coef): %d, %g\n", k, bl[i][k].dof, bl[i][k].coef);
+          }
+        }
+        exit(0);
+      }
+      //DEBUG-END
     }
 
     // create edge infos for half-edges

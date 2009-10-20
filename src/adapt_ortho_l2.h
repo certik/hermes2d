@@ -30,7 +30,7 @@
 ///
 /// TODO: describe difference from H1OrthoHP
 ///
-class L2OrthoHP
+class PUBLIC_API L2OrthoHP
 {
 public:
 

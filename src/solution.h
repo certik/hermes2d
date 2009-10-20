@@ -32,7 +32,7 @@ class PrecalcShapeset;
 ///
 /// (This is an abstract class and cannot be instantiated.)
 ///
-class MeshFunction : public ScalarFunction
+class PUBLIC_API MeshFunction : public ScalarFunction
 {
 public:
 
@@ -72,7 +72,7 @@ public:
 ///
 /// TODO: write how to obtain solution values, maybe include inherited methods from Function as comments.
 ///
-class Solution : public MeshFunction
+class PUBLIC_API Solution : public MeshFunction
 {
 public:
 
@@ -195,8 +195,8 @@ protected:
 ///
 /// Please note that the same functionality can be obtained by using Solution::set_exact().
 /// This class is provided merely for convenience.
-///
-class ExactSolution : public Solution
+/// 
+class PUBLIC_API ExactSolution : public Solution
 {
 public:
 

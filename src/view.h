@@ -26,6 +26,14 @@
 // you can define NOGLUT to turn off all OpenGL stuff in Hermes2D
 #ifndef NOGLUT
 
+// GUI inside views (the current GUI uses AntTweakBar and it is still experimental)
+// to enable view define: ENABLE_VIEWER_GUI
+# ifdef ENABLE_VIEWER_GUI
+#   define VIEWER_GUI(__def) __def
+# else
+#   define VIEWER_GUI(__def)
+# endif
+
 /// \brief Represents a simple visualization window.
 ///
 /// View is a base class providing a simple OpenGL visualization window.
@@ -35,7 +43,7 @@
 /// to provide zooming and panning capabilities for use by the descendant
 /// classes, etc.
 ///
-class View
+class PUBLIC_API View
 {
 public:
 
@@ -140,6 +148,10 @@ protected:
   void update_scale();
   void update_log_scale();
 
+protected: //OpenGL data
+  unsigned int gl_pallete_tex_id;
+
+protected: //internal functions
   double transform_x(double x) { return (x * scale + trans_x) + center_x; }
   double transform_y(double y) { return center_y - (y * scale + trans_y); }
   double untransform_x(double x) { return (x - center_x - trans_x) / scale; }
@@ -193,7 +205,7 @@ void finish_glut_main_loop(bool force = false);  // deprecated, don't use
 /// MeshView is a debugging tool for displaying meshes together with its element
 /// id numbers, boundary markers etc.
 ///
-class MeshView : public View
+class PUBLIC_API MeshView : public View
 {
 public:
 
@@ -232,7 +244,7 @@ protected:
 ///
 /// ScalarView is a visualization window for all scalar-valued PDE solutions.
 ///
-class ScalarView : public View
+class PUBLIC_API ScalarView : public View
 {
 public:
 
@@ -251,6 +263,57 @@ public:
   void save_data(const char* filename);
   void save_numbered(const char* format, int number);
 
+protected: ///< node selection
+  struct VertexNodeInfo
+  {
+    float x, y; ///< location of the node in coordinates of the mesh
+    int id; ///< id of the node
+    bool selected; ///< true if the node is selected
+    void* tw_bar; ///< a pointer to a gui window (CTwBar*) (GUI only). void* is used in order to avoid necessity of including GUI library to exposed API. 
+    VertexNodeInfo() {}; ///< An empty default constructor to limit time 
+    VertexNodeInfo(int id, float x, float y) : id(id), x(x), y(y), selected(false), tw_bar(NULL) {};
+  };
+  PUBLIC_API_USED_STL_VECTOR(VertexNodeInfo);
+  std::vector<VertexNodeInfo> vertex_nodes; ///< Vertex nodes. Sorted accordin to the X-axis.
+  VertexNodeInfo* pointed_vertex_node; ///< A vertex node that is under the mouse cursor. NULL if none.
+
+  unsigned int pointed_node_widget; ///> A GL display-list denoting a pointed vertex node. The geometry assumes the size of a pixel is 1x1.
+  unsigned int selected_node_widget; ///> A GL display-list denoting a selected mesh node. The geometry assumes the size of a pixel is 1x1.
+
+  const int node_pixel_radius; ///< A radius of node selection, in pixels.
+  const int node_widget_vert_cnt; ///< A number of vertices for a mesh node widget.
+
+# ifdef ENABLE_VIEWER_GUI
+  bool tw_initialized; ///< true, if TW has been initialized (GUI only).
+# endif
+
+  void init_vertex_nodes(Mesh* mesh); ///< Creates a copy of vertex nodes for purpose of displaying and selection.
+  VertexNodeInfo* find_nearest_node_in_range(float x, float y, float radius); ///< Finds nearest node in range.
+  static bool compare_vertex_nodes_x(const VertexNodeInfo& a, const VertexNodeInfo& b); ///< Returns true, if a's X-axis coordinate is lower than b's one. Used to sort mesh nodes for searching purposes.
+  void draw_vertex_nodes(); ///< Draws vertex nodes.
+  void draw_single_vertex_node(const VertexNodeInfo& node); ///< Draws a single vertex node.
+  void create_nodes_widgets(); ///< Creates vertex nodes widgets if not created already.
+
+protected: ///< element info
+  struct ElementInfo
+  {
+    float x, y; ///< location of center [in physical coordinates]
+    float width, height; ///< width, height of AABB [in physical coordinates]
+    int id; ///< element ID
+    ElementInfo() : x(0), y(0), id(-1), width(0), height(0) {};
+    ElementInfo(int id, float x, float y, float width, float height) : x(x), y(y), id(id), width(width), height(height) {};
+  };
+  PUBLIC_API_USED_STL_VECTOR(ElementInfo);
+  std::vector<ElementInfo> element_infos; ///< Element info.
+
+  unsigned int element_id_widget; ///> A GL display-list denoting a element ID widget. The geometry assumes the size of a pixel is 1x1.
+
+  bool show_element_info; ///< true, to draw element info (currently ID) in 2D mode
+
+  void init_element_info(Mesh* mesh); ///< Creates element info from mesh.
+  void create_element_info_widgets(); ///< Creates element ID widgets if not created already.
+  void draw_element_infos_2d(); ///< Draws elements infos in 2D mode.
+
 protected:
 
   Linearizer lin;
@@ -261,7 +324,7 @@ protected:
   double cont_orig, cont_step;
   double3* normals;
 
-  void draw_tri_contours(double3* vert, double2* tvert, int3* tri);
+  void draw_tri_contours(double3* vert, int3* tri);
   void reset_3d_view();
   void calculate_normals();
   void center_3d_mesh();
@@ -270,9 +333,17 @@ protected:
   virtual void on_display();
   virtual void on_key_down(unsigned char key, int x, int y);
   virtual void on_mouse_move(int x, int y);
+  virtual void on_right_mouse_down(int x, int y); ///< Handles selecting/deselecting of nodes.
   virtual void on_middle_mouse_down(int x, int y);
   virtual void on_middle_mouse_up(int x, int y);
   virtual const char* get_help_text() const;
+  virtual void on_close();
+  virtual void on_create();
+
+  virtual void on_left_mouse_down(int x, int y);
+  virtual void on_left_mouse_up(int x, int y);
+  virtual void on_right_mouse_up(int x, int y);
+  virtual void on_reshape(int width, int height);
 
 };
 
@@ -282,7 +353,7 @@ protected:
 /// BaseView is a debugging tool for the visualization of the basis functions
 /// of a given space.
 ///
-class BaseView : public ScalarView
+class PUBLIC_API BaseView : public ScalarView
 {
 public:
 
@@ -316,7 +387,7 @@ protected:
 ///
 /// OrderView is a tool for displaying the polynomial degrees of the elements in a space.
 ///
-class OrderView : public View
+class PUBLIC_API OrderView : public View
 {
 public:
 
@@ -353,7 +424,7 @@ protected:
 ///
 /// VectorView is a visualization window for all vector-valued PDE solutions.
 ///
-class VectorView : public View
+class PUBLIC_API VectorView : public View
 {
 public:
 
@@ -388,7 +459,7 @@ protected:
 };
 
 
-class VectorBaseView : public VectorView
+class PUBLIC_API VectorBaseView : public VectorView
 {
 public:
 
@@ -422,7 +493,7 @@ protected:
 ///
 /// StreamView is a visualization window for all vector-valued PDE solutions (especially for flow problems).
 ///
-class StreamView : public View
+class PUBLIC_API StreamView : public View
 {
 public:
 
@@ -485,8 +556,6 @@ protected:
 
 };
 
-
-// this has to be here, unfortunately
 template<class TYPE>
 void View::center_mesh(TYPE* vertices, int nvert)
 {
@@ -532,13 +601,13 @@ void View::center_mesh(TYPE* vertices, int nvert)
 #else // NOGLUT
 
 
-class View
+class PUBLIC_API View
 {
 public:
   View() {}
   View(const char* title, int x, int y, int width, int height) {}
   ~View() {}
-  int  create() {}
+  int  create() { return 0; }
   void close() {}
   void set_title(const char* title) {}
   void set_min_max_range(double min, double max) {}
@@ -561,7 +630,7 @@ public:
 };
 
 
-class MeshView : public View
+class PUBLIC_API MeshView : public View
 {
 public:
   MeshView(const char* title = "MeshView", DEFAULT_WINDOW_POS) {}
@@ -571,7 +640,7 @@ public:
 };
 
 
-class ScalarView : public View
+class PUBLIC_API ScalarView : public View
 {
 public:
   ScalarView(const char* title = "ScalarView", DEFAULT_WINDOW_POS) {}
@@ -589,7 +658,7 @@ public:
 };
 
 
-class BaseView : public ScalarView
+class PUBLIC_API BaseView : public ScalarView
 {
 public:
   BaseView(const char* title = "BaseView", DEFAULT_WINDOW_POS) {}
@@ -599,7 +668,7 @@ public:
 };
 
 
-class OrderView : public View
+class PUBLIC_API OrderView : public View
 {
 public:
   OrderView(const char* title = "OrderView", DEFAULT_WINDOW_POS) {}
@@ -611,7 +680,7 @@ public:
 };
 
 
-class VectorView : public View
+class PUBLIC_API VectorView : public View
 {
 public:
   VectorView(const char* title = "VectorView", DEFAULT_WINDOW_POS) {}
@@ -628,7 +697,7 @@ public:
 };
 
 
-class VectorBaseView : public VectorView
+class PUBLIC_API VectorBaseView : public VectorView
 {
 public:
   VectorBaseView(const char* title = "BaseView", DEFAULT_WINDOW_POS) {}

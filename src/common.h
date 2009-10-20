@@ -20,11 +20,14 @@
 #include <stdexcept>
 #include <stdio.h>
 #include <stdlib.h>
+#include <stddef.h> //allows to use offsetof
 #include <string.h>
 #include <cstdarg>
 #include <assert.h>
 #include <pthread.h>
 #include <math.h>
+
+#include <float.h>
 
 // STL stuff
 #include <vector>
@@ -36,6 +39,30 @@
 
 #include <Judy.h>
 
+//Windows exporting stuff
+#if defined(WIN32) || defined(_WINDOWS)
+# if defined(_HERMESDLL)
+#   define PUBLIC_API __declspec(dllexport)
+#   define PUBLIC_API_USED_TEMPLATE(__implementation) template class PUBLIC_API __implementation
+#   define PUBLIC_API_USED_STL_VECTOR(__type) PUBLIC_API_USED_TEMPLATE(std::allocator<__type>); PUBLIC_API_USED_TEMPLATE(std::vector<__type>)
+#   define EXTERN extern PUBLIC_API
+# else
+#   define PUBLIC_API __declspec(dllimport)
+#   define PUBLIC_API_USED_TEMPLATE(__implementation)
+//#   define PUBLIC_API_USED_TEMPLATE(__implementation) extern template class PUBLIC_API __implementation
+#   define PUBLIC_API_USED_STL_VECTOR(__type) PUBLIC_API_USED_TEMPLATE(std::allocator<__type>); PUBLIC_API_USED_TEMPLATE(std::vector<__type>)
+#   define EXTERN extern PUBLIC_API
+# endif
+#else
+# define PUBLIC_API
+# define PUBLIC_API_USED_TEMPLATE(__implementation)
+# define PUBLIC_API_USED_STL_VECTOR(__type)
+# define EXTERN extern
+#endif
+
+//C99 vs. C++ issues
+#include "auto_local_array.h"
+#include "c99_compatibility.h"
 
 enum // node types
 {
@@ -51,13 +78,6 @@ enum // element modes
 
 
 const int ANY = -1234;
-
-
-// min/max macros for Win32
-#ifdef _MSC_VER
-#include <minmax.h>
-#endif
-
 
 // how many bits the order number takes
 const int order_bits = 5;
@@ -84,8 +104,6 @@ typedef int int2[2];
 typedef int int3[3];
 typedef int int4[4];
 typedef int int5[5];
-
-typedef unsigned long long uint64;
 
 typedef double double2[2];
 typedef double double3[3];
@@ -119,10 +137,10 @@ inline complex conj(complex a) { return std::conj(a); }
 extern bool verbose_mode;
 extern bool info_mode;
 extern bool warn_integration;
-void __error_fn(const char* fname, const char* msg, ...);
-void __warn_fn(const char* fname, const char* msg, ...);
-void __info_fn(const char* msg, ...);
-void __verbose_fn(const char* msg, ...);
+PUBLIC_API void __error_fn(const char* fname, const char* msg, ...);
+PUBLIC_API void __warn_fn(const char* fname, const char* msg, ...);
+PUBLIC_API void __info_fn(const char* msg, ...);
+PUBLIC_API void __verbose_fn(const char* msg, ...);
 
 
 #ifdef _WIN32
@@ -165,10 +183,14 @@ void __hermes2d_fread(void* ptr, size_t size, size_t nitems, FILE* stream, const
       __hermes2d_fread((ptr), (size), (nitems), (stream), __ASSERT_FUNCTION)
 
 
-void begin_time();
-double cur_time();
-double end_time();
+EXTERN void begin_time();
+EXTERN double cur_time();
+EXTERN double end_time();
+
 
 void throw_exception(char *text);
+
+//logging support
+#include "logging.h"
 
 #endif

@@ -206,9 +206,9 @@ void VectorView::on_display()
   int3* xtris = vec.get_triangles();
 
   if (mode != 1) glEnable(GL_TEXTURE_1D);
-  glBindTexture(GL_TEXTURE_1D, 1);
+  glBindTexture(GL_TEXTURE_1D, gl_pallete_tex_id);
   glBegin(GL_TRIANGLES);
-  glColor3f(0.95,0.95,0.95);
+  glColor3f(0.95f, 0.95f, 0.95f);
   for (i = 0; i < vec.get_num_triangles(); i++)
   {
     double mag = sqrt(sqr(vert[xtris[i][0]][2]) + sqr(vert[xtris[i][0]][3]));

@@ -33,7 +33,7 @@ struct Page;
 ///
 ///
 ///
-class LinSystem
+class PUBLIC_API LinSystem
 {
 public:
 
@@ -177,12 +177,12 @@ protected:
 
 
 // can be called to set a custom order limiting table
-extern void set_order_limit_table(int* tri_table, int* quad_table, int n);
+EXTERN void set_order_limit_table(int* tri_table, int* quad_table, int n);
 
 // limit_order is used in integrals
-extern int  g_safe_max_order;
-extern int  g_max_order;
-extern int* g_order_table;
+EXTERN int  g_safe_max_order;
+EXTERN int  g_max_order;
+EXTERN int* g_order_table;
 
 #ifndef DEBUG_ORDER
   #define limit_order(o) \
@@ -199,8 +199,8 @@ extern int* g_order_table;
     o = g_safe_max_order;
 #endif
 
-extern void warn_order();
-extern void update_limit_table(int mode);
+EXTERN void warn_order();
+EXTERN void update_limit_table(int mode);
 
 
 #endif

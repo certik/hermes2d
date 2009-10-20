@@ -193,8 +193,8 @@ static void get_style_types(std::string line, std::string mark, std::string col,
 
 void GnuplotGraph::save(const char* filename)
 {
-  int i, j, k;
-
+  int i, j;
+  
   if (!rows.size()) error("No data rows defined.");
 
   FILE* f = fopen(filename, "w");
@@ -203,7 +203,7 @@ void GnuplotGraph::save(const char* filename)
   fprintf(f, "set terminal postscript eps enhanced\n");
 
   int len = strlen(filename);
-  char outname[len + 10];
+  AUTOLA_OR(char, outname, len + 10);
   strcpy(outname, filename);
   char* slash = strrchr(outname, '/');
   if (slash != NULL) strcpy(outname, ++slash);

@@ -125,8 +125,9 @@ void RefMap::calc_inv_ref_map(int order)
   int i, j, np = quad_2d->get_num_points(order);
 
   // construct jacobi matrices of the direct reference map for all integration points
-  double2x2 m[np];
-  memset(m, 0, np * sizeof(double2x2));
+
+  AUTOLA_OR(double2x2, m, np);
+  memset(m, 0, m.size);
   ref_map_pss.force_transform(sub_idx, ctm);
   for (i = 0; i < nc; i++)
   {
@@ -168,8 +169,8 @@ void RefMap::calc_second_ref_map(int order)
   assert(quad_2d != NULL);
   int i, j, np = quad_2d->get_num_points(order);
 
-  double3x2 k[np];
-  memset(k, 0, np * sizeof(double3x2));
+  AUTOLA_OR(double3x2, k, np);
+  memset(k, 0, k.size);
   ref_map_pss.force_transform(sub_idx, ctm);
   for (i = 0; i < nc; i++)
   {

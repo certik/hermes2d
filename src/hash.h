@@ -21,12 +21,13 @@
 struct Node;
 
 
+
 /// \brief Stores and searches node tables.
 ///
 /// HashTable is a base class for Mesh. It serves as a container for all nodes
 /// of a mesh. Moreover, it has node searching functions based on hash tables.
 ///
-class HashTable
+class PUBLIC_API HashTable
 {
 public:
 
@@ -50,8 +51,9 @@ public:
 
 
 // The following functions are used by the derived class Mesh:
-protected:
-
+protected: 
+  
+  PUBLIC_API_USED_TEMPLATE(Array<Node>);
   Array<Node> nodes; ///< Array storing all nodes
 
   static const int DEFAULT_HASH_SIZE = 0x20000; // 128K entries

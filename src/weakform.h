@@ -38,7 +38,6 @@ enum SymFlag
   SYM = 1
 };
 
-
 /// \brief Represents the weak formulation of a problem.
 ///
 /// The WeakForm class represents the weak formulation of a system of linear PDEs.
@@ -49,7 +48,7 @@ enum SymFlag
 ///
 ///
 ///
-class WeakForm
+class PUBLIC_API WeakForm
 {
 public:
 
@@ -82,16 +81,21 @@ protected:
 
   struct Area  {  /*std::string name;*/  std::vector<int> markers;  };
 
+  PUBLIC_API_USED_STL_VECTOR(Area);
   std::vector<Area> areas;
 
   struct BiFormVol   {  int i, j, sym, area;  biform_val_t  fn;  biform_ord_t  ord;  std::vector<MeshFunction*> ext;  };
   struct BiFormSurf  {  int i, j, area;       biform_val_t  fn;  biform_ord_t  ord;  std::vector<MeshFunction*> ext;  };
   struct LiFormVol   {  int i, area;          liform_val_t  fn;  liform_ord_t  ord;  std::vector<MeshFunction*> ext;  };
   struct LiFormSurf  {  int i, area;          liform_val_t  fn;  liform_ord_t  ord;  std::vector<MeshFunction*> ext;  };
-
+  
+  PUBLIC_API_USED_STL_VECTOR(BiFormVol);
   std::vector<BiFormVol>  bfvol;
+  PUBLIC_API_USED_STL_VECTOR(BiFormSurf);
   std::vector<BiFormSurf> bfsurf;
+  PUBLIC_API_USED_STL_VECTOR(LiFormVol);
   std::vector<LiFormVol>  lfvol;
+  PUBLIC_API_USED_STL_VECTOR(LiFormSurf);
   std::vector<LiFormSurf> lfsurf;
 
 

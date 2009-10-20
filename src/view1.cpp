@@ -309,6 +309,7 @@ static void signal(pthread_mutex_t* mutex, pthread_cond_t* cond)
 
 
 View::View(const char* title, int x, int y, int width, int height)
+  : gl_pallete_tex_id(0)
 {
   this->title = title;
   window_x = x;
@@ -363,7 +364,7 @@ int view_create_body(void* param)
   num_windows++;
 
   // establish a mapping between the window id and this instance
-  if (instance->window_id >= wnd_instance.size())
+  if (instance->window_id >= (int)wnd_instance.size())
     wnd_instance.resize(instance->window_id + 10, NULL);
   wnd_instance[instance->window_id] = instance;
 
@@ -452,7 +453,6 @@ void View::pre_display()
   if (b_help) draw_help();
   else if (b_scale) scale_dispatch();
 
-  glFlush();
   glFinish();
 
   if (want_screenshot)
@@ -757,6 +757,8 @@ int view_set_title_body(void* param)
 {
   View *self = (View*) param;
   self->set_title_internal(self->title.c_str());
+
+  return 0;
 }
 
 void View::set_title(const char* title)
@@ -791,9 +793,9 @@ const float* View::get_palette_color(double x)
     return palette_data[n];   // fixme: mozna zpet k puvodnimu
   }
   else if (pal_type == 1)
-    color[0] = color[1] = color[2] = x;
+    color[0] = color[1] = color[2] = (float)x;
   else if (pal_type == 2)
-    color[0] = color[1] = color[2] = 1.0 - x;
+    color[0] = color[1] = color[2] = (float)(1.0 - x);
   else
     color[0] = color[1] = color[2] = 1.0;
   return color;
@@ -836,23 +838,37 @@ void View::create_palette()
   for (i = pal_steps; i < 256; i++)
     memcpy(palette[i], palette[pal_steps-1], 3);
 
-  glBindTexture(GL_TEXTURE_1D, 1);
+  pthread_mutex_lock(&wait_draw_mutex); //lock to prevent simultaneuous rendering
+
+  if (gl_pallete_tex_id == 0)
+    glGenTextures(1, &gl_pallete_tex_id);
+  glBindTexture(GL_TEXTURE_1D, gl_pallete_tex_id);
   glTexImage1D(GL_TEXTURE_1D, 0, 3, 256, 0, GL_RGB, GL_UNSIGNED_BYTE, palette);
 #ifndef GL_CLAMP_TO_EDGE // fixme: this is needed on Windows
   #define GL_CLAMP_TO_EDGE 0x812F
 #endif
   glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
   glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
+
+  pthread_mutex_unlock(&wait_draw_mutex); //unlock
 }
 
 
 void View::set_palette_filter(bool linear)
 {
+  pthread_mutex_lock(&wait_draw_mutex); //lock to prevent simultaneuous rendering
+
   pal_filter = linear ? GL_LINEAR : GL_NEAREST;
-  glBindTexture(GL_TEXTURE_1D, 1);
+  
+  if (gl_pallete_tex_id == 0)
+    glGenTextures(1, &gl_pallete_tex_id);
+  glBindTexture(GL_TEXTURE_1D, gl_pallete_tex_id);
   glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MIN_FILTER, pal_filter);
 	glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MAG_FILTER, pal_filter);
   update_tex_adjust();
+
+  pthread_mutex_unlock(&wait_draw_mutex); //unlock
+
   post_redisplay();
 }
 
@@ -949,8 +965,8 @@ void View::draw_help()
   int x = 10, y = 10, b = 6;
 
   glEnable(GL_BLEND);
-  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-  glColor4f(1.0, 1.0, 1.0, 0.65);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); 
+  glColor4f(1.0f, 1.0f, 1.0f, 0.65f);
   glBegin(GL_QUADS);
     glVertex2d(x, y+height+2*b);
     glVertex2d(x+width+2*b, y+height+2*b);
@@ -1120,7 +1136,7 @@ int View::measure_scale_labels()
 
 void View::draw_continuous_scale(char* title, bool righttext)
 {
-  int i, n;
+  int i;
   double y0 = scale_y + scale_height;
 
   set_ortho_projection(true);
@@ -1132,8 +1148,8 @@ void View::draw_continuous_scale(char* title, bool righttext)
   // background
   const int b = 5;
   glEnable(GL_BLEND);
-  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-  glColor4f(1.0, 1.0, 1.0, 0.65);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); 
+  glColor4f(1.0f, 1.0f, 1.0f, 0.65f);
   int rt = righttext ? 0 : labels_width + 8;
   glBegin(GL_QUADS);
   glVertex2d(scale_x - b - rt, y0 + 5 + b);
@@ -1144,7 +1160,7 @@ void View::draw_continuous_scale(char* title, bool righttext)
 
   // palette
   glDisable(GL_BLEND);
-  glColor3f(0.0, 0.0, 0.0);
+  glColor3f(0.0f, 0.0f, 0.0f);
   glBegin(GL_QUADS);
   glVertex2d(scale_x, scale_y);
   glVertex2d(scale_x, scale_y + scale_height + 1);
@@ -1153,7 +1169,7 @@ void View::draw_continuous_scale(char* title, bool righttext)
   glEnd();
 
   glEnable(GL_TEXTURE_1D);
-  glBindTexture(GL_TEXTURE_1D, 1);
+  glBindTexture(GL_TEXTURE_1D, gl_pallete_tex_id);
   glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
   glBegin(GL_QUADS);
   glTexCoord1d(tex_scale + tex_shift);
@@ -1169,7 +1185,7 @@ void View::draw_continuous_scale(char* title, bool righttext)
   if (scale_focused)
   {
     glEnable(GL_BLEND);
-    glColor4f(1.0, 1.0, 1.0, 0.3);
+    glColor4f(1.0f, 1.0f, 1.0f, 0.3f);
     glBegin(GL_QUADS);
     glVertex2d(scale_x + 1, scale_y + 1);
     glVertex2d(scale_x + scale_width, scale_y + 1);
@@ -1224,8 +1240,8 @@ void View::draw_discrete_scale(int numboxes, const char* boxnames[], const float
   // background
   const int b = 5;
   glEnable(GL_BLEND);
-  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-  glColor4f(1.0, 1.0, 1.0, 0.65);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); 
+  glColor4f(1.0f, 1.0f, 1.0f, 0.65f);
   glBegin(GL_QUADS);
   glVertex2d(scale_x - b, scale_y - b);
   glVertex2d(scale_x - b, scale_y + scale_height + b+1);
@@ -1249,9 +1265,9 @@ void View::draw_discrete_scale(int numboxes, const char* boxnames[], const float
     const float* color = boxcolors[numboxes-1-i];
     float bcolor[3] = { color[0], color[1], color[2] };
     if (scale_focused) {
-      bcolor[0] = color[0]*0.7 + 1.0*0.3;
-      bcolor[1] = color[1]*0.7 + 1.0*0.3;
-      bcolor[2] = color[2]*0.7 + 1.0*0.3;
+      bcolor[0] = color[0]*0.7f + 1.0f*0.3f;
+      bcolor[1] = color[1]*0.7f + 1.0f*0.3f;
+      bcolor[2] = color[2]*0.7f + 1.0f*0.3f;
     }
 
     glColor3f(bcolor[0], bcolor[1], bcolor[2]);

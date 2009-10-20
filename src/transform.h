@@ -25,8 +25,8 @@ struct Trf
   double2 t; ///< translation vector
 };
 
-extern Trf tri_trf[4];  ///< table of triangle sub-element transforms
-extern Trf quad_trf[8]; ///< table of quad sub-element transforms
+EXTERN Trf tri_trf[4];  ///< table of triangle sub-element transforms
+EXTERN Trf quad_trf[8]; ///< table of quad sub-element transforms
 
 
 /// Transformable is a base class for all classes that perform some kind of precalculation of
@@ -34,7 +34,7 @@ extern Trf quad_trf[8]; ///< table of quad sub-element transforms
 /// from Transformable the ability to transform integration points to the sub-elements
 /// of an element.
 ///
-class Transformable
+class PUBLIC_API Transformable
 {
 public:
 
@@ -91,18 +91,18 @@ public:
 
   /// Sets the current transform at once as if it was created by multiple calls to push_transform().
   /// \param idx [in] The number of the sub-element, as returned by get_transform().
-  void set_transform(uint64 idx);
-
+  void set_transform(uint64_t idx);
+  
   /// \return The current transform index.
-  uint64 get_transform() const { return sub_idx; }
-
+  uint64_t get_transform() const { return sub_idx; }
+  
   /// Empties the stack, loads identity transform.
   void reset_transform()
   {
     stack[0].m[0] = stack[0].m[1] = 1.0;
     stack[0].t[0] = stack[0].t[1] = 0.0;
     ctm = stack;
-    top = sub_idx = 0;
+    sub_idx = top = 0;
   }
 
   /// \return The jacobian of the current transformation matrix.
@@ -120,9 +120,9 @@ protected:
   Element* element; ///< the active element
 
   Trf* ctm;  ///< current sub-element transformation matrix
-  uint64 sub_idx; ///< sub-element transformation index
+  uint64_t sub_idx; ///< sub-element transformation index. Data type is equal to the type used by Judy.
   //static const unsigned max_idx = 0x49249248; ///< largest sub_idx for top <= 10
-  static const unsigned max_idx = 0x4000;
+  static const uint64_t max_idx = 0x4000; ///< largest sub_idx for top <= 10. Data type is equal to the type used by Judy.
 
   Trf stack[21]; ///< transformation matrix stack
   int top;       ///< stack top

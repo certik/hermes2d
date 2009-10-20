@@ -60,7 +60,7 @@
 ///
 /// Shape functions are always real-valued.
 ///
-class Shapeset
+class PUBLIC_API Shapeset
 {
 public:
 

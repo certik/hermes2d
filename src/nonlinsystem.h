@@ -29,7 +29,7 @@ class MeshFunction;
 ///
 ///
 ///
-class NonlinSystem : public LinSystem
+class PUBLIC_API NonlinSystem : public LinSystem 
 {
 public:
 

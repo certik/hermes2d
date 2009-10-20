@@ -123,7 +123,7 @@ Nurbs* Mesh::load_nurbs(FILE* f, Node** en, int &p1, int &p2)
 
   nurbs->nk = nurbs->degree + nurbs->np + 1;
   outer = nurbs->nk - inner;
-  if (outer & 1 == 1)
+  if ((outer & 1) == 1)
     error("error reading curved boundary data for edge %d-%d (wrong number of knot points)", p1, p2);
 
   // knot vector is completed by 0.0 on the left and by 1.0 on the right
@@ -274,7 +274,8 @@ void Mesh::load_old(const char* filename)
 void Mesh::load_str(char* mesh)
 {
   // open the mesh file
-  FILE* f = fmemopen(mesh, strlen(mesh), "r");
+//  FILE* f = fmemopen(mesh, strlen(mesh), "r");
+  FILE* f = NULL;
   if (f == NULL) error("could not create the read buffer");
   this->load_stream(f);
 }
@@ -758,7 +759,7 @@ Nurbs* Mesh::load_nurbs_new(MItem* curve, int id, Node** en, int &p1, int &p2)
 
   // get the number of knot vector points
   inner = 0;
-  MItem* knot;
+  MItem* knot; //BUG: posted to Hermes2D group
   if (!circle && knot != NULL)
   {
     knot = pts->next;
@@ -768,7 +769,7 @@ Nurbs* Mesh::load_nurbs_new(MItem* curve, int id, Node** en, int &p1, int &p2)
 
   nurbs->nk = nurbs->degree + nurbs->np + 1;
   outer = nurbs->nk - inner;
-  if (outer & 1 == 1)
+  if ((outer & 1) == 1)
     error("curve #%d: incorrect number of knot points.", id);
 
   // knot vector is completed by 0.0 on the left and by 1.0 on the right

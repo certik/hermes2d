@@ -43,7 +43,7 @@ void WeakForm::add_biform(int i, int j, biform_val_t fn, biform_ord_t ord, SymFl
     error("\"sym\" must be -1, 0 or 1.");
   if (sym < 0 && i == j)
     error("Only off-diagonal forms can be antisymmetric.");
-  if (area != ANY && area < 0 && -area > areas.size())
+  if (area != ANY && area < 0 && -area > (int)areas.size())
     error("Invalid area number.");
   if (bfvol.size() > 100)
     warn("Large number of forms (> 100). Is this the intent?");
@@ -58,7 +58,7 @@ void WeakForm::add_biform_surf(int i, int j, biform_val_t fn, biform_ord_t ord, 
 {
   if (i < 0 || i >= neq || j < 0 || j >= neq)
     error("Invalid equation number.");
-  if (area != ANY && area < 0 && -area > areas.size())
+  if (area != ANY && area < 0 && -area > (int)areas.size())
     error("Invalid area number.");
 
   BiFormSurf form = { i, j, area, fn, ord };
@@ -71,7 +71,7 @@ void WeakForm::add_liform(int i, liform_val_t fn, liform_ord_t ord, int area, in
 {
   if (i < 0 || i >= neq)
     error("Invalid equation number.");
-  if (area != ANY && area < 0 && -area > areas.size())
+  if (area != ANY && area < 0 && -area > (int)areas.size())
     error("Invalid area number.");
 
   LiFormVol form = { i, area, fn, ord };
@@ -84,7 +84,7 @@ void WeakForm::add_liform_surf(int i, liform_val_t fn, liform_ord_t ord, int are
 {
   if (i < 0 || i >= neq)
     error("Invalid equation number.");
-  if (area != ANY && area < 0 && -area > areas.size())
+  if (area != ANY && area < 0 && -area > (int)areas.size())
     error("Invalid area number.");
 
   LiFormSurf form = { i, area, fn, ord };
@@ -108,7 +108,7 @@ void WeakForm::set_ext_fns(void* fn, int nx, ...)
 ///
 void WeakForm::get_stages(Space** spaces, std::vector<WeakForm::Stage>& stages, bool rhsonly)
 {
-  int i, j;
+  unsigned i;
   stages.clear();
 
   if (!rhsonly)
@@ -189,12 +189,12 @@ WeakForm::Stage* WeakForm::find_stage(std::vector<WeakForm::Stage>& stages, int 
   std::set<unsigned> seq;
   seq.insert(m1->get_seq());
   seq.insert(m2->get_seq());
-  for (int i = 0; i < ext.size(); i++)
+  for (unsigned i = 0; i < ext.size(); i++)
     seq.insert(ext[i]->get_mesh()->get_seq());
 
   // find a suitable existing stage for the form
   Stage* s = NULL;
-  for (int i = 0; i < stages.size(); i++)
+  for (unsigned i = 0; i < stages.size(); i++)
     if (seq.size() == stages[i].seq_set.size() &&
         equal(seq.begin(), seq.end(), stages[i].seq_set.begin()))
       { s = &stages[i]; break; }
@@ -209,7 +209,7 @@ WeakForm::Stage* WeakForm::find_stage(std::vector<WeakForm::Stage>& stages, int 
   }
 
   // update and return the stage
-  for (int i = 0; i < ext.size(); i++)
+  for (unsigned int i = 0; i < ext.size(); i++)
     s->ext_set.insert(ext[i]);
   s->idx_set.insert(ii);
   s->idx_set.insert(jj);
@@ -223,19 +223,18 @@ WeakForm::Stage* WeakForm::find_stage(std::vector<WeakForm::Stage>& stages, int 
 bool** WeakForm::get_blocks()
 {
   bool** blocks = new_matrix<bool>(neq, neq);
-  int i, j;
-  for (i = 0; i < neq; i++)
-    for (j = 0; j < neq; j++)
+  for (int i = 0; i < neq; i++)
+    for (int j = 0; j < neq; j++)
       blocks[i][j] = false;
-
-  for (i = 0; i < bfvol.size(); i++)
+  
+  for (unsigned int i = 0; i < bfvol.size(); i++)
   {
     blocks[bfvol[i].i][bfvol[i].j] = true;
     if (bfvol[i].sym)
       blocks[bfvol[i].j][bfvol[i].i] = true;
   }
 
-  for (i = 0; i < bfsurf.size(); i++)
+  for (unsigned int i = 0; i < bfsurf.size(); i++)
     blocks[bfsurf[i].i][bfsurf[i].j] = true;
 
   return blocks;
@@ -253,16 +252,16 @@ int WeakForm::def_area(int n, ...)
   va_end(ap);
 
   areas.push_back(newarea);
-  return -areas.size();
+  return -(int)areas.size();
 }
 
 
 bool WeakForm::is_in_area_2(int marker, int area) const
 {
-  if (-area > areas.size()) error("Invalid area number.");
+  if (-area > (int)areas.size()) error("Invalid area number.");
   const Area* a = &areas[-area-1];
 
-  for (int i = 0; i < a->markers.size(); i++)
+  for (unsigned int i = 0; i < a->markers.size(); i++)
     if (a->markers[i] == marker)
       return true;
 

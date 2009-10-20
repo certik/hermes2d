@@ -25,7 +25,7 @@
 /// automatically by the class. The class provides a list of triples (idx, dof, coef).
 /// The triples are flattened to separate arrays of length 'cnt'.
 ///
-class AsmList
+class PUBLIC_API AsmList
 {
 public:
 
@@ -57,6 +57,14 @@ public:
     idx[cnt] = i;
     dof[cnt] = d;
     coef[cnt++] = c;
+
+    //DEBUG
+    if (d < -2)
+    {
+      debug_log("! invalid triplet (AsmList::add_triplet)\n");
+      debug_log("  dof: %d (%x)\n", d, d);
+    }
+    //DEBUG-END
   }
 
 protected:

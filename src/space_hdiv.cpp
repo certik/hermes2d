@@ -91,7 +91,6 @@ void HdivSpace::assign_edge_dofs()
 void HdivSpace::assign_bubble_dofs()
 {
   Element* e;
-  int e_idx;
   for_all_active_elements(e, mesh)
   {
     shapeset->set_mode(e->get_mode());
@@ -203,7 +202,7 @@ static Node* get_mid_edge_vertex_node(Element* e, int i, int j)
 
 void HdivSpace::update_constrained_nodes(Element* e, EdgeInfo* ei0, EdgeInfo* ei1, EdgeInfo* ei2, EdgeInfo* ei3)
 {
-  int i, j, k;
+  int i, j;
   EdgeInfo* ei[4] = { ei0, ei1, ei2, ei3 };
   NodeData* nd;
 

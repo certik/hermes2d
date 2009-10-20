@@ -365,7 +365,7 @@ void H1OrthoHP::calc_projection_errors(Element* e, int order, Solution* rsln,
 }
 
 
-void H1OrthoHP::get_optimal_refinement(Element* e, int order, Solution* rsln, int& split, int p[4], int q[4],
+void H1OrthoHP::get_optimal_refinement(Element* e, int order, Solution* rsln, int& split, int4 p, int4 q,
                                        bool h_only, bool iso_only, int max_order)
 {
   int i, j, k, n = 0;
@@ -389,7 +389,7 @@ void H1OrthoHP::get_optimal_refinement(Element* e, int order, Solution* rsln, in
     double error;
     int dofs, split, p[4];
   };
-  Cand cand[maxcand];
+  AUTOLA_CL(Cand, cand, maxcand);
 
   #define make_p_cand(q) { \
     assert(n < maxcand);   \
@@ -552,13 +552,14 @@ bool H1OrthoHP::adapt(double thr, int strat, int adapt_type, bool iso_only, int 
   }
 
 
-  int split[nact];
-  memset(split, 0, nact*sizeof(int));
-  int p[nact][4], q[nact][4];
-  int idx[max_id + 1][num + 1];
+  AUTOLA_OR(int, split, nact);
+  memset(split, 0, split.size);
+  AUTOLA_OR(int4, p, nact);
+  AUTOLA_OR(int4, q, nact);
+  AUTOLA2_OR(int, idx, max_id + 1, num + 1);
   for(j = 0; j < max_id; j++)
     for(l = 0; l < num; l++)
-      idx[j][l] = -1; // element not refined
+      idx.access(j, l) = -1; // element not refined
 
   int nref = nact;
   double err0 = 1000.0;
@@ -613,7 +614,7 @@ bool H1OrthoHP::adapt(double thr, int strat, int adapt_type, bool iso_only, int 
       successfully_refined++;
     }
 
-    idx[id][comp] = i;
+    idx.access(id, comp) = i;
     err0 = err;
     processed_error += err;
   }
@@ -639,7 +640,7 @@ bool H1OrthoHP::adapt(double thr, int strat, int adapt_type, bool iso_only, int 
       if (max_ref == 0) break; // iso refinement is max what can be recieved
       if ((j != comp) && (mesh[j] == mesh[comp])) // components share the mesh
       {
-        int ii = idx[id][j];
+        int ii = idx.access(id, j);
         if ((ii >= 0) && (split[ii] != max_ref) && (split[ii] >= 0)) // ii element refined, refinement differs from max_ref, ii element split
         {
           if (((split[ii] == 1) || (split[ii] == 2)) && (max_ref == -1)) // the only case when aniso refinement
@@ -666,7 +667,7 @@ bool H1OrthoHP::adapt(double thr, int strat, int adapt_type, bool iso_only, int 
               p[i][1] = h_only ? current : std::max(1, 2*(current+1)/3);
             }
           }
-          int ii = idx[id][j];
+          int ii = idx.access(id, j);
           current = get_h_order(spaces[j]->get_element_order(id));
           if (ii >= 0)
           {
@@ -1046,8 +1047,8 @@ double H1OrthoHP::calc_error_n(int n, ...)
   va_end(ap);
 
   // prepare multi-mesh traversal and error arrays
-  Mesh* meshes[2*num];
-  Transformable* tr[2*num];
+  AUTOLA_OR(Mesh*, meshes, 2*num);
+  AUTOLA_OR(Transformable*, tr, 2*num);
   Traverse trav;
   nact = 0;
   for (i = 0; i < num; i++)
@@ -1066,8 +1067,8 @@ double H1OrthoHP::calc_error_n(int n, ...)
   }
 
   double total_norm = 0.0;
-  double norms[num];
-  memset(norms, 0, num*sizeof(double));
+  AUTOLA_OR(double, norms, num);
+  memset(norms, 0, norms.size);
   double total_error = 0.0;
   if (esort != NULL) delete [] esort;
   esort = new int2[nact];

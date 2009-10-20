@@ -18,7 +18,7 @@
 #include "matrix.h"
 #include "precalc.h"
 #include "refmap.h"
-
+#include "auto_local_array.h"
 
 //// MeshFunction //////////////////////////////////////////////////////////////////////////////////
 
@@ -104,7 +104,7 @@ public:
   {
     for (int mode = 0; mode <= 1; mode++)
       for (int k = 1; k <= 10; k++)
-        delete tables[mode][k];
+        delete[] tables[mode][k];
   }
 
   virtual void dummy_fn() {}
@@ -330,7 +330,7 @@ double** Solution::calc_mono_matrix(int o, int*& perm)
 
 void Solution::set_fe_solution(Space* space, PrecalcShapeset* pss, scalar* vec, double dir)
 {
-  int i, j, k, l, o;
+  int i, k, l, o;
 
   // some sanity checks
   if (!space->is_up_to_date())
@@ -762,7 +762,7 @@ void Solution::precalculate(int order, int mask)
     node = new_node(newmask, np);
 
     // transform integration points by the current matrix
-    scalar x[np], y[np], tx[np];
+    AUTOLA_OR(scalar, x, np); AUTOLA_OR(scalar, y, np); AUTOLA_OR(scalar, tx, np);
     double3* pt = quad->get_points(order);
     for (i = 0; i < np; i++)
     {

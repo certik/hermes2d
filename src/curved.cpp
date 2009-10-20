@@ -154,11 +154,10 @@ static void nurbs_edge_0(Element* e, Nurbs* nurbs, int edge, double t, double& x
 // calculation of nonpolynomial reference mapping on curved element
 static void calc_ref_map_tri(Element* e, Nurbs** nurbs, double xi_1, double xi_2, double& x, double& y)
 {
-  int i, j;
   double  fx,  fy;
   x = y = 0.0;
 
-  for (j = 0; j < e->nvert; j++)
+  for (int j = 0; j < e->nvert; j++)
   {
     int va = j;
     int vb = e->next_vert(j);
@@ -185,7 +184,6 @@ static void calc_ref_map_tri(Element* e, Nurbs** nurbs, double xi_1, double xi_2
 static void calc_ref_map_quad(Element* e, Nurbs** nurbs, double xi_1, double xi_2,
                               double& x, double& y)
 {
-  int i, j;
   double ex[4], ey[4];
 
   nurbs_edge(e, nurbs[0], 0,  xi_1, ex[0], ey[0]);
@@ -442,7 +440,7 @@ static void calc_bubble_projection(Element* e, Nurbs** nurbs, int order, double2
   int qo = e->is_quad() ? make_quad_order(order, order) : order;
   int nb = ref_map_shapeset.get_num_bubbles(qo);
 
-  double2 fn[np];
+  AUTOLA_OR(double2, fn, np);
   memset(fn, 0, sizeof(double2) * np);
 
   double* rhside[2];

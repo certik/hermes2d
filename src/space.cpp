@@ -16,6 +16,7 @@
 #include "common.h"
 #include "space.h"
 #include "matrix.h"
+#include "auto_local_array.h"
 
 
 Space::Space(Mesh* mesh, Shapeset* shapeset)
@@ -26,6 +27,7 @@ Space::Space(Mesh* mesh, Shapeset* shapeset)
   ndata = NULL;
   edata = NULL;
   nsize = esize = 0;
+  ndata_allocated = 0;
   mesh_seq = -1;
   seq = 0;
   was_assigned = false;
@@ -56,19 +58,40 @@ void Space::resize_tables()
 {
   if (nsize < mesh->get_max_node_id())
   {
-    int oldsize = nsize;
-    if (!nsize) nsize = 1024;
-    while (nsize < mesh->get_max_node_id()) nsize = nsize * 3 / 2;
-    ndata = (NodeData*) realloc(ndata, sizeof(NodeData) * nsize);
-    for (int i = oldsize; i < nsize; i++)
-      ndata[i].edge_bc_proj = NULL;
+    //HACK: definition of allocated size and the result number of elements
+    nsize = mesh->get_max_node_id();
+    if (nsize > ndata_allocated)
+    {
+      int prev_allocated = ndata_allocated;
+      if (ndata_allocated == 0)
+        ndata_allocated = 1024; //MAGIC: it's a kind of magic
+      while (ndata_allocated < nsize)
+        ndata_allocated = ndata_allocated * 3 / 2; //MAGIC
+      ndata = (NodeData*)realloc(ndata, ndata_allocated * sizeof(NodeData));
+      for(int i = prev_allocated; i < ndata_allocated; i++)
+        ndata[i].edge_bc_proj = NULL;
+      //DEBUG
+      for(int i = prev_allocated; i < nsize; i++)
+        ndata[i].dof = 0xabababab;
+      for(int i = nsize; i < ndata_allocated; i++)
+        ndata[i].dof = 0xefefefef;
+      //DEBUG-END
+    }
+    //OLD_CODE
+    //int oldsize = nsize;
+    //if (!nsize) nsize = 1024;
+    //while (nsize < mesh->get_max_node_id()) nsize = nsize * 3 / 2; //TOOD: co to je? proc 3/2?
+    //ndata = (NodeData*) realloc(ndata, sizeof(NodeData) * nsize);
+    //for (int i = oldsize; i < nsize; i++)
+    //  ndata[i].edge_bc_proj = NULL;
+    //OLD_CODE-END
   }
 
   if (esize < mesh->get_max_element_id())
   {
     int oldsize = esize;
     if (!esize) esize = 1024;
-    while (esize < mesh->get_max_element_id()) esize = esize * 3 / 2;
+    while (esize < mesh->get_max_element_id()) esize = esize * 3 / 2; //TODO: co to je? proc 3/2?
     edata = (ElementData*) realloc(edata, sizeof(ElementData) * esize);
     for (int i = oldsize; i < esize; i++)
       edata[i].order = -1;
@@ -230,8 +253,8 @@ void Space::propagate_zero_orders(Element* e)
 
 void Space::distribute_orders(Mesh* mesh, int* parents)
 {
-  int num = mesh->get_max_element_id();
-  int orders[num+1];
+  int num = mesh->get_max_element_id(); 
+  AUTOLA_OR(int, orders, num+1);  
   Element* e;
   for_all_active_elements(e, mesh)
   {
@@ -432,8 +455,8 @@ void Space::update_edge_bc(Element* e, EdgePos* ep)
   }
   else
   {
-    int n, son1, son2;
-    if (mesh->get_edge_sons(e, ep->edge, son1, son2) == 2)
+    int son1, son2;
+    if (mesh->get_edge_sons(e, ep->edge, son1, son2) == 2) 
     {
       double mid = (ep->lo + ep->hi) * 0.5, tmp = ep->hi;
       ep->hi = mid;
@@ -472,6 +495,27 @@ void Space::free_extra_data()
   extra_data.clear();
 }
 
+/* finds the first invalid dof, i.e., dof < -2 */
+int Space::debug_find_first_invalid_dof(const char *src_location)
+{
+  int inx_found = -1;
+  for(int i = 0; i < nsize; i++)
+  {
+    if (ndata[i].dof < -2)
+    {
+      inx_found = i;
+      break;
+    }
+  }
+  if (inx_found >= 0 && src_location != NULL)
+  {
+    debug_log("! found invalid ndata (%s)\n", src_location);
+    debug_log("  id: %d\n", inx_found);
+    debug_log("  dof: %d\n", ndata[inx_found].dof);
+    debug_log("  nsize: %d\n", nsize);
+  }
+  return inx_found;
+}
 
 /*void Space::dump_node_info()
 {
