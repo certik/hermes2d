@@ -35,6 +35,15 @@ T** new_matrix(int m, int n = 0)
   return vec;
 }
 
+/// Copies a matrix. Both matrices has to be equal to or larger than provideded sizes. 
+/// Size compatibility check is not done.
+template<typename T>
+void copy_matrix(T** dest, T** src, int m, int n = 0) {
+  if (n == 0) n = m;
+  for(int i = 0; i < m; i++) {
+    memcpy(dest[i], src[i], n*sizeof(T));
+  }
+}
 
 /// Transposes an m by n matrix. If m != n, the array matrix in fact has to be
 /// a square matrix of the size max(m, n) in order for the transpose to fit inside it.
@@ -73,7 +82,7 @@ void chsgn(T** matrix, int m, int n)
 /// pivoting; d is output as +-1 depending on whether the number of row interchanges was even
 /// or odd, respectively. This routine is used in combination with lubksb to solve linear equations
 /// or invert a matrix.
-void ludcmp(double** a, int n, int* indx, double* d);
+EXTERN void ludcmp(double** a, int n, int* indx, double* d);
 
 /// Solves the set of n linear equations AX = B. Here a[n][n] is input, not as the matrix
 /// A but rather as its LU decomposition, determined by the routine ludcmp. indx[n] is input
@@ -111,7 +120,7 @@ void lubksb(double** a, int n, int* indx, T* b)
 /// decomposition, A = L*L^T . On input, only the upper triangle of a need be given; it is not
 /// modified. The Cholesky factor L is returned in the lower triangle of a, except for its diagonal
 /// elements which are returned in p[n].
-void choldc(double **a, int n, double p[]);
+EXTERN void choldc(double **a, int n, double p[]);
 
 /// Solves the set of n linear equations A*x = b, where a is a positive-definite symmetric matrix.
 /// a[n][n] and p[n] are input as the output of the routine choldc. Only the lower

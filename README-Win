@@ -1,6 +1,6 @@
 Welcome to Hermes2D!
 
-This is a README file for Windows.
+This is a README file for Windows (using MinGW).
 
 Download and install the free Dev-C++ IDE from http://www.bloodshed.net/dev/
 It only has 9 MB and contains a user-friendly IDE and the complete GCC compiler

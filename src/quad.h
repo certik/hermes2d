@@ -27,7 +27,7 @@
 
 /// Quad1D is a base class for all 1D quadrature points.
 ///
-class Quad1D
+class PUBLIC_API Quad1D
 {
 public:
 
@@ -52,7 +52,7 @@ protected:
 
 /// Quad2D is a base class for all 2D quadrature points on triangles and quads.
 ///
-class Quad2D
+class PUBLIC_API Quad2D
 {
 public:
 

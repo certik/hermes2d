@@ -23,7 +23,7 @@
 /// Abstract class for mesh loaders
 ///
 /// @ingroup meshloaders
-class MeshLoader
+class PUBLIC_API MeshLoader
 {
 public:
   virtual ~MeshLoader() { }

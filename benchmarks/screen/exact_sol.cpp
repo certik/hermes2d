@@ -9,7 +9,7 @@ scalar Fn(double u)
   scalar fres = complex(c,-s);
   scalar a = complex(0.0, M_PI/4);
   scalar b = complex(0.0, u*u);
-  return 0.5*sqrt(M_PI) * exp(b) * (exp(-a) - sqrt(2)*(fres));
+  return 0.5*sqrt(M_PI) * exp(b) * (exp(-a) - sqrt(2.0)*(fres));
 }
 
 scalar Fder(double u)
@@ -22,7 +22,7 @@ scalar Fder(double u)
   scalar fres = complex(c,-s);
   scalar fresder = exp(-b);
 
-  return 0.5*sqrt(M_PI) * exp(b) * ( d * (exp(-a) - sqrt(2)*(fres)) - sqrt(2)*fresder*sqrt(2.0/M_PI) );
+  return 0.5*sqrt(M_PI) * exp(b) * ( d * (exp(-a) - sqrt(2.0)*(fres)) - sqrt(2.0)*fresder*sqrt(2.0/M_PI) );
 }
 
 scalar Fder2(double u)
@@ -39,7 +39,7 @@ scalar Fder2(double u)
 
   return 2.0 * u * i * Fder(u) +
          0.5 * sqrt(M_PI) * exp(b) *
-          ( 2.0 * i * (exp(-a) - sqrt(2)*(fres)) + d * (-sqrt(2)*fresder*sqrt(2.0/M_PI)) - sqrt(2) * fresder2 * sqrt(2.0/M_PI) );
+          ( 2.0 * i * (exp(-a) - sqrt(2.0)*(fres)) + d * (-sqrt(2.0)*fresder*sqrt(2.0/M_PI)) - sqrt(2.0) * fresder2 * sqrt(2.0/M_PI) );
 }
 
 scalar der_Hr(double x, double y)
@@ -84,8 +84,8 @@ scalar der_Hrt(double x, double y)
   scalar f2_d2 = Fder2(sqrt(2*k*r)*sin(t/2 + M_PI/8));
   scalar b1 = (sqrt(k)/sqrt(2*r)*sin(t/2 - M_PI/8));
   scalar b2 = (sqrt(k)/sqrt(2*r)*sin(t/2 + M_PI/8));
-  scalar c1 = (sqrt(k*r)/sqrt(2)*cos(t/2 - M_PI/8));
-  scalar c2 = (sqrt(k*r)/sqrt(2)*cos(t/2 + M_PI/8));
+  scalar c1 = (sqrt(k*r)/sqrt(2.0)*cos(t/2 - M_PI/8));
+  scalar c2 = (sqrt(k*r)/sqrt(2.0)*cos(t/2 + M_PI/8));
   return 1/sqrt(M_PI) * exp(a) *
         ( (-i*k)*(f1_d*c1 + f2_d*c2) +
         ( f1_d2*b1*c1 + f2_d2*b2*c2) +
@@ -114,8 +114,8 @@ scalar der_Htr(double x, double y)
   scalar f2_d2 = Fder2(sqrt(2*k*r)*sin(t/2 + M_PI/8));
   scalar b1 = (sqrt(k)/sqrt(2*r)*sin(t/2 - M_PI/8));
   scalar b2 = (sqrt(k)/sqrt(2*r)*sin(t/2 + M_PI/8));
-  scalar c1 = (sqrt(k*r)/sqrt(2)*cos(t/2 - M_PI/8));
-  scalar c2 = (sqrt(k*r)/sqrt(2)*cos(t/2 + M_PI/8));
+  scalar c1 = (sqrt(k*r)/sqrt(2.0)*cos(t/2 - M_PI/8));
+  scalar c2 = (sqrt(k*r)/sqrt(2.0)*cos(t/2 + M_PI/8));
   return -i*k*der_Ht(x,y) + 1/sqrt(M_PI) * exp(a) *
          ((f1_d2*b1*c1 + f2_d2*b2*c2) +
           f1_d*(0.5*sqrt(k/(2*r))*cos(t/2 - M_PI/8))  + f2_d*(0.5*sqrt(k/(2*r))*cos(t/2 + M_PI/8)));

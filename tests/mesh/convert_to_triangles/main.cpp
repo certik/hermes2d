@@ -9,7 +9,8 @@ int main(int argc, char* argv[])
 {
   if (argc < 2)
   {
-    printf("please input as this format: convert_to_triangles  meshfile.mesh \n");
+    printf("please input as this format: convert_to_triangles  meshfile.mesh \n"
+);
     return ERROR_FAILURE;
   }
 

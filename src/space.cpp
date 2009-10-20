@@ -16,6 +16,7 @@
 #include "common.h"
 #include "space.h"
 #include "matrix.h"
+#include "auto_local_array.h"
 
 
 Space::Space(Mesh* mesh, Shapeset* shapeset)
@@ -26,6 +27,7 @@ Space::Space(Mesh* mesh, Shapeset* shapeset)
   ndata = NULL;
   edata = NULL;
   nsize = esize = 0;
+  ndata_allocated = 0;
   mesh_seq = -1;
   seq = 0;
   was_assigned = false;
@@ -56,12 +58,19 @@ void Space::resize_tables()
 {
   if (nsize < mesh->get_max_node_id())
   {
-    int oldsize = nsize;
-    if (!nsize) nsize = 1024;
-    while (nsize < mesh->get_max_node_id()) nsize = nsize * 3 / 2;
-    ndata = (NodeData*) realloc(ndata, sizeof(NodeData) * nsize);
-    for (int i = oldsize; i < nsize; i++)
-      ndata[i].edge_bc_proj = NULL;
+    //HACK: definition of allocated size and the result number of elements
+    nsize = mesh->get_max_node_id();
+    if (nsize > ndata_allocated)
+    {
+      int prev_allocated = ndata_allocated;
+      if (ndata_allocated == 0)
+        ndata_allocated = 1024;
+      while (ndata_allocated < nsize)
+        ndata_allocated = ndata_allocated * 3 / 2;
+      ndata = (NodeData*)realloc(ndata, ndata_allocated * sizeof(NodeData));
+      for(int i = prev_allocated; i < ndata_allocated; i++)
+        ndata[i].edge_bc_proj = NULL;
+    }
   }
 
   if (esize < mesh->get_max_element_id())
@@ -171,7 +180,7 @@ void Space::copy_orders(Space* space, int inc)
 int Space::get_edge_order(Element* e, int edge)
 {
   Node* en = e->en[edge];
-  if (en->id >= nsize || edge >= e->nvert) return 0;
+  if (en->id >= nsize || edge >= (int)e->nvert) return 0;
 
   if (ndata[en->id].n == -1)
     return get_edge_order_internal(ndata[en->id].base); // constrained node
@@ -230,8 +239,8 @@ void Space::propagate_zero_orders(Element* e)
 
 void Space::distribute_orders(Mesh* mesh, int* parents)
 {
-  int num = mesh->get_max_element_id();
-  int orders[num+1];
+  int num = mesh->get_max_element_id(); 
+  AUTOLA_OR(int, orders, num+1);  
   Element* e;
   for_all_active_elements(e, mesh)
   {
@@ -296,8 +305,6 @@ void AsmList::enlarge()
 
 void Space::get_element_assembly_list(Element* e, AsmList* al)
 {
-  int i;
-
   // some checks
   if (e->id >= esize || edata[e->id].order < 0)
     error("Uninitialized element order (id = #%d).", e->id);
@@ -308,9 +315,9 @@ void Space::get_element_assembly_list(Element* e, AsmList* al)
   // add vertex, edge and bubble functions to the assembly list
   al->clear();
   shapeset->set_mode(e->get_mode());
-  for (i = 0; i < e->nvert; i++)
+  for (unsigned int i = 0; i < e->nvert; i++)
     get_vertex_assembly_list(e, i, al);
-  for (i = 0; i < e->nvert; i++)
+  for (unsigned int i = 0; i < e->nvert; i++)
     get_edge_assembly_list_internal(e, i, al);
   get_bubble_assembly_list(e, al);
 }
@@ -432,8 +439,8 @@ void Space::update_edge_bc(Element* e, EdgePos* ep)
   }
   else
   {
-    int n, son1, son2;
-    if (mesh->get_edge_sons(e, ep->edge, son1, son2) == 2)
+    int son1, son2;
+    if (mesh->get_edge_sons(e, ep->edge, son1, son2) == 2) 
     {
       double mid = (ep->lo + ep->hi) * 0.5, tmp = ep->hi;
       ep->hi = mid;
@@ -452,7 +459,7 @@ void Space::update_bc_dofs()
   Element* e;
   for_all_base_elements(e, mesh)
   {
-    for (int i = 0; i < e->nvert; i++)
+    for (unsigned int i = 0; i < e->nvert; i++)
     {
       int j = e->next_vert(i);
       if (e->vn[i]->bnd && e->vn[j]->bnd)
@@ -467,11 +474,10 @@ void Space::update_bc_dofs()
 
 void Space::free_extra_data()
 {
-  for (int i = 0; i < extra_data.size(); i++)
+  for (unsigned int i = 0; i < extra_data.size(); i++)
     delete [] (scalar*) extra_data[i];
   extra_data.clear();
 }
-
 
 /*void Space::dump_node_info()
 {

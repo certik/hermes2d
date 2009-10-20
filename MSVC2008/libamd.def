@@ -1,0 +1,28 @@
+LIBRARY libamd.dll
+EXPORTS
+amd_malloc	DATA
+amd_realloc	DATA
+amd_calloc	DATA
+amd_free	DATA
+amd_printf	DATA
+
+amd_1
+amd_2
+
+amd_aat
+amd_order
+amd_postorder
+amd_defaults
+amd_control
+amd_info
+amd_valid
+
+amd_l_aat
+amd_l_order
+amd_l_postorder
+amd_l_defaults
+amd_l_control
+amd_l_info
+amd_l_valid
+amd_l1
+amd_l2

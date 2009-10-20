@@ -1,8 +1,10 @@
-enable_language(Fortran)
 find_package(JUDY REQUIRED)
 include_directories(${JUDY_INCLUDE_DIR})
 find_package(UMFPACK REQUIRED)
-find_package(BLAS REQUIRED)
+if(NOT UMFPACK_NO_BLAS)
+	enable_language(Fortran)
+	find_package(BLAS REQUIRED)
+endif(NOT UMFPACK_NO_BLAS)
 
 # examples
 add_subdirectory(layer)

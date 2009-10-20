@@ -70,7 +70,7 @@ struct CurvMap
       // if toplevel=false, this structure belongs to a refined element
       // and 'parent' points to the base mesh element CurvMap structure;
       Element* parent;
-      uint64 part;
+      uint64_t part;
     };
   };
 
