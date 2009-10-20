@@ -27,7 +27,7 @@ void Node::ref_element(Element* e)
     // store the element pointer in a free slot of 'elem'
     if (elem[0] == NULL) elem[0] = e;
     else if (elem[1] == NULL) elem[1] = e;
-    else assert(0);
+    else assert_msg(0, "E no free slot 'elem'");
   }
   ref++;
 }
@@ -1180,7 +1180,6 @@ void Mesh::refine_triangle_to_quads(Element* e)
 
       for (int k = 0; k < 2; k++)
       {
-        Node *en;
         int p1, p2;
         int idx2;
 
@@ -1259,7 +1258,6 @@ void Mesh::refine_triangle_to_quads(Element* e)
       Node* node_temp = get_vertex_node(e->vn[idx%3]->id, e->vn[(idx+1)%3]->id);
       for (int k = 0; k < 2; k++)
       {
-        Node *en;
         int p1, p2;
         int idx2;
         if (k == 0)
@@ -1360,7 +1358,7 @@ void Mesh::refine_triangle_to_quads(Element* e)
   sons[2]->vn[2]->bnd = bnd[2];
 
   // copy son pointers (could not have been done earlier because of the union)
-  memcpy(e->sons, sons, 3 * sizeof(Element*));
+  memcpy(e->sons, sons, 4 * sizeof(Element*));
 }
 
 
@@ -1447,7 +1445,6 @@ void Mesh::refine_quad_to_triangles(Element* e)
         {
           angle2 = e->cm->nurbs[(idx + i_case2)%4]->angle;
 
-          Node *en;
           int p1, p2;
           int idx2 = idx;
 
@@ -1556,7 +1553,7 @@ void Mesh::refine_quad_to_triangles(Element* e)
   }
 
   // copy son pointers (could not have been done earlier because of the union)
-  memcpy(e->sons, sons, 2 * sizeof(Element*));
+  memcpy(e->sons, sons, 4 * sizeof(Element*));
 }
 
 

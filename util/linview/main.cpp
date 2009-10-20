@@ -1,6 +1,5 @@
 #include "hermes2d.h"
 #include <GL/glut.h>
-#include <unistd.h>
 #include <getopt.h>
 #include <typeinfo>
 
@@ -70,7 +69,7 @@ protected:
   {
     char buffer[1000];
     sprintf(buffer, "LinView - %s", names[current]);
-    Base::set_title_internal(buffer);
+    Base::set_title(buffer);
   }
 
 };

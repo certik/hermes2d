@@ -15,6 +15,10 @@ macro(LINVIEW_SETTINGS VIEW)
     # if having Trilinos with UMFPACK support we need to link against UMFPACK
     # if we do not have UMFPACK support at all, these variables are empty and cause no harm
     target_link_libraries(${PROJECT_NAME} ${AMD_LIBRARY} ${UMFPACK_LIBRARY})
+	if(MSVC)
+		include_directories(${DEP_ROOT}/include)
+	endif(MSVC)
+    target_link_libraries(${PROJECT_NAME} ${HERMES_REAL_BIN})
     set_target_properties(${PROJECT_NAME} PROPERTIES COMPILE_FLAGS
         -DWHATVIEW=${VIEW})
 endmacro(LINVIEW_SETTINGS)

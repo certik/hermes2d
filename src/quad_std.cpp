@@ -2559,5 +2559,5 @@ Quad2DStd::~Quad2DStd()
 
 // ... for use in any module
 
-Quad1DStd g_quad_1d_std;
-Quad2DStd g_quad_2d_std;
+PUBLIC_API Quad1DStd g_quad_1d_std;
+PUBLIC_API Quad2DStd g_quad_2d_std;

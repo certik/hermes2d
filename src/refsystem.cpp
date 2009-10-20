@@ -18,6 +18,7 @@
 #include "space.h"
 #include "weakform.h"
 #include "refsystem.h"
+#include "solution.h"
 
 
 
@@ -63,6 +64,14 @@ void RefSystem::set_order_increase(int* order_increase)
 
 
 void RefSystem::assemble(bool rhsonly)
+{
+  refine_mesh();
+
+  LinSystem::assemble(rhsonly);
+}
+
+
+void RefSystem::refine_mesh()
 {
   int i, j;
 
@@ -137,8 +146,20 @@ void RefSystem::assemble(bool rhsonly)
   memcpy(spaces, ref_spaces, sizeof(Space*) * wf->neq);
   memcpy(pss, base->pss, sizeof(PrecalcShapeset*) * wf->neq);
   have_spaces = true;
+}
 
-  LinSystem::assemble(rhsonly);
+bool RefSystem::solve_exact(scalar (*exactfn)(double x, double y, scalar& dx , scalar& dy), Solution* sln)
+{
+  Space* space = spaces[0];
+
+  // some sanity checkz
+  //if (!space->is_up_to_date())
+  //  error("'space' is not up to date.");
+
+  //set mesh and function
+  sln->set_exact(ref_meshes[0], exactfn);
+
+  return true;
 }
 
 

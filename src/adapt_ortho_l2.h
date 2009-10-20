@@ -30,7 +30,7 @@
 ///
 /// TODO: describe difference from H1OrthoHP
 ///
-class L2OrthoHP
+class PUBLIC_API L2OrthoHP
 {
 public:
 
@@ -60,6 +60,7 @@ public:
 
   /// Selects elements to refine (based on results from calc_error() or calc_energy_error())
   /// and performs their optimal hp-refinement.
+  /// \param adapt_result Contains result of adaptivity step. If NULL, result is not gathered or processed.
   void adapt(double thr, int strat = 0, bool h_only = false, bool iso_only = false, int max_order = -1);
 
 

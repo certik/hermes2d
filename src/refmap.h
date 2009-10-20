@@ -31,7 +31,7 @@ struct Element;
 /// the calculation of integration points positions in the physical domain and
 /// the calculation of edge tangents in 1D integration points.
 ///
-class RefMap : public Transformable
+class PUBLIC_API RefMap : public Transformable
 {
 public:
 
@@ -135,7 +135,7 @@ public:
   void free();
 
   /// For internal use only.
-  void force_transform(uint64 sub_idx, Trf* ctm)
+  void force_transform(uint64_t sub_idx, Trf* ctm)
   {
     this->sub_idx = sub_idx;
     stack[top] = *ctm;
@@ -174,8 +174,13 @@ protected:
 
   void update_cur_node()
   {
-    Node** pp = (sub_idx > max_idx) ? handle_overflow()
-                : (Node**) JudyLIns(&nodes, sub_idx, NULL);
+    Node** pp = NULL;
+    if (sub_idx > max_idx)
+      pp = handle_overflow();
+    else {
+      pp = (Node**) JudyLIns(&nodes, (Word_t)sub_idx, NULL);
+      //debug_assert((sub_idx >> (sizeof(Word_t) * 8)) == 0, "E index is larger than JudyLins can contain (RefMap::update_cur_node)");
+    }
     if (*pp == NULL) init_node(pp);
     cur_node = *pp;
   }

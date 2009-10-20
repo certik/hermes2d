@@ -24,3 +24,4 @@ include_directories(${hermes2d_SOURCE_DIR}/src)
 include_directories(${TRILINOS_INCLUDE_DIR})
 target_link_libraries(${PROJECT_NAME} ${HERMES} ${UMFPACK_LIBRARY}
         ${AMD_LIBRARY} ${BLAS_LIBRARIES} ${LAPACK_LIBRARIES} ${TRILINOS_LIBRARIES})
+add_dependencies(${PROJECT_NAME} ${HERMES})

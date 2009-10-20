@@ -137,6 +137,9 @@ static void add_built_in(const char* name, void* fn, int narg)
   s->data = (MItem*) narg;
 }
 
+static void add_built_in(const char* name, MSymbolFunc1* fn) { add_built_in(name, (void*)fn, 1); }
+static void add_built_in(const char* name, MSymbolFunc2* fn) { add_built_in(name, (void*)fn, 2); }
+
 static void add_const(const char* name, double val)
 {
   MSymbol* s = get_symbol(name);
@@ -151,34 +154,34 @@ static void init_symbols()
   memset(symbol_table, 0, sizeof(symbol_table));
 
   // add the standard math library functions
-  add_built_in("acos", (void*) acos, 1);
-  add_built_in("asin", (void*) asin, 1);
-  add_built_in("atan", (void*) atan, 1);
-  add_built_in("atan2", (void*) atan2, 2);
-  add_built_in("cos", (void*) cos, 1);
-  add_built_in("cosh", (void*) cosh, 1);
-  add_built_in("sin", (void*) sin, 1);
-  add_built_in("sinh", (void*) sinh, 1);
-  add_built_in("tan", (void*) tan, 1);
-  add_built_in("tanh", (void*) tanh, 1);
-  add_built_in("exp", (void*) exp, 1);
-  add_built_in("log", (void*) log, 1);
-  add_built_in("log10", (void*) log10, 1);
-  add_built_in("exp2", (void*) exp2, 1);
+  add_built_in("acos", acos);
+  add_built_in("asin", asin);
+  add_built_in("atan", atan);
+  add_built_in("atan2", atan2);
+  add_built_in("cos", cos);
+  add_built_in("cosh", cosh);
+  add_built_in("sin", sin);
+  add_built_in("sinh", sinh);
+  add_built_in("tan", tan);
+  add_built_in("tanh", tanh);
+  add_built_in("exp", exp);
+  add_built_in("log", log);
+  add_built_in("log10", log10);
+  add_built_in("exp2", exp2);
 #ifdef HAVE_LOG2
-  add_built_in("log2", (void*) log2, 1);
+  add_built_in("log2", log2);
 #endif
-  add_built_in("pow", (void*) pow, 2);
-  add_built_in("sqrt", (void*) sqrt, 1);
-  add_built_in("cbrt", (void*) cbrt, 1);
-  add_built_in("hypot", (void*) hypot, 2);
-  add_built_in("ceil", (void*) ceil, 1);
-  add_built_in("abs", (void*) fabs, 1);
-  add_built_in("fabs", (void*) fabs, 1);
-  add_built_in("floor", (void*) floor, 1);
-  add_built_in("mod", (void*) fmod, 2);
-  add_built_in("fmod", (void*) fmod, 2);
-
+  add_built_in("pow", pow);
+  add_built_in("sqrt", sqrt);
+  add_built_in("cbrt", cbrt);
+  add_built_in("hypot", hypot);
+  add_built_in("ceil", ceil);
+  add_built_in("abs", fabs);
+  add_built_in("fabs", fabs);
+  add_built_in("floor", floor);
+  add_built_in("mod", fmod);
+  add_built_in("fmod", fmod);
+  
   // add the constants pi and PI
   add_const("pi", M_PI);
   add_const("PI", M_PI);

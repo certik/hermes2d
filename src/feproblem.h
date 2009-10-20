@@ -165,34 +165,6 @@ protected:
   scalar* vec;
 };
 
-
-
-// can be called to set a custom order limiting table
-extern void set_order_limit_table(int* tri_table, int* quad_table, int n);
-
-// limit_order is used in integrals
-extern int  g_safe_max_order;
-extern int  g_max_order;
-extern int* g_order_table;
-
-#ifndef DEBUG_ORDER
-  #define limit_order(o) \
-    if (o > g_safe_max_order) { o = g_safe_max_order; warn_order(); } \
-    o = g_order_table[o];
-  #define limit_order_nowarn(o) \
-    if (o > g_safe_max_order) o = g_safe_max_order; \
-    o = g_order_table[o];
-#else
-  #define limit_order(o) \
-    if (o > g_max_order) warn_order(); \
-    o = g_safe_max_order;
-  #define limit_order_nowarn(o) \
-    o = g_safe_max_order;
-#endif
-
-extern void warn_order();
-extern void update_limit_table(int mode);
-
 #endif
 
 

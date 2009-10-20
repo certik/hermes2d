@@ -25,7 +25,7 @@
 /// PrecalcShapeset is a cache of precalculated shape function values.
 ///
 ///
-class PrecalcShapeset : public RealFunction
+class PUBLIC_API PrecalcShapeset : public RealFunction
 {
 public:
 
@@ -105,7 +105,7 @@ protected:
 
   /// Forces a transform without using push_transform() etc.
   /// Used by the Solution class. <b>For internal use only</b>.
-  void force_transform(uint64 sub_idx, Trf* ctm)
+  void force_transform(uint64_t sub_idx, Trf* ctm)
   {
     this->sub_idx = sub_idx;
     this->ctm = ctm;

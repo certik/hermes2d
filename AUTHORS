@@ -24,6 +24,10 @@ Ondrej Certik <ondrej@certik.cz>,
 Robert Cimrman <cimrman3@ntc.zcu.cz>
   - python interface
 
+Ivo Hanak <hanak@byte.cz>
+  - MSVC++ 2008 version
+  - visualization
+
 David Andrs <andrsd@gmail.com>
 František Mach <mach.frantisek@gmail.com>
 Sameer Regmi <regmisk@gmail.com>

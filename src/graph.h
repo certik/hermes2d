@@ -16,7 +16,6 @@
 #ifndef __HERMES2D_GRAPH_H
 #define __HERMES2D_GRAPH_H
 
-
 ///  Graph is a utility class storing a simple XY graph (eg., a convergence graph).
 ///  One or more data rows can be defined by calling add_row(). The actual data
 ///  are added to the rows by calling add_values(). The resulting graph is saved
@@ -25,7 +24,7 @@
 ///  Please note that this is a base class that cannot be instantiated.
 ///  Use MatlabGraph or GnuplotGraph instead.
 ///
-class Graph
+class PUBLIC_API Graph
 {
 public:
 
@@ -68,6 +67,7 @@ protected:
     std::vector<Values> data;
   };
 
+  PUBLIC_API_USED_STL_VECTOR(Row);
   std::vector<Row> rows;
 
 };
@@ -75,7 +75,7 @@ protected:
 
 ///  Outputs just two numbers per row
 ///
-class SimpleGraph : public Graph
+class PUBLIC_API SimpleGraph : public Graph
 {
 public:
 
@@ -89,7 +89,7 @@ public:
 
 ///  Outputs a MATLAB graph.
 ///
-class MatlabGraph : public Graph
+class PUBLIC_API MatlabGraph : public Graph
 {
 public:
 
@@ -103,7 +103,7 @@ public:
 
 ///  Outputs a GNUPLOT graph.
 ///
-class GnuplotGraph : public Graph
+class PUBLIC_API GnuplotGraph : public Graph
 {
 public:
 

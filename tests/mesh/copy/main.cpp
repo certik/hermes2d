@@ -4,6 +4,8 @@
 // including the number of elements, the type of elements,
 // and find out if the elements are curvilinear.
 
+#undef ERROR_SUCCESS
+#undef ERROR_FAILURE
 #define ERROR_SUCCESS                               0
 #define ERROR_FAILURE                               -1
 
