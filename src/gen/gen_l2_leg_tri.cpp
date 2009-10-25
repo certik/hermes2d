@@ -1,5 +1,5 @@
-//  generator for L2 shapeset on triangles.
-//  Based on product of Legendre polynomials.
+// Generates L2 shapeset on triangles
+// based on product of Legendre polynomials.
 
 #include <stdio.h>
 #include <stdlib.h>

@@ -1,6 +1,7 @@
-// utilita pro generovani edge shape funkci pro quady v prostoru Hcurl
-// edge fce jsou gradienty skalarnich lobato edge fci
-// bubble funkce jsou legendrovy fce z sede knihy
+// This utility generates edge shape functions for quads in the
+// space Hcurl. Edge functions are the gradients of scalar Lobatto
+// edge functions, bubble functions are the Legendre-based functions
+// from Higher-Order Finite Element Method (Solin, Segeth, Dolezel).
 
 #include <stdio.h>
 #include <stdlib.h>

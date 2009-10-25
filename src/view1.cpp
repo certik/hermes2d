@@ -1040,7 +1040,7 @@ void View::save_screenshot_internal(const char *file_name)
   warn("dont have GL_BGRA_EXT format");
 #endif
 
-  // otevreni souboru v binarnim rezimu pro zapis
+  // opening file for binary writing
   FILE* file = fopen(file_name, "wb");
   if (file == NULL)
     error("Could not open '%s' for writing", file_name);

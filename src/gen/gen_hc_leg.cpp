@@ -1,6 +1,6 @@
-// utilita pro generovani edge shape funkci pro quady v prostoru Hcurl
-// edge fce jsou ledendrovy fce
-// bubble funkce jsou legendrovy fce z sede knihy
+// This utility generates edge shape functions for quads in the
+// space Hcurl. Both edge and bubble functions are the Legendre-based
+// ones from Higher-Order Finite Element Methods (Solin, Segeth, Dolezel).
 
 #include <stdio.h>
 #include <stdlib.h>

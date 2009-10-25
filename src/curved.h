@@ -88,11 +88,11 @@ struct CurvMap
   int nc; // number of coefficients (todo: mozna spis polyn. rad zobrazeni)
   double2* coefs; // array of the coefficients
 
-  // tohle se zavola pro kazdy krivocary element kdyz vznikne anebo
-  // bude potreba prepocitat koeficienty pro jiny rad (order);
-  // 'e' je pointer na element ke kteremu tato CurvMap patri;
-  // prvni co udela, ze smaze stare 'coefs', pokud nejsou NULL,
-  // pote zprojektuje nove koeficienty
+  // this is called for every curvilinear element when it is created
+  // or when it is necessary to re-calculate coefficients for another
+  // order: 'e' is a pointer to the element to which this CurvMap
+  // belongs to. First, old "coefs" are removed if they are not NULL,
+  // then new coefficients are projected.
   void update_refmap_coefs(Element* e);
 
   void get_mid_edge_points(Element* e, double2* pt, int n);

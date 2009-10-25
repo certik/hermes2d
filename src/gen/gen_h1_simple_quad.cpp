@@ -1,4 +1,4 @@
-// utilita pro generovani jednoduchych shape funkci pro quady
+// This utility generates simple shape functions for quads.
 
 #include <stdio.h>
 #include <stdlib.h>
