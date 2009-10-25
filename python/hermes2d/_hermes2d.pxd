@@ -160,11 +160,13 @@ cdef extern from "hermes2d.h":
     ctypedef struct FuncOrd "Func<Ord>":
         pass
     ctypedef struct GeomOrd "Geom<Ord>":
+        int marker
         pass
     ctypedef struct ExtDataOrd "ExtData<Ord>":
         pass
     ctypedef struct c_Ord "Ord":
-        pass
+        int get_order()
+        c_Ord mul_double "operator*"(double right)
     c_Ord create_Ord "Ord"(int n)
 
     ctypedef scalar (*BiFormFnVol)(RealFunction *fu, RealFunction *fv,
@@ -310,6 +312,7 @@ cdef extern from "hermes2d.h":
             FuncOrd *v)
     double int_F_u_v(...)
     double int_F_v "int_F_v<double, double>"(...)
+    c_Ord int_F_v_ord "int_F_v<Ord, Ord>"(...)
     double int_v "int_v<double, double>"(int n, double *wt, FuncReal *v)
     c_Ord int_v_ord "int_v<Ord, Ord>"(int n, double *wt, FuncOrd *v)
     double int_w_nabla_u_v "int_w_nabla_u_v<double, double>"(...)
