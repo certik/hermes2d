@@ -1,6 +1,7 @@
-// utilita pro generovani edge shape funkci pro quady v prostoru Hcurl
-// edge fce jsou gradienty skalarnich lobato edge fci
-// bubble funkce jsou eigen fce pro curlcurl operator
+// This utility generates edge shape functions for quads in the
+// space Hcurl. Edge functions are the gradients of scalar Lobatto
+// edge functions, bubble functions are eigen functions for the
+// curl-curl operator.
 
 #include <stdio.h>
 #include <stdlib.h>

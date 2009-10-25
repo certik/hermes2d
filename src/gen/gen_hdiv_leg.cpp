@@ -1,8 +1,6 @@
-// utility for the generation of the edge shape functions for quads in the Hdiv
-// space.
-// edge functions are the Legendre functions
-// bubble functions are the legendre funtions from the book:
-// Higher-Order Finite Element Method, Solin, Segeth, Dolezel
+// This utility generates edge shape functions for quads in the
+// space Hdiv. Both the edge and bubble functions are the Legendre-based
+// ones from Higher-Order Finite Element Method (Solin, Segeth, Dolezel).
 
 #include <stdio.h>
 #include <stdlib.h>

@@ -67,7 +67,7 @@ void DrawMesh_quad(int steps)
       glRotated(atan2(b,a) * 180/PI, 0.0, 0.0, 1.0);
 
 
-      float* color = get_palette_entry(length/max); // rozsah je 0.0 -- 1.0
+      float* color = get_palette_entry(length/max); // range is 0.0 -- 1.0
       glColor3f(color[0], color[1], color[2]);
 
       glBegin(GL_LINES);
@@ -143,7 +143,7 @@ void DrawMesh_tri(int steps)
       glRotated(atan2(b,a) * 180/PI, 0.0, 0.0, 1.0);
 
 
-      float* color = get_palette_entry(length/max); // rozsah je 0.0 -- 1.0
+      float* color = get_palette_entry(length/max); // range is 0.0 -- 1.0
       glColor3f(color[0], color[1], color[2]);
 
       glBegin(GL_LINES);
@@ -278,16 +278,16 @@ void OnKeyDown(unsigned char key, int x, int y)
 
 int main(int argc, char* argv[])
 {
-  // inicializace
+  // initialization
   glutInit(&argc, argv);
   glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE);
 
-  // otevreni okna pozadovane velikosti na zadane pozici
+  // opening window of required size at required position
   glutInitWindowPosition(100, 100);
   glutInitWindowSize(800, 600);
   glutCreateWindow("ShapeView");
 
-  // inicializace obsluhy udalosti
+  // initialization of event handler
   glutDisplayFunc(OnDisplay);
   glutReshapeFunc(OnReshape);
   glutKeyboardFunc(OnKeyDown);

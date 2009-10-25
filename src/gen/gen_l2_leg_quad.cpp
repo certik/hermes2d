@@ -1,5 +1,5 @@
-//  generator for L2 shapeset on quads.
-//  Based on product of Legendre polynomials.
+// Generates L2 shapeset on quads
+// based on product of Legendre polynomials.
 
 #include <stdio.h>
 #include <stdlib.h>
