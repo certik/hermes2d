@@ -1,7 +1,8 @@
 from hermes2d._hermes2d cimport scalar, FuncReal, GeomReal, WeakForm, \
         int_grad_u_grad_v, int_v, malloc, ExtDataReal, c_Ord, create_Ord, \
         FuncOrd, GeomOrd, ExtDataOrd, H1Space, BC_ESSENTIAL, BC_NATURAL, \
-        c_atan, c_pi, c_sqrt, c_sqr, int_F_v
+        c_atan, c_pi, c_sqrt, c_sqr, int_F_v, int_grad_u_grad_v_ord
+from hermes2d._hermes2d cimport int_F_v_ord
 
 cdef double fn(double x, double y):
     return c_atan(60 * (c_sqrt(c_sqr(x-1.25) + c_sqr(y+0.25)) - c_pi/3))
@@ -25,14 +26,12 @@ cdef scalar bc_values(int marker, double x, double y):
 
 cdef c_Ord _order_bf(int n, double *wt, FuncOrd *u, FuncOrd *v, GeomOrd
         *e, ExtDataOrd *ext):
-    # XXX: with 9 it doesn't shout about the integration order, but gives wrong
-    # results...
-    return create_Ord(20)
+    return int_grad_u_grad_v_ord(n, wt, u, v)
 
 cdef c_Ord _order_lf(int n, double *wt, FuncOrd *u, GeomOrd
-        *e, ExtDataOrd *ext):
-    # XXX: with 9 it doesn't shout about the integration order, but gives wrong
-    # results...
+            *e, ExtDataOrd *ext):
+    # this doesn't work, unless we redefine rhs using Ord:
+    #return int_F_v_ord(n, wt, rhs, u, e).mul_double(-1)
     return create_Ord(20)
 
 def set_forms(WeakForm dp):

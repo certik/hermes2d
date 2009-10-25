@@ -2,7 +2,7 @@ from hermes2d._hermes2d cimport scalar, WeakForm, H1Space, EdgePos, \
         FuncReal, GeomReal, ExtDataReal, BC_ESSENTIAL, \
         BC_NATURAL, int_v, c_Ord, create_Ord, FuncOrd, GeomOrd, ExtDataOrd
 from hermes2d._hermes2d cimport int_dudy_dvdy, int_dudy_dvdx, int_dudx_dvdx, \
-        int_dudx_dvdy, SYM
+        int_dudx_dvdy, SYM, int_v_ord
 
 cdef double E  = 200e9
 cdef double nu = 0.3
@@ -49,9 +49,7 @@ cdef c_Ord _order_bf(int n, double *wt, FuncOrd *u, FuncOrd *v, GeomOrd
 
 cdef c_Ord _order_lf(int n, double *wt, FuncOrd *u, GeomOrd
         *e, ExtDataOrd *ext):
-    # XXX: with 9 it doesn't shout about the integration order, but gives wrong
-    # results...
-    return create_Ord(20)
+    return int_v_ord(n, wt, u).mul_double(f)
 
 def set_forms(WeakForm dp):
     dp.thisptr.add_biform(0, 0, &bilinear_form_0_0, &_order_bf, SYM)
