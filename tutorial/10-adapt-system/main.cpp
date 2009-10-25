@@ -73,9 +73,16 @@ const double mu = E / (2*(1 + nu));
 const int marker_left = 1;
 const int marker_top = 2;
 
-// boundary conditions
-int bc_types_xy(int marker)
+// boundary condition types
+int bc_types(int marker)
   { return (marker == marker_left) ? BC_ESSENTIAL : BC_NATURAL; }
+
+// function values for Dirichlet boundary markers
+// (if the return value is zero, this can be omitted)
+scalar bc_values(int marker, double x, double y)
+{
+  return 0;
+}
 
 // bilinear forms
 template<typename Real, typename Scalar>
@@ -131,12 +138,14 @@ int main(int argc, char* argv[])
 
   // create the x displacement space
   H1Space xdisp(&xmesh, &shapeset);
-  xdisp.set_bc_types(bc_types_xy);
+  xdisp.set_bc_types(bc_types);
+  xdisp.set_bc_values(bc_values);
   xdisp.set_uniform_order(P_INIT);
 
   // create the y displacement space
   H1Space ydisp(MULTI ? &ymesh : &xmesh, &shapeset);
-  ydisp.set_bc_types(bc_types_xy);
+  ydisp.set_bc_types(bc_types);
+  ydisp.set_bc_values(bc_values);
   ydisp.set_uniform_order(P_INIT);
 
   // enumerate basis functions
@@ -254,7 +263,7 @@ int main(int argc, char* argv[])
   sview.show(&stress_fine);
 
   // wait for keypress or mouse input
-  printf("Click into the image window and press 'q' to finish.\n");
+  printf("Waiting for keyboard or mouse input.\n");
   View::wait();
   return 0;
 }

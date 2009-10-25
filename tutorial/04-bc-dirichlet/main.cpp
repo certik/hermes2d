@@ -22,8 +22,7 @@ double CONST_F = -4.0;       // constant right-hand side
 int P_INIT = 2;              // initial polynomial degree in all elements
 int UNIFORM_REF_LEVEL = 3;   // number of initial uniform mesh refinements
 
-// boundary condition types
-// Note: essential means Dirichlet (prescribed is value of solution at the boundary).
+// boundary condition type (essential = Dirichlet)
 int bc_types(int marker)
 {
   return BC_ESSENTIAL;
@@ -48,7 +47,6 @@ Scalar linear_form(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scal
 {
   return CONST_F*int_v<Real, Scalar>(n, wt, v);
 }
-
 
 int main(int argc, char* argv[])
 {

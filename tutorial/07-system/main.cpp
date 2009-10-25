@@ -22,13 +22,13 @@ const double f  = 1e4;                                     // external force
 const double lambda = (E * nu) / ((1 + nu) * (1 - 2*nu));  // first Lame constant
 const double mu = E / (2*(1 + nu));                        // second Lame constant
 
-// boundary condition types (x-displacement)
-int bc_types_x(int marker)
-  { return BC_NATURAL; }
-
-// boundary condition types (y-displacement)
-int bc_types_y(int marker)
+// boundary condition types
+int bc_types(int marker)
   { return (marker == 1) ? BC_ESSENTIAL : BC_NATURAL; }
+
+// function values for Dirichlet boundary markers (y-displacement)
+double bc_values_x(EdgePos* ep)
+  { return 0; }
 
 // function values for Dirichlet boundary markers (y-displacement)
 double bc_values_y(EdgePos* ep)
@@ -74,21 +74,23 @@ int main(int argc, char* argv[])
 
   // create the x displacement space
   H1Space xdisp(&mesh, &shapeset);
-  xdisp.set_bc_types(bc_types_x);
+  xdisp.set_bc_types(bc_types);
+  xdisp.set_bc_values(bc_values_x);
   xdisp.set_uniform_order(P_INIT);
   int ndofs = xdisp.assign_dofs(0);
 
   // create the y displacement space
   H1Space ydisp(&mesh, &shapeset);
-  ydisp.set_bc_types(bc_types_y);
+  ydisp.set_bc_types(bc_types);
+  ydisp.set_bc_values(bc_values_y);
   ydisp.set_uniform_order(P_INIT);
   ndofs += ydisp.assign_dofs(ndofs);
 
   // initialize the weak formulation
   WeakForm wf(2);
-  wf.add_biform(0, 0, callback(bilinear_form_0_0), SYM);  // note that only one symmetric part is
+  wf.add_biform(0, 0, callback(bilinear_form_0_0), SYM);  // Note that only one symmetric part is
   wf.add_biform(0, 1, callback(bilinear_form_0_1), SYM);  // added in the case of symmetric bilinear
-  wf.add_biform(1, 1, callback(bilinear_form_1_1), SYM);  // forms
+  wf.add_biform(1, 1, callback(bilinear_form_1_1), SYM);  // forms.
   wf.add_liform_surf(1, callback(linear_form_surf_1), 3);
 
   // initialize the linear system and solver
@@ -112,3 +114,4 @@ int main(int argc, char* argv[])
   View::wait();
   return 0;
 }
+

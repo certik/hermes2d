@@ -4,6 +4,23 @@
 // of "manual"  element refinements, and use keyboard and mouse
 // controls.
 
+static char text[] = "\
+Click into the image window and:\n\
+  press 'm' to show element numbers,\n\
+  press 'b' to toggle boundary markers,\n\
+  enlarge your window and press 'c' to center the mesh,\n\
+  zoom into the mesh using the right mouse button\n\
+  and move the mesh around using the left mouse button\n\
+    -- in this way you can read the numbers of all elements,\n\
+  press 'c' to center the mesh again,\n\
+  press 'm' to hide element numbers,\n\
+  press 's' to save a screenshot in bmp format\n\
+    -- the bmp file can be converted to any standard\n\
+       image format using the command \"convert\",\n\
+  press 'q' to quit.\n\
+  Also see help - click into the image window and press F1.\n";
+
+
 int main(int argc, char* argv[])
 {
   // load the mesh file
@@ -24,19 +41,7 @@ int main(int argc, char* argv[])
   mview.show(&mesh);                                   // 500 x 500 is the window size
 
   // practice some keyboard and mouse controls
-  printf("Click into the image window and:\n");
-  printf("  press 'm' to show element numbers,\n");
-  printf("  press 'b' to toggle boundary markers,\n");
-  printf("  enlarge your window and press 'c' to center the mesh,\n");
-  printf("  zoom into the mesh using the right mouse button\n");
-  printf("  and move the mesh around using the left mouse button\n");
-  printf("    -- in this way you can read the numbers of all elements,\n");
-  printf("  press 'c' to center the mesh again,\n");
-  printf("  press 'm' to hide element numbers,\n");
-  printf("  press 's' to save a screenshot in bmp format\n");
-  printf("    -- the bmp file can be converted to any standard\n");
-  printf("    image format using the command \"convert\",\n");
-  printf("  press 'q' to quit.\n");
+  printf("%s", text);
 
   // wait for keyboard or mouse input
   printf("Waiting for keyboard or mouse input.\n");

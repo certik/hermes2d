@@ -68,7 +68,13 @@ const double EPS1 = 1.0;          // Relative electric permittivity in Omega_1.
 const double EPS2 = 10.0;         // Relative electric permittivity in Omega_2.
 const double VOLTAGE = 50.0;      // Voltage on the stator.
 
-// boundary conditions
+// boundary condition types
+int bc_types(int marker)
+{
+  return BC_ESSENTIAL;
+}
+
+// Dirichlet boundary condition values
 scalar bc_values(int marker, double x, double y)
 {
   return (marker == 2) ? VOLTAGE : 0.0;
@@ -98,6 +104,7 @@ int main(int argc, char* argv[])
 
   // create finite element space
   H1Space space(&mesh, &shapeset);
+  space.set_bc_types(bc_types);
   space.set_bc_values(bc_values);
   space.set_uniform_order(P_INIT);
 
@@ -198,7 +205,7 @@ int main(int argc, char* argv[])
   gview.show(&sln_fine, &sln_fine, EPS_HIGH, FN_DX_0, FN_DY_0);
 
   // wait for keyboard or mouse input
-  printf("Click into the image window and press 'q' to finish.\n");
+  printf("Waiting for keyboard or mouse input.\n");
   View::wait();
   return 0;
 }
