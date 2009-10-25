@@ -20,6 +20,18 @@
 double CONST_F = 2.0;   // Constant right-hand side.
 int P_INIT = 5;         // Uniform polynomial degree of mesh elements.
 
+// boundary condition types (essential = Dirichlet)
+int bc_types(int marker)
+{
+  return BC_ESSENTIAL;
+}
+
+// function values for Dirichlet boundary conditions
+scalar bc_values(int marker, double x, double y)
+{
+  return 0;
+}
+
 // return the value \int \nabla u . \nabla v dx
 template<typename Real, typename Scalar>
 Scalar bilinear_form(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
@@ -49,6 +61,8 @@ int main(int argc, char* argv[])
 
   // create an H1 space
   H1Space space(&mesh, &shapeset);
+  space.set_bc_types(bc_types);
+  space.set_bc_values(bc_values);
   space.set_uniform_order(P_INIT);
   space.assign_dofs();
 
@@ -77,3 +91,4 @@ int main(int argc, char* argv[])
   View::wait();
   return 0;
 }
+

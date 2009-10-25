@@ -9,6 +9,23 @@
 
 int P_INIT = 3;
 
+static char text[] = "\
+Click into the image window and:\n\
+  press 'f' to make the color scale finer/coarser,\n\
+  press '3' to see 3D plot of the basis functions,\n\
+  use all three mouse buttons to rotate/move/enlarge the graphs,\n\
+  use the right/left arrows to browse through basis functions,\n\
+  press 'l' to see linearizer output\n\
+      -- higher-order polynomials are plotted using \n\
+         adaptive piecewise-linear approximation,\n\
+  use the left mouse button to drag the scale to another corner,\n\
+  press 'p' to switch to greyscales and back,\n\
+  press 'm' to hide the mesh,\n\
+  press 's' to save screenshots,\n\
+  press 'q' to quit.\n\
+  Also see help - click into the image window and press F1.\n";
+
+
 int main(int argc, char* argv[])
 {
   // load the mesh file
@@ -27,19 +44,9 @@ int main(int argc, char* argv[])
   // view the basis functions
   BaseView bview;
   bview.show(&space);
-  printf("Click into the image window and:\n");
-  printf("  press 'f' to make the color scale finer/coarser,\n");
-  printf("  press '3' to see 3D plot of the basis functions,\n");
-  printf("  use all three mouse buttons to rotate/move/enlarge the graphs,\n");
-  printf("  use the right/left arrows to browse through basis functions,\n");
-  printf("  press 'l' to see linearizer output\n");
-  printf("    -- higher-order polynomials are plotted using \n");
-  printf("    adaptive piecewise-linear approximation,\n");
-  printf("  use the left mouse button to drag the scale to another corner,\n");
-  printf("  press 'p' to switch to greyscales and back,\n");
-  printf("  press 'm' to hide the mesh,\n");
-  printf("  press 's' to save screenshots,\n");
-  printf("  press 'q' to quit.\n");
+
+  // practice some keyboard and mouse controls
+  printf("%s", text);
 
   // wait for keyboard or mouse input
   printf("Waiting for keyboard or mouse input.\n");
