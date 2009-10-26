@@ -13,6 +13,6 @@ include_directories(../src)
 
 add_subdirectory(hermes2d)
 
-add_custom_target(test
+add_custom_target(test-python
     COMMAND ./test tests
     )
