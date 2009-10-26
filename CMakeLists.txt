@@ -20,7 +20,7 @@ set(COMPLEX  YES)
 set(WITH_PYTHON   NO)
 set(WITH_EXAMPLES YES)
 set(WITH_TUTORIAL YES)
-set(WITH_TESTS    NO)
+set(WITH_TESTS    YES)
 set(WITH_GLUT     YES)
 set(WITH_UTIL     YES)
 
@@ -88,6 +88,15 @@ if(WITH_UTIL)
 	add_subdirectory(util)
 endif(WITH_UTIL)
 
+if(WITH_TESTS)
+    enable_testing()
+	add_subdirectory(tests)
+endif(WITH_TESTS)
+
+add_custom_target(test
+    COMMAND /usr/bin/ctest
+    )
+
 # Documentation
 # This doesn't work yet:
 #add_subdirectory(doc)
@@ -115,4 +124,5 @@ message("Build with examples: ${WITH_EXAMPLES}")
 message("Build with tutorial: ${WITH_TUTORIAL}")
 message("Build with GLUT: ${WITH_GLUT}")
 message("Build with util: ${WITH_UTIL}")
+message("Build with tests: ${WITH_TESTS}")
 message("\n")
