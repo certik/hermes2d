@@ -17,8 +17,6 @@
 // You should have received a copy of the GNU General Public License
 // along with Hermes2D.  If not, see <http://www.gnu.org/licenses/>.
 
-// $Id: shapeset_l2_all.h 1086 2009-06-16 09:05:44Z lenka $
-
 #ifndef __HERMES2D_SHAPESET_L2_ALL
 #define __HERMES2D_SHAPESET_L2_ALL
 

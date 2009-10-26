@@ -17,8 +17,6 @@
 // You should have received a copy of the GNU General Public License
 // along with Hermes2D.  If not, see <http://www.gnu.org/licenses/>.
 
-// $Id: hash.cpp 1102 2008-11-03 17:42:52Z jakub $
-
 #include "common.h"
 #include "mesh.h"
 #include "hash.h"

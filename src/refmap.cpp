@@ -17,8 +17,6 @@
 // You should have received a copy of the GNU General Public License
 // along with Hermes2D.  If not, see <http://www.gnu.org/licenses/>.
 
-// $Id: refmap.cpp 1103 2008-11-04 10:20:01Z lenka $
-
 #include "common.h"
 #include "mesh.h"
 #include "refmap.h"

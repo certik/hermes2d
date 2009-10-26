@@ -17,8 +17,6 @@
 // You should have received a copy of the GNU General Public License
 // along with Hermes2D.  If not, see <http://www.gnu.org/licenses/>.
 
-// $Id: shapeset_l2_legendre.cpp 1086 2009-06-16 09:05:44Z lenka $
-
 #include "common.h"
 #include "shapeset.h"
 #include "shapeset_common.h"

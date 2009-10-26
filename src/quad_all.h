@@ -17,8 +17,6 @@
 // You should have received a copy of the GNU General Public License
 // along with Hermes2D.  If not, see <http://www.gnu.org/licenses/>.
 
-// $Id: quad_all.h 1086 2008-10-21 09:05:44Z jakub $
-
 #ifndef __HERMES2D_QUAD_ALL_H
 #define __HERMES2D_QUAD_ALL_H
 

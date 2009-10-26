@@ -17,8 +17,6 @@
 // You should have received a copy of the GNU General Public License
 // along with Hermes2D.  If not, see <http://www.gnu.org/licenses/>.
 
-// $Id: linear1.cpp 1093 2008-10-24 09:29:30Z jakub $
-
 #include "common.h"
 #include "linear.h"
 #include "refmap.h"
