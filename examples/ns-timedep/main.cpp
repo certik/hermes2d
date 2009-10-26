@@ -218,5 +218,7 @@ int main(int argc, char* argv[])
     yprev = ysln;
   }
 
-  View::wait();
+  // wait for keyboard or mouse input
+  View::wait("Waiting for keyboard or mouse input.");
+  return 0;
 }

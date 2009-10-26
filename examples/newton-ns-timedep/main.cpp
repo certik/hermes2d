@@ -372,6 +372,7 @@ int main(int argc, char* argv[])
     // mencoder "mf://velocity*.bmp" -mf fps=20 -o velocity.avi -ovc lavc -lavcopts vcodec=mpeg4
   }
 
-  // wait for keypress or mouse input
-  View::wait();
+  // wait for keyboard or mouse input
+  View::wait("Waiting for keyboard or mouse input.");
+  return 0;
 }

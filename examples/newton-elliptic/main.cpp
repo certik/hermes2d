@@ -134,7 +134,8 @@ int main(int argc, char* argv[])
   }
   while (res_l2_norm > NEWTON_TOL);
 
-  //View::wait();
+  // wait for keyboard or mouse input
+  View::wait("Waiting for keyboard or mouse input.");
   return 0;
 }
 

@@ -205,7 +205,6 @@ int main(int argc, char* argv[])
   gview.show(&sln_fine, &sln_fine, EPS_HIGH, FN_DX_0, FN_DY_0);
 
   // wait for keyboard or mouse input
-  printf("Waiting for keyboard or mouse input.\n");
-  View::wait();
+  View::wait("Waiting for keyboard or mouse input.");
   return 0;
 }

@@ -273,6 +273,6 @@ int main(int argc, char* argv[])
     cprev1.copy(&citer);
   }
 
-  View::wait();
+  View::wait("Waiting for keyboard or mouse input.");
   return 0;
 }
