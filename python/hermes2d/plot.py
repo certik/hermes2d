@@ -168,9 +168,9 @@ def plot_mesh_mpl_orders(nodes, elements, curves=None, polynomial_orders=None, c
     if curves != None:
         curvilinear_elements_index = [k for k, v in curves.items()]
 
-    #plot non-curvilinear elements
+    # Plot non-curvilinear elements
     for i, e in enumerate(elements):
-        #plot only if this element do not contain curves
+        # Plot only if this element do not contain curves
         if i not in curvilinear_elements_index:
             for k, node_index in enumerate(e):
                 j = polynomial_orders[i]
@@ -182,10 +182,10 @@ def plot_mesh_mpl_orders(nodes, elements, curves=None, polynomial_orders=None, c
             vertices_polynomial_orders[j].append((0, 0))
             codes_polynomial_orders[j].append(Path.CLOSEPOLY)
 
-    #plot curvilinear elements
+    # Plot curvilinear elements
     for cei in curvilinear_elements_index:
         for i, e in enumerate(elements):
-            #plot only if this element contains curves
+            # Plot only if this element contains curves
             if i == cei:
                 j = polynomial_orders[i]
                 vertices_polynomial_orders[j].append(nodes[e[0]])
@@ -375,11 +375,12 @@ class ScalarView(object):
             if show:
                 engine = mlab.get_engine()
                 image = engine.current_scene
+                image.scene.background = (1.0, 1.0, 1.0)
+                image.scene.foreground = (0.0, 0.0, 0.0)
+                mlab.colorbar(orientation="vertical")
                 if notebook:
-                    image.scene.background = (1.0, 1.0, 1.0)
                     mlab.savefig(filename)
                 else:
-                    image.scene.background = (1.0, 1.0, 1.0)
                     mlab.show()
         else:
             raise NotImplementedError("Unknown library '%s'" % lib)
