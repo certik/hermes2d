@@ -17,7 +17,7 @@
 
 #include <GL/freeglut.h>
 #ifndef WIN32
-  #include <sys/time.h>
+# include <sys/time.h>
 #endif
 
 #include "common.h"
@@ -385,6 +385,10 @@ int view_create_body(void* param)
 
 int View::create()
 {
+  //reset timing
+  rendering_time_total = 0.0;
+  rendering_frame_cnt = 0;
+
   if (window_id >= 0)
     post_redisplay();
   else
@@ -439,21 +443,33 @@ void View::pre_display()
   //info("display: lock");
   pthread_mutex_lock(&wait_draw_mutex);
 
-  if (!hq_frame)
-  {
+  //begin time measuring
+  double time_start = get_tick_count();
+
+//  if (!hq_frame)
+//  {
     clear_background();
     on_display();
-  }
-  else
-  {
-    display_antialiased();
-    hq_frame = false;
-  }
-
+//  }
+//  else 
+//  {
+//    display_antialiased();
+//    hq_frame = false;
+//  }
+  
   if (b_help) draw_help();
   else if (b_scale) scale_dispatch();
 
+  //draw current time
+  if (rendering_frame_cnt > 0)
+    draw_fps();
+
+  //wait to finish
   glFinish();
+
+  //calculate statistics
+  rendering_time_total += get_tick_count() - time_start;
+  rendering_frame_cnt++;
 
   if (want_screenshot)
   {
@@ -515,7 +531,6 @@ void View::set_ortho_projection(bool no_jitter)
   glLoadIdentity();
 }
 
-
 void View::set_3d_projection(int fov, double znear, double zfar)
 {
   double right = znear * tan((double) fov / 2.0 / 180.0 * M_PI);
@@ -533,6 +548,39 @@ void View::set_3d_projection(int fov, double znear, double zfar)
   glLoadIdentity();
 }
 
+void View::draw_fps()
+{
+  //prepare text
+  unsigned char buffer[128];
+  if (rendering_frame_cnt > 0)
+    sprintf((char*)buffer, "avg. frame: %.1f ms", (float)(rendering_time_total / rendering_frame_cnt));
+  else
+    sprintf((char*)buffer, "no frame stat");
+
+  //prepare environment
+  void* font = GLUT_BITMAP_HELVETICA_10;
+  int width_px = glutBitmapLength(font, buffer);
+  int height_px = glutBitmapHeight(font);
+  int edge_thickness = 2;
+  set_ortho_projection(false);
+
+  //render background
+  glEnable(GL_BLEND);
+  glBlendFunc(GL_ONE_MINUS_SRC_ALPHA, GL_SRC_ALPHA);
+  glBegin(GL_QUADS);
+  glColor4f(1.0f, 1.0f, 1.0f, 0.5f);
+  glVertex2i(window_width - (width_px + 2*edge_thickness), 0);
+  glVertex2i(window_width, 0);
+  glVertex2i(window_width, height_px + 2*edge_thickness);
+  glVertex2i(window_width - (width_px + 2*edge_thickness), height_px + 2*edge_thickness);
+  glEnd();
+
+  //render text
+  glDisable(GL_BLEND);
+  glColor3f(1.0f, 0.0f, 0.0f);
+  glRasterPos2i(window_width - (width_px + edge_thickness), edge_thickness + height_px);
+  glutBitmapString(font, buffer);
+}
 
 void View::on_reshape(int width, int height)
 {
@@ -744,7 +792,11 @@ void View::safe_post_redisplay()
 double View::get_tick_count()
 {
 #ifdef WIN32
-  return (double) clock() * (1000.0 / (double) CLOCKS_PER_SEC);
+  LARGE_INTEGER freq, ticks;
+  QueryPerformanceFrequency(&freq);
+  QueryPerformanceCounter(&ticks);
+  return (1000.0 * (double)ticks.QuadPart) / (double)freq.QuadPart;
+  //return (double) clock() * (1000.0 / (double) CLOCKS_PER_SEC);
 #else
   struct timeval tv;
   gettimeofday(&tv, NULL);

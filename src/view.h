@@ -29,9 +29,13 @@
 // GUI inside views (the current GUI uses AntTweakBar and it is still experimental)
 // to enable view define: ENABLE_VIEWER_GUI
 # ifdef ENABLE_VIEWER_GUI
+#   include <AntTweakBar.h>
 #   define VIEWER_GUI(__def) __def
+#   define VIEWER_GUI_CALLBACK(__clbk) if (__clbk) { post_redisplay(); } else
 # else
 #   define VIEWER_GUI(__def)
+#   define VIEWER_GUI_CALLBACK(__cblk)
+#   define TwBar void /* avoid necessity to define ENABLE_VIEWER_GUI in underlaying applications */
 # endif
 
 /// \brief Represents a simple visualization window.
@@ -84,9 +88,14 @@ public:
   static void wait(const char* text = NULL);
 
 protected:
+  double rendering_time_total; ///< time spend rendering [in ms]
+  int rendering_frame_cnt; ///< a number of frames rendered
+  void draw_fps(); ///< draws current FPS
+  static double get_tick_count(); ///< returns a current time [in ms]
+
+protected:
 
   virtual void clear_background();
-  static double get_tick_count();
 
   virtual void on_create();
   virtual void on_display() = 0;
@@ -239,7 +248,6 @@ protected:
 
 };
 
-
 /// \brief Visualizes a scalar PDE solution.
 ///
 /// ScalarView is a visualization window for all scalar-valued PDE solutions.
@@ -269,7 +277,7 @@ protected: ///< node selection
     float x, y; ///< location of the node in coordinates of the mesh
     int id; ///< id of the node
     bool selected; ///< true if the node is selected
-    void* tw_bar; ///< a pointer to a gui window (CTwBar*) (GUI only). void* is used in order to avoid necessity of including GUI library to exposed API. 
+    TwBar* tw_bar; ///< a pointer to a gui window (CTwBar*) (GUI only).
     VertexNodeInfo() {}; ///< An empty default constructor to limit time 
     VertexNodeInfo(int id, float x, float y) : id(id), x(x), y(y), selected(false), tw_bar(NULL) {};
   };
@@ -283,10 +291,6 @@ protected: ///< node selection
   const int node_pixel_radius; ///< A radius of node selection, in pixels.
   const int node_widget_vert_cnt; ///< A number of vertices for a mesh node widget.
 
-# ifdef ENABLE_VIEWER_GUI
-  bool tw_initialized; ///< true, if TW has been initialized (GUI only).
-# endif
-
   void init_vertex_nodes(Mesh* mesh); ///< Creates a copy of vertex nodes for purpose of displaying and selection.
   VertexNodeInfo* find_nearest_node_in_range(float x, float y, float radius); ///< Finds nearest node in range.
   static bool compare_vertex_nodes_x(const VertexNodeInfo& a, const VertexNodeInfo& b); ///< Returns true, if a's X-axis coordinate is lower than b's one. Used to sort mesh nodes for searching purposes.
@@ -294,8 +298,8 @@ protected: ///< node selection
   void draw_single_vertex_node(const VertexNodeInfo& node); ///< Draws a single vertex node.
   void create_nodes_widgets(); ///< Creates vertex nodes widgets if not created already.
 
-protected: ///< element info
-  struct ElementInfo
+protected: //element nfo
+  struct ElementInfo ///< element info structure
   {
     float x, y; ///< location of center [in physical coordinates]
     float width, height; ///< width, height of AABB [in physical coordinates]
@@ -314,14 +318,28 @@ protected: ///< element info
   void create_element_info_widgets(); ///< Creates element ID widgets if not created already.
   void draw_element_infos_2d(); ///< Draws elements infos in 2D mode.
 
+protected: //GUI
+  bool tw_initialized; ///< true, if TW has been initialized (GUI only).
+  TwBar* tw_setup_bar; ///< setup bar
+  
+  void create_setup_bar(); ///< create setup bar
+
 protected:
 
   Linearizer lin;
 
-  bool lines, pmode, mode3d, panning, contours;
+  bool contours; ///< true to enable drawing of contours
+  double cont_orig, cont_step; ///< contour settings.
+  float cont_color[3]; ///< color of contours (RGB)
+
+  bool show_values; ///< true to show values
+
+  bool show_edges; ///< true to show edges of mesh
+  float edges_color[3]; ///< color of edges
+
+  bool lines, pmode, mode3d, panning;
   double xrot, yrot, xtrans, ytrans, ztrans;
   double xzscale, yscale, xctr, yctr, zctr;
-  double cont_orig, cont_step;
   double3* normals;
 
   void draw_tri_contours(double3* vert, int3* tri);
@@ -332,6 +350,7 @@ protected:
 
   virtual void on_display();
   virtual void on_key_down(unsigned char key, int x, int y);
+  virtual void on_special_key(int key, int x, int y);
   virtual void on_mouse_move(int x, int y);
   virtual void on_right_mouse_down(int x, int y); ///< Handles selecting/deselecting of nodes.
   virtual void on_middle_mouse_down(int x, int y);

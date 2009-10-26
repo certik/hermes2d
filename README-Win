@@ -84,7 +84,7 @@
 	- different library names
 		- Symptoms: Name of some libraries differs from 
 	
- - Hermes2D source code modification
+ - Hermes2D source code modification	
 	- incorrect use of the function "add_built_in"
 		- Symptoms: original functions requires type casting from a function to void *. The function, however, is overloaded in MSVC, .e.g., besides double cos(double), there is long double cos(long double), etc.
 		- Fix: defined a function types MSymbolFunction1 and MSymbolFunction2 and defined a new and overloaded functions add_built_in to accept these two defined types

@@ -32,19 +32,26 @@ using namespace std;
 
 ScalarView::ScalarView(const char* title, int x, int y, int width, int height)
            : View(title, x, y, width, height)
-           , show_element_info(true), element_id_widget(0)
+           , show_element_info(false), element_id_widget(0)
            , vertex_nodes(0), node_pixel_radius(10), pointed_vertex_node(NULL), pointed_node_widget(0), selected_node_widget(0), node_widget_vert_cnt(32)
 #ifdef ENABLE_VIEWER_GUI
-           , tw_initialized(false)
+           , tw_initialized(false), tw_setup_bar(NULL)
 #endif
 {
   lines = true;
   pmode = mode3d = false;
   normals = NULL;
   panning = false;
+
   contours = false;
   cont_orig = 0.0;
-  cont_step = 1.0;
+  cont_step = 0.2;
+  cont_color[0] = 0.0f; cont_color[1] = 0.0f; cont_color[2] = 0.0f;
+
+  show_edges = true;
+  edges_color[0] = 0.5f; edges_color[1] = 0.4f; edges_color[2] = 0.4f;
+
+  show_values = true;
 }
 
 ScalarView::~ScalarView()
@@ -55,6 +62,7 @@ ScalarView::~ScalarView()
 # ifdef ENABLE_VIEWER_GUI
   if (tw_initialized)
   {
+    TwDeleteBar(tw_setup_bar);
     TwTerminate();
     tw_initialized = false;
   }
@@ -67,7 +75,10 @@ void ScalarView::on_create()
   if (!tw_initialized) //GUI has to be initialized before any displaying occurs (on_create calls post_redisplay by default)
   {
     if (TwInit(TW_OPENGL, NULL))
+    {
       tw_initialized = true;
+      create_setup_bar();
+    }
     else {
       debug_log("E TW init failed: %s\n", TwGetLastError());
     }
@@ -108,6 +119,27 @@ void ScalarView::on_close()
 
   //call of parent implementation
   View::on_close();
+}
+
+void ScalarView::create_setup_bar()
+{
+#ifdef ENABLE_VIEWER_GUI
+  TwBar* tw_bar = TwNewBar("View setup");
+
+  //contours
+  TwAddVarRW(tw_bar, "contours", TW_TYPE_BOOLCPP, &contours, " group=Contour2D label='Show contours'");
+  TwAddVarRW(tw_bar, "cont_orig", TW_TYPE_DOUBLE, &cont_orig, " group=Contour2D label='Begin'");
+  TwAddVarRW(tw_bar, "cont_step", TW_TYPE_DOUBLE, &cont_step, " group=Contour2D label='Step'");
+  TwAddVarRW(tw_bar, "cont_color", TW_TYPE_COLOR3F, &cont_color, " group=Contour2D label='Color'");
+
+  //mesh
+  TwAddVarRW(tw_bar, "show_values", TW_TYPE_BOOLCPP, &show_values, " group=Elements2D label='Show Value'");
+  TwAddVarRW(tw_bar, "show_edges", TW_TYPE_BOOLCPP, &show_edges, " group=Elements2D label='Show Edges'");
+  TwAddVarRW(tw_bar, "show_element_info", TW_TYPE_BOOLCPP, &show_element_info, " group=Elements2D label='Show ID'");
+  TwAddVarRW(tw_bar, "edges_color", TW_TYPE_COLOR3F, &edges_color, " group=Elements2D label='Edge color'");
+
+  tw_setup_bar = tw_bar;
+#endif
 }
 
 void ScalarView::show(MeshFunction* sln, double eps, int item,
@@ -161,6 +193,7 @@ void ScalarView::init_vertex_nodes(Mesh* mesh)
     {
       if (iter->tw_bar != NULL)
         TwDeleteBar((TwBar*)iter->tw_bar);
+      iter++;
     }
   }
 #endif
@@ -412,7 +445,7 @@ void ScalarView::draw_element_infos_2d()
     float height = (float)(iter->height * scale);
 
     //draw if AABB of element is large enough
-    if (width > 2*node_pixel_radius && height > 2*node_pixel_radius)
+    if (width > 3*node_pixel_radius && height > 3*node_pixel_radius)
     {
       //prepare environment
       glPushMatrix();
@@ -584,34 +617,37 @@ void ScalarView::on_display()
     glScaled(scale, scale, 1.0);
     
     // draw all triangles
-    if (gl_pallete_tex_id == 0)
-      debug_log("E palette texture ID is zero, palette not set\n");
-    glEnable(GL_TEXTURE_1D);
-    glBindTexture(GL_TEXTURE_1D, gl_pallete_tex_id);
-    glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
-    glColor3f(0, 1, 0);
-    glBegin(GL_TRIANGLES);
-    for (i = 0; i < lin.get_num_triangles(); i++)
+    if (show_values)
     {
-      if (finite(vert[tris[i][0]][2]) && finite(vert[tris[i][1]][2]) && finite(vert[tris[i][2]][2]))
+      if (gl_pallete_tex_id == 0)
+        debug_log("E palette texture ID is zero, palette not set\n");
+      glEnable(GL_TEXTURE_1D);
+      glBindTexture(GL_TEXTURE_1D, gl_pallete_tex_id);
+      glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
+      glColor3f(0, 1, 0);
+      glBegin(GL_TRIANGLES);
+      for (i = 0; i < lin.get_num_triangles(); i++)
       {
-        glTexCoord2d((vert[tris[i][0]][2] - min) * irange * tex_scale + tex_shift, 0.0);
-        glVertex2d(vert[tris[i][0]][0], vert[tris[i][0]][1]);
-        
-        glTexCoord2d((vert[tris[i][1]][2] - min) * irange * tex_scale + tex_shift, 0.0);
-        glVertex2d(vert[tris[i][1]][0], vert[tris[i][1]][1]);
-        
-        glTexCoord2d((vert[tris[i][2]][2] - min) * irange * tex_scale + tex_shift, 0.0);
-        glVertex2d(vert[tris[i][2]][0], vert[tris[i][2]][1]);
+        if (finite(vert[tris[i][0]][2]) && finite(vert[tris[i][1]][2]) && finite(vert[tris[i][2]][2]))
+        {
+          glTexCoord2d((vert[tris[i][0]][2] - min) * irange * tex_scale + tex_shift, 0.0);
+          glVertex2d(vert[tris[i][0]][0], vert[tris[i][0]][1]);
+          
+          glTexCoord2d((vert[tris[i][1]][2] - min) * irange * tex_scale + tex_shift, 0.0);
+          glVertex2d(vert[tris[i][1]][0], vert[tris[i][1]][1]);
+          
+          glTexCoord2d((vert[tris[i][2]][2] - min) * irange * tex_scale + tex_shift, 0.0);
+          glVertex2d(vert[tris[i][2]][0], vert[tris[i][2]][1]);
+        }
       }
+      glEnd();
     }
-    glEnd();
-
+    
     // draw contours
     glDisable(GL_TEXTURE_1D);
     if (contours)
     {
-      glColor3f(0.0, 0.0, 0.0);
+      glColor3fv(cont_color);
       glBegin(GL_LINES);
       for (i = 0; i < lin.get_num_triangles(); i++)
       {
@@ -624,24 +660,28 @@ void ScalarView::on_display()
     }
 
     // draw all edges
-    glColor3f(0.5f, 0.4f, 0.4f);    
-    glBegin(GL_LINES);
-    for (i = 0; i < lin.get_num_edges(); i++) // todo: we could draw only left-right, top-bottom ones
+    if (show_edges)
     {
-      if (lines || edges[i][2] != 0)
+      glColor3fv(edges_color);
+      glBegin(GL_LINES);
+      for (i = 0; i < lin.get_num_edges(); i++) // todo: we could draw only left-right, top-bottom ones
       {
-        glVertex2d(vert[edges[i][0]][0], vert[edges[i][0]][1]);
-        glVertex2d(vert[edges[i][1]][0], vert[edges[i][1]][1]);
+        if (lines || edges[i][2] != 0)
+        {
+          glVertex2d(vert[edges[i][0]][0], vert[edges[i][0]][1]);
+          glVertex2d(vert[edges[i][1]][0], vert[edges[i][1]][1]);
+        }
       }
+      glEnd();
     }
-    glEnd();
 
     //draw element IDS
     if (show_element_info)
       draw_element_infos_2d();
 
     //draw nodes and node info
-    draw_vertex_nodes();
+    if (show_edges)
+      draw_vertex_nodes();
 
     //cleanup
     glPopMatrix();
@@ -834,91 +874,100 @@ void ScalarView::init_lighting()
 
 void ScalarView::on_key_down(unsigned char key, int x, int y)
 {
-  switch (key)
+  VIEWER_GUI_CALLBACK(TwEventKeyboardGLUT(key, x, y))
   {
-    case 'm':
-      lines = !lines;
-      post_redisplay();
-      break;
-
-    case 'l':
-      pmode = !pmode;
-      post_redisplay();
-      break;
-
-    case 'c':
+    switch (key)
     {
-      if (!mode3d) {
-        lin.lock_data();
-        center_mesh(lin.get_vertices(), lin.get_num_vertices());
-        lin.unlock_data();
-      }
-      else
-      {
-        center_3d_mesh();
-        reset_3d_view();
-      }
-      post_redisplay();
-      //reset_zoom();
-      break;
-    }
-
-    case 'f':
-      set_palette_filter(pal_filter != GL_LINEAR);
-      break;
-
-    case 'k':
-      contours = !contours;
-      post_redisplay();
-      break;
-
-    case 'i':
-      show_element_info = !show_element_info;
-      if (!mode3d)
+      case 'm':
+        lines = !lines;
         post_redisplay();
-      break;
-    
-    case '3':
-    {
-      mode3d = !mode3d;
-      dragging = scaling = false;
-      if (mode3d)
-      {
-        init_lighting();
-        if (normals == NULL) calculate_normals();
-      }
-      post_redisplay();
-      break;
-    }
+        break;
 
-    case '*':
-    case '/':
-    {
-      if (mode3d)
-      {
-        if (key == '*') yscale *= 1.1; else yscale /= 1.1;
-        calculate_normals();
-      }
-      else if (contours)
-      {
-        if (key == '*') cont_step /= 1.1; else cont_step *= 1.1;
-      }
-      post_redisplay();
-      break;
-    }
+      case 'l':
+        pmode = !pmode;
+        post_redisplay();
+        break;
 
-    default:
-      View::on_key_down(key, x, y);
-      break;
+      case 'c':
+      {
+        if (!mode3d) {
+          lin.lock_data();
+          center_mesh(lin.get_vertices(), lin.get_num_vertices());
+          lin.unlock_data();
+        }
+        else
+        {
+          center_3d_mesh();
+          reset_3d_view();
+        }
+        post_redisplay();
+        //reset_zoom();
+        break;
+      }
+
+      case 'f':
+        set_palette_filter(pal_filter != GL_LINEAR);
+        break;
+      
+      case 'k':
+        contours = !contours;
+        post_redisplay();
+        break;
+
+      case 'i':
+        show_element_info = !show_element_info;
+        if (!mode3d)
+          post_redisplay();
+        break;
+      
+      case '3':
+      {
+        mode3d = !mode3d;
+        dragging = scaling = false;
+        if (mode3d)
+        {
+          init_lighting();
+          if (normals == NULL) calculate_normals();
+        }
+        post_redisplay();
+        break;
+      }
+      
+      case '*':
+      case '/':
+      {
+        if (mode3d)
+        {
+          if (key == '*') yscale *= 1.1; else yscale /= 1.1;
+          calculate_normals();
+        }
+        else if (contours)
+        {
+          if (key == '*') cont_step /= 1.1; else cont_step *= 1.1;
+        }
+        post_redisplay();
+        break;
+      }
+
+      default:
+        View::on_key_down(key, x, y);
+        break;
+    }
+  }
+}
+
+void ScalarView::on_special_key(int key, int x, int y)
+{
+  VIEWER_GUI_CALLBACK(TwEventSpecialGLUT(key, x, y))
+  {
+    View::on_special_key(key, x, y);
   }
 }
 
 
 void ScalarView::on_mouse_move(int x, int y)
 {
-  VIEWER_GUI(TwEventMouseMotionGLUT(x, y));
-
-  if (mode3d && (dragging || scaling || panning))
+  VIEWER_GUI_CALLBACK(TwEventMouseMotionGLUT(x, y))
   {
     if (dragging)
     {
@@ -930,101 +979,120 @@ void ScalarView::on_mouse_move(int x, int y)
     }
     else if (scaling)
     {
-      ztrans += 0.01 * (mouse_y - y);
-      if (ztrans > -0.25) ztrans = -0.25;
-      else if (ztrans < -7) ztrans = -7;
+      if (dragging)
+      {
+        yrot += 0.4 * (x - mouse_x);
+        xrot += 0.4 * (y - mouse_y);
+        
+        if (xrot < -90) xrot = -90;
+        else if (xrot > 90) xrot = 90;
+      }
+      else if (scaling)
+      {
+        ztrans += 0.01 * (mouse_y - y);
+        if (ztrans > -0.25) ztrans = -0.25;
+        else if (ztrans < -7) ztrans = -7;
+      }
+      else
+      {
+        xtrans += 0.002 * (x - mouse_x);
+        ytrans += 0.002 * (mouse_y - y);
+      }
+        
+      post_redisplay();
+      mouse_x = x;
+      mouse_y = y;
+      return;
     }
-    else
+    else if (!mode3d && show_edges && !dragging && !scaling && !panning)
     {
-      xtrans += 0.002 * (x - mouse_x);
-      ytrans += 0.002 * (mouse_y - y);
+      VertexNodeInfo* found_node = find_nearest_node_in_range((float)untransform_x(x), (float)untransform_y(y), (float)(node_pixel_radius / scale));
+      if (found_node != pointed_vertex_node)
+        pointed_vertex_node = found_node;
     }
 
     post_redisplay();
-    mouse_x = x;
-    mouse_y = y;
-    return;
   }
-  else if (!mode3d && !dragging || !scaling || !panning)
-  {
-    VertexNodeInfo* found_node = find_nearest_node_in_range((float)untransform_x(x), (float)untransform_y(y), (float)(node_pixel_radius / scale));
-    if (found_node != pointed_vertex_node)
-      pointed_vertex_node = found_node;
-  }
-  View::on_mouse_move(x, y);
-
-  post_redisplay();
 }
 
 void ScalarView::on_left_mouse_down(int x, int y)
 {
-  VIEWER_GUI(TwEventMouseButtonGLUT(GLUT_LEFT_BUTTON, GLUT_DOWN, x, y));
-  View::on_left_mouse_down(x, y);
+  VIEWER_GUI_CALLBACK(TwEventMouseButtonGLUT(GLUT_LEFT_BUTTON, GLUT_DOWN, x, y))
+  {
+    View::on_left_mouse_down(x, y);
+  }
 }
 
 void ScalarView::on_left_mouse_up(int x, int y)
 {
-  VIEWER_GUI(TwEventMouseButtonGLUT(GLUT_LEFT_BUTTON, GLUT_UP, x, y));
-  View::on_left_mouse_up(x, y);
+  VIEWER_GUI_CALLBACK(TwEventMouseButtonGLUT(GLUT_LEFT_BUTTON, GLUT_UP, x, y))
+  {
+    View::on_left_mouse_up(x, y);
+  }
 }
 
 void ScalarView::on_right_mouse_down(int x, int y)
 {
-  VIEWER_GUI(TwEventMouseButtonGLUT(GLUT_RIGHT_BUTTON, GLUT_DOWN, x, y));
-
-  //handle node selection
-  if (pointed_vertex_node != NULL)
+  VIEWER_GUI_CALLBACK(TwEventMouseButtonGLUT(GLUT_RIGHT_BUTTON, GLUT_DOWN, x, y))
   {
-    if (pointed_vertex_node->selected) //deselct node
+    //handle node selection
+    if (pointed_vertex_node != NULL)
     {
-#ifdef ENABLE_VIEWER_GUI
-      if (pointed_vertex_node->tw_bar != NULL)
+      if (pointed_vertex_node->selected) //deselct node
       {
-        TwDeleteBar((TwBar*)pointed_vertex_node->tw_bar);
-        pointed_vertex_node->tw_bar = NULL;
+# ifdef ENABLE_VIEWER_GUI
+        if (pointed_vertex_node->tw_bar != NULL)
+        {
+          TwDeleteBar((TwBar*)pointed_vertex_node->tw_bar);
+          pointed_vertex_node->tw_bar = NULL;
+        }
+# endif
+        pointed_vertex_node->selected = false;
       }
-#endif
-      pointed_vertex_node->selected = false;
+      else { //select node
+# ifdef ENABLE_VIEWER_GUI
+        char buffer[1024];
+        sprintf(buffer, "Vertex node: %d", pointed_vertex_node->id);
+        TwBar* bar = TwNewBar(buffer);
+        TwAddVarRO(bar, "X", TW_TYPE_FLOAT, &pointed_vertex_node->x, NULL);
+        TwAddVarRO(bar, "Y", TW_TYPE_FLOAT, &pointed_vertex_node->y, NULL);
+        int intTmp = 0; TwSetParam(bar, NULL, "iconifiable", TW_PARAM_INT32, 1, &intTmp);
+        pointed_vertex_node->tw_bar = bar;
+# endif
+        pointed_vertex_node->selected = true;
+      }
+      post_redisplay();
     }
-    else { //select node
-#ifdef ENABLE_VIEWER_GUI
-      char buffer[1024];
-      sprintf(buffer, "Vertex node: %d", pointed_vertex_node->id);
-      TwBar* bar = TwNewBar(buffer);
-      TwAddVarRO(bar, "X", TW_TYPE_FLOAT, &pointed_vertex_node->x, NULL);
-      TwAddVarRO(bar, "Y", TW_TYPE_FLOAT, &pointed_vertex_node->y, NULL);
-      int intTmp = 0; TwSetParam(bar, NULL, "iconifiable", TW_PARAM_INT32, 1, &intTmp);
-      pointed_vertex_node->tw_bar = bar;
-#endif
-      pointed_vertex_node->selected = true;
+    else { //avoid mixing of functionality
+      View::on_right_mouse_down(x, y);
     }
-    post_redisplay();
-  }
-  else { //avoid mixing of functionality
-    View::on_right_mouse_down(x, y);
   }
 }
 
 void ScalarView::on_right_mouse_up(int x, int y)
 {
-  VIEWER_GUI(TwEventMouseButtonGLUT(GLUT_RIGHT_BUTTON, GLUT_UP, x, y));
-  View::on_right_mouse_up(x, y);
+  VIEWER_GUI_CALLBACK(TwEventMouseButtonGLUT(GLUT_RIGHT_BUTTON, GLUT_UP, x, y))
+  {
+    View::on_right_mouse_up(x, y);
+  }
 }
 
 void ScalarView::on_middle_mouse_down(int x, int y)
 {
-  VIEWER_GUI(TwEventMouseButtonGLUT(GLUT_MIDDLE_BUTTON, GLUT_DOWN, x, y));
-
-  if (!mode3d) return;
-  dragging = scaling = false;
-  panning = true;
+  VIEWER_GUI_CALLBACK(TwEventMouseButtonGLUT(GLUT_MIDDLE_BUTTON, GLUT_DOWN, x, y))
+  {
+    if (!mode3d) return;
+    dragging = scaling = false;
+    panning = true;
+  }
 }
 
 void ScalarView::on_middle_mouse_up(int x, int y)
 {
-  VIEWER_GUI(TwEventMouseButtonGLUT(GLUT_MIDDLE_BUTTON, GLUT_UP, x, y));
-
-  panning = false;
+  VIEWER_GUI_CALLBACK(TwEventMouseButtonGLUT(GLUT_MIDDLE_BUTTON, GLUT_UP, x, y))
+  {
+    panning = false;
+  }
 }
 
 void ScalarView::on_reshape(int width, int height)
