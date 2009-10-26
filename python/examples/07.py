@@ -1,6 +1,6 @@
 #! /usr/bin/env python
 
-from hermes2d import Mesh, H1Shapeset, PrecalcShapeset, H1Space, \
+from hermes2d import Mesh, MeshView, H1Shapeset, PrecalcShapeset, H1Space, \
         LinSystem, WeakForm, DummySolver, Solution, ScalarView, VonMisesFilter
 
 from hermes2d.examples.c07 import set_bc, set_forms
@@ -46,4 +46,8 @@ stress = VonMisesFilter(xsln, ysln, E / (2*(1 + nu)),
         (E * nu) / ((1 + nu) * (1 - 2*nu)))
 view.show(stress)
 
-view.wait()
+# view.wait()
+
+mview = MeshView("Hello world!", 100, 100, 500, 500)
+mview.show(mesh, lib="mpl", method="orders", notebook=False)
+mview.wait()

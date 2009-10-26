@@ -1,6 +1,6 @@
 #! /usr/bin/env python
 
-from hermes2d import Mesh, H1Shapeset, PrecalcShapeset, H1Space, \
+from hermes2d import Mesh, MeshView, H1Shapeset, PrecalcShapeset, H1Space, \
         LinSystem, WeakForm, DummySolver, Solution, ScalarView
 
 from hermes2d.examples.c06 import set_bc, set_forms
@@ -40,4 +40,8 @@ sys.solve_system(sln)
 
 view = ScalarView("Solution")
 view.show(sln)
-view.wait()
+#view.wait()
+
+mview = MeshView("Hello world!", 100, 100, 500, 500)
+mview.show(mesh, lib="mpl", method="orders", notebook=False)
+mview.wait()

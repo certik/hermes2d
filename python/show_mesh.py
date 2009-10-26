@@ -17,4 +17,4 @@ mesh = Mesh()
 mesh.load(filename)
 
 mview = MeshView(filename, 100, 100, 500, 500)
-mview.show(mesh)
+mview.show(mesh, lib="mpl", method="orders")
