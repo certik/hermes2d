@@ -17,8 +17,6 @@
 // You should have received a copy of the GNU General Public License
 // along with Hermes2D.  If not, see <http://www.gnu.org/licenses/>.
 
-// $Id: adapt_ortho_h1.cpp 1095 2008-10-24 13:19:45Z jakub $
-
 #include "common.h"
 #include "solution.h"
 #include "linsystem.h"

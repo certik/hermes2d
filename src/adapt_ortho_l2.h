@@ -17,8 +17,6 @@
 // You should have received a copy of the GNU General Public License
 // along with Hermes2D.  If not, see <http://www.gnu.org/licenses/>.
 
-// $Id: adapt_ortho_l2.h 837 2008-08-19 17:10:10Z lenka $
-
 #ifndef __HERMES2D_ADAPT_ORTHO_L2_H
 #define __HERMES2D_ADAPT_ORTHO_L2_H
 

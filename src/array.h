@@ -17,8 +17,6 @@
 // You should have received a copy of the GNU General Public License
 // along with Hermes2D.  If not, see <http://www.gnu.org/licenses/>.
 
-// $Id: array.h 1102 2008-11-03 17:42:52Z jakub $
-
 #ifndef __HERMES2D_ARRAY_H
 #define __HERMES2D_ARRAY_H
 

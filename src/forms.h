@@ -17,8 +17,6 @@
 // You should have received a copy of the GNU General Public License
 // along with Hermes2D.  If not, see <http://www.gnu.org/licenses/>.
 
-// $Id: forms.h 1086 2009-08-17 09:05:44Z lenka $
-
 
 #ifndef __HERMES2D_FORMS_H
 #define __HERMES2D_FORMS_H

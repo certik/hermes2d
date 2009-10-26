@@ -17,8 +17,6 @@
 // You should have received a copy of the GNU General Public License
 // along with Hermes2D.  If not, see <http://www.gnu.org/licenses/>.
 
-// $Id: view5.cpp 1086 2009-06-04 09:05:44Z lenka $
-
 #ifndef NOGLUT
 
 #include <GL/freeglut.h>

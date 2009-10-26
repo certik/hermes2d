@@ -15,8 +15,6 @@
 // You should have received a copy of the GNU General Public License
 // along with Hermes2D.  If not, see <http://www.gnu.org/licenses/>.
 
-// $Id: shapeset_h1_eigen.cpp 805 2008-08-03 20:16:48Z jakub $
-
 #include "common.h"
 #include "shapeset_common.h"
 #include "shapeset_h1_all.h"

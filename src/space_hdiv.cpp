@@ -17,8 +17,6 @@
 // You should have received a copy of the GNU General Public License
 // along with Hermes2D.  If not, see <http://www.gnu.org/licenses/>.
 
-// $Id: space_hdiv.cpp 1086 2009-05-21 15:05:44Z lenka $
-
 #include "common.h"
 #include "space_hdiv.h"
 #include "matrix.h"

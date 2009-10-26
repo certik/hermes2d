@@ -17,8 +17,6 @@
 // You should have received a copy of the GNU General Public License
 // along with Hermes2D.  If not, see <http://www.gnu.org/licenses/>.
 
-// $Id: weakform.h 1096 2008-10-27 14:56:28Z jakub $
-
 #ifndef __HERMES2D_WEAKFORM_H
 #define __HERMES2D_WEAKFORM_H
 

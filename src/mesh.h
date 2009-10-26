@@ -17,8 +17,6 @@
 // You should have received a copy of the GNU General Public License
 // along with Hermes2D.  If not, see <http://www.gnu.org/licenses/>.
 
-// $Id: mesh.h 1112 2008-11-06 15:50:21Z jakub $
-
 #ifndef __HERMES2D_MESH_H
 #define __HERMES2D_MESH_H
 

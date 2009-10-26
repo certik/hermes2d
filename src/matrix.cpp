@@ -13,8 +13,6 @@
 // You should have received a copy of the GNU General Public License
 // along with Hermes2D.  If not, see <http://www.gnu.org/licenses/>.
 
-// $Id: matrix.cpp 841 2008-08-19 20:29:04Z jakub $
-
 #include "common.h"
 #include "matrix.h"
 
