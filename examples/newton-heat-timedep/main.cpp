@@ -210,7 +210,7 @@ int main(int argc, char* argv[])
     Tprev.copy(&Titer);
   }
 
-  printf("Click into the image window and press 'q' to finish.\n");
-  View::wait();
+  // wait for keyboard or mouse input
+  View::wait("Waiting for keyboard or mouse input.");
   return 0;
 }

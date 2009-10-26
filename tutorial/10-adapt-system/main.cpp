@@ -263,7 +263,6 @@ int main(int argc, char* argv[])
   sview.show(&stress_fine);
 
   // wait for keypress or mouse input
-  printf("Waiting for keyboard or mouse input.\n");
-  View::wait();
+  View::wait("Waiting for keyboard or mouse input.");
   return 0;
 }

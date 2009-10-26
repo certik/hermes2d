@@ -229,7 +229,6 @@ int main(int argc, char* argv[])
   verbose("Total running time: %g sec", cpu);
 
   // wait for keypress or mouse input
-  printf("Waiting for keyboard or mouse input.\n");
-  View::wait();
+  View::wait("Waiting for keyboard or mouse input.");
   return 0;
 }

@@ -296,8 +296,7 @@ int main(int argc, char* argv[])
   vecview.show(&sln_fine);
 
   // wait for keyboard or mouse input
-  printf("Waiting for keyboard or mouse input.\n");
-  View::wait();
+  View::wait("Waiting for keyboard or mouse input.");
   return 0;
 }
 

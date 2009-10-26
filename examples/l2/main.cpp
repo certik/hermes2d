@@ -95,8 +95,7 @@ int main(int argc, char* argv[])
   view1.wait_for_keypress();
 
   // wait for keyboard or mouse input
-  printf("Waiting for keyboard or mouse input.\n");
-  View::wait();
+  View::wait("Waiting for keyboard or mouse input.");
   return 0;
 }
 

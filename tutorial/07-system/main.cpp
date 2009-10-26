@@ -120,8 +120,7 @@ int main(int argc, char* argv[])
   view.show(&stress, EPS_HIGH, FN_VAL_0, &xsln, &ysln, 1.5e5);
 
   // wait for keyboard or mouse input
-  printf("Waiting for keyboard or mouse input.\n");
-  View::wait();
+  View::wait("Waiting for keyboard or mouse input.");
   return 0;
 }
 

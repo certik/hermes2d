@@ -159,7 +159,6 @@ int main(int argc, char* argv[])
   // Note: a separate example shows how to create videos
 
   // wait for keyboard or mouse input
-  printf("Waiting for keyboard or mouse input.\n");
-  View::wait();
+  View::wait("Waiting for keyboard or mouse input.");
   return 0;
 }
