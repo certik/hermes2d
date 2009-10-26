@@ -336,7 +336,7 @@ void Space::get_edge_assembly_list(Element* e, int edge, AsmList* al)
 
 static int default_bc_type(int marker)
 {
-  return BC_ESSENTIAL;
+  return BC_NATURAL;
 }
 
 static scalar default_bc_value_by_coord(int marker, double x, double y)
