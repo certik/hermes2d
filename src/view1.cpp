@@ -409,8 +409,9 @@ void View::close()
 }
 
 
-void View::wait()
+void View::wait(const char* text)
 {
+  if (text != NULL) printf("%s\n", text);
   finish_glut_main_loop();
 }
 
