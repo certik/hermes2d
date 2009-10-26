@@ -44,7 +44,7 @@ E = float(200e9)
 nu = 0.3
 stress = VonMisesFilter(xsln, ysln, E / (2*(1 + nu)),
         (E * nu) / ((1 + nu) * (1 - 2*nu)))
-view.show(stress)
+view.show(stress, lib="mayavi")
 
 # view.wait()
 

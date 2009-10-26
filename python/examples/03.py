@@ -35,8 +35,8 @@ sln = Solution()
 sln.set_fe_solution(space, pss, x)
 
 view = ScalarView("Solution")
-view.show(sln)
-#view.wait()
+view.show(sln, lib="mayavi")
+# view.wait()
 
 mview = MeshView("Hello world!", 100, 100, 500, 500)
 mview.show(mesh, lib="mpl", method="orders", notebook=False)
