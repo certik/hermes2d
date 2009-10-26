@@ -187,7 +187,7 @@ int main(int argc, char* argv[])
 
   // visualize solution and mesh
   ScalarView view("", 0, 0, 700, 600);
-  view.fix_scale_width(60);
+  view.fix_scale_width(80);
   OrderView ordview("", 700, 0, 700, 600);
 
   // error estimate as a function of physical time

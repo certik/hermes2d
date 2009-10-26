@@ -41,6 +41,18 @@ static double fndd(double x, double y, double& dx, double& dy)
   return fn(x, y);
 }
 
+// boundary condition types
+int bc_types(int marker)
+{
+  return BC_ESSENTIAL;
+}
+
+// function values for Dirichlet boundary conditions
+scalar bc_values(int marker, double x, double y)
+{
+  return 0;
+}
+
 template<typename Real, typename Scalar>
 Scalar bilinear_form(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
@@ -75,6 +87,8 @@ int main(int argc, char* argv[])
 
   H1Space space(&mesh, &shapeset);
   int actual_poly_degree = P_INIT;
+  space.set_bc_types(bc_types);
+  space.set_bc_values(bc_values);
   space.set_uniform_order(actual_poly_degree);
 
   WeakForm wf(1);

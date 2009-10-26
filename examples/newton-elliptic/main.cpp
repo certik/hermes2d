@@ -18,6 +18,7 @@
 
 /********** Problem parameters ***********/
 
+int P_INIT = 2;            // initial polynomial degree
 int PROJ_TYPE = 0;         // 1 for H1 projections, 0 for L2 projections
 double NEWTON_TOL = 1e-3;  // convergence criterion for the Newton's method
 
@@ -40,7 +41,6 @@ int bc_types(int marker)
 scalar bc_values(int marker, double x, double y)
 {
  return 100;
-// return -4.0 * sqr(y) + 4.0 * y;
 }
 
 /********** Definition of Jacobian matrices and residual vectors ***********/
@@ -80,7 +80,7 @@ int main(int argc, char* argv[])
   H1Space space(&mesh, &shapeset);
   space.set_bc_types(bc_types);
   space.set_bc_values(bc_values);
-  space.set_uniform_order(1);
+  space.set_uniform_order(P_INIT);
   space.assign_dofs();
 
   Solution Titer;

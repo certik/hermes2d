@@ -46,6 +46,18 @@ scalar fn_init(double x, double y, scalar& dx, scalar& dy)
   return val;
 }
 
+/********** Definition of boundary conditions ***********/
+
+int bc_types(int marker)
+{
+  return BC_ESSENTIAL;
+}
+
+scalar bc_values(int marker, double x, double y)
+{
+ return 0;
+}
+
 /********** Definition of Jacobian matrices and residual vectors ***********/
 
 # include "integrals.cpp"
@@ -79,6 +91,8 @@ int main(int argc, char* argv[])
   PrecalcShapeset pss(&shapeset);
 
   H1Space space(&mesh, &shapeset);
+  space.set_bc_types(bc_types);
+  space.set_bc_values(bc_values);
   space.set_uniform_order(P_INIT);
   space.assign_dofs();
 
@@ -103,6 +117,7 @@ int main(int argc, char* argv[])
   char title[100];
   ScalarView view("", 0, 0, 700, 600);
   //view.set_min_max_range(-0.5,0.5);
+  view.fix_scale_width(80);
 
   // setting initial condition at zero time level
   Psi_prev.set_exact(&mesh, fn_init);
