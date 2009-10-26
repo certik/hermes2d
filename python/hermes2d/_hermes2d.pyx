@@ -264,7 +264,7 @@ cdef class Mesh:
         for i in range(self.num_elements):
             el = self.get_element(i)
             if el.active:
-                for j in range(1, 4):
+                for j in range(4):
                     cm = el.curved_map
                     if cm != None:
                         n = cm.get_nurbs(j)

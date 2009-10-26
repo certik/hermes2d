@@ -164,34 +164,46 @@ def plot_mesh_mpl_orders(nodes, elements, curves=None, polynomial_orders=None, c
         vertices_polynomial_orders[key] = []
         codes_polynomial_orders[key] = []
 
-    # Join nodes with lines:
-    for i, e in enumerate(elements):
-        for k, node_index in enumerate(e):
-            j = polynomial_orders[i]
-            vertices_polynomial_orders[j].append(nodes[node_index])
-            if k == 0:
-                codes_polynomial_orders[j].append(Path.MOVETO)
-            else:
-                codes_polynomial_orders[j].append(Path.LINETO)
-        vertices_polynomial_orders[j].append((0,0))
-        codes_polynomial_orders[j].append(Path.CLOSEPOLY)
-
-    # Plot curves
+    curvilinear_elements_index = []
     if curves != None:
-        for k, nurb_list in curves.items():
-            j = polynomial_orders[k]
+        curvilinear_elements_index = [k for k, v in curves.items()]
 
-            for nurb in nurb_list:
-                vertices_polynomial_orders[j].append(nurb[0])
+    #plot non-curvilinear elements
+    for i, e in enumerate(elements):
+        #plot only if this element do not contain curves
+        if i not in curvilinear_elements_index:
+            for k, node_index in enumerate(e):
+                j = polynomial_orders[i]
+                vertices_polynomial_orders[j].append(nodes[node_index])
+                if k == 0:
+                    codes_polynomial_orders[j].append(Path.MOVETO)
+                else:
+                    codes_polynomial_orders[j].append(Path.LINETO)
+            vertices_polynomial_orders[j].append((0, 0))
+            codes_polynomial_orders[j].append(Path.CLOSEPOLY)
+
+    #plot curvilinear elements
+    for cei in curvilinear_elements_index:
+        for i, e in enumerate(elements):
+            #plot only if this element contains curves
+            if i == cei:
+                j = polynomial_orders[i]
+                vertices_polynomial_orders[j].append(nodes[e[0]])
                 codes_polynomial_orders[j].append(Path.MOVETO)
+                z = range(len(e)-1)
+                z.append(-1)
 
-                vertices_polynomial_orders[j].append(nurb[1])
-                codes_polynomial_orders[j].append(Path.CURVE3)
-
-                vertices_polynomial_orders[j].append(nurb[2])
-                codes_polynomial_orders[j].append(Path.CURVE3)
-
-                vertices_polynomial_orders[j].append((0,0))
+                for k in z:
+                    for cl in curves[cei]:
+                        if cl[0] == nodes[e[k]] and cl[2] == nodes[e[k+1]]:
+                            vertices_polynomial_orders[j].append(cl[1])
+                            codes_polynomial_orders[j].append(Path.CURVE3)
+                            vertices_polynomial_orders[j].append(cl[2])
+                            codes_polynomial_orders[j].append(Path.CURVE3)
+                        else:
+                            vertices_polynomial_orders[j].append(nodes[e[k+1]])
+                            codes_polynomial_orders[j].append(Path.LINETO)
+                vertices_polynomial_orders[j].append((0, 0))
                 codes_polynomial_orders[j].append(Path.CLOSEPOLY)
 
     for key, color in colors.items():
@@ -203,36 +215,6 @@ def plot_mesh_mpl_orders(nodes, elements, curves=None, polynomial_orders=None, c
     for key,patch in pathpatch_polynomial_orders.items():
         if patch != None:
             sp.add_patch(patch)
-
-    if curves != None:
-        xx = []
-        yy = []
-
-        for k, nurb_list in curves.items():
-            j = polynomial_orders[k]
-            for nurb in nurb_list:
-                xx.append(nurb[0][0])
-                yy.append(nurb[0][1])
-                xx.append(nurb[2][0])
-                yy.append(nurb[2][1])
-
-        l = Line2D(xx, yy, c=colors[j], lw=2.2)
-        sp.add_line(l)
-
-    #if not legend:
-    #    for i, e in enumerate(elements):
-    #        x_avg = 0
-    #        y_avg = 0
-    #        for k, node_index in enumerate(e):
-    #            x1, y1 = nodes[e[k-1]]
-    #            x2, y2 = nodes[e[k]]
-    #
-    #            x_avg += x2
-    #            y_avg += y2
-    #
-    #        x_avg /= len(e)
-    #        y_avg /= len(e)
-    #        sp.text(x_avg, y_avg, str(polynomial_orders[i]))
 
     # Create legend
     def split_nodes():
@@ -290,8 +272,8 @@ def plot_mesh_mpl_orders(nodes, elements, curves=None, polynomial_orders=None, c
 
     sp.text(x, y + (dy/2), str('Orders'))
 
-    sp.set_title('Mesh')
-
+    sp.set_title("Mesh")
+    sp.set_aspect("equal")
     sp.autoscale_view()
     return sp.figure
 
@@ -391,9 +373,13 @@ class ScalarView(object):
             plot_sln_mayavi(sln, notebook=notebook)
             from enthought.mayavi import mlab
             if show:
+                engine = mlab.get_engine()
+                image = engine.current_scene
                 if notebook:
+                    image.scene.background = (1.0, 1.0, 1.0)
                     mlab.savefig(filename)
                 else:
+                    image.scene.background = (1.0, 1.0, 1.0)
                     mlab.show()
         else:
             raise NotImplementedError("Unknown library '%s'" % lib)

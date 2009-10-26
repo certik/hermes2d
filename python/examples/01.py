@@ -12,5 +12,5 @@ mesh.load(domain_mesh)
 #mesh.refine_all_elements()
 
 mview = MeshView("Hello world!", 100, 100, 500, 500)
-mview.show(mesh, lib="mpl", method="orders",notebook=False,)
+mview.show(mesh, lib="mpl", method="orders", notebook=False)
 mview.wait()
