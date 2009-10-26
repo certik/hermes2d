@@ -290,8 +290,10 @@ int main(int argc, char* argv[])
   VectorView vview("velocity [m/s]", 0, 0, 1500, 470);
   ScalarView pview("pressure [Pa]", 0, 530, 1500, 470);
   vview.set_min_max_range(0, 1.6);
+  vview.fix_scale_width(80);
   //pview.set_min_max_range(-0.9, 0.9);
   pview.show_mesh(false);
+  pview.fix_scale_width(80);
 
   // set up the linear system
   UmfpackSolver umfpack;

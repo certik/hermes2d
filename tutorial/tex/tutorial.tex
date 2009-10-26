@@ -368,8 +368,8 @@ available:
 \index{Function!basis} \index{Function!edge} \index{Function!bubble}
 All these spaces allow for higher-order elements and meshes with hanging nodes.
 If you are not familiar with higher-order FEM, let us just say that the spaces can contain
-quadratic, cubic, etc., {\em edge functions}, which generate higher-degree
-polynomials along mesh edges, and {\em bubble functions}, which complete the higher-order
+quadratic, cubic, etc., {\em edge functions} that generate higher-degree
+polynomials along mesh edges, and {\em bubble functions} that complete the higher-order
 approximation in element interiors. An edge function is associated with a mesh edge,
 a bubble function is associated with an element
 (see Figure \ref{fig:basisfn}).
@@ -421,7 +421,7 @@ In Hermes2D the mesh only stores geometrical information.
 \end{lstlisting}
 
 A space created in this way is ready for use. By default, it is equipped with
-zero Dirichlet boundary condition on the entire domain boundary. We will see
+zero Neumann boundary condition on the entire domain boundary. We will see
 how to change that in Section \ref{sec:bc}.
 
 \index{Space!viewing}
@@ -671,8 +671,8 @@ conditions are natural.
 \subsubsection{Dirichlet Boundary Condition}
 
 \index{Boundary conditions!Dirichlet}
-Since essential conditions restrict degrees of freedom (DOF) in the FE space, they need to be
-incorporated while the space is set up.
+Since essential conditions restrict degrees of freedom (DOF) in the FE space, 
+they need to be incorporated while the space is set up.
 The user has to provide the following two callback functions:
 
 \begin{lstlisting}
@@ -681,7 +681,8 @@ scalar bc_values(int marker, double x, double y);
 \end{lstlisting}
 
 The first one, given the boundary marker number, determines the type of BC which the associated
-portion of the domain boundary belongs to, by returning one of the predefined constants \verb"BC_ESSENTIAL"
+portion of the domain boundary belongs to, by returning one of the predefined constants 
+\verb"BC_ESSENTIAL"
 or \verb"BC_NATURAL". The second callback needs to return the boundary value for a given marker
 and position on the boundary (only needed for essential boundary condition markers -- for natural
 boundary conditions this value is ignored).
@@ -978,7 +979,7 @@ The boundary conditions are
   \dd{u_1}{n} &=&
   \begin{cases}
     f_1 & \text{on $\Gamma_3$,}\\
-    0   & \text{elsewhere}
+    0   & \text{on $\Gamma_2$, $\Gamma_4$, $\Gamma_5$}
   \end{cases}\label{elastbc1}
   \\
   \dd{u_2}{n} &=&
@@ -987,7 +988,7 @@ The boundary conditions are
     0   & \text{on $\Gamma_2$, $\Gamma_4$, $\Gamma_5$}
   \end{cases}\label{elastbc2}
   \\[2mm]
-  u_2 &=& 0 \ \ \mbox{on} \ \Gamma_1. \label{elastbc3}
+  u_1 &=& u_2 \ = \ 0 \ \ \mbox{on} \ \Gamma_1. \label{elastbc3}
 \end{eqnarray}
 
 Applying the standard procedure to the elastostatic equilibrium equations
@@ -1033,29 +1034,29 @@ We will again start by defining the function spaces for the two solution
 components, $u_1$ and $u_2$ (the $x$ and $y$ displacement). The boundary
 conditions (\ref{elastbc1})--(\ref{elastbc3}) can be implemented as
 \begin{lstlisting}
- int bc_types_x(int marker)
-   { return BC_NATURAL; }
+ int bc_types(int marker)
+   { return (marker == 1) ? BC_ESSENTIAL : BC_NATURAL;; }
 
- int bc_types_y(int marker)
-   { return (marker == 1) ? BC_ESSENTIAL : BC_NATURAL; }
+ int bc_values_x(int marker)
+   { return 0;}
 
  double bc_values_y(EdgePos* ep)
    { return (ep->marker == 3) ? f : 0.0; }
 \end{lstlisting}
-We have omitted the callback {\tt bc\_values\_x} since it is zero (this is
-the default BC value for any space). Next we create the two displacement spaces,
+Next we create the two displacement spaces,
 {\tt xdisp} and {\tt ydisp}:
 \begin{lstlisting}
  // create the x displacement space
  H1Space xdisp(&mesh, &shapeset);
- xdisp.set_bc_types(bc_types_x);
- xdisp.set_uniform_order(8);
+ xdisp.set_bc_types(bc_types);
+ xdisp.set_bc_values(bc_values_x);
+ xdisp.set_uniform_order(P\_INIT);
 
  // create the y displacement space
  H1Space ydisp(&mesh, &shapeset);
- ydisp.set_bc_types(bc_types_y);
+ ydisp.set_bc_types(bc_types);
  ydisp.set_bc_values(bc_values_y);
- ydisp.set_uniform_order(8);
+ ydisp.set_uniform_order(P\_INIT);
 \end{lstlisting}
 
 Our {\tt WeakForm} instance will be initialized for two equations in the system.

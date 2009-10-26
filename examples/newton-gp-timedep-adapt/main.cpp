@@ -56,6 +56,8 @@ int MAX_P = 5;                     // maximum polynomial order allowed in hp-ada
 int SHOW_MESHES_IN_TIME_STEP = 0;  // if nonzero, all meshes during every time step are
                                    // shown, else only meshes at the end of every time step.
 
+
+
 /********** Definition of initial conditions ***********/
 
 scalar fn_init(double x, double y, scalar& dx, scalar& dy)
@@ -64,6 +66,18 @@ scalar fn_init(double x, double y, scalar& dx, scalar& dy)
   dx = val * (-40.0*x);
   dy = val * (-40.0*y);
   return val;
+}
+
+/********** Definition of boundary conditions ***********/
+
+int bc_types(int marker)
+{
+  return BC_ESSENTIAL;
+}
+
+scalar bc_values(int marker, double x, double y)
+{
+ return 0;
 }
 
 /********** Definition of Jacobian matrices and residual vectors ***********/
@@ -102,6 +116,8 @@ int main(int argc, char* argv[])
   PrecalcShapeset pss(&shapeset);
 
   H1Space space(&mesh, &shapeset);
+  space.set_bc_types(bc_types);
+  space.set_bc_values(bc_values);
   space.set_uniform_order(P_INIT);
   space.assign_dofs();
 
@@ -127,9 +143,12 @@ int main(int argc, char* argv[])
   ScalarView view("", 0, 0, 600, 600);
   //ScalarView realview("", 0, 0, 600, 600);
   //ScalarView imagview("", 700, 0, 600, 600);
+  view.fix_scale_width(80);
   ScalarView magview("", 0, 0, 600, 600);
+  magview.fix_scale_width(80);
   //ScalarView angleview("", 700, 700, 600, 600);
   OrderView ordview("", 700, 0, 600, 600);
+  ordview.fix_scale_width(80);
 
   GnuplotGraph graph_err;
   graph_err.set_captions("","Time step","Error");

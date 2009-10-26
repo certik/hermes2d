@@ -63,6 +63,18 @@ const int NDOF_STOP = 100000;     // Adaptivity process stops when the number of
 const double K = 1e3;             // Equation parameter.
 const double CONST_F = 1e6;       // Constant right-hand side (set to be roughly K*K for scaling purposes).
 
+// boundary condition types
+int bc_types(int marker)
+{
+  return BC_ESSENTIAL;
+}
+
+// function values for Dirichlet boundary conditions
+scalar bc_values(int marker, double x, double y)
+{
+  return 0;
+}
+
 template<typename Real, typename Scalar>
 Scalar bilinear_form(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
@@ -92,6 +104,8 @@ int main(int argc, char* argv[])
 
   // create finite element space
   H1Space space(&mesh, &shapeset);
+  space.set_bc_types(bc_types);
+  space.set_bc_values(bc_values);
   space.set_uniform_order(P_INIT);
 
   // enumerate basis functions

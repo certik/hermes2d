@@ -31,14 +31,13 @@ Click into the image window and:\n\
   press 'q' to quit.\n\
   Also see help - click into the image window and press F1.\n";
 
-
 int main(int argc, char* argv[])
 {
   // load the mesh file
   Mesh mesh;
-  //mesh.load("domain.mesh");        // original L-shape domain
-  mesh.load("domain_quad.mesh"); // reference square
-  //mesh.load("domain_tri.mesh");  // reference triangle  
+  mesh.load("domain.mesh");            // original L-shape domain
+  //mesh.load("domain_quad.mesh");     // reference square
+  //mesh.load("domain_tri.mesh");      // reference triangle  
 
   // sample element refinement, to see more basis functions
   //mesh.refine_all_elements();
@@ -48,7 +47,7 @@ int main(int argc, char* argv[])
   H1Space space(&mesh, &shapeset);
 
   // assign element orders and initialize the space
-  space.set_uniform_order(P_INIT);  // Set uniform polynomial order 
+  space.set_uniform_order(P_INIT);  // Set uniform polynomial order
                                     // P_INIT to all mesh elements.
   space.assign_dofs();              // Enumerate basis functions.
 

@@ -140,7 +140,9 @@ int main(int argc, char* argv[])
 
   char title[100];
   ScalarView view("", 0, 0, 600, 600);
+  view.fix_scale_width(80);
   ScalarView view2("", 700, 0, 600, 600);
+  view2.fix_scale_width(80);
 
   // setting the Dirichlet lift to be the initial condition
   Titer.set_dirichlet_lift(&space, &pss);
