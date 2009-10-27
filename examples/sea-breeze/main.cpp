@@ -31,7 +31,7 @@ const double STARTUP_TIME = 1.0;     // during this time, inlet velocity increas
                                      // from 0 to VEL_INLET, then it stays constant
 const double TAU = 0.5;              // time step
 const double FINAL_TIME = 3000.0;    // length of time interval
-const int P_INIT_VEL = 2;            // polynomial degree for velocity components
+const int P_INIT_VEL = 1;            // polynomial degree for velocity components
 const int P_INIT_PRESSURE = 1;       // polynomial degree for pressure
                                      // Note: P_INIT_VEL should always be greater than
                                      // P_INIT_PRESSURE because of the inf-sup condition
@@ -54,13 +54,15 @@ double TIME = 0;
 
 // definition of boundary conditions
 int xvel_bc_type(int marker) {
-  if (marker == marker_right) return BC_NONE;
-  else return BC_ESSENTIAL;
+  if (marker == marker_right || marker == marker_left) return BC_ESSENTIAL;
+  else
+      return BC_NATURAL;
 }
 
 int yvel_bc_type(int marker) {
-  if (marker == marker_right) return BC_NONE;
-  else return BC_ESSENTIAL;
+  if (marker == marker_top || marker == marker_bottom) return BC_ESSENTIAL;
+  else
+      return BC_NATURAL;
 }
 
 int press_bc_type(int marker)
@@ -553,10 +555,12 @@ int main(int argc, char* argv[])
   H1Space s4(&mesh, &shapeset_h1);
 
   // initialize boundary conditions
-  s0.set_bc_types(xvel_bc_type);
-  s1.set_bc_values(xvel_bc_value);
+  //s0.set_bc_types(xvel_bc_type);
+  s1.set_bc_types(xvel_bc_type);
   s3.set_bc_types(yvel_bc_type);
-  s4.set_bc_types(press_bc_type);
+  //s1.set_bc_values(xvel_bc_value);
+  //s3.set_bc_types(yvel_bc_type);
+  //s4.set_bc_types(press_bc_type);
 
   // set velocity and pressure polynomial degrees
   s0.set_uniform_order(P_INIT_PRESSURE);
@@ -611,39 +615,6 @@ int main(int argc, char* argv[])
   wf.add_biform(3, 2, callback_bf(B_32), UNSYM, ANY, 4, &w0_prev, &w1_prev,
           &w3_prev, &w4_prev);
   wf.add_biform(3, 3, callback_bf(B_33), UNSYM, ANY, 4, &w0_prev, &w1_prev,
-          &w3_prev, &w4_prev);
-
-  wf.add_biform_surf(0, 0, callback_bf(S_00), UNSYM, ANY, 4, &w0_prev, &w1_prev,
-          &w3_prev, &w4_prev);
-  wf.add_biform_surf(0, 1, callback_bf(S_01), UNSYM, ANY, 4, &w0_prev, &w1_prev,
-          &w3_prev, &w4_prev);
-  wf.add_biform_surf(0, 2, callback_bf(S_02), UNSYM, ANY, 4, &w0_prev, &w1_prev,
-          &w3_prev, &w4_prev);
-  wf.add_biform_surf(0, 3, callback_bf(S_03), UNSYM, ANY, 4, &w0_prev, &w1_prev,
-          &w3_prev, &w4_prev);
-  wf.add_biform_surf(1, 0, callback_bf(S_10), UNSYM, ANY, 4, &w0_prev, &w1_prev,
-          &w3_prev, &w4_prev);
-  wf.add_biform_surf(1, 1, callback_bf(S_11), UNSYM, ANY, 4, &w0_prev, &w1_prev,
-          &w3_prev, &w4_prev);
-  wf.add_biform_surf(1, 2, callback_bf(S_12), UNSYM, ANY, 4, &w0_prev, &w1_prev,
-          &w3_prev, &w4_prev);
-  wf.add_biform_surf(1, 3, callback_bf(S_13), UNSYM, ANY, 4, &w0_prev, &w1_prev,
-          &w3_prev, &w4_prev);
-  wf.add_biform_surf(2, 0, callback_bf(S_20), UNSYM, ANY, 4, &w0_prev, &w1_prev,
-          &w3_prev, &w4_prev);
-  wf.add_biform_surf(2, 1, callback_bf(S_21), UNSYM, ANY, 4, &w0_prev, &w1_prev,
-          &w3_prev, &w4_prev);
-  wf.add_biform_surf(2, 2, callback_bf(S_22), UNSYM, ANY, 4, &w0_prev, &w1_prev,
-          &w3_prev, &w4_prev);
-  wf.add_biform_surf(2, 3, callback_bf(S_23), UNSYM, ANY, 4, &w0_prev, &w1_prev,
-          &w3_prev, &w4_prev);
-  wf.add_biform_surf(3, 0, callback_bf(S_30), UNSYM, ANY, 4, &w0_prev, &w1_prev,
-          &w3_prev, &w4_prev);
-  wf.add_biform_surf(3, 1, callback_bf(S_31), UNSYM, ANY, 4, &w0_prev, &w1_prev,
-          &w3_prev, &w4_prev);
-  wf.add_biform_surf(3, 2, callback_bf(S_32), UNSYM, ANY, 4, &w0_prev, &w1_prev,
-          &w3_prev, &w4_prev);
-  wf.add_biform_surf(3, 3, callback_bf(S_33), UNSYM, ANY, 4, &w0_prev, &w1_prev,
           &w3_prev, &w4_prev);
 
   wf.add_liform(0, callback(l_0), ANY, 4, &w0_prev, &w1_prev,
