@@ -51,6 +51,8 @@ def test_example_03():
     # create an H1 space
     space = H1Space(mesh, shapeset)
     space.set_uniform_order(5)
+    from hermes2d.examples.c03 import set_bc
+    set_bc(space)
     space.assign_dofs()
 
     # initialize the discrete problem
