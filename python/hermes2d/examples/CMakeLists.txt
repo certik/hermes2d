@@ -15,6 +15,7 @@ macro(ADD_EXAMPLE name)
         )
 endmacro(ADD_EXAMPLE)
 
+add_example(c03)
 add_example(c04)
 add_example(c05)
 add_example(c06)
@@ -22,7 +23,7 @@ add_example(c07)
 add_example(c08)
 add_example(c22)
 
-install(TARGETS c04 c05 c06 c07 c08 c22
+install(TARGETS c03 c04 c05 c06 c07 c08 c22
             RUNTIME DESTINATION lib/python/hermes2d/examples
             ARCHIVE DESTINATION lib/python/hermes2d/examples
             LIBRARY DESTINATION lib/python/hermes2d/examples
