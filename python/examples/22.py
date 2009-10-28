@@ -63,7 +63,7 @@ while 1:
     if interactive_plotting:
         view.show(sln, lib="mayavi", filename="a%02d.png" % iter)
         if show_mesh:
-            mview.show(mesh, lib="mpl", method="orders", filename="b%02d.png" % iter) 
+            mview.show(mesh, lib="mpl", method="orders", filename="b%02d.png" % iter)
 
     rsys = RefSystem(sys)
     rsys.assemble()
