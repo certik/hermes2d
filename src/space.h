@@ -57,7 +57,7 @@ enum
 ///         both are set, the "EdgePos" one takes precedence.
 ///
 ///         If one or more of the BC callbacks are not set, default ones are used. The default
-///         BC type is BC_NATURAL for the whole boundary (see the function static int 
+///         BC type is BC_NATURAL for the whole boundary (see the function static int
 ///         default_bc_type(int marker) in space.cpp). The default BC value is zero for all
 ///         markers.
 ///

@@ -2,16 +2,16 @@
 
 // This example demonstrates how to create a space over a mesh
 // and how to visualize the finite element basis functions
-// using the BaseView class. The variable P_INIT defines the 
-// initial degree of all mesh elements. Currently, it is set 
-// to 1. After visualizing the basis functions using the hints 
-// printed in the terminal window, change the value of P_INIT 
-// to 2, 3, etc. to also see higher-order shape functions. 
+// using the BaseView class. The variable P_INIT defines the
+// initial degree of all mesh elements. Currently, it is set
+// to 1. After visualizing the basis functions using the hints
+// printed in the terminal window, change the value of P_INIT
+// to 2, 3, etc. to also see higher-order shape functions.
 //
-// You can use this example to visualize all shape functions 
+// You can use this example to visualize all shape functions
 // on the reference square and reference triangle domains,
-// just load the corresponding mesh at the beginning of the 
-// main.cpp file. 
+// just load the corresponding mesh at the beginning of the
+// main.cpp file.
 
 int P_INIT = 1;
 
@@ -37,7 +37,7 @@ int main(int argc, char* argv[])
   Mesh mesh;
   mesh.load("domain.mesh");            // original L-shape domain
   //mesh.load("domain_quad.mesh");     // reference square
-  //mesh.load("domain_tri.mesh");      // reference triangle  
+  //mesh.load("domain_tri.mesh");      // reference triangle
 
   // sample element refinement, to see more basis functions
   //mesh.refine_all_elements();
