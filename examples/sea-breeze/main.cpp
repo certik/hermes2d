@@ -32,7 +32,8 @@ const double STARTUP_TIME = 1.0;     // during this time, inlet velocity increas
 const double TAU = 0.5;              // time step
 const double FINAL_TIME = 3000.0;    // length of time interval
 const int P_INIT_VEL = 1;            // polynomial degree for velocity components
-const int P_INIT_PRESSURE = 1;       // polynomial degree for pressure
+const int P_INIT_w0 = 1;       // polynomial degree for pressure
+const int P_INIT_w4 = 1;       // polynomial degree for pressure
                                      // Note: P_INIT_VEL should always be greater than
                                      // P_INIT_PRESSURE because of the inf-sup condition
 const double H = 5.0;                // domain height (necessary to define the parabolic
@@ -40,7 +41,7 @@ const double H = 5.0;                // domain height (necessary to define the p
 
 const double R = 8.31;            // Gas constant
 const double c_v = 1.0;            // specific heat capacity
-const double g = 9.81;            // gravitational acceleration
+const double g = 0;            // gravitational acceleration
 
 //  boundary markers
 int marker_bottom = 1;
@@ -52,33 +53,50 @@ int marker_obstacle = 5;
 // global time variable
 double TIME = 0;
 
-// definition of boundary conditions
-int xvel_bc_type(int marker) {
-  if (marker == marker_right || marker == marker_left) return BC_ESSENTIAL;
-  else
-      return BC_NATURAL;
+int bc_type(int marker) {
+  return BC_ESSENTIAL;
 }
 
-int yvel_bc_type(int marker) {
-  if (marker == marker_top || marker == marker_bottom) return BC_ESSENTIAL;
-  else
-      return BC_NATURAL;
+scalar s0_bc_value(int marker, double x, double y) {
+    return 1;
 }
 
-int press_bc_type(int marker)
-  { return BC_NONE; }
-
-scalar xvel_bc_value(int marker, double x, double y) {
-  if (marker == marker_left) {
-    // time-dependent inlet velocity
-//     double val_y = VEL_INLET; //constant profile
-    double val_y = VEL_INLET * y*(H-y) / (H/2.)/(H/2.); //parabolic profile with peak VEL_INLET at y = H/2
-    if (TIME <= STARTUP_TIME) return val_y * TIME/STARTUP_TIME;
-    else return val_y;
-    return val_y;
-  }
-  else return 0;
+scalar s1_bc_value(int marker, double x, double y) {
+    return 0.1;
 }
+
+scalar s3_bc_value(int marker, double x, double y) {
+    return 0;
+}
+
+scalar s4_bc_value(int marker, double x, double y) {
+    return 1;
+}
+
+scalar w0_init(double x, double y, scalar& dx, scalar& dy) {
+    dx = 0;
+    dy = 0;
+    return 1;
+}
+
+scalar w1_init(double x, double y, scalar& dx, scalar& dy) {
+    dx = 0;
+    dy = 0;
+    return 0.1;
+}
+
+scalar w3_init(double x, double y, scalar& dx, scalar& dy) {
+    dx = 0;
+    dy = 0;
+    return 0;
+}
+
+scalar w4_init(double x, double y, scalar& dx, scalar& dy) {
+    dx = 0;
+    dy = 0;
+    return 1;
+}
+
 
 double A_x(int i, int j, double w0, double w1, double w3, double w4)
 {
@@ -547,8 +565,6 @@ int main(int argc, char* argv[])
   // initialize the shapesets and the cache
   H1Shapeset shapeset_h1;
   PrecalcShapeset pss_h1(&shapeset_h1);
-  L2Shapeset shapeset_l2;
-  PrecalcShapeset pss_l2(&shapeset_l2);
 
   // H1 spaces for velocities and L2 for pressure
   H1Space s0(&mesh, &shapeset_h1);
@@ -557,18 +573,20 @@ int main(int argc, char* argv[])
   H1Space s4(&mesh, &shapeset_h1);
 
   // initialize boundary conditions
-  //s0.set_bc_types(xvel_bc_type);
-  s1.set_bc_types(xvel_bc_type);
-  s3.set_bc_types(yvel_bc_type);
-  //s1.set_bc_values(xvel_bc_value);
-  //s3.set_bc_types(yvel_bc_type);
-  //s4.set_bc_types(press_bc_type);
+  s0.set_bc_types(bc_type);
+  s0.set_bc_values(s0_bc_value);
+  s1.set_bc_types(bc_type);
+  s1.set_bc_values(s1_bc_value);
+  s3.set_bc_types(bc_type);
+  s3.set_bc_values(s3_bc_value);
+  s4.set_bc_types(bc_type);
+  s4.set_bc_values(s4_bc_value);
 
   // set velocity and pressure polynomial degrees
-  s0.set_uniform_order(P_INIT_PRESSURE);
+  s0.set_uniform_order(P_INIT_w0);
   s1.set_uniform_order(P_INIT_VEL);
   s3.set_uniform_order(P_INIT_VEL);
-  s4.set_uniform_order(P_INIT_PRESSURE);
+  s4.set_uniform_order(P_INIT_w4);
 
   // assign degrees of freedom
   int ndofs = 0;
@@ -579,10 +597,10 @@ int main(int argc, char* argv[])
 
   // initial condition: xprev and yprev are zero
   Solution w0_prev, w1_prev, w3_prev, w4_prev;
-  w0_prev.set_zero(&mesh);
-  w1_prev.set_zero(&mesh);
-  w3_prev.set_zero(&mesh);
-  w4_prev.set_zero(&mesh);
+  w0_prev.set_exact(&mesh, w0_init);
+  w1_prev.set_exact(&mesh, w1_init);
+  w3_prev.set_exact(&mesh, w3_init);
+  w4_prev.set_exact(&mesh, w4_init);
 
   // set up weak formulation
   WeakForm wf(4);
@@ -630,20 +648,23 @@ int main(int argc, char* argv[])
 
 
   // visualization
-  VectorView vview("velocity [m/s]", 0, 0, 1500, 470);
-  ScalarView pview("pressure [Pa]", 0, 530, 1500, 470);
-  vview.set_min_max_range(0, 1.6);
-  pview.show_mesh(false);
+  VectorView w13_view("Current Density [m/s]", 0, 0, 1500, 470);
+  ScalarView w0_view("Mass Density [Pa]", 0, 530, 1500, 470);
+  ScalarView w4_view("Energy [Pa]", 0, 530, 1500, 470);
+  //w13_view.set_min_max_range(0, 1.6);
+  w0_view.show_mesh(false);
+  w4_view.show_mesh(false);
   // fixing scale width (for nicer videos). Note: creation of videos is
   // discussed in a separate example
-  vview.fix_scale_width(5);
-  pview.fix_scale_width(5);
+  //vview.fix_scale_width(5);
+  //pview.fix_scale_width(5);
 
   // set up the linear system
   UmfpackSolver umfpack;
   LinSystem sys(&wf, &umfpack);
   sys.set_spaces(4, &s0, &s1, &s3, &s4);
   sys.set_pss(4, &pss_h1, &pss_h1, &pss_h1, &pss_h1);
+  //sys.set_pss(1, &pss_h1);
 
   // main loop
   char title[100];
@@ -667,12 +688,15 @@ int main(int argc, char* argv[])
     sys.solve(4, &w0_sln, &w1_sln, &w3_sln, &w4_sln);
 
     // visualization
-    sprintf(title, "Velocity, time %g", TIME);
-    vview.set_title(title);
-    vview.show(&w1_prev, &w3_prev, EPS_LOW);
-    sprintf(title, "Density, time %g", TIME);
-    pview.set_title(title);
-    pview.show(&w0_sln);
+    sprintf(title, "Current density, time %g", TIME);
+    w13_view.set_title(title);
+    w13_view.show(&w1_prev, &w3_prev, EPS_LOW);
+    sprintf(title, "Mass Density, time %g", TIME);
+    w0_view.set_title(title);
+    w0_view.show(&w0_sln);
+    sprintf(title, "Energy, time %g", TIME);
+    w4_view.set_title(title);
+    w4_view.show(&w0_sln);
 
     w0_prev = w0_sln;
     w1_prev = w1_sln;
