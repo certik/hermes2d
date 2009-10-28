@@ -21,6 +21,9 @@ cdef scalar linear_form(int n, double *wt, FuncReal *u, GeomReal
         *e, ExtDataReal *ext):
     return -int_F_v(n, wt, rhs, u, e)
 
+cdef int bc_type(int marker):
+    return BC_ESSENTIAL
+
 cdef scalar bc_values(int marker, double x, double y):
     return fn(x, y)
 
@@ -39,4 +42,5 @@ def set_forms(WeakForm dp):
     dp.thisptr.add_liform(0, &linear_form, &_order_lf)
 
 def set_bc(H1Space space):
+    space.thisptr.set_bc_types(&bc_type)
     space.thisptr.set_bc_values(&bc_values)
