@@ -38,6 +38,10 @@ const int P_INIT_PRESSURE = 1;       // polynomial degree for pressure
 const double H = 5.0;                // domain height (necessary to define the parabolic
                                      // velocity profile at inlet)
 
+const double R = 8.31;            // Gas constant
+const double c_v = 1.0;            // specific heat capacity
+const double g = 9.81;            // gravitational acceleration
+
 //  boundary markers
 int marker_bottom = 1;
 int marker_right  = 2;
@@ -74,32 +78,293 @@ scalar xvel_bc_value(int marker, double x, double y) {
   else return 0;
 }
 
+double A_x(int i, int j, double w0, double w1, double w3, double w4)
+{
+    if (i == 0 && j == 0)
+        return 0;
+    else if (i == 0 && j == 1)
+        return 1;
+    else if (i == 0 && j == 2)
+        return 0;
+    else if (i == 0 && j == 3)
+        return 0;
+
+    else if (i == 1 && j == 0)
+        return -w1*w1/(w0*w0) + R * (w1*w1 + w3*w3)/(2*c_v * w0*w0);
+    else if (i == 1 && j == 1)
+        return 2*w1/w0 - R * w1 / (c_v * w0);
+    else if (i == 1 && j == 2)
+        return -R * w3 / (c_v * w0);
+    else if (i == 1 && j == 3)
+        return R/c_v;
+
+    else if (i == 2 && j == 0)
+        return -w1*w3/(w0*w0);
+    else if (i == 2 && j == 1)
+        return w3/w0;
+    else if (i == 2 && j == 2)
+        return w1/w0;
+    else if (i == 2 && j == 3)
+        return 0;
+
+    else if (i == 3 && j == 0)
+        return -w1*w4/(w0*w0) - w1/(w0*w0) * R/c_v
+            * (w4 - (w1*w1+w3*w3)/(2*w0)) + w1/w0 * R/c_v
+            * (w1*w1+w3*w3)/(2*w0*w0);
+        // or equivalently:
+        //return w1/w0 * (R/c_v * (w1*w1+w3*w3)/(w0*w0) - (R/c_v + 1) * w4/w0);
+    else if (i == 3 && j == 1)
+        return w4/w0 + 1/w0 * R/c_v
+            * (w4 - (w1*w1+w3*w3)/(2*w0)) - R/c_v
+            * w1*w1/(w0*w0);
+    else if (i == 3 && j == 2)
+        return - R/c_v * w1*w3/(w0*w0);
+    else if (i == 3 && j == 3)
+        return w1/w0 + R/c_v * w1/w0;
+
+    printf("i=%d, j=%d;\n", i, j);
+    error("Invalid index.");
+}
+
+double A_z(int i, int j, double w0, double w1, double w3, double w4)
+{
+    if (i == 0 && j == 0)
+        return 0;
+    else if (i == 0 && j == 1)
+        return 0;
+    else if (i == 0 && j == 2)
+        return 1;
+    else if (i == 0 && j == 3)
+        return 0;
+
+    else if (i == 1 && j == 0)
+        return -w3*w1/(w0*w0);
+    else if (i == 1 && j == 1)
+        return w3/w0;
+    else if (i == 1 && j == 2)
+        return w1/w0;
+    else if (i == 1 && j == 3)
+        return 0;
+
+    else if (i == 2 && j == 0)
+        return -w3*w3/(w0*w0) + R * (w1*w1 + w3*w3)/(2*c_v * w0*w0);
+    else if (i == 2 && j == 1)
+        return -R * w1 / (c_v * w0);
+    else if (i == 2 && j == 2)
+        return 2*w3/w0 - R * w3 / (c_v * w0);
+    else if (i == 2 && j == 3)
+        return R/c_v;
+
+    else if (i == 3 && j == 0)
+        return -w3*w4/(w0*w0) - w3/(w0*w0) * R/c_v
+            * (w4 - (w1*w1+w3*w3)/(2*w0)) + w3/w0 * R/c_v
+            * (w1*w1+w3*w3)/(2*w0*w0);
+        // or equivalently:
+        //return w1/w0 * (R/c_v * (w1*w1+w3*w3)/(w0*w0) - (R/c_v + 1) * w4/w0);
+    else if (i == 3 && j == 1)
+        return - R/c_v * w3*w1/(w0*w0);
+    else if (i == 3 && j == 2)
+        return w4/w0 + 1/w0 * R/c_v
+            * (w4 - (w1*w1+w3*w3)/(2*w0)) - R/c_v
+            * w3*w3/(w0*w0);
+    else if (i == 3 && j == 3)
+        return w3/w0 + R/c_v * w3/w0;
+
+    error("Invalid index.");
+}
+
+double f_x(int i, double w0, double w1, double w3, double w4)
+{
+    if (i == 0)
+        return w1;
+    else if (i == 1)
+        return w1*w1/w0 + R/c_v * (w4 - (w1*w1+w3*w3)/(2*w0));
+    else if (i == 2)
+        return w1*w3/w0;
+    else if (i == 3)
+        return w1/w0 * (w4 + R/c_v * (w4 - (w1*w1+w3*w3)/(2*w0)));
+
+    error("Invalid index.");
+}
+
+double f_z(int i, double w0, double w1, double w3, double w4)
+{
+    if (i == 0)
+        return w3;
+    else if (i == 1)
+        return w3*w1/w0;
+    else if (i == 2)
+        return w3*w3/w0 + R/c_v * (w4 - (w1*w1+w3*w3)/(2*w0));
+    else if (i == 3)
+        return w3/w0 * (w4 + R/c_v * (w4 - (w1*w1+w3*w3)/(2*w0)));
+
+    error("Invalid index.");
+}
+
+double w(int i, double w0, double w1, double w3, double w4)
+{
+    if (i == 0)
+        return w0;
+    else if (i == 1)
+        return w1;
+    else if (i == 2)
+        return w3;
+    else if (i == 3)
+        return w4;
+
+    error("Invalid index.");
+}
+
+double test1(double w0, double w1, double w3, double w4)
+{
+    for (int i=0; i<4; i++) {
+        double r=0;
+        for (int j=0; j<4; j++) {
+            r += A_x(i, j, w0, w1, w3, w4) * w(j, w0, w1, w3, w4);
+        }
+        r -= f_x(i, w0, w1, w3, w4);
+        printf("result: %d: %f\n", i, r);
+    }
+}
+
+double test3(double w0, double w1, double w3, double w4)
+{
+    for (int i=0; i<4; i++) {
+        double r=0;
+        for (int j=0; j<4; j++) {
+            r += A_z(i, j, w0, w1, w3, w4) * w(j, w0, w1, w3, w4);
+        }
+        r -= f_z(i, w0, w1, w3, w4);
+        printf("result: %d: %f\n", i, r);
+    }
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
 template<typename Real, typename Scalar>
-Scalar bilinear_form_sym_0_0_1_1(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+Scalar B_ij(int _i, int _j, int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
+    double delta_ij;
+    if (_i == _j)
+        delta_ij = 1;
+    else
+        delta_ij = 0;
     Scalar result = 0;
     for (int i = 0; i < n; i++)
         result += wt[i] * (
-                (u->dx[i] * v->dx[i] + u->dy[i] * v->dy[i]) / RE +
-                (u->val[i] * v->val[i]) / TAU
+                (u->val[i] * v->val[i]) * delta_ij / TAU +
+                -A_x(_i, _j, ext->fn[0]->val[i],
+                    ext->fn[1]->val[i],
+                    ext->fn[2]->val[i],
+                    ext->fn[3]->val[i])
+                * u->val[i] * v->dx[i] +
+                -A_z(_i, _j, ext->fn[0]->val[i],
+                    ext->fn[1]->val[i],
+                    ext->fn[2]->val[i],
+                    ext->fn[3]->val[i])
+                * u->val[i] * v->dy[i]
                 );
     return result;
 }
 
 template<typename Real, typename Scalar>
-Scalar bilinear_form_unsym_0_0_1_1(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+Scalar B_00(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
-    Scalar result = 0;
-    for (int i = 0; i < n; i++)
-        result += wt[i] * (ext->fn[0]->val[i] * u->dx[i]
-                + ext->fn[1]->val[i] * u->dy[i]) * v->val[i];
-    return result;
+    return B_ij(0, 0, n, wt, u, v, e, ext);
 }
 
 template<typename Real, typename Scalar>
-Scalar linear_form(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+Scalar B_01(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+{
+    return B_ij(0, 1, n, wt, u, v, e, ext);
+}
+
+template<typename Real, typename Scalar>
+Scalar B_02(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+{
+    return B_ij(0, 2, n, wt, u, v, e, ext);
+}
+
+template<typename Real, typename Scalar>
+Scalar B_03(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+{
+    return B_ij(0, 3, n, wt, u, v, e, ext);
+}
+
+template<typename Real, typename Scalar>
+Scalar B_10(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+{
+    return B_ij(1, 0, n, wt, u, v, e, ext);
+}
+
+template<typename Real, typename Scalar>
+Scalar B_11(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+{
+    return B_ij(1, 1, n, wt, u, v, e, ext);
+}
+
+template<typename Real, typename Scalar>
+Scalar B_12(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+{
+    return B_ij(1, 2, n, wt, u, v, e, ext);
+}
+
+template<typename Real, typename Scalar>
+Scalar B_13(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+{
+    return B_ij(1, 3, n, wt, u, v, e, ext);
+}
+
+template<typename Real, typename Scalar>
+Scalar B_20(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+{
+    return B_ij(2, 0, n, wt, u, v, e, ext);
+}
+
+template<typename Real, typename Scalar>
+Scalar B_21(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+{
+    return B_ij(2, 1, n, wt, u, v, e, ext);
+}
+
+template<typename Real, typename Scalar>
+Scalar B_22(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+{
+    return B_ij(2, 2, n, wt, u, v, e, ext);
+}
+
+template<typename Real, typename Scalar>
+Scalar B_23(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+{
+    return B_ij(2, 3, n, wt, u, v, e, ext);
+}
+
+template<typename Real, typename Scalar>
+Scalar B_30(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+{
+    return B_ij(3, 0, n, wt, u, v, e, ext);
+}
+
+template<typename Real, typename Scalar>
+Scalar B_31(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+{
+    return B_ij(3, 1, n, wt, u, v, e, ext);
+}
+
+template<typename Real, typename Scalar>
+Scalar B_32(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+{
+    return B_ij(3, 2, n, wt, u, v, e, ext);
+}
+
+template<typename Real, typename Scalar>
+Scalar B_33(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+{
+    return B_ij(3, 3, n, wt, u, v, e, ext);
+}
+
+template<typename Real, typename Scalar>
+Scalar l_0(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
     Scalar result = 0;
     for (int i = 0; i < n; i++)
@@ -108,23 +373,39 @@ Scalar linear_form(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scal
 }
 
 template<typename Real, typename Scalar>
-Scalar bilinear_form_unsym_0_2(int n, double *wt, Func<Real> *p, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+Scalar l_1(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
     Scalar result = 0;
     for (int i = 0; i < n; i++)
-        result += wt[i] * (- v->dx[i] * p->val[i]);
+        result += wt[i] * (ext->fn[1]->val[i] * v->val[i]) / TAU;
     return result;
 }
 
 template<typename Real, typename Scalar>
-Scalar bilinear_form_unsym_1_2(int n, double *wt, Func<Real> *p, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+Scalar l_2(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
     Scalar result = 0;
     for (int i = 0; i < n; i++)
-        result += wt[i] * (- v->dy[i] * p->val[i]);
+        result += wt[i] * (ext->fn[2]->val[i]/TAU + ext->fn[0]->val[i]*g) * \
+                  v->val[i] / TAU;
     return result;
 }
 
+template<typename Real, typename Scalar>
+Scalar l_3(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+{
+    Scalar result = 0;
+    for (int i = 0; i < n; i++)
+        result += wt[i] * (ext->fn[3]->val[i] * v->val[i]) / TAU;
+    return result;
+}
+
+Ord B_order(int n, double *wt, Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext)
+{
+     return Ord(20);
+}
+
+#define callback_bf(a) a<double, scalar>, B_order
 
 int main(int argc, char* argv[])
 {
@@ -150,42 +431,80 @@ int main(int argc, char* argv[])
   PrecalcShapeset pss_l2(&shapeset_l2);
 
   // H1 spaces for velocities and L2 for pressure
-  H1Space xvel(&mesh, &shapeset_h1);
-  H1Space yvel(&mesh, &shapeset_h1);
-  L2Space press(&mesh, &shapeset_l2);
+  H1Space s0(&mesh, &shapeset_h1);
+  H1Space s1(&mesh, &shapeset_h1);
+  H1Space s3(&mesh, &shapeset_h1);
+  H1Space s4(&mesh, &shapeset_h1);
 
   // initialize boundary conditions
-  xvel.set_bc_types(xvel_bc_type);
-  xvel.set_bc_values(xvel_bc_value);
-  yvel.set_bc_types(yvel_bc_type);
-  press.set_bc_types(press_bc_type);
+  s0.set_bc_types(xvel_bc_type);
+  s1.set_bc_values(xvel_bc_value);
+  s3.set_bc_types(yvel_bc_type);
+  s4.set_bc_types(press_bc_type);
 
   // set velocity and pressure polynomial degrees
-  xvel.set_uniform_order(P_INIT_VEL);
-  yvel.set_uniform_order(P_INIT_VEL);
-  press.set_uniform_order(P_INIT_PRESSURE);
+  s0.set_uniform_order(P_INIT_PRESSURE);
+  s1.set_uniform_order(P_INIT_VEL);
+  s3.set_uniform_order(P_INIT_VEL);
+  s4.set_uniform_order(P_INIT_PRESSURE);
 
   // assign degrees of freedom
   int ndofs = 0;
-  ndofs += xvel.assign_dofs(ndofs);
-  ndofs += yvel.assign_dofs(ndofs);
-  ndofs += press.assign_dofs(ndofs);
+  ndofs += s0.assign_dofs(ndofs);
+  ndofs += s1.assign_dofs(ndofs);
+  ndofs += s3.assign_dofs(ndofs);
+  ndofs += s4.assign_dofs(ndofs);
 
   // initial condition: xprev and yprev are zero
-  Solution xprev, yprev;
-  xprev.set_zero(&mesh);
-  yprev.set_zero(&mesh);
+  Solution w0_prev, w1_prev, w3_prev, w4_prev;
+  w0_prev.set_zero(&mesh);
+  w1_prev.set_zero(&mesh);
+  w3_prev.set_zero(&mesh);
+  w4_prev.set_zero(&mesh);
 
   // set up weak formulation
-  WeakForm wf(3);
-  wf.add_biform(0, 0, callback(bilinear_form_sym_0_0_1_1), SYM);
-  wf.add_biform(0, 0, callback(bilinear_form_unsym_0_0_1_1), UNSYM, ANY, 2, &xprev, &yprev);
-  wf.add_biform(1, 1, callback(bilinear_form_sym_0_0_1_1), SYM);
-  wf.add_biform(1, 1, callback(bilinear_form_unsym_0_0_1_1), UNSYM, ANY, 2, &xprev, &yprev);
-  wf.add_biform(0, 2, callback(bilinear_form_unsym_0_2), ANTISYM);
-  wf.add_biform(1, 2, callback(bilinear_form_unsym_1_2), ANTISYM);
-  wf.add_liform(0, callback(linear_form), ANY, 1, &xprev);
-  wf.add_liform(1, callback(linear_form), ANY, 1, &yprev);
+  WeakForm wf(4);
+  wf.add_biform(0, 0, callback_bf(B_00), UNSYM, ANY, 4, &w0_prev, &w1_prev,
+          &w3_prev, &w4_prev);
+  wf.add_biform(0, 1, callback_bf(B_01), UNSYM, ANY, 4, &w0_prev, &w1_prev,
+          &w3_prev, &w4_prev);
+  wf.add_biform(0, 2, callback_bf(B_02), UNSYM, ANY, 4, &w0_prev, &w1_prev,
+          &w3_prev, &w4_prev);
+  wf.add_biform(0, 3, callback_bf(B_03), UNSYM, ANY, 4, &w0_prev, &w1_prev,
+          &w3_prev, &w4_prev);
+  wf.add_biform(1, 0, callback_bf(B_10), UNSYM, ANY, 4, &w0_prev, &w1_prev,
+          &w3_prev, &w4_prev);
+  wf.add_biform(1, 1, callback_bf(B_11), UNSYM, ANY, 4, &w0_prev, &w1_prev,
+          &w3_prev, &w4_prev);
+  wf.add_biform(1, 2, callback_bf(B_12), UNSYM, ANY, 4, &w0_prev, &w1_prev,
+          &w3_prev, &w4_prev);
+  wf.add_biform(1, 3, callback_bf(B_13), UNSYM, ANY, 4, &w0_prev, &w1_prev,
+          &w3_prev, &w4_prev);
+  wf.add_biform(2, 0, callback_bf(B_20), UNSYM, ANY, 4, &w0_prev, &w1_prev,
+          &w3_prev, &w4_prev);
+  wf.add_biform(2, 1, callback_bf(B_21), UNSYM, ANY, 4, &w0_prev, &w1_prev,
+          &w3_prev, &w4_prev);
+  wf.add_biform(2, 2, callback_bf(B_22), UNSYM, ANY, 4, &w0_prev, &w1_prev,
+          &w3_prev, &w4_prev);
+  wf.add_biform(2, 3, callback_bf(B_23), UNSYM, ANY, 4, &w0_prev, &w1_prev,
+          &w3_prev, &w4_prev);
+  wf.add_biform(3, 0, callback_bf(B_30), UNSYM, ANY, 4, &w0_prev, &w1_prev,
+          &w3_prev, &w4_prev);
+  wf.add_biform(3, 1, callback_bf(B_31), UNSYM, ANY, 4, &w0_prev, &w1_prev,
+          &w3_prev, &w4_prev);
+  wf.add_biform(3, 2, callback_bf(B_32), UNSYM, ANY, 4, &w0_prev, &w1_prev,
+          &w3_prev, &w4_prev);
+  wf.add_biform(3, 3, callback_bf(B_33), UNSYM, ANY, 4, &w0_prev, &w1_prev,
+          &w3_prev, &w4_prev);
+  wf.add_liform(0, callback(l_0), ANY, 4, &w0_prev, &w1_prev,
+          &w3_prev, &w4_prev);
+  wf.add_liform(1, callback(l_1), ANY, 4, &w0_prev, &w1_prev,
+          &w3_prev, &w4_prev);
+  wf.add_liform(2, callback(l_2), ANY, 4, &w0_prev, &w1_prev,
+          &w3_prev, &w4_prev);
+  wf.add_liform(3, callback(l_3), ANY, 4, &w0_prev, &w1_prev,
+          &w3_prev, &w4_prev);
+
 
   // visualization
   VectorView vview("velocity [m/s]", 0, 0, 1500, 470);
@@ -200,8 +519,8 @@ int main(int argc, char* argv[])
   // set up the linear system
   UmfpackSolver umfpack;
   LinSystem sys(&wf, &umfpack);
-  sys.set_spaces(3, &xvel, &yvel, &press);
-  sys.set_pss(3, &pss_h1, &pss_h1, &pss_l2);
+  sys.set_spaces(4, &s0, &s1, &s3, &s4);
+  sys.set_pss(4, &pss_h1, &pss_h1, &pss_h1, &pss_h1);
 
   // main loop
   char title[100];
@@ -214,25 +533,28 @@ int main(int argc, char* argv[])
 
     // this is needed to update the time-dependent boundary conditions
     ndofs = 0;
-    ndofs += xvel.assign_dofs(ndofs);
-    ndofs += yvel.assign_dofs(ndofs);
-    ndofs += press.assign_dofs(ndofs);
+    ndofs += s0.assign_dofs(ndofs);
+    ndofs += s1.assign_dofs(ndofs);
+    ndofs += s3.assign_dofs(ndofs);
+    ndofs += s4.assign_dofs(ndofs);
 
     // assemble and solve
-    Solution xsln, ysln, psln;
+    Solution w0_sln, w1_sln, w3_sln, w4_sln;
     sys.assemble();
-    sys.solve(3, &xsln, &ysln, &psln);
+    sys.solve(4, &w0_sln, &w1_sln, &w3_sln, &w4_sln);
 
     // visualization
     sprintf(title, "Velocity, time %g", TIME);
     vview.set_title(title);
-    vview.show(&xprev, &yprev, EPS_LOW);
-    sprintf(title, "Pressure, time %g", TIME);
+    vview.show(&w1_prev, &w3_prev, EPS_LOW);
+    sprintf(title, "Density, time %g", TIME);
     pview.set_title(title);
-    pview.show(&psln);
+    pview.show(&w0_sln);
 
-    xprev = xsln;
-    yprev = ysln;
+    w0_prev = w0_sln;
+    w1_prev = w1_sln;
+    w3_prev = w3_sln;
+    w4_prev = w4_sln;
   }
 
   View::wait();
