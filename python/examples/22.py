@@ -9,6 +9,8 @@ h_only = False
 error_tol = 1
 interactive_plotting = False    # should the plot be interactively updated
                                 # during the calculation? (slower)
+show_mesh = True
+show_graph = True
 
 set_verbose(False)
 
@@ -44,7 +46,11 @@ rsln = Solution()
 solver = DummySolver()
 
 view = ScalarView("Solution")
+mview = MeshView("Mesh")
+graph = []
 iter = 0
+print "Calculating..."
+
 while 1:
     space.assign_dofs()
 
@@ -53,8 +59,11 @@ while 1:
     sys.set_pss(pss)
     sys.assemble()
     sys.solve_system(sln)
+    dofs = sys.get_matrix().shape[0]
     if interactive_plotting:
-        view.show(sln)
+        view.show(sln, lib="mayavi", filename="a%02d.png" % iter)
+        if show_mesh:
+            mview.show(mesh, lib="mpl", method="orders", filename="b%02d.png" % iter) 
 
     rsys = RefSystem(sys)
     rsys.assemble()
@@ -62,17 +71,32 @@ while 1:
     rsys.solve_system(rsln)
 
     hp = H1OrthoHP(space)
-    error =  hp.calc_error(sln, rsln)*100
-    print "iter=%02d, error=%5.2f%%" % (iter, error)
-    if error < error_tol:
+    error_est =  hp.calc_error(sln, rsln)*100
+    print "iter=%02d, error_est=%5.2f%%, DOFS=%d" % (iter, error_est, dofs)
+    graph.append([dofs, error_est])
+    if error_est < error_tol:
         break
     hp.adapt(threshold, strategy, h_only)
     iter += 1
 
-
 if not interactive_plotting:
-    view.show(sln)
-view.wait()
+    view.show(sln, lib="mayavi")
+    if show_mesh:
+        mview = MeshView("Mesh")
+        mview.show(mesh, lib="mpl", method="orders")
+        mview.wait()
 
-#mview = MeshView("Mesh")
-#mview.show(mesh, lib="mpl")
+if show_graph:
+    from numpy import array
+    graph = array(graph)
+    import pylab
+    pylab.clf()
+    pylab.plot(graph[:, 0], graph[:, 1], "ko", label="error estimate")
+    pylab.plot(graph[:, 0], graph[:, 1], "k-")
+    pylab.title("Error Convergence for the Inner Layer Problem")
+    pylab.legend()
+    pylab.xlabel("Degrees of Freedom")
+    pylab.ylabel("Error [%]")
+    pylab.yscale("log")
+    pylab.grid()
+    pylab.savefig("graph.png")
