@@ -1,6 +1,8 @@
 #include "hermes2d.h"
 #include "solver_umfpack.h"
 
+#include "_hermes2d_api.h"
+
 // The time-dependent laminar incompressible Navier-Stokes equations are
 // discretized in time via the implicit Euler method. The convective term
 // is linearized simply by replacing the velocity in front of the nabla
@@ -545,6 +547,16 @@ Ord B_order(int n, double *wt, Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e, ExtData
 
 int main(int argc, char* argv[])
 {
+  // import hermes2d
+
+  printf("Importing hermes1d\n");
+  // Initialize Python
+  Py_Initialize();
+  PySys_SetArgv(argc, argv);
+  if (import_hermes2d___hermes2d())
+      throw std::runtime_error("hermes2d failed to import.");
+  cmd("print 'Python initialized'");
+
   // load the mesh file
   Mesh mesh;
   mesh.load("domain-quad.mesh"); // unstructured triangular mesh available in domain-tri.mesh
@@ -673,6 +685,7 @@ int main(int argc, char* argv[])
   {
     TIME += TAU;
 
+    cmd("print 'Iteration'");
     info("\n---- Time step %d, time = %g -----------------------------------", i, TIME);
 
     // this is needed to update the time-dependent boundary conditions
