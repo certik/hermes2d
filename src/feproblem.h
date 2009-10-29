@@ -13,8 +13,9 @@
 // You should have received a copy of the GNU General Public License
 // along with Hermes2D.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef __HERMES2D_LINSYSTEM_H
-#define __HERMES2D_LINSYSTEM_H
+
+#ifndef __HERMES2D_FEPROBLEM_H
+#define __HERMES2D_FEPROBLEM_H
 
 #include "matrix.h"
 #include "forms.h"
@@ -24,78 +25,59 @@
 class Space;
 class PrecalcShapeset;
 class WeakForm;
+class Matrix;
+class SparseMatrix;
+class Vector;
 class Solver;
-struct Page;
 
-
+/// Finite Element problem class
 ///
+/// This class does assembling into passed-in structures.
 ///
-///
-///
-///
-class LinSystem
-{
+class FeProblem {
 public:
-
-  LinSystem(WeakForm* wf, Solver* solver = NULL);
-  virtual ~LinSystem();
+  FeProblem(WeakForm *wf);
+  virtual ~FeProblem();
+  void free();
 
   void set_spaces(int n, ...);
   void set_pss(int n, ...);
-  void copy(LinSystem* sys);
-  Space* get_space(int n) {
-      //if (n < 0 || n >= this->wf->neq) error("Bad number of the space.");
-      return this->spaces[n];
-  }
-  PrecalcShapeset* get_pss(int n) {
-      //if (n < 0 || n >= this->wf->neq) error("Bad number of the space.");
-      return this->pss[n];
-  }
+  Space* get_space(int n) {  return this->spaces[n];  }
+  PrecalcShapeset* get_pss(int n) {  return this->pss[n];  }
 
-  void assemble(bool rhsonly = false);
-  void assemble_rhs_only() { assemble(true); }
-  bool solve(int n, ...);
-  void free();
+  void create(SparseMatrix *mat);
+  void assemble(const Vector *x, Vector *f, Matrix *jac);
 
-  void save_matrix_matlab(const char* filename, const char* varname = "A");
-  void save_rhs_matlab(const char* filename, const char* varname = "b");
-  void save_matrix_bin(const char* filename);
-  void save_rhs_bin(const char* filename);
-
-  void enable_dir_contrib(bool enable = true) {  want_dir_contrib = enable;  }
-  scalar* get_solution_vec() { return Vec; }
-
-  int get_num_dofs() const { return ndofs; };
-  int get_matrix_size() const;
-  void get_matrix(int*& Ap, int*& Ai, scalar*& Ax, int& size) const
-    { Ap = this->Ap; Ai = this->Ai; Ax = this->Ax; size = ndofs; }
-  void get_rhs(scalar*& RHS, int& size) const { RHS = this->RHS; size=ndofs; }
-  void get_solution_vector(scalar*& vec, int& size) const { vec = this->Vec; size=ndofs; }
-
+  int get_num_dofs();
+  bool is_matrix_free() { return wf->is_matrix_free(); }
+  void invalidate_matrix() { have_matrix = false; }
 
 protected:
-
-  WeakForm* wf;
-  Solver* solver;
-  void* slv_ctx;
-
-  Space** spaces;
-  PrecalcShapeset** pss;
+  WeakForm *wf;
 
   int ndofs;
-  int* Ap;      ///< row/column start indices
-  int* Ai;      ///< element positions within rows/columns
-  scalar* Ax;   ///< matrix values
-  bool mat_row; ///< true if the matrix is row-oriented (CSR)
-  bool mat_sym; ///< true if symmetric and only upper half stored
+  int *sp_seq;
+  int wf_seq;
+  Space **spaces;
+  Solution **slns;
+  PrecalcShapeset** pss;
 
-  scalar* RHS; ///< assembled right-hand side
-  scalar* Dir; ///< contributions to the RHS from Dirichlet DOFs
-  scalar* Vec; ///< last solution vector
+  int num_user_pss;
+  bool values_changed;
+  bool struct_changed;
+  bool have_spaces;
+  bool have_matrix;
+  bool is_up_to_date();
 
-  void create_matrix(bool rhsonly);
-  void precalc_sparse_structure(Page** pages);
-  void insert_block(scalar** mat, int* iidx, int* jidx, int ilen, int jlen);
+  scalar** buffer;
+  int mat_size;
+
+  scalar** get_matrix_buffer(int n)
+  {
+    if (n <= mat_size) return buffer;
+    if (buffer != NULL) delete [] buffer;
+    return (buffer = new_matrix<scalar>(mat_size = n));
+  }
 
   ExtData<Ord>* init_ext_fns_ord(std::vector<MeshFunction *> &ext);
   ExtData<scalar>* init_ext_fns(std::vector<MeshFunction *> &ext, RefMap *rm, const int order);
@@ -150,31 +132,37 @@ protected:
   void init_cache();
   void delete_cache();
 
-  scalar eval_form(WeakForm::BiFormVol *bf, PrecalcShapeset *fu, PrecalcShapeset *fv, RefMap *ru, RefMap *rv);
-  scalar eval_form(WeakForm::LiFormVol *lf, PrecalcShapeset *fv, RefMap *rv);
-  scalar eval_form(WeakForm::BiFormSurf *bf, PrecalcShapeset *fu, PrecalcShapeset *fv, RefMap *ru, RefMap *rv, EdgePos* ep);
-  scalar eval_form(WeakForm::LiFormSurf *lf, PrecalcShapeset *fv, RefMap *rv, EdgePos* ep);
+  scalar eval_form(WeakForm::JacFormVol *bf, Solution *sln[], PrecalcShapeset *fu, PrecalcShapeset *fv, RefMap *ru, RefMap *rv);
+  scalar eval_form(WeakForm::ResFormVol *lf, Solution *sln[], PrecalcShapeset *fv, RefMap *rv);
+  scalar eval_form(WeakForm::JacFormSurf *bf, Solution *sln[], PrecalcShapeset *fu, PrecalcShapeset *fv, RefMap *ru, RefMap *rv, EdgePos* ep);
+  scalar eval_form(WeakForm::ResFormSurf *lf, Solution *sln[], PrecalcShapeset *fv, RefMap *rv, EdgePos* ep);
 
-  scalar** get_matrix_buffer(int n)
-  {
-    if (n <= mat_size) return buffer;
-    if (buffer != NULL) delete [] buffer;
-    return (buffer = new_matrix<scalar>(mat_size = n));
-  }
+};
 
-  scalar** buffer;
-  int mat_size;
 
-  int* sp_seq;
-  int wf_seq;
-  int num_user_pss;
-  bool values_changed;
-  bool struct_changed;
-  bool want_dir_contrib;
-  bool have_spaces;
+///
+///   Class for projecting solution, from Meshfunction obtain solution vector
+///   Solution vector needed for nonlinear methods as initial guess
+///
+class Projection
+{
+public:
 
-  friend class RefSystem;
+  Projection(int n, ...);
+  ~Projection();
 
+  void set_solver(Solver* solver);
+  scalar* project();
+  scalar* get_solution_vector() const { return vec; }
+
+protected:
+
+  int num;
+  MeshFunction* slns[10];
+  Space* spaces[10];
+  PrecalcShapeset* pss[10];
+  Solver* solver;
+  scalar* vec;
 };
 
 
@@ -205,5 +193,7 @@ extern int* g_order_table;
 extern void warn_order();
 extern void update_limit_table(int mode);
 
-
 #endif
+
+
+

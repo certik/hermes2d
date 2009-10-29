@@ -21,5 +21,6 @@ endif(COMPLEX)
 include_directories(${UMFPACK_INCLUDE_DIR} ${AMD_INCLUDE_DIR})
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 include_directories(${hermes2d_SOURCE_DIR}/src)
+include_directories(${TRILINOS_INCLUDE_DIR})
 target_link_libraries(${PROJECT_NAME} ${HERMES} ${UMFPACK_LIBRARY}
-        ${AMD_LIBRARY} ${BLAS_LIBRARIES})
+        ${AMD_LIBRARY} ${BLAS_LIBRARIES} ${LAPACK_LIBRARIES} ${TRILINOS_LIBRARIES})
