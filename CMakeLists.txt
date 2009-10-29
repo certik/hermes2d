@@ -7,6 +7,7 @@ cmake_minimum_required(VERSION 2.6)
 # The values below are sane defaults to produce a build on all platforms,
 # if you want to override them, set them in CMake.vars
 
+set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 
 # build with debugging symbols
 set(DEBUG NO)
@@ -24,6 +25,7 @@ set(WITH_TUTORIAL   YES)
 set(WITH_TESTS      YES)
 set(WITH_GLUT       YES)
 set(WITH_UTIL       YES)
+set(WITH_TRILINOS NO)
 
 # allow to override the default values in CMake.vars
 if(EXISTS ${PROJECT_SOURCE_DIR}/CMake.vars)
@@ -33,6 +35,11 @@ endif(EXISTS ${PROJECT_SOURCE_DIR}/CMake.vars)
 # end of configuration section
 #---------------------------------------------------------
 
+if(WITH_TRILINOS)
+  enable_language(Fortran)
+  find_package(LAPACK REQUIRED)     # trilinos needs LAPACK
+  find_package(TRILINOS REQUIRED)
+endif(WITH_TRILINOS)
 
 if(REAL)
     list(APPEND VERS "real")
@@ -63,8 +70,6 @@ if(NOT WITH_GLUT)
     add_definitions(-DNOGLUT)
 endif(NOT WITH_GLUT)
 
-
-set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 
 add_subdirectory(src)
 
@@ -126,4 +131,5 @@ message("Build with tutorial: ${WITH_TUTORIAL}")
 message("Build with GLUT: ${WITH_GLUT}")
 message("Build with util: ${WITH_UTIL}")
 message("Build with tests: ${WITH_TESTS}")
+message("Build with TRILINOS: ${WITH_TRILINOS}")
 message("\n")

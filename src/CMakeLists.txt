@@ -14,6 +14,8 @@ set(SRC
        qsort.cpp norm.cpp
        adapt_ortho_h1.cpp adapt_ortho_hcurl.cpp adapt_ortho_l2.cpp
        common.cpp matrix.cpp hermes2d.cpp weakform.cpp linsystem.cpp
+       feproblem.cpp solver_nox.cpp solver_epetra.cpp solver_aztecoo.cpp
+       precond_ml.cpp precond_ifpack.cpp
        refsystem.cpp nonlinsystem.cpp forms.cpp
        mesh_parser.cpp mesh_lexer.cpp
 
@@ -32,6 +34,12 @@ macro(LIBRARY_SETTINGS BIN)
     if(WITH_GLUT)
         target_link_libraries(${BIN} glut)
     endif(WITH_GLUT)
+
+    if(WITH_TRILINOS)
+      include_directories(${TRILINOS_INCLUDE_DIR})
+      target_link_libraries(${BIN} ${TRILINOS_LIBRARIES})
+    endif(WITH_TRILINOS)
+
 endmacro(LIBRARY_SETTINGS)
 
 
