@@ -9,7 +9,7 @@ find_package(PythonLibs REQUIRED)
 include_directories(${PYTHON_INCLUDE_PATH} ${NUMPY_INCLUDE_PATH})
 include_directories(${hermes2d_SOURCE_DIR}/python/hermes2d)
 
-add_executable(${PROJECT_NAME} main.cpp)
+add_executable(${PROJECT_NAME} main.cpp forms.cpp)
 include (../CMake.common)
 
 
