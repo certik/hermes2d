@@ -33,6 +33,7 @@ clean:
 	-rm -rf $(BUILDDIR)/*
 
 html:
+	@mkdir -p _static
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(BUILDDIR)/html
 	@echo
 	@echo "Build finished. The HTML pages are in $(BUILDDIR)/html."
