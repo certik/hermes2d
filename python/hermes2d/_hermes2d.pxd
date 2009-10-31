@@ -190,6 +190,7 @@ cdef extern from "hermes2d.h":
 
     cdef struct c_Solution "Solution":
         void set_zero(c_Mesh *m)
+        void copy(c_Solution *s)
         void set_fe_solution(c_H1Space *s, c_PrecalcShapeset *pss, scalar *vec)
         void get_fe_solution(int *Ylen, scalar **Y)
     c_Solution *new_Solution "new Solution" ()
