@@ -3,8 +3,8 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to Hermes2D's documentation!
-====================================
+Welcome to Hermes2D documentation!
+==================================
 
 Contents:
 
