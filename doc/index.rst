@@ -9,7 +9,9 @@ Welcome to Hermes2D's documentation!
 Contents:
 
 .. toctree::
-   :maxdepth: 2
+    :maxdepth: 2
+
+    wrappers
 
 Indices and tables
 ==================
