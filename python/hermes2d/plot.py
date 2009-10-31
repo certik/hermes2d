@@ -341,6 +341,7 @@ class ScalarView(object):
         self._name = name
         self._lib = None
         self._notebook = False
+        self._glut_view = None
 
     def show_scale(self, *args):
         pass
@@ -374,7 +375,12 @@ class ScalarView(object):
         """
         self._lib = lib
         self._notebook = notebook
-        if lib == "mpl":
+        if lib == "glut":
+            if self._glut_view is None:
+                from _hermes2d import ScalarView
+                self._glut_view = ScalarView(self._name)
+            self._glut_view.show(sln)
+        elif lib == "mpl":
             plot_sln_mpl(sln, **options)
             import pylab
             if show:
