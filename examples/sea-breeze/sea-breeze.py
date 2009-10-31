@@ -52,7 +52,7 @@ w13_view = VectorView("current density")
 w4_view = ScalarView()
 
 time = 0
-for i in range(10):
+for i in range(40):
     time += tau
     print "---- Time step %d, time = %g -----------------------------------" % \
             (i, time)
