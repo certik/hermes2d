@@ -20,6 +20,7 @@ CMake.vars
 CMakeCache.txt
 cmake_install.cmake
 Makefile
+!doc/Makefile
 CMakeFiles
 install_manifest.txt
 
