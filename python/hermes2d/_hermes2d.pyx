@@ -672,7 +672,7 @@ cdef class LinSystem:
 
         """
         cdef int n = len(args)
-        cdef Solution a, b, c
+        cdef Solution a, b, c, d
         cdef ndarray vec
         cdef scalar *pvec
         if n == 1:
@@ -695,6 +695,9 @@ cdef class LinSystem:
         elif n == 3:
             a, b, c = args
             self.thisptr.solve(n, a.thisptr, b.thisptr, c.thisptr)
+        elif n == 4:
+            a, b, c, d = args
+            self.thisptr.solve(n, a.thisptr, b.thisptr, c.thisptr, d.thisptr)
         else:
             raise NotImplementedError()
 
