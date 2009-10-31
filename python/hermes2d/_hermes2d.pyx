@@ -691,7 +691,6 @@ cdef class LinSystem:
         Solves the linear system using scipy.
         """
         cdef int n = len(args)
-
         cdef Solution s0, s1, s2, s3
         cdef ndarray vec
         cdef scalar *pvec
@@ -723,7 +722,6 @@ cdef class LinSystem:
             x = spsolve(A, rhs)
             vec = array(x, dtype="double")
             pvec = <scalar *>vec.data
-
             for i, sln in enumerate(args):
                 (<c_Solution *>((<Solution>sln).thisptr)).set_fe_solution(
                         self.thisptr.get_space(i),
