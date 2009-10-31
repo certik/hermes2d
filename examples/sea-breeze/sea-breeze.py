@@ -2,7 +2,7 @@
 
 from hermes2d import (Mesh, H1Shapeset, PrecalcShapeset, H1Space, Solution,
         WeakForm)
-from _forms import register_bc, register_forms
+from _forms import register_bc, set_ic, register_forms
 
 mesh = Mesh()
 mesh.load("domain-quad.mesh")
@@ -35,6 +35,7 @@ w0_prev = Solution()
 w1_prev = Solution()
 w3_prev = Solution()
 w4_prev = Solution()
+set_ic(mesh, w0_prev, w1_prev, w3_prev, w4_prev)
 
 wf = WeakForm(4)
 register_forms(wf, w0_prev, w1_prev, w3_prev, w4_prev)

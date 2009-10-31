@@ -432,3 +432,6 @@ cdef class Linearizer:
 
 cdef class Vectorizer(Linearizer):
     pass
+
+cdef class Mesh:
+    cdef c_Mesh *thisptr
