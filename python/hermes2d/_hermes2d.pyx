@@ -700,10 +700,52 @@ cdef class LinSystem:
             self.thisptr.solve(n, a.thisptr, b.thisptr)
         elif n == 3:
             a, b, c = args
-            self.thisptr.solve(n, a.thisptr, b.thisptr, c.thisptr)
+            A = self.get_matrix()
+            rhs = self.get_rhs()
+            from scipy.sparse.linalg import cg
+            x, res = cg(A, rhs)
+            from numpy import array
+            vec = array(x, dtype="double")
+            pvec = <scalar *>vec.data
+            (<c_Solution *>(a.thisptr)).set_fe_solution(
+                    self.thisptr.get_space(0),
+                    self.thisptr.get_pss(0),
+                    pvec)
+            (<c_Solution *>(b.thisptr)).set_fe_solution(
+                    self.thisptr.get_space(1),
+                    self.thisptr.get_pss(1),
+                    pvec)
+            (<c_Solution *>(c.thisptr)).set_fe_solution(
+                    self.thisptr.get_space(2),
+                    self.thisptr.get_pss(2),
+                    pvec)
         elif n == 4:
             a, b, c, d = args
-            self.thisptr.solve(n, a.thisptr, b.thisptr, c.thisptr, d.thisptr)
+            A = self.get_matrix()
+            rhs = self.get_rhs()
+            from scipy.sparse.linalg import cg, factorized
+            #x, res = cg(A, rhs)
+            x = factorized(A)(rhs)
+            #print "residual", res
+            from numpy import array
+            vec = array(x, dtype="double")
+            pvec = <scalar *>vec.data
+            (<c_Solution *>(a.thisptr)).set_fe_solution(
+                    self.thisptr.get_space(0),
+                    self.thisptr.get_pss(0),
+                    pvec)
+            (<c_Solution *>(b.thisptr)).set_fe_solution(
+                    self.thisptr.get_space(1),
+                    self.thisptr.get_pss(1),
+                    pvec)
+            (<c_Solution *>(c.thisptr)).set_fe_solution(
+                    self.thisptr.get_space(2),
+                    self.thisptr.get_pss(2),
+                    pvec)
+            (<c_Solution *>(d.thisptr)).set_fe_solution(
+                    self.thisptr.get_space(3),
+                    self.thisptr.get_pss(3),
+                    pvec)
         else:
             raise NotImplementedError()
 
