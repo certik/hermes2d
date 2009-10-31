@@ -1,4 +1,4 @@
-hermes2d module
+Hermes2D module
 ===============
 
 .. module:: hermes2d
