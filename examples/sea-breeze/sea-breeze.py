@@ -75,9 +75,9 @@ for i in range(10):
     w13_view.show(w1_sln, w3_sln)
     w4_view.show(w4_sln, lib="glut")
 
-    w0_prev = w0_sln
-    w1_prev = w1_sln
-    w3_prev = w3_sln
-    w4_prev = w4_sln
+    w0_prev.copy_by_reference(w0_sln)
+    w1_prev.copy_by_reference(w1_sln)
+    w3_prev.copy_by_reference(w3_sln)
+    w4_prev.copy_by_reference(w4_sln)
 
 a = raw_input()

@@ -539,6 +539,9 @@ cdef class Solution(MeshFunction):
     #def __dealloc__(self):
     #    delete(self.thisptr)
 
+    def copy_by_reference(self, Solution s):
+        self.thisptr = s.thisptr
+
     def set_zero(self, Mesh m):
         (<c_Solution *>(self.thisptr)).set_zero(m.thisptr)
 
