@@ -125,9 +125,12 @@ def plot_mesh_mpl_orders(nodes, elements, curves=None, polynomial_orders=None, c
     """
     This plots the mesh together with polynomial orders.
 
+    >>> a = 5
+    >>> b = 3
     >>> plot_mesh_mpl_orders([(0,-a), (a,-a), (-a,0), (0,0), (a,0), (-a,a), (0,a), (a*b,a*b) ], \
     [ (0, 1, 4, 3), (3, 4, 7), (3, 7, 6), (2, 3, 6, 5) ], None, [1,2,3,4])
-    <figure>
+    Figure(640x480)
+
     """
     import math
 
