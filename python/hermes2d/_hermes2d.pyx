@@ -649,7 +649,7 @@ cdef class LinSystem:
     def set_spaces(self, *args):
         self._spaces = args
         cdef int n = len(args)
-        cdef H1Space a, b, c
+        cdef H1Space a, b, c, d
         if n == 1:
             a = args[0]
             self.thisptr.set_spaces(n, a.thisptr)
@@ -659,20 +659,30 @@ cdef class LinSystem:
         elif n == 3:
             a, b, c = args
             self.thisptr.set_spaces(n, a.thisptr, b.thisptr, c.thisptr)
+        elif n == 4:
+            a, b, c, d = args
+            self.thisptr.set_spaces(n, a.thisptr, b.thisptr, c.thisptr,
+                    d.thisptr)
         else:
             raise NotImplementedError()
 
     def set_pss(self, *args):
         self._pss = args
         cdef int n = len(args)
-        cdef PrecalcShapeset s1, s2
+        cdef PrecalcShapeset s1, s2, s3, s4
         if n == 1:
-            s1 = args[0]
+            s1, = args
             self.thisptr.set_pss(n, s1.thisptr)
         elif n == 2:
-            s1 = args[0]
-            s2 = args[1]
+            s1, s2 = args
             self.thisptr.set_pss(n, s1.thisptr, s2.thisptr)
+        elif n == 3:
+            s1, s2, s3 = args
+            self.thisptr.set_pss(n, s1.thisptr, s2.thisptr, s3.thisptr)
+        elif n == 4:
+            s1, s2, s3, s4 = args
+            self.thisptr.set_pss(n, s1.thisptr, s2.thisptr, s3.thisptr,
+                    s4.thisptr)
         else:
             raise NotImplementedError()
 
