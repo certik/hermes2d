@@ -5,7 +5,7 @@
 
 // The following parameters can be played with:
 
-const double TAU = 0.5;              // time step
+const double TAU = 0.001;              // time step
 const double FINAL_TIME = 3000.0;    // length of time interval
 const int P_INIT_w0 = 1;       // polynomial degree for pressure
 const int P_INIT_VEL = 1;            // polynomial degree for velocity components
@@ -31,6 +31,8 @@ int main(int argc, char* argv[])
   mesh.load("domain-quad.mesh"); // unstructured triangular mesh available in domain-tri.mesh
 
   // a-priori mesh refinements
+  mesh.refine_all_elements();
+  mesh.refine_all_elements();
   mesh.refine_all_elements();
   mesh.refine_all_elements();
   mesh.refine_all_elements();

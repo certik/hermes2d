@@ -1,4 +1,4 @@
-a = 5            # domain length (should be a multiple of 3)
+a = 1            # domain length (should be a multiple of 3)
 b = 1             # domain height
 
 vertices =
