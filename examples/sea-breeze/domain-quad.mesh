@@ -1,5 +1,5 @@
-a = 1            # domain length (should be a multiple of 3)
-b = 1             # domain height
+a = 3            # domain length (should be a multiple of 3)
+b = 3             # domain height
 
 vertices =
 {
