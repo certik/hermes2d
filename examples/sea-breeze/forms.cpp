@@ -55,8 +55,8 @@ scalar w3_init(double x, double y, scalar& dx, scalar& dy) {
 scalar w4_init(double x, double y, scalar& dx, scalar& dy) {
     dx = 0;
     dy = 0;
-    double x0 = (x-0.5)*20;
-    double y0 = (y-0.5)*20;
+    double x0 = (x-1.5)*10;
+    double y0 = (y-1.5)*10;
     double r_squared = x0*x0+y0*y0;
     return 1+exp(-r_squared);
 }
