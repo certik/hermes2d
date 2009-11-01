@@ -23,7 +23,7 @@ scalar s0_bc_value(int marker, double x, double y) {
 }
 
 scalar s1_bc_value(int marker, double x, double y) {
-    return 0.1;
+    return 0;
 }
 
 scalar s3_bc_value(int marker, double x, double y) {
@@ -43,7 +43,7 @@ scalar w0_init(double x, double y, scalar& dx, scalar& dy) {
 scalar w1_init(double x, double y, scalar& dx, scalar& dy) {
     dx = 0;
     dy = 0;
-    return 0.1;
+    return 0;
 }
 
 scalar w3_init(double x, double y, scalar& dx, scalar& dy) {
