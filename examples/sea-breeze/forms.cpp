@@ -388,7 +388,7 @@ Scalar l_2(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext
     Scalar result = 0;
     for (int i = 0; i < n; i++)
         result += wt[i] * (ext->fn[2]->val[i]/TAU + ext->fn[0]->val[i]*g) * \
-                  v->val[i] / TAU;
+                  v->val[i];
     return result;
 }
 
