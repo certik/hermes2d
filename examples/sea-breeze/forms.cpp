@@ -9,13 +9,31 @@ const double c_v = 1.0;            // specific heat capacity
 const double g = 0;            // gravitational acceleration (set to 0 for now)
 
 //  boundary markers
-#define marker_bottom 1;
-#define marker_right 2;
-#define marker_top 3;
-#define marker_left 4;
+#define marker_bottom 1
+#define marker_right 2
+#define marker_top 3
+#define marker_left 4
 
-int bc_type(int marker) {
-    return BC_ESSENTIAL;
+int s0_bc_type(int marker) {
+    return BC_NATURAL;
+}
+
+int s1_bc_type(int marker) {
+    if (marker == marker_top || marker == marker_bottom)
+        return BC_NATURAL;
+    else
+        return BC_ESSENTIAL;
+}
+
+int s3_bc_type(int marker) {
+    if (marker == marker_left || marker == marker_right)
+        return BC_NATURAL;
+    else
+        return BC_ESSENTIAL;
+}
+
+int s4_bc_type(int marker) {
+    return BC_NATURAL;
 }
 
 scalar s0_bc_value(int marker, double x, double y) {
@@ -509,14 +527,14 @@ Ord B_order(int n, double *wt, Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e, ExtData
 
 void register_bc(H1Space &s0, H1Space &s1, H1Space &s3, H1Space &s4)
 {
-    s0.set_bc_types(bc_type);
-    s0.set_bc_values(s0_bc_value);
-    s1.set_bc_types(bc_type);
+    s0.set_bc_types(s0_bc_type);
+    //s0.set_bc_values(s0_bc_value);
+    s1.set_bc_types(s1_bc_type);
     s1.set_bc_values(s1_bc_value);
-    s3.set_bc_types(bc_type);
+    s3.set_bc_types(s3_bc_type);
     s3.set_bc_values(s3_bc_value);
-    s4.set_bc_types(bc_type);
-    s4.set_bc_values(s4_bc_value);
+    s4.set_bc_types(s4_bc_type);
+    //s4.set_bc_values(s4_bc_value);
 }
 
 void set_ic(Mesh &mesh, Solution &w0, Solution &w1, Solution &w3, Solution &w4)
