@@ -5,8 +5,8 @@
 
 // The following parameters can be played with:
 
-const double TAU = 0.00001;              // time step
-const double FINAL_TIME = 3000.0;    // length of time interval
+const double TAU = 0.5*3600;              // time step
+const double FINAL_TIME = 3600*72;    // length of time interval
 const int P_INIT_w0 = 1;       // polynomial degree for pressure
 const int P_INIT_VEL = 1;            // polynomial degree for velocity components
 const int P_INIT_w4 = 1;       // polynomial degree for pressure
@@ -35,7 +35,7 @@ int main(int argc, char* argv[])
   mesh.refine_all_elements();
   mesh.refine_all_elements();
   mesh.refine_all_elements();
-  mesh.refine_all_elements();
+  //mesh.refine_all_elements();
   //mesh.refine_towards_boundary(5, 4, false);
   //mesh.refine_towards_boundary(1, 4);
   //mesh.refine_towards_boundary(3, 4);

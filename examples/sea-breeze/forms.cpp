@@ -2,10 +2,13 @@
 
 #include "_hermes2d_api.h"
 
-const double TAU = 0.5;              // time step defined in main.cpp
+const double TAU = 0.5*3600;
 
-const double R = 8.31;            // Gas constant
-const double c_v = 1.0;            // specific heat capacity
+const double R = 287;            // Gas constant
+const double rho_0 = 1.184;
+const double T2 = 310;
+const double T1 = 275;
+const double c_v = 20.8;            // specific heat capacity
 const double g = 0;            // gravitational acceleration (set to 0 for now)
 
 //  boundary markers
@@ -49,13 +52,16 @@ scalar s3_bc_value(int marker, double x, double y) {
 }
 
 scalar s4_bc_value(int marker, double x, double y) {
-    return 1;
+    if (x < 100000)
+        return rho_0 * T2 * c_v;
+    else
+        return rho_0 * T1 * c_v;
 }
 
 scalar w0_init(double x, double y, scalar& dx, scalar& dy) {
     dx = 0;
     dy = 0;
-    return 1;
+    return rho_0;
 }
 
 scalar w1_init(double x, double y, scalar& dx, scalar& dy) {
@@ -73,10 +79,10 @@ scalar w3_init(double x, double y, scalar& dx, scalar& dy) {
 scalar w4_init(double x, double y, scalar& dx, scalar& dy) {
     dx = 0;
     dy = 0;
-    double x0 = (x-1.5)*10;
-    double y0 = (y-1.5)*10;
-    double r_squared = x0*x0+y0*y0;
-    return 1+exp(-r_squared);
+    if (x < 100000)
+        return rho_0 * T2 * c_v;
+    else
+        return rho_0 * T1 * c_v;
 }
 
 
