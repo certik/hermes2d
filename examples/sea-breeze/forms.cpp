@@ -2,14 +2,15 @@
 
 #include "_hermes2d_api.h"
 
-const double TAU = 0.5*3600;
+const double TAU = 0.1*3600;
 
 const double R = 287;            // Gas constant
 const double rho_0 = 1.184;
 const double T2 = 310;
-const double T1 = 275;
+//const double T1 = 275;
+const double T1 = 310;
 const double c_v = 20.8;            // specific heat capacity
-const double g = 0;            // gravitational acceleration (set to 0 for now)
+const double g = 0.1*9.81;            // gravitational acceleration (set to 0 for now)
 
 //  boundary markers
 #define marker_bottom 1
@@ -414,7 +415,7 @@ Scalar l_2(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext
 {
     Scalar result = 0;
     for (int i = 0; i < n; i++)
-        result += wt[i] * (ext->fn[2]->val[i]/TAU + ext->fn[0]->val[i]*g) * \
+        result += wt[i] * (ext->fn[2]->val[i]/TAU - ext->fn[0]->val[i]*g) * \
                   v->val[i];
     return result;
 }
