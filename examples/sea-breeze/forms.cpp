@@ -37,6 +37,12 @@ int s3_bc_type(int marker) {
 }
 
 int s4_bc_type(int marker) {
+    /*
+    if (marker=marker_bottom)
+        return BC_ESSENTIAL;
+    else
+        return BC_NATURAL;
+        */
     return BC_NATURAL;
 }
 
@@ -53,10 +59,13 @@ scalar s3_bc_value(int marker, double x, double y) {
 }
 
 scalar s4_bc_value(int marker, double x, double y) {
+    /*
     if (x < 100000)
         return rho_0 * T2 * c_v;
     else
         return rho_0 * T1 * c_v;
+        */
+    return rho_0 * T2 * c_v;
 }
 
 scalar w0_init(double x, double y, scalar& dx, scalar& dy) {
@@ -541,7 +550,7 @@ void register_bc(H1Space &s0, H1Space &s1, H1Space &s3, H1Space &s4)
     s3.set_bc_types(s3_bc_type);
     s3.set_bc_values(s3_bc_value);
     s4.set_bc_types(s4_bc_type);
-    //s4.set_bc_values(s4_bc_value);
+    s4.set_bc_values(s4_bc_value);
 }
 
 void set_ic(Mesh &mesh, Solution &w0, Solution &w1, Solution &w3, Solution &w4)
