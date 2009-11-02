@@ -1,5 +1,5 @@
 a = 200000            # domain length (should be a multiple of 3)
-b = 100000             # domain height
+b = 10000             # domain height
 
 vertices =
 {
