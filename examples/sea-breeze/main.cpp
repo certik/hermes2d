@@ -35,7 +35,7 @@ int main(int argc, char* argv[])
   mesh.refine_all_elements();
   mesh.refine_all_elements();
   mesh.refine_all_elements();
-  mesh.refine_all_elements();
+  //mesh.refine_all_elements();
   //mesh.refine_towards_boundary(5, 4, false);
   //mesh.refine_towards_boundary(1, 4);
   //mesh.refine_towards_boundary(3, 4);
