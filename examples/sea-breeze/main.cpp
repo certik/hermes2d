@@ -82,7 +82,7 @@ int main(int argc, char* argv[])
   VectorView w13_view("Current Density [m/s]", 0, 0, 1500, 470);
   ScalarView w0_view("Mass Density [Pa]", 0, 530, 1500, 470);
   ScalarView w4_view("Energy [Pa]", 0, 530, 1500, 470);
-  //w13_view.set_min_max_range(0, 1.6);
+  //w13_view.set_min_max_range(0, 2);
   w0_view.show_mesh(false);
   w4_view.show_mesh(false);
   // fixing scale width (for nicer videos). Note: creation of videos is
