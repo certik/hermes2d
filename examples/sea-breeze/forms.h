@@ -8,4 +8,6 @@ void set_ic(Mesh &mesh, Solution &w0, Solution &w1, Solution &w3, Solution &w4);
 void register_forms(WeakForm &wf, Solution &w0_prev, Solution &w1_prev,
         Solution &w3_prev, Solution &w4_prev);
 
+extern const double TAU;
+
 #endif
