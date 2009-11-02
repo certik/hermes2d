@@ -4,11 +4,13 @@
 
 const double TAU = 1;  // this is in seconds
 
-const double R = 287;            // Gas constant
+const double R = 287.14;            // Gas constant
 const double rho_0 = 1.184;
-const double T2 = 310;
+//const double T2 = 310;
 //const double T1 = 275;
-const double T1 = 310;
+//const double T1 = 310;
+const double T_0 = 300.5;
+const double p_0 = 100000;
 const double c_v = 20.8;            // specific heat capacity
 const double g = 9.81;            // gravitational acceleration (set to 0 for now)
 
@@ -72,10 +74,23 @@ scalar s4_bc_value(int marker, double x, double y) {
 }
 */
 
+// Empirical relations of initial distributions valid for 0 <= z <= 10km
+// "z" in p_z and T_z is in "km", so don't forget to convert it from meters
+// temperature T in Kelvin
+#define T_z(z) (T_0 - 8.3194*(z) + 0.2932*(z)*(z) - 0.0109*(z)*(z)*(z))
+// presure p in Pascals
+#define p_z(z) (p_0 - 11476*(z) + 529.54*(z)*(z) - 9.38*(z)*(z)*(z))
+
+#define theta_z(z) (T_z(z) * pow(p_0/p_z(z), 0.287))
+#define gamma 1.4
+#define rho_z(z) (p_0 / (R * theta_z(z)) * pow(p_z(z)/p_0, 1./gamma))
+#define rho_init(x, y) (rho_z(y/1000.))
+#define T_init(x, y) (T_z(y/1000.))
+
 scalar w0_init(double x, double y, scalar& dx, scalar& dy) {
     dx = 0;
     dy = 0;
-    return rho_0;
+    return rho_init(x, y);
 }
 
 scalar w1_init(double x, double y, scalar& dx, scalar& dy) {
@@ -93,10 +108,8 @@ scalar w3_init(double x, double y, scalar& dx, scalar& dy) {
 scalar w4_init(double x, double y, scalar& dx, scalar& dy) {
     dx = 0;
     dy = 0;
-    if (x < 100000)
-        return rho_0 * T2 * c_v;
-    else
-        return rho_0 * T1 * c_v;
+//    printf("y=%f, rho=%f\n", y, rho_init(x, y));
+    return rho_init(x, y) * T_init(x, y) * c_v;
 }
 
 
