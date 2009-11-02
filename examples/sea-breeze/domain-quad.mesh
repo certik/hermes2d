@@ -1,12 +1,13 @@
-a = 200000            # domain length (should be a multiple of 3)
-b = 10000             # domain height
+# The domain is (-a, a) x (0, b)
+a = 50000 # domain length * 0.5
+b = 4000  # domain height
 
 vertices =
 {
-  { 0, 0 },
+  { -a, 0 },
   { a, 0 },
   { a, b },
-  { 0, b }
+  { -a, b }
 }
 
 elements =
