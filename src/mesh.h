@@ -144,6 +144,8 @@ public:
   void copy(const Mesh* mesh);
   /// Copies the coarsest elements of another mesh.
   void copy_base(Mesh* mesh);
+  /// Copies the refined elements of another mesh.
+  void copy_refine(Mesh* mesh);
   /// Frees all data associated with the mesh.
   void free();
 
@@ -244,7 +246,15 @@ public:
   void set_seq(unsigned seq) { this->seq = seq; }
   /// For internal use.
   Element* get_element_fast(int id) const { return &(elements[id]);}
+  /// Refines all elements to quads.
+  /// \param refinement [in] Same meaning as in refine_element().
+  /// It can refine a triangle element into three quadrilateral,
+  /// and it can also refine straight edge quadrilateral.
+  void convert_to_quads(int refinement = 0);
 
+  /// Refines all elements to triangles.
+  /// It can refine a quadrilateral element into two triangles.
+  void convert_to_triangles();
 
 protected:
 
@@ -276,6 +286,12 @@ protected:
   void regularize_triangle(Element* e);
   void regularize_quad(Element* e);
   void flatten();
+
+  void refine_triangle_to_quads(Element* e);
+  void refine_element_to_quads(int id, int refinement = 0);
+
+  void refine_quad_to_triangles(Element* e);
+  void refine_element_to_triangles(int id);
 
 };
 
@@ -312,6 +328,10 @@ protected:
         for (int _id = 0, _max = (mesh)->get_max_node_id(); _id < _max; _id++) \
           if (((n) = (mesh)->get_node(_id))->used) \
             if ((n)->type)
+
+#define for_all_refine_elements(e, mesh) \
+        for (int _id = (mesh)->get_num_base_elements(), _max = (mesh)->get_max_element_id(); _id < _max; _id++) \
+          if (((e) = (mesh)->get_element_fast(_id))->used)
 
 
 /// \brief Determines the position on an edge.

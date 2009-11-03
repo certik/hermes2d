@@ -712,3 +712,454 @@ void Mesh::unrefine_all_elements(bool keep_initial_refinements)
   for (int i = 0; i < list.size(); i++)
     unrefine_element(list[i]);
 }
+void Mesh::refine_triangle_to_quads(Element* e)
+{
+  // remember the markers of the edge nodes
+  int bnd[3] = { e->en[0]->bnd,    e->en[1]->bnd,    e->en[2]->bnd    };
+  int mrk[3] = { e->en[0]->marker, e->en[1]->marker, e->en[2]->marker };
+
+  // obtain three mid-edge and one gravity vertex nodes
+  Node* x0 = get_vertex_node(e->vn[0]->id, e->vn[1]->id);
+  Node* x1 = get_vertex_node(e->vn[1]->id, e->vn[2]->id);
+  Node* x2 = get_vertex_node(e->vn[2]->id, e->vn[0]->id);
+  Node* mid = get_vertex_node(x0->id, e->vn[1]->id);
+
+  mid->x = (nodes[x0->id].x + nodes[x1->id].x + nodes[x2->id].x)/3;
+  mid->y = (nodes[x0->id].y + nodes[x1->id].y + nodes[x2->id].y)/3;
+
+  // adjust mid-edge and gravity coordinates if this is a curved element
+  if (e->is_curved())
+  {
+    double2 pt[4] = { { 0.0,-1.0 }, { 0.0, 0.0 },{ -1.0, 0.0 }, { -0.33333333, -0.33333333 } };
+    e->cm->get_mid_edge_points(e, pt, 4);
+    x0->x = pt[0][0]; x0->y = pt[0][1];
+    x1->x = pt[1][0]; x1->y = pt[1][1];
+    x2->x = pt[2][0]; x2->y = pt[2][1];
+    mid->x = pt[3][0]; mid->y = pt[3][1];
+   }
+
+  double angle2;
+  int idx;
+  CurvMap* cm[3];
+  memset(cm, 0, sizeof(cm));
+
+  // create CurvMaps for sons if this is a curved element
+  if (e->is_curved())
+  {
+    for (idx = 0; idx < 2; idx++)
+    {
+      if (e->cm->nurbs[idx] != NULL)
+      {
+        cm[idx] = new CurvMap;
+        memset(cm[idx], 0, sizeof(CurvMap));
+        cm[idx+1] = new CurvMap;
+        memset(cm[idx+1], 0, sizeof(CurvMap));
+      }
+    }
+
+    idx=0;
+    if (e->cm->nurbs[idx] != NULL)
+    {
+      angle2 = e->cm->nurbs[idx]->angle/2;
+      Node* node_temp = get_vertex_node(e->vn[idx%3]->id, e->vn[(idx+1)%3]->id);
+
+      for (int k = 0; k < 2; k++)
+      {
+        Node *en;
+        int p1, p2;
+        int idx2;
+
+        if (k == 0)
+        {
+          p1 = e->vn[(idx)%3]->id;
+          p2 = node_temp->id;
+          if (idx == 0) idx2 = 0;
+          if (idx == 1) idx2 = 1;
+          if (idx == 2) continue;
+        }
+        else if (k == 1)
+        {
+          p1 = node_temp->id;
+          p2 = e->vn[(idx+1)%3]->id;
+          idx = (idx+1)%3;
+          if (idx == 0) continue;
+          if (idx == 1) idx2 = 0;
+          if (idx == 2) idx2 = 0;
+        }
+
+        Nurbs* nurbs = new Nurbs;
+        bool cricle = true;
+
+        nurbs->arc = cricle;
+        nurbs->degree = 2;
+
+        int inner = 1, outer;
+        inner = 1;
+        nurbs->np = inner + 2;
+        nurbs->pt = new double3[nurbs->np];
+
+        nurbs->pt[0][0] = nodes[p1].x;
+        nurbs->pt[0][1] = nodes[p1].y;
+        nurbs->pt[0][2] = 1.0;
+
+        nurbs->pt[inner+1][0] = nodes[p2].x;
+        nurbs->pt[inner+1][1] = nodes[p2].y;
+        nurbs->pt[inner+1][2] = 1.0;
+
+        double angle = angle2;
+        double a = (180.0 - angle) / 180.0 * M_PI;
+        nurbs->angle = angle;
+
+        // generate one control point
+        double x = 1.0 / tan(a * 0.5);
+        nurbs->pt[1][0] = 0.5*((nurbs->pt[2][0] + nurbs->pt[0][0]) + (nurbs->pt[2][1] - nurbs->pt[0][1]) * x);
+        nurbs->pt[1][1] = 0.5*((nurbs->pt[2][1] + nurbs->pt[0][1]) - (nurbs->pt[2][0] - nurbs->pt[0][0]) * x);
+        nurbs->pt[1][2] = cos((M_PI - a) * 0.5);
+
+        int i;
+        inner = 0;
+        nurbs->nk = nurbs->degree + nurbs->np + 1;
+        outer = nurbs->nk - inner;
+
+        // knot vector is completed by 0.0 on the left and by 1.0 on the right
+        nurbs->kv = new double[nurbs->nk];
+
+        for (i = 0; i < outer/2; i++)
+          nurbs->kv[i] = 0.0;
+        for (i = outer/2 + inner; i < nurbs->nk; i++)
+          nurbs->kv[i] = 1.0;
+        nurbs->ref = 0;
+
+        cm[idx]->toplevel = 1;
+        cm[idx]->order = 4;
+        cm[idx]->nurbs[idx2] = nurbs;
+        nurbs->ref++;
+      }
+    }
+
+    idx = 1;
+    if (e->cm->nurbs[idx] != NULL)
+    {
+      angle2 = e->cm->nurbs[idx]->angle/2;
+      Node* node_temp = get_vertex_node(e->vn[idx%3]->id, e->vn[(idx+1)%3]->id);
+      for (int k = 0; k < 2; k++)
+      {
+        Node *en;
+        int p1, p2;
+        int idx2;
+        if (k == 0)
+        {
+          p1 = e->vn[(idx)%3]->id;
+          p2 = node_temp->id;
+          if (idx == 0) idx2 = 0;
+          if (idx == 1) idx2 = 1;
+          if (idx == 2) continue;
+        }
+        else if (k == 1)
+        {
+          p1 = node_temp->id;
+          p2 = e->vn[(idx+1)%3]->id;
+          idx = (idx+1)%3;
+          if (idx == 0) continue;
+          if (idx == 1) idx2 = 0;
+          if (idx == 2) idx2 = 0;
+        }
+
+        Nurbs* nurbs = new Nurbs;
+        bool cricle = true;
+
+        nurbs->arc = cricle;
+        nurbs->degree = 2;
+        int inner = 1, outer;
+        inner = 1;
+        nurbs->np = inner + 2;
+        nurbs->pt = new double3[nurbs->np];
+
+        nurbs->pt[0][0] = nodes[p1].x;
+        nurbs->pt[0][1] = nodes[p1].y;
+        nurbs->pt[0][2] = 1.0;
+
+        nurbs->pt[inner+1][0] = nodes[p2].x;
+        nurbs->pt[inner+1][1] = nodes[p2].y;
+        nurbs->pt[inner+1][2] = 1.0;
+
+        double angle = angle2;
+        double a = (180.0 - angle) / 180.0 * M_PI;
+        nurbs->angle = angle;
+
+        // generate one control point
+        double x = 1.0 / tan(a * 0.5);
+        nurbs->pt[1][0] = 0.5*((nurbs->pt[2][0] + nurbs->pt[0][0]) + (nurbs->pt[2][1] - nurbs->pt[0][1]) * x);
+        nurbs->pt[1][1] = 0.5*((nurbs->pt[2][1] + nurbs->pt[0][1]) - (nurbs->pt[2][0] - nurbs->pt[0][0]) * x);
+        nurbs->pt[1][2] = cos((M_PI - a) * 0.5);
+
+        int i;
+        inner = 0;
+        nurbs->nk = nurbs->degree + nurbs->np + 1;
+        outer = nurbs->nk - inner;
+
+        // knot vector is completed by 0.0 on the left and by 1.0 on the right
+        nurbs->kv = new double[nurbs->nk];
+        for (i = 0; i < outer/2; i++)
+          nurbs->kv[i] = 0.0;
+        for (i = outer/2 + inner; i < nurbs->nk; i++)
+         nurbs->kv[i] = 1.0;
+        nurbs->ref = 0;
+
+        cm[idx]->toplevel = 1;
+        cm[idx]->order = 4;
+        cm[idx]->nurbs[idx2] = nurbs;
+        nurbs->ref++;
+      }
+    }
+  }
+
+  // create the four sons
+  Element* sons[4];
+  sons[0] = create_quad(e->marker, e->vn[0], x0, mid, x2, cm[0]);
+  sons[1] = create_quad(e->marker, x0, e->vn[1], x1, mid, cm[1]);
+  sons[2] = create_quad(e->marker, x1, e->vn[2], x2, mid, cm[2]);
+  sons[3] = NULL;
+
+  // update coefficients of curved reference mapping
+  for (int i = 0; i < 3; i++)
+  {
+    if (sons[i]->is_curved())
+    {
+      sons[i]->cm->update_refmap_coefs(sons[i]);
+    }
+  }
+
+  // deactivate this element and unregister from its nodes
+  e->active = 0;
+  nactive += 3;
+  e->unref_all_nodes(this);
+  // now the original edge nodes may no longer exist...
+  // set correct boundary status and markers for the new nodes
+  sons[0]->en[0]->bnd = bnd[0];  sons[0]->en[0]->marker = mrk[0];
+  sons[0]->en[3]->bnd = bnd[2];  sons[0]->en[3]->marker = mrk[2];
+  sons[0]->vn[1]->bnd = bnd[0];
+
+  sons[1]->en[0]->bnd = bnd[0];  sons[1]->en[0]->marker = mrk[0];
+  sons[1]->en[1]->bnd = bnd[1];  sons[1]->en[1]->marker = mrk[1];
+  sons[1]->vn[2]->bnd = bnd[1];
+
+  sons[2]->en[0]->bnd = bnd[1];  sons[2]->en[0]->marker = mrk[1];
+  sons[2]->en[1]->bnd = bnd[2];  sons[2]->en[1]->marker = mrk[2];
+  sons[2]->vn[2]->bnd = bnd[2];
+
+  // copy son pointers (could not have been done earlier because of the union)
+  memcpy(e->sons, sons, 3 * sizeof(Element*));
+}
+
+
+void Mesh::refine_element_to_quads(int id, int refinement)
+{
+  Element* e = get_element(id);
+  if (!e->used) error("invalid element id number.");
+  if (!e->active) error("attempt to refine element #%d which has been refined already.", e->id);
+
+  if (e->is_triangle())
+    refine_triangle_to_quads(e);
+  else
+    refine_quad(e, refinement);
+
+  seq = g_mesh_seq++;
+}
+
+
+void Mesh::refine_quad_to_triangles(Element* e)
+{
+  // remember the markers of the edge nodes
+  int bnd[4] = { e->en[0]->bnd,    e->en[1]->bnd,    e->en[2]->bnd,    e->en[3]->bnd };
+  int mrk[4] = { e->en[0]->marker, e->en[1]->marker, e->en[2]->marker, e->en[3]->marker };
+
+
+  bool bcheck = true;  ///< if bcheck is true, it is default add a new edge between
+                       ///<  vn[0] and vn[2]
+  double length_x_0_2 = (e->vn[0]->x - e->vn[2]->x)*(e->vn[0]->x - e->vn[2]->x);
+  double length_x_1_3 = (e->vn[1]->x - e->vn[3]->x)*(e->vn[1]->x - e->vn[3]->x);
+
+  double length_y_0_2 = (e->vn[0]->y - e->vn[2]->y)*(e->vn[0]->y - e->vn[2]->y);
+  double length_y_1_3 = (e->vn[1]->y - e->vn[3]->y)*(e->vn[1]->y - e->vn[3]->y);
+
+  if ((length_x_0_2 + length_y_0_2) > (length_x_1_3 + length_y_1_3))
+  {
+    bcheck = false;
+  }
+
+  double angle2;
+  int idx;
+  CurvMap* cm[2];
+  memset(cm, 0, sizeof(cm));
+
+  // create CurvMaps for sons if this is a curved element
+  if (e->is_curved())
+  {
+    int i_case2 = 0;
+    if (bcheck == true)
+    {
+      if ((e->cm->nurbs[0] != NULL) || (e->cm->nurbs[1] != NULL))
+      {
+        cm[0] = new CurvMap;
+        memset(cm[0], 0, sizeof(CurvMap));
+      }
+      if ((e->cm->nurbs[2] != NULL) || (e->cm->nurbs[3] != NULL))
+      {
+        cm[1] = new CurvMap;
+        memset(cm[1], 0, sizeof(CurvMap));
+      }
+    }
+    else if (bcheck == false)
+    {
+      if ((e->cm->nurbs[1] != NULL) || (e->cm->nurbs[2] != NULL))
+      {
+        cm[0] = new CurvMap;
+        memset(cm[0], 0, sizeof(CurvMap));
+      }
+      if ((e->cm->nurbs[3] != NULL) || (e->cm->nurbs[0] != NULL))
+      {
+        cm[1] = new CurvMap;
+        memset(cm[1], 0, sizeof(CurvMap));
+      }
+      i_case2 = 1; //switch to the shorter diagonal
+    }
+
+    for (int k = 0; k < 2; k++)
+    {
+      for (idx = 0 + 2*k; idx < 2 + 2*k; idx++)
+      {
+        if (e->cm->nurbs[(idx + i_case2)%4] != NULL)
+        {
+          angle2 = e->cm->nurbs[(idx + i_case2)%4]->angle;
+
+          Node *en;
+          int p1, p2;
+          int idx2 = idx;
+
+          p1 = e->vn[(idx + i_case2)%4]->id;
+          p2 = e->vn[(idx + i_case2 + 1)%4]->id;  //node_temp->id;
+
+          Nurbs* nurbs = new Nurbs;
+          bool cricle = true;
+
+          nurbs->arc = cricle;
+          nurbs->degree = 2;
+
+          int inner = 1, outer;
+          inner = 1;
+          nurbs->np = inner + 2;
+          nurbs->pt = new double3[nurbs->np];
+
+          nurbs->pt[0][0] = nodes[p1].x;
+          nurbs->pt[0][1] = nodes[p1].y;
+          nurbs->pt[0][2] = 1.0;
+
+          nurbs->pt[inner+1][0] = nodes[p2].x;
+          nurbs->pt[inner+1][1] = nodes[p2].y;
+          nurbs->pt[inner+1][2] = 1.0;
+
+          double angle = angle2;
+          double a = (180.0 - angle) / 180.0 * M_PI;
+          nurbs->angle = angle;
+
+          // generate one control point
+          double x = 1.0 / tan(a * 0.5);
+          nurbs->pt[1][0] = 0.5*((nurbs->pt[2][0] + nurbs->pt[0][0]) + (nurbs->pt[2][1] - nurbs->pt[0][1]) * x);
+          nurbs->pt[1][1] = 0.5*((nurbs->pt[2][1] + nurbs->pt[0][1]) - (nurbs->pt[2][0] - nurbs->pt[0][0]) * x);
+          nurbs->pt[1][2] = cos((M_PI - a) * 0.5);
+
+          int i;
+          inner = 0;
+          nurbs->nk = nurbs->degree + nurbs->np + 1;
+          outer = nurbs->nk - inner;
+
+          // knot vector is completed by 0.0 on the left and by 1.0 on the right
+          nurbs->kv = new double[nurbs->nk];
+
+          for (i = 0; i < outer/2; i++)
+            nurbs->kv[i] = 0.0;
+          for (i = outer/2 + inner; i < nurbs->nk; i++)
+            nurbs->kv[i] = 1.0;
+          nurbs->ref = 0;
+
+          cm[k]->toplevel = 1;
+          cm[k]->order = 4;
+          cm[k]->nurbs[idx%2] = nurbs;
+          nurbs->ref++;
+        }
+      }
+    }
+  }
+
+  // create the four sons
+  Element* sons[4];
+  if (bcheck == true)
+  {
+    sons[0] = create_triangle(e->marker, e->vn[0], e->vn[1], e->vn[2], cm[0]);
+    sons[1] = create_triangle(e->marker, e->vn[2], e->vn[3], e->vn[0], cm[1]);
+    sons[2] = NULL; //create_quad(e->marker, x1, e->vn[2], x2, mid, cm[2]);
+    sons[3] = NULL;
+  }
+  else
+  {
+    sons[0] = create_triangle(e->marker, e->vn[1], e->vn[2], e->vn[3], cm[0]);
+    sons[1] = create_triangle(e->marker, e->vn[3], e->vn[0], e->vn[1], cm[1]);
+    sons[2] = NULL; //create_quad(e->marker, x1, e->vn[2], x2, mid, cm[2]);
+    sons[3] = NULL;
+  }
+
+  // update coefficients of curved reference mapping
+  for (int i = 0; i < 2; i++)
+  {
+    if (sons[i]->is_curved())
+    {
+      sons[i]->cm->update_refmap_coefs(sons[i]);
+    }
+  }
+
+  // deactivate this element and unregister from its nodes
+  e->active = 0;
+  nactive += 3;
+  e->unref_all_nodes(this);
+  // now the original edge nodes may no longer exist...
+  // set correct boundary status and markers for the new nodes
+  if (bcheck == true)
+  {
+    sons[0]->en[0]->bnd = bnd[0];  sons[0]->en[0]->marker = mrk[0];
+    sons[0]->en[1]->bnd = bnd[1];  sons[0]->en[1]->marker = mrk[1];
+    sons[0]->vn[1]->bnd = bnd[0];
+
+    sons[1]->en[0]->bnd = bnd[2];  sons[1]->en[0]->marker = mrk[2];
+    sons[1]->en[1]->bnd = bnd[3];  sons[1]->en[1]->marker = mrk[3];
+    sons[1]->vn[2]->bnd = bnd[1];
+  }
+  else
+  {
+    sons[0]->en[0]->bnd = bnd[1];  sons[0]->en[0]->marker = mrk[1];
+    sons[0]->en[1]->bnd = bnd[2];  sons[0]->en[1]->marker = mrk[2];
+    sons[0]->vn[1]->bnd = bnd[1];
+
+    sons[1]->en[0]->bnd = bnd[3];  sons[1]->en[0]->marker = mrk[3];
+    sons[1]->en[1]->bnd = bnd[0];  sons[1]->en[1]->marker = mrk[0];
+    sons[1]->vn[2]->bnd = bnd[0];
+  }
+
+  // copy son pointers (could not have been done earlier because of the union)
+  memcpy(e->sons, sons, 2 * sizeof(Element*));
+}
+
+
+void Mesh::refine_element_to_triangles(int id)
+{
+  Element* e = get_element(id);
+  if (!e->used) error("invalid element id number.");
+  if (!e->active) error("attempt to refine element #%d which has been refined already.", e->id);
+
+  if (e->is_triangle())
+    refine_triangle(e);
+  else
+    refine_quad_to_triangles(e);
+
+  seq = g_mesh_seq++;
+}
