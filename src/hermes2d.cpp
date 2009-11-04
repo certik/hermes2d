@@ -15,6 +15,7 @@
 
 #include "common.h"
 #include "hermes2d.h"
+#include "views/view_support.h"
 
 
 void hermes2d_initialize(int* argc, char* argv[])

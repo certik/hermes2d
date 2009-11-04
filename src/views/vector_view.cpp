@@ -16,8 +16,8 @@
 #ifndef NOGLUT
 
 #include <GL/freeglut.h>
-#include "common.h"
-#include "view.h"
+#include "../common.h"
+#include "vector_view.h"
 
 
 //// VectorView /////////////////////////////////////////////////////////////////////////////////////
@@ -56,8 +56,8 @@ void VectorView::show(MeshFunction* xsln, MeshFunction* ysln, double eps, int xi
 
   if (range_auto) { range_min = vec.get_min_value();
                     range_max = vec.get_max_value(); }
-
-  glut_init();
+                    
+  init_output();
   update_layout();
 
   if (window_id < 0)
@@ -79,9 +79,9 @@ inline int p_vert(int i) { return (i+2) % 3; }
 void VectorView::plot_arrow(double x, double y, double xval, double yval, double max, double min, double gs)
 {
   if (mode == 1)
-    glColor3f(0.0,0.0,0.0);
+    glColor3f(0.0f,0.0f,0.0f);
   else
-    glColor3f(0.5,0.5,0.5);
+    glColor3f(0.5f,0.5f,0.5f);
 
   // magnitude
   double real_mag = sqrt(sqr(xval) + sqr(yval));
@@ -437,7 +437,7 @@ void VectorView::load_data(const char* filename)
   vec.load_data(filename);
   if (range_auto) { range_min = vec.get_min_value();
                     range_max = vec.get_max_value(); }
-  glut_init();
+  init_output();
   update_layout();
 
   if (window_id < 0)

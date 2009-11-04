@@ -1,5 +1,9 @@
 // This file is part of Hermes2D.
 //
+// Copyright 2006-2008 Lenka Dubcova <dubcova@gmail.com>
+// Copyright 2005-2008 Jakub Cerveny <jakub.cerveny@gmail.com>
+// Copyright 2005-2008 Pavel Solin <solin@unr.edu>
+//
 // Hermes2D is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 2 of the License, or
@@ -12,6 +16,8 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with Hermes2D.  If not, see <http://www.gnu.org/licenses/>.
+
+// $Id: view5.cpp 1086 2009-06-04 09:05:44Z lenka $
 
 #ifndef NOGLUT
 

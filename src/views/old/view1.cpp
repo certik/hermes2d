@@ -1,5 +1,9 @@
 // This file is part of Hermes2D.
 //
+// Copyright 2005-2008 Jakub Cerveny <jakub.cerveny@gmail.com>
+// Copyright 2005-2008 Lenka Dubcova <dubcova@gmail.com>
+// Copyright 2005-2008 Pavel Solin <solin@unr.edu>
+//
 // Hermes2D is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 2 of the License, or
@@ -13,12 +17,13 @@
 // You should have received a copy of the GNU General Public License
 // along with Hermes2D.  If not, see <http://www.gnu.org/licenses/>.
 
+// $Id: view1.cpp 1086 2008-10-21 09:05:44Z jakub $
+
 #ifndef NOGLUT
 
 #include <GL/freeglut.h>
 #ifndef WIN32
 # include <sys/time.h>
-
 #endif
 
 #include "common.h"
@@ -72,7 +77,7 @@ void glut_init()
 static void wake_up_timer(int)
 {
   glutTimerFunc(timer_ms, wake_up_timer, 0);
-
+  
   // Also, this is a good place to perform a cross thread call,
   // if one is scheduled
   if (ctc_function != NULL)
@@ -87,7 +92,7 @@ static void wake_up_timer(int)
 
 
 /// This is the GLUT main loop running in a separate thread, so
-/// that the windows are responsive at all times.
+/// that the windows are responsive at all times. 
 static void* main_loop_thread(void*)
 {
   thread_running = true;
@@ -124,7 +129,7 @@ static struct sync_init_1
     pthread_cond_init (&ctc_result_cv, NULL);
     pthread_cond_init (&pe_cv, NULL);
   }
-  ~sync_init_1()
+  ~sync_init_1() 
   {
     pthread_mutex_destroy(&ctc_mutex);
     pthread_mutex_destroy(&pe_mutex);
@@ -138,7 +143,7 @@ dummy_sync_init_struct_1;
 /// GLUT does not like certain functions, such as glutCreateWindow,
 /// to be called from a different thread than the one running the main
 /// loop. This functions causes the main loop thread to call the
-/// specified function. Then it waits for its completion and returns
+/// specified function. Then it waits for its completion and returns 
 /// its result.
 static int cross_thread_call(int (*function)(void*), void* param = NULL)
 {
@@ -147,7 +152,7 @@ static int cross_thread_call(int (*function)(void*), void* param = NULL)
   ctc_function = function;
   ctc_param = param;
   start_glut_main_loop();
-  pthread_cond_wait(&ctc_result_cv, &ctc_mutex);
+  pthread_cond_wait(&ctc_result_cv, &ctc_mutex);  
   //printf("cross thread call successful, return code %d\n", ctc_result);
   pthread_mutex_unlock(&ctc_mutex);
   return ctc_result;
@@ -171,20 +176,20 @@ void finish_glut_main_loop(bool force)
 
 //// handler stubs /////////////////////////////////////////////////////////////////////////////////
 
-void on_display_stub(void)
-{
+void on_display_stub(void) 
+{ 
   View* wnd = wnd_instance[glutGetWindow()];
   if (wnd != NULL) wnd->pre_display();
 }
 
 void on_reshape_stub(int width, int height)
-{
+{ 
   View* wnd = wnd_instance[glutGetWindow()];
   if (wnd != NULL) wnd->on_reshape(width, height);
 }
 
-void on_mouse_move_stub(int x, int y)
-{
+void on_mouse_move_stub(int x, int y) 
+{ 
   View* wnd = wnd_instance[glutGetWindow()];
   if (wnd != NULL) wnd->on_mouse_move(x, y);
 }
@@ -227,13 +232,13 @@ void on_mouse_click_stub(int button, int state, int x, int y)
         wnd->on_right_mouse_double_click(x, y);
       else
         wnd->on_middle_mouse_double_click(x, y);
-
+        
       last_tick = 0;
       return;
     }
     last_tick = tick;
   }
-
+  
   // call proper click handler
   if (button == GLUT_LEFT_BUTTON)
   {
@@ -263,7 +268,7 @@ void on_close_stub()
 {
   num_windows--;
   int id = glutGetWindow();
-  if (wnd_instance[id] != NULL)
+  if (wnd_instance[id] != NULL) 
   {
     wnd_instance[id]->on_close();
     wnd_instance[id]->window_id = -1;
@@ -274,40 +279,23 @@ void on_close_stub()
 
 //// View class ////////////////////////////////////////////////////////////////////////////////////
 
-static pthread_mutex_t wait_keypress_mutex, wait_close_mutex, wait_draw_mutex;
-static pthread_cond_t wait_keypress_cv, wait_close_cv, wait_draw_cv;
+View::ViewMonitor View::view_sync;
 
-static struct sync_init_2 // FIXME: this should be inside the View instance
+View::ViewMonitor::ViewMonitor()
 {
-  sync_init_2()
-  {
-    pthread_mutex_init(&wait_keypress_mutex, NULL);
-    pthread_mutex_init(&wait_close_mutex, NULL);
-    pthread_mutex_init(&wait_draw_mutex, NULL);
-    pthread_cond_init (&wait_keypress_cv, NULL);
-    pthread_cond_init (&wait_close_cv, NULL);
-    pthread_cond_init (&wait_draw_cv, NULL);
-  }
-  ~sync_init_2()
-  {
-    pthread_mutex_destroy(&wait_keypress_mutex);
-    pthread_mutex_destroy(&wait_close_mutex);
-    pthread_mutex_destroy(&wait_draw_mutex);
-    pthread_cond_destroy(&wait_keypress_cv);
-    pthread_cond_destroy(&wait_close_cv);
-    pthread_cond_destroy(&wait_draw_cv);
-  }
-}
-dummy_sync_init_struct_2;
-
-
-static void signal(pthread_mutex_t* mutex, pthread_cond_t* cond)
-{
-  pthread_mutex_lock(mutex);
-  pthread_cond_broadcast(cond);
-  pthread_mutex_unlock(mutex);
+  pthread_mutex_init(&mutex, NULL);
+  pthread_cond_init(&cond_keypress, NULL);
+  pthread_cond_init(&cond_close, NULL);
+  pthread_cond_init(&cond_drawing_finished, NULL);
 }
 
+View::ViewMonitor::~ViewMonitor()
+{
+  pthread_mutex_destroy(&mutex);
+  pthread_cond_destroy(&cond_keypress);
+  pthread_cond_destroy(&cond_close);
+  pthread_cond_destroy(&cond_drawing_finished);
+}
 
 View::View(const char* title, int x, int y, int width, int height)
   : gl_pallete_tex_id(0)
@@ -357,7 +345,7 @@ View::~View()
 int view_create_body(void* param)
 {
   View* instance = (View*) param;
-
+  
   // create the window
   glutInitWindowPosition(instance->window_x, instance->window_y);
   glutInitWindowSize(instance->window_width, instance->window_height);
@@ -379,7 +367,7 @@ int view_create_body(void* param)
   glutSpecialFunc(on_special_key_stub);
   glutEntryFunc(on_entry_stub);
   glutCloseFunc(on_close_stub);
-
+  
   instance->on_create();
   return instance->window_id;
 }
@@ -387,11 +375,11 @@ int view_create_body(void* param)
 int View::create()
 {
   //reset timing
-  rendering_time_total = 0.0;
-  rendering_frame_cnt = 0;
+  memset(rendering_frames, 0, FPS_FRAME_SIZE * sizeof(double));
+  rendering_frames_top = 0;
 
   if (window_id >= 0)
-    post_redisplay();
+    safe_post_redisplay();
   else
     cross_thread_call(view_create_body, this);
   return window_id;
@@ -409,16 +397,15 @@ void View::close()
 }
 
 
-void View::wait(const char* text)
+void View::wait()
 {
-  if (text != NULL) printf("%s\n", text);
   finish_glut_main_loop();
 }
 
 
 void View::on_create()
 {
-  create_palette();
+  create_gl_palette();
   set_palette_filter(pal_filter == GL_LINEAR);
 }
 
@@ -426,9 +413,11 @@ void View::on_create()
 void View::on_close()
 {
   verbose("Window #%d closed.", glutGetWindow());
-  signal(&wait_keypress_mutex, &wait_keypress_cv);
-  signal(&wait_close_mutex, &wait_close_cv);
-  signal(&wait_draw_mutex, &wait_draw_cv);
+  view_sync.enter();
+  view_sync.signal_close();
+  view_sync.signal_keypress();
+  view_sync.signal_drawing_finished();
+  view_sync.leave();
 }
 
 
@@ -442,7 +431,7 @@ void View::clear_background()
 void View::pre_display()
 {
   //info("display: lock");
-  pthread_mutex_lock(&wait_draw_mutex);
+  view_sync.enter();
 
   //begin time measuring
   double time_start = get_tick_count();
@@ -461,43 +450,41 @@ void View::pre_display()
   if (b_help) draw_help();
   else if (b_scale) scale_dispatch();
 
-  //draw current time
-  if (rendering_frame_cnt > 0)
-    draw_fps();
+  //draw current rendring time
+  draw_fps();
 
   //wait to finish
   glFinish();
 
   //calculate statistics
-  rendering_time_total += get_tick_count() - time_start;
-  rendering_frame_cnt++;
+  rendering_frames[rendering_frames_top] = get_tick_count() - time_start;
+  rendering_frames_top = (rendering_frames_top + 1) % FPS_FRAME_SIZE;
 
   if (want_screenshot)
   {
     glReadBuffer(GL_BACK_LEFT);
     save_screenshot_internal(screenshot_filename.c_str());
     want_screenshot = false;
-  }
-
+  } 
+  
   glutSwapBuffers();
 
+  //frame synchronization
   frame_ready = true;
-  //info("display: broadcast");
-  pthread_cond_broadcast(&wait_draw_cv);
-  //info("display: unlock");
-  pthread_mutex_unlock(&wait_draw_mutex);
+  view_sync.signal_drawing_finished();
+  view_sync.leave();
 }
 
 
-static float jitter16[16][2] =
+static float jitter16[16][2] = 
 {
-  { 0.4375, 0.4375 }, { 0.1875, 0.5625 },
-  { 0.9375, 1.1875 }, { 0.4375, 0.9375-1 },
-  { 0.6875, 0.5625 }, { 0.1875, 0.0625 },
-  { 0.6875, 0.3125 }, { 0.1875, 0.3125 },
-  { 0.4375, 0.1875 }, { 0.9375-1, 0.4375 },
-  { 0.6875, 0.8125 }, { 0.4375, 0.6875 },
-  { 0.6875, 0.0625 }, { 0.9375, 0.9375 },
+  { 0.4375, 0.4375 }, { 0.1875, 0.5625 }, 
+  { 0.9375, 1.1875 }, { 0.4375, 0.9375-1 }, 
+  { 0.6875, 0.5625 }, { 0.1875, 0.0625 }, 
+  { 0.6875, 0.3125 }, { 0.1875, 0.3125 }, 
+  { 0.4375, 0.1875 }, { 0.9375-1, 0.4375 }, 
+  { 0.6875, 0.8125 }, { 0.4375, 0.6875 }, 
+  { 0.6875, 0.0625 }, { 0.9375, 0.9375 }, 
   { 1.1875, 0.8125 }, { 0.9375, 0.6875 }
 };
 
@@ -523,11 +510,11 @@ void View::set_ortho_projection(bool no_jitter)
 {
   double jx = no_jitter ? 0.0 : jitter_x;
   double jy = no_jitter ? 0.0 : jitter_y;
-
+  
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
   glOrtho(jx, window_width + jx, window_height-1 + jy, -1 + jy, -10, 10);
-
+  
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
 }
@@ -544,19 +531,21 @@ void View::set_3d_projection(int fov, double znear, double zfar)
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
   glFrustum(left - offsx, right - offsx, bottom - offsy, top - offsy, znear, zfar);
-
+  
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
 }
 
 void View::draw_fps()
 {
+  //calculate FPS
+  double frame_time_sum = 0;
+  for(int i = 0; i < FPS_FRAME_SIZE; i++)
+    frame_time_sum += rendering_frames[i];
+
   //prepare text
   unsigned char buffer[128];
-  if (rendering_frame_cnt > 0)
-    sprintf((char*)buffer, "avg. frame: %.1f ms", (float)(rendering_time_total / rendering_frame_cnt));
-  else
-    sprintf((char*)buffer, "no frame stat");
+  sprintf((char*)buffer, "avg. frame: %.1f ms", (float)(frame_time_sum / FPS_FRAME_SIZE));
 
   //prepare environment
   void* font = GLUT_BITMAP_HELVETICA_10;
@@ -589,7 +578,7 @@ void View::on_reshape(int width, int height)
   window_height = height;
   update_layout();
   glViewport(0, 0, width, height);
-
+  
   /*printf("winx=%d, winy=%d, ww=%d, wh=%d, width=%d, height=%d\n", glutGet(GLUT_WINDOW_X), glutGet(GLUT_WINDOW_Y),
          glutGet(GLUT_WINDOW_WIDTH), glutGet(GLUT_WINDOW_HEIGHT), width, height);*/
 }
@@ -630,7 +619,7 @@ void View::on_mouse_move(int x, int y)
     pos_vert = (y < window_height/2);
     if (pos_horz != oldh || pos_vert != oldv) { update_layout(); post_redisplay(); }
   }
-  else
+  else 
   {
     bool oldf = scale_focused;
     scale_focused = (x >= scale_x && x <= scale_x + scale_width &&
@@ -699,7 +688,7 @@ void View::on_key_down(unsigned char key, int x, int y)
       close();
       break;
     }
-
+    
     case 's':
     {
       const char *file_name = get_screenshot_file_name();
@@ -707,18 +696,20 @@ void View::on_key_down(unsigned char key, int x, int y)
       save_screenshot_internal(file_name);
       break;
     }
-
+    
     case 'p':
     {
       pal_type++;
-      if (pal_type > 3) pal_type = 0;
-      create_palette();
+      if (pal_type > 3) pal_type = 0; 
+      create_gl_palette();
       post_redisplay();
       break;
     }
-
+    
     default:
-      signal(&wait_keypress_mutex, &wait_keypress_cv);
+      view_sync.enter();
+      view_sync.signal_keypress();
+      view_sync.leave();
       break;
   }
 }
@@ -728,7 +719,7 @@ void View::on_special_key(int key, int x, int y)
 {
   switch (key)
   {
-    case GLUT_KEY_F1:
+    case GLUT_KEY_F1: 
       b_help = !b_help;
       post_redisplay();
       break;
@@ -738,36 +729,45 @@ void View::on_special_key(int key, int x, int y)
 
 void View::wait_for_keypress()
 {
-  if (window_id < 0) return;
-  pthread_mutex_lock(&wait_keypress_mutex);
-  pthread_cond_wait(&wait_keypress_cv, &wait_keypress_mutex);
-  pthread_mutex_unlock(&wait_keypress_mutex);
+  view_sync.enter();
+  if (window_id >= 0)
+    view_sync.wait_keypress();
+  view_sync.leave();
 }
 
 void View::wait_for_close()
 {
-  if (window_id < 0) return;
-  pthread_mutex_lock(&wait_close_mutex);
-  pthread_cond_wait(&wait_close_cv, &wait_close_mutex);
-  pthread_mutex_unlock(&wait_close_mutex);
+  view_sync.enter();
+  if (window_id >= 0)
+    view_sync.wait_close();
+  view_sync.leave();
 }
 
 void View::wait_for_draw()
 {
-  if (window_id < 0) return;
-  if (pthread_equal(thread, pthread_self())) return;
-  //info("wait: lock");
-  pthread_mutex_lock(&wait_draw_mutex);
-  if (!frame_ready) { //info("wait: wait");
-    pthread_cond_wait(&wait_draw_cv, &wait_draw_mutex); }
-  //info("wait: unlock");
-  pthread_mutex_unlock(&wait_draw_mutex);
+  if (!pthread_equal(thread, pthread_self()))
+  {
+    view_sync.enter();
+    if (window_id >= 0 && !frame_ready)
+      view_sync.wait_drawing_fisnihed();
+    view_sync.leave();
+  }
+  //old code
+  //if (window_id < 0) return;
+  //if (pthread_equal(thread, pthread_self())) return; //?WTF: if my thread is not my thread then lock and wait? This means that the function can be called by the thread that is drawing?
+  ////info("wait: lock");
+  //pthread_mutex_lock(&wait_draw_mutex);
+  //if (!frame_ready) { //info("wait: wait");
+  //  pthread_cond_wait(&wait_draw_cv, &wait_draw_mutex); }
+  ////info("wait: unlock");
+  //pthread_mutex_unlock(&wait_draw_mutex);
 }
 
 
 void View::post_redisplay()
 {
-  if (window_id < 0) return;
+  debug_assert(pthread_equal(thread, pthread_self()) != 0, "E 'View::post_redisplay' accessed from other than drawing thread.\n");
+  if (window_id < 0) return; //set by this thread, other threads just reads
   //info("post: lock");
   //pthread_mutex_lock(&wait_draw_mutex);
   glutPostWindowRedisplay(window_id);
@@ -786,7 +786,14 @@ static int safe_post_redisplay_body(void* param)
 
 void View::safe_post_redisplay()
 {
-  if (window_id >= 0) cross_thread_call(safe_post_redisplay_body, (void*) window_id);
+  if (!pthread_equal(thread, pthread_self()))
+  {
+    if (window_id >= 0)
+      cross_thread_call(safe_post_redisplay_body, (void*) window_id);
+  }
+  else {
+    post_redisplay();
+  }
 }
 
 
@@ -836,7 +843,7 @@ void View::set_title_internal(const char* text)
 const float* View::get_palette_color(double x)
 {
   static float color[3];
-
+  
   if (pal_type == 0)
   {
     if (x < 0.0) x = 0.0;
@@ -852,7 +859,7 @@ const float* View::get_palette_color(double x)
   else
     color[0] = color[1] = color[2] = 1.0;
   return color;
-
+  
   /*if (n == num_pal_entries) return palette_data[n];
   float s = x - (double) n;
   float t = 1.0 - s;
@@ -870,14 +877,17 @@ void View::set_num_palette_steps(int num)
   if (num > 256) num = 256;
   pal_steps = num;
   update_tex_adjust();
-  if (window_id >= 0) {
-    create_palette();
-    post_redisplay();
-  }
+
+  view_sync.enter();
+  if (window_id >= 0)
+    create_gl_palette();
+  view_sync.leave();
+
+  safe_post_redisplay();
 }
 
 
-void View::create_palette()
+void View::create_gl_palette()
 {
   int i;
   unsigned char palette[256][3];
@@ -891,8 +901,6 @@ void View::create_palette()
   for (i = pal_steps; i < 256; i++)
     memcpy(palette[i], palette[pal_steps-1], 3);
 
-  pthread_mutex_lock(&wait_draw_mutex); //lock to prevent simultaneuous rendering
-
   if (gl_pallete_tex_id == 0)
     glGenTextures(1, &gl_pallete_tex_id);
   glBindTexture(GL_TEXTURE_1D, gl_pallete_tex_id);
@@ -902,14 +910,12 @@ void View::create_palette()
 #endif
   glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
   glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
-
-  pthread_mutex_unlock(&wait_draw_mutex); //unlock
 }
 
 
 void View::set_palette_filter(bool linear)
 {
-  pthread_mutex_lock(&wait_draw_mutex); //lock to prevent simultaneuous rendering
+  view_sync.enter(); //lock to prevent simultaneuous rendering
 
   pal_filter = linear ? GL_LINEAR : GL_NEAREST;
   
@@ -920,7 +926,7 @@ void View::set_palette_filter(bool linear)
 	glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MAG_FILTER, pal_filter);
   update_tex_adjust();
 
-  pthread_mutex_unlock(&wait_draw_mutex); //unlock
+  view_sync.leave(); //unlock
 
   post_redisplay();
 }
@@ -929,11 +935,15 @@ void View::set_palette_filter(bool linear)
 void View::set_palette(int type)
 {
   if (type < 0 || type > 3) error("type can only be 0, 1, 2 or 3.");
+
+  view_sync.enter();
   pal_type = type;
-  if (window_id >= 0) {
-    create_palette();
-    post_redisplay();
-  }
+  if (window_id >= 0)
+    create_gl_palette();
+  view_sync.leave();
+
+  //redisplay
+  safe_post_redisplay();
 }
 
 
@@ -969,7 +979,7 @@ void View::auto_min_max_range()
 void View::get_min_max_range(double& min, double& max)
 {
   min = range_min;
-  max = range_max;
+  max = range_max; 
 }
 
 
@@ -986,7 +996,7 @@ void View::draw_text(double x, double y, const char* text, int align)
 
   glDisable(GL_TEXTURE_1D);
   glDisable(GL_LIGHTING);
-
+  
   glRasterPos2d((int) (x+0.5), (int) (y+0.5));
   glutBitmapString(font, (const unsigned char*) text);
 }
@@ -1004,19 +1014,19 @@ void View::draw_help()
   set_ortho_projection(true);
   glDisable(GL_DEPTH_TEST);
   glDisable(GL_LIGHTING);
-  glDisable(GL_TEXTURE_1D);
+  glDisable(GL_TEXTURE_1D);  
   glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-
+  
   const char* text = get_help_text();
-
+  
   int n = 1;
   for (const char* p = text; *p; p++)
     if (*p == '\n') n++;
-
+      
   int width = get_text_width(text);
   int height = n * glutBitmapHeight(GLUT_BITMAP_9_BY_15);
   int x = 10, y = 10, b = 6;
-
+  
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); 
   glColor4f(1.0f, 1.0f, 1.0f, 0.65f);
@@ -1026,7 +1036,7 @@ void View::draw_help()
     glVertex2d(x+width+2*b, y);
     glVertex2d(x, y);
   glEnd();
-
+  
   glDisable(GL_BLEND);
   glColor3f(0, 0, 0);
   draw_text(x+b, y+b+7, text);
@@ -1062,7 +1072,7 @@ const word BITMAP_ID = 0x4D42;
 #pragma pack(1)
 
 struct BitmapFileHeader
-{
+{ 
   word  type;
   dword size;
   word  reserved1;
@@ -1070,7 +1080,7 @@ struct BitmapFileHeader
   dword off_bits;
 };
 
-struct BitmapInfoHeader
+struct BitmapInfoHeader 
 {
   dword size;
   dword width;
@@ -1104,11 +1114,11 @@ void View::save_screenshot_internal(const char *file_name)
   warn("dont have GL_BGRA_EXT format");
 #endif
 
-  // opening file for binary writing
+  // otevreni souboru v binarnim rezimu pro zapis
   FILE* file = fopen(file_name, "wb");
   if (file == NULL)
     error("Could not open '%s' for writing", file_name);
-
+  
   // fill in bitmap header
   file_header.type = BITMAP_ID;
   file_header.size = sizeof(BitmapFileHeader) +  sizeof(BitmapInfoHeader) +
@@ -1131,10 +1141,10 @@ void View::save_screenshot_internal(const char *file_name)
   info_header.ydpi = 2835; // 72 dpi
   info_header.clr_used = 0;
   info_header.clr_important = 0;
-
+  
   if (fwrite(&info_header, sizeof(info_header), 1, file) != 1)
     error("Error writing bitmap header\n");
-
+  
   // write image pixels
   if (fwrite((GLubyte*) pixels, 1, info_header.size_image, file) != info_header.size_image)
     error("Error writing pixel data\n");
@@ -1147,13 +1157,16 @@ void View::save_screenshot_internal(const char *file_name)
 
 void View::save_screenshot(const char* bmpname, bool high_quality)
 {
-  if (window_id < 0) return;
-  glutSetWindow(window_id);
-  hq_frame = high_quality;
-  want_screenshot = true;
-  screenshot_filename = bmpname;
-  post_redisplay();
-  wait_for_draw();
+  view_sync.enter();
+  if (window_id >= 0) { //set variable neccessary to create a screenshot
+    hq_frame = high_quality;
+    want_screenshot = true;
+    screenshot_filename = bmpname;
+  }
+  view_sync.leave();
+
+  //request redraw
+  safe_post_redisplay(); 
 }
 
 
@@ -1180,7 +1193,7 @@ int View::measure_scale_labels()
     if (w > result) result = w;
   }
   return result;
-
+  
 /*  char text[100];
   sprintf(text, scale_fmt, -0.000123456789123456789);
   return get_text_width(text);*/
@@ -1191,14 +1204,14 @@ void View::draw_continuous_scale(char* title, bool righttext)
 {
   int i;
   double y0 = scale_y + scale_height;
-
+  
   set_ortho_projection(true);
   glDisable(GL_DEPTH_TEST);
   glDisable(GL_LIGHTING);
-  glDisable(GL_TEXTURE_1D);
+  glDisable(GL_TEXTURE_1D);  
   glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-
-  // background
+  
+  // background 
   const int b = 5;
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); 
@@ -1220,7 +1233,7 @@ void View::draw_continuous_scale(char* title, bool righttext)
   glVertex2d(scale_x + scale_width + 1, scale_y + scale_height + 1);
   glVertex2d(scale_x + scale_width + 1, scale_y);
   glEnd();
-
+  
   glEnable(GL_TEXTURE_1D);
   glBindTexture(GL_TEXTURE_1D, gl_pallete_tex_id);
   glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
@@ -1232,7 +1245,7 @@ void View::draw_continuous_scale(char* title, bool righttext)
   glVertex2d(scale_x + scale_width, scale_y + scale_height);
   glVertex2d(scale_x + 1, scale_y + scale_height);
   glEnd();
-
+  
   // focus
   glDisable(GL_TEXTURE_1D);
   if (scale_focused)
@@ -1246,7 +1259,7 @@ void View::draw_continuous_scale(char* title, bool righttext)
     glVertex2d(scale_x + 1, scale_y + scale_height);
     glEnd();
   }
-
+  
   // ticks
   glColor3f(0, 0, 0);
   glDisable(GL_BLEND);
@@ -1262,7 +1275,7 @@ void View::draw_continuous_scale(char* title, bool righttext)
     glVertex2d(scale_x + scale_width, y0);
   }
   glEnd();
-
+  
   // labels
   for (i = 0; i <= scale_numticks+1; i++)
   {
@@ -1275,8 +1288,8 @@ void View::draw_continuous_scale(char* title, bool righttext)
       draw_text(scale_x + scale_width + 8, y0, text);
     else
       draw_text(scale_x - 8, y0, text, 1);
-  }
-
+  }  
+  
   //if (title != NULL) draw_text(x, y-18, title);
   //if (title != NULL) draw_text(x, y+height+25, title);
 }
@@ -1287,10 +1300,10 @@ void View::draw_discrete_scale(int numboxes, const char* boxnames[], const float
   set_ortho_projection(true);
   glDisable(GL_DEPTH_TEST);
   glDisable(GL_LIGHTING);
-  glDisable(GL_TEXTURE_1D);
+  glDisable(GL_TEXTURE_1D);  
   glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-
-  // background
+  
+  // background 
   const int b = 5;
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); 
@@ -1301,7 +1314,7 @@ void View::draw_discrete_scale(int numboxes, const char* boxnames[], const float
   glVertex2d(scale_x + scale_width + b+1, scale_y + scale_height + b+1);
   glVertex2d(scale_x + scale_width + b+1, scale_y - b);
   glEnd();
-
+  
   // boxes
   glDisable(GL_BLEND);
   int y = scale_y;
@@ -1314,7 +1327,7 @@ void View::draw_discrete_scale(int numboxes, const char* boxnames[], const float
     glVertex2d(scale_x + scale_width + 1, y + scale_box_height + 1);
     glVertex2d(scale_x + scale_width + 1, y);
     glEnd();
-
+    
     const float* color = boxcolors[numboxes-1-i];
     float bcolor[3] = { color[0], color[1], color[2] };
     if (scale_focused) {
@@ -1322,7 +1335,7 @@ void View::draw_discrete_scale(int numboxes, const char* boxnames[], const float
       bcolor[1] = color[1]*0.7f + 1.0f*0.3f;
       bcolor[2] = color[2]*0.7f + 1.0f*0.3f;
     }
-
+    
     glColor3f(bcolor[0], bcolor[1], bcolor[2]);
     glBegin(GL_QUADS);
     glVertex2d(scale_x+1, y+1);
@@ -1330,17 +1343,17 @@ void View::draw_discrete_scale(int numboxes, const char* boxnames[], const float
     glVertex2d(scale_x + scale_width, y + scale_box_height);
     glVertex2d(scale_x + scale_width, y+1);
     glEnd();
-
+    
     if ((color[0] + color[1] + color[2]) / 3 > 0.5)
       glColor3f(0, 0, 0);
     else
       glColor3f(1, 1, 1);
-
+    
     int a = scale_x + scale_width/2;
     int b = y + scale_box_height/2;
     draw_text(a, b, boxnames[numboxes-1-i], 0);
     draw_text(a+1, b, boxnames[numboxes-1-i], 0);
-
+    
     y += scale_box_height + scale_box_skip;
   }
 }
@@ -1362,15 +1375,15 @@ void View::update_layout()
     int space = scale_width + 8 + labels_width + margin;
     if (pos_horz == 0)
       { lspace = space;  scale_x = margin; }
-    else
+    else 
       { rspace = space;  scale_x = window_width - margin - scale_width; }
-
+      
     if (pos_vert == 0)
       scale_y = window_height - margin - scale_height;
     else
       scale_y = margin;
   }
-
+    
   center_x = ((double) window_width - 2*margin - lspace - rspace) / 2 + margin + lspace;
   center_y = (double) window_height / 2;
 }

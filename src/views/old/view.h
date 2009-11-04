@@ -33,6 +33,7 @@
 #   define VIEWER_GUI(__def) __def
 #   define VIEWER_GUI_CALLBACK(__clbk) if (__clbk) { post_redisplay(); } else
 # else
+#   define TW_WND_ID_NONE -1
 #   define VIEWER_GUI(__def)
 #   define VIEWER_GUI_CALLBACK(__cblk)
 #   define TwBar void /* avoid necessity to define ENABLE_VIEWER_GUI in underlaying applications */
@@ -87,9 +88,10 @@ public:
 
   static void wait(const char* text = NULL);
 
-protected:
-  double rendering_time_total; ///< time spend rendering [in ms]
-  int rendering_frame_cnt; ///< a number of frames rendered
+protected: //FPS measurement
+#define FPS_FRAME_SIZE 5
+  double rendering_frames[FPS_FRAME_SIZE]; ///< time spend in rendering of frames [in ms]
+  int rendering_frames_top; ///< the new location of the next FPS
   void draw_fps(); ///< draws current FPS
   static double get_tick_count(); ///< returns a current time [in ms]
 
@@ -115,8 +117,8 @@ protected:
   virtual void on_entry(int state) {}
   virtual void on_close();
 
-  void post_redisplay();
-  void safe_post_redisplay();
+  void post_redisplay(); ///< Forces redisplay. The functions HAS to be called from the drawing thread.
+  void safe_post_redisplay(); ///< Forces redisplay. The function has to be called from the outside of the thread. View sync should NOT be locked while entering this function.
   template<class TYPE> void center_mesh(TYPE* vertices, int nvert);
   const float* get_palette_color(double x);
 
@@ -157,7 +159,29 @@ protected:
   void update_scale();
   void update_log_scale();
 
-protected: //OpenGL data
+protected: //synchronization
+  class PUBLIC_API ViewMonitor ///< A monitor used to synchronize threads in views.
+  {
+  protected:
+    pthread_mutex_t mutex; ///< Mutex that protects monitor.
+    pthread_cond_t cond_keypress; ///< Condition used to signal a keypress.
+    pthread_cond_t cond_close; ///< Condition used to signal close of a window.
+    pthread_cond_t cond_drawing_finished; ///< Condition used to signal that drawing has finished
+  public:
+    ViewMonitor();
+    ~ViewMonitor();
+    void enter() { pthread_mutex_lock(&mutex); }; ///< enters protected section
+    void leave() { pthread_mutex_unlock(&mutex); }; ///< leaves protected section
+    void signal_keypress() { pthread_cond_broadcast(&cond_keypress); }; ///< signals keypress inside a protected section
+    void wait_keypress() { pthread_cond_wait(&cond_keypress, &mutex); }; ///< waits for keypress inside a protected section
+    void signal_close() { pthread_cond_broadcast(&cond_close); }; ///< signals close inside a protected section
+    void wait_close() { pthread_cond_wait(&cond_close, &mutex); }; ///< waits for close inside a protected section
+    void signal_drawing_finished() { pthread_cond_broadcast(&cond_drawing_finished); }; ///< signals drawing finished inside a protected section
+    void wait_drawing_fisnihed() { pthread_cond_wait(&cond_drawing_finished, &mutex); }; ///< waits for drawing finished inside a protected section
+  };
+  static ViewMonitor view_sync; ///< synchronization between all views. Used to access OpenGL and signal a window close event and a keypress event.
+
+protected: //OpenGL
   unsigned int gl_pallete_tex_id;
 
 protected: //internal functions
@@ -183,7 +207,7 @@ protected: //internal functions
   void draw_continuous_scale(char* title, bool righttext);
   void draw_discrete_scale(int numboxes, const char* boxnames[], const float boxcolors[][3]);
 
-  void create_palette();
+  void create_gl_palette(); ///< Creates pallete texture in OpenGL. Assumes that view_sync is locked.
   void update_tex_adjust();
   void set_title_internal(const char* text);
   void update_layout();
@@ -262,17 +286,26 @@ public:
   void show(MeshFunction* sln, double eps = EPS_NORMAL, int item = FN_VAL_0,
             MeshFunction* xdisp = NULL, MeshFunction* ydisp = NULL, double dmult = 1.0);
 
-  void show_mesh(bool show = true) { lines = show; post_redisplay(); }
+  void show_mesh(bool show = true) { show_edges = show; post_redisplay(); }
   void show_contours(double step, double orig = 0.0);
   void hide_contours() { contours = false; post_redisplay(); }
   void set_3d_mode(bool enable = true) { mode3d = enable; post_redisplay(); }
 
+
+public: // input/output routines
   void load_data(const char* filename);
   void save_data(const char* filename);
   void save_numbered(const char* format, int number);
 
-protected: ///< node selection
-  struct VertexNodeInfo
+  void export_mesh_edges_svg(const char* filename, float width_mm = 100.0f); ///< Exports mesh edges to SVG format. Height is calculated from input vertices. Function locks data.
+
+#define SVG_HEADER "<?xml version=\"1.0\" standalone=\"no\"?>\n"\
+  "<!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 1.1//EN\" "\
+  "\"http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd\">\n"
+#define SVG_UNIT_MM 3.543307 /* size of 1 mm in SVG px */
+
+protected: // node selection
+  struct VertexNodeInfo ///< Information about a vertex node.
   {
     float x, y; ///< location of the node in coordinates of the mesh
     int id; ///< id of the node
@@ -319,25 +352,64 @@ protected: //element nfo
   void draw_element_infos_2d(); ///< Draws elements infos in 2D mode.
 
 protected: //GUI
-  bool tw_initialized; ///< true, if TW has been initialized (GUI only).
+  int tw_wnd_id; ///< tw window ID
   TwBar* tw_setup_bar; ///< setup bar
   
-  void create_setup_bar(); ///< create setup bar
+  void create_setup_bar(); ///< create setup bar. Assumes that current window is set
 
-protected:
+protected: //values
+#pragma pack(push)
+#pragma pack(1)
+  struct GLVertex2 ///< OpenGL vertex. Used to cache vertices prior rendering
+  {
+    float x, y;
+    float coord;
+    GLVertex2() {};
+    GLVertex2(float x, float y, float coord) : x(x), y(y), coord(coord) {};
+  };
+#pragma pack(pop)
 
   Linearizer lin;
+  bool lin_updated; ///< true, if lin now contains new values
+  GLVertex2* gl_verts; ///< vertices prepared for OpenGL rendering
+  int max_gl_verts; ///< a maximum allocated number of vertices
+  int3* gl_tris; ///< indices of valid triangles prepared for OpenGL rendering
+  int max_gl_tris; ///< a maximum allocated number of triangles
+  int gl_tri_cnt; ///< a number of OpenGL triangles
+  
+  bool show_values; ///< true to show values
 
+  void prepare_gl_geometry(); ///< prepares geometry in a form compatible with GL arrays; Data are updated if lin is updated. In a case of a failure (out of memory), gl_verts is NULL and an old OpenGL rendering method has to be used.
+  void draw_values_2d(const double value_min, const double value_irange); ///< draws values 
+
+protected: //edges
+  bool show_edges; ///< true to show edges of mesh
+  float edges_color[3]; ///< color of edges
+
+  double boundary_x_min, boundary_x_max, boundary_y_min, boundary_y_max; ///< boundary of the mesh
+
+  typedef void (*DrawSingleEdgeCallback)(int inx_vert_a, int inx_vert_b, ScalarView* viewer, void* param); ///< A callback function that draws edge using specified vertex indices. Param is user supplied parameter.
+
+  struct SVGExportParams
+  {
+    FILE* fout; ///< Output file.
+    double x_min, y_min; ///< Minimum of vertices.
+    double scale; ///< Scale coefficient that converts from mesh scale to SVG scale.
+  };
+
+  void calculate_mesh_aabb(double* x_min, double* x_max, double* y_min, double* y_max); ///< Calculates AABB from edges.
+
+  static void draw_svg_edge(int inx_vert_a, int inx_vert_b, ScalarView* viewer, void* param); ///< Draws edge specified by edge into SVG file given as parameter (type: SVGExportParams*). Functions assumes that data are locked.
+  static void draw_gl_edge(int inx_vert_a, int inx_vert_b, ScalarView* viewer, void* param); ///< Draws edge specified by edge indices using GL. Functions assumes that data are locked.
+  void draw_edges(DrawSingleEdgeCallback draw_single_edge, void* param, bool boundary_only); ///< Draws edges of elements and boundary of mesh. Functions assumes that data are locked.
+
+protected:
   bool contours; ///< true to enable drawing of contours
   double cont_orig, cont_step; ///< contour settings.
   float cont_color[3]; ///< color of contours (RGB)
 
-  bool show_values; ///< true to show values
 
-  bool show_edges; ///< true to show edges of mesh
-  float edges_color[3]; ///< color of edges
-
-  bool lines, pmode, mode3d, panning;
+  bool pmode, mode3d, panning;
   double xrot, yrot, xtrans, ytrans, ztrans;
   double xzscale, yscale, xctr, yctr, zctr;
   double3* normals;

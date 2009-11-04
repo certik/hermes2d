@@ -243,7 +243,7 @@ BaseView::BaseView(const char* title, int x, int y, int width, int height)
 {
   pss = NULL;
   sln = NULL;
-  lines = true;
+  show_edges = true;
 }
 
 

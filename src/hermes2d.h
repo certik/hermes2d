@@ -51,7 +51,15 @@
 
 #include "norm.h"
 #include "graph.h"
-#include "view.h"
+
+#include "views/view.h"
+#include "views/base_view.h"
+#include "views/mesh_view.h"
+#include "views/order_view.h"
+#include "views/scalar_view.h"
+#include "views/stream_view.h"
+#include "views/vector_base_view.h"
+#include "views/vector_view.h"
 
 #include "adapt_ortho_h1.h"
 #include "adapt_ortho_l2.h"
