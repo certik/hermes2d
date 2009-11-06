@@ -778,7 +778,7 @@ void LinSystem::delete_cache()
       delete [] cache_jwt[i];
     }
   }
-  for (std::map<Key, Func<double>*>::const_iterator it = cache_fn.begin(); it != cache_fn.end(); it++)
+  for (std::map<Key, Func<double>*, Compare>::iterator it = cache_fn.begin(); it != cache_fn.end(); it++)
   {
     (it->second)->free_fn(); delete (it->second);
   }

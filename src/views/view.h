@@ -78,7 +78,7 @@ public:
   void wait_for_close();
   void wait_for_draw();
 
-  static void wait();
+  static void wait(const char* text = NULL);
 
 protected: //FPS measurement
 #define FPS_FRAME_SIZE 5

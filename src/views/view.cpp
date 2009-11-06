@@ -36,7 +36,6 @@ View::ViewMonitor::ViewMonitor()
   pthread_cond_init(&cond_keypress, NULL);
   pthread_cond_init(&cond_close, NULL);
   pthread_cond_init(&cond_drawing_finished, NULL);
->>>>>>>  - updated ScalarView to use GL arrays and indexed triangles (1.9 Mtri = 130 ms (iter 20, lenna) instead of 1.9 Mtri = 320 ms):src/views/view.cpp
 }
 
 View::ViewMonitor::~ViewMonitor()

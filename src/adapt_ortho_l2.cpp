@@ -754,8 +754,8 @@ double L2OrthoHP::calc_error_n(int n, ...)
   va_end(ap);
 
   // prepare multi-mesh traversal and error arrays
-  Mesh* meshes[2*num];
-  Transformable* tr[2*num];
+  AUTOLA_OR(Mesh*, meshes, 2*num);
+  AUTOLA_OR(Transformable*, tr, 2*num);
   Traverse trav;
   nact = 0;
   for (i = 0; i < num; i++)
@@ -774,7 +774,7 @@ double L2OrthoHP::calc_error_n(int n, ...)
   }
 
   double total_norm = 0.0;
-  double norms[num];
+  AUTOLA_OR(double, norms, num);
   memset(norms, 0, num*sizeof(double));
   double total_error = 0.0;
   if (esort != NULL) delete [] esort;
