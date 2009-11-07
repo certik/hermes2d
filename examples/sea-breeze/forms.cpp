@@ -39,6 +39,7 @@ int s3_bc_type(int marker) {
 }
 
 int s4_bc_type(int marker) {
+    return BC_NATURAL;
     if (marker=marker_bottom)
         return BC_ESSENTIAL;
     else
