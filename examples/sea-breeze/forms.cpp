@@ -5,12 +5,12 @@
 const double TAU = 1;  // this is in seconds
 
 const double R = 287.14;            // Gas constant
-const double rho_0 = 1.184;
 //const double T2 = 310;
 //const double T1 = 275;
 //const double T1 = 310;
 const double T_0 = 300.5;
 const double p_0 = 100000;
+const double rho_0 = p_0/(R*T_0);
 const double c_v = 20.8;            // specific heat capacity
 const double g = 9.81;            // gravitational acceleration (set to 0 for now)
 
@@ -39,13 +39,10 @@ int s3_bc_type(int marker) {
 }
 
 int s4_bc_type(int marker) {
-    /*
     if (marker=marker_bottom)
         return BC_ESSENTIAL;
     else
         return BC_NATURAL;
-        */
-    return BC_NATURAL;
 }
 
 /*
@@ -62,17 +59,9 @@ scalar s3_bc_value(int marker, double x, double y) {
     return 0;
 }
 
-/*
 scalar s4_bc_value(int marker, double x, double y) {
-    / *
-    if (x < 100000)
-        return rho_0 * T2 * c_v;
-    else
-        return rho_0 * T1 * c_v;
-        * /
-    return rho_0 * T2 * c_v;
+    return rho_0 * c_v * T_0 * (1 + tanh(x/50000));
 }
-*/
 
 // Empirical relations of initial distributions valid for 0 <= z <= 10km
 // "z" in p_z and T_z is in "km", so don't forget to convert it from meters
@@ -567,7 +556,7 @@ void register_bc(H1Space &s0, H1Space &s1, H1Space &s3, H1Space &s4)
     s3.set_bc_types(s3_bc_type);
     s3.set_bc_values(s3_bc_value);
     s4.set_bc_types(s4_bc_type);
-    //s4.set_bc_values(s4_bc_value);
+    s4.set_bc_values(s4_bc_value);
 }
 
 void set_ic(Mesh &mesh, Solution &w0, Solution &w1, Solution &w3, Solution &w4)
