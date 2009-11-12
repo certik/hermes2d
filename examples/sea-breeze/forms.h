@@ -2,6 +2,7 @@
 #define __HERMES2D_SEA_BREEZE_FORMS_H
 
 #include "hermes2d.h"
+#include "params.h"
 
 void register_bc(H1Space &s0, H1Space &s1, H1Space &s3, H1Space &s4);
 void set_ic(Mesh &mesh, Solution &w0, Solution &w1, Solution &w3, Solution &w4);
