@@ -20,7 +20,7 @@ c_v = 20.8
 
 # values of the various quantities at the sea-level:
 p_0 = 10**5
-T_0 = 297.602407347392
+T_0 = 300.5
 
 # One also prescribes the higher terms in the expansion of "p". The rest
 # is given by the euler equations and the ideal gas law:
@@ -36,6 +36,13 @@ print
 print "p =", p
 print "rho =", rho
 print "T =", T
+
+print "-"*80
+print "Equations in SI units, 'z' in km"
+print
+print "p =", p.subs(z, z*1000)
+print "rho =", rho.subs(z, z*1000)
+print "T =", T.subs(z, z*1000)
 
 def format_code(e):
     return "(" + ccode(e).replace("z", "(z)") + ")"
