@@ -18,31 +18,45 @@ g = 9.80665
 R = 287.14
 c_v = 20.8
 
-# values of the various quantities at the sea-level:
+# values of pressure and temperature at the sea level:
 p_0 = 10**5
 T_0 = 300.5
 
-# One also prescribes the higher terms in the expansion of "p". The rest
-# is given by the euler equations and the ideal gas law:
+# O(z**2) terms in the presure also have to be prescribed:
+p_higher_terms = 0.00052954*z**2 - 9.38e-9*z**3
+
+# The rest is given by the euler equations and the ideal gas law:
 rho_0 = p_0/(R*T_0)
-p = (p_0 - rho_0*g*z + 0.00052954*z**2 - 9.38e-9*z**3)
+p = (p_0 - rho_0*g*z + p_higher_terms)
 rho = -p.diff(z)/g
 T = p/(rho*R)
 T = T.series(z, 0, 4).removeO()
 
-print "-"*80
 print "Equations in SI units"
 print
 print "p =", p
 print "rho =", rho
 print "T =", T
-
-print "-"*80
-print "Equations in SI units, 'z' in km"
 print
-print "p =", p.subs(z, z*1000)
-print "rho =", rho.subs(z, z*1000)
-print "T =", T.subs(z, z*1000)
+
+def print_values_h(h):
+    print "values at z = %dm:" % h
+    print "p(%d) = %f" % (h, p.subs(z, h))
+    print "rho(%d) = %f" % (h, rho.subs(z, h))
+    print "T(%d) = %f" % (h, T.subs(z, h))
+    print "E(%d) = %f" % (h, rho.subs(z, h) * T.subs(z, h) * c_v)
+
+print_values_h(0)
+print
+print_values_h(4000)
+
+if 0:
+    print "-"*80
+    print "Equations in SI units, 'z' in km"
+    print
+    print "p =", p.subs(z, z*1000)
+    print "rho =", rho.subs(z, z*1000)
+    print "T =", T.subs(z, z*1000)
 
 def format_code(e):
     return "(" + ccode(e).replace("z", "(z)") + ")"
