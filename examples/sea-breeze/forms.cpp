@@ -4,15 +4,23 @@
 
 const double TAU = 0.01;  // this is in seconds
 
-const double R = 287.14;            // Gas constant
-//const double T2 = 310;
-//const double T1 = 275;
-//const double T1 = 310;
-const double T_0 = 300.5;
-const double p_0 = 100000;
-const double rho_0 = p_0/(R*T_0);
+// Empirical relations of initial distributions valid for 0 <= z <= 10km
+// "z" in p_z and T_z is in "m", so everything is in SI units
+// presure p in Pascals (empirical formula)
+#define p_z(z) (100000 - 11.476*(z) + 0.00052954*(z)*(z) - 9.38e-9*(z)*(z)*(z))
+// temperature T in Kelvin (calculated by equations.py)
+#define T_z(z) (297.602407347392 - 0.00668816443401523*(z) + \
+        2.28953333742906e-7*(z)*(z) - 9.61407194208904e-12*(z)*(z)*(z))
+// gas density (calculated by equations.py)
+#define rho_z(z) (1.17022632601347 - 0.000107996104684066*(z) + \
+        2.86948142331989e-9*(z)*(z))
+#define R 287.14            // Gas constant
+#define g 9.80665           // gravitational acceleration
+
+const double T_0 = T_z(0);
+const double p_0 = p_z(0);
+const double rho_0 = rho_z(0);
 const double c_v = 20.8;            // specific heat capacity
-const double g = 9.81;            // gravitational acceleration (set to 0 for now)
 
 //  boundary markers
 #define marker_bottom 1
@@ -39,7 +47,7 @@ int s3_bc_type(int marker) {
 }
 
 int s4_bc_type(int marker) {
-    //return BC_NATURAL;
+    return BC_NATURAL;
     if (marker=marker_bottom)
         return BC_ESSENTIAL;
     else
@@ -61,22 +69,12 @@ scalar s3_bc_value(int marker, double x, double y) {
 }
 
 scalar s4_bc_value(int marker, double x, double y) {
-    return rho_0 * c_v * T_0 * (1 + tanh(x/50000));
-    //return rho_0 * c_v * T_0;
+    //return rho_0 * c_v * T_0 * (1 + tanh(x/50000));
+    return rho_0 * c_v * T_0;
 }
 
-// Empirical relations of initial distributions valid for 0 <= z <= 10km
-// "z" in p_z and T_z is in "km", so don't forget to convert it from meters
-// temperature T in Kelvin
-#define T_z(z) (T_0 - 8.3194*(z) + 0.2932*(z)*(z) - 0.0109*(z)*(z)*(z))
-// presure p in Pascals
-#define p_z(z) (p_0 - 11476*(z) + 529.54*(z)*(z) - 9.38*(z)*(z)*(z))
-
-#define theta_z(z) (T_z(z) * pow(p_0/p_z(z), 0.287))
-#define gamma 1.4
-#define rho_z(z) (p_0 / (R * theta_z(z)) * pow(p_z(z)/p_0, 1./gamma))
-#define rho_init(x, y) (rho_z(y/1000.))
-#define T_init(x, y) (T_z(y/1000.))
+#define rho_init(x, y) (rho_z(y))
+#define T_init(x, y) (T_z(y))
 
 scalar w0_init(double x, double y, scalar& dx, scalar& dy) {
     dx = 0;
