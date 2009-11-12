@@ -22,7 +22,7 @@ c_v = 20.8
 p_0 = 10**5
 T_0 = 300.5
 
-# O(z**2) terms in the presure also have to be prescribed:
+# O(z**2) terms in the pressure are given by empirical data:
 p_higher_terms = 0.00052954*z**2 - 9.38e-9*z**3
 
 # The rest is given by the euler equations and the ideal gas law:
