@@ -2,13 +2,12 @@
 
 from hermes2d import (Mesh, H1Shapeset, PrecalcShapeset, H1Space, Solution,
         WeakForm, DummySolver, LinSystem, ScalarView, VectorView)
-from _forms import register_bc, set_ic, register_forms
-
-tau = 0.5
+from _forms import register_bc, set_ic, register_forms, tau
 
 mesh = Mesh()
 mesh.load("domain-quad.mesh")
 
+mesh.refine_all_elements()
 mesh.refine_all_elements()
 mesh.refine_all_elements()
 mesh.refine_all_elements()
@@ -47,9 +46,9 @@ sys = LinSystem(wf, solver)
 sys.set_spaces(s0, s1, s3, s4)
 sys.set_pss(pss_h1, pss_h1, pss_h1, pss_h1)
 
-w0_view = ScalarView()
+w0_view = ScalarView("mass density")
 w13_view = VectorView("current density")
-w4_view = ScalarView()
+w4_view = ScalarView("energy density")
 
 time = 0
 for i in range(40):
