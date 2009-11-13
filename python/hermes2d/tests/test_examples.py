@@ -285,4 +285,4 @@ def test_example_08():
     for i in range(3):
         psln = Solution()
         sys.assemble()
-        sys.solve_system(xprev, yprev, psln)
+        sys.solve_system(xprev, yprev, psln, method="umfpack")

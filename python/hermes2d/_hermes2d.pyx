@@ -626,6 +626,18 @@ cdef class DummySolver(Solver):
     def __dealloc__(self):
         delete(self.thisptr)
 
+def solve_system(A, rhs, method="scipy_cg"):
+    if method == "scipy_cg":
+        from scipy.sparse.linalg import cg
+        x, res = cg(A, rhs)
+        return x
+    elif method == "umfpack":
+        from scipy.sparse.linalg import factorized
+        x = factorized(A)(rhs)
+        return x
+    else:
+        raise NotImplementedError()
+
 cdef class LinSystem:
 
     def __init__(self, WeakForm wf, Solver solver):
@@ -667,87 +679,29 @@ cdef class LinSystem:
         else:
             raise NotImplementedError()
 
-    def solve_system(self, *args):
+    def solve_system(self, *args, method="scipy_cg"):
         """
         Solves the linear system using scipy.
 
-        >>> 1 + 3
-        4
-        >>> 5 + 2
-        8
-
         """
-        cdef int n = len(args)
-        cdef Solution a, b, c, d
+        A = self.get_matrix()
+        rhs = self.get_rhs()
+        x = solve_system(A, rhs, method=method)
+        self.set_fe_solutions(x, args)
+
+    def set_fe_solutions(self, ndarray x, solutions):
+        from numpy import array
+        cdef Solution a
         cdef ndarray vec
         cdef scalar *pvec
-        if n == 1:
-            a = args[0]
-            #self.thisptr.solve(n, a.thisptr)
-            A = self.get_matrix()
-            rhs = self.get_rhs()
-            from scipy.sparse.linalg import cg
-            x, res = cg(A, rhs)
-            from numpy import array
+        for i, s in enumerate(solutions):
+            a = s
             vec = array(x, dtype="double")
             pvec = <scalar *>vec.data
             (<c_Solution *>(a.thisptr)).set_fe_solution(
-                    self.thisptr.get_space(0),
-                    self.thisptr.get_pss(0),
+                    self.thisptr.get_space(i),
+                    self.thisptr.get_pss(i),
                     pvec)
-        elif n == 2:
-            a, b = args
-            self.thisptr.solve(n, a.thisptr, b.thisptr)
-        elif n == 3:
-            a, b, c = args
-            A = self.get_matrix()
-            rhs = self.get_rhs()
-            from scipy.sparse.linalg import cg
-            x, res = cg(A, rhs)
-            from numpy import array
-            vec = array(x, dtype="double")
-            pvec = <scalar *>vec.data
-            (<c_Solution *>(a.thisptr)).set_fe_solution(
-                    self.thisptr.get_space(0),
-                    self.thisptr.get_pss(0),
-                    pvec)
-            (<c_Solution *>(b.thisptr)).set_fe_solution(
-                    self.thisptr.get_space(1),
-                    self.thisptr.get_pss(1),
-                    pvec)
-            (<c_Solution *>(c.thisptr)).set_fe_solution(
-                    self.thisptr.get_space(2),
-                    self.thisptr.get_pss(2),
-                    pvec)
-        elif n == 4:
-            a, b, c, d = args
-            A = self.get_matrix()
-            rhs = self.get_rhs()
-            from scipy.sparse.linalg import cg, factorized
-            #x, res = cg(A, rhs)
-            x = factorized(A)(rhs)
-            #print "residual", res
-            from numpy import array
-            vec = array(x, dtype="double")
-            pvec = <scalar *>vec.data
-            (<c_Solution *>(a.thisptr)).set_fe_solution(
-                    self.thisptr.get_space(0),
-                    self.thisptr.get_pss(0),
-                    pvec)
-            (<c_Solution *>(b.thisptr)).set_fe_solution(
-                    self.thisptr.get_space(1),
-                    self.thisptr.get_pss(1),
-                    pvec)
-            (<c_Solution *>(c.thisptr)).set_fe_solution(
-                    self.thisptr.get_space(2),
-                    self.thisptr.get_pss(2),
-                    pvec)
-            (<c_Solution *>(d.thisptr)).set_fe_solution(
-                    self.thisptr.get_space(3),
-                    self.thisptr.get_pss(3),
-                    pvec)
-        else:
-            raise NotImplementedError()
 
     def assemble(self):
         self.thisptr.assemble()
