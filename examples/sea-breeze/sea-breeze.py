@@ -66,7 +66,7 @@ for i in range(40):
     w1_sln = Solution()
     w3_sln = Solution()
     w4_sln = Solution()
-    sys.solve_system(w0_sln, w1_sln, w3_sln, w4_sln)
+    sys.solve_system(w0_sln, w1_sln, w3_sln, w4_sln, method="umfpack")
     #A = sys.get_matrix()
     #b = sys.get_rhs()
 
