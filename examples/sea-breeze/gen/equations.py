@@ -5,6 +5,7 @@ This script derives the initial conditions for the sea breeze model.
 
 """
 import os
+from math import tanh
 
 from jinja2 import Environment, FileSystemLoader
 from sympy import var, ccode
@@ -23,7 +24,9 @@ p_0 = 10**5
 T_0 = 300.5
 
 # O(z**2) terms in the pressure are given by empirical data:
-p_higher_terms = 0.00052954*z**2 - 9.38e-9*z**3
+# for now we prescribe 0, so that the equations are linear
+#p_higher_terms = 0.00052954*z**2 - 9.38e-9*z**3
+p_higher_terms = 0
 
 # The rest is given by the euler equations and the ideal gas law:
 rho_0 = p_0/(R*T_0)

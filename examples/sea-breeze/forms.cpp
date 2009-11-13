@@ -33,18 +33,11 @@ int s3_bc_type(int marker) {
 }
 
 int s4_bc_type(int marker) {
-    //return BC_NATURAL;
     if (marker == marker_bottom)
         return BC_ESSENTIAL;
     else
         return BC_NATURAL;
 }
-
-/*
-scalar s0_bc_value(int marker, double x, double y) {
-    return 1;
-}
-*/
 
 scalar s1_bc_value(int marker, double x, double y) {
     return 0;
@@ -55,8 +48,9 @@ scalar s3_bc_value(int marker, double x, double y) {
 }
 
 scalar s4_bc_value(int marker, double x, double y) {
-    //return rho_0 * c_v * T_0 * (1 + tanh(x/50000));
-    return rho_0 * c_v * T_0;
+    double L = 50000./2;
+    double A = 0.1;
+    return rho_0 * c_v * T_0 * (1 + A*(1+ tanh(x/L))/2);
 }
 
 #define rho_init(x, y) (rho_z(y))
@@ -83,7 +77,6 @@ scalar w3_init(double x, double y, scalar& dx, scalar& dy) {
 scalar w4_init(double x, double y, scalar& dx, scalar& dy) {
     dx = 0;
     dy = 0;
-//    printf("y=%f, rho=%f\n", y, rho_init(x, y));
     return rho_init(x, y) * T_init(x, y) * c_v;
 }
 
