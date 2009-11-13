@@ -337,7 +337,7 @@ def plot_mesh_mpl_simple(nodes, elements, orders=None, colors=None, axes=None,
 
 class ScalarView(object):
 
-    def __init__(self, x=0, y=0, w=50, h=50, name="Solution"):
+    def __init__(self, name="Solution", x=0, y=0, w=50, h=50):
         self._name = name
         self._lib = None
         self._notebook = False
