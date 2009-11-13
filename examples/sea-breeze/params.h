@@ -10,11 +10,11 @@
 
 // Everything is in SI units
 // initial presure p in Pascals
-#define p_z(z) (100000 - 11.3653418526412*(z) + 0.00052954*pow((z),2) - 9.38e-9*pow((z),3))
+#define p_z(z) (100000 - 11.3653418526412*(z))
 // initial temperature T in Kelvin
-#define T_z(z) (300.5 - 0.00615074338860148*(z) + 2.74087847242543e-7*pow((z),2) + 1.25829142493795e-11*pow((z),3))
+#define T_z(z) (300.5 - 0.0341528522671867*(z))
 // initial gas density
-#define rho_z(z) (1.15894233531748 - 0.000107996104684066*(z) + 2.86948142331989e-9*pow((z),2))
+#define rho_z(z) (1.15894233531748)
 
 // other physical constants
 #define R 287.14           // Gas constant
