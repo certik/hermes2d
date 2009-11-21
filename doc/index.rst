@@ -3,20 +3,29 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to Hermes2D documentation!
-==================================
-
-Contents:
+Content of Hermes2D Documentation
+=================================
 
 .. toctree::
     :maxdepth: 2
 
     wrappers
 
-Indices and tables
+Links
+=====
+
+* Hermes2D_ (project homepage)
+* Agros2D_
+* hp-FEM_ group
+
+Indices and Tables
 ==================
 
 * :ref:`genindex`
 * :ref:`modindex`
+.. * :ref:`glossary`
 * :ref:`search`
 
+.. _Hermes2D: http://www.hpfem.org/hermes2d
+.. _Agros2D: http://www.hpfem.org/agros2d
+.. _hp-FEM: http://www.hpfem.org
