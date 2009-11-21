@@ -97,17 +97,38 @@ html_theme = 'default'
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
-#html_theme_options = {}
+html_theme_options = {
+'bodyfont': 'verdana, helvetica, arial, sans-serif',
+'bgcolor': '#FFFFFF',
+'textcolor': '#000000',
+'linkcolor': '#3D5C7A',
+'rightsidebar': False,
+'sidebarbgcolor': '#F8F8F8',
+'sidebartextcolor': '#000000',
+'sidebarlinkcolor': '#3D5C7A',
+'headfont': '"trebuchet ms", verdana, helvetica, arial, sans-serif',
+'headbgcolor': '#FFFFFF',
+'headtextcolor': '#7590AE',
+'headlinkcolor': '#3D5C7A',
+'codebgcolor': '#F5F5F5',
+'codetextcolor': '#000000',
+
+'relbarbgcolor': '#824513',
+'relbartextcolor': '#000000',
+'relbarlinkcolor': '#FFFFFF',
+'footerbgcolor': '#FFFFFF',
+'footertextcolor': '#000000'
+}
 
 # Add any paths that contain custom themes here, relative to this directory.
 #html_theme_path = []
 
 # The name for this set of Sphinx documents.  If None, it defaults to
 # "<project> v<release> documentation".
-#html_title = None
+html_title = 'Hermes2D Documentation'
 
 # A shorter title for the navigation bar.  Default is the same as html_title.
-#html_short_title = None
+html_short_title = 'Content'
 
 # The name of an image file (relative to this directory) to place at the top
 # of the sidebar.
@@ -125,7 +146,7 @@ html_static_path = ['_static']
 
 # If not '', a 'Last updated on:' timestamp is inserted at every page bottom,
 # using the given strftime format.
-#html_last_updated_fmt = '%b %d, %Y'
+html_last_updated_fmt = '%b %d, %Y'
 
 # If true, SmartyPants will be used to convert quotes and dashes to
 # typographically correct entities.
@@ -142,13 +163,13 @@ html_static_path = ['_static']
 #html_use_modindex = True
 
 # If false, no index is generated.
-#html_use_index = True
+html_use_index = True
 
 # If true, the index is split into individual pages for each letter.
 #html_split_index = False
 
 # If true, links to the reST sources are added to the pages.
-#html_show_sourcelink = True
+html_show_sourcelink = False
 
 # If true, "Created using Sphinx" is shown in the HTML footer. Default is True.
 #html_show_sphinx = True
@@ -162,7 +183,7 @@ html_static_path = ['_static']
 #html_use_opensearch = ''
 
 # If nonempty, this is the file name suffix for HTML files (e.g. ".xhtml").
-#html_file_suffix = ''
+#html_file_suffix = '.html'
 
 # Output file base name for HTML help builder.
 htmlhelp_basename = 'Hermes2Ddoc'
