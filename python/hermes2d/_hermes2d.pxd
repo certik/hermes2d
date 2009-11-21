@@ -152,9 +152,13 @@ cdef extern from "hermes2d.h":
     ctypedef struct c_ScalarFunction "Function<scalar>"
 
     ctypedef struct FuncReal "Func<double>":
-        pass
+        double *val
+        double *dx, *dy
     ctypedef struct GeomReal "Geom<double>":
         int marker
+        double *x, *y
+        double *nx, *ny
+        double *tx, *ty
     ctypedef struct ExtDataReal "ExtData<double>":
         FuncReal **fn
     ctypedef struct FuncOrd "Func<Ord>":
