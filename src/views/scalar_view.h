@@ -32,7 +32,7 @@
 # ifdef ENABLE_VIEWER_GUI
 #   include <AntTweakBar.h>
 #   define VIEWER_GUI(__def) __def
-#   define VIEWER_GUI_CALLBACK(__clbk) if (__clbk) { post_redisplay(); } else
+#   define VIEWER_GUI_CALLBACK(__clbk) if (__clbk) { refresh(); } else
 # else
 #   define TW_WND_ID_NONE -1
 #   define VIEWER_GUI(__def)
@@ -54,10 +54,10 @@ public:
   void show(MeshFunction* sln, double eps = EPS_NORMAL, int item = FN_VAL_0,
             MeshFunction* xdisp = NULL, MeshFunction* ydisp = NULL, double dmult = 1.0);
 
-  void show_mesh(bool show = true) { show_edges = show; post_redisplay(); }
+  void show_mesh(bool show = true) { show_edges = show; refresh(); }
   void show_contours(double step, double orig = 0.0);
-  void hide_contours() { contours = false; post_redisplay(); }
-  void set_3d_mode(bool enable = true) { mode3d = enable; post_redisplay(); }
+  void hide_contours() { contours = false; refresh(); }
+  void set_3d_mode(bool enable = true) { mode3d = enable; refresh(); }
 
 
 public: // input/output routines
@@ -197,7 +197,7 @@ protected:
   virtual void on_middle_mouse_up(int x, int y);
   virtual const char* get_help_text() const;
   virtual void on_close();
-  virtual void on_create();
+  virtual void on_create(int output_id);
 
   virtual void on_left_mouse_down(int x, int y);
   virtual void on_left_mouse_up(int x, int y);

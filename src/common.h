@@ -134,13 +134,13 @@ inline complex conj(complex a) { return std::conj(a); }
 #define is_int(x) ((int) (x) == (x))
 
 
-extern bool verbose_mode;
-extern bool info_mode;
-extern bool warn_integration;
-PUBLIC_API void __error_fn(const char* fname, const char* msg, ...);
-PUBLIC_API void __warn_fn(const char* fname, const char* msg, ...);
-PUBLIC_API void __info_fn(const char* msg, ...);
-PUBLIC_API void __verbose_fn(const char* msg, ...);
+EXTERN bool verbose_mode;
+EXTERN bool info_mode;
+EXTERN bool warn_integration;
+EXTERN void __error_fn(const char* fname, const char* msg, ...);
+EXTERN void __warn_fn(const char* fname, const char* msg, ...);
+EXTERN void __info_fn(const char* msg, ...);
+EXTERN void __verbose_fn(const char* msg, ...);
 
 
 #ifdef _WIN32

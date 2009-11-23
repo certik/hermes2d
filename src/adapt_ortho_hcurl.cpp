@@ -935,7 +935,7 @@ double HcurlOrthoHP::calc_error_n(int n, ...)
   }
 
   double total_norm = 0.0;
-  double norms[num];
+  AUTOLA_OR(double, norms, num);
   memset(norms, 0, num*sizeof(double));
   double total_error = 0.0;
   if (esort != NULL) delete [] esort;

@@ -49,6 +49,7 @@ public:
 
   int  create();
   void close();
+  void refresh(); ///< Refreshes views
 
   /// Changes the window name (in its title-bar) to 'title'.
   void set_title(const char* title);
@@ -78,7 +79,7 @@ public:
   void wait_for_close();
   void wait_for_draw();
 
-  static void wait(const char* text = NULL);
+  static void wait(const char* text = NULL); ///< Closes all views at once.
 
 protected: //FPS measurement
 #define FPS_FRAME_SIZE 5
@@ -91,7 +92,7 @@ protected:
 
   virtual void clear_background();
 
-  virtual void on_create();
+  virtual void on_create(int output_id);
   virtual void on_display() = 0;
   virtual void on_reshape(int width, int height);
   virtual void on_mouse_move(int x, int y);
@@ -109,16 +110,15 @@ protected:
   virtual void on_entry(int state) {}
   virtual void on_close();
 
-  void post_redisplay(); ///< Forces redisplay. The functions HAS to be called from the drawing thread.
-  void safe_post_redisplay(); ///< Forces redisplay. The function has to be called from the outside of the thread. View sync should NOT be locked while entering this function.
+
   template<class TYPE> void center_mesh(TYPE* vertices, int nvert);
   const float* get_palette_color(double x);
 
 protected:
 
   std::string title;
-  int window_id;
-  int window_x, window_y, window_width, window_height;
+  int output_id;
+  int output_x, output_y, output_width, output_height;
   float jitter_x, jitter_y;
   bool hq_frame, frame_ready;
 
@@ -151,28 +151,6 @@ protected:
   void update_scale();
   void update_log_scale();
 
-protected: //synchronization
-  class PUBLIC_API ViewMonitor ///< A monitor used to synchronize threads in views.
-  {
-  protected:
-    pthread_mutex_t mutex; ///< Mutex that protects monitor.
-    pthread_cond_t cond_keypress; ///< Condition used to signal a keypress.
-    pthread_cond_t cond_close; ///< Condition used to signal close of a window.
-    pthread_cond_t cond_drawing_finished; ///< Condition used to signal that drawing has finished
-  public:
-    ViewMonitor();
-    ~ViewMonitor();
-    void enter() { pthread_mutex_lock(&mutex); }; ///< enters protected section
-    void leave() { pthread_mutex_unlock(&mutex); }; ///< leaves protected section
-    void signal_keypress() { pthread_cond_broadcast(&cond_keypress); }; ///< signals keypress inside a protected section
-    void wait_keypress() { pthread_cond_wait(&cond_keypress, &mutex); }; ///< waits for keypress inside a protected section
-    void signal_close() { pthread_cond_broadcast(&cond_close); }; ///< signals close inside a protected section
-    void wait_close() { pthread_cond_wait(&cond_close, &mutex); }; ///< waits for close inside a protected section
-    void signal_drawing_finished() { pthread_cond_broadcast(&cond_drawing_finished); }; ///< signals drawing finished inside a protected section
-    void wait_drawing_fisnihed() { pthread_cond_wait(&cond_drawing_finished, &mutex); }; ///< waits for drawing finished inside a protected section
-  };
-  static ViewMonitor view_sync; ///< synchronization between all views. Used to access OpenGL and signal a window close event and a keypress event.
-
 protected: //OpenGL
   unsigned int gl_pallete_tex_id;
 
@@ -182,7 +160,6 @@ protected: //internal functions
   double untransform_x(double x) { return (x - center_x - trans_x) / scale; }
   double untransform_y(double y) { return (center_y - y - trans_y) / scale; }
 
-  void init_output(); ///< Initializes output, i.e., GLUT.
   void pre_display();
   void display_antialiased();
 
@@ -202,7 +179,6 @@ protected: //internal functions
 
   void create_gl_palette(); ///< Creates pallete texture in OpenGL. Assumes that view_sync is locked.
   void update_tex_adjust();
-  void set_title_internal(const char* text);
   void update_layout();
 
   void draw_help();
@@ -217,8 +193,8 @@ protected: //internal functions
   friend void on_entry_stub(int);
   friend void on_idle_stub();
   friend void on_close_stub();
-  friend int view_create_body(void* param);
-  friend int view_set_title_body(void* param);
+  friend int add_view_in_thread(void*);
+  friend int remove_view_in_thread(void*);
 };
 
 // this has to be here, unfortunatelly (because the author is not able to use pointers)
@@ -240,8 +216,8 @@ void View::center_mesh(TYPE* vertices, int nvert)
   double mesh_width  = xmax - xmin;
   double mesh_height = ymax - ymin;
 
-  double usable_width = window_width - 2*margin - lspace - rspace;
-  double usable_height = window_height - 2*margin;
+  double usable_width = output_width - 2*margin - lspace - rspace;
+  double usable_height = output_height - 2*margin;
 
   // align in the proper direction
   if (usable_width / usable_height < mesh_width / mesh_height)

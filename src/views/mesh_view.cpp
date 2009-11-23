@@ -40,9 +40,6 @@ MeshView::MeshView(const char* title, int x, int y, int width, int height)
 
 void MeshView::show(Mesh* mesh)
 {
-  init_output();
-  update_layout();
-  
   Solution sln;
   sln.set_zero(mesh);
   lin.process_solution(&sln);
@@ -74,7 +71,10 @@ void MeshView::show(Mesh* mesh)
     oi->x /= e->nvert;
     oi->y /= e->nvert;
   }  
+
   create();
+  update_layout();
+  refresh();
   wait_for_draw();
 }
 
@@ -167,18 +167,18 @@ void MeshView::on_key_down(unsigned char key, int x, int y)
       lin.lock_data();
       center_mesh(lin.get_vertices(), lin.get_num_vertices());
       lin.unlock_data();
-      post_redisplay();
+      refresh();
       //reset_zoom();
       break;
     
     case 'b':
       b_markers = !b_markers;
-      post_redisplay();
+      refresh();
       break;
 
     case 'm':
       b_ids = !b_ids;
-      post_redisplay();
+      refresh();
       break;
 
     default:

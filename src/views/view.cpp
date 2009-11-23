@@ -27,35 +27,12 @@
 
 ///////////////// static variables /////////////////
 int View::screenshot_no = 1;
-View::ViewMonitor View::view_sync;
-
-///////////////// monitor /////////////////
-View::ViewMonitor::ViewMonitor()
-{
-  pthread_mutex_init(&mutex, NULL);
-  pthread_cond_init(&cond_keypress, NULL);
-  pthread_cond_init(&cond_close, NULL);
-  pthread_cond_init(&cond_drawing_finished, NULL);
-}
-
-View::ViewMonitor::~ViewMonitor()
-{
-  pthread_mutex_destroy(&mutex);
-  pthread_cond_destroy(&cond_keypress);
-  pthread_cond_destroy(&cond_close);
-  pthread_cond_destroy(&cond_drawing_finished);
-}
 
 ///////////////// methods /////////////////
 View::View(const char* title, int x, int y, int width, int height)
   : gl_pallete_tex_id(0)
+  , title(title), output_id(-1), output_x(x), output_y(y), output_width(width), output_height(height)
 {
-  this->title = title;
-  window_x = x;
-  window_y = y;
-  window_width = width;
-  window_height = height;
-  window_id = -1;
   jitter_x = jitter_y = 0.0;
   dragging = scaling = false;
   hq_frame = false;
@@ -83,84 +60,42 @@ View::View(const char* title, int x, int y, int width, int height)
 
 View::~View()
 {
-  if (window_id >= 0)
+  if (output_id >= 0)
   {
-    verbose("View is being destroyed; closing window #%d.", window_id);
+    verbose("I view is being destroyed; closing window #%d.", output_id);
     close();
-    if (!num_windows) finish_glut_main_loop(false);
   }
-}
-
-
-int view_create_body(void* param)
-{
-  View* instance = (View*) param;
-
-  // create the window
-  glutInitWindowPosition(instance->window_x, instance->window_y);
-  glutInitWindowSize(instance->window_width, instance->window_height);
-  instance->window_id = glutCreateWindow(instance->title.c_str());
-  num_windows++;
-
-  // establish a mapping between the window id and this instance
-  if (instance->window_id >= (int)wnd_instance.size())
-    wnd_instance.resize(instance->window_id + 10, NULL);
-  wnd_instance[instance->window_id] = instance;
-
-  // register callbacks
-  glutDisplayFunc(on_display_stub);
-  glutReshapeFunc(on_reshape_stub);
-  glutMotionFunc(on_mouse_move_stub);
-  glutPassiveMotionFunc(on_mouse_move_stub);
-  glutMouseFunc(on_mouse_click_stub);
-  glutKeyboardFunc(on_key_down_stub);
-  glutSpecialFunc(on_special_key_stub);
-  glutEntryFunc(on_entry_stub);
-  glutCloseFunc(on_close_stub);
-
-  instance->on_create();
-  return instance->window_id;
-}
-
-void View::init_output()
-{
-  glut_init();
 }
 
 int View::create()
 {
-  //reset timing
-  memset(rendering_frames, 0, FPS_FRAME_SIZE * sizeof(double));
-  rendering_frames_top = 0;
-
-  if (window_id >= 0)
-    safe_post_redisplay();
-  else
-    cross_thread_call(view_create_body, this);
-  return window_id;
+  if (output_id < 0) //does not need thread protection because it is set up by a callback during call of add_view
+    return add_view(this, output_x, output_y, output_width, output_height, title.c_str());
+  else 
+    return output_id;
 }
 
 
 void View::close()
 {
-  if (window_id >= 0)
-  {
-    glutDestroyWindow(window_id);
-    if (!pthread_equal(thread, pthread_self())) wait_for_close();
-    window_id = -1;
-  }
+  if (output_id >= 0) //does not need thread protection because it is set up by a callback during call of add_view
+    remove_view(output_id);
 }
 
 
 void View::wait(const char* text)
 {
   if (text != NULL) printf("%s\n", text);
-  finish_glut_main_loop(false);
+  wait_for_all_views_close();
 }
 
+void View::refresh() {
+  refresh_view(output_id);
+}
 
-void View::on_create()
+void View::on_create(int output_id)
 {
+  this->output_id = output_id; //does not need thread protection because it is during execution of add_view
   create_gl_palette();
   set_palette_filter(pal_filter == GL_LINEAR);
 }
@@ -168,11 +103,9 @@ void View::on_create()
 
 void View::on_close()
 {
-  verbose("Window #%d closed.", glutGetWindow());
   view_sync.enter();
-  view_sync.signal_close();
-  view_sync.signal_keypress();
-  view_sync.signal_drawing_finished();
+  verbose("I window #%d closed", output_id);
+  output_id = -1;
   view_sync.leave();
 }
 
@@ -269,7 +202,7 @@ void View::set_ortho_projection(bool no_jitter)
 
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
-  glOrtho(jx, window_width + jx, window_height-1 + jy, -1 + jy, -10, 10);
+  glOrtho(jx, output_width + jx, output_height-1 + jy, -1 + jy, -10, 10);
 
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
@@ -278,11 +211,11 @@ void View::set_ortho_projection(bool no_jitter)
 void View::set_3d_projection(int fov, double znear, double zfar)
 {
   double right = znear * tan((double) fov / 2.0 / 180.0 * M_PI);
-  double top = (double) window_height / window_width * right;
+  double top = (double) output_height / output_width * right;
   double left = -right;
   double bottom = -top;
-	double offsx = (right - left) / window_width * jitter_x;
-	double offsy = (top - bottom) / window_height * jitter_y;
+	double offsx = (right - left) / output_width * jitter_x;
+	double offsy = (top - bottom) / output_height * jitter_y;
 
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
@@ -315,25 +248,26 @@ void View::draw_fps()
   glBlendFunc(GL_ONE_MINUS_SRC_ALPHA, GL_SRC_ALPHA);
   glBegin(GL_QUADS);
   glColor4f(1.0f, 1.0f, 1.0f, 0.5f);
-  glVertex2i(window_width - (width_px + 2*edge_thickness), 0);
-  glVertex2i(window_width, 0);
-  glVertex2i(window_width, height_px + 2*edge_thickness);
-  glVertex2i(window_width - (width_px + 2*edge_thickness), height_px + 2*edge_thickness);
+  glVertex2i(output_width - (width_px + 2*edge_thickness), 0);
+  glVertex2i(output_width, 0);
+  glVertex2i(output_width, height_px + 2*edge_thickness);
+  glVertex2i(output_width - (width_px + 2*edge_thickness), height_px + 2*edge_thickness);
   glEnd();
 
   //render text
   glDisable(GL_BLEND);
   glColor3f(1.0f, 0.0f, 0.0f);
-  glRasterPos2i(window_width - (width_px + edge_thickness), edge_thickness + height_px);
+  glRasterPos2i(output_width - (width_px + edge_thickness), edge_thickness + height_px);
   glutBitmapString(font, buffer);
 }
 
 void View::on_reshape(int width, int height)
 {
-  window_width = width;
-  window_height = height;
-  update_layout();
   glViewport(0, 0, width, height);
+
+  output_width = width;
+  output_height = height;
+  update_layout();
 
   /*printf("winx=%d, winy=%d, ww=%d, wh=%d, width=%d, height=%d\n", glutGet(GLUT_WINDOW_X), glutGet(GLUT_WINDOW_Y),
          glutGet(GLUT_WINDOW_WIDTH), glutGet(GLUT_WINDOW_HEIGHT), width, height);*/
@@ -357,7 +291,7 @@ void View::on_mouse_move(int x, int y)
   {
     trans_x += (x - mouse_x);
     trans_y += (mouse_y - y);
-    post_redisplay();
+    refresh();
   }
   else if (scaling)
   {
@@ -365,22 +299,25 @@ void View::on_mouse_move(int x, int y)
     update_scale();
     trans_x = scx - objx * scale - center_x;
     trans_y = center_y - objy * scale - scy;
-    //on_zoom(get_zoom());
-    post_redisplay();
+    refresh();
   }
   else if (scale_dragging)
   {
     int oldv = pos_vert, oldh = pos_horz;
-    pos_horz = (x > window_width/2);
-    pos_vert = (y < window_height/2);
-    if (pos_horz != oldh || pos_vert != oldv) { update_layout(); post_redisplay(); }
+    pos_horz = (x > output_width/2);
+    pos_vert = (y < output_height/2);
+    if (pos_horz != oldh || pos_vert != oldv) {
+      update_layout();
+      refresh(); 
+    }
   }
   else
   {
     bool oldf = scale_focused;
     scale_focused = (x >= scale_x && x <= scale_x + scale_width &&
                      y >= scale_y && y <= scale_y + scale_height);
-    if (oldf != scale_focused) post_redisplay();
+    if (oldf != scale_focused)
+      refresh();
   }
   mouse_x = x;
   mouse_y = y;
@@ -434,7 +371,7 @@ void View::on_key_down(unsigned char key, int x, int y)
     case 'h':
     {
       hq_frame = true;
-      post_redisplay();
+      refresh();
       break;
     }
 
@@ -458,7 +395,7 @@ void View::on_key_down(unsigned char key, int x, int y)
       pal_type++;
       if (pal_type > 3) pal_type = 0; 
       create_gl_palette();
-      post_redisplay();
+      refresh();
       break;
     }
 
@@ -477,7 +414,7 @@ void View::on_special_key(int key, int x, int y)
   {
     case GLUT_KEY_F1:
       b_help = !b_help;
-      post_redisplay();
+      refresh();
       break;
   }
 }
@@ -486,7 +423,7 @@ void View::on_special_key(int key, int x, int y)
 void View::wait_for_keypress()
 {
   view_sync.enter();
-  if (window_id >= 0)
+  if (output_id >= 0)
     view_sync.wait_keypress();
   view_sync.leave();
 }
@@ -494,20 +431,17 @@ void View::wait_for_keypress()
 void View::wait_for_close()
 {
   view_sync.enter();
-  if (window_id >= 0)
+  if (output_id >= 0)
     view_sync.wait_close();
   view_sync.leave();
 }
 
 void View::wait_for_draw()
 {
-  if (!pthread_equal(thread, pthread_self()))
-  {
-    view_sync.enter();
-    if (window_id >= 0 && !frame_ready)
-      view_sync.wait_drawing_fisnihed();
-    view_sync.leave();
-  }
+  view_sync.enter();
+  if (output_id >= 0 && !frame_ready)
+    view_sync.wait_drawing_fisnihed();
+  view_sync.leave();
   //old code
   //if (window_id < 0) return;
   //if (pthread_equal(thread, pthread_self())) return; //?WTF: if my thread is not my thread then lock and wait? This means that the function can be called by the thread that is drawing?
@@ -518,40 +452,6 @@ void View::wait_for_draw()
   ////info("wait: unlock");
   //pthread_mutex_unlock(&wait_draw_mutex);
 }
-
-
-void View::post_redisplay()
-{
-  debug_assert(pthread_equal(thread, pthread_self()) != 0, "E 'View::post_redisplay' accessed from other than drawing thread.\n");
-  if (window_id < 0) return; //set by this thread, other threads just reads
-  //info("post: lock");
-  //pthread_mutex_lock(&wait_draw_mutex);
-  glutPostWindowRedisplay(window_id);
-  frame_ready = false;
-  //info("post");
-  //info("post: unlock");
-  //pthread_mutex_unlock(&wait_draw_mutex);
-}
-
-
-static int safe_post_redisplay_body(void* param)
-{
-  glutPostWindowRedisplay((int) (long) param);
-  return 0;
-}
-
-void View::safe_post_redisplay()
-{
-  if (!pthread_equal(thread, pthread_self()))
-  {
-    if (window_id >= 0)
-      cross_thread_call(safe_post_redisplay_body, (void*) window_id);
-  }
-  else {
-    post_redisplay();
-  }
-}
-
 
 double View::get_tick_count()
 {
@@ -568,27 +468,9 @@ double View::get_tick_count()
 #endif
 }
 
-
-int view_set_title_body(void* param)
-{
-  View *self = (View*) param;
-  self->set_title_internal(self->title.c_str());
-
-  return 0;
-}
-
 void View::set_title(const char* title)
 {
-  this->title = title;
-  if (window_id >= 0)
-    cross_thread_call(view_set_title_body, this);
-}
-
-
-void View::set_title_internal(const char* text)
-{
-  glutSetWindow(window_id);
-  glutSetWindowTitle(text);
+  set_view_title(output_id, title);
 }
 
 
@@ -635,11 +517,11 @@ void View::set_num_palette_steps(int num)
   update_tex_adjust();
 
   view_sync.enter();
-  if (window_id >= 0)
+  if (output_id >= 0)
     create_gl_palette();
   view_sync.leave();
 
-  safe_post_redisplay();
+  refresh();
 }
 
 
@@ -684,7 +566,7 @@ void View::set_palette_filter(bool linear)
 
   view_sync.leave(); //unlock
 
-  post_redisplay();
+  refresh();
 }
 
 
@@ -694,12 +576,12 @@ void View::set_palette(int type)
 
   view_sync.enter();
   pal_type = type;
-  if (window_id >= 0)
+  if (output_id >= 0)
     create_gl_palette();
   view_sync.leave();
 
   //redisplay
-  safe_post_redisplay();
+  refresh();
 }
 
 
@@ -720,22 +602,33 @@ void View::update_tex_adjust()
 
 void View::set_min_max_range(double min, double max)
 {
+  view_sync.enter();
   range_min = min;
   range_max = max;
   range_auto = false;
-  if (window_id >= 0) { update_layout(); post_redisplay(); }
+  if (output_id >= 0)
+    update_layout();
+  view_sync.leave();
+  refresh();
 }
 
 void View::auto_min_max_range()
 {
+  view_sync.enter();
   range_auto = true;
-  if (window_id >= 0) { update_layout(); post_redisplay(); }
+  if (output_id >= 0)
+    update_layout();
+  view_sync.leave();
+  
+  refresh();
 }
 
 void View::get_min_max_range(double& min, double& max)
 {
+  view_sync.enter();
   min = range_min;
   max = range_max;
+  view_sync.leave();
 }
 
 
@@ -859,14 +752,14 @@ void View::save_screenshot_internal(const char *file_name)
 
   // alloc memory for pixel data (4 bytes per pixel)
   char* pixels = NULL;
-  if ((pixels = (char*) malloc(4 * window_width * window_height)) == NULL)
+  if ((pixels = (char*) malloc(4 * output_width * output_height)) == NULL)
     error("Could not allocate memory for pixel data");
 
   // get pixels from framebuffer
 #ifdef GL_BGRA_EXT
-  glReadPixels(0, 0, window_width, window_height, GL_BGRA_EXT, GL_UNSIGNED_BYTE, pixels);
+  glReadPixels(0, 0, output_width, output_height, GL_BGRA_EXT, GL_UNSIGNED_BYTE, pixels);
 #else
-  glReadPixels(0, 0, window_width, window_height, GL_RGBA, GL_UNSIGNED_BYTE, pixels); // FIXME!!!
+  glReadPixels(0, 0, output_width, output_height, GL_RGBA, GL_UNSIGNED_BYTE, pixels); // FIXME!!!
   warn("dont have GL_BGRA_EXT format");
 #endif
 
@@ -878,7 +771,7 @@ void View::save_screenshot_internal(const char *file_name)
   // fill in bitmap header
   file_header.type = BITMAP_ID;
   file_header.size = sizeof(BitmapFileHeader) +  sizeof(BitmapInfoHeader) +
-                     4 * window_width * window_height;
+                     4 * output_width * output_height;
   file_header.reserved1 = file_header.reserved2 = 0;
   file_header.off_bits = 14 + 40; // length of both headers
 
@@ -887,12 +780,12 @@ void View::save_screenshot_internal(const char *file_name)
 
   // fill in bitmap info header
   info_header.size = sizeof(BitmapInfoHeader);
-  info_header.width = window_width;
-  info_header.height = window_height;
+  info_header.width = output_width;
+  info_header.height = output_height;
   info_header.planes = 1;
   info_header.bit_count = 32; // 4 bytes per pixel = 32 bits
   info_header.compression = 0;
-  info_header.size_image = window_width * window_height * 4;
+  info_header.size_image = output_width * output_height * 4;
   info_header.xdpi = 2835; // 72 dpi
   info_header.ydpi = 2835; // 72 dpi
   info_header.clr_used = 0;
@@ -914,7 +807,7 @@ void View::save_screenshot_internal(const char *file_name)
 void View::save_screenshot(const char* bmpname, bool high_quality)
 {
   view_sync.enter();
-  if (window_id >= 0) { //set variable neccessary to create a screenshot
+  if (output_id >= 0) { //set variable neccessary to create a screenshot
     hq_frame = high_quality;
     want_screenshot = true;
     screenshot_filename = bmpname;
@@ -922,7 +815,7 @@ void View::save_screenshot(const char* bmpname, bool high_quality)
   view_sync.leave();
 
   //request redraw
-  safe_post_redisplay(); 
+  refresh();
 }
 
 
@@ -1132,50 +1025,67 @@ void View::update_layout()
     if (pos_horz == 0)
       { lspace = space;  scale_x = margin; }
     else
-      { rspace = space;  scale_x = window_width - margin - scale_width; }
+      { rspace = space;  scale_x = output_width - margin - scale_width; }
 
     if (pos_vert == 0)
-      scale_y = window_height - margin - scale_height;
+      scale_y = output_height - margin - scale_height;
     else
       scale_y = margin;
   }
 
-  center_x = ((double) window_width - 2*margin - lspace - rspace) / 2 + margin + lspace;
-  center_y = (double) window_height / 2;
+  center_x = ((double) output_width - 2*margin - lspace - rspace) / 2 + margin + lspace;
+  center_y = (double) output_height / 2;
 }
 
 
 void View::show_scale(bool show)
 {
+  view_sync.enter();
   b_scale = show;
-  if (window_id >= 0) { update_layout(); post_redisplay(); }
+  if (output_id >= 0)
+    update_layout();
+  view_sync.leave();
+  refresh();
 }
 
 void View::set_scale_position(int horz, int vert)
 {
+  view_sync.enter();
   pos_horz = horz;
   pos_vert = vert;
-  if (window_id >= 0) { update_layout(); post_redisplay(); }
+  if (output_id >= 0) 
+    update_layout();
+  view_sync.leave();
+  refresh();
 }
 
 void View::set_scale_size(int width, int height, int numticks)
 {
+  view_sync.enter();
   scale_width = width;
   scale_height = height;
   scale_numticks = numticks;
-  if (window_id >= 0) { update_layout(); post_redisplay(); }
+  update_layout();
+  view_sync.leave();
+  refresh();
 }
 
 void View::set_scale_format(const char* fmt)
 {
+  view_sync.enter();
   strncpy(scale_fmt, fmt, 19);
-  if (window_id >= 0) { update_layout(); post_redisplay(); }
+  update_layout();
+  view_sync.leave();
+  refresh();
 }
 
 void View::fix_scale_width(int width)
 {
+  view_sync.enter();
   scale_fixed_width = width;
-  if (window_id >= 0) { update_layout(); post_redisplay(); }
+  update_layout();
+  view_sync.leave();
+  refresh();
 }
 
 

@@ -82,7 +82,7 @@ struct PUBLIC_API Element
 {
   int id;            ///< element id number
   unsigned nvert:30; ///< number of vertices (3 or 4)
-  unsigned active:1; ///< 0 = active, no sons; 1 = inactive (refined), has sons
+  unsigned active:1; ///< 0 = active, no sons; 1 = inactive (refined), has sons; WTF: The description does not match the behavior, it is inversed!
   unsigned used:1;   ///< array item usage flag
   int marker;        ///< element marker
   int userdata;     ///< arbitrary user-defined data

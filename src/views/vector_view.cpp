@@ -57,17 +57,14 @@ void VectorView::show(MeshFunction* xsln, MeshFunction* ysln, double eps, int xi
   if (range_auto) { range_min = vec.get_min_value();
                     range_max = vec.get_max_value(); }
                     
-  init_output();
-  update_layout();
-
-  if (window_id < 0)
-  {
-    vec.lock_data();
-    center_mesh(vec.get_vertices(), vec.get_num_vertices());
-    vec.unlock_data();
-  }
-
   create();
+  update_layout();
+  vec.lock_data();
+  center_mesh(vec.get_vertices(), vec.get_num_vertices());
+  vec.unlock_data();
+
+  refresh();
+
   wait_for_draw();
 }
 
@@ -267,7 +264,7 @@ void VectorView::on_display()
       double lry, x;
       double mr, ml, lx, rx, xval, yval;
 
-      double wh = window_height + gt, ww = window_width + gs;
+      double wh = output_height + gt, ww = output_width + gs;
       if ((tvert[xtris[i][0]][0] < -gs) && (tvert[xtris[i][1]][0] < -gs) && (tvert[xtris[i][2]][0] < -gs)) continue;
       if ((tvert[xtris[i][0]][0] >  ww) && (tvert[xtris[i][1]][0] >  ww) && (tvert[xtris[i][2]][0] >  ww)) continue;
       if ((tvert[xtris[i][0]][1] < -gt) && (tvert[xtris[i][1]][1] < -gt) && (tvert[xtris[i][2]][1] < -gt)) continue;
@@ -386,19 +383,19 @@ void VectorView::on_key_down(unsigned char key, int x, int y)
   {
     case 'm':
       lines = !lines;
-      post_redisplay();
+      refresh();
       break;
 
     case 'l':
       pmode = !pmode;
-      post_redisplay();
+      refresh();
       break;
 
     case 'c':
       vec.lock_data();
       center_mesh(vec.get_vertices(), vec.get_num_vertices());
       vec.unlock_data();
-      post_redisplay();
+      refresh();
       //reset_zoom();
       break;
 
@@ -413,13 +410,13 @@ void VectorView::on_key_down(unsigned char key, int x, int y)
     case 'b':
       mode++;
       if (mode > 2) mode = 0;
-      post_redisplay();
+      refresh();
       break;
 
     case '*':
     case '/':
       if (key == '*') length_coef *= 1.1; else length_coef /= 1.1;
-      post_redisplay();
+      refresh();
       break;
 
     default:
@@ -433,20 +430,21 @@ void VectorView::on_key_down(unsigned char key, int x, int y)
 
 void VectorView::load_data(const char* filename)
 {
+  //get data
   vec.lock_data();
   vec.load_data(filename);
-  if (range_auto) { range_min = vec.get_min_value();
-                    range_max = vec.get_max_value(); }
-  init_output();
-  update_layout();
+  center_mesh(vec.get_vertices(), vec.get_num_vertices());
+  vec.unlock_data();
 
-  if (window_id < 0)
-  {
-    center_mesh(vec.get_vertices(), vec.get_num_vertices());
+  if (range_auto) {
+    range_min = vec.get_min_value();
+    range_max = vec.get_max_value();
   }
 
   create();
-  vec.unlock_data();
+  update_layout();
+  refresh();
+
   wait_for_draw();
 }
 

@@ -67,8 +67,7 @@ public:
   void get_matrix(int*& Ap, int*& Ai, scalar*& Ax, int& size) const
     { Ap = this->Ap; Ai = this->Ai; Ax = this->Ax; size = ndofs; }
   void get_rhs(scalar*& RHS, int& size) const { RHS = this->RHS; size=ndofs; }
-  void get_solution_vector(scalar*& vec, int& size) const { vec = this->Vec; size=ndofs; }
-
+  void get_solution_vector(scalar*& sln_vector, int& sln_vector_len) { sln_vector = Vec; sln_vector_len = ndofs; }
 
 protected:
 

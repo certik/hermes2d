@@ -17,7 +17,7 @@
 #include "weakform.h"
 #include "matrix.h"
 #include "solution.h"
-
+#include "forms.h"
 
 //// interface /////////////////////////////////////////////////////////////////////////////////////
 
@@ -33,6 +33,24 @@ WeakForm::WeakForm(int neq)
   for (int i = 0; i < nx; i++) \
     form.ext.push_back(va_arg(ap, MeshFunction*)); \
   va_end(ap)
+
+scalar WeakForm::LiFormVol::evaluate_fn(int point_cnt, double *weights, Func<double> *values_v, Geom<double> *geometry, ExtData<scalar> *values_ext_fnc, Element* element, Shapeset* shape_set, int shape_inx)
+{
+  debug_assert(fn != NULL || fn_extended != NULL, "E both version of functions of LinForm are NULL");
+  if (fn != NULL)
+    return fn(point_cnt, weights, values_v, geometry, values_ext_fnc);
+  else
+    return fn_extended(point_cnt, weights, values_v, geometry, values_ext_fnc, element, shape_set, shape_inx);
+}
+
+Ord WeakForm::LiFormVol::evaluate_ord(int point_cnt, double *weights, Func<Ord> *values_v, Geom<Ord> *geometry, ExtData<Ord> *values_ext_fnc, Element* element, Shapeset* shape_set, int shape_inx)
+{
+  debug_assert(ord != NULL || ord_extended != NULL, "E both version of order functions of LinForm are NULL");
+  if (ord != NULL)
+    return ord(point_cnt, weights, values_v, geometry, values_ext_fnc);
+  else
+    return ord_extended(point_cnt, weights, values_v, geometry, values_ext_fnc, element, shape_set, shape_inx);
+}
 
 
 void WeakForm::add_biform(int i, int j, biform_val_t fn, biform_ord_t ord, SymFlag sym, int area, int nx, ...)
@@ -63,7 +81,6 @@ void WeakForm::add_biform_surf(int i, int j, biform_val_t fn, biform_ord_t ord, 
 
   BiFormSurf form = { i, j, area, fn, ord };
   init_ext;
-  bfsurf.push_back(form);
   seq++;
 }
 
@@ -74,7 +91,20 @@ void WeakForm::add_liform(int i, liform_val_t fn, liform_ord_t ord, int area, in
   if (area != ANY && area < 0 && -area > (int)areas.size())
     error("Invalid area number.");
 
-  LiFormVol form = { i, area, fn, ord };
+  LiFormVol form(i, area, fn, ord);
+  init_ext;
+  lfvol.push_back(form);
+  seq++;
+}
+
+void WeakForm::add_liform(int i, liform_val_extended_t fn_ext, liform_ord_extended_t ord_ext, int area, int nx, ...)
+{
+  if (i < 0 || i >= neq)
+    error("Invalid equation number.");
+  if (area != ANY && area < 0 && -area > (int)areas.size())
+    error("Invalid area number.");
+
+  LiFormVol form(i, area, fn_ext, ord_ext);
   init_ext;
   lfvol.push_back(form);
   seq++;

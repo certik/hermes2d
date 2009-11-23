@@ -41,15 +41,15 @@ public:
   void show(MeshFunction* xsln, MeshFunction* ysln, double eps = EPS_NORMAL);
   void show(MeshFunction* xsln, MeshFunction* ysln, double eps, int xitem, int yitem);
 
-  void set_grid_type(bool hexa) { this->hexa = hexa; post_redisplay(); };
+  void set_grid_type(bool hexa) { this->hexa = hexa; refresh(); };
 
   void load_data(const char* filename);
   void save_data(const char* filename);
   void save_numbered(const char* format, int number);
 
 protected:
-
   Vectorizer vec;
+
   double gx, gy, gs;
   bool hexa; // false - quad grid, true - hexa grid
   int mode;  // 0 - magnitude is on the background, 1 - arrows are colored, 2 - no arrows, just magnitude on the background

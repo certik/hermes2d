@@ -62,7 +62,7 @@ void VectorBaseView::update_title()
   char text[500];
   sprintf(text, "%s - dof = %d%s", title.c_str(), base_index, 
           (base_index < 0) ? " (Dirichlet lift)" : "");
-  set_title_internal(text);
+  set_title(text);
 }
 
 

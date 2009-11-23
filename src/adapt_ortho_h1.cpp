@@ -364,8 +364,15 @@ void H1OrthoHP::calc_projection_errors(Element* e, int order, Solution* rsln,
 
 }
 
+struct Cand ///< A candidate.
+{
+  double error; ///< Error of this candidate.
+  int dofs; 
+  int split; ///< Operation.
+  int p[4]; ///< Orders of sons.
+};
 
-void H1OrthoHP::get_optimal_refinement(Element* e, int order, Solution* rsln, int& split, int4 p, int4 q,
+int H1OrthoHP::get_optimal_refinement(Element* e, int order, Solution* rsln, int& split, int4 p, int4 q,
                                        bool h_only, bool iso_only, int max_order)
 {
   int i, j, k, n = 0;
@@ -384,11 +391,6 @@ void H1OrthoHP::get_optimal_refinement(Element* e, int order, Solution* rsln, in
 
   int min_order = 1;
 
-  struct Cand
-  {
-    double error;
-    int dofs, split, p[4];
-  };
   AUTOLA_CL(Cand, cand, maxcand);
 
   #define make_p_cand(q) { \
@@ -470,14 +472,14 @@ void H1OrthoHP::get_optimal_refinement(Element* e, int order, Solution* rsln, in
       for (j = 0; j < 4; j++)
       {
         int o = c->p[j];
-        c->error += herr[j][o];// * 0.25; // spravny vypocet chyby
+        c->error += herr[j][o]; // * 0.25; // spravny vypocet chyby, ??? average of errors on split elements (sons)
         if (tri) {
           c->dofs += (o-2)*(o-1)/2;
           if (j < 3) c->dofs += std::min(o, c->p[3])-1 + 2*(o-1);
         }
         else {
           c->dofs += sqr(o)-1;
-          c->dofs += /*2 * */std::min(o, c->p[j>0 ? j-1 : 3]) - 1;
+          c->dofs += /* 2 * */ std::min(o, c->p[j>0 ? j-1 : 3]) - 1; //??? should it be commented out or not?
         }
       }
     }
@@ -487,7 +489,7 @@ void H1OrthoHP::get_optimal_refinement(Element* e, int order, Solution* rsln, in
       c->dofs += std::min(c->p[0], c->p[1]) - 1; // common edge
       c->dofs += sqr(c->p[0] - 1) + sqr(c->p[1] - 1); // bubbles
       for (c->error = 0.0, j = 0; j < 2; j++)
-        c->error += herr[(c->split == 1) ? j+4 : j+6][c->p[j]];// * 0.5;  // spravny vypocet chyby
+        c->error += herr[(c->split == 1) ? j+4 : j+6][c->p[j]]; // * 0.5;  // spravny vypocet chyby, ??? average of errors on splot element (sons)
 
     }
     else
@@ -512,33 +514,40 @@ void H1OrthoHP::get_optimal_refinement(Element* e, int order, Solution* rsln, in
   // select an above-average candidate with the steepest error decrease
   int imax = 0, h_imax = 0;
   double score, maxscore = 0.0, h_maxscore = 0.0;
+  //debug_log("I element: %d\n", e->id); //DEBUG
   for (i = 1; i < n; i++)
   {
     if ((log10(cand[i].error) < avg + dev) && (cand[i].dofs > cand[0].dofs))
     {
+      ////DEBUG-BEGIN
+      //debug_log("  %d. candidate (split, dofs, error): (%d, %d, %g)\n", i, cand[i].split, cand[i].dofs, cand[i].error);
+      //debug_log("    son orders: (%d, %d, %d, %d)\n", cand[i].p[0], cand[i].p[1], cand[i].p[2], cand[i].p[3]);
+      ////DEBUG-END
+
       score = (log10(cand[0].error) - log10(cand[i].error)) / (cand[i].dofs - cand[0].dofs);
       if (score > maxscore) { maxscore = score; imax = i; }
       if ((cand[i].split == 0) && (score > h_maxscore)) { h_maxscore = score; h_imax = i; }
     }
   }
+  //debug_log("  selected candidate: %d\n", imax); //DEBUG
 
   // return result
   split = cand[imax].split;
   memcpy(p, cand[imax].p, 4*sizeof(int));
   memcpy(q, cand[h_imax].p, 4*sizeof(int));
 
+  return imax;
 }
 
 
 //// adapt /////////////////////////////////////////////////////////////////////////////////////////
 
 bool H1OrthoHP::adapt(double thr, int strat, int adapt_type, bool iso_only, int regularize,
-                      int max_order, bool same_orders, double to_be_processed)
+                      int max_order, bool same_orders, double to_be_processed,
+                      std::vector<AdaptResult> *adapt_result)
 {
-
   if (!have_errors)
     error("Element errors have to be calculated first, see calc_error().");
-
 
   int i, j, l;
   int max_id = -1;
@@ -559,7 +568,7 @@ bool H1OrthoHP::adapt(double thr, int strat, int adapt_type, bool iso_only, int 
   AUTOLA2_OR(int, idx, max_id + 1, num + 1);
   for(j = 0; j < max_id; j++)
     for(l = 0; l < num; l++)
-      idx.access(j, l) = -1; // element not refined
+      idx[j][l] = -1; // element not refined
 
   int nref = nact;
   double err0 = 1000.0;
@@ -572,6 +581,8 @@ bool H1OrthoHP::adapt(double thr, int strat, int adapt_type, bool iso_only, int 
     int comp = esort[i][1];
     int id = esort[i][0];
     double err = errors[comp][id];
+
+    //if (i == 1) { nref = i; break; } //DEBUG
 
     // first refinement strategy:
     // refine elements until prescribed amount of error is processed
@@ -614,7 +625,7 @@ bool H1OrthoHP::adapt(double thr, int strat, int adapt_type, bool iso_only, int 
       successfully_refined++;
     }
 
-    idx.access(id, comp) = i;
+    idx[id][comp] = i;
     err0 = err;
     processed_error += err;
   }
@@ -640,7 +651,7 @@ bool H1OrthoHP::adapt(double thr, int strat, int adapt_type, bool iso_only, int 
       if (max_ref == 0) break; // iso refinement is max what can be recieved
       if ((j != comp) && (mesh[j] == mesh[comp])) // components share the mesh
       {
-        int ii = idx.access(id, j);
+        int ii = idx[id][j];
         if ((ii >= 0) && (split[ii] != max_ref) && (split[ii] >= 0)) // ii element refined, refinement differs from max_ref, ii element split
         {
           if (((split[ii] == 1) || (split[ii] == 2)) && (max_ref == -1)) // the only case when aniso refinement
@@ -667,7 +678,7 @@ bool H1OrthoHP::adapt(double thr, int strat, int adapt_type, bool iso_only, int 
               p[i][1] = h_only ? current : std::max(1, 2*(current+1)/3);
             }
           }
-          int ii = idx.access(id, j);
+          int ii = idx[id][j];
           current = get_h_order(spaces[j]->get_element_order(id));
           if (ii >= 0)
           {
@@ -706,11 +717,15 @@ bool H1OrthoHP::adapt(double thr, int strat, int adapt_type, bool iso_only, int 
     int id = esort[i][0];
     Element* e;
     e = mesh[comp]->get_element(id);
+    debug_assert(e->active != 0, "E element is not active but it will be refined\n"); //DEBUG
+
+    //store statistics
+    if (adapt_result != NULL)
+      adapt_result->push_back(AdaptResult(e->id, split[i], &p[i][0]));
 
     if (split[i] < 0)
       spaces[comp]->set_element_order(id, p[i][0]);
-    else if (split[i] == 0)
-    {
+    else if (split[i] == 0) {
       if (e->active)
         mesh[comp]->refine_element(id);
       for (j = 0; j < 4; j++)
@@ -1073,6 +1088,7 @@ double H1OrthoHP::calc_error_n(int n, ...)
   if (esort != NULL) delete [] esort;
   esort = new int2[nact];
 
+
   Element** ee;
   trav.begin(2*num, meshes, tr);
   while ((ee = trav.get_next_state(NULL, NULL)) != NULL)
@@ -1101,7 +1117,6 @@ double H1OrthoHP::calc_error_n(int n, ...)
           total_error += e;
           errors[i][ee[i]->id] += e;
         }
-
       }
     }
   }

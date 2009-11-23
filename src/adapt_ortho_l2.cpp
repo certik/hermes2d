@@ -518,7 +518,7 @@ void L2OrthoHP::get_optimal_refinement(Element* e, int order, Solution* rsln, in
 
 //// adapt /////////////////////////////////////////////////////////////////////////////////////////
 
-void L2OrthoHP::adapt(double thr, int strat, bool h_only, bool iso_only, int max_order)
+void L2OrthoHP::adapt(double thr, int strat, bool h_only, bool iso_only, int max_order, std::vector<AdaptResult>* adapt_result)
 {
 
   if (!have_errors)
@@ -563,8 +563,14 @@ void L2OrthoHP::adapt(double thr, int strat, bool h_only, bool iso_only, int max
     else
       get_optimal_refinement(e, current, rsln[comp], split, p, h_only, iso_only, max_order);
 
-    if (split < 0)
+    //store info
+    if (adapt_result != NULL)
+      adapt_result->push_back(AdaptResult(e->id, split, p));
+
+    //apply found division
+    if (split < 0) {
       spaces[comp]->set_element_order(id, p[0]);
+    }
     else if (split == 0) {
       mesh[comp]->refine_element(id);
       for (j = 0; j < 4; j++)

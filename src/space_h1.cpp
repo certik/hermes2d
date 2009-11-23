@@ -566,37 +566,6 @@ void H1Space::update_constrained_nodes(Element* e, EdgeInfo* ei0, EdgeInfo* ei1,
       }
 
       //dump_baselist(ndata[mid_vn->id]);
-      //DEBUG: check for validity of the baselis
-      BaseComponent* components = ndata[mid_vn->id].baselist;
-      int inx_found = -1;
-      for(int i = 0; i < ndata[mid_vn->id].ncomponents; i++)
-      {
-        if (components[i].dof < -2)
-          inx_found = i;
-      }
-      if (inx_found >= 0)
-      {
-        debug_log("! found invalid unfilled components (H1Space::update_constrained_nodes)\n");
-        debug_log("  result\n");
-        for(int i = 0; i < ndata[mid_vn->id].ncomponents; i++)
-        {
-          debug_log("   %d. item (dof, coef): %d (%x), %g\n", i, components[i].dof, components[i].dof, components[i].coef);
-        }
-        debug_log("  edge ptr, ndata[en->id].n, ndata[en->id].dof: %p, %d, %d\n", en, ndata[en->id].n, ndata[en->id].dof);
-        debug_log("  ncomponent: %d\n", ndata[mid_vn->id].ncomponents);
-        debug_log("  components, edge_dofs, edge_dofs after: %p, %p, %p\n", components, edge_dofs_tmp, edge_dofs);
-        for(int i = 0; i < 2; i++)
-        {
-          debug_log("  input: %d\n", i);
-          debug_log("    nc: %d\n", nc[i]);
-          for(int k = 0; k < nc[i]; k++)
-          {
-            debug_log("    %d. item of bl (dof, coef): %d, %g\n", k, bl[i][k].dof, bl[i][k].coef);
-          }
-        }
-        exit(0);
-      }
-      //DEBUG-END
     }
 
     // create edge infos for half-edges

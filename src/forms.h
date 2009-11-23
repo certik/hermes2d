@@ -121,15 +121,15 @@ public:
 };
 
 
-// Geometry of the element (coordinates, normals, tangents)
+/// Geometry (coordinates, normals, tangents) of either an element or an edge
 template<typename T>
 class Geom
 {
 public:
-  int marker;     // element marker
-	T *x, *y;				// coordinates
-	T *nx, *ny;			// normals
-	T *tx, *ty;			// tangents
+  int marker;      // marker
+	T *x, *y;				 // coordinates [in physical domain]
+	T *nx, *ny;			 // normals [in physical domain]
+	T *tx, *ty;			 // tangents [in physical domain]
 
 	Geom()
   {

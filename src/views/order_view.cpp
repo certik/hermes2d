@@ -50,17 +50,13 @@ void OrderView::show(Space* space)
   
   ord.lock_data();  
   ord.process_solution(space);
-  init_order_palette();
-  init_output();
-  update_layout();
-  
-  if (window_id < 0)
-  {
-    center_mesh(ord.get_vertices(), ord.get_num_vertices());
-  }
-  
-  create();
+  center_mesh(ord.get_vertices(), ord.get_num_vertices());
   ord.unlock_data();
+
+  create();
+  init_order_palette();
+  update_layout();
+  refresh();
   wait_for_draw();
 }
 
@@ -193,12 +189,12 @@ void OrderView::on_key_down(unsigned char key, int x, int y)
       ord.lock_data();
       center_mesh(ord.get_vertices(), ord.get_num_vertices());
       ord.unlock_data();
-      post_redisplay();
+      refresh();
       break;
     
     case 'm':
       b_orders = !b_orders;
-      post_redisplay();
+      refresh();
       break;
         
     case 'p':
@@ -206,7 +202,7 @@ void OrderView::on_key_down(unsigned char key, int x, int y)
       pal_type++;
       if (pal_type > 2) pal_type = 0; 
       init_order_palette();
-      post_redisplay();
+      refresh();
       break;
     }
     
@@ -220,18 +216,14 @@ void OrderView::on_key_down(unsigned char key, int x, int y)
 void OrderView::load_data(const char* filename)
 {
   ord.load_data(filename);
-  init_order_palette();
-  init_output();
-  update_layout();
-  
-  if (window_id < 0)
-  {
-    ord.lock_data();
-    center_mesh(ord.get_vertices(), ord.get_num_vertices());
-    ord.unlock_data();
-  }
+  ord.lock_data();
+  center_mesh(ord.get_vertices(), ord.get_num_vertices());
+  ord.unlock_data();
   
   create();
+  init_order_palette();
+  update_layout();
+  refresh();
   wait_for_draw();
 }
 

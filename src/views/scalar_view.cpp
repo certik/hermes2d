@@ -73,8 +73,10 @@ ScalarView::~ScalarView()
 # endif
 }
 
-void ScalarView::on_create()
+void ScalarView::on_create(int output_id)
 {
+  View::on_create(output_id);
+
 # ifdef ENABLE_VIEWER_GUI
   if (tw_wnd_id == TW_WND_ID_NONE) //GUI has to be initialized before any displaying occurs (on_create calls post_redisplay by default)
   {
@@ -89,8 +91,6 @@ void ScalarView::on_create()
     }
   }
 # endif
-
-  View::on_create();
 }
 
 void ScalarView::on_close()
@@ -168,21 +168,19 @@ void ScalarView::show(MeshFunction* sln, double eps, int item,
   if (mode3d) calculate_normals();
   if (range_auto) { range_min = lin.get_min_value();
                     range_max = lin.get_max_value(); }
-  init_output();
-  update_layout();
-
-  if (window_id < 0)
-  {
-    center_mesh(lin.get_vertices(), lin.get_num_vertices());
-    center_3d_mesh();
-    reset_3d_view();
-  }
+  
+  center_mesh(lin.get_vertices(), lin.get_num_vertices());
+  center_3d_mesh();
+  reset_3d_view();
+ 
   lin.unlock_data();
 
   create();
+  update_layout();
+  refresh();
+  wait_for_draw(); //BaseView calls 
 
   verbose("ScalarView::show(): min=%g max=%g", lin.get_min_value(), lin.get_max_value());
-//  wait_for_draw(); //BaseView calls 
 }
 
 bool ScalarView::compare_vertex_nodes_x(const VertexNodeInfo& a, const VertexNodeInfo& b)
@@ -534,7 +532,7 @@ void ScalarView::show_contours(double step, double orig)
   cont_orig = orig;
   cont_step = step;
   set_palette_filter(true);
-  post_redisplay();
+  refresh();
 }
 
 
@@ -742,7 +740,7 @@ void ScalarView::draw_edges(DrawSingleEdgeCallback draw_single_edge, void* param
   for (int i = 0; i < edge_cnt; i++) //TODO: we could draw only left-right, top-bottom ones
   {
     const int3 &edge = edges[i];
-    if (!boundary_only || edge[2] == 0) //select internal edges to draw
+    if (!boundary_only || edge[2] != 0) //select internal edges to draw
       draw_single_edge(edge[0], edge[1], this, param);
   }
 }
@@ -1021,12 +1019,12 @@ void ScalarView::on_key_down(unsigned char key, int x, int y)
     {
       case 'm':
         show_edges = !show_edges;
-        post_redisplay();
+        refresh();
         break;
 
       case 'l':
         pmode = !pmode;
-        post_redisplay();
+        refresh();
         break;
 
       case 'c':
@@ -1041,7 +1039,7 @@ void ScalarView::on_key_down(unsigned char key, int x, int y)
           center_3d_mesh();
           reset_3d_view();
         }
-        post_redisplay();
+        refresh();
         //reset_zoom();
         break;
       }
@@ -1052,13 +1050,13 @@ void ScalarView::on_key_down(unsigned char key, int x, int y)
       
       case 'k':
         contours = !contours;
-        post_redisplay();
+        refresh();
         break;
 
       case 'i':
         show_element_info = !show_element_info;
         if (!mode3d)
-          post_redisplay();
+          refresh();
         break;
       
       case '3':
@@ -1070,7 +1068,7 @@ void ScalarView::on_key_down(unsigned char key, int x, int y)
           init_lighting();
           if (normals == NULL) calculate_normals();
         }
-        post_redisplay();
+        refresh();
         break;
       }
       
@@ -1086,7 +1084,7 @@ void ScalarView::on_key_down(unsigned char key, int x, int y)
         {
           if (key == '*') cont_step /= 1.1; else cont_step *= 1.1;
         }
-        post_redisplay();
+        refresh();
         break;
       }
 
@@ -1112,49 +1110,38 @@ void ScalarView::on_mouse_move(int x, int y)
   VIEWER_GUI(TwSetCurrentWndID(tw_wnd_id));
   VIEWER_GUI_CALLBACK(TwEventMouseMotionGLUT(x, y))
   {
-    if (dragging)
-    {
-      yrot += 0.4 * (x - mouse_x);
-      xrot += 0.4 * (y - mouse_y);
-
-      if (xrot < -90) xrot = -90;
-      else if (xrot > 90) xrot = 90;
-    }
-    else if (scaling)
-    {
-      if (dragging)
-      {
+    if (mode3d && (dragging || scaling || panning)) {
+      if (dragging) {
         yrot += 0.4 * (x - mouse_x);
         xrot += 0.4 * (y - mouse_y);
         
         if (xrot < -90) xrot = -90;
         else if (xrot > 90) xrot = 90;
       }
-      else if (scaling)
-      {
+      else if (scaling) {
         ztrans += 0.01 * (mouse_y - y);
         if (ztrans > -0.25) ztrans = -0.25;
         else if (ztrans < -7) ztrans = -7;
       }
-      else
-      {
+      else {
         xtrans += 0.002 * (x - mouse_x);
         ytrans += 0.002 * (mouse_y - y);
       }
         
-      post_redisplay();
+      refresh();
       mouse_x = x;
       mouse_y = y;
       return;
     }
-    else if (!mode3d && show_edges && !dragging && !scaling && !panning)
-    {
+    else if (!mode3d && show_edges && !dragging && !scaling && !panning) {
       VertexNodeInfo* found_node = find_nearest_node_in_range((float)untransform_x(x), (float)untransform_y(y), (float)(node_pixel_radius / scale));
       if (found_node != pointed_vertex_node)
         pointed_vertex_node = found_node;
+      refresh();
     }
-
-    post_redisplay();
+    else {
+      View::on_mouse_move(x, y);
+    }
   }
 }
 
@@ -1207,7 +1194,7 @@ void ScalarView::on_right_mouse_down(int x, int y)
 # endif
         pointed_vertex_node->selected = true;
       }
-      post_redisplay();
+      refresh();
     }
     else { //avoid mixing of functionality
       View::on_right_mouse_down(x, y);
@@ -1262,18 +1249,15 @@ void ScalarView::load_data(const char* filename)
   if (mode3d) calculate_normals();
   if (range_auto) { range_min = lin.get_min_value();
                     range_max = lin.get_max_value(); }
-  init_output();
-  update_layout();
 
-  if (window_id < 0)
-  {
-    center_mesh(lin.get_vertices(), lin.get_num_vertices());
-    center_3d_mesh();
-    reset_3d_view();
-  }
+  center_mesh(lin.get_vertices(), lin.get_num_vertices());
+  center_3d_mesh();
+  reset_3d_view();
+  lin.unlock_data();
 
   create();
-  lin.unlock_data();
+  update_layout();
+  refresh();
   wait_for_draw();
 }
 

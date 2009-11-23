@@ -19,8 +19,7 @@
 #include "forms.h"
 #include "weakform.h"
 #include "integrals_h1.h"
-
-
+#include "adapt_result.h"
 
 /// \brief hp-adaptivity module for H1 spaces.
 ///
@@ -58,18 +57,22 @@ public:
   /// pointers are passed, followed by n fine solution pointers.
   double calc_error_n(int n, ...);
 
+  PUBLIC_API_USED_STL_VECTOR(AdaptResult);
 
   /// Selects elements to refine (based on results from calc_error() or calc_energy_error())
   /// and performs their optimal hp-refinement.
+  /// \param adapt_result Contains result of adaptivity step. If NULL, result is not gathered or processed.
   bool adapt(double thr, int strat = 0, int adapt_type = 0, bool iso_only = false, int regularize = -1,
-             int max_order = -1, bool same_orders = false, double to_be_processed = 0.0);
+             int max_order = -1, bool same_orders = false, double to_be_processed = 0.0,
+             std::vector<AdaptResult> *adapt_result = NULL);
 
   /// Unrefines the elements with the smallest error
   void unrefine(double thr);
 
   /// Internal. Used by adapt(). Can be utilized in specialized adaptivity
   /// procedures, for which adapt() is not sufficient.
-  static void get_optimal_refinement(Element* e, int order, Solution* rsln, int& split, int4 p, int4 q,
+  /// \returns Selected candidate. If zero, no other candidate was selected.
+  static int get_optimal_refinement(Element* e, int order, Solution* rsln, int& split, int4 p, int4 q,
                                      bool h_only = false, bool iso_only = false, int max_order = -1);
 
   /// Internal. Functions to obtain errors of individual elements.

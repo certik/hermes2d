@@ -533,16 +533,6 @@ void LinSystem::assemble(bool rhsonly)
         if (e[i] == NULL) { isempty[j] = true; continue; }
         spaces[j]->get_element_assembly_list(e[i], al+j);
         // todo: neziskavat znova, pokud se element nezmenil
-        
-        //DEBUG
-        //debug_log("I element (LinSystem::assemble): %d\n", e[i]->id);
-        //AsmList* asm_list = al+j;
-        //for(int l = 0; l < asm_list->cnt; l++)
-        //{
-        //  debug_log("   (idx, dof, coef): (%d, %d, %g)\n", asm_list->idx[l], asm_list->dof[l], asm_list->coef[l]);
-        //}
-        //debug_log("\n");
-        //DEBUG-END
 
         spss[j]->set_active_element(e[i]);
         spss[j]->set_master_transform();
@@ -634,7 +624,7 @@ void LinSystem::assemble(bool rhsonly)
 
 
       // assemble surface integrals now: loop through boundary edges of the element
-      for (int edge = 0; edge < e0->nvert; edge++)
+      for (unsigned int edge = 0; edge < e0->nvert; edge++)
       {
         if (!bnd[edge]) continue;
         marker = ep[edge].marker;
@@ -739,7 +729,7 @@ ExtData<scalar>* LinSystem::init_ext_fns(std::vector<MeshFunction *> &ext, RefMa
 {
   ExtData<scalar>* ext_data = new ExtData<scalar>;
   Func<scalar>** ext_fn = new Func<scalar>*[ext.size()];
-  for (int i = 0; i < ext.size(); i++)
+  for (unsigned int i = 0; i < ext.size(); i++)
     ext_fn[i] = init_fn(ext[i], rm, order);
   ext_data->nf = ext.size();
   ext_data->fn = ext_fn;
@@ -847,7 +837,7 @@ scalar LinSystem::eval_form(WeakForm::LiFormVol *lf, PrecalcShapeset *fv, RefMap
 
   double fake_wt = 1.0;
   Geom<Ord>* fake_e = init_geom_ord();
-  Ord o = lf->ord(1, &fake_wt, ov, fake_e, fake_ext);
+  Ord o = lf->evaluate_ord(1, &fake_wt, ov, fake_e, fake_ext, rv->get_active_element(), fv->get_shapeset(), fv->get_active_shape());
   int order = rv->get_inv_ref_order();
   order += o.get_order();
   limit_order(order);
@@ -877,7 +867,7 @@ scalar LinSystem::eval_form(WeakForm::LiFormVol *lf, PrecalcShapeset *fv, RefMap
   Func<double>* v = get_fn(fv, rv, order);
   ExtData<scalar>* ext = init_ext_fns(lf->ext, rv, order);
 
-  scalar res = lf->fn(np, jwt, v, e, ext);
+  scalar res = lf->evaluate_fn(np, jwt, v, e, ext, rv->get_active_element(), fv->get_shapeset(), fv->get_active_shape());
 
   ext->free(); delete ext;
   return res;
