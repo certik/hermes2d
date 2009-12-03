@@ -13,17 +13,36 @@ const int P_INIT_w4 = 1;       // polynomial degree for pressure
 // global time variable
 double TIME = 0;
 
-// get this working:
-/*
-static void difference_fn_2(int n, scalar* v1, scalar* v2, scalar* result)
+static void calc_pressure_func(int n,
+        scalar* w0,
+        scalar* w1,
+        scalar* w3,
+        scalar* w4,
+        scalar* result)
 {
   for (int i = 0; i < n; i++)
-    result[i] = v1[i] - v2[i];
+    result[i] = R/c_v * (w4[i] - (w1[i]*w1[i] + w3[i]*w3[i])/(2*w0[i]));
 }
 
-DiffFilter::DiffFilter(MeshFunction* sln1, MeshFunction* sln2, int item1, int item2)
-          : SimpleFilter(difference_fn_2, sln1, sln2, item1, item2) {}
-          */
+class CalcPressure : public SimpleFilter
+{
+public:
+    CalcPressure(
+        MeshFunction* sln1,
+        MeshFunction* sln2,
+        MeshFunction* sln3,
+        MeshFunction* sln4,
+        int item1 = FN_VAL,
+        int item2 = FN_VAL,
+        int item3 = FN_VAL,
+        int item4 = FN_VAL
+        )
+        : SimpleFilter(calc_pressure_func, sln1, sln2, sln3, sln4,
+                item1, item2, item3, item4)
+    {}
+};
+
+
 
 int main(int argc, char* argv[])
 {
@@ -139,9 +158,11 @@ int main(int argc, char* argv[])
     sprintf(title, "Mass Density, time %g", TIME);
     w0_view.set_title(title);
     w0_view.show(&w0_sln);
-    sprintf(title, "Energy, time %g", TIME);
+    sprintf(title, "Pressure, time %g", TIME);
+    CalcPressure pressure(&w0_sln, &w1_sln, &w3_sln, &w4_sln);
+
     w4_view.set_title(title);
-    w4_view.show(&w4_sln);
+    w4_view.show(&pressure);
 
     w0_prev = w0_sln;
     w1_prev = w1_sln;
