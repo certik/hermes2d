@@ -13,6 +13,18 @@ const int P_INIT_w4 = 1;       // polynomial degree for pressure
 // global time variable
 double TIME = 0;
 
+// get this working:
+/*
+static void difference_fn_2(int n, scalar* v1, scalar* v2, scalar* result)
+{
+  for (int i = 0; i < n; i++)
+    result[i] = v1[i] - v2[i];
+}
+
+DiffFilter::DiffFilter(MeshFunction* sln1, MeshFunction* sln2, int item1, int item2)
+          : SimpleFilter(difference_fn_2, sln1, sln2, item1, item2) {}
+          */
+
 int main(int argc, char* argv[])
 {
   // import hermes2d
@@ -96,6 +108,7 @@ int main(int argc, char* argv[])
   sys.set_spaces(4, &s0, &s1, &s3, &s4);
   sys.set_pss(4, &pss_h1, &pss_h1, &pss_h1, &pss_h1);
   //sys.set_pss(1, &pss_h1);
+
 
   // main loop
   char title[100];
