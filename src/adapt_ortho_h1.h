@@ -36,7 +36,7 @@ public:
   /// Initializes the class. 'num' is the number of mesh-space pairs to be adapted.
   /// After 'num', exactly that many space pointers must follow.
   H1OrthoHP(int num, ...);
-  ~H1OrthoHP();
+  virtual ~H1OrthoHP();
 
 
   typedef scalar (*biform_val_t) (int n, double *wt, Func<scalar> *u, Func<scalar> *v, Geom<double> *e, ExtData<scalar> *);
@@ -47,7 +47,7 @@ public:
   void set_biform(int i, int j, biform_val_t bi_form, biform_ord_t bi_ord);
 
   /// Type-safe version of calc_error_n() for one solution.
-  double calc_error(MeshFunction* sln, MeshFunction* rsln);
+  virtual double calc_error(MeshFunction* sln, MeshFunction* rsln);
 
   /// Type-safe version of calc_error_n() for two solutions.
   double calc_error_2(MeshFunction* sln1, MeshFunction* sln2, MeshFunction* rsln1, MeshFunction* rsln2);
@@ -55,7 +55,7 @@ public:
   /// Calculates the error of the solution using given norms. 'n' must be the
   /// same as 'num' in the constructor. After that, n coarse solution
   /// pointers are passed, followed by n fine solution pointers.
-  double calc_error_n(int n, ...);
+  virtual double calc_error_n(int n, ...);
 
   PUBLIC_API_USED_STL_VECTOR(AdaptResult);
 
@@ -72,17 +72,37 @@ public:
   /// Internal. Used by adapt(). Can be utilized in specialized adaptivity
   /// procedures, for which adapt() is not sufficient.
   /// \returns Selected candidate. If zero, no other candidate was selected.
-  static int get_optimal_refinement(Element* e, int order, Solution* rsln, int& split, int4 p, int4 q,
+  virtual int get_optimal_refinement(Element* e, int order, Solution* rsln, int& split, int4 p, int4 q,
                                      bool h_only = false, bool iso_only = false, int max_order = -1);
 
   /// Internal. Functions to obtain errors of individual elements.
+  struct ElementReference { ///< A reference to a element.
+    int id, comp;
+  };
   double get_element_error(int component, int id) const { return errors[component][id]; }
-  int2*  get_sorted_elements() const { return esort; }
+  ElementReference*  get_sorted_elements() const { return esort; }
   int    get_total_active_elements() const { return nact; }
 
+protected: //adaptivity
+  std::queue<ElementReference> priority_esort; ///< A list of priority elements that are processed before the next element in esort is processed.
+
+  virtual bool ignore_element_adapt(const int inx_element, const Mesh* mesh, const Element* element) { return false; }; ///< Returns true, if an element should be ignored for purposes of adaptivity.
+  virtual bool can_adapt_element(Mesh* mesh, Element* e, const int split, const int4& p, const int4& q) { return true; }; ///< Returns true, if an element can be adapted using a selected candidate.
+
+protected: //optimal refinement
+  struct Cand ///< A candidate.
+  {
+    double error; ///< Error of this candidate.
+    int dofs; 
+    int split; ///< Operation.
+    int p[4]; ///< Orders of sons.
+  };
+
+  virtual Cand* create_candidates(Element* e, int order, bool h_only, bool iso_only, int max_order, int* num_cand); ///< Creates a list of candidates. Allocated array has to be deallocated by a user of the method.
+  virtual int evalute_candidates(Cand* cand, int num_cand, Element* e, int order, Solution* rsln, double* avg_error, double* dev_error); ///< Evaluates candidates. Calculates their error and dofs. Calculates average error and sample deviation.
+  virtual void select_best_candidate(const Cand* cand, const int num_cand, Element* e, const double avg_error, const double dev_error, int* selected_cand, int* selected_h_cand); ///< Selects the best candidate and the best h-candidate.
 
 protected:
-
   // spaces & solutions
   int num;
   Space* spaces[10];
@@ -94,7 +114,7 @@ protected:
   double  norms[10]; // ?
   bool    have_errors;
   double  total_err;
-  int2* esort;
+  ElementReference* esort;
   int   nact;
 
   // bilinear forms to calculate error
@@ -116,8 +136,16 @@ protected:
 
   static void calc_ortho_base();
 
-  static void calc_projection_errors(Element* e, int order, Solution* rsln,
-                                     double herr[4][11], double perr[11]);
+  virtual void calc_projection_errors(Element* e, int order, Solution* rsln,
+                                     double herr[4][11], double perr[11]); ///< Calculate various projection errors.
+
+  /// Builds a list of elements sorted by error descending. Assumes that H1OrthoHP::errors is initialized. Initializes H1OrthoHP::esort.
+  /// \param meshes: Meshes. Indices [0,.., H1OrthoHP::num-1] contains meshes of coarse solutions, indices [H1OrthoHP::num,..,2*H1OrthoHP::num - 1] contains meshes of reference solution.
+  void sort_elements_by_error(Mesh** meshes);
+
+private:
+  static double** cmp_err; ///< An helper array used to sort reference to elements.
+  static int compare(const void* p1, const void* p2); ///< Compares to reference to an element according to H1OrthoHP::cmp_err.
 
 public:
 

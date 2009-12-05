@@ -33,6 +33,7 @@
 #include <vector>
 #include <string>
 #include <set>
+#include <queue>
 
 // platform compatibility stuff
 #include "compat.h"

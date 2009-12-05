@@ -86,6 +86,7 @@ protected: // node selection
   std::vector<VertexNodeInfo> vertex_nodes; ///< Vertex nodes. Sorted accordin to the X-axis.
   VertexNodeInfo* pointed_vertex_node; ///< A vertex node that is under the mouse cursor. NULL if none.
 
+  bool allow_node_selection; ///> True if node selection is allowed
   unsigned int pointed_node_widget; ///> A GL display-list denoting a pointed vertex node. The geometry assumes the size of a pixel is 1x1.
   unsigned int selected_node_widget; ///> A GL display-list denoting a selected mesh node. The geometry assumes the size of a pixel is 1x1.
 

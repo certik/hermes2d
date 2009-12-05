@@ -33,7 +33,7 @@ using namespace std;
 ScalarView::ScalarView(const char* title, int x, int y, int width, int height)
            : View(title, x, y, width, height)
            , show_element_info(false), element_id_widget(0)
-           , vertex_nodes(0), node_pixel_radius(10), pointed_vertex_node(NULL), pointed_node_widget(0), selected_node_widget(0), node_widget_vert_cnt(32)
+           , vertex_nodes(0), node_pixel_radius(10), pointed_vertex_node(NULL), pointed_node_widget(0), selected_node_widget(0), node_widget_vert_cnt(32), allow_node_selection(false)
 #ifdef ENABLE_VIEWER_GUI
            , tw_wnd_id(TW_WND_ID_NONE), tw_setup_bar(NULL)
 #endif
@@ -141,9 +141,15 @@ void ScalarView::create_setup_bar()
   TwAddVarRW(tw_bar, "show_values", TW_TYPE_BOOLCPP, &show_values, " group=Elements2D label='Show Value'");
   TwAddVarRW(tw_bar, "show_edges", TW_TYPE_BOOLCPP, &show_edges, " group=Elements2D label='Show Edges'");
   TwAddVarRW(tw_bar, "show_element_info", TW_TYPE_BOOLCPP, &show_element_info, " group=Elements2D label='Show ID'");
+  TwAddVarRW(tw_bar, "allow_node_selection", TW_TYPE_BOOLCPP, &allow_node_selection, " group=Elements2D label='Allow Node Sel.'");
   TwAddVarRW(tw_bar, "edges_color", TW_TYPE_COLOR3F, &edges_color, " group=Elements2D label='Edge color'");
 
+  //help
+  const char* help_text = get_help_text();
+  TwSetParam(tw_bar, NULL, "help", TW_PARAM_CSTRING, 1, &help_text);
+
   tw_setup_bar = tw_bar;
+
 #endif
 }
 
@@ -815,7 +821,7 @@ void ScalarView::on_display()
       draw_element_infos_2d();
 
     //draw nodes and node info
-    if (show_edges)
+    if (show_edges && allow_node_selection)
       draw_vertex_nodes();
 
     //cleanup
@@ -1134,9 +1140,13 @@ void ScalarView::on_mouse_move(int x, int y)
       return;
     }
     else if (!mode3d && show_edges && !dragging && !scaling && !panning) {
-      VertexNodeInfo* found_node = find_nearest_node_in_range((float)untransform_x(x), (float)untransform_y(y), (float)(node_pixel_radius / scale));
-      if (found_node != pointed_vertex_node)
-        pointed_vertex_node = found_node;
+      if (allow_node_selection) {
+        VertexNodeInfo* found_node = find_nearest_node_in_range((float)untransform_x(x), (float)untransform_y(y), (float)(node_pixel_radius / scale));
+        if (found_node != pointed_vertex_node)
+          pointed_vertex_node = found_node;
+      }
+      else
+        pointed_vertex_node = NULL;
       refresh();
     }
     else {
@@ -1169,7 +1179,7 @@ void ScalarView::on_right_mouse_down(int x, int y)
   VIEWER_GUI_CALLBACK(TwEventMouseButtonGLUT(GLUT_RIGHT_BUTTON, GLUT_DOWN, x, y))
   {
     //handle node selection
-    if (pointed_vertex_node != NULL)
+    if (allow_node_selection && pointed_vertex_node != NULL)
     {
       if (pointed_vertex_node->selected) //deselct node
       {
