@@ -4,6 +4,12 @@
 #include "hermes2d.h"
 #include "params.h"
 
+//  boundary markers
+#define marker_bottom 1
+#define marker_right 2
+#define marker_top 3
+#define marker_left 4
+
 void set_iteration(int i);
 void register_bc(H1Space &s0, H1Space &s1, H1Space &s3, H1Space &s4);
 void set_ic(Mesh &mesh, Solution &w0, Solution &w1, Solution &w3, Solution &w4);
