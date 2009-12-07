@@ -8,12 +8,6 @@ const double T_0 = T_z(0);
 const double p_0 = p_z(0);
 const double rho_0 = rho_z(0);
 
-//  boundary markers
-#define marker_bottom 1
-#define marker_right 2
-#define marker_top 3
-#define marker_left 4
-
 Solution *w0_prev=NULL, *w1_prev=NULL, *w3_prev=NULL, *w4_prev=NULL;
 
 int s0_bc_type(int marker) {
