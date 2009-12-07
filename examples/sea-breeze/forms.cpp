@@ -14,6 +14,8 @@ const double rho_0 = rho_z(0);
 #define marker_top 3
 #define marker_left 4
 
+Solution *w0_prev, *w1_prev, *w3_prev, *w4_prev;
+
 int s0_bc_type(int marker) {
     return BC_NATURAL;
 }
@@ -544,6 +546,11 @@ void set_ic(Mesh &mesh, Solution &w0, Solution &w1, Solution &w3, Solution &w4)
     w1.set_exact(&mesh, w1_init);
     w3.set_exact(&mesh, w3_init);
     w4.set_exact(&mesh, w4_init);
+
+    w0_prev = &w0;
+    w1_prev = &w1;
+    w3_prev = &w3;
+    w4_prev = &w4;
 }
 
 void register_forms(WeakForm &wf, Solution &w0_prev, Solution &w1_prev,
