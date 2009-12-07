@@ -1313,8 +1313,8 @@ import traceback
 
 global_namespace = {"verbose": False}
 
-cdef api void cmd(char *text):
-    n = run_cmd(text, global_namespace)
+cdef api void cmd(const_char *text):
+    n = run_cmd(<char *>text, global_namespace)
     global_namespace.update(n)
 
 cdef api void set_verbose_cmd(int verbose):
