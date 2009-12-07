@@ -61,12 +61,14 @@ int main(int argc, char* argv[])
   mesh.load("domain-quad.mesh"); // unstructured triangular mesh available in domain-tri.mesh
 
   // a-priori mesh refinements
-  mesh.refine_all_elements();
-  mesh.refine_all_elements();
+  //mesh.refine_all_elements();
+  //mesh.refine_all_elements();
+  //mesh.refine_all_elements();
+  mesh.refine_towards_boundary(marker_bottom, 4);
   mesh.refine_all_elements();
   mesh.refine_all_elements();
   mesh.refine_all_elements(2);
-  mesh.refine_towards_boundary(marker_bottom, 4);
+  mesh.refine_all_elements(2);
   //mesh.refine_all_elements();
   //mesh.refine_all_elements();
   //mesh.refine_towards_boundary(1, 4);

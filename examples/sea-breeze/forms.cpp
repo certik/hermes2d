@@ -64,12 +64,16 @@ scalar s4_bc_value(int marker, double x, double y) {
         if (w0_prev == NULL || w1_prev == NULL || w3_prev == NULL ||
                 w4_prev == NULL)
             error("internal error: w?_prev == NULL");
+        /*w1 = 0;
+        w3 = 0;
+        rho = rho_0;*/
         rho = w0_prev->get_pt_value(x, y);
         w1 = w1_prev->get_pt_value(x, y);
         w3 = w3_prev->get_pt_value(x, y);
     }
-    return rho * c_v * T_0 * (1 + A*(1+ tanh(x/L))/2) +
-        1./2 * rho * (w1*w1 + w3*w3);
+    /*return rho * c_v * T_0 * (1 + A*(1+ tanh(x/L))/2) +
+        1./2 * rho * (w1*w1 + w3*w3);*/
+    return rho * c_v * T_0;
 }
 
 #define rho_init(x, y) (rho_z(y))
