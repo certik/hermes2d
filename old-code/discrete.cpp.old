@@ -381,7 +381,7 @@ void DiscreteProblem::assemble_matrix_and_rhs(bool rhsonly)
     for (i = 0; i < neq; i++)
     {
       spaces[i]->get_element_assembly_list(e[i], al + i);
-      // todo: neziskavat znova, pokud se element nezmenil
+      // TODO: don't retrieve this if the element didn't change
       if (is_equi)
         for (j = 0; j < al[i].cnt; j++)
           if (al[i].dof[j] >= 0)
