@@ -435,9 +435,16 @@ void RefMap::untransform(Element* e, double x, double y, double& xi1, double& xi
     double dy = e->vn[0]->y - y;
     xi1 = -1.0 - (const_inv_ref_map[0][0] * dx + const_inv_ref_map[1][0] * dy);
     xi2 = -1.0 - (const_inv_ref_map[0][1] * dx + const_inv_ref_map[1][1] * dy);
+    /*
+    printf("matrix:\n %.15f %.15f\n %.15f %.15f\n", const_inv_ref_map[0][0], const_inv_ref_map[1]
+            [0], const_inv_ref_map[0][1], const_inv_ref_map[1][1]);
+    printf("XXX: vertices: %f %f\n", e->vn[0]->x, e->vn[0]->y);
+    printf("XXX: NO newton: %f %f %f %f %f %f\n", x, y, dx, dy, xi1, xi2);
+    */
   }
   else // Newton Method
   {
+      printf("XXX: newton\n");
     double xi1_old = 0.0, xi2_old = 0.0;
     double vx, vy;
     double2x2 m;

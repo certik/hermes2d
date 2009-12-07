@@ -1,5 +1,5 @@
 # The domain is (-a, a) x (0, b)
-a = 0.5 # domain length * 0.5
+a = 4 # domain length * 0.5
 b = 1  # domain height
 
 vertices =
