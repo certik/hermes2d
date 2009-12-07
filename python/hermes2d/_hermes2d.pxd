@@ -1,3 +1,6 @@
+cdef extern from *:
+    ctypedef char const_char "const char"
+
 cdef extern from "math.h":
 
     double c_sqr "sqr"(double x)
