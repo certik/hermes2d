@@ -135,6 +135,7 @@ int main(int argc, char* argv[])
   for (int i = 1; i <= num_time_steps; i++)
   {
     TIME += TAU;
+    set_iteration(i);
 
     cmd("print 'Iteration'");
     info("\n---- Time step %d, time = %g -----------------------------------", i, TIME);

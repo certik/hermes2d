@@ -14,7 +14,7 @@ const double rho_0 = rho_z(0);
 #define marker_top 3
 #define marker_left 4
 
-Solution *w0_prev, *w1_prev, *w3_prev, *w4_prev;
+Solution *w0_prev=NULL, *w1_prev=NULL, *w3_prev=NULL, *w4_prev=NULL;
 
 int s0_bc_type(int marker) {
     return BC_NATURAL;
@@ -49,10 +49,29 @@ scalar s3_bc_value(int marker, double x, double y) {
     return 0;
 }
 
+// XXX: This is a hack, it should be made iteration independent
+int iterations = 0;
+void set_iteration(int i) {
+    iterations = i;
+}
+
 scalar s4_bc_value(int marker, double x, double y) {
     double L = 50000./2;
     double A = 0.1;
-    return rho_0 * c_v * T_0 * (1 + A*(1+ tanh(x/L))/2);
+    double w1;
+    double w3;
+    if (iterations == 0) {
+        w1 = 0;
+        w3 = 0;
+    }
+    else {
+        if (w1_prev == NULL || w3_prev == NULL)
+            error("internal error: w?_prev == NULL");
+        w1 = w1_prev->get_pt_value(x, y);
+        w3 = w3_prev->get_pt_value(x, y);
+    }
+    return rho_0 * c_v * T_0 * (1 + A*(1+ tanh(x/L))/2) +
+        1./2 * rho_0 * (w1*w1 + w3*w3);
 }
 
 #define rho_init(x, y) (rho_z(y))
