@@ -42,6 +42,22 @@ print "rho =", rho
 print "T =", T
 print
 
+print "Characteristic constants:"
+l_r = 10000.
+u_r = 95.
+rho_r = 1.1
+print "l_r = %f m" % l_r
+print "u_r = %f m/s" % u_r
+print "rho_r = %f kg/m^3" % rho_r
+print "some rescaled quantities:"
+t_r = l_r/u_r
+print "1s =", 1/t_r
+print "10**5 Pa =", 10**5/(rho_r * u_r**2)
+print "4000 J =", 4000/(rho_r * u_r**2)
+print "9.81 m/s^2 =", 9.81/(t_r**2/l_r)
+print "1.1 kg/m^3 =", 1.1/rho_r
+print
+
 def print_values_h(h):
     print "values at z = %dm:" % h
     print "p(%d) = %f" % (h, p.subs(z, h))
@@ -71,6 +87,9 @@ params = {
         "R": R,
         "g": g,
         "c_v": c_v,
+        "l_r": l_r,
+        "u_r": u_r,
+        "rho_r": rho_r,
         }
 
 template = "params.h"
