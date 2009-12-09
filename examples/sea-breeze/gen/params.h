@@ -21,4 +21,13 @@
 #define g {{ params.g }}           // gravitational acceleration
 #define c_v {{ params.c_v }}       // specific heat capacity
 
+// main characteristic constants
+#define l_r {{ params.l_r }}
+#define u_r {{ params.u_r }}
+#define rho_r {{ params.rho_r }}
+// other characteristic constants
+#define t_r (l_r/u_r)
+#define p_r (rho_r*u_r*u_r)
+#define g_r (l_r/(t_r*t_r))
+
 #endif

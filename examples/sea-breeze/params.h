@@ -21,4 +21,13 @@
 #define g 9.80665           // gravitational acceleration
 #define c_v 20.8       // specific heat capacity
 
+// main characteristic constants
+#define l_r 10000.0
+#define u_r 95.0
+#define rho_r 1.1
+// other characteristic constants
+#define t_r (l_r/u_r)
+#define p_r (rho_r*u_r*u_r)
+#define g_r (l_r/(t_r*t_r))
+
 #endif
