@@ -17,14 +17,14 @@
 #define rho_z(z) (1.15894233531748)
 
 // other physical constants
-#define R 287.14           // Gas constant
-#define g 9.80665           // gravitational acceleration
-#define c_v 20.8       // specific heat capacity
+#define R 287.14           // Gas constant [J/(kg*K)]
+#define g 9.80665           // gravitational acceleration [m/s^2]
+#define c_v 717.5       // specific heat capacity [J/(kg*K)]
 
 // main characteristic constants
-#define l_r 10000.0
-#define u_r 95.0
-#define rho_r 1.1
+#define l_r 50000.0 // units: m
+#define u_r 300 // units: m/s
+#define rho_r 1.1 // units: kg/m^3
 // other characteristic constants
 #define t_r (l_r/u_r)
 #define p_r (rho_r*u_r*u_r)

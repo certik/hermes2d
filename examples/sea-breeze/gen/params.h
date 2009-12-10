@@ -17,14 +17,14 @@
 #define rho_z(z) {{ params.rho_z }}
 
 // other physical constants
-#define R {{ params.R }}           // Gas constant
-#define g {{ params.g }}           // gravitational acceleration
-#define c_v {{ params.c_v }}       // specific heat capacity
+#define R {{ params.R }}           // Gas constant [J/(kg*K)]
+#define g {{ params.g }}           // gravitational acceleration [m/s^2]
+#define c_v {{ params.c_v }}       // specific heat capacity [J/(kg*K)]
 
 // main characteristic constants
-#define l_r {{ params.l_r }}
-#define u_r {{ params.u_r }}
-#define rho_r {{ params.rho_r }}
+#define l_r {{ params.l_r }} // units: m
+#define u_r {{ params.u_r }} // units: m/s
+#define rho_r {{ params.rho_r }} // units: kg/m^3
 // other characteristic constants
 #define t_r (l_r/u_r)
 #define p_r (rho_r*u_r*u_r)
