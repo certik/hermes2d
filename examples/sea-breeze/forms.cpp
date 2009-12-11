@@ -69,7 +69,7 @@ scalar s4_bc_value(int marker, double x, double y) {
         w1 = w1_prev->get_pt_value(x, y);
         w3 = w3_prev->get_pt_value(x, y);
         printf("(%f, %f): %.15f %f %f (BC: %.15f %f %f)\n", x, y, rho, w1, w3,
-                rho_0, 0, 0);
+                rho_0, 0., 0.);
         w1 = 0;
         w3 = 0;
         rho = rho_0;
