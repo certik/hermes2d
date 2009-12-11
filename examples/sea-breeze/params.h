@@ -26,8 +26,9 @@
 #define u_r 300 // units: m/s
 #define rho_r 1.1 // units: kg/m^3
 // other characteristic constants
-#define t_r (l_r/u_r)
-#define p_r (rho_r*u_r*u_r)
-#define g_r (l_r/(t_r*t_r))
+#define t_r (l_r/u_r)  // time
+#define p_r (rho_r*u_r*u_r) // presure
+#define E_r (rho_r*u_r*u_r) // energy
+#define g_r (l_r/(t_r*t_r)) // gravitational constant
 
 #endif

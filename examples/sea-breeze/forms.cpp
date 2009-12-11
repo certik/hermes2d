@@ -2,7 +2,7 @@
 
 #include "_hermes2d_api.h"
 
-const double TAU = 0.01;  // this is in seconds
+const double TAU = 0.01/t_r;  // this is in seconds
 
 const double T_0 = T_z(0);
 const double p_0 = p_z(0);
@@ -76,7 +76,7 @@ scalar s4_bc_value(int marker, double x, double y) {
     }
     /*return rho * c_v * T_0 * (1 + A*(1+ tanh(x/L))/2) +
         1./2 * rho * (w1*w1 + w3*w3);*/
-    return rho * c_v * T_0;
+    return rho * c_v * T_0 / E_r;
 }
 
 #define rho_init(x, y) (rho_z(y))
@@ -85,7 +85,7 @@ scalar s4_bc_value(int marker, double x, double y) {
 scalar w0_init(double x, double y, scalar& dx, scalar& dy) {
     dx = 0;
     dy = 0;
-    return rho_init(x, y);
+    return rho_init(x, y) / rho_r;
 }
 
 scalar w1_init(double x, double y, scalar& dx, scalar& dy) {
@@ -103,7 +103,7 @@ scalar w3_init(double x, double y, scalar& dx, scalar& dy) {
 scalar w4_init(double x, double y, scalar& dx, scalar& dy) {
     dx = 0;
     dy = 0;
-    return rho_init(x, y) * T_init(x, y) * c_v;
+    return rho_init(x, y) * T_init(x, y) * c_v / E_r;
 }
 
 
@@ -435,7 +435,7 @@ Scalar l_2(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext
 {
     Scalar result = 0;
     for (int i = 0; i < n; i++)
-        result += wt[i] * (ext->fn[2]->val[i]/TAU - ext->fn[0]->val[i]*g) * \
+        result += wt[i] * (ext->fn[2]->val[i]/TAU - ext->fn[0]->val[i]*g/g_r) *
                   v->val[i];
     return result;
 }

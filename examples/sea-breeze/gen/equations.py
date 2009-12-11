@@ -46,6 +46,8 @@ print "Characteristic constants:"
 l_r = 50000.
 u_r = 300
 rho_r = 1.1
+# uncomment this line to disable rescaling:
+#l_r = u_r = rho_r = 1.
 print "l_r = %f m" % l_r
 print "u_r = %f m/s" % u_r
 print "rho_r = %f kg/m^3" % rho_r
