@@ -1,6 +1,6 @@
 # The domain is (-a, a) x (0, b)
-a = 4/50000.  # domain length * 0.5
-b = 1/50000.  # domain height
+a = 0.5  # domain length * 0.5
+b = 1  # domain height
 
 vertices =
 {
