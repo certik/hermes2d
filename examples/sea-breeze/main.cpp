@@ -64,7 +64,7 @@ int main(int argc, char* argv[])
   //mesh.refine_all_elements();
   //mesh.refine_all_elements();
   //mesh.refine_all_elements();
-  mesh.refine_towards_boundary(marker_bottom, 6);
+  mesh.refine_towards_boundary(marker_bottom, 10);
   mesh.refine_all_elements();
   mesh.refine_all_elements();
   mesh.refine_all_elements(2);
@@ -134,7 +134,8 @@ int main(int argc, char* argv[])
 
   // main loop
   char title[100];
-  int num_time_steps = FINAL_TIME / TAU;
+  //int num_time_steps = FINAL_TIME / TAU;
+  int num_time_steps = 100000;
   for (int i = 1; i <= num_time_steps; i++)
   {
     TIME += TAU;
