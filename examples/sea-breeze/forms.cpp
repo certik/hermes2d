@@ -2,7 +2,7 @@
 
 #include "_hermes2d_api.h"
 
-const double TAU = 0.01/t_r;  // this is in seconds
+const double TAU = 0.001/t_r;  // this is in seconds
 
 const double T_0 = T_z(0);
 const double p_0 = p_z(0);
@@ -80,8 +80,8 @@ scalar s4_bc_value(int marker, double x, double y) {
     //    1./2 * rho * (w1*w1 + w3*w3))/E_r;
     //return (rho * c_v * T_0 * (1 + A*(1+ tanh(x/L))/2))/E_r;
     rho = rho_0;
-    return rho * c_v * T_0 * (1+0.01*atan(x*10))/ E_r;
-    //return rho * c_v * T_0 / E_r;
+    return rho * c_v * T_0 * (1+0.01*(M_PI/2+atan(x*20)))/ E_r;
+    //return rho * c_v * (T_0+0.01) / E_r;
 }
 
 #define rho_init(x, y) (rho_z(y*l_r))
