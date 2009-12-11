@@ -29,7 +29,7 @@ int s3_bc_type(int marker) {
 }
 
 int s4_bc_type(int marker) {
-    return BC_NATURAL;
+    //return BC_NATURAL;
     if (marker == marker_bottom)
         return BC_ESSENTIAL;
     else
@@ -51,7 +51,7 @@ void set_iteration(int i) {
 }
 
 scalar s4_bc_value(int marker, double x, double y) {
-    double L = 50000./2;
+    double L = 0.5/50000;
     double A = 0.1;
     double w1;
     double w3;
@@ -74,13 +74,15 @@ scalar s4_bc_value(int marker, double x, double y) {
         w3 = 0;
         rho = rho_0;
     }
-    /*return rho * c_v * T_0 * (1 + A*(1+ tanh(x/L))/2) +
-        1./2 * rho * (w1*w1 + w3*w3);*/
+    //return (rho * c_v * T_0 * (1 + A*(1+ tanh(x/L))/2) +
+    //    1./2 * rho * (w1*w1 + w3*w3))/E_r;
+    //return (rho * c_v * T_0 * (1 + A*(1+ tanh(x/L))/2))/E_r;
+    //return rho * c_v * T_0 * (1+M_PI/2 + 0.1*atan(x))/ E_r;
     return rho * c_v * T_0 / E_r;
 }
 
-#define rho_init(x, y) (rho_z(y))
-#define T_init(x, y) (T_z(y))
+#define rho_init(x, y) (rho_z(y*l_r))
+#define T_init(x, y) (T_z(y*l_r))
 
 scalar w0_init(double x, double y, scalar& dx, scalar& dy) {
     dx = 0;

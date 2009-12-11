@@ -43,7 +43,8 @@ print "T =", T
 print
 
 print "Characteristic constants:"
-l_r = 50000.
+#l_r = 50000.
+l_r = 4000.
 u_r = 300
 rho_r = 1.1
 # uncomment this line to disable rescaling:

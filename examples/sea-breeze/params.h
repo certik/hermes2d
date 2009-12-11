@@ -22,7 +22,7 @@
 #define c_v 717.5       // specific heat capacity [J/(kg*K)]
 
 // main characteristic constants
-#define l_r 50000.0 // units: m
+#define l_r 4000.0 // units: m
 #define u_r 300 // units: m/s
 #define rho_r 1.1 // units: kg/m^3
 // other characteristic constants
