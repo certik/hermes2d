@@ -51,7 +51,7 @@ void set_iteration(int i) {
 }
 
 scalar s4_bc_value(int marker, double x, double y) {
-    double L = 0.5/50000;
+    double L = 0.5;
     double A = 0.1;
     double w1;
     double w3;
@@ -77,8 +77,8 @@ scalar s4_bc_value(int marker, double x, double y) {
     //return (rho * c_v * T_0 * (1 + A*(1+ tanh(x/L))/2) +
     //    1./2 * rho * (w1*w1 + w3*w3))/E_r;
     //return (rho * c_v * T_0 * (1 + A*(1+ tanh(x/L))/2))/E_r;
-    //return rho * c_v * T_0 * (1+M_PI/2 + 0.1*atan(x))/ E_r;
-    return rho * c_v * T_0 / E_r;
+    return rho * c_v * T_0 * (1+0.01*atan(x))/ E_r;
+    //return rho * c_v * T_0 / E_r;
 }
 
 #define rho_init(x, y) (rho_z(y*l_r))
