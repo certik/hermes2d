@@ -56,6 +56,7 @@ scalar s4_bc_value(int marker, double x, double y) {
     double w1;
     double w3;
     double rho;
+    /*
     if (iterations == 0) {
         w1 = 0;
         w3 = 0;
@@ -74,10 +75,12 @@ scalar s4_bc_value(int marker, double x, double y) {
         w3 = 0;
         rho = rho_0;
     }
+    */
     //return (rho * c_v * T_0 * (1 + A*(1+ tanh(x/L))/2) +
     //    1./2 * rho * (w1*w1 + w3*w3))/E_r;
     //return (rho * c_v * T_0 * (1 + A*(1+ tanh(x/L))/2))/E_r;
-    return rho * c_v * T_0 * (1+0.01*atan(x))/ E_r;
+    rho = rho_0;
+    return rho * c_v * T_0 * (1+0.01*atan(x*10))/ E_r;
     //return rho * c_v * T_0 / E_r;
 }
 
