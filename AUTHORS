@@ -2,23 +2,29 @@ Copyright 2005-2008 Jakub Cerveny <jakub.cerveny@gmail.com>
 Copyright 2005-2008 Lenka Dubcova <dubcova@gmail.com>
 Copyright 2005-2008 Pavel Solin <solin@unr.edu>
 
-Pavel Solin (solin@unr.edu)
+Pavel Solin <solin@unr.edu>
   - group leader
   - project direction
   - main ideas for numerical methods
     and assistance with mathematical issues
 
-Jakub Cerveny (jakub.cerveny@gmail.com)
+Jakub Cerveny <jakub.cerveny@gmail.com>
   - code design
   - hanging nodes
   - multi-mesh implementation
   - ortho adaptivity
   - visualization, documentation
 
-Lenka Dubcova (dubcova@gmail.com)
+Lenka Dubcova <dubcova@gmail.com>
   - implementation of shapesets
   - curved elements
   - H(curl) code
 
-Ondrej Certik, Robert Cimrman
+Ondrej Certik <ondrej@certik.cz>,
+Robert Cimrman <cimrman3@ntc.zcu.cz>
   - python interface
+
+David Andrs <andrsd@gmail.com>
+František Mach <mach.frantisek@gmail.com>
+Sameer Regmi <regmisk@gmail.com>
+Ma Zhonghua <mazhonghua83@gmail.com>
