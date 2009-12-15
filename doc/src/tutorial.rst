@@ -6,36 +6,45 @@ Introduction
 ------------
 
 Welcome to Hermes2D, a free C++/Python library for rapid prototyping of
-adaptive FEM and $hp$-FEM solvers for partial differential equations (PDE)
-developed by an open source community around the
-`hp-FEM group <http://hpfem.org/>`_
-at the University of Nevada, Reno. The library has a clean design and modular
-structure, and it is available under the GPL license (Version 2, 1991). This
-document presents a brief tutorial. Prior to reading the tutorial, install
-Hermes2D using instructions on its home page. All tutorial examples can be
-found in the directory ``tutorial``.
+adaptive FEM and *hp*-FEM solvers for partial differential equations (PDE),
+developed by the `hp-FEM group <http://hpfem.org/>`_ at the University of 
+Nevada, Reno. The library 
+has a clean design and modular structure, and it is available under the 
+GPL license (Version 2, 1991). 
+Prior to reading this document, install Hermes2D using instructions on 
+its `home page <http://hpfem.org/hermes2d/>`_. The source code can be 
+viewed in the `git repository <http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree>`_, 
+and in particular all tutorial examples can be found in the directory 
+`tutorial/ <http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/tutorial>`_.
 
-The $hp$-FEM is a modern version of the finite element method (FEM). It is
-capable of extremely fast, exponential convergence through suitable adaptive
-combination of elements of variable diameter $h$ and polynomial degree $p$.
-Hermes2D is fully PDE-independent, i.e., it does not contain any techniques
-which would work for a selected class of PDE only.  Approximations can be done
-using quality $H^1$, $\Hcurl$, $\Hdiv$, and $L^2$ conforming higher-order
-elements (which can be combined in the discretization of multiphysics problems
-via the novel adaptive multimesh $hp$-FEM if needed).
+Interesting Features
+--------------------
 
-Here is a list of main points where Hermes differs from most other $hp$-FEM and
-FEM codes:
+There are a few features where Hermes differs from conventional FEM codes:
 
-* `PDE-independent adaptivity algorithms`. Hermes does not use any methods or algorithms that would restrict its applicability to some particular PDE type. In particular, adaptivity is guided by robust computational a-posteriori error estimates that work equally for any PDE.
+* `Mature hp-FEM algorithms`. Practitioners know well that it does not make sense to use automatic adaptivity in conjunction with standard lower-order approximations such as linear or quadratic elements. Hermes is based on adaptive *hp*-FEM that is capable of extremely fast, exponential convergence through simultaneous variation of the element diameter *h* and polynomial degree *p*. The situation is illustrated in the following graph where the reader can see that adaptive *hp*-FEM does not get stalled during adaptivity as low-order methods do. ADD GRAPH.
 
-* `Arbitrary-level hanging nodes`. Hermes is capable of handling arbitrarily irregular meshes. This means that extremely small elements can be adjacent to large ones. When an element is refined, its neighbors are never altered as in other adaptivity algorithms.
+.. image:: img/conv-typical.png
+   :align: center
+   :width: 400
+   :height: 250
+   :alt: Typical convergence curves of FEM with linear and quadratic elements and hp-FEM
 
-* `Monolithic multimesh hp-FEM discretization`. Different physical fields or solution components can be approximated on individual meshes. The approximation is monolithic, i.e., no error is caused by operator splitting, no error is caused by transferring data between different meshes.
+* `Hermes is genuinely PDE-independent`. The software does not use any methods or algorithms that would limit its applicability to some particular PDE type. In particular, automatic adaptivity is guided by universal computational a-posteriori error estimates. ADD SOME IMAGES FROM VARIOUS PROCESSES
 
-* `Adaptive multimesh hp-FEM on dynamical meshes for time-dependent problems`. Different physical fields or solution components in time-dependent problems can be approximated on individual meshes that evolve in time independently of each other.  The discretization of the PDE system is monolithic.
+* `Arbitrary-level hanging nodes`. Hermes is capable of handling arbitrarily irregular meshes. This means that extremely small elements can be adjacent to very large ones. When an element is refined, its neighbors are never split forcefully as in conventional adaptivity algorithms. This makes automatic adaptivity in Hermes extremely efficient. 
 
-See the Hermes2D `home page <http://hpfem.org/main/hermes.php>`_ for other
+.. image:: img/ord_2d_c.png
+   :align: center
+   :width: 300
+   :height: 300
+   :alt: Illustration of arbitrary-level hanging nodes
+
+* `Multimesh hp-FEM`. Various physical fields or solution components in multiphysics problems can be approximated on individual meshes, combining quality *H1*, *Hcurl*, *Hdiv*, and *L2* conforming higher-order elements. The approximation is monolithic, i.e., no error is caused by operator splitting, transferring data between different meshes, etc. ADD IMAGE OF MULTIMESH.
+
+* `Space-time hp-adaptivity on dynamical meshes`. In time-dependent problems, different physical fields or solution components can be approximated on individual meshes that evolve in time independently of each other.  The discretization of the PDE system is monolithic. ADD IMAGES OF FLAME PROPAGATION.
+
+See the `Hermes2D home page <http://hpfem.org/main/hermes.php>`_ for other
 interesting features.
 
 
@@ -314,7 +323,7 @@ a bubble function is associated with an element
 There are many possible ways of defining the
 higher-order basis functions. A particular set of polynomials is called
 \emph{shapeset}\index{Shapeset}. Using good shapeset is crucial for the
-performance of the $hp$-FEM. No shapeset can be optimal for all possible operators.
+performance of the *hp*-FEM. No shapeset can be optimal for all possible operators.
 Therefore, Hermes2D offers several shapesets from which
 you need to choose when creating a FE space. The ones which perform best
 in most computations (according to our experience) are simply called
@@ -1241,7 +1250,7 @@ are rightfully skeptical of it. The reason is illustrated in Figure 13.
   \medskip \centering
   \includegraphics[width=0.8\textwidth]{img/conv_new}
   \caption{Typical convergence curves for adaptive linear FEM, quadratic
-FEM, and $hp$-FEM.}
+FEM, and *hp*-FEM.}
   \label{fig:conv}
 \end{figure}
 
@@ -1258,7 +1267,7 @@ an excellent adaptivity algorithm cannot improve it (and a bad
 algorithm can make it even worse).
 
 In order to obtain fast, usable adaptivity (the green curve in Figure \ref{fig:conv}), one
-has to resort to adaptive $hp$-FEM \cite{solin1}. The $hp$-FEM takes advantage of two
+has to resort to adaptive *hp*-FEM \cite{solin1}. The *hp*-FEM takes advantage of two
 facts:
 
 \begin{itemize}
@@ -1268,20 +1277,20 @@ this fact. Check it out, the results are impressive.
 \item This holds the other way where the solution is not smooth.
 \end{itemize}
 
-Automatic adaptivity in the $hp$-FEM is substantially different from adaptivity
+Automatic adaptivity in the *hp*-FEM is substantially different from adaptivity
 in low-order FEM, since every element can be refined in many different ways.
 Figure \ref{fig:refinements} shows several example refinements for a fourth-order element.
 
 \begin{figure}[!ht]
   \medskip \centering
   \includegraphics[width=0.9\textwidth]{img/refinements}
-  \caption{Examples of $hp$-refinements.}
+  \caption{Examples of *hp*-refinements.}
   \label{fig:refinements}
 \end{figure}
 
 Due to the large number of refinement options, classical error estimators (that
 provide a constant error estimate per element) cannot be used to guide au\-
-tomatic $hp$-adaptivity. For this, one needs to know the {\it shape} of the
+tomatic *hp*-adaptivity. For this, one needs to know the {\it shape} of the
 approximation error.
 
 In analogy to the most successful adaptive ODE solvers,
@@ -1302,13 +1311,13 @@ the solve on the coarse mesh, the difference is negligible.)
 The obvious disadvantage of this approach to adaptivity is its higher computational cost,
 especially in 3D. We are aware of this fact and would not mind at all replacing it with
 some cheaper technique (that also is PDE-independent, works for elements of high orders,
-and can be successfully used to guide $hp$-adaptivity).
+and can be successfully used to guide *hp*-adaptivity).
 
 Adaptivity Example -- Electrostatic Micromotor
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
-Let us demostrate the use of automatic $hp$-adaptivity in Hermes2D on a linear elliptic problem
+Let us demostrate the use of automatic *hp*-adaptivity in Hermes2D on a linear elliptic problem
 ({\tt tutorial/09-adapt}) concerned with the calculation of
 the electrostatic potential in the vicinity of the electrodes of an electrostatic
 micromotor. This is a MEMS device free of any coils, and thus resistive to
@@ -1384,7 +1393,7 @@ handles all the temporary reference meshes and spaces transparently. All it need
 In the third and last step of each iteration, we refine our mesh and polynomial degrees stored
 in our space using a class called {\tt H1OrthoHP}. This class offers two services: it is able to
 calculate  the estimate of the overall error of the coarse solution in $H^1$ norm, and if the
-error is too large, you can ask the class to $hp$-adapt your mesh and element orders optimally.
+error is too large, you can ask the class to *hp*-adapt your mesh and element orders optimally.
 
 {\tt H1OrthoHP} is initialized with the number of spaces in the problem and pointers to them.
 The method \verb"calc_error" takes pointers to the coarse and reference solutions and returns
@@ -1423,7 +1432,7 @@ times maximum element error.
 \item {\tt STRATEGY == 2}: Refine all elements whose error is bigger than {\tt THRESHOLD}.
 \end{itemize}
 
-If {\tt ADAPT\_TYPE == 0}, $hp$-adaptivity is performed (default). If {\tt ADAPT\_TYPE == 1},
+If {\tt ADAPT\_TYPE == 0}, *hp*-adaptivity is performed (default). If {\tt ADAPT\_TYPE == 1},
 the algorithm does $h$-adaptivity (fixed polynomial degrees of elements). This option is there
 for comparison purposes. With {\tt ADAPT\_TYPE == 2} the algorithm does pure $p$-adaptivity (element
 geometries fixed). This option
@@ -1437,14 +1446,14 @@ hanging nodes (default), and {\tt 1, 2, 3, ... } means 1-irregular mesh,
 because of its extremely poor performance.
 
 It is a very good idea to spend some time playing with these parameters to
-get a feeling for adaptive $hp$-FEM. Also look at other adaptivity examples in
+get a feeling for adaptive *hp*-FEM. Also look at other adaptivity examples in
 the {\tt examples/} directory: {\tt layer}, {\tt lshape} deal with elliptic problems and have
 known exact solutions. So do examples {\tt screen}, {\tt bessel} for time-harmonic
 Maxwell's equations. These examples allow you to compare the error estimates
 computed by Hermes with the true error. Examples {\tt crack}, {\tt singpert} show
 how to handle cracks and singularly perturbed problems, respectively. There
 are also more advanced examples illustrating automatic adaptivity for nonlinear
-problems solved via the Newton's method, adaptive multimesh \hbox{$hp$-FEM},
+problems solved via the Newton's method, adaptive multimesh \hbox{*hp*-FEM},
 adaptivity for time-dependent problems on dynamical meshes, etc.
 
 But let's return to the micromotor example for a moment again: The computation
@@ -1581,7 +1590,7 @@ which allows
 all components of the solution to adapt independently. In problems whose components exhibit
 substantially different behavior, one may even obtain completely different meshes.
 See example {\tt multimesh} for a more advanced application of
-multimesh $hp$-FEM to thermoelasticity.
+multimesh *hp*-FEM to thermoelasticity.
 
 
 Example ns-timedep}\label{sec:ns-timedep
