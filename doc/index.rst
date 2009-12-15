@@ -9,7 +9,8 @@ Content of Hermes2D Documentation
 .. toctree::
     :maxdepth: 2
 
-    wrappers
+    src/tutorial
+    src/wrappers
 
 Links
 =====
