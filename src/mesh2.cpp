@@ -1332,3 +1332,170 @@ void Mesh::free()
   elements.free();
   HashTable::free();
 }
+
+void Mesh::copy_refine(Mesh* mesh)
+{
+  free();
+  HashTable::copy(mesh);
+
+  // copy base elements
+  Element* e;
+
+  for_all_refine_elements(e, mesh)
+  {
+    Element* enew;
+    Node *v0 = &nodes[e->vn[0]->id], *v1 = &nodes[e->vn[1]->id], *v2 = &nodes[e->vn[2]->id];
+    if (e->is_triangle())
+      enew = create_triangle(e->marker, v0, v1, v2, NULL);
+    else
+      enew = create_quad(e->marker, v0, v1, v2, &nodes[e->vn[3]->id], NULL);
+
+    // copy edge markers
+    for (int j = 0; j < e->nvert; j++)
+    {
+      Node* en = get_base_edge_node(e, j);
+      enew->en[j]->bnd = en->bnd;
+      enew->en[j]->marker = en->marker;
+    }
+
+    enew->userdata = e->userdata;
+    if (e->is_curved())
+      enew->cm = new CurvMap(e->cm);
+  }
+
+  nbase = nactive = ninitial = mesh->nbase;
+  ntopvert = mesh->ntopvert;
+  seq = g_mesh_seq++;
+}
+
+////convert a triangle element into three quadrilateral elements///////
+
+void Mesh::convert_to_quads(int refinement)
+{
+  int i;
+  Element* e;
+  int temp_n = 900000;
+  int temp_compare[temp_n];
+  int temp_exist[temp_n];
+  int temp_i = 0;
+  int temp_j = 0;
+  int temp_k = 0;
+  int temp_count = 0;
+  int max_node_num = 0;
+
+  Mesh tmp;
+  memset(temp_compare, 0, sizeof(temp_compare));
+  memset(temp_exist, 0, sizeof(temp_exist));
+
+  for (temp_i = 0; temp_i < temp_n; temp_i++)
+  {
+    temp_compare[temp_i] = temp_i;
+  }
+
+  elements.set_append_only(true);
+  for_all_active_elements(e, this)
+    refine_element_to_quads(e->id, refinement);
+  elements.set_append_only(false);
+
+  tmp.copy_refine(this);
+  copy(&tmp);
+  // get all nodes number and value
+  for (i = get_num_base_elements(); i < get_max_element_id(); i++)
+  {
+    e = get_element_fast(i);
+    if (e->is_triangle())
+           temp_k = 3;
+    else
+           temp_k = 4;
+
+    for (temp_j = 0; temp_j < temp_k; temp_j++)
+    {
+      if (temp_compare[e->vn[temp_j]->id] == e->vn[temp_j]->id)
+        temp_exist[e->vn[temp_j]->id] = e->vn[temp_j]->id;
+    }
+  }
+
+  for (i = 1; i < temp_n; i++)
+  {
+    if (temp_exist[i] != 0)
+      temp_count++;
+  }
+
+  // get the total count of node number
+  for (i = 1; i < temp_n; i++)
+  {
+    if (temp_exist[i] > temp_exist[i-1])
+    {
+        max_node_num = temp_exist[i] + 1;
+    }
+  }
+  temp_count += 1;
+  ntopvert = max_node_num;
+  nbase = get_max_element_id();
+}
+
+////convert a quad element into two triangle elements///////
+void Mesh::convert_to_triangles()
+{
+  int i;
+  Element* e;
+  int temp_n = 900000;
+  int temp_compare[temp_n];
+  int temp_exist[temp_n];
+  int temp_i = 0;
+  int temp_j = 0;
+  int temp_k = 0;
+  int temp_count = 0;
+  int max_node_num = 0;
+
+  Mesh tmp;
+  memset(temp_compare, 0, sizeof(temp_compare));
+  memset(temp_exist, 0, sizeof(temp_exist));
+
+  for (temp_i = 0; temp_i < temp_n; temp_i++)
+  {
+    temp_compare[temp_i] = temp_i;
+  }
+
+  elements.set_append_only(true);
+  for_all_active_elements(e, this)
+    refine_element_to_triangles(e->id);
+  elements.set_append_only(false);
+
+  tmp.copy_refine(this);
+  copy(&tmp);
+  // get all nodes number and value
+  for (i = get_num_base_elements(); i < get_max_element_id(); i++)
+  {
+    e = get_element_fast(i);
+    if (e->is_triangle())
+           temp_k = 3;
+    else
+           temp_k = 4;
+
+    for (temp_j = 0; temp_j < temp_k; temp_j++)
+    {
+      if (temp_compare[e->vn[temp_j]->id] == e->vn[temp_j]->id)
+        temp_exist[e->vn[temp_j]->id] = e->vn[temp_j]->id;
+    }
+  }
+
+  for (i = 1; i < temp_n; i++)
+  {
+    if (temp_exist[i] != 0)
+      temp_count++;
+  }
+
+  // get the total count of node number
+  for (i = 1; i < temp_n; i++)
+  {
+    if (temp_exist[i] > temp_exist[i-1])
+    {
+        max_node_num = temp_exist[i] + 1;
+    }
+  }
+  temp_count += 1;
+  ntopvert = max_node_num;
+  nbase = get_max_element_id();
+}
+
