@@ -87,12 +87,11 @@ scalar bc_values(int marker, double x, double y)
   return fn(x, y);
 }
 
-template<typename Real>
-Real rhs(Real x, Real y)
+scalar rhs(scalar x, scalar y)
 {
   if (x < 0) return 0;
-  else return ALPHA*ALPHA*pow(x, ALPHA - 2.) - M_PI*M_PI/4.*pow(x, ALPHA); 
-} 
+  else return ALPHA*ALPHA*pow(x, ALPHA - 2.) - M_PI*M_PI/4.*pow(x, ALPHA);
+}
 
 template<typename Real, typename Scalar>
 Scalar bilinear_form(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
@@ -100,11 +99,10 @@ Scalar bilinear_form(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real>
   return int_grad_u_grad_v<Real, Scalar>(n, wt, u, v) - K*K * int_u_v<Real, Scalar>(n, wt, u, v);
 }
 
-template<typename Real, typename Scalar>
-Scalar linear_form(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+scalar linear_form(int n, double *wt, Func<scalar> *v, Geom<scalar> *e, ExtData<scalar> *ext)
 {
   //return fn() * int_v<Real, Scalar>(n, wt, v);
-  return int_F_v<Real, Scalar>(n, wt, rhs, v, e);
+  return int_F_v<scalar, scalar>(n, wt, rhs, v, e);
 }
 
 template<typename Real>
