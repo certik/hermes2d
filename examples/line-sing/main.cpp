@@ -107,6 +107,20 @@ Scalar linear_form(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scal
   return int_F_v<Real, Scalar>(n, wt, rhs, v, e);
 }
 
+template<typename Real>
+Real rhs_ord(Real x, Real y)
+{
+  if (x < 0) return 0;
+  else return ALPHA*ALPHA*pow(x, ALPHA - 2.) - M_PI*M_PI/4.*pow(x, ALPHA); 
+} 
+
+template<typename Real, typename Scalar>
+Scalar linear_form_ord(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+{
+  //return fn() * int_v<Real, Scalar>(n, wt, v);
+  return int_F_v<Real, Scalar>(n, wt, rhs_ord, v, e);
+}
+
 int main(int argc, char* argv[])
 {
   // load the mesh
@@ -133,7 +147,7 @@ int main(int argc, char* argv[])
   // initialize the weak formulation
   WeakForm wf(1);
   wf.add_biform(0, 0, callback(bilinear_form), SYM);
-  wf.add_liform(0, callback(linear_form));
+  wf.add_liform(0, linear_form, linear_form_ord);
 
   // visualize solution and mesh
   ScalarView sview("Coarse solution", 0, 100, 798, 700);
