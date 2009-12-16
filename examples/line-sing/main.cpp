@@ -39,7 +39,7 @@ const int ADAPT_TYPE = 0;         // Type of automatic adaptivity:
                                   // ADAPT_TYPE = 0 ... adaptive hp-FEM (default),
                                   // ADAPT_TYPE = 1 ... adaptive h-FEM,
                                   // ADAPT_TYPE = 2 ... adaptive p-FEM.
-const bool ISO_ONLY = false;      // Isotropic refinement flag (concerns quadrilateral elements only).
+const bool ISO_ONLY = true;      // Isotropic refinement flag (concerns quadrilateral elements only).
                                   // ISO_ONLY = false ... anisotropic refinement of quad elements
                                   // is allowed (default),
                                   // ISO_ONLY = true ... only isotropic refinements of quad elements
@@ -50,14 +50,14 @@ const int MESH_REGULARITY = -1;   // Maximum allowed level of hanging nodes:
                                   // MESH_REGULARITY = 2 ... at most two-level hanging nodes, etc.
                                   // Note that regular meshes are not supported, this is due to
                                   // their notoriously bad performance.
-const double ERR_STOP = 0.1;      // Stopping criterion for adaptivity (rel. error tolerance between the
+const double ERR_STOP = 0.0001;      // Stopping criterion for adaptivity (rel. error tolerance between the
                                   // fine mesh and coarse mesh solution in percent).
 const int NDOF_STOP = 100000;     // Adaptivity process stops when the number of degrees of freedom grows
                                   // over this limit. This is to prevent h-adaptivity to go on forever.
 
 // problem constants
 const double K = M_PI/2;    // Equation parameter.
-const double ALPHA = 1.5;         // Equation parameter
+const double ALPHA = 2.01;         // Equation parameter
 
 // exact solution
 static double fn(double x, double y)
@@ -89,14 +89,14 @@ scalar bc_values(int marker, double x, double y)
 
 scalar rhs(scalar x, scalar y)
 {
-  if (x < 0) return 0;
-  else return -ALPHA*(ALPHA-1)*pow(x, ALPHA - 2.) - K*K*pow(x, ALPHA);
+  if (x < 0) return fn(x, y)*K*K;
+  else return fn(x, y)*K*K-ALPHA*(ALPHA-1)*pow(x, ALPHA - 2.) - K*K*pow(x, ALPHA);
 }
 
 template<typename Real, typename Scalar>
 Scalar bilinear_form(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
-  return int_grad_u_grad_v<Real, Scalar>(n, wt, u, v) - K*K * int_u_v<Real, Scalar>(n, wt, u, v);
+  return int_grad_u_grad_v<Real, Scalar>(n, wt, u, v);
 }
 
 scalar linear_form(int n, double *wt, Func<scalar> *v, Geom<scalar> *e, ExtData<scalar> *ext)
@@ -127,7 +127,7 @@ int main(int argc, char* argv[])
 
   // initial mesh refinement
   for (int i=0; i < INIT_REF_NUM; i++) mesh.refine_all_elements();
-  mesh.refine_all_elements();
+  //mesh.refine_all_elements();
 
   // initialize the shapeset and the cache
   H1ShapesetOrtho shapeset;
