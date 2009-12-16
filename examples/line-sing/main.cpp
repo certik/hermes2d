@@ -50,7 +50,7 @@ const int MESH_REGULARITY = -1;   // Maximum allowed level of hanging nodes:
                                   // MESH_REGULARITY = 2 ... at most two-level hanging nodes, etc.
                                   // Note that regular meshes are not supported, this is due to
                                   // their notoriously bad performance.
-const double ERR_STOP = 0.6;      // Stopping criterion for adaptivity (rel. error tolerance between the
+const double ERR_STOP = 0.1;      // Stopping criterion for adaptivity (rel. error tolerance between the
                                   // fine mesh and coarse mesh solution in percent).
 const int NDOF_STOP = 100000;     // Adaptivity process stops when the number of degrees of freedom grows
                                   // over this limit. This is to prevent h-adaptivity to go on forever.
@@ -114,6 +114,7 @@ Real rhs_ord(Real x, Real y)
 template<typename Real, typename Scalar>
 Scalar linear_form_ord(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
+    return Real(30);
   //return fn() * int_v<Real, Scalar>(n, wt, v);
   return int_F_v<Real, Scalar>(n, wt, rhs_ord, v, e);
 }
@@ -232,6 +233,7 @@ int main(int argc, char* argv[])
 
     // time measurement
     cpu += end_time();
+    sview.wait_for_keypress();
   }
   while (done == false);
   verbose("Total running time: %g sec", cpu);
