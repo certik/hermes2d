@@ -12,8 +12,8 @@
 //  PDE: -Laplace u - K*K*u = f
 //  where f is dictated by exact solution
 //
-//  Exact solution: u(x,y) = cos(M_PI*y/2)    for x < 0
-//                  u(x,y) = cos(M_PI*y/2) + pow(x, alpha)   for x > 0   where alpha > 0
+//  Exact solution: u(x,y) = cos(K*y)    for x < 0
+//                  u(x,y) = cos(K*y) + pow(x, alpha)   for x > 0   where alpha > 0
 //
 //  Domain: square, see the file singpert.mesh
 //
@@ -56,21 +56,21 @@ const int NDOF_STOP = 100000;     // Adaptivity process stops when the number of
                                   // over this limit. This is to prevent h-adaptivity to go on forever.
 
 // problem constants
-const double K = M_PI*M_PI/4.;    // Equation parameter.
+const double K = M_PI/2;    // Equation parameter.
 const double ALPHA = 1.5;         // Equation parameter
 
 // exact solution
 static double fn(double x, double y)
 {
-  if (x <= 0) return cos(M_PI*y/2.);
-  else return cos(M_PI*y/2.) + pow(x, ALPHA);
+  if (x <= 0) return cos(K*y);
+  else return cos(K*y) + pow(x, ALPHA);
 }
 
 static double fndd(double x, double y, double& dx, double& dy)
 {
   if (x <= 0) dx = 0;
   else dx = ALPHA*pow(x, ALPHA - 1); 
-  dy = -sin(M_PI*y/2.)*M_PI/2.;
+  dy = -sin(K*y)*K;
   return fn(x, y);
 }
 
@@ -90,7 +90,7 @@ scalar bc_values(int marker, double x, double y)
 scalar rhs(scalar x, scalar y)
 {
   if (x < 0) return 0;
-  else return ALPHA*ALPHA*pow(x, ALPHA - 2.) - M_PI*M_PI/4.*pow(x, ALPHA);
+  else return -ALPHA*(ALPHA-1)*pow(x, ALPHA - 2.) - K*K*pow(x, ALPHA);
 }
 
 template<typename Real, typename Scalar>
@@ -108,9 +108,8 @@ scalar linear_form(int n, double *wt, Func<scalar> *v, Geom<scalar> *e, ExtData<
 template<typename Real>
 Real rhs_ord(Real x, Real y)
 {
-  if (x < 0) return 0;
-  else return ALPHA*ALPHA*pow(x, ALPHA - 2.) - M_PI*M_PI/4.*pow(x, ALPHA); 
-} 
+  return 0;
+}
 
 template<typename Real, typename Scalar>
 Scalar linear_form_ord(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
