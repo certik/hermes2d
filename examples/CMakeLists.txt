@@ -25,4 +25,6 @@ add_subdirectory(hdiv)
 add_subdirectory(l2)
 add_subdirectory(smooth)
 add_subdirectory(newton-combust)
+add_subdirectory(line-sing)
+add_subdirectory(kellogg)
 
