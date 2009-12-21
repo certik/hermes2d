@@ -2,27 +2,45 @@
 Tutorial
 ========
 
+This tutorial should give you a good idea of how to adjust existing Hermes examples and create your own applications. For those who speak other languages than C++, there is an interactive graphical GUI `Agros2D <{http://hpfem.org/hermes2d/>`_. We also provide an interactive `online lab <http://nb.femhub.org/>`_ that allows you to use Hermes from any web browser without even installing it (the CPU time is on us). 
+
 Introduction
 ------------
 
-Welcome to Hermes2D, a free C++/Python library for rapid prototyping of
+Hermes2D is a free C++/Python library for rapid prototyping of
 adaptive FEM and *hp*-FEM solvers for partial differential equations (PDE),
 developed by the `hp-FEM group <http://hpfem.org/>`_ at the University of 
-Nevada, Reno. The library 
-has a clean design and modular structure, and it is available under the 
-GPL license (Version 2, 1991). 
+Nevada, Reno. The library is available under the GPL license (Version 2, 1991). 
+
 Prior to reading this document, install Hermes2D using instructions on 
 its `home page <http://hpfem.org/hermes2d/>`_. The source code can be 
 viewed in the `git repository <http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree>`_, 
-and in particular all tutorial examples can be found in the directory 
+and all tutorial examples can be found in the directory 
 `tutorial/ <http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/tutorial>`_.
+In the following, we will abbreviate Hermes2D with Hermes. 
+For the 1D and 3D codes, see the `Hermes1D <http://hpfem.org/hermes1d/>`_ and 
+`Hermes3D <http://hpfem.org/hermes3d/>`_ home pages, respectively.
 
-Interesting Features
---------------------
+The best way of reading this tutorial is to run the code at the same time. 
+After making your way through the tutorial, you may want to view the directory 
+`examples/ <http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/examples>`_ 
+that contains a variety of different PDE models that may help you to get started with your own 
+applications. If you create an interesting model using Hermes2D, let us know and we 
+will be happy to add it to the existing examples. 
 
-There are a few features where Hermes differs from conventional FEM codes:
+Citing Hermes
+-------------
 
-* `Mature hp-FEM algorithms`. Practitioners know well that it does not make sense to use automatic adaptivity in conjunction with standard lower-order approximations such as linear or quadratic elements. Hermes is based on adaptive *hp*-FEM that is capable of extremely fast, exponential convergence through simultaneous variation of the element diameter *h* and polynomial degree *p*. The situation is illustrated in the following graph where the reader can see that adaptive *hp*-FEM does not get stalled during adaptivity as low-order methods do. ADD GRAPH.
+If you publish a paper using Hermes, please cite some of the papers in the `publications section 
+<http://hpfem.org/publications/>`_ of the hp-FEM group home page, that is closest to your 
+research area.
+
+Main Features
+-------------
+
+Main strengths of Hermes are higher-order methods, automatic adaptivity for both stationary and time-dependent problems, and solving complicated multiphysics problems. The following list describes main features of Hermes in more detail so that you can decide whether the library has what you are looking for: 
+
+* `Mature hp-FEM algorithms`. Hermes is all about error control and automatic adaptivity. Practitioners know well how painful it is to use automatic adaptivity in conjunction with standard lower-order approximations such as linear or quadratic elements. What happens is that after a few initial adaptivity steps the error stops decreasing, no matter how many more adaptivity steps are done of how many new degrees of freedom are added. There is nothing to do about it since this is a genuine limitation of low-order methods (so-called *algebraic convergence* - see the red and blue convergence curves in the graph below). In contrast to that, Hermes is based on adaptive *hp*-FEM that converges *exponentially* (green curve). In other words, the error drops steadily during adaptivity all the way to the desired accuracy. Only when combined with the *hp*-FEM, automatic adaptivity becomes useful in practice.
 
 .. image:: img/conv-typical.png
    :align: center
@@ -30,9 +48,9 @@ There are a few features where Hermes differs from conventional FEM codes:
    :height: 250
    :alt: Typical convergence curves of FEM with linear and quadratic elements and hp-FEM
 
-* `Hermes is genuinely PDE-independent`. The software does not use any methods or algorithms that would limit its applicability to some particular PDE type. In particular, automatic adaptivity is guided by universal computational a-posteriori error estimates. ADD SOME IMAGES FROM VARIOUS PROCESSES
+* `Hermes is PDE-independent`. A typical FEM code is designed to solve some special class of PDE problems (such as elliptic equations, fluid dynamics, electromagnetics etc.). In contrast to that, Hermes is truly PDE independent. It does not employ any technique or algorithm that would only work for some particular class of PDE problems. For example, automatic adaptivity is guided by a universal computational a-posteriori error estimate that works in the same way for any PDE. Of course this does not mean that it performs equally well on all PDE - some equations simply are more difficult to solve than others. However, Hermes allows you to tackle an arbitrary PDE (or multiphysics PDE system) with adaptive *hp*-FEM easily. Visit the `hp-FEM group home page <http://hpfem.org/>`_ and especially the `gallery <http://hpfem.org/gallery/>`_ to see many examples of problems that have been solved with Hermes so far.
 
-* `Arbitrary-level hanging nodes`. Hermes is capable of handling arbitrarily irregular meshes. This means that extremely small elements can be adjacent to very large ones. When an element is refined, its neighbors are never split forcefully as in conventional adaptivity algorithms. This makes automatic adaptivity in Hermes extremely efficient. 
+* `Arbitrary-level hanging nodes`. Hermes is capable of handling arbitrarily irregular meshes. This means that extremely small elements can be adjacent to very large ones. When an element is refined, its neighbors are never split forcefully as in conventional adaptivity algorithms. This makes automatic adaptivity in Hermes extremely efficient as well as easy to handle. 
 
 .. image:: img/ord_2d_c.png
    :align: center
@@ -40,69 +58,59 @@ There are a few features where Hermes differs from conventional FEM codes:
    :height: 300
    :alt: Illustration of arbitrary-level hanging nodes
 
-* `Multimesh hp-FEM`. Various physical fields or solution components in multiphysics problems can be approximated on individual meshes, combining quality *H1*, *Hcurl*, *Hdiv*, and *L2* conforming higher-order elements. The approximation is monolithic, i.e., no error is caused by operator splitting, transferring data between different meshes, etc. ADD IMAGE OF MULTIMESH.
+* `Multimesh hp-FEM`. Various physical fields or solution components in multiphysics problems can be approximated on individual meshes, combining quality *H1*, *Hcurl*, *Hdiv*, and *L2* conforming higher-order elements. The approximation is monolithic, i.e., no error is caused by operator splitting, transferring data between different meshes, etc. The following figure illustrates a coupled problem of heat and moisture transfer in massive concrete walls of a reactor vessel. 
 
-* `Space-time hp-adaptivity on dynamical meshes`. In time-dependent problems, different physical fields or solution components can be approximated on individual meshes that evolve in time independently of each other.  The discretization of the PDE system is monolithic. ADD IMAGES OF FLAME PROPAGATION.
+.. image:: img/multimesh.png
+   :align: center
+   :width: 440
+   :height: 360
+   :alt: Illustration of arbitrary-level hanging nodes
 
-See the `Hermes2D home page <http://hpfem.org/main/hermes.php>`_ for other
-interesting features.
+* `Space-time hp-adaptivity on dynamical meshes`. In time-dependent problems, different physical fields or solution components can be approximated on individual meshes that evolve in time independently of each other. Despite the independent meshes for solution components, the discretization of the PDE system is monolithic. 
 
+.. image:: img/flame.jpg
+   :align: center
+   :width: 600
+   :height: 320
+   :alt: Adaptive hp-FEM with dynamical meshes for a flame propagation problem. 
 
-Tutorial
---------
+See the `Hermes home page <http://hpfem.org/main/hermes.php>`_ for more information. Journal papers and books about Hermes and adaptive *hp*-FEM can be found in the `publications section <http://hpfem.org/publications/>`_.
 
-This tutorial should give you a general idea of how to code applications with
-Hermes2D.  Note that there is an interactive graphical GUI
-`Agros2D <{http://hpfem.org/hermes2d/>`_
-that allows you to use Hermes without programming, and an interactive
-`web notebook <http://nb.femhub.org/>`_
-that allows you to use Hermes from any web browser without even installing it.
-In addition to the tutorial examples, the directory ``examples`` contains a
-variety of models that may help you to get started with your own applications.
+Creating Mesh
+---------------
 
+Every finite element computation starts with partitioning the domain
+into a finite element mesh. Hermes uses triangles and quadrilaterals, and 
+can combine both element types in one mesh. While complicated meshes need 
+to be constructed using specialized mesh generation software, in many cases 
+we only need a simple initial mesh that can be created by hand. In Hermes, all you 
+need to do is partition the domain very coarsely into several large elements,
+and the adaptivity will take care of the rest. 
 
-Creating a Mesh
-~~~~~~~~~~~~~~~
+.. image:: img/simplemesh.png
+   :align: center
+   :width: 400
+   :height: 400
+   :alt: Sample finite element mesh.
 
-Every finite element computation starts with partitioning of the problem domain
-into simple elements. Here, we will be using triangles and quadrilaterals.
-Normally this is done by specialized mesh generators, but in many cases we can
-type the mesh file by hand, as shown below. This will also allow us to explain
-concepts such as boundary markers. Moreover, thanks to the adaptive
-capabilities of Hermes2D, you may find that in many cases you no longer need a
-mesh generator and very fine meshes to obtain accurate results. All you need to
-do is partition the domain very coarsely into several large elements.
+The source file for the above mesh can be found `here <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/tutorial/01-mesh/domain.mesh>`_. The domain is defined via four macroelements -- two
+quadrilaterals and two curvilinear triangles. The elements are enumerated from 0 to 3. 
+One also needs to enumerate all mesh vertices and assign markers to all boundary edges. 
+Boundary markers are used to link boundary conditions with the boundary edges. 
 
-Suppose we want to define an L-shaped domain with a rounded corner, as shown in
-Figure \ref{fig:simplemesh}.
-::
-    \begin{figure}[ht]
-      \smallskip\centering
-      \includegraphics[width=0.52\textwidth]{img/simplemesh}
-      \caption{Node and element numbering on an L-shaped domain.}
-      \label{fig:simplemesh}
-    \end{figure}
+Mesh File Format
+~~~~~~~~~~~~~~~~
 
-The domain has already been partitioned into four large elements, two
-quadrilaterals and two curvilinear triangles, each numbered from 0 to 3.  We
-also need to number all vertices of the mesh and assign markers to boundary
-edges.  These will be used later for creating boundary conditions.
-
-Hermes2D uses a very simple mesh file format which we will use to describe the
-above domain. You can find the complete mesh file here:
-``hermes2d/tutorial/01-mesh/domain.mesh``.
-The file consists of variable assignments. Each variable can hold a real
-number, a list of real numbers or a list of lists. The following are all valid
-definitions in the Hermes2D mesh file format::
+Hermes mesh file consists of variable assignments. Each variable can hold a real number, list of real numbers, or list of lists. The following are all valid definitions in the Hermes mesh file format::
 
     # comments start with a hash
     var = 5.0 + cos(pi)  # number
     list = { 1, 2, 3, 4, var }  # list
     pairs = { {1, 2}, {1, var}, {0, list} }  # list of lists
 
-The mesh file must contain at least these variables: ``vertices``, ``elements``
-and ``boundaries``. The variable ``vertices`` must supply a list of coordinates
-of the mesh vertices and in our case it may look like this::
+Every mesh file must contain at least the variables ``vertices``, ``elements``
+and ``boundaries``. The variable ``vertices`` defines the coordinates
+of all mesh vertices (in any order). In our case it looks like this::
 
     a = 1.0  # size of the mesh
     b = sqrt(2)/2
@@ -119,12 +127,7 @@ of the mesh vertices and in our case it may look like this::
       { a*b, a*b }  # vertex 7
     }
 
-The variable ``elements`` lists all elements in the mesh.
-Elements are defined by the (zero-based) indices of their vertices in
-counter-clockwise order, and an extra number, denoting the element marker.
-Element markers can be used to distinguish areas of the domain with different
-material parameters. If the domain consists of one material,
-all elements can be assigned zero markers.
+The variable ``elements`` defines all elements in the mesh via zero-based indices of their vertices in counter-clockwise order, plus an extra number denoting the element (material) marker. Element markers allow you to use different material parameters in areas with different material parameters. Moreover, Hermes allows you to assign different weak formulations to those areas, which can be very useful for some types of multiphysics problems. If the domain is composed of only one material, as in our case, all elements may be assigned a zero marker:
 ::
 
     elements =
@@ -135,11 +138,11 @@ all elements can be assigned zero markers.
       { 2, 3, 6, 5, 0 }   # quad 3
     }
 
-The last mandatory variable, ``boundaries``, assigns boundary markers to all
+The last mandatory variable, ``boundaries``, defines boundary markers for all
 boundary edges. By default, all edges have zero markers. Only those with
 positive markers are considered to be part of the domain boundary and can be
-assigned a boundary condition, as we will see later.  An edge is identified by
-two vertex indices.
+assigned a boundary condition, as we will see later. An edge is identified by
+two vertex indices. In our case, we have
 ::
 
     boundaries =
@@ -159,28 +162,30 @@ curved edges.  Each curved edge is described by one NURBS curve, defined by its
 degree, control points and knot vector. Simplified syntax is available for
 circular arcs.
 
-A NURBS curve is defined by its degree, control points with weights and the
+NURBS Curves
+~~~~~~~~~~~~
+
+Every NURBS curve is defined by its degree, control points with weights and the
 knot vector. The degree $d$ is a positive integer, usually 1, 2, 3 or 5. Lines
 and polylines are of degree 1, circles have degree 2 and free-form curves are
-of degree 3 or 5.
-The control points $p_i,\; i = 0 \dots n$, are the main tool for changing the
+of degree 3 or 5. The control points $p_i$, $i = 0 \ldots n$, are the main tool for changing the
 shape of the curve. A curve of degree $d$ must have at least $d+1$ control
-points. In Hermes2D, the endpoints of the edge are always assumed to be the
+points. In Hermes, the endpoints of the edge are always assumed to be the
 first and last control points and therefore only the inner control points are
-listed in the mesh file.  All control points have an associated weight $w_i
-\geq 0$ which influences the shape of the curve near the corresponding control
-point.  If $w_i = 0$ then $p_i$ has no effect on the shape.  As $w_i$
-increases, the curve is pulled towards $p_i$. In the above definition of the
-variable ``curves``, $points$ is a list of real-valued triples.
+listed in the mesh file. There is a weight $w_i \geq 0$ for every control point,
+that influences the shape of the curve in its vicinity. If $w_i = 0$ then 
+$p_i$ has no effect on the shape.  As $w_i$ increases, the curve is pulled 
+towards $p_i$.
 
 The knot vector is a sequence of $m+1$ values that determines how much and
 where the control points influence the shape. The relation $m = n+d+1$ must
 hold. The sequence is nondecreasing, $t_i \leq t_{i+1}$, and divides the whole
 interval $[0,1]$ into smaller intervals which determine the area of influence
 of the control points. Since the curve has to start and end at the edge
-vertices, the knot vector in Hermes2D always starts with $d+1$ zeros and ends
+vertices, the knot vector in Hermes always starts with $d+1$ zeros and ends
 with $d+1$ ones. Only the inner knots are listed in the above definition of the
-variable ``curves``, where $knots$ is a simple list of real values.
+variable ``curves``, where $knots$ is a simple list of real values. For the 
+above example, we have
 ::
 
     curves =
@@ -191,101 +196,86 @@ variable ``curves``, where $knots$ is a simple list of real values.
     # EOF
 
 
-Loading and Viewing a Mesh
-~~~~~~~~~~~~~~~~~~~~~~~~~~
+Loading Mesh
+------------
 
+As a ``Hello world'' example, let us load the mesh we have just created, and display it in a window. The main.cpp file that we are going to discuss can be found `here <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/tutorial/01-mesh/main.cpp>`_. Every main.cpp file in the git repo contains lots of comments and instructions. Skipping those, the `main.cpp <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/tutorial/01-mesh/main.cpp>`_ file of example 01-mesh/ begins with creating an instance of the class Mesh.
+This class contains the method load() which is used to load the mesh file:
+::
 
-\index{Mesh!loading}
-\index{Mesh!viewing}
-Let us start with a ``Hello world'' example of using Hermes2D. We will load the mesh
-we have just created and display it in a window.
+    #include "hermes2d.h"
 
-\lstset{language=C++}
-\begin{lstlisting}
-#include "hermes2d.h"
+    int main(int argc, char* argv[])
+    {
+      // load the mesh file
+      Mesh mesh;
+      mesh.load("domain.mesh");
 
-int main(int argc, char* argv[])
-{
-  // load the mesh file
-  Mesh mesh;
-  mesh.load("domain.mesh");
-\end{lstlisting}
+The following portion of code illustrates various types of initial mesh refinements.
+It does not matter if the mesh becomes irregular, in fact, arbitrarily irregular
+meshes are at the heart of Hermes: 
+::
 
-First, an instance of the class {\tt Mesh} is created. If you are
-a~C~programmer, you can think of a~class as a~{\tt struct} that also contains functions
-(called methods in C++), that operate on the data members of the structure.
-The class {\tt Mesh} contains the method {\tt load()}, which is used to load our mesh file.
+      // perform some sample initial refinements
+      mesh.refine_all_elements();          // refines all elements
+      mesh.refine_towards_vertex(3, 4);    // refines mesh towards
+                                           // vertex #3 (4x)
+      mesh.refine_towards_boundary(2, 4);  // refines all elements
+                                           // along boundary 2 (4x)
+      mesh.refine_element(86, 0);          // refines element #86
+                                           // isotropically
+      mesh.refine_element(112, 0);         // refines element #112
+                                           // isotropically
+      mesh.refine_element(84, 2);          // refines element #84
+                                           // anisotropically
+      mesh.refine_element(114, 1);         // refines element #114
+                                           // anisotropically
 
-\lstset{language=C++}
-\begin{lstlisting}
-  // perform some sample initial refinements
-  mesh.refine_all_elements();          // refines all elements
-  mesh.refine_towards_vertex(3, 4);    // refines mesh towards
-                                       // vertex #3 (4x)
-  mesh.refine_towards_boundary(2, 4);  // refines all elements
-                                       // along boundary 2 (4x)
-  mesh.refine_element(86, 0);          // refines element #86
-                                       // isotropically
-  mesh.refine_element(112, 0);         // refines element #112
-                                       // isotropically
-  mesh.refine_element(84, 2);          // refines element #84
-                                       // anisotropically
-  mesh.refine_element(114, 1);         // refines element #114
-                                       //anisotropically
-\end{lstlisting}
-
-The portion of code above illustrates various types of initial mesh refinements.
-It does not matter if the mesh becomes irregular, in fact, irregular
-meshes are at the heart of Hermes.
 Other ways of modifying meshes on the fly include
-\begin{verbatim}
-Mesh::refine_element(int id, int refinement = 0)
-Mesh::refine_by_criterion(int (*criterion)(Element* e), int depth)
-Mesh::refine_towards_vertex(int vertex_id, int depth)
-Mesh::regularize(int n)
-Mesh::unrefine_element(int id)
-Mesh::unrefine_all_elements()
-\end{verbatim}
-(see files {\tt mesh1.cpp} and {\tt mesh2.cpp} for details).
+::
 
-\lstset{language=C++}
-\begin{lstlisting}
-  // display the mesh
-  // (100, 100) is the upper left corner position
-  // 500 x 500 is the window size
-  MeshView mview("Hello world!", 100, 100, 500, 500);
-  mview.show(&mesh);
-\end{lstlisting}
-The above code illustrates how to visualize the mesh using the class {\tt MeshView}.
+    Mesh::refine_element(int id, int refinement = 0)
+    Mesh::refine_by_criterion(int (*criterion)(Element* e), int depth)
+    Mesh::refine_towards_vertex(int vertex_id, int depth)
+    Mesh::regularize(int n)
+    Mesh::unrefine_element(int id)
+    Mesh::unrefine_all_elements()
+
+See files `mesh1.cpp <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/src/mesh1.cpp>`_ and `mesh2.cpp <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/src/mesh2.cpp>`_ for details. The following code illustrates how to visualize the mesh using the class MeshView:
+::
+
+    // display the mesh
+    // (100, 100) is the upper left corner position
+    // 500 x 500 is the window size
+    MeshView mview("Hello world!", 100, 100, 500, 500);
+    mview.show(&mesh);
+
 You can initialize it by supplying the title of the window and its initial position and size (all of these
-parameters are optional). {\tt MeshView} provides the method {\tt show}, which
-displays a window showing the mesh, see Figure~\ref{fig:meshview}.
+parameters are optional). The class MeshView provides the method show() that displays a window showing the mesh:
 
-\begin{figure}[h!]
-  \centering\medskip
-  \includegraphics[width=0.52\textwidth]{img/meshview2.png}
-  \caption{Image of the mesh created via the MeshView class.}
-  \label{fig:meshview}
-\end{figure}
+.. image:: img/meshview2.png
+   :align: center
+   :width: 400
+   :height: 400
+   :alt: Image of the mesh created via the MeshView class.
 
-\lstset{language=C++}
-\begin{lstlisting}
-  // wait for keyboard or mouse input
-  View::wait();
-  return 0;
-}
-\end{lstlisting}
-At the end of the program, you may want to call the method {\tt View::wait()} to pause
-the program, so that you have a chance to see its windows.
+Every main.cpp file is finished with 
+::
+
+    // wait for keyboard or mouse input
+    View::wait();
+    return 0;
+  }
+
+so that you have a chance to see the graphical output.
 
 
-Setting up a Finite Element Space
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
+Setting Up Space
+----------------
 
 \index{Space!creating}
 With the mesh definition in place we can start preparing the finite element calculation.
-Hermes2D follows closely the mathematical concept of FEM in the
+Hermes follows closely the mathematical concept of FEM in the
 sense that you are required to construct a finite element space on top of a mesh
 before performing any FE calculation. The following predefined spaces are currently
 available:
@@ -309,22 +299,21 @@ If you are not familiar with higher-order FEM, let us just say that the spaces c
 quadratic, cubic, etc., {\em edge functions} that generate higher-degree
 polynomials along mesh edges, and {\em bubble functions} that complete the higher-order
 approximation in element interiors. An edge function is associated with a mesh edge,
-a bubble function is associated with an element
-(see Figure \ref{fig:basisfn}).
+a bubble function is associated with an element:
 
-\begin{figure}[!ht]
-  \centering\bigskip
-  \includegraphics[width=\textwidth]{img/basisfn.jpg}
-  \caption{\protect\centering Fourth-order edge function (left) and\break
-  one of the fifth-order bubble functions (right).}
-  \label{fig:basisfn}
-\end{figure}
+.. image:: img/basisfn.jpg
+   :align: center
+   :width: 600
+   :height: 200
+   :alt: Fourth-order edge function  (left) and one of the fifth-order bubble functions (right).
+
+
 
 There are many possible ways of defining the
 higher-order basis functions. A particular set of polynomials is called
 \emph{shapeset}\index{Shapeset}. Using good shapeset is crucial for the
 performance of the *hp*-FEM. No shapeset can be optimal for all possible operators.
-Therefore, Hermes2D offers several shapesets from which
+Therefore, Hermes offers several shapesets from which
 you need to choose when creating a FE space. The ones which perform best
 in most computations (according to our experience) are simply called
 {\tt H1Shapeset}, {\tt HcurlShapeset}, {\tt HdivShapeset} and {\tt L2Shapeset}.
@@ -349,7 +338,7 @@ of the elements. This can be done for individual elements by calling the method
 \verb"Space::set_uniform_order()". It is important to note that element degrees
 are stored in the {\tt Space}, not in the {\tt Mesh}. The reason is that you can
 have multiple different spaces with different element degrees over the same mesh.
-In Hermes2D the mesh only stores geometrical information.
+In Hermes the mesh only stores geometrical information.
 
 \begin{lstlisting}
  // assign element orders and initialize the space
@@ -363,7 +352,7 @@ zero Neumann boundary condition on the entire domain boundary. We will see
 how to change that in Section \ref{sec:bc}.
 
 \index{Space!viewing}
-As a debugging feature, Hermes2D provides a visualization possibility for the
+As a debugging feature, Hermes provides a visualization possibility for the
 examination of all basis functions in a space. Similarly to {\tt MeshView},
 you can create a {\tt BaseView} object and use it to display the basis of a space.
 You can cycle through all basis functions in the window using the arrow keys.
@@ -374,18 +363,15 @@ You can cycle through all basis functions in the window using the arrow keys.
  bview.show(&space);
 \end{lstlisting}
 
-This is how Figure \ref{fig:basisfn} was obtained (press the ``{\tt 3}'' key for 3D mode).
+This is how the figure above was obtained (press the ``{\tt 3}'' key for 3D mode).
 You can experiment with element refinements and hanging nodes to see basis functions
 on irregular meshes.
 
 
 
 
-Solving the Poisson Equation
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-\label{sec:poisson}
-\index{Poisson equation}
+Solving Poisson Equation
+----------------------------
 
 Let us solve the Poisson equation
 
@@ -402,7 +388,7 @@ equipped with a homogeneous Dirichlet boundary condition
 
        u = 0\ \ \  \mbox{on}\  \partial \Omega,
 
-where $CONST_F$ is a real number. The weak formulation \index{Weak formulation}
+where $CONST_F$ is a real number. The weak formulation 
 is derived in the standard way, first by multiplying equation :eq:`poisson1` with a test
 function $v$, then integrating over the domain $\Omega$, and then applying the Green's
 theorem (integration by parts) to the second derivatives.
@@ -419,7 +405,6 @@ Find $u \in V$ such that
 
 Equation :eq:`poissonweak` has the standard form $a(u,v) = l(v)$ and thus in Hermes
 we need a way to specify the bilinear form $a(u,v)$ and the linear form $l(v)$.
-\index{Bilinear form} \index{Linear form}
 In the code this is done by implementing the following two functions:
 
 \begin{lstlisting}
@@ -462,7 +447,6 @@ We can now state our problem in the following way
  wf.add_biform(0, 0, bilinear_form);
  wf.add_liform(0, linear_form);
 \end{lstlisting}
-\index{WeakForm}
 
 The class {\tt WeakForm} represents the weak formulation of the PDE and must be
 initialized with the number of equations in the system, in our case one. We then
@@ -474,11 +458,9 @@ discussed in more detail in the context of PDE systems in Section \ref{sec:syste
 
 Given the weak formulation and the discretization determined by the space and its mesh,
 we can proceed to the approximate solution of the problem by the Galerkin method.
-This method is the core of Hermes2D and provides a way to obtain a sparse linear
+This method is the core of Hermes and provides a way to obtain a sparse linear
 system of equations, represented by the class {\tt LinSystem} in the code. The solution
 of the linear system then yields an approximate solution of the original problem.
-\index{LinSystem}
-\index{Galerkin method}
 
 The class {\tt LinSystem} needs three things: your weak formulation, your spaces and
 finally an external sparse matrix solver, for example CG or UMFPACK. The following lines
@@ -494,7 +476,7 @@ the {\tt H1Space} we have created in the previous section.
 \end{lstlisting}
 
 The last line must be included for historical reasons. During matrix assembly,
-Hermes2D caches the values of all shape function polynomials for better performance.
+Hermes caches the values of all shape function polynomials for better performance.
 The cache is represented by the class {\tt PrecalcShapeset} and you have to
 include the following line at the beginning your program:
 
@@ -503,7 +485,7 @@ include the following line at the beginning your program:
 \end{lstlisting}
 
 Finally, we tell {\tt LinSystem} to assemble the stiffness matrix and the right-hand
-side and solve the resulting linear system: \index{Stiffness matrix}
+side and solve the resulting linear system: 
 
 \begin{lstlisting}
  // assemble the stiffness matrix and solve the system
@@ -518,7 +500,6 @@ we are finished. The instance of the class {\tt Solution}, upon the
 completion of {\tt LinSystem::solve}, contains the approximate solution of
 the PDE. You can ask for its values 
 or you can visualize the solution immediately using the {\tt ScalarView} class:
-\index{ScalarView}
 
 \begin{lstlisting}
  // visualize the solution
@@ -526,39 +507,28 @@ or you can visualize the solution immediately using the {\tt ScalarView} class:
  view.show(&sln);
 \end{lstlisting}
 
-For the complete source code we refer to the file {\tt tutorial/03-poisson/main.cpp}.
-Figure \ref{fig:poisson} shows the output.
+For the complete source code we refer to the corresponding `main.cpp <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/tutorial/03-poisson/main.cpp>`_ file.
+The following figure shows the output.
 
-\begin{figure}[!ht]
-  \centering\medskip
-  \includegraphics[width=0.75\textwidth]{img/poisson.png}
-  \caption{Solution of the Poisson equation.}
-  \label{fig:poisson}
-\end{figure}
+.. image:: img/poisson.png
+   :align: center
+   :width: 400
+   :height: 350
+   :alt: Solution of the Poisson equation.
 
+Boundary Conditions
+--------------------------
 
-
-
-
-
-Adding Boundary Conditions
-~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-\label{sec:bc}
-
-\index{Boundary conditions!essential vs. natural}
-Hermes2D recognizes two basic types of boundary conditions: {\em essential} and {\em natural}.
+Hermes recognizes two basic types of boundary conditions: {\em essential} and {\em natural}.
 Essential boundary conditions influence and modify the finite element space while natural
 conditions do not (they are incorporated into boundary integrals in the weak formulation).
 In the context of elliptic problems, Dirichlet conditions are essential and Neumann/Newton
 conditions are natural.
 
 
-Dirichlet Boundary Condition
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Dirichlet BC
+~~~~~~~~~~~~
 
-
-\index{Boundary conditions!Dirichlet}
 Since essential conditions restrict degrees of freedom (DOF) in the FE space, 
 they need to be incorporated while the space is set up.
 The user has to provide the following two callback functions:
@@ -585,8 +555,7 @@ The space initialization might then look as follows:
 Suppose we would like to modify the previous Poisson model problem in the following way:
 $-\Delta u = CONST_F,\ u(x,y) = -\frac{CONST_F}{4}(x^2 + y^2)\,\ \mbox{on}\,\ \partial \Omega.$
 Besides changing the linear form, we need to specify that all the boundary markers 1, 2, 3, 4
-(refer to Figure \ref{fig:simplemesh} on page \pageref{fig:simplemesh}) denote the essential
-boundary condition:
+denote the essential boundary condition:
 
 \begin{lstlisting}
 int bc_types(int marker)
@@ -606,21 +575,19 @@ scalar bc_values(int marker, double x, double y)
 
 It is easy to see that the solution to this problem is the function
 $u(x,y) = -\frac{CONST_F}{4}(x^2 + y^2)$. For the value $CONST_F = -4$,
-the output of example {\tt 04-bc-dirichlet} is shown
-in Figure \ref{fig:dirichlet}.
+the output of example {\tt 04-bc-dirichlet} is shown here:
 
-\begin{figure}[!ht]
-  \centering\medskip
-  \includegraphics[width=0.7\textwidth]{img/dirichlet.png}
-  \caption{Solution of the Dirichlet problem.}
-  \label{fig:dirichlet}
-\end{figure}
-
-Neumann Boundary Condition
-^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. image:: img/dirichlet.png
+   :align: center
+   :width: 400
+   :height: 350
+   :alt: Solution of the Dirichlet problem.
 
 
-\index{Boundary conditions!Neumann}
+
+Neumann BC
+~~~~~~~~~~
+
 Next, let us play with Neumann boundary conditions. The new model problem
 will have the form
 
@@ -629,16 +596,14 @@ will have the form
 
     \begin{eqnarray*}   -\Delta u = CONST_F,\ \ \ \ \ &&u = 0\,\ \mbox{on}\,\ \Gamma_4,\\                            &&\dd{u}{n} = C_1\,\ \mbox{on}\,\ \Gamma_1,\\                            &&\dd{u}{n} = C_2\,\ \mbox{on}\,\ \Gamma_2,\\                            &&\dd{u}{n} = C_3\,\ \mbox{on}\,\ \Gamma_3. \end{eqnarray*}
 
-where $\Gamma_1 \dots \Gamma_4$ correspond to the edges marked $1 \dots 4$ in Figure
-\ref{fig:simplemesh}. Now, the weak formulation contains some
-surface integrals:
+where $\Gamma_1 \dots \Gamma_4$ correspond to the edges marked $1 \dots 4$. Now, the weak formulation contains some surface integrals:
 
 .. math::
 
     \int_\Omega \nabla u \cdot \nabla v \;\mbox{d\bfx} =   CONST_F\int_\Omega v \;\mbox{d\bfx}   + C_1\int_{\Gamma_1} \!v \;\mbox{d}l   + C_2\int_{\Gamma_2} \!v \;\mbox{d}l   + C_3\int_{\Gamma_3} \!v \;\mbox{d}l
 
 
-In Hermes2D, all forms in the standard weak formulation $a(u,v) = l(v)$
+In Hermes, all forms in the standard weak formulation $a(u,v) = l(v)$
 are in fact defined as a sum of contributions from volume integrals and from
 surface integrals. In the case of the linear form $l(v)$, this means
 
@@ -729,30 +694,23 @@ The gradient magnitude can be visualized via a MagFilter:
 
 The approximate solution for the values $C_1 = -1/2$, $C_2 = 1$, $C_3 = -1/2$,
 along with the singularity of gradient at the re-entrant corner are
-shown in the following Figures \ref{fig:neumann2} and \ref{fig:neumann3}.
+shown in the following figures:
 
-\begin{figure}[!ht]
-  \centering\medskip
-  \includegraphics[width=0.7\textwidth]{img/neumann2.png}
-  \caption{Solution of the Neumann problem.}
-  \label{fig:neumann2}
-\end{figure}
+.. image:: img/neumann2.png
+   :align: center
+   :width: 400
+   :height: 300
+   :alt: Solution of the Neumann problem.
 
-\begin{figure}[!ht]
-  \centering\medskip
-  \includegraphics[width=0.7\textwidth]{img/neumann3.png}
-  \caption{Detail of gradient singularity at the re-entrant corner.}
-  \label{fig:neumann3}
-\end{figure}
+.. image:: img/neumann3.png
+   :align: center
+   :width: 400
+   :height: 400
+   :alt: Detail of gradient singularity at the re-entrant corner.
 
+Newton BC
+~~~~~~~~~
 
-
-Newton Boundary Condition
-^^^^^^^^^^^^^^^^^^^^^^^^^
-
-
-\index{Boundary conditions!Newton}
-\index{Boundary conditions!Robin}
 Another common natural boundary condition is the Newton (sometimes called Robin) condition
 of the form
 
@@ -806,44 +764,42 @@ The above forms are registered using
   wf.add_liform_surf(0, linear_form_surf_Gamma_1, 1);
 \end{lstlisting}
 
-Figures \ref{fig:newton1} and \ref{fig:newton2} show the solution and
-singularity of gradient at the re-entrant corner.
+The following figures show the solution and singularity of gradient at the re-entrant corner:
 
-\begin{figure}[!ht]
-  \centering\medskip
-  \includegraphics[width=0.7\textwidth]{img/newton1.png}
-  \caption{Solution of the Newton problem.}
-  \label{fig:newton1}
-  \vspace{2mm}
-\end{figure}
+.. image:: img/newton1.png
+   :align: center
+   :width: 400
+   :height: 300
+   :alt: Solution of the Newton problem.
 
-\begin{figure}[!ht]
-  \centering\medskip
-  \includegraphics[width=0.7\textwidth]{img/newton2.png}
-  \caption{Detail of gradient singularity at the re-entrant corner.}
-  \label{fig:newton2}
-\end{figure}
+.. image:: img/newton2.png
+   :align: center
+   :width: 400
+   :height: 400
+   :alt: Detail of gradient singularity at the re-entrant corner.
 
 
 
-PDE Systems
-~~~~~~~~~~~
+General 2nd-Order Linear Equation
+---------------------------------
 
-\label{sec:systems}
 
-\index{Weak formulation}
-\index{System of PDEs}
+
+
+
+Systems of Equations
+--------------------
 
 So far we have seen the solution of a single linear PDE with the weak formulation
 of the form $a(u,v) = l(v)$, where $u, v$ were continuous approximations in the
 $H^1$ space. Analogously one can handle equations whose solutions lie in the spaces
 $\Hcurl$, $\Hdiv$ or $L^2$.
 
-Moreover, Hermes2D can handle a system of $n$ linear
+Moreover, Hermes can handle a system of $n$ linear
 PDEs, provided that the weak formulation can be written as follows:
 \begin{eqnarray}
   a_{11}(u_1,v_1)\,+ a_{12}(u_2,v_1)\,+ \cdots\,+ a_{1n}(u_n,v_1) &=& l_1(v_1), \nonumber \\
-  a_{21}(u_1,v_2)\,+ a_{22}(u_2,v_2)\,+ \cdots\,+ a_{2n}(u_n,v_2) &=& l_2(v_2), \label{weaksystem} \\
+  a_{21}(u_1,v_2)\,+ a_{22}(u_2,v_2)\,+ \cdots\,+ a_{2n}(u_n,v_2) &=& l_2(v_2),  \\
                                                       &\vdots&     \nonumber  \\
   a_{n1}(u_1,v_n) + a_{n2}(u_2,v_n) + \cdots + a_{nn}(u_n,v_n) &=& l_n(v_n). \nonumber
 \end{eqnarray}
@@ -852,20 +808,20 @@ The solution $\bfu = (u_1, u_2, \dots, u_n)$ and test functions $\bfv =
 \times V_n$, where each $V_i$ is one of the available function spaces.
 
 Let us illustrate this by solving a simple problem of linear elasticity. Consider a
-two-dimensional elastic body shown in Figure \ref{elastsample} (the bottom edge is
-axis of planar symmetry).
+two-dimensional elastic body shown in the following figure (the bottom edge is
+axis of planar symmetry):
+
+.. image:: img/elastsample.png
+   :align: center
+   :width: 500
+   :height: 300
+   :alt: Geometry and boundary conditions.
+
 In the plane-strain model of linear elasticity the goal is to determine the
 deformation of the body subject to the forces $f$. The deformation is sought
 as a vector function $u(x) = (u_1, u_2)^T$, describing the displacement of each point
 $x \in \Omega$ after the load $f = (f_1, f_2)^T$ is applied.
 
-\begin{figure}[!ht]
-  \vspace{-2mm}
-  \medskip\centering
-  \includegraphics[width=0.87\textwidth]{img/elastsample}
-  \caption{Geometry and boundary conditions.}
-  \label{elastsample}
-\end{figure}
 
 The boundary conditions are
 \begin{eqnarray}
@@ -873,15 +829,15 @@ The boundary conditions are
   \begin{cases}
     f_1 & \text{on $\Gamma_3$,}\\
     0   & \text{on $\Gamma_2$, $\Gamma_4$, $\Gamma_5$}
-  \end{cases}\label{elastbc1}
+  \end{cases}
   \\
   \dd{u_2}{n} &=&
   \begin{cases}
     f_2 & \text{on $\Gamma_3$,}\\
     0   & \text{on $\Gamma_2$, $\Gamma_4$, $\Gamma_5$}
-  \end{cases}\label{elastbc2}
+  \end{cases}
   \\[2mm]
-  u_1 &=& u_2 \ = \ 0 \ \ \mbox{on} \ \Gamma_1. \label{elastbc3}
+  u_1 &=& u_2 \ = \ 0 \ \ \mbox{on} \ \Gamma_1. 
 \end{eqnarray}
 
 Applying the standard procedure to the elastostatic equilibrium equations
@@ -895,14 +851,14 @@ Applying the standard procedure to the elastostatic equilibrium equations
 
 We see that the weak formulation can indeed be written in the form :eq:`weaksystem`:
 \begin{eqnarray}
-  a_{11}(u_1, v_1) \!&=&\! \int_\Omega (2\mu+\lambda)\dd{u_1}{x_1}\dd{v_1}{x_1} + \mu\dd{u_1}{x_2}\dd{v_1}{x_2} \,\mbox{d}\bfx, \label{sysform1} \\
+  a_{11}(u_1, v_1) \!&=&\! \int_\Omega (2\mu+\lambda)\dd{u_1}{x_1}\dd{v_1}{x_1} + \mu\dd{u_1}{x_2}\dd{v_1}{x_2} \,\mbox{d}\bfx,  \\
   a_{12}(u_2, v_1) \!&=&\! \int_\Omega \mu\dd{u_2}{x_1}\dd{v_1}{x_2} + \lambda\dd{u_2}{x_2}\dd{v_1}{x_1} \,\mbox{d}\bfx,\\
   a_{21}(u_1, v_2) \!&=&\! \int_\Omega \mu\dd{u_1}{x_2}\dd{v_2}{x_1} + \lambda\dd{u_1}{x_1}\dd{v_2}{x_2} \,\mbox{d}\bfx,\\
-  a_{22}(u_2, v_2) \!&=&\! \int_\Omega (2\mu+\lambda)\dd{u_2}{x_2}\dd{v_2}{x_2} + \mu\dd{u_2}{x_1}\dd{v_2}{x_1} \,\mbox{d}\bfx, \label{sysform2} \\
+  a_{22}(u_2, v_2) \!&=&\! \int_\Omega (2\mu+\lambda)\dd{u_2}{x_2}\dd{v_2}{x_2} + \mu\dd{u_2}{x_1}\dd{v_2}{x_1} \,\mbox{d}\bfx,  \\
   l_{1}(v_1) \!&=&\!
   \int_{\Gamma_3} \!\!f_1 v_1 \,\mbox{d}S, \\
   l_{2}(v_2) \!&=&\!
-  \int_{\Gamma_3} \!\!f_2 v_2 \,\mbox{d}S.  \label{sysform3}
+  \int_{\Gamma_3} \!\!f_2 v_2 \,\mbox{d}S.
 \end{eqnarray}
 
 Here, $\mu$ and $\lambda$ are material constants (Lam\'e coefficients) defined as
@@ -965,7 +921,7 @@ in :eq:`weaksystem` with zero-based numbering. Similarly for the surface linear 
 
 An explanation of the extra parameter {\tt SYM} in {\tt add\_biform} is due.
 Since the two diagonal forms $a_{11}$ and $a_{22}$ are symmetric, i.e.,
-$a_{ii}(u,v) = a_{ii}(v,u)$, Hermes2D can be told to only evaluate them once for the
+$a_{ii}(u,v) = a_{ii}(v,u)$, Hermes can be told to only evaluate them once for the
 two cases $a_{ii}(u,v)$ and $a_{ii}(v,u)$ to speed up assembly. In fact, we should have
 used the {\tt SYM} flag already in the previous sections, since the form
 $a(u,v) = \nabla u \cdot \nabla v$ is also symmetric. This is however not the case
@@ -975,7 +931,7 @@ The off-diagonal forms $a_{12}(u_2, v_1)$ and $a_{21}(u_1, v_2)$ are not
 (and cannot) be symmetric, since their arguments come from different spaces.
 However, we can see that $a_{12}(u, v) = a_{21}(v, u)$, i.e., the corresponding blocks
 of the local stiffness matrix are transposes of each other. Here, the {\tt SYM} flag
-has a different effect: it tells Hermes2D to take the block of the local stiffness
+has a different effect: it tells Hermes to take the block of the local stiffness
 matrix corresponding to the form $a_{12}$, transpose it and copy it where a block
 corresponding to $a_{21}$ would belong, without evaluating $a_{21}$ at all (this is why
 we don't add {\tt bilinear\_form\_1\_0}). This again speeds up the matrix assembly.
@@ -1013,7 +969,7 @@ solutions, e.g.,
 Usually, however, it is necessary to postprocess the solution in order to obtain more
 informative visualization. In elasticity problems, one is often interested in material
 stress, which is obtained by a formula combining the derivatives of the two displacements.
-Hermes2D implements postprocessing through \emph{filters}. A filter is a special class
+Hermes implements postprocessing through \emph{filters}. A filter is a special class
 which takes up to three \verb"Solution"s, performs some computation and in the end acts
 as another \verb"Solution", which can be visualized, or even fed into another filter.
 Here, we can use the predefined filter \verb"VonMisesFilter", which calculates the
@@ -1035,26 +991,27 @@ and a multiplier to make the displacements visible.
  view.show(&stress, EPS_HIGH, 0, &xsln, &ysln, 1.5e5);
 \end{lstlisting}
 
+.. image:: img/mises.png
+   :align: center
+   :width: 550
+   :height: 300
+   :alt: Elastic stress plotted on deformed domain.
 
-\clearpage
-
-\begin{figure}[!ht]
-  \medskip \centering
-  \includegraphics[width=\textwidth]{img/mises.png}
-  \caption{Elastic stress plotted on deformed domain.}
-  \label{elastsln}
-\end{figure}
-
-
-Time-Dependent Problems
-~~~~~~~~~~~~~~~~~~~~~~~
+Transient Problems
+------------------
 
 
 This section describes the implementation of a simple time-dependent
 heat transfer model that can be found in {\tt tutorial/08-timedep}.
 The model describes in a naive approximation how the St. Vitus cathedral
 in Prague responds to changes in the surrounding air temperature
-during one 24-hour cycle. The geometry is shown in Figure \ref{fig:vitus}.
+during one 24-hour cycle. The geometry is shown here:
+
+.. image:: img/vitus1.png
+   :align: center
+   :width: 400
+   :height: 500
+   :alt: Model geometry and temperature distribution after 24 hours.
 
 We will solve the standard heat transfer equation
 
@@ -1079,7 +1036,7 @@ on the rest of the boundary $\Gamma_{air}$. Here, $c$ is the heat capacity of th
 $\varrho$ the material density, $\lambda$ the thermal conductivity,
 $T_{init}$ the fixed temperature on the
 ground (same as the initial temperature of the building), and $\alpha$
-the heat transfer coefficient \index{Initial condition}
+the heat transfer coefficient 
 between the building and the surrounding air. The surrounding air temperature
 $T_{ext}$ is time-dependent of the form
 
@@ -1097,12 +1054,6 @@ form
      T(x,y,0) = T_{init}(x,y) \ \ \ \mbox{in} \ \Omega.
 
 
-\begin{figure}[!ht]
-  \medskip \centering
-  \includegraphics[width=0.6\textwidth]{img/vitus1.png}
-  \caption{Model geometry and temperature distribution after 24 hours.}
-  \label{fig:vitus}
-\end{figure}
 
 For simplicity we will use the implicit Euler method with a constant
 time step $\tau$, which transforms equation :eq:`eqvit1` into
@@ -1187,7 +1138,7 @@ These forms are registered as follows:
 \end{lstlisting}
 
 Before entering the main iteration loop, we need to initialize the previous solution
-{\tt Tprev} with the initial condition $T_{init}$. \index{Initial condition}
+{\tt Tprev} with the initial condition $T_{init}$. 
 Besides holding the finite element solution, the {\tt Solution} class
 can be forced to return zero, to return a constant, or to return an arbitrary function
 using the methods \verb"set_zero", \verb"set_const" and \verb"set_exact", respectively.
@@ -1222,9 +1173,8 @@ one {\tt Solution} to another.
 Another, more difficult time-dependent problem (nonlinear Navier-Stokes equations) is discussed
 in Section \ref{sec:ns-timedep}.
 
-Some Remarks on Automatic Adaptivity
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
+Automatic Adaptivity
+--------------------
 
 In the computations that we carried out so far, we have not paid any attention
 to the accuracy of the results. In general, a computation on a fixed mesh is
@@ -1244,15 +1194,14 @@ employed in Hermes for the same reason, and moreover since such criteria
 lack a transparent relation to the true approximation error.
 
 Adaptive low-order FEM is known to be notoriously ineffcient, and practitioners
-are rightfully skeptical of it. The reason is illustrated in Figure 13.
+are rightfully skeptical of it. The reason is illustrated here:
 
-\begin{figure}[!ht]
-  \medskip \centering
-  \includegraphics[width=0.8\textwidth]{img/conv_new}
-  \caption{Typical convergence curves for adaptive linear FEM, quadratic
-FEM, and *hp*-FEM.}
-  \label{fig:conv}
-\end{figure}
+.. image:: img/conv-typical.png
+   :align: center
+   :width: 400
+   :height: 250
+   :alt: Typical convergence curves for adaptive linear FEM, quadratic FEM, and *hp*-FEM.
+
 
 These convergence curves are typical representative examples, confirmed with
 many numerical experiments of independent researchers, and supported with
@@ -1266,9 +1215,8 @@ is doomed to such slow convergence by its poor approximation properties ---
 an excellent adaptivity algorithm cannot improve it (and a bad
 algorithm can make it even worse).
 
-In order to obtain fast, usable adaptivity (the green curve in Figure \ref{fig:conv}), one
-has to resort to adaptive *hp*-FEM \cite{solin1}. The *hp*-FEM takes advantage of two
-facts:
+In order to obtain fast, usable adaptivity (the green curve), one
+has to resort to adaptive *hp*-FEM. The *hp*-FEM takes advantage of two facts:
 
 \begin{itemize}
 \item Large high-degree elements approximate smooth parts of solution much
@@ -1279,14 +1227,13 @@ this fact. Check it out, the results are impressive.
 
 Automatic adaptivity in the *hp*-FEM is substantially different from adaptivity
 in low-order FEM, since every element can be refined in many different ways.
-Figure \ref{fig:refinements} shows several example refinements for a fourth-order element.
+The following figure shows several refinement candidates for a fourth-order element.
 
-\begin{figure}[!ht]
-  \medskip \centering
-  \includegraphics[width=0.9\textwidth]{img/refinements}
-  \caption{Examples of *hp*-refinements.}
-  \label{fig:refinements}
-\end{figure}
+.. image:: img/refinements.png
+   :align: center
+   :width: 650
+   :height: 300
+   :alt: Examples of *hp*-refinements.
 
 Due to the large number of refinement options, classical error estimators (that
 provide a constant error estimate per element) cannot be used to guide au\-
@@ -1314,23 +1261,22 @@ some cheaper technique (that also is PDE-independent, works for elements of high
 and can be successfully used to guide *hp*-adaptivity).
 
 Adaptivity Example -- Electrostatic Micromotor
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+----------------------------------------------
 
 
-Let us demostrate the use of automatic *hp*-adaptivity in Hermes2D on a linear elliptic problem
+Let us demostrate the use of automatic *hp*-adaptivity in Hermes on a linear elliptic problem
 ({\tt tutorial/09-adapt}) concerned with the calculation of
 the electrostatic potential in the vicinity of the electrodes of an electrostatic
 micromotor. This is a MEMS device free of any coils, and thus resistive to
 strong electromagnetic waves (as opposed to classical electromotors).
-Figure \ref{fig:micromotor} shows one half of the domain $\Omega$
-(dimensions need to be scaled with $10^{-5}$ and are in meters).
+The following figure shows one half of the domain $\Omega$
+(dimensions need to be scaled with $10^{-5}$ and are in meters):
 
-\begin{figure}[!ht]
-  \medskip \centering
-  \includegraphics[width=0.85\textwidth]{img/micromotor}
-  \caption{Computational domain for the micromotor problem.}
-  \label{fig:micromotor}
-\end{figure}
+.. image:: img/micromotor.png
+   :align: center
+   :width: 550
+   :height: 400
+   :alt: Computational domain for the micromotor problem.
 
 The subdomain $\Omega_2$ represents the moving part of the domain and the area bounded by $\Gamma_2$
 represents the electrodes that are fixed. The distribution of the electrostatic potential $\varphi$ is governed by the equation
@@ -1459,47 +1405,40 @@ adaptivity for time-dependent problems on dynamical meshes, etc.
 But let's return to the micromotor example for a moment again: The computation
 starts with a very coarse mesh consisting of a few quadrilaterals, some
 of which are moreover very ill-shaped. Thanks to the anisotropic refinement
-capabilities of {\tt H1OrthoHP}, the mesh quickly adapts to the solution (Figure \ref{fig:motor-sln})
+capabilities of {\tt H1OrthoHP}, the mesh quickly adapts to the solution
 and elements of reasonable shape are created near singularities, which occur
-at the corners of the electrode (Figure \ref{fig:motor-grad}). Initially, all elements of the mesh
+at the corners of the electrode. Initially, all elements of the mesh
 are of a low degree, but as the hp-adaptive process progresses, the elements
 receive different polynomial degrees, depending on the local smoothness of the
-solution (Figure \ref{fig:motor-orders}).
+solution.
 
-The gradient in Figure \ref{fig:motor-grad} was visualized using {\tt VectorView}. We have
+The gradient was visualized using {\tt VectorView}. We have
 seen this in the previous section. We plug in the same solution for both vector
 components, but specify that its derivatives should be used:
 \begin{lstlisting}
  gview.show(&sln, &sln, EPS_NORMAL, FN_DX_0, FN_DY_0);
 \end{lstlisting}
 
+.. image:: img/motor-sln.png
+   :align: center
+   :width: 400
+   :height: 400
+   :alt: Solution - electrostatic potential $\varphi$ (zoomed).
 
-\begin{figure}[!ht]
-  \medskip \centering
-  \includegraphics[width=0.8\textwidth]{img/motor-sln.png}
-  \caption{Solution -- electrostatic potential $\varphi$ (zoomed).}
-  \label{fig:motor-sln}
-\end{figure}
+.. image:: img/motor-grad.png
+   :align: center
+   :width: 400
+   :height: 400
+   :alt: Gradient of the solution $E = -\nabla\varphi$ and its magnitude (zoomed).
 
-\begin{figure}[!ht]
-  \medskip \centering
-  \includegraphics[width=0.8\textwidth]{img/motor-grad.png}
-  \caption{Gradient of the solution $\bfE = -\nabla\varphi$ and its magnitude (zoomed).}
-  \label{fig:motor-grad}
-\end{figure}
+.. image:: img/motor-orders.png
+   :align: center
+   :width: 400
+   :height: 400
+   :alt: Polynomial orders of elements near singularities (zoomed).
 
-\begin{figure}[!t]
-  \medskip \centering
-  \includegraphics[width=0.8\textwidth]{img/motor-orders.png}
-  \caption{Polynomial orders of elements near singularities (zoomed).}
-  \label{fig:motor-orders}
-  \vskip 5mm
-\end{figure}
-
-
-Adaptivity for PDE Systems
-~~~~~~~~~~~~~~~~~~~~~~~~~~
-
+Adaptivity for Systems
+--------------------------
 
 The procedure described in the previous section could be extended directly to
 systems of PDEs. In other words, two spaces can be passed into {\tt H1OrthoHP},
@@ -1522,7 +1461,7 @@ The norm induced by this product,
 
     ||u||_e = \sqrt{(u,u)_e},
 
-is called the {\it energy norm}. \index{Energy norm} \index{Norm!energy}
+is called the {\it energy norm}. 
 When measuring the error in the energy norm
 of the entire system, one can reduce the above-mentioned difficulties dramatically.
 When calculating the error on an element, the energy norm accounts
@@ -1530,7 +1469,7 @@ also for the error caused by other solution components.
 
 Let us consider again the equations of linear elasticity from Section \ref{sec:systems}, but
 now we will view them as a coupled PDE system.
-Our domain (Figure \ref{fig:bracket}) is a bracket loaded on its top edge and fixed to a wall:
+Our domain is a bracket loaded on its top edge and fixed to a wall:
 
 .. math::
     :nowrap:
@@ -1539,13 +1478,11 @@ Our domain (Figure \ref{fig:bracket}) is a bracket loaded on its top edge and fi
 
 The dimensions are L = 0.7 m, T = 0.1 m and the force $f = 10^3$ N.
 
-\begin{figure}[!ht]
-  \medskip \centering
-  \includegraphics[width=0.55\textwidth]{img/bracket}
-  \vspace{-2mm}
-  \caption{Computational domain for the elastic bracket problem.}
-  \label{fig:bracket}
-\end{figure}
+.. image:: img/bracket.png
+   :align: center
+   :width: 400
+   :height: 400
+   :alt: Computational domain for the elastic bracket problem.
 
 The implementation (see {\tt tutorial/10-adapt-system}) is very similar to the micromotor
 example from the previous section. Again, the coarse and reference solutions are calculated
@@ -1567,24 +1504,23 @@ for the calculation of the energy norm of the error.
 
 (The function \verb"calc_energy_error_2()" used above is a type-safe wrapper for the
 more general function \verb"calc_energy_error()", which takes a variable number of arguments.
+The following figures show the two meshes and their polynomial
+degrees after several adaptive steps: 
 
-\begin{figure}[!ht]
-  \medskip \centering
-  \includegraphics[height=0.5\textwidth]{img/sys-xorders.png}
-  \caption{$x$ displacement -- mesh and polynomial degrees.}
-  \label{fig:sys-xorders}
-\end{figure}
+.. image:: img/sys-xorders.png
+   :align: center
+   :width: 400
+   :height: 400
+   :alt: $x$ displacement -- mesh and polynomial degrees.
 
-\begin{figure}[!ht]
-  \medskip \centering
-  \includegraphics[height=0.5\textwidth]{img/sys-yorders.png}
-  \caption{$y$ displacement -- mesh and polynomial degrees.}
-  \label{fig:sys-yorders}
-\end{figure}
+.. image:: img/sys-yorders.png
+   :align: center
+   :width: 400
+   :height: 400
+   :alt: $y$ displacement -- mesh and polynomial degrees.
 
-Figures \ref{fig:sys-xorders} and \ref{fig:sys-yorders} show the two meshes and their polynomial
-degrees after several adaptive steps. Note that they are slightly different, not only in
-polynomial degrees, but also in element refinements. This is possible in Hermes2D thanks to
+Note that they are slightly different, not only in
+polynomial degrees, but also in element refinements. This is possible in Hermes thanks to
 a technique called multi-mesh assembling
 which allows
 all components of the solution to adapt independently. In problems whose components exhibit
@@ -1593,19 +1529,19 @@ See example {\tt multimesh} for a more advanced application of
 multimesh *hp*-FEM to thermoelasticity.
 
 
-Example ns-timedep}\label{sec:ns-timedep
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Navier-Stokes Example
+---------------------
 
 
 This model problem is concerned with the approximate solution of external
-flow past a cylinder with unit diameter, as shown in Figure \ref{cylinderdomain}.
+flow past a cylinder with unit diameter, as shown here:
 
-\begin{figure}[!ht]
-  \medskip \centering
-  \includegraphics[width=0.95\textwidth]{img/cylinder}
-  \caption{Domain for the Navier-Stokes problem.}
-  \label{cylinderdomain}
-\end{figure}
+.. image:: img/cylinder.png
+   :align: center
+   :width: 600
+   :height: 220
+   :alt: Domain for the Navier-Stokes problem.
+
 
 The motion of the fluid is described by the dimensionless incompressible
 Navier-Stokes equations,
@@ -1658,7 +1594,7 @@ by the pressure test function $q$, we obtain the following weak formulation:
     \int_\Omega \dd{u_1}{x} q + \dd{u_2}{y} q \dx = 0
 
 
-The boundary and initial conditions \index{Initial condition} for the problem are
+The boundary and initial conditions for the problem are
 
 .. math::
 
@@ -1737,7 +1673,7 @@ and plug in {\tt xprev} and {\tt yprev} for the velocity:
 \end{lstlisting}
 The rest of the forms are easy and will not be discussed here. However, there is one more important
 thing you need to do if you use external functions (such as {\tt xprev} and {\tt yprev}) in the
-weak forms. Hermes2D needs to be told about all such functions and where they are used in the weak
+weak forms. Hermes needs to be told about all such functions and where they are used in the weak
 formulation, so that they can be initialized properly and also incorporated in the multi-mesh assembling,
 if necessary.
 Apart from the symmetry flag and the integration area,
@@ -1762,7 +1698,7 @@ Notice also the use of the {\tt ANTISYM} flag for the forms $a_{13}$ and $a_{23}
 saves us a little assembling time and the need to define $a_{31}$ and $a_{32}$.
 
 Before entering the main iteration loop, we need to initialize the previous solutions
-{\tt xprev} and {\tt yprev} with the initial condition \index{Initial condition}
+{\tt xprev} and {\tt yprev} with the initial condition 
 :eq:`ns:initial`. Besides holding the finite element solution, the {\tt Solution} class
 can be forced to return zero, to return a constant, or to return an arbitrary function
 using the methods \verb"set_zero", \verb"set_const" and \verb"set_exact", respectively
@@ -1794,31 +1730,15 @@ and {\tt yprev}:
 The assignment operator is overloaded for Solution and in fact is equal to calling
 {\tt Solution::assign()}, which is an efficient way of handing over solution data from
 one {\tt Solution} to another.
-The velocity is visualized in each iteration using {\tt VectorView}, as shown
-in Figure \ref{fig:velocity}.
-\index{VectorView}
+The velocity is visualized in each iteration using the VectorView class, as shown
+in the following figure:
 
-\begin{figure}[!ht]
-  \medskip \centering
-  \includegraphics[width=0.99\textwidth]{img/velocity.jpg}
-  \caption{Velocity solution visualized with {\tt VectorView}.}
-  \label{fig:velocity}
-\end{figure}
-
-
-
-\clearpage
+.. image:: img/velocity.jpg
+   :align: center
+   :width: 600
+   :height: 260
+   :alt: Velocity solution visualized with the class VectorView.
 
 
 
 
-
-
-\newpage
-\printindex
-
-\newpage
-\input{references.tex}
-
-
-\end{document}
