@@ -57,7 +57,7 @@ const int MESH_REGULARITY = -1;  // Maximum allowed level of hanging nodes:
                                  // Note that regular meshes are not supported, this is due to
                                  // their notoriously bad performance.
 const int MAX_ORDER = 10;        // Maximum allowed element degree
-const double ERR_STOP = 0.05;    // Stopping criterion for adaptivity (rel. error tolerance between the
+const double ERR_STOP = 0.5;    // Stopping criterion for adaptivity (rel. error tolerance between the
                                  // fine mesh and coarse mesh solution in percent).
 const int NDOF_STOP = 40000;     // Adaptivity process stops when the number of degrees of freedom grows over
                                  // this limit. This is mainly to prevent h-adaptivity to go on forever.
@@ -171,7 +171,7 @@ int main(int argc, char* argv[])
   GnuplotGraph graph;
   graph.set_captions("", "Degrees of Freedom", "Error (Energy Norm)");
   graph.set_log_y();
-  graph.add_row("Refenrence solution", "k", "-", "O");
+  graph.add_row("Reference solution", "k", "-", "O");
 
   // convergence graph wrt. CPU time
   GnuplotGraph graph_cpu;
