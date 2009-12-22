@@ -55,6 +55,9 @@ View::View(const char* title, int x, int y, int width, int height)
   strcpy(scale_fmt, "%.3g");
   scale_fixed_width = -1;
   want_screenshot = false;
+
+  rendering_frames_top = 0;
+  memset(rendering_frames, 0, FPS_FRAME_SIZE * sizeof(double));
 }
 
 

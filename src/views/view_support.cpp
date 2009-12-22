@@ -178,7 +178,7 @@ static int set_view_title_in_thread(void* title_pars_ptr)
   std::map<int, View*>::iterator found_view = view_instances.find(title_params.view_id);
   //debug_assert(found_view != view_instances.end(), "E removing of a view that is not registered");
   if (found_view == view_instances.end()) {
-    debug_log("W settings title of a view that is not registered\n");
+    debug_log("W settings title of a view that is not registered.");
     return -1;
   }
  
@@ -436,6 +436,7 @@ void wait_for_all_views_close() {
   view_sync.enter();
   if (view_thread != NULL) {
     current_thread = view_thread->thread;
+    should_wait = true;
   }
   view_sync.leave();
 

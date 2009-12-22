@@ -245,9 +245,12 @@ protected:
 
   void update_nodes_ptr()
   {
-    if (sub_idx > max_idx) handle_overflow_idx();
-    else nodes = (void**) JudyLIns(sub_tables, (Word_t)sub_idx, NULL);
-    debug_assert((sub_idx >> (sizeof(Word_t) * 8)) == 0, "E index is larger than JudyLins can contain (Function::update_nodes_ptr)\n");
+    if (sub_idx > max_idx)
+      handle_overflow_idx();
+    else { 
+      debug_assert((sub_idx >> (sizeof(Word_t) * 8)) == 0, "E index is larger than JudyLins can contain (Function::update_nodes_ptr)");
+      nodes = (void**) JudyLIns(sub_tables, (Word_t)sub_idx, NULL);
+    }
   }
 
   /// For internal use only.

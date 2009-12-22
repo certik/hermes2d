@@ -19,7 +19,6 @@
 #include "forms.h"
 #include "weakform.h"
 #include "integrals_h1.h"
-#include "adapt_result.h"
 
 /// \brief hp-adaptivity module for H1 spaces.
 ///
@@ -62,8 +61,7 @@ public:
   /// Selects elements to refine (based on results from calc_error() or calc_energy_error())
   /// and performs their optimal hp-refinement.
   /// \param adapt_result Contains result of adaptivity step. If NULL, result is not gathered or processed.
-  void adapt(double thr, int strat = 0, bool h_only = false, bool iso_only = false, int max_order = -1,
-    std::vector<AdaptResult> *adapt_result = NULL);
+  void adapt(double thr, int strat = 0, bool h_only = false, bool iso_only = false, int max_order = -1);
 
 
   /// Internal. Used by adapt(). Can be utilized in specialized adaptivity

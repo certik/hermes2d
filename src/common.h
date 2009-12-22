@@ -16,6 +16,8 @@
 #ifndef __HERMES2D_COMMON_H
 #define __HERMES2D_COMMON_H
 
+#include "config.h"
+
 // common headers
 #include <stdexcept>
 #include <stdio.h>
@@ -38,32 +40,9 @@
 // platform compatibility stuff
 #include "compat.h"
 
+// others
 #include <Judy.h>
-
-//Windows exporting stuff
-#if defined(WIN32) || defined(_WINDOWS)
-# if defined(_HERMESDLL)
-#   define PUBLIC_API __declspec(dllexport)
-#   define PUBLIC_API_USED_TEMPLATE(__implementation) template class PUBLIC_API __implementation
-#   define PUBLIC_API_USED_STL_VECTOR(__type) PUBLIC_API_USED_TEMPLATE(std::allocator<__type>); PUBLIC_API_USED_TEMPLATE(std::vector<__type>)
-#   define EXTERN extern PUBLIC_API
-# else
-#   define PUBLIC_API __declspec(dllimport)
-#   define PUBLIC_API_USED_TEMPLATE(__implementation)
-//#   define PUBLIC_API_USED_TEMPLATE(__implementation) extern template class PUBLIC_API __implementation
-#   define PUBLIC_API_USED_STL_VECTOR(__type) PUBLIC_API_USED_TEMPLATE(std::allocator<__type>); PUBLIC_API_USED_TEMPLATE(std::vector<__type>)
-#   define EXTERN extern PUBLIC_API
-# endif
-#else
-# define PUBLIC_API
-# define PUBLIC_API_USED_TEMPLATE(__implementation)
-# define PUBLIC_API_USED_STL_VECTOR(__type)
-# define EXTERN extern
-#endif
-
-//C99 vs. C++ issues
 #include "auto_local_array.h"
-#include "c99_compatibility.h"
 
 enum // node types
 {
@@ -173,6 +152,14 @@ EXTERN void __verbose_fn(const char* msg, ...);
 #define info(...) __info_fn(__VA_ARGS__)
 #define verbose(...) __verbose_fn(__VA_ARGS__)
 
+/* logging macros */
+#if defined(_DEBUG) || defined(NDEBUG)
+EXTERN void debug_log(const char* msg, ...); ///< Logs output to an external file.
+EXTERN void debug_assert(const bool cond, const char* msg, ...); ///< Logs output to an external file.
+#else
+# define debug_log(__msg, ...)
+# define debug_assert(__cond, __msg, ...)
+#endif
 
 void __hermes2d_fwrite(const void* ptr, size_t size, size_t nitems, FILE* stream, const char* fname);
 void __hermes2d_fread(void* ptr, size_t size, size_t nitems, FILE* stream, const char* fname);
@@ -190,8 +177,5 @@ EXTERN double end_time();
 
 
 void throw_exception(char *text);
-
-//logging support
-#include "logging.h"
 
 #endif

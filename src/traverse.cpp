@@ -182,7 +182,7 @@ void Traverse::set_boundary_info(State* s, bool* bnd, EdgePos* ep)
     if (bnd[3]) { ep[3].lo = (double) (ONE-s->cr.t) / ONE;  ep[3].hi = (double) (ONE-s->cr.b) / ONE; }
   }
 
-  for (int i = 0; i < base->nvert; i++)
+  for (unsigned int i = 0; i < base->nvert; i++)
   {
     if (bnd[i])
     {

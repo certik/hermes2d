@@ -330,7 +330,7 @@ double** Solution::calc_mono_matrix(int o, int*& perm)
 
 void Solution::set_fe_solution(Space* space, PrecalcShapeset* pss, scalar* vec, double dir)
 {
-  int i, k, l, o;
+  int o;
 
   // some sanity checks
   if (!space->is_up_to_date())
@@ -355,7 +355,7 @@ void Solution::set_fe_solution(Space* space, PrecalcShapeset* pss, scalar* vec, 
   num_elems = mesh->get_max_element_id();
   elem_orders = new int[num_elems];
   memset(elem_orders, 0, sizeof(int) * num_elems);
-  for (l = 0; l < num_components; l++) {
+  for (int l = 0; l < num_components; l++) {
     elem_coefs[l] = new int[num_elems];
     memset(elem_coefs[l], 0, sizeof(int) * num_elems);
   }
@@ -368,7 +368,7 @@ void Solution::set_fe_solution(Space* space, PrecalcShapeset* pss, scalar* vec, 
     mode = e->get_mode();
     o = space->get_element_order(e->id);
     o = std::max(get_h_order(o), get_v_order(o));
-    for (k = 0; k < e->nvert; k++) {
+    for (unsigned int k = 0; k < e->nvert; k++) {
       int eo = space->get_edge_order(e, k);
       if (eo > o) o = eo;
     } // FIXME: eo tam jeste porad necemu vadi...
@@ -397,20 +397,20 @@ void Solution::set_fe_solution(Space* space, PrecalcShapeset* pss, scalar* vec, 
     space->get_element_assembly_list(e, &al);
     pss->set_active_element(e);
 
-    for (l = 0; l < num_components; l++)
+    for (int l = 0; l < num_components; l++)
     {
       // obtain solution values for the current element
       scalar* val = mono;
       elem_coefs[l][e->id] = (int) (mono - mono_coefs);
       memset(val, 0, sizeof(scalar)*np);
-      for (k = 0; k < al.cnt; k++)
+      for (int k = 0; k < al.cnt; k++)
       {
         pss->set_active_shape(al.idx[k]);
         pss->set_quad_order(o, FN_VAL);
         int dof = al.dof[k];
         scalar coef = al.coef[k] * (dof >= 0 ? vec[dof] : dir);
         double* shape = pss->get_fn_values(l);
-        for (i = 0; i < np; i++)
+        for (int i = 0; i < np; i++)
           val[i] += shape[i] * coef;
       }
       mono += np;
@@ -1158,10 +1158,10 @@ scalar Solution::get_pt_value(double x, double y, int item)
   {
     Element* elem[5];
     elem[0] = e_last;
-    for (int i = 1; i <= e_last->nvert; i++)
+    for (unsigned int i = 1; i <= e_last->nvert; i++)
       elem[i] = e_last->get_neighbor(i-1);
 
-    for (int i = 0; i <= e_last->nvert; i++)
+    for (unsigned int i = 0; i <= e_last->nvert; i++)
       if (elem[i] != NULL)
       {
         refmap->set_active_element(elem[i]);

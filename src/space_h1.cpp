@@ -84,7 +84,7 @@ void H1Space::assign_vertex_dofs()
   Element* e;
   for_all_active_elements(e, mesh)
   {
-    for (i = 0; i < e->nvert; i++)
+    for (unsigned int i = 0; i < e->nvert; i++)
     {
       if (e->en[i]->bnd && bc_type_callback(e->en[i]->marker) == BC_ESSENTIAL)
       {
@@ -101,7 +101,7 @@ void H1Space::assign_vertex_dofs()
     int order = get_element_order(e->id);
     if (order > 0)
     {
-      for (i = 0; i < e->nvert; i++)
+      for (unsigned int i = 0; i < e->nvert; i++)
       {
         // vertex dofs
         Node* vn = e->vn[i];
@@ -158,18 +158,6 @@ void H1Space::assign_vertex_dofs()
     ed->n = order ? shapeset->get_num_bubbles(ed->order) : 0;
     next_dof += ed->n * stride;
   }
-
-  //DEBUG: find nodes with invalid dof
-  for(int i = 0; i < mesh->get_max_node_id(); i++)
-  {
-    if (ndata[i].dof < UNASSIGNED)
-    {
-      debug_log("! found invalid node (H1Space::assign_vertex_dofs) 3\n");
-      debug_log("  node id:\t%d\n", i);
-      debug_log("  dof:\t%d\n", ndata[i].dof);
-    }
-  }
-  //DEBUG-END
 }
 
 
@@ -193,30 +181,9 @@ void H1Space::get_vertex_assembly_list(Element* e, int iv, AsmList* al)
   int index = shapeset->get_vertex_index(iv);
   if (get_element_order(e->id) == 0) return;
 
-  //DEBUG
-  if (nd->dof < -1)
-  {
-    debug_log("! insane dof (H1Space::get_vertex_assembly_list)\n");
-    debug_log("  dof:\t%d\n", nd->dof);
-    debug_log("  node id:\t%d\n", vn->id);
-    debug_log("  element id:\t%d\n", e->id);
-  }
-  //DEBUG-END
-
   if (!vn->is_constrained_vertex()) // unconstrained
   {
     al->add_triplet(index, nd->dof, (nd->dof >= 0) ? 1.0 : *(nd->vertex_bc_coef));
-    //DEBUG
-    if (nd->dof < -1)
-    {
-      debug_log("! insane dof (H1Space::get_vertex_assembly_list)\n");
-      debug_log("  element coord: (%f, %f) x (%f, %f)\n", (float)e->vn[0]->x, (float)e->vn[2]->y, (float)e->vn[2]->x, (float)e->vn[0]->y);
-      debug_log("  iv, vn->id:\t%d, %d\n", iv, vn->id);
-      debug_log("  vertex inx:\t%d\n", index);
-      debug_log("  *nd->vertex_bc_coef:\t%g\n", *nd->vertex_bc_coef);
-      debug_log("  nd->vertex_bc_coef:\t%p\n", nd->vertex_bc_coef);
-    }
-    //DEBUG-END
   }
   else // constrained
   {
@@ -225,14 +192,6 @@ void H1Space::get_vertex_assembly_list(Element* e, int iv, AsmList* al)
       if (nd->baselist[j].coef != (scalar) 0)
       {
         al->add_triplet(index, nd->baselist[j].dof, nd->baselist[j].coef);
-        //DEBUG
-        if (nd->baselist[j].dof < -2)
-        {
-          debug_log("! invalid triplet assignment\n");
-          debug_log("  j: %d\n", j);
-          debug_log("  vn->id: %d\n", vn->id);
-        }
-        //DEBUG-END
       }
   }
 }
@@ -243,16 +202,6 @@ void H1Space::get_edge_assembly_list_internal(Element* e, int ie, AsmList* al)
   Node* en = e->en[ie];
   NodeData* nd = &ndata[en->id];
   if (get_element_order(e->id) == 0) return;
-
-  //DEBUG
-  if (nd->dof < -1)
-  {
-    debug_log("! insane dof (H1Space::get_edge_assembly_list_internal)\n");
-    debug_log("  dof:\t%d\n", nd->dof);
-    debug_log("  node id:\t%d\n", en->id);
-    debug_log("  element id:\t%d\n", e->id);
-  }
-  //DEBUG-END
 
   if (nd->n >= 0) // unconstrained
   {
@@ -267,18 +216,6 @@ void H1Space::get_edge_assembly_list_internal(Element* e, int ie, AsmList* al)
       for (int j = 0; j < nd->n; j++)
       {
         al->add_triplet(shapeset->get_edge_index(ie, 0, j+2), -1, nd->edge_bc_proj[j+2]);
-        //DEBUG
-        int dof = shapeset->get_edge_index(ie, 0, j+2);
-        if (dof < -1)
-        {
-          debug_log("! insane dof (H1Space::get_edge_assembly_list_internal)\n");
-          debug_log("  element coord: (%f, %f) x (%f, %f)\n", (float)e->vn[0]->x, (float)e->vn[2]->y, (float)e->vn[2]->x, (float)e->vn[0]->y);
-          debug_log("  ie, en->id:\t%d, %d\n", ie, en->id);
-          debug_log("  nd->edge_bc_proj[j+2]:\t%g\n", nd->edge_bc_proj[j+2]);
-          debug_log("  j+2:\t%d\n", j+2);
-          debug_log("  nd->vertex_bc_coef:\t%p\n", nd->vertex_bc_coef);
-        }
-        //DEBUG-END
       }
     }
   }
@@ -299,15 +236,6 @@ void H1Space::get_bubble_assembly_list(Element* e, AsmList* al)
 {
   ElementData* ed = &edata[e->id];
   if (!ed->n) return;
-
-  //DEBUG
-  if (ed->bdof < -1)
-  {
-    debug_log("! insane bdof (H1Space::get_bubble_assembly_list)\n");
-    debug_log("  bdof:\t%d\n", ed->bdof);
-    debug_log("  element id:\t%d\n", e->id);
-  }
-  //DEBUG-END
 
   int* indices = shapeset->get_bubble_indices(ed->order);
   for (int i = 0, dof = ed->bdof; i < ed->n; i++, dof += stride)
@@ -470,7 +398,7 @@ static Node* get_mid_edge_vertex_node(Element* e, int i, int j)
 
 void H1Space::update_constrained_nodes(Element* e, EdgeInfo* ei0, EdgeInfo* ei1, EdgeInfo* ei2, EdgeInfo* ei3)
 {
-  int i, j, k;
+  int j, k;
   EdgeInfo* ei[4] = { ei0, ei1, ei2, ei3 };
   NodeData* nd;
 
@@ -479,7 +407,7 @@ void H1Space::update_constrained_nodes(Element* e, EdgeInfo* ei0, EdgeInfo* ei1,
   // on non-refined elements all we have to do is update edge nodes lying on constrained edges
   if (e->active)
   {
-    for (i = 0; i < e->nvert; i++)
+    for (unsigned int i = 0; i < e->nvert; i++)
     {
       if (ei[i] != NULL)
       {
@@ -495,7 +423,7 @@ void H1Space::update_constrained_nodes(Element* e, EdgeInfo* ei0, EdgeInfo* ei1,
   {
     // create new edge infos where we don't have them yet
     EdgeInfo ei_data[4];
-    for (i = 0; i < e->nvert; i++)
+    for (unsigned int i = 0; i < e->nvert; i++)
     {
       if (ei[i] == NULL)
       {
@@ -518,7 +446,7 @@ void H1Space::update_constrained_nodes(Element* e, EdgeInfo* ei0, EdgeInfo* ei1,
     }
 
     // create a baselist for each mid-edge vertex node
-    for (i = 0; i < e->nvert; i++)
+    for (unsigned int i = 0; i < e->nvert; i++)
     {
       if (ei[i] == NULL) continue;
       j = e->next_vert(i);
@@ -571,7 +499,7 @@ void H1Space::update_constrained_nodes(Element* e, EdgeInfo* ei0, EdgeInfo* ei1,
     // create edge infos for half-edges
     EdgeInfo  half_ei_data[4][2];
     EdgeInfo* half_ei[4][2];
-    for (i = 0; i < e->nvert; i++)
+    for (unsigned int i = 0; i < e->nvert; i++)
     {
       if (ei[i] == NULL)
       {
@@ -649,7 +577,7 @@ void H1Space::fix_vertex(int id, scalar value)
 
 bool H1Space::is_fixed_vertex(int id) const
 {
-  for (int i = 0; i < fixed_vertices.size(); i++)
+  for (unsigned int i = 0; i < fixed_vertices.size(); i++)
     if (fixed_vertices[i].id == id)
       return true;
 
@@ -660,7 +588,7 @@ bool H1Space::is_fixed_vertex(int id) const
 void H1Space::post_assign()
 {
   // process fixed vertices -- put their values into nd->vertex_bc_coef
-  for (int i = 0; i < fixed_vertices.size(); i++)
+  for (unsigned int i = 0; i < fixed_vertices.size(); i++)
   {
     scalar* fixv = new scalar[1];
     *fixv = fixed_vertices[i].value;

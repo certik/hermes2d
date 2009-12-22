@@ -194,7 +194,7 @@ void Space::copy_orders(Space* space, int inc)
 int Space::get_edge_order(Element* e, int edge)
 {
   Node* en = e->en[edge];
-  if (en->id >= nsize || edge >= e->nvert) return 0;
+  if (en->id >= nsize || edge >= (int)e->nvert) return 0;
 
   if (ndata[en->id].n == -1)
     return get_edge_order_internal(ndata[en->id].base); // constrained node
@@ -319,8 +319,6 @@ void AsmList::enlarge()
 
 void Space::get_element_assembly_list(Element* e, AsmList* al)
 {
-  int i;
-
   // some checks
   if (e->id >= esize || edata[e->id].order < 0)
     error("Uninitialized element order (id = #%d).", e->id);
@@ -331,9 +329,9 @@ void Space::get_element_assembly_list(Element* e, AsmList* al)
   // add vertex, edge and bubble functions to the assembly list
   al->clear();
   shapeset->set_mode(e->get_mode());
-  for (i = 0; i < e->nvert; i++)
+  for (unsigned int i = 0; i < e->nvert; i++)
     get_vertex_assembly_list(e, i, al);
-  for (i = 0; i < e->nvert; i++)
+  for (unsigned int i = 0; i < e->nvert; i++)
     get_edge_assembly_list_internal(e, i, al);
   get_bubble_assembly_list(e, al);
 }
@@ -475,7 +473,7 @@ void Space::update_bc_dofs()
   Element* e;
   for_all_base_elements(e, mesh)
   {
-    for (int i = 0; i < e->nvert; i++)
+    for (unsigned int i = 0; i < e->nvert; i++)
     {
       int j = e->next_vert(i);
       if (e->vn[i]->bnd && e->vn[j]->bnd)
@@ -490,31 +488,9 @@ void Space::update_bc_dofs()
 
 void Space::free_extra_data()
 {
-  for (int i = 0; i < extra_data.size(); i++)
+  for (unsigned int i = 0; i < extra_data.size(); i++)
     delete [] (scalar*) extra_data[i];
   extra_data.clear();
-}
-
-/* finds the first invalid dof, i.e., dof < -2 */
-int Space::debug_find_first_invalid_dof(const char *src_location)
-{
-  int inx_found = -1;
-  for(int i = 0; i < nsize; i++)
-  {
-    if (ndata[i].dof < -2)
-    {
-      inx_found = i;
-      break;
-    }
-  }
-  if (inx_found >= 0 && src_location != NULL)
-  {
-    debug_log("! found invalid ndata (%s)\n", src_location);
-    debug_log("  id: %d\n", inx_found);
-    debug_log("  dof: %d\n", ndata[inx_found].dof);
-    debug_log("  nsize: %d\n", nsize);
-  }
-  return inx_found;
 }
 
 /*void Space::dump_node_info()

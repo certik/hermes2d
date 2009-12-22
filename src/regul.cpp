@@ -286,7 +286,7 @@ void Mesh::assign_parent(Element* e, int i)
 
 int* Mesh::regularize(int n)
 {
-  int i, j;
+  int j;
   bool ok;
   bool reg = false;
   int iso = 0;
@@ -311,7 +311,7 @@ int* Mesh::regularize(int n)
       int iso = -1;
       if (e->is_triangle())
       {
-        for(i = 0; i < e->nvert; i++)
+        for(unsigned int i = 0; i < e->nvert; i++)
         {
           j = e->next_vert(i);
           if (get_edge_degree(e->vn[i], e->vn[j]) > n)
@@ -328,7 +328,7 @@ int* Mesh::regularize(int n)
           { iso = 1; ok = false; }
         else
         {
-          for(i = 0; i < e->nvert; i++)
+          for(unsigned int i = 0; i < e->nvert; i++)
           {
             j = e->next_vert(i);
             if (get_edge_degree(e->vn[i], e->vn[j]) > n)
@@ -340,7 +340,7 @@ int* Mesh::regularize(int n)
       if (iso >= 0)
       {
         refine_element(e->id, iso);
-        for (i = 0; i < 4; i++)
+        for (int i = 0; i < 4; i++)
           assign_parent(e, i);
       }
     }

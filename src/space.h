@@ -275,9 +275,6 @@ public:
 
   /// Internal. Return type of this space (H1 = 0, Hcurl = 1, Hdiv = 2, L2 = 3)
   virtual int get_type() const = 0;
-
-public: //DEBUG
-  int debug_find_first_invalid_dof(const char *src_location); //finds the first invalid dof, i.e., dof < -2
 };
 
 

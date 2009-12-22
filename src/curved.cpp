@@ -157,7 +157,7 @@ static void calc_ref_map_tri(Element* e, Nurbs** nurbs, double xi_1, double xi_2
   double  fx,  fy;
   x = y = 0.0;
 
-  for (int j = 0; j < e->nvert; j++)
+  for (unsigned int j = 0; j < e->nvert; j++)
   {
     int va = j;
     int vb = e->next_vert(j);
@@ -400,7 +400,7 @@ static void old_projection(Element* e, int order, double2* proj, double* old[2])
   int mo2 = quad2d.get_max_order();
   int np = quad2d.get_num_points(mo2);
 
-  for (int k = 0; k < e->nvert; k++) // loop over vertices
+  for (unsigned int k = 0; k < e->nvert; k++) // loop over vertices
   {
     // vertex basis functions in all integration points
     double* vd;
@@ -503,7 +503,7 @@ static void calc_bubble_projection(Element* e, Nurbs** nurbs, int order, double2
 static void ref_map_projection(Element* e, Nurbs** nurbs, int order, double2* proj)
 {
   // vertex part
-  for (int i = 0; i < e->nvert; i++)
+  for (unsigned int i = 0; i < e->nvert; i++)
   {
     proj[i][0] = e->vn[i]->x;
     proj[i][1] = e->vn[i]->y;
@@ -513,7 +513,7 @@ static void ref_map_projection(Element* e, Nurbs** nurbs, int order, double2* pr
     e = e->cm->parent;
 
   // edge part
-  for (int edge = 0; edge < e->nvert; edge++)
+  for (int edge = 0; edge < (int)e->nvert; edge++)
     calc_edge_projection(e, edge, nurbs, order, proj);
 
   //bubble part

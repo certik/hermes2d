@@ -5,7 +5,6 @@ set(SRC
        space.cpp space_h1.cpp space_hcurl.cpp space_l2.cpp
        space_hdiv.cpp
        linear1.cpp linear2.cpp linear3.cpp graph.cpp
-       view1.cpp view2.cpp view3.cpp view4.cpp view5.cpp
        quad_std.cpp
        shapeset_h1_ortho.cpp shapeset_h1_beuchler.cpp shapeset_h1_quad.cpp
        shapeset_hc_legendre.cpp shapeset_hc_gradleg.cpp
@@ -17,6 +16,8 @@ set(SRC
        refsystem.cpp nonlinsystem.cpp forms.cpp
        mesh_parser.cpp mesh_lexer.cpp
 
+       views/base_view.cpp views/mesh_view.cpp views/order_view.cpp views/scalar_view.cpp views/stream_view.cpp views/vector_base_view.cpp view/vector_view.cpp views/view.cpp views/view_data.cpp views/view_support.cpp
+	   
        compat/fmemopen.cpp
        )
 

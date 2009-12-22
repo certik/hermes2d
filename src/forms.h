@@ -74,15 +74,6 @@ inline Ord cos(const Ord &a) { return Ord(a.get_max_order()); }
 inline Ord log(const Ord &a) { return Ord(a.get_max_order()); }
 inline Ord exp(const Ord &a) { return Ord(3 * a.get_order()); }
 
-#ifdef COMPLEX
-namespace std
-{
-  inline Ord conj(const Ord &a) { return a; }
-  inline Ord abs(const Ord &a) { return a; }
-}
-#endif
-
-
 // Function
 template<typename T>
 class Func

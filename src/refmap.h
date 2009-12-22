@@ -174,9 +174,13 @@ protected:
 
   void update_cur_node()
   {
-    Node** pp = (sub_idx > max_idx) ? handle_overflow()
-                : (Node**) JudyLIns(&nodes, (Word_t)sub_idx, NULL);
-    debug_assert((sub_idx >> (sizeof(Word_t) * 8)) == 0, "E index is larger than JudyLins can contain (RefMap::update_cur_node)\n");
+    Node** pp = NULL;
+    if (sub_idx > max_idx)
+      pp = handle_overflow();
+    else {
+      pp = (Node**) JudyLIns(&nodes, (Word_t)sub_idx, NULL);
+      debug_assert((sub_idx >> (sizeof(Word_t) * 8)) == 0, "E index is larger than JudyLins can contain (RefMap::update_cur_node)");
+    }
     if (*pp == NULL) init_node(pp);
     cur_node = *pp;
   }

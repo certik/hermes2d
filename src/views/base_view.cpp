@@ -3,6 +3,7 @@
 // Copyright 2005-2008 Jakub Cerveny <jakub.cerveny@gmail.com>
 // Copyright 2005-2008 Lenka Dubcova <dubcova@gmail.com>
 // Copyright 2005-2008 Pavel Solin <solin@unr.edu>
+// Copyright 2009-2010 Ivo Hanak <hanak@byte.cz>
 //
 // Hermes2D is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by

@@ -28,6 +28,10 @@
 
 using namespace std;
 
+/* constants */
+#define MIN_CONT_STEP 1.0E-4 /* A minimal step of a contour */
+#define CONT_CHANGE 1.0E-2 /* A change of a contour in GUI */
+
 //// ScalarView ////////////////////////////////////////////////////////////////////////////////////
 
 ScalarView::ScalarView(const char* title, int x, int y, int width, int height)
@@ -87,7 +91,7 @@ void ScalarView::on_create(int output_id)
       create_setup_bar();
     }
     else {
-      debug_log("E TW init failed: %s\n", TwGetLastError());
+      debug_log("E TW init failed: %s", TwGetLastError());
     }
   }
 # endif
@@ -129,12 +133,16 @@ void ScalarView::on_close()
 void ScalarView::create_setup_bar()
 {
 #ifdef ENABLE_VIEWER_GUI
+  char buffer[1024];
+
   TwBar* tw_bar = TwNewBar("View setup");
 
   //contours
   TwAddVarRW(tw_bar, "contours", TW_TYPE_BOOLCPP, &contours, " group=Contour2D label='Show contours'");
-  TwAddVarRW(tw_bar, "cont_orig", TW_TYPE_DOUBLE, &cont_orig, " group=Contour2D label='Begin'");
-  TwAddVarRW(tw_bar, "cont_step", TW_TYPE_DOUBLE, &cont_step, " group=Contour2D label='Step'");
+  sprintf(buffer, " group=Contour2D label='Begin' step=%g", CONT_CHANGE);
+  TwAddVarRW(tw_bar, "cont_orig", TW_TYPE_DOUBLE, &cont_orig, buffer);
+  sprintf(buffer, " group=Contour2D label='Step' min=%g step=%g", MIN_CONT_STEP, CONT_CHANGE);
+  TwAddVarRW(tw_bar, "cont_step", TW_TYPE_DOUBLE, &cont_step, buffer);
   TwAddVarRW(tw_bar, "cont_color", TW_TYPE_COLOR3F, &cont_color, " group=Contour2D label='Color'");
 
   //mesh
@@ -146,7 +154,7 @@ void ScalarView::create_setup_bar()
 
   //help
   const char* help_text = get_help_text();
-  TwSetParam(tw_bar, NULL, "help", TW_PARAM_CSTRING, 1, &help_text);
+  TwSetParam(tw_bar, NULL, "help", TW_PARAM_CSTRING, 1, help_text);
 
   tw_setup_bar = tw_bar;
 
@@ -419,7 +427,7 @@ void ScalarView::init_element_info(Mesh* mesh)
     double max_x, max_y, min_x, min_y;
     max_x = min_x = element->vn[0]->x;
     max_y = min_y = element->vn[0]->y;
-    for(int i = 0; i < element->nvert; i++)
+    for(unsigned int i = 0; i < element->nvert; i++)
     {
       sum_x += element->vn[i]->x;
       sum_y += element->vn[i]->y;

@@ -19,7 +19,6 @@
 #include "forms.h"
 #include "weakform.h"
 #include "integrals_h1.h"
-#include "adapt_result.h"
 
 /// \brief hp-adaptivity module for H1 spaces.
 ///
@@ -57,14 +56,11 @@ public:
   /// pointers are passed, followed by n fine solution pointers.
   virtual double calc_error_n(int n, ...);
 
-  PUBLIC_API_USED_STL_VECTOR(AdaptResult);
-
   /// Selects elements to refine (based on results from calc_error() or calc_energy_error())
   /// and performs their optimal hp-refinement.
   /// \param adapt_result Contains result of adaptivity step. If NULL, result is not gathered or processed.
   bool adapt(double thr, int strat = 0, int adapt_type = 0, bool iso_only = false, int regularize = -1,
-             int max_order = -1, bool same_orders = false, double to_be_processed = 0.0,
-             std::vector<AdaptResult> *adapt_result = NULL);
+             int max_order = -1, bool same_orders = false, double to_be_processed = 0.0);
 
   /// Unrefines the elements with the smallest error
   void unrefine(double thr);
@@ -78,16 +74,49 @@ public:
   /// Internal. Functions to obtain errors of individual elements.
   struct ElementReference { ///< A reference to a element.
     int id, comp;
+    ElementReference() {};
+    ElementReference(int id, int comp) : id(id), comp(comp) {};
   };
   double get_element_error(int component, int id) const { return errors[component][id]; }
   ElementReference*  get_sorted_elements() const { return esort; }
   int    get_total_active_elements() const { return nact; }
 
 protected: //adaptivity
+  struct ElementToRefine { ///< A record of an element and a selected candidate.
+    int id; //ID of element
+    int comp; //componet
+    int split; //proposed refinement
+    int4 p; //orders
+    int4 q; //H orders
+    ElementToRefine() : id(-1), comp(-1) {};
+    ElementToRefine(int id, int comp) : id(id), comp(comp), split(0) {};
+    ElementToRefine(const ElementToRefine &orig) : id(orig.id), comp(orig.comp), split(orig.split) {
+      memcpy(p, orig.p, sizeof(int4));
+      memcpy(q, orig.q, sizeof(int4));
+    };
+    ElementToRefine& operator=(const ElementToRefine& orig) {
+      id = orig.id;
+      comp = orig.comp;
+      split = orig.split;
+      memcpy(p, orig.p, sizeof(int4));
+      memcpy(q, orig.q, sizeof(int4));
+      return *this;
+    }
+    int get_num_sons() const { ///< Returns a number of sons.
+      if (split == 0)
+        return 4;
+      else if (split == 1 || split == 2)
+        return 2;
+      else
+        return 1;
+    };
+  };
+
   std::queue<ElementReference> priority_esort; ///< A list of priority elements that are processed before the next element in esort is processed.
 
   virtual bool ignore_element_adapt(const int inx_element, const Mesh* mesh, const Element* element) { return false; }; ///< Returns true, if an element should be ignored for purposes of adaptivity.
   virtual bool can_adapt_element(Mesh* mesh, Element* e, const int split, const int4& p, const int4& q) { return true; }; ///< Returns true, if an element can be adapted using a selected candidate.
+  virtual void apply_refinements(Mesh** meshes, std::vector<ElementToRefine>* elems_to_refine); ///< Apply refinements.
 
 protected: //optimal refinement
   struct Cand ///< A candidate.
@@ -135,9 +164,10 @@ protected:
   static bool obase_ready;
 
   static void calc_ortho_base();
+  static int build_shape_inxs(const int mode, H1Shapeset& shapeset, int idx[121]); ///< Build indices of shape functions and initializes ranges. Returns number of indices.
 
   virtual void calc_projection_errors(Element* e, int order, Solution* rsln,
-                                     double herr[4][11], double perr[11]); ///< Calculate various projection errors.
+                                     double herr[8][11], double perr[11]); ///< Calculate various projection errors.
 
   /// Builds a list of elements sorted by error descending. Assumes that H1OrthoHP::errors is initialized. Initializes H1OrthoHP::esort.
   /// \param meshes: Meshes. Indices [0,.., H1OrthoHP::num-1] contains meshes of coarse solutions, indices [H1OrthoHP::num,..,2*H1OrthoHP::num - 1] contains meshes of reference solution.

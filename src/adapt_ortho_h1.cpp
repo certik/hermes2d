@@ -72,10 +72,41 @@ double3** H1OrthoHP::obase[2][9];
 int  H1OrthoHP::basecnt[2][11];
 bool H1OrthoHP::obase_ready = false;
 
+int H1OrthoHP::build_shape_inxs(const int mode, H1Shapeset& shapeset, int idx[121]) {
+  shapeset.set_mode(mode);
+
+  // obtain a list of all shape functions up to the order 10, from lowest to highest order
+  int n = 0;
+  int nv = mode ? 4 : 3;
+  int num_sons = mode ? 8 : 4;
+  for (int i = 0; i < nv; i++)
+    idx[n++] = shapeset.get_vertex_index(i);
+  basecnt[mode][0] = 0;
+  basecnt[mode][1] = n;
+
+  for (int i = 2; i <= 10; i++)
+  {
+    for (int j = 0; j < nv; j++)
+      idx[n++] = shapeset.get_edge_index(j, 0, i);
+
+    int ii = mode ? make_quad_order(i, i) : i;
+    int nb = shapeset.get_num_bubbles(ii);
+    int* bub = shapeset.get_bubble_indices(ii);
+    for (int j = 0; j < nb; j++)
+    {
+      int o = shapeset.get_order(bub[j]);
+      if (get_h_order(o) == i || get_v_order(o) == i)
+        idx[n++] = bub[j];
+    }
+    basecnt[mode][i] = n;
+  }
+
+  return n;
+}
 
 void H1OrthoHP::calc_ortho_base()
 {
-  int i, j, k, l, m, ii, nb, np, o, r;
+  int i, j, k, l, m, np, r;
   int n, idx[121];
 
   H1Shapeset shapeset;
@@ -93,33 +124,8 @@ void H1OrthoHP::calc_ortho_base()
   // repeat for triangles and quads
   for (m = 0; m <= 1; m++)
   {
-    shapeset.set_mode(m);
-
-    // obtain a list of all shape functions up to the order 10, from lowest to highest order
-    n = 0;
-    int nv = m ? 4 : 3;
-    int num_sons = m ? 8 : 4;
-    for (i = 0; i < nv; i++)
-      idx[n++] = shapeset.get_vertex_index(i);
-    basecnt[m][0] = 0;
-    basecnt[m][1] = n;
-
-    for (i = 2; i <= 10; i++)
-    {
-      for (j = 0; j < nv; j++)
-        idx[n++] = shapeset.get_edge_index(j, 0, i);
-
-      ii = m ? make_quad_order(i, i) : i;
-      nb = shapeset.get_num_bubbles(ii);
-      int* bub = shapeset.get_bubble_indices(ii);
-      for (j = 0; j < nb; j++)
-      {
-        o = shapeset.get_order(bub[j]);
-        if (get_h_order(o) == i || get_v_order(o) == i)
-          idx[n++] = bub[j];
-      }
-      basecnt[m][i] = n;
-    }
+    //build indices
+    n = build_shape_inxs(m, shapeset, idx);
 
     // obtain their values for integration rule 20
     g_quad_2d_std.set_mode(m);
@@ -131,6 +137,7 @@ void H1OrthoHP::calc_ortho_base()
         for (k = 0; k < 3; k++)
           obase[m][8][i][j][k] = shapeset.get_value(k, idx[i], pt[j][0], pt[j][1], 0);
 
+    int num_sons = m ? 8 : 4;
     for (l = 0; l < num_sons; l++)
     {
       Trf* tr = (m ? quad_trf : tri_trf) + l;
@@ -299,7 +306,7 @@ void H1OrthoHP::calc_projection_errors(Element* e, int order, Solution* rsln,
         // update the projection to the current order
         for (j = basecnt[m][i-1]; j < basecnt[m][i]; j++)
         {
-          double prod = 0.0;
+          scalar prod = 0.0;
           for (s = 0; s < 2; s++) // each son has 2 subsons (regular square sons)
             for (k = 0; k < np; k++)
               prod += pt[k][2] * ( rval[sons[son][s]][0][k]           * obase[m][tr[son][s]][j][k][0] +
@@ -331,7 +338,7 @@ void H1OrthoHP::calc_projection_errors(Element* e, int order, Solution* rsln,
     // update the projection to the current order
     for (j = basecnt[m][i-1]; j < basecnt[m][i]; j++)
     {
-      double prod = 0.0;
+      scalar prod = 0.0;
       for (son = 0; son < 4; son++)
       {
         // (transforming to the quarter of the reference element)
@@ -547,6 +554,8 @@ void H1OrthoHP::select_best_candidate(const Cand* cand, const int num_cand, Elem
 int H1OrthoHP::get_optimal_refinement(Element* e, int order, Solution* rsln, int& split, int4 p, int4 q,
                                        bool h_only, bool iso_only, int max_order)
 {
+  //debug_log("> searching for optical refinement of element %d\n", e->id); //DEBUG
+
   //decode order
   order = std::max(get_h_order(order), get_v_order(order));
 
@@ -570,37 +579,16 @@ int H1OrthoHP::get_optimal_refinement(Element* e, int order, Solution* rsln, int
   //clenaup
   delete[] cand;
 
+  //debug_log("  found optimal refinement of element %d\n", e->id); //DEBUG
+
   return inx_cand;
 }
 
 
 //// adapt /////////////////////////////////////////////////////////////////////////////////////////
 
-struct ElementToRefine {
-  int id; //ID of element
-  int comp; //componet
-  int split; //proposed refinement
-  int4 p; //orders
-  int4 q; //H orders
-  ElementToRefine() : id(-1), comp(-1) {};
-  ElementToRefine(int id, int comp) : id(id), comp(comp), split(0) {};
-  ElementToRefine(const ElementToRefine &orig) : id(orig.id), comp(orig.comp), split(orig.split) {
-    memcpy(p, orig.p, sizeof(int4));
-    memcpy(q, orig.q, sizeof(int4));
-  };
-  ElementToRefine& operator=(const ElementToRefine& orig) {
-    id = orig.id;
-    comp = orig.comp;
-    split = orig.split;
-    memcpy(p, orig.p, sizeof(int4));
-    memcpy(q, orig.q, sizeof(int4));
-    return *this;
-  }
-};
-
 bool H1OrthoHP::adapt(double thr, int strat, int adapt_type, bool iso_only, int regularize,
-                      int max_order, bool same_orders, double to_be_processed,
-                      std::vector<AdaptResult> *adapt_result)
+                      int max_order, bool same_orders, double to_be_processed)
 {
   if (!have_errors)
     error("Element errors have to be calculated first, see calc_error().");
@@ -636,47 +624,64 @@ bool H1OrthoHP::adapt(double thr, int strat, int adapt_type, bool iso_only, int 
 
   //adaptivity loop
   double error_threshod = -1; //an error threshold that breaks the adaptivity loop in a case of strategy 1
-  int num_exam_elem = nact; //a number of examined elements
+  int num_exam_elem = 0; //a number of examined elements
   int num_ignored_elem = 0; //a number of ignored elements
   int num_not_changed = 0; //a number of element that were not changed
+  int num_priority_elem = 0; //a number of elements that were processed using priority queue
 
   int inx_regular_element = 0;
-  while (inx_regular_element < nact)
+  while (inx_regular_element < nact || !priority_esort.empty())
   {
-    int id, comp;
+    int id, comp, inx_element;
 
     //get element identification
-    id = esort[inx_regular_element].id;
-    comp = esort[inx_regular_element].comp;
-    inx_regular_element++;
+    if (priority_esort.empty()) {
+      id = esort[inx_regular_element].id;
+      comp = esort[inx_regular_element].comp;
+      inx_element = inx_regular_element;
+      inx_regular_element++;
+    }
+    else {
+      id = priority_esort.front().id;
+      comp = priority_esort.front().comp;
+      inx_element = -1;
+      priority_esort.pop();
+      num_priority_elem++;
+    }
     num_exam_elem++;
 
+    //get info linked with the element
     double err = errors[comp][id];
     Mesh* mesh = meshes[comp];
     Element* e = mesh->get_element(id);
 
-    if (!ignore_element_adapt(inx_regular_element, mesh, e)) {
+    //debug_log("> begining adapting element %d\n", e->id); //DEBUG
+
+    if (!ignore_element_adapt(inx_element, mesh, e)) {
 
       //use error of the first refined element to calculate the threshold for strategy 1
       if (elem_inx_to_proc.empty())
         error_threshod = thr * err;
 
-      //if (elem_inx_to_proc.size() == 1) { num_exam_elem = i; break; } //DEBUG
+      //stop the loop only if processing regular elements
+      if (inx_element >= 0) {
+        //if (elem_inx_to_proc.size() == 1) { num_exam_elem = i; break; } //DEBUG
 
-      // first refinement strategy:
-      // refine elements until prescribed amount of error is processed
-      // if more elements have similar error refine all to keep the mesh symmetric
-      if ((strat == 0) && (processed_error > sqrt(thr) * total_err) && fabs((err - err0)/err0) > 1e-3) break;
+        // first refinement strategy:
+        // refine elements until prescribed amount of error is processed
+        // if more elements have similar error refine all to keep the mesh symmetric
+        if ((strat == 0) && (processed_error > sqrt(thr) * total_err) && fabs((err - err0)/err0) > 1e-3) break;
 
-      // second refinement strategy:
-      // refine all elements whose error is bigger than some portion of maximal error
-      if ((strat == 1) && (err < error_threshod)) break;
+        // second refinement strategy:
+        // refine all elements whose error is bigger than some portion of maximal error
+        if ((strat == 1) && (err < error_threshod)) break;
 
-      if ((strat == 2) && (err < thr)) break;
+        if ((strat == 2) && (err < thr)) break;
 
-      if ((strat == 3) &&
-        ( (err < error_threshod) ||
-        ( processed_error > 1.5 * to_be_processed )) ) break;
+        if ((strat == 3) &&
+          ( (err < error_threshod) ||
+          ( processed_error > 1.5 * to_be_processed )) ) break;
+      }
 
       // p-adaptivity
       ElementToRefine elem_ref(id, comp);
@@ -702,6 +707,7 @@ bool H1OrthoHP::adapt(double thr, int strat, int adapt_type, bool iso_only, int 
       }
 
       //add to a list of elements that are going to be refined
+      //debug_log("> checking element %d for ability of being included\n", e->id); //DEBUG
       if (refined && can_adapt_element(mesh, e, elem_ref.split, elem_ref.p, elem_ref.q) ) {
         idx[id][comp] = (int)elem_inx_to_proc.size();
         elem_inx_to_proc.push_back(elem_ref);
@@ -716,10 +722,11 @@ bool H1OrthoHP::adapt(double thr, int strat, int adapt_type, bool iso_only, int 
     }
   }
 
-  debug_log("I examined elements: %d\n", num_exam_elem);
-  debug_log("  ignored elements: %d\n", num_ignored_elem);
-  debug_log("  not changed elements: %d\n", num_not_changed);
-  debug_log("  elements to process: %d\n", elem_inx_to_proc.size());
+  debug_log("I examined elements: %d", num_exam_elem);
+  debug_log("  elements taken from priority queue: %d", num_priority_elem);
+  debug_log("  ignored elements: %d", num_ignored_elem);
+  debug_log("  not changed elements: %d", num_not_changed);
+  debug_log("  elements to process: %d", elem_inx_to_proc.size());
   bool done = false;
   if (num_exam_elem == 0)
     done = true;
@@ -804,31 +811,8 @@ bool H1OrthoHP::adapt(double thr, int strat, int adapt_type, bool iso_only, int 
     }
   }
 
-  for (vector<ElementToRefine>::const_iterator elem_ref = elem_inx_to_proc.begin(); elem_ref != elem_inx_to_proc.end(); elem_ref++) // go over elements to be refined
-  {
-    Element* e;
-    e = meshes[elem_ref->comp]->get_element(elem_ref->id);
-    debug_assert(e->active != 0, "E element is not active but it will be refined\n"); //DEBUG
-
-    //store statistics
-    if (adapt_result != NULL)
-      adapt_result->push_back(AdaptResult(elem_ref->id, elem_ref->split, elem_ref->p));
-
-    if (elem_ref->split < 0)
-      spaces[elem_ref->comp]->set_element_order(elem_ref->id, elem_ref->p[0]);
-    else if (elem_ref->split == 0) {
-      if (e->active)
-        meshes[elem_ref->comp]->refine_element(elem_ref->id);
-      for (j = 0; j < 4; j++)
-        spaces[elem_ref->comp]->set_element_order(e->sons[j]->id, elem_ref->p[j]);
-    }
-    else {
-      if (e->active)
-        meshes[elem_ref->comp]->refine_element(elem_ref->id, elem_ref->split);
-      for (j = 0; j < 2; j++)
-        spaces[elem_ref->comp]->set_element_order(e->sons[ (elem_ref->split == 1) ? j : j+2 ]->id, elem_ref->p[j]);
-    }
-  }
+  //apply refinements
+  apply_refinements(meshes, &elem_inx_to_proc);
 
   if (same_orders)
   {
@@ -875,6 +859,31 @@ bool H1OrthoHP::adapt(double thr, int strat, int adapt_type, bool iso_only, int 
   if (strat == 2 && done == true) have_errors = true; // space without changes
 
   return done;
+}
+
+void H1OrthoHP::apply_refinements(Mesh** meshes, std::vector<ElementToRefine>* elems_to_refine)
+{
+  for (vector<ElementToRefine>::const_iterator elem_ref = elems_to_refine->begin(); elem_ref != elems_to_refine->end(); elem_ref++) // go over elements to be refined
+  {
+    Element* e;
+    e = meshes[elem_ref->comp]->get_element(elem_ref->id);
+    debug_assert(e->active != 0, "E element is not active but it will be refined\n"); //DEBUG
+
+    if (elem_ref->split < 0)
+      spaces[elem_ref->comp]->set_element_order(elem_ref->id, elem_ref->p[0]);
+    else if (elem_ref->split == 0) {
+      if (e->active)
+        meshes[elem_ref->comp]->refine_element(elem_ref->id);
+      for (int j = 0; j < 4; j++)
+        spaces[elem_ref->comp]->set_element_order(e->sons[j]->id, elem_ref->p[j]);
+    }
+    else {
+      if (e->active)
+        meshes[elem_ref->comp]->refine_element(elem_ref->id, elem_ref->split);
+      for (int j = 0; j < 2; j++)
+        spaces[elem_ref->comp]->set_element_order(e->sons[ (elem_ref->split == 1) ? j : j+2 ]->id, elem_ref->p[j]);
+    }
+  }
 }
 
 

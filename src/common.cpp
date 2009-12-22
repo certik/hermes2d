@@ -67,6 +67,53 @@ void __verbose_fn(const char* msg, ...)
   va_end(arglist);
 }
 
+#define LOG_FILE "log.txt" /* log FILE */
+#undef debug_log
+void debug_log(const char* msg, ...) {
+  //print message
+  va_list arglist;
+  va_start(arglist, msg);
+  vprintf(msg, arglist);
+  va_end(arglist);
+  printf("\n");
+
+  //print to file
+  FILE* file = fopen(LOG_FILE, "at");
+  if (file != NULL)
+  {
+    //get time
+    time_t now;
+    time(&now);
+    char* time_str = ctime(&now);
+    time_str[strlen(time_str)-1] = '\0';
+
+    //write
+    fprintf(file, time_str);
+    fprintf(file, "\t");
+    va_list arglist;
+    va_start(arglist, msg);
+    vfprintf(file, msg, arglist);
+    va_end(arglist);
+    fprintf(file, "\n");
+    fclose(file);
+  }
+}
+
+#undef debug_assert
+void debug_assert(const bool cond, const char* msg, ...) {
+  if (!cond) {
+    //print parameters (not very safe version)
+    char buffer[1024];
+    va_list arglist;
+    va_start(arglist, msg);
+    vsprintf(buffer, msg, arglist);
+    va_end(arglist);
+
+    debug_log(buffer);
+    assert(false);
+  }
+}
+
 
 void __hermes2d_fwrite(const void* ptr, size_t size, size_t nitems, FILE* stream, const char* fname)
 {

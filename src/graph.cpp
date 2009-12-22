@@ -61,7 +61,7 @@ void Graph::set_row_style(int row, const char* color, const char* line, const ch
 void Graph::add_values(int row, double x, double y)
 {
   if (!rows.size()) add_row(NULL);
-  if (row < 0 || row >= rows.size()) error("Invalid row number.");
+  if (row < 0 || row >= (int)rows.size()) error("Invalid row number.");
   Values xy = { x, y };
   rows[row].data.push_back(xy);
 }
@@ -93,7 +93,7 @@ void Graph::save_numbered(const char* filename, int number)
 
 void MatlabGraph::save(const char* filename)
 {
-  int i, j, k;
+  int j, k;
 
   if (!rows.size()) error("No data rows defined.");
 
@@ -109,7 +109,7 @@ void MatlabGraph::save(const char* filename)
   else
     fprintf(f, "loglog(");
 
-  for (i = 0; i < rows.size(); i++)
+  for (unsigned int i = 0; i < rows.size(); i++)
   {
     fprintf(f, "[");
     int rsize = rows[i].data.size();
@@ -134,7 +134,7 @@ void MatlabGraph::save(const char* filename)
   if (legend && (rows.size() > 1 || rows[0].name.length()))
   {
     fprintf(f, "legend(");
-    for (i = 0; i < rows.size(); i++)
+    for (unsigned int i = 0; i < rows.size(); i++)
     {
       fprintf(f, "'%s'", rows[i].name.c_str());
       if (i < rows.size()-1) fprintf(f, ", ");
@@ -193,7 +193,7 @@ static void get_style_types(std::string line, std::string mark, std::string col,
 
 void GnuplotGraph::save(const char* filename)
 {
-  int i, j;
+  int j;
   
   if (!rows.size()) error("No data rows defined.");
 
@@ -232,7 +232,7 @@ void GnuplotGraph::save(const char* filename)
   if (yname.length()) fprintf(f, "set ylabel '%s'\n", yname.c_str());
 
   fprintf(f, "plot");
-  for (i = 0; i < rows.size(); i++)
+  for (unsigned int i = 0; i < rows.size(); i++)
   {
     int ct, lt, pt;
     get_style_types(rows[i].line, rows[i].marker, rows[i].color, lt, pt, ct);
@@ -248,7 +248,7 @@ void GnuplotGraph::save(const char* filename)
   }
   fprintf(f,"\n");
 
-  for (i = 0; i < rows.size(); i++)
+  for (unsigned int i = 0; i < rows.size(); i++)
   {
     int rsize = rows[i].data.size();
     for (j = 0; j < rsize; j++)

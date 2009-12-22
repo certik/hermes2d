@@ -1,0 +1,86 @@
+Welcome to Hermes2D!                                                                                                                                                                                 
+
+This is README for building and using Hermes2D using Microsoft Visual C++ 2008 (Express Edition). These instructions should probably work even for older versions of MS Visual C++ up to version 2003.
+
+Warning: Do not attempt to use CMAKE ability to create MSVC++ project files. Currently, the result is not suitable for a smooth use of Hermes2D in MSVC++ 2008.
+
+* Building Hermes2D
+ In order to build the library and examples, you need to:
+ 1) Unpack contents of a file 'my_hermes2d_root\MSVC2008\MSVC2008.zip' to Hermes2D directory. This archive contains project files for MSVC.
+ 2) Prepare dependecy libraries, see 'Dependency Check-list'
+ 3) Build Hermes2D library and tutorials using corresponding SLN files, e.g., 'src/hermes2d-lib.sln'.
+
+* Hermes2d configuration options
+ Hermes2d is configured through preprocessor directives. These directives are:
+ NOGLUT : excludes GLUT-dependant parts. This replaces viewers with an empty implementation that does nothing if invoked.
+	- if used, a library 'freeglut.lib' does not need to be linked
+ ENABLE_VIEWER_GUI : enables GUI for viewers. Currently, only 'ScalarView' support GUI because this is an experimental feature. This directive is mutually exclusive with NOGLUT.
+	- if used, a library 'AntTweakBar.lib' does not need to be linked
+
+* Using Hermes2d
+ In order to used Hermes2d in your project, you need to do following steps. Steps 5 and 6 has to be repeated for every configuration, i.e., Debug, Release. Except the step 6b, this can be done easily by setting the drop-down Configuration to 'All configurations' in the Project Property dialog.
+ 1) Prepare Hermes2d to be buildable by MSVC, see 'Building Hermes2D'
+ 2) Create your project in MSVC. Set the project to be empty Win32 console project.
+ 3) Add either hermes2d-real or hermes2d-cplx project to your solution (<right click on solution>\Add\Existing Project...)
+ 4) Set that your project depends on hermes2d-* project (<right click on your project>\Project Dependences...)
+ 5) Add a 'my_hermes2d_directory\src' and 'dependencies\include' to additional include directories (<right click on your project>\Properties\Configuration Properties\C/C++\Additional Include Directories)
+ 6) Deny warnings that are not indicating anything dangerous:
+ 6a) Avoid warnings about STL in DLL by denying a warning 4251 (<right click on your project>\Properties\Configuration Properties\C/C++\Advanced\Disable Specific Warnings, enter 4251)
+ 6b) Avoid warnings about standard functions that are not safe (<right click on your project>\Properties\Configuration Properties\C/C++\Preprocessor\Preprocessor Definitions, add _CRT_SECURE_NO_WARNINGS)
+ 
+* Dependency check-list
+ This list works for 32-bit version of Hermes2D. If you intend to cross-compile 64-bit version, you have to cross-compile all libraries.
+ 1) Create directory structure
+	- in order to create the structure, execute 'prepare_dep_dir.bat'. Be sure to include a directory 'dependecies\bin' into 'PATH' environment variable.
+	- all Hermes2d project files assumes that dependency libraries are available in a fixed directory structure. The root of this structure has to have the same parent as does Hermes2d director, i.e., if 'C:\my_work\hermes2d\' is a root of the Hermes2D directory, then 'C:\my_work\dependecies\' is a root of the dependency directory. Subdirectories are:
+		> dependencies\include: Header files (*.h) of dependency libraries.
+		> dependencies\lib: Library files (*.lib) of dependency libraries.
+		> dependencies\bin: Binary modules (*.dll) of dependency libraries. Be sure to include a directory 'dependecies\bin' into 'PATH' environment variable.
+	
+ 2) JUDY
+	- download judy (http://sourceforge.net/projects/judy/) and upack it
+	- open a command promt with MSVC variables set up: either use a command prompt in MSVC start menu or start a command prompt and execute VCVARS.BAT from the MSVC directory
+	- switch to a directory containing JUDY sources, e.g., 'my_judy_root/src'
+	- compile JUDY with 'build.bat': this creates Judy.dll and Judy.lib
+	- copy 'Judy.dll', 'Judy.h', and 'Judy.lib' to 'bin', 'include', and 'lib' dependecy directories respectively
+
+ 3) PTHREAD
+    - download pthread binaries version 2.8.0 (ftp://sourceware.org/pub/pthreads-win32/)
+	- copy 'lib\pthreadVCE2.dll', 'include\*.h' and 'lib\pthreadVCE2.lib' to 'bin', 'include', and 'lib' dependecy directories respectively
+
+ 4) UMFPACK
+ 4a) UFConfig
+	- download UFconfig source file package (http://www.cise.ufl.edu/research/sparse/UFconfig/)
+	- upack it
+	- copy UFconfig.h to 'include' dependecy directory
+
+ 4b) AMD
+	- download AMD source file package (http://www.cise.ufl.edu/research/sparse/amd/)
+	- unpack source file into a directory that has the same parent as a directory where you unpacked UFconfig
+	- replace 'my_amd_directory\Lib\libamd.def' with 'my_hermes2d_root\MSVC2008\libamd.def'
+	- copy a file 'my_hermes2d_root\MSVC2008\AMD.nmake' to a directory 'my_amd_directory\Lib'
+	- run MSVC command prompt similar as in the case of Judy and switch to 'my_amd_directory\Lib'
+	- compile AMD using 'nmake -f AMD.nmake'
+	- copy 'libamd.dll', 'amd.h', 'amd_internal.h', and 'libamd.lib' to 'bin', 'include', and 'lib' dependecy directories respectively
+
+ 4c) UMFPACK
+	- download UMFPACK source file package (http://www.cise.ufl.edu/research/sparse/umfpack/current/)
+	- unpack source file into a directory that has the same parent as a directory where you unpacked UFconfig
+	- copy a file 'my_hermes2d_root\UMFPACK.nmake' to the 'my_umfpack_root/Lib' directory
+	- run MSVC command prompt similar as in the case of Judy and switch to 'my_umfpack_root\Lib'
+	- compile UMFPACK using 'nmake -f UMFPACK.nmake'. Linking might take some time, please, be patient.
+	- copy 'libumfpack.dll', all include files, and 'libumfpack.lib' to 'bin', 'include', and 'lib' dependecy directories respectively
+
+ 5) FREEGLUT
+    - if a directive NOGLUT is used, this step can be skipped
+    - download freeglut 2.6.0 (http://freeglut.sourceforge.net/) and unpack it
+	- open file DSW or DSP in MSVC, MSVC will convert file into a newer format, i.e., SLN or VCPROJ
+	- compile either Debug or Release version. Debug version is recommended in a case of debugging.
+	- copy 'freeglut.dll', 'freeglut.h', and 'freeglut.lib' to 'bin', 'include', and 'lib' dependency directories respectively
+	
+ 6) AntTweakBar
+	- if a directive ENABLE_VIEWER_GUI is *not* used, this step can be skipped
+	- download a modified version 1.1.3 of AntTweakView (http://hpfem.org/hermes2d/)
+	- unpack it
+	- open SLN file in MSVC and compile it
+	- copy 'AntTweakBar.dll', 'AntTweakBar.h', and 'AntTweakBar.lib' to 'bin', 'include', and 'lib' dependency directories respectively

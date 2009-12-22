@@ -459,7 +459,7 @@ void LinSystem::insert_block(scalar** mat, int* iidx, int* jidx, int ilen, int j
 
 void LinSystem::assemble(bool rhsonly)
 {
-  int i, j, k, m, n, ss, ww, marker;
+  int j, k, m, n, marker;
   AUTOLA_CL(AsmList, al, wf->neq);
   AsmList *am, *an;
   bool bnd[4]; AUTOLA_OR(bool, nat, wf->neq); AUTOLA_OR(bool, isempty, wf->neq);
@@ -480,7 +480,7 @@ void LinSystem::assemble(bool rhsonly)
   AUTOLA_OR(PrecalcShapeset*, spss, wf->neq);
   PrecalcShapeset *fu, *fv;
   AUTOLA_CL(RefMap, refmap, wf->neq);
-  for (i = 0; i < wf->neq; i++)
+  for (int i = 0; i < wf->neq; i++)
   {
     spss[i] = new PrecalcShapeset(pss[i]);
     pss [i]->set_quad_2d(&g_quad_2d_std);
@@ -503,12 +503,12 @@ void LinSystem::assemble(bool rhsonly)
   // traverses through the union mesh. On the other hand, if you don't use multi-mesh
   // at all, there will always be only one stage in which all forms are assembled as usual.
   Traverse trav;
-  for (ss = 0; ss < stages.size(); ss++)
+  for (unsigned int ss = 0; ss < stages.size(); ss++)
   {
     WeakForm::Stage* s = &stages[ss];
-    for (i = 0; i < s->idx.size(); i++)
+    for (unsigned int i = 0; i < s->idx.size(); i++)
       s->fns[i] = pss[s->idx[i]];
-    for (i = 0; i < s->ext.size(); i++)
+    for (unsigned int i = 0; i < s->ext.size(); i++)
       s->ext[i]->set_quad_2d(&g_quad_2d_std);
     trav.begin(s->meshes.size(), &(s->meshes.front()), &(s->fns.front()));
 
@@ -518,7 +518,7 @@ void LinSystem::assemble(bool rhsonly)
     {
       // find a non-NULL e[i]
       Element* e0;
-      for (i = 0; i < s->idx.size(); i++)
+      for (unsigned int i = 0; i < s->idx.size(); i++)
         if ((e0 = e[i]) != NULL) break;
       if (e0 == NULL) continue;
 
@@ -527,7 +527,7 @@ void LinSystem::assemble(bool rhsonly)
 
       // obtain assembly lists for the element at all spaces, set appropriate mode for each pss
       memset(isempty, 0, sizeof(bool) * wf->neq);
-      for (i = 0; i < s->idx.size(); i++)
+      for (unsigned int i = 0; i < s->idx.size(); i++)
       {
         j = s->idx[i];
         if (e[i] == NULL) { isempty[j] = true; continue; }
@@ -543,7 +543,7 @@ void LinSystem::assemble(bool rhsonly)
 
       init_cache();
       //// assemble volume bilinear forms //////////////////////////////////////
-      for (ww = 0; ww < s->bfvol.size(); ww++)
+      for (unsigned int ww = 0; ww < s->bfvol.size(); ww++)
       {
         WeakForm::BiFormVol* bfv = s->bfvol[ww];
         if (isempty[bfv->i] || isempty[bfv->j]) continue;
@@ -555,16 +555,16 @@ void LinSystem::assemble(bool rhsonly)
 
         // assemble the local stiffness matrix for the form bfv
         scalar bi, **mat = get_matrix_buffer(std::max(am->cnt, an->cnt));
-        for (i = 0; i < am->cnt; i++)
+        for (int i = 0; i < am->cnt; i++)
         {
-          //DEBUG
-          if (tra)
-          {
-            debug_log("! k will not be set\n");
-            debug_log("  inx_v:\t%d\n", am->dof[i]);
-            debug_log("  i:\t%d\n", i);
-          }
-          //DEBUG-END
+          ////DEBUG
+          //if (tra)
+          //{
+          //  debug_log("! k will not be set\n");
+          //  debug_log("  inx_v:\t%d\n", am->dof[i]);
+          //  debug_log("  i:\t%d\n", i);
+          //}
+          ////DEBUG-END
           if (!tra && (k = am->dof[i]) < 0) continue;
           fv->set_active_shape(am->idx[i]);
 
@@ -600,21 +600,21 @@ void LinSystem::assemble(bool rhsonly)
           // we also need to take care of the RHS...
           for (j = 0; j < am->cnt; j++)
             if (am->dof[j] < 0)
-              for (i = 0; i < an->cnt; i++)
+              for (int i = 0; i < an->cnt; i++)
                 if (an->dof[i] >= 0)
                   Dir[an->dof[i]] -= mat[i][j];
         }
       }
 
       //// assemble volume linear forms ////////////////////////////////////////
-      for (ww = 0; ww < s->lfvol.size(); ww++)
+      for (unsigned int ww = 0; ww < s->lfvol.size(); ww++)
       {
         WeakForm::LiFormVol* lfv = s->lfvol[ww];
         if (isempty[lfv->i]) continue;
         if (lfv->area != ANY && !wf->is_in_area(marker, lfv->area)) continue;
         m = lfv->i;  fv = spss[m];  am = &al[m];
 
-        for (i = 0; i < am->cnt; i++)
+        for (int i = 0; i < am->cnt; i++)
         {
           if (am->dof[i] < 0) continue;
           fv->set_active_shape(am->idx[i]);
@@ -630,7 +630,7 @@ void LinSystem::assemble(bool rhsonly)
         marker = ep[edge].marker;
 
         // obtain the list of shape functions which are nonzero on this edge
-        for (i = 0; i < s->idx.size(); i++) {
+        for (unsigned int i = 0; i < s->idx.size(); i++) {
           if (e[i] == NULL) continue;
           j = s->idx[i];
           if ((nat[j] = (spaces[j]->bc_type_callback(marker) == BC_NATURAL)))
@@ -638,7 +638,7 @@ void LinSystem::assemble(bool rhsonly)
         }
 
         // assemble surface bilinear forms ///////////////////////////////////
-        for (ww = 0; ww < s->bfsurf.size(); ww++)
+        for (unsigned int ww = 0; ww < s->bfsurf.size(); ww++)
         {
           WeakForm::BiFormSurf* bfs = s->bfsurf[ww];
           if (isempty[bfs->i] || isempty[bfs->j]) continue;
@@ -652,7 +652,7 @@ void LinSystem::assemble(bool rhsonly)
           ep[edge].space_u = spaces[n];
 
           scalar bi, **mat = get_matrix_buffer(std::max(am->cnt, an->cnt));
-          for (i = 0; i < am->cnt; i++)
+          for (int i = 0; i < am->cnt; i++)
           {
             if ((k = am->dof[i]) < 0) continue;
             fv->set_active_shape(am->idx[i]);
@@ -667,7 +667,7 @@ void LinSystem::assemble(bool rhsonly)
         }
 
         // assemble surface linear forms /////////////////////////////////////
-        for (ww = 0; ww < s->lfsurf.size(); ww++)
+        for (unsigned int ww = 0; ww < s->lfsurf.size(); ww++)
         {
           WeakForm::LiFormSurf* lfs = s->lfsurf[ww];
           if (isempty[lfs->i]) continue;
@@ -678,7 +678,7 @@ void LinSystem::assemble(bool rhsonly)
           ep[edge].base = trav.get_base();
           ep[edge].space_v = spaces[m];
 
-          for (i = 0; i < am->cnt; i++)
+          for (int i = 0; i < am->cnt; i++)
           {
             if (am->dof[i] < 0) continue;
             fv->set_active_shape(am->idx[i]);
@@ -699,11 +699,11 @@ void LinSystem::assemble(bool rhsonly)
 
   // add to RHS the dirichlet contributions
   if (want_dir_contrib)
-    for (i = 0; i < ndofs; i++)
+    for (int i = 0; i < ndofs; i++)
       RHS[i] += Dir[i];
 
   verbose("  (stages: %d, time: %g sec)", stages.size(), end_time());
-  for (i = 0; i < wf->neq; i++) delete spss[i];
+  for (int i = 0; i < wf->neq; i++) delete spss[i];
   delete [] buffer;
 
   if (!rhsonly) values_changed = true;

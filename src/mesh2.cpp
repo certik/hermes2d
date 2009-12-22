@@ -285,7 +285,7 @@ void Mesh::load_str(char* mesh)
 */
 void Mesh::load_stream(FILE *f)
 {
-  int i, j, k, n, maj, min;
+  int n, maj, min;
   char* line;
 
   // check file version
@@ -306,7 +306,7 @@ void Mesh::load_stream(FILE *f)
   HashTable::init(size);
 
   // load vertices: create top-level vertex nodes
-  for (i = 0; i < n; i++)
+  for (int i = 0; i < n; i++)
   {
     Node* node = nodes.add();
     assert(node->id == i);
@@ -326,7 +326,7 @@ void Mesh::load_stream(FILE *f)
   if (sscanf(line, "%d", &n) != 1) error("could not read the number of elements");
 
   // load elements
-  for (i = 0; i < n; i++)
+  for (int i = 0; i < n; i++)
   {
     if ((line = get_line(f)) == NULL) eof_error;
 
@@ -334,7 +334,7 @@ void Mesh::load_stream(FILE *f)
     if ((ret = sscanf(line, "%d %d %d %d %d", idx, idx+1, idx+2, idx+3, idx+4)) != 4 && ret != 5)
       error("error reading elements");
 
-    for (j = 0; j < ret-1; j++)
+    for (int j = 0; j < ret-1; j++)
       if (idx[j] < 0 || idx[j] >= ntopvert)
         error("error reading elements: node %d does not exist", idx[j]);
 
@@ -359,7 +359,7 @@ void Mesh::load_stream(FILE *f)
 
   // load boundary data
   Node* en;
-  for (i = 0; i < n; i++)
+  for (int i = 0; i < n; i++)
   {
     if ((line = get_line(f)) == NULL) eof_error;
 
@@ -388,7 +388,7 @@ void Mesh::load_stream(FILE *f)
   if (sscanf(line, "%d", &n) != 1) error("could not read the number of curved edges");
 
   // load curved edges
-  for (i = 0; i < n; i++)
+  for (int i = 0; i < n; i++)
   {
     // load the control points, knot vector, etc.
     Node* en;
@@ -396,7 +396,7 @@ void Mesh::load_stream(FILE *f)
     Nurbs* nurbs = load_nurbs(f, &en, p1, p2);
 
     // assign the nurbs to the elements sharing the edge node
-    for (k = 0; k < 2; k++)
+    for (int k = 0; k < 2; k++)
     {
       Element* e = en->elem[k];
       if (e == NULL) continue;
@@ -410,7 +410,7 @@ void Mesh::load_stream(FILE *f)
       }
 
       int idx = -1;
-      for (j = 0; j < e->nvert; j++)
+      for (unsigned int j = 0; j < e->nvert; j++)
         if (e->en[j] == en) { idx = j; break; }
       assert(idx >= 0);
 
@@ -441,7 +441,7 @@ void Mesh::load_stream(FILE *f)
   else
   {
     // perform initial refinements
-    for (i = 0; i < n; i++)
+    for (int i = 0; i < n; i++)
     {
       if ((line = get_line(f)) == NULL) eof_error;
       int id, ref;
@@ -622,7 +622,7 @@ void Mesh::load(const char* filename, bool debug)
         }
 
         int idx = -1;
-        for (j = 0; j < e->nvert; j++)
+        for (unsigned int j = 0; j < e->nvert; j++)
           if (e->en[j] == en) { idx = j; break; }
         assert(idx >= 0);
 
@@ -942,7 +942,7 @@ void Mesh::save(const char* filename)
   fprintf(f, "\n}\n\nboundaries =\n{");
   first = true;
   for_all_base_elements(e, this)
-    for (i = 0; i < e->nvert; i++)
+    for (unsigned int i = 0; i < e->nvert; i++)
       if ((mrk = get_base_edge_node(e, i)->marker)) {
         const char* nl = first ? "\n" : ",\n";  first = false;
         fprintf(f, "%s  { %d, %d, %d }", nl, e->vn[i]->id, e->vn[e->next_vert(i)]->id, mrk);
@@ -953,7 +953,7 @@ void Mesh::save(const char* filename)
   first = true;
   for_all_base_elements(e, this)
     if (e->is_curved())
-      for (i = 0; i < e->nvert; i++)
+      for (unsigned int i = 0; i < e->nvert; i++)
         if (e->cm->nurbs[i] != NULL && !is_twin_nurbs(e, i)) {
           fprintf(f, first ? "curves =\n{\n" : ",\n");  first = false;
           save_nurbs(f, e->vn[i]->id, e->vn[e->next_vert(i)]->id, e->cm->nurbs[i]);
@@ -977,8 +977,6 @@ void Mesh::save(const char* filename)
 
 void Mesh::copy(const Mesh* mesh)
 {
-  int i;
-
   free();
 
   // copy nodes and elements
@@ -989,19 +987,19 @@ void Mesh::copy(const Mesh* mesh)
   for_all_elements(e, this)
   {
     // update vertex node pointers
-    for (i = 0; i < e->nvert; i++)
+    for (unsigned int i = 0; i < e->nvert; i++)
       e->vn[i] = &nodes[e->vn[i]->id];
 
     if (e->active)
     {
       // update edge node pointers
-      for (i = 0; i < e->nvert; i++)
+      for (unsigned int i = 0; i < e->nvert; i++)
         e->en[i] = &nodes[e->en[i]->id];
     }
     else
     {
       // update son pointers
-      for (i = 0; i < 4; i++)
+      for (int i = 0; i < 4; i++)
         if (e->sons[i] != NULL)
           e->sons[i] = &elements[e->sons[i]->id];
     }
@@ -1018,7 +1016,7 @@ void Mesh::copy(const Mesh* mesh)
   // update element pointers in edge nodes
   Node* node;
   for_all_edge_nodes(node, this)
-    for (i = 0; i < 2; i++)
+    for (int i = 0; i < 2; i++)
       if (node->elem[i] != NULL)
         node->elem[i] = &elements[node->elem[i]->id];
 
@@ -1070,7 +1068,7 @@ void Mesh::copy_base(Mesh* mesh)
       enew = create_quad(e->marker, v0, v1, v2, &nodes[e->vn[3]->id], NULL);
 
     // copy edge markers
-    for (int j = 0; j < e->nvert; j++)
+    for (unsigned int j = 0; j < e->nvert; j++)
     {
       Node* en = get_base_edge_node(e, j);
       enew->en[j]->bnd = en->bnd; // copy bnd data from the active el.
@@ -1092,7 +1090,7 @@ void Mesh::copy_base(Mesh* mesh)
 
 void Mesh::save_raw(FILE* f)
 {
-  int i, nn, mm;
+  int nn, mm;
   int null = -1;
 
   assert(sizeof(int) == 4);
@@ -1157,14 +1155,14 @@ void Mesh::save_raw(FILE* f)
         output(e->userdata, int);
         output(e->iro_cache, int);
 
-        for (i = 0; i < e->nvert; i++)
+        for (unsigned int i = 0; i < e->nvert; i++)
           output(e->vn[i]->id, int);
 
         if (e->active)
-          for (i = 0; i < e->nvert; i++)
+          for (unsigned int i = 0; i < e->nvert; i++)
             output(e->en[i]->id, int);
         else
-          for (i = 0; i < 4; i++)
+          for (int i = 0; i < 4; i++)
             output(e->sons[i] ? e->sons[i]->id : null, int);
 
         if (e->is_curved()) error("Not implemented for curved elements yet.");
@@ -1180,7 +1178,7 @@ void Mesh::save_raw(FILE* f)
 
 void Mesh::load_raw(FILE* f)
 {
-  int i, j, nv, mv, ne, me, id;
+  int nv, mv, ne, me, id;
 
   assert(sizeof(int) == 4);
   assert(sizeof(double) == 8);
@@ -1207,7 +1205,7 @@ void Mesh::load_raw(FILE* f)
   nodes.force_size(mv);
 
   // load nodes
-  for (i = 0; i < nv; i++)
+  for (int i = 0; i < nv; i++)
   {
     input(id, int);
     if (id < 0 || id >= mv) error("Corrupt data.");
@@ -1249,7 +1247,7 @@ void Mesh::load_raw(FILE* f)
   elements.force_size(me);
 
   // load elements
-  for (i = 0; i < ne; i++)
+  for (int i = 0; i < ne; i++)
   {
     input(id, int);
     if (id < 0 || id >= me) error("Corrupt data.");
@@ -1269,7 +1267,7 @@ void Mesh::load_raw(FILE* f)
       input(e->iro_cache, int);
 
       // load vertex node ids
-      for (j = 0; j < e->nvert; j++)
+      for (unsigned int j = 0; j < e->nvert; j++)
       {
         input(id, int);
         if (id < 0 || id >= mv) error("Corrupt data.");
@@ -1279,7 +1277,7 @@ void Mesh::load_raw(FILE* f)
       if (e->active)
       {
         // load edge node ids
-        for (j = 0; j < e->nvert; j++)
+        for (unsigned int j = 0; j < e->nvert; j++)
         {
           input(id, int);
           if (id < 0 || id >= mv) error("Corrupt data.");
@@ -1289,7 +1287,7 @@ void Mesh::load_raw(FILE* f)
       else
       {
         // load son ids
-        for (j = 0; j < 4; j++)
+        for (int j = 0; j < 4; j++)
         {
           input(id, int);
           if (id < 0)
@@ -1307,7 +1305,7 @@ void Mesh::load_raw(FILE* f)
   // update edge node element pointers
   Node* n;
   for_all_edge_nodes(n, this)
-    for (j = 0; j < 2; j++)
+    for (int j = 0; j < 2; j++)
       if ((int) (long) n->elem[j] == -1)
         n->elem[j] = NULL;
       else

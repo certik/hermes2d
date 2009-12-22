@@ -18,6 +18,8 @@
 
 #ifdef COMPLEX
 
+using namespace std;
+
 //// new volume integrals //////////////////////////////////////////////////////////////////////////////
 
 template<typename Real, typename Scalar>
@@ -73,8 +75,8 @@ Scalar hcurl_form(int n, double *wt, Func<Scalar> *u, Func<Scalar> *v, Geom<Real
 {
   Scalar result = 0;
   for (int i = 0; i < n; i++)
-    result += wt[i] * (u->curl[i] * std::conj(v->curl[i]) +
-                       u->val0[i] * std::conj(v->val0[i]) + u->val1[i] * std::conj(v->val1[i]));
+    result += wt[i] * (u->curl[i] * conj(v->curl[i]) +
+                       u->val0[i] * conj(v->val0[i]) + u->val1[i] * conj(v->val1[i]));
   return result;
 }
 
