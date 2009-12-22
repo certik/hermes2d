@@ -28,7 +28,7 @@ int bc_types(int marker)
   { return (marker == 1) ? BC_ESSENTIAL : BC_NATURAL; }
 
 // function values for Dirichlet boundary conditions
-double bc_values(EdgePos* ep)
+double bc_values(int marker, double x, double y)
   { return 0; }
 
 // bilinear forms
