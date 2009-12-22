@@ -935,11 +935,8 @@ conditions can be implemented as
     int bc_types(int marker)
       { return (marker == 1) ? BC_ESSENTIAL : BC_NATURAL;; }
 
-    int bc_values_x(int marker)
+    double bc_values(int marker, double x, double y)
       { return 0;}
-
-    double bc_values_y(EdgePos* ep)
-      { return (ep->marker == 3) ? f : 0.0; }
 
 Next we create the two displacement spaces, xdisp and ydisp:
 ::
@@ -947,13 +944,13 @@ Next we create the two displacement spaces, xdisp and ydisp:
     // create the x displacement space
     H1Space xdisp(&mesh, &shapeset);
     xdisp.set_bc_types(bc_types);
-    xdisp.set_bc_values(bc_values_x);
+    xdisp.set_bc_values(bc_values);
     xdisp.set_uniform_order(P\_INIT);
 
     // create the y displacement space
     H1Space ydisp(&mesh, &shapeset);
     ydisp.set_bc_types(bc_types);
-    ydisp.set_bc_values(bc_values_y);
+    ydisp.set_bc_values(bc_values);
     ydisp.set_uniform_order(P\_INIT);
 
 Our WeakForm instance will be initialized for two equations in the system.
