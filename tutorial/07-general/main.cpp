@@ -109,7 +109,7 @@ Scalar bilinear_form_ord(int n, double *wt, Func<Real> *u,
 template<typename Real, typename Scalar>
 Scalar linear_form_surf(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
-  return -int_F_v<Real, Scalar>(n, wt, g_N, v, e);
+  return int_F_v<Real, Scalar>(n, wt, g_N, v, e);
 }
 
 // Integration order for surface linear form
