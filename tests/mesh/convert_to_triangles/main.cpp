@@ -7,10 +7,16 @@
 
 int main(int argc, char* argv[])
 {
+  if (argc < 2)
+  {
+    printf("please input as this format: convert_to_triangles  meshfile.mesh \n");
+    return ERROR_FAILURE;
+  }
+
   // load the mesh file
   Mesh mesh;
   Element* e;
-  mesh.load("bracket.mesh");
+  mesh.load(argv[1]);
 
   // Calculate the number of elements after refinement, starting from 0
   int element_num = 0;
