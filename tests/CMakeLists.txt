@@ -1,3 +1,2 @@
 add_subdirectory(quadrature)
-add_subdirectory(convert_to_quads)
-add_subdirectory(convert_to_triangles)
+add_subdirectory(mesh)
