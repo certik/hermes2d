@@ -72,12 +72,7 @@ if(WITH_EXAMPLES)
 endif(WITH_EXAMPLES)
 
 if(WITH_TUTORIAL)
-    add_subdirectory(tutorial EXCLUDE_FROM_ALL)
-    add_custom_target(tutorial)
-    add_custom_command(
-        TARGET	tutorial
-        COMMAND make -C ${CMAKE_BINARY_DIR}/tutorial
-    )
+    add_subdirectory(tutorial)
 endif(WITH_TUTORIAL)
 
 if(WITH_PYTHON)
