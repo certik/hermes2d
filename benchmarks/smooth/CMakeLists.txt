@@ -1,7 +1,7 @@
 if(NOT REAL)
     return()
 endif(NOT REAL)
-project(layer)
+project(smooth)
 
 add_executable(${PROJECT_NAME} main.cpp)
-include (../CMake.common)
+include (../../examples/CMake.common)
