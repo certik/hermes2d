@@ -19,4 +19,4 @@ add_subdirectory(ns-timedep-adapt)
 add_subdirectory(hdiv)
 add_subdirectory(l2)
 add_subdirectory(newton-combust)
-
+add_subdirectory(newton-np-timedep-adapt-system)
