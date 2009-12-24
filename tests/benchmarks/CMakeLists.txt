@@ -6,5 +6,6 @@ find_package(BLAS REQUIRED)
 
 # examples
 add_subdirectory(bessel)
+add_subdirectory(layer)
 add_subdirectory(screen)
 
