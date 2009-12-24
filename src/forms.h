@@ -49,6 +49,7 @@ public:
 	Ord operator/(double d) { return *this; }
 
 	Ord operator+=(const Ord &o) { this->order = std::max(this->order, o.order); return *this; }
+	bool operator<(double d) { return true; }
 
 protected:
 	int order;

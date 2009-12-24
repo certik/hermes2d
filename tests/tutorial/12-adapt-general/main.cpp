@@ -1,19 +1,7 @@
 #include "hermes2d.h"
 #include "solver_umfpack.h"
 
-//  This example uses automatic adaptivity to solve a general second-order linear 
-//  equation with non-constant coefficients.
-//
-//  PDE: -d/dx(a_11(x,y)du/dx) - d/dx(a_12(x,y)du/dy) - d/dy(a_21(x,y)du/dx) - d/dy(a_22(x,y)du/dy)
-//       + a_1(x,y)du/dx + a_21(x,y)du/dy + a_0(x,y)u = rhs(x,y)
-//
-//  Domain: arbitrary
-//
-//  BC:  Dirichlet for boundary marker 1: u = g_D(x,y)
-//       Natural for any other boundary marker:   (a_11(x,y)*nu_1 + a_21(x,y)*nu_2) * dudx 
-//                                              + (a_12(x,y)*nu_1 + s_22(x,y)*nu_2) * dudy = g_N(x,y)
-//
-//  The following parameters can be changed:
+// This test makes sure that example 12-adapt-general works correctly.
 
 const int P_INIT = 1;             // Initial polynomial degree of all mesh elements.
 const double THRESHOLD = 0.6;     // This is a quantitative parameter of the adapt(...) function and
@@ -186,10 +174,6 @@ int main(int argc, char* argv[])
   wf.add_liform(0, linear_form, linear_form_ord);
   wf.add_liform_surf(0, linear_form_surf, linear_form_surf_ord, 2);
 
-  // Visualize solution and mesh
-  ScalarView sview("Coarse solution", 0, 100, 798, 700);
-  OrderView  oview("Polynomial orders", 800, 100, 798, 700);
-
   // Matrix solver
   UmfpackSolver solver;
 
@@ -227,10 +211,6 @@ int main(int argc, char* argv[])
     // Time measurement
     cpu += end_time();
 
-    // View the solution and mesh
-    sview.show(&sln_coarse);
-    oview.show(&space);
-
     // Time measurement
     begin_time();
 
@@ -266,11 +246,14 @@ int main(int argc, char* argv[])
   while (done == false);
   verbose("Total running time: %g sec", cpu);
 
-  // Show the fine solution - this is the final result
-  sview.set_title("Final solution");
-  sview.show(&sln_fine);
-
-  // Wait for keyboard or mouse input
-  View::wait("Waiting for keyboard or mouse input.");
-  return 0;
+#define ERROR_SUCCESS                               0
+#define ERROR_FAILURE                               -1
+  if (ndofs < 1200) {      // ndofs was 1108 atthe time this test was created
+    printf("Success!\n");
+    return ERROR_SUCCESS;
+  }
+  else {
+    printf("Failure!\n");
+    return ERROR_FAILURE;
+  }
 }

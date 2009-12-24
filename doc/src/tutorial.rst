@@ -2,7 +2,7 @@
 Tutorial
 ========
 
-This tutorial should give you a good idea of how to adjust existing Hermes examples and create your own applications. For those who speak other languages than C++, there is an interactive graphical GUI `Agros2D <{http://hpfem.org/hermes2d/>`_. We also provide an interactive `online lab <http://nb.femhub.org/>`_ that allows you to use Hermes from any web browser without even installing it (the CPU time is on us). 
+This tutorial should give you a good idea of how to adjust existing Hermes2D examples and create your own applications. For those who speak other languages than C++, there is an interactive graphical GUI `Agros2D <{http://hpfem.org/hermes2d/>`_. We also provide an interactive `online lab <http://nb.femhub.org/>`_ that allows you to use Hermes2D from any web browser without even installing it (the CPU time is on us). 
 
 Introduction
 ------------
@@ -31,8 +31,8 @@ will be happy to add it to the existing examples.
 Citing Hermes
 -------------
 
-If you publish a paper using Hermes, please cite some of the papers in the `publications section 
-<http://hpfem.org/publications/>`_ of the hp-FEM group home page, that is closest to your 
+If you use Hermes for your work, please be so kind to cite some of the papers in the `publications section 
+<http://hpfem.org/publications/>`_ of the hp-FEM group home page, that are closest to your 
 research area.
 
 Main Features
@@ -53,10 +53,20 @@ Main strengths of Hermes are higher-order methods, automatic adaptivity for both
 * `Arbitrary-level hanging nodes`. Hermes is capable of handling arbitrarily irregular meshes. This means that extremely small elements can be adjacent to very large ones. When an element is refined, its neighbors are never split forcefully as in conventional adaptivity algorithms. This makes automatic adaptivity in Hermes extremely efficient as well as easy to handle. 
 
 .. image:: img/ord_2d_c.png
-   :align: center
+   :align: left
    :width: 300
    :height: 300
-   :alt: Illustration of arbitrary-level hanging nodes
+   :alt: Illustration of arbitrary-level hanging nodes.
+
+.. image:: img/mixer-mesh.png
+   :align: right
+   :width: 300
+   :height: 300
+   :alt: Illustration of arbitrary-level hanging nodes.
+
+.. raw:: html
+
+   <hr style="clear: both; visibility: hidden;">
 
 * `Multimesh hp-FEM`. Various physical fields or solution components in multiphysics problems can be approximated on individual meshes, combining quality *H1*, *Hcurl*, *Hdiv*, and *L2* conforming higher-order elements. The approximation is monolithic, i.e., no error is caused by operator splitting, transferring data between different meshes, etc. The following figure illustrates a coupled problem of heat and moisture transfer in massive concrete walls of a reactor vessel. 
 
@@ -64,7 +74,7 @@ Main strengths of Hermes are higher-order methods, automatic adaptivity for both
    :align: center
    :width: 440
    :height: 360
-   :alt: Illustration of arbitrary-level hanging nodes
+   :alt: Illustration of multimesh hp-FEM.
 
 * `Space-time hp-adaptivity on dynamical meshes`. In time-dependent problems, different physical fields or solution components can be approximated on individual meshes that evolve in time independently of each other. Despite the independent meshes for solution components, the discretization of the PDE system is monolithic. 
 
@@ -273,33 +283,21 @@ so that you have a chance to see the graphical output.
 Setting Up Space
 ----------------
 
-\index{Space!creating}
-With the mesh definition in place we can start preparing the finite element calculation.
-Hermes follows closely the mathematical concept of FEM in the
-sense that you are required to construct a finite element space on top of a mesh
-before performing any FE calculation. The following predefined spaces are currently
-available:
-\begin{itemize}
-  \item {\tt H1Space} -- \index{Space!$H^1$} the most common space of continuous,
-        piecewise-polynomial functions belonging to $H^1(\Omega) = \{ v \in L^2(\Omega);
-        \nabla u \in (L^2(\Omega))^2 \}$,
-  \item {\tt HcurlSpace} -- \index{Space!$\Hcurl$} the space of vector-valued functions discontinuous along mesh edges, with
-        continuous tangential component on the edges $\bfH(\mbox{curl},\Omega) = \{ \bfE \in (L^2(\Omega))^2;
-        \nabla \times \bfE \in L^2(\Omega)\}$,
-  \item {\tt HdivSpace} -- \index{Space!$\Hdiv$} the space of vector-valued functions discontinuous along mesh edges, with
-        continuous normal component on the edges $\bfH(\mbox{div},\Omega) = \{ \bfv \in (L^2(\Omega))^2;
-        \nabla \cdot \bfv \in L^2(\Omega)\}$,
-  \item {\tt L2Space} -- \index{Space!$L^2$} the space of functions discontinuous along mesh edges,
-        belonging to the space $L^2(\Omega)$.
-\end{itemize}
+Hermes follows the mathematical concept of FEM closely -- 
+in the next step you need to construct a finite element space on top of the mesh.
+The following predefined spaces are currently available:
 
-\index{Function!basis} \index{Function!edge} \index{Function!bubble}
-All these spaces allow for higher-order elements and meshes with hanging nodes.
+* H1Space - the most common space of continuous, piecewise-polynomial functions belonging to $H^1(\Omega) = \{ v \in L^2(\Omega); \nabla u \in [L^2(\Omega)]^2 \}$,
+* HcurlSpace - the space of vector-valued functions discontinuous along mesh edges, with continuous tangential component on the edges $H(\mbox{curl},\Omega) = \{ E \in [L^2(\Omega)]^2; \nabla \times E \in L^2(\Omega)\}$,
+* HdivSpace - the space of vector-valued functions discontinuous along mesh edges, with continuous normal component on the edges $H(\mbox{div},\Omega) = \{ v \in [L^2(\Omega)^2; \nabla \cdot v \in L^2(\Omega)\}$,
+* L2Space -  the space of functions discontinuous along mesh edges, belonging to the space $L^2(\Omega)$.
+
+All these spaces allow for higher-order elements and meshes with arbitrary-level hanging nodes.
 If you are not familiar with higher-order FEM, let us just say that the spaces can contain
-quadratic, cubic, etc., {\em edge functions} that generate higher-degree
-polynomials along mesh edges, and {\em bubble functions} that complete the higher-order
-approximation in element interiors. An edge function is associated with a mesh edge,
-a bubble function is associated with an element:
+quadratic, cubic, etc., *edge functions* that generate higher-degree
+polynomials along mesh edges, and *bubble functions* that complete the higher-order
+approximation in element interiors. Edge functions are associated with mesh edges,
+and bubble functions with element interiors. The next figure shows a patch consisting of two triangular elements. An edge function is shown on the left, and a bubble function on one of the triangles on the right:
 
 .. image:: img/basisfn.jpg
    :align: center
@@ -307,68 +305,61 @@ a bubble function is associated with an element:
    :height: 200
    :alt: Fourth-order edge function  (left) and one of the fifth-order bubble functions (right).
 
-
-
 There are many possible ways of defining the
 higher-order basis functions. A particular set of polynomials is called
-\emph{shapeset}\index{Shapeset}. Using good shapeset is crucial for the
+*shapeset*. Using good shapeset is crucial for the
 performance of the *hp*-FEM. No shapeset can be optimal for all possible operators.
 Therefore, Hermes offers several shapesets from which
-you need to choose when creating a FE space. The ones which perform best
+you need to choose one when creating a FE space. The ones which perform best
 in most computations (according to our experience) are simply called
-{\tt H1Shapeset}, {\tt HcurlShapeset}, {\tt HdivShapeset} and {\tt L2Shapeset}.
-Others can be found in the files {\tt shapeset\_*\_all.h}. A single shapeset
-can be used for more than one space.
+H1Shapeset, HcurlShapeset, HdivShapeset and L2Shapeset.
+Others can be found in the files src/shapeset* in the Hermes git repo.
+Any shapeset can be used for more than one space.
 
 We are now ready for an example. The following code snippets come from
-\verb"hermes2d/tutorial/02-space/main.cpp". We assume that a mesh has already
-been loaded. First we create an instance of {\tt H1Shapeset} and then an
-instance of {\tt H1Space}, supplying the mesh and shapeset pointers:
+the `main.cpp <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/tutorial/02-space/main.cpp>`_ file 
+in the tutorial example 02-space. We assume that a mesh has already
+been loaded. First we create an instance of H1Shapeset and then an
+instance of H1Space, supplying the mesh and shapeset pointers:
+::
 
-\begin{lstlisting}
- // create a shapeset and an H1 space
- H1Shapeset shapeset;
- H1Space space(&mesh, &shapeset);
-\end{lstlisting}
+    // create a shapeset and an H1 space
+    H1Shapeset shapeset;
+    H1Space space(&mesh, &shapeset);
 
-After the space has been created, we need to initialize the polynomial
-degrees\footnote{The words \emph{degree} and \emph{order} have the same meaning for us.}
-of the elements. This can be done for individual elements by calling the method
-\verb"Space::set_element_order()", or for all elements at once using
-\verb"Space::set_uniform_order()". It is important to note that element degrees
-are stored in the {\tt Space}, not in the {\tt Mesh}. The reason is that you can
-have multiple different spaces with different element degrees over the same mesh.
-In Hermes the mesh only stores geometrical information.
+When the space is created, we need to initialize the polynomial
+degrees of all elements. (The words *degree* and *order* have the same meaning for us.)
+This can be done for individual elements by calling the method
+Space::set_element_order(), or for all elements at once using
+Space::set_uniform_order(). It is important to note that element degrees
+are stored in Space, not in Mesh. The reason is that you can
+have multiple different spaces with different element degrees and even types 
+over the same mesh. In Hermes, Mesh only stores geometrical information.
+::
 
-\begin{lstlisting}
- // assign element orders and initialize the space
- space.set_uniform_order(P_INIT);
- // enumerate basis functions
- space.assign_dofs();
-\end{lstlisting}
+    // assign element orders and initialize the space
+    space.set_uniform_order(P_INIT);
+    // enumerate basis functions
+    space.assign_dofs();
 
 A space created in this way is ready for use. By default, it is equipped with
-zero Neumann boundary condition on the entire domain boundary. We will see
-how to change that in Section \ref{sec:bc}.
+zero Neumann boundary conditions on the entire domain boundary. Later we will see
+how to change that.
 
-\index{Space!viewing}
-As a debugging feature, Hermes provides a visualization possibility for the
-examination of all basis functions in a space. Similarly to {\tt MeshView},
-you can create a {\tt BaseView} object and use it to display the basis of a space.
-You can cycle through all basis functions in the window using the arrow keys.
+As a debugging feature, Hermes provides a visualization of all basis functions 
+in a Space. Similarly to MeshView, you can create a BaseView object and use it 
+to display the entire basis of a space. You can cycle through all basis functions 
+in the window using the arrow keys. If you press the left mouse button at the 
+beginning, you will see the Dirichlet lift (to be explained later).
+::
 
-\begin{lstlisting}
- // view the basis functions
- BaseView bview;
- bview.show(&space);
-\end{lstlisting}
+    // view the basis functions
+    BaseView bview;
+    bview.show(&space);
 
-This is how the figure above was obtained (press the ``{\tt 3}'' key for 3D mode).
-You can experiment with element refinements and hanging nodes to see basis functions
-on irregular meshes.
-
-
-
+This is how the last figure above was obtained (press the '3' key for 3D mode).
+We suggest that you spend some time experimenting with element refinements and 
+hanging nodes to see how basis functions on irregular meshes look like.
 
 Solving Poisson Equation
 ----------------------------
@@ -392,11 +383,9 @@ where $CONST_F$ is a real number. The weak formulation
 is derived in the standard way, first by multiplying equation :eq:`poisson1` with a test
 function $v$, then integrating over the domain $\Omega$, and then applying the Green's
 theorem (integration by parts) to the second derivatives.
-Because of the homogeneous Dirichlet condition
-:eq:`poisson2`,
+Because of the homogeneous Dirichlet condition :eq:`poisson2`,
 the proper space for the solution is $V = H^1_0(\Omega)$. The weak formulation reads:
 Find $u \in V$ such that
-
 
 .. math::
     :label: poissonweak
@@ -406,106 +395,98 @@ Find $u \in V$ such that
 Equation :eq:`poissonweak` has the standard form $a(u,v) = l(v)$ and thus in Hermes
 we need a way to specify the bilinear form $a(u,v)$ and the linear form $l(v)$.
 In the code this is done by implementing the following two functions:
+::
 
-\begin{lstlisting}
-scalar bilinear_form(RealFunction* fu, RealFunction* fv,
-                     RefMap* ru, RefMap* rv);
+    template<typename Real, typename Scalar>
+    Scalar bilinear_form(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext);
 
-scalar linear_form(RealFunction* fv, RefMap* rv);
-\end{lstlisting}
+    template<typename Real, typename Scalar>
+    Scalar linear_form(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext);
 
 These functions will be called for each element during the stiffness matrix
 assembly and must return the values of the bilinear and linear forms for the given arguments.
-{\tt RealFunction} represents one of the basis functions restricted to the
-current element and {\tt RefMap} represents the reference mapping of the current element.
+RealFunction represents one of the basis functions restricted to the
+current element and RefMap represents the reference mapping of the current element.
 There are methods for extracting the values of the basis functions at integration points,
 which allows you to evaluate the integrals by yourself, but this is normally not needed,
 since many common weak forms have already been implemented.
 In this case, we can simply use the predefined functions
-\verb"int_grad_u_grad_v" and \verb"int_v":
+int_grad_u_grad_v and int_v:
+::
 
-\begin{lstlisting}
-scalar bilinear_form(RealFunction* fu, RealFunction* fv,
-                     RefMap* ru, RefMap* rv)
-{
-  return int_grad_u_grad_v(fu, fv, ru, rv);
-}
-
-scalar linear_form(RealFunction* fv, RefMap* rv)
-{
-  return CONST_F*int_v(fv, rv);
-}
-\end{lstlisting}
-
+    // return the value \int \nabla u . \nabla v dx
+    template<typename Real, typename Scalar>
+    Scalar bilinear_form(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+    {
+      return int_grad_u_grad_v<Real, Scalar>(n, wt, u, v);
+    }
+   
+    // return the value \int v dx
+    template<typename Real, typename Scalar>
+    Scalar linear_form(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+    {
+      return CONST_F * int_v<Real, Scalar>(n, wt, v);
+    }
 
 We can now state our problem in the following way
-(taken from {\tt hermes2d/ tutorial/03-poisson}):
+(see the `main.cpp <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/tutorial/03-poisson/main.cpp>`_ file in the tutorial example 03-poisson):
+::
 
-\begin{lstlisting}
- // initialize the weak formulation
- WeakForm wf(1); // num. eq.
- wf.add_biform(0, 0, bilinear_form);
- wf.add_liform(0, linear_form);
-\end{lstlisting}
+    // initialize the weak formulation
+    WeakForm wf(1);
+    wf.add_biform(0, 0, callback(bilinear_form));
+    wf.add_liform(0, callback(linear_form));
 
-The class {\tt WeakForm} represents the weak formulation of the PDE and must be
+The class WeakForm represents the weak formulation of the PDE and must be
 initialized with the number of equations in the system, in our case one. We then
 supply the class pointers to our bilinear and linear form functions. If the PDE
-was more complicated, we could add multiple bilinear and/or linear forms. Last,
-there are some integer numbers as arguments of {\tt add\_biform} and {\tt add\_liform}.
-These are zeros if only one PDE is solved as in the present case. These integers will be
-discussed in more detail in the context of PDE systems in Section \ref{sec:systems}.
+was more complicated, we could add multiple bilinear and/or linear forms.
 
 Given the weak formulation and the discretization determined by the space and its mesh,
 we can proceed to the approximate solution of the problem by the Galerkin method.
 This method is the core of Hermes and provides a way to obtain a sparse linear
-system of equations, represented by the class {\tt LinSystem} in the code. The solution
+system of equations, represented by the class LinSystem in the code. The solution
 of the linear system then yields an approximate solution of the original problem.
 
-The class {\tt LinSystem} needs three things: your weak formulation, your spaces and
+The class LinSystem needs three things: your weak formulation, your spaces and
 finally an external sparse matrix solver, for example CG or UMFPACK. The following lines
-create the linear solver, initialize the {\tt LinSystem} class and pass a pointer to
-the {\tt H1Space} we have created in the previous section.
+create the linear solver, initialize the LinSystem class and pass a pointer to
+the H1Space we have created in the previous section.
+::
 
-\begin{lstlisting}
- // initialize the linear system and solver
- UmfpackSolver umfpack;
- LinSystem sys(&wf, &umfpack);
- sys.set_spaces(1, &space);
- sys.set_pss(1, &pss);
-\end{lstlisting}
+    // initialize the linear system and solver
+    UmfpackSolver umfpack;
+    LinSystem sys(&wf, &umfpack);
+    sys.set_spaces(1, &space);
+    sys.set_pss(1, &pss);
 
 The last line must be included for historical reasons. During matrix assembly,
 Hermes caches the values of all shape function polynomials for better performance.
-The cache is represented by the class {\tt PrecalcShapeset} and you have to
-include the following line at the beginning your program:
+The cache is represented by the class PrecalcShapeset and you have to
+include the following line at the beginning of your program:
+::
 
-\begin{lstlisting}
- PrecalcShapeset pss(&shapeset);
-\end{lstlisting}
+    PrecalcShapeset pss(&shapeset);
 
-Finally, we tell {\tt LinSystem} to assemble the stiffness matrix and the right-hand
+Finally, we tell LinSystem to assemble the stiffness matrix and the right-hand
 side and solve the resulting linear system: 
+::
 
-\begin{lstlisting}
- // assemble the stiffness matrix and solve the system
- Solution sln;
- sys.assemble();
- sys.solve(1, &sln);
-\end{lstlisting}
+    // assemble the stiffness matrix and solve the system
+    Solution sln;
+    sys.assemble();
+    sys.solve(1, &sln);
 
-The last two lines can be repeated many times in time-dependent problems. For
-the Poisson problem, however,
-we are finished. The instance of the class {\tt Solution}, upon the
-completion of {\tt LinSystem::solve}, contains the approximate solution of
-the PDE. You can ask for its values 
-or you can visualize the solution immediately using the {\tt ScalarView} class:
+For the Poisson problem, we are finished. The last two lines can be repeated many 
+times in time-dependent problems. The instance of the class Solution, upon the
+completion of LinSystem::solve(), contains the approximate solution of
+the PDE. You can ask for its values or you can visualize the solution immediately 
+using the ScalarView class:
+::
 
-\begin{lstlisting}
- // visualize the solution
- ScalarView view("Solution");
- view.show(&sln);
-\end{lstlisting}
+    // visualize the solution
+    ScalarView view("Solution");
+    view.show(&sln);
 
 For the complete source code we refer to the corresponding `main.cpp <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/tutorial/03-poisson/main.cpp>`_ file.
 The following figure shows the output.
@@ -517,14 +498,13 @@ The following figure shows the output.
    :alt: Solution of the Poisson equation.
 
 Boundary Conditions
---------------------------
+-------------------
 
-Hermes recognizes two basic types of boundary conditions: {\em essential} and {\em natural}.
-Essential boundary conditions influence and modify the finite element space while natural
+Hermes recognizes two basic types of boundary conditions: *essential* and *natural*.
+Essential boundary conditions influence the finite element space while natural
 conditions do not (they are incorporated into boundary integrals in the weak formulation).
 In the context of elliptic problems, Dirichlet conditions are essential and Neumann/Newton
 conditions are natural.
-
 
 Dirichlet BC
 ~~~~~~~~~~~~
@@ -532,50 +512,53 @@ Dirichlet BC
 Since essential conditions restrict degrees of freedom (DOF) in the FE space, 
 they need to be incorporated while the space is set up.
 The user has to provide the following two callback functions:
+::
 
-\begin{lstlisting}
-int bc_types(int marker);
-scalar bc_values(int marker, double x, double y);
-\end{lstlisting}
+    int bc_types(int marker);
+    scalar bc_values(int marker, double x, double y);
 
 The first one, given the boundary marker number, determines the type of BC which the associated
 portion of the domain boundary belongs to, by returning one of the predefined constants 
-\verb"BC_ESSENTIAL"
-or \verb"BC_NATURAL". The second callback needs to return the boundary value for a given marker
-and position on the boundary (only needed for essential boundary condition markers -- for natural
+BC_ESSENTIAL or BC_NATURAL. The second callback needs to return the boundary value for a given marker
+and position on the boundary (only needed for essential boundary condition markers - for natural
 boundary conditions this value is ignored).
-The space initialization might then look as follows:
+The space initialization can then look as follows:
+::
 
-\begin{lstlisting}
- H1Space space(&mesh, &shapeset);
- space.set_bc_types(bc_types);
- space.set_bc_values(bc_values);
-\end{lstlisting}
+    H1Space space(&mesh, &shapeset);
+    space.set_bc_types(bc_types);
+    space.set_bc_values(bc_values);
 
 Suppose we would like to modify the previous Poisson model problem in the following way:
-$-\Delta u = CONST_F,\ u(x,y) = -\frac{CONST_F}{4}(x^2 + y^2)\,\ \mbox{on}\,\ \partial \Omega.$
+
+.. math::
+         -\Delta u = CONST_F,\ u(x,y) = -\frac{CONST_F}{4}(x^2 + y^2)\,\ \mbox{on}\,\ \partial \Omega.
+
+
 Besides changing the linear form, we need to specify that all the boundary markers 1, 2, 3, 4
 denote the essential boundary condition:
+::
 
-\begin{lstlisting}
-int bc_types(int marker)
-{
-  return BC_ESSENTIAL;
-}
-\end{lstlisting}
+    int bc_types(int marker)
+    {
+      return BC_ESSENTIAL;
+    }
 
 Further, the value callback must return the value of the Dirichlet BC:
+::
 
-\begin{lstlisting}
-scalar bc_values(int marker, double x, double y)
-{
-  return (-CONST_F/4)*(x*x + y*y);
-}
-\end{lstlisting}
+    scalar bc_values(int marker, double x, double y)
+    {
+      return (-CONST_F/4)*(x*x + y*y);
+    }
 
+See the `main.cpp <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/tutorial/04-bc-dirichlet/main.cpp>`_ file in the example 04-bc-dirichlet.
 It is easy to see that the solution to this problem is the function
-$u(x,y) = -\frac{CONST_F}{4}(x^2 + y^2)$. For the value $CONST_F = -4$,
-the output of example {\tt 04-bc-dirichlet} is shown here:
+
+.. math::
+         u(x,y) = -\frac{CONST_F}{4}(x^2 + y^2). 
+
+For the value $CONST_F = -4$, the output is shown below:
 
 .. image:: img/dirichlet.png
    :align: center
@@ -583,12 +566,10 @@ the output of example {\tt 04-bc-dirichlet} is shown here:
    :height: 350
    :alt: Solution of the Dirichlet problem.
 
-
-
 Neumann BC
 ~~~~~~~~~~
 
-Next, let us play with Neumann boundary conditions. The new model problem
+Next, let us consider Neumann boundary conditions. The new model problem
 will have the form
 
 .. math::
@@ -611,102 +592,79 @@ surface integrals. In the case of the linear form $l(v)$, this means
 
     l(v) = \sum_m l_m^{\,\rm vol}(v) + \sum_n l_n^{\,\rm surf}(v).
 
-We have already seen volume linear forms in Section \ref{sec:poisson}.
+We have already seen volumetric linear forms in example 03-poisson. 
 Surface linear forms are implemented similarly. Our new right-hand side will
 be represented by two functions with the following prototypes:
+::
 
-\begin{lstlisting}
-scalar linear_form     (RealFunction* fv, RefMap* rv);
-scalar linear_form_surf(RealFunction* fv, RefMap* rv,
-                        EdgePos* ep);
-\end{lstlisting}
+    template<typename Real, typename Scalar>
+    Scalar linear_form(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+    
+    template<typename Real, typename Scalar>
+    Scalar linear_form_surf(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext);
 
-and will be added to the {\tt WeakForm} by the following code:
+and will be added to the WeakForm by the following code (see the 
+`main.cpp <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/tutorial/05-bc-neumann/main.cpp>`_ file of example 05-bc-neumann):
+::
 
-\begin{lstlisting}
-  // initialize the weak formulation
-  WeakForm wf(1);
-  wf.add_biform(0, 0, bilinear_form);
-  wf.add_liform(0, linear_form);
-  wf.add_liform_surf(0, linear_form_surf_Gamma_1, 1);
-  wf.add_liform_surf(0, linear_form_surf_Gamma_2, 2);
-  wf.add_liform_surf(0, linear_form_surf_Gamma_3, 3);
-\end{lstlisting}
+    // initialize the weak formulation
+    WeakForm wf(1);
+    wf.add_biform(0, 0, callback(bilinear_form));
+    wf.add_liform(0, callback(linear_form));
+    wf.add_liform_surf(0, callback(linear_form_surf));
 
-Note that the optional third argument to both {\tt add\_liform} and {\tt add\_liform\_ surf}
-restricts the evaluation of the form to a given element or boundary marker.
-For better readability, this is also reflected in the name of the form. The surface
-linear forms are defined as follows:
+The surface linear form is defined as follows:
+::
 
-\begin{lstlisting}
-scalar linear_form_surf_Gamma_1(RealFunction* fv, RefMap* rv,
-                                EdgePos* ep)
-{
-  return CONST_GAMMA_1 * surf_int_v(fv, rv, ep);
-}
+    template<typename Real, typename Scalar>
+    Scalar linear_form_surf(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+    {
+      return CONST_GAMMA[e->marker - 1] * int_v<Real, Scalar>(n, wt, v);
+    }
 
-scalar linear_form_surf_Gamma_2(RealFunction* fv, RefMap* rv,
-                                EdgePos* ep)
-{
-  return CONST_GAMMA_2 * surf_int_v(fv, rv, ep);
-}
-
-scalar linear_form_surf_Gamma_3(RealFunction* fv, RefMap* rv,
-                                EdgePos* ep)
-{
-  return CONST_GAMMA_3 * surf_int_v(fv, rv, ep);
-}
-\end{lstlisting}
-
-Here, we have used the predefined surface integral \verb"surf_int_v" (see the
-file {\tt src/integrals\_h1.h}). If the boundary conditions were more complicated, we could also
-have used \verb"surf_int_F_v", where {\tt F} stands for an arbitrary user-supplied
+Here, we have used the predefined surface integral surf_int_v (see the
+file `src/integrals_h1.h <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/src/integrals_h1.h>`_). If the boundary conditions were more complicated, we could also
+have used surf_int_F_v, where F stands for an arbitrary user-supplied
 function returning the value $\partial u/\partial n$.
 
-Passing marker number as the third argument to {\tt add\_liform} and others is
-in fact a shortcut. In case the integration region is more complicated,
-you need to define an area
-and pass its number.
-The constant {\tt ANY} causes the form to be integrated over the whole domain
-or its boundary and is the default value.
+Refer to the `main.cpp <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/tutorial/05-bc-neumann/main.cpp>`_ file of example 05-bc-neumann for the complete code. Note that the mesh
+is refined towards the re-entrant corner in order to capture the singular gradient.
+::
 
-Refer to example {\tt 05-bc-neumann} for the complete code. Note that the mesh
-is refined towards the re-entrant corner in order to capture the singular
-gradient.
-
-\begin{lstlisting}
-  // load the mesh file
-  Mesh mesh;
-  mesh.load("domain.mesh");
-  mesh.refine_towards_vertex(3, CORNER_REF_LEVEL);
-\end{lstlisting}
+    // load the mesh file
+    Mesh mesh;
+    mesh.load("domain.mesh");
+    mesh.refine_towards_vertex(3, CORNER_REF_LEVEL);
 
 The gradient magnitude can be visualized via a MagFilter:
+::
 
-\begin{lstlisting}
-  // compute and show gradient magnitude
-  // (note that the infinite gradient at the re-entrant
-  // corner will be truncated for visualization purposes)
-  ScalarView gradview("Gradient", 650, 0, 600, 600);
-  MagFilter grad(&sln, &sln, FN_DX, FN_DY);
-  gradview.show(&grad);
-\end{lstlisting}
+    // compute and show gradient magnitude
+    // (note that the infinite gradient at the re-entrant
+    // corner will be truncated for visualization purposes)
+    ScalarView gradview("Gradient", 650, 0, 600, 600);
+    MagFilter grad(&sln, &sln, FN_DX, FN_DY);
+    gradview.show(&grad);
 
 The approximate solution for the values $C_1 = -1/2$, $C_2 = 1$, $C_3 = -1/2$,
 along with the singularity of gradient at the re-entrant corner are
 shown in the following figures:
 
 .. image:: img/neumann2.png
-   :align: center
-   :width: 400
-   :height: 300
+   :align: left
+   :width: 530
+   :height: 400
    :alt: Solution of the Neumann problem.
 
 .. image:: img/neumann3.png
-   :align: center
+   :align: right
    :width: 400
    :height: 400
    :alt: Detail of gradient singularity at the re-entrant corner.
+
+.. raw:: html
+
+   <hr style="clear: both; visibility: hidden;">
 
 Newton BC
 ~~~~~~~~~
@@ -722,88 +680,186 @@ Analogously to Neumann conditions, also Newton conditions yield surface integral
 this time they are both in the bilinear form and in the linear form,
 The bilinear form is
 a sum of volume and surface forms that can be added to the weak formulation using the methods
-{\tt add\_biform} and {\tt add\_biform\_surf}. 
+add_biform() and add_biform_surf(). 
 The surface bilinear form must have the following prototype:
+::
 
-\begin{lstlisting}
-scalar bilinear_form_surf(RealFunction* fu, RealFunction* fv,
-                          RefMap* ru, RefMap* rv, EdgePos* ep);
-\end{lstlisting}
+    template<typename Real, typename Scalar>
+    Scalar bilinear_form_surf(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext);
 
 Inside this function you can use predefined
-forms such as \verb"surf_int_u_v", \verb"surf_int_F_u_v"; (see the
-file {\tt src/integrals\_h1.h}) or your custom forms.
+forms such as surf_int_u_v, surf_int_F_u_v (see the
+file `src/integrals_h1.h <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/src/integrals_h1.h>`_) or your custom forms.
 
-Example {\tt 06-bc-newton} demonstrates typical usage of the Newton
+Example 06-bc-newton demonstrates typical usage of the Newton
 boundary condition on a stationary heat transfer problem, where one part of the boundary
 represents a heat exchange surface obeying the Newton law of cooling.
 The following code snippet contains the linear and bilinear forms:
+::
 
-\begin{lstlisting}
-scalar bilinear_form(RealFunction* fu, RealFunction* fv,
-                     RefMap* ru, RefMap* rv)
-  { return int_grad_u_grad_v(fu, fv, ru, rv); }
+    template<typename Real, typename Scalar>
+    Scalar bilinear_form(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+    {
+      return int_grad_u_grad_v<Real, Scalar>(n, wt, u, v);
+    }
 
-scalar bilinear_form_surf_Gamma_1(RealFunction* fu,
-    RealFunction* fv, RefMap* ru, RefMap* rv, EdgePos* ep)
-  { return H * surf_int_u_v(fu, fv, ru, rv, ep); }
+    template<typename Real, typename Scalar>
+    Scalar bilinear_form_surf(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+    {
+      return H * int_u_v<Real, Scalar>(n, wt, u, v);
+    }
 
-scalar linear_form_surf_Gamma_1(RealFunction* fv,
-                     RefMap* rv, EdgePos* ep)
-  { return T0 * H * surf_int_v(fv, rv, ep); }
-\end{lstlisting}
+    template<typename Real, typename Scalar>
+    Scalar linear_form_surf(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+    {
+      return T0 * H * int_v<Real, Scalar>(n, wt, v);
+    }
+
+  
 
 Here, $T_0$ is the exterior temperature, and $H$ is the heat flux.
 The above forms are registered using
+::
 
-\begin{lstlisting}
-  // initialize the weak formulation
-  WeakForm wf(1);
-  wf.add_biform(0, 0, bilinear_form);
-  wf.add_biform_surf(0, 0, bilinear_form_surf_Gamma_1, 1);
-  wf.add_liform_surf(0, linear_form_surf_Gamma_1, 1);
-\end{lstlisting}
+    WeakForm wf(1);
+    wf.add_biform(0, 0, callback(bilinear_form));
+    wf.add_biform_surf(0, 0, callback(bilinear_form_surf), 1);
+    wf.add_liform_surf(0, callback(linear_form_surf), 1);
 
-The following figures show the solution and singularity of gradient at the re-entrant corner:
+The last parameter in add_biform_surf() and add_liform_surf() is the boundary marker of the 
+Newton boundary. The following figures show the solution and singularity of gradient 
+at the re-entrant corner:
 
 .. image:: img/newton1.png
-   :align: center
-   :width: 400
-   :height: 300
+   :align: left
+   :width: 530
+   :height: 400
    :alt: Solution of the Newton problem.
 
 .. image:: img/newton2.png
-   :align: center
+   :align: right
    :width: 400
    :height: 400
    :alt: Detail of gradient singularity at the re-entrant corner.
 
+.. raw:: html
+
+   <hr style="clear: both; visibility: hidden;">
 
 
-General 2nd-Order Linear Equation
----------------------------------
+2nd-Order Linear Equation
+-------------------------
 
+This example deals with a linear second-order equation of the form 
 
+.. math::
 
+         -\frac{\partial}{\partial x}\left(a_{11}(x,y)\frac{\partial u}{\partial x}\right) - \frac{\partial}{\partial x}\left(a_{12}(x,y)\frac{\partial u}{\partial y}\right) - \frac{\partial}{\partial y}\left(a_{21}(x,y)\frac{\partial u}{\partial x}\right) - \frac{\partial}{\partial y}\left(a_{22}(x,y)\frac{\partial u}{\partial y}\right) + a_1(x,y)\frac{\partial u}{\partial x} + a_{21}(x,y)\frac{\partial u}{\partial y} + a_0(x,y)u = rhs(x,y),
 
+equipped with Dirichlet and/or Neumann boundary conditions. The main purpose of this example is to show the way one defines and uses space-dependent coefficients, and also to show how integration orders in weak forms can be handled explicitly. The code can be found in the `main.cpp <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/tutorial/07-general/main.cpp>`_ file of the tutorial example 07-general.
+
+First we define the non-constant equation coefficients:
+::
+
+    double a_11(double x, double y) {
+      if (y > 0) return 1 + x*x + y*y;
+      else return 1;
+    }
+
+and so on. Then we define boundary conditions as usual. The weak formulation contains
+both volumetric and surface integrals. In particular, notice that integration orders 
+for each weak form are now defined explicitly (in contrast to previous examples where they 
+were determined by Hermes automatically):
+::
+
+    // (Volumetric) bilinear form
+    template<typename Real, typename Scalar>
+    Scalar bilinear_form(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+    {
+      Scalar result = 0;
+      for (int i=0; i < n; i++) {
+        double x = e->x[i];
+        double y = e->y[i];
+        result += (a_11(x, y)*u->dx[i]*v->dx[i] + 
+                   a_12(x, y)*u->dy[i]*v->dx[i] +
+                   a_21(x, y)*u->dx[i]*v->dy[i] +
+                   a_22(x, y)*u->dy[i]*v->dy[i] +
+                   a_1(x, y)*u->dx[i]*v->val[i] +
+                   a_2(x, y)*u->dy[i]*v->val[i] +
+                   a_0(x, y)*u->val[i]*v->val[i]) * wt[i];
+      }
+      return result;
+    }
+   
+    // Integration order for the bilinear form
+    template<typename Real, typename Scalar>
+    Scalar bilinear_form_ord(int n, double *wt, Func<Real> *u, 
+                             Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+    {
+      return u->val[0] * v->val[0] + 2; // returning the sum of the degrees of the basis 
+                                        // and test function plus two
+    }
+  
+    // Surface linear form (natural boundary conditions)
+    template<typename Real, typename Scalar>
+    Scalar linear_form_surf(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+    {
+      return int_F_v<Real, Scalar>(n, wt, g_N, v, e);
+    }
+  
+    // Integration order for surface linear form
+    template<typename Real, typename Scalar>
+    Scalar linear_form_surf_ord(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+    {
+      return 2*v->val[0];  // returning twice the polynomial degree of the test function
+    }
+  
+    // Volumetric linear form (right-hand side)
+    template<typename Real, typename Scalar>
+    Scalar linear_form(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+    {
+      return int_F_v<Real, Scalar>(n, wt, rhs, v, e);
+    }
+  
+    // Integration order for the volumetric linear form
+    template<typename Real, typename Scalar>
+    Scalar linear_form_ord(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+    {
+      return 2*v->val[0];  // returning twice the polynomial degree of the test function;
+    }
+
+Also note the sign of the surface linear form - all linear forms have to be on the right-hand side,
+all bilinear forms on the left. The output of this example is shown below:
+
+.. image:: img/general.png
+   :align: center
+   :width: 500
+   :height: 400
+   :alt: Output of example 07-general.
 
 Systems of Equations
 --------------------
 
-So far we have seen the solution of a single linear PDE with the weak formulation
+So far we always have solved a single linear PDE with the weak formulation
 of the form $a(u,v) = l(v)$, where $u, v$ were continuous approximations in the
-$H^1$ space. Analogously one can handle equations whose solutions lie in the spaces
-$\Hcurl$, $\Hdiv$ or $L^2$.
+$H^1$ space. Analogously one can handle single equations whose solutions lie in the spaces
+$Hcurl$, $Hdiv$ or $L^2$.
 
-Moreover, Hermes can handle a system of $n$ linear
-PDEs, provided that the weak formulation can be written as follows:
-\begin{eqnarray}
-  a_{11}(u_1,v_1)\,+ a_{12}(u_2,v_1)\,+ \cdots\,+ a_{1n}(u_n,v_1) &=& l_1(v_1), \nonumber \\
-  a_{21}(u_1,v_2)\,+ a_{22}(u_2,v_2)\,+ \cdots\,+ a_{2n}(u_n,v_2) &=& l_2(v_2),  \\
-                                                      &\vdots&     \nonumber  \\
-  a_{n1}(u_1,v_n) + a_{n2}(u_2,v_n) + \cdots + a_{nn}(u_n,v_n) &=& l_n(v_n). \nonumber
-\end{eqnarray}
-The solution $\bfu = (u_1, u_2, \dots, u_n)$ and test functions $\bfv =
+However, Hermes also can handle a system of $n$ linear PDEs, provided that the weak formulation 
+can be written as
+
+.. math::
+    :label: weaksystem
+
+      a_{11}(u_1,v_1)\,+ a_{12}(u_2,v_1)\,+ \cdots\,+ a_{1n}(u_n,v_1) = l_1(v_1),
+
+      a_{21}(u_1,v_2)\,+ a_{22}(u_2,v_2)\,+ \cdots\,+ a_{2n}(u_n,v_2) = l_2(v_2),
+
+                                                          \vdots
+
+      a_{n1}(u_1,v_n) + a_{n2}(u_2,v_n) + \cdots + a_{nn}(u_n,v_n) = l_n(v_n).
+
+The solution $u = (u_1, u_2, \dots, u_n)$ and test functions $v =
 (v_1, v_2, \dots, v_n)$ belong to the space $W = V_1 \times V_2 \times \dots
 \times V_n$, where each $V_i$ is one of the available function spaces.
 
@@ -824,24 +880,19 @@ $x \in \Omega$ after the load $f = (f_1, f_2)^T$ is applied.
 
 
 The boundary conditions are
-\begin{eqnarray}
-  \dd{u_1}{n} &=&
-  \begin{cases}
-    f_1 & \text{on $\Gamma_3$,}\\
-    0   & \text{on $\Gamma_2$, $\Gamma_4$, $\Gamma_5$}
-  \end{cases}
-  \\
-  \dd{u_2}{n} &=&
-  \begin{cases}
-    f_2 & \text{on $\Gamma_3$,}\\
-    0   & \text{on $\Gamma_2$, $\Gamma_4$, $\Gamma_5$}
-  \end{cases}
-  \\[2mm]
-  u_1 &=& u_2 \ = \ 0 \ \ \mbox{on} \ \Gamma_1. 
-\end{eqnarray}
 
-Applying the standard procedure to the elastostatic equilibrium equations
-(see \cite{lifshitz}), we arrive at the following weak formulation:
+.. math::
+    :nowrap:
+
+    \begin{eqnarray*}
+    \frac{\partial u_1}{\partial n} &=& f_1 \ \text{on $\Gamma_3$,} \\
+    \frac{\partial u_1}{\partial n} &=& 0 \ \text{on $\Gamma_2$, $\Gamma_4$, $\Gamma_5$,} \\
+    \frac{\partial u_2}{\partial n} &=& f_2 \ \text{on $\Gamma_3$,} \\
+    \frac{\partial u_2}{\partial n} &=& 0 \ \text{on $\Gamma_2$, $\Gamma_4$, $\Gamma_5$,} \\
+    u_1 &=& u_2 = 0 \ \mbox{on} \ \Gamma_1. 
+    \end{eqnarray*}
+
+Applying the standard procedure to the elastostatic equilibrium equations, we arrive at the following weak formulation:
 
 .. math::
     :nowrap:
@@ -850,18 +901,22 @@ Applying the standard procedure to the elastostatic equilibrium equations
 
 
 We see that the weak formulation can indeed be written in the form :eq:`weaksystem`:
-\begin{eqnarray}
-  a_{11}(u_1, v_1) \!&=&\! \int_\Omega (2\mu+\lambda)\dd{u_1}{x_1}\dd{v_1}{x_1} + \mu\dd{u_1}{x_2}\dd{v_1}{x_2} \,\mbox{d}\bfx,  \\
-  a_{12}(u_2, v_1) \!&=&\! \int_\Omega \mu\dd{u_2}{x_1}\dd{v_1}{x_2} + \lambda\dd{u_2}{x_2}\dd{v_1}{x_1} \,\mbox{d}\bfx,\\
-  a_{21}(u_1, v_2) \!&=&\! \int_\Omega \mu\dd{u_1}{x_2}\dd{v_2}{x_1} + \lambda\dd{u_1}{x_1}\dd{v_2}{x_2} \,\mbox{d}\bfx,\\
-  a_{22}(u_2, v_2) \!&=&\! \int_\Omega (2\mu+\lambda)\dd{u_2}{x_2}\dd{v_2}{x_2} + \mu\dd{u_2}{x_1}\dd{v_2}{x_1} \,\mbox{d}\bfx,  \\
-  l_{1}(v_1) \!&=&\!
-  \int_{\Gamma_3} \!\!f_1 v_1 \,\mbox{d}S, \\
-  l_{2}(v_2) \!&=&\!
-  \int_{\Gamma_3} \!\!f_2 v_2 \,\mbox{d}S.
-\end{eqnarray}
 
-Here, $\mu$ and $\lambda$ are material constants (Lam\'e coefficients) defined as
+.. math::
+    :nowrap:
+
+    \begin{eqnarray*}
+      a_{11}(u_1, v_1) \!&=&\! \int_\Omega (2\mu+\lambda)\dd{u_1}{x_1}\dd{v_1}{x_1} + \mu\dd{u_1}{x_2}\dd{v_1}{x_2} \,\mbox{d}\bfx,  \\
+      a_{12}(u_2, v_1) \!&=&\! \int_\Omega \mu\dd{u_2}{x_1}\dd{v_1}{x_2} + \lambda\dd{u_2}{x_2}\dd{v_1}{x_1} \,\mbox{d}\bfx,\\
+      a_{21}(u_1, v_2) \!&=&\! \int_\Omega \mu\dd{u_1}{x_2}\dd{v_2}{x_1} + \lambda\dd{u_1}{x_1}\dd{v_2}{x_2} \,\mbox{d}\bfx,\\
+      a_{22}(u_2, v_2) \!&=&\! \int_\Omega (2\mu+\lambda)\dd{u_2}{x_2}\dd{v_2}{x_2} + \mu\dd{u_2}{x_1}\dd{v_2}{x_1} \,\mbox{d}\bfx,  \\
+      l_{1}(v_1) \!&=&\!
+      \int_{\Gamma_3} \!\!f_1 v_1 \,\mbox{d}S, \\
+      l_{2}(v_2) \!&=&\!
+      \int_{\Gamma_3} \!\!f_2 v_2 \,\mbox{d}S.
+    \end{eqnarray*}
+
+Here, $\mu$ and $\lambda$ are material constants (Lame coefficients) defined as
 
 .. math::
 
@@ -870,126 +925,123 @@ Here, $\mu$ and $\lambda$ are material constants (Lam\'e coefficients) defined a
 where $E$ is the Young modulus and $\nu$ the Poisson ratio of the material. For
 steel, we have $E = 200$ GPa and $\nu = 0.3$. The load is $f = (0, 10^4)^T$ N.
 
-The mesh for the problem, as well as the code which we will refer to below,
-can be found in \verb"tutorial/07-system".
+For more details we refer to the mesh file `sample.mesh <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/tutorial/08-system/sample.mesh>`_ as well as to the `main.cpp <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/tutorial/08-system/main.cpp>`_ file of the tutorial example 08-system. 
 
 We will again start by defining the function spaces for the two solution
 components, $u_1$ and $u_2$ (the $x$ and $y$ displacement). The boundary
-conditions :eq:`elastbc1`--:eq:`elastbc3` can be implemented as
-\begin{lstlisting}
- int bc_types(int marker)
-   { return (marker == 1) ? BC_ESSENTIAL : BC_NATURAL;; }
+conditions can be implemented as
+::
 
- int bc_values_x(int marker)
-   { return 0;}
+    int bc_types(int marker)
+      { return (marker == 1) ? BC_ESSENTIAL : BC_NATURAL;; }
 
- double bc_values_y(EdgePos* ep)
-   { return (ep->marker == 3) ? f : 0.0; }
-\end{lstlisting}
-Next we create the two displacement spaces,
-{\tt xdisp} and {\tt ydisp}:
-\begin{lstlisting}
- // create the x displacement space
- H1Space xdisp(&mesh, &shapeset);
- xdisp.set_bc_types(bc_types);
- xdisp.set_bc_values(bc_values_x);
- xdisp.set_uniform_order(P\_INIT);
+    double bc_values(int marker, double x, double y)
+      { return 0;}
 
- // create the y displacement space
- H1Space ydisp(&mesh, &shapeset);
- ydisp.set_bc_types(bc_types);
- ydisp.set_bc_values(bc_values_y);
- ydisp.set_uniform_order(P\_INIT);
-\end{lstlisting}
+Next we create the two displacement spaces, xdisp and ydisp:
+::
 
-Our {\tt WeakForm} instance will be initialized for two equations in the system.
-After implementing the forms :eq:`sysform1`--:eq:`sysform2` using the predefined integrals
-{\tt int\_a\_dudx\_ dvdx\_b\_dudy\_dvdy} and {\tt int\_a\_dudx\_dvdy\_b\_dudy\_dvdx},
-we can add them to the weak formulation using {\tt add\_biform}.
+    // create the x displacement space
+    H1Space xdisp(&mesh, &shapeset);
+    xdisp.set_bc_types(bc_types);
+    xdisp.set_bc_values(bc_values);
+    xdisp.set_uniform_order(P\_INIT);
+
+    // create the y displacement space
+    H1Space ydisp(&mesh, &shapeset);
+    ydisp.set_bc_types(bc_types);
+    ydisp.set_bc_values(bc_values);
+    ydisp.set_uniform_order(P\_INIT);
+
+Our WeakForm instance will be initialized for two equations in the system.
+After implementing the weak forms using the predefined integrals
+int_a_dudx_dvdx_b_dudy_dvdy and int_a_dudx_dvdy_b_dudy_dvdx,
+we can add them to the weak formulation using add_biform().
 The first two parameters of this method correspond to the position of the form
-in :eq:`weaksystem` with zero-based numbering. Similarly for the surface linear form
-:eq:`sysform3`.
+in the block weak form :eq:`weaksystem` with zero-based numbering. The 
+surface linear form is treated analogously.
+::
 
-\begin{lstlisting}
- // initialize the weak formulation
- WeakForm wf(2);
- wf.add_biform(0, 0, bilinear_form_0_0, SYM);
- wf.add_biform(0, 1, bilinear_form_0_1, SYM);
- wf.add_biform(1, 1, bilinear_form_1_1, SYM);
- wf.add_liform_surf(1, linear_form_1_surf);
-\end{lstlisting}
+    // initialize the weak formulation
+    WeakForm wf(2);
+    wf.add_biform(0, 0, callback(bilinear_form_0_0), SYM);  // Note that only one symmetric part is
+    wf.add_biform(0, 1, callback(bilinear_form_0_1), SYM);  // added in the case of symmetric bilinear
+    wf.add_biform(1, 1, callback(bilinear_form_1_1), SYM);  // forms.
+    wf.add_liform_surf(0, callback(linear_form_surf_0), 3);
+    wf.add_liform_surf(1, callback(linear_form_surf_1), 3);
 
-An explanation of the extra parameter {\tt SYM} in {\tt add\_biform} is due.
+An explanation of the extra parameter SYM in add_biform() is in order.
 Since the two diagonal forms $a_{11}$ and $a_{22}$ are symmetric, i.e.,
 $a_{ii}(u,v) = a_{ii}(v,u)$, Hermes can be told to only evaluate them once for the
 two cases $a_{ii}(u,v)$ and $a_{ii}(v,u)$ to speed up assembly. In fact, we should have
-used the {\tt SYM} flag already in the previous sections, since the form
+used the SYM flag already in the previous sections, since the form
 $a(u,v) = \nabla u \cdot \nabla v$ is also symmetric. This is however not the case
-for all forms and the default value of the fourth parameter of {\tt add\_biform} is {\tt UNSYM}.
+for all forms and so the default value of the fourth parameter of add_biform() is UNSYM.
 
 The off-diagonal forms $a_{12}(u_2, v_1)$ and $a_{21}(u_1, v_2)$ are not
 (and cannot) be symmetric, since their arguments come from different spaces.
 However, we can see that $a_{12}(u, v) = a_{21}(v, u)$, i.e., the corresponding blocks
-of the local stiffness matrix are transposes of each other. Here, the {\tt SYM} flag
+of the local stiffness matrix are transposes of each other. Here, the SYM flag
 has a different effect: it tells Hermes to take the block of the local stiffness
 matrix corresponding to the form $a_{12}$, transpose it and copy it where a block
 corresponding to $a_{21}$ would belong, without evaluating $a_{21}$ at all (this is why
-we don't add {\tt bilinear\_form\_1\_0}). This again speeds up the matrix assembly.
-You can also use the flag {\tt ANTISYM}, which moreover inverts the sign of the block.
+we don't add bilinear_form_1_0). This again speeds up the matrix assembly.
+You can also use the flag ANTISYM, which moreover inverts the sign of the block.
 This makes sense in the case where $a_{ij}(u, v) = -a_{ji}(v, u)$.
 
-It is recommended that you start with the default (and safe) {\tt UNSYM} flag for all
+It is recommended that you start with the default (and safe) UNSYM flag for all
 forms when developing your project, and only optimize the evaluation of the forms when
 the code works well.
 
-With the {\tt WeakForm} and spaces ready, we can initialize the linear system.
+With the WeakForm and spaces ready, we can initialize the linear system.
 The only difference is that we now have two spaces determining the discretization
 of the problem.
+::
 
-\begin{lstlisting}
- LinSystem sys(&wf, &umfpack);
- sys.set_spaces(2, &xdisp, &ydisp);
-\end{lstlisting}
+    LinSystem sys(&wf, &umfpack);
+    sys.set_spaces(2, &xdisp, &ydisp);
 
 All that is left is to assemble the stiffness matrix and solve the system.
 Since we have two equations and two spaces, we receive two solutions, one for each
 displacement component:
-\begin{lstlisting}
- Solution xsln, ysln;
- sys.assemble();
- sys.solve(2, &xsln, &ysln);
-\end{lstlisting}
+::
 
-\smallskip As in the previous sections, it is now possible to visualize the displacement
+    Solution xsln, ysln;
+    sys.assemble();
+    sys.solve(2, &xsln, &ysln);
+
+As in the previous sections, it is now possible to visualize the displacement
 solutions, e.g.,
-\begin{lstlisting}
- ScalarView view("y displacement [m]");
- view.show(&ysln);
-\end{lstlisting}
+::
+
+    ScalarView view("y displacement [m]");
+    view.show(&ysln);
+
 Usually, however, it is necessary to postprocess the solution in order to obtain more
 informative visualization. In elasticity problems, one is often interested in material
 stress, which is obtained by a formula combining the derivatives of the two displacements.
-Hermes implements postprocessing through \emph{filters}. A filter is a special class
-which takes up to three \verb"Solution"s, performs some computation and in the end acts
-as another \verb"Solution", which can be visualized, or even fed into another filter.
-Here, we can use the predefined filter \verb"VonMisesFilter", which calculates the
+Hermes implements postprocessing through *filters*. A filter is a special class
+which takes up to three Solutions, performs some computation and in the end acts
+as another Solution, which can be visualized, or even fed into another filter.
+Here, we can use the predefined filter VonMisesFilter, which calculates the
 Von Mises stress:
-\begin{lstlisting}
- VonMisesFilter stress(&xsln, &ysln, mu, lambda);
- view.show(&stress, EPS_HIGH, 0);
-\end{lstlisting}
-The second parameter of \verb"show" is the visualization accuracy and can be
-\verb"EPS_LOW", \verb"EPS_NORMAL" (default) and \verb"EPS_HIGH". The third parameter is
-the component number and is only valid for vector-valued (\Hcurl) solutions.
+::
+
+    VonMisesFilter stress(&xsln, &ysln, mu, lambda);
+    view.show(&stress, EPS_HIGH, 0);
+
+The second parameter of show() is the visualization accuracy and can be
+EPS_LOW, EPS_NORMAL (default) and EPS_HIGH. The third parameter is
+the component number and is only valid for vector-valued ($Hcurl$) solutions.
 
 Finally, in elasticity problems, it may be illustrative to distort the computational
-domain according to the calculated displacement. The function \verb"View::show" can be
+domain according to the calculated displacement. The function View::show() can be
 passed three more optional parameters, which represent the $x$ and $y$ displacement
 and a multiplier to make the displacements visible.
-\begin{lstlisting}
- VonMisesFilter stress(&xsln, &ysln, mu, lambda);
- view.show(&stress, EPS_HIGH, 0, &xsln, &ysln, 1.5e5);
-\end{lstlisting}
+::
+
+    VonMisesFilter stress(&xsln, &ysln, mu, lambda);
+    view.show(&stress, EPS_HIGH, 0, &xsln, &ysln, 1.5e5);
 
 .. image:: img/mises.png
    :align: center
@@ -1000,12 +1052,11 @@ and a multiplier to make the displacements visible.
 Transient Problems
 ------------------
 
-
 This section describes the implementation of a simple time-dependent
-heat transfer model that can be found in {\tt tutorial/08-timedep}.
+heat transfer model that can be found in `tutorial/09-timedep <http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/tutorial/09-timedep>`_.
 The model describes in a naive approximation how the St. Vitus cathedral
 in Prague responds to changes in the surrounding air temperature
-during one 24-hour cycle. The geometry is shown here:
+during one 24-hour cycle. The geometry is shown below:
 
 .. image:: img/vitus1.png
    :align: center
@@ -1071,115 +1122,102 @@ The corresponding weak formulation is
 
 The implementation starts by defining the
 boundary condition types
-\begin{lstlisting}
-int bc_types(int marker)
-{
-  if (marker == marker_ground) return BC_ESSENTIAL;
-  else return BC_NATURAL;
-}
-\end{lstlisting}
+::
+
+    int bc_types(int marker)
+    {
+      if (marker == marker_ground) return BC_ESSENTIAL;
+      else return BC_NATURAL;
+    }
+
 and values
-\begin{lstlisting}
-scalar bc_values(int marker, double x, double y)
-{
-  if (marker == marker_ground) return T_INIT;
-}
-\end{lstlisting}
+::
+
+    scalar bc_values(int marker, double x, double y)
+    {
+      if (marker == marker_ground) return T_INIT;
+    }
+
 Then the space for the temperature $T$ is set up:
-\begin{lstlisting}
-  // set up spaces
-  H1Space space(&mesh, &shapeset);
-  space.set_bc_types(bc_types);
-  space.set_bc_values(bc_values);
-  space.set_uniform_order(P_INIT);
-\end{lstlisting}
+::
+
+    // set up spaces
+    H1Space space(&mesh, &shapeset);
+    space.set_bc_types(bc_types);
+    space.set_bc_values(bc_values);
+    space.set_uniform_order(P_INIT);
 
 The bilinear and linear forms are defined as follows:
-\begin{lstlisting}
-// previous time step solution
-Solution Tprev;
+::
 
-// volumetric forms
-scalar bilinear_form_0_0_euler(RealFunction* fu, RealFunction* fv,
-                               RefMap* ru, RefMap* rv)
-{
-  return HEATCAP * RHO * int_u_v(fu, fv, ru, rv) / TAU
-    + LAMBDA * int_grad_u_grad_v(fu, fv, ru, rv);
-}
+    template<typename Real, typename Scalar>
+    Scalar bilinear_form(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+    {
+      return HEATCAP * RHO * int_u_v<Real, Scalar>(n, wt, u, v) / TAU +
+             LAMBDA * int_grad_u_grad_v<Real, Scalar>(n, wt, u, v);
+    }
+  
+    template<typename Real, typename Scalar>
+    Scalar linear_form(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+    {
+      return HEATCAP * RHO * int_u_v<Real, Scalar>(n, wt, ext->fn[0], v) / TAU;
+    }
+  
+    template<typename Real, typename Scalar>
+    Scalar bilinear_form_surf(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+    {
+      return LAMBDA * ALPHA * int_u_v<Real, Scalar>(n, wt, u, v);
+    }
+  
+    template<typename Real, typename Scalar>
+    Scalar linear_form_surf(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+    {
+      return LAMBDA * ALPHA * temp_ext(TIME) * int_v<Real, Scalar>(n, wt, v);
+    }
 
-scalar linear_form_0_euler(RealFunction* fv, RefMap* rv)
-{
-  return HEATCAP * RHO * int_u_v(&Tprev, fv, Tprev.get_refmap(),
-                                 rv) / TAU;
-}
-
-// surface forms
-scalar bilinear_form_0_0_surf(RealFunction* fu, RealFunction* fv,
-                              RefMap* ru, RefMap* rv, EdgePos *ep)
-{
-  return LAMBDA * ALPHA * surf_int_u_v(fu, fv, ru, rv, ep);
-}
-
-scalar linear_form_0_surf(RealFunction* fv, RefMap* rv,
-                          EdgePos *ep)
-{
-  return LAMBDA * ALPHA * temp_ext(TIME) * surf_int_v(fv, rv, ep);
-}
-\end{lstlisting}
 These forms are registered as follows:
-\begin{lstlisting}
-  // weak formulation
-  WeakForm wf(1);
-  wf.add_biform(0, 0, bilinear_form_0_0_euler, UNSYM, ANY, 0);
-  wf.add_liform(0, linear_form_0_euler, ANY, 1, &Tprev);
-  wf.add_biform_surf(0, 0, bilinear_form_0_0_surf, ANY, 0,
-                     marker_air);
-  wf.add_liform_surf(0, linear_form_0_surf, ANY, 0, marker_air);
-\end{lstlisting}
+::
+
+    // weak formulation
+    WeakForm wf(1);
+    wf.add_biform(0, 0, bilinear_form<double, double>, bilinear_form<Ord, Ord>);
+    wf.add_biform_surf(0, 0, bilinear_form_surf<double, double>, bilinear_form_surf<Ord, Ord>, marker_air);
+    wf.add_liform(0, linear_form<double, double>, linear_form<Ord, Ord>, ANY, 1, &tsln);
+    wf.add_liform_surf(0, linear_form_surf<double, double>, linear_form_surf<Ord, Ord>, marker_air);
 
 Before entering the main iteration loop, we need to initialize the previous solution
-{\tt Tprev} with the initial condition $T_{init}$. 
-Besides holding the finite element solution, the {\tt Solution} class
+tsln with the initial condition $T_{init}$.
+Besides holding the finite element solution, the Solution class
 can be forced to return zero, to return a constant, or to return an arbitrary function
-using the methods \verb"set_zero", \verb"set_const" and \verb"set_exact", respectively.
-Here we simply call \verb"set_const" and supply the initial temperature:
-\begin{lstlisting}
-  // set initial condition
-  Tprev.set_const(&mesh, T_INIT);
-\end{lstlisting}
+using the methods set_zero(), set_const() and set_exact(), respectively.
+Here we simply call set_const() and supply the initial temperature:
+::
 
+    // set initial condition
+    Solution tsln;
+    tsln.set_const(&mesh, T_INIT);
+ 
 We are now ready to start the iterative process. Since the stiffness matrix does
 not depend on the solution, it only needs to be assembled once in the first time
 step. For all remaining time steps it will be the same, and we just need to
-re-construct the load vector. This is done via the Boolean variable {\tt rhsonly}
-which is set to {\tt false} before the time stepping begins:
-\begin{lstlisting}
-  // assemble and solve
-  ls.assemble(rhsonly);
-  rhsonly = true;
-  ls.solve(1, &Tnew);
-\end{lstlisting}
+re-construct the load vector. This is done via the Boolean variable rhsonly
+which is set to false before the time stepping begins:
+::
 
-At the end of each time step, the new solution must be stored for the next time step.
-This is done by assigning {\tt Tnew} to {\tt Tprev}:
-\begin{lstlisting}
-  // copying the Tnew into Tprev
-  Tprev = Tnew;
-\end{lstlisting}
-The assignment operator is overloaded for Solution and in fact is equal to calling
-{\tt Solution::assign()}, which is an efficient way of handing over solution data from
-one {\tt Solution} to another.
+    // assemble and solve
+    ls.assemble(rhsonly);
+    rhsonly = true;
+    ls.solve(1, &tsln);
 
-Another, more difficult time-dependent problem (nonlinear Navier-Stokes equations) is discussed
-in Section \ref{sec:ns-timedep}.
+For more details see the `main.cpp <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/tutorial/09-timedep/main.cpp>`_ file in the tutorial example 09-timedep.
 
 Automatic Adaptivity
 --------------------
 
 In the computations that we carried out so far, we have not paid any attention
 to the accuracy of the results. In general, a computation on a fixed mesh is
-not likely to be very accurate. There is a need for {\it adaptive mesh refinement
-(AMR)} algorithms that improve the quality of the approximation by refining
+not likely to be very accurate. There is a need for *adaptive mesh refinement
+(AMR)* algorithms that improve the quality of the approximation by refining
 mesh elements where the approximation is bad.
 
 In traditional low-order FEM, refining an element is not algorithmically complicated,
@@ -1202,7 +1240,6 @@ are rightfully skeptical of it. The reason is illustrated here:
    :height: 250
    :alt: Typical convergence curves for adaptive linear FEM, quadratic FEM, and *hp*-FEM.
 
-
 These convergence curves are typical representative examples, confirmed with
 many numerical experiments of independent researchers, and supported with
 theory. The horizontal axis shows (in linear scale) the number of degrees of freedom
@@ -1211,19 +1248,15 @@ vertical one shows the approximation error (in logarithmic scale). Note that in 
 three cases, the error drops very fast during a short initial phase of the adaptive
 computation. However, with both linear and quadratic FEM, the convergence slows
 down dramatically as the adaptivity progresses. Note that the low-order FEM
-is doomed to such slow convergence by its poor approximation properties ---
+is doomed to such slow convergence by its poor approximation properties -
 an excellent adaptivity algorithm cannot improve it (and a bad
 algorithm can make it even worse).
 
 In order to obtain fast, usable adaptivity (the green curve), one
 has to resort to adaptive *hp*-FEM. The *hp*-FEM takes advantage of two facts:
 
-\begin{itemize}
-\item Large high-degree elements approximate smooth parts of solution much
-better than small linear ones. We created the example {\em smooth} to illustrate
-this fact. Check it out, the results are impressive.
-\item This holds the other way where the solution is not smooth.
-\end{itemize}
+* Large high-degree elements approximate smooth parts of solution much better than small linear ones. We created the example 'smooth' to illustrate this fact. Check it out, the results are impressive.
+* This holds the other way where the solution is not smooth.
 
 Automatic adaptivity in the *hp*-FEM is substantially different from adaptivity
 in low-order FEM, since every element can be refined in many different ways.
@@ -1236,36 +1269,35 @@ The following figure shows several refinement candidates for a fourth-order elem
    :alt: Examples of *hp*-refinements.
 
 Due to the large number of refinement options, classical error estimators (that
-provide a constant error estimate per element) cannot be used to guide au\-
-tomatic *hp*-adaptivity. For this, one needs to know the {\it shape} of the
+provide a constant error estimate per element) cannot be used to guide automatic 
+*hp*-adaptivity. For this, one needs to know the *shape* of the
 approximation error.
 
 In analogy to the most successful adaptive ODE solvers,
 Hermes uses a pair of approximations with different orders of accuracy to obtain
-this information: {\em coarse mesh solution} and {\em
-fine mesh solution}. The initial coarse mesh is read from the mesh file,
+this information: *coarse mesh solution* and 
+*fine mesh solution*. The initial coarse mesh is read from the mesh file,
 and the initial fine mesh is created through its global refinement both in
-{\it h} and {\it p}.
+$h$ and $p$.
 The fine mesh solution is the approximation of interest both during the adaptive
 process and at the end of computation. The coarse mesh
 solution represents its low-order part.
 
 Both these solutions are evolved during the adaptive process
-in a PDE-inde\-pen\-dent manner, based on the discrepancies between global and local
+in a PDE-independent manner, based on the discrepancies between global and local
 orthogonal projections. (Sometimes we replace the global orthogonal projection with
 the solve on the coarse mesh, the difference is negligible.)
 
 The obvious disadvantage of this approach to adaptivity is its higher computational cost,
 especially in 3D. We are aware of this fact and would not mind at all replacing it with
-some cheaper technique (that also is PDE-independent, works for elements of high orders,
-and can be successfully used to guide *hp*-adaptivity).
+some cheaper technique (as long as it also is PDE-independent, works for elements of high 
+orders, and can be successfully used to guide *hp*-adaptivity).
 
-Adaptivity Example -- Electrostatic Micromotor
-----------------------------------------------
-
+Adaptivity Example
+------------------
 
 Let us demostrate the use of automatic *hp*-adaptivity in Hermes on a linear elliptic problem
-({\tt tutorial/09-adapt}) concerned with the calculation of
+concerned with the calculation of
 the electrostatic potential in the vicinity of the electrodes of an electrostatic
 micromotor. This is a MEMS device free of any coils, and thus resistive to
 strong electromagnetic waves (as opposed to classical electromotors).
@@ -1306,143 +1338,144 @@ $\epsilon_r = 10$ in $\Omega_2$. The weak formulation reads
 The varying parameter $\epsilon_r$ is handled by defining two bilinear forms in the code, one for
 $\Omega_1$ and the other for $\Omega_2$. These two areas are delimited by element markers 1 and 2 in
 the mesh, and the two forms are assigned to the corresponding markers during the registration of
-the forms:
-\begin{lstlisting}
- WeakForm wf(1);
- wf.add_biform(0, 0, biform1, SYM, 1);
- wf.add_biform(0, 0, biform2, SYM, 2);
-\end{lstlisting}
+the forms (see the `main.cpp <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/tutorial/10-adapt/main.cpp>`_ file in the tutorial example 10-adapt):
+::
+
+    WeakForm wf(1);
+    wf.add_biform(0, 0, callback(biform1), SYM, 1);
+    wf.add_biform(0, 0, callback(biform2), SYM, 2);
 
 The principal part of the example is the main adaptivity loop. In each iteration, the coarse problem
 is solved first:
-\begin{lstlisting}
- // solve the coarse problem
- LinSystem ls(&wf, &solver);
- ls.set_spaces(1, &space);
- ls.set_pss(1, &pss);
- ls.assemble();
- ls.solve(1, &sln);
-\end{lstlisting}
+::
 
-Next, the reference solution must be obtained, which can be done by creating a refined copy of the mesh,
+    // solve the coarse problem
+    LinSystem ls(&wf, &solver);
+    ls.set_spaces(1, &space);
+    ls.set_pss(1, &pss);
+    ls.assemble();
+    ls.solve(1, &sln_coarse);
+
+Next, the reference solution is computed on a globally refined copy of the mesh,
 defining a temporary space with increased element orders and by assembling and solving an extra
-linear system. However, for most problems, this can be automated using the class {\tt RefSystem}, which
+linear system. However, for most problems, this can be automated using the class RefSystem, which
 handles all the temporary reference meshes and spaces transparently. All it needs is a pointer to our coarse
-{\tt LinSystem}. The calculation of the reference solution is as simple as the following:
-\begin{lstlisting}
- // solve the fine mesh problem
- RefSystem rs(&ls);
- rs.assemble();
- rs.solve(1, &sln_fine);
-\end{lstlisting}
+LinSystem. The calculation of the reference solution is as simple as the following:
+::
+
+    // solve the fine mesh problem
+    RefSystem rs(&ls);
+    rs.assemble();
+    rs.solve(1, &sln_fine);
 
 In the third and last step of each iteration, we refine our mesh and polynomial degrees stored
-in our space using a class called {\tt H1OrthoHP}. This class offers two services: it is able to
+in our space using a class called H1OrthoHP. This class offers two services: it is able to
 calculate  the estimate of the overall error of the coarse solution in $H^1$ norm, and if the
 error is too large, you can ask the class to *hp*-adapt your mesh and element orders optimally.
 
-{\tt H1OrthoHP} is initialized with the number of spaces in the problem and pointers to them.
-The method \verb"calc_error" takes pointers to the coarse and reference solutions and returns
+H1OrthoHP is initialized with the number of spaces in the problem and pointers to them.
+The method calc_error() takes pointers to the coarse and reference solutions and returns
 
 .. math::
 
     e = \frac{|| u - u_{ref} ||_{H^1}}{|| u_{ref} ||_{H^1}}.
 
 In the code this looks as follows:
-\begin{lstlisting}
- H1OrthoHP hp(1, &space);
- double err_est = hp.calc_error(&sln_coarse, &sln_fine) * 100;
-\end{lstlisting}
+::
 
-Finally, if {\tt err\_est} is still above the threshold {\tt ERR\_STOP}, we perform one
+    H1OrthoHP hp(1, &space);
+    double err_est = hp.calc_error(&sln_coarse, &sln_fine) * 100;
+
+Finally, if err_est is still above the threshold ERR_STOP, we perform one
 adaptivity step:
+::
 
-\begin{lstlisting}
- if (err_est < ERR_STOP) done = true;
- else {
-   hp.adapt(THRESHOLD, STRATEGY, ADAPT_TYPE, ISO_ONLY, MESH_REGULARITY);
-   ndofs = space.assign_dofs();
-   if (ndofs >= NDOF_STOP) done = true;
- }
-\end{lstlisting}
+    if (err_est < ERR_STOP) done = true;
+    else {
+      hp.adapt(THRESHOLD, STRATEGY, ADAPT_TYPE, ISO_ONLY, MESH_REGULARITY);
+      ndofs = space.assign_dofs();
+      if (ndofs >= NDOF_STOP) done = true;
+    }
 
-The parameters {\tt THRESHOLD}, {\tt STRATEGY}, {\tt ADAPT\_TYPE}, {\tt ISO\_ONLY}, {\tt MESH\_REGULARI\break TY}
-have the following meaning: {\tt STRATEGY} indicates which adaptive strategy we
-want to use.
-\begin{itemize}
-\vskip -5mm
-\item {\tt STRATEGY == 0}: Refine elements until {\tt sqrt(THRESHOLD)} times total error
-is processed. If more elements have similar error refine all to keep the mesh symmetric.
-\item {\tt STRATEGY == 1}: Refine all elements whose error is bigger than {\tt THRESHOLD}
-times maximum element error.
-\item {\tt STRATEGY == 2}: Refine all elements whose error is bigger than {\tt THRESHOLD}.
-\end{itemize}
+The parameters THRESHOLD, STRATEGY, ADAPT_TYPE, ISO_ONLY and MESH_REGULARITY
+have the following meaning: STRATEGY indicates which adaptive strategy we
+want to use:
 
-If {\tt ADAPT\_TYPE == 0}, *hp*-adaptivity is performed (default). If {\tt ADAPT\_TYPE == 1},
-the algorithm does $h$-adaptivity (fixed polynomial degrees of elements). This option is there
-for comparison purposes. With {\tt ADAPT\_TYPE == 2} the algorithm does pure $p$-adaptivity (element
-geometries fixed). This option
-is there for completeness, adaptive $p$-FEM is not useful in practice.
+* STRATEGY == 0: Refine elements until sqrt(THRESHOLD) times total error is processed. If more elements have similar error refine all to keep the mesh symmetric.
+* STRATEGY == 1: Refine all elements whose error is bigger than THRESHOLD times maximum element error.
+* STRATEGY == 2: Refine all elements whose error is bigger than THRESHOLD.
 
-The parameter {\tt ISO\_ONLY} determines whether quadrilateral elements
-can be split anisotropically (into two elements). The parameter {\tt MESH\_REGULA\break RITY}
-specifies maximum allowed level of hanging nodes: {\tt -1} means arbitrary-level
-hanging nodes (default), and {\tt 1, 2, 3, ... } means 1-irregular mesh,
+If ADAPT_TYPE == 0, *hp*-adaptivity is performed (default). If ADAPT_TYPE == 1,
+the algorithm does *h*-adaptivity (fixed polynomial degrees of elements). This option is there
+for comparison purposes. With ADAPT_TYPE == 2 the algorithm does pure *p*-adaptivity (element
+geometries fixed). This option is there for completeness, adaptive *p*-FEM is not very 
+useful in practice.
+
+The parameter ISO_ONLY determines whether quadrilateral elements
+can be split anisotropically (into two elements). The parameter MESH_REGULARITY
+specifies maximum allowed level of hanging nodes: -1 means arbitrary-level
+hanging nodes (default), and 1, 2, 3, ... means 1-irregular mesh,
 2-irregular mesh, etc. Hermes does not support adaptivity on regular meshes
 because of its extremely poor performance.
 
-It is a very good idea to spend some time playing with these parameters to
+It is a good idea to spend some time playing with these parameters to
 get a feeling for adaptive *hp*-FEM. Also look at other adaptivity examples in
-the {\tt examples/} directory: {\tt layer}, {\tt lshape} deal with elliptic problems and have
-known exact solutions. So do examples {\tt screen}, {\tt bessel} for time-harmonic
+the examples/ directory: layer, lshape deal with elliptic problems and have
+known exact solutions. So do examples screen, bessel for time-harmonic
 Maxwell's equations. These examples allow you to compare the error estimates
-computed by Hermes with the true error. Examples {\tt crack}, {\tt singpert} show
+computed by Hermes with the true error. Examples crack, singpert show
 how to handle cracks and singularly perturbed problems, respectively. There
 are also more advanced examples illustrating automatic adaptivity for nonlinear
-problems solved via the Newton's method, adaptive multimesh \hbox{*hp*-FEM},
+problems solved via the Newton's method, adaptive multimesh *hp*-FEM,
 adaptivity for time-dependent problems on dynamical meshes, etc.
 
 But let's return to the micromotor example for a moment again: The computation
 starts with a very coarse mesh consisting of a few quadrilaterals, some
 of which are moreover very ill-shaped. Thanks to the anisotropic refinement
-capabilities of {\tt H1OrthoHP}, the mesh quickly adapts to the solution
+capabilities of H1OrthoHP, the mesh quickly adapts to the solution
 and elements of reasonable shape are created near singularities, which occur
 at the corners of the electrode. Initially, all elements of the mesh
-are of a low degree, but as the hp-adaptive process progresses, the elements
+are of a low degree, but as the *hp*-adaptive process progresses, the elements
 receive different polynomial degrees, depending on the local smoothness of the
 solution.
 
-The gradient was visualized using {\tt VectorView}. We have
+The gradient was visualized using VectorView. We have
 seen this in the previous section. We plug in the same solution for both vector
 components, but specify that its derivatives should be used:
-\begin{lstlisting}
- gview.show(&sln, &sln, EPS_NORMAL, FN_DX_0, FN_DY_0);
-\end{lstlisting}
+::
+
+    gview.show(&sln, &sln, EPS_NORMAL, FN_DX_0, FN_DY_0);
 
 .. image:: img/motor-sln.png
-   :align: center
-   :width: 400
-   :height: 400
+   :align: left
+   :width: 300
+   :height: 300
    :alt: Solution - electrostatic potential $\varphi$ (zoomed).
 
 .. image:: img/motor-grad.png
-   :align: center
-   :width: 400
-   :height: 400
+   :align: right
+   :width: 300
+   :height: 300
    :alt: Gradient of the solution $E = -\nabla\varphi$ and its magnitude (zoomed).
+
+.. raw:: html
+
+   <hr style="clear: both; visibility: hidden;">
 
 .. image:: img/motor-orders.png
    :align: center
-   :width: 400
-   :height: 400
+   :width: 300
+   :height: 300
    :alt: Polynomial orders of elements near singularities (zoomed).
 
+
+
 Adaptivity for Systems
---------------------------
+----------------------
 
 The procedure described in the previous section could be extended directly to
-systems of PDEs. In other words, two spaces can be passed into {\tt H1OrthoHP},
-four solutions (two coarse, two reference) can be passed into {\tt calc\_error\_2},
+systems of PDEs. In other words, two spaces can be passed into H1OrthoHP,
+four solutions (two coarse, two reference) can be passed into calc_error_2(),
 and finally, adapt can be called as before. In this way, error estimates in
 $H^1$ norm are calculated for elements in both spaces independently and the
 worst ones are refined. However, this approach is not optimal if the PDEs are
@@ -1461,13 +1494,13 @@ The norm induced by this product,
 
     ||u||_e = \sqrt{(u,u)_e},
 
-is called the {\it energy norm}. 
+is called the *energy norm*. 
 When measuring the error in the energy norm
 of the entire system, one can reduce the above-mentioned difficulties dramatically.
 When calculating the error on an element, the energy norm accounts
 also for the error caused by other solution components.
 
-Let us consider again the equations of linear elasticity from Section \ref{sec:systems}, but
+Let us consider again the equations of linear elasticity from example 08-system, but
 now we will view them as a coupled PDE system.
 Our domain is a bracket loaded on its top edge and fixed to a wall:
 
@@ -1484,40 +1517,40 @@ The dimensions are L = 0.7 m, T = 0.1 m and the force $f = 10^3$ N.
    :height: 400
    :alt: Computational domain for the elastic bracket problem.
 
-The implementation (see {\tt tutorial/10-adapt-system}) is very similar to the micromotor
+The implementation (see the `main.cpp <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/tutorial/11-adapt-system/main.cpp>`_ file in the tutorial example 11-adapt-system) is very similar to the micromotor
 example from the previous section. Again, the coarse and reference solutions are calculated
 in the main loop, only this time we have two equations in the system, two meshes, two spaces, etc.
 The only substantial difference is in the calculation of the error estimate. Instead of
-\verb"calc_error()" we use the method \verb"calc_energy_error()", also a member of the
-class \verb"H1OrthoHP":
+calc_error() we use the method calc_energy_error(), also a member of the
+class H1OrthoHP:
+::
 
-\begin{lstlisting}
- H1OrthoHP hp(2, &xdisp, &ydisp);
- error = hp.calc_energy_error_2(&xsln, &ysln, &xrsln, &yrsln,
-                    bilinear_form_0_0, bilinear_form_0_1,
-                    bilinear_form_1_0, bilinear_form_1_1) * 100;
-\end{lstlisting}
+    H1OrthoHP hp(2, &xdisp, &ydisp);
+    hp.set_biform(0, 0, bilinear_form_0_0<scalar, scalar>, bilinear_form_0_0<Ord, Ord>);
+    hp.set_biform(0, 1, bilinear_form_0_1<scalar, scalar>, bilinear_form_0_1<Ord, Ord>);
+    hp.set_biform(1, 0, bilinear_form_1_0<scalar, scalar>, bilinear_form_1_0<Ord, Ord>);
+    hp.set_biform(1, 1, bilinear_form_1_1<scalar, scalar>, bilinear_form_1_1<Ord, Ord>);
+    double err_est = hp.calc_error_2(&x_sln_coarse, &y_sln_coarse, &x_sln_fine, &y_sln_fine) * 100;
 
-The arguments of \verb"calc_energy_error()" are: $n$ coarse solutions, $n$ reference solutions,
-and finally $n \times n$ pointers to bilinear forms of the problem (row after row), which are used
-for the calculation of the energy norm of the error.
-
-(The function \verb"calc_energy_error_2()" used above is a type-safe wrapper for the
-more general function \verb"calc_energy_error()", which takes a variable number of arguments.
 The following figures show the two meshes and their polynomial
 degrees after several adaptive steps: 
 
 .. image:: img/sys-xorders.png
-   :align: center
-   :width: 400
-   :height: 400
+   :align: left
+   :width: 300
+   :height: 300
    :alt: $x$ displacement -- mesh and polynomial degrees.
 
 .. image:: img/sys-yorders.png
-   :align: center
-   :width: 400
-   :height: 400
+   :align: right
+   :width: 300
+   :height: 300
    :alt: $y$ displacement -- mesh and polynomial degrees.
+
+.. raw:: html
+
+   <hr style="clear: both; visibility: hidden;">
+
 
 Note that they are slightly different, not only in
 polynomial degrees, but also in element refinements. This is possible in Hermes thanks to
@@ -1525,16 +1558,20 @@ a technique called multi-mesh assembling
 which allows
 all components of the solution to adapt independently. In problems whose components exhibit
 substantially different behavior, one may even obtain completely different meshes.
-See example {\tt multimesh} for a more advanced application of
+See example `multimesh <http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/examples/multimesh>`_ for a more advanced application of
 multimesh *hp*-FEM to thermoelasticity.
 
+2nd-Order Linear Adapt
+----------------------
+
+This example does not bring anything new and its purpose is solely to save you work adding adaptivity to example `07-general <http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/tutorial/07-general>`_. Feel free to adjust the `main.cpp <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/tutorial/12-adapt-general/main.cpp>`_ file in the tutorial example 12-general-adapt for your own applications.
 
 Navier-Stokes Example
 ---------------------
 
-
 This model problem is concerned with the approximate solution of external
-flow past a cylinder with unit diameter, as shown here:
+flow past a cylinder with unit diameter. The corresponding files can be found in 
+example `ns-timedep <http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/examples/ns-timedep>`_. The geometry looks as follows:
 
 .. image:: img/cylinder.png
    :align: center
@@ -1617,23 +1654,23 @@ The boundary and initial conditions for the problem are
      \bfu(\bfx, 0) = \bfu^0 = (0, 0)^T
 
 
-In CFD, the {\it do-nothing} condition is a common artificial boundary condition defining
+In CFD, the *do-nothing* condition is a common artificial boundary condition defining
 an outlet for the fluid. It means that there is no restriction on the value
 of the velocity on $\Gamma_2$.
 
-The implementation starts by defining three spaces {\tt xvel}, {\tt yvel} and {\tt press}
-for the three solution components $u_1$, $u_2$ and $p$. Using {\tt Space::set\_bc\_type}
+The implementation starts by defining three spaces xvel, yvel and press
+for the three solution components $u_1$, $u_2$ and $p$. Using Space::set_bc_type()
 we denote the Dirichlet boundary for velocity:
-\begin{lstlisting}
- int xvel_bc_type(int marker)
-   { return (marker != 2) ? BC_ESSENTIAL : BC_NONE; }
-\end{lstlisting}
-Returning {\tt BC\_NONE} for some part of the boundary assigns degrees of freedom but turns
+::
+
+    int xvel_bc_type(int marker)
+      { return (marker != 2) ? BC_ESSENTIAL : BC_NONE; }
+
+Returning BC_NONE for some part of the boundary assigns degrees of freedom but turns
 off all surface integral processing on that part of the boundary, which is what we need
 in this case.
 
-Next we rewrite the weak formulation so that it fits into the block form :eq:`weaksystem`
-on page \pageref{weaksystem}:
+Next we rewrite the weak formulation so that it fits into the block form :eq:`weaksystem`:
 
 .. math::
     :nowrap:
@@ -1646,7 +1683,6 @@ on page \pageref{weaksystem}:
 
     \begin{eqnarray*}   a_{13}(p, v_1) &=& -\int_\Omega p \dd{v_1}{x} \dx, \\   a_{23}(p, v_2) &=& -\int_\Omega p \dd{v_2}{y} \dx, \\   a_{31}(u_1, q) &=&  \int_\Omega \dd{u_1}{x} q \dx, \\   a_{32}(u_2, q) &=&  \int_\Omega \dd{u_2}{y} q \dx, \\   l_1(v_1) &=& \int_\Omega \frac{u^{n-1}_1 v_1}{\tau}, \\   l_2(v_2) &=& \int_\Omega \frac{u^{n-1}_2 v_2}{\tau}. \end{eqnarray*}
 
-
 Notice first that the forms $a_{11}$ and $a_{22}$ are identical, i.e., $a_{11}(u,v) = a_{22}(u,v)$.
 Further, the first two terms of $a_{11}$ and $a_{22}$ are symmetric. We will also exploit the
 antisymmetry $a_{13}(u,v) = -a_{31}(u,v)$ and $a_{23}(u,v) = -a_{32}(u,v)$ in the following.
@@ -1654,82 +1690,84 @@ antisymmetry $a_{13}(u,v) = -a_{31}(u,v)$ and $a_{23}(u,v) = -a_{32}(u,v)$ in th
 The implementation of the symmetric terms in $a_{11}$ and $a_{22}$ is straightforward. The form
 \verb"bilinear_form_sym_0_0_1_1" (the same form is used for both $a_{11}$ and $a_{22}$)
 simply contains the command
-\begin{lstlisting}
- return int_grad_u_grad_v(fu, fv, ru, rv) / Re +
-        int_u_v(fu, fv, ru, rv) / tau;
-\end{lstlisting}
+::
+
+    return int_grad_u_grad_v(fu, fv, ru, rv) / Re +
+           int_u_v(fu, fv, ru, rv) / tau;
+
 As for the convection term, we need access to the solution on the previous time level, $\bfu^{n-1}$.
-This is accomplished by defining two instances of the class {\tt Solution} at the global level:
-\begin{lstlisting}
- // velocities from the previous time step
- Solution xprev, yprev;
-\end{lstlisting}
+This is accomplished by defining two instances of the class Solution at the global level:
+::
+
+    // velocities from the previous time step
+    Solution xprev, yprev;
+
 In \verb"bilinear_form_unsym_0_0_1_1", which completes the forms $a_{11}$ and $a_{22}$, we can use
 the predefined integral \verb"int_w_nabla_u_v" (see the
 file {\tt src/integrals\_h1.h})
 and plug in {\tt xprev} and {\tt yprev} for the velocity:
-\begin{lstlisting}
- return int_w_nabla_u_v(&xprev, &yprev, fu, fv, ru, rv);
-\end{lstlisting}
+::
+
+    return int_w_nabla_u_v(&xprev, &yprev, fu, fv, ru, rv);
+
 The rest of the forms are easy and will not be discussed here. However, there is one more important
-thing you need to do if you use external functions (such as {\tt xprev} and {\tt yprev}) in the
+thing you need to do if you use external functions (such as xprev and yprev in the
 weak forms. Hermes needs to be told about all such functions and where they are used in the weak
 formulation, so that they can be initialized properly and also incorporated in the multi-mesh assembling,
 if necessary.
 Apart from the symmetry flag and the integration area,
-{\tt add\_biform} takes one more optional argument, the number of external functions used by the form,
-followed by that many pointers to the external functions. The complete {\tt WeakForm} initialization
+add_biform() takes one more optional argument, the number of external functions used by the form,
+followed by that many pointers to the external functions. The complete WeakForm initialization
 looks like this:
-\begin{lstlisting}
- // set up weak formulation
- WeakForm wf(3);
- wf.add_biform(0, 0, bilinear_form_unsym_0_0_1_1, UNSYM, ANY,
-               2, &xprev, &yprev);
- wf.add_biform(1, 1, bilinear_form_unsym_0_0_1_1, UNSYM, ANY,
-               2, &xprev, &yprev);
- wf.add_biform(0, 0, bilinear_form_sym_0_0_1_1, SYM);
- wf.add_biform(1, 1, bilinear_form_sym_0_0_1_1, SYM);
- wf.add_biform(0, 2, bilinear_form_unsym_0_2, ANTISYM);
- wf.add_biform(1, 2, bilinear_form_unsym_1_2, ANTISYM);
- wf.add_liform(0, linear_form_0, ANY, 1, &xprev);
- wf.add_liform(1, linear_form_1, ANY, 1, &yprev);
-\end{lstlisting}
-Notice also the use of the {\tt ANTISYM} flag for the forms $a_{13}$ and $a_{23}$, which
+::
+
+    // set up weak formulation
+    WeakForm wf(3);
+    wf.add_biform(0, 0, callback(bilinear_form_sym_0_0_1_1), SYM);
+    wf.add_biform(0, 0, callback(bilinear_form_unsym_0_0_1_1), UNSYM, ANY, 2, &xprev, &yprev);
+    wf.add_biform(1, 1, callback(bilinear_form_sym_0_0_1_1), SYM);
+    wf.add_biform(1, 1, callback(bilinear_form_unsym_0_0_1_1), UNSYM, ANY, 2, &xprev, &yprev);
+    wf.add_biform(0, 2, callback(bilinear_form_unsym_0_2), ANTISYM);
+    wf.add_biform(1, 2, callback(bilinear_form_unsym_1_2), ANTISYM);
+    wf.add_liform(0, callback(linear_form), ANY, 1, &xprev);
+    wf.add_liform(1, callback(linear_form), ANY, 1, &yprev);
+
+Notice also the use of the ANTISYM flag for the forms $a_{13}$ and $a_{23}$, which
 saves us a little assembling time and the need to define $a_{31}$ and $a_{32}$.
 
 Before entering the main iteration loop, we need to initialize the previous solutions
-{\tt xprev} and {\tt yprev} with the initial condition 
-:eq:`ns:initial`. Besides holding the finite element solution, the {\tt Solution} class
+xprev and yprev with the initial condition 
+:eq:`ns:initial`. Besides holding the finite element solution, the Solution class
 can be forced to return zero, to return a constant, or to return an arbitrary function
-using the methods \verb"set_zero", \verb"set_const" and \verb"set_exact", respectively
-Here we simply call \verb"set_zero" and supply the
-function domain, i.e., the mesh:
-\begin{lstlisting}
- // initial BC: xprev and yprev are zero
- xprev.set_zero(&mesh);
- yprev.set_zero(&mesh);
-\end{lstlisting}
+using the methods set_zero(), set_const() and set_exact(), respectively
+Here we simply call set_zero() and supply the function domain, i.e., the mesh:
+::
+
+    // initial BC: xprev and yprev are zero
+    xprev.set_zero(&mesh);
+    yprev.set_zero(&mesh);
 
 We are now ready to start the iterative process. In each iteration, we assemble the
-stiffness matrix and solve for the unknown velocity ({\tt xsln}, {\tt ysln}) and
-pressure {\tt psln} on the current time level:
-\begin{lstlisting}
- // assemble and solve
- Solution xsln, ysln, psln;
- sys.assemble();
- sys.solve(3, &xsln, &ysln, &psln);
-\end{lstlisting}
+stiffness matrix and solve for the unknown velocity xsln, ysln and
+pressure psln on the current time level:
+::
+
+    // assemble and solve
+    Solution xsln, ysln, psln;
+    sys.assemble();
+    sys.solve(3, &xsln, &ysln, &psln);
 
 At the end of each iteration, the current solution must be remembered as the future
-previous solution. This is done by assigning {\tt xsln} and {\tt ysln} to {\tt xprev}
-and {\tt yprev}:
-\begin{lstlisting}
- xprev = xsln;
- yprev = ysln;
-\end{lstlisting}
+previous solution. This is done by assigning xsln and ysln to xprev
+and yprev:
+::
+
+    xprev = xsln;
+    yprev = ysln;
+
 The assignment operator is overloaded for Solution and in fact is equal to calling
-{\tt Solution::assign()}, which is an efficient way of handing over solution data from
-one {\tt Solution} to another.
+Solution::assign(), which is an efficient way of handing over solution data from
+one Solution to another.
 The velocity is visualized in each iteration using the VectorView class, as shown
 in the following figure:
 
