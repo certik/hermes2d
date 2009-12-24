@@ -200,7 +200,7 @@ typedef struct
 #if 1
 /* #ifdef __STDC__ */
 #define ANSIPROT 1
-int mtherr ( char *, int );
+int mtherr ( const char *, int );
 #else
 int mtherr();
 #endif
@@ -540,7 +540,7 @@ int merror = 0;
  * messages is bound to the error codes defined
  * in mconf.h.
  */
-static char *ermsg[7] = {
+static const char *ermsg[7] = {
 "unknown",      /* error code 0 */
 "domain",       /* error code 1 */
 "singularity",  /* et seq.      */
@@ -551,7 +551,7 @@ static char *ermsg[7] = {
 };
 
 
-int mtherr(char *name, int code)
+int mtherr(const char *name, int code)
 {
 
 /* Display string passed by calling program,
