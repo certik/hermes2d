@@ -27,4 +27,4 @@ add_subdirectory(smooth)
 add_subdirectory(newton-combust)
 add_subdirectory(line-sing)
 add_subdirectory(kellogg)
-
+add_subdirectory(newton-np-timedep-adapt-system)
