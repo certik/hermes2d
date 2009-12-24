@@ -1120,7 +1120,7 @@ void Mesh::refine_quad_to_triangles(Element* e)
 
   // deactivate this element and unregister from its nodes
   e->active = 0;
-  nactive += 3;
+  nactive += 2;
   e->unref_all_nodes(this);
   // now the original edge nodes may no longer exist...
   // set correct boundary status and markers for the new nodes

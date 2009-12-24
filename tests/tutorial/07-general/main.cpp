@@ -1,23 +1,12 @@
 #include "hermes2d.h"
 #include "solver_umfpack.h"
 
-//  This example solves a general second-order linear equation with non-constant 
-//  coefficients, and shows how integration orders in linear and bilinear forms 
-//  can be defined manually.
-//
-//  PDE: -d/dx(a_11(x,y)du/dx) - d/dx(a_12(x,y)du/dy) - d/dy(a_21(x,y)du/dx) - d/dy(a_22(x,y)du/dy)
-//       + a_1(x,y)du/dx + a_21(x,y)du/dy + a_0(x,y)u = rhs(x,y)
-//
-//  Domain: arbitrary
-//
-//  BC:  Dirichlet for boundary marker 1: u = g_D(x,y)
-//       Natural for any other boundary marker:   (a_11(x,y)*nu_1 + a_21(x,y)*nu_2) * dudx 
-//                                              + (a_12(x,y)*nu_1 + s_22(x,y)*nu_2) * dudy = g_N(x,y)
-//
-//  The following parameters can be changed:
+// This test makes sure that example 07-general works correctly.
+// CAUTION: This test will fail when any changes to the shapeset
+// are made, but it is easy to fix (see below).
 
 const int P_INIT = 2;             // Initial polynomial degree of all mesh elements.
-const int INIT_REF_NUM = 4;       // Number of initial uniform refinements
+const int INIT_REF_NUM = 1;       // Number of initial uniform refinements
 
 // Problem parameters
 double a_11(double x, double y) {
@@ -148,10 +137,6 @@ int main(int argc, char* argv[])
   H1Space space(&mesh, &shapeset);
   space.set_bc_types(bc_types);
   space.set_bc_values(bc_values);
-  space.set_uniform_order(P_INIT);
-
-  // Enumerate basis functions
-  space.assign_dofs();
 
   // Initialize the weak formulation
   WeakForm wf(1);
@@ -159,36 +144,56 @@ int main(int argc, char* argv[])
   wf.add_liform(0, linear_form, linear_form_ord);
   wf.add_liform_surf(0, linear_form_surf, linear_form_surf_ord, 2);
 
-  // Visualize solution and mesh
-  ScalarView sview("Coarse solution", 0, 100, 798, 700);
-  OrderView  oview("Polynomial orders", 800, 100, 798, 700);
-
-  // Matrix solver
+  // Matrix solver and linear system
   UmfpackSolver solver;
-
-  // Time measurement
-  double cpu = 0;
-  begin_time();
-
-  // Solve the problem
-  Solution sln;
   LinSystem ls(&wf, &solver);
   ls.set_spaces(1, &space);
   ls.set_pss(1, &pss);
-  ls.assemble();
-  ls.solve(1, &sln);
 
-  // Time measurement
-  cpu += end_time();
+  // testing n_dof and correctness of solution vector 
+  // for p_init = 1, 2, ..., 10
+  int success = 1;
+  for (int p_init = 1; p_init <= 10; p_init++) {
+    printf("********* p_init = %d *********\n", p_init);
+    space.set_uniform_order(p_init);
+    space.assign_dofs();
 
-  // View the solution and mesh
-  sview.show(&sln);
-  oview.show(&space);
+    // Solve the problem
+    Solution sln;
+    ls.assemble();
+    ls.solve(1, &sln);
 
-  // Print timing information
-  verbose("Total running time: %g sec", cpu);
+    scalar *sol_vector;
+    int n_dof;
+    ls.get_solution_vector(sol_vector, n_dof);
+    printf("n_dof = %d\n", n_dof);
+    double sum = 0;
+    for (int i=0; i < n_dof; i++) sum += sol_vector[i];
+    printf("coefficient sum = %g\n", sum);
 
-  // Wait for keyboard or mouse input
-  View::wait("Waiting for keyboard or mouse input.");
-  return 0;
+    // Actual test. The values of 'sum' depend on the 
+    // current shapeset. If you change the shapeset, 
+    // you need to correct these numbers. 
+    if (p_init == 1 && fabs(sum - 1.67824) > 1e-2) success = 0;
+    if (p_init == 2 && fabs(sum - 0.295097) > 1e-2) success = 0;
+    if (p_init == 3 && fabs(sum - 0.390198) > 1e-2) success = 0;
+    if (p_init == 4 && fabs(sum + 0.746589) > 1e-2) success = 0;
+    if (p_init == 5 && fabs(sum + 2.62938) > 1e-2) success = 0;
+    if (p_init == 6 && fabs(sum + 6.74405) > 1e-2) success = 0;
+    if (p_init == 7 && fabs(sum + 17.5057) > 1e-2) success = 0;
+    if (p_init == 8 && fabs(sum + 62.7853) > 1e-2) success = 0;
+    if (p_init == 9 && fabs(sum - 253.018) > 1e-2) success = 0;
+    if (p_init == 10 && fabs(sum - 56.5267) > 1e-2) success = 0;
+  }
+
+#define ERROR_SUCCESS                               0
+#define ERROR_FAILURE                               -1
+  if (success == 1) {
+    printf("Success!\n");
+    return ERROR_SUCCESS;
+  }
+  else {
+    printf("Failure!\n");
+    return ERROR_FAILURE;
+  }
 }
