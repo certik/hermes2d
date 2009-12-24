@@ -18,7 +18,6 @@
 #include <GL/freeglut.h>
 #include "common.h"
 #include "view.h"
-#include "discrete.h"
 
 
 //// MeshView //////////////////////////////////////////////////////////////////////////////////////
@@ -760,50 +759,6 @@ void MatrixView::find_symmetry(int nz, int *sz)
     }
   }
 }
-
-
-void MatrixView::show(DiscreteProblem *ep)
-{
-  int *App, *Aii;
-  ep->get_matrix(App, Aii, Ax, size);
-
-  int nz = App[size];
-  int sz;
-
-  if (Ap != NULL) delete [] Ap;
-  Ap = new int[size+1];
-  memcpy(Ap, App, (size+1)*sizeof(int));
-
-  if (Ai != NULL) delete [] Ai;
-  Ai = new unsigned[nz];
-  memcpy(Ai, Aii, nz*sizeof(unsigned));
-
-  max = 0.0;
-  for (int i = 0; i < size; i++)
-    #ifndef COMPLEX
-      if (fabs(Ax[Ap[i]]) > max)
-        max = fabs(Ax[Ap[i]]);
-    #else
-      if (std::abs(Ax[Ap[i]]) > max)
-        max = std::abs(Ax[Ap[i]]);
-    #endif
-
-  find_symmetry(nz, &sz);
-
-  verts[0][0] = -0.5*pointsize;            verts[0][1] = -0.5*pointsize;
-  verts[1][0] = -0.5*pointsize;            verts[1][1] =  0.5*pointsize + size - 1;
-  verts[2][0] =  0.5*pointsize + size - 1; verts[2][1] =  0.5*pointsize + size - 1;
-  verts[3][0] =  0.5*pointsize + size - 1; verts[3][1] = -0.5*pointsize;
-
-  glut_init();
-  update_layout();
-  center_mesh(verts, 4);
-
-  create();
-  update_title(nz, sz);
-  wait_for_draw();
-}
-
 
 void MatrixView::assign_color(int i, int j)
 {
