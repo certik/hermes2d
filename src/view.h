@@ -486,51 +486,7 @@ protected:
 };
 
 
-/*class DiscreteProblem;
-
-/// \brief Displays the sparse structure of a matrix.   TODO: update this for LinSystem
-///
-/// MatrixView is a debugging tool for the visualization of the sparse structure
-/// of a matrix associated with a discrete problem. Nonzero matrix elements are
-/// displayed as color squares, using the following color code:
-/// <ul> <li> Blue - symmetric element
-///      <li> Red - unsymmetric element (also structurally unsymmetric)
-///      <li> Magenta - antisymmetric element
-///      <li> Grey - stored zero element
-/// </ul>
-class MatrixView : public View
-{
-public:
-
-  MatrixView(const char* title = "MatrixView", DEFAULT_WINDOW_POS);
-  ~MatrixView();
-
-  void show(DiscreteProblem *ep);
-
-protected:
-
-  double2 verts[4];
-
-  int *Ap;
-  unsigned *Ai;
-  scalar *Ax;
-  int size;
-  double eps, max;
-  double pointsize;
-
-  virtual void find_symmetry(int nz, int *sz);
-  virtual void assign_color(int i, int j);
-  virtual void on_display();
-  virtual void on_key_down(unsigned char key, int x, int y);
-  virtual void update_title(int nz, int sz);
-  virtual void scale_dispatch() {}
-  virtual const char* get_help_text() const;
-
-};*/
-
-
-
-// this has to be here, unfortunatelly
+// this has to be here, unfortunately
 template<class TYPE>
 void View::center_mesh(TYPE* vertices, int nvert)
 {

@@ -6,6 +6,6 @@ project(bessel)
 set(HERMES ${HERMES_CPLX_BIN})
 
 add_executable(${PROJECT_NAME} main.cpp bessel.cpp)
-include (../CMake.common)
+include (../../examples/CMake.common)
 
 ENDIF(COMPLEX)
