@@ -1,10 +1,10 @@
 #include "hermes2d.h"
 #include "solver_umfpack.h"
 
-// This test makes sure that the benchmark "bessel" works correctly. 
+// This test makes sure that the benchmark "screen" works correctly. 
 
 const int P_INIT = 1;             // Initial polynomial degree of all mesh elements.
-const double THRESHOLD = 0.3;     // This is a quantitative parameter of the adapt(...) function and
+const double THRESHOLD = 0.5;     // This is a quantitative parameter of the adapt(...) function and
                                   // it has different meanings for various adaptive strategies (see below).
 const int STRATEGY = 1;           // Adaptive strategy:
                                   // STRATEGY = 0 ... refine elements until sqrt(THRESHOLD) times total
@@ -36,135 +36,39 @@ const int NDOF_STOP = 40000;      // Adaptivity process stops when the number of
                                   // over this limit. This is to prevent h-adaptivity to go on forever.
 
 // problem constants
-const double mu_r   = 1.0;
-const double kappa  = 1.0;
-const double lambda = 1.0;
-
-// Bessel function of the first kind, order n, defined in bessel.cpp
-double jv(double n, double x);
-
-static void exact_sol_val(double x, double y, scalar& e0, scalar& e1)
-{
-  double t1 = x*x;
-  double t2 = y*y;
-  double t4 = sqrt(t1+t2);
-  double t5 = jv(-1.0/3.0,t4);
-  double t6 = 1/t4;
-  double t7 = jv(2.0/3.0,t4);
-  double t11 = (t5-2.0/3.0*t6*t7)*t6;
-  double t12 = atan2(y,x);
-  if (t12 < 0) t12 += 2.0*M_PI;
-  double t13 = 2.0/3.0*t12;
-  double t14 = cos(t13);
-  double t17 = sin(t13);
-  double t18 = t7*t17;
-  double t20 = 1/t1;
-  double t23 = 1/(1.0+t2*t20);
-  e0 = t11*y*t14-2.0/3.0*t18/x*t23;
-  e1 = -t11*x*t14-2.0/3.0*t18*y*t20*t23;
-}
-
-static void exact_sol(double x, double y, scalar& e0, scalar& e1, scalar& e1dx, scalar& e0dy)
-{
-  exact_sol_val(x,y,e0,e1);
-
-  double t1 = x*x;
-  double t2 = y*y;
-  double t3 = t1+t2;
-  double t4 = sqrt(t3);
-  double t5 = jv(2.0/3.0,t4);
-  double t6 = 1/t4;
-  double t7 = jv(-1.0/3.0,t4);
-  double t11 = (-t5-t6*t7/3.0)*t6;
-  double t14 = 1/t4/t3;
-  double t15 = t14*t5;
-  double t21 = t7-2.0/3.0*t6*t5;
-  double t22 = 1/t3*t21;
-  double t27 = atan2(y,x);
-  if (t27 < 0) t27 += 2.0*M_PI;
-  double t28 = 2.0/3.0*t27;
-  double t29 = cos(t28);
-  double t32 = t21*t14;
-  double t35 = t21*t6;
-  double t36 = t35*t29;
-  double t39 = sin(t28);
-  double t41 = 1/t1;
-  double t43 = 1.0+t2*t41;
-  double t44 = 1/t43;
-  double t47 = 4.0/3.0*t35/x*t39*y*t44;
-  double t48 = t5*t29;
-  double t49 = t1*t1;
-  double t52 = t43*t43;
-  double t53 = 1/t52;
-  double t57 = t5*t39;
-  double t59 = 1/t1/x;
-  e1dx =-(t11*x+2.0/3.0*t15*x-2.0/3.0*t22*x)
-              *t6*x*t29+t32*t1*t29-t36-t47+4.0/9.0*t48*t2/t49*t53+4.0/3.0*t57*y*t59*t44-4.0/3.0*t57*t2*y/t49/x*t53;
-  e0dy = (t11*y+2.0/3.0*t15*y-2.0/3.0*t22*y)*t6*y*t29-t32*t2*t29+t36-t47-4.0/9.0*t48*t41*t53+4.0/3.0*t57*t59*t53*y;
-}
+const double e_0  = 8.8541878176 * 1e-12;
+const double mu_0 = 1.256 * 1e-6;
+const double k = 1.0;
 
 // exact solution
-scalar2& exact(double x, double y, scalar2& dx, scalar2& dy)
-{
-  static scalar2 ex;
-  exact_sol(x,y, ex[0], ex[1], dx[1], dy[0]);
-  return ex;
-}
+#include "exact_sol.cpp"
 
 // boundary conditions
 int bc_types(int marker)
 {
-  if (marker == 1 || marker == 6)
-    return BC_ESSENTIAL; // perfect conductor
-  else
-    return BC_NATURAL; // impedance
+  return BC_ESSENTIAL;
 }
 
+double2 tau[5] = { { 0, 0}, { 1, 0 },  { 0, 1 }, { -1, 0 }, { 0, -1 } };
+
+complex bc_values(int marker, double x, double y)
+{
+  scalar dx, dy;
+  return exact0(x, y, dx, dy)*tau[marker][0] + exact1(x, y, dx, dy)*tau[marker][1];
+}
 
 template<typename Real, typename Scalar>
 Scalar bilinear_form(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
-  return 1.0/mu_r * int_curl_e_curl_f<Real, Scalar>(n, wt, u, v) -
-         sqr(kappa) * int_e_f<Real, Scalar>(n, wt, u, v);
+  return int_curl_e_curl_f<Real, Scalar>(n, wt, u, v) - int_e_f<Real, Scalar>(n, wt, u, v);
 }
-
-template<typename Real, typename Scalar>
-Scalar bilinear_form_surf(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
-{
-  complex ii = complex(0.0, 1.0);
-  return ii * (-kappa) * int_e_tau_f_tau<Real, Scalar>(n, wt, u, v, e);
-}
-
-scalar linear_form_surf(int n, double *wt, Func<double> *v, Geom<double> *e, ExtData<scalar> *ext)
-{
-  scalar result = 0;
-  for (int i = 0; i < n; i++)
-  {
-    double r = sqrt(e->x[i] * e->x[i] + e->y[i] * e->y[i]);
-    double theta = atan2(e->y[i], e->x[i]);
-    if (theta < 0) theta += 2.0*M_PI;
-    double j13    = jv(-1.0/3.0, r),    j23    = jv(+2.0/3.0, r);
-    double cost   = cos(theta),         sint   = sin(theta);
-    double cos23t = cos(2.0/3.0*theta), sin23t = sin(2.0/3.0*theta);
-
-    double Etau = e->tx[i] * (cos23t*sint*j13 - 2.0/(3.0*r)*j23*(cos23t*sint + sin23t*cost)) +
-                  e->ty[i] * (-cos23t*cost*j13 + 2.0/(3.0*r)*j23*(cos23t*cost - sin23t*sint));
-
-    result += wt[i] * complex(cos23t*j23, -Etau) * ((v->val0[i] * e->tx[i] + v->val1[i] * e->ty[i]));
-  }
-  return result;
-}
-// maximal polynomial order to integrate surface linear form
-Ord linear_form_surf_ord(int n, double *wt, Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext)
-  {  return Ord(v->val[0].get_max_order());  }
-
 
 int main(int argc, char* argv[])
 {
   // load the mesh
   Mesh mesh;
-  mesh.load("lshape3q.mesh");
-//   mesh.load("lshape3t.mesh");
+  mesh.load("screen-quad.mesh");
+//    mesh.load("screen-tri.mesh");
 
   // initialize the shapeset and the cache
   HcurlShapeset shapeset;
@@ -173,6 +77,7 @@ int main(int argc, char* argv[])
   // create finite element space
   HcurlSpace space(&mesh, &shapeset);
   space.set_bc_types(bc_types);
+  space.set_bc_values(bc_values);
   space.set_uniform_order(P_INIT);
 
   // enumerate basis functions
@@ -181,25 +86,24 @@ int main(int argc, char* argv[])
   // initialize the weak formulation
   WeakForm wf(1);
   wf.add_biform(0, 0, callback(bilinear_form), SYM);
-  wf.add_biform_surf(0, 0, callback(bilinear_form_surf));
-  wf.add_liform_surf(0, linear_form_surf, linear_form_surf_ord);
 
   // matrix solver
   UmfpackSolver solver;
 
   // convergence graph wrt. the number of degrees of freedom
   GnuplotGraph graph;
-  graph.set_captions("Error Convergence for the Bessel Problem in H(curl)", "Degrees of Freedom", "Error [%]");
+  graph.set_captions("Error Convergence for the Screen Problem in H(curl)", "Degrees of Freedom", "Error [%]");
   graph.add_row("exact error", "k", "-", "o");
   graph.add_row("error estimate", "k", "--");
   graph.set_log_y();
 
   // convergence graph wrt. CPU time
   GnuplotGraph graph_cpu;
-  graph_cpu.set_captions("Error Convergence for the Bessel Problem in H(curl)", "CPU Time", "Error [%]");
+  graph_cpu.set_captions("Error Convergence for the Screen Problem in H(curl)", "CPU Time", "Error [%]");
   graph_cpu.add_row("exact error", "k", "-", "o");
   graph_cpu.add_row("error estimate", "k", "--");
   graph_cpu.set_log_y();
+
 
   // adaptivity loop
   int it = 1, ndofs;
@@ -224,17 +128,18 @@ int main(int argc, char* argv[])
     cpu += end_time();
 
     // calculating error wrt. exact solution
-    ExactSolution ex(&mesh, exact);
-    double err = 100 * hcurl_error(&sln_coarse, &ex);
-    info("Exact solution error: %g%%", err);
+    Solution ex;
+    ex.set_exact(&mesh, exact);
+    double error = 100 * hcurl_error(&sln_coarse, &ex);
+    info("Exact solution error: %g%%", error);
 
     // time measurement
     begin_time();
 
     // solve the fine mesh problem
-    RefSystem rs(&sys);
-    rs.assemble();
-    rs.solve(1, &sln_fine);
+    RefSystem ref(&sys);
+    ref.assemble();
+    ref.solve(1, &sln_fine);
 
     // calculate error estimate wrt. fine mesh solution
     HcurlOrthoHP hp(1, &space);
@@ -242,12 +147,12 @@ int main(int argc, char* argv[])
     info("Error estimate: %g%%", err_est);
 
     // add entry to DOF convergence graph
-    graph.add_values(0, space.get_num_dofs(), err);
+    graph.add_values(0, space.get_num_dofs(), error);
     graph.add_values(1, space.get_num_dofs(), err_est);
     graph.save("conv_dof.gp");
 
     // add entry to CPU convergence graph
-    graph_cpu.add_values(0, cpu, err);
+    graph_cpu.add_values(0, cpu, error);
     graph_cpu.add_values(1, cpu, err_est);
     graph_cpu.save("conv_cpu.gp");
 
@@ -261,14 +166,14 @@ int main(int argc, char* argv[])
 
     // time measurement
     cpu += end_time();
- }
+  }
   while (!done);
   verbose("Total running time: %g sec", cpu);
 
 #define ERROR_SUCCESS                               0
 #define ERROR_FAILURE                               -1
   printf("n_dof = %d\n", ndofs);
-  if (ndofs < 3000) {      // ndofs was 2680 at the time this test was created
+  if (ndofs < 3300) {      // ndofs was 3161 at the time this test was created
     printf("Success!\n");
     return ERROR_SUCCESS;
   }

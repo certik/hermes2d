@@ -48,7 +48,7 @@ const int MESH_REGULARITY = -1;   // Maximum allowed level of hanging nodes:
                                   // MESH_REGULARITY = 2 ... at most two-level hanging nodes, etc.
                                   // Note that regular meshes are not supported, this is due to
                                   // their notoriously bad performance.
-const double ERR_STOP = 0.5;      // Stopping criterion for adaptivity (rel. error tolerance between the
+const double ERR_STOP = 0.1;      // Stopping criterion for adaptivity (rel. error tolerance between the
                                   // fine mesh and coarse mesh solution in percent).
 const int NDOF_STOP = 40000;      // Adaptivity process stops when the number of degrees of freedom grows
                                   // over this limit. This is to prevent h-adaptivity to go on forever.
@@ -110,7 +110,7 @@ int main(int argc, char* argv[])
   ScalarView Yview_r("Electric field Y - real", 325, 0, 320, 320);
   ScalarView Xview_i("Electric field X - imag", 650, 0, 320, 320);
   ScalarView Yview_i("Electric field Y - imag", 975, 0, 320, 320);
-  OrderView  ord("Polynomial Orders", 325, 400, 600, 600);
+  OrderView  ord("Polynomial Orders", 0, 370, 380, 340);
 
   // matrix solver
   UmfpackSolver solver;

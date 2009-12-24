@@ -1,6 +1,6 @@
 [Project]
-FileName=25-screen.dev
-Name=25-screen
+FileName=screen.dev
+Name=screen
 UnitCount=2
 Type=1
 Ver=1
@@ -50,7 +50,7 @@ AutoIncBuildNr=0
 [Unit1]
 FileName=main.cpp
 CompileCpp=1
-Folder=25-screen
+Folder=screen
 Compile=1
 Link=1
 Priority=1000
@@ -60,7 +60,7 @@ BuildCmd=
 [Unit2]
 FileName=fresnl.c
 CompileCpp=1
-Folder=25-screen
+Folder=screen
 Compile=1
 Link=1
 Priority=1000
