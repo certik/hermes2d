@@ -1,23 +1,7 @@
 #include "hermes2d.h"
 #include "solver_umfpack.h"
 
-//  This example comes with an exact solution, and it describes the diffraction
-//  of an electromagnetic wave from a re-entrant corner. Convergence graphs saved
-//  (both exact error and error estimate, and both wrt. dof number and cpu time).
-//
-//  PDE: time-harmonic Maxwell's equations
-//
-//  Known exact solution, see functions exact_sol_val(), exact_sol(), exact()
-//
-//  Domain: L-shape domain
-//
-//  Meshes: you can use either "lshape3q.mesh" (quadrilateral mesh) or
-//          "lshape3t.mesh" (triangular mesh). See the mesh.load(...) command below.
-//
-//  BC: perfect conductor on boundary markers 1 and 6 (essential BC)
-//      impedance boundary condition on rest of boundary (natural BC)
-//
-//  The following parameters can be changed:
+// This test makes sure that the benchmark "bessel" works correctly. 
 
 const int P_INIT = 1;             // Initial polynomial degree of all mesh elements.
 const double THRESHOLD = 0.3;     // This is a quantitative parameter of the adapt(...) function and
@@ -200,10 +184,6 @@ int main(int argc, char* argv[])
   wf.add_biform_surf(0, 0, callback(bilinear_form_surf));
   wf.add_liform_surf(0, linear_form_surf, linear_form_surf_ord);
 
-  // visualize solution and mesh
-  OrderView  ordview("Polynomial Orders", 600, 0, 600, 500);
-  VectorView vecview("Real part of Electric Field - VectorView", 0, 0, 600, 500);
-
   // matrix solver
   UmfpackSolver solver;
 
@@ -248,12 +228,6 @@ int main(int argc, char* argv[])
     double err = 100 * hcurl_error(&sln_coarse, &ex);
     info("Exact solution error: %g%%", err);
 
-    // show real part of the solution and mesh
-    ordview.show(&space);
-    RealFilter real(&sln_coarse);
-    vecview.set_min_max_range(0, 1);
-    vecview.show(&real, EPS_HIGH);
-
     // time measurement
     begin_time();
 
@@ -291,12 +265,15 @@ int main(int argc, char* argv[])
   while (!done);
   verbose("Total running time: %g sec", cpu);
 
-  // show the fine solution - this is the final result
-  vecview.set_title("Final solution");
-  vecview.show(&sln_fine);
-
-  // wait for keyboard or mouse input
-  View::wait("Waiting for keyboard or mouse input.");
-  return 0;
+#define ERROR_SUCCESS                               0
+#define ERROR_FAILURE                               -1
+  if (ndofs < 3000) {      // ndofs was 2680 at the time this test was created
+    printf("Success!\n");
+    return ERROR_SUCCESS;
+  }
+  else {
+    printf("Failure!\n");
+    return ERROR_FAILURE;
+  }
 }
 
