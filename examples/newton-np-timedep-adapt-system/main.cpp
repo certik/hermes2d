@@ -3,7 +3,7 @@
 
 // Poisson takes Dirichlet and Neumann boundaries
 int phi_bc_types(int marker) {
-	return (marker == SIDE_MARKER || marker == TOP_MARKER)
+	return (marker == SIDE_MARKER || marker == TOP_MARKER) 
 		? BC_NATURAL : BC_ESSENTIAL;
 }
 
@@ -282,7 +282,7 @@ int main (int argc, char* argv[]) {
 	// load the mesh file
 	Mesh Cmesh, phimesh, basemesh;
 
-  H2DReader mloader;
+	H2DReader mloader;
 	mloader.load("small.mesh", &basemesh);
 	basemesh.refine_towards_boundary(TOP_MARKER, REF_INIT);
 	basemesh.refine_towards_boundary(BOT_MARKER, REF_INIT - 1);
@@ -322,7 +322,6 @@ int main (int argc, char* argv[]) {
 		Ci,		// solution convergin during the Newton's iteration
 		phip,
 		phii;
-
 
 	// Add the bilinear and linear forms
 	// generally, the equation system is described:
