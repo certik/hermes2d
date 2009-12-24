@@ -1,6 +1,6 @@
 [Project]
-FileName=24-bessel.dev
-Name=24-bessel
+FileName=bessel.dev
+Name=bessel
 UnitCount=2
 Type=1
 Ver=1
@@ -50,7 +50,7 @@ AutoIncBuildNr=0
 [Unit1]
 FileName=main.cpp
 CompileCpp=1
-Folder=24-bessel
+Folder=bessel
 Compile=1
 Link=1
 Priority=1000
@@ -60,7 +60,7 @@ BuildCmd=
 [Unit2]
 FileName=bessel.cpp
 CompileCpp=1
-Folder=24-bessel
+Folder=bessel
 Compile=1
 Link=1
 Priority=1000

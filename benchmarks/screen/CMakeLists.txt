@@ -6,6 +6,6 @@ project(screen)
 set(HERMES ${HERMES_CPLX_BIN})
 
 add_executable(${PROJECT_NAME} main.cpp fresnl.c)
-include (../../examples/CMake.common)
+include (../CMake.common)
 
 ENDIF(COMPLEX)
