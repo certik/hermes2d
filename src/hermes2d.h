@@ -33,7 +33,6 @@
 #include "shapeset_l2_all.h"
 
 #include "refmap.h"
-#include "discrete.h" //
 #include "traverse.h"
 
 #include "weakform.h"
@@ -201,13 +200,6 @@ TODO
 Relevant files: refmap.h
 
 
-
-<br>
-<h2>DiscreteProblem</h2>
-
-TODO
-
-Relevant files: discrete.h
 
 
 
