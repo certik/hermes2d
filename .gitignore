@@ -10,6 +10,12 @@
 *.a
 *.so
 *.gz
+*.eps
+*.gp
+tutorial.*
+*.png
+*.bmp
+*make*
 
 # top-level files
 CMake.vars

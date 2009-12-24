@@ -1,21 +1,7 @@
 #include "hermes2d.h"
 #include "solver_umfpack.h"
 
-//  This is another example that allows you to compare h- and hp-adaptivity from the point of view
-//  of both CPU time requirements and discrete problem size, look at the quality of the a-posteriori
-//  error estimator used by Hermes (exact error is also provided), etc. We also suggest to change
-//  the parameter MESH_REGULARITY to see the influence of hanging nodes on the adaptive process.
-//  The problem is made harder for adaptive algorithms when the parameter SLOPE is increased.
-//
-//  PDE: -Laplace u = 0
-//
-//  Known exact solution, see functions fn() and fndd()
-//
-//  Domain: L-shape domain, see the file lshape.mesh
-//
-//  BC:  Dirichlet, given by exact solution
-//
-//  The following parameters can be changed:
+//  This test makes sure that the benchmark "layer" works correctly.
 
 const int P_INIT = 2;             // Initial polynomial degree of all mesh elements.
 const double THRESHOLD = 0.6;     // This is a quantitative parameter of the adapt(...) function and
@@ -133,10 +119,6 @@ int main(int argc, char* argv[])
   wf.add_biform(0, 0, callback(bilinear_form), SYM);
   wf.add_liform(0, callback(linear_form));
 
-  // visualize solution and mesh
-  ScalarView sview("Coarse solution", 0, 0, 500, 400);
-  OrderView  oview("Polynomial orders", 505, 0, 500, 400);
-
   // matrix solver
   UmfpackSolver solver;
 
@@ -181,10 +163,6 @@ int main(int argc, char* argv[])
     double error = h1_error(&sln_coarse, &exact) * 100;
     info("\nExact solution error: %g%%", error);
 
-    // view the solution and mesh
-    sview.show(&sln_coarse);
-    oview.show(&space);
-
     // time measurement
     begin_time();
 
@@ -222,11 +200,15 @@ int main(int argc, char* argv[])
   while (done == false);
   verbose("Total running time: %g sec", cpu);
 
-  // show the fine solution - this is the final result
-  sview.set_title("Final solution");
-  sview.show(&sln_fine);
-
-  // wait for keyboard or mouse input
-  View::wait("Waiting for keyboard or mouse input.");
-  return 0;
+#define ERROR_SUCCESS                               0
+#define ERROR_FAILURE                               -1
+  printf("n_dof = %d\n", ndofs);
+  if (ndofs < 4800) {      // ndofs was 4641 at the time this test was created
+    printf("Success!\n");
+    return ERROR_SUCCESS;
+  }
+  else {
+    printf("Failure!\n");
+    return ERROR_FAILURE;
+  }
 }

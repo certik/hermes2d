@@ -1,6 +1,6 @@
 [Project]
-FileName=22-layer.dev
-Name=22-layer
+FileName=layer.dev
+Name=layer
 UnitCount=1
 Type=1
 Ver=1
@@ -50,7 +50,7 @@ AutoIncBuildNr=0
 [Unit1]
 FileName=main.cpp
 CompileCpp=1
-Folder=22-layer
+Folder=layer
 Compile=1
 Link=1
 Priority=1000
