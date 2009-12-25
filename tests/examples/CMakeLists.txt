@@ -7,5 +7,4 @@ find_package(BLAS REQUIRED)
 # examples
 add_subdirectory(iron-water)
 add_subdirectory(saphir)
-
-
+add_subdirectory(newton-np-timedep-adapt-system)
