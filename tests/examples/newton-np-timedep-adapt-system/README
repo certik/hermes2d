@@ -1,0 +1,5 @@
+
+To run nonadaptive
+
+To compile a video:
+mencoder "mf://velocity*.bmp" -mf fps=20 -o velocity.avi -ovc lavc -lavcopts vcodec=mpeg4
