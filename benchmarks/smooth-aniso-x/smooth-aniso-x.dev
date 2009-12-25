@@ -1,6 +1,6 @@
 [Project]
-FileName=singpert.dev
-Name=singpert
+FileName=smooth-aniso-x.dev
+Name=smooth-aniso-x
 UnitCount=1
 Type=1
 Ver=1
@@ -18,7 +18,7 @@ Icon=
 ExeOutput=
 ObjectOutput=
 OverrideOutput=0
-OverrideOutputName=singpert.exe
+OverrideOutputName=smooth-aniso-x.exe
 HostApplication=
 Folders=
 CommandLine=
@@ -50,7 +50,7 @@ AutoIncBuildNr=0
 [Unit1]
 FileName=main.cpp
 CompileCpp=1
-Folder=singpert
+Folder=smooth-aniso-x
 Compile=1
 Link=1
 Priority=1000

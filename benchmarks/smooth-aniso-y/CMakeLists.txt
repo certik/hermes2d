@@ -1,7 +1,7 @@
 if(NOT REAL)
     return()
 endif(NOT REAL)
-project(singpert)
+project(smooth-aniso-y)
 
 add_executable(${PROJECT_NAME} main.cpp)
 include (../CMake.common)

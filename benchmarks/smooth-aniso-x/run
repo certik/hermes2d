@@ -1,5 +1,5 @@
 rm *~ *.gp *.eps  
-singpert
+smooth-aniso-x
 gnuplot conv_dof.gp
 gnuplot conv_cpu.gp
 epstopdf conv_dof.eps

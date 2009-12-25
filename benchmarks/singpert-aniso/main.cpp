@@ -1,7 +1,29 @@
 #include "hermes2d.h"
 #include "solver_umfpack.h"
 
-//  This test makes sure that the benchmark "singpert" works correctly.
+//  With large K, this is a singularly perturbed problem that exhibits an extremely
+//  thin and steep boundary layer. Singularly perturbed problems are considered to
+//  be very difficult, but you'll see that Hermes can solve them routinely. We tried
+//  various values of K between 1 and 10^10, always starting from an extremely coarse
+//  mesh. We found interesting that for large K, initially all refinements go
+//  towards the edges, and one has to wait a lot before the mesh gets
+//  refined in the corners. To keep the solution reasonably scaled, set F_CONST to be
+//  roughly K*K. During each computation, approximate convergence curves are saved
+//  into the files "conv_dof.gp" and "conv_cpu.gp". As in other adaptivity examples,
+//  you can compare hp-adaptivity (ADAPT_TYPE = 0) with h-adaptivity (ADAPT_TYPE = 1)
+//  and p-adaptivity (ADAPT_TYPE = 2).
+//    Moreover, you can turn off and on anisotropic element refinements via the ISO_ONLY
+//  parameter to see how important they are for the efficient resolution of boundary
+//  layers, and change some more adaptivity parameters below. For large K and with
+//  ISO_ONLY = 0, you'll see many levels of hanging nodes.
+//
+//  PDE: -Laplace u + K*K*u = const
+//
+//  Domain: square, see the file square.mesh
+//
+//  BC:  Homogeneous Dirichlet
+//
+//  The following parameters can be changed:
 
 const int INIT_REF_NUM = 1;       // number of initial mesh refinements (the original mesh is just one element)
 const int INIT_REF_NUM_BDY = 0;   // number of initial mesh refinements towards the boundary
@@ -70,7 +92,7 @@ int main(int argc, char* argv[])
 {
   // load the mesh
   Mesh mesh;
-  mesh.load("singpert.mesh");
+  mesh.load("square.mesh");
 
   // initial mesh refinement
   for (int i=0; i < INIT_REF_NUM; i++) mesh.refine_all_elements();
@@ -93,6 +115,10 @@ int main(int argc, char* argv[])
   WeakForm wf(1);
   wf.add_biform(0, 0, callback(bilinear_form), SYM);
   wf.add_liform(0, callback(linear_form));
+
+  // visualize solution and mesh
+  ScalarView sview("Coarse solution", 0, 0, 500, 400);
+  OrderView  oview("Polynomial orders", 505, 0, 500, 400);
 
   // matrix solver
   UmfpackSolver solver;
@@ -131,6 +157,10 @@ int main(int argc, char* argv[])
     // time measurement
     cpu += end_time();
 
+    // view the solution
+    sview.show(&sln_coarse);
+    oview.show(&space);
+
     // time measurement
     begin_time();
 
@@ -167,19 +197,11 @@ int main(int argc, char* argv[])
   while (done == false);
   verbose("Total running time: %g sec", cpu);
 
-#define ERROR_SUCCESS                               0
-#define ERROR_FAILURE                               -1
-  int n_dof_allowed = 2000;// ndofs was 3733 at the time this test was created,
-                           // but it has to be much less once we allow
-                           // different directional degrees in elements
-  printf("n_dof_actual = %d\n", ndofs);
-  printf("n_dof_allowed = %d\n", n_dof_allowed);
-  if (ndofs <= n_dof_allowed) {      
-    printf("Success!\n");
-    return ERROR_SUCCESS;
-  }
-  else {
-    printf("Failure!\n");
-    return ERROR_FAILURE;
-  }
+  // show the fine solution - this is the final result
+  sview.set_title("Final solution");
+  sview.show(&sln_fine);
+
+  // wait for keyboard or mouse input
+  View::wait("Waiting for keyboard or mouse input.");
+  return 0;
 }

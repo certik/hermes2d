@@ -1,32 +1,24 @@
 #include "hermes2d.h"
 #include "solver_umfpack.h"
 
-//  With large K, this is a singularly perturbed problem that exhibits an extremely
-//  thin and steep boundary layer. Singularly perturbed problems are considered to
-//  be very difficult, but you'll see that Hermes can solve them routinely. We tried
-//  various values of K between 1 and 10^10, always starting from an extremely coarse
-//  mesh. We found interesting that for large K, initially all refinements go
-//  towards the edges, and one has to wait a lot before the mesh gets
-//  refined in the corners. To keep the solution reasonably scaled, set F_CONST to be
-//  roughly K*K. During each computation, approximate convergence curves are saved
-//  into the files "conv_dof.gp" and "conv_cpu.gp". As in other adaptivity examples,
-//  you can compare hp-adaptivity (ADAPT_TYPE = 0) with h-adaptivity (ADAPT_TYPE = 1)
-//  and p-adaptivity (ADAPT_TYPE = 2).
-//    Moreover, you can turn off and on anisotropic element refinements via the ISO_ONLY
-//  parameter to see how important they are for the efficient resolution of boundary
-//  layers, and change some more adaptivity parameters below. For large K and with
-//  ISO_ONLY = 0, you'll see many levels of hanging nodes.
 //
-//  PDE: -Laplace u + K*K*u = const
+//  This example shows that it makes sense to use anisotropic polynomial 
+//  degrees in quadrilateral elements. The exact solution to this Poisson 
+//  problem is u(x,y) = sin(x), defined in the square (0, pi)x(0, pi). 
+//  Anisotropic refinements are allowed when ISO_ONLY == 0, otherwise 
+//  the adaptivity only uses isotropic refinements.
 //
-//  Domain: square, see the file singpert.mesh
+//  PDE: -Laplace u = f
 //
-//  BC:  Homogeneous Dirichlet
+//  Known exact solution, see functions fn() and fndd()
 //
+//  Domain: square domain (0, pi)x(0, pi), mesh file square_quad.mesh
+//
+//  BC:  Dirichlet, given by exact solution
+//
+
 //  The following parameters can be changed:
 
-const int INIT_REF_NUM = 1;       // number of initial mesh refinements (the original mesh is just one element)
-const int INIT_REF_NUM_BDY = 0;   // number of initial mesh refinements towards the boundary
 const int P_INIT = 1;             // Initial polynomial degree of all mesh elements.
 const double THRESHOLD = 0.3;     // This is a quantitative parameter of the adapt(...) function and
                                   // it has different meanings for various adaptive strategies (see below).
@@ -54,14 +46,23 @@ const int MESH_REGULARITY = -1;   // Maximum allowed level of hanging nodes:
                                   // MESH_REGULARITY = 2 ... at most two-level hanging nodes, etc.
                                   // Note that regular meshes are not supported, this is due to
                                   // their notoriously bad performance.
-const double ERR_STOP = 0.01;     // Stopping criterion for adaptivity (rel. error tolerance between the
+const double ERR_STOP = 1e-7;     // Stopping criterion for adaptivity (rel. error tolerance between the
                                   // fine mesh and coarse mesh solution in percent).
-const int NDOF_STOP = 100000;     // Adaptivity process stops when the number of degrees of freedom grows
+const int NDOF_STOP = 400;       // Adaptivity process stops when the number of degrees of freedom grows
                                   // over this limit. This is to prevent h-adaptivity to go on forever.
 
-// problem constants
-const double K_squared = 1e4;     // Equation parameter.
-const double CONST_F = 1e4;       // Constant right-hand side (set to be roughly K*K for scaling purposes).
+// exact solution
+static double fn(double x, double y)
+{
+  return sin(x);
+}
+
+static double fndd(double x, double y, double& dx, double& dy)
+{
+  dx = cos(x);
+  dy = 0;
+  return fn(x, y);
+}
 
 // boundary condition types
 int bc_types(int marker)
@@ -72,31 +73,34 @@ int bc_types(int marker)
 // function values for Dirichlet boundary conditions
 scalar bc_values(int marker, double x, double y)
 {
-  return 0;
+  return fn(x, y);
 }
 
 template<typename Real, typename Scalar>
 Scalar bilinear_form(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
-  return int_grad_u_grad_v<Real, Scalar>(n, wt, u, v) + K_squared * int_u_v<Real, Scalar>(n, wt, u, v);
+  return int_grad_u_grad_v<Real, Scalar>(n, wt, u, v);
+}
+
+template<typename Real>
+Real rhs(Real x, Real y)
+{
+  return sin(x);
 }
 
 template<typename Real, typename Scalar>
 Scalar linear_form(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
-  return CONST_F * int_v<Real, Scalar>(n, wt, v);
+  return int_F_v<Real, Scalar>(n, wt, rhs, v, e);
 }
-
 
 int main(int argc, char* argv[])
 {
   // load the mesh
   Mesh mesh;
-  mesh.load("singpert.mesh");
-
-  // initial mesh refinement
-  for (int i=0; i < INIT_REF_NUM; i++) mesh.refine_all_elements();
-  mesh.refine_towards_boundary(1, INIT_REF_NUM_BDY);
+  mesh.load("square_quad.mesh");
+  if(P_INIT == 1) mesh.refine_all_elements();  // this is because there are no degrees of freedom
+                                               // on the coarse mesh lshape.mesh if P_INIT == 1
 
   // initialize the shapeset and the cache
   H1ShapesetOrtho shapeset;
@@ -125,13 +129,15 @@ int main(int argc, char* argv[])
 
   // convergence graph wrt. the number of degrees of freedom
   GnuplotGraph graph;
-  graph.set_captions("Error Convergence for the Singularly Perturbed Problem", "Degrees of Freedom", "Error Estimate [%]");
-  graph.add_row("error estimate", "k", "--");
   graph.set_log_y();
+  graph.set_captions("Error Convergence for the Anisopoly Problem", "Degrees of Freedom", "Error [%]");
+  graph.add_row("exact error", "k", "-", "o");
+  graph.add_row("error estimate", "k", "--");
 
   // convergence graph wrt. CPU time
   GnuplotGraph graph_cpu;
-  graph_cpu.set_captions("Error Convergence for the Singularly Perturbed Problem", "CPU Time", "Error Estimate [%]");
+  graph_cpu.set_captions("Error Convergence for the Anisopoly Problem", "CPU Time", "Error Estimate [%]");
+  graph_cpu.add_row("exact error", "k", "-", "o");
   graph_cpu.add_row("error estimate", "k", "--");
   graph_cpu.set_log_y();
 
@@ -157,6 +163,11 @@ int main(int argc, char* argv[])
     // time measurement
     cpu += end_time();
 
+    // calculate error wrt. exact solution
+    ExactSolution exact(&mesh, fndd);
+    double error = h1_error(&sln_coarse, &exact) * 100;
+    info("\nExact solution error: %g%%", error);
+
     // view the solution
     sview.show(&sln_coarse);
     oview.show(&space);
@@ -165,7 +176,6 @@ int main(int argc, char* argv[])
     begin_time();
 
     // solve the fine mesh problem
-    begin_time();
     RefSystem rs(&ls);
     rs.assemble();
     rs.solve(1, &sln_fine);
@@ -176,11 +186,13 @@ int main(int argc, char* argv[])
     info("Estimate of error: %g%%", err_est);
 
     // add entry to DOF convergence graph
-    graph.add_values(0, space.get_num_dofs(), err_est);
+    graph.add_values(0, space.get_num_dofs(), error);
+    graph.add_values(1, space.get_num_dofs(), err_est);
     graph.save("conv_dof.gp");
 
     // add entry to CPU convergence graph
-    graph_cpu.add_values(0, cpu, err_est);
+    graph_cpu.add_values(0, cpu, error);
+    graph_cpu.add_values(1, cpu, err_est);
     graph_cpu.save("conv_cpu.gp");
 
     // if err_est too large, adapt the mesh
@@ -205,3 +217,5 @@ int main(int argc, char* argv[])
   View::wait("Waiting for keyboard or mouse input.");
   return 0;
 }
+
+
