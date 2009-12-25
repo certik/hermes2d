@@ -368,6 +368,8 @@ int main (int argc, char* argv[]) {
 	} else {
 		solveNonadaptive(Cmesh, nls, Cp, Ci, phip, phii);
 	}
+#define ERROR_SUCCESS 0
+#define ERROR_FAILURE -1
 
-	return 0;
+	return ERROR_SUCCESS;
 }
