@@ -54,14 +54,14 @@ const int MESH_REGULARITY = -1;   // Maximum allowed level of hanging nodes:
                                   // MESH_REGULARITY = 2 ... at most two-level hanging nodes, etc.
                                   // Note that regular meshes are not supported, this is due to
                                   // their notoriously bad performance.
-const double ERR_STOP = 0.6;      // Stopping criterion for adaptivity (rel. error tolerance between the
+const double ERR_STOP = 0.01;     // Stopping criterion for adaptivity (rel. error tolerance between the
                                   // fine mesh and coarse mesh solution in percent).
 const int NDOF_STOP = 100000;     // Adaptivity process stops when the number of degrees of freedom grows
                                   // over this limit. This is to prevent h-adaptivity to go on forever.
 
 // problem constants
-const double K = 1e3;             // Equation parameter.
-const double CONST_F = 1e6;       // Constant right-hand side (set to be roughly K*K for scaling purposes).
+const double K_squared = 1e4;     // Equation parameter.
+const double CONST_F = 1e4;       // Constant right-hand side (set to be roughly K*K for scaling purposes).
 
 // boundary condition types
 int bc_types(int marker)
@@ -78,7 +78,7 @@ scalar bc_values(int marker, double x, double y)
 template<typename Real, typename Scalar>
 Scalar bilinear_form(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
-  return int_grad_u_grad_v<Real, Scalar>(n, wt, u, v) + K*K * int_u_v<Real, Scalar>(n, wt, u, v);
+  return int_grad_u_grad_v<Real, Scalar>(n, wt, u, v) + K_squared * int_u_v<Real, Scalar>(n, wt, u, v);
 }
 
 template<typename Real, typename Scalar>
@@ -117,8 +117,8 @@ int main(int argc, char* argv[])
   wf.add_liform(0, callback(linear_form));
 
   // visualize solution and mesh
-  ScalarView sview("Coarse solution", 0, 100, 798, 700);
-  OrderView  oview("Polynomial orders", 800, 100, 798, 700);
+  ScalarView sview("Coarse solution", 0, 0, 500, 400);
+  OrderView  oview("Polynomial orders", 505, 0, 500, 400);
 
   // matrix solver
   UmfpackSolver solver;

@@ -17,23 +17,45 @@
 //
 //  BC:  homogeneous Dirichlet
 //
-//  TODO: Implement preconditioned CG. Then it should be possible to go much higher in the
-//  number of DOF for the low-order approximation.
 
+const int P_INIT = 1;             // Initial polynomial degree of all mesh elements.
+const double THRESHOLD = 0.3;     // This is a quantitative parameter of the adapt(...) function and
+                                  // it has different meanings for various adaptive strategies (see below).
+const int STRATEGY = 0;           // Adaptive strategy:
+                                  // STRATEGY = 0 ... refine elements until sqrt(THRESHOLD) times total
+                                  //   error is processed. If more elements have similar errors, refine
+                                  //   all to keep the mesh symmetric.
+                                  // STRATEGY = 1 ... refine all elements whose error is larger
+                                  //   than THRESHOLD times maximum element error.
+                                  // STRATEGY = 2 ... refine all elements whose error is larger
+                                  //   than THRESHOLD.
+                                  // More adaptive strategies can be created in adapt_ortho_h1.cpp.
+const int ADAPT_TYPE = 0;         // Type of automatic adaptivity:
+                                  // ADAPT_TYPE = 0 ... adaptive hp-FEM (default),
+                                  // ADAPT_TYPE = 1 ... adaptive h-FEM,
+                                  // ADAPT_TYPE = 2 ... adaptive p-FEM.
+const bool ISO_ONLY = false;      // Isotropic refinement flag (concerns quadrilateral elements only).
+                                  // ISO_ONLY = false ... anisotropic refinement of quad elements
+                                  // is allowed (default),
+                                  // ISO_ONLY = true ... only isotropic refinements of quad elements
+                                  // are allowed.
+const int MESH_REGULARITY = -1;   // Maximum allowed level of hanging nodes:
+                                  // MESH_REGULARITY = -1 ... arbitrary level hangning nodes (default),
+                                  // MESH_REGULARITY = 1 ... at most one-level hanging nodes,
+                                  // MESH_REGULARITY = 2 ... at most two-level hanging nodes, etc.
+                                  // Note that regular meshes are not supported, this is due to
+                                  // their notoriously bad performance.
+const double ERR_STOP = 1e-7;     // Stopping criterion for adaptivity (rel. error tolerance between the
+                                  // fine mesh and coarse mesh solution in percent).
+const int NDOF_STOP = 400;       // Adaptivity process stops when the number of degrees of freedom grows
+                                  // over this limit. This is to prevent h-adaptivity to go on forever.
 
-const int P_INIT = 1;             // initial polynomial degree in mesh
-const bool H_REFIN = false;        // if H_REFIN == true then Hermes will do uniform h-refinements,
-                                  // otherwise p-refinements
-const int INIT_REF_NUM = 1;       // number of initial uniform mesh refinements: use 0 for one
-                                  // element only, 1 for 4 elements, 2 for 15 elements, etc.
-
-// exact solution (for error calculation only)
+// exact solution
 static double fn(double x, double y)
 {
   return sin(x)*sin(y);
 }
 
-// exact solution derivatives (for error calculation only)
 static double fndd(double x, double y, double& dx, double& dy)
 {
   dx = cos(x)*sin(y);
@@ -50,7 +72,7 @@ int bc_types(int marker)
 // function values for Dirichlet boundary conditions
 scalar bc_values(int marker, double x, double y)
 {
-  return 0;
+  return fn(x, y);
 }
 
 template<typename Real, typename Scalar>
@@ -71,88 +93,128 @@ Scalar linear_form(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scal
   return int_F_v<Real, Scalar>(n, wt, rhs, v, e);
 }
 
-
 int main(int argc, char* argv[])
 {
+  // load the mesh
   Mesh mesh;
   mesh.load("square_quad.mesh");
-  for (int i=0; i < INIT_REF_NUM; i++) mesh.refine_all_elements();
-  if(P_INIT < 2 && INIT_REF_NUM < 1) {
-    info("No degrees of freedom in the discrete problem.\nEither subdivide the mesh or increase p.\nExiting.\n");
-    exit(0);
-  }
+  if(P_INIT == 1) mesh.refine_all_elements();  // this is because there are no degrees of freedom
+                                               // on the coarse mesh lshape.mesh if P_INIT == 1
 
-  H1Shapeset shapeset;
+  // initialize the shapeset and the cache
+  H1ShapesetOrtho shapeset;
   PrecalcShapeset pss(&shapeset);
 
+  // create finite element space
   H1Space space(&mesh, &shapeset);
-  int actual_poly_degree = P_INIT;
   space.set_bc_types(bc_types);
   space.set_bc_values(bc_values);
-  space.set_uniform_order(actual_poly_degree);
+  space.set_uniform_order(P_INIT);
 
+  // enumerate basis functions
+  space.assign_dofs();
+
+  // initialize the weak formulation
   WeakForm wf(1);
   wf.add_biform(0, 0, callback(bilinear_form), SYM);
   wf.add_liform(0, callback(linear_form));
 
-  ScalarView sview("Coarse solution", 0, 100, 798, 700);
-  OrderView  oview("Polynomial orders", 800, 100, 798, 700);
+  // visualize solution and mesh
+  ScalarView sview("Coarse solution", 0, 0, 500, 400);
+  OrderView  oview("Polynomial orders", 505, 0, 500, 400);
 
+  // matrix solver
+  UmfpackSolver solver;
+
+  // convergence graph wrt. the number of degrees of freedom
   GnuplotGraph graph;
   graph.set_log_y();
-  graph.set_captions("Error Convergence for the Smooth Problem", "Degrees of Freedom", "Error [%]");
+  graph.set_captions("Error Convergence for the Anisopoly Problem", "Degrees of Freedom", "Error [%]");
   graph.add_row("exact error", "k", "-", "o");
+  graph.add_row("error estimate", "k", "--");
 
-  Solution sln, rsln;
-  UmfpackSolver umfpack;
+  // convergence graph wrt. CPU time
+  GnuplotGraph graph_cpu;
+  graph_cpu.set_captions("Error Convergence for the Anisopoly Problem", "CPU Time", "Error Estimate [%]");
+  graph_cpu.add_row("exact error", "k", "-", "o");
+  graph_cpu.add_row("error estimate", "k", "--");
+  graph_cpu.set_log_y();
 
-  int it = 1;
+  // adaptivity loop
+  int it = 1, ndofs;
   bool done = false;
+  double cpu = 0.0;
+  Solution sln_coarse, sln_fine;
   do
   {
-    info("\n---- it=%d ------------------------------------------------------------------\n", it++);
+    info("\n---- Adaptivity step %d ---------------------------------------------\n", it++);
 
-    // enumerating basis functions
-    space.assign_dofs();
+    // time measurement
+    begin_time();
 
-    LinSystem ls(&wf, &umfpack);
+    // solve the coarse mesh problem
+    LinSystem ls(&wf, &solver);
     ls.set_spaces(1, &space);
     ls.set_pss(1, &pss);
     ls.assemble();
-    ls.solve(1, &sln);
+    ls.solve(1, &sln_coarse);
+
+    // time measurement
+    cpu += end_time();
 
     // calculate error wrt. exact solution
     ExactSolution exact(&mesh, fndd);
-    double error = h1_error(&sln, &exact) * 100;
-    info("Exact solution error: %g%%", error);
-
-    // plotting convergence wrt. number of dofs
-    graph.add_values(0, space.get_num_dofs(), error);
-    graph.save("conv_dof.gp");
+    double error = h1_error(&sln_coarse, &exact) * 100;
+    info("\nExact solution error: %g%%", error);
 
     // view the solution
-    sview.show(&sln);
+    sview.show(&sln_coarse);
     oview.show(&space);
-    info("Click into the solution window and press spacebar to continue.");
-    sview.wait_for_keypress();
 
-    // refine the mesh uniformly either in 'h' or 'p'
-    if (H_REFIN == true) {
-      if (error < 0.2) done = true;
-      else {
-        mesh.refine_all_elements();
-        space.set_uniform_order(actual_poly_degree);
-      }
-    }
+    // time measurement
+    begin_time();
+
+    // solve the fine mesh problem
+    RefSystem rs(&ls);
+    rs.assemble();
+    rs.solve(1, &sln_fine);
+
+    // calculate error estimate wrt. fine mesh solution
+    H1OrthoHP hp(1, &space);
+    double err_est = hp.calc_error(&sln_coarse, &sln_fine) * 100;
+    info("Estimate of error: %g%%", err_est);
+
+    // add entry to DOF convergence graph
+    graph.add_values(0, space.get_num_dofs(), error);
+    graph.add_values(1, space.get_num_dofs(), err_est);
+    graph.save("conv_dof.gp");
+
+    // add entry to CPU convergence graph
+    graph_cpu.add_values(0, cpu, error);
+    graph_cpu.add_values(1, cpu, err_est);
+    graph_cpu.save("conv_cpu.gp");
+
+    // if err_est too large, adapt the mesh
+    if (err_est < ERR_STOP) done = true;
     else {
-      actual_poly_degree++;
-      if (actual_poly_degree > 10) done = true;
-      else space.set_uniform_order(actual_poly_degree);
+      hp.adapt(THRESHOLD, STRATEGY, ADAPT_TYPE, ISO_ONLY, MESH_REGULARITY);
+      ndofs = space.assign_dofs();
+      if (ndofs >= NDOF_STOP) done = true;
     }
+
+    // time measurement
+    cpu += end_time();
   }
   while (done == false);
+  verbose("Total running time: %g sec", cpu);
+
+  // show the fine solution - this is the final result
+  sview.set_title("Final solution");
+  sview.show(&sln_fine);
 
   // wait for keyboard or mouse input
   View::wait("Waiting for keyboard or mouse input.");
   return 0;
 }
+
+

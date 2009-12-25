@@ -11,6 +11,7 @@ add_subdirectory(singpert)
 add_subdirectory(bessel)
 add_subdirectory(screen)
 add_subdirectory(smooth)
+add_subdirectory(anisopoly)
 add_subdirectory(line-sing)
 add_subdirectory(kellogg)
 

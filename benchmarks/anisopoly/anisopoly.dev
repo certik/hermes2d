@@ -1,6 +1,6 @@
 [Project]
-FileName=21-lshape.dev
-Name=21-lshape
+FileName=anisopoly.dev
+Name=anisopoly
 UnitCount=1
 Type=1
 Ver=1
@@ -18,7 +18,7 @@ Icon=
 ExeOutput=
 ObjectOutput=
 OverrideOutput=0
-OverrideOutputName=lshape.exe
+OverrideOutputName=anisopoly.exe
 HostApplication=
 Folders=
 CommandLine=
@@ -50,7 +50,7 @@ AutoIncBuildNr=0
 [Unit1]
 FileName=main.cpp
 CompileCpp=1
-Folder=21-lshape
+Folder=anisopoly
 Compile=1
 Link=1
 Priority=1000
