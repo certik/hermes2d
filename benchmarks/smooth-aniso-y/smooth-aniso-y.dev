@@ -1,6 +1,6 @@
 [Project]
-FileName=smooth.dev
-Name=smooth
+FileName=smooth-aniso-y.dev
+Name=smooth-aniso-y
 UnitCount=1
 Type=1
 Ver=1
@@ -18,7 +18,7 @@ Icon=
 ExeOutput=
 ObjectOutput=
 OverrideOutput=0
-OverrideOutputName=smooth.exe
+OverrideOutputName=smooth-aniso-y.exe
 HostApplication=
 Folders=
 CommandLine=
@@ -50,7 +50,7 @@ AutoIncBuildNr=0
 [Unit1]
 FileName=main.cpp
 CompileCpp=1
-Folder=smooth
+Folder=smooth-aniso-y
 Compile=1
 Link=1
 Priority=1000

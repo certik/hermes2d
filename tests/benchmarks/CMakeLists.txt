@@ -7,9 +7,10 @@ find_package(BLAS REQUIRED)
 # examples
 add_subdirectory(layer)
 add_subdirectory(lshape)
-add_subdirectory(smooth)
-add_subdirectory(anisopoly)
-add_subdirectory(singpert)
+add_subdirectory(smooth-iso)
+add_subdirectory(smooth-aniso-x)
+add_subdirectory(smooth-aniso-y)
+add_subdirectory(singpert-aniso)
 add_subdirectory(bessel)
 add_subdirectory(screen)
 

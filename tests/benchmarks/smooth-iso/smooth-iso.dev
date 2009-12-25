@@ -1,6 +1,6 @@
 [Project]
-FileName=anisopoly.dev
-Name=anisopoly
+FileName=smooth-iso.dev
+Name=smooth-iso
 UnitCount=1
 Type=1
 Ver=1
@@ -18,7 +18,7 @@ Icon=
 ExeOutput=
 ObjectOutput=
 OverrideOutput=0
-OverrideOutputName=anisopoly.exe
+OverrideOutputName=smooth-iso.exe
 HostApplication=
 Folders=
 CommandLine=
@@ -50,7 +50,7 @@ AutoIncBuildNr=0
 [Unit1]
 FileName=main.cpp
 CompileCpp=1
-Folder=anisopoly
+Folder=smooth-iso
 Compile=1
 Link=1
 Priority=1000
