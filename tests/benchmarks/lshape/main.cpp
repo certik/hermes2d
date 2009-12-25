@@ -1,10 +1,10 @@
 #include "hermes2d.h"
 #include "solver_umfpack.h"
 
-//  This test makes sure that the benchmark "layer" works correctly.
+//  This test makes sure that the benchmark "lshape" works correctly.
 
-const int P_INIT = 2;             // Initial polynomial degree of all mesh elements.
-const double THRESHOLD = 0.6;     // This is a quantitative parameter of the adapt(...) function and
+const int P_INIT = 1;             // Initial polynomial degree of all mesh elements.
+const double THRESHOLD = 0.3;     // This is a quantitative parameter of the adapt(...) function and
                                   // it has different meanings for various adaptive strategies (see below).
 const int STRATEGY = 0;           // Adaptive strategy:
                                   // STRATEGY = 0 ... refine elements until sqrt(THRESHOLD) times total
@@ -30,26 +30,26 @@ const int MESH_REGULARITY = -1;   // Maximum allowed level of hanging nodes:
                                   // MESH_REGULARITY = 2 ... at most two-level hanging nodes, etc.
                                   // Note that regular meshes are not supported, this is due to
                                   // their notoriously bad performance.
-const double ERR_STOP = 1.0;      // Stopping criterion for adaptivity (rel. error tolerance between the
+const double ERR_STOP = 0.1;      // Stopping criterion for adaptivity (rel. error tolerance between the
                                   // fine mesh and coarse mesh solution in percent).
 const int NDOF_STOP = 40000;      // Adaptivity process stops when the number of degrees of freedom grows
                                   // over this limit. This is to prevent h-adaptivity to go on forever.
 
-// problem constants
-double SLOPE = 200;       // slope of the step inside the domain
-
 // exact solution
 static double fn(double x, double y)
 {
-  return atan(SLOPE * (sqrt(sqr(x-1.25) + sqr(y+0.25)) - M_PI/3));
+  double r = sqrt(x*x + y*y);
+  double a = atan2(x, y);
+  return pow(r, 2.0/3.0) * sin(2.0*a/3.0 + M_PI/3);
 }
 
 static double fndd(double x, double y, double& dx, double& dy)
 {
-  double t = sqrt(sqr(x-1.25) + sqr(y+0.25));
-  double u = t * (sqr(SLOPE) * sqr(t - M_PI/3) + 1);
-  dx = SLOPE * (x-1.25) / u;
-  dy = SLOPE * (y+0.25) / u;
+  double t1 = 2.0/3.0*atan2(x, y) + M_PI/3;
+  double t2 = pow(x*x + y*y, 1.0/3.0);
+  double t3 = x*x * ((y*y)/(x*x) + 1);
+  dx = 2.0/3.0*x*sin(t1)/(t2*t2) + 2.0/3.0*y*t2*cos(t1)/t3;
+  dy = 2.0/3.0*y*sin(t1)/(t2*t2) - 2.0/3.0*x*t2*cos(t1)/t3;
   return fn(x, y);
 }
 
@@ -65,44 +65,23 @@ scalar bc_values(int marker, double x, double y)
   return fn(x, y);
 }
 
-// bilinear form for the Poisson equation
+// bilinear form corresponding to the Laplace equation
 template<typename Real, typename Scalar>
 Scalar bilinear_form(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
   return int_grad_u_grad_v<Real, Scalar>(n, wt, u, v);
 }
 
-template<typename Real>
-Real rhs(Real x, Real y)
-{
-  Real t2 = sqr(y + 0.25) + sqr(x - 1.25);
-  Real t = sqrt(t2);
-  Real u = (sqr(M_PI - 3.0*t)*sqr(SLOPE) + 9.0);
-  return 27.0/2.0 * sqr(2.0*y + 0.5) * (M_PI - 3.0*t) * pow(SLOPE,3.0) / (sqr(u) * t2) +
-         27.0/2.0 * sqr(2.0*x - 2.5) * (M_PI - 3.0*t) * pow(SLOPE,3.0) / (sqr(u) * t2) -
-          9.0/4.0 * sqr(2.0*y + 0.5) * SLOPE / (u * pow(t,3.0)) -
-          9.0/4.0 * sqr(2.0*x - 2.5) * SLOPE / (u * pow(t,3.0)) +
-          18.0 * SLOPE / (u * t);
-}
-
-template<typename Real, typename Scalar>
-Scalar linear_form(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
-{
-  return -int_F_v<Real, Scalar>(n, wt, rhs, v, e);
-}
-
-
 int main(int argc, char* argv[])
 {
   // load the mesh
   Mesh mesh;
-  mesh.load("square_quad.mesh");
-//   mesh.load("square_tri.mesh");
+  mesh.load("lshape.mesh");
   if(P_INIT == 1) mesh.refine_all_elements();  // this is because there are no degrees of freedom
                                                // on the coarse mesh lshape.mesh if P_INIT == 1
 
   // initialize the shapeset and the cache
-  H1Shapeset shapeset;
+  H1ShapesetOrtho shapeset;
   PrecalcShapeset pss(&shapeset);
 
   // create finite element space
@@ -117,7 +96,6 @@ int main(int argc, char* argv[])
   // initialize the weak formulation
   WeakForm wf(1);
   wf.add_biform(0, 0, callback(bilinear_form), SYM);
-  wf.add_liform(0, callback(linear_form));
 
   // matrix solver
   UmfpackSolver solver;
@@ -125,13 +103,13 @@ int main(int argc, char* argv[])
   // convergence graph wrt. the number of degrees of freedom
   GnuplotGraph graph;
   graph.set_log_y();
-  graph.set_captions("Error Convergence for the Inner Layer Problem", "Degrees of Freedom", "Error [%]");
+  graph.set_captions("Error Convergence for the L-Shape Domain Problem", "Degrees of Freedom", "Error [%]");
   graph.add_row("exact error", "k", "-", "o");
   graph.add_row("error estimate", "k", "--");
 
   // convergence graph wrt. CPU time
   GnuplotGraph graph_cpu;
-  graph_cpu.set_captions("Error Convergence for the Inner Layer Problem", "CPU Time", "Error Estimate [%]");
+  graph_cpu.set_captions("Error Convergence for the L-Shape Domain Problem", "CPU Time", "Error Estimate [%]");
   graph_cpu.add_row("exact error", "k", "-", "o");
   graph_cpu.add_row("error estimate", "k", "--");
   graph_cpu.set_log_y();
@@ -202,9 +180,9 @@ int main(int argc, char* argv[])
 
 #define ERROR_SUCCESS                               0
 #define ERROR_FAILURE                               -1
-  int n_dof_allowed = 4800;  
+  int n_dof_allowed = 700;  
   printf("n_dof_actual = %d\n", ndofs);
-  printf("n_dof_allowed = %d\n", n_dof_allowed);// ndofs was 4641 at the time this test was created
+  printf("n_dof_allowed = %d\n", n_dof_allowed);// ndofs was 625 at the time this test was created
   if (ndofs <= n_dof_allowed) {      
     printf("Success!\n");
     return ERROR_SUCCESS;
