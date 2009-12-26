@@ -205,6 +205,6 @@ int main(int argc, char* argv[])
   gview.show(&sln_fine, &sln_fine, EPS_HIGH, FN_DX_0, FN_DY_0);
 
   // wait for all views to be closed
-  View::wait("Waiting for a view to be closed.");
+  View::wait("Waiting for all views to be closed.");
   return 0;
 }

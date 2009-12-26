@@ -1350,7 +1350,7 @@ void Mesh::copy_refine(Mesh* mesh)
       enew = create_quad(e->marker, v0, v1, v2, &nodes[e->vn[3]->id], NULL);
 
     // copy edge markers
-    for (int j = 0; j < e->nvert; j++)
+    for (unsigned int j = 0; j < e->nvert; j++)
     {
       Node* en = get_base_edge_node(e, j);
       enew->en[j]->bnd = en->bnd;

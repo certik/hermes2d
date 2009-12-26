@@ -363,9 +363,13 @@ static bool init_glut()
 {
   static int argc = 1;
   static const char* argv[1] = { "x" };
+  static bool glut_initialized = false;
 
   //prepare GLUT environment
-  glutInit(&argc, (char**) argv);
+  if (!glut_initialized) {
+    glutInit(&argc, (char**) argv);
+    glut_initialized = true;
+  }
   glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_ACCUM | GLUT_DEPTH);
   glutSetOption(GLUT_ACTION_ON_WINDOW_CLOSE, GLUT_ACTION_CONTINUE_EXECUTION);
 
