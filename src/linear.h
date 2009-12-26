@@ -33,7 +33,7 @@ const double EPS_HIGH   = 0.0003;
 /// solution (e.g., gradients or in Hcurl) by inserting double vertices where necessary.
 /// Linearizer also serves as a container for the resulting linearized mesh.
 ///
-class Linearizer // (implemented in linear1.cpp)
+class PUBLIC_API Linearizer // (implemented in linear1.cpp)
 {
 public:
 
@@ -64,7 +64,6 @@ public:
   virtual void load_data(const char* filename);
 
   void free();
-
 
 protected:
 
@@ -150,7 +149,7 @@ protected:
 /// Like the Linearizer, but generates a triangular mesh showing polynomial
 /// orders in a space, hence the funky name.
 ///
-class Orderizer : public Linearizer // (implemented in linear2.cpp)
+class PUBLIC_API Orderizer : public Linearizer // (implemented in linear2.cpp)
 {
 public:
 
@@ -183,7 +182,7 @@ protected:
 /// resulting mesh is not attempted. The class can handle different meshes in
 /// both X and Y components.
 ///
-class Vectorizer : public Linearizer // (implemented in linear3.cpp)
+class PUBLIC_API Vectorizer : public Linearizer // (implemented in linear3.cpp)
 {
 public:
 
@@ -192,6 +191,7 @@ public:
 
   void process_solution(MeshFunction* xsln, int xitem, MeshFunction* ysln, int yitem, double eps);
 
+public: //accessors
   double4* get_vertices() const { return verts; }
   int get_num_vertices() const { return nv; }
 

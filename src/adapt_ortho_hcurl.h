@@ -16,11 +16,12 @@
 #ifndef __HERMES2D_ADAPT_ORTHO_HCURL_H
 #define __HERMES2D_ADAPT_ORTHO_HCURL_H
 
+#ifdef COMPLEX
 
 ///
 ///
 ///
-class HcurlOrthoHP
+class PUBLIC_API HcurlOrthoHP
 {
 public:
 
@@ -108,5 +109,7 @@ public:
 };
 
 
+
+#endif
 
 #endif

@@ -1,22 +1,15 @@
+#include <vector>
 #include "hermes2d.h"
 
 // This example shows how to convert all elements into quadrangular elements.
 
-#define ERROR_SUCCESS                               0
-#define ERROR_FAILURE                               -1
-
-int main(int argc, char* argv[])
-{
-  if (argc < 2)
-  {
-    printf("please input as this format: convert_to_quads  meshfile.mesh \n");
-    return ERROR_FAILURE;
-  }
+bool do_test(const char* filename) {
+  printf("Testing file: %s\n", filename);
 
   // load the mesh file
   Mesh mesh;
   Element* e;
-  mesh.load(argv[1]);
+  mesh.load(filename);
 
   // Calculate the number of elements after refinement, starting from 0
   int element_num = 0;
@@ -45,10 +38,7 @@ int main(int argc, char* argv[])
   // convert the mesh
   mesh.convert_to_quads();
   if (element_num != mesh.get_max_element_id())
-  {
-    printf("Failure!\n");
-    return ERROR_FAILURE;
-  }
+    return false;
 
   printf("The number of refined elements is %d\n", mesh.get_max_element_id());
   for_all_elements(e, &mesh)
@@ -67,7 +57,34 @@ int main(int argc, char* argv[])
     else
       printf("\n");
   }
-  printf("Success!\n");
-  return ERROR_SUCCESS;
+
+  return true;
+}
+
+int main(int argc, char* argv[])
+{
+  printf("test: converting to quads\n");
+
+  //gather resultss
+  const char* test_files[] = {"domain.mesh", "square.mesh", "square_tri.mesh", NULL };
+  std::vector<bool> test_results;
+  int inx = 0;
+  while (test_files[inx] != NULL) {
+    test_results.push_back(do_test(test_files[inx]));
+    inx++;
+  }
+
+  //print results
+  printf("\ntest results:\n");
+  inx = 0;
+  while (test_files[inx] != NULL) {
+    if (test_results[inx])
+      printf("  test file \"%s\": ok\n", test_files[inx]);
+    else
+      printf("! test file \"%s\": FAILED\n", test_files[inx]);
+    inx++;
+  }
+
+  return 0;
 }
 

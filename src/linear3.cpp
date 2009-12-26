@@ -359,8 +359,6 @@ void Vectorizer::find_min_max()
 
 void Vectorizer::process_solution(MeshFunction* xsln, int xitem, MeshFunction* ysln, int yitem, double eps)
 {
-  int i;
-
   lock_data();
   begin_time();
 
@@ -426,7 +424,7 @@ void Vectorizer::process_solution(MeshFunction* xsln, int xitem, MeshFunction* y
     scalar* xval = xsln->get_values(xia, xib);
     scalar* yval = ysln->get_values(yia, yib);
 
-    for (i = 0; i < e[0]->nvert; i++)
+    for (unsigned int i = 0; i < e[0]->nvert; i++)
     {
       double fx = getvalx(i);
       double fy = getvaly(i);
@@ -448,7 +446,7 @@ void Vectorizer::process_solution(MeshFunction* xsln, int xitem, MeshFunction* y
     double* y = ysln->get_refmap()->get_phys_y(0);
 
     int iv[4];
-    for (i = 0; i < e[0]->nvert; i++)
+    for (unsigned int i = 0; i < e[0]->nvert; i++)
     {
       double fx = getvalx(i);
       double fy = getvaly(i);
@@ -469,7 +467,7 @@ void Vectorizer::process_solution(MeshFunction* xsln, int xitem, MeshFunction* y
     Trf* yctm = ysln->get_ctm();
     double r[4] = { -1.0, 1.0, 1.0, -1.0 };
     double ref[4][2] = { {-1.0,-1.0}, {1.0,-1.0}, {1.0,1.0}, {-1.0,1.0} };
-    for (i = 0; i < e[0]->nvert; i++)
+    for (unsigned int i = 0; i < e[0]->nvert; i++)
     {
       bool bold = false;
       double px = ref[i][0];

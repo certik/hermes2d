@@ -226,6 +226,7 @@ int main(int argc, char* argv[])
     cpu += end_time();
   }
   while (!done);
+
   verbose("Total running time: %g sec", cpu);
 
   // wait for keypress or mouse input

@@ -262,7 +262,7 @@ int main(int argc, char* argv[])
   sview.set_min_max_range(0, 3e4);
   sview.show(&stress_fine);
 
-  // wait for keypress or mouse input
-  View::wait("Waiting for keyboard or mouse input.");
+  // wait for all views to be closed
+  View::wait("Waiting for all views to be closed.");
   return 0;
 }

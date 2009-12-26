@@ -36,7 +36,7 @@ struct LiForm
 
 /// THIS CLASS IS DEPRECATED
 ///
-class DiscreteProblem
+class PUBLIC_API DiscreteProblem
 {
 public:
 

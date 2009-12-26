@@ -33,8 +33,9 @@ template<class T>
 class Array
 {
 protected:
-
+  PUBLIC_API_USED_STL_VECTOR(T*);
   std::vector<T*>  pages; // todo: standard array for maximum access speed
+  PUBLIC_API_USED_STL_VECTOR(int);
   std::vector<int> unused;
   int  size, nitems;
   bool append_only;
@@ -65,8 +66,8 @@ public:
     size = array.size;
     nitems = array.nitems;
     append_only = array.append_only;
-
-    for (int i = 0; i < pages.size(); i++)
+    
+    for (unsigned i = 0; i < pages.size(); i++)
     {
       T* new_page = new T[PAGE_SIZE];
       memcpy(new_page, pages[i], sizeof(T) * PAGE_SIZE);
@@ -77,7 +78,7 @@ public:
   /// Removes all elements from the array.
   void free()
   {
-    for (int i = 0; i < pages.size(); i++)
+    for (unsigned i = 0; i < pages.size(); i++)
       delete [] pages[i];
     pages.clear();
     unused.clear();

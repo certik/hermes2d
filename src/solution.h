@@ -32,7 +32,7 @@ class PrecalcShapeset;
 ///
 /// (This is an abstract class and cannot be instantiated.)
 ///
-class MeshFunction : public ScalarFunction
+class PUBLIC_API MeshFunction : public ScalarFunction
 {
 public:
 
@@ -72,7 +72,7 @@ public:
 ///
 /// TODO: write how to obtain solution values, maybe include inherited methods from Function as comments.
 ///
-class Solution : public MeshFunction
+class PUBLIC_API Solution : public MeshFunction
 {
 public:
 
@@ -128,7 +128,8 @@ public:
   /// Returns solution value or derivatives at the physical domain point (x, y).
   /// 'item' controls the returned value: FN_VAL_0, FN_VAL_1, FN_DX_0, FN_DX_1, FN_DY_0,....
   /// NOTE: This function should be used for postprocessing only, it is not effective
-  /// enough for calculations.
+  /// enough for calculations. Since it searches for an element sequentinally, it is extremelly
+  /// slow. Prefer Solution::get_ref_value if possible.
   virtual scalar get_pt_value(double x, double y, int item = FN_VAL_0);
 
   /// Returns the number of degrees of freedom of the solution.
@@ -195,8 +196,8 @@ protected:
 ///
 /// Please note that the same functionality can be obtained by using Solution::set_exact().
 /// This class is provided merely for convenience.
-///
-class ExactSolution : public Solution
+/// 
+class PUBLIC_API ExactSolution : public Solution
 {
 public:
 

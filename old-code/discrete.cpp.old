@@ -313,7 +313,7 @@ void DiscreteProblem::insert_matrix(scalar** mat, int* iidx, int* jidx, int ilen
 void DiscreteProblem::assemble_matrix_and_rhs(bool rhsonly)
 {
   int i, j, k, l, m, n;
-  bool bnd[4], nat[neq];
+  bool bnd[4]; AUTOLA(bool, nat, neq);
   EdgePos ep[4];
 
   if (!ndofs) return;
@@ -331,7 +331,7 @@ void DiscreteProblem::assemble_matrix_and_rhs(bool rhsonly)
   }
 
   // create slave pss's for test functions, init quadrature points
-  PrecalcShapeset* spss[neq];
+  AUTOLA(PrecalcShapeset*, spss, neq);
   PrecalcShapeset *fu, *fv;
   for (i = 0; i < neq; i++)
   {

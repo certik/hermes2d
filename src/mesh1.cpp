@@ -51,7 +51,7 @@ void Node::unref_element(HashTable* ht, Element* e)
 
 void Element::ref_all_nodes()
 {
-  for (int i = 0; i < nvert; i++)
+  for (unsigned int i = 0; i < nvert; i++)
   {
     vn[i]->ref_element();
     en[i]->ref_element(this);
@@ -61,7 +61,7 @@ void Element::ref_all_nodes()
 
 void Element::unref_all_nodes(HashTable* ht)
 {
-  for (int i = 0; i < nvert; i++)
+  for (unsigned int i = 0; i < nvert; i++)
   {
     vn[i]->unref_element(ht);
     en[i]->unref_element(ht, this);
@@ -529,11 +529,11 @@ void Mesh::refine_quad(Element* e, int refinement)
 void Mesh::unrefine_element_internal(Element* e)
 {
   assert(!e->active);
-  int i, s1, s2;
+  int s1, s2;
 
   // obtain markers and bnds from son elements
   int mrk[4], bnd[4];
-  for (i = 0; i < e->nvert; i++)
+  for (unsigned int i = 0; i < e->nvert; i++)
   {
     get_edge_sons(e, i, s1, s2);
     assert(e->sons[s1]->active);
@@ -542,7 +542,7 @@ void Mesh::unrefine_element_internal(Element* e)
   }
 
   // remove all sons
-  for (i = 0; i < 4; i++)
+  for (int i = 0; i < 4; i++)
   {
     Element* son = e->sons[i];
     if (son != NULL)
@@ -555,7 +555,7 @@ void Mesh::unrefine_element_internal(Element* e)
   }
 
   // recreate edge nodes
-  for (i = 0; i < e->nvert; i++)
+  for (unsigned int i = 0; i < e->nvert; i++)
     e->en[i] = get_edge_node(e->vn[i]->id, e->vn[e->next_vert(i)]->id);
 
   e->ref_all_nodes();
@@ -563,7 +563,7 @@ void Mesh::unrefine_element_internal(Element* e)
   nactive++;
 
   // restore edge node markers and bnds
-  for (i = 0; i < e->nvert; i++)
+  for (unsigned int i = 0; i < e->nvert; i++)
   {
     e->en[i]->marker = mrk[i];
     e->en[i]->bnd = bnd[i];
@@ -614,7 +614,7 @@ static int rtv_id;
 
 static int rtv_criterion(Element* e)
 {
-  for (int i = 0; i < e->nvert; i++)
+  for (unsigned int i = 0; i < e->nvert; i++)
     if (e->vn[i]->id == rtv_id)
       return 0;
   return -1;
@@ -633,7 +633,7 @@ static char* rtb_vert;
 
 static int rtb_criterion(Element* e)
 {
-  int i;
+  unsigned int i;
   for (i = 0; i < e->nvert; i++)
     if (e->en[i]->marker == rtb_marker || rtb_vert[e->vn[i]->id])
       break;
@@ -667,7 +667,7 @@ void Mesh::refine_towards_boundary(int marker, int depth, bool aniso)
 
     Element* e;
     for_all_active_elements(e, this)
-      for (int j = 0; j < e->nvert; j++)
+      for (unsigned int j = 0; j < e->nvert; j++)
         if (e->en[j]->marker == marker)
           rtb_vert[e->vn[j]->id] = rtb_vert[e->vn[e->next_vert(j)]->id] = 1;
 
@@ -709,7 +709,7 @@ void Mesh::unrefine_all_elements(bool keep_initial_refinements)
   }
 
   // unrefine the found elements
-  for (int i = 0; i < list.size(); i++)
+  for (unsigned int i = 0; i < list.size(); i++)
     unrefine_element(list[i]);
 }
 void Mesh::refine_triangle_to_quads(Element* e)
@@ -765,7 +765,6 @@ void Mesh::refine_triangle_to_quads(Element* e)
 
       for (int k = 0; k < 2; k++)
       {
-        Node *en;
         int p1, p2;
         int idx2;
 
@@ -844,7 +843,6 @@ void Mesh::refine_triangle_to_quads(Element* e)
       Node* node_temp = get_vertex_node(e->vn[idx%3]->id, e->vn[(idx+1)%3]->id);
       for (int k = 0; k < 2; k++)
       {
-        Node *en;
         int p1, p2;
         int idx2;
         if (k == 0)
@@ -1033,7 +1031,6 @@ void Mesh::refine_quad_to_triangles(Element* e)
         {
           angle2 = e->cm->nurbs[(idx + i_case2)%4]->angle;
 
-          Node *en;
           int p1, p2;
           int idx2 = idx;
 

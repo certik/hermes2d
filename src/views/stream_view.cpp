@@ -16,8 +16,8 @@
 #ifndef NOGLUT
 
 #include <GL/freeglut.h>
-#include "common.h"
-#include "view.h"
+#include "../common.h"
+#include "stream_view.h"
 
 
 //// StreamView /////////////////////////////////////////////////////////////////////////////////////
@@ -390,17 +390,13 @@ void StreamView::show(MeshFunction* xsln, MeshFunction* ysln, int marker, double
 {
   vec.process_solution(xsln, xitem, ysln, yitem, eps);
 
-  if (range_auto) { range_min = vec.get_min_value();
-                    range_max = vec.get_max_value(); }
-
-  glut_init();
-  update_layout();
-
   vec.lock_data();
-  if (window_id < 0)
-  {
-    center_mesh(vec.get_vertices(), vec.get_num_vertices());
+  if (range_auto) {
+    range_min = vec.get_min_value();
+    range_max = vec.get_max_value();
   }
+
+  center_mesh(vec.get_vertices(), vec.get_num_vertices());
 
   // create streamlines
   double4* vert = vec.get_vertices();
@@ -439,6 +435,8 @@ void StreamView::show(MeshFunction* xsln, MeshFunction* ysln, int marker, double
   vec.unlock_data();
 
   create();
+  update_layout();
+  refresh();
   wait_for_draw();
 }
 
@@ -452,7 +450,7 @@ void StreamView::add_streamline(double x, double y)
   streamlength = (int*) realloc(streamlength, sizeof(int) * (num_stream + 1));
   streamlength[num_stream] = create_streamline(x, y, num_stream);
   num_stream++;
-  post_redisplay();
+  refresh();
   info("Time to create streamline: %g s", end_time());
 }
 
@@ -494,9 +492,9 @@ void StreamView::on_display()
   int3* xtris = vec.get_triangles();
 
   glEnable(GL_TEXTURE_1D);
-  glBindTexture(GL_TEXTURE_1D, 1);
+  glBindTexture(GL_TEXTURE_1D, gl_pallete_tex_id);
   glBegin(GL_TRIANGLES);
-  glColor3f(0.95,0.95,0.95);
+  glColor3f(0.95f, 0.95f, 0.95f);
   for (i = 0; i < vec.get_num_triangles(); i++)
   {
     double mag = sqrt(sqr(vert[xtris[i][0]][2]) + sqr(vert[xtris[i][0]][3]));
@@ -560,19 +558,19 @@ void StreamView::on_key_down(unsigned char key, int x, int y)
   {
     case 'm':
       lines = !lines;
-      post_redisplay();
+      refresh();
       break;
 
     case 'l':
       pmode = !pmode;
-      post_redisplay();
+      refresh();
       break;
 
     case 'c':
       vec.lock_data();
       center_mesh(vec.get_vertices(), vec.get_num_vertices());
       vec.unlock_data();
-      post_redisplay();
+      refresh();
       //reset_zoom();
       break;
 
@@ -586,7 +584,7 @@ void StreamView::on_key_down(unsigned char key, int x, int y)
       {
         num_stream--;
         delete [] streamlines[num_stream];
-        post_redisplay();
+        refresh();
       }
       break;
 
@@ -609,7 +607,7 @@ void StreamView::on_left_mouse_down(int x, int y)
     streamlength = (int*) realloc(streamlength, sizeof(int) * (num_stream + 1));
     streamlength[num_stream] = create_streamline(untransform_x(x), untransform_y(y), num_stream);
     num_stream++;
-    post_redisplay();
+    refresh();
     info("Time to create streamline: %g s", end_time());
   }
 }

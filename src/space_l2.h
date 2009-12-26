@@ -23,7 +23,7 @@
 /// mesh edges.
 ///
 ///
-class L2Space : public Space
+class PUBLIC_API L2Space : public Space
 {
 public:
 
@@ -57,7 +57,7 @@ protected:
   virtual void get_edge_assembly_list_internal(Element* e, int ie, AsmList* al) {}
   virtual void get_bubble_assembly_list(Element* e, AsmList* al);
 
-  virtual scalar* get_bc_projection(EdgePos* ep, int order) {}
+  virtual scalar* get_bc_projection(EdgePos* ep, int order) { return NULL; }
 
 };
 

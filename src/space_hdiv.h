@@ -24,7 +24,7 @@
 ///
 ///
 ///
-class HdivSpace : public Space
+class PUBLIC_API HdivSpace : public Space
 {
 public:
 
