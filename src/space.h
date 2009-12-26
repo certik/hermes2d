@@ -73,8 +73,8 @@ enum
 ///         freedom) numbers to basis functions, starting with 'first_dof' (optional parameter).
 ///         It also determines constraining relationships in the mesh due to hanging nodes and
 ///         builds constrained basis functions. The total number of basis functions can then
-///         be obtained by calling get_dof_count(). Standard basis functions are assigned positive
-///         numbers from 'first_dof' to ('first_dof' + (get_dof_count() - 1) * 'stride'). All
+///         be obtained by calling get_num_dofs(). Standard basis functions are assigned positive
+///         numbers from 'first_dof' to ('first_dof' + (get_num_dofs() - 1) * 'stride'). All
 ///         shape functions belonging to the Dirichlet lift are assigned DOF number of -1. This
 ///         way the Dirichlet lift becomes a (virtual) basis function. This simplifies assembling.
 ///
