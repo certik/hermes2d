@@ -1,21 +1,22 @@
 #include "hermes2d.h"
 #include "solver_umfpack.h"
 
-//  This example uses automatic adaptivity to solve a general second-order linear 
-//  equation with non-constant coefficients.
+//  This example is a standard nuclear engineering benchmark describing an external-force-driven
+//  configuration without fissile materials present, using one-group neutron diffusion approximation.
 //
-//  PDE: -d/dx(a_11(x,y)du/dx) - d/dx(a_12(x,y)du/dy) - d/dy(a_21(x,y)du/dx) - d/dy(a_22(x,y)du/dy)
-//       + a_1(x,y)du/dx + a_21(x,y)du/dy + a_0(x,y)u = rhs(x,y)
+//  PDE: -div(D(x,y)grad\Phi) + \Sigma_a(x,y)\Phi = Q_{ext}(x,y)
+//  where D(x, y) is the diffusion coefficient, \Sigma_a(x,y) the absorption cross-section,
+//  and Q_{ext}(x,y) external sources
+//  
+//  Domain: square (0, L)x(0, L) where L = 30c (see mesh file domain.mesh)
 //
-//  Domain: arbitrary
-//
-//  BC:  Dirichlet for boundary marker 1: u = g_D(x,y)
-//       Natural for any other boundary marker:   (a_11(x,y)*nu_1 + a_21(x,y)*nu_2) * dudx 
-//                                              + (a_12(x,y)*nu_1 + s_22(x,y)*nu_2) * dudy = g_N(x,y)
+//  BC:  Zero Dirichlet for the right and top edges ("vacuum boundary")
+//       Zero Neumann for the left and bottom edges ("reflection boundary")
 //
 //  The following parameters can be changed:
 
 const int P_INIT = 1;             // Initial polynomial degree of all mesh elements.
+const int INIT_REF_NUM = 3;       // Number of initial uniform mesh refinements
 const double THRESHOLD = 0.6;     // This is a quantitative parameter of the adapt(...) function and
                                   // it has different meanings for various adaptive strategies (see below).
 const int STRATEGY = 0;           // Adaptive strategy:
@@ -42,52 +43,53 @@ const int MESH_REGULARITY = -1;   // Maximum allowed level of hanging nodes:
                                   // MESH_REGULARITY = 2 ... at most two-level hanging nodes, etc.
                                   // Note that regular meshes are not supported, this is due to
                                   // their notoriously bad performance.
-const double ERR_STOP = 1.0;      // Stopping criterion for adaptivity (rel. error tolerance between the
+const double ERR_STOP = 1e-2;     // Stopping criterion for adaptivity (rel. error tolerance between the
                                   // fine mesh and coarse mesh solution in percent).
-const int NDOF_STOP = 40000;      // Adaptivity process stops when the number of degrees of freedom grows
+const int NDOF_STOP = 60000;      // Adaptivity process stops when the number of degrees of freedom grows
                                   // over this limit. This is to prevent h-adaptivity to go on forever.
 
 // Problem parameters
-double a_11(double x, double y) {
-  if (y > 0) return 1 + x*x + y*y;
-  else return 1;
+double L = 30;                        // edge of square
+double L0 = 0.75*0.5*L;               // end of first water layer
+double L1 = 0.5*L;                    // end of second water layer
+double L2 = 0.75*L;                   // end of iron layer
+double Q_EXT = 1.0;                   // neutron source
+double SIGMA_T_WATER = 3.33;
+double SIGMA_T_IRON = 1.33;
+double C_WATER = 0.994;
+double C_IRON = 0.831;
+
+// total cross-section
+double sigma_t(double x, double y) {
+  if(x < L1 && y < L1) return SIGMA_T_WATER;
+  if(x > L2 || y > L2) return SIGMA_T_WATER;
+  return SIGMA_T_IRON;
 }
 
-double a_22(double x, double y) {
-  if (y > 0) return 1;
-  else return 1 + x*x + y*y;
+// diffusion coefficient
+double D(double x, double y) {
+  return 1./(3.*sigma_t(x, y));
 }
 
-double a_12(double x, double y) {
-  return 1;
+// scattering ratio
+double c(double x, double y) {
+  if(x < L1 && y < L1) return C_WATER;
+  if(x > L2 || y > L2) return C_WATER;
+  return C_IRON;
 }
 
-double a_21(double x, double y) {
-  return 1;
+// absorption cross section
+double sigma_a(double x, double y) {
+  double sigma_t_ = sigma_t(x, y);
+  double c_ = c(x, y);
+  double sigma_s = c_*sigma_t_; // scattering cross-section
+  return sigma_t_ - sigma_s;
 }
 
-double a_1(double x, double y) {
-  return 0.0;
-}
-
-double a_2(double x, double y) {
-  return 0.0;
-}
-
-double a_0(double x, double y) {
-  return 0.0;
-}
-
-double rhs(double x, double y) {
-  return 1 + x*x + y*y;
-}
-
-double g_D(double x, double y) {
-  return -cos(M_PI*x);
-}
-
-double g_N(double x, double y) {
-  return 0;
+// sources
+double q_ext(double x, double y) {
+  if(x < L0 && y < L0) return Q_EXT;
+  else return 0;
 }
 
 /********** Boundary conditions ***********/
@@ -95,14 +97,14 @@ double g_N(double x, double y) {
 // Boundary condition types
 int bc_types(int marker)
 {
-  if (marker == 1) return BC_ESSENTIAL;
-  else return BC_NATURAL;
+  if (marker == 1) return BC_NATURAL;
+  else return BC_ESSENTIAL;
 }
 
 // Dirichlet boundary condition values
 scalar bc_values(int marker, double x, double y)
 {
-  return g_D(x, y);
+  return 0.0;
 }
 
 // (Volumetric) bilinear form
@@ -113,13 +115,8 @@ Scalar bilinear_form(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real>
   for (int i=0; i < n; i++) {
     double x = e->x[i];
     double y = e->y[i];
-    result += (a_11(x, y)*u->dx[i]*v->dx[i] + 
-               a_12(x, y)*u->dy[i]*v->dx[i] +
-               a_21(x, y)*u->dx[i]*v->dy[i] +
-               a_22(x, y)*u->dy[i]*v->dy[i] +
-               a_1(x, y)*u->dx[i]*v->val[i] +
-               a_2(x, y)*u->dy[i]*v->val[i] +
-               a_0(x, y)*u->val[i]*v->val[i]) * wt[i];
+    result += (D(x, y) * (u->dx[i]*v->dx[i] + u->dy[i]*v->dy[i])
+	       + sigma_a(x, y) * u->val[i] * v->val[i]) * wt[i];
   }
   return result;
 }
@@ -127,34 +124,31 @@ Scalar bilinear_form(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real>
 // Integration order for the bilinear form
 Ord bilinear_form_ord(int n, double *wt, Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext)
 {
-  return u->val[0] + v->val[0] + 10; // returning the sum of the degrees of the basis 
-                                    // and test function plus a constant (heuristic)
+  return 18;
+  //return u->val[0] + v->val[0]; // returning the sum of the degrees of the basis 
+                                // and test function
 }
 
-// surface linear form (natural boundary conditions)
-template<typename Real, typename Scalar>
-Scalar linear_form_surf(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
-{
-  return int_F_v<Real, Scalar>(n, wt, g_N, v, e);
-}
-
-// Integration order for surface linear form
-Ord linear_form_surf_ord(int n, double *wt, Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext)
-{
-  return 2 * v->val[0];  // returning twice the polynomial degree of the test function
-}
-
-// volumetrix linear form (right-hand side)
+// (Volumetrix) linear form (right-hand side)
 template<typename Real, typename Scalar>
 Scalar linear_form(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
-  return int_F_v<Real, Scalar>(n, wt, rhs, v, e);
+  //return int_F_v<Real, Scalar>(n, wt, q_ext, v, e);
+  Scalar result = 0;
+  for (int i=0; i < n; i++) {
+    double x = e->x[i];
+    double y = e->y[i];
+    result += q_ext(x, y) * v->val[i] * wt[i];
+  }
+  return result;
 }
 
-// Integration order for the volumetric linear form
+// Integration order for the linear form
 Ord linear_form_ord(int n, double *wt, Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext)
 {
-  return 2 * v->val[0];  // returning twice the polynomial degree of the test function;
+  return 18;
+  //return v->val[0];  // q_ext is piecewise constant, thus 
+                     // returning the polynomial degree of the test function;
 }
 
 int main(int argc, char* argv[])
@@ -162,7 +156,10 @@ int main(int argc, char* argv[])
   // Load the mesh
   Mesh mesh;
   mesh.load("domain.mesh");
-  mesh.refine_all_elements();
+  // FIXME: this is temporary, the real benchmark has 10x10 elements
+  // and also the values L0, L1 and L2 need to be changed.
+  if (INIT_REF_NUM < 3) error("INIT_REF_NUM in this example must be at least 3.");
+  for (int i=0; i < INIT_REF_NUM; i++) mesh.refine_all_elements();
 
   // Initialize the shapeset and the cache
   H1Shapeset shapeset;
@@ -181,7 +178,6 @@ int main(int argc, char* argv[])
   WeakForm wf(1);
   wf.add_biform(0, 0, bilinear_form, bilinear_form_ord, SYM);
   wf.add_liform(0, linear_form, linear_form_ord);
-  wf.add_liform_surf(0, linear_form_surf, linear_form_surf_ord, 2);
 
   // Visualize solution and mesh
   ScalarView sview("Coarse solution", 0, 100, 798, 700);
@@ -193,12 +189,12 @@ int main(int argc, char* argv[])
   // Convergence graph wrt. the number of degrees of freedom
   GnuplotGraph graph;
   graph.set_log_y();
-  graph.set_captions("Error Convergence for the Linear 2nd-Order Problem", "Degrees of Freedom", "Error Estimate [%]");
+  graph.set_captions("Error Convergence for the Iron-Water Problem", "Degrees of Freedom", "Error Estimate [%]");
   graph.add_row("error estimate", "k", "-", "o");
 
   // Convergence graph wrt. CPU time
   GnuplotGraph graph_cpu;
-  graph_cpu.set_captions("Error Convergence for the Linear 2nd-Order Problem", "CPU Time", "Error Estimate [%]");
+  graph_cpu.set_captions("Error Convergence for the Iron-Water Problem", "CPU Time", "Error Estimate [%]");
   graph_cpu.add_row("error estimate", "k", "-", "o");
   graph_cpu.set_log_y();
 
@@ -208,7 +204,7 @@ int main(int argc, char* argv[])
   double cpu = 0.0;
   Solution sln_coarse, sln_fine;
   do
-  {
+    {
     info("\n---- Adaptivity step %d ---------------------------------------------\n", it++);
 
     // Time measurement
@@ -227,9 +223,12 @@ int main(int argc, char* argv[])
     // View the solution and mesh
     sview.show(&sln_coarse);
     oview.show(&space);
+    //oview.wait_for_keypress();
 
     // Time measurement
     begin_time();
+
+    //break;
 
     // Solve the fine mesh problem
     RefSystem rs(&ls);
