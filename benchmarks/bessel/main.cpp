@@ -46,7 +46,7 @@ const int MESH_REGULARITY = -1;   // Maximum allowed level of hanging nodes:
                                   // MESH_REGULARITY = 2 ... at most two-level hanging nodes, etc.
                                   // Note that regular meshes are not supported, this is due to
                                   // their notoriously bad performance.
-const double ERR_STOP = 0.2;      // Stopping criterion for adaptivity (rel. error tolerance between the
+const double ERR_STOP = 0.1;      // Stopping criterion for adaptivity (rel. error tolerance between the
                                   // fine mesh and coarse mesh solution in percent).
 const int NDOF_STOP = 40000;      // Adaptivity process stops when the number of degrees of freedom grows
                                   // over this limit. This is to prevent h-adaptivity to go on forever.
@@ -201,8 +201,8 @@ int main(int argc, char* argv[])
   wf.add_liform_surf(0, linear_form_surf, linear_form_surf_ord);
 
   // visualize solution and mesh
-  OrderView  ordview("Polynomial Orders", 800, 100, 700, 600);
-  VectorView vecview("Real part of Electric Field - VectorView", 0, 100, 700, 600);
+  OrderView  ordview("Polynomial Orders", 600, 0, 600, 500);
+  VectorView vecview("Real part of Electric Field - VectorView", 0, 0, 600, 500);
 
   // matrix solver
   UmfpackSolver solver;

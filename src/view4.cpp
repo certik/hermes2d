@@ -672,10 +672,10 @@ const char* OrderView::get_help_text() const
   "  Esc, Q - quit";
 }
 
-
+/* OLD CODE, CAN BE DELETED
 //// Matrix View ///////////////////////////////////////////////////////////////////////////////////
 
-/*MatrixView::MatrixView(const char* title, int x, int y, int width, int height)
+MatrixView::MatrixView(const char* title, int x, int y, int width, int height)
           : View(title, x, y, width, height)
 {
   Ap = NULL;
@@ -861,7 +861,7 @@ const char* MatrixView::get_help_text() const
   "  Red - unsymmetric element\n"
   "  Magenta - antisymmetric element\n"
   "  Grey - stored zero element";
-}*/
+}
 
-
+*/
 #endif // NOGLUT

@@ -110,8 +110,8 @@ int main(int argc, char* argv[])
   wf.add_biform(0, 0, callback(bilinear_form), SYM);
 
   // visualize solution and mesh
-  ScalarView sview("Coarse solution", 0, 100, 798, 700);
-  OrderView  oview("Polynomial orders", 800, 100, 798, 700);
+  ScalarView sview("Coarse solution", 0, 0, 500, 400);
+  OrderView  oview("Polynomial orders", 505, 0, 500, 400);
 
   // matrix solver
   UmfpackSolver solver;

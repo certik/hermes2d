@@ -97,12 +97,11 @@ Scalar bilinear_form(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real>
 }
 
 // Integration order for the bilinear form
-template<typename Real, typename Scalar>
-Scalar bilinear_form_ord(int n, double *wt, Func<Real> *u, 
-                         Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+Ord bilinear_form_ord(int n, double *wt, Func<Ord> *u, 
+                      Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext)
 {
-  return u->val[0] * v->val[0] + 2; // returning the sum of the degrees of the basis 
-                                    // and test function plus two
+  return u->val[0] + v->val[0] + 10; // returning the sum of the degrees of the basis 
+                                     // and test function plus a constant (heuristic)
 }
 
 // Surface linear form (natural boundary conditions)
@@ -113,10 +112,9 @@ Scalar linear_form_surf(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData
 }
 
 // Integration order for surface linear form
-template<typename Real, typename Scalar>
-Scalar linear_form_surf_ord(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+Ord linear_form_surf_ord(int n, double *wt, Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext)
 {
-  return 2*v->val[0];  // returning twice the polynomial degree of the test function
+  return 2 * v->val[0];  // returning twice the polynomial degree of the test function
 }
 
 // Volumetric linear form (right-hand side)
@@ -127,10 +125,9 @@ Scalar linear_form(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scal
 }
 
 // Integration order for the volumetric linear form
-template<typename Real, typename Scalar>
-Scalar linear_form_ord(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+Ord linear_form_ord(int n, double *wt, Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext)
 {
-  return 2*v->val[0];  // returning twice the polynomial degree of the test function;
+  return 2 * v->val[0];  // returning twice the polynomial degree of the test function;
 }
 
 int main(int argc, char* argv[])
