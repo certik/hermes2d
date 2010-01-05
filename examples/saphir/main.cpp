@@ -213,12 +213,12 @@ int main(int argc, char* argv[])
   // Convergence graph wrt. the number of degrees of freedom
   GnuplotGraph graph;
   graph.set_log_y();
-  graph.set_captions("Error Convergence for the Iron-Water Problem", "Degrees of Freedom", "Error Estimate [%]");
+  graph.set_captions("Error Convergence for the Saphir Problem", "Degrees of Freedom", "Error Estimate [%]");
   graph.add_row("error estimate", "k", "-", "o");
 
   // Convergence graph wrt. CPU time
   GnuplotGraph graph_cpu;
-  graph_cpu.set_captions("Error Convergence for the Iron-Water Problem", "CPU Time", "Error Estimate [%]");
+  graph_cpu.set_captions("Error Convergence for the Saphir Problem", "CPU Time", "Error Estimate [%]");
   graph_cpu.add_row("error estimate", "k", "-", "o");
   graph_cpu.set_log_y();
 
