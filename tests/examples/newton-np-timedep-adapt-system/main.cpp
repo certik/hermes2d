@@ -22,99 +22,50 @@ Scalar linear_form_surf_top(int n, double *wt, Func<Real> *v, Geom<Real> *e, Ext
 	return -E_FIELD * int_v<Real, Scalar>(n, wt, v);
 }
 
-void solveNonadaptive(Mesh &mesh, NonlinSystem &nls,
+bool solveNonadaptive(Mesh &mesh, NonlinSystem &nls,
 		Solution &Cp, Solution &Ci, Solution &phip, Solution &phii) {
-	begin_time();
-
-	//VectorView vview("electric field [V/m]", 0, 0, 600, 600);
-	ScalarView Cview("Concentration [mol/m3]", 0, 0, 800, 800);
-	ScalarView phiview("Voltage [V]", 650, 0, 600, 600);
-
-	#ifdef CONT_OUTPUT
-	phiview.show(&phii);
-	Cview.show(&Ci);
-	Cview.wait_for_keypress();
-	#endif
 	Solution Csln, phisln;
 	for (int n = 1; n <= NSTEP; n++) {
-
-		#ifdef VERBAL
-		info("\n---- Time step %d ----", n);
-		#endif
 
 		int it = 1;
 		double res_l2_norm;
 
 		do {
 
-			#ifdef VERBAL
-			info("\n -------- Time step %d, Newton iter %d --------\n", n, it);
-			#endif
 			it++;
 			nls.assemble();
 			nls.solve(2, &Csln, &phisln);
 			res_l2_norm = nls.get_residuum_l2_norm();
 
-			#ifdef VERBAL
-			info("Residuum L2 norm: %g\n", res_l2_norm);
-			#endif
-
 			Ci.copy(&Csln);
 			phii.copy(&phisln);
 
 		} while (res_l2_norm > NEWTON_TOL);
-		#ifdef CONT_OUTPUT
-		phiview.show(&phii);
-		Cview.show(&Ci);
-		#endif
 		phip.copy(&phii);
 		Cp.copy(&Ci);
 	}
-	verbose("\nTotal run time: %g sec", end_time());
-	Cview.show(&Ci);
-	//Cview.save_numbered_screenshot("screenshots/C%03d.bmp", REF_INIT, true);
-	phiview.show(&phii);
-	//phiview.save_numbered_screenshot("screenshots/phi%03d.bmp", REF_INIT, true);
-	MeshView mview("small.mesh", 100, 30, 800, 800);
-	mview.show(&mesh);
-	//mview.save_numbered_screenshot("screenshots/mesh_refinelevel%03d.bmp", REF_INIT, true);
-	View::wait();
+	scalar *sol_vector;
+	int n_dof;
+	nls.get_solution_vector(sol_vector, n_dof);
+	printf("n_dof: %d\n", n_dof);
+	double sum = 0;
+	for (int i = 0; i < n_dof; i++) {
+		 sum += sol_vector[i];
+	}
+	printf("coefficient sum = %g\n", sum);
+
+	// Actual test. The value of 'sum' depend on the 
+	// current shapeset. If you change the shapeset, 
+	// you need to correct this number. 
+	printf("ret: %g\n", fabs(sum - 3.90395e6));
+	return !(fabs(sum - 3.90395e6) > 1);
+
 }
 
 void solveAdaptive(Mesh &Cmesh, Mesh &phimesh, Mesh &basemesh, NonlinSystem &nls, H1Space &C, H1Space &phi,
 		Solution &Cp, Solution &Ci, Solution &phip, Solution &phii) {
 
-	char title[100];
-	//VectorView vview("electric field [V/m]", 0, 0, 600, 600);
-	ScalarView Cview("Concentration [mol/m3]", 0, 0, 800, 800);
-	ScalarView phiview("Voltage [V]", 650, 0, 600, 600);
-	OrderView Cordview("C order", 0, 300, 600, 600);
-	OrderView phiordview("Phi order", 600, 300, 600, 600);
-	
-	// Different Gnuplot graphs.
 
-	// convergence graph wrt. the number of degrees of freedom
-	GnuplotGraph graph_err;
-	graph_err.set_captions("", "Timestep", "Error (Energy Norm)");
-	graph_err.add_row("Reference solution", "k", "-", "O");
-
-	// convergence graph wrt. CPU time
-	GnuplotGraph graph_dof;
-	graph_dof.set_captions("", "Timestep", "DOF");
-	graph_dof.add_row(MULTIMESH ? "multi-mesh" : "single-mesh", "k", "-", "o");
-
-
-	sprintf(title, "Initial iteration");
-	phiview.set_title(title);
-	Cview.set_title(title);
-	phiview.show(&phii);
-	Cview.show(&Ci);
-	
-	//Cview.save_numbered_screenshot("screenshots/C%03d.bmp", 0, true);
-	//phiview.save_numbered_screenshot("screenshots/phi%03d.bmp", 0, true);
-	
-	Cordview.show(&C);
-	phiordview.show(&phi);
 	Solution Csln_coarse, phisln_coarse, Csln_fine, phisln_fine;
 	int at_index = 1;	//for saving screenshot
 	for (int n = 1; n <= NSTEP; n++) {
@@ -169,14 +120,6 @@ void solveAdaptive(Mesh &Cmesh, Mesh &phimesh, Mesh &basemesh, NonlinSystem &nls
 			} while (res_l2_norm > NEWTON_TOL_COARSE);
 
 			int ndf = C.get_num_dofs() + phi.get_num_dofs();
-		    sprintf(title, "phi after COARSE solution, at=%d and n=%d, ndofs=%d", at, n, ndf);
-		    phiview.set_title(title);
-			phiview.show(&phii);
-			sprintf(title, "C after COARSE solution, at=%d and n=%d, ndofs=%d. PRESS KEY TO CONTINUE", at, n, ndf);
-			Cview.set_title(title);
-			Cview.show(&Ci);
-			Cview.wait_for_keypress();
-
 			it = 1;
 			// Loop for fine mesh solution
 			RefNonlinSystem rs(&nls);
@@ -207,13 +150,6 @@ void solveAdaptive(Mesh &Cmesh, Mesh &phimesh, Mesh &basemesh, NonlinSystem &nls
 			} while (res_l2_norm > NEWTON_TOL_REF);
 
 			ndf = C.get_num_dofs() + phi.get_num_dofs();
-		    sprintf(title, "phi after FINE solution, at=%d and n=%d, ndofs=%d", at, n, ndf);
-		    phiview.set_title(title);
-			phiview.show(&phii);
-			sprintf(title, "C after FINE solution, at=%d and n=%d, ndofs=%d. PRESS KEY TO CONTINUE", at, n, ndf);
-			Cview.set_title(title);
-			Cview.show(&Ci);
-			Cview.wait_for_keypress();
 
 			// Calculate element errors and total estimate
 			H1OrthoHP hp(2, &C, &phi);
@@ -235,50 +171,13 @@ void solveAdaptive(Mesh &Cmesh, Mesh &phimesh, Mesh &basemesh, NonlinSystem &nls
 				done = true;
 			}
 
-		    sprintf(title, "hp-mesh (C), time level %d, adaptivity %d", n, at);
-		    Cordview.set_title(title);
-		    sprintf(title, "hp-mesh (phi), time level %d, adaptivity %d", n, at);
-		    phiordview.set_title(title);
-		    Cordview.show(&C);
-		    //Cordview.save_numbered_screenshot("screenshots/Cord%03d.bmp", at_index, true);
-		    phiordview.show(&phi);
-		    //phiordview.save_numbered_screenshot("screenshots/phiord%03d.bmp", at_index, true);
-
-
 		} while (!done);
 		phip.copy(&phii);
 		Cp.copy(&Ci);
-
-	   	graph_err.add_values(0, n, err);
-		graph_err.save("error.gp");
-		graph_dof.add_values(0, n, C.get_num_dofs() + phi.get_num_dofs());
-		graph_dof.save("dofs.gp");
-	    sprintf(title, "phi after time step %d", n);
-	    phiview.set_title(title);
-		phiview.show(&phii);
-		sprintf(title, "C after time step %d", n);
-		Cview.set_title(title);
-		Cview.show(&Ci);
 	}
-	View::wait();
 }
 
 int main (int argc, char* argv[]) {
-
-	bool adaptive = false;
-	if (argc > 1) {
-		std::string arg0(argv[1]);
-		if (USE_ADAPTIVE.compare(arg0) == 0) {
-			adaptive = true;
-			info("Using adaptive solution");
-		} else {
-			error("Illegal argument %s", argv[1]);
-			return -1;
-		}
-	} else {
-		info("Using NON-adaptive solution");
-	}
-
 	// load the mesh file
 	Mesh Cmesh, phimesh, basemesh;
 
@@ -363,13 +262,16 @@ int main (int argc, char* argv[]) {
 
 	nls.set_ic(&Ci, &phii, &Ci, &phii);
 
-	if (adaptive) {
-		solveAdaptive(Cmesh, phimesh, basemesh, nls, C, phi, Cp, Ci, phip, phii);
+	//solveAdaptive(Cmesh, phimesh, basemesh, nls, C, phi, Cp, Ci, phip, phii);
+	bool success = solveNonadaptive(Cmesh, nls, Cp, Ci, phip, phii);
+	
+	if (success) {
+		printf("SUCCESSFUL\n");
 	} else {
-		solveNonadaptive(Cmesh, nls, Cp, Ci, phip, phii);
+		printf("FAIL\n");
 	}
-#define ERROR_SUCCESS 0
-#define ERROR_FAILURE -1
+	#define ERROR_SUCCESS 0
+	#define ERROR_FAILURE -1
 
-	return ERROR_SUCCESS;
+	return success ? ERROR_SUCCESS : ERROR_FAILURE;
 }
