@@ -2,20 +2,36 @@
 #include "solver_umfpack.h"
 #include <string>
 
-/* For a simple IPMC, we have the following boundaries:
-      2
-  ____________
-  |          |
- 1|          |1
-  ____________
-      3
-For Nernst-Planck equation, all the boundaries are natural i.e. Neumann.
-Which basically means that the normal derivative is 0
-For Poisson equation, 1 has natural boundary conditions, however,
-the voltage is applied to the 2 and 3 which means that those
-boundaries are essential i.e. Dirichlet
+// This example shows how to combine automatic adaptivity with the
+// Newton's method for a nonlinear time-dependent PDE system.
+// The time discretation is done using implicit Euler method.
+// Some problem parameters can be changed below.
+// The following PDE's are solved:
+// Nernst-Planck (describes the diffusion and migration of charged particles):
+// dC/dt - D*div[grad(C)] - K*C*div[grad(phi)]=0
+// Poisson equation (describes the electric field):
+// - div[grad(phi)] = L*(C - C0)
+// The equation variables are phi and C and the system describes the
+// migration/diffusion of charged particles due to electric field.
+// The simulation domain looks as follows:
+//      2
+//  ____________
+//  |          |
+// 1|          |1
+//  ____________
+//      3
+// For the Nernst-Planck equation, all the boundaries are natural i.e. Neumann.
+// Which basically means that the normal derivative is 0:
+// BC: -D*dC/dn - K*C*dphi/dn = 0
+// For Poisson equation, 1 has natural boundary conditions (electric field
+// derivative is 0). The voltage is applied to the boundaries 2 and 3.
+// However, to make the equations stable, i.e. maintain the charge balance
+// inside the domain, the positive voltages on the boundary 2 must be
+// described by using Neumann boundary. Boundary 3 is an essential boundary, i.e:
+// BC 2: dphi/dn = E_FIELD
+// BC 3: phi = 0
+// BC 1: dphi/dn = 0
 
-*/
 
 #define SIDE_MARKER 1
 #define TOP_MARKER 2
@@ -25,17 +41,14 @@ boundaries are essential i.e. Dirichlet
 #define NONCONT_OUTPUT
 
 /*** Fundamental coefficients ***/
-/* Diffusion coefficient */
 const double D = 1e-12; 	//[m^2/s]
 const double R = 8.31; 		//[J/mol*K]
 const double T = 293; 		//[K]
 const double F = 96485.3415;	//[s * A / mol]
 const double eps = 2.5e-2; 	//[F/m]
 const double mu = D / (R * T);
-const double z = 1;
-/* K = z*mu*F */
+const double z = 1;		//Charge number
 const double K = z * mu * F;
-/* L = eps/F */
 const double L =  F / eps;	//[V/m^2]
 const double VOLTAGE = 3;	//[V]
 const double C_CONC = 1200;	//[mol/m^3]
@@ -52,8 +65,6 @@ const double NEWTON_TOL = 1e-2;
 const int P_INIT = 2;       	// initial uniform polynomial order
 const int REF_INIT = 12;     	// number of initial refinements
 const bool MULTIMESH = true;	// Multimesh?
-
-
 
 /* Adaptivity parameters */
 // Newton parameters
@@ -73,21 +84,4 @@ const int MAX_NDOFS = 5000;		// To prevent adaptivity going on forever.
 // Program params
 const std::string USE_ADAPTIVE("adapt");
 
-
-class SimpleIPMC {
-protected:
-	const int blaah;
-
-};
-
-class NonAdaptive : SimpleIPMC {
-public:
-	NonAdaptive(Mesh &mesh, NonlinSystem &nls,
-			Solution &Cp, Solution &Ci, Solution &phip, Solution &phii);
-	void solve();
-private:
-	Mesh *mesh;
-	NonlinSystem *nls;
-	Solution *Cp, *Ci, *phip, *phii;
-};
 
