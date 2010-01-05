@@ -162,7 +162,7 @@ int main(int argc, char* argv[])
 
 #define ERROR_SUCCESS                               0
 #define ERROR_FAILURE                               -1
-  if (ndofs < 1100) {      // ndofs was 1025 atthe time this test was created
+  if (ndofs < 1100) {      // ndofs was 1025 at the time this test was created
     printf("Success!\n");
     return ERROR_SUCCESS;
   }

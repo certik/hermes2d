@@ -1777,6 +1777,119 @@ in the following figure:
    :height: 260
    :alt: Velocity solution visualized with the class VectorView.
 
+========
+Examples
+========
 
+This section contains the description of selected `examples 
+<http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/examples>`_.
+Its purpose is to complement rather than duplicate the information 
+in the corresponding main.cpp files.
 
+Iron-Water
+----------
+
+This is a standard nuclear engineering benchmark describing an external-force-driven
+configuration without fissile materials present, using one-group neutron diffusion 
+approximation
+
+.. math::
+    :label: iron-water
+
+       -\nabla \cdot (D(x,y) \nabla \Phi) + \Sigma_a(a,y) \Phi = Q_ext(x,y)
+
+The domain of interest is a 30 x 30 cm square consisting of four regions.
+A uniform volumetric source is placed in water in the lower-left corner 
+of the domain, surrounded with a layer of water, a layer of iron, and finally
+another layer of water.
+
+The unknown is the neutron flux $\Phi(x, y)$. The values of the diffusion coefficient 
+$D(x, y)$, absorption cross-section $\Sigma_a(x, y)$ and the source term $Q_{ext}(x,y)$
+are constant in the subdomains. The source $Q_{ext} = 1$ in area 1 and zero 
+elsewhere. Other parameter values and additional information can be 
+found in the `main.cpp <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/examples/iron-water/main.cpp>`_ file.
+
+.. image:: img/iron-water.png
+   :align: center
+   :width: 400
+   :height: 400
+   :alt: Schematic picture for the iron-water example.
+
+The boundary conditions for this problem are zero Dirichlet (right and top edges)
+and zero Neumann (bottom and left edges). The solution is shown below:
+
+.. image:: img/iron-water-sol.png
+   :align: center
+   :width: 600
+   :height: 400
+   :alt: Solution to the iron-water example.
+
+The final hp-mesh looks as follows:
+
+.. image:: img/iron-water-mesh.png
+   :align: center
+   :width: 440
+   :height: 400
+   :alt: Final finite element mesh for the iron-water example.
+
+Adaptive hp-FEM converged to a relative error of 0.01 % with
+approximately 800 dof:
+
+.. image:: img/iron-water-conv.png
+   :align: center
+   :width: 600
+   :height: 400
+   :alt: Final finite element mesh for the iron-water example.
+
+Saphir
+------
+
+This is another standard nuclear engineering benchmark (IAEA number EIR-2) describing 
+an external-force-driven configuration without fissile materials present, using one-group 
+neutron diffusion approximation
+
+.. math::
+    :label: saphir
+
+       -\nabla \cdot (D(x,y) \nabla \Phi) + \Sigma_a(a,y) \Phi = Q_ext(x,y)
+
+The domain of interest is a 96 x 86 cm rectangle consisting of five regions
+as shown in the following figure:
+
+.. image:: img/saphir.png
+   :align: center
+   :width: 400
+   :height: 400
+   :alt: Schematic picture for the saphir example.
+
+The unknown is the neutron flux $\Phi(x, y)$. The values of the diffusion coefficient 
+$D(x, y)$, absorption cross-section $\Sigma_a(x, y)$ and the source term $Q_{ext}(x,y)$
+are constant in the subdomains. The source $Q_{ext} = 1$ in areas 1 and 3 and zero 
+elsewhere. Parameter values and additional information can be 
+found in the `main.cpp <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/examples/saphir/main.cpp>`_ file.
+Boundary conditions for the flux $\Phi$ are zero everywhere. The solution 
+is shown below:
+
+.. image:: img/saphir-sol.png
+   :align: center
+   :width: 600
+   :height: 400
+   :alt: Solution to the saphir example.
+
+The final hp-mesh looks as follows:
+
+.. image:: img/saphir-mesh.png
+   :align: center
+   :width: 440
+   :height: 400
+   :alt: Final finite element mesh for the saphir example.
+
+Adaptive hp-FEM converged to a relative error of 0.01 % with
+approximately 5000 dof:
+
+.. image:: img/saphir-conv.png
+   :align: center
+   :width: 600
+   :height: 400
+   :alt: Final finite element mesh for the saphir example.
 

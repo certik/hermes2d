@@ -3,15 +3,15 @@
 
 //  This is another example that allows you to compare h- and hp-adaptivity from the point of view
 //  of both CPU time requirements and discrete problem size, look at the quality of the a-posteriori
-//  error estimator used by Hermes (exact error is also provided), etc. We also suggest to change
+//  error estimator used by Hermes (exact error is provided), etc. You can also change
 //  the parameter MESH_REGULARITY to see the influence of hanging nodes on the adaptive process.
-//  The problem is made harder for adaptive algorithms when the parameter SLOPE is increased.
+//  The problem is made harder for adaptive algorithms by increasing the parameter SLOPE.
 //
-//  PDE: -Laplace u = 0
+//  PDE: -Laplace u = f
 //
 //  Known exact solution, see functions fn() and fndd()
 //
-//  Domain: L-shape domain, see the file lshape.mesh
+//  Domain: unit square (0, 1)x(0, 1), see the file square.mesh
 //
 //  BC:  Dirichlet, given by exact solution
 //
@@ -50,7 +50,7 @@ const int NDOF_STOP = 40000;      // Adaptivity process stops when the number of
                                   // over this limit. This is to prevent h-adaptivity to go on forever.
 
 // problem constants
-double SLOPE = 200;       // slope of the step inside the domain
+double SLOPE = 60;                // slope of the layer
 
 // exact solution
 static double fn(double x, double y)
@@ -134,8 +134,8 @@ int main(int argc, char* argv[])
   wf.add_liform(0, callback(linear_form));
 
   // visualize solution and mesh
-  ScalarView sview("Coarse solution", 0, 100, 798, 700);
-  OrderView  oview("Polynomial orders", 800, 100, 798, 700);
+  ScalarView sview("Coarse solution", 0, 0, 500, 400);
+  OrderView  oview("Polynomial orders", 505, 0, 500, 400);
 
   // matrix solver
   UmfpackSolver solver;
