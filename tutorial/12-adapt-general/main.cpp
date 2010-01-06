@@ -42,7 +42,7 @@ const int MESH_REGULARITY = -1;   // Maximum allowed level of hanging nodes:
                                   // MESH_REGULARITY = 2 ... at most two-level hanging nodes, etc.
                                   // Note that regular meshes are not supported, this is due to
                                   // their notoriously bad performance.
-const double ERR_STOP = 1.0;      // Stopping criterion for adaptivity (rel. error tolerance between the
+const double ERR_STOP = 0.01;     // Stopping criterion for adaptivity (rel. error tolerance between the
                                   // fine mesh and coarse mesh solution in percent).
 const int NDOF_STOP = 40000;      // Adaptivity process stops when the number of degrees of freedom grows
                                   // over this limit. This is to prevent h-adaptivity to go on forever.
@@ -105,6 +105,8 @@ scalar bc_values(int marker, double x, double y)
   return g_D(x, y);
 }
 
+/********** Weak forms ***********/
+
 // (Volumetric) bilinear form
 template<typename Real, typename Scalar>
 Scalar bilinear_form(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
@@ -125,13 +127,14 @@ Scalar bilinear_form(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real>
 }
 
 // Integration order for the bilinear form
-Ord bilinear_form_ord(int n, double *wt, Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext)
+Ord bilinear_form_ord(int n, double *wt, Func<Ord> *u, 
+                      Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext)
 {
-  return u->val[0] + v->val[0] + 10; // returning the sum of the degrees of the basis 
-                                    // and test function plus a constant (heuristic)
+  return u->val[0] * v->val[0] * e->x[0] * e->x[0]; // returning the sum of the degrees of the basis 
+                                                    // and test function plus two
 }
 
-// surface linear form (natural boundary conditions)
+// Surface linear form (natural boundary conditions)
 template<typename Real, typename Scalar>
 Scalar linear_form_surf(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
@@ -141,10 +144,10 @@ Scalar linear_form_surf(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData
 // Integration order for surface linear form
 Ord linear_form_surf_ord(int n, double *wt, Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext)
 {
-  return 2 * v->val[0];  // returning twice the polynomial degree of the test function
+  return v->val[0] * e->x[0] * e->x[0];  // returning the polynomial degree of the test function plus two
 }
 
-// volumetrix linear form (right-hand side)
+// Volumetric linear form (right-hand side)
 template<typename Real, typename Scalar>
 Scalar linear_form(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
@@ -154,7 +157,7 @@ Scalar linear_form(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scal
 // Integration order for the volumetric linear form
 Ord linear_form_ord(int n, double *wt, Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext)
 {
-  return 2 * v->val[0];  // returning twice the polynomial degree of the test function;
+  return v->val[0] * e->x[0] * e->x[0];  // returning the polynomial degree of the test function plus two
 }
 
 int main(int argc, char* argv[])

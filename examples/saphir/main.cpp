@@ -1,7 +1,9 @@
 #include "hermes2d.h"
 #include "solver_umfpack.h"
 
-//  This is the IAEA EIR-2 benchmark problem.
+//  This is the IAEA EIR-2 benchmark problem. Note the way of handling different material
+//  parameters. This is an alternative to how this is done in tutorial examples 07 and 12
+//  and in example "iron-water".
 //
 //  PDE: -div(D(x,y)grad\Phi) + \Sigma_a(x,y)\Phi = Q_{ext}(x,y)
 //  where D(x, y) is the diffusion coefficient, \Sigma_a(x,y) the absorption cross-section,
@@ -145,8 +147,7 @@ Scalar bilinear_form_5(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Rea
 // Integration order for the bilinear forms
 Ord bilinear_form_ord(int n, double *wt, Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext)
 {
-  return 18;
-  //return u->val[0] + v->val[0]; // returning the sum of the degrees of the basis 
+  return u->val[0] * v->val[0]; // returning the sum of the degrees of the basis 
                                 // and test function
 }
 
@@ -167,8 +168,7 @@ Scalar linear_form_3(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Sc
 // Integration order for the linear forms
 Ord linear_form_ord(int n, double *wt, Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext)
 {
-  return 18;
-  //return v->val[0];  // q_ext is piecewise constant, thus 
+  return v->val[0];  // q_ext is piecewise constant, thus 
                      // returning the polynomial degree of the test function;
 }
 
