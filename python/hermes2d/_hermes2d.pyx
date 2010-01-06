@@ -411,6 +411,12 @@ cdef class Mesh:
         m = MeshView()
         m.show(self, *args, **kwargs)
 
+    def convert_to_quads(self, int refinement=0):
+        self.thisptr.convert_to_quads(refinement)
+
+    def convert_to_triangles(self):
+        self.thisptr.convert_to_triangles()
+
 cdef class H1Shapeset:
     cdef c_H1Shapeset *thisptr
 
