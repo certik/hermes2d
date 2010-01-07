@@ -1,7 +1,7 @@
 if(NOT REAL)
     return()
 endif(NOT REAL)
-project(example-saphire)
+project(example-saphir)
 
 add_executable(${PROJECT_NAME} main.cpp)
 include (../../CMake.common)

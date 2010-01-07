@@ -90,8 +90,8 @@ template<typename Real, typename Scalar>
 Scalar bilinear_form_ord(int n, double *wt, Func<Real> *u, 
                          Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
-  return u->val[0] * v->val[0] + 2; // returning the sum of the degrees of the basis 
-                                    // and test function plus two
+  return u->val[0] * v->val[0] * e->x[0] * e->x[0]; // returning the sum of the degrees of the basis 
+                                                    // and test function plus two
 }
 
 // Surface linear form (natural boundary conditions)
@@ -105,7 +105,7 @@ Scalar linear_form_surf(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData
 template<typename Real, typename Scalar>
 Scalar linear_form_surf_ord(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
-  return 2*v->val[0];  // returning twice the polynomial degree of the test function
+  return v->val[0] * e->x[0] * e->x[0];  // returning the polynomial degree of the test function plus two
 }
 
 // Volumetric linear form (right-hand side)
@@ -119,7 +119,7 @@ Scalar linear_form(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scal
 template<typename Real, typename Scalar>
 Scalar linear_form_ord(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
-  return 2*v->val[0];  // returning twice the polynomial degree of the test function;
+  return v->val[0] * e->x[0] * e->x[0];  // returning the polynomial degree of the test function plus two
 }
 
 int main(int argc, char* argv[])
@@ -174,16 +174,16 @@ int main(int argc, char* argv[])
     // Actual test. The values of 'sum' depend on the 
     // current shapeset. If you change the shapeset, 
     // you need to correct these numbers. 
-    if (p_init == 1 && fabs(sum - 1.67824) > 1e-2) success = 0;
-    if (p_init == 2 && fabs(sum - 0.295097) > 1e-2) success = 0;
-    if (p_init == 3 && fabs(sum - 0.390198) > 1e-2) success = 0;
-    if (p_init == 4 && fabs(sum + 0.746589) > 1e-2) success = 0;
-    if (p_init == 5 && fabs(sum + 2.62938) > 1e-2) success = 0;
-    if (p_init == 6 && fabs(sum + 6.74405) > 1e-2) success = 0;
-    if (p_init == 7 && fabs(sum + 17.5057) > 1e-2) success = 0;
-    if (p_init == 8 && fabs(sum + 62.7853) > 1e-2) success = 0;
-    if (p_init == 9 && fabs(sum - 253.018) > 1e-2) success = 0;
-    if (p_init == 10 && fabs(sum - 56.5267) > 1e-2) success = 0;
+    if (p_init == 1 && fabs(sum - 1.72173) > 1e-2) success = 0;
+    if (p_init == 2 && fabs(sum - 0.639908) > 1e-2) success = 0;
+    if (p_init == 3 && fabs(sum - 0.826367) > 1e-2) success = 0;
+    if (p_init == 4 && fabs(sum - 0.629395) > 1e-2) success = 0;
+    if (p_init == 5 && fabs(sum - 0.574235) > 1e-2) success = 0;
+    if (p_init == 6 && fabs(sum - 0.62792) > 1e-2) success = 0;
+    if (p_init == 7 && fabs(sum - 0.701982) > 1e-2) success = 0;
+    if (p_init == 8 && fabs(sum - 0.7982) > 1e-2) success = 0;
+    if (p_init == 9 && fabs(sum - 0.895069) > 1e-2) success = 0;
+    if (p_init == 10 && fabs(sum - 1.03031) > 1e-2) success = 0;
   }
 
 #define ERROR_SUCCESS                               0
