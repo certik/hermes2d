@@ -37,10 +37,21 @@
 
 #include "weakform.h"
 #include "linsystem.h"
+#include "feproblem.h"
 #include "nonlinsystem.h"
 #include "refsystem.h"
 #include "refsystem2.h"
 #include "forms.h"
+
+#include "itersolver.h"
+#include "solver_epetra.h"
+#include "solver_aztecoo.h"
+#include "solver_nox.h"
+
+// preconditioners
+#include "precond.h"
+#include "precond_ifpack.h"
+#include "precond_ml.h"
 
 #include "integrals_h1.h"
 #include "integrals_hcurl.h"

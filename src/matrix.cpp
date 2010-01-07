@@ -103,3 +103,74 @@ void choldc(double **a, int n, double p[])
   }
 }
 
+
+// SparseMatrix ////////////////////////////////////////////////////////////////////////////////////
+
+void qsort_int(int* pbase, size_t total_elems); // defined in qsort.cpp
+
+SparseMatrix::SparseMatrix()
+{
+  size = 0;
+  pages = NULL;
+
+  row_storage = false;
+  col_storage = false;
+}
+
+SparseMatrix::~SparseMatrix()
+{
+  delete [] pages;
+}
+
+void SparseMatrix::prealloc(int n)
+{
+  this->size = n;
+
+  pages = new Page *[n];
+  memset(pages, 0, n * sizeof(Page *));
+}
+
+void SparseMatrix::pre_add_ij(int row, int col)
+{
+  if (pages[col] == NULL || pages[col]->count >= PAGE_SIZE)
+  {
+    Page *new_page = new Page;
+    new_page->count = 0;
+    new_page->next = pages[col];
+    pages[col] = new_page;
+  }
+  pages[col]->idx[pages[col]->count++] = row;
+}
+
+int SparseMatrix::sort_and_store_indices(Page *page, int *buffer, int *max)
+{
+  // gather all pages in the buffer, deleting them along the way
+  int *end = buffer;
+  while (page != NULL)
+  {
+    memcpy(end, page->idx, sizeof(int) * page->count);
+    end += page->count;
+    Page *tmp = page;
+    page = page->next;
+    delete tmp;
+  }
+
+  // sort the indices and remove duplicities
+  qsort_int(buffer, end - buffer);
+  int *q = buffer;
+  for (int *p = buffer, last = -1; p < end; p++)
+    if (*p != last)
+      *q++ = last = *p;
+
+  return q - buffer;
+}
+
+int SparseMatrix::get_num_indices()
+{
+  int total = 0;
+  for (int i = 0; i < size; i++)
+    for (Page *page = pages[i]; page != NULL; page = page->next)
+      total += page->count;
+
+  return total;
+}

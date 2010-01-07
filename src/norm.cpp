@@ -84,7 +84,7 @@ double error_fn_h1(MeshFunction* sln1, MeshFunction* sln2, RefMap* ru, RefMap* r
   Quad2D* quad = sln1->get_quad_2d();
 
   int o = 2*std::max(sln1->get_fn_order(), sln2->get_fn_order()) + ru->get_inv_ref_order();
-  limit_order(o);
+  limit_order_nowarn(o);
 
   sln1->set_quad_order(o);
   sln2->set_quad_order(o);
@@ -107,7 +107,7 @@ double norm_fn_h1(MeshFunction* sln, RefMap* ru)
   Quad2D* quad = sln->get_quad_2d();
 
   int o = 2 * sln->get_fn_order() + ru->get_inv_ref_order();
-  limit_order(o);
+  limit_order_nowarn(o);
 
   sln->set_quad_order(o);
 
@@ -140,7 +140,7 @@ double error_fn_l2(MeshFunction* sln1, MeshFunction* sln2, RefMap* ru, RefMap* r
   Quad2D* quad = sln1->get_quad_2d();
 
   int o = 2*std::max(sln1->get_fn_order(), sln2->get_fn_order()) + ru->get_inv_ref_order();
-  limit_order(o);
+  limit_order_nowarn(o);
 
   sln1->set_quad_order(o, FN_VAL);
   sln2->set_quad_order(o, FN_VAL);
@@ -161,7 +161,7 @@ double norm_fn_l2(MeshFunction* sln, RefMap* ru)
   Quad2D* quad = sln->get_quad_2d();
 
   int o = 2 *sln->get_fn_order() + ru->get_inv_ref_order();
-  limit_order(o);
+  limit_order_nowarn(o);
 
   sln->set_quad_order(o, FN_VAL);
 
@@ -196,7 +196,7 @@ double error_fn_hc(MeshFunction* sln1, MeshFunction* sln2, RefMap* ru, RefMap* r
   Quad2D* quad = sln1->get_quad_2d();
 
   int o = 2 * std::max(sln1->get_fn_order(), sln2->get_fn_order()) + 2 + ru->get_inv_ref_order();
-  limit_order(o);
+  limit_order_nowarn(o);
 
   sln1->set_quad_order(o);
   sln2->set_quad_order(o);
@@ -220,7 +220,7 @@ double norm_fn_hc(MeshFunction* sln, RefMap* ru)
   Quad2D* quad = sln->get_quad_2d();
 
   int o = 2 * sln->get_fn_order() + 2 + ru->get_inv_ref_order();
-  limit_order(o);
+  limit_order_nowarn(o);
 
   sln->set_quad_order(o);
 
@@ -254,7 +254,7 @@ double error_fn_hcl2(MeshFunction* sln1, MeshFunction* sln2, RefMap* ru, RefMap*
   Quad2D* quad = sln1->get_quad_2d();
 
   int o = 2 * std::max(sln1->get_fn_order(), sln2->get_fn_order()) + 2 + ru->get_inv_ref_order();
-  limit_order(o);
+  limit_order_nowarn(o);
 
   sln1->set_quad_order(o);
   sln2->set_quad_order(o);
@@ -275,7 +275,7 @@ double norm_fn_hcl2(MeshFunction* sln, RefMap* ru)
   Quad2D* quad = sln->get_quad_2d();
 
   int o = 2 * sln->get_fn_order() + 2 + ru->get_inv_ref_order();
-  limit_order(o);
+  limit_order_nowarn(o);
 
   sln->set_quad_order(o);
 
