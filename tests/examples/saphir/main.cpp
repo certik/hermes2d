@@ -134,8 +134,7 @@ Scalar bilinear_form_5(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Rea
 // Integration order for the bilinear forms
 Ord bilinear_form_ord(int n, double *wt, Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext)
 {
-  return 18;
-  //return u->val[0] + v->val[0]; // returning the sum of the degrees of the basis 
+  return u->val[0] * v->val[0]; // returning the sum of the degrees of the basis 
                                 // and test function
 }
 
@@ -156,8 +155,7 @@ Scalar linear_form_3(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Sc
 // Integration order for the linear forms
 Ord linear_form_ord(int n, double *wt, Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext)
 {
-  return 18;
-  //return v->val[0];  // q_ext is piecewise constant, thus 
+  return v->val[0];  // q_ext is piecewise constant, thus 
                      // returning the polynomial degree of the test function;
 }
 
@@ -268,7 +266,7 @@ int main(int argc, char* argv[])
 
 #define ERROR_SUCCESS                               0
 #define ERROR_FAILURE                               -1
-  int n_dof_allowed = 5750;  
+  int n_dof_allowed = 5850;  
   printf("n_dof_actual = %d\n", ndofs);
   printf("n_dof_allowed = %d\n", n_dof_allowed);// ndofs was 5701 at the time this test was created
   if (ndofs <= n_dof_allowed) {      

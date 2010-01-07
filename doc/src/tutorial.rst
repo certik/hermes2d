@@ -502,26 +502,24 @@ Numerical Integration
 
 You may wonder why templates are used in the definition of weak forms. As a matter of fact, 
 they do not have to be, as we will see later. However, if the weak form only contains 
-algebraic operations (without if-then statements and such), templates facilitate 
-the determination of numerical integration orders. In higher-order FEM, basis and test functions may 
+algebraic operations (without if-then statements and such), templates help to determine
+numerical integration orders automatically. In higher-order FEM, basis and test functions may 
 have very different polynomial degrees, ranging from one and some maximum polynomial 
 degree (currently 10 in Hermes). The basis and test functions can be combined inside the 
-weak forms in many different ways. As a result, the actual quadrature order which is needed 
+weak forms in many different ways. As a result, the minimum quadrature order which is needed 
 to evaluate a weak form accurately may vary a lot - between zero (product of gradients of 
 two linear functions) to infinity (whenever a nonpolynomial expression is present). 
-The numerical quadrature is one of the trickiest issues in higher-order FEM.
+Numerical quadrature is one of the trickiest issues in higher-order FEM.
 
 Of course, a brute-force solution to this problem would be to integrate everything using 
-a maximum order, but this would lead to tremendous computing times. Hermes offers two 
-solutions: the polynomial degree of the integrated expressions can be either detected 
-automatically (hence the templates), or the user can define for each weak form the resulting 
+a maximum order, but this would lead to tremendous computing times. Therefore Hermes offers 
+two options: the polynomial degree of the integrated expressions can be detected 
+automatically (the templates). Or, the user can define for each weak form the resulting 
 polynomial degree explicitly. If the weak form only contains polynomial expressions, the former
-approach works very well. On the other hand, if it is more complicated (nonpolynomial 
-expressions, if-then statements, etc.) it is recommended to use the latter approach. 
-For now, we will stay with the automatic order determination until example `07-general 
-<http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/tutorial/07-general/main.cpp>`_
-that contains more complicated weak forms requiring explicit treatment.  
-
+approach works very well. If the form is more complicated, it is recommended to handle the
+integration orders explicitly. For now, we will stay with the automatic order determination 
+until example `07-general 
+<http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/tutorial/07-general/main.cpp>`_.
 
 Boundary Conditions
 -------------------
@@ -798,7 +796,7 @@ both volumetric and surface integrals.
 The Ord class in Hermes (see the file `forms.h 
 <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/src/forms.h>`_) provides
 an automatic parser of weak forms that is able to determine the integration orders for 
-algebraic expressions. So, in order to define an integration order explicitly, one has to 
+algebraic expressions. So, in order to define an integration order explicitly, one can 
 provide on top the weak form another function that defines a simple algebraic expression 
 that leads the parser to the desired polynomial degree. The values defined in this  
 additional function are not used for computation. 
@@ -858,7 +856,19 @@ additional function are not used for computation.
       return v->val[0] * x * x;  // returning the polynomial degree of the test function plus two
     }
 
-Note that it is possible to return a constant order (for example 5) by using 
+The polynomial degree of basis and test functions also can be accessed directly as follows:
+
+::
+
+    Ord bilinear_form_ord(int n, double *wt, Func<Ord> *u, 
+                          Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext)
+    {
+      int uo = v->val[0].get_order();
+      int vo = v->val[0].get_order();
+      return Ord(uo + vo);
+    }
+
+Note that in principle it is also possible to return a constant order (for example 5) by using 
 
 ::
 
@@ -868,8 +878,9 @@ Note that it is possible to return a constant order (for example 5) by using
       return Ord(5);
     }
 
-Currently, this constant cannot be made dependent on spatial coordinates since the parser cannot 
-handle if-then statements, double-to-int conversion statements, etc.
+Currently, one cannot make the integration order dependent on spatial coordinates and such. However,
+one can assign different weak forms to elements with different material flags. This will be 
+described in example `saphir <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/examples/saphir/main.cpp>`_.
 
 Also note the sign of the surface linear form - all linear forms have to be on the right-hand side,
 all bilinear forms on the left. 
