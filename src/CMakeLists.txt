@@ -18,6 +18,7 @@ set(SRC
        precond_ml.cpp precond_ifpack.cpp
        refsystem.cpp nonlinsystem.cpp forms.cpp
        mesh_parser.cpp mesh_lexer.cpp
+       exodusii.cpp
 
        compat/fmemopen.cpp
        )
@@ -40,6 +41,10 @@ macro(LIBRARY_SETTINGS BIN)
       target_link_libraries(${BIN} ${TRILINOS_LIBRARIES})
     endif(WITH_TRILINOS)
 
+    if(WITH_EXODUSII)
+        include_directories(${EXODUSII_INCLUDE_DIR})
+        target_link_libraries(${BIN} ${EXODUSII_LIBRARIES})
+    endif(WITH_EXODUSII)
 endmacro(LIBRARY_SETTINGS)
 
 
