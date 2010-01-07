@@ -38,7 +38,7 @@ public:
 	Ord(int o) { order = o; }
 
 	int get_order() const { return order; }
-  int get_max_order() const {return g_max_quad;}
+  int get_max_order() const {return 30;}
 
 	Ord operator+(const Ord &o) { return Ord(std::max(this->order, o.order)); }
 	Ord operator-(const Ord &o) { return Ord(std::max(this->order, o.order)); }
