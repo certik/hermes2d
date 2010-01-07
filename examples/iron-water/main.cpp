@@ -4,6 +4,9 @@
 //  This example is a standard nuclear engineering benchmark describing an external-force-driven
 //  configuration without fissile materials present, using one-group neutron diffusion approximation.
 //
+//  Note the way of handling different material parameters. An alternative approach is used in 
+//  example "saphir".
+//
 //  PDE: -div(D(x,y)grad\Phi) + \Sigma_a(x,y)\Phi = Q_{ext}(x,y)
 //  where D(x, y) is the diffusion coefficient, \Sigma_a(x,y) the absorption cross-section,
 //  and Q_{ext}(x,y) external sources
@@ -124,8 +127,7 @@ Scalar bilinear_form(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real>
 // Integration order for the bilinear form
 Ord bilinear_form_ord(int n, double *wt, Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext)
 {
-  return 18;
-  //return u->val[0] + v->val[0]; // returning the sum of the degrees of the basis 
+  return u->val[0] * v->val[0]; // returning the sum of the degrees of the basis 
                                 // and test function
 }
 
@@ -146,8 +148,7 @@ Scalar linear_form(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scal
 // Integration order for the linear form
 Ord linear_form_ord(int n, double *wt, Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext)
 {
-  return 18;
-  //return v->val[0];  // q_ext is piecewise constant, thus 
+  return v->val[0];  // q_ext is piecewise constant, thus 
                      // returning the polynomial degree of the test function;
 }
 
