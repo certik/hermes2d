@@ -9,3 +9,5 @@
 #cmakedefine HAVE_IFPACK
 #cmakedefine HAVE_ML
 #cmakedefine HAVE_NOX
+#cmakedefine WITH_EXODUSII
+
