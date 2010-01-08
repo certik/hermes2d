@@ -4,7 +4,7 @@
    contain the root `toctree` directive.
 
 Hermes2D Documentation
-=================================
+======================
 
 .. toctree::
     :maxdepth: 2
