@@ -28,6 +28,7 @@ T** new_matrix(int m, int n = 0)
   if (!n) n = m;
   T** vec = (T**) new char[sizeof(T*)*m + sizeof(T)*m*n];
   if (vec == NULL) error("Out of memory.");
+  memset(vec, 0, sizeof(T*)*m + sizeof(T)*m*n);
   T* row = (T*) (vec + m);
   for (int i = 0; i < m; i++, row += n)
     vec[i] = row;
@@ -143,6 +144,181 @@ void cholsl(double **a, int n, double p[], T b[], T x[])
     x[i] = sum / p[i];
   }
 }
+
+//////
+
+enum EMatrixDumpFormat {
+  DF_MATLAB_SPARSE,
+  DF_PLAIN_ASCII,
+  DF_HERMES_BIN,
+  DF_NATIVE         // native format for the linear solver
+};
+
+class Matrix {
+public:
+  virtual ~Matrix() { }
+
+  /// allocate the memory for stiffness matrix and right-hand side
+  virtual void alloc() = 0;
+
+  /// free the memory associated with stiffness matrix and right-hand side
+  virtual void free() = 0;
+
+  /// Get the value from a position
+  /// @return the value form the specified position
+  /// @param[in] m - the number of row
+  /// @param[in] n - the number of column
+  virtual scalar get(int m, int n) = 0;
+
+  virtual int get_size() = 0;
+
+  /// Zero the matrix
+  virtual void zero() = 0;
+
+  /// update the stiffness matrix
+  ///
+  /// @param[in] m    - the row where to update
+  /// @param[in] n    - the column where to update
+  /// @param[in] v    - value
+  virtual void add(int m, int n, scalar v) = 0;
+
+  /// update the stiffness matrix
+  ///
+  /// @param[in] m         - number of rows of given block
+  /// @param[in] n         - number of columns of given block
+  /// @param[in] matrix    - block of values
+  /// @param[in] rows      - array with row indexes
+  /// @param[in] cols      - array with column indexes
+  virtual void add(int m, int n, scalar **mat, int *rows, int *cols) = 0;
+
+  /// dumping matrix and right-hand side
+  ///
+  virtual bool dump(FILE *file, const char *var_name, EMatrixDumpFormat = DF_MATLAB_SPARSE) = 0;
+
+  virtual int get_matrix_size() const = 0;
+};
+
+class SparseMatrix : public Matrix {
+public:
+  SparseMatrix();
+  virtual ~SparseMatrix();
+
+  /// prepare memory
+  ///
+  /// @param[in] ndofs - number of unknowns
+  virtual void prealloc(int n);
+
+  /// add indices of nonzero matrix element
+  ///
+  /// @param[in] row  - row index
+  /// @param[in] col  - column index
+  virtual void pre_add_ij(int row, int col);
+
+  virtual void finish() { }
+
+  virtual int get_size() { return size; }
+
+  /// Return the number of entries in a specified row
+  ///
+  /// @param[in] row - index of the row
+  /// @return - the number of entries in the row 'row'
+  virtual int get_num_row_entries(int row) { return -1; }
+
+  /// Extract the copy of a row
+  ///
+  /// @param[in] row - global row to extract
+  /// @param[in] len - length of 'vals' and 'idxs' arrays.
+  /// @param[out] n_entries - number of nonzero entries extracted.
+  /// @param[out] vals - extracted values for this row.
+  /// @param[out] idxs - extracted global column indices for the corresponding values.
+  virtual void extract_row_copy(int row, int len, int &n_entries, double *vals, int *idxs) { }
+
+  /// Return the number of entries in a specified column
+  ///
+  /// @param[in] row - index of the column
+  /// @return - the number of entries in the column 'col'
+  virtual int get_num_col_entries(int col) { return -1; }
+
+  /// Extract the copy of a column
+  ///
+  /// @param[in] row - global column to extract
+  /// @param[in] len - length of 'vals' and 'idxs' arrays.
+  /// @param[out] n_entries - number of nonzero entries extracted.
+  /// @param[out] vals - extracted values for this column.
+  /// @param[out] idxs - extracted global row indices for the corresponding values.
+  virtual void extract_col_copy(int col, int len, int &n_entries, double *vals, int *idxs) { }
+
+  unsigned row_storage:1;
+  unsigned col_storage:1;
+
+protected:
+  static const int PAGE_SIZE = 62;
+
+  struct Page {
+    int count;
+    int idx[PAGE_SIZE];
+    Page *next;
+  };
+
+  int size;             // number of unknowns
+  Page **pages;
+
+  int sort_and_store_indices(Page *page, int *buffer, int *max);
+  int get_num_indices();
+
+  // mem stat
+  int mem_size;
+};
+
+class Vector {
+public:
+  virtual ~Vector() { }
+
+  /// allocate memory for storing ndofs elements
+  ///
+  /// @param[in] ndofs - number of elements of the vector
+  virtual void alloc(int ndofs) = 0;
+  /// free the memory
+  virtual void free() = 0;
+  // finish the assembly of the vector
+  virtual void finish() { }
+
+  /// Get the value from a position
+  /// @return the value form the specified index
+  /// @param[in] idx - index which to obtain the value from
+  virtual scalar get(int idx) = 0;
+
+  /// Extract vector values into user-provided array.
+  /// @param[out] v - array which will contain extracted values
+  virtual void extract(scalar *v) const = 0;
+
+  /// Zero the vector
+  virtual void zero() = 0;
+
+  /// set the entry on a specified position
+  ///
+  /// @param[in] idx - indices where to update
+  /// @param[in] y   - value
+  virtual void set(int idx, scalar y) = 0;
+
+  /// update element on the specified position
+  ///
+  /// @param[in] idx - indices where to update
+  /// @param[in] y   - value
+  virtual void add(int idx, scalar y) = 0;
+
+  /// update subset of the elements
+  ///
+  /// @param[in] n   - number of positions to update
+  /// @param[in] idx - indices where to update
+  /// @param[in] y   - values
+  virtual void add(int n, int *idx, scalar *y) = 0;
+
+  virtual bool dump(FILE *file, const char *var_name, EMatrixDumpFormat = DF_MATLAB_SPARSE) = 0;
+
+protected:
+  int size;
+};
 
 
 #endif

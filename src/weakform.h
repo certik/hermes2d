@@ -13,6 +13,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Hermes2D.  If not, see <http://www.gnu.org/licenses/>.
 
+
 #ifndef __HERMES2D_WEAKFORM_H
 #define __HERMES2D_WEAKFORM_H
 
@@ -53,47 +54,75 @@ class WeakForm
 {
 public:
 
-  WeakForm(int neq);
+  WeakForm(int neq, bool mat_free = false);
 
   int def_area(int n, ...);
 
+  // linear case
   typedef scalar (*biform_val_t) (int n, double *wt, Func<double> *u, Func<double> *v, Geom<double> *e, ExtData<scalar> *);
   typedef Ord (*biform_ord_t) (int n, double *wt, Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *);
   typedef scalar (*liform_val_t)(int n, double *wt, Func<double> *v, Geom<double> *e, ExtData<scalar> *);
   typedef Ord (*liform_ord_t)(int n, double *wt, Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *);
 
+  // nonlinear case
+  typedef scalar (*jacform_val_t)(int n, double *wt, Func<scalar> *u[], Func<double> *vi, Func<double> *vj, Geom<double> *e, ExtData<scalar> *);
+  typedef Ord (*jacform_ord_t)(int n, double *wt, Func<Ord> *u[], Func<Ord> *vi, Func<Ord> *vj, Geom<Ord> *e, ExtData<Ord> *);
+  typedef scalar (*resform_val_t)(int n, double *wt, Func<scalar> *u[], Func<double> *vi, Geom<double> *e, ExtData<scalar> *);
+  typedef Ord (*resform_ord_t)(int n, double *wt, Func<Ord> *u[], Func<Ord> *vi, Geom<Ord> *e, ExtData<Ord> *);
 
+  // linear case
   void add_biform(int i, int j, biform_val_t fn, biform_ord_t ord, SymFlag sym = UNSYM, int area = ANY, int nx = 0, ...);
   void add_biform_surf(int i, int j, biform_val_t fn, biform_ord_t ord, int area = ANY, int nx = 0, ...);
-
   void add_liform(int i, liform_val_t fn, liform_ord_t ord, int area = ANY, int nx = 0, ...);
   void add_liform_surf(int i, liform_val_t fn, liform_ord_t ord, int area = ANY, int nx = 0, ...);
+
+  // nonlinear case
+  void add_jacform(int i, int j, jacform_val_t fn, jacform_ord_t ord, SymFlag sym = UNSYM, int area = ANY, int nx = 0, ...);
+  void add_jacform_surf(int i, int j, jacform_val_t fn, jacform_ord_t ord, int area = ANY, int nx = 0, ...);
+  void add_resform(int i, resform_val_t fn, resform_ord_t ord, int area = ANY, int nx = 0, ...);
+  void add_resform_surf(int i, resform_val_t fn, resform_ord_t ord, int area = ANY, int nx = 0, ...);
 
   void set_ext_fns(void* fn, int nx, ...);
 
   /// Internal. Used by LinSystem to detect changes in the weakform.
   int get_seq() const { return seq; }
 
+  bool is_matrix_free() { return is_matfree; }
+
 
 protected:
 
   int neq;
   int seq;
+  bool is_matfree;
 
   struct Area  {  /*std::string name;*/  std::vector<int> markers;  };
 
   std::vector<Area> areas;
 
+  // linear case
   struct BiFormVol   {  int i, j, sym, area;  biform_val_t  fn;  biform_ord_t  ord;  std::vector<MeshFunction*> ext;  };
   struct BiFormSurf  {  int i, j, area;       biform_val_t  fn;  biform_ord_t  ord;  std::vector<MeshFunction*> ext;  };
   struct LiFormVol   {  int i, area;          liform_val_t  fn;  liform_ord_t  ord;  std::vector<MeshFunction*> ext;  };
   struct LiFormSurf  {  int i, area;          liform_val_t  fn;  liform_ord_t  ord;  std::vector<MeshFunction*> ext;  };
 
+  // nonlinear case
+  struct JacFormVol  {  int i, j, sym, area;  jacform_val_t fn;  jacform_ord_t ord;  std::vector<MeshFunction *> ext; };
+  struct JacFormSurf {  int i, j, area;       jacform_val_t fn;  jacform_ord_t ord;  std::vector<MeshFunction *> ext; };
+  struct ResFormVol  {  int i, area;          resform_val_t fn;  resform_ord_t ord;  std::vector<MeshFunction *> ext; };
+  struct ResFormSurf {  int i, area;          resform_val_t fn;  resform_ord_t ord;  std::vector<MeshFunction *> ext; };
+
+  // linear case
   std::vector<BiFormVol>  bfvol;
   std::vector<BiFormSurf> bfsurf;
   std::vector<LiFormVol>  lfvol;
   std::vector<LiFormSurf> lfsurf;
 
+  // nonlinear case
+  std::vector<JacFormVol>  jfvol;
+  std::vector<JacFormSurf> jfsurf;
+  std::vector<ResFormVol>  rfvol;
+  std::vector<ResFormSurf> rfsurf;
 
   struct Stage
   {
@@ -102,10 +131,17 @@ protected:
     std::vector<Transformable*> fns;
     std::vector<MeshFunction*> ext;
 
+    // linear case
     std::vector<BiFormVol*>  bfvol;
     std::vector<BiFormSurf*> bfsurf;
     std::vector<LiFormVol*>  lfvol;
     std::vector<LiFormSurf*> lfsurf;
+
+    // nonlinear case
+    std::vector<JacFormVol *>  jfvol;
+    std::vector<JacFormSurf *> jfsurf;
+    std::vector<ResFormVol *>  rfvol;
+    std::vector<ResFormSurf *> rfsurf;
 
     std::set<int> idx_set;
     std::set<unsigned> seq_set;
@@ -124,6 +160,8 @@ protected:
   friend class NonlinSystem;
   friend class RefSystem;
   friend class RefNonlinSystem;
+  friend class FeProblem;
+  friend class Precond;
 
 
 private:
@@ -132,6 +170,11 @@ private:
                     Mesh* m1, Mesh* m2, std::vector<MeshFunction*>& ext);
 
   bool is_in_area_2(int marker, int area) const;
+
+  // FIXME: pretty dumb to test this in such a way
+  bool is_linear() {
+    return bfvol.size() > 0 || bfsurf.size() > 0 || lfvol.size() > 0 || lfsurf.size() > 0;
+  }
 
 };
 

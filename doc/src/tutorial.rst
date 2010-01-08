@@ -497,6 +497,30 @@ The following figure shows the output.
    :height: 350
    :alt: Solution of the Poisson equation.
 
+Numerical Integration
+---------------------
+
+You may wonder why templates are used in the definition of weak forms. As a matter of fact, 
+they do not have to be, as we will see later. However, if the weak form only contains 
+algebraic operations (without if-then statements and such), templates help to determine
+numerical integration orders automatically. In higher-order FEM, basis and test functions may 
+have very different polynomial degrees, ranging from one and some maximum polynomial 
+degree (currently 10 in Hermes). The basis and test functions can be combined inside the 
+weak forms in many different ways. As a result, the minimum quadrature order which is needed 
+to evaluate a weak form accurately may vary a lot - between zero (product of gradients of 
+two linear functions) to infinity (whenever a nonpolynomial expression is present). 
+Numerical quadrature is one of the trickiest issues in higher-order FEM.
+
+Of course, a brute-force solution to this problem would be to integrate everything using 
+a maximum order, but this would lead to tremendous computing times. Therefore Hermes offers 
+two options: the polynomial degree of the integrated expressions can be detected 
+automatically (the templates). Or, the user can define for each weak form the resulting 
+polynomial degree explicitly. If the weak form only contains polynomial expressions, the former
+approach works very well. If the form is more complicated, it is recommended to handle the
+integration orders explicitly. For now, we will stay with the automatic order determination 
+until example `07-general 
+<http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/tutorial/07-general/main.cpp>`_.
+
 Boundary Conditions
 -------------------
 
@@ -747,8 +771,8 @@ at the re-entrant corner:
    <hr style="clear: both; visibility: hidden;">
 
 
-2nd-Order Linear Equation
--------------------------
+General 2nd-Order Linear Equation
+---------------------------------
 
 This example deals with a linear second-order equation of the form 
 
@@ -756,9 +780,9 @@ This example deals with a linear second-order equation of the form
 
          -\frac{\partial}{\partial x}\left(a_{11}(x,y)\frac{\partial u}{\partial x}\right) - \frac{\partial}{\partial x}\left(a_{12}(x,y)\frac{\partial u}{\partial y}\right) - \frac{\partial}{\partial y}\left(a_{21}(x,y)\frac{\partial u}{\partial x}\right) - \frac{\partial}{\partial y}\left(a_{22}(x,y)\frac{\partial u}{\partial y}\right) + a_1(x,y)\frac{\partial u}{\partial x} + a_{21}(x,y)\frac{\partial u}{\partial y} + a_0(x,y)u = rhs(x,y),
 
-equipped with Dirichlet and/or Neumann boundary conditions. The main purpose of this example is to show the way one defines and uses space-dependent coefficients, and also to show how integration orders in weak forms can be handled explicitly. The code can be found in the `main.cpp <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/tutorial/07-general/main.cpp>`_ file of the tutorial example 07-general.
+equipped with Dirichlet and/or Neumann boundary conditions. It has two goals: (a) to show the way one defines and uses space-dependent coefficients, and (b) to show how integration orders in weak forms can be handled explicitly. The code can be found in the `main.cpp <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/tutorial/07-general/main.cpp>`_ file of the tutorial example 07-general.
 
-First we define the non-constant equation coefficients:
+First we define the (generally) non-constant equation coefficients:
 ::
 
     double a_11(double x, double y) {
@@ -767,9 +791,16 @@ First we define the non-constant equation coefficients:
     }
 
 and so on. Then we define boundary conditions as usual. The weak formulation contains
-both volumetric and surface integrals. In particular, notice that integration orders 
-for each weak form are now defined explicitly (in contrast to previous examples where they 
-were determined by Hermes automatically):
+both volumetric and surface integrals. 
+
+The Ord class in Hermes (see the file `forms.h 
+<http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/src/forms.h>`_) provides
+an automatic parser of weak forms that is able to determine the integration orders for 
+algebraic expressions. So, in order to define an integration order explicitly, one can 
+provide on top the weak form another function that defines a simple algebraic expression 
+that leads the parser to the desired polynomial degree. The values defined in this  
+additional function are not used for computation. 
+
 ::
 
     // (Volumetric) bilinear form
@@ -790,16 +821,15 @@ were determined by Hermes automatically):
       }
       return result;
     }
-   
+
     // Integration order for the bilinear form
-    template<typename Real, typename Scalar>
-    Scalar bilinear_form_ord(int n, double *wt, Func<Real> *u, 
-                             Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+    Ord bilinear_form_ord(int n, double *wt, Func<Ord> *u, 
+                      Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext)
     {
-      return u->val[0] * v->val[0] + 2; // returning the sum of the degrees of the basis 
-                                        // and test function plus two
+      return u->val[0] * v->val[0] * x * x; // returning the sum of the degrees of the basis 
+                                            // and test function plus two
     }
-  
+
     // Surface linear form (natural boundary conditions)
     template<typename Real, typename Scalar>
     Scalar linear_form_surf(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
@@ -808,10 +838,9 @@ were determined by Hermes automatically):
     }
   
     // Integration order for surface linear form
-    template<typename Real, typename Scalar>
-    Scalar linear_form_surf_ord(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+    Ord linear_form_surf_ord(int n, double *wt, Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext)
     {
-      return 2*v->val[0];  // returning twice the polynomial degree of the test function
+      return v->val[0] * x * x;  // returning the polynomial degree of the test function plus two
     }
   
     // Volumetric linear form (right-hand side)
@@ -822,14 +851,41 @@ were determined by Hermes automatically):
     }
   
     // Integration order for the volumetric linear form
-    template<typename Real, typename Scalar>
-    Scalar linear_form_ord(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+    Ord linear_form_ord(int n, double *wt, Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext)
     {
-      return 2*v->val[0];  // returning twice the polynomial degree of the test function;
+      return v->val[0] * x * x;  // returning the polynomial degree of the test function plus two
     }
 
+The polynomial degree of basis and test functions also can be accessed directly as follows:
+
+::
+
+    Ord bilinear_form_ord(int n, double *wt, Func<Ord> *u, 
+                          Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext)
+    {
+      int uo = v->val[0].get_order();
+      int vo = v->val[0].get_order();
+      return Ord(uo + vo);
+    }
+
+Note that in principle it is also possible to return a constant order (for example 5) by using 
+
+::
+
+    Ord bilinear_form_ord(int n, double *wt, Func<Ord> *u, 
+                      Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext)
+    {
+      return Ord(5);
+    }
+
+Currently, one cannot make the integration order dependent on spatial coordinates and such. However,
+one can assign different weak forms to elements with different material flags. This will be 
+described in example `saphir <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/examples/saphir/main.cpp>`_.
+
 Also note the sign of the surface linear form - all linear forms have to be on the right-hand side,
-all bilinear forms on the left. The output of this example is shown below:
+all bilinear forms on the left. 
+
+The output of this example is shown below:
 
 .. image:: img/general.png
    :align: center
@@ -1561,13 +1617,223 @@ substantially different behavior, one may even obtain completely different meshe
 See example `multimesh <http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/examples/multimesh>`_ for a more advanced application of
 multimesh *hp*-FEM to thermoelasticity.
 
-2nd-Order Linear Adapt
-----------------------
+Adaptivity for General 2nd-Order Linear Equation
+------------------------------------------------
 
 This example does not bring anything new and its purpose is solely to save you work adding adaptivity to example `07-general <http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/tutorial/07-general>`_. Feel free to adjust the `main.cpp <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/tutorial/12-adapt-general/main.cpp>`_ file in the tutorial example 12-general-adapt for your own applications.
 
-Navier-Stokes Example
----------------------
+The solution is shown below:
+
+.. image:: img/12-solution.png
+   :align: center
+   :width: 465
+   :height: 400
+   :alt: Solution to the general 2nd-order linear equation example.
+
+The final hp-mesh looks as follows:
+
+.. image:: img/12-mesh.png
+   :align: center
+   :width: 450
+   :height: 400
+   :alt: Final finite element mesh for the general 2nd-order linear equation example.
+
+Adaptive hp-FEM converged to a relative error of 0.01 % with
+approximately 1400 dof:
+
+.. image:: img/12-conv-dof.png
+   :align: center
+   :width: 600
+   :height: 400
+   :alt: DOF convergence graph for the iron-water example.
+
+Hermes also creates convergence graph in terms of CPU time:
+
+.. image:: img/12-conv-cpu.png
+   :align: center
+   :width: 600
+   :height: 400
+   :alt: CPU convergence graph for the general 2nd-order linear equation example.
+
+========
+Examples
+========
+
+This section contains the description of selected `examples 
+<http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/examples>`_.
+Its purpose is to complement rather than duplicate the information 
+in the corresponding main.cpp files.
+
+Iron-Water
+----------
+
+This is a standard nuclear engineering benchmark describing an external-force-driven
+configuration without fissile materials present, using one-group neutron diffusion 
+approximation
+
+.. math::
+    :label: iron-water
+
+       -\nabla \cdot (D(x,y) \nabla \Phi) + \Sigma_a(a,y) \Phi = Q_ext(x,y)
+
+The domain of interest is a 30 x 30 cm square consisting of four regions.
+A uniform volumetric source is placed in water in the lower-left corner 
+of the domain, surrounded with a layer of water, a layer of iron, and finally
+another layer of water:
+
+.. image:: img/iron-water.png
+   :align: center
+   :width: 400
+   :height: 400
+   :alt: Schematic picture for the iron-water example.
+
+
+The unknown is the neutron flux $\Phi(x, y)$. The values of the diffusion coefficient 
+$D(x, y)$, absorption cross-section $\Sigma_a(x, y)$ and the source term $Q_{ext}(x,y)$
+are constant in the subdomains. The source $Q_{ext} = 1$ in area 1 and zero 
+elsewhere. The boundary conditions for this problem are zero Dirichlet (right and top edges)
+and zero Neumann (bottom and left edges). Other parameter values and additional information can be 
+found in the `main.cpp <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/examples/iron-water/main.cpp>`_ file.
+
+The solution is shown below:
+
+.. image:: img/iron-water-sol.png
+   :align: center
+   :width: 600
+   :height: 400
+   :alt: Solution to the iron-water example.
+
+The final hp-mesh looks as follows:
+
+.. image:: img/iron-water-mesh.png
+   :align: center
+   :width: 440
+   :height: 400
+   :alt: Final finite element mesh for the iron-water example.
+
+Adaptive hp-FEM converged to a relative error of 0.01 % with
+approximately 800 dof:
+
+.. image:: img/iron-water-conv.png
+   :align: center
+   :width: 600
+   :height: 400
+   :alt: Convergence graph for the iron-water example.
+
+Saphir
+------
+
+This is another standard nuclear engineering benchmark (IAEA number EIR-2) describing 
+an external-force-driven configuration without fissile materials present, using one-group 
+neutron diffusion approximation
+
+.. math::
+    :label: saphir
+
+       -\nabla \cdot (D(x,y) \nabla \Phi) + \Sigma_a(a,y) \Phi = Q_ext(x,y)
+
+The domain of interest is a 96 x 86 cm rectangle consisting of five regions:
+
+.. image:: img/saphir.png
+   :align: center
+   :width: 400
+   :height: 400
+   :alt: Schematic picture for the saphir example.
+
+The unknown is the neutron flux $\Phi(x, y)$. The values of the diffusion coefficient 
+$D(x, y)$, absorption cross-section $\Sigma_a(x, y)$ and the source term $Q_{ext}(x,y)$
+are constant in the subdomains. The source $Q_{ext} = 1$ in areas 1 and 3 and zero 
+elsewhere. Boundary conditions for the flux $\Phi$ are zero everywhere. 
+Parameter values and additional information can be 
+found in the `main.cpp <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/examples/saphir/main.cpp>`_ file.
+
+Note the way material properties are defined. This approach is alternative to how this was done 
+in tutorial examples 07 and 12 and in example iron-water. Now, we define a separate weak form 
+for every material:
+
+::
+
+    // Bilinear form (material 1)  
+    template<typename Real, typename Scalar>
+    Scalar bilinear_form_1(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+    {
+      return D_1 * int_grad_u_grad_v<Real, Scalar>(n, wt, u, v) 
+             + SIGMA_A_1 * int_u_v<Real, Scalar>(n, wt, u, v);
+    }
+
+    // Bilinear form (material 2)
+    template<typename Real, typename Scalar>
+    Scalar bilinear_form_2(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+    {
+      return D_2 * int_grad_u_grad_v<Real, Scalar>(n, wt, u, v) 
+             + SIGMA_A_2 * int_u_v<Real, Scalar>(n, wt, u, v);
+    }
+
+    // Bilinear form (material 3)
+    template<typename Real, typename Scalar>
+    Scalar bilinear_form_3(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+    {
+      return D_3 * int_grad_u_grad_v<Real, Scalar>(n, wt, u, v) 
+             + SIGMA_A_3 * int_u_v<Real, Scalar>(n, wt, u, v);
+    }
+
+    // Bilinear form (material 4)
+    template<typename Real, typename Scalar>
+    Scalar bilinear_form_4(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+    {
+      return D_4 * int_grad_u_grad_v<Real, Scalar>(n, wt, u, v) 
+             + SIGMA_A_4 * int_u_v<Real, Scalar>(n, wt, u, v);
+    }
+
+    // Bilinear form (material 5)
+    template<typename Real, typename Scalar>
+    Scalar bilinear_form_5(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+    {
+      return D_5 * int_grad_u_grad_v<Real, Scalar>(n, wt, u, v) 
+             + SIGMA_A_5 * int_u_v<Real, Scalar>(n, wt, u, v);
+    }
+
+The weak forms are associated with material flags as follows:
+
+::
+
+    // initialize the weak formulation
+    WeakForm wf(1);
+    wf.add_biform(0, 0, bilinear_form_1, bilinear_form_ord, SYM, 1);
+    wf.add_biform(0, 0, bilinear_form_2, bilinear_form_ord, SYM, 2);
+    wf.add_biform(0, 0, bilinear_form_3, bilinear_form_ord, SYM, 3);
+    wf.add_biform(0, 0, bilinear_form_4, bilinear_form_ord, SYM, 4);
+    wf.add_biform(0, 0, bilinear_form_5, bilinear_form_ord, SYM, 5);
+    wf.add_liform(0, linear_form_1, linear_form_ord, 1);
+    wf.add_liform(0, linear_form_3, linear_form_ord, 3);
+
+The solution is shown below:
+
+.. image:: img/saphir-sol.png
+   :align: center
+   :width: 600
+   :height: 400
+   :alt: Solution to the saphir example.
+
+The final hp-mesh looks as follows:
+
+.. image:: img/saphir-mesh.png
+   :align: center
+   :width: 440
+   :height: 400
+   :alt: Final finite element mesh for the saphir example.
+
+Adaptive hp-FEM converged to a relative error of 0.01 % with
+approximately 5000 dof:
+
+.. image:: img/saphir-conv.png
+   :align: center
+   :width: 600
+   :height: 400
+   :alt: Convergence graph for the saphir example.
+
+Navier-Stokes
+-------------
 
 This model problem is concerned with the approximate solution of external
 flow past a cylinder with unit diameter. The corresponding files can be found in 
@@ -1776,7 +2042,3 @@ in the following figure:
    :width: 600
    :height: 260
    :alt: Velocity solution visualized with the class VectorView.
-
-
-
-
