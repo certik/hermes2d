@@ -1346,9 +1346,46 @@ void Mesh::copy_refine(Mesh* mesh)
     Element* enew;
     Node *v0 = &nodes[e->vn[0]->id], *v1 = &nodes[e->vn[1]->id], *v2 = &nodes[e->vn[2]->id];
     if (e->is_triangle())
-      enew = create_triangle(e->marker, v0, v1, v2, NULL);
+    {
+      // create a new element
+      enew = elements.add();
+      enew->active = 1;
+      enew->marker = e->marker;
+      enew->userdata = 0;
+      enew->nvert = 3;
+      enew->iro_cache = -1;
+      enew->cm = e->cm;
+
+      // set vertex and edge node pointers
+      enew->vn[0] = v0;
+      enew->vn[1] = v1;
+      enew->vn[2] = v2;
+      enew->en[0] = get_edge_node(v0->id, v1->id);
+      enew->en[1] = get_edge_node(v1->id, v2->id);
+      enew->en[2] = get_edge_node(v2->id, v0->id);
+    }
     else
-      enew = create_quad(e->marker, v0, v1, v2, &nodes[e->vn[3]->id], NULL);
+    {
+      // create a new element
+      Node *v3 = &nodes[e->vn[3]->id];
+      enew = elements.add();
+      enew->active = 1;
+      enew->marker = e->marker;
+      enew->userdata = 0;
+      enew->nvert = 4;
+      enew->iro_cache = -1;
+      enew->cm = e->cm;
+
+      // set vertex and edge node pointers
+      enew->vn[0] = v0;
+      enew->vn[1] = v1;
+      enew->vn[2] = v2;
+      enew->vn[3] = v3;
+      enew->en[0] = get_edge_node(v0->id, v1->id);
+      enew->en[1] = get_edge_node(v1->id, v2->id);
+      enew->en[2] = get_edge_node(v2->id, v3->id);
+      enew->en[3] = get_edge_node(v3->id, v0->id);
+    }
 
     // copy edge markers
     for (int j = 0; j < e->nvert; j++)
@@ -1363,8 +1400,8 @@ void Mesh::copy_refine(Mesh* mesh)
       enew->cm = new CurvMap(e->cm);
   }
 
-  nbase = nactive = ninitial = mesh->nbase;
-  ntopvert = mesh->ntopvert;
+  nbase = nactive = ninitial = mesh->nbase = get_max_element_id();
+  ntopvert = mesh->ntopvert = get_num_nodes(); 
   seq = g_mesh_seq++;
 }
 

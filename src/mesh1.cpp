@@ -712,11 +712,18 @@ void Mesh::unrefine_all_elements(bool keep_initial_refinements)
   for (int i = 0; i < list.size(); i++)
     unrefine_element(list[i]);
 }
+
+
 void Mesh::refine_triangle_to_quads(Element* e)
 {
   // remember the markers of the edge nodes
   int bnd[3] = { e->en[0]->bnd,    e->en[1]->bnd,    e->en[2]->bnd    };
   int mrk[3] = { e->en[0]->marker, e->en[1]->marker, e->en[2]->marker };
+
+  // deactivate this element and unregister from its nodes
+  e->active = false;
+  nactive--;
+  e->unref_all_nodes(this);
 
   // obtain three mid-edge and one gravity vertex nodes
   Node* x0 = get_vertex_node(e->vn[0]->id, e->vn[1]->id);
@@ -929,11 +936,7 @@ void Mesh::refine_triangle_to_quads(Element* e)
       sons[i]->cm->update_refmap_coefs(sons[i]);
     }
   }
-
-  // deactivate this element and unregister from its nodes
-  e->active = 0;
   nactive += 3;
-  e->unref_all_nodes(this);
   // now the original edge nodes may no longer exist...
   // set correct boundary status and markers for the new nodes
   sons[0]->en[0]->bnd = bnd[0];  sons[0]->en[0]->marker = mrk[0];
@@ -974,6 +977,9 @@ void Mesh::refine_quad_to_triangles(Element* e)
   int bnd[4] = { e->en[0]->bnd,    e->en[1]->bnd,    e->en[2]->bnd,    e->en[3]->bnd };
   int mrk[4] = { e->en[0]->marker, e->en[1]->marker, e->en[2]->marker, e->en[3]->marker };
 
+  // deactivate this element and unregister from its nodes
+  e->active = false;
+  e->unref_all_nodes(this);
 
   bool bcheck = true;  ///< if bcheck is true, it is default add a new edge between
                        ///<  vn[0] and vn[2]
@@ -1098,14 +1104,14 @@ void Mesh::refine_quad_to_triangles(Element* e)
   {
     sons[0] = create_triangle(e->marker, e->vn[0], e->vn[1], e->vn[2], cm[0]);
     sons[1] = create_triangle(e->marker, e->vn[2], e->vn[3], e->vn[0], cm[1]);
-    sons[2] = NULL; //create_quad(e->marker, x1, e->vn[2], x2, mid, cm[2]);
+    sons[2] = NULL; 
     sons[3] = NULL;
   }
   else
   {
     sons[0] = create_triangle(e->marker, e->vn[1], e->vn[2], e->vn[3], cm[0]);
     sons[1] = create_triangle(e->marker, e->vn[3], e->vn[0], e->vn[1], cm[1]);
-    sons[2] = NULL; //create_quad(e->marker, x1, e->vn[2], x2, mid, cm[2]);
+    sons[2] = NULL; 
     sons[3] = NULL;
   }
 
@@ -1117,11 +1123,7 @@ void Mesh::refine_quad_to_triangles(Element* e)
       sons[i]->cm->update_refmap_coefs(sons[i]);
     }
   }
-
-  // deactivate this element and unregister from its nodes
-  e->active = 0;
   nactive += 2;
-  e->unref_all_nodes(this);
   // now the original edge nodes may no longer exist...
   // set correct boundary status and markers for the new nodes
   if (bcheck == true)
