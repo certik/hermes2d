@@ -22,6 +22,7 @@ int main(int argc, char* argv[])
   Mesh dup;
   Element* e;
   mesh.load(argv[1]);
+  int mesh_base_element = mesh.get_num_base_elements();
   
   mesh.refine_all_elements();
   // Calculate the number of elements after refinement, starting from 0
@@ -64,7 +65,7 @@ int main(int argc, char* argv[])
 
     // Copies the refined elements of another mesh.
     case 3:      dup.copy_refine(&mesh);
-    if (mesh.get_max_element_id() != dup.get_max_element_id() + mesh.get_num_base_elements())
+    if (mesh.get_max_element_id() != dup.get_max_element_id() + mesh_base_element)
     {
       printf("Failure!\n");
       return ERROR_FAILURE;
