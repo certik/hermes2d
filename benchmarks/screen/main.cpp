@@ -107,11 +107,11 @@ int main(int argc, char* argv[])
   wf.add_biform(0, 0, callback(bilinear_form), SYM);
 
   // visualize solution and mesh
-  ScalarView Xview_r("Electric field X - real",   0, 0, 320, 320);
-  ScalarView Yview_r("Electric field Y - real", 325, 0, 320, 320);
-  ScalarView Xview_i("Electric field X - imag", 650, 0, 320, 320);
-  ScalarView Yview_i("Electric field Y - imag", 975, 0, 320, 320);
-  OrderView  ord("Polynomial Orders", 0, 370, 380, 340);
+  ScalarView Xview_r("Electric field X - real",   0, 0, 450, 420);
+  ScalarView Yview_r("Electric field Y - real", 460, 0, 450, 420);
+  ScalarView Xview_i("Electric field X - imag", 920, 0, 450, 420);
+  ScalarView Yview_i("Electric field Y - imag", 1380, 0, 450, 420);
+  OrderView  ord("Polynomial Orders", 0, 460, 450, 420);
 
   // matrix solver
   UmfpackSolver solver;
@@ -151,16 +151,16 @@ int main(int argc, char* argv[])
     RealFilter real(&sln_coarse);
     ImagFilter imag(&sln_coarse);
     Xview_r.set_min_max_range(-3.0, 1.0);
-    Xview_r.show_scale(false);
+    //Xview_r.show_scale(false);
     Xview_r.show(&real, EPS_NORMAL, FN_VAL_0);
     Yview_r.set_min_max_range(-4.0, 4.0);
-    Yview_r.show_scale(false);
+    //Yview_r.show_scale(false);
     Yview_r.show(&real, EPS_NORMAL, FN_VAL_1);
     Xview_i.set_min_max_range(-1.0, 4.0);
-    Xview_i.show_scale(false);
+    //Xview_i.show_scale(false);
     Xview_i.show(&imag, EPS_NORMAL, FN_VAL_0);
     Yview_i.set_min_max_range(-4.0, 4.0);
-    Yview_i.show_scale(false);
+    //Yview_i.show_scale(false);
     Yview_i.show(&imag, EPS_NORMAL, FN_VAL_1);
     ord.show(&space);
 
@@ -192,7 +192,7 @@ int main(int argc, char* argv[])
     // if err_est too large, adapt the mesh
     if (err_est < ERR_STOP) done = true;
     else {
-      hp.adapt(THRESHOLD, STRATEGY, ADAPT_TYPE, ISO_ONLY, MESH_REGULARITY);
+      hp.adapt(THRESHOLD, STRATEGY, ADAPT_TYPE, ISO_ONLY, MESH_REGULARITY, 3);
       ndofs = space.assign_dofs();
       if (ndofs >= NDOF_STOP) done = true;
     }
