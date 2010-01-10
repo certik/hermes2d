@@ -1524,7 +1524,22 @@ components, but specify that its derivatives should be used:
    :height: 300
    :alt: Polynomial orders of elements near singularities (zoomed).
 
+Convergence graphs of adaptive h-FEM with linear elements, h-FEM with quadratic elements
+and hp-FEM are shown below.
 
+.. image:: graphs/example-10/conv_dof_adapt.png
+   :align: center
+   :width: 600
+   :height: 400
+   :alt: DOF convergence graph for tutorial example 10-adapt.
+
+The following graph shows convergence in terms of CPU time. 
+
+.. image:: graphs/example-10/conv_cpu_adapt.png
+   :align: center
+   :width: 600
+   :height: 400
+   :alt: CPU convergence graph for tutorial example 10-adapt.
 
 Adaptivity for Systems
 ----------------------
@@ -1608,14 +1623,31 @@ degrees after several adaptive steps:
    <hr style="clear: both; visibility: hidden;">
 
 
-Note that they are slightly different, not only in
+Note that the meshes are slightly different, not only in
 polynomial degrees, but also in element refinements. This is possible in Hermes thanks to
-a technique called multi-mesh assembling
-which allows
+a technique called multi-mesh assembling which allows
 all components of the solution to adapt independently. In problems whose components exhibit
 substantially different behavior, one may even obtain completely different meshes.
-See example `multimesh <http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/examples/multimesh>`_ for a more advanced application of
-multimesh *hp*-FEM to thermoelasticity.
+
+Convergence graphs of adaptive h-FEM with linear elements, h-FEM with quadratic elements
+and hp-FEM are shown below.
+
+.. image:: graphs/example-11/conv_dof_adapt_system.png
+   :align: center
+   :width: 600
+   :height: 400
+   :alt: DOF convergence graph for tutorial example 11-adapt-system.
+
+The following graph shows convergence in terms of CPU time. 
+
+.. image:: graphs/example-11/conv_cpu_adapt_system.png
+   :align: center
+   :width: 600
+   :height: 400
+   :alt: CPU convergence graph for tutorial example 11-adapt-system.
+
+See example `multimesh <http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/examples/multimesh>`_ for a more 
+advanced application of multimesh *hp*-FEM to thermoelasticity.
 
 Adaptivity for General 2nd-Order Linear Equation
 ------------------------------------------------
@@ -1638,22 +1670,23 @@ The final hp-mesh looks as follows:
    :height: 400
    :alt: Final finite element mesh for the general 2nd-order linear equation example.
 
-Adaptive hp-FEM converged to a relative error of 0.01 % with
-approximately 1400 dof:
+Convergence graphs of adaptive h-FEM with linear elements, h-FEM with quadratic elements
+and hp-FEM are shown below.
 
-.. image:: img/12-conv-dof.png
+.. image:: graphs/example-12/conv_dof_adapt_general.png
    :align: center
    :width: 600
    :height: 400
-   :alt: DOF convergence graph for the iron-water example.
+   :alt: DOF convergence graph for tutorial example 12-adapt-general.
 
-Hermes also creates convergence graph in terms of CPU time:
+The following graph shows convergence in terms of CPU time. 
 
-.. image:: img/12-conv-cpu.png
+.. image:: graphs/example-12/conv_cpu_adapt_general.png
    :align: center
    :width: 600
    :height: 400
-   :alt: CPU convergence graph for the general 2nd-order linear equation example.
+   :alt: CPU convergence graph for tutorial example 12-adapt-general.
+
 
 ========
 Examples
@@ -1711,14 +1744,22 @@ The final hp-mesh looks as follows:
    :height: 400
    :alt: Final finite element mesh for the iron-water example.
 
-Adaptive hp-FEM converged to a relative error of 0.01 % with
-approximately 800 dof:
+Convergence graphs of adaptive h-FEM with linear elements, h-FEM with quadratic elements
+and hp-FEM are shown below.
 
-.. image:: img/iron-water-conv.png
+.. image:: graphs/iron-water/conv_dof_iron_water.png
    :align: center
    :width: 600
    :height: 400
-   :alt: Convergence graph for the iron-water example.
+   :alt: DOF convergence graph for example iron-water.
+
+The following graph shows convergence in terms of CPU time. 
+
+.. image:: graphs/iron-water/conv_cpu_iron_water.png
+   :align: center
+   :width: 600
+   :height: 400
+   :alt: CPU convergence graph for example iron-water.
 
 Saphir
 ------
@@ -1823,14 +1864,22 @@ The final hp-mesh looks as follows:
    :height: 400
    :alt: Final finite element mesh for the saphir example.
 
-Adaptive hp-FEM converged to a relative error of 0.01 % with
-approximately 5000 dof:
+Convergence graphs of adaptive h-FEM with linear elements, h-FEM with quadratic elements
+and hp-FEM are shown below.
 
-.. image:: img/saphir-conv.png
+.. image:: graphs/saphir/conv_dof_saphir.png
    :align: center
    :width: 600
    :height: 400
-   :alt: Convergence graph for the saphir example.
+   :alt: DOF convergence graph for example saphir.
+
+The following graph shows convergence in terms of CPU time. 
+
+.. image:: graphs/saphir/conv_cpu_saphir.png
+   :align: center
+   :width: 600
+   :height: 400
+   :alt: CPU convergence graph for example saphir.
 
 Navier-Stokes
 -------------
