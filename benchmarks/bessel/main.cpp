@@ -46,7 +46,7 @@ const int MESH_REGULARITY = -1;   // Maximum allowed level of hanging nodes:
                                   // MESH_REGULARITY = 2 ... at most two-level hanging nodes, etc.
                                   // Note that regular meshes are not supported, this is due to
                                   // their notoriously bad performance.
-const double ERR_STOP = 0.1;      // Stopping criterion for adaptivity (rel. error tolerance between the
+const double ERR_STOP = 0.01;      // Stopping criterion for adaptivity (rel. error tolerance between the
                                   // fine mesh and coarse mesh solution in percent).
 const int NDOF_STOP = 40000;      // Adaptivity process stops when the number of degrees of freedom grows
                                   // over this limit. This is to prevent h-adaptivity to go on forever.
@@ -272,7 +272,7 @@ int main(int argc, char* argv[])
     // if err_est too large, adapt the mesh
     if (err_est < ERR_STOP) done = true;
     else {
-      hp.adapt(THRESHOLD, STRATEGY, ADAPT_TYPE, ISO_ONLY, MESH_REGULARITY);
+      hp.adapt(THRESHOLD, STRATEGY, ADAPT_TYPE, ISO_ONLY, MESH_REGULARITY, 3);
       ndofs = space.assign_dofs();
       if (ndofs >= NDOF_STOP) done = true;
     }
