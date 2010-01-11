@@ -148,17 +148,8 @@ int main(int argc, char* argv[])
   // matrix solver
   UmfpackSolver solver;
 
-  // convergence graph wrt. the number of degrees of freedom
-  GnuplotGraph graph;
-  graph.set_captions("", "Degrees of Freedom", "Error Estimate [%]");
-  graph.add_row(MULTI ? "multi-mesh" : "single-mesh", "k", "-", "O");
-  graph.set_log_y();
-
-  // convergence graph wrt. CPU time
-  GnuplotGraph graph_cpu;
-  graph_cpu.set_captions("", "CPU", "Error Estimate [%]");
-  graph_cpu.set_log_y();
-  graph_cpu.add_row(MULTI ? "multi-mesh" : "single-mesh", "k", "-", "o");
+  // DOF and CPU convergence graphs
+  SimpleGraph graph_dof, graph_cpu;
 
   // adaptivity loop
   int it = 1;
@@ -206,11 +197,13 @@ int main(int argc, char* argv[])
     double err_est = hp.calc_error_2(&sln_x_coarse, &sln_y_coarse, &sln_x_fine, &sln_y_fine) * 100;
     info("Error estimate: %g \%", err_est);
 
-    // add entry to DOF and CPU convergence graphs
-    graph.add_values(0, xdisp.get_num_dofs() + ydisp.get_num_dofs(), err_est);
-    graph.save(MULTI ? "conv_dof_m.gp" : "conv_dof_s.gp");
-    graph_cpu.add_values(0, cpu, err_est);
-    graph_cpu.save(MULTI ? "conv_cpu_m.gp" : "conv_cpu_s.gp");
+    // add entry to DOF convergence graph
+    graph_dof.add_values(xdisp.get_num_dofs() + ydisp.get_num_dofs(), err_est);
+    graph_dof.save("conv_dof.dat");
+
+    // add entry to CPU convergence graph
+    graph_cpu.add_values(cpu, err_est);
+    graph_cpu.save("conv_cpu.dat");
 
     // if err_est too large, adapt the mesh
     if (err_est < ERR_STOP || xdisp.get_num_dofs() + ydisp.get_num_dofs() >= NDOF_STOP) done = true;

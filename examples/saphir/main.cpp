@@ -210,17 +210,8 @@ int main(int argc, char* argv[])
   // Matrix solver
   UmfpackSolver solver;
 
-  // Convergence graph wrt. the number of degrees of freedom
-  GnuplotGraph graph;
-  graph.set_log_y();
-  graph.set_captions("Error Convergence for the Saphir Problem", "Degrees of Freedom", "Error Estimate [%]");
-  graph.add_row("error estimate", "k", "-", "o");
-
-  // Convergence graph wrt. CPU time
-  GnuplotGraph graph_cpu;
-  graph_cpu.set_captions("Error Convergence for the Saphir Problem", "CPU Time", "Error Estimate [%]");
-  graph_cpu.add_row("error estimate", "k", "-", "o");
-  graph_cpu.set_log_y();
+  // DOF and CPU convergence graphs
+  SimpleGraph graph_dof, graph_cpu;
 
   // Adaptivity loop
   int it = 1, ndofs;
@@ -264,13 +255,13 @@ int main(int argc, char* argv[])
     double err_est = hp.calc_error(&sln_coarse, &sln_fine) * 100;
     info("Estimate of error: %g%%", err_est);
 
-    // Add entry to DOF convergence graph
-    graph.add_values(0, space.get_num_dofs(), err_est);
-    graph.save("conv_dof.gp");
+    // add entry to DOF convergence graph
+    graph_dof.add_values(space.get_num_dofs(), err_est);
+    graph_dof.save("conv_dof.dat");
 
-    // Add entry to CPU convergence graph
-    graph_cpu.add_values(0, cpu, err_est);
-    graph_cpu.save("conv_cpu.gp");
+    // add entry to CPU convergence graph
+    graph_cpu.add_values(cpu, err_est);
+    graph_cpu.save("conv_cpu.dat");
 
     // If err_est too large, adapt the mesh
     if (err_est < ERR_STOP) done = true;

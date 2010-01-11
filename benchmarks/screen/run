@@ -1,9 +1,4 @@
-rm *~ *.gp *.eps  
+rm *~ *.dat 
 ./screen
-gnuplot conv_dof.gp
-gnuplot conv_cpu.gp
-epstopdf conv_dof.eps
-epstopdf conv_cpu.eps
-okular conv_dof.pdf &
-okular conv_cpu.pdf &
+python plot_graph.py &
 
