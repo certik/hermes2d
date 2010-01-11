@@ -279,7 +279,6 @@ int main(int argc, char* argv[])
     begin_time();
 
     // solve the fine mesh problem
-    begin_time();
     RefSystem rs(&ls);
     rs.assemble();
     rs.solve(1, &sln_fine);
