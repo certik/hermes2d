@@ -123,17 +123,8 @@ int main(int argc, char* argv[])
   // matrix solver
   UmfpackSolver solver;
 
-  // convergence graph wrt. the number of degrees of freedom
-  GnuplotGraph graph;
-  graph.set_captions("Error Convergence for the Singularly Perturbed Problem", "Degrees of Freedom", "Error Estimate [%]");
-  graph.add_row("error estimate", "k", "--");
-  graph.set_log_y();
-
-  // convergence graph wrt. CPU time
-  GnuplotGraph graph_cpu;
-  graph_cpu.set_captions("Error Convergence for the Singularly Perturbed Problem", "CPU Time", "Error Estimate [%]");
-  graph_cpu.add_row("error estimate", "k", "--");
-  graph_cpu.set_log_y();
+  // DOF and CPU convergence graphs
+  SimpleGraph graph_dof_est, graph_cpu_est;
 
   // adaptivity loop
   int it = 1, ndofs;
@@ -175,13 +166,13 @@ int main(int argc, char* argv[])
     double err_est = hp.calc_error(&sln_coarse, &sln_fine) * 100;
     info("Estimate of error: %g%%", err_est);
 
-    // add entry to DOF convergence graph
-    graph.add_values(0, space.get_num_dofs(), err_est);
-    graph.save("conv_dof.gp");
+    // add entries to DOF convergence graph
+    graph_dof_est.add_values(space.get_num_dofs(), err_est);
+    graph_dof_est.save("conv_dof_est.dat");
 
-    // add entry to CPU convergence graph
-    graph_cpu.add_values(0, cpu, err_est);
-    graph_cpu.save("conv_cpu.gp");
+    // add entries to CPU convergence graph
+    graph_cpu_est.add_values(cpu, err_est);
+    graph_cpu_est.save("conv_cpu_est.dat");
 
     // if err_est too large, adapt the mesh
     if (err_est < ERR_STOP) done = true;

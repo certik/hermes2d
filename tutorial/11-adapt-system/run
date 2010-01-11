@@ -1,9 +1,3 @@
-rm *~ *.gp *.eps  
+rm *~ *.dat  
 adapt-system
-gnuplot conv_dof_m.gp
-gnuplot conv_cpu_m.gp
-epstopdf conv_dof_m.eps
-epstopdf conv_cpu_m.eps
-okular conv_dof_m.pdf &
-okular conv_cpu_m.pdf &
-
+python plot_graph.py &

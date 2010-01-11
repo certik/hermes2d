@@ -17,8 +17,7 @@
 // -- error estimate wrt. the number of degrees of freedom (DOF), and error
 // estimate wrt. CPU time. Later you will learn that also the error wrt.
 // exact solution can be created for problems where exact solution is
-// available. Process the convergence files using "gnuplot conv_dof.gp"
-// (this will produce an EPS file). In this example you also can see how
+// available. In this example you also can see how
 // to define different material parameters in various parts of the
 // computational domain.
 //
@@ -125,17 +124,8 @@ int main(int argc, char* argv[])
   // matrix solver
   UmfpackSolver solver;
 
-  // convergence graph wrt. the number of degrees of freedom
-  GnuplotGraph graph;
-  graph.set_captions("Error Convergence for the Micromotor Problem", "Degrees of Freedom", "Error Estimate [%]");
-  graph.add_row("error estimate", "-", "o");
-  graph.set_log_y();
-
-  // convergence graph wrt. CPU time
-  GnuplotGraph graph_cpu;
-  graph_cpu.set_captions("Error Convergence for the Micromotor Problem", "CPU Time", "Error Estimate [%]");
-  graph_cpu.add_row("error estimate", "-", "o");
-  graph_cpu.set_log_y();
+  // DOF and CPU convergence graphs
+  SimpleGraph graph_dof, graph_cpu;
 
   // adaptivity loop
   int it = 1, ndofs;
@@ -181,12 +171,12 @@ int main(int argc, char* argv[])
     cpu += end_time();
 
     // add entry to DOF convergence graph
-    graph.add_values(0, space.get_num_dofs(), err_est);
-    graph.save("conv_dof.gp");
+    graph_dof.add_values(space.get_num_dofs(), err_est);
+    graph_dof.save("conv_dof.dat");
 
     // add entry to CPU convergence graph
-    graph_cpu.add_values(0, cpu, err_est);
-    graph_cpu.save("conv_cpu.gp");
+    graph_cpu.add_values(cpu, err_est);
+    graph_cpu.save("conv_cpu.dat");
 
     // if err_est too large, adapt the mesh
     if (err_est < ERR_STOP) done = true;
