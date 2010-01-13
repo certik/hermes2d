@@ -50,11 +50,19 @@ Explicit forms of the matrices:
 
     {\bf A}_x = %s
 
-    {\bf D}_x^- = %s
+For $u_1>0$:
+
+.. math::
 
     {\bf D}_x^- = %s
 
     {\bf A}_x^- = %s
+
+For $u_1<0$:
+
+.. math::
+
+    {\bf D}_x^- = %s
 
     {\bf A}_x^- = %s
 
@@ -65,7 +73,7 @@ Explicit forms of the matrices:
     latex(D),
     latex(A),
     latex(D_minus1),
-    latex(D_minus2),
     latex(A_minus1),
+    latex(D_minus2),
     latex(A_minus2),
     )
