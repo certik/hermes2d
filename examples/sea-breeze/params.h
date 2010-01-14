@@ -31,4 +31,7 @@
 #define E_r (rho_r*u_r*u_r) // energy
 #define g_r (l_r/(t_r*t_r)) // gravitational constant
 
+// other constants
+#define kappa (1 + R/c_v)
+
 #endif

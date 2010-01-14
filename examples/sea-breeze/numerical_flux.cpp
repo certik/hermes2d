@@ -7,9 +7,8 @@ double matrix_R(int i, int j, double w0, double w1, double w3, double w4)
     double w = w3/w0;
     double E = w4;
     double v2 = u*u+w*w;
-    double kappa=1.4;
     double p = (kappa-1)*(E - rho*v2/2);
-    double c=sqrt(kappa*p/rho);
+    double c = sqrt(kappa*p/rho);
     if (i == 0 && j == 0)
         return 1;
     else if (i == 0 && j == 1)
@@ -57,9 +56,8 @@ double matrix_R_inv(int i, int j, double w0, double w1, double w3, double w4)
     double w = w3/w0;
     double E = w4;
     double v2 = u*u+w*w;
-    double kappa=1.4;
     double p = (kappa-1)*(E - rho*v2/2);
-    double c=sqrt(kappa*p/rho);
+    double c = sqrt(kappa*p/rho);
     if (i == 0 && j == 0)
         return ((kappa-1)*v2/2 + u*c)/2;
     else if (i == 0 && j == 1)
