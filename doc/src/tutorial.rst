@@ -209,7 +209,12 @@ above example, we have
 Loading Mesh
 ------------
 
-As a ``Hello world'' example, let us load the mesh we have just created, and display it in a window. The main.cpp file that we are going to discuss can be found `here <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/tutorial/01-mesh/main.cpp>`_. Every main.cpp file in the git repo contains lots of comments and instructions. Skipping those, the `main.cpp <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/tutorial/01-mesh/main.cpp>`_ file of example 01-mesh/ begins with creating an instance of the class Mesh.
+As a ``Hello world'' example, let us load the mesh we have just created, and display it in a window. 
+The main.cpp file that we are going to discuss can be found 
+`here <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/tutorial/01-mesh/main.cpp>`_. 
+Every main.cpp file in the git repo contains lots of comments and instructions. Skipping those, 
+the `main.cpp <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/tutorial/01-mesh/main.cpp>`_ 
+file of example 01-mesh/ begins with creating an instance of the class Mesh.
 This class contains the method load() which is used to load the mesh file:
 ::
 

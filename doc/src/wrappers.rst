@@ -52,7 +52,7 @@ class LinSystem
     :members:
 
 class NonlinSystem
----------------
+------------------
 
 .. autoclass:: NonlinSystem
     :members:
@@ -159,7 +159,7 @@ class H1OrthoHP
     :members:
 
 class HcurlOrthoHP
----------------
+------------------
 
 .. autoclass:: HcurlOrthoHP
     :members:
