@@ -20,6 +20,8 @@
 
 #include "common.h"
 #include "mesh.h"
+#include "mesh_loader.h"
+#include "exodusii.h"
 
 #include "space_h1.h"
 #include "space_hcurl.h"
