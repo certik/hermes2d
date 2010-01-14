@@ -11,7 +11,7 @@ include(UseCython)
 include_directories(${PYTHON_INCLUDE_PATH} ${NUMPY_INCLUDE_PATH})
 include_directories(${hermes2d_SOURCE_DIR}/python/hermes2d)
 
-add_executable(${PROJECT_NAME} main.cpp forms.cpp)
+add_executable(${PROJECT_NAME} main.cpp forms.cpp numerical_flux.cpp)
 include (../CMake.common)
 
 target_link_libraries(${PROJECT_NAME} ${PYTHON_LIBRARIES})
