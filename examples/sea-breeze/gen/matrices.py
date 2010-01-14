@@ -26,7 +26,7 @@ print "R_inv"
 R_inv_times_c2 = (R.inv()*c**2).applyfunc(simplify)
 D = diag([u-c, u, u, u, u+c])
 D_minus1 = diag([u-c, u, u, u, 0])
-D_minus2 = diag([-c, 0, 0, 0, 0])
+D_minus2 = diag([u-c, 0, 0, 0, 0])
 print "A"
 A = (R*D*R_inv_times_c2/c**2).applyfunc(simplify)
 print "A_minus1"
@@ -50,7 +50,7 @@ Explicit forms of the matrices:
 
     {\bf A}_x = %s
 
-For $u_1>0$:
+For $u_1<0$:
 
 .. math::
 
@@ -58,7 +58,7 @@ For $u_1>0$:
 
     {\bf A}_x^- = %s
 
-For $u_1<0$:
+For $u_1>0$:
 
 .. math::
 
