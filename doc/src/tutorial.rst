@@ -1707,7 +1707,7 @@ approximation
 .. math::
     :label: iron-water
 
-       -\nabla \cdot (D(x,y) \nabla \Phi) + \Sigma_a(a,y) \Phi = Q_ext(x,y)
+       -\nabla \cdot (D(x,y) \nabla \Phi) + \Sigma_a(x,y) \Phi = Q_ext(x,y)
 
 The domain of interest is a 30 x 30 cm square consisting of four regions.
 A uniform volumetric source is placed in water in the lower-left corner 
@@ -1771,7 +1771,7 @@ neutron diffusion approximation
 .. math::
     :label: saphir
 
-       -\nabla \cdot (D(x,y) \nabla \Phi) + \Sigma_a(a,y) \Phi = Q_ext(x,y)
+       -\nabla \cdot (D(x,y) \nabla \Phi) + \Sigma_a(x,y) \Phi = Q_ext(x,y)
 
 The domain of interest is a 96 x 86 cm rectangle consisting of five regions:
 
