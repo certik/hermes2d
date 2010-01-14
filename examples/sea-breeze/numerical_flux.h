@@ -4,6 +4,7 @@
 #include "hermes2d.h"
 #include "params.h"
 
-void flux();
+double matrix_R(int i, int j, double w0, double w1, double w3, double w4);
+double matrix_R_inv(int i, int j, double w0, double w1, double w3, double w4);
 
 #endif
