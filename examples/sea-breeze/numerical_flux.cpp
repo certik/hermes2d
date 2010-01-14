@@ -58,42 +58,45 @@ double matrix_R_inv(int i, int j, double w0, double w1, double w3, double w4)
     double v2 = u*u+w*w;
     double p = (kappa-1)*(E - rho*v2/2);
     double c = sqrt(kappa*p/rho);
+    double result;
     if (i == 0 && j == 0)
-        return ((kappa-1)*v2/2 + u*c)/2;
+        result = ((kappa-1)*v2/2 + u*c)/2;
     else if (i == 0 && j == 1)
-        return -(c+u*(kappa-1))/2;
+        result = -(c+u*(kappa-1))/2;
     else if (i == 0 && j == 2)
-        return -w*(kappa-1)/2;
+        result = -w*(kappa-1)/2;
     else if (i == 0 && j == 3)
-        return (kappa-1)/2;
+        result = (kappa-1)/2;
 
     else if (i == 1 && j == 0)
-        return c*c-c*w-(kappa-1)*v2/2;
+        result = c*c-c*w-(kappa-1)*v2/2;
     else if (i == 1 && j == 1)
-        return u*(kappa-1);
+        result = u*(kappa-1);
     else if (i == 1 && j == 2)
-        return c+w*(kappa-1);
+        result = c+w*(kappa-1);
     else if (i == 1 && j == 3)
-        return 1-kappa;
+        result = 1-kappa;
 
     else if (i == 2 && j == 0)
-        return w*c;
+        result = w*c;
     else if (i == 2 && j == 1)
-        return 0;
+        result = 0;
     else if (i == 2 && j == 2)
-        return -c;
+        result = -c;
     else if (i == 2 && j == 3)
-        return 0;
+        result = 0;
 
     else if (i == 3 && j == 0)
-        return ((kappa-1)*v2/2 - u*c)/2;
+        result = ((kappa-1)*v2/2 - u*c)/2;
     else if (i == 3 && j == 1)
-        return (c-u*(kappa-1))/2;
+        result = (c-u*(kappa-1))/2;
     else if (i == 3 && j == 2)
-        return -w*(kappa-1)/2;
+        result = -w*(kappa-1)/2;
     else if (i == 3 && j == 3)
-        return (kappa-1)/2;
-
-    printf("i=%d, j=%d;\n", i, j);
-    error("Invalid index.");
+        result = (kappa-1)/2;
+    else {
+        printf("i=%d, j=%d;\n", i, j);
+        error("Invalid index.");
+    }
+    return result/(c*c);
 }
