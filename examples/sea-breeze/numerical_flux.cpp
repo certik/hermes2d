@@ -100,3 +100,55 @@ double matrix_R_inv(int i, int j, double w0, double w1, double w3, double w4)
     }
     return result/(c*c);
 }
+
+double matrix_D_minus(int i, int j, double w0, double w1, double w3, double w4)
+{
+    double rho = w0;
+    double u = w1/w0;
+    double w = w3/w0;
+    double E = w4;
+    double v2 = u*u+w*w;
+    double p = (kappa-1)*(E - rho*v2/2);
+    double c = sqrt(kappa*p/rho);
+    double u_diag = 0;
+    if (u < 0)
+        u_diag = u;
+    if (i == 0 && j == 0)
+        return u-c;
+    else if (i == 0 && j == 1)
+        return 0;
+    else if (i == 0 && j == 2)
+        return 0;
+    else if (i == 0 && j == 3)
+        return 0;
+
+    else if (i == 1 && j == 0)
+        return 0;
+    else if (i == 1 && j == 1)
+        return u_diag;
+    else if (i == 1 && j == 2)
+        return 0;
+    else if (i == 1 && j == 3)
+        return 0;
+
+    else if (i == 2 && j == 0)
+        return 0;
+    else if (i == 2 && j == 1)
+        return 0;
+    else if (i == 2 && j == 2)
+        return u_diag;
+    else if (i == 2 && j == 3)
+        return 0;
+
+    else if (i == 3 && j == 0)
+        return 0;
+    else if (i == 3 && j == 1)
+        return 0;
+    else if (i == 3 && j == 2)
+        return 0;
+    else if (i == 3 && j == 3)
+        return 0;
+
+    printf("i=%d, j=%d;\n", i, j);
+    error("Invalid index.");
+}
