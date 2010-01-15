@@ -64,15 +64,15 @@ int bc_types(int marker)
   if (marker==4) {return BC_ESSENTIAL;}
 }
 
-complex dir_bc_values(int marker, double x, double y)
+cplx dir_bc_values(int marker, double x, double y)
 {
-  return complex(0.0,0.0);
+  return cplx(0.0,0.0);
 }
 
 template<typename Real, typename Scalar>
 Scalar bilinear_form_iron(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
-  scalar ii = complex(0.0, 1.0);
+  scalar ii = cplx(0.0, 1.0);
   return 1./mu_iron * int_grad_u_grad_v<Real, Scalar>(n, wt, u, v) + ii*omega*gamma_iron*int_u_v<Real, Scalar>(n, wt, u, v);
 }
 

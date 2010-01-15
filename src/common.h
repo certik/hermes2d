@@ -72,9 +72,9 @@ const int order_mask = (1 << order_bits) - 1;
 
 #ifdef COMPLEX
   #include <complex>
-  typedef std::complex<double> complex;
-  typedef complex scalar;
-  typedef complex complex2[2];
+  typedef std::complex<double> cplx;
+  typedef cplx scalar;
+  typedef cplx complex2[2];
 #else
   typedef double scalar;
 #endif
@@ -98,17 +98,17 @@ typedef scalar scalar3[3];
 inline int sqr(int x) { return x*x; }
 inline double sqr(double x) { return x*x; }
 #ifdef COMPLEX
-inline double sqr(complex x) { return std::norm(x); }
+inline double sqr(cplx x) { return std::norm(x); }
 #endif
 
 inline double magn(double x) { return fabs(x); }
 #ifdef COMPLEX
-inline double magn(complex x) { return std::abs(x); }
+inline double magn(cplx x) { return std::abs(x); }
 #endif
 
 inline double conj(double a) {  return a; }
 #ifdef COMPLEX
-inline ::complex conj(::complex a) { return std::conj(a); }
+inline cplx conj(cplx a) { return std::conj(a); }
 #endif
 
 #define is_int(x) ((int) (x) == (x))
