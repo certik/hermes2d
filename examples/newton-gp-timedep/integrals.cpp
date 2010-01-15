@@ -2,7 +2,7 @@
 template<typename Real, typename Scalar>
 Scalar F_euler(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
-  scalar ii = complex(0.0, 1.0);  // imaginary unit, ii^2 = -1
+  scalar ii = cplx(0.0, 1.0);  // imaginary unit, ii^2 = -1
 
   Scalar result = 0;
   Func<Scalar>* psi_iter = ext->fn[0];
@@ -19,7 +19,7 @@ Scalar F_euler(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> 
 template<typename Real, typename Scalar>
 Scalar J_euler(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
-  scalar ii = complex(0.0, 1.0);  // imaginary unit, ii^2 = -1
+  scalar ii = cplx(0.0, 1.0);  // imaginary unit, ii^2 = -1
 
   Scalar result = 0;
   Func<Scalar>* psi_iter = ext->fn[0];
@@ -35,7 +35,7 @@ Scalar J_euler(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, E
 template<typename Real, typename Scalar>
 Scalar F_cranic(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
-  scalar ii = complex(0.0, 1.0);  // imaginary unit, ii^2 = -1
+  scalar ii = cplx(0.0, 1.0);  // imaginary unit, ii^2 = -1
 
   Scalar result = 0;
   Func<Scalar>* psi_iter = ext->fn[0];
@@ -54,7 +54,7 @@ Scalar F_cranic(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar>
 template<typename Real, typename Scalar>
 Scalar J_cranic(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
-  scalar ii = complex(0.0, 1.0);  // imaginary unit, ii^2 = -1
+  scalar ii = cplx(0.0, 1.0);  // imaginary unit, ii^2 = -1
 
   Scalar result = 0;
   Func<Scalar>* psi_iter = ext->fn[0];
