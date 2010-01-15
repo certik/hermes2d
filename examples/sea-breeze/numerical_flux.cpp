@@ -152,3 +152,21 @@ double matrix_D_minus(int i, int j, double w0, double w1, double w3, double w4)
     printf("i=%d, j=%d;\n", i, j);
     error("Invalid index.");
 }
+
+/*
+double matrix_A_minus(int i, int j, double w0, double w1, double w3, double w4)
+{
+    double _R[16];
+    double _D[16];
+    double _D_inv[16];
+    double _A[16];
+    for (int i=0; i<4; i++) {
+        double r=0;
+        for (int j=0; j<4; j++) {
+            r += A_x(i, j, w0, w1, w3, w4) * w(j, w0, w1, w3, w4);
+        }
+        r -= f_x(i, w0, w1, w3, w4);
+        printf("result: %d: %f\n", i, r);
+    }
+}
+*/
