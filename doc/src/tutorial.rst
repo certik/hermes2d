@@ -1702,81 +1702,17 @@ This section contains the description of selected `examples
 Its purpose is to complement rather than duplicate the information 
 in the corresponding main.cpp files.
 
-Iron-Water
-----------
-
-This is a standard nuclear engineering benchmark describing an external-force-driven
-configuration without fissile materials present, using one-group neutron diffusion 
-approximation
-
-.. math::
-    :label: iron-water
-
-       -\nabla \cdot (D(x,y) \nabla \Phi) + \Sigma_a(x,y) \Phi = Q_ext(x,y)
-
-The domain of interest is a 30 x 30 cm square consisting of four regions.
-A uniform volumetric source is placed in water in the lower-left corner 
-of the domain, surrounded with a layer of water, a layer of iron, and finally
-another layer of water:
-
-.. image:: img/iron-water.png
-   :align: center
-   :width: 400
-   :height: 400
-   :alt: Schematic picture for the iron-water example.
-
-
-The unknown is the neutron flux $\Phi(x, y)$. The values of the diffusion coefficient 
-$D(x, y)$, absorption cross-section $\Sigma_a(x, y)$ and the source term $Q_{ext}(x,y)$
-are constant in the subdomains. The source $Q_{ext} = 1$ in area 1 and zero 
-elsewhere. The boundary conditions for this problem are zero Dirichlet (right and top edges)
-and zero Neumann (bottom and left edges). Other parameter values and additional information can be 
-found in the `main.cpp <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/examples/iron-water/main.cpp>`_ file.
-
-The solution is shown below:
-
-.. image:: img/iron-water-sol.png
-   :align: center
-   :width: 600
-   :height: 400
-   :alt: Solution to the iron-water example.
-
-The final hp-mesh looks as follows:
-
-.. image:: img/iron-water-mesh.png
-   :align: center
-   :width: 440
-   :height: 400
-   :alt: Final finite element mesh for the iron-water example.
-
-Convergence graphs of adaptive h-FEM with linear elements, h-FEM with quadratic elements
-and hp-FEM are shown below.
-
-.. image:: graphs/iron-water/conv_dof_iron_water.png
-   :align: center
-   :width: 600
-   :height: 400
-   :alt: DOF convergence graph for example iron-water.
-
-The following graph shows convergence in terms of CPU time. 
-
-.. image:: graphs/iron-water/conv_cpu_iron_water.png
-   :align: center
-   :width: 600
-   :height: 400
-   :alt: CPU convergence graph for example iron-water.
-
 Saphir
 ------
 
-This is another standard nuclear engineering benchmark (IAEA number EIR-2) describing 
+This is a standard nuclear engineering benchmark (IAEA number EIR-2) describing 
 an external-force-driven configuration without fissile materials present, using one-group 
 neutron diffusion approximation
 
 .. math::
     :label: saphir
 
-       -\nabla \cdot (D(x,y) \nabla \Phi) + \Sigma_a(x,y) \Phi = Q_ext(x,y)
+       -\nabla \cdot (D(x,y) \nabla \Phi) + \Sigma_a(x,y) \Phi = Q_{ext}(x,y).
 
 The domain of interest is a 96 x 86 cm rectangle consisting of five regions:
 
@@ -1793,9 +1729,9 @@ elsewhere. Boundary conditions for the flux $\Phi$ are zero everywhere.
 Parameter values and additional information can be 
 found in the `main.cpp <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/examples/saphir/main.cpp>`_ file.
 
-Note the way material properties are defined. This approach is alternative to how this was done 
-in tutorial examples 07 and 12 and in example iron-water. Now, we define a separate weak form 
-for every material:
+It is worth noticing how different material parameters are handled - we define a separate weak form 
+for each material. This approach is more flexible to how material parameters were handled in 
+tutorial examples 07 and 12:
 
 ::
 
@@ -1839,7 +1775,7 @@ for every material:
              + SIGMA_A_5 * int_u_v<Real, Scalar>(n, wt, u, v);
     }
 
-The weak forms are associated with material flags as follows:
+The weak forms are associated with element material flags (coming from the mesh file) as follows:
 
 ::
 
@@ -1885,6 +1821,84 @@ The following graph shows convergence in terms of CPU time.
    :width: 600
    :height: 400
    :alt: CPU convergence graph for example saphir.
+
+Iron-Water
+----------
+
+This example is very similar to the example "saphir", the main difference being that 
+it reads a mesh file in the exodusii format (created by Cubit). This example only builds 
+if you have the `ExodusII <http://sourceforge.net/projects/exodusii/>`_ and 
+`NetCDF <http://www.unidata.ucar.edu/software/netcdf/>`_ libraries installed on your system and 
+the variables WITH_EXODUSII, EXODUSII_ROOT and NETCDF_ROOT defined properly. 
+The latter can be done, for example, in the CMake.vars file as follows:
+
+::
+
+    SET(WITH_EXODUSII YES)
+    SET(EXODUSII_ROOT /opt/packages/exodusii)
+    SET(NETCDF_ROOT   /opt/packages/netcdf)
+
+
+The model describes an external-force-driven configuration without fissile materials present.
+We will solve the one-group neutron diffusion equation
+
+.. math::
+    :label: iron-water
+
+       -\nabla \cdot (D(x,y) \nabla \Phi) + \Sigma_a(x,y) \Phi = Q_{ext}(x,y).
+
+The domain of interest is a 30 x 30 cm square consisting of four regions.
+A uniform volumetric source is placed in water in the lower-left corner 
+of the domain, surrounded with a layer of water, a layer of iron, and finally
+another layer of water:
+
+.. image:: img/iron-water.png
+   :align: center
+   :width: 400
+   :height: 400
+   :alt: Schematic picture for the iron-water example.
+
+
+The unknown is the neutron flux $\Phi(x, y)$. The values of the diffusion coefficient 
+$D(x, y)$, absorption cross-section $\Sigma_a(x, y)$ and the source term $Q_{ext}(x,y)$
+are constant in the subdomains. The source $Q_{ext} = 1$ in area 1 and zero 
+elsewhere. The boundary conditions for this problem are zero Dirichlet (right and top edges)
+and zero Neumann (bottom and left edges). Other parameter values and additional information 
+can be 
+found in the `main.cpp <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/examples/iron-water/main.cpp>`_ file.
+
+The solution is shown below:
+
+.. image:: img/iron-water-sol.png
+   :align: center
+   :width: 600
+   :height: 400
+   :alt: Solution to the iron-water example.
+
+The final hp-mesh looks as follows:
+
+.. image:: img/iron-water-mesh.png
+   :align: center
+   :width: 440
+   :height: 400
+   :alt: Final finite element mesh for the iron-water example.
+
+Convergence graphs of adaptive h-FEM with linear elements, h-FEM with quadratic elements
+and hp-FEM are shown below.
+
+.. image:: graphs/iron-water/conv_dof_iron_water.png
+   :align: center
+   :width: 600
+   :height: 400
+   :alt: DOF convergence graph for example iron-water.
+
+The following graph shows convergence in terms of CPU time. 
+
+.. image:: graphs/iron-water/conv_cpu_iron_water.png
+   :align: center
+   :width: 600
+   :height: 400
+   :alt: CPU convergence graph for example iron-water.
 
 Navier-Stokes
 -------------
