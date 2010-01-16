@@ -179,10 +179,10 @@ void dot_vector(double result[4], double A[4][4], double B[4])
 
 void T_rot(double result[4][4], double beta)
 {
-    for (int i; i < 4; i++)
-        for (int j; j < 4; j++)
+    for (int i=0; i < 4; i++)
+        for (int j=0; j < 4; j++)
             result[i][j] = 0;
-    result[0][1] = 1;
+    result[0][0] = 1;
     result[1][1] = cos(beta);
     result[1][2] = sin(beta);
     result[2][1] = -sin(beta);
@@ -226,4 +226,20 @@ void flux_riemann(double result[4], double w_l[4], double w_r[4])
         double _3 = _tmp4[i];
         result[i] = _1 + _2 - _3;
     }
+}
+
+// calculates the inverted flux, for testing purposes
+// it should return the same thing as flux_riemann(), only with minus sign
+void flux_riemann_invert(double result[4], double w_l[4], double w_r[4])
+{
+    double m[4][4];
+    double _w_l[4];
+    double _w_r[4];
+    double _tmp[4];
+    T_rot(m, M_PI);
+    dot_vector(_w_l, m, w_l);
+    dot_vector(_w_r, m, w_r);
+    flux_riemann(_tmp, _w_r, _w_l);
+    T_rot(m, -M_PI);
+    dot_vector(result, m, _tmp);
 }
