@@ -1,3 +1,5 @@
+from math import sin, cos, pi
+
 from numpy import array, zeros, dot
 from numpy.linalg import inv
 
@@ -37,6 +39,17 @@ def A_minus(w):
 def f_riemann(w_l, w_r):
     return f_x(w_l) + dot(A_minus(w_r), w_r) - dot(A_minus(w_l), w_l)
 
+def T_rot(beta):
+    # this is the 3D rotation matrix (2.2.51 in Pavel's master thesis)
+    # in 2D without the middle column and row, alpha = 0
+    alpha = 0
+    return array([
+        [1, 0, 0, 0],
+        [0, cos(alpha)*cos(beta), sin(beta), 0],
+        [0, -cos(alpha)*sin(beta), cos(beta), 0],
+        [0, 0, 0, 1]
+        ])
+
 w = array([1.1, -10, 13, 700.1])
 
 print "R:\n", R(w)
@@ -48,7 +61,14 @@ print "A:\n", A_minus(w)
 print "-"*80
 w_l = array([1.1, -10, 13, 700.1])
 w_r = array([1.1, -10, 13, 800.1])
-print "f_riemann(%r, %r):\n%r" % (w_l, w_r, f_riemann(w_l, w_r))
-print "f_riemann(%r, %r):\n%r" % (w_r, w_l, f_riemann(w_r, w_l))
+print "1st condition"
 print "f_riemann(%r, %r):\n%r" % (w_l, w_l, f_riemann(w_l, w_l))
 print f_x(w_l)
+print "2nd condition"
+alpha = 0.3
+m = T_rot(alpha)
+w_r = dot(m, w_r)
+w_l = dot(m, w_l)
+print "f_riemann 1:\n%r" % (f_riemann(w_r, w_l))
+m = T_rot(pi)
+print "f_riemann 2:\n%r" % (-dot(inv(m), f_riemann(dot(m, w_l), dot(m, w_r))))
