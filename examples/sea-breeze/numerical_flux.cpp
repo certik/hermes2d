@@ -166,6 +166,17 @@ void dot(double result[4][4], double A[4][4], double B[4][4])
         }
 }
 
+// multiplies a matrix and a vector
+void dot_vector(double result[4], double A[4][4], double B[4])
+{
+    for (int i=0; i < 4; i++) {
+        double sum=0;
+        for (int k=0; k < 4; k++)
+            sum += A[i][k] * B[k];
+        result[i] = sum;
+    }
+}
+
 void T_rot(double result[4][4], double beta)
 {
     for (int i; i < 4; i++)
@@ -203,15 +214,16 @@ void flux_riemann(double result[4], double w_l[4], double w_r[4])
 {
     double _tmp1[4][4];
     double _tmp2[4][4];
+    double _tmp3[4];
+    double _tmp4[4];
     A_minus(_tmp1, w_r[0], w_r[1], w_r[2], w_r[3]);
     A_minus(_tmp2, w_l[0], w_l[1], w_l[2], w_l[3]);
+    dot_vector(_tmp3, _tmp1, w_r);
+    dot_vector(_tmp4, _tmp2, w_l);
     for (int i=0; i < 4; i++) {
-        double _1 = 0;
-        for (int k=0; k < 4; k++)
-            _1 += _tmp1[i][k] * w_r[k];
-        double _2 = 0;
-        for (int k=0; k < 4; k++)
-            _2 += _tmp2[i][k] * w_l[k];
-        result[i] = f_x(i, w_l[0], w_l[1], w_l[2], w_l[3]) + _1 - _2;
+        double _1 = f_x(i, w_l[0], w_l[1], w_l[2], w_l[3]);
+        double _2 = _tmp3[i];
+        double _3 = _tmp4[i];
+        result[i] = _1 + _2 - _3;
     }
 }
