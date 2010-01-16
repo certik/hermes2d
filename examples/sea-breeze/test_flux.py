@@ -4,7 +4,7 @@ from numpy import array, zeros, dot
 from numpy.linalg import inv
 
 from _numerical_flux import matrix_R, matrix_R_inv, matrix_D_minus, \
-        c_v
+        c_v, flux_riemann
 from _numerical_flux import R as R_const
 
 def R(w):
@@ -72,3 +72,4 @@ w_l = dot(m, w_l)
 print "f_riemann 1:\n%r" % (f_riemann(w_r, w_l))
 m = T_rot(pi)
 print "f_riemann 2:\n%r" % (-dot(inv(m), f_riemann(dot(m, w_l), dot(m, w_r))))
+print "f_riemann C++:\n%r" % (flux_riemann(w_r, w_l))

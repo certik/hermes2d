@@ -21,6 +21,6 @@ cython_add_module(_forms forms.cpp)
 target_link_libraries(_forms ${HERMES_REAL_BIN})
 add_dependencies(_forms _hermes2d)
 
-cython_add_module(_numerical_flux numerical_flux.cpp)
+cython_add_module(_numerical_flux numerical_flux.cpp forms.cpp)
 target_link_libraries(_numerical_flux ${HERMES_REAL_BIN})
 add_dependencies(_numerical_flux _hermes2d)
