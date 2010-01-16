@@ -9,6 +9,7 @@ cdef extern from "numerical_flux.h":
     double c_matrix_R_inv "matrix_R_inv"(int i, int j, double w0, double w1, double w3, double w4)
     double c_matrix_D_minus "matrix_D_minus"(int i, int j, double w0, double w1, double w3, double w4)
     void c_flux_riemann "flux_riemann"(double result[4], double w_l[4], double w_r[4])
+    void c_flux_riemann_invert "flux_riemann_invert"(double result[4], double w_l[4], double w_r[4])
     double c_R "R"
     double c_c_v "c_v"
 
@@ -32,4 +33,14 @@ def flux_riemann(w_l, w_r):
     array_double_numpy2c_inplace(w_l, &_w_l, &n)
     array_double_numpy2c_inplace(w_r, &_w_r, &n)
     c_flux_riemann(result, _w_l, _w_r)
+    return array_double_c2numpy(&(result[0]), 4)
+
+def flux_riemann_invert(w_l, w_r):
+    cdef double result[4]
+    cdef double *_w_l
+    cdef double *_w_r
+    cdef int n
+    array_double_numpy2c_inplace(w_l, &_w_l, &n)
+    array_double_numpy2c_inplace(w_r, &_w_r, &n)
+    c_flux_riemann_invert(result, _w_l, _w_r)
     return array_double_c2numpy(&(result[0]), 4)

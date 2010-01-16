@@ -4,7 +4,7 @@ from numpy import array, zeros, dot, eye
 from numpy.linalg import inv
 
 from _numerical_flux import matrix_R, matrix_R_inv, matrix_D_minus, \
-        c_v, flux_riemann
+        c_v, flux_riemann, flux_riemann_invert
 from _numerical_flux import R as R_const
 
 eps = 1e-10
@@ -78,9 +78,11 @@ def test_flux():
     flux2 = -dot(inv(m), f_riemann(dot(m, w_r), dot(m, w_l)))
     flux3 = flux_riemann(w_l, w_r)
     flux4 = -dot(inv(m), flux_riemann(dot(m, w_r), dot(m, w_l)))
+    flux5 = -flux_riemann_invert(w_l, w_r)
     assert (flux1 - flux2 < eps).all()
     assert (flux1 - flux3 < eps).all()
     assert (flux1 - flux4 < eps).all()
+    assert (flux1 - flux5 < eps).all()
 
     w_l = array([1.1, -10, 13, 700.1])
     w_r = array([1.1, -10, 13, 800.1])
@@ -93,6 +95,8 @@ def test_flux():
     flux2 = -dot(inv(m), f_riemann(dot(m, w_r), dot(m, w_l)))
     flux3 = flux_riemann(w_l, w_r)
     flux4 = -dot(inv(m), flux_riemann(dot(m, w_r), dot(m, w_l)))
+    flux5 = -flux_riemann_invert(w_l, w_r)
     assert (flux1 - flux2 < eps).all()
     assert (flux1 - flux3 < eps).all()
     assert (flux1 - flux4 < eps).all()
+    assert (flux1 - flux5 < eps).all()
