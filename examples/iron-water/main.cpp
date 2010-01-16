@@ -3,9 +3,9 @@
 
 //  This example is a standard nuclear engineering benchmark describing an external-force-driven
 //  configuration without fissile materials present, using one-group neutron diffusion approximation.
-//
-//  Note the way of handling different material parameters. An alternative approach is used in 
-//  example "saphir".
+//  It is very similar to example "saphir", the main difference being that the mesh is loaded in
+//  the ExodusII format (created for example by Cubit).  
+//  
 //
 //  PDE: -div(D(x,y)grad\Phi) + \Sigma_a(x,y)\Phi = Q_{ext}(x,y)
 //  where D(x, y) is the diffusion coefficient, \Sigma_a(x,y) the absorption cross-section,
@@ -46,7 +46,7 @@ const int MESH_REGULARITY = -1;   // Maximum allowed level of hanging nodes:
                                   // MESH_REGULARITY = 2 ... at most two-level hanging nodes, etc.
                                   // Note that regular meshes are not supported, this is due to
                                   // their notoriously bad performance.
-const double ERR_STOP = 1e-2;     // Stopping criterion for adaptivity (rel. error tolerance between the
+const double ERR_STOP = 1e-3;     // Stopping criterion for adaptivity (rel. error tolerance between the
                                   // fine mesh and coarse mesh solution in percent).
 const int NDOF_STOP = 60000;      // Adaptivity process stops when the number of degrees of freedom grows
                                   // over this limit. This is to prevent h-adaptivity to go on forever.

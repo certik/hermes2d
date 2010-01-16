@@ -1789,7 +1789,9 @@ The weak forms are associated with element material flags (coming from the mesh 
     wf.add_liform(0, linear_form_1, linear_form_ord, 1);
     wf.add_liform(0, linear_form_3, linear_form_ord, 3);
 
-The solution is shown below:
+Sample results of this computation are shown below.
+
+Solution:
 
 .. image:: img/saphir-sol.png
    :align: center
@@ -1797,16 +1799,32 @@ The solution is shown below:
    :height: 400
    :alt: Solution to the saphir example.
 
-The final hp-mesh looks as follows:
+Final hp-mesh:
 
-.. image:: img/saphir-mesh.png
+.. image:: img/saphir-mesh-hp.png
    :align: center
    :width: 440
    :height: 400
-   :alt: Final finite element mesh for the saphir example.
+   :alt: Final finite element mesh for the saphir example (hp-FEM).
 
-Convergence graphs of adaptive h-FEM with linear elements, h-FEM with quadratic elements
-and hp-FEM are shown below.
+Final mesh for h-adaptivity with quadratic elements:
+
+.. image:: img/saphir-mesh-h2.png
+   :align: center
+   :width: 440
+   :height: 400
+   :alt: Final finite element mesh for the saphir example (h-FEM with quadratic elements).
+
+
+Final mesh for h-adaptivity with linear elements:
+
+.. image:: img/saphir-mesh-h1.png
+   :align: center
+   :width: 440
+   :height: 400
+   :alt: Final finite element mesh for the saphir example (h-FEM with linear elements).
+
+DOF convergence graphs:
 
 .. image:: graphs/saphir/conv_dof_saphir.png
    :align: center
@@ -1814,13 +1832,15 @@ and hp-FEM are shown below.
    :height: 400
    :alt: DOF convergence graph for example saphir.
 
-The following graph shows convergence in terms of CPU time. 
+CPU time convergence graphs:
 
 .. image:: graphs/saphir/conv_cpu_saphir.png
    :align: center
    :width: 600
    :height: 400
    :alt: CPU convergence graph for example saphir.
+
+
 
 Iron-Water
 ----------
@@ -1838,6 +1858,15 @@ The latter can be done, for example, in the CMake.vars file as follows:
     SET(EXODUSII_ROOT /opt/packages/exodusii)
     SET(NETCDF_ROOT   /opt/packages/netcdf)
 
+The mesh is now loaded using the ExodusIIReader (see 
+the `mesh_loader.h <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/src/mesh_loader.h>`_ file):
+
+::
+
+    // Load the mesh
+    Mesh mesh;
+    ExodusIIReader mloader;
+    if (!mloader.load("iron-water.e", &mesh)) error("ExodusII mesh load failed.");
 
 The model describes an external-force-driven configuration without fissile materials present.
 We will solve the one-group neutron diffusion equation
@@ -1858,7 +1887,6 @@ another layer of water:
    :height: 400
    :alt: Schematic picture for the iron-water example.
 
-
 The unknown is the neutron flux $\Phi(x, y)$. The values of the diffusion coefficient 
 $D(x, y)$, absorption cross-section $\Sigma_a(x, y)$ and the source term $Q_{ext}(x,y)$
 are constant in the subdomains. The source $Q_{ext} = 1$ in area 1 and zero 
@@ -1866,8 +1894,9 @@ elsewhere. The boundary conditions for this problem are zero Dirichlet (right an
 and zero Neumann (bottom and left edges). Other parameter values and additional information 
 can be 
 found in the `main.cpp <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/examples/iron-water/main.cpp>`_ file.
+Sample results of this computation are shown below.
 
-The solution is shown below:
+Solution:
 
 .. image:: img/iron-water-sol.png
    :align: center
@@ -1875,16 +1904,32 @@ The solution is shown below:
    :height: 400
    :alt: Solution to the iron-water example.
 
-The final hp-mesh looks as follows:
+Final hp-mesh:
 
-.. image:: img/iron-water-mesh.png
+.. image:: img/iron-water-mesh-hp.png
    :align: center
    :width: 440
    :height: 400
-   :alt: Final finite element mesh for the iron-water example.
+   :alt: Final finite element mesh for the iron-water example (hp-FEM).
 
-Convergence graphs of adaptive h-FEM with linear elements, h-FEM with quadratic elements
-and hp-FEM are shown below.
+Final mesh for h-adaptivity with quadratic elements:
+
+.. image:: img/iron-water-mesh-h2.png
+   :align: center
+   :width: 440
+   :height: 400
+   :alt: Final finite element mesh for the iron-water example (h-FEM with quadratic elements).
+
+
+Final mesh for h-adaptivity with linear elements:
+
+.. image:: img/iron-water-mesh-h1.png
+   :align: center
+   :width: 440
+   :height: 400
+   :alt: Final finite element mesh for the iron-water example (h-FEM with linear elements).
+
+DOF convergence graphs:
 
 .. image:: graphs/iron-water/conv_dof_iron_water.png
    :align: center
@@ -1892,13 +1937,15 @@ and hp-FEM are shown below.
    :height: 400
    :alt: DOF convergence graph for example iron-water.
 
-The following graph shows convergence in terms of CPU time. 
+CPU time convergence graphs:
 
 .. image:: graphs/iron-water/conv_cpu_iron_water.png
    :align: center
    :width: 600
    :height: 400
    :alt: CPU convergence graph for example iron-water.
+
+
 
 Navier-Stokes
 -------------
