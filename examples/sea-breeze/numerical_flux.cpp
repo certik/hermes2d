@@ -1,4 +1,5 @@
 #include "numerical_flux.h"
+#include "forms.h"
 
 double matrix_R(int i, int j, double w0, double w1, double w3, double w4)
 {
@@ -153,6 +154,7 @@ double matrix_D_minus(int i, int j, double w0, double w1, double w3, double w4)
     error("Invalid index.");
 }
 
+// multiplies two matrices
 void dot(double result[4][4], double A[4][4], double B[4][4])
 {
     for (int i=0; i < 4; i++)
@@ -184,10 +186,21 @@ void A_minus(double result[4][4], double w0, double w1, double w3, double w4)
     dot(result, _R, _tmp);
 }
 
-void flux_riemann(double w0, double w1, double w3, double w4)
+void flux_riemann(double result[4], double w_l[4], double w_r[4])
 {
-    double _tmp[4][4];
-    A_minus(_tmp, w0, w1, w3, w4);
+    double _tmp1[4][4];
+    double _tmp2[4][4];
+    A_minus(_tmp1, w_r[0], w_r[1], w_r[2], w_r[3]);
+    A_minus(_tmp2, w_l[0], w_l[1], w_l[2], w_l[3]);
+    for (int i=0; i < 4; i++) {
+        double _1 = 0;
+        for (int k=0; k < 4; k++)
+            _1 += _tmp1[i][k] * w_r[k];
+        double _2 = 0;
+        for (int k=0; k < 4; k++)
+            _2 += _tmp2[i][k] * w_l[k];
+        result[i] = f_x(i, w_l[0], w_l[1], w_l[2], w_l[3]) + _1 - _2;
+    }
 }
 
 /*
