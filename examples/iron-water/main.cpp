@@ -19,7 +19,7 @@
 //  The following parameters can be changed:
 
 const int P_INIT = 1;             // Initial polynomial degree of all mesh elements.
-const int INIT_REF_NUM = 3;       // Number of initial uniform mesh refinements
+const int INIT_REF_NUM = 1;       // Number of initial uniform mesh refinements
 const double THRESHOLD = 0.6;     // This is a quantitative parameter of the adapt(...) function and
                                   // it has different meanings for various adaptive strategies (see below).
 const int STRATEGY = 0;           // Adaptive strategy:
@@ -56,46 +56,15 @@ double L = 30;                        // edge of square
 double L0 = 0.75*0.5*L;               // end of first water layer
 double L1 = 0.5*L;                    // end of second water layer
 double L2 = 0.75*L;                   // end of iron layer
-double Q_EXT = 1.0;                   // neutron source
-double SIGMA_T_WATER = 3.33;
+double Q_EXT = 1.0;                   // neutron source (nonzero in domain 1 only)
+double SIGMA_T_WATER = 3.33;          // total cross-section
 double SIGMA_T_IRON = 1.33;
-double C_WATER = 0.994;
+double C_WATER = 0.994;               // scattering ratio
 double C_IRON = 0.831;
-
-// total cross-section
-double sigma_t(double x, double y) {
-  if(x < L1 && y < L1) return SIGMA_T_WATER;
-  if(x > L2 || y > L2) return SIGMA_T_WATER;
-  return SIGMA_T_IRON;
-}
-
-// diffusion coefficient
-double D(double x, double y) {
-  return 1./(3.*sigma_t(x, y));
-}
-
-// scattering ratio
-double c(double x, double y) {
-  if(x < L1 && y < L1) return C_WATER;
-  if(x > L2 || y > L2) return C_WATER;
-  return C_IRON;
-}
-
-// absorption cross section
-double sigma_a(double x, double y) {
-  double sigma_t_ = sigma_t(x, y);
-  double c_ = c(x, y);
-  double sigma_s = c_*sigma_t_; // scattering cross-section
-  return sigma_t_ - sigma_s;
-}
-
-// sources
-double q_ext(double x, double y) {
-  if(x < L0 && y < L0) return Q_EXT;
-  else return 0;
-}
-
-/********** Boundary conditions ***********/
+double D_WATER = 1./(3.*SIGMA_T_WATER);  // diffusion coefficient
+double D_IRON = 1./(3.*SIGMA_T_IRON);
+double SIGMA_A_WATER = SIGMA_T_WATER - C_WATER*SIGMA_T_WATER;  // absorbing cross-section
+double SIGMA_A_IRON = SIGMA_T_IRON - C_IRON*SIGMA_T_IRON;
 
 // Boundary condition types
 int bc_types(int marker)
@@ -110,56 +79,17 @@ scalar bc_values(int marker, double x, double y)
   return 0.0;
 }
 
-// (Volumetric) bilinear form
-template<typename Real, typename Scalar>
-Scalar bilinear_form(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
-{
-  Scalar result = 0;
-  for (int i=0; i < n; i++) {
-    double x = e->x[i];
-    double y = e->y[i];
-    result += (D(x, y) * (u->dx[i]*v->dx[i] + u->dy[i]*v->dy[i])
-	       + sigma_a(x, y) * u->val[i] * v->val[i]) * wt[i];
-  }
-  return result;
-}
-
-// Integration order for the bilinear form
-Ord bilinear_form_ord(int n, double *wt, Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext)
-{
-  return u->val[0] * v->val[0]; // returning the sum of the degrees of the basis 
-                                // and test function
-}
-
-// (Volumetrix) linear form (right-hand side)
-template<typename Real, typename Scalar>
-Scalar linear_form(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
-{
-  //return int_F_v<Real, Scalar>(n, wt, q_ext, v, e);
-  Scalar result = 0;
-  for (int i=0; i < n; i++) {
-    double x = e->x[i];
-    double y = e->y[i];
-    result += q_ext(x, y) * v->val[i] * wt[i];
-  }
-  return result;
-}
-
-// Integration order for the linear form
-Ord linear_form_ord(int n, double *wt, Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext)
-{
-  return v->val[0];  // q_ext is piecewise constant, thus 
-                     // returning the polynomial degree of the test function;
-}
+// Weak forms
+#include "forms.cpp"
 
 int main(int argc, char* argv[])
 {
   // Load the mesh
   Mesh mesh;
-  mesh.load("domain.mesh");
-  // FIXME: this is temporary, the real benchmark has 10x10 elements
-  // and also the values L0, L1 and L2 need to be changed.
-  if (INIT_REF_NUM < 3) error("INIT_REF_NUM in this example must be at least 3.");
+  ExodusIIReader mloader;
+  if (!mloader.load("iron-water.e", &mesh)) error("ExodusII mesh load failed.");
+
+  // initial uniform mesh refinement
   for (int i=0; i < INIT_REF_NUM; i++) mesh.refine_all_elements();
 
   // Initialize the shapeset and the cache
@@ -177,8 +107,10 @@ int main(int argc, char* argv[])
 
   // initialize the weak formulation
   WeakForm wf(1);
-  wf.add_biform(0, 0, bilinear_form, bilinear_form_ord, SYM);
-  wf.add_liform(0, linear_form, linear_form_ord);
+  wf.add_biform(0, 0, bilinear_form_water, bilinear_form_ord, SYM, 1);
+  wf.add_biform(0, 0, bilinear_form_water, bilinear_form_ord, SYM, 2);
+  wf.add_biform(0, 0, bilinear_form_iron, bilinear_form_ord, SYM, 3);
+  wf.add_liform(0, linear_form_source, linear_form_ord, 1);
 
   // Visualize solution and mesh
   ScalarView sview("Coarse solution", 0, 100, 798, 700);
