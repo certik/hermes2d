@@ -166,6 +166,19 @@ void dot(double result[4][4], double A[4][4], double B[4][4])
         }
 }
 
+void T_rot(double result[4][4], double beta)
+{
+    for (int i; i < 4; i++)
+        for (int j; j < 4; j++)
+            result[i][j] = 0;
+    result[0][1] = 1;
+    result[1][1] = cos(beta);
+    result[1][2] = sin(beta);
+    result[2][1] = -sin(beta);
+    result[2][2] = cos(beta);
+    result[3][3] = 1;
+}
+
 void A_minus(double result[4][4], double w0, double w1, double w3, double w4)
 {
     double _R[4][4];
@@ -202,21 +215,3 @@ void flux_riemann(double result[4], double w_l[4], double w_r[4])
         result[i] = f_x(i, w_l[0], w_l[1], w_l[2], w_l[3]) + _1 - _2;
     }
 }
-
-/*
-double matrix_A_minus(int i, int j, double w0, double w1, double w3, double w4)
-{
-    double _R[16];
-    double _D[16];
-    double _D_inv[16];
-    double _A[16];
-    for (int i=0; i<4; i++) {
-        double r=0;
-        for (int j=0; j<4; j++) {
-            r += A_x(i, j, w0, w1, w3, w4) * w(j, w0, w1, w3, w4);
-        }
-        r -= f_x(i, w0, w1, w3, w4);
-        printf("result: %d: %f\n", i, r);
-    }
-}
-*/
