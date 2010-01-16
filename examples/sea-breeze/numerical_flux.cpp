@@ -153,6 +153,43 @@ double matrix_D_minus(int i, int j, double w0, double w1, double w3, double w4)
     error("Invalid index.");
 }
 
+void dot(double result[4][4], double A[4][4], double B[4][4])
+{
+    for (int i=0; i < 4; i++)
+        for (int j=0; j < 4; j++) {
+            double sum=0;
+            for (int k=0; k < 4; k++)
+                sum += A[i][k] * B[k][j];
+            result[i][j] = sum;
+        }
+}
+
+void A_minus(double result[4][4], double w0, double w1, double w3, double w4)
+{
+    double _R[4][4];
+    double _D_minus[4][4];
+    double _R_inv[4][4];
+    double _A_minus[4][4];
+    double _tmp[4][4];
+    for (int i=0; i < 4; i++)
+        for (int j=0; j < 4; j++)
+            _R[i][j] = matrix_R(i, j, w0, w1, w3, w4);
+    for (int i=0; i < 4; i++)
+        for (int j=0; j < 4; j++)
+            _D_minus[i][j] = matrix_D_minus(i, j, w0, w1, w3, w4);
+    for (int i=0; i < 4; i++)
+        for (int j=0; j < 4; j++)
+            _R_inv[i][j] = matrix_R_inv(i, j, w0, w1, w3, w4);
+    dot(_tmp, _D_minus, _R_inv);
+    dot(result, _R, _tmp);
+}
+
+void flux_riemann(double w0, double w1, double w3, double w4)
+{
+    double _tmp[4][4];
+    A_minus(_tmp, w0, w1, w3, w4);
+}
+
 /*
 double matrix_A_minus(int i, int j, double w0, double w1, double w3, double w4)
 {
