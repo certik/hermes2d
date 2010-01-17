@@ -43,7 +43,7 @@ scalar w0_init(double x, double y, scalar& dx, scalar& dy) {
 scalar w1_init(double x, double y, scalar& dx, scalar& dy) {
     dx = 0;
     dy = 0;
-    return 300/u_r;
+    return 100/u_r;
 }
 
 scalar w3_init(double x, double y, scalar& dx, scalar& dy) {
@@ -288,13 +288,23 @@ Scalar S_ij(int _i, int _j, int n, double *wt, Func<Real> *u, Func<Real> *v, Geo
         w1 = ext->fn[1]->val[i];
         w3 = ext->fn[2]->val[i];
         w4 = ext->fn[3]->val[i];
+        double _rho = w0;
+        double _u = w1/w0;
+        double _w = w3/w0;
+        double _E = w4;
+        double _v2 = _u*_u+_w*_w;
+        double _p = (kappa-1)*(_E - _rho*_v2/2);
+        double _c = sqrt(kappa*_p/_rho);
+        //printf("c = %f; M = %f\n", _c, sqrt(_v2)/_c);
         if (e->marker == marker_top || e->marker == marker_bottom) {
             // the z-velocity is 0:
-            double un = w1*e->nx[i] + w3*e->ny[i];
+            double un = _u*e->nx[i] + _w*e->ny[i];
             //printf("normal part: %f\n", un);
             //printf("BC: %f %f \n", w1, w3);
-            w1 = w1 - 2 * un * e->nx[i];
-            w3 = w3 - 2 * un * e->ny[i];
+            _u = _u - 2 * un * e->nx[i];
+            _w = _w - 2 * un * e->ny[i];
+            w1 = _u * w0;
+            w3 = _w * w0;
             /*
             w1 = -0.5*10;
             if (e->marker == marker_top)

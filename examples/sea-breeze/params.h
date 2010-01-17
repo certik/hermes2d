@@ -23,7 +23,7 @@
 
 // main characteristic constants
 #define l_r 4000.0 // units: m
-#define u_r 300 // units: m/s
+#define u_r 300. // units: m/s
 #define rho_r 1.1 // units: kg/m^3
 // other characteristic constants
 #define t_r (l_r/u_r)  // time
