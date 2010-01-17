@@ -295,7 +295,10 @@ Scalar S_ij(int _i, int _j, int n, double *wt, Func<Real> *u, Func<Real> *v, Geo
         double _v2 = _u*_u+_w*_w;
         double _p = (kappa-1)*(_E - _rho*_v2/2);
         double _c = sqrt(kappa*_p/_rho);
-        //printf("c = %f; M = %f\n", _c, sqrt(_v2)/_c);
+        double _M = sqrt(_v2)/_c;
+        if (_M >= 1.)
+            error("supersonic flow is not implemented.");
+        //printf("c = %f; M = %f\n", _c, );
         if (e->marker == marker_top || e->marker == marker_bottom) {
             // the z-velocity is 0:
             double un = _u*e->nx[i] + _w*e->ny[i];
@@ -313,6 +316,25 @@ Scalar S_ij(int _i, int _j, int n, double *wt, Func<Real> *u, Func<Real> *v, Geo
                 w3 = 0.5*10;
             */
             //printf("BC(%d): %f %f %f %f \n", e->marker, w1, w3, e->nx[i], e->ny[i]);
+        }
+        else {
+            double un = _u*e->nx[i] + _w*e->ny[i];
+            if (un > 0) {
+                // outlet
+                // take p from the outside state
+                double _p = 1e5 / p_r;
+                w4 = _p * c_v / R + (w1*w1+w3*w3)/(2*w0);
+            }
+            else {
+                // inlet
+                // take rho, u, w from the outside state
+                double rho = 1.1 / rho_r;
+                double u = 100 / u_r;
+                double w = 0 / u_r;
+                w0 = rho;
+                w1 = u * rho;
+                w3 = w * rho;
+            }
         }
         result += wt[i] * (
                 A_x(_i, _j, w0, w1, w3, w4) * e->nx[i]
