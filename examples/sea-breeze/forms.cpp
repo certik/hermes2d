@@ -312,7 +312,6 @@ Scalar S_ij(int _i, int _j, int n, double *wt, Func<Real> *u, Func<Real> *v, Geo
         double _M = sqrt(_v2)/_c;
         //printf("c = %f; M = %f\n", _c, );
         if (e->marker == marker_top || e->marker == marker_bottom) {
-            // the z-velocity is 0:
             double un = _u*e->nx[i] + _w*e->ny[i];
             //printf("normal part: %f\n", un);
             //printf("BC: %f %f \n", w1, w3);
@@ -348,6 +347,7 @@ Scalar S_ij(int _i, int _j, int n, double *wt, Func<Real> *u, Func<Real> *v, Geo
                 // inlet
                 if (_M >= 1.) {
                     // supersonic
+                    // take everything from outside
                     w0 = w0_init_num;
                     w1 = w1_init_num;
                     w3 = w3_init_num;
