@@ -3,7 +3,7 @@
 
 #include "_hermes2d_api.h"
 
-const double TAU = 0.01/t_r;  // this is in seconds
+const double TAU = 0.1/t_r;  // this is in seconds
 
 const double T_0 = T_z(0);
 const double p_0 = p_z(0);
@@ -43,13 +43,13 @@ scalar w0_init(double x, double y, scalar& dx, scalar& dy) {
 scalar w1_init(double x, double y, scalar& dx, scalar& dy) {
     dx = 0;
     dy = 0;
-    return 100/u_r;
+    return rho_z(0)/rho_r * (100/u_r);
 }
 
 scalar w3_init(double x, double y, scalar& dx, scalar& dy) {
     dx = 0;
     dy = 0;
-    return 0/u_r;
+    return rho_z(0)/rho_r * (0/u_r);
 }
 
 scalar w4_init(double x, double y, scalar& dx, scalar& dy) {
@@ -323,17 +323,22 @@ Scalar S_ij(int _i, int _j, int n, double *wt, Func<Real> *u, Func<Real> *v, Geo
                 // outlet
                 // take p from the outside state
                 double _p = 1e5 / p_r;
-                w4 = _p * c_v / R + (w1*w1+w3*w3)/(2*w0);
+                //w4 = _p * c_v / R + (w1*w1+w3*w3)/(2*w0);
+                w4 = rho_z(0) * T_z(0) * c_v / E_r;
             }
             else {
                 // inlet
                 // take rho, u, w from the outside state
-                double rho = 1.1 / rho_r;
+                double rho = rho_z(0)/rho_r;
                 double u = 100 / u_r;
                 double w = 0 / u_r;
                 w0 = rho;
                 w1 = u * rho;
                 w3 = w * rho;
+                /*
+                printf("left: %f %f %f, %f %f %f\n", w0, w1, w3, rho, u*rho,
+                        w*rho);
+                        */
             }
         }
         result += wt[i] * (
