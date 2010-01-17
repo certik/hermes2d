@@ -444,7 +444,7 @@ void RefMap::untransform(Element* e, double x, double y, double& xi1, double& xi
   }
   else // Newton Method
   {
-      printf("XXX: newton\n");
+      //printf("XXX: newton\n");
     double xi1_old = 0.0, xi2_old = 0.0;
     double vx, vy;
     double2x2 m;
