@@ -34,28 +34,42 @@ void set_iteration(int i) {
 #define rho_init(x, y) (rho_z(y*l_r))
 #define T_init(x, y) (T_z(y*l_r))
 
+double w0_init_num;
+double w1_init_num;
+double w3_init_num;
+double w4_init_num;
+double p_init_num;
+
+
 scalar w0_init(double x, double y, scalar& dx, scalar& dy) {
     dx = 0;
     dy = 0;
-    return rho_z(0)/rho_r;
+    w0_init_num = rho_z(0)/rho_r;
+    return w0_init_num;
 }
 
 scalar w1_init(double x, double y, scalar& dx, scalar& dy) {
     dx = 0;
     dy = 0;
-    return rho_z(0)/rho_r * (100/u_r);
+    w1_init_num = rho_z(0)/rho_r * (100/u_r);
+    return w1_init_num;
 }
 
 scalar w3_init(double x, double y, scalar& dx, scalar& dy) {
     dx = 0;
     dy = 0;
-    return rho_z(0)/rho_r * (0/u_r);
+    w3_init_num = rho_z(0)/rho_r * (0/u_r);
+    return w3_init_num;
 }
+
 
 scalar w4_init(double x, double y, scalar& dx, scalar& dy) {
     dx = 0;
     dy = 0;
-    return rho_z(0) * T_z(0) * c_v / E_r;
+    w4_init_num = rho_z(0) * T_z(0) * c_v / E_r;
+    p_init_num = R/c_v * (w4_init_num - (w1_init_num*w1_init_num +
+                w3_init_num*w3_init_num)/(2*w0_init_num));
+    return w4_init_num;
 }
 
 
@@ -322,19 +336,15 @@ Scalar S_ij(int _i, int _j, int n, double *wt, Func<Real> *u, Func<Real> *v, Geo
             if (un > 0) {
                 // outlet
                 // take p from the outside state
-                double _p = 1e5 / p_r;
-                //w4 = _p * c_v / R + (w1*w1+w3*w3)/(2*w0);
-                w4 = rho_z(0) * T_z(0) * c_v / E_r;
+                w4 = p_init_num * c_v / R + (w1*w1+w3*w3)/(2*w0);
+                //w4 = rho_z(0) * T_z(0) * c_v / E_r;
             }
             else {
                 // inlet
                 // take rho, u, w from the outside state
-                double rho = rho_z(0)/rho_r;
-                double u = 100 / u_r;
-                double w = 0 / u_r;
-                w0 = rho;
-                w1 = u * rho;
-                w3 = w * rho;
+                w0 = w0_init_num;
+                w1 = w1_init_num;
+                w3 = w3_init_num;
                 /*
                 printf("left: %f %f %f, %f %f %f\n", w0, w1, w3, rho, u*rho,
                         w*rho);
