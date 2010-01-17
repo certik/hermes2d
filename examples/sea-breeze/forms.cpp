@@ -3,7 +3,7 @@
 
 #include "_hermes2d_api.h"
 
-const double TAU = 0.001;  // this is in seconds
+const double TAU = 0.01/t_r;  // this is in seconds
 
 const double T_0 = T_z(0);
 const double p_0 = p_z(0);
@@ -37,25 +37,25 @@ void set_iteration(int i) {
 scalar w0_init(double x, double y, scalar& dx, scalar& dy) {
     dx = 0;
     dy = 0;
-    return 1;
+    return rho_z(0)/rho_r;
 }
 
 scalar w1_init(double x, double y, scalar& dx, scalar& dy) {
     dx = 0;
     dy = 0;
-    return 1;
+    return 300/u_r;
 }
 
 scalar w3_init(double x, double y, scalar& dx, scalar& dy) {
     dx = 0;
     dy = 0;
-    return 0;
+    return 0/u_r;
 }
 
 scalar w4_init(double x, double y, scalar& dx, scalar& dy) {
     dx = 0;
     dy = 0;
-    return 1e5;
+    return rho_z(0) * T_z(0) * c_v / E_r;
 }
 
 
