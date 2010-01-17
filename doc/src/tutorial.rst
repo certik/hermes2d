@@ -29,9 +29,11 @@ Boundary markers are used to link boundary conditions with the boundary edges.
 Mesh File Format
 ~~~~~~~~~~~~~~~~
 
-Hermes can read meshes (a) in its own generic format as described below and (b) in 
-`ExodusII format <http://sourceforge.net/projects/exodusii/>`_
-(that can be obtained, for example, when using `Cubit <http://cubit.sandia.gov/>`_).
+Hermes can read meshes in its own generic format as well as in the
+`ExodusII <http://sourceforge.net/projects/exodusii/>`_ format
+(this is, for example, the output of `Cubit <http://cubit.sandia.gov/>`_).
+First let us discuss the generic Hermes mesh data format. Reading
+of ExodusII mesh files is very simple as we will see in example "iron-water". 
 
 Generic Hermes mesh file consists of variable assignments. Each variable can hold a real number, 
 list of real numbers, or list of lists. The following are all valid definitions in 
