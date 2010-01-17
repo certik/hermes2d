@@ -5,8 +5,8 @@ b = 1  # domain height
 vertices =
 {
   { -a, 0 },
-  { a, 0 },
-  { a, b },
+  { a, 0+0.1 },
+  { a, b-0.1 },
   { -a, b }
 }
 
