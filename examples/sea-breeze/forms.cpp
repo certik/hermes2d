@@ -8,80 +8,27 @@ const double T_0 = T_z(0);
 const double p_0 = p_z(0);
 const double rho_0 = rho_z(0);
 
-Solution *w0_prev=NULL, *w1_prev=NULL, *w3_prev=NULL, *w4_prev=NULL;
-
 int s0_bc_type(int marker) {
     return BC_NATURAL;
 }
 
+//    if (marker == marker_top || marker == marker_bottom)
 int s1_bc_type(int marker) {
-    if (marker == marker_top || marker == marker_bottom)
-        return BC_NATURAL;
-    else
-        return BC_ESSENTIAL;
+    return BC_NATURAL;
 }
 
 int s3_bc_type(int marker) {
-    if (marker == marker_left || marker == marker_right)
-        return BC_NATURAL;
-    else
-        return BC_ESSENTIAL;
+    return BC_NATURAL;
 }
 
 int s4_bc_type(int marker) {
-    //return BC_NATURAL;
-    if (marker == marker_bottom)
-        return BC_ESSENTIAL;
-    else
-        return BC_NATURAL;
-}
-
-scalar s1_bc_value(int marker, double x, double y) {
-    return 0;
-}
-
-scalar s3_bc_value(int marker, double x, double y) {
-    return 0;
+    return BC_NATURAL;
 }
 
 // XXX: This is a hack, it should be made iteration independent
 int iterations = 0;
 void set_iteration(int i) {
     iterations = i;
-}
-
-scalar s4_bc_value(int marker, double x, double y) {
-    double L = 0.5;
-    double A = 0.1;
-    double w1;
-    double w3;
-    double rho;
-    /*
-    if (iterations == 0) {
-        w1 = 0;
-        w3 = 0;
-        rho = rho_0;
-    }
-    else {
-        if (w0_prev == NULL || w1_prev == NULL || w3_prev == NULL ||
-                w4_prev == NULL)
-            error("internal error: w?_prev == NULL");
-        rho = w0_prev->get_pt_value(x, y);
-        w1 = w1_prev->get_pt_value(x, y);
-        w3 = w3_prev->get_pt_value(x, y);
-        printf("(%f, %f): %.15f %f %f (BC: %.15f %f %f)\n", x, y, rho, w1, w3,
-                rho_0, 0., 0.);
-        w1 = 0;
-        w3 = 0;
-        rho = rho_0;
-    }
-    */
-    //return (rho * c_v * T_0 * (1 + A*(1+ tanh(x/L))/2) +
-    //    1./2 * rho * (w1*w1 + w3*w3))/E_r;
-    //return (rho * c_v * T_0 * (1 + A*(1+ tanh(x/L))/2))/E_r;
-    rho = rho_0;
-    return rho * c_v * T_0 * (1+0.01*(M_PI/2+atan(x*20)))/ E_r;
-    //return rho * c_v * (T_0+0.01) / E_r;
 }
 
 #define rho_init(x, y) (rho_z(y*l_r))
@@ -560,13 +507,9 @@ Ord B_order(int n, double *wt, Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e, ExtData
 void register_bc(H1Space &s0, H1Space &s1, H1Space &s3, H1Space &s4)
 {
     s0.set_bc_types(s0_bc_type);
-    //s0.set_bc_values(s0_bc_value);
     s1.set_bc_types(s1_bc_type);
-    s1.set_bc_values(s1_bc_value);
     s3.set_bc_types(s3_bc_type);
-    s3.set_bc_values(s3_bc_value);
     s4.set_bc_types(s4_bc_type);
-    s4.set_bc_values(s4_bc_value);
 }
 
 void set_ic(Mesh &mesh, Solution &w0, Solution &w1, Solution &w3, Solution &w4)
@@ -575,11 +518,6 @@ void set_ic(Mesh &mesh, Solution &w0, Solution &w1, Solution &w3, Solution &w4)
     w1.set_exact(&mesh, w1_init);
     w3.set_exact(&mesh, w3_init);
     w4.set_exact(&mesh, w4_init);
-
-    w0_prev = &w0;
-    w1_prev = &w1;
-    w3_prev = &w3;
-    w4_prev = &w4;
 }
 
 #define ADD_BF(i, j) wf.add_biform(i, j, callback_bf(B_##i##j), UNSYM, ANY, 4, &w0_prev, &w1_prev, &w3_prev, &w4_prev)
