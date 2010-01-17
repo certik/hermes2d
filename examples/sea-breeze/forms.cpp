@@ -251,6 +251,7 @@ Scalar B_ij(int _i, int _j, int n, double *wt, Func<Real> *u, Func<Real> *v, Geo
 template<typename Real, typename Scalar>
 Scalar S_ij(int _i, int _j, int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
+/*
     double w_l[4];
     // XXX: set w_l and w_r to the prev solution
     double w_r[4];
@@ -277,22 +278,30 @@ Scalar S_ij(int _i, int _j, int n, double *wt, Func<Real> *u, Func<Real> *v, Geo
     flux_riemann(_tmp, _w_l, _w_r);
     T_rot(m, -alpha);
     dot_vector(flux, m, _tmp);
+*/
 
+    double w0, w1, w3, w4;
 
     Scalar result = 0;
-    for (int i = 0; i < n; i++)
+    for (int i = 0; i < n; i++) {
+        w0 = ext->fn[0]->val[i];
+        w1 = ext->fn[1]->val[i];
+        w3 = ext->fn[2]->val[i];
+        w4 = ext->fn[3]->val[i];
+        if (e->marker == marker_top || e->marker == marker_bottom) {
+            // the z-velocity is 0:
+            w3 = 0;
+        }
+        if (e->marker == marker_left || e->marker == marker_right) {
+            // the x-velocity is 1 m/s:
+            w1 = 1./u_r;
+        }
         result += wt[i] * (
-                A_x(_i, _j, ext->fn[0]->val[i],
-                    ext->fn[1]->val[i],
-                    ext->fn[2]->val[i],
-                    ext->fn[3]->val[i])
-                * u->val[i] * v->val[i] +
-                A_z(_i, _j, ext->fn[0]->val[i],
-                    ext->fn[1]->val[i],
-                    ext->fn[2]->val[i],
-                    ext->fn[3]->val[i])
-                * u->val[i] * v->val[i]
-                );
+                A_x(_i, _j, w0, w1, w3, w4) * e->nx[i]
+                +
+                A_z(_i, _j, w0, w1, w3, w4) * e->ny[i]
+                ) * u->val[i] * v->val[i];
+    }
     return result;
 }
 
