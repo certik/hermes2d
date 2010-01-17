@@ -18,7 +18,7 @@
 
 // other physical constants
 #define R 287.14           // Gas constant [J/(kg*K)]
-#define g 9.80665           // gravitational acceleration [m/s^2]
+#define g 0           // gravitational acceleration [m/s^2]
 #define c_v 717.5       // specific heat capacity [J/(kg*K)]
 
 // main characteristic constants

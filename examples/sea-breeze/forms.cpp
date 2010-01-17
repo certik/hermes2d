@@ -3,7 +3,7 @@
 
 #include "_hermes2d_api.h"
 
-const double TAU = 0.001/t_r;  // this is in seconds
+const double TAU = 0.001;  // this is in seconds
 
 const double T_0 = T_z(0);
 const double p_0 = p_z(0);
@@ -37,25 +37,25 @@ void set_iteration(int i) {
 scalar w0_init(double x, double y, scalar& dx, scalar& dy) {
     dx = 0;
     dy = 0;
-    return rho_init(x, y) / rho_r;
+    return 1;
 }
 
 scalar w1_init(double x, double y, scalar& dx, scalar& dy) {
     dx = 0;
     dy = 0;
-    return 0;
+    return 1;
 }
 
 scalar w3_init(double x, double y, scalar& dx, scalar& dy) {
     dx = 0;
     dy = 0;
-    return 0;
+    return 1;
 }
 
 scalar w4_init(double x, double y, scalar& dx, scalar& dy) {
     dx = 0;
     dy = 0;
-    return rho_init(x, y) * T_init(x, y) * c_v / E_r;
+    return 1;
 }
 
 
@@ -281,9 +281,15 @@ Scalar S_ij(int _i, int _j, int n, double *wt, Func<Real> *u, Func<Real> *v, Geo
 */
 
     double w0, w1, w3, w4;
+    w0 = 1;
+    w1 = 1;
+    w3 = 1;
+    w4 = 1;
 
     Scalar result = 0;
+    //printf("BC: %f %f \n", e->nx[0], e->ny[0]);
     for (int i = 0; i < n; i++) {
+        /*
         w0 = ext->fn[0]->val[i];
         w1 = ext->fn[1]->val[i];
         w3 = ext->fn[2]->val[i];
@@ -295,7 +301,7 @@ Scalar S_ij(int _i, int _j, int n, double *wt, Func<Real> *u, Func<Real> *v, Geo
         if (e->marker == marker_left || e->marker == marker_right) {
             // the x-velocity is 1 m/s:
             w1 = 1./u_r;
-        }
+        }*/
         result += wt[i] * (
                 A_x(_i, _j, w0, w1, w3, w4) * e->nx[i]
                 +
@@ -559,7 +565,7 @@ void set_ic(Mesh &mesh, Solution &w0, Solution &w1, Solution &w3, Solution &w4)
 
 #define ADD_BF(i, j) wf.add_biform(i, j, callback_bf(B_##i##j), UNSYM, ANY, 4, &w0_prev, &w1_prev, &w3_prev, &w4_prev)
 
-#define ADD_BF_S(i, j) wf.add_biform_surf(i, j, callback_bf(S_##i##j), UNSYM, ANY, 4, &w0_prev, &w1_prev, &w3_prev, &w4_prev)
+#define ADD_BF_S(i, j) wf.add_biform_surf(i, j, callback_bf(S_##i##j), ANY, 4, &w0_prev, &w1_prev, &w3_prev, &w4_prev)
 
 void register_forms(WeakForm &wf, Solution &w0_prev, Solution &w1_prev,
         Solution &w3_prev, Solution &w4_prev)
