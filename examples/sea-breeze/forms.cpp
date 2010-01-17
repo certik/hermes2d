@@ -281,15 +281,10 @@ Scalar S_ij(int _i, int _j, int n, double *wt, Func<Real> *u, Func<Real> *v, Geo
 */
 
     double w0, w1, w3, w4;
-    w0 = 1;
-    w1 = 1;
-    w3 = 0;
-    w4 = 1;
 
     Scalar result = 0;
     //printf("BC: %f %f \n", e->nx[0], e->ny[0]);
     for (int i = 0; i < n; i++) {
-        /*
         w0 = ext->fn[0]->val[i];
         w1 = ext->fn[1]->val[i];
         w3 = ext->fn[2]->val[i];
@@ -300,8 +295,8 @@ Scalar S_ij(int _i, int _j, int n, double *wt, Func<Real> *u, Func<Real> *v, Geo
         }
         if (e->marker == marker_left || e->marker == marker_right) {
             // the x-velocity is 1 m/s:
-            w1 = 1./u_r;
-        }*/
+            w1 = 1;
+        }
         result += wt[i] * (
                 A_x(_i, _j, w0, w1, w3, w4) * e->nx[i]
                 +
