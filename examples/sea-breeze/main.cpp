@@ -165,10 +165,11 @@ int main(int argc, char* argv[])
     w0_view.show(&w0_sln);
     sprintf(title, "Pressure, time %g", TIME);
     CalcPressure pressure(&w0_sln, &w1_sln, &w3_sln, &w4_sln);
-    printf("energy at 0,0: %.15f\n", w4_sln.get_pt_value(0, 0));
+    //printf("energy at 0,0: %.15f\n", w4_sln.get_pt_value(0, 0));
 
     w4_view.set_title(title);
     w4_view.show(&pressure);
+    //w4_view.show(&w4_sln);
 
     w0_prev = w0_sln;
     w1_prev = w1_sln;
