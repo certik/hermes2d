@@ -49,7 +49,7 @@ scalar w1_init(double x, double y, scalar& dx, scalar& dy) {
 scalar w3_init(double x, double y, scalar& dx, scalar& dy) {
     dx = 0;
     dy = 0;
-    return 1;
+    return 0;
 }
 
 scalar w4_init(double x, double y, scalar& dx, scalar& dy) {
@@ -283,7 +283,7 @@ Scalar S_ij(int _i, int _j, int n, double *wt, Func<Real> *u, Func<Real> *v, Geo
     double w0, w1, w3, w4;
     w0 = 1;
     w1 = 1;
-    w3 = 1;
+    w3 = 0;
     w4 = 1;
 
     Scalar result = 0;
