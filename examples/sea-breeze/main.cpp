@@ -42,6 +42,64 @@ public:
     {}
 };
 
+static void calc_u_func(int n,
+        scalar* w0,
+        scalar* w1,
+        scalar* w3,
+        scalar* w4,
+        scalar* result)
+{
+  for (int i = 0; i < n; i++)
+    result[i] = w1[i]/w0[i];
+}
+
+static void calc_w_func(int n,
+        scalar* w0,
+        scalar* w1,
+        scalar* w3,
+        scalar* w4,
+        scalar* result)
+{
+  for (int i = 0; i < n; i++)
+    result[i] = w3[i]/w0[i];
+}
+
+class Calc_u : public SimpleFilter
+{
+public:
+    Calc_u(
+        MeshFunction* sln1,
+        MeshFunction* sln2,
+        MeshFunction* sln3,
+        MeshFunction* sln4,
+        int item1 = FN_VAL,
+        int item2 = FN_VAL,
+        int item3 = FN_VAL,
+        int item4 = FN_VAL
+        )
+        : SimpleFilter(calc_u_func, sln1, sln2, sln3, sln4,
+                item1, item2, item3, item4)
+    {}
+};
+
+class Calc_w : public SimpleFilter
+{
+public:
+    Calc_w(
+        MeshFunction* sln1,
+        MeshFunction* sln2,
+        MeshFunction* sln3,
+        MeshFunction* sln4,
+        int item1 = FN_VAL,
+        int item2 = FN_VAL,
+        int item3 = FN_VAL,
+        int item4 = FN_VAL
+        )
+        : SimpleFilter(calc_w_func, sln1, sln2, sln3, sln4,
+                item1, item2, item3, item4)
+    {}
+};
+
 
 
 int main(int argc, char* argv[])
@@ -71,8 +129,8 @@ int main(int argc, char* argv[])
   //mesh.refine_all_elements(2);
   mesh.refine_all_elements();
   mesh.refine_all_elements();
-  //mesh.refine_towards_boundary(1, 4);
-  //mesh.refine_towards_boundary(3, 4);
+  mesh.refine_towards_boundary(1, 4);
+  mesh.refine_towards_boundary(3, 4);
 
   // display the mesh
   //MeshView mview("Navier-Stokes Example - Mesh", 100, 100, 1100, 400);
@@ -116,6 +174,8 @@ int main(int argc, char* argv[])
   VectorView w13_view("Current Density [m/s]", 0, 0, 1500, 470);
   ScalarView w0_view("Mass Density [Pa]", 0, 530, 1500, 470);
   ScalarView w4_view("Energy [Pa]", 0, 530, 1500, 470);
+  ScalarView u_view("u", 0, 530, 1500, 470);
+  ScalarView w_view("w", 0, 530, 1500, 470);
   //w13_view.set_min_max_range(0, 2);
   w0_view.show_mesh(false);
   w4_view.show_mesh(false);
@@ -165,11 +225,16 @@ int main(int argc, char* argv[])
     w0_view.show(&w0_sln);
     sprintf(title, "Pressure, time %g", TIME);
     CalcPressure pressure(&w0_sln, &w1_sln, &w3_sln, &w4_sln);
+    Calc_u u(&w0_sln, &w1_sln, &w3_sln, &w4_sln);
+    Calc_w w(&w0_sln, &w1_sln, &w3_sln, &w4_sln);
     //printf("energy at 0,0: %.15f\n", w4_sln.get_pt_value(0, 0));
 
     w4_view.set_title(title);
     w4_view.show(&pressure);
     //w4_view.show(&w4_sln);
+
+    u_view.show(&u);
+    w_view.show(&w);
 
     w0_prev = w0_sln;
     w1_prev = w1_sln;
