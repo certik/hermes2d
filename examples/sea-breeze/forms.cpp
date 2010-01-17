@@ -310,8 +310,6 @@ Scalar S_ij(int _i, int _j, int n, double *wt, Func<Real> *u, Func<Real> *v, Geo
         double _p = (kappa-1)*(_E - _rho*_v2/2);
         double _c = sqrt(kappa*_p/_rho);
         double _M = sqrt(_v2)/_c;
-        if (_M >= 1.)
-            error("supersonic flow is not implemented.");
         //printf("c = %f; M = %f\n", _c, );
         if (e->marker == marker_top || e->marker == marker_bottom) {
             // the z-velocity is 0:
@@ -335,16 +333,33 @@ Scalar S_ij(int _i, int _j, int n, double *wt, Func<Real> *u, Func<Real> *v, Geo
             double un = _u*e->nx[i] + _w*e->ny[i];
             if (un > 0) {
                 // outlet
-                // take p from the outside state
-                w4 = p_init_num * c_v / R + (w1*w1+w3*w3)/(2*w0);
-                //w4 = rho_z(0) * T_z(0) * c_v / E_r;
+                if (_M >= 1.) {
+                    // supersonic
+                    // we take everything from inside
+                }
+                else {
+                    // subsonic
+                    // take p from the outside state
+                    w4 = p_init_num * c_v / R + (w1*w1+w3*w3)/(2*w0);
+                    //w4 = rho_z(0) * T_z(0) * c_v / E_r;
+                }
             }
             else {
                 // inlet
-                // take rho, u, w from the outside state
-                w0 = w0_init_num;
-                w1 = w1_init_num;
-                w3 = w3_init_num;
+                if (_M >= 1.) {
+                    // supersonic
+                    w0 = w0_init_num;
+                    w1 = w1_init_num;
+                    w3 = w3_init_num;
+                    w4 = w4_init_num;
+                }
+                else {
+                    // subsonic
+                    // take rho, u, w from the outside state
+                    w0 = w0_init_num;
+                    w1 = w1_init_num;
+                    w3 = w3_init_num;
+                }
                 /*
                 printf("left: %f %f %f, %f %f %f\n", w0, w1, w3, rho, u*rho,
                         w*rho);
