@@ -51,8 +51,8 @@ may be the library that you are looking for:
 
 .. image:: img/conv-typical.png
    :align: center
-   :width: 400
-   :height: 250
+   :width: 600
+   :height: 360
    :alt: Typical convergence curves of FEM with linear and quadratic elements and hp-FEM
 
 * **Hermes is PDE-independent**. A typical FEM code is designed to solve some special class of PDE problems (such as elliptic equations, fluid dynamics, electromagnetics etc.). In contrast to that, Hermes is truly PDE independent. It does not employ any technique or algorithm that would only work for some particular class of PDE problems. For example, automatic adaptivity is guided by a universal computational a-posteriori error estimate that works in the same way for any PDE. Of course this does not mean that it performs equally well on all PDE - some equations simply are more difficult to solve than others. However, Hermes allows you to tackle an arbitrary PDE (or multiphysics PDE system) with adaptive *hp*-FEM easily. Visit the `hp-FEM group home page <http://hpfem.org/>`_ and especially the `gallery <http://hpfem.org/gallery/>`_ to see many examples of problems that have been solved with Hermes so far.
@@ -60,38 +60,45 @@ may be the library that you are looking for:
 * **Arbitrary-level hanging nodes**. Hermes is capable of handling arbitrarily irregular meshes. This means that extremely small elements can be adjacent to very large ones. When an element is refined, its neighbors are never split forcefully as in conventional adaptivity algorithms. This makes automatic adaptivity in Hermes extremely efficient as well as easy to handle. 
 
 .. image:: img/ord_2d_c.png
-   :align: left
-   :width: 300
-   :height: 300
+   :align: center
+   :width: 370
+   :height: 350
    :alt: Illustration of arbitrary-level hanging nodes.
 
-.. image:: img/mixer-mesh.png
-   :align: right
-   :width: 300
-   :height: 300
-   :alt: Illustration of arbitrary-level hanging nodes.
+.. ######
+    .. image:: img/mixer-mesh.png
+       :align: right
+       :width: 300
+       :height: 300
+       :alt: Illustration of arbitrary-level hanging nodes.
 
-.. raw:: html
+    .. raw:: html
 
-   <hr style="clear: both; visibility: hidden;">
+       <hr style="clear: both; visibility: hidden;">
 
 * **Multimesh hp-FEM**. Various physical fields or solution components in multiphysics problems can be approximated on individual meshes, combining quality *H1*, *Hcurl*, *Hdiv*, and *L2* conforming higher-order elements. The approximation is monolithic, i.e., no error is caused by operator splitting, transferring data between different meshes, etc. The following figure illustrates a coupled problem of heat and moisture transfer in massive concrete walls of a reactor vessel. 
 
 .. image:: img/multimesh.png
    :align: center
-   :width: 440
-   :height: 360
+   :width: 500
+   :height: 410
    :alt: Illustration of multimesh hp-FEM.
 
 * **Space-time hp-adaptivity on dynamical meshes**. In time-dependent problems, different physical fields or solution components can be approximated on individual meshes that evolve in time independently of each other. Despite the independent meshes for solution components, the discretization of the PDE system is monolithic. 
 
 .. image:: img/flame.jpg
    :align: center
-   :width: 600
-   :height: 320
+   :width: 700
+   :height: 360
    :alt: Adaptive hp-FEM with dynamical meshes for a flame propagation problem. 
 
 * **Interactive web-based computing**. You can use Hermes remotely via any web browser, using our `interactive online lab <http://nb.femhub.org/>`_. Your hardware will not be used since the online lab is powered by the University of Nevada, Reno (UNR) high-performance computing facility (`Research Grid <http://hpc.unr.edu/wiki/index.php/Main_Page>`_). You can compute with Hermes using an iPhone if you like. Sound too good to be true? Try it. 
+
+.. image:: img/iphone_large.png
+   :align: center
+   :width: 300
+   :height: 550
+   :alt: Hermes in iPhone.
 
 See the `Hermes home page <http://hpfem.org/main/hermes.php>`_ for more information. An overview of books, 
 journal articles, conference proceedings papers and talks about Hermes and adaptive *hp*-FEM can be 
