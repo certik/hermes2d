@@ -293,10 +293,6 @@ Scalar S_ij(int _i, int _j, int n, double *wt, Func<Real> *u, Func<Real> *v, Geo
             // the z-velocity is 0:
             w3 = 0;
         }
-        if (e->marker == marker_left || e->marker == marker_right) {
-            // the x-velocity is 1 m/s:
-            w1 = 1;
-        }
         result += wt[i] * (
                 A_x(_i, _j, w0, w1, w3, w4) * e->nx[i]
                 +
