@@ -1,4 +1,5 @@
 #include "forms.h"
+#include "numerical_flux.h"
 
 #include "_hermes2d_api.h"
 
@@ -12,7 +13,6 @@ int s0_bc_type(int marker) {
     return BC_NATURAL;
 }
 
-//    if (marker == marker_top || marker == marker_bottom)
 int s1_bc_type(int marker) {
     return BC_NATURAL;
 }
@@ -251,6 +251,34 @@ Scalar B_ij(int _i, int _j, int n, double *wt, Func<Real> *u, Func<Real> *v, Geo
 template<typename Real, typename Scalar>
 Scalar S_ij(int _i, int _j, int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
+    double w_l[4];
+    // XXX: set w_l and w_r to the prev solution
+    double w_r[4];
+    // set the optional BC into w_r
+    if (e->marker == marker_top || e->marker == marker_bottom) {
+        // the z-velocity is 0:
+        w_r[2] = 0;
+    }
+    if (e->marker == marker_left || e->marker == marker_right) {
+        // the x-velocity is 1 m/s:
+        w_r[1] = 1./u_r;
+    }
+
+    double alpha = 0; // XXX rotate things appropriately
+
+    double m[4][4];
+    double _w_l[4];
+    double _w_r[4];
+    double _tmp[4];
+    double flux[4];
+    T_rot(m, alpha);
+    dot_vector(_w_l, m, w_l);
+    dot_vector(_w_r, m, w_r);
+    flux_riemann(_tmp, _w_l, _w_r);
+    T_rot(m, -alpha);
+    dot_vector(flux, m, _tmp);
+
+
     Scalar result = 0;
     for (int i = 0; i < n; i++)
         result += wt[i] * (
