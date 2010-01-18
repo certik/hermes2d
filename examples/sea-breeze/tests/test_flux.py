@@ -97,20 +97,20 @@ def tangent_w(w, n):
 
 def test_inv():
     w = array([1.1, -10, 13, 700.1])
-    assert (dot(R(w), R_inv(w))-eye(4) < eps).all()
-    assert (R_inv(w) - inv(R(w)) < eps).all()
+    assert (abs(dot(R(w), R_inv(w))-eye(4)) < eps).all()
+    assert (abs(R_inv(w) - inv(R(w))) < eps).all()
     w = array([1.1, 10, 13, 700.1])
-    assert (dot(R(w), R_inv(w))-eye(4) < eps).all()
-    assert (R_inv(w) - inv(R(w)) < eps).all()
+    assert (abs(dot(R(w), R_inv(w))-eye(4)) < eps).all()
+    assert (abs(R_inv(w) - inv(R(w))) < eps).all()
     w = array([3.1, 10, 13, 800.1])
-    assert (dot(R(w), R_inv(w))-eye(4) < eps).all()
-    assert (R_inv(w) - inv(R(w)) < eps).all()
+    assert (abs(dot(R(w), R_inv(w))-eye(4)) < eps).all()
+    assert (abs(R_inv(w) - inv(R(w))) < eps).all()
 
 def test_flux():
     w_l = array([1.1, -10, 13, 700.1])
     w_r = array([1.1, -10, 13, 800.1])
-    assert (f_riemann(w_l, w_l) - f_x(w_l) < eps).all()
-    assert (f_riemann(w_r, w_r) - f_x(w_r) < eps).all()
+    assert (abs(f_riemann(w_l, w_l) - f_x(w_l)) < eps).all()
+    assert (abs(f_riemann(w_r, w_r) - f_x(w_r)) < eps).all()
 
     alpha = 0
     m = T_rot(alpha)
@@ -122,10 +122,10 @@ def test_flux():
     flux3 = flux_riemann(w_l, w_r)
     flux4 = -dot(inv(m), flux_riemann(dot(m, w_r), dot(m, w_l)))
     flux5 = -flux_riemann_invert(w_l, w_r)
-    assert (flux1 - flux2 < eps).all()
-    assert (flux1 - flux3 < eps).all()
-    assert (flux1 - flux4 < eps).all()
-    assert (flux1 - flux5 < eps).all()
+    assert (abs(flux1 - flux2) < eps).all()
+    assert (abs(flux1 - flux3) < eps).all()
+    assert (abs(flux1 - flux4) < eps).all()
+    assert (abs(flux1 - flux5) < eps).all()
 
     w_l = array([1.1, -10, 13, 700.1])
     w_r = array([1.1, -10, 13, 800.1])
@@ -139,10 +139,10 @@ def test_flux():
     flux3 = flux_riemann(w_l, w_r)
     flux4 = -dot(inv(m), flux_riemann(dot(m, w_r), dot(m, w_l)))
     flux5 = -flux_riemann_invert(w_l, w_r)
-    assert (flux1 - flux2 < eps).all()
-    assert (flux1 - flux3 < eps).all()
-    assert (flux1 - flux4 < eps).all()
-    assert (flux1 - flux5 < eps).all()
+    assert (abs(flux1 - flux2) < eps).all()
+    assert (abs(flux1 - flux3) < eps).all()
+    assert (abs(flux1 - flux4) < eps).all()
+    assert (abs(flux1 - flux5) < eps).all()
 
 def test_flux_rot():
     def testit(w, n):
