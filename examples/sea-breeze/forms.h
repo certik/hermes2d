@@ -19,6 +19,9 @@ void register_forms(WeakForm &wf, Solution &w0_prev, Solution &w1_prev,
 double f_x(int i, double w0, double w1, double w3, double w4);
 double f_z(int i, double w0, double w1, double w3, double w4);
 
+double A_x(int i, int j, double w0, double w1, double w3, double w4);
+double A_z(int i, int j, double w0, double w1, double w3, double w4);
+
 extern const double TAU;
 
 #endif
