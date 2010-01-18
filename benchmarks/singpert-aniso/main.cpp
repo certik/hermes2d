@@ -39,11 +39,11 @@ const int STRATEGY = 0;           // Adaptive strategy:
                                   // STRATEGY = 2 ... refine all elements whose error is larger
                                   //   than THRESHOLD.
                                   // More adaptive strategies can be created in adapt_ortho_h1.cpp.
-const int ADAPT_TYPE = 1;         // Type of automatic adaptivity:
+const int ADAPT_TYPE = 0;         // Type of automatic adaptivity:
                                   // ADAPT_TYPE = 0 ... adaptive hp-FEM (default),
                                   // ADAPT_TYPE = 1 ... adaptive h-FEM,
                                   // ADAPT_TYPE = 2 ... adaptive p-FEM.
-const bool ISO_ONLY = true;       // Isotropic refinement flag (concerns quadrilateral elements only).
+const bool ISO_ONLY = false;       // Isotropic refinement flag (concerns quadrilateral elements only).
                                   // ISO_ONLY = false ... anisotropic refinement of quad elements
                                   // is allowed (default),
                                   // ISO_ONLY = true ... only isotropic refinements of quad elements
