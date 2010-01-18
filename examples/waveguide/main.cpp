@@ -27,7 +27,7 @@
 // The following parameters can be changed:
 
 const int P_INIT = 1;             // Initial polynomial degree of all mesh elements.
-const bool ALIGN_MESH = false;     // if ALIGN_MESH == true, curvilinear elements aligned with the
+const bool ALIGN_MESH = true;     // if ALIGN_MESH == true, curvilinear elements aligned with the
                                   // circular load are used, otherwise one uses a non-aligned mesh.
 const double THRESHOLD = 0.3;     // This is a quantitative parameter of the adapt(...) function and
                                   // it has different meanings for various adaptive strategies (see below).
@@ -49,7 +49,7 @@ const bool ISO_ONLY = false;      // Isotropic refinement flag (concerns quadril
                                   // is allowed (default),
                                   // ISO_ONLY = true ... only isotropic refinements of quad elements
                                   // are allowed.
-const int MESH_REGULARITY = 1;   // Maximum allowed level of hanging nodes:
+const int MESH_REGULARITY = -1;   // Maximum allowed level of hanging nodes:
                                   // MESH_REGULARITY = -1 ... arbitrary level hangning nodes (default),
                                   // MESH_REGULARITY = 1 ... at most one-level hanging nodes,
                                   // MESH_REGULARITY = 2 ... at most two-level hanging nodes, etc.
