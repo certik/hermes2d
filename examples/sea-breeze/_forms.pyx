@@ -11,6 +11,9 @@ cdef extern from "forms.h":
     void c_register_forms "register_forms"(c_WeakForm wf, c_Solution w0_prev,
             c_Solution w1_prev, c_Solution w3_prev, c_Solution w4_prev)
 
+    double c_A_x "A_x"(int i, int j, double w0, double w1, double w3, double w4)
+    double c_A_z "A_z"(int i, int j, double w0, double w1, double w3, double w4)
+
 tau = c_TAU
 
 def register_bc(H1Space s0, H1Space s1, H1Space s3, H1Space s4):
@@ -34,3 +37,9 @@ def register_forms(WeakForm wf, Solution w0_prev, Solution w1_prev, Solution
             (<c_Solution*>w3_prev.thisptr)[0],
             (<c_Solution*>w4_prev.thisptr)[0]
             )
+
+def A_x(int i, int j, double w0, double w1, double w3, double w4):
+    return c_A_x(i, j, w0, w1, w3, w4)
+
+def A_z(int i, int j, double w0, double w1, double w3, double w4):
+    return c_A_z(i, j, w0, w1, w3, w4)
