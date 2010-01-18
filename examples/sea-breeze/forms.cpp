@@ -321,6 +321,8 @@ Scalar S_ij(int _i, int _j, int n, double *wt, Func<Real> *u, Func<Real> *v, Geo
             _w = _w - un * e->ny[i];
             w1 = _u * w0;
             w3 = _w * w0;
+            // calculate E:
+            w4 = _p * c_v / R + (w1*w1+w3*w3) / (2*w0);
             /*
             w1 = -0.5*10;
             if (e->marker == marker_top)
@@ -361,6 +363,8 @@ Scalar S_ij(int _i, int _j, int n, double *wt, Func<Real> *u, Func<Real> *v, Geo
                     w0 = w0_init_num;
                     w1 = w1_init_num;
                     w3 = w3_init_num;
+                    // calculate E:
+                    w4 = _p * c_v / R + (w1*w1+w3*w3) / (2*w0);
                 }
                 /*
                 printf("left: %f %f %f, %f %f %f\n", w0, w1, w3, rho, u*rho,
