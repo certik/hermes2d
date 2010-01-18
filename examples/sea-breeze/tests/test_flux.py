@@ -87,11 +87,15 @@ def flux(w, n):
     return dot(A_x(w), w) * n[0] + dot(A_z(w), w) * n[1]
 
 def tangent_w(w, n):
+    _p = calc_p(w)
     vel = w[1:3]/w[0]
     vel = vel - dot(vel, n)*n
-    w = array([w[0], vel[0] * w[0], vel[1] * w[0], w[3]])
+    w0 = w[0]
+    w1, w3 = w[0]*vel
+    w4 = w[3]
+    w4 = _p * c_v / R_const + (w1*w1+w3*w3) / (2*w0);
+    w = array([w0, w1, w3, w4])
     return w
-
 
 # ---------------------------------------
 
@@ -148,9 +152,9 @@ def test_flux_rot():
     def testit(w, n):
         n = n/norm(n)
         alpha = atan2(n[1], n[0])
+        f = array([0, calc_p(w), 0, 0])
         w = tangent_w(w, n)
         flux2 = dot(T_rot(alpha), flux(w, n))
-        f = array([0, calc_p(w), 0, 0])
         assert (abs(flux2 - f) < eps).all()
 
     w = array([1.8, 1.3, 1.2, 800.])
