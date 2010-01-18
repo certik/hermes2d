@@ -639,6 +639,8 @@ void set_ic(Mesh &mesh, Solution &w0, Solution &w1, Solution &w3, Solution &w4)
 
 #define ADD_BF_S(i, j) wf.add_biform_surf(i, j, callback_bf(S_##i##j), ANY, 4, &w0_prev, &w1_prev, &w3_prev, &w4_prev)
 
+#define ADD_LF(i) wf.add_liform(i, callback(l_##i), ANY, 4, &w0_prev, &w1_prev, &w3_prev, &w4_prev);
+
 void register_forms(WeakForm &wf, Solution &w0_prev, Solution &w1_prev,
         Solution &w3_prev, Solution &w4_prev)
 {
@@ -652,12 +654,8 @@ void register_forms(WeakForm &wf, Solution &w0_prev, Solution &w1_prev,
     ADD_BF_S(2, 0); ADD_BF_S(2, 1); ADD_BF_S(2, 2); ADD_BF_S(2, 3);
     ADD_BF_S(3, 0); ADD_BF_S(3, 1); ADD_BF_S(3, 2); ADD_BF_S(3, 3);
 
-    wf.add_liform(0, callback(l_0), ANY, 4, &w0_prev, &w1_prev, &w3_prev,
-            &w4_prev);
-    wf.add_liform(1, callback(l_1), ANY, 4, &w0_prev, &w1_prev, &w3_prev,
-            &w4_prev);
-    wf.add_liform(2, callback(l_2), ANY, 4, &w0_prev, &w1_prev, &w3_prev,
-            &w4_prev);
-    wf.add_liform(3, callback(l_3), ANY, 4, &w0_prev, &w1_prev, &w3_prev,
-            &w4_prev);
+    ADD_LF(0);
+    ADD_LF(1);
+    ADD_LF(2);
+    ADD_LF(3);
 }
