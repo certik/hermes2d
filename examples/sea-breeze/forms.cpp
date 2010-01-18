@@ -315,8 +315,10 @@ Scalar S_ij(int _i, int _j, int n, double *wt, Func<Real> *u, Func<Real> *v, Geo
             double un = _u*e->nx[i] + _w*e->ny[i];
             //printf("normal part: %f\n", un);
             //printf("BC: %f %f \n", w1, w3);
-            _u = _u - 2 * un * e->nx[i];
-            _w = _w - 2 * un * e->ny[i];
+            //_u = _u - 2 * un * e->nx[i];
+            //_w = _w - 2 * un * e->ny[i];
+            _u = _u - un * e->nx[i];
+            _w = _w - un * e->ny[i];
             w1 = _u * w0;
             w3 = _w * w0;
             /*
