@@ -1,11 +1,16 @@
-from math import sin, cos, pi
+from math import sin, cos, pi, atan2
 
 from numpy import array, zeros, dot, eye
-from numpy.linalg import inv
+from numpy.linalg import inv, norm
 
 from _numerical_flux import matrix_R, matrix_R_inv, matrix_D_minus, \
-        c_v, flux_riemann, flux_riemann_invert
-from _numerical_flux import R as R_const
+        flux_riemann, flux_riemann_invert
+
+from _forms import A_x as matrix_A_x
+from _forms import A_z as matrix_A_z
+from _forms import f_x as vector_f_x
+from _forms import f_z as vector_f_z
+from _forms import R as R_const, c_v
 
 eps = 1e-10
 
@@ -30,10 +35,31 @@ def D_minus(w):
             A[i, j] = matrix_D_minus(i, j, *w)
     return A
 
+def A_x(w):
+    A = zeros((4, 4))
+    for i in range(4):
+        for j in range(4):
+            A[i, j] = matrix_A_x(i, j, *w)
+    return A
+
+def A_z(w):
+    A = zeros((4, 4))
+    for i in range(4):
+        for j in range(4):
+            A[i, j] = matrix_A_z(i, j, *w)
+    return A
+
 def f_x(w):
-    w0, w1, w3, w4 = w
-    p = R_const/c_v * (w4 - (w1**2 + w3**2)/(2*w0))
-    return array([w1, w1**2/w0 + p, w1*w3/w0, w1/w0 * (w4 + p)])
+    A = zeros((4,))
+    for i in range(4):
+        A[i] = vector_f_x(i, *w)
+    return A
+
+def f_z(w):
+    A = zeros((4,))
+    for i in range(4):
+        A[i] = vector_f_z(i, *w)
+    return A
 
 def A_minus(w):
     return dot(R(w), dot(D_minus(w), R_inv(w)))
@@ -51,6 +77,23 @@ def T_rot(beta):
         [0, -cos(alpha)*sin(beta), cos(beta), 0],
         [0, 0, 0, 1]
         ])
+
+def calc_p(w):
+    w0, w1, w3, w4 = w
+    p = R_const/c_v * (w4 - (w1**2 + w3**2)/(2*w0))
+    return p
+
+def flux(w, n):
+    return dot(A_x(w), w) * n[0] + dot(A_z(w), w) * n[1]
+
+def tangent_w(w, n):
+    vel = w[1:3]/w[0]
+    vel = vel - dot(vel, n)*n
+    w = array([w[0], vel[0] * w[0], vel[1] * w[0], w[3]])
+    return w
+
+
+# ---------------------------------------
 
 def test_inv():
     w = array([1.1, -10, 13, 700.1])
@@ -100,3 +143,24 @@ def test_flux():
     assert (flux1 - flux3 < eps).all()
     assert (flux1 - flux4 < eps).all()
     assert (flux1 - flux5 < eps).all()
+
+def test_flux_rot():
+    def testit(w, n):
+        n = n/norm(n)
+        alpha = atan2(n[1], n[0])
+        w = tangent_w(w, n)
+        flux2 = dot(T_rot(alpha), flux(w, n))
+        f = array([0, calc_p(w), 0, 0])
+        assert (abs(flux2 - f) < eps).all()
+
+    w = array([1.8, 1.3, 1.2, 800.])
+    n = array([1, -1])
+    testit(w, n)
+
+    w = array([1.8, 1.3, 1.2, 800.])
+    n = array([1, 1])
+    testit(w, n)
+
+    w = array([1.8, 1.4, 1.2, 800.])
+    n = array([1, 1])
+    testit(w, n)
