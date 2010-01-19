@@ -129,11 +129,11 @@ int main(int argc, char* argv[])
   //mesh.refine_all_elements(2);
   mesh.refine_all_elements();
   mesh.refine_all_elements();
+  mesh.refine_towards_vertex(1, 6);
+  mesh.refine_towards_vertex(2, 6);
   mesh.refine_all_elements();
   mesh.refine_all_elements();
   mesh.refine_towards_boundary(marker_bottom, 3);
-  mesh.refine_towards_vertex(1, 3);
-  mesh.refine_towards_vertex(2, 3);
 
   // display the mesh
   //MeshView mview("Navier-Stokes Example - Mesh", 100, 100, 1100, 400);
