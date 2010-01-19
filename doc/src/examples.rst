@@ -461,3 +461,24 @@ in the following figure:
    :width: 600
    :height: 260
    :alt: Velocity solution visualized with the class VectorView.
+
+Waveguide
+---------
+
+To be added soon.
+
+Crack
+-----
+
+To be added soon.
+
+Nernst-Planck
+-------------
+
+To be added soon.
+
+Gross-Pitaevski
+---------------
+
+To be added soon.
+
