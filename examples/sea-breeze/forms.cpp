@@ -451,8 +451,8 @@ Scalar s_i(int _i, int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scal
                     w1_new = w1_init_num;
                     w3_new = w3_init_num;
                     // calculate E:
-                    double v2 = w1_init_num*w1_init_num+w3_init_num*w3_init_num;
-                    w4_new = _p * c_v / R + v2 / (2*w0_init_num);
+                    double v2 = w1_new*w1_new+w3_new*w3_new;
+                    w4_new = _p * c_v / R + v2 / (2*w0_new);
                 }
             }
         }
