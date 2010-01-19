@@ -384,6 +384,12 @@ Scalar S_ij(int _i, int _j, int n, double *wt, Func<Real> *u, Func<Real> *v, Geo
 }
 
 template<typename Real, typename Scalar>
+Scalar s_i(int _i, int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+{
+    return 0;
+}
+
+template<typename Real, typename Scalar>
 Scalar B_00(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
     return B_ij(0, 0, n, wt, u, v, e, ext);
@@ -517,6 +523,18 @@ Scalar l_3(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext
 }
 
 template<typename Real, typename Scalar>
+Scalar s_1(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+{
+    return s_i(1, n, wt, v, e, ext);
+}
+
+template<typename Real, typename Scalar>
+Scalar s_2(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+{
+    return s_i(2, n, wt, v, e, ext);
+}
+
+template<typename Real, typename Scalar>
 Scalar S_00(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
     return S_ij(0, 0, n, wt, u, v, e, ext);
@@ -641,6 +659,8 @@ void set_ic(Mesh &mesh, Solution &w0, Solution &w1, Solution &w3, Solution &w4)
 
 #define ADD_LF(i) wf.add_liform(i, callback(l_##i), ANY, 4, &w0_prev, &w1_prev, &w3_prev, &w4_prev);
 
+#define ADD_LF_S(i) wf.add_liform_surf(i, callback(s_##i), ANY, 4, &w0_prev, &w1_prev, &w3_prev, &w4_prev);
+
 void register_forms(WeakForm &wf, Solution &w0_prev, Solution &w1_prev,
         Solution &w3_prev, Solution &w4_prev)
 {
@@ -658,4 +678,7 @@ void register_forms(WeakForm &wf, Solution &w0_prev, Solution &w1_prev,
     ADD_LF(1);
     ADD_LF(2);
     ADD_LF(3);
+
+    ADD_LF_S(1);
+    ADD_LF_S(2);
 }
