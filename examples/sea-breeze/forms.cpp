@@ -386,6 +386,38 @@ Scalar S_ij(int _i, int _j, int n, double *wt, Func<Real> *u, Func<Real> *v, Geo
 template<typename Real, typename Scalar>
 Scalar s_i(int _i, int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
+    if (e->marker == marker_top || e->marker == marker_bottom) {
+        double w0, w1, w3, w4;
+        Scalar result = 0;
+        for (int i = 0; i < n; i++) {
+            w0 = ext->fn[0]->val[i];
+            w1 = ext->fn[1]->val[i];
+            w3 = ext->fn[2]->val[i];
+            w4 = ext->fn[3]->val[i];
+            double _rho = w0;
+            double _u = w1/w0;
+            double _w = w3/w0;
+            double _E = w4;
+            double _v2 = _u*_u+_w*_w;
+            double _p = (kappa-1)*(_E - _rho*_v2/2);
+            double _c = sqrt(kappa*_p/_rho);
+            double _M = sqrt(_v2)/_c;
+            double un = _u*e->nx[i] + _w*e->ny[i];
+            _u = _u + un * e->nx[i];
+            _w = _w + un * e->ny[i];
+            w1 = _u * w0;
+            w3 = _w * w0;
+            // calculate E:
+            w4 = _p * c_v / R + (w1*w1+w3*w3) / (2*w0);
+            double _j = 1; // XXX: what with this?
+            result += wt[i] * (
+                    A_x(_i, _j, w0, w1, w3, w4) * e->nx[i]
+                    +
+                    A_z(_i, _j, w0, w1, w3, w4) * e->ny[i]
+                    ) * v->val[i];
+        }
+        return result;
+    }
     return 0;
 }
 
@@ -635,7 +667,14 @@ Ord B_order(int n, double *wt, Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e, ExtData
      return Ord(20);
 }
 
+Ord L_order(int n, double *wt, Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext)
+{
+     return Ord(20);
+}
+
 #define callback_bf(a) a<double, scalar>, B_order
+
+#define callback_lf_s(a) a<double, scalar>, L_order
 
 void register_bc(H1Space &s0, H1Space &s1, H1Space &s3, H1Space &s4)
 {
@@ -659,7 +698,7 @@ void set_ic(Mesh &mesh, Solution &w0, Solution &w1, Solution &w3, Solution &w4)
 
 #define ADD_LF(i) wf.add_liform(i, callback(l_##i), ANY, 4, &w0_prev, &w1_prev, &w3_prev, &w4_prev);
 
-#define ADD_LF_S(i) wf.add_liform_surf(i, callback(s_##i), ANY, 4, &w0_prev, &w1_prev, &w3_prev, &w4_prev);
+#define ADD_LF_S(i) wf.add_liform_surf(i, callback_lf_s(s_##i), ANY, 4, &w0_prev, &w1_prev, &w3_prev, &w4_prev);
 
 void register_forms(WeakForm &wf, Solution &w0_prev, Solution &w1_prev,
         Solution &w3_prev, Solution &w4_prev)
