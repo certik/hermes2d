@@ -335,6 +335,7 @@ Scalar S_ij(int _i, int _j, int n, double *wt, Func<Real> *u, Func<Real> *v, Geo
             //printf("BC(%d): %f %f %f %f \n", e->marker, w1, w3, e->nx[i], e->ny[i]);
         }
         else {
+                /*
             double un = _u*e->nx[i] + _w*e->ny[i];
             if (un > 0) {
                 // outlet
@@ -368,11 +369,12 @@ Scalar S_ij(int _i, int _j, int n, double *wt, Func<Real> *u, Func<Real> *v, Geo
                     // calculate E:
                     w4 = _p * c_v / R + (w1*w1+w3*w3) / (2*w0);
                 }
-                /*
+                / *
                 printf("left: %f %f %f, %f %f %f\n", w0, w1, w3, rho, u*rho,
                         w*rho);
-                        */
+                        * /
             }
+                */
         }
         result += wt[i] * (
                 A_x(_i, _j, w0, w1, w3, w4) * e->nx[i]
@@ -386,51 +388,82 @@ Scalar S_ij(int _i, int _j, int n, double *wt, Func<Real> *u, Func<Real> *v, Geo
 template<typename Real, typename Scalar>
 Scalar s_i(int _i, int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
-    if (e->marker == marker_top || e->marker == marker_bottom) {
-        double w0, w1, w3, w4;
-        Scalar result = 0;
-        for (int i = 0; i < n; i++) {
-            w0 = ext->fn[0]->val[i];
-            w1 = ext->fn[1]->val[i];
-            w3 = ext->fn[2]->val[i];
-            w4 = ext->fn[3]->val[i];
-            double _rho = w0;
-            double _u = w1/w0;
-            double _w = w3/w0;
-            double _E = w4;
-            double _v2 = _u*_u+_w*_w;
-            double _p = (kappa-1)*(_E - _rho*_v2/2);
-            double _c = sqrt(kappa*_p/_rho);
-            double _M = sqrt(_v2)/_c;
-            double un = _u*e->nx[i] + _w*e->ny[i];
-            double w0_new, w1_new, w3_new, w4_new;
+    double w0, w1, w3, w4;
+    Scalar result = 0;
+    for (int i = 0; i < n; i++) {
+        w0 = ext->fn[0]->val[i];
+        w1 = ext->fn[1]->val[i];
+        w3 = ext->fn[2]->val[i];
+        w4 = ext->fn[3]->val[i];
+        double _rho = w0;
+        double _u = w1/w0;
+        double _w = w3/w0;
+        double _E = w4;
+        double _v2 = _u*_u+_w*_w;
+        double _p = (kappa-1)*(_E - _rho*_v2/2);
+        double _c = sqrt(kappa*_p/_rho);
+        double _M = sqrt(_v2)/_c;
+        double un = _u*e->nx[i] + _w*e->ny[i];
+        double w0_new = 0, w1_new = 0, w3_new = 0, w4_new = 0;
+        if (e->marker == marker_top || e->marker == marker_bottom) {
             _u = -un * e->nx[i];
             _w = -un * e->ny[i];
-            w0_new = 0;
             w1_new = _u * w0;
             w3_new = _w * w0;
-            w4_new = 0;
-            result += wt[i] * (
-                    A_x(_i, 0, w0, w1, w3, w4) * w0_new * e->nx[i]
-                    +
-                    A_x(_i, 1, w0, w1, w3, w4) * w1_new * e->nx[i]
-                    +
-                    A_x(_i, 2, w0, w1, w3, w4) * w3_new * e->nx[i]
-                    +
-                    A_x(_i, 3, w0, w1, w3, w4) * w4_new * e->nx[i]
-                    +
-                    A_z(_i, 0, w0, w1, w3, w4) * w0_new * e->ny[i]
-                    +
-                    A_z(_i, 1, w0, w1, w3, w4) * w1_new * e->ny[i]
-                    +
-                    A_z(_i, 2, w0, w1, w3, w4) * w3_new * e->ny[i]
-                    +
-                    A_z(_i, 3, w0, w1, w3, w4) * w4_new * e->ny[i]
-                    ) * v->val[i];
+        } else {
+            if (un > 0) {
+                // outlet
+                if (_M >= 1.) {
+                    // supersonic
+                    // we take everything from inside
+                }
+                else {
+                    // subsonic
+                    // take p from the outside state
+                    w4_new = p_init_num * c_v / R + (w1*w1+w3*w3)/(2*w0) - w4;
+                }
+            }
+            else {
+                // inlet
+                if (_M >= 1.) {
+                    // supersonic
+                    // take everything from outside
+                    w0_new = w0_init_num - w0;
+                    w1_new = w1_init_num - w1;
+                    w3_new = w3_init_num - w3;
+                    w4_new = w4_init_num - w4;
+                }
+                else {
+                    // subsonic
+                    // take rho, u, w from the outside state
+                    w0_new = w0_init_num - w0;
+                    w1_new = w1_init_num - w1;
+                    w3_new = w3_init_num - w3;
+                    // calculate E:
+                    double v2 = w1_init_num*w1_init_num+w3_init_num*w3_init_num;
+                    w4_new = _p * c_v / R + v2 / (2*w0_init_num) - w4;
+                }
+            }
         }
-        return result;
+        result += wt[i] * (
+                A_x(_i, 0, w0, w1, w3, w4) * w0_new * e->nx[i]
+                +
+                A_x(_i, 1, w0, w1, w3, w4) * w1_new * e->nx[i]
+                +
+                A_x(_i, 2, w0, w1, w3, w4) * w3_new * e->nx[i]
+                +
+                A_x(_i, 3, w0, w1, w3, w4) * w4_new * e->nx[i]
+                +
+                A_z(_i, 0, w0, w1, w3, w4) * w0_new * e->ny[i]
+                +
+                A_z(_i, 1, w0, w1, w3, w4) * w1_new * e->ny[i]
+                +
+                A_z(_i, 2, w0, w1, w3, w4) * w3_new * e->ny[i]
+                +
+                A_z(_i, 3, w0, w1, w3, w4) * w4_new * e->ny[i]
+                ) * v->val[i];
     }
-    return 0;
+    return result;
 }
 
 template<typename Real, typename Scalar>
