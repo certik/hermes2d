@@ -533,8 +533,7 @@ void LinSystem::assemble(bool rhsonly)
         j = s->idx[i];
         if (e[i] == NULL) { isempty[j] = true; continue; }
         spaces[j]->get_element_assembly_list(e[i], al+j);
-        // todo: neziskavat znova, pokud se element nezmenil
-
+        // TODO: don't retrieve this again, unless the element has changed
         spss[j]->set_active_element(e[i]);
         spss[j]->set_master_transform();
         refmap[j].set_active_element(e[i]);
