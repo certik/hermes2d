@@ -403,17 +403,19 @@ Scalar s_i(int _i, int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scal
             double _c = sqrt(kappa*_p/_rho);
             double _M = sqrt(_v2)/_c;
             double un = _u*e->nx[i] + _w*e->ny[i];
-            _u = _u + un * e->nx[i];
-            _w = _w + un * e->ny[i];
-            w1 = _u * w0;
-            w3 = _w * w0;
-            // calculate E:
-            w4 = _p * c_v / R + (w1*w1+w3*w3) / (2*w0);
-            double _j = 1; // XXX: what with this?
+            double w1_new, w3_new;
+            _u = -un * e->nx[i];
+            _w = -un * e->ny[i];
+            w1_new = _u * w0;
+            w3_new = _w * w0;
             result += wt[i] * (
-                    A_x(_i, _j, w0, w1, w3, w4) * e->nx[i]
+                    A_x(_i, 1, w0, w1, w3, w4) * w1_new * e->nx[i]
                     +
-                    A_z(_i, _j, w0, w1, w3, w4) * e->ny[i]
+                    A_x(_i, 2, w0, w1, w3, w4) * w3_new * e->nx[i]
+                    +
+                    A_z(_i, 1, w0, w1, w3, w4) * w1_new * e->ny[i]
+                    +
+                    A_z(_i, 2, w0, w1, w3, w4) * w3_new * e->ny[i]
                     ) * v->val[i];
         }
         return result;
