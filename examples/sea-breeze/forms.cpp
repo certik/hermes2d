@@ -404,23 +404,34 @@ Scalar s_i(int _i, int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scal
         double _c = sqrt(kappa*_p/_rho);
         double _M = sqrt(_v2)/_c;
         double un = _u*e->nx[i] + _w*e->ny[i];
-        double w0_new = 0, w1_new = 0, w3_new = 0, w4_new = 0;
+        // we build a new state w?_new that we want to impose
+        double w0_new, w1_new, w3_new, w4_new;
+
         if (e->marker == marker_top || e->marker == marker_bottom) {
-            _u = -un * e->nx[i];
-            _w = -un * e->ny[i];
+            _u = _u-un * e->nx[i];
+            _w = _w-un * e->ny[i];
+            w0_new = w0;
             w1_new = _u * w0;
             w3_new = _w * w0;
+            w4_new = w4;
         } else {
             if (un > 0) {
                 // outlet
                 if (_M >= 1.) {
                     // supersonic
                     // we take everything from inside
+                    w0_new = w0;
+                    w1_new = w1;
+                    w3_new = w3;
+                    w4_new = w4;
                 }
                 else {
                     // subsonic
-                    // take p from the outside state
-                    w4_new = p_init_num * c_v / R + (w1*w1+w3*w3)/(2*w0) - w4;
+                    // take p from the outside state, the rest from the inside
+                    w0_new = w0;
+                    w1_new = w1;
+                    w3_new = w3;
+                    w4_new = p_init_num * c_v / R + (w1*w1+w3*w3)/(2*w0);
                 }
             }
             else {
@@ -428,23 +439,28 @@ Scalar s_i(int _i, int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scal
                 if (_M >= 1.) {
                     // supersonic
                     // take everything from outside
-                    w0_new = w0_init_num - w0;
-                    w1_new = w1_init_num - w1;
-                    w3_new = w3_init_num - w3;
-                    w4_new = w4_init_num - w4;
+                    w0_new = w0_init_num;
+                    w1_new = w1_init_num;
+                    w3_new = w3_init_num;
+                    w4_new = w4_init_num;
                 }
                 else {
                     // subsonic
                     // take rho, u, w from the outside state
-                    w0_new = w0_init_num - w0;
-                    w1_new = w1_init_num - w1;
-                    w3_new = w3_init_num - w3;
+                    w0_new = w0_init_num;
+                    w1_new = w1_init_num;
+                    w3_new = w3_init_num;
                     // calculate E:
                     double v2 = w1_init_num*w1_init_num+w3_init_num*w3_init_num;
-                    w4_new = _p * c_v / R + v2 / (2*w0_init_num) - w4;
+                    w4_new = _p * c_v / R + v2 / (2*w0_init_num);
                 }
             }
         }
+        // we only impose the difference to the inside state:
+        w0_new -= w0;
+        w1_new -= w1;
+        w3_new -= w3;
+        w4_new -= w4;
         result += wt[i] * (
                 A_x(_i, 0, w0, w1, w3, w4) * w0_new * e->nx[i]
                 +
