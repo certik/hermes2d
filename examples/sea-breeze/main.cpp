@@ -145,11 +145,12 @@ int main(int argc, char* argv[])
   H1Shapeset shapeset_h1;
   PrecalcShapeset pss_h1(&shapeset_h1);
 
+  // this should be L2Shapeset, but hermes complains...
   H1Shapeset shapeset_l2;
   PrecalcShapeset pss_l2(&shapeset_l2);
 
   // H1 spaces for velocities and L2 for pressure
-  H1Space s0(&mesh, &shapeset_l2);
+  H1Space s0(&mesh, &shapeset_h1);
   H1Space s1(&mesh, &shapeset_h1);
   H1Space s3(&mesh, &shapeset_h1);
   H1Space s4(&mesh, &shapeset_l2);
@@ -195,7 +196,7 @@ int main(int argc, char* argv[])
   UmfpackSolver umfpack;
   LinSystem sys(&wf, &umfpack);
   sys.set_spaces(4, &s0, &s1, &s3, &s4);
-  sys.set_pss(4, &pss_l2, &pss_h1, &pss_h1, &pss_l2);
+  sys.set_pss(4, &pss_h1, &pss_h1, &pss_h1, &pss_l2);
 
 
   // main loop
@@ -229,15 +230,15 @@ int main(int argc, char* argv[])
     sprintf(title, "Mass Density, time %g", TIME);
     w0_view.set_title(title);
     w0_view.show(&w0_sln);
-    sprintf(title, "Pressure, time %g", TIME);
-    CalcPressure pressure(&w0_sln, &w1_sln, &w3_sln, &w4_sln);
+    sprintf(title, "Energy, time %g", TIME);
+    //CalcPressure pressure(&w0_sln, &w1_sln, &w3_sln, &w4_sln);
     Calc_u u(&w0_sln, &w1_sln, &w3_sln, &w4_sln);
     Calc_w w(&w0_sln, &w1_sln, &w3_sln, &w4_sln);
     //printf("energy at 0,0: %.15f\n", w4_sln.get_pt_value(0, 0));
 
     w4_view.set_title(title);
-    w4_view.show(&pressure);
-    //w4_view.show(&w4_sln);
+    //w4_view.show(&pressure);
+    w4_view.show(&w4_sln);
 
     u_view.show(&u);
     w_view.show(&w);
