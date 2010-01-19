@@ -6,9 +6,9 @@
 // The following parameters can be played with:
 
 const double FINAL_TIME = 3600*72/t_r;    // length of time interval
-const int P_INIT_w0 = 1;       // polynomial degree for pressure
-const int P_INIT_VEL = 1;            // polynomial degree for velocity components
-const int P_INIT_w4 = 1;       // polynomial degree for pressure
+const int P_INIT_w0 = 2;       // polynomial degree for pressure
+const int P_INIT_VEL = 2;            // polynomial degree for velocity components
+const int P_INIT_w4 = 1;       // polynomial degree for the energy
 
 // global time variable
 double TIME = 0;
@@ -116,7 +116,8 @@ int main(int argc, char* argv[])
 
   // load the mesh file
   Mesh mesh;
-  mesh.load("GAMM-channel.mesh"); // unstructured triangular mesh available in domain-tri.mesh
+  mesh.load("GAMM-channel.mesh");
+  //mesh.load("domain-quad.mesh");
 
   // a-priori mesh refinements
   //mesh.refine_all_elements();
@@ -143,6 +144,9 @@ int main(int argc, char* argv[])
   // initialize the shapesets and the cache
   H1Shapeset shapeset_h1;
   PrecalcShapeset pss_h1(&shapeset_h1);
+
+  H1Shapeset shapeset_l2;
+  PrecalcShapeset pss_l2(&shapeset_l2);
 
   // H1 spaces for velocities and L2 for pressure
   H1Space s0(&mesh, &shapeset_h1);
@@ -192,7 +196,6 @@ int main(int argc, char* argv[])
   LinSystem sys(&wf, &umfpack);
   sys.set_spaces(4, &s0, &s1, &s3, &s4);
   sys.set_pss(4, &pss_h1, &pss_h1, &pss_h1, &pss_h1);
-  //sys.set_pss(1, &pss_h1);
 
 
   // main loop
