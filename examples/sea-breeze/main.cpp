@@ -149,10 +149,10 @@ int main(int argc, char* argv[])
   PrecalcShapeset pss_l2(&shapeset_l2);
 
   // H1 spaces for velocities and L2 for pressure
-  H1Space s0(&mesh, &shapeset_h1);
+  H1Space s0(&mesh, &shapeset_l2);
   H1Space s1(&mesh, &shapeset_h1);
   H1Space s3(&mesh, &shapeset_h1);
-  H1Space s4(&mesh, &shapeset_h1);
+  H1Space s4(&mesh, &shapeset_l2);
 
   register_bc(s0, s1, s3, s4);
 
@@ -195,7 +195,7 @@ int main(int argc, char* argv[])
   UmfpackSolver umfpack;
   LinSystem sys(&wf, &umfpack);
   sys.set_spaces(4, &s0, &s1, &s3, &s4);
-  sys.set_pss(4, &pss_h1, &pss_h1, &pss_h1, &pss_h1);
+  sys.set_pss(4, &pss_l2, &pss_h1, &pss_h1, &pss_l2);
 
 
   // main loop
