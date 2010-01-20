@@ -46,6 +46,11 @@
 ///
 double* Shapeset::calculate_constrained_edge_combination(int order, int part, int ori)
 {
+  /*
+  "ebias" is the order of the first edge function, this has to be subtracted
+  from the order to get a reasonable numbering of the edge functions, starting
+  from 0. For H1 ebias is 2 and for Hcurl it is 0.
+  */
   assert((order - ebias) >= 0);
   assert(part >= 0);
 
