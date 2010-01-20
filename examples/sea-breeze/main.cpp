@@ -6,8 +6,8 @@
 // The following parameters can be played with:
 
 const double FINAL_TIME = 3600*72/t_r;    // length of time interval
-const int P_INIT_w0 = 2;       // polynomial degree for pressure
-const int P_INIT_VEL = 2;            // polynomial degree for velocity components
+const int P_INIT_w0 = 1;       // polynomial degree for pressure
+const int P_INIT_VEL = 1;            // polynomial degree for velocity components
 const int P_INIT_w4 = 1;       // polynomial degree for the energy
 
 // global time variable
