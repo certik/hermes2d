@@ -150,16 +150,17 @@ public:
   void free();
 
   /// Loads the mesh from a file. Aborts the program on error.
-  /// \param filename [in] The name of the file.
+  /// \param filename [in] The name of the file. DEPRECATED
   void load_old(const char* filename);
   void load_stream(FILE *f);
   void load_str(char* mesh);
 
+  /// DEPRECATED
   void load(const char* filename, bool debug = false);
 
   /// Saves the mesh, including all refinements, to a file.
   /// Caution: never overwrite hand-created meshes with this function --
-  /// all comments in the original file will be lost.
+  /// all comments in the original file will be lost. DEPRECATED.
   /// \param filename [in] The name of the file.
   void save(const char* filename);
 
@@ -233,9 +234,9 @@ public:
   void transform(double2x2 m, double2 t);
   void transform(void (*fn)(double* x, double* y));
 
-  /// Loads the entire internal state from a (binary) file.
+  /// Loads the entire internal state from a (binary) file. DEPRECATED
   void load_raw(FILE* f);
-  /// Saves the entire internal state to a (binary) file.
+  /// Saves the entire internal state to a (binary) file. DEPRECATED
   void save_raw(FILE* f);
 
   /// For internal use.
@@ -270,13 +271,8 @@ protected:
   void refine_quad(Element* e, int refinement);
   void unrefine_element_internal(Element* e);
 
-  char*  get_line(FILE* f);
-  Nurbs* load_nurbs(FILE* f, Node** en, int& p1, int& p2);
-  Nurbs* load_nurbs_new(MItem* curve, int id, Node** en, int &p1, int &p2);
   Nurbs* reverse_nurbs(Nurbs* nurbs);
   Node*  get_base_edge_node(Element* base, int edge);
-  void   save_refinements(FILE* f, Element* e, int id, bool& first);
-  void   save_nurbs(FILE* f, int p1, int p2, Nurbs* nurbs);
 
   int* parents;
   int parents_size;
@@ -293,6 +289,7 @@ protected:
   void refine_quad_to_triangles(Element* e);
   void refine_element_to_triangles(int id);
 
+  friend class H2DReader;
 };
 
 
@@ -352,5 +349,13 @@ struct EdgePos
 
 const int TOP_LEVEL_REF = 123456;
 
+
+// General purpose geometry functions
+
+double vector_length(double a_1, double a_2);
+bool same_line(double p_1, double p_2, double q_1, double q_2, double r_1, double r_2);
+bool is_convex(double a_1, double a_2, double b_1, double b_2);
+void check_triangle(int i, Node *&v0, Node *&v1, Node *&v2);
+void check_quad(int i, Node *&v0, Node *&v1, Node *&v2, Node *&v3);
 
 #endif

@@ -1,5 +1,5 @@
 set(SRC
-       hash.cpp mesh1.cpp mesh2.cpp regul.cpp refmap.cpp curved.cpp
+       hash.cpp mesh.cpp regul.cpp refmap.cpp curved.cpp
        transform.cpp traverse.cpp
        shapeset.cpp precalc.cpp solution.cpp filter.cpp
        space.cpp space_h1.cpp space_hcurl.cpp space_l2.cpp
@@ -18,8 +18,7 @@ set(SRC
        precond_ml.cpp precond_ifpack.cpp
        refsystem.cpp nonlinsystem.cpp forms.cpp
        mesh_parser.cpp mesh_lexer.cpp
-       exodusii.cpp
-
+       exodusii.cpp h2d_reader.cpp
        compat/fmemopen.cpp
        )
 
