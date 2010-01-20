@@ -150,7 +150,19 @@ Func<double>* init_fn(PrecalcShapeset *fu, RefMap *rm, const int order)
   else if (space_type == 3)
   {
     u->val = new double [np];
-    memcpy(u->val, fu->get_fn_values(), np * sizeof(double));
+    u->dx  = new double [np];
+    u->dy  = new double [np];
+
+    double *fn = fu->get_fn_values();
+    double *dx = fu->get_dx_values();
+    double *dy = fu->get_dy_values();
+    double2x2 *m = rm->get_inv_ref_map(order);
+    for (int i = 0; i < np; i++, m++)
+    {
+        u->val[i] = fn[i];
+        u->dx[i] = (dx[i] * (*m)[0][0] + dy[i] * (*m)[0][1]);
+        u->dy[i] = (dx[i] * (*m)[1][0] + dy[i] * (*m)[1][1]);
+    }
   }
   else
     error("Wrong space type - space has to be either H1, Hcurl, Hdiv or L2");
