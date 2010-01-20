@@ -221,6 +221,7 @@ int main(int argc, char* argv[])
     // assemble and solve
     Solution w0_sln, w1_sln, w3_sln, w4_sln;
     sys.assemble();
+    //error("stop");
     sys.solve(4, &w0_sln, &w1_sln, &w3_sln, &w4_sln);
 
     // visualization

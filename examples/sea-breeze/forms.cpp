@@ -390,6 +390,8 @@ Scalar s_i(int _i, int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scal
 {
     double w0, w1, w3, w4;
     Scalar result = 0;
+    int _tmp = -1;
+    //printf("BC: n=%d; marker=%d\n", n, e->marker);
     for (int i = 0; i < n; i++) {
         w0 = ext->fn[0]->val[i];
         w1 = ext->fn[1]->val[i];
@@ -406,8 +408,22 @@ Scalar s_i(int _i, int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scal
         double un = _u*e->nx[i] + _w*e->ny[i];
         // we build a new state w?_new that we want to impose
         double w0_new, w1_new, w3_new, w4_new;
+        int right_or_left = 0;
+        //if ((e->marker == marker_left || e->marker == marker_right) &&
+        //            (fabs(e->ny[i]) < 1e-10))
+        if (fabs(e->ny[i]) < 1e-10)
+            right_or_left = 1;
+        else
+            right_or_left = 0;
+        if (_tmp == -1)
+            _tmp = right_or_left;
+        else {
+            if (_tmp != right_or_left)
+                error("stop");
+        }
 
-        if (e->marker == marker_top || e->marker == marker_bottom) {
+
+        if  (!right_or_left) {
             _u = _u-un * e->nx[i];
             _w = _w-un * e->ny[i];
             w0_new = w0;

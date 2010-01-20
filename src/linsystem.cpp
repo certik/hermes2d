@@ -620,6 +620,15 @@ void LinSystem::assemble(bool rhsonly)
       {
         if (!bnd[edge]) continue;
         marker = ep[edge].marker;
+        /*
+        printf("assembly: id=%d edge=%d marker=%d nodes=(%d, %d, %d, %d)\n",
+                e0->id, edge, e0->marker,
+                e0->vn[0]->id,
+                e0->vn[1]->id,
+                e0->vn[2]->id,
+                e0->vn[3]->id
+                );
+                */
 
         // obtain the list of shape functions which are nonzero on this edge
         for (unsigned int i = 0; i < s->idx.size(); i++) {
