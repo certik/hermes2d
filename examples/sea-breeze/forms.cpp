@@ -268,35 +268,6 @@ Scalar B_ij(int _i, int _j, int n, double *wt, Func<Real> *u, Func<Real> *v, Geo
 template<typename Real, typename Scalar>
 Scalar S_ij(int _i, int _j, int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
-/*
-    double w_l[4];
-    // XXX: set w_l and w_r to the prev solution
-    double w_r[4];
-    // set the optional BC into w_r
-    if (e->marker == marker_top || e->marker == marker_bottom) {
-        // the z-velocity is 0:
-        w_r[2] = 0;
-    }
-    if (e->marker == marker_left || e->marker == marker_right) {
-        // the x-velocity is 1 m/s:
-        w_r[1] = 1./u_r;
-    }
-
-    double alpha = 0; // XXX rotate things appropriately
-
-    double m[4][4];
-    double _w_l[4];
-    double _w_r[4];
-    double _tmp[4];
-    double flux[4];
-    T_rot(m, alpha);
-    dot_vector(_w_l, m, w_l);
-    dot_vector(_w_r, m, w_r);
-    flux_riemann(_tmp, _w_l, _w_r);
-    T_rot(m, -alpha);
-    dot_vector(flux, m, _tmp);
-*/
-
     double w0, w1, w3, w4;
 
     Scalar result = 0;
@@ -305,80 +276,6 @@ Scalar S_ij(int _i, int _j, int n, double *wt, Func<Real> *u, Func<Real> *v, Geo
         w1 = ext->fn[1]->val[i];
         w3 = ext->fn[2]->val[i];
         w4 = ext->fn[3]->val[i];
-        double _rho = w0;
-        double _u = w1/w0;
-        double _w = w3/w0;
-        double _E = w4;
-        double _v2 = _u*_u+_w*_w;
-        double _p = (kappa-1)*(_E - _rho*_v2/2);
-        double _c = sqrt(kappa*_p/_rho);
-        double _M = sqrt(_v2)/_c;
-        //printf("c = %f; M = %f\n", _c, );
-        if (e->marker == marker_top || e->marker == marker_bottom) {
-            double un = _u*e->nx[i] + _w*e->ny[i];
-            //printf("normal part: %f\n", un);
-            //printf("BC: %f %f \n", w1, w3);
-            //_u = _u - 2 * un * e->nx[i];
-            //_w = _w - 2 * un * e->ny[i];
-            /*
-            _u = _u + un * e->nx[i];
-            _w = _w + un * e->ny[i];
-            w1 = _u * w0;
-            w3 = _w * w0;
-            // calculate E:
-            w4 = _p * c_v / R + (w1*w1+w3*w3) / (2*w0);
-            */
-            /*
-            w1 = -0.5*10;
-            if (e->marker == marker_top)
-                w3 = -0.5*10;
-            else
-                w3 = 0.5*10;
-            */
-            //printf("BC(%d): %f %f %f %f \n", e->marker, w1, w3, e->nx[i], e->ny[i]);
-        }
-        else {
-                /*
-            double un = _u*e->nx[i] + _w*e->ny[i];
-            if (un > 0) {
-                // outlet
-                if (_M >= 1.) {
-                    // supersonic
-                    // we take everything from inside
-                }
-                else {
-                    // subsonic
-                    // take p from the outside state
-                    w4 = p_init_num * c_v / R + (w1*w1+w3*w3)/(2*w0);
-                    //w4 = rho_z(0) * T_z(0) * c_v / E_r;
-                }
-            }
-            else {
-                // inlet
-                if (_M >= 1.) {
-                    // supersonic
-                    // take everything from outside
-                    w0 = w0_init_num;
-                    w1 = w1_init_num;
-                    w3 = w3_init_num;
-                    w4 = w4_init_num;
-                }
-                else {
-                    // subsonic
-                    // take rho, u, w from the outside state
-                    w0 = w0_init_num;
-                    w1 = w1_init_num;
-                    w3 = w3_init_num;
-                    // calculate E:
-                    w4 = _p * c_v / R + (w1*w1+w3*w3) / (2*w0);
-                }
-                / *
-                printf("left: %f %f %f, %f %f %f\n", w0, w1, w3, rho, u*rho,
-                        w*rho);
-                        * /
-            }
-                */
-        }
         result += wt[i] * (
                 A_x(_i, _j, w0, w1, w3, w4) * e->nx[i]
                 +
