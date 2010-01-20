@@ -6,8 +6,8 @@
 // The following parameters can be played with:
 
 const double FINAL_TIME = 3600*72/t_r;    // length of time interval
-const int P_INIT_w0 = 1;       // polynomial degree for pressure
-const int P_INIT_VEL = 1;            // polynomial degree for velocity components
+const int P_INIT_w0 = 2;       // polynomial degree for pressure
+const int P_INIT_VEL = 2;            // polynomial degree for velocity components
 const int P_INIT_w4 = 1;       // polynomial degree for the energy
 
 // global time variable
@@ -146,14 +146,14 @@ int main(int argc, char* argv[])
   PrecalcShapeset pss_h1(&shapeset_h1);
 
   // this should be L2Shapeset, but hermes complains...
-  H1Shapeset shapeset_l2;
+  L2Shapeset shapeset_l2;
   PrecalcShapeset pss_l2(&shapeset_l2);
 
   // H1 spaces for velocities and L2 for pressure
   H1Space s0(&mesh, &shapeset_h1);
   H1Space s1(&mesh, &shapeset_h1);
   H1Space s3(&mesh, &shapeset_h1);
-  H1Space s4(&mesh, &shapeset_l2);
+  L2Space s4(&mesh, &shapeset_l2);
 
   register_bc(s0, s1, s3, s4);
 
