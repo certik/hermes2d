@@ -21,6 +21,7 @@
 #include "common.h"
 #include "mesh.h"
 #include "mesh_loader.h"
+#include "h2d_reader.h"
 #include "exodusii.h"
 
 #include "space_h1.h"
