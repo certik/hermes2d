@@ -1,8 +1,8 @@
 # The domain is (-a, a) x (0, b)
 a = 0.5  # domain length * 0.5
 b = 1  # domain height
-c = 0.1
-#c = 0
+#c = 0.1
+c = 0
 
 vertices =
 {
