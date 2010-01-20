@@ -753,7 +753,7 @@ Ord L_order(int n, double *wt, Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext)
 
 #define callback_lf_s(a) a<double, scalar>, L_order
 
-void register_bc(H1Space &s0, H1Space &s1, H1Space &s3, H1Space &s4)
+void register_bc(Space &s0, Space &s1, Space &s3, Space &s4)
 {
     s0.set_bc_types(s0_bc_type);
     s1.set_bc_types(s1_bc_type);
