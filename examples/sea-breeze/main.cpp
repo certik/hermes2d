@@ -180,10 +180,10 @@ int main(int argc, char* argv[])
 
   // visualization
   VectorView w13_view("Current Density [m/s]", 0, 0, 1500, 470);
-  ScalarView w0_view("Mass Density [Pa]", 0, 530, 1500, 470);
-  ScalarView w4_view("Energy [Pa]", 0, 530, 1500, 470);
+  ScalarView w0_view("Mass Density [Pa]", 1530, 0, 1500, 470);
+  ScalarView w4_view("Energy [Pa]", 1530, 530, 1500, 470);
   ScalarView u_view("u", 0, 530, 1500, 470);
-  ScalarView w_view("w", 0, 530, 1500, 470);
+  ScalarView w_view("w", 0, 1060, 1500, 470);
   //w13_view.set_min_max_range(0, 2);
   w0_view.show_mesh(false);
   w4_view.show_mesh(false);
