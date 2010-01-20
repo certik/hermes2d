@@ -239,6 +239,9 @@ double test3(double w0, double w1, double w3, double w4)
 template<typename Real, typename Scalar>
 Scalar B_ij(int _i, int _j, int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
+    assert(u->val != NULL);
+    assert(v->dx != NULL);
+    assert(v->dy != NULL);
     double delta_ij;
     if (_i == _j)
         delta_ij = 1;
