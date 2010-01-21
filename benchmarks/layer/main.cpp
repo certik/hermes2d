@@ -110,8 +110,9 @@ int main(int argc, char* argv[])
 {
   // load the mesh
   Mesh mesh;
-  mesh.load("square_quad.mesh");
-//   mesh.load("square_tri.mesh");
+  H2DReader mloader;
+  mloader.load("square_quad.mesh", &mesh);
+//   mloader.load("square_tri.mesh", &mesh);
   if(P_INIT == 1) mesh.refine_all_elements();  // this is because there are no degrees of freedom
                                                // on the coarse mesh lshape.mesh if P_INIT == 1
 

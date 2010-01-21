@@ -85,8 +85,9 @@ int main(int argc, char* argv[])
 {
   // load the mesh
   Mesh mesh;
-  mesh.load("screen-quad.mesh");
-//    mesh.load("screen-tri.mesh");
+  H2DReader mloader;
+  mloader.load("screen-quad.mesh", &mesh);
+//    mloader.load("screen-tri.mesh", &mesh);
 
   // initialize the shapeset and the cache
   HcurlShapeset shapeset;

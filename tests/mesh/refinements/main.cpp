@@ -1,8 +1,8 @@
 #include "hermes2d.h"
 
-// This test make sure that all elements are refined correct, 
-// including the number of elements, the type of elements, 
-// and find out if the elements are curvilinear. 
+// This test make sure that all elements are refined correct,
+// including the number of elements, the type of elements,
+// and find out if the elements are curvilinear.
 
 #define ERROR_SUCCESS                               0
 #define ERROR_FAILURE                               -1
@@ -17,9 +17,10 @@ int main(int argc, char* argv[])
 
   // load the mesh file
   Mesh mesh;
+  H2DReader mloader;
   Element* e;
-  mesh.load(argv[1]);
-  
+  mloader.load(argv[1], &mesh);
+
   // default refine type '0': one quad to four quads
   //         refine type '1': one quad to two 'horizontal' quads
   //         refine type '2': one quad to two 'vertical' quads
@@ -36,7 +37,7 @@ int main(int argc, char* argv[])
     if (e->is_quad())
     {
       printf("type : quadrangle ");
-      if (refine_type == 0) 
+      if (refine_type == 0)
       {
         // refine type '0'
         element_num += 4;

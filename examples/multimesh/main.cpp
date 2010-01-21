@@ -165,7 +165,8 @@ int main(int argc, char* argv[])
 {
   // load the mesh
   Mesh xmesh, ymesh, tmesh;
-  xmesh.load("domain_round_3.mesh"); // master mesh
+  H2DReader mloader;
+  mloader.load("domain_round_3.mesh", &xmesh); // master mesh
   ymesh.copy(&xmesh);                // ydisp will share master mesh with xdisp
   tmesh.copy(&xmesh);                // temp will share master mesh with xdisp
 

@@ -50,7 +50,8 @@ int main(int argc, char* argv[])
 {
   // load the mesh file
   Mesh mesh;
-  mesh.load("domain.mesh");
+  H2DReader mloader;
+  mloader.load("domain.mesh", &mesh);
 
   // sample "manual" mesh refinement
   mesh.refine_element(0);

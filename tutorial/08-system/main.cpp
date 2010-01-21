@@ -75,7 +75,8 @@ int main(int argc, char* argv[])
 {
   // load the mesh file
   Mesh mesh;
-  mesh.load("sample.mesh");
+  H2DReader mloader;
+  mloader.load("sample.mesh", &mesh);
 
   // initialize the shapeset and the cache
   H1Shapeset shapeset;

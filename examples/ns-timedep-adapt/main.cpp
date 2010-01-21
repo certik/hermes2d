@@ -240,7 +240,8 @@ int main(int argc, char* argv[])
 {
   // load the mesh file
   Mesh mesh;
-  mesh.load("domain.mesh");
+  H2DReader mloader;
+  mloader.load("domain.mesh", &mesh);
   mesh.refine_towards_boundary(1, 2);
   mesh.refine_towards_boundary(3, 2);
 

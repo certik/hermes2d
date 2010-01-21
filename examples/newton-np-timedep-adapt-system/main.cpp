@@ -3,7 +3,7 @@
 
 // Poisson takes Dirichlet and Neumann boundaries
 int phi_bc_types(int marker) {
-	return (marker == SIDE_MARKER || marker == TOP_MARKER) 
+	return (marker == SIDE_MARKER || marker == TOP_MARKER)
 		? BC_NATURAL : BC_ESSENTIAL;
 }
 
@@ -90,7 +90,7 @@ void solveAdaptive(Mesh &Cmesh, Mesh &phimesh, Mesh &basemesh, NonlinSystem &nls
 	ScalarView phiview("Voltage [V]", 650, 0, 600, 600);
 	OrderView Cordview("C order", 0, 300, 600, 600);
 	OrderView phiordview("Phi order", 600, 300, 600, 600);
-	
+
 	// Different Gnuplot graphs.
 
 	// convergence graph wrt. the number of degrees of freedom
@@ -109,10 +109,10 @@ void solveAdaptive(Mesh &Cmesh, Mesh &phimesh, Mesh &basemesh, NonlinSystem &nls
 	Cview.set_title(title);
 	phiview.show(&phii);
 	Cview.show(&Ci);
-	
+
 	//Cview.save_numbered_screenshot("screenshots/C%03d.bmp", 0, true);
 	//phiview.save_numbered_screenshot("screenshots/phi%03d.bmp", 0, true);
-	
+
 	Cordview.show(&C);
 	phiordview.show(&phi);
 	Solution Csln_coarse, phisln_coarse, Csln_fine, phisln_fine;
@@ -128,7 +128,7 @@ void solveAdaptive(Mesh &Cmesh, Mesh &phimesh, Mesh &basemesh, NonlinSystem &nls
 			int ndofs;
 			ndofs = C.assign_dofs();
 			phi.assign_dofs(ndofs);
-		}	
+		}
 
 		#ifdef VERBAL
 		info("\n---- Time step %d ----", n);
@@ -282,7 +282,8 @@ int main (int argc, char* argv[]) {
 	// load the mesh file
 	Mesh Cmesh, phimesh, basemesh;
 
-	basemesh.load("small.mesh");
+  H2DReader mloader;
+	mloader.load("small.mesh", &basemesh);
 	basemesh.refine_towards_boundary(TOP_MARKER, REF_INIT);
 	basemesh.refine_towards_boundary(BOT_MARKER, REF_INIT - 1);
 	Cmesh.copy(&basemesh);
@@ -302,12 +303,12 @@ int main (int argc, char* argv[]) {
 	phi.set_bc_types(phi_bc_types);
 	phi.set_bc_values(phi_bc_values);
 	//C.set_bc_values(C_bc_values);
-	
+
 	// set polynomial degrees
 	C.set_uniform_order(P_INIT);
 	phi.set_uniform_order(P_INIT);
-	
-	
+
+
 	// assign degrees of freedom
 	int ndofs = 0;
 	ndofs += C.assign_dofs(ndofs);
@@ -322,7 +323,7 @@ int main (int argc, char* argv[]) {
 		phip,
 		phii;
 
-	
+
 	// Add the bilinear and linear forms
 	// generally, the equation system is described:
 	// a11(u1, v1) + a12(u2, v1) + a1n(un, v1) = l1(v1)
@@ -337,7 +338,7 @@ int main (int argc, char* argv[]) {
 	wf.add_liform(1, callback(Fphi_euler), ANY, 2, &Ci, &phii);
 
 	wf.add_liform_surf(1, callback(linear_form_surf_top), TOP_MARKER);
-	
+
 	// Noninear solver
 	UmfpackSolver umfpack;
 	NonlinSystem nls(&wf, &umfpack);
@@ -347,7 +348,7 @@ int main (int argc, char* argv[]) {
 	} else {
 		nls.set_pss(1, &Cpss);
 	}
-	
+
 	info("UmfpackSolver initialized");
 
 	// View initial guess for Newton's method

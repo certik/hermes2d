@@ -221,7 +221,8 @@ Scalar jacobian_1_1(int n, double *wt,  Func<Scalar>* u[], Func<Real> *vj, Func<
 int main(int argc, char* argv[])
 {
   Mesh mesh;
-  mesh.load("domain.mesh");
+  H2DReader mloader;
+  mloader.load("domain.mesh", &mesh);
   mesh.refine_all_elements();
   mesh.refine_all_elements();
 

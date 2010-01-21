@@ -2,10 +2,10 @@
 #include "solver_umfpack.h"
 
 //
-//  This example shows that it makes sense to use anisotropic polynomial 
-//  degrees in quadrilateral elements. The exact solution to this Poisson 
-//  problem is u(x,y) = sin(y), defined in the square (0, pi)x(0, pi). 
-//  Anisotropic refinements are allowed when ISO_ONLY == 0, otherwise 
+//  This example shows that it makes sense to use anisotropic polynomial
+//  degrees in quadrilateral elements. The exact solution to this Poisson
+//  problem is u(x,y) = sin(y), defined in the square (0, pi)x(0, pi).
+//  Anisotropic refinements are allowed when ISO_ONLY == 0, otherwise
 //  the adaptivity only uses isotropic refinements.
 //
 //  PDE: -Laplace u = f
@@ -98,7 +98,8 @@ int main(int argc, char* argv[])
 {
   // load the mesh
   Mesh mesh;
-  mesh.load("square_quad.mesh");
+  H2DReader mloader;
+  mloader.load("square_quad.mesh", &mesh);
   if(P_INIT == 1) mesh.refine_all_elements();  // this is because there are no degrees of freedom
                                                // on the coarse mesh lshape.mesh if P_INIT == 1
 

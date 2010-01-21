@@ -95,7 +95,8 @@ int main(int argc, char* argv[])
 {
   // load the mesh
   Mesh mesh;
-  mesh.load("motor.mesh");
+  H2DReader mloader;
+  mloader.load("motor.mesh", &mesh);
 
   // initialize the shapeset and the cache
   H1Shapeset shapeset;
