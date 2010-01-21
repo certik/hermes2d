@@ -35,9 +35,10 @@ int main(int argc, char* argv[])
 {
   // load the mesh file
   Mesh mesh;
-  mesh.load("domain.mesh");            // original L-shape domain
-  //mesh.load("domain_quad.mesh");     // reference square
-  //mesh.load("domain_tri.mesh");      // reference triangle
+  H2DReader mloader;
+  mloader.load("domain.mesh", &mesh);            // original L-shape domain
+  //mloader.load("domain_quad.mesh", &mesh);     // reference square
+  //mloader.load("domain_tri.mesh", &mesh);      // reference triangle
 
   // sample element refinement, to see more basis functions
   //mesh.refine_all_elements();

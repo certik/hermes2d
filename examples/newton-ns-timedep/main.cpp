@@ -193,7 +193,8 @@ int main(int argc, char* argv[])
 {
   // load the mesh file
   Mesh mesh;
-  mesh.load("domain.mesh");
+  H2DReader mloader;
+  mloader.load("domain.mesh", &mesh);
 
   // a-priori mesh refinements
   mesh.refine_all_elements();
