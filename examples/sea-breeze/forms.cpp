@@ -639,10 +639,6 @@ Ord L_order(int n, double *wt, Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext)
      return Ord(20);
 }
 
-#define callback_bf(a) a<double, scalar>, B_order
-
-#define callback_lf_s(a) a<double, scalar>, L_order
-
 void register_bc(Space &s0, Space &s1, Space &s3, Space &s4)
 {
     s0.set_bc_types(s0_bc_type);
@@ -659,11 +655,17 @@ void set_ic(Mesh &mesh, Solution &w0, Solution &w1, Solution &w3, Solution &w4)
     w4.set_exact(&mesh, w4_init);
 }
 
+#define callback_bf(a) a<double, scalar>, B_order
+
+#define callback_lf_s(a) a<double, scalar>, L_order
+
+#define callback_lf(a) a<double, scalar>, l_ord<Ord, Ord>
+
 #define ADD_BF(i, j) wf.add_biform(i, j, callback_bf(B_##i##j), UNSYM, ANY, 4, &w0_prev, &w1_prev, &w3_prev, &w4_prev)
 
 #define ADD_BF_S(i, j) wf.add_biform_surf(i, j, callback_bf(S_##i##j), ANY, 4, &w0_prev, &w1_prev, &w3_prev, &w4_prev)
 
-#define ADD_LF(i) wf.add_liform(i, callback(l_##i), ANY, 4, &w0_prev, &w1_prev, &w3_prev, &w4_prev);
+#define ADD_LF(i) wf.add_liform(i, callback_lf(l_##i), ANY, 4, &w0_prev, &w1_prev, &w3_prev, &w4_prev);
 
 #define ADD_LF_S(i) wf.add_liform_surf(i, callback_lf_s(s_##i), ANY, 4, &w0_prev, &w1_prev, &w3_prev, &w4_prev);
 
@@ -687,4 +689,8 @@ void register_forms(WeakForm &wf, Solution &w0_prev, Solution &w1_prev,
 
     ADD_LF_S(1);
     ADD_LF_S(2);
+
+    // this is necessary, so that we can use Python from forms.cpp:
+    if (import_hermes2d___hermes2d())
+        throw std::runtime_error("hermes2d failed to import.");
 }
