@@ -135,13 +135,14 @@ above example, we have
 Loading Mesh
 ------------
 
-As a ``Hello world'' example, let us load the mesh we have just created, and display it in a window. 
+As a ''Hello world'' example, let us load the mesh we have just created, and display it in a window. 
 The main.cpp file that we are going to discuss can be found 
 `here <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/tutorial/01-mesh/main.cpp>`_. 
 Every main.cpp file in the git repo contains lots of comments and instructions. Skipping those, 
 the `main.cpp <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/tutorial/01-mesh/main.cpp>`_ 
-file of example 01-mesh/ begins with creating an instance of the class Mesh.
-This class contains the method load() which is used to load the mesh file:
+file of example 01-mesh/ begins with creating an instance of the class Mesh. In order to load
+the mesh file, you have to create a mesh loader class (in our case that is ``H2DReader``) and
+call the method ``load()``:
 ::
 
     #include "hermes2d.h"
@@ -150,7 +151,10 @@ This class contains the method load() which is used to load the mesh file:
     {
       // load the mesh file
       Mesh mesh;
-      mesh.load("domain.mesh");
+      H2DReader mloader;
+      mloader.load("domain.mesh", &mesh);
+
+Note: To load the exodus-II mesh file, one has to use ``ExodusIIReader`` class instead.
 
 The following portion of code illustrates various types of initial mesh refinements.
 It does not matter if the mesh becomes irregular, in fact, arbitrarily irregular
@@ -587,7 +591,8 @@ is refined towards the re-entrant corner in order to capture the singular gradie
 
     // load the mesh file
     Mesh mesh;
-    mesh.load("domain.mesh");
+    H2DReader mloader;
+    mloader.load("domain.mesh", &mesh);
     mesh.refine_towards_vertex(3, CORNER_REF_LEVEL);
 
 The gradient magnitude can be visualized via a MagFilter:
