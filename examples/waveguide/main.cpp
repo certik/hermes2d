@@ -151,8 +151,9 @@ int main(int argc, char* argv[])
 {
   // load the mesh
   Mesh mesh;
-  if (ALIGN_MESH) mesh.load("oven_load_circle.mesh");
-  else  mesh.load("oven_load_square.mesh");
+  H2DReader mloader;
+  if (ALIGN_MESH) mloader.load("oven_load_circle.mesh", &mesh);
+  else mloader.load("oven_load_square.mesh", &mesh);
 
   // initialize the shapeset and the cache
   HcurlShapeset shapeset;

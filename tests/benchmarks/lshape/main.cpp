@@ -76,7 +76,8 @@ int main(int argc, char* argv[])
 {
   // load the mesh
   Mesh mesh;
-  mesh.load("lshape.mesh");
+  H2DReader mloader;
+  mloader.load("lshape.mesh", &mesh);
   if(P_INIT == 1) mesh.refine_all_elements();  // this is because there are no degrees of freedom
                                                // on the coarse mesh lshape.mesh if P_INIT == 1
 
@@ -180,10 +181,10 @@ int main(int argc, char* argv[])
 
 #define ERROR_SUCCESS                               0
 #define ERROR_FAILURE                               -1
-  int n_dof_allowed = 700;  
+  int n_dof_allowed = 700;
   printf("n_dof_actual = %d\n", ndofs);
   printf("n_dof_allowed = %d\n", n_dof_allowed);// ndofs was 625 at the time this test was created
-  if (ndofs <= n_dof_allowed) {      
+  if (ndofs <= n_dof_allowed) {
     printf("Success!\n");
     return ERROR_SUCCESS;
   }

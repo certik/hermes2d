@@ -1,7 +1,7 @@
 #include "hermes2d.h"
 #include "solver_umfpack.h"
 
-// This test makes sure that the benchmark "bessel" works correctly. 
+// This test makes sure that the benchmark "bessel" works correctly.
 
 const int P_INIT = 1;             // Initial polynomial degree of all mesh elements.
 const double THRESHOLD = 0.3;     // This is a quantitative parameter of the adapt(...) function and
@@ -163,8 +163,9 @@ int main(int argc, char* argv[])
 {
   // load the mesh
   Mesh mesh;
-  mesh.load("lshape3q.mesh");
-//   mesh.load("lshape3t.mesh");
+  H2DReader mloader;
+  mloader.load("lshape3q.mesh", &mesh);
+//   mloader.load("lshape3t.mesh", &mesh);
 
   // initialize the shapeset and the cache
   HcurlShapeset shapeset;
@@ -267,10 +268,10 @@ int main(int argc, char* argv[])
 
 #define ERROR_SUCCESS                               0
 #define ERROR_FAILURE                               -1
-  int n_dof_allowed = 3000;  
+  int n_dof_allowed = 3000;
   printf("n_dof_actual = %d\n", ndofs);
   printf("n_dof_allowed = %d\n", n_dof_allowed);// ndofs was 2680 at the time this test was created
-  if (ndofs <= n_dof_allowed) {      
+  if (ndofs <= n_dof_allowed) {
     printf("Success!\n");
     return ERROR_SUCCESS;
   }

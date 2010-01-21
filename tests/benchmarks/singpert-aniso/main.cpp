@@ -70,7 +70,8 @@ int main(int argc, char* argv[])
 {
   // load the mesh
   Mesh mesh;
-  mesh.load("square.mesh");
+  H2DReader mloader;
+  mloader.load("square.mesh", &mesh);
 
   // initial mesh refinement
   for (int i=0; i < INIT_REF_NUM; i++) mesh.refine_all_elements();
@@ -174,7 +175,7 @@ int main(int argc, char* argv[])
                            // different directional degrees in elements
   printf("n_dof_actual = %d\n", ndofs);
   printf("n_dof_allowed = %d\n", n_dof_allowed);
-  if (ndofs <= n_dof_allowed) {      
+  if (ndofs <= n_dof_allowed) {
     printf("Success!\n");
     return ERROR_SUCCESS;
   }

@@ -72,7 +72,8 @@ int main(int argc, char* argv[])
 {
   // load and refine mesh
   Mesh mesh;
-  mesh.load("cathedral.mesh");
+  H2DReader mloader;
+  mloader.load("cathedral.mesh", &mesh);
   for(int i = 0; i < INIT_REF_NUM; i++) mesh.refine_all_elements();
   mesh.refine_towards_boundary(2, 5);
 
@@ -133,9 +134,9 @@ int main(int argc, char* argv[])
   for (int i=0; i < n_dof; i++) sum += sol_vector[i];
   printf("coefficient sum = %g\n", sum);
 
-    // Actual test. The value of 'sum' depend on the 
-    // current shapeset. If you change the shapeset, 
-    // you need to correct this number. 
+    // Actual test. The value of 'sum' depend on the
+    // current shapeset. If you change the shapeset,
+    // you need to correct this number.
   int success = 1;
   if (fabs(sum - 9122.66) > 1e-1) success = 0;
 

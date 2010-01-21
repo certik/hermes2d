@@ -179,8 +179,9 @@ int main(int argc, char* argv[])
 {
   // load the mesh
   Mesh mesh;
-  mesh.load("lshape3q.mesh");
-//   mesh.load("lshape3t.mesh");
+  H2DReader mloader;
+  mloader.load("lshape3q.mesh", &mesh);
+//   mloader.load("lshape3t.mesh", &mesh);
 
   // initialize the shapeset and the cache
   HcurlShapeset shapeset;
