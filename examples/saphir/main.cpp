@@ -8,7 +8,7 @@
 //  PDE: -div(D(x,y)grad\Phi) + \Sigma_a(x,y)\Phi = Q_{ext}(x,y)
 //  where D(x, y) is the diffusion coefficient, \Sigma_a(x,y) the absorption cross-section,
 //  and Q_{ext}(x,y) external sources
-//  
+//
 //  Domain: square (0, L)x(0, L) where L = 30c (see mesh file domain.mesh)
 //
 //  BC:  Zero Dirichlet for the right and top edges ("vacuum boundary")
@@ -68,7 +68,7 @@ double SIGMA_S_2 = 0.20;
 double SIGMA_S_3 = 0.66;
 double SIGMA_S_4 = 0.50;
 double SIGMA_S_5 = 0.89;
-double Q_EXT_1 = 1;                   // nonzero sources in domains 1 and 3 only, 
+double Q_EXT_1 = 1;                   // nonzero sources in domains 1 and 3 only,
 double Q_EXT_3 = 1;                   // sources in other domains are zero
 
 // Additional constants
@@ -103,7 +103,8 @@ int main(int argc, char* argv[])
 {
   // Load the mesh
   Mesh mesh;
-  mesh.load("domain.mesh");
+  H2DReader mloader;
+  mloader.load("domain.mesh", &mesh);
   // initial uniform mesh refinement
   for (int i=0; i < INIT_REF_NUM; i++) mesh.refine_all_elements();
 

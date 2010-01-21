@@ -109,7 +109,8 @@ int main(int argc, char* argv[])
 {
   // load the mesh
   Mesh xmesh, ymesh;
-  xmesh.load("crack-2.mesh");
+  H2DReader mloader;
+  mloader.load("crack-2.mesh", &xmesh);
   ymesh.copy(&xmesh);          // this defines the common master mesh for
                                // both displacement fields
 

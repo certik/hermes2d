@@ -85,7 +85,8 @@ Scalar residual_form(int n, double *wt, Func<Real> *u[], Func<Real> *vi, Geom<Re
 int main(int argc, char **argv)
 {
   Mesh mesh;
-  mesh.load("square.mesh");
+  H2DReader mloader;
+  mloader.load("square.mesh", &mesh);
   mesh.refine_all_elements();
   mesh.refine_all_elements();
   mesh.refine_all_elements();

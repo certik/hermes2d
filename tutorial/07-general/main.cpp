@@ -1,8 +1,8 @@
 #include "hermes2d.h"
 #include "solver_umfpack.h"
 
-//  This example solves a general second-order linear equation with non-constant 
-//  coefficients, and shows how integration orders in linear and bilinear forms 
+//  This example solves a general second-order linear equation with non-constant
+//  coefficients, and shows how integration orders in linear and bilinear forms
 //  can be defined manually.
 //
 //  PDE: -d/dx(a_11(x,y)du/dx) - d/dx(a_12(x,y)du/dy) - d/dy(a_21(x,y)du/dx) - d/dy(a_22(x,y)du/dy)
@@ -11,7 +11,7 @@
 //  Domain: arbitrary
 //
 //  BC:  Dirichlet for boundary marker 1: u = g_D(x,y)
-//       Natural for any other boundary marker:   (a_11(x,y)*nu_1 + a_21(x,y)*nu_2) * dudx 
+//       Natural for any other boundary marker:   (a_11(x,y)*nu_1 + a_21(x,y)*nu_2) * dudx
 //                                              + (a_12(x,y)*nu_1 + s_22(x,y)*nu_2) * dudy = g_N(x,y)
 //
 //  The following parameters can be changed:
@@ -87,7 +87,7 @@ Scalar bilinear_form(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real>
   for (int i=0; i < n; i++) {
     double x = e->x[i];
     double y = e->y[i];
-    result += (a_11(x, y)*u->dx[i]*v->dx[i] + 
+    result += (a_11(x, y)*u->dx[i]*v->dx[i] +
                a_12(x, y)*u->dy[i]*v->dx[i] +
                a_21(x, y)*u->dx[i]*v->dy[i] +
                a_22(x, y)*u->dy[i]*v->dy[i] +
@@ -99,10 +99,10 @@ Scalar bilinear_form(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real>
 }
 
 // Integration order for the bilinear form
-Ord bilinear_form_ord(int n, double *wt, Func<Ord> *u, 
+Ord bilinear_form_ord(int n, double *wt, Func<Ord> *u,
                       Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext)
 {
-  return u->val[0] * v->val[0] * e->x[0] * e->x[0]; // returning the sum of the degrees of the basis 
+  return u->val[0] * v->val[0] * e->x[0] * e->x[0]; // returning the sum of the degrees of the basis
                                                     // and test function plus two
 }
 
@@ -136,7 +136,8 @@ int main(int argc, char* argv[])
 {
   // Load the mesh
   Mesh mesh;
-  mesh.load("domain.mesh");
+  H2DReader mloader;
+  mloader.load("domain.mesh", &mesh);
   for (int i=0; i < INIT_REF_NUM; i++) mesh.refine_all_elements();
 
   // Initialize the shapeset and the cache
