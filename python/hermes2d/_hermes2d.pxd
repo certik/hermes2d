@@ -440,5 +440,5 @@ cdef class Vectorizer(Linearizer):
 cdef class Mesh:
     cdef c_Mesh *thisptr
 
-cdef ndarray array_double_c2numpy(double *A, int len)
+cdef api object array_double_c2numpy(double *A, int len)
 cdef api void array_double_numpy2c_inplace(object A_n, double **A_c, int *n)
