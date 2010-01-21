@@ -83,3 +83,74 @@ void L2Space::get_bubble_assembly_list(Element* e, AsmList* al)
 }
 
 
+void L2Space::get_edge_assembly_list_internal(Element* e, int ie, AsmList* al)
+{
+  Node* en = e->en[ie];
+  NodeData* nd = &ndata[en->id];
+  if (get_element_order(e->id) == 0) return;
+
+  if (nd->n >= 0) // unconstrained
+  {
+    if (nd->dof >= 0)
+    {
+      int ori = (e->vn[ie]->id < e->vn[e->next_vert(ie)]->id) ? 0 : 1;
+      for (int j = 0, dof = nd->dof; j < nd->n; j++, dof += stride)
+        al->add_triplet(shapeset->get_edge_index(ie, ori, j+2), dof, 1.0);
+    }
+    else
+    {
+      for (int j = 0; j < nd->n; j++)
+        al->add_triplet(shapeset->get_edge_index(ie, 0, j+2), -1, nd->edge_bc_proj[j+2]);
+    }
+  }
+  else // constrained
+  {
+    int part = nd->part;
+    int ori = part < 0 ? 1 : 0;
+    if (part < 0) part ^= ~0;
+
+    nd = &ndata[nd->base->id];
+    for (int j = 0, dof = nd->dof; j < nd->n; j++, dof += stride)
+      al->add_triplet(shapeset->get_constrained_edge_index(ie, j+2, ori, part), dof, 1.0);
+  }
+}
+
+scalar* L2Space::get_bc_projection(EdgePos* ep, int order)
+{
+  assert(order >= 1);
+  scalar* proj = new scalar[order + 1];
+
+  // obtain linear part of the projection
+  ep->t = ep->lo;
+  proj[0] = bc_value_callback_by_edge(ep);
+  ep->t = ep->hi;
+  proj[1] = bc_value_callback_by_edge(ep);
+
+  if (order-- > 1)
+  {
+    Quad1DStd quad1d;
+    scalar* rhs = proj + 2;
+    int mo = quad1d.get_max_order();
+    double2* pt = quad1d.get_points(mo);
+
+    // get boundary values at integration points, construct rhs
+    for (int i = 0; i < order; i++)
+    {
+      rhs[i] = 0.0;
+      int ii = shapeset->get_edge_index(0, 0, i+2);
+      for (int j = 0; j < quad1d.get_num_points(mo); j++)
+      {
+        double t = (pt[j][0] + 1) * 0.5, s = 1.0 - t;
+        scalar l = proj[0] * s + proj[1] * t;
+        ep->t = ep->lo * s + ep->hi * t;
+        rhs[i] += pt[j][1] * shapeset->get_fn_value(ii, pt[j][0], -1.0, 0)
+                           * (bc_value_callback_by_edge(ep) - l);
+      }
+    }
+
+    // solve the system using a precalculated Cholesky decomposed projection matrix
+    cholsl(proj_mat, order, chol_p, rhs, rhs);
+  }
+
+  return proj;
+}
