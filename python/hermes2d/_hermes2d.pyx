@@ -466,6 +466,12 @@ cdef api object Mesh_from_C(c_Mesh *h):
     n.thisptr = h
     return n
 
+cdef api object LinSystem_from_C(c_LinSystem *h):
+    cdef LinSystem n
+    n = <LinSystem>PY_NEW(LinSystem)
+    n.thisptr = h
+    return n
+
 cdef class Transformable:
     pass
 
@@ -1332,6 +1338,12 @@ cdef api void insert_object(char *name, object o):
 cdef api object get_symbol(char *name):
     return global_namespace.get(name)
 
+cdef api object int_c2py(int n):
+    return n
+
+cdef api object double_c2py(double n):
+    return n
+
 cdef ndarray array_int_c2numpy(int *A, int len):
     from numpy import empty
     cdef ndarray vec = empty([len], dtype="int32")
@@ -1339,7 +1351,7 @@ cdef ndarray array_int_c2numpy(int *A, int len):
     memcpy(pvec, A, len*sizeof(int))
     return vec
 
-cdef ndarray array_double_c2numpy(double *A, int len):
+cdef api object array_double_c2numpy(double *A, int len):
     from numpy import empty
     cdef ndarray vec = empty([len], dtype="double")
     cdef double *pvec = <double *>vec.data
