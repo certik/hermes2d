@@ -6,8 +6,8 @@
 // The following parameters can be played with:
 
 const double FINAL_TIME = 3600*72/t_r;    // length of time interval
-const int P_INIT_w0 = 2;       // polynomial degree for pressure
-const int P_INIT_VEL = 2;            // polynomial degree for velocity components
+const int P_INIT_w0 = 1;       // polynomial degree for pressure
+const int P_INIT_VEL = 1;            // polynomial degree for velocity components
 const int P_INIT_w4 = 1;       // polynomial degree for the energy
 
 // global time variable
@@ -116,8 +116,8 @@ int main(int argc, char* argv[])
 
   // load the mesh file
   Mesh mesh;
-  mesh.load("GAMM-channel.mesh");
-  //mesh.load("domain-quad.mesh");
+  //mesh.load("GAMM-channel.mesh");
+  mesh.load("domain-quad.mesh");
 
   // a-priori mesh refinements
   //mesh.refine_all_elements();
@@ -128,12 +128,12 @@ int main(int argc, char* argv[])
   //mesh.refine_all_elements();
   //mesh.refine_all_elements(2);
   //mesh.refine_all_elements(2);
-  mesh.refine_all_elements();
-  mesh.refine_all_elements();
-  mesh.refine_all_elements();
+  //mesh.refine_all_elements();
+  //mesh.refine_all_elements();
+  //mesh.refine_all_elements();
   //mesh.refine_towards_vertex(1, 10);
   //mesh.refine_towards_vertex(2, 10);
-  mesh.refine_all_elements();
+  //mesh.refine_all_elements();
   //mesh.refine_towards_boundary(marker_bottom, 3);
 
   // display the mesh
@@ -145,15 +145,25 @@ int main(int argc, char* argv[])
   H1Shapeset shapeset_h1;
   PrecalcShapeset pss_h1(&shapeset_h1);
 
+#define L2
+
   // this should be L2Shapeset, but hermes complains...
+#ifdef L2
   L2Shapeset shapeset_l2;
+#else
+  H1Shapeset shapeset_l2;
+#endif
   PrecalcShapeset pss_l2(&shapeset_l2);
 
   // H1 spaces for velocities and L2 for pressure
   H1Space s0(&mesh, &shapeset_h1);
   H1Space s1(&mesh, &shapeset_h1);
   H1Space s3(&mesh, &shapeset_h1);
+#ifdef L2
   L2Space s4(&mesh, &shapeset_l2);
+#else
+  H1Space s4(&mesh, &shapeset_l2);
+#endif
 
   register_bc(s0, s1, s3, s4);
 
@@ -198,6 +208,12 @@ int main(int argc, char* argv[])
   sys.set_spaces(4, &s0, &s1, &s3, &s4);
   sys.set_pss(4, &pss_h1, &pss_h1, &pss_h1, &pss_l2);
 
+  /*
+  BaseView bview;
+  bview.show(&s4);
+  bview.wait();
+  error("stop");
+  */
 
   // main loop
   char title[100];
@@ -221,8 +237,11 @@ int main(int argc, char* argv[])
     // assemble and solve
     Solution w0_sln, w1_sln, w3_sln, w4_sln;
     sys.assemble();
-    //error("stop");
+    insert_object("sys", LinSystem_from_C(&sys));
+    cmd("import util");
+    cmd("util.run(sys)");
     sys.solve(4, &w0_sln, &w1_sln, &w3_sln, &w4_sln);
+    error("stop");
 
     // visualization
     sprintf(title, "Current density, time %g", TIME);
