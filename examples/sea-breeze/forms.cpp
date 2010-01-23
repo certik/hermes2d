@@ -44,21 +44,24 @@ double p_init_num;
 scalar w0_init(double x, double y, scalar& dx, scalar& dy) {
     dx = 0;
     dy = 0;
-    w0_init_num = rho_z(0)/rho_r;
+    //w0_init_num = rho_z(0)/rho_r;
+    w0_init_num = 1;
     return w0_init_num;
 }
 
 scalar w1_init(double x, double y, scalar& dx, scalar& dy) {
     dx = 0;
     dy = 0;
-    w1_init_num = rho_z(0)/rho_r * (20/u_r);
+    //w1_init_num = rho_z(0)/rho_r * (20/u_r);
+    w1_init_num = 1;
     return w1_init_num;
 }
 
 scalar w3_init(double x, double y, scalar& dx, scalar& dy) {
     dx = 0;
     dy = 0;
-    w3_init_num = rho_z(0)/rho_r * (0/u_r);
+    //w3_init_num = rho_z(0)/rho_r * (0/u_r);
+    w3_init_num = 0;
     return w3_init_num;
 }
 
@@ -66,7 +69,8 @@ scalar w3_init(double x, double y, scalar& dx, scalar& dy) {
 scalar w4_init(double x, double y, scalar& dx, scalar& dy) {
     dx = 0;
     dy = 0;
-    w4_init_num = rho_z(0) * T_z(0) * c_v / E_r;
+    //w4_init_num = rho_z(0) * T_z(0) * c_v / E_r;
+    w4_init_num = 1;
     p_init_num = R/c_v * (w4_init_num - (w1_init_num*w1_init_num +
                 w3_init_num*w3_init_num)/(2*w0_init_num));
     return w4_init_num;
@@ -270,6 +274,19 @@ Scalar S_ij(int _i, int _j, int n, double *wt, Func<Real> *u, Func<Real> *v, Geo
 {
     double w0, w1, w3, w4;
 
+    if (e->marker == marker_left) {
+        printf("BC left: (%d, %d; x=%f y=%f)\n", _i, _j, e->x[0], e->y[0]);
+        //printf("    state: (%f, %f, %f, %f)\n", w0, w1, w3, w4);
+            printf("  vvv: %d\n", n);
+            printf("   u:");
+            for (int j = 0; j<n;j++)
+                printf("%f ", u->val[j]);
+            printf("\n");
+            printf("   v:");
+            for (int j = 0; j<n;j++)
+                printf("%f ", v->val[j]);
+            printf("\n");
+    }
     Scalar result = 0;
     for (int i = 0; i < n; i++) {
         w0 = ext->fn[0]->val[i];
@@ -281,6 +298,9 @@ Scalar S_ij(int _i, int _j, int n, double *wt, Func<Real> *u, Func<Real> *v, Geo
                 +
                 A_z(_i, _j, w0, w1, w3, w4) * e->ny[i]
                 ) * u->val[i] * v->val[i];
+    }
+    if (e->marker == marker_left) {
+        printf("   result: %f\n", result);
     }
     return result;
 }
@@ -312,6 +332,7 @@ Scalar s_i(int _i, int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scal
             right_or_left = 1;
         else
             right_or_left = 0;
+        right_or_left = 1;
 
         if  (!right_or_left) {
             _u = _u-un * e->nx[i];
@@ -384,6 +405,11 @@ Scalar s_i(int _i, int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scal
                 +
                 A_z(_i, 3, w0, w1, w3, w4) * w4_new * e->ny[i]
                 ) * v->val[i];
+    }
+    if (e->marker == marker_left) {
+        printf("BC left: (%d; x=%f y=%f) %f\n", _i, e->x[0], e->y[0],
+                result);
+        printf("    state: (%f, %f, %f, %f)\n", w0, w1, w3, w4);
     }
     return result;
 }
@@ -514,6 +540,21 @@ Scalar l_2(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext
 
 template<typename Real, typename Scalar>
 Scalar l_3(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+{
+    insert_object("fn", array_double_c2numpy(ext->fn[3]->val, n));
+    insert_object("v", array_double_c2numpy(v->val, n));
+    insert_object("tau", double_c2py(TAU));
+    cmd("print fn");
+    cmd("print v");
+    cmd("print tau");
+    Scalar result = 0;
+    for (int i = 0; i < n; i++)
+        result += wt[i] * (ext->fn[3]->val[i] * v->val[i]) / TAU;
+    return result;
+}
+
+template<typename Real, typename Scalar>
+Scalar l_ord(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
     Scalar result = 0;
     for (int i = 0; i < n; i++)
@@ -687,8 +728,8 @@ void register_forms(WeakForm &wf, Solution &w0_prev, Solution &w1_prev,
     ADD_LF(2);
     ADD_LF(3);
 
-    ADD_LF_S(1);
-    ADD_LF_S(2);
+//    ADD_LF_S(1);
+//    ADD_LF_S(2);
 
     // this is necessary, so that we can use Python from forms.cpp:
     if (import_hermes2d___hermes2d())

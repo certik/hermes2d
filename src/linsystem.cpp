@@ -963,8 +963,14 @@ bool LinSystem::solve(int n, ...)
   // solve the system
   if (Vec != NULL) ::free(Vec);
   Vec = (scalar*) malloc(ndofs * sizeof(scalar));
+  printf("solution matrix (%d):\n", ndofs);
+  //this->print_matrix();
   solver->solve(slv_ctx, ndofs, Ap, Ai, Ax, false, RHS, Vec);
   verbose("  (total solve time: %g sec)", end_time());
+  printf("solution vector (%d):\n", ndofs);
+  for (int i=0; i < ndofs; i++)
+      printf("%f ", Vec[i]);
+  printf("\n");
 
   // initialize the Solution classes
   begin_time();
