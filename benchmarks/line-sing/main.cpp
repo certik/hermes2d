@@ -2,12 +2,12 @@
 #include "solver_umfpack.h"
 
 //  This is a simple non-elliptic problem with known exact solution where one
-//  can see the advantages of anisotropic refinements. During each computation, 
-//  approximate convergence curves are saved into the files "conv_dof.gp" and 
-//  "conv_cpu.gp". As in other adaptivity examples, you can compare hp-adaptivity 
+//  can see the advantages of anisotropic refinements. During each computation,
+//  approximate convergence curves are saved into the files "conv_dof.gp" and
+//  "conv_cpu.gp". As in other adaptivity examples, you can compare hp-adaptivity
 //  (ADAPT_TYPE = 0) with h-adaptivity (ADAPT_TYPE = 1) and p-adaptivity (ADAPT_TYPE = 2).
 //  You can turn off and on anisotropic element refinements via the ISO_ONLY
-//  parameter. 
+//  parameter.
 //
 //  PDE: -Laplace u - K*K*u = f
 //  where f is dictated by exact solution
@@ -69,7 +69,7 @@ static double fn(double x, double y)
 static double fndd(double x, double y, double& dx, double& dy)
 {
   if (x <= 0) dx = 0;
-  else dx = ALPHA*pow(x, ALPHA - 1); 
+  else dx = ALPHA*pow(x, ALPHA - 1);
   dy = -sin(K*y)*K;
   return fn(x, y);
 }
@@ -123,7 +123,8 @@ int main(int argc, char* argv[])
 {
   // load the mesh
   Mesh mesh;
-  mesh.load("square_quad.mesh");
+  H2DReader mloader;
+  mloader.load("square_quad.mesh", &mesh);
 
   // initial mesh refinement
   for (int i=0; i < INIT_REF_NUM; i++) mesh.refine_all_elements();
