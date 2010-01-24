@@ -1601,7 +1601,7 @@ void Mesh::load_old(const char* filename)
 
 void Mesh::load_stream(FILE *f)
 {
-  warn("Deprecated function %s used. Please update your code to use MeshLoader classes");
+  warn("Deprecated function used. Please update your code to use MeshLoader classes");
 
   H2DReader loader;
   loader.load_stream(f, this);
@@ -1609,10 +1609,10 @@ void Mesh::load_stream(FILE *f)
 
 void Mesh::load_str(char *mesh)
 {
-  warn("Deprecated function %s used. Please update your code to use MeshLoader classes");
+  warn("Deprecated function used. Please update your code to use MeshLoader classes");
 
   H2DReader loader;
-  loader.load(mesh, this);
+  loader.load_str(mesh, this);
 }
 
 //// save_raw, load_raw ////////////////////////////////////////////////////////////////////////////
