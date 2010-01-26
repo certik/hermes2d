@@ -10,7 +10,11 @@ endif(NOT REAL)
 macro(LINVIEW_SETTINGS VIEW)
     add_executable(${PROJECT_NAME} main.cpp)
     include_directories(${hermes2d_SOURCE_DIR}/src)
-    target_link_libraries(${PROJECT_NAME} ${HERMES_REAL_BIN})
+    include_directories(${TRILINOS_INCLUDE_DIR})
+    target_link_libraries(${PROJECT_NAME} ${HERMES_REAL_BIN} ${LAPACK_LIBRARIES} ${TRILINOS_LIBRARIES})
+    # if having Trilinos with UMFPACK support we need to link against UMFPACK
+    # if we do not have UMFPACK support at all, these variables are empty and cause no harm
+    target_link_libraries(${PROJECT_NAME} ${AMD_LIBRARY} ${UMFPACK_LIBRARY})
     set_target_properties(${PROJECT_NAME} PROPERTIES COMPILE_FLAGS
         -DWHATVIEW=${VIEW})
 endmacro(LINVIEW_SETTINGS)

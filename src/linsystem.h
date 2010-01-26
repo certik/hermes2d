@@ -62,6 +62,9 @@ public:
   void save_matrix_bin(const char* filename);
   void save_rhs_bin(const char* filename);
 
+  void enable_dir_contrib(bool enable = true) {  want_dir_contrib = enable;  }
+  scalar* get_solution_vec() { return Vec; }
+
   int get_num_dofs() const { return ndofs; };
   int get_matrix_size() const;
   void get_matrix(int*& Ap, int*& Ai, scalar*& Ax, int& size) const

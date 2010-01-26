@@ -1,0 +1,4 @@
+rm *~ *.dat 
+line-sing
+python plot_graph.py &
+

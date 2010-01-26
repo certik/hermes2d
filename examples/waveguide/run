@@ -1,0 +1,4 @@
+rm *~ *.dat 
+waveguide
+python plot_graph.py &
+

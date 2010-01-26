@@ -4,33 +4,31 @@
    contain the root `toctree` directive.
 
 Hermes2D Documentation
-=================================
+======================
 
 .. toctree::
     :maxdepth: 2
 
+    src/introduction
     src/tutorial
+    src/benchmarks
+    src/examples
+
+.. #####
+
     src/wrappers
 
-Links
-=====
+    Indices and Tables
+    ==================
 
-* Hermes2D_
-* FEMhub_
-* Agros2D_
-* hp-FEM_ group
+    * :ref:`genindex`
+    * :ref:`modindex`
 
-Indices and Tables
-==================
+    .. * :ref:`glossary`
 
-* :ref:`genindex`
-* :ref:`modindex`
+    * :ref:`search`
 
-.. * :ref:`glossary`
-
-* :ref:`search`
-
-.. _Hermes2D: http://www.hpfem.org/hermes2d
-.. _FEMhub: http://www.hpfem.org/femhub
-.. _Agros2D: http://www.hpfem.org/agros2d
-.. _hp-FEM: http://www.hpfem.org
+    .. _Hermes2D: http://www.hpfem.org/hermes2d
+    .. _FEMhub: http://www.hpfem.org/femhub
+    .. _Agros2D: http://www.hpfem.org/agros2d
+    .. _hp-FEM: http://www.hpfem.org

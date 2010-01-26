@@ -121,6 +121,8 @@ cdef extern from "hermes2d.h":
         int get_num_base_elements()
         int get_num_active_elements()
         int get_max_element_id()
+        void convert_to_quads(int refinement)
+        void convert_to_triangles()
 
     c_Mesh *new_Mesh "new Mesh" ()
 

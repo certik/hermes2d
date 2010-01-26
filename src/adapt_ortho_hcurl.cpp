@@ -743,7 +743,7 @@ bool HcurlOrthoHP::adapt(double thr, int strat, int adapt_type, bool iso_only, i
   for (j = 0; j < num; j++)
     rsln[j]->enable_transform(true);
 
-  verbose("Refined %d elements.", i);
+  verbose("Refined %d elements.", successfully_refined);
   have_errors = false;
 
   return done;

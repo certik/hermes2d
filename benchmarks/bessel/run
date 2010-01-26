@@ -1,0 +1,4 @@
+rm *~ *.dat 
+bessel
+python plot_graph.py &
+

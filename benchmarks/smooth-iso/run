@@ -1,0 +1,4 @@
+rm *~ *.dat 
+smooth-iso
+python plot_graph.py &
+

@@ -60,6 +60,11 @@ public:
     { ScalarFunction::force_transform(mf->get_transform(), mf->get_ctm()); }
   void update_refmap()
     { refmap->force_transform(sub_idx, ctm); }
+  void force_transform(uint64 sub_idx, Trf* ctm)
+  {
+    this->sub_idx = sub_idx;
+    this->ctm = ctm;
+  }
 
 };
 

@@ -1,4 +1,4 @@
 project(space)
 
 add_executable(${PROJECT_NAME} main.cpp)
-include (../../examples/CMake.common)
+include (../CMake.common)

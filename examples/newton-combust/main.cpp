@@ -189,7 +189,8 @@ Scalar newton_linear_form_1(int n, double *wt, Func<Real> *vi, Geom<Real> *e, Ex
 int main(int argc, char* argv[])
 {
   Mesh mesh, basemesh;
-  basemesh.load("domain.mesh");
+  H2DReader mloader;
+  mloader.load("domain.mesh", &basemesh);
   basemesh.refine_all_elements();
   basemesh.refine_all_elements();
   mesh.copy(&basemesh);

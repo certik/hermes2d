@@ -1,0 +1,4 @@
+rm *~ *.dat 
+./screen
+python plot_graph.py &
+
