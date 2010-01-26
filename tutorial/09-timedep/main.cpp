@@ -88,7 +88,8 @@ int main(int argc, char* argv[])
 {
   // load and refine mesh
   Mesh mesh;
-  mesh.load("cathedral.mesh");
+  H2DReader mloader;
+  mloader.load("cathedral.mesh", &mesh);
   for(int i = 0; i < INIT_REF_NUM; i++) mesh.refine_all_elements();
   mesh.refine_towards_boundary(2, 5);
 

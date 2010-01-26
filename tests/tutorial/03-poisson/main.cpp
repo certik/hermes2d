@@ -37,7 +37,8 @@ int main(int argc, char* argv[])
 {
   // load the mesh file
   Mesh mesh;
-  mesh.load("domain.mesh");
+  H2DReader mloader;
+  mloader.load("domain.mesh", &mesh);
 
   // sample "manual" mesh refinement
   mesh.refine_element(0);
@@ -62,7 +63,7 @@ int main(int argc, char* argv[])
   sys.set_spaces(1, &space);
   sys.set_pss(1, &pss);
 
-  // testing n_dof and correctness of solution vector 
+  // testing n_dof and correctness of solution vector
   // for p_init = 1, 2, ..., 10
   int success = 1;
   for (int p_init = 1; p_init <= 10; p_init++) {
@@ -83,9 +84,9 @@ int main(int argc, char* argv[])
     for (int i=0; i < n_dof; i++) sum += sol_vector[i];
     printf("coefficient sum = %g\n", sum);
 
-    // Actual test. The values of 'sum' depend on the 
-    // current shapeset. If you change the shapeset, 
-    // you need to correct these numbers. 
+    // Actual test. The values of 'sum' depend on the
+    // current shapeset. If you change the shapeset,
+    // you need to correct these numbers.
     if (p_init == 1 && fabs(sum - 0.1875) > 1e-3) success = 0;
     if (p_init == 2 && fabs(sum + 0.927932) > 1e-3) success = 0;
     if (p_init == 3 && fabs(sum + 0.65191) > 1e-3) success = 0;

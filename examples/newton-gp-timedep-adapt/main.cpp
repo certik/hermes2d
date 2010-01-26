@@ -108,7 +108,8 @@ Scalar jacobian_cranic(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Rea
 int main(int argc, char* argv[])
 {
   Mesh mesh, basemesh;
-  basemesh.load("square.mesh");
+  H2DReader mloader;
+  mloader.load("square.mesh", &basemesh);
   for(int i = 0; i < REF_INIT; i++) basemesh.refine_all_elements();
   mesh.copy(&basemesh);
 

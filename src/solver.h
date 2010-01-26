@@ -25,7 +25,7 @@ class NonlinSystem;
 ///  Solver is an abstract class defining the interface to all linear solvers
 ///  used by Hermes2D. A concrete derived class (UmfpackSolver, PardisoSolver...)
 ///  is instantiated by the user and passed to the LinSystem class to solve the
-///  discrete system. The user never directly calls any of the methods of this
+///  discrete problem. The user never directly calls any of the methods of this
 ///  class.
 ///
 ///  The linear solver can be direct or iterative, although the analyze() and

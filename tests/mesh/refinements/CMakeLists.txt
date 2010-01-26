@@ -1,7 +1,7 @@
 project(refinements)
 
 add_executable(${PROJECT_NAME} main.cpp)
-include (../../../examples/CMake.common)
+include (../../CMake.common)
 
 set(BIN ${PROJECT_BINARY_DIR}/${PROJECT_NAME})
 add_test(refinements-1 sh -c "${BIN} domain.mesh")

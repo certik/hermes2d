@@ -20,6 +20,9 @@
 
 #include "common.h"
 #include "mesh.h"
+#include "mesh_loader.h"
+#include "h2d_reader.h"
+#include "exodusii.h"
 
 #include "space_h1.h"
 #include "space_hcurl.h"
@@ -33,15 +36,25 @@
 #include "shapeset_l2_all.h"
 
 #include "refmap.h"
-#include "discrete.h" //
 #include "traverse.h"
 
 #include "weakform.h"
 #include "linsystem.h"
+#include "feproblem.h"
 #include "nonlinsystem.h"
 #include "refsystem.h"
 #include "refsystem2.h"
 #include "forms.h"
+
+#include "itersolver.h"
+#include "solver_epetra.h"
+#include "solver_aztecoo.h"
+#include "solver_nox.h"
+
+// preconditioners
+#include "precond.h"
+#include "precond_ifpack.h"
+#include "precond_ml.h"
 
 #include "integrals_h1.h"
 #include "integrals_hcurl.h"
@@ -201,13 +214,6 @@ TODO
 Relevant files: refmap.h
 
 
-
-<br>
-<h2>DiscreteProblem</h2>
-
-TODO
-
-Relevant files: discrete.h
 
 
 

@@ -1,0 +1,4 @@
+rm *~ *.dat 
+iron-water
+python plot_graph.py &
+

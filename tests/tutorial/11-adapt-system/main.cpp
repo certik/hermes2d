@@ -108,7 +108,8 @@ int main(int argc, char* argv[])
 {
   // load the mesh
   Mesh xmesh, ymesh;
-  xmesh.load("bracket.mesh");
+  H2DReader mloader;
+  mloader.load("bracket.mesh", &xmesh);
 
   // create initial mesh for the vertical displacement component,
   // identical to the mesh for the horizontal displacement

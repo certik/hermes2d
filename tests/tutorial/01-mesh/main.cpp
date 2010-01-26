@@ -6,7 +6,8 @@ int main(int argc, char* argv[])
 {
   // load the mesh file
   Mesh mesh;
-  mesh.load("domain.mesh");
+  H2DReader mloader;
+  mloader.load("domain.mesh", &mesh);
 
   // perform some sample initial refinements
   mesh.refine_all_elements();          // Refines all elements.

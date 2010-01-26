@@ -52,7 +52,8 @@ int main(int argc, char* argv[])
 {
   // load the mesh file
   Mesh mesh;
-  mesh.load("domain.mesh");
+  H2DReader mloader;
+  mloader.load("domain.mesh", &mesh);
   for(int i=0; i<UNIFORM_REF_LEVEL; i++) mesh.refine_all_elements();
 
   // initialize the shapeset and the cache

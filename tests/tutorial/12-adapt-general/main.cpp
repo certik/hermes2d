@@ -101,7 +101,7 @@ Scalar bilinear_form(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real>
   for (int i=0; i < n; i++) {
     double x = e->x[i];
     double y = e->y[i];
-    result += (a_11(x, y)*u->dx[i]*v->dx[i] + 
+    result += (a_11(x, y)*u->dx[i]*v->dx[i] +
                a_12(x, y)*u->dy[i]*v->dx[i] +
                a_21(x, y)*u->dx[i]*v->dy[i] +
                a_22(x, y)*u->dy[i]*v->dy[i] +
@@ -116,8 +116,8 @@ Scalar bilinear_form(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real>
 template<typename Real, typename Scalar>
 Scalar bilinear_form_ord(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
-  return u->val[0] * v->val[0] + 2; // returning the sum of the degrees of the basis 
-                                    // and test function plus two
+  return u->val[0] * v->val[0] * e->x[0] * e->x[0]; // returning the sum of the degrees of the basis
+                                                    // and test function plus two
 }
 
 // surface linear form (natural boundary conditions)
@@ -131,7 +131,7 @@ Scalar linear_form_surf(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData
 template<typename Real, typename Scalar>
 Scalar linear_form_surf_ord(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
-  return 2*v->val[0];  // returning twice the polynomial degree of the test function
+  return v->val[0] * e->x[0] * e->x[0];  // returning the polynomial degree of the test function plus two
 }
 
 // volumetrix linear form (right-hand side)
@@ -145,14 +145,15 @@ Scalar linear_form(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scal
 template<typename Real, typename Scalar>
 Scalar linear_form_ord(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
-  return 2*v->val[0];  // returning twice the polynomial degree of the test function;
+  return v->val[0] * e->x[0] * e->x[0];  // returning the polynomial degree of the test function plus two
 }
 
 int main(int argc, char* argv[])
 {
   // Load the mesh
   Mesh mesh;
-  mesh.load("domain.mesh");
+  H2DReader mloader;
+  mloader.load("domain.mesh", &mesh);
   mesh.refine_all_elements();
 
   // Initialize the shapeset and the cache
