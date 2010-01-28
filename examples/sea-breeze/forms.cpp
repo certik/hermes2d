@@ -700,7 +700,7 @@ void set_ic(Mesh &mesh, Solution &w0, Solution &w1, Solution &w3, Solution &w4)
 
 #define callback_lf_s(a) a<double, scalar>, L_order
 
-#define callback_lf(a) a<double, scalar>, l_ord<Ord, Ord>
+#define callback_lf(a) a<double, scalar>, L_order
 
 #define ADD_BF(i, j) wf.add_biform(i, j, callback_bf(B_##i##j), UNSYM, ANY, 4, &w0_prev, &w1_prev, &w3_prev, &w4_prev)
 
