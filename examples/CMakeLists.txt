@@ -19,6 +19,7 @@ add_subdirectory(newton-combust)
 add_subdirectory(newton-np-timedep-adapt-system)
 add_subdirectory(iron-water)
 add_subdirectory(saphir)
+add_subdirectory(elmag-field)
 
 if(WITH_TRILINOS)
   add_subdirectory(trilinos-linear)
