@@ -55,9 +55,9 @@ const int MESH_REGULARITY = -1;   // Maximum allowed level of hanging nodes:
                                   // MESH_REGULARITY = 2 ... at most two-level hanging nodes, etc.
                                   // Note that regular meshes are not supported, this is due to
                                   // their notoriously bad performance.
-const double ERR_STOP = 1.0;      // Stopping criterion for adaptivity (rel. error tolerance between the
+const double ERR_STOP = 1e-4;     // Stopping criterion for adaptivity (rel. error tolerance between the
                                   // fine mesh and coarse mesh solution in percent).
-const int NDOF_STOP = 40000;      // Adaptivity process stops when the number of degrees of freedom grows
+const int NDOF_STOP = 60000;      // Adaptivity process stops when the number of degrees of freedom grows
                                   // over this limit. This is to prevent h-adaptivity to go on forever.
 
 
@@ -154,6 +154,8 @@ int main(int argc, char* argv[])
   H2DReader mloader;
   if (ALIGN_MESH) mloader.load("oven_load_circle.mesh", &mesh);
   else mloader.load("oven_load_square.mesh", &mesh);
+
+  //mesh.refine_all_elements();
 
   // initialize the shapeset and the cache
   HcurlShapeset shapeset;
