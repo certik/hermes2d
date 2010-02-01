@@ -284,12 +284,8 @@ int main (int argc, char* argv[]) {
 	// load the mesh file
 	Mesh Cmesh, phimesh, basemesh;
 
-<<<<<<< HEAD:examples/newton-np-timedep-adapt-system/main.cpp
 	H2DReader mloader;
 	mloader.load("small.mesh", &basemesh);
-=======
-	basemesh.load("small.mesh");
->>>>>>> 6d11ea124a2cbf93932297c6b7b05728f1e5fef3:examples/newton-np-timedep-adapt-system/main.cpp
 	basemesh.refine_towards_boundary(TOP_MARKER, REF_INIT);
 	basemesh.refine_towards_boundary(BOT_MARKER, REF_INIT - 1);
 	Cmesh.copy(&basemesh);
