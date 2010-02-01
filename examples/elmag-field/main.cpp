@@ -31,12 +31,12 @@ const int ADAPT_TYPE = 0;         // Type of automatic adaptivity:
                                   // ADAPT_TYPE = 0 ... adaptive hp-FEM (default),
                                   // ADAPT_TYPE = 1 ... adaptive h-FEM,
                                   // ADAPT_TYPE = 2 ... adaptive p-FEM.
-const bool ISO_ONLY = true;       // Isotropic refinement flag (concerns quadrilateral elements only).
+const bool ISO_ONLY = false;      // Isotropic refinement flag (concerns quadrilateral elements only).
                                   // ISO_ONLY = false ... anisotropic refinement of quad elements
                                   // is allowed (default),
                                   // ISO_ONLY = true ... only isotropic refinements of quad elements
                                   // are allowed.
-const int MESH_REGULARITY = 1;    // Maximum allowed level of hanging nodes:
+const int MESH_REGULARITY = -1;   // Maximum allowed level of hanging nodes:
                                   // MESH_REGULARITY = -1 ... arbitrary level hangning nodes (default),
                                   // MESH_REGULARITY = 1 ... at most one-level hanging nodes,
                                   // MESH_REGULARITY = 2 ... at most two-level hanging nodes, etc.
@@ -106,7 +106,7 @@ int main(int argc, char* argv[])
   mloader.load("domain2.mesh", &mesh);
 
   // initial uniform subdivision
-  mesh.refine_all_elements();
+  //mesh.refine_all_elements();
 
   // initialize the shapeset and the cache
   H1Shapeset shapeset;
@@ -205,6 +205,6 @@ int main(int argc, char* argv[])
   view.show(&sln_fine);
 
   // wait for keyboard or mouse input
-  View::wait();
+  View::wait("Waiting for keyboard or mouse input.");
   return 0;
 }
