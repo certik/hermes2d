@@ -751,8 +751,8 @@ void register_forms(WeakForm &wf, Solution &w0_prev, Solution &w1_prev,
     ADD_LF(2);
     ADD_LF(3);
 
-//    ADD_LF_S(1);
-//    ADD_LF_S(2);
+    ADD_LF_S(1);
+    ADD_LF_S(2);
 
     // this is necessary, so that we can use Python from forms.cpp:
     if (import_hermes2d___hermes2d())
