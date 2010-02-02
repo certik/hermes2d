@@ -61,7 +61,7 @@ scalar w3_init(double x, double y, scalar& dx, scalar& dy) {
     dx = 0;
     dy = 0;
     //w3_init_num = rho_z(0)/rho_r * (0/u_r);
-    w3_init_num = 0;
+    w3_init_num = 1;
     return w3_init_num;
 }
 
