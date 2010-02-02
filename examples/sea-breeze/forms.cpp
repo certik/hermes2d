@@ -274,6 +274,7 @@ Scalar S_ij(int _i, int _j, int n, double *wt, Func<Real> *u, Func<Real> *v, Geo
 {
     double w0, w1, w3, w4;
 
+    /*
     if (e->marker == marker_left) {
         printf("BC left: (%d, %d; x=%f y=%f)\n", _i, _j, e->x[0], e->y[0]);
         //printf("    state: (%f, %f, %f, %f)\n", w0, w1, w3, w4);
@@ -287,6 +288,7 @@ Scalar S_ij(int _i, int _j, int n, double *wt, Func<Real> *u, Func<Real> *v, Geo
                 printf("%f ", v->val[j]);
             printf("\n");
     }
+    */
     Scalar result = 0;
     for (int i = 0; i < n; i++) {
         w0 = ext->fn[0]->val[i];
@@ -299,9 +301,11 @@ Scalar S_ij(int _i, int _j, int n, double *wt, Func<Real> *u, Func<Real> *v, Geo
                 A_z(_i, _j, w0, w1, w3, w4) * e->ny[i]
                 ) * u->val[i] * v->val[i];
     }
+    /*
     if (e->marker == marker_left) {
         printf("   result: %f\n", result);
     }
+    */
     return result;
 }
 
@@ -406,11 +410,13 @@ Scalar s_i(int _i, int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scal
                 A_z(_i, 3, w0, w1, w3, w4) * w4_new * e->ny[i]
                 ) * v->val[i];
     }
+    /*
     if (e->marker == marker_left) {
         printf("BC left: (%d; x=%f y=%f) %f\n", _i, e->x[0], e->y[0],
                 result);
         printf("    state: (%f, %f, %f, %f)\n", w0, w1, w3, w4);
     }
+    */
     return result;
 }
 
@@ -544,9 +550,12 @@ Scalar l_3(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext
     insert_object("fn", array_double_c2numpy(ext->fn[3]->val, n));
     insert_object("v", array_double_c2numpy(v->val, n));
     insert_object("tau", double_c2py(TAU));
+    /*
+    cmd("print '-'*40");
     cmd("print fn");
     cmd("print v");
     cmd("print tau");
+    */
     Scalar result = 0;
     for (int i = 0; i < n; i++)
         result += wt[i] * (ext->fn[3]->val[i] * v->val[i]) / TAU;
