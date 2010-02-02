@@ -550,15 +550,15 @@ Scalar l_3(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext
     insert_object("fn", array_double_c2numpy(ext->fn[3]->val, n));
     insert_object("v", array_double_c2numpy(v->val, n));
     insert_object("tau", double_c2py(TAU));
-    /*
     cmd("print '-'*40");
     cmd("print fn");
     cmd("print v");
     cmd("print tau");
-    */
     Scalar result = 0;
     for (int i = 0; i < n; i++)
         result += wt[i] * (ext->fn[3]->val[i] * v->val[i]) / TAU;
+    insert_object("result", double_c2py(result));
+    cmd("print result");
     return result;
 }
 
