@@ -1,6 +1,6 @@
 # The domain is (-a, a) x (0, b)
 a = 1  # domain length * 0.5
-b = 1  # domain height
+b = 2  # domain height
 #c = 0.1
 c = 0
 
