@@ -71,7 +71,8 @@ Scalar jacobian(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, 
 int main(int argc, char* argv[])
 {
   Mesh mesh;
-  mesh.load("square.mesh");
+  H2DReader mloader;
+  mloader.load("square.mesh", &mesh);
   for(int i = 0; i < 5; i++) mesh.refine_all_elements();
 
   H1Shapeset shapeset;

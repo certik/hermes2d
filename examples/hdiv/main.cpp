@@ -10,7 +10,8 @@ int main(int argc, char* argv[])
 {
   // load the mesh
   Mesh mesh;
-  mesh.load("square.mesh");
+  H2DReader mloader;
+  mloader.load("square.mesh", &mesh);
 
   // uniform mesh refinements
   mesh.refine_all_elements();

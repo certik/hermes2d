@@ -2,92 +2,10 @@
 Tutorial
 ========
 
-This tutorial should give you a good idea of how to adjust existing Hermes2D examples and create your own applications. For those who speak other languages than C++, there is an interactive graphical GUI `Agros2D <{http://hpfem.org/hermes2d/>`_. We also provide an interactive `online lab <http://nb.femhub.org/>`_ that allows you to use Hermes2D from any web browser without even installing it (the CPU time is on us). 
-
-Introduction
-------------
-
-Hermes2D is a free C++/Python library for rapid prototyping of
-adaptive FEM and *hp*-FEM solvers for partial differential equations (PDE),
-developed by the `hp-FEM group <http://hpfem.org/>`_ at the University of 
-Nevada, Reno. The library is available under the GPL license (Version 2, 1991). 
-
-Prior to reading this document, install Hermes2D using instructions on 
-its `home page <http://hpfem.org/hermes2d/>`_. The source code can be 
-viewed in the `git repository <http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree>`_, 
-and all tutorial examples can be found in the directory 
-`tutorial/ <http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/tutorial>`_.
-In the following, we will abbreviate Hermes2D with Hermes. 
-For the 1D and 3D codes, see the `Hermes1D <http://hpfem.org/hermes1d/>`_ and 
-`Hermes3D <http://hpfem.org/hermes3d/>`_ home pages, respectively.
-
-The best way of reading this tutorial is to run the code at the same time. 
-After making your way through the tutorial, you may want to view the directory 
-`examples/ <http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/examples>`_ 
-that contains a variety of different PDE models that may help you to get started with your own 
-applications. If you create an interesting model using Hermes2D, let us know and we 
-will be happy to add it to the existing examples. 
-
-Citing Hermes
--------------
-
-If you use Hermes for your work, please be so kind to cite some of the papers in the `publications section 
-<http://hpfem.org/publications/>`_ of the hp-FEM group home page, that are closest to your 
-research area.
-
-Main Features
--------------
-
-Main strengths of Hermes are higher-order methods, automatic adaptivity for both stationary and time-dependent problems, and solving complicated multiphysics problems. The following list describes main features of Hermes in more detail so that you can decide whether the library has what you are looking for: 
-
-* `Mature hp-FEM algorithms`. Hermes is all about error control and automatic adaptivity. Practitioners know well how painful it is to use automatic adaptivity in conjunction with standard lower-order approximations such as linear or quadratic elements. What happens is that after a few initial adaptivity steps the error stops decreasing, no matter how many more adaptivity steps are done of how many new degrees of freedom are added. There is nothing to do about it since this is a genuine limitation of low-order methods (so-called *algebraic convergence* - see the red and blue convergence curves in the graph below). In contrast to that, Hermes is based on adaptive *hp*-FEM that converges *exponentially* (green curve). In other words, the error drops steadily during adaptivity all the way to the desired accuracy. Only when combined with the *hp*-FEM, automatic adaptivity becomes useful in practice.
-
-.. image:: img/conv-typical.png
-   :align: center
-   :width: 400
-   :height: 250
-   :alt: Typical convergence curves of FEM with linear and quadratic elements and hp-FEM
-
-* `Hermes is PDE-independent`. A typical FEM code is designed to solve some special class of PDE problems (such as elliptic equations, fluid dynamics, electromagnetics etc.). In contrast to that, Hermes is truly PDE independent. It does not employ any technique or algorithm that would only work for some particular class of PDE problems. For example, automatic adaptivity is guided by a universal computational a-posteriori error estimate that works in the same way for any PDE. Of course this does not mean that it performs equally well on all PDE - some equations simply are more difficult to solve than others. However, Hermes allows you to tackle an arbitrary PDE (or multiphysics PDE system) with adaptive *hp*-FEM easily. Visit the `hp-FEM group home page <http://hpfem.org/>`_ and especially the `gallery <http://hpfem.org/gallery/>`_ to see many examples of problems that have been solved with Hermes so far.
-
-* `Arbitrary-level hanging nodes`. Hermes is capable of handling arbitrarily irregular meshes. This means that extremely small elements can be adjacent to very large ones. When an element is refined, its neighbors are never split forcefully as in conventional adaptivity algorithms. This makes automatic adaptivity in Hermes extremely efficient as well as easy to handle. 
-
-.. image:: img/ord_2d_c.png
-   :align: left
-   :width: 300
-   :height: 300
-   :alt: Illustration of arbitrary-level hanging nodes.
-
-.. image:: img/mixer-mesh.png
-   :align: right
-   :width: 300
-   :height: 300
-   :alt: Illustration of arbitrary-level hanging nodes.
-
-.. raw:: html
-
-   <hr style="clear: both; visibility: hidden;">
-
-* `Multimesh hp-FEM`. Various physical fields or solution components in multiphysics problems can be approximated on individual meshes, combining quality *H1*, *Hcurl*, *Hdiv*, and *L2* conforming higher-order elements. The approximation is monolithic, i.e., no error is caused by operator splitting, transferring data between different meshes, etc. The following figure illustrates a coupled problem of heat and moisture transfer in massive concrete walls of a reactor vessel. 
-
-.. image:: img/multimesh.png
-   :align: center
-   :width: 440
-   :height: 360
-   :alt: Illustration of multimesh hp-FEM.
-
-* `Space-time hp-adaptivity on dynamical meshes`. In time-dependent problems, different physical fields or solution components can be approximated on individual meshes that evolve in time independently of each other. Despite the independent meshes for solution components, the discretization of the PDE system is monolithic. 
-
-.. image:: img/flame.jpg
-   :align: center
-   :width: 600
-   :height: 320
-   :alt: Adaptive hp-FEM with dynamical meshes for a flame propagation problem. 
-
-See the `Hermes home page <http://hpfem.org/main/hermes.php>`_ for more information. Journal papers and books about Hermes and adaptive *hp*-FEM can be found in the `publications section <http://hpfem.org/publications/>`_.
+This tutorial should give you a good idea of how to adjust existing Hermes2D examples and create your own applications. 
 
 Creating Mesh
----------------
+-------------
 
 Every finite element computation starts with partitioning the domain
 into a finite element mesh. Hermes uses triangles and quadrilaterals, and 
@@ -111,7 +29,15 @@ Boundary markers are used to link boundary conditions with the boundary edges.
 Mesh File Format
 ~~~~~~~~~~~~~~~~
 
-Hermes mesh file consists of variable assignments. Each variable can hold a real number, list of real numbers, or list of lists. The following are all valid definitions in the Hermes mesh file format::
+Hermes can read meshes in its own generic format as well as in the
+`ExodusII <http://sourceforge.net/projects/exodusii/>`_ format
+(this is, for example, the output of `Cubit <http://cubit.sandia.gov/>`_).
+First let us discuss the generic Hermes mesh data format. Reading
+of ExodusII mesh files is very simple as we will see in example "iron-water". 
+
+Generic Hermes mesh file consists of variable assignments. Each variable can hold a real number, 
+list of real numbers, or list of lists. The following are all valid definitions in 
+the Hermes mesh file format::
 
     # comments start with a hash
     var = 5.0 + cos(pi)  # number
@@ -209,8 +135,14 @@ above example, we have
 Loading Mesh
 ------------
 
-As a ``Hello world'' example, let us load the mesh we have just created, and display it in a window. The main.cpp file that we are going to discuss can be found `here <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/tutorial/01-mesh/main.cpp>`_. Every main.cpp file in the git repo contains lots of comments and instructions. Skipping those, the `main.cpp <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/tutorial/01-mesh/main.cpp>`_ file of example 01-mesh/ begins with creating an instance of the class Mesh.
-This class contains the method load() which is used to load the mesh file:
+As a ''Hello world'' example, let us load the mesh we have just created, and display it in a window. 
+The main.cpp file that we are going to discuss can be found 
+`here <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/tutorial/01-mesh/main.cpp>`_. 
+Every main.cpp file in the git repo contains lots of comments and instructions. Skipping those, 
+the `main.cpp <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/tutorial/01-mesh/main.cpp>`_ 
+file of example 01-mesh/ begins with creating an instance of the class Mesh. In order to load
+the mesh file, you have to create a mesh loader class (in our case that is ``H2DReader``) and
+call the method ``load()``:
 ::
 
     #include "hermes2d.h"
@@ -219,7 +151,10 @@ This class contains the method load() which is used to load the mesh file:
     {
       // load the mesh file
       Mesh mesh;
-      mesh.load("domain.mesh");
+      H2DReader mloader;
+      mloader.load("domain.mesh", &mesh);
+
+Note: To load the exodus-II mesh file, one has to use ``ExodusIIReader`` class instead.
 
 The following portion of code illustrates various types of initial mesh refinements.
 It does not matter if the mesh becomes irregular, in fact, arbitrarily irregular
@@ -362,7 +297,7 @@ We suggest that you spend some time experimenting with element refinements and
 hanging nodes to see how basis functions on irregular meshes look like.
 
 Solving Poisson Equation
-----------------------------
+------------------------
 
 Let us solve the Poisson equation
 
@@ -517,9 +452,8 @@ two options: the polynomial degree of the integrated expressions can be detected
 automatically (the templates). Or, the user can define for each weak form the resulting 
 polynomial degree explicitly. If the weak form only contains polynomial expressions, the former
 approach works very well. If the form is more complicated, it is recommended to handle the
-integration orders explicitly. For now, we will stay with the automatic order determination 
-until example `07-general 
-<http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/tutorial/07-general/main.cpp>`_.
+integration orders explicitly. This will be described in detail in example 07-general later.
+Till then, we will use the automated way.
 
 Boundary Conditions
 -------------------
@@ -657,7 +591,8 @@ is refined towards the re-entrant corner in order to capture the singular gradie
 
     // load the mesh file
     Mesh mesh;
-    mesh.load("domain.mesh");
+    H2DReader mloader;
+    mloader.load("domain.mesh", &mesh);
     mesh.refine_towards_vertex(3, CORNER_REF_LEVEL);
 
 The gradient magnitude can be visualized via a MagFilter:
@@ -863,7 +798,7 @@ The polynomial degree of basis and test functions also can be accessed directly 
     Ord bilinear_form_ord(int n, double *wt, Func<Ord> *u, 
                           Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext)
     {
-      int uo = v->val[0].get_order();
+      int uo = u->val[0].get_order();
       int vo = v->val[0].get_order();
       return Ord(uo + vo);
     }
@@ -1524,7 +1459,22 @@ components, but specify that its derivatives should be used:
    :height: 300
    :alt: Polynomial orders of elements near singularities (zoomed).
 
+Convergence graphs of adaptive h-FEM with linear elements, h-FEM with quadratic elements
+and hp-FEM are shown below.
 
+.. image:: graphs/example-10/conv_dof_adapt.png
+   :align: center
+   :width: 600
+   :height: 400
+   :alt: DOF convergence graph for tutorial example 10-adapt.
+
+The following graph shows convergence in terms of CPU time. 
+
+.. image:: graphs/example-10/conv_cpu_adapt.png
+   :align: center
+   :width: 600
+   :height: 400
+   :alt: CPU convergence graph for tutorial example 10-adapt.
 
 Adaptivity for Systems
 ----------------------
@@ -1608,14 +1558,31 @@ degrees after several adaptive steps:
    <hr style="clear: both; visibility: hidden;">
 
 
-Note that they are slightly different, not only in
+Note that the meshes are slightly different, not only in
 polynomial degrees, but also in element refinements. This is possible in Hermes thanks to
-a technique called multi-mesh assembling
-which allows
+a technique called multi-mesh assembling which allows
 all components of the solution to adapt independently. In problems whose components exhibit
 substantially different behavior, one may even obtain completely different meshes.
-See example `multimesh <http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/examples/multimesh>`_ for a more advanced application of
-multimesh *hp*-FEM to thermoelasticity.
+
+Convergence graphs of adaptive h-FEM with linear elements, h-FEM with quadratic elements
+and hp-FEM are shown below.
+
+.. image:: graphs/example-11/conv_dof_adapt_system.png
+   :align: center
+   :width: 600
+   :height: 400
+   :alt: DOF convergence graph for tutorial example 11-adapt-system.
+
+The following graph shows convergence in terms of CPU time. 
+
+.. image:: graphs/example-11/conv_cpu_adapt_system.png
+   :align: center
+   :width: 600
+   :height: 400
+   :alt: CPU convergence graph for tutorial example 11-adapt-system.
+
+See example `multimesh <http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/examples/multimesh>`_ for a more 
+advanced application of multimesh *hp*-FEM to thermoelasticity.
 
 Adaptivity for General 2nd-Order Linear Equation
 ------------------------------------------------
@@ -1638,407 +1605,20 @@ The final hp-mesh looks as follows:
    :height: 400
    :alt: Final finite element mesh for the general 2nd-order linear equation example.
 
-Adaptive hp-FEM converged to a relative error of 0.01 % with
-approximately 1400 dof:
+Convergence graphs of adaptive h-FEM with linear elements, h-FEM with quadratic elements
+and hp-FEM are shown below.
 
-.. image:: img/12-conv-dof.png
+.. image:: graphs/example-12/conv_dof_adapt_general.png
    :align: center
    :width: 600
    :height: 400
-   :alt: DOF convergence graph for the iron-water example.
+   :alt: DOF convergence graph for tutorial example 12-adapt-general.
 
-Hermes also creates convergence graph in terms of CPU time:
+The following graph shows convergence in terms of CPU time. 
 
-.. image:: img/12-conv-cpu.png
+.. image:: graphs/example-12/conv_cpu_adapt_general.png
    :align: center
    :width: 600
    :height: 400
-   :alt: CPU convergence graph for the general 2nd-order linear equation example.
+   :alt: CPU convergence graph for tutorial example 12-adapt-general.
 
-========
-Examples
-========
-
-This section contains the description of selected `examples 
-<http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/examples>`_.
-Its purpose is to complement rather than duplicate the information 
-in the corresponding main.cpp files.
-
-Iron-Water
-----------
-
-This is a standard nuclear engineering benchmark describing an external-force-driven
-configuration without fissile materials present, using one-group neutron diffusion 
-approximation
-
-.. math::
-    :label: iron-water
-
-       -\nabla \cdot (D(x,y) \nabla \Phi) + \Sigma_a(a,y) \Phi = Q_ext(x,y)
-
-The domain of interest is a 30 x 30 cm square consisting of four regions.
-A uniform volumetric source is placed in water in the lower-left corner 
-of the domain, surrounded with a layer of water, a layer of iron, and finally
-another layer of water:
-
-.. image:: img/iron-water.png
-   :align: center
-   :width: 400
-   :height: 400
-   :alt: Schematic picture for the iron-water example.
-
-
-The unknown is the neutron flux $\Phi(x, y)$. The values of the diffusion coefficient 
-$D(x, y)$, absorption cross-section $\Sigma_a(x, y)$ and the source term $Q_{ext}(x,y)$
-are constant in the subdomains. The source $Q_{ext} = 1$ in area 1 and zero 
-elsewhere. The boundary conditions for this problem are zero Dirichlet (right and top edges)
-and zero Neumann (bottom and left edges). Other parameter values and additional information can be 
-found in the `main.cpp <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/examples/iron-water/main.cpp>`_ file.
-
-The solution is shown below:
-
-.. image:: img/iron-water-sol.png
-   :align: center
-   :width: 600
-   :height: 400
-   :alt: Solution to the iron-water example.
-
-The final hp-mesh looks as follows:
-
-.. image:: img/iron-water-mesh.png
-   :align: center
-   :width: 440
-   :height: 400
-   :alt: Final finite element mesh for the iron-water example.
-
-Adaptive hp-FEM converged to a relative error of 0.01 % with
-approximately 800 dof:
-
-.. image:: img/iron-water-conv.png
-   :align: center
-   :width: 600
-   :height: 400
-   :alt: Convergence graph for the iron-water example.
-
-Saphir
-------
-
-This is another standard nuclear engineering benchmark (IAEA number EIR-2) describing 
-an external-force-driven configuration without fissile materials present, using one-group 
-neutron diffusion approximation
-
-.. math::
-    :label: saphir
-
-       -\nabla \cdot (D(x,y) \nabla \Phi) + \Sigma_a(a,y) \Phi = Q_ext(x,y)
-
-The domain of interest is a 96 x 86 cm rectangle consisting of five regions:
-
-.. image:: img/saphir.png
-   :align: center
-   :width: 400
-   :height: 400
-   :alt: Schematic picture for the saphir example.
-
-The unknown is the neutron flux $\Phi(x, y)$. The values of the diffusion coefficient 
-$D(x, y)$, absorption cross-section $\Sigma_a(x, y)$ and the source term $Q_{ext}(x,y)$
-are constant in the subdomains. The source $Q_{ext} = 1$ in areas 1 and 3 and zero 
-elsewhere. Boundary conditions for the flux $\Phi$ are zero everywhere. 
-Parameter values and additional information can be 
-found in the `main.cpp <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/examples/saphir/main.cpp>`_ file.
-
-Note the way material properties are defined. This approach is alternative to how this was done 
-in tutorial examples 07 and 12 and in example iron-water. Now, we define a separate weak form 
-for every material:
-
-::
-
-    // Bilinear form (material 1)  
-    template<typename Real, typename Scalar>
-    Scalar bilinear_form_1(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
-    {
-      return D_1 * int_grad_u_grad_v<Real, Scalar>(n, wt, u, v) 
-             + SIGMA_A_1 * int_u_v<Real, Scalar>(n, wt, u, v);
-    }
-
-    // Bilinear form (material 2)
-    template<typename Real, typename Scalar>
-    Scalar bilinear_form_2(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
-    {
-      return D_2 * int_grad_u_grad_v<Real, Scalar>(n, wt, u, v) 
-             + SIGMA_A_2 * int_u_v<Real, Scalar>(n, wt, u, v);
-    }
-
-    // Bilinear form (material 3)
-    template<typename Real, typename Scalar>
-    Scalar bilinear_form_3(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
-    {
-      return D_3 * int_grad_u_grad_v<Real, Scalar>(n, wt, u, v) 
-             + SIGMA_A_3 * int_u_v<Real, Scalar>(n, wt, u, v);
-    }
-
-    // Bilinear form (material 4)
-    template<typename Real, typename Scalar>
-    Scalar bilinear_form_4(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
-    {
-      return D_4 * int_grad_u_grad_v<Real, Scalar>(n, wt, u, v) 
-             + SIGMA_A_4 * int_u_v<Real, Scalar>(n, wt, u, v);
-    }
-
-    // Bilinear form (material 5)
-    template<typename Real, typename Scalar>
-    Scalar bilinear_form_5(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
-    {
-      return D_5 * int_grad_u_grad_v<Real, Scalar>(n, wt, u, v) 
-             + SIGMA_A_5 * int_u_v<Real, Scalar>(n, wt, u, v);
-    }
-
-The weak forms are associated with material flags as follows:
-
-::
-
-    // initialize the weak formulation
-    WeakForm wf(1);
-    wf.add_biform(0, 0, bilinear_form_1, bilinear_form_ord, SYM, 1);
-    wf.add_biform(0, 0, bilinear_form_2, bilinear_form_ord, SYM, 2);
-    wf.add_biform(0, 0, bilinear_form_3, bilinear_form_ord, SYM, 3);
-    wf.add_biform(0, 0, bilinear_form_4, bilinear_form_ord, SYM, 4);
-    wf.add_biform(0, 0, bilinear_form_5, bilinear_form_ord, SYM, 5);
-    wf.add_liform(0, linear_form_1, linear_form_ord, 1);
-    wf.add_liform(0, linear_form_3, linear_form_ord, 3);
-
-The solution is shown below:
-
-.. image:: img/saphir-sol.png
-   :align: center
-   :width: 600
-   :height: 400
-   :alt: Solution to the saphir example.
-
-The final hp-mesh looks as follows:
-
-.. image:: img/saphir-mesh.png
-   :align: center
-   :width: 440
-   :height: 400
-   :alt: Final finite element mesh for the saphir example.
-
-Adaptive hp-FEM converged to a relative error of 0.01 % with
-approximately 5000 dof:
-
-.. image:: img/saphir-conv.png
-   :align: center
-   :width: 600
-   :height: 400
-   :alt: Convergence graph for the saphir example.
-
-Navier-Stokes
--------------
-
-This model problem is concerned with the approximate solution of external
-flow past a cylinder with unit diameter. The corresponding files can be found in 
-example `ns-timedep <http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/examples/ns-timedep>`_. The geometry looks as follows:
-
-.. image:: img/cylinder.png
-   :align: center
-   :width: 600
-   :height: 220
-   :alt: Domain for the Navier-Stokes problem.
-
-
-The motion of the fluid is described by the dimensionless incompressible
-Navier-Stokes equations,
-
-.. math::
-    :label: ns1
-
-         \dd{\bfu}{t} - \frac{1}{\rm Re} \Delta \bfu + (\bfu \cdot \nabla) \bfu + \nabla p  = 0,
-
-
-.. math::
-    :label: ns2
-
-         \nabla \cdot \bfu = 0,
-
-where $\bfu = (u_1, u_2)^T$ is the fluid velocity, $p$ is the kinematic pressure and Re
-is the Reynods number. One way to solve the nonlinear system :eq:`ns1`--:eq:`ns2` is to
-introduce a small time step $\tau > 0$, replace the time derivative by a backward
-difference formula and linearize the convective term
-$(\bfu \cdot \nabla) \bfu \approx (\bfu^{n-1} \cdot \nabla) \bfu^n$, where $\bfu^n$ is the
-approximate solution on the $n$-th time level. This leads to a system of linear PDEs for the
-$n$-th time level
-
-.. math::
-    :label: ns3
-
-         \frac{\bfu^n - \bfu^{n-1}}{\tau} - \frac{1}{\rm Re} \Delta \bfu^n +     (\bfu^{n-1} \cdot \nabla) \bfu^n + \nabla p  = 0,
-
-
-.. math::
-    :label: ns4
-
-         \nabla \cdot \bfu^n = 0,
-
-Testing :eq:`ns3` by the velocity test functions $(v_1, v_2)$ and testing :eq:`ns4`
-by the pressure test function $q$, we obtain the following weak formulation:
-
-.. math::
-
-    \int_\Omega \frac{u_1 v_1}{\tau} +   \frac{1}{\rm Re} \nabla u_1 \cdot \nabla v_1 +   (\bfu^{n-1} \cdot \nabla) u_1 v_1 - p \dd{v_1}{x} \dx   = \int_\Omega \frac{u^{n-1}_1 v_1}{\tau}
-
-
-.. math::
-
-    \int_\Omega \frac{u_2 v_2}{\tau} +   \frac{1}{\rm Re} \nabla u_2 \cdot \nabla v_2 +   (\bfu^{n-1} \cdot \nabla) u_2 v_2 - p \dd{v_2}{y} \dx   = \int_\Omega \frac{u^{n-1}_2 v_2}{\tau}
-
-
-.. math::
-
-    \int_\Omega \dd{u_1}{x} q + \dd{u_2}{y} q \dx = 0
-
-
-The boundary and initial conditions for the problem are
-
-.. math::
-
-    \bfu(\bfx, t) = (1, 0)^T \ \ \ \ \mbox{on}\ \ \Gamma_1 \cup \Gamma_3 \cup \Gamma_4
-
-
-.. math::
-
-    \bfu(\bfx, t) = (0, 0)^T \ \ \ \ \mbox{on}\ \ \Gamma_5
-
-
-.. math::
-
-    \mbox{\it ``do-nothing"}\ \ \ \ \mbox{on}\ \ \Gamma_2
-
-
-.. math::
-    :label: ns:initial
-
-     \bfu(\bfx, 0) = \bfu^0 = (0, 0)^T
-
-
-In CFD, the *do-nothing* condition is a common artificial boundary condition defining
-an outlet for the fluid. It means that there is no restriction on the value
-of the velocity on $\Gamma_2$.
-
-The implementation starts by defining three spaces xvel, yvel and press
-for the three solution components $u_1$, $u_2$ and $p$. Using Space::set_bc_type()
-we denote the Dirichlet boundary for velocity:
-::
-
-    int xvel_bc_type(int marker)
-      { return (marker != 2) ? BC_ESSENTIAL : BC_NONE; }
-
-Returning BC_NONE for some part of the boundary assigns degrees of freedom but turns
-off all surface integral processing on that part of the boundary, which is what we need
-in this case.
-
-Next we rewrite the weak formulation so that it fits into the block form :eq:`weaksystem`:
-
-.. math::
-    :nowrap:
-
-    \begin{eqnarray*}   a_{11}(u_1, v_1) &=& \int_\Omega \frac{u_1 v_1}{\tau} \dx +                        \int_\Omega \frac{1}{\rm Re} \nabla u_1 \cdot \nabla v_1 \dx +                        \int_\Omega (\bfu^{n-1} \cdot \nabla) u_1 v_1 \dx, \\   a_{22}(u_2, v_2) &=& \int_\Omega \frac{u_2 v_2}{\tau} \dx +                        \int_\Omega \frac{1}{\rm Re} \nabla u_2 \cdot \nabla v_2 \dx +                        \int_\Omega (\bfu^{n-1} \cdot \nabla) u_2 v_2 \dx, \end{eqnarray*}
-
-
-.. math::
-    :nowrap:
-
-    \begin{eqnarray*}   a_{13}(p, v_1) &=& -\int_\Omega p \dd{v_1}{x} \dx, \\   a_{23}(p, v_2) &=& -\int_\Omega p \dd{v_2}{y} \dx, \\   a_{31}(u_1, q) &=&  \int_\Omega \dd{u_1}{x} q \dx, \\   a_{32}(u_2, q) &=&  \int_\Omega \dd{u_2}{y} q \dx, \\   l_1(v_1) &=& \int_\Omega \frac{u^{n-1}_1 v_1}{\tau}, \\   l_2(v_2) &=& \int_\Omega \frac{u^{n-1}_2 v_2}{\tau}. \end{eqnarray*}
-
-Notice first that the forms $a_{11}$ and $a_{22}$ are identical, i.e., $a_{11}(u,v) = a_{22}(u,v)$.
-Further, the first two terms of $a_{11}$ and $a_{22}$ are symmetric. We will also exploit the
-antisymmetry $a_{13}(u,v) = -a_{31}(u,v)$ and $a_{23}(u,v) = -a_{32}(u,v)$ in the following.
-
-The implementation of the symmetric terms in $a_{11}$ and $a_{22}$ is straightforward. The form
-\verb"bilinear_form_sym_0_0_1_1" (the same form is used for both $a_{11}$ and $a_{22}$)
-simply contains the command
-::
-
-    return int_grad_u_grad_v(fu, fv, ru, rv) / Re +
-           int_u_v(fu, fv, ru, rv) / tau;
-
-As for the convection term, we need access to the solution on the previous time level, $\bfu^{n-1}$.
-This is accomplished by defining two instances of the class Solution at the global level:
-::
-
-    // velocities from the previous time step
-    Solution xprev, yprev;
-
-In \verb"bilinear_form_unsym_0_0_1_1", which completes the forms $a_{11}$ and $a_{22}$, we can use
-the predefined integral \verb"int_w_nabla_u_v" (see the
-file {\tt src/integrals\_h1.h})
-and plug in {\tt xprev} and {\tt yprev} for the velocity:
-::
-
-    return int_w_nabla_u_v(&xprev, &yprev, fu, fv, ru, rv);
-
-The rest of the forms are easy and will not be discussed here. However, there is one more important
-thing you need to do if you use external functions (such as xprev and yprev in the
-weak forms. Hermes needs to be told about all such functions and where they are used in the weak
-formulation, so that they can be initialized properly and also incorporated in the multi-mesh assembling,
-if necessary.
-Apart from the symmetry flag and the integration area,
-add_biform() takes one more optional argument, the number of external functions used by the form,
-followed by that many pointers to the external functions. The complete WeakForm initialization
-looks like this:
-::
-
-    // set up weak formulation
-    WeakForm wf(3);
-    wf.add_biform(0, 0, callback(bilinear_form_sym_0_0_1_1), SYM);
-    wf.add_biform(0, 0, callback(bilinear_form_unsym_0_0_1_1), UNSYM, ANY, 2, &xprev, &yprev);
-    wf.add_biform(1, 1, callback(bilinear_form_sym_0_0_1_1), SYM);
-    wf.add_biform(1, 1, callback(bilinear_form_unsym_0_0_1_1), UNSYM, ANY, 2, &xprev, &yprev);
-    wf.add_biform(0, 2, callback(bilinear_form_unsym_0_2), ANTISYM);
-    wf.add_biform(1, 2, callback(bilinear_form_unsym_1_2), ANTISYM);
-    wf.add_liform(0, callback(linear_form), ANY, 1, &xprev);
-    wf.add_liform(1, callback(linear_form), ANY, 1, &yprev);
-
-Notice also the use of the ANTISYM flag for the forms $a_{13}$ and $a_{23}$, which
-saves us a little assembling time and the need to define $a_{31}$ and $a_{32}$.
-
-Before entering the main iteration loop, we need to initialize the previous solutions
-xprev and yprev with the initial condition 
-:eq:`ns:initial`. Besides holding the finite element solution, the Solution class
-can be forced to return zero, to return a constant, or to return an arbitrary function
-using the methods set_zero(), set_const() and set_exact(), respectively
-Here we simply call set_zero() and supply the function domain, i.e., the mesh:
-::
-
-    // initial BC: xprev and yprev are zero
-    xprev.set_zero(&mesh);
-    yprev.set_zero(&mesh);
-
-We are now ready to start the iterative process. In each iteration, we assemble the
-stiffness matrix and solve for the unknown velocity xsln, ysln and
-pressure psln on the current time level:
-::
-
-    // assemble and solve
-    Solution xsln, ysln, psln;
-    sys.assemble();
-    sys.solve(3, &xsln, &ysln, &psln);
-
-At the end of each iteration, the current solution must be remembered as the future
-previous solution. This is done by assigning xsln and ysln to xprev
-and yprev:
-::
-
-    xprev = xsln;
-    yprev = ysln;
-
-The assignment operator is overloaded for Solution and in fact is equal to calling
-Solution::assign(), which is an efficient way of handing over solution data from
-one Solution to another.
-The velocity is visualized in each iteration using the VectorView class, as shown
-in the following figure:
-
-.. image:: img/velocity.jpg
-   :align: center
-   :width: 600
-   :height: 260
-   :alt: Velocity solution visualized with the class VectorView.

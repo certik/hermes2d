@@ -85,8 +85,9 @@ int main(int argc, char* argv[])
 {
   // load the mesh
   Mesh mesh;
-  mesh.load("screen-quad.mesh");
-//    mesh.load("screen-tri.mesh");
+  H2DReader mloader;
+  mloader.load("screen-quad.mesh", &mesh);
+//    mloader.load("screen-tri.mesh", &mesh);
 
   // initialize the shapeset and the cache
   HcurlShapeset shapeset;
@@ -115,20 +116,8 @@ int main(int argc, char* argv[])
   // matrix solver
   UmfpackSolver solver;
 
-  // convergence graph wrt. the number of degrees of freedom
-  GnuplotGraph graph;
-  graph.set_captions("Error Convergence for the Screen Problem in H(curl)", "Degrees of Freedom", "Error [%]");
-  graph.add_row("exact error", "k", "-", "o");
-  graph.add_row("error estimate", "k", "--");
-  graph.set_log_y();
-
-  // convergence graph wrt. CPU time
-  GnuplotGraph graph_cpu;
-  graph_cpu.set_captions("Error Convergence for the Screen Problem in H(curl)", "CPU Time", "Error [%]");
-  graph_cpu.add_row("exact error", "k", "-", "o");
-  graph_cpu.add_row("error estimate", "k", "--");
-  graph_cpu.set_log_y();
-
+  // DOF and CPU convergence graphs
+  SimpleGraph graph_dof_est, graph_dof_exact, graph_cpu_est, graph_cpu_exact;
 
   // adaptivity loop
   int it = 1, ndofs;
@@ -188,15 +177,17 @@ int main(int argc, char* argv[])
     double err_est = hp.calc_error(&sln_coarse, &sln_fine) * 100;
     info("Error estimate: %g%%", err_est);
 
-    // add entry to DOF convergence graph
-    graph.add_values(0, space.get_num_dofs(), error);
-    graph.add_values(1, space.get_num_dofs(), err_est);
-    graph.save("conv_dof.gp");
+    // add entries to DOF convergence graphs
+    graph_dof_exact.add_values(space.get_num_dofs(), error);
+    graph_dof_exact.save("conv_dof_exact.dat");
+    graph_dof_est.add_values(space.get_num_dofs(), err_est);
+    graph_dof_est.save("conv_dof_est.dat");
 
-    // add entry to CPU convergence graph
-    graph_cpu.add_values(0, cpu, error);
-    graph_cpu.add_values(1, cpu, err_est);
-    graph_cpu.save("conv_cpu.gp");
+    // add entries to CPU convergence graphs
+    graph_cpu_exact.add_values(cpu, error);
+    graph_cpu_exact.save("conv_cpu_exact.dat");
+    graph_cpu_est.add_values(cpu, err_est);
+    graph_cpu_est.save("conv_cpu_est.dat");
 
     // if err_est too large, adapt the mesh
     if (err_est < ERR_STOP) done = true;

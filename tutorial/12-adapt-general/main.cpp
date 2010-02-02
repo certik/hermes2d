@@ -1,7 +1,7 @@
 #include "hermes2d.h"
 #include "solver_umfpack.h"
 
-//  This example uses automatic adaptivity to solve a general second-order linear 
+//  This example uses automatic adaptivity to solve a general second-order linear
 //  equation with non-constant coefficients.
 //
 //  PDE: -d/dx(a_11(x,y)du/dx) - d/dx(a_12(x,y)du/dy) - d/dy(a_21(x,y)du/dx) - d/dy(a_22(x,y)du/dy)
@@ -10,7 +10,7 @@
 //  Domain: arbitrary
 //
 //  BC:  Dirichlet for boundary marker 1: u = g_D(x,y)
-//       Natural for any other boundary marker:   (a_11(x,y)*nu_1 + a_21(x,y)*nu_2) * dudx 
+//       Natural for any other boundary marker:   (a_11(x,y)*nu_1 + a_21(x,y)*nu_2) * dudx
 //                                              + (a_12(x,y)*nu_1 + s_22(x,y)*nu_2) * dudy = g_N(x,y)
 //
 //  The following parameters can be changed:
@@ -115,7 +115,7 @@ Scalar bilinear_form(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real>
   for (int i=0; i < n; i++) {
     double x = e->x[i];
     double y = e->y[i];
-    result += (a_11(x, y)*u->dx[i]*v->dx[i] + 
+    result += (a_11(x, y)*u->dx[i]*v->dx[i] +
                a_12(x, y)*u->dy[i]*v->dx[i] +
                a_21(x, y)*u->dx[i]*v->dy[i] +
                a_22(x, y)*u->dy[i]*v->dy[i] +
@@ -127,10 +127,10 @@ Scalar bilinear_form(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real>
 }
 
 // Integration order for the bilinear form
-Ord bilinear_form_ord(int n, double *wt, Func<Ord> *u, 
+Ord bilinear_form_ord(int n, double *wt, Func<Ord> *u,
                       Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext)
 {
-  return u->val[0] * v->val[0] * e->x[0] * e->x[0]; // returning the sum of the degrees of the basis 
+  return u->val[0] * v->val[0] * e->x[0] * e->x[0]; // returning the sum of the degrees of the basis
                                                     // and test function plus two
 }
 
@@ -164,7 +164,8 @@ int main(int argc, char* argv[])
 {
   // Load the mesh
   Mesh mesh;
-  mesh.load("domain.mesh");
+  H2DReader mloader;
+  mloader.load("domain.mesh", &mesh);
   mesh.refine_all_elements();
 
   // Initialize the shapeset and the cache
@@ -193,17 +194,8 @@ int main(int argc, char* argv[])
   // Matrix solver
   UmfpackSolver solver;
 
-  // Convergence graph wrt. the number of degrees of freedom
-  GnuplotGraph graph;
-  graph.set_log_y();
-  graph.set_captions("Error Convergence for the Linear 2nd-Order Problem", "Degrees of Freedom", "Error Estimate [%]");
-  graph.add_row("error estimate", "k", "-", "o");
-
-  // Convergence graph wrt. CPU time
-  GnuplotGraph graph_cpu;
-  graph_cpu.set_captions("Error Convergence for the Linear 2nd-Order Problem", "CPU Time", "Error Estimate [%]");
-  graph_cpu.add_row("error estimate", "k", "-", "o");
-  graph_cpu.set_log_y();
+  // DOF and CPU convergence graphs
+  SimpleGraph graph_dof, graph_cpu;
 
   // Adaptivity loop
   int it = 1, ndofs;
@@ -244,13 +236,13 @@ int main(int argc, char* argv[])
     double err_est = hp.calc_error(&sln_coarse, &sln_fine) * 100;
     info("Estimate of error: %g%%", err_est);
 
-    // Add entry to DOF convergence graph
-    graph.add_values(0, space.get_num_dofs(), err_est);
-    graph.save("conv_dof.gp");
+    // add entry to DOF convergence graph
+    graph_dof.add_values(space.get_num_dofs(), err_est);
+    graph_dof.save("conv_dof.dat");
 
-    // Add entry to CPU convergence graph
-    graph_cpu.add_values(0, cpu, err_est);
-    graph_cpu.save("conv_cpu.gp");
+    // add entry to CPU convergence graph
+    graph_cpu.add_values(cpu, err_est);
+    graph_cpu.save("conv_cpu.dat");
 
     // If err_est too large, adapt the mesh
     if (err_est < ERR_STOP) done = true;

@@ -15,8 +15,9 @@ int main(int argc, char* argv[])
 
   // load the mesh file
   Mesh mesh;
+  H2DReader mloader;
   Element* e;
-  mesh.load(argv[1]);
+  mloader.load(argv[1], &mesh);
 
   // Calculate the number of elements after refinement, starting from 0
   int element_num = 0;

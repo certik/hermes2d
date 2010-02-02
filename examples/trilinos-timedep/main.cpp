@@ -85,7 +85,8 @@ int main(int argc, char* argv[])
 {
   // load and refine mesh
   Mesh mesh;
-  mesh.load("square.mesh");
+  H2DReader mloader;
+  mloader.load("square.mesh", &mesh);
   mesh.refine_all_elements();
   mesh.refine_all_elements();
   mesh.refine_all_elements();

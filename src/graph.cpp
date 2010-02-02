@@ -66,6 +66,14 @@ void Graph::add_values(int row, double x, double y)
   rows[row].data.push_back(xy);
 }
 
+void Graph::add_values(double x, double y)
+{
+  int row = 0;
+  if (!rows.size()) add_row(NULL);
+  Values xy = { x, y };
+  rows[row].data.push_back(xy);
+}
+
 
 void Graph::add_values(int row, int n, double* x, double* y)
 {
@@ -86,6 +94,27 @@ void Graph::save_numbered(const char* filename, int number)
   char buffer[1000];
   sprintf(buffer, filename, number);
   save(buffer);
+}
+
+
+//// SimpleGraph //////////////////////////////////////////////////////////////////////////////////
+
+void SimpleGraph::save(const char* filename)
+{
+  if (!rows.size()) error("No data rows defined.");
+
+  FILE* f = fopen(filename, "w");
+  if (f == NULL) error("Error writing to %s.", filename);
+
+  for (int i = 0; i < rows.size(); i++)
+  {
+    int rsize = rows[i].data.size();
+    for (int j = 0; j < rsize; j++)
+      fprintf(f, "%.14g  %.14g\n", rows[i].data[j].x, rows[i].data[j].y);
+  }
+
+  info("Graph saved to file '%s'.", filename);
+  fclose(f);
 }
 
 

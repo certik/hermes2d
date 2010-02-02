@@ -8,7 +8,7 @@
 //  PDE: -div(D(x,y)grad\Phi) + \Sigma_a(x,y)\Phi = Q_{ext}(x,y)
 //  where D(x, y) is the diffusion coefficient, \Sigma_a(x,y) the absorption cross-section,
 //  and Q_{ext}(x,y) external sources
-//  
+//
 //  Domain: square (0, L)x(0, L) where L = 30c (see mesh file domain.mesh)
 //
 //  BC:  Zero Dirichlet for the right and top edges ("vacuum boundary")
@@ -44,7 +44,7 @@ const int MESH_REGULARITY = -1;   // Maximum allowed level of hanging nodes:
                                   // MESH_REGULARITY = 2 ... at most two-level hanging nodes, etc.
                                   // Note that regular meshes are not supported, this is due to
                                   // their notoriously bad performance.
-const double ERR_STOP = 1e-2;     // Stopping criterion for adaptivity (rel. error tolerance between the
+const double ERR_STOP = 1e-3;     // Stopping criterion for adaptivity (rel. error tolerance between the
                                   // fine mesh and coarse mesh solution in percent).
 const int NDOF_STOP = 60000;      // Adaptivity process stops when the number of degrees of freedom grows
                                   // over this limit. This is to prevent h-adaptivity to go on forever.
@@ -58,7 +58,6 @@ double LV = 96;                       // total vertical length
 double LV0 = 18;                      // first vertical length
 double LV1 = 48;                      // second vertical length
 double LV2 = 78;                      // third vertical length
-double Q_EXT = 1.0;                   // neutron source
 double SIGMA_T_1 = 0.60;              // total cross-sections
 double SIGMA_T_2 = 0.48;
 double SIGMA_T_3 = 0.70;
@@ -69,11 +68,8 @@ double SIGMA_S_2 = 0.20;
 double SIGMA_S_3 = 0.66;
 double SIGMA_S_4 = 0.50;
 double SIGMA_S_5 = 0.89;
-double Q_EXT_1 = 1;                   // sources
-double Q_EXT_2 = 0;
-double Q_EXT_3 = 1;
-double Q_EXT_4 = 0;
-double Q_EXT_5 = 0;
+double Q_EXT_1 = 1;                   // nonzero sources in domains 1 and 3 only,
+double Q_EXT_3 = 1;                   // sources in other domains are zero
 
 // Additional constants
 double D_1 = 1/(3.*SIGMA_T_1);        //diffusion coefficients
@@ -86,8 +82,6 @@ double SIGMA_A_2 = SIGMA_T_2 - SIGMA_S_2;
 double SIGMA_A_3 = SIGMA_T_3 - SIGMA_S_3;
 double SIGMA_A_4 = SIGMA_T_4 - SIGMA_S_4;
 double SIGMA_A_5 = SIGMA_T_5 - SIGMA_S_5;
-
-/********** Boundary conditions ***********/
 
 // Boundary condition types
 int bc_types(int marker)
@@ -102,81 +96,15 @@ scalar bc_values(int marker, double x, double y)
   return 0.0;
 }
 
-/********** Weak forms ***********/
-
-// Bilinear form (material 1)
-template<typename Real, typename Scalar>
-Scalar bilinear_form_1(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
-{
-  return D_1 * int_grad_u_grad_v<Real, Scalar>(n, wt, u, v) 
-         + SIGMA_A_1 * int_u_v<Real, Scalar>(n, wt, u, v);
-}
-
-// Bilinear form (material 2)
-template<typename Real, typename Scalar>
-Scalar bilinear_form_2(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
-{
-  return D_2 * int_grad_u_grad_v<Real, Scalar>(n, wt, u, v) 
-         + SIGMA_A_2 * int_u_v<Real, Scalar>(n, wt, u, v);
-}
-
-// Bilinear form (material 3)
-template<typename Real, typename Scalar>
-Scalar bilinear_form_3(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
-{
-  return D_3 * int_grad_u_grad_v<Real, Scalar>(n, wt, u, v) 
-         + SIGMA_A_3 * int_u_v<Real, Scalar>(n, wt, u, v);
-}
-
-// Bilinear form (material 4)
-template<typename Real, typename Scalar>
-Scalar bilinear_form_4(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
-{
-  return D_4 * int_grad_u_grad_v<Real, Scalar>(n, wt, u, v) 
-         + SIGMA_A_4 * int_u_v<Real, Scalar>(n, wt, u, v);
-}
-
-// Bilinear form (material 5)
-template<typename Real, typename Scalar>
-Scalar bilinear_form_5(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
-{
-  return D_5 * int_grad_u_grad_v<Real, Scalar>(n, wt, u, v) 
-         + SIGMA_A_5 * int_u_v<Real, Scalar>(n, wt, u, v);
-}
-
-// Integration order for the bilinear forms
-Ord bilinear_form_ord(int n, double *wt, Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext)
-{
-  return u->val[0] * v->val[0]; // returning the sum of the degrees of the basis 
-                                // and test function
-}
-
-// Linear form (material 1)
-template<typename Real, typename Scalar>
-Scalar linear_form_1(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
-{
-  return int_v<Real, Scalar>(n, wt, v);
-}
-
-// Linear form (material 3)
-template<typename Real, typename Scalar>
-Scalar linear_form_3(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
-{
-  return int_v<Real, Scalar>(n, wt, v);
-}
-
-// Integration order for the linear forms
-Ord linear_form_ord(int n, double *wt, Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext)
-{
-  return v->val[0];  // q_ext is piecewise constant, thus 
-                     // returning the polynomial degree of the test function;
-}
+// Weak forms
+#include "forms.cpp"
 
 int main(int argc, char* argv[])
 {
   // Load the mesh
   Mesh mesh;
-  mesh.load("domain.mesh");
+  H2DReader mloader;
+  mloader.load("domain.mesh", &mesh);
   // initial uniform mesh refinement
   for (int i=0; i < INIT_REF_NUM; i++) mesh.refine_all_elements();
 
@@ -210,17 +138,8 @@ int main(int argc, char* argv[])
   // Matrix solver
   UmfpackSolver solver;
 
-  // Convergence graph wrt. the number of degrees of freedom
-  GnuplotGraph graph;
-  graph.set_log_y();
-  graph.set_captions("Error Convergence for the Saphir Problem", "Degrees of Freedom", "Error Estimate [%]");
-  graph.add_row("error estimate", "k", "-", "o");
-
-  // Convergence graph wrt. CPU time
-  GnuplotGraph graph_cpu;
-  graph_cpu.set_captions("Error Convergence for the Saphir Problem", "CPU Time", "Error Estimate [%]");
-  graph_cpu.add_row("error estimate", "k", "-", "o");
-  graph_cpu.set_log_y();
+  // DOF and CPU convergence graphs
+  SimpleGraph graph_dof, graph_cpu;
 
   // Adaptivity loop
   int it = 1, ndofs;
@@ -264,13 +183,13 @@ int main(int argc, char* argv[])
     double err_est = hp.calc_error(&sln_coarse, &sln_fine) * 100;
     info("Estimate of error: %g%%", err_est);
 
-    // Add entry to DOF convergence graph
-    graph.add_values(0, space.get_num_dofs(), err_est);
-    graph.save("conv_dof.gp");
+    // add entry to DOF convergence graph
+    graph_dof.add_values(space.get_num_dofs(), err_est);
+    graph_dof.save("conv_dof.dat");
 
-    // Add entry to CPU convergence graph
-    graph_cpu.add_values(0, cpu, err_est);
-    graph_cpu.save("conv_cpu.gp");
+    // add entry to CPU convergence graph
+    graph_cpu.add_values(cpu, err_est);
+    graph_cpu.save("conv_cpu.dat");
 
     // If err_est too large, adapt the mesh
     if (err_est < ERR_STOP) done = true;

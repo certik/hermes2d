@@ -111,7 +111,8 @@ int main(int argc, char* argv[])
 {
   // load the mesh file
   Mesh mesh;
-  mesh.load("domain-quad.mesh"); // unstructured triangular mesh available in domain-tri.mesh
+  H2DReader mloader;
+  mloader.load("domain-quad.mesh", &mesh); // unstructured triangular mesh available in domain-tri.mesh
 
   // a-priori mesh refinements
   mesh.refine_all_elements();

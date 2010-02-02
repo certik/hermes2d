@@ -5,8 +5,9 @@ This is a README file for Linux.
 Documentation
 =============
 
-Hermes2D tutorial can be found in the directory 'tutorial/tex/'. Type 'make' there
-to build the pdf file.
+Hermes2D Sphinx documentation (tutorial, benchmarks, examples) can be found in the 
+directory 'doc/'. Type 'make html' there to build it. The documentation is 
+available online at http://hpfem.org/hermes2d/doc/index.html.
 
 Developer documentation can be compiled by running 'doxygen' in 'src/'.
 
