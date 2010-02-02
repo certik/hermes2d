@@ -18,6 +18,9 @@ def run(sys):
     show()
 
 def x_reduce(x, prec=6):
+    """
+    Removes all duplicates and sorts the list.
+    """
     x = [round(_x, prec) for _x in x]
     x = array(list(set(x)))
     x.sort()
@@ -67,6 +70,8 @@ def xyx2zformat(x, y, z):
 
 
 def plotxy(x, y, v, i):
+    #if i > 4:
+    #    return
     #figure()
     #title("iter=%d" % i)
     #plot(x, y, "x", label="iter=%d" % i)
@@ -82,5 +87,8 @@ def plotxy(x, y, v, i):
     #X, Y = np.meshgrid(X, Y)
     #R = np.sqrt(X**2 + Y**2)
     #Z = np.sin(R)
+    if len(x_reduce(Z.flat)) == 1:
+        # hack to make mpl plot this function:
+        Z[0, 0] = 1.1
     ax.plot_surface(X, Y, Z, rstride=1, cstride=1, cmap=cm.jet)
     ax.set_aspect('equal')
