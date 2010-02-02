@@ -116,15 +116,15 @@ int main(int argc, char* argv[])
 
   // load the mesh file
   Mesh mesh;
-  //mesh.load("GAMM-channel.mesh");
-  mesh.load("domain-quad.mesh");
+  mesh.load("GAMM-channel.mesh");
+  //mesh.load("domain-quad.mesh");
 
   // a-priori mesh refinements
   //mesh.refine_all_elements();
-  //mesh.refine_all_elements();
-  //mesh.refine_all_elements();
-  //mesh.refine_towards_boundary(marker_bottom, 10);
-  //mesh.refine_all_elements();
+  mesh.refine_all_elements();
+  mesh.refine_all_elements();
+  mesh.refine_towards_boundary(marker_bottom, 3);
+  mesh.refine_all_elements();
   //mesh.refine_all_elements();
   //mesh.refine_all_elements(2);
   //mesh.refine_all_elements(2);
