@@ -145,7 +145,7 @@ int main(int argc, char* argv[])
   H1Shapeset shapeset_h1;
   PrecalcShapeset pss_h1(&shapeset_h1);
 
-#define L2
+//#define L2
 
   // this should be L2Shapeset, but hermes complains...
 #ifdef L2
