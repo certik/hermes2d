@@ -125,7 +125,8 @@ int main(int argc, char* argv[])
   //mesh.refine_all_elements();
   //mesh.refine_all_elements();
   //mesh.refine_all_elements();
-  mesh.refine_towards_boundary(marker_bottom, 1);
+  //mesh.refine_towards_boundary(marker_bottom, 1);
+  mesh.refine_towards_boundary(marker_right, 1);
   //mesh.refine_all_elements();
   //mesh.refine_all_elements();
   //mesh.refine_all_elements(2);
@@ -147,7 +148,7 @@ int main(int argc, char* argv[])
   H1Shapeset shapeset_h1;
   PrecalcShapeset pss_h1(&shapeset_h1);
 
-#define L2
+//#define L2
 
   // this should be L2Shapeset, but hermes complains...
 #ifdef L2
@@ -240,10 +241,10 @@ int main(int argc, char* argv[])
     Solution w0_sln, w1_sln, w3_sln, w4_sln;
     sys.assemble();
     insert_object("sys", LinSystem_from_C(&sys));
-    //cmd("import util");
-    //cmd("util.run(sys)");
+    cmd("import util");
+    cmd("util.run(sys)");
     sys.solve(4, &w0_sln, &w1_sln, &w3_sln, &w4_sln);
-    //error("stop");
+    error("stop");
 
     // visualization
     sprintf(title, "Current density, time %g", TIME);
