@@ -1,4 +1,3 @@
-#include "header.h"
 /*** Definition of residiual vectors ***/
 
 template<class Real, class Scalar>
@@ -10,8 +9,6 @@ Scalar Fc_euler(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar>
 	for (int i = 0; i < n; i++) {
 		result += wt[i] * ((Citer->val[i] - Cprev->val[i]) * v->val[i] / TAU +
 				D * (Citer->dx[i] * v->dx[i] + Citer->dy[i] * v->dy[i]) +
-				K * (Citer->dx[i] * phiiter->dx[i]
-						+ Citer->dy[i] * phiiter->dy[i]) * v->val[i] +
 				K * Citer->val[i] * (phiiter->dx[i] * v->dx[i] + phiiter->dy[i] * v->dy[i]));
 	}
 	return result;
@@ -37,7 +34,6 @@ Scalar J_euler_DFcDYc(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real
 	for (int i = 0; i < n; i++) {
 		result += wt[i] * (u->val[i] * v->val[i] / TAU +
 				D * (u->dx[i] * v->dx[i] + u->dy[i] * v->dy[i]) +
-				K * (phiiter->dx[i] * u->dx[i] + phiiter->dy[i] * u->dy[i]) * v->val[i] +
 				K * u->val[i] * (phiiter->dx[i] * v->dx[i] + phiiter->dy[i] * v->dy[i]));
 	}
 	return result;
