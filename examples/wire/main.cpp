@@ -36,25 +36,25 @@ const bool ISO_ONLY = false;      // Isotropic refinement flag (concerns quadril
                                   // is allowed (default),
                                   // ISO_ONLY = true ... only isotropic refinements of quad elements
                                   // are allowed.
-const int MESH_REGULARITY = -1;   // Maximum allowed level of hanging nodes:
+const int MESH_REGULARITY = 1;   // Maximum allowed level of hanging nodes:
                                   // MESH_REGULARITY = -1 ... arbitrary level hangning nodes (default),
                                   // MESH_REGULARITY = 1 ... at most one-level hanging nodes,
                                   // MESH_REGULARITY = 2 ... at most two-level hanging nodes, etc.
                                   // Note that regular meshes are not supported, this is due to
                                   // their notoriously bad performance.
-const double ERR_STOP = 0.01;     // Stopping criterion for adaptivity (rel. error tolerance between the
+const double ERR_STOP = 0.001;    // Stopping criterion for adaptivity (rel. error tolerance between the
                                   // fine mesh and coarse mesh solution in percent).
 const int NDOF_STOP = 50000;      // Adaptivity process stops when the number of degrees of freedom grows
                                   // over this limit. This is to prevent h-adaptivity to go on forever.
 
 
 // Problem parameters
-//double mu_0 = 4.0*3.141592654E-7;
-double Jext_wire = 5000000.0;
+double mu_0 = 4.0*3.141592654E-7;
+double J_wire = 5000000.0;
 double freq = 5E3;
 double omega = 2*3.141592654*freq;
 double gamma_iron = 6E6;
-double mu_iron_rel = 1000;
+double mu_iron = 1000*mu_0;
 
 int bc_types(int marker)
 {
@@ -62,8 +62,6 @@ int bc_types(int marker)
   if (marker==2) {return BC_ESSENTIAL;}
   if (marker==3) {return BC_ESSENTIAL;}
   if (marker==4) {return BC_ESSENTIAL;}
-  //if (marker==5) {return BC_NONE;}
-  if (marker==6) {return BC_NATURAL;}
 }
 
 complex dir_bc_values(int marker, double x, double y)
@@ -75,27 +73,25 @@ template<typename Real, typename Scalar>
 Scalar bilinear_form_iron(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
   scalar ii = complex(0.0, 1.0);
-  return int_grad_u_grad_v<Real, Scalar>(n, wt, u, v) + ii*omega*mu_iron_rel*gamma_iron*int_u_v<Real, Scalar>(n, wt, u, v);
+  return 1./mu_iron * int_grad_u_grad_v<Real, Scalar>(n, wt, u, v) + ii*omega*gamma_iron*int_u_v<Real, Scalar>(n, wt, u, v);
 }
 
-/*
 template<typename Real, typename Scalar>
 Scalar bilinear_form_wire(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
-  return int_grad_u_grad_v<Real, Scalar>(n, wt, u, v);
+  return 1./mu_0 * int_grad_u_grad_v<Real, Scalar>(n, wt, u, v);
 }
-*/
 
 template<typename Real, typename Scalar>
 Scalar bilinear_form_air(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
-  return int_grad_u_grad_v<Real, Scalar>(n, wt, u, v); // conductivity gamma is zero
+  return 1./mu_0 * int_grad_u_grad_v<Real, Scalar>(n, wt, u, v); // conductivity gamma is zero
 }
 
 template<typename Real, typename Scalar>
-Scalar linear_form_surf_wire(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+Scalar linear_form_wire(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
-  return Jext_wire * int_v<Real, Scalar>(n, wt, v);
+  return J_wire * int_v<Real, Scalar>(n, wt, v);
 }
 
 int main(int argc, char* argv[])
@@ -123,9 +119,10 @@ int main(int argc, char* argv[])
 
   // initialize the weak formulation
   WeakForm wf(1);
-  wf.add_biform(0, 0, callback(bilinear_form_iron), UNSYM, 3);
-  wf.add_biform(0, 0, callback(bilinear_form_air), UNSYM, 1);
-  wf.add_liform_surf(0, callback(linear_form_surf_wire), 6);
+  wf.add_biform(0, 0, callback(bilinear_form_iron), SYM, 3);
+  wf.add_biform(0, 0, callback(bilinear_form_wire), SYM, 2);
+  wf.add_biform(0, 0, callback(bilinear_form_air), SYM, 1);
+  wf.add_liform(0, callback(linear_form_wire), 2);
 
   // visualize solution and mesh
   ScalarView view("Vector potential A ");
@@ -162,7 +159,7 @@ int main(int argc, char* argv[])
     sys.solve(1, &sln_coarse);
 
     // visualize the solution
-    view.show(&sln_coarse, EPS_LOW);
+    view.show(&sln_coarse, EPS_HIGH);
     oview.show(&space);
 
     // time measurement
