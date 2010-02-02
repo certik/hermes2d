@@ -1,8 +1,8 @@
 # Everything is in meters:
 a = 2
 c = 1
-r = 10.
-alpha = pi/40.
+r = 20.
+alpha = pi/400.
 
 vertices =
 {
