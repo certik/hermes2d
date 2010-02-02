@@ -36,6 +36,8 @@ public:
 
   virtual int get_type() const { return 3; }
 
+  virtual void get_element_assembly_list(Element* e, AsmList* al);
+
 protected:
 
   struct L2Data

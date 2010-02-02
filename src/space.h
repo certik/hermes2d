@@ -159,7 +159,7 @@ public:
 public:
 
   /// Obtains an assembly list for the given element.
-  void get_element_assembly_list(Element* e, AsmList* al);
+  virtual void get_element_assembly_list(Element* e, AsmList* al);
 
   /// Obtains an edge assembly list (contains shape functions that are nonzero on the specified edge).
   void get_edge_assembly_list(Element* e, int edge, AsmList* al);
