@@ -544,11 +544,12 @@ Scalar l_2(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext
     return result;
 }
 
-int counter=0;
+//int counter=0;
 
 template<typename Real, typename Scalar>
 Scalar l_3(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
+    /*
     counter++;
     insert_object("fn", array_double_c2numpy(ext->fn[3]->val, n));
     insert_object("v", array_double_c2numpy(v->val, n));
@@ -558,19 +559,20 @@ Scalar l_3(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext
     insert_object("counter", int_c2py(counter));
     cmd("print '-'*40");
     cmd("print 'l_3 called, counter=', counter");
+    */
     //cmd("print 'fn', fn");
     //cmd("print 'v', v");
     //cmd("print 'x', x");
     //cmd("print 'y', y");
-    cmd("import util");
-    cmd("util.plotxy(x, y, v, counter)");
-    cmd("print tau");
+    //cmd("import util");
+    //cmd("util.plotxy(x, y, v, counter)");
+    //cmd("print tau");
     Scalar result = 0;
     for (int i = 0; i < n; i++)
         result += wt[i] * (ext->fn[3]->val[i] * v->val[i]) / TAU;
-    insert_object("result", double_c2py(result));
-    cmd("print result");
-    cmd("print '-'*40");
+    //insert_object("result", double_c2py(result));
+    //cmd("print result");
+    //cmd("print '-'*40");
     return result;
 }
 

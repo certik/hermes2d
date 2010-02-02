@@ -15,7 +15,7 @@ def run(sys):
     print "-"*70
     print "solution:"
     print solve(A, rhs)
-    show()
+    #show()
 
 def x_reduce(x, prec=6):
     """
