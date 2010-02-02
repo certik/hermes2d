@@ -3,7 +3,7 @@ if(NOT COMPLEX)
 endif(NOT COMPLEX)
 
 
-project(elmag-field)
+project(wire)
 
 set(HERMES ${HERMES_CPLX_BIN})
 
