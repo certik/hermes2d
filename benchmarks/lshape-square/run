@@ -1,0 +1,4 @@
+rm *~  
+lshape-square
+python plot_graph.py &
+

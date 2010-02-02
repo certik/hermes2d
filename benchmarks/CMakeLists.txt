@@ -13,6 +13,7 @@ add_subdirectory(smooth-aniso-y)
 add_subdirectory(singpert-aniso)
 add_subdirectory(line-sing)
 add_subdirectory(kellogg)
+add_subdirectory(lshape-square)
 
 if(NOT WITH_TRILINOS)
   add_subdirectory(bessel)
