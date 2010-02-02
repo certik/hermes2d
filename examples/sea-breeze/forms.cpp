@@ -61,7 +61,7 @@ scalar w3_init(double x, double y, scalar& dx, scalar& dy) {
     dx = 0;
     dy = 0;
     //w3_init_num = rho_z(0)/rho_r * (0/u_r);
-    w3_init_num = 1;
+    w3_init_num = 0;
     return w3_init_num;
 }
 
@@ -336,7 +336,7 @@ Scalar s_i(int _i, int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scal
             right_or_left = 1;
         else
             right_or_left = 0;
-        right_or_left = 1;
+        //right_or_left = 1;
 
         if  (!right_or_left) {
             _u = _u-un * e->nx[i];
