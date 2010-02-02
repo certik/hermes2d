@@ -336,7 +336,7 @@ Scalar s_i(int _i, int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scal
             right_or_left = 1;
         else
             right_or_left = 0;
-        //right_or_left = 1;
+        right_or_left = 1;
 
         if  (!right_or_left) {
             _u = _u-un * e->nx[i];
