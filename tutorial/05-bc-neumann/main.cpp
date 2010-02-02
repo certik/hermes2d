@@ -56,7 +56,8 @@ int main(int argc, char* argv[])
 {
   // load the mesh file
   Mesh mesh;
-  mesh.load("domain.mesh");
+  H2DReader mloader;
+  mloader.load("domain.mesh", &mesh);
   mesh.refine_towards_vertex(3, CORNER_REF_LEVEL);
 
   // initialize the shapeset and the cache

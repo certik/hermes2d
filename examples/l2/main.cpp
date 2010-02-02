@@ -45,7 +45,8 @@ int main(int argc, char* argv[])
 
   // load the mesh
   Mesh mesh;
-  mesh.load(argv[1]);
+  H2DReader mloader;
+  mloader.load(argv[1], &mesh);
 
   // uniform mesh refinements
   mesh.refine_all_elements();

@@ -2,16 +2,16 @@
 #include "solver_umfpack.h"
 
 //  This is a simple non-elliptic problem with known exact solution where one
-//  can see the advantages of anisotropic refinements. During each computation, 
-//  approximate convergence curves are saved into the files "conv_dof.gp" and 
-//  "conv_cpu.gp". As in other adaptivity examples, you can compare hp-adaptivity 
+//  can see the advantages of anisotropic refinements. During each computation,
+//  approximate convergence curves are saved into the files "conv_dof.gp" and
+//  "conv_cpu.gp". As in other adaptivity examples, you can compare hp-adaptivity
 //  (ADAPT_TYPE = 0) with h-adaptivity (ADAPT_TYPE = 1) and p-adaptivity (ADAPT_TYPE = 2).
 //  You can turn off and on anisotropic element refinements via the ISO_ONLY
-//  parameter. 
+//  parameter.
 //
 //  PDE: -div(A(x,y) grad u) = 0
 //  where a(x,y) = R in the first and third quadrant
-//               = 1 in the second and fourth quadrant 
+//               = 1 in the second and fourth quadrant
 //
 //  Exact solution: u(x,y) = cos(M_PI*y/2)    for x < 0
 //                  u(x,y) = cos(M_PI*y/2) + pow(x, alpha)   for x > 0   where alpha > 0
@@ -98,34 +98,34 @@ static double fndd(double x, double y, double& dx, double& dy)
   // x-derivative
   if (theta <= M_PI/2.) {
     //mu = cos((M_PI/2. - SIGMA)*TAU) * cos((theta - M_PI/2. + RHO)*TAU);
-    dx = TAU*x*pow(r, (2.*(-1 + TAU/2.))) * 
+    dx = TAU*x*pow(r, (2.*(-1 + TAU/2.))) *
     cos((M_PI/2. - SIGMA)*TAU) *
     cos(TAU*(-M_PI/2. + RHO + theta)) +
-    (TAU*y*pow(r, TAU)*cos((M_PI/2. - SIGMA)*TAU) * 
+    (TAU*y*pow(r, TAU)*cos((M_PI/2. - SIGMA)*TAU) *
     sin(TAU*(-M_PI/2. + RHO + theta))/(r*r));
   }
   else {
     if (theta <= M_PI) {
       //mu = cos(RHO*TAU)*cos((theta - M_PI + SIGMA)*TAU);
-      dx = TAU*x * pow(r, (2.*(-1 + TAU/2.))) * cos(RHO*TAU) * 
-      cos(TAU*(-M_PI + SIGMA + theta)) +  
-      (TAU*y * pow(r, TAU) * cos(RHO*TAU) * 
+      dx = TAU*x * pow(r, (2.*(-1 + TAU/2.))) * cos(RHO*TAU) *
+      cos(TAU*(-M_PI + SIGMA + theta)) +
+      (TAU*y * pow(r, TAU) * cos(RHO*TAU) *
       sin(TAU*(-M_PI + SIGMA + theta))/(r*r));
     }
     else {
       if (theta <= 3*M_PI/2.) {
         //mu = cos(SIGMA*TAU) * cos((theta - M_PI + RHO)*TAU);
-        dx = TAU*x * pow(r, (2.*(-1 + TAU/2.))) * cos(SIGMA*TAU) * 
-        cos(TAU*(-M_PI + RHO + theta)) +  
-	(TAU*y * pow(r, TAU) * cos(SIGMA*TAU) * 
+        dx = TAU*x * pow(r, (2.*(-1 + TAU/2.))) * cos(SIGMA*TAU) *
+        cos(TAU*(-M_PI + RHO + theta)) +
+	(TAU*y * pow(r, TAU) * cos(SIGMA*TAU) *
 	 sin(TAU*(-M_PI + RHO + theta))/(r*r));
       }
       else {
         //mu = cos((M_PI/2. - RHO)*TAU) * cos((theta - 3*M_PI/2. - SIGMA)*TAU);
-        dx = TAU*x* pow(r, (2*(-1 + TAU/2.))) * 
-        cos((M_PI/2. - RHO)*TAU) * 
-	cos(TAU*(-3*M_PI/2. - SIGMA + theta)) +  
-	(TAU*y*pow(r, TAU) * cos((M_PI/2. - RHO)*TAU) * 
+        dx = TAU*x* pow(r, (2*(-1 + TAU/2.))) *
+        cos((M_PI/2. - RHO)*TAU) *
+	cos(TAU*(-3*M_PI/2. - SIGMA + theta)) +
+	(TAU*y*pow(r, TAU) * cos((M_PI/2. - RHO)*TAU) *
 	sin(TAU*(-3.*M_PI/2. - SIGMA + theta))/(r*r));
       }
     }
@@ -133,32 +133,32 @@ static double fndd(double x, double y, double& dx, double& dy)
   // y-derivative
   if (theta <= M_PI/2.) {
     //mu = cos((M_PI/2. - SIGMA)*TAU) * cos((theta - M_PI/2. + RHO)*TAU);
-    dy = TAU*y * pow(r, (2*(-1 + TAU/2.))) * 
-      cos((M_PI/2. - SIGMA)*TAU) * 
-      cos(TAU*(-M_PI/2. + RHO + theta)) -  
-      (TAU * pow(r, TAU) * cos((M_PI/2. - SIGMA)*TAU) * 
+    dy = TAU*y * pow(r, (2*(-1 + TAU/2.))) *
+      cos((M_PI/2. - SIGMA)*TAU) *
+      cos(TAU*(-M_PI/2. + RHO + theta)) -
+      (TAU * pow(r, TAU) * cos((M_PI/2. - SIGMA)*TAU) *
        sin(TAU*(-M_PI/2. + RHO + theta))*x/(r*r));
   }
   else {
     if (theta <= M_PI) {
       //mu = cos(RHO*TAU)*cos((theta - M_PI + SIGMA)*TAU);
-      dy = TAU*y* pow(r, (2*(-1 + TAU/2.))) * cos(RHO*TAU) * 
-	cos(TAU*(-M_PI + SIGMA + theta)) -  
-        (TAU * pow(r, TAU) * cos(RHO*TAU) * 
+      dy = TAU*y* pow(r, (2*(-1 + TAU/2.))) * cos(RHO*TAU) *
+	cos(TAU*(-M_PI + SIGMA + theta)) -
+        (TAU * pow(r, TAU) * cos(RHO*TAU) *
 	 sin(TAU*(-M_PI + SIGMA + theta))*x/(r*r));
     }
     else {
       if (theta <= 3*M_PI/2.) {
         //mu = cos(SIGMA*TAU) * cos((theta - M_PI + RHO)*TAU);
-        dy = TAU*y * pow(r, (2*(-1 + TAU/2.))) * cos(SIGMA*TAU) * 
-	  cos(TAU*(-M_PI + RHO + theta)) -  
-	  (TAU * pow(r, TAU) * cos(SIGMA*TAU) * 
+        dy = TAU*y * pow(r, (2*(-1 + TAU/2.))) * cos(SIGMA*TAU) *
+	  cos(TAU*(-M_PI + RHO + theta)) -
+	  (TAU * pow(r, TAU) * cos(SIGMA*TAU) *
 	   sin(TAU*(-M_PI + RHO + theta))*x/(r*r));
       }
       else {
         //mu = cos((M_PI/2 - RHO)*TAU) * cos((theta-3*M_PI/2 - SIGMA)*TAU);
-        dy = TAU*y * pow(r, (2*(-1 + TAU/2.))) * 
-        cos((M_PI/2. - RHO)*TAU) * 
+        dy = TAU*y * pow(r, (2*(-1 + TAU/2.))) *
+        cos((M_PI/2. - RHO)*TAU) *
 	  cos(TAU*(-3*M_PI/2. - SIGMA + theta)) -
 	  (TAU * pow(r, TAU) * cos((M_PI/2. - RHO)*TAU) *
 	   sin(TAU*((-3*M_PI)/2. - SIGMA + theta))*x/(r*r));
@@ -184,7 +184,7 @@ template<typename Real>
 Real rhs(Real x, Real y)
 {
   return 0;
-} 
+}
 
 template<typename Real, typename Scalar>
 Scalar bilinear_form_I_III(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
@@ -209,7 +209,8 @@ int main(int argc, char* argv[])
 {
   // load the mesh
   Mesh mesh;
-  mesh.load("square_quad.mesh");
+  H2DReader mloader;
+  mloader.load("square_quad.mesh", &mesh);
 
   // initial mesh refinement
   for (int i=0; i < INIT_REF_NUM; i++) mesh.refine_all_elements();
@@ -241,20 +242,8 @@ int main(int argc, char* argv[])
   // matrix solver
   UmfpackSolver solver;
 
-  // convergence graph wrt. the number of degrees of freedom
-  GnuplotGraph graph;
-  graph.set_captions("Error Convergence for the Singular Line Problem", "Degrees of Freedom", "Error Estimate [%]");
-  graph.add_row("exact error", "k", "-", "o");
-  graph.add_row("error estimate", "k", "--");
-  graph.set_log_y();
-
-  // convergence graph wrt. CPU time
-  GnuplotGraph graph_cpu;
-  graph_cpu.set_captions("Error Convergence for the Singular Line Problem", "CPU Time", "Error Estimate [%]");
-  graph_cpu.add_row("exact error", "k", "-", "o");
-  graph_cpu.add_row("error estimate", "k", "--");
-  graph_cpu.set_log_x();
-  graph_cpu.set_log_y();
+  // DOF and CPU convergence graphs
+  SimpleGraph graph_dof_est, graph_dof_exact, graph_cpu_est, graph_cpu_exact;
 
   // adaptivity loop
   int it = 1, ndofs;
@@ -291,7 +280,6 @@ int main(int argc, char* argv[])
     begin_time();
 
     // solve the fine mesh problem
-    begin_time();
     RefSystem rs(&ls);
     rs.assemble();
     rs.solve(1, &sln_fine);
@@ -301,17 +289,17 @@ int main(int argc, char* argv[])
     double err_est = hp.calc_error(&sln_coarse, &sln_fine) * 100;
     info("Estimate of error: %g%%", err_est);
 
-    // add entry to DOF convergence graph
-    //graph.add_values(0, pow(space.get_num_dofs(), 1./3), error);
-    //graph.add_values(1, pow(space.get_num_dofs(), 1./3), err_est);
-    graph.add_values(0, space.get_num_dofs(), error);
-    graph.add_values(1, space.get_num_dofs(), err_est);
-    graph.save("conv_dof.gp");
+    // add entries to DOF convergence graphs
+    graph_dof_exact.add_values(space.get_num_dofs(), error);
+    graph_dof_exact.save("conv_dof_exact.dat");
+    graph_dof_est.add_values(space.get_num_dofs(), err_est);
+    graph_dof_est.save("conv_dof_est.dat");
 
-    // add entry to CPU convergence graph
-    graph_cpu.add_values(0, cpu, error);
-    graph_cpu.add_values(1, cpu, err_est);
-    graph_cpu.save("conv_cpu.gp");
+    // add entries to CPU convergence graphs
+    graph_cpu_exact.add_values(cpu, error);
+    graph_cpu_exact.save("conv_cpu_exact.dat");
+    graph_cpu_est.add_values(cpu, err_est);
+    graph_cpu_est.save("conv_cpu_est.dat");
 
     // if err_est too large, adapt the mesh
     if (err_est < ERR_STOP) done = true;

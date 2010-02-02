@@ -58,7 +58,7 @@ const int MESH_REGULARITY = -1;  // Maximum allowed level of hanging nodes:
                                  // Note that regular meshes are not supported, this is due to
                                  // their notoriously bad performance.
 const int MAXIMUM_ORDER = 10;    // Maximum allowed element degree
-const double ERR_STOP = 0.02;    // Stopping criterion for adaptivity (rel. error tolerance between the
+const double ERR_STOP = 1.0;     // Stopping criterion for adaptivity (rel. error tolerance between the
                                  // fine mesh and coarse mesh solution in percent).
 const int NDOF_STOP = 40000;     // Adaptivity process stops when the number of degrees of freedom grows over
                                  // this limit. This is mainly to prevent h-adaptivity to go on forever.
@@ -165,7 +165,8 @@ int main(int argc, char* argv[])
 {
   // load the mesh
   Mesh xmesh, ymesh, tmesh;
-  xmesh.load("domain_round_3.mesh"); // master mesh
+  H2DReader mloader;
+  mloader.load("domain_round_3.mesh", &xmesh); // master mesh
   ymesh.copy(&xmesh);                // ydisp will share master mesh with xdisp
   tmesh.copy(&xmesh);                // temp will share master mesh with xdisp
 
@@ -215,17 +216,8 @@ int main(int argc, char* argv[])
   // matrix solver
   UmfpackSolver solver;
 
-  // convergence graph wrt. the number of degrees of freedom
-  GnuplotGraph graph;
-  graph.set_captions("", "Degrees of Freedom", "Error (Energy Norm)");
-  graph.set_log_y();
-  graph.add_row("Refenrence solution", "k", "-", "O");
-
-  // convergence graph wrt. CPU time
-  GnuplotGraph graph_cpu;
-  graph_cpu.set_captions("", "CPU", "error");
-  graph_cpu.set_log_y();
-  graph_cpu.add_row(MULTI ? "multi-mesh" : "single-mesh", "k", "-", "o");
+  // DOF and CPU convergence graphs
+  SimpleGraph graph_dof, graph_cpu;
 
   // adaptivity loop
   int it = 1, ndofs;
@@ -290,12 +282,15 @@ int main(int argc, char* argv[])
     cpu += end_time();
 
     // add entry to DOF convergence graph
-    graph.add_values(0, x_sln_fine.get_num_dofs() + y_sln_fine.get_num_dofs() + t_sln_fine.get_num_dofs(), err_est);
-    graph.save(MULTI ? "conv_m.gp" : "conv_s.gp");
+    graph_dof.add_values(x_sln_fine.get_num_dofs() + y_sln_fine.get_num_dofs() + t_sln_fine.get_num_dofs(), err_est);
+    graph_dof.save("conv_dof.dat");
 
     // add entry to CPU convergence graph
-    graph_cpu.add_values(0, cpu, err_est);
-    graph_cpu.save(MULTI ? "cpu_m.gp" : "cpu_s.gp");
+    graph_cpu.add_values(cpu, err_est);
+    graph_cpu.save("conv_cpu.dat");
+
+    // time measurement
+    begin_time();
 
     // if err_est too large, adapt the mesh
     if (err_est < ERR_STOP) done = true;

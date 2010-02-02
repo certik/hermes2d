@@ -15,6 +15,7 @@
 
 #include "common.h"
 #include "mesh.h"
+#include "h2d_reader.h"
 
 
 //// nodes, element ////////////////////////////////////////////////////////////////////////////////
@@ -712,11 +713,425 @@ void Mesh::unrefine_all_elements(bool keep_initial_refinements)
   for (int i = 0; i < list.size(); i++)
     unrefine_element(list[i]);
 }
+
+/// Returns a NURBS curve with reversed control points and inverted knot vector.
+/// Used for curved edges inside a mesh, where two mirror Nurbs have to be created
+/// for the adjacent elements
+///
+Nurbs* Mesh::reverse_nurbs(Nurbs* nurbs)
+{
+  Nurbs* rev = new Nurbs;
+  *rev = *nurbs;
+  rev->twin = true;
+
+  rev->pt = new double3[nurbs->np];
+  for (int i = 0; i < nurbs->np; i++)
+  {
+    rev->pt[nurbs->np-1 - i][0] = nurbs->pt[i][0];
+    rev->pt[nurbs->np-1 - i][1] = nurbs->pt[i][1];
+    rev->pt[nurbs->np-1 - i][2] = nurbs->pt[i][2];
+  }
+
+  rev->kv = new double[nurbs->nk];
+  for (int i = 0; i < nurbs->nk; i++)
+    rev->kv[i] = nurbs->kv[i];
+  for (int i = nurbs->degree + 1; i < nurbs->nk - nurbs->degree - 1; i++)
+    rev->kv[nurbs->nk-1 - i] = 1.0 - nurbs->kv[i];
+
+  rev->arc = nurbs->arc;
+  rev->angle = -nurbs->angle;
+  return rev;
+}
+
+// computing vector length
+double vector_length(double a_1, double a_2)
+{
+  return sqrt(sqr(a_1) + sqr(a_2));
+}
+
+// checking whether the points p, q, r lie on the same line
+bool same_line(double p_1, double p_2, double q_1, double q_2, double r_1, double r_2)
+{
+  double pq_1 = q_1 - p_1, pq_2 = q_2 - p_2, pr_1 = r_1 - p_1, pr_2 = r_2 - p_2;
+  double length_pq = vector_length(pq_1, pq_2);
+  double length_pr = vector_length(pr_1, pr_2);
+  double sin_angle = (pq_1*pr_2 - pq_2*pr_1)/(length_pq*length_pr);
+  if(fabs(sin_angle) < 1e-8) return true;
+  else return false;
+}
+
+// checking whether the angle of vectors 'a' and 'b' is between zero and Pi
+bool is_convex(double a_1, double a_2, double b_1, double b_2)
+{
+  if(a_1*b_2 - a_2*b_1 > 0) return true;
+  else return false;
+}
+
+void check_triangle(int i, Node *&v0, Node *&v1, Node *&v2)
+{
+  // checking that all edges have nonzero length
+  double
+    length_1 = vector_length(v1->x - v0->x, v1->y - v0->y),
+    length_2 = vector_length(v2->x - v1->x, v2->y - v1->y),
+    length_3 = vector_length(v0->x - v2->x, v0->y - v2->y);
+  if(length_1 < 1e-14 || length_2 < 1e-14 || length_3 < 1e-14)
+    error("Edge of triangular element #%d has length less than 1e-14.", i);
+
+  // checking that vertices do not lie on the same line
+  if(same_line(v0->x, v0->y, v1->x, v1->y, v2->x, v2->y))
+    error("Triangular element #%d: all vertices lie on the same line.", i);
+
+  // checking positive orientation. If not positive, swapping vertices
+  if (!is_convex(v1->x - v0->x, v1->y - v0->y, v2->x - v0->x, v2->y - v0->y)) {
+    warn("Triangular element #%d not positively oriented, swapping vertices.", i);
+    std::swap(v1, v2);
+  }
+}
+
+void check_quad(int i, Node *&v0, Node *&v1, Node *&v2, Node *&v3)
+{
+  // checking that all edges have nonzero length
+  double
+    length_1 = vector_length(v1->x - v0->x, v1->y - v0->y),
+    length_2 = vector_length(v2->x - v1->x, v2->y - v1->y),
+    length_3 = vector_length(v3->x - v2->x, v3->y - v2->y),
+    length_4 = vector_length(v0->x - v3->x, v0->y - v3->y);
+  if(length_1 < 1e-14 || length_2 < 1e-14 || length_3 < 1e-14 || length_4 < 1e-14)
+    error("Edge of quad element #%d has length less than 1e-14.", i);
+
+  // checking that both diagonals have nonzero length
+  double
+    diag_1 = vector_length(v2->x - v0->x, v2->y - v0->y),
+    diag_2 = vector_length(v3->x - v1->x, v3->y - v1->y);
+  if(diag_1 < 1e-14 || diag_2 < 1e-14)
+    error("Diagonal of quad element #%d has length less than 1e-14.", i);
+
+  // checking that vertices v0, v1, v2 do not lie on the same line
+  if(same_line(v0->x, v0->y, v1->x, v1->y, v2->x, v2->y))
+    error("Quad element #%d: vertices v0, v1, v2 lie on the same line.", i);
+  // checking that vertices v0, v1, v3 do not lie on the same line
+  if(same_line(v0->x, v0->y, v1->x, v1->y, v3->x, v3->y))
+    error("Quad element #%d: vertices v0, v1, v3 lie on the same line.", i);
+  // checking that vertices v0, v2, v3 do not lie on the same line
+  if(same_line(v0->x, v0->y, v2->x, v2->y, v3->x, v3->y))
+    error("Quad element #%d: vertices v0, v2, v3 lie on the same line.", i);
+  // checking that vertices v1, v2, v3 do not lie on the same line
+  if(same_line(v1->x, v1->y, v2->x, v2->y, v3->x, v3->y))
+    error("Quad element #%d: vertices v1, v2, v3 lie on the same line.", i);
+
+  // checking that vertex v1 lies on the right of the diagonal v2-v0
+  int vertex_1_ok = is_convex(v1->x - v0->x, v1->y - v0->y, v2->x - v0->x, v2->y - v0->y);
+  if(!vertex_1_ok) error("Vertex v1 of quad element #%d does not lie on the right of the diagonal v2-v0.", i);
+  // checking that vertex v3 lies on the left of the diagonal v2-v0
+  int vertex_3_ok = is_convex(v2->x - v0->x, v2->y - v0->y, v3->x - v0->x, v3->y - v0->y);
+  if(!vertex_3_ok) error("Vertex v3 of quad element #%d does not lie on the left of the diagonal v2-v0.", i);
+  // checking that vertex v2 lies on the right of the diagonal v3-v1
+  int vertex_2_ok = is_convex(v2->x - v1->x, v2->y - v1->y, v3->x - v1->x, v3->y - v1->y);
+  if(!vertex_2_ok) error("Vertex v2 of quad element #%d does not lie on the right of the diagonal v3-v1.", i);
+  // checking that vertex v0 lies on the left of the diagonal v3-v1
+  int vertex_0_ok = is_convex(v3->x - v1->x, v3->y - v1->y, v0->x - v1->x, v0->y - v1->y);
+  if(!vertex_0_ok) error("Vertex v0 of quad element #%d does not lie on the left of the diagonal v2-v1.", i);
+}
+
+
+//// mesh::create //////////////////////////////////////////////////////////////////////////////////
+
+void Mesh::create(int nv, double2* verts, int nt, int4* tris,
+                  int nq, int5* quads, int nm, int3* mark)
+{
+  free();
+
+  // initialize hash table
+  int size = 16;
+  while (size < 2*nv) size *= 2;
+  HashTable::init(size);
+
+  // create vertex nodes
+  for (int i = 0; i < nv; i++)
+  {
+    Node* node = nodes.add();
+    assert(node->id == i);
+    node->ref = TOP_LEVEL_REF;
+    node->type = TYPE_VERTEX;
+    node->bnd = 0;
+    node->p1 = node->p2 = -1;
+    node->next_hash = NULL;
+    node->x = verts[i][0];
+    node->y = verts[i][1];
+  }
+  ntopvert = nv;
+
+  // create triangles
+  for (int i = 0; i < nt; i++)
+    create_triangle(tris[i][3], &nodes[tris[i][0]], &nodes[tris[i][1]], &nodes[tris[i][2]], NULL);
+
+  // create quads
+  for (int i = 0; i < nq; i++)
+    create_quad(quads[i][4], &nodes[quads[i][0]], &nodes[quads[i][1]], &nodes[quads[i][2]], &nodes[quads[i][3]], NULL);
+
+  // set boundary markers
+  for (int i = 0; i < nm; i++)
+  {
+    Node* en = peek_edge_node(mark[i][0], mark[i][1]);
+    if (en == NULL) error("boundary data error (edge does not exist)");
+    en->marker = mark[i][2];
+
+    if (en->marker > 0)
+    {
+      nodes[mark[i][0]].bnd = 1;
+      nodes[mark[i][1]].bnd = 1;
+      en->bnd = 1;
+    }
+  }
+
+  nbase = nactive = ninitial = nt + nq;
+  seq = g_mesh_seq++;
+}
+
+//// mesh copy /////////////////////////////////////////////////////////////////////////////////////
+
+void Mesh::copy(const Mesh* mesh)
+{
+  int i;
+
+  free();
+
+  // copy nodes and elements
+  HashTable::copy(mesh);
+  elements.copy(mesh->elements);
+
+  Element* e;
+  for_all_elements(e, this)
+  {
+    // update vertex node pointers
+    for (i = 0; i < e->nvert; i++)
+      e->vn[i] = &nodes[e->vn[i]->id];
+
+    if (e->active)
+    {
+      // update edge node pointers
+      for (i = 0; i < e->nvert; i++)
+        e->en[i] = &nodes[e->en[i]->id];
+    }
+    else
+    {
+      // update son pointers
+      for (i = 0; i < 4; i++)
+        if (e->sons[i] != NULL)
+          e->sons[i] = &elements[e->sons[i]->id];
+    }
+
+    // copy CurvMap, update its parent
+    if (e->cm != NULL)
+    {
+      e->cm = new CurvMap(e->cm);
+      if (!e->cm->toplevel)
+        e->cm->parent = &elements[e->cm->parent->id];
+    }
+  }
+
+  // update element pointers in edge nodes
+  Node* node;
+  for_all_edge_nodes(node, this)
+    for (i = 0; i < 2; i++)
+      if (node->elem[i] != NULL)
+        node->elem[i] = &elements[node->elem[i]->id];
+
+  nbase = mesh->nbase;
+  nactive = mesh->nactive;
+  ntopvert = mesh->ntopvert;
+  ninitial = mesh->ninitial;
+  seq = mesh->seq;
+}
+
+
+Node* Mesh::get_base_edge_node(Element* base, int edge)
+{
+  while (!base->active) // we need to go down to an active element
+  {
+    int son1, son2;
+    get_edge_sons(base, edge, son1, son2);
+    base = base->sons[son1];
+  }
+  return base->en[edge];
+}
+
+
+void Mesh::copy_base(Mesh* mesh)
+{
+  free();
+  HashTable::init();
+
+  // copy top-level vertex nodes
+  for (int i = 0; i < mesh->get_max_node_id(); i++)
+  {
+    Node* node = &(mesh->nodes[i]);
+    if (node->ref < TOP_LEVEL_REF) break;
+    Node* newnode = nodes.add();
+    assert(newnode->id == i && node->type == TYPE_VERTEX);
+    memcpy(newnode, node, sizeof(Node));
+    newnode->ref = TOP_LEVEL_REF;
+  }
+
+  // copy base elements
+  Element* e;
+  for_all_base_elements(e, mesh)
+  {
+    Element* enew;
+    Node *v0 = &nodes[e->vn[0]->id], *v1 = &nodes[e->vn[1]->id], *v2 = &nodes[e->vn[2]->id];
+    if (e->is_triangle())
+      enew = create_triangle(e->marker, v0, v1, v2, NULL);
+    else
+      enew = create_quad(e->marker, v0, v1, v2, &nodes[e->vn[3]->id], NULL);
+
+    // copy edge markers
+    for (int j = 0; j < e->nvert; j++)
+    {
+      Node* en = get_base_edge_node(e, j);
+      enew->en[j]->bnd = en->bnd; // copy bnd data from the active el.
+      enew->en[j]->marker = en->marker;
+    }
+
+    enew->userdata = e->userdata;
+    if (e->is_curved())
+      enew->cm = new CurvMap(e->cm);
+  }
+
+  nbase = nactive = ninitial = mesh->nbase;
+  ntopvert = mesh->ntopvert;
+  seq = g_mesh_seq++;
+}
+
+
+//// free //////////////////////////////////////////////////////////////////////////////////////////
+
+void Mesh::free()
+{
+  Element* e;
+  for_all_elements(e, this)
+    if (e->cm != NULL)
+    {
+      delete e->cm;
+      e->cm = NULL; // fixme!!!
+    }
+
+  elements.free();
+  HashTable::free();
+}
+
+void Mesh::copy_refine(Mesh* mesh)
+{
+  free();
+  HashTable::copy(mesh);
+
+  // copy refined elements
+  Element* e;
+
+  for_all_refine_elements(e, mesh)
+  {
+    Element* enew;
+    Node *v0 = &nodes[e->vn[0]->id], *v1 = &nodes[e->vn[1]->id], *v2 = &nodes[e->vn[2]->id];
+    if (e->is_triangle())
+    {
+      // create a new element
+      enew = elements.add();
+      enew->active = 1;
+      enew->marker = e->marker;
+      enew->userdata = 0;
+      enew->nvert = 3;
+      enew->iro_cache = -1;
+      enew->cm = e->cm;
+
+      // set vertex and edge node pointers
+      enew->vn[0] = v0;
+      enew->vn[1] = v1;
+      enew->vn[2] = v2;
+      enew->en[0] = get_edge_node(v0->id, v1->id);
+      enew->en[1] = get_edge_node(v1->id, v2->id);
+      enew->en[2] = get_edge_node(v2->id, v0->id);
+    }
+    else
+    {
+      // create a new element
+      Node *v3 = &nodes[e->vn[3]->id];
+      enew = elements.add();
+      enew->active = 1;
+      enew->marker = e->marker;
+      enew->userdata = 0;
+      enew->nvert = 4;
+      enew->iro_cache = -1;
+      enew->cm = e->cm;
+
+      // set vertex and edge node pointers
+      enew->vn[0] = v0;
+      enew->vn[1] = v1;
+      enew->vn[2] = v2;
+      enew->vn[3] = v3;
+      enew->en[0] = get_edge_node(v0->id, v1->id);
+      enew->en[1] = get_edge_node(v1->id, v2->id);
+      enew->en[2] = get_edge_node(v2->id, v3->id);
+      enew->en[3] = get_edge_node(v3->id, v0->id);
+    }
+
+    // copy edge markers
+    for (int j = 0; j < e->nvert; j++)
+    {
+      Node* en = get_base_edge_node(e, j);
+      enew->en[j]->bnd = en->bnd;
+      enew->en[j]->marker = en->marker;
+    }
+
+    enew->userdata = e->userdata;
+    if (e->is_curved())
+      enew->cm = new CurvMap(e->cm);
+  }
+
+  nbase = nactive = ninitial = mesh->nbase = get_max_element_id();
+  ntopvert = mesh->ntopvert = get_num_nodes();
+  seq = g_mesh_seq++;
+}
+
+////convert a triangle element into three quadrilateral elements///////
+
+void Mesh::convert_to_quads(int refinement)
+{
+  Element* e;
+  Mesh tmp;
+
+  elements.set_append_only(true);
+  for_all_active_elements(e, this)
+    refine_element_to_quads(e->id, refinement);
+  elements.set_append_only(false);
+
+  tmp.copy_refine(this);
+  copy(&tmp);
+}
+
+////convert a quad element into two triangle elements///////
+void Mesh::convert_to_triangles()
+{
+  Element* e;
+  Mesh tmp;
+
+  elements.set_append_only(true);
+  for_all_active_elements(e, this)
+    refine_element_to_triangles(e->id);
+  elements.set_append_only(false);
+
+  tmp.copy_refine(this);
+  copy(&tmp);
+}
+
 void Mesh::refine_triangle_to_quads(Element* e)
 {
   // remember the markers of the edge nodes
   int bnd[3] = { e->en[0]->bnd,    e->en[1]->bnd,    e->en[2]->bnd    };
   int mrk[3] = { e->en[0]->marker, e->en[1]->marker, e->en[2]->marker };
+
+  // deactivate this element and unregister from its nodes
+  e->active = false;
+  nactive--;
+  e->unref_all_nodes(this);
 
   // obtain three mid-edge and one gravity vertex nodes
   Node* x0 = get_vertex_node(e->vn[0]->id, e->vn[1]->id);
@@ -929,11 +1344,7 @@ void Mesh::refine_triangle_to_quads(Element* e)
       sons[i]->cm->update_refmap_coefs(sons[i]);
     }
   }
-
-  // deactivate this element and unregister from its nodes
-  e->active = 0;
   nactive += 3;
-  e->unref_all_nodes(this);
   // now the original edge nodes may no longer exist...
   // set correct boundary status and markers for the new nodes
   sons[0]->en[0]->bnd = bnd[0];  sons[0]->en[0]->marker = mrk[0];
@@ -974,6 +1385,9 @@ void Mesh::refine_quad_to_triangles(Element* e)
   int bnd[4] = { e->en[0]->bnd,    e->en[1]->bnd,    e->en[2]->bnd,    e->en[3]->bnd };
   int mrk[4] = { e->en[0]->marker, e->en[1]->marker, e->en[2]->marker, e->en[3]->marker };
 
+  // deactivate this element and unregister from its nodes
+  e->active = false;
+  e->unref_all_nodes(this);
 
   bool bcheck = true;  ///< if bcheck is true, it is default add a new edge between
                        ///<  vn[0] and vn[2]
@@ -1098,14 +1512,14 @@ void Mesh::refine_quad_to_triangles(Element* e)
   {
     sons[0] = create_triangle(e->marker, e->vn[0], e->vn[1], e->vn[2], cm[0]);
     sons[1] = create_triangle(e->marker, e->vn[2], e->vn[3], e->vn[0], cm[1]);
-    sons[2] = NULL; //create_quad(e->marker, x1, e->vn[2], x2, mid, cm[2]);
+    sons[2] = NULL;
     sons[3] = NULL;
   }
   else
   {
     sons[0] = create_triangle(e->marker, e->vn[1], e->vn[2], e->vn[3], cm[0]);
     sons[1] = create_triangle(e->marker, e->vn[3], e->vn[0], e->vn[1], cm[1]);
-    sons[2] = NULL; //create_quad(e->marker, x1, e->vn[2], x2, mid, cm[2]);
+    sons[2] = NULL;
     sons[3] = NULL;
   }
 
@@ -1117,11 +1531,7 @@ void Mesh::refine_quad_to_triangles(Element* e)
       sons[i]->cm->update_refmap_coefs(sons[i]);
     }
   }
-
-  // deactivate this element and unregister from its nodes
-  e->active = 0;
   nactive += 2;
-  e->unref_all_nodes(this);
   // now the original edge nodes may no longer exist...
   // set correct boundary status and markers for the new nodes
   if (bcheck == true)
@@ -1162,4 +1572,273 @@ void Mesh::refine_element_to_triangles(int id)
     refine_quad_to_triangles(e);
 
   seq = g_mesh_seq++;
+}
+
+void Mesh::load(const char* filename, bool debug)
+{
+	warn("Deprecated function used. Please update your code to use MeshLoader classes");
+
+	H2DReader loader;
+	loader.load(filename, this);
+}
+
+
+void Mesh::save(const char* filename)
+{
+	warn("Deprecated function used. Please update your code to use MeshLoader classes");
+
+	H2DReader loader;
+  loader.save(filename, this);
+}
+
+void Mesh::load_old(const char* filename)
+{
+  warn("Deprecated function used. Please update your code to use MeshLoader classes");
+
+  H2DReader loader;
+  loader.load_old(filename, this);
+}
+
+void Mesh::load_stream(FILE *f)
+{
+  warn("Deprecated function used. Please update your code to use MeshLoader classes");
+
+  H2DReader loader;
+  loader.load_stream(f, this);
+}
+
+void Mesh::load_str(char *mesh)
+{
+  warn("Deprecated function used. Please update your code to use MeshLoader classes");
+
+  H2DReader loader;
+  loader.load_str(mesh, this);
+}
+
+//// save_raw, load_raw ////////////////////////////////////////////////////////////////////////////
+
+void Mesh::save_raw(FILE* f)
+{
+  int i, nn, mm;
+  int null = -1;
+
+  assert(sizeof(int) == 4);
+  assert(sizeof(double) == 8);
+
+  hermes2d_fwrite("H2DM\001\000\000\000", 1, 8, f);
+
+  #define output(n, type) \
+    hermes2d_fwrite(&(n), sizeof(type), 1, f)
+
+  output(nbase, int);
+  output(ntopvert, int);
+  output(nactive, int);
+
+  nn = nodes.get_num_items();
+  mm = nodes.get_size();
+  output(nn, int);
+  output(mm, int);
+
+  // dump all nodes
+  Node* n;
+  for_all_nodes(n, this)
+  {
+    output(n->id, int);
+    unsigned bits = n->ref | (n->type << 29) | (n->bnd << 30) | (n->used << 31);
+    output(bits, unsigned);
+
+    if (n->type == TYPE_VERTEX)
+    {
+      output(n->x, double);
+      output(n->y, double);
+    }
+    else
+    {
+      output(n->marker, int);
+      output(n->elem[0] ? n->elem[0]->id : null, int);
+      output(n->elem[1] ? n->elem[1]->id : null, int);
+    }
+
+    output(n->p1, int);
+    output(n->p2, int);
+  }
+
+  nn = elements.get_num_items();
+  mm = elements.get_size();
+  output(nn, int);
+  output(mm, int);
+
+  // dump all elements
+  Element* e;
+  for (int id = 0; id < get_max_element_id(); id++)
+  {
+    if ((e = get_element_fast(id))->used || id < nbase)
+    {
+      output(e->id, int);
+      unsigned bits = e->nvert | (e->active << 30) | (e->used << 31);
+      output(bits, unsigned);
+
+      if (e->used)
+      {
+        output(e->marker, int);
+        output(e->userdata, int);
+        output(e->iro_cache, int);
+
+        for (i = 0; i < e->nvert; i++)
+          output(e->vn[i]->id, int);
+
+        if (e->active)
+          for (i = 0; i < e->nvert; i++)
+            output(e->en[i]->id, int);
+        else
+          for (i = 0; i < 4; i++)
+            output(e->sons[i] ? e->sons[i]->id : null, int);
+
+        if (e->is_curved()) error("Not implemented for curved elements yet.");
+      }
+    }
+  }
+  // TODO: curved elements
+
+  #undef output
+}
+
+
+void Mesh::load_raw(FILE* f)
+{
+  int i, j, nv, mv, ne, me, id;
+
+  assert(sizeof(int) == 4);
+  assert(sizeof(double) == 8);
+
+  // check header
+  struct { char magic[4]; int ver; } hdr;
+  hermes2d_fread(&hdr, sizeof(hdr), 1, f);
+  if (hdr.magic[0] != 'H' || hdr.magic[1] != '2' || hdr.magic[2] != 'D' || hdr.magic[3] != 'M')
+    error("Not a Hermes2D raw mesh file.");
+  if (hdr.ver > 1)
+    error("Unsupported file version.");
+
+  #define input(n, type) \
+    hermes2d_fread(&(n), sizeof(type), 1, f)
+
+  free();
+
+  input(nbase, int);
+  input(ntopvert, int);
+  input(nactive, int);
+
+  input(nv, int);
+  input(mv, int);
+  nodes.force_size(mv);
+
+  // load nodes
+  for (i = 0; i < nv; i++)
+  {
+    input(id, int);
+    if (id < 0 || id >= mv) error("Corrupt data.");
+    Node* n = &(nodes[id]);
+    n->id = id;
+    n->used = 1;
+
+    unsigned bits;
+    input(bits, unsigned);
+    n->ref  =  bits & 0x1fffffff;
+    n->type = (bits >> 29) & 0x1;
+    n->bnd  = (bits >> 30) & 0x1;
+
+    if (n->type == TYPE_VERTEX)
+    {
+      input(n->x, double);
+      input(n->y, double);
+    }
+    else
+    {
+      input(n->marker, int);
+      n->elem[0] = n->elem[1] = NULL;
+      input(n->elem[0], int);
+      input(n->elem[1], int);
+    }
+
+    input(n->p1, int);
+    input(n->p2, int);
+  }
+  nodes.post_load_scan();
+
+  int hsize = DEFAULT_HASH_SIZE;
+  while (hsize < nv) hsize *= 2;
+  HashTable::init(hsize);
+  HashTable::rebuild();
+
+  input(ne, int);
+  input(me, int);
+  elements.force_size(me);
+
+  // load elements
+  for (i = 0; i < ne; i++)
+  {
+    input(id, int);
+    if (id < 0 || id >= me) error("Corrupt data.");
+    Element* e = &(elements[id]);
+    e->id = id;
+
+    unsigned bits;
+    input(bits, unsigned);
+    e->nvert  =  bits & 0x3fffffff;
+    e->active = (bits >> 30) & 0x1;
+    e->used   = (bits >> 31) & 0x1;
+
+    if (e->used)
+    {
+      input(e->marker, int);
+      input(e->userdata, int);
+      input(e->iro_cache, int);
+
+      // load vertex node ids
+      for (j = 0; j < e->nvert; j++)
+      {
+        input(id, int);
+        if (id < 0 || id >= mv) error("Corrupt data.");
+        e->vn[j] = get_node(id);
+      }
+
+      if (e->active)
+      {
+        // load edge node ids
+        for (j = 0; j < e->nvert; j++)
+        {
+          input(id, int);
+          if (id < 0 || id >= mv) error("Corrupt data.");
+          e->en[j] = get_node(id);
+        }
+      }
+      else
+      {
+        // load son ids
+        for (j = 0; j < 4; j++)
+        {
+          input(id, int);
+          if (id < 0)
+            e->sons[j] = NULL;
+          else if (id < me)
+            e->sons[j] = &(elements[id]);
+          else
+            error("Corrupt data.");
+        }
+      }
+    }
+  }
+  elements.post_load_scan(nbase);
+
+  // update edge node element pointers
+  Node* n;
+  for_all_edge_nodes(n, this)
+    for (j = 0; j < 2; j++)
+      if ((int) (long) n->elem[j] == -1)
+        n->elem[j] = NULL;
+      else
+        n->elem[j] = get_element((int) (long) n->elem[j]);
+
+  #undef input
+  seq++;
 }

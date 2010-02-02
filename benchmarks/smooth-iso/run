@@ -1,6 +1,4 @@
-rm *~ *.gp *.eps  
+rm *~ *.dat 
 smooth-iso
-gnuplot conv_dof.gp
-epstopdf conv_dof.eps
-okular conv_dof.pdf &
+python plot_graph.py &
 

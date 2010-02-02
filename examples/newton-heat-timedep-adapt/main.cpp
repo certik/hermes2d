@@ -144,7 +144,8 @@ int main(int argc, char* argv[])
 {
   // load the mesh
   Mesh mesh, basemesh;
-  basemesh.load("square.mesh");
+  H2DReader mloader;
+  mloader.load("square.mesh", &basemesh);
   for(int i = 0; i < REF_INIT; i++) basemesh.refine_all_elements();
   mesh.copy(&basemesh);
   mesh.refine_towards_boundary(1,3);

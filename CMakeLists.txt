@@ -26,6 +26,7 @@ set(WITH_TESTS      YES)
 set(WITH_GLUT       YES)
 set(WITH_UTIL       YES)
 set(WITH_TRILINOS NO)
+set(WITH_EXODUSII   NO)
 
 # allow to override the default values in CMake.vars
 if(EXISTS ${PROJECT_SOURCE_DIR}/CMake.vars)
@@ -70,6 +71,11 @@ if(NOT WITH_GLUT)
     add_definitions(-DNOGLUT)
 endif(NOT WITH_GLUT)
 
+set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
+
+if(WITH_EXODUSII)
+    find_package(EXODUSII REQUIRED)
+endif(WITH_EXODUSII)
 
 add_subdirectory(src)
 
