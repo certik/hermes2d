@@ -116,7 +116,8 @@ int main(int argc, char* argv[])
 
   // load the mesh file
   Mesh mesh;
-  mesh.load("GAMM-channel.mesh");
+  //mesh.load("GAMM-channel.mesh");
+  mesh.load("channel.mesh");
   //mesh.load("domain-quad.mesh");
 
   // a-priori mesh refinements
