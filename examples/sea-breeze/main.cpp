@@ -123,10 +123,10 @@ int main(int argc, char* argv[])
 
   // a-priori mesh refinements
   //mesh.refine_all_elements();
-  mesh.refine_all_elements();
-  mesh.refine_all_elements();
+  //mesh.refine_all_elements();
+  //mesh.refine_all_elements();
   //mesh.refine_towards_boundary(marker_bottom, 3);
-  mesh.refine_all_elements();
+  //mesh.refine_all_elements();
   //mesh.refine_all_elements();
   //mesh.refine_all_elements(2);
   //mesh.refine_all_elements(2);
