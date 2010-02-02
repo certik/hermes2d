@@ -70,8 +70,8 @@
 #define phi9xx(x) (-1.0 / 128.0 * 6.4807406984078603784382721642 * ((((302328.0*(x)*(x)-334152.0)*(x)*(x)+98280.0)*(x)*(x)-6552.0)*(x)*(x)))
 
 // Legendre polynomials
-#define Legendre0(x) (1.0)
-#define Legendre1(x) (x)
+#define Legendre0(x) (l0(x))
+#define Legendre1(x) (l1(x))
 #define Legendre2(x) (1.0 / 2.0 * (3 * (x) * (x) - 1))
 #define Legendre3(x) (1.0 / 2.0 * (5 * (x) * (x) - 3) * (x))
 #define Legendre4(x) (1.0 / 8.0 * ((35 * (x) * (x) - 30) * (x) * (x) + 3))
@@ -83,8 +83,8 @@
 #define Legendre10(x) (1.0 / 256.0 * (((((46189 * (x) * (x) - 109395) * (x) * (x) + 90090) * (x) * (x) - 30030) * (x) * (x) + 3465) * (x) * (x) - 63))
 
 // derivatives of Legendre polynomials
-#define Legendre0x(x) (0.0)
-#define Legendre1x(x) (1.0)
+#define Legendre0x(x) (dl0(x))
+#define Legendre1x(x) (dl1(x))
 #define Legendre2x(x) (3.0 * (x))
 #define Legendre3x(x) (15.0 / 2.0 * (x) * (x) - 3.0 / 2.0)
 #define Legendre4x(x) (5.0 / 2.0 * (x) * (7.0 * (x) * (x) - 3.0))
