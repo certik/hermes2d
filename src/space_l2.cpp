@@ -72,6 +72,29 @@ void L2Space::assign_bubble_dofs()
 
 //// assembly lists ////////////////////////////////////////////////////////////////////////////////
 
+void L2Space::get_element_assembly_list(Element* e, AsmList* al)
+{
+  int i;
+
+  // some checks
+  if (e->id >= esize || edata[e->id].order < 0)
+    error("Uninitialized element order (id = #%d).", e->id);
+  if (!is_up_to_date())
+    error("The space is out of date. You need to update it with assign_dofs()"
+          " any time the mesh changes.");
+
+  // add vertex, edge and bubble functions to the assembly list
+  al->clear();
+  shapeset->set_mode(e->get_mode());
+  /*
+  for (i = 0; i < e->nvert; i++)
+    get_vertex_assembly_list(e, i, al);
+  for (i = 0; i < e->nvert; i++)
+    get_edge_assembly_list_internal(e, i, al);
+  */
+  get_bubble_assembly_list(e, al);
+}
+
 void L2Space::get_bubble_assembly_list(Element* e, AsmList* al)
 {
   ElementData* ed = &edata[e->id];
