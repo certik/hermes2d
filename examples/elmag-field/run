@@ -1,4 +1,0 @@
-rm *~ *.dat 
-elmag-field
-python plot_graph.py &
-
