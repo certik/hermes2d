@@ -2,20 +2,8 @@
 #include "solver_umfpack.h"
 #include <string>
 
-/* For a simple IPMC, we have the following boundaries:
-      2
-  ____________
-  |          |
- 1|          |1
-  ____________
-      3
-For Nernst-Planck equation, all the boundaries are natural i.e. Neumann.
-Which basically means that the normal derivative is 0
-For Poisson equation, 1 has natural boundary conditions, however,
-the voltage is applied to the 2 and 3 which means that those
-boundaries are essential i.e. Dirichlet
-
-*/
+// For problem description,
+// please see hermes2d/examples/newton-np-timedep-adapt-system/header.h
 
 #define SIDE_MARKER 1
 #define TOP_MARKER 2
@@ -54,7 +42,6 @@ const int REF_INIT = 12;     	// number of initial refinements
 const bool MULTIMESH = true;	// Multimesh?
 
 
-
 /* Adaptivity parameters */
 // Newton parameters
 const double NEWTON_TOL_COARSE = 0.05;	// stopping criterion for Newton on coarse mesh
@@ -70,24 +57,5 @@ const int H_ONLY = 0;			// if H_ONLY == 0 then full hp-adaptivity takes place, o
 					// hp-FEM converges much faster than adaptive h-FEM
 
 const int MAX_NDOFS = 5000;		// To prevent adaptivity going on forever.
-// Program params
-const std::string USE_ADAPTIVE("adapt");
 
-
-class SimpleIPMC {
-protected:
-	const int blaah;
-
-};
-
-class NonAdaptive : SimpleIPMC {
-public:
-	NonAdaptive(Mesh &mesh, NonlinSystem &nls,
-			Solution &Cp, Solution &Ci, Solution &phip, Solution &phii);
-	void solve();
-private:
-	Mesh *mesh;
-	NonlinSystem *nls;
-	Solution *Cp, *Ci, *phip, *phii;
-};
 
