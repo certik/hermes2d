@@ -3,7 +3,7 @@
 
 #include "_hermes2d_api.h"
 
-const double TAU = 0.01/t_r;  // this is in seconds
+const double TAU = 1;  // this is in seconds
 
 const double T_0 = T_z(0);
 const double p_0 = p_z(0);
@@ -53,7 +53,7 @@ scalar w1_init(double x, double y, scalar& dx, scalar& dy) {
     dx = 0;
     dy = 0;
     //w1_init_num = rho_z(0)/rho_r * (20/u_r);
-    w1_init_num = 1;
+    w1_init_num = 0;
     return w1_init_num;
 }
 
