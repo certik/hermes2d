@@ -108,7 +108,7 @@ void L2Space::get_bubble_assembly_list(Element* e, AsmList* al)
 
 void L2Space::get_edge_assembly_list_internal(Element* e, int ie, AsmList* al)
 {
-    this->get_bubble_assembly_list(e, al);
+    //this->get_bubble_assembly_list(e, al);
 }
 
 scalar* L2Space::get_bc_projection(EdgePos* ep, int order)

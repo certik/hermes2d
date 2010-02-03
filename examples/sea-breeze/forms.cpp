@@ -240,12 +240,28 @@ double test3(double w0, double w1, double w3, double w4)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
+int counter=0;
+
 template<typename Real, typename Scalar>
 Scalar B_ij(int _i, int _j, int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
     assert(u->val != NULL);
     assert(v->dx != NULL);
     assert(v->dy != NULL);
+    counter++;
+    /*
+    insert_object("fn", array_double_c2numpy(ext->fn[3]->val, n));
+    insert_object("v", array_double_c2numpy(v->val, n));
+    insert_object("x", array_double_c2numpy(e->x, n));
+    insert_object("y", array_double_c2numpy(e->y, n));
+    insert_object("tau", double_c2py(TAU));
+    */
+    insert_object("i", int_c2py(_i));
+    insert_object("j", int_c2py(_j));
+    insert_object("counter", int_c2py(counter));
+    cmd("print '-'*40");
+    cmd("print 'B_ij called, counter=', counter");
+    cmd("print 'i=%d j=%d' % (i, j)");
     double delta_ij;
     if (_i == _j)
         delta_ij = 1;
@@ -570,9 +586,11 @@ Scalar l_3(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext
     Scalar result = 0;
     for (int i = 0; i < n; i++)
         result += wt[i] * (ext->fn[3]->val[i] * v->val[i]) / TAU;
-    //insert_object("result", double_c2py(result));
-    //cmd("print result");
-    //cmd("print '-'*40");
+    /*
+    insert_object("result", double_c2py(result));
+    cmd("print result");
+    cmd("print '-'*40");
+    */
     return result;
 }
 
@@ -751,8 +769,8 @@ void register_forms(WeakForm &wf, Solution &w0_prev, Solution &w1_prev,
     ADD_LF(2);
     ADD_LF(3);
 
-    ADD_LF_S(1);
-    ADD_LF_S(2);
+    //ADD_LF_S(1);
+    //ADD_LF_S(2);
 
     // this is necessary, so that we can use Python from forms.cpp:
     if (import_hermes2d___hermes2d())
