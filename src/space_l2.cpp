@@ -101,14 +101,16 @@ void L2Space::get_bubble_assembly_list(Element* e, AsmList* al)
   if (!ed->n) return;
 
   int* indices = shapeset->get_bubble_indices(ed->order);
-  for (int i = 0, dof = ed->bdof; i < ed->n; i++, dof += stride)
+  for (int i = 0, dof = ed->bdof; i < ed->n; i++, dof += stride) {
+    //printf("triplet: %d, %d, %f\n", *indices, dof, 1.0);
     al->add_triplet(*indices++, dof, 1.0);
+  }
 }
 
 
 void L2Space::get_edge_assembly_list_internal(Element* e, int ie, AsmList* al)
 {
-    //this->get_bubble_assembly_list(e, al);
+    this->get_bubble_assembly_list(e, al);
 }
 
 scalar* L2Space::get_bc_projection(EdgePos* ep, int order)
