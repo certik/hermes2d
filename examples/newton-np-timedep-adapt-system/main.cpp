@@ -4,7 +4,7 @@
 
 // This example shows how to combine the automatic adaptivity with the
 // Newton's method for a nonlinear time-dependent PDE system.
-// The time discretation is done using implicit Euler method.
+// The time discretization is done using implicit Euler method.
 // Some problem parameters can be changed below.
 // The following PDE's are solved:
 // Nernst-Planck (describes the diffusion and migration of charged particles):
@@ -38,51 +38,62 @@
 #define BOT_MARKER 3
 
 // Parameters to tweak the amount of output to the console
-#define VERBAL
+#define VERBOSE
 #define NONCONT_OUTPUT
 
 /*** Fundamental coefficients ***/
 const double D = 1e-12; 	            // [m^2/s] Diffusion coefficient
 const double R = 8.31; 		            // [J/mol*K] Gas constant
 const double T = 293; 		            // [K] Aboslute temperature
-const double F = 96485.3415;	        // [s * A / mol] Faraday constant
-const double eps = 2.5e-2; 	          // [F/m] Electric permeability
-const double mu = D / (R * T);        // Mobility of ions
-const double z = 1;		                // Charge number
-const double K = z * mu * F;          // Constant for equation
-const double L =  F / eps;	          // Constant for equation 
+const double F = 96485.3415;	            // [s * A / mol] Faraday constant
+const double eps = 2.5e-2; 	            // [F/m] Electric permeability
+const double mu = D / (R * T);              // Mobility of ions
+const double z = 1;		            // Charge number
+const double K = z * mu * F;                // Constant for equation
+const double L =  F / eps;	            // Constant for equation 
 const double VOLTAGE = 1;	            // [V] Applied voltage
-const double C_CONC = 1200;	          // [mol/m^3] Anion and counterion concentration
+const double C_CONC = 1200;	            // [mol/m^3] Anion and counterion concentration
 
 /* For Neumann boundary */
-const double height = 180e-6;	        // [m] thickness of the domain
-const double E_FIELD = VOLTAGE / height;  // Boundary condtion for positive voltage electrode
+const double height = 180e-6;	            // [m] thickness of the domain
+const double E_FIELD = VOLTAGE / height;    // Boundary condtion for positive voltage electrode
 
 
 /* Simulation parameters */
-const int NSTEP = 20;                 // Number of time steps
-const double TAU = 0.05;              // Size of the time step
-const int P_INIT = 2;       	        // initial uniform polynomial order
-const int REF_INIT = 12;     	        // number of initial refinements
+const int NSTEP = 20;                   // Number of time steps
+const double TAU = 0.05;                // Size of the time step
+const int P_INIT = 2;       	        // Initial polynomial degree of all mesh elements.
+const int REF_INIT = 12;     	        // Number of initial refinements
 const bool MULTIMESH = true;	        // Multimesh?
 
 /* Nonadaptive solution parameters */
-const double NEWTON_TOL = 1e-2;       // Stopping criterion for nonadaptive solution
+const double NEWTON_TOL = 1e-2;         // Stopping criterion for nonadaptive solution
 
 /* Adaptive solution parameters */
-const double NEWTON_TOL_COARSE = 0.05;// stopping criterion for Newton on coarse mesh
-const double NEWTON_TOL_REF = 0.5;	  // stopping criterion for Newton on fine mesh
+const double NEWTON_TOL_COARSE = 0.05;  // Stopping criterion for Newton on coarse mesh
+const double NEWTON_TOL_REF = 0.5;	// Stopping criterion for Newton on fine mesh
 
 const int UNREF_FREQ = 10;           	// every UNREF_FREQth time step the mesh
-                                      // is unrefined
-const double ERR_STOP = 0.5;          // stopping criterion for hp-adaptivity
-const double THRESHOLD = 0.3;         // error threshold for element refinement
-const int STRATEGY = 0;               // refinement strategy (0, 1, 2, 3 - see adapt_h1.cpp for explanation)
-const int H_ONLY = 0;			            // if H_ONLY == 0 then full hp-adaptivity takes place, otherwise
-					                            // h-adaptivity is used. Use this parameter to check that indeed adaptive
-                                      // hp-FEM converges much faster than adaptive h-FEM
+                                        // is unrefined
+const double THRESHOLD = 0.3;           // This is a quantitative parameter of the adapt(...) function and
+                                        // it has different meanings for various adaptive strategies (see below).
+const int STRATEGY = 0;                 // Adaptive strategy:
+                                        // STRATEGY = 0 ... refine elements until sqrt(THRESHOLD) times total
+                                        //   error is processed. If more elements have similar errors, refine
+                                        //   all to keep the mesh symmetric.
+                                        // STRATEGY = 1 ... refine all elements whose error is larger
+                                        //   than THRESHOLD times maximum element error.
+                                        // STRATEGY = 2 ... refine all elements whose error is larger
+                                        //   than THRESHOLD.
+                                        // More adaptive strategies can be created in adapt_ortho_h1.cpp.
+const int ADAPT_TYPE = 0;               // Type of automatic adaptivity:
+                                        // ADAPT_TYPE = 0 ... adaptive hp-FEM (default),
+                                        // ADAPT_TYPE = 1 ... adaptive h-FEM,
+                                        // ADAPT_TYPE = 2 ... adaptive p-FEM.
 
-const int MAX_NDOFS = 5000;		        // To prevent adaptivity going on forever.
+const int NDOF_STOP = 5000;		// To prevent adaptivity from going on forever.
+const double ERR_STOP = 0.5;            // Stopping criterion for adaptivity (rel. error tolerance between the
+                                        // fine mesh and coarse mesh solution in percent).
 
 // Program parameters 
 const std::string USE_ADAPTIVE("adapt");
@@ -132,7 +143,7 @@ void solveNonadaptive(Mesh &mesh, NonlinSystem &nls,
   Solution Csln, phisln;
   for (int n = 1; n <= NSTEP; n++) {
 
-    #ifdef VERBAL
+    #ifdef VERBOSE
     info("\n---- Time step %d ----", n);
     #endif
 
@@ -141,7 +152,7 @@ void solveNonadaptive(Mesh &mesh, NonlinSystem &nls,
 
     do {
 
-      #ifdef VERBAL
+      #ifdef VERBOSE
       info("\n -------- Time step %d, Newton iter %d --------\n", n, it);
       #endif
       it++;
@@ -149,7 +160,7 @@ void solveNonadaptive(Mesh &mesh, NonlinSystem &nls,
       nls.solve(2, &Csln, &phisln);
       res_l2_norm = nls.get_residuum_l2_norm();
 
-      #ifdef VERBAL
+      #ifdef VERBOSE
       info("Residuum L2 norm: %g\n", res_l2_norm);
       #endif
 
@@ -219,7 +230,7 @@ void solveAdaptive(Mesh &Cmesh, Mesh &phimesh, Mesh &basemesh, NonlinSystem &nls
       phi.assign_dofs(ndofs);
     } 
 
-    #ifdef VERBAL
+    #ifdef VERBOSE
     info("\n---- Time step %d ----", n);
     #endif
 
@@ -241,7 +252,7 @@ void solveAdaptive(Mesh &Cmesh, Mesh &phimesh, Mesh &basemesh, NonlinSystem &nls
       do {
         it++;
 
-        #ifdef VERBAL
+        #ifdef VERBOSE
         info("\n -------- Time step %d, Newton iter %d --------\n", n, it);
         #endif
 
@@ -249,7 +260,7 @@ void solveAdaptive(Mesh &Cmesh, Mesh &phimesh, Mesh &basemesh, NonlinSystem &nls
         nls.solve(2, &Csln_coarse, &phisln_coarse);
         res_l2_norm = nls.get_residuum_l2_norm();
 
-        #ifdef VERBAL
+        #ifdef VERBOSE
         info("Residuum L2 norm: %g\n", res_l2_norm);
         #endif
 
@@ -280,7 +291,7 @@ void solveAdaptive(Mesh &Cmesh, Mesh &phimesh, Mesh &basemesh, NonlinSystem &nls
       do {
         it++;
 
-        #ifdef VERBAL
+        #ifdef VERBOSE
         info("\n -------- Time step %d, Adaptivity step %d, Newton iter %d (Fine mesh) --------\n", n, at, it);
         #endif
 
@@ -288,7 +299,7 @@ void solveAdaptive(Mesh &Cmesh, Mesh &phimesh, Mesh &basemesh, NonlinSystem &nls
         rs.solve(2, &Csln_fine, &phisln_fine);
         res_l2_norm = rs.get_residuum_l2_norm();
 
-        #ifdef VERBAL
+        #ifdef VERBOSE
         info("Residuum L2 norm: %g\n", res_l2_norm);
         #endif
 
@@ -315,14 +326,14 @@ void solveAdaptive(Mesh &Cmesh, Mesh &phimesh, Mesh &basemesh, NonlinSystem &nls
       if (err < ERR_STOP) {
         done = true;
       } else {
-        hp.adapt(THRESHOLD, STRATEGY, H_ONLY);
+        hp.adapt(THRESHOLD, STRATEGY, ADAPT_TYPE);
       }
 
       int ndofs;
       ndofs = C.assign_dofs();
       ndofs += phi.assign_dofs(ndofs);
       info("NDOFS after adapting: %d", ndofs);
-      if (ndofs >= MAX_NDOFS) {
+      if (ndofs >= NDOF_STOP) {
         done = true;
       }
 
