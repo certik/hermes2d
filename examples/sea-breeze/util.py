@@ -5,14 +5,26 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from numpy.linalg import solve
-from numpy import arange, array
+from numpy import arange, array, dot
 
 def run(sys):
     A = sys.get_matrix().todense()
     rhs = sys.get_rhs()
-    #print A
-    print "rhs", rhs
+    print A
     print "-"*70
+    print "rhs", rhs
+    x = array([
+        1, 1, 1, 1, 1, 1,
+        1, 1, 1, 1, 1, 1,
+        0, 0, 0, 0, 0, 0,
+        1, 0, 0, 0, 1, 0, 0, 0])
+    #print x
+    #print dot(A, x)
+    r = dot(A, x)-rhs
+    #print r[0, :18]
+    #print r[0, 18:]
+    #stop
+
     print "solution:"
     print solve(A, rhs)
     #show()
