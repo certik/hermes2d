@@ -119,7 +119,8 @@ int main(int argc, char* argv[])
   //mesh.load("GAMM-channel.mesh");
   //mesh.load("channel.mesh");
   //mesh.load("quad-diag.mesh");
-  mesh.load("domain-quad.mesh");
+  H2DReader mloader;
+  mloader.load("domain-quad.mesh", &mesh);
 
   // a-priori mesh refinements
   //mesh.refine_all_elements();
