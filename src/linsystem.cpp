@@ -622,21 +622,15 @@ void LinSystem::assemble(bool rhsonly)
           // for now:
         //if (!bnd[edge]) continue;
         marker = ep[edge].marker;
-        /*
-        printf("assembly: id=%d edge=%d marker=%d nodes=(%d, %d, %d, %d)\n",
-                e0->id, edge, e0->marker,
-                e0->vn[0]->id,
-                e0->vn[1]->id,
-                e0->vn[2]->id,
-                e0->vn[3]->id
-                );
-                */
+
+
 
         // obtain the list of shape functions which are nonzero on this edge
         for (unsigned int i = 0; i < s->idx.size(); i++) {
           if (e[i] == NULL) continue;
           j = s->idx[i];
-          if ((nat[j] = (spaces[j]->bc_type_callback(marker) == BC_NATURAL)))
+          nat[j] = (spaces[j]->bc_type_callback(marker) == BC_NATURAL);
+          //if (nat[j])
             spaces[j]->get_edge_assembly_list(e[i], edge, al + j);
         }
 
@@ -668,7 +662,7 @@ void LinSystem::assemble(bool rhsonly)
           m = bfs->i;  fv = spss[m];  am = &al[m];
           n = bfs->j;  fu = pss[n];   an = &al[n];
 
-          if (!nat[m] || !nat[n]) continue;
+          //if (!nat[m] || !nat[n]) continue;
           ep[edge].base = trav.get_base();
           ep[edge].space_v = spaces[m];
           ep[edge].space_u = spaces[n];
@@ -685,6 +679,13 @@ void LinSystem::assemble(bool rhsonly)
               printf("edge=%d, i=%d, j=%d bnd[edge]=%d\n", edge,
                       i, j, bnd[edge]);
                       */
+		printf("assembly: id=%d edge=%d marker=%d nodes=(%d, %d, %d, %d)\n",
+			e0->id, edge, e0->marker,
+			e0->vn[0]->id,
+			e0->vn[1]->id,
+			e0->vn[2]->id,
+			e0->vn[3]->id
+			);
               bi = eval_form(bfs, fu, fv, refmap+n, refmap+m, &(ep[edge])) * an->coef[j] * am->coef[i];
               if (an->dof[j] >= 0) mat[i][j] = bi; else Dir[k] -= bi;
             }
@@ -716,7 +717,7 @@ void LinSystem::assemble(bool rhsonly)
           if (!call_form) continue;
           m = lfs->i;  fv = spss[m];  am = &al[m];
 
-          if (!nat[m]) continue;
+          //if (!nat[m]) continue;
           ep[edge].base = trav.get_base();
           ep[edge].space_v = spaces[m];
 

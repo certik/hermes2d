@@ -259,9 +259,9 @@ Scalar B_ij(int _i, int _j, int n, double *wt, Func<Real> *u, Func<Real> *v, Geo
     insert_object("i", int_c2py(_i));
     insert_object("j", int_c2py(_j));
     insert_object("counter", int_c2py(counter));
-    cmd("print '-'*40");
-    cmd("print 'B_ij called, counter=', counter");
-    cmd("print 'i=%d j=%d' % (i, j)");
+    //cmd("print '-'*40");
+    //cmd("print 'B_ij called, counter=', counter");
+    //cmd("print 'i=%d j=%d' % (i, j)");
     double delta_ij;
     if (_i == _j)
         delta_ij = 1;
