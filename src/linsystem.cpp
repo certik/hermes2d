@@ -618,7 +618,9 @@ void LinSystem::assemble(bool rhsonly)
       // assemble surface integrals now: loop through boundary edges of the element
       for (unsigned int edge = 0; edge < e0->nvert; edge++)
       {
-        if (!bnd[edge]) continue;
+          // we now determine this for each weakform, so we comment this out
+          // for now:
+        //if (!bnd[edge]) continue;
         marker = ep[edge].marker;
         /*
         printf("assembly: id=%d edge=%d marker=%d nodes=(%d, %d, %d, %d)\n",
@@ -643,7 +645,26 @@ void LinSystem::assemble(bool rhsonly)
         {
           WeakForm::BiFormSurf* bfs = s->bfsurf[ww];
           if (isempty[bfs->i] || isempty[bfs->j]) continue;
-          if (bfs->area != ANY && !wf->is_in_area(marker, bfs->area)) continue;
+          // now we determine whether to call the form depending on the "area"
+          // and the BC "marker" parameters:
+          int call_form = 0;
+          if (bfs->area == ANY_EDGE) {
+              // call the form on all element edges (both boundary and interior)
+              call_form = 1;
+          } else if (bnd[edge]) {
+              if (bfs->area == ANY_BOUNDARY) {
+                  // call the form on all domain boundary edges only
+                  call_form = 1;
+              } else if (wf->is_in_area(marker, bfs->area)) {
+                  // call the form on the domain boundary edges with the
+                  // correct marker only
+                  call_form = 1;
+              }
+          }
+          if (!call_form) continue;
+
+          // old conditions:
+          //if (bfs->area != ANY && !wf->is_in_area(marker, bfs->area)) continue;
           m = bfs->i;  fv = spss[m];  am = &al[m];
           n = bfs->j;  fu = pss[n];   an = &al[n];
 
@@ -672,7 +693,23 @@ void LinSystem::assemble(bool rhsonly)
         {
           WeakForm::LiFormSurf* lfs = s->lfsurf[ww];
           if (isempty[lfs->i]) continue;
-          if (lfs->area != ANY && !wf->is_in_area(marker, lfs->area)) continue;
+          // now we determine whether to call the form depending on the "area"
+          // and the BC "marker" parameters:
+          int call_form = 0;
+          if (lfs->area == ANY_EDGE) {
+              // call the form on all element edges (both boundary and interior)
+              call_form = 1;
+          } else if (bnd[edge]) {
+              if (lfs->area == ANY_BOUNDARY) {
+                  // call the form on all domain boundary edges only
+                  call_form = 1;
+              } else if (wf->is_in_area(marker, lfs->area)) {
+                  // call the form on the domain boundary edges with the
+                  // correct marker only
+                  call_form = 1;
+              }
+          }
+          if (!call_form) continue;
           m = lfs->i;  fv = spss[m];  am = &al[m];
 
           if (!nat[m]) continue;
