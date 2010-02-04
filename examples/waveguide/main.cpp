@@ -27,11 +27,11 @@
 // The following parameters can be changed:
 
 const int P_INIT = 1;             // Initial polynomial degree of all mesh elements.
-const bool ALIGN_MESH = true;     // if ALIGN_MESH == true, curvilinear elements aligned with the
+const bool ALIGN_MESH = false;     // if ALIGN_MESH == true, curvilinear elements aligned with the
                                   // circular load are used, otherwise one uses a non-aligned mesh.
 const double THRESHOLD = 0.3;     // This is a quantitative parameter of the adapt(...) function and
                                   // it has different meanings for various adaptive strategies (see below).
-const int STRATEGY = 1;           // Adaptive strategy:
+const int STRATEGY = 0;           // Adaptive strategy:
                                   // STRATEGY = 0 ... refine elements until sqrt(THRESHOLD) times total
                                   //   error is processed. If more elements have similar errors, refine
                                   //   all to keep the mesh symmetric.
@@ -224,6 +224,7 @@ int main(int argc, char* argv[])
     HcurlOrthoHP hp(1, &space);
     hp.set_biform(0, 0, callback(hcurl_form_kappa));
     double err_est = hp.calc_error(&sln_coarse, &sln_fine) * 100;
+    info("Energy error estimate: %g%%", err_est);
     info("Hcurl error estimate: %g%%", hcurl_error(&sln_coarse, &sln_fine) * 100);
 
     // add entry to DOF convergence graph
