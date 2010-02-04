@@ -26,6 +26,7 @@ def run(sys):
     print x
     print dot(A, x)
     r = dot(A, x)-rhs
+    print "difference"
     print r
     #print r[0, :18]
     #print r[0, 18:]
