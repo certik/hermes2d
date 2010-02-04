@@ -963,12 +963,12 @@ double HcurlOrthoHP::calc_error_n(int n, ...)
           e = std::abs(eval_error(form[i][j], ord[i][j], sln[i], sln[j], rsln[i], rsln[j], rmi, rmj, rrmi, rrmj));
           t = std::abs(eval_norm(form[i][j], ord[i][j], rsln[i], rsln[j], rrmi, rrmj));
           #endif
-        }
 
-        norms[i] += t;
-        total_norm  += t;
-        total_error += e;
-        errors[i][ee[i]->id] += e;
+          norms[i] += t;
+          total_norm  += t;
+          total_error += e;
+          errors[i][ee[i]->id] += e;
+        }
       }
     }
   }
