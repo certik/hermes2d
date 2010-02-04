@@ -95,5 +95,52 @@ This is README for building and using Hermes2D using Microsoft Visual C++ 2008 (
 	- unpack it
 	- open SLN file in MSVC and compile it
 	- copy 'AntTweakBar.dll', 'AntTweakBar.h', and 'AntTweakBar.lib' to 'bin', 'include', and 'lib' dependency directories respectively
+	
+ 8) ExodusII (optional)
+	- if a directive WITH_EXODUSII is *not* used, this step including all sub-steps can be skipped
+	
+ 8a) Zlib
+    - download sources of version 1.2.3 (http://www.zlib.net/) and unpack them
+	- open 'my_zlib_root/projects/visualc6/zlib.dsw' (Visual C++ 6 Solution File) in MSVC and let MSVC to convert it
+	- switch a configuration to 'Release DLL'
+	- build project 'zlib': this will create DLL/LIB files in 'my_zlib_root/projects/visual6/Win32_DLL_Release'
+	- copy 'zlib1.dll', 'zlib.h', and 'zlib1.lib' to 'bin', 'include', and 'lib' dependency directories respectively
+ 
+ 8b) HDF5
+    - download sources of version 1.8 (ftp://ftp.hdfgroup.org/HDF5/current/src/) and unpack them
+	- since SLIB is not used, comment out a line '#define H5_HAVE_FILTER_SZIP 1' in the header file 'my_hdf5_root/windows/src/H5pubconf.h'
+	- copy the file 'my_hdf5_root/windows/src/H5pubconf.h' to the directory 'my_hdf5_root/src/'
+	- run MSVC Command Prompt and switch to a directory 'my_hdf5_root/windows/proj'
+	- set variable HDF5_EXT_ZLIB to 'my_dependencies\lib\zlib1.lib', e.g.,
+	  set HDF5_EXT_ZLIB="C:\fem\dependencies\lib\zlib1.lib"
+	- if SLIB is used, set variable HDF5_EXT_SLIB similarly, .e.g,
+	  set HDF5_EXT_SLIB="C:\fem\dependencies\lib\slib.lib"
+	- open SLN file in MSVC executing 'VCExpress.exe all/all.sln' in the command prompt and let MSVC to convert files
+	- switch a configuration to 'Release'
+	- build project 'hdf5_hldll': this will create DLL/LIB files in 'my_hdf5_root/proj/hdf5_hldll/Release/' and 'my_hdf5_root/proj/hdf5dll/Release/'
+	- copy 'hdf5dll.dll' and 'hdf5dll.lib' to 'bin' and 'lib' dependency directories respectively
+	- copy 'hdf5_hldll.dll' and 'hdf5_hldll.lib' to 'bin' and 'lib' dependency directories respectively
+ 
+ 8c) NetCDF
+    - download sources of version 4.0.1 (http://www.unidata.ucar.edu/downloads/netcdf/netcdf-4_0_1/index.jsp) and unpack them
+    - open a SLN file 'my_netcfd_root/win32/NET/netcdf.sln'
+    - switch to 'Release' version
+    - in properties of the project 'netcdf'
+        > add paths 'my_hdf5_root/src/' and 'my_hdf5_root/hl/src' to 'C/C++ \ Additional Include Directories'
+        > add a path 'dependencies/lib/' to 'Linker \ Additional Library Directories'
+    - build project 'netcdf': this will create DLL/LIB files in 'my_netcdf_root/win32/NET/Release'
+    - copy 'netcdf.dll' and 'netcdf.lib' to 'bin' and 'lib' dependency directories respectively
+    - copy 'my_netcdf_root/libsrc4/netcdf.h' to 'include' dependency directory
 
+ 8d) ExodusII
+    - download sources (http://sourceforge.net/projects/exodusii/) and unpack 'exodusii'
+    - add a line 'set(NETCDF_INCLUDE_DIR "my_netcdf_root/libsrc4")' to a file 'my_exodusii_root/CMakeLists.txt' just after the line 'PROJECT(Exodusii)', .e.g.,
+        set(NETCDF_INCLUDE_DIR "C:/fem/dependencies/src/netcdf-4.0.1/libsrc4") # Be sure to use a slash '/' instead of a backslash '\'
+    - generate MSVC project files using CMAKE, i.e., in command prompt run
+        cmake . -G "Visual Studio 9 2008"
+    - open a SLN file 'my_exodusii_root/ExodusII.sln' in MSVC
+    - switch to 'Release' version
+    - build a project 'exoIIv2c': this will create a LIB file in 'my_exodusii_root/cbind/Release'
+    - copy 'exoIIv2c.lib' to 'lib' dependency directory structure
+    - copy 'my_exodusii_root/cbind/include/exodusII.h' and 'my_netcdf_root/libsrc4/exodusII_ext.h' to 'include' dependency directory
 	
