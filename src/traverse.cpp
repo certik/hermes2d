@@ -184,7 +184,8 @@ void Traverse::set_boundary_info(State* s, bool* bnd, EdgePos* ep)
 
   for (unsigned int i = 0; i < base->nvert; i++)
   {
-    if (bnd[i])
+      // initialize this everywhere
+    //if (bnd[i])
     {
       int j = base->next_vert(i);
       ep[i].v1 = base->vn[i]->id;
