@@ -19,10 +19,14 @@
 //
 //  The following parameters can be changed:
 
-const int P_INIT = 1;             // Initial polynomial degree of all mesh elements.
+const int P_INIT = 0;             // Initial polynomial degree. NOTE: The meaning is different from 
+                                  // standard continuous elements in the space H1. Here, P_INIT refers
+                                  // to the maximum poly order of the tangential component, and polynomials
+                                  // of degree P_INIT + 1 are present in element interiors. P_INIT = 0
+                                  // is for Whitney elements. 
 const double THRESHOLD = 0.3;     // This is a quantitative parameter of the adapt(...) function and
                                   // it has different meanings for various adaptive strategies (see below).
-const int STRATEGY = 10;           // Adaptive strategy:
+const int STRATEGY = 1;           // Adaptive strategy:
                                   // STRATEGY = 0 ... refine elements until sqrt(THRESHOLD) times total
                                   //   error is processed. If more elements have similar errors, refine
                                   //   all to keep the mesh symmetric.
@@ -46,9 +50,9 @@ const int MESH_REGULARITY = -1;   // Maximum allowed level of hanging nodes:
                                   // MESH_REGULARITY = 2 ... at most two-level hanging nodes, etc.
                                   // Note that regular meshes are not supported, this is due to
                                   // their notoriously bad performance.
-const double ERR_STOP = 0.01;      // Stopping criterion for adaptivity (rel. error tolerance between the
+const double ERR_STOP = 0.01;     // Stopping criterion for adaptivity (rel. error tolerance between the
                                   // fine mesh and coarse mesh solution in percent).
-const int NDOF_STOP = 40000;      // Adaptivity process stops when the number of degrees of freedom grows
+const int NDOF_STOP = 50000;      // Adaptivity process stops when the number of degrees of freedom grows
                                   // over this limit. This is to prevent h-adaptivity to go on forever.
 
 // problem constants
@@ -56,134 +60,25 @@ const double mu_r   = 1.0;
 const double kappa  = 1.0;
 const double lambda = 1.0;
 
-// Bessel function of the first kind, order n, defined in bessel.cpp
-double jv(double n, double x);
-
-static void exact_sol_val(double x, double y, scalar& e0, scalar& e1)
-{
-  double t1 = x*x;
-  double t2 = y*y;
-  double t4 = sqrt(t1+t2);
-  double t5 = jv(-1.0/3.0,t4);
-  double t6 = 1/t4;
-  double t7 = jv(2.0/3.0,t4);
-  double t11 = (t5-2.0/3.0*t6*t7)*t6;
-  double t12 = atan2(y,x);
-  if (t12 < 0) t12 += 2.0*M_PI;
-  double t13 = 2.0/3.0*t12;
-  double t14 = cos(t13);
-  double t17 = sin(t13);
-  double t18 = t7*t17;
-  double t20 = 1/t1;
-  double t23 = 1/(1.0+t2*t20);
-  e0 = t11*y*t14-2.0/3.0*t18/x*t23;
-  e1 = -t11*x*t14-2.0/3.0*t18*y*t20*t23;
-}
-
-static void exact_sol(double x, double y, scalar& e0, scalar& e1, scalar& e1dx, scalar& e0dy)
-{
-  exact_sol_val(x,y,e0,e1);
-
-  double t1 = x*x;
-  double t2 = y*y;
-  double t3 = t1+t2;
-  double t4 = sqrt(t3);
-  double t5 = jv(2.0/3.0,t4);
-  double t6 = 1/t4;
-  double t7 = jv(-1.0/3.0,t4);
-  double t11 = (-t5-t6*t7/3.0)*t6;
-  double t14 = 1/t4/t3;
-  double t15 = t14*t5;
-  double t21 = t7-2.0/3.0*t6*t5;
-  double t22 = 1/t3*t21;
-  double t27 = atan2(y,x);
-  if (t27 < 0) t27 += 2.0*M_PI;
-  double t28 = 2.0/3.0*t27;
-  double t29 = cos(t28);
-  double t32 = t21*t14;
-  double t35 = t21*t6;
-  double t36 = t35*t29;
-  double t39 = sin(t28);
-  double t41 = 1/t1;
-  double t43 = 1.0+t2*t41;
-  double t44 = 1/t43;
-  double t47 = 4.0/3.0*t35/x*t39*y*t44;
-  double t48 = t5*t29;
-  double t49 = t1*t1;
-  double t52 = t43*t43;
-  double t53 = 1/t52;
-  double t57 = t5*t39;
-  double t59 = 1/t1/x;
-  e1dx =-(t11*x+2.0/3.0*t15*x-2.0/3.0*t22*x)
-              *t6*x*t29+t32*t1*t29-t36-t47+4.0/9.0*t48*t2/t49*t53+4.0/3.0*t57*y*t59*t44-4.0/3.0*t57*t2*y/t49/x*t53;
-  e0dy = (t11*y+2.0/3.0*t15*y-2.0/3.0*t22*y)*t6*y*t29-t32*t2*t29+t36-t47-4.0/9.0*t48*t41*t53+4.0/3.0*t57*t59*t53*y;
-}
-
-// exact solution
-scalar2& exact(double x, double y, scalar2& dx, scalar2& dy)
-{
-  static scalar2 ex;
-  exact_sol(x,y, ex[0], ex[1], dx[1], dy[0]);
-  return ex;
-}
+// Bessel functions, exact solution,
+// and weak forms 
+#include "forms.cpp"
 
 // boundary conditions
 int bc_types(int marker)
-{
-  return BC_NATURAL;
-  
+{ 
   if (marker == 1 || marker == 6)
     return BC_ESSENTIAL; // perfect conductor
   else
     return BC_NATURAL; // impedance
 }
 
-
-template<typename Real, typename Scalar>
-Scalar bilinear_form(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
-{
-  return 1.0/mu_r * int_curl_e_curl_f<Real, Scalar>(n, wt, u, v) -
-         sqr(kappa) * int_e_f<Real, Scalar>(n, wt, u, v);
-}
-
-template<typename Real, typename Scalar>
-Scalar bilinear_form_surf(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
-{
-  complex ii = complex(0.0, 1.0);
-  return ii * (-kappa) * int_e_tau_f_tau<Real, Scalar>(n, wt, u, v, e);
-}
-
-scalar linear_form_surf(int n, double *wt, Func<double> *v, Geom<double> *e, ExtData<scalar> *ext)
-{
-  scalar result = 0;
-  for (int i = 0; i < n; i++)
-  {
-    double r = sqrt(e->x[i] * e->x[i] + e->y[i] * e->y[i]);
-    double theta = atan2(e->y[i], e->x[i]);
-    if (theta < 0) theta += 2.0*M_PI;
-    double j13    = jv(-1.0/3.0, r),    j23    = jv(+2.0/3.0, r);
-    double cost   = cos(theta),         sint   = sin(theta);
-    double cos23t = cos(2.0/3.0*theta), sin23t = sin(2.0/3.0*theta);
-
-    double Etau = e->tx[i] * (cos23t*sint*j13 - 2.0/(3.0*r)*j23*(cos23t*sint + sin23t*cost)) +
-                  e->ty[i] * (-cos23t*cost*j13 + 2.0/(3.0*r)*j23*(cos23t*cost - sin23t*sint));
-
-    result += wt[i] * complex(cos23t*j23, -Etau) * ((v->val0[i] * e->tx[i] + v->val1[i] * e->ty[i]));
-  }
-  return result;
-}
-// maximal polynomial order to integrate surface linear form
-Ord linear_form_surf_ord(int n, double *wt, Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext)
-  {  return Ord(v->val[0].get_max_order());  }
-
-
 int main(int argc, char* argv[])
 {
   // load the mesh
   Mesh mesh;
   H2DReader mloader;
-  mloader.load("../layer/square_quad.mesh", &mesh);
-  //mloader.load("lshape3q.mesh", &mesh);
+  mloader.load("lshape3q.mesh", &mesh);
 //   mloader.load("lshape3t.mesh", &mesh);
 
   // initialize the shapeset and the cache
@@ -208,10 +103,12 @@ int main(int argc, char* argv[])
   OrderView  ordview("Polynomial Orders", 600, 0, 600, 500);
   VectorView vecview("Real part of Electric Field - VectorView", 0, 0, 600, 500);
 
+  /*
   // view the basis functions
   VectorBaseView bview;
-  bview.show(&space);
-  bview.wait_for_keypress();
+  vbview.show(&space);
+  vbview.wait_for_keypress();
+  */
 
   // matrix solver
   UmfpackSolver solver;
@@ -289,7 +186,7 @@ int main(int argc, char* argv[])
 
     // time measurement
     cpu += end_time();
- }
+  }
   while (!done);
   verbose("Total running time: %g sec", cpu);
 
