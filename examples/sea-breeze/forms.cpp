@@ -745,7 +745,7 @@ void set_ic(Mesh &mesh, Solution &w0, Solution &w1, Solution &w3, Solution &w4)
 
 #define ADD_BF(i, j) wf.add_biform(i, j, callback_bf(B_##i##j), UNSYM, ANY, 4, &w0_prev, &w1_prev, &w3_prev, &w4_prev)
 
-#define ADD_BF_S(i, j) wf.add_biform_surf(i, j, callback_bf(S_##i##j), ANY, 4, &w0_prev, &w1_prev, &w3_prev, &w4_prev)
+#define ADD_BF_S(i, j) wf.add_biform_surf(i, j, callback_bf(S_##i##j), ANY_EDGE, 4, &w0_prev, &w1_prev, &w3_prev, &w4_prev)
 
 #define ADD_LF(i) wf.add_liform(i, callback_lf(l_##i), ANY, 4, &w0_prev, &w1_prev, &w3_prev, &w4_prev);
 
