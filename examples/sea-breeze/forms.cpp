@@ -53,7 +53,7 @@ scalar w1_init(double x, double y, scalar& dx, scalar& dy) {
     dx = 0;
     dy = 0;
     //w1_init_num = rho_z(0)/rho_r * (20/u_r);
-    w1_init_num = 0;
+    w1_init_num = 1;
     return w1_init_num;
 }
 
