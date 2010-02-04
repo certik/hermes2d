@@ -681,6 +681,10 @@ void LinSystem::assemble(bool rhsonly)
             for (j = 0; j < an->cnt; j++)
             {
               fu->set_active_shape(an->idx[j]);
+              /*
+              printf("edge=%d, i=%d, j=%d bnd[edge]=%d\n", edge,
+                      i, j, bnd[edge]);
+                      */
               bi = eval_form(bfs, fu, fv, refmap+n, refmap+m, &(ep[edge])) * an->coef[j] * am->coef[i];
               if (an->dof[j] >= 0) mat[i][j] = bi; else Dir[k] -= bi;
             }
@@ -912,8 +916,9 @@ scalar LinSystem::eval_form(WeakForm::BiFormSurf *bf, PrecalcShapeset *fu,
 {
   // eval the form
   Quad2D* quad = fu->get_quad_2d();
+  assert(ep->edge < 5);
   int eo = quad->get_edge_points(ep->edge);
-  printf("eo=%d\n", eo);
+  //printf("edge=%d, eo=%d\n", ep->edge, eo);
   double3* pt = quad->get_points(eo);
   int np = quad->get_num_points(eo);
 
