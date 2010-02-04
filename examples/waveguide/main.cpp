@@ -26,12 +26,16 @@
 //
 // The following parameters can be changed:
 
-const int P_INIT = 2;             // Initial polynomial degree of all mesh elements.
-const bool ALIGN_MESH = true;     // if ALIGN_MESH == true, curvilinear elements aligned with the
+const int P_INIT = 0;             // Initial polynomial degree. NOTE: The meaning is different from 
+                                  // standard continuous elements in the space H1. Here, P_INIT refers
+                                  // to the maximum poly order of the tangential component, and polynomials
+                                  // of degree P_INIT + 1 are present in element interiors. P_INIT = 0
+                                  // is for Whitney elements. 
+const bool ALIGN_MESH = false;    // if ALIGN_MESH == true, curvilinear elements aligned with the
                                   // circular load are used, otherwise one uses a non-aligned mesh.
 const double THRESHOLD = 0.3;     // This is a quantitative parameter of the adapt(...) function and
                                   // it has different meanings for various adaptive strategies (see below).
-const int STRATEGY = 1;           // Adaptive strategy:
+const int STRATEGY = 0;           // Adaptive strategy:
                                   // STRATEGY = 0 ... refine elements until sqrt(THRESHOLD) times total
                                   //   error is processed. If more elements have similar errors, refine
                                   //   all to keep the mesh symmetric.
@@ -55,9 +59,9 @@ const int MESH_REGULARITY = -1;   // Maximum allowed level of hanging nodes:
                                   // MESH_REGULARITY = 2 ... at most two-level hanging nodes, etc.
                                   // Note that regular meshes are not supported, this is due to
                                   // their notoriously bad performance.
-const double ERR_STOP = 2.0;      // Stopping criterion for adaptivity (rel. error tolerance between the
+const double ERR_STOP = 1e-4;     // Stopping criterion for adaptivity (rel. error tolerance between the
                                   // fine mesh and coarse mesh solution in percent).
-const int NDOF_STOP = 40000;      // Adaptivity process stops when the number of degrees of freedom grows
+const int NDOF_STOP = 60000;      // Adaptivity process stops when the number of degrees of freedom grows
                                   // over this limit. This is to prevent h-adaptivity to go on forever.
 
 
@@ -77,8 +81,8 @@ const double J = 0.0000033333;
 // boundary conditions
 int e_bc_types(int marker)
 {
-  if (marker == 2) return BC_ESSENTIAL; // perfect conductor
-  else return BC_NATURAL; // impedance
+  if (marker == 2) return BC_ESSENTIAL; // perfect conductor BC
+  else return BC_NATURAL;               // impedance BC
 }
 
 // defining load geometry
@@ -146,7 +150,6 @@ Scalar hcurl_form_kappa(int n, double *wt, Func<Scalar> *u, Func<Scalar> *v, Geo
   return int_curl_e_curl_f<Scalar, Scalar>(n, wt, u, v) + sqr(kappa) * int_e_f<Scalar, Scalar>(n, wt, u, v);
 }
 
-
 int main(int argc, char* argv[])
 {
   // load the mesh
@@ -154,6 +157,8 @@ int main(int argc, char* argv[])
   H2DReader mloader;
   if (ALIGN_MESH) mloader.load("oven_load_circle.mesh", &mesh);
   else mloader.load("oven_load_square.mesh", &mesh);
+
+  //mesh.refine_all_elements();
 
   // initialize the shapeset and the cache
   HcurlShapeset shapeset;
@@ -176,11 +181,18 @@ int main(int argc, char* argv[])
   VectorView eview("Electric field",0,0,800, 590);
   OrderView ord("Order", 800, 0, 700, 590);
 
+  /*
+  // view the basis functions
+  VectorBaseView bview;
+  vbview.show(&space);
+  vbview.wait_for_keypress();
+  */
+
   // matrix solver
   UmfpackSolver solver;
 
   // DOF and CPU convergence graphs
-  SimpleGraph graph_dof, graph_cpu;
+  SimpleGraph graph_dof_est, graph_cpu_est;
 
   // adaptivity loop
   int it = 1, ndofs;
@@ -221,19 +233,21 @@ int main(int argc, char* argv[])
     // calculate error estimate wrt. fine mesh solution
     HcurlOrthoHP hp(1, &space);
     hp.set_biform(0, 0, callback(hcurl_form_kappa));
-    double err_est = hp.calc_error(&sln_coarse, &sln_fine) * 100;
-    info("Hcurl error estimate: %g%%", hcurl_error(&sln_coarse, &sln_fine) * 100);
+    double err_est_adapt = hp.calc_error(&sln_coarse, &sln_fine) * 100;
+    double err_est_hcurl = hcurl_error(&sln_coarse, &sln_fine) * 100;
+    info("Error estimate (adapt): %g%%", err_est_adapt);
+    info("Error estimate (hcurl): %g%%", err_est_hcurl);
 
-    // add entry to DOF convergence graph
-    graph_dof.add_values(space.get_num_dofs(), err_est);
-    graph_dof.save("conv_dof.dat");
+    // add entries to DOF convergence graphs
+    graph_dof_est.add_values(space.get_num_dofs(), err_est_hcurl);
+    graph_dof_est.save("conv_dof_est.dat");
 
-    // add entry to CPU convergence graph
-    graph_cpu.add_values(cpu, err_est);
-    graph_cpu.save("conv_cpu.dat");
+    // add entries to CPU convergence graphs
+    graph_cpu_est.add_values(cpu, err_est_hcurl);
+    graph_cpu_est.save("conv_cpu_est.dat");
 
-    // if err_est too large, adapt the mesh
-    if (err_est < ERR_STOP) done = true;
+    // if err_est_adapt too large, adapt the mesh
+    if (err_est_adapt < ERR_STOP) done = true;
     else {
       hp.adapt(THRESHOLD, STRATEGY, ADAPT_TYPE, ISO_ONLY, MESH_REGULARITY);
       ndofs = space.assign_dofs();
