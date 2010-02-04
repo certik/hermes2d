@@ -78,7 +78,8 @@ void WeakForm::add_biform_surf(int i, int j, biform_val_t fn, biform_ord_t ord, 
 {
   if (i < 0 || i >= neq || j < 0 || j >= neq)
     error("Invalid equation number.");
-  if (area != ANY && area < 0 && -area > (int)areas.size())
+  if ((area != ANY_EDGE && area != ANY_BOUNDARY) && area < 0 &&
+          -area > (int)areas.size())
     error("Invalid area number.");
 
   BiFormSurf form = { i, j, area, fn, ord };
