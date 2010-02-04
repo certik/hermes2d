@@ -27,7 +27,7 @@
 
 const int INIT_REF_NUM = 1;       // number of initial mesh refinements (the original mesh is just one element)
 const int INIT_REF_NUM_BDY = 0;   // number of initial mesh refinements towards the boundary
-const int P_INIT = 1;             // Initial polynomial degree of all mesh elements.
+const int P_INIT = 2;             // Initial polynomial degree of all mesh elements.
 const double THRESHOLD = 0.3;     // This is a quantitative parameter of the adapt(...) function and
                                   // it has different meanings for various adaptive strategies (see below).
 const int STRATEGY = 0;           // Adaptive strategy:
@@ -43,7 +43,7 @@ const int ADAPT_TYPE = 0;         // Type of automatic adaptivity:
                                   // ADAPT_TYPE = 0 ... adaptive hp-FEM (default),
                                   // ADAPT_TYPE = 1 ... adaptive h-FEM,
                                   // ADAPT_TYPE = 2 ... adaptive p-FEM.
-const bool ISO_ONLY = false;      // Isotropic refinement flag (concerns quadrilateral elements only).
+const bool ISO_ONLY = false;       // Isotropic refinement flag (concerns quadrilateral elements only).
                                   // ISO_ONLY = false ... anisotropic refinement of quad elements
                                   // is allowed (default),
                                   // ISO_ONLY = true ... only isotropic refinements of quad elements

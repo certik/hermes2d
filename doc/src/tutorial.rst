@@ -281,11 +281,13 @@ A space created in this way is ready for use. By default, it is equipped with
 zero Neumann boundary conditions on the entire domain boundary. Later we will see
 how to change that.
 
-As a debugging feature, Hermes provides a visualization of all basis functions 
+As a debugging/learning feature, Hermes enables visualization of all basis functions 
 in a Space. Similarly to MeshView, you can create a BaseView object and use it 
-to display the entire basis of a space. You can cycle through all basis functions 
-in the window using the arrow keys. If you press the left mouse button at the 
-beginning, you will see the Dirichlet lift (to be explained later).
+to display the entire basis (VectorBaseView has to be used for vector-valued 
+approximations in spaces Hcurl and Hdiv - this will be discussed later). 
+You can cycle through all basis functions in the window using the arrow keys. 
+If you press the left mouse button at the beginning, you will see the Dirichlet 
+lift (a function that represents Dirichlet boundary conditions).
 ::
 
     // view the basis functions

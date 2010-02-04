@@ -21,7 +21,11 @@
 //
 // The following parameters can be changed:
 
-const int P_INIT = 1;             // Initial polynomial degree of all mesh elements.
+const int P_INIT = 0;             // Initial polynomial degree. NOTE: The meaning is different from 
+                                  // standard continuous elements in the space H1. Here, P_INIT refers
+                                  // to the maximum poly order of the tangential component, and polynomials
+                                  // of degree P_INIT + 1 are present in element interiors. P_INIT = 0
+                                  // is for Whitney elements. 
 const double THRESHOLD = 0.5;     // This is a quantitative parameter of the adapt(...) function and
                                   // it has different meanings for various adaptive strategies (see below).
 const int STRATEGY = 1;           // Adaptive strategy:
@@ -50,7 +54,7 @@ const int MESH_REGULARITY = -1;   // Maximum allowed level of hanging nodes:
                                   // their notoriously bad performance.
 const double ERR_STOP = 0.1;      // Stopping criterion for adaptivity (rel. error tolerance between the
                                   // fine mesh and coarse mesh solution in percent).
-const int NDOF_STOP = 40000;      // Adaptivity process stops when the number of degrees of freedom grows
+const int NDOF_STOP = 50000;      // Adaptivity process stops when the number of degrees of freedom grows
                                   // over this limit. This is to prevent h-adaptivity to go on forever.
 
 // problem constants
@@ -107,11 +111,18 @@ int main(int argc, char* argv[])
   wf.add_biform(0, 0, callback(bilinear_form), SYM);
 
   // visualize solution and mesh
-  ScalarView Xview_r("Electric field X - real",   0, 0, 320, 320);
-  ScalarView Yview_r("Electric field Y - real", 325, 0, 320, 320);
-  ScalarView Xview_i("Electric field X - imag", 650, 0, 320, 320);
-  ScalarView Yview_i("Electric field Y - imag", 975, 0, 320, 320);
-  OrderView  ord("Polynomial Orders", 0, 370, 380, 340);
+  ScalarView Xview_r("Electric field X - real",   0, 0, 450, 420);
+  ScalarView Yview_r("Electric field Y - real", 460, 0, 450, 420);
+  ScalarView Xview_i("Electric field X - imag", 920, 0, 450, 420);
+  ScalarView Yview_i("Electric field Y - imag", 1380, 0, 450, 420);
+  OrderView  ord("Polynomial Orders", 0, 460, 450, 420);
+
+  /*
+  // view the basis functions
+  VectorBaseView bview;
+  vbview.show(&space);
+  vbview.wait_for_keypress();
+  */
 
   // matrix solver
   UmfpackSolver solver;
@@ -144,23 +155,23 @@ int main(int argc, char* argv[])
     // calculating error wrt. exact solution
     Solution ex;
     ex.set_exact(&mesh, exact);
-    double error = 100 * hcurl_error(&sln_coarse, &ex);
-    info("Exact solution error: %g%%", error);
+    double err_exact = 100 * hcurl_error(&sln_coarse, &ex);
+    info("Exact solution error: %g%%", err_exact);
 
     // visualization
     RealFilter real(&sln_coarse);
     ImagFilter imag(&sln_coarse);
     Xview_r.set_min_max_range(-3.0, 1.0);
-    Xview_r.show_scale(false);
+    //Xview_r.show_scale(false);
     Xview_r.show(&real, EPS_NORMAL, FN_VAL_0);
     Yview_r.set_min_max_range(-4.0, 4.0);
-    Yview_r.show_scale(false);
+    //Yview_r.show_scale(false);
     Yview_r.show(&real, EPS_NORMAL, FN_VAL_1);
     Xview_i.set_min_max_range(-1.0, 4.0);
-    Xview_i.show_scale(false);
+    //Xview_i.show_scale(false);
     Xview_i.show(&imag, EPS_NORMAL, FN_VAL_0);
     Yview_i.set_min_max_range(-4.0, 4.0);
-    Yview_i.show_scale(false);
+    //Yview_i.show_scale(false);
     Yview_i.show(&imag, EPS_NORMAL, FN_VAL_1);
     ord.show(&space);
 
@@ -174,23 +185,25 @@ int main(int argc, char* argv[])
 
     // calculate error estimate wrt. fine mesh solution
     HcurlOrthoHP hp(1, &space);
-    double err_est = hp.calc_error(&sln_coarse, &sln_fine) * 100;
-    info("Error estimate: %g%%", err_est);
+    double err_est_adapt = hp.calc_error(&sln_coarse, &sln_fine) * 100;
+    double err_est_hcurl = hcurl_error(&sln_coarse, &sln_fine) * 100;
+    info("Error estimate (adapt): %g%%", err_est_adapt);
+    info("Error estimate (hcurl): %g%%", err_est_hcurl);
 
     // add entries to DOF convergence graphs
-    graph_dof_exact.add_values(space.get_num_dofs(), error);
+    graph_dof_exact.add_values(space.get_num_dofs(), err_exact);
     graph_dof_exact.save("conv_dof_exact.dat");
-    graph_dof_est.add_values(space.get_num_dofs(), err_est);
+    graph_dof_est.add_values(space.get_num_dofs(), err_est_hcurl);
     graph_dof_est.save("conv_dof_est.dat");
 
     // add entries to CPU convergence graphs
-    graph_cpu_exact.add_values(cpu, error);
+    graph_cpu_exact.add_values(cpu, err_exact);
     graph_cpu_exact.save("conv_cpu_exact.dat");
-    graph_cpu_est.add_values(cpu, err_est);
+    graph_cpu_est.add_values(cpu, err_est_hcurl);
     graph_cpu_est.save("conv_cpu_est.dat");
 
-    // if err_est too large, adapt the mesh
-    if (err_est < ERR_STOP) done = true;
+    // if err_est_adapt too large, adapt the mesh
+    if (err_est_adapt < ERR_STOP) done = true;
     else {
       hp.adapt(THRESHOLD, STRATEGY, ADAPT_TYPE, ISO_ONLY, MESH_REGULARITY);
       ndofs = space.assign_dofs();

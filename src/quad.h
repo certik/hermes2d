@@ -22,6 +22,8 @@
 #ifdef EXTREME_QUAD
   const int g_max_quad = 99;
 #else
+  // debug
+  //const int g_max_quad = 30;
   const int g_max_quad = 24;
 #endif
 

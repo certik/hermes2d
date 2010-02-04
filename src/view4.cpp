@@ -471,7 +471,7 @@ void OrderView::show(Space* space)
 
 void OrderView::init_order_palette()
 {
-  int min = 1, max = 1;
+  int min = 1, max = 0;
   double3* vert = ord.get_vertices();
   for (int i = 0; i < ord.get_num_vertices(); i++)
   {
