@@ -679,6 +679,7 @@ void LinSystem::assemble(bool rhsonly)
               printf("edge=%d, i=%d, j=%d bnd[edge]=%d\n", edge,
                       i, j, bnd[edge]);
                       */
+              /*
 		printf("assembly: id=%d edge=%d marker=%d nodes=(%d, %d, %d, %d)\n",
 			e0->id, edge, e0->marker,
 			e0->vn[0]->id,
@@ -686,6 +687,7 @@ void LinSystem::assemble(bool rhsonly)
 			e0->vn[2]->id,
 			e0->vn[3]->id
 			);
+            */
               bi = eval_form(bfs, fu, fv, refmap+n, refmap+m, &(ep[edge])) * an->coef[j] * am->coef[i];
               if (an->dof[j] >= 0) mat[i][j] = bi; else Dir[k] -= bi;
             }

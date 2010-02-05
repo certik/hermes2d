@@ -10,30 +10,35 @@ from numpy import arange, array, dot
 def run(sys):
     A = sys.get_matrix().todense()
     rhs = sys.get_rhs()
-    #print A
+    print A
     print "-"*70
-    #print "rhs", rhs
+    print "rhs", rhs
     x = array([
-        1, 1, 1, 1, 1, 1,
-        1, 1, 1, 1, 1, 1,
-        0, 0, 0, 0, 0, 0,
-        1, 0, 0, 0, 1, 0, 0, 0])
+        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,1,1,1,
+        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,1,1,1,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,0,0,0,
+
+        1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0,
+        1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0,
+        1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0,
+        1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0,
+        ])
     #x = array([
     #    1, 1, 1, 1,
     #    0, 0, 0, 0,
     #    0, 0, 0, 0,
     #    1, 0, 0, 0,])
-    #print x
-    #print dot(A, x)
-    #r = dot(A, x)-rhs
-    #print "difference"
-    #print r
-    #print r[0, :18]
-    #print r[0, 18:]
-    #stop
+    print x
+    new_rhs = array(dot(A, x))[0]
+    print new_rhs
+    r = new_rhs-rhs
+    print "difference"
+    print r
 
     print "solution:"
-    #print solve(A, rhs)
+    print solve(A, rhs)
+    print solve(A, new_rhs)
+    stop
     #show()
 
 def x_reduce(x, prec=6):

@@ -289,11 +289,14 @@ template<typename Real, typename Scalar>
 Scalar S_ij(int _i, int _j, int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
     double w0, w1, w3, w4;
+        w0 = ext->fn[0]->val[0];
+        w1 = ext->fn[1]->val[0];
+        w3 = ext->fn[2]->val[0];
+        w4 = ext->fn[3]->val[0];
 
+    //printf("BC left: (%d, %d; x=%f y=%f)\n", _i, _j, e->x[0], e->y[0]);
+    //printf("    state: (%f, %f, %f, %f)\n", w0, w1, w3, w4);
     /*
-    if (e->marker == marker_left) {
-        printf("BC left: (%d, %d; x=%f y=%f)\n", _i, _j, e->x[0], e->y[0]);
-        //printf("    state: (%f, %f, %f, %f)\n", w0, w1, w3, w4);
             printf("  vvv: %d\n", n);
             printf("   u:");
             for (int j = 0; j<n;j++)
@@ -303,8 +306,7 @@ Scalar S_ij(int _i, int _j, int n, double *wt, Func<Real> *u, Func<Real> *v, Geo
             for (int j = 0; j<n;j++)
                 printf("%f ", v->val[j]);
             printf("\n");
-    }
-    */
+            */
     Scalar result = 0;
     for (int i = 0; i < n; i++) {
         w0 = ext->fn[0]->val[i];
