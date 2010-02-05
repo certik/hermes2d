@@ -10,7 +10,7 @@ from numpy import arange, array, dot
 def run(sys):
     A = sys.get_matrix().todense()
     rhs = sys.get_rhs()
-    print A
+    #print A
     print "-"*70
     print "rhs", rhs
     x = array([
@@ -28,17 +28,17 @@ def run(sys):
     #    0, 0, 0, 0,
     #    0, 0, 0, 0,
     #    1, 0, 0, 0,])
-    print x
-    new_rhs = array(dot(A, x))[0]
-    print new_rhs
-    r = new_rhs-rhs
+    #print x
+    #new_rhs = array(dot(A, x))[0]
+    #print new_rhs
+    #r = new_rhs-rhs
     print "difference"
-    print r
+    #print r
 
     print "solution:"
-    print solve(A, rhs)
-    print solve(A, new_rhs)
-    stop
+    #print solve(A, rhs)
+    #print solve(A, new_rhs)
+    #stop
     #show()
 
 def x_reduce(x, prec=6):

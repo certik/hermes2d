@@ -130,8 +130,8 @@ int main(int argc, char* argv[])
   //mesh.refine_towards_boundary(marker_right, 10);
   mesh.refine_all_elements();
   mesh.refine_all_elements();
-  //mesh.refine_all_elements(2);
-  //mesh.refine_all_elements(2);
+  mesh.refine_all_elements(2);
+  mesh.refine_all_elements(2);
   //mesh.refine_all_elements();
   //mesh.refine_all_elements();
   //mesh.refine_all_elements();
@@ -160,9 +160,9 @@ int main(int argc, char* argv[])
   PrecalcShapeset pss_l2(&shapeset_l2);
 
   // H1 spaces for velocities and L2 for pressure
-  H1Space s0(&mesh, &shapeset_h1);
-  H1Space s1(&mesh, &shapeset_h1);
-  H1Space s3(&mesh, &shapeset_h1);
+  L2Space s0(&mesh, &shapeset_l2);
+  L2Space s1(&mesh, &shapeset_l2);
+  L2Space s3(&mesh, &shapeset_l2);
 #ifdef L2
   L2Space s4(&mesh, &shapeset_l2);
 #else
@@ -210,7 +210,7 @@ int main(int argc, char* argv[])
   UmfpackSolver umfpack;
   LinSystem sys(&wf, &umfpack);
   sys.set_spaces(4, &s0, &s1, &s3, &s4);
-  sys.set_pss(4, &pss_h1, &pss_h1, &pss_h1, &pss_l2);
+  sys.set_pss(4, &pss_l2, &pss_l2, &pss_l2, &pss_l2);
 
   /*
   BaseView bview;
@@ -245,7 +245,7 @@ int main(int argc, char* argv[])
     cmd("import util");
     cmd("util.run(sys)");
     sys.solve(4, &w0_sln, &w1_sln, &w3_sln, &w4_sln);
-    error("stop");
+    //error("stop");
 
     // visualization
     sprintf(title, "Current density, time %g", TIME);
