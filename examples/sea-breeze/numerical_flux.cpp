@@ -210,7 +210,7 @@ void A_minus(double result[4][4], double w0, double w1, double w3, double w4)
     dot(result, _R, _tmp);
 }
 
-void flux_riemann(double result[4], double w_l[4], double w_r[4])
+void riemann_solver(double result[4], double w_l[4], double w_r[4])
 {
     double _tmp1[4][4];
     double _tmp2[4][4];
@@ -229,8 +229,8 @@ void flux_riemann(double result[4], double w_l[4], double w_r[4])
 }
 
 // calculates the inverted flux, for testing purposes
-// it should return the same thing as flux_riemann(), only with minus sign
-void flux_riemann_invert(double result[4], double w_l[4], double w_r[4])
+// it should return the same thing as riemann_solver(), only with minus sign
+void riemann_solver_invert(double result[4], double w_l[4], double w_r[4])
 {
     double m[4][4];
     double _w_l[4];
@@ -239,7 +239,7 @@ void flux_riemann_invert(double result[4], double w_l[4], double w_r[4])
     T_rot(m, M_PI);
     dot_vector(_w_l, m, w_l);
     dot_vector(_w_r, m, w_r);
-    flux_riemann(_tmp, _w_r, _w_l);
+    riemann_solver(_tmp, _w_r, _w_l);
     T_rot(m, -M_PI);
     dot_vector(result, m, _tmp);
 }
