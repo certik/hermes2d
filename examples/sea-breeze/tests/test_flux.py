@@ -4,7 +4,7 @@ from numpy import array, zeros, dot, eye
 from numpy.linalg import inv, norm
 
 from _numerical_flux import matrix_R, matrix_R_inv, matrix_D_minus, \
-        flux_riemann, flux_riemann_invert
+        flux_riemann, flux_riemann_invert, numerical_flux
 
 from _forms import A_x as matrix_A_x
 from _forms import A_z as matrix_A_z
@@ -168,3 +168,15 @@ def test_flux_rot():
     w = array([1.8, 1.4, 1.2, 800.])
     n = array([1, 1])
     testit(w, n)
+
+def test_numerical_flux():
+    w_l = array([1.1, -10, 13, 700.1])
+    w_r = array([1.1, -10, 13, 800.1])
+    n = array([1, 1])
+    f1 = numerical_flux(w_l, w_r, n)
+    f2 = -numerical_flux(w_r, w_l, -n)
+    assert (abs(f1 - f2) < eps).all()
+
+    f1 = numerical_flux(w_l, w_r, n)
+    f2 = numerical_flux(w_r, w_l, -n)
+    assert not (abs(f1 - f2) < eps).all()
