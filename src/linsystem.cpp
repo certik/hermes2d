@@ -625,9 +625,9 @@ void LinSystem::assemble(bool rhsonly)
         for (i = 0; i < s->idx.size(); i++) {
           if (e[i] == NULL) continue;
           j = s->idx[i];
-          nat[j] = (spaces[j]->bc_type_callback(marker) == BC_NATURAL);
+          //nat[j] = (spaces[j]->bc_type_callback(marker) == BC_NATURAL);
           //if (nat[j])
-            spaces[j]->get_edge_assembly_list(e[i], edge, al + j);
+          spaces[j]->get_edge_assembly_list(e[i], edge, al + j);
         }
 
         // assemble surface bilinear forms ///////////////////////////////////
@@ -941,6 +941,7 @@ scalar LinSystem::eval_form(WeakForm::BiFormSurf *bf, PrecalcShapeset *fu, Preca
   scalar res = bf->fn(np, jwt, u, v, e, ext);
 
   ext->free(); delete ext;
+  // XXX: what the hell is this???
   return 0.5 * res;
 }
 
@@ -950,6 +951,7 @@ scalar LinSystem::eval_form(WeakForm::LiFormSurf *lf, PrecalcShapeset *fv, RefMa
 {
   // eval the form
   Quad2D* quad = fv->get_quad_2d();
+  assert(ep->edge < 5);
   int eo = quad->get_edge_points(ep->edge);
   double3* pt = quad->get_points(eo);
   int np = quad->get_num_points(eo);
