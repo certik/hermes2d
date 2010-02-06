@@ -42,12 +42,15 @@ def flux_riemann_invert(w_l, w_r):
     c_flux_riemann_invert(result, _w_l, _w_r)
     return array_double_c2numpy(&(result[0]), 4)
 
-def numerical_flux(w_l, w_r, double nx, double ny):
+def numerical_flux(w_l, w_r, n):
     cdef double result[4]
     cdef double *_w_l
     cdef double *_w_r
-    cdef int n
-    array_double_numpy2c_inplace(w_l, &_w_l, &n)
-    array_double_numpy2c_inplace(w_r, &_w_r, &n)
+    cdef double nx
+    cdef double ny
+    nx, ny = n
+    cdef int _n
+    array_double_numpy2c_inplace(w_l, &_w_l, &_n)
+    array_double_numpy2c_inplace(w_r, &_w_r, &_n)
     c_numerical_flux(result, _w_l, _w_r, nx, ny)
     return array_double_c2numpy(&(result[0]), 4)
