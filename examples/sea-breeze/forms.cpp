@@ -214,13 +214,28 @@ double w(int i, double w0, double w1, double w3, double w4)
     error("Invalid index.");
 }
 
+double f_x_via_A(int i, double w0, double w1, double w3, double w4)
+{
+    double r=0;
+    for (int j=0; j<4; j++) {
+        r += A_x(i, j, w0, w1, w3, w4) * w(j, w0, w1, w3, w4);
+    }
+    return r;
+}
+
+double f_z_via_A(int i, double w0, double w1, double w3, double w4)
+{
+    double r=0;
+    for (int j=0; j<4; j++) {
+        r += A_z(i, j, w0, w1, w3, w4) * w(j, w0, w1, w3, w4);
+    }
+    return r;
+}
+
 double test1(double w0, double w1, double w3, double w4)
 {
     for (int i=0; i<4; i++) {
-        double r=0;
-        for (int j=0; j<4; j++) {
-            r += A_x(i, j, w0, w1, w3, w4) * w(j, w0, w1, w3, w4);
-        }
+        double r=f_x_via_A(i, w0, w1, w3, w4);
         r -= f_x(i, w0, w1, w3, w4);
         printf("result: %d: %f\n", i, r);
     }
@@ -229,10 +244,7 @@ double test1(double w0, double w1, double w3, double w4)
 double test3(double w0, double w1, double w3, double w4)
 {
     for (int i=0; i<4; i++) {
-        double r=0;
-        for (int j=0; j<4; j++) {
-            r += A_z(i, j, w0, w1, w3, w4) * w(j, w0, w1, w3, w4);
-        }
+        double r=f_z_via_A(i, w0, w1, w3, w4);
         r -= f_z(i, w0, w1, w3, w4);
         printf("result: %d: %f\n", i, r);
     }
@@ -270,7 +282,7 @@ Scalar B_ij(int _i, int _j, int n, double *wt, Func<Real> *u, Func<Real> *v, Geo
     Scalar result = 0;
     for (int i = 0; i < n; i++)
         result += wt[i] * (
-                (u->val[i] * v->val[i]) * delta_ij / TAU +
+                (u->val[i] * v->val[i]) * delta_ij / TAU /* +
                 -A_x(_i, _j, ext->fn[0]->val[i],
                     ext->fn[1]->val[i],
                     ext->fn[2]->val[i],
@@ -280,7 +292,7 @@ Scalar B_ij(int _i, int _j, int n, double *wt, Func<Real> *u, Func<Real> *v, Geo
                     ext->fn[1]->val[i],
                     ext->fn[2]->val[i],
                     ext->fn[3]->val[i])
-                * u->val[i] * v->dy[i]
+                * u->val[i] * v->dy[i] */
                 );
     return result;
 }
@@ -338,6 +350,7 @@ Scalar s_i(int _i, int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scal
         w1 = ext->fn[1]->val[i];
         w3 = ext->fn[2]->val[i];
         w4 = ext->fn[3]->val[i];
+        /*
         double _rho = w0;
         double _u = w1/w0;
         double _w = w3/w0;
@@ -405,27 +418,16 @@ Scalar s_i(int _i, int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scal
                 }
             }
         }
+        */
         // we only impose the difference to the inside state:
+        /*
         w0_new -= w0;
         w1_new -= w1;
         w3_new -= w3;
         w4_new -= w4;
-        result += wt[i] * (
-                A_x(_i, 0, w0, w1, w3, w4) * w0_new * e->nx[i]
-                +
-                A_x(_i, 1, w0, w1, w3, w4) * w1_new * e->nx[i]
-                +
-                A_x(_i, 2, w0, w1, w3, w4) * w3_new * e->nx[i]
-                +
-                A_x(_i, 3, w0, w1, w3, w4) * w4_new * e->nx[i]
-                +
-                A_z(_i, 0, w0, w1, w3, w4) * w0_new * e->ny[i]
-                +
-                A_z(_i, 1, w0, w1, w3, w4) * w1_new * e->ny[i]
-                +
-                A_z(_i, 2, w0, w1, w3, w4) * w3_new * e->ny[i]
-                +
-                A_z(_i, 3, w0, w1, w3, w4) * w4_new * e->ny[i]
+        */
+        result += -wt[i] * (f_x_via_A(_i, w0, w1, w3, w4) * e->nx[i]
+                + f_z_via_A(_i, w0, w1, w3, w4) * e->ny[i]
                 ) * v->val[i];
     }
     /*
@@ -436,6 +438,31 @@ Scalar s_i(int _i, int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scal
     }
     */
     return result;
+}
+
+template<typename Real, typename Scalar>
+Scalar l_i(int _i, int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+{
+    double w0, w1, w3, w4;
+    Scalar result = 0;
+    for (int i = 0; i < n; i++) {
+        w0 = ext->fn[0]->val[i];
+        w1 = ext->fn[1]->val[i];
+        w3 = ext->fn[2]->val[i];
+        w4 = ext->fn[3]->val[i];
+        result += wt[i] * (
+                    + ext->fn[_i]->val[i] / TAU * v->val[i]
+                    + f_x_via_A(_i, w0, w1, w3, w4) * v->dx[i]
+                    + f_z_via_A(_i, w0, w1, w3, w4) * v->dy[i]
+                ) * v->val[i];
+    }
+    return result;
+    /*
+    Scalar result = 0;
+    for (int i = 0; i < n; i++)
+        result += wt[i] * (ext->fn[0]->val[i] * v->val[i]) / TAU;
+    return result;
+    */
 }
 
 template<typename Real, typename Scalar>
@@ -537,29 +564,19 @@ Scalar B_33(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtD
 template<typename Real, typename Scalar>
 Scalar l_0(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
-    Scalar result = 0;
-    for (int i = 0; i < n; i++)
-        result += wt[i] * (ext->fn[0]->val[i] * v->val[i]) / TAU;
-    return result;
+    return l_i(0, n, wt, v, e, ext);
 }
 
 template<typename Real, typename Scalar>
 Scalar l_1(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
-    Scalar result = 0;
-    for (int i = 0; i < n; i++)
-        result += wt[i] * (ext->fn[1]->val[i] * v->val[i]) / TAU;
-    return result;
+    return l_i(1, n, wt, v, e, ext);
 }
 
 template<typename Real, typename Scalar>
 Scalar l_2(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
-    Scalar result = 0;
-    for (int i = 0; i < n; i++)
-        result += wt[i] * (ext->fn[2]->val[i]/TAU - ext->fn[0]->val[i]*g/g_r) *
-                  v->val[i];
-    return result;
+    return l_i(2, n, wt, v, e, ext);
 }
 
 //int counter=0;
@@ -567,6 +584,7 @@ Scalar l_2(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext
 template<typename Real, typename Scalar>
 Scalar l_3(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
+    return l_i(3, n, wt, v, e, ext);
     /*
     counter++;
     insert_object("fn", array_double_c2numpy(ext->fn[3]->val, n));
@@ -585,15 +603,17 @@ Scalar l_3(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext
     //cmd("import util");
     //cmd("util.plotxy(x, y, v, counter)");
     //cmd("print tau");
+    /*
     Scalar result = 0;
     for (int i = 0; i < n; i++)
         result += wt[i] * (ext->fn[3]->val[i] * v->val[i]) / TAU;
+        */
     /*
     insert_object("result", double_c2py(result));
     cmd("print result");
     cmd("print '-'*40");
     */
-    return result;
+    //return result;
 }
 
 template<typename Real, typename Scalar>
@@ -606,6 +626,12 @@ Scalar l_ord(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *e
 }
 
 template<typename Real, typename Scalar>
+Scalar s_0(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+{
+    return s_i(0, n, wt, v, e, ext);
+}
+
+template<typename Real, typename Scalar>
 Scalar s_1(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
     return s_i(1, n, wt, v, e, ext);
@@ -615,6 +641,12 @@ template<typename Real, typename Scalar>
 Scalar s_2(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
     return s_i(2, n, wt, v, e, ext);
+}
+
+template<typename Real, typename Scalar>
+Scalar s_3(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+{
+    return s_i(3, n, wt, v, e, ext);
 }
 
 template<typename Real, typename Scalar>
@@ -761,18 +793,22 @@ void register_forms(WeakForm &wf, Solution &w0_prev, Solution &w1_prev,
     ADD_BF(2, 0); ADD_BF(2, 1); ADD_BF(2, 2); ADD_BF(2, 3);
     ADD_BF(3, 0); ADD_BF(3, 1); ADD_BF(3, 2); ADD_BF(3, 3);
 
+    /*
     ADD_BF_S(0, 0); ADD_BF_S(0, 1); ADD_BF_S(0, 2); ADD_BF_S(0, 3);
     ADD_BF_S(1, 0); ADD_BF_S(1, 1); ADD_BF_S(1, 2); ADD_BF_S(1, 3);
     ADD_BF_S(2, 0); ADD_BF_S(2, 1); ADD_BF_S(2, 2); ADD_BF_S(2, 3);
     ADD_BF_S(3, 0); ADD_BF_S(3, 1); ADD_BF_S(3, 2); ADD_BF_S(3, 3);
+    */
 
     ADD_LF(0);
     ADD_LF(1);
     ADD_LF(2);
     ADD_LF(3);
 
-    //ADD_LF_S(1);
-    //ADD_LF_S(2);
+    ADD_LF_S(0);
+    ADD_LF_S(1);
+    ADD_LF_S(2);
+    ADD_LF_S(3);
 
     // this is necessary, so that we can use Python from forms.cpp:
     if (import_hermes2d___hermes2d())
