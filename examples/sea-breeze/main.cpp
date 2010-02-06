@@ -128,10 +128,10 @@ int main(int argc, char* argv[])
   //mesh.refine_all_elements();
   //mesh.refine_towards_boundary(marker_bottom, 1);
   //mesh.refine_towards_boundary(marker_right, 10);
-  mesh.refine_all_elements();
-  mesh.refine_all_elements();
-  mesh.refine_all_elements(2);
-  mesh.refine_all_elements(2);
+  //mesh.refine_all_elements();
+  //mesh.refine_all_elements();
+  //mesh.refine_all_elements(2);
+  //mesh.refine_all_elements(2);
   //mesh.refine_all_elements();
   //mesh.refine_all_elements();
   //mesh.refine_all_elements();
