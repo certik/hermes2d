@@ -437,6 +437,7 @@ Scalar s_i(int _i, int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scal
         printf("    state: (%f, %f, %f, %f)\n", w0, w1, w3, w4);
     }
     */
+    printf("marker: %d\n", e->marker);
     return result;
 }
 
@@ -783,7 +784,7 @@ void set_ic(Mesh &mesh, Solution &w0, Solution &w1, Solution &w3, Solution &w4)
 
 #define ADD_LF(i) wf.add_liform(i, callback_lf(l_##i), ANY, 4, &w0_prev, &w1_prev, &w3_prev, &w4_prev);
 
-#define ADD_LF_S(i) wf.add_liform_surf(i, callback_lf_s(s_##i), ANY, 4, &w0_prev, &w1_prev, &w3_prev, &w4_prev);
+#define ADD_LF_S(i) wf.add_liform_surf(i, callback_lf_s(s_##i), ANY_EDGE, 4, &w0_prev, &w1_prev, &w3_prev, &w4_prev);
 
 void register_forms(WeakForm &wf, Solution &w0_prev, Solution &w1_prev,
         Solution &w3_prev, Solution &w4_prev)
