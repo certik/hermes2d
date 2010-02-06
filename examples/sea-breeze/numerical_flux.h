@@ -11,5 +11,7 @@ void T_rot(double result[4][4], double beta);
 void dot_vector(double result[4], double A[4][4], double B[4]);
 void riemann_solver(double result[4], double w_l[4], double w_r[4]);
 void riemann_solver_invert(double result[4], double w_l[4], double w_r[4]);
+void numerical_flux(double result[4], double w_l[4], double w_r[4],
+        double nx, double ny);
 
 #endif
