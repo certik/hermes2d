@@ -3,7 +3,7 @@
 
 #include "_hermes2d_api.h"
 
-const double TAU = 0.000001;  // this is in seconds
+const double TAU = 1;  // this is in seconds
 
 const double T_0 = T_z(0);
 const double p_0 = p_z(0);
@@ -454,7 +454,7 @@ Scalar l_i(int _i, int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scal
                     + ext->fn[_i]->val[i] / TAU * v->val[i]
                     + f_x_via_A(_i, w0, w1, w3, w4) * v->dx[i]
                     + f_z_via_A(_i, w0, w1, w3, w4) * v->dy[i]
-                ) * v->val[i];
+                );
     }
     return result;
     /*
