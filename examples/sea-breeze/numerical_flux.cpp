@@ -243,3 +243,23 @@ void riemann_solver_invert(double result[4], double w_l[4], double w_r[4])
     T_rot(m, -M_PI);
     dot_vector(result, m, _tmp);
 }
+
+// Calculates the numerical flux in the normal (nx, ny) by rotating into the
+// local system, solving the Riemann problem and rotating back. It returns the
+// state.
+void numerical_flux(double result[4], double w_l[4], double w_r[4],
+        double nx, double ny)
+{
+    double alpha = atan2(ny, nx);
+    double mat_rot[4][4];
+    double mat_rot_inv[4][4];
+    double w_l_local[4];
+    double w_r_local[4];
+    double flux_local[4];
+    T_rot(mat_rot, alpha);
+    T_rot(mat_rot_inv, -alpha);
+    dot_vector(w_l_local, mat_rot, w_l);
+    dot_vector(w_r_local, mat_rot, w_r);
+    riemann_solver(flux_local, w_l_local, w_r_local);
+    dot_vector(result, mat_rot_inv, flux_local);
+}
