@@ -6,9 +6,10 @@
 // The following parameters can be played with:
 
 const double FINAL_TIME = 3600*72/t_r;    // length of time interval
-const int P_INIT_w0 = 1;       // polynomial degree for pressure
-const int P_INIT_VEL = 1;            // polynomial degree for velocity components
-const int P_INIT_w4 = 1;       // polynomial degree for the energy
+const int P_INIT = 0;
+const int P_INIT_w0 = P_INIT;       // polynomial degree for pressure
+const int P_INIT_VEL = P_INIT;            // polynomial degree for velocity components
+const int P_INIT_w4 = P_INIT;       // polynomial degree for the energy
 
 // global time variable
 double TIME = 0;
@@ -127,8 +128,8 @@ int main(int argc, char* argv[])
   //mesh.refine_all_elements();
   //mesh.refine_all_elements();
   //mesh.refine_towards_boundary(marker_bottom, 1);
-  //mesh.refine_towards_boundary(marker_right, 10);
-  //mesh.refine_all_elements();
+  //mesh.refine_towards_boundary(marker_right, 1);
+  mesh.refine_all_elements();
   //mesh.refine_all_elements();
   //mesh.refine_all_elements(2);
   //mesh.refine_all_elements(2);
