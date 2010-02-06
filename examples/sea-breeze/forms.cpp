@@ -301,24 +301,11 @@ template<typename Real, typename Scalar>
 Scalar S_ij(int _i, int _j, int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
     double w0, w1, w3, w4;
-        w0 = ext->fn[0]->val[0];
-        w1 = ext->fn[1]->val[0];
-        w3 = ext->fn[2]->val[0];
-        w4 = ext->fn[3]->val[0];
+    w0 = ext->fn[0]->val[0];
+    w1 = ext->fn[1]->val[0];
+    w3 = ext->fn[2]->val[0];
+    w4 = ext->fn[3]->val[0];
 
-    //printf("BC left: (%d, %d; x=%f y=%f)\n", _i, _j, e->x[0], e->y[0]);
-    //printf("    state: (%f, %f, %f, %f)\n", w0, w1, w3, w4);
-    /*
-            printf("  vvv: %d\n", n);
-            printf("   u:");
-            for (int j = 0; j<n;j++)
-                printf("%f ", u->val[j]);
-            printf("\n");
-            printf("   v:");
-            for (int j = 0; j<n;j++)
-                printf("%f ", v->val[j]);
-            printf("\n");
-            */
     Scalar result = 0;
     for (int i = 0; i < n; i++) {
         w0 = ext->fn[0]->val[i];
@@ -331,11 +318,6 @@ Scalar S_ij(int _i, int _j, int n, double *wt, Func<Real> *u, Func<Real> *v, Geo
                 A_z(_i, _j, w0, w1, w3, w4) * e->ny[i]
                 ) * u->val[i] * v->val[i];
     }
-    /*
-    if (e->marker == marker_left) {
-        printf("   result: %f\n", result);
-    }
-    */
     return result;
 }
 
@@ -350,82 +332,6 @@ Scalar s_i(int _i, int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scal
         w1 = ext->fn[1]->val[i];
         w3 = ext->fn[2]->val[i];
         w4 = ext->fn[3]->val[i];
-        /*
-        double _rho = w0;
-        double _u = w1/w0;
-        double _w = w3/w0;
-        double _E = w4;
-        double _v2 = _u*_u+_w*_w;
-        double _p = (kappa-1)*(_E - _rho*_v2/2);
-        double _c = sqrt(kappa*_p/_rho);
-        double _M = sqrt(_v2)/_c;
-        double un = _u*e->nx[i] + _w*e->ny[i];
-        // we build a new state w?_new that we want to impose
-        double w0_new, w1_new, w3_new, w4_new;
-        int right_or_left = 0;
-        if (e->marker == marker_left || e->marker == marker_right)
-            right_or_left = 1;
-        else
-            right_or_left = 0;
-        right_or_left = 1;
-
-        if  (!right_or_left) {
-            _u = _u-un * e->nx[i];
-            _w = _w-un * e->ny[i];
-            w0_new = w0;
-            w1_new = _u * w0;
-            w3_new = _w * w0;
-            w4_new = w4;
-        } else {
-            if (un > 0) {
-                // outlet
-                if (_M >= 1.) {
-                    // supersonic
-                    // we take everything from inside
-                    w0_new = w0;
-                    w1_new = w1;
-                    w3_new = w3;
-                    w4_new = w4;
-                }
-                else {
-                    // subsonic
-                    // take p from the outside state, the rest from the inside
-                    w0_new = w0;
-                    w1_new = w1;
-                    w3_new = w3;
-                    w4_new = p_init_num * c_v / R + (w1*w1+w3*w3)/(2*w0);
-                }
-            }
-            else {
-                // inlet
-                if (_M >= 1.) {
-                    // supersonic
-                    // take everything from outside
-                    w0_new = w0_init_num;
-                    w1_new = w1_init_num;
-                    w3_new = w3_init_num;
-                    w4_new = w4_init_num;
-                }
-                else {
-                    // subsonic
-                    // take rho, u, w from the outside state
-                    w0_new = w0_init_num;
-                    w1_new = w1_init_num;
-                    w3_new = w3_init_num;
-                    // calculate E:
-                    double v2 = w1_new*w1_new+w3_new*w3_new;
-                    w4_new = _p * c_v / R + v2 / (2*w0_new);
-                }
-            }
-        }
-        */
-        // we only impose the difference to the inside state:
-        /*
-        w0_new -= w0;
-        w1_new -= w1;
-        w3_new -= w3;
-        w4_new -= w4;
-        */
         result += -wt[i] * (f_x_via_A(_i, w0, w1, w3, w4) * e->nx[i]
                 + f_z_via_A(_i, w0, w1, w3, w4) * e->ny[i]
                 ) * v->val[i];
