@@ -177,10 +177,13 @@ def test_numerical_flux():
             # consistency:
             f1 = numerical_flux(w_l, w_l, n)
             f2 = flux(w_l, n)
-            print n, f1, f2
             assert (abs(f1 - f2) < eps).all()
 
             # conservativity:
+            f1 = numerical_flux(w_l, w_r, n)
+            f2 = -numerical_flux(w_r, w_l, -n)
+            assert (abs(f1 - f2) < eps).all()
+
             f1 = numerical_flux(w_l, w_r, n)
             f2 = numerical_flux(w_r, w_l, -n)
             assert not (abs(f1 - f2) < eps).all()
