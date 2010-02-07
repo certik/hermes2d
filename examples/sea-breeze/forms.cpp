@@ -330,38 +330,53 @@ Scalar s_i(int _i, int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scal
     for (int i = 0; i < n; i++) {
         double w_l[4];
         double w_r[4];
+        double flux[4];
+        double nx=e->nx[i], ny=e->ny[i];
 
         // this has to be fixed in hermes to return the correct w_l, w_r:
         for (int j=0; j < 4; j++)
             w_l[j] = ext->fn[j]->val[i];
-        /*
-        w_l[0] = 1;
-        w_l[1] = 1;
-        w_l[2] = 0;
-        w_l[3] = 10;
-        */
-        for (int j=0; j < 4; j++)
-            //w_r[j] = ext->fn[j]->val[i];
-            w_r[j] = w_l[j];
+        if (e->marker == marker_top || e->marker == marker_bottom) {
+            double w0, w1, w3, w4;
+            w0 = ext->fn[0]->val[i];
+            w1 = ext->fn[1]->val[i];
+            w3 = ext->fn[2]->val[i];
+            w4 = ext->fn[3]->val[i];
+            double _rho = w0;
+            double _u = w1/w0;
+            double _w = w3/w0;
+            double _E = w4;
+            double _v2 = _u*_u+_w*_w;
+            double _p = (kappa-1)*(_E - _rho*_v2/2);
+            double _c = sqrt(kappa*_p/_rho);
+            double _M = sqrt(_v2)/_c;
 
-        double flux[4];
-        double nx=e->nx[i], ny=e->ny[i];
-        /*
-        printf("ori=%d, n=(%f, %f), x=(%f, %f)\n", e->orientation, nx, ny,
-                e->x[i], e->y[i]);
-                */
-
-        numerical_flux(flux, w_l, w_r, nx, ny);
-
-        // Change the direction of the flux if the global normal is opposite to
-        // the local normal:
-        double C = 1.0;
-        if ((e->orientation == 1))
-            C = -1.0;
+                double alpha = atan2(ny, nx);
+                double mat_rot_inv[4][4];
+                double flux_local[4];
+                flux_local[0] = 0;
+                flux_local[1] = _p;
+                flux_local[2] = 0;
+                flux_local[3] = 0;
+                T_rot(mat_rot_inv, -alpha);
+                dot_vector(flux, mat_rot_inv, flux_local);
+        } else if (e->marker == marker_left || e->marker == marker_right) {
+            w_r[0] = w0_init_num;
+            w_r[1] = w1_init_num;
+            w_r[2] = w3_init_num;
+            w_r[3] = w4_init_num;
+            for (int j=0; j < 4; j++)
+                w_r[j] = w_l[j];
+            numerical_flux(flux, w_l, w_r, nx, ny);
+        } else {
+            // get from the neighbor element
+            for (int j=0; j < 4; j++)
+                w_r[j] = w_l[j];
+            numerical_flux(flux, w_l, w_r, nx, ny);
+        }
 
         result += wt[i] * flux[_i] * v->val[i];
     }
-    //printf("i=%d, result=%f\n", _i, result);
     return result;
 }
 
