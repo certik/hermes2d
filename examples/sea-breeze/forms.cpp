@@ -332,15 +332,20 @@ Scalar s_i(int _i, int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scal
         double w_r[4];
 
         // this has to be fixed in hermes to return the correct w_l, w_r:
+        //for (int j=0; j < 4; j++)
+        //    w_l[j] = ext->fn[j]->val[i];
+        w_l[0] = 1;
+        w_l[1] = 1;
+        w_l[2] = 0;
+        w_l[3] = 1;
         for (int j=0; j < 4; j++)
-            w_l[j] = ext->fn[j]->val[i];
-        for (int j=0; j < 4; j++)
-            w_r[j] = ext->fn[j]->val[i];
+            //w_r[j] = ext->fn[j]->val[i];
+            w_r[j] = w_l[j];
 
         double flux[4];
         double nx=e->nx[i], ny=e->ny[i];
-        //printf("ori=%d, n=(%f, %f), x=(%f, %f)\n", e->orientation, nx, ny,
-        //        e->x[i], e->y[i]);
+        printf("ori=%d, n=(%f, %f), x=(%f, %f)\n", e->orientation, nx, ny,
+                e->x[i], e->y[i]);
 
         numerical_flux(flux, w_l, w_r, nx, ny);
 
