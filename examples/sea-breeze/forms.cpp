@@ -324,7 +324,7 @@ Scalar S_ij(int _i, int _j, int n, double *wt, Func<Real> *u, Func<Real> *v, Geo
 template<typename Real, typename Scalar>
 Scalar s_i(int _i, int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
-    printf("n=%d\n", n);
+    //printf("n=%d\n", n);
     assert(n < 20);
     double w0, w1, w3, w4;
     Scalar result = 0;
@@ -372,11 +372,13 @@ Scalar s_i(int _i, int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scal
             // get from the neighbor element
             for (int j=0; j < 4; j++)
                 w_r[j] = ext->fn2[j]->val[i];
-            printf("w_r: %f %f %f %f\n", w_r[0], w_r[1], w_r[2], w_r[3]);
+            //printf("w_r: %f %f %f %f\n", w_r[0], w_r[1], w_r[2], w_r[3]);
+            /*
             w_r[0] = w0_init_num;
             w_r[1] = w1_init_num;
             w_r[2] = w3_init_num;
             w_r[3] = w4_init_num;
+            */
             numerical_flux(flux, w_l, w_r, nx, ny);
         }
 
