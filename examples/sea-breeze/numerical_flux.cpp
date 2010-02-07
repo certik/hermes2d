@@ -177,6 +177,12 @@ void dot_vector(double result[4], double A[4][4], double B[4])
     }
 }
 
+// XXX: this matrix should take the normals directly, e.g.
+// [cos, sin]
+// [-sin, cos]
+// becomes
+// [nx, ny]
+// [-ny, nx]
 void T_rot(double result[4][4], double beta)
 {
     for (int i=0; i < 4; i++)
