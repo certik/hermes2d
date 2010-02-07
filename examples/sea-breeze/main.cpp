@@ -119,20 +119,21 @@ int main(int argc, char* argv[])
   Mesh mesh;
   //mesh.load("quad-diag.mesh");
   H2DReader mloader;
-  mloader.load("domain-quad.mesh", &mesh);
+  //mloader.load("domain-quad.mesh", &mesh);
   //mloader.load("channel.mesh", &mesh);
-  //mloader.load("GAMM-channel.mesh", &mesh);
+  mloader.load("GAMM-channel.mesh", &mesh);
 
   // a-priori mesh refinements
   //mesh.refine_all_elements();
-  //mesh.refine_all_elements();
-  //mesh.refine_all_elements();
-  mesh.refine_towards_boundary(marker_right, 1);
+  mesh.refine_element(1, 2);
   mesh.refine_all_elements();
   mesh.refine_all_elements();
+  //mesh.refine_towards_boundary(marker_right, 1);
   //mesh.refine_all_elements();
-  //mesh.refine_towards_boundary(marker_bottom, 4);
   //mesh.refine_all_elements();
+  //mesh.refine_all_elements();
+  mesh.refine_towards_boundary(marker_bottom, 4);
+  mesh.refine_all_elements();
   //mesh.refine_all_elements(2);
   //mesh.refine_all_elements(2);
   //mesh.refine_all_elements();
