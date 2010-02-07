@@ -325,7 +325,7 @@ template<typename Real, typename Scalar>
 Scalar s_i(int _i, int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
     printf("n=%d\n", n);
-    //assert(n==1);
+    assert(n < 20);
     double w0, w1, w3, w4;
     Scalar result = 0;
     //printf("BC: n=%d; marker=%d\n", n, e->marker);
