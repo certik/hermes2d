@@ -328,22 +328,23 @@ Scalar s_i(int _i, int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scal
     Scalar result = 0;
     //printf("BC: n=%d; marker=%d\n", n, e->marker);
     for (int i = 0; i < n; i++) {
-        w0 = ext->fn[0]->val[i];
-        w1 = ext->fn[1]->val[i];
-        w3 = ext->fn[2]->val[i];
-        w4 = ext->fn[3]->val[i];
-        result += -wt[i] * (f_x_via_A(_i, w0, w1, w3, w4) * e->nx[i]
-                + f_z_via_A(_i, w0, w1, w3, w4) * e->ny[i]
-                ) * v->val[i];
+        double w_l[4];
+        double w_r[4];
+
+        // this has to be fixed in hermes to return the correct w_l, w_r:
+        for (int j; i < 4; i++)
+            w_l[j] = ext->fn[j]->val[i];
+        for (int j; i < 4; i++)
+            w_r[j] = ext->fn[j]->val[i];
+
+        double flux[4];
+        double nx=e->nx[i], ny=e->ny[i];
+        // if (orientation == 0) { nx *= -1; ny *= -1;}
+
+        numerical_flux(flux, w_l, w_r, nx, ny);
+
+        result += wt[i] * flux[_i] * v->val[i];
     }
-    /*
-    if (e->marker == marker_left) {
-        printf("BC left: (%d; x=%f y=%f) %f\n", _i, e->x[0], e->y[0],
-                result);
-        printf("    state: (%f, %f, %f, %f)\n", w0, w1, w3, w4);
-    }
-    */
-    printf("marker: %d\n", e->marker);
     return result;
 }
 
