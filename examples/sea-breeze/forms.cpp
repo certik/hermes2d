@@ -357,7 +357,7 @@ Scalar s_i(int _i, int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scal
 
         result += wt[i] * C * flux[_i] * v->val[i];
     }
-    printf("i=%d, result=%f\n", _i, result);
+    //printf("i=%d, result=%f\n", _i, result);
     return result;
 }
 

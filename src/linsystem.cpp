@@ -607,6 +607,7 @@ void LinSystem::assemble(bool rhsonly)
           if (am->dof[i] < 0) continue;
           fv->set_active_shape(am->idx[i]);
           RHS[am->dof[i]] += eval_form(lfv, fv, refmap+m) * am->coef[i];
+          printf("RHS[%d] += %f\n", am->dof[i], RHS[am->dof[i]]);
         }
       }
 
