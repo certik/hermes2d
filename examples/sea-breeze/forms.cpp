@@ -344,8 +344,8 @@ Scalar s_i(int _i, int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scal
 
         double flux[4];
         double nx=e->nx[i], ny=e->ny[i];
-        //printf("ori=%d, n=(%f, %f), x=(%f, %f)\n", e->orientation, nx, ny,
-        //        e->x[i], e->y[i]);
+        printf("ori=%d, n=(%f, %f), x=(%f, %f)\n", e->orientation, nx, ny,
+                e->x[i], e->y[i]);
 
         numerical_flux(flux, w_l, w_r, nx, ny);
 
@@ -357,7 +357,7 @@ Scalar s_i(int _i, int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scal
 
         result += wt[i] * C * flux[_i] * v->val[i];
     }
-    //printf("i=%d, result=%f\n", _i, result);
+    printf("i=%d, result=%f\n", _i, result);
     return result;
 }
 
@@ -366,6 +366,7 @@ Scalar l_i(int _i, int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scal
 {
     double w0, w1, w3, w4;
     Scalar result = 0;
+    Scalar result_flux = 0;
     for (int i = 0; i < n; i++) {
         w0 = ext->fn[0]->val[i];
         w1 = ext->fn[1]->val[i];
@@ -373,11 +374,14 @@ Scalar l_i(int _i, int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scal
         w4 = ext->fn[3]->val[i];
         result += wt[i] * (
                     + ext->fn[_i]->val[i] / TAU * v->val[i]
-                    + f_x_via_A(_i, w0, w1, w3, w4) * v->dx[i]
+                );
+        result_flux += wt[i] * (
+                      f_x_via_A(_i, w0, w1, w3, w4) * v->dx[i]
                     + f_z_via_A(_i, w0, w1, w3, w4) * v->dy[i]
                 );
     }
-    return result;
+    printf("result=%f, result_flux=%f\n", result, result_flux);
+    return result+result_flux;
     /*
     Scalar result = 0;
     for (int i = 0; i < n; i++)

@@ -610,8 +610,10 @@ void LinSystem::assemble(bool rhsonly)
         {
           if (am->dof[i] < 0) continue;
           fv->set_active_shape(am->idx[i]);
+          double b = RHS[am->dof[i]];
           RHS[am->dof[i]] += eval_form(lfv, fv, refmap+m) * am->coef[i];
-          printf("RHS[%d] += %f\n", am->dof[i], RHS[am->dof[i]]);
+          b -= RHS[am->dof[i]];
+          printf("RHS[%d] += %f\n", am->dof[i], b);
         }
       }
 
@@ -728,7 +730,10 @@ void LinSystem::assemble(bool rhsonly)
           {
             if (am->dof[i] < 0) continue;
             fv->set_active_shape(am->idx[i]);
+            double b= RHS[am->dof[i]];
             RHS[am->dof[i]] += eval_form(lfs, fv, refmap+m, ep+edge) * am->coef[i];
+            b = RHS[am->dof[i]]-b;
+          printf("surface RHS[%d] += %f\n", am->dof[i], b);
           }
         }
       }
