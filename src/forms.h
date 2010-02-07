@@ -179,6 +179,9 @@ class ExtData {
 public:
 	int nf;			  			// number of functions in 'fn' array
 	Func<T>** fn;				// array of pointers to functions
+	int nf2;			  			// number of functions in 'fn2' array
+	Func<T>** fn2;				// array of pointers to functions to the
+                                //  neighbors elements
 
 	ExtData() {
 		nf = 0;

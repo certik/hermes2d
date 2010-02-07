@@ -369,7 +369,7 @@ Scalar s_i(int _i, int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scal
         } else {
             // get from the neighbor element
             for (int j=0; j < 4; j++)
-                w_r[j] = w_l[j];
+                w_r[j] = ext->fn2[j]->val[i];
             numerical_flux(flux, w_l, w_r, nx, ny);
         }
 
