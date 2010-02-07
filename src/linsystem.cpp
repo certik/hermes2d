@@ -986,12 +986,26 @@ scalar LinSystem::eval_form(WeakForm::LiFormSurf *lf, PrecalcShapeset *fv, RefMa
   for (int i = 0; i < lf->ext.size(); i++) {
       Element *e_right = rv->get_active_element()->get_neighbor(ep->edge);
       if (e_right != NULL) {
+          printf("element id=%d\n", e_right->id);
+      MeshFunction *m = (lf->ext[i]);
+      Solution *sol_right = dynamic_cast<Solution*>(m);
+
+      Func<scalar>* u = new Func<scalar>;
+      u->val = new scalar[1];
+      //u->val[0] = sol_right->get_ref_value(e_right, 0, 0, i, 0);
+      u->val[0] = sol_right->get_pt_value(0.1, 0.1);
+      ext_fn2[i] = u;
+      printf("u->val[0]=%f\n", u->val[0]);
+      }
+      /*
+      if (e_right != NULL) {
           MeshFunction *sol_right = lf->ext[i];
           RefMap rv_right;
           rv_right.set_active_element(e_right);
           rv_right.force_transform(pss[i]->get_transform(), pss[i]->get_ctm());
           ext_fn2[i] = init_fn(sol_right, &rv_right, eo);
       }
+      */
   }
   ext->nf2 = lf->ext.size();
   ext->fn2 = ext_fn2;
