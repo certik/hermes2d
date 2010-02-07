@@ -186,7 +186,13 @@ def test_numerical_flux():
             assert not (abs(f1 - f2) < eps).all()
         test_normals = [
             array([1, 0]),
+            array([0, 1]),
+            array([-1, 0]),
+            array([0, -1]),
             array([1, 1]),
+            array([1, -1]),
+            array([-1, 1]),
+            array([-1, -1]),
             ]
         for n in test_normals:
             n = n/float(norm(n))
