@@ -127,19 +127,19 @@ int main(int argc, char* argv[])
   //mesh.refine_all_elements();
   //mesh.refine_all_elements();
   //mesh.refine_all_elements();
-  //mesh.refine_towards_boundary(marker_bottom, 3);
   //mesh.refine_towards_boundary(marker_right, 1);
   mesh.refine_all_elements();
   mesh.refine_all_elements();
-  mesh.refine_all_elements();
+  //mesh.refine_all_elements();
+  mesh.refine_towards_boundary(marker_bottom, 4);
   mesh.refine_all_elements();
   //mesh.refine_all_elements(2);
   //mesh.refine_all_elements(2);
   //mesh.refine_all_elements();
   //mesh.refine_all_elements();
   //mesh.refine_all_elements();
-  //mesh.refine_towards_vertex(1, 10);
-  //mesh.refine_towards_vertex(2, 10);
+  //mesh.refine_towards_vertex(1, 2);
+  //mesh.refine_towards_vertex(2, 5);
   //mesh.refine_all_elements();
   //mesh.refine_towards_boundary(marker_bottom, 3);
 
