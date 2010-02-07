@@ -122,6 +122,11 @@ struct Element
   /// length of the longer diagonal for quads. Ignores element curvature.
   double get_diameter() const;
 
+  // returns the edge orientation. This works for the unconstrained edges.
+  int get_edge_orientation(int ie) {
+      return (this->vn[ie]->id < this->vn[this->next_vert(ie)]->id) ? 0 : 1;
+  }
+
   void ref_all_nodes();
   void unref_all_nodes(HashTable* ht);
 };
