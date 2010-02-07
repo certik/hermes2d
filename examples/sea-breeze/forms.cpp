@@ -339,13 +339,18 @@ Scalar s_i(int _i, int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scal
 
         double flux[4];
         double nx=e->nx[i], ny=e->ny[i];
-        printf("ori=%d, n=(%f, %f), x=(%f, %f)\n", e->orientation, nx, ny,
-                e->x[i], e->y[i]);
-        if ((e->orientation == 1)) { nx *= -1; ny *= -1;}
+        //printf("ori=%d, n=(%f, %f), x=(%f, %f)\n", e->orientation, nx, ny,
+        //        e->x[i], e->y[i]);
 
         numerical_flux(flux, w_l, w_r, nx, ny);
 
-        result += wt[i] * flux[_i] * v->val[i];
+        // Change the direction of the flux if the global normal is opposite to
+        // the local normal:
+        double C = 1.0;
+        if ((e->orientation == 1))
+            C = -1.0;
+
+        result += wt[i] * C * flux[_i] * v->val[i];
     }
     return result;
 }
