@@ -3,7 +3,7 @@
 
 #include "_hermes2d_api.h"
 
-const double TAU = 1;  // this is in seconds
+const double TAU = 1e-3;  // this is in seconds
 
 const double T_0 = T_z(0);
 const double p_0 = p_z(0);
@@ -365,8 +365,6 @@ Scalar s_i(int _i, int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scal
             w_r[1] = w1_init_num;
             w_r[2] = w3_init_num;
             w_r[3] = w4_init_num;
-            for (int j=0; j < 4; j++)
-                w_r[j] = w_l[j];
             numerical_flux(flux, w_l, w_r, nx, ny);
         } else {
             // get from the neighbor element
