@@ -983,6 +983,14 @@ scalar LinSystem::eval_form(WeakForm::LiFormSurf *lf, PrecalcShapeset *fv, RefMa
   Func<double>* v = get_fn(fv, rv, eo);
   ExtData<scalar>* ext = init_ext_fns(lf->ext, rv, eo);
   Func<scalar>** ext_fn2 = new Func<scalar>*[lf->ext.size()];
+  printf("---------------------------\n");
+  printf("element=%d\n",rv->get_active_element()->id);
+  printf("vertices=(%d, %d, %d, %d)\n",
+          rv->get_active_element()->vn[0]->id,
+          rv->get_active_element()->vn[1]->id,
+          rv->get_active_element()->vn[2]->id,
+          rv->get_active_element()->vn[3]->id
+          );
   for (int i = 0; i < lf->ext.size(); i++) {
       Element *e_right = rv->get_active_element()->get_neighbor(ep->edge);
       if (e_right != NULL) {
@@ -991,11 +999,15 @@ scalar LinSystem::eval_form(WeakForm::LiFormSurf *lf, PrecalcShapeset *fv, RefMa
       Solution *sol_right = dynamic_cast<Solution*>(m);
 
       Func<scalar>* u = new Func<scalar>;
-      u->val = new scalar[1];
+      // XXX: fixme here:
+      u->val = new scalar[20];
       //u->val[0] = sol_right->get_ref_value(e_right, 0, 0, i, 0);
-      u->val[0] = sol_right->get_pt_value(0.1, 0.1);
+      double pt_x = ( e_right->vn[0]->x + e_right->vn[2]->x)/2.;
+      double pt_y = ( e_right->vn[0]->y + e_right->vn[2]->y)/2.;
+      for (int k=0; k<20;k++)
+          u->val[k] = sol_right->get_pt_value(pt_x, pt_y);
       ext_fn2[i] = u;
-      printf("u->val[0]=%f\n", u->val[0]);
+      //printf("u->val[0]=%f\n", u->val[0]);
       }
       /*
       if (e_right != NULL) {
