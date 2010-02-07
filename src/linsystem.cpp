@@ -977,6 +977,11 @@ scalar LinSystem::eval_form(WeakForm::LiFormSurf *lf, PrecalcShapeset *fv, RefMa
   // function values and values of external functions
   Func<double>* v = get_fn(fv, rv, eo);
   ExtData<scalar>* ext = init_ext_fns(lf->ext, rv, eo);
+  Func<scalar>** ext_fn2 = new Func<scalar>*[lf->ext.size()];
+  for (int i = 0; i < lf->ext.size(); i++)
+    ext_fn2[i] = init_fn(lf->ext[i], rv, eo);
+  ext->nf2 = lf->ext.size();
+  ext->fn2 = ext_fn2;
 
   scalar res = lf->fn(np, jwt, v, e, ext);
 
