@@ -353,7 +353,7 @@ Scalar s_i(int _i, int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scal
         // the local normal:
         double C = 1.0;
         if ((e->orientation == 1))
-            C = -1.0;
+            C = 1.0;
 
         result += wt[i] * C * flux[_i] * v->val[i];
     }
