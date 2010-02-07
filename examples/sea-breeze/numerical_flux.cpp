@@ -218,8 +218,8 @@ void A_minus(double result[4][4], double w0, double w1, double w3, double w4)
 
 void riemann_solver(double result[4], double w_l[4], double w_r[4])
 {
-    printf("w_l: %f %f %f %f\n", w_l[0], w_l[1], w_l[2], w_l[3]);
-    printf("w_r: %f %f %f %f\n", w_r[0], w_r[1], w_r[2], w_r[3]);
+    //printf("w_l: %f %f %f %f\n", w_l[0], w_l[1], w_l[2], w_l[3]);
+    //printf("w_r: %f %f %f %f\n", w_r[0], w_r[1], w_r[2], w_r[3]);
     double _tmp1[4][4];
     double _tmp2[4][4];
     double _tmp3[4];

@@ -10,7 +10,7 @@ from numpy import arange, array, dot
 def run(sys):
     A = sys.get_matrix().todense()
     rhs = sys.get_rhs()
-    print A[:4, :4]
+    print A
     print "-"*70
     print "rhs", rhs
     #x = array([
@@ -36,7 +36,7 @@ def run(sys):
     #print r
 
     print "solution:"
-    #print solve(A, rhs)
+    print solve(A, rhs)
     #print solve(A, new_rhs)
     #stop
     #show()
