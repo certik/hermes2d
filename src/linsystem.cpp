@@ -983,6 +983,7 @@ scalar LinSystem::eval_form(WeakForm::LiFormSurf *lf, PrecalcShapeset *fv, RefMa
   Func<double>* v = get_fn(fv, rv, eo);
   ExtData<scalar>* ext = init_ext_fns(lf->ext, rv, eo);
   Func<scalar>** ext_fn2 = new Func<scalar>*[lf->ext.size()];
+  /*
   printf("---------------------------\n");
   printf("element=%d\n",rv->get_active_element()->id);
   printf("vertices=(%d, %d, %d, %d)\n",
@@ -991,10 +992,11 @@ scalar LinSystem::eval_form(WeakForm::LiFormSurf *lf, PrecalcShapeset *fv, RefMa
           rv->get_active_element()->vn[2]->id,
           rv->get_active_element()->vn[3]->id
           );
+          */
   for (int i = 0; i < lf->ext.size(); i++) {
       Element *e_right = rv->get_active_element()->get_neighbor(ep->edge);
       if (e_right != NULL) {
-          printf("element id=%d\n", e_right->id);
+          //printf("element id=%d\n", e_right->id);
       MeshFunction *m = (lf->ext[i]);
       Solution *sol_right = dynamic_cast<Solution*>(m);
 
