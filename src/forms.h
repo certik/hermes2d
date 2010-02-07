@@ -128,13 +128,16 @@ template<typename T>
 class Geom
 {
 public:
-  int marker;      // marker
-  int id;
-  Element *element; // active element
-
-  T *x, *y;				 // coordinates [in physical domain]
-	T *nx, *ny;			 // normals [in physical domain]
-	T *tx, *ty;			 // tangents [in physical domain]
+    int marker;     // element marker
+    int id;
+    Element *element; // active element
+    T *x, *y;         // coordinates [in physical domain]
+    T *nx, *ny;       // normals [in physical domain] (locally oriented
+                      // to point outside the element)
+    T *tx, *ty;       // tangents [in physical domain]
+    int orientation;  // 1 .... if (nx, ny) is equal to the global normal,
+                      // otherwise 0 (each mesh edge has a unique global normal
+                      // vector)
 
 	Geom()
   {
