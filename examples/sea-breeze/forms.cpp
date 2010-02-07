@@ -3,7 +3,7 @@
 
 #include "_hermes2d_api.h"
 
-const double TAU = 0.00001;  // this is in seconds
+const double TAU = 1;  // this is in seconds
 
 const double T_0 = T_z(0);
 const double p_0 = p_z(0);
@@ -70,7 +70,7 @@ scalar w4_init(double x, double y, scalar& dx, scalar& dy) {
     dx = 0;
     dy = 0;
     //w4_init_num = rho_z(0) * T_z(0) * c_v / E_r;
-    w4_init_num = 1;
+    w4_init_num = 10;
     p_init_num = R/c_v * (w4_init_num - (w1_init_num*w1_init_num +
                 w3_init_num*w3_init_num)/(2*w0_init_num));
     return w4_init_num;
@@ -337,15 +337,15 @@ Scalar s_i(int _i, int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scal
         w_l[0] = 1;
         w_l[1] = 1;
         w_l[2] = 0;
-        w_l[3] = 1;
+        w_l[3] = 10;
         for (int j=0; j < 4; j++)
             //w_r[j] = ext->fn[j]->val[i];
             w_r[j] = w_l[j];
 
         double flux[4];
         double nx=e->nx[i], ny=e->ny[i];
-        printf("ori=%d, n=(%f, %f), x=(%f, %f)\n", e->orientation, nx, ny,
-                e->x[i], e->y[i]);
+        //printf("ori=%d, n=(%f, %f), x=(%f, %f)\n", e->orientation, nx, ny,
+        //        e->x[i], e->y[i]);
 
         numerical_flux(flux, w_l, w_r, nx, ny);
 
@@ -357,6 +357,7 @@ Scalar s_i(int _i, int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scal
 
         result += wt[i] * C * flux[_i] * v->val[i];
     }
+    printf("i=%d, result=%f\n", _i, result);
     return result;
 }
 
