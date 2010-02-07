@@ -613,7 +613,7 @@ void LinSystem::assemble(bool rhsonly)
           double b = RHS[am->dof[i]];
           RHS[am->dof[i]] += eval_form(lfv, fv, refmap+m) * am->coef[i];
           b -= RHS[am->dof[i]];
-          printf("RHS[%d] += %f\n", am->dof[i], b);
+          //printf("RHS[%d] += %f\n", am->dof[i], b);
         }
       }
 
@@ -733,7 +733,7 @@ void LinSystem::assemble(bool rhsonly)
             double b= RHS[am->dof[i]];
             RHS[am->dof[i]] += eval_form(lfs, fv, refmap+m, ep+edge) * am->coef[i];
             b = RHS[am->dof[i]]-b;
-          printf("surface RHS[%d] += %f\n", am->dof[i], b);
+          //printf("surface RHS[%d] += %f\n", am->dof[i], b);
           }
         }
       }

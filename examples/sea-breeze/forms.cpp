@@ -332,20 +332,24 @@ Scalar s_i(int _i, int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scal
         double w_r[4];
 
         // this has to be fixed in hermes to return the correct w_l, w_r:
-        //for (int j=0; j < 4; j++)
-        //    w_l[j] = ext->fn[j]->val[i];
+        for (int j=0; j < 4; j++)
+            w_l[j] = ext->fn[j]->val[i];
+        /*
         w_l[0] = 1;
         w_l[1] = 1;
         w_l[2] = 0;
         w_l[3] = 10;
+        */
         for (int j=0; j < 4; j++)
             //w_r[j] = ext->fn[j]->val[i];
             w_r[j] = w_l[j];
 
         double flux[4];
         double nx=e->nx[i], ny=e->ny[i];
+        /*
         printf("ori=%d, n=(%f, %f), x=(%f, %f)\n", e->orientation, nx, ny,
                 e->x[i], e->y[i]);
+                */
 
         numerical_flux(flux, w_l, w_r, nx, ny);
 
@@ -353,11 +357,11 @@ Scalar s_i(int _i, int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scal
         // the local normal:
         double C = 1.0;
         if ((e->orientation == 1))
-            C = 1.0;
+            C = -1.0;
 
-        result += wt[i] * C * flux[_i] * v->val[i];
+        result += wt[i] * flux[_i] * v->val[i];
     }
-    printf("i=%d, result=%f\n", _i, result);
+    //printf("i=%d, result=%f\n", _i, result);
     return result;
 }
 
@@ -380,7 +384,7 @@ Scalar l_i(int _i, int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scal
                     + f_z_via_A(_i, w0, w1, w3, w4) * v->dy[i]
                 );
     }
-    printf("result=%f, result_flux=%f\n", result, result_flux);
+    //printf("result=%f, result_flux=%f\n", result, result_flux);
     return result+result_flux;
     /*
     Scalar result = 0;
