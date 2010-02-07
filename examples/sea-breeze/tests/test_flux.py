@@ -173,25 +173,25 @@ def test_numerical_flux():
     def testit(w_l, w_r):
         w_l = array(w_l, dtype="double")
         w_r = array(w_r, dtype="double")
-        # consistency:
-        n = array([1, 0])
-        f1 = numerical_flux(w_l, w_l, n)
-        f2 = f_x(w_l)
-        assert (abs(f1 - f2) < eps).all()
+        def testn(n):
+            # consistency:
+            f1 = numerical_flux(w_l, w_l, n)
+            f2 = flux(w_l, n)
+            print n, f1, f2
+            assert (abs(f1 - f2) < eps).all()
 
-        f1 = numerical_flux(w_l, w_r, n)
-        f2 = numerical_flux(w_r, w_l, -n)
-        assert not (abs(f1 - f2) < eps).all()
+            # conservativity:
+            f1 = numerical_flux(w_l, w_r, n)
+            f2 = numerical_flux(w_r, w_l, -n)
+            assert not (abs(f1 - f2) < eps).all()
+        test_normals = [
+            array([1, 0]),
+            array([1, 1]),
+            ]
+        for n in test_normals:
+            n = n/float(norm(n))
+            testn(n)
 
-        # conservativity:
-        n = array([1, 1])
-        f1 = numerical_flux(w_l, w_r, n)
-        f2 = -numerical_flux(w_r, w_l, -n)
-        assert (abs(f1 - f2) < eps).all()
-
-        f1 = numerical_flux(w_l, w_r, n)
-        f2 = numerical_flux(w_r, w_l, -n)
-        assert not (abs(f1 - f2) < eps).all()
 
     test_states = [
         array([1, 1, 0, 10]),
