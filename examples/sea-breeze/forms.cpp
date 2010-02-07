@@ -332,9 +332,9 @@ Scalar s_i(int _i, int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scal
         double w_r[4];
 
         // this has to be fixed in hermes to return the correct w_l, w_r:
-        for (int j; i < 4; i++)
+        for (int j=0; j < 4; j++)
             w_l[j] = ext->fn[j]->val[i];
-        for (int j; i < 4; i++)
+        for (int j=0; j < 4; j++)
             w_r[j] = ext->fn[j]->val[i];
 
         double flux[4];
