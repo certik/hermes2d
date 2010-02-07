@@ -117,18 +117,20 @@ int main(int argc, char* argv[])
 
   // load the mesh file
   Mesh mesh;
-  //mesh.load("GAMM-channel.mesh");
-  //mesh.load("channel.mesh");
   //mesh.load("quad-diag.mesh");
   H2DReader mloader;
-  mloader.load("domain-quad.mesh", &mesh);
+  //mloader.load("domain-quad.mesh", &mesh);
+  //mloader.load("channel.mesh", &mesh);
+  mloader.load("GAMM-channel.mesh", &mesh);
 
   // a-priori mesh refinements
   //mesh.refine_all_elements();
   //mesh.refine_all_elements();
   //mesh.refine_all_elements();
-  //mesh.refine_towards_boundary(marker_bottom, 1);
-  mesh.refine_towards_boundary(marker_right, 1);
+  //mesh.refine_towards_boundary(marker_bottom, 3);
+  //mesh.refine_towards_boundary(marker_right, 1);
+  mesh.refine_all_elements();
+  mesh.refine_all_elements();
   mesh.refine_all_elements();
   mesh.refine_all_elements();
   //mesh.refine_all_elements(2);
@@ -241,9 +243,9 @@ int main(int argc, char* argv[])
     // assemble and solve
     Solution w0_sln, w1_sln, w3_sln, w4_sln;
     sys.assemble();
-    insert_object("sys", LinSystem_from_C(&sys));
+    //insert_object("sys", LinSystem_from_C(&sys));
     cmd("import util");
-    cmd("util.run(sys)");
+    //cmd("util.run(sys)");
     sys.solve(4, &w0_sln, &w1_sln, &w3_sln, &w4_sln);
     //error("stop");
 
