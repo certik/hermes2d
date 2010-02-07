@@ -217,7 +217,6 @@ int main(int argc, char* argv[])
   BaseView bview;
   bview.show(&s4);
   bview.wait();
-  error("stop");
   */
 
   // main loop
