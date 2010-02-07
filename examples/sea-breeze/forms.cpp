@@ -339,7 +339,7 @@ Scalar s_i(int _i, int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scal
 
         double flux[4];
         double nx=e->nx[i], ny=e->ny[i];
-        // if (orientation == 0) { nx *= -1; ny *= -1;}
+        if (e->orientation) { nx *= -1; ny *= -1;}
 
         numerical_flux(flux, w_l, w_r, nx, ny);
 

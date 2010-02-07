@@ -128,8 +128,11 @@ class Geom
 public:
   int marker;     // element marker
 	T *x, *y;				// coordinates
-	T *nx, *ny;			// normals
+	T *nx, *ny;			// normals (localally oriented to point outside the el.)
 	T *tx, *ty;			// tangents
+    int orientation; // 1 .... if (nx, ny) is equal to the global normal,
+                     // otherwise 0 (each mesh edge has a unique global normal
+                     // vector)
 
 	Geom()
   {

@@ -38,7 +38,7 @@ Geom<Ord>* init_geom_ord()
 Geom<double>* init_geom_vol(RefMap *rm, const int order)
 {
 	Geom<double>* e = new Geom<double>;
-  e->marker = rm->get_active_element()->marker;
+    e->marker = rm->get_active_element()->marker;
 	e->x = rm->get_phys_x(order);
 	e->y = rm->get_phys_y(order);
 	return e;
@@ -65,6 +65,7 @@ Geom<double>* init_geom_surf(RefMap *rm, EdgePos* ep, const int order)
     e->tx[i] = tan[i][0];  e->ty[i] =   tan[i][1];
     e->nx[i] = tan[i][1];  e->ny[i] = - tan[i][0];
   }
+    e->orientation = rm->get_active_element()->get_edge_orientation(ep->edge);
 	return e;
 }
 
