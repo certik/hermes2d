@@ -243,7 +243,7 @@ void solveAdaptive(Mesh &Cmesh, Mesh &phimesh, Mesh &basemesh, NonlinSystem &nls
       int it = 1;
       double res_l2_norm;
       if (n > 1 || at > 1) {
-        nls.set_ic(&Csln_fine, &Ci, &phisln_fine, &phii);
+        nls.set_ic(&Csln_fine, &phisln_fine, &Ci, &phii);
       } else {
         /* No need to set anything, already set. */
         nls.set_ic(&Ci, &phii, &Ci, &phii);
