@@ -127,6 +127,7 @@ protected: //GUI
   void create_setup_bar(); ///< create setup bar. Assumes that current window is set
 
 protected: //values
+#define H2DV_GL_MAX_EDGE_BUFFER 128 ///< A maximum number of pairs per a buffer.
 #pragma pack(push)
 #pragma pack(1)
   struct GLVertex2 ///< OpenGL vertex. Used to cache vertices prior rendering
@@ -141,16 +142,20 @@ protected: //values
 
   Linearizer lin;
   bool lin_updated; ///< true, if lin now contains new values
-  GLVertex2* gl_verts; ///< vertices prepared for OpenGL rendering
-  int max_gl_verts; ///< a maximum allocated number of vertices
-  int3* gl_tris; ///< indices of valid triangles prepared for OpenGL rendering
-  int max_gl_tris; ///< a maximum allocated number of triangles
-  int gl_tri_cnt; ///< a number of OpenGL triangles
+
+  unsigned int gl_coord_buffer; ///< Vertex coordinate buffer. (x,y,t)
+  unsigned int gl_index_buffer; ///< Index data buffer.
+  unsigned int gl_edge_inx_buffer; ///< A buffer for edge indices. The side of the buffer is H2DV_GL_MAX_EDGE_BUFFER pairs of indids.
+  int max_gl_verts; ///< A maximum allocated number of vertices
+  int max_gl_tris; ///< A maximum allocated number of triangles
+  int gl_tri_cnt; ///< A number of OpenGL triangles
   
   bool show_values; ///< true to show values
 
-  void prepare_gl_geometry(); ///< prepares geometry in a form compatible with GL arrays; Data are updated if lin is updated. In a case of a failure (out of memory), gl_verts is NULL and an old OpenGL rendering method has to be used.
+  void prepare_gl_geometry(const double value_min, const double value_irange); ///< prepares geometry in a form compatible with GL arrays; Data are updated if lin is updated. In a case of a failure (out of memory), gl_verts is NULL and an old OpenGL rendering method has to be used.
   void draw_values_2d(const double value_min, const double value_irange); ///< draws values 
+  void draw_edges_2d(); ///< draws edges
+
 
 protected: //edges
   bool show_edges; ///< true to show edges of mesh

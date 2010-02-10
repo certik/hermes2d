@@ -4,7 +4,6 @@ This is README for building and using Hermes2D using Microsoft Visual C++ 2008 (
 
 * Known limitations and issues
  - all three stand-alone viewers do not compile
- - ExodusII mesh format not supported
  - Trilinos not supported
  - Python not supported
 
@@ -82,13 +81,22 @@ This is README for building and using Hermes2D using Microsoft Visual C++ 2008 (
 	- download CMAKE (http://www.cmake.org/cmake/resources/software.html) version 2.6.X at minimum
 	- install CMAKE such that it is accessible from every location
 	
- 6) FREEGLUT (optional)
-    - if a directive NOGLUT is used, this step can be skipped
+ 6) OpenGL support (optional)
+    - if a directive NOGLUT is used, this step and all its substeps can be skipped
+
+ 6a) FREEGLUT 
     - download freeglut 2.6.0 (http://freeglut.sourceforge.net/) and unpack it
-	- open file DSW or DSP in MSVC, MSVC will convert file into a newer format, i.e., SLN or VCPROJ
+	- open a DSW or DSP file in MSVC, MSVC will convert file into a newer format, i.e., SLN or VCPROJ
 	- compile either Debug or Release version. Debug version is recommended in a case of debugging.
 	- copy 'freeglut.dll', 'freeglut.h', and 'freeglut.lib' to 'bin', 'include', and 'lib' dependency directories respectively
-	
+  
+ 6b) GLEW
+    - download glew 1.5.2 (http://glew.sourceforge.net/) and unpack it
+	- open a DSW file 'my_glew_root/builds/vc6' and let MSVC to convert it 
+    - switch to 'Release' version
+	- build a project 'glew_shared': this will create DLL file
+	- copy 'my_glew_root/bin/glew32.dll', 'my_glew_root/include/GL/*.h', and 'my_glew_root/bin/glew32.lib' to 'bin', 'include/GL', and 'lib' dependency directories respectively
+ 	
  7) AntTweakBar (optional)
 	- if a directive ENABLE_VIEWER_GUI is *not* used, this step can be skipped
 	- download a modified version 1.1.3 of AntTweakView (http://hpfem.org/hermes2d/)

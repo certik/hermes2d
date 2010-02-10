@@ -80,11 +80,13 @@ void make_log_record(const char* msg, va_list arglist) { /* makes record to the 
     //get time
     time_t now;
     time(&now);
-    char* time_str = ctime(&now);
-    time_str[strlen(time_str)-1] = '\0';
+    struct tm* now_tm = gmtime(&now);
+#define TIME_BUF_SZ 1024
+    char time_buf[1024];
+    strftime(time_buf, TIME_BUF_SZ, "%y%m%d-%H%M", now_tm);
 
     //write
-    fprintf(file, "%s", time_str);
+    fprintf(file, "%s", time_buf);
     fprintf(file, "\t");
     vfprintf(file, msg, arglist);
     fprintf(file, "\n");
