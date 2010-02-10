@@ -20,6 +20,7 @@
 
 #ifndef NOGLUT
 
+#include <GL/glew.h>
 #include <GL/freeglut.h>
 #ifndef WIN32
 # include <sys/time.h>
@@ -53,6 +54,9 @@ ViewMonitor::~ViewMonitor() {
 }
 
 /* forward definitions */
+static bool glut_initialized = false; ///< True if GLUT is initialized
+static bool glew_initialized = false; ///< True if GLEW is initialized
+
 static bool init_glut();
 static bool shutdown_glut();
 void on_display_stub(void);
@@ -208,6 +212,15 @@ int add_view_in_thread(void* view_pars_ptr)
   glutInitWindowSize(view_params.width, view_params.height);
   int view_id = glutCreateWindow(view_params.title);
   glutSetWindowData(view_params.view);
+
+  //initialize GLEW
+  GLenum err = glewInit();
+  if (err != GLEW_OK) {
+    log_msg("E GLEW error: %s", glewGetErrorString(err));
+  }
+  else {
+    glew_initialized = true;
+  }
 
   //register callbacks
   glutDisplayFunc(on_display_stub);
@@ -371,7 +384,6 @@ static bool init_glut()
 {
   static int argc = 1;
   static const char* argv[1] = { "x" };
-  static bool glut_initialized = false;
 
   //prepare GLUT environment
   if (!glut_initialized) {
@@ -392,6 +404,7 @@ static bool init_glut()
 /// shutdowns GLUT
 static bool shutdown_glut()
 {
+  glut_initialized = false;
   return true;
 }
 
@@ -436,8 +449,10 @@ void force_view_thread_shutdown() {
   view_sync.leave();
 
   //wait for thread to finish
-  if (should_wait)
+  if (should_wait) {
+    glew_initialized = false;
     pthread_join(current_thread, NULL);
+  }
 }
 
 void wait_for_all_views_close() {

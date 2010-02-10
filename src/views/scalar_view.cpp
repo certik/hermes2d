@@ -15,12 +15,15 @@
 
 #ifndef NOGLUT
 
+#include <GL/glew.h>
 #include <GL/freeglut.h>
 #include <algorithm>
 #include <cmath>
 #include <list>
 #include "../common.h"
 #include "scalar_view.h"
+
+#define GL_BUFFER_OFFSET(i) ((char *)NULL + (i))
 
 #ifdef ENABLE_VIEWER_GUI
 # include <AntTweakBar.h>
@@ -58,13 +61,12 @@ ScalarView::ScalarView(const char* title, int x, int y, int width, int height)
 
   show_values = true;
   lin_updated = false;
-  gl_verts = NULL; gl_tris = NULL;
+  gl_coord_buffer = 0; gl_index_buffer = 0; gl_edge_inx_buffer = 0;
 }
 
 ScalarView::~ScalarView()
 {
   delete[] normals;
-  delete[] gl_verts; delete[] gl_tris;
   vertex_nodes.clear();
 
 # ifdef ENABLE_VIEWER_GUI
@@ -124,6 +126,14 @@ void ScalarView::on_close()
   {
     glDeleteLists(element_id_widget, 1);
     element_id_widget = 0;
+  }
+  if (gl_coord_buffer != 0) {
+    glDeleteBuffersARB(1, &gl_coord_buffer);
+    gl_coord_buffer = 0;
+  }
+  if (gl_index_buffer != 0) {
+    glDeleteBuffersARB(1, &gl_index_buffer);
+    gl_index_buffer = 0;
   }
 
   //call of parent implementation
@@ -194,7 +204,8 @@ void ScalarView::show(MeshFunction* sln, double eps, int item,
   refresh();
   wait_for_draw(); //BaseView calls 
 
-  verbose("ScalarView::show(): min=%g max=%g", lin.get_min_value(), lin.get_max_value());
+  verbose("I scalarview::show(): value range: [%g, %g]", lin.get_min_value(), lin.get_max_value());
+  verbose("                      used range range: [%g, %g]", range_min, range_max);
 }
 
 bool ScalarView::compare_vertex_nodes_x(const VertexNodeInfo& a, const VertexNodeInfo& b)
@@ -602,46 +613,42 @@ void ScalarView::draw_tri_contours(double3* vert, int3* tri)
   }
 }
 
-void ScalarView::prepare_gl_geometry()
+void ScalarView::prepare_gl_geometry(const double value_min, const double value_irange)
 {
   if (lin_updated)
   {
     lin_updated = false;
 
-    //get input data
-    int vert_cnt = lin.get_num_vertices();
-    double3* verts = lin.get_vertices();
-    int tri_cnt = lin.get_num_triangles();
-    int3* tris = lin.get_triangles();
-
-    // value range
-    double value_min = range_min, value_max = range_max;
-    if (range_auto) { value_min = lin.get_min_value(); value_max = lin.get_max_value(); }
-    double value_irange = 1.0 / (value_max - value_min);
-    // special case: constant solution
-    if ((value_max - value_min) < 1e-8) { value_irange = 1.0; range_min -= 0.5; }
-
-    //allocate and fill
     try {
-      //reallocate
-      if (gl_verts == NULL || vert_cnt > max_gl_verts)
-      {
-        delete[] gl_verts;
-        gl_verts = new GLVertex2[vert_cnt];
-        max_gl_verts = vert_cnt;
-      }
-      if (gl_tris == NULL || tri_cnt > max_gl_tris)
-      {
-        delete[] gl_tris;
-        gl_tris = new int3[tri_cnt];
+      //get input data
+      int vert_cnt = lin.get_num_vertices();
+      double3* verts = lin.get_vertices();
+      int tri_cnt = lin.get_num_triangles();
+      int3* tris = lin.get_triangles();
+
+      //check if extension is supported
+      if (!GLEW_ARB_vertex_buffer_object)
+        throw std::runtime_error("ARB_vertex_buffer_object not supported");
+
+      //reallocate indices
+      if (gl_index_buffer == 0 || tri_cnt > max_gl_tris) {
+        if (gl_index_buffer == 0)
+          glGenBuffersARB(1, &gl_index_buffer);
+        glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, gl_index_buffer);
+        glBufferDataARB(GL_ELEMENT_ARRAY_BUFFER_ARB, sizeof(GLint) * tri_cnt * 3, NULL, GL_DYNAMIC_DRAW_ARB);
+        GLenum err = glGetError();
+        if (err != GL_NO_ERROR)
+          throw std::runtime_error("unable to allocate vertex buffer: " + err);
         max_gl_tris = tri_cnt;
       }
-    
-      //fill with data: vertices
-      for(int i = 0; i < vert_cnt; i++)
-        gl_verts[i] = GLVertex2((float)verts[i][0], (float)verts[i][1], (float)((verts[i][2] - value_min) * value_irange));
+      else {
+        glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, gl_index_buffer);
+      }
 
-      //fill with data: triangles
+      //fill indices
+      GLuint* gl_triangle = (GLuint*)glMapBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, GL_WRITE_ONLY_ARB);
+      if (gl_triangle == NULL)
+          throw std::runtime_error("unable to map index buffer: " + glGetError());
       gl_tri_cnt = 0;
       for(int i = 0; i < tri_cnt; i++)
       {
@@ -651,17 +658,57 @@ void ScalarView::prepare_gl_geometry()
         const double3& vert_c = verts[triangle[2]];
         if (finite(vert_a[2]) && finite(vert_b[2]) && finite(vert_c[2]))
         {
-          gl_tris[gl_tri_cnt][0] = triangle[0];
-          gl_tris[gl_tri_cnt][1] = triangle[1];
-          gl_tris[gl_tri_cnt][2] = triangle[2];
+          gl_triangle[0] = (GLint)triangle[0];
+          gl_triangle[1] = (GLint)triangle[1];
+          gl_triangle[2] = (GLint)triangle[2];
           gl_tri_cnt++;
+          gl_triangle += 3; //three indices per triangle
         }
       }
+      glUnmapBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB);
+
+      //reallocate vertices
+      if (gl_coord_buffer == 0 || vert_cnt > max_gl_verts) {
+        if (gl_coord_buffer == 0)
+          glGenBuffersARB(1, &gl_coord_buffer);
+        glBindBufferARB(GL_ARRAY_BUFFER_ARB, gl_coord_buffer);
+        glBufferDataARB(GL_ARRAY_BUFFER_ARB, sizeof(GLVertex2) * vert_cnt, NULL, GL_DYNAMIC_DRAW_ARB);
+        GLenum err = glGetError();
+        if (err != GL_NO_ERROR)
+          throw std::runtime_error("unable to allocate coord buffer: " + err);
+        max_gl_verts = vert_cnt;
+      }
+      else {
+        glBindBufferARB(GL_ARRAY_BUFFER_ARB, gl_coord_buffer);
+      }
+
+      //fill vertices
+      GLVertex2* gl_verts = (GLVertex2*)glMapBufferARB(GL_ARRAY_BUFFER_ARB, GL_WRITE_ONLY_ARB);
+      if (gl_verts == NULL)
+          throw std::runtime_error("unable to map coord buffer: " + glGetError());
+      for(int i = 0; i < vert_cnt; i++)
+        gl_verts[i] = GLVertex2((float)verts[i][0], (float)verts[i][1], (float)((verts[i][2] - value_min) * value_irange));
+      glUnmapBufferARB(GL_ARRAY_BUFFER_ARB);
+
+      //allocate edge indices
+      if (gl_edge_inx_buffer == 0) {
+        glGenBuffersARB(1, &gl_edge_inx_buffer);
+        glBindBufferARB(GL_ARRAY_BUFFER_ARB, gl_edge_inx_buffer);
+        glBufferDataARB(GL_ARRAY_BUFFER_ARB, sizeof(GLuint) * H2DV_GL_MAX_EDGE_BUFFER * 2, NULL, GL_DYNAMIC_DRAW_ARB);
+        GLenum err = glGetError();
+        if (err != GL_NO_ERROR) { //if it fails, no problem
+          glDeleteBuffersARB(1, &gl_edge_inx_buffer);
+          gl_edge_inx_buffer = 0;
+        }
+      }
+      glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
     }
-    catch(bad_alloc &)
-    { //out-of-memory failure
-      delete[] gl_verts; gl_verts = NULL;
-      delete[] gl_tris; gl_tris = NULL;
+    catch(std::exception &e)
+    { //out-of-memory or any other failure
+      debug_log("W unable to use VBO: %s", e.what());
+      if (gl_coord_buffer) { glDeleteBuffersARB(1, &gl_coord_buffer); gl_coord_buffer = 0; }
+      if (gl_index_buffer) { glDeleteBuffersARB(1, &gl_index_buffer); gl_index_buffer = 0; }
+      if (gl_edge_inx_buffer) { glDeleteBuffersARB(1, &gl_edge_inx_buffer); gl_edge_inx_buffer = 0; }
     }
   }
 }
@@ -683,7 +730,7 @@ void ScalarView::draw_values_2d(const double value_min, const double value_irang
   glScaled(tex_scale, 0.0, 0.0);
 
   //render triangles
-  if (gl_verts == NULL || gl_tris == NULL)
+  if (gl_coord_buffer == 0 || gl_index_buffer == 0)
   { //render using the safe but slow methoold and slow method
     //obtain data
     int tri_cnt = lin.get_num_triangles();
@@ -711,20 +758,25 @@ void ScalarView::draw_values_2d(const double value_min, const double value_irang
     }
     glEnd();
   }
-  else { //render using vertex arrays
-    //prepare GL for rendering
-    glEnableClientState(GL_VERTEX_ARRAY);
-    glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-    glVertexPointer(2, GL_FLOAT, sizeof(GLVertex2), gl_verts);
-    glTexCoordPointer(1, GL_FLOAT, sizeof(GLVertex2), ((char*)gl_verts) + GLVertex2::offsetof_coord);
+  else { //render using vertex buffer object
+    if (gl_tri_cnt > 0) {
+      //bind vertices
+      glBindBufferARB(GL_ARRAY_BUFFER_ARB, gl_coord_buffer);
+      glVertexPointer(2, GL_FLOAT, sizeof(GLVertex2), GL_BUFFER_OFFSET(0));
+      glTexCoordPointer(1, GL_FLOAT, sizeof(GLVertex2), GL_BUFFER_OFFSET(GLVertex2::offsetof_coord));
+      glEnableClientState(GL_VERTEX_ARRAY);
+      glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 
-    //render triangles
-    if (gl_tri_cnt > 0)
-      glDrawElements(GL_TRIANGLES, 3*gl_tri_cnt, GL_UNSIGNED_INT, gl_tris);
+      //bind indices
+      glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, gl_index_buffer);
 
-    //GL cleanup
-    glDisableClientState(GL_VERTEX_ARRAY);
-    glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+      //render
+      glDrawElements(GL_TRIANGLES, 3*gl_tri_cnt, GL_UNSIGNED_INT, GL_BUFFER_OFFSET(0));
+
+      //GL cleanup
+      glDisableClientState(GL_VERTEX_ARRAY);
+      glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+    }
   }
 
   //GL clenaup
@@ -733,18 +785,72 @@ void ScalarView::draw_values_2d(const double value_min, const double value_irang
   glMatrixMode(GL_MODELVIEW);
 }
 
+void ScalarView::draw_edges_2d() {
+  glColor3fv(edges_color);
+  bool displayed = false;
+  if (gl_edge_inx_buffer != 0) {//VBO
+    //prepage GL
+    glEnableClientState(GL_VERTEX_ARRAY);
+
+    //map edge buffer
+    glBindBufferARB(GL_ARRAY_BUFFER_ARB, gl_edge_inx_buffer);
+    GLuint *gl_inx_buffer = (GLuint*)glMapBufferARB(GL_ARRAY_BUFFER_ARB, GL_WRITE_ONLY);
+    GLenum err = glGetError();
+    unsigned char* msg = (unsigned char*)gluErrorString(err);
+    if (err == GL_NO_ERROR) {//render edges
+      unsigned int buffer_inx = 0;
+      int3* edges = lin.get_edges();
+      int edge_cnt = lin.get_num_edges();
+      for (int i = 0; i < edge_cnt; i++) //TODO: we could draw only left-right, top-bottom ones
+      {
+        const int3 &edge = edges[i];
+        if (show_edges || edge[2] != 0) { //select internal edges to draw
+          gl_inx_buffer[buffer_inx] = (GLuint)edge[0];
+          gl_inx_buffer[buffer_inx+1] = (GLuint)edge[1];
+          buffer_inx += 2;
+        }
+
+        //render buffer if it is full or if this is the last edge processed
+        if (buffer_inx == (2*H2DV_GL_MAX_EDGE_BUFFER) || (buffer_inx > 0 && i == (edge_cnt-1))) {
+          glUnmapBufferARB(GL_ARRAY_BUFFER_ARB);
+
+          //bind vertices and buffers
+          glBindBufferARB(GL_ARRAY_BUFFER_ARB, gl_coord_buffer);
+          glVertexPointer(2, GL_FLOAT, sizeof(GLVertex2), GL_BUFFER_OFFSET(0));
+          glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, gl_edge_inx_buffer);
+
+          //render
+          glDrawElements(GL_LINES, buffer_inx, GL_UNSIGNED_INT, GL_BUFFER_OFFSET(0));
+
+          //map edge buffer
+          glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, 0);
+          glBindBufferARB(GL_ARRAY_BUFFER_ARB, gl_edge_inx_buffer);
+          gl_inx_buffer = (GLuint*)glMapBufferARB(GL_ARRAY_BUFFER_ARB, GL_WRITE_ONLY);
+          buffer_inx = 0;
+        }
+      }
+      glUnmapBufferARB(GL_ARRAY_BUFFER_ARB);
+
+      //GL cleanup
+      glDisableClientState(GL_VERTEX_ARRAY);
+
+      displayed = true;
+    }
+  }
+
+  //safe fallback
+  if (!displayed) { //VBO not suppored
+    glBegin(GL_LINES);
+    draw_edges(&draw_gl_edge, NULL, !show_edges);
+    glEnd();
+  }
+}
+
 void ScalarView::draw_gl_edge(int inx_vert_a, int inx_vert_b, ScalarView* viewer, void* param)
 {
-  if (viewer->gl_verts != NULL)
-  { //draw using prepared GL vertices
-    glVertex2f(viewer->gl_verts[inx_vert_a].x, viewer->gl_verts[inx_vert_a].y);
-    glVertex2f(viewer->gl_verts[inx_vert_b].x, viewer->gl_verts[inx_vert_b].y);
-  }
-  else { //obtain vertices
-    double3* verts = viewer->lin.get_vertices();
-    glVertex2d(verts[inx_vert_a][0], verts[inx_vert_a][1]);
-    glVertex2d(verts[inx_vert_b][0], verts[inx_vert_b][1]);
-  }
+  double3* verts = viewer->lin.get_vertices();
+  glVertex2d(verts[inx_vert_a][0], verts[inx_vert_a][1]);
+  glVertex2d(verts[inx_vert_b][0], verts[inx_vert_b][1]);
 }
 
 void ScalarView::draw_edges(DrawSingleEdgeCallback draw_single_edge, void* param, bool boundary_only)
@@ -779,7 +885,7 @@ void ScalarView::on_display()
   glPolygonMode(GL_FRONT_AND_BACK, pmode ? GL_LINE : GL_FILL);
 
   //prepare vertices
-  prepare_gl_geometry();
+  prepare_gl_geometry(value_min, value_irange);
   
   if (!mode3d)
   {
@@ -819,10 +925,7 @@ void ScalarView::on_display()
     }
 
     // draw edges and boundary of mesh
-    glColor3fv(edges_color);
-    glBegin(GL_LINES);
-    draw_edges(&draw_gl_edge, NULL, !show_edges);
-    glEnd();
+    draw_edges_2d();
 
     //draw element IDS
     if (show_element_info)

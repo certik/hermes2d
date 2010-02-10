@@ -144,7 +144,9 @@ void View::pre_display()
   else if (b_scale) scale_dispatch();
 
   //draw current rendring time
+# ifdef _DEBUG
   draw_fps();
+# endif
 
   //wait to finish
   glFinish();
@@ -537,10 +539,7 @@ void View::create_gl_palette()
     glGenTextures(1, &gl_pallete_tex_id);
   glBindTexture(GL_TEXTURE_1D, gl_pallete_tex_id);
   glTexImage1D(GL_TEXTURE_1D, 0, 3, 256, 0, GL_RGB, GL_UNSIGNED_BYTE, palette);
-#ifndef GL_CLAMP_TO_EDGE // fixme: this is needed on Windows
-  #define GL_CLAMP_TO_EDGE 0x812F
-#endif
-  glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+  glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_WRAP_S, GL_CLAMP);
   glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
 }
 
