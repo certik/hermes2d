@@ -195,7 +195,7 @@ int main(int argc, char* argv[])
   vecview.show(&sln_fine);
 
   // wait for keyboard or mouse input
-  View::wait("Waiting for keyboard or mouse input.");
+  View::wait("Waiting for all views to be closed.");
   return 0;
 }
 

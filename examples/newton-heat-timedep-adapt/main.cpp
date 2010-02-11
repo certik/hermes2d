@@ -328,6 +328,6 @@ int main(int argc, char* argv[])
   verbose("Total running time: %g sec", cpu);
 
   // wait for keyboard or mouse input
-  View::wait("Waiting for keyboard or mouse input.");
+  View::wait("Waiting for all views to be closed.");
   return 0;
 }

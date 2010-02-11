@@ -39,8 +39,17 @@ OrderView::OrderView(const char* title, int x, int y, int width, int height)
 
 static int order_palette[] =
 {
-  0x000000, 0x000684, 0x3250fc, 0x36c4ee, 0x04eabc,
-  0x62ff2a, 0xfdff07, 0xffa044, 0xff1111, 0xb02c2c, 0x820f97
+  0x7f7f7f,
+  0x7f2aff,
+  0x2a2aff,
+  0x2a7fff,
+  0x00d4aa,
+  0x00aa44,
+  0xabc837,
+  0xffd42a,
+  0xc87137,
+  0xc83737,
+  0xff0000
 };
 
 
@@ -61,9 +70,7 @@ void OrderView::show(Space* space)
   wait_for_draw();
 }
 
-
-void OrderView::init_order_palette()
-{
+void OrderView::init_order_palette() {
   int min = 1, max = 1;
   double3* vert = ord.get_vertices();
   for (int i = 0; i < ord.get_num_vertices(); i++)
@@ -76,13 +83,14 @@ void OrderView::init_order_palette()
   char* buf = text_buffer;
   for (int i = 0; i < num_boxes; i++)
   {
-    //if (pal_type != 0)
-      memcpy(order_colors[i+min], get_palette_color((i + min - 1) / 9.0), 3*sizeof(float));
-    /*else {
+    if (pal_type == H2DV_PT_DEFAULT) {
       order_colors[i+min][0] = (float) (order_palette[i+min] >> 16) / 0xff;
       order_colors[i+min][1] = (float) ((order_palette[i+min] >> 8) & 0xff) / 0xff;
       order_colors[i+min][2] = (float) (order_palette[i+min] & 0xff) / 0xff;
-    }*/
+    }
+    else {
+      get_palette_color((i + min - 1) / 9.0, &order_colors[i+min][0]);
+    }
     
     sprintf(buf, "%d", i + min);
     box_names[i] = buf;
@@ -115,11 +123,9 @@ void OrderView::on_display()
   // draw all triangles
   int3* tris = ord.get_triangles();
   glBegin(GL_TRIANGLES);
-  const float* color;
   for (i = 0; i < ord.get_num_triangles(); i++)
   {
-    color = order_colors[(int) vert[tris[i][0]][2]];
-    //get_palette_color((vert[tris[i][0]][2] - 1) / 9.0);
+    const float* color = order_colors[(int) vert[tris[i][0]][2]];
     glColor3f(color[0], color[1], color[2]);
     
     glVertex2d(tvert[tris[i][0]][0], tvert[tris[i][0]][1]);
@@ -156,8 +162,8 @@ void OrderView::on_display()
           lbox[i][1] * scale > 13)
       {
         //color = get_palette_color((vert[lvert[i]][2] - 1) / 9.0);
-        color = order_colors[(int) vert[lvert[i]][2]];
-        if ((color[0] + color[1] + color[2]) / 3 > 0.5)
+        const float* color = order_colors[(int) vert[lvert[i]][2]];
+        if ((color[0]*0.39f + color[1]*0.50f + color[2]*0.11f) > 0.5f)
           glColor3f(0, 0, 0);
         else
           glColor3f(1, 1, 1);
@@ -200,8 +206,14 @@ void OrderView::on_key_down(unsigned char key, int x, int y)
         
     case 'p':
     {
-      pal_type++;
-      if (pal_type > 2) pal_type = 0; 
+      switch(pal_type) {
+        case H2DV_PT_DEFAULT: pal_type = H2DV_PT_HUESCALE; break;
+        case H2DV_PT_HUESCALE: pal_type = H2DV_PT_GRAYSCALE; break;
+        case H2DV_PT_GRAYSCALE: pal_type = H2DV_PT_INVGRAYSCALE; break;
+        case H2DV_PT_INVGRAYSCALE: pal_type = H2DV_PT_DEFAULT; break;
+        default: error("E invalid palette type");
+      }
+      debug_log("I switche to palette type %d", (int)pal_type);
       init_order_palette();
       refresh();
       break;

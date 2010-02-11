@@ -194,6 +194,6 @@ int main(int argc, char* argv[])
   }
   while (done == false);
 
-  View::wait();
+  View::wait("Waiting for all views to be closed.");
   return 0;
 }

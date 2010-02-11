@@ -1,5 +1,6 @@
 // This file is part of Hermes2D.
 //
+// Copyright 2009-2010 Ivo Hanak <hanak@byte.cz>
 // Copyright 2005-2008 Jakub Cerveny <jakub.cerveny@gmail.com>
 // Copyright 2005-2008 Lenka Dubcova <dubcova@gmail.com>
 // Copyright 2005-2008 Pavel Solin <solin@unr.edu>
@@ -19,8 +20,8 @@
 
 // $Id: view.h 1086 2008-10-21 09:05:44Z jakub $
 
-#ifndef __HERMES2D_VIEWS_OUTPUT_H
-#define __HERMES2D_VIEWS_OUTPUT_H
+#ifndef __HERMES2D_VIEW_SUPPORT_H
+#define __HERMES2D_VIEW_SUPPORT_H
 
 // you can define NOGLUT to turn off all OpenGL stuff in Hermes2D
 #ifndef NOGLUT

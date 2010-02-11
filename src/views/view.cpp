@@ -15,6 +15,7 @@
 
 #ifndef NOGLUT
 
+#include <GL/glew.h>
 #include <GL/freeglut.h>
 #ifndef WIN32
 # include <sys/time.h>
@@ -40,7 +41,7 @@ View::View(const char* title, int x, int y, int width, int height)
   range_auto = true;
   range_min = 0;
   range_max = 1;
-  pal_type = 0;
+  pal_type = H2DV_PT_DEFAULT;
   pal_steps = 50;
   pal_filter = GL_NEAREST;
   margin = 15;
@@ -88,7 +89,8 @@ void View::close()
 
 void View::wait(const char* text)
 {
-  if (text != NULL) printf("%s\n", text);
+  if (text != NULL)
+    printf("  << %s >>\n", text);
   wait_for_all_views_close();
 }
 
@@ -398,8 +400,14 @@ void View::on_key_down(unsigned char key, int x, int y)
 
     case 'p':
     {
-      pal_type++;
-      if (pal_type > 3) pal_type = 0; 
+      switch(pal_type) {
+        case H2DV_PT_DEFAULT: pal_type = H2DV_PT_HUESCALE; break;
+        case H2DV_PT_HUESCALE: pal_type = H2DV_PT_GRAYSCALE; break;
+        case H2DV_PT_GRAYSCALE: pal_type = H2DV_PT_INVGRAYSCALE; break;
+        case H2DV_PT_INVGRAYSCALE: pal_type = H2DV_PT_DEFAULT; break;
+        default: error("E invalid palette type");
+      }
+      debug_log("I switche to palette type %d", (int)pal_type);
       create_gl_palette();
       refresh();
       break;
@@ -474,34 +482,23 @@ void View::set_title(const char* title)
 
 #include "view_data.cpp"
 
-const float* View::get_palette_color(double x)
+void View::get_palette_color(double x, float* gl_color)
 {
-  static float color[3];
-
-  if (pal_type == 0)
-  {
+  if (pal_type == H2DV_PT_HUESCALE || pal_type == H2DV_PT_DEFAULT) { //default color
     if (x < 0.0) x = 0.0;
     else if (x > 1.0) x = 1.0;
     x *= num_pal_entries;
-    int n = (int) x;
-    return palette_data[n];   // fixme: mozna zpet k puvodnimu
+    int n = (int)x;
+    gl_color[0] = palette_data[n][0];
+    gl_color[1] = palette_data[n][1];
+    gl_color[2] = palette_data[n][2];
   }
-  else if (pal_type == 1)
-    color[0] = color[1] = color[2] = (float)x;
-  else if (pal_type == 2)
-    color[0] = color[1] = color[2] = (float)(1.0 - x);
+  else if (pal_type == H2DV_PT_GRAYSCALE)
+    gl_color[0] = gl_color[1] = gl_color[2] = (float)x;
+  else if (pal_type == H2DV_PT_INVGRAYSCALE)
+    gl_color[0] = gl_color[1] = gl_color[2] = (float)(1.0 - x);
   else
-    color[0] = color[1] = color[2] = 1.0;
-  return color;
-
-  /*if (n == num_pal_entries) return palette_data[n];
-  float s = x - (double) n;
-  float t = 1.0 - s;
-  static float color[3];
-  color[0] = palette_data[n][0] * t + palette_data[n+1][0] * s;
-  color[1] = palette_data[n][1] * t + palette_data[n+1][1] * s;
-  color[2] = palette_data[n][2] * t + palette_data[n+1][2] * s;
-  return color;*/
+    gl_color[0] = gl_color[1] = gl_color[2] = 1.0f;
 }
 
 
@@ -527,10 +524,11 @@ void View::create_gl_palette()
   unsigned char palette[256][3];
   for (i = 0; i < pal_steps; i++)
   {
-    const float* color = get_palette_color((double) i / pal_steps);
-    palette[i][0] = (unsigned char) (color[0] * 255);
-    palette[i][1] = (unsigned char) (color[1] * 255);
-    palette[i][2] = (unsigned char) (color[2] * 255);
+    float gl_color[3];
+    get_palette_color((double) i / pal_steps, gl_color);
+    palette[i][0] = (unsigned char) (gl_color[0] * 255);
+    palette[i][1] = (unsigned char) (gl_color[1] * 255);
+    palette[i][2] = (unsigned char) (gl_color[2] * 255);
   }
   for (i = pal_steps; i < 256; i++)
     memcpy(palette[i], palette[pal_steps-1], 3);
@@ -563,9 +561,9 @@ void View::set_palette_filter(bool linear)
 }
 
 
-void View::set_palette(int type)
+void View::set_palette(ViewPaletteType type)
 {
-  if (type < 0 || type > 3) error("type can only be 0, 1, 2 or 3.");
+  assert_msg(type >= H2DV_PT_DEFAULT && type < H2DV_PT_MAX_ID, "E unknown palette type %d", (int)type);
 
   view_sync.enter();
   pal_type = type;
