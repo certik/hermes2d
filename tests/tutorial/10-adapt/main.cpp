@@ -137,7 +137,7 @@ int main(int argc, char* argv[])
     // calculate element errors and total error estimate
     H1OrthoHP hp(1, &space);
     double err_est = hp.calc_error(&sln_coarse, &sln_fine) * 100;
-    info("Error estimate: %g\%", err_est);
+    info("Error estimate: %g%%", err_est);
 
     // time measurement
     cpu += end_time();

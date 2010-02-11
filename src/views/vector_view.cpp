@@ -124,7 +124,8 @@ void VectorView::plot_arrow(double x, double y, double xval, double yval, double
 
   if (mode == 1)
   {
-    const float* color = get_palette_color((mag - min)/(max - min)); //  0.0 -- 1.0
+    float color[3];
+    get_palette_color((mag - min)/(max - min), color); //  0.0 -- 1.0
     glColor3f(color[0], color[1], color[2]);
 
 

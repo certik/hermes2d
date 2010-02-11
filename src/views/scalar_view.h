@@ -1,5 +1,6 @@
 // This file is part of Hermes2D.
 //
+// Copyright 2009-2010 Ivo Hanak <hanak@byte.cz>
 // Copyright 2005-2008 Jakub Cerveny <jakub.cerveny@gmail.com>
 // Copyright 2005-2008 Lenka Dubcova <dubcova@gmail.com>
 // Copyright 2005-2008 Pavel Solin <solin@unr.edu>

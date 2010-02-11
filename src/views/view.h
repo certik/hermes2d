@@ -31,6 +31,15 @@
 // you can define NOGLUT to turn off all OpenGL stuff in Hermes2D
 #ifndef NOGLUT
 
+/// View palette type.
+enum ViewPaletteType {
+  H2DV_PT_DEFAULT = -1, ///< Default palette. Depends on viewer.
+  H2DV_PT_HUESCALE = 0, ///< A palette based on hue scale.
+  H2DV_PT_GRAYSCALE = 1, ///< Greyscale.
+  H2DV_PT_INVGRAYSCALE = 2, ///< Inverted grayscale.
+  H2DV_PT_MAX_ID = 3 ///< Maximum ID of view palette type.
+};
+
 /// \brief Represents a simple visualization window.
 ///
 /// View is a base class providing a simple OpenGL visualization window.
@@ -71,7 +80,7 @@ public:
   /// parameter, e.g., format="screen%03d.bmp" and number=5 gives the file name "screen005.bmp".
   void save_numbered_screenshot(const char* format, int number, bool high_quality = false);
 
-  void set_palette(int type);
+  void set_palette(ViewPaletteType type);
   void set_num_palette_steps(int num);
   void set_palette_filter(bool linear);
 
@@ -112,7 +121,7 @@ protected:
 
 
   template<class TYPE> void center_mesh(TYPE* vertices, int nvert);
-  const float* get_palette_color(double x);
+  virtual void get_palette_color(double x, float* gl_color); ///< Fills gl_color with palette color. Assumes that gl_color points to a vector of three components (RGB).
 
 protected:
 
@@ -130,7 +139,8 @@ protected:
   double objx, objy;
   bool dragging, scaling;
 
-  int pal_type, pal_steps, pal_filter;
+  ViewPaletteType pal_type;
+  int pal_steps, pal_filter;
   double tex_scale, tex_shift;
   bool range_auto;
   double range_min, range_max;
