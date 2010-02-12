@@ -96,7 +96,19 @@ protected:
 
 #else // NOGLUT
 
-# error "Missing dummy implementation. Someone forgot."
+/* Empty dummy implementation in a case GLUT is not used */
+class PUBLIC_API StreamView : public View
+{
+public:
+
+  StreamView(const char* title = "StreamView", DEFAULT_WINDOW_POS) : View(title, x, y, width, height) {};
+  virtual ~StreamView() {};
+
+  void show(MeshFunction* xsln, MeshFunction* ysln, int marker, double step, double eps = EPS_NORMAL) {};
+  void show(MeshFunction* xsln, MeshFunction* ysln, int marker, double step, double eps, int xitem, int yitem) {};
+
+  void add_streamline(double x, double y) {};
+};
 
 #endif // NOGLUT
 
