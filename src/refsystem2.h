@@ -21,7 +21,7 @@
 class Mesh;
 
 
-class RefNonlinSystem : public NonlinSystem
+class PUBLIC_API RefNonlinSystem : public NonlinSystem
 {
 public:
 

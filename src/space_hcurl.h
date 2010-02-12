@@ -24,7 +24,7 @@
 ///
 ///
 ///
-class HcurlSpace : public Space
+class PUBLIC_API HcurlSpace : public Space
 {
 public:
 

@@ -20,7 +20,7 @@
 #include "hash.h"
 #include "mesh_parser.h"
 
-extern int g_mesh_seq;
+extern unsigned g_mesh_seq;
 
 H2DReader::H2DReader()
 {
@@ -132,7 +132,7 @@ Nurbs* H2DReader::load_nurbs_old(Mesh *mesh, FILE* f, Node** en, int &p1, int &p
 
   nurbs->nk = nurbs->degree + nurbs->np + 1;
   outer = nurbs->nk - inner;
-  if (outer & 1 == 1)
+  if ((outer & 1) == 1)
     error("error reading curved boundary data for edge %d-%d (wrong number of knot points)", p1, p2);
 
   // knot vector is completed by 0.0 on the left and by 1.0 on the right
@@ -449,7 +449,7 @@ Nurbs* H2DReader::load_nurbs(Mesh *mesh, MItem* curve, int id, Node** en, int &p
 
   nurbs->nk = nurbs->degree + nurbs->np + 1;
   outer = nurbs->nk - inner;
-  if (outer & 1 == 1)
+  if ((outer & 1) == 1)
     error("curve #%d: incorrect number of knot points.", id);
 
   // knot vector is completed by 0.0 on the left and by 1.0 on the right

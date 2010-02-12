@@ -16,26 +16,33 @@
 #ifndef __HERMES2D_COMMON_H
 #define __HERMES2D_COMMON_H
 
+#include "config.h"
+
 // common headers
 #include <stdexcept>
 #include <stdio.h>
 #include <stdlib.h>
+#include <stddef.h> //allows to use offsetof
 #include <string.h>
 #include <cstdarg>
 #include <assert.h>
 #include <pthread.h>
 #include <math.h>
 
+#include <float.h>
+
 // STL stuff
 #include <vector>
 #include <string>
 #include <set>
+#include <queue>
 
 // platform compatibility stuff
 #include "compat.h"
 
+// others
 #include <Judy.h>
-
+#include "auto_local_array.h"
 
 enum // node types
 {
@@ -52,13 +59,6 @@ enum // element modes
 
 const int ANY = -1234;
 
-
-// min/max macros for Win32
-#ifdef _MSC_VER
-#include <minmax.h>
-#endif
-
-
 // how many bits the order number takes
 const int order_bits = 5;
 const int order_mask = (1 << order_bits) - 1;
@@ -72,9 +72,9 @@ const int order_mask = (1 << order_bits) - 1;
 
 #ifdef COMPLEX
   #include <complex>
-  typedef std::complex<double> complex;
-  typedef complex scalar;
-  typedef complex complex2[2];
+  typedef std::complex<double> cplx;
+  typedef cplx scalar;
+  typedef cplx complex2[2];
 #else
   typedef double scalar;
 #endif
@@ -84,8 +84,6 @@ typedef int int2[2];
 typedef int int3[3];
 typedef int int4[4];
 typedef int int5[5];
-
-typedef unsigned long long uint64;
 
 typedef double double2[2];
 typedef double double3[3];
@@ -100,29 +98,29 @@ typedef scalar scalar3[3];
 inline int sqr(int x) { return x*x; }
 inline double sqr(double x) { return x*x; }
 #ifdef COMPLEX
-inline double sqr(complex x) { return std::norm(x); }
+inline double sqr(cplx x) { return std::norm(x); }
 #endif
 
 inline double magn(double x) { return fabs(x); }
 #ifdef COMPLEX
-inline double magn(complex x) { return std::abs(x); }
+inline double magn(cplx x) { return std::abs(x); }
 #endif
 
 inline double conj(double a) {  return a; }
 #ifdef COMPLEX
-inline complex conj(complex a) { return std::conj(a); }
+inline cplx conj(cplx a) { return std::conj(a); }
 #endif
 
 #define is_int(x) ((int) (x) == (x))
 
 
-extern bool verbose_mode;
-extern bool info_mode;
-extern bool warn_integration;
-void __error_fn(const char* fname, const char* msg, ...);
-void __warn_fn(const char* fname, const char* msg, ...);
-void __info_fn(const char* msg, ...);
-void __verbose_fn(const char* msg, ...);
+EXTERN bool verbose_mode;
+EXTERN bool info_mode;
+EXTERN bool warn_integration;
+EXTERN void __error_fn(const char* fname, const char* msg, ...);
+EXTERN void __warn_fn(const char* fname, const char* msg, ...);
+EXTERN void __info_fn(const char* msg, ...);
+EXTERN void __verbose_fn(const char* msg, ...);
 
 
 #ifdef _WIN32
@@ -154,6 +152,16 @@ void __verbose_fn(const char* msg, ...);
 #define info(...) __info_fn(__VA_ARGS__)
 #define verbose(...) __verbose_fn(__VA_ARGS__)
 
+/* logging macros */
+#if defined(_DEBUG) || defined(NDEBUG)
+EXTERN void debug_log(const char* msg, ...); ///< Logs output to an external file. Ignored if not debug.
+EXTERN void debug_assert(const bool cond, const char* msg, ...); ///< Checks the condition. If failed, it logs output to an external file and it invokes assert. Ignored if not debug.
+#else
+# define debug_log(__msg, ...)
+# define debug_assert(__cond, __msg, ...)
+#endif
+EXTERN void log_msg(const char* msg, ...); ///< Logs output to an external file.
+EXTERN void assert_msg(const bool cond, const char* msg, ...); ///< Checks the condition. If failed, it logs output to an external file and it invokes assert.
 
 void __hermes2d_fwrite(const void* ptr, size_t size, size_t nitems, FILE* stream, const char* fname);
 void __hermes2d_fread(void* ptr, size_t size, size_t nitems, FILE* stream, const char* fname);
@@ -165,9 +173,10 @@ void __hermes2d_fread(void* ptr, size_t size, size_t nitems, FILE* stream, const
       __hermes2d_fread((ptr), (size), (nitems), (stream), __ASSERT_FUNCTION)
 
 
-void begin_time();
-double cur_time();
-double end_time();
+EXTERN void begin_time();
+EXTERN double cur_time();
+EXTERN double end_time();
+
 
 void throw_exception(char *text);
 

@@ -29,6 +29,9 @@ EpetraMatrix::EpetraMatrix()
 {
 #ifdef HAVE_EPETRA
 	this->mat = NULL;
+#ifdef COMPLEX
+	this->mat_im = NULL;
+#endif
 	this->grph = NULL;
 	this->std_map = NULL;
 	this->owner = true;
@@ -82,6 +85,9 @@ void EpetraMatrix::finish()
 {
 #ifdef HAVE_EPETRA
 	mat->FillComplete();
+#ifdef COMPLEX
+	mat_im->FillComplete();
+#endif
 #endif
 }
 
@@ -91,6 +97,9 @@ void EpetraMatrix::alloc()
 	grph->FillComplete();
 	// create the matrix
 	mat = new Epetra_CrsMatrix(Copy, *grph);
+#ifdef COMPLEX
+	mat_im = new Epetra_CrsMatrix(Copy, *grph);
+#endif
 #endif
 }
 
@@ -99,6 +108,9 @@ void EpetraMatrix::free()
 #ifdef HAVE_EPETRA
 	if (owner) {
 		delete mat; mat = NULL;
+#ifdef COMPLEX
+		delete mat_im; mat_im = NULL;
+#endif
 		delete grph; grph = NULL;
 		delete std_map; std_map = NULL;
 	}
@@ -137,6 +149,9 @@ void EpetraMatrix::zero()
 {
 #ifdef HAVE_EPETRA
 	mat->PutScalar(0.0);
+#ifdef COMPLEX
+	mat_im->PutScalar(0.0);
+#endif
 #endif
 }
 
@@ -148,6 +163,10 @@ void EpetraMatrix::add(int m, int n, scalar v)
 		int ierr = mat->SumIntoGlobalValues(m, 1, &v, &n);
 		assert(ierr == 0);
 #else
+		int ierr = mat->SumIntoGlobalValues(m, 1, &std::real(v), &n);
+		assert(ierr == 0);
+		ierr = mat_im->SumIntoGlobalValues(m, 1, &std::imag(v), &n);
+		assert(ierr == 0);
 #endif
 	}
 #endif
@@ -186,6 +205,9 @@ EpetraVector::EpetraVector()
 #ifdef HAVE_EPETRA
 	this->std_map = NULL;
 	this->vec = NULL;
+#ifdef COMPLEX
+	this->vec_im = NULL;
+#endif
 	this->size = 0;
 	this->owner = true;
 #endif
@@ -215,6 +237,9 @@ void EpetraVector::alloc(int n)
 	size = n;
 	std_map = new Epetra_Map(size, 0, seq_comm);
 	vec = new Epetra_Vector(*std_map);
+#ifdef COMPLEX
+	vec_im = new Epetra_Vector(*std_map);
+#endif
 	zero();
 #endif
 }
@@ -223,6 +248,9 @@ void EpetraVector::zero()
 {
 #ifdef HAVE_EPETRA
 	for (int i = 0; i < size; i++) (*vec)[i] = 0.0;
+#ifdef COMPLEX
+	for (int i = 0; i < size; i++) (*vec_im)[i] = 0.0;
+#endif
 #endif
 }
 
@@ -231,6 +259,9 @@ void EpetraVector::free()
 #ifdef HAVE_EPETRA
 	delete std_map; std_map = NULL;
 	delete vec; vec = NULL;
+#ifdef COMPLEX
+	delete vec_im; vec_im = NULL;
+#endif
 	size = 0;
 #endif
 }
@@ -241,6 +272,10 @@ void EpetraVector::set(int idx, scalar y)
 #ifndef COMPLEX
 	if (idx >= 0) (*vec)[idx] = y;
 #else
+	if (idx >= 0) {
+		(*vec)[idx] = std::real(y);
+		(*vec_im)[idx] = std::imag(y);
+	}
 #endif
 #endif
 }
@@ -251,6 +286,10 @@ void EpetraVector::add(int idx, scalar y)
 #ifndef COMPLEX
 	if (idx >= 0) (*vec)[idx] += y;
 #else
+	if (idx >= 0) {
+		(*vec)[idx] += std::real(y);
+		(*vec_im)[idx] += std::imag(y);
+	}
 #endif
 #endif
 }
@@ -259,11 +298,7 @@ void EpetraVector::add(int n, int *idx, scalar *y)
 {
 #ifdef HAVE_EPETRA
 	for (int i = 0; i < n; i++)
-#ifndef COMPLEX
-		if (idx[i] >= 0) (*vec)[idx[i]] += y[i];
-#else
-		/* do nothing */;
-#endif
+		add(idx[i], y[i]);
 #endif
 }
 

@@ -61,14 +61,14 @@ void RefMap::set_active_element(Element* e)
              (element->is_triangle() || is_parallelogram());
 
   // prepare the shapes and coefficients of the reference map
-  int i, j, k = 0;
-  for (i = 0; i < e->nvert; i++)
+  int j, k = 0;
+  for (unsigned int i = 0; i < e->nvert; i++)
     indices[k++] = ref_map_shapeset.get_vertex_index(i);
 
   // straight-edged element
   if (e->cm == NULL)
   {
-    for (i = 0; i < e->nvert; i++)
+    for (unsigned int i = 0; i < e->nvert; i++)
     {
       lin_coefs[i][0] = e->vn[i]->x;
       lin_coefs[i][1] = e->vn[i]->y;
@@ -79,7 +79,7 @@ void RefMap::set_active_element(Element* e)
   else // curvilinear element - edge and bubble shapes
   {
     int o = e->cm->order;
-    for (i = 0; i < e->nvert; i++)
+    for (unsigned int i = 0; i < e->nvert; i++)
       for (j = 2; j <= o; j++)
         indices[k++] = ref_map_shapeset.get_edge_index(i, 0, j);
 
@@ -125,8 +125,9 @@ void RefMap::calc_inv_ref_map(int order)
   int i, j, np = quad_2d->get_num_points(order);
 
   // construct jacobi matrices of the direct reference map for all integration points
-  double2x2 m[np];
-  memset(m, 0, np * sizeof(double2x2));
+
+  AUTOLA_OR(double2x2, m, np);
+  memset(m, 0, m.size);
   ref_map_pss.force_transform(sub_idx, ctm);
   for (i = 0; i < nc; i++)
   {
@@ -168,8 +169,8 @@ void RefMap::calc_second_ref_map(int order)
   assert(quad_2d != NULL);
   int i, j, np = quad_2d->get_num_points(order);
 
-  double3x2 k[np];
-  memset(k, 0, np * sizeof(double3x2));
+  AUTOLA_OR(double3x2, k, np);
+  memset(k, 0, k.size);
   ref_map_pss.force_transform(sub_idx, ctm);
   for (i = 0; i < nc; i++)
   {

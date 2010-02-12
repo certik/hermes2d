@@ -21,6 +21,9 @@
 #include <string.h>
 #include <errno.h>
 #include <stdlib.h>
+#if defined(WIN32) || defined(_WINDOWS)
+# include <io.h>
+#endif
 
 /* end standard C headers. */
 

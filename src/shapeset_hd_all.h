@@ -22,7 +22,7 @@
 
 
 /// H(div) shapeset based on Legendre polynomials.
-class HdivShapesetLegendre : public Shapeset
+class PUBLIC_API HdivShapesetLegendre : public Shapeset
 {
   public: HdivShapesetLegendre();
   virtual int get_id() const { return 20; }

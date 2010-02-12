@@ -22,7 +22,7 @@
 
 
 /// H(curl) shapeset based on Legendre polynomials.
-class HcurlShapesetLegendre : public Shapeset
+class PUBLIC_API HcurlShapesetLegendre : public Shapeset
 {
   public: HcurlShapesetLegendre();
   virtual int get_id() const { return 10; }
@@ -30,7 +30,7 @@ class HcurlShapesetLegendre : public Shapeset
 
 
 // Experimental.
-class HcurlShapesetEigen2 : public Shapeset
+class PUBLIC_API HcurlShapesetEigen2 : public Shapeset
 {
   public: HcurlShapesetEigen2();
   virtual int get_id() const { return 11; }
@@ -38,7 +38,7 @@ class HcurlShapesetEigen2 : public Shapeset
 
 
 // Experimental.
-class HcurlShapesetGradEigen : public Shapeset
+class PUBLIC_API HcurlShapesetGradEigen : public Shapeset
 {
   public: HcurlShapesetGradEigen();
   virtual int get_id() const { return 12; }
@@ -46,7 +46,7 @@ class HcurlShapesetGradEigen : public Shapeset
 
 
 /// H(curl) shapeset with Legendre bubbles and gradients of H1 functions as edges
-class HcurlShapesetGradLeg : public Shapeset
+class PUBLIC_API HcurlShapesetGradLeg : public Shapeset
 {
   public: HcurlShapesetGradLeg();
   virtual int get_id() const { return 13; }

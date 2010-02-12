@@ -1,8 +1,10 @@
-enable_language(Fortran)
 find_package(JUDY REQUIRED)
 include_directories(${JUDY_INCLUDE_DIR})
 find_package(UMFPACK REQUIRED)
-find_package(BLAS REQUIRED)
+if(NOT UMFPACK_NO_BLAS)
+	enable_language(Fortran)
+	find_package(BLAS REQUIRED)
+endif(NOT UMFPACK_NO_BLAS)
 
 # examples
 add_subdirectory(lshape)
@@ -14,9 +16,6 @@ add_subdirectory(singpert-aniso)
 add_subdirectory(line-sing)
 add_subdirectory(kellogg)
 add_subdirectory(lshape-square)
-
-if(NOT WITH_TRILINOS)
-  add_subdirectory(bessel)
-  add_subdirectory(screen)
-endif(NOT WITH_TRILINOS)
+add_subdirectory(bessel)
+add_subdirectory(screen)
 

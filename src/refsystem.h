@@ -19,12 +19,12 @@
 #include "linsystem.h"
 
 class Mesh;
+class ExactSolution;
 
-
 ///
 ///
 ///
-class RefSystem : public LinSystem
+class PUBLIC_API RefSystem : public LinSystem
 {
 public:
 
@@ -43,6 +43,11 @@ public:
   /// Creates reference (fine) meshes and spaces and assembles the
   /// reference system.
   void assemble(bool rhsonly = false);
+
+  /// Creates reference (fine) meshes. Called internally by RefSystem::assemble.
+  void refine_mesh();
+
+  bool solve_exact(scalar (*exactfn)(double x, double y, scalar& dx, scalar& dy), Solution* sln);
 
   /// Frees reference spaces and meshes. Called
   /// automatically on desctruction.

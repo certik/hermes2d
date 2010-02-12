@@ -91,7 +91,6 @@ void HcurlSpace::assign_edge_dofs()
 void HcurlSpace::assign_bubble_dofs()
 {
   Element* e;
-  int e_idx;
   for_all_active_elements(e, mesh)
   {
     shapeset->set_mode(e->get_mode());
@@ -199,14 +198,14 @@ static Node* get_mid_edge_vertex_node(Element* e, int i, int j)
 
 void HcurlSpace::update_constrained_nodes(Element* e, EdgeInfo* ei0, EdgeInfo* ei1, EdgeInfo* ei2, EdgeInfo* ei3)
 {
-  int i, j, k;
+  int j;
   EdgeInfo* ei[4] = { ei0, ei1, ei2, ei3 };
   NodeData* nd;
 
   // on non-refined elements all we have to do is update edge nodes lying on constrained edges
   if (e->active)
   {
-    for (i = 0; i < e->nvert; i++)
+    for (unsigned int i = 0; i < e->nvert; i++)
     {
       if (ei[i] != NULL)
       {
@@ -223,7 +222,7 @@ void HcurlSpace::update_constrained_nodes(Element* e, EdgeInfo* ei0, EdgeInfo* e
 
     // create new edge infos where we don't have them yet
     EdgeInfo ei_data[4];
-    for (i = 0; i < e->nvert; i++)
+    for (unsigned int i = 0; i < e->nvert; i++)
     {
       if (ei[i] == NULL)
       {
@@ -248,7 +247,7 @@ void HcurlSpace::update_constrained_nodes(Element* e, EdgeInfo* ei0, EdgeInfo* e
     // create edge infos for half-edges
     EdgeInfo  half_ei_data[4][2];
     EdgeInfo* half_ei[4][2];
-    for (i = 0; i < e->nvert; i++)
+    for (unsigned int i = 0; i < e->nvert; i++)
     {
       if (ei[i] == NULL)
       {

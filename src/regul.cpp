@@ -31,7 +31,7 @@ int Mesh::get_edge_degree(Node* v1, Node* v2)
 
 void Mesh::regularize_triangle(Element* e)
 {
-  int i, j, k, k1, k2;
+  int i, k, k1, k2;
 
   Element* t[3];
 
@@ -118,7 +118,7 @@ void Mesh::regularize_triangle(Element* e)
 
 void Mesh::regularize_quad(Element* e)
 {
-  int i, j, k, k1, k2, k3, n, m;
+  int i, k, k1, k2, k3, n, m;
  Node *v4, *v5;
   Element* t[4];
 
@@ -245,7 +245,7 @@ void Mesh::flatten()
     if (node->elem[1] != NULL) node->elem[1] = (Element*) (node->elem[1]->id + 1);
   }
 
-  int idx[elements.get_size()+1];
+  AUTOLA_OR(int, idx, elements.get_size()+1);
   Array<Element> new_elements;
   Element* e;
   for_all_active_elements(e, this)
@@ -286,7 +286,7 @@ void Mesh::assign_parent(Element* e, int i)
 
 int* Mesh::regularize(int n)
 {
-  int i, j, k, k1, k2;
+  int j;
   bool ok;
   bool reg = false;
   int iso = 0;
@@ -311,7 +311,7 @@ int* Mesh::regularize(int n)
       int iso = -1;
       if (e->is_triangle())
       {
-        for(i = 0; i < e->nvert; i++)
+        for(unsigned int i = 0; i < e->nvert; i++)
         {
           j = e->next_vert(i);
           if (get_edge_degree(e->vn[i], e->vn[j]) > n)
@@ -328,7 +328,7 @@ int* Mesh::regularize(int n)
           { iso = 1; ok = false; }
         else
         {
-          for(i = 0; i < e->nvert; i++)
+          for(unsigned int i = 0; i < e->nvert; i++)
           {
             j = e->next_vert(i);
             if (get_edge_degree(e->vn[i], e->vn[j]) > n)
@@ -340,7 +340,7 @@ int* Mesh::regularize(int n)
       if (iso >= 0)
       {
         refine_element(e->id, iso);
-        for (i = 0; i < 4; i++)
+        for (int i = 0; i < 4; i++)
           assign_parent(e, i);
       }
     }

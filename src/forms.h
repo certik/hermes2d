@@ -65,7 +65,8 @@ inline Ord operator-(const Ord &a) { return a; }
 inline Ord pow(const Ord &a, const double &b) { return Ord((int) ceil(fabs(b)) * a.get_order()); }
 inline Ord sqrt(const Ord &a) { return a; }
 inline Ord sqr(const Ord &a) { return Ord(2 * a.get_order()); }
-inline Ord conj(Ord a) {  return a; }
+inline Ord conj(const Ord &a) { return a; }
+inline Ord abs(const Ord &a) { return a; }
 
 inline Ord atan2(const Ord &a, const Ord &b) { return Ord(a.get_max_order()); }
 inline Ord atan(const Ord &a) { return Ord(a.get_max_order()); }
@@ -73,15 +74,6 @@ inline Ord sin(const Ord &a) { return Ord(a.get_max_order()); }
 inline Ord cos(const Ord &a) { return Ord(a.get_max_order()); }
 inline Ord log(const Ord &a) { return Ord(a.get_max_order()); }
 inline Ord exp(const Ord &a) { return Ord(3 * a.get_order()); }
-
-#ifdef COMPLEX
-namespace std
-{
-  inline Ord conj(const Ord &a) { return a; }
-  inline Ord abs(const Ord &a) { return a; }
-}
-#endif
-
 
 // Function
 template<typename T>
@@ -121,15 +113,15 @@ public:
 };
 
 
-// Geometry of the element (coordinates, normals, tangents)
+/// Geometry (coordinates, normals, tangents) of either an element or an edge
 template<typename T>
 class Geom
 {
 public:
-  int marker;     // element marker
-	T *x, *y;				// coordinates
-	T *nx, *ny;			// normals
-	T *tx, *ty;			// tangents
+  int marker;      // marker
+	T *x, *y;				 // coordinates [in physical domain]
+	T *nx, *ny;			 // normals [in physical domain]
+	T *tx, *ty;			 // tangents [in physical domain]
 
 	Geom()
   {

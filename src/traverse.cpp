@@ -17,15 +17,15 @@
 #include "mesh.h"
 #include "transform.h"
 #include "traverse.h"
+#include "auto_local_array.h"
 
 
-
-const uint64 ONE = (uint64) 1 << 63;
+const uint64_t ONE = (uint64_t) 1 << 63;
 
 
 struct Rect
 {
-  uint64 l, b, r, t;
+  uint64_t l, b, r, t;
 };
 
 
@@ -36,16 +36,16 @@ struct State
   Rect  cr;
   Rect* er;
   bool bnd[3];
-  uint64 lo[3], hi[3];
+  uint64_t lo[3], hi[3];
   int* trans;
 };
 
 
 static int get_split_and_sons(Element* e, Rect* cr, Rect* er, int4& sons)
 {
-  uint64 hmid = (er->l + er->r) >> 1;
-  uint64 vmid = (er->t + er->b) >> 1;
-
+  uint64_t hmid = (er->l + er->r) >> 1;
+  uint64_t vmid = (er->t + er->b) >> 1;
+  
   if (e->bsplit())
   {
     if (cr->r <= hmid && cr->t <= vmid)
@@ -90,8 +90,8 @@ static int get_split_and_sons(Element* e, Rect* cr, Rect* er, int4& sons)
 
 static void move_to_son(Rect* rnew, Rect* rold, int son)
 {
-  uint64 hmid = (rold->l + rold->r) >> 1;
-  uint64 vmid = (rold->t + rold->b) >> 1;
+  uint64_t hmid = (rold->l + rold->r) >> 1;
+  uint64_t vmid = (rold->t + rold->b) >> 1;
   memcpy(rnew, rold, sizeof(Rect));
 
   switch (son)
@@ -115,8 +115,8 @@ static void init_transforms(Transformable* fn, Rect* cr, Rect* er)
 
   while (cr->l > r.l || cr->r < r.r || cr->b > r.b || cr->t < r.t)
   {
-    uint64 hmid = (r.l + r.r) >> 1;
-    uint64 vmid = (r.t + r.b) >> 1;
+    uint64_t hmid = (r.l + r.r) >> 1;
+    uint64_t vmid = (r.t + r.b) >> 1;
     int son;
 
     if (cr->r <= hmid && cr->t <= vmid) son = 0;
@@ -182,7 +182,7 @@ void Traverse::set_boundary_info(State* s, bool* bnd, EdgePos* ep)
     if (bnd[3]) { ep[3].lo = (double) (ONE-s->cr.t) / ONE;  ep[3].hi = (double) (ONE-s->cr.b) / ONE; }
   }
 
-  for (int i = 0; i < base->nvert; i++)
+  for (unsigned int i = 0; i < base->nvert; i++)
   {
     if (bnd[i])
     {
@@ -463,7 +463,7 @@ void Traverse::begin(int n, Mesh** meshes, Transformable** fn)
   memset(stack, 0, size * sizeof(State));
 
   sons = new int4[num];
-  subs = new uint64[num];
+  subs = new uint64_t[num];
   id = 0;
 
   // todo: check that meshes are compatible
@@ -498,16 +498,16 @@ void Traverse::finish()
 
 //// union mesh ////////////////////////////////////////////////////////////////////////////////////
 
-uint64 Traverse::init_idx(Rect* cr, Rect* er)
+uint64_t Traverse::init_idx(Rect* cr, Rect* er)
 {
   Rect r;
   memcpy(&r, er, sizeof(Rect));
-
-  uint64 idx = 0;
+  
+  uint64_t idx = 0;  
   while (cr->l > r.l || cr->r < r.r || cr->b > r.b || cr->t < r.t)
   {
-    uint64 hmid = (r.l + r.r) >> 1;
-    uint64 vmid = (r.t + r.b) >> 1;
+    uint64_t hmid = (r.l + r.r) >> 1;
+    uint64_t vmid = (r.t + r.b) >> 1;
     int son;
 
     if (cr->r <= hmid && cr->t <= vmid) { son = 0; r.r = hmid; r.t = vmid; }
@@ -526,7 +526,7 @@ uint64 Traverse::init_idx(Rect* cr, Rect* er)
 }
 
 
-void Traverse::union_recurrent(Rect* cr, Element** e, Rect* er, uint64* idx, Element* uni)
+void Traverse::union_recurrent(Rect* cr, Element** e, Rect* er, uint64_t* idx, Element* uni)
 {
   int i, j, son;
 
@@ -553,13 +553,14 @@ void Traverse::union_recurrent(Rect* cr, Element** e, Rect* er, uint64* idx, Ele
     return;
   }
 
-  // state arrays
-  Element* e_new[num];
-  Rect er_new[num], cr_new;
-  int4 sons[num];
-  uint64 idx_new[num];
-  memcpy(idx_new, idx, sizeof(idx_new));
-
+  // state arrays 
+  AUTOLA_OR(Element*, e_new, num);
+  AUTOLA_CL(Rect, er_new, num);
+  Rect cr_new;
+  AUTOLA_OR(int4, sons, num);
+  AUTOLA_OR(uint64_t, idx_new, num);
+  memcpy(idx_new, idx, idx_new.size);
+  
   if (tri)
   {
     // visit all sons of the triangle
@@ -656,19 +657,20 @@ void Traverse::union_recurrent(Rect* cr, Element** e, Rect* er, uint64* idx, Ele
 UniData** Traverse::construct_union_mesh(Mesh* unimesh)
 {
   int i;
-  Element* e[num];
-  Rect er[num], cr;
-
+  AUTOLA_OR(Element*, e, num);
+  AUTOLA_CL(Rect, er, num); 
+  Rect cr;
+  
   this->unimesh = unimesh;
   unimesh->copy_base(meshes[0]);
 
   udsize = 0;
   unidata = new UniData*[num];
   memset(unidata, 0, sizeof(UniData*) * num);
-
-  uint64 idx[num];
-  memset(idx, 0, sizeof(idx));
-
+  
+  AUTOLA_OR(uint64_t, idx, num);
+  memset(idx, 0, idx.size);
+  
   for (id = 0; id < meshes[0]->get_num_base_elements(); id++)
   {
     for (i = 0; i < num; i++)

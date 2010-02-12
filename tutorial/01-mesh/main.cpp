@@ -44,7 +44,7 @@ int main(int argc, char* argv[])
   // practice some keyboard and mouse controls
   printf("%s", text);
 
-  // wait for keyboard or mouse input
-  View::wait("Waiting for keyboard or mouse input.");
+  // wait for a view to be closed
+  View::wait("Waiting for a view to be closed.");
   return 0;
 }

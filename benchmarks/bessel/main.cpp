@@ -35,7 +35,7 @@ const int STRATEGY = 1;           // Adaptive strategy:
                                   // STRATEGY = 2 ... refine all elements whose error is larger
                                   //   than THRESHOLD.
                                   // More adaptive strategies can be created in adapt_ortho_h1.cpp.
-const int ADAPT_TYPE = 0;         // Type of automatic adaptivity:
+const int ADAPT_TYPE = 1;         // Type of automatic adaptivity:
                                   // ADAPT_TYPE = 0 ... adaptive hp-FEM (default),
                                   // ADAPT_TYPE = 1 ... adaptive h-FEM,
                                   // ADAPT_TYPE = 2 ... adaptive p-FEM.
@@ -195,7 +195,7 @@ int main(int argc, char* argv[])
   vecview.show(&sln_fine);
 
   // wait for keyboard or mouse input
-  View::wait("Waiting for keyboard or mouse input.");
+  View::wait("Waiting for all views to be closed.");
   return 0;
 }
 

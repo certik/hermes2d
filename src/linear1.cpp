@@ -630,8 +630,6 @@ void Linearizer::find_min_max()
 void Linearizer::process_solution(MeshFunction* sln, int item, double eps, double max_abs,
                                   MeshFunction* xdisp, MeshFunction* ydisp, double dmult)
 {
-  int i;
-
   lock_data();
   begin_time();
 
@@ -739,7 +737,7 @@ void Linearizer::process_solution(MeshFunction* sln, int item, double eps, doubl
       dy = ydisp->get_fn_values();
     }
 
-    for (i = 0; i < e->nvert; i++)
+    for (unsigned int i = 0; i < e->nvert; i++)
     {
       double f = getval(i);
       if (auto_max && finite(f) && fabs(f) > max) max = fabs(f);
@@ -767,7 +765,7 @@ void Linearizer::process_solution(MeshFunction* sln, int item, double eps, doubl
     }
 
     int iv[4];
-    for (i = 0; i < e->nvert; i++)
+    for (unsigned int i = 0; i < e->nvert; i++)
       iv[i] = get_top_vertex(id2id[e->vn[i]->id], getval(i));
 
     // we won't bother calculating physical coordinates from the refmap if this is not a curved element
@@ -780,7 +778,7 @@ void Linearizer::process_solution(MeshFunction* sln, int item, double eps, doubl
     else
       process_quad(iv[0], iv[1], iv[2], iv[3], 0, NULL, NULL, NULL, NULL);
 
-    for (i = 0; i < e->nvert; i++)
+    for (unsigned int i = 0; i < e->nvert; i++)
       process_edge(iv[i], iv[e->next_vert(i)], e->en[i]->marker);
   }
 
@@ -788,7 +786,7 @@ void Linearizer::process_solution(MeshFunction* sln, int item, double eps, doubl
 
   // regularize the linear mesh
   int num = nt;
-  for (i = 0; i < num; i++)
+  for (int i = 0; i < num; i++)
   {
     int iv0 = tris[i][0], iv1 = tris[i][1], iv2 = tris[i][2];
     int mid0 = peek_vertex(iv0, iv1);

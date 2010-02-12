@@ -99,7 +99,7 @@ int main(int argc, char* argv[])
   MagFilter grad(&sln, &sln, FN_DX, FN_DY);
   gradview.show(&grad);
 
-  // wait for keyboard or mouse input
-  View::wait("Waiting for keyboard or mouse input.");
+  // wait for a view to be closed
+  View::wait("Waiting for a view to be closed.");
   return 0;
 }

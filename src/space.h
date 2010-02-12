@@ -98,7 +98,7 @@ enum
 ///
 /// The handling of irregular meshes is desribed in H1Space and HcurlSpace.
 ///
-class Space
+class PUBLIC_API Space
 {
 public:
 
@@ -211,10 +211,13 @@ protected:
     int bdof, n;
   };
 
+public: //DEBUG
   NodeData* ndata;    ///< node data table
+  int nsize, ndata_allocated; ///< number of items in ndata, allocated space
   ElementData* edata; ///< element data table
-  int nsize, esize;
-
+  int esize;
+  
+protected: //DEBUG
   virtual int get_edge_order_internal(Node* en);
 
   /// \brief Updates internal node and element tables.
@@ -255,7 +258,8 @@ protected:
   /// the DOFs have been assigned.
   virtual void post_assign() {}
 
-  std::vector<void*> extra_data;
+  PUBLIC_API_USED_STL_VECTOR(void*);
+  std::vector<void*> extra_data;    
   void free_extra_data();
 
   void propagate_zero_orders(Element* e);
@@ -271,7 +275,6 @@ public:
 
   /// Internal. Return type of this space (H1 = 0, Hcurl = 1, Hdiv = 2, L2 = 3)
   virtual int get_type() const = 0;
-
 };
 
 

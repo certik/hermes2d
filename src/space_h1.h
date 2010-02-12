@@ -23,7 +23,7 @@
 ///
 ///
 ///
-class H1Space : public Space
+class PUBLIC_API H1Space : public Space
 {
 public:
 
@@ -81,6 +81,7 @@ protected:
     scalar value;
   };
 
+  PUBLIC_API_USED_STL_VECTOR(FixedVertex);
   std::vector<FixedVertex> fixed_vertices;
 
   inline bool is_fixed_vertex(int id) const;

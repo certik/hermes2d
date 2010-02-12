@@ -26,8 +26,8 @@ struct UniData;
 /// which usually are Solutions to PDEs, but can also be other Filters.
 ///
 /// (This class cannot be instantiated.)
-///
-class Filter : public MeshFunction
+/// 
+class PUBLIC_API Filter : public MeshFunction
 {
 public:
 
@@ -49,7 +49,7 @@ protected:
 
   int num;
   MeshFunction* sln[4];
-  uint64 sln_sub[4];
+  uint64_t sln_sub[4];
   void* tables[4];
 
   bool unimesh;
@@ -76,7 +76,7 @@ protected:
 /// both components are specified in 'item', e.g., item1 = FN_DX (which is FN_DX_0 | FN_DX_1).
 /// Otherwise it is scalar-valued.
 ///
-class SimpleFilter : public Filter
+class PUBLIC_API SimpleFilter : public Filter
 {
 public:
 
@@ -117,7 +117,7 @@ protected:
 /// result. The user-supplied combining function has a different format: it takes and must
 /// return also the DX and DY values.
 ///
-class DXDYFilter : public Filter
+class PUBLIC_API DXDYFilter : public Filter
 {
 public:
 
@@ -149,7 +149,7 @@ public:
   DXDYFilter(filter_fn_4_t fn, MeshFunction* sln1, MeshFunction* sln2, MeshFunction* sln3, MeshFunction* sln4);
 
   virtual scalar get_pt_value(double x, double y, int item = FN_VAL_0)
-  { error("Not implemented yet");  }
+  { error("Not implemented yet"); return 0; }
 
 protected:
 
@@ -167,7 +167,7 @@ protected:
 /// MagFilter takes two functions representing the components of a vector function and
 /// calculates the vector magnitude, sqrt(x^2 + y^2).
 /// \brief Calculates the magnitude of a vector function.
-class MagFilter : public SimpleFilter
+class PUBLIC_API MagFilter : public SimpleFilter
 {
   public: MagFilter(MeshFunction* sln1, MeshFunction* sln2, int item1 = FN_VAL, int item2 = FN_VAL);
           MagFilter(MeshFunction* sln1, int item1 = FN_VAL); // for vector-valued sln1
@@ -175,28 +175,28 @@ class MagFilter : public SimpleFilter
 
 
 /// Calculates the difference of two functions.
-class DiffFilter : public SimpleFilter
+class PUBLIC_API DiffFilter : public SimpleFilter
 {
   public: DiffFilter(MeshFunction* sln1, MeshFunction* sln2, int item1 = FN_VAL, int item2 = FN_VAL);
 };
 
 
 /// Calculates the sum of two functions.
-class SumFilter : public SimpleFilter
+class PUBLIC_API SumFilter : public SimpleFilter
 {
   public: SumFilter(MeshFunction* sln1, MeshFunction* sln2, int item1 = FN_VAL, int item2 = FN_VAL);
 };
 
 
 /// Calculates the square of a function.
-class SquareFilter : public SimpleFilter
+class PUBLIC_API SquareFilter : public SimpleFilter
 {
   public: SquareFilter(MeshFunction* sln1, int item1 = FN_VAL);
 };
 
 
 /// Removes the imaginary part from a function.
-class RealFilter : public SimpleFilter
+class PUBLIC_API RealFilter : public SimpleFilter
 {
   public: RealFilter(MeshFunction* sln1, int item1 = FN_VAL);
 };
@@ -204,20 +204,20 @@ class RealFilter : public SimpleFilter
 
 /// ImagFilter puts the imaginary part of the input function to the real part of the
 /// output, allowing it to be visualized.
-class ImagFilter : public SimpleFilter
+class PUBLIC_API ImagFilter : public SimpleFilter
 {
   public: ImagFilter(MeshFunction* sln1, int item1 = FN_VAL);
 };
 
 
 /// Computes the absolute value of a complex solution.
-class AbsFilter : public SimpleFilter
+class PUBLIC_API AbsFilter : public SimpleFilter
 {
   public: AbsFilter(MeshFunction* sln1, int item1 = FN_VAL);
 };
 
 /// Computes the angle of a complex solution.
-class AngleFilter : public SimpleFilter
+class PUBLIC_API AngleFilter : public SimpleFilter
 {
   public: AngleFilter(MeshFunction* sln1, int item1 = FN_VAL);
 };
@@ -225,9 +225,9 @@ class AngleFilter : public SimpleFilter
 
 /// VonMisesFilter is a postprocessing filter for visualizing elastic stresses in a body.
 /// It calculates the stress tensor and applies the Von Mises equivalent stress formula
-/// to obtain the resulting stress measure.
-/// \brief Calculates the Von Mises stress.
-class VonMisesFilter : public Filter
+/// to obtain the resulting stress measure. 
+/// \brief Calculates the Von Mises stress. 
+class PUBLIC_API VonMisesFilter : public Filter
 {
 public: // TODO: cylindrical coordinates
 
@@ -235,7 +235,7 @@ public: // TODO: cylindrical coordinates
                  int cyl = 0, int item1 = FN_VAL, int item2 = FN_VAL);
 
   virtual scalar get_pt_value(double x, double y, int item = FN_VAL_0)
-  { error("Not implemented yet");  }
+  { error("Not implemented yet"); return 0; }
 
 protected:
 
@@ -250,13 +250,13 @@ protected:
 /// Linearization filter for use in nonlinear problems. From one or two previous
 /// solution values it extrapolates an estimate of the new one.
 /// With adaptive time step: tau_frac = tau_new / tau_old
-class LinearFilter : public Filter
+class PUBLIC_API LinearFilter : public Filter
 {
   public: LinearFilter(MeshFunction* old);
           LinearFilter(MeshFunction* older, MeshFunction* old, double tau_frac = 1);
 
   virtual scalar get_pt_value(double x, double y, int item = FN_VAL_0)
-  { error("Not implemented yet");  }
+  { error("Not implemented yet"); return 0; }
 
   protected:
 

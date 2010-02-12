@@ -67,6 +67,68 @@ void __verbose_fn(const char* msg, ...)
   va_end(arglist);
 }
 
+#define LOG_FILE "log.txt" /* log FILE */
+void make_log_record(const char* msg, va_list arglist) { /* makes record to the file */
+  //print message
+  vprintf(msg, arglist);
+  printf("\n");
+
+  //print to file
+  FILE* file = fopen(LOG_FILE, "at");
+  if (file != NULL)
+  {
+    //get time
+    time_t now;
+    time(&now);
+    struct tm* now_tm = gmtime(&now);
+#define TIME_BUF_SZ 1024
+    char time_buf[1024];
+    strftime(time_buf, TIME_BUF_SZ, "%y%m%d-%H%M", now_tm);
+
+    //write
+    fprintf(file, "%s", time_buf);
+    fprintf(file, "\t");
+    vfprintf(file, msg, arglist);
+    fprintf(file, "\n");
+    fclose(file);
+  }
+}
+
+#undef debug_log
+void debug_log(const char* msg, ...) {
+  va_list arglist;
+  va_start(arglist, msg);
+  make_log_record(msg, arglist);
+  va_end(arglist);
+}
+
+#undef debug_assert
+void debug_assert(const bool cond, const char* msg, ...) {
+  if (!cond) {
+    va_list arglist;
+    va_start(arglist, msg);
+    make_log_record(msg, arglist);
+    va_end(arglist);
+    assert(false);
+  }
+}
+
+void log_msg(const char* msg, ...) {
+  va_list arglist;
+  va_start(arglist, msg);
+  make_log_record(msg, arglist);
+  va_end(arglist);
+}
+
+void assert_msg(const bool cond, const char* msg, ...) {
+  if (!cond) {
+    va_list arglist;
+    va_start(arglist, msg);
+    make_log_record(msg, arglist);
+    va_end(arglist);
+    assert(false);
+  }
+}
 
 void __hermes2d_fwrite(const void* ptr, size_t size, size_t nitems, FILE* stream, const char* fname)
 {

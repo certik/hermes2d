@@ -25,7 +25,7 @@ struct Rect;
 struct UniData
 {
   Element* e;
-  uint64 idx;
+  uint64_t idx;
 };
 
 
@@ -33,7 +33,7 @@ struct UniData
 /// same base mesh it walks through all (pseudo-)elements of the union of all
 /// the N meshes.
 ///
-class Traverse
+class PUBLIC_API Traverse
 {
 public:
 
@@ -58,16 +58,16 @@ private:
   bool tri;
   Element* base;
   int4* sons;
-  uint64* subs;
-
+  uint64_t* subs;
+  
   UniData** unidata;
   int udsize;
 
   State* push_state();
   void set_boundary_info(State* s, bool* bnd, EdgePos* ep);
-  void union_recurrent(Rect* cr, Element** e, Rect* er, uint64* idx, Element* uni);
-  uint64 init_idx(Rect* cr, Rect* er);
-
+  void union_recurrent(Rect* cr, Element** e, Rect* er, uint64_t* idx, Element* uni);
+  uint64_t init_idx(Rect* cr, Rect* er);
+  
   Mesh* unimesh;
 
 };

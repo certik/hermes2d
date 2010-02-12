@@ -196,7 +196,7 @@ int main(int argc, char* argv[])
     hp.set_biform(1, 0, bilinear_form_1_0<scalar, scalar>, bilinear_form_1_0<Ord, Ord>);
     hp.set_biform(1, 1, bilinear_form_1_1<scalar, scalar>, bilinear_form_1_1<Ord, Ord>);
     double err_est = hp.calc_error_2(&sln_x_coarse, &sln_y_coarse, &sln_x_fine, &sln_y_fine) * 100;
-    info("Error estimate: %g \%", err_est);
+    info("Error estimate: %g %%", err_est);
 
     // add entry to DOF convergence graph
     graph_dof.add_values(xdisp.get_num_dofs() + ydisp.get_num_dofs(), err_est);
@@ -220,9 +220,10 @@ int main(int argc, char* argv[])
     cpu += end_time();
   }
   while (!done);
+
   verbose("Total running time: %g sec", cpu);
 
   // wait for keypress or mouse input
-  View::wait("Waiting for keyboard or mouse input.");
+  View::wait("Waiting for all views to be closed.");
   return 0;
 }

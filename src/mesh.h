@@ -33,7 +33,7 @@ struct MItem;
 ///      <li> TYPE_EDGE   -- edge node. Only stores edge marker and two element pointers.
 /// </ol>
 ///
-struct Node
+struct PUBLIC_API Node
 {
   int id;          ///< node id number
   unsigned ref:29; ///< the number of elements using the node
@@ -78,7 +78,7 @@ struct Node
 /// If an element has curved edges, the member 'cm' points to an associated CurvMap structure,
 /// otherwise it is NULL.
 ///
-struct Element
+struct PUBLIC_API Element
 {
   int id;            ///< element id number
   unsigned nvert:30; ///< number of vertices (3 or 4)
@@ -103,7 +103,7 @@ struct Element
   int  get_mode() const { return is_triangle() ? MODE_TRIANGLE : MODE_QUAD; }
 
   // helper functions to obtain the index of the next or previous vertex/edge
-  int next_vert(int i) const { return (i < nvert-1) ? i+1 : 0; }
+  int next_vert(int i) const { return (i < (int)nvert-1) ? i+1 : 0; }
   int prev_vert(int i) const { return (i > 0) ? i-1 : nvert-1; }
 
   bool hsplit() const { assert(!active); return sons[0] != NULL; }
@@ -134,7 +134,7 @@ struct Element
 ///
 ///
 ///
-class Mesh : public HashTable
+class PUBLIC_API Mesh : public HashTable
 {
 public:
 
@@ -258,7 +258,7 @@ public:
   void convert_to_triangles();
 
 protected:
-
+  PUBLIC_API_USED_TEMPLATE(Array<Element>);
   Array<Element> elements;
   int nbase, ntopvert;
   int nactive, ninitial;

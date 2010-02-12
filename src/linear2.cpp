@@ -105,7 +105,7 @@ void Orderizer::process_solution(Space* space)
   lin_init_array(lbox, double2, cl3, el);
   info = NULL;
 
-  int i, k, oo, o[6];
+  int oo, o[6];
 
   RefMap refmap;
   refmap.set_quad_2d(&quad_ord);
@@ -115,7 +115,7 @@ void Orderizer::process_solution(Space* space)
   for_all_active_elements(e, mesh)
   {
     oo = o[4] = o[5] = space->get_element_order(e->id);
-    for (k = 0; k < e->nvert; k++)
+    for (unsigned int k = 0; k < e->nvert; k++)
       o[k] = space->get_edge_order(e, k);
 
     refmap.set_active_element(e);
@@ -141,13 +141,13 @@ void Orderizer::process_solution(Space* space)
     }
     make_vert(lvert[nl], x[0], y[0], o[4]);
 
-    for (i = 1; i < np; i++)
+    for (int i = 1; i < np; i++)
       make_vert(id[i-1], x[i], y[i], o[(int) pt[i][2]]);
 
-    for (i = 0; i < num_elem[mode][type]; i++)
+    for (int i = 0; i < num_elem[mode][type]; i++)
       add_triangle(id[ord_elem[mode][type][i][0]], id[ord_elem[mode][type][i][1]], id[ord_elem[mode][type][i][2]]);
 
-    for (i = 0; i < num_edge[mode][type]; i++)
+    for (int i = 0; i < num_edge[mode][type]; i++)
     {
       if (e->en[ord_edge[mode][type][i][2]]->bnd || (y[ord_edge[mode][type][i][0] + 1] < y[ord_edge[mode][type][i][1] + 1]) ||
           ((y[ord_edge[mode][type][i][0] + 1] == y[ord_edge[mode][type][i][1] + 1]) &&
@@ -158,7 +158,7 @@ void Orderizer::process_solution(Space* space)
     }
 
     double xmin = 1e100, ymin = 1e100, xmax = -1e100, ymax = -1e100;
-    for (k = 0; k < e->nvert; k++)
+    for (unsigned int k = 0; k < e->nvert; k++)
     {
       if (e->vn[k]->x < xmin) xmin = e->vn[k]->x;
       if (e->vn[k]->x > xmax) xmax = e->vn[k]->x;
@@ -189,8 +189,9 @@ void Orderizer::save_data(const char* filename)
   FILE* f = fopen(filename, "wb");
   if (f == NULL) error("Could not open %s for writing.", filename);
   lock_data();
-
-  int orders[nl], vo, ho;
+  
+  AUTOLA_OR(int, orders, nl);
+  int vo, ho;
   for (int i = 0; i < nl; i++)
   {
     if (strchr(ltext[i], '|'))
@@ -250,8 +251,8 @@ void Orderizer::load_data(const char* filename)
   lin_init_array(lbox, double2, cl3, nl);
   if (fread(lbox, sizeof(double2), nl, f) != nl)
     error("Error reading label bounding boxes from %s", filename);
-
-  int orders[nl];
+  
+  AUTOLA_OR(int, orders, nl);
   if (fread(orders, sizeof(int), nl, f) != nl)
     error("Error reading element orders from %s", filename);
 
