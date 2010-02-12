@@ -11,7 +11,11 @@ set(SRC
        shapeset_hd_legendre.cpp
        shapeset_l2_legendre.cpp
        qsort.cpp norm.cpp
-       adapt_ortho_h1.cpp adapt_ortho_hcurl.cpp adapt_ortho_l2.cpp
+
+       refinement_type.cpp element_to_refine.cpp
+       ref_selectors/selector.cpp ref_selectors/optimum_selector.cpp ref_selectors/proj_based_selector.cpp ref_selectors/h1_uniform_hp.cpp ref_selectors/h1_nonuniform_hp.cpp
+       adapt_h1.cpp adapt_ortho_h1.cpp adapt_ortho_hcurl.cpp adapt_ortho_l2.cpp
+
        common.cpp matrix.cpp hermes2d.cpp weakform.cpp linsystem.cpp
        feproblem.cpp solver_nox.cpp solver_epetra.cpp solver_aztecoo.cpp
        precond_ml.cpp precond_ifpack.cpp

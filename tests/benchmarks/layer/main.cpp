@@ -1,7 +1,21 @@
 #include "hermes2d.h"
 #include "solver_umfpack.h"
 
-//  This test makes sure that the benchmark "layer" works correctly.
+///  This test makes sure that the benchmark "layer" works correctly.
+///
+///  Parameters
+///  * P_INIT=1
+///  * THERSHOLD=0.6
+///  * ADAPT_TYPE=HP, P-cand order + 2 allowed
+///  * ISO_ONLY=false
+///  * MESH_REGULARITY=-1
+///  * CONV_EXP=1.0
+///  * ERR_STOP=1.0
+///  * NDOF_STOP=40000
+///
+///  Results for given parameters
+///  * Uniform orders: 5036 DOFs
+///  * Nonuniform orders: 8418 DOFs
 
 const int P_INIT = 1;             // Initial polynomial degree of all mesh elements.
 const double THRESHOLD = 0.6;     // This is a quantitative parameter of the adapt(...) function and
@@ -15,10 +29,7 @@ const int STRATEGY = 0;           // Adaptive strategy:
                                   // STRATEGY = 2 ... refine all elements whose error is larger
                                   //   than THRESHOLD.
                                   // More adaptive strategies can be created in adapt_ortho_h1.cpp.
-const int ADAPT_TYPE = 0;         // Type of automatic adaptivity:
-                                  // ADAPT_TYPE = 0 ... adaptive hp-FEM (default),
-                                  // ADAPT_TYPE = 1 ... adaptive h-FEM,
-                                  // ADAPT_TYPE = 2 ... adaptive p-FEM.
+const RefinementSelectors::AllowedCandidates ADAPT_TYPE = RefinementSelectors::H2DRS_CAND_HP;         // Type of automatic adaptivity.
 const bool ISO_ONLY = false;      // Isotropic refinement flag (concerns quadrilateral elements only).
                                   // ISO_ONLY = false ... anisotropic refinement of quad elements
                                   // is allowed (default),
@@ -30,6 +41,9 @@ const int MESH_REGULARITY = -1;   // Maximum allowed level of hanging nodes:
                                   // MESH_REGULARITY = 2 ... at most two-level hanging nodes, etc.
                                   // Note that regular meshes are not supported, this is due to
                                   // their notoriously bad performance.
+const double CONV_EXP = 1.0;      // Default value is 1.0. This parameter influences the selection of 
+                                  // cancidates in hp-adaptivity. See get_optimal_refinement() for details.
+                                  // error behavior err \approx const1*exp(-const2*pow(NDOF, CONV_EXP)).
 const double ERR_STOP = 1.0;      // Stopping criterion for adaptivity (rel. error tolerance between the
                                   // fine mesh and coarse mesh solution in percent).
 const int NDOF_STOP = 40000;      // Adaptivity process stops when the number of degrees of freedom grows
@@ -98,7 +112,7 @@ int main(int argc, char* argv[])
   Mesh mesh;
   H2DReader mloader;
   mloader.load("square_quad.mesh", &mesh);
-//   mesh.load("square_tri.mesh");
+//   mloader.load("square_tri.mesh", &mesh);
   if(P_INIT == 1) mesh.refine_all_elements();  // this is because there are no degrees of freedom
                                                // on the coarse mesh lshape.mesh if P_INIT == 1
 
@@ -122,6 +136,9 @@ int main(int argc, char* argv[])
 
   // matrix solver
   UmfpackSolver solver;
+
+  // prepare selector
+  RefinementSelectors::H1NonUniformHP selector(ISO_ONLY, ADAPT_TYPE, CONV_EXP, H2DRS_DEFAULT_ORDER, &shapeset);
 
   // convergence graph wrt. the number of degrees of freedom
   GnuplotGraph graph;
@@ -173,7 +190,7 @@ int main(int argc, char* argv[])
     rs.solve(1, &sln_fine);
 
     // calculate error estimate wrt. fine mesh solution
-    H1OrthoHP hp(1, &space);
+    H1AdaptHP hp(1, &space);
     double err_est = hp.calc_error(&sln_coarse, &sln_fine) * 100;
     info("Estimate of error: %g%%", err_est);
 
@@ -190,7 +207,7 @@ int main(int argc, char* argv[])
     // if err_est too large, adapt the mesh
     if (err_est < ERR_STOP) done = true;
     else {
-      hp.adapt(THRESHOLD, STRATEGY, ADAPT_TYPE, ISO_ONLY, MESH_REGULARITY);
+      hp.adapt(THRESHOLD, STRATEGY, &selector, MESH_REGULARITY);
       ndofs = space.assign_dofs();
       if (ndofs >= NDOF_STOP) done = true;
     }
@@ -205,7 +222,7 @@ int main(int argc, char* argv[])
 #define ERROR_FAILURE                               -1
   int n_dof_allowed = 5100;
   printf("n_dof_actual = %d\n", ndofs);
-  printf("n_dof_allowed = %d\n", n_dof_allowed);// ndofs was 4641 at the time this test was created
+  printf("n_dof_allowed = %d\n", n_dof_allowed);
   if (ndofs <= n_dof_allowed) {
     printf("Success!\n");
     return ERROR_SUCCESS;

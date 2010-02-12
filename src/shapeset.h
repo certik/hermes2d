@@ -71,9 +71,7 @@ public:
   {
     check_mode;
     this->mode = mode;
-    #ifndef NDEBUG
     nvert = (mode == MODE_TRIANGLE) ? 3 : 4;
-    #endif
   }
 
   /// Returns the current mode.

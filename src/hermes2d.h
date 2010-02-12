@@ -75,6 +75,15 @@
 #include "views/vector_base_view.h"
 #include "views/vector_view.h"
 
+#include "refinement_type.h"
+#include "element_to_refine.h"
+#include "ref_selectors/selector.h"
+#include "ref_selectors/optimum_selector.h"
+#include "ref_selectors/proj_based_selector.h"
+#include "ref_selectors/h1_uniform_hp.h"
+#include "ref_selectors/h1_nonuniform_hp.h"
+
+#include "adapt_h1.h"
 #include "adapt_ortho_h1.h"
 #include "adapt_ortho_l2.h"
 #include "adapt_ortho_hcurl.h"
