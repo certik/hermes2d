@@ -81,7 +81,7 @@ class Func
 {
 public:
 	int nc;							// number of components
-	T *val;							// function values
+	T *val;							// function values. If orders differ for a diffrent direction, this returns max(h_order, v_order).
 	T *dx, *dy; 				// derivatives
 
 	T *val0, *val1;				// components of function values

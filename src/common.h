@@ -37,6 +37,8 @@
 #include <string>
 #include <set>
 #include <queue>
+#include <sstream>
+#include <fstream>
 
 // platform compatibility stuff
 #include "compat.h"
@@ -69,7 +71,7 @@ const int order_mask = (1 << order_bits) - 1;
 #define make_quad_order(h_order, v_order) (((v_order) << order_bits) + (h_order))
 #define get_h_order(order) ((order) & order_mask)
 #define get_v_order(order) ((order) >> order_bits)
-
+EXTERN const std::string get_quad_order_str(const int quad_order); ///< Returns string representation of the quad order: used for debugging purposses.
 
 #ifdef COMPLEX
   #include <complex>
@@ -133,7 +135,7 @@ EXTERN void __verbose_fn(const char* msg, ...);
   #else
     // other Win32 compiler
     #ifndef __ASSERT_FUNCTION
-      #define __ASSERT_FUNCTION "<unknown function>"
+      #define __ASSERT_FUNCTION __FUNCTION__
     #endif
   #endif
 #else
@@ -156,13 +158,15 @@ EXTERN void __verbose_fn(const char* msg, ...);
 /* logging macros */
 #ifdef _DEBUG
 EXTERN void debug_log(const char* msg, ...); ///< Logs output to an external file. Ignored if not debug.
-EXTERN void debug_assert(const bool cond, const char* msg, ...); ///< Checks the condition. If failed, it logs output to an external file and it invokes assert. Ignored if not debug.
+EXTERN bool __debug_assert(const bool cond, const char* file, const int line, const char* msg, ...); ///< Checks the condition. If failed, it logs output to an external file. Returns true if abort is required. Ignored if not debug.
+# define debug_assert(__cond, ...) if (__debug_assert(__cond, __FILE__, __LINE__, __VA_ARGS__)) abort()
 #else
-# define debug_log(__msg, ...)
-# define debug_assert(__cond, __msg, ...)
+# define debug_log(...)
+# define debug_assert(...)
 #endif
 EXTERN void log_msg(const char* msg, ...); ///< Logs output to an external file.
-EXTERN void assert_msg(const bool cond, const char* msg, ...); ///< Checks the condition. If failed, it logs output to an external file and it invokes assert.
+EXTERN bool __assert_msg(const bool cond, const char* file, const int line, const char* msg, ...); ///< Checks the condition. If failed, it logs output to an external file. Returns true if abort is required.
+#define assert_msg(__cond, ...) if (__assert_msg(__cond, __FILE__, __LINE__, __VA_ARGS__)) abort()
 
 void __hermes2d_fwrite(const void* ptr, size_t size, size_t nitems, FILE* stream, const char* fname);
 void __hermes2d_fread(void* ptr, size_t size, size_t nitems, FILE* stream, const char* fname);

@@ -20,6 +20,11 @@ bool verbose_mode = true;
 bool info_mode = true;
 bool warn_integration = true;
 
+const std::string get_quad_order_str(const int quad_order) {
+  std::stringstream str;
+  str << "(H:" << get_h_order(quad_order) << ";V:" << get_v_order(quad_order) << ")";
+  return str.str();
+}
 
 void __error_fn(const char* fname, const char* msg, ...)
 {
@@ -68,15 +73,20 @@ void __verbose_fn(const char* msg, ...)
 }
 
 #define LOG_FILE "log.txt" /* log FILE */
-void make_log_record(const char* msg, va_list arglist) { /* makes record to the file */
+void make_log_record(const char* src_file, const int line, const char* msg, va_list arglist) { /* makes record to the file */
   //print message to a buffer (since vfprintf modifies arglist such that it becomes unusable)
   //not safe, but C does not offer any other multiplatform solution. Since vsnprintf modifies the var-args, it cannot be called repeatedly.
 #define BUF_SZ 2048
   char text[BUF_SZ];
+  char text_location[BUF_SZ];
   vsprintf(text, msg, arglist);
+  if (src_file != NULL)
+    sprintf(text_location, "(%s:%d)", src_file, line);
+  else
+    sprintf(text_location, "");
 
   //print the message
-  printf("%s\n", text);
+  printf("%s %s\n", text, text_location);
 
   //print to file
   FILE* file = fopen(LOG_FILE, "at");
@@ -91,7 +101,7 @@ void make_log_record(const char* msg, va_list arglist) { /* makes record to the 
     strftime(time_buf, TIME_BUF_SZ, "%y%m%d-%H%M", now_tm);
 
     //write
-    fprintf(file, "%s\t%s\n", time_buf, text);
+    fprintf(file, "%s\t%s %s\n", time_buf, text, text_location);
     fclose(file);
   }
 }
@@ -100,36 +110,35 @@ void make_log_record(const char* msg, va_list arglist) { /* makes record to the 
 void debug_log(const char* msg, ...) {
   va_list arglist;
   va_start(arglist, msg);
-  make_log_record(msg, arglist);
+  make_log_record(NULL, -1, msg, arglist);
   va_end(arglist);
 }
 
-#undef debug_assert
-void debug_assert(const bool cond, const char* msg, ...) {
+bool __debug_assert(const bool cond, const char* file, const int line, const char* msg, ...) {
   if (!cond) {
     va_list arglist;
     va_start(arglist, msg);
-    make_log_record(msg, arglist);
+    make_log_record(file, line, msg, arglist);
     va_end(arglist);
-    assert(false);
   }
+  return !cond;
 }
 
 void log_msg(const char* msg, ...) {
   va_list arglist;
   va_start(arglist, msg);
-  make_log_record(msg, arglist);
+  make_log_record(NULL, -1, msg, arglist);
   va_end(arglist);
 }
 
-void assert_msg(const bool cond, const char* msg, ...) {
+bool __assert_msg(const bool cond, const char* file, const int line, const char* msg, ...) {
   if (!cond) {
     va_list arglist;
     va_start(arglist, msg);
-    make_log_record(msg, arglist);
+    make_log_record(file, line, msg, arglist);
     va_end(arglist);
-    assert(false);
   }
+  return !cond;
 }
 
 void __hermes2d_fwrite(const void* ptr, size_t size, size_t nitems, FILE* stream, const char* fname)

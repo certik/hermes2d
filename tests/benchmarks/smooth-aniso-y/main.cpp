@@ -3,7 +3,7 @@
 
 //  This test makes sure that the benchmark "anisopoly" works correctly.
 
-const int P_INIT = 1;             // Initial polynomial degree of all mesh elements.
+const int P_INIT = 2;             // Initial polynomial degree of all mesh elements.
 const double THRESHOLD = 0.3;     // This is a quantitative parameter of the adapt(...) function and
                                   // it has different meanings for various adaptive strategies (see below).
 const int STRATEGY = 0;           // Adaptive strategy:
@@ -15,10 +15,7 @@ const int STRATEGY = 0;           // Adaptive strategy:
                                   // STRATEGY = 2 ... refine all elements whose error is larger
                                   //   than THRESHOLD.
                                   // More adaptive strategies can be created in adapt_ortho_h1.cpp.
-const int ADAPT_TYPE = 0;         // Type of automatic adaptivity:
-                                  // ADAPT_TYPE = 0 ... adaptive hp-FEM (default),
-                                  // ADAPT_TYPE = 1 ... adaptive h-FEM,
-                                  // ADAPT_TYPE = 2 ... adaptive p-FEM.
+const RefinementSelectors::AllowedCandidates ADAPT_TYPE = RefinementSelectors::H2DRS_CAND_HP;         // Type of automatic adaptivity.
 const bool ISO_ONLY = false;      // Isotropic refinement flag (concerns quadrilateral elements only).
                                   // ISO_ONLY = false ... anisotropic refinement of quad elements
                                   // is allowed (default),
@@ -30,7 +27,7 @@ const int MESH_REGULARITY = -1;   // Maximum allowed level of hanging nodes:
                                   // MESH_REGULARITY = 2 ... at most two-level hanging nodes, etc.
                                   // Note that regular meshes are not supported, this is due to
                                   // their notoriously bad performance.
-const double ERR_STOP = 1e-7;     // Stopping criterion for adaptivity (rel. error tolerance between the
+const double ERR_STOP = 1e-4;     // Stopping criterion for adaptivity (rel. error tolerance between the
                                   // fine mesh and coarse mesh solution in percent).
 const int NDOF_STOP = 400;       // Adaptivity process stops when the number of degrees of freedom grows
                                   // over this limit. This is to prevent h-adaptivity to go on forever.
@@ -51,13 +48,16 @@ static double fndd(double x, double y, double& dx, double& dy)
 // boundary condition types
 int bc_types(int marker)
 {
-  return BC_ESSENTIAL;
+   if (marker == 1)
+    return BC_ESSENTIAL;
+  else
+    return BC_NATURAL;
 }
 
 // function values for Dirichlet boundary conditions
 scalar bc_values(int marker, double x, double y)
 {
-  return fn(x, y);
+  return 0;
 }
 
 template<typename Real, typename Scalar>
@@ -88,14 +88,17 @@ int main(int argc, char* argv[])
                                                // on the coarse mesh lshape.mesh if P_INIT == 1
 
   // initialize the shapeset and the cache
-  H1ShapesetOrtho shapeset;
+  H1Shapeset shapeset;
   PrecalcShapeset pss(&shapeset);
 
   // create finite element space
   H1Space space(&mesh, &shapeset);
   space.set_bc_types(bc_types);
   space.set_bc_values(bc_values);
-  space.set_uniform_order(P_INIT);
+  if (P_INIT > 1)
+    space.set_element_order(0, make_quad_order(1, P_INIT));
+  else
+    space.set_uniform_order(P_INIT);
 
   // enumerate basis functions
   space.assign_dofs();
@@ -107,6 +110,9 @@ int main(int argc, char* argv[])
 
   // matrix solver
   UmfpackSolver solver;
+
+  // prepare selector
+  RefinementSelectors::H1NonUniformHP selector(ISO_ONLY, ADAPT_TYPE, 1.0, H2DRS_DEFAULT_ORDER, &shapeset);
 
   // convergence graph wrt. the number of degrees of freedom
   GnuplotGraph graph;
@@ -158,7 +164,7 @@ int main(int argc, char* argv[])
     rs.solve(1, &sln_fine);
 
     // calculate error estimate wrt. fine mesh solution
-    H1OrthoHP hp(1, &space);
+    H1AdaptHP hp(1, &space);
     double err_est = hp.calc_error(&sln_coarse, &sln_fine) * 100;
     info("Estimate of error: %g%%", err_est);
 
@@ -175,7 +181,7 @@ int main(int argc, char* argv[])
     // if err_est too large, adapt the mesh
     if (err_est < ERR_STOP) done = true;
     else {
-      hp.adapt(THRESHOLD, STRATEGY, ADAPT_TYPE, ISO_ONLY, MESH_REGULARITY);
+      hp.adapt(THRESHOLD, STRATEGY, &selector, MESH_REGULARITY);
       ndofs = space.assign_dofs();
       if (ndofs >= NDOF_STOP) done = true;
     }
@@ -188,7 +194,7 @@ int main(int argc, char* argv[])
 
 #define ERROR_SUCCESS                               0
 #define ERROR_FAILURE                               -1
-  int n_dof_allowed = 200;
+  int n_dof_allowed = 20;
   printf("n_dof_actual = %d\n", ndofs);
   printf("n_dof_allowed = %d\n", n_dof_allowed);// ndofs was 625 at the time this test was created
   if (ndofs <= n_dof_allowed) {

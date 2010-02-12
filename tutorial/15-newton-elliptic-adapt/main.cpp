@@ -31,10 +31,7 @@ const int STRATEGY = 1;                    // Adaptive strategy:
                                            // STRATEGY = 2 ... refine all elements whose error is larger
                                            //   than THRESHOLD.
                                            // More adaptive strategies can be created in adapt_ortho_h1.cpp.
-const int ADAPT_TYPE = 0;                  // Type of automatic adaptivity:
-                                           // ADAPT_TYPE = 0 ... adaptive hp-FEM (default),
-                                           // ADAPT_TYPE = 1 ... adaptive h-FEM,
-                                           // ADAPT_TYPE = 2 ... adaptive p-FEM.
+const RefinementSelectors::AllowedCandidates ADAPT_TYPE = RefinementSelectors::H2DRS_CAND_HP;         // Type of automatic adaptivity.
 const bool ISO_ONLY = false;               // Isotropic refinement flag (concerns quadrilateral elements only).
                                            // ISO_ONLY = false ... anisotropic refinement of quad elements
                                            // is allowed (default),
@@ -191,6 +188,9 @@ int main(int argc, char* argv[])
 
   // store the result in sln_coarse
   sln_coarse.copy(&u_prev);
+  
+  // prepare selector
+  RefinementSelectors::H1NonUniformHP selector(ISO_ONLY, ADAPT_TYPE, 1.0, H2DRS_DEFAULT_ORDER, &shapeset);
 
   // adaptivity loop
   bool done = false;
@@ -223,7 +223,7 @@ int main(int argc, char* argv[])
     oview_fine.show(rnls.get_space(0));
 
     // calculate element errors and total error estimate
-    H1OrthoHP hp(1, &space);
+    H1AdaptHP hp(1, &space);
     err_est = hp.calc_error(&sln_coarse, &sln_fine) * 100;
     info("Error estimate: %g%%", err_est);
 
@@ -242,7 +242,7 @@ int main(int argc, char* argv[])
     // if err_est too large, adapt the mesh
     if (err_est < ERR_STOP) done = true;
     else {
-      hp.adapt(THRESHOLD, STRATEGY, ADAPT_TYPE, ISO_ONLY, MESH_REGULARITY);
+      hp.adapt(THRESHOLD, STRATEGY, &selector, MESH_REGULARITY);
       int ndof = space.assign_dofs();
       if (ndof >= NDOF_STOP) done = true;
 

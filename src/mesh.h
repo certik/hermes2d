@@ -69,6 +69,14 @@ struct PUBLIC_API Node
 ///
 /// The element can be a triangle or a quad (nvert == 3 or nvert = 4), active or inactive.
 ///
+/// Vertex/node index number
+///        [2]
+///   (3)-------(2)
+///    |         |
+/// [3]|  quad.  |[1]
+///    |         |
+///   (0)-------(1)
+///        [0]
 /// Active elements are actual existing elements in the mesh, which take part in the
 /// computation. Inactive elements are those which have once been active, but were refined,
 /// ie., replaced by several other (smaller) son elements. The purpose of the union is the

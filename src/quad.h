@@ -19,6 +19,14 @@
 #include "common.h"
 #include "config.h"
 
+/* Indices of values in the quadrature vector of a type double3. */
+#define H2D_GIP2D_X 0
+#define H2D_GIP2D_Y 1
+#define H2D_GIP2D_W 2
+
+#define H2D_GIP1D_X 0
+#define H2D_GIP1D_W 1
+
 #ifdef EXTREME_QUAD
   const int g_max_quad = 99;
 #else
