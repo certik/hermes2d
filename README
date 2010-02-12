@@ -17,7 +17,7 @@ Compilation
 
 If you are using a Debian-based system, install the required libraries first:
 
-$ apt-get install cmake g++ gfortran libjudy-dev freeglut3-dev libsuitesparse-dev
+$ apt-get install cmake g++ gfortran libjudy-dev freeglut3-dev libsuitesparse-dev libglew1.5-dev
 
 (Note: cmake has to be at least version 2.6 or later)
 
