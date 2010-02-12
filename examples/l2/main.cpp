@@ -96,7 +96,7 @@ int main(int argc, char* argv[])
   view1.wait_for_keypress();
 
   // wait for keyboard or mouse input
-  View::wait("Waiting for keyboard or mouse input.");
+  View::wait("Waiting for all views to be closed.");
   return 0;
 }
 

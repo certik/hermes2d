@@ -60,7 +60,7 @@
 ///
 /// Shape functions are always real-valued.
 ///
-class Shapeset
+class PUBLIC_API Shapeset
 {
 public:
 
@@ -131,6 +131,8 @@ public:
   }
 
   /// Returns the polynomial degree of the specified shape function.
+  /// If on quads, it returns encoded orders. The orders has to be decoded through macros
+  /// get_h_order and get_v_order.
   int get_order(int index) const
   {
     if (index >= 0) {

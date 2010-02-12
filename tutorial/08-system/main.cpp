@@ -120,8 +120,8 @@ int main(int argc, char* argv[])
   VonMisesFilter stress(&xsln, &ysln, lambda, mu);
   view.show(&stress, EPS_HIGH, FN_VAL_0, &xsln, &ysln, 1.5e5);
 
-  // wait for keyboard or mouse input
-  View::wait("Waiting for keyboard or mouse input.");
+  // wait for a view to be closed
+  View::wait("Waiting for a view to be closed.");
   return 0;
 }
 

@@ -21,7 +21,7 @@
 /// Mesh loader from EXODUSII format
 ///
 /// @ingroup meshloaders
-class ExodusIIReader : public MeshLoader
+class PUBLIC_API ExodusIIReader : public MeshLoader
 {
 public:
   ExodusIIReader();

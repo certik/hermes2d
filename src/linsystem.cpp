@@ -57,10 +57,11 @@ static int default_order_table_quad[] =
 };
 #endif
 
-int  g_max_order, g_safe_max_order;
+PUBLIC_API int  g_max_order;
+PUBLIC_API int  g_safe_max_order;
 int* g_order_table_quad = default_order_table_quad;
 int* g_order_table_tri  = default_order_table_tri;
-int* g_order_table = NULL;
+PUBLIC_API int* g_order_table = NULL;
 bool warned_order = false;
 //extern bool warned_order;
 extern void update_limit_table(int mode);
@@ -201,8 +202,9 @@ static inline void page_add_ij(Page** pages, int i, int j)
 void LinSystem::precalc_sparse_structure(Page** pages)
 {
   int i, j, m, n;
-  AsmList al[wf->neq], *am, *an;
-  Mesh* meshes[wf->neq];
+  AUTOLA_CL(AsmList, al, wf->neq);
+  AsmList *am, *an;
+  AUTOLA_OR(Mesh*, meshes, wf->neq);
   bool** blocks = wf->get_blocks();
 
   // init multi-mesh traversal
@@ -343,7 +345,7 @@ void LinSystem::create_matrix(bool rhsonly)
   if (Ai == NULL) error("Out of memory. Could not allocate the array Ai.");
 
   // sort the indices and remove duplicities, insert into Ai
-  int i, pos = 0, num;
+  int i, pos = 0;
   for (i = 0; i < ndofs; i++)
   {
     Ap[i] = pos;
@@ -457,9 +459,10 @@ void LinSystem::insert_block(scalar** mat, int* iidx, int* jidx, int ilen, int j
 
 void LinSystem::assemble(bool rhsonly)
 {
-  int i, j, k, l, m, n, ss, ww, marker;
-  AsmList al[wf->neq], *am, *an;
-  bool bnd[4], nat[wf->neq], isempty[wf->neq];
+  int j, k, m, n, marker;
+  AUTOLA_CL(AsmList, al, wf->neq);
+  AsmList *am, *an;
+  bool bnd[4]; AUTOLA_OR(bool, nat, wf->neq); AUTOLA_OR(bool, isempty, wf->neq);
   EdgePos ep[4];
   warned_order = false;
 
@@ -474,10 +477,10 @@ void LinSystem::assemble(bool rhsonly)
   begin_time();
 
   // create slave pss's for test functions, init quadrature points
-  PrecalcShapeset* spss[wf->neq];
+  AUTOLA_OR(PrecalcShapeset*, spss, wf->neq);
   PrecalcShapeset *fu, *fv;
-  RefMap refmap[wf->neq];
-  for (i = 0; i < wf->neq; i++)
+  AUTOLA_CL(RefMap, refmap, wf->neq);
+  for (int i = 0; i < wf->neq; i++)
   {
     spss[i] = new PrecalcShapeset(pss[i]);
     pss [i]->set_quad_2d(&g_quad_2d_std);
@@ -500,12 +503,12 @@ void LinSystem::assemble(bool rhsonly)
   // traverses through the union mesh. On the other hand, if you don't use multi-mesh
   // at all, there will always be only one stage in which all forms are assembled as usual.
   Traverse trav;
-  for (ss = 0; ss < stages.size(); ss++)
+  for (unsigned int ss = 0; ss < stages.size(); ss++)
   {
     WeakForm::Stage* s = &stages[ss];
-    for (i = 0; i < s->idx.size(); i++)
+    for (unsigned int i = 0; i < s->idx.size(); i++)
       s->fns[i] = pss[s->idx[i]];
-    for (i = 0; i < s->ext.size(); i++)
+    for (unsigned int i = 0; i < s->ext.size(); i++)
       s->ext[i]->set_quad_2d(&g_quad_2d_std);
     trav.begin(s->meshes.size(), &(s->meshes.front()), &(s->fns.front()));
 
@@ -515,7 +518,7 @@ void LinSystem::assemble(bool rhsonly)
     {
       // find a non-NULL e[i]
       Element* e0;
-      for (i = 0; i < s->idx.size(); i++)
+      for (unsigned int i = 0; i < s->idx.size(); i++)
         if ((e0 = e[i]) != NULL) break;
       if (e0 == NULL) continue;
 
@@ -524,12 +527,13 @@ void LinSystem::assemble(bool rhsonly)
 
       // obtain assembly lists for the element at all spaces, set appropriate mode for each pss
       memset(isempty, 0, sizeof(bool) * wf->neq);
-      for (i = 0; i < s->idx.size(); i++)
+      for (unsigned int i = 0; i < s->idx.size(); i++)
       {
         j = s->idx[i];
         if (e[i] == NULL) { isempty[j] = true; continue; }
         spaces[j]->get_element_assembly_list(e[i], al+j);
         // todo: neziskavat znova, pokud se element nezmenil
+
         spss[j]->set_active_element(e[i]);
         spss[j]->set_master_transform();
         refmap[j].set_active_element(e[i]);
@@ -539,7 +543,7 @@ void LinSystem::assemble(bool rhsonly)
 
       init_cache();
       //// assemble volume bilinear forms //////////////////////////////////////
-      for (ww = 0; ww < s->bfvol.size(); ww++)
+      for (unsigned int ww = 0; ww < s->bfvol.size(); ww++)
       {
         WeakForm::BiFormVol* bfv = s->bfvol[ww];
         if (isempty[bfv->i] || isempty[bfv->j]) continue;
@@ -551,7 +555,7 @@ void LinSystem::assemble(bool rhsonly)
 
         // assemble the local stiffness matrix for the form bfv
         scalar bi, **mat = get_matrix_buffer(std::max(am->cnt, an->cnt));
-        for (i = 0; i < am->cnt; i++)
+        for (int i = 0; i < am->cnt; i++)
         {
           if (!tra && (k = am->dof[i]) < 0) continue;
           fv->set_active_shape(am->idx[i]);
@@ -588,21 +592,21 @@ void LinSystem::assemble(bool rhsonly)
           // we also need to take care of the RHS...
           for (j = 0; j < am->cnt; j++)
             if (am->dof[j] < 0)
-              for (i = 0; i < an->cnt; i++)
+              for (int i = 0; i < an->cnt; i++)
                 if (an->dof[i] >= 0)
                   Dir[an->dof[i]] -= mat[i][j];
         }
       }
 
       //// assemble volume linear forms ////////////////////////////////////////
-      for (ww = 0; ww < s->lfvol.size(); ww++)
+      for (unsigned int ww = 0; ww < s->lfvol.size(); ww++)
       {
         WeakForm::LiFormVol* lfv = s->lfvol[ww];
         if (isempty[lfv->i]) continue;
         if (lfv->area != ANY && !wf->is_in_area(marker, lfv->area)) continue;
         m = lfv->i;  fv = spss[m];  am = &al[m];
 
-        for (i = 0; i < am->cnt; i++)
+        for (int i = 0; i < am->cnt; i++)
         {
           if (am->dof[i] < 0) continue;
           fv->set_active_shape(am->idx[i]);
@@ -612,13 +616,13 @@ void LinSystem::assemble(bool rhsonly)
 
 
       // assemble surface integrals now: loop through boundary edges of the element
-      for (int edge = 0; edge < e0->nvert; edge++)
+      for (unsigned int edge = 0; edge < e0->nvert; edge++)
       {
         if (!bnd[edge]) continue;
         marker = ep[edge].marker;
 
         // obtain the list of shape functions which are nonzero on this edge
-        for (i = 0; i < s->idx.size(); i++) {
+        for (unsigned int i = 0; i < s->idx.size(); i++) {
           if (e[i] == NULL) continue;
           j = s->idx[i];
           if ((nat[j] = (spaces[j]->bc_type_callback(marker) == BC_NATURAL)))
@@ -626,7 +630,7 @@ void LinSystem::assemble(bool rhsonly)
         }
 
         // assemble surface bilinear forms ///////////////////////////////////
-        for (ww = 0; ww < s->bfsurf.size(); ww++)
+        for (unsigned int ww = 0; ww < s->bfsurf.size(); ww++)
         {
           WeakForm::BiFormSurf* bfs = s->bfsurf[ww];
           if (isempty[bfs->i] || isempty[bfs->j]) continue;
@@ -640,7 +644,7 @@ void LinSystem::assemble(bool rhsonly)
           ep[edge].space_u = spaces[n];
 
           scalar bi, **mat = get_matrix_buffer(std::max(am->cnt, an->cnt));
-          for (i = 0; i < am->cnt; i++)
+          for (int i = 0; i < am->cnt; i++)
           {
             if ((k = am->dof[i]) < 0) continue;
             fv->set_active_shape(am->idx[i]);
@@ -655,7 +659,7 @@ void LinSystem::assemble(bool rhsonly)
         }
 
         // assemble surface linear forms /////////////////////////////////////
-        for (ww = 0; ww < s->lfsurf.size(); ww++)
+        for (unsigned int ww = 0; ww < s->lfsurf.size(); ww++)
         {
           WeakForm::LiFormSurf* lfs = s->lfsurf[ww];
           if (isempty[lfs->i]) continue;
@@ -666,7 +670,7 @@ void LinSystem::assemble(bool rhsonly)
           ep[edge].base = trav.get_base();
           ep[edge].space_v = spaces[m];
 
-          for (i = 0; i < am->cnt; i++)
+          for (int i = 0; i < am->cnt; i++)
           {
             if (am->dof[i] < 0) continue;
             fv->set_active_shape(am->idx[i]);
@@ -681,11 +685,11 @@ void LinSystem::assemble(bool rhsonly)
 
   // add to RHS the dirichlet contributions
   if (want_dir_contrib)
-    for (i = 0; i < ndofs; i++)
+    for (int i = 0; i < ndofs; i++)
       RHS[i] += Dir[i];
 
   verbose("  (stages: %d, time: %g sec)", stages.size(), end_time());
-  for (i = 0; i < wf->neq; i++) delete spss[i];
+  for (int i = 0; i < wf->neq; i++) delete spss[i];
   delete [] buffer;
 
   if (!rhsonly) values_changed = true;
@@ -711,7 +715,7 @@ ExtData<scalar>* LinSystem::init_ext_fns(std::vector<MeshFunction *> &ext, RefMa
 {
   ExtData<scalar>* ext_data = new ExtData<scalar>;
   Func<scalar>** ext_fn = new Func<scalar>*[ext.size()];
-  for (int i = 0; i < ext.size(); i++)
+  for (unsigned int i = 0; i < ext.size(); i++)
     ext_fn[i] = init_fn(ext[i], rm, order);
   ext_data->nf = ext.size();
   ext_data->fn = ext_fn;
@@ -750,7 +754,7 @@ void LinSystem::delete_cache()
       delete [] cache_jwt[i];
     }
   }
-  for (std::map<Key, Func<double>*>::const_iterator it = cache_fn.begin(); it != cache_fn.end(); it++)
+  for (std::map<Key, Func<double>*, Compare>::iterator it = cache_fn.begin(); it != cache_fn.end(); it++)
   {
     (it->second)->free_fn(); delete (it->second);
   }
@@ -803,7 +807,6 @@ scalar LinSystem::eval_form(WeakForm::BiFormVol *bf, PrecalcShapeset *fu, Precal
   ExtData<scalar>* ext = init_ext_fns(bf->ext, rv, order);
 
   scalar res = bf->fn(np, jwt, u, v, e, ext);
-
   ext->free(); delete ext;
   return res;
 }
@@ -819,7 +822,7 @@ scalar LinSystem::eval_form(WeakForm::LiFormVol *lf, PrecalcShapeset *fv, RefMap
 
   double fake_wt = 1.0;
   Geom<Ord>* fake_e = init_geom_ord();
-  Ord o = lf->ord(1, &fake_wt, ov, fake_e, fake_ext);
+  Ord o = lf->evaluate_ord(1, &fake_wt, ov, fake_e, fake_ext, rv->get_active_element(), fv->get_shapeset(), fv->get_active_shape());
   int order = rv->get_inv_ref_order();
   order += o.get_order();
   limit_order(order);
@@ -849,7 +852,7 @@ scalar LinSystem::eval_form(WeakForm::LiFormVol *lf, PrecalcShapeset *fv, RefMap
   Func<double>* v = get_fn(fv, rv, order);
   ExtData<scalar>* ext = init_ext_fns(lf->ext, rv, order);
 
-  scalar res = lf->fn(np, jwt, v, e, ext);
+  scalar res = lf->evaluate_fn(np, jwt, v, e, ext, rv->get_active_element(), fv->get_shapeset(), fv->get_active_shape());
 
   ext->free(); delete ext;
   return res;
@@ -1045,7 +1048,7 @@ void LinSystem::save_rhs_bin(const char* filename)
 
 //// order limitation and warning //////////////////////////////////////////////////////////////////
 
-void set_order_limit_table(int* tri_table, int* quad_table, int n)
+PUBLIC_API void set_order_limit_table(int* tri_table, int* quad_table, int n)
 {
   if (n < 24) error("Order limit tables must have at least 24 entries.");
   g_order_table_tri  = tri_table;
@@ -1053,7 +1056,7 @@ void set_order_limit_table(int* tri_table, int* quad_table, int n)
 }
 
 
-void update_limit_table(int mode)
+PUBLIC_API void update_limit_table(int mode)
 {
   g_quad_2d_std.set_mode(mode);
   g_max_order = g_quad_2d_std.get_max_order();
@@ -1062,7 +1065,7 @@ void update_limit_table(int mode)
 }
 
 
-void warn_order()
+PUBLIC_API void warn_order()
 {
   if (!warned_order && warn_integration)
   {

@@ -22,7 +22,7 @@
 
 
 /// 1D quadrature points on the standard reference domain (-1,1)
-class Quad1DStd : public Quad1D
+class PUBLIC_API Quad1DStd : public Quad1D
 {
   public: Quad1DStd();
 
@@ -31,7 +31,7 @@ class Quad1DStd : public Quad1D
 
 
 /// 2D quadrature points on the standard reference domains (-1,1)^2
-class Quad2DStd : public Quad2D
+class PUBLIC_API Quad2DStd : public Quad2D
 {
   public:  Quad2DStd();
           ~Quad2DStd();
@@ -40,8 +40,8 @@ class Quad2DStd : public Quad2D
 };
 
 
-extern Quad1DStd g_quad_1d_std;
-extern Quad2DStd g_quad_2d_std;
+EXTERN Quad1DStd g_quad_1d_std;
+EXTERN Quad2DStd g_quad_2d_std;
 
 
 #endif

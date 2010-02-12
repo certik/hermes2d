@@ -38,7 +38,7 @@ Trf quad_trf[8] =
 };
 
 
-void Transformable::set_transform(uint64 idx)
+void Transformable::set_transform(uint64_t idx)
 {
   int son[25];
   int i = 0;

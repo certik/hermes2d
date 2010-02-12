@@ -79,7 +79,7 @@ Scalar bilinear_form(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real>
 template<typename Real, typename Scalar>
 Scalar bilinear_form_surf(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
-  complex ii = complex(0.0, 1.0);
+  cplx ii = cplx(0.0, 1.0);
   return ii * (-kappa) * int_e_tau_f_tau<Real, Scalar>(n, wt, u, v, e);
 }
 
@@ -98,7 +98,7 @@ scalar linear_form_surf(int n, double *wt, Func<double> *v, Geom<double> *e, Ext
     double Etau = e->tx[i] * (cos23t*sint*j13 - 2.0/(3.0*r)*j23*(cos23t*sint + sin23t*cost)) +
                   e->ty[i] * (-cos23t*cost*j13 + 2.0/(3.0*r)*j23*(cos23t*cost - sin23t*sint));
 
-    result += wt[i] * complex(cos23t*j23, -Etau) * ((v->val0[i] * e->tx[i] + v->val1[i] * e->ty[i]));
+    result += wt[i] * cplx(cos23t*j23, -Etau) * ((v->val0[i] * e->tx[i] + v->val1[i] * e->ty[i]));
   }
   return result;
 }

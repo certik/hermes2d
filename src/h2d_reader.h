@@ -21,7 +21,7 @@
 /// Mesh loader from Hermes2D format
 ///
 /// @ingroup meshloaders
-class H2DReader : public MeshLoader
+class PUBLIC_API H2DReader : public MeshLoader
 {
 public:
   H2DReader();

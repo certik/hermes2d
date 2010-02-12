@@ -1,6 +1,6 @@
 Welcome to Hermes2D!
 
-This is a README file for Windows.
+This is a README file for Windows (using MinGW).
 
 Download and install the free Dev-C++ IDE from http://www.bloodshed.net/dev/
 It only has 9 MB and contains a user-friendly IDE and the complete GCC compiler
@@ -27,6 +27,4 @@ Close the IDE and repeat for the complex version by opening hermes2d-cplx.dev
 Each example in the examples/ directory has its own .dev file. Open one of them
 with Dev-C++ and press F9 to compile and run the example.
 
-As of now it is not possible to compile Hermes2D with the Microsoft compiler.
-However, it should be possible to compile your project (or the examples) with
-MSVC and link with the MinGW libraries.
+Microsoft Visual Studio 9 2008 (Express Edition) is supported, see README-Win-MSVC2008.

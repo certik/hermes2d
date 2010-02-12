@@ -61,7 +61,7 @@ void Graph::set_row_style(int row, const char* color, const char* line, const ch
 void Graph::add_values(int row, double x, double y)
 {
   if (!rows.size()) add_row(NULL);
-  if (row < 0 || row >= rows.size()) error("Invalid row number.");
+  if (row < 0 || row >= (int)rows.size()) error("Invalid row number.");
   Values xy = { x, y };
   rows[row].data.push_back(xy);
 }
@@ -122,7 +122,7 @@ void SimpleGraph::save(const char* filename)
 
 void MatlabGraph::save(const char* filename)
 {
-  int i, j, k;
+  int j, k;
 
   if (!rows.size()) error("No data rows defined.");
 
@@ -138,7 +138,7 @@ void MatlabGraph::save(const char* filename)
   else
     fprintf(f, "loglog(");
 
-  for (i = 0; i < rows.size(); i++)
+  for (unsigned int i = 0; i < rows.size(); i++)
   {
     fprintf(f, "[");
     int rsize = rows[i].data.size();
@@ -163,7 +163,7 @@ void MatlabGraph::save(const char* filename)
   if (legend && (rows.size() > 1 || rows[0].name.length()))
   {
     fprintf(f, "legend(");
-    for (i = 0; i < rows.size(); i++)
+    for (unsigned int i = 0; i < rows.size(); i++)
     {
       fprintf(f, "'%s'", rows[i].name.c_str());
       if (i < rows.size()-1) fprintf(f, ", ");
@@ -222,8 +222,8 @@ static void get_style_types(std::string line, std::string mark, std::string col,
 
 void GnuplotGraph::save(const char* filename)
 {
-  int i, j, k;
-
+  int j;
+  
   if (!rows.size()) error("No data rows defined.");
 
   FILE* f = fopen(filename, "w");
@@ -232,7 +232,7 @@ void GnuplotGraph::save(const char* filename)
   fprintf(f, "set terminal postscript eps enhanced\n");
 
   int len = strlen(filename);
-  char outname[len + 10];
+  AUTOLA_OR(char, outname, len + 10);
   strcpy(outname, filename);
   char* slash = strrchr(outname, '/');
   if (slash != NULL) strcpy(outname, ++slash);
@@ -240,7 +240,7 @@ void GnuplotGraph::save(const char* filename)
   if (dot != NULL && dot > outname) *dot = 0;
   strcat(outname, ".eps");
 
-  fprintf(f, "set output '%s'\n", outname);
+  fprintf(f, "set output '%s'\n", (char*)outname);
 
   fprintf(f, "set size 0.8, 0.8\n");
 
@@ -261,7 +261,7 @@ void GnuplotGraph::save(const char* filename)
   if (yname.length()) fprintf(f, "set ylabel '%s'\n", yname.c_str());
 
   fprintf(f, "plot");
-  for (i = 0; i < rows.size(); i++)
+  for (unsigned int i = 0; i < rows.size(); i++)
   {
     int ct, lt, pt;
     get_style_types(rows[i].line, rows[i].marker, rows[i].color, lt, pt, ct);
@@ -277,7 +277,7 @@ void GnuplotGraph::save(const char* filename)
   }
   fprintf(f,"\n");
 
-  for (i = 0; i < rows.size(); i++)
+  for (unsigned int i = 0; i < rows.size(); i++)
   {
     int rsize = rows[i].data.size();
     for (j = 0; j < rsize; j++)

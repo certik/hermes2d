@@ -334,7 +334,7 @@ int main(int argc, char* argv[])
     info("Total running time for time level %d: %g s.", it, end_time());
   }
 
-  View::wait();
+  View::wait("Waiting for all views to be closed.");
   return 0;
 }
 

@@ -73,7 +73,7 @@ int bc_types(int marker)
 
 double2 tau[5] = { { 0, 0}, { 1, 0 },  { 0, 1 }, { -1, 0 }, { 0, -1 } };
 
-complex bc_values(int marker, double x, double y)
+cplx bc_values(int marker, double x, double y)
 {
   scalar dx, dy;
   return exact0(x, y, dx, dy)*tau[marker][0] + exact1(x, y, dx, dy)*tau[marker][1];
@@ -217,7 +217,7 @@ int main(int argc, char* argv[])
   verbose("Total running time: %g sec", cpu);
 
   // wait for keyboard or mouse input
-  View::wait("Waiting for keyboard or mouse input.");
+  View::wait("Waiting for all views to be closed.");
   return 0;
 }
 

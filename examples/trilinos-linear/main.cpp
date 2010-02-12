@@ -180,6 +180,6 @@ int main(int argc, char **argv)
   view2.show(&sln2);
 
 
-  View::wait();
+  View::wait("Waiting for all views to be closed.");
   return 0;
 }

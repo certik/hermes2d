@@ -129,7 +129,7 @@ double er(int marker, Ord x, Ord y)
 template<typename Real, typename Scalar>
 Scalar bilinear_form(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
-  complex ikappa = complex(0.0, kappa);
+  cplx ikappa = cplx(0.0, kappa);
   return 1.0/mu_r * int_curl_e_curl_f<Real, Scalar>(n, wt, u, v) -
          ikappa * sqrt(mu_0 / e_0) * int_F_e_f<Real, Scalar>(n, wt, gam, u, v, e) -
          sqr(kappa) * int_F_e_f<Real, Scalar>(n, wt, er, u, v, e);
@@ -139,7 +139,7 @@ Scalar bilinear_form(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real>
 template<typename Real, typename Scalar>
 Scalar linear_form_surf(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
-  complex ii = complex(0.0, 1.0);
+  cplx ii = cplx(0.0, 1.0);
   return ii * omega * J * int_v1<Real, Scalar>(n, wt, v); // just second component of v, since J = (0, J)
 }
 
@@ -261,7 +261,7 @@ int main(int argc, char* argv[])
   verbose("Total running time: %g sec", cpu);
 
   // wait for keyboard or mouse input
-  View::wait("Waiting for keyboard or mouse input.");
+  View::wait("Waiting for all views to be closed.");
   return 0;
 }
 
