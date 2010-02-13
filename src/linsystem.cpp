@@ -989,21 +989,31 @@ scalar LinSystem::eval_form(WeakForm::LiFormSurf *lf, PrecalcShapeset *fv, RefMa
           );
           */
   for (int i = 0; i < lf->ext.size(); i++) {
+      // This is the element, that we are currently assembling in the main
+      // assembly loop
       Element *e_central = rv->get_active_element();
+      // this is the "other" element, that we want to calculate the flux over
       Element *e_neigh = e_central->get_neighbor(ep->edge);
       if (e_neigh != NULL) {
+          // Obtain the i-th solution from the ExtData
           MeshFunction *m = (lf->ext[i]);
           Solution *sln = dynamic_cast<Solution*>(m);
-          sln->set_active_element(e_neigh);
-          Quad2D* quad = fv->get_quad_2d();
+
+          // Obtain the corresponding edge number from the neighboring element
           Node *en = e_central->en[ep->edge];
           int edge_neigh = -1;
           for (int j=0; j < e_neigh->nvert; j++)
               if (e_neigh->en[j] == en) edge_neigh = j;
           assert(edge_neigh != -1);
+
+          // initialize the quadrature rules
+          Quad2D* quad = fv->get_quad_2d();
           int eo_neigh = quad->get_edge_points(edge_neigh);
+          // obtain the solution values at the edge
+          sln->set_active_element(e_neigh);
           sln->set_quad_order(eo_neigh);
           double *fn_neigh = sln->get_fn_values();
+          // assign those values into ext_fn2[i]
           int np = quad->get_num_points(eo_neigh);
           Func<scalar>* u = new Func<scalar>;
           u->val = new scalar[np];
