@@ -127,9 +127,10 @@ def plot_mesh_mpl_orders(nodes, elements, curves=None, polynomial_orders=None, c
 
     >>> a = 5
     >>> b = 3
-    >>> plot_mesh_mpl_orders([(0,-a), (a,-a), (-a,0), (0,0), (a,0), (-a,a), (0,a), (a*b,a*b) ], \
+    >>> f = plot_mesh_mpl_orders([(0,-a), (a,-a), (-a,0), (0,0), (a,0), (-a,a), (0,a), (a*b,a*b) ], \
     [ (0, 1, 4, 3), (3, 4, 7), (3, 7, 6), (2, 3, 6, 5) ], None, [1,2,3,4])
-    Figure(640x480)
+    >>> f
+    <matplotlib.figure.Figure object at 0x...>
 
     """
     import math
