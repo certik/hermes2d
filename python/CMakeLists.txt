@@ -17,3 +17,4 @@ add_subdirectory(hermes2d)
 add_custom_target(test-python
     COMMAND ./test
     )
+add_test(python-tests ./test)

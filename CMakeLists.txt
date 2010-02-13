@@ -102,10 +102,6 @@ if(WITH_TUTORIAL)
 	add_subdirectory(tutorial)
 endif(WITH_TUTORIAL)
 
-if(WITH_PYTHON)
-	add_subdirectory(python)
-endif(WITH_PYTHON)
-
 if(WITH_UTIL)
 	add_subdirectory(util)
 endif(WITH_UTIL)
@@ -114,6 +110,10 @@ if(WITH_TESTS)
     enable_testing()
 	add_subdirectory(tests)
 endif(WITH_TESTS)
+
+if(WITH_PYTHON)
+	add_subdirectory(python)
+endif(WITH_PYTHON)
 
 add_custom_target(test
     COMMAND /usr/bin/ctest
