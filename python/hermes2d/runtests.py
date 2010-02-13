@@ -313,7 +313,7 @@ class SymPyDocTests(object):
 
         rel_name = filename[len(self._root_dir)+1:]
         module = os.path.splitext(rel_name.replace('/', '.'))[0]
-        setup_pprint()
+        #setup_pprint()
         try:
             module = doctest._normalize_module(module)
             tests = doctest.DocTestFinder().find(module)
