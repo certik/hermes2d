@@ -5,8 +5,8 @@ This is a README file for Linux.
 Documentation
 =============
 
-Hermes2D Sphinx documentation (tutorial, benchmarks, examples) can be found in the 
-directory 'doc/'. Type 'make html' there to build it. The documentation is 
+Hermes2D Sphinx documentation (tutorial, benchmarks, examples) can be found in
+the directory 'doc/'. Type 'make html' there to build it. The documentation is
 available online at http://hpfem.org/hermes2d/doc/index.html.
 
 Developer documentation can be compiled by running 'doxygen' in 'src/'.
@@ -17,15 +17,10 @@ Compilation
 
 If you are using a Debian-based system, install the required libraries first:
 
-$ apt-get install cmake g++ gfortran libjudy-dev freeglut3-dev libsuitesparse-dev libglew1.5-dev
+$ apt-get install cmake g++ gfortran libjudy-dev freeglut3-dev libsuitesparse-dev libglew1.5-dev python-dev python-numpy python-scipy cython python-matplotlib
 
-(Note: cmake has to be at least version 2.6 or later)
-
-If you want to use Python, install also:
-
-$ apt-get install python-dev python-numpy python-scipy cython python-matplotlib
-
-(matplotlib has to be at least 0.98.5.2 or higher)
+(Note: cmake has to be at least version 2.6 or later, matplotlib has to be at
+least 0.98.5.2 or higher.)
 
 Configure:
 
@@ -37,10 +32,6 @@ $ make
 
 If you have more than one CPU, you can use "make -j N" where N is
 the number of CPUs of your computer.
-
-To build the tutorial examples type:
-
-$ make tutorial
 
 
 More options
