@@ -994,32 +994,28 @@ scalar LinSystem::eval_form(WeakForm::LiFormSurf *lf, PrecalcShapeset *fv, RefMa
           );
           */
   for (int i = 0; i < lf->ext.size(); i++) {
-      Element *e_right = rv->get_active_element()->get_neighbor(ep->edge);
-      if (e_right != NULL) {
-          //printf("element id=%d\n", e_right->id);
-      MeshFunction *m = (lf->ext[i]);
-      Solution *sol_right = dynamic_cast<Solution*>(m);
-
-      Func<scalar>* u = new Func<scalar>;
-      // XXX: fixme here:
-      u->val = new scalar[20];
-      //u->val[0] = sol_right->get_ref_value(e_right, 0, 0, i, 0);
-      double pt_x = ( e_right->vn[0]->x + e_right->vn[2]->x)/2.;
-      double pt_y = ( e_right->vn[0]->y + e_right->vn[2]->y)/2.;
-      for (int k=0; k<20;k++)
-          u->val[k] = sol_right->get_pt_value(pt_x, pt_y);
-      ext_fn2[i] = u;
-      //printf("u->val[0]=%f\n", u->val[0]);
+      Element *e_central = rv->get_active_element();
+      Element *e_neigh = e_central->get_neighbor(ep->edge);
+      if (e_neigh != NULL) {
+          MeshFunction *m = (lf->ext[i]);
+          Solution *sln = dynamic_cast<Solution*>(m);
+          sln->set_active_element(e_neigh);
+          Quad2D* quad = fv->get_quad_2d();
+          Node *en = e_central->en[ep->edge];
+          int edge_neigh = -1;
+          for (int j=0; j < e_neigh->nvert; j++)
+              if (e_neigh->en[j] == en) edge_neigh = j;
+          assert(edge_neigh != -1);
+          int eo_neigh = quad->get_edge_points(edge_neigh);
+          sln->set_quad_order(eo_neigh);
+          double *fn_neigh = sln->get_fn_values();
+          int np = quad->get_num_points(eo_neigh);
+          Func<scalar>* u = new Func<scalar>;
+          u->val = new scalar[np];
+          for (int k=0; k < np; k++)
+              u->val[k] = fn_neigh[k];
+          ext_fn2[i] = u;
       }
-      /*
-      if (e_right != NULL) {
-          MeshFunction *sol_right = lf->ext[i];
-          RefMap rv_right;
-          rv_right.set_active_element(e_right);
-          rv_right.force_transform(pss[i]->get_transform(), pss[i]->get_ctm());
-          ext_fn2[i] = init_fn(sol_right, &rv_right, eo);
-      }
-      */
   }
   ext->nf2 = lf->ext.size();
   ext->fn2 = ext_fn2;
