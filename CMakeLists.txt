@@ -19,7 +19,7 @@ set(REAL     YES)
 set(COMPLEX  YES)
 
 # optional functionality
-set(WITH_PYTHON     NO)
+set(WITH_PYTHON     YES)
 set(WITH_EXAMPLES   YES)
 set(WITH_BENCHMARKS YES)
 set(WITH_TUTORIAL   YES)
