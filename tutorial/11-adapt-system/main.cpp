@@ -19,7 +19,7 @@
 // h-adaptivity via the ADAPT_TYPE option, and compare the multi-mesh vs. single-mesh
 // using the MULTI parameter.
 
-const int P_INIT = 1;            // Initial polynomial degree of all mesh elements.
+const int P_INIT = 2;            // Initial polynomial degree of all mesh elements.
 const bool MULTI = true;         // MULTI = true  ... use multi-mesh,
                                  // MULTI = false ... use single-mesh.
                                  // Note: In the single mesh option, the meshes are
@@ -57,9 +57,9 @@ const int MESH_REGULARITY = -1;  // Maximum allowed level of hanging nodes:
                                  // Note that regular meshes are not supported, this is due to
                                  // their notoriously bad performance.
 const int MAX_ORDER = 10;        // Maximum allowed element degree
-const double ERR_STOP = 0.5;    // Stopping criterion for adaptivity (rel. error tolerance between the
+const double ERR_STOP = 0.001;   // Stopping criterion for adaptivity (rel. error tolerance between the
                                  // fine mesh and coarse mesh solution in percent).
-const int NDOF_STOP = 40000;     // Adaptivity process stops when the number of degrees of freedom grows over
+const int NDOF_STOP = 60000;     // Adaptivity process stops when the number of degrees of freedom grows over
                                  // this limit. This is mainly to prevent h-adaptivity to go on forever.
 
 // problem constants

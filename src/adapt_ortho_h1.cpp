@@ -838,7 +838,7 @@ bool H1OrthoHP::adapt(double thr, int strat, int adapt_type, bool iso_only, int 
     rsln[j]->enable_transform(true);
 
 
-  verbose("I refined element: %d", elem_inx_to_proc.size());
+  verbose("I refined elements: %d", elem_inx_to_proc.size());
   have_errors = false;
   if (strat == 2 && done == true) have_errors = true; // space without changes
 
