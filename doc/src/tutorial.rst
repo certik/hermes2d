@@ -1227,10 +1227,10 @@ lack a transparent relation to the true approximation error.
 Adaptive low-order FEM is known to be notoriously ineffcient, and practitioners
 are rightfully skeptical of it. The reason is illustrated here:
 
-.. image:: img/conv-typical.png
+.. image:: img/lshape/conv_dof.png
    :align: center
    :width: 600
-   :height: 360
+   :height: 400
    :alt: Typical convergence curves for adaptive linear FEM, quadratic FEM, and *hp*-FEM.
 
 These convergence curves are typical representative examples, confirmed with
@@ -1306,7 +1306,7 @@ convergence rate loses its meaning, and one should switch to convergence in term
 the number of degrees of freedom (DOF) or CPU time - Hermes provides both. 
 
 Algebraic convergence of adaptive $h$-FEM
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 When using elements of degree $p$, the convergence rate of adaptive $h$-FEM will not exceed the 
 one predicted for uniformly refined meshes (this can be explained using 
@@ -1316,7 +1316,7 @@ both of which are related to a 2D problem with known exact solution. The first p
 graphs corresponds to adaptive $h$-FEM with linear elements. The slope on the log-log
 graph is -1/2 which means first-order convergence, as predicted by theory. 
 
-.. image:: graphs/conv-intro/layer_h1.png
+.. image:: img/conv-intro/layer_h1.png
    :align: center
    :width: 600
    :height: 450
@@ -1326,7 +1326,7 @@ The next pair of convergence graphs corresponds to adaptive $h$-FEM with quadrat
 The slope on the log-log graph is -1, which means that the convergence is quadratic as 
 predicted by theory.
 
-.. image:: graphs/conv-intro/layer_h2.png
+.. image:: img/conv-intro/layer_h2.png
    :align: center
    :width: 600
    :height: 450
@@ -1340,14 +1340,14 @@ estimate usually are not sufficiently accurate to deliver the expected convergen
 rates. 
 
 Exponential convergence of adaptive $hp$-FEM
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 It is predicted by theory that adaptive $hp$-FEM should attain 
 exponential convergence rate. This means that the slope of the
 convergence graph is steadily increasing, as shown in the 
 following figure.
 
-.. image:: graphs/conv-intro/aniso-hp.png
+.. image:: img/conv-intro/aniso-hp.png
    :align: center
    :width: 600
    :height: 450
@@ -1375,7 +1375,7 @@ slightly less than the exact one, but during adaptivity
 they quickly converge together and become virtually identical. 
 This is shown in the figure below.
 
-.. image:: graphs/conv-intro/layer-hp.png
+.. image:: img/conv-intro/layer-hp.png
    :align: center
    :width: 600
    :height: 450
@@ -1559,7 +1559,7 @@ components, but specify that its derivatives should be used:
 Convergence graphs of adaptive h-FEM with linear elements, h-FEM with quadratic elements
 and hp-FEM are shown below.
 
-.. image:: graphs/example-10/conv_dof.png
+.. image:: img/example-10/conv_dof.png
    :align: center
    :width: 600
    :height: 400
@@ -1567,7 +1567,7 @@ and hp-FEM are shown below.
 
 The following graph shows convergence in terms of CPU time. 
 
-.. image:: graphs/example-10/conv_cpu.png
+.. image:: img/example-10/conv_cpu.png
    :align: center
    :width: 600
    :height: 400
@@ -1664,7 +1664,7 @@ substantially different behavior, one may even obtain completely different meshe
 Convergence graphs of adaptive h-FEM with linear elements, h-FEM with quadratic elements
 and hp-FEM are shown below.
 
-.. image:: graphs/example-11/conv_dof.png
+.. image:: img/example-11/conv_dof.png
    :align: center
    :width: 600
    :height: 400
@@ -1672,7 +1672,7 @@ and hp-FEM are shown below.
 
 The following graph shows convergence in terms of CPU time. 
 
-.. image:: graphs/example-11/conv_cpu.png
+.. image:: img/example-11/conv_cpu.png
    :align: center
    :width: 600
    :height: 400
@@ -1705,7 +1705,7 @@ The final hp-mesh looks as follows:
 Convergence graphs of adaptive h-FEM with linear elements, h-FEM with quadratic elements
 and hp-FEM are shown below.
 
-.. image:: graphs/example-12/conv_dof.png
+.. image:: img/example-12/conv_dof.png
    :align: center
    :width: 600
    :height: 400
@@ -1713,7 +1713,7 @@ and hp-FEM are shown below.
 
 The following graph shows convergence in terms of CPU time. 
 
-.. image:: graphs/example-12/conv_cpu.png
+.. image:: img/example-12/conv_cpu.png
    :align: center
    :width: 600
    :height: 400
