@@ -205,7 +205,7 @@ void ScalarView::show(MeshFunction* sln, double eps, int item,
   wait_for_draw(); //BaseView calls 
 
   verbose("I scalarview::show(): value range: [%g, %g]", lin.get_min_value(), lin.get_max_value());
-  verbose("                      used range range: [%g, %g]", range_min, range_max);
+  verbose("                      used range: [%g, %g]", range_min, range_max);
 }
 
 bool ScalarView::compare_vertex_nodes_x(const VertexNodeInfo& a, const VertexNodeInfo& b)

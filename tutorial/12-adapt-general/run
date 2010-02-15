@@ -1,4 +1,4 @@
-rm *~ *.dat 
+rm *~ 
 adapt-general
 python plot_graph.py &
 

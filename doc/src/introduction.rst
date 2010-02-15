@@ -211,3 +211,5 @@ Topical papers from various application areas:
 
 Other papers that may be even closer to what you do can be found in the 
 `publications section  <http://hpfem.org/publications/>`_ of the hp-FEM group home page.
+
+
