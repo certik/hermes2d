@@ -9,7 +9,7 @@ scalar Fn(double u)
   scalar fres = cplx(c,-s);
   scalar a = cplx(0.0, M_PI/4);
   scalar b = cplx(0.0, u*u);
-  return 0.5*sqrt(M_PI) * exp(b) * (exp(-a) - sqrt(2)*(fres));
+  return 0.5*sqrt(M_PI) * exp(b) * (exp(-a) - sqrt(2.0)*(fres));
 }
 
 scalar Fder(double u)
