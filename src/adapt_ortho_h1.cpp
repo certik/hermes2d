@@ -593,11 +593,6 @@ bool H1OrthoHP::adapt(double thr, int strat, int adapt_type, bool iso_only, int 
       max_id = meshes[j]->get_max_element_id();
   }
 
-
-  //AUTOLA_OR(int, split, nact);
-  //memset(split, 0, split.size);
-  //AUTOLA_OR(int4, p, nact);
-  //AUTOLA_OR(int4, q, nact);
   AUTOLA2_OR(int, idx, max_id + 1, num + 1);
   for(j = 0; j < max_id; j++)
     for(l = 0; l < num; l++)

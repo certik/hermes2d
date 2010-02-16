@@ -62,9 +62,10 @@ macro(LIBRARY_SETTINGS BIN)
         target_link_libraries(${BIN} ${EXODUSII_LIBRARIES})
     endif(WITH_EXODUSII)
 
-	if(WITH_VIEWER_GUI)
+    if(WITH_VIEWER_GUI)
+        include_directories(${ANTTWEAKBAR_INCLUDE_DIR})
         target_link_libraries(${BIN} ${ANTTWEAKBAR_LIBRARY})	
-	endif(WITH_VIEWER_GUI)
+    endif(WITH_VIEWER_GUI)
 endmacro(LIBRARY_SETTINGS)
 
 macro(BUILD_LIB LIB FLAGS)
@@ -77,9 +78,9 @@ macro(BUILD_LIB LIB FLAGS)
 	set_target_properties(${LIB} PROPERTIES COMPILE_FLAGS ${BUILD_FLAGS})
 	LIBRARY_SETTINGS(${LIB})
 	install(TARGETS ${LIB}
-		RUNTIME DESTINATION "${TARGET_ROOT}/bin"
-		ARCHIVE DESTINATION "${TARGET_ROOT}/lib"
-		LIBRARY DESTINATION "${TARGET_ROOT}/lib"
+		RUNTIME DESTINATION bin
+		ARCHIVE DESTINATION lib
+		LIBRARY DESTINATION lib
 	)
 endmacro(BUILD_LIB)
 
@@ -93,11 +94,12 @@ macro(BUILD_LIB_ALL LIB FLAGS)
 	set_target_properties(${LIB} PROPERTIES COMPILE_FLAGS ${BUILD_FLAGS})
 	set_target_properties(${LIB} PROPERTIES DEBUG_OUTPUT_NAME "${LIB}-debug")
 	set_target_properties(${LIB} PROPERTIES RELEASE_OUTPUT_NAME ${LIB})
-	LIBRARY_SETTINGS(${LIB})
+	LIBRARY_SETTINGS(${LIB})	
+	
 	install(TARGETS ${LIB}
-		RUNTIME DESTINATION "${TARGET_ROOT}/bin"
-		ARCHIVE DESTINATION "${TARGET_ROOT}/lib"
-		LIBRARY DESTINATION "${TARGET_ROOT}/lib")
+		RUNTIME DESTINATION bin
+		ARCHIVE DESTINATION lib
+		LIBRARY DESTINATION lib)
 		
 	#copy target to a place which is accessible by the system. This is crucial for successful debugging using MSVC.
 	if(MSVC)
@@ -169,4 +171,7 @@ endif(MSVC)
 
 file(GLOB header_files "${CMAKE_CURRENT_SOURCE_DIR}/*.h")
 install(FILES ${header_files} DESTINATION include/hermes2d)
-
+file(GLOB header_files "${CMAKE_CURRENT_SOURCE_DIR}/compat/*.h")
+install(FILES ${header_files} DESTINATION include/hermes2d/compat)
+file(GLOB header_files "${CMAKE_CURRENT_SOURCE_DIR}/views/*.h")
+install(FILES ${header_files} DESTINATION include/hermes2d/views)
