@@ -47,13 +47,21 @@ and unprecedented **interactive web accessibility**.
 The following list gives more details so that you can decide whether Hermes 
 may be the library that you are looking for: 
 
-* **Mature hp-FEM algorithms**. Hermes is all about error control and automatic adaptivity. Practitioners know well how painful it is to use automatic adaptivity in conjunction with standard lower-order approximations such as linear or quadratic elements. What happens is that after a few initial adaptivity steps the error stops decreasing, no matter how many more adaptivity steps are done of how many new degrees of freedom are added. There is nothing to do about it since this is a genuine limitation of low-order methods (so-called *algebraic convergence* - see the red and blue convergence curves in the graph below). In contrast to that, Hermes is based on adaptive *hp*-FEM that converges *exponentially* (green curve). In other words, the error drops steadily during adaptivity all the way to the desired accuracy. Only when combined with the *hp*-FEM, automatic adaptivity becomes useful in practice.
+* **Mature hp-FEM algorithms**. Hermes puts a major emphasis on credibility of results, i.e., on error control and automatic adaptivity. Practitioners know well how painful it is to use automatic adaptivity in conjunction with standard lower-order approximations such as linear or quadratic elements. What happens is that after a few initial adaptivity steps the error basically stops decreasing, no matter how many more adaptivity steps are done of how many new degrees of freedom are added. There is nothing to do about it since this is a genuine limitation of low-order methods (so-called *algebraic convergence* - see the red and blue convergence curves in the graph below). In contrast to that, Hermes is based on adaptive *hp*-FEM that converges *exponentially* (green curve). In other words, the error drops steadily during adaptivity all the way to the desired accuracy. Only when combined with the *hp*-FEM, automatic adaptivity becomes useful in practice.
 
-.. image:: img/conv-typical.png
+.. image:: img/lshape/conv_dof.png
    :align: center
    :width: 600
-   :height: 360
+   :height: 400
    :alt: Typical convergence curves of FEM with linear and quadratic elements and hp-FEM
+
+Same graphs as above but now in terms of CPU time:
+
+.. image:: img/lshape/conv_cpu.png
+   :align: center
+   :width: 600
+   :height: 400
+   :alt: CPU convergence graph.
 
 * **Hermes is PDE-independent**. A typical FEM code is designed to solve some special class of PDE problems (such as elliptic equations, fluid dynamics, electromagnetics etc.). In contrast to that, Hermes is truly PDE independent. It does not employ any technique or algorithm that would only work for some particular class of PDE problems. For example, automatic adaptivity is guided by a universal computational a-posteriori error estimate that works in the same way for any PDE. Of course this does not mean that it performs equally well on all PDE - some equations simply are more difficult to solve than others. However, Hermes allows you to tackle an arbitrary PDE (or multiphysics PDE system) with adaptive *hp*-FEM easily. Visit the `hp-FEM group home page <http://hpfem.org/>`_ and especially the `gallery <http://hpfem.org/gallery/>`_ to see many examples of problems that have been solved with Hermes so far.
 
@@ -107,8 +115,7 @@ found in its `publications section <http://hpfem.org/publications/>`_.
 Citing Hermes
 -------------
 
-If you use Hermes for your work, please be so kind to include one or more of the 
-following references:
+If you use Hermes for your work, please be so kind to include some of the references below as appropriate.
 
 Monograph:
 
@@ -211,3 +218,5 @@ Topical papers from various application areas:
 
 Other papers that may be even closer to what you do can be found in the 
 `publications section  <http://hpfem.org/publications/>`_ of the hp-FEM group home page.
+
+

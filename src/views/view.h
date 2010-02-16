@@ -270,7 +270,7 @@ public:
   void wait_for_keypress() {}
   void wait_for_close() {}
   void wait_for_draw() {}
-  static void wait() {}
+  static void wait(const char* text = NULL) {}
 };
 
 #endif // NOGLUT

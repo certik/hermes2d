@@ -3,19 +3,269 @@ Benchmarks
 
 This section contains the description of selected `benchmarks 
 <http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/benchmarks>`_.
-Contrary to regular examples, benchmarks typically come with 
+Contrary to regular examples, benchmarks typically do not have 
+a strong physical or engineering motivation but they come with 
 a known exact solution and thus they are a great resource for 
 comparisons of various methods and adaptivity algorithms.
 
 L-shape
 -------
 
-To be added soon.
+Complete information to this example can be found in the corresponding 
+`main.cpp <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/benchmarks/lshape/main.cpp>`_ file.
+This is a standard adaptivity benchmark whose exact solution is smooth but
+contains singular gradient in a re-entrant corner. 
+
+Equation solved: Laplace equation 
+
+.. math::
+    :label: lshape
+
+       -\Delta u = 0.
+
+Domain of interest:
+
+.. image:: img/lshape/domain.png
+   :align: center
+   :width: 470
+   :height: 470
+   :alt: Computational domain.
+
+Exact solution:
+
+.. math::
+    :label: lshape-exact
+
+    u(x, y) = r^{2/3}\sin(2a/3 + \pi/3)
+
+where $r(x,y) = \sqrt{x^2 + y^2}$ and $a(x,y) = \mbox{atan}(x/y)$. 
+
+Code for the exact solution and the weak forms:
+
+::
+
+    // exact solution
+    static double fn(double x, double y)
+    {
+      double r = sqrt(x*x + y*y);
+      double a = atan2(x, y);
+      return pow(r, 2.0/3.0) * sin(2.0*a/3.0 + M_PI/3);
+    }
+
+    static double fndd(double x, double y, double& dx, double& dy)
+    {
+      double t1 = 2.0/3.0*atan2(x, y) + M_PI/3;
+      double t2 = pow(x*x + y*y, 1.0/3.0);
+      double t3 = x*x * ((y*y)/(x*x) + 1);
+      dx = 2.0/3.0*x*sin(t1)/(t2*t2) + 2.0/3.0*y*t2*cos(t1)/t3;
+      dy = 2.0/3.0*y*sin(t1)/(t2*t2) - 2.0/3.0*x*t2*cos(t1)/t3;
+      return fn(x, y);
+    }
+
+    // boundary condition types
+    int bc_types(int marker)
+    {
+      return BC_ESSENTIAL;
+    }
+
+    // bilinear form corresponding to the Laplace equation
+    template<typename Real, typename Scalar>
+    Scalar bilinear_form(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+    {
+      return int_grad_u_grad_v<Real, Scalar>(n, wt, u, v);
+    }
+
+Solution:
+
+.. image:: img/lshape/sol_3d_view.png
+   :align: center
+   :width: 600
+   :height: 400
+   :alt: Solution.
+
+Final mesh (h-FEM with linear elements):
+
+.. image:: img/lshape/mesh-h1.png
+   :align: center
+   :width: 500
+   :height: 400
+   :alt: Final mesh (h-FEM with linear elements).
+
+Final mesh (h-FEM with quadratic elements):
+
+.. image:: img/lshape/mesh-h2.png
+   :align: center
+   :width: 500
+   :height: 400
+   :alt: Final mesh (h-FEM with quadratic elements).
+
+Final mesh (hp-FEM):
+
+.. image:: img/lshape/mesh-hp.png
+   :align: center
+   :width: 500
+   :height: 400
+   :alt: Final mesh (hp-FEM).
+
+DOF convergence graphs:
+
+.. image:: img/lshape/conv_dof.png
+   :align: center
+   :width: 600
+   :height: 400
+   :alt: DOF convergence graph.
+
+CPU time convergence graphs:
+
+.. image:: img/lshape/conv_cpu.png
+   :align: center
+   :width: 600
+   :height: 400
+   :alt: CPU convergence graph.
 
 Layer
 -----
 
-To be added soon.
+Complete information to this example can be found in the corresponding 
+`main.cpp <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/benchmarks/layer/main.cpp>`_ file.
+This example has a smooth solution that exhibits a steep internal layer inside the domain.
+
+Equation solved: Poisson equation 
+
+.. math::
+    :label: layer
+
+       -\Delta u = f.
+
+Domain of interest: Unit square $(0, 1)^2$.
+
+Right-hand side:
+
+.. math::
+    :label: layer-rhs
+ 
+    f(x, y) = \frac{27}{2} (2y + 0.5)^2 (\pi - 3t) \frac{S^3}{u^2 t_2} +
+    \frac{27}{2} (2x - 2.5)^2 (\pi - 3t) \frac{S^3}{u^2 t_2}
+    - \frac{9}{4} (2y + 0.5)^2 \frac{S}{u t^3} -
+    \frac{9}{4} (2x - 2.5)^2 \frac{S}{u t^3} +
+    18 \frac{S}{ut}.
+
+Exact solution:
+
+.. math::
+    :label: layer-exact
+
+    u(x, y) = \mbox{atan}\left(S \sqrt{(x-1.25)^2 + (y+0.25)^2} - \pi/3\right).
+
+where $S$ is a parameter (slope of the layer). With larger $S$, this problem 
+becomes difficult for adaptive algorithms, and at the same time the advantage of 
+adaptive $hp$-FEM over adaptive low-order FEM becomes more significant. We will 
+use $S = 60$ in the following.
+
+Code for the exact solution and the weak forms:
+
+::
+
+    // exact solution
+    static double fn(double x, double y)
+    {
+      return atan(SLOPE * (sqrt(sqr(x-1.25) + sqr(y+0.25)) - M_PI/3));
+    }
+    
+    static double fndd(double x, double y, double& dx, double& dy)
+    {
+      double t = sqrt(sqr(x-1.25) + sqr(y+0.25));
+      double u = t * (sqr(SLOPE) * sqr(t - M_PI/3) + 1);
+      dx = SLOPE * (x-1.25) / u;
+      dy = SLOPE * (y+0.25) / u;
+      return fn(x, y);
+    }
+    
+    // boundary condition types
+    int bc_types(int marker)
+    {
+      return BC_ESSENTIAL;
+    }
+    
+    // Dirichlet boundary condition values
+    scalar bc_values(int marker, double x, double y)
+    {
+      return fn(x, y);
+    }
+    
+    // bilinear form for the Poisson equation
+    template<typename Real, typename Scalar>
+    Scalar bilinear_form(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+    {
+      return int_grad_u_grad_v<Real, Scalar>(n, wt, u, v);
+    }
+    
+    template<typename Real>
+    Real rhs(Real x, Real y)
+    {
+      Real t2 = sqr(y + 0.25) + sqr(x - 1.25);
+      Real t = sqrt(t2);
+      Real u = (sqr(M_PI - 3.0*t)*sqr(SLOPE) + 9.0);
+      return 27.0/2.0 * sqr(2.0*y + 0.5) * (M_PI - 3.0*t) * pow(SLOPE,3.0) / (sqr(u) * t2) +
+             27.0/2.0 * sqr(2.0*x - 2.5) * (M_PI - 3.0*t) * pow(SLOPE,3.0) / (sqr(u) * t2) -
+             9.0/4.0 * sqr(2.0*y + 0.5) * SLOPE / (u * pow(t,3.0)) -
+             9.0/4.0 * sqr(2.0*x - 2.5) * SLOPE / (u * pow(t,3.0)) +
+             18.0 * SLOPE / (u * t);
+    }
+     
+    template<typename Real, typename Scalar>
+    Scalar linear_form(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+    {
+      return -int_F_v<Real, Scalar>(n, wt, rhs, v, e);
+    }
+
+Solution:
+
+.. image:: img/layer/sol_3d_view.png
+   :align: center
+   :width: 600
+   :height: 400
+   :alt: Solution.
+
+Final mesh (h-FEM with linear elements):
+
+.. image:: img/layer/mesh-h1.png
+   :align: center
+   :width: 500
+   :height: 400
+   :alt: Final mesh (h-FEM with linear elements).
+
+Final mesh (h-FEM with quadratic elements):
+
+.. image:: img/layer/mesh-h2.png
+   :align: center
+   :width: 500
+   :height: 400
+   :alt: Final mesh (h-FEM with quadratic elements).
+
+Final mesh (hp-FEM):
+
+.. image:: img/layer/mesh-hp.png
+   :align: center
+   :width: 500
+   :height: 400
+   :alt: Final mesh (hp-FEM).
+
+DOF convergence graphs:
+
+.. image:: img/layer/conv_dof.png
+   :align: center
+   :width: 600
+   :height: 400
+   :alt: DOF convergence graph.
+
+CPU time convergence graphs:
+
+.. image:: img/layer/conv_cpu.png
+   :align: center
+   :width: 600
+   :height: 400
+   :alt: CPU convergence graph.
 
 Line-sing
 ---------

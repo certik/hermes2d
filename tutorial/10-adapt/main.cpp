@@ -30,9 +30,9 @@
 //
 // The following parameters can be changed:
 
-const int P_INIT = 1;             // Initial polynomial degree of all mesh elements.
-const double THRESHOLD = 0.2;    // This is a quantitative parameter of the adapt(...) function and
-                                 // it has different meanings for various adaptive strategies (see below).
+const int P_INIT = 2;             // Initial polynomial degree of all mesh elements.
+const double THRESHOLD = 0.2;     // This is a quantitative parameter of the adapt(...) function and
+                                  // it has different meanings for various adaptive strategies (see below).
 const int STRATEGY = 1;           // Adaptive strategy:
                                   // STRATEGY = 0 ... refine elements until sqrt(THRESHOLD) times total
                                   //   error is processed. If more elements have similar errors, refine
@@ -57,9 +57,9 @@ const int MESH_REGULARITY = -1;   // Maximum allowed level of hanging nodes:
                                   // MESH_REGULARITY = 2 ... at most two-level hanging nodes, etc.
                                   // Note that regular meshes are not supported, this is due to
                                   // their notoriously bad performance.
-const double ERR_STOP = 0.1;      // Stopping criterion for adaptivity (rel. error tolerance between the
+const double ERR_STOP = 0.001;    // Stopping criterion for adaptivity (rel. error tolerance between the
                                   // fine mesh and coarse mesh solution in percent).
-const int NDOF_STOP = 40000;      // Adaptivity process stops when the number of degrees of freedom grows
+const int NDOF_STOP = 60000;      // Adaptivity process stops when the number of degrees of freedom grows
                                   // over this limit. This is to prevent h-adaptivity to go on forever.
 
 // problem constants

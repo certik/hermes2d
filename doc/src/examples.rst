@@ -4,11 +4,13 @@ Examples
 This section contains the description of selected `examples 
 <http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/examples>`_.
 Its purpose is to complement rather than duplicate the information 
-in the corresponding main.cpp files.
+in the source code.
 
 Saphir
 ------
 
+Complete information to this example can be found in the corresponding 
+`main.cpp <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/examples/saphir/main.cpp>`_ file.
 This is a standard nuclear engineering benchmark (IAEA number EIR-2) describing 
 an external-force-driven configuration without fissile materials present, using one-group 
 neutron diffusion approximation
@@ -20,7 +22,7 @@ neutron diffusion approximation
 
 The domain of interest is a 96 x 86 cm rectangle consisting of five regions:
 
-.. image:: img/saphir.png
+.. image:: img/saphir/saphir.png
    :align: center
    :width: 400
    :height: 400
@@ -30,8 +32,6 @@ The unknown is the neutron flux $\Phi(x, y)$. The values of the diffusion coeffi
 $D(x, y)$, absorption cross-section $\Sigma_a(x, y)$ and the source term $Q_{ext}(x,y)$
 are constant in the subdomains. The source $Q_{ext} = 1$ in areas 1 and 3 and zero 
 elsewhere. Boundary conditions for the flux $\Phi$ are zero everywhere. 
-Parameter values and additional information can be 
-found in the `main.cpp <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/examples/saphir/main.cpp>`_ file.
 
 It is worth noticing how different material parameters are handled - we define a separate weak form 
 for each material. This approach is more flexible to how material parameters were handled in 
@@ -97,40 +97,39 @@ Sample results of this computation are shown below.
 
 Solution:
 
-.. image:: img/saphir-sol.png
+.. image:: img/saphir/saphir-sol.png
    :align: center
    :width: 600
    :height: 400
    :alt: Solution to the saphir example.
 
-Final hp-mesh:
+Final mesh (h-FEM with linear elements):
 
-.. image:: img/saphir-mesh-hp.png
-   :align: center
-   :width: 440
-   :height: 400
-   :alt: Final finite element mesh for the saphir example (hp-FEM).
-
-Final mesh for h-adaptivity with quadratic elements:
-
-.. image:: img/saphir-mesh-h2.png
-   :align: center
-   :width: 440
-   :height: 400
-   :alt: Final finite element mesh for the saphir example (h-FEM with quadratic elements).
-
-
-Final mesh for h-adaptivity with linear elements:
-
-.. image:: img/saphir-mesh-h1.png
+.. image:: img/saphir/saphir-mesh-h1.png
    :align: center
    :width: 440
    :height: 400
    :alt: Final finite element mesh for the saphir example (h-FEM with linear elements).
 
+Final mesh (h-FEM with quadratic elements):
+
+.. image:: img/saphir/saphir-mesh-h2.png
+   :align: center
+   :width: 440
+   :height: 400
+   :alt: Final finite element mesh for the saphir example (h-FEM with quadratic elements).
+
+Final mesh (hp-FEM):
+
+.. image:: img/saphir/saphir-mesh-hp.png
+   :align: center
+   :width: 440
+   :height: 400
+   :alt: Final finite element mesh for the saphir example (hp-FEM).
+
 DOF convergence graphs:
 
-.. image:: graphs/saphir/conv_dof_saphir.png
+.. image:: img/saphir/conv_dof.png
    :align: center
    :width: 600
    :height: 400
@@ -138,19 +137,20 @@ DOF convergence graphs:
 
 CPU time convergence graphs:
 
-.. image:: graphs/saphir/conv_cpu_saphir.png
+.. image:: img/saphir/conv_cpu.png
    :align: center
    :width: 600
    :height: 400
    :alt: CPU convergence graph for example saphir.
 
-
-
 Iron-Water
 ----------
 
+Complete information to this example can be found in the corresponding 
+`main.cpp <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/examples/iron-water/main.cpp>`_ file.
 This example is very similar to the example "saphir", the main difference being that 
-it reads a mesh file in the exodusii format (created by Cubit). This example only builds 
+it reads a mesh file in the exodusii format (created by Cubit). 
+This example only builds 
 if you have the `ExodusII <http://sourceforge.net/projects/exodusii/>`_ and 
 `NetCDF <http://www.unidata.ucar.edu/software/netcdf/>`_ libraries installed on your system and 
 the variables WITH_EXODUSII, EXODUSII_ROOT and NETCDF_ROOT defined properly. 
@@ -185,7 +185,7 @@ A uniform volumetric source is placed in water in the lower-left corner
 of the domain, surrounded with a layer of water, a layer of iron, and finally
 another layer of water:
 
-.. image:: img/iron-water.png
+.. image:: img/iron-water/iron-water.png
    :align: center
    :width: 400
    :height: 400
@@ -195,47 +195,44 @@ The unknown is the neutron flux $\Phi(x, y)$. The values of the diffusion coeffi
 $D(x, y)$, absorption cross-section $\Sigma_a(x, y)$ and the source term $Q_{ext}(x,y)$
 are constant in the subdomains. The source $Q_{ext} = 1$ in area 1 and zero 
 elsewhere. The boundary conditions for this problem are zero Dirichlet (right and top edges)
-and zero Neumann (bottom and left edges). Other parameter values and additional information 
-can be 
-found in the `main.cpp <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/examples/iron-water/main.cpp>`_ file.
-Sample results of this computation are shown below.
+and zero Neumann (bottom and left edges). Sample results of this computation are shown below.
 
 Solution:
 
-.. image:: img/iron-water-sol.png
+.. image:: img/iron-water/iron-water-sol.png
    :align: center
    :width: 600
    :height: 400
    :alt: Solution to the iron-water example.
 
-Final hp-mesh:
 
-.. image:: img/iron-water-mesh-hp.png
-   :align: center
-   :width: 440
-   :height: 400
-   :alt: Final finite element mesh for the iron-water example (hp-FEM).
+Final mesh (h-FEM with linear elements):
 
-Final mesh for h-adaptivity with quadratic elements:
-
-.. image:: img/iron-water-mesh-h2.png
-   :align: center
-   :width: 440
-   :height: 400
-   :alt: Final finite element mesh for the iron-water example (h-FEM with quadratic elements).
-
-
-Final mesh for h-adaptivity with linear elements:
-
-.. image:: img/iron-water-mesh-h1.png
+.. image:: img/iron-water/iron-water-mesh-h1.png
    :align: center
    :width: 440
    :height: 400
    :alt: Final finite element mesh for the iron-water example (h-FEM with linear elements).
 
+Final mesh (h-FEM with quadratic elements):
+
+.. image:: img/iron-water/iron-water-mesh-h2.png
+   :align: center
+   :width: 440
+   :height: 400
+   :alt: Final finite element mesh for the iron-water example (h-FEM with quadratic elements).
+
+Final mesh (hp-FEM):
+
+.. image:: img/iron-water/iron-water-mesh-hp.png
+   :align: center
+   :width: 440
+   :height: 400
+   :alt: Final finite element mesh for the iron-water example (hp-FEM).
+
 DOF convergence graphs:
 
-.. image:: graphs/iron-water/conv_dof_iron_water.png
+.. image:: img/iron-water/conv_dof.png
    :align: center
    :width: 600
    :height: 400
@@ -243,17 +240,17 @@ DOF convergence graphs:
 
 CPU time convergence graphs:
 
-.. image:: graphs/iron-water/conv_cpu_iron_water.png
+.. image:: img/iron-water/conv_cpu.png
    :align: center
    :width: 600
    :height: 400
    :alt: CPU convergence graph for example iron-water.
 
-
-
 Navier-Stokes
 -------------
 
+Complete information to this example can be found in the corresponding 
+`main.cpp <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/examples/ns-timedep/main.cpp>`_ file.
 This model problem is concerned with the approximate solution of external
 flow past a cylinder with unit diameter. The corresponding files can be found in 
 example `ns-timedep <http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/examples/ns-timedep>`_. The geometry looks as follows:
