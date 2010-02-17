@@ -36,8 +36,8 @@ and all tutorial examples can be found in the directory
 For the 1D and 3D codes, see the `Hermes1D <http://hpfem.org/hermes1d/>`_ and 
 `Hermes3D <http://hpfem.org/hermes3d/>`_ home pages, respectively.
 
-Main Strengths
---------------
+How Can Hermes Help You
+-----------------------
 
 Main strengths of Hermes are 
 **higher-order finite element methods**, 
@@ -104,8 +104,8 @@ Same graphs as above but now in terms of CPU time:
 
 .. image:: img/iphone_large.png
    :align: center
-   :width: 300
-   :height: 550
+   :width: 250
+   :height: 450
    :alt: Hermes in iPhone.
 
 See the `Hermes home page <http://hpfem.org/main/hermes.php>`_ for more information. An overview of books, 
