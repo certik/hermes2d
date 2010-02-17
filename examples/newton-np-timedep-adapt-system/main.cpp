@@ -39,7 +39,7 @@
 
 // Parameters to tweak the amount of output to the console
 #define VERBOSE
-#define NONCONT_OUTPUT
+#define CONT_OUTPUT
 
 /*** Fundamental coefficients ***/
 const double D = 1e-12; 	            // [m^2/s] Diffusion coefficient
@@ -63,7 +63,7 @@ const double E_FIELD = VOLTAGE / height;    // Boundary condtion for positive vo
 const int NSTEP = 20;                   // Number of time steps
 const double TAU = 0.05;                // Size of the time step
 const int P_INIT = 2;       	        // Initial polynomial degree of all mesh elements.
-const int REF_INIT = 12;     	        // Number of initial refinements
+const int REF_INIT = 14;     	        // Number of initial refinements
 const bool MULTIMESH = true;	        // Multimesh?
 
 /* Nonadaptive solution parameters */
@@ -125,6 +125,45 @@ Scalar linear_form_surf_top(int n, double *wt, Func<Real> *v, Geom<Real> *e, Ext
   return -E_FIELD * int_v<Real, Scalar>(n, wt, v);
 }
 
+/** Nonadaptive nonnewtonian solver.*/
+void solveNonadaptiveNonNewton(Mesh &mesh, NonlinSystem &nls,
+    Solution &Cp, Solution &Ci, Solution &phip, Solution &phii) {
+  
+  //VectorView vview("electric field [V/m]", 0, 0, 600, 600);
+  ScalarView Cview("Concentration [mol/m3]", 0, 0, 800, 800);
+  ScalarView phiview("Voltage [V]", 650, 0, 600, 600);
+
+  #ifdef CONT_OUTPUT
+  phiview.show(&phii);
+  Cview.show(&Ci);
+  Cview.wait_for_keypress();
+  #endif
+  for (int n = 1; n <= NSTEP; n++) {
+
+    #ifdef VERBOSE
+    info("\n---- Time step %d ----", n);
+    #endif
+
+    int it = 1;
+    double res_l2_norm;
+      
+    nls.assemble();
+    nls.solve(2, &Ci, &phii);
+      
+    #ifdef CONT_OUTPUT
+    phiview.show(&phii);
+    Cview.show(&Ci);
+    #endif
+    phip.copy(&phii);
+    Cp.copy(&Ci);
+  }
+  verbose("\nTotal run time: %g sec", end_time());
+  Cview.show(&Ci);
+  phiview.show(&phii);
+  //MeshView mview("small.mesh", 100, 30, 800, 800);
+  //mview.show(&mesh);
+  View::wait();
+}
 
 /** Nonadaptive solver.*/
 void solveNonadaptive(Mesh &mesh, NonlinSystem &nls,
@@ -268,6 +307,7 @@ void solveAdaptive(Mesh &Cmesh, Mesh &phimesh, Mesh &basemesh, NonlinSystem &nls
         phii.copy(&phisln_coarse);
       } while (res_l2_norm > NEWTON_TOL_COARSE);
 
+      /** Show the coarse mesh solution */
       int ndf = C.get_num_dofs() + phi.get_num_dofs();
       sprintf(title, "phi after COARSE solution, at=%d and n=%d, ndofs=%d", at, n, ndf);
       phiview.set_title(title);
@@ -279,6 +319,7 @@ void solveAdaptive(Mesh &Cmesh, Mesh &phimesh, Mesh &basemesh, NonlinSystem &nls
       Cview.wait_for_keypress();
 
       it = 1;
+      //BEGIN CHANGE
       // Loop for fine mesh solution
       RefNonlinSystem rs(&nls);
       rs.prepare();
@@ -306,7 +347,33 @@ void solveAdaptive(Mesh &Cmesh, Mesh &phimesh, Mesh &basemesh, NonlinSystem &nls
         Ci.copy(&Csln_fine);
         phii.copy(&phisln_fine);
       } while (res_l2_norm > NEWTON_TOL_REF);
+      
 
+      //Let's try with nls again
+      /*
+      nls.set_ic(&Ci, &phii, &Ci, &phii);
+      do {
+        it++;
+
+        #ifdef VERBOSE
+        info("\n -------- Time step %d, Newton iter %d --------\n", n, it);
+        #endif
+
+        nls.assemble();
+        nls.solve(2, &Csln_coarse, &phisln_coarse);
+        res_l2_norm = nls.get_residuum_l2_norm();
+
+        #ifdef VERBOSE
+        info("Residuum L2 norm: %g\n", res_l2_norm);
+        #endif
+
+        Ci.copy(&Csln_coarse);
+        phii.copy(&phisln_coarse);
+      } while (res_l2_norm > NEWTON_TOL_COARSE);
+      */
+      // END CHANGE
+
+      /** Show the fine mesh solution */
       ndf = C.get_num_dofs() + phi.get_num_dofs();
       sprintf(title, "phi after FINE solution, at=%d and n=%d, ndofs=%d", at, n, ndf);
       phiview.set_title(title);
@@ -470,6 +537,7 @@ int main (int argc, char* argv[]) {
     solveAdaptive(Cmesh, phimesh, basemesh, nls, C, phi, Cp, Ci, phip, phii);
   } else {
     solveNonadaptive(Cmesh, nls, Cp, Ci, phip, phii);
+    //solveNonadaptiveNonNewton(Cmesh, nls, Cp, Ci, phip, phii);
   }
 
   return 0;
