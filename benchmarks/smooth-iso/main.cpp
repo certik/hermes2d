@@ -5,9 +5,7 @@
 //  This example shows that the worst thing you can ever do is to approximate
 //  smooth parts of solutions with uniform low-order meshes. The exact solution
 //  to this Poisson problem is u(x,y) = sin(x)*sin(y), defined in the square
-//  (0, pi)x(0, pi). Below, set H_REFIN = false for pure p-adaptivity (without
-//  any spatial refinements), and H_REFIN = true for h-adaptivity. Compare the
-//  convergence curves.
+//  (0, pi)x(0, pi). 
 //
 //  PDE: -Laplace u = f
 //
@@ -18,7 +16,7 @@
 //  BC:  homogeneous Dirichlet
 //
 
-const int P_INIT = 1;             // Initial polynomial degree of all mesh elements.
+int P_INIT = 1;                   // Initial polynomial degree of all mesh elements.
 const double THRESHOLD = 0.3;     // This is a quantitative parameter of the adapt(...) function and
                                   // it has different meanings for various adaptive strategies (see below).
 const int STRATEGY = 0;           // Adaptive strategy:
@@ -45,9 +43,9 @@ const int MESH_REGULARITY = -1;   // Maximum allowed level of hanging nodes:
                                   // MESH_REGULARITY = 2 ... at most two-level hanging nodes, etc.
                                   // Note that regular meshes are not supported, this is due to
                                   // their notoriously bad performance.
-const double ERR_STOP = 1e-7;     // Stopping criterion for adaptivity (rel. error tolerance between the
+const double ERR_STOP = 1e-4;     // Stopping criterion for adaptivity (rel. error tolerance between the
                                   // fine mesh and coarse mesh solution in percent).
-const int NDOF_STOP = 400;       // Adaptivity process stops when the number of degrees of freedom grows
+const int NDOF_STOP = 400;        // Adaptivity process stops when the number of degrees of freedom grows
                                   // over this limit. This is to prevent h-adaptivity to go on forever.
 
 // exact solution
@@ -99,8 +97,8 @@ int main(int argc, char* argv[])
   Mesh mesh;
   H2DReader mloader;
   mloader.load("square_quad.mesh", &mesh);
-  if(P_INIT == 1) mesh.refine_all_elements();  // this is because there are no degrees of freedom
-                                               // on the coarse mesh lshape.mesh if P_INIT == 1
+  if(P_INIT == 1) P_INIT++;  // this is because there are no degrees of freedom
+                             // on the coarse mesh lshape.mesh if P_INIT == 1
 
   // initialize the shapeset and the cache
   H1ShapesetOrtho shapeset;
@@ -196,6 +194,9 @@ int main(int argc, char* argv[])
 
     // time measurement
     cpu += end_time();
+
+    // wait for keyboard or mouse input
+    sview.wait_for_keypress("Click into the mesh window and press any key to proceed.");
   }
   while (done == false);
   verbose("Total running time: %g sec", cpu);
