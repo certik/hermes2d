@@ -426,9 +426,10 @@ H1OrthoHP::Cand* H1OrthoHP::create_candidates(Element* e, int order, bool h_only
   }
   else {
     // prepare p-candidates
-    int p0, p1 = std::min(max_order, order+1);
-    for (p0 = order; p0 <= p1; p0++)
+    int p0, p1 = std::min(max_order, order+2);
+    for (p0 = order; p0 <= p1; p0++) {
       make_p_cand(p0);
+    }
 
     //prepare hp-candidates
     p0 = std::max(min_order, (order+1) / 2);
