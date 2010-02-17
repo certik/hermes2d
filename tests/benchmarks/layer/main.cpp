@@ -3,7 +3,7 @@
 
 //  This test makes sure that the benchmark "layer" works correctly.
 
-const int P_INIT = 2;             // Initial polynomial degree of all mesh elements.
+const int P_INIT = 1;             // Initial polynomial degree of all mesh elements.
 const double THRESHOLD = 0.6;     // This is a quantitative parameter of the adapt(...) function and
                                   // it has different meanings for various adaptive strategies (see below).
 const int STRATEGY = 0;           // Adaptive strategy:
@@ -203,7 +203,7 @@ int main(int argc, char* argv[])
 
 #define ERROR_SUCCESS                               0
 #define ERROR_FAILURE                               -1
-  int n_dof_allowed = 4800;
+  int n_dof_allowed = 5100;
   printf("n_dof_actual = %d\n", ndofs);
   printf("n_dof_allowed = %d\n", n_dof_allowed);// ndofs was 4641 at the time this test was created
   if (ndofs <= n_dof_allowed) {
