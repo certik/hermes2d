@@ -33,6 +33,18 @@ $ make
 If you have more than one CPU, you can use "make -j N" where N is
 the number of CPUs of your computer.
 
+Tests
+-----
+
+To execute all tests, do:
+
+$ make test
+
+Note that some of the tests take a long time to finish. To just execute the
+short running tests, do:
+
+$ make test-quick
+
 
 More options
 ------------
