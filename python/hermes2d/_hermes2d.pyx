@@ -185,10 +185,12 @@ cdef class Mesh:
         self.thisptr.copy(m.thisptr)
 
     def load(self, char* filename):
-        self.thisptr.load(filename)
+        cdef c_H2DReader mloader
+        mloader.load(filename, self.thisptr)
 
     def load_str(self, char* mesh):
-        self.thisptr.load_str(mesh)
+        cdef c_H2DReader mloader
+        mloader.load_str(mesh, self.thisptr)
 
     @property
     def elements_markers(self):
