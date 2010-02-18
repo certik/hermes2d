@@ -123,8 +123,11 @@ cdef extern from "hermes2d.h":
         int get_max_element_id()
         void convert_to_quads(int refinement)
         void convert_to_triangles()
-
     c_Mesh *new_Mesh "new Mesh" ()
+
+    cdef struct c_H2DReader "H2DReader":
+        void load(char* filename, c_Mesh *m)
+        void load_str(char* mesh, c_Mesh *m)
 
     ctypedef struct c_H1Shapeset "H1Shapeset"
     c_H1Shapeset *new_H1Shapeset "new H1Shapeset" ()
