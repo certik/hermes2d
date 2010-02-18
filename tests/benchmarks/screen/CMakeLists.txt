@@ -10,5 +10,6 @@ include (../../CMake.common)
 
 set(BIN ${PROJECT_BINARY_DIR}/${PROJECT_NAME})
 add_test(benchmark-screen ${BIN})
+set_tests_properties(benchmark-screen PROPERTIES LABELS slow)
 
 ENDIF(COMPLEX)
