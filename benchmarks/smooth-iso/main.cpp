@@ -45,7 +45,7 @@ const int MESH_REGULARITY = -1;   // Maximum allowed level of hanging nodes:
                                   // their notoriously bad performance.
 const double ERR_STOP = 1e-4;     // Stopping criterion for adaptivity (rel. error tolerance between the
                                   // fine mesh and coarse mesh solution in percent).
-const int NDOF_STOP = 400;        // Adaptivity process stops when the number of degrees of freedom grows
+const int NDOF_STOP = 60000;      // Adaptivity process stops when the number of degrees of freedom grows
                                   // over this limit. This is to prevent h-adaptivity to go on forever.
 
 // exact solution
@@ -97,8 +97,12 @@ int main(int argc, char* argv[])
   Mesh mesh;
   H2DReader mloader;
   mloader.load("square_quad.mesh", &mesh);
-  if(P_INIT == 1) P_INIT++;  // this is because there are no degrees of freedom
-                             // on the coarse mesh lshape.mesh if P_INIT == 1
+  if(P_INIT == 1) {
+    if (ADAPT_TYPE == 0) P_INIT++;  // this is because there are no degrees of freedom
+                                    // on the coarse mesh lshape.mesh if P_INIT == 1
+    if(ADAPT_TYPE == 1) mesh.refine_all_elements(); 
+    if(ADAPT_TYPE == 2) P_INIT++;  
+  }                                        
 
   // initialize the shapeset and the cache
   H1ShapesetOrtho shapeset;
@@ -187,7 +191,7 @@ int main(int argc, char* argv[])
     // if err_est too large, adapt the mesh
     if (err_est < ERR_STOP) done = true;
     else {
-      hp.adapt(THRESHOLD, STRATEGY, ADAPT_TYPE, ISO_ONLY, MESH_REGULARITY);
+      done = hp.adapt(THRESHOLD, STRATEGY, ADAPT_TYPE, ISO_ONLY, MESH_REGULARITY);
       ndofs = space.assign_dofs();
       if (ndofs >= NDOF_STOP) done = true;
     }
@@ -196,7 +200,7 @@ int main(int argc, char* argv[])
     cpu += end_time();
 
     // wait for keyboard or mouse input
-    sview.wait_for_keypress("Click into the mesh window and press any key to proceed.");
+    //sview.wait_for_keypress("Click into the mesh window and press any key to proceed.");
   }
   while (done == false);
   verbose("Total running time: %g sec", cpu);

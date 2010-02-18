@@ -544,6 +544,133 @@ CPU time convergence graphs:
    :height: 400
    :alt: CPU convergence graph.
 
+Smooth-iso
+----------
+
+More information to this example can be found in the corresponding 
+`main.cpp <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/benchmarks/smooth-iso/main.cpp>`_ file.
+It shows that it is a very bad idea to approximate smooth solutions using low-order 
+elements.
+
+Equation solved: Poisson equation 
+
+.. math::
+    :label: smooth-iso
+
+       -\Delta u = f.
+
+Domain of interest: Square $(0, \pi)^2$.
+
+Right-hand side:
+
+.. math::
+    :label: smooth-iso-rhs
+ 
+    f(x, y) = 2\sin(x)\sin(y).
+
+Boundary conditions: Zero Dirichlet. 
+
+Exact solution:
+
+.. math::
+    :label: smooth-iso-exact
+
+    u(x, y) = \sin(x)\sin(y).
+
+Code for the exact solution and the weak forms:
+
+::
+
+    // exact solution
+    static double fn(double x, double y)
+    {
+      return sin(x)*sin(y);
+    }
+
+    static double fndd(double x, double y, double& dx, double& dy)
+    {
+      dx = cos(x)*sin(y);
+      dy = sin(x)*cos(y);
+      return fn(x, y);
+    }
+
+    // boundary condition types
+    int bc_types(int marker)
+    {
+      return BC_ESSENTIAL;
+    }
+
+    // function values for Dirichlet boundary conditions
+    scalar bc_values(int marker, double x, double y)
+    {
+      return fn(x, y);
+    }
+
+    template<typename Real, typename Scalar>
+    Scalar bilinear_form(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+    {
+      return int_grad_u_grad_v<Real, Scalar>(n, wt, u, v);
+    }
+
+    template<typename Real>
+    Real rhs(Real x, Real y)
+    {
+      return 2 * sin(x) * sin(y);
+    }
+
+    template<typename Real, typename Scalar>
+    Scalar linear_form(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+    {
+      return int_F_v<Real, Scalar>(n, wt, rhs, v, e);
+    }
+
+Solution:
+
+.. image:: img/smooth-iso/sol_3d_view.png
+   :align: center
+   :width: 500
+   :height: 300
+   :alt: Solution.
+
+Final mesh (h-FEM with linear elements):
+
+.. image:: img/smooth-iso/mesh-h1.png
+   :align: center
+   :width: 500
+   :height: 400
+   :alt: Final mesh (h-FEM with linear elements).
+
+Final mesh (h-FEM with quadratic elements):
+
+.. image:: img/smooth-iso/mesh-h2.png
+   :align: center
+   :width: 500
+   :height: 400
+   :alt: Final mesh (h-FEM with quadratic elements).
+
+Final mesh (hp-FEM):
+
+.. image:: img/smooth-iso/mesh-hp.png
+   :align: center
+   :width: 500
+   :height: 400
+   :alt: Final mesh (hp-FEM).
+
+DOF convergence graphs:
+
+.. image:: img/smooth-iso/conv_dof.png
+   :align: center
+   :width: 600
+   :height: 400
+   :alt: DOF convergence graph.
+
+CPU time convergence graphs:
+
+.. image:: img/smooth-iso/conv_cpu.png
+   :align: center
+   :width: 600
+   :height: 400
+   :alt: CPU convergence graph.
 
 
 
@@ -557,11 +684,6 @@ To be added soon.
 
 Kellogg
 -------
-
-To be added soon.
-
-Smooth-iso
-----------
 
 To be added soon.
 
