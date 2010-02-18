@@ -116,7 +116,10 @@ if(WITH_PYTHON)
 endif(WITH_PYTHON)
 
 add_custom_target(test
-    COMMAND /usr/bin/ctest
+    COMMAND ctest
+    )
+add_custom_target(test-quick
+    COMMAND ctest -LE slow -j9
     )
 
 # Documentation
