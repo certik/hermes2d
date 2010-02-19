@@ -655,37 +655,110 @@ cdef class LinSystem:
         else:
             raise NotImplementedError()
 
-    def solve_system(self, *args):
+    def solve_system(self, *args, lib="scipy"):
         """
         Solves the linear system using scipy.
-
-        >>> 1 + 3
-        4
-        >>> 5 + 2
-        8
-
         """
         cdef int n = len(args)
-        cdef Solution a, b, c
+
+        """
+        cdef Solution s[n]
+        cdef ndarray vec[n]
+        cdef scalar *pvec[n]
+
+        if lib == "hermes":
+            if n == 1:
+                s[0] = args[0]
+                self.thisptr.solve(n, s[0].thisptr)
+            elif n == 2:
+                s[0], s[1] = args
+                self.thisptr.solve(n, s[0].thisptr, s[1].thisptr)
+            elif n == 3:
+                s[0], s[1], s[2] = args
+                self.thisptr.solve(n, s[0].thisptr, s[1].thisptr, s[2].thisptr)
+
+        elif lib == "scipy":
+            from scipy.sparse.linalg import cg
+            from scipy.sparse.linalg import spsolve
+            from numpy import array
+
+            A = [0]*n
+            rhs = [0]*n
+            x = [0]*n
+
+            for i in range(n):
+
+                A[i] = self.get_matrix()
+                rhs[i] = self.get_rhs()
+                x[i] = spsolve(A[i], rhs)
+                vec[i] = array(x[i], dtype="double")
+                pvec[i] = <scalar *>vec[i].data
+                (<c_Solution *>(s[i].thisptr)).set_fe_solution( self.thisptr.get_space(0), self.thisptr.get_pss(0), pvec[i] )
+
+        else:
+            raise NotImplementedError()
+        """
+
+        cdef Solution a,b,c
         cdef ndarray vec
         cdef scalar *pvec
+
+        # change below:
         if n == 1:
             a = args[0]
-            #self.thisptr.solve(n, a.thisptr)
-            A = self.get_matrix()
-            rhs = self.get_rhs()
-            from scipy.sparse.linalg import cg
-            x, res = cg(A, rhs)
-            from numpy import array
-            vec = array(x, dtype="double")
-            pvec = <scalar *>vec.data
-            (<c_Solution *>(a.thisptr)).set_fe_solution(
-                    self.thisptr.get_space(0),
-                    self.thisptr.get_pss(0),
-                    pvec)
+            if lib == "hermes":
+                self.thisptr.solve(n, a.thisptr)
+                return
+            elif lib == "scipy":
+                A = self.get_matrix()
+                rhs = self.get_rhs()
+                from scipy.sparse.linalg import cg
+                from scipy.sparse.linalg import spsolve
+                x = spsolve(A, rhs)
+                from numpy import array
+                vec = array(x, dtype="double")
+                pvec = <scalar *>vec.data
+                (<c_Solution *>(a.thisptr)).set_fe_solution(
+                        self.thisptr.get_space(0),
+                        self.thisptr.get_pss(0),
+                        pvec)
+            else:
+                raise ValueError("Unknown solver specified.")
         elif n == 2:
             a, b = args
-            self.thisptr.solve(n, a.thisptr, b.thisptr)
+            if lib == "hermes":
+                self.thisptr.solve(n, a.thisptr, b.thisptr)
+            elif lib == "scipy":
+                A = self.get_matrix()
+                rhs1 = self.get_rhs()
+                from scipy.sparse.linalg import cg
+                from scipy.sparse.linalg import spsolve
+                x = spsolve(A, rhs1)
+
+                from numpy import array
+                vec = array(x, dtype="double")
+                pvec = <scalar *>vec.data
+                (<c_Solution *>(a.thisptr)).set_fe_solution(
+                        self.thisptr.get_space(0),
+                        self.thisptr.get_pss(0),
+                        pvec)
+
+
+                B = self.get_matrix()
+                rhs2 = self.get_rhs()
+                from scipy.sparse.linalg import cg
+                from scipy.sparse.linalg import spsolve
+                y = spsolve(B, rhs2)
+
+                from numpy import array
+                vec = array(y, dtype="double")
+                pvec = <scalar *>vec.data
+                (<c_Solution *>(b.thisptr)).set_fe_solution(
+                        self.thisptr.get_space(0),
+                        self.thisptr.get_pss(0),
+                        pvec)
+            else:
+                raise ValueError("Unknown solver specified.")
         elif n == 3:
             a, b, c = args
             self.thisptr.solve(n, a.thisptr, b.thisptr, c.thisptr)
