@@ -326,6 +326,8 @@ void solveAdaptive(Mesh &Cmesh, Mesh &phimesh, Mesh &basemesh, NonlinSystem &nls
       if (n > 1 || at > 1) {
         rs.set_ic(&Csln_fine, &phisln_fine, &Ci, &phii);
       } else {
+        Ci.copy(&Cp);
+        phii.copy(&phip);
         rs.set_ic(&Ci, &phii, &Ci, &phii);
       }
 
