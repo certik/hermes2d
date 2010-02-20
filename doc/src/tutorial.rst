@@ -1746,3 +1746,13 @@ The following graph shows convergence in terms of CPU time.
 
 Newton's Method for Nonlinear Problems
 --------------------------------------
+
+Hermes can solve nonlinear problems via the Newton's method, both single nonlinear
+PDE and nonlinear PDE systems. We begin with explaining how the Newton's method works, and 
+concrete implementation details will be shown after that. 
+Consider a simple model problem of the form 
+
+.. math::
+    :label: newton0
+
+    -\nabla \cdot (\lambda(u)\nabla u) = f(u), \ \ \ u = 0 \ \mbox{on}\ \partial \Omega.
