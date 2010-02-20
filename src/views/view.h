@@ -85,6 +85,7 @@ public:
   void set_palette_filter(bool linear);
 
   void wait_for_keypress();
+  void wait_for_keypress(const char* text);
   void wait_for_close();
   void wait_for_draw();
 

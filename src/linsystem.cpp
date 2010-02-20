@@ -331,7 +331,8 @@ void LinSystem::create_matrix(bool rhsonly)
   ndofs = 0;
   for (int i = 0; i < wf->neq; i++)
     ndofs += spaces[i]->get_num_dofs();
-  if (!ndofs) return;
+  if (!ndofs)
+    error("ndofs cannot not be 0.");
 
   // get row and column indices of nonzero matrix elements
   Page** pages = new Page*[ndofs];

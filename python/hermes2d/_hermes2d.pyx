@@ -185,10 +185,12 @@ cdef class Mesh:
         self.thisptr.copy(m.thisptr)
 
     def load(self, char* filename):
-        self.thisptr.load(filename)
+        cdef c_H2DReader mloader
+        mloader.load(filename, self.thisptr)
 
     def load_str(self, char* mesh):
-        self.thisptr.load_str(mesh)
+        cdef c_H2DReader mloader
+        mloader.load_str(mesh, self.thisptr)
 
     @property
     def elements_markers(self):
@@ -655,42 +657,51 @@ cdef class LinSystem:
         else:
             raise NotImplementedError()
 
-    def solve_system(self, *args):
+    def solve_system(self, *args, lib="scipy"):
         """
         Solves the linear system using scipy.
-
-        >>> 1 + 3
-        4
-        >>> 5 + 2
-        8
-
         """
         cdef int n = len(args)
-        cdef Solution a, b, c
+
+        cdef Solution s0, s1, s2, s3
         cdef ndarray vec
         cdef scalar *pvec
-        if n == 1:
-            a = args[0]
-            #self.thisptr.solve(n, a.thisptr)
+
+        if lib == "hermes":
+            if n == 1:
+                s0 = args[0]
+                self.thisptr.solve(n, s0.thisptr)
+            elif n == 2:
+                s0, s1 = args
+                self.thisptr.solve(n, s0.thisptr, s1.thisptr)
+            elif n == 3:
+                s0, s1, s2 = args
+                self.thisptr.solve(n, s0.thisptr, s1.thisptr, s2.thisptr)
+            elif n == 4:
+                s0, s1, s2, s3 = args
+                self.thisptr.solve(n, s0.thisptr, s1.thisptr, s2.thisptr,
+                        s3.thisptr)
+            else:
+                raise NotImplementedError()
+
+        elif lib == "scipy":
+            from scipy.sparse.linalg import cg
+            from scipy.sparse.linalg import spsolve
+            from numpy import array
             A = self.get_matrix()
             rhs = self.get_rhs()
-            from scipy.sparse.linalg import cg
-            x, res = cg(A, rhs)
-            from numpy import array
+            #x, res = cg(A, rhs)
+            x = spsolve(A, rhs)
             vec = array(x, dtype="double")
             pvec = <scalar *>vec.data
-            (<c_Solution *>(a.thisptr)).set_fe_solution(
-                    self.thisptr.get_space(0),
-                    self.thisptr.get_pss(0),
-                    pvec)
-        elif n == 2:
-            a, b = args
-            self.thisptr.solve(n, a.thisptr, b.thisptr)
-        elif n == 3:
-            a, b, c = args
-            self.thisptr.solve(n, a.thisptr, b.thisptr, c.thisptr)
+
+            for i, sln in enumerate(args):
+                (<c_Solution *>((<Solution>sln).thisptr)).set_fe_solution(
+                        self.thisptr.get_space(i),
+                        self.thisptr.get_pss(i),
+                        pvec)
         else:
-            raise NotImplementedError()
+            raise NotImplementedError("Unknown library")
 
     def assemble(self):
         self.thisptr.assemble()

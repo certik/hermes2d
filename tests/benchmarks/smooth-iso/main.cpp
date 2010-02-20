@@ -3,7 +3,7 @@
 
 //  This test makes sure that the benchmark "smooth" works correctly.
 
-const int P_INIT = 1;             // Initial polynomial degree of all mesh elements.
+int P_INIT = 1;                   // Initial polynomial degree of all mesh elements.
 const double THRESHOLD = 0.3;     // This is a quantitative parameter of the adapt(...) function and
                                   // it has different meanings for various adaptive strategies (see below).
 const int STRATEGY = 0;           // Adaptive strategy:
@@ -30,7 +30,7 @@ const int MESH_REGULARITY = -1;   // Maximum allowed level of hanging nodes:
                                   // MESH_REGULARITY = 2 ... at most two-level hanging nodes, etc.
                                   // Note that regular meshes are not supported, this is due to
                                   // their notoriously bad performance.
-const double ERR_STOP = 1e-7;     // Stopping criterion for adaptivity (rel. error tolerance between the
+const double ERR_STOP = 1e-4;     // Stopping criterion for adaptivity (rel. error tolerance between the
                                   // fine mesh and coarse mesh solution in percent).
 const int NDOF_STOP = 400;       // Adaptivity process stops when the number of degrees of freedom grows
                                   // over this limit. This is to prevent h-adaptivity to go on forever.
@@ -84,8 +84,8 @@ int main(int argc, char* argv[])
   Mesh mesh;
   H2DReader mloader;
   mloader.load("square_quad.mesh", &mesh);
-  if(P_INIT == 1) mesh.refine_all_elements();  // this is because there are no degrees of freedom
-                                               // on the coarse mesh lshape.mesh if P_INIT == 1
+  if(P_INIT == 1) P_INIT++;  // this is because there are no degrees of freedom
+                             // on the coarse mesh lshape.mesh if P_INIT == 1
 
   // initialize the shapeset and the cache
   H1ShapesetOrtho shapeset;
@@ -105,22 +105,15 @@ int main(int argc, char* argv[])
   wf.add_biform(0, 0, callback(bilinear_form), SYM);
   wf.add_liform(0, callback(linear_form));
 
+  // visualize solution and mesh
+  //ScalarView sview("Coarse solution", 0, 0, 500, 400);
+  //OrderView  oview("Polynomial orders", 505, 0, 500, 400);
+
   // matrix solver
   UmfpackSolver solver;
 
-  // convergence graph wrt. the number of degrees of freedom
-  GnuplotGraph graph;
-  graph.set_log_y();
-  graph.set_captions("Error Convergence for the Anisopoly Problem", "Degrees of Freedom", "Error [%]");
-  graph.add_row("exact error", "k", "-", "o");
-  graph.add_row("error estimate", "k", "--");
-
-  // convergence graph wrt. CPU time
-  GnuplotGraph graph_cpu;
-  graph_cpu.set_captions("Error Convergence for the Anisopoly Problem", "CPU Time", "Error Estimate [%]");
-  graph_cpu.add_row("exact error", "k", "-", "o");
-  graph_cpu.add_row("error estimate", "k", "--");
-  graph_cpu.set_log_y();
+  // DOF and CPU convergence graphs
+  SimpleGraph graph_dof_est, graph_dof_exact, graph_cpu_est, graph_cpu_exact;
 
   // adaptivity loop
   int it = 1, ndofs;
@@ -149,6 +142,10 @@ int main(int argc, char* argv[])
     double error = h1_error(&sln_coarse, &exact) * 100;
     info("\nExact solution error: %g%%", error);
 
+    // view the solution
+    //sview.show(&sln_coarse);
+    //oview.show(&space);
+
     // time measurement
     begin_time();
 
@@ -162,15 +159,17 @@ int main(int argc, char* argv[])
     double err_est = hp.calc_error(&sln_coarse, &sln_fine) * 100;
     info("Estimate of error: %g%%", err_est);
 
-    // add entry to DOF convergence graph
-    graph.add_values(0, space.get_num_dofs(), error);
-    graph.add_values(1, space.get_num_dofs(), err_est);
-    graph.save("conv_dof.gp");
+    // add entries to DOF convergence graphs
+    graph_dof_exact.add_values(space.get_num_dofs(), error);
+    graph_dof_exact.save("conv_dof_exact.dat");
+    graph_dof_est.add_values(space.get_num_dofs(), err_est);
+    graph_dof_est.save("conv_dof_est.dat");
 
-    // add entry to CPU convergence graph
-    graph_cpu.add_values(0, cpu, error);
-    graph_cpu.add_values(1, cpu, err_est);
-    graph_cpu.save("conv_cpu.gp");
+    // add entries to CPU convergence graphs
+    graph_cpu_exact.add_values(cpu, error);
+    graph_cpu_exact.save("conv_cpu_exact.dat");
+    graph_cpu_est.add_values(cpu, err_est);
+    graph_cpu_est.save("conv_cpu_est.dat");
 
     // if err_est too large, adapt the mesh
     if (err_est < ERR_STOP) done = true;
@@ -182,15 +181,18 @@ int main(int argc, char* argv[])
 
     // time measurement
     cpu += end_time();
+
+    // wait for keyboard or mouse input
+    //sview.wait_for_keypress("Click into the mesh window and press any key to proceed.");
   }
   while (done == false);
   verbose("Total running time: %g sec", cpu);
 
 #define ERROR_SUCCESS                               0
 #define ERROR_FAILURE                               -1
-  int n_dof_allowed = 290;
+  int n_dof_allowed = 49;
   printf("n_dof_actual = %d\n", ndofs);
-  printf("n_dof_allowed = %d\n", n_dof_allowed);// ndofs was 625 at the time this test was created
+  printf("n_dof_allowed = %d\n", n_dof_allowed); // ndofs was 49 at the time this test was created
   if (ndofs <= n_dof_allowed) {
     printf("Success!\n");
     return ERROR_SUCCESS;

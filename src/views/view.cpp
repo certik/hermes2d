@@ -442,6 +442,15 @@ void View::wait_for_keypress()
   view_sync.leave();
 }
 
+void View::wait_for_keypress(const char* text)
+{
+  printf("  << %s >>\n", text);
+  view_sync.enter();
+  if (output_id >= 0)
+    view_sync.wait_keypress();
+  view_sync.leave();
+}
+
 void View::wait_for_close()
 {
   view_sync.enter();
