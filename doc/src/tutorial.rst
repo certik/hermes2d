@@ -21,7 +21,10 @@ and the adaptivity will take care of the rest.
    :height: 400
    :alt: Sample finite element mesh.
 
-The source file for the above mesh can be found `here <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/tutorial/01-mesh/domain.mesh>`_. The domain is defined via four macroelements -- two
+The `source file <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/tutorial/01-mesh/domain.mesh>`_ 
+for this mesh is part of the tutorial example 
+`01-mesh <http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/tutorial/01-mesh>`_. 
+The domain is defined via four macroelements -- two
 quadrilaterals and two curvilinear triangles. The elements are enumerated from 0 to 3. 
 One also needs to enumerate all mesh vertices and assign markers to all boundary edges. 
 Boundary markers are used to link boundary conditions with the boundary edges. 
@@ -136,11 +139,13 @@ Loading Mesh
 ------------
 
 As a ''Hello world'' example, let us load the mesh we have just created, and display it in a window. 
-The main.cpp file that we are going to discuss can be found 
-`here <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/tutorial/01-mesh/main.cpp>`_. 
+The  
+`main.cpp <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/tutorial/01-mesh/main.cpp>`_ file
+that we are going to discuss is part of the tutorial example 
+`01-mesh <http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/tutorial/01-mesh>`_. 
 Every main.cpp file in the git repo contains lots of comments and instructions. Skipping those, 
 the `main.cpp <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/tutorial/01-mesh/main.cpp>`_ 
-file of example 01-mesh/ begins with creating an instance of the class Mesh. In order to load
+file begins with creating an instance of the class Mesh. In order to load
 the mesh file, you have to create a mesh loader class (in our case that is ``H2DReader``) and
 call the method ``load()``:
 ::
@@ -186,7 +191,8 @@ Other ways of modifying meshes on the fly include
     Mesh::unrefine_element(int id)
     Mesh::unrefine_all_elements()
 
-See files `mesh1.cpp <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/src/mesh1.cpp>`_ and `mesh2.cpp <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/src/mesh2.cpp>`_ for details. The following code illustrates how to visualize the mesh using the class MeshView:
+See the file `mesh.cpp <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/src/mesh.cpp>`_ for details. 
+The following code illustrates how to visualize the mesh using the class MeshView:
 ::
 
     // display the mesh
@@ -208,7 +214,7 @@ Every main.cpp file is finished with
 ::
 
     // wait for keyboard or mouse input
-    View::wait();
+    View::wait("optional message.");
     return 0;
   }
 
@@ -253,7 +259,8 @@ Any shapeset can be used for more than one space.
 
 We are now ready for an example. The following code snippets come from
 the `main.cpp <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/tutorial/02-space/main.cpp>`_ file 
-in the tutorial example 02-space. We assume that a mesh has already
+in the tutorial example `02-space <http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/tutorial/02-space>`_. 
+We assume that a mesh has already
 been loaded. First we create an instance of H1Shapeset and then an
 instance of H1Space, supplying the mesh and shapeset pointers:
 ::
@@ -366,7 +373,8 @@ int_grad_u_grad_v and int_v:
     }
 
 We can now state our problem in the following way
-(see the `main.cpp <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/tutorial/03-poisson/main.cpp>`_ file in the tutorial example 03-poisson):
+(see the `main.cpp <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/tutorial/03-poisson/main.cpp>`_ 
+file in the tutorial example `03-poisson <http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/tutorial/03-poisson>`_):
 ::
 
     // initialize the weak formulation
@@ -425,7 +433,9 @@ using the ScalarView class:
     ScalarView view("Solution");
     view.show(&sln);
 
-For the complete source code we refer to the corresponding `main.cpp <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/tutorial/03-poisson/main.cpp>`_ file.
+For the complete source code we refer to the 
+`main.cpp <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/tutorial/03-poisson/main.cpp>`_ file
+in the tutorial example '03-poisson <http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/tutorial/03-poisson>'_.
 The following figure shows the output.
 
 .. image:: img/poisson.png
@@ -512,7 +522,8 @@ Further, the value callback must return the value of the Dirichlet BC:
       return (-CONST_F/4)*(x*x + y*y);
     }
 
-See the `main.cpp <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/tutorial/04-bc-dirichlet/main.cpp>`_ file in the example 04-bc-dirichlet.
+See the `main.cpp <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/tutorial/04-bc-dirichlet/main.cpp>`_ 
+file in the tutorial example `04-bc-dirichlet <http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/tutorial/04-dirichlet>`_. 
 It is easy to see that the solution to this problem is the function
 
 .. math::
@@ -564,7 +575,8 @@ be represented by two functions with the following prototypes:
     Scalar linear_form_surf(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext);
 
 and will be added to the WeakForm by the following code (see the 
-`main.cpp <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/tutorial/05-bc-neumann/main.cpp>`_ file of example 05-bc-neumann):
+`main.cpp <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/tutorial/05-bc-neumann/main.cpp>`_ file 
+of the tutorial example `05-bc-neumann <http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/tutorial/05-bc-neumann>`_):
 ::
 
     // initialize the weak formulation
@@ -587,8 +599,10 @@ file `src/integrals_h1.h <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD
 have used surf_int_F_v, where F stands for an arbitrary user-supplied
 function returning the value $\partial u/\partial n$.
 
-Refer to the `main.cpp <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/tutorial/05-bc-neumann/main.cpp>`_ file of example 05-bc-neumann for the complete code. Note that the mesh
-is refined towards the re-entrant corner in order to capture the singular gradient.
+Refer to the `main.cpp <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/tutorial/05-bc-neumann/main.cpp>`_ file 
+of the tutorial example `05-bc-neumann <http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/tutorial/05-bc-neumann>`_ 
+for the complete code. Note that the mesh is refined towards the re-entrant corner in order to 
+capture the singular gradient.
 ::
 
     // load the mesh file
@@ -717,7 +731,8 @@ This example deals with a linear second-order equation of the form
 
          -\frac{\partial}{\partial x}\left(a_{11}(x,y)\frac{\partial u}{\partial x}\right) - \frac{\partial}{\partial x}\left(a_{12}(x,y)\frac{\partial u}{\partial y}\right) - \frac{\partial}{\partial y}\left(a_{21}(x,y)\frac{\partial u}{\partial x}\right) - \frac{\partial}{\partial y}\left(a_{22}(x,y)\frac{\partial u}{\partial y}\right) + a_1(x,y)\frac{\partial u}{\partial x} + a_{21}(x,y)\frac{\partial u}{\partial y} + a_0(x,y)u = rhs(x,y),
 
-equipped with Dirichlet and/or Neumann boundary conditions. It has two goals: (a) to show the way one defines and uses space-dependent coefficients, and (b) to show how integration orders in weak forms can be handled explicitly. The code can be found in the `main.cpp <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/tutorial/07-general/main.cpp>`_ file of the tutorial example 07-general.
+equipped with Dirichlet and/or Neumann boundary conditions. It has two goals: (a) to show the way one defines and uses space-dependent coefficients, and (b) to show how integration orders in weak forms can be handled explicitly. The code can be found in the `main.cpp <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/tutorial/07-general/main.cpp>`_ file of the 
+tutorial example `07-general <http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/tutorial/07-general>`_.
 
 First we define the (generally) non-constant equation coefficients:
 ::
@@ -918,7 +933,7 @@ Here, $\mu$ and $\lambda$ are material constants (Lame coefficients) defined as
 where $E$ is the Young modulus and $\nu$ the Poisson ratio of the material. For
 steel, we have $E = 200$ GPa and $\nu = 0.3$. The load is $f = (0, 10^4)^T$ N.
 
-For more details we refer to the mesh file `sample.mesh <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/tutorial/08-system/sample.mesh>`_ as well as to the `main.cpp <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/tutorial/08-system/main.cpp>`_ file of the tutorial example 08-system. 
+For more details we refer to the mesh file `sample.mesh <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/tutorial/08-system/sample.mesh>`_ as well as to the `main.cpp <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/tutorial/08-system/main.cpp>`_ file of the tutorial example `08-system <http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/tutorial/08-system>`_. 
 
 We will again start by defining the function spaces for the two solution
 components, $u_1$ and $u_2$ (the $x$ and $y$ displacement). The boundary
@@ -1046,7 +1061,8 @@ Transient Problems
 ------------------
 
 This section describes the implementation of a simple time-dependent
-heat transfer model that can be found in `tutorial/09-timedep <http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/tutorial/09-timedep>`_.
+heat transfer model that can be found in the tutorial example
+`09-timedep <http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/tutorial/09-timedep>`_.
 The model describes in a naive approximation how the St. Vitus cathedral
 in Prague responds to changes in the surrounding air temperature
 during one 24-hour cycle. The geometry is shown below:
@@ -1202,7 +1218,8 @@ which is set to false before the time stepping begins:
     rhsonly = true;
     ls.solve(1, &tsln);
 
-For more details see the `main.cpp <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/tutorial/09-timedep/main.cpp>`_ file in the tutorial example 09-timedep.
+For more details see the `main.cpp <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/tutorial/09-timedep/main.cpp>`_ 
+file in the tutorial example `09-timedep <http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/tutorial/09-timedep>`_.
 
 Automatic Adaptivity
 --------------------
@@ -1426,7 +1443,8 @@ $\epsilon_r = 10$ in $\Omega_2$. The weak formulation reads
 The varying parameter $\epsilon_r$ is handled by defining two bilinear forms in the code, one for
 $\Omega_1$ and the other for $\Omega_2$. These two areas are delimited by element markers 1 and 2 in
 the mesh, and the two forms are assigned to the corresponding markers during the registration of
-the forms (see the `main.cpp <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/tutorial/10-adapt/main.cpp>`_ file in the tutorial example 10-adapt):
+the forms (see the `main.cpp <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/tutorial/10-adapt/main.cpp>`_ 
+file of the tutorial example `10-adapt <http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/tutorial/10-adapt>`_):
 ::
 
     WeakForm wf(1);
@@ -1620,7 +1638,11 @@ The dimensions are L = 0.7 m, T = 0.1 m and the force $f = 10^3$ N.
    :height: 400
    :alt: Computational domain for the elastic bracket problem.
 
-The implementation (see the `main.cpp <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/tutorial/11-adapt-system/main.cpp>`_ file in the tutorial example 11-adapt-system) is very similar to the micromotor
+The implementation (see the
+ `main.cpp <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/tutorial/11-adapt-system/main.cpp>`_ 
+file of the tutorial example 
+`11-adapt-system <http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/tutorial/11-adapt-system>`_) 
+is very similar to the micromotor
 example from the previous section. Again, the coarse and reference solutions are calculated
 in the main loop, only this time we have two equations in the system, two meshes, two spaces, etc.
 The only substantial difference is in the calculation of the error estimate. Instead of
@@ -1684,7 +1706,10 @@ advanced application of multimesh *hp*-FEM to thermoelasticity.
 Adaptivity for General 2nd-Order Linear Equation
 ------------------------------------------------
 
-This example does not bring anything new and its purpose is solely to save you work adding adaptivity to example `07-general <http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/tutorial/07-general>`_. Feel free to adjust the `main.cpp <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/tutorial/12-adapt-general/main.cpp>`_ file in the tutorial example 12-general-adapt for your own applications.
+This example does not bring anything new and its purpose is solely to save you work adding adaptivity to the tutorial example 
+`07-general <http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/tutorial/07-general>`_. 
+Feel free to adjust the `main.cpp <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/tutorial/12-adapt-general/main.cpp>`_ 
+file in the tutorial example `12-general-adapt <http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/tutorial/12-general-adapt>`_ for your own applications.
 
 The solution is shown below:
 
@@ -1719,3 +1744,5 @@ The following graph shows convergence in terms of CPU time.
    :height: 400
    :alt: CPU convergence graph for tutorial example 12-adapt-general.
 
+Newton's Method for Nonlinear Problems
+--------------------------------------
