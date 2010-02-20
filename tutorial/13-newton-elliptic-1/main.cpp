@@ -25,11 +25,11 @@ const int INIT_BDY_REF_NUM = 5;   // Number of initial refinements towards bound
 // Thermal conductivity (temperature-dependent)
 // Note: for any u, this function has to be positive
 template<typename Real>
-Real lam(Real u) { return 1 + 0*pow(u, 4); }
+Real lam(Real u) { return 1 + pow(u, 4); }
 
 // Derivative of the thermal conductivity with respect to 'u'
 template<typename Real>
-Real dlam_du(Real u) { return 0*4*pow(u, 3); }
+Real dlam_du(Real u) { return 4*pow(u, 3); }
 
 // Boundary condition type (essential = Dirichlet)
 int bc_types(int marker)
