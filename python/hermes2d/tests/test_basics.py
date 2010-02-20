@@ -1,11 +1,13 @@
 from numpy import array
 
 from hermes2d import Mesh, H1Shapeset, PrecalcShapeset, H1Space, \
-        WeakForm, Solution, ScalarView, set_verbose, LinSystem, DummySolver
+        WeakForm, Solution, ScalarView, set_verbose, LinSystem, DummySolver, \
+        set_warn_integration
 from hermes2d.forms import set_forms
 from hermes2d.examples import get_example_mesh
 
 domain_mesh = get_example_mesh()
+set_warn_integration(False)
 
 def equal_arrays(a, b, prec=1e-10):
     if len(a) == len(b):

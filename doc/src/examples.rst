@@ -9,7 +9,7 @@ in the source code.
 Saphir
 ------
 
-Complete information to this example can be found in the corresponding 
+More information to this example can be found in the corresponding 
 `main.cpp <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/examples/saphir/main.cpp>`_ file.
 This is a standard nuclear engineering benchmark (IAEA number EIR-2) describing 
 an external-force-driven configuration without fissile materials present, using one-group 
@@ -146,7 +146,7 @@ CPU time convergence graphs:
 Iron-Water
 ----------
 
-Complete information to this example can be found in the corresponding 
+More information to this example can be found in the corresponding 
 `main.cpp <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/examples/iron-water/main.cpp>`_ file.
 This example is very similar to the example "saphir", the main difference being that 
 it reads a mesh file in the exodusii format (created by Cubit). 
@@ -249,7 +249,7 @@ CPU time convergence graphs:
 Navier-Stokes
 -------------
 
-Complete information to this example can be found in the corresponding 
+More information to this example can be found in the corresponding 
 `main.cpp <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/examples/ns-timedep/main.cpp>`_ file.
 This model problem is concerned with the approximate solution of external
 flow past a cylinder with unit diameter. The corresponding files can be found in 

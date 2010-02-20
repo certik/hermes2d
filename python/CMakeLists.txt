@@ -15,6 +15,6 @@ include_directories(../src)
 add_subdirectory(hermes2d)
 
 add_custom_target(test-python
-    COMMAND ./test
+    COMMAND ctest -R python-tests -V
     )
 add_test(python-tests ./test)
