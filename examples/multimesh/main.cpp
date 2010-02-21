@@ -21,7 +21,7 @@
 const int P_INIT_TEMP = 2;       // Initial polynomial degrees in temperature mesh.
 const int P_INIT_DISP = 2;       // Initial polynomial degrees for displacement meshes.
 const int MAX_ORDER = 6;         // Maximum order used during adaptivity.
-const bool MULTI = true;         // MULTI = true  ... use multi-mesh,
+const bool MULTI = false;         // MULTI = true  ... use multi-mesh,
                                  // MULTI = false ... use single-mesh.
                                  // Note: In the single mesh option, the meshes are
                                  // forced to be geometrically the same but the
