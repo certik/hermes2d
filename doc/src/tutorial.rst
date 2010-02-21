@@ -1755,4 +1755,279 @@ Consider a simple model problem of the form
 .. math::
     :label: newton0
 
-    -\nabla \cdot (\lambda(u)\nabla u) = f(u), \ \ \ u = 0 \ \mbox{on}\ \partial \Omega.
+    -\nabla \cdot (\lambda(u)\nabla u) - f(\bfx) = 0, \ \ \ u = 0 \ \mbox{on}\ \partial \Omega.
+
+Note that when using the Newton's method, it is customary to have 
+everything on the left-hand side. The corresponding discrete problem has the form 
+
+.. math::
+
+    \int_{\Omega} \lambda(u)\nabla u(\bfx) \cdot \nabla v_i(\bfx)\, \mbox{d}\bfx 
+    - \int_{\Omega} f(\bfx)v_i(\bfx) \, \mbox{d}\bfx\ \ \ \mbox{for all} \ i = 1, 2, \ldots, N, 
+
+where $v_i$ are the standard test functions and
+
+.. math::
+
+    u(\bfY) = \sum_{j=1}^N y_j v_j.
+
+Here $\bfY = (y_1, y_2, \ldots, y_N)^T$ is the vector of unknown coefficients.
+The nonlinear discrete problem can be written in the compact form
+
+.. math::
+
+    \bfF(\bfY) = {\bf 0},
+ 
+where $\bfF = (F_1, F_2, \ldots, F_N)^T$ is the residual vector defined by
+
+.. math::
+
+    F_i(\bfY) =  \int_{\Omega} \lambda(u)\nabla u \cdot \nabla v_i 
+    - f v_i \, \mbox{d}\bfx.
+
+The Jacobi matrix $\bfJ(\bfY) = D\bfF/D\bfY$ has the same sparsity structure as the 
+standard stiffness matrix that we know from linear problems. In fact, when the 
+problem is linear then the Jacobi matrix and the stiffness matrix are the same 
+thing. Using the chain rule of differentiation, we calculate that on the 
+position $ij$, the Jacobi matrix has the value
+
+.. math::
+
+    J_{ij}(\bfY) =  \frac{\partial F_i}{\partial y_j} = 
+    \int_{\Omega} \left[ \frac{\partial \lambda}{\partial u} \frac{\partial u}{\partial y_j} 
+    \nabla u + \lambda(u)\frac{\partial \nabla u}{\partial y_j} \right] \cdot \nabla v_i \, \mbox{d}\bfx.
+
+To this end, note that 
+
+.. math::
+
+    \frac{\partial u}{\partial y_k} = \frac{\partial}{\partial y_k}\sum_{j=1}^N y_j v_j = v_k
+
+and 
+
+.. math::
+
+    \frac{\partial \nabla u}{\partial y_k} = \frac{\partial}{\partial y_k}\sum_{j=1}^N y_j \nabla v_j = \nabla v_k.
+
+
+Using these relations, we obtain
+
+.. math::
+
+    J_{ij}(\bfY) =
+    \int_{\Omega} \left[ \frac{\partial \lambda}{\partial u}(u) v_j 
+    \nabla u + \lambda(u)\nabla v_j \right] \cdot \nabla v_i \, \mbox{d}\bfx.
+
+Let's assume that the Jacobi matrix has been assembled. 
+The Newton's method is written formally as 
+
+.. math::
+
+    \bfY_{\!\!n+1} = \bfY_{\!\!n} - \bfJ^{-1}(\bfY_{\!\!n}) \bfF(\bfY_{\!\!n}),
+
+but a more practical formula to work with is 
+
+.. math::
+
+    \bfJ(\bfY_{\!\!n})\delta \bfY_{\!\!n+1} =  - \bfF(\bfY_{\!\!n}).
+
+This is a system of linear algebraic equations that needs to be solved in every Newton's 
+iteration. The Newton's method will stop when $\bfF(\bfY_{\!\!n+1})$ is sufficiently close 
+to the zero vector.
+
+A remark to the linear case
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In the linear case we have 
+
+.. math::
+
+    \bfF(\bfY) = \bfJ(\bfY)\bfY - \bfb,
+
+where $\bfS = \bfJ(\bfY)$ is a constant stiffness matrix and $\bfb$ a load vector. 
+The Newton's method is now
+
+.. math::
+
+    \bfS\bfY_{\!\!n+1} = \bfJ(\bfY_{\!\!n})\bfY_{\!\!n} 
+    - \bfJ(\bfY_{\!\!n})\bfY_{\!\!n} + \bfb = \bfb.
+
+Therefore, the Newton's method will converge in one iteration.
+
+
+Simple Nonlinear Example
+--------------------------
+
+More information to this example can be found in the `main.cpp 
+<http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/tutorial/13-newton-elliptic-1/main.cpp>`_ file
+of the tutorial example `13-newton-elliptic-1 
+<http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/tutorial/13-newton-elliptic-1>`_.
+We will solve the nonlinear model problem defined in the previous section,
+
+.. math::
+
+    -\nabla \cdot (\lambda(u)\nabla u) - f(\bfx) = 0, \ \ \ u = 0 \ \mbox{on}\ \partial \Omega.
+
+One possible interpretation of this equation is stationary heat transfer where the thermal
+conductivity $\lambda$ depends on the temperature $u$.
+Our domain is a square $\Omega = (-10,10)^2$, $f(\bfx) = 1$, and the nonlinearity $\lambda$ has the form 
+
+.. math::
+
+    \lambda(u) = 1 + u^\alpha.
+
+Recall that $\lambda$ must be entirely positive or entirely negative for the problem to be solvable, so it is safe 
+to restrict $\alpha$ to be an even nonnegative integer. Recall from the previous section that 
+
+.. math::
+
+    F_i(\bfY) =  \int_{\Omega} \lambda(u)\nabla u \cdot \nabla v_i 
+    - f v_i \, \mbox{d}\bfx.
+
+and
+
+.. math::
+
+    J_{ij}(\bfY) =
+    \int_{\Omega} \left[ \frac{\partial \lambda}{\partial u}(u) v_j 
+    \nabla u + \lambda(u)\nabla v_j \right] \cdot \nabla v_i \, \mbox{d}\bfx.
+
+In the code, this becomes
+
+::
+
+    // Heat sources (can be a general function of 'x' and 'y')
+    template<typename Real>
+    Real heat_src(Real x, Real y)
+    {
+      return 1.0;
+    }
+
+    // Jacobian matrix
+    template<typename Real, typename Scalar>
+    Scalar jac(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+    {
+      Scalar result = 0;
+      Func<Scalar>* u_prev = ext->fn[0];
+      for (int i = 0; i < n; i++)
+        result += wt[i] * (dlam_du(u_prev->val[i]) * u->val[i] * (u_prev->dx[i] * v->dx[i] + u_prev->dy[i] * v->dy[i])
+                           + lam(u_prev->val[i]) * (u->dx[i] * v->dx[i] + u->dy[i] * v->dy[i]));
+                       
+      return result;
+    }
+
+    // Fesidual vector
+    template<typename Real, typename Scalar>
+    Scalar res(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+    {
+      Scalar result = 0;
+      Func<Scalar>* u_prev = ext->fn[0];
+      for (int i = 0; i < n; i++)
+        result += wt[i] * (lam(u_prev->val[i]) * (u_prev->dx[i] * v->dx[i] + u_prev->dy[i] * v->dy[i])
+	    	           - heat_src(e->x[i], e->y[i]) * v->val[i]);
+      return result;
+    }
+In particular, notice how the values and derivatives of the previous solution u_prev are accessed 
+via the ExtData structure, and also notice how the coordinates of the integration points are 
+accessed using the Geom structure. The ExtData is user-defined and the Geom structure 
+contains geometrical information including the unit normal and tangential vectors 
+to the boundary at the integration points (also for curved boundaries). See the file 
+`forms.h <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/src/forms.h>`_ for more details. 
+
+The weak forms are registered as usual, except that the previous solution u_prev has to be declared in advance:
+
+::
+
+  // previous solution for the Newton's iteration
+  Solution u_prev;
+
+  // initialize the weak formulation
+  WeakForm wf(1);
+  wf.add_biform(0, 0, callback(jac), UNSYM, ANY, 1, &u_prev);
+  wf.add_liform(0, callback(res), ANY, 1, &u_prev);
+
+The nonlinear system needs to be initialized:
+
+::
+
+    // initialize the nonlinear system and solver
+    UmfpackSolver umfpack;
+    NonlinSystem nls(&wf, &umfpack);
+    nls.set_spaces(1, &space);
+    nls.set_pss(1, &pss);
+
+In this example, we set the initial guess for the Newton's iteration to be 
+zero:
+
+::
+
+    // set zero function as the initial condition
+    u_prev.set_zero(&mesh);
+    nls.set_ic(&u_prev, &u_prev);
+
+A more advanced example showing how to define a nonzero initial guess for the Newton's
+method and how to deal with nonzero Dirichlet boundary conditions will follow. 
+The Newton's loop is very simple,
+
+::
+
+    // Newton's loop
+    int it = 1;
+    double res_l2_norm;
+    Solution sln;
+    do
+    {
+      info("\n---- Newton iter %d ---------------------------------\n", it++);
+
+      // assemble the Jacobian matrix and residual vector, 
+      // solve the system
+      nls.assemble();
+      nls.solve(1, &sln);
+
+      // calculate the l2-norm of residual vector
+      res_l2_norm = nls.get_residuum_l2_norm();
+      info("Residuum L2 norm: %g\n", res_l2_norm);
+
+      // visualise the solution
+      char title[100];
+      sprintf(title, "Temperature, Newton iteration %d", it-1);
+      view.set_title(title);
+      view.show(&sln);
+      printf("Click into the image window and press any key to proceed.\n");
+      view.wait_for_keypress();
+
+      // save the new solution as "previous" for the 
+      // next Newton's iteration
+      u_prev = sln;
+    }
+    while (res_l2_norm > NEWTON_TOL);
+
+Approximate solution $u$ for $\alpha = 2$: 
+
+.. image:: img/example-13/newton-ellipt-1-2.png
+   :align: center
+   :width: 600
+   :height: 400
+   :alt: result for alpha = 2
+
+Approximate solution $u$ for $\alpha = 4$: 
+
+.. image:: img/example-13/newton-ellipt-1-4.png
+   :align: center
+   :width: 600
+   :height: 400
+   :alt: result for alpha = 4
+
+
+
+
+
+
+
+
+
+
+
+
+
+

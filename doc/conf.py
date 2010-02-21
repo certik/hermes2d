@@ -60,6 +60,8 @@ latex_preamble = r"""
 \newcommand{\bfxi}{\mbox{\boldmath $\xi$}}
 \newcommand{\bfw}{\mbox{\boldmath $w$}}
 \newcommand{\bfE}{\mbox{\boldmath $E$}}
+\newcommand{\bfS}{\mbox{\boldmath $S$}}
+\newcommand{\bfb}{\mbox{\boldmath $b$}}
 \newcommand{\bfH}{\mbox{\boldmath $H$}}
 \def\Hcurl{{\bfH({\rm curl})}}
 \def\Hdiv{{\bfH({\rm div})}}

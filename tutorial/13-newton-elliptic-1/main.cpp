@@ -104,7 +104,7 @@ int main(int argc, char* argv[])
   nls.set_spaces(1, &space);
   nls.set_pss(1, &pss);
 
-  // set the Dirichlet lift to be the initial condition
+  // set zero function as the initial condition
   u_prev.set_zero(&mesh);
   nls.set_ic(&u_prev, &u_prev);
 
