@@ -39,15 +39,16 @@ For the 1D and 3D codes, see the `Hermes1D <http://hpfem.org/hermes1d/>`_ and
 How Can Hermes Help You
 -----------------------
 
-Main strengths of Hermes are 
-**higher-order finite element methods**, 
-**automatic hp-adaptivity for both stationary and time-dependent problems**, 
-high-fidelity solution of complicated **multiphysics problems** (without operator splitting), 
+Main strengths of Hermes are **adaptive hp-FEM and hp-DG methods**,
+adaptivity for time-dependent problems on **dynamical hp-meshes**, 
+monolithic discretization of arbitrary multiphysics problems via a novel **multimesh hp-FEM**,
 and unprecedented **interactive web accessibility**. 
 The following list gives more details so that you can decide whether Hermes 
 may be the library that you are looking for: 
 
-* **Mature hp-FEM algorithms**. Hermes puts a major emphasis on credibility of results, i.e., on error control and automatic adaptivity. Practitioners know well how painful it is to use automatic adaptivity in conjunction with standard lower-order approximations such as linear or quadratic elements. What happens is that after a few initial adaptivity steps the error basically stops decreasing, no matter how many more adaptivity steps are done of how many new degrees of freedom are added. There is nothing to do about it since this is a genuine limitation of low-order methods (so-called *algebraic convergence* - see the red and blue convergence curves in the graph below). In contrast to that, Hermes is based on adaptive *hp*-FEM that converges *exponentially* (green curve). In other words, the error drops steadily during adaptivity all the way to the desired accuracy. Only when combined with the *hp*-FEM, automatic adaptivity becomes useful in practice.
+* **Mature hp-adaptivity algorithms**. Hermes puts a major emphasis on credibility of results, i.e., on error control and automatic adaptivity. Practitioners know well how painful it is to use automatic adaptivity in conjunction with standard lower-order approximations such as linear or quadratic elements - the error decreases somehow during a few initial adaptivity steps, but then it slows down and it does not help to invest more unknowns or CPU time. This is typical for low-order methods. In contrast to this, the exponentially-convergent adaptive *hp*-FEM and *hp*-DG do not have this problem - the error drops steadily and fast during adaptivity all the way to the desired accuracy. 
+
+Typical convergence comparison of h-FEM with linear and quadratic elements, and the hp-FEM on a log-log scale:
 
 .. image:: img/lshape/conv_dof.png
    :align: center
@@ -63,9 +64,16 @@ Same graphs as above but now in terms of CPU time:
    :height: 400
    :alt: CPU convergence graph.
 
-* **Hermes is PDE-independent**. A typical FEM code is designed to solve some special class of PDE problems (such as elliptic equations, fluid dynamics, electromagnetics etc.). In contrast to that, Hermes is truly PDE independent. It does not employ any technique or algorithm that would only work for some particular class of PDE problems. For example, automatic adaptivity is guided by a universal computational a-posteriori error estimate that works in the same way for any PDE. Of course this does not mean that it performs equally well on all PDE - some equations simply are more difficult to solve than others. However, Hermes allows you to tackle an arbitrary PDE (or multiphysics PDE system) with adaptive *hp*-FEM easily. Visit the `hp-FEM group home page <http://hpfem.org/>`_ and especially the `gallery <http://hpfem.org/gallery/>`_ to see many examples of problems that have been solved with Hermes so far.
+* **Wide applicability**. Hermes is completely PDE-independent. Many FEM codes are designed to solve some narrow class of PDE problems (such as elliptic equations, fluid dynamics, electromagnetics etc.). In contrast to that, Hermes does not employ any technique or algorithm that would only work for some particular class of PDE problems. Automatic adaptivity is guided by a universal computational a-posteriori error estimate that works in the same way for any PDE. Of course this does not mean that it performs equally well on all PDE - some equations simply are more difficult to solve than others. However, Hermes allows you to tackle an arbitrary PDE or multiphysics PDE system. Visit the `hp-FEM group home page <http://hpfem.org/>`_ and especially the `gallery <http://hpfem.org/gallery/>`_ to see numerous examples.
 
-* **Arbitrary-level hanging nodes**. Hermes is capable of handling arbitrarily irregular meshes. This means that extremely small elements can be adjacent to very large ones. When an element is refined, its neighbors are never split forcefully as in conventional adaptivity algorithms. This makes automatic adaptivity in Hermes extremely efficient as well as easy to handle. 
+.. image:: img/ns.jpg
+   :align: center
+   :width: 600
+   :height: 300
+   :alt: Image of incompressible viscous flow.
+
+
+* **Arbitrary-level hanging nodes**. Hermes has a unique original methodology for handling arbitrary-level hanging nodes. This means that extremely small elements can be adjacent to very large ones. When an element is refined, its neighbors are never split forcefully as in conventional adaptivity algorithms. It is well known that approximations with one-level hanging nodes are more efficient compared to regular meshes. However, the technique of arbitrary-level hanging nodes brings this to a perfection.
 
 .. image:: img/ord_2d_c.png
    :align: center
@@ -84,7 +92,7 @@ Same graphs as above but now in terms of CPU time:
 
        <hr style="clear: both; visibility: hidden;">
 
-* **Multimesh hp-FEM**. Various physical fields or solution components in multiphysics problems can be approximated on individual meshes, combining quality *H1*, *Hcurl*, *Hdiv*, and *L2* conforming higher-order elements. The approximation is monolithic, i.e., no error is caused by operator splitting, transferring data between different meshes, etc. The following figure illustrates a coupled problem of heat and moisture transfer in massive concrete walls of a reactor vessel. 
+* **Multimesh hp-FEM**. Various physical fields or solution components in multiphysics problems can be approximated on individual meshes, combining quality $H^1$, $H(curl)$, $H(div)$, and $L^2$ conforming higher-order elements. Due to a unique original methodology, no error is caused by operator splitting, transferring data between different meshes, and the like. The following figure illustrates a coupled problem of heat and moisture transfer in massive concrete walls of a nuclear reactor vessel. 
 
 .. image:: img/multimesh.png
    :align: center
@@ -92,7 +100,7 @@ Same graphs as above but now in terms of CPU time:
    :height: 410
    :alt: Illustration of multimesh hp-FEM.
 
-* **Space-time hp-adaptivity on dynamical meshes**. In time-dependent problems, different physical fields or solution components can be approximated on individual meshes that evolve in time independently of each other. Despite the independent meshes for solution components, the discretization of the PDE system is monolithic. 
+* **Dynamical meshes for time-dependent problems**. In time-dependent problems, different physical fields or solution components can be approximated on individual meshes that evolve in time independently of each other. Due to a unique original methodology, no error is caused by transfering solution data between different meshes and time levels. No such transfer takes place in the multimesh *hp*-FEM - the discretization of the time-dependent PDE system is monolithic. 
 
 .. image:: img/flame.jpg
    :align: center
