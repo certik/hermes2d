@@ -1,4 +1,4 @@
-rm *~ *.dat 
+rm *~ 
 lshape
 python plot_graph.py &
 

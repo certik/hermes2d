@@ -1503,7 +1503,11 @@ adaptivity step:
       if (ndofs >= NDOF_STOP) done = true;
     }
 
-The parameters THRESHOLD, STRATEGY, ADAPT_TYPE, ISO_ONLY and MESH_REGULARITY
+The function adapt() accepts additional optional input parameters for more 
+advanced use - see the file 
+`adapt_h1_ortho.h <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/src/adapt_ortho_h1.h>`_ 
+for more details. 
+The basic parameters THRESHOLD, STRATEGY, ADAPT_TYPE, ISO_ONLY and MESH_REGULARITY
 have the following meaning: STRATEGY indicates which adaptive strategy we
 want to use:
 

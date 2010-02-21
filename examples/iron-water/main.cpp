@@ -19,7 +19,7 @@
 //  The following parameters can be changed:
 
 const int P_INIT = 1;             // Initial polynomial degree of all mesh elements.
-const int INIT_REF_NUM = 1;       // Number of initial uniform mesh refinements
+const int INIT_REF_NUM = 0;       // Number of initial uniform mesh refinements
 const double THRESHOLD = 0.6;     // This is a quantitative parameter of the adapt(...) function and
                                   // it has different meanings for various adaptive strategies (see below).
 const int STRATEGY = 0;           // Adaptive strategy:

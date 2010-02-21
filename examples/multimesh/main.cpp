@@ -57,10 +57,12 @@ const int MESH_REGULARITY = -1;  // Maximum allowed level of hanging nodes:
                                  // MESH_REGULARITY = 2 ... at most two-level hanging nodes, etc.
                                  // Note that regular meshes are not supported, this is due to
                                  // their notoriously bad performance.
+const double CONV_EXP = 1.0;     // Default value is 1.0. This parameter influences the selection of 
+                                 // cancidates in hp-adaptivity. See get_optimal_refinement() for details.
 const int MAXIMUM_ORDER = 10;    // Maximum allowed element degree
 const double ERR_STOP = 1.0;     // Stopping criterion for adaptivity (rel. error tolerance between the
                                  // fine mesh and coarse mesh solution in percent).
-const int NDOF_STOP = 40000;     // Adaptivity process stops when the number of degrees of freedom grows over
+const int NDOF_STOP = 60000;     // Adaptivity process stops when the number of degrees of freedom grows over
                                  // this limit. This is mainly to prevent h-adaptivity to go on forever.
 
 // problem constants
@@ -295,7 +297,7 @@ int main(int argc, char* argv[])
     // if err_est too large, adapt the mesh
     if (err_est < ERR_STOP) done = true;
     else {
-      hp.adapt(THRESHOLD, STRATEGY, ADAPT_TYPE, ISO_ONLY, MESH_REGULARITY, MAXIMUM_ORDER, SAME_ORDERS);
+      hp.adapt(THRESHOLD, STRATEGY, ADAPT_TYPE, ISO_ONLY, MESH_REGULARITY, CONV_EXP, MAXIMUM_ORDER, SAME_ORDERS);
       ndofs = xdisp.assign_dofs();
       ndofs += ydisp.assign_dofs(ndofs);
       if (ndofs >= NDOF_STOP) done = true;

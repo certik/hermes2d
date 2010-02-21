@@ -1,4 +1,4 @@
-rm *~ *.dat 
+rm *~ 
 iron-water
 python plot_graph.py &
 
