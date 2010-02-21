@@ -15,7 +15,7 @@
 //
 //  The following parameters can be changed:
 
-const int P_INIT = 2;             // Initial polynomial degree of all mesh elements.
+const int P_INIT = 1;             // Initial polynomial degree of all mesh elements.
 const double THRESHOLD = 0.3;     // This is a quantitative parameter of the adapt(...) function and
                                   // it has different meanings for various adaptive strategies (see below).
 const int STRATEGY = 0;           // Adaptive strategy:
@@ -27,7 +27,7 @@ const int STRATEGY = 0;           // Adaptive strategy:
                                   // STRATEGY = 2 ... refine all elements whose error is larger
                                   //   than THRESHOLD.
                                   // More adaptive strategies can be created in adapt_ortho_h1.cpp.
-const int ADAPT_TYPE = 1;         // Type of automatic adaptivity:
+const int ADAPT_TYPE = 0;         // Type of automatic adaptivity:
                                   // ADAPT_TYPE = 0 ... adaptive hp-FEM (default),
                                   // ADAPT_TYPE = 1 ... adaptive h-FEM,
                                   // ADAPT_TYPE = 2 ... adaptive p-FEM.
@@ -42,6 +42,9 @@ const int MESH_REGULARITY = -1;   // Maximum allowed level of hanging nodes:
                                   // MESH_REGULARITY = 2 ... at most two-level hanging nodes, etc.
                                   // Note that regular meshes are not supported, this is due to
                                   // their notoriously bad performance.
+const double CONV_EXP = 2.0;      // Default value is 1.0. This parameter influences the selection of 
+                                  // cancidates in hp-adaptivity. See get_optimal_refinement() for details.
+                                  // error behavior err \approx const1*exp(-const2*pow(NDOF, CONV_EXP)).
 const double ERR_STOP = 0.001;    // Stopping criterion for adaptivity (rel. error tolerance between the
                                   // fine mesh and coarse mesh solution in percent).
 const int NDOF_STOP = 60000;      // Adaptivity process stops when the number of degrees of freedom grows
@@ -179,7 +182,7 @@ int main(int argc, char* argv[])
     // if err_est too large, adapt the mesh
     if (err_est < ERR_STOP) done = true;
     else {
-      hp.adapt(THRESHOLD, STRATEGY, ADAPT_TYPE, ISO_ONLY, MESH_REGULARITY);
+      hp.adapt(THRESHOLD, STRATEGY, ADAPT_TYPE, ISO_ONLY, MESH_REGULARITY, CONV_EXP);
       ndofs = space.assign_dofs();
       if (ndofs >= NDOF_STOP) done = true;
     }

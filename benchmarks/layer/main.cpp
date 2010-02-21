@@ -18,7 +18,7 @@
 //  The following parameters can be changed:
 
 const int P_INIT = 1;             // Initial polynomial degree of all mesh elements.
-const double THRESHOLD = 0.6;     // This is a quantitative parameter of the adapt(...) function and
+const double THRESHOLD = 0.3;     // This is a quantitative parameter of the adapt(...) function and
                                   // it has different meanings for various adaptive strategies (see below).
 const int STRATEGY = 0;           // Adaptive strategy:
                                   // STRATEGY = 0 ... refine elements until sqrt(THRESHOLD) times total
@@ -44,9 +44,11 @@ const int MESH_REGULARITY = -1;   // Maximum allowed level of hanging nodes:
                                   // MESH_REGULARITY = 2 ... at most two-level hanging nodes, etc.
                                   // Note that regular meshes are not supported, this is due to
                                   // their notoriously bad performance.
-const double ERR_STOP = 1.0;      // Stopping criterion for adaptivity (rel. error tolerance between the
+const double CONV_EXP = 0.5;      // Default value is 1.0. This parameter influences the selection of 
+                                  // cancidates in hp-adaptivity. See get_optimal_refinement() for details.
+const double ERR_STOP = 0.1;      // Stopping criterion for adaptivity (rel. error tolerance between the
                                   // fine mesh and coarse mesh solution in percent).
-const int NDOF_STOP = 40000;      // Adaptivity process stops when the number of degrees of freedom grows
+const int NDOF_STOP = 60000;      // Adaptivity process stops when the number of degrees of freedom grows
                                   // over this limit. This is to prevent h-adaptivity to go on forever.
 
 // problem constants
@@ -204,7 +206,7 @@ int main(int argc, char* argv[])
     // if err_est too large, adapt the mesh
     if (err_est < ERR_STOP) done = true;
     else {
-      hp.adapt(THRESHOLD, STRATEGY, ADAPT_TYPE, ISO_ONLY, MESH_REGULARITY);
+      hp.adapt(THRESHOLD, STRATEGY, ADAPT_TYPE, ISO_ONLY, MESH_REGULARITY, CONV_EXP);
       ndofs = space.assign_dofs();
       if (ndofs >= NDOF_STOP) done = true;
     }

@@ -1,4 +1,4 @@
-rm *~ *.dat 
+rm *~ 
 ./screen
 python plot_graph.py &
 

@@ -514,8 +514,8 @@ int H1OrthoHP::evalute_candidates(Cand* cand, int num_cand, Element* e, int orde
 
     if (!i || c->error <= cand[0].error)
     {
-      sum_err += log10(c->error);
-      sum_sqr_err += sqr(log10(c->error));
+      sum_err += log(c->error);
+      sum_sqr_err += sqr(log(c->error));
       num_processed++;
     }
   }
@@ -525,15 +525,17 @@ int H1OrthoHP::evalute_candidates(Cand* cand, int num_cand, Element* e, int orde
   return num_processed;
 }
 
-void H1OrthoHP::select_best_candidate(const Cand* cand, const int num_cand, Element* e, const double avg_error, const double dev_error, int* selected_cand, int* selected_h_cand) {
+void H1OrthoHP::select_best_candidate(const Cand* cand, const int num_cand, Element* e, const double avg_error, const double dev_error, int* selected_cand, int* selected_h_cand, double conv_exp) {
   // select an above-average candidate with the steepest error decrease
   int imax = 0, h_imax = 0;
   double score, maxscore = 0.0, h_maxscore = 0.0;
   for (int i = 1; i < num_cand; i++)
   {
-    if ((log10(cand[i].error) < (avg_error + dev_error)) && (cand[i].dofs > cand[0].dofs))
+    if ((log(cand[i].error) < (avg_error + dev_error)) && (cand[i].dofs > cand[0].dofs))
     {
-      score = (log10(cand[0].error) - log10(cand[i].error)) / (cand[i].dofs - cand[0].dofs);
+      score = (log(cand[0].error) - log(cand[i].error)) / 
+	       //(pow(cand[i].dofs, conv_exp) - pow(cand[0].dofs, conv_exp));
+               pow(cand[i].dofs - cand[0].dofs, conv_exp);
 
       if (score > maxscore) { maxscore = score; imax = i; }
       if ((cand[i].split == 0) && (score > h_maxscore)) { h_maxscore = score; h_imax = i; }
@@ -545,7 +547,7 @@ void H1OrthoHP::select_best_candidate(const Cand* cand, const int num_cand, Elem
 }
 
 int H1OrthoHP::get_optimal_refinement(Element* e, int order, Solution* rsln, int& split, int4 p, int4 q,
-                                       bool h_only, bool iso_only, int max_order)
+				      bool h_only, bool iso_only, double conv_exp, int max_order)
 {
   //decode order
   order = std::max(get_h_order(order), get_v_order(order));
@@ -560,7 +562,7 @@ int H1OrthoHP::get_optimal_refinement(Element* e, int order, Solution* rsln, int
 
   //select candidate
   int inx_cand, inx_h_cand;
-  select_best_candidate(cand, num_cand, e, avg_error, dev_error, &inx_cand, &inx_h_cand);
+  select_best_candidate(cand, num_cand, e, avg_error, dev_error, &inx_cand, &inx_h_cand, conv_exp);
 
   //copy result to output
   split = cand[inx_cand].split;
@@ -577,7 +579,7 @@ int H1OrthoHP::get_optimal_refinement(Element* e, int order, Solution* rsln, int
 //// adapt /////////////////////////////////////////////////////////////////////////////////////////
 
 bool H1OrthoHP::adapt(double thr, int strat, int adapt_type, bool iso_only, int regularize,
-                      int max_order, bool same_orders, double to_be_processed)
+                      double conv_exp, int max_order, bool same_orders, double to_be_processed)
 {
   if (!have_errors)
     error("Element errors have to be calculated first, see calc_error().");
@@ -682,7 +684,9 @@ bool H1OrthoHP::adapt(double thr, int strat, int adapt_type, bool iso_only, int 
       }
       // hp-adaptivity
       else {
-        int inx_candidate = get_optimal_refinement(e, current, rsln[comp], elem_ref.split, elem_ref.p, elem_ref.q, h_only, iso_only, max_order);
+        int inx_candidate = get_optimal_refinement(e, current, rsln[comp], 
+                                                   elem_ref.split, elem_ref.p, elem_ref.q, 
+                                                   h_only, iso_only, conv_exp, max_order);
         if (inx_candidate != 0)
           refined = true;
       }

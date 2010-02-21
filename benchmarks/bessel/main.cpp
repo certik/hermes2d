@@ -35,7 +35,7 @@ const int STRATEGY = 1;           // Adaptive strategy:
                                   // STRATEGY = 2 ... refine all elements whose error is larger
                                   //   than THRESHOLD.
                                   // More adaptive strategies can be created in adapt_ortho_h1.cpp.
-const int ADAPT_TYPE = 1;         // Type of automatic adaptivity:
+const int ADAPT_TYPE = 0;         // Type of automatic adaptivity:
                                   // ADAPT_TYPE = 0 ... adaptive hp-FEM (default),
                                   // ADAPT_TYPE = 1 ... adaptive h-FEM,
                                   // ADAPT_TYPE = 2 ... adaptive p-FEM.
@@ -52,7 +52,7 @@ const int MESH_REGULARITY = -1;   // Maximum allowed level of hanging nodes:
                                   // their notoriously bad performance.
 const double ERR_STOP = 0.01;     // Stopping criterion for adaptivity (rel. error tolerance between the
                                   // fine mesh and coarse mesh solution in percent).
-const int NDOF_STOP = 50000;      // Adaptivity process stops when the number of degrees of freedom grows
+const int NDOF_STOP = 60000;      // Adaptivity process stops when the number of degrees of freedom grows
                                   // over this limit. This is to prevent h-adaptivity to go on forever.
 
 // problem constants
