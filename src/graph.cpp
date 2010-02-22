@@ -61,6 +61,8 @@ void Graph::set_row_style(int row, const char* color, const char* line, const ch
 void Graph::add_values(int row, double x, double y)
 {
   if (!rows.size()) add_row(NULL);
+  if (fabs(x) < 1e-12) return;  // this is to avoid problems with plotting in log-log scale
+                                 // (sometimes the CPU time was zero and plotting crashed)
   if (row < 0 || row >= (int)rows.size()) error("Invalid row number.");
   Values xy = { x, y };
   rows[row].data.push_back(xy);
@@ -70,6 +72,8 @@ void Graph::add_values(double x, double y)
 {
   int row = 0;
   if (!rows.size()) add_row(NULL);
+  if (fabs(x) < 1e-12 ) return;  // this is to avoid problems with plotting in log-log scale
+                                 // (sometimes the CPU time was zero and plotting crashed)
   Values xy = { x, y };
   rows[row].data.push_back(xy);
 }

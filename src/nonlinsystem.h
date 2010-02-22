@@ -46,6 +46,14 @@ public:
   void set_ic(MeshFunction* fn1, MeshFunction* fn2, Solution* result1, Solution* result2, int proj_norm = 1)
     {  set_ic_n(proj_norm, 2, fn1, fn2, result1, result2);  }
 
+  /// Sets the initial coefficient vector using an exact function.
+  void set_ic(scalar (*exactfn)(double x, double y, scalar& dx, scalar& dy),
+              Mesh* mesh, Solution* result, int proj_norm = 1)
+  {
+    result->set_exact(mesh, exactfn);
+    set_ic_n(proj_norm, 1, result, result);  
+  }
+
   void set_ic_n(int proj_norm, int n, ...);
 
   /// Sets the solution coefficient vector to zero

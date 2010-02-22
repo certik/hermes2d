@@ -3,8 +3,6 @@ import numpy, pylab
 from pylab import *
 
 # plot DOF convergence graph
-pylab.yscale("log")
-pylab.xscale("log")
 pylab.title("Error convergence")
 pylab.xlabel("Degrees of freedom")
 pylab.ylabel("Error [%]")
@@ -12,15 +10,13 @@ axis('equal')
 data = numpy.loadtxt("conv_dof.dat")
 x = data[:, 0]
 y = data[:, 1]
-plot(x, y, 's-', label="error (est)")
+loglog(x, y, '-s', label="error (est)")
 legend()
 
 # initialize new window
 pylab.figure()
 
 # plot CPU convergence graph
-pylab.yscale("log")
-pylab.xscale("log")
 pylab.title("Error convergence")
 pylab.xlabel("CPU time (s)")
 pylab.ylabel("Error [%]")
@@ -28,7 +24,7 @@ axis('equal')
 data = numpy.loadtxt("conv_cpu.dat")
 x = data[:, 0]
 y = data[:, 1]
-plot(x, y, 's-', label="error (est)")
+loglog(x, y, '-s', label="error (est)")
 legend()
 
 # finalize

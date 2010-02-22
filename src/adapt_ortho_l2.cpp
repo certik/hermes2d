@@ -355,7 +355,7 @@ struct Cand
 };
 
 void L2OrthoHP::get_optimal_refinement(Element* e, int order, Solution* rsln, int& split, int p[4],
-                                       bool h_only, bool iso_only, int max_order)
+                                       bool h_only, bool iso_only, double conv_exp, int max_order)
 
 {
   int i, j, k, n = 0;
@@ -486,8 +486,8 @@ void L2OrthoHP::get_optimal_refinement(Element* e, int order, Solution* rsln, in
 
     if (!i || c->error <= cand[0].error)
     {
-      avg += log10(c->error);
-      dev += sqr(log10(c->error));
+      avg += log(c->error);
+      dev += sqr(log(c->error));
       k++;
     }
   }
@@ -500,9 +500,11 @@ void L2OrthoHP::get_optimal_refinement(Element* e, int order, Solution* rsln, in
   double score, maxscore = 0.0;
   for (i = 1; i < n; i++)
   {
-    if ((log10(cand[i].error) < avg + dev) && (cand[i].dofs > cand[0].dofs))
+    if ((log(cand[i].error) < avg + dev) && (cand[i].dofs > cand[0].dofs))
     {
-      score = (log10(cand[0].error) - log10(cand[i].error)) / (cand[i].dofs - cand[0].dofs);
+      score = (log(cand[0].error) - log(cand[i].error)) / 
+	       //(pow(cand[i].dofs, conv_exp) - pow(cand[0].dofs, conv_exp));
+               pow(cand[i].dofs - cand[0].dofs, conv_exp);
       if (score > maxscore) { maxscore = score; imax = i; }
     }
   }
@@ -518,7 +520,7 @@ void L2OrthoHP::get_optimal_refinement(Element* e, int order, Solution* rsln, in
 
 //// adapt /////////////////////////////////////////////////////////////////////////////////////////
 
-void L2OrthoHP::adapt(double thr, int strat, bool h_only, bool iso_only, int max_order)
+void L2OrthoHP::adapt(double thr, int strat, bool h_only, bool iso_only, double conv_exp, int max_order)
 {
 
   if (!have_errors)
@@ -561,7 +563,7 @@ void L2OrthoHP::adapt(double thr, int strat, bool h_only, bool iso_only, int max
     if (h_only && iso_only)
       p[0] = p[1] = p[2] = p[3] = current;
     else
-      get_optimal_refinement(e, current, rsln[comp], split, p, h_only, iso_only, max_order);
+      get_optimal_refinement(e, current, rsln[comp], split, p, h_only, iso_only, conv_exp, max_order);
 
     //apply found division
     if (split < 0) {

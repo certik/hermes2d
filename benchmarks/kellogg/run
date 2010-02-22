@@ -1,4 +1,4 @@
-rm *~ *.dat 
+rm *~ 
 kellogg
 python plot_graph.py &
 
