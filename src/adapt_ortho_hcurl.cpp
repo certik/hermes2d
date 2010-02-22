@@ -464,7 +464,7 @@ void HcurlOrthoHP::calc_projection_errors(Element* e, int order, Solution* rsln,
 
 
 void HcurlOrthoHP::get_optimal_refinement(Element* e, int order, Solution* rsln, int& split, int p[4],
-                                          bool h_only, bool iso_only, int max_order)
+                                          bool h_only, bool iso_only, double conv_exp, int max_order)
 {
   int i, j, k, n = 0;
   const int maxcand = 300;
@@ -611,8 +611,8 @@ void HcurlOrthoHP::get_optimal_refinement(Element* e, int order, Solution* rsln,
 
     if (!i || c->error <= cand[0].error)
     {
-      avg += log10(c->error);
-      dev += sqr(log10(c->error));
+      avg += log(c->error);
+      dev += sqr(log(c->error));
       k++;
     }
   }
@@ -625,9 +625,11 @@ void HcurlOrthoHP::get_optimal_refinement(Element* e, int order, Solution* rsln,
   double score, maxscore = 0.0;
   for (i = 1; i < n; i++)
   {
-    if ((log10(cand[i].error) < avg + dev) && (cand[i].dofs > cand[0].dofs))
+    if ((log(cand[i].error) < avg + dev) && (cand[i].dofs > cand[0].dofs))
     {
-      score = (log10(cand[0].error) - log10(cand[i].error)) / (cand[i].dofs - cand[0].dofs);
+      score = (log(cand[0].error) - log(cand[i].error)) / 
+	       //(pow(cand[i].dofs, conv_exp) - pow(cand[0].dofs, conv_exp));
+               pow(cand[i].dofs - cand[0].dofs, conv_exp);
       if (score > maxscore) { maxscore = score; imax = i; }
     }
   }
@@ -641,7 +643,8 @@ void HcurlOrthoHP::get_optimal_refinement(Element* e, int order, Solution* rsln,
 
 
 //// adapt /////////////////////////////////////////////////////////////////////////////////////////
-bool HcurlOrthoHP::adapt(double thr, int strat, int adapt_type, bool iso_only, int regularize, int max_order)
+bool HcurlOrthoHP::adapt(double thr, int strat, int adapt_type, bool iso_only, int regularize, 
+                         double conv_exp, int max_order)
 {
   if (!have_errors)
     error("Element errors have to be calculated first, see calc_error().");
@@ -695,7 +698,7 @@ bool HcurlOrthoHP::adapt(double thr, int strat, int adapt_type, bool iso_only, i
     // hp-adaptivity
     else
     {
-      get_optimal_refinement(e, current, rsln[comp], split, p, h_only, iso_only, max_order);
+      get_optimal_refinement(e, current, rsln[comp], split, p, h_only, iso_only, conv_exp, max_order);
       successfully_refined++;
     }
 

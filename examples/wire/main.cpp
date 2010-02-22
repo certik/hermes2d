@@ -36,13 +36,13 @@ const bool ISO_ONLY = false;      // Isotropic refinement flag (concerns quadril
                                   // is allowed (default),
                                   // ISO_ONLY = true ... only isotropic refinements of quad elements
                                   // are allowed.
-const int MESH_REGULARITY = 1;   // Maximum allowed level of hanging nodes:
+const int MESH_REGULARITY = -1;   // Maximum allowed level of hanging nodes:
                                   // MESH_REGULARITY = -1 ... arbitrary level hangning nodes (default),
                                   // MESH_REGULARITY = 1 ... at most one-level hanging nodes,
                                   // MESH_REGULARITY = 2 ... at most two-level hanging nodes, etc.
                                   // Note that regular meshes are not supported, this is due to
                                   // their notoriously bad performance.
-const double ERR_STOP = 0.001;    // Stopping criterion for adaptivity (rel. error tolerance between the
+const double ERR_STOP = 0.01;     // Stopping criterion for adaptivity (rel. error tolerance between the
                                   // fine mesh and coarse mesh solution in percent).
 const int NDOF_STOP = 50000;      // Adaptivity process stops when the number of degrees of freedom grows
                                   // over this limit. This is to prevent h-adaptivity to go on forever.
@@ -125,8 +125,8 @@ int main(int argc, char* argv[])
   wf.add_liform(0, callback(linear_form_wire), 2);
 
   // visualize solution and mesh
-  ScalarView view("Vector potential A ");
-  OrderView  oview("Polynomial orders", 1220, 0, 600, 1000);
+  ScalarView view("Vector potential A", 0, 0, 1000, 600);
+  OrderView  oview("Polynomial orders", 1100, 0, 900, 600);
 
   // matrix solver
   UmfpackSolver solver;
@@ -177,11 +177,11 @@ int main(int argc, char* argv[])
 
     // add entries to DOF convergence graph
     graph_dof_est.add_values(space.get_num_dofs(), err_est);
-    graph_dof_est.save("conv_dof_est.dat");
+    graph_dof_est.save("conv_dof.dat");
 
     // add entries to CPU convergence graph
     graph_cpu_est.add_values(cpu, err_est);
-    graph_cpu_est.save("conv_cpu_est.dat");
+    graph_cpu_est.save("conv_cpu.dat");
 
     // if err_est too large, adapt the mesh
     if (err_est < ERR_STOP) done = true;

@@ -60,7 +60,7 @@ public:
   /// and performs their optimal hp-refinement.
   /// \param adapt_result Contains result of adaptivity step. If NULL, result is not gathered or processed.
   bool adapt(double thr, int strat = 0, int adapt_type = 0, bool iso_only = false, int regularize = -1,
-             int max_order = -1, bool same_orders = false, double to_be_processed = 0.0);
+             double conv_exp = 1.0, int max_order = -1, bool same_orders = false, double to_be_processed = 0.0);
 
   /// Unrefines the elements with the smallest error
   void unrefine(double thr);
@@ -69,7 +69,8 @@ public:
   /// procedures, for which adapt() is not sufficient.
   /// \returns Selected candidate. If zero, no other candidate was selected.
   virtual int get_optimal_refinement(Element* e, int order, Solution* rsln, int& split, int4 p, int4 q,
-                                     bool h_only = false, bool iso_only = false, int max_order = -1);
+                                     bool h_only = false, bool iso_only = false, double conv_exp = 1.0, 
+                                     int max_order = -1);
 
   /// Internal. Functions to obtain errors of individual elements.
   struct ElementReference { ///< A reference to a element.
@@ -129,7 +130,7 @@ protected: //optimal refinement
 
   virtual Cand* create_candidates(Element* e, int order, bool h_only, bool iso_only, int max_order, int* num_cand); ///< Creates a list of candidates. Allocated array has to be deallocated by a user of the method.
   virtual int evalute_candidates(Cand* cand, int num_cand, Element* e, int order, Solution* rsln, double* avg_error, double* dev_error); ///< Evaluates candidates. Calculates their error and dofs. Calculates average error and sample deviation.
-  virtual void select_best_candidate(const Cand* cand, const int num_cand, Element* e, const double avg_error, const double dev_error, int* selected_cand, int* selected_h_cand); ///< Selects the best candidate and the best h-candidate.
+  virtual void select_best_candidate(const Cand* cand, const int num_cand, Element* e, const double avg_error, const double dev_error, int* selected_cand, int* selected_h_cand, double conv_exp); ///< Selects the best candidate and the best h-candidate.
 
 protected:
   // spaces & solutions
