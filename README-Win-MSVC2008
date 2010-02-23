@@ -63,11 +63,10 @@ This is README for building and using Hermes2D using Microsoft Visual C++ 2008 (
  4b) AMD
 	- download AMD source file package (http://www.cise.ufl.edu/research/sparse/amd/)
 	- unpack source file into a directory that has the same parent as a directory where you unpacked UFconfig
-	- replace 'my_amd_directory\Lib\libamd.def' with 'my_hermes2d_root\MSVC2008\libamd.def'
 	- copy a file 'my_hermes2d_root\MSVC2008\AMD.nmake' to a directory 'my_amd_directory\Lib'
 	- run MSVC command prompt similar as in the case of Judy and switch to 'my_amd_directory\Lib'
 	- compile AMD using 'nmake -f AMD.nmake'
-	- copy 'libamd.dll', 'amd.h', 'amd_internal.h', and 'libamd.lib' to 'bin', 'include', and 'lib' dependecy directories respectively
+	- copy 'amd.h', 'amd_internal.h', and 'libamd.lib' to 'include', and 'lib' dependecy directories respectively
 
  4c) UMFPACK
 	- download UMFPACK source file package (http://www.cise.ufl.edu/research/sparse/umfpack/current/)
