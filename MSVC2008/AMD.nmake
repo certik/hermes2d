@@ -8,12 +8,12 @@ default: all
 CFLAGS = /RTC1 /MDd /Z7 /DEBUG /D "DEBUG" /D "_DEBUG"
 ARFLAGS = /DEBUG
 !ELSE
-CFLAGS = /O2 /Oi /GL
-ARFLAGS = /OPT:REF /OPT:ICF
+CFLAGS = /MD /O2 /Oi /GL
+ARFLAGS = /LTCG
 !ENDIF
 
-CONFIG = /D "WIN32" /D "_CONSOLE" /D "_WINDLL" /D "_AMDDLL" /D "_UNICODE" /D "UNICODE"
-C = $(CC) $(CFLAGS_DEBUG) $(CONFIG) /I../Include /I ../../UFconfig
+CONFIG = /D "WIN32" /D "_CONSOLE" /D "_UNICODE" /D "UNICODE"
+C = $(CC) $(CFLAGS) $(CONFIG) /I../Include /I ../../UFconfig
 OBJS = amd_i_aat.obj amd_i_1.obj amd_i_2.obj amd_i_dump.obj \
     amd_i_postorder.obj amd_i_post_tree.obj amd_i_defaults.obj amd_i_order.obj \
     amd_i_control.obj amd_i_info.obj amd_i_valid.obj amd_l_aat.obj amd_l_1.obj \
@@ -21,18 +21,16 @@ OBJS = amd_i_aat.obj amd_i_1.obj amd_i_2.obj amd_i_dump.obj \
     amd_l_defaults.obj amd_l_order.obj amd_l_control.obj amd_l_info.obj \
     amd_l_valid.obj amd_i_preprocess.obj amd_l_preprocess.obj amd_global.obj
 
-AR = cl
-ARCONFIG = /DLL /OUT:"libamd.dll" /IMPLIB:"libamd.lib" /INCREMENTAL:NO /NOLOGO /DLL /DEF:"libamd.def" /MACHINE:X86 /SUBSYSTEM:CONSOLE 
-ARLIBS = kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib
+AR = lib
+ARCONFIG = $(ARFLAGS) /OUT:"libamd.lib" /NOLOGO /MACHINE:X86
+ARLIBS = 
 
 clean:
 	del *.obj
-	del libamd.dll
-	del libamd.dll.manifest
 	del libamd.lib
 
 all: $(OBJS)
-	$(AR) $(OBJS) /link $(ARFLAGS) $(ARCONFIG) $(ARLIBS)
+	$(AR) $(OBJS) $(ARFLAGS) $(ARCONFIG) $(ARLIBS)
 
 $(OBJS):
 	$(C) /DDINT /c ../Source/amd_aat.c /Foamd_i_aat.obj
