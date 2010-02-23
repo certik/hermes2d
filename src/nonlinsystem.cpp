@@ -73,6 +73,28 @@ Scalar L2projection_liform(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtD
 }
 
 
+void NonlinSystem::free()
+{
+  if (Ap != NULL) { ::free(Ap); Ap = NULL; }
+  if (Ai != NULL) { ::free(Ai); Ai = NULL; }
+  if (Ax != NULL) { ::free(Ax); Ax = NULL; }
+  if (RHS != NULL) { ::free(RHS); RHS = NULL; }
+  if (Dir != NULL) { ::free(Dir-1); Dir = NULL; }
+  if (Vec != NULL)
+  {
+   for (int i = 0; i < wf->neq; i++)
+      if (spaces[i]->get_seq() != sp_seq[i])
+        { ::free(Vec); Vec = NULL;  break; }
+  }
+
+  if (solver) solver->free_data(slv_ctx);
+
+  struct_changed = values_changed = true;
+  memset(sp_seq, -1, sizeof(int) * wf->neq);
+  wf_seq = -1;
+}
+
+
 void NonlinSystem::set_ic_n(int proj_norm, int n, ...)
 {
   if (!have_spaces)
