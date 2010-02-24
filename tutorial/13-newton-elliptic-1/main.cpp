@@ -104,8 +104,8 @@ int main(int argc, char* argv[])
   nls.set_spaces(1, &space);
   nls.set_pss(1, &pss);
 
-  // set zero function as the initial condition
-  u_prev.set_zero(&mesh);
+  // use a constant function as the initial guess
+  u_prev.set_const(&mesh, 3.0);
   nls.set_ic(&u_prev, &u_prev);
 
   // visualise the initial ocndition
