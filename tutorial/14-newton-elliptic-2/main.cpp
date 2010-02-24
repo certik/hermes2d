@@ -20,20 +20,20 @@ const int PROJ_TYPE = 1;          // For the projection of the initial condition
                                   // 0 = L2 projection
 const double NEWTON_TOL = 1e-6;   // Stopping criterion for the Newton's method
 const int INIT_GLOB_REF_NUM = 3;  // Number of initial uniform mesh refinements
-const int INIT_BDY_REF_NUM = 3;   // Number of initial refinements towards boundary
+const int INIT_BDY_REF_NUM = 4;   // Number of initial refinements towards boundary
 
 // Thermal conductivity (temperature-dependent)
 // Note: for any u, this function has to be positive
 template<typename Real>
 Real lam(Real u) 
 { 
-  return 1 + pow(u, 2); 
+  return 1 + pow(u, 4); 
 }
 
 // Derivative of the thermal conductivity with respect to 'u'
 template<typename Real>
 Real dlam_du(Real u) { 
-  return 2*pow(u, 1); 
+  return 4*pow(u, 3); 
 }
 
 // This function is used to define Dirichlet boundary conditions
@@ -47,12 +47,8 @@ double dir_lift(double x, double y, double& dx, double& dy) {
 // used as initial guess for the Newton's method
 scalar init_cond(double x, double y, double& dx, double& dy)
 {
-  // using the Dirichlet lift
-  return dir_lift(x, y, dx, dy);
-  // another option
-  //dx = 0;
-  //dy = 0;
-  //return 1;
+  // using the Dirichlet lift elevated by two
+  double val = dir_lift(x, y, dx, dy) + 2;
 }
 
 // Boundary condition type (essential = Dirichlet)

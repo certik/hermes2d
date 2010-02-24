@@ -1,7 +1,7 @@
 #include "hermes2d.h"
 #include "solver_umfpack.h"
 
-// This test makes sure that example 11-adapt-system works correctly.
+// This test makes sure that example 11-adapt-system works correctly with MULTI = true.
 
 const int P_INIT = 1;            // Initial polynomial degree of all mesh elements.
 const bool MULTI = true;         // MULTI = true  ... use multi-mesh,
@@ -40,10 +40,12 @@ const int MESH_REGULARITY = -1;  // Maximum allowed level of hanging nodes:
                                  // MESH_REGULARITY = 2 ... at most two-level hanging nodes, etc.
                                  // Note that regular meshes are not supported, this is due to
                                  // their notoriously bad performance.
+const double CONV_EXP = 1.0;     // Default value is 1.0. This parameter influences the selection of 
+                                 // cancidates in hp-adaptivity. See get_optimal_refinement() for details.
 const int MAX_ORDER = 10;        // Maximum allowed element degree
 const double ERR_STOP = 5.0;     // Stopping criterion for adaptivity (rel. error tolerance between the
                                  // fine mesh and coarse mesh solution in percent).
-const int NDOF_STOP = 40000;     // Adaptivity process stops when the number of degrees of freedom grows over
+const int NDOF_STOP = 60000;     // Adaptivity process stops when the number of degrees of freedom grows over
                                  // this limit. This is mainly to prevent h-adaptivity to go on forever.
 
 // problem constants
@@ -135,7 +137,7 @@ int main(int argc, char* argv[])
 
   // enumerate basis functions
   int ndofs = xdisp.assign_dofs();
-  ydisp.assign_dofs(ndofs);
+  ndofs += ydisp.assign_dofs(ndofs);
 
   // initialize the weak formulation
   WeakForm wf(2);
@@ -146,18 +148,6 @@ int main(int argc, char* argv[])
 
   // matrix solver
   UmfpackSolver umfpack;
-
-  // convergence graph wrt. the number of degrees of freedom
-  GnuplotGraph graph;
-  graph.set_captions("", "Degrees of Freedom", "Error (Energy Norm)");
-  graph.set_log_y();
-  graph.add_row("Reference solution", "k", "-", "O");
-
-  // convergence graph wrt. CPU time
-  GnuplotGraph graph_cpu;
-  graph_cpu.set_captions("", "CPU", "error");
-  graph_cpu.set_log_y();
-  graph_cpu.add_row(MULTI ? "multi-mesh" : "single-mesh", "k", "-", "o");
 
   // adaptivity loop
   int it = 1;
@@ -173,7 +163,7 @@ int main(int argc, char* argv[])
     begin_time();
 
     //calculating the number of degrees of freedom
-    int ndofs = xdisp.assign_dofs();
+    ndofs = xdisp.assign_dofs();
     ndofs += ydisp.assign_dofs(ndofs);
     printf("xdof=%d, ydof=%d\n", xdisp.get_num_dofs(), ydisp.get_num_dofs());
 
@@ -208,18 +198,10 @@ int main(int argc, char* argv[])
     // time measurement
     cpu += end_time();
 
-    // add entry to DOF convergence graph
-    graph.add_values(0, xdisp.get_num_dofs() + ydisp.get_num_dofs(), err_est);
-    graph.save(MULTI ? "conv_dof_m.gp" : "conv_dof_s.gp");
-
-    // add entry to CPU convergence graph
-    graph_cpu.add_values(0, cpu, err_est);
-    graph_cpu.save(MULTI ? "conv_cpu_m.gp" : "conv_cpu_s.gp");
-
     // if err_est too large, adapt the mesh
     if (err_est < ERR_STOP) done = true;
     else {
-      hp.adapt(THRESHOLD, STRATEGY, ADAPT_TYPE, ISO_ONLY, MESH_REGULARITY, MAX_ORDER, SAME_ORDERS);
+      hp.adapt(THRESHOLD, STRATEGY, ADAPT_TYPE, ISO_ONLY, MESH_REGULARITY, CONV_EXP, MAX_ORDER, SAME_ORDERS);
       ndofs = xdisp.assign_dofs();
       ndofs += ydisp.assign_dofs(ndofs);
       if (ndofs >= NDOF_STOP) done = true;
@@ -229,9 +211,12 @@ int main(int argc, char* argv[])
   while (!done);
   verbose("Total running time: %g sec", cpu);
 
-#define ERROR_SUCCESS                               0
-#define ERROR_FAILURE                               -1
-  if (ndofs < 650) {      // ndofs was 614 atthe time this test was created
+#define ERROR_SUCCESS       0
+#define ERROR_FAILURE      -1
+  int ndof_allowed = 820;
+  printf("ndof actual = %d\n", ndofs);
+  printf("ndof allowed = %d\n", ndof_allowed);
+  if (ndofs <= ndof_allowed) {      // ndofs was 816 at the time this test was created
     printf("Success!\n");
     return ERROR_SUCCESS;
   }

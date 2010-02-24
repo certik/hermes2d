@@ -36,6 +36,8 @@ public:
   /// Initializes the class and sets zero initial coefficient vector.
   NonlinSystem(WeakForm* wf, Solver* solver);
 
+  virtual void free();
+
   /// Sets the initial coefficient vector so that it represents the given function(s).
   /// You can pass pointer(s) to Solution(s) or to a Filter(s).
   /// The projected Solution(s) are returned in "result" (satisfy Dirichlet BC)
