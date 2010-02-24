@@ -47,12 +47,8 @@ double dir_lift(double x, double y, double& dx, double& dy) {
 // used as initial guess for the Newton's method
 scalar init_cond(double x, double y, double& dx, double& dy)
 {
-  // using the Dirichlet lift
-  //return dir_lift(x, y, dx, dy);
-  // another option
-  dx = 0;
-  dy = 0;
-  return 2.5;
+  // using the Dirichlet lift elevated by two
+  double val = dir_lift(x, y, dx, dy) + 2;
 }
 
 // Boundary condition type (essential = Dirichlet)
