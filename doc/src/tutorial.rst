@@ -1859,8 +1859,8 @@ The Newton's method is now
 Therefore, the Newton's method will converge in one iteration.
 
 
-Simple Nonlinear Example
---------------------------
+Newton Example I
+----------------
 
 More information to this example can be found in the `main.cpp 
 <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/tutorial/13-newton-elliptic-1/main.cpp>`_ file
@@ -2022,8 +2022,23 @@ Approximate solution $u$ for $\alpha = 4$:
    :height: 400
    :alt: result for alpha = 4
 
+Newton Example II
+-----------------
 
+More information to this example can be found in the `main.cpp 
+<http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/tutorial/14-newton-elliptic-2/main.cpp>`_ file
+of the tutorial example `14-newton-elliptic-2 
+<http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/tutorial/14-newton-elliptic-2>`_.
 
+Approximate solution $u$: 
+
+.. image:: img/example-14/solution.png
+   :align: center
+   :width: 600
+   :height: 350
+   :alt: approximate solution
+
+UNDER CONSTRUCTION.
 
 
 
