@@ -1,31 +1,15 @@
 #include "hermes2d.h"
 #include "solver_umfpack.h"
 
-// This example explains how to use the multimesh adaptive hp-FEM,
-// where different physical fields (or solution components) can be
-// approximated using different meshes and equipped with mutually
-// independent adaptivity mechanisms. Here we consider linear elasticity
-// and will approximate each displacement components using an individual
-// mesh.
-//
-// PDE: Lame equations of linear elasticity, treated as a coupled system
-//      of two PDEs
-//
-// BC: u_1 = u_2 = 0 on Gamma_1
-//     du_2/dn = f on Gamma_2
-//     du_1/dn = du_2/dn = 0 elsewhere
-//
-// The following parameters can be changed: In particular, compare hp- and
-// h-adaptivity via the ADAPT_TYPE option, and compare the multi-mesh vs. single-mesh
-// using the MULTI parameter.
+// This test makes sure that example 11-adapt-system works correctly with MULTI = false.
 
-const int P_INIT = 2;            // Initial polynomial degree of all mesh elements.
-const bool MULTI = true;         // MULTI = true  ... use multi-mesh,
+const int P_INIT = 1;            // Initial polynomial degree of all mesh elements.
+const bool MULTI = false;         // MULTI = true  ... use multi-mesh,
                                  // MULTI = false ... use single-mesh.
                                  // Note: In the single mesh option, the meshes are
                                  // forced to be geometrically the same but the
                                  // polynomial degrees can still vary.
-const bool SAME_ORDERS = false;  // SAME_ORDERS = true ... when single-mesh is used,
+const bool SAME_ORDERS = true;   // SAME_ORDERS = true ... when single-mesh is used,
                                  // this forces the meshes for all components to be
                                  // identical, including the polynomial degrees of
                                  // corresponding elements. When multi-mesh is used,
@@ -59,7 +43,7 @@ const int MESH_REGULARITY = -1;  // Maximum allowed level of hanging nodes:
 const double CONV_EXP = 1.0;     // Default value is 1.0. This parameter influences the selection of 
                                  // cancidates in hp-adaptivity. See get_optimal_refinement() for details.
 const int MAX_ORDER = 10;        // Maximum allowed element degree
-const double ERR_STOP = 0.01;    // Stopping criterion for adaptivity (rel. error tolerance between the
+const double ERR_STOP = 5.0;     // Stopping criterion for adaptivity (rel. error tolerance between the
                                  // fine mesh and coarse mesh solution in percent).
 const int NDOF_STOP = 60000;     // Adaptivity process stops when the number of degrees of freedom grows over
                                  // this limit. This is mainly to prevent h-adaptivity to go on forever.
@@ -162,16 +146,8 @@ int main(int argc, char* argv[])
   wf.add_biform(1, 1, callback(bilinear_form_1_1), SYM);  // forms
   wf.add_liform_surf(1, callback(linear_form_surf_1), marker_top);
 
-  // visualization of solution and meshes
-  OrderView  xoview("X polynomial orders", 0, 0, 500, 500);
-  OrderView  yoview("Y polynomial orders", 510, 0, 500, 500);
-  ScalarView sview("Von Mises stress [Pa]", 1020, 0, 500, 500);
-
   // matrix solver
   UmfpackSolver umfpack;
-
-  // DOF and CPU convergence graphs
-  SimpleGraph graph_dof, graph_cpu;
 
   // adaptivity loop
   int it = 1;
@@ -201,13 +177,6 @@ int main(int argc, char* argv[])
     // time measurement
     cpu += end_time();
 
-    // view the solution -- this can be slow; for illustration only
-    VonMisesFilter stress_coarse(&x_sln_coarse, &y_sln_coarse, mu, lambda);
-    sview.set_min_max_range(0, 3e4);
-    sview.show(&stress_coarse);
-    xoview.show(&xdisp);
-    yoview.show(&ydisp);
-
     // time measurement
     begin_time();
 
@@ -224,21 +193,15 @@ int main(int argc, char* argv[])
     hp.set_biform(1, 1, bilinear_form_1_1<scalar, scalar>, bilinear_form_1_1<Ord, Ord>);
     double err_est = hp.calc_error_2(&x_sln_coarse, &y_sln_coarse, &x_sln_fine, &y_sln_fine) * 100;
 
-    info("Estimate of error: %g%%", err_est);
+    info("\nEstimate of error: %g%%", err_est);
 
     // time measurement
     cpu += end_time();
 
-    // add entry to DOF convergence graph
-    graph_dof.add_values(xdisp.get_num_dofs() + ydisp.get_num_dofs(), err_est);
-    graph_dof.save("conv_dof.dat");
-
-    // add entry to CPU convergence graph
-    graph_cpu.add_values(cpu, err_est);
-    graph_cpu.save("conv_cpu.dat");
-
     // if err_est too large, adapt the mesh
-    if (err_est < ERR_STOP) done = true;
+    if (err_est < ERR_STOP) {
+      done = true;
+    }
     else {
       hp.adapt(THRESHOLD, STRATEGY, ADAPT_TYPE, ISO_ONLY, MESH_REGULARITY, CONV_EXP, MAX_ORDER, SAME_ORDERS);
       ndofs = xdisp.assign_dofs();
@@ -250,13 +213,17 @@ int main(int argc, char* argv[])
   while (!done);
   verbose("Total running time: %g sec", cpu);
 
-  // show the fine solution - this is the final result
-  VonMisesFilter stress_fine(&x_sln_fine, &y_sln_fine, mu, lambda);
-  sview.set_title("Final solution");
-  sview.set_min_max_range(0, 3e4);
-  sview.show(&stress_fine);
-
-  // wait for all views to be closed
-  View::wait("Waiting for all views to be closed.");
-  return 0;
+#define ERROR_SUCCESS       0
+#define ERROR_FAILURE      -1
+  int ndof_allowed = 680;
+  printf("ndof actual = %d\n", ndofs);
+  printf("ndof allowed = %d\n", ndof_allowed);
+  if (ndofs <= ndof_allowed) {      // ndofs was 678 at the time this test was created
+    printf("Success!\n");
+    return ERROR_SUCCESS;
+  }
+  else {
+    printf("Failure!\n");
+    return ERROR_FAILURE;
+  }
 }
