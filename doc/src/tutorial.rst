@@ -1704,8 +1704,26 @@ The following graph shows convergence in terms of CPU time.
    :height: 400
    :alt: CPU convergence graph for tutorial example 11-adapt-system.
 
-See example `multimesh <http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/examples/multimesh>`_ for a more 
-advanced application of multimesh *hp*-FEM to thermoelasticity.
+In this example the difference between the multimesh *hp*-FEM and the single-mesh
+version is not really significant since the two elasticity equations are very 
+strongly coupled and have singularities at the same points. The corresponding 
+DOF and CPU time convergence graphs are below:
+
+.. image:: img/example-11/conv_compar_dof.png
+   :align: center
+   :width: 600
+   :height: 400
+   :alt: comparison of multimesh and single mesh hp-FEM
+
+.. image:: img/example-11/conv_compar_cpu.png
+   :align: center
+   :width: 600
+   :height: 400
+   :alt: comparison of multimesh and single mesh hp-FEM
+
+Later we will show a `thermoelasticity model <http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/examples/multimesh>`_
+where the participating physical fields exhibit larger differences and thus also the advantage of the multimesh discretization 
+becomes more significant. 
 
 Adaptivity for General 2nd-Order Linear Equation
 ------------------------------------------------
@@ -1859,8 +1877,8 @@ The Newton's method is now
 Therefore, the Newton's method will converge in one iteration.
 
 
-Simple Nonlinear Example
---------------------------
+Newton Example I
+----------------
 
 More information to this example can be found in the `main.cpp 
 <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/tutorial/13-newton-elliptic-1/main.cpp>`_ file
@@ -1961,16 +1979,16 @@ The nonlinear system needs to be initialized:
     nls.set_pss(1, &pss);
 
 In this example, we set the initial guess for the Newton's iteration to be 
-zero:
+a constant function:
 
 ::
 
-    // set zero function as the initial condition
-    u_prev.set_zero(&mesh);
+    // use a constant function as the initial guess
+    u_prev.set_const(&mesh, 3.0);
     nls.set_ic(&u_prev, &u_prev);
 
-A more advanced example showing how to define a nonzero initial guess for the Newton's
-method and how to deal with nonzero Dirichlet boundary conditions will follow. 
+A more advanced example showing how to define a general initial guess 
+and how to deal with nonzero Dirichlet boundary conditions will follow. 
 The Newton's loop is very simple,
 
 ::
@@ -2022,10 +2040,114 @@ Approximate solution $u$ for $\alpha = 4$:
    :height: 400
    :alt: result for alpha = 4
 
+Newton Example II
+-----------------
+
+More information to this example can be found in the `main.cpp 
+<http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/tutorial/14-newton-elliptic-2/main.cpp>`_ file
+of the tutorial example `14-newton-elliptic-2 
+<http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/tutorial/14-newton-elliptic-2>`_.
+We will solve the nonlinear model problem from the previous section again,
+
+.. math::
+
+    -\nabla \cdot (\lambda(u)\nabla u) - f(\bfx) = 0 \ \ \ \mbox{in } \Omega = (-10,10)^2
+
+but now with nonhomogeneous Dirichlet boundary conditions 
+
+.. math::
+
+    u(x, y) = (x+10)(y+10)/100 \ \ \ \mbox{on } \partial \Omega.
+
+The treatment of the Dirichlet boundary conditions in the code looks as follows:
+
+::
+
+    // This function is used to define Dirichlet boundary conditions
+    double dir_lift(double x, double y, double& dx, double& dy) {
+      dx = (y+10)/10.;
+      dy = (x+10)/10.;
+      return (x+10)*(y+10)/100.;
+    }
+
+    // Boundary condition type (essential = Dirichlet)
+    int bc_types(int marker)
+    {
+      return BC_ESSENTIAL;
+    }
+
+    // Dirichlet boundary condition values
+    scalar bc_values(int marker, double x, double y)
+    {
+      double dx, dy;
+      return dir_lift(x, y, dx, dy); 
+    }
+
+The initial guess for the Newton's method will be chosen as the 
+Dirichlet lift function elevated by 2:
+
+::
+
+    // This function will be projected on the initial mesh and 
+    // used as initial guess for the Newton's method
+    scalar init_cond(double x, double y, double& dx, double& dy)
+    {
+      // using the Dirichlet lift elevated by two
+      double val = dir_lift(x, y, dx, dy) + 2;
+    }
+
+The initial guess is projected to the initial mesh using the set_ic()
+method of the Nonlinsystem class:
+
+::
+
+    // project the function init_cond() on the mesh 
+    // to obtain initial guess u_prev for the Newton's method
+    nls.set_ic(init_cond, &mesh, &u_prev, PROJ_TYPE);
+
+The projection norm PROJ_TYPE needs to be compatible with the Sobolev
+space where the solution is sought ($H^1$ in this example). 
+Hermes currently provides $H^1$-projection (PROJ_TYPE = 1) and 
+$L^2$-projection (PROJ_TYPE = 0). Other projections (H(curl), H(div) etc.)
+will be added later when a need arises. The following figure shows the  
+$H^1$-projection of the above-defined initial guess init_cond():
+
+.. image:: img/example-14/proj-h1.png
+   :align: center
+   :width: 600
+   :height: 350
+   :alt: H1 projection
+
+The converged solution after 7 steps of the Newton's
+method looks as follows:
+
+.. image:: img/example-14/solution.png
+   :align: center
+   :width: 600
+   :height: 350
+   :alt: approximate solution
 
 
+Newton Example III
+------------------
 
+More information to this example can be found in the `main.cpp 
+<http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/tutorial/15-newton-elliptic-adapt/main.cpp>`_ file
+of the tutorial example `15-newton-elliptic-adapt 
+<http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/tutorial/15-newton-elliptic-adapt>`_.
+We will keep the simple model problem
 
+.. math::
+
+    -\nabla \cdot (\lambda(u)\nabla u) - f(\bfx) = 0 \ \ \ \mbox{in } \Omega = (-10,10)^2,
+
+equipped with nonhomogeneous Dirichlet boundary conditions 
+
+.. math::
+
+    u(x, y) = (x+10)(y+10)/100 \ \ \ \mbox{on } \partial \Omega,
+
+but this time it will be solved using automatic adaptivity. 
 
 
 
