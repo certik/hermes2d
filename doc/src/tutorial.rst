@@ -1961,16 +1961,16 @@ The nonlinear system needs to be initialized:
     nls.set_pss(1, &pss);
 
 In this example, we set the initial guess for the Newton's iteration to be 
-zero:
+a constant function:
 
 ::
 
-    // set zero function as the initial condition
-    u_prev.set_zero(&mesh);
+    // use a constant function as the initial guess
+    u_prev.set_const(&mesh, 3.0);
     nls.set_ic(&u_prev, &u_prev);
 
-A more advanced example showing how to define a nonzero initial guess for the Newton's
-method and how to deal with nonzero Dirichlet boundary conditions will follow. 
+A more advanced example showing how to define a general initial guess 
+and how to deal with nonzero Dirichlet boundary conditions will follow. 
 The Newton's loop is very simple,
 
 ::
