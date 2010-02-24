@@ -1704,8 +1704,26 @@ The following graph shows convergence in terms of CPU time.
    :height: 400
    :alt: CPU convergence graph for tutorial example 11-adapt-system.
 
-See example `multimesh <http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/examples/multimesh>`_ for a more 
-advanced application of multimesh *hp*-FEM to thermoelasticity.
+In this example the difference between the multimesh *hp*-FEM and the single-mesh
+version is not really significant since the two elasticity equations are very 
+strongly coupled and have singularities at the same points. The corresponding 
+DOF and CPU time convergence graphs are below:
+
+.. image:: img/example-11/conv_compar_dof.png
+   :align: center
+   :width: 600
+   :height: 400
+   :alt: comparison of multimesh and single mesh hp-FEM
+
+.. image:: img/example-11/conv_compar_cpu.png
+   :align: center
+   :width: 600
+   :height: 400
+   :alt: comparison of multimesh and single mesh hp-FEM
+
+Later we will show a `thermoelasticity model <http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/examples/multimesh>`_
+where the participating physical fields exhibit larger differences and thus also the advantage of the multimesh discretization 
+becomes more significant. 
 
 Adaptivity for General 2nd-Order Linear Equation
 ------------------------------------------------
