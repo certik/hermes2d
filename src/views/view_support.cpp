@@ -291,7 +291,7 @@ static int refresh_view_in_thread(void* view_id_ptr) {
   debug_assert(!need_safe_call(), "E refresh_view_in_thread called from other thread.");
   int view_id = *((int*)view_id_ptr);
   std::map<int, View*>::iterator found_view = view_instances.find(view_id);
-  //debug_assert(found_view != view_instances.end(), "E removing of a view that is not registered");
+  debug_assert(found_view != view_instances.end(), "E refreshing a view that is not registered");
 
   //redisplay
   if (found_view != view_instances.end()) {
@@ -404,7 +404,6 @@ static bool init_glut()
 /// shutdowns GLUT
 static bool shutdown_glut()
 {
-  glut_initialized = false;
   return true;
 }
 
@@ -455,7 +454,7 @@ void force_view_thread_shutdown() {
   }
 }
 
-void wait_for_all_views_close() {
+void wait_for_all_views_close(const char* text) {
   pthread_t current_thread;
   bool should_wait = false;
 
@@ -468,8 +467,20 @@ void wait_for_all_views_close() {
   view_sync.leave();
 
   //wait for thread to finish
-  if (should_wait)
+  if (should_wait) {
+    fprintf(stdout, "%s", text); fflush(stdout);
     pthread_join(current_thread, NULL);
+  }
+}
+
+void wait_for_any_key(const char* text) {
+  //wait for key
+  view_sync.enter();
+  if (view_thread != NULL) {
+    fprintf(stdout, "%s", text); fflush(stdout);
+    view_sync.wait_keypress();
+  }
+  view_sync.leave();
 }
 
 #endif // NOGLUT
