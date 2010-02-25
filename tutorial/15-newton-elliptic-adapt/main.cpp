@@ -80,6 +80,7 @@ scalar init_cond(double x, double y, double& dx, double& dy)
 {
   // using the Dirichlet lift elevated by two
   double val = dir_lift(x, y, dx, dy) + 2;
+  return val;
 }
 
 // Boundary condition type (essential = Dirichlet)
@@ -298,7 +299,7 @@ int main(int argc, char* argv[])
   verbose("Total running time: %g sec", cpu);
 
   // wait for keyboard or mouse input
-  View::wait("Waiting for all views to be closed.");
+  View::wait();
   return 0;
 }
 

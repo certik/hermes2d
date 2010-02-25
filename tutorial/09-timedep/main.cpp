@@ -160,6 +160,6 @@ int main(int argc, char* argv[])
   // Note: a separate example shows how to create videos
 
   // wait for a view to be closed
-  View::wait("Waiting for a view to be closed.");
+  View::wait();
   return 0;
 }

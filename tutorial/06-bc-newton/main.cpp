@@ -99,6 +99,6 @@ int main(int argc, char* argv[])
   gradview.show(&grad);
 
   // wait for all views to be closed
-  View::wait("Waiting for all views to be closed.");
+  View::wait();
   return 0;
 }

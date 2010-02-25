@@ -27,6 +27,8 @@
 // you can define NOGLUT to turn off all OpenGL stuff in Hermes2D
 #ifndef NOGLUT
 
+#define H2DV_MAX_VIEWABLE_ORDER 10 ///< Maximum viewable order.
+
 /// \brief Displays the polynomial degrees of elements.
 ///
 /// OrderView is a tool for displaying the polynomial degrees of the elements in a space.
@@ -49,11 +51,11 @@ protected:
   bool b_orders;
 
   int num_boxes, order_min;
-  const char* box_names[11];
-  char text_buffer[500];
-  float order_colors[11][3];
+  const char* box_names[H2DV_MAX_VIEWABLE_ORDER+1]; ///< Pointers to order names. Pointers points inside OrderView::text_buffer.
+  char text_buffer[H2DV_MAX_VIEWABLE_ORDER*4]; ///< Text buffer which contains all order names.
+  float order_colors[H2DV_MAX_VIEWABLE_ORDER+1][3]; ///< Order colors. Maximum order has to be accessible.
 
-  void init_order_palette();
+  void init_order_palette(double3* vert); ///< Initializes opalette from supplied vertices.
 
   virtual void on_display();
   virtual void on_key_down(unsigned char key, int x, int y);
