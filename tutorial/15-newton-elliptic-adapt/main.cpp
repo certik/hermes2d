@@ -14,11 +14,11 @@
 //
 //  The following parameters can be changed:
 
-const int P_INIT = 2;                // Initial polynomial degree
+const int P_INIT = 1;                // Initial polynomial degree
 const int PROJ_TYPE = 1;             // For the projection of the initial condition 
                                      // on the initial mesh: 1 = H1 projection, 0 = L2 projection
-const int INIT_GLOB_REF_NUM = 3;     // Number of initial uniform mesh refinements
-const int INIT_BDY_REF_NUM = 4;      // Number of initial refinements towards boundary
+const int INIT_GLOB_REF_NUM = 1;     // Number of initial uniform mesh refinements
+const int INIT_BDY_REF_NUM = 0;      // Number of initial refinements towards boundary
 
 const double THRESHOLD = 0.2;        // This is a quantitative parameter of the adapt(...) function and
                                      // it has different meanings for various adaptive strategies (see below).
@@ -171,18 +171,20 @@ int main(int argc, char* argv[])
   nls.set_ic(init_cond, &mesh, &u_prev, PROJ_TYPE);
 
   // visualise the initial ocndition
-  ScalarView view("Initial condition", 0, 0, 800, 600);
+  ScalarView view("Initial condition", 0, 0, 700, 600);
   view.show(&u_prev);
+  OrderView oview("Initial mesh", 720, 0, 700, 600);
+  oview.show(&space);
   //printf("Click into the image window and press any key to proceed.\n");
   //view.wait_for_keypress();
 
   // adaptivity loop
   double cpu = 0.0, err_est;
-  int at = 1, ndof;
+  int a_step = 1;
   bool done = false;
   do {
 
-    info("\n---- Adaptivity step %d ---------------------------------------------\n", at++);
+    a_step++;
 
     // Newton's loop on the coarse mesh
     int it = 1;
@@ -190,7 +192,8 @@ int main(int argc, char* argv[])
     Solution sln_coarse;
     do
     {
-      info("\n---- Newton iter %d (coarse mesh) ---------------------------------\n", it++);
+      info("\n---- Adapt step %d, Newton iter %d (coarse mesh) ---------------------------------\n", a_step, it++);
+      printf("ndof = %d\n", space.get_num_dofs());
 
       // time measurement
       begin_time();
@@ -212,12 +215,15 @@ int main(int argc, char* argv[])
       sprintf(title, "Temperature (coarse mesh), Newton iteration %d", it-1);
       view.set_title(title);
       view.show(&sln_coarse);
+      sprintf(title, "Coarse mesh, Newton iteration %d", it-1);
+      oview.set_title(title);
+      oview.show(&space);
       //printf("Click into the image window and press any key to proceed.\n");
       //view.wait_for_keypress();
 
       // save the new solution as "previous" for the 
       // next Newton's iteration
-      u_prev = sln_coarse;
+      u_prev.copy(&sln_coarse);
     }
     while (res_l2_norm > NEWTON_TOL);
 
@@ -230,7 +236,7 @@ int main(int argc, char* argv[])
     // Newton's loop on the fine mesh
     it = 1;
     do {
-      info("\n---- Newton iter %d (fine mesh) ---------------------------------\n", it++);
+      info("\n---- Adapt step %d, Newton iter %d (fine mesh) ---------------------------------\n", a_step, it++);
 
       // time measurement
       begin_time();
@@ -252,6 +258,9 @@ int main(int argc, char* argv[])
       sprintf(title, "Temperature (fine mesh), Newton iteration %d", it-1);
       view.set_title(title);
       view.show(&sln_fine);
+      sprintf(title, "Fine mesh, Newton iteration %d", it-1);
+      oview.set_title(title);
+      oview.show(rs.get_ref_space(0));
       //printf("Click into the image window and press any key to proceed.\n");
       //view.wait_for_keypress();
 
@@ -278,7 +287,7 @@ int main(int argc, char* argv[])
     if (err_est < ERR_STOP) done = true;
     else {
       hp.adapt(THRESHOLD, STRATEGY, ADAPT_TYPE, ISO_ONLY, MESH_REGULARITY);
-      ndof = space.assign_dofs();
+      int ndof = space.assign_dofs();
       if (ndof >= NDOF_STOP) done = true;
     }
 
