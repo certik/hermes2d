@@ -173,6 +173,8 @@ public:
     }
   }
 
+  Space* get_ref_space(int i) { return ref_spaces[i];}
+
 
 
 protected:
