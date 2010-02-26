@@ -171,13 +171,9 @@ int main(int argc, char* argv[])
   // to obtain initial guess u_prev for the Newton's method
   nls.set_ic(init_cond, &mesh, &u_prev, PROJ_TYPE);
 
-  // visualise the initial ocndition
+  // visualisation
   ScalarView view("Initial condition", 0, 0, 700, 600);
-  view.show(&u_prev);
   OrderView oview("Initial mesh", 720, 0, 700, 600);
-  oview.show(&space);
-  //printf("Click into the image window and press any key to proceed.\n");
-  //view.wait_for_keypress();
 
   // adaptivity loop
   double cpu = 0.0, err_est;
@@ -198,6 +194,10 @@ int main(int argc, char* argv[])
 
       // time measurement
       begin_time();
+
+      // update initial guess u_prev for the Newton's method
+      // after mesh refinement
+      nls.set_ic(&u_prev, &u_prev, PROJ_TYPE);
 
       // assemble the Jacobian matrix and residual vector, 
       // solve the system
