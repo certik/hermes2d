@@ -1043,12 +1043,14 @@ void ScalarView::on_display()
     glBegin(GL_LINES);
     for (i = 0; i < lin.get_num_edges(); i++)
     {
-      if (edges[i][2])
+      double y_coord = (lin.get_min_value() - yctr) * yscale;
+      int3& edge = edges[i];
+      if (edge[2])
       {
-        glVertex3d((vert[edges[i][0]][0] - xctr) * xzscale, (vert[edges[i][0]][2] - yctr) * yscale,
-                  -(vert[edges[i][0]][1] - zctr) * xzscale);
-        glVertex3d((vert[edges[i][1]][0] - xctr) * xzscale, (vert[edges[i][0]][2] - yctr) * yscale,
-                  -(vert[edges[i][1]][1] - zctr) * xzscale);
+        glVertex3d((vert[edge[0]][0] - xctr) * xzscale, y_coord,
+                  -(vert[edge[0]][1] - zctr) * xzscale);
+        glVertex3d((vert[edge[1]][0] - xctr) * xzscale, y_coord,
+                  -(vert[edge[1]][1] - zctr) * xzscale);
       }
     }
     glEnd();
