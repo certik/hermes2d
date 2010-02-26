@@ -227,3 +227,56 @@ bool NonlinSystem::solve(int n, ...)
 
   return true;
 }
+
+// Newton's loop for one equation
+bool NonlinSystem::solve_newton_1(Solution* u_prev, double newton_tol, int newton_max_iter, 
+                                  bool verbose, ScalarView* sview, OrderView* oview) {
+    int it = 1;
+    double res_l2_norm;
+    Solution *sln_coarse;
+    Space *space = this->get_space(0);
+    do
+    {
+      if (verbose) {
+        info("\n---- Newton iter %d ---------------------------------\n", it++);
+        printf("ndof = %d\n", space->get_num_dofs());
+      }
+
+      // assemble the Jacobian matrix and residual vector, 
+      // solve the system
+      this->assemble();
+      printf("assembled\n");
+      this->solve(1, sln_coarse);
+
+      printf("solved\n");
+
+      // calculate the l2-norm of residual vector
+      res_l2_norm = this->get_residuum_l2_norm();
+      info("Residuum L2 norm: %g\n", res_l2_norm);
+
+      // visualise the solution
+      if (sview != NULL) {
+        char title[100];
+        sprintf(title, "Solution, Newton iteration %d", it-1);
+        sview->set_title(title);
+        sview->show(sln_coarse);
+      }
+
+      // visualise the mesh
+      if (sview != NULL) {
+        char title[100];
+        sprintf(title, "Mesh, Newton iteration %d", it-1);
+        oview->set_title(title);
+        oview->show(space);
+      }
+
+      // save the new solution as "previous" for the 
+      // next Newton's iteration
+      u_prev->copy(sln_coarse);
+    }
+    while (res_l2_norm > newton_tol && it <= newton_max_iter);
+
+    // returning "true" if converged, otherwise returning "false"
+    if (it <= newton_max_iter) return true;
+    else return false;
+}
