@@ -111,8 +111,6 @@ int main(int argc, char* argv[])
   // visualise the initial ocndition
   ScalarView view("Initial condition", 0, 0, 800, 600);
   view.show(&u_prev);
-  printf("Click into the image window and press any key to proceed.\n");
-  view.wait_for_keypress();
 
   // Newton's loop
   int it = 1;
@@ -120,6 +118,7 @@ int main(int argc, char* argv[])
   Solution sln;
   do
   {
+    View::wait(H2DV_WAIT_KEYPRESS);
     info("\n---- Newton iter %d ---------------------------------\n", it++);
 
     // assemble the Jacobian matrix and residual vector, 
@@ -136,8 +135,6 @@ int main(int argc, char* argv[])
     sprintf(title, "Temperature, Newton iteration %d", it-1);
     view.set_title(title);
     view.show(&sln);
-    printf("Click into the image window and press any key to proceed.\n");
-    view.wait_for_keypress();
 
     // save the new solution as "previous" for the 
     // next Newton's iteration
@@ -147,7 +144,7 @@ int main(int argc, char* argv[])
   while (res_l2_norm > NEWTON_TOL);
 
   // wait for keyboard or mouse input
-  View::wait("Waiting for all views to be closed.");
+  View::wait();
   return 0;
 }
 

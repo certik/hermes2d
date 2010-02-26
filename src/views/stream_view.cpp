@@ -395,8 +395,7 @@ void StreamView::show(MeshFunction* xsln, MeshFunction* ysln, int marker, double
     range_min = vec.get_min_value();
     range_max = vec.get_max_value();
   }
-
-  center_mesh(vec.get_vertices(), vec.get_num_vertices());
+  vec.calc_vertices_aabb(&vertices_min_x, &vertices_max_x, &vertices_min_y, &vertices_max_y);
 
   // create streamlines
   double4* vert = vec.get_vertices();
@@ -436,6 +435,7 @@ void StreamView::show(MeshFunction* xsln, MeshFunction* ysln, int marker, double
 
   create();
   update_layout();
+  reset_view();
   refresh();
   wait_for_draw();
 }
@@ -566,11 +566,8 @@ void StreamView::on_key_down(unsigned char key, int x, int y)
       break;
 
     case 'c':
-      vec.lock_data();
-      center_mesh(vec.get_vertices(), vec.get_num_vertices());
-      vec.unlock_data();
+      reset_view();
       refresh();
-      //reset_zoom();
       break;
 
     case 'f':
