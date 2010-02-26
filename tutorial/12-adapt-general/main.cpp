@@ -263,6 +263,6 @@ int main(int argc, char* argv[])
   sview.show(&sln_fine);
 
   // Wait for keyboard or mouse input
-  View::wait("Waiting for all views to be closed.");
+  View::wait();
   return 0;
 }

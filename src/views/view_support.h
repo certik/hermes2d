@@ -61,7 +61,8 @@ extern void set_view_title(int view_id, const char* title); ///< Sets title of a
 extern void refresh_view(int view_id); ///< Forces redisplay of a view.
 extern void remove_view(int view_id); ///< Removes a view.
 //extern void force_view_thread_shutdown(); ///< Forces view thread to shutdown.
-extern void wait_for_all_views_close(); ///< Waits for all views to close.
+extern void wait_for_all_views_close(const char* text); ///< Waits for all views to close.
+extern void wait_for_any_key(const char* text); ///< Waits for a keypress which is not processed.
 
 #endif // NOGLUT
 

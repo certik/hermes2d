@@ -44,7 +44,7 @@ void MeshView::show(Mesh* mesh)
   sln.set_zero(mesh);
   lin.process_solution(&sln);
   lin.lock_data();
-  center_mesh(lin.get_vertices(), lin.get_num_vertices());
+  lin.calc_vertices_aabb(&vertices_min_x, &vertices_max_x, &vertices_min_y, &vertices_max_y);
   lin.unlock_data();
   
   int i;
@@ -75,6 +75,7 @@ void MeshView::show(Mesh* mesh)
   create();
   update_layout();
   refresh();
+  reset_view();
   wait_for_draw();
 }
 
@@ -164,11 +165,8 @@ void MeshView::on_key_down(unsigned char key, int x, int y)
   switch (key)
   {
     case 'c':
-      lin.lock_data();
-      center_mesh(lin.get_vertices(), lin.get_num_vertices());
-      lin.unlock_data();
+      reset_view();
       refresh();
-      //reset_zoom();
       break;
     
     case 'b':

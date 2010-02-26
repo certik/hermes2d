@@ -884,3 +884,24 @@ void Linearizer::load_data(const char* filename)
   unlock_data();
   fclose(f);
 }
+
+//// others ///////////////////////////////////////////////////////////////////////////////////
+
+void Linearizer::calc_vertices_aabb(double* min_x, double* max_x, double* min_y, double* max_y) const {
+  debug_assert(verts != NULL, "E cannot calculate AABB from NULL vertices");
+  calc_aabb(&verts[0][0], &verts[0][1], sizeof(double3), nv, min_x, max_x, min_y, max_y);
+}
+
+void Linearizer::calc_aabb(double* x, double* y, int stride, int num, double* min_x, double* max_x, double* min_y, double* max_y) {
+  *min_x = *max_x = *x;
+  *min_y = *max_y = *y;
+
+  uint8_t* ptr_x = (uint8_t*)x;
+  uint8_t* ptr_y = (uint8_t*)y;
+  for(int i = 0; i < num; i++, ptr_x += stride, ptr_y += stride) {
+    *min_x = std::min(*min_x, *((double*)ptr_x));
+    *min_y = std::min(*min_y, *((double*)ptr_y));
+    *max_x = std::max(*max_x, *((double*)ptr_x));
+    *max_y = std::max(*max_y, *((double*)ptr_y));
+  }
+}

@@ -52,16 +52,16 @@ void VectorView::show(MeshFunction* xsln, MeshFunction* ysln, double eps)
 
 void VectorView::show(MeshFunction* xsln, MeshFunction* ysln, double eps, int xitem, int yitem)
 {
+  vec.lock_data();
   vec.process_solution(xsln, xitem, ysln, yitem, eps);
-
   if (range_auto) { range_min = vec.get_min_value();
                     range_max = vec.get_max_value(); }
-                    
+  vec.calc_vertices_aabb(&vertices_min_x, &vertices_max_x, &vertices_min_y, &vertices_max_y);
+  vec.unlock_data();
+
   create();
   update_layout();
-  vec.lock_data();
-  center_mesh(vec.get_vertices(), vec.get_num_vertices());
-  vec.unlock_data();
+  reset_view();
 
   refresh();
 
@@ -393,11 +393,8 @@ void VectorView::on_key_down(unsigned char key, int x, int y)
       break;
 
     case 'c':
-      vec.lock_data();
-      center_mesh(vec.get_vertices(), vec.get_num_vertices());
-      vec.unlock_data();
+      reset_view();
       refresh();
-      //reset_zoom();
       break;
 
    case 'f':
@@ -432,9 +429,9 @@ void VectorView::on_key_down(unsigned char key, int x, int y)
 void VectorView::load_data(const char* filename)
 {
   //get data
-  vec.lock_data();
   vec.load_data(filename);
-  center_mesh(vec.get_vertices(), vec.get_num_vertices());
+  vec.lock_data();
+  vec.calc_vertices_aabb(&vertices_min_x, &vertices_max_x, &vertices_min_y, &vertices_max_y);
   vec.unlock_data();
 
   if (range_auto) {
@@ -444,6 +441,7 @@ void VectorView::load_data(const char* filename)
 
   create();
   update_layout();
+  reset_view();
   refresh();
 
   wait_for_draw();
@@ -452,8 +450,10 @@ void VectorView::load_data(const char* filename)
 
 void VectorView::save_data(const char* filename)
 {
+  vec.lock_data();
   if (vec.get_num_triangles() <= 0)
     error("No data to save.");
+  vec.unlock_data();
   vec.save_data(filename);
 }
 
