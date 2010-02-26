@@ -195,10 +195,6 @@ int main(int argc, char* argv[])
       // time measurement
       begin_time();
 
-      // update initial guess u_prev for the Newton's method
-      // after mesh refinement
-      nls.set_ic(&u_prev, &u_prev, PROJ_TYPE);
-
       // assemble the Jacobian matrix and residual vector, 
       // solve the system
       nls.assemble();
@@ -211,7 +207,7 @@ int main(int argc, char* argv[])
       // time measurement
       cpu += end_time();
 
-      // visualise the solution
+      // visualise the solution and mesh
       char title[100];
       sprintf(title, "Temperature (coarse mesh), Newton iteration %d", it-1);
       view.set_title(title);
@@ -219,8 +215,6 @@ int main(int argc, char* argv[])
       sprintf(title, "Coarse mesh, Newton iteration %d", it-1);
       oview.set_title(title);
       oview.show(&space);
-      //printf("Click into the image window and press any key to proceed.\n");
-      //view.wait_for_keypress();
 
       // save the new solution as "previous" for the 
       // next Newton's iteration
@@ -229,7 +223,7 @@ int main(int argc, char* argv[])
     while (res_l2_norm > NEWTON_TOL);
 
     // Setting initial guess for the Newton's method on the fine mesh
-    Solution sln_fine, u_prev_fine;
+    Solution sln_fine;
     RefNonlinSystem rs(&nls);
     rs.prepare();
     rs.set_ic(&u_prev, &u_prev);
@@ -254,7 +248,7 @@ int main(int argc, char* argv[])
       // time measurement
       cpu += end_time();
 
-      // visualise the solution
+      // visualise the solution and mesh
       char title[100];
       sprintf(title, "Temperature (fine mesh), Newton iteration %d", it-1);
       view.set_title(title);
@@ -262,8 +256,6 @@ int main(int argc, char* argv[])
       sprintf(title, "Fine mesh, Newton iteration %d", it-1);
       oview.set_title(title);
       oview.show(rs.get_ref_space(0));
-      //printf("Click into the image window and press any key to proceed.\n");
-      //view.wait_for_keypress();
 
       u_prev.copy(&sln_fine);
     } while (res_l2_norm > NEWTON_TOL_REF);
@@ -290,6 +282,10 @@ int main(int argc, char* argv[])
       hp.adapt(THRESHOLD, STRATEGY, ADAPT_TYPE, ISO_ONLY, MESH_REGULARITY);
       int ndof = space.assign_dofs();
       if (ndof >= NDOF_STOP) done = true;
+
+      // update initial guess u_prev for the Newton's method
+      // on the new course mesh
+      nls.set_ic(&u_prev, &u_prev, PROJ_TYPE);
     }
 
     // time measurement
