@@ -14,44 +14,45 @@
 //
 //  The following parameters can be changed:
 
-const int P_INIT = 1;                // Initial polynomial degree
-const int PROJ_TYPE = 1;             // For the projection of the initial condition 
-                                     // on the initial mesh: 1 = H1 projection, 0 = L2 projection
-const int INIT_GLOB_REF_NUM = 1;     // Number of initial uniform mesh refinements
-const int INIT_BDY_REF_NUM = 0;      // Number of initial refinements towards boundary
+const int P_INIT = 1;                  // Initial polynomial degree
+const int PROJ_TYPE = 1;               // For the projection of the initial condition 
+                                       // on the initial mesh: 1 = H1 projection, 0 = L2 projection
+const int INIT_GLOB_REF_NUM = 1;       // Number of initial uniform mesh refinements
+const int INIT_BDY_REF_NUM = 0;        // Number of initial refinements towards boundary
 
-const double THRESHOLD = 0.2;        // This is a quantitative parameter of the adapt(...) function and
-                                     // it has different meanings for various adaptive strategies (see below).
-const int STRATEGY = 1;              // Adaptive strategy:
-                                     // STRATEGY = 0 ... refine elements until sqrt(THRESHOLD) times total
-                                     //   error is processed. If more elements have similar errors, refine
-                                     //   all to keep the mesh symmetric.
-                                     // STRATEGY = 1 ... refine all elements whose error is larger
-                                     //   than THRESHOLD times maximum element error.
-                                     // STRATEGY = 2 ... refine all elements whose error is larger
-                                     //   than THRESHOLD.
-                                     // More adaptive strategies can be created in adapt_ortho_h1.cpp.
-const int ADAPT_TYPE = 0;            // Type of automatic adaptivity:
-                                     // ADAPT_TYPE = 0 ... adaptive hp-FEM (default),
-                                     // ADAPT_TYPE = 1 ... adaptive h-FEM,
-                                     // ADAPT_TYPE = 2 ... adaptive p-FEM.
-const bool ISO_ONLY = false;         // Isotropic refinement flag (concerns quadrilateral elements only).
-                                     // ISO_ONLY = false ... anisotropic refinement of quad elements
-                                     // is allowed (default),
-                                     // ISO_ONLY = true ... only isotropic refinements of quad elements
-                                     // are allowed.
-const int MESH_REGULARITY = -1;      // Maximum allowed level of hanging nodes:
-                                     // MESH_REGULARITY = -1 ... arbitrary level hangning nodes (default),
-                                     // MESH_REGULARITY = 1 ... at most one-level hanging nodes,
-                                     // MESH_REGULARITY = 2 ... at most two-level hanging nodes, etc.
-                                     // Note that regular meshes are not supported, this is due to
-                                     // their notoriously bad performance.
-const double ERR_STOP = 0.001;       // Stopping criterion for adaptivity (rel. error tolerance between the
-                                     // fine mesh and coarse mesh solution in percent).
-const int NDOF_STOP = 60000;         // Adaptivity process stops when the number of degrees of freedom grows
-                                     // over this limit. This is to prevent h-adaptivity to go on forever.
-const double NEWTON_TOL = 1e-6;      // Stopping criterion for the Newton's method on coarse mesh
-const double NEWTON_TOL_REF = 1e-6;  // Stopping criterion for the Newton's method on fine mesh
+const double THRESHOLD = 0.2;          // This is a quantitative parameter of the adapt(...) function and
+                                       // it has different meanings for various adaptive strategies (see below).
+const int STRATEGY = 1;                // Adaptive strategy:
+                                       // STRATEGY = 0 ... refine elements until sqrt(THRESHOLD) times total
+                                       //   error is processed. If more elements have similar errors, refine
+                                       //   all to keep the mesh symmetric.
+                                       // STRATEGY = 1 ... refine all elements whose error is larger
+                                       //   than THRESHOLD times maximum element error.
+                                       // STRATEGY = 2 ... refine all elements whose error is larger
+                                       //   than THRESHOLD.
+                                       // More adaptive strategies can be created in adapt_ortho_h1.cpp.
+const int ADAPT_TYPE = 0;              // Type of automatic adaptivity:
+                                       // ADAPT_TYPE = 0 ... adaptive hp-FEM (default),
+                                       // ADAPT_TYPE = 1 ... adaptive h-FEM,
+                                       // ADAPT_TYPE = 2 ... adaptive p-FEM.
+const bool ISO_ONLY = false;           // Isotropic refinement flag (concerns quadrilateral elements only).
+                                       // ISO_ONLY = false ... anisotropic refinement of quad elements
+                                       // is allowed (default),
+                                       // ISO_ONLY = true ... only isotropic refinements of quad elements
+                                       // are allowed.
+const int MESH_REGULARITY = -1;        // Maximum allowed level of hanging nodes:
+                                       // MESH_REGULARITY = -1 ... arbitrary level hangning nodes (default),
+                                       // MESH_REGULARITY = 1 ... at most one-level hanging nodes,
+                                       // MESH_REGULARITY = 2 ... at most two-level hanging nodes, etc.
+                                       // Note that regular meshes are not supported, this is due to
+                                       // their notoriously bad performance.
+const double ERR_STOP = 0.001;         // Stopping criterion for adaptivity (rel. error tolerance between the
+                                       // fine mesh and coarse mesh solution in percent).
+const int NDOF_STOP = 60000;           // Adaptivity process stops when the number of degrees of freedom grows
+                                       // over this limit. This is to prevent h-adaptivity to go on forever.
+const double NEWTON_TOL_COARSE = 1e-6; // Stopping criterion for the Newton's method on coarse mesh
+const double NEWTON_TOL_FINE = 1e-6;   // Stopping criterion for the Newton's method on fine mesh
+const int NEWTON_MAX_ITER = 100;       // Maximum allowed number of Newton iterations
 
 // Thermal conductivity (temperature-dependent)
 // Note: for any u, this function has to be positive
@@ -172,7 +173,7 @@ int main(int argc, char* argv[])
   nls.set_ic(init_cond, &mesh, &u_prev, PROJ_TYPE);
 
   // visualisation
-  ScalarView view("Initial condition", 0, 0, 700, 600);
+  ScalarView sview("Initial condition", 0, 0, 700, 600);
   OrderView oview("Initial mesh", 720, 0, 700, 600);
 
   // adaptivity loop
@@ -181,57 +182,41 @@ int main(int argc, char* argv[])
   bool done = false;
   do {
 
-    a_step++;
+    info("---- Adaptivity step %d ---------------------------------\n", a_step++);
+
+    // time measurement
+    begin_time();
+
+    printf("entering Newton\n");
 
     // Newton's loop on the coarse mesh
-    int it = 1;
-    double res_l2_norm;
+    bool verbose = true;
+    nls.solve_newton_1(&u_prev, NEWTON_TOL_COARSE, NEWTON_MAX_ITER, verbose, &sview, &oview);
+    printf("leaving Newton\n");
     Solution sln_coarse;
-    do
-    {
-      info("\n---- Adapt step %d, Newton iter %d (coarse mesh) ---------------------------------\n", a_step, it++);
-      printf("ndof = %d\n", space.get_num_dofs());
+    sln_coarse.copy(&u_prev);
 
-      // time measurement
-      begin_time();
+    // time measurement
+    cpu += end_time();
 
-      // assemble the Jacobian matrix and residual vector, 
-      // solve the system
-      nls.assemble();
-      nls.solve(1, &sln_coarse);
 
-      // calculate the l2-norm of residual vector
-      res_l2_norm = nls.get_residuum_l2_norm();
-      info("Residuum L2 norm: %g\n", res_l2_norm);
 
-      // time measurement
-      cpu += end_time();
 
-      // visualise the solution and mesh
-      char title[100];
-      sprintf(title, "Temperature (coarse mesh), Newton iteration %d", it-1);
-      view.set_title(title);
-      view.show(&sln_coarse);
-      sprintf(title, "Coarse mesh, Newton iteration %d", it-1);
-      oview.set_title(title);
-      oview.show(&space);
 
-      // save the new solution as "previous" for the 
-      // next Newton's iteration
-      u_prev.copy(&sln_coarse);
-    }
-    while (res_l2_norm > NEWTON_TOL);
+
+
 
     // Setting initial guess for the Newton's method on the fine mesh
     Solution sln_fine;
     RefNonlinSystem rs(&nls);
     rs.prepare();
-    rs.set_ic(&u_prev, &u_prev);
+    rs.set_ic(&sln_coarse, &u_prev);
 
     // Newton's loop on the fine mesh
-    it = 1;
+    int it = 1;
+    double res_l2_norm;
     do {
-      info("\n---- Adapt step %d, Newton iter %d (fine mesh) ---------------------------------\n", a_step, it++);
+      info("\n---- Newton iter %d ---------------------------------\n", it++);
 
       // time measurement
       begin_time();
@@ -250,15 +235,15 @@ int main(int argc, char* argv[])
 
       // visualise the solution and mesh
       char title[100];
-      sprintf(title, "Temperature (fine mesh), Newton iteration %d", it-1);
-      view.set_title(title);
-      view.show(&sln_fine);
+      sprintf(title, "Solution (fine mesh), Newton iteration %d", it-1);
+      sview.set_title(title);
+      sview.show(&sln_fine);
       sprintf(title, "Fine mesh, Newton iteration %d", it-1);
       oview.set_title(title);
       oview.show(rs.get_ref_space(0));
 
       u_prev.copy(&sln_fine);
-    } while (res_l2_norm > NEWTON_TOL_REF);
+    } while (res_l2_norm > NEWTON_TOL_FINE);
 
     // time measurement
     begin_time();
