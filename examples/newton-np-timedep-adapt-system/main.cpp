@@ -60,10 +60,10 @@ const double E_FIELD = VOLTAGE / height;    // Boundary condtion for positive vo
 
 
 /* Simulation parameters */
-const int NSTEP = 20;                   // Number of time steps
-const double TAU = 0.05;                // Size of the time step
+const int NSTEP = 100;                // Number of time steps
+const double TAU = 0.01;              // Size of the time step
 const int P_INIT = 2;       	        // Initial polynomial degree of all mesh elements.
-const int REF_INIT = 12;     	        // Number of initial refinements
+const int REF_INIT = 10;     	        // Number of initial refinements
 const bool MULTIMESH = true;	        // Multimesh?
 
 /* Nonadaptive solution parameters */
@@ -73,7 +73,7 @@ const double NEWTON_TOL = 1e-2;         // Stopping criterion for nonadaptive so
 const double NEWTON_TOL_COARSE = 0.05;  // Stopping criterion for Newton on coarse mesh
 const double NEWTON_TOL_REF = 0.5;	// Stopping criterion for Newton on fine mesh
 
-const int UNREF_FREQ = 10;           	// every UNREF_FREQth time step the mesh
+const int UNREF_FREQ = 1;            	// every UNREF_FREQth time step the mesh
                                         // is unrefined
 const double THRESHOLD = 0.3;           // This is a quantitative parameter of the adapt(...) function and
                                         // it has different meanings for various adaptive strategies (see below).
@@ -91,8 +91,8 @@ const int ADAPT_TYPE = 0;               // Type of automatic adaptivity:
                                         // ADAPT_TYPE = 1 ... adaptive h-FEM,
                                         // ADAPT_TYPE = 2 ... adaptive p-FEM.
 
-const int NDOF_STOP = 5000;		// To prevent adaptivity from going on forever.
-const double ERR_STOP = 0.5;            // Stopping criterion for adaptivity (rel. error tolerance between the
+const int NDOF_STOP = 5000;		          // To prevent adaptivity from going on forever.
+const double ERR_STOP = 0.1;            // Stopping criterion for adaptivity (rel. error tolerance between the
                                         // fine mesh and coarse mesh solution in percent).
 
 // Program parameters 
@@ -243,7 +243,7 @@ void solveAdaptive(Mesh &Cmesh, Mesh &phimesh, Mesh &basemesh, NonlinSystem &nls
       int it = 1;
       double res_l2_norm;
       if (n > 1 || at > 1) {
-        nls.set_ic(&Csln_fine, &Ci, &phisln_fine, &phii);
+        nls.set_ic(&Csln_fine, &phisln_fine, &Ci, &phii);
       } else {
         /* No need to set anything, already set. */
         nls.set_ic(&Ci, &phii, &Ci, &phii);
@@ -267,16 +267,6 @@ void solveAdaptive(Mesh &Cmesh, Mesh &phimesh, Mesh &basemesh, NonlinSystem &nls
         Ci.copy(&Csln_coarse);
         phii.copy(&phisln_coarse);
       } while (res_l2_norm > NEWTON_TOL_COARSE);
-
-      int ndf = C.get_num_dofs() + phi.get_num_dofs();
-      sprintf(title, "phi after COARSE solution, at=%d and n=%d, ndofs=%d", at, n, ndf);
-      phiview.set_title(title);
-      phiview.show(&phii);
-      sprintf(title, "C after COARSE solution, at=%d and n=%d,\
-           ndofs=%d. PRESS KEY TO CONTINUE", at, n, ndf);
-      Cview.set_title(title);
-      Cview.show(&Ci);
-      Cview.wait_for_keypress();
 
       it = 1;
       // Loop for fine mesh solution
@@ -306,16 +296,6 @@ void solveAdaptive(Mesh &Cmesh, Mesh &phimesh, Mesh &basemesh, NonlinSystem &nls
         Ci.copy(&Csln_fine);
         phii.copy(&phisln_fine);
       } while (res_l2_norm > NEWTON_TOL_REF);
-
-      ndf = C.get_num_dofs() + phi.get_num_dofs();
-      sprintf(title, "phi after FINE solution, at=%d and n=%d, ndofs=%d", at, n, ndf);
-      phiview.set_title(title);
-      phiview.show(&phii);
-      sprintf(title, "C after FINE solution, at=%d and n=%d, ndofs=%d.\
-           PRESS KEY TO CONTINUE", at, n, ndf);
-      Cview.set_title(title);
-      Cview.show(&Ci);
-      Cview.wait_for_keypress();
 
       // Calculate element errors and total estimate
       H1OrthoHP hp(2, &C, &phi);
@@ -354,16 +334,30 @@ void solveAdaptive(Mesh &Cmesh, Mesh &phimesh, Mesh &basemesh, NonlinSystem &nls
     phip.copy(&phii);
     Cp.copy(&Ci);
 
-      graph_err.add_values(0, n, err);
+    graph_err.add_values(0, n, err);
     graph_err.save("error.gp");
     graph_dof.add_values(0, n, C.get_num_dofs() + phi.get_num_dofs());
     graph_dof.save("dofs.gp");
-    sprintf(title, "phi after time step %d", n);
+    if (n == 1) {
+      sprintf(title, "phi after time step %d, adjust the graph and PRESS ANY KEY", n);
+    } else {
+      sprintf(title, "phi after time step %d", n);
+    }
     phiview.set_title(title);
     phiview.show(&phii);
-    sprintf(title, "C after time step %d", n);
+    if (n == 1) {
+      sprintf(title, "C after time step %d, adjust the graph and PRESS ANY KEY", n);
+    } else {
+      sprintf(title, "C after time step %d", n);
+    }
     Cview.set_title(title);
     Cview.show(&Ci);
+    if (n == 1) {
+      // Wait for key press, so one can go to 3D mode
+      // which is way more informative in case of Nernst Planck
+      Cview.wait_for_keypress();
+    }
+
   }
   View::wait();
 }
