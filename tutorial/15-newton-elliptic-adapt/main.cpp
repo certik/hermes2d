@@ -2,7 +2,7 @@
 #include "solver_umfpack.h"
 #include "function.h"
 
-//  This example shows how to combine the Newton's method with 
+//  This example shows how the Newton's method can be combined with 
 //  automatic adaptivity. 
 //
 //  PDE: stationary heat transfer equation with nonlinear thermal 
@@ -46,7 +46,7 @@ const int MESH_REGULARITY = -1;        // Maximum allowed level of hanging nodes
                                        // MESH_REGULARITY = 2 ... at most two-level hanging nodes, etc.
                                        // Note that regular meshes are not supported, this is due to
                                        // their notoriously bad performance.
-const double ERR_STOP = 0.001;         // Stopping criterion for adaptivity (rel. error tolerance between the
+const double ERR_STOP = 0.1;           // Stopping criterion for adaptivity (rel. error tolerance between the
                                        // fine mesh and coarse mesh solution in percent).
 const int NDOF_STOP = 60000;           // Adaptivity process stops when the number of degrees of freedom grows
                                        // over this limit. This is to prevent h-adaptivity to go on forever.
@@ -77,7 +77,7 @@ double dir_lift(double x, double y, double& dx, double& dy) {
 
 // This function will be projected on the initial mesh and 
 // used as initial guess for the Newton's method
-scalar init_cond(double x, double y, double& dx, double& dy)
+scalar init_guess(double x, double y, double& dx, double& dy)
 {
   // using the Dirichlet lift elevated by two
   double val = dir_lift(x, y, dx, dy) + 2;
@@ -168,13 +168,19 @@ int main(int argc, char* argv[])
   // DOF and CPU convergence graphs
   SimpleGraph graph_dof, graph_cpu;
 
-  // project the function init_cond() on the mesh 
+  // project the function init_guess() on the mesh 
   // to obtain initial guess u_prev for the Newton's method
-  nls.set_ic(init_cond, &mesh, &u_prev, PROJ_TYPE);
+  nls.set_ic(init_guess, &mesh, &u_prev, PROJ_TYPE);
 
   // visualisation
-  ScalarView sview("Initial condition", 0, 0, 700, 600);
-  OrderView oview("Initial mesh", 720, 0, 700, 600);
+  ScalarView sview_coarse("Coarse mesh solution", 0, 0, 500, 400); // coarse mesh solution
+  OrderView oview_coarse("Coarse mesh", 520, 0, 450, 400);         // coarse mesh
+  ScalarView sview_fine("Fine mesh solution", 990, 0, 500, 400);   // fine mesh solution
+  OrderView oview_fine("Fine mesh", 1510, 0, 450, 400);            // fine mesh
+
+  // showing initial condition and mesh
+  sview_coarse.show(&u_prev);
+  oview_coarse.show(&space);
 
   // adaptivity loop
   double cpu = 0.0, err_est;
@@ -182,76 +188,39 @@ int main(int argc, char* argv[])
   bool done = false;
   do {
 
-    info("---- Adaptivity step %d ---------------------------------\n", a_step++);
+    info("\n---- Adaptivity step %d ---------------------------------\n", a_step++);
 
     // time measurement
     begin_time();
 
-    printf("entering Newton\n");
+    info("---- Solving on coarse mesh ---------------------------------\n");
 
     // Newton's loop on the coarse mesh
     bool verbose = true;
-    nls.solve_newton_1(&u_prev, NEWTON_TOL_COARSE, NEWTON_MAX_ITER, verbose, &sview, &oview);
-    printf("leaving Newton\n");
+    nls.solve_newton_1(&u_prev, NEWTON_TOL_COARSE, NEWTON_MAX_ITER, verbose, &sview_coarse, &oview_coarse);
     Solution sln_coarse;
     sln_coarse.copy(&u_prev);
 
-    // time measurement
-    cpu += end_time();
-
-
-
-
-
-
-
+    info("---- Solving on fine mesh ---------------------------------\n");
 
     // Setting initial guess for the Newton's method on the fine mesh
-    Solution sln_fine;
-    RefNonlinSystem rs(&nls);
-    rs.prepare();
-    rs.set_ic(&sln_coarse, &u_prev);
+    RefNonlinSystem rnls(&nls);
+    rnls.prepare();
+    rnls.set_ic(&sln_coarse, &u_prev, PROJ_TYPE);
 
     // Newton's loop on the fine mesh
-    int it = 1;
-    double res_l2_norm;
-    do {
-      info("\n---- Newton iter %d ---------------------------------\n", it++);
-
-      // time measurement
-      begin_time();
-
-      // assemble the Jacobian matrix and residual vector, 
-      // solve the system
-      rs.assemble();
-      rs.solve(1, &sln_fine);
-
-      // calculate the l2-norm of residual vector
-      res_l2_norm = rs.get_residuum_l2_norm();
-      info("Residuum L2 norm: %g\n", res_l2_norm);
-
-      // time measurement
-      cpu += end_time();
-
-      // visualise the solution and mesh
-      char title[100];
-      sprintf(title, "Solution (fine mesh), Newton iteration %d", it-1);
-      sview.set_title(title);
-      sview.show(&sln_fine);
-      sprintf(title, "Fine mesh, Newton iteration %d", it-1);
-      oview.set_title(title);
-      oview.show(rs.get_ref_space(0));
-
-      u_prev.copy(&sln_fine);
-    } while (res_l2_norm > NEWTON_TOL_FINE);
-
-    // time measurement
-    begin_time();
+    verbose = true;
+    rnls.solve_newton_1(&u_prev, NEWTON_TOL_FINE, NEWTON_MAX_ITER, verbose, &sview_fine, &oview_fine);
+    Solution sln_fine;
+    sln_fine.copy(&u_prev);
 
     // calculate element errors and total error estimate
     H1OrthoHP hp(1, &space);
     err_est = hp.calc_error(&sln_coarse, &sln_fine) * 100;
-    info("Error estimate: %g%%", err_est);
+    if (verbose) info("Error estimate: %g%%", err_est);
+
+    // time measurement
+    cpu += end_time();
 
     // add entry to DOF convergence graph
     graph_dof.add_values(space.get_num_dofs(), err_est);
@@ -261,6 +230,9 @@ int main(int argc, char* argv[])
     graph_cpu.add_values(cpu, err_est);
     graph_cpu.save("conv_cpu.dat");
 
+    // time measurement
+    begin_time();
+
     // if err_est too large, adapt the mesh
     if (err_est < ERR_STOP) done = true;
     else {
@@ -269,7 +241,7 @@ int main(int argc, char* argv[])
       if (ndof >= NDOF_STOP) done = true;
 
       // update initial guess u_prev for the Newton's method
-      // on the new course mesh
+      // on the new coarse mesh
       nls.set_ic(&u_prev, &u_prev, PROJ_TYPE);
     }
 

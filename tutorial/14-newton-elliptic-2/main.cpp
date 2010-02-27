@@ -19,6 +19,7 @@ const int PROJ_TYPE = 1;          // For the projection of the initial condition
                                   // on the initial mesh: 1 = H1 projection, 
                                   // 0 = L2 projection
 const double NEWTON_TOL = 1e-6;   // Stopping criterion for the Newton's method
+const int NEWTON_MAX_ITER = 100;  // Maximum allowed number of Newton iterations
 const int INIT_GLOB_REF_NUM = 3;  // Number of initial uniform mesh refinements
 const int INIT_BDY_REF_NUM = 4;   // Number of initial refinements towards boundary
 
@@ -45,7 +46,7 @@ double dir_lift(double x, double y, double& dx, double& dy) {
 
 // This function will be projected on the initial mesh and 
 // used as initial guess for the Newton's method
-scalar init_cond(double x, double y, double& dx, double& dy)
+scalar init_guess(double x, double y, double& dx, double& dy)
 {
   // using the Dirichlet lift elevated by two
   double val = dir_lift(x, y, dx, dy) + 2;
@@ -133,44 +134,17 @@ int main(int argc, char* argv[])
   nls.set_spaces(1, &space);
   nls.set_pss(1, &pss);
 
-  // project the function init_cond() on the mesh 
+  // project the function init_guess() on the mesh 
   // to obtain initial guess u_prev for the Newton's method
-  nls.set_ic(init_cond, &mesh, &u_prev, PROJ_TYPE);
+  nls.set_ic(init_guess, &mesh, &u_prev, PROJ_TYPE);
 
-  // visualise the initial ocndition
-  ScalarView view("Initial condition", 0, 0, 800, 600);
-  view.show(&u_prev);
+  // visualise the solution and mesh
+  ScalarView sview("Solution", 0, 0, 800, 600);
+  OrderView oview("Mesh", 820, 0, 800, 600);
 
   // Newton's loop
-  int it = 1;
-  double res_l2_norm;
-  Solution sln;
-  do
-  {
-    View::wait(H2DV_WAIT_KEYPRESS);
-    info("\n---- Newton iter %d ---------------------------------\n", it++);
-
-    // assemble the Jacobian matrix and residual vector, 
-    // solve the system
-    nls.assemble();
-    nls.solve(1, &sln);
-
-    // calculate the l2-norm of residual vector
-    res_l2_norm = nls.get_residuum_l2_norm();
-    info("Residuum L2 norm: %g\n", res_l2_norm);
-
-    // visualise the solution
-    char title[100];
-    sprintf(title, "Temperature, Newton iteration %d", it-1);
-    view.set_title(title);
-    view.show(&sln);
-
-    // save the new solution as "previous" for the 
-    // next Newton's iteration
-    u_prev = sln;
-
-  }
-  while (res_l2_norm > NEWTON_TOL);
+  bool verbose = true;
+  nls.solve_newton_1(&u_prev, NEWTON_TOL, NEWTON_MAX_ITER, verbose, &sview, &oview);
 
   // wait for keyboard or mouse input
   View::wait();
