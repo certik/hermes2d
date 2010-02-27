@@ -14,6 +14,7 @@
 //
 //  The following parameters can be changed:
 
+const bool VERBOSE = true;             // Whether output info in the Newton's iteration
 const int P_INIT = 1;                  // Initial polynomial degree
 const int PROJ_TYPE = 1;               // For the projection of the initial condition 
                                        // on the initial mesh: 1 = H1 projection, 0 = L2 projection
@@ -151,8 +152,8 @@ int main(int argc, char* argv[])
   space.set_uniform_order(P_INIT);
   space.assign_dofs();
 
-  // previous solution for the Newton's iteration
-  Solution u_prev;
+  // solutions for the Newton's iteration and adaptivity
+  Solution u_prev, sln_coarse, sln_fine;
 
   // initialize the weak formulation
   WeakForm wf(1);
@@ -184,11 +185,11 @@ int main(int argc, char* argv[])
 
   // adaptivity loop
   double cpu = 0.0, err_est;
-  int a_step = 1;
+  int a_step = 0;
   bool done = false;
   do {
 
-    info("\n---- Adaptivity step %d ---------------------------------\n", a_step++);
+    info("\n---- Adaptivity step %d ---------------------------------\n", ++a_step);
 
     // time measurement
     begin_time();
@@ -196,9 +197,7 @@ int main(int argc, char* argv[])
     info("---- Solving on coarse mesh ---------------------------------\n");
 
     // Newton's loop on the coarse mesh
-    bool verbose = true;
-    nls.solve_newton_1(&u_prev, NEWTON_TOL_COARSE, NEWTON_MAX_ITER, verbose, &sview_coarse, &oview_coarse);
-    Solution sln_coarse;
+    nls.solve_newton_1(&u_prev, NEWTON_TOL_COARSE, NEWTON_MAX_ITER, VERBOSE, &sview_coarse, &oview_coarse);
     sln_coarse.copy(&u_prev);
 
     info("---- Solving on fine mesh ---------------------------------\n");
@@ -206,18 +205,17 @@ int main(int argc, char* argv[])
     // Setting initial guess for the Newton's method on the fine mesh
     RefNonlinSystem rnls(&nls);
     rnls.prepare();
-    rnls.set_ic(&sln_coarse, &u_prev, PROJ_TYPE);
+    if (a_step == 1) rnls.set_ic(&sln_coarse, &u_prev, PROJ_TYPE);
+    else rnls.set_ic(&sln_fine, &u_prev, PROJ_TYPE);    
 
     // Newton's loop on the fine mesh
-    verbose = true;
-    rnls.solve_newton_1(&u_prev, NEWTON_TOL_FINE, NEWTON_MAX_ITER, verbose, &sview_fine, &oview_fine);
-    Solution sln_fine;
+    rnls.solve_newton_1(&u_prev, NEWTON_TOL_FINE, NEWTON_MAX_ITER, VERBOSE, &sview_fine, &oview_fine);
     sln_fine.copy(&u_prev);
 
     // calculate element errors and total error estimate
     H1OrthoHP hp(1, &space);
     err_est = hp.calc_error(&sln_coarse, &sln_fine) * 100;
-    if (verbose) info("Error estimate: %g%%", err_est);
+    info("Error estimate: %g%%", err_est);
 
     // time measurement
     cpu += end_time();
