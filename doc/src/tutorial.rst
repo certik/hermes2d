@@ -1960,13 +1960,13 @@ The weak forms are registered as usual, except that the previous solution u_prev
 
 ::
 
-  // previous solution for the Newton's iteration
-  Solution u_prev;
+    // previous solution for the Newton's iteration
+    Solution u_prev;
 
-  // initialize the weak formulation
-  WeakForm wf(1);
-  wf.add_biform(0, 0, callback(jac), UNSYM, ANY, 1, &u_prev);
-  wf.add_liform(0, callback(res), ANY, 1, &u_prev);
+    // initialize the weak formulation
+    WeakForm wf(1);
+    wf.add_biform(0, 0, callback(jac), UNSYM, ANY, 1, &u_prev);
+    wf.add_liform(0, callback(res), ANY, 1, &u_prev);
 
 The nonlinear system needs to be initialized:
 
@@ -2002,9 +2002,12 @@ The Newton's loop is very simple,
 
 ::
 
-  // Newton's loop
-  bool verbose = true;
-  nls.solve_newton_1(&u_prev, NEWTON_TOL, NEWTON_MAX_ITER, verbose, &sview, &oview);
+    // Newton's loop
+    nls.solve_newton_1(&u_prev, NEWTON_TOL, NEWTON_MAX_ITER);
+
+Note that up to three Filters can be passed to the function 
+as optional parameters at the end. This function can be found in 
+`nonlinsystem.h <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/src/nonlinsystem.h>`_.
 
 Approximate solution $u$ for $\alpha = 2$: 
 
@@ -2100,6 +2103,14 @@ $H^1$-projection of the above-defined initial guess init_guess():
    :height: 350
    :alt: H1 projection
 
+The Newton's iteration is performed again using
+
+::
+
+    // Newton's loop
+    nls.solve_newton_1(&u_prev, NEWTON_TOL, NEWTON_MAX_ITER);
+
+
 The converged solution after 7 steps of the Newton's
 method looks as follows:
 
@@ -2145,8 +2156,7 @@ Next we solve on the coarse mesh and store the result in sln_coarse:
 ::
 
     // Newton's loop on the coarse mesh
-    bool verbose = true;
-    nls.solve_newton_1(&u_prev, NEWTON_TOL_COARSE, NEWTON_MAX_ITER, verbose, &sview_coarse, &oview_coarse);
+    nls.solve_newton_1(&u_prev, NEWTON_TOL_COARSE, NEWTON_MAX_ITER);
     Solution sln_coarse;
     sln_coarse.copy(&u_prev);
 
@@ -2171,8 +2181,7 @@ and store the solution in sln_fine:
 ::
 
     // Newton's loop on the fine mesh
-    verbose = true;
-    rnls.solve_newton_1(&u_prev, NEWTON_TOL_FINE, NEWTON_MAX_ITER, verbose, &sview_fine, &oview_fine);
+    rnls.solve_newton_1(&u_prev, NEWTON_TOL_FINE, NEWTON_MAX_ITER);
     Solution sln_fine;
     sln_fine.copy(&u_prev);
 

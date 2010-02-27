@@ -14,7 +14,6 @@
 //
 //  The following parameters can be changed:
 
-const bool VERBOSE = true;             // Whether output info in the Newton's iteration
 const int P_INIT = 1;                  // Initial polynomial degree
 const int PROJ_TYPE = 1;               // For the projection of the initial condition 
                                        // on the initial mesh: 1 = H1 projection, 0 = L2 projection
@@ -197,8 +196,10 @@ int main(int argc, char* argv[])
     info("---- Solving on coarse mesh ---------------------------------\n");
 
     // Newton's loop on the coarse mesh
-    nls.solve_newton_1(&u_prev, NEWTON_TOL_COARSE, NEWTON_MAX_ITER, VERBOSE, &sview_coarse, &oview_coarse);
+    nls.solve_newton_1(&u_prev, NEWTON_TOL_COARSE, NEWTON_MAX_ITER);
     sln_coarse.copy(&u_prev);
+    sview_coarse.show(&u_prev);
+    oview_coarse.show(&space);
 
     info("---- Solving on fine mesh ---------------------------------\n");
 
@@ -209,8 +210,10 @@ int main(int argc, char* argv[])
     else rnls.set_ic(&sln_fine, &u_prev, PROJ_TYPE);    
 
     // Newton's loop on the fine mesh
-    rnls.solve_newton_1(&u_prev, NEWTON_TOL_FINE, NEWTON_MAX_ITER, VERBOSE, &sview_fine, &oview_fine);
+    rnls.solve_newton_1(&u_prev, NEWTON_TOL_FINE, NEWTON_MAX_ITER);
     sln_fine.copy(&u_prev);
+    sview_fine.show(&u_prev);
+    oview_fine.show(rnls.get_space(0));
 
     // calculate element errors and total error estimate
     H1OrthoHP hp(1, &space);

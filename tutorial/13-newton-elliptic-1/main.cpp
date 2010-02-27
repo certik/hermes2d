@@ -112,13 +112,19 @@ int main(int argc, char* argv[])
   u_prev.set_const(&mesh, 3.0);
   nls.set_ic(&u_prev, &u_prev, PROJ_TYPE);
 
+  // Newton's loop
+  nls.solve_newton_1(&u_prev, NEWTON_TOL, NEWTON_MAX_ITER);
+
   // visualise the solution and mesh
   ScalarView sview("Solution", 0, 0, 800, 600);
   OrderView oview("Mesh", 820, 0, 800, 600);
-
-  // Newton's loop
-  bool verbose = true;
-  nls.solve_newton_1(&u_prev, NEWTON_TOL, NEWTON_MAX_ITER, verbose, &sview, &oview);
+  char title[100];
+  sprintf(title, "Solution");
+  sview.set_title(title);
+  sview.show(&u_prev);
+  sprintf(title, "Mesh");
+  oview.set_title(title);
+  oview.show(&space);
 
   // wait for keyboard or mouse input
   View::wait();
