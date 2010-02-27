@@ -230,17 +230,20 @@ bool NonlinSystem::solve(int n, ...)
 
 // Newton's loop for one equation
 bool NonlinSystem::solve_newton_1(Solution* u_prev, double newton_tol, int newton_max_iter, 
-                                  bool verbose, ScalarView* sview, OrderView* oview) {
+                                  Filter* f1, Filter* f2, Filter* f3) {
     int it = 1;
     double res_l2_norm;
     Solution sln_iter;
     Space *space = this->get_space(0);
     do
     {
-      if (verbose) {
-        info("---- Newton iter %d ---------------------------------\n", it++);
-        printf("ndof = %d\n", space->get_num_dofs());
-      }
+      info("---- Newton iter %d:\n", it++);
+      printf("ndof = %d\n", space->get_num_dofs());
+
+      // reinitialization of filters (if relevant)
+      if (f1 != NULL) f1->reinit();
+      if (f2 != NULL) f2->reinit();
+      if (f3 != NULL) f3->reinit();
 
       // assemble the Jacobian matrix and residual vector, 
       // solve the system
@@ -249,29 +252,50 @@ bool NonlinSystem::solve_newton_1(Solution* u_prev, double newton_tol, int newto
 
       // calculate the l2-norm of residual vector
       res_l2_norm = this->get_residuum_l2_norm();
-      if (verbose) {
-        info("Residuum L2 norm: %g\n", res_l2_norm);
-      }
-
-      // visualise the solution
-      if (sview != NULL) {
-        char title[100];
-        sprintf(title, "Solution, Newton iteration %d", it-1);
-        sview->set_title(title);
-        sview->show(&sln_iter);
-      }
-
-      // visualise the mesh
-      if (sview != NULL) {
-        char title[100];
-        sprintf(title, "Mesh, Newton iteration %d", it-1);
-        oview->set_title(title);
-        oview->show(space);
-      }
+      info("Residuum L2 norm: %g\n", res_l2_norm);
 
       // save the new solution as "previous" for the 
       // next Newton's iteration
       u_prev->copy(&sln_iter);
+    }
+    while (res_l2_norm > newton_tol && it <= newton_max_iter);
+
+    // returning "true" if converged, otherwise returning "false"
+    if (it <= newton_max_iter) return true;
+    else return false;
+}
+
+// Newton's loop for two equations
+bool NonlinSystem::solve_newton_2(Solution* u_prev_1, Solution* u_prev_2, double newton_tol, int newton_max_iter, 
+                                  Filter* f1, Filter* f2, Filter* f3) {
+    int it = 1;
+    double res_l2_norm;
+    Solution sln_iter_1, sln_iter_2;
+    Space *space_1 = this->get_space(0);
+    Space *space_2 = this->get_space(1);
+    do
+    {
+      info("---- Newton iter %d:\n", it++);
+      printf("ndof = %d\n", space_1->get_num_dofs() + space_2->get_num_dofs());
+
+      // reinitialization of filters (if relevant)
+      if (f1 != NULL) f1->reinit();
+      if (f2 != NULL) f2->reinit();
+      if (f3 != NULL) f3->reinit();
+
+      // assemble the Jacobian matrix and residual vector, 
+      // solve the system
+      this->assemble();
+      this->solve(2, &sln_iter_1, &sln_iter_2);
+
+      // calculate the l2-norm of residual vector
+      res_l2_norm = this->get_residuum_l2_norm();
+      info("Residuum L2 norm: %g\n", res_l2_norm);
+
+      // save the new solutions as "previous" for the 
+      // next Newton's iteration
+      u_prev_1->copy(&sln_iter_1);
+      u_prev_2->copy(&sln_iter_2);
     }
     while (res_l2_norm > newton_tol && it <= newton_max_iter);
 
