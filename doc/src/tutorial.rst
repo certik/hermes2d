@@ -1877,8 +1877,8 @@ The Newton's method is now
 Therefore, the Newton's method will converge in one iteration.
 
 
-Newton Example I
-----------------
+Newton Example I - Constant Initial Guess
+-----------------------------------------
 
 More information to this example can be found in the `main.cpp 
 <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/tutorial/13-newton-elliptic-1/main.cpp>`_ file
@@ -1985,7 +1985,16 @@ a constant function:
 
     // use a constant function as the initial guess
     u_prev.set_const(&mesh, 3.0);
-    nls.set_ic(&u_prev, &u_prev);
+    nls.set_ic(&u_prev, &u_prev, PROJ_TYPE);
+
+The function set_ic() takes an initial guess (the first argument),
+projects it on the finite element mesh, and stores the result in the 
+second argument. 
+The projection norm PROJ_TYPE needs to be compatible with the Sobolev
+space where the solution is sought ($H^1$ in this example). 
+Hermes currently provides $H^1$-projection (PROJ_TYPE = 1) and 
+$L^2$-projection (PROJ_TYPE = 0). Other projections (H(curl), H(div) etc.)
+will be added later when a need arises. 
 
 A more advanced example showing how to define a general initial guess 
 and how to deal with nonzero Dirichlet boundary conditions will follow. 
@@ -1993,36 +2002,9 @@ The Newton's loop is very simple,
 
 ::
 
-    // Newton's loop
-    int it = 1;
-    double res_l2_norm;
-    Solution sln;
-    do
-    {
-      info("\n---- Newton iter %d ---------------------------------\n", it++);
-
-      // assemble the Jacobian matrix and residual vector, 
-      // solve the system
-      nls.assemble();
-      nls.solve(1, &sln);
-
-      // calculate the l2-norm of residual vector
-      res_l2_norm = nls.get_residuum_l2_norm();
-      info("Residuum L2 norm: %g\n", res_l2_norm);
-
-      // visualise the solution
-      char title[100];
-      sprintf(title, "Temperature, Newton iteration %d", it-1);
-      view.set_title(title);
-      view.show(&sln);
-      printf("Click into the image window and press any key to proceed.\n");
-      view.wait_for_keypress();
-
-      // save the new solution as "previous" for the 
-      // next Newton's iteration
-      u_prev = sln;
-    }
-    while (res_l2_norm > NEWTON_TOL);
+  // Newton's loop
+  bool verbose = true;
+  nls.solve_newton_1(&u_prev, NEWTON_TOL, NEWTON_MAX_ITER, verbose, &sview, &oview);
 
 Approximate solution $u$ for $\alpha = 2$: 
 
@@ -2040,8 +2022,8 @@ Approximate solution $u$ for $\alpha = 4$:
    :height: 400
    :alt: result for alpha = 4
 
-Newton Example II
------------------
+Newton Example II - General Initial Guess
+-----------------------------------------
 
 More information to this example can be found in the `main.cpp 
 <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/tutorial/14-newton-elliptic-2/main.cpp>`_ file
@@ -2057,7 +2039,9 @@ but now with nonhomogeneous Dirichlet boundary conditions
 
 .. math::
 
-    u(x, y) = (x+10)(y+10)/100 \ \ \ \mbox{on } \partial \Omega.
+    u(x, y) = (x+10)(y+10)/100 \ \ \ \mbox{on } \partial \Omega
+
+and with a general initial guess init_guess(x,y).
 
 The treatment of the Dirichlet boundary conditions in the code looks as follows:
 
@@ -2083,14 +2067,14 @@ The treatment of the Dirichlet boundary conditions in the code looks as follows:
       return dir_lift(x, y, dx, dy); 
     }
 
-The initial guess for the Newton's method will be chosen as the 
+The initial guess for the Newton's method will be chosen to be the 
 Dirichlet lift function elevated by 2:
 
 ::
 
     // This function will be projected on the initial mesh and 
     // used as initial guess for the Newton's method
-    scalar init_cond(double x, double y, double& dx, double& dy)
+    scalar init_guess(double x, double y, double& dx, double& dy)
     {
       // using the Dirichlet lift elevated by two
       double val = dir_lift(x, y, dx, dy) + 2;
@@ -2101,16 +2085,14 @@ method of the Nonlinsystem class:
 
 ::
 
-    // project the function init_cond() on the mesh 
+    // project the function init_guess() on the mesh 
     // to obtain initial guess u_prev for the Newton's method
-    nls.set_ic(init_cond, &mesh, &u_prev, PROJ_TYPE);
+    nls.set_ic(init_guess, &mesh, &u_prev, PROJ_TYPE);
 
-The projection norm PROJ_TYPE needs to be compatible with the Sobolev
-space where the solution is sought ($H^1$ in this example). 
-Hermes currently provides $H^1$-projection (PROJ_TYPE = 1) and 
-$L^2$-projection (PROJ_TYPE = 0). Other projections (H(curl), H(div) etc.)
-will be added later when a need arises. The following figure shows the  
-$H^1$-projection of the above-defined initial guess init_cond():
+This function creates an orthogonal projection of the initial guess
+on the mesh "mesh" and stores the result in u_prev. 
+The following figure shows the  
+$H^1$-projection of the above-defined initial guess init_guess():
 
 .. image:: img/example-14/proj-h1.png
    :align: center
@@ -2128,8 +2110,8 @@ method looks as follows:
    :alt: approximate solution
 
 
-Newton Example III
-------------------
+Newton Example III - Adaptivity
+-------------------------------
 
 More information to this example can be found in the `main.cpp 
 <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/tutorial/15-newton-elliptic-adapt/main.cpp>`_ file
@@ -2147,13 +2129,112 @@ equipped with nonhomogeneous Dirichlet boundary conditions
 
     u(x, y) = (x+10)(y+10)/100 \ \ \ \mbox{on } \partial \Omega,
 
-but this time it will be solved using automatic adaptivity. 
+but this time it will be solved using automatic adaptivity. As usual in Hermes, adaptivity
+will be guided by the difference between a coarse and fine mesh approximations. In this example,
+we will perform the full Newton's loop on both the coarse and fine meshes in every adaptivity step. 
+As usual we start by projecting the initial guess:
 
+::
 
+    // project the function init_guess() on the mesh 
+    // to obtain initial guess u_prev for the Newton's method
+    nls.set_ic(init_guess, &mesh, &u_prev, PROJ_TYPE);
 
+Next we solve on the coarse mesh and store the result in sln_coarse:
 
+::
 
+    // Newton's loop on the coarse mesh
+    bool verbose = true;
+    nls.solve_newton_1(&u_prev, NEWTON_TOL_COARSE, NEWTON_MAX_ITER, verbose, &sview_coarse, &oview_coarse);
+    Solution sln_coarse;
+    sln_coarse.copy(&u_prev);
 
+The last two parameters are optional - if they are provided, then intermediate solutions and meshes 
+are visualised during the Newton's loop. The "verbose" parameter also is optional and its default value is 
+"false". 
+
+After the coarse mesh problem is solved, the reference problem 
+on the fine mesh is initialized as follows:
+
+::
+
+    // Setting initial guess for the Newton's method on the fine mesh
+    RefNonlinSystem rnls(&nls);
+    rnls.prepare();
+    rnls.set_ic(&sln_coarse, &u_prev, PROJ_TYPE);
+
+The last line takes the function sln_coarse, projects it to the reference mesh, and 
+stores the result in u_prev. Then we perform the Newton's loop on the fine mesh
+and store the solution in sln_fine:
+
+::
+
+    // Newton's loop on the fine mesh
+    verbose = true;
+    rnls.solve_newton_1(&u_prev, NEWTON_TOL_FINE, NEWTON_MAX_ITER, verbose, &sview_fine, &oview_fine);
+    Solution sln_fine;
+    sln_fine.copy(&u_prev);
+
+Now we have the desired solution pair and calculation of the error is as usual:
+
+::
+
+    // calculate element errors and total error estimate
+    H1OrthoHP hp(1, &space);
+    err_est = hp.calc_error(&sln_coarse, &sln_fine) * 100;
+    if (verbose) info("Error estimate: %g%%", err_est);
+
+After adaptine the mesh, we must not forget to update the initial guess on the new mesh:
+
+::
+
+    // if err_est too large, adapt the mesh
+    if (err_est < ERR_STOP) done = true;
+    else {
+      hp.adapt(THRESHOLD, STRATEGY, ADAPT_TYPE, ISO_ONLY, MESH_REGULARITY);
+      int ndof = space.assign_dofs();
+      if (ndof >= NDOF_STOP) done = true;
+
+      // update initial guess u_prev for the Newton's method
+      // on the new coarse mesh
+      nls.set_ic(&u_prev, &u_prev, PROJ_TYPE);
+    }
+
+In the following we show the resulting meshes and convergence graphs. The solution is 
+the same as above.
+
+Resulting coarse mesh.
+
+.. image:: img/example-15/mesh_coarse.png
+   :align: center
+   :width: 500
+   :height: 400
+   :alt: coarse mesh
+
+Resulting fine mesh.
+
+.. image:: img/example-15/mesh_fine.png
+   :align: center
+   :width: 500
+   :height: 400
+   :alt: fine mesh
+
+Convergence in the number of DOF.
+
+.. image:: img/example-15/conv_dof.png
+   :align: center
+   :width: 600
+   :height: 400
+   :alt: DOF convergence graph for tutorial example 15.
+
+Convergence in CPU time.
+
+.. image:: img/example-15/conv_cpu.png
+   :align: center
+   :width: 600
+   :height: 400
+   :alt: CPU convergence graph for tutorial example 15.
 
 
 
