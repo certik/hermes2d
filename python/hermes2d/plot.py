@@ -149,9 +149,12 @@ def plot_mesh_mpl_orders(nodes, elements, curves=None, polynomial_orders=None, c
             7: '#ffa044', 8: '#ff1111', 9: '#b02c2c', 10: '#820f97'}
 
     # Check that if orders and elements match (if orders are passed in).
+
     if polynomial_orders is not None:
         assert len(elements) == len(polynomial_orders)
+        show_legend = True
     else:
+        show_legend = False
         polynomial_orders = [1] * len(elements)
 
     fig = pyplot.figure()
@@ -220,61 +223,62 @@ def plot_mesh_mpl_orders(nodes, elements, curves=None, polynomial_orders=None, c
         if patch != None:
             sp.add_patch(patch)
 
-    # Create legend
-    def split_nodes():
-        x = []
-        y = []
+    if show_legend:
+        # Create legend
+        def split_nodes():
+            x = []
+            y = []
 
-        if isinstance(nodes, dict):
-            _nodes = nodes.items()
-        else:
-            _nodes = enumerate(nodes)
-        for k, pnt in _nodes:
-            x.append(pnt[0])
-            y.append(pnt[1])
+            if isinstance(nodes, dict):
+                _nodes = nodes.items()
+            else:
+                _nodes = enumerate(nodes)
+            for k, pnt in _nodes:
+                x.append(pnt[0])
+                y.append(pnt[1])
 
-        return (x, y)
+            return (x, y)
 
-    def get_max(what='x'):
-        x, y = split_nodes()
+        def get_max(what='x'):
+            x, y = split_nodes()
 
-        if what == 'x':
-            return max(x)
-        else:
-            return max(y)
+            if what == 'x':
+                return max(x)
+            else:
+                return max(y)
 
-    def get_min(what='x'):
-        x, y = split_nodes()
+        def get_min(what='x'):
+            x, y = split_nodes()
 
-        if what == 'x':
-            return min(x)
-        else:
-            return min(y)
+            if what == 'x':
+                return min(x)
+            else:
+                return min(y)
 
-    maxX = get_max('x')
-    maxY = get_max('y')
+        maxX = get_max('x')
+        maxY = get_max('y')
 
-    minX = get_min('x')
-    minY = get_min('y')
+        minX = get_min('x')
+        minY = get_min('y')
 
-    dy = (maxY - minY) / 20
-    dx = (maxX - minX) / 20
+        dy = (maxY - minY) / 20
+        dx = (maxX - minX) / 20
 
-    y = minY + dy
-    x = maxX + dx
+        y = minY + dy
+        x = maxX + dx
 
-    m = max(list(set(polynomial_orders)))
+        m = max(list(set(polynomial_orders)))
 
-    for k,c in colors.items():
-        if k <= m :
-            p = Rectangle(xy=(x,y), width=dx, height=dy, fill=True, facecolor=c)
-            sp.add_patch(p)
-            sp.text(x + dx + (dx/2), y + (dy/4), str(k))
-            y += dy
-        else:
-            break
+        for k,c in colors.items():
+            if k <= m :
+                p = Rectangle(xy=(x,y), width=dx, height=dy, fill=True, facecolor=c)
+                sp.add_patch(p)
+                sp.text(x + dx + (dx/2), y + (dy/4), str(k))
+                y += dy
+            else:
+                break
 
-    sp.text(x, y + (dy/2), str('Orders'))
+        sp.text(x, y + (dy/2), str('Orders'))
 
     sp.set_title("Mesh")
     sp.set_aspect("equal")
@@ -388,7 +392,7 @@ class ScalarView(object):
                 image = engine.current_scene
                 image.scene.background = (1.0, 1.0, 1.0)
                 image.scene.foreground = (0.0, 0.0, 0.0)
-                mlab.colorbar(orientation="vertical")
+                #mlab.colorbar(orientation="vertical")
                 if notebook:
                     mlab.savefig(filename)
                 else:

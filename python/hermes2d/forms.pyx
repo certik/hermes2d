@@ -31,6 +31,7 @@ cdef c_Ord _order_lf(int n, double *wt, FuncOrd *u, GeomOrd
 
 def set_forms(WeakForm wf, int k=2):
     wf.thisptr.add_biform(0, 0, &bilinear_form, &bilinear_form_ord)
+    
     if k == 2:
         wf.thisptr.add_liform(0, &linear_form_p2, &_order_lf)
     elif k == -1:
