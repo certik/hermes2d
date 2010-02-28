@@ -1888,11 +1888,11 @@ We will solve the nonlinear model problem defined in the previous section,
 
 .. math::
 
-    -\nabla \cdot (\lambda(u)\nabla u) - f(\bfx) = 0, \ \ \ u = 0 \ \mbox{on}\ \partial \Omega.
+    -\nabla \cdot (\lambda(u)\nabla u) - f(x,y) = 0, \ \ \ u = 0 \ \mbox{on}\ \partial \Omega.
 
 One possible interpretation of this equation is stationary heat transfer where the thermal
 conductivity $\lambda$ depends on the temperature $u$.
-Our domain is a square $\Omega = (-10,10)^2$, $f(\bfx) = 1$, and the nonlinearity $\lambda$ has the form 
+Our domain is a square $\Omega = (-10,10)^2$, $f(x,y) = 1$, and the nonlinearity $\lambda$ has the form 
 
 .. math::
 
@@ -1904,7 +1904,7 @@ to restrict $\alpha$ to be an even nonnegative integer. Recall from the previous
 .. math::
 
     F_i(\bfY) =  \int_{\Omega} \lambda(u)\nabla u \cdot \nabla v_i 
-    - f v_i \, \mbox{d}\bfx.
+    - f v_i \, \mbox{d}x\mbox{d}y.
 
 and
 
@@ -1912,7 +1912,7 @@ and
 
     J_{ij}(\bfY) =
     \int_{\Omega} \left[ \frac{\partial \lambda}{\partial u}(u) v_j 
-    \nabla u + \lambda(u)\nabla v_j \right] \cdot \nabla v_i \, \mbox{d}\bfx.
+    \nabla u + \lambda(u)\nabla v_j \right] \cdot \nabla v_i \, \mbox{d}x\mbox{d}y.
 
 In the code, this becomes
 
@@ -1949,6 +1949,7 @@ In the code, this becomes
 	    	           - heat_src(e->x[i], e->y[i]) * v->val[i]);
       return result;
     }
+
 In particular, notice how the values and derivatives of the previous solution u_prev are accessed 
 via the ExtData structure, and also notice how the coordinates of the integration points are 
 accessed using the Geom structure. The ExtData is user-defined and the Geom structure 
@@ -2036,7 +2037,7 @@ We will solve the nonlinear model problem from the previous section again,
 
 .. math::
 
-    -\nabla \cdot (\lambda(u)\nabla u) - f(\bfx) = 0 \ \ \ \mbox{in } \Omega = (-10,10)^2
+    -\nabla \cdot (\lambda(u)\nabla u) - f(x,y) = 0 \ \ \ \mbox{in } \Omega = (-10,10)^2
 
 but now with nonhomogeneous Dirichlet boundary conditions 
 
@@ -2132,7 +2133,7 @@ We will keep the simple model problem
 
 .. math::
 
-    -\nabla \cdot (\lambda(u)\nabla u) - f(\bfx) = 0 \ \ \ \mbox{in } \Omega = (-10,10)^2,
+    -\nabla \cdot (\lambda(u)\nabla u) - f(x,y) = 0 \ \ \ \mbox{in } \Omega = (-10,10)^2,
 
 equipped with nonhomogeneous Dirichlet boundary conditions 
 
@@ -2245,5 +2246,106 @@ Convergence in CPU time.
    :height: 400
    :alt: CPU convergence graph for tutorial example 15.
 
+Newton Example IV - Simple Parabolic Problem
+--------------------------------------------
 
+More information to this example can be found in the `main.cpp 
+<http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/tutorial/16-newton-timedep-1/main.cpp>`_ file
+of the tutorial example `16-newton-timedep-1 
+<http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/tutorial/16-newton-timedep-1>`_.
+We will employ the Newton's method to solve a nonlinear parabolic PDE discretized 
+in time by means of the implicit Euler method. To keep things simple, our model problem is 
+a time-dependent version of the nonlinear equation used in the previous three sections,
 
+.. math::
+
+    \frac{\partial u}{\partial t} -\nabla \cdot (\lambda(u)\nabla u) - f(x,y) = 0.
+
+Again we prescribe nonhomogeneous Dirichlet boundary conditions 
+
+.. math::
+
+    u(x, y) = (x+10)(y+10)/100 \ \ \ \mbox{on } \partial \Omega,
+
+and the same function is used to define the initial condition. The 
+problem will be solved in the square $\Omega = (-10,10)^2$ and time interval $(0, T)$.
+
+The weak formulation of the time-discretized problem reads
+
+.. math::
+
+    \int_{\Omega} \frac{u^{n+1} - u^n}{\tau}v + \lambda(u^{n+1})\nabla u^{n+1}\cdot \nabla v - fv\, \mbox{d}x\mbox{d}y = 0,
+
+where the indices $n$ and $n+1$ indicate the previous and new time level, respectively. Hence in each 
+time step we need to solve a *time-independent* nonlinear problem, and this is something we learned 
+in the previous sections. The weak forms for the Newton's method from the previous sections only 
+need to be enhanced with a simple term containing the time step $\tau$ (called TAU):
+
+::
+
+    // Jacobian matrix
+    template<typename Real, typename Scalar>
+    Scalar jac(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+    {
+      Scalar result = 0;
+      Func<Scalar>* u_prev_newton = ext->fn[0];
+      for (int i = 0; i < n; i++)
+        result += wt[i] * (u->val[i] * v->val[i] / TAU + dlam_du(u_prev_newton->val[i]) * u->val[i] * 
+                           (u_prev_newton->dx[i] * v->dx[i] + u_prev_newton->dy[i] * v->dy[i])
+                           + lam(u_prev_newton->val[i]) * (u->dx[i] * v->dx[i] + u->dy[i] * v->dy[i]));                    
+      return result;
+    }
+
+Here the function u_prev_newton plays the role of u_prev from the previous sections - this is the 
+previous solution inside the Newton's iteration. Note that the previous time level solution 
+$u^n$ that we call u_prev_time is not used in the Jacobian. It is used in the residual only:
+
+::
+
+    // Fesidual vector
+    template<typename Real, typename Scalar>
+    Scalar res(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+    {
+      Scalar result = 0;
+      Func<Scalar>* u_prev_newton = ext->fn[0];
+      Func<Scalar>* u_prev_time = ext->fn[1];
+      for (int i = 0; i < n; i++)
+        result += wt[i] * ((u_prev_newton->val[i] - u_prev_time->val[i]) * v->val[i] / TAU +
+                          lam(u_prev_newton->val[i]) * (u_prev_newton->dx[i] * v->dx[i] + u_prev_newton->dy[i] * v->dy[i])
+		           - heat_src(e->x[i], e->y[i]) * v->val[i]);
+      return result;
+    }
+
+Notice that the function u_prev_newton evolves during the Newton's iteration
+but the previous time level solution u_prev_time only is updated after the time step
+is finished. The weak forms and the previous solutions are registered as usual:
+
+::
+
+    // initialize the weak formulation
+    WeakForm wf(1);
+    wf.add_biform(0, 0, callback(jac), UNSYM, ANY, 1, &u_prev_newton);
+    wf.add_liform(0, callback(res), ANY, 2, &u_prev_newton, &u_prev_time);
+
+The entire time-stepping loop looks as follows:
+
+::
+
+    // time stepping loop
+    double current_time = 0.0;
+    int t_step = 1;
+    do {
+      info("\n**** Time step %d, t = %g s:\n", t_step++, current_time);
+
+      // Newton's method
+      nls.solve_newton_1(&u_prev_newton, NEWTON_TOL, NEWTON_MAX_ITER);
+
+      // update previous time level solution
+      u_prev_time.copy(&u_prev_newton);
+
+      // update time
+      current_time += TAU;
+
+    } while (current_time < T_FINAL);
+
+The stationary solution is not shown since we already saw it in the previous sections.
