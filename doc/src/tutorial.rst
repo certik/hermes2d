@@ -2250,9 +2250,9 @@ Newton Example IV - Simple Parabolic Problem
 --------------------------------------------
 
 More information to this example can be found in the `main.cpp 
-<http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/tutorial/16-newton-timedep-1/main.cpp>`_ file
-of the tutorial example `16-newton-timedep-1 
-<http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/tutorial/16-newton-timedep-1>`_.
+<http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/tutorial/16-newton-timedep-heat/main.cpp>`_ file
+of the tutorial example `16-newton-timedep-heat 
+<http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/tutorial/16-newton-timedep-heat>`_.
 We will employ the Newton's method to solve a nonlinear parabolic PDE discretized 
 in time by means of the implicit Euler method. To keep things simple, our model problem is 
 a time-dependent version of the nonlinear equation used in the previous three sections,
@@ -2349,3 +2349,197 @@ The entire time-stepping loop looks as follows:
     } while (current_time < T_FINAL);
 
 The stationary solution is not shown since we already saw it in the previous sections.
+
+
+Newton Example V - Flame Propagation Problem
+--------------------------------------------
+
+More information to this example can be found in the `main.cpp 
+<http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/tutorial/17-newton-timedep-flame/main.cpp>`_ file
+of the tutorial example `17-newton-timedep-flame 
+<http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/tutorial/17-newton-timedep-flame>`_.
+We will employ the Newton's method to solve a nonlinear system of two parabolic equations 
+describing a very simple flame propagation model (laminar flame, no fluid mechanics involved).
+The computational domain shown below contains in the middle a narrow portion (cooling rods) 
+whose purpose is to slow down the chemical reaction:
+
+.. image:: img/example-17/domain.png
+   :align: center
+   :width: 760
+   :alt: computational domain
+
+The equations for the temperature $T$ and species concentration $Y$ have the form
+
+.. math::
+
+    \frac{\partial T}{\partial t} - \Delta T = \omega(T, Y),\\
+    \frac{\partial Y}{\partial t} - \frac{1}{Le}\Delta Y = -\omega(T, Y).
+
+Boundary conditions are Dirichlet $T = 1$ and $Y = 0$ on the inlet, 
+Newton $\partial T/\partial n = - \kappa T$ on the cooling rods, 
+and Neumann $\partial T/\partial n = 0$, $\partial Y/\partial n = 0$ elsewhere.
+The objective of the computation is to obtain the *reaction rate* defined
+by the Arrhenius law,
+
+.. math::
+
+    \omega(T, Y) = \frac{\beta^2}{2{\rm Le}} Y e^{\frac{\beta(T - 1)}{1 + \alpha(T-1)}}.
+
+Here $\alpha$ is the gas expansion coefficient in a flow with nonconstant density,
+$\beta$ the non-dimensional activation energy, and  
+$\rm Le$ the Lewis number (ratio of diffusivity of heat and diffusivity 
+of mass). Both $\theta$, $0 \le \theta \le 1$ and 
+$Y$, $0 \le Y \le 1$ are dimensionless and so is the time $t$. 
+
+Time integration is performed using a second-order implicit BDF formula
+
+.. math::
+
+    T^{n+1} = -\frac{1}{2} T_1^{n+1} + \frac{3}{2} T_2^{n+1},\\
+    Y^{n+1} = -\frac{1}{2} Y_1^{n+1} + \frac{3}{2} Y_2^{n+1},
+
+that is obtained using a combination of the following two first-order methods:
+
+.. math::
+
+    \frac{T_1^{n+1} - T^{n}}{\tau} = \Delta T_1^{n+1} + \omega(T_1^{n+1}, Y_1^{n+1}),\\
+    \frac{Y_1^{n+1} - Y^{n}}{\tau} = \frac{1}{\rm Le} \ \Delta Y_1^{n+1} - \omega(\theta_1^{n+1}, Y_1^{n+1}),
+
+and 
+
+.. math::
+
+    \frac{T_2^{n+1} - T^{n}}{\tau} = \frac{2}{3}\left(\Delta T_2^{n+1} + \omega(T_2^{n+1}, Y_2^{n+1})\right) +                                            \frac{1}{3}\left(\Delta T_2^{n} + \omega(T_2^{n}, Y_2^{n})\right),\\
+    \frac{Y_2^{n+1} - Y^{n}}{\tau} = \frac{2}{3}\left(\frac{1}{\rm Le}\ \Delta Y_2^{n+1} - \omega(T_2^{n+1}, Y_2^{n+1})\right) +
+                                        \frac{1}{3}\left(\frac{1}{\rm Le}\ \Delta Y_2^{n} - \omega(T_2^{n}, Y_2^{n})\right).
+   
+Problem parameters are chosen as
+
+::
+
+    // Problem constants
+    const double Le    = 1.0;
+    const double alpha = 0.8;
+    const double beta  = 10.0;
+    const double kappa = 0.1;
+    const double x1 = 9.0;
+
+It is worth mentioning that the initial conditions for $T$ and $Y$,
+
+::
+
+    // Initial conditions
+    scalar temp_ic(double x, double y, scalar& dx, scalar& dy)
+      { return (x <= x1) ? 1.0 : exp(x1 - x); }
+
+    scalar conc_ic(double x, double y, scalar& dx, scalar& dy)
+      { return (x <= x1) ? 0.0 : 1.0 - exp(Le*(x1 - x)); }
+
+are defined as exact functions
+
+::
+
+    // setting initial conditions
+    t_prev_time_1.set_exact(&mesh, temp_ic); y_prev_time_1.set_exact(&mesh, conc_ic);
+    t_prev_time_2.set_exact(&mesh, temp_ic); y_prev_time_2.set_exact(&mesh, conc_ic);
+    t_prev_newton.set_exact(&mesh, temp_ic);  y_prev_newton.set_exact(&mesh, conc_ic);
+
+Here the pairs of solutions (t_prev_time_1, y_prev_time_1) and (t_prev_time_2, y_prev_time_2)
+correspond to the two first-order time-stepping methods described above. and 
+(t_prev_newton, y_prev_newton) are used to store the previous step approximation
+in the Newton's method. The reaction rate $\omega$ and its derivatives are handled
+via filters,
+
+::
+
+    // defining filters for the reaction rate omega
+    DXDYFilter omega(omega_fn, &t_prev_newton, &y_prev_newton);
+    DXDYFilter omega_dt(omega_dt_fn, &t_prev_newton, &y_prev_newton);
+    DXDYFilter omega_dy(omega_dy_fn, &t_prev_newton, &y_prev_newton);
+
+Details on the functions omega_fn, omega_dt_fn, omega_dy_fn and the weak 
+forms can be found in the file `forms.cpp 
+<http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/tutorial/17-newton-timedep-flame/forms.cpp>`_
+Here is how we register the weak forms,
+
+::
+
+    // initialize the weak formulation
+    WeakForm wf(2);
+    wf.add_biform(0, 0, callback(newton_bilinear_form_0_0), UNSYM, ANY, 1, &omega_dt);
+    wf.add_biform_surf(0, 0, callback(newton_bilinear_form_0_0_surf), 3);
+    wf.add_biform(0, 1, callback(newton_bilinear_form_0_1), UNSYM, ANY, 1, &omega_dy);
+    wf.add_biform(1, 0, callback(newton_bilinear_form_1_0), UNSYM, ANY, 1, &omega_dt);
+    wf.add_biform(1, 1, callback(newton_bilinear_form_1_1), UNSYM, ANY, 1, &omega_dy);
+    wf.add_liform(0, callback(newton_linear_form_0), ANY, 4, &t_prev_newton, &t_prev_time_1, &t_prev_time_2, &omega);
+    wf.add_liform_surf(0, callback(newton_linear_form_0_surf), 3, 1, &t_prev_newton);
+    wf.add_liform(1, callback(newton_linear_form_1), ANY, 4, &y_prev_newton, &y_prev_time_1, &y_prev_time_2, &omega);
+
+and how we initialize the nonlinear system and solver:
+
+::
+
+  // initialize the nonlinear system and solver
+  UmfpackSolver umfpack;
+  NonlinSystem nls(&wf, &umfpack);
+  nls.set_spaces(2, &tspace, &cspace);
+  nls.set_pss(1, &pss);
+  nls.set_ic(&t_prev_time_1, &y_prev_time_1, &t_prev_newton, &y_prev_newton, PROJ_TYPE);
+
+The time stepping loop looks as follows, notice the visualization of $\omega$
+through a DXDYFilter:
+
+::
+
+    // time stepping loop
+    double current_time = 0.0;
+    int t_step = 0;
+    do {
+      info("\n**** Time step %d, t = %g s:\n", ++t_step, current_time);
+
+      // Newton's method
+      nls.solve_newton_2(&t_prev_newton, &y_prev_newton, NEWTON_TOL, NEWTON_MAX_ITER, 
+                         &omega, &omega_dt, &omega_dy);
+
+      // visualization
+      DXDYFilter omega_view(omega_fn, &t_prev_newton, &y_prev_newton);
+      rview.set_min_max_range(0.0,2.0);
+      char title[100];
+      sprintf(title, "Reaction rate, t = %g", current_time);
+      rview.set_title(title);
+      rview.show(&omega_view);
+
+      // update current time
+      current_time += TAU;
+
+      // store two time levels of previous solutions
+      t_prev_time_2.copy(&t_prev_time_1);
+      y_prev_time_2.copy(&y_prev_time_1);
+      t_prev_time_1.copy(&t_prev_newton);
+      y_prev_time_1.copy(&y_prev_newton);
+    } while (current_time <= T_FINAL);
+
+A few snapshots of the reaction rate $\omega$ are shown below:
+
+.. image:: img/example-17/sol1.png
+   :align: center
+   :width: 800
+   :alt: solution
+
+.. image:: img/example-17/sol2.png
+   :align: center
+   :width: 800
+   :alt: solution
+
+.. image:: img/example-17/sol3.png
+   :align: center
+   :width: 800
+   :alt: solution
+
+.. image:: img/example-17/sol4.png
+   :align: center
+   :width: 800
+   :alt: solution
+
+
+
