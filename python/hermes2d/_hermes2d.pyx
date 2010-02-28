@@ -322,7 +322,15 @@ cdef class Mesh:
                 order = space.get_element_order(i)
                 h = order & ((1 << 5) - 1)
                 v = order >> 5
-                orders_list.append(int((h+v)/2))
+
+                import math
+                ord = int(((h+v)/2.0))
+                if ord == 0:
+                    ord = 1
+
+                #orders_list.append(int(((h+v)/2.0)))
+                orders_list.append(ord)
+
         return orders_list
 
     def create(self, nodes, elements, boundary, nurbs):
@@ -457,6 +465,9 @@ cdef class H1Space:
     def get_element_order(self, int el_id):
         return self.thisptr.get_element_order(el_id)
 
+    def get_num_dofs(self):
+        return self.thisptr.get_num_dofs()
+
 cdef api object H1Space_from_C(c_H1Space *h):
     cdef H1Space n
     n = <H1Space>PY_NEW(H1Space)
@@ -530,6 +541,10 @@ cdef class Solution(MeshFunction):
 
     def set_zero(self, Mesh m):
         (<c_Solution *>(self.thisptr)).set_zero(m.thisptr)
+
+    def set_const(self, Mesh m, scalar):
+        (<c_Solution *>(self.thisptr)).set_const(m.thisptr, scalar)
+
 
     def set_fe_solution(self, H1Space s, PrecalcShapeset pss, ndarray v):
         """
@@ -650,10 +665,14 @@ cdef class LinSystem:
     def set_pss(self, *args):
         self._pss = args
         cdef int n = len(args)
-        cdef PrecalcShapeset s
+        cdef PrecalcShapeset s1, s2
         if n == 1:
-            s = args[0]
-            self.thisptr.set_pss(n, s.thisptr)
+            s1 = args[0]
+            self.thisptr.set_pss(n, s1.thisptr)
+        elif n == 2:
+            s1 = args[0]
+            s2 = args[1]
+            self.thisptr.set_pss(n, s1.thisptr, s2.thisptr)
         else:
             raise NotImplementedError()
 
@@ -905,7 +924,7 @@ cdef class L2OrthoHP:
         self.thisptr.adapt(thr, strat, h_only)
 
 cdef class H1OrthoHP:
-    cdef c_H1OrthoHP *thisptr
+    #cdef c_H1OrthoHP *thisptr
 
     def __cinit__(self, *args):
         cdef int n = len(args)
@@ -921,16 +940,19 @@ cdef class H1OrthoHP:
             self.thisptr = new_H1OrthoHP(n, a.thisptr, b.thisptr, c.thisptr)
         elif n == 4:
             a, b, c, d = args
-            self.thisptr = new_H1OrthoHP(n, a.thisptr, b.thisptr, c.thisptr,
-                    d.thisptr)
+            self.thisptr = new_H1OrthoHP(n, a.thisptr, b.thisptr, c.thisptr, d.thisptr)
         else:
             raise NotImplementedError()
 
     def __dealloc__(self):
         delete(self.thisptr)
 
+
     def calc_error(self, MeshFunction sln, MeshFunction rsln):
         return self.thisptr.calc_error(sln.thisptr, rsln.thisptr)
+
+    def calc_error_2(self, MeshFunction sln1, MeshFunction sln2, MeshFunction rsln1, MeshFunction rsln2):
+        return self.thisptr.calc_error_2(sln1.thisptr, sln2.thisptr, rsln1.thisptr, rsln2.thisptr)
 
     def calc_error_4(self, sln_list, rsln_list):
         return self.thisptr.calc_error_n(4,
@@ -1120,7 +1142,6 @@ cdef class Vectorizer(Linearizer):
         return vec.reshape((ndashes, 2))
 
 cdef class View:
-
     def wait(self):
         View_wait()
 

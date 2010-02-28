@@ -1,88 +1,61 @@
-from hermes2d._hermes2d cimport scalar, RealFunction, RefMap, WeakForm, \
-        int_grad_u_grad_v, int_v, H1Space, Solution, int_u_dvdx, \
-        int_u_dvdy, int_w_nabla_u_v, int_u_v, BF_ANTISYM, BC_ESSENTIAL, \
-        BC_NONE, SYM, UNSYM, ANY, ANTISYM
 from hermes2d._hermes2d cimport scalar, WeakForm, H1Space, EdgePos, \
         FuncReal, GeomReal, ExtDataReal, BC_ESSENTIAL, \
-        BC_NATURAL, int_v, c_Ord, create_Ord, FuncOrd, GeomOrd, ExtDataOrd
-from hermes2d._hermes2d cimport int_dudy_dvdy, int_dudy_dvdx, int_dudx_dvdx, \
-        int_dudx_dvdy, SYM
+        BC_NATURAL, int_v, c_Ord, create_Ord, FuncOrd, GeomOrd, ExtDataOrd, \
+        int_dudy_dvdy, int_dudy_dvdx, int_dudx_dvdx, int_dudx_dvdy, SYM, int_v_ord
 
-cdef Solution xprev, yprev
-cdef double Re = 700
-cdef double tau = 0.05
+# Problem constants
+cdef double E  = 200e9                               # Young modulus (steel)
+cdef double nu = 0.3                                 # Poisson ration
+cdef double l = (E * nu) / ((1 + nu) * (1 - 2*nu))   # external force in x-direction
+cdef double mu = E / (2*(1 + nu))                    # external force in y-direction
+cdef double f_1 = 1e4                                # first Lame constant
+cdef double f_0 = 0                                  # second Lame constant
 
-cdef int xvel_bc_type(int marker):
-    if marker != 2:
+# Boundary condition types
+cdef int bc_type(int marker):
+    if marker == 1:
         return BC_ESSENTIAL
-    else:
-        return BC_NONE
+    return BC_NATURAL
 
-cdef scalar xvel_bc_value(int marker, double x, double y):
-    if marker != 5:
-        return 1
-    else:
-        return 0
+# Function values for Dirichlet boundary conditions    
+cdef scalar bc_values(int marker, double x, double y):
+    return 0.0
 
-cdef int yvel_bc_type(int marker):
-    if marker != 2:
-        return BC_ESSENTIAL
-    else:
-        return BC_NONE
+# Bilinear forms
+cdef scalar bilinear_form_0_0(int n, double *wt, FuncReal *u, FuncReal *v, GeomReal *e, ExtDataReal *ext):
+    return (l +2*mu) * int_dudx_dvdx(n, wt, u, v) + mu * int_dudy_dvdy(n, wt, u, v)
 
-cdef int press_bc_type(int marker):
-    return BC_NONE
+cdef scalar bilinear_form_0_1(int n, double *wt, FuncReal *u, FuncReal *v, GeomReal *e, ExtDataReal *ext):
+    return l * int_dudy_dvdx(n, wt, u, v) + mu * int_dudx_dvdy(n, wt, u, v)
 
-cdef scalar bilinear_form_sym_0_0_1_1(int n, double *wt, FuncReal *u, FuncReal
-        *v, GeomReal *e, ExtDataReal *ext):
-    return int_grad_u_grad_v(n, wt, u, v)/Re + int_u_v(n, wt, u, v)/tau
+cdef scalar bilinear_form_1_1(int n, double *wt, FuncReal *u, FuncReal *v, GeomReal *e, ExtDataReal *ext):
+    return mu * int_dudx_dvdx(n, wt, u, v) + (l + 2 * mu) * int_dudy_dvdy(n, wt, u, v)
 
-cdef scalar bilinear_form_unsym_0_0_1_1(int n, double *wt, FuncReal *u, FuncReal
-        *v, GeomReal *e, ExtDataReal *ext):
-    return int_w_nabla_u_v(n, wt, ext.fn[0], ext.fn[1], u, v)
+# Linear forms
+cdef scalar linear_form_surf_0(int n, double *wt, FuncReal *u, GeomReal *e, ExtDataReal *ext):
+    return f_0 * int_v(n, wt, u)
 
-cdef scalar bilinear_form_unsym_0_2(int n, double *wt, FuncReal *u, FuncReal
-        *v, GeomReal *e, ExtDataReal *ext):
-    return -int_u_dvdx(n, wt, u, v)
+cdef scalar linear_form_surf_1(int n, double *wt, FuncReal *u, GeomReal *e, ExtDataReal *ext):
+    return f_1 * int_v(n, wt, u)
 
-cdef scalar bilinear_form_unsym_1_2(int n, double *wt, FuncReal *u, FuncReal
-        *v, GeomReal *e, ExtDataReal *ext):
-    return -int_u_dvdy(n, wt, u, v)
-
-cdef scalar linear_form(int n, double *wt, FuncReal *v, GeomReal *e, ExtDataReal
-        *ext):
-    return int_u_v(n, wt, ext.fn[0], v)/tau
-
-cdef c_Ord _order_bf(int n, double *wt, FuncOrd *u, FuncOrd *v, GeomOrd
-        *e, ExtDataOrd *ext):
+cdef c_Ord _order_bf(int n, double *wt, FuncOrd *u, FuncOrd *v, GeomOrd *e, ExtDataOrd *ext):
     # XXX: with 9 it doesn't shout about the integration order, but gives wrong
     # results...
     return create_Ord(20)
 
-cdef c_Ord _order_lf(int n, double *wt, FuncOrd *u, GeomOrd
-        *e, ExtDataOrd *ext):
-    # XXX: with 9 it doesn't shout about the integration order, but gives wrong
-    # results...
-    return create_Ord(20)
+cdef c_Ord _order_lf(int n, double *wt, FuncOrd *u, GeomOrd *e, ExtDataOrd *ext):
+    return int_v_ord(n, wt, u).mul_double(f_1)
 
-def set_forms(WeakForm wf, Solution xprev2, Solution yprev2):
-    global xprev
-    xprev = xprev2
-    global yprev
-    yprev = yprev2
-    wf.thisptr.add_biform(0, 0, &bilinear_form_sym_0_0_1_1, &_order_bf, SYM)
-    wf.thisptr.add_biform(0, 0, &bilinear_form_unsym_0_0_1_1, &_order_bf,
-            UNSYM, ANY, 2, xprev.thisptr, yprev.thisptr)
-    wf.thisptr.add_biform(1, 1, &bilinear_form_sym_0_0_1_1, &_order_bf, SYM)
-    wf.thisptr.add_biform(1, 1, &bilinear_form_unsym_0_0_1_1, &_order_bf,
-            UNSYM, ANY, 2, xprev.thisptr, yprev.thisptr)
-    wf.thisptr.add_biform(0, 2, &bilinear_form_unsym_0_2, &_order_bf, ANTISYM)
-    wf.thisptr.add_biform(1, 2, &bilinear_form_unsym_1_2, &_order_bf, ANTISYM)
-    wf.thisptr.add_liform(0, &linear_form, &_order_lf, ANY, 1, xprev.thisptr)
-    wf.thisptr.add_liform(1, &linear_form, &_order_lf, ANY, 1, yprev.thisptr)
+def set_forms(WeakForm dp):
+    dp.thisptr.add_biform(0, 0, &bilinear_form_0_0, &_order_bf, SYM)
+    dp.thisptr.add_biform(0, 1, &bilinear_form_0_1, &_order_bf, SYM)
+    dp.thisptr.add_biform(1, 1, &bilinear_form_1_1, &_order_bf, SYM)
+    dp.thisptr.add_liform_surf(0, &linear_form_surf_0, &_order_lf);
+    dp.thisptr.add_liform_surf(1, &linear_form_surf_1, &_order_lf);
 
-def set_bc(H1Space xvel, H1Space yvel, H1Space press):
-    xvel.thisptr.set_bc_types(&xvel_bc_type)
-    xvel.thisptr.set_bc_values(&xvel_bc_value)
-    yvel.thisptr.set_bc_types(&yvel_bc_type)
-    press.thisptr.set_bc_types(&press_bc_type)
+def set_bc(H1Space xdisp, H1Space ydisp):
+    xdisp.thisptr.set_bc_types(&bc_type)
+    ydisp.thisptr.set_bc_types(&bc_type)
+
+    xdisp.thisptr.set_bc_values(&bc_values)
+    ydisp.thisptr.set_bc_values(&bc_values)
