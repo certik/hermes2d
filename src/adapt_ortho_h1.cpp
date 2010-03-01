@@ -780,13 +780,13 @@ bool H1OrthoHP::adapt(double thr, int strat, int adapt_type, bool iso_only, int 
           if (ii < 0) // element not refined at all
           {
             ElementToRefine elem_ref_new(elem_ref.id, j);
-            elem_ref.split = max_ref;
-            if (elem_ref.split == 0)
+            elem_ref_new.split = max_ref;
+            if (elem_ref_new.split == 0)
               for (int r = 0; r < 4; r++)
-                elem_ref.p[r] = h_only ? current : std::max(1, (current+1)/2);
+                elem_ref_new.p[r] = h_only ? current : std::max(1, (current+1)/2);
             else { // aniso refinements
-              elem_ref.p[0] = h_only ? current : std::max(1, 2*(current+1)/3);
-              elem_ref.p[1] = h_only ? current : std::max(1, 2*(current+1)/3);
+              elem_ref_new.p[0] = h_only ? current : std::max(1, 2*(current+1)/3);
+              elem_ref_new.p[1] = h_only ? current : std::max(1, 2*(current+1)/3);
             }
             elem_inx_to_proc.push_back(elem_ref_new);
           }

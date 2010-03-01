@@ -55,7 +55,7 @@ public:
   void assemble(bool rhsonly = false);
   void assemble_rhs_only() { assemble(true); }
   bool solve(int n, ...);
-  void free();
+  virtual void free();
 
   void save_matrix_matlab(const char* filename, const char* varname = "A");
   void save_rhs_matlab(const char* filename, const char* varname = "b");

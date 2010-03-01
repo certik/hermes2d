@@ -25,7 +25,7 @@ const bool MULTI = true;         // MULTI = true  ... use multi-mesh,
                                  // Note: In the single mesh option, the meshes are
                                  // forced to be geometrically the same but the
                                  // polynomial degrees can still vary.
-const bool SAME_ORDERS = true;   // SAME_ORDERS = true ... when single-mesh is used,
+const bool SAME_ORDERS = false;  // SAME_ORDERS = true ... when single-mesh is used,
                                  // this forces the meshes for all components to be
                                  // identical, including the polynomial degrees of
                                  // corresponding elements. When multi-mesh is used,
@@ -59,7 +59,7 @@ const int MESH_REGULARITY = -1;  // Maximum allowed level of hanging nodes:
 const double CONV_EXP = 1.0;     // Default value is 1.0. This parameter influences the selection of 
                                  // cancidates in hp-adaptivity. See get_optimal_refinement() for details.
 const int MAX_ORDER = 10;        // Maximum allowed element degree
-const double ERR_STOP = 0.001;   // Stopping criterion for adaptivity (rel. error tolerance between the
+const double ERR_STOP = 0.01;    // Stopping criterion for adaptivity (rel. error tolerance between the
                                  // fine mesh and coarse mesh solution in percent).
 const int NDOF_STOP = 60000;     // Adaptivity process stops when the number of degrees of freedom grows over
                                  // this limit. This is mainly to prevent h-adaptivity to go on forever.
@@ -153,7 +153,7 @@ int main(int argc, char* argv[])
 
   // enumerate basis functions
   int ndofs = xdisp.assign_dofs();
-  ydisp.assign_dofs(ndofs);
+  ndofs += ydisp.assign_dofs(ndofs);
 
   // initialize the weak formulation
   WeakForm wf(2);
@@ -187,7 +187,7 @@ int main(int argc, char* argv[])
     begin_time();
 
     //calculating the number of degrees of freedom
-    int ndofs = xdisp.assign_dofs();
+    ndofs = xdisp.assign_dofs();
     ndofs += ydisp.assign_dofs(ndofs);
     printf("xdof=%d, ydof=%d\n", xdisp.get_num_dofs(), ydisp.get_num_dofs());
 
@@ -224,7 +224,7 @@ int main(int argc, char* argv[])
     hp.set_biform(1, 1, bilinear_form_1_1<scalar, scalar>, bilinear_form_1_1<Ord, Ord>);
     double err_est = hp.calc_error_2(&x_sln_coarse, &y_sln_coarse, &x_sln_fine, &y_sln_fine) * 100;
 
-    info("\nEstimate of error: %g%%", err_est);
+    info("Estimate of error: %g%%", err_est);
 
     // time measurement
     cpu += end_time();
@@ -257,6 +257,6 @@ int main(int argc, char* argv[])
   sview.show(&stress_fine);
 
   // wait for all views to be closed
-  View::wait("Waiting for all views to be closed.");
+  View::wait();
   return 0;
 }

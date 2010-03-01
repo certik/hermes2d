@@ -25,11 +25,15 @@
 #include "../common.h"
 #include "../linear.h"
 
-// default window size and position
-#define DEFAULT_WINDOW_POS  int x = -1, int y = -1, int width = 1000, int height = 800
+// Constants
+#define DEFAULT_WINDOW_POS  int x = -1, int y = -1, int width = 1000, int height = 800 ///< Default size and window position.
+#define H2DV_SCALE_LOG_BASE 1.005 ///< Base of the scale coefficient. Scale = base^{mouse move}.
 
-// you can define NOGLUT to turn off all OpenGL stuff in Hermes2D
-#ifndef NOGLUT
+/// Wait events.
+enum ViewWaitEvent {
+  H2DV_WAIT_CLOSE, ///< Wait for all windows to close.
+  H2DV_WAIT_KEYPRESS, ///< Wait for any unprocessed keypress to happen.
+};
 
 /// View palette type.
 enum ViewPaletteType {
@@ -39,6 +43,9 @@ enum ViewPaletteType {
   H2DV_PT_INVGRAYSCALE = 2, ///< Inverted grayscale.
   H2DV_PT_MAX_ID = 3 ///< Maximum ID of view palette type.
 };
+
+// you can define NOGLUT to turn off all OpenGL stuff in Hermes2D
+#ifndef NOGLUT
 
 /// \brief Represents a simple visualization window.
 ///
@@ -84,12 +91,12 @@ public:
   void set_num_palette_steps(int num);
   void set_palette_filter(bool linear);
 
-  void wait_for_keypress();
-  void wait_for_keypress(const char* text);
+  void wait_for_keypress(const char* text = NULL); ///< Waits for keypress. Deprecated.
   void wait_for_close();
   void wait_for_draw();
 
-  static void wait(const char* text = NULL); ///< Closes all views at once.
+  static void wait(const char* text); ///< Closes all views at once.
+  static void wait(ViewWaitEvent wait_event = H2DV_WAIT_CLOSE, const char* text = NULL); ///< Waits for an event.
 
 protected: //FPS measurement
 #define FPS_FRAME_SIZE 5
@@ -98,9 +105,16 @@ protected: //FPS measurement
   void draw_fps(); ///< draws current FPS
   static double get_tick_count(); ///< returns a current time [in ms]
 
-protected:
-
-  virtual void clear_background();
+protected: //view
+  bool view_not_reset; ///< True if the view was not reset and therefore it has to be.
+  double vertices_min_x, vertices_max_x, vertices_min_y, vertices_max_y; ///< AABB of shown mesh
+  double scale, log_scale, trans_x, trans_y;
+  double center_x, center_y;
+  int margin, lspace, rspace;
+  int mouse_x, mouse_y;
+  int scx, scy;
+  double objx, objy;
+  bool dragging, scaling;
 
   virtual void on_create(int output_id);
   virtual void on_display() = 0;
@@ -120,25 +134,15 @@ protected:
   virtual void on_entry(int state) {}
   virtual void on_close();
 
-
-  template<class TYPE> void center_mesh(TYPE* vertices, int nvert);
-  virtual void get_palette_color(double x, float* gl_color); ///< Fills gl_color with palette color. Assumes that gl_color points to a vector of three components (RGB).
+  virtual void reset_view(bool force_reset = false); ///< Resets view based on the axis-aligned bounding box of the mesh. Assumes that the bounding box is set up. Does not reset if view_not_reset is false.
+  virtual void update_layout(); ///< Updates layout, i.e., centers mesh.
 
 protected:
-
   std::string title;
   int output_id;
   int output_x, output_y, output_width, output_height;
   float jitter_x, jitter_y;
   bool hq_frame, frame_ready;
-
-  double scale, log_scale, trans_x, trans_y;
-  double center_x, center_y;
-  int margin, lspace, rspace;
-  int mouse_x, mouse_y;
-  int scx, scy;
-  double objx, objy;
-  bool dragging, scaling;
 
   ViewPaletteType pal_type;
   int pal_steps, pal_filter;
@@ -159,11 +163,11 @@ protected:
   static int screenshot_no;
   std::string screenshot_filename;
 
-  void update_scale();
-  void update_log_scale();
+protected: //palette
+  unsigned int gl_pallete_tex_id; ///< OpenGL texture object ID
 
-protected: //OpenGL
-  unsigned int gl_pallete_tex_id;
+  void create_gl_palette(); ///< Creates pallete texture in OpenGL. Assumes that view_sync is locked.
+  virtual void get_palette_color(double x, float* gl_color); ///< Fills gl_color with palette color. Assumes that gl_color points to a vector of three components (RGB).
 
 protected: //internal functions
   double transform_x(double x) { return (x * scale + trans_x) + center_x; }
@@ -171,6 +175,7 @@ protected: //internal functions
   double untransform_x(double x) { return (x - center_x - trans_x) / scale; }
   double untransform_y(double y) { return (center_y - y - trans_y) / scale; }
 
+  virtual void clear_background(); ///< Clears background.
   void pre_display();
   void display_antialiased();
 
@@ -188,9 +193,7 @@ protected: //internal functions
   void draw_continuous_scale(char* title, bool righttext);
   void draw_discrete_scale(int numboxes, const char* boxnames[], const float boxcolors[][3]);
 
-  void create_gl_palette(); ///< Creates pallete texture in OpenGL. Assumes that view_sync is locked.
   void update_tex_adjust();
-  void update_layout();
 
   void draw_help();
   virtual const char* get_help_text() const { return ""; }
@@ -207,42 +210,6 @@ protected: //internal functions
   friend int add_view_in_thread(void*);
   friend int remove_view_in_thread(void*);
 };
-
-// this has to be here, unfortunatelly (because the author is not able to use pointers)
-template<class TYPE>
-void View::center_mesh(TYPE* vertices, int nvert)
-{
-  if (nvert <= 0) return;
-
-  // get mesh bounding box
-  double xmin = 1e10, xmax = -1e10;
-  double ymin = 1e10, ymax = -1e10;
-  for (int i = 0; i < nvert; i++)
-  {
-    if (vertices[i][0] < xmin) xmin = vertices[i][0];
-    if (vertices[i][0] > xmax) xmax = vertices[i][0];
-    if (vertices[i][1] < ymin) ymin = vertices[i][1];
-    if (vertices[i][1] > ymax) ymax = vertices[i][1];
-  }
-  double mesh_width  = xmax - xmin;
-  double mesh_height = ymax - ymin;
-
-  double usable_width = output_width - 2*margin - lspace - rspace;
-  double usable_height = output_height - 2*margin;
-
-  // align in the proper direction
-  if (usable_width / usable_height < mesh_width / mesh_height)
-    scale = usable_width / mesh_width;
-  else
-    scale = usable_height / mesh_height;
-
-  // center
-  trans_x = -scale * (xmin + xmax) / 2;
-  trans_y = -scale * (ymin + ymax) / 2;
-
-  update_log_scale();
-}
-
 
 #else // NOGLUT
 
@@ -265,13 +232,14 @@ public:
   void fix_scale_width(int width = 80) {}
   void save_screenshot(const char* bmpname, bool high_quality = false) {}
   void save_numbered_screenshot(const char* format, int number, bool high_quality = false) {}
-  void set_palette(int type) {}
+  void set_palette(ViewPaletteType type) {}
   void set_num_palette_steps(int num) {}
   void set_palette_filter(bool linear) {}
-  void wait_for_keypress() {}
+  void wait_for_keypress(const char* text = NULL) {}
   void wait_for_close() {}
   void wait_for_draw() {}
-  static void wait(const char* text = NULL) {}
+  static void wait(const char* text) {}
+  static void wait(ViewWaitEvent wait_event = H2DV_WAIT_CLOSE, const char* text = NULL) {}
 };
 
 #endif // NOGLUT

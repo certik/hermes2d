@@ -1,10 +1,29 @@
+#! /usr/bin/env python
+
+#  This is another example that allows you to compare h- and hp-adaptivity from the point of view
+#  of both CPU time requirements and discrete problem size, look at the quality of the a-posteriori
+#  error estimator used by Hermes (exact error is provided), etc. You can also change
+#  the parameter MESH_REGULARITY to see the influence of hanging nodes on the adaptive process.
+#  The problem is made harder for adaptive algorithms by increasing the parameter SLOPE.
+#
+#  PDE: -Laplace u = f
+#
+#  Known exact solution, see functions fn() and fndd()
+#
+#  Domain: unit square (0, 1)x(0, 1), see the file square.mesh
+#
+#  BC:  Dirichlet, given by exact solution
+
+# Import modules
 from hermes2d import (Mesh, MeshView, H1Shapeset, PrecalcShapeset, H1Space,
         WeakForm, Solution, DummySolver, LinSystem, ScalarView, RefSystem,
         H1OrthoHP, set_verbose)
 from hermes2d.examples.c22 import set_bc, set_forms
 
+# The following parameters can be changed:
 threshold = 0.3
 strategy = 0
+
 h_only = False
 error_tol = 1
 interactive_plotting = False    # should the plot be interactively updated

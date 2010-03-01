@@ -59,6 +59,7 @@ public:
 
   double get_min_value() const { return min_val; }
   double get_max_value() const { return max_val; }
+  virtual void calc_vertices_aabb(double* min_x, double* max_x, double* min_y, double* max_y) const; ///< Returns axis aligned bounding box (AABB) of vertices. Assumes lock.
 
   virtual void save_data(const char* filename);
   virtual void load_data(const char* filename);
@@ -143,6 +144,7 @@ protected:
 
   mutable pthread_mutex_t data_mutex;
 
+  static void calc_aabb(double* x, double* y, int stride, int num, double* min_x, double* max_x, double* min_y, double* max_y); ///< Calculates AABB from an array of X-axis and Y-axis coordinates. The distance between values in the array is stride bytes.
 };
 
 
@@ -203,6 +205,7 @@ public: //accessors
 
   virtual void save_data(const char* filename);
   virtual void load_data(const char* filename);
+  virtual void calc_vertices_aabb(double* min_x, double* max_x, double* min_y, double* max_y) const; ///< Returns axis aligned bounding box (AABB) of vertices. Assumes lock.
 
   void free();
 

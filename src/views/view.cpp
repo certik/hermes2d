@@ -15,6 +15,7 @@
 
 #ifndef NOGLUT
 
+#include <sstream>
 #include <GL/glew.h>
 #include <GL/freeglut.h>
 #ifndef WIN32
@@ -26,6 +27,10 @@
 #include "view.h"
 #include "../solution.h"
 
+///////////////// private constants /////////////////
+#define H2DV_WAIT_CLOSE_MSG "close all views to continue"
+#define H2DV_WAIT_KEYPRESS_MSG "press spacebar to continue"
+
 ///////////////// static variables /////////////////
 int View::screenshot_no = 1;
 
@@ -33,6 +38,8 @@ int View::screenshot_no = 1;
 View::View(const char* title, int x, int y, int width, int height)
   : gl_pallete_tex_id(0)
   , title(title), output_id(-1), output_x(x), output_y(y), output_width(width), output_height(height)
+  , vertices_min_x(0), vertices_max_x(0), vertices_min_y(0), vertices_max_y(0)
+  , view_not_reset(true)
 {
   jitter_x = jitter_y = 0.0;
   dragging = scaling = false;
@@ -89,13 +96,64 @@ void View::close()
 
 void View::wait(const char* text)
 {
-  if (text != NULL)
-    printf("  << %s >>\n", text);
-  wait_for_all_views_close();
+  wait(H2DV_WAIT_CLOSE, text);
 }
 
+void View::wait(ViewWaitEvent wait_event, const char* text) {
+  //prepare message
+  std::stringstream str;
+  str << "  << ";
+  if (text != NULL)
+    str << text;
+  else {
+    switch(wait_event) {
+      case H2DV_WAIT_CLOSE: str << H2DV_WAIT_CLOSE_MSG; break;
+      case H2DV_WAIT_KEYPRESS: str << H2DV_WAIT_KEYPRESS_MSG; break;
+      default: error("unknown wait event"); break;
+    }
+  }
+  str << " >>" << std::endl;
+
+  //do something
+  switch(wait_event) {
+    case H2DV_WAIT_CLOSE: wait_for_all_views_close(str.str().c_str()); break;
+    case H2DV_WAIT_KEYPRESS: wait_for_any_key(str.str().c_str()); break;
+    default: error("unknown wait event"); break;
+  }
+}
+
+
 void View::refresh() {
-  refresh_view(output_id);
+  bool do_refresh = true;
+  view_sync.enter();
+  if (output_id < 0) 
+    do_refresh = false;
+  view_sync.leave();
+  if (do_refresh)
+    refresh_view(output_id);
+}
+
+void View::reset_view(bool force_reset) {
+  if (force_reset || view_not_reset) {
+    double mesh_width  = vertices_max_x - vertices_min_x;
+    double mesh_height = vertices_max_y - vertices_min_y;
+
+    double usable_width = output_width - 2*margin - lspace - rspace;
+    double usable_height = output_height - 2*margin;
+
+    // align in the proper direction
+    if (usable_width / usable_height < mesh_width / mesh_height)
+      scale = usable_width / mesh_width;
+    else
+      scale = usable_height / mesh_height;
+    log_scale = log(scale) / log(H2DV_SCALE_LOG_BASE);
+
+    // center of the mesh
+    trans_x = -scale * (vertices_min_x + vertices_max_x) / 2;
+    trans_y = -scale * (vertices_min_y + vertices_max_y) / 2;
+
+    view_not_reset = false;
+  }
 }
 
 void View::on_create(int output_id)
@@ -130,7 +188,7 @@ void View::pre_display()
   //begin time measuring
   double time_start = get_tick_count();
 
-  //support for antialising using auxiliary buffer is currently removed due to inefficiency
+  //antialising is supported through accumulation buffer (FIXME: use ARB_MULTISAMPLE if available)
   if (!hq_frame)
   {
     clear_background();
@@ -228,9 +286,6 @@ void View::set_3d_projection(int fov, double znear, double zfar)
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
   glFrustum(left - offsx, right - offsx, bottom - offsy, top - offsy, znear, zfar);
-
-  glMatrixMode(GL_MODELVIEW);
-  glLoadIdentity();
 }
 
 void View::draw_fps()
@@ -276,22 +331,7 @@ void View::on_reshape(int width, int height)
   output_width = width;
   output_height = height;
   update_layout();
-
-  /*printf("winx=%d, winy=%d, ww=%d, wh=%d, width=%d, height=%d\n", glutGet(GLUT_WINDOW_X), glutGet(GLUT_WINDOW_Y),
-         glutGet(GLUT_WINDOW_WIDTH), glutGet(GLUT_WINDOW_HEIGHT), width, height);*/
 }
-
-
-void View::update_scale()
-{
-  scale = pow(1.005, log_scale);
-}
-
-void View::update_log_scale()
-{
-  log_scale = log(scale) / log(1.005);
-}
-
 
 void View::on_mouse_move(int x, int y)
 {
@@ -304,7 +344,7 @@ void View::on_mouse_move(int x, int y)
   else if (scaling)
   {
     log_scale += (mouse_y - y);
-    update_scale();
+    scale = pow(H2DV_SCALE_LOG_BASE, log_scale);
     trans_x = scx - objx * scale - center_x;
     trans_y = center_y - objy * scale - scy;
     refresh();
@@ -434,21 +474,10 @@ void View::on_special_key(int key, int x, int y)
 }
 
 
-void View::wait_for_keypress()
-{
-  view_sync.enter();
-  if (output_id >= 0)
-    view_sync.wait_keypress();
-  view_sync.leave();
-}
-
 void View::wait_for_keypress(const char* text)
 {
-  printf("  << %s >>\n", text);
-  view_sync.enter();
-  if (output_id >= 0)
-    view_sync.wait_keypress();
-  view_sync.leave();
+  debug_log("W calling deprecated function (View::wait_for_keypress), use View::wait instead");
+  View::wait(H2DV_WAIT_KEYPRESS, text);
 }
 
 void View::wait_for_close()
@@ -483,7 +512,13 @@ double View::get_tick_count()
 
 void View::set_title(const char* title)
 {
-  set_view_title(output_id, title);
+  bool do_set_title = true;
+  view_sync.enter();
+  if (output_id < 0) 
+    do_set_title = false;
+  view_sync.leave();
+  if (do_set_title)
+    set_view_title(output_id, title);
 }
 
 
