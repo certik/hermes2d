@@ -24,7 +24,7 @@ const double T_FINAL = 60.0;           // Time interval length
 const int PROJ_TYPE = 1;               // For the projection of the initial condition 
                                        // on the initial mesh: 1 = H1 projection, 0 = L2 projection
 const int INIT_GLOB_REF_NUM = 2;       // Number of initial uniform mesh refinements
-const double NEWTON_TOL = 1e-4;        // Stopping criterion for the Newton's method on coarse mesh
+const double NEWTON_TOL = 1e-4;        // Stopping criterion for the Newton's method
 const int NEWTON_MAX_ITER = 10;        // Maximum allowed number of Newton iterations
 
 // Problem constants
@@ -139,6 +139,7 @@ int main(int argc, char* argv[])
     y_prev_time_1.copy(&y_prev_newton);
   } while (current_time <= T_FINAL);
 
-  View::wait("Waiting for all views to be closed.");
+  // wait for keyboard or mouse input
+  View::wait();
   return 0;
 }

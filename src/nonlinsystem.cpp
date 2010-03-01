@@ -303,3 +303,45 @@ bool NonlinSystem::solve_newton_2(Solution* u_prev_1, Solution* u_prev_2, double
     if (it <= newton_max_iter) return true;
     else return false;
 }
+
+// Newton's loop for three equations
+bool NonlinSystem::solve_newton_3(Solution* u_prev_1, Solution* u_prev_2, Solution* u_prev_3, 
+                                  double newton_tol, int newton_max_iter, 
+                                  Filter* f1, Filter* f2, Filter* f3) {
+    int it = 1;
+    double res_l2_norm;
+    Solution sln_iter_1, sln_iter_2, sln_iter_3;
+    Space *space_1 = this->get_space(0);
+    Space *space_2 = this->get_space(1);
+    Space *space_3 = this->get_space(2);
+    do
+    {
+      info("---- Newton iter %d:\n", it++);
+      printf("ndof = %d\n", space_1->get_num_dofs() + space_2->get_num_dofs() + space_3->get_num_dofs());
+
+      // reinitialization of filters (if relevant)
+      if (f1 != NULL) f1->reinit();
+      if (f2 != NULL) f2->reinit();
+      if (f3 != NULL) f3->reinit();
+
+      // assemble the Jacobian matrix and residual vector, 
+      // solve the system
+      this->assemble();
+      this->solve(3, &sln_iter_1, &sln_iter_2, &sln_iter_3);
+
+      // calculate the l2-norm of residual vector
+      res_l2_norm = this->get_residuum_l2_norm();
+      info("Residuum L2 norm: %g\n", res_l2_norm);
+
+      // save the new solutions as "previous" for the 
+      // next Newton's iteration
+      u_prev_1->copy(&sln_iter_1);
+      u_prev_2->copy(&sln_iter_2);
+      u_prev_3->copy(&sln_iter_3);
+    }
+    while (res_l2_norm > newton_tol && it <= newton_max_iter);
+
+    // returning "true" if converged, otherwise returning "false"
+    if (it <= newton_max_iter) return true;
+    else return false;
+}
