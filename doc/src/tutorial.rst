@@ -2608,7 +2608,7 @@ it is more meaningful from the point of view of the weak formulation, but also b
 the approximate velocity automatically becomes discreetely divergence-free (integral 
 of its divergence over every element in the mesh is zero). The standard Taylor-Hood 
 elements approximating both the velocity and pressure with $H^1$-conforming (continuous)
-elements do not have this proparty and thus are less accurate. We will compare these
+elements do not have this property and thus are less accurate. We will compare these
 two approaches below. Last, the pressure needs to be approximated by elements of 
 a lower polynomial degree than the velocity in order to satisfy the inf-sup condition.
 
