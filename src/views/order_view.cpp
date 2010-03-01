@@ -60,24 +60,25 @@ void OrderView::show(Space* space)
   
   ord.lock_data();  
   ord.process_solution(space);
-  center_mesh(ord.get_vertices(), ord.get_num_vertices());
+  ord.calc_vertices_aabb(&vertices_min_x, &vertices_max_x, &vertices_min_y, &vertices_max_y);
+  init_order_palette(ord.get_vertices());
   ord.unlock_data();
 
   create();
-  init_order_palette();
   update_layout();
+  reset_view();
   refresh();
   wait_for_draw();
 }
 
-void OrderView::init_order_palette() {
-  int min = 1, max = 0;
-  double3* vert = ord.get_vertices();
+void OrderView::init_order_palette(double3* vert) {
+  int min = 1, max = (int) vert[0][2];
   for (int i = 0; i < ord.get_num_vertices(); i++)
   {
     if ((int) vert[i][2] < min) min = (int) vert[i][2];
     if ((int) vert[i][2] > max) max = (int) vert[i][2];
   }
+  debug_assert(max <= H2DV_MAX_VIEWABLE_ORDER, "E maximum order in data is %d but OrderView supports only order %d", max, H2DV_MAX_VIEWABLE_ORDER);
   
   num_boxes = max - min + 1;
   char* buf = text_buffer;
@@ -89,7 +90,7 @@ void OrderView::init_order_palette() {
       order_colors[i+min][2] = (float) (order_palette[i+min] & 0xff) / 0xff;
     }
     else {
-      get_palette_color((i + min - 1) / 9.0, &order_colors[i+min][0]);
+      get_palette_color((i + min) / (double)H2DV_MAX_VIEWABLE_ORDER, &order_colors[i+min][0]);
     }
     
     sprintf(buf, "%d", i + min);
@@ -193,9 +194,7 @@ void OrderView::on_key_down(unsigned char key, int x, int y)
   switch (key)
   {
     case 'c':
-      ord.lock_data();
-      center_mesh(ord.get_vertices(), ord.get_num_vertices());
-      ord.unlock_data();
+      reset_view();
       refresh();
       break;
     
@@ -214,7 +213,9 @@ void OrderView::on_key_down(unsigned char key, int x, int y)
         default: error("E invalid palette type");
       }
       debug_log("I switche to palette type %d", (int)pal_type);
-      init_order_palette();
+      ord.lock_data();
+      init_order_palette(ord.get_vertices());
+      ord.unlock_data();
       refresh();
       break;
     }
@@ -230,12 +231,13 @@ void OrderView::load_data(const char* filename)
 {
   ord.load_data(filename);
   ord.lock_data();
-  center_mesh(ord.get_vertices(), ord.get_num_vertices());
+  ord.calc_vertices_aabb(&vertices_min_x, &vertices_max_x, &vertices_min_y, &vertices_max_y);
+  init_order_palette(ord.get_vertices());
   ord.unlock_data();
   
   create();
-  init_order_palette();
   update_layout();
+  reset_view();
   refresh();
   wait_for_draw();
 }

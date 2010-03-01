@@ -144,6 +144,7 @@ cdef extern from "hermes2d.h":
         int assign_dofs(int first_dof, int stride)
         void copy_orders(c_H1Space *s, int inc)
         int get_element_order(int id)
+        int get_num_dofs()
         void set_bc_types(int (*bc_type_callback)(int marker))
         void set_bc_values(scalar (*bc_value_callback_by_coord)(int marker,
             double x, double y))
@@ -156,23 +157,27 @@ cdef extern from "hermes2d.h":
     cdef struct RefMap "RefMap"
     ctypedef struct c_ScalarFunction "Function<scalar>"
 
-    ctypedef struct FuncReal "Func<double>":
-        pass
-    ctypedef struct GeomReal "Geom<double>":
-        int marker
-    ctypedef struct ExtDataReal "ExtData<double>":
-        FuncReal **fn
-    ctypedef struct FuncOrd "Func<Ord>":
-        pass
-    ctypedef struct GeomOrd "Geom<Ord>":
-        int marker
-        pass
-    ctypedef struct ExtDataOrd "ExtData<Ord>":
-        pass
     ctypedef struct c_Ord "Ord":
         int get_order()
         c_Ord mul_double "operator*"(double right)
     c_Ord create_Ord "Ord"(int n)
+
+    ctypedef struct FuncReal "Func<double>":
+        double *val
+        double *dx, *dy	
+    ctypedef struct GeomReal "Geom<double>":
+        int marker
+        double *x, *y	
+    ctypedef struct ExtDataReal "ExtData<double>":
+        FuncReal **fn
+    ctypedef struct FuncOrd "Func<Ord>":
+        c_Ord *val
+        c_Ord *dx, *dy	
+    ctypedef struct GeomOrd "Geom<Ord>":
+        int marker
+        c_Ord *x, *y	
+    ctypedef struct ExtDataOrd "ExtData<Ord>":
+        pass
 
     ctypedef scalar (*BiFormFnVol)(RealFunction *fu, RealFunction *fv,
             RefMap *ru, RefMap *rv)
@@ -193,6 +198,7 @@ cdef extern from "hermes2d.h":
 
     cdef struct c_Solution "Solution":
         void set_zero(c_Mesh *m)
+        void set_const(c_Mesh *m, scalar c)
         void set_fe_solution(c_H1Space *s, c_PrecalcShapeset *pss, scalar *vec)
         void get_fe_solution(int *Ylen, scalar **Y)
     c_Solution *new_Solution "new Solution" ()
@@ -270,8 +276,11 @@ cdef extern from "hermes2d.h":
         #double calc_error(c_Solution *sln, c_Solution *rsln)
         int num
         double calc_error(...)
+        double calc_error_2(...)
         double calc_error_n(int n, ...)
         void adapt(double thr, int strat, int h_only)
+        void set_biform(int i, int j, ...)
+
     c_H1OrthoHP *new_H1OrthoHP "new H1OrthoHP" (int num, ...)
 
     cdef struct c_Linearizer "Linearizer":
@@ -337,14 +346,16 @@ cdef extern from "hermes2d.h":
 
     cdef struct c_View "View":
         void set_title(char *title)
+        void set_min_max_range(double min, double max)
+
     void View_wait "View::wait"()
 
     cdef struct c_ScalarView "ScalarView":
         void show(c_MeshFunction *s, ...)
         void show_mesh(int show)
         void show_scale(int show)
-        void set_min_max_range(double min, double max)
         void set_title(char *title)
+        void set_min_max_range(double min, double max)
         void wait()
     c_ScalarView *new_ScalarView "new ScalarView" (char *title, ...)
 
@@ -394,6 +405,9 @@ cdef class DummySolver(Solver):
 
 cdef class WeakForm:
     cdef c_WeakForm *thisptr
+
+cdef class H1OrthoHP:
+    cdef c_H1OrthoHP *thisptr
 
 cdef class H1Space:
     cdef c_H1Space *thisptr
