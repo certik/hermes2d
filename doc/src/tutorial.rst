@@ -2512,7 +2512,7 @@ through a DXDYFilter:
       // update current time
       current_time += TAU;
 
-      // store two time levels of previous solutions
+      // store two previous time solutions
       t_prev_time_2.copy(&t_prev_time_1);
       y_prev_time_2.copy(&y_prev_time_1);
       t_prev_time_1.copy(&t_prev_newton);
@@ -2540,6 +2540,240 @@ A few snapshots of the reaction rate $\omega$ are shown below:
    :align: center
    :width: 800
    :alt: solution
+
+Newton Example VI - Navier-Stokes Equations
+-------------------------------------------
+
+More information to this example can be found in the `main.cpp 
+<http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/tutorial/18-newton-timedep-ns/main.cpp>`_ file
+of the tutorial example `18-newton-timedep-ns 
+<http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/tutorial/18-newton-timedep-ns>`_.
+In this example, the time-dependent laminar incompressible Navier-Stokes equations are
+discretized in time via the implicit Euler method. If NEWTON == true,
+the Newton's method is used to solve the nonlinear problem at each time 
+step. If NEWTON == false, the convective term only is linearized using the 
+velocities from the previous time step. Obviously the latter approach is wrong, 
+but people do this frequently because it is faster and simpler to implement. 
+Therefore we include this case for comparison purposes. We also show how 
+to use discontinuous ($L^2$) elements for pressure and thus make the 
+velocity discreetely divergence free. Comparison to approximating the 
+pressure with the standard (continuous) Taylor-Hood elements is shown.  
+
+The computational domain is a rectangular channel containing a 
+circular obstacle: 
+
+.. image:: img/example-18/domain.png
+   :align: center
+   :width: 760
+   :alt: computational domain
+
+The circle is defined via NURBS. Its radius and position, as well as some additional 
+geometry parameters can be changed in the mesh file "domain.mesh":
+
+::
+
+    L = 15            # domain length (should be a multiple of 3)
+    H = 5             # domain height
+    S1 = 5/2          # x-center of circle
+    S2 = 5/2          # y-center of circle
+    R = 1             # circle radius
+    A = 1/(2*sqrt(2)) # helper length
+    EPS = 0.10        # vertical shift of the circle
+
+The Navier-Stokes equations are assumed in the standard form
+
+.. math::
+
+    \frac{\partial \bfv}{\partial t} - \frac{1}{Re}\Delta \bfv + (\bfv \cdot \nabla) \bfv + \nabla p = 0,\\
+    \mbox{div} \bfv = 0,
+
+where $\bfv = (u, v)$ is the velocity vector, $Re$ the Reynolds number, $p$ the pressure,
+and $(\bfv \cdot \nabla) \bfv$ the nonlinear convective term. We prescribe a parabolic 
+velocity profile at inlet (the left-most edge). The inlet velocity is time-dependent, it 
+increases linearly in time from zero to a user-defined value during an initial time period, 
+and then it stays constant. Standard no-slip velocity boundary conditions are prescribed 
+on the rest of the boundary with the exception of the outlet (right-most edge) where the 
+standard "do nothing" boundary conditions are prescribed. No boundary conditions are 
+prescribed for pressure - being an $L^2$-function, the pressure does not 
+admit any boundary conditions. 
+
+The role of the pressure in the Navier-Stokes equations 
+is interesting and worth a brief discussion. Since the equations only contain its gradient, 
+it is determined up to a constant. This does not mean that the problem is ill-conditioned 
+though, since the pressure only plays the role of a Lagrange multiplier that keeps 
+the velocity divergence-free. More precisely, the better the pressure is resolved, 
+the closer the approximate velocity to being divergence free. The best one can do
+is to approximate the pressure in $L^2$ (using discontinuous elements). Not only because
+it is more meaningful from the point of view of the weak formulation, but also because
+the approximate velocity automatically becomes discreetely divergence-free (integral 
+of its divergence over every element in the mesh is zero). The standard Taylor-Hood 
+elements approximating both the velocity and pressure with $H^1$-conforming (continuous)
+elements do not have this proparty and thus are less accurate. We will compare these
+two approaches below. Last, the pressure needs to be approximated by elements of 
+a lower polynomial degree than the velocity in order to satisfy the inf-sup condition.
+
+The time derivative is approximated using the implicit Euler method:
+
+.. math::
+
+    \frac{\bfv^{n+1}}{\tau} - \frac{\bfv^n}{\tau} - \frac{1}{Re}\Delta \bfv^{n+1} + (\bfv^{n+1} \cdot \nabla) \bfv^{n+1} + \nabla p^{n+1} = 0,\\
+    \mbox{div} \bfv^{n+1} = 0,
+
+where $\tau$ is the time step. This is a nonlinear problem that involves three equations (two for velocity components and 
+the continuity equation). Accordingly, we define three spaces:
+
+::
+
+      // spaces for velocities and pressure
+      H1Space xvel_space(&mesh, &h1_shapeset);
+      H1Space yvel_space(&mesh, &h1_shapeset);
+    #ifdef PRESSURE_IN_L2
+      L2Space p_space(&mesh, &l2_shapeset);
+    #else
+      H1Space p_space(&mesh, &h1_shapeset);
+    #endif
+
+Next we define a nonlinear or linear problem to be solved in each time step,
+depending on whether we want to employ the Newton's method or not:
+
+::
+
+      if (NEWTON) {
+        // set up the nonlinear system
+        nls.set_spaces(3, &xvel_space, &yvel_space, &p_space);
+    #ifdef PRESSURE_IN_L2
+        nls.set_pss(3, &h1_pss, &h1_pss, &l2_pss);
+    #else
+        nls.set_pss(1, &h1_pss);
+    #endif
+      }
+      else {
+        // set up the linear system
+        ls.set_spaces(3, &xvel_space, &yvel_space, &p_space);
+    #ifdef PRESSURE_IN_L2
+        ls.set_pss(3, &h1_pss, &h1_pss, &l2_pss);
+    #else
+        ls.set_pss(1, &h1_pss);
+    #endif
+      }
+
+The time stepping loop looks as follows:
+
+::
+
+    // time-stepping loop
+    char title[100];
+    int num_time_steps = T_FINAL / TAU;
+    for (int i = 1; i <= num_time_steps; i++)
+    {
+      TIME += TAU;
+
+      info("\n---- Time step %d, time = %g:\n", i, TIME);
+
+      // this is needed to update the time-dependent boundary conditions
+      ndofs = 0;
+      ndofs += xvel_space.assign_dofs(ndofs);
+      ndofs += yvel_space.assign_dofs(ndofs);
+      ndofs += p_space.assign_dofs(ndofs);
+
+      if (NEWTON) {
+        // Newton's method
+        nls.solve_newton_3(&xvel_prev_newton, &yvel_prev_newton, &p_prev, NEWTON_TOL, NEWTON_MAX_ITER);
+
+        // copy the result of the Newton's iteration into the 
+        // previous time level solutions
+        xvel_prev_time.copy(&xvel_prev_newton);
+        yvel_prev_time.copy(&yvel_prev_newton);
+      }
+      else {
+        // assemble and solve
+        Solution xvel_sln, yvel_sln, p_sln;
+        ls.assemble();
+        ls.solve(3, &xvel_sln, &yvel_sln, &p_sln);
+
+        // this copy destroys xvel_sln and yvel_sln 
+        // which are no longer needed
+        xvel_prev_time = xvel_sln;
+        yvel_prev_time = yvel_sln;
+      }
+    }
+
+The following comparisons demonstrate the effect of using the Newton's method, and continuous vs. discontinuous 
+elements for the pressure. There are three triplets of velocity snapshots. In each one, the images 
+were obtained with (1) NEWTON == false && PRESSURE_IN_L2 undefined, (2) NEWTON == true && PRESSURE_IN_L2 
+undefined, and (3) NEWTON == true && PRESSURE_IN_L2 defined. It follows from these comparisons that one 
+should definitely use the option (3).
+
+
+Time t = 10 s:
+
+.. image:: img/example-18/sol_no_newton_10.png
+   :align: center
+   :width: 840
+   :alt: solution
+
+.. image:: img/example-18/sol_newton_10.png
+   :align: center
+   :width: 840
+   :alt: solution
+
+.. image:: img/example-18/sol_l2_newton_10.png
+   :align: center
+   :width: 840
+   :alt: solution
+
+Time t = 15 s:
+
+.. image:: img/example-18/sol_no_newton_15.png
+   :align: center
+   :width: 840
+   :alt: solution
+
+.. image:: img/example-18/sol_newton_15.png
+   :align: center
+   :width: 840
+   :alt: solution
+
+.. image:: img/example-18/sol_l2_newton_15.png
+   :align: center
+   :width: 840
+   :alt: solution
+
+Time t = 20 s:
+
+.. image:: img/example-18/sol_no_newton_20.png
+   :align: center
+   :width: 840
+   :alt: solution
+
+.. image:: img/example-18/sol_newton_20.png
+   :align: center
+   :width: 840
+   :alt: solution
+
+.. image:: img/example-18/sol_l2_newton_20.png
+   :align: center
+   :width: 840
+   :alt: solution
+
+Snapshot of a continuous pressure approximation (t = 20 s):
+
+.. image:: img/example-18/p_no_newton_20.png
+   :align: center
+   :width: 840
+   :alt: solution
+
+Snapshot of a discontinuous pressure approximation (t = 20 s):
+
+.. image:: img/example-18/p_l2_newton_20.png
+   :align: center
+   :width: 840
+   :alt: solution
+
+
+
+
+
 
 
 
