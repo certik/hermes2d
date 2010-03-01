@@ -246,16 +246,6 @@ CPU time convergence graphs:
    :height: 400
    :alt: CPU convergence graph for example iron-water.
 
-Waveguide
----------
-
-To be added soon.
-
-Crack
------
-
-To be added soon.
-
 Nernst-Planck
 -------------
 
@@ -618,7 +608,22 @@ That is where **the adaptive multimeshing** can become useful.
 Adaptive solution
 ^^^^^^^^^^^^^^^^^
 
-Will come soon.
+To be added soon.
+
+
+
+Waveguide
+---------
+
+To be added soon.
+
+
+
+Crack
+-----
+
+To be added soon.
+
 
 
 Gross-Pitaevski
