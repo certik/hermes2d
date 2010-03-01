@@ -9,7 +9,7 @@ endif(NOT UMFPACK_NO_BLAS)
 # examples
 add_subdirectory(multimesh)
 add_subdirectory(crack)
-add_subdirectory(ns-timedep)
+add_subdirectory(ns-timedep-adapt)
 add_subdirectory(newton-heat-timedep-adapt)
 add_subdirectory(hdiv)
 add_subdirectory(l2)
