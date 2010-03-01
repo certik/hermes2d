@@ -40,6 +40,7 @@
 // Parameters to tweak the amount of output to the console
 #define VERBOSE
 #define NONCONT_OUTPUT
+#define SCREENSHOT
 
 /*** Fundamental coefficients ***/
 const double D = 1e-12; 	            // [m^2/s] Diffusion coefficient
@@ -60,8 +61,8 @@ const double E_FIELD = VOLTAGE / height;    // Boundary condtion for positive vo
 
 
 /* Simulation parameters */
-const int NSTEP = 100;                // Number of time steps
-const double TAU = 0.01;              // Size of the time step
+const int NSTEP = 50;                // Number of time steps
+const double TAU = 0.1;              // Size of the time step
 const int P_INIT = 2;       	        // Initial polynomial degree of all mesh elements.
 const int REF_INIT = 10;     	        // Number of initial refinements
 const bool MULTIMESH = true;	        // Multimesh?
@@ -70,10 +71,10 @@ const bool MULTIMESH = true;	        // Multimesh?
 const double NEWTON_TOL = 1e-2;         // Stopping criterion for nonadaptive solution
 
 /* Adaptive solution parameters */
-const double NEWTON_TOL_COARSE = 0.05;  // Stopping criterion for Newton on coarse mesh
-const double NEWTON_TOL_REF = 0.5;	// Stopping criterion for Newton on fine mesh
+const double NEWTON_TOL_COARSE = 0.01;  // Stopping criterion for Newton on coarse mesh
+const double NEWTON_TOL_REF = 0.1;	    // Stopping criterion for Newton on fine mesh
 
-const int UNREF_FREQ = 1;            	// every UNREF_FREQth time step the mesh
+const int UNREF_FREQ = 1;             // every UNREF_FREQth time step the mesh
                                         // is unrefined
 const double THRESHOLD = 0.3;           // This is a quantitative parameter of the adapt(...) function and
                                         // it has different meanings for various adaptive strategies (see below).
@@ -92,7 +93,7 @@ const int ADAPT_TYPE = 0;               // Type of automatic adaptivity:
                                         // ADAPT_TYPE = 2 ... adaptive p-FEM.
 
 const int NDOF_STOP = 5000;		          // To prevent adaptivity from going on forever.
-const double ERR_STOP = 0.1;            // Stopping criterion for adaptivity (rel. error tolerance between the
+const double ERR_STOP = 0.5;            // Stopping criterion for adaptivity (rel. error tolerance between the
                                         // fine mesh and coarse mesh solution in percent).
 
 // Program parameters 
@@ -314,6 +315,7 @@ void solveAdaptive(Mesh &Cmesh, Mesh &phimesh, Mesh &basemesh, NonlinSystem &nls
       ndofs += phi.assign_dofs(ndofs);
       info("NDOFS after adapting: %d", ndofs);
       if (ndofs >= NDOF_STOP) {
+        info("NDOFs reached to the max %d", NDOF_STOP);
         done = true;
       }
 
@@ -352,6 +354,10 @@ void solveAdaptive(Mesh &Cmesh, Mesh &phimesh, Mesh &basemesh, NonlinSystem &nls
     }
     Cview.set_title(title);
     Cview.show(&Ci);
+    #ifdef SCREENSHOT
+    Cview.save_numbered_screenshot("screenshots/C%03d.bmp", n, true);
+    phiview.save_numbered_screenshot("screenshots/phi%03d.bmp", n, true);
+    #endif
     if (n == 1) {
       // Wait for key press, so one can go to 3D mode
       // which is way more informative in case of Nernst Planck
