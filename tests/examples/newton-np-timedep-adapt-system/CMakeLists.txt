@@ -1,3 +1,6 @@
+if(NOT REAL)
+    return()
+endif(NOT REAL)
 project(example-np)
 
 add_executable(${PROJECT_NAME} main.cpp)
