@@ -36,7 +36,7 @@ class Precond
 #endif
 {
 public:
-	virtual void create(Matrix *mat) = 0;
+	virtual void create(_Matrix *mat) = 0;
 	virtual void destroy() = 0;
 	virtual void compute() = 0;
 
