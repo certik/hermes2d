@@ -2795,8 +2795,8 @@ $\hbar$ the Planck constant, $m$ the mass of the boson,
 $g$ the coupling constant (proportional to the scattering length of two interacting bosons) and 
 $\omega$ an additional model parameter.
 
-From the implementation point if view, the only detail wirth mentioning is the handling of the 
-complex numbers in the `CMakeLists.txt 
+From the implementation point if view, the only detail worth mentioning is the 
+use of the complex version of Hermes in the `CMakeLists.txt 
 <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/tutorial/19-newton-timedep-gp/CMakeLists.txt>`_ file:
 
 ::
@@ -2895,7 +2895,8 @@ The way the weak forms are registered is standard:
       wf.add_liform(0, callback(residuum_cranic), ANY, 2, &Psi_prev_newton, &Psi_prev_time);
     }
 
-Also the time stepping loop will not surprize the reader who made it this far in the tutorial:
+Also the time stepping loop and the call to the Newton's method 
+will not surprize a reader who made it this far in the tutorial:
 
 ::
 
