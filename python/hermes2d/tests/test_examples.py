@@ -487,6 +487,10 @@ def test_example_11():
     ymesh = Mesh()
     xmesh.load(get_bracket_mesh())
 
+    # initial mesh refinements
+    xmesh.refine_element(1)
+    xmesh.refine_element(4)
+
     # Create initial mesh for the vertical displacement component,
     # identical to the mesh for the horizontal displacement
     # (bracket.mesh becomes a master mesh)
