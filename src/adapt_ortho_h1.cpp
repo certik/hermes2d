@@ -795,6 +795,18 @@ bool H1OrthoHP::adapt(double thr, int strat, int adapt_type, bool iso_only, int 
     }
   }
 
+  //print refinements
+#ifdef _DEBUG
+  for(std::vector<ElementToRefine>::const_iterator elem_ref = elem_inx_to_proc.begin(); elem_ref != elem_inx_to_proc.end(); elem_ref++) {
+    std::stringstream str;
+    str << "id:" << elem_ref->id << "(" << elem_ref->comp << "); split:" << elem_ref->split << "; p:";
+    for(int i = 0; i < 4; i++) {
+       str << " (H:" << get_h_order(elem_ref->p[i]) << ";V:" << get_v_order(elem_ref->p[i]) << ")";
+    }
+    debug_log("  %s", str.str().c_str());
+  }
+#endif
+
   //apply refinements
   apply_refinements(meshes, &elem_inx_to_proc);
 

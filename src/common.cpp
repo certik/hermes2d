@@ -69,9 +69,14 @@ void __verbose_fn(const char* msg, ...)
 
 #define LOG_FILE "log.txt" /* log FILE */
 void make_log_record(const char* msg, va_list arglist) { /* makes record to the file */
-  //print message
-  vprintf(msg, arglist);
-  printf("\n");
+  //print message to a buffer (since vfprintf modifies arglist such that it becomes unusable)
+  //not safe, but C does not offer any other multiplatform solution. Since vsnprintf modifies the var-args, it cannot be called repeatedly.
+#define BUF_SZ 2048
+  char text[BUF_SZ];
+  vsprintf(text, msg, arglist);
+
+  //print the message
+  printf("%s\n", text);
 
   //print to file
   FILE* file = fopen(LOG_FILE, "at");
@@ -86,10 +91,7 @@ void make_log_record(const char* msg, va_list arglist) { /* makes record to the 
     strftime(time_buf, TIME_BUF_SZ, "%y%m%d-%H%M", now_tm);
 
     //write
-    fprintf(file, "%s", time_buf);
-    fprintf(file, "\t");
-    vfprintf(file, msg, arglist);
-    fprintf(file, "\n");
+    fprintf(file, "%s\t%s\n", time_buf, text);
     fclose(file);
   }
 }
