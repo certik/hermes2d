@@ -47,7 +47,7 @@ public:
 	virtual Epetra_Operator *get_obj() { return prec; }
 #endif
 
-	virtual void create(Matrix *mat);
+	virtual void create(_Matrix *mat);
 	virtual void destroy() { }
 	virtual void compute();
 

@@ -100,7 +100,7 @@ void IfpackPrecond::set_param(const char *name, double value)
 #endif
 }
 
-void IfpackPrecond::create(Matrix *m)
+void IfpackPrecond::create(_Matrix *m)
 {
 
 #ifdef HAVE_IFPACK
