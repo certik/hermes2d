@@ -208,6 +208,7 @@ void Solution::copy(const Solution* sln)
   type = sln->type;
   space_type = sln->space_type;
   num_components = sln->num_components;
+  num_dofs = sln->num_dofs;
 
   if (sln->type == SLN) // standard solution: copy coefficient arrays
   {
