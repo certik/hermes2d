@@ -1,6 +1,6 @@
 IF(COMPLEX)
 
-project(newton-gp-timedep)
+project(newton-timedep-gp)
 
 # use the complex version of the library:
 set(HERMES ${HERMES_CPLX_BIN})
