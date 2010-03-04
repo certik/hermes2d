@@ -129,6 +129,10 @@ int main(int argc, char* argv[])
   H2DReader mloader;
   mloader.load("bracket.mesh", &xmesh);
 
+  // initial mesh refinements
+  xmesh.refine_element(1);
+  xmesh.refine_element(4);
+
   // create initial mesh for the vertical displacement component,
   // identical to the mesh for the horizontal displacement
   // (bracket.mesh becomes a master mesh)
@@ -181,7 +185,7 @@ int main(int argc, char* argv[])
   Solution x_sln_fine, y_sln_fine;
   do
   {
-    info("\n---- Adaptivity step %d ---------------------------------------------\n", it++);
+    info("\n---- Adaptivity step %d:\n", it++);
 
     // time measurement
     begin_time();
