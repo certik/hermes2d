@@ -81,7 +81,6 @@ int main(int argc, char* argv[])
   H2DReader mloader;
   mloader.load("square.mesh", &mesh);
 
-
   // initial mesh refinements
   for(int i = 0; i < INIT_REF_NUM; i++) mesh.refine_all_elements();
 
@@ -127,7 +126,6 @@ int main(int argc, char* argv[])
   nls.set_ic(&Psi_prev_newton, &Psi_prev_newton, PROJ_TYPE);
 
   // time stepping loop
-  Solution sln;
   int nstep = (int)(T_FINAL/TAU + 0.5);
   for(int n = 1; n <= nstep; n++)
   {
