@@ -18,7 +18,7 @@
 
 #include "config.h"
 #include "itersolver.h"
-#include "matrix.h"
+#include "matrix_old.h"
 
 #ifdef HAVE_EPETRA
 #include <Epetra_SerialComm.h>

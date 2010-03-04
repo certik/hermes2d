@@ -14,7 +14,7 @@
 // along with Hermes2D.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "common.h"
-#include "matrix.h"
+#include "matrix_old.h"
 
 #define TINY 1e-20
 
