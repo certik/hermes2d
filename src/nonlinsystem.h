@@ -16,7 +16,7 @@
 #ifndef __HERMES2D_NONLINSYSTEM_H
 #define __HERMES2D_NONLINSYSTEM_H
 
-#include "matrix.h"
+#include "matrix_old.h"
 #include "filter.h"
 #include "views/scalar_view.h"
 #include "views/order_view.h"

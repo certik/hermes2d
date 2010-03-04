@@ -17,7 +17,7 @@
 #ifndef __HERMES2D_FEPROBLEM_H
 #define __HERMES2D_FEPROBLEM_H
 
-#include "matrix.h"
+#include "matrix_old.h"
 #include "forms.h"
 #include "weakform.h"
 #include <map>

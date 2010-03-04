@@ -16,7 +16,7 @@
 
 #include "common.h"
 #include "weakform.h"
-#include "matrix.h"
+#include "matrix_old.h"
 #include "solution.h"
 #include "forms.h"
 

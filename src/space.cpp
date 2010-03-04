@@ -15,7 +15,7 @@
 
 #include "common.h"
 #include "space.h"
-#include "matrix.h"
+#include "matrix_old.h"
 #include "auto_local_array.h"
 
 
