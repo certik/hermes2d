@@ -90,7 +90,7 @@ module.include.files=\
 	shapeset_h1_quad.h\
 	transform.h\
 	curved.h\
-	matrix.h\
+	matrix_old.h\
 	integrals_h1.h\
 	integrals_hcurl.h\
 	shapeset_hc_all.h\

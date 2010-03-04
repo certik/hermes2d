@@ -5,7 +5,7 @@
 #include "curved.h"
 #include "mesh.h"
 #include "quad_all.h"
-#include "matrix.h"
+#include "matrix_old.h"
 
 
 // defined in refmap.cpp

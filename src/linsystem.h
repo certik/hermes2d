@@ -16,7 +16,7 @@
 #ifndef __H2D_LINSYSTEM_H
 #define __H2D_LINSYSTEM_H
 
-#include "matrix.h"
+#include "matrix_old.h"
 #include "forms.h"
 #include "weakform.h"
 #include <map>

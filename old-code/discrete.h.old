@@ -3,7 +3,7 @@
 
 #include "common.h"
 #include "solution.h"
-#include "matrix.h"
+#include "matrix_old.h"
 
 class Space;
 class PrecalcShapeset;

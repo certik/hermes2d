@@ -19,7 +19,7 @@ set(SRC
        adapt.cpp l2_adapt.cpp h1_adapt.cpp hcurl_adapt.cpp python_adapt.cpp
 
        common.cpp common_time_period.cpp
-	   matrix.cpp hermes2d.cpp weakform.cpp linsystem.cpp
+	   matrix_old.cpp hermes2d.cpp weakform.cpp linsystem.cpp
        feproblem.cpp solver_nox.cpp solver_epetra.cpp solver_aztecoo.cpp
        precond_ml.cpp precond_ifpack.cpp
        refsystem.cpp nonlinsystem.cpp forms.cpp

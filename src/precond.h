@@ -16,7 +16,7 @@
 #ifndef __H2D_PRECOND_H_
 #define __H2D_PRECOND_H_
 
-#include "matrix.h"
+#include "matrix_old.h"
 #include "weakform.h"
 
 #ifdef HAVE_EPETRA
