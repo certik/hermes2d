@@ -18,7 +18,6 @@ add_subdirectory(iron-water)
 add_subdirectory(saphir)
 add_subdirectory(wire)
 add_subdirectory(waveguide)
-add_subdirectory(newton-gp-timedep)
 add_subdirectory(newton-gp-timedep-adapt)
 
 if(WITH_TRILINOS)
