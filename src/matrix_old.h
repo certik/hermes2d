@@ -163,9 +163,9 @@ enum EMatrixDumpFormat {
   DF_NATIVE         // native format for the linear solver
 };
 
-class Matrix {
+class _Matrix {
 public:
-  virtual ~Matrix() { }
+  virtual ~_Matrix() { }
 
   /// allocate the memory for stiffness matrix and right-hand side
   virtual void alloc() = 0;
@@ -207,7 +207,7 @@ public:
   virtual int get_matrix_size() const = 0;
 };
 
-class SparseMatrix : public Matrix {
+class SparseMatrix : public _Matrix {
 public:
   SparseMatrix();
   virtual ~SparseMatrix();

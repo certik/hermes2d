@@ -200,7 +200,7 @@ void FeProblem::create(SparseMatrix* mat)
 
 //// assembly //////////////////////////////////////////////////////////////////////////////////////
 
-void FeProblem::assemble(const Vector *x, Vector *rhs, Matrix *jac)
+void FeProblem::assemble(const Vector *x, Vector *rhs, _Matrix *jac)
 {
   if (!have_spaces) error("You have to call set_spaces() before calling assemble().");
 

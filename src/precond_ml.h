@@ -43,7 +43,7 @@ public:
 #endif
 
 	/// @param[in] a
-	virtual void create(Matrix *mat);
+	virtual void create(_Matrix *mat);
 	/// Destroy the preconditioner object
 	virtual void destroy();
 	/// Compute the preconditioner
