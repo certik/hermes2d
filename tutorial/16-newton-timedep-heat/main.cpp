@@ -154,7 +154,7 @@ int main(int argc, char* argv[])
     info("\n**** Time step %d, t = %g s:\n", t_step++, current_time);
 
     // Newton's method
-    nls.solve_newton_1(&u_prev_newton, NEWTON_TOL, NEWTON_MAX_ITER);
+    if (!nls.solve_newton_1(&u_prev_newton, NEWTON_TOL, NEWTON_MAX_ITER)) error("Newton's method did not converge.");
 
     // update previous time level solution
     u_prev_time.copy(&u_prev_newton);
