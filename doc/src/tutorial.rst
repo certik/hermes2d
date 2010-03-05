@@ -434,8 +434,7 @@ using the ScalarView class:
     view.show(&sln);
 
 For the complete source code we refer to the 
-`main.cpp <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/tutorial/03-poisson/main.cpp>`_ file
-in the tutorial example '03-poisson <http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/tutorial/03-poisson>'_.
+`main.cpp <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/tutorial/03-poisson/main.cpp>`_ file.
 The following figure shows the output.
 
 .. image:: img/poisson.png
@@ -1950,11 +1949,16 @@ In the code, this becomes
       return result;
     }
 
-In particular, notice how the values and derivatives of the previous solution u_prev are accessed 
-via the ExtData structure, and also notice how the coordinates of the integration points are 
-accessed using the Geom structure. The ExtData is user-defined and the Geom structure 
-contains geometrical information including the unit normal and tangential vectors 
-to the boundary at the integration points (also for curved boundaries). See the file 
+Notice that the basis function $v_j$ and the test function 
+$v_i$ are entering the weak forms via the parameters u and v, respectively (same as for linear problems). 
+The user does not have to 
+take care about their indices $i$ and $j$, this is handled by Hermes outside the weak forms. 
+
+The code snippet above also shows how values and derivatives of the solution $u$ can be accessed via 
+the ExtData structure, and the coordinates of the integration points via the Geom structure. 
+The contents of ExtData is user-defined and the Geom structure contains geometrical information 
+including the unit normal and tangential vectors to the boundary at the integration points 
+(also for curved boundaries). See the file 
 `forms.h <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/src/forms.h>`_ for more details. 
 
 The weak forms are registered as usual, except that the previous solution u_prev has to be declared in advance:
@@ -2793,7 +2797,7 @@ The computational domain is the square $(-1,1)^2$ and boundary conditions are ze
 where $\psi(x,y)$ is the unknown solution (wave function), $i$ the complex unit, 
 $\hbar$ the Planck constant, $m$ the mass of the boson, 
 $g$ the coupling constant (proportional to the scattering length of two interacting bosons) and 
-$\omega$ an additional model parameter.
+$\omega$ the frequency.
 
 From the implementation point if view, the only detail worth mentioning is the 
 use of the complex version of Hermes in the `CMakeLists.txt 
