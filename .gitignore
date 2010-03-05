@@ -23,7 +23,6 @@ tutorial.*
 *make*
 
 # top-level files
-CMake.vars
 !.gitignore
 !.mailmap
 
