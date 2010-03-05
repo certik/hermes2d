@@ -46,7 +46,7 @@ const int MESH_REGULARITY = -1;        // Maximum allowed level of hanging nodes
                                        // MESH_REGULARITY = 2 ... at most two-level hanging nodes, etc.
                                        // Note that regular meshes are not supported, this is due to
                                        // their notoriously bad performance.
-const double ERR_STOP = 0.1;           // Stopping criterion for adaptivity (rel. error tolerance between the
+const double ERR_STOP = 3.0;           // Stopping criterion for adaptivity (rel. error tolerance between the
                                        // fine mesh and coarse mesh solution in percent).
 const int NDOF_STOP = 60000;           // Adaptivity process stops when the number of degrees of freedom grows
                                        // over this limit. This is to prevent h-adaptivity to go on forever.
@@ -196,7 +196,7 @@ int main(int argc, char* argv[])
     info("---- Solving on coarse mesh ---------------------------------\n");
 
     // Newton's loop on the coarse mesh
-    nls.solve_newton_1(&u_prev, NEWTON_TOL_COARSE, NEWTON_MAX_ITER);
+    if (!nls.solve_newton_1(&u_prev, NEWTON_TOL_COARSE, NEWTON_MAX_ITER)) error("Newton's method did not converge.");
     sln_coarse.copy(&u_prev);
     sview_coarse.show(&u_prev);
     oview_coarse.show(&space);
@@ -210,7 +210,7 @@ int main(int argc, char* argv[])
     else rnls.set_ic(&sln_fine, &u_prev, PROJ_TYPE);    
 
     // Newton's loop on the fine mesh
-    rnls.solve_newton_1(&u_prev, NEWTON_TOL_FINE, NEWTON_MAX_ITER);
+    if (!rnls.solve_newton_1(&u_prev, NEWTON_TOL_FINE, NEWTON_MAX_ITER)) error("Newton's method did not converge.");
     sln_fine.copy(&u_prev);
     sview_fine.show(&u_prev);
     oview_fine.show(rnls.get_space(0));

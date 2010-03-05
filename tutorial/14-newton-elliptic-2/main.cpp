@@ -139,7 +139,7 @@ int main(int argc, char* argv[])
   nls.set_ic(init_guess, &mesh, &u_prev, PROJ_TYPE);
 
   // Newton's loop
-  nls.solve_newton_1(&u_prev, NEWTON_TOL, NEWTON_MAX_ITER);
+  if (!nls.solve_newton_1(&u_prev, NEWTON_TOL, NEWTON_MAX_ITER)) error("Newton's method did not converge.");
 
   // visualise the solution and mesh
   ScalarView sview("Solution", 0, 0, 800, 600);

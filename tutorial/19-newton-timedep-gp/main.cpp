@@ -133,7 +133,7 @@ int main(int argc, char* argv[])
     info("\n---- Time step %d:\n", n);
 
     // Newton's method
-    nls.solve_newton_1(&Psi_prev_newton, NEWTON_TOL, NEWTON_MAX_ITER);
+    if (!nls.solve_newton_1(&Psi_prev_newton, NEWTON_TOL, NEWTON_MAX_ITER)) error("Newton's method did not converge.");
 
     // show the new time level solution
     char title[100];

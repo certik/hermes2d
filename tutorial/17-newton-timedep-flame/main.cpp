@@ -25,7 +25,7 @@ const int PROJ_TYPE = 1;               // For the projection of the initial cond
                                        // on the initial mesh: 1 = H1 projection, 0 = L2 projection
 const int INIT_GLOB_REF_NUM = 2;       // Number of initial uniform mesh refinements
 const double NEWTON_TOL = 1e-4;        // Stopping criterion for the Newton's method
-const int NEWTON_MAX_ITER = 10;        // Maximum allowed number of Newton iterations
+const int NEWTON_MAX_ITER = 15;        // Maximum allowed number of Newton iterations
 
 // Problem constants
 const double Le    = 1.0;
@@ -118,8 +118,8 @@ int main(int argc, char* argv[])
     info("\n**** Time step %d, t = %g s:\n", ++t_step, current_time);
 
     // Newton's method
-    nls.solve_newton_2(&t_prev_newton, &y_prev_newton, NEWTON_TOL, NEWTON_MAX_ITER, 
-                       &omega, &omega_dt, &omega_dy);
+    if (!nls.solve_newton_2(&t_prev_newton, &y_prev_newton, NEWTON_TOL, NEWTON_MAX_ITER, 
+                       &omega, &omega_dt, &omega_dy)) error("Newton's method did not converge.");
 
     // visualization
     DXDYFilter omega_view(omega_fn, &t_prev_newton, &y_prev_newton);
