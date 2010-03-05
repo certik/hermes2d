@@ -91,6 +91,12 @@ endif(WITH_EXODUSII)
 add_subdirectory(hermes_common)
 add_subdirectory(src)
 
+if(WITH_PYTHON)
+    find_package(PythonLibs REQUIRED)
+    find_package(NumPy REQUIRED)
+	add_subdirectory(python)
+endif(WITH_PYTHON)
+
 if(WITH_EXAMPLES)
 	add_subdirectory(examples)
 endif(WITH_EXAMPLES)
@@ -111,10 +117,6 @@ if(WITH_TESTS)
     enable_testing()
 	add_subdirectory(tests)
 endif(WITH_TESTS)
-
-if(WITH_PYTHON)
-	add_subdirectory(python)
-endif(WITH_PYTHON)
 
 add_custom_target(test
     COMMAND ctest
