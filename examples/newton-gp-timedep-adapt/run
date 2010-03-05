@@ -1,0 +1,4 @@
+rm *~ 
+newton-gp-timedep-adapt
+python plot_graph.py &
+

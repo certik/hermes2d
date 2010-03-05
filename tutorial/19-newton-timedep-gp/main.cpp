@@ -30,9 +30,9 @@ const int NEWTON_MAX_ITER = 100; // Maximum allowed number of Newton iterations
 
 // Problem constants
 const double H = 1;              // Planck constant 6.626068e-34;
-const double M = 1;
-const double G = 1;
-const double OMEGA = 1;
+const double M = 1;              // mass of boson
+const double G = 1;              // coupling constant
+const double OMEGA = 1;          // frequency
 
 // Initial conditions
 scalar fn_init(double x, double y, scalar& dx, scalar& dy)
