@@ -612,13 +612,6 @@ To be added soon.
 
 
 
-Waveguide
----------
-
-To be added soon.
-
-
-
 Crack
 -----
 
@@ -626,8 +619,12 @@ To be added soon.
 
 
 
-Gross-Pitaevski
----------------
+
+Waveguide
+---------
 
 To be added soon.
+
+
+
 
