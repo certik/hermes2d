@@ -21,16 +21,10 @@
 const int P_INIT = 1;                    // Initial polynomial degree
 const int PROJ_TYPE = 1;                 // For the projection of the initial condition 
                                          // on the initial mesh: 1 = H1 projection, 0 = L2 projection
-const int INIT_REF_NUM = 2;              // Number of initial uniform refinements
 const int TIME_DISCR = 2;                // 1 for implicit Euler, 2 for Crank-Nicolson
 const double T_FINAL = 200.0;            // Time interval length
 const double TAU = 0.01;                 // Time step
-
-// Newton's method
-const double NEWTON_TOL_COARSE = 0.01;   // Stopping criterion for Newton on coarse mesh
-const double NEWTON_TOL_FINE = 0.05;     // Stopping criterion for Newton on fine mesh
-                                         // (the ref. solution does not have to be super-accurate)
-const int NEWTON_MAX_ITER = 100;         // Maximum allowed number of Newton iterations
+const int INIT_REF_NUM = 2;              // Number of initial uniform refinements
 
 // Adaptivity
 const int UNREF_FREQ = 1;                // Every UNREF_FREQ time step the mesh is unrefined
@@ -71,6 +65,11 @@ const int NDOF_STOP = 60000;             // Adaptivity process stops when the nu
 const int SHOW_MESHES_IN_TIME_STEP = 1;  // If nonzero, all meshes during every time step are
                                          // shown, else only meshes at the end of every time step.
 
+// Newton's method
+const double NEWTON_TOL_COARSE = 0.01;   // Stopping criterion for Newton on coarse mesh
+const double NEWTON_TOL_FINE = 0.05;     // Stopping criterion for Newton on fine mesh
+const int NEWTON_MAX_ITER = 100;         // Maximum allowed number of Newton iterations
+
 // Problem constants
 const double H = 1;                      // Planck constant 6.626068e-34;
 const double M = 1;                      // mass of boson
@@ -100,23 +99,7 @@ scalar bc_values(int marker, double x, double y)
 }
 
 // Weak forms
-# include "integrals.cpp"
-
-// Implicit Euler method (1st-order in time)
-template<typename Real, typename Scalar>
-Scalar residuum_euler(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
-{  return F_euler(n, wt, v, e, ext);  }
-template<typename Real, typename Scalar>
-Scalar jacobian_euler(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
-{  return J_euler(n, wt, u, v, e, ext);  }
-
-// Crank-Nicolson (2nd-order in time)
-template<typename Real, typename Scalar>
-Scalar residuum_cranic(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
-{  return F_cranic(n, wt, v, e, ext);  }
-template<typename Real, typename Scalar>
-Scalar jacobian_cranic(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
-{  return J_cranic(n, wt, u, v, e, ext);  }
+# include "forms.cpp"
 
 int main(int argc, char* argv[])
 {
