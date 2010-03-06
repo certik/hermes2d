@@ -176,6 +176,7 @@ int main(int argc, char* argv[])
   Psi_prev_time.set_exact(&mesh, fn_init);
   Psi_prev_newton.set_exact(&mesh, fn_init);
   nls.set_ic(&Psi_prev_newton, &Psi_prev_newton, PROJ_TYPE);
+  sln_coarse.copy(&Psi_prev_time);
 
   // time stepping loop
   int nstep = (int)(T_FINAL/TAU + 0.5);
@@ -196,28 +197,23 @@ int main(int argc, char* argv[])
     double err_est;
     do
     {
-      info("\n---- Adaptivity step %d:\n", ++a_step);
+      info("---- Time step %d, adaptivity step %d, coarse mesh solution:\n", n, ++a_step);
 
-      info("---- Coarse mesh solution:\n");
-
-      // set initial condition for the Newton's method on the coarse mesh
-      nls.set_ic(&Psi_prev_newton, &Psi_prev_newton, PROJ_TYPE);  
-
-      // Newton's method
+      // Newton's method on coarse mesh
       if (!nls.solve_newton_1(&Psi_prev_newton, NEWTON_TOL_COARSE, NEWTON_MAX_ITER)) error("Newton's method did not converge.");
       sln_coarse.copy(&Psi_prev_newton);
 
-      // reference solution
+      info("---- Time step %d, adaptivity step %d, fine mesh solution:\n", n, ++a_step);
+
+      // reference nonlinear system
       RefNonlinSystem rnls(&nls);
       rnls.prepare();
 
-      info("---- Fine mesh solution:\n");
-
       // set initial condition for the Newton's method on the fine mesh
-      if (a_step == 1) rnls.set_ic(&sln_coarse, &Psi_prev_newton, PROJ_TYPE);
-      else rnls.set_ic(&sln_fine, &Psi_prev_newton, PROJ_TYPE);    
+      if (n == 1 || a_step == 1) rnls.set_ic(&sln_coarse, &Psi_prev_newton);
+      else rnls.set_ic(&sln_fine, &Psi_prev_newton);
 
-      // Newton's method
+      // Newton's method on fine mesh
       if (!rnls.solve_newton_1(&Psi_prev_newton, NEWTON_TOL_FINE, NEWTON_MAX_ITER)) error("Newton's method did not converge.");
       sln_fine.copy(&Psi_prev_newton);
 
@@ -245,7 +241,7 @@ int main(int argc, char* argv[])
         int ndof = space.assign_dofs();
         if (ndof >= NDOF_STOP) done = true;
 
-        // update initial guess u_prev for the Newton's method
+        // update initial guess Psi_prev_newton for the Newton's method
         // on the new coarse mesh
         nls.set_ic(&Psi_prev_newton, &Psi_prev_newton, PROJ_TYPE);
       }
@@ -256,7 +252,7 @@ int main(int argc, char* argv[])
     sprintf(title, "Magnitude, time level %d", n);
     magview.set_title(title);
     AbsFilter mag(&sln_fine);
-    magview.show(&mag);      // to see the magnitude of the solution
+    magview.show(&mag);      
 
     // show hp-mesh
     sprintf(title, "hp-mesh, time level %d", n);
