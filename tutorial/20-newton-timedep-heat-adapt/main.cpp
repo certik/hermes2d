@@ -3,7 +3,7 @@
 
 //  This example shows how to combine automatic adaptivity with the Newton's
 //  method for a nonlinear time-dependent PDE discretized implicitly in time
-//  (using implicit Euler or Crank-Nicolson). Unrefinements are allowed.
+//  (using implicit Euler or Crank-Nicolson).
 //
 //  PDE: time-dependent heat transfer equation with nonlinear thermal 
 //  conductivity, du/dt - div[lambda(u)grad u] = f
@@ -17,8 +17,13 @@
 
 const int P_INIT = 2;             // Initial polynomial degree of all mesh elements.
 const int PROJ_TYPE = 1;          // 1 for H1 projections, 0 for L2 projections
+const int TIME_DISCR = 2;         // 1 for implicit Euler, 2 for Crank-Nicolson
+const double TAU = 5;             // Time step
+const double T_FINAL = 600;       // Time interval length
 const int INIT_GLOB_REF_NUM = 2;  // Number of initial uniform mesh refinements
 const int INIT_BDY_REF_NUM = 0;   // Number of initial refinements towards boundary
+
+// Adaptivity
 const int UNREF_FREQ = 1;         // Every UNREF_FREQth time step the mesh is unrefined.
 const double THRESHOLD = 0.3;     // This is a quantitative parameter of the adapt(...) function and
                                   // it has different meanings for various adaptive strategies (see below).
@@ -51,14 +56,9 @@ const double ERR_STOP = 1.0;      // Stopping criterion for adaptivity (rel. err
 const int NDOF_STOP = 50000;      // Adaptivity process stops when the number of degrees of freedom grows
                                   // over this limit. This is to prevent h-adaptivity to go on forever.
 
-// time discretization parameters
-const int TIME_DISCR = 1;         // 1 for implicit Euler, 2 for Crank-Nicolson
-const double TAU = 5;             // time step
-const double T_FINAL = 600;       // time interval length
-
-// Newton parameters
-const double NEWTON_TOL_COARSE = 0.01;   // stopping criterion for Newton on coarse mesh
-const double NEWTON_TOL_FINE = 0.05;     // stopping criterion for Newton on fine mesh
+// Newton's method
+const double NEWTON_TOL_COARSE = 0.01;   // Stopping criterion for Newton on coarse mesh
+const double NEWTON_TOL_FINE = 0.05;     // Stopping criterion for Newton on fine mesh
 const int NEWTON_MAX_ITER = 100;         // Maximum allowed number of Newton iterations
 
 // Thermal conductivity (temperature-dependent)
@@ -88,7 +88,7 @@ scalar initial_condition(double x, double y, double& dx, double& dy)
   return dir_lift(x, y, dx, dy);
 }
 
-// Boundary condition type (essential = Dirichlet)
+// Boundary condition type
 int bc_types(int marker)
 {
   return BC_ESSENTIAL;
@@ -108,64 +108,8 @@ Real heat_src(Real x, Real y)
   return 1.0;
 }
 
-// Jacobian for the implicit Euler time discretization
-template<typename Real, typename Scalar>
-Scalar J_euler(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
-{
-  Scalar result = 0;
-  Func<Scalar>* u_prev_newton = ext->fn[0];
-  for (int i = 0; i < n; i++)
-    //result += wt[i] * (HEATCAP * u->val[i] * v->val[i] / TAU +
-    //                   dlam_du(t_prev_newton->val[i]) * u->val[i] * (t_prev_newton->dx[i] * v->dx[i] + t_prev_newton->dy[i] * v->dy[i]) +
-    //                   lam(t_prev_newton->val[i]) * (u->dx[i] * v->dx[i] + u->dy[i] * v->dy[i]));
-    result += wt[i] * (u->val[i] * v->val[i] / TAU + dlam_du(u_prev_newton->val[i]) * u->val[i] * 
-                       (u_prev_newton->dx[i] * v->dx[i] + u_prev_newton->dy[i] * v->dy[i])
-                       + lam(u_prev_newton->val[i]) * (u->dx[i] * v->dx[i] + u->dy[i] * v->dy[i]));                    
-  return result;
-}
-
-// Residuum for the implicit Euler time discretization
-template<typename Real, typename Scalar>
-Scalar F_euler(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
-{
-  Scalar result = 0;
-  Func<Scalar>* u_prev_newton = ext->fn[0];
-  Func<Scalar>* u_prev_time = ext->fn[1];
-  for (int i = 0; i < n; i++)
-    //result += wt[i] * (HEATCAP*(t_prev_newton->val[i] - t_prev_time->val[i]) * v->val[i] / TAU +
-    //                   lam(t_prev_newton->val[i]) * (t_prev_newton->dx[i] * v->dx[i] + t_prev_newton->dy[i] * v->dy[i]));
-    result += wt[i] * ((u_prev_newton->val[i] - u_prev_time->val[i]) * v->val[i] / TAU +
-                      lam(u_prev_newton->val[i]) * (u_prev_newton->dx[i] * v->dx[i] + u_prev_newton->dy[i] * v->dy[i])
-		       - heat_src(e->x[i], e->y[i]) * v->val[i]);
-  return result;
-}
-
-// Jacobian for the Crank-Nicolson time discretization
-template<typename Real, typename Scalar>
-Scalar J_cranic(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
-{
-  Scalar result = 0;
-  Func<Scalar>* u_prev_newton = ext->fn[0];
-  for (int i = 0; i < n; i++)
-    result += wt[i] * (u->val[i] * v->val[i] / TAU +
-                       0.5 * dlam_du(u_prev_newton->val[i]) * u->val[i] * (u_prev_newton->dx[i] * v->dx[i] + u_prev_newton->dy[i] * v->dy[i]) +
-                       0.5 * lam(u_prev_newton->val[i]) * (u->dx[i] * v->dx[i] + u->dy[i] * v->dy[i]));
-  return result;
-}
-
-// Residuum for the Crank-Nicolson time discretization
-template<typename Real, typename Scalar>
-Scalar F_cranic(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
-{
-  Scalar result = 0;
-  Func<Scalar>* u_prev_newton = ext->fn[0];
-  Func<Scalar>* u_prev_time = ext->fn[1];
-  for (int i = 0; i < n; i++)
-    result += wt[i] * ((u_prev_newton->val[i] - u_prev_time->val[i]) * v->val[i] / TAU +
-                       0.5 * lam(u_prev_newton->val[i]) * (u_prev_newton->dx[i] * v->dx[i] + u_prev_newton->dy[i] * v->dy[i]) +
-                       0.5 * lam(u_prev_time->val[i]) * (u_prev_time->dx[i] * v->dx[i] + u_prev_time->dy[i] * v->dy[i]));
-  return result;
-}
+// Weak forms
+# include "forms.cpp"
 
 int main(int argc, char* argv[])
 {
