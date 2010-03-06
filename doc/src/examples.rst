@@ -33,9 +33,8 @@ $D(x, y)$, absorption cross-section $\Sigma_a(x, y)$ and the source term $Q_{ext
 are constant in the subdomains. The source $Q_{ext} = 1$ in areas 1 and 3 and zero 
 elsewhere. Boundary conditions for the flux $\Phi$ are zero everywhere. 
 
-It is worth noticing how different material parameters are handled - we define a separate weak form 
-for each material. This approach is more flexible to how material parameters were handled in 
-tutorial examples 07 and 12:
+It is worth noticing that different material parameters can be handled using a separate weak form 
+for each material:
 
 ::
 
@@ -78,6 +77,11 @@ tutorial examples 07 and 12:
       return D_5 * int_grad_u_grad_v<Real, Scalar>(n, wt, u, v) 
              + SIGMA_A_5 * int_u_v<Real, Scalar>(n, wt, u, v);
     }
+
+Recall that this is not the only way to handle spatially-dependent material parameters. Alternatively, one can define 
+a global function returning material parameters as a function of spatial coordinates. This was done, e.g., 
+in the tutorial examples `07 <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/tutorial/07-general>`_ 
+and `12 <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/tutorial/12-adapt-general>`_.
 
 The weak forms are associated with element material flags (coming from the mesh file) as follows:
 
@@ -149,8 +153,7 @@ Iron-Water
 More information to this example can be found in the corresponding 
 `main.cpp <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/examples/iron-water/main.cpp>`_ file.
 This example is very similar to the example "saphir", the main difference being that 
-it reads a mesh file in the exodusii format (created by Cubit). 
-This example only builds 
+it reads a mesh file in the exodusii format (created by Cubit). This example only builds 
 if you have the `ExodusII <http://sourceforge.net/projects/exodusii/>`_ and 
 `NetCDF <http://www.unidata.ucar.edu/software/netcdf/>`_ libraries installed on your system and 
 the variables WITH_EXODUSII, EXODUSII_ROOT and NETCDF_ROOT defined properly. 
