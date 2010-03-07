@@ -7,14 +7,14 @@ axis('equal')
 pylab.title("Error convergence")
 pylab.xlabel("CPU time")
 pylab.ylabel("Error [%]")
-data = numpy.loadtxt("conv_cpu_hp_m.dat")
+data = numpy.loadtxt("conv_cpu_h1_m.dat")
 x = data[:, 0]
 y = data[:, 1]
-loglog(x, y, "-s", label="hp-FEM (multi)")
-data = numpy.loadtxt("conv_cpu_hp_s.dat")
+loglog(x, y, "-s", label="h-FEM (p=1, multi)")
+data = numpy.loadtxt("conv_cpu_h1_s.dat")
 x = data[:, 0]
 y = data[:, 1]
-loglog(x, y, "-s", label="hp-FEM (single)")
+loglog(x, y, "-s", label="h-FEM (p=1, single)")
 legend()
 
 # finalize

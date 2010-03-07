@@ -1726,8 +1726,6 @@ DOF and CPU time convergence graphs are below:
 For other applications of the multimesh hp-FEM see a `linear elasticity model with cracks 
 <http://hpfem.org/hermes2d/doc/src/examples.html#crack>`_ and
 a `thermoelasticity example <http://hpfem.org/hermes2d/doc/src/examples.html#thermoelasticity>`_.
-Especially in the latter the participating physical fields exhibit larger differences and thus 
-also the advantage of the multimesh discretization becomes more significant. 
 
 Adaptivity for General 2nd-Order Linear Equation
 ------------------------------------------------
@@ -2264,8 +2262,8 @@ Convergence in CPU time.
    :height: 400
    :alt: CPU convergence graph for tutorial example 15.
 
-Nonlinear Time-Dependent Problem
---------------------------------
+Nonlinear Parabolic Problem
+---------------------------
 
 More information to this example can be found in the `main.cpp 
 <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/tutorial/16-newton-timedep-heat/main.cpp>`_ file
@@ -2956,6 +2954,88 @@ Snapshot 3:
    :alt: solution
 
 
+====================================================
+Tutorial Part III (Adaptivity with Dynamical Meshes)
+====================================================
+
+(Space-time) adaptive FEM and *hp*-FEM for time-dependent PDE and PDE systems is one of 
+the most advanced techniques Hermes can do. Although we have published it 
+in several `scientific articles 
+<http://hpfem.math.unr.edu/people/pavel/public/papers.html>`_, 
+there is still a lot of space for improvement. Let us know through the
+`Hermes2D mailing list <http://groups.google.com/group/hermes2d/>`_ if 
+you are interested in getting involved. In this part of the tutorial 
+we explain the basic idea of the method and show several examples.
+
+Basic Idea
+----------
+
+The adaptivity with dynamical meshes in Hermes is based on the combination 
+of the multimesh *hp*-FEM with the classical Rothe's method. 
+
+The Rothe's method is a natural counterpart of the widely used Method of Lines (MOL). 
+Recall that the MOL performs discretization in space while 
+keeping the time variable continuous, which leads to a system of ODEs in time. The Rothe's 
+method, on the contrary, preserves the continuity of the spatial variable while discretizing time. 
+In every time step, an evolutionary PDE is approximated by means of one or more time-independent ones. 
+The number of the time-independent equations per time step is proportional to the order of accuracy of the 
+time discretization method. For example, when employing the implicit Euler method, one 
+has to solve one time-independent PDE per time step. The Rothe's method is fully equivalent to the 
+MOL if no adaptivity in space or time takes place, but it provides a better setting 
+for the application of spatially adaptive algorithms. The spatial discretization error
+can be controlled by solving the time-independent equations adaptively, and the size of 
+the time step can be adjusted using standard ODE techniques. 
+
+For the sake of clarity, let us consider a simple linear parabolic problem 
+
+.. math::
+
+    \frac{\partial u}{\partial t} - \Delta u = f
+
+and discretize the time variable using the implicit Euler method. We obtain 
+
+.. math::
+
+    \frac{u^{n+1} - u^n}{\tau} - \Delta u^{n+1} = f^{n+1},
+
+where 
+
+.. math::
+
+    u^{n+1}(x,y) \approx u(x, y, t^{n+1})\ \mbox{and} \  f^{n+1}(x, y) \approx f(x, y, t^{n+1}).
+
+The equation for $u^{n+1}$ does no longer depend on time and we can solve it adaptively 
+as any other time-independent equation (or equation system). The only thing worth 
+mentioning is that the previous time step approximation $u^n$ is now defined on 
+a locally refined mesh that was obtained during the previous time step. This 
+situation, however, can be handled routinely via the multimesh discretization 
+method. In fact, the user does not have to worry about anything. The methodology is 
+illustrated below.
+
+Nonlinear Parabolic Problem
+---------------------------
+
+Tutorial example `20-newton-timedep-heat-adapt 
+<http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/tutorial/20-newton-timedep-heat-adapt>`_ ready.
+Sphinx docs coming soon.
 
 
+Flame Propagation Problem
+-------------------------
+
+Coming soon.
+
+
+Navier-Stokes Equations
+-----------------------
+
+Coming soon.
+
+
+Gross-Pitaevski Equation
+------------------------
+
+Tutorial example `23-newton-timedep-gp-adapt 
+<http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/tutorial/23-newton-timedep-gp-adapt>`_ ready.
+Sphinx docs coming soon.
 

@@ -14,9 +14,9 @@
 //     temp = TEMP_INNER on Gamma_4
 //     negative heat flux with HEAT_FLUX_OUTER elsewhere
 
-const int P_INIT_TEMP = 2;       // Initial polynomial degrees in temperature mesh.
-const int P_INIT_DISP = 2;       // Initial polynomial degrees for displacement meshes.
-const bool MULTI = false;         // MULTI = true  ... use multi-mesh,
+const int P_INIT_TEMP = 1;       // Initial polynomial degrees in temperature mesh.
+const int P_INIT_DISP = 1;       // Initial polynomial degrees for displacement meshes.
+const bool MULTI = true;         // MULTI = true  ... use multi-mesh,
                                  // MULTI = false ... use single-mesh.
                                  // Note: In the single mesh option, the meshes are
                                  // forced to be geometrically the same but the
@@ -54,7 +54,7 @@ const int MESH_REGULARITY = -1;  // Maximum allowed level of hanging nodes:
                                  // their notoriously bad performance.
 const double CONV_EXP = 1.0;     // Default value is 1.0. This parameter influences the selection of 
                                  // cancidates in hp-adaptivity. See get_optimal_refinement() for details.
-const int MAXIMUM_ORDER = 10;    // Maximum allowed element degree
+const int MAXIMUM_ORDER = 10;     // Maximum allowed element degree
 const double ERR_STOP = 0.01;     // Stopping criterion for adaptivity (rel. error tolerance between the
                                  // fine mesh and coarse mesh solution in percent).
 const int NDOF_STOP = 60000;     // Adaptivity process stops when the number of degrees of freedom grows over
