@@ -10,7 +10,7 @@ axis('equal')
 data = numpy.loadtxt("conv_dof.dat")
 x = data[:, 0]
 y = data[:, 1]
-plot(x, y, '-s', label="error (est)")
+loglog(x, y, '-s', label="error (est)")
 legend()
 
 # initialize new window

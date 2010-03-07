@@ -1,4 +1,4 @@
 rm *~ 
-multimesh
+thermoelasticity
 python plot_graph.py &
 

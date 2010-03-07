@@ -1,11 +1,11 @@
 #include "hermes2d.h"
 #include "solver_umfpack.h"
 
-// This example demostrates the adaptive multimesh hp-FEM. The problem
-// considered is rooted in linear thermoelasticity: A massive hollow conductor
-// is heated by induction and cooled by water running inside. We will approximate the
-// x-displacement, y-displacement, and the temperature on individual meshes
-// equipped with mutually independent adaptivity mechanisms.
+// A massive hollow conductor is heated by induction and cooled by water running inside.
+// We will model this problem using linear thermoelasticity equations, where the x-displacement, 
+// y-displacement, and the temperature will be approximated on individual meshes equipped 
+// with mutually independent adaptivity mechanisms. Use MULTI = true to use multimesh,
+// MULTI = false for single-mesh (all solution components on the samemesh). 
 //
 // PDE: Linear thermoelasticity
 //
@@ -13,20 +13,15 @@
 //     du_1/dn = du_2/dn = 0 elsewhere
 //     temp = TEMP_INNER on Gamma_4
 //     negative heat flux with HEAT_FLUX_OUTER elsewhere
-//
-// The parameters below can be played with. In particular, compare hp- and
-// h-adaptivity via the ADAPT_TYPE option, and compare the multi-mesh vs. single-mesh
-// method using the MULTI parameter.
 
 const int P_INIT_TEMP = 2;       // Initial polynomial degrees in temperature mesh.
 const int P_INIT_DISP = 2;       // Initial polynomial degrees for displacement meshes.
-const int MAX_ORDER = 6;         // Maximum order used during adaptivity.
 const bool MULTI = false;         // MULTI = true  ... use multi-mesh,
                                  // MULTI = false ... use single-mesh.
                                  // Note: In the single mesh option, the meshes are
                                  // forced to be geometrically the same but the
                                  // polynomial degrees can still vary.
-const bool SAME_ORDERS = false;  // SAME_ORDERS = true ... when single-mesh is used,
+const bool SAME_ORDERS = true;   // SAME_ORDERS = true ... when single-mesh is used,
                                  // this forces the meshes for all components to be
                                  // identical, including the polynomial degrees of
                                  // corresponding elements. When multi-mesh is used,
@@ -60,12 +55,12 @@ const int MESH_REGULARITY = -1;  // Maximum allowed level of hanging nodes:
 const double CONV_EXP = 1.0;     // Default value is 1.0. This parameter influences the selection of 
                                  // cancidates in hp-adaptivity. See get_optimal_refinement() for details.
 const int MAXIMUM_ORDER = 10;    // Maximum allowed element degree
-const double ERR_STOP = 1.0;     // Stopping criterion for adaptivity (rel. error tolerance between the
+const double ERR_STOP = 0.01;     // Stopping criterion for adaptivity (rel. error tolerance between the
                                  // fine mesh and coarse mesh solution in percent).
 const int NDOF_STOP = 60000;     // Adaptivity process stops when the number of degrees of freedom grows over
                                  // this limit. This is mainly to prevent h-adaptivity to go on forever.
 
-// problem constants
+// Problem constants
 double HEAT_SRC = 10000.0;       // heat source in the material (caused by induction heating)
 double TEMP_INNER = 50;
 double HEAT_FLUX_OUTER = -50;
@@ -84,7 +79,7 @@ const int marker_sides = 2;
 const int marker_top = 3;
 const int marker_holes = 4;
 
-// boundary markers
+// Boundary condition types
 int bc_types_x(int marker)
   { return (marker == marker_bottom) ? BC_ESSENTIAL : BC_NATURAL; }
 
@@ -94,107 +89,45 @@ int bc_types_y(int marker)
 int bc_types_t(int marker)
   { return (marker == marker_holes) ? BC_ESSENTIAL : BC_NATURAL; }
 
+// Boundary condition values
 double bc_values_t(int marker, double x, double y)
   { return TEMP_INNER; }
 
-
-template<typename Real, typename Scalar>
-Scalar bilinear_form_0_0(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
-{
-  return l2m * int_dudx_dvdx<Real, Scalar>(n, wt, u, v) +
-          mu * int_dudy_dvdy<Real, Scalar>(n, wt, u, v);
-}
-
-template<typename Real, typename Scalar>
-Scalar bilinear_form_0_1(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
-{
-  return lambda * int_dudy_dvdx<Real, Scalar>(n, wt, u, v) +
-             mu * int_dudx_dvdy<Real, Scalar>(n, wt, u, v);
-}
-
-template<typename Real, typename Scalar>
-Scalar bilinear_form_0_2(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
-{
-  return - (3*lambda + 2*mu) * alpha * int_dudx_v<Real, Scalar>(n, wt, u, v);
-}
-
-template<typename Real, typename Scalar>
-Scalar bilinear_form_1_0(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
-{
-  return     mu * int_dudy_dvdx<Real, Scalar>(n, wt, u, v) +
-         lambda * int_dudx_dvdy<Real, Scalar>(n, wt, u, v);
-}
-
-template<typename Real, typename Scalar>
-Scalar bilinear_form_1_1(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
-{
-  return  mu * int_dudx_dvdx<Real, Scalar>(n, wt, u, v) +
-         l2m * int_dudy_dvdy<Real, Scalar>(n, wt, u, v);
-}
-
-template<typename Real, typename Scalar>
-Scalar bilinear_form_1_2(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
-{
-  return - (3*lambda + 2*mu) * alpha * int_dudy_v<Real, Scalar>(n, wt, u, v);
-}
-
-template<typename Real, typename Scalar>
-Scalar bilinear_form_2_2(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
-{
-  return int_grad_u_grad_v<Real, Scalar>(n, wt, u, v);
-}
-
-template<typename Real, typename Scalar>
-Scalar linear_form_1(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
-{
-  return -g * rho * int_v<Real, Scalar>(n, wt, v);
-}
-
-template<typename Real, typename Scalar>
-Scalar linear_form_2(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
-{
-  return HEAT_SRC * int_v<Real, Scalar>(n, wt, v);
-}
-
-template<typename Real, typename Scalar>
-Scalar linear_form_surf_2(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
-{
-  return HEAT_FLUX_OUTER * int_v<Real, Scalar>(n, wt, v);
-}
-
+// Weak forms
+#include "forms.cpp"
 
 int main(int argc, char* argv[])
 {
-  // load the mesh
+  // Load the mesh
   Mesh xmesh, ymesh, tmesh;
   H2DReader mloader;
-  mloader.load("domain_round_3.mesh", &xmesh); // master mesh
+  mloader.load("domain.mesh", &xmesh); // master mesh
   ymesh.copy(&xmesh);                // ydisp will share master mesh with xdisp
   tmesh.copy(&xmesh);                // temp will share master mesh with xdisp
 
-  // initialize the shapeset and the cache
+  // Initialize the shapeset and the cache
   H1ShapesetOrtho shapeset;
   PrecalcShapeset xpss(&shapeset);
   PrecalcShapeset ypss(&shapeset);
   PrecalcShapeset tpss(&shapeset);
 
-  // create the x displacement space
+  // Create the x displacement space
   H1Space xdisp(&xmesh, &shapeset);
   xdisp.set_bc_types(bc_types_x);
   xdisp.set_uniform_order(P_INIT_DISP);
 
-  // create the y displacement space
+  // Create the y displacement space
   H1Space ydisp(MULTI ? &ymesh : &xmesh, &shapeset);
   ydisp.set_bc_types(bc_types_y);
   ydisp.set_uniform_order(P_INIT_DISP);
 
-  // create the temperature space
+  // Create the temperature space
   H1Space temp(MULTI ? &tmesh : &xmesh, &shapeset);
   temp.set_bc_types(bc_types_t);
   temp.set_bc_values(bc_values_t);
   temp.set_uniform_order(P_INIT_TEMP);
 
-  // initialize the weak formulation
+  // Initialize the weak formulation
   WeakForm wf(3);
   wf.add_biform(0, 0, callback(bilinear_form_0_0));
   wf.add_biform(0, 1, callback(bilinear_form_0_1), SYM);
@@ -206,22 +139,20 @@ int main(int argc, char* argv[])
   wf.add_liform(2, callback(linear_form_2));
   wf.add_liform_surf(2, callback(linear_form_surf_2));
 
-  // visualization
+  // Visualization
   OrderView xord("X displacement poly degrees", 0, 0, 850, 400);
   OrderView yord("Y displacement poly degrees", 0, 455, 850, 400);
   OrderView tord("Temperature poly degrees", 0, 885, 850, 400);
   ScalarView sview("Von Mises stress [Pa]", 860, 0, 850, 400);
   ScalarView tview("Temperature [deg C]", 860, 455, 850, 400);
-  // disable scales
-  //xord.show_scale(false); yord.show_scale(false); tord.show_scale(false);
 
-  // matrix solver
+  // Matrix solver
   UmfpackSolver solver;
 
   // DOF and CPU convergence graphs
   SimpleGraph graph_dof, graph_cpu;
 
-  // adaptivity loop
+  // Adaptivity loop
   int it = 1, ndofs;
   bool done = false;
   double cpu = 0.0;
@@ -229,7 +160,7 @@ int main(int argc, char* argv[])
   Solution x_sln_fine, y_sln_fine, t_sln_fine;
   do
   {
-    info("\n---- Adaptivity step %d ---------------------------------------------\n", it++);
+    info("\n---- Adaptivity step %d:\n", it++);
 
     // time measurement
     begin_time();
@@ -283,12 +214,10 @@ int main(int argc, char* argv[])
     // time measurement
     cpu += end_time();
 
-    // add entry to DOF convergence graph
-    graph_dof.add_values(x_sln_fine.get_num_dofs() + y_sln_fine.get_num_dofs() + t_sln_fine.get_num_dofs(), err_est);
-    graph_dof.save("conv_dof.dat");
-
-    // add entry to CPU convergence graph
+    // add entries to convergence graphs
+    graph_dof.add_values(x_sln_coarse.get_num_dofs() + y_sln_coarse.get_num_dofs() + t_sln_coarse.get_num_dofs(), err_est);
     graph_cpu.add_values(cpu, err_est);
+    graph_dof.save("conv_dof.dat");
     graph_cpu.save("conv_cpu.dat");
 
     // time measurement
@@ -316,7 +245,7 @@ int main(int argc, char* argv[])
   sview.show(&stress_fine);
 
   // wait for keypress or mouse input
-  View::wait("Waiting for all views to be closed.");
+  View::wait();
   return 0;
 };
 
