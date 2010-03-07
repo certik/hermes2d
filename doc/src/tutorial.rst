@@ -1,8 +1,11 @@
-========
-Tutorial
-========
+=================================
+Tutorial Part I (Linear Problems)
+=================================
 
-This tutorial should give you a good idea of how to adjust existing Hermes2D examples and create your own applications. 
+This tutorial should give you a good idea of how Hermes2D works. After reading it, you will
+be able to create your own applications and/or adjust existing Hermes2D examples for your 
+purposes. The document is under continuous development - please let us know with any 
+feedback or improvement suggestions. 
 
 Creating Mesh
 -------------
@@ -1720,9 +1723,11 @@ DOF and CPU time convergence graphs are below:
    :height: 400
    :alt: comparison of multimesh and single mesh hp-FEM
 
-Later we will show a `thermoelasticity model <http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/examples/multimesh>`_
-where the participating physical fields exhibit larger differences and thus also the advantage of the multimesh discretization 
-becomes more significant. 
+For other applications of the multimesh hp-FEM see a `linear elasticity model with cracks 
+<http://hpfem.org/hermes2d/doc/src/examples.html#crack>`_ and
+a `thermoelasticity example <http://hpfem.org/hermes2d/doc/src/examples.html#thermoelasticity>`_.
+Especially in the latter the participating physical fields exhibit larger differences and thus 
+also the advantage of the multimesh discretization becomes more significant. 
 
 Adaptivity for General 2nd-Order Linear Equation
 ------------------------------------------------
@@ -1765,8 +1770,18 @@ The following graph shows convergence in terms of CPU time.
    :height: 400
    :alt: CPU convergence graph for tutorial example 12-adapt-general.
 
-Newton's Method for Nonlinear Problems
---------------------------------------
+=====================================
+Tutorial Part II (Nonlinear Problems)
+=====================================
+
+The second part of the tutorial assumes that the reader is familiar with basic concepts 
+covered in the first part. We will discuss the Newton's method for nonlinear PDE and 
+PDE systems, for both stationary and time-dependent models. At the end of this chapter,
+the reader will be able to solve time-dependent nonlinear problems adaptively using
+dynamical meshes. 
+
+The Newton's Method
+-------------------
 
 Hermes can solve nonlinear problems via the Newton's method, both single nonlinear
 PDE and nonlinear PDE systems. We begin with explaining how the Newton's method works, and 
@@ -1876,8 +1891,8 @@ The Newton's method is now
 Therefore, the Newton's method will converge in one iteration.
 
 
-Newton Example I - Constant Initial Guess
------------------------------------------
+Constant Initial Guess
+----------------------
 
 More information to this example can be found in the `main.cpp 
 <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/tutorial/13-newton-elliptic-1/main.cpp>`_ file
@@ -2030,8 +2045,8 @@ Approximate solution $u$ for $\alpha = 4$:
    :height: 400
    :alt: result for alpha = 4
 
-Newton Example II - General Initial Guess
------------------------------------------
+General Initial Guess
+---------------------
 
 More information to this example can be found in the `main.cpp 
 <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/tutorial/14-newton-elliptic-2/main.cpp>`_ file
@@ -2125,9 +2140,8 @@ method looks as follows:
    :height: 350
    :alt: approximate solution
 
-
-Newton Example III - Adaptivity
--------------------------------
+Newton's Method and Adaptivity
+------------------------------
 
 More information to this example can be found in the `main.cpp 
 <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/tutorial/15-newton-elliptic-adapt/main.cpp>`_ file
@@ -2250,8 +2264,8 @@ Convergence in CPU time.
    :height: 400
    :alt: CPU convergence graph for tutorial example 15.
 
-Newton Example IV - Simple Parabolic Problem
---------------------------------------------
+Nonlinear Time-Dependent Problem
+--------------------------------
 
 More information to this example can be found in the `main.cpp 
 <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/tutorial/16-newton-timedep-heat/main.cpp>`_ file
@@ -2355,8 +2369,8 @@ The entire time-stepping loop looks as follows:
 The stationary solution is not shown since we already saw it in the previous sections.
 
 
-Newton Example V - Flame Propagation Problem
---------------------------------------------
+Flame Propagation Problem
+-------------------------
 
 More information to this example can be found in the `main.cpp 
 <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/tutorial/17-newton-timedep-flame/main.cpp>`_ file
@@ -2545,8 +2559,8 @@ A few snapshots of the reaction rate $\omega$ are shown below:
    :width: 800
    :alt: solution
 
-Newton Example VI - Navier-Stokes Equations
--------------------------------------------
+Navier-Stokes Equations
+-----------------------
 
 More information to this example can be found in the `main.cpp 
 <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/tutorial/18-newton-timedep-ns/main.cpp>`_ file
@@ -2774,8 +2788,8 @@ Snapshot of a discontinuous pressure approximation (t = 20 s):
    :width: 840
    :alt: solution
 
-Newton Example VII - Gross-Pitaevski Equation
----------------------------------------------
+Gross-Pitaevski Equation
+------------------------
 
 More information to this example can be found in the `main.cpp 
 <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/tutorial/19-newton-timedep-gp/main.cpp>`_ file
