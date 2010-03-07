@@ -622,15 +622,124 @@ Crack
 
 More information to this example can be found in the corresponding 
 `main.cpp <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/examples/crack/main.cpp>`_ file.
-The example employs the adaptive multimesh hp-FEM to solve the Lame
+The example employs the adaptive multimesh hp-FEM to solve the 
 equations of linear elasticity. The domain contains two horizontal 
 cracks causing strong singularities at their corners. Each
 displacement component is approximated on an individual mesh.
 
-Solved are equations of linear elasticity from the 
-tutorial example `08-system <http://hpfem.org/hermes2d/doc/src/tutorial.html#systems-of-equations>`_.
+The computational domain is a $1.5 \times 0.3$ m rectangle containing two horizontal 
+cracks, as shown in the following figure:
 
+.. image:: img/crack/domain.png
+   :align: center
+   :width: 780
+   :alt: Domain.
 
+The cracks have a flat diamond-like shape and their width along with some other parameters 
+can be changed in the mesh file `crack.mesh 
+<http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/examples/crack/crack.mesh>`_:
+
+::
+
+    a = 0.25   # horizontal size of an eleemnt
+    b = 0.1    # vertical size of an element
+    w = 0.001  # width of the cracks
+
+Solved are equations of linear elasticity with the following boundary conditions: 
+$u_1 = u_2 = 0$ on the left edge, external force $f$ on the upper edge, and zero Neumann
+conditions for $u_1$ and $u_2$ on the right and bottom edges as well as on the crack 
+boundaries. Translated into the weak forms, this becomes:
+
+::
+
+    // linear and bilinear forms
+    template<typename Real, typename Scalar>
+    Scalar bilinear_form_0_0(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+    {
+      return (lambda + 2*mu) * int_dudx_dvdx<Real, Scalar>(n, wt, u, v) +
+                          mu * int_dudy_dvdy<Real, Scalar>(n, wt, u, v);
+    }
+
+    template<typename Real, typename Scalar>
+    Scalar bilinear_form_0_1(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+    {
+      return lambda * int_dudy_dvdx<Real, Scalar>(n, wt, u, v) +
+                 mu * int_dudx_dvdy<Real, Scalar>(n, wt, u, v);
+    }
+
+    template<typename Real, typename Scalar>
+    Scalar bilinear_form_1_0(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+    {
+      return     mu * int_dudy_dvdx<Real, Scalar>(n, wt, u, v) +
+             lambda * int_dudx_dvdy<Real, Scalar>(n, wt, u, v);
+    }
+
+    template<typename Real, typename Scalar>
+    Scalar bilinear_form_1_1(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+    {
+      return              mu * int_dudx_dvdx<Real, Scalar>(n, wt, u, v) +
+             (lambda + 2*mu) * int_dudy_dvdy<Real, Scalar>(n, wt, u, v);
+    }
+
+    template<typename Real, typename Scalar>
+    Scalar linear_form_surf_1(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+    {
+      return -f * int_v<Real, Scalar>(n, wt, v);
+    }
+
+The multimesh discretization is activated by creating a common master mesh 
+for both displacement components:
+
+::
+
+    // load the mesh
+    Mesh xmesh, ymesh;
+    H2DReader mloader;
+    mloader.load("crack.mesh", &xmesh);
+    ymesh.copy(&xmesh);          // this defines the common master mesh for
+                                 // both displacement fields
+
+Then we define separate spaces for $u_1$ and $u_2$:
+
+::
+
+    // create the x displacement space
+    H1Space xdisp(&xmesh, &shapeset);
+    xdisp.set_bc_types(bc_types_xy);
+    xdisp.set_uniform_order(P_INIT);
+
+    // create the y displacement space
+    H1Space ydisp(MULTI ? &ymesh : &xmesh, &shapeset);
+    ydisp.set_bc_types(bc_types_xy);
+    ydisp.set_uniform_order(P_INIT);
+
+The weak forms are registered as usual:
+
+::
+
+    // initialize the weak formulation
+    WeakForm wf(2);
+    wf.add_biform(0, 0, callback(bilinear_form_0_0), SYM);
+    wf.add_biform(0, 1, callback(bilinear_form_0_1), SYM);
+    wf.add_biform(1, 1, callback(bilinear_form_1_1), SYM);
+    wf.add_liform_surf(1, callback(linear_form_surf_1), marker_top);
+
+Next we set bilinear forms for the calculation of the global energy norm,
+and calculate the error:
+
+::
+
+    // calculate error estimate wrt. fine mesh solution in energy norm
+    H1OrthoHP hp(2, &xdisp, &ydisp);
+    hp.set_biform(0, 0, bilinear_form_0_0<scalar, scalar>, bilinear_form_0_0<Ord, Ord>);
+    hp.set_biform(0, 1, bilinear_form_0_1<scalar, scalar>, bilinear_form_0_1<Ord, Ord>);
+    hp.set_biform(1, 0, bilinear_form_1_0<scalar, scalar>, bilinear_form_1_0<Ord, Ord>);
+    hp.set_biform(1, 1, bilinear_form_1_1<scalar, scalar>, bilinear_form_1_1<Ord, Ord>);
+    double err_est = hp.calc_error_2(&sln_x_coarse, &sln_y_coarse, &sln_x_fine, &sln_y_fine) * 100;
+    info("Error estimate: %g %%", err_est);
+
+The rest is straightforward and details can be found in the 
+`main.cpp <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/examples/crack/main.cpp>`_ file.
 
 Detail of singularity in Von Mises stress at the left end of the left crack:
 
