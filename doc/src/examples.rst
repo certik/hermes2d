@@ -823,7 +823,263 @@ The same comparison in terms of CPU time:
 Thermoelasticity
 ----------------
 
-To be added soon.
+More information to this example can be found in the corresponding 
+`main.cpp <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/examples/thermoelasticity/main.cpp>`_ file.
+The example deals with a massive hollow conductor is heated by induction and 
+cooled by water running inside. We will model this problem using linear thermoelasticity 
+equations, where the x-displacement, y-displacement, and the temperature will be approximated 
+on individual meshes equipped with mutually independent adaptivity mechanisms. 
+
+The computational domain is shown in the following figure and the details of the geometry can be found 
+in the corresponding 
+`mesh file <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/examples/thermoelasticity/domain.mesh>`_.
+It is worth mentioning how the circular arcs are defined via NURBS:
+
+::
+
+    curves =
+    {
+      { 11, 19, 90 },
+      { 10, 15, 90 },
+      { 16, 6, 90 },
+      { 12, 7, 90 }
+    }
+
+The triplet on each line consists of two boundary vertex indices and 
+the angle of the circular arc.
+
+.. image:: img/thermoelasticity/domain.png
+   :align: center
+   :width: 700
+   :alt: Domain.
+
+For the equations of linear thermoelasticity and the boundary conditions we refer to the 
+paper *P. Solin, J. Cerveny, L. Dubcova, D. Andrs: Monolithic Discretization 
+of Linear Thermoelasticity Problems via Adaptive Multimesh hp-FEM*,  
+`doi.org/10.1016/j.cam.2009.08.092 <http://dx.doi.org/10.1016/j.cam.2009.08.092>`_.
+The corresponding weak forms are:
+
+::
+
+    template<typename Real, typename Scalar>
+    Scalar bilinear_form_0_0(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+    {
+      return l2m * int_dudx_dvdx<Real, Scalar>(n, wt, u, v) +
+              mu * int_dudy_dvdy<Real, Scalar>(n, wt, u, v);
+    }
+
+    template<typename Real, typename Scalar>
+    Scalar bilinear_form_0_1(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+    {
+      return lambda * int_dudy_dvdx<Real, Scalar>(n, wt, u, v) +
+                 mu * int_dudx_dvdy<Real, Scalar>(n, wt, u, v);
+    }
+
+    template<typename Real, typename Scalar>
+    Scalar bilinear_form_0_2(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+    {
+      return - (3*lambda + 2*mu) * alpha * int_dudx_v<Real, Scalar>(n, wt, u, v);
+    }
+
+    template<typename Real, typename Scalar>
+    Scalar bilinear_form_1_0(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+    {
+      return     mu * int_dudy_dvdx<Real, Scalar>(n, wt, u, v) +
+             lambda * int_dudx_dvdy<Real, Scalar>(n, wt, u, v);
+    }
+
+    template<typename Real, typename Scalar>
+    Scalar bilinear_form_1_1(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+    {
+      return  mu * int_dudx_dvdx<Real, Scalar>(n, wt, u, v) +
+             l2m * int_dudy_dvdy<Real, Scalar>(n, wt, u, v);
+    }
+
+    template<typename Real, typename Scalar>
+    Scalar bilinear_form_1_2(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+    {
+      return - (3*lambda + 2*mu) * alpha * int_dudy_v<Real, Scalar>(n, wt, u, v);
+    }
+
+    template<typename Real, typename Scalar>
+    Scalar bilinear_form_2_2(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+    {
+      return int_grad_u_grad_v<Real, Scalar>(n, wt, u, v);
+    }
+
+    template<typename Real, typename Scalar>
+    Scalar linear_form_1(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+    {
+      return -g * rho * int_v<Real, Scalar>(n, wt, v);
+    }
+
+    template<typename Real, typename Scalar>
+    Scalar linear_form_2(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+    {
+      return HEAT_SRC * int_v<Real, Scalar>(n, wt, v);
+    }
+
+    template<typename Real, typename Scalar>
+    Scalar linear_form_surf_2(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+    {
+      return HEAT_FLUX_OUTER * int_v<Real, Scalar>(n, wt, v);
+    }
+
+The multimesh discretization is initialized by creating the master mesh
+via copying the xmesh into ymesh and tmesh:
+
+::
+
+    // Load the mesh
+    Mesh xmesh, ymesh, tmesh;
+    H2DReader mloader;
+    mloader.load("domain.mesh", &xmesh); // master mesh
+    ymesh.copy(&xmesh);                // ydisp will share master mesh with xdisp
+    tmesh.copy(&xmesh);                // temp will share master mesh with xdisp
+
+The weak formulation is initialized as follows:
+
+::
+
+    // Initialize the weak formulation
+    WeakForm wf(3);
+    wf.add_biform(0, 0, callback(bilinear_form_0_0));
+    wf.add_biform(0, 1, callback(bilinear_form_0_1), SYM);
+    wf.add_biform(0, 2, callback(bilinear_form_0_2));
+    wf.add_biform(1, 1, callback(bilinear_form_1_1));
+    wf.add_biform(1, 2, callback(bilinear_form_1_2));
+    wf.add_biform(2, 2, callback(bilinear_form_2_2));
+    wf.add_liform(1, callback(linear_form_1));
+    wf.add_liform(2, callback(linear_form_2));
+    wf.add_liform_surf(2, callback(linear_form_surf_2));
+
+The coarse mesh problem is solved using
+
+::
+
+    // solve the coarse mesh problem
+    LinSystem ls(&wf, &solver);
+    ls.set_spaces(3, &xdisp, &ydisp, &temp);
+    ls.set_pss(3, &xpss, &ypss, &tpss);
+    ls.assemble();
+    ls.solve(3, &x_sln_coarse, &y_sln_coarse, &t_sln_coarse);
+
+The following code defines the global norm for error measurement, and 
+calculates element errors. In particular, notice the function 
+hp.calc_error_n()
+
+::
+
+    // calculate element errors and total error estimate
+    H1OrthoHP hp(3, &xdisp, &ydisp, &temp);
+    hp.set_biform(0, 0, bilinear_form_0_0<scalar, scalar>, bilinear_form_0_0<Ord, Ord>);
+    hp.set_biform(0, 1, bilinear_form_0_1<scalar, scalar>, bilinear_form_0_1<Ord, Ord>);
+    hp.set_biform(0, 2, bilinear_form_0_2<scalar, scalar>, bilinear_form_0_2<Ord, Ord>);
+    hp.set_biform(1, 0, bilinear_form_1_0<scalar, scalar>, bilinear_form_1_0<Ord, Ord>);
+    hp.set_biform(1, 1, bilinear_form_1_1<scalar, scalar>, bilinear_form_1_1<Ord, Ord>);
+    hp.set_biform(1, 2, bilinear_form_1_2<scalar, scalar>, bilinear_form_1_2<Ord, Ord>);
+    hp.set_biform(2, 2, bilinear_form_2_2<scalar, scalar>, bilinear_form_2_2<Ord, Ord>);
+    double err_est = hp.calc_error_n(3, &x_sln_coarse, &y_sln_coarse, &t_sln_coarse, &x_sln_fine, &y_sln_fine, &t_sln_fine) * 100;
+
+Sample snapshot of solutions, meshes and convergence graphs are below. 
+
+Solution (Von Mises stress):
+
+.. image:: img/thermoelasticity/mises.png
+   :align: center
+   :width: 790
+   :alt: Solution.
+
+Solution (temperature):
+
+.. image:: img/thermoelasticity/temp.png
+   :align: center
+   :width: 780
+   :alt: Solution.
+
+Final meshes for $u_1$, $u_2$ and $T$ (h-FEM with linear elements):
+
+.. image:: img/thermoelasticity/x-mesh-h1.png
+   :align: center
+   :width: 760
+   :alt: Solution.
+
+.. image:: img/thermoelasticity/y-mesh-h1.png
+   :align: center
+   :width: 760
+   :alt: Solution.
+
+.. image:: img/thermoelasticity/t-mesh-h1.png
+   :align: center
+   :width: 760
+   :alt: Solution.
+
+Final meshes for $u_1$, $u_2$ and $T$ (h-FEM with quadratic elements):
+
+.. image:: img/thermoelasticity/x-mesh-h2.png
+   :align: center
+   :width: 760
+   :alt: Solution.
+
+.. image:: img/thermoelasticity/y-mesh-h2.png
+   :align: center
+   :width: 760
+   :alt: Solution.
+
+.. image:: img/thermoelasticity/t-mesh-h2.png
+   :align: center
+   :width: 760
+   :alt: Solution.
+
+Final meshes for $u_1$, $u_2$ and $T$ (h-FEM with quadratic elements):
+
+.. image:: img/thermoelasticity/x-mesh-hp.png
+   :align: center
+   :width: 760
+   :alt: Solution.
+
+.. image:: img/thermoelasticity/y-mesh-hp.png
+   :align: center
+   :width: 760
+   :alt: Solution.
+
+.. image:: img/thermoelasticity/t-mesh-hp.png
+   :align: center
+   :width: 760
+   :alt: Solution.
+
+DOF convergence graphs:
+
+.. image:: img/crack/conv_dof.png
+   :align: center
+   :width: 600
+   :height: 400
+   :alt: DOF convergence graph.
+
+CPU time convergence graphs:
+
+.. image:: img/thermoelasticity/conv_cpu.png
+   :align: center
+   :width: 600
+   :height: 400
+   :alt: CPU convergence graph.
+
+Next let us compare the multimesh hp-FEM with the standard (single-mesh) hp-FEM:
+
+.. image:: img/thermoelasticity/conv_compar_dof.png
+   :align: center
+   :width: 600
+   :height: 400
+   :alt: DOF convergence graph.
+
+The same comparison in terms of CPU time:
+
+.. image:: img/thermoelasticity/conv_compar_cpu.png
+   :align: center
+   :width: 600
+   :height: 400
+   :alt: CPU convergence graph.
+
 
 
 
