@@ -1,7 +1,7 @@
 
 a = 0.25   # horizontal size of an eleemnt
 b = 0.1    # vertical size of an element
-w = 0.000  # width of the cracks
+w = 0.001  # width of the cracks
 
 vertices =
 {

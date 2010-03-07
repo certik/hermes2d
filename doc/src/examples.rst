@@ -252,8 +252,10 @@ CPU time convergence graphs:
 Nernst-Planck
 -------------
 
-This section describes how to make a weak form presentation
-of Poisson and Nernst-Planck equation system. The Nernst-Planck
+More information to this example can be found in the corresponding 
+`main.cpp <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/examples/newton-np-timedep-adapt-system/main.cpp>`_ file.
+The example is concerned with the finite element solution 
+of the Poisson and Nernst-Planck equation system. The Nernst-Planck
 equation is often used to describe the diffusion, convection,
 and migration of charged particles:
 
@@ -618,7 +620,102 @@ To be added soon.
 Crack
 -----
 
+More information to this example can be found in the corresponding 
+`main.cpp <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/examples/crack/main.cpp>`_ file.
+The example employs the adaptive multimesh hp-FEM to solve the Lame
+equations of linear elasticity. The domain contains two horizontal 
+cracks causing strong singularities at their corners. Each
+displacement component is approximated on an individual mesh.
+
+Solved are equations of linear elasticity from the 
+tutorial example `08-system <http://hpfem.org/hermes2d/doc/src/tutorial.html#systems-of-equations>`_.
+
+
+
+Detail of singularity in Von Mises stress at the left end of the left crack:
+
+.. image:: img/crack/sol.png
+   :align: center
+   :width: 700
+   :alt: Solution.
+
+Final meshes for $u_1$ and $u_2$ (h-FEM with linear elements):
+
+.. image:: img/crack/mesh-x-h1.png
+   :align: center
+   :width: 800
+   :alt: Solution.
+
+.. image:: img/crack/mesh-y-h1.png
+   :align: center
+   :width: 800
+   :alt: Solution.
+
+Final meshes for $u_1$ and $u_2$ (h-FEM with quadratic elements):
+
+.. image:: img/crack/mesh-x-h2.png
+   :align: center
+   :width: 800
+   :alt: Solution.
+
+.. image:: img/crack/mesh-x-h2.png
+   :align: center
+   :width: 800
+   :alt: Solution.
+
+Final meshes for $u_1$ and $u_2$ (hp-FEM):
+
+.. image:: img/crack/mesh-x-hp.png
+   :align: center
+   :width: 800
+   :alt: Solution.
+
+.. image:: img/crack/mesh-y-hp.png
+   :align: center
+   :width: 800
+   :alt: Solution.
+
+DOF convergence graphs:
+
+.. image:: img/crack/conv_dof.png
+   :align: center
+   :width: 600
+   :height: 400
+   :alt: DOF convergence graph.
+
+CPU time convergence graphs:
+
+.. image:: img/crack/conv_cpu.png
+   :align: center
+   :width: 600
+   :height: 400
+   :alt: CPU convergence graph.
+
+Next let us compare the multimesh hp-FEM with the standard (single-mesh) hp-FEM:
+
+.. image:: img/crack/conv_dof_compar.png
+   :align: center
+   :width: 600
+   :height: 400
+   :alt: DOF convergence graph.
+
+The same comparison in terms of CPU time:
+
+.. image:: img/crack/conv_cpu_compar.png
+   :align: center
+   :width: 600
+   :height: 400
+   :alt: CPU convergence graph.
+
+
+
+
+
+Thermoelasticity
+----------------
+
 To be added soon.
+
 
 
 

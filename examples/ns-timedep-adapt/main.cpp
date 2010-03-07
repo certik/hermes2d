@@ -22,15 +22,15 @@
 const double RE = 200.0;             // Reynolds number
 const double VEL_INLET = 1.0;        // inlet velocity (reached after STARTUP_TIME)
 const double STARTUP_TIME = 1.0;     // during this time, inlet velocity increases gradually
-                               // from 0 to VEL_INLET, then it stays constant
+                                     // from 0 to VEL_INLET, then it stays constant
 const double TAU = 0.1;              // time step
-const double FINAL_TIME = 20.0;    // length of time interval
+const double FINAL_TIME = 20.0;      // length of time interval
 const int P_INIT_VEL = 2;            // initial polynomial degree for velocity components
 const int P_INIT_PRESSURE = 1;       // initial polynomial degree for pressure
-                               // Note: P_INIT_VEL should always be greater than
-                               // P_INIT_PRESSURE because of the inf-sup condition
+                                     // Note: P_INIT_VEL should always be greater than
+                                     // P_INIT_PRESSURE because of the inf-sup condition
 const double H = 5;                  // domain height (necessary to define the parabolic
-                               // velocity profile at inlet)
+                                     // velocity profile at inlet)
 
 //  to better understand boundary conditions
 const int marker_bottom = 1;
