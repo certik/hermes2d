@@ -1064,7 +1064,8 @@ CPU time convergence graphs:
    :height: 400
    :alt: CPU convergence graph.
 
-Next let us compare the multimesh hp-FEM with the standard (single-mesh) hp-FEM:
+Next let us compare, for example, multimesh h-FEM with linear elements with the standard (single-mesh)
+h-FEM:
 
 .. image:: img/thermoelasticity/conv_compar_dof.png
    :align: center
@@ -1072,13 +1073,6 @@ Next let us compare the multimesh hp-FEM with the standard (single-mesh) hp-FEM:
    :height: 400
    :alt: DOF convergence graph.
 
-The same comparison in terms of CPU time:
-
-.. image:: img/thermoelasticity/conv_compar_cpu.png
-   :align: center
-   :width: 600
-   :height: 400
-   :alt: CPU convergence graph.
 
 
 
