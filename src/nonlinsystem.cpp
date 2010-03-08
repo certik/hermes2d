@@ -238,7 +238,7 @@ bool NonlinSystem::solve_newton_1(Solution* u_prev, double newton_tol, int newto
     do
     {
       info("---- Newton iter %d:\n", it++);
-      printf("ndof = %d\n", space->get_num_dofs());
+      //printf("ndof = %d\n", space->get_num_dofs());
 
       // reinitialization of filters (if relevant)
       if (f1 != NULL) f1->reinit();
@@ -276,7 +276,7 @@ bool NonlinSystem::solve_newton_2(Solution* u_prev_1, Solution* u_prev_2, double
     do
     {
       info("---- Newton iter %d:\n", it++);
-      printf("ndof = %d\n", space_1->get_num_dofs() + space_2->get_num_dofs());
+      //printf("ndof = %d\n", space_1->get_num_dofs() + space_2->get_num_dofs());
 
       // reinitialization of filters (if relevant)
       if (f1 != NULL) f1->reinit();
@@ -317,7 +317,7 @@ bool NonlinSystem::solve_newton_3(Solution* u_prev_1, Solution* u_prev_2, Soluti
     do
     {
       info("---- Newton iter %d:\n", it++);
-      printf("ndof = %d\n", space_1->get_num_dofs() + space_2->get_num_dofs() + space_3->get_num_dofs());
+      //printf("ndof = %d\n", space_1->get_num_dofs() + space_2->get_num_dofs() + space_3->get_num_dofs());
 
       // reinitialization of filters (if relevant)
       if (f1 != NULL) f1->reinit();
