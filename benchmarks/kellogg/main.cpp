@@ -1,13 +1,8 @@
 #include "hermes2d.h"
 #include "solver_umfpack.h"
 
-//  This is a simple non-elliptic problem with known exact solution where one
-//  can see the advantages of anisotropic refinements. During each computation,
-//  approximate convergence curves are saved into the files "conv_dof.gp" and
-//  "conv_cpu.gp". As in other adaptivity examples, you can compare hp-adaptivity
-//  (ADAPT_TYPE = 0) with h-adaptivity (ADAPT_TYPE = 1) and p-adaptivity (ADAPT_TYPE = 2).
-//  You can turn off and on anisotropic element refinements via the ISO_ONLY
-//  parameter.
+//  This is an elliptic problem with known exact solution. The solution contains 
+//  a very strong singularity that represents a challenge for most adaptive methods.
 //
 //  PDE: -div(A(x,y) grad u) = 0
 //  where a(x,y) = R in the first and third quadrant
@@ -16,15 +11,12 @@
 //  Exact solution: u(x,y) = cos(M_PI*y/2)    for x < 0
 //                  u(x,y) = cos(M_PI*y/2) + pow(x, alpha)   for x > 0   where alpha > 0
 //
-//  Domain: square, see the file singpert.mesh
+//  Domain: Square (-1,1)^2.
 //
-//  BC:  Homogeneous Dirichlet
-//
-//  The following parameters can be changed:
+//  BC:  Dirichlet given by exact solution.
 
-const int INIT_REF_NUM = 1;       // number of initial mesh refinements (the original mesh is just one element)
-const int INIT_REF_NUM_BDY = 0;   // number of initial mesh refinements towards the boundary
 const int P_INIT = 1;             // Initial polynomial degree of all mesh elements.
+const int INIT_REF_NUM = 1;       // number of initial mesh refinements (the original mesh is just one element)
 const double THRESHOLD = 0.3;     // This is a quantitative parameter of the adapt(...) function and
                                   // it has different meanings for various adaptive strategies (see below).
 const int STRATEGY = 0;           // Adaptive strategy:
@@ -51,7 +43,7 @@ const int MESH_REGULARITY = -1;   // Maximum allowed level of hanging nodes:
                                   // MESH_REGULARITY = 2 ... at most two-level hanging nodes, etc.
                                   // Note that regular meshes are not supported, this is due to
                                   // their notoriously bad performance.
-const double ERR_STOP = 0.6;      // Stopping criterion for adaptivity (rel. error tolerance between the
+const double ERR_STOP = 1.0;      // Stopping criterion for adaptivity (rel. error tolerance between the
                                   // fine mesh and coarse mesh solution in percent).
 const int NDOF_STOP = 100000;     // Adaptivity process stops when the number of degrees of freedom grows
                                   // over this limit. This is to prevent h-adaptivity to go on forever.
@@ -66,23 +58,23 @@ const double SIGMA = -14.92256510455152; // Equation parameter
 static double fn(double x, double y)
 {
   double theta = atan2(y,x);
-  if (theta < 0) theta = theta + 2*M_PI;
+  if (theta < 0) theta = theta + 2.*M_PI;
   double r = sqrt(x*x + y*y);
 
   double mu;
   if (theta <= M_PI/2.) {
-    mu = cos((M_PI/2. - SIGMA)*TAU)*cos((theta-M_PI/2+RHO)*TAU);
+    mu = cos((M_PI/2. - SIGMA)*TAU) * cos((theta - M_PI/2. + RHO)*TAU);
   }
   else {
     if (theta <= M_PI) {
-      mu = cos(RHO*TAU)*cos((theta - M_PI + SIGMA)*TAU);
+      mu = cos(RHO*TAU) * cos((theta - M_PI + SIGMA)*TAU);
     }
     else {
-      if (theta <= 3*M_PI/2.) {
-        mu = cos(SIGMA*TAU)*cos((theta - M_PI + RHO)*TAU);
+      if (theta <= 3.*M_PI/2.) {
+        mu = cos(SIGMA*TAU) * cos((theta - M_PI - RHO)*TAU);
       }
       else {
-        mu = cos((M_PI/2. - RHO)*TAU)*cos((theta-3*M_PI/2. - SIGMA)*TAU);
+        mu = cos((M_PI/2. - RHO)*TAU) * cos((theta - 3.*M_PI/2. - SIGMA)*TAU);
       }
     }
   }
@@ -97,7 +89,6 @@ static double fndd(double x, double y, double& dx, double& dy)
   double r = sqrt(x*x + y*y);
   // x-derivative
   if (theta <= M_PI/2.) {
-    //mu = cos((M_PI/2. - SIGMA)*TAU) * cos((theta - M_PI/2. + RHO)*TAU);
     dx = TAU*x*pow(r, (2.*(-1 + TAU/2.))) *
     cos((M_PI/2. - SIGMA)*TAU) *
     cos(TAU*(-M_PI/2. + RHO + theta)) +
@@ -106,25 +97,22 @@ static double fndd(double x, double y, double& dx, double& dy)
   }
   else {
     if (theta <= M_PI) {
-      //mu = cos(RHO*TAU)*cos((theta - M_PI + SIGMA)*TAU);
       dx = TAU*x * pow(r, (2.*(-1 + TAU/2.))) * cos(RHO*TAU) *
       cos(TAU*(-M_PI + SIGMA + theta)) +
       (TAU*y * pow(r, TAU) * cos(RHO*TAU) *
       sin(TAU*(-M_PI + SIGMA + theta))/(r*r));
     }
     else {
-      if (theta <= 3*M_PI/2.) {
-        //mu = cos(SIGMA*TAU) * cos((theta - M_PI + RHO)*TAU);
+      if (theta <= 3.*M_PI/2.) {
         dx = TAU*x * pow(r, (2.*(-1 + TAU/2.))) * cos(SIGMA*TAU) *
-        cos(TAU*(-M_PI + RHO + theta)) +
+        cos(TAU*(-M_PI - RHO + theta)) +
 	(TAU*y * pow(r, TAU) * cos(SIGMA*TAU) *
-	 sin(TAU*(-M_PI + RHO + theta))/(r*r));
+	 sin(TAU*(-M_PI - RHO + theta))/(r*r));
       }
       else {
-        //mu = cos((M_PI/2. - RHO)*TAU) * cos((theta - 3*M_PI/2. - SIGMA)*TAU);
         dx = TAU*x* pow(r, (2*(-1 + TAU/2.))) *
         cos((M_PI/2. - RHO)*TAU) *
-	cos(TAU*(-3*M_PI/2. - SIGMA + theta)) +
+	cos(TAU*(-3.*M_PI/2. - SIGMA + theta)) +
 	(TAU*y*pow(r, TAU) * cos((M_PI/2. - RHO)*TAU) *
 	sin(TAU*(-3.*M_PI/2. - SIGMA + theta))/(r*r));
       }
@@ -132,7 +120,6 @@ static double fndd(double x, double y, double& dx, double& dy)
   }
   // y-derivative
   if (theta <= M_PI/2.) {
-    //mu = cos((M_PI/2. - SIGMA)*TAU) * cos((theta - M_PI/2. + RHO)*TAU);
     dy = TAU*y * pow(r, (2*(-1 + TAU/2.))) *
       cos((M_PI/2. - SIGMA)*TAU) *
       cos(TAU*(-M_PI/2. + RHO + theta)) -
@@ -141,51 +128,43 @@ static double fndd(double x, double y, double& dx, double& dy)
   }
   else {
     if (theta <= M_PI) {
-      //mu = cos(RHO*TAU)*cos((theta - M_PI + SIGMA)*TAU);
       dy = TAU*y* pow(r, (2*(-1 + TAU/2.))) * cos(RHO*TAU) *
 	cos(TAU*(-M_PI + SIGMA + theta)) -
         (TAU * pow(r, TAU) * cos(RHO*TAU) *
 	 sin(TAU*(-M_PI + SIGMA + theta))*x/(r*r));
     }
     else {
-      if (theta <= 3*M_PI/2.) {
-        //mu = cos(SIGMA*TAU) * cos((theta - M_PI + RHO)*TAU);
+      if (theta <= 3.*M_PI/2.) {
         dy = TAU*y * pow(r, (2*(-1 + TAU/2.))) * cos(SIGMA*TAU) *
-	  cos(TAU*(-M_PI + RHO + theta)) -
+	  cos(TAU*(-M_PI - RHO + theta)) -
 	  (TAU * pow(r, TAU) * cos(SIGMA*TAU) *
-	   sin(TAU*(-M_PI + RHO + theta))*x/(r*r));
+	   sin(TAU*(-M_PI - RHO + theta))*x/(r*r));
       }
       else {
-        //mu = cos((M_PI/2 - RHO)*TAU) * cos((theta-3*M_PI/2 - SIGMA)*TAU);
         dy = TAU*y * pow(r, (2*(-1 + TAU/2.))) *
         cos((M_PI/2. - RHO)*TAU) *
-	  cos(TAU*(-3*M_PI/2. - SIGMA + theta)) -
+	  cos(TAU*(-3.*M_PI/2. - SIGMA + theta)) -
 	  (TAU * pow(r, TAU) * cos((M_PI/2. - RHO)*TAU) *
-	   sin(TAU*((-3*M_PI)/2. - SIGMA + theta))*x/(r*r));
+	   sin(TAU*((-3.*M_PI)/2. - SIGMA + theta))*x/(r*r));
       }
     }
   }
   return fn(x,y);
 }
 
-// boundary condition types
+// Boundary condition types
 int bc_types(int marker)
 {
   return BC_ESSENTIAL;
 }
 
-// function values for Dirichlet boundary conditions
+// Boundary condition values
 scalar bc_values(int marker, double x, double y)
 {
   return fn(x, y);
 }
 
-template<typename Real>
-Real rhs(Real x, Real y)
-{
-  return 0;
-}
-
+// Weak forms
 template<typename Real, typename Scalar>
 Scalar bilinear_form_I_III(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
@@ -195,14 +174,7 @@ Scalar bilinear_form_I_III(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom
 template<typename Real, typename Scalar>
 Scalar bilinear_form_II_IV(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
-  return 1*int_grad_u_grad_v<Real, Scalar>(n, wt, u, v);
-}
-
-template<typename Real, typename Scalar>
-Scalar linear_form(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
-{
-  //return fn() * int_v<Real, Scalar>(n, wt, v);
-  return int_F_v<Real, Scalar>(n, wt, rhs, v, e);
+  return 1.*int_grad_u_grad_v<Real, Scalar>(n, wt, u, v);
 }
 
 int main(int argc, char* argv[])
@@ -214,7 +186,6 @@ int main(int argc, char* argv[])
 
   // initial mesh refinement
   for (int i=0; i < INIT_REF_NUM; i++) mesh.refine_all_elements();
-  mesh.refine_all_elements();
 
   // initialize the shapeset and the cache
   H1ShapesetOrtho shapeset;
@@ -233,7 +204,6 @@ int main(int argc, char* argv[])
   WeakForm wf(1);
   wf.add_biform(0, 0, callback(bilinear_form_I_III), SYM, 0);
   wf.add_biform(0, 0, callback(bilinear_form_II_IV), SYM, 1);
-  wf.add_liform(0, callback(linear_form));
 
   // visualize solution and mesh
   ScalarView sview("Coarse solution", 0, 100, 798, 700);
@@ -270,7 +240,6 @@ int main(int argc, char* argv[])
     // calculate error wrt. exact solution
     ExactSolution exact(&mesh, fndd);
     double error = h1_error(&sln_coarse, &exact) * 100;
-    info("\nExact solution error: %g%%", error);
 
     // view the solution
     sview.show(&sln_coarse);
@@ -287,6 +256,7 @@ int main(int argc, char* argv[])
     // calculate error estimate wrt. fine mesh solution
     H1OrthoHP hp(1, &space);
     double err_est = hp.calc_error(&sln_coarse, &sln_fine) * 100;
+    info("\nExact solution error: %g%%", error);
     info("Estimate of error: %g%%", err_est);
 
     // add entries to DOF convergence graphs
@@ -320,6 +290,6 @@ int main(int argc, char* argv[])
   sview.show(&sln_fine);
 
   // wait for keyboard or mouse input
-  View::wait("Waiting for all views to be closed.");
+  View::wait();
   return 0;
 }
