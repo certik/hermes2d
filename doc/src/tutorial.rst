@@ -2158,51 +2158,51 @@ equipped with nonhomogeneous Dirichlet boundary conditions
     u(x, y) = (x+10)(y+10)/100 \ \ \ \mbox{on } \partial \Omega,
 
 but this time it will be solved using automatic adaptivity. As usual in Hermes, adaptivity
-will be guided by the difference between a coarse and fine mesh approximations. In this example,
-we will perform the full Newton's loop on both the coarse and fine meshes in every adaptivity step. 
-As usual we start by projecting the initial guess:
+will be guided by the difference between a coarse and fine mesh approximations. At the beginning,
+the initial condition is projected on the coarse mesh:
 
 ::
 
-    // project the function init_guess() on the mesh 
+    // project the function init_guess() on the coarse mesh 
     // to obtain initial guess u_prev for the Newton's method
     nls.set_ic(init_guess, &mesh, &u_prev, PROJ_TYPE);
 
-Next we solve on the coarse mesh and store the result in sln_coarse:
+Then we solve the nonlinear problem on the coarse mesh and store
+the coarse mesh solution:
 
 ::
 
     // Newton's loop on the coarse mesh
-    nls.solve_newton_1(&u_prev, NEWTON_TOL_COARSE, NEWTON_MAX_ITER);
-    Solution sln_coarse;
+    info("---- Solving on coarse mesh:\n");
+    if (!nls.solve_newton_1(&u_prev, NEWTON_TOL_COARSE, NEWTON_MAX_ITER)) error("Newton's method did not converge.");
+
+    // store the result in sln_coarse
     sln_coarse.copy(&u_prev);
 
-The last two parameters are optional - if they are provided, then intermediate solutions and meshes 
-are visualised during the Newton's loop. The "verbose" parameter also is optional and its default value is 
-"false". 
-
-After the coarse mesh problem is solved, the reference problem 
-on the fine mesh is initialized as follows:
+Next the nonlinear problem on the fine mesh is initialized as follows:
 
 ::
 
     // Setting initial guess for the Newton's method on the fine mesh
     RefNonlinSystem rnls(&nls);
     rnls.prepare();
-    rnls.set_ic(&sln_coarse, &u_prev, PROJ_TYPE);
+    if (a_step == 1) rnls.set_ic(&sln_coarse, &u_prev, PROJ_TYPE);
+    else rnls.set_ic(&sln_fine, &u_prev, PROJ_TYPE);    
 
-The last line takes the function sln_coarse, projects it to the reference mesh, and 
-stores the result in u_prev. Then we perform the Newton's loop on the fine mesh
-and store the solution in sln_fine:
+Notice that we only use sln_coarse as the initial guess on the fine mesh 
+in the first adaptivity step when we do not have any fine mesh solution yet,
+otherwise a projection of the last fine mesh solution is used. Then we perform the 
+Newton's loop on the fine mesh and store the result in sln_fine:
 
 ::
 
     // Newton's loop on the fine mesh
-    rnls.solve_newton_1(&u_prev, NEWTON_TOL_FINE, NEWTON_MAX_ITER);
-    Solution sln_fine;
+    if (!rnls.solve_newton_1(&u_prev, NEWTON_TOL_FINE, NEWTON_MAX_ITER)) error("Newton's method did not converge.");
+
+    // stote the fine mesh solution in sln_fine
     sln_fine.copy(&u_prev);
 
-Now we have the desired solution pair and calculation of the error is as usual:
+Now we have the desired solution pair, and the error estimate is calculated as usual:
 
 ::
 
@@ -2211,7 +2211,10 @@ Now we have the desired solution pair and calculation of the error is as usual:
     err_est = hp.calc_error(&sln_coarse, &sln_fine) * 100;
     if (verbose) info("Error estimate: %g%%", err_est);
 
-After adaptine the mesh, we must not forget to update the initial guess on the new mesh:
+After adapting the mesh, we must not forget to update the coarse mesh solution. 
+This can be done either by just projecting the fine mesh solution onto 
+the new coarse mesh, or by solving in addition to that the nonlinear
+problem on the new coarse mesh:
 
 ::
 
@@ -2222,13 +2225,45 @@ After adaptine the mesh, we must not forget to update the initial guess on the n
       int ndof = space.assign_dofs();
       if (ndof >= NDOF_STOP) done = true;
 
-      // update initial guess u_prev for the Newton's method
-      // on the new coarse mesh
-      nls.set_ic(&u_prev, &u_prev, PROJ_TYPE);
+      // project the fine mesh solution on the new coarse mesh
+      info("---- Projecting fine mesh solution on new coarse mesh:\n");
+      nls.set_ic(&sln_fine, &u_prev, PROJ_TYPE);
+
+      if (NEWTON_ON_COARSE_MESH) {
+        // Newton's loop on the coarse mesh
+        info("---- Solving on coarse mesh:\n");
+        if (!nls.solve_newton_1(&u_prev, NEWTON_TOL_COARSE, NEWTON_MAX_ITER)) error("Newton's method did not converge.");
+      }
+
+      // store the result in sln_coarse
+      sln_coarse.copy(&u_prev);
     }
 
-In the following we show the resulting meshes and convergence graphs. The solution is 
-the same as above.
+The parameter NEWTON_ON_COARSE_MESH is provided to allow the user to do his 
+own experiments, but the default value is NEWTON_ON_COARSE_MESH = false.
+In our experience, the Newton's loop on the coarse mesh can be skipped
+in most cases since it does not affect the convergence and one saves some
+CPU time. This is illustrated in the following two convergence comparisons:
+
+Convergence in the number of DOF (with and without Newton solve on coarse mesh):
+
+.. image:: img/example-15/conv_dof_compar.png
+   :align: center
+   :width: 600
+   :height: 400
+   :alt: DOF convergence graph for tutorial example 15.
+
+Convergence in CPU time (with and without Newton solve on coarse mesh):
+
+.. image:: img/example-15/conv_cpu_compar.png
+   :align: center
+   :width: 600
+   :height: 400
+   :alt: CPU convergence graph for tutorial example 15.
+
+In the following we show the resulting meshes (corresponding to 
+NEWTON_ON_COARSE_MESH = false). The solution itself is not 
+shown since the reader knows it from the previous example.
 
 Resulting coarse mesh.
 
@@ -2245,22 +2280,6 @@ Resulting fine mesh.
    :width: 500
    :height: 400
    :alt: fine mesh
-
-Convergence in the number of DOF.
-
-.. image:: img/example-15/conv_dof.png
-   :align: center
-   :width: 600
-   :height: 400
-   :alt: DOF convergence graph for tutorial example 15.
-
-Convergence in CPU time.
-
-.. image:: img/example-15/conv_cpu.png
-   :align: center
-   :width: 600
-   :height: 400
-   :alt: CPU convergence graph for tutorial example 15.
 
 Nonlinear Parabolic Problem
 ---------------------------
