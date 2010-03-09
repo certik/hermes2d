@@ -21,15 +21,20 @@ add_example(c05)
 add_example(c06)
 add_example(c07)
 add_example(c08)
+add_example(c09)
+add_example(c10)
+add_example(c11)
+add_example(c12)
 add_example(c22)
 
-install(TARGETS c03 c04 c05 c06 c07 c08 c22
+install(TARGETS c03 c04 c05 c06 c07 c08 c09 c10 c11 c12 c22
             RUNTIME DESTINATION lib/python/hermes2d/examples
             ARCHIVE DESTINATION lib/python/hermes2d/examples
             LIBRARY DESTINATION lib/python/hermes2d/examples
         )
 
-install(FILES __init__.py domain.mesh sample.mesh cylinder4.mesh
+install(FILES __init__.py domain.mesh sample.mesh cylinder4.mesh 07.mesh
+    12.mesh bracket.mesh cathedral.mesh motor.mesh
     DESTINATION lib/python/hermes2d/examples
     )
 

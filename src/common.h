@@ -20,6 +20,7 @@
 
 // common headers
 #include <stdexcept>
+#include <sstream>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stddef.h> //allows to use offsetof
@@ -153,7 +154,7 @@ EXTERN void __verbose_fn(const char* msg, ...);
 #define verbose(...) __verbose_fn(__VA_ARGS__)
 
 /* logging macros */
-#if defined(_DEBUG) || defined(NDEBUG)
+#ifdef _DEBUG
 EXTERN void debug_log(const char* msg, ...); ///< Logs output to an external file. Ignored if not debug.
 EXTERN void debug_assert(const bool cond, const char* msg, ...); ///< Checks the condition. If failed, it logs output to an external file and it invokes assert. Ignored if not debug.
 #else
