@@ -171,6 +171,10 @@ int main(int argc, char* argv[])
   // DOF and CPU convergence graphs
   SimpleGraph graph_dof, graph_cpu;
 
+  // time measurement
+  double cpu = 0; 
+  begin_time();
+
   // project the function init_guess() on the coarse mesh 
   // to obtain initial guess u_prev for the Newton's method
   nls.set_ic(init_guess, &mesh, &u_prev, PROJ_TYPE);
@@ -180,10 +184,6 @@ int main(int argc, char* argv[])
   OrderView oview_coarse("Coarse mesh", 520, 0, 450, 400);         // coarse mesh
   ScalarView sview_fine("Fine mesh solution", 990, 0, 500, 400);   // fine mesh solution
   OrderView oview_fine("Fine mesh", 1510, 0, 450, 400);            // fine mesh
-
-  // time measurement
-  double cpu = 0; 
-  begin_time();
 
   // Newton's loop on the coarse mesh
   info("---- Solving on coarse mesh:\n");
