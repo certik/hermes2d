@@ -4,9 +4,9 @@
 
 //  This example shows an introductory application of the Newton's
 //  method to a nonlinear elliptic problem. We use zero Dirichlet boundary 
-//  conditions and a zero initial guess for the Newton's method. 
-//  Treatment of nonzero Dirichlet BC and various options for defining 
-//  the initial guess will be shown in the next example newton-elliptic-2.
+//  conditions and a constant initial guess for the Newton's method. 
+//  The treatment of nonzero Dirichlet BC and a more general initial guess 
+//  will be shown in the next example newton-elliptic-2.
 //
 //  PDE: stationary heat transfer equation with nonlinear thermal 
 //  conductivity, - div[lambda(u)grad u] = 0
@@ -18,7 +18,11 @@
 //  The following parameters can be changed:
 
 const int P_INIT = 2;             // Initial polynomial degree
+const int PROJ_TYPE = 1;          // For the projection of the initial condition 
+                                  // on the initial mesh: 1 = H1 projection, 
+                                  // 0 = L2 projection
 const double NEWTON_TOL = 1e-6;   // Stopping criterion for the Newton's method
+const int NEWTON_MAX_ITER = 100;  // Maximum allowed number of Newton iterations
 const int INIT_GLOB_REF_NUM = 3;  // Number of initial uniform mesh refinements
 const int INIT_BDY_REF_NUM = 5;   // Number of initial refinements towards boundary
 
@@ -106,42 +110,21 @@ int main(int argc, char* argv[])
 
   // use a constant function as the initial guess
   u_prev.set_const(&mesh, 3.0);
-  nls.set_ic(&u_prev, &u_prev);
-
-  // visualise the initial ocndition
-  ScalarView view("Initial condition", 0, 0, 800, 600);
-  view.show(&u_prev);
+  nls.set_ic(&u_prev, &u_prev, PROJ_TYPE);
 
   // Newton's loop
-  int it = 1;
-  double res_l2_norm;
-  Solution sln;
-  do
-  {
-    View::wait(H2DV_WAIT_KEYPRESS);
-    info("\n---- Newton iter %d ---------------------------------\n", it++);
+  if (!nls.solve_newton_1(&u_prev, NEWTON_TOL, NEWTON_MAX_ITER)) error("Newton's method did not converge.");
 
-    // assemble the Jacobian matrix and residual vector, 
-    // solve the system
-    nls.assemble();
-    nls.solve(1, &sln);
-
-    // calculate the l2-norm of residual vector
-    res_l2_norm = nls.get_residuum_l2_norm();
-    info("Residuum L2 norm: %g\n", res_l2_norm);
-
-    // visualise the solution
-    char title[100];
-    sprintf(title, "Temperature, Newton iteration %d", it-1);
-    view.set_title(title);
-    view.show(&sln);
-
-    // save the new solution as "previous" for the 
-    // next Newton's iteration
-    u_prev = sln;
-
-  }
-  while (res_l2_norm > NEWTON_TOL);
+  // visualise the solution and mesh
+  ScalarView sview("Solution", 0, 0, 800, 600);
+  OrderView oview("Mesh", 820, 0, 800, 600);
+  char title[100];
+  sprintf(title, "Solution");
+  sview.set_title(title);
+  sview.show(&u_prev);
+  sprintf(title, "Mesh");
+  oview.set_title(title);
+  oview.show(&space);
 
   // wait for keyboard or mouse input
   View::wait();

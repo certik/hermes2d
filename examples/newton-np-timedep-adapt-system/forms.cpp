@@ -45,8 +45,7 @@ Scalar J_euler_DFcDYphi(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Re
 	Scalar result = 0;
 	Func<Scalar>* Citer = ext->fn[0];
 	for (int i = 0; i < n; i++) {
-		result += wt[i] * (K * (u->dx[i] * Citer->dx[i] + u->dy[i] * Citer->dy[i]) * v->val[i] +
-				K * (u->dx[i] * v->dx[i] + u->dy[i] * v->dy[i]) * Citer->val[i]);
+		result += wt[i] * K * (u->dx[i] * v->dx[i] + u->dy[i] * v->dy[i]) * Citer->val[i];
 	}
 	return result;
 }

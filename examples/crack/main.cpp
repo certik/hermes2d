@@ -1,9 +1,10 @@
 #include "hermes2d.h"
 #include "solver_umfpack.h"
 
-// This example employs the multimesh adaptive hp-FEM for a simple
-// problem of crack mechanics. Each displacement components is
-// approximated using an individual mesh.
+// This example employs the multimesh adaptive hp-FEM for linear
+// elasticity equations. The domain contains two horizontal 
+// cracks causing strong singularities at their corners. Each
+// displacement component is approximated on an individual mesh.
 //
 // PDE: Lame equations of linear elasticity
 //
@@ -16,7 +17,7 @@
 //
 // The following parameters can be changed:
 
-const int P_INIT = 1;                // Initial polynomial degree of all mesh elements.
+const int P_INIT = 2;                // Initial polynomial degree of all mesh elements.
 const bool MULTI = true;             // true = use multi-mesh, false = use single-mesh.
                                      // Note: in the single mesh option, the meshes are
                                      // forced to be geometrically the same but the
@@ -53,14 +54,14 @@ const int MESH_REGULARITY = -1;      // Maximum allowed level of hanging nodes:
 const double CONV_EXP = 1.0;         // Default value is 1.0. This parameter influences the selection of 
                                      // cancidates in hp-adaptivity. See get_optimal_refinement() for details.
 const int MAX_ORDER = 10;            // Maximum polynomial order used during adaptivity.
-const double ERR_STOP = 1e-1;        // Stopping criterion for adaptivity (rel. error tolerance between the
+const double ERR_STOP = 1e-2;        // Stopping criterion for adaptivity (rel. error tolerance between the
                                      // fine mesh and coarse mesh solution in percent).
 const int NDOF_STOP = 60000;         // Adaptivity process stops when the number of degrees of freedom grows
 
 // problem constants
 const double E  = 200e9;  // Young modulus for steel: 200 GPa
 const double nu = 0.3;    // Poisson ratio
-const double f  = 1e3;    // load force: 10^5 N
+const double f  = 1e3;    // load force
 const double lambda = (E * nu) / ((1 + nu) * (1 - 2*nu));
 const double mu = E / (2*(1 + nu));
 
@@ -112,7 +113,7 @@ int main(int argc, char* argv[])
   // load the mesh
   Mesh xmesh, ymesh;
   H2DReader mloader;
-  mloader.load("crack-2.mesh", &xmesh);
+  mloader.load("crack.mesh", &xmesh);
   ymesh.copy(&xmesh);          // this defines the common master mesh for
                                // both displacement fields
 
@@ -144,9 +145,9 @@ int main(int argc, char* argv[])
   wf.add_liform_surf(1, callback(linear_form_surf_1), marker_top);
 
   // visualize solution and mesh
-  ScalarView sview("Von Mises stress [Pa]", 0, 355, 800, 300);
-  OrderView  xoview("X polynomial orders", 0, 0, 800, 300);
-  OrderView  yoview("Y polynomial orders", 810, 0, 800, 300);
+  ScalarView sview("Von Mises stress [Pa]", 0, 355, 900, 300);
+  OrderView  xoview("X polynomial orders", 0, 0, 900, 300);
+  OrderView  yoview("Y polynomial orders", 910, 0, 900, 300);
 
   // matrix solver
   UmfpackSolver solver;

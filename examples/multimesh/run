@@ -1,4 +1,0 @@
-rm *~ 
-multimesh
-python plot_graph.py &
-

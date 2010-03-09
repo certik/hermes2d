@@ -50,7 +50,7 @@ may be the library that you are looking for:
 
 Typical convergence comparison of h-FEM with linear and quadratic elements, and the hp-FEM on a log-log scale:
 
-.. image:: img/lshape/conv_dof.png
+.. image:: img/intro/conv_dof.png
    :align: center
    :width: 600
    :height: 400
@@ -58,7 +58,7 @@ Typical convergence comparison of h-FEM with linear and quadratic elements, and 
 
 Same graphs as above but now in terms of CPU time:
 
-.. image:: img/lshape/conv_cpu.png
+.. image:: img/intro/conv_cpu.png
    :align: center
    :width: 600
    :height: 400
@@ -66,16 +66,16 @@ Same graphs as above but now in terms of CPU time:
 
 * **Wide applicability**. Hermes is completely PDE-independent. Many FEM codes are designed to solve some narrow class of PDE problems (such as elliptic equations, fluid dynamics, electromagnetics etc.). In contrast to that, Hermes does not employ any technique or algorithm that would only work for some particular class of PDE problems. Automatic adaptivity is guided by a universal computational a-posteriori error estimate that works in the same way for any PDE. Of course this does not mean that it performs equally well on all PDE - some equations simply are more difficult to solve than others. However, Hermes allows you to tackle an arbitrary PDE or multiphysics PDE system. Visit the `hp-FEM group home page <http://hpfem.org/>`_ and especially the `gallery <http://hpfem.org/gallery/>`_ to see numerous examples.
 
-.. image:: img/ns.jpg
+.. image:: img/intro/ns.jpg
    :align: center
-   :width: 600
+   :width: 650
    :height: 300
    :alt: Image of incompressible viscous flow.
 
 
 * **Arbitrary-level hanging nodes**. Hermes has a unique original methodology for handling arbitrary-level hanging nodes. This means that extremely small elements can be adjacent to very large ones. When an element is refined, its neighbors are never split forcefully as in conventional adaptivity algorithms. It is well known that approximations with one-level hanging nodes are more efficient compared to regular meshes. However, the technique of arbitrary-level hanging nodes brings this to a perfection.
 
-.. image:: img/ord_2d_c.png
+.. image:: img/intro/ord_2d_c.png
    :align: center
    :width: 370
    :height: 350
@@ -94,23 +94,33 @@ Same graphs as above but now in terms of CPU time:
 
 * **Multimesh hp-FEM**. Various physical fields or solution components in multiphysics problems can be approximated on individual meshes, combining quality $H^1$, $H(curl)$, $H(div)$, and $L^2$ conforming higher-order elements. Due to a unique original methodology, no error is caused by operator splitting, transferring data between different meshes, and the like. The following figure illustrates a coupled problem of heat and moisture transfer in massive concrete walls of a nuclear reactor vessel. 
 
-.. image:: img/multimesh.png
-   :align: center
+.. image:: img/intro/hm-sln-frame.png
+   :align: left
    :width: 500
    :height: 410
    :alt: Illustration of multimesh hp-FEM.
 
+.. image:: img/intro/hm-mesh-frame.png
+   :align: right
+   :width: 500
+   :height: 410
+   :alt: Illustration of multimesh hp-FEM.
+
+.. raw:: html
+
+   <hr style="clear: both; visibility: hidden;">
+
 * **Dynamical meshes for time-dependent problems**. In time-dependent problems, different physical fields or solution components can be approximated on individual meshes that evolve in time independently of each other. Due to a unique original methodology, no error is caused by transfering solution data between different meshes and time levels. No such transfer takes place in the multimesh *hp*-FEM - the discretization of the time-dependent PDE system is monolithic. 
 
-.. image:: img/flame.jpg
+.. image:: img/intro/flame.jpg
    :align: center
    :width: 700
    :height: 360
    :alt: Adaptive hp-FEM with dynamical meshes for a flame propagation problem. 
 
-* **Interactive web-based computing**. You can use Hermes remotely via any web browser, using our `interactive online lab <http://nb.femhub.org/>`_. Your hardware will not be used since the online lab is powered by the University of Nevada, Reno (UNR) high-performance computing facility (`Research Grid <http://hpc.unr.edu/wiki/index.php/Main_Page>`_). You can compute with Hermes using an iPhone if you like. Sound too good to be true? Try it. 
+* **Interactive web usage**. You can use Hermes remotely via any web browser, using our `interactive online lab <http://nb.femhub.org/>`_. Your hardware will not be used since the online lab is powered by the University of Nevada, Reno (UNR) high-performance computing facility (`Research Grid <http://hpc.unr.edu/wiki/index.php/Main_Page>`_). You can compute with Hermes using an iPhone if you like. Sound too good to be true? Try it. 
 
-.. image:: img/iphone_large.png
+.. image:: img/intro/iphone_large.png
    :align: center
    :width: 250
    :height: 450
