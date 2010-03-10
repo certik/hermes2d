@@ -24,6 +24,7 @@
 #include "config.h"
 
 #include "_hermes_common_api.h"
+#include "python_solvers.h"
 
 
 void qsort_int(int* pbase, size_t total_elems); // defined in qsort.cpp
@@ -78,6 +79,7 @@ LinSystem::LinSystem(WeakForm* wf, Solver* solver)
   slv_ctx = solver ? solver->new_context(false) : NULL;
 
   RHS = Dir = Vec = NULL;
+  A = NULL;
   mat_sym = false;
 
   spaces = new Space*[wf->neq];
@@ -145,6 +147,7 @@ void LinSystem::copy(LinSystem* sys)
 
 void LinSystem::free()
 {
+  if (A != NULL) { ::free(A); A = NULL; }
   if (RHS != NULL) { ::free(RHS); RHS = NULL; }
   if (Dir != NULL) { ::free(Dir-1); Dir = NULL; }
   if (Vec != NULL) { ::free(Vec); Vec = NULL; }
@@ -309,12 +312,14 @@ void LinSystem::create_matrix(bool rhsonly)
   // if yes, just zero the values and we're done
   if (up_to_date)
   {
+      /*
     verbose("Reusing matrix sparse structure.");
     if (!rhsonly) {
       memset(Dir, 0, sizeof(scalar) * ndofs);
     }
     memset(RHS, 0, sizeof(scalar) * ndofs);
     return;
+    */
   }
   else if (rhsonly)
     error("Cannot reassemble RHS only: spaces have changed.");
@@ -863,28 +868,11 @@ bool LinSystem::solve(int n, ...)
   if (!solver) error("Cannot solve -- no solver was provided.");
   begin_time();
 
-  scalar *Ax;
-  int *Ap, *Ai, size;
-  this->get_matrix(Ap, Ai, Ax, size);
-
-  // perform symbolic analysis of the matrix
-  if (struct_changed)
-  {
-    solver->analyze(slv_ctx, ndofs, Ap, Ai, Ax, false);
-    struct_changed = false;
-  }
-
-  // factorize the stiffness matrix, if needed
-  if (struct_changed || values_changed)
-  {
-    solver->factorize(slv_ctx, ndofs, Ap, Ai, Ax, false);
-    values_changed = false;
-  }
-
   // solve the system
   if (Vec != NULL) ::free(Vec);
   Vec = (scalar*) malloc(ndofs * sizeof(scalar));
-  solver->solve(slv_ctx, ndofs, Ap, Ai, Ax, false, RHS, Vec);
+  memcpy(Vec, RHS, sizeof(scalar) * this->A->get_size());
+  solve_linear_system_scipy_umfpack(this->A, Vec);
   verbose("  (total solve time: %g sec)", end_time());
 
   // initialize the Solution classes
