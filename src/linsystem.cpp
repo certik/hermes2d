@@ -23,6 +23,8 @@
 #include "solution.h"
 #include "config.h"
 
+#include "_hermes_common_api.h"
+
 
 void qsort_int(int* pbase, size_t total_elems); // defined in qsort.cpp
 
@@ -333,6 +335,19 @@ void LinSystem::create_matrix(bool rhsonly)
   memset(pages, 0, sizeof(Page*) * ndofs);
 
   RHS = (scalar*) malloc(sizeof(scalar) * ndofs);
+  printf("1, ndofs=%d\n", ndofs);
+  putenv((char *)"PYTHONPATH=/home/ondrej/repos/hermes2d/hermes_common");
+  printf("2\n");
+  Py_Initialize();
+  printf("3\n");
+  //PySys_SetArgv(argc, argv);
+  printf("4\n");
+  if (import__hermes_common())
+      throw std::runtime_error("hermes_common failed to import.");
+  printf("5\n");
+
+  A = new CooMatrix(ndofs);
+  printf("6\n");
   Dir = (scalar*) malloc(sizeof(scalar) * (ndofs + 1)) + 1;
   if (RHS == NULL || Dir == NULL) error("Out of memory. Error allocating the RHS vector.");
   memset(RHS, 0, sizeof(scalar) * ndofs);

@@ -31,6 +31,7 @@ set(SRC
        )
 
 include_directories(${hermes2d_SOURCE_DIR}/hermes_common/)
+include_directories(${PYTHON_INCLUDE_PATH} ${NUMPY_INCLUDE_PATH})
 
 find_package(PTHREAD REQUIRED)
 find_package(JUDY REQUIRED)
