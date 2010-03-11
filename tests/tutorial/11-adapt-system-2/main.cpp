@@ -222,7 +222,7 @@ int main(int argc, char* argv[])
   int ndof_allowed = 785;
   printf("ndof actual = %d\n", ndofs);
   printf("ndof allowed = %d\n", ndof_allowed);
-  if (ndofs <= ndof_allowed) {      // ndofs was 678 at the time this test was created
+  if (ndofs <= ndof_allowed) {      // ndofs was 784 at the time this test was created
     printf("Success!\n");
     return ERROR_SUCCESS;
   }
