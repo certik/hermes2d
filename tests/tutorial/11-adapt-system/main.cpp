@@ -113,6 +113,10 @@ int main(int argc, char* argv[])
   H2DReader mloader;
   mloader.load("bracket.mesh", &xmesh);
 
+  // initial mesh refinements
+  xmesh.refine_element(1);
+  xmesh.refine_element(4);
+
   // create initial mesh for the vertical displacement component,
   // identical to the mesh for the horizontal displacement
   // (bracket.mesh becomes a master mesh)
