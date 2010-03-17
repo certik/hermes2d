@@ -437,6 +437,15 @@ cdef class H1Shapeset:
     def __dealloc__(self):
         delete(self.thisptr)
 
+cdef class L2Shapeset:
+    cdef c_L2Shapeset *thisptr
+
+    def __cinit__(self):
+        self.thisptr = new_L2Shapeset()
+
+    def __dealloc__(self):
+        delete(self.thisptr)
+
 cdef class PrecalcShapeset:
     cdef c_PrecalcShapeset *thisptr
 

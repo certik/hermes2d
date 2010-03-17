@@ -132,6 +132,9 @@ cdef extern from "hermes2d.h":
     ctypedef struct c_H1Shapeset "H1Shapeset"
     c_H1Shapeset *new_H1Shapeset "new H1Shapeset" ()
 
+    ctypedef struct c_L2Shapeset "L2Shapeset"
+    c_L2Shapeset *new_L2Shapeset "new L2Shapeset" ()
+
     cdef struct c_PrecalcShapeset "PrecalcShapeset"
     c_PrecalcShapeset *new_PrecalcShapeset "new PrecalcShapeset" (c_H1Shapeset *s)
 
