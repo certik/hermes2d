@@ -63,3 +63,11 @@ def get_12_mesh():
     this_dir = os.path.dirname(os.path.abspath(__file__))
     mesh = os.path.join(this_dir, "12.mesh")
     return os.path.normpath(mesh)
+
+def get_18_mesh():
+    """
+    Returns an example mesh, that is distributed with hermes2d.
+    """
+    this_dir = os.path.dirname(os.path.abspath(__file__))
+    mesh = os.path.join(this_dir, "18.mesh")
+    return os.path.normpath(mesh)
