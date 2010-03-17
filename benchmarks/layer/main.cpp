@@ -18,6 +18,7 @@
 //  The following parameters can be changed:
 
 const int P_INIT = 1;             // Initial polynomial degree of all mesh elements.
+const int INIT_REF_NUM = 2;       // Number of initial uniform mesh refinements.
 const double THRESHOLD = 0.3;     // This is a quantitative parameter of the adapt(...) function and
                                   // it has different meanings for various adaptive strategies (see below).
 const int STRATEGY = 0;           // Adaptive strategy:
@@ -35,13 +36,13 @@ const bool ISO_ONLY = false;      // Isotropic refinement flag (concerns quadril
                                   // is allowed (default),
                                   // ISO_ONLY = true ... only isotropic refinements of quad elements
                                   // are allowed.
-const int MESH_REGULARITY = 1;   // Maximum allowed level of hanging nodes:
+const int MESH_REGULARITY = -1;   // Maximum allowed level of hanging nodes:
                                   // MESH_REGULARITY = -1 ... arbitrary level hangning nodes (default),
                                   // MESH_REGULARITY = 1 ... at most one-level hanging nodes,
                                   // MESH_REGULARITY = 2 ... at most two-level hanging nodes, etc.
                                   // Note that regular meshes are not supported, this is due to
                                   // their notoriously bad performance.
-const double CONV_EXP = 0.5;      // Default value is 1.0. This parameter influences the selection of 
+const double CONV_EXP = 1.0;      // Default value is 1.0. This parameter influences the selection of 
                                   // cancidates in hp-adaptivity. See get_optimal_refinement() for details.
 const double ERR_STOP = 0.1;      // Stopping criterion for adaptivity (rel. error tolerance between the
                                   // fine mesh and coarse mesh solution in percent).
@@ -104,16 +105,14 @@ Scalar linear_form(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scal
   return -int_F_v<Real, Scalar>(n, wt, rhs, v, e);
 }
 
-
 int main(int argc, char* argv[])
 {
   // load the mesh
   Mesh mesh;
   H2DReader mloader;
   mloader.load("square_quad.mesh", &mesh);
-//   mloader.load("square_tri.mesh", &mesh);
-  if(P_INIT == 1) mesh.refine_all_elements();  // this is because there are no degrees of freedom
-                                               // on the coarse mesh lshape.mesh if P_INIT == 1
+  // mloader.load("square_tri.mesh", &mesh);
+  for (int i=0; i<INIT_REF_NUM; i++) mesh.refine_all_elements();
 
   // initialize the shapeset and the cache
   H1Shapeset shapeset;
@@ -144,7 +143,7 @@ int main(int argc, char* argv[])
   SimpleGraph graph_dof_est, graph_dof_exact, graph_cpu_est, graph_cpu_exact;
 
   // prepare selector
-  RefinementSelectors::H1NonUniformHP selector(ISO_ONLY, ADAPT_TYPE, 1.0, H2DRS_DEFAULT_ORDER, &shapeset);
+  RefinementSelectors::H1NonUniformHP selector(ISO_ONLY, ADAPT_TYPE, CONV_EXP, H2DRS_DEFAULT_ORDER, &shapeset);
 
   // adaptivity loop
   int it = 1, ndofs;
@@ -171,7 +170,6 @@ int main(int argc, char* argv[])
     // calculate error wrt. exact solution
     ExactSolution exact(&mesh, fndd);
     double error = h1_error(&sln_coarse, &exact) * 100;
-    info("\nExact solution error: %g%%", error);
 
     // view the solution and mesh
     sview.show(&sln_coarse);
@@ -188,6 +186,7 @@ int main(int argc, char* argv[])
     // calculate error estimate wrt. fine mesh solution
     H1AdaptHP hp(1, &space);
     double err_est = hp.calc_error(&sln_coarse, &sln_fine) * 100;
+    info("Exact solution error: %g%%", error);
     info("Estimate of error: %g%%", err_est);
 
     // add entries to DOF convergence graphs

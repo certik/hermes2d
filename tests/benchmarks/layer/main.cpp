@@ -5,20 +5,22 @@
 ///
 ///  Parameters
 ///  * P_INIT=1
-///  * THERSHOLD=0.6
+///  * THRESHOLD=0.3
 ///  * ADAPT_TYPE=HP, P-cand order + 2 allowed
 ///  * ISO_ONLY=false
 ///  * MESH_REGULARITY=-1
 ///  * CONV_EXP=1.0
-///  * ERR_STOP=1.0
-///  * NDOF_STOP=40000
+///  * ERR_STOP=0.1
+///  * NDOF_STOP=60000
+///  * SLOPE = 60
 ///
 ///  Results for given parameters
-///  * Uniform orders: 5036 DOFs
-///  * Nonuniform orders: 8418 DOFs
+///  * Uniform orders: 4109 DOFs
+///  * Nonuniform orders: 3985 DOFs
 
 const int P_INIT = 1;             // Initial polynomial degree of all mesh elements.
-const double THRESHOLD = 0.6;     // This is a quantitative parameter of the adapt(...) function and
+const int INIT_REF_NUM = 2;       // Number of initial uniform mesh refinements.
+const double THRESHOLD = 0.3;     // This is a quantitative parameter of the adapt(...) function and
                                   // it has different meanings for various adaptive strategies (see below).
 const int STRATEGY = 0;           // Adaptive strategy:
                                   // STRATEGY = 0 ... refine elements until sqrt(THRESHOLD) times total
@@ -44,13 +46,13 @@ const int MESH_REGULARITY = -1;   // Maximum allowed level of hanging nodes:
 const double CONV_EXP = 1.0;      // Default value is 1.0. This parameter influences the selection of 
                                   // cancidates in hp-adaptivity. See get_optimal_refinement() for details.
                                   // error behavior err \approx const1*exp(-const2*pow(NDOF, CONV_EXP)).
-const double ERR_STOP = 1.0;      // Stopping criterion for adaptivity (rel. error tolerance between the
+const double ERR_STOP = 0.1;      // Stopping criterion for adaptivity (rel. error tolerance between the
                                   // fine mesh and coarse mesh solution in percent).
-const int NDOF_STOP = 40000;      // Adaptivity process stops when the number of degrees of freedom grows
+const int NDOF_STOP = 60000;      // Adaptivity process stops when the number of degrees of freedom grows
                                   // over this limit. This is to prevent h-adaptivity to go on forever.
 
 // problem constants
-double SLOPE = 200;       // slope of the step inside the domain
+double SLOPE = 60;                // slope of the layer
 
 // exact solution
 static double fn(double x, double y)
@@ -112,9 +114,8 @@ int main(int argc, char* argv[])
   Mesh mesh;
   H2DReader mloader;
   mloader.load("square_quad.mesh", &mesh);
-//   mloader.load("square_tri.mesh", &mesh);
-  if(P_INIT == 1) mesh.refine_all_elements();  // this is because there are no degrees of freedom
-                                               // on the coarse mesh lshape.mesh if P_INIT == 1
+  // mloader.load("square_tri.mesh", &mesh);
+  for (int i=0; i<INIT_REF_NUM; i++) mesh.refine_all_elements();
 
   // initialize the shapeset and the cache
   H1Shapeset shapeset;
@@ -179,7 +180,6 @@ int main(int argc, char* argv[])
     // calculate error wrt. exact solution
     ExactSolution exact(&mesh, fndd);
     double error = h1_error(&sln_coarse, &exact) * 100;
-    info("\nExact solution error: %g%%", error);
 
     // time measurement
     begin_time();
@@ -192,6 +192,7 @@ int main(int argc, char* argv[])
     // calculate error estimate wrt. fine mesh solution
     H1AdaptHP hp(1, &space);
     double err_est = hp.calc_error(&sln_coarse, &sln_fine) * 100;
+    info("Exact solution error: %g%%", error);
     info("Estimate of error: %g%%", err_est);
 
     // add entry to DOF convergence graph
@@ -220,7 +221,7 @@ int main(int argc, char* argv[])
 
 #define ERROR_SUCCESS                               0
 #define ERROR_FAILURE                               -1
-  int n_dof_allowed = 5100;
+  int n_dof_allowed = 4000;
   printf("n_dof_actual = %d\n", ndofs);
   printf("n_dof_allowed = %d\n", n_dof_allowed);
   if (ndofs <= n_dof_allowed) {
