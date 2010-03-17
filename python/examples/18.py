@@ -1,10 +1,10 @@
 #! /usr/bin/env python
 
-from hermes2d import Mesh, MeshView, OrderView, H1Shapeset, PrecalcShapeset, H1Space, \
-        LinSystem, WeakForm, DummySolver, Solution, ScalarView, VonMisesFilter, \
-        OrderView
+from hermes2d import (Mesh, MeshView, OrderView, H1Shapeset, L2Shapeset,
+        PrecalcShapeset, H1Space, LinSystem, WeakForm, DummySolver, Solution,
+        ScalarView, VonMisesFilter, OrderView)
 
-from hermes2d.examples.c18 import set_bc, set_forms
+from hermes2d.examples.c18 import set_bc, set_bc_x, set_bc_y, set_forms
 from hermes2d.examples import get_18_mesh
 
 # The time-dependent laminar incompressible Navier-Stokes equations are
@@ -37,8 +37,9 @@ from hermes2d.examples import get_18_mesh
 # The following parameters can be changed:
 #
 
-PRESSURE_IN_L2
-NEWTON = True
+PRESSURE_IN_L2 = False
+#NEWTON = True
+NEWTON = False
 
 P_INIT_VEL = 2
 P_INIT_PRESSURE = 1
@@ -65,8 +66,7 @@ TIME = 0
 
 # Load the mesh file
 mesh = Mesh()
-mloader = H2DReader()
-mloader.load("domain.mesh", mesh)
+mesh.load(get_18_mesh())
 
 # A-priori mesh refinements
 # mesh.refine_all_elements()
@@ -75,7 +75,7 @@ mloader.load("domain.mesh", mesh)
 # mesh.refine_towards_boundary(3, 4)
 
 # Initialize shapesets and the cache
-h1_shapeset = H1ShapesetBeuchler()
+h1_shapeset = H1Shapeset()
 h1_pss = PrecalcShapeset(h1_shapeset)
 
 if PRESSURE_IN_L2:
@@ -83,7 +83,7 @@ if PRESSURE_IN_L2:
   l2_pss = PrecalcShapeset(l2_shapeset)
 
 # Spaces for velocities and pressure
-xvel_space = H1Spac(mesh, h1_shapeset)
+xvel_space = H1Space(mesh, h1_shapeset)
 yvel_space = H1Space(mesh, h1_shapeset)
 
 if PRESSURE_IN_L2:
@@ -124,42 +124,41 @@ wf = WeakForm(3)
 
 if (NEWTON):
     set_form_n(wf)
-  else
-    set_form(wf)
+else:
+    set_forms(wf)
 
 # Visualization
-vview = VectorView("velocity [m/s]", 0, 0, 1500, 470)
+#vview = VectorView("velocity [m/s]", 0, 0, 1500, 470)
 pview = ScalarView("pressure [Pa]", 0, 530, 1500, 470)
-vview.set_min_max_range(0, 1.6)
-vview.fix_scale_width(80)
-pview.set_min_max_range(-0.9, 1.0)
-pview.fix_scale_width(80)
+#vview.set_min_max_range(0, 1.6)
+#vview.fix_scale_width(80)
+#pview.set_min_max_range(-0.9, 1.0)
+#pview.fix_scale_width(80)
 pview.show_mesh(True)
 
 # Matrix solver
-umfpack = UmfpackSolver()
+umfpack = DummySolver()
 
 # Linear system
 ls = LinSystem(wf, umfpack)
 
 # Nonlinear system
-nls = NonlinSystem(wf, umfpack)
+#nls = NonlinSystem(wf, umfpack)
 
 if (NEWTON):
     # Set up the nonlinear system
-    nls.set_spaces(3, xvel_space, yvel_space, p_space)
+    nls.set_spaces(xvel_space, yvel_space, p_space)
     if PRESSURE_IN_L2:
-        nls.set_pss(3, h1_pss, h1_pss, l2_pss)
+        nls.set_pss(h1_pss, h1_pss, l2_pss)
     else:
-        nls.set_pss(1, h1_pss)
-
-  else:
+        nls.set_pss(h1_pss)
+else:
     # Set up the linear system
-    ls.set_spaces(3, xvel_space, yvel_space, p_space)
+    ls.set_spaces(xvel_space, yvel_space, p_space)
     if PRESSURE_IN_L2:
-        ls.set_pss(3, h1_pss, h1_pss, l2_pss)
-    else
-        ls.set_pss(1, &h1_pss)
+        ls.set_pss(h1_pss, h1_pss, l2_pss)
+    else:
+        ls.set_pss(h1_pss)
 
 # Time-stepping loop
 title = [0]*100
@@ -178,12 +177,12 @@ for i in range(1, num_time_steps):
 
     if (NEWTON):
         # Newton's method
-        if (!nls.solve_newton_3(xvel_prev_newton, yvel_prev_newton, p_prev, NEWTON_TOL, NEWTON_MAX_ITER)):
+        if (not nls.solve_newton_3(xvel_prev_newton, yvel_prev_newton, p_prev, NEWTON_TOL, NEWTON_MAX_ITER)):
             error("Newton's method did not converge.")
         # Show the solution at the end of time step
         sprintf(title, "Velocity, time %g", TIME)
-        vview.set_title(title)
-        vview.show(xvel_prev_newton, yvel_prev_newton, EPS_LOW)
+        #vview.set_title(title)
+        #vview.show(xvel_prev_newton, yvel_prev_newton, EPS_LOW)
         sprintf(title, "Pressure, time %g", TIME)
         pview.set_title(title)
         pview.show(p_prev)
@@ -199,12 +198,12 @@ for i in range(1, num_time_steps):
         p_sln = Solution()
       
         ls.assemble()
-        ls.solve(3, xvel_sln, yvel_sln, p_sln)
+        ls.solve_system(xvel_sln, yvel_sln, p_sln)
         
         # Show the solution at the end of time step
         sprintf(title, "Velocity, time %g", TIME)
-        vview.set_title(title)
-        vview.show(xvel_sln, yvel_sln, EPS_LOW)
+        #vview.set_title(title)
+        #vview.show(xvel_sln, yvel_sln, EPS_LOW)
         sprintf(title, "Pressure, time %g", TIME)
         pview.set_title(title)
         pview.show(p_sln)
