@@ -800,7 +800,7 @@ void Linearizer::process_solution(MeshFunction* sln, int item, double eps, doubl
   }
 
   find_min_max();
-  verbose("Linearizer: %d verts, %d tris in %0.3g sec", nv, nt, end_time());
+  //verbose("Linearizer: %d verts, %d tris in %0.3g sec", nv, nt, end_time());
   //if (verbose_mode) print_hash_stats();
   unlock_data();
 

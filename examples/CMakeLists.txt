@@ -17,7 +17,7 @@ add_subdirectory(wire)
 add_subdirectory(hdiv)
 add_subdirectory(l2)
 add_subdirectory(ns-timedep-adapt)
-add_subdirectory(neutronics-eigenproblem)
+add_subdirectory(neutronics-4-group)
 
 
 if(WITH_TRILINOS)
