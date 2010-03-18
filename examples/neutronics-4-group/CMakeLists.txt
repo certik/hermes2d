@@ -1,7 +1,7 @@
 if(NOT REAL)
     return()
 endif(NOT REAL)
-project(neutronics-eigenproblem)
+project(neutronics-4-group)
 
 set(HERMES ${HERMES_REAL_BIN})
 
