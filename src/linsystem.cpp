@@ -332,7 +332,7 @@ void LinSystem::create_matrix(bool rhsonly)
   for (int i = 0; i < wf->neq; i++)
     ndofs += spaces[i]->get_num_dofs();
   if (!ndofs)
-    error("ndofs cannot not be 0.");
+    error("zero matrix size.");
 
   // get row and column indices of nonzero matrix elements
   Page** pages = new Page*[ndofs];
