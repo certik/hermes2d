@@ -8,6 +8,258 @@ a strong physical or engineering motivation but they come with
 a known exact solution and thus they are a great resource for 
 comparisons of various methods and adaptivity algorithms.
 
+Smooth-iso
+----------
+
+More information to this example can be found in the corresponding 
+`main.cpp <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/benchmarks/smooth-iso/main.cpp>`_ file.
+It shows that it is a very bad idea to approximate smooth solutions using low-order 
+elements.
+
+Equation solved: Poisson equation 
+
+.. math::
+    :label: smooth-iso
+
+       -\Delta u = f.
+
+Domain of interest: Square $(0, \pi)^2$.
+
+Right-hand side:
+
+.. math::
+    :label: smooth-iso-rhs
+ 
+    f(x, y) = 2\sin(x)\sin(y).
+
+Boundary conditions: Zero Dirichlet. 
+
+Exact solution:
+
+.. math::
+    :label: smooth-iso-exact
+
+    u(x, y) = \sin(x)\sin(y).
+
+Code for the exact solution and the weak forms:
+
+::
+
+    // exact solution
+    static double fn(double x, double y)
+    {
+      return sin(x)*sin(y);
+    }
+
+    static double fndd(double x, double y, double& dx, double& dy)
+    {
+      dx = cos(x)*sin(y);
+      dy = sin(x)*cos(y);
+      return fn(x, y);
+    }
+
+    // boundary condition types
+    int bc_types(int marker)
+    {
+      return BC_ESSENTIAL;
+    }
+
+    // function values for Dirichlet boundary conditions
+    scalar bc_values(int marker, double x, double y)
+    {
+      return fn(x, y);
+    }
+
+    template<typename Real, typename Scalar>
+    Scalar bilinear_form(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+    {
+      return int_grad_u_grad_v<Real, Scalar>(n, wt, u, v);
+    }
+
+    template<typename Real>
+    Real rhs(Real x, Real y)
+    {
+      return 2 * sin(x) * sin(y);
+    }
+
+    template<typename Real, typename Scalar>
+    Scalar linear_form(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+    {
+      return int_F_v<Real, Scalar>(n, wt, rhs, v, e);
+    }
+
+Solution:
+
+.. image:: img/smooth-iso/sol_3d_view.png
+   :align: center
+   :width: 500
+   :height: 300
+   :alt: Solution.
+
+Below we show meshes obtained using various types of adaptivity. 
+Note the tremendous differences in their performance. The meshes do not correspond to 
+the same level of accuracy since the low-order methods could not achieve the same error 
+as hp-FEM. Therefore, compare not only the number of DOF but also the error level. 
+Convergence graphs for all cases are shown at the end of this section.
+
+Final mesh (h-FEM, p=1): 27469 DOF, error 0.39173795799476 %
+
+.. image:: img/smooth-iso/mesh-h1.png
+   :align: center
+   :width: 500
+   :height: 400
+   :alt: Final mesh
+
+Final mesh (h-FEM, p=2): 39185 DOF, error 0.0022127484879974 %
+
+.. image:: img/smooth-iso/mesh-h2.png
+   :align: center
+   :width: 500
+   :height: 400
+   :alt: Final mesh
+
+Final mesh (hp-FEM): 49 DOF, error 4.2775412425017e-05 %
+
+.. image:: img/smooth-iso/mesh-hp.png
+   :align: center
+   :width: 500
+   :height: 400
+   :alt: Final mesh
+
+DOF convergence graphs:
+
+.. image:: img/smooth-iso/conv_dof.png
+   :align: center
+   :width: 600
+   :height: 400
+   :alt: DOF convergence graph.
+
+CPU time convergence graphs:
+
+.. image:: img/smooth-iso/conv_cpu.png
+   :align: center
+   :width: 600
+   :height: 400
+   :alt: CPU convergence graph.
+
+Smooth-aniso-x
+--------------
+
+More information to this example can be found in the corresponding 
+`main.cpp <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/benchmarks/layer/main.cpp>`_ file.
+It shows that it makes sense to use both spatially and polynomially anisotropic refinements. 
+
+Equation solved: Poisson equation 
+
+.. math::
+    :label: sin
+
+       -\Delta u = f.
+
+Domain of interest: Square $(0, \pi)^2$.
+
+Right-hand side:
+
+.. math::
+    :label: sin-rhs
+ 
+    f(x, y) = \sin(x).
+
+Boundary conditions: Zero Dirichlet on the left and right edges, zero Neumann on the rest of the boundary.
+
+Exact solution:
+
+.. math::
+    :label: sin-exact
+
+    u(x, y) = \sin(x).
+
+Solution:
+
+.. image:: img/smooth-aniso-x/sol_3d_view.png
+   :align: center
+   :width: 600
+   :height: 400
+   :alt: Solution.
+
+Below we show meshes obtained using various types of adaptivity. 
+Note the tremendous differences in their performance. The meshes do not correspond to 
+the same level of accuracy since the low-order methods could not achieve the same error 
+as hp-FEM. Therefore, compare not only the number of DOF but also the error level. 
+Convergence graphs for all cases are shown at the end of this section.
+
+Final mesh (h-FEM, p=1, isotropic refinements): 41033 DOF, error 0.22875054074711 %
+
+.. image:: img/smooth-aniso-x/mesh-h1-iso.png
+   :align: center
+   :width: 500
+   :height: 400
+   :alt: Final mesh
+
+Final mesh (h-FEM, p=1, anisotropic refinements): 39594 DOF, error 0.0039444224349215 %
+
+.. image:: img/smooth-aniso-x/mesh-h1-aniso.png
+   :align: center
+   :width: 500
+   :height: 400
+   :alt: Final mesh
+
+Final mesh (h-FEM, p=2, isotropic refinements): 54627 DOF, error 0.0017755772528929 %
+
+.. image:: img/smooth-aniso-x/mesh-h2-iso.png
+   :align: center
+   :width: 500
+   :height: 400
+   :alt: Final mesh
+
+Final mesh (h-FEM, p=2, anisotropic refinements): 3141 DOF, error 9.3084842840514e-05 %
+
+.. image:: img/smooth-aniso-x/mesh-h2-aniso.png
+   :align: center
+   :width: 500
+   :height: 400
+   :alt: Final mesh
+
+Final mesh (hp-FEM, isotropic refinements): 63 DOF, error = 3.6797337289125e-05 %
+
+.. image:: img/smooth-aniso-x/mesh-hp-iso.png
+   :align: center
+   :width: 500
+   :height: 400
+   :alt: Final mesh
+
+Final mesh (hp-FEM, anisotropic refinements): 14 DOF, error 3.6797337292196e-05 %
+
+.. image:: img/smooth-aniso-x/mesh-hp-aniso.png
+   :align: center
+   :width: 500
+   :height: 400
+   :alt: Final mesh
+
+DOF convergence graphs:
+
+.. image:: img/smooth-aniso-x/conv_dof.png
+   :align: center
+   :width: 600
+   :height: 400
+   :alt: DOF convergence graph.
+
+CPU time convergence graphs:
+
+.. image:: img/smooth-aniso-x/conv_cpu.png
+   :align: center
+   :width: 600
+   :height: 400
+   :alt: CPU convergence graph.
+
+
+Smooth-aniso-y
+--------------
+
+This example is very similar to the previous one, except now the solution is 
+constant in the x-direction. More information can be found in the corresponding 
+`main.cpp <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/benchmarks/smooth-aniso-y/main.cpp>`_ file.
+
 Bessel
 ------
 
@@ -544,135 +796,6 @@ CPU time convergence graphs:
    :height: 400
    :alt: CPU convergence graph.
 
-Smooth-iso
-----------
-
-More information to this example can be found in the corresponding 
-`main.cpp <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/benchmarks/smooth-iso/main.cpp>`_ file.
-It shows that it is a very bad idea to approximate smooth solutions using low-order 
-elements.
-
-Equation solved: Poisson equation 
-
-.. math::
-    :label: smooth-iso
-
-       -\Delta u = f.
-
-Domain of interest: Square $(0, \pi)^2$.
-
-Right-hand side:
-
-.. math::
-    :label: smooth-iso-rhs
- 
-    f(x, y) = 2\sin(x)\sin(y).
-
-Boundary conditions: Zero Dirichlet. 
-
-Exact solution:
-
-.. math::
-    :label: smooth-iso-exact
-
-    u(x, y) = \sin(x)\sin(y).
-
-Code for the exact solution and the weak forms:
-
-::
-
-    // exact solution
-    static double fn(double x, double y)
-    {
-      return sin(x)*sin(y);
-    }
-
-    static double fndd(double x, double y, double& dx, double& dy)
-    {
-      dx = cos(x)*sin(y);
-      dy = sin(x)*cos(y);
-      return fn(x, y);
-    }
-
-    // boundary condition types
-    int bc_types(int marker)
-    {
-      return BC_ESSENTIAL;
-    }
-
-    // function values for Dirichlet boundary conditions
-    scalar bc_values(int marker, double x, double y)
-    {
-      return fn(x, y);
-    }
-
-    template<typename Real, typename Scalar>
-    Scalar bilinear_form(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
-    {
-      return int_grad_u_grad_v<Real, Scalar>(n, wt, u, v);
-    }
-
-    template<typename Real>
-    Real rhs(Real x, Real y)
-    {
-      return 2 * sin(x) * sin(y);
-    }
-
-    template<typename Real, typename Scalar>
-    Scalar linear_form(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
-    {
-      return int_F_v<Real, Scalar>(n, wt, rhs, v, e);
-    }
-
-Solution:
-
-.. image:: img/smooth-iso/sol_3d_view.png
-   :align: center
-   :width: 500
-   :height: 300
-   :alt: Solution.
-
-Final mesh (h-FEM with linear elements):
-
-.. image:: img/smooth-iso/mesh-h1.png
-   :align: center
-   :width: 500
-   :height: 400
-   :alt: Final mesh (h-FEM with linear elements).
-
-Final mesh (h-FEM with quadratic elements):
-
-.. image:: img/smooth-iso/mesh-h2.png
-   :align: center
-   :width: 500
-   :height: 400
-   :alt: Final mesh (h-FEM with quadratic elements).
-
-Final mesh (hp-FEM):
-
-.. image:: img/smooth-iso/mesh-hp.png
-   :align: center
-   :width: 500
-   :height: 400
-   :alt: Final mesh (hp-FEM).
-
-DOF convergence graphs:
-
-.. image:: img/smooth-iso/conv_dof.png
-   :align: center
-   :width: 600
-   :height: 400
-   :alt: DOF convergence graph.
-
-CPU time convergence graphs:
-
-.. image:: img/smooth-iso/conv_cpu.png
-   :align: center
-   :width: 600
-   :height: 400
-   :alt: CPU convergence graph.
-
-
 Kellogg
 -------
 
@@ -801,17 +924,6 @@ CPU time convergence graphs:
 
 Line-sing
 ---------
-
-To be added soon.
-
-
-Smooth-aniso-x
---------------
-
-To be added soon.
-
-Smooth-aniso-y
---------------
 
 To be added soon.
 
