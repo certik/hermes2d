@@ -353,7 +353,7 @@ void LinSystem::create_matrix(bool rhsonly)
     pos += sort_and_store_indices(pages[i], Ai + pos, Ai + aisize);
   }
   Ap[i] = pos;
-  verbose("  (dofs: %d, nnz: %d, size: %0.1lf MB, time: %g sec)",
+  verbose("  (ndof: %d, nnz: %d, size: %0.1lf MB, time: %g sec)",
           ndofs, pos, (double) get_matrix_size() / (1024*1024), end_time());
   delete [] pages;
 

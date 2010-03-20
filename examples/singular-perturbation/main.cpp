@@ -3,21 +3,10 @@
 
 //  With large K, this is a singularly perturbed problem that exhibits an extremely
 //  thin and steep boundary layer. Singularly perturbed problems are considered to
-//  be very difficult, but you'll see that Hermes can solve them routinely. We tried
-//  various values of K between 1 and 10^10, always starting from an extremely coarse
-//  mesh. We found interesting that for large K, initially all refinements go
-//  towards the edges, and one has to wait a lot before the mesh gets
-//  refined in the corners. To keep the solution reasonably scaled, set F_CONST to be
-//  roughly K*K. During each computation, approximate convergence curves are saved
-//  into the files "conv_dof.gp" and "conv_cpu.gp". As in other adaptivity examples,
-//  you can compare hp-adaptivity (ADAPT_TYPE = 0) with h-adaptivity (ADAPT_TYPE = 1)
-//  and p-adaptivity (ADAPT_TYPE = 2).
-//    Moreover, you can turn off and on anisotropic element refinements via the ISO_ONLY
-//  parameter to see how important they are for the efficient resolution of boundary
-//  layers, and change some more adaptivity parameters below. For large K and with
-//  ISO_ONLY = 0, you'll see many levels of hanging nodes.
+//  be very difficult, but you'll see that Hermes can solve them easily even for large 
+//  values of K. 
 //
-//  PDE: -Laplace u + K*K*u = const
+//  PDE: -Laplace u + K*K*u = K*K
 //
 //  Domain: square, see the file square.mesh
 //
@@ -25,9 +14,9 @@
 //
 //  The following parameters can be changed:
 
-const int INIT_REF_NUM = 1;       // number of initial mesh refinements (the original mesh is just one element)
-const int INIT_REF_NUM_BDY = 0;   // number of initial mesh refinements towards the boundary
-const int P_INIT = 2;             // Initial polynomial degree of all mesh elements.
+const int INIT_REF_NUM = 1;       // Number of initial mesh refinements (the original mesh is just one element)
+const int INIT_REF_NUM_BDY = 3;   // Number of initial mesh refinements towards the boundary
+const int P_INIT = 1;             // Initial polynomial degree of all mesh elements.
 const double THRESHOLD = 0.3;     // This is a quantitative parameter of the adapt(...) function and
                                   // it has different meanings for various adaptive strategies (see below).
 const int STRATEGY = 0;           // Adaptive strategy:
@@ -40,7 +29,7 @@ const int STRATEGY = 0;           // Adaptive strategy:
                                   //   than THRESHOLD.
                                   // More adaptive strategies can be created in adapt_ortho_h1.cpp.
 const RefinementSelectors::AllowedCandidates ADAPT_TYPE = RefinementSelectors::H2DRS_CAND_HP;         // Type of automatic adaptivity.
-const bool ISO_ONLY = false;       // Isotropic refinement flag (concerns quadrilateral elements only).
+const bool ISO_ONLY = false;      // Isotropic refinement flag (concerns quadrilateral elements only).
                                   // ISO_ONLY = false ... anisotropic refinement of quad elements
                                   // is allowed (default),
                                   // ISO_ONLY = true ... only isotropic refinements of quad elements
@@ -51,14 +40,15 @@ const int MESH_REGULARITY = -1;   // Maximum allowed level of hanging nodes:
                                   // MESH_REGULARITY = 2 ... at most two-level hanging nodes, etc.
                                   // Note that regular meshes are not supported, this is due to
                                   // their notoriously bad performance.
-const double ERR_STOP = 0.01;     // Stopping criterion for adaptivity (rel. error tolerance between the
+const double CONV_EXP = 1.0;      // Default value is 1.0. This parameter influences the selection of 
+                                  // cancidates in hp-adaptivity. See get_optimal_refinement() for details.
+const double ERR_STOP = 0.0001;   // Stopping criterion for adaptivity (rel. error tolerance between the
                                   // fine mesh and coarse mesh solution in percent).
 const int NDOF_STOP = 100000;     // Adaptivity process stops when the number of degrees of freedom grows
                                   // over this limit. This is to prevent h-adaptivity to go on forever.
 
 // problem constants
 const double K_squared = 1e4;     // Equation parameter.
-const double CONST_F = 1e4;       // Constant right-hand side (set to be roughly K*K for scaling purposes).
 
 // boundary condition types
 int bc_types(int marker)
@@ -81,7 +71,7 @@ Scalar bilinear_form(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real>
 template<typename Real, typename Scalar>
 Scalar linear_form(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
-  return CONST_F * int_v<Real, Scalar>(n, wt, v);
+  return K_squared * int_v<Real, Scalar>(n, wt, v);
 }
 
 
@@ -125,7 +115,7 @@ int main(int argc, char* argv[])
   SimpleGraph graph_dof_est, graph_cpu_est;
 
   // selector
-  RefinementSelectors::H1NonUniformHP ref_selector(ISO_ONLY, ADAPT_TYPE, 1.0, H2DRS_DEFAULT_ORDER, &shapeset);
+  RefinementSelectors::H1NonUniformHP ref_selector(ISO_ONLY, ADAPT_TYPE, CONV_EXP, H2DRS_DEFAULT_ORDER, &shapeset);
 
   // adaptivity loop
   int it = 1, ndofs;
@@ -157,7 +147,6 @@ int main(int argc, char* argv[])
     begin_time();
 
     // solve the fine mesh problem
-    begin_time();
     RefSystem rs(&ls);
     rs.assemble();
     rs.solve(1, &sln_fine);
