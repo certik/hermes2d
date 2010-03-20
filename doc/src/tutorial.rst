@@ -1223,8 +1223,12 @@ which is set to false before the time stepping begins:
 For more details see the `main.cpp <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/tutorial/09-timedep/main.cpp>`_ 
 file in the tutorial example `09-timedep <http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/tutorial/09-timedep>`_.
 
-Automatic Adaptivity
---------------------
+=======================================
+Tutorial Part II (Automatic Adaptivity)
+=======================================
+
+Introduction
+------------
 
 In the computations that we carried out so far, we have not paid any attention
 to the accuracy of the results. In general, a computation on a fixed mesh is
@@ -1400,8 +1404,8 @@ This is shown in the figure below.
    :height: 450
    :alt: Convergence graph.
 
-Adaptivity Example
-------------------
+Electrostatic Micromotor Problem
+--------------------------------
 
 Let us demostrate the use of automatic *hp*-adaptivity in Hermes on a linear elliptic problem
 concerned with the calculation of
@@ -1597,8 +1601,8 @@ The following graph shows convergence in terms of CPU time.
    :height: 400
    :alt: CPU convergence graph for tutorial example 10-adapt.
 
-Adaptivity for Systems
-----------------------
+Adaptivity for Systems and the Multimesh hp-FEM
+-----------------------------------------------
 
 The procedure described in the previous section could be extended directly to
 systems of PDEs. In other words, two spaces can be passed into H1OrthoHP,
@@ -1768,9 +1772,9 @@ The following graph shows convergence in terms of CPU time.
    :height: 400
    :alt: CPU convergence graph for tutorial example 12-adapt-general.
 
-=====================================
-Tutorial Part II (Nonlinear Problems)
-=====================================
+======================================
+Tutorial Part III (Nonlinear Problems)
+======================================
 
 The second part of the tutorial assumes that the reader is familiar with basic concepts 
 covered in the first part. We will discuss the Newton's method for nonlinear PDE and 
@@ -2973,9 +2977,9 @@ Snapshot 3:
    :alt: solution
 
 
-====================================================
-Tutorial Part III (Adaptivity with Dynamical Meshes)
-====================================================
+=========================================================
+Tutorial Part IV (Adaptivity for Time-Dependent Problems)
+=========================================================
 
 (Space-time) adaptive FEM and *hp*-FEM for time-dependent PDE and PDE systems is one of 
 the most advanced techniques Hermes can do. Although we have published it 
@@ -2986,8 +2990,8 @@ there is still a lot of space for improvement. Let us know through the
 you are interested in getting involved. In this part of the tutorial 
 we explain the basic idea of the method and show several examples.
 
-Basic Idea
-----------
+Introduction
+------------
 
 The adaptivity with dynamical meshes in Hermes is based on the combination 
 of the multimesh *hp*-FEM with the classical Rothe's method. 
