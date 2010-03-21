@@ -7,14 +7,10 @@ axis('equal')
 pylab.title("Error convergence")
 pylab.xlabel("Degrees of freedom")
 pylab.ylabel("Error [%]")
-data = numpy.loadtxt("conv_dof_m.dat")
+data = numpy.loadtxt("conv_dof.dat")
 x = data[:, 0]
 y = data[:, 1]
-loglog(x, y, "-s", label="error (multi-mesh)")
-data = numpy.loadtxt("conv_dof_s.dat")
-x = data[:, 0]
-y = data[:, 1]
-loglog(x, y, "-s", label="error (single-mesh)")
+loglog(x, y, "-s", label="error (est)")
 
 legend()
 
@@ -25,14 +21,10 @@ axis('equal')
 pylab.title("Error convergence")
 pylab.xlabel("CPU time (s)")
 pylab.ylabel("Error [%]")
-data = numpy.loadtxt("conv_cpu_m.dat")
+data = numpy.loadtxt("conv_cpu.dat")
 x = data[:, 0]
 y = data[:, 1]
-loglog(x, y, "-s", label="error (multi-mesh)")
-data = numpy.loadtxt("conv_cpu_s.dat")
-x = data[:, 0]
-y = data[:, 1]
-loglog(x, y, "-s", label="error (single-mesh)")
+loglog(x, y, "-s", label="error (est)")
 legend()
 
 

@@ -1165,6 +1165,108 @@ Corresponding CPU time convergence graphs:
 When using h-FEM, this difference becomes much larger. This is left for the reader
 to try.
 
+
+Bracket
+-------
+
+More details to this example can be found in 
+the corresponding `main.cpp <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/examples/bracket/main.cpp>`_ file.
+We will use the equations of linear elasticity from example 
+`08-system <http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/tutorial/08-system>`_, but
+now we will view them as a coupled PDE system.
+Our domain is a bracket loaded on its top edge and fixed to the wall:
+
+.. math::
+    :nowrap:
+
+    \begin{eqnarray*}   \bfu \!&=&\! 0 \ \ \ \ \ \rm{on}\ \Gamma_1  \\   \dd{u_2}{n} \!&=&\! f \ \ \ \ \ \rm{on}\ \Gamma_2 \\   \dd{u_1}{n} = \dd{u_2}{n} \!&=&\! 0 \ \ \ \ \ \rm{elsewhere.} \end{eqnarray*}
+
+The dimensions are L = 0.7 m, T = 0.1 m and the force $f = 10^3$ N.
+
+.. image:: img/bracket.png
+   :align: center
+   :width: 400
+   :height: 400
+   :alt: Computational domain for the elastic bracket problem.
+
+As usual, adaptivity is based on the difference between the coarse and fine mesh solutions.
+This time we have two equations in the system, two meshes, two spaces, etc.
+Instead of calc_error() we use the method calc_energy_error(), also a member of the
+class H1OrthoHP:
+::
+
+    H1OrthoHP hp(2, &xdisp, &ydisp);
+    hp.set_biform(0, 0, bilinear_form_0_0<scalar, scalar>, bilinear_form_0_0<Ord, Ord>);
+    hp.set_biform(0, 1, bilinear_form_0_1<scalar, scalar>, bilinear_form_0_1<Ord, Ord>);
+    hp.set_biform(1, 0, bilinear_form_1_0<scalar, scalar>, bilinear_form_1_0<Ord, Ord>);
+    hp.set_biform(1, 1, bilinear_form_1_1<scalar, scalar>, bilinear_form_1_1<Ord, Ord>);
+    double err_est = hp.calc_error_2(&x_sln_coarse, &y_sln_coarse, &x_sln_fine, &y_sln_fine) * 100;
+
+The following figures show the two meshes and their polynomial
+degrees after several adaptive steps: 
+
+.. image:: img/sys-xorders.png
+   :align: left
+   :width: 300
+   :height: 300
+   :alt: $x$ displacement -- mesh and polynomial degrees.
+
+.. image:: img/sys-yorders.png
+   :align: right
+   :width: 300
+   :height: 300
+   :alt: $y$ displacement -- mesh and polynomial degrees.
+
+.. raw:: html
+
+   <hr style="clear: both; visibility: hidden;">
+
+
+Note that the meshes are slightly different, not only in
+polynomial degrees, but also in element refinements. This is possible in Hermes thanks to
+a technique called multi-mesh assembling which allows
+all components of the solution to adapt independently. In problems whose components exhibit
+substantially different behavior, one may even obtain completely different meshes.
+
+Convergence graphs of adaptive h-FEM with linear elements, h-FEM with quadratic elements
+and hp-FEM are shown below.
+
+.. image:: img/example-11/conv_dof.png
+   :align: center
+   :width: 600
+   :height: 400
+   :alt: DOF convergence graph for tutorial example 11-adapt-system.
+
+The following graph shows convergence in terms of CPU time. 
+
+.. image:: img/example-11/conv_cpu.png
+   :align: center
+   :width: 600
+   :height: 400
+   :alt: CPU convergence graph for tutorial example 11-adapt-system.
+
+Comparison of the multimesh and single-mesh hp-FEM: 
+
+.. image:: img/example-11/conv_compar_dof.png
+   :align: center
+   :width: 600
+   :height: 400
+   :alt: comparison of multimesh and single mesh hp-FEM
+
+.. image:: img/example-11/conv_compar_cpu.png
+   :align: center
+   :width: 600
+   :height: 400
+   :alt: comparison of multimesh and single mesh hp-FEM
+
+In this example the difference between the multimesh *hp*-FEM and the single-mesh
+version was not extremely large since the two elasticity equations are very 
+strongly coupled and have singularities at the same points. 
+For other applications of the multimesh hp-FEM see a `linear elasticity model with cracks 
+<http://hpfem.org/hermes2d/doc/src/examples.html#crack>`_, 
+a `thermoelasticity example <http://hpfem.org/hermes2d/doc/src/examples.html#thermoelasticity>`_,
+and especially the tutorial example `11-adapt-system <http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/tutorial/11-adapt-system>`_.
+
 Wire
 ----
 

@@ -4,32 +4,42 @@
 // This example explains how to use the multimesh adaptive hp-FEM,
 // where different physical fields (or solution components) can be
 // approximated using different meshes and equipped with mutually
-// independent adaptivity mechanisms. Here we consider linear elasticity
-// and will approximate each displacement components using an individual
-// mesh.
+// independent adaptivity mechanisms. For the tutorial purposes, 
+// we manufactured an exact solution for a simplified version of 
+// the FitzHugh-Nagumo equation. This equation, in its full form, 
+// is a prominent example of activator-inhibitor systems in two-component 
+// reaction-diffusion equations, It describes a prototype of an 
+// excitable system (e.g., a neuron).
 //
-// PDE: Lame equations of linear elasticity, treated as a coupled system
-//      of two PDEs
+// PDE: Linearized FitzHugh-Nagumo equation
+//      -d_u^2 \Delta u - f(u) + \sigma v = g_1,
+//      -d_v^2 \Delta v - u + v = g_2.
+// In the original equation, f(u) = \lambda u - u^3 - \kappa. For 
+// simplicity, here we just take f(u) = u. 
 //
-// BC: u_1 = u_2 = 0 on Gamma_1
-//     du_2/dn = f on Gamma_2
-//     du_1/dn = du_2/dn = 0 elsewhere
+// Domain: Square (-1,1)^2.
+// 
+// BC: Both solution components are zero on the boundary.
+//
+// Exact solution: The functions g_1 and g_2 were calculated so that 
+//                 the exact solution is:
+//        u(x,y) = cos(M_PI*x/2)*cos(M_PI*y/2)
+//        v(x,y) = U(x)U(y) where U(t) = 1 - (exp(K*x)+exp(-K*x))/(exp(K) + exp(-K)) 
+// Note: U(t) is the exact solution of the 1D singularly perturbed equation 
+//       -u'' + K*K*u = K*K in (-1, 1) with zero Dirichlet BC.
 //
 // The following parameters can be changed: In particular, compare hp- and
-// h-adaptivity via the ADAPT_TYPE option, and compare the multi-mesh vs. single-mesh
-// using the MULTI parameter.
+// h-adaptivity via the ADAPT_TYPE option, and compare the multi-mesh vs. 
+// single-mesh using the MULTI parameter.
 
-const int P_INIT = 2;            // Initial polynomial degree of all mesh elements.
+const int P_INIT_U = 2;          // Initial polynomial degree for u.
+const int P_INIT_V = 2;          // Initial polynomial degree for v.
+const int INIT_REF_BDY = 3;      // Number of initial boundary refinements
 const bool MULTI = true;         // MULTI = true  ... use multi-mesh,
                                  // MULTI = false ... use single-mesh.
                                  // Note: In the single mesh option, the meshes are
                                  // forced to be geometrically the same but the
                                  // polynomial degrees can still vary.
-const bool SAME_ORDERS = false;  // SAME_ORDERS = true ... when single-mesh is used,
-                                 // this forces the meshes for all components to be
-                                 // identical, including the polynomial degrees of
-                                 // corresponding elements. When multi-mesh is used,
-                                 // this parameter is ignored.
 const double THRESHOLD = 0.3;    // This is a quantitative parameter of the adapt(...) function and
                                  // it has different meanings for various adaptive strategies (see below).
 const int STRATEGY = 1;          // Adaptive strategy:
@@ -65,78 +75,68 @@ const int NDOF_STOP = 60000;     // Adaptivity process stops when the number of 
                                  // this limit. This is mainly to prevent h-adaptivity to go on forever.
 
 // problem constants
-const double E  = 200e9;  // Young modulus for steel: 200 GPa
-const double nu = 0.3;    // Poisson ratio
-const double f  = 1e3;    // load force: 10^3 N
-const double lambda = (E * nu) / ((1 + nu) * (1 - 2*nu));
-const double mu = E / (2*(1 + nu));
-
-// boundary markers
-const int marker_left = 1;
-const int marker_top = 2;
+const double D_u = 1;
+const double D_v = 1;
+const double SIGMA = 1;
+const double LAMBDA = 1;
+const double KAPPA = 1;
+const double K = 100;
 
 // boundary condition types
-int bc_types(int marker)
-  { return (marker == marker_left) ? BC_ESSENTIAL : BC_NATURAL; }
+int bc_types(int marker) { return BC_ESSENTIAL; }
 
-// function values for Dirichlet boundary markers
-// (if the return value is zero, this can be omitted)
-scalar bc_values(int marker, double x, double y)
+// Dirichlet BC values
+scalar bc_values(int marker, double x, double y) { return 0;}
+
+// functions g_1 and g_2
+double g_1(double x, double y) 
 {
-  return 0;
+  return (-cos(M_PI*x/2.)*cos(M_PI*y/2.) + SIGMA*(1. - (exp(K*x) + exp(-K*x))/(exp(K) + exp(-K)))*(1. - (exp(K*y) + exp(-K*y))/(exp(K) + exp(-K))) 
+	  + pow(M_PI,2.)*pow(D_u,2.)*cos(M_PI*x/2.)*cos(M_PI*y/2.)/2.);
 }
 
-// bilinear forms
-template<typename Real, typename Scalar>
-Scalar bilinear_form_0_0(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+double g_2(double x, double y) 
 {
-  return (lambda + 2*mu) * int_dudx_dvdx<Real, Scalar>(n, wt, u, v) +
-                      mu * int_dudy_dvdy<Real, Scalar>(n, wt, u, v);
+  return ((1. - (exp(K*x) + exp(-K*x))/(exp(K) + exp(-K)))*(1. - (exp(K*y) + exp(-K*y))/(exp(K) + exp(-K))) - pow(D_v,2.)*(-(1 - (exp(K*x) + exp(-K*x))/(exp(K) + exp(-K)))*(pow(K,2.)*exp(K*y) + pow(K,2.)*exp(-K*y))/(exp(K) + exp(-K)) - (1. - (exp(K*y) + exp(-K*y))/(exp(K) + exp(-K)))*(pow(K,2.)*exp(K*x) + pow(K,2.)*exp(-K*x))/(exp(K) + exp(-K))) - cos(M_PI*x/2.)*cos(M_PI*y/2.));
+
 }
 
-template<typename Real, typename Scalar>
-Scalar bilinear_form_0_1(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+// exact solution u
+static double u_exact(double x, double y, double& dx, double& dy)
 {
-  return lambda * int_dudy_dvdx<Real, Scalar>(n, wt, u, v) +
-             mu * int_dudx_dvdy<Real, Scalar>(n, wt, u, v);
+  dx = -M_PI*cos(M_PI*y/2.)*sin(M_PI*x/2.)/2.;
+  dy = -M_PI*cos(M_PI*x/2.)*sin(M_PI*y/2.)/2.;
+  return cos(M_PI*x/2.)*cos(M_PI*y/2.);
 }
 
-template<typename Real, typename Scalar>
-Scalar bilinear_form_1_0(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+// exact solution v
+static double v_exact(double x, double y, double& dx, double& dy)
 {
-  return     mu * int_dudy_dvdx<Real, Scalar>(n, wt, u, v) +
-         lambda * int_dudx_dvdy<Real, Scalar>(n, wt, u, v);
+  dx = -(1. - (exp(K*y) + exp(-K*y))/(exp(K) + exp(-K)))*(K*exp(K*x) - K*exp(-K*x))/(exp(K) + exp(-K));
+  dy = -(1. - (exp(K*x) + exp(-K*x))/(exp(K) + exp(-K)))*(K*exp(K*y) - K*exp(-K*y))/(exp(K) + exp(-K));
+  return (1. - (exp(K*x) + exp(-K*x))/(exp(K) + exp(-K)))*(1. - (exp(K*y) + exp(-K*y))/(exp(K) + exp(-K)));
 }
 
-template<typename Real, typename Scalar>
-Scalar bilinear_form_1_1(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
-{
-  return              mu * int_dudx_dvdx<Real, Scalar>(n, wt, u, v) +
-         (lambda + 2*mu) * int_dudy_dvdy<Real, Scalar>(n, wt, u, v);
-}
+// weak forms
+#include "forms.cpp"
 
-template<typename Real, typename Scalar>
-Scalar linear_form_surf_1(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
-{
-  return -f * int_v<Real, Scalar>(n, wt, v);
-}
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
 int main(int argc, char* argv[])
 {
   // load the mesh
-  Mesh xmesh, ymesh;
+  Mesh umesh, vmesh;
   H2DReader mloader;
-  mloader.load("bracket.mesh", &xmesh);
-
-  // initial mesh refinements
-  xmesh.refine_element(1);
-  xmesh.refine_element(4);
+  mloader.load("square.mesh", &umesh);
+  if (MULTI == false) umesh.refine_towards_boundary(1, INIT_REF_BDY);
 
   // create initial mesh for the vertical displacement component,
   // identical to the mesh for the horizontal displacement
   // (bracket.mesh becomes a master mesh)
-  ymesh.copy(&xmesh);
+  vmesh.copy(&umesh);
+
+  // initial mesh refinements in the vmesh towards the boundary
+  if (MULTI == true) vmesh.refine_towards_boundary(1, INIT_REF_BDY);
 
   // initialize the shapeset and the cache
   H1Shapeset shapeset;
@@ -144,32 +144,35 @@ int main(int argc, char* argv[])
   PrecalcShapeset ypss(&shapeset);
 
   // create the x displacement space
-  H1Space xdisp(&xmesh, &shapeset);
-  xdisp.set_bc_types(bc_types);
-  xdisp.set_bc_values(bc_values);
-  xdisp.set_uniform_order(P_INIT);
+  H1Space uspace(&umesh, &shapeset);
+  uspace.set_bc_types(bc_types);
+  uspace.set_bc_values(bc_values);
+  uspace.set_uniform_order(P_INIT_U);
 
   // create the y displacement space
-  H1Space ydisp(MULTI ? &ymesh : &xmesh, &shapeset);
-  ydisp.set_bc_types(bc_types);
-  ydisp.set_bc_values(bc_values);
-  ydisp.set_uniform_order(P_INIT);
+  H1Space vspace(MULTI ? &vmesh : &umesh, &shapeset);
+  vspace.set_bc_types(bc_types);
+  vspace.set_bc_values(bc_values);
+  vspace.set_uniform_order(P_INIT_V);
 
   // enumerate basis functions
-  int ndofs = xdisp.assign_dofs();
-  ndofs += ydisp.assign_dofs(ndofs);
+  int ndofs = uspace.assign_dofs();
+  ndofs += vspace.assign_dofs(ndofs);
 
   // initialize the weak formulation
   WeakForm wf(2);
-  wf.add_biform(0, 0, callback(bilinear_form_0_0), SYM);  // note that only one symmetric part is
-  wf.add_biform(0, 1, callback(bilinear_form_0_1), SYM);  // added in the case of symmetric bilinear
-  wf.add_biform(1, 1, callback(bilinear_form_1_1), SYM);  // forms
-  wf.add_liform_surf(1, callback(linear_form_surf_1), marker_top);
+  wf.add_biform(0, 0, callback(bilinear_form_0_0));  
+  wf.add_biform(0, 1, callback(bilinear_form_0_1));  
+  wf.add_biform(1, 0, callback(bilinear_form_1_0));
+  wf.add_biform(1, 1, callback(bilinear_form_1_1));
+  wf.add_liform(0, linear_form_0, linear_form_0_ord);
+  wf.add_liform(1, linear_form_1, linear_form_1_ord);
 
   // visualization of solution and meshes
-  OrderView  xoview("X polynomial orders", 0, 0, 500, 500);
-  OrderView  yoview("Y polynomial orders", 510, 0, 500, 500);
-  ScalarView sview("Von Mises stress [Pa]", 1020, 0, 500, 500);
+  OrderView  uoview("Mesh for u", 0, 0, 500, 500);
+  OrderView  voview("Mesh for v", 510, 0, 500, 500);
+  ScalarView uview("Solution u", 1020, 0, 500, 500);
+  ScalarView vview("Solution v", 1530, 0, 500, 500);
 
   // matrix solver
   UmfpackSolver umfpack;
@@ -181,8 +184,8 @@ int main(int argc, char* argv[])
   int it = 1;
   bool done = false;
   double cpu = 0.0;
-  Solution x_sln_coarse, y_sln_coarse;
-  Solution x_sln_fine, y_sln_fine;
+  Solution u_sln_coarse, v_sln_coarse;
+  Solution u_sln_fine, v_sln_fine;
   do
   {
     info("\n---- Adaptivity step %d:\n", it++);
@@ -191,26 +194,25 @@ int main(int argc, char* argv[])
     begin_time();
 
     //calculating the number of degrees of freedom
-    ndofs = xdisp.assign_dofs();
-    ndofs += ydisp.assign_dofs(ndofs);
-    printf("xdof=%d, ydof=%d\n", xdisp.get_num_dofs(), ydisp.get_num_dofs());
+    ndofs = uspace.assign_dofs();
+    ndofs += vspace.assign_dofs(ndofs);
+    printf("u_dof=%d, v_dof=%d\n", uspace.get_num_dofs(), vspace.get_num_dofs());
 
     // solve the coarse mesh problem
     LinSystem ls(&wf, &umfpack);
-    ls.set_spaces(2, &xdisp, &ydisp);
+    ls.set_spaces(2, &uspace, &vspace);
     ls.set_pss(2, &xpss, &ypss);
     ls.assemble();
-    ls.solve(2, &x_sln_coarse, &y_sln_coarse);
+    ls.solve(2, &u_sln_coarse, &v_sln_coarse);
 
     // time measurement
     cpu += end_time();
 
-    // view the solution -- this can be slow; for illustration only
-    VonMisesFilter stress_coarse(&x_sln_coarse, &y_sln_coarse, mu, lambda);
-    sview.set_min_max_range(0, 3e4);
-    sview.show(&stress_coarse);
-    xoview.show(&xdisp);
-    yoview.show(&ydisp);
+    // view the solution and meshes
+    uview.show(&u_sln_coarse);
+    vview.show(&v_sln_coarse);
+    uoview.show(&uspace);
+    voview.show(&vspace);
 
     // time measurement
     begin_time();
@@ -218,35 +220,46 @@ int main(int argc, char* argv[])
     // solve the fine mesh problem
     RefSystem rs(&ls);
     rs.assemble();
-    rs.solve(2, &x_sln_fine, &y_sln_fine);
+    rs.solve(2, &u_sln_fine, &v_sln_fine);
+
+    // calculate error wrt. exact solution
+    ExactSolution uexact(&umesh, u_exact);
+    ExactSolution vexact(&vmesh, v_exact);
+    double u_error = h1_error(&u_sln_coarse, &uexact) * 100;
+    double v_error = h1_error(&v_sln_coarse, &vexact) * 100;
+    double error = fmax(u_error, v_error);
+    info("Exact solution error for u (H1 norm): %g%%", u_error);
+    info("Exact solution error for v (H1 norm): %g%%", v_error);
+    info("Exact solution error (maximum): %g%%", error);
 
     // calculate element errors and total error estimate
-    H1OrthoHP hp(2, &xdisp, &ydisp);
+    H1OrthoHP hp(2, &uspace, &vspace);
     hp.set_biform(0, 0, bilinear_form_0_0<scalar, scalar>, bilinear_form_0_0<Ord, Ord>);
     hp.set_biform(0, 1, bilinear_form_0_1<scalar, scalar>, bilinear_form_0_1<Ord, Ord>);
     hp.set_biform(1, 0, bilinear_form_1_0<scalar, scalar>, bilinear_form_1_0<Ord, Ord>);
     hp.set_biform(1, 1, bilinear_form_1_1<scalar, scalar>, bilinear_form_1_1<Ord, Ord>);
-    double err_est = hp.calc_error_2(&x_sln_coarse, &y_sln_coarse, &x_sln_fine, &y_sln_fine) * 100;
-
-    info("Estimate of error: %g%%", err_est);
+    double err_est = hp.calc_error_2(&u_sln_coarse, &v_sln_coarse, &u_sln_fine, &v_sln_fine) * 100;
+    info("Estimate of error wrt. ref. solution (energy norm): %g%%", err_est);
 
     // time measurement
     cpu += end_time();
 
     // add entry to DOF convergence graph
-    graph_dof.add_values(xdisp.get_num_dofs() + ydisp.get_num_dofs(), err_est);
-    graph_dof.save("conv_dof.dat");
+    graph_dof.add_values(uspace.get_num_dofs() + vspace.get_num_dofs(), error);
+    if (MULTI == true) graph_dof.save("conv_dof_m.dat");
+    else graph_dof.save("conv_dof_s.dat");
 
     // add entry to CPU convergence graph
-    graph_cpu.add_values(cpu, err_est);
-    graph_cpu.save("conv_cpu.dat");
+    graph_cpu.add_values(cpu, error);
+    if (MULTI == true) graph_cpu.save("conv_cpu_m.dat");
+    else graph_cpu.save("conv_cpu_s.dat");
 
     // if err_est too large, adapt the mesh
-    if (err_est < ERR_STOP) done = true;
+    if (error < ERR_STOP) done = true;
     else {
-      hp.adapt(THRESHOLD, STRATEGY, ADAPT_TYPE, ISO_ONLY, MESH_REGULARITY, CONV_EXP, MAX_ORDER, SAME_ORDERS);
-      ndofs = xdisp.assign_dofs();
-      ndofs += ydisp.assign_dofs(ndofs);
+      hp.adapt(THRESHOLD, STRATEGY, ADAPT_TYPE, ISO_ONLY, MESH_REGULARITY, CONV_EXP, MAX_ORDER, MULTI == true ? false : true);
+      ndofs = uspace.assign_dofs();
+      ndofs += vspace.assign_dofs(ndofs);
       if (ndofs >= NDOF_STOP) done = true;
     }
 
@@ -255,10 +268,10 @@ int main(int argc, char* argv[])
   verbose("Total running time: %g sec", cpu);
 
   // show the fine solution - this is the final result
-  VonMisesFilter stress_fine(&x_sln_fine, &y_sln_fine, mu, lambda);
-  sview.set_title("Final solution");
-  sview.set_min_max_range(0, 3e4);
-  sview.show(&stress_fine);
+  uview.set_title("Final solution u");
+  uview.show(&u_sln_fine);
+  vview.set_title("Final solution v");
+  vview.show(&v_sln_fine);
 
   // wait for all views to be closed
   View::wait();

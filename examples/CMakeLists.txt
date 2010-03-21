@@ -7,6 +7,7 @@ if(NOT UMFPACK_NO_BLAS)
 endif(NOT UMFPACK_NO_BLAS)
 
 # examples
+add_subdirectory(bracket)
 add_subdirectory(crack)
 add_subdirectory(newton-np-timedep-adapt-system)
 add_subdirectory(iron-water)
