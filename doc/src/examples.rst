@@ -1050,7 +1050,7 @@ Final meshes for $u_1$, $u_2$ and $T$ (h-FEM with quadratic elements):
 
 DOF convergence graphs:
 
-.. image:: img/crack/conv_dof.png
+.. image:: img/thermoelasticity/conv_dof.png
    :align: center
    :width: 600
    :height: 400
@@ -1231,7 +1231,7 @@ substantially different behavior, one may even obtain completely different meshe
 Convergence graphs of adaptive h-FEM with linear elements, h-FEM with quadratic elements
 and hp-FEM are shown below.
 
-.. image:: img/example-11/conv_dof.png
+.. image:: img/bracket/conv_dof.png
    :align: center
    :width: 600
    :height: 400
@@ -1239,7 +1239,7 @@ and hp-FEM are shown below.
 
 The following graph shows convergence in terms of CPU time. 
 
-.. image:: img/example-11/conv_cpu.png
+.. image:: img/bracket/conv_cpu.png
    :align: center
    :width: 600
    :height: 400
@@ -1247,13 +1247,13 @@ The following graph shows convergence in terms of CPU time.
 
 Comparison of the multimesh and single-mesh hp-FEM: 
 
-.. image:: img/example-11/conv_compar_dof.png
+.. image:: img/bracket/conv_compar_dof.png
    :align: center
    :width: 600
    :height: 400
    :alt: comparison of multimesh and single mesh hp-FEM
 
-.. image:: img/example-11/conv_compar_cpu.png
+.. image:: img/bracket/conv_compar_cpu.png
    :align: center
    :width: 600
    :height: 400
@@ -1265,7 +1265,8 @@ strongly coupled and have singularities at the same points.
 For other applications of the multimesh hp-FEM see a `linear elasticity model with cracks 
 <http://hpfem.org/hermes2d/doc/src/examples.html#crack>`_, 
 a `thermoelasticity example <http://hpfem.org/hermes2d/doc/src/examples.html#thermoelasticity>`_,
-and especially the tutorial example `11-adapt-system <http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/tutorial/11-adapt-system>`_.
+and especially the tutorial 
+example `11-adapt-system <http://hpfem.org/hermes2d/doc/src/tutorial.html#adaptivity-for-systems-and-the-multimesh-hp-fem>`_.
 
 Wire
 ----

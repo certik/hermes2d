@@ -1601,8 +1601,8 @@ The following graph shows convergence in terms of CPU time.
    :height: 400
    :alt: CPU convergence graph for tutorial example 10-adapt.
 
-Adaptivity for Systems and the Multimesh hp-FEM
------------------------------------------------
+The Multimesh hp-FEM
+--------------------
 
 The procedure described in the previous section could be extended directly to
 systems of PDEs. In other words, two spaces can be passed into H1OrthoHP,
@@ -1631,7 +1631,190 @@ of the entire system, one can reduce the above-mentioned difficulties dramatical
 When calculating the error on an element, the energy norm accounts
 also for the error caused by other solution components.
 
-To be continued soon (example is being replaced).
+
+
+
+Simplified FitzHugh-Nagumo System
+---------------------------------
+
+To illustrate the multimesh hp-FEM, we consider a simplified version of the FitzHugh-Nagumo equation.
+This equation is a~prominent example of activator-inhibitor systems in two-component reaction-diffusion 
+equations, It describes a prototype of an excitable system (e.g., a neuron) and its stationary form 
+is
+
+.. math::
+
+    -d^2_u \Delta u - f(u) + \sigma v = g_1,\\
+    -d^2_v \Delta v - u + v = g_2.
+
+Here the unknowns $u, v$ are the voltage and $v$-gate, respectively, 
+The nonlinear function 
+
+.. math::
+
+    f(u) = \lambda u - u^3 - \kappa
+ 
+describes how an action potential travels through a nerve. Obviously this system is nonlinear.
+In order to make it simpler for this tutorial, we replace the function $f(u)$ with just $u$:
+
+.. math::
+
+    f(u) = u.
+
+The original nonlinear version is the subject of a separate benchmark example. 
+
+Our computational domain is the square $(-1,1)^2$ and we consider zero Dirichlet conditions 
+for both $u$ and $v$. In order to enable fair convergence comparisons, we will use the following 
+functions as the exact solution:
+
+.. math::
+
+    u(x,y) = \cos\left(\frac{\pi}{2}x\right) \cos\left(\frac{\pi}{2}y\right),\\
+    v(x,y) = \hat u(x) \hat u(y)
+
+where
+
+.. math::
+
+    \hat u(x) = 1 - \frac{e^{kx} + e^{-kx}}{e^k + e^{-k}}
+
+is the exact solution of the one-dimensional singularly perturbed 
+problem 
+
+.. math::
+
+    -u'' + k^2 u - k^2 = 0
+
+in $(-1,1)$, equipped with zero Dirichlet boundary conditions. The functions $u$ 
+and $v$ defined above evidently satisfy the given boundary conditions, and 
+they also satisfy the equation, since we inserted them into the PDE system 
+and calculated the source functions $g_1$ and $g_2$ from there. These functions 
+are not extremely pretty, but they are not too bad either:
+
+::
+
+    // functions g_1 and g_2
+    double g_1(double x, double y) 
+    {
+      return (-cos(M_PI*x/2.)*cos(M_PI*y/2.) + SIGMA*(1. - (exp(K*x) + exp(-K*x))/(exp(K) + exp(-K))) 
+             * (1. - (exp(K*y) + exp(-K*y))/(exp(K) + exp(-K))) + pow(M_PI,2.)*pow(D_u,2.)*cos(M_PI*x/2.)
+             *cos(M_PI*y/2.)/2.);
+    }
+
+    double g_2(double x, double y) 
+    {
+      return ((1. - (exp(K*x) + exp(-K*x))/(exp(K) + exp(-K)))*(1. - (exp(K*y) + exp(-K*y))/(exp(K) + exp(-K))) 
+             - pow(D_v,2.)*(-(1 - (exp(K*x) + exp(-K*x))/(exp(K) + exp(-K)))*(pow(K,2.)*exp(K*y) + pow(K,2.)*exp(-K*y))/(exp(K) + exp(-K)) 
+             - (1. - (exp(K*y) + exp(-K*y))/(exp(K) + exp(-K)))*(pow(K,2.)*exp(K*x) + pow(K,2.)*exp(-K*x))/(exp(K) + exp(-K))) - 
+             cos(M_PI*x/2.)*cos(M_PI*y/2.));
+
+    }
+
+The weak forms can be found in the 
+file `forms.cpp <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/tutorial/11-adapt-system/forms.cpp>`_ and 
+they are registered as follows:
+
+::
+
+    // initialize the weak formulation
+    WeakForm wf(2);
+    wf.add_biform(0, 0, callback(bilinear_form_0_0));  
+    wf.add_biform(0, 1, callback(bilinear_form_0_1));  
+    wf.add_biform(1, 0, callback(bilinear_form_1_0));
+    wf.add_biform(1, 1, callback(bilinear_form_1_1));
+    wf.add_liform(0, linear_form_0, linear_form_0_ord);
+    wf.add_liform(1, linear_form_1, linear_form_1_ord);
+
+Beware that despite each of the forms is actually symmetric, one cannot use the SYM flag as in the 
+elasticity equations, since it has a slightly different 
+meaning (see example `08-system <http://hpfem.org/hermes2d/doc/src/tutorial.html#systems-of-equations>`_).
+
+It is worth noticing how the exact and approximate errors are calculated:
+
+::
+
+    // calculate error wrt. exact solution
+    ExactSolution uexact(&umesh, u_exact);
+    ExactSolution vexact(&vmesh, v_exact);
+    double u_error = h1_error(&u_sln_coarse, &uexact) * 100;
+    double v_error = h1_error(&v_sln_coarse, &vexact) * 100;
+    double error = fmax(u_error, v_error);
+    info("Exact solution error for u (H1 norm): %g%%", u_error);
+    info("Exact solution error for v (H1 norm): %g%%", v_error);
+    info("Exact solution error (maximum): %g%%", error);
+
+    // calculate element errors and total error estimate
+    H1OrthoHP hp(2, &uspace, &vspace);
+    hp.set_biform(0, 0, bilinear_form_0_0<scalar, scalar>, bilinear_form_0_0<Ord, Ord>);
+    hp.set_biform(0, 1, bilinear_form_0_1<scalar, scalar>, bilinear_form_0_1<Ord, Ord>);
+    hp.set_biform(1, 0, bilinear_form_1_0<scalar, scalar>, bilinear_form_1_0<Ord, Ord>);
+    hp.set_biform(1, 1, bilinear_form_1_1<scalar, scalar>, bilinear_form_1_1<Ord, Ord>);
+    double err_est = hp.calc_error_2(&u_sln_coarse, &v_sln_coarse, &u_sln_fine, &v_sln_fine) * 100;
+    info("Estimate of error wrt. ref. solution (energy norm): %g%%", err_est);
+
+The solutions $u$ and $v$ are shown below:
+
+.. image:: img/example-11/solution_u.png
+   :align: center
+   :width: 465
+   :height: 400
+   :alt: Solution
+
+.. image:: img/example-11/solution_v.png
+   :align: center
+   :width: 465
+   :height: 400
+   :alt: Solution
+
+Resulting mesh for $u$ obtained using the multimesh hp-FEM: 169 DOF
+
+.. image:: img/example-11/mesh_multi_u.png
+   :align: center
+   :width: 465
+   :height: 400
+   :alt: Mesh
+
+Resulting mesh for $v$ obtained using the multimesh hp-FEM: 3565 DOF
+
+.. image:: img/example-11/mesh_multi_v.png
+   :align: center
+   :width: 465
+   :height: 400
+   :alt: Mesh
+
+Resulting mesh for $u$ obtained using conventional (single-mesh) hp-FEM: 6013 DOF.
+Here, lots of DOF for $u$ are wasted in the boundary layer region since $u$ 
+does not have a boundary layer:
+
+.. image:: img/example-11/mesh_single.png
+   :align: center
+   :width: 465
+   :height: 400
+   :alt: Mesh
+
+Resulting mesh for $v$ obtained using conventional hp-FEM (same as the mesh for $u$): 6013 DOF
+
+.. image:: img/example-11/mesh_single.png
+   :align: center
+   :width: 465
+   :height: 400
+   :alt: Mesh
+
+DOF convergence graphs:
+
+.. image:: img/example-11/conv_dof.png
+   :align: center
+   :width: 600
+   :height: 400
+   :alt: DOF convergence graph.
+
+CPU time convergence graphs:
+
+.. image:: img/example-11/conv_cpu.png
+   :align: center
+   :width: 600
+   :height: 400
+   :alt: CPU convergence graph.
 
 Adaptivity for General 2nd-Order Linear Equation
 ------------------------------------------------
@@ -1639,11 +1822,11 @@ Adaptivity for General 2nd-Order Linear Equation
 This example does not bring anything new and its purpose is solely to save you work adding adaptivity to the tutorial example 
 `07-general <http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/tutorial/07-general>`_. 
 Feel free to adjust the `main.cpp <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/tutorial/12-adapt-general/main.cpp>`_ 
-file in the tutorial example `12-general-adapt <http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/tutorial/12-general-adapt>`_ for your own applications.
+file for your own applications.
 
 The solution is shown below:
 
-.. image:: img/12-solution.png
+.. image:: img/example-12/12-solution.png
    :align: center
    :width: 465
    :height: 400
@@ -1651,7 +1834,7 @@ The solution is shown below:
 
 The final hp-mesh looks as follows:
 
-.. image:: img/12-mesh.png
+.. image:: img/example-12/12-mesh.png
    :align: center
    :width: 450
    :height: 400
