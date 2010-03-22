@@ -75,7 +75,7 @@ void MeshView::show(Mesh* mesh)
   create();
   update_layout();
   refresh();
-  reset_view();
+  reset_view(false);
   wait_for_draw();
 }
 
@@ -165,7 +165,7 @@ void MeshView::on_key_down(unsigned char key, int x, int y)
   switch (key)
   {
     case 'c':
-      reset_view();
+      reset_view(true);
       refresh();
       break;
 

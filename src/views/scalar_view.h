@@ -190,7 +190,7 @@ protected:
   double vertices_avg_value; ///< Average value of a vertex. Used to center the mesh.
   double3* normals;
 
-  virtual void reset_view(bool force_reset = false); ///< Resets 2d and 3d view.
+  virtual void reset_view(bool force_reset); ///< Resets 2d and 3d view.
   virtual void update_layout(); ///< Updates layout, i.e., centers 2d and 3d mesh.
 
   void draw_tri_contours(double3* vert, int3* tri);

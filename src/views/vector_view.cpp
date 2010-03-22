@@ -61,7 +61,7 @@ void VectorView::show(MeshFunction* xsln, MeshFunction* ysln, double eps, int xi
 
   create();
   update_layout();
-  reset_view();
+  reset_view(false);
 
   refresh();
 
@@ -393,7 +393,7 @@ void VectorView::on_key_down(unsigned char key, int x, int y)
       break;
 
     case 'c':
-      reset_view();
+      reset_view(true);
       refresh();
       break;
 
@@ -441,7 +441,7 @@ void VectorView::load_data(const char* filename)
 
   create();
   update_layout();
-  reset_view();
+  reset_view(false);
   refresh();
 
   wait_for_draw();

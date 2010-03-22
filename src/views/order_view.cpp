@@ -66,7 +66,7 @@ void OrderView::show(Space* space)
 
   create();
   update_layout();
-  reset_view();
+  reset_view(false);
   refresh();
   wait_for_draw();
 }
@@ -194,7 +194,7 @@ void OrderView::on_key_down(unsigned char key, int x, int y)
   switch (key)
   {
     case 'c':
-      reset_view();
+      reset_view(true);
       refresh();
       break;
 
@@ -237,7 +237,7 @@ void OrderView::load_data(const char* filename)
 
   create();
   update_layout();
-  reset_view();
+  reset_view(false);
   refresh();
   wait_for_draw();
 }
