@@ -189,7 +189,7 @@ void ScalarView::show(MeshFunction* sln, double eps, int item,
 
   create();
   update_layout();
-  reset_view();
+  reset_view(false);
   refresh();
   wait_for_draw();
 
@@ -1399,7 +1399,7 @@ void ScalarView::load_data(const char* filename)
 
   create();
   update_layout();
-  reset_view();
+  reset_view(false);
   refresh();
   wait_for_draw();
 }

@@ -435,7 +435,7 @@ void StreamView::show(MeshFunction* xsln, MeshFunction* ysln, int marker, double
 
   create();
   update_layout();
-  reset_view();
+  reset_view(false);
   refresh();
   wait_for_draw();
 }
@@ -566,7 +566,7 @@ void StreamView::on_key_down(unsigned char key, int x, int y)
       break;
 
     case 'c':
-      reset_view();
+      reset_view(true);
       refresh();
       break;
 
