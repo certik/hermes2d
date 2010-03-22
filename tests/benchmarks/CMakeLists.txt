@@ -12,7 +12,6 @@ add_subdirectory(lshape)
 add_subdirectory(smooth-iso)
 add_subdirectory(smooth-aniso-x)
 add_subdirectory(smooth-aniso-y)
-add_subdirectory(singpert-aniso)
 
 if(NOT WITH_TRILINOS)
   add_subdirectory(bessel)
