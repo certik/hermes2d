@@ -36,8 +36,8 @@ and all tutorial examples can be found in the directory
 For the 1D and 3D codes, see the `Hermes1D <http://hpfem.org/hermes1d/>`_ and 
 `Hermes3D <http://hpfem.org/hermes3d/>`_ home pages, respectively.
 
-How Can Hermes Help You
------------------------
+What is Hermes
+--------------
 
 Main strengths of Hermes are **adaptive hp-FEM and hp-DG methods**,
 adaptivity for time-dependent problems on **dynamical hp-meshes**, 
