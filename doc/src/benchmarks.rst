@@ -11,9 +11,9 @@ comparisons of various methods and adaptivity algorithms.
 Smooth-iso (Elliptic)
 ---------------------
 
-More information to this example can be found in the corresponding 
-`main.cpp <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/benchmarks/smooth-iso/main.cpp>`_ file.
-It shows that it is a very bad idea to approximate smooth solutions using low-order 
+**Git reference:** Benchmark `smooth-iso <http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/benchmarks/smooth-iso>`_.
+
+We show that it is a very bad idea to approximate smooth solutions using low-order 
 elements.
 
 Equation solved: Poisson equation 
@@ -145,9 +145,10 @@ CPU time convergence graphs:
 Smooth-aniso-x (Elliptic)
 -------------------------
 
-More information to this example can be found in the corresponding 
-`main.cpp <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/benchmarks/layer/main.cpp>`_ file.
-It shows that it makes sense to use both spatially and polynomially anisotropic refinements. 
+**Git reference:** Benchmark `smooth-aniso-x <http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/benchmarks/smooth-aniso-x>`_.
+
+We show that one should use (spatially as well as polynomially) anisotropic refinements for solutions 
+containing anisotropy. 
 
 Equation solved: Poisson equation 
 
@@ -228,7 +229,9 @@ Final mesh (hp-FEM, isotropic refinements): 63 DOF, error = 3.6797337289125e-05 
    :height: 400
    :alt: Final mesh
 
-Final mesh (hp-FEM, anisotropic refinements): 14 DOF, error 3.6797337292196e-05 %
+Final mesh (hp-FEM, anisotropic refinements): 14 DOF, error 3.6797337292196e-05 %, The 
+color pattern means that the polynomial degrees are one and eight in the vertical and 
+horizontal directions, respectively.
 
 .. image:: img/smooth-aniso-x/mesh-hp-aniso.png
    :align: center
@@ -256,15 +259,17 @@ CPU time convergence graphs:
 Smooth-aniso-y (Elliptic)
 -------------------------
 
+**Git reference:** Benchmark `smooth-aniso-y <http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/benchmarks/smooth-aniso-y>`_.
+
 This example is very similar to the previous one, except now the solution is 
-constant in the x-direction. More information can be found in the corresponding 
-`main.cpp <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/benchmarks/smooth-aniso-y/main.cpp>`_ file.
+constant in the x-direction. It is good to have both to be able to check that 
+anisotropic refinements work correctly. 
 
 L-Shape (Elliptic)
 ------------------
 
-More information to this example can be found in the corresponding 
-`main.cpp <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/benchmarks/lshape/main.cpp>`_ file.
+**Git reference:** Benchmark `lshape <http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/benchmarks/lshape>`_.
+
 This is a standard adaptivity benchmark whose exact solution is smooth but
 contains singular gradient in a re-entrant corner. 
 
@@ -378,8 +383,8 @@ CPU time convergence graphs:
 Layer (Elliptic)
 ----------------
 
-More information to this example can be found in the corresponding 
-`main.cpp <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/benchmarks/layer/main.cpp>`_ file.
+**Git reference:** Benchmark `layer <http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/benchmarks/layer>`_.
+
 This example has a smooth solution that exhibits a steep internal layer inside the domain.
 
 Equation solved: Poisson equation 
@@ -519,17 +524,19 @@ CPU time convergence graphs:
    :height: 400
    :alt: CPU convergence graph.
 
-Line-sing (Elliptic)
---------------------
+Line singularity (Elliptic)
+---------------------------
 
-To be added soon.
+**Git reference:** Benchmark `line-sing <http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/benchmarks/line-sing>`_.
+
+Description coming soon.
 
 
 Kellogg (Elliptic)
 ------------------
 
-More information to this example can be found in the corresponding 
-`main.cpp <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/benchmarks/kellogg/main.cpp>`_ file.
+**Git reference:** Benchmark `kellogg <http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/benchmarks/kellogg>`_.
+
 The solution to this elliptic problems contains a severe singularity that poses a challenge to 
 adaptive methods. 
 
@@ -651,8 +658,8 @@ CPU time convergence graphs:
 Bessel (Maxwell's Equations)
 ----------------------------
 
-More information to this example can be found in the corresponding 
-`main.cpp <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/benchmarks/bessel/main.cpp>`_ file.
+**Git reference:** Benchmark `bessel <http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/benchmarks/bessel>`_.
+
 This example solves time-harmonic Maxwell's equations in an L-shaped domain and it 
 describes the diffraction of an electromagnetic wave from a re-entrant corner. It comes with an 
 exact solution that contains singularity.
@@ -809,8 +816,8 @@ CPU time convergence graphs:
 Screen (Maxwell's Equations)
 ----------------------------
 
-More information to this example can be found in the corresponding 
-`main.cpp <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/benchmarks/screen/main.cpp>`_ file.
+**Git reference:** Benchmark `screen <http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/benchmarks/screen>`_.
+
 This example solves time-harmonic Maxwell's equations. It describes an electromagnetic wave that 
 hits a thin screen under the angle of 45 degrees, causing a singularity at the tip of the screen.
 The strength of the singularity makes this example rather difficult. 

@@ -9,8 +9,8 @@ in the source code.
 Saphir
 ------
 
-More information to this example can be found in the corresponding 
-`main.cpp <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/examples/saphir/main.cpp>`_ file.
+**Git reference:** Example `saphir <http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/examples/saphir>`_.
+
 This is a standard nuclear engineering benchmark (IAEA number EIR-2) describing 
 an external-force-driven configuration without fissile materials present, using one-group 
 neutron diffusion approximation
@@ -150,8 +150,8 @@ CPU time convergence graphs:
 Iron-Water
 ----------
 
-More information to this example can be found in the corresponding 
-`main.cpp <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/examples/iron-water/main.cpp>`_ file.
+**Git reference:** Example `iron-water <http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/examples/iron-water>`_.
+
 This example is very similar to the example "saphir", the main difference being that 
 it reads a mesh file in the exodusii format (created by Cubit). This example only builds 
 if you have the `ExodusII <http://sourceforge.net/projects/exodusii/>`_ and 
@@ -252,8 +252,8 @@ CPU time convergence graphs:
 Nernst-Planck
 -------------
 
-More information to this example can be found in the corresponding 
-`main.cpp <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/examples/newton-np-timedep-adapt-system/main.cpp>`_ file.
+**Git reference:** Example `newton-np-timedep-adapt-system <http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/examples/newton-np-timedep-adapt-system>`_.
+
 The example is concerned with the finite element solution 
 of the Poisson and Nernst-Planck equation system. The Nernst-Planck
 equation is often used to describe the diffusion, convection,
@@ -620,8 +620,8 @@ To be added soon.
 Crack
 -----
 
-More information to this example can be found in the corresponding 
-`main.cpp <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/examples/crack/main.cpp>`_ file.
+**Git reference:** Example `crack <http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/examples/crack>`_.
+
 The example employs the adaptive multimesh hp-FEM to solve the 
 equations of linear elasticity. The domain contains two horizontal 
 cracks causing strong singularities at their corners. Each
@@ -823,8 +823,8 @@ The same comparison in terms of CPU time:
 Thermoelasticity
 ----------------
 
-More information to this example can be found in the corresponding 
-`main.cpp <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/examples/thermoelasticity/main.cpp>`_ file.
+**Git reference:** Example `thermoelasticity <http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/examples/thermoelasticity>`_.
+
 The example deals with a massive hollow conductor is heated by induction and 
 cooled by water running inside. We will model this problem using linear thermoelasticity 
 equations, where the x-displacement, y-displacement, and the temperature will be approximated 
@@ -1077,8 +1077,8 @@ h-FEM:
 Singular Perturbation
 ---------------------
 
-More information to this example can be found in the corresponding 
-`main.cpp <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/examples/singular-perturbation/main.cpp>`_ file.
+**Git reference:** Example `singular-perturbation <http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/examples/singular-perturbation>`_.
+
 We solve a singularly perturbed elliptic problem that exhibits a thin anisotropic boundary layer that is 
 difficult to resolve. 
 
@@ -1169,8 +1169,8 @@ to try.
 Bracket
 -------
 
-More details to this example can be found in 
-the corresponding `main.cpp <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/examples/bracket/main.cpp>`_ file.
+**Git reference:** Example `bracket <http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/examples/bracket>`_.
+
 We will use the equations of linear elasticity from example 
 `08-system <http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/tutorial/08-system>`_, but
 now we will view them as a coupled PDE system.
@@ -1271,19 +1271,21 @@ example `11-adapt-system <http://hpfem.org/hermes2d/doc/src/tutorial.html#adapti
 Wire
 ----
 
-To be added soon.
+**Git reference:** Example `wire <http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/examples/wire>`_.
 
 
-
+Description coming soon.
 
 
 
 Waveguide
 ---------
 
-To be added soon.
+
+**Git reference:** Example `waveguide <http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/examples/waveguide>`_.
 
 
+Description coming soon.
 
 
 
