@@ -1,4 +1,4 @@
 rm *~ 
-singpert-aniso
+singular-perturbation
 python plot_graph.py &
 

@@ -207,7 +207,7 @@ int main(int argc, char* argv[])
 
   // show the fine solution - this is the final result
   sview.set_title("Final solution");
-  sview.show(&sln_fine);
+  sview.show(&sln_coarse);
 
   // wait for keyboard or mouse input
   View::wait();
