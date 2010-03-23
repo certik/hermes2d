@@ -26,6 +26,8 @@ def plot_sln_mpl(sln, method="default", just_mesh=False, axes=None):
     v = lin.get_vertices()
     if method=="contour":
         from numpy import min, max, linspace
+        import matplotlib
+        matplotlib.use("Agg")
         from matplotlib.mlab import griddata
         import matplotlib.pyplot as plt
         x = v[:, 0]
@@ -43,6 +45,8 @@ def plot_sln_mpl(sln, method="default", just_mesh=False, axes=None):
         plt.title('Solution')
     elif method == "default":
         from numpy import array
+        import matplotlib
+        matplotlib.use("Agg")
         import matplotlib.collections as collections
         #import matplotlib.pyplot as plt
         if axes is None:
@@ -136,6 +140,8 @@ def plot_mesh_mpl_orders(nodes, elements, curves=None, polynomial_orders=None, c
     import math
 
     import numpy as np
+    import matplotlib
+    matplotlib.use("Agg")
     from matplotlib.path import Path
     from matplotlib.patches import PathPatch
     from matplotlib.patches import Rectangle
