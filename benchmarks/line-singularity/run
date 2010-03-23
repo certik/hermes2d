@@ -1,4 +1,4 @@
 rm *~ 
-line-sing
+line-singularity
 python plot_graph.py &
 

@@ -788,9 +788,98 @@ equally important as allowing spatially anisotropic ones.
 Line singularity (Elliptic)
 ---------------------------
 
-**Git reference:** Benchmark `line-sing <http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/benchmarks/line-sing>`_.
+**Git reference:** Benchmark `line-singularity <http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/benchmarks/line-singularity>`_.
 
-Description coming soon.
+
+Equation etc. coming soon.
+
+
+
+Comparison of h-FEM (p=1), h-FEM (p=2) and hp-FEM with anisotropic refinements
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Final mesh (h-FEM, p=1, anisotropic refinements):
+
+.. image:: img/line-singularity/mesh_h1_aniso.png
+   :align: center
+   :width: 450
+   :alt: Final mesh.
+
+Final mesh (h-FEM, p=2, anisotropic refinements):
+
+.. image:: img/line-singularity/mesh_h2_aniso.png
+   :align: center
+   :width: 450
+   :alt: Final mesh.
+
+Final mesh (hp-FEM, h-anisotropic refinements):
+
+.. image:: img/line-singularity/mesh_hp_anisoh.png
+   :align: center
+   :width: 450
+   :alt: Final mesh.
+
+DOF convergence graphs:
+
+.. image:: img/line-singularity/conv_dof_aniso.png
+   :align: center
+   :width: 600
+   :height: 400
+   :alt: DOF convergence graph.
+
+CPU convergence graphs:
+
+.. image:: img/line-singularity/conv_cpu_aniso.png
+   :align: center
+   :width: 600
+   :height: 400
+   :alt: CPU convergence graph.
+
+hp-FEM with iso, h-aniso and hp-aniso refinements
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Final mesh (hp-FEM, isotropic refinements):
+
+.. image:: img/line-singularity/mesh_hp_iso.png
+   :align: center
+   :width: 450
+   :alt: Final mesh.
+
+Final mesh (hp-FEM, h-anisotropic refinements):
+
+.. image:: img/line-singularity/mesh_hp_anisoh.png
+   :align: center
+   :width: 450
+   :alt: Final mesh.
+
+Final mesh (hp-FEM, hp-anisotropic refinements):
+
+.. image:: img/line-singularity/mesh_hp_aniso.png
+   :align: center
+   :width: 450
+   :alt: Final mesh.
+
+The results following convergence comparisons show that, surprizingly, 
+the h-anisotropic version is the most efficient one. This is unexpected, but more 
+people have observed this. The abrupt slow-down of the isotropic 
+and hp-anisotropic hp-FEM remains to be clarified. 
+
+DOF convergence graphs:
+
+.. image:: img/line-singularity/conv_dof_hp.png
+   :align: center
+   :width: 600
+   :height: 400
+   :alt: DOF convergence graph.
+
+CPU convergence graphs:
+
+.. image:: img/line-singularity/conv_cpu_hp.png
+   :align: center
+   :width: 600
+   :height: 400
+   :alt: CPU convergence graph.
+
 
 
 Kellogg (Elliptic)

@@ -1,13 +1,8 @@
 #include "hermes2d.h"
 #include "solver_umfpack.h"
 
-//  This is a simple non-elliptic problem with known exact solution where one
-//  can see the advantages of anisotropic refinements. During each computation,
-//  approximate convergence curves are saved into the files "conv_dof.gp" and
-//  "conv_cpu.gp". As in other adaptivity examples, you can compare hp-adaptivity
-//  (ADAPT_TYPE = 0) with h-adaptivity (ADAPT_TYPE = 1) and p-adaptivity (ADAPT_TYPE = 2).
-//  You can turn off and on anisotropic element refinements via the ISO_ONLY
-//  parameter.
+//  This is a simple elliptic problem with known exact solution where one
+//  can compare isotropic and anisotropic refinements.
 //
 //  PDE: -Laplace u - K*K*u = f
 //  where f is dictated by exact solution
@@ -22,7 +17,6 @@
 //  The following parameters can be changed:
 
 const int INIT_REF_NUM = 1;       // number of initial mesh refinements (the original mesh is just one element)
-const int INIT_REF_NUM_BDY = 0;   // number of initial mesh refinements towards the boundary
 const int P_INIT = 1;             // Initial polynomial degree of all mesh elements.
 const double THRESHOLD = 0.3;     // This is a quantitative parameter of the adapt(...) function and
                                   // it has different meanings for various adaptive strategies (see below).
@@ -125,7 +119,6 @@ int main(int argc, char* argv[])
 
   // initial mesh refinement
   for (int i=0; i < INIT_REF_NUM; i++) mesh.refine_all_elements();
-  //mesh.refine_all_elements();
 
   // initialize the shapeset and the cache
   H1Shapeset shapeset;
@@ -153,7 +146,7 @@ int main(int argc, char* argv[])
   UmfpackSolver solver;
 
   // prepare selector
-  RefinementSelectors::H1NonUniformHP selector(ISO_ONLY, ADAPT_TYPE, 1.0, H2DRS_DEFAULT_ORDER, &shapeset);
+  RefinementSelectors::H1UniformHP selector(ISO_ONLY, ADAPT_TYPE, 1.0, H2DRS_DEFAULT_ORDER, &shapeset);
 
   // DOF and CPU convergence graphs
   SimpleGraph graph_dof_est, graph_dof_exact, graph_cpu_est, graph_cpu_exact;
@@ -193,7 +186,6 @@ int main(int argc, char* argv[])
     begin_time();
 
     // solve the fine mesh problem
-    begin_time();
     RefSystem rs(&ls);
     rs.assemble();
     rs.solve(1, &sln_fine);
