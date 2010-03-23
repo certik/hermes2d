@@ -1,3 +1,5 @@
+from _hermes_common cimport c2numpy_double, c2numpy_int
+
 FN_DX = c_FN_DX
 FN_DY = c_FN_DY
 FN_VAL = c_FN_VAL
@@ -26,7 +28,7 @@ cdef class Nurbs:
     def pt(self):
         cdef double3 *pt = self.thisptr.pt
         cdef int np = self.thisptr.np
-        cdef ndarray vec = array_double_c2numpy(<double *>pt, 3*np)
+        cdef ndarray vec = c2numpy_double(<double *>pt, 3*np)
         return vec.reshape((np, 3))
 
     @property
@@ -37,7 +39,7 @@ cdef class Nurbs:
     def kv(self):
         cdef double *kv = self.thisptr.kv
         cdef int nk = self.thisptr.nk
-        cdef ndarray vec = array_double_c2numpy(<double *>kv, nk)
+        cdef ndarray vec = c2numpy_double(<double *>kv, nk)
         return vec
         #return vec.reshape((kv,))
 
@@ -736,9 +738,9 @@ cdef class LinSystem:
         cdef scalar *Ax
         self.thisptr.get_matrix(Ap, Ai, Ax, n)
         nnz = Ap[n]
-        aAp = array_int_c2numpy(Ap, n+1)
-        aAi = array_int_c2numpy(Ai, nnz)
-        aAx = array_double_c2numpy(Ax, nnz)
+        aAp = c2numpy_int(Ap, n+1)
+        aAi = c2numpy_int(Ai, nnz)
+        aAx = c2numpy_double(Ax, nnz)
         return aAp, aAi, aAx
 
     def get_matrix(self):
@@ -756,7 +758,7 @@ cdef class LinSystem:
         cdef scalar *rhs
         cdef int n
         self.thisptr.get_rhs(rhs, n)
-        return array_double_c2numpy(rhs, n)
+        return c2numpy_double(rhs, n)
 
 cdef class RefSystem(LinSystem):
 
@@ -1038,7 +1040,7 @@ cdef class Linearizer:
         """
         cdef double3 *vert = self.thisptr.get_vertices()
         cdef int nvert = self.thisptr.get_num_vertices()
-        cdef ndarray vec = array_double_c2numpy(<double *>vert, 3*nvert)
+        cdef ndarray vec = c2numpy_double(<double *>vert, 3*nvert)
         return vec.reshape((nvert, 3))
 
     def get_num_vertices(self):
@@ -1066,7 +1068,7 @@ cdef class Linearizer:
         """
         cdef int3 *tri = self.thisptr.get_triangles()
         cdef int ntri = self.thisptr.get_num_triangles()
-        cdef ndarray vec = array_int_c2numpy(<int *>tri, 3*ntri)
+        cdef ndarray vec = c2numpy_int(<int *>tri, 3*ntri)
         return vec.reshape((ntri, 3))
 
     def get_num_triangles(self):
@@ -1094,7 +1096,7 @@ cdef class Linearizer:
         """
         cdef int3 *edges = self.thisptr.get_edges()
         cdef int nedges = self.thisptr.get_num_edges()
-        cdef ndarray vec = array_int_c2numpy(<int *>edges, 3*nedges)
+        cdef ndarray vec = c2numpy_int(<int *>edges, 3*nedges)
         return vec.reshape((nedges, 3))
 
     def get_num_edges(self):
@@ -1132,14 +1134,14 @@ cdef class Vectorizer(Linearizer):
         cdef c_Vectorizer *_self = <c_Vectorizer *>(self.thisptr)
         cdef double4 *vert = _self.get_vertices()
         cdef int nvert = self.thisptr.get_num_vertices()
-        cdef ndarray vec = array_double_c2numpy(<double *>vert, 4*nvert)
+        cdef ndarray vec = c2numpy_double(<double *>vert, 4*nvert)
         return vec.reshape((nvert, 4))
 
     def get_dashes(self):
         cdef c_Vectorizer *_self = <c_Vectorizer *>(self.thisptr)
         cdef int2 *dashes = _self.get_dashes()
         cdef int ndashes = _self.get_num_dashes()
-        cdef ndarray vec = array_int_c2numpy(<int *>dashes, 2*ndashes)
+        cdef ndarray vec = c2numpy_int(<int *>dashes, 2*ndashes)
         return vec.reshape((ndashes, 2))
 
 cdef class View:
@@ -1294,110 +1296,3 @@ def set_warn_integration(warn_integration):
 #    finish_glut_main_loop(False)
 
 init_hermes2d_wrappers()
-
-import sys
-import traceback
-
-global_namespace = {"verbose": False}
-
-cdef api void cmd(char *text):
-    n = run_cmd(text, global_namespace)
-    global_namespace.update(n)
-
-cdef api void set_verbose_cmd(int verbose):
-    global_namespace["verbose"] = verbose
-
-cdef api void insert_int(char *name, int i):
-    """
-    Inserts the int "i" into the global namespace.
-
-    Example:
-
-    insert_int("a", 34);
-    cmd("print a");
-
-    This prints "34".
-    """
-    global_namespace.update({name: i})
-
-cdef api void insert_double_array(char *name, double *A, int len):
-    """
-    Inserts an array of doubles into the global namespace as a NumPy array.
-
-    Example:
-
-    double a[3] = {1, 5, 3};
-    insert_double_array("A", a, 3);
-    cmd("print A");
-
-    This prints "[ 1.  5.  3.]" (this is how the NumPy array is printed).
-    """
-    global_namespace.update({name: array_double_c2numpy(A, len)})
-
-cdef api void insert_int_array(char *name, int *A, int len):
-    """
-    Inserts an array of ints into the global namespace as a NumPy array.
-
-    Example:
-
-    int a[3] = {1, 5, 3};
-    insert_double_array("A", a, 3);
-    cmd("print A");
-
-    This prints "[1  5  3]" (this is how the NumPy array is printed).
-    """
-    global_namespace.update({name: array_int_c2numpy(A, len)})
-
-cdef api void insert_object(char *name, object o):
-    global_namespace.update({name: o})
-
-cdef api object get_symbol(char *name):
-    return global_namespace.get(name)
-
-cdef ndarray array_int_c2numpy(int *A, int len):
-    from numpy import empty
-    cdef ndarray vec = empty([len], dtype="int32")
-    cdef int *pvec = <int *>vec.data
-    memcpy(pvec, A, len*sizeof(int))
-    return vec
-
-cdef ndarray array_double_c2numpy(double *A, int len):
-    from numpy import empty
-    cdef ndarray vec = empty([len], dtype="double")
-    cdef double *pvec = <double *>vec.data
-    memcpy(pvec, A, len*sizeof(double))
-    return vec
-
-cdef api void array_double_numpy2c_inplace(object A_n, double **A_c, int *n):
-    cdef ndarray A = A_n
-    if not (A.nd == 1 and A.strides[0] == sizeof(double)):
-        from numpy import array
-        A = array(A.flat, dtype="double")
-    n[0] = len(A)
-    A_c[0] = <double *>(A.data)
-
-cdef api object run_cmd(char *text, object namespace):
-    try:
-        verbose = namespace.get("verbose")
-        if verbose:
-            print "got a text:", text
-        if verbose:
-            print "evaluting in the namespace:"
-            print namespace
-        code = compile(text, "", "exec")
-        eval(code, {}, namespace)
-        if verbose:
-            print "new namespace:"
-            print namespace
-        return namespace
-    except SystemExit, e:
-        try:
-            exit_code = int(e)
-        except:
-            exit_code = -1
-        exit(exit_code)
-    except:
-        etype, value, tb = sys.exc_info()
-        s = "".join(traceback.format_exception(etype, value, tb))
-        s = "Exception raised in the Python code:\n" + s
-        throw_exception(s)
