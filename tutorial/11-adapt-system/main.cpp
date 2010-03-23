@@ -227,7 +227,7 @@ int main(int argc, char* argv[])
     ExactSolution vexact(&vmesh, v_exact);
     double u_error = h1_error(&u_sln_coarse, &uexact) * 100;
     double v_error = h1_error(&v_sln_coarse, &vexact) * 100;
-    double error = fmax(u_error, v_error);
+    double error = std::max(u_error, v_error);
     info("Exact solution error for u (H1 norm): %g%%", u_error);
     info("Exact solution error for v (H1 norm): %g%%", v_error);
     info("Exact solution error (maximum): %g%%", error);
