@@ -31,6 +31,9 @@ set(SRC
        compat/fmemopen.cpp compat/c99_functions.cpp
        )
 
+include_directories(${hermes2d_SOURCE_DIR}/hermes_common/)
+include_directories(${PYTHON_INCLUDE_PATH} ${NUMPY_INCLUDE_PATH})
+
 find_package(PTHREAD REQUIRED)
 find_package(JUDY REQUIRED)
 include_directories(${JUDY_INCLUDE_DIR})

@@ -25,6 +25,7 @@
 #include "solution.h"
 #include "integrals_h1.h"
 
+#include "python_solvers.h"
 
 NonlinSystem::NonlinSystem(WeakForm* wf, Solver* solver)
             : LinSystem(wf, solver)
@@ -76,9 +77,6 @@ Scalar L2projection_liform(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtD
 
 void NonlinSystem::free()
 {
-  if (Ap != NULL) { ::free(Ap); Ap = NULL; }
-  if (Ai != NULL) { ::free(Ai); Ai = NULL; }
-  if (Ax != NULL) { ::free(Ax); Ax = NULL; }
   if (RHS != NULL) { ::free(RHS); RHS = NULL; }
   if (Dir != NULL) { ::free(Dir-1); Dir = NULL; }
   if (Vec != NULL)
@@ -182,23 +180,10 @@ bool NonlinSystem::solve(int n, ...)
   // except that Y_{n+1} = Y_{n} + dY_{n+1}
   TimePeriod cpu_time;
 
-  // perform symbolic analysis of the matrix
-  if (struct_changed)
-  {
-    solver->analyze(slv_ctx, ndofs, Ap, Ai, Ax, false);
-    struct_changed = false;
-  }
-
-  // factorize the stiffness matrix, if needed
-  if (struct_changed || values_changed)
-  {
-    solver->factorize(slv_ctx, ndofs, Ap, Ai, Ax, false);
-    values_changed = false;
-  }
-
   // solve the system
   scalar* delta = (scalar*) malloc(ndofs * sizeof(scalar));
-  solver->solve(slv_ctx, ndofs, Ap, Ai, Ax, false, RHS, delta);
+  memcpy(delta, RHS, sizeof(scalar) * this->A->get_size());
+  solve_linear_system_scipy_umfpack(this->A, delta);
   report_time("Solved in %g s", cpu_time.tick().last());
 
   // if not initialized by set_ic(), assume Vec is a zero vector
@@ -249,6 +234,12 @@ bool NonlinSystem::solve_newton_1(Solution* u_prev, double newton_tol, int newto
       // assemble the Jacobian matrix and residual vector,
       // solve the system
       this->assemble();
+      if (import__hermes_common())
+          throw std::runtime_error("hermes_common failed to import.");
+      cmd("print 'ok'");
+      insert_object("A", c2py_CooMatrix(A));
+      cmd("print A.to_scipy_coo().tocsr()");
+      cmd("print 'done'");
       this->solve(1, &sln_iter);
 
       // calculate the l2-norm of residual vector

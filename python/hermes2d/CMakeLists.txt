@@ -1,6 +1,6 @@
 add_subdirectory(examples)
 cython_add_module(_hermes2d dummy_solver.cpp stdcython.c)
-target_link_libraries(_hermes2d ${HERMES_REAL_BIN})
+target_link_libraries(_hermes2d hermes_common ${HERMES_REAL_BIN})
 set_property(TARGET _hermes2d PROPERTY COMPILE_FLAGS "-g -DH2D_REPORT_ALL -DH2D_REPORT_RUNTIME_CONTROL")
 if(WITH_PYTHON_UMFPACK)
     find_package(UMFPACK REQUIRED)
