@@ -16,6 +16,7 @@
 #ifndef __HERMES2D_LINSYSTEM_H
 #define __HERMES2D_LINSYSTEM_H
 
+#include "matrix.h"
 #include "matrix_old.h"
 #include "forms.h"
 #include "weakform.h"
@@ -67,8 +68,7 @@ public:
 
   int get_num_dofs() const { return ndofs; };
   int get_matrix_size() const;
-  void get_matrix(int*& Ap, int*& Ai, scalar*& Ax, int& size) const
-    { Ap = this->Ap; Ai = this->Ai; Ax = this->Ax; size = ndofs; }
+  void get_matrix(int*& Ap, int*& Ai, scalar*& Ax, int& size) const;
   void get_rhs(scalar*& RHS, int& size) const { RHS = this->RHS; size=ndofs; }
   void get_solution_vector(scalar*& sln_vector, int& sln_vector_len) { sln_vector = Vec; sln_vector_len = ndofs; }
 
@@ -82,10 +82,7 @@ protected:
   PrecalcShapeset** pss;
 
   int ndofs;
-  int* Ap;      ///< row/column start indices
-  int* Ai;      ///< element positions within rows/columns
-  scalar* Ax;   ///< matrix values
-  bool mat_row; ///< true if the matrix is row-oriented (CSR)
+  CooMatrix *A;
   bool mat_sym; ///< true if symmetric and only upper half stored
 
   scalar* RHS; ///< assembled right-hand side

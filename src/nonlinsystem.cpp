@@ -75,9 +75,6 @@ Scalar L2projection_liform(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtD
 
 void NonlinSystem::free()
 {
-  if (Ap != NULL) { ::free(Ap); Ap = NULL; }
-  if (Ai != NULL) { ::free(Ai); Ai = NULL; }
-  if (Ax != NULL) { ::free(Ax); Ax = NULL; }
   if (RHS != NULL) { ::free(RHS); RHS = NULL; }
   if (Dir != NULL) { ::free(Dir-1); Dir = NULL; }
   if (Vec != NULL)
@@ -180,6 +177,10 @@ bool NonlinSystem::solve(int n, ...)
   // The solve() function is almost identical to the original one in LinSystem
   // except that Y_{n+1} = Y_{n} + dY_{n+1}
   begin_time();
+
+  scalar *Ax;
+  int *Ap, *Ai, size;
+  this->get_matrix(Ap, Ai, Ax, size);
 
   // perform symbolic analysis of the matrix
   if (struct_changed)

@@ -10,6 +10,7 @@ endif(NOT REAL)
 macro(LINVIEW_SETTINGS VIEW)
     add_executable(${PROJECT_NAME} main.cpp)
     include_directories(${hermes2d_SOURCE_DIR}/src)
+    include_directories(${hermes2d_SOURCE_DIR}/hermes_common/)
     include_directories(${TRILINOS_INCLUDE_DIR})
     target_link_libraries(${PROJECT_NAME} ${HERMES_REAL_BIN} ${LAPACK_LIBRARIES} ${TRILINOS_LIBRARIES})
     # if having Trilinos with UMFPACK support we need to link against UMFPACK

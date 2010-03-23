@@ -30,6 +30,8 @@ set(SRC
        compat/fmemopen.cpp compat/c99_functions.cpp
        )
 
+include_directories(${hermes2d_SOURCE_DIR}/hermes_common/)
+
 find_package(PTHREAD REQUIRED)
 find_package(JUDY REQUIRED)
 include_directories(${JUDY_INCLUDE_DIR})

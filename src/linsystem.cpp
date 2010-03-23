@@ -75,9 +75,7 @@ LinSystem::LinSystem(WeakForm* wf, Solver* solver)
   this->solver = solver;
   slv_ctx = solver ? solver->new_context(false) : NULL;
 
-  Ap = Ai = NULL;
-  Ax = RHS = Dir = Vec = NULL;
-  mat_row = solver ? solver->is_row_oriented() : true;
+  RHS = Dir = Vec = NULL;
   mat_sym = false;
 
   spaces = new Space*[wf->neq];
@@ -145,9 +143,6 @@ void LinSystem::copy(LinSystem* sys)
 
 void LinSystem::free()
 {
-  if (Ap != NULL) { ::free(Ap); Ap = NULL; }
-  if (Ai != NULL) { ::free(Ai); Ai = NULL; }
-  if (Ax != NULL) { ::free(Ax); Ax = NULL; }
   if (RHS != NULL) { ::free(RHS); RHS = NULL; }
   if (Dir != NULL) { ::free(Dir-1); Dir = NULL; }
   if (Vec != NULL) { ::free(Vec); Vec = NULL; }
@@ -232,7 +227,7 @@ void LinSystem::precalc_sparse_structure(Page** pages)
           an = al + n;
 
           // pretend assembling of the element stiffness matrix
-          if (mat_row)
+          if (1)
           {
             // register nonzero elements (row-oriented matrix)
             for (i = 0; i < am->cnt; i++)
@@ -314,7 +309,6 @@ void LinSystem::create_matrix(bool rhsonly)
   {
     verbose("Reusing matrix sparse structure.");
     if (!rhsonly) {
-      memset(Ax, 0, sizeof(scalar) * Ap[ndofs]);
       memset(Dir, 0, sizeof(scalar) * ndofs);
     }
     memset(RHS, 0, sizeof(scalar) * ndofs);
@@ -337,33 +331,6 @@ void LinSystem::create_matrix(bool rhsonly)
   // get row and column indices of nonzero matrix elements
   Page** pages = new Page*[ndofs];
   memset(pages, 0, sizeof(Page*) * ndofs);
-  precalc_sparse_structure(pages);
-
-  // initialize the arrays Ap and Ai
-  Ap = (int*) malloc(sizeof(int) * (ndofs+1));
-  int aisize = get_num_indices(pages, ndofs);
-  Ai = (int*) malloc(sizeof(int) * aisize);
-  if (Ai == NULL) error("Out of memory. Could not allocate the array Ai.");
-
-  // sort the indices and remove duplicities, insert into Ai
-  int i, pos = 0;
-  for (i = 0; i < ndofs; i++)
-  {
-    Ap[i] = pos;
-    pos += sort_and_store_indices(pages[i], Ai + pos, Ai + aisize);
-  }
-  Ap[i] = pos;
-  verbose("  (ndof: %d, nnz: %d, size: %0.1lf MB, time: %g sec)",
-          ndofs, pos, (double) get_matrix_size() / (1024*1024), end_time());
-  delete [] pages;
-
-  // shrink Ai to the actual size
-  Ai = (int*) realloc(Ai, sizeof(int) * pos);
-
-  // allocate matrix values, RHS and Dir
-  Ax  = (scalar*) malloc(sizeof(scalar) * Ap[ndofs]);
-  if (Ax == NULL) error("Out of memory. Error allocating stiffness matrix (Ax).");
-  memset(Ax, 0, sizeof(scalar) * Ap[ndofs]);
 
   RHS = (scalar*) malloc(sizeof(scalar) * ndofs);
   Dir = (scalar*) malloc(sizeof(scalar) * (ndofs + 1)) + 1;
@@ -372,7 +339,7 @@ void LinSystem::create_matrix(bool rhsonly)
   memset(Dir, 0, sizeof(scalar) * ndofs);
 
   // save space seq numbers and weakform seq number, so we can detect their changes
-  for (i = 0; i < wf->neq; i++)
+  for (int i = 0; i < wf->neq; i++)
     sp_seq[i] = spaces[i]->get_seq();
   wf_seq = wf->get_seq();
 
@@ -382,7 +349,14 @@ void LinSystem::create_matrix(bool rhsonly)
 
 int LinSystem::get_matrix_size() const
 {
-  return (sizeof(int) + sizeof(scalar)) * Ap[ndofs] + sizeof(scalar) * 2 * ndofs;
+    return this->A->get_size();
+}
+
+void LinSystem::get_matrix(int*& Ap, int*& Ai, scalar*& Ax, int& size) const
+{
+    /// XXX: this is a memory leak:
+    CSRMatrix *m = new CSRMatrix(this->A);
+    Ap = m->get_IA(); Ai = m->get_JA(); Ax = m->get_A(); size = m->get_size();
 }
 
 
@@ -390,71 +364,7 @@ int LinSystem::get_matrix_size() const
 
 void LinSystem::insert_block(scalar** mat, int* iidx, int* jidx, int ilen, int jlen)
 {
-  if (mat_row)
-  {
-    // row-oriented matrix
-    for (int i = 0; i < ilen; i++)
-    {
-      int row = iidx[i];
-      if (row < 0) continue;
-      int* ridx = Ai + Ap[row];
-      int  rlen = Ap[row+1] - Ap[row];
-      scalar* rval = Ax + Ap[row];
-
-      for (register int j = 0; j < jlen; j++)
-      {
-        register int col = jidx[j];
-        if (col < 0) continue;
-        register int lo = 0, hi = rlen-1, mid;
-        while (1)
-        {
-          mid = (lo + hi) >> 1;
-          if (col < ridx[mid])
-            hi = mid-1;
-          else if (col > ridx[mid])
-            lo = mid+1;
-          else
-            break;
-          if (lo > hi) error("Corrupt sparse matrix structure.");
-        }
-        rval[mid] += mat[i][j];
-      }
-    }
-  }
-  else
-  {
-    // column-oriented matrix
-    for (int j = 0; j < jlen; j++)
-    {
-      int col = jidx[j];
-      if (col < 0) continue;
-      int* cidx = Ai + Ap[col];
-      int  clen = Ap[col+1] - Ap[col];
-      scalar* cval = Ax + Ap[col];
-
-      for (register int i = 0; i < ilen; i++)
-      {
-        register int row = iidx[i];
-        if (row < 0) continue;
-        register int lo = 0, hi = clen-1, mid;
-        while (1)
-        {
-          mid = (lo + hi) >> 1;
-          if (row < cidx[mid])
-            hi = mid-1;
-          else if (row > cidx[mid])
-            lo = mid+1;
-          else
-            break;
-          if (lo > hi) error("Corrupt sparse matrix structure.");
-        }
-        //assert(cidx[mid] == idx[i]);
-        cval[mid] += mat[i][j];
-        //while (i < ilen-1 && mid < clen-1 && cidx[++mid] == iidx[++i]);
-        //  cval[mid] += mat[i][j];
-      }
-    }
-  }
+    this->A->add_block(iidx, ilen, jidx, jlen, mat);
 }
 
 
@@ -467,7 +377,7 @@ void LinSystem::assemble(bool rhsonly)
   EdgePos ep[4];
   warned_order = false;
 
-  if (rhsonly && Ax == NULL)
+  if (rhsonly && A == NULL)
     error("Cannot reassemble RHS only: matrix is has not been assembled yet.");
 
   // create the sparse structure
@@ -938,6 +848,10 @@ bool LinSystem::solve(int n, ...)
   if (!solver) error("Cannot solve -- no solver was provided.");
   begin_time();
 
+  scalar *Ax;
+  int *Ap, *Ai, size;
+  this->get_matrix(Ap, Ai, Ax, size);
+
   // perform symbolic analysis of the matrix
   if (struct_changed)
   {
@@ -979,20 +893,6 @@ bool LinSystem::solve(int n, ...)
 
 void LinSystem::save_matrix_matlab(const char* filename, const char* varname)
 {
-  if (Ai == NULL || Ax == NULL) error("Matrix has not been created and/or assembled yet.");
-  FILE* f = fopen(filename, "w");
-  if (f == NULL) error("Could not open file %s for writing.", filename);
-  verbose("Saving stiffness matrix in MATLAB format...");
-  fprintf(f, "%% Size: %dx%d\n%% Nonzeros: %d\ntemp = zeros(%d, 3);\ntemp = [\n", ndofs, ndofs, Ap[ndofs], Ap[ndofs]);
-  for (int j = 0; j < ndofs; j++)
-    for (int i = Ap[j]; i < Ap[j+1]; i++)
-      #ifndef COMPLEX
-        fprintf(f, "%d %d %.18e\n", Ai[i]+1, j+1, Ax[i]);
-      #else
-        fprintf(f, "%d %d %.18e + %.18ei\n", Ai[i]+1, j+1, Ax[i].real(), Ax[i].imag());
-      #endif
-  fprintf(f, "];\n%s = spconvert(temp);\n", varname);
-  fclose(f);
 }
 
 
@@ -1016,19 +916,6 @@ void LinSystem::save_rhs_matlab(const char* filename, const char* varname)
 
 void LinSystem::save_matrix_bin(const char* filename)
 {
-  if (Ai == NULL || Ax == NULL) error("Matrix has not been created and/or assembled yet.");
-  FILE* f = fopen(filename, "wb");
-  if (f == NULL) error("Could not open file %s for writing.", filename);
-  verbose("Saving stiffness matrix in binary format...");
-  hermes2d_fwrite("H2DX\001\000\000\000", 1, 8, f);
-  int ssize = sizeof(scalar), nnz = Ap[ndofs];
-  hermes2d_fwrite(&ssize, sizeof(int), 1, f);
-  hermes2d_fwrite(&ndofs, sizeof(int), 1, f);
-  hermes2d_fwrite(&nnz, sizeof(int), 1, f);
-  hermes2d_fwrite(Ap, sizeof(int), ndofs+1, f);
-  hermes2d_fwrite(Ai, sizeof(int), nnz, f);
-  hermes2d_fwrite(Ax, sizeof(scalar), nnz, f);
-  fclose(f);
 }
 
 

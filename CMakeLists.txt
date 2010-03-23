@@ -88,6 +88,7 @@ if(WITH_EXODUSII)
     find_package(EXODUSII REQUIRED)
 endif(WITH_EXODUSII)
 
+add_subdirectory(hermes_common)
 add_subdirectory(src)
 
 if(WITH_EXAMPLES)
