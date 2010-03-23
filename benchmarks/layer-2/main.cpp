@@ -1,8 +1,8 @@
 #include "hermes2d.h"
 #include "solver_umfpack.h"
 
-//  This singularly perturbed problem exhibits a thin boundary layer. The 
-//  exact solution facilitates convergence studies. 
+//  This singularly perturbed problem exhibits a thin boundary layer. The
+//  exact solution facilitates convergence studies.
 //
 //  PDE: -Laplace u + K*K*u = K*K + g(x,y)
 //
@@ -11,8 +11,8 @@
 //  BC:  Homogeneous Dirichlet
 //
 //  Exact solution: v(x,y) = U(x)U(y) where U(t) = 1 - (exp(K*x)+exp(-K*x))/(exp(K) + exp(-K)) is
-//  the exact solution to the 1D singularly perturbed problem -u'' + K*K*u = K*K* in (-1,1) 
-//  equipped with zero Dirichlet BC. 
+//  the exact solution to the 1D singularly perturbed problem -u'' + K*K*u = K*K* in (-1,1)
+//  equipped with zero Dirichlet BC.
 //
 //  The following parameters can be changed:
 
@@ -42,7 +42,7 @@ const int MESH_REGULARITY = -1;   // Maximum allowed level of hanging nodes:
                                   // MESH_REGULARITY = 2 ... at most two-level hanging nodes, etc.
                                   // Note that regular meshes are not supported, this is due to
                                   // their notoriously bad performance.
-const double CONV_EXP = 1.0;      // Default value is 1.0. This parameter influences the selection of 
+const double CONV_EXP = 1.0;      // Default value is 1.0. This parameter influences the selection of
                                   // cancidates in hp-adaptivity. See get_optimal_refinement() for details.
 const double ERR_STOP = 0.0001;   // Stopping criterion for adaptivity (rel. error tolerance between the
                                   // fine mesh and coarse mesh solution in percent).
@@ -63,7 +63,7 @@ double dduhat_dxx(double x) {
   return -K*K * (exp(K*x) + exp(-K*x)) / (exp(K) + exp(-K));
 }
 
-// exact solution u(x,y) to the 2D problem is defined as the 
+// exact solution u(x,y) to the 2D problem is defined as the
 // Cartesian product of the 1D solutions
 static double sol_exact(double x, double y, double& dx, double& dy)
 {
@@ -174,7 +174,7 @@ int main(int argc, char* argv[])
 
     // calculate error wrt. exact solution
     ExactSolution exact(&mesh, sol_exact);
-    double error = h1_error(&sln_coarse, &exact) * 100;    
+    double error = h1_error(&sln_coarse, &exact) * 100;
 
     // view the solution
     sview.show(&sln_coarse);

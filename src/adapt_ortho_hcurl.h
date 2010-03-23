@@ -57,7 +57,7 @@ public:
   /// Internal. Used by adapt(). Can be utilized in specialized adaptivity
   /// procedures, for which adapt() is not sufficient.
   static void get_optimal_refinement(Element* e, int order, Solution* rsln, int& split, int p[4],
-                                     bool h_only = false, bool iso_only = false, 
+                                     bool h_only = false, bool iso_only = false,
                                      double conv_exp = 1.0, int max_order = -1);
 
 

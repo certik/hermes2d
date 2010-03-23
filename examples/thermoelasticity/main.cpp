@@ -2,10 +2,10 @@
 #include "solver_umfpack.h"
 
 // A massive hollow conductor is heated by induction and cooled by water running inside.
-// We will model this problem using linear thermoelasticity equations, where the x-displacement, 
-// y-displacement, and the temperature will be approximated on individual meshes equipped 
+// We will model this problem using linear thermoelasticity equations, where the x-displacement,
+// y-displacement, and the temperature will be approximated on individual meshes equipped
 // with mutually independent adaptivity mechanisms. Use MULTI = true to use multimesh,
-// MULTI = false for single-mesh (all solution components on the samemesh). 
+// MULTI = false for single-mesh (all solution components on the samemesh).
 //
 // PDE: Linear thermoelasticity
 //
@@ -52,7 +52,7 @@ const int MESH_REGULARITY = -1;  // Maximum allowed level of hanging nodes:
                                  // MESH_REGULARITY = 2 ... at most two-level hanging nodes, etc.
                                  // Note that regular meshes are not supported, this is due to
                                  // their notoriously bad performance.
-const double CONV_EXP = 1.0;     // Default value is 1.0. This parameter influences the selection of 
+const double CONV_EXP = 1.0;     // Default value is 1.0. This parameter influences the selection of
                                  // cancidates in hp-adaptivity. See get_optimal_refinement() for details.
 const int MAXIMUM_ORDER = 10;     // Maximum allowed element degree
 const double ERR_STOP = 0.01;     // Stopping criterion for adaptivity (rel. error tolerance between the

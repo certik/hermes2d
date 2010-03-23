@@ -32,7 +32,7 @@ using namespace std;
 /* constructors of attributes in the instance */
 #define INST_CONS() default_refin_selector(false)
 
-H1AdaptHP::H1AdaptHP(int num, Space** spaces) : INST_CONS() { 
+H1AdaptHP::H1AdaptHP(int num, Space** spaces) : INST_CONS() {
   init_instance(num, spaces);
 }
 
@@ -57,7 +57,7 @@ H1AdaptHP::H1AdaptHP(int num, ...) : INST_CONS() {
   for (int i = 0; i < num; i++)
     spaces[i] = va_arg(ap, Space*);
   va_end(ap);
-  
+
   init_instance(num, spaces);
 
   delete[] spaces;
@@ -99,7 +99,7 @@ void H1AdaptHP::init_instance(int num, Space** spaces) {
 
 //// adapt /////////////////////////////////////////////////////////////////////////////////////////
 
-bool H1AdaptHP::adapt(double thr, int strat, RefinementSelectors::Selector* refinement_selector, 
+bool H1AdaptHP::adapt(double thr, int strat, RefinementSelectors::Selector* refinement_selector,
                       int regularize,
                       bool same_orders, double to_be_processed)
 {
@@ -284,7 +284,7 @@ void H1AdaptHP::fix_shared_mesh_refinements(Mesh** meshes, const int num_comps, 
     ElementToRefine& elem_ref = elems_to_refine[inx];
     int current_quad_order = spaces[elem_ref.comp]->get_element_order(elem_ref.id);
     Element* current_elem = meshes[elem_ref.comp]->get_element(elem_ref.id);
-    
+
     //select a refinement used by all components that share a mesh which is about to be refined
     int selected_refinement = elem_ref.split;
     for (int j = 0; j < num_comps; j++)

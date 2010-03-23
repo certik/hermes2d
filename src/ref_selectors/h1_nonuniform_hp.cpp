@@ -165,7 +165,7 @@ namespace RefinementSelectors {
     {
       Trf* src_trfs = NULL;
       if (mode == MODE_TRIANGLE)
-        src_trfs = tri_trf;      
+        src_trfs = tri_trf;
       else
         src_trfs = quad_trf;
       Trf* sub_trfs[4] = { &src_trfs[0], &src_trfs[1], &src_trfs[2], &src_trfs[3] };
@@ -177,7 +177,7 @@ namespace RefinementSelectors {
     }
   }
 
-  double** H1NonUniformHP::build_projection_matrix(Shapeset& shapeset, 
+  double** H1NonUniformHP::build_projection_matrix(Shapeset& shapeset,
     double3* gip_points, int num_gip_points,
     const int* shape_inx, const int num_shapes) {
     //allocate
@@ -300,7 +300,7 @@ namespace RefinementSelectors {
     delete[] shape_inxs;
     delete[] indx;
     delete[] d;
-  }  
+  }
 
   scalar H1NonUniformHP::evaluate_rsh_sub_element(Element* sub_elem, const ElemGIP& sub_gip, const ElemSubTrf& sub_trf, int shape_inx) {
     scalar total_value = 0;

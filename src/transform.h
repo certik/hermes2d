@@ -92,10 +92,10 @@ public:
   /// Sets the current transform at once as if it was created by multiple calls to push_transform().
   /// \param idx [in] The number of the sub-element, as returned by get_transform().
   void set_transform(uint64_t idx);
-  
+
   /// \return The current transform index.
   uint64_t get_transform() const { return sub_idx; }
-  
+
   /// Empties the stack, loads identity transform.
   void reset_transform()
   {

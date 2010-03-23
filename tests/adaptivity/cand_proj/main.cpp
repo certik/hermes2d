@@ -119,7 +119,7 @@ bool init(bool tri) {
       int3 marker_array[4] = {{0, 1, 3}, {1, 2, 2}, {2, 3, 4}, {3, 0, 1}};
       mesh->create(vertex_num, vertex_array, tria_num, tria_array, quad_num, quad_array, marker_num, marker_array);
     }
-    
+
     // finite element space
     space = new H1Space(mesh, shapeset);
     space->set_bc_types(bc_types);
@@ -199,7 +199,7 @@ int test() {
     selector.select_refinement(e, order, &rsln, refinement);
 
     //check selected candidate
-    if (cur_test_case->is_match(refinement)) {      
+    if (cur_test_case->is_match(refinement)) {
       log_msg("  selected candidate: correct");
 
       //check if all candidates with higher orders has zero error

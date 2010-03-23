@@ -1,8 +1,8 @@
 #include "hermes2d.h"
 #include "solver_umfpack.h"
 
-//  This is the L-Shape domain problem whose exact solution is extended by zero into the 
-//  re-entrant corner quarter. Right-hand side is zero everywhere. This example cannot 
+//  This is the L-Shape domain problem whose exact solution is extended by zero into the
+//  re-entrant corner quarter. Right-hand side is zero everywhere. This example cannot
 //  be solved with any known adaptivity algorithm - be the first who solves it!
 //
 //  PDE: -Laplace u = 0

@@ -21,11 +21,11 @@
 //
 // The following parameters can be changed:
 
-const int P_INIT = 0;             // Initial polynomial degree. NOTE: The meaning is different from 
+const int P_INIT = 0;             // Initial polynomial degree. NOTE: The meaning is different from
                                   // standard continuous elements in the space H1. Here, P_INIT refers
                                   // to the maximum poly order of the tangential component, and polynomials
                                   // of degree P_INIT + 1 are present in element interiors. P_INIT = 0
-                                  // is for Whitney elements. 
+                                  // is for Whitney elements.
 const double THRESHOLD = 0.5;     // This is a quantitative parameter of the adapt(...) function and
                                   // it has different meanings for various adaptive strategies (see below).
 const int STRATEGY = 1;           // Adaptive strategy:

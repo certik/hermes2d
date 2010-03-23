@@ -536,7 +536,7 @@ def test_example_11():
     # Calculating the number of degrees of freedom
     ndofs = xdisp.assign_dofs()
     ndofs += ydisp.assign_dofs(ndofs)
-    
+
     # Solve the coarse mesh problem
     ls = LinSystem(wf, solver)
     ls.set_spaces(xdisp, ydisp)
@@ -632,7 +632,7 @@ def test_example_12():
     ls = LinSystem(wf, solver)
     ls.set_spaces(space)
     ls.set_pss(pss)
-    
+
     ls.assemble()
     ls.solve_system(sln_coarse)
 
@@ -640,7 +640,7 @@ def test_example_12():
     rs = RefSystem(ls)
     rs.assemble()
     rs.solve_system(sln_fine)
-    
+
     # Calculate element errors and total error estimate
     hp = H1OrthoHP(space);
     err_est = hp.calc_error(sln_coarse, sln_fine) * 100

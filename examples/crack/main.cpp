@@ -2,7 +2,7 @@
 #include "solver_umfpack.h"
 
 // This example employs the multimesh adaptive hp-FEM for linear
-// elasticity equations. The domain contains two horizontal 
+// elasticity equations. The domain contains two horizontal
 // cracks causing strong singularities at their corners. Each
 // displacement component is approximated on an individual mesh.
 //
@@ -51,7 +51,7 @@ const int MESH_REGULARITY = -1;      // Maximum allowed level of hanging nodes:
                                      // MESH_REGULARITY = 2 ... at most two-level hanging nodes, etc.
                                      // Note that regular meshes are not supported, this is due to
                                      // their notoriously bad performance.
-const double CONV_EXP = 1.0;         // Default value is 1.0. This parameter influences the selection of 
+const double CONV_EXP = 1.0;         // Default value is 1.0. This parameter influences the selection of
                                      // cancidates in hp-adaptivity. See get_optimal_refinement() for details.
 const int MAX_ORDER = 10;            // Maximum polynomial order used during adaptivity.
 const double ERR_STOP = 1e-2;        // Stopping criterion for adaptivity (rel. error tolerance between the
@@ -212,7 +212,7 @@ int main(int argc, char* argv[])
     // if err_est too large, adapt the mesh
     if (err_est < ERR_STOP || xdisp.get_num_dofs() + ydisp.get_num_dofs() >= NDOF_STOP) done = true;
     else {
-      hp.adapt(MULTI ? THRESHOLD_MULTI : THRESHOLD_SINGLE, STRATEGY, ADAPT_TYPE, ISO_ONLY, 
+      hp.adapt(MULTI ? THRESHOLD_MULTI : THRESHOLD_SINGLE, STRATEGY, ADAPT_TYPE, ISO_ONLY,
                MESH_REGULARITY, CONV_EXP, MAX_ORDER, SAME_ORDERS);
       ndofs = xdisp.assign_dofs();
       ndofs += ydisp.assign_dofs(ndofs);

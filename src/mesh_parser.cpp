@@ -181,7 +181,7 @@ static void init_symbols()
   add_built_in("floor", floor);
   add_built_in("mod", fmod);
   add_built_in("fmod", fmod);
-  
+
   // add the constants pi and PI
   add_const("pi", M_PI);
   add_const("PI", M_PI);

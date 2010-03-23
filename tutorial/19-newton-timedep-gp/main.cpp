@@ -2,11 +2,11 @@
 #include "hermes2d.h"
 #include "solver_umfpack.h"
 
-//  This example uses the Newton's method to solve a nonlinear complex-valued 
-//  time-dependent PDE (the Gross-Pitaevski equation describing the behavior 
+//  This example uses the Newton's method to solve a nonlinear complex-valued
+//  time-dependent PDE (the Gross-Pitaevski equation describing the behavior
 //  of Einstein-Bose quantum gases). For time-discretization one can use either
 //  the first-order implicit Euler method or the second-order Crank-Nicolson
-//  method. 
+//  method.
 //
 //  PDE: non-stationary complex Gross-Pitaevski equation
 //  describing resonances in Bose-Einstein condensates
@@ -23,7 +23,7 @@ const double TAU = 0.001;        // Time step
 const double T_FINAL = 2;        // Time interval length
 const int INIT_REF_NUM = 3;      // Number of initial uniform refinements
 const int TIME_DISCR = 2;        // 1 for implicit Euler, 2 for Crank-Nicolson
-const int PROJ_TYPE = 1;         // For the projection of the initial condition 
+const int PROJ_TYPE = 1;         // For the projection of the initial condition
                                  // on the initial mesh: 1 = H1 projection, 0 = L2 projection
 const double NEWTON_TOL = 1e-5;  // Stopping criterion for the Newton's method
 const int NEWTON_MAX_ITER = 100; // Maximum allowed number of Newton iterations
@@ -96,8 +96,8 @@ int main(int argc, char* argv[])
   space.assign_dofs();
 
   // solutions for the Newton's iteration and time stepping
-  Solution Psi_prev_time,   
-           Psi_prev_newton; 
+  Solution Psi_prev_time,
+           Psi_prev_newton;
 
   // initialize the weak formulation
   WeakForm wf(1);

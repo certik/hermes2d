@@ -862,7 +862,7 @@ scalar LinSystem::eval_form(WeakForm::LiFormVol *lf, PrecalcShapeset *fv, RefMap
 
 
 // Actual evaluation of surface bilinear form (calculates integral)
-scalar LinSystem::eval_form(WeakForm::BiFormSurf *bf, PrecalcShapeset *fu, 
+scalar LinSystem::eval_form(WeakForm::BiFormSurf *bf, PrecalcShapeset *fu,
                             PrecalcShapeset *fv, RefMap *ru, RefMap *rv, EdgePos* ep)
 {
   // eval the form
@@ -892,8 +892,8 @@ scalar LinSystem::eval_form(WeakForm::BiFormSurf *bf, PrecalcShapeset *fu,
 
   ext->free(); delete ext;
   return 0.5 * res; // Edges are parameterized from 0 to 1 while integration weights
-                    // are defined in (-1, 1). Thus multiplying with 0.5 to correct 
-                    // the weights. 
+                    // are defined in (-1, 1). Thus multiplying with 0.5 to correct
+                    // the weights.
 }
 
 
@@ -926,8 +926,8 @@ scalar LinSystem::eval_form(WeakForm::LiFormSurf *lf, PrecalcShapeset *fv, RefMa
 
   ext->free(); delete ext;
   return 0.5 * res; // Edges are parametrized from 0 to 1 while integration weights
-                    // are defined in (-1, 1). Thus multiplying with 0.5 to correct 
-                    // the weights. 
+                    // are defined in (-1, 1). Thus multiplying with 0.5 to correct
+                    // the weights.
 }
 
 

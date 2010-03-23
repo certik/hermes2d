@@ -46,15 +46,15 @@ void MeshView::show(Mesh* mesh)
   lin.lock_data();
   lin.calc_vertices_aabb(&vertices_min_x, &vertices_max_x, &vertices_min_y, &vertices_max_y);
   lin.unlock_data();
-  
+
   int i;
-  
+
   if (elems != NULL) delete [] elems;
   ne = mesh->get_max_element_id()+1;
   elems = new ObjInfo[ne];
   for (i = 0; i < ne; i++)
     elems[i].id = -1;
-  
+
   int active_element_cnt = 0;
   float min_error = -1, max_error = -1;
   Element* e;
@@ -70,7 +70,7 @@ void MeshView::show(Mesh* mesh)
     }
     oi->x /= e->nvert;
     oi->y /= e->nvert;
-  }  
+  }
 
   create();
   update_layout();
@@ -86,7 +86,7 @@ void MeshView::on_display()
   glDisable(GL_TEXTURE_1D);
   glDisable(GL_LIGHTING);
   glDisable(GL_DEPTH_TEST);
-  
+
   // transform all vertices
   lin.lock_data();
   int i, nv = lin.get_num_vertices();
@@ -97,7 +97,7 @@ void MeshView::on_display()
     tvert[i][0] = transform_x(vert[i][0]);
     tvert[i][1] = transform_y(vert[i][1]);
   }
-  
+
   // draw all triangles
   int3* tris = lin.get_triangles();
   glColor3f(0.9f, 0.9f, 0.9f);
@@ -109,18 +109,18 @@ void MeshView::on_display()
     glVertex2d(tvert[tris[i][2]][0], tvert[tris[i][2]][1]);
   }
   glEnd();
-  
+
   // draw all edges
   glLineStipple(5, 0x5555);
   int3* edges = lin.get_edges();
   for (i = 0; i < lin.get_num_edges(); i++)
   {
     int mrk = b_markers ? edges[i][2] : 0;
-    
+
     if (!edges[i][2] &&
         (tvert[edges[i][0]][1] == tvert[edges[i][1]][1] && tvert[edges[i][0]][0] < tvert[edges[i][1]][0] ||
          tvert[edges[i][0]][1] < tvert[edges[i][1]][1])) continue;
-    
+
     float* color = get_marker_color(mrk);
     glColor3f(color[0], color[1], color[2]);
     glLineWidth(mrk ? 1.5f : 1.0f);
@@ -128,7 +128,7 @@ void MeshView::on_display()
       glVertex2d(tvert[edges[i][0]][0], tvert[edges[i][0]][1]);
       glVertex2d(tvert[edges[i][1]][0], tvert[edges[i][1]][1]);
     glEnd();
-    
+
     if (mrk)
     {
       glEnable(GL_LINE_STIPPLE);
@@ -141,7 +141,7 @@ void MeshView::on_display()
     }
   }
   glLineWidth(1.0);
-  
+
   // draw element ids
   if (b_ids)
   {
@@ -154,7 +154,7 @@ void MeshView::on_display()
       draw_text(transform_x(elems[i].x), transform_y(elems[i].y), text, 0);
     }
   }
-  
+
   delete [] tvert;
   lin.unlock_data();
 }
@@ -168,7 +168,7 @@ void MeshView::on_key_down(unsigned char key, int x, int y)
       reset_view();
       refresh();
       break;
-    
+
     case 'b':
       b_markers = !b_markers;
       refresh();
@@ -201,7 +201,7 @@ float* MeshView::get_marker_color(int marker)
     { 0.3f, 0.5f, 1.0f },
     { 0.8f, 0.8f, 0.0f },
   };
-  
+
   if (marker == 0)
     return edgecol;
   else if (marker > 0 && marker < 8)
@@ -225,7 +225,7 @@ MeshView::~MeshView()
 
 const char* MeshView::get_help_text() const
 {
-  return 
+  return
   "MeshView\n"
   "Controls:\n"
   "  Left mouse - pan\n"

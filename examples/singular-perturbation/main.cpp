@@ -3,8 +3,8 @@
 
 //  With large K, this is a singularly perturbed problem that exhibits an extremely
 //  thin and steep boundary layer. Singularly perturbed problems are considered to
-//  be very difficult, but you'll see that Hermes can solve them easily even for large 
-//  values of K. 
+//  be very difficult, but you'll see that Hermes can solve them easily even for large
+//  values of K.
 //
 //  PDE: -Laplace u + K*K*u = K*K
 //
@@ -40,7 +40,7 @@ const int MESH_REGULARITY = -1;   // Maximum allowed level of hanging nodes:
                                   // MESH_REGULARITY = 2 ... at most two-level hanging nodes, etc.
                                   // Note that regular meshes are not supported, this is due to
                                   // their notoriously bad performance.
-const double CONV_EXP = 1.0;      // Default value is 1.0. This parameter influences the selection of 
+const double CONV_EXP = 1.0;      // Default value is 1.0. This parameter influences the selection of
                                   // cancidates in hp-adaptivity. See get_optimal_refinement() for details.
 const double ERR_STOP = 0.0001;   // Stopping criterion for adaptivity (rel. error tolerance between the
                                   // fine mesh and coarse mesh solution in percent).

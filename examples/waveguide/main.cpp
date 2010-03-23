@@ -26,11 +26,11 @@
 //
 // The following parameters can be changed:
 
-const int P_INIT = 0;             // Initial polynomial degree. NOTE: The meaning is different from 
+const int P_INIT = 0;             // Initial polynomial degree. NOTE: The meaning is different from
                                   // standard continuous elements in the space H1. Here, P_INIT refers
                                   // to the maximum poly order of the tangential component, and polynomials
                                   // of degree P_INIT + 1 are present in element interiors. P_INIT = 0
-                                  // is for Whitney elements. 
+                                  // is for Whitney elements.
 const bool ALIGN_MESH = false;    // if ALIGN_MESH == true, curvilinear elements aligned with the
                                   // circular load are used, otherwise one uses a non-aligned mesh.
 const double THRESHOLD = 0.3;     // This is a quantitative parameter of the adapt(...) function and

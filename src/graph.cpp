@@ -227,7 +227,7 @@ static void get_style_types(std::string line, std::string mark, std::string col,
 void GnuplotGraph::save(const char* filename)
 {
   int j;
-  
+
   if (!rows.size()) error("No data rows defined.");
 
   FILE* f = fopen(filename, "w");

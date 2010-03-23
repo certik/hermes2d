@@ -116,14 +116,14 @@ protected:
 
   private:
     liform_val_t fn;
-    liform_ord_t ord; 
+    liform_ord_t ord;
     liform_val_extended_t fn_extended;
     liform_ord_extended_t ord_extended;
 
   public:
     scalar evaluate_fn(int point_cnt, double *weights, Func<double> *values_v, Geom<double> *geometry, ExtData<scalar> *values_ext_fnc, Element* element, Shapeset* shape_set, int shape_inx); ///< Evaluate value of the user defined function.
     Ord evaluate_ord(int point_cnt, double *weights, Func<Ord> *values_v, Geom<Ord> *geometry, ExtData<Ord> *values_ext_fnc, Element* element, Shapeset* shape_set, int shape_inx); ///< Evaluate order of the user defined function.
-    
+
     LiFormVol() {};
     LiFormVol(int i, int area, liform_val_t fn, liform_ord_t ord) : i(i), area(area), fn(fn), ord(ord), fn_extended(NULL), ord_extended(NULL) {};
     LiFormVol(int i, int area, liform_val_extended_t fn_extended, liform_ord_extended_t ord_extended) : i(i), area(area), fn(NULL), ord(NULL), fn_extended(fn_extended), ord_extended(ord_extended) {};
@@ -136,7 +136,7 @@ protected:
   struct ResFormVol  {  int i, area;          resform_val_t fn;  resform_ord_t ord;  std::vector<MeshFunction *> ext; };
   struct ResFormSurf {  int i, area;          resform_val_t fn;  resform_ord_t ord;  std::vector<MeshFunction *> ext; };
 
-  // linear case  
+  // linear case
   HERMES2D_API_USED_STL_VECTOR(BiFormVol);
   std::vector<BiFormVol>  bfvol;
   HERMES2D_API_USED_STL_VECTOR(BiFormSurf);

@@ -5,8 +5,8 @@
 //  This test makes sure that example 13-newton-elliptic-1 works correctly.
 
 const int P_INIT = 2;             // Initial polynomial degree
-const int PROJ_TYPE = 1;          // For the projection of the initial condition 
-                                  // on the initial mesh: 1 = H1 projection, 
+const int PROJ_TYPE = 1;          // For the projection of the initial condition
+                                  // on the initial mesh: 1 = H1 projection,
                                   // 0 = L2 projection
 const double NEWTON_TOL = 1e-6;   // Stopping criterion for the Newton's method
 const int NEWTON_MAX_ITER = 8;  // Maximum allowed number of Newton iterations
@@ -44,7 +44,7 @@ Scalar jac(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtDa
   for (int i = 0; i < n; i++)
     result += wt[i] * (dlam_du(u_prev->val[i]) * u->val[i] * (u_prev->dx[i] * v->dx[i] + u_prev->dy[i] * v->dy[i])
                        + lam(u_prev->val[i]) * (u->dx[i] * v->dx[i] + u->dy[i] * v->dy[i]));
-                       
+
   return result;
 }
 

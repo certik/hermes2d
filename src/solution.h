@@ -201,7 +201,7 @@ protected:
 ///
 /// Please note that the same functionality can be obtained by using Solution::set_exact().
 /// This class is provided merely for convenience.
-/// 
+///
 class HERMES2D_API ExactSolution : public Solution
 {
 public:

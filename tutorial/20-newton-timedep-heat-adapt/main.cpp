@@ -5,7 +5,7 @@
 //  method for a nonlinear time-dependent PDE discretized implicitly in time
 //  using implicit Euler or Crank-Nicolson.
 //
-//  PDE: time-dependent heat transfer equation with nonlinear thermal 
+//  PDE: time-dependent heat transfer equation with nonlinear thermal
 //  conductivity, du/dt - div[lambda(u)grad u] = f
 //
 //  Domain: square (-10,10)^2
@@ -60,21 +60,21 @@ const double NEWTON_TOL_COARSE = 0.01;     // Stopping criterion for Newton on c
 const double NEWTON_TOL_FINE = 0.05;       // Stopping criterion for Newton on fine mesh
 const int NEWTON_MAX_ITER = 20;            // Maximum allowed number of Newton iterations
 const bool NEWTON_ON_COARSE_MESH = false;  // true... Newton is done on coarse mesh in every adaptivity step
-                                           // false...Newton is done on coarse mesh only once, then projection 
+                                           // false...Newton is done on coarse mesh only once, then projection
                                            // of the fine mesh solution to coarse mesh is used
 
 // Thermal conductivity (temperature-dependent)
 // Note: for any u, this function has to be positive
 template<typename Real>
-Real lam(Real u) 
-{ 
-  return 1 + pow(u, 4); 
+Real lam(Real u)
+{
+  return 1 + pow(u, 4);
 }
 
 // Derivative of the thermal conductivity with respect to 'u'
 template<typename Real>
-Real dlam_du(Real u) { 
-  return 4*pow(u, 3); 
+Real dlam_du(Real u) {
+  return 4*pow(u, 3);
 }
 
 // This function is used to define Dirichlet boundary conditions
@@ -84,7 +84,7 @@ double dir_lift(double x, double y, double& dx, double& dy) {
   return (x+10)*(y+10)/100.;
 }
 
-// Initial condition 
+// Initial condition
 scalar initial_condition(double x, double y, double& dx, double& dy)
 {
   return dir_lift(x, y, dx, dy);
@@ -100,7 +100,7 @@ int bc_types(int marker)
 scalar bc_values(int marker, double x, double y)
 {
   double dx, dy;
-  return dir_lift(x, y, dx, dy); 
+  return dir_lift(x, y, dx, dy);
 }
 
 // Heat sources (can be a general function of 'x' and 'y')
@@ -166,7 +166,7 @@ int main(int argc, char* argv[])
   // error estimate and discrete problem size as a function of physical time
   SimpleGraph graph_time_err, graph_time_dof;
 
-  // project the function initial_condition() on the coarse mesh 
+  // project the function initial_condition() on the coarse mesh
   nls.set_ic(initial_condition, &mesh, &u_prev_time, PROJ_TYPE);
   u_prev_newton.copy(&u_prev_time);
 
@@ -177,7 +177,7 @@ int main(int argc, char* argv[])
 
   // Newton's loop on the coarse mesh
   info("---- Time step 1, Newton solve on coarse mesh:\n");
-  if (!nls.solve_newton_1(&u_prev_newton, NEWTON_TOL_COARSE, NEWTON_MAX_ITER)) 
+  if (!nls.solve_newton_1(&u_prev_newton, NEWTON_TOL_COARSE, NEWTON_MAX_ITER))
     error("Newton's method did not converge.");
 
   // store the result in sln_coarse
@@ -202,7 +202,7 @@ int main(int argc, char* argv[])
       if (NEWTON_ON_COARSE_MESH) {
         // Newton's loop on the globally derefined mesh
         info("---- Time step %d, Newton solve on globally derefined mesh:\n", n);
-        if (!nls.solve_newton_1(&u_prev_newton, NEWTON_TOL_COARSE, NEWTON_MAX_ITER)) 
+        if (!nls.solve_newton_1(&u_prev_newton, NEWTON_TOL_COARSE, NEWTON_MAX_ITER))
           error("Newton's method did not converge.");
       }
 
@@ -227,7 +227,7 @@ int main(int argc, char* argv[])
       else rnls.set_ic(&sln_fine, &u_prev_newton);
 
       // Newton's method on fine mesh
-      if (!rnls.solve_newton_1(&u_prev_newton, NEWTON_TOL_FINE, NEWTON_MAX_ITER)) 
+      if (!rnls.solve_newton_1(&u_prev_newton, NEWTON_TOL_FINE, NEWTON_MAX_ITER))
         error("Newton's method did not converge.");
 
       // store the result in sln_fine
@@ -254,9 +254,9 @@ int main(int argc, char* argv[])
         hp.adapt(THRESHOLD, STRATEGY, ADAPT_TYPE, ISO_ONLY, MESH_REGULARITY);
         int ndof = space.assign_dofs();
         if (ndof >= NDOF_STOP) done = true;
-  
+
         // project the fine mesh solution on the new coarse mesh
-        info("---- Time step %d, adaptivity step %d, projecting fine mesh solution on new coarse mesh:\n", 
+        info("---- Time step %d, adaptivity step %d, projecting fine mesh solution on new coarse mesh:\n",
           n, a_step);
         nls.set_ic(&sln_fine, &u_prev_newton, PROJ_TYPE);
 
@@ -266,7 +266,7 @@ int main(int argc, char* argv[])
         if (NEWTON_ON_COARSE_MESH) {
           // Newton's loop on the coarse mesh
           info("---- Time step %d, adaptivity step %d, Newton solve on new coarse mesh:\n", n, a_step);
-          if (!nls.solve_newton_1(&u_prev_newton, NEWTON_TOL_COARSE, NEWTON_MAX_ITER)) 
+          if (!nls.solve_newton_1(&u_prev_newton, NEWTON_TOL_COARSE, NEWTON_MAX_ITER))
             error("Newton's method did not converge.");
         }
 

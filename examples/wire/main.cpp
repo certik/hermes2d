@@ -1,14 +1,14 @@
 #include "hermes2d.h"
 #include "solver_umfpack.h"  // defines the class UmfpackSolver
 
-//  This problem describes the distribution of the vector potential in 
+//  This problem describes the distribution of the vector potential in
 //  a 2D domain comprising a wire carrying electrical current, air, and
-//  an iron which is not under voltage. 
+//  an iron which is not under voltage.
 //
 //  PDE: -Laplace A + ii*omega*gamma*mu*A = mu *J_ext
 //
-//  Domain: Rectangle of height 0.003 and width 0.004. Different 
-//  materials for the wire, air, and iron (see mesh file domain2.mesh). 
+//  Domain: Rectangle of height 0.003 and width 0.004. Different
+//  materials for the wire, air, and iron (see mesh file domain2.mesh).
 //
 //  BC: Zero Dirichlet on the top and right edges, zero Neumann
 //  elsewhere.
@@ -107,7 +107,7 @@ int main(int argc, char* argv[])
   // initialize the shapeset and the cache
   H1Shapeset shapeset;
   PrecalcShapeset pss(&shapeset);
-  
+
   // create an H1 space
   H1Space space(&mesh, &shapeset);
   space.set_bc_types(bc_types);
@@ -150,7 +150,7 @@ int main(int argc, char* argv[])
     LinSystem sys(&wf, &solver);
     sys.set_spaces(1, &space);
     sys.set_pss(1, &pss);
-  
+
     // time measurement
     cpu += end_time();
 

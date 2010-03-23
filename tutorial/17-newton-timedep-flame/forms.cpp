@@ -136,7 +136,7 @@ Scalar newton_linear_form_1(int n, double *wt, Func<Real> *vi, Geom<Real> *e, Ex
   Func<Real>* c_prev_time_2 = ext->fn[2];
   Func<Real>* omega = ext->fn[3];
   for (int i = 0; i < n; i++)
-    result += wt[i] * ( (3.0 * c_prev_newton->val[i] - 4.0 * c_prev_time_1->val[i] + c_prev_time_2->val[i]) 
+    result += wt[i] * ( (3.0 * c_prev_newton->val[i] - 4.0 * c_prev_time_1->val[i] + c_prev_time_2->val[i])
                          * vi->val[i] / (2.0 * TAU) +
                         (c_prev_newton->dx[i] * vi->dx[i] + c_prev_newton->dy[i] * vi->dy[i]) / Le +
                         omega->val[i] * vi->val[i]);

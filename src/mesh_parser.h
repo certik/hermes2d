@@ -24,8 +24,8 @@ struct MItem
   MItem* next; ///< next item in the list this MItem is part of
 };
 
-typedef double (MSymbolFunc1)(double); 
-typedef double (MSymbolFunc2)(double, double); 
+typedef double (MSymbolFunc1)(double);
+typedef double (MSymbolFunc2)(double, double);
 
 struct MSymbol
 {

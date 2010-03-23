@@ -35,7 +35,7 @@ T** new_matrix(int m, int n = 0)
   return vec;
 }
 
-/// Copies a matrix. Both matrices has to be equal to or larger than provideded sizes. 
+/// Copies a matrix. Both matrices has to be equal to or larger than provideded sizes.
 /// Size compatibility check is not done.
 template<typename T>
 void copy_matrix(T** dest, T** src, int m, int n = 0) {

@@ -43,7 +43,7 @@ Scalar newton_bilinear_form_unsym_0_0(int n, double *wt, Func<Real> *u, Func<Rea
   Func<Scalar>* xvel_prev_newton = ext->fn[0];
   Func<Scalar>* yvel_prev_newton = ext->fn[1];
   for (int i = 0; i < n; i++)
-    result += wt[i] * ((xvel_prev_newton->val[i] * u->dx[i] + yvel_prev_newton->val[i] 
+    result += wt[i] * ((xvel_prev_newton->val[i] * u->dx[i] + yvel_prev_newton->val[i]
                         * u->dy[i]) * v->val[i] + u->val[i] * v->val[i] * xvel_prev_newton->dx[i]);
   return result;
 }
@@ -75,7 +75,7 @@ Scalar newton_bilinear_form_unsym_1_1(int n, double *wt, Func<Real> *u, Func<Rea
   Func<Scalar>* xvel_prev_newton = ext->fn[0];
   Func<Scalar>* yvel_prev_newton = ext->fn[1];
   for (int i = 0; i < n; i++)
-    result += wt[i] * ((xvel_prev_newton->val[i] * u->dx[i] + yvel_prev_newton->val[i] * u->dy[i]) * v->val[i] + u->val[i] 
+    result += wt[i] * ((xvel_prev_newton->val[i] * u->dx[i] + yvel_prev_newton->val[i] * u->dy[i]) * v->val[i] + u->val[i]
                        * v->val[i] * yvel_prev_newton->dy[i]);
   return result;
 }
@@ -112,7 +112,7 @@ template<typename Real, typename Scalar>
 Scalar newton_F_2(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
   Scalar result = 0;
-  Func<Scalar>* xvel_prev_newton = ext->fn[0];  Func<Scalar>* yvel_prev_newton = ext->fn[1];  
+  Func<Scalar>* xvel_prev_newton = ext->fn[0];  Func<Scalar>* yvel_prev_newton = ext->fn[1];
   for (int i = 0; i < n; i++)
     result += wt[i] * (xvel_prev_newton->dx[i] * v->val[i] + yvel_prev_newton->dy[i] * v->val[i]);
   return result;

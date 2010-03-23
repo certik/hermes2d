@@ -66,7 +66,7 @@ public:
     size = array.size;
     nitems = array.nitems;
     append_only = array.append_only;
-    
+
     for (unsigned i = 0; i < pages.size(); i++)
     {
       T* new_page = new T[PAGE_SIZE];
