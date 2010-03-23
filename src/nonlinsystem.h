@@ -32,7 +32,7 @@ class MeshFunction;
 ///
 ///
 ///
-class PUBLIC_API NonlinSystem : public LinSystem 
+class HERMES2D_API NonlinSystem : public LinSystem 
 {
 public:
 

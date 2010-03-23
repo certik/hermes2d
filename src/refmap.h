@@ -31,7 +31,7 @@ struct Element;
 /// the calculation of integration points positions in the physical domain and
 /// the calculation of edge tangents in 1D integration points.
 ///
-class PUBLIC_API RefMap : public Transformable
+class HERMES2D_API RefMap : public Transformable
 {
 public:
 

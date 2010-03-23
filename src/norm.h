@@ -19,23 +19,23 @@
 #include "solution.h"
 #include "refmap.h"
 
-EXTERN double calc_error(double (*fn)(MeshFunction*, MeshFunction*, RefMap*, RefMap*), MeshFunction* sln1, MeshFunction* sln2);
-EXTERN double calc_norm(double (*fn)(MeshFunction*, RefMap*), MeshFunction* sln);
+extern HERMES2D_API double calc_error(double (*fn)(MeshFunction*, MeshFunction*, RefMap*, RefMap*), MeshFunction* sln1, MeshFunction* sln2);
+extern HERMES2D_API double calc_norm(double (*fn)(MeshFunction*, RefMap*), MeshFunction* sln);
 
 
-EXTERN double l2_error(MeshFunction* sln1, MeshFunction* sln2);
-EXTERN double l2_norm(MeshFunction* sln);
+extern HERMES2D_API double l2_error(MeshFunction* sln1, MeshFunction* sln2);
+extern HERMES2D_API double l2_norm(MeshFunction* sln);
  
-EXTERN double h1_error(MeshFunction* sln1, MeshFunction* sln2);
-EXTERN double h1_norm(MeshFunction* sln);
+extern HERMES2D_API double h1_error(MeshFunction* sln1, MeshFunction* sln2);
+extern HERMES2D_API double h1_norm(MeshFunction* sln);
 
 #ifdef COMPLEX
 
-EXTERN double hcurl_error(MeshFunction* sln1, MeshFunction* sln2);
-EXTERN double hcurl_norm(MeshFunction* sln);
+extern HERMES2D_API double hcurl_error(MeshFunction* sln1, MeshFunction* sln2);
+extern HERMES2D_API double hcurl_norm(MeshFunction* sln);
 
-EXTERN double hcurl_l2error(MeshFunction* sln1, MeshFunction* sln2);
-EXTERN double hcurl_l2norm(MeshFunction* sln);
+extern HERMES2D_API double hcurl_l2error(MeshFunction* sln1, MeshFunction* sln2);
+extern HERMES2D_API double hcurl_l2norm(MeshFunction* sln);
 
 #endif
 

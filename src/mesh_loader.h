@@ -23,7 +23,7 @@
 /// Abstract class for mesh loaders
 ///
 /// @ingroup meshloaders
-class PUBLIC_API MeshLoader
+class HERMES2D_API MeshLoader
 {
 public:
   virtual ~MeshLoader() { }

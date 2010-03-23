@@ -25,8 +25,8 @@ struct Trf
   double2 t; ///< translation vector
 };
 
-EXTERN Trf tri_trf[4];  ///< table of triangle sub-element transforms
-EXTERN Trf quad_trf[8]; ///< table of quad sub-element transforms
+extern HERMES2D_API Trf tri_trf[4];  ///< table of triangle sub-element transforms
+extern HERMES2D_API Trf quad_trf[8]; ///< table of quad sub-element transforms
 
 
 /// Transformable is a base class for all classes that perform some kind of precalculation of
@@ -34,7 +34,7 @@ EXTERN Trf quad_trf[8]; ///< table of quad sub-element transforms
 /// from Transformable the ability to transform integration points to the sub-elements
 /// of an element.
 ///
-class PUBLIC_API Transformable
+class HERMES2D_API Transformable
 {
 public:
 

@@ -98,7 +98,7 @@ enum
 ///
 /// The handling of irregular meshes is desribed in H1Space and HcurlSpace.
 ///
-class PUBLIC_API Space
+class HERMES2D_API Space
 {
 public:
 
@@ -258,7 +258,7 @@ protected: //DEBUG
   /// the DOFs have been assigned.
   virtual void post_assign() {}
 
-  PUBLIC_API_USED_STL_VECTOR(void*);
+  HERMES2D_API_USED_STL_VECTOR(void*);
   std::vector<void*> extra_data;    
   void free_extra_data();
 

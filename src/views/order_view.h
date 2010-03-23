@@ -33,7 +33,7 @@
 ///
 /// OrderView is a tool for displaying the polynomial degrees of the elements in a space.
 ///
-class PUBLIC_API OrderView : public View
+class HERMES2D_API OrderView : public View
 {
 public:
 
@@ -67,7 +67,7 @@ protected:
 
 #else // NOGLUT
 
-class PUBLIC_API OrderView : public View
+class HERMES2D_API OrderView : public View
 {
 public:
   OrderView(const char* title = "OrderView", DEFAULT_WINDOW_POS) {}

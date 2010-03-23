@@ -32,7 +32,7 @@
 /// If not specifie by the used, this class uses the most accurate adaptivity
 /// selection algorithm which is slow.
 ///
-class PUBLIC_API H1AdaptHP
+class HERMES2D_API H1AdaptHP
 {
 public:
 

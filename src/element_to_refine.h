@@ -18,7 +18,7 @@
 
 #include "refinement_type.h"
 
-struct PUBLIC_API ElementToRefine { ///< A record of an element and a selected candidate.
+struct HERMES2D_API ElementToRefine { ///< A record of an element and a selected candidate.
   int id; //ID of element
   int comp; //componet
   int split; //proposed refinement
@@ -39,6 +39,6 @@ public:
   }
 };
 
-EXTERN std::ostream& operator<<(std::ostream& stream, const ElementToRefine& elem_ref); ///< Dumps contants of the structure. Used for debugging purposes.
+extern HERMES2D_API std::ostream& operator<<(std::ostream& stream, const ElementToRefine& elem_ref); ///< Dumps contants of the structure. Used for debugging purposes.
 
 #endif

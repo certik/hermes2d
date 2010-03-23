@@ -56,7 +56,7 @@ enum ViewPaletteType {
 /// to provide zooming and panning capabilities for use by the descendant
 /// classes, etc.
 ///
-class PUBLIC_API View
+class HERMES2D_API View
 {
 public:
 
@@ -213,7 +213,7 @@ protected: //internal functions
 
 #else // NOGLUT
 
-class PUBLIC_API View
+class HERMES2D_API View
 {
 public:
   View() {}

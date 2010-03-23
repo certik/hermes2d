@@ -22,7 +22,7 @@
 
 
 /// H1 shapeset with orthogonalized bubble functions for improved conditioning.
-class PUBLIC_API H1ShapesetOrtho : public Shapeset
+class HERMES2D_API H1ShapesetOrtho : public Shapeset
 {
   public: H1ShapesetOrtho();
   virtual int get_id() const { return 0; }
@@ -30,7 +30,7 @@ class PUBLIC_API H1ShapesetOrtho : public Shapeset
 
 
 /// Sven Beuchler's shape functions based on integrated Jacobi polynomials.
-class PUBLIC_API H1ShapesetBeuchler : public Shapeset
+class HERMES2D_API H1ShapesetBeuchler : public Shapeset
 {
   public: H1ShapesetBeuchler();
   virtual int get_id() const { return 1; }
@@ -38,7 +38,7 @@ class PUBLIC_API H1ShapesetBeuchler : public Shapeset
 
 
 // Experimental.
-class PUBLIC_API H1ShapesetEigen : public Shapeset
+class HERMES2D_API H1ShapesetEigen : public Shapeset
 {
   public: H1ShapesetEigen();
   virtual int get_id() const { return 2; }

@@ -23,7 +23,7 @@
 #define H2D_REFINEMENT_ANISO_H 1
 #define H2D_REFINEMENT_ANISO_V 2
 
-EXTERN int get_refin_sons(const int refin_type); ///< Returns number of sons.
-EXTERN const std::string get_refin_str(const int refin_type); ///< Returns name of a refinement type value. Used for debugging purposes.
+extern HERMES2D_API int get_refin_sons(const int refin_type); ///< Returns number of sons.
+extern HERMES2D_API const std::string get_refin_str(const int refin_type); ///< Returns name of a refinement type value. Used for debugging purposes.
 
 #endif

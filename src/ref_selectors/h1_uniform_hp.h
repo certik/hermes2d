@@ -19,7 +19,7 @@
 #include "proj_based_selector.h"
 
 namespace RefinementSelectors {
-  class PUBLIC_API H1UniformHP : public ProjBasedSelector { ///< Selector that does HP-adaptivity using uniform orders on quadrilateral elements.
+  class HERMES2D_API H1UniformHP : public ProjBasedSelector { ///< Selector that does HP-adaptivity using uniform orders on quadrilateral elements.
   protected: //candidates
     /// \brief Calculate various projection errors for sons of a candidates of given combination of orders. Errors are not normalized. Overloadable.
     /// \param[in] e Element which is being processed.

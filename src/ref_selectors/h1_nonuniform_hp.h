@@ -27,7 +27,7 @@
 
 namespace RefinementSelectors {
 
-  class PUBLIC_API H1NonUniformHP : public ProjBasedSelector { ///< Selector that does HP-adaptivity using non-uniform orders on quadrilateral elements.
+  class HERMES2D_API H1NonUniformHP : public ProjBasedSelector { ///< Selector that does HP-adaptivity using non-uniform orders on quadrilateral elements.
   protected: //projection and error evaluation
     template<typename T>
     struct ValueCacheItem { ///< An item of a value cache.

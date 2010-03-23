@@ -30,7 +30,7 @@
 ///
 /// TODO: describe difference from H1OrthoHP
 ///
-class PUBLIC_API L2OrthoHP
+class HERMES2D_API L2OrthoHP
 {
 public:
 

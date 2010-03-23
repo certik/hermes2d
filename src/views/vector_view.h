@@ -31,7 +31,7 @@
 ///
 /// VectorView is a visualization window for all vector-valued PDE solutions.
 ///
-class PUBLIC_API VectorView : public View
+class HERMES2D_API VectorView : public View
 {
 public:
 
@@ -67,7 +67,7 @@ protected:
 
 #else // NOGLUT
 
-class PUBLIC_API VectorView : public View
+class HERMES2D_API VectorView : public View
 {
 public:
   VectorView(const char* title = "VectorView", DEFAULT_WINDOW_POS) {}

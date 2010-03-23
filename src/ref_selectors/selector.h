@@ -26,7 +26,7 @@ class Solution;
 #define H2DRS_MAX_ORDER 9 ///< A maximum order.
 
 namespace RefinementSelectors {
-  class PUBLIC_API Selector { ///< Basic class for selecting a refinement. All selectors has to inherit from this class.
+  class HERMES2D_API Selector { ///< Basic class for selecting a refinement. All selectors has to inherit from this class.
   public:
     const int max_order; ///< A maximum allowed order.
   public:
@@ -48,14 +48,14 @@ namespace RefinementSelectors {
     virtual void update_shared_mesh_orders(const Element* element, const int orig_quad_order, const int refinement, int tgt_quad_orders[H2D_MAX_ELEMENT_SONS], const int* suggested_quad_orders) = 0;
   };
 
-  class PUBLIC_API H1OnlyH : public Selector { ///< Selector that does only H-adaptivity.
+  class HERMES2D_API H1OnlyH : public Selector { ///< Selector that does only H-adaptivity.
   public:
     H1OnlyH() : Selector() {};
     virtual bool select_refinement(Element* element, int quad_order, Solution* rsln, ElementToRefine& refinement); ///< Suggests refinement.
     virtual void update_shared_mesh_orders(const Element* element, const int orig_quad_order, const int refinement, int tgt_quad_orders[H2D_MAX_ELEMENT_SONS], const int* suggested_quad_orders); ///< Updates orders of a refinement in another multimesh component which shares a mesh.
   };
 
-  class PUBLIC_API H1OnlyP : public Selector { ///< Selector that does only P-adaptivity.
+  class HERMES2D_API H1OnlyP : public Selector { ///< Selector that does only P-adaptivity.
   public:
     H1OnlyP(int max_order) : Selector(max_order) {};
     virtual bool select_refinement(Element* element, int quad_order, Solution* rsln, ElementToRefine& refinement); ///< Suggests refinement.

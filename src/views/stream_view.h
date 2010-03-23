@@ -31,7 +31,7 @@
 ///
 /// StreamView is a visualization window for all vector-valued PDE solutions (especially for flow problems).
 ///
-class PUBLIC_API StreamView : public View
+class HERMES2D_API StreamView : public View
 {
 public:
 
@@ -97,7 +97,7 @@ protected:
 #else // NOGLUT
 
 /* Empty dummy implementation in a case GLUT is not used */
-class PUBLIC_API StreamView : public View
+class HERMES2D_API StreamView : public View
 {
 public:
 

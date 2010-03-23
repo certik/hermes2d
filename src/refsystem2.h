@@ -21,7 +21,7 @@
 class Mesh;
 
 
-class PUBLIC_API RefNonlinSystem : public NonlinSystem
+class HERMES2D_API RefNonlinSystem : public NonlinSystem
 {
 public:
 

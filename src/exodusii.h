@@ -21,7 +21,7 @@
 /// Mesh loader from EXODUSII format
 ///
 /// @ingroup meshloaders
-class PUBLIC_API ExodusIIReader : public MeshLoader
+class HERMES2D_API ExodusIIReader : public MeshLoader
 {
 public:
   ExodusIIReader();

@@ -27,7 +27,7 @@ struct Node;
 /// HashTable is a base class for Mesh. It serves as a container for all nodes
 /// of a mesh. Moreover, it has node searching functions based on hash tables.
 ///
-class PUBLIC_API HashTable
+class HERMES2D_API HashTable
 {
 public:
 
@@ -53,7 +53,7 @@ public:
 // The following functions are used by the derived class Mesh:
 protected: 
   
-  PUBLIC_API_USED_TEMPLATE(Array<Node>);
+  HERMES2D_API_USED_TEMPLATE(Array<Node>);
   Array<Node> nodes; ///< Array storing all nodes
 
   static const int DEFAULT_HASH_SIZE = 0x20000; // 128K entries

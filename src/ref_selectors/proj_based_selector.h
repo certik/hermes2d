@@ -21,7 +21,7 @@
 namespace RefinementSelectors {
   typedef double SonProjectionError[H2DRS_MAX_ORDER+2][H2DRS_MAX_ORDER+2]; ///< Error of a son of a candidate for various order combinations. The maximum allowed order is H2DRS_MAX_ORDER+1.
 
-  class PUBLIC_API ProjBasedSelector : public OptimumSelector {
+  class HERMES2D_API ProjBasedSelector : public OptimumSelector {
   protected:
     /// \brief Calculate various projection errors for sons of a candidates of given combination of orders. Errors are not normalized. Overloadable.
     /// \param[in] e Element which is being processed.

@@ -24,7 +24,7 @@ class ExactSolution;
 ///
 ///
 ///
-class PUBLIC_API RefSystem : public LinSystem
+class HERMES2D_API RefSystem : public LinSystem
 {
 public:
 
