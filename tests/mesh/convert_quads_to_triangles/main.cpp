@@ -1,6 +1,6 @@
 #include "hermes2d.h"
 
-// This example shows how to convert all elements into triangle elements.
+// This example shows how to convert quad elements into triangle elements.
 
 #define ERROR_SUCCESS                               0
 #define ERROR_FAILURE                               -1
@@ -36,7 +36,7 @@ int main(int argc, char* argv[])
     {
       printf("type : triangle   ");
       // one triangle element refined into four elements
-      element_num += 4;
+      element_num += 1;
     }
     if (e->is_curved())
       printf("  curved\n");
@@ -45,7 +45,7 @@ int main(int argc, char* argv[])
   }
 
   // convert the mesh
-  mesh.convert_to_triangles();
+  mesh.convert_quads_to_triangles();
   if (element_num != mesh.get_max_element_id())
   {
     printf("Failure!\n");

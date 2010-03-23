@@ -66,8 +66,8 @@ int main(int argc, char* argv[])
       return ERROR_FAILURE;
     }break;
 
-    // Copies the refined elements of another mesh.
-    case 3:      dup.copy_refine(&mesh);
+    // Copies the refined active elements of another mesh.
+    case 3:      dup.copy_converted(&mesh);
     if (mesh.get_max_element_id() != dup.get_max_element_id() + mesh_base_element)
     {
       printf("Failure!\n");

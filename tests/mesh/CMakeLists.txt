@@ -7,8 +7,8 @@ if(NOT UMFPACK_NO_BLAS)
 endif(NOT UMFPACK_NO_BLAS)
 
 # mesh tests
-add_subdirectory(convert_to_quads)
-add_subdirectory(convert_to_triangles)
+add_subdirectory(convert_triangles_to_quads)
+add_subdirectory(convert_quads_to_triangles)
 add_subdirectory(refinements)
 add_subdirectory(copy)
 add_subdirectory(loader)
