@@ -8,7 +8,7 @@
 /// Dumps & compares a line.
 int dump_compare_line(FILE* file, const char* line, const int line_inx) {
   if (file == NULL) {
-    printf(line);
+    printf("%s", line);
     return ERROR_SUCCESS;
   }
   else {
