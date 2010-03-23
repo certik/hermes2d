@@ -2,11 +2,11 @@
 #include "solver_umfpack.h"
 #include "function.h"
 
-//  This example shows how the Newton's method is used for 
-//  a simple nonlinear parabolic PDE discretized in time 
-//  via the implicit Euler method. 
+//  This example shows how the Newton's method is used for
+//  a simple nonlinear parabolic PDE discretized in time
+//  via the implicit Euler method.
 //
-//  PDE: time-dependent heat transfer equation with nonlinear thermal 
+//  PDE: time-dependent heat transfer equation with nonlinear thermal
 //  conductivity, du/dt - div[lambda(u)grad u] = f
 //
 //  Domain: square (-10,10)^2
@@ -19,7 +19,7 @@
 const int P_INIT = 2;                  // Initial polynomial degree
 const double TAU = 0.2;                // Time step
 const double T_FINAL = 10.0;           // Time interval length
-const int PROJ_TYPE = 1;               // For the projection of the initial condition 
+const int PROJ_TYPE = 1;               // For the projection of the initial condition
                                        // on the initial mesh: 1 = H1 projection, 0 = L2 projection
 const int INIT_GLOB_REF_NUM = 3;       // Number of initial uniform mesh refinements
 const int INIT_BDY_REF_NUM = 4;        // Number of initial refinements towards boundary
@@ -30,15 +30,15 @@ const int NEWTON_MAX_ITER = 100;       // Maximum allowed number of Newton itera
 // Thermal conductivity (temperature-dependent)
 // Note: for any u, this function has to be positive
 template<typename Real>
-Real lam(Real u) 
-{ 
-  return 1 + pow(u, 4); 
+Real lam(Real u)
+{
+  return 1 + pow(u, 4);
 }
 
 // Derivative of the thermal conductivity with respect to 'u'
 template<typename Real>
-Real dlam_du(Real u) { 
-  return 4*pow(u, 3); 
+Real dlam_du(Real u) {
+  return 4*pow(u, 3);
 }
 
 // This function is used to define Dirichlet boundary conditions
@@ -48,7 +48,7 @@ double dir_lift(double x, double y, double& dx, double& dy) {
   return (x+10)*(y+10)/100.;
 }
 
-// Initial condition 
+// Initial condition
 scalar initial_condition(double x, double y, double& dx, double& dy)
 {
   return dir_lift(x, y, dx, dy);
@@ -64,7 +64,7 @@ int bc_types(int marker)
 scalar bc_values(int marker, double x, double y)
 {
   double dx, dy;
-  return dir_lift(x, y, dx, dy); 
+  return dir_lift(x, y, dx, dy);
 }
 
 // Heat sources (can be a general function of 'x' and 'y')
@@ -81,9 +81,9 @@ Scalar jac(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtDa
   Scalar result = 0;
   Func<Scalar>* u_prev_newton = ext->fn[0];
   for (int i = 0; i < n; i++)
-    result += wt[i] * (u->val[i] * v->val[i] / TAU + dlam_du(u_prev_newton->val[i]) * u->val[i] * 
+    result += wt[i] * (u->val[i] * v->val[i] / TAU + dlam_du(u_prev_newton->val[i]) * u->val[i] *
                        (u_prev_newton->dx[i] * v->dx[i] + u_prev_newton->dy[i] * v->dy[i])
-                       + lam(u_prev_newton->val[i]) * (u->dx[i] * v->dx[i] + u->dy[i] * v->dy[i]));                    
+                       + lam(u_prev_newton->val[i]) * (u->dx[i] * v->dx[i] + u->dy[i] * v->dy[i]));
   return result;
 }
 
@@ -123,7 +123,7 @@ int main(int argc, char* argv[])
   space.set_uniform_order(P_INIT);
   space.assign_dofs();
 
-  // solutions for the Newton's iteration and 
+  // solutions for the Newton's iteration and
   // time stepping
   Solution u_prev_newton, u_prev_time;
 
@@ -138,7 +138,7 @@ int main(int argc, char* argv[])
   nls.set_spaces(1, &space);
   nls.set_pss(1, &pss);
 
-  // project the function initial_condition() on the mesh 
+  // project the function initial_condition() on the mesh
   nls.set_ic(initial_condition, &mesh, &u_prev_time, PROJ_TYPE);
   u_prev_newton.copy(&u_prev_time);
 

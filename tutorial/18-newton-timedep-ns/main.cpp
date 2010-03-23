@@ -3,17 +3,17 @@
 
 // The time-dependent laminar incompressible Navier-Stokes equations are
 // discretized in time via the implicit Euler method. If NEWTON == true,
-// the Newton's method is used to solve the nonlinear problem at each time 
-// step. If NEWTON == false, the convective term is only linearized using the 
-// velocities from the previous time step. Obviously the latter approach is wrong, 
-// but people do this frequently because it is faster and simpler to implement. 
-// Therefore we include this case for comparison purposes. We also show how 
-// to use discontinuous ($L^2$) elements for pressure and thus make the 
-// velocity discreetely divergence free. Comparison to approximating the 
-// pressure with the standard (continuous) Taylor-Hood elements is enabled.  
-// The Reynolds number Re = 200 which is embarrassingly low. You 
-// can increase it but then you will need to make the mesh finer, and the 
-// computation will take more time. 
+// the Newton's method is used to solve the nonlinear problem at each time
+// step. If NEWTON == false, the convective term is only linearized using the
+// velocities from the previous time step. Obviously the latter approach is wrong,
+// but people do this frequently because it is faster and simpler to implement.
+// Therefore we include this case for comparison purposes. We also show how
+// to use discontinuous ($L^2$) elements for pressure and thus make the
+// velocity discreetely divergence free. Comparison to approximating the
+// pressure with the standard (continuous) Taylor-Hood elements is enabled.
+// The Reynolds number Re = 200 which is embarrassingly low. You
+// can increase it but then you will need to make the mesh finer, and the
+// computation will take more time.
 //
 // PDE: incompressible Navier-Stokes equations in the form
 // \partial v / \partial t - \Delta v / Re + (v \cdot \nabla) v + \nabla p = 0,
@@ -24,19 +24,19 @@
 //     "do nothing" on Gamma_2 (outlet)
 //
 // Geometry: Rectangular channel containing an off-axis circular obstacle. The
-//           radius and position of the circle, as well as other geometry 
-//           parameters can be changed in the mesh file "domain.mesh". 
+//           radius and position of the circle, as well as other geometry
+//           parameters can be changed in the mesh file "domain.mesh".
 //
 //
 // The following parameters can be changed:
 //
 
-#define PRESSURE_IN_L2               // If this is defined, the pressure is approximated using  
+#define PRESSURE_IN_L2               // If this is defined, the pressure is approximated using
                                      // discontinuous L2 elements (making the velocity discreetely
-                                     // divergence-free, more accurate than using a continuous 
-                                     // pressure approximation). Otherwise the standard continuous 
-                                     // elements are used. The results are striking - check the 
-                                     // tutorial for comparisons. 
+                                     // divergence-free, more accurate than using a continuous
+                                     // pressure approximation). Otherwise the standard continuous
+                                     // elements are used. The results are striking - check the
+                                     // tutorial for comparisons.
 const bool NEWTON = true;            // If NEWTON == true then the Newton's iteration is performed
                                      // in every time step. Otherwise the convective term is linearized
                                      // using the velocities from the previous time step
@@ -91,10 +91,10 @@ int yvel_bc_type(int marker) {
 int p_bc_type(int marker)
   { return BC_NONE; }
 
-// Weak forms 
+// Weak forms
 #include "forms.cpp"
 
-int main(int argc, char* argv[]) 
+int main(int argc, char* argv[])
 {
   // load the mesh file
   Mesh mesh;
@@ -239,7 +239,7 @@ int main(int argc, char* argv[])
       pview.set_title(title);
       pview.show(&p_prev);
 
-      // copy the result of the Newton's iteration into the 
+      // copy the result of the Newton's iteration into the
       // previous time level solutions
       xvel_prev_time.copy(&xvel_prev_newton);
       yvel_prev_time.copy(&yvel_prev_newton);
@@ -258,7 +258,7 @@ int main(int argc, char* argv[])
       pview.set_title(title);
       pview.show(&p_sln);
 
-      // this copy destroys xvel_sln and yvel_sln 
+      // this copy destroys xvel_sln and yvel_sln
       // which are no longer needed
       xvel_prev_time = xvel_sln;
       yvel_prev_time = yvel_sln;

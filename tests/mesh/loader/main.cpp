@@ -8,7 +8,7 @@
 /// Dumps & compares a line.
 int dump_compare_line(FILE* file, const char* line, const int line_inx) {
   if (file == NULL) {
-    printf(line); 
+    printf(line);
     return ERROR_SUCCESS;
   }
   else {
@@ -91,8 +91,8 @@ int dump_compare(const Mesh &mesh, const char* file_name_dump) {
     }
   }
 
-  // TODO: check curvilinear edges (how?)    
-  
+  // TODO: check curvilinear edges (how?)
+
   result = ERROR_SUCCESS;
 
 quit: //finish
@@ -114,7 +114,7 @@ int main(int argc, char* argv[])
   char *mtype = argv[1];
   char *file_name = argv[2];
   char *file_name_dump = NULL;
-  if (argc > 2) 
+  if (argc > 2)
     file_name_dump = argv[3];
 
   // load the mesh file

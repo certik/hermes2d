@@ -4,13 +4,13 @@
 //  This example is a standard nuclear engineering benchmark describing an external-force-driven
 //  configuration without fissile materials present, using one-group neutron diffusion approximation.
 //  It is very similar to example "saphir", the main difference being that the mesh is loaded in
-//  the ExodusII format (created for example by Cubit).  
-//  
+//  the ExodusII format (created for example by Cubit).
+//
 //
 //  PDE: -div(D(x,y)grad\Phi) + \Sigma_a(x,y)\Phi = Q_{ext}(x,y)
 //  where D(x, y) is the diffusion coefficient, \Sigma_a(x,y) the absorption cross-section,
 //  and Q_{ext}(x,y) external sources
-//  
+//
 //  Domain: square (0, L)x(0, L) where L = 30c (see mesh file domain.mesh)
 //
 //  BC:  Zero Dirichlet for the right and top edges ("vacuum boundary")

@@ -19,7 +19,7 @@
 //  Time-stepping: either implicit Euler or Crank-Nicolson
 
 const int P_INIT = 1;                    // Initial polynomial degree
-const int PROJ_TYPE = 1;                 // For the projection of the initial condition 
+const int PROJ_TYPE = 1;                 // For the projection of the initial condition
                                          // on the initial mesh: 1 = H1 projection, 0 = L2 projection
 const int TIME_DISCR = 2;                // 1 for implicit Euler, 2 for Crank-Nicolson
 const double T_FINAL = 200.0;            // Time interval length
@@ -54,7 +54,7 @@ const int MESH_REGULARITY = -1;          // Maximum allowed level of hanging nod
                                          // MESH_REGULARITY = 2 ... at most two-level hanging nodes, etc.
                                          // Note that regular meshes are not supported, this is due to
                                          // their notoriously bad performance.
-const double CONV_EXP = 1.0;             // Default value is 1.0. This parameter influences the selection of 
+const double CONV_EXP = 1.0;             // Default value is 1.0. This parameter influences the selection of
                                          // cancidates in hp-adaptivity. See get_optimal_refinement() for details.
 const int MAX_P = 5;                     // Maximum polynomial order allowed in hp-adaptivity
                                          // had to be limited due to complicated integrals
@@ -68,7 +68,7 @@ const double NEWTON_TOL_COARSE = 0.01;     // Stopping criterion for Newton on c
 const double NEWTON_TOL_FINE = 0.05;       // Stopping criterion for Newton on fine mesh
 const int NEWTON_MAX_ITER = 20;            // Maximum allowed number of Newton iterations
 const bool NEWTON_ON_COARSE_MESH = false;  // true... Newton is done on coarse mesh in every adaptivity step
-                                           // false...Newton is done on coarse mesh only once, then projection 
+                                           // false...Newton is done on coarse mesh only once, then projection
                                            // of the fine mesh solution to coarse mesh is used
 
 // Problem constants
@@ -127,7 +127,7 @@ int main(int argc, char* argv[])
   space.assign_dofs();
 
   // solutions for the Newton's iteration and adaptivity
-  Solution Psi_prev_time, Psi_prev_newton; 
+  Solution Psi_prev_time, Psi_prev_newton;
 
   // initialize the weak formulation
   WeakForm wf(1);
@@ -165,7 +165,7 @@ int main(int argc, char* argv[])
 
   // Newton's loop on the coarse mesh
   info("---- Time step 1, Newton solve on coarse mesh:\n");
-  if (!nls.solve_newton_1(&Psi_prev_newton, NEWTON_TOL_COARSE, NEWTON_MAX_ITER)) 
+  if (!nls.solve_newton_1(&Psi_prev_newton, NEWTON_TOL_COARSE, NEWTON_MAX_ITER))
     error("Newton's method did not converge.");
 
   // store the result in sln_coarse
@@ -190,7 +190,7 @@ int main(int argc, char* argv[])
       if (NEWTON_ON_COARSE_MESH) {
         // Newton's loop on the globally derefined mesh
         info("---- Time step %d, Newton solve on globally derefined mesh:\n", n);
-        if (!nls.solve_newton_1(&Psi_prev_newton, NEWTON_TOL_COARSE, NEWTON_MAX_ITER)) 
+        if (!nls.solve_newton_1(&Psi_prev_newton, NEWTON_TOL_COARSE, NEWTON_MAX_ITER))
           error("Newton's method did not converge.");
       }
 
@@ -215,7 +215,7 @@ int main(int argc, char* argv[])
       else rnls.set_ic(&sln_fine, &Psi_prev_newton);
 
       // Newton's method on fine mesh
-      if (!rnls.solve_newton_1(&Psi_prev_newton, NEWTON_TOL_FINE, NEWTON_MAX_ITER)) 
+      if (!rnls.solve_newton_1(&Psi_prev_newton, NEWTON_TOL_FINE, NEWTON_MAX_ITER))
         error("Newton's method did not converge.");
 
       // store the result in sln_fine
@@ -226,10 +226,10 @@ int main(int argc, char* argv[])
       sprintf(title, "Solution, time level %d, adapt step %d", n, a_step);
       magview.set_title(title);
       AbsFilter mag(&Psi_prev_newton);
-      magview.show(&mag);            
+      magview.show(&mag);
       sprintf(title, "Fine mesh, time level %d, adapt step %d", n, a_step);
       ordview.set_title(title);
-      ordview.show(rnls.get_space(0));          
+      ordview.show(rnls.get_space(0));
 
       // calculate element errors and total error estimate
       H1OrthoHP hp(1, &space);
@@ -244,7 +244,7 @@ int main(int argc, char* argv[])
         if (ndof >= NDOF_STOP) done = true;
 
         // project the fine mesh solution on the new coarse mesh
-        info("---- Time step %d, adaptivity step %d, projecting fine mesh solution on new coarse mesh:\n", 
+        info("---- Time step %d, adaptivity step %d, projecting fine mesh solution on new coarse mesh:\n",
           n, a_step);
         nls.set_ic(&sln_fine, &Psi_prev_newton, PROJ_TYPE);
 
@@ -254,7 +254,7 @@ int main(int argc, char* argv[])
         if (NEWTON_ON_COARSE_MESH) {
           // Newton's loop on the coarse mesh
           info("---- Time step %d, adaptivity step %d, Newton solve on new coarse mesh:\n", n, a_step);
-          if (!nls.solve_newton_1(&Psi_prev_newton, NEWTON_TOL_COARSE, NEWTON_MAX_ITER)) 
+          if (!nls.solve_newton_1(&Psi_prev_newton, NEWTON_TOL_COARSE, NEWTON_MAX_ITER))
             error("Newton's method did not converge.");
         }
 

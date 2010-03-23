@@ -82,7 +82,7 @@ int View::create()
 {
   if (output_id < 0) //does not need thread protection because it is set up by a callback during call of add_view
     return add_view(this, output_x, output_y, output_width, output_height, title.c_str());
-  else 
+  else
     return output_id;
 }
 
@@ -126,7 +126,7 @@ void View::wait(ViewWaitEvent wait_event, const char* text) {
 void View::refresh() {
   bool do_refresh = true;
   view_sync.enter();
-  if (output_id < 0) 
+  if (output_id < 0)
     do_refresh = false;
   view_sync.leave();
   if (do_refresh)
@@ -194,12 +194,12 @@ void View::pre_display()
     clear_background();
     on_display();
   }
-  else 
+  else
   {
     display_antialiased();
     hq_frame = false;
   }
-  
+
   if (b_help) draw_help();
   else if (b_scale) scale_dispatch();
 
@@ -356,7 +356,7 @@ void View::on_mouse_move(int x, int y)
     pos_vert = (y < output_height/2);
     if (pos_horz != oldh || pos_vert != oldv) {
       update_layout();
-      refresh(); 
+      refresh();
     }
   }
   else
@@ -514,7 +514,7 @@ void View::set_title(const char* title)
 {
   bool do_set_title = true;
   view_sync.enter();
-  if (output_id < 0) 
+  if (output_id < 0)
     do_set_title = false;
   view_sync.leave();
   if (do_set_title)
@@ -591,7 +591,7 @@ void View::set_palette_filter(bool linear)
   view_sync.enter(); //lock to prevent simultaneuous rendering
 
   pal_filter = linear ? GL_LINEAR : GL_NEAREST;
-  
+
   if (gl_pallete_tex_id == 0)
     glGenTextures(1, &gl_pallete_tex_id);
   glBindTexture(GL_TEXTURE_1D, gl_pallete_tex_id);
@@ -654,7 +654,7 @@ void View::auto_min_max_range()
   if (output_id >= 0)
     update_layout();
   view_sync.leave();
-  
+
   refresh();
 }
 
@@ -712,7 +712,7 @@ void View::draw_help()
   int x = 10, y = 10, b = 6;
 
   glEnable(GL_BLEND);
-  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); 
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
   glColor4f(1.0f, 1.0f, 1.0f, 0.65f);
   glBegin(GL_QUADS);
     glVertex2d(x, y+height+2*b);
@@ -894,7 +894,7 @@ void View::draw_continuous_scale(char* title, bool righttext)
   // background
   const int b = 5;
   glEnable(GL_BLEND);
-  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); 
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
   glColor4f(1.0f, 1.0f, 1.0f, 0.65f);
   int rt = righttext ? 0 : labels_width + 8;
   glBegin(GL_QUADS);
@@ -983,7 +983,7 @@ void View::draw_discrete_scale(int numboxes, const char* boxnames[], const float
   // background
   const int b = 5;
   glEnable(GL_BLEND);
-  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); 
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
   glColor4f(1.0f, 1.0f, 1.0f, 0.65f);
   glBegin(GL_QUADS);
   glVertex2d(scale_x - b, scale_y - b);
@@ -1081,7 +1081,7 @@ void View::set_scale_position(int horz, int vert)
   view_sync.enter();
   pos_horz = horz;
   pos_vert = vert;
-  if (output_id >= 0) 
+  if (output_id >= 0)
     update_layout();
   view_sync.leave();
   refresh();

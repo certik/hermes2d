@@ -193,7 +193,7 @@ static int set_view_title_in_thread(void* title_pars_ptr)
     debug_log("W settings title of a view that is not registered.");
     return -1;
   }
- 
+
   //create GLUT window
   glutSetWindow(title_params.view_id);
   glutSetWindowTitle(title_params.title);
@@ -333,13 +333,13 @@ void on_mouse_click_stub(int button, int state, int x, int y) {
         wnd->on_right_mouse_double_click(x, y);
       else
         wnd->on_middle_mouse_double_click(x, y);
-        
+
       last_tick = 0;
       return;
     }
     last_tick = tick;
   }
-  
+
   // call proper click handler
   if (button == GLUT_LEFT_BUTTON)
   {
@@ -370,7 +370,7 @@ void on_close_stub() {
 
   //call callback
   wnd->on_close();
-  
+
   //remove view from system
   view_sync.enter();
   RemoveParams params(glutGetWindow(), false);
@@ -408,19 +408,19 @@ static bool shutdown_glut()
 }
 
 /* public functions */
-void set_view_title(int view_id, const char* title) { 
+void set_view_title(int view_id, const char* title) {
   TitleParams params(view_id, title);
   call_in_thread(set_view_title_in_thread, &params);
 }
 
 int add_view(View* view, int x, int y, int width, int height, const char* title) {
-  ViewParams params(view, x, y, width, height, title);  
+  ViewParams params(view, x, y, width, height, title);
   return call_in_thread(add_view_in_thread, &params);
 }
 
 void refresh_view(int view_id) { call_in_thread(refresh_view_in_thread, &view_id); }
 
-void remove_view(int view_id) { 
+void remove_view(int view_id) {
   RemoveParams params(view_id, true);
   call_in_thread(remove_view_in_thread, &params);
 }
@@ -430,7 +430,7 @@ void force_view_thread_shutdown() {
   bool should_wait = false;
 
   view_sync.enter();
-  
+
   //destroy all views
   std::map<int, View*>::const_iterator iter = view_instances.begin();
   while (iter != view_instances.end()) {

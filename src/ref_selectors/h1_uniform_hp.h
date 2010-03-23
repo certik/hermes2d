@@ -27,7 +27,7 @@ namespace RefinementSelectors {
     /// \param[out] herr Errors of sons of H-candidate.
     /// \param[out] anisoerr Errors of sons of ANISO-candidates.
     /// \param[out] perr Errros of sons of P-candidates.
-    virtual void calc_projection_errors(Element* e, const int max_quad_order_h, const int max_quad_order_p, const int max_quad_order_aniso, Solution* rsln, SonProjectionError herr[4], SonProjectionError anisoerr[4], SonProjectionError perr); 
+    virtual void calc_projection_errors(Element* e, const int max_quad_order_h, const int max_quad_order_p, const int max_quad_order_aniso, Solution* rsln, SonProjectionError herr[4], SonProjectionError anisoerr[4], SonProjectionError perr);
     virtual void create_candidates(Element* e, int quad_order, int max_ha_quad_order, int max_p_quad_order); ///< Initializes the array of candidates and fills it with candidates.
 
   protected: //shapeset

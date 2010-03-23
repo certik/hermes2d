@@ -45,7 +45,7 @@ static int get_split_and_sons(Element* e, Rect* cr, Rect* er, int4& sons)
 {
   uint64_t hmid = (er->l + er->r) >> 1;
   uint64_t vmid = (er->t + er->b) >> 1;
-  
+
   if (e->bsplit())
   {
     if (cr->r <= hmid && cr->t <= vmid)
@@ -502,8 +502,8 @@ uint64_t Traverse::init_idx(Rect* cr, Rect* er)
 {
   Rect r;
   memcpy(&r, er, sizeof(Rect));
-  
-  uint64_t idx = 0;  
+
+  uint64_t idx = 0;
   while (cr->l > r.l || cr->r < r.r || cr->b > r.b || cr->t < r.t)
   {
     uint64_t hmid = (r.l + r.r) >> 1;
@@ -553,14 +553,14 @@ void Traverse::union_recurrent(Rect* cr, Element** e, Rect* er, uint64_t* idx, E
     return;
   }
 
-  // state arrays 
+  // state arrays
   AUTOLA_OR(Element*, e_new, num);
   AUTOLA_CL(Rect, er_new, num);
   Rect cr_new;
   AUTOLA_OR(int4, sons, num);
   AUTOLA_OR(uint64_t, idx_new, num);
   memcpy(idx_new, idx, idx_new.size);
-  
+
   if (tri)
   {
     // visit all sons of the triangle
@@ -658,19 +658,19 @@ UniData** Traverse::construct_union_mesh(Mesh* unimesh)
 {
   int i;
   AUTOLA_OR(Element*, e, num);
-  AUTOLA_CL(Rect, er, num); 
+  AUTOLA_CL(Rect, er, num);
   Rect cr;
-  
+
   this->unimesh = unimesh;
   unimesh->copy_base(meshes[0]);
 
   udsize = 0;
   unidata = new UniData*[num];
   memset(unidata, 0, sizeof(UniData*) * num);
-  
+
   AUTOLA_OR(uint64_t, idx, num);
   memset(idx, 0, idx.size);
-  
+
   for (id = 0; id < meshes[0]->get_num_base_elements(); id++)
   {
     for (i = 0; i < num; i++)

@@ -374,7 +374,7 @@ void L2OrthoHP::get_optimal_refinement(Element* e, int order, Solution* rsln, in
 
 
   AUTOLA_CL(Cand, cand, maxcand);
-  
+
   #define make_p_cand(q) { \
     assert(n < maxcand);   \
     cand[n].split = -1; \
@@ -502,7 +502,7 @@ void L2OrthoHP::get_optimal_refinement(Element* e, int order, Solution* rsln, in
   {
     if ((log(cand[i].error) < avg + dev) && (cand[i].dofs > cand[0].dofs))
     {
-      score = (log(cand[0].error) - log(cand[i].error)) / 
+      score = (log(cand[0].error) - log(cand[i].error)) /
 	       //(pow(cand[i].dofs, conv_exp) - pow(cand[0].dofs, conv_exp));
                pow(cand[i].dofs - cand[0].dofs, conv_exp);
       if (score > maxscore) { maxscore = score; imax = i; }

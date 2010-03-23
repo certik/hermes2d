@@ -192,7 +192,7 @@ namespace RefinementSelectors {
   void OptimumSelector::evaluate_cands_dof(Element* e, Solution* rsln) {
     bool tri = e->is_triangle();
 #   define get_dof_bubble(__order_h, __order_v) ((__order_h - 1) * (__order_v - 1))
-    for (unsigned i = 0; i < candidates.size(); i++) { 
+    for (unsigned i = 0; i < candidates.size(); i++) {
       Cand& c = candidates[i];
       if (tri) { //triangle
         switch(c.split) {
@@ -216,7 +216,7 @@ namespace RefinementSelectors {
         default:
           assert_msg(false, "E unknown split type \"%d\" at candidate %d", c.split, i);
         }
-      }    
+      }
       else { //quad
         switch(c.split) {
         case H2D_REFINEMENT_H:
@@ -284,7 +284,7 @@ namespace RefinementSelectors {
     // select an above-average candidate with the steepest error decrease
     int imax = 0, h_imax = 0;
     double score, maxscore = 0.0, h_maxscore = 0.0;
-    
+
     Cand& unrefined = candidates[0];
     for (unsigned i = 1; i < candidates.size(); i++)
     {

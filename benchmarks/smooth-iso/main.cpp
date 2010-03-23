@@ -5,7 +5,7 @@
 //  This example shows that the worst thing you can ever do is to approximate
 //  smooth parts of solutions with uniform low-order meshes. The exact solution
 //  to this Poisson problem is u(x,y) = sin(x)*sin(y), defined in the square
-//  (0, pi)x(0, pi). 
+//  (0, pi)x(0, pi).
 //
 //  PDE: -Laplace u = f
 //
@@ -97,9 +97,9 @@ int main(int argc, char* argv[])
   if(P_INIT == 1) {
     if (ADAPT_TYPE == 0) P_INIT++;  // this is because there are no degrees of freedom
                                     // on the coarse mesh lshape.mesh if P_INIT == 1
-    if(ADAPT_TYPE == 1) mesh.refine_all_elements(); 
-    if(ADAPT_TYPE == 2) P_INIT++;  
-  }                                        
+    if(ADAPT_TYPE == 1) mesh.refine_all_elements();
+    if(ADAPT_TYPE == 2) P_INIT++;
+  }
 
   // initialize the shapeset and the cache
   H1Shapeset shapeset;

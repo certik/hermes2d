@@ -1,6 +1,6 @@
 #! /usr/bin/env python
 
-#  This example uses automatic adaptivity to solve a general second-order linear 
+#  This example uses automatic adaptivity to solve a general second-order linear
 #  equation with non-constant coefficients.
 #
 #  PDE: -d/dx(a_11(x,y)du/dx) - d/dx(a_12(x,y)du/dy) - d/dy(a_21(x,y)du/dx) - d/dy(a_22(x,y)du/dy)
@@ -96,7 +96,7 @@ while (not done):
     ls = LinSystem(wf, solver)
     ls.set_spaces(space)
     ls.set_pss(pss)
-    
+
     ls.assemble()
     ls.solve_system(sln_coarse)
 
@@ -108,11 +108,11 @@ while (not done):
     rs = RefSystem(ls)
     rs.assemble()
     rs.solve_system(sln_fine)
-    
+
     # Calculate element errors and total error estimate
     hp = H1OrthoHP(space);
     err_est = hp.calc_error(sln_coarse, sln_fine) * 100
-    print("Error estimate: %d" % err_est)        
+    print("Error estimate: %d" % err_est)
 
     # If err_est too large, adapt the mesh
     if (err_est < ERR_STOP):
@@ -120,7 +120,7 @@ while (not done):
     else:
         hp.adapt(THRESHOLD, STRATEGY, ADAPT_TYPE)#, ISO_ONLY, MESH_REGULARITY)
         ndofs = space.assign_dofs()
-        
+
         if (ndofs >= NDOF_STOP):
             done = True
 

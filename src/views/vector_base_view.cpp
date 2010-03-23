@@ -60,7 +60,7 @@ void VectorBaseView::update_solution()
 void VectorBaseView::update_title()
 {
   char text[500];
-  sprintf(text, "%s - dof = %d%s", title.c_str(), base_index, 
+  sprintf(text, "%s - dof = %d%s", title.c_str(), base_index,
           (base_index < 0) ? " (Dirichlet lift)" : "");
   set_title(text);
 }
@@ -79,7 +79,7 @@ void VectorBaseView::on_special_key(int key, int x, int y)
       if (base_index < ndofs-1) base_index++;
       update_solution();
       break;
-      
+
     default:
       VectorView::on_special_key(key, x, y);
   }
@@ -88,7 +88,7 @@ void VectorBaseView::on_special_key(int key, int x, int y)
 
 const char* VectorBaseView::get_help_text() const
 {
-  return 
+  return
   "VectorBaseView\n\n"
   "Controls:\n"
   "  Left mouse - pan\n"

@@ -4,32 +4,32 @@
 // This example explains how to use the multimesh adaptive hp-FEM,
 // where different physical fields (or solution components) can be
 // approximated using different meshes and equipped with mutually
-// independent adaptivity mechanisms. For the tutorial purposes, 
-// we manufactured an exact solution for a simplified version of 
-// the FitzHugh-Nagumo equation. This equation, in its full form, 
-// is a prominent example of activator-inhibitor systems in two-component 
-// reaction-diffusion equations, It describes a prototype of an 
+// independent adaptivity mechanisms. For the tutorial purposes,
+// we manufactured an exact solution for a simplified version of
+// the FitzHugh-Nagumo equation. This equation, in its full form,
+// is a prominent example of activator-inhibitor systems in two-component
+// reaction-diffusion equations, It describes a prototype of an
 // excitable system (e.g., a neuron).
 //
 // PDE: Linearized FitzHugh-Nagumo equation
 //      -d_u^2 \Delta u - f(u) + \sigma v = g_1,
 //      -d_v^2 \Delta v - u + v = g_2.
-// In the original equation, f(u) = \lambda u - u^3 - \kappa. For 
-// simplicity, here we just take f(u) = u. 
+// In the original equation, f(u) = \lambda u - u^3 - \kappa. For
+// simplicity, here we just take f(u) = u.
 //
 // Domain: Square (-1,1)^2.
-// 
+//
 // BC: Both solution components are zero on the boundary.
 //
-// Exact solution: The functions g_1 and g_2 were calculated so that 
+// Exact solution: The functions g_1 and g_2 were calculated so that
 //                 the exact solution is:
 //        u(x,y) = cos(M_PI*x/2)*cos(M_PI*y/2)
-//        v(x,y) = U(x)U(y) where U(t) = 1 - (exp(K*x)+exp(-K*x))/(exp(K) + exp(-K)) 
-// Note: U(t) is the exact solution of the 1D singularly perturbed equation 
+//        v(x,y) = U(x)U(y) where U(t) = 1 - (exp(K*x)+exp(-K*x))/(exp(K) + exp(-K))
+// Note: U(t) is the exact solution of the 1D singularly perturbed equation
 //       -u'' + K*K*u = K*K in (-1, 1) with zero Dirichlet BC.
 //
 // The following parameters can be changed: In particular, compare hp- and
-// h-adaptivity via the ADAPT_TYPE option, and compare the multi-mesh vs. 
+// h-adaptivity via the ADAPT_TYPE option, and compare the multi-mesh vs.
 // single-mesh using the MULTI parameter.
 
 const int P_INIT_U = 2;          // Initial polynomial degree for u.
@@ -66,7 +66,7 @@ const int MESH_REGULARITY = -1;  // Maximum allowed level of hanging nodes:
                                  // MESH_REGULARITY = 2 ... at most two-level hanging nodes, etc.
                                  // Note that regular meshes are not supported, this is due to
                                  // their notoriously bad performance.
-const double CONV_EXP = 1.0;     // Default value is 1.0. This parameter influences the selection of 
+const double CONV_EXP = 1.0;     // Default value is 1.0. This parameter influences the selection of
                                  // cancidates in hp-adaptivity. See get_optimal_refinement() for details.
 const int MAX_ORDER = 10;        // Maximum allowed element degree
 const double ERR_STOP = 0.01;    // Stopping criterion for adaptivity (rel. error tolerance between the
@@ -89,13 +89,13 @@ int bc_types(int marker) { return BC_ESSENTIAL; }
 scalar bc_values(int marker, double x, double y) { return 0;}
 
 // functions g_1 and g_2
-double g_1(double x, double y) 
+double g_1(double x, double y)
 {
-  return (-cos(M_PI*x/2.)*cos(M_PI*y/2.) + SIGMA*(1. - (exp(K*x) + exp(-K*x))/(exp(K) + exp(-K)))*(1. - (exp(K*y) + exp(-K*y))/(exp(K) + exp(-K))) 
+  return (-cos(M_PI*x/2.)*cos(M_PI*y/2.) + SIGMA*(1. - (exp(K*x) + exp(-K*x))/(exp(K) + exp(-K)))*(1. - (exp(K*y) + exp(-K*y))/(exp(K) + exp(-K)))
 	  + pow(M_PI,2.)*pow(D_u,2.)*cos(M_PI*x/2.)*cos(M_PI*y/2.)/2.);
 }
 
-double g_2(double x, double y) 
+double g_2(double x, double y)
 {
   return ((1. - (exp(K*x) + exp(-K*x))/(exp(K) + exp(-K)))*(1. - (exp(K*y) + exp(-K*y))/(exp(K) + exp(-K))) - pow(D_v,2.)*(-(1 - (exp(K*x) + exp(-K*x))/(exp(K) + exp(-K)))*(pow(K,2.)*exp(K*y) + pow(K,2.)*exp(-K*y))/(exp(K) + exp(-K)) - (1. - (exp(K*y) + exp(-K*y))/(exp(K) + exp(-K)))*(pow(K,2.)*exp(K*x) + pow(K,2.)*exp(-K*x))/(exp(K) + exp(-K))) - cos(M_PI*x/2.)*cos(M_PI*y/2.));
 
@@ -161,8 +161,8 @@ int main(int argc, char* argv[])
 
   // initialize the weak formulation
   WeakForm wf(2);
-  wf.add_biform(0, 0, callback(bilinear_form_0_0));  
-  wf.add_biform(0, 1, callback(bilinear_form_0_1));  
+  wf.add_biform(0, 0, callback(bilinear_form_0_0));
+  wf.add_biform(0, 1, callback(bilinear_form_0_1));
   wf.add_biform(1, 0, callback(bilinear_form_1_0));
   wf.add_biform(1, 1, callback(bilinear_form_1_1));
   wf.add_liform(0, linear_form_0, linear_form_0_ord);

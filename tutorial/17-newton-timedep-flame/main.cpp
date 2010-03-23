@@ -21,7 +21,7 @@
 const int P_INIT = 2;                  // Initial polynomial degree
 const double TAU = 0.5;                // Time step
 const double T_FINAL = 60.0;           // Time interval length
-const int PROJ_TYPE = 1;               // For the projection of the initial condition 
+const int PROJ_TYPE = 1;               // For the projection of the initial condition
                                        // on the initial mesh: 1 = H1 projection, 0 = L2 projection
 const int INIT_GLOB_REF_NUM = 2;       // Number of initial uniform mesh refinements
 const double NEWTON_TOL = 1e-4;        // Stopping criterion for the Newton's method
@@ -118,7 +118,7 @@ int main(int argc, char* argv[])
     info("\n**** Time step %d, t = %g s:\n", ++t_step, current_time);
 
     // Newton's method
-    if (!nls.solve_newton_2(&t_prev_newton, &y_prev_newton, NEWTON_TOL, NEWTON_MAX_ITER, 
+    if (!nls.solve_newton_2(&t_prev_newton, &y_prev_newton, NEWTON_TOL, NEWTON_MAX_ITER,
                        &omega, &omega_dt, &omega_dy)) error("Newton's method did not converge.");
 
     // visualization

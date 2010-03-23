@@ -45,7 +45,7 @@ public:
   virtual ~H1AdaptHP();
 
   /// \deprecated Old-style and type-unsafe constructor.
-  H1AdaptHP(int num, ...); 
+  H1AdaptHP(int num, ...);
 
   typedef scalar (*biform_val_t) (int n, double *wt, Func<scalar> *u, Func<scalar> *v, Geom<double> *e, ExtData<scalar> *);
   typedef Ord (*biform_ord_t) (int n, double *wt, Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *);

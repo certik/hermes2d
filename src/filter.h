@@ -26,7 +26,7 @@ struct UniData;
 /// which usually are Solutions to PDEs, but can also be other Filters.
 ///
 /// (This class cannot be instantiated.)
-/// 
+///
 class HERMES2D_API Filter : public MeshFunction
 {
 public:
@@ -225,8 +225,8 @@ class HERMES2D_API AngleFilter : public SimpleFilter
 
 /// VonMisesFilter is a postprocessing filter for visualizing elastic stresses in a body.
 /// It calculates the stress tensor and applies the Von Mises equivalent stress formula
-/// to obtain the resulting stress measure. 
-/// \brief Calculates the Von Mises stress. 
+/// to obtain the resulting stress measure.
+/// \brief Calculates the Von Mises stress.
 class HERMES2D_API VonMisesFilter : public Filter
 {
 public: // TODO: cylindrical coordinates

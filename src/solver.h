@@ -66,9 +66,9 @@ protected:
   /// support the reuse of structural analysis, this method does not have to be
   /// implemented.  \return true on success, false otherwise.
   virtual bool analyze(void* ctx, int n, int* Ap, int* Ai, scalar* Ax, bool sym) { return false; }
-  
-  /// Called by LinSystem after the stiffness matrix has been assembled. 
-  /// Direct solvers should implement this function and store the result 
+
+  /// Called by LinSystem after the stiffness matrix has been assembled.
+  /// Direct solvers should implement this function and store the result
   /// of the factorization in the execution context, so that it can be used
   /// many times by solve() for different right hand sides.
   /// \return true on success, false otherwise.

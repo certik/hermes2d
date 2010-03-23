@@ -1,7 +1,7 @@
 #include "hermes2d.h"
 #include "solver_umfpack.h"
 
-//  This is an elliptic problem with known exact solution. The solution contains 
+//  This is an elliptic problem with known exact solution. The solution contains
 //  a very strong singularity that represents a challenge for most adaptive methods.
 //
 //  PDE: -div(A(x,y) grad u) = 0

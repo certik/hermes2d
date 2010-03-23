@@ -239,8 +239,8 @@ void Space::propagate_zero_orders(Element* e)
 
 void Space::distribute_orders(Mesh* mesh, int* parents)
 {
-  int num = mesh->get_max_element_id(); 
-  AUTOLA_OR(int, orders, num+1);  
+  int num = mesh->get_max_element_id();
+  AUTOLA_OR(int, orders, num+1);
   Element* e;
   for_all_active_elements(e, mesh)
   {
@@ -440,7 +440,7 @@ void Space::update_edge_bc(Element* e, EdgePos* ep)
   else
   {
     int son1, son2;
-    if (mesh->get_edge_sons(e, ep->edge, son1, son2) == 2) 
+    if (mesh->get_edge_sons(e, ep->edge, son1, son2) == 2)
     {
       double mid = (ep->lo + ep->hi) * 0.5, tmp = ep->hi;
       ep->hi = mid;

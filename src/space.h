@@ -216,7 +216,7 @@ public: //DEBUG
   int nsize, ndata_allocated; ///< number of items in ndata, allocated space
   ElementData* edata; ///< element data table
   int esize;
-  
+
 protected: //DEBUG
   virtual int get_edge_order_internal(Node* en);
 
@@ -259,7 +259,7 @@ protected: //DEBUG
   virtual void post_assign() {}
 
   HERMES2D_API_USED_STL_VECTOR(void*);
-  std::vector<void*> extra_data;    
+  std::vector<void*> extra_data;
   void free_extra_data();
 
   void propagate_zero_orders(Element* e);

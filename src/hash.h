@@ -51,8 +51,8 @@ public:
 
 
 // The following functions are used by the derived class Mesh:
-protected: 
-  
+protected:
+
   HERMES2D_API_USED_TEMPLATE(Array<Node>);
   Array<Node> nodes; ///< Array storing all nodes
 

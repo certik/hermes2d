@@ -177,7 +177,7 @@ void ScalarView::show(MeshFunction* sln, double eps, int item,
 
   double max_abs = range_auto ? -1.0 : std::max(fabs(range_min), fabs(range_max));
   lin.process_solution(sln, item, eps, max_abs, xdisp, ydisp, dmult);
-  update_mesh_info();  
+  update_mesh_info();
 
   //initialize mesh nodes for displaying and selection
   init_vertex_nodes(sln->get_mesh());
@@ -444,7 +444,7 @@ void ScalarView::init_element_info(Mesh* mesh)
 {
   //cleanup
   element_infos.clear();
-  
+
   //check how many active elements are neccessary and prepare space for them
   element_infos.reserve(mesh->get_num_active_elements());
 
@@ -606,12 +606,12 @@ void ScalarView::draw_tri_contours(double3* vert, int3* tri)
     {
       double lt = (val - vert[idx[l1]][2]) / ld;
       double rt = (val - vert[idx[r1]][2]) / rd;
-      
+
       double x1 = (1.0 - lt) * vert[idx[l1]][0] + lt * vert[idx[l2]][0];
-      double y1 = (1.0 - lt) * vert[idx[l1]][1] + lt * vert[idx[l2]][1]; 
+      double y1 = (1.0 - lt) * vert[idx[l1]][1] + lt * vert[idx[l2]][1];
       double x2 = (1.0 - rt) * vert[idx[r1]][0] + rt * vert[idx[r2]][0];
-      double y2 = (1.0 - rt) * vert[idx[r1]][1] + rt * vert[idx[r2]][1]; 
-      
+      double y2 = (1.0 - rt) * vert[idx[r1]][1] + rt * vert[idx[r2]][1];
+
       if (perm & 1) { glVertex2d(x1, y1); glVertex2d(x2, y2); }
                else { glVertex2d(x2, y2); glVertex2d(x1, y1); }
 
@@ -875,7 +875,7 @@ void ScalarView::draw_normals_3d() {
       double z = (vert[i][1] - zctr) * xzscale;
       glVertex3d(x, y, z);
       glVertex3d(x + 0.1*normals[i][0]*normal_xzscale, y + 0.1*normals[i][2]*normal_yscale, z + 0.1*normals[i][1]*normal_xzscale);
-    }    
+    }
     glEnd();
 
     glPopMatrix();
@@ -904,25 +904,25 @@ void ScalarView::draw_edges(DrawSingleEdgeCallback draw_single_edge, void* param
 void ScalarView::on_display()
 {
   int i, j;
-  
+
   // lock and get data
   lin.lock_data();
   double3* vert = lin.get_vertices();
   int3* tris = lin.get_triangles();
   int3* edges = lin.get_edges();
-  
+
   // get a range of values
   double value_min = range_min, value_max = range_max;
   if (range_auto) { value_min = lin.get_min_value(); value_max = lin.get_max_value(); }
   double value_irange = 1.0 / (value_max - value_min);
   // special case: constant solution
   if ((value_max - value_min) < 1e-8) { value_irange = 1.0; range_min -= 0.5; }
-    
+
   glPolygonMode(GL_FRONT_AND_BACK, pmode ? GL_LINE : GL_FILL);
 
   //prepare vertices
   prepare_gl_geometry(value_min, value_irange);
-  
+
   if (!mode3d)
   {
     set_ortho_projection();
@@ -930,7 +930,7 @@ void ScalarView::on_display()
     glDisable(GL_DEPTH_TEST);
     glDisable(GL_TEXTURE_2D);
     glDisable(GL_BLEND);
-    
+
     // setup transformation (follows View::transform_x and View::transform_y)
     glMatrixMode(GL_MODELVIEW);
     glPushMatrix();
@@ -939,11 +939,11 @@ void ScalarView::on_display()
     glScaled(1.0, -1.0, 1.0);
     glTranslated(trans_x, trans_y, 0.0);
     glScaled(scale, scale, 1.0);
-    
+
     // draw all triangles
     if (show_values)
       draw_values_2d(value_min, value_irange);
-    
+
     // draw contours
     glDisable(GL_TEXTURE_1D);
     if (contours)
@@ -977,7 +977,7 @@ void ScalarView::on_display()
   else
   {
     set_3d_projection(50, 0.05, 10.0);
-    
+
     glClear(GL_DEPTH_BUFFER_BIT);
     glEnable(GL_DEPTH_TEST);
 
@@ -1105,7 +1105,7 @@ void ScalarView::calculate_normals(double3* vert, int num_verts, int3* tris, int
     }
   }
 
-  for (int i = 0; i < num_verts; i++) 
+  for (int i = 0; i < num_verts; i++)
     normalize(normals[i][0], normals[i][1], normals[i][2]);
 }
 
@@ -1132,7 +1132,7 @@ void ScalarView::init_lighting()
   float light_ambient[]  = {  0.1f, 0.1f, 0.1f, 1.0f };
   float light_diffuse[]  = {  1.0f, 1.0f, 1.0f, 1.0f };
   float light_position[] = { -0.5f, 0.5f, 1.0f, 0.0f };
-  
+
   glEnable(GL_LIGHT0);
   glLightfv(GL_LIGHT0, GL_SPECULAR, light_specular);
   glLightfv(GL_LIGHT0, GL_AMBIENT,  light_ambient);
@@ -1184,7 +1184,7 @@ void ScalarView::on_key_down(unsigned char key, int x, int y)
       case 'f':
         set_palette_filter(pal_filter != GL_LINEAR);
         break;
-      
+
       case 'k':
         contours = !contours;
         refresh();
@@ -1195,7 +1195,7 @@ void ScalarView::on_key_down(unsigned char key, int x, int y)
         if (!mode3d)
           refresh();
         break;
-      
+
       case '3':
       {
         mode3d = !mode3d;
@@ -1209,7 +1209,7 @@ void ScalarView::on_key_down(unsigned char key, int x, int y)
         refresh();
         break;
       }
-      
+
       case '*':
         lin.lock_data();
         if (mode3d)
@@ -1254,7 +1254,7 @@ void ScalarView::on_mouse_move(int x, int y)
     if (dragging) {
       yrot += 0.4 * (x - mouse_x);
       xrot += 0.4 * (y - mouse_y);
-      
+
       if (xrot < -90) xrot = -90;
       else if (xrot > 90) xrot = 90;
     }
@@ -1267,7 +1267,7 @@ void ScalarView::on_mouse_move(int x, int y)
       xtrans += 0.002 * (x - mouse_x);
       ytrans += 0.002 * (mouse_y - y);
     }
-      
+
     refresh();
     mouse_x = x;
     mouse_y = y;
@@ -1411,7 +1411,7 @@ void ScalarView::save_data(const char* filename)
   lin.load_data(filename);
   num_tris = lin.get_num_triangles();
   lin.unlock_data();
-  if (num_tris <= 0) 
+  if (num_tris <= 0)
     error("no data to save.");
   lin.save_data(filename);
 }
@@ -1430,7 +1430,7 @@ void ScalarView::draw_svg_edge(int inx_vert_a, int inx_vert_b, ScalarView* viewe
 
   SVGExportParams* pars = (SVGExportParams*)param;
   double3* verts = viewer->lin.get_vertices();
-  
+
   //transform coordinates
   double3 vert_a, vert_b;
   memcpy(&vert_a, verts + inx_vert_a, sizeof(double3));

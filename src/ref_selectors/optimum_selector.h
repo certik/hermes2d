@@ -56,8 +56,8 @@ namespace RefinementSelectors {
         switch (split) {
           case H2D_REFINEMENT_H: return 4;
           case H2D_REFINEMENT_P: return 1;
-          case H2D_REFINEMENT_ANISO_H: 
-          case H2D_REFINEMENT_ANISO_V:            
+          case H2D_REFINEMENT_ANISO_H:
+          case H2D_REFINEMENT_ANISO_V:
             return 2;
           default:
             error("E invalid split type %d", split);

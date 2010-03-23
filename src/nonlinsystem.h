@@ -32,7 +32,7 @@ class MeshFunction;
 ///
 ///
 ///
-class HERMES2D_API NonlinSystem : public LinSystem 
+class HERMES2D_API NonlinSystem : public LinSystem
 {
 public:
 
@@ -56,7 +56,7 @@ public:
               Mesh* mesh, Solution* result, int proj_norm = 1)
   {
     result->set_exact(mesh, exactfn);
-    set_ic_n(proj_norm, 1, result, result);  
+    set_ic_n(proj_norm, 1, result, result);
   }
 
   void set_ic_n(int proj_norm, int n, ...);
@@ -74,14 +74,14 @@ public:
   bool solve(int n, ...);
 
   /// Performs complete Newton's loop for one equation
-  bool solve_newton_1(Solution* u_prev, double newton_tol, int newton_max_iter, 
+  bool solve_newton_1(Solution* u_prev, double newton_tol, int newton_max_iter,
                       Filter* f1 = NULL, Filter* f2 = NULL, Filter* f3 = NULL);
   /// Performs complete Newton's loop for two equations
-  bool solve_newton_2(Solution* u_prev_1, Solution* u_prev_2, double newton_tol, int newton_max_iter, 
+  bool solve_newton_2(Solution* u_prev_1, Solution* u_prev_2, double newton_tol, int newton_max_iter,
                       Filter* f1 = NULL, Filter* f2 = NULL, Filter* f3 = NULL);
   /// Performs complete Newton's loop for two equations
-  bool solve_newton_3(Solution* u_prev_1, Solution* u_prev_2, Solution* u_prev_3, 
-                      double newton_tol, int newton_max_iter, 
+  bool solve_newton_3(Solution* u_prev_1, Solution* u_prev_2, Solution* u_prev_3,
+                      double newton_tol, int newton_max_iter,
                       Filter* f1 = NULL, Filter* f2 = NULL, Filter* f3 = NULL);
 
   /// returns the L2-norm of the residuum

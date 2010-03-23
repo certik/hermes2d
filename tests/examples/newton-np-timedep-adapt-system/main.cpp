@@ -2,7 +2,7 @@
 #include "solver_umfpack.h"
 #include <string>
 
-// This is a test for Nernst-Planck examle 
+// This is a test for Nernst-Planck examle
 
 #define SIDE_MARKER 1
 #define TOP_MARKER 2
@@ -17,7 +17,7 @@ const double eps = 2.5e-2; 	            // [F/m] Electric permeability
 const double mu = D / (R * T);              // Mobility of ions
 const double z = 1;		            // Charge number
 const double K = z * mu * F;                // Constant for equation
-const double L =  F / eps;	            // Constant for equation 
+const double L =  F / eps;	            // Constant for equation
 const double VOLTAGE = 1;	            // [V] Applied voltage
 const double C_CONC = 1200;	            // [mol/m^3] Anion and counterion concentration
 
@@ -70,7 +70,7 @@ const double ERR_STOP = 0.5;            // Stopping criterion for adaptivity (re
 
 // Poisson takes Dirichlet and Neumann boundaries
 int phi_bc_types(int marker) {
-  return (marker == SIDE_MARKER || marker == TOP_MARKER) 
+  return (marker == SIDE_MARKER || marker == TOP_MARKER)
     ? BC_NATURAL : BC_ESSENTIAL;
 }
 
@@ -121,8 +121,8 @@ bool solveNonadaptive(Mesh &mesh, NonlinSystem &nls,
 	}
 	printf("coefficient sum = %g\n", sum);
 
-	// Actual test. The value of 'sum' depend on the 
-	// current shapeset. If you change the shapeset, 
+	// Actual test. The value of 'sum' depend on the
+	// current shapeset. If you change the shapeset,
 	// you need to correct this number.
 	printf("ret: %g\n", fabs(sum - 50505));
 	return !(fabs(sum - 50505) > 1);
@@ -145,7 +145,7 @@ bool solveAdaptive(Mesh &Cmesh, Mesh &phimesh, Mesh &basemesh, NonlinSystem &nls
       int ndofs;
       ndofs = C.assign_dofs();
       phi.assign_dofs(ndofs);
-    } 
+    }
 
     int at = 0;
     bool done = false;
@@ -221,7 +221,7 @@ bool solveAdaptive(Mesh &Cmesh, Mesh &phimesh, Mesh &basemesh, NonlinSystem &nls
   int nd = C.get_num_dofs() + phi.get_num_dofs();
   info("NDOFs at the end of timestep: %d", nd);
 	bool success = !(abs(nd - 283) > 0);
-	
+
 	scalar *sol_vector;
   int n_dof;
 	nls.get_solution_vector(sol_vector, n_dof);
@@ -232,8 +232,8 @@ bool solveAdaptive(Mesh &Cmesh, Mesh &phimesh, Mesh &basemesh, NonlinSystem &nls
 	}
 	printf("coefficient sum = %g\n", sum);
 
-	// Actual test. The value of 'sum' depend on the 
-	// current shapeset. If you change the shapeset, 
+	// Actual test. The value of 'sum' depend on the
+	// current shapeset. If you change the shapeset,
 	// you need to correct this number.
 	printf("ret: %g\n", fabs(sum - 55304.4));
 	success &= !(fabs(sum - 55304.4) > 1);
@@ -265,12 +265,12 @@ int main (int argc, char* argv[]) {
 	phi.set_bc_types(phi_bc_types);
 	phi.set_bc_values(phi_bc_values);
 	//C.set_bc_values(C_bc_values);
-	
+
 	// set polynomial degrees
 	C.set_uniform_order(P_INIT);
 	phi.set_uniform_order(P_INIT);
-	
-	
+
+
 	// assign degrees of freedom
 	int ndofs = 0;
 	ndofs += C.assign_dofs(ndofs);
@@ -285,7 +285,7 @@ int main (int argc, char* argv[]) {
 		phip,
 		phii;
 
-	
+
 	// Add the bilinear and linear forms
 	// generally, the equation system is described:
 	// a11(u1, v1) + a12(u2, v1) + a1n(un, v1) = l1(v1)
@@ -300,7 +300,7 @@ int main (int argc, char* argv[]) {
 	wf.add_liform(1, callback(Fphi_euler), ANY, 2, &Ci, &phii);
 
 	wf.add_liform_surf(1, callback(linear_form_surf_top), TOP_MARKER);
-	
+
 	// Noninear solver
 	UmfpackSolver umfpack;
 	NonlinSystem nls(&wf, &umfpack);
@@ -310,7 +310,7 @@ int main (int argc, char* argv[]) {
 	} else {
 		nls.set_pss(1, &Cpss);
 	}
-	
+
 	info("UmfpackSolver initialized");
 
 	// View initial guess for Newton's method
@@ -328,7 +328,7 @@ int main (int argc, char* argv[]) {
 
 	bool success = solveAdaptive(Cmesh, phimesh, basemesh, nls, C, phi, Cp, Ci, phip, phii);
 	//bool success = solveNonadaptive(Cmesh, nls, Cp, Ci, phip, phii);
-	
+
 	if (success) {
 		printf("SUCCESSFUL\n");
 	} else {

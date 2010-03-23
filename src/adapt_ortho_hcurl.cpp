@@ -627,7 +627,7 @@ void HcurlOrthoHP::get_optimal_refinement(Element* e, int order, Solution* rsln,
   {
     if ((log(cand[i].error) < avg + dev) && (cand[i].dofs > cand[0].dofs))
     {
-      score = (log(cand[0].error) - log(cand[i].error)) / 
+      score = (log(cand[0].error) - log(cand[i].error)) /
 	       //(pow(cand[i].dofs, conv_exp) - pow(cand[0].dofs, conv_exp));
                pow(cand[i].dofs - cand[0].dofs, conv_exp);
       if (score > maxscore) { maxscore = score; imax = i; }
@@ -643,7 +643,7 @@ void HcurlOrthoHP::get_optimal_refinement(Element* e, int order, Solution* rsln,
 
 
 //// adapt /////////////////////////////////////////////////////////////////////////////////////////
-bool HcurlOrthoHP::adapt(double thr, int strat, int adapt_type, bool iso_only, int regularize, 
+bool HcurlOrthoHP::adapt(double thr, int strat, int adapt_type, bool iso_only, int regularize,
                          double conv_exp, int max_order)
 {
   if (!have_errors)

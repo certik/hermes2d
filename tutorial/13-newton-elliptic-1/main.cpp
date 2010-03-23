@@ -3,12 +3,12 @@
 #include "function.h"
 
 //  This example shows an introductory application of the Newton's
-//  method to a nonlinear elliptic problem. We use zero Dirichlet boundary 
-//  conditions and a constant initial guess for the Newton's method. 
-//  The treatment of nonzero Dirichlet BC and a more general initial guess 
+//  method to a nonlinear elliptic problem. We use zero Dirichlet boundary
+//  conditions and a constant initial guess for the Newton's method.
+//  The treatment of nonzero Dirichlet BC and a more general initial guess
 //  will be shown in the next example newton-elliptic-2.
 //
-//  PDE: stationary heat transfer equation with nonlinear thermal 
+//  PDE: stationary heat transfer equation with nonlinear thermal
 //  conductivity, - div[lambda(u)grad u] = 0
 //
 //  Domain: unit square (-10,10)^2
@@ -18,8 +18,8 @@
 //  The following parameters can be changed:
 
 const int P_INIT = 2;             // Initial polynomial degree
-const int PROJ_TYPE = 1;          // For the projection of the initial condition 
-                                  // on the initial mesh: 1 = H1 projection, 
+const int PROJ_TYPE = 1;          // For the projection of the initial condition
+                                  // on the initial mesh: 1 = H1 projection,
                                   // 0 = L2 projection
 const double NEWTON_TOL = 1e-6;   // Stopping criterion for the Newton's method
 const int NEWTON_MAX_ITER = 100;  // Maximum allowed number of Newton iterations
@@ -57,7 +57,7 @@ Scalar jac(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtDa
   for (int i = 0; i < n; i++)
     result += wt[i] * (dlam_du(u_prev->val[i]) * u->val[i] * (u_prev->dx[i] * v->dx[i] + u_prev->dy[i] * v->dy[i])
                        + lam(u_prev->val[i]) * (u->dx[i] * v->dx[i] + u->dy[i] * v->dy[i]));
-                       
+
   return result;
 }
 

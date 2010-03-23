@@ -80,7 +80,7 @@ protected: // node selection
     int id; ///< id of the node
     bool selected; ///< true if the node is selected
     TwBar* tw_bar; ///< a pointer to a gui window (CTwBar*) (GUI only).
-    VertexNodeInfo() {}; ///< An empty default constructor to limit time 
+    VertexNodeInfo() {}; ///< An empty default constructor to limit time
     VertexNodeInfo(int id, float x, float y) : id(id), x(x), y(y), selected(false), tw_bar(NULL) {};
   };
   HERMES2D_API_USED_STL_VECTOR(VertexNodeInfo);
@@ -124,7 +124,7 @@ protected: //element nfo
 protected: //GUI
   int tw_wnd_id; ///< tw window ID
   TwBar* tw_setup_bar; ///< setup bar
-  
+
   virtual void create_setup_bar(); ///< create setup bar. Assumes that current window is set
 
 protected: //values
@@ -150,11 +150,11 @@ protected: //values
   int max_gl_verts; ///< A maximum allocated number of vertices
   int max_gl_tris; ///< A maximum allocated number of triangles
   int gl_tri_cnt; ///< A number of OpenGL triangles
-  
+
   bool show_values; ///< true to show values
 
   void prepare_gl_geometry(const double value_min, const double value_irange); ///< prepares geometry in a form compatible with GL arrays; Data are updated if lin is updated. In a case of a failure (out of memory), gl_verts is NULL and an old OpenGL rendering method has to be used.
-  void draw_values_2d(const double value_min, const double value_irange); ///< draws values 
+  void draw_values_2d(const double value_min, const double value_irange); ///< draws values
   void draw_edges_2d(); ///< draws edges
 
   void draw_normals_3d(); ////< Draws normals of the 3d mesh. Used for debugging purposses only.

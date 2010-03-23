@@ -43,7 +43,7 @@ namespace RefinementSelectors {
 
     struct ElemProj { ///< Element projection parameters.
       int* shape_inxs; ///< Shape indices
-      int num_shapes; ///< Number of shape indices.      
+      int num_shapes; ///< Number of shape indices.
       scalar* shape_coefs; ///< Coefficients of shape indices of a projection.
       int max_quad_order; ///< Maximum quad order of the projection.
     };
@@ -56,7 +56,7 @@ namespace RefinementSelectors {
       Trf* trf; ///< Transformation.
       double coef_mx, coef_my; ///< Differentials correction coefficients.
     };
-    
+
     double** proj_matrices[H2DRS_MAX_ORDER+1][H2DRS_MAX_ORDER+1]; ///< An array of projection matrices. Used functions are defined through shape_inx. Index to the array is the size. All matrices are square. If record is NULL, the corresponding matrix has to be calculated.
     ValueCacheItem<scalar>* rhs_cache; ///< An array of RHS values. Valid only during evalution of proj_calc_err_son.
 
@@ -78,7 +78,7 @@ namespace RefinementSelectors {
     static H1Shapeset default_shapeset; ///< Default shapeset.
     std::vector<ShapeInx> shape_indices[H2D_NUM_MODES]; ///< Shape indices.
     int max_shape_inx[H2D_NUM_MODES]; ///< Maximum of shape indices.
-    int next_order_shape[H2D_NUM_MODES][H2DRS_MAX_ORDER+1]; ///< An index of a shape index of the next order.    
+    int next_order_shape[H2D_NUM_MODES][H2DRS_MAX_ORDER+1]; ///< An index of a shape index of the next order.
 
     void evalute_shape_indices(const int mode); ///< Evaluates shape indices.
     void build_shape_indices(const int mode); ///< Build shape indices.

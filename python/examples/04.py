@@ -9,7 +9,7 @@
 # above PDE. Since also the Dirichlet boundary conditions
 # are chosen to match u(x,y), this function is the exact
 # solution.
-# 
+#
 # Note that since the exact solution is a quadratic polynomial,
 # Hermes will compute it exactly if all mesh elements are quadratic
 # or higher (then the exact solution lies in the finite element space).

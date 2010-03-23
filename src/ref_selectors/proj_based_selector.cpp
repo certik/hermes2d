@@ -22,7 +22,7 @@ namespace RefinementSelectors {
     double sum_sqr_err = 0.0;
     int num_processed = 0;
     Cand& unrefined_c = candidates[0];
-    for (unsigned i = 0; i < candidates.size(); i++) { 
+    for (unsigned i = 0; i < candidates.size(); i++) {
       Cand& c = candidates[i];
       if (tri) { //triangle
         switch(c.split) {
@@ -44,7 +44,7 @@ namespace RefinementSelectors {
         default:
           assert_msg(false, "E unknown split type \"%d\" at candidate %d", c.split, i);
         }
-      }    
+      }
       else { //quad
         switch(c.split) {
         case H2D_REFINEMENT_H:

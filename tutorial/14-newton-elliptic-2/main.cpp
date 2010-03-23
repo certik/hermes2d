@@ -2,10 +2,10 @@
 #include "solver_umfpack.h"
 #include "function.h"
 
-//  This example shows how to set an arbitrary initial guess for the 
-//  Newton's method, and nonzero Dirichlet boundary conditions. 
+//  This example shows how to set an arbitrary initial guess for the
+//  Newton's method, and nonzero Dirichlet boundary conditions.
 //
-//  PDE: stationary heat transfer equation with nonlinear thermal 
+//  PDE: stationary heat transfer equation with nonlinear thermal
 //  conductivity, - div[lambda(u)grad u] = 0
 //
 //  Domain: unit square (-10,10)^2
@@ -15,8 +15,8 @@
 //  The following parameters can be changed:
 
 const int P_INIT = 2;             // Initial polynomial degree
-const int PROJ_TYPE = 1;          // For the projection of the initial condition 
-                                  // on the initial mesh: 1 = H1 projection, 
+const int PROJ_TYPE = 1;          // For the projection of the initial condition
+                                  // on the initial mesh: 1 = H1 projection,
                                   // 0 = L2 projection
 const double NEWTON_TOL = 1e-6;   // Stopping criterion for the Newton's method
 const int NEWTON_MAX_ITER = 100;  // Maximum allowed number of Newton iterations
@@ -26,15 +26,15 @@ const int INIT_BDY_REF_NUM = 4;   // Number of initial refinements towards bound
 // Thermal conductivity (temperature-dependent)
 // Note: for any u, this function has to be positive
 template<typename Real>
-Real lam(Real u) 
-{ 
-  return 1 + pow(u, 4); 
+Real lam(Real u)
+{
+  return 1 + pow(u, 4);
 }
 
 // Derivative of the thermal conductivity with respect to 'u'
 template<typename Real>
-Real dlam_du(Real u) { 
-  return 4*pow(u, 3); 
+Real dlam_du(Real u) {
+  return 4*pow(u, 3);
 }
 
 // This function is used to define Dirichlet boundary conditions
@@ -44,7 +44,7 @@ double dir_lift(double x, double y, double& dx, double& dy) {
   return (x+10)*(y+10)/100.;
 }
 
-// This function will be projected on the initial mesh and 
+// This function will be projected on the initial mesh and
 // used as initial guess for the Newton's method
 scalar init_guess(double x, double y, double& dx, double& dy)
 {
@@ -63,7 +63,7 @@ int bc_types(int marker)
 scalar bc_values(int marker, double x, double y)
 {
   double dx, dy;
-  return dir_lift(x, y, dx, dy); 
+  return dir_lift(x, y, dx, dy);
 }
 
 // Heat sources (can be a general function of 'x' and 'y')
@@ -82,7 +82,7 @@ Scalar jac(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtDa
   for (int i = 0; i < n; i++)
     result += wt[i] * (dlam_du(u_prev->val[i]) * u->val[i] * (u_prev->dx[i] * v->dx[i] + u_prev->dy[i] * v->dy[i])
                        + lam(u_prev->val[i]) * (u->dx[i] * v->dx[i] + u->dy[i] * v->dy[i]));
-                       
+
   return result;
 }
 
@@ -134,7 +134,7 @@ int main(int argc, char* argv[])
   nls.set_spaces(1, &space);
   nls.set_pss(1, &pss);
 
-  // project the function init_guess() on the mesh 
+  // project the function init_guess() on the mesh
   // to obtain initial guess u_prev for the Newton's method
   nls.set_ic(init_guess, &mesh, &u_prev, PROJ_TYPE);
 
