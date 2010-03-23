@@ -1,6 +1,6 @@
 #include "hermes2d.h"
 
-// This example shows how to convert all elements into quadrangular elements.
+// This example shows how to convert triangle elements into quadrangular elements.
 
 #define ERROR_SUCCESS                               0
 #define ERROR_FAILURE                               -1
@@ -29,7 +29,7 @@ int main(int argc, char* argv[])
     {
       printf("type : quadrangle ");
       // one quad element refined into four elements
-      element_num += 4;
+      element_num += 1;
     }
     else
     {
@@ -44,7 +44,7 @@ int main(int argc, char* argv[])
   }
 
   // convert the mesh
-  mesh.convert_to_quads();
+  mesh.convert_triangles_to_quads();
   if (element_num != mesh.get_max_element_id())
   {
     printf("Failure!\n");
