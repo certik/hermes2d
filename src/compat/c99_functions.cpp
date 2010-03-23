@@ -27,4 +27,9 @@ HERMES2D_API double cbrt(double x)
 		return x;
 }
 
+HERMES2D_API double fmax(double x, double y)
+{
+    return std::max(x, y);
+}
+
 #endif
