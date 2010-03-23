@@ -27,7 +27,7 @@
 #ifndef NOGLUT
 
 /* types */
-class PUBLIC_API ViewMonitor ///< A monitor used to synchronize thread in views.
+class HERMES2D_API ViewMonitor ///< A monitor used to synchronize thread in views.
 {
 protected:
   pthread_mutexattr_t mutex_attr; ///< Mutext attributes.

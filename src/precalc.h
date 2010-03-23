@@ -25,7 +25,7 @@
 /// PrecalcShapeset is a cache of precalculated shape function values.
 ///
 ///
-class PUBLIC_API PrecalcShapeset : public RealFunction
+class HERMES2D_API PrecalcShapeset : public RealFunction
 {
 public:
 

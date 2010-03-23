@@ -29,7 +29,7 @@
 /// This classes is provided only for backward compatibility only
 /// and should not be used in new projects.
 ///
-class PUBLIC_API H1OrthoHP : public H1AdaptHP
+class HERMES2D_API H1OrthoHP : public H1AdaptHP
 {
 public:
 

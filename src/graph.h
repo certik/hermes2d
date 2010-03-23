@@ -24,7 +24,7 @@
 ///  Please note that this is a base class that cannot be instantiated.
 ///  Use MatlabGraph or GnuplotGraph instead.
 ///
-class PUBLIC_API Graph
+class HERMES2D_API Graph
 {
 public:
 
@@ -67,7 +67,7 @@ protected:
     std::vector<Values> data;
   };
 
-  PUBLIC_API_USED_STL_VECTOR(Row);
+  HERMES2D_API_USED_STL_VECTOR(Row);
   std::vector<Row> rows;
 
 };
@@ -75,7 +75,7 @@ protected:
 
 ///  Outputs just two numbers per row
 ///
-class PUBLIC_API SimpleGraph : public Graph
+class HERMES2D_API SimpleGraph : public Graph
 {
 public:
 
@@ -89,7 +89,7 @@ public:
 
 ///  Outputs a MATLAB graph.
 ///
-class PUBLIC_API MatlabGraph : public Graph
+class HERMES2D_API MatlabGraph : public Graph
 {
 public:
 
@@ -103,7 +103,7 @@ public:
 
 ///  Outputs a GNUPLOT graph.
 ///
-class PUBLIC_API GnuplotGraph : public Graph
+class HERMES2D_API GnuplotGraph : public Graph
 {
 public:
 

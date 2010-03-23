@@ -24,7 +24,7 @@
 ///
 ///
 ///
-class PUBLIC_API HcurlSpace : public Space
+class HERMES2D_API HcurlSpace : public Space
 {
 public:
 

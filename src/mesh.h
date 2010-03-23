@@ -33,7 +33,7 @@ struct MItem;
 ///      <li> TYPE_EDGE   -- edge node. Only stores edge marker and two element pointers.
 /// </ol>
 ///
-struct PUBLIC_API Node
+struct HERMES2D_API Node
 {
   int id;          ///< node id number
   unsigned ref:29; ///< the number of elements using the node
@@ -86,7 +86,7 @@ struct PUBLIC_API Node
 /// If an element has curved edges, the member 'cm' points to an associated CurvMap structure,
 /// otherwise it is NULL.
 ///
-struct PUBLIC_API Element
+struct HERMES2D_API Element
 {
   int id;            ///< element id number
   unsigned nvert:30; ///< number of vertices (3 or 4)
@@ -142,7 +142,7 @@ struct PUBLIC_API Element
 ///
 ///
 ///
-class PUBLIC_API Mesh : public HashTable
+class HERMES2D_API Mesh : public HashTable
 {
 public:
 
@@ -266,7 +266,7 @@ public:
   void convert_to_triangles();
 
 protected:
-  PUBLIC_API_USED_TEMPLATE(Array<Element>);
+  HERMES2D_API_USED_TEMPLATE(Array<Element>);
   Array<Element> elements;
   int nbase, ntopvert;
   int nactive, ninitial;

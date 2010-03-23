@@ -33,7 +33,7 @@ struct Page;
 ///
 ///
 ///
-class PUBLIC_API LinSystem
+class HERMES2D_API LinSystem
 {
 public:
 
@@ -177,12 +177,12 @@ protected:
 };
 
 // can be called to set a custom order limiting table
-EXTERN void set_order_limit_table(int* tri_table, int* quad_table, int n);
+extern HERMES2D_API void set_order_limit_table(int* tri_table, int* quad_table, int n);
 
 // limit_order is used in integrals
-EXTERN int  g_safe_max_order;
-EXTERN int  g_max_order;
-EXTERN int* g_order_table;
+extern HERMES2D_API int  g_safe_max_order;
+extern HERMES2D_API int  g_max_order;
+extern HERMES2D_API int* g_order_table;
 
 #ifndef DEBUG_ORDER
   #define limit_order(o) \
@@ -199,7 +199,7 @@ EXTERN int* g_order_table;
     o = g_safe_max_order;
 #endif
 
-EXTERN void warn_order();
-EXTERN void update_limit_table(int mode);
+extern HERMES2D_API void warn_order();
+extern HERMES2D_API void update_limit_table(int mode);
 
 #endif

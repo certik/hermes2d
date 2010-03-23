@@ -45,7 +45,7 @@
 ///
 /// ScalarView is a visualization window for all scalar-valued PDE solutions.
 ///
-class PUBLIC_API ScalarView : public View
+class HERMES2D_API ScalarView : public View
 {
 public:
 
@@ -83,7 +83,7 @@ protected: // node selection
     VertexNodeInfo() {}; ///< An empty default constructor to limit time 
     VertexNodeInfo(int id, float x, float y) : id(id), x(x), y(y), selected(false), tw_bar(NULL) {};
   };
-  PUBLIC_API_USED_STL_VECTOR(VertexNodeInfo);
+  HERMES2D_API_USED_STL_VECTOR(VertexNodeInfo);
   std::vector<VertexNodeInfo> vertex_nodes; ///< Vertex nodes. Sorted accordin to the X-axis.
   VertexNodeInfo* pointed_vertex_node; ///< A vertex node that is under the mouse cursor. NULL if none.
 
@@ -110,7 +110,7 @@ protected: //element nfo
     ElementInfo() : x(0), y(0), id(-1), width(0), height(0) {};
     ElementInfo(int id, float x, float y, float width, float height) : x(x), y(y), id(id), width(width), height(height) {};
   };
-  PUBLIC_API_USED_STL_VECTOR(ElementInfo);
+  HERMES2D_API_USED_STL_VECTOR(ElementInfo);
   std::vector<ElementInfo> element_infos; ///< Element info.
 
   unsigned int element_id_widget; ///> A GL display-list denoting a element ID widget. The geometry assumes the size of a pixel is 1x1.
@@ -218,7 +218,7 @@ protected:
 
 #else // NOGLUT
 
-class PUBLIC_API ScalarView : public View
+class HERMES2D_API ScalarView : public View
 {
 public:
   ScalarView(const char* title = "ScalarView", DEFAULT_WINDOW_POS) {}

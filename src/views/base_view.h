@@ -33,7 +33,7 @@
 /// BaseView is a debugging tool for the visualization of the basis functions
 /// of a given space.
 ///
-class PUBLIC_API BaseView : public ScalarView
+class HERMES2D_API BaseView : public ScalarView
 {
 public:
 
@@ -64,7 +64,7 @@ protected:
 
 #else // NOGLUT
 
-class PUBLIC_API BaseView : public ScalarView
+class HERMES2D_API BaseView : public ScalarView
 {
 public:
   BaseView(const char* title = "BaseView", DEFAULT_WINDOW_POS) {}

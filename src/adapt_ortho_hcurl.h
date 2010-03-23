@@ -21,7 +21,7 @@
 ///
 ///
 ///
-class PUBLIC_API HcurlOrthoHP
+class HERMES2D_API HcurlOrthoHP
 {
 public:
 

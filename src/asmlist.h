@@ -25,7 +25,7 @@
 /// automatically by the class. The class provides a list of triples (idx, dof, coef).
 /// The triples are flattened to separate arrays of length 'cnt'.
 ///
-class PUBLIC_API AsmList
+class HERMES2D_API AsmList
 {
 public:
 

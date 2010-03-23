@@ -60,7 +60,7 @@
 ///
 /// Shape functions are always real-valued.
 ///
-class PUBLIC_API Shapeset
+class HERMES2D_API Shapeset
 {
 public:
 

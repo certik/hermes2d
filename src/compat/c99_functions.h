@@ -8,12 +8,12 @@
  */
 
 // Not-a-number constant.
-EXTERN const double NAN;
+extern HERMES2D_API const double NAN;
 
 // functions
-EXTERN double exp2(double x); ///< exp 2
-EXTERN double log2(double x); ///< log 2
-EXTERN double cbrt(double x); ///< cubic root
+extern HERMES2D_API double exp2(double x); ///< exp 2
+extern HERMES2D_API double log2(double x); ///< log 2
+extern HERMES2D_API double cbrt(double x); ///< cubic root
 
 #endif /* IMPLELENT_C99 */ 
 

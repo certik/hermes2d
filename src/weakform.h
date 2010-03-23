@@ -52,7 +52,7 @@ enum SymFlag
 ///
 ///
 ///
-class PUBLIC_API WeakForm
+class HERMES2D_API WeakForm
 {
 public:
 
@@ -103,9 +103,9 @@ protected:
 
   struct Area  {  /*std::string name;*/  std::vector<int> markers;  };
 
-  PUBLIC_API_USED_STL_VECTOR(Area);
+  HERMES2D_API_USED_STL_VECTOR(Area);
   std::vector<Area> areas;
-  PUBLIC_API_USED_STL_VECTOR(MeshFunction*);
+  HERMES2D_API_USED_STL_VECTOR(MeshFunction*);
 
   // linear case
   struct BiFormVol   {  int i, j, sym, area;  biform_val_t  fn;  biform_ord_t  ord;  std::vector<MeshFunction*> ext;  };
@@ -137,13 +137,13 @@ protected:
   struct ResFormSurf {  int i, area;          resform_val_t fn;  resform_ord_t ord;  std::vector<MeshFunction *> ext; };
 
   // linear case  
-  PUBLIC_API_USED_STL_VECTOR(BiFormVol);
+  HERMES2D_API_USED_STL_VECTOR(BiFormVol);
   std::vector<BiFormVol>  bfvol;
-  PUBLIC_API_USED_STL_VECTOR(BiFormSurf);
+  HERMES2D_API_USED_STL_VECTOR(BiFormSurf);
   std::vector<BiFormSurf> bfsurf;
-  PUBLIC_API_USED_STL_VECTOR(LiFormVol);
+  HERMES2D_API_USED_STL_VECTOR(LiFormVol);
   std::vector<LiFormVol>  lfvol;
-  PUBLIC_API_USED_STL_VECTOR(LiFormSurf);
+  HERMES2D_API_USED_STL_VECTOR(LiFormSurf);
   std::vector<LiFormSurf> lfsurf;
 
   // nonlinear case

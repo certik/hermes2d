@@ -27,7 +27,7 @@ struct UniData;
 ///
 /// (This class cannot be instantiated.)
 /// 
-class PUBLIC_API Filter : public MeshFunction
+class HERMES2D_API Filter : public MeshFunction
 {
 public:
 
@@ -76,7 +76,7 @@ protected:
 /// both components are specified in 'item', e.g., item1 = FN_DX (which is FN_DX_0 | FN_DX_1).
 /// Otherwise it is scalar-valued.
 ///
-class PUBLIC_API SimpleFilter : public Filter
+class HERMES2D_API SimpleFilter : public Filter
 {
 public:
 
@@ -117,7 +117,7 @@ protected:
 /// result. The user-supplied combining function has a different format: it takes and must
 /// return also the DX and DY values.
 ///
-class PUBLIC_API DXDYFilter : public Filter
+class HERMES2D_API DXDYFilter : public Filter
 {
 public:
 
@@ -167,7 +167,7 @@ protected:
 /// MagFilter takes two functions representing the components of a vector function and
 /// calculates the vector magnitude, sqrt(x^2 + y^2).
 /// \brief Calculates the magnitude of a vector function.
-class PUBLIC_API MagFilter : public SimpleFilter
+class HERMES2D_API MagFilter : public SimpleFilter
 {
   public: MagFilter(MeshFunction* sln1, MeshFunction* sln2, int item1 = FN_VAL, int item2 = FN_VAL);
           MagFilter(MeshFunction* sln1, int item1 = FN_VAL); // for vector-valued sln1
@@ -175,28 +175,28 @@ class PUBLIC_API MagFilter : public SimpleFilter
 
 
 /// Calculates the difference of two functions.
-class PUBLIC_API DiffFilter : public SimpleFilter
+class HERMES2D_API DiffFilter : public SimpleFilter
 {
   public: DiffFilter(MeshFunction* sln1, MeshFunction* sln2, int item1 = FN_VAL, int item2 = FN_VAL);
 };
 
 
 /// Calculates the sum of two functions.
-class PUBLIC_API SumFilter : public SimpleFilter
+class HERMES2D_API SumFilter : public SimpleFilter
 {
   public: SumFilter(MeshFunction* sln1, MeshFunction* sln2, int item1 = FN_VAL, int item2 = FN_VAL);
 };
 
 
 /// Calculates the square of a function.
-class PUBLIC_API SquareFilter : public SimpleFilter
+class HERMES2D_API SquareFilter : public SimpleFilter
 {
   public: SquareFilter(MeshFunction* sln1, int item1 = FN_VAL);
 };
 
 
 /// Removes the imaginary part from a function.
-class PUBLIC_API RealFilter : public SimpleFilter
+class HERMES2D_API RealFilter : public SimpleFilter
 {
   public: RealFilter(MeshFunction* sln1, int item1 = FN_VAL);
 };
@@ -204,20 +204,20 @@ class PUBLIC_API RealFilter : public SimpleFilter
 
 /// ImagFilter puts the imaginary part of the input function to the real part of the
 /// output, allowing it to be visualized.
-class PUBLIC_API ImagFilter : public SimpleFilter
+class HERMES2D_API ImagFilter : public SimpleFilter
 {
   public: ImagFilter(MeshFunction* sln1, int item1 = FN_VAL);
 };
 
 
 /// Computes the absolute value of a complex solution.
-class PUBLIC_API AbsFilter : public SimpleFilter
+class HERMES2D_API AbsFilter : public SimpleFilter
 {
   public: AbsFilter(MeshFunction* sln1, int item1 = FN_VAL);
 };
 
 /// Computes the angle of a complex solution.
-class PUBLIC_API AngleFilter : public SimpleFilter
+class HERMES2D_API AngleFilter : public SimpleFilter
 {
   public: AngleFilter(MeshFunction* sln1, int item1 = FN_VAL);
 };
@@ -227,7 +227,7 @@ class PUBLIC_API AngleFilter : public SimpleFilter
 /// It calculates the stress tensor and applies the Von Mises equivalent stress formula
 /// to obtain the resulting stress measure. 
 /// \brief Calculates the Von Mises stress. 
-class PUBLIC_API VonMisesFilter : public Filter
+class HERMES2D_API VonMisesFilter : public Filter
 {
 public: // TODO: cylindrical coordinates
 
@@ -250,7 +250,7 @@ protected:
 /// Linearization filter for use in nonlinear problems. From one or two previous
 /// solution values it extrapolates an estimate of the new one.
 /// With adaptive time step: tau_frac = tau_new / tau_old
-class PUBLIC_API LinearFilter : public Filter
+class HERMES2D_API LinearFilter : public Filter
 {
   public: LinearFilter(MeshFunction* old);
           LinearFilter(MeshFunction* older, MeshFunction* old, double tau_frac = 1);

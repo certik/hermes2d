@@ -57,11 +57,11 @@ static int default_order_table_quad[] =
 };
 #endif
 
-PUBLIC_API int  g_max_order;
-PUBLIC_API int  g_safe_max_order;
+HERMES2D_API int  g_max_order;
+HERMES2D_API int  g_safe_max_order;
 int* g_order_table_quad = default_order_table_quad;
 int* g_order_table_tri  = default_order_table_tri;
-PUBLIC_API int* g_order_table = NULL;
+HERMES2D_API int* g_order_table = NULL;
 bool warned_order = false;
 //extern bool warned_order;
 extern void update_limit_table(int mode);
@@ -1049,7 +1049,7 @@ void LinSystem::save_rhs_bin(const char* filename)
 
 //// order limitation and warning //////////////////////////////////////////////////////////////////
 
-PUBLIC_API void set_order_limit_table(int* tri_table, int* quad_table, int n)
+HERMES2D_API void set_order_limit_table(int* tri_table, int* quad_table, int n)
 {
   if (n < 24) error("Order limit tables must have at least 24 entries.");
   g_order_table_tri  = tri_table;
@@ -1057,7 +1057,7 @@ PUBLIC_API void set_order_limit_table(int* tri_table, int* quad_table, int n)
 }
 
 
-PUBLIC_API void update_limit_table(int mode)
+HERMES2D_API void update_limit_table(int mode)
 {
   g_quad_2d_std.set_mode(mode);
   g_max_order = g_quad_2d_std.get_max_order();
@@ -1066,7 +1066,7 @@ PUBLIC_API void update_limit_table(int mode)
 }
 
 
-PUBLIC_API void warn_order()
+HERMES2D_API void warn_order()
 {
   if (!warned_order && warn_integration)
   {
