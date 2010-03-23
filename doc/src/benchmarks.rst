@@ -380,8 +380,8 @@ CPU time convergence graphs:
    :height: 400
    :alt: CPU convergence graph.
 
-Layer (Elliptic)
-----------------
+Internal Layer (Elliptic)
+-------------------------
 
 **Git reference:** Benchmark `layer <http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/benchmarks/layer>`_.
 
@@ -523,6 +523,179 @@ CPU time convergence graphs:
    :width: 600
    :height: 400
    :alt: CPU convergence graph.
+
+Boundary Layer (Elliptic)
+-------------------------
+
+**Git reference:** Benchmark `layer-2 <http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/benchmarks/layer-2>`_.
+
+Equation etc. coming soon.
+
+
+Solution:
+
+.. image:: img/layer-2/solution.png
+   :align: center
+   :width: 600
+   :height: 400
+   :alt: Solution.
+
+Below we present a series of convergence comparisons. Note that the error plotted
+is the true approximate error calculated wrt. the exact solution given above.
+
+Isotropic refinements
+~~~~~~~~~~~~~~~~~~~~~
+
+Let us first compare the performance of h-FEM (p=1), h-FEM (p=2) and hp-FEM with **isotropic** refinements:
+
+Final mesh (h-FEM, p=1, isotropic refinements):
+
+.. image:: img/layer-2/mesh_h1_iso.png
+   :align: center
+   :width: 500
+   :height: 400
+   :alt: Final mesh.
+
+Final mesh (h-FEM, p=2, isotropic refinements):
+
+.. image:: img/layer-2/mesh_h2_iso.png
+   :align: center
+   :width: 500
+   :height: 400
+   :alt: Final mesh.
+
+Final mesh (hp-FEM, isotropic refinements):
+
+.. image:: img/layer-2/mesh_hp_iso.png
+   :align: center
+   :width: 500
+   :height: 400
+   :alt: Final mesh.
+
+DOF convergence graphs:
+
+.. image:: img/layer-2/conv_compar_dof_iso.png
+   :align: center
+   :width: 600
+   :height: 400
+   :alt: DOF convergence graph.
+
+CPU convergence graphs:
+
+.. image:: img/layer-2/conv_compar_cpu_iso.png
+   :align: center
+   :width: 600
+   :height: 400
+   :alt: CPU convergence graph.
+
+Anisotropic refinements
+~~~~~~~~~~~~~~~~~~~~~~~
+
+Next we compare the performance of h-FEM (p=1), h-FEM (p=2) and hp-FEM with **anisotropic** refinements:
+
+Final mesh (h-FEM, p=1, anisotropic refinements):
+
+.. image:: img/layer-2/mesh_h1_aniso.png
+   :align: center
+   :width: 500
+   :height: 400
+   :alt: Final mesh.
+
+Final mesh (h-FEM, p=2, anisotropic refinements):
+
+.. image:: img/layer-2/mesh_h2_aniso.png
+   :align: center
+   :width: 500
+   :height: 400
+   :alt: Final mesh.
+
+Final mesh (hp-FEM, anisotropic refinements):
+
+.. image:: img/layer-2/mesh_hp_aniso.png
+   :align: center
+   :width: 500
+   :height: 400
+   :alt: Final mesh.
+
+DOF convergence graphs:
+
+.. image:: img/layer-2/conv_compar_dof_aniso.png
+   :align: center
+   :width: 600
+   :height: 400
+   :alt: DOF convergence graph.
+
+CPU convergence graphs:
+
+.. image:: img/layer-2/conv_compar_cpu_aniso.png
+   :align: center
+   :width: 600
+   :height: 400
+   :alt: CPU convergence graph.
+
+h-FEM (p=1): comparison of isotropic and anisotropic refinements
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+DOF convergence graphs:
+
+.. image:: img/layer-2/conv_compar_dof_h1.png
+   :align: center
+   :width: 600
+   :height: 400
+   :alt: DOF convergence graph.
+
+CPU convergence graphs:
+
+.. image:: img/layer-2/conv_compar_cpu_h1.png
+   :align: center
+   :width: 600
+   :height: 400
+   :alt: CPU convergence graph.
+
+h-FEM (p=2): comparison of isotropic and anisotropic refinements
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+DOF convergence graphs:
+
+.. image:: img/layer-2/conv_compar_dof_h2.png
+   :align: center
+   :width: 600
+   :height: 400
+   :alt: DOF convergence graph.
+
+CPU convergence graphs:
+
+.. image:: img/layer-2/conv_compar_cpu_h2.png
+   :align: center
+   :width: 600
+   :height: 400
+   :alt: CPU convergence graph.
+
+hp-FEM: comparison of isotropic and anisotropic refinements
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In the hp-FEM one has two kinds of anisotropy -- spatial and polynomial. In the following,
+"iso" means isotropy both in h and p, "aniso h" means anisotropy in h only, and 
+"aniso hp" means anisotropy in both h and p. 
+
+DOF convergence graphs (hp-FEM):
+
+.. image:: img/layer-2/conv_compar_dof_hp.png
+   :align: center
+   :width: 600
+   :height: 400
+   :alt: DOF convergence graph.
+
+CPU convergence graphs (hp-FEM):
+
+.. image:: img/layer-2/conv_compar_cpu_hp.png
+   :align: center
+   :width: 600
+   :height: 400
+   :alt: CPU convergence graph.
+
+The reader can see that enabling polynomially anisotropic refinements in the hp-FEM is 
+equally important as allowing spatially anisotropic ones. 
 
 Line singularity (Elliptic)
 ---------------------------
