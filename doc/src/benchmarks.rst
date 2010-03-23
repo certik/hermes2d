@@ -529,8 +529,96 @@ Boundary Layer (Elliptic)
 
 **Git reference:** Benchmark `layer-2 <http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/benchmarks/layer-2>`_.
 
-Equation etc. coming soon.
+This example is a singularly perturbed problem with known exact solution that exhibits a thin boundary layer, that 
+the reader can use to perform various experiments with adaptivity for problems with boundary layers. The sample 
+numerical results presented below imply that:
 
+* one should always use anisotropically refined meshes for problems with boundary layers,
+* hp-FEM is vastly superior to h-FEM with linear and quadratic elements, 
+* one should use not only spatially anisotropic elements, but also polynomial anisotropy (different polynomial orders in each direction) for problems in boundary layers. 
+
+Equation solved: Poisson equation 
+
+.. math::
+    :label: layer-2
+
+       -\Delta u + K^2 u = f.
+
+Domain of interest: Square $(-1, 1)^2$.
+
+Exact solution: 
+
+.. math::
+
+    u(x,y) = \hat u(x) \hat u(y)
+
+where $\hat u$ is the exact solution of the 1D singularly-perturbed problem
+
+.. math::
+
+    -u'' + K^2 u = K^2
+
+in $(-1,1)$ with zero Dirichlet boundary conditions. This solution has the form 
+
+.. math::
+
+    \hat u (x) = 1 - [exp(Kx) + exp(-Kx)] / [exp(K) + exp(-K)];
+
+Right-hand side: Calculated by inserting the exact solution into the equation. Here
+is the code snippet with both the exact solution and the right-hand side:
+
+::
+
+    // solution to the 1D problem -u'' + K*K*u = K*K in (-1,1) with zero Dirichlet BC
+    double uhat(double x) {
+      return 1. - (exp(K*x) + exp(-K*x)) / (exp(K) + exp(-K));
+    }
+    double duhat_dx(double x) {
+      return -K * (exp(K*x) - exp(-K*x)) / (exp(K) + exp(-K));
+    }
+    double dduhat_dxx(double x) {
+      return -K*K * (exp(K*x) + exp(-K*x)) / (exp(K) + exp(-K));
+    }
+
+    // exact solution u(x,y) to the 2D problem is defined as the
+    // Cartesian product of the 1D solutions
+    static double sol_exact(double x, double y, double& dx, double& dy)
+    {
+      dx = duhat_dx(x) * uhat(y);
+      dy = uhat(x) * duhat_dx(y);
+      return uhat(x) * uhat(y);
+    }
+
+    // right-hand side
+    double rhs(double x, double y) {
+      return -(dduhat_dxx(x)*uhat(y) + uhat(x)*dduhat_dxx(y)) + K*K*uhat(x)*uhat(y);
+    }
+
+The weak forms are very simple and they are defined as follows. The only thing worth mentioning 
+here is that we integrate the non-polynomial right-hand side with a very hign order for accuracy:
+
+::
+
+    // weak forms
+    template<typename Real, typename Scalar>
+    Scalar bilinear_form(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+    {
+      return int_grad_u_grad_v<Real, Scalar>(n, wt, u, v) + K*K * int_u_v<Real, Scalar>(n, wt, u, v);
+    }
+
+    template<typename Real, typename Scalar>
+    Scalar linear_form(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+    {
+      return int_F_v<Real, Scalar>(n, wt, rhs, v, e);;
+    }
+
+    // integration order for linear_form_0
+    Ord linear_form_ord(int n, double *wt, Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext)
+    {
+      return 24;
+    }
+
+The numerical results follow:
 
 Solution:
 
