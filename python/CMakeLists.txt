@@ -10,7 +10,8 @@ find_package(NumPy REQUIRED)
 include_directories(${PYTHON_INCLUDE_PATH} ${NUMPY_INCLUDE_PATH})
 include_directories(${JUDY_INCLUDE_DIR})
 include_directories(${TRILINOS_INCLUDE_DIR})
-include_directories(../src)
+include_directories(${hermes2d_SOURCE_DIR}/src/)
+include_directories(${hermes2d_SOURCE_DIR}/hermes_common/)
 
 add_subdirectory(hermes2d)
 
