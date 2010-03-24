@@ -92,22 +92,13 @@ Scalar bilinear_form(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real>
 
 scalar linear_form(int n, double *wt, Func<scalar> *v, Geom<scalar> *e, ExtData<scalar> *ext)
 {
-  //return fn() * int_v<Real, Scalar>(n, wt, v);
   return int_F_v<scalar, scalar>(n, wt, rhs, v, e);
 }
 
-template<typename Real>
-Real rhs_ord(Real x, Real y)
+// integration order for the linear_form
+Ord linear_form_ord(int n, double *wt, Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext)
 {
-  return 0;
-}
-
-template<typename Real, typename Scalar>
-Scalar linear_form_ord(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
-{
-    return Real(30);
-  //return fn() * int_v<Real, Scalar>(n, wt, v);
-  return int_F_v<Real, Scalar>(n, wt, rhs_ord, v, e);
+  return Ord(30);
 }
 
 int main(int argc, char* argv[])

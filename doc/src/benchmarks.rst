@@ -790,10 +790,48 @@ Line singularity (Elliptic)
 
 **Git reference:** Benchmark `line-singularity <http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/benchmarks/line-singularity>`_.
 
+The is another example with anisotropic solution that is suitable for testing 
+anisotropic element refinements.
 
-Equation etc. coming soon.
+Equation solved: Poisson equation 
 
+.. math::
+    :label: line-sing
 
+       -\Delta u = f.
+
+Domain of interest: Square $(-1, 1)^2$.
+
+Boundary conditions: Zero Neumann on left edge, Dirichlet given by the 
+exact solution on the rest of the boundary.
+
+Exact solution: 
+
+.. math::
+
+    u(x,y) = \cos(Ky)\ \ \ \mbox{for}\ x \le 0,\\
+    u(x,y) = \cos(Ky) + x^{\alpha}\ \ \ \mbox{for}\ x > 0,
+
+where $K$ and $\alpha$ are real constants. 
+
+Right-hand side: Obtained by inserting the exact solution into the equation.
+The corresponding code snippet is shown below:
+
+::
+
+    scalar rhs(scalar x, scalar y)
+    {
+      if (x < 0) return fn(x, y)*K*K;
+      else return fn(x, y)*K*K-ALPHA*(ALPHA-1)*pow(x, ALPHA - 2.) - K*K*pow(x, ALPHA);
+    }
+
+Solution for $K = \pi/2$ and $\alpha = 2.01$:
+
+.. image:: img/line-singularity/solution.png
+   :align: center
+   :width: 600
+   :height: 400
+   :alt: Solution.
 
 Comparison of h-FEM (p=1), h-FEM (p=2) and hp-FEM with anisotropic refinements
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -859,10 +897,13 @@ Final mesh (hp-FEM, hp-anisotropic refinements):
    :width: 450
    :alt: Final mesh.
 
-The results following convergence comparisons show that, surprizingly, 
-the h-anisotropic version is the most efficient one. This is unexpected, but more 
-people have observed this. The abrupt slow-down of the isotropic 
-and hp-anisotropic hp-FEM remains to be clarified. 
+The following convergence comparisons show that, surprizingly, 
+the h-anisotropic version is the most efficient one. The reason is
+that both the hp-FEM with isotropic refinements and hp-FEM with hp-anisotropic 
+refinements hit the maximum polynomial degree (p=9) early in the mesh 
+adaptation process (while hp-FEM with h-anisotropic refinements does not). 
+We expect that this problem should go away after we increase the 
+maximum polynomial degree in Hermes - this is on the TODO list now.  
 
 DOF convergence graphs:
 
