@@ -102,10 +102,10 @@ Scalar linear_form(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scal
   return int_F_v<Real, Scalar>(n, wt, rhs, v, e);;
 }
 
-// integration order for linear_form_0
+// integration order for the linear_form
 Ord linear_form_ord(int n, double *wt, Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext)
 {
-  return 24;
+  return Ord(24);
 }
 
 int main(int argc, char* argv[])
