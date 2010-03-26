@@ -112,8 +112,6 @@ bool exists(const char* filename)
 
 int main(int argc, char* argv[])
 {
-  verbose_mode = false;
-
   struct
   {
     int width, height, palsteps;
