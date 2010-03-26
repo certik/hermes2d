@@ -30,10 +30,27 @@ set(WITH_UTIL       YES)
 set(WITH_TRILINOS NO)
 set(WITH_EXODUSII   NO)
 
+# reporting and logging
+set(REPORT_WITH_LOGO YES) #logo will be shown
+set(REPORT_TO_FILE  YES) #reports will be mirrored to a file
+set(REPORT_RUNTIME_CONTROL NO) #reporting will be controlled by preprocessor directives. The runtime control is inteded just for Python wrappers.
+set(REPORT_ALL     NO) #do not report all events, just selected ones
+set(REPORT_WARNINGS YES) #warnings will be reported
+set(REPORT_INFO     NO) #info will not be reported
+set(REPORT_VERBOSE  NO) #info details will not be reported
+set(REPORT_TRACE    NO) #code execution tracing will not be reported
+set(REPORT_TIME     NO) #time will not be measured and time measurement will not be reported
+
 # allow to override the default values in CMake.vars
 if(EXISTS ${PROJECT_SOURCE_DIR}/CMake.vars)
 	include(CMake.vars)
 endif(EXISTS ${PROJECT_SOURCE_DIR}/CMake.vars)
+
+# set overrides
+if(WITH_PYTHON)
+	set(REPORT_RUNTIME_CONTROL YES) #reuired by python wrappers
+	set(REPORT_ALL YES) #do not report all events, just selected ones
+endif(WITH_PYTHON)
 
 # end of configuration section
 #---------------------------------------------------------
@@ -153,4 +170,27 @@ message("Build with viewer GUI: ${WITH_VIEWER_GUI}")
 message("Build with util: ${WITH_UTIL}")
 message("Build with tests: ${WITH_TESTS}")
 message("Build with TRILINOS: ${WITH_TRILINOS}")
+message("---------------------")
+message("Hermes2D logo: ${REPORT_WITH_LOGO}")
+message("Mirror reports to a log file: ${REPORT_TO_FILE}")
+if(WITH_PYTHON)
+  set(ENFORCED_MSG " (required by Python wrappers)")
+else(WITH_PYTHON)
+  set(ENFORCED_MSG "")
+endif(WITH_PYTHON)
+if(REPORT_RUNTIME_CONTROL)
+  message("Report controlled by: RUNTIME${ENFORCED_MSG}")
+else(REPORT_RUNTIME_CONTROL)
+  message("Report controlled by: PREPROCESSOR DIRECTIVES${ENFORCED_MSG}")
+endif(REPORT_RUNTIME_CONTROL)
+if(REPORT_ALL)
+  message("Report all events: YES${ENFORCED_MSG}")
+else(REPORT_ALL)
+  message("Report warnings: ${REPORT_WARNINGS}${ENFORCED_MSG}")
+  message("Report results/info: ${REPORT_INFO}${ENFORCED_MSG}")
+  message("Report results/info details: ${REPORT_VERBOSE}${ENFORCED_MSG}")
+  message("Report program execution: ${REPORT_TRACE}${ENFORCED_MSG}")
+  message("Report internal time measurements: ${REPORT_TIME}${ENFORCED_MSG}")
+endif(REPORT_ALL)
+
 message("\n")

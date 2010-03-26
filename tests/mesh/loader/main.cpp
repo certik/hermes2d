@@ -14,7 +14,7 @@ int dump_compare_line(FILE* file, const char* line, const int line_inx) {
   else {
     char buffer[MAX_BUFFER];
     if (fgets(buffer, MAX_BUFFER-1, file) == NULL) {
-      log_msg("E unable to read line %d from the dump file", line_inx);
+      error("unable to read line %d from the dump file", line_inx);
       return ERROR_FAILURE;
     }
     size_t len = strlen(buffer);
@@ -35,7 +35,7 @@ int dump_compare_line(FILE* file, const char* line, const int line_inx) {
   sprintf(buffer, __VA_ARGS__); \
   size_t sz_buf = strlen(buffer); \
   if ((sz_buf+line_inx) < MAX_BUFFER) { strcpy(__line + line_inx, buffer); line_inx += sz_buf; } \
-  else { log_msg("E output line exceeds the maximum size of %d characters", MAX_BUFFER); } }
+  else { error("output line exceeds the maximum size of %d characters", MAX_BUFFER); } }
 
 /// Compares dump with the mesh. If file_name_dump is NULL, it just prints the output.
 int dump_compare(const Mesh &mesh, const char* file_name_dump) {
@@ -45,7 +45,7 @@ int dump_compare(const Mesh &mesh, const char* file_name_dump) {
   FILE* file = NULL;
   if (file_name_dump != NULL) {
     file = fopen(file_name_dump, "rt");
-    if (file == NULL) { log_msg("E unable to open the dump file \"%s\"", file_name_dump); goto quit; }
+    if (file == NULL) { error("unable to open the dump file \"%s\"", file_name_dump); goto quit; }
   }
 
   //dump/compare
@@ -125,10 +125,7 @@ int main(int argc, char* argv[])
   else if (strcmp(mtype, "h2d-str") == 0) {
     // load the file into a string
     FILE *file = fopen(file_name , "rb");
-    if (file == NULL) {
-      fputs("File error", stderr);
-      exit(1);
-    }
+    error_if(file == NULL, "unable to open file '%s'", file_name);
 
     // obtain file size:
     fseek(file, 0, SEEK_END);
@@ -137,17 +134,11 @@ int main(int argc, char* argv[])
 
     // allocate memory to contain the whole file:
     char *buffer = (char *) malloc (sizeof(char) * size);
-    if (buffer == NULL) {
-      fputs("Memory error", stderr);
-      exit(2);
-    }
+    error_if(buffer == NULL, "memory error");
 
     // copy the file into the buffer:
     size_t result = fread(buffer, 1, size, file);
-    if (result != size) {
-      fputs("Reading error", stderr);
-      exit(3);
-    }
+    error_if(result != size, "reading error");
 
     fclose(file);
 
@@ -167,8 +158,7 @@ int main(int argc, char* argv[])
     return ret;
   }
   else {
-    printf("failed: unknown mesh loader type\n");
-    return ERROR_FAILURE;
+    error("unknown mesh loader type");
   }
 
   if (mloader->load(file_name, &mesh))
@@ -177,7 +167,7 @@ int main(int argc, char* argv[])
   }
   else
   {
-    printf("failed\n");
+    error("failed");
     ret = ERROR_FAILURE;
   }
 
