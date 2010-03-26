@@ -1,34 +1,88 @@
-#include <cmath>
 #include <hermes2d.h>
 #include "functions.h"
 
-//x2
-scalar func_x2_val(double x, double y) { return x*x; };
-scalar func_x2_dx(double x, double y) { return 2*x; };
-scalar func_x2_dy(double x, double y) { return 0; };
+using namespace RefinementSelectors;
 
-//abs(y)
-scalar func_absy_val(double x, double y) { return std::abs(y); };
-scalar func_absy_dx(double x, double y) { return 0; };
-scalar func_absy_dy(double x, double y) { if (y < 0) return -1; else if (y > 0) return 1; else return 0; };
+TestCase::TestCase(int func_quad_order)
+  : m_func_quad_order(func_quad_order)
+  , m_start_quad_order(H2D_MAKE_QUAD_ORDER(std::max(0, H2D_GET_H_ORDER(func_quad_order)-1), std::max(0, H2D_GET_V_ORDER(func_quad_order)-1))) {
+  //create and fill poly matrix
+  const int order_h = H2D_GET_H_ORDER(func_quad_order), order_v = H2D_GET_V_ORDER(func_quad_order);
+  m_poly_matrix = new_matrix<double>(order_v + 1, order_h + 1);
+  for(int i = 0; i <= order_v; i++) {
+    for(int k = 0; k <= order_h; k++) {
+      int rnd_val = (rand() - RAND_MAX/2);
+      if (rnd_val == 0)
+        rnd_val = 1;
+      m_poly_matrix[i][k] = (rnd_val * 2.0) / RAND_MAX;
+    }
+  }
+}
 
-//abs(x)*abs(y)
-scalar func_absx_absy_val(double x, double y) { return std::abs(x)*std::abs(x); };
-scalar func_absx_absy_dx(double x, double y) { if (x < 0) return -std::abs(y); else if (x > 0) return std::abs(y); else return 0; };
-scalar func_absx_absy_dy(double x, double y) { if (y < 0) return -std::abs(x); else if (y > 0) return std::abs(x); else return 0; };
+TestCase::~TestCase() { delete[] m_poly_matrix; };
 
-//x2y2
-scalar func_x2y2_val(double x, double y) { return x*x * y*y; };
-scalar func_x2y2_dx(double x, double y) { return 2*x * y*y; };
-scalar func_x2y2_dy(double x, double y) { return x*x * 2*y; };
+bool TestCase::should_match(const RefinementSelectors::OptimumSelector::Cand& cand) {
+  int order_h = H2D_GET_H_ORDER(m_func_quad_order), order_v = H2D_GET_V_ORDER(m_func_quad_order);
+  int num_elems = cand.get_num_elems();
+  for(int i = 0; i < num_elems; i++) {
+    int elem_order_h = H2D_GET_H_ORDER(cand.p[i]), elem_order_v = H2D_GET_V_ORDER(cand.p[i]);
+    if (elem_order_h < order_h || elem_order_v < order_v)
+      return false;
+  }
+  return true;
+}
 
-//x3y1
-scalar func_x3y1_val(double x, double y) { return x*x*x * y; };
-scalar func_x3y1_dx(double x, double y) { return 3*x*x * y; };
-scalar func_x3y1_dy(double x, double y) { return x*x*x; };
+std::string TestCase::title() const {
+  std::stringstream str;
+  str << "Polynom order H:" << H2D_GET_H_ORDER(m_func_quad_order) << "; V:" << H2D_GET_V_ORDER(m_func_quad_order);
+  return str.str();
+}
 
-//x3y4
-scalar func_x3y4_val(double x, double y) { return x*x*x * y*y*y*y; };
-scalar func_x3y4_dx(double x, double y) { return 3*x*x * y*y*y*y; };
-scalar func_x3y4_dy(double x, double y) { return x*x*x * 4*y*y*y; };
+scalar func_val(double** poly_matrix, int quad_order, double x, double y) {
+  int order_h = H2D_GET_H_ORDER(quad_order), order_v = H2D_GET_V_ORDER(quad_order);
+  double res = 0;
 
+  //x * M * y
+  for(int i = 0; i <= order_v; i++) {
+    double val = 0;
+    for(int k = 0; k <= order_h; k++) {
+      val += pow(x, k) * poly_matrix[i][k];
+    }
+    res += val * pow(y, i);
+  }
+
+  return res;
+}
+
+scalar func_dx(double** poly_matrix, int quad_order, double x, double y) {
+  int order_h = H2D_GET_H_ORDER(quad_order), order_v = H2D_GET_V_ORDER(quad_order);
+  double res = 0;
+
+  //dx/dx * M * y
+  for(int i = 0; i <= order_v; i++) {
+    double val = 0;
+    for(int k = 1; k <= order_h; k++) {
+      val += pow(x, k-1) * k * poly_matrix[i][k];
+    }
+    res += val * pow(y, i);
+  }
+
+  return res;
+}
+
+scalar func_dy(double** poly_matrix, int quad_order, double x, double y) {
+  int order_h = H2D_GET_H_ORDER(quad_order), order_v = H2D_GET_V_ORDER(quad_order);
+  double res = 0;
+
+  //x * M * dy/dy
+  double y_pow = 1;
+  for(int i = 1; i <= order_v; i++) {
+    double val = 0;
+    for(int k = 0; k <= order_h; k++) {
+      val += pow(x, k) * poly_matrix[i][k];
+    }
+    res += val * i * pow(y, i-1);
+  }
+
+  return res;
+}

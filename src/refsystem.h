@@ -27,7 +27,6 @@ class ExactSolution;
 class H2D_API RefSystem : public LinSystem
 {
 public:
-
   RefSystem(LinSystem* base, int order_increase = 1, int refinement = 1);
   virtual ~RefSystem();
 

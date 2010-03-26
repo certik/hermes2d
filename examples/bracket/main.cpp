@@ -5,6 +5,8 @@
 #include "hermes2d.h"
 #include "solver_umfpack.h"
 
+using namespace RefinementSelectors;
+
 // This example explains how to use the multimesh adaptive hp-FEM,
 // where different physical fields (or solution components) can be
 // approximated using different meshes and equipped with mutually
@@ -45,15 +47,10 @@ const int STRATEGY = 1;          // Adaptive strategy:
                                  // STRATEGY = 2 ... refine all elements whose error is larger
                                  //   than THRESHOLD.
                                  // More adaptive strategies can be created in adapt_ortho_h1.cpp.
-const int ADAPT_TYPE = 0;        // Type of automatic adaptivity:
-                                 // ADAPT_TYPE = 0 ... adaptive hp-FEM (default),
-                                 // ADAPT_TYPE = 1 ... adaptive h-FEM,
-                                 // ADAPT_TYPE = 2 ... adaptive p-FEM.
-const bool ISO_ONLY = false;     // Isotropic refinement flag (concerns quadrilateral elements only).
-                                 // ISO_ONLY = false ... anisotropic refinement of quad elements
-                                 // is allowed (default),
-                                 // ISO_ONLY = true ... only isotropic refinements of quad elements
-                                 // are allowed.
+const CandList CAND_LIST = H2D_HP_ANISO; // Predefined list of element refinement candidates. Possible values are
+                                         // H2D_P_ISO, H2D_P_ANISO, H2D_H_ISO, H2D_H_ANISO, H2D_HP_ISO,
+                                         // H2D_HP_ANISO_H, H2D_HP_ANISO_P, H2D_HP_ANISO.
+                                         // See the Sphinx tutorial (http://hpfem.org/hermes2d/doc/src/tutorial-2.html#adaptive-h-fem-and-hp-fem) for details.
 const int MESH_REGULARITY = -1;  // Maximum allowed level of hanging nodes:
                                  // MESH_REGULARITY = -1 ... arbitrary level hangning nodes (default),
                                  // MESH_REGULARITY = 1 ... at most one-level hanging nodes,
@@ -180,6 +177,9 @@ int main(int argc, char* argv[])
   // DOF and CPU convergence graphs
   SimpleGraph graph_dof, graph_cpu;
 
+  // create a selector which will select optimal candidate
+  H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, MAX_ORDER, &shapeset);
+
   // adaptivity loop
   int it = 1;
   bool done = false;
@@ -225,12 +225,13 @@ int main(int argc, char* argv[])
     rs.solve(2, &x_sln_fine, &y_sln_fine);
 
     // calculate element errors and total error estimate
-    H1OrthoHP hp(2, &xdisp, &ydisp);
+    H1Adapt hp(Tuple<Space*>(&xdisp, &ydisp));
+    hp.set_solutions(Tuple<Solution*>(&x_sln_coarse, &y_sln_coarse), Tuple<Solution*>(&x_sln_fine, &y_sln_fine));
     hp.set_biform(0, 0, bilinear_form_0_0<scalar, scalar>, bilinear_form_0_0<Ord, Ord>);
     hp.set_biform(0, 1, bilinear_form_0_1<scalar, scalar>, bilinear_form_0_1<Ord, Ord>);
     hp.set_biform(1, 0, bilinear_form_1_0<scalar, scalar>, bilinear_form_1_0<Ord, Ord>);
     hp.set_biform(1, 1, bilinear_form_1_1<scalar, scalar>, bilinear_form_1_1<Ord, Ord>);
-    double err_est = hp.calc_error_2(&x_sln_coarse, &y_sln_coarse, &x_sln_fine, &y_sln_fine) * 100;
+    double err_est = hp.calc_error() * 100;
 
     // time measurement
     cpu_time.tick();
@@ -252,7 +253,7 @@ int main(int argc, char* argv[])
     // if err_est too large, adapt the mesh
     if (err_est < ERR_STOP) done = true;
     else {
-      hp.adapt(THRESHOLD, STRATEGY, ADAPT_TYPE, ISO_ONLY, MESH_REGULARITY, CONV_EXP, MAX_ORDER, SAME_ORDERS);
+      hp.adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY, SAME_ORDERS);
       ndof = assign_dofs(2, &xdisp, &ydisp);
       if (ndof >= NDOF_STOP) done = true;
     }

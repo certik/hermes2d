@@ -117,25 +117,33 @@ void RefSystem::refine_mesh()
       {
         Mesh* mesh = base->spaces[i]->get_mesh();
         Element* e = mesh->get_element(re->id);
-        int max_o = 0;
-        if (e->active)
-          max_o = H2D_GET_H_ORDER(base->spaces[i]->get_element_order(e->id));
+        int max_order_h = 0, max_order_v = 0;
+        if (e->active) {
+          int quad_order = base->spaces[i]->get_element_order(e->id);
+          max_order_h = H2D_GET_H_ORDER(quad_order);
+          max_order_v = H2D_GET_V_ORDER(quad_order);
+        }
         else
-        {
+        { //find maximum order of sons
           for (int son = 0; son < 4; son++)
           {
             if (e->sons[son] != NULL)
             {
-              //max_o += H2D_GET_H_ORDER(base->spaces[i]->get_element_order(e->sons[son]->id));
-              int o = H2D_GET_H_ORDER(base->spaces[i]->get_element_order(e->sons[son]->id));
-              if (o > max_o) max_o = o;
+              int quad_order = base->spaces[i]->get_element_order(e->sons[son]->id);
+              max_order_h = std::max(max_order_h, H2D_GET_H_ORDER(quad_order));
+              max_order_v = std::max(max_order_v, H2D_GET_V_ORDER(quad_order));
             }
           }
-          max_o = std::max(1, max_o);
         }
-        ref_spaces[i]->set_element_order(re->id, std::max(1, ((int) max_o) + order_inc[i]));
-      }
 
+        //increase order and set it to element
+        max_order_h = std::max(1, max_order_h + order_inc[i]);
+        if (re->is_triangle())
+          max_order_v = 0;
+        else
+          max_order_v = std::max(1, max_order_v + order_inc[i]);
+        ref_spaces[i]->set_element_order(re->id, H2D_MAKE_QUAD_ORDER(max_order_h, max_order_v));
+      }
     }
     else
       ref_spaces[i]->copy_orders(base->spaces[i], order_inc[i]);

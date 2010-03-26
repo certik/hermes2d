@@ -5,6 +5,7 @@
 #include "hermes2d.h"
 #include "solver_umfpack.h"
 
+using namespace RefinementSelectors;
 
 // This example solves adaptively a time-dependent coupled problem of heat and moisture 
 // transfer in massive concrete walls of a nuclear reactor vessel. 
@@ -35,15 +36,10 @@ const int STRATEGY = 1;          // Adaptive strategy:
                                  // STRATEGY = 2 ... refine all elements whose error is larger
                                  //   than THRESHOLD.
                                  // More adaptive strategies can be created in adapt_ortho_h1.cpp.
-const int ADAPT_TYPE = 0;        // Type of automatic adaptivity:
-                                 // ADAPT_TYPE = 0 ... adaptive hp-FEM (default),
-                                 // ADAPT_TYPE = 1 ... adaptive h-FEM,
-                                 // ADAPT_TYPE = 2 ... adaptive p-FEM.
-const bool ISO_ONLY = false;     // Isotropic refinement flag (concerns quadrilateral elements only).
-                                 // ISO_ONLY = false ... anisotropic refinement of quad elements
-                                 // is allowed (default),
-                                 // ISO_ONLY = true ... only isotropic refinements of quad elements
-                                 // are allowed.
+const CandList CAND_LIST = H2D_HP_ANISO; // Predefined list of element refinement candidates. Possible values are
+                                         // H2D_P_ISO, H2D_P_ANISO, H2D_H_ISO, H2D_H_ANISO, H2D_HP_ISO,
+                                         // H2D_HP_ANISO_H, H2D_HP_ANISO_P, H2D_HP_ANISO.
+                                         // See the Sphinx tutorial (http://hpfem.org/hermes2d/doc/src/tutorial-2.html#adaptive-h-fem-and-hp-fem) for details.
 const int MESH_REGULARITY = -1;  // Maximum allowed level of hanging nodes:
                                  // MESH_REGULARITY = -1 ... arbitrary level hangning nodes (default),
                                  // MESH_REGULARITY = 1 ... at most one-level hanging nodes,
@@ -52,7 +48,7 @@ const int MESH_REGULARITY = -1;  // Maximum allowed level of hanging nodes:
                                  // their notoriously bad performance.
 const double CONV_EXP = 1.0;     // Default value is 1.0. This parameter influences the selection of
                                  // cancidates in hp-adaptivity. See get_optimal_refinement() for details.
-const int MAXIMUM_ORDER = 10;    // Maximum allowed element degree
+const int MAX_ORDER = 10;        // Maximum allowed element degree
 const double SPACE_TOL = 0.1;    // Stopping criterion for adaptivity (rel. error tolerance between the
                                  // fine mesh and coarse mesh solution in percent).
 const int NDOF_STOP = 60000;     // Adaptivity process stops when the number of degrees of freedom grows over
@@ -175,10 +171,12 @@ int main(int argc, char* argv[])
   sys.set_spaces(2, &temp, &moist);
   sys.set_pss(2, &pss1, &pss2);
 
-
   // solutions
   Solution temp_sln, moist_sln;
   Solution temp_rsln, moist_rsln;
+
+  // create a selector which will select optimal candidate
+  H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, MAX_ORDER, &shapeset);
 
   // main loop
   double comp_time = 0.0;
@@ -195,7 +193,6 @@ int main(int argc, char* argv[])
     temp.set_uniform_order(P_INIT);
     moist.set_uniform_order(P_INIT);
 
-    double space_err;
     bool done = false;
     int it = 0;
     do // adaptivity in space
@@ -235,15 +232,15 @@ int main(int argc, char* argv[])
       rs.solve(2, &temp_rsln, &moist_rsln);
 
       // calculate errors and adapt the solution
-      H1OrthoHP hp(2, &temp, &moist);
+      H1Adapt hp(Tuple<Space*>(&temp, &moist));
+      hp.set_solutions(Tuple<Solution*>(&temp_sln, &moist_sln), Tuple<Solution*>(&temp_rsln, &moist_rsln));
       hp.set_biform(0, 0, callback(bilinear_form_sym_0_0));
       hp.set_biform(0, 1, callback(bilinear_form_sym_0_1));
       hp.set_biform(1, 0, callback(bilinear_form_sym_1_0));
       hp.set_biform(1, 1, callback(bilinear_form_sym_1_1));
-      double space_err = hp.calc_error_2(&temp_sln, &moist_sln, &temp_rsln, &moist_rsln) * 100;
-      info("err_est: %g%%", space_err);
-      if (space_err > SPACE_TOL) hp.adapt(THRESHOLD, STRATEGY, ADAPT_TYPE, 
-          ISO_ONLY, MESH_REGULARITY, CONV_EXP, MAXIMUM_ORDER, SAME_ORDERS);
+      double space_err = hp.calc_error() * 100;
+      info("Energy error est %g%%", space_err);
+      if (space_err > SPACE_TOL) hp.adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY, SAME_ORDERS);
       else done = true;
       it++;
     }
@@ -255,7 +252,7 @@ int main(int argc, char* argv[])
     moist_prev = moist_rsln;
   }
 
-  // wait for keyboard or mouse input
+  // wait for all views to be closed
   View::wait();
   return 0;
 }

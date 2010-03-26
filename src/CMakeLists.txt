@@ -1,6 +1,7 @@
 set(SRC
        hash.cpp mesh.cpp regul.cpp refmap.cpp curved.cpp
        transform.cpp traverse.cpp
+       limit_order.cpp
        shapeset.cpp precalc.cpp solution.cpp filter.cpp
        space.cpp space_h1.cpp space_hcurl.cpp space_l2.cpp
        space_hdiv.cpp
@@ -14,8 +15,8 @@ set(SRC
        trans.cpp
 
        refinement_type.cpp element_to_refine.cpp
-       ref_selectors/selector.cpp ref_selectors/optimum_selector.cpp ref_selectors/proj_based_selector.cpp ref_selectors/h1_uniform_hp.cpp ref_selectors/h1_nonuniform_hp.cpp
-       adapt_h1.cpp adapt_ortho_h1.cpp adapt_ortho_hcurl.cpp adapt_ortho_l2.cpp
+       ref_selectors/selector.cpp ref_selectors/order_permutator.cpp ref_selectors/optimum_selector.cpp ref_selectors/proj_based_selector.cpp ref_selectors/l2_proj_based_selector.cpp ref_selectors/h1_proj_based_selector.cpp ref_selectors/hcurl_proj_based_selector.cpp
+       adapt.cpp l2_adapt.cpp h1_adapt.cpp hcurl_adapt.cpp python_adapt.cpp
 
        common.cpp common_time_period.cpp
 	   matrix.cpp hermes2d.cpp weakform.cpp linsystem.cpp
@@ -84,7 +85,7 @@ endmacro(LIBRARY_SETTINGS)
 macro(BUILD_REPORT_FLAGS FLAGS)
 set(REPORT_FLAGS "")
 if(NOT REPORT_WITH_LOGO)
-	set(REPORT_FLAGS "${REPORT_FLAGS} -DHERMED2D_NO_LOGO")
+	set(REPORT_FLAGS "${REPORT_FLAGS} -DH2D_NO_LOGO")
 endif(NOT REPORT_WITH_LOGO)
 if(NOT REPORT_TO_FILE)
 	set(REPORT_FLAGS "${REPORT_FLAGS} -DH2D_REPORT_NO_FILE")
@@ -92,24 +93,28 @@ endif(NOT REPORT_TO_FILE)
 if(REPORT_RUNTIME_CONTROL)
 	set(REPORT_FLAGS "${REPORT_FLAGS} -DH2D_REPORT_RUNTIME_CONTROL")
 endif(REPORT_RUNTIME_CONTROL)
-if(REPORT_WARNING)
-	set(REPORT_FLAGS "${REPORT_FLAGS} -DH2D_REPORT_WARNING")
-endif(REPORT_WARNING)
-if(REPORT_INTR_WARNING)
-	set(REPORT_FLAGS "${REPORT_FLAGS} -DH2D_REPORT_INTR_WARNING")
-endif(REPORT_INTR_WARNING)
-if(REPORT_INFO)
-	set(REPORT_FLAGS "${REPORT_FLAGS} -DH2D_REPORT_INFO")
-endif(REPORT_INFO)
-if(REPORT_VERBOSE)
-	set(REPORT_FLAGS "${REPORT_FLAGS} -DH2D_REPORT_VERBOSE")
-endif(REPORT_VERBOSE)
-if(REPORT_TRACE)
-	set(REPORT_FLAGS "${REPORT_FLAGS} -DH2D_REPORT_TRACE")
-endif(REPORT_TRACE)
-if(REPORT_TIME)
-	set(REPORT_FLAGS "${REPORT_FLAGS} -DH2D_REPORT_TIME")
-endif(REPORT_TIME)
+if(REPORT_ALL)
+	set(REPORT_FLAGS "${REPORT_FLAGS} -DH2D_REPORT_ALL")
+else(REPORT_ALL)
+	if(REPORT_WARNING)
+		set(REPORT_FLAGS "${REPORT_FLAGS} -DH2D_REPORT_WARNING")
+	endif(REPORT_WARNING)
+	if(REPORT_INTR_WARNING)
+		set(REPORT_FLAGS "${REPORT_FLAGS} -DH2D_REPORT_INTR_WARNING")
+	endif(REPORT_INTR_WARNING)
+	if(REPORT_INFO)
+		set(REPORT_FLAGS "${REPORT_FLAGS} -DH2D_REPORT_INFO")
+	endif(REPORT_INFO)
+	if(REPORT_VERBOSE)
+		set(REPORT_FLAGS "${REPORT_FLAGS} -DH2D_REPORT_VERBOSE")
+	endif(REPORT_VERBOSE)
+	if(REPORT_TRACE)
+		set(REPORT_FLAGS "${REPORT_FLAGS} -DH2D_REPORT_TRACE")
+	endif(REPORT_TRACE)
+	if(REPORT_TIME)
+		set(REPORT_FLAGS "${REPORT_FLAGS} -DH2D_REPORT_TIME")
+	endif(REPORT_TIME)
+endif(REPORT_ALL)
 set(${FLAGS} "${REPORT_FLAGS}")
 endmacro(BUILD_REPORT_FLAGS)
 
@@ -181,23 +186,25 @@ if(MSVC)
 		BUILD_LIB_ALL(${HERMES_CPLX_BIN} "${MSVC_DLL_DEFINES} -DH2D_COMPLEX")
 	endif(H2D_COMPLEX)
 else(MSVC)
+	set(CXX_OTHER_FLAGS "-Wuninitialized")
+
 	# build real version:
 	if(H2D_REAL)
 		if(DEBUG)
-			BUILD_LIB(hermes2d-real-debug "${CMAKE_CXX_FLAGS_DEBUG}")
+			BUILD_LIB(hermes2d-real-debug "${CMAKE_CXX_FLAGS_DEBUG} ${CXX_OTHER_FLAGS}")
 		endif(DEBUG)
 		if(RELEASE)
-			BUILD_LIB(hermes2d-real "${CMAKE_CXX_FLAGS_RELEASE}")
+			BUILD_LIB(hermes2d-real "${CMAKE_CXX_FLAGS_RELEASE} ${CXX_OTHER_FLAGS}")
 		endif(RELEASE)
 	endif(H2D_REAL)
 
 	# build complex version:
 	if(H2D_COMPLEX)
 		if(DEBUG)
-			BUILD_LIB(hermes2d-cplx-debug "${CMAKE_CXX_FLAGS_DEBUG} -DH2D_COMPLEX")
+			BUILD_LIB(hermes2d-cplx-debug "${CMAKE_CXX_FLAGS_DEBUG} -DH2D_COMPLEX ${CXX_OTHER_FLAGS}")
 		endif(DEBUG)
 		if(RELEASE)
-			BUILD_LIB(hermes2d-cplx "${CMAKE_CXX_FLAGS_RELEASE} -DH2D_COMPLEX")
+			BUILD_LIB(hermes2d-cplx "${CMAKE_CXX_FLAGS_RELEASE} -DH2D_COMPLEX ${CXX_OTHER_FLAGS}")
 		endif(RELEASE)
 	endif(H2D_COMPLEX)
 
@@ -222,3 +229,5 @@ file(GLOB header_files "${CMAKE_CURRENT_SOURCE_DIR}/compat/*.h")
 install(FILES ${header_files} DESTINATION include/hermes2d/compat)
 file(GLOB header_files "${CMAKE_CURRENT_SOURCE_DIR}/views/*.h")
 install(FILES ${header_files} DESTINATION include/hermes2d/views)
+file(GLOB header_files "${CMAKE_CURRENT_SOURCE_DIR}/ref_selectors/*.h")
+install(FILES ${header_files} DESTINATION include/hermes2d/ref_selectors)

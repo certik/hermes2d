@@ -5,6 +5,8 @@
 #include "hermes2d.h"
 #include "solver_umfpack.h"
 
+using namespace RefinementSelectors;
+
 //  This example shows how to combine automatic adaptivity with the Newton's
 //  method for a nonlinear complex-valued time-dependent PDE (the Gross-Pitaevski
 //  equation describing the behavior of Einstein-Bose quantum gases)
@@ -43,15 +45,10 @@ const int STRATEGY = 1;                  // Adaptive strategy:
                                          // STRATEGY = 2 ... refine all elements whose error is larger
                                          //   than THRESHOLD.
                                          // More adaptive strategies can be created in adapt_ortho_h1.cpp.
-const int ADAPT_TYPE = 0;                // Type of automatic adaptivity:
-                                         // ADAPT_TYPE = 0 ... adaptive hp-FEM (default),
-                                         // ADAPT_TYPE = 1 ... adaptive h-FEM,
-                                         // ADAPT_TYPE = 2 ... adaptive p-FEM.
-const bool ISO_ONLY = false;             // Isotropic refinement flag (concerns quadrilateral elements only).
-                                         // ISO_ONLY = false ... anisotropic refinement of quad elements
-                                         // is allowed (default),
-                                         // ISO_ONLY = true ... only isotropic refinements of quad elements
-                                         // are allowed.
+const CandList CAND_LIST = H2D_HP_ANISO; // Predefined list of element refinement candidates. Possible values are
+                                         // H2D_P_ISO, H2D_P_ANISO, H2D_H_ISO, H2D_H_ANISO, H2D_HP_ISO,
+                                         // H2D_HP_ANISO_H, H2D_HP_ANISO_P, H2D_HP_ANISO.
+                                         // See the Sphinx tutorial (http://hpfem.org/hermes2d/doc/src/tutorial-2.html#adaptive-h-fem-and-hp-fem) for details.
 const int MESH_REGULARITY = -1;          // Maximum allowed level of hanging nodes:
                                          // MESH_REGULARITY = -1 ... arbitrary level hangning nodes (default),
                                          // MESH_REGULARITY = 1 ... at most one-level hanging nodes,
@@ -60,7 +57,7 @@ const int MESH_REGULARITY = -1;          // Maximum allowed level of hanging nod
                                          // their notoriously bad performance.
 const double CONV_EXP = 1.0;             // Default value is 1.0. This parameter influences the selection of
                                          // cancidates in hp-adaptivity. See get_optimal_refinement() for details.
-const int MAX_P = 5;                     // Maximum polynomial order allowed in hp-adaptivity
+const int MAX_ORDER = 5;                 // Maximum polynomial order allowed in hp-adaptivity
                                          // had to be limited due to complicated integrals
 const double ERR_STOP = 1.0;             // Stopping criterion for hp-adaptivity
                                          // (relative error between reference and coarse solution in percent)
@@ -176,6 +173,9 @@ int main(int argc, char* argv[])
   Solution sln_coarse, sln_fine;
   sln_coarse.copy(&Psi_prev_newton);
 
+  // create selector which will select optimal candidate
+  H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, MAX_ORDER, &shapeset);
+
   // time stepping loop
   int nstep = (int)(T_FINAL/TAU + 0.5);
   for(int n = 1; n <= nstep; n++)
@@ -236,14 +236,15 @@ int main(int argc, char* argv[])
       ordview.show(rnls.get_space(0));
 
       // calculate element errors and total error estimate
-      H1OrthoHP hp(1, &space);
-      err_est = hp.calc_error(&sln_coarse, &sln_fine) * 100;   // relative h1-error in percent
+      H1Adapt hp(&space);
+      hp.set_solutions(&sln_coarse, &sln_fine);
+      err_est = hp.calc_error() * 100;   // relative h1-error in percent
       info("ndof: %d, err_est: %g%%", space.get_num_dofs(), err_est);
 
       // if err_est too large, adapt the mesh
       if (err_est < ERR_STOP) done = true;
       else {
-        hp.adapt(THRESHOLD, STRATEGY, ADAPT_TYPE, ISO_ONLY, MESH_REGULARITY, CONV_EXP, MAX_P);
+        hp.adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY);
         ndof = assign_dofs(&space);
         if (ndof >= NDOF_STOP) done = true;
 

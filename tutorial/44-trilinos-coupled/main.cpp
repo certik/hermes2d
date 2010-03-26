@@ -1,3 +1,10 @@
+#define H2D_REPORT_WARN
+#define H2D_REPORT_INFO
+#define H2D_REPORT_VERBOSE
+#define H2D_REPORT_FILE "application.log"
+#include "hermes2d.h"
+#include "solver_umfpack.h"
+
 //  The purpose of this example is to show how to use Trilinos for nonlinear time-dependent coupled system of PDEs
 //  Solved by NOX solver, JFNK (derivation of Jacobian is not needed), with or without preconditioning
 //
@@ -6,15 +13,7 @@
 //  Domain: pipe with rods
 //
 
-#define H2D_REPORT_WARN
-#define H2D_REPORT_INFO
-#define H2D_REPORT_VERBOSE
-#define H2D_REPORT_FILE "application.log"
-
-#include "hermes2d.h"
-#include "solver_umfpack.h"
-
-const bool jfnk = true;     // true = jacobian-free method,
+const bool jfnk = false;     // true = jacobian-free method,
                             // false = Newton
 const int precond = 1;      // preconditioning by jacobian (1) (less GMRES iterations, more time to create precond)
                             // or by approximation of jacobian (2) (less time for precond creation, more GMRES iters)
@@ -22,7 +21,6 @@ const int precond = 1;      // preconditioning by jacobian (1) (less GMRES itera
                             // default Ifpack proconditioner in case of Newton
 
 const bool trilinos_output = true;  // display more details about nonlinear and linear solvers
-
 
 // problem constants - all according to the paper SchmichVexler2008
 const double Le    = 1.0;
@@ -32,7 +30,7 @@ const double kappa = 0.1;
 const double x1    = 9.0;
 
 const double tau = 0.05;
-const int init_order = 2;
+const int P_INIT = 2;                // Initial polynomial degree of all mesh elements.
 
 //// BCs, omega ////////////////////////////////////////////////////////////////////////////////////
 
@@ -221,20 +219,6 @@ Scalar jacobian_1_1(int n, double *wt,  Func<Scalar>* u[], Func<Real> *vj, Func<
   return result;
 }
 
-////////////////////////////////////////////////////////////////////////////
-
-TimePeriod cpu_time;
-
-inline void begin_time() { cpu_time.tick(); }
-inline double end_time() 
-{ 
-	double time = cpu_time.accumulated();  
-	cpu_time.tick_reset(); 
-	return time;
-}
-inline double pause_time() { cpu_time.tick(); }
-inline double resume_time() { cpu_time.tick(H2D_SKIP); }
-
 //////////////////////////////////////////////////////////////////////////////
 
 int main(int argc, char* argv[])
@@ -255,8 +239,8 @@ int main(int argc, char* argv[])
   tspace.set_bc_types(bc_types);
   tspace.set_bc_values(temp_bc_values);
   cspace.set_bc_types(bc_types);
-  tspace.set_uniform_order(init_order);
-  cspace.set_uniform_order(init_order);
+  tspace.set_uniform_order(P_INIT);
+  cspace.set_uniform_order(P_INIT);
 
   // enumerate degrees of freedom
   int ndof = assign_dofs(2, &tspace, &cspace);
@@ -271,12 +255,12 @@ int main(int argc, char* argv[])
   DXDYFilter omega_dc(omega_dc_fn, &tprev1, &cprev1);
 
   info("Projecting initial solution");
-  begin_time();
+  TimePeriod cpu_time;
   Projection proj(2, &titer, &citer, &tspace, &cspace, &tpss, &cpss);
   UmfpackSolver umfpack;
   proj.set_solver(&umfpack);
   double* vec = proj.project();
-  double proj_time = end_time();
+  double proj_time = cpu_time.tick().last();
 
   //   visualization
   ScalarView rview("Reaction rate", 0, 0, 1600, 460);
@@ -320,9 +304,9 @@ int main(int argc, char* argv[])
   double total_time = 0.0;
   for (int it = 1; total_time <= 60.0; it++)
   {
-    info("\n*** Time iteration %d, t = %g s ***", it, total_time + tau);
+    info("!*** Time iteration %d, t = %g s ***", it, total_time + tau);
 
-    begin_time();
+    cpu_time.tick(H2D_SKIP);
     solver.set_init_sln(vec);
     bool solved = solver.solve();
     if (solved)
@@ -331,7 +315,7 @@ int main(int argc, char* argv[])
       tsln.set_fe_solution(&tspace, &tpss, vec);
       csln.set_fe_solution(&cspace, &cpss, vec);
 
-			pause_time();
+      cpu_time.tick();
       info("Number of nonlin iters: %d (norm of residual: %g)",
           solver.get_num_iters(), solver.get_residual());
       info("Total number of iters in linsolver: %d (achieved tolerance in the last step: %g)",
@@ -340,7 +324,7 @@ int main(int argc, char* argv[])
       // visualization
       DXDYFilter omega_view(omega_fn, &tsln, &csln);
       rview.show(&omega_view);
-			resume_time();
+      cpu_time.tick(H2D_SKIP);
 			
       total_time += tau;
 
@@ -352,10 +336,10 @@ int main(int argc, char* argv[])
     else
       error("Failed.");
 
-    info("Total running time for time level %d: %g s.", it, end_time());
+    info("Total running time for time level %d: %g s.", it, cpu_time.tick().last());
   }
 
-  View::wait("Waiting for all views to be closed.");
+  View::wait();
   return 0;
 }
 

@@ -5,6 +5,8 @@
 #include "hermes2d.h"
 #include "solver_umfpack.h"
 
+using namespace RefinementSelectors;
+
 // This example solves adaptively the electric field in a simplified microwave oven.
 // The waves are generated using a harmonic surface current on the right-most edge.
 // (Such small cavity is present in every microwave oven). There is a circular
@@ -48,21 +50,18 @@ const int STRATEGY = 0;           // Adaptive strategy:
                                   // STRATEGY = 2 ... refine all elements whose error is larger
                                   //   than THRESHOLD.
                                   // More adaptive strategies can be created in adapt_ortho_h1.cpp.
-const int ADAPT_TYPE = 0;         // Type of automatic adaptivity:
-                                  // ADAPT_TYPE = 0 ... adaptive hp-FEM (default),
-                                  // ADAPT_TYPE = 1 ... adaptive h-FEM,
-                                  // ADAPT_TYPE = 2 ... adaptive p-FEM.
-const bool ISO_ONLY = false;      // Isotropic refinement flag (concerns quadrilateral elements only).
-                                  // ISO_ONLY = false ... anisotropic refinement of quad elements
-                                  // is allowed (default),
-                                  // ISO_ONLY = true ... only isotropic refinements of quad elements
-                                  // are allowed.
+const CandList CAND_LIST = H2D_HP_ANISO; // Predefined list of element refinement candidates. Possible values are
+                                         // H2D_P_ISO, H2D_P_ANISO, H2D_H_ISO, H2D_H_ANISO, H2D_HP_ISO,
+                                         // H2D_HP_ANISO_H, H2D_HP_ANISO_P, H2D_HP_ANISO.
+                                         // See the Sphinx tutorial (http://hpfem.org/hermes2d/doc/src/tutorial-2.html#adaptive-h-fem-and-hp-fem) for details.
 const int MESH_REGULARITY = -1;   // Maximum allowed level of hanging nodes:
                                   // MESH_REGULARITY = -1 ... arbitrary level hangning nodes (default),
                                   // MESH_REGULARITY = 1 ... at most one-level hanging nodes,
                                   // MESH_REGULARITY = 2 ... at most two-level hanging nodes, etc.
                                   // Note that regular meshes are not supported, this is due to
                                   // their notoriously bad performance.
+const double CONV_EXP = 1.0;      // Default value is 1.0. This parameter influences the selection of
+                                  // cancidates in hp-adaptivity. See get_optimal_refinement() for details.
 const double ERR_STOP = 1e-4;     // Stopping criterion for adaptivity (rel. error tolerance between the
                                   // fine mesh and coarse mesh solution in percent).
 const int NDOF_STOP = 60000;      // Adaptivity process stops when the number of degrees of freedom grows
@@ -198,6 +197,9 @@ int main(int argc, char* argv[])
   // DOF and CPU convergence graphs
   SimpleGraph graph_dof_est, graph_cpu_est;
 
+  // create a selector which will select optimal candidate
+  HcurlProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER, &shapeset);
+
   // adaptivity loop
   int it = 1;
   bool done = false;
@@ -205,7 +207,7 @@ int main(int argc, char* argv[])
   Solution sln_coarse, sln_fine;
   do
   {
-    info("!---- Adaptivity step %d ---------------------------------------------", it); it++;
+    info("---- Adaptivity step %d ---------------------------------------------", it); it++;
 
     // time measurement
     cpu_time.tick(H2D_SKIP);
@@ -235,9 +237,10 @@ int main(int argc, char* argv[])
     ref.solve(1, &sln_fine);
 
     // calculate error estimate wrt. fine mesh solution
-    HcurlOrthoHP hp(1, &space);
+    HcurlAdapt hp(&space);
+    hp.set_solutions(&sln_coarse, &sln_fine);
     hp.set_biform(0, 0, callback(hcurl_form_kappa));
-    double err_est_adapt = hp.calc_error(&sln_coarse, &sln_fine) * 100;
+    double err_est_adapt = hp.calc_error() * 100;
     double err_est_hcurl = hcurl_error(&sln_coarse, &sln_fine) * 100;
 
     // time measurement
@@ -261,7 +264,7 @@ int main(int argc, char* argv[])
     // if err_est_adapt too large, adapt the mesh
     if (err_est_adapt < ERR_STOP) done = true;
     else {
-      hp.adapt(THRESHOLD, STRATEGY, ADAPT_TYPE, ISO_ONLY, MESH_REGULARITY);
+      hp.adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY);
       ndof = assign_dofs(&space);
       if (ndof >= NDOF_STOP) done = true;
     }

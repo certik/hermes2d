@@ -213,7 +213,7 @@ int main(int argc, char* argv[])
   bool rhs_only = false;
   do
   {
-    info("------------ Power iteration %d ----------------------", it++);
+    info("!------------ Power iteration %d ----------------------", it); it++;
 
     sys.assemble(rhs_only);
     sys.solve(4, &sln1, &sln2, &sln3, &sln4);
@@ -244,7 +244,8 @@ int main(int argc, char* argv[])
     rhs_only = true;
   }
   while (!eigen_done);
-	
+
+  // wait for all views to be closed
   View::wait();
   return 0;
 }

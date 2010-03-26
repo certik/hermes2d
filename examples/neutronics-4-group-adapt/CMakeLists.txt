@@ -5,6 +5,6 @@ endif(NOT H2D_REAL)
 project(neutronics-4-group-adapt)
 set(HERMES ${HERMES_REAL_BIN})
 
-add_executable(${PROJECT_NAME} main.cpp)
+add_executable(${PROJECT_NAME} main.cpp h1_adapt_norm_maxim.cpp)
 include (../CMake.common)
 

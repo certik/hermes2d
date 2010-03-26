@@ -1,3 +1,12 @@
+#define H2D_REPORT_WARN
+#define H2D_REPORT_INFO
+#define H2D_REPORT_VERBOSE
+#define H2D_REPORT_FILE "application.log"
+#include "hermes2d.h"
+#include "solver_umfpack.h"
+
+using namespace RefinementSelectors;
+
 //  The purpose of this example is to show how to use Trilinos while adapting mesh
 //  Solved by NOX solver, either using Newton's method or JFNK, with or without preconditioning
 //
@@ -10,14 +19,35 @@
 //  Known exact solution, see functions fn() and fndd()
 //
 
-#include "hermes2d.h"
-#include "solver_umfpack.h"
-
 const bool jfnk = true;
 const bool precond = true;
 
-const int INIT_ORDER = 2;
-const double ERR_STOP = 1.0;
+const int P_INIT = 2;             // Initial polynomial degree of all mesh elements.
+const double THRESHOLD = 0.3;     // This is a quantitative parameter of the adapt(...) function and
+                                  // it has different meanings for various adaptive strategies (see below).
+const int STRATEGY = 0;           // Adaptive strategy:
+                                  // STRATEGY = 0 ... refine elements until sqrt(THRESHOLD) times total
+                                  //   error is processed. If more elements have similar errors, refine
+                                  //   all to keep the mesh symmetric.
+                                  // STRATEGY = 1 ... refine all elements whose error is larger
+                                  //   than THRESHOLD times maximum element error.
+                                  // STRATEGY = 2 ... refine all elements whose error is larger
+                                  //   than THRESHOLD.
+                                  // More adaptive strategies can be created in adapt_ortho_h1.cpp.
+const CandList CAND_LIST = H2D_HP_ANISO; // Predefined list of element refinement candidates. Possible values are
+                                         // H2D_P_ISO, H2D_P_ANISO, H2D_H_ISO, H2D_H_ANISO, H2D_HP_ISO,
+                                         // H2D_HP_ANISO_H, H2D_HP_ANISO_P, H2D_HP_ANISO.
+                                         // See the Sphinx tutorial (http://hpfem.org/hermes2d/doc/src/tutorial-2.html#adaptive-h-fem-and-hp-fem) for details.
+const int MESH_REGULARITY = -1;      // Maximum allowed level of hanging nodes:
+                                     // MESH_REGULARITY = -1 ... arbitrary level hangning nodes (default),
+                                     // MESH_REGULARITY = 1 ... at most one-level hanging nodes,
+                                     // MESH_REGULARITY = 2 ... at most two-level hanging nodes, etc.
+                                     // Note that regular meshes are not supported, this is due to
+                                     // their notoriously bad performance.
+const double CONV_EXP = 1.0;      // Default value is 1.0. This parameter influences the selection of
+                                  // cancidates in hp-adaptivity. See get_optimal_refinement() for details.
+const double ERR_STOP = 1.0;      // Stopping criterion for adaptivity (rel. error tolerance between the
+                                  // fine mesh and coarse mesh solution in percent).
 
 // problem constants
 double SLOPE = 200;       // slope of the step inside the domain
@@ -89,7 +119,7 @@ int main(int argc, char* argv[])
   H1Space space(&mesh, &shapeset);
   space.set_bc_types(bc_types);
   space.set_bc_values(bc_values);
-  space.set_uniform_order(INIT_ORDER);
+  space.set_uniform_order(P_INIT);
 
   // initialize the weak formulation
   WeakForm wf(1, jfnk ? true : false);
@@ -107,6 +137,9 @@ int main(int argc, char* argv[])
   graph.add_row("exact error", "k", "-", "o");
   graph.add_row("error estimate", "k", "--");
 
+  // create a selector which will select optimal candidate
+  H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER, &shapeset);
+
   // adaptivity loop
   int it = 0;
   bool done = false;
@@ -115,7 +148,7 @@ int main(int argc, char* argv[])
   double *s;
   do
   {
-    info("\n---- Adaptivity step %d ---------------------------------------------\n", it++);
+    info("---- Adaptivity step %d ---------------------------------------------", it++);
 
     int ndof = assign_dofs(&space);
     FeProblem fep(&wf);
@@ -134,9 +167,9 @@ int main(int argc, char* argv[])
       s = solver.get_solution();
       sln_coarse.set_fe_solution(&space, &pss, s);
 
-      info("\nCoarse Solution info:");
-      info("Number of nonlin iters: %d (norm of residual: %g)", solver.get_num_iters(), solver.get_residual());
-      info("Total number of iters in linsolver: %d (achieved tolerance in the last step: %g)", solver.get_num_lin_iters(), solver.get_achieved_tol());
+      info("Coarse Solution info:");
+      info(" Number of nonlin iters: %d (norm of residual: %g)", solver.get_num_iters(), solver.get_residual());
+      info(" Total number of iters in linsolver: %d (achieved tolerance in the last step: %g)", solver.get_num_lin_iters(), solver.get_achieved_tol());
 
       // view the solution and mesh
       sview.show(&sln_coarse);
@@ -167,19 +200,20 @@ int main(int argc, char* argv[])
       s = ref_solver.get_solution();
       sln_fine.set_fe_solution(&rspace, &pss, s);
 
-      info("\nReference Solution info:");
-      info("Number of nonlin iters: %d (norm of residual: %g)",
+      info("Reference Solution info:");
+      info(" Number of nonlin iters: %d (norm of residual: %g)",
             ref_solver.get_num_iters(), ref_solver.get_residual());
-      info("Total number of iters in linsolver: %d (achieved tolerance in the last step: %g)",
+      info(" Total number of iters in linsolver: %d (achieved tolerance in the last step: %g)",
             ref_solver.get_num_lin_iters(), ref_solver.get_achieved_tol());
     }
     else
       error("Failed.");
 
     // calculate error estimate wrt. fine mesh solution
-    H1OrthoHP hp(1, &space);
-    double err_est = hp.calc_error(&sln_coarse, &sln_fine) * 100;
-    info("\nEstimate of error: %g%%  (ndof %d)", err_est, ndof);
+    H1Adapt hp(&space);
+    hp.set_solutions(&sln_coarse, &sln_fine);
+    double err_est = hp.calc_error() * 100;
+    info("Estimate of error: %g%%  (ndof %d)", err_est, ndof);
     ExactSolution exact(&mesh, fndd);
     error = h1_error(&sln_coarse, &exact) * 100;
     info("Exact solution error: %g%%", error);
@@ -191,10 +225,11 @@ int main(int argc, char* argv[])
 
     // if err_est too large, adapt the mesh
     if (err_est < ERR_STOP) done = true;
-    else  hp.adapt(0.3, 1, 0);
+    else  hp.adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY);
   }
   while (done == false);
 
+  // wait for all views to be closed
   View::wait();
   return 0;
 }

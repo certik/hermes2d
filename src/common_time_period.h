@@ -16,16 +16,15 @@
 #ifndef __H2D_COMMON_TIME_PERIOD_H
 #define __H2D_COMMON_TIME_PERIOD_H
 
-enum TimerPeriodTickType { ///< Tick type.
+/// Tick type. Used by the class TimePeriod.
+enum TimerPeriodTickType {
   H2D_ACCUMULATE, ///< Accumulate a period between ticks.
   H2D_SKIP ///< Skip period between ticks, i.e., do not accumulate it.
 };
 
-
-
-//TODO: Measure time that CPU spent on the task instead of a global time.
-/// \brief A named time period measurement with accumulation.
-/// An instance of the timer should not be used across threads. Timer is not thread-safe.
+/// A named time period measurement with accumulation.
+/** An instance of the timer should not be used across threads. The class is not thread-safe.
+ *  \todo Measure time that CPU spent on the task instead of a global time. */
 class H2D_API TimePeriod {
 public:
   TimePeriod(const char *name = NULL); ///< Constructs internal structures and starts measuring.
@@ -34,12 +33,21 @@ public:
   const TimePeriod& tick_reset(); ///< Starts a new period and resets accumulated time.
   const TimePeriod& tick(TimerPeriodTickType type = H2D_ACCUMULATE); ///< Starts/ends a new period.
 
+  /// Returns a name of the time period if any.
   const std::string& name() const { return period_name; }
 
-  double accumulated() const { return accum; }; ///< Returns accumulated time (in seconds).
-  std::string accumulated_str() const { return to_string(accum); }; ///< Returns accumulated time in human readable form.
-  double last() const { return last_period; }; ///< Returns last measured period (in seconds). -1 if period was skipped.
-  std::string last_str() const { return to_string(last_period); }; ///< Returns last measured period in human readable form.
+  /// Returns accumulated time (in seconds).
+  double accumulated() const { return accum; };
+
+  /// Returns accumulated time in human readable form.
+  std::string accumulated_str() const { return to_string(accum); };
+
+  /// Returns last measured period (in seconds).
+  /** \return Returns the length of the last measured time period. -1 if period was skipped. */
+  double last() const { return last_period; };
+
+  /// Returns last measured period in human readable form.
+  std::string last_str() const { return to_string(last_period); };
 
 private:
 #ifdef WIN32 //Windows

@@ -14,6 +14,7 @@
 // along with Hermes2D.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "common.h"
+#include "limit_order.h"
 #include "linsystem.h"
 #include "nonlinsystem.h"
 #include "weakform.h"

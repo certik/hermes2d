@@ -14,6 +14,7 @@
 // along with Hermes2D.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "common.h"
+#include "limit_order.h"
 #include "feproblem.h"
 #include "traverse.h"
 #include "space.h"
@@ -22,9 +23,6 @@
 #include "solution.h"
 #include "config.h"
 #include "linsystem.h"
-
-
-extern bool warned_order;
 
 FeProblem::FeProblem(WeakForm* wf)
 {
@@ -211,7 +209,7 @@ void FeProblem::assemble(const Vector *x, Vector *rhs, Matrix *jac)
   AUTOLA_OR(bool, nat, wf->neq);
   AUTOLA_OR(bool, isempty, wf->neq);
   EdgePos ep[4];
-  warned_order = false;
+  reset_warn_order();
 
   scalar *vv = new scalar[ndofs];
   memset(vv, 0, ndofs * sizeof(scalar));
@@ -775,7 +773,7 @@ scalar* Projection::project()
   ps.assemble();
   Solution temp;
   ps.solve(0);
-  scalar* sln_vec = ps.get_solution_vec();
+  const scalar* sln_vec = ps.get_solution_vec();
   int ndofs = ps.get_num_dofs();
   vec = new scalar[ndofs];
   memcpy(vec, sln_vec, ndofs * sizeof(scalar));

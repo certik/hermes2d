@@ -5,6 +5,8 @@
 #include "hermes2d.h"
 #include "solver_umfpack.h"
 
+using namespace RefinementSelectors;
+
 // A massive hollow conductor is heated by induction and cooled by water running inside.
 // We will model this problem using linear thermoelasticity equations, where the x-displacement,
 // y-displacement, and the temperature will be approximated on individual meshes equipped
@@ -41,15 +43,10 @@ const int STRATEGY = 1;          // Adaptive strategy:
                                  // STRATEGY = 2 ... refine all elements whose error is larger
                                  //   than THRESHOLD.
                                  // More adaptive strategies can be created in adapt_ortho_h1.cpp.
-const int ADAPT_TYPE = 0;        // Type of automatic adaptivity:
-                                 // ADAPT_TYPE = 0 ... adaptive hp-FEM (default),
-                                 // ADAPT_TYPE = 1 ... adaptive h-FEM,
-                                 // ADAPT_TYPE = 2 ... adaptive p-FEM.
-const bool ISO_ONLY = false;     // Isotropic refinement flag (concerns quadrilateral elements only).
-                                 // ISO_ONLY = false ... anisotropic refinement of quad elements
-                                 // is allowed (default),
-                                 // ISO_ONLY = true ... only isotropic refinements of quad elements
-                                 // are allowed.
+const CandList CAND_LIST = H2D_HP_ANISO; // Predefined list of element refinement candidates. Possible values are
+                                         // H2D_P_ISO, H2D_P_ANISO, H2D_H_ISO, H2D_H_ANISO, H2D_HP_ISO,
+                                         // H2D_HP_ANISO_H, H2D_HP_ANISO_P, H2D_HP_ANISO.
+                                         // See the Sphinx tutorial (http://hpfem.org/hermes2d/doc/src/tutorial-2.html#adaptive-h-fem-and-hp-fem) for details.
 const int MESH_REGULARITY = -1;  // Maximum allowed level of hanging nodes:
                                  // MESH_REGULARITY = -1 ... arbitrary level hangning nodes (default),
                                  // MESH_REGULARITY = 1 ... at most one-level hanging nodes,
@@ -58,7 +55,7 @@ const int MESH_REGULARITY = -1;  // Maximum allowed level of hanging nodes:
                                  // their notoriously bad performance.
 const double CONV_EXP = 1.0;     // Default value is 1.0. This parameter influences the selection of
                                  // cancidates in hp-adaptivity. See get_optimal_refinement() for details.
-const int MAXIMUM_ORDER = 10;     // Maximum allowed element degree
+const int MAX_ORDER = 10;     // Maximum allowed element degree
 const double ERR_STOP = 0.01;     // Stopping criterion for adaptivity (rel. error tolerance between the
                                  // fine mesh and coarse mesh solution in percent).
 const int NDOF_STOP = 60000;     // Adaptivity process stops when the number of degrees of freedom grows over
@@ -110,7 +107,7 @@ int main(int argc, char* argv[])
   tmesh.copy(&xmesh);                // temp will share master mesh with xdisp
 
   // Initialize the shapeset and the cache
-  H1ShapesetOrtho shapeset;
+  H1Shapeset shapeset;
   PrecalcShapeset xpss(&shapeset);
   PrecalcShapeset ypss(&shapeset);
   PrecalcShapeset tpss(&shapeset);
@@ -155,6 +152,9 @@ int main(int argc, char* argv[])
 
   // DOF and CPU convergence graphs
   SimpleGraph graph_dof, graph_cpu;
+
+  // create a selector which will select optimal candidate
+  H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, MAX_ORDER, &shapeset);
 
   // Adaptivity loop
   int it = 1;
@@ -203,7 +203,8 @@ int main(int argc, char* argv[])
     rs.solve(3, &x_sln_fine, &y_sln_fine, &t_sln_fine);
 
     // calculate element errors and total error estimate
-    H1OrthoHP hp(3, &xdisp, &ydisp, &temp);
+    H1Adapt hp(Tuple<Space*>(&xdisp, &ydisp, &temp));
+    hp.set_solutions(Tuple<Solution*>(&x_sln_coarse, &y_sln_coarse, &t_sln_coarse), Tuple<Solution*>(&x_sln_fine, &y_sln_fine, &t_sln_fine));
     hp.set_biform(0, 0, bilinear_form_0_0<scalar, scalar>, bilinear_form_0_0<Ord, Ord>);
     hp.set_biform(0, 1, bilinear_form_0_1<scalar, scalar>, bilinear_form_0_1<Ord, Ord>);
     hp.set_biform(0, 2, bilinear_form_0_2<scalar, scalar>, bilinear_form_0_2<Ord, Ord>);
@@ -211,7 +212,7 @@ int main(int argc, char* argv[])
     hp.set_biform(1, 1, bilinear_form_1_1<scalar, scalar>, bilinear_form_1_1<Ord, Ord>);
     hp.set_biform(1, 2, bilinear_form_1_2<scalar, scalar>, bilinear_form_1_2<Ord, Ord>);
     hp.set_biform(2, 2, bilinear_form_2_2<scalar, scalar>, bilinear_form_2_2<Ord, Ord>);
-    double err_est = hp.calc_error_n(3, &x_sln_coarse, &y_sln_coarse, &t_sln_coarse, &x_sln_fine, &y_sln_fine, &t_sln_fine) * 100;
+    double err_est = hp.calc_error() * 100;
 
     // time measurement
     cpu_time.tick();
@@ -233,7 +234,7 @@ int main(int argc, char* argv[])
     // if err_est too large, adapt the mesh
     if (err_est < ERR_STOP) done = true;
     else {
-      hp.adapt(THRESHOLD, STRATEGY, ADAPT_TYPE, ISO_ONLY, MESH_REGULARITY, CONV_EXP, MAXIMUM_ORDER, SAME_ORDERS);
+      hp.adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY, SAME_ORDERS);
       ndof = assign_dofs(3, &xdisp, &ydisp, &temp);
       if (ndof >= NDOF_STOP) done = true;
     }

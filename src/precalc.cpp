@@ -22,6 +22,7 @@
 PrecalcShapeset::PrecalcShapeset(Shapeset* shapeset)
                : RealFunction()
 {
+  assert_msg(shapeset != NULL, "Shapeset cannot be NULL.");
   this->shapeset = shapeset;
   master_pss = NULL;
   num_components = shapeset->get_num_components();

@@ -1,37 +1,26 @@
 #ifndef __H2D_TEST_CAND_PROJ_H
 #define __H2D_TEST_CAND_PROJ_H
 
-typedef scalar (*ValueFunction) (double x, double y); ///< A function that returns a value.
+/// Test case.
+class TestCase {
+  int m_func_quad_order; ///< Function order.
+  int m_start_quad_order; ///< Start order of an element.
+  double** m_poly_matrix; ///< MxN matrix of polygonal coefficients. The value is calculates [y^0, ..., y^(M-1)] * matrix * [x^0, ..., x^(N-1)]^T
+public:
+  TestCase(int func_quad_order); ///< Contructor. Creates a instance of a test function of a given order.
+  ~TestCase(); ///< Destructor. Cleans allocated structures.
 
-//x2
-extern scalar func_x2_val(double x, double y);
-extern scalar func_x2_dx(double x, double y);
-extern scalar func_x2_dy(double x, double y);
+  bool should_match(const RefinementSelectors::OptimumSelector::Cand& cand); ///< Returns true if the refinement should match the function.
 
-//abs(y)
-extern scalar func_absy_val(double x, double y);
-extern scalar func_absy_dx(double x, double y);
-extern scalar func_absy_dy(double x, double y);
+  std::string title() const; ///< Returns title of the test case. Title is generated automatically.
+  int quad_order() const { return m_func_quad_order; } ///< Returns function quad order.
+  int start_quad_order() const { return m_start_quad_order; } ///< Returns starting order of a mesh.
+  double** poly_matrix() { return m_poly_matrix; }; ///< Returns poly matrix.
+};
 
-//abs(x)*abs(y)
-extern scalar func_absx_absy_val(double x, double y);
-extern scalar func_absx_absy_dx(double x, double y);
-extern scalar func_absx_absy_dy(double x, double y);
-
-//x2y2
-extern scalar func_x2y2_val(double x, double y);
-extern scalar func_x2y2_dx(double x, double y);
-extern scalar func_x2y2_dy(double x, double y);
-
-//x3y1
-extern scalar func_x3y1_val(double x, double y);
-extern scalar func_x3y1_dx(double x, double y);
-extern scalar func_x3y1_dy(double x, double y);
-
-//x3y4
-extern scalar func_x3y4_val(double x, double y);
-extern scalar func_x3y4_dx(double x, double y);
-extern scalar func_x3y4_dy(double x, double y);
+//test functions
+extern scalar func_val(double** poly_matrix, int quad_order, double x, double y); ///< Returns a value f of a polynom f(x,y).
+extern scalar func_dx(double** poly_matrix, int quad_order, double x, double y); ///< Returns df(x,y)/dx of a polynom f(x,y).
+extern scalar func_dy(double** poly_matrix, int quad_order, double x, double y); ///< Returns df(x,y)/dy of a polynom f(x,y).
 
 #endif
-
