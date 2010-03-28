@@ -1,24 +1,24 @@
 #include "hermes2d.h"
 #include "solver_umfpack.h"
 
-//  This is another example that allows you to compare h- and hp-adaptivity from the point of view
-//  of both CPU time requirements and discrete problem size, look at the quality of the a-posteriori
-//  error estimator used by Hermes (exact error is provided), etc. You can also change
-//  the parameter MESH_REGULARITY to see the influence of hanging nodes on the adaptive process.
-//  The problem is made harder for adaptive algorithms by increasing the parameter SLOPE.
+
+// NOTE: THIS EXAMPLE IS STILL UNDER CONSTRUCTION
+
+
+//  This example solves a stabilized linear advection diffusion problem.
 //
-//  PDE: -Laplace u = f
+//  PDE: div(bu - \epsilon \nabla u) = 0 where b = (b1, b2) is a constant vector
 //
-//  Known exact solution, see functions fn() and fndd()
+//  Domain: Square (0, 1)x(0, 1)
 //
-//  Domain: unit square (0, 1)x(0, 1), see the file square.mesh
-//
-//  BC:  Dirichlet, given by exact solution
+//  BC:  Dirichlet, see the function scalar bc_values() below.
 //
 //  The following parameters can be changed:
 
-const int P_INIT = 1;             // Initial polynomial degree of all mesh elements.
-const int INIT_REF_NUM = 4;       // Number of initial uniform mesh refinements.
+const int P_INIT = 1;                   // Initial polynomial degree of all mesh elements.
+const bool STABILIZATION_ON = false;    // Stabilization on/off.
+const bool SHOCK_CAPTURING_ON = false;  // Shock capturing on/off.
+const int INIT_REF_NUM = 1;       // Number of initial uniform mesh refinements.
 const double THRESHOLD = 0.3;     // This is a quantitative parameter of the adapt(...) function and
                                   // it has different meanings for various adaptive strategies (see below).
 const int STRATEGY = 0;           // Adaptive strategy:
@@ -51,7 +51,13 @@ const int NDOF_STOP = 60000;      // Adaptivity process stops when the number of
                                   // over this limit. This is to prevent h-adaptivity to go on forever.
 
 // problem constants
-double EPSILON = 0.01;                // epsilon
+double EPSILON = 0.01;            
+void b(double x, double y, double& b_x, double& b_y) // vector b can be space-dependent
+{
+  b_x = 1;
+  b_y = 1;
+  return;  
+}
 
 // boundary condition types
 int bc_types(int marker)
@@ -62,96 +68,112 @@ int bc_types(int marker)
 // Dirichlet boundary condition values
 scalar bc_values(int marker, double x, double y)
 {
-    if (marker == 1)
-        return 1;
-    else
-        return 2-pow(x, 0.1)-pow(y, 0.1);
+    if (marker == 1) return 1;
+    else return 2 - pow(x, 0.1) - pow(y, 0.1);
 }
 
-// bilinear form for the Poisson equation
+// bilinear form
 template<typename Real, typename Scalar>
 Scalar bilinear_form(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
-    Scalar result = 0;
-    for (int i=0; i < n; i++) {
-        double b_x = 1;
-        double b_y = 1;
-        result +=
-            (b_x * u->val[i] - EPSILON*u->dx[i]) * v->dx[i] +
-            (b_y * u->val[i] - EPSILON*u->dy[i]) * v->dy[i];
-    }
-    return result;
+  Scalar result = 0;
+  for (int i=0; i < n; i++) {
+    double b_x, b_y;
+    b(e->x[i], e->y[i], b_x, b_y);
+    result +=
+      EPSILON * (u->dx[i] * v->dx[i] + u->dy[i] * v->dy[i]) 
+      + (b_x * u->dx[i] + b_y * u->dy[i]) * v->val[i];
+      /* OLD VERSION
+      (b_x * u->val[i] - EPSILON * u->dx[i]) * v->dx[i] +
+      (b_y * u->val[i] - EPSILON * u->dy[i]) * v->dy[i];
+      */
+  }
+  return result;
 }
 
-// bilinear form for the Poisson equation, stabilization
+Ord bilinear_form_order(int n, double *wt, Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext)
+{
+  double b_x = 1, b_y = 1;
+  return EPSILON * (u->dx[0] * v->dx[0] + u->dy[0] * v->dy[0]) 
+      + (b_x * u->dx[0] + b_y * u->dy[0]) * v->val[0];
+    /* OLD VERSION
+    (b_x * u->val[0] - EPSILON * u->dx[0]) * v->dx[0] +
+    (b_y * u->val[0] - EPSILON * u->dy[0]) * v->dy[0];
+    */
+}
+
+// bilinear form for the stabilization
 template<typename Real, typename Scalar>
 Scalar bilinear_form_stabilization(int n, double *wt, Func<Real> *u, Func<Real> *v,
         Geom<Real> *e, ExtData<Scalar> *ext)
 {
-    double h_e = e->element->get_diameter();
-    Scalar result = 0;
-    for (int i=0; i < n; i++) {
-        double b_x = 1;
-        double b_y = 1;
-        double tau = 1/sqrt(9*pow(4*EPSILON/pow(h_e, 2), 2)+
-                pow(2*sqrt(b_x*b_x+b_y*b_y)/h_e, 2));
-        //printf("h_e = %f; tau = %f;\n", h_e, tau);
-        result +=
-            (-b_x * v->dx[i] - b_y * v->dy[i]) * tau *
-            (+b_x * u->dx[i] + b_y * u->dy[i]);
+  double h_e = e->element->get_diameter();
+  Scalar result = 0;
+  for (int i=0; i < n; i++) {
+    double b_x, b_y;
+    b(e->x[i], e->y[i], b_x, b_y);
+    double b_norm = sqrt(b_x*b_x + b_y*b_y);
+    double tau = 1. / sqrt(9*pow(4*EPSILON/pow(h_e, 2), 2) + pow(2*b_norm/h_e, 2));
+    // the following stabilization is most likely wrong
+    result += (b_x * v->dx[i] + b_y * v->dy[i]) * tau * (b_x * u->dx[i] + b_y * u->dy[i]);
     }
     return result;
 }
 
+
+/* OLD VERSION
+// bilinear form for the stabilization
 template<typename Real, typename Scalar>
-Scalar bilinear_form_stabilization_order(int n, double *wt, Func<Real> *u, Func<Real> *v,
+Scalar bilinear_form_stabilization(int n, double *wt, Func<Real> *u, Func<Real> *v,
         Geom<Real> *e, ExtData<Scalar> *ext)
 {
-    Scalar result = 0;
-    for (int i=0; i < n; i++) {
-        double b_x = 1;
-        double b_y = 1;
-        double tau = 1;
-        result +=
-            (-b_x * v->dx[i] - b_y * v->dy[i]) * tau *
-            (+b_x * u->dx[i] + b_y * u->dy[i]);
+  double h_e = e->element->get_diameter();
+  Scalar result = 0;
+  for (int i=0; i < n; i++) {
+    double b_x, b_y;
+    b(e->x[i], e->y[i], b_x, b_y);
+    double b_norm = sqrt(b_x*b_x+b_y*b_y);
+    double tau = 0; //1 / sqrt(9*pow(4*EPSILON/pow(h_e, 2), 2) + pow(2*b_norm/h_e, 2));
+    //printf("h_e = %f; tau = %f;\n", h_e, tau);
+    result += (-b_x * v->dx[i] - b_y * v->dy[i]) * tau * (+b_x * u->dx[i] + b_y * u->dy[i]);
     }
     return result;
+}
+*/
+
+Ord bilinear_form_stabilization_order(int n, double *wt, Func<Ord> *u, Func<Ord> *v,
+        Geom<Ord> *e, ExtData<Ord> *ext)
+{
+  double b_x = 1, b_y = 1;
+  return  (-b_x * v->dx[0] - b_y * v->dy[0]) *
+          (+b_x * u->dx[0] + b_y * u->dy[0]);
 }
 
 template<typename Real, typename Scalar>
 Scalar bilinear_form_shock_capturing(int n, double *wt, Func<Real> *u, Func<Real> *v,
         Geom<Real> *e, ExtData<Scalar> *ext)
 {
-    double h_e = e->element->get_diameter();
-    double s_c = 0.9;
-    Scalar result = 0;
-    for (int i=0; i < n; i++) {
-        double b_x = 1;
-        double b_y = 1;
-        // This R makes it nonlinear! So we need to use the Newton method:
-        double R = fabs(b_x * u->dx[i] + b_y * u->dy[i]);
-        result += s_c * 0.5 * h_e * R *
-            (u->dx[i]*v->dx[i] + u->dy[i]*v->dy[i]) /
-                (sqrt(pow(u->dx[i], 2) + pow(u->dy[i], 2)) + 1.e-8);
-    }
-    return result;
+  double h_e = e->element->get_diameter();
+  double s_c = 0.9;
+  Scalar result = 0;
+  for (int i=0; i < n; i++) {
+    double b_x = 1;
+    double b_y = 1;
+    // This R makes it nonlinear! So we need to use the Newton method:
+    double R = fabs(b_x * u->dx[i] + b_y * u->dy[i]);
+    result += s_c * 0.5 * h_e * R *
+              (u->dx[i]*v->dx[i] + u->dy[i]*v->dy[i]) /
+              (sqrt(pow(u->dx[i], 2) + pow(u->dy[i], 2)) + 1.e-8);
+  }
+  return result;
 }
 
-template<typename Real, typename Scalar>
-Scalar bilinear_form_shock_capturing_order(int n, double *wt, Func<Real> *u, Func<Real> *v,
-        Geom<Real> *e, ExtData<Scalar> *ext)
+Ord bilinear_form_shock_capturing_order(int n, double *wt, Func<Ord> *u, Func<Ord> *v,
+        Geom<Ord> *e, ExtData<Ord> *ext)
 {
-    Scalar result = 0;
-    for (int i=0; i < n; i++) {
-        double b_x = 1;
-        double b_y = 1;
-        Scalar R = (b_x * u->dx[i] + b_y * u->dy[i]);
-        result += R *
-            (u->dx[i]*v->dx[i] + u->dy[i]*v->dy[i]) /
-                (sqrt(pow(u->dx[i], 2) + pow(u->dy[i], 2)) + 1.e-8);
-    }
-    return result;
+  double b_x = 1, b_y = 1;
+  return (b_x * u->dx[0] + b_y * u->dy[0]) * (u->dx[0]*v->dx[0] + u->dy[0]*v->dy[0]) /
+         (sqrt(pow(u->dx[0], 2) + pow(u->dy[0], 2)) + 1.e-8);
 }
 
 int main(int argc, char* argv[])
@@ -162,7 +184,7 @@ int main(int argc, char* argv[])
   mloader.load("square_quad.mesh", &mesh);
   // mloader.load("square_tri.mesh", &mesh);
   for (int i=0; i<INIT_REF_NUM; i++) mesh.refine_all_elements();
-  //mesh.refine_towards_boundary(2, 3);
+  mesh.refine_towards_boundary(2, 3);
 
   // initialize the shapeset and the cache
   H1Shapeset shapeset;
@@ -179,21 +201,24 @@ int main(int argc, char* argv[])
 
   // initialize the weak formulation
   WeakForm wf(1);
-  wf.add_biform(0, 0, callback(bilinear_form));
-  wf.add_biform(0, 0, bilinear_form_stabilization,
-          bilinear_form_stabilization_order);
-  //wf.add_biform(0, 0, bilinear_form_shock_capturing,
-  //        bilinear_form_shock_capturing_order);
+  wf.add_biform(0, 0, bilinear_form, bilinear_form_order);
+  if (STABILIZATION_ON == true) {
+    wf.add_biform(0, 0, bilinear_form_stabilization, bilinear_form_stabilization_order);
+  }
+  if (SHOCK_CAPTURING_ON == true) {
+    wf.add_biform(0, 0, bilinear_form_shock_capturing, bilinear_form_shock_capturing_order);
+  }
 
   // visualize solution and mesh
-  ScalarView sview("Coarse solution", 0, 0, 500, 400);
-  OrderView  oview("Polynomial orders", 505, 0, 500, 400);
+  OrderView  oview("Coarse mesh", 0, 0, 500, 400);
+  ScalarView sview("Coarse mesh solution", 510, 0, 500, 400);
+  ScalarView sview2("Fine mesh solution", 1020, 0, 500, 400);
 
   // matrix solver
   UmfpackSolver solver;
 
-  // DOF and CPU convergence graphs
-  SimpleGraph graph_dof_est, graph_cpu_est;
+  // DOF convergence graph
+  SimpleGraph graph_dof_est;
 
   // prepare selector
   RefinementSelectors::H1NonUniformHP selector(ISO_ONLY, ADAPT_TYPE, CONV_EXP, H2DRS_DEFAULT_ORDER, &shapeset);
@@ -201,14 +226,10 @@ int main(int argc, char* argv[])
   // adaptivity loop
   int it = 1, ndofs;
   bool done = false;
-  double cpu = 0.0;
   Solution sln_coarse, sln_fine;
   do
   {
     info("\n---- Adaptivity step %d ---------------------------------------------\n", it++);
-
-    // time measurement
-    begin_time();
 
     // solve the coarse mesh problem
     LinSystem ls(&wf, &solver);
@@ -217,23 +238,19 @@ int main(int argc, char* argv[])
     ls.assemble();
     ls.solve(1, &sln_coarse);
 
-    // time measurement
-    cpu += end_time();
-
-    // view the solution and mesh
-    sview.show(&sln_coarse);
-    oview.show(&space);
-    sview.wait_for_keypress("wait");
-    //break;
-
-    // time measurement
-    begin_time();
-
     // solve the fine mesh problem
     RefSystem rs(&ls);
     rs.assemble();
     rs.solve(1, &sln_fine);
 
+    // show fine mesh solution
+    // view the solution and mesh
+    oview.show(&space);
+    sview.show(&sln_coarse);
+    sview2.show(&sln_fine);
+    sview.wait_for_keypress();
+    //break;
+    
     // calculate error estimate wrt. fine mesh solution
     H1AdaptHP hp(1, &space);
     double err_est = hp.calc_error(&sln_coarse, &sln_fine) * 100;
@@ -243,24 +260,17 @@ int main(int argc, char* argv[])
     graph_dof_est.add_values(space.get_num_dofs(), err_est);
     graph_dof_est.save("conv_dof_est.dat");
 
-    // add entries to CPU convergence graphs
-    graph_cpu_est.add_values(cpu, err_est);
-    graph_cpu_est.save("conv_cpu_est.dat");
-
-
     // if err_est too large, adapt the mesh
     if (err_est < ERR_STOP) done = true;
     else {
       hp.adapt(THRESHOLD, STRATEGY, &selector, MESH_REGULARITY);
+      //mesh.refine_all_elements();
+      //space.set_uniform_order(P_INIT);
       ndofs = space.assign_dofs();
       if (ndofs >= NDOF_STOP) done = true;
     }
-
-    // time measurement
-    cpu += end_time();
   }
   while (done == false);
-  verbose("Total running time: %g sec", cpu);
 
   // show the fine solution - this is the final result
   sview.set_title("Final solution");
