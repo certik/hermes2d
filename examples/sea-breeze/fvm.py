@@ -1,6 +1,8 @@
 from numpy import array
 from numpy.linalg import norm
 
+import pylab
+
 from hermes2d import Mesh, set_verbose, MeshView
 
 class Edge(object):
@@ -43,6 +45,18 @@ class Edge(object):
         s = "elements: %s, boundary: %s, marker: %s, n=%s" % (self.elements,
                 self.boundary, self.marker, self.normal)
         return s
+
+    def __plot__(self):
+        styles = {
+                0: {"color": "black", "lw": 1},
+                1: {"color": "blue", "lw": 2},
+                2: {"color": "green", "lw": 2},
+                3: {"color": "red", "lw": 2},
+                4: {"color": "orange", "lw": 2},
+            }
+        p0 = self._pair[0].coord
+        p1 = self._pair[1].coord
+        pylab.plot([p0[0], p1[0]], [p0[1], p1[1]], **styles[self.marker])
 
 class Edges(object):
 
@@ -90,6 +104,15 @@ class Edges(object):
             s += "%12s:  %s\n" % (edge, self._edges[edge])
         return s
 
+    def __plot__(self):
+        for e in self._edges:
+            self._edges[e].__plot__()
+        pylab.gca().set_aspect("equal")
+
+    def plot(self):
+        self.__plot__()
+        pylab.show()
+
 def main():
     set_verbose(False)
     mesh = Mesh()
@@ -108,7 +131,8 @@ def main():
     print edges
     print "Done."
 
-    mview = MeshView()
-    mview.show(mesh, lib="mpl", method="orders")
+    edges.plot()
+    #mview = MeshView()
+    #mview.show(mesh, lib="mpl", method="orders")
 
 main()
