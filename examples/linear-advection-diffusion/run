@@ -1,0 +1,4 @@
+rm *~ 
+layer
+python plot_graph.py &
+
