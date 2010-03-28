@@ -210,12 +210,14 @@ def assembly(edges, state_on_elements, tau):
         elem_contrib[e] = zeros((4,))
     for e in edges.edges:
         edge = edges.edges[e]
-        flux = calculate_flux(edge, state_on_elements)
+        flux = -calculate_flux(edge, state_on_elements)
+        flux *= edge.length
+        #print edge.length, edge, flux, edge.elements
         if edge.boundary:
             elem_contrib[edge.elements[0]] += flux
         else:
-            elem_contrib[edge.elements[0]] += flux
-            elem_contrib[edge.elements[1]] -= flux
+            elem_contrib[edge.elements[0]] -= flux
+            elem_contrib[edge.elements[1]] += flux
     dof_map = {}
     for dof, i in enumerate(elem_contrib):
         dof_map[i] = dof
@@ -227,7 +229,8 @@ def assembly(edges, state_on_elements, tau):
         #print "el_id:", e, "dof:", dof_map[e]
         #print elem_contrib[e]
         for i in range(4):
-            rhs[i*ndofs/4 + dof_map[e]] = 1./tau - elem_contrib[e][i]
+            rhs[i*ndofs/4 + dof_map[e]] = state_on_elements[e][i]/tau - \
+                    elem_contrib[e][i]
             A[i*ndofs/4 + dof_map[e], i*ndofs/4 + dof_map[e]] = 1./tau
     return A, rhs, dof_map
 
@@ -247,6 +250,7 @@ def main():
     mesh = Mesh()
     print "Loading mesh..."
     mesh.load("GAMM-channel.mesh")
+    #mesh.load("domain-quad.mesh")
     mesh.refine_element(1, 2)
     #mesh.refine_all_elements()
     #mesh.refine_all_elements()
@@ -273,9 +277,9 @@ def main():
     print "x:"
     x = spsolve(A, rhs)
     print x
-    print state_on_elements
+    #print state_on_elements
     state_on_elements = set_fvm_solution(x, dof_map)
-    print state_on_elements
+    #print state_on_elements
     print "Done."
 
     #edges.plot()
