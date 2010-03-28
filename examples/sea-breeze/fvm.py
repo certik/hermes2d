@@ -9,7 +9,7 @@ class Edge(object):
 
     def __init__(self, i, marker, pair_nodes):
         self._pair = pair_nodes
-        self._normal = self.calculate_normal(pair_nodes)
+        self._normal = self.calculate_normal()
         self._elements = [i]
         self._boundary = True
         self._marker = marker
@@ -18,12 +18,12 @@ class Edge(object):
         self._elements.append(i)
         self._boundary = False
 
-    def calculate_normal(self, pair_nodes):
-        p0 = pair_nodes[0].coord
-        p1 = pair_nodes[1].coord
+    def calculate_normal(self):
+        p0 = self.get_point_0()
+        p1 = self.get_point_1()
         t = array([p1[0]-p0[0], p1[1]-p0[1]])
         t = t/norm(t)
-        return (t[1], -t[0])
+        return array([t[1], -t[0]])
 
     @property
     def boundary(self):
@@ -36,6 +36,15 @@ class Edge(object):
     @property
     def normal(self):
         return self._normal
+
+    def get_point_0(self):
+        return array(self._pair[0].coord)
+
+    def get_point_1(self):
+        return array(self._pair[1].coord)
+
+    def get_point_middle(self):
+        return (self.get_point_0() + self.get_point_1()) / 2
 
     @property
     def elements(self):
@@ -54,9 +63,16 @@ class Edge(object):
                 3: {"color": "red", "lw": 2},
                 4: {"color": "orange", "lw": 2},
             }
-        p0 = self._pair[0].coord
-        p1 = self._pair[1].coord
+        p0 = self.get_point_0()
+        p1 = self.get_point_1()
         pylab.plot([p0[0], p1[0]], [p0[1], p1[1]], **styles[self.marker])
+        # normal
+        p0 = self.get_point_middle()
+        d = self.normal * 0.1
+        p1 = p1 + d
+        #pylab.arrow(p0[0], p0[1], d[0], d[1], **styles[self.marker])
+        pylab.gca().add_patch(pylab.Arrow(p0[0], p0[1], d[0], d[1],
+            width = 0.05, **styles[self.marker]))
 
 class Edges(object):
 
