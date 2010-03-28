@@ -193,7 +193,7 @@ def calculate_flux(edge, state_on_elements):
         w_r = state_on_elements[edge.elements[1]]
     return numerical_flux(w_l, w_r, edge.normal)
 
-def assembly(edges, state_on_elements):
+def assembly(edges, state_on_elements, tau):
     elem_contrib = {}
     for e in state_on_elements:
         elem_contrib[e] = zeros((4,))
@@ -210,14 +210,26 @@ def assembly(edges, state_on_elements):
         dof_map[i] = dof
     ndofs = 4*len(dof_map)
     A = lil_matrix((ndofs, ndofs))
+    rhs = zeros((ndofs,))
     for e in elem_contrib:
         #print "-"*80
         #print "el_id:", e, "dof:", dof_map[e]
         #print elem_contrib[e]
         for i in range(4):
-            A[i*ndofs/4 + dof_map[e], i*ndofs/4 + dof_map[e]] = \
-                    elem_contrib[e][i]
-    return A
+            rhs[i*ndofs/4 + dof_map[e]] = 1./tau - elem_contrib[e][i]
+            A[i*ndofs/4 + dof_map[e], i*ndofs/4 + dof_map[e]] = 1./tau
+    return A, rhs, dof_map
+
+def set_fvm_solution(x, dof_map):
+    ndofs = len(x)
+    state_on_elements = {}
+    for e in dof_map:
+        i = dof_map[e]
+        a = zeros((4,))
+        for j in range(4):
+            a[j] = x[j*ndofs/4 + i]
+        state_on_elements[e] = a
+    return state_on_elements
 
 def main():
     set_verbose(False)
@@ -240,11 +252,22 @@ def main():
     state_on_elements = {}
     for e in mesh.active_elements:
         state_on_elements[e.id] = array([1., 50., 0., 1.e5])
-    A = assembly(edges, state_on_elements)
+    tau = 1e-5
+    A, rhs, dof_map = assembly(edges, state_on_elements, tau)
+    print "A:"
     print A
+    print "rhs:"
+    print rhs
+    from scipy.sparse.linalg import spsolve
+    print "x:"
+    x = spsolve(A, rhs)
+    print x
+    print state_on_elements
+    state_on_elements = set_fvm_solution(x, dof_map)
+    print state_on_elements
     print "Done."
 
-    edges.plot()
+    #edges.plot()
     #mview = MeshView()
     #mview.show(mesh, lib="mpl", method="orders")
 
