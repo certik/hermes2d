@@ -1,9 +1,18 @@
-from numpy import array
-from numpy.linalg import norm
+from math import atan2, sin, cos
 
+from numpy import array, dot
+from numpy.linalg import norm
 import pylab
 
 from hermes2d import Mesh, set_verbose, MeshView
+from _numerical_flux import numerical_flux
+from _forms import R as R_const, c_v
+
+marker_bottom = 1
+marker_right  = 2
+marker_top    = 3
+marker_left   = 4
+
 
 class Plot(object):
 
@@ -109,6 +118,10 @@ class Edges(object):
         assert nodes == _nodes
         return nodes
 
+    @property
+    def edges(self):
+        return self._edges
+
     def extract_edges(self, mesh):
         edges = {}
         for i in range(mesh.num_elements):
@@ -147,13 +160,52 @@ class Edges(object):
         self.__plot__(p)
         p.show()
 
+def T_rot(beta):
+    # this is the 3D rotation matrix (2.2.51 in Pavel's master thesis)
+    # in 2D without the middle column and row, alpha = 0
+    alpha = 0
+    return array([
+        [1, 0, 0, 0],
+        [0, cos(alpha)*cos(beta), sin(beta), 0],
+        [0, -cos(alpha)*sin(beta), cos(beta), 0],
+        [0, 0, 0, 1]
+        ])
+
+def calc_p(w):
+    w0, w1, w3, w4 = w
+    p = R_const/c_v * (w4 - (w1**2 + w3**2)/(2*w0))
+    return p
+
+def calculate_flux(edge, state_on_elements):
+    w_l = state_on_elements[edge.elements[0]]
+    if edge.boundary:
+        if edge.marker in [marker_left, marker_right]:
+            w_r = array([1., 50., 0., 1.e5])
+        elif edge.marker in [marker_top, marker_bottom]:
+            alpha = atan2(edge.normal[1], edge.normal[0])
+            p = calc_p(w_l)
+            flux_local = array([0., p, 0., 0.])
+            return dot(T_rot(alpha), flux_local)
+        else:
+            raise Exception("Unhandled boundary")
+    else:
+        w_r = state_on_elements[edge.elements[1]]
+    return numerical_flux(w_l, w_r, edge.normal)
+
+def assembly(edges, state_on_elements):
+    for e in edges.edges:
+        edge = edges.edges[e]
+        print "-"*80
+        print edge
+        print calculate_flux(edge, state_on_elements)
+
 def main():
     set_verbose(False)
     mesh = Mesh()
     print "Loading mesh..."
     mesh.load("GAMM-channel.mesh")
     mesh.refine_element(1, 2)
-    mesh.refine_all_elements()
+    #mesh.refine_all_elements()
     #mesh.refine_all_elements()
     #mesh.refine_all_elements()
     #mesh.refine_all_elements()
@@ -162,10 +214,16 @@ def main():
     nodes = mesh.nodes_dict
     edges = Edges(mesh)
     elements = mesh.elements
-    print edges
     print "Done."
 
-    edges.plot()
+    print "Assembly..."
+    state_on_elements = {}
+    for e in mesh.active_elements:
+        state_on_elements[e.id] = array([1., 50., 0., 1.e5])
+    assembly(edges, state_on_elements)
+    print "Done."
+
+    #edges.plot()
     #mview = MeshView()
     #mview.show(mesh, lib="mpl", method="orders")
 
