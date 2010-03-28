@@ -1,6 +1,6 @@
 from math import atan2, sin, cos
 
-from numpy import array, dot
+from numpy import array, dot, zeros
 from numpy.linalg import norm
 import pylab
 
@@ -193,11 +193,21 @@ def calculate_flux(edge, state_on_elements):
     return numerical_flux(w_l, w_r, edge.normal)
 
 def assembly(edges, state_on_elements):
+    elem_contrib = {}
+    for e in state_on_elements:
+        elem_contrib[e] = zeros((4,))
     for e in edges.edges:
         edge = edges.edges[e]
+        flux = calculate_flux(edge, state_on_elements)
+        if edge.boundary:
+            elem_contrib[edge.elements[0]] += flux
+        else:
+            elem_contrib[edge.elements[0]] += flux
+            elem_contrib[edge.elements[1]] -= flux
+    for e in elem_contrib:
         print "-"*80
-        print edge
-        print calculate_flux(edge, state_on_elements)
+        print e
+        print elem_contrib[e]
 
 def main():
     set_verbose(False)
@@ -223,7 +233,7 @@ def main():
     assembly(edges, state_on_elements)
     print "Done."
 
-    #edges.plot()
+    edges.plot()
     #mview = MeshView()
     #mview.show(mesh, lib="mpl", method="orders")
 
