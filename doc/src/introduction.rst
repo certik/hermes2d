@@ -39,7 +39,7 @@ For the 1D and 3D codes, see the `Hermes1D <http://hpfem.org/hermes1d/>`_ and
 What is Hermes
 --------------
 
-Main strengths of Hermes are **adaptive hp-FEM and hp-DG methods**,
+Main strengths of Hermes are **adaptive hp-FEM methods**,
 adaptivity for time-dependent problems on **dynamical hp-meshes**, 
 monolithic discretization of arbitrary multiphysics problems via a novel **multimesh hp-FEM**,
 and unprecedented **interactive web accessibility**. 
