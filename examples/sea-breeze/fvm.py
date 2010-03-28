@@ -327,7 +327,7 @@ def main():
         state_on_elements[e.id] = array([1., 50., 0., 1.e5])
     #print "initial state"
     #print state_on_elements
-    tau = 1e-5
+    tau = 1e-3
     t = 0.
     for i in range(100):
         A, rhs, dof_map = assembly(edges, state_on_elements, tau)
