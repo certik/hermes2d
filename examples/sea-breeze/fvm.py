@@ -1,5 +1,6 @@
 from math import atan2, sin, cos
 
+from scipy.sparse.linalg import spsolve
 from scipy.sparse import coo_matrix, lil_matrix
 from numpy import array, dot, zeros
 from numpy.linalg import norm
@@ -212,9 +213,9 @@ def assembly(edges, state_on_elements, tau):
         edge = edges.edges[e]
         flux = -calculate_flux(edge, state_on_elements)
         flux *= edge.length
-        #print edge.length, edge, flux, edge.elements
+        print edge.length, edge, flux, edge.elements
         if edge.boundary:
-            elem_contrib[edge.elements[0]] += flux
+            elem_contrib[edge.elements[0]] -= flux
         else:
             elem_contrib[edge.elements[0]] -= flux
             elem_contrib[edge.elements[1]] += flux
@@ -229,9 +230,10 @@ def assembly(edges, state_on_elements, tau):
         #print "el_id:", e, "dof:", dof_map[e]
         #print elem_contrib[e]
         for i in range(4):
-            rhs[i*ndofs/4 + dof_map[e]] = state_on_elements[e][i]/tau - \
+            C = 1.
+            rhs[i*ndofs/4 + dof_map[e]] = C*state_on_elements[e][i]/tau - \
                     elem_contrib[e][i]
-            A[i*ndofs/4 + dof_map[e], i*ndofs/4 + dof_map[e]] = 1./tau
+            A[i*ndofs/4 + dof_map[e], i*ndofs/4 + dof_map[e]] = C*1./tau
     return A, rhs, dof_map
 
 def set_fvm_solution(x, dof_map):
@@ -249,9 +251,10 @@ def main():
     set_verbose(False)
     mesh = Mesh()
     print "Loading mesh..."
-    mesh.load("GAMM-channel.mesh")
-    #mesh.load("domain-quad.mesh")
-    mesh.refine_element(1, 2)
+    #mesh.load("GAMM-channel.mesh")
+    mesh.load("domain-quad.mesh")
+    mesh.refine_element(0, 2)
+    #mesh.refine_element(1, 2)
     #mesh.refine_all_elements()
     #mesh.refine_all_elements()
     #mesh.refine_all_elements()
@@ -263,26 +266,33 @@ def main():
     elements = mesh.elements
     print "Done."
 
-    print "Assembly..."
+    print "Solving..."
     state_on_elements = {}
     for e in mesh.active_elements:
         state_on_elements[e.id] = array([1., 50., 0., 1.e5])
+    print "initial state"
+    print state_on_elements
     tau = 1e-5
-    A, rhs, dof_map = assembly(edges, state_on_elements, tau)
-    print "A:"
-    print A
-    print "rhs:"
-    print rhs
-    from scipy.sparse.linalg import spsolve
-    print "x:"
-    x = spsolve(A, rhs)
-    print x
-    #print state_on_elements
-    state_on_elements = set_fvm_solution(x, dof_map)
-    #print state_on_elements
+    t = 0.
+    for i in range(1):
+        A, rhs, dof_map = assembly(edges, state_on_elements, tau)
+        #print "A:"
+        #print A
+        #print "rhs:"
+        #print rhs
+        #stop
+        #print "x:"
+        x = spsolve(A, rhs)
+        #print x
+        #print state_on_elements
+        state_on_elements = set_fvm_solution(x, dof_map)
+        #print state_on_elements
+        t += tau
+        print "t = ", t, "state_on_elements:"
+        print state_on_elements
     print "Done."
 
-    #edges.plot()
+    edges.plot()
     #mview = MeshView()
     #mview.show(mesh, lib="mpl", method="orders")
 
