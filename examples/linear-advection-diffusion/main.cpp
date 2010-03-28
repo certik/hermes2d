@@ -97,7 +97,7 @@ Scalar bilinear_form_stabilization(int n, double *wt, Func<Real> *u, Func<Real> 
     double b_norm = sqrt(B1*B1 + B2*B2);
     double tau = 1. / sqrt(9*pow(4*EPSILON/pow(h_e, 2), 2) + pow(2*b_norm/h_e, 2));
     // the following stabilization is most likely wrong
-    result += -(B1 * v->dx[i] + B2 * v->dy[i]) * tau * (B1 * u->dx[i] + B2 * u->dy[i]);
+    result += -wt[i]*(B1 * v->dx[i] + B2 * v->dy[i]) * tau * (B1 * u->dx[i] + B2 * u->dy[i]);
   }
   return result;
 }
@@ -121,7 +121,7 @@ Scalar bilinear_form_shock_capturing(int n, double *wt, Func<Real> *u, Func<Real
   for (int i=0; i < n; i++) {
     // This R makes it nonlinear! So we need to use the Newton method:
     double R = fabs(B1 * u->dx[i] + B2 * u->dy[i]);
-    result += s_c * 0.5 * h_e * R *
+    result += wt[i] * s_c * 0.5 * h_e * R *
               (u->dx[i]*v->dx[i] + u->dy[i]*v->dy[i]) /
               (sqrt(pow(u->dx[i], 2) + pow(u->dy[i], 2)) + 1.e-8);
   }
