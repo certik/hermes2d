@@ -58,7 +58,7 @@ def plot_state(state_on_elements, mesh):
     colors2 = []
     colors3 = []
     for e in state_on_elements:
-        print e, state_on_elements[e]
+        #print e, state_on_elements[e]
         verts = zeros((4, 2))
         for i in range(4):
             coord = mesh.get_element(e).nodes_vertex[i].coord
@@ -310,10 +310,10 @@ def main():
     #mesh.load("domain-quad.mesh")
     #mesh.refine_element(0, 2)
     mesh.refine_element(1, 2)
-    #mesh.refine_all_elements()
-    #mesh.refine_all_elements()
-    #mesh.refine_all_elements()
-    #mesh.refine_all_elements()
+    mesh.refine_all_elements()
+    mesh.refine_all_elements()
+    mesh.refine_all_elements()
+    mesh.refine_all_elements()
 
     print "Constructing edges..."
     nodes = mesh.nodes_dict
@@ -329,7 +329,7 @@ def main():
     #print state_on_elements
     tau = 1e-5
     t = 0.
-    for i in range(1):
+    for i in range(100):
         A, rhs, dof_map = assembly(edges, state_on_elements, tau)
         #print "A:"
         #print A
