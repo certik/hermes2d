@@ -86,6 +86,10 @@ cdef class Node:
         return self.thisptr.bnd
 
     @property
+    def marker(self):
+        return self.thisptr.marker
+
+    @property
     def used(self):
         return self.thisptr.used == 1
 

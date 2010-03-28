@@ -92,6 +92,7 @@ cdef extern from "hermes2d.h":
         unsigned ref
         unsigned type
         unsigned bnd
+        unsigned marker
         unsigned used
         double x, y
 
