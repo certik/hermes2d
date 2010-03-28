@@ -1,5 +1,6 @@
 from math import atan2, sin, cos
 
+from scipy.sparse import coo_matrix, lil_matrix
 from numpy import array, dot, zeros
 from numpy.linalg import norm
 import pylab
@@ -204,10 +205,19 @@ def assembly(edges, state_on_elements):
         else:
             elem_contrib[edge.elements[0]] += flux
             elem_contrib[edge.elements[1]] -= flux
+    dof_map = {}
+    for dof, i in enumerate(elem_contrib):
+        dof_map[i] = dof
+    ndofs = 4*len(dof_map)
+    A = lil_matrix((ndofs, ndofs))
     for e in elem_contrib:
-        print "-"*80
-        print e
-        print elem_contrib[e]
+        #print "-"*80
+        #print "el_id:", e, "dof:", dof_map[e]
+        #print elem_contrib[e]
+        for i in range(4):
+            A[i*ndofs/4 + dof_map[e], i*ndofs/4 + dof_map[e]] = \
+                    elem_contrib[e][i]
+    return A
 
 def main():
     set_verbose(False)
@@ -230,7 +240,8 @@ def main():
     state_on_elements = {}
     for e in mesh.active_elements:
         state_on_elements[e.id] = array([1., 50., 0., 1.e5])
-    assembly(edges, state_on_elements)
+    A = assembly(edges, state_on_elements)
+    print A
     print "Done."
 
     edges.plot()
