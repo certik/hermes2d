@@ -8,6 +8,7 @@ from hermes2d import Mesh, set_verbose, MeshView
 class Plot(object):
 
     def __init__(self):
+        self._num_markers = 5
         self._styles = {
                 0: {"color": "black", "lw": 1},
                 1: {"color": "blue", "lw": 2},
@@ -15,9 +16,16 @@ class Plot(object):
                 3: {"color": "red", "lw": 2},
                 4: {"color": "orange", "lw": 2},
             }
+        self.color_count = [0]*self._num_markers
 
     def add_edge(self, p0, p1, normal, marker):
-        pylab.plot([p0[0], p1[0]], [p0[1], p1[1]], **self._styles[marker])
+        assert marker < self._num_markers
+        self.color_count[marker] += 1
+        if self.color_count[marker] == 1:
+            pylab.plot([p0[0], p1[0]], [p0[1], p1[1]], label=str(marker),
+                    **self._styles[marker])
+        else:
+            pylab.plot([p0[0], p1[0]], [p0[1], p1[1]], **self._styles[marker])
         # normal
         p0 = (p0+p1)/2
         d = normal * 0.1
