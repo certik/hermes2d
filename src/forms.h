@@ -118,7 +118,8 @@ template<typename T>
 class Geom
 {
 public:
-  int marker;      // marker
+    int marker;      // marker
+    Element *element; // active element
 	T *x, *y;				 // coordinates [in physical domain]
 	T *nx, *ny;			 // normals [in physical domain]
 	T *tx, *ty;			 // tangents [in physical domain]

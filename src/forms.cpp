@@ -37,11 +37,12 @@ Geom<Ord>* init_geom_ord()
 // Initialize element marker and coordinates
 Geom<double>* init_geom_vol(RefMap *rm, const int order)
 {
-	Geom<double>* e = new Geom<double>;
-  e->marker = rm->get_active_element()->marker;
-	e->x = rm->get_phys_x(order);
-	e->y = rm->get_phys_y(order);
-	return e;
+    Geom<double>* e = new Geom<double>;
+    e->element = rm->get_active_element();
+    e->marker = rm->get_active_element()->marker;
+    e->x = rm->get_phys_x(order);
+    e->y = rm->get_phys_y(order);
+    return e;
 }
 
 // Initialize edge marker, coordinates, tangent and normals
