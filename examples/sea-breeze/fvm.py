@@ -72,7 +72,7 @@ class Edge(object):
         p1 = p1 + d
         #pylab.arrow(p0[0], p0[1], d[0], d[1], **styles[self.marker])
         pylab.gca().add_patch(pylab.Arrow(p0[0], p0[1], d[0], d[1],
-            width = 0.05, **styles[self.marker]))
+            width = 0.05, color=styles[self.marker]["color"]))
 
 class Edges(object):
 
@@ -127,6 +127,7 @@ class Edges(object):
 
     def plot(self):
         self.__plot__()
+        pylab.legend()
         pylab.show()
 
 def main():
@@ -135,7 +136,7 @@ def main():
     print "Loading mesh..."
     mesh.load("GAMM-channel.mesh")
     mesh.refine_element(1, 2)
-    #mesh.refine_all_elements()
+    mesh.refine_all_elements()
     #mesh.refine_all_elements()
     #mesh.refine_all_elements()
     #mesh.refine_all_elements()
