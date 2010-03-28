@@ -213,7 +213,7 @@ def assembly(edges, state_on_elements, tau):
         edge = edges.edges[e]
         flux = -calculate_flux(edge, state_on_elements)
         flux *= edge.length
-        print edge.length, edge, flux, edge.elements
+        #print edge.length, edge, flux, edge.elements
         if edge.boundary:
             elem_contrib[edge.elements[0]] -= flux
         else:
@@ -253,9 +253,9 @@ def main():
     print "Loading mesh..."
     #mesh.load("GAMM-channel.mesh")
     mesh.load("domain-quad.mesh")
-    mesh.refine_element(0, 2)
+    #mesh.refine_element(0, 2)
     #mesh.refine_element(1, 2)
-    #mesh.refine_all_elements()
+    mesh.refine_all_elements()
     #mesh.refine_all_elements()
     #mesh.refine_all_elements()
     #mesh.refine_all_elements()
@@ -274,7 +274,7 @@ def main():
     print state_on_elements
     tau = 1e-5
     t = 0.
-    for i in range(1):
+    for i in range(100):
         A, rhs, dof_map = assembly(edges, state_on_elements, tau)
         #print "A:"
         #print A
