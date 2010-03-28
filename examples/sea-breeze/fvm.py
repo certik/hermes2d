@@ -52,6 +52,7 @@ class Edge(object):
     def __init__(self, i, marker, pair_nodes):
         self._pair = pair_nodes
         self._normal = self.calculate_normal()
+        self._length = self.calculate_length()
         self._elements = [i]
         self._boundary = True
         self._marker = marker
@@ -67,6 +68,12 @@ class Edge(object):
         t = t/norm(t)
         return array([t[1], -t[0]])
 
+    def calculate_length(self):
+        p0 = self.get_point_0()
+        p1 = self.get_point_1()
+        t = array([p1[0]-p0[0], p1[1]-p0[1]])
+        return norm(t)
+
     @property
     def boundary(self):
         return self._boundary
@@ -78,6 +85,10 @@ class Edge(object):
     @property
     def normal(self):
         return self._normal
+
+    @property
+    def length(self):
+        return self._length
 
     def get_point_0(self):
         return array(self._pair[0].coord)
