@@ -195,7 +195,7 @@ def calculate_flux(edge, state_on_elements):
         if edge.marker in [marker_left, marker_right]:
             w_r = array([1., 50., 0., 1.e5])
         elif edge.marker in [marker_top, marker_bottom]:
-            alpha = atan2(edge.normal[1], edge.normal[0])
+            alpha = -atan2(edge.normal[1], edge.normal[0])
             p = calc_p(w_l)
             flux_local = array([0., p, 0., 0.])
             return dot(T_rot(alpha), flux_local)
@@ -292,7 +292,7 @@ def main():
         print state_on_elements
     print "Done."
 
-    edges.plot()
+    #edges.plot()
     #mview = MeshView()
     #mview.show(mesh, lib="mpl", method="orders")
 
