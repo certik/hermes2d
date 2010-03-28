@@ -5,6 +5,30 @@ import pylab
 
 from hermes2d import Mesh, set_verbose, MeshView
 
+class Plot(object):
+
+    def __init__(self):
+        self._styles = {
+                0: {"color": "black", "lw": 1},
+                1: {"color": "blue", "lw": 2},
+                2: {"color": "green", "lw": 2},
+                3: {"color": "red", "lw": 2},
+                4: {"color": "orange", "lw": 2},
+            }
+
+    def add_edge(self, p0, p1, normal, marker):
+        pylab.plot([p0[0], p1[0]], [p0[1], p1[1]], **self._styles[marker])
+        # normal
+        p0 = (p0+p1)/2
+        d = normal * 0.1
+        pylab.gca().add_patch(pylab.Arrow(p0[0], p0[1], d[0], d[1],
+            width = 0.05, color=self._styles[marker]["color"]))
+
+    def show(self):
+        pylab.gca().set_aspect("equal")
+        pylab.legend()
+        pylab.show()
+
 class Edge(object):
 
     def __init__(self, i, marker, pair_nodes):
@@ -55,24 +79,10 @@ class Edge(object):
                 self.boundary, self.marker, self.normal)
         return s
 
-    def __plot__(self):
-        styles = {
-                0: {"color": "black", "lw": 1},
-                1: {"color": "blue", "lw": 2},
-                2: {"color": "green", "lw": 2},
-                3: {"color": "red", "lw": 2},
-                4: {"color": "orange", "lw": 2},
-            }
+    def __plot__(self, plot):
         p0 = self.get_point_0()
         p1 = self.get_point_1()
-        pylab.plot([p0[0], p1[0]], [p0[1], p1[1]], **styles[self.marker])
-        # normal
-        p0 = self.get_point_middle()
-        d = self.normal * 0.1
-        p1 = p1 + d
-        #pylab.arrow(p0[0], p0[1], d[0], d[1], **styles[self.marker])
-        pylab.gca().add_patch(pylab.Arrow(p0[0], p0[1], d[0], d[1],
-            width = 0.05, color=styles[self.marker]["color"]))
+        plot.add_edge(p0, p1, self.normal, self.marker)
 
 class Edges(object):
 
@@ -120,15 +130,14 @@ class Edges(object):
             s += "%12s:  %s\n" % (edge, self._edges[edge])
         return s
 
-    def __plot__(self):
+    def __plot__(self, plot):
         for e in self._edges:
-            self._edges[e].__plot__()
-        pylab.gca().set_aspect("equal")
+            self._edges[e].__plot__(plot)
 
     def plot(self):
-        self.__plot__()
-        pylab.legend()
-        pylab.show()
+        p = Plot()
+        self.__plot__(p)
+        p.show()
 
 def main():
     set_verbose(False)
