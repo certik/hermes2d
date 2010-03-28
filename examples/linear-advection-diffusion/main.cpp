@@ -5,7 +5,8 @@
 // NOTE: THIS EXAMPLE IS STILL UNDER CONSTRUCTION
 
 
-//  This example solves a stabilized linear advection diffusion problem.
+//  This example solves a linear advection diffusion problem using variational
+//  multiscale stabilization.
 //
 //  PDE: div(bu - \epsilon \nabla u) = 0 where b = (b1, b2) is a constant vector
 //
@@ -19,6 +20,7 @@ const int P_INIT = 1;                   // Initial polynomial degree of all mesh
 const bool STABILIZATION_ON = false;    // Stabilization on/off.
 const bool SHOCK_CAPTURING_ON = false;  // Shock capturing on/off.
 const int INIT_REF_NUM = 1;       // Number of initial uniform mesh refinements.
+const int INIT_REF_NUM_BDY = 5;   // Number of initial uniform mesh refinements in the boundary layer region.
 const double THRESHOLD = 0.3;     // This is a quantitative parameter of the adapt(...) function and
                                   // it has different meanings for various adaptive strategies (see below).
 const int STRATEGY = 0;           // Adaptive strategy:
@@ -51,13 +53,8 @@ const int NDOF_STOP = 60000;      // Adaptivity process stops when the number of
                                   // over this limit. This is to prevent h-adaptivity to go on forever.
 
 // problem constants
-double EPSILON = 0.01;            
-void b(double x, double y, double& b_x, double& b_y) // vector b can be space-dependent
-{
-  b_x = 1;
-  b_y = 1;
-  return;  
-}
+const double EPSILON = 0.01;      // diffusivity           
+const double B1 = 1., B2 = 1.;    // advection direction, div(B) = 0
 
 // boundary condition types
 int bc_types(int marker)
@@ -77,31 +74,18 @@ template<typename Real, typename Scalar>
 Scalar bilinear_form(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
   Scalar result = 0;
+  //result += EPSILON * int_grad_u_grad_v<Real, Scalar>(n, wt, u, v);
   for (int i=0; i < n; i++) {
-    double b_x, b_y;
-    b(e->x[i], e->y[i], b_x, b_y);
-    result +=
-      EPSILON * (u->dx[i] * v->dx[i] + u->dy[i] * v->dy[i]) 
-      + (b_x * u->dx[i] + b_y * u->dy[i]) * v->val[i];
-      /* OLD VERSION
-      (b_x * u->val[i] - EPSILON * u->dx[i]) * v->dx[i] +
-      (b_y * u->val[i] - EPSILON * u->dy[i]) * v->dy[i];
-      */
+    // int_grad_u_grad_v:
+    result += EPSILON * (u->dx[i] * v->dx[i] + u->dy[i] * v->dy[i]);
+    // VERSION A:
+    result += B1 * u->dx[i] * v->val[i] + B2 * u->dy[i] * v->val[i];
+    // VERSION B:
+    //result += - B1 * u->val[i] * v->dx[i] - B2 * u->val[i] * v->dy[i];
   }
   return result;
 }
 
-Ord bilinear_form_order(int n, double *wt, Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext)
-{
-  double b_x = 1, b_y = 1;
-  return EPSILON * (u->dx[0] * v->dx[0] + u->dy[0] * v->dy[0]) 
-      + (b_x * u->dx[0] + b_y * u->dy[0]) * v->val[0];
-    /* OLD VERSION
-    (b_x * u->val[0] - EPSILON * u->dx[0]) * v->dx[0] +
-    (b_y * u->val[0] - EPSILON * u->dy[0]) * v->dy[0];
-    */
-}
-
 // bilinear form for the stabilization
 template<typename Real, typename Scalar>
 Scalar bilinear_form_stabilization(int n, double *wt, Func<Real> *u, Func<Real> *v,
@@ -110,44 +94,22 @@ Scalar bilinear_form_stabilization(int n, double *wt, Func<Real> *u, Func<Real> 
   double h_e = e->element->get_diameter();
   Scalar result = 0;
   for (int i=0; i < n; i++) {
-    double b_x, b_y;
-    b(e->x[i], e->y[i], b_x, b_y);
-    double b_norm = sqrt(b_x*b_x + b_y*b_y);
+    double b_norm = sqrt(B1*B1 + B2*B2);
     double tau = 1. / sqrt(9*pow(4*EPSILON/pow(h_e, 2), 2) + pow(2*b_norm/h_e, 2));
     // the following stabilization is most likely wrong
-    result += (b_x * v->dx[i] + b_y * v->dy[i]) * tau * (b_x * u->dx[i] + b_y * u->dy[i]);
-    }
-    return result;
+    result += -(B1 * v->dx[i] + B2 * v->dy[i]) * tau * (B1 * u->dx[i] + B2 * u->dy[i]);
+  }
+  return result;
 }
 
-
-/* OLD VERSION
-// bilinear form for the stabilization
-template<typename Real, typename Scalar>
-Scalar bilinear_form_stabilization(int n, double *wt, Func<Real> *u, Func<Real> *v,
-        Geom<Real> *e, ExtData<Scalar> *ext)
-{
-  double h_e = e->element->get_diameter();
-  Scalar result = 0;
-  for (int i=0; i < n; i++) {
-    double b_x, b_y;
-    b(e->x[i], e->y[i], b_x, b_y);
-    double b_norm = sqrt(b_x*b_x+b_y*b_y);
-    double tau = 0; //1 / sqrt(9*pow(4*EPSILON/pow(h_e, 2), 2) + pow(2*b_norm/h_e, 2));
-    //printf("h_e = %f; tau = %f;\n", h_e, tau);
-    result += (-b_x * v->dx[i] - b_y * v->dy[i]) * tau * (+b_x * u->dx[i] + b_y * u->dy[i]);
-    }
-    return result;
-}
-*/
-
+/*
 Ord bilinear_form_stabilization_order(int n, double *wt, Func<Ord> *u, Func<Ord> *v,
         Geom<Ord> *e, ExtData<Ord> *ext)
 {
-  double b_x = 1, b_y = 1;
-  return  (-b_x * v->dx[0] - b_y * v->dy[0]) *
-          (+b_x * u->dx[0] + b_y * u->dy[0]);
+  return Ord(10); // temporary
+  return  -(B1 * v->dx[0] + B2 * v->dy[0]) * (B1 * u->dx[0] + B2 * u->dy[0]);
 }
+*/
 
 template<typename Real, typename Scalar>
 Scalar bilinear_form_shock_capturing(int n, double *wt, Func<Real> *u, Func<Real> *v,
@@ -157,10 +119,8 @@ Scalar bilinear_form_shock_capturing(int n, double *wt, Func<Real> *u, Func<Real
   double s_c = 0.9;
   Scalar result = 0;
   for (int i=0; i < n; i++) {
-    double b_x = 1;
-    double b_y = 1;
     // This R makes it nonlinear! So we need to use the Newton method:
-    double R = fabs(b_x * u->dx[i] + b_y * u->dy[i]);
+    double R = fabs(B1 * u->dx[i] + B2 * u->dy[i]);
     result += s_c * 0.5 * h_e * R *
               (u->dx[i]*v->dx[i] + u->dy[i]*v->dy[i]) /
               (sqrt(pow(u->dx[i], 2) + pow(u->dy[i], 2)) + 1.e-8);
@@ -171,8 +131,7 @@ Scalar bilinear_form_shock_capturing(int n, double *wt, Func<Real> *u, Func<Real
 Ord bilinear_form_shock_capturing_order(int n, double *wt, Func<Ord> *u, Func<Ord> *v,
         Geom<Ord> *e, ExtData<Ord> *ext)
 {
-  double b_x = 1, b_y = 1;
-  return (b_x * u->dx[0] + b_y * u->dy[0]) * (u->dx[0]*v->dx[0] + u->dy[0]*v->dy[0]) /
+  return (B1 * u->dx[0] + B2 * u->dy[0]) * (u->dx[0]*v->dx[0] + u->dy[0]*v->dy[0]) /
          (sqrt(pow(u->dx[0], 2) + pow(u->dy[0], 2)) + 1.e-8);
 }
 
@@ -184,7 +143,7 @@ int main(int argc, char* argv[])
   mloader.load("square_quad.mesh", &mesh);
   // mloader.load("square_tri.mesh", &mesh);
   for (int i=0; i<INIT_REF_NUM; i++) mesh.refine_all_elements();
-  mesh.refine_towards_boundary(2, 3);
+  mesh.refine_towards_boundary(2, INIT_REF_NUM_BDY);
 
   // initialize the shapeset and the cache
   H1Shapeset shapeset;
@@ -201,9 +160,9 @@ int main(int argc, char* argv[])
 
   // initialize the weak formulation
   WeakForm wf(1);
-  wf.add_biform(0, 0, bilinear_form, bilinear_form_order);
+  wf.add_biform(0, 0, callback(bilinear_form));
   if (STABILIZATION_ON == true) {
-    wf.add_biform(0, 0, bilinear_form_stabilization, bilinear_form_stabilization_order);
+    wf.add_biform(0, 0, callback(bilinear_form_stabilization));
   }
   if (SHOCK_CAPTURING_ON == true) {
     wf.add_biform(0, 0, bilinear_form_shock_capturing, bilinear_form_shock_capturing_order);
