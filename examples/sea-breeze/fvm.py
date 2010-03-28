@@ -5,6 +5,9 @@ from scipy.sparse import coo_matrix, lil_matrix
 from numpy import array, dot, zeros
 from numpy.linalg import norm
 import pylab
+import matplotlib
+from matplotlib.patches import Polygon
+from matplotlib.collections import PatchCollection
 
 from hermes2d import Mesh, set_verbose, MeshView
 from _numerical_flux import numerical_flux
@@ -47,6 +50,58 @@ class Plot(object):
         pylab.gca().set_aspect("equal")
         pylab.legend()
         pylab.show()
+
+def plot_state(state_on_elements, mesh):
+    patches = []
+    colors0 = []
+    colors1 = []
+    colors2 = []
+    colors3 = []
+    for e in state_on_elements:
+        print e, state_on_elements[e]
+        verts = zeros((4, 2))
+        for i in range(4):
+            coord = mesh.get_element(e).nodes_vertex[i].coord
+            verts[i, 0] = coord[0]
+            verts[i, 1] = coord[1]
+        polygon = Polygon(verts, True)
+        patches.append(polygon)
+        colors0.append(state_on_elements[e][0])
+        colors1.append(state_on_elements[e][1])
+        colors2.append(state_on_elements[e][2])
+        colors3.append(state_on_elements[e][3])
+    p1 = PatchCollection(patches, cmap=matplotlib.cm.jet, alpha=0.4)
+    p1.set_array(pylab.array(colors0))
+    p2 = PatchCollection(patches, cmap=matplotlib.cm.jet, alpha=0.4)
+    p2.set_array(pylab.array(colors1))
+    p3 = PatchCollection(patches, cmap=matplotlib.cm.jet, alpha=0.4)
+    p3.set_array(pylab.array(colors2))
+    p4 = PatchCollection(patches, cmap=matplotlib.cm.jet, alpha=0.4)
+    p4.set_array(pylab.array(colors3))
+    fig = pylab.figure()
+    ax = fig.add_subplot(221)
+    ax.add_collection(p1)
+    ax.set_aspect("equal")
+    ax.autoscale_view()
+    pylab.colorbar(p1)
+    ax = fig.add_subplot(222)
+    ax.add_collection(p2)
+    ax.set_aspect("equal")
+    ax.autoscale_view()
+    pylab.colorbar(p2)
+    ax = fig.add_subplot(223)
+    ax.add_collection(p3)
+    ax.set_aspect("equal")
+    ax.autoscale_view()
+    pylab.colorbar(p3)
+    ax = fig.add_subplot(224)
+    ax.add_collection(p4)
+    ax.set_aspect("equal")
+    ax.autoscale_view()
+    pylab.colorbar(p4)
+
+
+    pylab.show()
 
 class Edge(object):
 
@@ -270,8 +325,8 @@ def main():
     state_on_elements = {}
     for e in mesh.active_elements:
         state_on_elements[e.id] = array([1., 50., 0., 1.e5])
-    print "initial state"
-    print state_on_elements
+    #print "initial state"
+    #print state_on_elements
     tau = 1e-5
     t = 0.
     for i in range(1):
@@ -289,6 +344,7 @@ def main():
         #print state_on_elements
         t += tau
         print "t = ", t
+    plot_state(state_on_elements, mesh)
     #print "state_on_elements:"
     #print state_on_elements
     print "Done."
