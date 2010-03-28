@@ -251,11 +251,11 @@ def main():
     set_verbose(False)
     mesh = Mesh()
     print "Loading mesh..."
-    #mesh.load("GAMM-channel.mesh")
-    mesh.load("domain-quad.mesh")
+    mesh.load("GAMM-channel.mesh")
+    #mesh.load("domain-quad.mesh")
     #mesh.refine_element(0, 2)
-    #mesh.refine_element(1, 2)
-    mesh.refine_all_elements()
+    mesh.refine_element(1, 2)
+    #mesh.refine_all_elements()
     #mesh.refine_all_elements()
     #mesh.refine_all_elements()
     #mesh.refine_all_elements()
@@ -274,7 +274,7 @@ def main():
     print state_on_elements
     tau = 1e-5
     t = 0.
-    for i in range(100):
+    for i in range(1):
         A, rhs, dof_map = assembly(edges, state_on_elements, tau)
         #print "A:"
         #print A
@@ -288,8 +288,9 @@ def main():
         state_on_elements = set_fvm_solution(x, dof_map)
         #print state_on_elements
         t += tau
-        print "t = ", t, "state_on_elements:"
-        print state_on_elements
+        print "t = ", t
+    #print "state_on_elements:"
+    #print state_on_elements
     print "Done."
 
     #edges.plot()
