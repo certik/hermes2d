@@ -77,9 +77,9 @@ Scalar bilinear_form(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real>
   //result += EPSILON * int_grad_u_grad_v<Real, Scalar>(n, wt, u, v);
   for (int i=0; i < n; i++) {
     // int_grad_u_grad_v:
-    result += EPSILON * (u->dx[i] * v->dx[i] + u->dy[i] * v->dy[i]);
+    result += wt[i] * EPSILON * (u->dx[i] * v->dx[i] + u->dy[i] * v->dy[i]);
     // VERSION A:
-    result += B1 * u->dx[i] * v->val[i] + B2 * u->dy[i] * v->val[i];
+    result += wt[i] * (B1 * u->dx[i] * v->val[i] + B2 * u->dy[i] * v->val[i]);
     // VERSION B:
     //result += - B1 * u->val[i] * v->dx[i] - B2 * u->val[i] * v->dy[i];
   }
