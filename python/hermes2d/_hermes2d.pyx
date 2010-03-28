@@ -222,6 +222,18 @@ cdef class Mesh:
         return element_list
 
     @property
+    def active_elements(self):
+        """
+        Return the list of active elements (as Element instances).
+        """
+        element_list = []
+        for i in range(self.num_elements):
+            el = self.get_element(i)
+            if el.active:
+                element_list.append(el)
+        return element_list
+
+    @property
     def nodes(self):
         """
         Returns a list of nodes coordinates.
