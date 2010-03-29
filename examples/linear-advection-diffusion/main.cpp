@@ -2,11 +2,8 @@
 #include "solver_umfpack.h"
 
 
-// NOTE: THIS EXAMPLE IS STILL UNDER CONSTRUCTION
-
-
-//  This example solves a linear advection diffusion problem using variational
-//  multiscale stabilization.
+//  This example solves a linear advection diffusion problem (using optional 
+//  variational multiscale stabilization.
 //
 //  PDE: div(bu - \epsilon \nabla u) = 0 where b = (b1, b2) is a constant vector
 //
@@ -16,7 +13,7 @@
 //
 //  The following parameters can be changed:
 
-const int P_INIT = 1;                   // Initial polynomial degree of all mesh elements.
+const int P_INIT = 2;                   // Initial polynomial degree of all mesh elements.
 const bool STABILIZATION_ON = false;    // Stabilization on/off.
 const bool SHOCK_CAPTURING_ON = false;  // Shock capturing on/off.
 const int INIT_REF_NUM = 1;       // Number of initial uniform mesh refinements.
@@ -33,7 +30,7 @@ const int STRATEGY = 0;           // Adaptive strategy:
                                   //   than THRESHOLD.
                                   // More adaptive strategies can be created in adapt_ortho_h1.cpp.
 const RefinementSelectors::AllowedCandidates ADAPT_TYPE =
-RefinementSelectors::H2DRS_CAND_H_ONLY;         // Type of automatic adaptivity.
+RefinementSelectors::H2DRS_CAND_HP;         // Type of automatic adaptivity.
 const bool ISO_ONLY = false;      // Isotropic refinement flag (concerns quadrilateral elements only).
                                   // ISO_ONLY = false ... anisotropic refinement of quad elements
                                   // is allowed (default),
@@ -96,20 +93,12 @@ Scalar bilinear_form_stabilization(int n, double *wt, Func<Real> *u, Func<Real> 
   for (int i=0; i < n; i++) {
     double b_norm = sqrt(B1*B1 + B2*B2);
     double tau = 1. / sqrt(9*pow(4*EPSILON/pow(h_e, 2), 2) + pow(2*b_norm/h_e, 2));
-    // the following stabilization is most likely wrong
-    result += -wt[i]*(B1 * v->dx[i] + B2 * v->dy[i]) * tau * (B1 * u->dx[i] + B2 * u->dy[i]);
+    // FIXME: we are missing the Laplace operator in both the direct and adjoint operator,
+    // waiting for second derivatives
+    result += wt[i]*(B1 * v->dx[i] + B2 * v->dy[i]) * tau * (B1 * u->dx[i] + B2 * u->dy[i]);
   }
   return result;
 }
-
-/*
-Ord bilinear_form_stabilization_order(int n, double *wt, Func<Ord> *u, Func<Ord> *v,
-        Geom<Ord> *e, ExtData<Ord> *ext)
-{
-  return Ord(10); // temporary
-  return  -(B1 * v->dx[0] + B2 * v->dy[0]) * (B1 * u->dx[0] + B2 * u->dy[0]);
-}
-*/
 
 template<typename Real, typename Scalar>
 Scalar bilinear_form_shock_capturing(int n, double *wt, Func<Real> *u, Func<Real> *v,
@@ -177,7 +166,7 @@ int main(int argc, char* argv[])
   UmfpackSolver solver;
 
   // DOF convergence graph
-  SimpleGraph graph_dof_est;
+  SimpleGraph graph_dof_est, graph_cpu_est;
 
   // prepare selector
   RefinementSelectors::H1NonUniformHP selector(ISO_ONLY, ADAPT_TYPE, CONV_EXP, H2DRS_DEFAULT_ORDER, &shapeset);
@@ -185,10 +174,14 @@ int main(int argc, char* argv[])
   // adaptivity loop
   int it = 1, ndofs;
   bool done = false;
+  double cpu = 0.0;
   Solution sln_coarse, sln_fine;
   do
   {
     info("\n---- Adaptivity step %d ---------------------------------------------\n", it++);
+
+    // time measurement
+    begin_time();
 
     // solve the coarse mesh problem
     LinSystem ls(&wf, &solver);
@@ -202,22 +195,30 @@ int main(int argc, char* argv[])
     rs.assemble();
     rs.solve(1, &sln_fine);
 
+    // time measurement
+    cpu += end_time();
+
     // show fine mesh solution
     // view the solution and mesh
     oview.show(&space);
     sview.show(&sln_coarse);
     sview2.show(&sln_fine);
-    sview.wait_for_keypress();
+    //sview.wait_for_keypress();
     //break;
     
+    // time measurement
+    begin_time();
+
     // calculate error estimate wrt. fine mesh solution
     H1AdaptHP hp(1, &space);
     double err_est = hp.calc_error(&sln_coarse, &sln_fine) * 100;
     info("Estimate of error: %g%%", err_est);
 
-    // add entries to DOF convergence graphs
+    // add entries to DOF and CPU convergence graphs
     graph_dof_est.add_values(space.get_num_dofs(), err_est);
     graph_dof_est.save("conv_dof_est.dat");
+    graph_cpu_est.add_values(cpu, err_est);
+    graph_cpu_est.save("conv_cpu_est.dat");
 
     // if err_est too large, adapt the mesh
     if (err_est < ERR_STOP) done = true;
@@ -228,8 +229,12 @@ int main(int argc, char* argv[])
       ndofs = space.assign_dofs();
       if (ndofs >= NDOF_STOP) done = true;
     }
+
+    // time measurement
+    cpu += end_time();
   }
   while (done == false);
+  verbose("Total running time: %g sec", cpu);
 
   // show the fine solution - this is the final result
   sview.set_title("Final solution");
