@@ -342,7 +342,7 @@ boundary conditions:
 
 For Poisson equation:
 
- #. (positive voltage): $\frac{\partial \phi}{\partial n} = -E_{applied}$. We cannot apply just Dirichlet boundary, i.e. $\phi = 3V$ as then :eq:`nernstplanck` would not converge in time. It means that the charge accumulation near the boundary would increase continually. 
+ #. (positive voltage): Dirichlet boundary $\phi = 1V$.
  #. (ground): Dirichlet boundary $\phi = 0$.
  #. (insulation): Neumann boundary $\frac{\partial \phi}{\partial n} = 0$.
 
@@ -425,7 +425,7 @@ The weak form of equation :eq:`poissonsimple` with test function $u$ is:
 	:label: poissonweak1
 
 		-\int_{\Omega}\Delta\phi u d\mathbf{x}-\int_{\Omega}LCu d\mathbf{x}+
-		\int_{\Omega}LC_{0}u d\mathbf{x}+\int_{\Gamma}\frac{\partial \phi}{\partial n}u d\mathbf{S}=0.
+		\int_{\Omega}LC_{0}u d\mathbf{x}=0.
 
 After expanding the Laplace' terms, the equation becomes:
 
@@ -433,9 +433,7 @@ After expanding the Laplace' terms, the equation becomes:
 	:label: poissonweak2
 
 		\int_{\Omega}\nabla\phi\cdot\nabla u d\mathbf{x}-\int_{\Omega}LCu d\mathbf{x}+
-		\int_{\Omega}LC_{0}u d\mathbf{x} +\int_{\Gamma}\frac{\partial \phi}{\partial n}u d\mathbf{S}=0,
-
-where the last term could be written $-\int_{\Gamma}E_{applied}u$.
+		\int_{\Omega}LC_{0}u d\mathbf{x}=0,
 
 Jacobian matrix
 ^^^^^^^^^^^^^^^
@@ -472,8 +470,7 @@ and equation :eq:`poissonweak2` becomes:
 	:label: Fiphi
 
 		F_i^{\phi}(Y) = \int_{\Omega} \nabla \phi^{n+1} \cdot \nabla v_i^{\phi} d\mathbf{x} 
-		- \int_{\Omega} LC^{n+1}v_i^{\phi} d\mathbf{x} + \int_{\Omega} LC_0 v_i^{\phi} d\mathbf{x}
-		- \int_{\Gamma} E_{applied}v_i^{\phi} d\mathbf{x}.
+		- \int_{\Omega} LC^{n+1}v_i^{\phi} d\mathbf{x} + \int_{\Omega} LC_0 v_i^{\phi} d\mathbf{x}.
 
 The Jacobian matrix $DF/DY$ has $2\times 2$ block structure, with blocks 
 corresponding to
