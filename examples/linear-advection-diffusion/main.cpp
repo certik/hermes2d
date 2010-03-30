@@ -13,11 +13,11 @@
 //
 //  The following parameters can be changed:
 
-const int P_INIT = 2;                   // Initial polynomial degree of all mesh elements.
+const int P_INIT = 1;                   // Initial polynomial degree of all mesh elements.
 const bool STABILIZATION_ON = false;    // Stabilization on/off.
 const bool SHOCK_CAPTURING_ON = false;  // Shock capturing on/off.
 const int INIT_REF_NUM = 1;       // Number of initial uniform mesh refinements.
-const int INIT_REF_NUM_BDY = 5;   // Number of initial uniform mesh refinements in the boundary layer region.
+const int INIT_REF_NUM_BDY = 2;   // Number of initial uniform mesh refinements in the boundary layer region.
 const double THRESHOLD = 0.3;     // This is a quantitative parameter of the adapt(...) function and
                                   // it has different meanings for various adaptive strategies (see below).
 const int STRATEGY = 0;           // Adaptive strategy:
@@ -71,31 +71,32 @@ template<typename Real, typename Scalar>
 Scalar bilinear_form(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
   Scalar result = 0;
-  //result += EPSILON * int_grad_u_grad_v<Real, Scalar>(n, wt, u, v);
+    // epsilon times int_grad_u_grad_v:
+  result += EPSILON * int_grad_u_grad_v<Real, Scalar>(n, wt, u, v);
   for (int i=0; i < n; i++) {
-    // int_grad_u_grad_v:
-    result += wt[i] * EPSILON * (u->dx[i] * v->dx[i] + u->dy[i] * v->dy[i]);
-    // VERSION A:
-    //result += wt[i] * (B1 * u->dx[i] * v->val[i] + B2 * u->dy[i] * v->val[i]);
-    // VERSION B:
+    // VERSION A (convective term integrated by parts):
     result += - wt[i] * (B1 * u->val[i] * v->dx[i] + B2 * u->val[i] * v->dy[i]);
+    // VERSION B (convective term not integrated by parts):
+    //result += wt[i] * (B1 * u->dx[i] * v->val[i] + B2 * u->dy[i] * v->val[i]);
   }
   return result;
 }
 
-// bilinear form for the stabilization
+// bilinear form for the variational multiscale stabilization
 template<typename Real, typename Scalar>
 Scalar bilinear_form_stabilization(int n, double *wt, Func<Real> *u, Func<Real> *v,
         Geom<Real> *e, ExtData<Scalar> *ext)
 {
   double h_e = e->element->get_diameter();
   Scalar result = 0;
+  double Laplace_u = 0, Laplace_v = 0; 
   for (int i=0; i < n; i++) {
     double b_norm = sqrt(B1*B1 + B2*B2);
     double tau = 1. / sqrt(9*pow(4*EPSILON/pow(h_e, 2), 2) + pow(2*b_norm/h_e, 2));
-    // FIXME: we are missing the Laplace operator in both the direct and adjoint operator,
-    // waiting for second derivatives
-    result += wt[i]*(B1 * v->dx[i] + B2 * v->dy[i]) * tau * (B1 * u->dx[i] + B2 * u->dy[i]);
+    // FIXME: Laplace operator in both the direct and adjoint operator is missing,
+    // this needs to be fixed after we have second derivatives of shape functions.
+    result += wt[i]*(-B1 * v->dx[i] - B2 * v->dy[i] - EPSILON * Laplace_v) * tau * 
+                     (B1 * u->dx[i] + B2 * u->dy[i] - EPSILON * Laplace_u);
   }
   return result;
 }
@@ -204,8 +205,7 @@ int main(int argc, char* argv[])
     sview.show(&sln_coarse);
     sview2.show(&sln_fine);
     //sview.wait_for_keypress();
-    //break;
-    
+ 
     // time measurement
     begin_time();
 
@@ -224,8 +224,6 @@ int main(int argc, char* argv[])
     if (err_est < ERR_STOP) done = true;
     else {
       hp.adapt(THRESHOLD, STRATEGY, &selector, MESH_REGULARITY);
-      //mesh.refine_all_elements();
-      //space.set_uniform_order(P_INIT);
       ndofs = space.assign_dofs();
       if (ndofs >= NDOF_STOP) done = true;
     }
