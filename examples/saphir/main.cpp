@@ -1,3 +1,5 @@
+#define HERMES2D_REPORT_ALL
+#define HERMES2D_REPORT_FILE "application.log"
 #include "hermes2d.h"
 #include "solver_umfpack.h"
 
@@ -144,14 +146,14 @@ int main(int argc, char* argv[])
   // Adaptivity loop
   int it = 1, ndofs;
   bool done = false;
-  double cpu = 0.0;
+  TimePeriod cpu_time;
   Solution sln_coarse, sln_fine;
   do
     {
-    info("\n---- Adaptivity step %d ---------------------------------------------\n", it++);
+    info("!---- Adaptivity step %d ---------------------------------------------", it); it++;
 
-    // Time measurement
-    begin_time();
+    // time measurement
+    cpu_time.tick(H2D_SKIP);
 
     // Solve the coarse mesh problem
     LinSystem ls(&wf, &solver);
@@ -161,14 +163,14 @@ int main(int argc, char* argv[])
     ls.solve(1, &sln_coarse);
 
     // Time measurement
-    cpu += end_time();
+    cpu_time.tick();
 
     // View the solution and mesh
     sview.show(&sln_coarse);
     oview.show(&space);
 
-    // Time measurement
-    begin_time();
+    // time measurement
+    cpu_time.tick(H2D_SKIP);
 
     // Solve the fine mesh problem
     RefSystem rs(&ls);
@@ -178,6 +180,11 @@ int main(int argc, char* argv[])
     // Calculate error estimate wrt. fine mesh solution
     H1AdaptHP hp(1, &space);
     double err_est = hp.calc_error(&sln_coarse, &sln_fine) * 100;
+
+    // time measurement
+    cpu_time.tick();
+
+    // report results
     info("Estimate of error: %g%%", err_est);
 
     // add entry to DOF convergence graph
@@ -185,8 +192,11 @@ int main(int argc, char* argv[])
     graph_dof.save("conv_dof.dat");
 
     // add entry to CPU convergence graph
-    graph_cpu.add_values(cpu, err_est);
+    graph_cpu.add_values(cpu_time.accumulated(), err_est);
     graph_cpu.save("conv_cpu.dat");
+
+    // time measurement
+    cpu_time.tick(H2D_SKIP);
 
     // If err_est too large, adapt the mesh
     if (err_est < ERR_STOP) done = true;
@@ -197,10 +207,10 @@ int main(int argc, char* argv[])
     }
 
     // Time measurement
-    cpu += end_time();
+    cpu_time.tick();
   }
   while (done == false);
-  verbose("Total running time: %g sec", cpu);
+  verbose("Total running time: %g s", cpu_time.accumulated());
 
   // Show the fine solution - this is the final result
   sview.set_title("Final solution");
@@ -208,7 +218,7 @@ int main(int argc, char* argv[])
   oview.set_title("Final orders");
   oview.show(&space);
 
-  // Wait for keyboard or mouse input
+  // wait for all views to be closed
   View::wait();
   return 0;
 }

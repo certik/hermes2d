@@ -1,3 +1,5 @@
+#define HERMES2D_REPORT_ALL
+#define HERMES2D_REPORT_FILE "application.log"
 #include "hermes2d.h"
 #include "solver_umfpack.h"
 
@@ -219,7 +221,7 @@ int main(int argc, char* argv[])
   {
     TIME += TAU;
 
-    info("\n---- Time step %d, time = %g:\n", i, TIME);
+    info("---- Time step %d, time = %g:", i, TIME);
 
     // this is needed to update the time-dependent boundary conditions
     ndofs = 0;
@@ -265,7 +267,7 @@ int main(int argc, char* argv[])
     }
   }
 
-  // wait for keyboard or mouse input
+  // wait for all views to be closed
   View::wait();
   return 0;
 }

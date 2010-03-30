@@ -1,3 +1,5 @@
+#define HERMES2D_REPORT_ALL
+#define HERMES2D_REPORT_FILE "application.log"
 #include "hermes2d.h"
 #include "solver_umfpack.h"
 
@@ -155,21 +157,20 @@ int main(int argc, char* argv[])
   // Adaptivity loop
   int it = 1, ndofs;
   bool done = false;
-  double cpu = 0.0;
+  TimePeriod cpu_time;
   Solution x_sln_coarse, y_sln_coarse, t_sln_coarse;
   Solution x_sln_fine, y_sln_fine, t_sln_fine;
   do
   {
-    info("\n---- Adaptivity step %d:\n", it++);
+    info("!---- Adaptivity step %d ---------------------------------------------", it); it++;
 
     // time measurement
-    begin_time();
+    cpu_time.tick(H2D_SKIP);
 
     //calculating the number of degrees of freedom
     ndofs = xdisp.assign_dofs(0);
     ndofs += ydisp.assign_dofs(ndofs);
     ndofs += temp.assign_dofs(ndofs);
-    printf("xdof=%d, ydof=%d, tdof=%d\n", xdisp.get_num_dofs(), ydisp.get_num_dofs(), temp.get_num_dofs());
 
     // solve the coarse mesh problem
     LinSystem ls(&wf, &solver);
@@ -179,7 +180,10 @@ int main(int argc, char* argv[])
     ls.solve(3, &x_sln_coarse, &y_sln_coarse, &t_sln_coarse);
 
     // time measurement
-    cpu += end_time();
+    cpu_time.tick();
+
+    // report number of dofs
+    info("xdof=%d, ydof=%d, tdof=%d", xdisp.get_num_dofs(), ydisp.get_num_dofs(), temp.get_num_dofs());
 
     // view the solution -- this can be slow; for illustration only
     xord.show(&xdisp);
@@ -191,7 +195,7 @@ int main(int argc, char* argv[])
     tview.show(&t_sln_coarse, EPS_HIGH);
 
     // time measurement
-    begin_time();
+    cpu_time.tick(H2D_SKIP);
 
     // solve the fine mesh problem
     RefSystem rs(&ls);
@@ -209,19 +213,22 @@ int main(int argc, char* argv[])
     hp.set_biform(2, 2, bilinear_form_2_2<scalar, scalar>, bilinear_form_2_2<Ord, Ord>);
     double err_est = hp.calc_error_n(3, &x_sln_coarse, &y_sln_coarse, &t_sln_coarse, &x_sln_fine, &y_sln_fine, &t_sln_fine) * 100;
 
-    info("\nEstimate of error: %g%%", err_est);
-
     // time measurement
-    cpu += end_time();
+    cpu_time.tick();
 
-    // add entries to convergence graphs
+    // report results
+    info("Estimate of error: %g%%", err_est);
+
+    // add entry to DOF convergence graph
     graph_dof.add_values(x_sln_coarse.get_num_dofs() + y_sln_coarse.get_num_dofs() + t_sln_coarse.get_num_dofs(), err_est);
-    graph_cpu.add_values(cpu, err_est);
     graph_dof.save("conv_dof.dat");
+
+    // add entry to CPU convergence graph
+    graph_cpu.add_values(cpu_time.accumulated(), err_est);
     graph_cpu.save("conv_cpu.dat");
 
     // time measurement
-    begin_time();
+    cpu_time.tick(H2D_SKIP);
 
     // if err_est too large, adapt the mesh
     if (err_est < ERR_STOP) done = true;
@@ -233,10 +240,10 @@ int main(int argc, char* argv[])
     }
 
     // time measurement
-    cpu += end_time();
+    cpu_time.tick();
   }
   while (!done);
-  verbose("Total running time: %g sec", cpu);
+  verbose("Total running time: %g s", cpu_time.accumulated());
 
   // show the fine solution - this is the final result
   VonMisesFilter stress_fine(&x_sln_fine, &y_sln_fine, mu, lambda);
@@ -244,7 +251,7 @@ int main(int argc, char* argv[])
   sview.set_min_max_range(0, 3e4);
   sview.show(&stress_fine);
 
-  // wait for keypress or mouse input
+  // wait for all views to be closed
   View::wait();
   return 0;
 };

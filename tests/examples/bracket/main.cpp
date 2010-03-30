@@ -156,15 +156,15 @@ int main(int argc, char* argv[])
   // adaptivity loop
   int it = 1;
   bool done = false;
-  double cpu = 0.0;
+  TimePeriod cpu_time;
   Solution x_sln_coarse, y_sln_coarse;
   Solution x_sln_fine, y_sln_fine;
   do
   {
-    info("\n---- Adaptivity step %d ---------------------------------------------\n", it++);
+    info("!---- Adaptivity step %d ---------------------------------------------", it); it++;
 
     // time measurement
-    begin_time();
+    cpu_time.tick(H2D_SKIP);
 
     //calculating the number of degrees of freedom
     ndofs = xdisp.assign_dofs();
@@ -177,12 +177,6 @@ int main(int argc, char* argv[])
     ls.set_pss(2, &xpss, &ypss);
     ls.assemble();
     ls.solve(2, &x_sln_coarse, &y_sln_coarse);
-
-    // time measurement
-    cpu += end_time();
-
-    // time measurement
-    begin_time();
 
     // solve the fine mesh problem
     RefSystem rs(&ls);
@@ -197,10 +191,14 @@ int main(int argc, char* argv[])
     hp.set_biform(1, 1, bilinear_form_1_1<scalar, scalar>, bilinear_form_1_1<Ord, Ord>);
     double err_est = hp.calc_error_2(&x_sln_coarse, &y_sln_coarse, &x_sln_fine, &y_sln_fine) * 100;
 
+    // time measurement
+    cpu_time.tick();
+
+    // report results
     info("\nEstimate of error: %g%%", err_est);
 
     // time measurement
-    cpu += end_time();
+    cpu_time.tick(H2D_SKIP);
 
     // if err_est too large, adapt the mesh
     if (err_est < ERR_STOP) done = true;
@@ -211,9 +209,11 @@ int main(int argc, char* argv[])
       if (ndofs >= NDOF_STOP) done = true;
     }
 
+    // time measurement
+    cpu_time.tick();
   }
   while (!done);
-  verbose("Total running time: %g sec", cpu);
+  verbose("Total running time: %g s", cpu_time.accumulated());
 
 #define ERROR_SUCCESS       0
 #define ERROR_FAILURE      -1

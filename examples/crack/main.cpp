@@ -1,3 +1,5 @@
+#define HERMES2D_REPORT_ALL
+#define HERMES2D_REPORT_FILE "application.log"
 #include "hermes2d.h"
 #include "solver_umfpack.h"
 
@@ -158,14 +160,14 @@ int main(int argc, char* argv[])
   // adaptivity loop
   int it = 1;
   bool done = false;
-  double cpu = 0.0;
+  TimePeriod cpu_time;
   Solution sln_x_coarse, sln_y_coarse, sln_x_fine, sln_y_fine;
   do
   {
-    info("\n---- Adaptivity step %d ---------------------------------------------\n", it++);
+    info("!---- Adaptivity step %d ---------------------------------------------", it); it++;
 
     // time measurement
-    begin_time();
+    cpu_time.tick(H2D_SKIP);
 
     // solve the coarse mesh problem
     LinSystem ls(&wf, &solver);
@@ -175,7 +177,7 @@ int main(int argc, char* argv[])
     ls.solve(2, &sln_x_coarse, &sln_y_coarse);
 
     // time measurement
-    cpu += end_time();
+    cpu_time.tick();
 
     // visualize the solution
     VonMisesFilter stress(&sln_x_coarse, &sln_y_coarse, mu, lambda);
@@ -185,7 +187,7 @@ int main(int argc, char* argv[])
     yoview.show(&ydisp);
 
     // time measurement
-    begin_time();
+    cpu_time.tick(H2D_SKIP);
 
     // solve the fine (reference) problem
     RefSystem rs(&ls);
@@ -199,6 +201,11 @@ int main(int argc, char* argv[])
     hp.set_biform(1, 0, bilinear_form_1_0<scalar, scalar>, bilinear_form_1_0<Ord, Ord>);
     hp.set_biform(1, 1, bilinear_form_1_1<scalar, scalar>, bilinear_form_1_1<Ord, Ord>);
     double err_est = hp.calc_error_2(&sln_x_coarse, &sln_y_coarse, &sln_x_fine, &sln_y_fine) * 100;
+
+    // time measurement
+    cpu_time.tick();
+
+    // report results
     info("Error estimate: %g %%", err_est);
 
     // add entry to DOF convergence graph
@@ -206,8 +213,11 @@ int main(int argc, char* argv[])
     graph_dof.save("conv_dof.dat");
 
     // add entry to CPU convergence graph
-    graph_cpu.add_values(cpu, err_est);
+    graph_cpu.add_values(cpu_time.accumulated(), err_est);
     graph_cpu.save("conv_cpu.dat");
+
+    // time measurement
+    cpu_time.tick(H2D_SKIP);
 
     // if err_est too large, adapt the mesh
     if (err_est < ERR_STOP || xdisp.get_num_dofs() + ydisp.get_num_dofs() >= NDOF_STOP) done = true;
@@ -221,13 +231,13 @@ int main(int argc, char* argv[])
     }
 
     // time measurement
-    cpu += end_time();
+    cpu_time.tick();
   }
   while (!done);
 
-  verbose("Total running time: %g sec", cpu);
+  verbose("Total running time: %g s", cpu_time.accumulated());
 
-  // wait for keypress or mouse input
-  View::wait("Waiting for all views to be closed.");
+  // wait for all views to be closed
+  View::wait();
   return 0;
 }

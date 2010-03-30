@@ -17,6 +17,8 @@
 
 using namespace std;
 
+#define H2D_LOG_FILE_DELIM_SIZE 80
+
 const std::string get_quad_order_str(const int quad_order) {
   std::stringstream str;
   str << "(H:" << get_h_order(quad_order) << ";V:" << get_v_order(quad_order) << ")";
@@ -45,7 +47,84 @@ public:
   void enter() { pthread_mutex_lock(&mutex); }; ///< enters protected section
   void leave() { pthread_mutex_unlock(&mutex); }; ///< leaves protected section
 };
-LoggerMonitor logger_monitor; ///< Monitor that protects logging function.
+static LoggerMonitor logger_monitor; ///< Monitor that protects logging function.
+
+static map<string, bool> logger_written; ///< List of all logs which were already written.
+
+static bool write_console(const char code, const bool emphasize, const char* text) { ///< Writes text to console, being fancy.
+#ifdef WIN32
+  HANDLE h_console = GetStdHandle(STD_OUTPUT_HANDLE);
+  if (h_console == INVALID_HANDLE_VALUE)
+    return false;
+
+  //read current console settings
+  CONSOLE_SCREEN_BUFFER_INFO console_info;
+  if (!GetConsoleScreenBufferInfo(h_console, &console_info))
+    return false;
+
+  //generate console settings
+  WORD console_attr_red = FOREGROUND_RED, console_attr_green = FOREGROUND_GREEN, console_attr_blue = FOREGROUND_BLUE;
+  if (emphasize) { //invert foreground and background
+    console_attr_red = BACKGROUND_RED;
+    console_attr_green = BACKGROUND_GREEN;
+    console_attr_blue = BACKGROUND_BLUE;
+  }
+  WORD console_attrs = 0;
+  switch(code) {
+    case H2D_EC_ERROR:
+    case H2D_EC_ASSERT: console_attrs |= console_attr_red; break;
+    case H2D_EC_WARNING: console_attrs |= console_attr_red | console_attr_green; break;
+    case H2D_EC_INFO:
+    case H2D_EC_VERBOSE: console_attrs |= console_attr_red | console_attr_green | console_attr_blue; break;
+    case H2D_EC_TRACE: console_attrs |= console_attr_blue; break;
+    case H2D_EC_TIME: console_attrs |= console_attr_green | console_attr_blue; break;
+    case H2D_EC_DEBUG: console_attrs |= console_attr_red | console_attr_blue; break;
+    default: error("uknown error code: '%c'", code); break;
+  }
+
+  //set new console settings
+  SetConsoleTextAttribute(h_console, console_attrs);
+
+  //write text
+  DWORD num_written;
+  BOOL write_success = WriteConsoleA(h_console, text, strlen(text), &num_written, NULL);
+
+  //return previous settings
+  SetConsoleTextAttribute(h_console, console_info.wAttributes);
+
+  if (write_success)
+    return true;
+  else
+    return false;
+#else //Linux platform
+# define FOREGROUND_RED 31
+# define FOREGROUND_GREEN 32
+# define FOREGROUND_BLUE 34
+  //console color code
+  int console_attrs = 0;
+  switch(code) {
+    case H2D_EC_ERROR:
+    case H2D_EC_ASSERT: console_attrs |= FOREGROUND_RED; break;
+    case H2D_EC_WARNING: console_attrs |= FOREGROUND_RED | FOREGROUND_GREEN; break;
+    case H2D_EC_INFO:
+    case H2D_EC_VERBOSE: console_attrs |= FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE; break;
+    case H2D_EC_TRACE: console_attrs |= FOREGROUND_BLUE; break;
+    case H2D_EC_TIME: console_attrs |= FOREGROUND_GREEN | FOREGROUND_BLUE; break;
+    case H2D_EC_DEBUG: console_attrs |= FOREGROUND_RED | FOREGROUND_BLUE; break;
+    default: error("uknown error code: '%c'", code); break;
+  }
+  printf("\033[%dm", console_attrs);
+
+  //emphasize
+  if (emphasize)
+    printf("\033[7m");
+
+  //print text and reset settings
+  printf("%s\033[0m", text);
+
+  return true;
+#endif
+}
 
 HERMES2D_API bool __h2d_log_message_if(bool cond, const __h2d_log_info& info, const char* msg, ...) {
   if (cond) {
@@ -54,34 +133,54 @@ HERMES2D_API bool __h2d_log_message_if(bool cond, const __h2d_log_info& info, co
     //print message to a buffer (since vfprintf modifies arglist such that it becomes unusable)
     //not safe, but C does not offer any other multiplatform solution. Since vsnprintf modifies the var-args, it cannot be called repeatedly.
     #define BUF_SZ 2048
+    bool emphasize = false;
+    bool new_block = true;
     char text[BUF_SZ];
     char* text_contents = text + 1;
-    if (msg[0] == ' ')
+    if (msg[0] == '!') {
+      emphasize = true;
+      msg++;
+    }
+    if (msg[0] == ' ') {
       text[0] = ' ';
+      new_block = false;
+    }
     else {
       text[0] = info.code;
       text[1] = ' ';
       text_contents++;
+      new_block = true;
     }
+
+    //print the message
     va_list arglist;
     va_start(arglist, msg);
     vsprintf(text_contents, msg, arglist);
     va_end(arglist);
 
-    //print location
-    ostringstream location;
-    //if (info.src_function != NULL)
-    //  location << '(' << info.src_function << ')';
-
     //print the message
-    printf("%s %s\n", text, location.str().c_str());
+    if (emphasize && new_block)
+      printf("\n");
+    if (!write_console(info.code, emphasize, text))
+      printf("%s", text); //safe fallback
+    printf("\n"); //write a new line
 
     //print to file
     if (info.log_file != NULL) {
       FILE* file = fopen(info.log_file, "at");
       if (file != NULL)
       {
-        //build a long verions of location
+        //check whether log file was already written
+        map<string, bool>::const_iterator found = logger_written.find(info.log_file);
+        if (found == logger_written.end()) { //first write, write delimited to a file
+          logger_written[info.log_file] = true;
+          fprintf(file, "\n");
+          for(int i = 0; i < H2D_LOG_FILE_DELIM_SIZE; i++)
+            fprintf(file, "-");
+          fprintf(file, "\n\n");
+        }
+
+        //build a long version of location
         ostringstream location;
         location << '(';
         if (info.src_function != NULL) {
@@ -101,6 +200,8 @@ HERMES2D_API bool __h2d_log_message_if(bool cond, const __h2d_log_info& info, co
         strftime(time_buf, BUF_SZ, "%y%m%d-%H:%M", now_tm);
 
         //write
+        if (emphasize && new_block)
+          fprintf(file, "\n\n");
         fprintf(file, "%s\t%s %s\n", time_buf, text, location.str().c_str());
         fclose(file);
       }
@@ -138,49 +239,14 @@ public:
     printf("      developed by the hp-FEM group at UNR\n");
     printf("     and distributed under the GPL license.\n");
     printf("    For more details visit http://hpfem.org/.\n");
-    printf("-------------------------------------------------\n");
+    printf("- - - - - - - - - - - - - - - - - - - - - - - - -\n");
     printf("The message can be removed by rebulding Hermesd2D\n");
+    printf("-------------------------------------------------\n");
     fflush(stdout);
   }
 };
 __h2d_logo __h2d_logo_instance;
 #endif
-
-//// timing stuff //////////////////////////////////////////////////////////////////////////////////
-
-/*#ifndef WIN32
-  #include <sys/time.h>
-#else*/
-  #include <time.h>
-//#endif
-
-static const int max_stack = 50;
-static clock_t tick_stack[max_stack];
-static int ts_top = 0;
-
-HERMES2D_API void __h2d_begin_time() // TODO: make this return wall time on both Linux and Win32
-{
-  if (ts_top < max_stack) tick_stack[ts_top] = clock();
-  else warn("Timing stack overflow.");
-  ts_top++;
-}
-
-
-HERMES2D_API double __h2d_cur_time()
-{
-  if (!ts_top) { warn("Called without begin_time()."); return -1.0; }
-  if (ts_top >= max_stack) return -1.0;
-  return (double) (clock() - tick_stack[ts_top-1]) / CLOCKS_PER_SEC;
-}
-
-
-HERMES2D_API double __h2d_end_time()
-{
-  if (!ts_top) { warn("Called without begin_time()."); return -1.0; }
-  ts_top--;
-  if (ts_top >= max_stack) return -1.0;
-  return (double) (clock() - tick_stack[ts_top]) / CLOCKS_PER_SEC;
-}
 
 //// runtime report control varibles //////////////////////////////////////////////////////////////////////////////////
 HERMES2D_API bool __h2d_report_warn = true;

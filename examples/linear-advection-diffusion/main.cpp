@@ -1,3 +1,5 @@
+#define HERMES2D_REPORT_ALL
+#define HERMES2D_REPORT_FILE "application.log"
 #include "hermes2d.h"
 #include "solver_umfpack.h"
 
@@ -188,17 +190,19 @@ int main(int argc, char* argv[])
   // prepare selector
   RefinementSelectors::H1NonUniformHP selector(ISO_ONLY, ADAPT_TYPE, CONV_EXP, H2DRS_DEFAULT_ORDER, &shapeset);
 
+  // time measurement
+  TimePeriod cpu_time;
+
   // adaptivity loop
   int it = 1, ndofs;
   bool done = false;
-  double cpu = 0.0;
   Solution sln_coarse, sln_fine;
   do
   {
-    info("\n---- Adaptivity step %d ---------------------------------------------\n", it++);
+    info("!---- Adaptivity step %d ---------------------------------------------", it); it++;
 
     // time measurement
-    begin_time();
+    cpu_time.tick(H2D_SKIP);
 
     // solve the coarse mesh problem
     LinSystem ls(&wf, &solver);
@@ -216,28 +220,37 @@ int main(int argc, char* argv[])
     rs.solve(1, &sln_fine);
 
     // time measurement
-    cpu += end_time();
+    cpu_time.tick();
 
     // show fine mesh solution
-    // view the solution and mesh
     oview.show(&space);
     sview.show(&sln_coarse);
     sview2.show(&sln_fine);
     //sview.wait_for_keypress();
 
     // time measurement
-    begin_time();
+    cpu_time.tick(H2D_SKIP);
 
     // calculate error estimate wrt. fine mesh solution
     H1AdaptHP hp(1, &space);
     double err_est = hp.calc_error(&sln_coarse, &sln_fine) * 100;
+
+    // time measurement
+    cpu_time.tick();
+
+    // report results
     info("Estimate of error: %g%%", err_est);
 
-    // add entries to DOF and CPU convergence graphs
+    // add entry to DOF convergence graph
     graph_dof_est.add_values(space.get_num_dofs(), err_est);
     graph_dof_est.save("conv_dof_est.dat");
-    graph_cpu_est.add_values(cpu, err_est);
+
+    // add entry to CPU convergence graph
+    graph_cpu_est.add_values(cpu_time.accumulated(), err_est);
     graph_cpu_est.save("conv_cpu_est.dat");
+
+    // time measurement
+    cpu_time.tick(H2D_SKIP);
 
     // if err_est too large, adapt the mesh
     if (err_est < ERR_STOP) done = true;
@@ -248,16 +261,16 @@ int main(int argc, char* argv[])
     }
 
     // time measurement
-    cpu += end_time();
+    cpu_time.tick();
   }
   while (done == false);
-  verbose("Total running time: %g sec", cpu);
+  verbose("Total running time: %s", cpu_time.accumulated_str().c_str());
 
   // show the fine solution - this is the final result
   sview.set_title("Final solution");
   sview.show(&sln_fine);
 
-  // wait for keyboard or mouse input
+  // wait for all views to be closed
   View::wait();
   return 0;
 }

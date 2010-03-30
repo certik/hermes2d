@@ -16,7 +16,8 @@ set(SRC
        ref_selectors/selector.cpp ref_selectors/optimum_selector.cpp ref_selectors/proj_based_selector.cpp ref_selectors/h1_uniform_hp.cpp ref_selectors/h1_nonuniform_hp.cpp
        adapt_h1.cpp adapt_ortho_h1.cpp adapt_ortho_hcurl.cpp adapt_ortho_l2.cpp
 
-       common.cpp matrix.cpp hermes2d.cpp weakform.cpp linsystem.cpp
+       common.cpp common_time_period.cpp
+	   matrix.cpp hermes2d.cpp weakform.cpp linsystem.cpp
        feproblem.cpp solver_nox.cpp solver_epetra.cpp solver_aztecoo.cpp
        precond_ml.cpp precond_ifpack.cpp
        refsystem.cpp nonlinsystem.cpp forms.cpp
@@ -51,6 +52,11 @@ endmacro(MAKE_PATH)
 # Sets linker settings
 macro(LIBRARY_SETTINGS BIN)
     target_link_libraries(${BIN} ${JUDY_LIBRARY} ${PTHREAD_LIBRARY})
+
+    if(NOT MSVC)
+        target_link_libraries(${BIN} "rt")
+    endif(NOT MSVC)
+
     if(WITH_GLUT)
         target_link_libraries(${BIN} ${GLUT_LIBRARY})
         target_link_libraries(${BIN} ${GLEW_LIBRARY})

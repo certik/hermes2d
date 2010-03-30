@@ -107,14 +107,14 @@ int main(int argc, char* argv[])
   // adaptivity loop
   int it = 1, ndofs;
   bool done = false;
-  double cpu = 0.0;
+  TimePeriod cpu_time;
   Solution sln_coarse, sln_fine;
   do
   {
-    info("\n---- Adaptivity step %d ---------------------------------------------\n", it++);
+    info("!---- Adaptivity step %d ---------------------------------------------", it); it++;
 
     // time measurement
-    begin_time();
+    cpu_time.tick(H2D_SKIP);
 
     // solve the coarse mesh problem
     LinSystem ls(&wf, &solver);
@@ -122,12 +122,6 @@ int main(int argc, char* argv[])
     ls.set_pss(1, &pss);
     ls.assemble();
     ls.solve(1, &sln_coarse);
-
-    // time measurement
-    cpu += end_time();
-
-    // time measurement
-    begin_time();
 
     // solve the fine mesh problem
     RefSystem rs(&ls);
@@ -137,18 +131,23 @@ int main(int argc, char* argv[])
     // calculate element errors and total error estimate
     H1OrthoHP hp(1, &space);
     double err_est = hp.calc_error(&sln_coarse, &sln_fine) * 100;
-    info("Error estimate: %g%%", err_est);
 
     // time measurement
-    cpu += end_time();
+    cpu_time.tick();
+
+    // report results
+    info("Error estimate: %g%%", err_est);
 
     // add entry to DOF convergence graph
     graph.add_values(0, space.get_num_dofs(), err_est);
     graph.save("conv_dof.gp");
 
     // add entry to CPU convergence graph
-    graph_cpu.add_values(0, cpu, err_est);
+    graph_cpu.add_values(0, cpu_time.accumulated(), err_est);
     graph_cpu.save("conv_cpu.gp");
+
+    // time measurement
+    cpu_time.tick(H2D_SKIP);
 
     // if err_est too large, adapt the mesh
     if (err_est < ERR_STOP) done = true;
@@ -157,9 +156,12 @@ int main(int argc, char* argv[])
       ndofs = space.assign_dofs();
       if (ndofs >= NDOF_STOP) done = true;
     }
+
+    // time measurement
+    cpu_time.tick();
   }
   while (done == false);
-  verbose("Total running time: %g sec", cpu);
+  verbose("Total running time: %g s", cpu_time.accumulated());
 
 #define ERROR_SUCCESS                               0
 #define ERROR_FAILURE                               -1

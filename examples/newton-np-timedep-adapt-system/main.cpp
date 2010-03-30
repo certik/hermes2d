@@ -130,7 +130,7 @@ Scalar linear_form_surf_top(int n, double *wt, Func<Real> *v, Geom<Real> *e, Ext
 /** Nonadaptive solver.*/
 void solveNonadaptive(Mesh &mesh, NonlinSystem &nls,
     Solution &Cp, Solution &Ci, Solution &phip, Solution &phii) {
-  begin_time();
+  TimePeriod cpu_time;
 
   //VectorView vview("electric field [V/m]", 0, 0, 600, 600);
   ScalarView Cview("Concentration [mol/m3]", 0, 0, 800, 800);
@@ -154,7 +154,7 @@ void solveNonadaptive(Mesh &mesh, NonlinSystem &nls,
     do {
 
       #ifdef VERBOSE
-      info("\n -------- Time step %d, Newton iter %d --------\n", n, it);
+      info("-------- Time step %d, Newton iter %d --------", n, it);
       #endif
       it++;
       nls.assemble();
@@ -162,7 +162,7 @@ void solveNonadaptive(Mesh &mesh, NonlinSystem &nls,
       res_l2_norm = nls.get_residuum_l2_norm();
 
       #ifdef VERBOSE
-      info("Residuum L2 norm: %g\n", res_l2_norm);
+      info("Residuum L2 norm: %g", res_l2_norm);
       #endif
 
       Ci.copy(&Csln);
@@ -176,7 +176,7 @@ void solveNonadaptive(Mesh &mesh, NonlinSystem &nls,
     phip.copy(&phii);
     Cp.copy(&Ci);
   }
-  verbose("\nTotal run time: %g sec", end_time());
+  verbose("Total run time: %g sec", cpu_time.tick().last());
   Cview.show(&Ci);
   phiview.show(&phii);
   //MeshView mview("small.mesh", 100, 30, 800, 800);

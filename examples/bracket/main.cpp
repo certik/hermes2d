@@ -1,3 +1,5 @@
+#define HERMES2D_REPORT_ALL
+#define HERMES2D_REPORT_FILE "application.log"
 #include "hermes2d.h"
 #include "solver_umfpack.h"
 
@@ -180,20 +182,19 @@ int main(int argc, char* argv[])
   // adaptivity loop
   int it = 1;
   bool done = false;
-  double cpu = 0.0;
+  TimePeriod cpu_time;
   Solution x_sln_coarse, y_sln_coarse;
   Solution x_sln_fine, y_sln_fine;
   do
   {
-    info("\n---- Adaptivity step %d:\n", it++);
+    info("!---- Adaptivity step %d ---------------------------------------------", it); it++;
 
     // time measurement
-    begin_time();
+    cpu_time.tick(H2D_SKIP);
 
     //calculating the number of degrees of freedom
     ndofs = xdisp.assign_dofs();
     ndofs += ydisp.assign_dofs(ndofs);
-    printf("xdof=%d, ydof=%d\n", xdisp.get_num_dofs(), ydisp.get_num_dofs());
 
     // solve the coarse mesh problem
     LinSystem ls(&wf, &umfpack);
@@ -203,7 +204,10 @@ int main(int argc, char* argv[])
     ls.solve(2, &x_sln_coarse, &y_sln_coarse);
 
     // time measurement
-    cpu += end_time();
+    cpu_time.tick();
+
+    // report dofs
+    info("xdof=%d, ydof=%d\n", xdisp.get_num_dofs(), ydisp.get_num_dofs());
 
     // view the solution -- this can be slow; for illustration only
     VonMisesFilter stress_coarse(&x_sln_coarse, &y_sln_coarse, mu, lambda);
@@ -213,7 +217,7 @@ int main(int argc, char* argv[])
     yoview.show(&ydisp);
 
     // time measurement
-    begin_time();
+    cpu_time.tick(H2D_SKIP);
 
     // solve the fine mesh problem
     RefSystem rs(&ls);
@@ -228,18 +232,22 @@ int main(int argc, char* argv[])
     hp.set_biform(1, 1, bilinear_form_1_1<scalar, scalar>, bilinear_form_1_1<Ord, Ord>);
     double err_est = hp.calc_error_2(&x_sln_coarse, &y_sln_coarse, &x_sln_fine, &y_sln_fine) * 100;
 
-    info("Estimate of error: %g%%", err_est);
-
     // time measurement
-    cpu += end_time();
+    cpu_time.tick();
+
+    // report results
+    info("Estimate of error: %g%%", err_est);
 
     // add entry to DOF convergence graph
     graph_dof.add_values(xdisp.get_num_dofs() + ydisp.get_num_dofs(), err_est);
     graph_dof.save("conv_dof.dat");
 
     // add entry to CPU convergence graph
-    graph_cpu.add_values(cpu, err_est);
+    graph_cpu.add_values(cpu_time.accumulated(), err_est);
     graph_cpu.save("conv_cpu.dat");
+
+    // time measurement
+    cpu_time.tick(H2D_SKIP);
 
     // if err_est too large, adapt the mesh
     if (err_est < ERR_STOP) done = true;
@@ -250,9 +258,11 @@ int main(int argc, char* argv[])
       if (ndofs >= NDOF_STOP) done = true;
     }
 
+    // time measurement
+    cpu_time.tick();
   }
   while (!done);
-  verbose("Total running time: %g sec", cpu);
+  verbose("Total running time: %g s", cpu_time.accumulated());
 
   // show the fine solution - this is the final result
   VonMisesFilter stress_fine(&x_sln_fine, &y_sln_fine, mu, lambda);

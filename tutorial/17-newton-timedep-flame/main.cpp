@@ -1,3 +1,5 @@
+#define HERMES2D_REPORT_ALL
+#define HERMES2D_REPORT_FILE "application.log"
 #include "hermes2d.h"
 #include "solver_umfpack.h"
 
@@ -115,7 +117,8 @@ int main(int argc, char* argv[])
   double current_time = 0.0;
   int t_step = 0;
   do {
-    info("\n**** Time step %d, t = %g s:\n", ++t_step, current_time);
+    t_step++;
+    info("**** Time step %d, t = %g s:", t_step, current_time);
 
     // Newton's method
     if (!nls.solve_newton_2(&t_prev_newton, &y_prev_newton, NEWTON_TOL, NEWTON_MAX_ITER,
@@ -139,7 +142,7 @@ int main(int argc, char* argv[])
     y_prev_time_1.copy(&y_prev_newton);
   } while (current_time <= T_FINAL);
 
-  // wait for keyboard or mouse input
+  // wait for all views to be closed
   View::wait();
   return 0;
 }

@@ -1,3 +1,5 @@
+#define HERMES2D_REPORT_ALL
+#define HERMES2D_REPORT_FILE "application.log"
 #include "hermes2d.h"
 #include "solver_umfpack.h"
 
@@ -131,14 +133,14 @@ int main(int argc, char* argv[])
   // adaptivity loop
   int it = 1, ndofs;
   bool done = false;
-  double cpu = 0.0;
+  TimePeriod cpu_time;
   Solution sln_coarse, sln_fine;
   do
   {
-    info("\n---- Adaptivity step %d ---------------------------------------------\n", it++);
+    info("!---- Adaptivity step %d ---------------------------------------------", it); it++;
 
     // time measurement
-    begin_time();
+    cpu_time.tick(H2D_SKIP);
 
     // solve the coarse mesh problem
     LinSystem ls(&wf, &solver);
@@ -148,7 +150,7 @@ int main(int argc, char* argv[])
     ls.solve(1, &sln_coarse);
 
     // time measurement
-    cpu += end_time();
+    cpu_time.tick();
 
     // view the solution -- this can be slow; for illustration only
     sview.show(&sln_coarse);
@@ -156,7 +158,7 @@ int main(int argc, char* argv[])
     oview.show(&space);
 
     // time measurement
-    begin_time();
+    cpu_time.tick(H2D_SKIP);
 
     // solve the fine mesh problem
     RefSystem rs(&ls);
@@ -166,18 +168,23 @@ int main(int argc, char* argv[])
     // calculate element errors and total error estimate
     H1OrthoHP hp(1, &space);
     double err_est = hp.calc_error(&sln_coarse, &sln_fine) * 100;
-    info("Error estimate: %g%%", err_est);
 
     // time measurement
-    cpu += end_time();
+    cpu_time.tick();
+
+    // report results
+    info("Error estimate: %g%%", err_est);
 
     // add entry to DOF convergence graph
     graph_dof.add_values(space.get_num_dofs(), err_est);
     graph_dof.save("conv_dof.dat");
 
     // add entry to CPU convergence graph
-    graph_cpu.add_values(cpu, err_est);
+    graph_cpu.add_values(cpu_time.accumulated(), err_est);
     graph_cpu.save("conv_cpu.dat");
+
+    // time measurement
+    cpu_time.tick(H2D_SKIP);
 
     // if err_est too large, adapt the mesh
     if (err_est < ERR_STOP) done = true;
@@ -186,9 +193,12 @@ int main(int argc, char* argv[])
       ndofs = space.assign_dofs();
       if (ndofs >= NDOF_STOP) done = true;
     }
+
+    // time measurement
+    cpu_time.tick();
   }
   while (done == false);
-  verbose("Total running time: %g sec", cpu);
+  verbose("Total running time: %g s", cpu_time.accumulated());
 
   // show the fine solution - this is the final result
   sview.set_title("Final solution");

@@ -1,3 +1,5 @@
+#define HERMES2D_REPORT_ALL
+#define HERMES2D_REPORT_FILE "application.log"
 #include "hermes2d.h"
 #include "solver_umfpack.h"
 
@@ -183,20 +185,19 @@ int main(int argc, char* argv[])
   // adaptivity loop
   int it = 1;
   bool done = false;
-  double cpu = 0.0;
+  TimePeriod cpu_time;
   Solution u_sln_coarse, v_sln_coarse;
   Solution u_sln_fine, v_sln_fine;
   do
   {
-    info("\n---- Adaptivity step %d:\n", it++);
+    info("!---- Adaptivity step %d ---------------------------------------------", it); it++;
 
     // time measurement
-    begin_time();
+    cpu_time.tick(H2D_SKIP);
 
     //calculating the number of degrees of freedom
     ndofs = uspace.assign_dofs();
     ndofs += vspace.assign_dofs(ndofs);
-    printf("u_dof=%d, v_dof=%d\n", uspace.get_num_dofs(), vspace.get_num_dofs());
 
     // solve the coarse mesh problem
     LinSystem ls(&wf, &umfpack);
@@ -205,32 +206,19 @@ int main(int argc, char* argv[])
     ls.assemble();
     ls.solve(2, &u_sln_coarse, &v_sln_coarse);
 
-    // time measurement
-    cpu += end_time();
-
     // view the solution and meshes
+    cpu_time.tick();
+    info("u_dof=%d, v_dof=%d", uspace.get_num_dofs(), vspace.get_num_dofs());
     uview.show(&u_sln_coarse);
     vview.show(&v_sln_coarse);
     uoview.show(&uspace);
     voview.show(&vspace);
-
-    // time measurement
-    begin_time();
+    cpu_time.tick(H2D_SKIP);
 
     // solve the fine mesh problem
     RefSystem rs(&ls);
     rs.assemble();
     rs.solve(2, &u_sln_fine, &v_sln_fine);
-
-    // calculate error wrt. exact solution
-    ExactSolution uexact(&umesh, u_exact);
-    ExactSolution vexact(&vmesh, v_exact);
-    double u_error = h1_error(&u_sln_coarse, &uexact) * 100;
-    double v_error = h1_error(&v_sln_coarse, &vexact) * 100;
-    double error = std::max(u_error, v_error);
-    info("Exact solution error for u (H1 norm): %g%%", u_error);
-    info("Exact solution error for v (H1 norm): %g%%", v_error);
-    info("Exact solution error (maximum): %g%%", error);
 
     // calculate element errors and total error estimate
     H1OrthoHP hp(2, &uspace, &vspace);
@@ -239,10 +227,22 @@ int main(int argc, char* argv[])
     hp.set_biform(1, 0, bilinear_form_1_0<scalar, scalar>, bilinear_form_1_0<Ord, Ord>);
     hp.set_biform(1, 1, bilinear_form_1_1<scalar, scalar>, bilinear_form_1_1<Ord, Ord>);
     double err_est = hp.calc_error_2(&u_sln_coarse, &v_sln_coarse, &u_sln_fine, &v_sln_fine) * 100;
-    info("Estimate of error wrt. ref. solution (energy norm): %g%%", err_est);
 
     // time measurement
-    cpu += end_time();
+    cpu_time.tick();
+
+    // calculate error wrt. exact solution
+    ExactSolution uexact(&umesh, u_exact);
+    ExactSolution vexact(&vmesh, v_exact);
+    double u_error = h1_error(&u_sln_coarse, &uexact) * 100;
+    double v_error = h1_error(&v_sln_coarse, &vexact) * 100;
+    double error = std::max(u_error, v_error);
+
+    // report results
+    info("Exact solution error for u (H1 norm): %g%%", u_error);
+    info("Exact solution error for v (H1 norm): %g%%", v_error);
+    info("Exact solution error (maximum): %g%%", error);
+    info("Estimate of error wrt. ref. solution (energy norm): %g%%", err_est);
 
     // add entry to DOF convergence graph
     graph_dof.add_values(uspace.get_num_dofs() + vspace.get_num_dofs(), error);
@@ -250,9 +250,12 @@ int main(int argc, char* argv[])
     else graph_dof.save("conv_dof_s.dat");
 
     // add entry to CPU convergence graph
-    graph_cpu.add_values(cpu, error);
+    graph_cpu.add_values(cpu_time.accumulated(), error);
     if (MULTI == true) graph_cpu.save("conv_cpu_m.dat");
     else graph_cpu.save("conv_cpu_s.dat");
+
+    // time measurement
+    cpu_time.tick(H2D_SKIP);
 
     // if err_est too large, adapt the mesh
     if (error < ERR_STOP) done = true;
@@ -263,9 +266,11 @@ int main(int argc, char* argv[])
       if (ndofs >= NDOF_STOP) done = true;
     }
 
+    //time measurement
+    cpu_time.tick();
   }
   while (!done);
-  verbose("Total running time: %g sec", cpu);
+  verbose("Total running time: %g s", cpu_time.accumulated());
 
   // show the fine solution - this is the final result
   uview.set_title("Final solution u");

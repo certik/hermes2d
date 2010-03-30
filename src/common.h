@@ -35,6 +35,7 @@
 // STL stuff
 #include <vector>
 #include <string>
+#include <map>
 #include <set>
 #include <queue>
 #include <sstream>
@@ -46,6 +47,7 @@
 // others
 #include <Judy.h>
 #include "auto_local_array.h"
+#include "common_time_period.h"
 
 // Enabling second derivatives in weak forms. Turned off by default. Second
 // derivatives are employed, among others, by stabilization methods for
@@ -167,8 +169,8 @@ extern HERMES2D_API bool __h2d_log_message_if(bool cond, const __h2d_log_info& i
 #define H2D_EC_WARNING 'W' /* warnings */
 #define H2D_EC_INFO 'I' /* info about results */
 #define H2D_EC_VERBOSE 'V' /* more details for info */
-#define H2D_EC_TRACE 'T' /* execution tracing */
-#define H2D_EC_TIME 'M' /* time measurements */
+#define H2D_EC_TRACE 'R' /* execution tracing */
+#define H2D_EC_TIME 'T' /* time measurements */
 #define H2D_EC_DEBUG 'D' /* general debugging messages */
 
 /* error and assert macros */
@@ -225,14 +227,8 @@ extern HERMES2D_API bool __h2d_report_debug;
 # define trace(...)
 #endif
 #if defined(HERMES2D_REPORT_TIME) || defined(HERMES2D_REPORT_RUNTIME_CONTROL)
-# define begin_time() __h2d_begin_time()
-# define cur_time() __h2d_cur_time()
-# define end_time() __h2d_end_time()
 # define report_time(...) __h2d_log_message_if(true && H2D_RCTR(__h2d_report_time), __LOG_INFO(H2D_EC_TIME), __VA_ARGS__)
 #else
-# define begin_time()
-# define cur_time() -1.0
-# define end_time() -1.0
 # define report_time(...)
 #endif
 #if defined(_DEBUG) || !defined(NDEBUG) || defined(HERMES2D_REPORT_RUNTIME_CONTROL)
@@ -240,11 +236,6 @@ extern HERMES2D_API bool __h2d_report_debug;
 #else
 # define debug_log(...)
 #endif
-
-/* time mesurement */
-extern HERMES2D_API void __h2d_begin_time();
-extern HERMES2D_API double __h2d_cur_time();
-extern HERMES2D_API double __h2d_end_time();
 
 /* file operations */
 void __hermes2d_fwrite(const void* ptr, size_t size, size_t nitems, FILE* stream, const __h2d_log_info& err_info);
