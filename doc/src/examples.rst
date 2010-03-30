@@ -1444,10 +1444,107 @@ Wire
 
 **Git reference:** Example `wire <http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/examples/wire>`_.
 
+This example solves a complex-valued vector potential problem
 
-Description coming soon.
+.. math::
+
+    -\Delta A + j \omega \gamma \mu A = \mu J_{ext}
+
+in a two-dimensional cross-section containing a conductor and an iron object as
+shown in the following schematic picture:
+
+.. image:: img/wire/domain.png
+   :align: center
+   :height: 500
+   :alt: Domain.
+
+The computational domain is a rectangle of height 0.003 and width 0.004. 
+Different material markers are used for the wire, air, and iron 
+(see mesh file `domain2.mesh <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/examples/wire/domain2.mesh>`_).
 
 
+Boundary conditions are zero Dirichlet on the top and right edges, and zero Neumann
+elsewhere.
+
+Solution:
+
+.. image:: img/wire/solution.png
+   :align: center
+   :height: 400
+   :alt: Solution.
+
+Complex-valued weak forms:
+
+::
+
+    template<typename Real, typename Scalar>
+    Scalar bilinear_form_iron(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+    {
+      scalar ii = cplx(0.0, 1.0);
+      return 1./mu_iron * int_grad_u_grad_v<Real, Scalar>(n, wt, u, v) + ii*omega*gamma_iron*int_u_v<Real, Scalar>(n, wt, u, v);
+    }
+
+    template<typename Real, typename Scalar>
+    Scalar bilinear_form_wire(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+    {
+      return 1./mu_0 * int_grad_u_grad_v<Real, Scalar>(n, wt, u, v);
+    }
+
+    template<typename Real, typename Scalar>
+    Scalar bilinear_form_air(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+    {
+      return 1./mu_0 * int_grad_u_grad_v<Real, Scalar>(n, wt, u, v); // conductivity gamma is zero
+    }
+
+    template<typename Real, typename Scalar>
+    Scalar linear_form_wire(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+    {
+      return J_wire * int_v<Real, Scalar>(n, wt, v);
+    }
+
+The weak forms are registered as follows:
+
+::
+
+    // initialize the weak formulation
+    WeakForm wf(1);
+    wf.add_biform(0, 0, callback(bilinear_form_iron), SYM, 3);
+    wf.add_biform(0, 0, callback(bilinear_form_wire), SYM, 2);
+    wf.add_biform(0, 0, callback(bilinear_form_air), SYM, 1);
+    wf.add_liform(0, callback(linear_form_wire), 2);
+
+Let us compare adaptive $h$-FEM with linear and quadratic elements and the $hp$-FEM.
+
+Final mesh for $h$-FEM with linear elements: 18694 DOF, error = 1.02 \%
+
+
+.. image:: img/wire/mesh-h1.png
+   :align: center
+   :height: 400
+   :alt: Mesh.
+
+Final mesh for $h$-FEM with quadratic elements: 46038 DOF, error = 0.018 \%
+
+.. image:: img/wire/mesh-h2.png
+   :align: center
+   :height: 400
+   :alt: Mesh.
+
+Final mesh for $hp$-FEM: 4787 DOF, error = 0.00918 \%
+
+.. image:: img/wire/mesh-hp.png
+   :align: center
+   :height: 400
+   :alt: Mesh.
+
+Convergence graphs of adaptive h-FEM with linear elements, h-FEM with quadratic elements
+and hp-FEM are shown below.
+
+.. image:: img/wire/conv_compar_dof.png
+   :align: center
+   :width: 600
+   :height: 400
+   :alt: DOF convergence graph.
 
 Waveguide
 ---------
