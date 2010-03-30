@@ -95,7 +95,7 @@ Scalar bilinear_form_stabilization(int n, double *wt, Func<Real> *u, Func<Real> 
     double tau = 1. / sqrt(9*pow(4*EPSILON/pow(h_e, 2), 2) + pow(2*b_norm/h_e, 2));
     // FIXME: Laplace operator in both the direct and adjoint operator is missing,
     // this needs to be fixed after we have second derivatives of shape functions.
-    result += wt[i]*(-B1 * v->dx[i] - B2 * v->dy[i] - EPSILON * Laplace_v) * tau * 
+    result += -wt[i]*(-B1 * v->dx[i] - B2 * v->dy[i] - EPSILON * Laplace_v) * tau * 
                      (B1 * u->dx[i] + B2 * u->dy[i] - EPSILON * Laplace_u);
   }
   return result;
