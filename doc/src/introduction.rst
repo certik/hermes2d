@@ -11,7 +11,7 @@ unique technology and its user base is growing fast. In the following,
 we will abbreviate Hermes2D with Hermes. 
 
 For those who speak other languages than C++, there is an **interactive 
-GUI** `Agros2D <{http://hpfem.org/hermes2d/>`_. We also provide 
+GUI** `Agros2D <http://hpfem.org/agros2d/>`_. We also provide 
 an **interactive online lab** (`accessible here <http://nb.femhub.org/>`_) where
 you can compute with Hermes via any web browser without even installing it 
 (the CPU time is on us). 
