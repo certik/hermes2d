@@ -83,6 +83,7 @@ public:
 	int nc;							// number of components
 	T *val;							// function values. If orders differ for a diffrent direction, this returns max(h_order, v_order).
 	T *dx, *dy; 				// derivatives
+  T *laplace;
 
 	T *val0, *val1;				// components of function values
 	T *dx0, *dx1;				// components of derivatives
@@ -96,6 +97,7 @@ public:
 		dx = dx0 = dx1 = NULL;
 		dy = dy0 = dy1 = NULL;
 		curl = NULL;
+                laplace = NULL;
 	}
 
   void free_ord()  {  delete val;  }
@@ -104,6 +106,7 @@ public:
     delete [] val;
     delete [] dx;
     delete [] dy;
+    delete [] laplace;
 
     delete [] val0; delete [] val1;
     delete [] dx0;  delete [] dx1;
@@ -118,15 +121,18 @@ template<typename T>
 class Geom
 {
 public:
-    int marker;      // marker
-    Element *element; // active element
-	T *x, *y;				 // coordinates [in physical domain]
+  int marker;      // marker
+  int id;
+  Element *element; // active element
+
+  T *x, *y;				 // coordinates [in physical domain]
 	T *nx, *ny;			 // normals [in physical domain]
 	T *tx, *ty;			 // tangents [in physical domain]
 
 	Geom()
   {
     marker = 0;
+    id = 0;
 		x = y = NULL;
 		nx = ny = NULL;
 		tx = ty = NULL;
