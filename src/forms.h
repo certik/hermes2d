@@ -80,11 +80,14 @@ template<typename T>
 class Func
 {
 public:
-	int nc;							// number of components
-	T *val;							// function values. If orders differ for a diffrent direction, this returns max(h_order, v_order).
+	int nc;					// number of components
+	T *val;					// function values. If orders differ for a diffrent 
+                                                // direction, this returns max(h_order, v_order).
 	T *dx, *dy; 				// derivatives
-  T *laplace;
-
+#ifdef H2D_SECOND_DERIVATIVES_ENABLED 
+        T *laplace;                             // must be enabled by defining H2D_SECOND_DERIVATIVES_ENABLED  
+                                                // in common.h. Default is NOT ENABLED.
+#endif
 	T *val0, *val1;				// components of function values
 	T *dx0, *dx1;				// components of derivatives
 	T *dy0, *dy1;
@@ -97,7 +100,9 @@ public:
 		dx = dx0 = dx1 = NULL;
 		dy = dy0 = dy1 = NULL;
 		curl = NULL;
+#ifdef H2D_SECOND_DERIVATIVES_ENABLED 
                 laplace = NULL;
+#endif
 	}
 
   void free_ord()  {  delete val;  }
@@ -106,7 +111,9 @@ public:
     delete [] val;
     delete [] dx;
     delete [] dy;
+#ifdef H2D_SECOND_DERIVATIVES_ENABLED 
     delete [] laplace;
+#endif
 
     delete [] val0; delete [] val1;
     delete [] dx0;  delete [] dx1;

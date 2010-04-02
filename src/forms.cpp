@@ -78,7 +78,9 @@ Func<Ord>* init_fn_ord(const int order)
 	Func<Ord>* f = new Func<Ord>;
 	f->val = d;
 	f->dx = f->dy = d;
-  f->laplace = d;
+#ifdef H2D_SECOND_DERIVATIVES_ENABLED 
+        f->laplace = d;
+#endif
 	f->val0 = f->val1 = d;
 	f->dx0 = f->dx1 = d;
 	f->dy0 = f->dy1 = d;
@@ -104,29 +106,40 @@ Func<double>* init_fn(PrecalcShapeset *fu, RefMap *rm, const int order)
 		u->val = new double [np];
 		u->dx  = new double [np];
 		u->dy  = new double [np];
-    u->laplace = new double [np];
-
+#ifdef H2D_SECOND_DERIVATIVES_ENABLED 
+                u->laplace = new double [np];
+#endif
 		double *fn = fu->get_fn_values();
 		double *dx = fu->get_dx_values();
 		double *dy = fu->get_dy_values();
-    double *dxx = fu->get_dxx_values();
-    double *dxy = fu->get_dxy_values();
-    double *dyy = fu->get_dyy_values();
+#ifdef H2D_SECOND_DERIVATIVES_ENABLED 
+                double *dxx = fu->get_dxx_values();
+                double *dxy = fu->get_dxy_values();
+                double *dyy = fu->get_dyy_values();
+#endif
 
 		double2x2 *m = rm->get_inv_ref_map(order);
-    double3x2 *mm = rm->get_second_ref_map(order);
+#ifdef H2D_SECOND_DERIVATIVES_ENABLED 
+                double3x2 *mm = rm->get_second_ref_map(order);
+#endif
+#ifdef H2D_SECOND_DERIVATIVES_ENABLED 
 		for (int i = 0; i < np; i++, m++, mm++)
+#else
+		for (int i = 0; i < np; i++, m++)
+#endif
     {
 			u->val[i] = fn[i];
 			u->dx[i] = (dx[i] * (*m)[0][0] + dy[i] * (*m)[0][1]);
 			u->dy[i] = (dx[i] * (*m)[1][0] + dy[i] * (*m)[1][1]);
 
-      double axx = (sqr((*m)[0][0]) + sqr((*m)[1][0]));
-      double ayy = (sqr((*m)[0][1]) + sqr((*m)[1][1]));
-      double axy = 2.0 * ((*m)[0][0]*(*m)[0][1] + (*m)[1][0]*(*m)[1][1]);
-      double ax = (*mm)[0][0] + (*mm)[2][0];
-      double ay = (*mm)[0][1] + (*mm)[2][1];
-      u->laplace[i] = ( dx[i] * ax + dy[i] * ay + dxx[i] * axx + dxy[i] * axy + dyy[i] * ayy );
+#ifdef H2D_SECOND_DERIVATIVES_ENABLED 
+                        double axx = (sqr((*m)[0][0]) + sqr((*m)[1][0]));
+                        double ayy = (sqr((*m)[0][1]) + sqr((*m)[1][1]));
+                        double axy = 2.0 * ((*m)[0][0]*(*m)[0][1] + (*m)[1][0]*(*m)[1][1]);
+                        double ax = (*mm)[0][0] + (*mm)[2][0];
+                        double ay = (*mm)[0][1] + (*mm)[2][1];
+                        u->laplace[i] = ( dx[i] * ax + dy[i] * ay + dxx[i] * axx + dxy[i] * axy + dyy[i] * ayy );
+#endif
 		}
 	}
   // Hcurl space
