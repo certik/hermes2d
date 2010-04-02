@@ -665,6 +665,7 @@ void Solution::transform_values(int order, Node* node, int newmask, int oldmask,
   // H1 space
   if (space_type == 0)
   {
+#ifdef H2D_SECOND_DERIVATIVES_ENABLED 
     if (((newmask & SECOND) == SECOND && (oldmask & SECOND) != SECOND))
     {
       update_refmap();
@@ -683,6 +684,7 @@ void Solution::transform_values(int order, Node* node, int newmask, int oldmask,
         node->values[0][5][i] = (*m)[0][0]*(*m)[1][0]*vxx + ((*m)[0][0]*(*m)[1][1]+(*m)[1][0]*(*m)[0][1])*vxy + (*m)[0][1]*(*m)[1][1]*vyy + (*mm)[1][0]*vx + (*mm)[1][1]*vy;   //dxy
       }
     }
+#endif
     if ((newmask & GRAD) == GRAD && (oldmask & GRAD) != GRAD)
     {
       update_refmap();
