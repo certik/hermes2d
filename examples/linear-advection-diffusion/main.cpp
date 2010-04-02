@@ -90,6 +90,7 @@ template<typename Real, typename Scalar>
 Scalar bilinear_form_stabilization(int n, double *wt, Func<Real> *u, Func<Real> *v,
         Geom<Real> *e, ExtData<Scalar> *ext)
 {
+    assert(e->element != NULL);
   double h_e = e->element->get_diameter();
   Scalar result = 0;
   for (int i=0; i < n; i++) {
@@ -109,6 +110,25 @@ Scalar bilinear_form_stabilization(int n, double *wt, Func<Real> *u, Func<Real> 
   return 0;
 }
 #endif
+
+// bilinear form for the variational multiscale stabilization
+template<typename Real, typename Scalar>
+Scalar bilinear_form_stabilization_order(int n, double *wt, Func<Real> *u, Func<Real> *v,
+        Geom<Real> *e, ExtData<Scalar> *ext)
+{
+  double h_e = 1.0;
+  Scalar result = 0;
+  double Laplace_u = 0, Laplace_v = 0; 
+  for (int i=0; i < n; i++) {
+    double b_norm = sqrt(B1*B1 + B2*B2);
+    double tau = 1. / sqrt(9*pow(4*EPSILON/pow(h_e, 2), 2) + pow(2*b_norm/h_e, 2));
+    // FIXME: Laplace operator in both the direct and adjoint operator is missing,
+    // this needs to be fixed after we have second derivatives of shape functions.
+    result += -wt[i]*(-B1 * v->dx[i] - B2 * v->dy[i] - EPSILON * Laplace_v) * tau * 
+                     (B1 * u->dx[i] + B2 * u->dy[i] - EPSILON * Laplace_u);
+  }
+  return result;
+}
 
 template<typename Real, typename Scalar>
 Scalar bilinear_form_shock_capturing(int n, double *wt, Func<Real> *u, Func<Real> *v,
@@ -161,7 +181,8 @@ int main(int argc, char* argv[])
   WeakForm wf(1);
   wf.add_biform(0, 0, callback(bilinear_form));
   if (STABILIZATION_ON == true) {
-    wf.add_biform(0, 0, callback(bilinear_form_stabilization));
+    wf.add_biform(0, 0, bilinear_form_stabilization,
+            bilinear_form_stabilization_order);
   }
   if (SHOCK_CAPTURING_ON == true) {
     wf.add_biform(0, 0, bilinear_form_shock_capturing, bilinear_form_shock_capturing_order);
