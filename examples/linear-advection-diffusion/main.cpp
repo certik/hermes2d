@@ -1,7 +1,6 @@
 #include "hermes2d.h"
 #include "solver_umfpack.h"
 
-
 //  This example solves a linear advection diffusion problem (using optional 
 //  variational multiscale stabilization. To use the stabilization, you must 
 //  uncomment the definition of H2D_SECOND_DERIVATIVES_ENABLED in common.h
@@ -12,8 +11,6 @@
 //  Domain: Square (0, 1)x(0, 1)
 //
 //  BC:  Dirichlet, see the function scalar bc_values() below.
-//
-//  The following parameters can be changed:
 
 const int P_INIT = 1;                   // Initial polynomial degree of all mesh elements.
 const bool STABILIZATION_ON = false;    // Stabilization on/off (assumes that H2D_SECOND_DERIVATIVES_ENABLED is defined)
@@ -90,13 +87,12 @@ template<typename Real, typename Scalar>
 Scalar bilinear_form_stabilization(int n, double *wt, Func<Real> *u, Func<Real> *v,
         Geom<Real> *e, ExtData<Scalar> *ext)
 {
-    assert(e->element != NULL);
+  assert(e->element != NULL);
   double h_e = e->element->get_diameter();
   Scalar result = 0;
   for (int i=0; i < n; i++) {
     double b_norm = sqrt(B1*B1 + B2*B2);
     double tau = 1. / sqrt(9*pow(4*EPSILON/pow(h_e, 2), 2) + pow(2*b_norm/h_e, 2));
-    
     result += -wt[i]*(-B1 * v->dx[i] - B2 * v->dy[i] - EPSILON * v->laplace[i]) * tau * 
                 (B1 * u->dx[i] + B2 * u->dy[i] - EPSILON * u->laplace[i]);
   }
@@ -107,27 +103,15 @@ template<typename Real, typename Scalar>
 Scalar bilinear_form_stabilization(int n, double *wt, Func<Real> *u, Func<Real> *v,
         Geom<Real> *e, ExtData<Scalar> *ext)
 {
-  return 0;
+  error("Define H2D_SECOND_DERIVATIVES_ENABLED in common.h if you want to use second derivatives of shape functions in weak forms.");
 }
 #endif
 
-// bilinear form for the variational multiscale stabilization
-template<typename Real, typename Scalar>
-Scalar bilinear_form_stabilization_order(int n, double *wt, Func<Real> *u, Func<Real> *v,
-        Geom<Real> *e, ExtData<Scalar> *ext)
+// simplified bilinear form for automatic order determination
+Ord bilinear_form_stabilization_order(int n, double *wt, Func<Ord> *u, Func<Ord> *v,
+        Geom<Ord> *e, ExtData<Ord> *ext)
 {
-  double h_e = 1.0;
-  Scalar result = 0;
-  double Laplace_u = 0, Laplace_v = 0; 
-  for (int i=0; i < n; i++) {
-    double b_norm = sqrt(B1*B1 + B2*B2);
-    double tau = 1. / sqrt(9*pow(4*EPSILON/pow(h_e, 2), 2) + pow(2*b_norm/h_e, 2));
-    // FIXME: Laplace operator in both the direct and adjoint operator is missing,
-    // this needs to be fixed after we have second derivatives of shape functions.
-    result += -wt[i]*(-B1 * v->dx[i] - B2 * v->dy[i] - EPSILON * Laplace_v) * tau * 
-                     (B1 * u->dx[i] + B2 * u->dy[i] - EPSILON * Laplace_u);
-  }
-  return result;
+  return (v->dx[0] - v->dy[0]) * (u->dx[0] + u->dy[0]);
 }
 
 template<typename Real, typename Scalar>
