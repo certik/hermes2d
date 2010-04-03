@@ -1,10 +1,12 @@
 #include "hermes2d.h"
 #include "solver_umfpack.h"
 
-//  This example solves a linear advection diffusion problem (using optional 
+//  This example solves a linear advection diffusion problem using optional 
 //  variational multiscale stabilization. To use the stabilization, you must 
 //  uncomment the definition of H2D_SECOND_DERIVATIVES_ENABLED in common.h
-//  and rebuild this example.
+//  and rebuild this example. Note that in our experience, the stabilization 
+//  does only work for linear elements. Nevertheless, we were able to solve the 
+//  problem without stabilization using adaptive hp-FEM. 
 //
 //  PDE: div(bu - \epsilon \nabla u) = 0 where b = (b1, b2) is a constant vector
 //
@@ -13,10 +15,10 @@
 //  BC:  Dirichlet, see the function scalar bc_values() below.
 
 const int P_INIT = 1;                   // Initial polynomial degree of all mesh elements.
-const bool STABILIZATION_ON = true;    // Stabilization on/off (assumes that H2D_SECOND_DERIVATIVES_ENABLED is defined)
+const bool STABILIZATION_ON = false;    // Stabilization on/off (assumes that H2D_SECOND_DERIVATIVES_ENABLED is defined)
 const bool SHOCK_CAPTURING_ON = false;  // Shock capturing on/off.
-const int INIT_REF_NUM = 3;       // Number of initial uniform mesh refinements.
-const int INIT_REF_NUM_BDY = 0;   // Number of initial uniform mesh refinements in the boundary layer region.
+const int INIT_REF_NUM = 2;       // Number of initial uniform mesh refinements.
+const int INIT_REF_NUM_BDY = 1;   // Number of initial uniform mesh refinements in the boundary layer region.
 const double THRESHOLD = 0.3;     // This is a quantitative parameter of the adapt(...) function and
                                   // it has different meanings for various adaptive strategies (see below).
 const int STRATEGY = 0;           // Adaptive strategy:
@@ -29,7 +31,7 @@ const int STRATEGY = 0;           // Adaptive strategy:
                                   //   than THRESHOLD.
                                   // More adaptive strategies can be created in adapt_ortho_h1.cpp.
 const RefinementSelectors::AllowedCandidates ADAPT_TYPE =
-RefinementSelectors::H2DRS_CAND_H_ONLY;         // Type of automatic adaptivity.
+RefinementSelectors::H2DRS_CAND_HP;         // Type of automatic adaptivity.
 const bool ISO_ONLY = false;      // Isotropic refinement flag (concerns quadrilateral elements only).
                                   // ISO_ONLY = false ... anisotropic refinement of quad elements
                                   // is allowed (default),
@@ -206,7 +208,10 @@ int main(int argc, char* argv[])
     ls.solve(1, &sln_coarse);
 
     // solve the fine mesh problem
-    RefSystem rs(&ls);
+    int p_increase;
+    if (ADAPT_TYPE == RefinementSelectors::H2DRS_CAND_HP) p_increase = 1;
+    else p_increase = 0;
+    RefSystem rs(&ls, p_increase, 1);  // the '1' is for one level of global refinement in space
     rs.assemble();
     rs.solve(1, &sln_fine);
 
@@ -218,7 +223,7 @@ int main(int argc, char* argv[])
     oview.show(&space);
     sview.show(&sln_coarse);
     sview2.show(&sln_fine);
-    sview.wait_for_keypress();
+    //sview.wait_for_keypress();
  
     // time measurement
     begin_time();
