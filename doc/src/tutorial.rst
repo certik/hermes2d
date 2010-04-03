@@ -1474,8 +1474,8 @@ is solved first:
 Next, the reference solution is computed on a globally refined copy of the mesh,
 defining a temporary space with increased element orders and by assembling and solving an extra
 linear system. However, for most problems, this can be automated using the class RefSystem, which
-handles all the temporary reference meshes and spaces transparently. All it needs is a pointer to our coarse
-LinSystem. The calculation of the reference solution is as simple as the following:
+handles all the temporary reference meshes and spaces transparently. All it needs is a pointer 
+to the coarse LinSystem:
 
 ::
 
@@ -1484,6 +1484,20 @@ LinSystem. The calculation of the reference solution is as simple as the followi
     rs.assemble();
     rs.solve(1, &sln_fine);
 
+The constructor of the RefSystem class admits two optional parameters where the user 
+can choose a different polynomial degree increment (default value 1) 
+and another element refinement (default value 1) - see the file 
+`src/refsystem.h <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/src/refsystem.h>`_:
+
+::
+
+    RefSystem(LinSystem* base, int order_increase = 1, int refinement = 1);
+
+In particular, one may want to use order_increase = 0 for h-adaptivity, and 
+order_increase = 2 or 3 at the very beginning of computation when the reference 
+mesh is still very coarse and thus the reference solution does not give a meaningful 
+error estimate. 
+ 
 In the third and last step of each iteration, we refine our mesh and polynomial degrees stored
 in our space using a class called H1OrthoHP. This class offers two services: it is able to
 calculate  the estimate of the overall error of the coarse solution in $H^1$ norm, and if the
