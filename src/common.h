@@ -48,8 +48,8 @@
 #include "auto_local_array.h"
 
 // Enabling second derivatives in weak forms. Turned off by default. Second
-// derivatives are employed, among others, by stabilization methods for 
-// transport equations. For usage see the example linear-convection-diffusion. 
+// derivatives are employed, among others, by stabilization methods for
+// transport equations. For usage see the example linear-convection-diffusion.
 #define H2D_SECOND_DERIVATIVES_ENABLED
 
 enum // node types

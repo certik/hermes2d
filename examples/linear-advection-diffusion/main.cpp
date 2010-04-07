@@ -1,12 +1,12 @@
 #include "hermes2d.h"
 #include "solver_umfpack.h"
 
-//  This example solves a linear advection diffusion problem using optional 
-//  variational multiscale stabilization. To use the stabilization, you must 
+//  This example solves a linear advection diffusion problem using optional
+//  variational multiscale stabilization. To use the stabilization, you must
 //  uncomment the definition of H2D_SECOND_DERIVATIVES_ENABLED in common.h
-//  and rebuild this example. Note that in our experience, the stabilization 
-//  does only work for linear elements. Nevertheless, we were able to solve the 
-//  problem without stabilization using adaptive hp-FEM. 
+//  and rebuild this example. Note that in our experience, the stabilization
+//  does only work for linear elements. Nevertheless, we were able to solve the
+//  problem without stabilization using adaptive hp-FEM.
 //
 //  PDE: div(bu - \epsilon \nabla u) = 0 where b = (b1, b2) is a constant vector
 //
@@ -51,7 +51,7 @@ const int NDOF_STOP = 60000;      // Adaptivity process stops when the number of
                                   // over this limit. This is to prevent h-adaptivity to go on forever.
 
 // problem constants
-const double EPSILON = 0.01;      // diffusivity           
+const double EPSILON = 0.01;      // diffusivity
 const double B1 = 1., B2 = 1.;    // advection direction, div(B) = 0
 
 // boundary condition types
@@ -95,12 +95,12 @@ Scalar bilinear_form_stabilization(int n, double *wt, Func<Real> *u, Func<Real> 
   for (int i=0; i < n; i++) {
     double b_norm = sqrt(B1*B1 + B2*B2);
     double tau = 1. / sqrt(9*pow(4*EPSILON/pow(h_e, 2), 2) + pow(2*b_norm/h_e, 2));
-    result += -wt[i]*(-B1 * v->dx[i] - B2 * v->dy[i] - EPSILON * v->laplace[i]) * tau * 
+    result += -wt[i]*(-B1 * v->dx[i] - B2 * v->dy[i] - EPSILON * v->laplace[i]) * tau *
                 (B1 * u->dx[i] + B2 * u->dy[i] - EPSILON * u->laplace[i]);
   }
   return result;
 }
-#else 
+#else
 template<typename Real, typename Scalar>
 Scalar bilinear_form_stabilization(int n, double *wt, Func<Real> *u, Func<Real> *v,
         Geom<Real> *e, ExtData<Scalar> *ext)
@@ -224,7 +224,7 @@ int main(int argc, char* argv[])
     sview.show(&sln_coarse);
     sview2.show(&sln_fine);
     //sview.wait_for_keypress();
- 
+
     // time measurement
     begin_time();
 
