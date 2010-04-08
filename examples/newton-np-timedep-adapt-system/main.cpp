@@ -69,7 +69,7 @@ const double TAU = 0.1;              // Size of the time step
 const int P_INIT = 2;       	        // Initial polynomial degree of all mesh elements.
 const int REF_INIT = 1;     	        // Number of initial refinements
 const bool MULTIMESH = false;	        // Multimesh?
-const int TIME_DISCR = 2;             // 1 for implicit Euler, 2 for Crank-Nicolson
+const int TIME_DISCR = 1;             // 1 for implicit Euler, 2 for Crank-Nicolson
 const int VOLT_BOUNDARY = 1;            // 1 for Dirichlet, 2 for Neumann
 
 /* Nonadaptive solution parameters */
@@ -408,20 +408,24 @@ int main (int argc, char* argv[]) {
   if (TIME_DISCR == 1) {
     wf.add_liform(0, callback(Fc_euler), ANY, 3,
         &C_prev_time, &C_prev_newton, &phi_prev_newton);
-    wf.add_biform(0, 0, callback(J_euler_DFcDYc), UNSYM, ANY, 1, &phi_prev_time);//newton->time test
+    wf.add_liform(1, callback(Fphi_euler), ANY, 2, &C_prev_newton, &phi_prev_newton);
+    wf.add_biform(0, 0, callback(J_euler_DFcDYc), UNSYM, ANY, 1, &phi_prev_newton);
+    wf.add_biform(0, 1, callback(J_euler_DFcDYphi), UNSYM, ANY, 1, &C_prev_newton);
+    wf.add_biform(1, 0, callback(J_euler_DFphiDYc), UNSYM);
+    wf.add_biform(1, 1, callback(J_euler_DFphiDYphi), UNSYM);
   } else {
     wf.add_liform(0, callback(Fc_cranic), ANY, 4,
         &C_prev_time, &C_prev_newton, &phi_prev_newton, &phi_prev_time);
-    wf.add_biform(0, 0, callback(J_cranic_DFcDYc), UNSYM, ANY, 2, &phi_prev_newton, &phi_prev_time);
+    wf.add_liform(1, callback(Fphi_euler), ANY, 2, &C_prev_newton, &phi_prev_newton);
+    wf.add_biform(0, 0, callback(J_cranic_DFcDYc), UNSYM, ANY, 2, &phi_prev_newton, &phi_prev_newton);
+    wf.add_biform(0, 1, callback(J_euler_DFcDYphi), UNSYM, ANY, 1, &C_prev_newton);
+    wf.add_biform(1, 0, callback(J_euler_DFphiDYc), UNSYM);
+    wf.add_biform(1, 1, callback(J_euler_DFphiDYphi), UNSYM);
   }
   // Neumann voltage boundary
   if (VOLT_BOUNDARY == 2) {
     wf.add_liform_surf(1, callback(linear_form_surf_top), TOP_MARKER);
   }
-  wf.add_biform(1, 1, callback(J_euler_DFphiDYphi), UNSYM);
-  wf.add_biform(0, 1, callback(J_euler_DFcDYphi), UNSYM, ANY, 1, &C_prev_time);//newton->time test
-  wf.add_biform(1, 0, callback(J_euler_DFphiDYc), UNSYM);
-  wf.add_liform(1, callback(Fphi_euler), ANY, 2, &C_prev_newton, &phi_prev_newton);
 
   // Nonlinear solver
   UmfpackSolver umfpack;
