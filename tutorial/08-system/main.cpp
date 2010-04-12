@@ -23,6 +23,9 @@ const double f_1  = 1e4;                                   // external force in 
 const double lambda = (E * nu) / ((1 + nu) * (1 - 2*nu));  // first Lame constant
 const double mu = E / (2*(1 + nu));                        // second Lame constant
 
+// boundary marker for the external force
+const int GAMMA_3_BDY = 3;
+
 // boundary condition types
 int bc_types(int marker)
   { return (marker == 1) ? BC_ESSENTIAL : BC_NATURAL; }
@@ -101,8 +104,8 @@ int main(int argc, char* argv[])
   wf.add_biform(0, 0, callback(bilinear_form_0_0), SYM);  // Note that only one symmetric part is
   wf.add_biform(0, 1, callback(bilinear_form_0_1), SYM);  // added in the case of symmetric bilinear
   wf.add_biform(1, 1, callback(bilinear_form_1_1), SYM);  // forms.
-  wf.add_liform_surf(0, callback(linear_form_surf_0), 3);
-  wf.add_liform_surf(1, callback(linear_form_surf_1), 3);
+  wf.add_liform_surf(0, callback(linear_form_surf_0), GAMMA_3_BDY);
+  wf.add_liform_surf(1, callback(linear_form_surf_1), GAMMA_3_BDY);
 
   // initialize the linear system and solver
   UmfpackSolver umfpack;

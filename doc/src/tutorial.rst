@@ -443,29 +443,6 @@ The following figure shows the output.
    :height: 350
    :alt: Solution of the Poisson equation.
 
-Numerical Integration
----------------------
-
-You may wonder why templates are used in the definition of weak forms. As a matter of fact, 
-they do not have to be, as we will see later. However, if the weak form only contains 
-algebraic operations (without if-then statements and such), templates help to determine
-numerical integration orders automatically. In higher-order FEM, basis and test functions may 
-have very different polynomial degrees, ranging from one and some maximum polynomial 
-degree (currently 10 in Hermes). The basis and test functions can be combined inside the 
-weak forms in many different ways. As a result, the minimum quadrature order which is needed 
-to evaluate a weak form accurately may vary a lot - between zero (product of gradients of 
-two linear functions) to infinity (whenever a nonpolynomial expression is present). 
-Numerical quadrature is one of the trickiest issues in higher-order FEM.
-
-Of course, a brute-force solution to this problem would be to integrate everything using 
-a maximum order, but this would lead to tremendous computing times. Therefore Hermes offers 
-two options: the polynomial degree of the integrated expressions can be detected 
-automatically (the templates). Or, the user can define for each weak form the resulting 
-polynomial degree explicitly. If the weak form only contains polynomial expressions, the former
-approach works very well. If the form is more complicated, it is recommended to handle the
-integration orders explicitly. This will be described in detail in example 07-general later.
-Till then, we will use the automated way.
-
 Boundary Conditions
 -------------------
 
@@ -721,6 +698,142 @@ at the re-entrant corner:
 
    <hr style="clear: both; visibility: hidden;">
 
+Determination of Quadrature Orders in Weak Forms
+------------------------------------------------
+
+You may wonder why templates are used in the definition of weak forms. As a matter of fact, 
+they do not have to be, as we will see in a moment. However, if the weak form only contains 
+algebraic operations (without if-then statements and such), templates help to determine
+numerical integration orders automatically. In higher-order FEM, basis and test functions may 
+have very different polynomial degrees, ranging from one and some maximum polynomial 
+degree (currently 10 in Hermes). The basis and test functions can be combined inside the 
+weak forms in many different ways. As a result, the minimum quadrature order which is needed 
+to evaluate a weak form accurately may vary between zero (product of gradients of 
+two linear functions) to infinity (whenever a nonpolynomial expression is present). 
+Numerical quadrature is one of the trickiest issues in higher-order FEM.
+
+A brute-force solution to this problem would be to integrate everything using 
+a maximum order, but this would lead to tremendous computing times. Therefore Hermes offers 
+two options: the polynomial degree of the integrated expressions can be detected 
+automatically (via templates), or the user can define for each weak form the 
+quadrature order explicitly. If the weak form only contains polynomial expressions, 
+the former approach works very well. If the form is more complicated, it is recommended 
+to handle the integration orders explicitly. 
+
+Automatic order determination
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In example 03-poisson, the bilinear and linear forms were defined using templates,
+
+::
+
+    // return the value \int \nabla u . \nabla v dx
+    template<typename Real, typename Scalar>
+    Scalar bilinear_form(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+    {
+      return int_grad_u_grad_v<Real, Scalar>(n, wt, u, v);
+    }
+
+    // return the value \int v dx
+    template<typename Real, typename Scalar>
+    Scalar linear_form(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+    {
+      return CONST_F * int_v<Real, Scalar>(n, wt, v);
+    }
+
+and registered using the callback() macro,
+
+::
+
+    // initialize the weak formulation
+    WeakForm wf(1);
+    wf.add_biform(0, 0, callback(bilinear_form));
+    wf.add_liform(0, callback(linear_form));
+   
+The callback() macro, defined in `src/forms.h 
+<http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/src/forms.h>`_ by
+
+::
+
+    #define callback(a)     a<double, scalar>, a<Ord, Ord>
+
+expands the above add_biform() and add_liform() functions into
+
+::
+
+    // initialize the weak formulation
+    WeakForm wf(1);
+    wf.add_biform(0, 0, bilinear_form<double, scalar>, bilinear_form<Ord, Ord>);
+    wf.add_liform(0, linear_form<double, scalar>, linear_form<Ord, Ord>);
+
+For those who are not familiar with templates, they make it possible to 
+call the same function with different parameter types. In particular, 
+using bilinear_form<double, scalar> and bilinear_form<Ord, Ord> for
+the bilinear form defined above gives 
+
+::
+
+    scalar bilinear_form(int n, double *wt, Func<double> *u, Func<double> *v, Geom<double> *e, ExtData<scalar> *ext)
+    {
+      return int_grad_u_grad_v<double, scalar>(n, wt, u, v);
+    }
+
+    Ord bilinear_form(int n, double *wt, Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext)
+    {
+      return int_grad_u_grad_v<Ord, Ord>(n, wt, u, v);
+    }
+
+The <double, scalar> copy is used to obtain the result of the numerical integration,
+the <Ord, Ord> copy for automatic evaluation of the quadrature order. 
+The parser (see `src/forms.h 
+<http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/src/forms.h>`_) 
+works well for algebraic expressions. If the weak form bilinear_form() is complicated, 
+one can create and register a simpler weak form bilinear_form_order() for the parser,
+that provides an arbitrary expression with the same polynomial degree as 
+the integrand in bilinear_form(). Then the two functions would be registered as 
+
+::
+
+    wf.add_biform(0, 0, bilinear_form, bilinear_form_order);
+
+Of course the same holds for linear forms.
+If the bilinear form contains things like the if-then statement, it cannot 
+be parsed. Whenever the weak form contains non-polynomial expressions or
+is otherwise very complicated, it is recommended to handle the quadrature 
+orders manually.
+
+Manual order determination
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The polynomial degree of basis and test functions inside a bilinear or linear form 
+can be handled manually as follows
+
+::
+
+    Ord bilinear_form_order(int n, double *wt, Func<Ord> *u, 
+                          Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext)
+    {
+      int uo = u->val[0].get_order();
+      int vo = v->val[0].get_order();
+      return Ord(uo + vo);            // this would correspond to integral of u times v
+    }
+
+It is also possible to return a constant order (for example 5) by using 
+
+::
+
+    Ord bilinear_form_ord(int n, double *wt, Func<Ord> *u, 
+                      Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext)
+    {
+      return Ord(5);
+    }
+
+Currently, one cannot make the integration order dependent on spatial coordinates and such. However,
+one can assign different weak forms to elements with different material markers. This is
+described in examples `iron-water <http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/examples/iron-water>`_,
+`saphir <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/examples/saphir/main.cpp>`_ and others.
+
+The following example handles quadrature orders manually. 
 
 General 2nd-Order Linear Equation
 ---------------------------------
@@ -734,7 +847,8 @@ This example deals with a linear second-order equation of the form
 
          -\frac{\partial}{\partial x}\left(a_{11}(x,y)\frac{\partial u}{\partial x}\right) - \frac{\partial}{\partial x}\left(a_{12}(x,y)\frac{\partial u}{\partial y}\right) - \frac{\partial}{\partial y}\left(a_{21}(x,y)\frac{\partial u}{\partial x}\right) - \frac{\partial}{\partial y}\left(a_{22}(x,y)\frac{\partial u}{\partial y}\right) + a_1(x,y)\frac{\partial u}{\partial x} + a_{21}(x,y)\frac{\partial u}{\partial y} + a_0(x,y)u = rhs(x,y),
 
-equipped with Dirichlet and/or Neumann boundary conditions. It has two goals: (a) to show the way one defines and uses space-dependent coefficients, and (b) to show how integration orders in weak forms can be handled explicitly. 
+equipped with Dirichlet and/or Neumann boundary conditions. Its goal is to show how to 
+use space-dependent coefficients and how to define quadrature orders explicitly. 
 
 First we define the (generally) non-constant equation coefficients:
 ::
@@ -810,34 +924,7 @@ additional function are not used for computation.
       return v->val[0] * x * x;  // returning the polynomial degree of the test function plus two
     }
 
-The polynomial degree of basis and test functions also can be accessed directly as follows:
-
-::
-
-    Ord bilinear_form_ord(int n, double *wt, Func<Ord> *u, 
-                          Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext)
-    {
-      int uo = u->val[0].get_order();
-      int vo = v->val[0].get_order();
-      return Ord(uo + vo);
-    }
-
-Note that in principle it is also possible to return a constant order (for example 5) by using 
-
-::
-
-    Ord bilinear_form_ord(int n, double *wt, Func<Ord> *u, 
-                      Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext)
-    {
-      return Ord(5);
-    }
-
-Currently, one cannot make the integration order dependent on spatial coordinates and such. However,
-one can assign different weak forms to elements with different material flags. This is
-described in examples `iron-water <http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/examples/iron-water>`_,
-`saphir <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/examples/saphir/main.cpp>`_ and others.
-
-Also note the sign of the surface linear form - all linear forms have to be on the right-hand side,
+Note the sign of the surface linear form - all linear forms have to be on the right-hand side,
 all bilinear forms on the left. 
 
 The output of this example is shown below:
@@ -943,9 +1030,11 @@ components, $u_1$ and $u_2$ (the $x$ and $y$ displacement). The boundary
 conditions can be implemented as
 ::
 
+    // boundary condition types
     int bc_types(int marker)
       { return (marker == 1) ? BC_ESSENTIAL : BC_NATURAL;; }
 
+    // function values for Dirichlet boundary conditions
     double bc_values(int marker, double x, double y)
       { return 0;}
 
@@ -978,8 +1067,8 @@ surface linear form is treated analogously.
     wf.add_biform(0, 0, callback(bilinear_form_0_0), SYM);  // Note that only one symmetric part is
     wf.add_biform(0, 1, callback(bilinear_form_0_1), SYM);  // added in the case of symmetric bilinear
     wf.add_biform(1, 1, callback(bilinear_form_1_1), SYM);  // forms.
-    wf.add_liform_surf(0, callback(linear_form_surf_0), 3);
-    wf.add_liform_surf(1, callback(linear_form_surf_1), 3);
+    wf.add_liform_surf(0, callback(linear_form_surf_0), GAMMA_3_BDY);
+    wf.add_liform_surf(1, callback(linear_form_surf_1), GAMMA_3_BDY);
 
 An explanation of the extra parameter SYM in add_biform() is in order.
 Since the two diagonal forms $a_{11}$ and $a_{22}$ are symmetric, i.e.,
