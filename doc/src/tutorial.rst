@@ -894,8 +894,8 @@ additional function are not used for computation.
     Ord bilinear_form_ord(int n, double *wt, Func<Ord> *u, 
                       Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext)
     {
-      return u->val[0] * v->val[0] * x * x; // returning the sum of the degrees of the basis 
-                                            // and test function plus two
+      return u->val[0] * v->val[0] * e->x[0] * e->x[0]; // returning the sum of the degrees of the basis 
+                                                        // and test function plus two
     }
 
     // Surface linear form (natural boundary conditions)
@@ -908,7 +908,7 @@ additional function are not used for computation.
     // Integration order for surface linear form
     Ord linear_form_surf_ord(int n, double *wt, Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext)
     {
-      return v->val[0] * x * x;  // returning the polynomial degree of the test function plus two
+      return v->val[0] * e->x[0] * e->x[0];  // returning the polynomial degree of the test function plus two
     }
   
     // Volumetric linear form (right-hand side)
@@ -921,7 +921,7 @@ additional function are not used for computation.
     // Integration order for the volumetric linear form
     Ord linear_form_ord(int n, double *wt, Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext)
     {
-      return v->val[0] * x * x;  // returning the polynomial degree of the test function plus two
+      return v->val[0] * e->x[0] * e->x[0];  // returning the polynomial degree of the test function plus two
     }
 
 Note the sign of the surface linear form - all linear forms have to be on the right-hand side,
