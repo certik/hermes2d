@@ -14,6 +14,20 @@ Scalar Fc_euler(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar>
 	return result;
 }
 
+template<class Real, class Scalar>
+Scalar Fc_euler_explicit(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext) {
+  Scalar result = 0;
+  Func<Scalar>* Cprev = ext->fn[0];
+  Func<Scalar>* Citer = ext->fn[1];
+  Func<Scalar>* phiiter = ext->fn[2];
+  for (int i = 0; i < n; i++) {
+    result += wt[i] * ((Citer->val[i] - Cprev->val[i]) * v->val[i] / TAU +
+        D * (Cprev->dx[i] * v->dx[i] + Cprev->dy[i] * v->dy[i]) +
+        K * Cprev->val[i] * (phiiter->dx[i] * v->dx[i] + phiiter->dy[i] * v->dy[i]));
+  }
+  return result;
+}
+
 
 template<class Real, class Scalar>
 Scalar Fphi_euler(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext) {

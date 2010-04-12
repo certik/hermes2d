@@ -44,11 +44,11 @@
 #define NOSCREENSHOT
 
 /*** Fundamental coefficients ***/
-const double D = 1e-12; 	            // [m^2/s] Diffusion coefficient
+const double D = 12e-12; 	            // [m^2/s] Diffusion coefficient
 const double R = 8.31; 		            // [J/mol*K] Gas constant
 const double T = 293; 		            // [K] Aboslute temperature
 const double F = 96485.3415;	            // [s * A / mol] Faraday constant
-const double eps = 2.5e-2; 	            // [F/m] Electric permeability
+const double eps = 2.5e-1; 	            // [F/m] Electric permeability
 const double mu = D / (R * T);              // Mobility of ions
 const double z = 1;		            // Charge number
 const double K = z * mu * F;                // Constant for equation
@@ -66,14 +66,14 @@ const int PROJ_TYPE = 1;                 // For the projection of the initial co
                                          // on the initial mesh: 1 = H1 projection, 0 = L2 projection
 const int NSTEP = 30;                // Number of time steps
 const double TAU = 0.1;              // Size of the time step
-const int P_INIT = 2;       	        // Initial polynomial degree of all mesh elements.
+const int P_INIT = 1;       	        // Initial polynomial degree of all mesh elements.
 const int REF_INIT = 1;     	        // Number of initial refinements
 const bool MULTIMESH = false;	        // Multimesh?
-const int TIME_DISCR = 1;             // 1 for implicit Euler, 2 for Crank-Nicolson
+const int TIME_DISCR = 1;             // 1 for implicit Euler, 2 for Crank-Nicolson, 3 for explicit Euler
 const int VOLT_BOUNDARY = 1;            // 1 for Dirichlet, 2 for Neumann
 
 /* Nonadaptive solution parameters */
-const double NEWTON_TOL = 1e-2;         // Stopping criterion for nonadaptive solution
+const double NEWTON_TOL = 1e-6;         // Stopping criterion for nonadaptive solution
 
 /* Adaptive solution parameters */
 const double NEWTON_TOL_COARSE = 0.01;     // Stopping criterion for Newton on coarse mesh
@@ -135,6 +135,17 @@ Scalar linear_form_surf_top(int n, double *wt, Func<Real> *v, Geom<Real> *e, Ext
   return -E_FIELD * int_v<Real, Scalar>(n, wt, v);
 }
 
+scalar voltage_ic(double x, double y, double &dx, double &dy) {
+  printf("x %g, y %g\n", x, y);
+  // y^2 function for the domain.
+  return (y+100e-6) * (y+100e-6) / (40000e-12);
+}
+
+scalar concentration_ic(double x, double y, double &dx, double &dy) {
+  printf("concentration: x %g, y %g\n", x, y);
+  return C0;
+}
+
 
 /** Nonadaptive solver.*/
 void solveNonadaptive(Mesh &mesh, NonlinSystem &nls,
@@ -146,6 +157,8 @@ void solveNonadaptive(Mesh &mesh, NonlinSystem &nls,
   //VectorView vview("electric field [V/m]", 0, 0, 600, 600);
   ScalarView Cview("Concentration [mol/m3]", 0, 0, 800, 800);
   ScalarView phiview("Voltage [V]", 650, 0, 600, 600);
+  phiview.show(&phi_prev_time);
+  phiview.wait_for_keypress();
   char title[100];
 
   for (int n = 1; n <= NSTEP; n++) {
@@ -160,6 +173,7 @@ void solveNonadaptive(Mesh &mesh, NonlinSystem &nls,
     Cview.show(&C_prev_newton);
     phi_prev_time.copy(&phi_prev_newton);
     C_prev_time.copy(&C_prev_newton);
+    info("Just for debugging");
   }
   verbose("\nTotal run time: %g sec", end_time());
   View::wait();
@@ -360,10 +374,10 @@ int main (int argc, char* argv[]) {
 
   H2DReader mloader;
   mloader.load("small.mesh", &basemesh);
-  basemesh.refine_towards_boundary(TOP_MARKER, 
-      adaptive ? REF_INIT : REF_INIT * 20);
-  basemesh.refine_towards_boundary(BOT_MARKER, 
-    adaptive ? REF_INIT - 1 : (REF_INIT * 20) - 1);
+  basemesh.refine_towards_boundary(TOP_MARKER,
+      adaptive ? REF_INIT : REF_INIT * 1);
+  basemesh.refine_towards_boundary(BOT_MARKER,
+    adaptive ? REF_INIT - 1 : (REF_INIT * 1) - 1);
   Cmesh.copy(&basemesh);
   phimesh.copy(&basemesh);
 
@@ -374,7 +388,9 @@ int main (int argc, char* argv[]) {
 
   // Spaces for concentration and the voltage
   H1Space C(&Cmesh, &shapeset);
-  H1Space phi(MULTIMESH ? &phimesh : &Cmesh, &shapeset);
+  //H1Space C(&basemesh, &shapeset);
+  //H1Space phi(MULTIMESH ? &phimesh : &Cmesh, &shapeset);
+  H1Space phi(&Cmesh, &shapeset);
 
   // Initialize boundary conditions
   C.set_bc_types(C_bc_types);
@@ -407,20 +423,29 @@ int main (int argc, char* argv[]) {
   // an1(u1, vn) + an2(u2, vn) + ann(un, vn) = ln(vn)
   if (TIME_DISCR == 1) {
     wf.add_liform(0, callback(Fc_euler), ANY, 3,
-        &C_prev_time, &C_prev_newton, &phi_prev_newton);
-    wf.add_liform(1, callback(Fphi_euler), ANY, 2, &C_prev_newton, &phi_prev_newton);
+        &C_prev_time, &C_prev_newton, &phi_prev_newton); //phi_prev_newton -> phi_prev_time
+    wf.add_liform(1, callback(Fphi_euler), ANY, 2, &C_prev_newton, &phi_prev_newton); //C_prev_newton -> C_prev_time
+    wf.add_biform(0, 0, callback(J_euler_DFcDYc), UNSYM, ANY, 1, &phi_prev_time);
+    wf.add_biform(0, 1, callback(J_euler_DFcDYphi), UNSYM, ANY, 1, &C_prev_time); // C_prev_newton -> C_prev_time
+    wf.add_biform(1, 0, callback(J_euler_DFphiDYc), UNSYM);
+    wf.add_biform(1, 1, callback(J_euler_DFphiDYphi), UNSYM);
+  } else if (TIME_DISCR == 3) {
+    wf.add_liform(0, callback(Fc_euler_explicit), ANY, 3,
+        &C_prev_time, &C_prev_newton, &phi_prev_newton); //phi_prev_newton -> phi_prev_time
+    wf.add_liform(1, callback(Fphi_euler), ANY, 2, &C_prev_time, &phi_prev_newton); //C_prev_newton -> C_prev_time
     wf.add_biform(0, 0, callback(J_euler_DFcDYc), UNSYM, ANY, 1, &phi_prev_newton);
-    wf.add_biform(0, 1, callback(J_euler_DFcDYphi), UNSYM, ANY, 1, &C_prev_newton);
+    wf.add_biform(0, 1, callback(J_euler_DFcDYphi), UNSYM, ANY, 1, &C_prev_time); // C_prev_newton -> C_prev_time
     wf.add_biform(1, 0, callback(J_euler_DFphiDYc), UNSYM);
     wf.add_biform(1, 1, callback(J_euler_DFphiDYphi), UNSYM);
   } else {
-    wf.add_liform(0, callback(Fc_cranic), ANY, 4,
+    /*wf.add_liform(0, callback(Fc_cranic), ANY, 4,
         &C_prev_time, &C_prev_newton, &phi_prev_newton, &phi_prev_time);
     wf.add_liform(1, callback(Fphi_euler), ANY, 2, &C_prev_newton, &phi_prev_newton);
     wf.add_biform(0, 0, callback(J_cranic_DFcDYc), UNSYM, ANY, 2, &phi_prev_newton, &phi_prev_newton);
     wf.add_biform(0, 1, callback(J_euler_DFcDYphi), UNSYM, ANY, 1, &C_prev_newton);
     wf.add_biform(1, 0, callback(J_euler_DFphiDYc), UNSYM);
     wf.add_biform(1, 1, callback(J_euler_DFphiDYphi), UNSYM);
+    */
   }
   // Neumann voltage boundary
   if (VOLT_BOUNDARY == 2) {
@@ -431,15 +456,20 @@ int main (int argc, char* argv[]) {
   UmfpackSolver umfpack;
   NonlinSystem nls(&wf, &umfpack);
   nls.set_spaces(2, &C, &phi);
-  if (MULTIMESH) {
-    nls.set_pss(2, &Cpss, &phipss);
+  nls.set_pss(1, &Cpss);
+
+  /*if (MULTIMESH) {
+    //nls.set_pss(2, &Cpss, &phipss);
   } else {
     nls.set_pss(1, &Cpss);
-  }
+  }*/
 
   //phi_prev_time.set_dirichlet_lift(&phi, MULTIMESH ? &phi_prev_timess : &C_prev_timess);
-  C_prev_time.set_const(&Cmesh, C0);
-  phi_prev_time.set_const(MULTIMESH ? &phimesh : &Cmesh, 0);
+  //C_prev_time.set_const(&Cmesh, C0);
+  //phi_prev_time.set_const(MULTIMESH ? &phimesh : &Cmesh, 0);
+  //phi_prev_time.set_exact(MULTIMESH ? &phimesh : &Cmesh, voltage_ic);
+  phi_prev_time.set_exact(&Cmesh, voltage_ic);
+  C_prev_time.set_exact(&Cmesh, concentration_ic);
 
   C_prev_newton.copy(&C_prev_time);
   phi_prev_newton.copy(&phi_prev_time);
