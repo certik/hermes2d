@@ -70,17 +70,20 @@ static bool write_console(const char code, const bool emphasize, const char* tex
     console_attr_blue = BACKGROUND_BLUE;
   }
   WORD console_attrs = 0;
+  bool console_bold = false;
   switch(code) {
     case H2D_EC_ERROR:
     case H2D_EC_ASSERT: console_attrs |= console_attr_red; break;
     case H2D_EC_WARNING: console_attrs |= console_attr_red | console_attr_green; break;
-    case H2D_EC_INFO:
+    case H2D_EC_INFO: console_bold = true;
     case H2D_EC_VERBOSE: console_attrs |= console_attr_red | console_attr_green | console_attr_blue; break;
     case H2D_EC_TRACE: console_attrs |= console_attr_blue; break;
     case H2D_EC_TIME: console_attrs |= console_attr_green | console_attr_blue; break;
     case H2D_EC_DEBUG: console_attrs |= console_attr_red | console_attr_blue; break;
     default: error("uknown error code: '%c'", code); break;
   }
+  if (console_bold && !emphasize)
+    console_attrs |= FOREGROUND_INTENSITY;
 
   //set new console settings
   SetConsoleTextAttribute(h_console, console_attrs);
@@ -97,27 +100,30 @@ static bool write_console(const char code, const bool emphasize, const char* tex
   else
     return false;
 #else //Linux platform
-# define FOREGROUND_RED 31
-# define FOREGROUND_GREEN 32
-# define FOREGROUND_BLUE 34
+# define FOREGROUND_RED 1
+# define FOREGROUND_GREEN 2
+# define FOREGROUND_BLUE 4
   //console color code
   int console_attrs = 0;
+  bool console_bold = false;
   switch(code) {
     case H2D_EC_ERROR:
     case H2D_EC_ASSERT: console_attrs |= FOREGROUND_RED; break;
     case H2D_EC_WARNING: console_attrs |= FOREGROUND_RED | FOREGROUND_GREEN; break;
-    case H2D_EC_INFO:
+    case H2D_EC_INFO: console_bold = true;
     case H2D_EC_VERBOSE: console_attrs |= FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE; break;
     case H2D_EC_TRACE: console_attrs |= FOREGROUND_BLUE; break;
     case H2D_EC_TIME: console_attrs |= FOREGROUND_GREEN | FOREGROUND_BLUE; break;
     case H2D_EC_DEBUG: console_attrs |= FOREGROUND_RED | FOREGROUND_BLUE; break;
     default: error("uknown error code: '%c'", code); break;
   }
-  printf("\033[%dm", console_attrs);
+  printf("\033[%dm", console_attrs + 30);
 
-  //emphasize
+  //emphasize and console bold
   if (emphasize)
     printf("\033[7m");
+  else if (console_bold)
+    printf("\033[1m");
 
   //print text and reset settings
   printf("%s\033[0m", text);
@@ -247,12 +253,49 @@ __h2d_logo __h2d_logo_instance;
 #endif
 
 //// runtime report control varibles //////////////////////////////////////////////////////////////////////////////////
-HERMES2D_API bool __h2d_report_warn = true;
-HERMES2D_API bool __h2d_report_info = true;
-HERMES2D_API bool __h2d_report_verbose = true;
-HERMES2D_API bool __h2d_report_trace = true;
-HERMES2D_API bool __h2d_report_time = true;
-HERMES2D_API bool __h2d_report_debug = true;
+#if defined(HERMES2D_REPORT_WARNING)
+# define __H2D_REP_WARN true
+#else
+# define __H2D_REP_WARN false
+#endif
+#if defined(HERMES2D_REPORT_INTR_WARNING)
+# define __H2D_REP_WARN_INTR true
+#else
+# define __H2D_REP_WARN_INTR false
+#endif
+#if defined(HERMES2D_REPORT_INFO)
+# define __H2D_REP_INFO true
+#else
+# define __H2D_REP_INFO false
+#endif
+#if defined(HERMES2D_REPORT_VERBOSE)
+# define __H2D_REP_VERB true
+#else
+# define __H2D_REP_VERB false
+#endif
+#if defined(HERMES2D_REPORT_TRACE)
+# define __H2D_REP_TRAC true
+#else
+# define __H2D_REP_TRAC false
+#endif
+#if defined(HERMES2D_REPORT_TIME)
+# define __H2D_REP_TIME true
+#else
+# define __H2D_REP_TIME false
+#endif
+#if defined(_DEBUG) || !defined(NDEBUG)
+# define __H2D_REP_DEBG true
+#else
+# define __H2D_REP_DEBG false
+#endif
+
+HERMES2D_API bool __h2d_report_warn = __H2D_REP_WARN;
+HERMES2D_API bool __h2d_report_warn_intr = __H2D_REP_WARN_INTR;
+HERMES2D_API bool __h2d_report_info = __H2D_REP_INFO;
+HERMES2D_API bool __h2d_report_verbose = __H2D_REP_VERB;
+HERMES2D_API bool __h2d_report_trace = __H2D_REP_TRAC;
+HERMES2D_API bool __h2d_report_time = __H2D_REP_TIME;
+HERMES2D_API bool __h2d_report_debug = __H2D_REP_DEBG;
 
 //// python support //////////////////////////////////////////////////////////////////////////////////
 HERMES2D_API void throw_exception(char *text)

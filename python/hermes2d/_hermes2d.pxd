@@ -64,7 +64,7 @@ cdef extern from "hermes2d.h":
     int c_EPS_HIGH "EPS_HIGH"
     int c_verbose_mode "__h2d_report_verbose"
     int c_info_mode "__h2d_report_info"
-    int c_warn_integration "__h2d_report_warn"
+    int c_warn_integration "__h2d_report_warn_intr"
 
     ctypedef double double4[4]
     ctypedef double double3[3]
