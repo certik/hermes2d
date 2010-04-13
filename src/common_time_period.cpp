@@ -4,10 +4,6 @@
 
 using namespace std;
 
-#ifndef WIN32
-# define H2D_TIME_SEC_FRAC 1000
-#endif
-
 TimePeriod::TimePeriod(const char *name) : period_name(name == NULL ? "unnamed" : name) {
   //initialization
 #ifdef WIN32 //Windows
@@ -16,11 +12,11 @@ TimePeriod::TimePeriod(const char *name) : period_name(name == NULL ? "unnamed" 
     frequency = (double)freq.QuadPart;
   else
     frequency = -1;
-#endif
+#endif //Linux
   tick_reset();
 }
 
-uint64_t TimePeriod::get_time() const {
+TimePeriod::SysTime TimePeriod::get_time() const {
 #ifdef WIN32 //Windows
   if (frequency > 0) {
     LARGE_INTEGER ticks;
@@ -33,25 +29,33 @@ uint64_t TimePeriod::get_time() const {
 #else //Linux
   timespec tm;
   clock_gettime(CLOCK_REALTIME, &tm);
-  return (uint64_t)tm.tv_sec * H2D_TIME_SEC_FRAC + (tm.tv_nsec / (1000000 / H2D_TIME_SEC_FRAC));
+  return tm;
 #endif
 }
 
-double TimePeriod::to_seconds(const uint64_t& period) const {
+double TimePeriod::period_in_seconds(const SysTime& begin, const SysTime& end) const {
 #ifdef WIN32 //Windows
+  uint64_t period = end - begin;
   if (frequency > 0)
     return period / frequency;
   else
     return period / (double)CLOCKS_PER_SEC;
 #else //Linux
-  return period / (double)H2D_TIME_SEC_FRAC;
+  int sec_corr = 0;
+  long period_nsec = end.tv_nsec - begin.tv_nsec;
+  if (period_nsec < 0) {
+    sec_corr += -1;
+    period_nsec += 1000000000UL;
+  }
+  long period_sec = (long)(end.tv_sec - begin.tv_sec) + sec_corr;
+  return period_sec + (period_nsec / 1E9);
 #endif
 }
 
 const TimePeriod& TimePeriod::tick(TimerPeriodTickType type) {
-  uint64_t cur_time = get_time();
-  double secs = to_seconds(cur_time - last_time);
+  SysTime cur_time = get_time();
   if (type == H2D_ACCUMULATE) {
+    double secs = period_in_seconds(last_time, cur_time);
     accum += secs;
     last_period = secs;
   }
