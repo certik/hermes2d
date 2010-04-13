@@ -238,10 +238,10 @@ int main(int argc, char* argv[])
   cspace.set_bc_types(bc_types);
   tspace.set_uniform_order(init_order);
   cspace.set_uniform_order(init_order);
-  int ndofs = 0;
-  ndofs += tspace.assign_dofs(ndofs);
-  ndofs += cspace.assign_dofs(ndofs);
-  info("Number of DOFs: %d", ndofs);
+
+  // enumerate degrees of freedom
+  int ndof = assign_dofs(2, &tspace, &cspace);
+  info("Number of DOFs: %d", ndof);
 
   // initial conditions
   Solution tprev1, cprev1, tprev2, cprev2, titer, citer, tsln, csln;

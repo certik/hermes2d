@@ -193,14 +193,14 @@ int main(int argc, char* argv[])
   // Adaptivity loop
   int it = 1, ndofs;
   bool done = false;
-  double cpu = 0.0;
+  TimePeriod cpu_time;
   Solution sln_coarse, sln_fine;
   do
   {
-    info("\n---- Adaptivity step %d ---------------------------------------------\n", it++);
+    info("!---- Adaptivity step %d ---------------------------------------------", it); it++;
 
-    // Time measurement
-    begin_time();
+    // time measurement
+    cpu_time.tick(H2D_SKIP);
 
     // Solve the coarse mesh problem
     LinSystem ls(&wf, &solver);
@@ -208,12 +208,6 @@ int main(int argc, char* argv[])
     ls.set_pss(1, &pss);
     ls.assemble();
     ls.solve(1, &sln_coarse);
-
-    // Time measurement
-    cpu += end_time();
-
-    // Time measurement
-    begin_time();
 
     // Solve the fine mesh problem
     RefSystem rs(&ls);
@@ -223,6 +217,11 @@ int main(int argc, char* argv[])
     // Calculate error estimate wrt. fine mesh solution
     H1OrthoHP hp(1, &space);
     double err_est = hp.calc_error(&sln_coarse, &sln_fine) * 100;
+
+    // time measurement
+    cpu_time.tick();
+
+    // report results
     info("Estimate of error: %g%%", err_est);
 
     // Add entry to DOF convergence graph
@@ -230,8 +229,11 @@ int main(int argc, char* argv[])
     graph.save("conv_dof.gp");
 
     // Add entry to CPU convergence graph
-    graph_cpu.add_values(0, cpu, err_est);
+    graph_cpu.add_values(0, cpu_time.accumulated(), err_est);
     graph_cpu.save("conv_cpu.gp");
+
+    // time measurement
+    cpu_time.tick(H2D_SKIP);
 
     // If err_est too large, adapt the mesh
     if (err_est < ERR_STOP) done = true;
@@ -242,10 +244,10 @@ int main(int argc, char* argv[])
     }
 
     // Time measurement
-    cpu += end_time();
+    cpu_time.tick();
   }
   while (done == false);
-  verbose("Total running time: %g sec", cpu);
+  verbose("Total running time: %g s", cpu_time.accumulated());
 
 #define ERROR_SUCCESS                               0
 #define ERROR_FAILURE                               -1

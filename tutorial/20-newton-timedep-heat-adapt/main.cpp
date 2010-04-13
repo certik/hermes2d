@@ -1,3 +1,5 @@
+#define HERMES2D_REPORT_ALL
+#define HERMES2D_REPORT_FILE "application.log"
 #include "hermes2d.h"
 #include "solver_umfpack.h"
 
@@ -133,10 +135,9 @@ int main(int argc, char* argv[])
   space.set_bc_types(bc_types);
   space.set_bc_values(bc_values);
   space.set_uniform_order(P_INIT);
-  space.assign_dofs();
 
-  // enumerate basis functions
-  space.assign_dofs();
+  // enumerate degrees of freedom
+  int ndof = assign_dofs(&space);
 
   // Solutions for the time stepping and the Newton's method
   Solution u_prev_time, u_prev_newton;
@@ -176,7 +177,7 @@ int main(int argc, char* argv[])
   ordview.show(&space);
 
   // Newton's loop on the coarse mesh
-  info("---- Time step 1, Newton solve on coarse mesh:\n");
+  info("---- Time step 1, Newton solve on coarse mesh:");
   if (!nls.solve_newton_1(&u_prev_newton, NEWTON_TOL_COARSE, NEWTON_MAX_ITER))
     error("Newton's method did not converge.");
 
@@ -190,18 +191,18 @@ int main(int argc, char* argv[])
   {
     // periodic global derefinements
     if (n > 1 && n % UNREF_FREQ == 0) {
-      info("---- Time step %d, global derefinement.\n", n);
+      info("---- Time step %d, global derefinement.", n);
       mesh.copy(&basemesh);
       space.set_uniform_order(P_INIT);
-      space.assign_dofs();
+      ndof = assign_dofs(&space);
 
       // project the fine mesh solution on the globally derefined mesh
-      info("---- Time step %d, projecting fine mesh solution on globally derefined mesh:\n", n);
+      info("---- Time step %d, projecting fine mesh solution on globally derefined mesh:", n);
       nls.set_ic(&sln_fine, &u_prev_newton, PROJ_TYPE);
 
       if (NEWTON_ON_COARSE_MESH) {
         // Newton's loop on the globally derefined mesh
-        info("---- Time step %d, Newton solve on globally derefined mesh:\n", n);
+        info("---- Time step %d, Newton solve on globally derefined mesh:", n);
         if (!nls.solve_newton_1(&u_prev_newton, NEWTON_TOL_COARSE, NEWTON_MAX_ITER))
           error("Newton's method did not converge.");
       }
@@ -216,7 +217,7 @@ int main(int argc, char* argv[])
     int a_step = 1;
     do
     {
-      info("---- Time step %d, adaptivity step %d, Newton solve on fine mesh:\n", n, a_step);
+      info("---- Time step %d, adaptivity step %d, Newton solve on fine mesh:", n, a_step);
 
       // reference nonlinear system
       RefNonlinSystem rnls(&nls);
@@ -252,11 +253,11 @@ int main(int argc, char* argv[])
       if (err_est < ERR_STOP) done = true;
       else {
         hp.adapt(THRESHOLD, STRATEGY, ADAPT_TYPE, ISO_ONLY, MESH_REGULARITY);
-        int ndof = space.assign_dofs();
+        ndof = assign_dofs(&space);
         if (ndof >= NDOF_STOP) done = true;
 
         // project the fine mesh solution on the new coarse mesh
-        info("---- Time step %d, adaptivity step %d, projecting fine mesh solution on new coarse mesh:\n",
+        info("---- Time step %d, adaptivity step %d, projecting fine mesh solution on new coarse mesh:",
           n, a_step);
         nls.set_ic(&sln_fine, &u_prev_newton, PROJ_TYPE);
 
@@ -265,7 +266,7 @@ int main(int argc, char* argv[])
 
         if (NEWTON_ON_COARSE_MESH) {
           // Newton's loop on the coarse mesh
-          info("---- Time step %d, adaptivity step %d, Newton solve on new coarse mesh:\n", n, a_step);
+          info("---- Time step %d, adaptivity step %d, Newton solve on new coarse mesh:", n, a_step);
           if (!nls.solve_newton_1(&u_prev_newton, NEWTON_TOL_COARSE, NEWTON_MAX_ITER))
             error("Newton's method did not converge.");
         }
@@ -286,7 +287,7 @@ int main(int argc, char* argv[])
     u_prev_time.copy(&sln_fine);
   }
 
-  // wait for keyboard or mouse input
+  // wait for all views to be closed
   View::wait();
   return 0;
 }

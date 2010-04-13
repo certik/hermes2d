@@ -47,10 +47,11 @@ int main(int argc, char* argv[])
   H1Shapeset shapeset;
   H1Space space(&mesh, &shapeset);
 
-  // assign element orders and initialize the space
-  space.set_uniform_order(P_INIT);  // Set uniform polynomial order
-                                    // P_INIT to all mesh elements.
-  space.assign_dofs();              // Enumerate basis functions.
+  // set polynomial degrees in elements
+  space.set_uniform_order(P_INIT); 
+
+  // enumerate degrees of freedom
+  int ndof = assign_dofs(&space);
 
   // view the basis functions
   BaseView bview;

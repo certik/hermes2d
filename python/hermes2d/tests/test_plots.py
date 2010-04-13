@@ -1,3 +1,6 @@
+import matplotlib
+matplotlib.use('Agg')
+
 from hermes2d import (Mesh, H1Shapeset, PrecalcShapeset, H1Space, WeakForm,
         Solution, ScalarView, LinSystem, DummySolver, raises, MeshView,
         set_verbose, plot_mesh_mpl_simple, plot_mesh_mpl_orders)

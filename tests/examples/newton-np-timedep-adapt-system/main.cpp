@@ -1,6 +1,5 @@
 #include "hermes2d.h"
 #include "solver_umfpack.h"
-#include <string>
 
 // This is a test for Nernst-Planck examle
 

@@ -1,6 +1,5 @@
-#define HERMES2D_REPORT_WARN
-#define HERMES2D_REPORT_INFO
-#define HERMES2D_REPORT_FILE "screen.log"
+#define HERMES2D_REPORT_ALL
+#define HERMES2D_REPORT_FILE "application.log"
 #include "hermes2d.h"
 #include "solver_umfpack.h"
 
@@ -106,8 +105,8 @@ int main(int argc, char* argv[])
   space.set_bc_values(bc_values);
   space.set_uniform_order(P_INIT);
 
-  // enumerate basis functions
-  space.assign_dofs();
+  // enumerate degrees of freedom
+  int ndof = assign_dofs(&space);
 
   // initialize the weak formulation
   WeakForm wf(1);
@@ -134,16 +133,16 @@ int main(int argc, char* argv[])
   SimpleGraph graph_dof_est, graph_dof_exact, graph_cpu_est, graph_cpu_exact;
 
   // adaptivity loop
-  int it = 1, ndofs;
+  int it = 1;
   bool done = false;
-  double cpu = 0.0;
+  TimePeriod cpu_time;
   Solution sln_coarse, sln_fine;
   do
   {
-    info("\n---- Adaptivity step %d ---------------------------------------------\n", it++);
+    info("!---- Adaptivity step %d ---------------------------------------------", it); it++;
 
     // time measurement
-    begin_time();
+    cpu_time.tick(H2D_SKIP);
 
     // solve the coarse mesh problem
     LinSystem sys(&wf, &solver);
@@ -153,7 +152,7 @@ int main(int argc, char* argv[])
     sys.solve(1, &sln_coarse);
 
     // time measurement
-    cpu += end_time();
+    cpu_time.tick();
 
     // calculating error wrt. exact solution
     Solution ex;
@@ -179,7 +178,7 @@ int main(int argc, char* argv[])
     ord.show(&space);
 
     // time measurement
-    begin_time();
+    cpu_time.tick(H2D_SKIP);
 
     // solve the fine mesh problem
     RefSystem ref(&sys);
@@ -190,6 +189,9 @@ int main(int argc, char* argv[])
     HcurlOrthoHP hp(1, &space);
     double err_est_adapt = hp.calc_error(&sln_coarse, &sln_fine) * 100;
     double err_est_hcurl = hcurl_error(&sln_coarse, &sln_fine) * 100;
+    
+    // report results
+    cpu_time.tick();
     info("Error estimate (adapt): %g%%", err_est_adapt);
     info("Error estimate (hcurl): %g%%", err_est_hcurl);
 
@@ -200,26 +202,29 @@ int main(int argc, char* argv[])
     graph_dof_est.save("conv_dof_est.dat");
 
     // add entries to CPU convergence graphs
-    graph_cpu_exact.add_values(cpu, err_exact);
+    graph_cpu_exact.add_values(cpu_time.accumulated(), err_exact);
     graph_cpu_exact.save("conv_cpu_exact.dat");
-    graph_cpu_est.add_values(cpu, err_est_hcurl);
+    graph_cpu_est.add_values(cpu_time.accumulated(), err_est_hcurl);
     graph_cpu_est.save("conv_cpu_est.dat");
+
+    // time measurement
+    cpu_time.tick(H2D_SKIP);
 
     // if err_est_adapt too large, adapt the mesh
     if (err_est_adapt < ERR_STOP) done = true;
     else {
       hp.adapt(THRESHOLD, STRATEGY, ADAPT_TYPE, ISO_ONLY, MESH_REGULARITY);
-      ndofs = space.assign_dofs();
-      if (ndofs >= NDOF_STOP) done = true;
+      ndof = assign_dofs(&space);
+      if (ndof >= NDOF_STOP) done = true;
     }
 
     // time measurement
-    cpu += end_time();
+    cpu_time.tick();
   }
   while (!done);
-  verbose("Total running time: %g sec", cpu);
+  verbose("Total running time: %g s", cpu_time.accumulated());
 
-  // wait for keyboard or mouse input
+  // wait for all views to be closed
   View::wait();
   return 0;
 }

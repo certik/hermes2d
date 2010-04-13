@@ -1,3 +1,5 @@
+#define HERMES2D_REPORT_ALL
+#define HERMES2D_REPORT_FILE "application.log"
 #include "hermes2d.h"
 #include "solver_umfpack.h"
 #include "function.h"
@@ -92,7 +94,9 @@ int main(int argc, char* argv[])
   H1Space space(&mesh, &shapeset);
   space.set_bc_types(bc_types);
   space.set_uniform_order(P_INIT);
-  space.assign_dofs();
+  
+  // enumerate degrees of freedom
+  int ndof = assign_dofs(&space);
 
   // previous solution for the Newton's iteration
   Solution u_prev;
@@ -126,7 +130,7 @@ int main(int argc, char* argv[])
   oview.set_title(title);
   oview.show(&space);
 
-  // wait for keyboard or mouse input
+  // wait for all views to be closed
   View::wait();
   return 0;
 }

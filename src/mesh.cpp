@@ -27,7 +27,7 @@ void Node::ref_element(Element* e)
     // store the element pointer in a free slot of 'elem'
     if (elem[0] == NULL) elem[0] = e;
     else if (elem[1] == NULL) elem[1] = e;
-    else assert_msg(false, "E no free slot 'elem'");
+    else assert_msg(false, "no free slot 'elem'");
   }
   ref++;
 }

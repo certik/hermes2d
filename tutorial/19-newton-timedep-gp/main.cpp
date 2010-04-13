@@ -1,3 +1,5 @@
+#define HERMES2D_REPORT_ALL
+#define HERMES2D_REPORT_FILE "application.log"
 #define DEBUG_ORDER
 #include "hermes2d.h"
 #include "solver_umfpack.h"
@@ -93,7 +95,9 @@ int main(int argc, char* argv[])
   space.set_bc_types(bc_types);
   space.set_bc_values(bc_values);
   space.set_uniform_order(P_INIT);
-  space.assign_dofs();
+
+  // enumerate degrees of freedom
+  int ndof = assign_dofs(&space);
 
   // solutions for the Newton's iteration and time stepping
   Solution Psi_prev_time,
@@ -130,7 +134,7 @@ int main(int argc, char* argv[])
   for(int n = 1; n <= nstep; n++)
   {
 
-    info("\n---- Time step %d:\n", n);
+    info("---- Time step %d:", n);
 
     // Newton's method
     if (!nls.solve_newton_1(&Psi_prev_newton, NEWTON_TOL, NEWTON_MAX_ITER)) error("Newton's method did not converge.");
@@ -145,7 +149,7 @@ int main(int argc, char* argv[])
     Psi_prev_time.copy(&Psi_prev_newton);
   }
 
-  // wait for keyboard or mouse input
-  View::wait("Waiting for all views to be closed.");
+  // wait for all views to be closed
+  View::wait();
   return 0;
 }

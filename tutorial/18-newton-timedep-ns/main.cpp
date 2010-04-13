@@ -1,3 +1,5 @@
+#define HERMES2D_REPORT_ALL
+#define HERMES2D_REPORT_FILE "application.log"
 #include "hermes2d.h"
 #include "solver_umfpack.h"
 
@@ -136,10 +138,7 @@ int main(int argc, char* argv[])
   p_space.set_uniform_order(P_INIT_PRESSURE);
 
   // assign degrees of freedom
-  int ndofs = 0;
-  ndofs += xvel_space.assign_dofs(ndofs);
-  ndofs += yvel_space.assign_dofs(ndofs);
-  ndofs += p_space.assign_dofs(ndofs);
+  int ndof = assign_dofs(3, &xvel_space, &yvel_space, &p_space);
 
   // solutions for the Newton's iteration and time stepping
   Solution xvel_prev_time, yvel_prev_time, xvel_prev_newton, yvel_prev_newton, p_prev;
@@ -219,13 +218,10 @@ int main(int argc, char* argv[])
   {
     TIME += TAU;
 
-    info("\n---- Time step %d, time = %g:\n", i, TIME);
+    info("---- Time step %d, time = %g:", i, TIME);
 
     // this is needed to update the time-dependent boundary conditions
-    ndofs = 0;
-    ndofs += xvel_space.assign_dofs(ndofs);
-    ndofs += yvel_space.assign_dofs(ndofs);
-    ndofs += p_space.assign_dofs(ndofs);
+    ndof = assign_dofs(3, &xvel_space, &yvel_space, &p_space);
 
     if (NEWTON) {
       // Newton's method
@@ -265,7 +261,7 @@ int main(int argc, char* argv[])
     }
   }
 
-  // wait for keyboard or mouse input
+  // wait for all views to be closed
   View::wait();
   return 0;
 }

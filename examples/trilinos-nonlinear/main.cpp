@@ -142,7 +142,7 @@ int main(int argc, char **argv)
   H1Space space(&mesh, &shapeset);
   space.set_bc_types(bc_types);
   space.set_uniform_order(ORDER);
-  int ndofs = space.assign_dofs();
+  int ndof = assign_dofs(&space);
 
   info("******************** Using Linsystem, Solving by Umfpack ************************");
 
@@ -188,7 +188,7 @@ int main(int argc, char **argv)
   double proj_time = end_time();
 
   begin_time();
-  info("Number of DOFs: %d", ndofs);
+  info("Number of DOF: %d", ndof);
   WeakForm wf2(1, jfnk ? true : false);
   if (!jfnk || (jfnk && precond == 1)) wf2.add_jacform(0, 0, callback(jacobian_form_nox), SYM);
   if (jfnk && precond == 2) wf2.add_jacform(0, 0, callback(precond_form_nox), SYM);

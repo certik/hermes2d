@@ -27,7 +27,7 @@ int main(int argc, char* argv[])
   space.set_uniform_order(P_INIT);
 
   // enumerate basis functions
-  space.assign_dofs();
+  int ndof = assign_dofs(&space);
 
   // visualise the FE basis
   VectorBaseView bview;

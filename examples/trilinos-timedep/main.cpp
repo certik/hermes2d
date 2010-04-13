@@ -102,7 +102,7 @@ int main(int argc, char* argv[])
   space.set_bc_types(bc_types);
   space.set_bc_values(bc_values);
   space.set_uniform_order(ORDER);
-  int ndofs = space.assign_dofs();
+  int ndof = assign_dofs(&space);
 
   // set initial condition
   Solution tprev, titer, tsln;

@@ -198,11 +198,7 @@ int main(int argc, char* argv[])
   view4.show_mesh(false);
 
   // enumerate basis functions
-  int ndofs = 0;
-  ndofs += space1.assign_dofs(ndofs);
-  ndofs += space2.assign_dofs(ndofs);
-  ndofs += space3.assign_dofs(ndofs);
-  ndofs += space4.assign_dofs(ndofs);
+  int ndof = assign_dofs(4, &space1, &space2, &space3, &space4);
 
   // Main power iteration loop
   bool eigen_done = false; int it = 0;

@@ -152,8 +152,6 @@ void solveNonadaptive(Mesh &mesh, NonlinSystem &nls,
     Solution &C_prev_time, Solution &C_prev_newton,
     Solution &phi_prev_time, Solution &phi_prev_newton) {
 
-  begin_time();
-
   //VectorView vview("electric field [V/m]", 0, 0, 600, 600);
   ScalarView Cview("Concentration [mol/m3]", 0, 0, 800, 800);
   ScalarView phiview("Voltage [V]", 650, 0, 600, 600);
@@ -175,7 +173,6 @@ void solveNonadaptive(Mesh &mesh, NonlinSystem &nls,
     C_prev_time.copy(&C_prev_newton);
     info("Just for debugging");
   }
-  verbose("\nTotal run time: %g sec", end_time());
   View::wait();
 }
 
@@ -221,6 +218,7 @@ void solveAdaptive(Mesh &Cmesh, Mesh &phimesh, Mesh &basemesh, NonlinSystem &nls
   phisln_coarse.copy(&phi_prev_newton);
 
   int at_index = 1; //for saving screenshot
+  int ndof;
   for (int n = 1; n <= NSTEP; n++) {
     if (n > 1 && n % UNREF_FREQ == 0) {
       Cmesh.copy(&basemesh);
@@ -229,9 +227,7 @@ void solveAdaptive(Mesh &Cmesh, Mesh &phimesh, Mesh &basemesh, NonlinSystem &nls
       }
       Cspace.set_uniform_order(P_INIT);
       phispace.set_uniform_order(P_INIT);
-      int ndofs;
-      ndofs = Cspace.assign_dofs();
-      phispace.assign_dofs(ndofs);
+      ndof = assign_dofs(2, &Cspace, &phispace);
 
       // project the fine mesh solution on the globally derefined mesh
       info("---- Time step %d, projecting fine mesh solution on globally derefined mesh:\n", n);
@@ -281,12 +277,12 @@ void solveAdaptive(Mesh &Cmesh, Mesh &phimesh, Mesh &basemesh, NonlinSystem &nls
         done = true;
       } else {
         hp.adapt(THRESHOLD, STRATEGY, ADAPT_TYPE);
-        int ndofs;
-        ndofs = Cspace.assign_dofs();
-        ndofs += phispace.assign_dofs(ndofs);
-        info("NDOFS after adapting: %d", ndofs);
-        if (ndofs >= NDOF_STOP) {
-          info("NDOFs reached to the max %d", NDOF_STOP);
+        // enumerate degrees of freedom
+        ndof = assign_dofs(2, &Cspace, &phispace);
+
+        info("NDOF after adapting: %d", ndof);
+        if (ndof >= NDOF_STOP) {
+          info("NDOF reached to the max %d", NDOF_STOP);
           done = true;
         }
 
@@ -304,7 +300,6 @@ void solveAdaptive(Mesh &Cmesh, Mesh &phimesh, Mesh &basemesh, NonlinSystem &nls
 
         Csln_coarse.copy(&C_prev_newton);
         phisln_coarse.copy(&phi_prev_newton);
-
 
       }
       
@@ -402,11 +397,10 @@ int main (int argc, char* argv[]) {
   phi.set_uniform_order(P_INIT);
 
 
-  // assign degrees of freedom
-  int ndofs = 0;
-  ndofs += C.assign_dofs(ndofs);
-  ndofs += phi.assign_dofs(ndofs);
-  info("ndofs: %d", ndofs);
+  // enumerate degrees of freedom
+  int ndof = assign_dofs(2, &C, &phi);
+
+  info("ndof: %d", ndof);
 
   // The weak form for 2 equations
   WeakForm wf(2);

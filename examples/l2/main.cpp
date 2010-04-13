@@ -66,7 +66,7 @@ int main(int argc, char* argv[])
   space.set_uniform_order(P_INIT);
 
   // enumerate basis functions
-  space.assign_dofs();
+  int ndof = assign_dofs(&space);
 
 /*  BaseView bview;
   bview.show(&space);

@@ -265,11 +265,8 @@ int main(int argc, char* argv[])
   yvel.set_uniform_order(P_INIT_VEL);
   press.set_uniform_order(P_INIT_PRESSURE);
 
-  // assign degrees of freedom
-  int ndofs = 0;
-  ndofs += xvel.assign_dofs(ndofs);
-  ndofs += yvel.assign_dofs(ndofs);
-  ndofs += press.assign_dofs(ndofs);
+  // enumerate degrees of freedom
+  int ndof = assign_dofs(3, &xvel, &yvel, &press);
 
   // initial BC: xprev and yprev are zero
   Solution xprev, yprev;
@@ -320,16 +317,14 @@ int main(int argc, char* argv[])
     {
       info("\n*** Adaptive iteration %d ***\n", at++);
 
-      // solve problem
-      int ndofs = 0;
-      ndofs += xvel.assign_dofs(ndofs);
-      ndofs += yvel.assign_dofs(ndofs);
-      ndofs += press.assign_dofs(ndofs);
+      // enumerate degrees of freedom
+      ndof = assign_dofs(3, &xvel, &yvel, &press);
 
+      // assemble and solve
       sys.assemble();
       sys.solve(3, &xsln, &ysln, &psln);
 
-     // visualization
+      // visualization
       sprintf(title, "Velocity, time %g", current_time);
       vview.set_title(title);
       vview.show(&xsln, &ysln, EPS_LOW);
@@ -338,7 +333,7 @@ int main(int argc, char* argv[])
       pview.show(&psln);
 
       // solve fine problem
-      RefSystem ref(&sys, 0); // just spacial refinement
+      RefSystem ref(&sys, 0); // just spatial refinement
       ref.assemble();
       ref.solve(3, &xref, &yref, &pref);
 
@@ -370,10 +365,8 @@ int main(int argc, char* argv[])
       xvel.set_uniform_order(P_INIT_VEL);
       yvel.set_uniform_order(P_INIT_VEL);
       press.set_uniform_order(P_INIT_PRESSURE);
-
     }
     while(!done);
-
 
     xprev = xsln;
     yprev = ysln;

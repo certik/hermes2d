@@ -1,3 +1,5 @@
+#define HERMES2D_REPORT_ALL
+#define HERMES2D_REPORT_FILE "application.log"
 #include "hermes2d.h"
 #include "solver_umfpack.h"
 #include "function.h"
@@ -138,7 +140,7 @@ int main(int argc, char* argv[])
 
   // initial mesh refinements
   for(int i = 0; i < INIT_GLOB_REF_NUM; i++) mesh.refine_all_elements();
-  mesh.refine_towards_boundary(1,INIT_BDY_REF_NUM);
+  mesh.refine_towards_boundary(1, INIT_BDY_REF_NUM);
 
   // initialize the shapeset and the cache
   H1Shapeset shapeset;
@@ -149,7 +151,9 @@ int main(int argc, char* argv[])
   space.set_bc_types(bc_types);
   space.set_bc_values(bc_values);
   space.set_uniform_order(P_INIT);
-  space.assign_dofs();
+
+  // enumerate degrees of freedom
+  int ndof = assign_dofs(&space);
 
   // solutions for the Newton's iteration and adaptivity
   Solution u_prev, sln_coarse, sln_fine;
@@ -169,8 +173,7 @@ int main(int argc, char* argv[])
   SimpleGraph graph_dof, graph_cpu;
 
   // time measurement
-  double cpu = 0;
-  begin_time();
+  TimePeriod cpu_time;
 
   // project the function init_guess() on the coarse mesh
   // to obtain initial guess u_prev for the Newton's method
@@ -198,13 +201,17 @@ int main(int argc, char* argv[])
   do {
     double err_est;
 
-    info("\n---- Adaptivity step %d:\n", ++a_step);
+    a_step++;
+    info("!---- Adaptivity step %d ---------------------------------------------", a_step);
 
     // show coarse mesh and solution
     sview_coarse.show(&sln_coarse);
     oview_coarse.show(&space);
 
-    info("---- Solving on fine mesh:\n");
+    info("---- Solving on fine mesh ---------------------------------------------");
+
+    // do not measure showing of results
+    cpu_time.tick(H2D_SKIP);
 
     // Setting initial guess for the Newton's method on the fine mesh
     RefNonlinSystem rnls(&nls);
@@ -218,51 +225,64 @@ int main(int argc, char* argv[])
     // stote the fine mesh solution in sln_fine
     sln_fine.copy(&u_prev);
 
+    // time measurement
+    cpu_time.tick();
+
     // show fine mesh and solution
     sview_fine.show(&sln_fine);
     oview_fine.show(rnls.get_space(0));
 
+    // time measurement
+    cpu_time.tick(H2D_SKIP);
+
     // calculate element errors and total error estimate
     H1AdaptHP hp(1, &space);
     err_est = hp.calc_error(&sln_coarse, &sln_fine) * 100;
-    info("Error estimate: %g%%", err_est);
 
     // time measurement
-    cpu += end_time();
+    cpu_time.tick();
 
-    // add entry to DOF and CPU convergence graphs
+    // report results
+    info("Error estimate: %g%%", err_est);
+
+    // add entry to DOF convergence graph
     graph_dof.add_values(space.get_num_dofs(), err_est);
     graph_dof.save("conv_dof.dat");
-    graph_cpu.add_values(cpu, err_est);
+
+    // add entry to CPU convergence graph
+    graph_cpu.add_values(cpu_time.accumulated(), err_est);
     graph_cpu.save("conv_cpu.dat");
 
     // time measurement
-    begin_time();
+    cpu_time.tick(H2D_SKIP);
 
     // if err_est too large, adapt the mesh
     if (err_est < ERR_STOP) done = true;
     else {
       hp.adapt(THRESHOLD, STRATEGY, &selector, MESH_REGULARITY);
-      int ndof = space.assign_dofs();
+      ndof = assign_dofs(&space);
       if (ndof >= NDOF_STOP) done = true;
 
       // project the fine mesh solution on the new coarse mesh
-      info("---- Projecting fine mesh solution on new coarse mesh:\n");
+      info("---- Projecting fine mesh solution on new coarse mesh -----------------");
       nls.set_ic(&sln_fine, &u_prev, PROJ_TYPE);
 
       if (NEWTON_ON_COARSE_MESH) {
         // Newton's loop on the coarse mesh
-        info("---- Solving on coarse mesh:\n");
+        info("---- Solving on coarse mesh -------------------------------------------");
         if (!nls.solve_newton_1(&u_prev, NEWTON_TOL_COARSE, NEWTON_MAX_ITER)) error("Newton's method did not converge.");
       }
 
       // store the result in sln_coarse
       sln_coarse.copy(&u_prev);
     }
+
+    // time measurement
+    cpu_time.tick();
   }
   while (!done);
-  cpu += end_time();
-  verbose("Total running time: %g sec", cpu);
+  cpu_time.tick();
+  verbose("Total running time: %g s", cpu_time.accumulated());
 
   // wait for keyboard or mouse input
   View::wait();

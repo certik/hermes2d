@@ -1,3 +1,5 @@
+#define HERMES2D_REPORT_ALL
+#define HERMES2D_REPORT_FILE "application.log"
 #include "hermes2d.h"
 #include "solver_umfpack.h"
 
@@ -150,8 +152,8 @@ int main(int argc, char* argv[])
   space.set_bc_values(bc_values);
   space.set_uniform_order(P_INIT);
 
-  // Enumerate basis functions
-  space.assign_dofs();
+  // Enumerate degrees of freedom
+  int ndof = assign_dofs(&space);
 
   // Initialize the weak formulation
   WeakForm wf(1);
@@ -167,8 +169,7 @@ int main(int argc, char* argv[])
   UmfpackSolver solver;
 
   // Time measurement
-  double cpu = 0;
-  begin_time();
+  TimePeriod cpu_time;
 
   // Solve the problem
   Solution sln;
@@ -179,14 +180,14 @@ int main(int argc, char* argv[])
   ls.solve(1, &sln);
 
   // Time measurement
-  cpu += end_time();
+  cpu_time.tick();
 
   // View the solution and mesh
   sview.show(&sln);
   oview.show(&space);
 
-  // Print timing information
-  verbose("Total running time: %g sec", cpu);
+  // Print cpu_time information
+  verbose("Total running time: %g s", cpu_time.accumulated());
 
   // wait for all views to be closed
   View::wait();

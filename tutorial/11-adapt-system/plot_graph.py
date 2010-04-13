@@ -1,40 +1,40 @@
 # import libraries
-import numpy, pylab
-from pylab import *
+import pylab
+#from pylab import *
 
 # plot DOF convergence graph
-axis('equal')
+pylab.axis('equal')
 pylab.title("Error convergence")
 pylab.xlabel("Degrees of freedom")
 pylab.ylabel("Error [%]")
-data = numpy.loadtxt("conv_dof_m.dat")
+data = pylab.loadtxt("conv_dof_m.dat")
 x = data[:, 0]
 y = data[:, 1]
-loglog(x, y, "-s", label="error (multi-mesh)")
-data = numpy.loadtxt("conv_dof_s.dat")
-x = data[:, 0]
-y = data[:, 1]
-loglog(x, y, "-s", label="error (single-mesh)")
+pylab.loglog(x, y, "-s", label="error (multi-mesh)")
+#data = numpy.loadtxt("conv_dof_s.dat")
+#x = data[:, 0]
+#y = data[:, 1]
+#loglog(x, y, "-s", label="error (single-mesh)")
 
-legend()
+pylab.legend()
 
 # initialize new window
 pylab.figure()
 
-axis('equal')
+pylab.axis('equal')
 pylab.title("Error convergence")
 pylab.xlabel("CPU time (s)")
 pylab.ylabel("Error [%]")
-data = numpy.loadtxt("conv_cpu_m.dat")
+data = pylab.loadtxt("conv_cpu_m.dat")
 x = data[:, 0]
 y = data[:, 1]
-loglog(x, y, "-s", label="error (multi-mesh)")
-data = numpy.loadtxt("conv_cpu_s.dat")
-x = data[:, 0]
-y = data[:, 1]
-loglog(x, y, "-s", label="error (single-mesh)")
-legend()
+pylab.loglog(x, y, "-s", label="error (multi-mesh)")
+#data = numpy.loadtxt("conv_cpu_s.dat")
+#x = data[:, 0]
+#y = data[:, 1]
+#loglog(x, y, "-s", label="error (single-mesh)")
+pylab.legend()
 
 
 # finalize
-show()
+pylab.show()
