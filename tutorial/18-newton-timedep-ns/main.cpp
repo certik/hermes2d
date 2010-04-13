@@ -138,10 +138,7 @@ int main(int argc, char* argv[])
   p_space.set_uniform_order(P_INIT_PRESSURE);
 
   // assign degrees of freedom
-  int ndofs = 0;
-  ndofs += xvel_space.assign_dofs(ndofs);
-  ndofs += yvel_space.assign_dofs(ndofs);
-  ndofs += p_space.assign_dofs(ndofs);
+  int ndof = assign_dofs(3, &xvel_space, &yvel_space, &p_space);
 
   // solutions for the Newton's iteration and time stepping
   Solution xvel_prev_time, yvel_prev_time, xvel_prev_newton, yvel_prev_newton, p_prev;
@@ -224,10 +221,7 @@ int main(int argc, char* argv[])
     info("---- Time step %d, time = %g:", i, TIME);
 
     // this is needed to update the time-dependent boundary conditions
-    ndofs = 0;
-    ndofs += xvel_space.assign_dofs(ndofs);
-    ndofs += yvel_space.assign_dofs(ndofs);
-    ndofs += p_space.assign_dofs(ndofs);
+    ndof = assign_dofs(3, &xvel_space, &yvel_space, &p_space);
 
     if (NEWTON) {
       // Newton's method

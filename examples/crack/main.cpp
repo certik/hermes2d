@@ -135,8 +135,7 @@ int main(int argc, char* argv[])
   ydisp.set_uniform_order(P_INIT);
 
   // enumerate basis functions
-  int ndofs = xdisp.assign_dofs();
-  ndofs += ydisp.assign_dofs(ndofs);
+  int ndof = assign_dofs(2, &xdisp, &ydisp);
   printf("xdof=%d, ydof=%d\n", xdisp.get_num_dofs(), ydisp.get_num_dofs());
 
   // initialize the weak formulation
@@ -222,12 +221,10 @@ int main(int argc, char* argv[])
     // if err_est too large, adapt the mesh
     if (err_est < ERR_STOP || xdisp.get_num_dofs() + ydisp.get_num_dofs() >= NDOF_STOP) done = true;
     else {
-      hp.adapt(MULTI ? THRESHOLD_MULTI : THRESHOLD_SINGLE, STRATEGY, ADAPT_TYPE, ISO_ONLY,
-               MESH_REGULARITY, CONV_EXP, MAX_ORDER, SAME_ORDERS);
-      ndofs = xdisp.assign_dofs();
-      ndofs += ydisp.assign_dofs(ndofs);
+      hp.adapt(MULTI ? THRESHOLD_MULTI : THRESHOLD_SINGLE, STRATEGY, ADAPT_TYPE, ISO_ONLY, MESH_REGULARITY, CONV_EXP, MAX_ORDER, SAME_ORDERS);
+      ndof = assign_dofs(2, &xdisp, &ydisp);
       printf("xdof=%d, ydof=%d\n", xdisp.get_num_dofs(), ydisp.get_num_dofs());
-      if (ndofs >= NDOF_STOP) done = true;
+      if (ndof >= NDOF_STOP) done = true;
     }
 
     // time measurement

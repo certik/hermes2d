@@ -75,9 +75,9 @@ int main(int argc, char* argv[])
   cspace.set_bc_types(bc_types);
   tspace.set_uniform_order(P_INIT);
   cspace.set_uniform_order(P_INIT);
-  int ndofs = 0;
-  ndofs += tspace.assign_dofs(ndofs);
-  ndofs += cspace.assign_dofs(ndofs);
+
+  // enumerate degrees of freedom
+  int ndof = assign_dofs(2, &tspace, &cspace);
 
   // solutions for the Newton's iteration and time stepping
   Solution t_prev_time_1, y_prev_time_1, t_prev_time_2, y_prev_time_2, t_prev_newton, y_prev_newton, tsln, csln;

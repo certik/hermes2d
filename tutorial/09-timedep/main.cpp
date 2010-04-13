@@ -103,8 +103,8 @@ int main(int argc, char* argv[])
   space.set_bc_values(bc_values);
   space.set_uniform_order(P_INIT);
 
-  // enumerate basis functions
-  space.assign_dofs();
+  // enumerate degrees of freedom
+  int ndof = assign_dofs(&space);
 
   // set initial condition
   Solution tsln;

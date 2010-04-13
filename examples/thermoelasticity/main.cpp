@@ -155,7 +155,7 @@ int main(int argc, char* argv[])
   SimpleGraph graph_dof, graph_cpu;
 
   // Adaptivity loop
-  int it = 1, ndofs;
+  int it = 1;
   bool done = false;
   TimePeriod cpu_time;
   Solution x_sln_coarse, y_sln_coarse, t_sln_coarse;
@@ -167,10 +167,8 @@ int main(int argc, char* argv[])
     // time measurement
     cpu_time.tick(H2D_SKIP);
 
-    //calculating the number of degrees of freedom
-    ndofs = xdisp.assign_dofs(0);
-    ndofs += ydisp.assign_dofs(ndofs);
-    ndofs += temp.assign_dofs(ndofs);
+    // enumerate degrees of freedom
+    int ndof = assign_dofs(3, &xdisp, &ydisp, &temp);
 
     // solve the coarse mesh problem
     LinSystem ls(&wf, &solver);
@@ -234,9 +232,8 @@ int main(int argc, char* argv[])
     if (err_est < ERR_STOP) done = true;
     else {
       hp.adapt(THRESHOLD, STRATEGY, ADAPT_TYPE, ISO_ONLY, MESH_REGULARITY, CONV_EXP, MAXIMUM_ORDER, SAME_ORDERS);
-      ndofs = xdisp.assign_dofs();
-      ndofs += ydisp.assign_dofs(ndofs);
-      if (ndofs >= NDOF_STOP) done = true;
+      ndof = assign_dofs(3, &xdisp, &ydisp, &temp);
+      if (ndof >= NDOF_STOP) done = true;
     }
 
     // time measurement

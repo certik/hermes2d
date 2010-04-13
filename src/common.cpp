@@ -239,8 +239,6 @@ public:
     printf("      developed by the hp-FEM group at UNR\n");
     printf("     and distributed under the GPL license.\n");
     printf("    For more details visit http://hpfem.org/.\n");
-    printf("- - - - - - - - - - - - - - - - - - - - - - - - -\n");
-    printf("The message can be removed by rebulding Hermesd2D\n");
     printf("-------------------------------------------------\n");
     fflush(stdout);
   }

@@ -123,7 +123,9 @@ int main(int argc, char* argv[])
   space.set_bc_types(bc_types);
   space.set_bc_values(bc_values);
   space.set_uniform_order(P_INIT);
-  space.assign_dofs();
+
+  // enumerate degrees of freedom
+  int ndof = assign_dofs(&space);
 
   // solutions for the Newton's iteration and
   // time stepping

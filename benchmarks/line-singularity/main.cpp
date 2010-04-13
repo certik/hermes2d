@@ -123,8 +123,8 @@ int main(int argc, char* argv[])
   space.set_bc_values(bc_values);
   space.set_uniform_order(P_INIT);
 
-  // enumerate basis functions
-  space.assign_dofs();
+  // enumerate degrees of freedom
+  int ndof = assign_dofs(&space);
 
   // initialize the weak formulation
   WeakForm wf(1);
@@ -145,7 +145,7 @@ int main(int argc, char* argv[])
   SimpleGraph graph_dof_est, graph_dof_exact, graph_cpu_est, graph_cpu_exact;
 
   // adaptivity loop
-  int it = 1, ndofs;
+  int it = 1;
   bool done = false;
   TimePeriod cpu_time;
   Solution sln_coarse, sln_fine;
@@ -210,8 +210,8 @@ int main(int argc, char* argv[])
     if (err_est < ERR_STOP) done = true;
     else {
       hp.adapt(THRESHOLD, STRATEGY, &selector, MESH_REGULARITY);
-      ndofs = space.assign_dofs();
-      if (ndofs >= NDOF_STOP) done = true;
+      ndof = assign_dofs(&space);
+      if (ndof >= NDOF_STOP) done = true;
     }
 
     // time measurement

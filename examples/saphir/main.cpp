@@ -117,10 +117,10 @@ int main(int argc, char* argv[])
   space.set_bc_values(bc_values);
   space.set_uniform_order(P_INIT);
 
-  // Enumerate basis functions
-  space.assign_dofs();
+  // Enumerate degrees of freedom
+  int ndof = assign_dofs(&space);
 
-  // initialize the weak formulation
+  // Initialize the weak formulation
   WeakForm wf(1);
   wf.add_biform(0, 0, bilinear_form_1, bilinear_form_ord, SYM, 1);
   wf.add_biform(0, 0, bilinear_form_2, bilinear_form_ord, SYM, 2);
@@ -144,7 +144,7 @@ int main(int argc, char* argv[])
   RefinementSelectors::H1NonUniformHP selector(ISO_ONLY, ADAPT_TYPE, 1.0, H2DRS_DEFAULT_ORDER, &shapeset);
 
   // Adaptivity loop
-  int it = 1, ndofs;
+  int it = 1;
   bool done = false;
   TimePeriod cpu_time;
   Solution sln_coarse, sln_fine;
@@ -202,8 +202,8 @@ int main(int argc, char* argv[])
     if (err_est < ERR_STOP) done = true;
     else {
       hp.adapt(THRESHOLD, STRATEGY, &selector, MESH_REGULARITY);
-      ndofs = space.assign_dofs();
-      if (ndofs >= NDOF_STOP) done = true;
+      ndof = assign_dofs(&space);
+      if (ndof >= NDOF_STOP) done = true;
     }
 
     // Time measurement

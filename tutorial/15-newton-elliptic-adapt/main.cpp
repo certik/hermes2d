@@ -140,7 +140,7 @@ int main(int argc, char* argv[])
 
   // initial mesh refinements
   for(int i = 0; i < INIT_GLOB_REF_NUM; i++) mesh.refine_all_elements();
-  mesh.refine_towards_boundary(1,INIT_BDY_REF_NUM);
+  mesh.refine_towards_boundary(1, INIT_BDY_REF_NUM);
 
   // initialize the shapeset and the cache
   H1Shapeset shapeset;
@@ -151,7 +151,9 @@ int main(int argc, char* argv[])
   space.set_bc_types(bc_types);
   space.set_bc_values(bc_values);
   space.set_uniform_order(P_INIT);
-  space.assign_dofs();
+
+  // enumerate degrees of freedom
+  int ndof = assign_dofs(&space);
 
   // solutions for the Newton's iteration and adaptivity
   Solution u_prev, sln_coarse, sln_fine;
@@ -258,7 +260,7 @@ int main(int argc, char* argv[])
     if (err_est < ERR_STOP) done = true;
     else {
       hp.adapt(THRESHOLD, STRATEGY, &selector, MESH_REGULARITY);
-      int ndof = space.assign_dofs();
+      ndof = assign_dofs(&space);
       if (ndof >= NDOF_STOP) done = true;
 
       // project the fine mesh solution on the new coarse mesh

@@ -109,7 +109,7 @@ int main(int argc, char* argv[])
   graph.add_row("error estimate", "k", "--");
 
   // adaptivity loop
-  int it = 0, ndofs;
+  int it = 0;
   bool done = false;
   double error;
   Solution sln_coarse, sln_fine;
@@ -118,7 +118,7 @@ int main(int argc, char* argv[])
   {
     info("\n---- Adaptivity step %d ---------------------------------------------\n", it++);
 
-    ndofs = space.assign_dofs();
+    int ndof = assign_dofs(&space);
     FeProblem fep(&wf);
     fep.set_spaces(1, &space);
     fep.set_pss(1, &pss);
@@ -149,7 +149,9 @@ int main(int argc, char* argv[])
     rspace.set_bc_types(bc_types);
     rspace.set_bc_values(bc_values);
     rspace.copy_orders(&space, 1);
-    rspace.assign_dofs();
+    
+    // enumerate degrees of freedom
+    int rndof = assign_dofs(&rspace);
 
     FeProblem ref_fep(&wf);
     ref_fep.set_spaces(1, &rspace);
@@ -178,7 +180,7 @@ int main(int argc, char* argv[])
     // calculate error estimate wrt. fine mesh solution
     H1OrthoHP hp(1, &space);
     double err_est = hp.calc_error(&sln_coarse, &sln_fine) * 100;
-    info("\nEstimate of error: %g%%  (ndofs %d)", err_est, ndofs);
+    info("\nEstimate of error: %g%%  (ndof %d)", err_est, ndof);
     ExactSolution exact(&mesh, fndd);
     error = h1_error(&sln_coarse, &exact) * 100;
     info("Exact solution error: %g%%", error);
@@ -194,6 +196,6 @@ int main(int argc, char* argv[])
   }
   while (done == false);
 
-  View::wait("Waiting for all views to be closed.");
+  View::wait();
   return 0;
 }

@@ -277,5 +277,8 @@ public:
   virtual int get_type() const = 0;
 };
 
+// new way of enumerating degrees of freedom
+int assign_dofs(int n, ...);  // assigns dofs in multiple spaces 
+int assign_dofs(Space *s);    // assigns dofs to one space
 
 #endif

@@ -125,8 +125,8 @@ int main(int argc, char* argv[])
   space.set_bc_values(bc_values);
   space.set_uniform_order(P_INIT);
 
-  // enumerate basis functions
-  space.assign_dofs();
+  // enumerate degrees of freedom
+  int ndof = assign_dofs(&space);
 
   // solutions for the Newton's iteration and adaptivity
   Solution Psi_prev_time, Psi_prev_newton;
@@ -183,7 +183,7 @@ int main(int argc, char* argv[])
       info("---- Time step %d, global derefinement.", n);
       mesh.copy(&basemesh);
       space.set_uniform_order(P_INIT);
-      space.assign_dofs();
+      ndof = assign_dofs(&space);
 
       // project the fine mesh solution on the globally derefined mesh
       info("---- Time step %d, projecting fine mesh solution on globally derefined mesh:", n);
@@ -242,7 +242,7 @@ int main(int argc, char* argv[])
       if (err_est < ERR_STOP) done = true;
       else {
         hp.adapt(THRESHOLD, STRATEGY, ADAPT_TYPE, ISO_ONLY, MESH_REGULARITY, CONV_EXP, MAX_P);
-        int ndof = space.assign_dofs();
+        ndof = assign_dofs(&space);
         if (ndof >= NDOF_STOP) done = true;
 
         // project the fine mesh solution on the new coarse mesh

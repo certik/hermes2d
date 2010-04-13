@@ -158,8 +158,7 @@ int main(int argc, char* argv[])
   ydisp.set_uniform_order(P_INIT);
 
   // enumerate basis functions
-  int ndofs = xdisp.assign_dofs();
-  ndofs += ydisp.assign_dofs(ndofs);
+  int ndof = assign_dofs(2, &xdisp, &ydisp);
 
   // initialize the weak formulation
   WeakForm wf(2);
@@ -192,9 +191,8 @@ int main(int argc, char* argv[])
     // time measurement
     cpu_time.tick(H2D_SKIP);
 
-    //calculating the number of degrees of freedom
-    ndofs = xdisp.assign_dofs();
-    ndofs += ydisp.assign_dofs(ndofs);
+    // enumerate degrees of freedom
+    ndof = assign_dofs(2, &xdisp, &ydisp);
 
     // solve the coarse mesh problem
     LinSystem ls(&wf, &umfpack);
@@ -253,9 +251,8 @@ int main(int argc, char* argv[])
     if (err_est < ERR_STOP) done = true;
     else {
       hp.adapt(THRESHOLD, STRATEGY, ADAPT_TYPE, ISO_ONLY, MESH_REGULARITY, CONV_EXP, MAX_ORDER, SAME_ORDERS);
-      ndofs = xdisp.assign_dofs();
-      ndofs += ydisp.assign_dofs(ndofs);
-      if (ndofs >= NDOF_STOP) done = true;
+      ndof = assign_dofs(2, &xdisp, &ydisp);
+      if (ndof >= NDOF_STOP) done = true;
     }
 
     // time measurement

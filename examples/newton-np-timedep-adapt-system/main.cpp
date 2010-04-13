@@ -218,6 +218,7 @@ void solveAdaptive(Mesh &Cmesh, Mesh &phimesh, Mesh &basemesh, NonlinSystem &nls
   phiordview.show(&phi);
   Solution Csln_coarse, phisln_coarse, Csln_fine, phisln_fine;
   int at_index = 1; //for saving screenshot
+  int ndof;
   for (int n = 1; n <= NSTEP; n++) {
     if (n % UNREF_FREQ == 0) {
       Cmesh.copy(&basemesh);
@@ -226,9 +227,7 @@ void solveAdaptive(Mesh &Cmesh, Mesh &phimesh, Mesh &basemesh, NonlinSystem &nls
       }
       C.set_uniform_order(P_INIT);
       phi.set_uniform_order(P_INIT);
-      int ndofs;
-      ndofs = C.assign_dofs();
-      phi.assign_dofs(ndofs);
+      ndof = assign_dofs(2, &C, &phi);
     }
 
     #ifdef VERBOSE
@@ -310,12 +309,12 @@ void solveAdaptive(Mesh &Cmesh, Mesh &phimesh, Mesh &basemesh, NonlinSystem &nls
         hp.adapt(THRESHOLD, STRATEGY, ADAPT_TYPE);
       }
 
-      int ndofs;
-      ndofs = C.assign_dofs();
-      ndofs += phi.assign_dofs(ndofs);
-      info("NDOFS after adapting: %d", ndofs);
-      if (ndofs >= NDOF_STOP) {
-        info("NDOFs reached to the max %d", NDOF_STOP);
+      // enumerate degrees of freedom
+      ndof = assign_dofs(2, &C, &phi);
+
+      info("NDOF after adapting: %d", ndof);
+      if (ndof >= NDOF_STOP) {
+        info("NDOF reached to the max %d", NDOF_STOP);
         done = true;
       }
 
@@ -414,11 +413,10 @@ int main (int argc, char* argv[]) {
   phi.set_uniform_order(P_INIT);
 
 
-  // assign degrees of freedom
-  int ndofs = 0;
-  ndofs += C.assign_dofs(ndofs);
-  ndofs += phi.assign_dofs(ndofs);
-  info("ndofs: %d", ndofs);
+  // enumerate degrees of freedom
+  int ndof = assign_dofs(2, &C, &phi);
+
+  info("ndof: %d", ndof);
 
   // The weak form for 2 equations
   WeakForm wf(2);

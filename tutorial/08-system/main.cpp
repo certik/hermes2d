@@ -90,14 +90,15 @@ int main(int argc, char* argv[])
   xdisp.set_bc_types(bc_types);
   xdisp.set_bc_values(bc_values);
   xdisp.set_uniform_order(P_INIT);
-  int ndofs = xdisp.assign_dofs(0);
 
-  // create the y displacement space
+   // create the y displacement space
   H1Space ydisp(&mesh, &shapeset);
   ydisp.set_bc_types(bc_types);
   ydisp.set_bc_values(bc_values);
   ydisp.set_uniform_order(P_INIT);
-  ndofs += ydisp.assign_dofs(ndofs);
+
+  // enumerate degrees of freedom
+  int ndof = assign_dofs(2, &xdisp, &ydisp);
 
   // initialize the weak formulation
   WeakForm wf(2);
