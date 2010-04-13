@@ -85,6 +85,9 @@ Scalar J_euler_DFphiDYphi(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<
 	return result;
 }
 
+
+// Cranck-Nicholson forms
+
 template<class Real, class Scalar>
 Scalar Fc_cranic(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext) {
   Scalar result = 0;
