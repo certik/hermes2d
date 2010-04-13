@@ -118,7 +118,7 @@ const double kappa = 1.0e-6;
 const double rho = 1.0;           // Density
 const double cp = 1.0;            // Heat capacity
 
-const double PI = acos(-1);
+const double PI = acos(-1.0);
 const double normalization_const = 1.0;
 
 const double energy_per_fission = kappa * xsfiss;
@@ -478,7 +478,7 @@ int main(int argc, char* argv[])
     // compute exact error
     T_error = h1_error(&T_prev_time, &T_solution) * 100;
     phi_error = h1_error(&phi_prev_time, &phi_solution) * 100;
-    error = fmax(T_error, phi_error);
+    error = std::max(T_error, phi_error);
     std::cout<<"Exact solution error for T (H1 norm): "<<T_error<<" %"<<std::endl;
     std::cout<<"Exact solution error for phi (H1 norm): "<<phi_error<<" %"<<std::endl;
     std::cout<<"Exact solution error (maximum): "<<error<<" %"<<std::endl;
