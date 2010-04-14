@@ -241,8 +241,8 @@ int main(int argc, char* argv[])
       hp.set_biform(1, 1, callback(bilinear_form_sym_1_1));
       double space_err = hp.calc_error_2(&temp_sln, &moist_sln, &temp_rsln, &moist_rsln) * 100;
       info("Energy error est %g%%", space_err);
-      if (space_err < SPACE_TOL) done = true;
-      if (!done) hp.adapt(THRESHOLD, STRATEGY, ADAPT_TYPE, ISO_ONLY, MESH_REGULARITY, CONV_EXP, MAXIMUM_ORDER, SAME_ORDERS);
+      if (space_err > SPACE_TOL) hp.adapt(THRESHOLD, STRATEGY, ADAPT_TYPE, ISO_ONLY, MESH_REGULARITY, CONV_EXP, MAXIMUM_ORDER, SAME_ORDERS);
+      else done = true;
     }
     while (!done);
 

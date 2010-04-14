@@ -1,10 +1,23 @@
+#define HERMES2D_REPORT_WARN
+#define HERMES2D_REPORT_INFO
+#define HERMES2D_REPORT_VERBOSE
+#define HERMES2D_REPORT_FILE "application.log"
 #include "hermes2d.h"
 #include "solver_umfpack.h"
 
 // The time-dependent laminar incompressible Navier-Stokes equations are
-// discretized in time via the implicit Euler method. The convective term
-// is linearized simply by replacing the velocity in front of the nabla
-// operator with the velocity from last time step.
+// discretized in time via the implicit Euler method. If NEWTON == true,
+// the Newton's method is used to solve the nonlinear problem at each time
+// step. If NEWTON == false, the convective term is only linearized using the
+// velocities from the previous time step. Obviously the latter approach is wrong,
+// but people do this frequently because it is faster and simpler to implement.
+// Therefore we include this case for comparison purposes. We also show how
+// to use discontinuous ($L^2$) elements for pressure and thus make the
+// velocity discreetely divergence free. Comparison to approximating the
+// pressure with the standard (continuous) Taylor-Hood elements is enabled.
+// The Reynolds number Re = 200 which is embarrassingly low. You
+// can increase it but then you will need to make the mesh finer, and the
+// computation will take more time.
 //
 // PDE: incompressible Navier-Stokes equations in the form
 // \partial v / \partial t - \Delta v / Re + (v \cdot \nabla) v + \nabla p = 0,
@@ -14,365 +27,348 @@
 //     u_1 = u_2 = 0 on Gamma_1 (bottom), Gamma_3 (top) and Gamma_5 (obstacle)
 //     "do nothing" on Gamma_2 (outlet)
 //
-// TODO: Implement Crank-Nicolson so that comparisons with implicit Euler can be made
+// Geometry: Rectangular channel containing an off-axis circular obstacle. The
+//           radius and position of the circle, as well as other geometry
+//           parameters can be changed in the mesh file "domain.mesh".
+//
 //
 // The following parameters can be changed:
 //
 
+#define PRESSURE_IN_L2           // If this is defined, the pressure is approximated using
+                                 // discontinuous L2 elements (making the velocity discreetely
+                                 // divergence-free, more accurate than using a continuous
+                                 // pressure approximation). Otherwise the standard continuous
+                                 // elements are used. The results are striking - check the
+                                 // tutorial for comparisons.
+const bool NEWTON = true;        // If NEWTON == true then the Newton's iteration is performed
+                                 // in every time step. Otherwise the convective term is linearized
+                                 // using the velocities from the previous time step
+const int P_INIT_VEL = 2;        // Initial polynomial degree for velocity components
+const int P_INIT_PRESSURE = 1;   // Initial polynomial degree for pressure
+                                 // Note: P_INIT_VEL should always be greater than
+                                 // P_INIT_PRESSURE because of the inf-sup condition
+const double THRESHOLD = 0.3;    // This is a quantitative parameter of the adapt(...) function and
+                                 // it has different meanings for various adaptive strategies (see below).
+const int STRATEGY = 1;          // Adaptive strategy:
+                                 // STRATEGY = 0 ... refine elements until sqrt(THRESHOLD) times total
+                                 //   error is processed. If more elements have similar errors, refine
+                                 //   all to keep the mesh symmetric.
+                                 // STRATEGY = 1 ... refine all elements whose error is larger
+                                 //   than THRESHOLD times maximum element error.
+                                 // STRATEGY = 2 ... refine all elements whose error is larger
+                                 //   than THRESHOLD.
+                                 // More adaptive strategies can be created in adapt_ortho_h1.cpp.
+const int ADAPT_TYPE = 1;        // Type of automatic adaptivity:
+                                 // ADAPT_TYPE = 0 ... adaptive hp-FEM (default),
+                                 // ADAPT_TYPE = 1 ... adaptive h-FEM,
+                                 // ADAPT_TYPE = 2 ... adaptive p-FEM.
+const bool ISO_ONLY = false;     // Isotropic refinement flag (concerns quadrilateral elements only).
+                                 // ISO_ONLY = false ... anisotropic refinement of quad elements
+                                 // is allowed (default),
+                                 // ISO_ONLY = true ... only isotropic refinements of quad elements
+                                 // are allowed.
+const int MESH_REGULARITY = -1;  // Maximum allowed level of hanging nodes:
+                                 // MESH_REGULARITY = -1 ... arbitrary level hangning nodes (default),
+                                 // MESH_REGULARITY = 1 ... at most one-level hanging nodes,
+                                 // MESH_REGULARITY = 2 ... at most two-level hanging nodes, etc.
+                                 // Note that regular meshes are not supported, this is due to
+                                 // their notoriously bad performance.
+const double CONV_EXP = 1.0;     // Default value is 1.0. This parameter influences the selection of
+                                 // cancidates in hp-adaptivity. See get_optimal_refinement() for details.
+const double SPACE_TOL = 1.0;    // Stopping criterion for adaptivity (rel. error tolerance between the
+                                 // fine mesh and coarse mesh solution in percent).
+const int NDOF_STOP = 60000;     // Adaptivity process stops when the number of degrees of freedom grows over
+                                 // this limit. This is mainly to prevent h-adaptivity to go on forever.
+
+// Problem parameters
 const double RE = 200.0;             // Reynolds number
-const double VEL_INLET = 1.0;        // inlet velocity (reached after STARTUP_TIME)
-const double STARTUP_TIME = 1.0;     // during this time, inlet velocity increases gradually
+const double VEL_INLET = 1.0;        // Inlet velocity (reached after STARTUP_TIME)
+const double STARTUP_TIME = 1.0;     // During this time, inlet velocity increases gradually
                                      // from 0 to VEL_INLET, then it stays constant
 const double TAU = 0.1;              // time step
-const double FINAL_TIME = 20.0;      // length of time interval
-const int P_INIT_VEL = 2;            // initial polynomial degree for velocity components
-const int P_INIT_PRESSURE = 1;       // initial polynomial degree for pressure
-                                     // Note: P_INIT_VEL should always be greater than
-                                     // P_INIT_PRESSURE because of the inf-sup condition
-const double H = 5;                  // domain height (necessary to define the parabolic
+const double T_FINAL = 30000.0;      // Time interval length
+const double NEWTON_TOL = 1e-3;      // Stopping criterion for the Newton's method
+const int NEWTON_MAX_ITER = 10;      // Maximum allowed number of Newton iterations
+const double H = 5;                  // Domain height (necessary to define the parabolic
                                      // velocity profile at inlet)
 
-//  to better understand boundary conditions
-const int marker_bottom = 1;
-const int marker_right  = 2;
-const int marker_top = 3;
-const int marker_left = 4;
-const int marker_obstacle = 5;
+// Boundary markers in the mesh file
+int marker_bottom = 1;
+int marker_right  = 2;
+int marker_top = 3;
+int marker_left = 4;
+int marker_obstacle = 5;
 
-// global time variable
-double current_time = 0;
+// Current time (defined as global since needed in weak forms)
+double TIME = 0;
 
-// adaptivity
-const double space_tol = 0.5;
-const double thr = 0.3;
-////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-// definition of boundary conditions
+// Boundary condition types for x-velocity
 int xvel_bc_type(int marker) {
   if (marker == marker_right) return BC_NONE;
   else return BC_ESSENTIAL;
 }
 
-int yvel_bc_type(int marker) {
-  if (marker == marker_right) return BC_NONE;
-  else return BC_ESSENTIAL;
-}
-
-int press_bc_type(int marker)
-  { return BC_NONE; }
-
+// Boundary condition values for x-velocity
 scalar xvel_bc_value(int marker, double x, double y) {
   if (marker == marker_left) {
-    // time-dependent inlet velocity
-    //double val_y = VEL_INLET; //constant profile
+    // time-dependent inlet velocity (parabolic profile)
     double val_y = VEL_INLET * y*(H-y) / (H/2.)/(H/2.); //parabolic profile with peak VEL_INLET at y = H/2
-    if (current_time <= STARTUP_TIME) return val_y * current_time/STARTUP_TIME;
+    if (TIME <= STARTUP_TIME) return val_y * TIME/STARTUP_TIME;
     else return val_y;
   }
   else return 0;
 }
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-template<typename Real, typename Scalar>
-Scalar bilinear_form_sym_0_0_1_1(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
-{
-  return int_grad_u_grad_v<Real, Scalar>(n, wt, u, v) / RE + int_u_v<Real, Scalar>(n, wt, u, v) / TAU;
+// Boundary condition types for y-velocity
+int yvel_bc_type(int marker) {
+  if (marker == marker_right) return BC_NONE;
+  else return BC_ESSENTIAL;
 }
 
-template<typename Real, typename Scalar>
-Scalar bilinear_form_unsym_0_0_1_1(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
-{
-  return int_w_nabla_u_v<Real, Scalar>(n, wt, ext->fn[0], ext->fn[1], u, v);
-}
+int p_bc_type(int marker)
+  { return BC_NONE; }
 
-template<typename Real, typename Scalar>
-Scalar linear_form(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
-{
-  return int_u_v<Real, Scalar>(n, wt, ext->fn[0], v) / TAU;
-}
-
-template<typename Real, typename Scalar>
-Scalar bilinear_form_unsym_0_2(int n, double *wt, Func<Real> *p, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
-{
-  return - int_u_dvdx<Real, Scalar>(n, wt, p, v);
-}
-
-template<typename Real, typename Scalar>
-Scalar bilinear_form_unsym_1_2(int n, double *wt, Func<Real> *p, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
-{
-  return - int_u_dvdy<Real, Scalar>(n, wt, p, v);
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Magnitude of velocity filter
+// Weak forms
+#include "forms.cpp"
 
 void mag(int n, scalar* a, scalar* dadx, scalar* dady,
-         scalar* b, scalar* dbdx, scalar* dbdy,
-         scalar* out, scalar* outdx, scalar* outdy)
+                scalar* b, scalar* dbdx, scalar* dbdy,
+                scalar* out, scalar* outdx, scalar* outdy)
 {
   for (int i = 0; i < n; i++)
   {
     out[i] = sqrt(sqr(a[i]) + sqr(b[i]));
     outdx[i] = (0.5 / out[i]) * (2.0 * a[i] * dadx[i] + 2.0 * b[i] * dbdx[i]);
-    outdx[i] = (0.5 / out[i]) * (2.0 * a[i] * dady[i] + 2.0 * b[i] * dbdy[i]);
+    outdy[i] = (0.5 / out[i]) * (2.0 * a[i] * dady[i] + 2.0 * b[i] * dbdy[i]);
   }
 }
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
-////////////   ADAPTIVITY   ////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-static double* cmp_err;
-static int compare(const void* p1, const void* p2)
-{
-  const int (*e1) = ((const int*) p1);
-  const int (*e2) = ((const int*) p2);
-  return cmp_err[(*e1)] < cmp_err[(*e2)] ? 1 : -1;
-}
-
-// calculates element errors between 2 solutions (coarse and normal, normal and fine)
-double calc_error(MeshFunction* sln, MeshFunction* rsln, int*& esort, double*& errors)
-{
-  int i, j;
-
-  Mesh* cmesh = sln->get_mesh();
-  int max = cmesh->get_max_element_id();
-  errors = new double[max];
-  memset(errors, 0, sizeof(double) * max);
-  int nact = cmesh->get_num_active_elements();
-  esort = new int[nact];
-
-  double total_error = 0.0, total_norm = 0.0;
-
-  Quad2D* quad = &g_quad_2d_std;
-  sln->set_quad_2d(quad);
-  rsln->set_quad_2d(quad);
-
-  Mesh* meshes[2] = { sln->get_mesh(), rsln->get_mesh() };
-  Transformable* tr[2] = { sln, rsln };
-  Traverse trav;
-  trav.begin(2, meshes, tr);
-
-  Element** ee;
-  while ((ee = trav.get_next_state(NULL, NULL)) != NULL)
-  {
-    update_limit_table(ee[0]->get_mode());
-
-    RefMap* crm = sln->get_refmap();
-    RefMap* frm = rsln->get_refmap();
-
-    double err  = int_l2_error(sln, rsln, crm, frm);
-    total_norm += int_l2_norm (rsln, frm);
-
-    errors[ee[0]->id] += err;
-    total_error += err;
-  }
-  trav.finish();
-
-  Element* e;
-  for_all_inactive_elements(e, cmesh)
-    errors[e->id] = -1.0;
-
-  int k = 0;
-  for_all_active_elements(e, cmesh)
-  {
-    errors[e->id] /= total_norm;
-    esort[k++] = e->id;
-  }
-
-  cmp_err = errors;
-  qsort(esort, nact, sizeof(int), compare);
-
-  return sqrt(total_error / total_norm);
-}
-
-
-// refines or coarses the mesh using element errors calculated in calc_error()
-void adapt_mesh(bool& done, Mesh* mesh, Mesh* cmesh, Space* space, int* esort0, double* errors0, int* esort, double* errors)
-{
-  int i, j;
-  double err0 = esort[0];
-  if (!done) // refinements
-  {
-    for (i = 0; i < mesh->get_num_active_elements(); i++)
-    {
-      int id = esort[i];
-      double err = errors[id];
-
-      if (err < thr * errors[esort[0]]) { break; }
-      err0 = err;
-
-      Element* e;
-      e = mesh->get_element(id);
-      mesh->refine_element(id);
-      for (j = 0; j < 4; j++)
-        space->set_element_order(e->sons[j]->id, space->get_element_order(id));
-    }
-  }
-
-  if (done)  // coarsening
-  {
-    for (i = 0; i < cmesh->get_num_active_elements(); i++)
-    {
-      int id = esort0[i];
-      double err = errors0[id];
-
-      if (err < thr * errors[esort[0]])
-      {
-        Element* e;
-        e = mesh->get_element(id);
-        if (!(e->active))
-        {
-          int o = space->get_element_order(e->sons[0]->id);
-          mesh->unrefine_element(id);
-          space->set_element_order(id, o);
-        }
-      }
-    }
-  }
-
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 int main(int argc, char* argv[])
 {
-  // load the mesh file
-  Mesh mesh;
-  H2DReader mloader;
-  mloader.load("domain.mesh", &mesh);
-  mesh.refine_towards_boundary(1, 2);
-  mesh.refine_towards_boundary(3, 2);
 
-  // initialize the shapeset and the cache
-  H1Shapeset shapeset;
-  PrecalcShapeset pss(&shapeset);
+  // load the mesh file
+  Mesh basemesh, mesh;
+  H2DReader mloader;
+  mloader.load("domain.mesh", &basemesh); // master mesh
+  basemesh.refine_all_elements();
+  basemesh.refine_towards_boundary(5, 2, false);
+
+  mesh.copy(&basemesh);
+
+  // initialize shapesets and the cache
+  H1ShapesetBeuchler h1_shapeset;
+  PrecalcShapeset h1_pss(&h1_shapeset);
+#ifdef PRESSURE_IN_L2
+  L2Shapeset l2_shapeset;
+  PrecalcShapeset l2_pss(&l2_shapeset);
+#endif
 
   // spaces for velocities and pressure
-  H1Space xvel(&mesh, &shapeset);
-  H1Space yvel(&mesh, &shapeset);
-  H1Space press(&mesh, &shapeset);
+  H1Space xvel_space(&mesh, &h1_shapeset);
+  H1Space yvel_space(&mesh, &h1_shapeset);
+#ifdef PRESSURE_IN_L2
+  L2Space p_space(&mesh, &l2_shapeset);
+#else
+  H1Space p_space(&mesh, &h1_shapeset);
+#endif
 
   // initialize boundary conditions
-  xvel.set_bc_types(xvel_bc_type);
-  xvel.set_bc_values(xvel_bc_value);
-  yvel.set_bc_types(yvel_bc_type);
-  press.set_bc_types(press_bc_type);
+  xvel_space.set_bc_types(xvel_bc_type);
+  xvel_space.set_bc_values(xvel_bc_value);
+  yvel_space.set_bc_types(yvel_bc_type);
+  p_space.set_bc_types(p_bc_type);
 
   // set velocity and pressure polynomial degrees
-  xvel.set_uniform_order(P_INIT_VEL);
-  yvel.set_uniform_order(P_INIT_VEL);
-  press.set_uniform_order(P_INIT_PRESSURE);
+  xvel_space.set_uniform_order(P_INIT_VEL);
+  yvel_space.set_uniform_order(P_INIT_VEL);
+  p_space.set_uniform_order(P_INIT_PRESSURE);
 
-  // enumerate degrees of freedom
-  int ndof = assign_dofs(3, &xvel, &yvel, &press);
+  // assign degrees of freedom
+  int ndof = assign_dofs(3, &xvel_space, &yvel_space, &p_space);
 
-  // initial BC: xprev and yprev are zero
-  Solution xprev, yprev;
-  xprev.set_zero(&mesh);
-  yprev.set_zero(&mesh);
+  // solutions for the Newton's iteration and time stepping
+  Solution xvel_crs, yvel_crs, xvel_fine, yvel_fine, p_crs, p_fine;
+  Solution xvel_prev_time, yvel_prev_time, xvel_prev_newton, yvel_prev_newton, p_prev;
+  xvel_prev_time.set_zero(&mesh);
+  yvel_prev_time.set_zero(&mesh);
+  xvel_prev_newton.set_zero(&mesh);
+  yvel_prev_newton.set_zero(&mesh);
+  p_prev.set_zero(&mesh);
 
   // set up weak formulation
   WeakForm wf(3);
-  wf.add_biform(0, 0, callback(bilinear_form_sym_0_0_1_1), SYM);
-  wf.add_biform(0, 0, callback(bilinear_form_unsym_0_0_1_1), UNSYM, ANY, 2, &xprev, &yprev);
-  wf.add_biform(1, 1, callback(bilinear_form_sym_0_0_1_1), SYM);
-  wf.add_biform(1, 1, callback(bilinear_form_unsym_0_0_1_1), UNSYM, ANY, 2, &xprev, &yprev);
-  wf.add_biform(0, 2, callback(bilinear_form_unsym_0_2), ANTISYM);
-  wf.add_biform(1, 2, callback(bilinear_form_unsym_1_2), ANTISYM);
-  wf.add_liform(0, callback(linear_form), ANY, 1, &xprev);
-  wf.add_liform(1, callback(linear_form), ANY, 1, &yprev);
+  if (NEWTON) {
+    wf.add_biform(0, 0, callback(bilinear_form_sym_0_0_1_1), SYM);
+    wf.add_biform(0, 0, callback(newton_bilinear_form_unsym_0_0), UNSYM, ANY, 2, &xvel_prev_newton, &yvel_prev_newton);
+    wf.add_biform(0, 1, callback(newton_bilinear_form_unsym_0_1), UNSYM, ANY, 1, &xvel_prev_newton);
+    wf.add_biform(0, 2, callback(bilinear_form_unsym_0_2), ANTISYM);
+    wf.add_biform(1, 0, callback(newton_bilinear_form_unsym_1_0), UNSYM, ANY, 1, &yvel_prev_newton);
+    wf.add_biform(1, 1, callback(bilinear_form_sym_0_0_1_1), SYM);
+    wf.add_biform(1, 1, callback(newton_bilinear_form_unsym_1_1), UNSYM, ANY, 2, &xvel_prev_newton, &yvel_prev_newton);
+    wf.add_biform(1, 2, callback(bilinear_form_unsym_1_2), ANTISYM);
+    wf.add_liform(0, callback(newton_F_0), ANY, 5, &xvel_prev_time, &yvel_prev_time, &xvel_prev_newton, &yvel_prev_newton, &p_prev);
+    wf.add_liform(1, callback(newton_F_1), ANY, 5, &xvel_prev_time, &yvel_prev_time, &xvel_prev_newton, &yvel_prev_newton, &p_prev);
+    wf.add_liform(2, callback(newton_F_2), ANY, 2, &xvel_prev_newton, &yvel_prev_newton);
+  }
+  else {
+    wf.add_biform(0, 0, callback(bilinear_form_sym_0_0_1_1), SYM);
+    wf.add_biform(0, 0, callback(simple_bilinear_form_unsym_0_0_1_1), UNSYM, ANY, 2, &xvel_prev_time, &yvel_prev_time);
+    wf.add_biform(1, 1, callback(bilinear_form_sym_0_0_1_1), SYM);
+    wf.add_biform(1, 1, callback(simple_bilinear_form_unsym_0_0_1_1), UNSYM, ANY, 2, &xvel_prev_time, &yvel_prev_time);
+    wf.add_biform(0, 2, callback(bilinear_form_unsym_0_2), ANTISYM);
+    wf.add_biform(1, 2, callback(bilinear_form_unsym_1_2), ANTISYM);
+    wf.add_liform(0, callback(simple_linear_form), ANY, 1, &xvel_prev_time);
+    wf.add_liform(1, callback(simple_linear_form), ANY, 1, &yvel_prev_time);
+  }
 
   // visualization
   VectorView vview("velocity [m/s]", 0, 0, 1500, 470);
   ScalarView pview("pressure [Pa]", 0, 530, 1500, 470);
   vview.set_min_max_range(0, 1.6);
   vview.fix_scale_width(80);
-  //pview.set_min_max_range(-0.9, 0.9);
-  pview.show_mesh(false);
+  //pview.set_min_max_range(-0.9, 1.0);
   pview.fix_scale_width(80);
+  pview.show_mesh(true);
 
-  // set up the linear system
+  // matrix solver
   UmfpackSolver umfpack;
-  LinSystem sys(&wf, &umfpack);
-  sys.set_spaces(3, &xvel, &yvel, &press);
-  sys.set_pss(1, &pss);
 
-  // main loop
+  // linear system
+  LinSystem ls(&wf, &umfpack);
+
+  // nonlinear system
+  NonlinSystem nls(&wf, &umfpack);
+
+  if (NEWTON) {
+    // set up the nonlinear system
+    nls.set_spaces(3, &xvel_space, &yvel_space, &p_space);
+#ifdef PRESSURE_IN_L2
+    nls.set_pss(3, &h1_pss, &h1_pss, &l2_pss);
+#else
+    nls.set_pss(1, &h1_pss);
+#endif
+  }
+  else {
+    // set up the linear system
+    ls.set_spaces(3, &xvel_space, &yvel_space, &p_space);
+#ifdef PRESSURE_IN_L2
+    ls.set_pss(3, &h1_pss, &h1_pss, &l2_pss);
+#else
+    ls.set_pss(1, &h1_pss);
+#endif
+  }
+
+  // time-stepping loop
   char title[100];
-  for (int i = 1; current_time < FINAL_TIME; i++)
+  int num_time_steps = T_FINAL / TAU;
+  for (int i = 1; i <= num_time_steps; i++)
   {
+    TIME += TAU;
+    info("---- Time step %d, time = %g:", i, TIME);
 
+    // initial mesh and spaces
+    mesh.copy(&basemesh);
+    xvel_space.set_uniform_order(P_INIT_VEL);
+    yvel_space.set_uniform_order(P_INIT_VEL);
+    p_space.set_uniform_order(P_INIT_PRESSURE);
 
-    info("\n---- Time step %d, time = %g -----------------------------------", i, current_time += TAU);
-
-    Solution xcrs, ycrs, pcrs;
-    Solution xsln, ysln, psln;
-    Solution xref, yref, pref;
-
-    bool done = false;
-    int at = 0;
+    // space adaptivity
+    bool done = false; int at = 0;
     do
     {
-      info("\n*** Adaptive iteration %d ***\n", at++);
+      info("---- Adaptivity step %d:", at++);
 
-      // enumerate degrees of freedom
-      ndof = assign_dofs(3, &xvel, &yvel, &press);
+      // assign degrees of freedom
+      ndof = assign_dofs(3, &xvel_space, &yvel_space, &p_space);
+      if (ndof >= NDOF_STOP) {
+        done = true;
+        break;
+      }      
 
-      // assemble and solve
-      sys.assemble();
-      sys.solve(3, &xsln, &ysln, &psln);
-
-      // visualization
-      sprintf(title, "Velocity, time %g", current_time);
-      vview.set_title(title);
-      vview.show(&xsln, &ysln, EPS_LOW);
-      sprintf(title, "Pressure, time %g", current_time);
-      pview.set_title(title);
-      pview.show(&psln);
-
-      // solve fine problem
-      RefSystem ref(&sys, 0); // just spatial refinement
-      ref.assemble();
-      ref.solve(3, &xref, &yref, &pref);
-
-      // calculate errors
-      DXDYFilter sln_vel(mag, &xsln, &ysln);
-      DXDYFilter ref_vel(mag, &xref, &yref);
-
-      double *crs_errors, *sln_errors;
-      int    *crs_esort,  *sln_esort;
-
-      double sln_err = 100 * calc_error(&sln_vel, &ref_vel, sln_esort, sln_errors);
-      if (sln_err < space_tol || i == 1) done = true;
-      info("Error %g%%", sln_err);
-
-
-      if (done)
+      if (NEWTON)
       {
-        // solve super-coarse problem
-        RefSystem crs(&sys, 0, -1);
-        crs.assemble();
-        crs.solve(3, &xcrs, &ycrs, &pcrs);
+        int it = 0; double res_l2_norm;
+        do
+        {
+          info("---- Newton iter %d (coarse mesh):", it++);
 
-        DXDYFilter crs_vel(mag, &xcrs, &ycrs);
-        double crs_err = 100 * calc_error(&crs_vel, &sln_vel, crs_esort, crs_errors);
+          nls.assemble();
+          nls.solve(3, &xvel_prev_newton, &yvel_prev_newton, &p_prev);
+          res_l2_norm = nls.get_residuum_l2_norm();
+          info("Residuum L2 norm: %g", res_l2_norm);
+          if (it == 1) res_l2_norm = 100.0;
+        }
+        while (res_l2_norm > NEWTON_TOL && it <= NEWTON_MAX_ITER);
+
+        sprintf(title, "Velocity, time %g s", TIME);
+        vview.set_title(title);
+        vview.show(&xvel_prev_newton, &yvel_prev_newton, EPS_LOW);
+        sprintf(title, "Pressure, time %g s", TIME);
+        pview.set_title(title);
+        pview.show(&p_prev);
+
+        xvel_crs.copy(&xvel_prev_newton);
+        yvel_crs.copy(&yvel_prev_newton);
+
+        it = 0;
+        RefNonlinSystem refnls(&nls, 0);
+        refnls.prepare();
+        do
+        {
+          info("---- Newton iter %d (fine mesh):", it++);
+
+          refnls.assemble();
+          refnls.solve(3, &xvel_prev_newton, &yvel_prev_newton, &p_prev);
+          res_l2_norm = refnls.get_residuum_l2_norm();
+          info("Residuum L2 norm: %g", res_l2_norm);
+        }
+        while (res_l2_norm > NEWTON_TOL && it <= NEWTON_MAX_ITER);
+
+        xvel_fine.copy(&xvel_prev_newton);
+        yvel_fine.copy(&yvel_prev_newton);
+
+      }
+      else // linearized NS
+      {
+        ls.assemble();
+        ls.solve(3, &xvel_crs, &yvel_crs, &p_crs);
+
+        sprintf(title, "Velocity, time %g", TIME);
+        vview.set_title(title);
+        vview.show(&xvel_crs, &yvel_crs, EPS_LOW);
+        sprintf(title, "Pressure, time %g", TIME);
+        pview.set_title(title);
+        pview.show(&p_crs);
+
+        RefSystem refls(&ls, 0);
+        refls.assemble();
+        refls.solve(3, &xvel_fine, &yvel_fine, &p_fine);
       }
 
-      // adapt the mesh (refine or coarse)
-      adapt_mesh(done, &mesh, xcrs.get_mesh(), &xvel, crs_esort, crs_errors, sln_esort,  sln_errors);
-      xvel.set_uniform_order(P_INIT_VEL);
-      yvel.set_uniform_order(P_INIT_VEL);
-      press.set_uniform_order(P_INIT_PRESSURE);
-    }
-    while(!done);
+      DXDYFilter crs_mag(mag, &xvel_crs, &yvel_crs);
+      DXDYFilter fine_mag(mag, &xvel_fine, &yvel_fine);
+      double space_err = 100 * l2_error(&crs_mag, &fine_mag);
+      info("Velocity rel error est %g%%", space_err);
 
-    xprev = xsln;
-    yprev = ysln;
+      H1OrthoHP hp(1, &xvel_space);
+      hp.set_biform(0, 0, callback(l2_form));
+      space_err = hp.calc_error(&xvel_crs, &xvel_fine) * 100;
+      info("L2 error (xvel) %g%%", space_err);
+      if (space_err > SPACE_TOL) hp.adapt(THRESHOLD, STRATEGY, ADAPT_TYPE, ISO_ONLY, MESH_REGULARITY, CONV_EXP);
+      else done = true;
+
+      xvel_space.set_uniform_order(P_INIT_VEL);
+      yvel_space.set_uniform_order(P_INIT_VEL);
+      p_space.set_uniform_order(P_INIT_PRESSURE);
+    }
+    while (!done);
+
+    xvel_prev_time = xvel_fine;
+    yvel_prev_time = yvel_fine;
   }
 
   // wait for keyboard or mouse input
-  View::wait("Waiting for all views to be closed.");
+  View::wait();
   return 0;
 }
