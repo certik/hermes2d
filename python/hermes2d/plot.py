@@ -158,10 +158,13 @@ def plot_mesh_mpl_orders(nodes, elements, polygons=None,
             codes = [Path.MOVETO] + [Path.LINETO]*(len(vertices)-2) + \
                         [Path.CLOSEPOLY]
             p = Path(vertices, codes)
-            color = colors[polynomial_orders[el_id]]
+            if polynomial_orders is None:
+                color = colors[1]
+            else:
+                color = colors[polynomial_orders[el_id]]
             patch = PathPatch(p, facecolor=color, edgecolor='#000000')
             sp.add_patch(patch)
-        show_legend = True
+        show_legend = polynomial_orders is not None
         if show_legend:
             # Create legend
             def split_nodes():
