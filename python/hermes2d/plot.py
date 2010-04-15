@@ -132,9 +132,31 @@ def plot_mesh_mpl_orders(nodes, elements, polygons=None,
     from matplotlib.path import Path
     from matplotlib.patches import PathPatch
     from matplotlib.patches import Rectangle
-    colors = {1: '#000684', 2: '#3250fc',
-        3: '#36c4ee', 4: '#04eabc', 5: '#62ff2a', 6: '#fdff07',
-        7: '#ffa044', 8: '#ff1111', 9: '#b02c2c', 10: '#820f97'}
+    colors_old = {
+            1: '#000684',
+            2: '#3250fc',
+            3: '#36c4ee',
+            4: '#04eabc',
+            5: '#62ff2a',
+            6: '#fdff07',
+            7: '#ffa044',
+            8: '#ff1111',
+            9: '#b02c2c',
+            10: '#820f97',
+            }
+    colors = {
+            0: '#7f7f7f',
+            1: '#7f2aff',
+            2: '#2a2aff',
+            3: '#2a7fff',
+            4: '#00d4aa',
+            5: '#00aa44',
+            6: '#abc837',
+            7: '#ffd42a',
+            8: '#c87137',
+            9: '#c83737',
+            10: '#ff0000',
+            }
     fig = pyplot.figure()
     sp = fig.add_subplot(111)
     if edges_only:
@@ -159,7 +181,7 @@ def plot_mesh_mpl_orders(nodes, elements, polygons=None,
                         [Path.CLOSEPOLY]
             p = Path(vertices, codes)
             if polynomial_orders is None:
-                color = colors[1]
+                color = colors[0]
             else:
                 color = colors[polynomial_orders[el_id]]
             patch = PathPatch(p, facecolor=color, edgecolor='#000000')
