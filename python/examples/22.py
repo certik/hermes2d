@@ -25,7 +25,7 @@ threshold = 0.3
 strategy = 0
 
 h_only = False
-error_tol = 75
+error_tol = 1
 interactive_plotting = False    # should the plot be interactively updated
                                 # during the calculation? (slower)
 show_mesh = True
