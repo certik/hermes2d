@@ -64,7 +64,7 @@ ls.assemble()
 ls.solve_system(sln)
 
 # View the solution
-sview.show(sln, lib="mayavi")
+sview.show(sln)
 
 # View the mesh
 mesh.plot(space=space)

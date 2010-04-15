@@ -259,8 +259,8 @@ class ScalarView(object):
             import pylab
             pylab.show()
 
-    def show(self, sln, show=True, lib="mpl", notebook=None, filename="a.png",
-            **options):
+    def show(self, sln, show=True, lib="mayavi", notebook=None,
+            filename="scalar.png", **options):
         """
         Shows the solution.
 
@@ -326,7 +326,7 @@ class MeshView(object):
         pass
 
     def show(self, mesh, show=True, lib="mpl", notebook=None, space=None,
-            filename="a.png", **options):
+            filename="mesh.png", **options):
         if notebook is None:
             try:
                 from sagenb.misc.support import EMBEDDED_MODE

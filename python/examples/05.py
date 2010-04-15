@@ -58,7 +58,7 @@ sys.solve_system(sln)
 
 # Visualize the approximation
 view = ScalarView("Solution")
-view.show(sln, lib="mayavi")
+view.show(sln)
 
 # Visualize the mesh
 mesh.plot(space=space)

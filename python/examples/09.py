@@ -98,4 +98,4 @@ for n in range(1,nsteps+1):
 
     # Visualization of solution
     title = "Time %s, exterior temperature %s" % (TIME, temp_ext(TIME))
-    sview.show(tsln, lib="mayavi")
+    sview.show(tsln)

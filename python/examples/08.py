@@ -63,7 +63,7 @@ nu = 0.3
 l = (E * nu) / ((1 + nu) * (1 - 2*nu))
 mu = E / (2*(1 + nu))
 stress = VonMisesFilter(xsln, ysln, mu, l)
-view.show(stress, lib="mayavi")
+view.show(stress)
 
 # Visualize the mesh
 mesh.plot(space=xdisp)
