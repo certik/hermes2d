@@ -293,6 +293,24 @@ cdef class Mesh:
         print crv
         return crv
 
+    def get_polygonal_boundary(self):
+        """
+        Return the polygonal approximation of boundaries of all elements.
+        """
+        cdef Element e
+        cdef double2 *tp
+        cdef int npoints
+        cdef ndarray vec
+
+        crv = {}
+        for i in range(self.num_elements):
+            e = self.get_element(i)
+            if e.active:
+                #tp, npoints # initialize
+                vec = array_double_c2numpy(<double *>tp, 2*npoints)
+                crv[e.id] = vec.reshape((npoints, 2))
+        return crv
+
     @property
     def num_elements(self):
         return self.thisptr.get_num_elements()
