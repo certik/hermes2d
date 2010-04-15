@@ -11,6 +11,7 @@ set(SRC
        shapeset_hd_legendre.cpp
        shapeset_l2_legendre.cpp
        qsort.cpp norm.cpp
+       trans.cpp
 
        refinement_type.cpp element_to_refine.cpp
        ref_selectors/selector.cpp ref_selectors/optimum_selector.cpp ref_selectors/proj_based_selector.cpp ref_selectors/h1_uniform_hp.cpp ref_selectors/h1_nonuniform_hp.cpp

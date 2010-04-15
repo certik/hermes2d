@@ -1,10 +1,9 @@
 #include "hermes2d.h"
-#include "dummy_solver.h"
 
 #define countof(a) (sizeof(a)/sizeof(a[0]))
 
 // taken form RefMap.cpp
-H1ShapesetBeuchler ref_map_shapeset;
+extern H1ShapesetBeuchler ref_map_shapeset;
 
 // vertical edge
 double2 e0_pt[] = {
