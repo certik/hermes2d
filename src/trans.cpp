@@ -101,22 +101,31 @@ void element_polygonal_boundary(Element *e, double2 **tp, int *npoints)
 
     //*tp = transform_element(e, countof(e2_pt), e2_pt);
     if (e->is_triangle()) {
-        /*
         if (e->is_curved())
-            n = 50;
+            d = 10;
         else
-            n = 3;
-            */
+            d = 2;
         n = 3*(d-1);
         pt = new double2[n];
-        for (int i=0; i < d; i++) {
-            pt[0][0] = -1;
-            pt[0][1] = -1;
+        double h = 2.0/(d-1);
+        int counter = 0;
+        for (int i=0; i < d-1; i++) {
+            pt[counter][0] = -1+i*h;
+            pt[counter][1] = -1;
+            counter++;
         }
-        pt[1][0] = 1;
-        pt[1][1] = -1;
-        pt[2][0] = -1;
-        pt[2][1] = 1;
+        for (int i=0; i < d-1; i++) {
+            pt[counter][0] = +1-i*h;
+            pt[counter][1] = -1+i*h;
+            counter++;
+        }
+        for (int i=0; i < d-1; i++) {
+            pt[counter][0] = -1;
+            pt[counter][1] = +1-i*h;
+            counter++;
+        }
+        if (counter != n)
+            error("Internal error: counter != n.");
         pt = transform_element(e, n, pt);
         /*
         pt = new double2[n];
