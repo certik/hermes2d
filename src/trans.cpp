@@ -92,3 +92,11 @@ double2 *transform(Element *e)
 	//	printf("%lf, %lf\n", tpt3[i][0], tpt3[i][1]);
 	return tpt3;
 }
+
+void element_polygonal_boundary(Element *e, double2 **tp, int *n)
+{
+	double2 *pt;
+
+	*tp = transform_element(e, countof(e2_pt), e2_pt);
+    *n = countof(e2_pt);
+}

@@ -306,7 +306,7 @@ cdef class Mesh:
         for i in range(self.num_elements):
             e = self.get_element(i)
             if e.active:
-                #tp, npoints # initialize
+                element_polygonal_boundary(e.thisptr, &tp, &npoints)
                 vec = array_double_c2numpy(<double *>tp, 2*npoints)
                 crv[e.id] = vec.reshape((npoints, 2))
         return crv

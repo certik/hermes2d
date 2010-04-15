@@ -384,6 +384,7 @@ cdef extern from "hermes2d.h":
     #c_MatrixView *new_MatrixView "new MatrixView" (char *title, ...)
 
     double2 *transform(c_Element *e)
+    void element_polygonal_boundary(c_Element *e, double2 **tp, int *n)
 
 cdef extern from "dummy_solver.h":
 
