@@ -165,6 +165,7 @@ def plot_mesh_mpl_orders(nodes, elements, polygons=None,
             patch = PathPatch(p, facecolor=color, edgecolor='#000000')
             sp.add_patch(patch)
         show_legend = polynomial_orders is not None
+
         if show_legend:
             # Create legend
             def split_nodes():
@@ -209,7 +210,11 @@ def plot_mesh_mpl_orders(nodes, elements, polygons=None,
             y = minY + dy
             x = maxX + dx
 
-            m = max(list(set(polynomial_orders.items())))
+            ord = polynomial_orders.items()
+            order_list = []
+            for k,v in ord:
+                order_list.append(v)
+            m = max(order_list)
 
             for k,c in colors.items():
                 if k <= m :
