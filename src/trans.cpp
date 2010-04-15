@@ -97,6 +97,16 @@ void element_polygonal_boundary(Element *e, double2 **tp, int *n)
 {
 	double2 *pt;
 
-	*tp = transform_element(e, countof(e2_pt), e2_pt);
-    *n = countof(e2_pt);
+    //*tp = transform_element(e, countof(e2_pt), e2_pt);
+    *n = 4;
+    *tp = new double2[*n];
+    pt = *tp;
+    pt[0][0] = 1.;
+    pt[0][1] = 1.;
+    pt[1][0] = 2.;
+    pt[1][1] = 2.;
+    pt[2][0] = 3.;
+    pt[2][1] = 3.;
+    pt[3][0] = 4.;
+    pt[3][1] = 4.;
 }
