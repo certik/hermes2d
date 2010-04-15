@@ -110,18 +110,123 @@ def plot_sln_mayavi(sln, notebook=False):
     # to just call .view(0, 0), which seems to be working fine.
     return s
 
-def plot_hermes_mesh_mpl(mesh, space=None, method="simple"):
+def plot_hermes_mesh_mpl(mesh, space=None, method="simple", edges_only=False):
     if method == "simple":
         return plot_mesh_mpl_simple(mesh.nodes_dict, mesh.elements)
     elif method == "orders":
         if space != None:
-            return plot_mesh_mpl_orders(mesh.nodes_dict, mesh.elements, mesh.curves, polynomial_orders=mesh.get_elements_order(space))
+            return plot_mesh_mpl_orders(mesh.nodes_dict, mesh.elements,
+                    mesh.get_polygonal_boundary(),
+                    polynomial_orders=mesh.get_elements_order(space),
+                    edges_only=edges_only)
         else:
-            return plot_mesh_mpl_orders(mesh.nodes_dict, mesh.elements, mesh.curves)
+            return plot_mesh_mpl_orders(mesh.nodes_dict, mesh.elements,
+                    mesh.get_polygonal_boundary(),
+                    edges_only=edges_only)
     else:
         raise ValueError("Unknown method")
 
-def plot_mesh_mpl_orders(nodes, elements, curves=None, polynomial_orders=None, colors=None):
+def plot_mesh_mpl_orders(nodes, elements, polygons=None,
+        polynomial_orders=None, edges_only=False):
+    from matplotlib import pyplot
+    from matplotlib.path import Path
+    from matplotlib.patches import PathPatch
+    from matplotlib.patches import Rectangle
+    colors = {1: '#000684', 2: '#3250fc',
+        3: '#36c4ee', 4: '#04eabc', 5: '#62ff2a', 6: '#fdff07',
+        7: '#ffa044', 8: '#ff1111', 9: '#b02c2c', 10: '#820f97'}
+    fig = pyplot.figure()
+    sp = fig.add_subplot(111)
+    if edges_only:
+        for el_id in polygons:
+            x = list(polygons[el_id][:, 0])
+            y = list(polygons[el_id][:, 1])
+            x.append(x[0])
+            y.append(y[0])
+            sp.plot(x, y, "k-", lw=2)
+        sp.set_title("Mesh")
+        sp.set_aspect("equal")
+        sp.autoscale_view()
+        return sp.figure
+    else:
+        for el_id in polygons:
+            x = list(polygons[el_id][:, 0])
+            y = list(polygons[el_id][:, 1])
+            x.append(x[0])
+            y.append(y[0])
+            vertices = zip(x, y)
+            codes = [Path.MOVETO] + [Path.LINETO]*(len(vertices)-2) + \
+                        [Path.CLOSEPOLY]
+            p = Path(vertices, codes)
+            color = colors[polynomial_orders[el_id]]
+            patch = PathPatch(p, facecolor=color, edgecolor='#000000')
+            sp.add_patch(patch)
+        show_legend = True
+        if show_legend:
+            # Create legend
+            def split_nodes():
+                x = []
+                y = []
+
+                if isinstance(nodes, dict):
+                    _nodes = nodes.items()
+                else:
+                    _nodes = enumerate(nodes)
+                for k, pnt in _nodes:
+                    x.append(pnt[0])
+                    y.append(pnt[1])
+
+                return (x, y)
+
+            def get_max(what='x'):
+                x, y = split_nodes()
+
+                if what == 'x':
+                    return max(x)
+                else:
+                    return max(y)
+
+            def get_min(what='x'):
+                x, y = split_nodes()
+
+                if what == 'x':
+                    return min(x)
+                else:
+                    return min(y)
+
+            maxX = get_max('x')
+            maxY = get_max('y')
+
+            minX = get_min('x')
+            minY = get_min('y')
+
+            dy = (maxY - minY) / 20
+            dx = (maxX - minX) / 20
+
+            y = minY + dy
+            x = maxX + dx
+
+            m = max(list(set(polynomial_orders.items())))
+
+            for k,c in colors.items():
+                if k <= m :
+                    p = Rectangle(xy=(x,y), width=dx, height=dy, fill=True, facecolor=c)
+                    sp.add_patch(p)
+                    sp.text(x + dx + (dx/2), y + (dy/4), str(k))
+                    y += dy
+                else:
+                    break
+
+            sp.text(x, y + (dy/2), str('Orders'))
+        sp.set_title("Mesh")
+        sp.set_aspect("equal")
+        sp.autoscale_view()
+        return sp.figure
+        raise NotImplementedError()
+
+
+
+def _plot_mesh_mpl_orders(nodes, elements, curves=None, polynomial_orders=None, colors=None):
     """
     This plots the mesh together with polynomial orders.
 
