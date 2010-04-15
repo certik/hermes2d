@@ -357,8 +357,10 @@ cdef class Mesh:
                 v = order >> 5
 
                 import math
-                #ord = max(h, v)
-                ord = int(((h+v)/2.0))
+                # This uses the maximum of "h", "v", as we can't yet plot
+                # anisotropic polynomial degrees
+                ord = max(h, v)
+                #ord = int(((h+v)/2.0))
                 if ord == 0:
                     ord = 1
 
