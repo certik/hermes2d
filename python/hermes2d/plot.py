@@ -95,6 +95,7 @@ def plot_sln_mayavi(sln, notebook=False):
     if notebook:
         # the off screen rendering properly works only with VTK-5.2 or above:
         mlab.options.offscreen = True
+    mlab.clf()
     s = mlab.triangular_mesh(x, y, z, triangles, scalars=t)
     mlab.view(0, 0)
 
