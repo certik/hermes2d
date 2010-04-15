@@ -383,6 +383,8 @@ cdef extern from "hermes2d.h":
         #void show(c_DiscreteProblem *ep)
     #c_MatrixView *new_MatrixView "new MatrixView" (char *title, ...)
 
+    double2 *transform(c_Element *e)
+
 cdef extern from "dummy_solver.h":
 
     cdef struct c_DummySolver "DummySolver":
@@ -433,6 +435,3 @@ cdef class Linearizer:
 
 cdef class Vectorizer(Linearizer):
     pass
-    
-cdef extern from "trans.cpp":
-    double2 *transform(c_Element *e)

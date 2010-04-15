@@ -16,7 +16,12 @@
 #ifndef __HERMES2D_TRANS_H
 #define __HERMES2D_TRANS_H
 
-#include "hermes2d.h"
+#include "common.h"
+#include "mesh.h"
+#include "shapeset.h"
+#include "shapeset_h1_all.h"
+#include "quad.h"
+#include "quad_all.h"
 
 double2 *transform(Element *e);
 
