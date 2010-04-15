@@ -102,7 +102,7 @@ if not interactive_plotting:
     view.show(sln, lib="mayavi")
     if show_mesh:
         mview = MeshView("Mesh")
-        mview.show(mesh, lib="mpl", method="orders")
+        mview.show(mesh, space=space, lib="mpl", method="orders")
         mview.wait()
 
 if show_graph:
