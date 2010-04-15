@@ -262,20 +262,35 @@ cdef class Mesh:
         """
         Return curves
         """
+        cdef Element e 
+        cdef double2 *tp
+        cdef ndarray vec
+
         crv = {}
         for i in range(self.num_elements):
             el = self.get_element(i)
             if el.active:
-                for j in range(4):
-                    cm = el.curved_map
-                    if cm != None:
-                        n = cm.get_nurbs(j)
-                        if n != None:
-                            sp = (n.pt[0][0], n.pt[0][1])
-                            cp = (n.pt[1][0], n.pt[1][1])
-                            ep = (n.pt[2][0], n.pt[2][1])
-                            crv[i] = []
-                            crv[i].append([sp, cp, ep])
+                cm = el.curved_map
+                if cm != None:
+                    if cm.toplevel == True:
+                        for j in range(4):
+                            n = cm.get_nurbs(j)
+                            if n != None:
+                                sp = (n.pt[0][0], n.pt[0][1])
+                                cp = (n.pt[1][0], n.pt[1][1])
+                                ep = (n.pt[2][0], n.pt[2][1])
+                                crv[i] = []
+                                crv[i].append([sp, cp, ep])
+                    else:
+                        e = el
+                        tp = transform(e.thisptr)
+                        vec = array_double_c2numpy(<double *>tp, 2*5)
+                        crv[i] = []
+                        x = []
+                        for point in vec.reshape((5, 2)):
+                            x.append((point[0], point[1]))
+                        crv[i].append(x)
+        print crv
         return crv
 
     @property

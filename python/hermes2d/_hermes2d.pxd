@@ -68,6 +68,7 @@ cdef extern from "hermes2d.h":
 
     ctypedef double double4[4]
     ctypedef double double3[3]
+    ctypedef double double2[2]
     ctypedef int int3[3]
     ctypedef int int2[2]
 
@@ -432,3 +433,6 @@ cdef class Linearizer:
 
 cdef class Vectorizer(Linearizer):
     pass
+    
+cdef extern from "trans.cpp":
+    double2 *transform(c_Element *e)
