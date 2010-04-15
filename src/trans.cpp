@@ -101,81 +101,76 @@ void element_polygonal_boundary(Element *e, double2 **tp, int *npoints)
 
     //*tp = transform_element(e, countof(e2_pt), e2_pt);
     if (e->is_triangle()) {
-        if (e->is_curved())
+        if (e->is_curved()) {
             d = 10;
-        else
-            d = 2;
-        n = 3*(d-1);
-        pt = new double2[n];
-        double h = 2.0/(d-1);
-        int counter = 0;
-        for (int i=0; i < d-1; i++) {
-            pt[counter][0] = -1+i*h;
-            pt[counter][1] = -1;
-            counter++;
+            n = 3*(d-1);
+            pt = new double2[n];
+            double h = 2.0/(d-1);
+            int counter = 0;
+            for (int i=0; i < d-1; i++) {
+                pt[counter][0] = -1+i*h;
+                pt[counter][1] = -1;
+                counter++;
+            }
+            for (int i=0; i < d-1; i++) {
+                pt[counter][0] = +1-i*h;
+                pt[counter][1] = -1+i*h;
+                counter++;
+            }
+            for (int i=0; i < d-1; i++) {
+                pt[counter][0] = -1;
+                pt[counter][1] = +1-i*h;
+                counter++;
+            }
+            if (counter != n)
+                error("Internal error: counter != n.");
+            pt = transform_element(e, n, pt);
+        } else {
+            n = 3;
+            pt = new double2[n];
+            for (int i=0; i < 3; i++) {
+                pt[i][0] = e->vn[i]->x;
+                pt[i][1] = e->vn[i]->y;
+            }
         }
-        for (int i=0; i < d-1; i++) {
-            pt[counter][0] = +1-i*h;
-            pt[counter][1] = -1+i*h;
-            counter++;
-        }
-        for (int i=0; i < d-1; i++) {
-            pt[counter][0] = -1;
-            pt[counter][1] = +1-i*h;
-            counter++;
-        }
-        if (counter != n)
-            error("Internal error: counter != n.");
-        pt = transform_element(e, n, pt);
-        /*
-           // This is probably faster for linear elements:
-        pt = new double2[n];
-        for (int i=0; i < 3; i++) {
-            pt[i][0] = e->vn[i]->x;
-            pt[i][1] = e->vn[i]->y;
-        }
-        */
     } else if (e->is_quad()) {
-        if (e->is_curved())
+        if (e->is_curved()) {
             d = 10;
-        else
-            d = 2;
-        n = 4*(d-1);
-        pt = new double2[n];
-        double h = 2.0/(d-1);
-        int counter = 0;
-        for (int i=0; i < d-1; i++) {
-            pt[counter][0] = -1+i*h;
-            pt[counter][1] = -1;
-            counter++;
+            n = 4*(d-1);
+            pt = new double2[n];
+            double h = 2.0/(d-1);
+            int counter = 0;
+            for (int i=0; i < d-1; i++) {
+                pt[counter][0] = -1+i*h;
+                pt[counter][1] = -1;
+                counter++;
+            }
+            for (int i=0; i < d-1; i++) {
+                pt[counter][0] = +1;
+                pt[counter][1] = -1+i*h;
+                counter++;
+            }
+            for (int i=0; i < d-1; i++) {
+                pt[counter][0] = +1-i*h;
+                pt[counter][1] = +1;
+                counter++;
+            }
+            for (int i=0; i < d-1; i++) {
+                pt[counter][0] = -1;
+                pt[counter][1] = +1-i*h;
+                counter++;
+            }
+            if (counter != n)
+                error("Internal error: counter != n.");
+            pt = transform_element(e, n, pt);
+        } else {
+            n = 4;
+            pt = new double2[n];
+            for (int i=0; i < 4; i++) {
+                pt[i][0] = e->vn[i]->x;
+                pt[i][1] = e->vn[i]->y;
+            }
         }
-        for (int i=0; i < d-1; i++) {
-            pt[counter][0] = +1;
-            pt[counter][1] = -1+i*h;
-            counter++;
-        }
-        for (int i=0; i < d-1; i++) {
-            pt[counter][0] = +1-i*h;
-            pt[counter][1] = +1;
-            counter++;
-        }
-        for (int i=0; i < d-1; i++) {
-            pt[counter][0] = -1;
-            pt[counter][1] = +1-i*h;
-            counter++;
-        }
-        if (counter != n)
-            error("Internal error: counter != n.");
-        pt = transform_element(e, n, pt);
-        /*
-           //This is probably faster for linear elements:
-        n = 4;
-        pt = new double2[n];
-        for (int i=0; i < 4; i++) {
-            pt[i][0] = e->vn[i]->x;
-            pt[i][1] = e->vn[i]->y;
-        }
-        */
     } else
         error("Unsupported element.");
     *tp = pt;
