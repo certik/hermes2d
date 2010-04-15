@@ -153,100 +153,93 @@ def plot_mesh_mpl(nodes, elements, polygons=None,
             }
     fig = pyplot.figure()
     sp = fig.add_subplot(111)
-    if edges_only:
-        for el_id in polygons:
-            x = list(polygons[el_id][:, 0])
-            y = list(polygons[el_id][:, 1])
-            x.append(x[0])
-            y.append(y[0])
-            sp.plot(x, y, "k-", lw=2)
-        sp.set_title("Mesh")
-        sp.set_aspect("equal")
-        sp.autoscale_view()
-        return sp.figure
-    else:
-        for el_id in polygons:
-            x = list(polygons[el_id][:, 0])
-            y = list(polygons[el_id][:, 1])
-            x.append(x[0])
-            y.append(y[0])
-            vertices = zip(x, y)
-            codes = [Path.MOVETO] + [Path.LINETO]*(len(vertices)-2) + \
-                        [Path.CLOSEPOLY]
-            p = Path(vertices, codes)
+    for el_id in polygons:
+        x = list(polygons[el_id][:, 0])
+        y = list(polygons[el_id][:, 1])
+        x.append(x[0])
+        y.append(y[0])
+        vertices = zip(x, y)
+        codes = [Path.MOVETO] + [Path.LINETO]*(len(vertices)-2) + \
+                    [Path.CLOSEPOLY]
+        p = Path(vertices, codes)
+        if edges_only:
+            color = "white"
+            linewidth = 2
+        else:
             if polynomial_orders is None:
                 color = colors[0]
             else:
                 color = colors[polynomial_orders[el_id]]
-            patch = PathPatch(p, facecolor=color, edgecolor='#000000')
-            sp.add_patch(patch)
-        show_legend = polynomial_orders is not None
+            linewidth = 1
+        patch = PathPatch(p, facecolor=color, lw=linewidth,
+                edgecolor='#000000')
+        sp.add_patch(patch)
+    show_legend = polynomial_orders is not None
 
-        if show_legend:
-            # Create legend
-            def split_nodes():
-                x = []
-                y = []
+    if show_legend:
+        # Create legend
+        def split_nodes():
+            x = []
+            y = []
 
-                if isinstance(nodes, dict):
-                    _nodes = nodes.items()
-                else:
-                    _nodes = enumerate(nodes)
-                for k, pnt in _nodes:
-                    x.append(pnt[0])
-                    y.append(pnt[1])
+            if isinstance(nodes, dict):
+                _nodes = nodes.items()
+            else:
+                _nodes = enumerate(nodes)
+            for k, pnt in _nodes:
+                x.append(pnt[0])
+                y.append(pnt[1])
 
-                return (x, y)
+            return (x, y)
 
-            def get_max(what='x'):
-                x, y = split_nodes()
+        def get_max(what='x'):
+            x, y = split_nodes()
 
-                if what == 'x':
-                    return max(x)
-                else:
-                    return max(y)
+            if what == 'x':
+                return max(x)
+            else:
+                return max(y)
 
-            def get_min(what='x'):
-                x, y = split_nodes()
+        def get_min(what='x'):
+            x, y = split_nodes()
 
-                if what == 'x':
-                    return min(x)
-                else:
-                    return min(y)
+            if what == 'x':
+                return min(x)
+            else:
+                return min(y)
 
-            maxX = get_max('x')
-            maxY = get_max('y')
+        maxX = get_max('x')
+        maxY = get_max('y')
 
-            minX = get_min('x')
-            minY = get_min('y')
+        minX = get_min('x')
+        minY = get_min('y')
 
-            dy = (maxY - minY) / 20
-            dx = (maxX - minX) / 20
+        dy = (maxY - minY) / 20
+        dx = (maxX - minX) / 20
 
-            y = minY + dy
-            x = maxX + dx
+        y = minY + dy
+        x = maxX + dx
 
-            ord = polynomial_orders.items()
-            order_list = []
-            for k,v in ord:
-                order_list.append(v)
-            m = max(order_list)
+        ord = polynomial_orders.items()
+        order_list = []
+        for k,v in ord:
+            order_list.append(v)
+        m = max(order_list)
 
-            for k,c in colors.items():
-                if k <= m :
-                    p = Rectangle(xy=(x,y), width=dx, height=dy, fill=True, facecolor=c)
-                    sp.add_patch(p)
-                    sp.text(x + dx + (dx/2), y + (dy/4), str(k))
-                    y += dy
-                else:
-                    break
+        for k,c in colors.items():
+            if k <= m :
+                p = Rectangle(xy=(x,y), width=dx, height=dy, fill=True, facecolor=c)
+                sp.add_patch(p)
+                sp.text(x + dx + (dx/2), y + (dy/4), str(k))
+                y += dy
+            else:
+                break
 
-            sp.text(x, y + (dy/2), str('Orders'))
-        sp.set_title("Mesh")
-        sp.set_aspect("equal")
-        sp.autoscale_view()
-        return sp.figure
-        raise NotImplementedError()
+        sp.text(x, y + (dy/2), str('Orders'))
+    sp.set_title("Mesh")
+    sp.set_aspect("equal")
+    sp.autoscale_view()
+    return sp.figure
 
 class ScalarView(object):
 
