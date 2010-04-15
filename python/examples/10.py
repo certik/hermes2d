@@ -130,7 +130,7 @@ while(not done):
 
     # View the mesh
     mview = MeshView("Example 7", 100, 100, 500, 500)
-    mview.show(mesh, lib="mpl", method="orders", notebook=False)
+    mview.show(mesh, space=space)
 
     # Solve the fine mesh problem
     rs = RefSystem(ls)

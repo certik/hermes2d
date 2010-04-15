@@ -110,23 +110,17 @@ def plot_sln_mayavi(sln, notebook=False):
     # to just call .view(0, 0), which seems to be working fine.
     return s
 
-def plot_hermes_mesh_mpl(mesh, space=None, method="simple", edges_only=False):
-    if method == "simple":
-        return plot_mesh_mpl_simple(mesh.nodes_dict, mesh.elements)
-    elif method == "orders":
-        if space != None:
-            return plot_mesh_mpl_orders(mesh.nodes_dict, mesh.elements,
-                    mesh.get_polygonal_boundary(),
-                    polynomial_orders=mesh.get_elements_order(space),
-                    edges_only=edges_only)
-        else:
-            return plot_mesh_mpl_orders(mesh.nodes_dict, mesh.elements,
-                    mesh.get_polygonal_boundary(),
-                    edges_only=edges_only)
+def plot_hermes_mesh_mpl(mesh, space=None, edges_only=False):
+    if space is None:
+        polynomial_orders = None
     else:
-        raise ValueError("Unknown method")
+        polynomial_orders = mesh.get_elements_order(space)
+    return plot_mesh_mpl(mesh.nodes_dict, mesh.elements,
+                    mesh.get_polygonal_boundary(),
+                    polynomial_orders=polynomial_orders,
+                    edges_only=edges_only)
 
-def plot_mesh_mpl_orders(nodes, elements, polygons=None,
+def plot_mesh_mpl(nodes, elements, polygons=None,
         polynomial_orders=None, edges_only=False):
     from matplotlib import pyplot
     from matplotlib.path import Path
@@ -254,56 +248,6 @@ def plot_mesh_mpl_orders(nodes, elements, polygons=None,
         return sp.figure
         raise NotImplementedError()
 
-def plot_mesh_mpl_simple(nodes, elements, orders=None, colors=None, axes=None,
-        plot_nodes=True):
-    """
-    This plots the mesh using simple mpl plot commands.
-    """
-    if axes is None:
-        from pylab import gca
-        axes = gca()
-
-    #if orders is None:
-    #    orders = [1] * len(elements)
-
-    if colors is None:
-        colors = {0: '#000000', 1: '#000684', 2: '#3250fc',
-            3: '#36c4ee', 4: '#04eabc', 5: '#62ff2a', 6: '#fdff07',
-            7: '#ffa044', 8: '#ff1111', 9: '#b02c2c', 10: '#820f97'}
-
-    # check that if orders and elements match (if orders are passed in)
-    if orders is not None:
-        assert len(elements) == len(orders)
-
-    # join nodes with lines:
-    for i, e in enumerate(elements):
-        x_avg = 0
-        y_avg = 0
-        for k in range(len(e)):
-            n1 = e[k-1]
-            n2 = e[k]
-            x1, y1 = nodes[n1]
-            x2, y2 = nodes[n2]
-            x_avg += x2
-            y_avg += y2
-            axes.plot([x1, x2], [y1, y2], "-",
-                    color=(0, 0, 150/255.), lw=2)
-        x_avg /= len(e)
-        y_avg /= len(e)
-        if orders:
-            axes.text(x_avg, y_avg, str(orders[i]))
-
-    if plot_nodes:
-        # plot nodes:
-        if isinstance(nodes, dict):
-            nodes = nodes.values()
-        for n in nodes:
-            x = n[0]
-            y = n[1]
-            axes.plot([x], [y], 's', color=(150/255., 0, 0))
-    return axes.figure
-
-
 class ScalarView(object):
 
     def __init__(self, x=0, y=0, w=50, h=50, name="Solution"):
@@ -322,7 +266,7 @@ class ScalarView(object):
             import pylab
             pylab.show()
 
-    def show(self, sln, show=True, lib="mpl", notebook=False, filename="a.png",
+    def show(self, sln, show=True, lib="mpl", notebook=None, filename="a.png",
             **options):
         """
         Shows the solution.
@@ -341,6 +285,13 @@ class ScalarView(object):
         >>> 1 + 2
         3
         """
+        if notebook is None:
+            try:
+                from sagenb.misc.support import EMBEDDED_MODE
+            except ImportError:
+                EMBEDDED_MODE = False
+            notebook = EMBEDDED_MODE
+
         self._lib = lib
         self._notebook = notebook
         if lib == "mpl":
@@ -381,8 +332,14 @@ class MeshView(object):
     def wait(self):
         pass
 
-    def show(self, mesh, show=True, lib="glut", notebook=False, space=None,
+    def show(self, mesh, show=True, lib="mpl", notebook=None, space=None,
             filename="a.png", **options):
+        if notebook is None:
+            try:
+                from sagenb.misc.support import EMBEDDED_MODE
+            except ImportError:
+                EMBEDDED_MODE = False
+            notebook = EMBEDDED_MODE
         if lib == "glut":
             from _hermes2d import MeshView
             m = MeshView(self._name, self._x, self._y, self._w, self._h)

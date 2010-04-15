@@ -65,5 +65,4 @@ view = ScalarView("Solution")
 view.show(sln, lib="mayavi")
 
 # Visualize the mesh
-mview = MeshView("Hello world!", 100, 100, 500, 500)
-mview.show(mesh, lib="mpl", method="orders", notebook=False)
+mesh.plot(space=space)

@@ -102,7 +102,7 @@ while (not done):
 
     # View the solution and mesh
     sview.show(sln_coarse, lib='mayavi');
-    mview.show(mesh, space=space, lib="mpl", method="orders", notebook=False)
+    mview.show(mesh, space=space)
 
     # Solve the fine mesh problem
     rs = RefSystem(ls)

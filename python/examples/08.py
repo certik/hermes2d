@@ -66,5 +66,4 @@ stress = VonMisesFilter(xsln, ysln, mu, l)
 view.show(stress, lib="mayavi")
 
 # Visualize the mesh
-mview = MeshView("Hello world!", 100, 100, 500, 500)
-mview.show(mesh, lib="mpl", method="orders", notebook=False)
+mesh.plot(space=xdisp)

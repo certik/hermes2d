@@ -18,5 +18,4 @@ mesh.load(domain_mesh)
 #mesh.refine_towards_boundary(2, 4);  # Refines all elements along boundary 2 (4x).
 
 # Display the mesh
-mview = MeshView("Hello world!", 100, 100, 500, 500)
-mview.show(mesh, lib="mpl", notebook=False)
+mesh.plot()

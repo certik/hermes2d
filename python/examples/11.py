@@ -151,8 +151,8 @@ while(not done):
     sview.show(stress_coarse, lib='mayavi')
     #xoview.show(xdisp, lib='mayavi')
     #yoview.show(ydisp, lib='mayavi')
-    xomview.show(xmesh, space=xdisp, lib="mpl", method="orders", notebook=False)
-    yomview.show(ymesh, space=ydisp, lib="mpl", method="orders", notebook=False)
+    xomview.show(xmesh, space=xdisp)
+    yomview.show(ymesh, space=ydisp)
 
     # Solve the fine mesh problem
     rs = RefSystem(ls)
