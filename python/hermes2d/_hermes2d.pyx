@@ -348,7 +348,7 @@ cdef class Mesh:
         """
         Returns list of orders
         """
-        orders_list = []
+        orders_list = {}
         for i in range(self.num_elements):
             el = self.get_element(i)
             if el.active:
@@ -357,12 +357,13 @@ cdef class Mesh:
                 v = order >> 5
 
                 import math
+                #ord = max(h, v)
                 ord = int(((h+v)/2.0))
                 if ord == 0:
                     ord = 1
 
                 #orders_list.append(int(((h+v)/2.0)))
-                orders_list.append(ord)
+                orders_list[el.id] = ord
 
         return orders_list
 

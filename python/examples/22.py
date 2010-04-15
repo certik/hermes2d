@@ -25,7 +25,7 @@ threshold = 0.3
 strategy = 0
 
 h_only = False
-error_tol = 1
+error_tol = 75
 interactive_plotting = False    # should the plot be interactively updated
                                 # during the calculation? (slower)
 show_mesh = True
@@ -80,7 +80,7 @@ while 1:
     sys.solve_system(sln)
     dofs = sys.get_matrix().shape[0]
     if interactive_plotting:
-        view.show(sln, lib="mayavi", filename="a%02d.png" % iter)
+        #view.show(sln, lib="mayavi", filename="a%02d.png" % iter)
         if show_mesh:
             mview.show(mesh, lib="mpl", method="orders", filename="b%02d.png" % iter)
 
@@ -99,10 +99,10 @@ while 1:
     iter += 1
 
 if not interactive_plotting:
-    view.show(sln, lib="mayavi")
+    #view.show(sln, lib="mayavi")
     if show_mesh:
         mview = MeshView("Mesh")
-        mview.show(mesh, lib="mpl", method="orders")
+        mview.show(mesh, space=space, lib="mpl", method="orders")
         mview.wait()
 
 if show_graph:
