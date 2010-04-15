@@ -137,7 +137,7 @@ def plot_mesh_mpl_orders(nodes, elements, polygons=None,
             y = list(polygons[p][:, 1])
             x.append(x[0])
             y.append(y[0])
-            sp.plot(x, y, "k-")
+            sp.plot(x, y, "k-", lw=2)
         sp.set_title("Mesh")
         sp.set_aspect("equal")
         sp.autoscale_view()
