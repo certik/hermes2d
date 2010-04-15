@@ -110,18 +110,44 @@ def plot_sln_mayavi(sln, notebook=False):
     # to just call .view(0, 0), which seems to be working fine.
     return s
 
-def plot_hermes_mesh_mpl(mesh, space=None, method="simple"):
+def plot_hermes_mesh_mpl(mesh, space=None, method="simple", edges_only=False):
     if method == "simple":
         return plot_mesh_mpl_simple(mesh.nodes_dict, mesh.elements)
     elif method == "orders":
         if space != None:
-            return plot_mesh_mpl_orders(mesh.nodes_dict, mesh.elements, mesh.curves, polynomial_orders=mesh.get_elements_order(space))
+            return plot_mesh_mpl_orders(mesh.nodes_dict, mesh.elements,
+                    mesh.get_polygonal_boundary(),
+                    polynomial_orders=mesh.get_elements_order(space),
+                    edges_only=edges_only)
         else:
-            return plot_mesh_mpl_orders(mesh.nodes_dict, mesh.elements, mesh.curves)
+            return plot_mesh_mpl_orders(mesh.nodes_dict, mesh.elements,
+                    mesh.get_polygonal_boundary(),
+                    edges_only=edges_only)
     else:
         raise ValueError("Unknown method")
 
-def plot_mesh_mpl_orders(nodes, elements, curves=None, polynomial_orders=None, colors=None):
+def plot_mesh_mpl_orders(nodes, elements, polygons=None,
+        polynomial_orders=None, colors=None, edges_only=False):
+    from matplotlib import pyplot
+    fig = pyplot.figure()
+    sp = fig.add_subplot(111)
+    if edges_only:
+        for p in polygons:
+            x = list(polygons[p][:, 0])
+            y = list(polygons[p][:, 1])
+            x.append(x[0])
+            y.append(y[0])
+            sp.plot(x, y, "k-")
+        sp.set_title("Mesh")
+        sp.set_aspect("equal")
+        sp.autoscale_view()
+        return sp.figure
+    else:
+        raise NotImplementedError()
+
+
+
+def _plot_mesh_mpl_orders(nodes, elements, curves=None, polynomial_orders=None, colors=None):
     """
     This plots the mesh together with polynomial orders.
 
