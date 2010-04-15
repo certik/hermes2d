@@ -129,6 +129,11 @@ def plot_hermes_mesh_mpl(mesh, space=None, method="simple", edges_only=False):
 def plot_mesh_mpl_orders(nodes, elements, polygons=None,
         polynomial_orders=None, colors=None, edges_only=False):
     from matplotlib import pyplot
+    from matplotlib.path import Path
+    from matplotlib.patches import PathPatch
+    colors = {1: '#000684', 2: '#3250fc',
+        3: '#36c4ee', 4: '#04eabc', 5: '#62ff2a', 6: '#fdff07',
+        7: '#ffa044', 8: '#ff1111', 9: '#b02c2c', 10: '#820f97'}
     fig = pyplot.figure()
     sp = fig.add_subplot(111)
     if edges_only:
@@ -143,6 +148,22 @@ def plot_mesh_mpl_orders(nodes, elements, polygons=None,
         sp.autoscale_view()
         return sp.figure
     else:
+        for p in polygons:
+            x = list(polygons[p][:, 0])
+            y = list(polygons[p][:, 1])
+            x.append(x[0])
+            y.append(y[0])
+            vertices = zip(x, y)
+            codes = [Path.MOVETO] + [Path.LINETO]*(len(vertices)-2) + \
+                        [Path.CLOSEPOLY]
+            p = Path(vertices, codes)
+            color = colors[1]
+            patch = PathPatch(p, facecolor=color, edgecolor='#000000')
+            sp.add_patch(patch)
+        sp.set_title("Mesh")
+        sp.set_aspect("equal")
+        sp.autoscale_view()
+        return sp.figure
         raise NotImplementedError()
 
 
