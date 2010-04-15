@@ -93,20 +93,49 @@ double2 *transform(Element *e)
 	return tpt3;
 }
 
-void element_polygonal_boundary(Element *e, double2 **tp, int *n)
+void element_polygonal_boundary(Element *e, double2 **tp, int *npoints)
 {
 	double2 *pt;
+    int n;
+    int d = 2; // number of points on one side (e.g. d >= 2)
 
     //*tp = transform_element(e, countof(e2_pt), e2_pt);
-    *n = 4;
-    *tp = new double2[*n];
-    pt = *tp;
-    pt[0][0] = 1.;
-    pt[0][1] = 1.;
-    pt[1][0] = 2.;
-    pt[1][1] = 2.;
-    pt[2][0] = 3.;
-    pt[2][1] = 3.;
-    pt[3][0] = 4.;
-    pt[3][1] = 4.;
+    if (e->is_triangle()) {
+        /*
+        if (e->is_curved())
+            n = 50;
+        else
+            n = 3;
+            */
+        n = 3*(d-1);
+        pt = new double2[n];
+        for (int i=0; i < d; i++) {
+            pt[0][0] = -1;
+            pt[0][1] = -1;
+        }
+        pt[1][0] = 1;
+        pt[1][1] = -1;
+        pt[2][0] = -1;
+        pt[2][1] = 1;
+        pt = transform_element(e, n, pt);
+        /*
+        pt = new double2[n];
+        for (int i=0; i < 3; i++) {
+            pt[i][0] = e->vn[i]->x;
+            pt[i][1] = e->vn[i]->y;
+        }
+        */
+    } else if (e->is_quad()) {
+        //if (e->is_curved()) {
+        //} else {
+        n = 4;
+        pt = new double2[n];
+        for (int i=0; i < 4; i++) {
+            pt[i][0] = e->vn[i]->x;
+            pt[i][1] = e->vn[i]->y;
+        }
+    } else
+        error("Unsupported element.");
+    *tp = pt;
+    *npoints = n;
 }
