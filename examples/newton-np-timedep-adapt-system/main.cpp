@@ -44,11 +44,11 @@
 #define NOSCREENSHOT
 
 /*** Fundamental coefficients ***/
-const double D = 12e-12; 	            // [m^2/s] Diffusion coefficient
+const double D = 10e-11; 	            // [m^2/s] Diffusion coefficient
 const double R = 8.31; 		            // [J/mol*K] Gas constant
 const double T = 293; 		            // [K] Aboslute temperature
 const double F = 96485.3415;	            // [s * A / mol] Faraday constant
-const double eps = 2.5e-1; 	            // [F/m] Electric permeability
+const double eps = 2.5e-2; 	            // [F/m] Electric permeability
 const double mu = D / (R * T);              // Mobility of ions
 const double z = 1;		            // Charge number
 const double K = z * mu * F;                // Constant for equation
@@ -73,7 +73,7 @@ const int TIME_DISCR = 1;             // 1 for implicit Euler, 2 for Crank-Nicol
 const int VOLT_BOUNDARY = 1;            // 1 for Dirichlet, 2 for Neumann
 
 /* Nonadaptive solution parameters */
-const double NEWTON_TOL = 1e-15;         // Stopping criterion for nonadaptive solution
+const double NEWTON_TOL = 1e-8;         // Stopping criterion for nonadaptive solution
 
 /* Adaptive solution parameters */
 const double NEWTON_TOL_COARSE = 0.01;     // Stopping criterion for Newton on coarse mesh
@@ -87,7 +87,7 @@ const int UNREF_FREQ = 5;               // every UNREF_FREQth time step the mesh
                                         // is unrefined
 const double THRESHOLD = 0.3;           // This is a quantitative parameter of the adapt(...) function and
                                         // it has different meanings for various adaptive strategies (see below).
-const int STRATEGY = 1;                 // Adaptive strategy:
+const int STRATEGY = 0;                 // Adaptive strategy:
                                         // STRATEGY = 0 ... refine elements until sqrt(THRESHOLD) times total
                                         //   error is processed. If more elements have similar errors, refine
                                         //   all to keep the mesh symmetric.
@@ -136,13 +136,12 @@ Scalar linear_form_surf_top(int n, double *wt, Func<Real> *v, Geom<Real> *e, Ext
 }
 
 scalar voltage_ic(double x, double y, double &dx, double &dy) {
-  printf("x %g, y %g\n", x, y);
   // y^2 function for the domain.
-  return (y+100e-6) * (y+100e-6) / (40000e-12);
+  //return (y+100e-6) * (y+100e-6) / (40000e-12);
+  return 0.0;
 }
 
 scalar concentration_ic(double x, double y, double &dx, double &dy) {
-  printf("concentration: x %g, y %g\n", x, y);
   return C0;
 }
 
@@ -370,9 +369,9 @@ int main (int argc, char* argv[]) {
   H2DReader mloader;
   mloader.load("small.mesh", &basemesh);
   basemesh.refine_towards_boundary(TOP_MARKER,
-      adaptive ? REF_INIT : REF_INIT * 2);
+      adaptive ? REF_INIT : REF_INIT * 25);
   basemesh.refine_towards_boundary(BOT_MARKER,
-    adaptive ? REF_INIT - 1 : (REF_INIT * 2) - 1);
+    adaptive ? REF_INIT - 1 : (REF_INIT * 25) - 1);
   Cmesh.copy(&basemesh);
   phimesh.copy(&basemesh);
 
@@ -412,18 +411,18 @@ int main (int argc, char* argv[]) {
   // generally, the equation system is described:
   if (TIME_DISCR == 1) {  //implicit euler
     wf.add_liform(0, callback(Fc_euler), ANY, 3,
-        &C_prev_time, &C_prev_newton, &phi_prev_newton); //test: phi_prev_newton -> phi_prev_time
-    wf.add_liform(1, callback(Fphi_euler), ANY, 2, &C_prev_newton, &phi_prev_newton); //test: C_prev_newton -> C_prev_time
+        &C_prev_time, &C_prev_newton, &phi_prev_newton);
+    wf.add_liform(1, callback(Fphi_euler), ANY, 2, &C_prev_newton, &phi_prev_newton);
     wf.add_biform(0, 0, callback(J_euler_DFcDYc), UNSYM, ANY, 1, &phi_prev_newton);
-    wf.add_biform(0, 1, callback(J_euler_DFcDYphi), UNSYM, ANY, 1, &C_prev_newton); //test: C_prev_newton -> C_prev_time
+    wf.add_biform(0, 1, callback(J_euler_DFcDYphi), UNSYM, ANY, 1, &C_prev_newton);
     wf.add_biform(1, 0, callback(J_euler_DFphiDYc), UNSYM);
     wf.add_biform(1, 1, callback(J_euler_DFphiDYphi), UNSYM);
   } else if (TIME_DISCR == 3) { //explicit euler
     wf.add_liform(0, callback(Fc_euler_explicit), ANY, 3,
-        &C_prev_time, &C_prev_newton, &phi_prev_newton); //test: phi_prev_newton -> phi_prev_time
-    wf.add_liform(1, callback(Fphi_euler), ANY, 2, &C_prev_time, &phi_prev_newton); //test: C_prev_newton -> C_prev_time
+        &C_prev_time, &C_prev_newton, &phi_prev_newton);
+    wf.add_liform(1, callback(Fphi_euler), ANY, 2, &C_prev_time, &phi_prev_newton);
     wf.add_biform(0, 0, callback(J_euler_DFcDYc), UNSYM, ANY, 1, &phi_prev_newton);
-    wf.add_biform(0, 1, callback(J_euler_DFcDYphi), UNSYM, ANY, 1, &C_prev_newton); //test: C_prev_newton -> C_prev_time
+    wf.add_biform(0, 1, callback(J_euler_DFcDYphi), UNSYM, ANY, 1, &C_prev_newton);
     wf.add_biform(1, 0, callback(J_euler_DFphiDYc), UNSYM);
     wf.add_biform(1, 1, callback(J_euler_DFphiDYphi), UNSYM);
   } else {
@@ -452,8 +451,6 @@ int main (int argc, char* argv[]) {
     nls.set_pss(1, &Cpss);
   }
 
-  //C_prev_time.set_const(&Cmesh, C0);
-  //phi_prev_time.set_const(MULTIMESH ? &phimesh : &Cmesh, 0);
   phi_prev_time.set_exact(MULTIMESH ? &phimesh : &Cmesh, voltage_ic);
   C_prev_time.set_exact(&Cmesh, concentration_ic);
 
