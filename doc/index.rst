@@ -10,7 +10,10 @@ Hermes2D Documentation
     :maxdepth: 2
 
     src/introduction
-    src/tutorial
+    src/tutorial-1
+    src/tutorial-2
+    src/tutorial-3
+    src/tutorial-4
     src/benchmarks
     src/examples
 
