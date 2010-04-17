@@ -325,7 +325,7 @@ void LinSystem::create_matrix(bool rhsonly)
 
   // spaces have changed: create the matrix from scratch
   free();
-  verbose("Creating matrix sparse structure...");
+  trace("Creating matrix sparse structure...");
   TimePeriod cpu_time;
 
   // calculate the total number of DOFs
@@ -333,7 +333,7 @@ void LinSystem::create_matrix(bool rhsonly)
   for (int i = 0; i < wf->neq; i++)
     ndofs += spaces[i]->get_num_dofs();
   if (!ndofs)
-    error("zero matrix size.");
+    error("Zero matrix size while creating matrix sparse structure.");
 
   // get row and column indices of nonzero matrix elements
   Page** pages = new Page*[ndofs];
@@ -354,8 +354,9 @@ void LinSystem::create_matrix(bool rhsonly)
     pos += sort_and_store_indices(pages[i], Ai + pos, Ai + aisize);
   }
   Ap[i] = pos;
-  verbose("  (ndof: %d, nnz: %d, size: %0.1lf MB, time: %g sec)",
-          ndofs, pos, (double) get_matrix_size() / (1024*1024), cpu_time.tick().last());
+  verbose("Sparse matrix created (ndof: %d, nnz: %d, size: %0.1lf MB)",
+          ndofs, pos, (double) get_matrix_size() / (1024*1024));
+  report_time("Sparse matrix created in %g s", cpu_time.tick().last());
   delete [] pages;
 
   // shrink Ai to the actual size
@@ -475,7 +476,7 @@ void LinSystem::assemble(bool rhsonly)
   create_matrix(rhsonly);
   if (!ndofs) return;
 
-  info("Assembling stiffness matrix...");
+  trace("Assembling stiffness matrix...");
   TimePeriod cpu_time;
 
   // create slave pss's for test functions, init quadrature points
@@ -690,7 +691,8 @@ void LinSystem::assemble(bool rhsonly)
     for (int i = 0; i < ndofs; i++)
       RHS[i] += Dir[i];
 
-  verbose("  (stages: %d, time: %g s)", stages.size(), cpu_time.tick().last());
+  verbose("Stiffness matrix assembled (stages: %d)", stages.size());
+  report_time("Stiffness matrix assembled in %g s", cpu_time.tick().last());
   for (int i = 0; i < wf->neq; i++) delete spss[i];
   delete [] buffer;
 

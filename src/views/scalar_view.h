@@ -225,7 +225,7 @@ public:
   virtual ~ScalarView() {}
   void show(MeshFunction* sln, double eps = EPS_NORMAL, int item = FN_VAL_0,
             MeshFunction* xdisp = NULL, MeshFunction* ydisp = NULL, double dmult = 1.0)
-     { info("ScalarView: Hermes2D compiled without OpenGL support, skipping visualization."); }
+     { verbose("ScalarView: Hermes2D compiled without OpenGL support, skipping visualization."); }
   void show_mesh(bool show = true) {}
   void show_contours(double step, double orig = 0.0) {}
   void hide_contours() {}

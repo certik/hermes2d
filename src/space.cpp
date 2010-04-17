@@ -88,16 +88,16 @@ void Space::resize_tables()
 void Space::check_order(int order)
 {
   if (get_h_order(order) < 0 || get_v_order(order) < 0)
-    error("order cannot be negative.");
+    error("Order cannot be negative.");
   if (get_h_order(order) > 10 || get_v_order(order) > 10)
-    error("order = %d, maximum is 10.", order);
+    error("Order = %d, maximum is 10.", order);
 }
 
 
 void Space::set_element_order(int id, int order)
 {
   if (id < 0 || id >= mesh->get_max_element_id())
-    error("invalid element id.");
+    error("Invalid element id.");
   check_order(order);
 
   resize_tables();

@@ -27,7 +27,7 @@ void Node::ref_element(Element* e)
     // store the element pointer in a free slot of 'elem'
     if (elem[0] == NULL) elem[0] = e;
     else if (elem[1] == NULL) elem[1] = e;
-    else assert_msg(false, "no free slot 'elem'");
+    else assert_msg(false, "No free slot 'elem'");
   }
   ref++;
 }
@@ -136,7 +136,7 @@ Mesh::Mesh() : HashTable()
 Element* Mesh::get_element(int id) const
 {
   if (id < 0 || id >= elements.get_size())
-    error("invalid element id number.");
+    error("Invalid element ID %d, current range: [0; %d]", id, elements.get_size());
   return &(elements[id]);
 }
 
@@ -577,8 +577,8 @@ void Mesh::unrefine_element_internal(Element* e)
 void Mesh::refine_element(int id, int refinement)
 {
   Element* e = get_element(id);
-  if (!e->used) error("invalid element id number.");
-  if (!e->active) error("attempt to refine element #%d which has been refined already.", e->id);
+  if (!e->used) error("Invalid element id number.");
+  if (!e->active) error("Attempt to refine element #%d which has been refined already.", e->id);
 
   if (e->is_triangle())
     refine_triangle(e);
@@ -681,7 +681,7 @@ void Mesh::refine_towards_boundary(int marker, int depth, bool aniso)
 void Mesh::unrefine_element(int id)
 {
   Element* e = get_element(id);
-  if (!e->used) error("invalid element id number.");
+  if (!e->used) error("Invalid element id number.");
   if (e->active) return;
 
   for (int i = 0; i < 4; i++)
@@ -873,7 +873,7 @@ void Mesh::create(int nv, double2* verts, int nt, int4* tris,
   for (int i = 0; i < nm; i++)
   {
     Node* en = peek_edge_node(mark[i][0], mark[i][1]);
-    if (en == NULL) error("boundary data error (edge does not exist)");
+    if (en == NULL) error("Boundary data error (edge does not exist)");
     en->marker = mark[i][2];
 
     if (en->marker > 0)
@@ -1376,8 +1376,8 @@ void Mesh::refine_triangle_to_quads(Element* e)
 void Mesh::refine_element_to_quads(int id)
 {
   Element* e = get_element(id);
-  if (!e->used) error("invalid element id number.");
-  if (!e->active) error("attempt to refine element #%d which has been refined already.", e->id);
+  if (!e->used) error("Invalid element id number.");
+  if (!e->active) error("Attempt to refine element #%d which has been refined already.", e->id);
 
   if (e->is_triangle())
     refine_triangle_to_quads(e);
@@ -1571,8 +1571,8 @@ void Mesh::refine_quad_to_triangles(Element* e)
 void Mesh::refine_element_to_triangles(int id)
 {
   Element* e = get_element(id);
-  if (!e->used) error("invalid element id number.");
-  if (!e->active) error("attempt to refine element #%d which has been refined already.", e->id);
+  if (!e->used) error("Invalid element id number.");
+  if (!e->active) error("Attempt to refine element #%d which has been refined already.", e->id);
 
   if (e->is_triangle())
     return;

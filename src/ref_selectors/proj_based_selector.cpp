@@ -42,7 +42,7 @@ namespace RefinementSelectors {
           break;
 
         default:
-          assert_msg(false, "unknown split type \"%d\" at candidate %d", c.split, i);
+          error("Unknown split type \"%d\" at candidate %d", c.split, i);
         }
       }
       else { //quad
@@ -72,7 +72,7 @@ namespace RefinementSelectors {
           break;
 
         default:
-          assert_msg(false, "unknown split type \"%d\" at candidate %d", c.split, i);
+          error("Unknown split type \"%d\" at candidate %d", c.split, i);
         }
       }
 

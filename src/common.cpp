@@ -80,7 +80,7 @@ static bool write_console(const char code, const bool emphasize, const char* tex
     case H2D_EC_TRACE: console_attrs |= console_attr_blue; break;
     case H2D_EC_TIME: console_attrs |= console_attr_green | console_attr_blue; break;
     case H2D_EC_DEBUG: console_attrs |= console_attr_red | console_attr_blue; break;
-    default: error("uknown error code: '%c'", code); break;
+    default: error("Unknown error code: '%c'", code); break;
   }
   if (console_bold && !emphasize)
     console_attrs |= FOREGROUND_INTENSITY;
@@ -115,7 +115,7 @@ static bool write_console(const char code, const bool emphasize, const char* tex
     case H2D_EC_TRACE: console_attrs |= FOREGROUND_BLUE; break;
     case H2D_EC_TIME: console_attrs |= FOREGROUND_GREEN | FOREGROUND_BLUE; break;
     case H2D_EC_DEBUG: console_attrs |= FOREGROUND_RED | FOREGROUND_BLUE; break;
-    default: error("uknown error code: '%c'", code); break;
+    default: error("Unknown error code: '%c'", code); break;
   }
   printf("\033[%dm", console_attrs + 30);
 

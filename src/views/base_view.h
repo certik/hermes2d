@@ -70,7 +70,7 @@ public:
   BaseView(const char* title = "BaseView", DEFAULT_WINDOW_POS) {}
   virtual ~BaseView() {}
   void show(Space* space, double eps = EPS_LOW, int item = FN_VAL_0)
-     { info("BaseView: Hermes2D compiled without OpenGL support, skipping visualization."); }
+     { verbose("BaseView: Hermes2D compiled without OpenGL support, skipping visualization."); }
 };
 
 #endif

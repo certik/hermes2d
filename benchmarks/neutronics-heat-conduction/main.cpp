@@ -1,3 +1,7 @@
+#define HERMES2D_REPORT_WARN
+#define HERMES2D_REPORT_INFO
+#define HERMES2D_REPORT_VERBOSE
+#define HERMES2D_REPORT_FILE "application.log"
 #include "hermes2d.h"
 #include "solver_umfpack.h"
 #include "function.h"
@@ -39,24 +43,6 @@ const int INIT_BDY_REF_NUM = 0;        // Number of initial refinements towards 
 
 const double NEWTON_TOL = 1e-6;        // Stopping criterion for the Newton's method
 const int NEWTON_MAX_ITER = 100;       // Maximum allowed number of Newton iterations
-
-
-static char text[] = "\
-Click into the image window and:\n\
-  press 'm' to show element numbers,\n\
-  press 'b' to toggle boundary markers,\n\
-  enlarge your window and press 'c' to center the mesh,\n\
-  zoom into the mesh using the right mouse button\n\
-  and move the mesh around using the left mouse button\n\
-    -- in this way you can read the numbers of all elements,\n\
-  press 'c' to center the mesh again,\n\
-  press 'm' to hide element numbers,\n\
-  press 's' to save a screenshot in bmp format\n\
-    -- the bmp file can be converted to any standard\n\
-       image format using the command \"convert\",\n\
-  press 'q' to quit.\n\
-  Also see help - click into the image window and press F1.\n";
-
 
 /*********************************************************************************************************/
 /********** Problem parameters ***********/
@@ -394,12 +380,10 @@ int main(int argc, char* argv[])
   do {
     TIME += TAU;
 
-    std::cout<<"---- Time step "<<t_step++<<", t = "<<TIME<<" s ---------------------------\n";
-    info("\n---- Time step %d, t = %g s:\n", t_step++, TIME);
+    info("!---- Time step %d, t = %g s", t_step, TIME); t_step++;
 
     // Newton's method
     if (!nls.solve_newton_2(&T_prev_newton, &phi_prev_newton, NEWTON_TOL, NEWTON_MAX_ITER)) error("Newton's method did not converge.");
-
 
     // update previous time level solution
     T_prev_time.copy(&T_prev_newton);
@@ -432,14 +416,13 @@ int main(int argc, char* argv[])
     T_error = h1_error(&T_prev_time, &T_solution) * 100;
     phi_error = h1_error(&phi_prev_time, &phi_solution) * 100;
     error = std::max(T_error, phi_error);
-    std::cout<<"Exact solution error for T (H1 norm): "<<T_error<<" %"<<std::endl;
-    std::cout<<"Exact solution error for phi (H1 norm): "<<phi_error<<" %"<<std::endl;
-    std::cout<<"Exact solution error (maximum): "<<error<<" %"<<std::endl;
+    info("Exact solution error for T (H1 norm): %g %%", T_error);
+    info("Exact solution error for phi (H1 norm): %g %%", phi_error);
+    info("Exact solution error (maximum): %g %%", error);
   }
   while (t_step < TIME_MAX_ITER);
-  
-  //printf("%s", text);
-  // wait for keyboard or mouse input
+
+  // wait for all views to be closed
   View::wait();
 
   return 0;

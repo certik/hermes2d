@@ -72,11 +72,11 @@ class HERMES2D_API VectorView : public View
 public:
   VectorView(const char* title = "VectorView", DEFAULT_WINDOW_POS) {}
   void show(MeshFunction* vsln, double eps = EPS_NORMAL)
-     { info("VectorView: Hermes2D compiled without OpenGL support, skipping visualization."); }
+     { verbose("VectorView: Hermes2D compiled without OpenGL support, skipping visualization."); }
   void show(MeshFunction* xsln, MeshFunction* ysln, double eps = EPS_NORMAL)
-     { info("VectorView: Hermes2D compiled without OpenGL support, skipping visualization."); }
+     { verbose("VectorView: Hermes2D compiled without OpenGL support, skipping visualization."); }
   void show(MeshFunction* xsln, MeshFunction* ysln, double eps, int xitem, int yitem)
-     { info("VectorView: Hermes2D compiled without OpenGL support, skipping visualization."); }
+     { verbose("VectorView: Hermes2D compiled without OpenGL support, skipping visualization."); }
   void set_grid_type(bool hexa) {}
   void load_data(const char* filename) {}
   void save_data(const char* filename) {}

@@ -43,12 +43,12 @@ RefSystem::~RefSystem()
 
 void RefSystem::set_spaces(int n, ...)
 {
-  error("set_spaces must not be called in RefSystem.");
+  error("Method set_spaces must not be called in RefSystem.");
 }
 
 void RefSystem::set_pss(int n, ...)
 {
-  error("set_pss must not be called in RefSystem.");
+  error("Method set_pss must not be called in RefSystem.");
 }
 
 

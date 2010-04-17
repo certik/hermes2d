@@ -232,9 +232,9 @@ void Orderizer::load_data(const char* filename)
     error("Error reading %s", filename);
 
   if (hdr.magic[0] != 'H' || hdr.magic[1] != '2' || hdr.magic[2] != 'D' || hdr.magic[3] != 'O')
-    error("%s is not a Hermes2D Orderizer file.", filename);
+    error("File %s is not a Hermes2D Orderizer file.", filename);
   if (hdr.ver > 1)
-    error("%s -- unsupported file version.", filename);
+    error("File %s -- unsupported file version.", filename);
 
   #define read_array(array, type, n, c, what) \
     if (fread(&n, sizeof(int), 1, f) != 1) \

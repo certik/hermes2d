@@ -341,7 +341,7 @@ int main(int argc, char* argv[])
   int t_step = 1;
   for (int t_step = 1; t_step <= (int)(T_FINAL/TAU); t_step++) {
     TIME += TAU;
-    info("---- Time step %d, t = %g s:", t_step, TIME);
+    info("!---- Time step %d, t = %g s:", t_step, TIME);
     
     // periodic global derefinements
     if (t_step > 1 && t_step % UNREF_FREQ == 0) {
@@ -378,14 +378,14 @@ int main(int argc, char* argv[])
     double err_est;
     int a_step = 1;
     do {
-      info("---- Time step %d, adaptivity step %d, Newton solve on fine mesh:\n", t_step, a_step);
+      info("---- Time step %d, adaptivity step %d, Newton solve on fine mesh:", t_step, a_step);
 
       // time measurement
       cpu_time.tick(H2D_SKIP);
 
       if (NEWTON_ON_COARSE_MESH) {
         // Newton's loop on the coarse mesh
-        info("---- Time step %d, adaptivity step %d, Newton solve on new coarse mesh:\n", t_step, a_step);
+        info("---- Time step %d, adaptivity step %d, Newton solve on new coarse mesh:", t_step, a_step);
         if (!nls.solve_newton_2(&T_prev_newton, &phi_prev_newton, NEWTON_TOL_COARSE, NEWTON_MAX_ITER))
           error("Newton's method did not converge.");
       }
@@ -432,7 +432,6 @@ int main(int argc, char* argv[])
       err_est = hp.calc_error_2(&T_coarse, &phi_coarse, &T_fine, &phi_fine) * 100;
       // report error
       info("Error estimate: %g%%", err_est);
-      info("Exact error: %g%%", error);
 
       // if err_est too large, adapt the mesh
       if (err_est < ERR_STOP) done = true;
@@ -442,7 +441,7 @@ int main(int argc, char* argv[])
         if (ndofs >= NDOF_STOP) done = true;
       }
       // project the fine mesh solution on the new coarse mesh
-      info("---- Time step %d, adaptivity step %d, projecting fine mesh solution on new coarse mesh:\n", t_step, a_step);
+      info("---- Time step %d, adaptivity step %d, projecting fine mesh solution on new coarse mesh:", t_step, a_step);
       //nls.set_ic(&T_prev_newton, &phi_prev_newton, &T_fine, &phi_fine, PROJ_TYPE);
 
       // moving to new adaptivity step
@@ -481,13 +480,12 @@ int main(int argc, char* argv[])
     T_error = h1_error(&T_prev_time, &T_solution) * 100;
     phi_error = h1_error(&phi_prev_time, &phi_solution) * 100;
     error = std::max(T_error, phi_error);
-    std::cout<<"Exact solution error for T (H1 norm): "<<T_error<<" %"<<std::endl;
-    std::cout<<"Exact solution error for phi (H1 norm): "<<phi_error<<" %"<<std::endl;
-    std::cout<<"Exact solution error (maximum): "<<error<<" %"<<std::endl;
+    info("Exact solution error for T (H1 norm): %g %%", T_error);
+    info("Exact solution error for phi (H1 norm): %g %%", phi_error);
+    info("Exact solution error (maximum): %g %%", error);
   }
 
-  //printf("%s", text);
-  // wait for keyboard or mouse input
+  // wait for all views to be closed
   View::wait();
 
   return 0;

@@ -335,9 +335,9 @@ void Solution::set_fe_solution(Space* space, PrecalcShapeset* pss, scalar* vec, 
 
   // some sanity checks
   if (!space->is_up_to_date())
-    error("'space' is not up to date.");
+    error("Provided 'space' is not up to date.");
   if (space->get_shapeset() != pss->get_shapeset())
-    error("'space' and 'pss' must have the same shapesets.");
+    error("Provided 'space' and 'pss' must have the same shapesets.");
 
   space_type = space->get_type();
 
@@ -935,10 +935,10 @@ void Solution::save(const char* filename, bool compress)
   if (compress)
   {
     fclose(f);
-    char cmdline[270];
-    sprintf(cmdline, "gzip > %s.gz", filename);
-    f = popen(cmdline, "w");
-    if (f == NULL) error("Could not create compressed stream (command line: %s).", cmdline);
+    std::stringstream cmdline;
+    cmdline << "gzip > " << filename << ".gz";
+    f = popen(cmdline.str().c_str(), "w");
+    if (f == NULL) error("Could not create compressed stream (command line: %s).", cmdline.str().c_str());
   }
 
   // write header
@@ -987,10 +987,10 @@ void Solution::load(const char* filename)
   if (compressed)
   {
     fclose(f);
-    char cmdline[270];
-    sprintf(cmdline, "gunzip < %s", filename);
-    f = popen(cmdline, "r");
-    if (f == NULL) error("Could not read from compressed stream (command line: %s).", cmdline);
+    std::stringstream cmdline;
+    cmdline << "gunzip < " << filename << ".gz";
+    f = popen(cmdline.str().c_str(), "r");
+    if (f == NULL) error("Could not read from compressed stream (command line: %s).", cmdline.str().c_str());
   }
 
   // load header

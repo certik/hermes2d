@@ -211,7 +211,7 @@ protected:
     int bdof, n;
   };
 
-public: //DEBUG
+public:
   NodeData* ndata;    ///< node data table
   int nsize, ndata_allocated; ///< number of items in ndata, allocated space
   ElementData* edata; ///< element data table

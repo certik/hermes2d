@@ -73,7 +73,7 @@ H1AdaptHP::~H1AdaptHP()
 }
 
 void H1AdaptHP::init_instance(int num, Space** spaces) {
-  assert_msg(num < H2D_MAX_NUM_EQUATIONS, "E to many spaces (%d), only %d supported", num, H2D_MAX_NUM_EQUATIONS);
+  assert_msg(num < H2D_MAX_NUM_EQUATIONS, "Too many spaces (%d), only %d supported", num, H2D_MAX_NUM_EQUATIONS);
 
   this->num = num;
   for (int i = 0; i < num; i++)
@@ -211,17 +211,17 @@ bool H1AdaptHP::adapt(double thr, int strat, RefinementSelectors::Selector* refi
     }
   }
 
-  verbose("examined elements: %d", num_exam_elem);
-  verbose(" elements taken from priority queue: %d", num_priority_elem);
-  verbose(" ignored elements: %d", num_ignored_elem);
-  verbose(" not changed elements: %d", num_not_changed);
-  verbose(" elements to process: %d", elem_inx_to_proc.size());
+  verbose("Examined elements: %d", num_exam_elem);
+  verbose(" Elements taken from priority queue: %d", num_priority_elem);
+  verbose(" Ignored elements: %d", num_ignored_elem);
+  verbose(" Not changed elements: %d", num_not_changed);
+  verbose(" Elements to process: %d", elem_inx_to_proc.size());
   bool done = false;
   if (num_exam_elem == 0)
     done = true;
   else if (elem_inx_to_proc.empty())
   {
-    warn("none of the elements selected for refinement could be refined. Adaptivity step not successful, returning 'true'.\n");
+    warn("None of the elements selected for refinement could be refined. Adaptivity step not successful, returning 'true'.");
     done = true;
   }
 
@@ -271,7 +271,7 @@ bool H1AdaptHP::adapt(double thr, int strat, RefinementSelectors::Selector* refi
     rsln[j]->enable_transform(true);
 
 
-  verbose("refined element: %d", elem_inx_to_proc.size());
+  verbose("Refined elements: %d", elem_inx_to_proc.size());
   have_errors = false;
   if (strat == 2 && done == true) have_errors = true; // space without changes
 
