@@ -69,7 +69,7 @@ const double TAU = 0.1;              // Size of the time step
 const int P_INIT = 1;       	        // Initial polynomial degree of all mesh elements.
 const int REF_INIT = 1;     	        // Number of initial refinements
 const bool MULTIMESH = false;	        // Multimesh?
-const int TIME_DISCR = 1;             // 1 for implicit Euler, 2 for Crank-Nicolson, 3 for explicit Euler
+const int TIME_DISCR = 1;             // 1 for implicit Euler, 2 for Crank-Nicolson
 const int VOLT_BOUNDARY = 1;            // 1 for Dirichlet, 2 for Neumann
 
 /* Nonadaptive solution parameters */
@@ -417,22 +417,14 @@ int main (int argc, char* argv[]) {
     wf.add_biform(0, 1, callback(J_euler_DFcDYphi), UNSYM, ANY, 1, &C_prev_newton);
     wf.add_biform(1, 0, callback(J_euler_DFphiDYc), UNSYM);
     wf.add_biform(1, 1, callback(J_euler_DFphiDYphi), UNSYM);
-  } else if (TIME_DISCR == 3) { //explicit euler
-    wf.add_liform(0, callback(Fc_euler_explicit), ANY, 3,
-        &C_prev_time, &C_prev_newton, &phi_prev_newton);
-    wf.add_liform(1, callback(Fphi_euler), ANY, 2, &C_prev_time, &phi_prev_newton);
-    wf.add_biform(0, 0, callback(J_euler_DFcDYc), UNSYM, ANY, 1, &phi_prev_newton);
-    wf.add_biform(0, 1, callback(J_euler_DFcDYphi), UNSYM, ANY, 1, &C_prev_newton);
-    wf.add_biform(1, 0, callback(J_euler_DFphiDYc), UNSYM);
-    wf.add_biform(1, 1, callback(J_euler_DFphiDYphi), UNSYM);
   } else {
     wf.add_liform(0, callback(Fc_cranic), ANY, 4,
         &C_prev_time, &C_prev_newton, &phi_prev_newton, &phi_prev_time);
-    wf.add_liform(1, callback(Fphi_euler), ANY, 2, &C_prev_newton, &phi_prev_newton);
-    wf.add_biform(0, 0, callback(J_cranic_DFcDYc), UNSYM, ANY, 2, &phi_prev_newton, &phi_prev_newton);
-    wf.add_biform(0, 1, callback(J_euler_DFcDYphi), UNSYM, ANY, 1, &C_prev_newton);
-    wf.add_biform(1, 0, callback(J_euler_DFphiDYc), UNSYM);
-    wf.add_biform(1, 1, callback(J_euler_DFphiDYphi), UNSYM);
+    wf.add_liform(1, callback(Fphi_cranic), ANY, 2, &C_prev_newton, &phi_prev_newton);
+    wf.add_biform(0, 0, callback(J_cranic_DFcDYc), UNSYM, ANY, 2, &phi_prev_newton, &phi_prev_time);
+    wf.add_biform(0, 1, callback(J_cranic_DFcDYphi), UNSYM, ANY, 2, &C_prev_newton, &C_prev_time);
+    wf.add_biform(1, 0, callback(J_cranic_DFphiDYc), UNSYM);
+    wf.add_biform(1, 1, callback(J_cranic_DFphiDYphi), UNSYM);
     
   }
   // Neumann voltage boundary
