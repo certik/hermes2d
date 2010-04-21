@@ -13,7 +13,7 @@ vcodec=msmpeg4v2
 To use eclipse as debugger, go to the root folder of the project and:
 mkdir eclipse_build
 cd eclipse_build
-cmake -GEclipse CDT4 - Unix Makefiles -D CMAKE_BUILD_TYPE=Debug ../
+cmake -G"Eclipse CDT4 - Unix Makefiles" -D CMAKE_BUILD_TYPE=Debug ../
 
 And in eclipse:
 Import project using Menu File->Import

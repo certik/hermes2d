@@ -47,63 +47,63 @@
 const double D = 10e-11; 	            // [m^2/s] Diffusion coefficient
 const double R = 8.31; 		            // [J/mol*K] Gas constant
 const double T = 293; 		            // [K] Aboslute temperature
-const double F = 96485.3415;	            // [s * A / mol] Faraday constant
-const double eps = 2.5e-2; 	            // [F/m] Electric permeability
-const double mu = D / (R * T);              // Mobility of ions
-const double z = 1;		            // Charge number
-const double K = z * mu * F;                // Constant for equation
-const double L =  F / eps;	            // Constant for equation
+const double F = 96485.3415;	        // [s * A / mol] Faraday constant
+const double eps = 2.5e-2; 	          // [F/m] Electric permeability
+const double mu = D / (R * T);        // Mobility of ions
+const double z = 1;		                // Charge number
+const double K = z * mu * F;          // Constant for equation
+const double L =  F / eps;	          // Constant for equation
 const double VOLTAGE = 1;	            // [V] Applied voltage
-const scalar C0 = 1200;	            // [mol/m^3] Anion and counterion concentration
+const scalar C0 = 1200;	              // [mol/m^3] Anion and counterion concentration
 
 /* For Neumann boundary */
-const double height = 180e-6;	            // [m] thickness of the domain
+const double height = 180e-6;	              // [m] thickness of the domain
 const double E_FIELD = VOLTAGE / height;    // Boundary condtion for positive voltage electrode
 
 
 /* Simulation parameters */
-const int PROJ_TYPE = 1;                 // For the projection of the initial condition 
-                                         // on the initial mesh: 1 = H1 projection, 0 = L2 projection
-const int NSTEP = 50;                // Number of time steps
-const double TAU = 0.1;              // Size of the time step
-const int P_INIT = 1;       	        // Initial polynomial degree of all mesh elements.
+const int PROJ_TYPE = 1;              // For the projection of the initial condition 
+                                      // on the initial mesh: 1 = H1 projection, 0 = L2 projection
+const int NSTEP = 50;                 // Number of time steps
+const double TAU = 0.1;               // Size of the time step
+const int P_INIT = 3;       	        // Initial polynomial degree of all mesh elements.
 const int REF_INIT = 1;     	        // Number of initial refinements
 const bool MULTIMESH = false;	        // Multimesh?
-const int TIME_DISCR = 1;             // 1 for implicit Euler, 2 for Crank-Nicolson
-const int VOLT_BOUNDARY = 1;            // 1 for Dirichlet, 2 for Neumann
+const int TIME_DISCR = 2;             // 1 for implicit Euler, 2 for Crank-Nicolson
+const int VOLT_BOUNDARY = 1;          // 1 for Dirichlet, 2 for Neumann
 
 /* Nonadaptive solution parameters */
-const double NEWTON_TOL = 1e-8;         // Stopping criterion for nonadaptive solution
+const double NEWTON_TOL = 1e-6;       // Stopping criterion for nonadaptive solution
 
 /* Adaptive solution parameters */
-const double NEWTON_TOL_COARSE = 0.01;     // Stopping criterion for Newton on coarse mesh
-const double NEWTON_TOL_FINE = 0.05;       // Stopping criterion for Newton on fine mesh
-const int NEWTON_MAX_ITER = 20;            // Maximum allowed number of Newton iterations
+const double NEWTON_TOL_COARSE = 0.01;// Stopping criterion for Newton on coarse mesh
+const double NEWTON_TOL_FINE = 0.05;  // Stopping criterion for Newton on fine mesh
+const int NEWTON_MAX_ITER = 20;       // Maximum allowed number of Newton iterations
 const bool NEWTON_ON_COARSE_MESH = false;  // true... Newton is done on coarse mesh in every adaptivity step
-                                           // false...Newton is done on coarse mesh only once, then projection 
-                                           // of the fine mesh solution to coarse mesh is used
+                                      // false...Newton is done on coarse mesh only once, then projection 
+                                      // of the fine mesh solution to coarse mesh is used
 
-const int UNREF_FREQ = 5;               // every UNREF_FREQth time step the mesh
-                                        // is unrefined
-const double THRESHOLD = 0.3;           // This is a quantitative parameter of the adapt(...) function and
-                                        // it has different meanings for various adaptive strategies (see below).
-const int STRATEGY = 0;                 // Adaptive strategy:
-                                        // STRATEGY = 0 ... refine elements until sqrt(THRESHOLD) times total
-                                        //   error is processed. If more elements have similar errors, refine
-                                        //   all to keep the mesh symmetric.
-                                        // STRATEGY = 1 ... refine all elements whose error is larger
-                                        //   than THRESHOLD times maximum element error.
-                                        // STRATEGY = 2 ... refine all elements whose error is larger
-                                        //   than THRESHOLD.
-                                        // More adaptive strategies can be created in adapt_ortho_h1.cpp.
-const int ADAPT_TYPE = 0;               // Type of automatic adaptivity:
-                                        // ADAPT_TYPE = 0 ... adaptive hp-FEM (default),
-                                        // ADAPT_TYPE = 1 ... adaptive h-FEM,
-                                        // ADAPT_TYPE = 2 ... adaptive p-FEM.
+const int UNREF_FREQ = 5;             // every UNREF_FREQth time step the mesh
+                                      // is unrefined
+const double THRESHOLD = 0.3;         // This is a quantitative parameter of the adapt(...) function and
+                                      // it has different meanings for various adaptive strategies (see below).
+const int STRATEGY = 0;               // Adaptive strategy:
+                                      // STRATEGY = 0 ... refine elements until sqrt(THRESHOLD) times total
+                                      //   error is processed. If more elements have similar errors, refine
+                                      //   all to keep the mesh symmetric.
+                                      // STRATEGY = 1 ... refine all elements whose error is larger
+                                      //   than THRESHOLD times maximum element error.
+                                      // STRATEGY = 2 ... refine all elements whose error is larger
+                                      //   than THRESHOLD.
+                                      // More adaptive strategies can be created in adapt_ortho_h1.cpp.
+const int ADAPT_TYPE = 0;             // Type of automatic adaptivity:
+                                      // ADAPT_TYPE = 0 ... adaptive hp-FEM (default),
+                                      // ADAPT_TYPE = 1 ... adaptive h-FEM,
+                                      // ADAPT_TYPE = 2 ... adaptive p-FEM.
 
-const int NDOF_STOP = 5000;		          // To prevent adaptivity from going on forever.
-const double ERR_STOP = 0.1;            // Stopping criterion for adaptivity (rel. error tolerance between the
-                                        // fine mesh and coarse mesh solution in percent).
+const int NDOF_STOP = 5000;		        // To prevent adaptivity from going on forever.
+const double ERR_STOP = 0.1;          // Stopping criterion for adaptivity (rel. error tolerance between the
+                                      // fine mesh and coarse mesh solution in percent).
 
 // Program parameters
 const std::string USE_ADAPTIVE("adapt");
@@ -155,7 +155,7 @@ void solveNonadaptive(Mesh &mesh, NonlinSystem &nls,
   ScalarView Cview("Concentration [mol/m3]", 0, 0, 800, 800);
   ScalarView phiview("Voltage [V]", 650, 0, 600, 600);
   phiview.show(&phi_prev_time);
-  phiview.wait_for_keypress();
+  Cview.show(&C_prev_time);
   char title[100];
 
   for (int n = 1; n <= NSTEP; n++) {
@@ -339,7 +339,7 @@ void solveAdaptive(Mesh &Cmesh, Mesh &phimesh, Mesh &basemesh, NonlinSystem &nls
     if (n == 1) {
       // Wait for key press, so one can go to 3D mode
       // which is way more informative in case of Nernst Planck
-      Cview.wait_for_keypress();
+      View:wait();
     }
     phi_prev_time.copy(&phisln_fine);
     C_prev_time.copy(&Csln_fine);
@@ -368,6 +368,8 @@ int main (int argc, char* argv[]) {
 
   H2DReader mloader;
   mloader.load("small.mesh", &basemesh);
+  
+  // When nonadaptive solution, refine the mesh
   basemesh.refine_towards_boundary(TOP_MARKER,
       adaptive ? REF_INIT : REF_INIT * 25);
   basemesh.refine_towards_boundary(BOT_MARKER,
