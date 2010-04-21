@@ -64,10 +64,11 @@ cdef extern from "hermes2d.h":
     int c_EPS_HIGH "EPS_HIGH"
     int c_verbose_mode "__h2d_report_verbose"
     int c_info_mode "__h2d_report_info"
-    int c_warn_integration "__h2d_report_warn"
+    int c_warn_integration "__h2d_report_warn_intr"
 
     ctypedef double double4[4]
     ctypedef double double3[3]
+    ctypedef double double2[2]
     ctypedef int int3[3]
     ctypedef int int2[2]
 
@@ -381,6 +382,9 @@ cdef extern from "hermes2d.h":
     #    pass
         #void show(c_DiscreteProblem *ep)
     #c_MatrixView *new_MatrixView "new MatrixView" (char *title, ...)
+
+    double2 *transform(c_Element *e)
+    void element_polygonal_boundary(c_Element *e, double2 **tp, int *n)
 
 cdef extern from "dummy_solver.h":
 

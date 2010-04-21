@@ -21,6 +21,8 @@ enum TimerPeriodTickType { ///< Tick type.
   H2D_SKIP ///< Skip period between ticks, i.e., do not accumulate it.
 };
 
+
+
 //TODO: Measure time that CPU spent on the task instead of a global time.
 /// \brief A named time period measurement with accumulation.
 /// An instance of the timer should not be used across threads. Timer is not thread-safe.
@@ -40,16 +42,19 @@ public:
   std::string last_str() const { return to_string(last_period); }; ///< Returns last measured period in human readable form.
 
 private:
+#ifdef WIN32 //Windows
+  typedef uint64_t SysTime;
+  double frequency; ///< Frequency of the performance timer. If zero, no hi-res timer is supported. (Win32 only)
+#else //Linux
+  typedef timespec SysTime;
+#endif
   const std::string period_name; ///< Name of the timer (can be empty)
   double last_period; ///< Time of the last measured period.
-  uint64_t last_time; ///< Time when the timer was started/resumed (in platform-dependent units).
+  SysTime last_time; ///< Time when the timer was started/resumed (in platform-dependent units).
   double accum; ///< Time accumulator (in seconds).
-#ifdef WIN32
-  double frequency; ///< Frequency of the performance timer. If zero, no hi-res timer is supported. (Win32 only)
-#endif
 
-  uint64_t get_time() const; ///< Returns current time (in platform-dependent units).
-  double to_seconds(const uint64_t& period) const; ///< Coverts time from platform-dependent units to seconds.
+  SysTime get_time() const; ///< Returns current time (in platform-dependent units).
+  double period_in_seconds(const SysTime& begin, const SysTime& end) const; ///< Calculates distance between times (in platform specific units) and returns it in seconds.
   std::string to_string(const double time) const; ///< Converts time from seconds to human readable form.
 
   friend HERMES2D_API std::ofstream& operator<<(std::ofstream& stream, const TimePeriod& period);

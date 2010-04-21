@@ -11,6 +11,7 @@ set(SRC
        shapeset_hd_legendre.cpp
        shapeset_l2_legendre.cpp
        qsort.cpp norm.cpp
+       trans.cpp
 
        refinement_type.cpp element_to_refine.cpp
        ref_selectors/selector.cpp ref_selectors/optimum_selector.cpp ref_selectors/proj_based_selector.cpp ref_selectors/h1_uniform_hp.cpp ref_selectors/h1_nonuniform_hp.cpp
@@ -89,9 +90,12 @@ endif(NOT REPORT_TO_FILE)
 if(REPORT_RUNTIME_CONTROL)
 	set(REPORT_FLAGS "${REPORT_FLAGS} -DHERMES2D_REPORT_RUNTIME_CONTROL")
 endif(REPORT_RUNTIME_CONTROL)
-if(REPORT_WARNINGS)
+if(REPORT_WARNING)
 	set(REPORT_FLAGS "${REPORT_FLAGS} -DHERMES2D_REPORT_WARNING")
-endif(REPORT_WARNINGS)
+endif(REPORT_WARNING)
+if(REPORT_INTR_WARNING)
+	set(REPORT_FLAGS "${REPORT_FLAGS} -DHERMES2D_REPORT_INTR_WARNING")
+endif(REPORT_INTR_WARNING)
 if(REPORT_INFO)
 	set(REPORT_FLAGS "${REPORT_FLAGS} -DHERMES2D_REPORT_INFO")
 endif(REPORT_INFO)

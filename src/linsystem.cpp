@@ -1070,7 +1070,8 @@ HERMES2D_API void warn_order()
 {
   if (!warned_order)
   {
-    warn("Not enough integration rules for exact integration.");
+    warn_intr("Not enough integration rules for exact integration.");
     warned_order = true;
   }
 }
+

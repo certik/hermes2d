@@ -148,11 +148,11 @@ while(not done):
     # View the solution -- this can be slow; for illustration only
     stress_coarse = VonMisesFilter(x_sln_coarse, y_sln_coarse, mu, lamda)
     #sview.set_min_max_range(0, 3e4)
-    sview.show(stress_coarse, lib='mayavi')
-    #xoview.show(xdisp, lib='mayavi')
-    #yoview.show(ydisp, lib='mayavi')
-    xomview.show(xmesh, space=xdisp, lib="mpl", method="orders", notebook=False)
-    yomview.show(ymesh, space=ydisp, lib="mpl", method="orders", notebook=False)
+    sview.show(stress_coarse)
+    #xoview.show(xdisp)
+    #yoview.show(ydisp)
+    xomview.show(xmesh, space=xdisp)
+    yomview.show(ymesh, space=ydisp)
 
     # Solve the fine mesh problem
     rs = RefSystem(ls)
@@ -180,4 +180,4 @@ while(not done):
 
 # Show the fine solution - this is the final result
 stress_fine = VonMisesFilter(x_sln_fine, y_sln_fine, mu, lamda)
-sview.show(stress_fine, lib='mayavi')
+sview.show(stress_fine)

@@ -1,4 +1,6 @@
-#define HERMES2D_REPORT_ALL
+#define HERMES2D_REPORT_WARN
+#define HERMES2D_REPORT_INFO
+#define HERMES2D_REPORT_VERBOSE
 #define HERMES2D_REPORT_FILE "application.log"
 #include "hermes2d.h"
 #include "solver_umfpack.h"

@@ -126,11 +126,11 @@ while(not done):
     ls.solve_system(sln_coarse)
 
     # View the solution
-    sview.show(sln_coarse, lib='mayavi')
+    sview.show(sln_coarse)
 
     # View the mesh
     mview = MeshView("Example 7", 100, 100, 500, 500)
-    mview.show(mesh, lib="mpl", method="orders", notebook=False)
+    mview.show(mesh, space=space)
 
     # Solve the fine mesh problem
     rs = RefSystem(ls)
@@ -155,5 +155,5 @@ while(not done):
 print ("Total running time: %d sec" % cpu)
 
 # Show the fine solution - this is the final result
-sview.show(sln_fine, lib="mayavi")
+sview.show(sln_fine)
 gview.show(sln_fine, sln_fine, EPS_HIGH)

@@ -21,6 +21,7 @@ add_subdirectory(l2)
 add_subdirectory(ns-timedep-adapt)
 add_subdirectory(neutronics-4-group)
 add_subdirectory(singular-perturbation)
+add_subdirectory(heat-and-moisture)
 
 
 if(WITH_TRILINOS)

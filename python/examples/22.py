@@ -80,9 +80,9 @@ while 1:
     sys.solve_system(sln)
     dofs = sys.get_matrix().shape[0]
     if interactive_plotting:
-        view.show(sln, lib="mayavi", filename="a%02d.png" % iter)
+        view.show(sln, filename="a%02d.png" % iter)
         if show_mesh:
-            mview.show(mesh, lib="mpl", method="orders", filename="b%02d.png" % iter)
+            mview.show(mesh, space=space, filename="b%02d.png" % iter)
 
     rsys = RefSystem(sys)
     rsys.assemble()
@@ -99,10 +99,10 @@ while 1:
     iter += 1
 
 if not interactive_plotting:
-    view.show(sln, lib="mayavi")
+    view.show(sln)
     if show_mesh:
         mview = MeshView("Mesh")
-        mview.show(mesh, lib="mpl", method="orders")
+        mview.show(mesh, space=space)
         mview.wait()
 
 if show_graph:

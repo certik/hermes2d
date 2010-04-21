@@ -64,8 +64,7 @@ ls.assemble()
 ls.solve_system(sln)
 
 # View the solution
-sview.show(sln, lib="mayavi")
+sview.show(sln)
 
 # View the mesh
-mview = MeshView("Hello world!", 100, 100, 500, 500)
-mview.show(mesh, space=space, lib="mpl", method="orders", notebook=False)
+mesh.plot(space=space)

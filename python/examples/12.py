@@ -101,8 +101,8 @@ while (not done):
     ls.solve_system(sln_coarse)
 
     # View the solution and mesh
-    sview.show(sln_coarse, lib='mayavi');
-    mview.show(mesh, space=space, lib="mpl", method="orders", notebook=False)
+    sview.show(sln_coarse);
+    mview.show(mesh, space=space)
 
     # Solve the fine mesh problem
     rs = RefSystem(ls)
@@ -124,4 +124,4 @@ while (not done):
         if (ndofs >= NDOF_STOP):
             done = True
 
-sview.show(sln_fine, lib='mayavi')
+sview.show(sln_fine)

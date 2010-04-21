@@ -278,7 +278,7 @@ public:
 };
 
 // new way of enumerating degrees of freedom
-int assign_dofs(int n, ...);  // assigns dofs in multiple spaces 
-int assign_dofs(Space *s);    // assigns dofs to one space
+extern HERMES2D_API int assign_dofs(int n, ...);  // assigns dofs in multiple spaces
+extern HERMES2D_API int assign_dofs(Space *s);    // assigns dofs to one space
 
 #endif

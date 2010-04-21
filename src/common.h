@@ -185,6 +185,7 @@ extern HERMES2D_API bool __h2d_log_message_if(bool cond, const __h2d_log_info& i
 /* reporting macros */
 #ifdef HERMES2D_REPORT_ALL
 # define HERMES2D_REPORT_WARNING
+# undef HERMED2D_REPORT_NO_INTR_WARNING
 # define HERMES2D_REPORT_INFO
 # define HERMES2D_REPORT_VERBOSE
 # define HERMES2D_REPORT_TRACE
@@ -193,6 +194,7 @@ extern HERMES2D_API bool __h2d_log_message_if(bool cond, const __h2d_log_info& i
 #ifdef HERMES2D_REPORT_RUNTIME_CONTROL
 # define H2D_RCTR(__var) __var /* reports will be controled also by runtime report control variables */
 extern HERMES2D_API bool __h2d_report_warn;
+extern HERMES2D_API bool __h2d_report_warn_intr;
 extern HERMES2D_API bool __h2d_report_info;
 extern HERMES2D_API bool __h2d_report_verbose;
 extern HERMES2D_API bool __h2d_report_trace;
@@ -208,6 +210,11 @@ extern HERMES2D_API bool __h2d_report_debug;
 #else
 # define warn(...)
 # define warn_if(__cond, ...)
+#endif
+#if defined(HERMES2D_REPORT_INTR_WARNING) || defined(HERMES2D_REPORT_RUNTIME_CONTROL)
+# define warn_intr(...) __h2d_log_message_if(H2D_RCTR(__h2d_report_warn_intr), __LOG_INFO(H2D_EC_WARNING), __VA_ARGS__)
+#else
+# define warn_intr(...)
 #endif
 #if defined(HERMES2D_REPORT_INFO) || defined(HERMES2D_REPORT_RUNTIME_CONTROL)
 # define info(...) __h2d_log_message_if(true  && H2D_RCTR(__h2d_report_info), __LOG_INFO(H2D_EC_INFO), __VA_ARGS__)
