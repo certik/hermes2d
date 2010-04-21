@@ -10,13 +10,3 @@ mencoder "mf://velocity*.bmp" -mf fps=20 -o velocity.avi -ovc lavc -lavcopts vco
 To make sure that widnows can show it, use 
 vcodec=msmpeg4v2
 
-To use eclipse as debugger, go to the root folder of the project and:
-mkdir eclipse_build
-cd eclipse_build
-cmake -G"Eclipse CDT4 - Unix Makefiles" -D CMAKE_BUILD_TYPE=Debug ../
-
-And in eclipse:
-Import project using Menu File->Import
-Select General->Existing projects into workspace:
-Browse where your build tree is and select the root build tree directory. Keep "Copy projects into workspace" unchecked.
-
