@@ -34,22 +34,30 @@ class Ord
 {
 public:
 
-	Ord() { order = 0; }
-	Ord(int o) { order = o; }
+  Ord(): order(0) {}
+  explicit Ord(int o): order(o) {}
+  Ord(double d): order(0) {}
 
 	int get_order() const { return order; }
   int get_max_order() const {return 30;}
 
 	Ord operator+(const Ord &o) { return Ord(std::max(this->order, o.order)); }
+	Ord operator+(double d) { return *this; }
 	Ord operator-(const Ord &o) { return Ord(std::max(this->order, o.order)); }
 	Ord operator-(double d) { return *this; }
 	Ord operator*(const Ord &o) { return Ord(this->order + o.order); }
+	Ord operator*(double d) { return *this; }
   Ord operator/(const Ord &o) { return Ord(this->get_max_order()); }
-
 	Ord operator/(double d) { return *this; }
 
 	Ord operator+=(const Ord &o) { this->order = std::max(this->order, o.order); return *this; }
-	bool operator<(double d) { return true; }
+
+  Ord operator+=(const double &d) { return *this; }
+	Ord operator-=(const double &d) { return *this; }
+	Ord operator*=(const double &d) { return *this; }
+	Ord operator/=(const double &d) { return *this; }
+
+  bool operator<(double d) { return true; }
 
 protected:
 	int order;
