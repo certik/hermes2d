@@ -254,6 +254,30 @@ Nernst-Planck
 
 **Git reference:** Example `newton-np-timedep-adapt-system <http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/examples/newton-np-timedep-adapt-system>`_.
 
+**Equation reference:** The first version of the following derivation was published in:
+*IPMC: recent progress in modeling, manufacturing, and new applications 
+D. Pugal, S. J. Kim, K. J. Kim, and K. K. Leang 
+Proc. SPIE 7642, (2010)*.
+The following Bibtex entry can be used for the reference:
+
+::
+
+	@conference{pugal:76420U,
+		author = {D. Pugal and S. J. Kim and K. J. Kim and K. K. Leang},
+		editor = {Yoseph Bar-Cohen},
+		title = {IPMC: recent progress in modeling, manufacturing, and new applications},
+		publisher = {SPIE},
+		year = {2010},
+		journal = {Electroactive Polymer Actuators and Devices (EAPAD) 2010},
+		volume = {7642},
+		number = {1},
+		numpages = {10},
+		pages = {76420U},
+		location = {San Diego, CA, USA},
+		url = {http://link.aip.org/link/?PSI/7642/76420U/1},
+		doi = {10.1117/12.848281}
+	}
+
 The example is concerned with the finite element solution 
 of the Poisson and Nernst-Planck equation system. The Nernst-Planck
 equation is often used to describe the diffusion, convection,
@@ -320,6 +344,10 @@ drift:
 	:height: 290
 	:alt: Bent IPMC
 
+Images reference: 
+*IPMC: recent progress in modeling, manufacturing, and new applications 
+D. Pugal, S. J. Kim, K. J. Kim, and K. K. Leang 
+Proc. SPIE 7642, (2010)*
 This eventually results in actuation (mostly bending) of the material (not considered in this section).
 
 To solve equations :eq:`nernstplanck` and :eq:`poisson` boundary conditions must be specified as well.
@@ -342,7 +370,7 @@ boundary conditions:
 
 For Poisson equation:
 
- #. (positive voltage): Dirichlet boundary $\phi = 1V$.
+ #. (positive voltage): Dirichlet boundary $\phi = 1V$. For some cases it might be necessary to use electric field strength as the boundary condtition. Then the Neumann boundary $\frac{\partial \phi}{\partial n} = E_{field}$ can be used.
  #. (ground): Dirichlet boundary $\phi = 0$.
  #. (insulation): Neumann boundary $\frac{\partial \phi}{\partial n} = 0$.
 
@@ -433,7 +461,19 @@ After expanding the Laplace' terms, the equation becomes:
 	:label: poissonweak2
 
 		\int_{\Omega}\nabla\phi\cdot\nabla u d\mathbf{x}-\int_{\Omega}LCu d\mathbf{x}+
-		\int_{\Omega}LC_{0}u d\mathbf{x}=0,
+		\int_{\Omega}LC_{0}u d\mathbf{x}=0.
+
+Notice, when electric field strength is used as a boundary condition, then the contribution of
+the corresponding surface integral must be added:
+
+.. math::
+	:label: poissonweak3
+
+		\int_{\Omega}\nabla\phi\cdot\nabla u d\mathbf{x}-\int_{\Omega}LCu d\mathbf{x}+
+		\int_{\Omega}LC_{0}u d\mathbf{x}+\int_{\Gamma}\frac{\partial \phi}{\partial n}u d\mathbf{S}=0.
+
+However, for the most cases we use only Poisson boundary conditions to set the voltage. Therefore the last
+term of :eq:`poissonweak3` is omitted and :eq:`poissonweak2` is used instead in the following sections.
 
 Jacobian matrix
 ^^^^^^^^^^^^^^^
@@ -513,60 +553,56 @@ Taking the derivatives of $F^{\phi}_i$ with respect to $y_j^C$ and $y_j^{\phi}$,
 
 In Hermes, equations :eq:`Fic` and :eq:`Fiphi` are used to define the residuum $F$, and
 equations :eq:`bilin1` - :eq:`bilin4` to define the Jacobian matrix $J$.
+It must be noted that in addition to the implicit Euler iteration Crank-Nicolson iteration is implemented 
+in the code (see the next section for the references of the source files).
 
 Simulation
 ^^^^^^^^^^
 
-To begin with simulations in Hermes2D, the equations :eq:`Fic` - :eq:`bilin4` must be implemented.
-It is done by implementing the callback functions found in  `newton-np-timedep-adapt-system/forms.cpp <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/examples/newton-np-timedep-adapt-system/forms.cpp>`_.
+To begin with simulations in Hermes2D, the equations :eq:`Fic` - :eq:`bilin4` were be implemented.
+It was done by implementing the callback functions found in  `newton-np-timedep-adapt-system/forms.cpp <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/examples/newton-np-timedep-adapt-system/forms.cpp>`_.
 
 .. highlight:: c
 
 The functions along with the boundary conditions::
 
-
 	// Poisson takes Dirichlet and Neumann boundaries
 	int phi_bc_types(int marker) {
-		return (marker == SIDE_MARKER || marker == TOP_MARKER)
-			? BC_NATURAL : BC_ESSENTIAL;
+		  return (marker == SIDE_MARKER || (marker == TOP_MARKER && VOLT_BOUNDARY == 2))
+		      ? BC_NATURAL : BC_ESSENTIAL;
 	}
-	
-	//Nernst-Planck takes Neumann boundaries
+
+	// Nernst-Planck takes Neumann boundaries
 	int C_bc_types(int marker) {
-		return BC_NATURAL;
+		  return BC_NATURAL;
 	}
-	
-	//Dirichlet boundary conditions for Poisson equation
+
+	// Diricleht Boundary conditions for Poisson equation.
 	scalar phi_bc_values(int marker, double x, double y) {
-		return 0.0;
+		  return marker == TOP_MARKER ? VOLTAGE : 0.0;
 	}
-
-	//Neumann boundary of Poisson equation as linear sufrace integral
-	Scalar linear_form_surf_top(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext) {
-		return -E_FIELD * int_v<Real, Scalar>(n, wt, v);
-	}
-
 
 are assembled as follows::
-
+	
 	WeakForm wf(2);
-	Solution Cp, Ci, phip, phii;
-	wf.add_biform(0, 0, callback(J_euler_DFcDYc), UNSYM, ANY, 1, &phii);
-	wf.add_biform(1, 1, callback(J_euler_DFphiDYphi), UNSYM);
-	wf.add_biform(0, 1, callback(J_euler_DFcDYphi), UNSYM, ANY, 1, &Ci);
+	Solution C_prev_time, C_prev_newton, phi_prev_time, phi_prev_newton;
+	wf.add_liform(0, callback(Fc_euler), ANY, 3,
+		&C_prev_time, &C_prev_newton, &phi_prev_newton);
+	wf.add_liform(1, callback(Fphi_euler), ANY, 2, &C_prev_newton, &phi_prev_newton);
+	wf.add_biform(0, 0, callback(J_euler_DFcDYc), UNSYM, ANY, 1, &phi_prev_newton);
+	wf.add_biform(0, 1, callback(J_euler_DFcDYphi), UNSYM, ANY, 1, &C_prev_newton);
 	wf.add_biform(1, 0, callback(J_euler_DFphiDYc), UNSYM);
-	wf.add_liform(0, callback(Fc_euler), ANY, 3, &Cp, &Ci, &phii);
-	wf.add_liform(1, callback(Fphi_euler), ANY, 2, &Ci, &phii);
-	wf.add_liform_surf(1, callback(linear_form_surf_top), TOP_MARKER);
+	wf.add_biform(1, 1, callback(J_euler_DFphiDYphi), UNSYM);
 
-where the variables ``Cp``, ``Ci``, ``phip``, and ``phii`` are solutions concentration
-$C$ and voltage $\phi$. The suffixes *i* and *p* are current iteration and previous
-iteration respectively.
+where the variables ``C_prev_time``, ``C_prev_newton``, 
+``phi_prev_time``, and ``phi_prev_newton`` are solutions of concentration
+$C$ and voltage $\phi$. The suffixes *newton* and *time* are current iteration and previous
+time step, respectively.
 
 When it comes to meshing, it should be considered that the gradient of $C$ near the boundaries will
 be higher than gradients of $\phi$. This allows us to create different meshes for those variables. In
 `main.cpp <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/examples/newton-np-timedep-adapt-system/main.cpp>`_.
-the following code in the *main()* function is for having multimeshing
+the following code in the *main()* function enables multimeshing
 
 
 .. code-block:: c
@@ -574,7 +610,7 @@ the following code in the *main()* function is for having multimeshing
 	H1Space C(&Cmesh, &shapeset);
 	H1Space phi(MULTIMESH ? &phimesh : &Cmesh, &shapeset);
 
-When ``MULTIMESH`` is defined in `header.h <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/examples/newton-np-timedep-adapt-system/header.h>`_.
+When ``MULTIMESH`` is defined in `main.cpp <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/examples/newton-np-timedep-adapt-system/main.cpp>`_.
 then different H1Spaces for ``phi`` and ``C`` are created. It must be noted that when adaptivity
 is not used, the multimeshing in this example does not have any advantage, however, when
 adaptivity is turned on, then mesh for H1Space ``C`` is refined much more than for ``phi``.
@@ -589,14 +625,7 @@ The following figure shows the calculated concentration $C$ inside the IPMC.
 	:alt: Calculated concentration
 
 As it can be seen, the concentration is rather uniform in the middle of domain. In fact, most of the
-concentration gradient is near the electrodes, within 1% of the total thickness. That is why the refinement
-of the mesh prior solving is done near the electrode boundaries. Here we see the zoomed in region of 
-the boundary where $\phi=0$ for :eq:`poisson` (Dirichlet BC):
- 
-.. image:: img/nonadapt_conc2.png
-	:align: center
-	:alt: Calculated concentration near the electrodes
-
+concentration gradient is near the electrodes, within 5...10% of the total thickness. That is why the refinement
 
 The voltage inside the IPMC forms as follows:
 
@@ -604,7 +633,7 @@ The voltage inside the IPMC forms as follows:
 	:align: center
 	:alt: Calculated voltage inside the IPMC
 
-Here we see that the voltage gradient is much more uniform across the thickness than it is for $C$.
+Here we see that the voltage gradient is smaller and more uniform near the boundaries than it is for $C$.
 That is where **the adaptive multimeshing** can become useful.
 
 Adaptive solution

@@ -9,3 +9,4 @@ mencoder "mf://velocity*.bmp" -mf fps=20 -o velocity.avi -ovc lavc -lavcopts vco
 
 To make sure that widnows can show it, use 
 vcodec=msmpeg4v2
+
