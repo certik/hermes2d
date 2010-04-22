@@ -1,40 +1,52 @@
+/// \addtogroup e_newton_np_timedep_adapt_system Newton Time-dependant System with Adaptivity
+/// \{
+/// \brief This example shows how to combine the automatic adaptivity with the Newton's method for a nonlinear time-dependent PDE system.
+///
+/// This example shows how to combine the automatic adaptivity with the
+/// Newton's method for a nonlinear time-dependent PDE system.
+/// The time discretization is done using implicit Euler or
+/// Crank Nicholson method (see parameter TIME_DISCR).
+/// The following PDE's are solved:
+/// Nernst-Planck (describes the diffusion and migration of charged particles):
+/// \f[dC/dt - D*div[grad(C)] - K*C*div[grad(\phi)]=0,\f]
+/// where D and K are constants and C is the cation concentration variable,
+/// phi is the voltage variable in the Poisson equation:
+/// \f[ - div[grad(\phi)] = L*(C - C_0),\f]
+/// where \f$C_0\f$, and L are constant (anion concentration). \f$C_0\f$ is constant
+/// anion concentration in the domain and L is material parameter.
+/// So, the equation variables are phi and C and the system describes the
+/// migration/diffusion of charged particles due to applied voltage.
+/// The simulation domain looks as follows:
+/// <pre>
+///      2
+///  +----------+
+///  |          |
+/// 1|          |1
+///  |          |
+///  +----------+
+///      3
+/// </pre>
+/// For the Nernst-Planck equation, all the boundaries are natural i.e. Neumann.
+/// Which basically means that the normal derivative is 0:
+/// \f[ BC: -D*dC/dn - K*C*d\phi/dn = 0 \f]
+/// For Poisson equation, boundary 1 has a natural boundary condition
+/// (electric field derivative is 0).
+/// The voltage is applied to the boundaries 2 and 3 (Dirichlet boundaries)
+/// It is possible to adjust system paramter VOLT_BOUNDARY to apply
+/// Neumann boundary condition to 2 (instead of Dirichlet). But by default:
+///  - BC 2: \f$\phi = VOLTAGE\f$
+///  - BC 3: \f$\phi = 0\f$
+///  - BC 1: \f$\frac{d\phi}{dn} = 0\f$
+/// \dontinclude hermes2d.h
+/// \dontinclude solver_umfpack.h
+
+#define HERMES2D_REPORT_WARN
+#define HERMES2D_REPORT_INFO
+#define HERMES2D_REPORT_VERBOSE
+#define HERMES2D_REPORT_FILE "application.log"
 #include "hermes2d.h"
 #include "solver_umfpack.h"
 #include <string>
-
-// This example shows how to combine the automatic adaptivity with the
-// Newton's method for a nonlinear time-dependent PDE system.
-// The time discretization is done using implicit Euler or 
-// Crank Nicholson method (see parameter TIME_DISCR).
-// The following PDE's are solved:
-// Nernst-Planck (describes the diffusion and migration of charged particles):
-// dC/dt - D*div[grad(C)] - K*C*div[grad(phi)]=0
-// where D and K are constants and C is the cation concentration variable,
-// phi is the voltage variable in the Poisson equation:
-// - div[grad(phi)] = L*(C - C0),
-// where C0, and L are constant (anion concentration). C0 is constant
-// anion concentration in the domain and L is material parameter.
-// So, the equation variables are phi and C and the system describes the
-// migration/diffusion of charged particles due to applied voltage.
-// The simulation domain looks as follows:
-//      2
-//  ____________
-//  |          |
-// 1|          |1
-//  ____________
-//      3
-// For the Nernst-Planck equation, all the boundaries are natural i.e. Neumann.
-// Which basically means that the normal derivative is 0:
-// BC: -D*dC/dn - K*C*dphi/dn = 0
-// For Poisson equation, boundary 1 has a natural boundary condition 
-// (electric field derivative is 0). 
-// The voltage is applied to the boundaries 2 and 3 (Dirichlet boundaries)
-// It is possible to adjust system paramter VOLT_BOUNDARY to apply
-// Neumann boundary condition to 2 (instead of Dirichlet). But by default:
-// BC 2: phi = VOLTAGE
-// BC 3: phi = 0
-// BC 1: dphi/dn = 0
-
 
 #define SIDE_MARKER 1
 #define TOP_MARKER 2
@@ -462,4 +474,4 @@ int main (int argc, char* argv[]) {
 
   return 0;
 }
-
+/// \}
