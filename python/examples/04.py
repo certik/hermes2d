@@ -32,8 +32,8 @@ UNIFORM_REF_LEVEL = 3    # number of initial uniform mesh refinements
 # Load the mesh file
 mesh = Mesh()
 mesh.load(get_example_mesh())
-#for i in range(UNIFORM_REF_LEVEL):
-#    mesh.refine_all_elemenrs()
+for i in range(UNIFORM_REF_LEVEL):
+    mesh.refine_all_elements()
 
 # Initialize the shapeset and the cache
 shapeset = H1Shapeset()
@@ -61,8 +61,7 @@ sys.assemble()
 sys.solve_system(sln)
 
 # Visualize the solution
-view = ScalarView("Solution")
-view.show(sln)
+sln.plot()
 
 # Visualize the mesh
 mesh.plot(space=space)

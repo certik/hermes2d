@@ -129,8 +129,7 @@ while(not done):
     sview.show(sln_coarse)
 
     # View the mesh
-    mview = MeshView("Example 7", 100, 100, 500, 500)
-    mview.show(mesh, space=space)
+    mesh.plot()
 
     # Solve the fine mesh problem
     rs = RefSystem(ls)

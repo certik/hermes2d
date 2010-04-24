@@ -595,6 +595,17 @@ cdef class Solution(MeshFunction):
         (<c_Solution *>(self.thisptr)).set_fe_solution(s.thisptr, pss.thisptr,
                 pvec)
 
+    def plot(self, *args, **kwargs):
+        """
+        Plots the solution and shows it to the user.
+
+        It passes all arguments to the ScalarView.show() function, so read its
+        documentation for the meaning.
+        """
+        from hermes2d import ScalarView
+        sview = ScalarView()
+        sview.show(self, *args, **kwargs)
+
     # the get_fe_solution() method is is not yet implemented in the C++ hermes:
     #def get_fe_solution(self):
     #    """

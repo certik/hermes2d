@@ -64,7 +64,7 @@ ls.assemble()
 ls.solve_system(sln)
 
 # View the solution
-sview.show(sln)
+sln.plot()
 
 # View the mesh
 mesh.plot(space=space)

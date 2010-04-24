@@ -125,8 +125,6 @@ y_sln_coarse = Solution()
 x_sln_fine = Solution()
 y_sln_fine = Solution()
 
-xomview = MeshView()
-yomview = MeshView()
 while(not done):
 
     print ("\n---- Adaptivity step %d ---------------------------------------------\n" % it)
@@ -151,8 +149,8 @@ while(not done):
     sview.show(stress_coarse)
     #xoview.show(xdisp)
     #yoview.show(ydisp)
-    xomview.show(xmesh, space=xdisp)
-    yomview.show(ymesh, space=ydisp)
+    xmesh.plot(space=xdisp)
+    ymesh.plot(space=ydisp)
 
     # Solve the fine mesh problem
     rs = RefSystem(ls)
