@@ -183,7 +183,7 @@ int main(int argc, char* argv[])
     // visualize the solution
     VonMisesFilter stress(&sln_x_coarse, &sln_y_coarse, mu, lambda);
     //sview.set_min_max_range(0, 3e4);
-    sview.show(&stress, EPS_HIGH);
+    sview.show(&stress, H2D_EPS_HIGH);
     xoview.show(&xdisp);
     yoview.show(&ydisp);
 

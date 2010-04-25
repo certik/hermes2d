@@ -238,11 +238,11 @@ bool H1AdaptHP::adapt(double thr, int strat, RefinementSelectors::Selector* refi
     {
       for_all_active_elements(e, meshes[i])
       {
-        int current = get_h_order(spaces[i]->get_element_order(e->id));
+        int current = H2D_GET_H_ORDER(spaces[i]->get_element_order(e->id));
         for (j = 0; j < num; j++)
           if ((j != i) && (meshes[j] == meshes[i])) // components share the mesh
           {
-            int o = get_h_order(spaces[j]->get_element_order(e->id));
+            int o = H2D_GET_H_ORDER(spaces[j]->get_element_order(e->id));
             if (o > current) current = o;
           }
         spaces[i]->set_element_order(e->id, current);
@@ -423,7 +423,7 @@ void H1AdaptHP::unrefine(double thr)
       for (int i = 0; i < 2; i++)
         if (errors[i][e->id] < thr/4 * errors[esort[0].comp][esort[0].id])
       {
-        int oo = get_h_order(spaces[i]->get_element_order(e->id));
+        int oo = H2D_GET_H_ORDER(spaces[i]->get_element_order(e->id));
         spaces[i]->set_element_order(e->id, std::max(oo - 1, 1));
         k++;
       }
@@ -466,7 +466,7 @@ void H1AdaptHP::unrefine(double thr)
       {
         if (errors[m][e->id] < thr/4 * errors[esort[0].comp][esort[0].id])
         {
-          int oo = get_h_order(spaces[m]->get_element_order(e->id));
+          int oo = H2D_GET_H_ORDER(spaces[m]->get_element_order(e->id));
           spaces[m]->set_element_order(e->id, std::max(oo - 1, 1));
           k++;
         }

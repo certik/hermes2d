@@ -773,7 +773,7 @@ void ScalarView::draw_values_2d(const double value_min, const double value_irang
       //bind vertices
       glBindBufferARB(GL_ARRAY_BUFFER_ARB, gl_coord_buffer);
       glVertexPointer(2, GL_FLOAT, sizeof(GLVertex2), GL_BUFFER_OFFSET(0));
-      glTexCoordPointer(1, GL_FLOAT, sizeof(GLVertex2), GL_BUFFER_OFFSET(GLVertex2::offsetof_coord));
+      glTexCoordPointer(1, GL_FLOAT, sizeof(GLVertex2), GL_BUFFER_OFFSET(GLVertex2::H2D_OFFSETOF_COORD));
       glEnableClientState(GL_VERTEX_ARRAY);
       glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 

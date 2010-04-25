@@ -412,19 +412,19 @@ int main (int argc, char* argv[]) {
   // Add the bilinear and linear forms
   // generally, the equation system is described:
   if (TIME_DISCR == 1) {  //implicit euler
-    wf.add_liform(0, callback(Fc_euler), ANY, 3,
+    wf.add_liform(0, callback(Fc_euler), H2D_ANY, 3,
         &C_prev_time, &C_prev_newton, &phi_prev_newton);
-    wf.add_liform(1, callback(Fphi_euler), ANY, 2, &C_prev_newton, &phi_prev_newton);
-    wf.add_biform(0, 0, callback(J_euler_DFcDYc), UNSYM, ANY, 1, &phi_prev_newton);
-    wf.add_biform(0, 1, callback(J_euler_DFcDYphi), UNSYM, ANY, 1, &C_prev_newton);
+    wf.add_liform(1, callback(Fphi_euler), H2D_ANY, 2, &C_prev_newton, &phi_prev_newton);
+    wf.add_biform(0, 0, callback(J_euler_DFcDYc), UNSYM, H2D_ANY, 1, &phi_prev_newton);
+    wf.add_biform(0, 1, callback(J_euler_DFcDYphi), UNSYM, H2D_ANY, 1, &C_prev_newton);
     wf.add_biform(1, 0, callback(J_euler_DFphiDYc), UNSYM);
     wf.add_biform(1, 1, callback(J_euler_DFphiDYphi), UNSYM);
   } else {
-    wf.add_liform(0, callback(Fc_cranic), ANY, 4,
+    wf.add_liform(0, callback(Fc_cranic), H2D_ANY, 4,
         &C_prev_time, &C_prev_newton, &phi_prev_newton, &phi_prev_time);
-    wf.add_liform(1, callback(Fphi_cranic), ANY, 2, &C_prev_newton, &phi_prev_newton);
-    wf.add_biform(0, 0, callback(J_cranic_DFcDYc), UNSYM, ANY, 2, &phi_prev_newton, &phi_prev_time);
-    wf.add_biform(0, 1, callback(J_cranic_DFcDYphi), UNSYM, ANY, 2, &C_prev_newton, &C_prev_time);
+    wf.add_liform(1, callback(Fphi_cranic), H2D_ANY, 2, &C_prev_newton, &phi_prev_newton);
+    wf.add_biform(0, 0, callback(J_cranic_DFcDYc), UNSYM, H2D_ANY, 2, &phi_prev_newton, &phi_prev_time);
+    wf.add_biform(0, 1, callback(J_cranic_DFcDYphi), UNSYM, H2D_ANY, 2, &C_prev_newton, &C_prev_time);
     wf.add_biform(1, 0, callback(J_cranic_DFphiDYc), UNSYM);
     wf.add_biform(1, 1, callback(J_cranic_DFphiDYphi), UNSYM);
     

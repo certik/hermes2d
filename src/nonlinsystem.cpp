@@ -122,13 +122,13 @@ void NonlinSystem::set_ic_n(int proj_norm, int n, ...)
     for (i = 0; i < n; i++)
     {
       wf->add_biform(i, i, H1projection_biform<double, scalar>, H1projection_biform<Ord, Ord>);
-      wf->add_liform(i, H1projection_liform<double, scalar>, H1projection_liform<Ord, Ord>, ANY, 1, fn[i]);
+      wf->add_liform(i, H1projection_liform<double, scalar>, H1projection_liform<Ord, Ord>, H2D_ANY, 1, fn[i]);
     }
   else
     for (i = 0; i < n; i++)
     {
       wf->add_biform(i, i, L2projection_biform<double, scalar>, L2projection_biform<Ord, Ord>);
-      wf->add_liform(i, L2projection_liform<double, scalar>, L2projection_liform<Ord, Ord>, ANY, 1, fn[i]);
+      wf->add_liform(i, L2projection_liform<double, scalar>, L2projection_liform<Ord, Ord>, H2D_ANY, 1, fn[i]);
     }
 
   want_dir_contrib = true;

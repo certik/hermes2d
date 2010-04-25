@@ -154,26 +154,26 @@ int main(int argc, char* argv[])
   WeakForm wf(3);
   if (NEWTON) {
     wf.add_biform(0, 0, callback(bilinear_form_sym_0_0_1_1), SYM);
-    wf.add_biform(0, 0, callback(newton_bilinear_form_unsym_0_0), UNSYM, ANY, 2, &xvel_prev_newton, &yvel_prev_newton);
-    wf.add_biform(0, 1, callback(newton_bilinear_form_unsym_0_1), UNSYM, ANY, 1, &xvel_prev_newton);
+    wf.add_biform(0, 0, callback(newton_bilinear_form_unsym_0_0), UNSYM, H2D_ANY, 2, &xvel_prev_newton, &yvel_prev_newton);
+    wf.add_biform(0, 1, callback(newton_bilinear_form_unsym_0_1), UNSYM, H2D_ANY, 1, &xvel_prev_newton);
     wf.add_biform(0, 2, callback(bilinear_form_unsym_0_2), ANTISYM);
-    wf.add_biform(1, 0, callback(newton_bilinear_form_unsym_1_0), UNSYM, ANY, 1, &yvel_prev_newton);
+    wf.add_biform(1, 0, callback(newton_bilinear_form_unsym_1_0), UNSYM, H2D_ANY, 1, &yvel_prev_newton);
     wf.add_biform(1, 1, callback(bilinear_form_sym_0_0_1_1), SYM);
-    wf.add_biform(1, 1, callback(newton_bilinear_form_unsym_1_1), UNSYM, ANY, 2, &xvel_prev_newton, &yvel_prev_newton);
+    wf.add_biform(1, 1, callback(newton_bilinear_form_unsym_1_1), UNSYM, H2D_ANY, 2, &xvel_prev_newton, &yvel_prev_newton);
     wf.add_biform(1, 2, callback(bilinear_form_unsym_1_2), ANTISYM);
-    wf.add_liform(0, callback(newton_F_0), ANY, 5, &xvel_prev_time, &yvel_prev_time, &xvel_prev_newton, &yvel_prev_newton, &p_prev);
-    wf.add_liform(1, callback(newton_F_1), ANY, 5, &xvel_prev_time, &yvel_prev_time, &xvel_prev_newton, &yvel_prev_newton, &p_prev);
-    wf.add_liform(2, callback(newton_F_2), ANY, 2, &xvel_prev_newton, &yvel_prev_newton);
+    wf.add_liform(0, callback(newton_F_0), H2D_ANY, 5, &xvel_prev_time, &yvel_prev_time, &xvel_prev_newton, &yvel_prev_newton, &p_prev);
+    wf.add_liform(1, callback(newton_F_1), H2D_ANY, 5, &xvel_prev_time, &yvel_prev_time, &xvel_prev_newton, &yvel_prev_newton, &p_prev);
+    wf.add_liform(2, callback(newton_F_2), H2D_ANY, 2, &xvel_prev_newton, &yvel_prev_newton);
   }
   else {
     wf.add_biform(0, 0, callback(bilinear_form_sym_0_0_1_1), SYM);
-    wf.add_biform(0, 0, callback(simple_bilinear_form_unsym_0_0_1_1), UNSYM, ANY, 2, &xvel_prev_time, &yvel_prev_time);
+    wf.add_biform(0, 0, callback(simple_bilinear_form_unsym_0_0_1_1), UNSYM, H2D_ANY, 2, &xvel_prev_time, &yvel_prev_time);
     wf.add_biform(1, 1, callback(bilinear_form_sym_0_0_1_1), SYM);
-    wf.add_biform(1, 1, callback(simple_bilinear_form_unsym_0_0_1_1), UNSYM, ANY, 2, &xvel_prev_time, &yvel_prev_time);
+    wf.add_biform(1, 1, callback(simple_bilinear_form_unsym_0_0_1_1), UNSYM, H2D_ANY, 2, &xvel_prev_time, &yvel_prev_time);
     wf.add_biform(0, 2, callback(bilinear_form_unsym_0_2), ANTISYM);
     wf.add_biform(1, 2, callback(bilinear_form_unsym_1_2), ANTISYM);
-    wf.add_liform(0, callback(simple_linear_form), ANY, 1, &xvel_prev_time);
-    wf.add_liform(1, callback(simple_linear_form), ANY, 1, &yvel_prev_time);
+    wf.add_liform(0, callback(simple_linear_form), H2D_ANY, 1, &xvel_prev_time);
+    wf.add_liform(1, callback(simple_linear_form), H2D_ANY, 1, &yvel_prev_time);
   }
 
   // visualization
@@ -232,7 +232,7 @@ int main(int argc, char* argv[])
       // show the solution at the end of time step
       sprintf(title, "Velocity, time %g", TIME);
       vview.set_title(title);
-      vview.show(&xvel_prev_newton, &yvel_prev_newton, EPS_LOW);
+      vview.show(&xvel_prev_newton, &yvel_prev_newton, H2D_EPS_LOW);
       sprintf(title, "Pressure, time %g", TIME);
       pview.set_title(title);
       pview.show(&p_prev);
@@ -251,7 +251,7 @@ int main(int argc, char* argv[])
       // show the solution at the end of time step
       sprintf(title, "Velocity, time %g", TIME);
       vview.set_title(title);
-      vview.show(&xvel_sln, &yvel_sln, EPS_LOW);
+      vview.show(&xvel_sln, &yvel_sln, H2D_EPS_LOW);
       sprintf(title, "Pressure, time %g", TIME);
       pview.set_title(title);
       pview.show(&p_sln);

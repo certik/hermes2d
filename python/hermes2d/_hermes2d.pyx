@@ -8,8 +8,8 @@ FN_DYY = c_FN_DYY
 FN_DXY = c_FN_DXY
 FN_DEFAULT = c_FN_DEFAULT
 FN_ALL = c_FN_ALL
-EPS_NORMAL = c_EPS_NORMAL
-EPS_HIGH = c_EPS_HIGH
+H2D_EPS_NORMAL = c_EPS_NORMAL
+H2D_EPS_HIGH = c_EPS_HIGH
 
 cdef class Nurbs:
     cdef c_Nurbs *thisptr

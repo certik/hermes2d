@@ -21,7 +21,7 @@ using namespace std;
 
 const std::string get_quad_order_str(const int quad_order) {
   std::stringstream str;
-  str << "(H:" << get_h_order(quad_order) << ";V:" << get_v_order(quad_order) << ")";
+  str << "(H:" << H2D_GET_H_ORDER(quad_order) << ";V:" << H2D_GET_V_ORDER(quad_order) << ")";
   return str.str();
 }
 

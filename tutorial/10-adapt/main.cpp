@@ -156,7 +156,7 @@ int main(int argc, char* argv[])
 
     // view the solution -- this can be slow; for illustration only
     sview.show(&sln_coarse);
-    gview.show(&sln_coarse, &sln_coarse, EPS_NORMAL, FN_DX_0, FN_DY_0);
+    gview.show(&sln_coarse, &sln_coarse, H2D_EPS_NORMAL, FN_DX_0, FN_DY_0);
     oview.show(&space);
 
     // time measurement
@@ -205,7 +205,7 @@ int main(int argc, char* argv[])
   // show the fine solution - this is the final result
   sview.set_title("Final solution");
   sview.show(&sln_fine);
-  gview.show(&sln_fine, &sln_fine, EPS_HIGH, FN_DX_0, FN_DY_0);
+  gview.show(&sln_fine, &sln_fine, H2D_EPS_HIGH, FN_DX_0, FN_DY_0);
 
   // wait for all views to be closed
   View::wait();

@@ -51,7 +51,7 @@ double2 *transform_element(Element *e, int np, double2 *pt)
 		for (j = 2; j <= o; j++)
 			indices[k++] = ref_map_shapeset.get_edge_index(i, 0, j);
 
-	if (e->is_quad()) o = make_quad_order(o, o);
+	if (e->is_quad()) o = H2D_MAKE_QUAD_ORDER(o, o);
 	memcpy(indices + k, ref_map_shapeset.get_bubble_indices(o),
 		ref_map_shapeset.get_num_bubbles(o) * sizeof(int));
 

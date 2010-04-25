@@ -191,8 +191,8 @@ int main(int argc, char* argv[])
     tord.show(&temp);
     VonMisesFilter mises(&x_sln_coarse, &y_sln_coarse, mu, lambda);
     sview.set_min_max_range(0, 4e9);
-    sview.show(&mises, EPS_HIGH);
-    tview.show(&t_sln_coarse, EPS_HIGH);
+    sview.show(&mises, H2D_EPS_HIGH);
+    tview.show(&t_sln_coarse, H2D_EPS_HIGH);
 
     // time measurement
     cpu_time.tick(H2D_SKIP);

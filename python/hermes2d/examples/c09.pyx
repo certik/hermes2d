@@ -1,5 +1,5 @@
 from hermes2d._hermes2d cimport scalar, H1Space, BC_ESSENTIAL, BC_NATURAL, int_u_v, int_grad_u_grad_v, int_v, int_grad_u_grad_v_ord, \
-    FuncReal, GeomReal, ExtDataReal, WeakForm, c_Ord, create_Ord, FuncOrd, GeomOrd, ExtDataOrd, Solution, ANY, int_u_v_ord, int_v_ord
+    FuncReal, GeomReal, ExtDataReal, WeakForm, c_Ord, create_Ord, FuncOrd, GeomOrd, ExtDataOrd, Solution, H2D_ANY, int_u_v_ord, int_v_ord
 
 import math
 
@@ -73,5 +73,5 @@ def set_forms(WeakForm wf, Solution s):
     wf.thisptr.add_biform(0, 0, &bilinear_form, &bilinear_form_ord)
     wf.thisptr.add_biform_surf(0, 0, &bilinear_form_surf, &bilinear_form_surf_ord, marker_air)
 
-    wf.thisptr.add_liform(0, &linear_form, &linear_form_ord, ANY, 1, s.thisptr)
+    wf.thisptr.add_liform(0, &linear_form, &linear_form_ord, H2D_ANY, 1, s.thisptr)
     wf.thisptr.add_liform_surf(0, &linear_form_surf, &linear_form_surf_ord, marker_air)
