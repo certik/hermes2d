@@ -430,8 +430,8 @@ cdef class Mesh:
     def save(self, char* filename):
         self.thisptr.save(filename)
 
-    def refine_element(self, int id):
-        self.thisptr.refine_element(id)
+    def refine_element(self, int id, int refinement):
+        self.thisptr.refine_element(id, refinement)
 
     def refine_all_elements(self):
         self.thisptr.refine_all_elements()

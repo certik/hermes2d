@@ -113,7 +113,7 @@ cdef extern from "hermes2d.h":
         void load_str(char* mesh)
         void save(char* filename)
         void copy(c_Mesh *m)
-        void refine_element(int id)
+        void refine_element(int id, int refinement)
         void refine_all_elements()
         void refine_towards_boundary(int marker, int depth)
         void refine_towards_vertex(int marker, int depth)
