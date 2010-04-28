@@ -110,7 +110,7 @@ int main(int argc, char* argv[])
 
   // initialize the weak formulation
   WeakForm wf(1);
-  wf.add_biform(0, 0, callback(bilinear_form), SYM);
+  wf.add_biform(0, 0, callback(bilinear_form), H2D_SYM);
 
   // matrix solver
   UmfpackSolver solver;

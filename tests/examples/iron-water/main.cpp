@@ -90,9 +90,9 @@ int main(int argc, char* argv[])
 
   // initialize the weak formulation
   WeakForm wf(1);
-  wf.add_biform(0, 0, bilinear_form_water, bilinear_form_ord, SYM, 1);
-  wf.add_biform(0, 0, bilinear_form_water, bilinear_form_ord, SYM, 2);
-  wf.add_biform(0, 0, bilinear_form_iron, bilinear_form_ord, SYM, 3);
+  wf.add_biform(0, 0, bilinear_form_water, bilinear_form_ord, H2D_SYM, 1);
+  wf.add_biform(0, 0, bilinear_form_water, bilinear_form_ord, H2D_SYM, 2);
+  wf.add_biform(0, 0, bilinear_form_iron, bilinear_form_ord, H2D_SYM, 3);
   wf.add_liform(0, linear_form_source, linear_form_ord, 1);
 
   // prepare selector

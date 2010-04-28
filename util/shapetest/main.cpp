@@ -1,6 +1,6 @@
 #include "hermes2d.h"
 
-#ifndef COMPLEX
+#ifndef H2D_COMPLEX
 
 //H1ShapesetOrtho shapeset;
 H1ShapesetBeuchler shapeset;

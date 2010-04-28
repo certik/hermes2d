@@ -171,7 +171,7 @@ int main(int argc, char* argv[])
 
   // initialize the weak formulation
   WeakForm wf(1);
-  wf.add_biform(0, 0, bilinear_form, bilinear_form_ord, SYM);
+  wf.add_biform(0, 0, bilinear_form, bilinear_form_ord, H2D_SYM);
   wf.add_liform(0, linear_form, linear_form_ord);
   wf.add_liform_surf(0, linear_form_surf, linear_form_surf_ord, 2);
 

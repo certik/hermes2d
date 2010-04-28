@@ -1396,6 +1396,7 @@ void Mesh::refine_quad_to_triangles(Element* e)
 
   // deactivate this element and unregister from its nodes
   e->active = false;
+  nactive--;
   e->unref_all_nodes(this);
 
   bool bcheck = true;  ///< if bcheck is true, it is default add a new edge between

@@ -91,9 +91,9 @@ int main(int argc, char* argv[])
   Element** e;
   while ((e = trav.get_next_state()) != NULL)
   {
-    sln1.set_quad_order(o, FN_VAL);
-    sln2.set_quad_order(o, FN_VAL);
-    sln3.set_quad_order(o, FN_VAL);
+    sln1.set_quad_order(o, H2D_FN_VAL);
+    sln2.set_quad_order(o, H2D_FN_VAL);
+    sln3.set_quad_order(o, H2D_FN_VAL);
     double* val1 = sln1.get_fn_values();
     double* val2 = sln2.get_fn_values();
     double* val3 = sln3.get_fn_values();

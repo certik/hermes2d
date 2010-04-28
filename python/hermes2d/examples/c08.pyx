@@ -1,7 +1,7 @@
 from hermes2d._hermes2d cimport scalar, WeakForm, H1Space, EdgePos, \
         FuncReal, GeomReal, ExtDataReal, BC_ESSENTIAL, \
         BC_NATURAL, int_v, c_Ord, create_Ord, FuncOrd, GeomOrd, ExtDataOrd, \
-        int_dudy_dvdy, int_dudy_dvdx, int_dudx_dvdx, int_dudx_dvdy, SYM, int_v_ord
+        int_dudy_dvdy, int_dudy_dvdx, int_dudx_dvdx, int_dudx_dvdy, H2D_SYM, int_v_ord
 
 # Problem constants
 cdef double E  = 200e9                               # Young modulus (steel)
@@ -47,9 +47,9 @@ cdef c_Ord _order_lf(int n, double *wt, FuncOrd *u, GeomOrd *e, ExtDataOrd *ext)
     return int_v_ord(n, wt, u).mul_double(f_1)
 
 def set_forms(WeakForm dp):
-    dp.thisptr.add_biform(0, 0, &bilinear_form_0_0, &_order_bf, SYM)
-    dp.thisptr.add_biform(0, 1, &bilinear_form_0_1, &_order_bf, SYM)
-    dp.thisptr.add_biform(1, 1, &bilinear_form_1_1, &_order_bf, SYM)
+    dp.thisptr.add_biform(0, 0, &bilinear_form_0_0, &_order_bf, H2D_SYM)
+    dp.thisptr.add_biform(0, 1, &bilinear_form_0_1, &_order_bf, H2D_SYM)
+    dp.thisptr.add_biform(1, 1, &bilinear_form_1_1, &_order_bf, H2D_SYM)
     dp.thisptr.add_liform_surf(0, &linear_form_surf_0, &_order_lf);
     dp.thisptr.add_liform_surf(1, &linear_form_surf_1, &_order_lf);
 

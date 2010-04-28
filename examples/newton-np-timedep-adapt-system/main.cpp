@@ -1,7 +1,7 @@
-#define HERMES2D_REPORT_WARN
-#define HERMES2D_REPORT_INFO
-#define HERMES2D_REPORT_VERBOSE
-#define HERMES2D_REPORT_FILE "application.log"
+#define H2D_REPORT_WARN
+#define H2D_REPORT_INFO
+#define H2D_REPORT_VERBOSE
+#define H2D_REPORT_FILE "application.log"
 #include "hermes2d.h"
 #include "solver_umfpack.h"
 #include <string>
@@ -419,18 +419,18 @@ int main (int argc, char* argv[]) {
     wf.add_liform(0, callback(Fc_euler), H2D_ANY, 3,
         &C_prev_time, &C_prev_newton, &phi_prev_newton);
     wf.add_liform(1, callback(Fphi_euler), H2D_ANY, 2, &C_prev_newton, &phi_prev_newton);
-    wf.add_biform(0, 0, callback(J_euler_DFcDYc), UNSYM, H2D_ANY, 1, &phi_prev_newton);
-    wf.add_biform(0, 1, callback(J_euler_DFcDYphi), UNSYM, H2D_ANY, 1, &C_prev_newton);
-    wf.add_biform(1, 0, callback(J_euler_DFphiDYc), UNSYM);
-    wf.add_biform(1, 1, callback(J_euler_DFphiDYphi), UNSYM);
+    wf.add_biform(0, 0, callback(J_euler_DFcDYc), H2D_UNSYM, H2D_ANY, 1, &phi_prev_newton);
+    wf.add_biform(0, 1, callback(J_euler_DFcDYphi), H2D_UNSYM, H2D_ANY, 1, &C_prev_newton);
+    wf.add_biform(1, 0, callback(J_euler_DFphiDYc), H2D_UNSYM);
+    wf.add_biform(1, 1, callback(J_euler_DFphiDYphi), H2D_UNSYM);
   } else {
     wf.add_liform(0, callback(Fc_cranic), H2D_ANY, 4,
         &C_prev_time, &C_prev_newton, &phi_prev_newton, &phi_prev_time);
     wf.add_liform(1, callback(Fphi_cranic), H2D_ANY, 2, &C_prev_newton, &phi_prev_newton);
-    wf.add_biform(0, 0, callback(J_cranic_DFcDYc), UNSYM, H2D_ANY, 2, &phi_prev_newton, &phi_prev_time);
-    wf.add_biform(0, 1, callback(J_cranic_DFcDYphi), UNSYM, H2D_ANY, 2, &C_prev_newton, &C_prev_time);
-    wf.add_biform(1, 0, callback(J_cranic_DFphiDYc), UNSYM);
-    wf.add_biform(1, 1, callback(J_cranic_DFphiDYphi), UNSYM);
+    wf.add_biform(0, 0, callback(J_cranic_DFcDYc), H2D_UNSYM, H2D_ANY, 2, &phi_prev_newton, &phi_prev_time);
+    wf.add_biform(0, 1, callback(J_cranic_DFcDYphi), H2D_UNSYM, H2D_ANY, 2, &C_prev_newton, &C_prev_time);
+    wf.add_biform(1, 0, callback(J_cranic_DFphiDYc), H2D_UNSYM);
+    wf.add_biform(1, 1, callback(J_cranic_DFphiDYphi), H2D_UNSYM);
     
   }
   // Neumann voltage boundary

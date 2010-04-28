@@ -1,5 +1,5 @@
-#ifndef __HERMES2D_DUMMY_SOLVER_H
-#define __HERMES2D_DUMMY_SOLVER_H
+#ifndef __H2D_DUMMY_SOLVER_H
+#define __H2D_DUMMY_SOLVER_H
 
 #include "hermes2d.h"
 #include "solver.h"

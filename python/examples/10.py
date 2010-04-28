@@ -30,7 +30,7 @@
 # Import modules
 from hermes2d import Mesh, MeshView, VectorView, OrderView, H1Shapeset, PrecalcShapeset, H1Space, \
         WeakForm, Solution, ScalarView, LinSystem, DummySolver, RefSystem, H1OrthoHP, \
-        H2D_EPS_HIGH, FN_DX, FN_DY
+        H2D_EPS_HIGH, H2D_FN_DX, H2D_FN_DY
 
 from hermes2d.examples.c10 import set_bc, set_forms
 from hermes2d.examples import get_motor_mesh

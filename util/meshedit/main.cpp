@@ -254,7 +254,7 @@ void MeshEdit::update_mesh()
 {
   Solution sln;
   sln.set_zero(mesh);
-  lin.process_solution(&sln, FN_VAL_0, EPS_HIGH);
+  lin.process_solution(&sln, H2D_FN_VAL_0, H2D_EPS_HIGH);
   post_redisplay();
 }
 

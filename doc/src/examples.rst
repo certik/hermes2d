@@ -89,11 +89,11 @@ The weak forms are associated with element material flags (coming from the mesh 
 
     // initialize the weak formulation
     WeakForm wf(1);
-    wf.add_biform(0, 0, bilinear_form_1, bilinear_form_ord, SYM, 1);
-    wf.add_biform(0, 0, bilinear_form_2, bilinear_form_ord, SYM, 2);
-    wf.add_biform(0, 0, bilinear_form_3, bilinear_form_ord, SYM, 3);
-    wf.add_biform(0, 0, bilinear_form_4, bilinear_form_ord, SYM, 4);
-    wf.add_biform(0, 0, bilinear_form_5, bilinear_form_ord, SYM, 5);
+    wf.add_biform(0, 0, bilinear_form_1, bilinear_form_ord, H2D_SYM, 1);
+    wf.add_biform(0, 0, bilinear_form_2, bilinear_form_ord, H2D_SYM, 2);
+    wf.add_biform(0, 0, bilinear_form_3, bilinear_form_ord, H2D_SYM, 3);
+    wf.add_biform(0, 0, bilinear_form_4, bilinear_form_ord, H2D_SYM, 4);
+    wf.add_biform(0, 0, bilinear_form_5, bilinear_form_ord, H2D_SYM, 5);
     wf.add_liform(0, linear_form_1, linear_form_ord, 1);
     wf.add_liform(0, linear_form_3, linear_form_ord, 3);
 
@@ -586,13 +586,13 @@ are assembled as follows::
 	
 	WeakForm wf(2);
 	Solution C_prev_time, C_prev_newton, phi_prev_time, phi_prev_newton;
-	wf.add_liform(0, callback(Fc_euler), ANY, 3,
+	wf.add_liform(0, callback(Fc_euler), H2D_ANY, 3,
 		&C_prev_time, &C_prev_newton, &phi_prev_newton);
-	wf.add_liform(1, callback(Fphi_euler), ANY, 2, &C_prev_newton, &phi_prev_newton);
-	wf.add_biform(0, 0, callback(J_euler_DFcDYc), UNSYM, ANY, 1, &phi_prev_newton);
-	wf.add_biform(0, 1, callback(J_euler_DFcDYphi), UNSYM, ANY, 1, &C_prev_newton);
-	wf.add_biform(1, 0, callback(J_euler_DFphiDYc), UNSYM);
-	wf.add_biform(1, 1, callback(J_euler_DFphiDYphi), UNSYM);
+	wf.add_liform(1, callback(Fphi_euler), H2D_ANY, 2, &C_prev_newton, &phi_prev_newton);
+	wf.add_biform(0, 0, callback(J_euler_DFcDYc), H2D_UNSYM, H2D_ANY, 1, &phi_prev_newton);
+	wf.add_biform(0, 1, callback(J_euler_DFcDYphi), H2D_UNSYM, H2D_ANY, 1, &C_prev_newton);
+	wf.add_biform(1, 0, callback(J_euler_DFphiDYc), H2D_UNSYM);
+	wf.add_biform(1, 1, callback(J_euler_DFphiDYphi), H2D_UNSYM);
 
 where the variables ``C_prev_time``, ``C_prev_newton``, 
 ``phi_prev_time``, and ``phi_prev_newton`` are solutions of concentration
@@ -745,9 +745,9 @@ The weak forms are registered as usual:
 
     // initialize the weak formulation
     WeakForm wf(2);
-    wf.add_biform(0, 0, callback(bilinear_form_0_0), SYM);
-    wf.add_biform(0, 1, callback(bilinear_form_0_1), SYM);
-    wf.add_biform(1, 1, callback(bilinear_form_1_1), SYM);
+    wf.add_biform(0, 0, callback(bilinear_form_0_0), H2D_SYM);
+    wf.add_biform(0, 1, callback(bilinear_form_0_1), H2D_SYM);
+    wf.add_biform(1, 1, callback(bilinear_form_1_1), H2D_SYM);
     wf.add_liform_surf(1, callback(linear_form_surf_1), marker_top);
 
 Next we set bilinear forms for the calculation of the global energy norm,
@@ -970,7 +970,7 @@ The weak formulation is initialized as follows:
     // Initialize the weak formulation
     WeakForm wf(3);
     wf.add_biform(0, 0, callback(bilinear_form_0_0));
-    wf.add_biform(0, 1, callback(bilinear_form_0_1), SYM);
+    wf.add_biform(0, 1, callback(bilinear_form_0_1), H2D_SYM);
     wf.add_biform(0, 2, callback(bilinear_form_0_2));
     wf.add_biform(1, 1, callback(bilinear_form_1_1));
     wf.add_biform(1, 2, callback(bilinear_form_1_2));
@@ -1532,9 +1532,9 @@ The weak forms are registered as follows:
 
     // initialize the weak formulation
     WeakForm wf(1);
-    wf.add_biform(0, 0, callback(bilinear_form_iron), SYM, 3);
-    wf.add_biform(0, 0, callback(bilinear_form_wire), SYM, 2);
-    wf.add_biform(0, 0, callback(bilinear_form_air), SYM, 1);
+    wf.add_biform(0, 0, callback(bilinear_form_iron), H2D_SYM, 3);
+    wf.add_biform(0, 0, callback(bilinear_form_wire), H2D_SYM, 2);
+    wf.add_biform(0, 0, callback(bilinear_form_air), H2D_SYM, 1);
     wf.add_liform(0, callback(linear_form_wire), 2);
 
 Let us compare adaptive $h$-FEM with linear and quadratic elements and the $hp$-FEM.

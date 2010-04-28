@@ -231,8 +231,8 @@ the forms:
 ::
 
     WeakForm wf(1);
-    wf.add_biform(0, 0, callback(biform1), SYM, 1);
-    wf.add_biform(0, 0, callback(biform2), SYM, 2);
+    wf.add_biform(0, 0, callback(biform1), H2D_SYM, 1);
+    wf.add_biform(0, 0, callback(biform2), H2D_SYM, 2);
 
 The principal part of the example is the main adaptivity loop. In each iteration, the coarse problem
 is solved first:
@@ -356,7 +356,7 @@ components, but specify that its derivatives should be used:
 
 ::
 
-    gview.show(&sln, &sln, EPS_NORMAL, FN_DX_0, FN_DY_0);
+    gview.show(&sln, &sln, H2D_EPS_NORMAL, H2D_FN_DX_0, H2D_FN_DY_0);
 
 .. image:: img/motor-sln.png
    :align: left
@@ -576,7 +576,7 @@ they are registered as follows:
     wf.add_liform(0, linear_form_0, linear_form_0_ord);
     wf.add_liform(1, linear_form_1, linear_form_1_ord);
 
-Beware that despite each of the forms is actually symmetric, one cannot use the SYM flag as in the 
+Beware that despite each of the forms is actually symmetric, one cannot use the H2D_SYM flag as in the 
 elasticity equations, since it has a slightly different 
 meaning (see example `08-system <http://hpfem.org/hermes2d/doc/src/tutorial.html#systems-of-equations>`_).
 

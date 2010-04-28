@@ -97,7 +97,7 @@ int main(int argc, char* argv[])
   // (note that the infinite gradient at the re-entrant
   // corner needs to be truncated for visualization purposes)
   ScalarView gradview("Gradient", 650, 0, 600, 600);
-  MagFilter grad(&sln, &sln, FN_DX, FN_DY);
+  MagFilter grad(&sln, &sln, H2D_FN_DX, H2D_FN_DY);
   gradview.show(&grad);
 
   // wait for all views to be closed

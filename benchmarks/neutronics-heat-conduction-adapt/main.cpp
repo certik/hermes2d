@@ -1,7 +1,7 @@
-#define HERMES2D_REPORT_WARN
-#define HERMES2D_REPORT_INFO
-#define HERMES2D_REPORT_VERBOSE
-#define HERMES2D_REPORT_FILE "application.log"
+#define H2D_REPORT_WARN
+#define H2D_REPORT_INFO
+#define H2D_REPORT_VERBOSE
+#define H2D_REPORT_FILE "application.log"
 #include "hermes2d.h"
 #include "solver_umfpack.h"
 #include "math.h"
@@ -307,11 +307,11 @@ int main(int argc, char* argv[])
 
   // initialize the weak formulation
   WeakForm wf(2);
-  wf.add_biform(0, 0, jac_TT, jac_TT_ord, UNSYM, H2D_ANY, 1, &T_prev_newton);
-  wf.add_biform(0, 1, jac_Tphi, jac_Tphi_ord, UNSYM, H2D_ANY, 0);
+  wf.add_biform(0, 0, jac_TT, jac_TT_ord, H2D_UNSYM, H2D_ANY, 1, &T_prev_newton);
+  wf.add_biform(0, 1, jac_Tphi, jac_Tphi_ord, H2D_UNSYM, H2D_ANY, 0);
   wf.add_liform(0, res_T, res_T_ord, H2D_ANY, 3, &T_prev_newton, &T_prev_time, &phi_prev_newton);
-  wf.add_biform(1, 0, jac_phiT, jac_phiT_ord, UNSYM, H2D_ANY, 2, &phi_prev_newton, &T_prev_newton);
-  wf.add_biform(1, 1, jac_phiphi, jac_phiphi_ord, UNSYM, H2D_ANY, 1, &T_prev_newton);
+  wf.add_biform(1, 0, jac_phiT, jac_phiT_ord, H2D_UNSYM, H2D_ANY, 2, &phi_prev_newton, &T_prev_newton);
+  wf.add_biform(1, 1, jac_phiphi, jac_phiphi_ord, H2D_UNSYM, H2D_ANY, 1, &T_prev_newton);
   wf.add_liform(1, res_phi, res_phi_ord, H2D_ANY, 3, &phi_prev_newton, &phi_prev_time, &T_prev_newton);
 
   // initialize the nonlinear system and solver

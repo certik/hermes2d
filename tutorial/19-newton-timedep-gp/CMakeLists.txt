@@ -1,4 +1,4 @@
-IF(COMPLEX)
+IF(H2D_COMPLEX)
 
 project(newton-timedep-gp)
 
@@ -8,4 +8,4 @@ set(HERMES ${HERMES_CPLX_BIN})
 add_executable(${PROJECT_NAME} main.cpp)
 include (../CMake.common)
 
-ENDIF(COMPLEX)
+ENDIF(H2D_COMPLEX)

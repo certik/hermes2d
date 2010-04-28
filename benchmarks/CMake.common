@@ -4,19 +4,19 @@
 # define anything, in which case the "real" version will be used if hermes was
 # built with "real" support, otherwise the "complex" version will be used:
 if(NOT DEFINED HERMES)
-    if(REAL)
+    if(H2D_REAL)
         set(HERMES ${HERMES_REAL_BIN})
-    else(REAL)
+    else(H2D_REAL)
         set(HERMES ${HERMES_CPLX_BIN})
-    endif(REAL)
+    endif(H2D_REAL)
 endif(NOT DEFINED HERMES)
 
-if(COMPLEX)
-# if the complex version is being used, define 'COMPLEX'
+if(H2D_COMPLEX)
+# if the complex version is being used, define 'H2D_COMPLEX'
 if(${HERMES} STREQUAL ${HERMES_CPLX_BIN})
-    set_target_properties(${PROJECT_NAME} PROPERTIES COMPILE_FLAGS -DCOMPLEX)
+    set_target_properties(${PROJECT_NAME} PROPERTIES COMPILE_FLAGS -DH2D_COMPLEX)
 endif(${HERMES} STREQUAL ${HERMES_CPLX_BIN})
-endif(COMPLEX)
+endif(H2D_COMPLEX)
 
 include_directories(${UMFPACK_INCLUDE_DIR} ${AMD_INCLUDE_DIR})
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})

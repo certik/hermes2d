@@ -1,13 +1,13 @@
-FN_DX = c_FN_DX
-FN_DY = c_FN_DY
-FN_VAL = c_FN_VAL
-FN_DX = c_FN_DX
-FN_DY = c_FN_DY
-FN_DXX = c_FN_DXX
-FN_DYY = c_FN_DYY
-FN_DXY = c_FN_DXY
-FN_DEFAULT = c_FN_DEFAULT
-FN_ALL = c_FN_ALL
+H2D_FN_DX = c_FN_DX
+H2D_FN_DY = c_FN_DY
+H2D_FN_VAL = c_FN_VAL
+H2D_FN_DX = c_FN_DX
+H2D_FN_DY = c_FN_DY
+H2D_FN_DXX = c_FN_DXX
+H2D_FN_DYY = c_FN_DYY
+H2D_FN_DXY = c_FN_DXY
+H2D_FN_DEFAULT = c_FN_DEFAULT
+H2D_FN_ALL = c_FN_ALL
 H2D_EPS_NORMAL = c_EPS_NORMAL
 H2D_EPS_HIGH = c_EPS_HIGH
 
@@ -636,7 +636,7 @@ cdef class MagFilter(SimpleFilter):
 cdef class DiffFilter(SimpleFilter):
 
     def __cinit__(self, MeshFunction sln1, MeshFunction sln2,
-            int item1=FN_VAL, int item2=FN_VAL):
+            int item1=H2D_FN_VAL, int item2=H2D_FN_VAL):
         self.thisptr = <c_Function *>new_DiffFilter(<c_MeshFunction *>sln1.thisptr, <c_MeshFunction *>sln2.thisptr, item1, item2)
 
     #def __dealloc__(self):
@@ -645,7 +645,7 @@ cdef class DiffFilter(SimpleFilter):
 cdef class SumFilter(SimpleFilter):
 
     def __cinit__(self, MeshFunction sln1, MeshFunction sln2,
-            int item1=FN_VAL, int item2=FN_VAL):
+            int item1=H2D_FN_VAL, int item2=H2D_FN_VAL):
         self.thisptr = <c_Function *>new_SumFilter(<c_MeshFunction *>sln1.thisptr, <c_MeshFunction *>sln2.thisptr, item1, item2)
 
     #def __dealloc__(self):
@@ -653,7 +653,7 @@ cdef class SumFilter(SimpleFilter):
 
 cdef class SquareFilter(SimpleFilter):
 
-    def __cinit__(self, MeshFunction sln, int item=FN_VAL):
+    def __cinit__(self, MeshFunction sln, int item=H2D_FN_VAL):
         self.thisptr = <c_Function *>new_SquareFilter(<c_MeshFunction *>sln.thisptr, item)
 
     #def __dealloc__(self):

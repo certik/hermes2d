@@ -596,7 +596,7 @@ The gradient magnitude can be visualized via a MagFilter:
     // (note that the infinite gradient at the re-entrant
     // corner will be truncated for visualization purposes)
     ScalarView gradview("Gradient", 650, 0, 600, 600);
-    MagFilter grad(&sln, &sln, FN_DX, FN_DY);
+    MagFilter grad(&sln, &sln, H2D_FN_DX, H2D_FN_DY);
     gradview.show(&grad);
 
 The approximate solution for the values $C_1 = -1/2$, $C_2 = 1$, $C_3 = -1/2$,
@@ -1064,24 +1064,24 @@ surface linear form is treated analogously.
 
     // initialize the weak formulation
     WeakForm wf(2);
-    wf.add_biform(0, 0, callback(bilinear_form_0_0), SYM);  // Note that only one symmetric part is
-    wf.add_biform(0, 1, callback(bilinear_form_0_1), SYM);  // added in the case of symmetric bilinear
-    wf.add_biform(1, 1, callback(bilinear_form_1_1), SYM);  // forms.
+    wf.add_biform(0, 0, callback(bilinear_form_0_0), H2D_SYM);  // Note that only one symmetric part is
+    wf.add_biform(0, 1, callback(bilinear_form_0_1), H2D_SYM);  // added in the case of symmetric bilinear
+    wf.add_biform(1, 1, callback(bilinear_form_1_1), H2D_SYM);  // forms.
     wf.add_liform_surf(0, callback(linear_form_surf_0), GAMMA_3_BDY);
     wf.add_liform_surf(1, callback(linear_form_surf_1), GAMMA_3_BDY);
 
-An explanation of the extra parameter SYM in add_biform() is in order.
+An explanation of the extra parameter H2D_SYM in add_biform() is in order.
 Since the two diagonal forms $a_{11}$ and $a_{22}$ are symmetric, i.e.,
 $a_{ii}(u,v) = a_{ii}(v,u)$, Hermes can be told to only evaluate them once for the
 two cases $a_{ii}(u,v)$ and $a_{ii}(v,u)$ to speed up assembly. In fact, we should have
-used the SYM flag already in the previous sections, since the form
+used the H2D_SYM flag already in the previous sections, since the form
 $a(u,v) = \nabla u \cdot \nabla v$ is also symmetric. This is however not the case
-for all forms and so the default value of the fourth parameter of add_biform() is UNSYM.
+for all forms and so the default value of the fourth parameter of add_biform() is H2D_UNSYM.
 
 The off-diagonal forms $a_{12}(u_2, v_1)$ and $a_{21}(u_1, v_2)$ are not
 (and cannot) be symmetric, since their arguments come from different spaces.
 However, we can see that $a_{12}(u, v) = a_{21}(v, u)$, i.e., the corresponding blocks
-of the local stiffness matrix are transposes of each other. Here, the SYM flag
+of the local stiffness matrix are transposes of each other. Here, the H2D_SYM flag
 has a different effect: it tells Hermes to take the block of the local stiffness
 matrix corresponding to the form $a_{12}$, transpose it and copy it where a block
 corresponding to $a_{21}$ would belong, without evaluating $a_{21}$ at all (this is why
@@ -1089,7 +1089,7 @@ we don't add bilinear_form_1_0). This again speeds up the matrix assembly.
 You can also use the flag ANTISYM, which moreover inverts the sign of the block.
 This makes sense in the case where $a_{ij}(u, v) = -a_{ji}(v, u)$.
 
-It is recommended that you start with the default (and safe) UNSYM flag for all
+It is recommended that you start with the default (and safe) H2D_UNSYM flag for all
 forms when developing your project, and only optimize the evaluation of the forms when
 the code works well.
 
@@ -1128,10 +1128,10 @@ Von Mises stress:
 ::
 
     VonMisesFilter stress(&xsln, &ysln, mu, lambda);
-    view.show(&stress, EPS_HIGH, 0);
+    view.show(&stress, H2D_EPS_HIGH, 0);
 
 The second parameter of show() is the visualization accuracy and can be
-EPS_LOW, EPS_NORMAL (default) and EPS_HIGH. The third parameter is
+H2D_EPS_LOW, H2D_EPS_NORMAL (default) and H2D_EPS_HIGH. The third parameter is
 the component number and is only valid for vector-valued ($Hcurl$) solutions.
 
 Finally, in elasticity problems, it may be illustrative to distort the computational
@@ -1141,7 +1141,7 @@ and a multiplier to make the displacements visible.
 ::
 
     VonMisesFilter stress(&xsln, &ysln, mu, lambda);
-    view.show(&stress, EPS_HIGH, 0, &xsln, &ysln, 1.5e5);
+    view.show(&stress, H2D_EPS_HIGH, 0, &xsln, &ysln, 1.5e5);
 
 .. image:: img/mises.png
    :align: center
@@ -1284,7 +1284,7 @@ These forms are registered as follows:
     WeakForm wf(1);
     wf.add_biform(0, 0, bilinear_form<double, double>, bilinear_form<Ord, Ord>);
     wf.add_biform_surf(0, 0, bilinear_form_surf<double, double>, bilinear_form_surf<Ord, Ord>, marker_air);
-    wf.add_liform(0, linear_form<double, double>, linear_form<Ord, Ord>, ANY, 1, &tsln);
+    wf.add_liform(0, linear_form<double, double>, linear_form<Ord, Ord>, H2D_ANY, 1, &tsln);
     wf.add_liform_surf(0, linear_form_surf<double, double>, linear_form_surf<Ord, Ord>, marker_air);
 
 Before entering the main iteration loop, we need to initialize the previous solution

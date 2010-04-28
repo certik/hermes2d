@@ -2,10 +2,10 @@ if(NOT WITH_GLUT)
     message(FATAL_ERROR "util/linview must be compiled with GLUT")
 endif(NOT WITH_GLUT)
 
-if(NOT REAL)
+if(NOT H2D_REAL)
     message(STATUS "skipping util/linview (real version is not being built)")
     return()
-endif(NOT REAL)
+endif(NOT H2D_REAL)
 
 macro(LINVIEW_SETTINGS VIEW)
     add_executable(${PROJECT_NAME} main.cpp)

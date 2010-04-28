@@ -1,4 +1,4 @@
-IF(COMPLEX)
+IF(H2D_COMPLEX)
 
 project(benchmark-screen)
 
@@ -12,4 +12,4 @@ set(BIN ${PROJECT_BINARY_DIR}/${PROJECT_NAME})
 add_test(benchmark-screen ${BIN})
 set_tests_properties(benchmark-screen PROPERTIES LABELS slow)
 
-ENDIF(COMPLEX)
+ENDIF(H2D_COMPLEX)

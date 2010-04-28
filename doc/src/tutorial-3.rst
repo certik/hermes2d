@@ -212,8 +212,8 @@ The weak forms are registered as usual, except that the previous solution u_prev
 
     // initialize the weak formulation
     WeakForm wf(1);
-    wf.add_biform(0, 0, callback(jac), UNSYM, ANY, 1, &u_prev);
-    wf.add_liform(0, callback(res), ANY, 1, &u_prev);
+    wf.add_biform(0, 0, callback(jac), H2D_UNSYM, H2D_ANY, 1, &u_prev);
+    wf.add_liform(0, callback(res), H2D_ANY, 1, &u_prev);
 
 The nonlinear system needs to be initialized:
 
@@ -585,8 +585,8 @@ is finished. The weak forms and the previous solutions are registered as usual:
 
     // initialize the weak formulation
     WeakForm wf(1);
-    wf.add_biform(0, 0, callback(jac), UNSYM, ANY, 1, &u_prev_newton);
-    wf.add_liform(0, callback(res), ANY, 2, &u_prev_newton, &u_prev_time);
+    wf.add_biform(0, 0, callback(jac), H2D_UNSYM, H2D_ANY, 1, &u_prev_newton);
+    wf.add_liform(0, callback(res), H2D_ANY, 2, &u_prev_newton, &u_prev_time);
 
 The entire time-stepping loop looks as follows:
 
@@ -726,14 +726,14 @@ Here is how we register the weak forms,
 
     // initialize the weak formulation
     WeakForm wf(2);
-    wf.add_biform(0, 0, callback(newton_bilinear_form_0_0), UNSYM, ANY, 1, &omega_dt);
+    wf.add_biform(0, 0, callback(newton_bilinear_form_0_0), H2D_UNSYM, H2D_ANY, 1, &omega_dt);
     wf.add_biform_surf(0, 0, callback(newton_bilinear_form_0_0_surf), 3);
-    wf.add_biform(0, 1, callback(newton_bilinear_form_0_1), UNSYM, ANY, 1, &omega_dy);
-    wf.add_biform(1, 0, callback(newton_bilinear_form_1_0), UNSYM, ANY, 1, &omega_dt);
-    wf.add_biform(1, 1, callback(newton_bilinear_form_1_1), UNSYM, ANY, 1, &omega_dy);
-    wf.add_liform(0, callback(newton_linear_form_0), ANY, 4, &t_prev_newton, &t_prev_time_1, &t_prev_time_2, &omega);
+    wf.add_biform(0, 1, callback(newton_bilinear_form_0_1), H2D_UNSYM, H2D_ANY, 1, &omega_dy);
+    wf.add_biform(1, 0, callback(newton_bilinear_form_1_0), H2D_UNSYM, H2D_ANY, 1, &omega_dt);
+    wf.add_biform(1, 1, callback(newton_bilinear_form_1_1), H2D_UNSYM, H2D_ANY, 1, &omega_dy);
+    wf.add_liform(0, callback(newton_linear_form_0), H2D_ANY, 4, &t_prev_newton, &t_prev_time_1, &t_prev_time_2, &omega);
     wf.add_liform_surf(0, callback(newton_linear_form_0_surf), 3, 1, &t_prev_newton);
-    wf.add_liform(1, callback(newton_linear_form_1), ANY, 4, &y_prev_newton, &y_prev_time_1, &y_prev_time_2, &omega);
+    wf.add_liform(1, callback(newton_linear_form_1), H2D_ANY, 4, &y_prev_newton, &y_prev_time_1, &y_prev_time_2, &omega);
 
 and how we initialize the nonlinear system and solver:
 
@@ -1142,12 +1142,12 @@ The way the weak forms are registered is standard:
     // initialize the weak formulation
     WeakForm wf(1);
     if(TIME_DISCR == 1) {
-      wf.add_biform(0, 0, callback(jacobian_euler), UNSYM, ANY, 1, &Psi_prev_newton);
-      wf.add_liform(0, callback(residuum_euler), ANY, 2, &Psi_prev_newton, &Psi_prev_time);
+      wf.add_biform(0, 0, callback(jacobian_euler), H2D_UNSYM, H2D_ANY, 1, &Psi_prev_newton);
+      wf.add_liform(0, callback(residuum_euler), H2D_ANY, 2, &Psi_prev_newton, &Psi_prev_time);
     }
     else {
-      wf.add_biform(0, 0, callback(jacobian_cranic), UNSYM, ANY, 1, &Psi_prev_newton);
-      wf.add_liform(0, callback(residuum_cranic), ANY, 2, &Psi_prev_newton, &Psi_prev_time);
+      wf.add_biform(0, 0, callback(jacobian_cranic), H2D_UNSYM, H2D_ANY, 1, &Psi_prev_newton);
+      wf.add_liform(0, callback(residuum_cranic), H2D_ANY, 2, &Psi_prev_newton, &Psi_prev_time);
     }
 
 Also the time stepping loop and the call to the Newton's method 
