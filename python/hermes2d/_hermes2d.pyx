@@ -8,8 +8,8 @@ FN_DYY = c_FN_DYY
 FN_DXY = c_FN_DXY
 FN_DEFAULT = c_FN_DEFAULT
 FN_ALL = c_FN_ALL
-EPS_NORMAL = c_EPS_NORMAL
-EPS_HIGH = c_EPS_HIGH
+H2D_EPS_NORMAL = c_EPS_NORMAL
+H2D_EPS_HIGH = c_EPS_HIGH
 
 cdef class Nurbs:
     cdef c_Nurbs *thisptr
@@ -430,8 +430,8 @@ cdef class Mesh:
     def save(self, char* filename):
         self.thisptr.save(filename)
 
-    def refine_element(self, int id):
-        self.thisptr.refine_element(id)
+    def refine_element(self, int id, int refinement):
+        self.thisptr.refine_element(id, refinement)
 
     def refine_all_elements(self):
         self.thisptr.refine_all_elements()
@@ -594,6 +594,17 @@ cdef class Solution(MeshFunction):
         cdef scalar *pvec = <scalar *>vec.data
         (<c_Solution *>(self.thisptr)).set_fe_solution(s.thisptr, pss.thisptr,
                 pvec)
+
+    def plot(self, *args, **kwargs):
+        """
+        Plots the solution and shows it to the user.
+
+        It passes all arguments to the ScalarView.show() function, so read its
+        documentation for the meaning.
+        """
+        from hermes2d import ScalarView
+        sview = ScalarView()
+        sview.show(self, *args, **kwargs)
 
     # the get_fe_solution() method is is not yet implemented in the C++ hermes:
     #def get_fe_solution(self):

@@ -151,7 +151,7 @@ int main(int argc, char* argv[])
     ordview.show(&space);
     RealFilter real(&sln_coarse);
     vecview.set_min_max_range(0, 1);
-    vecview.show(&real, EPS_HIGH);
+    vecview.show(&real, H2D_EPS_HIGH);
 
     // time measurement
     cpu_time.tick(H2D_SKIP);

@@ -98,7 +98,7 @@ int main(int argc, char* argv[])
   WeakForm wf(1);
   wf.add_biform(0, 0, bilinear_form<double, double>, bilinear_form<Ord, Ord>);
   wf.add_biform_surf(0, 0, bilinear_form_surf<double, double>, bilinear_form_surf<Ord, Ord>, marker_air);
-  wf.add_liform(0, linear_form<double, double>, linear_form<Ord, Ord>, ANY, 1, &tsln);
+  wf.add_liform(0, linear_form<double, double>, linear_form<Ord, Ord>, H2D_ANY, 1, &tsln);
   wf.add_liform_surf(0, linear_form_surf<double, double>, linear_form_surf<Ord, Ord>, marker_air);
 
   // matrix solver

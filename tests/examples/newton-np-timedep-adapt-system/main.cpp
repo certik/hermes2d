@@ -290,13 +290,13 @@ int main (int argc, char* argv[]) {
 	// a11(u1, v1) + a12(u2, v1) + a1n(un, v1) = l1(v1)
 	// a21(u1, v2) + a22(u2, v2) + a2n(un, v2) = l2(v2)
 	// an1(u1, vn) + an2(u2, vn) + ann(un, vn) = ln(vn)
-	wf.add_biform(0, 0, callback(J_euler_DFcDYc), UNSYM, ANY, 1, &phii);
+	wf.add_biform(0, 0, callback(J_euler_DFcDYc), UNSYM, H2D_ANY, 1, &phii);
 	wf.add_biform(1, 1, callback(J_euler_DFphiDYphi), UNSYM);
-	wf.add_biform(0, 1, callback(J_euler_DFcDYphi), UNSYM, ANY, 1, &Ci);
+	wf.add_biform(0, 1, callback(J_euler_DFcDYphi), UNSYM, H2D_ANY, 1, &Ci);
 	wf.add_biform(1, 0, callback(J_euler_DFphiDYc), UNSYM);
 
-	wf.add_liform(0, callback(Fc_euler), ANY, 3, &Cp, &Ci, &phii);
-	wf.add_liform(1, callback(Fphi_euler), ANY, 2, &Ci, &phii);
+	wf.add_liform(0, callback(Fc_euler), H2D_ANY, 3, &Cp, &Ci, &phii);
+	wf.add_liform(1, callback(Fphi_euler), H2D_ANY, 2, &Ci, &phii);
 
 	wf.add_liform_surf(1, callback(linear_form_surf_top), TOP_MARKER);
 

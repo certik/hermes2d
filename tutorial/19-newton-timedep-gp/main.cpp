@@ -108,12 +108,12 @@ int main(int argc, char* argv[])
   // initialize the weak formulation
   WeakForm wf(1);
   if(TIME_DISCR == 1) {
-    wf.add_biform(0, 0, callback(jacobian_euler), UNSYM, ANY, 1, &Psi_prev_newton);
-    wf.add_liform(0, callback(residuum_euler), ANY, 2, &Psi_prev_newton, &Psi_prev_time);
+    wf.add_biform(0, 0, callback(jacobian_euler), UNSYM, H2D_ANY, 1, &Psi_prev_newton);
+    wf.add_liform(0, callback(residuum_euler), H2D_ANY, 2, &Psi_prev_newton, &Psi_prev_time);
   }
   else {
-    wf.add_biform(0, 0, callback(jacobian_cranic), UNSYM, ANY, 1, &Psi_prev_newton);
-    wf.add_liform(0, callback(residuum_cranic), ANY, 2, &Psi_prev_newton, &Psi_prev_time);
+    wf.add_biform(0, 0, callback(jacobian_cranic), UNSYM, H2D_ANY, 1, &Psi_prev_newton);
+    wf.add_liform(0, callback(residuum_cranic), H2D_ANY, 2, &Psi_prev_newton, &Psi_prev_time);
   }
 
   // initialize the nonlinear system and solver

@@ -122,7 +122,7 @@ int main(int argc, char* argv[])
   space.set_bc_types(bc_types);
   space.set_bc_values(bc_values);
   if (ADAPT_TYPE == RefinementSelectors::H2DRS_CAND_HP)
-    space.set_element_order(0, make_quad_order(P_INIT, 1));
+    space.set_element_order(0, H2D_MAKE_QUAD_ORDER(P_INIT, 1));
   else
     space.set_uniform_order(P_INIT);
 

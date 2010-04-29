@@ -1,5 +1,5 @@
 from hermes2d._hermes2d cimport scalar, H1Space, BC_ESSENTIAL, BC_NATURAL, int_u_v, int_grad_u_grad_v, int_v, \
-    FuncReal, GeomReal, ExtDataReal, WeakForm, c_Ord, create_Ord, FuncOrd, GeomOrd, ExtDataOrd, Solution, ANY, SYM, \
+    FuncReal, GeomReal, ExtDataReal, WeakForm, c_Ord, create_Ord, FuncOrd, GeomOrd, ExtDataOrd, Solution, H2D_ANY, SYM, \
     int_dudx_dvdx, int_dudy_dvdy, int_dudy_dvdx, int_dudx_dvdy, H1OrthoHP, int_v_ord
 
 

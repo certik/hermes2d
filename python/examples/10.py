@@ -30,7 +30,7 @@
 # Import modules
 from hermes2d import Mesh, MeshView, VectorView, OrderView, H1Shapeset, PrecalcShapeset, H1Space, \
         WeakForm, Solution, ScalarView, LinSystem, DummySolver, RefSystem, H1OrthoHP, \
-        EPS_HIGH, FN_DX, FN_DY
+        H2D_EPS_HIGH, FN_DX, FN_DY
 
 from hermes2d.examples.c10 import set_bc, set_forms
 from hermes2d.examples import get_motor_mesh
@@ -129,8 +129,7 @@ while(not done):
     sview.show(sln_coarse)
 
     # View the mesh
-    mview = MeshView("Example 7", 100, 100, 500, 500)
-    mview.show(mesh, space=space)
+    mesh.plot()
 
     # Solve the fine mesh problem
     rs = RefSystem(ls)
@@ -156,4 +155,4 @@ print ("Total running time: %d sec" % cpu)
 
 # Show the fine solution - this is the final result
 sview.show(sln_fine)
-gview.show(sln_fine, sln_fine, EPS_HIGH)
+gview.show(sln_fine, sln_fine, H2D_EPS_HIGH)

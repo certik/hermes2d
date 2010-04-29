@@ -165,7 +165,7 @@ int main(int argc, char* argv[])
     cpu_time.tick();
 
     // visualize the solution
-    view.show(&sln_coarse, EPS_HIGH);
+    view.show(&sln_coarse, H2D_EPS_HIGH);
     oview.show(&space);
 
     // time measurement

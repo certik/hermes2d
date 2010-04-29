@@ -63,7 +63,7 @@ void WeakForm::add_biform(int i, int j, biform_val_t fn, biform_ord_t ord, SymFl
     error("\"sym\" must be -1, 0 or 1.");
   if (sym < 0 && i == j)
     error("Only off-diagonal forms can be antisymmetric.");
-  if (area != ANY && area < 0 && -area > (int)areas.size())
+  if (area != H2D_ANY && area < 0 && -area > (int)areas.size())
     error("Invalid area number.");
   if (bfvol.size() > 100)
     warn("Large number of forms (> 100). Is this the intent?");
@@ -78,7 +78,7 @@ void WeakForm::add_biform_surf(int i, int j, biform_val_t fn, biform_ord_t ord, 
 {
   if (i < 0 || i >= neq || j < 0 || j >= neq)
     error("Invalid equation number.");
-  if (area != ANY && area < 0 && -area > (int)areas.size())
+  if (area != H2D_ANY && area < 0 && -area > (int)areas.size())
     error("Invalid area number.");
 
   BiFormSurf form = { i, j, area, fn, ord };
@@ -91,7 +91,7 @@ void WeakForm::add_liform(int i, liform_val_t fn, liform_ord_t ord, int area, in
 {
   if (i < 0 || i >= neq)
     error("Invalid equation number.");
-  if (area != ANY && area < 0 && -area > (int)areas.size())
+  if (area != H2D_ANY && area < 0 && -area > (int)areas.size())
     error("Invalid area number.");
 
   LiFormVol form(i, area, fn, ord);
@@ -104,7 +104,7 @@ void WeakForm::add_liform(int i, liform_val_extended_t fn_ext, liform_ord_extend
 {
   if (i < 0 || i >= neq)
     error("Invalid equation number.");
-  if (area != ANY && area < 0 && -area > (int)areas.size())
+  if (area != H2D_ANY && area < 0 && -area > (int)areas.size())
     error("Invalid area number.");
 
   LiFormVol form(i, area, fn_ext, ord_ext);
@@ -117,7 +117,7 @@ void WeakForm::add_liform_surf(int i, liform_val_t fn, liform_ord_t ord, int are
 {
   if (i < 0 || i >= neq)
     error("Invalid equation number.");
-  if (area != ANY && area < 0 && -area > (int)areas.size())
+  if (area != H2D_ANY && area < 0 && -area > (int)areas.size())
     error("Invalid area number.");
 
   LiFormSurf form = { i, area, fn, ord };
@@ -134,7 +134,7 @@ void WeakForm::add_jacform(int i, int j, jacform_val_t fn, jacform_ord_t ord, Sy
     error("\"sym\" must be -1, 0 or 1.");
   if (sym < 0 && i == j)
     error("Only off-diagonal forms can be antisymmetric.");
-  if (area != ANY && area < 0 && -area > areas.size())
+  if (area != H2D_ANY && area < 0 && -area > areas.size())
     error("Invalid area number.");
   if (jfvol.size() > 100)
     warn("Large number of forms (> 100). Is this the intent?");
@@ -149,7 +149,7 @@ void WeakForm::add_jacform_surf(int i, int j, jacform_val_t fn, jacform_ord_t or
 {
   if (i < 0 || i >= neq || j < 0 || j >= neq)
     error("Invalid equation number.");
-  if (area != ANY && area < 0 && -area > areas.size())
+  if (area != H2D_ANY && area < 0 && -area > areas.size())
     error("Invalid area number.");
 
   JacFormSurf form = { i, j, area, fn, ord };
@@ -162,7 +162,7 @@ void WeakForm::add_resform(int i, resform_val_t fn, resform_ord_t ord, int area,
 {
   if (i < 0 || i >= neq)
     error("Invalid equation number.");
-  if (area != ANY && area < 0 && -area > areas.size())
+  if (area != H2D_ANY && area < 0 && -area > areas.size())
     error("Invalid area number.");
 
   ResFormVol form = { i, area, fn, ord };
@@ -175,7 +175,7 @@ void WeakForm::add_resform_surf(int i, resform_val_t fn, resform_ord_t ord, int 
 {
   if (i < 0 || i >= neq)
     error("Invalid equation number.");
-  if (area != ANY && area < 0 && -area > areas.size())
+  if (area != H2D_ANY && area < 0 && -area > areas.size())
     error("Invalid area number.");
 
   ResFormSurf form = { i, area, fn, ord };

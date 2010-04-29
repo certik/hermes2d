@@ -96,7 +96,7 @@ int main(int argc, char* argv[])
   space.set_bc_types(bc_types);
   space.set_bc_values(bc_values);
   if (P_INIT > 1)
-    space.set_element_order(0, make_quad_order(1, P_INIT));
+    space.set_element_order(0, H2D_MAKE_QUAD_ORDER(1, P_INIT));
   else
     space.set_uniform_order(P_INIT);
 

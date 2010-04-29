@@ -66,8 +66,7 @@ sys.assemble()
 sys.solve_system(sln)
 
 # Visualize the solution
-view = ScalarView("Solution")
-view.show(sln)
+sln.plot()
 
 # Visualize the mesh
-mesh.plot(space=space)
+mesh.plot(sapce=sapce)

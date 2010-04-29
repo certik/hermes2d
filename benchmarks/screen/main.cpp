@@ -167,16 +167,16 @@ int main(int argc, char* argv[])
     ImagFilter imag(&sln_coarse);
     Xview_r.set_min_max_range(-3.0, 1.0);
     //Xview_r.show_scale(false);
-    Xview_r.show(&real, EPS_NORMAL, FN_VAL_0);
+    Xview_r.show(&real, H2D_EPS_NORMAL, FN_VAL_0);
     Yview_r.set_min_max_range(-4.0, 4.0);
     //Yview_r.show_scale(false);
-    Yview_r.show(&real, EPS_NORMAL, FN_VAL_1);
+    Yview_r.show(&real, H2D_EPS_NORMAL, FN_VAL_1);
     Xview_i.set_min_max_range(-1.0, 4.0);
     //Xview_i.show_scale(false);
-    Xview_i.show(&imag, EPS_NORMAL, FN_VAL_0);
+    Xview_i.show(&imag, H2D_EPS_NORMAL, FN_VAL_0);
     Yview_i.set_min_max_range(-4.0, 4.0);
     //Yview_i.show_scale(false);
-    Yview_i.show(&imag, EPS_NORMAL, FN_VAL_1);
+    Yview_i.show(&imag, H2D_EPS_NORMAL, FN_VAL_1);
     ord.show(&space);
 
     // time measurement

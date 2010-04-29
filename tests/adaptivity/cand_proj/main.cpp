@@ -44,9 +44,9 @@ struct TestCase {
     for(int i = 0; i < num_sons; i++) {
       if (res_orders[i] != refin.p[i]) {
         info("order (%d, %d) of son %d does not match, expected (%d, %d)"
-          , get_h_order(refin.p[i]), get_v_order(refin.p[i])
+          , H2D_GET_H_ORDER(refin.p[i]), H2D_GET_V_ORDER(refin.p[i])
           , i
-          , get_h_order(res_orders[i]), get_v_order(res_orders[i]));
+          , H2D_GET_H_ORDER(res_orders[i]), H2D_GET_V_ORDER(res_orders[i]));
         return false;
       }
     }
@@ -79,7 +79,7 @@ D biform(int n, double *wt, Func<T> *u, Func<T> *v, Geom<T> *e, ExtData<D> *data
 
 /// Linear form: order
 Ord liform(int point_cnt, double *weights, Func<Ord> *values_v, Geom<Ord> *geometry, ExtData<Ord> *values_fnc_ext) {
-  return Ord(get_h_order(cur_test_case->func_quad_order) + get_v_order(cur_test_case->func_quad_order) + 2*values_v->val->get_order());
+  return Ord(H2D_GET_H_ORDER(cur_test_case->func_quad_order) + H2D_GET_V_ORDER(cur_test_case->func_quad_order) + 2*values_v->val->get_order());
 }
 
 /// Linear form: value
@@ -130,22 +130,22 @@ bool init(bool tri) {
     // weakform
     weakform = new WeakForm(1);
     weakform->add_biform(0, 0, callback(biform), SYM, 0);
-    weakform->add_liform(0, liform, liform, ANY, 0);
+    weakform->add_liform(0, liform, liform, H2D_ANY, 0);
 
     //solver
     solver = new UmfpackSolver();
 
     //test cases
     if (tri) {
-      test_cases.push_back(TestCase("x^2 y^2", func_x2y2_dx, func_x2y2_dx, func_x2y2_dy, 1, 2+2, H2D_REFINEMENT_P, make_quad_order(2, 0)));
+      test_cases.push_back(TestCase("x^2 y^2", func_x2y2_dx, func_x2y2_dx, func_x2y2_dy, 1, 2+2, H2D_REFINEMENT_P, H2D_MAKE_QUAD_ORDER(2, 0)));
     }
     else {
-      test_cases.push_back(TestCase("x^2", func_x2_val, func_x2_dx, func_x2_dy, make_quad_order(1,1), make_quad_order(2,0), H2D_REFINEMENT_P, make_quad_order(2,1)));
-      //test_cases.push_back(TestCase("abs(y)", func_absy_val, func_absy_dx, func_absy_dy, make_quad_order(1,1), make_quad_order(0,1), H2D_REFINEMENT_ANISO_H, make_quad_order(1,1), make_quad_order(1,1)));
-      //test_cases.push_back(TestCase("abs(x)*abs(y)", func_absx_absy_val, func_absx_absy_dx, func_absx_absy_dy, make_quad_order(1,1), make_quad_order(1,1), H2D_REFINEMENT_H, make_quad_order(1,1), make_quad_order(1,1), make_quad_order(1, 1), make_quad_order(1,1)));
-      test_cases.push_back(TestCase("x^2 y^2", func_x2y2_val, func_x2y2_dx, func_x2y2_dy, make_quad_order(1,1), make_quad_order(2,2), H2D_REFINEMENT_P, make_quad_order(2,2)));
-      test_cases.push_back(TestCase("x^3 y", func_x3y1_val, func_x3y1_dx, func_x3y1_dy, make_quad_order(2,2), make_quad_order(3,1), H2D_REFINEMENT_P, make_quad_order(3,2)));
-      test_cases.push_back(TestCase("x^3 y^4", func_x3y4_val, func_x3y4_dx, func_x3y4_dy, make_quad_order(3,3), make_quad_order(3,4), H2D_REFINEMENT_P, make_quad_order(3,4)));
+      test_cases.push_back(TestCase("x^2", func_x2_val, func_x2_dx, func_x2_dy, H2D_MAKE_QUAD_ORDER(1,1), H2D_MAKE_QUAD_ORDER(2,0), H2D_REFINEMENT_P, H2D_MAKE_QUAD_ORDER(2,1)));
+      //test_cases.push_back(TestCase("abs(y)", func_absy_val, func_absy_dx, func_absy_dy, H2D_MAKE_QUAD_ORDER(1,1), H2D_MAKE_QUAD_ORDER(0,1), H2D_REFINEMENT_ANISO_H, H2D_MAKE_QUAD_ORDER(1,1), H2D_MAKE_QUAD_ORDER(1,1)));
+      //test_cases.push_back(TestCase("abs(x)*abs(y)", func_absx_absy_val, func_absx_absy_dx, func_absx_absy_dy, H2D_MAKE_QUAD_ORDER(1,1), H2D_MAKE_QUAD_ORDER(1,1), H2D_REFINEMENT_H, H2D_MAKE_QUAD_ORDER(1,1), H2D_MAKE_QUAD_ORDER(1,1), H2D_MAKE_QUAD_ORDER(1, 1), H2D_MAKE_QUAD_ORDER(1,1)));
+      test_cases.push_back(TestCase("x^2 y^2", func_x2y2_val, func_x2y2_dx, func_x2y2_dy, H2D_MAKE_QUAD_ORDER(1,1), H2D_MAKE_QUAD_ORDER(2,2), H2D_REFINEMENT_P, H2D_MAKE_QUAD_ORDER(2,2)));
+      test_cases.push_back(TestCase("x^3 y", func_x3y1_val, func_x3y1_dx, func_x3y1_dy, H2D_MAKE_QUAD_ORDER(2,2), H2D_MAKE_QUAD_ORDER(3,1), H2D_REFINEMENT_P, H2D_MAKE_QUAD_ORDER(3,2)));
+      test_cases.push_back(TestCase("x^3 y^4", func_x3y4_val, func_x3y4_dx, func_x3y4_dy, H2D_MAKE_QUAD_ORDER(3,3), H2D_MAKE_QUAD_ORDER(3,4), H2D_REFINEMENT_P, H2D_MAKE_QUAD_ORDER(3,4)));
     }
 
     return true;
@@ -203,8 +203,8 @@ int test() {
       info("  selected candidate: correct");
 
       //check if all candidates with higher orders has zero error
-      int min_order_h = get_h_order(cur_test_case->func_quad_order);
-      int min_order_v = get_v_order(cur_test_case->func_quad_order);
+      int min_order_h = H2D_GET_H_ORDER(cur_test_case->func_quad_order);
+      int min_order_v = H2D_GET_V_ORDER(cur_test_case->func_quad_order);
       const std::vector<RefinementSelectors::H1UniformHP::Cand>& candidates = selector.get_candidates();
       std::vector<RefinementSelectors::H1UniformHP::Cand>::const_iterator cand = candidates.begin();
       while (cand != candidates.end()) {
@@ -212,7 +212,7 @@ int test() {
         int num_sons = cand->get_num_sons();
         bool valid = true;
         for(int i = 0; i < num_sons; i++) {
-          if (get_h_order(cand->p[i]) < min_order_h || get_v_order(cand->p[i]) < min_order_v)
+          if (H2D_GET_H_ORDER(cand->p[i]) < min_order_h || H2D_GET_V_ORDER(cand->p[i]) < min_order_v)
             valid = false;
         }
 

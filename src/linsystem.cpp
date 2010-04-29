@@ -176,19 +176,19 @@ void LinSystem::free()
 // memory that will be required for the final matrix (8 bytes vs. 12 bytes per nonzero element).
 // After counting the nonzero elements all pages are freed, so no matrix memory is wasted.
 
-static const int page_size = 61; // => sizeof(Page) == 256 on x86_64
+static const int H2D_PAGE_SIZE = 61; // => sizeof(Page) == 256 on x86_64
 
 struct Page
 {
   int count;
-  int idx[page_size];
+  int idx[H2D_PAGE_SIZE];
   Page* next;
 };
 
 
 static inline void page_add_ij(Page** pages, int i, int j)
 {
-  if (pages[i] == NULL || pages[i]->count >= page_size)
+  if (pages[i] == NULL || pages[i]->count >= H2D_PAGE_SIZE)
   {
     Page* new_page = new Page;
     new_page->count = 0;
@@ -550,7 +550,7 @@ void LinSystem::assemble(bool rhsonly)
       {
         WeakForm::BiFormVol* bfv = s->bfvol[ww];
         if (isempty[bfv->i] || isempty[bfv->j]) continue;
-        if (bfv->area != ANY && !wf->is_in_area(marker, bfv->area)) continue;
+        if (bfv->area != H2D_ANY && !wf->is_in_area(marker, bfv->area)) continue;
         m = bfv->i;  fv = spss[m];  am = &al[m];
         n = bfv->j;  fu = pss[n];   an = &al[n];
         bool tra = (m != n) && (bfv->sym != 0);
@@ -606,7 +606,7 @@ void LinSystem::assemble(bool rhsonly)
       {
         WeakForm::LiFormVol* lfv = s->lfvol[ww];
         if (isempty[lfv->i]) continue;
-        if (lfv->area != ANY && !wf->is_in_area(marker, lfv->area)) continue;
+        if (lfv->area != H2D_ANY && !wf->is_in_area(marker, lfv->area)) continue;
         m = lfv->i;  fv = spss[m];  am = &al[m];
 
         for (int i = 0; i < am->cnt; i++)
@@ -637,7 +637,7 @@ void LinSystem::assemble(bool rhsonly)
         {
           WeakForm::BiFormSurf* bfs = s->bfsurf[ww];
           if (isempty[bfs->i] || isempty[bfs->j]) continue;
-          if (bfs->area != ANY && !wf->is_in_area(marker, bfs->area)) continue;
+          if (bfs->area != H2D_ANY && !wf->is_in_area(marker, bfs->area)) continue;
           m = bfs->i;  fv = spss[m];  am = &al[m];
           n = bfs->j;  fu = pss[n];   an = &al[n];
 
@@ -666,7 +666,7 @@ void LinSystem::assemble(bool rhsonly)
         {
           WeakForm::LiFormSurf* lfs = s->lfsurf[ww];
           if (isempty[lfs->i]) continue;
-          if (lfs->area != ANY && !wf->is_in_area(marker, lfs->area)) continue;
+          if (lfs->area != H2D_ANY && !wf->is_in_area(marker, lfs->area)) continue;
           m = lfs->i;  fv = spss[m];  am = &al[m];
 
           if (!nat[m]) continue;
@@ -1064,7 +1064,7 @@ HERMES2D_API void update_limit_table(int mode)
   g_quad_2d_std.set_mode(mode);
   g_max_order = g_quad_2d_std.get_max_order();
   g_safe_max_order = g_quad_2d_std.get_safe_max_order();
-  g_order_table = (mode == MODE_TRIANGLE) ? g_order_table_tri : g_order_table_quad;
+  g_order_table = (mode == H2D_MODE_TRIANGLE) ? g_order_table_tri : g_order_table_quad;
 }
 
 

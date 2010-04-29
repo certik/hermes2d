@@ -135,8 +135,8 @@ int main(int argc, char* argv[])
 
   // initialize the weak formulation
   WeakForm wf(1);
-  wf.add_biform(0, 0, callback(jac), UNSYM, ANY, 1, &u_prev_newton);
-  wf.add_liform(0, callback(res), ANY, 2, &u_prev_newton, &u_prev_time);
+  wf.add_biform(0, 0, callback(jac), UNSYM, H2D_ANY, 1, &u_prev_newton);
+  wf.add_liform(0, callback(res), H2D_ANY, 2, &u_prev_newton, &u_prev_time);
 
   // initialize the nonlinear system and solver
   UmfpackSolver umfpack;

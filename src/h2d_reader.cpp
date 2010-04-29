@@ -189,7 +189,7 @@ void H2DReader::load_stream(FILE *f, Mesh *mesh)
   mesh->free();
 
   // create a hash table large enough
-  int size = HashTable::DEFAULT_HASH_SIZE;
+  int size = HashTable::H2D_DEFAULT_HASH_SIZE;
   while (size < 8*n) size *= 2;
   mesh->init(size);
 
@@ -199,7 +199,7 @@ void H2DReader::load_stream(FILE *f, Mesh *mesh)
     Node* node = mesh->nodes.add();
     assert(node->id == i);
     node->ref = TOP_LEVEL_REF;
-    node->type = TYPE_VERTEX;
+    node->type = H2D_TYPE_VERTEX;
     node->bnd = 0;
     node->p1 = node->p2 = -1;
     node->next_hash = NULL;
@@ -367,12 +367,12 @@ Nurbs* H2DReader::load_nurbs(Mesh *mesh, MItem* curve, int id, Node** en, int &p
 
   // read the end point indices
   MItem* edge = curve->list;
-  if (edge->n >= 0 || !is_int(edge->val))
+  if (edge->n >= 0 || !H2D_IS_INT(edge->val))
     error("Curve #%d: invalid edge definition.", id);
   p1 = (int) edge->val;
   edge = edge->next;
 
-  if (edge->n >= 0 || !is_int(edge->val))
+  if (edge->n >= 0 || !H2D_IS_INT(edge->val))
     error("Curve #%d: invalid edge definition.", id);
   p2 = (int) edge->val;
   edge = edge->next;
@@ -386,7 +386,7 @@ Nurbs* H2DReader::load_nurbs(Mesh *mesh, MItem* curve, int id, Node** en, int &p
   nurbs->degree = 2;
   if (!circle)
   {
-    if (deg == NULL || deg->n >= 0 || !is_int(deg->val) || deg->val < 0 || deg->val == 1)
+    if (deg == NULL || deg->n >= 0 || !H2D_IS_INT(deg->val) || deg->val < 0 || deg->val == 1)
       error("Curve #%d: invalid degee.", id);
     nurbs->degree = (int) deg->val;
   }
@@ -497,7 +497,7 @@ bool H2DReader::load(const char *filename, Mesh *mesh)
   if (n < 2) error("File %s: invalid number of vertices.", filename);
 
   // create a hash table large enough
-  int size = HashTable::DEFAULT_HASH_SIZE;
+  int size = HashTable::H2D_DEFAULT_HASH_SIZE;
   while (size < 8*n) size *= 2;
   mesh->init(size);
 
@@ -508,7 +508,7 @@ bool H2DReader::load(const char *filename, Mesh *mesh)
     Node* node = mesh->nodes.add();
     assert(node->id == i);
     node->ref = TOP_LEVEL_REF;
-    node->type = TYPE_VERTEX;
+    node->type = H2D_TYPE_VERTEX;
     node->bnd = 0;
     node->p1 = node->p2 = -1;
     node->next_hash = NULL;

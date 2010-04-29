@@ -49,7 +49,7 @@ cdef extern from "hermes2d.h":
     int ANTISYM "ANTISYM"
     int UNSYM "UNSYM"
     int SYM "SYM"
-    int ANY "ANY"
+    int H2D_ANY "H2D_ANY"
     int c_FN_VAL "FN_VAL"
     int c_FN_VAL_0 "FN_VAL_0"
     int c_FN_DX "FN_DX"
@@ -59,9 +59,9 @@ cdef extern from "hermes2d.h":
     int c_FN_DXY "FN_DXY"
     int c_FN_DEFAULT "FN_DEFAULT"
     int c_FN_ALL "FN_ALL"
-    int c_EPS_LOW "EPS_LOW"
-    int c_EPS_NORMAL "EPS_NORMAL"
-    int c_EPS_HIGH "EPS_HIGH"
+    int c_EPS_LOW "H2D_EPS_LOW"
+    int c_EPS_NORMAL "H2D_EPS_NORMAL"
+    int c_EPS_HIGH "H2D_EPS_HIGH"
     int c_verbose_mode "__h2d_report_verbose"
     int c_info_mode "__h2d_report_info"
     int c_warn_integration "__h2d_report_warn_intr"
@@ -113,7 +113,7 @@ cdef extern from "hermes2d.h":
         void load_str(char* mesh)
         void save(char* filename)
         void copy(c_Mesh *m)
-        void refine_element(int id)
+        void refine_element(int id, int refinement)
         void refine_all_elements()
         void refine_towards_boundary(int marker, int depth)
         void refine_towards_vertex(int marker, int depth)
