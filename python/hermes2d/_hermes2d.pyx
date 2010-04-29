@@ -1,15 +1,15 @@
-H2D_FN_DX = c_FN_DX
-H2D_FN_DY = c_FN_DY
-H2D_FN_VAL = c_FN_VAL
-H2D_FN_DX = c_FN_DX
-H2D_FN_DY = c_FN_DY
-H2D_FN_DXX = c_FN_DXX
-H2D_FN_DYY = c_FN_DYY
-H2D_FN_DXY = c_FN_DXY
-H2D_FN_DEFAULT = c_FN_DEFAULT
-H2D_FN_ALL = c_FN_ALL
-H2D_EPS_NORMAL = c_EPS_NORMAL
-H2D_EPS_HIGH = c_EPS_HIGH
+H2D_FN_DX = c_H2D_FN_DX
+H2D_FN_DY = c_H2D_FN_DY
+H2D_FN_VAL = c_H2D_FN_VAL
+H2D_FN_DX = c_H2D_FN_DX
+H2D_FN_DY = c_H2D_FN_DY
+H2D_FN_DXX = c_H2D_FN_DXX
+H2D_FN_DYY = c_H2D_FN_DYY
+H2D_FN_DXY = c_H2D_FN_DXY
+H2D_FN_DEFAULT = c_H2D_FN_DEFAULT
+H2D_FN_ALL = c_H2D_FN_ALL
+H2D_EPS_NORMAL = c_H2D_EPS_NORMAL
+H2D_EPS_HIGH = c_H2D_EPS_HIGH
 
 cdef class Nurbs:
     cdef c_Nurbs *thisptr
@@ -1158,7 +1158,7 @@ cdef class Vectorizer(Linearizer):
     #    delete(<c_Vectorizer *>(self.thisptr))
 
     def process_solution(self, MeshFunction xsln, MeshFunction ysln,
-            int xitem=c_FN_VAL_0, int yitem=c_FN_VAL_0, double eps=c_EPS_LOW):
+            int xitem=c_H2D_FN_VAL_0, int yitem=c_H2D_FN_VAL_0, double eps=c_H2D_EPS_LOW):
         (<c_Vectorizer *>(self.thisptr)).process_solution(
                 <c_MeshFunction *>xsln.thisptr, xitem,
                 <c_MeshFunction *>ysln.thisptr, yitem,
