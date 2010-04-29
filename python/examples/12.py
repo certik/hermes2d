@@ -76,7 +76,6 @@ set_forms(wf)
 # Visualize solution and mesh
 sview = ScalarView("Coarse solution", 0, 0, 600, 1000)
 oview = OrderView("Polynomial orders", 1220, 0, 600, 1000)
-mview = MeshView("Example 12", 100, 100, 500, 500)
 
 # Matrix solver
 solver = DummySolver()
@@ -102,7 +101,7 @@ while (not done):
 
     # View the solution and mesh
     sview.show(sln_coarse);
-    mview.show(mesh, space=space)
+    mesh.plot(space=space)
 
     # Solve the fine mesh problem
     rs = RefSystem(ls)
