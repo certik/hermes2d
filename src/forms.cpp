@@ -95,7 +95,7 @@ Func<double>* init_fn(PrecalcShapeset *fu, RefMap *rm, const int order)
 	u->nc = fu->get_num_components();
   int space_type = fu->get_type();
   Quad2D* quad = fu->get_quad_2d();
-  if (u->nc == 1) fu->set_quad_order(order, FN_ALL);
+  if (u->nc == 1) fu->set_quad_order(order, H2D_FN_ALL);
   else fu->set_quad_order(order);
   double3* pt = quad->get_points(order);
   int np = quad->get_num_points(order);

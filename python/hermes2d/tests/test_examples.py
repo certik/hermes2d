@@ -1,7 +1,7 @@
 from hermes2d import Mesh, H1Shapeset, PrecalcShapeset, H1Space, \
         LinSystem, WeakForm, Solution, ScalarView, VonMisesFilter, \
-        set_verbose, set_warn_integration, DummySolver, H2D_EPS_HIGH, FN_DX, \
-        FN_DY, H1OrthoHP, RefSystem
+        set_verbose, set_warn_integration, DummySolver, H2D_EPS_HIGH, H2D_FN_DX, \
+        H2D_FN_DY, H1OrthoHP, RefSystem
 from hermes2d.forms import set_forms
 from hermes2d.examples import get_example_mesh, get_sample_mesh, \
         get_cylinder_mesh, get_07_mesh, get_cathedral_mesh, get_bracket_mesh

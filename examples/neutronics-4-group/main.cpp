@@ -107,7 +107,7 @@ double integrate(MeshFunction* sln, int marker)
       RefMap* ru = sln->get_refmap();
       int o = sln->get_fn_order() + ru->get_inv_ref_order();
       limit_order(o);
-      sln->set_quad_order(o, FN_VAL);
+      sln->set_quad_order(o, H2D_FN_VAL);
       scalar *uval = sln->get_fn_values();
       double* x = ru->get_phys_x(o);
       double result = 0.0;

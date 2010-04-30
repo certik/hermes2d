@@ -1,6 +1,6 @@
-if(NOT REAL)
+if(NOT H2D_REAL)
     return()
-endif(NOT REAL)
+endif(NOT H2D_REAL)
 project(trilinos-linear)
 
 add_executable(${PROJECT_NAME} main.cpp)

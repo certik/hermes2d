@@ -1,7 +1,7 @@
-#define HERMES2D_REPORT_WARN
-#define HERMES2D_REPORT_INFO
-#define HERMES2D_REPORT_VERBOSE
-#define HERMES2D_REPORT_FILE "application.log"
+#define H2D_REPORT_WARN
+#define H2D_REPORT_INFO
+#define H2D_REPORT_VERBOSE
+#define H2D_REPORT_FILE "application.log"
 #include "hermes2d.h"
 #include "solver_umfpack.h"
 
@@ -142,9 +142,9 @@ int main(int argc, char* argv[])
 
   // initialize the weak formulation
   WeakForm wf(2);
-  wf.add_biform(0, 0, callback(bilinear_form_0_0), SYM);
-  wf.add_biform(0, 1, callback(bilinear_form_0_1), SYM);
-  wf.add_biform(1, 1, callback(bilinear_form_1_1), SYM);
+  wf.add_biform(0, 0, callback(bilinear_form_0_0), H2D_SYM);
+  wf.add_biform(0, 1, callback(bilinear_form_0_1), H2D_SYM);
+  wf.add_biform(1, 1, callback(bilinear_form_1_1), H2D_SYM);
   wf.add_liform_surf(1, callback(linear_form_surf_1), marker_top);
 
   // visualize solution and mesh

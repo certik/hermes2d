@@ -1,6 +1,6 @@
-if(NOT REAL)
+if(NOT H2D_REAL)
     return()
-endif(NOT REAL)
+endif(NOT H2D_REAL)
 project(neutronics-4-group)
 
 set(HERMES ${HERMES_REAL_BIN})

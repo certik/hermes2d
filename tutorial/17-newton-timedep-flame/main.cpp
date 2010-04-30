@@ -1,7 +1,7 @@
-#define HERMES2D_REPORT_WARN
-#define HERMES2D_REPORT_INFO
-#define HERMES2D_REPORT_VERBOSE
-#define HERMES2D_REPORT_FILE "application.log"
+#define H2D_REPORT_WARN
+#define H2D_REPORT_INFO
+#define H2D_REPORT_VERBOSE
+#define H2D_REPORT_FILE "application.log"
 #include "hermes2d.h"
 #include "solver_umfpack.h"
 
@@ -99,11 +99,11 @@ int main(int argc, char* argv[])
 
   // initialize the weak formulation
   WeakForm wf(2);
-  wf.add_biform(0, 0, callback(newton_bilinear_form_0_0), UNSYM, H2D_ANY, 1, &omega_dt);
+  wf.add_biform(0, 0, callback(newton_bilinear_form_0_0), H2D_UNSYM, H2D_ANY, 1, &omega_dt);
   wf.add_biform_surf(0, 0, callback(newton_bilinear_form_0_0_surf), 3);
-  wf.add_biform(0, 1, callback(newton_bilinear_form_0_1), UNSYM, H2D_ANY, 1, &omega_dy);
-  wf.add_biform(1, 0, callback(newton_bilinear_form_1_0), UNSYM, H2D_ANY, 1, &omega_dt);
-  wf.add_biform(1, 1, callback(newton_bilinear_form_1_1), UNSYM, H2D_ANY, 1, &omega_dy);
+  wf.add_biform(0, 1, callback(newton_bilinear_form_0_1), H2D_UNSYM, H2D_ANY, 1, &omega_dy);
+  wf.add_biform(1, 0, callback(newton_bilinear_form_1_0), H2D_UNSYM, H2D_ANY, 1, &omega_dt);
+  wf.add_biform(1, 1, callback(newton_bilinear_form_1_1), H2D_UNSYM, H2D_ANY, 1, &omega_dy);
   wf.add_liform(0, callback(newton_linear_form_0), H2D_ANY, 4, &t_prev_newton, &t_prev_time_1, &t_prev_time_2, &omega);
   wf.add_liform_surf(0, callback(newton_linear_form_0_surf), 3, 1, &t_prev_newton);
   wf.add_liform(1, callback(newton_linear_form_1), H2D_ANY, 4, &y_prev_newton, &y_prev_time_1, &y_prev_time_2, &omega);

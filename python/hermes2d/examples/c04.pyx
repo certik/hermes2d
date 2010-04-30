@@ -27,7 +27,7 @@ cdef c_Ord linear_form_ord(int n, double *wt, FuncOrd *v, GeomOrd *e, ExtDataOrd
     return create_Ord(20)
 
 def set_forms(WeakForm wf):
-    wf.thisptr.add_biform(0, 0, &bilinear_form, &bilinear_form_ord, SYM);
+    wf.thisptr.add_biform(0, 0, &bilinear_form, &bilinear_form_ord, H2D_SYM);
     wf.thisptr.add_liform(0, &linear_form, &linear_form_ord);
     wf.thisptr.add_liform_surf(0, &linear_form_surf, &linear_form_surf_ord, 2);
 """

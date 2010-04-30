@@ -1,7 +1,7 @@
-#define HERMES2D_REPORT_WARN
-#define HERMES2D_REPORT_INFO
-#define HERMES2D_REPORT_VERBOSE
-#define HERMES2D_REPORT_FILE "application.log"
+#define H2D_REPORT_WARN
+#define H2D_REPORT_INFO
+#define H2D_REPORT_VERBOSE
+#define H2D_REPORT_FILE "application.log"
 #include "hermes2d.h"
 #include "solver_umfpack.h"
 
@@ -112,7 +112,7 @@ int main(int argc, char* argv[])
 
   // initialize the weak formulation
   WeakForm wf(1);
-  wf.add_biform(0, 0, callback(bilinear_form), SYM);
+  wf.add_biform(0, 0, callback(bilinear_form), H2D_SYM);
 
   // visualize solution and mesh
   ScalarView Xview_r("Electric field X - real",   0, 0, 450, 420);
@@ -167,16 +167,16 @@ int main(int argc, char* argv[])
     ImagFilter imag(&sln_coarse);
     Xview_r.set_min_max_range(-3.0, 1.0);
     //Xview_r.show_scale(false);
-    Xview_r.show(&real, H2D_EPS_NORMAL, FN_VAL_0);
+    Xview_r.show(&real, H2D_EPS_NORMAL, H2D_FN_VAL_0);
     Yview_r.set_min_max_range(-4.0, 4.0);
     //Yview_r.show_scale(false);
-    Yview_r.show(&real, H2D_EPS_NORMAL, FN_VAL_1);
+    Yview_r.show(&real, H2D_EPS_NORMAL, H2D_FN_VAL_1);
     Xview_i.set_min_max_range(-1.0, 4.0);
     //Xview_i.show_scale(false);
-    Xview_i.show(&imag, H2D_EPS_NORMAL, FN_VAL_0);
+    Xview_i.show(&imag, H2D_EPS_NORMAL, H2D_FN_VAL_0);
     Yview_i.set_min_max_range(-4.0, 4.0);
     //Yview_i.show_scale(false);
-    Yview_i.show(&imag, H2D_EPS_NORMAL, FN_VAL_1);
+    Yview_i.show(&imag, H2D_EPS_NORMAL, H2D_FN_VAL_1);
     ord.show(&space);
 
     // time measurement

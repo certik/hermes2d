@@ -1,7 +1,7 @@
 from hermes2d._hermes2d cimport scalar, WeakForm, H1Space, EdgePos, \
         FuncReal, GeomReal, ExtDataReal, BC_ESSENTIAL, \
         BC_NATURAL, c_Ord, create_Ord, FuncOrd, GeomOrd, \
-        ExtDataOrd, ExtDataReal, FuncReal, GeomReal, SYM, int_F_v
+        ExtDataOrd, ExtDataReal, FuncReal, GeomReal, H2D_SYM, int_F_v
 
 import math
 
@@ -90,7 +90,7 @@ def set_bc(H1Space space):
     space.thisptr.set_bc_values(&bc_values)
 
 def set_forms(WeakForm wf):
-    wf.thisptr.add_biform(0, 0, &bilinear_form, &bilinear_form_ord, SYM);
+    wf.thisptr.add_biform(0, 0, &bilinear_form, &bilinear_form_ord, H2D_SYM);
     wf.thisptr.add_liform(0, &linear_form, &linear_form_ord);
     wf.thisptr.add_liform_surf(0, &linear_form_surf, &linear_form_surf_ord, 2);
     

@@ -505,7 +505,7 @@ void Space::free_extra_data()
 }*/
 
 // new way of enumerating degrees of freedom
-HERMES2D_API int assign_dofs(int n, ...) {
+H2D_API int assign_dofs(int n, ...) {
   // reading variable argument list
   std::vector<Space*> spaces(n);
   va_list ap;
@@ -524,7 +524,7 @@ HERMES2D_API int assign_dofs(int n, ...) {
   return ndof;
 }
 
-HERMES2D_API int assign_dofs(Space *s) {
+H2D_API int assign_dofs(Space *s) {
   return assign_dofs(1, s);
 }
 

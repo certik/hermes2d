@@ -1,6 +1,6 @@
-if(NOT COMPLEX)
+if(NOT H2D_COMPLEX)
     return()
-endif(NOT COMPLEX)
+endif(NOT H2D_COMPLEX)
 
 
 project(wire)

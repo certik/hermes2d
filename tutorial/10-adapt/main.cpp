@@ -1,7 +1,7 @@
-#define HERMES2D_REPORT_WARN
-#define HERMES2D_REPORT_INFO
-#define HERMES2D_REPORT_VERBOSE
-#define HERMES2D_REPORT_FILE "application.log"
+#define H2D_REPORT_WARN
+#define H2D_REPORT_INFO
+#define H2D_REPORT_VERBOSE
+#define H2D_REPORT_FILE "application.log"
 #include "hermes2d.h"
 #include "solver_umfpack.h"
 
@@ -117,8 +117,8 @@ int main(int argc, char* argv[])
 
   // initialize the weak formulation
   WeakForm wf(1);
-  wf.add_biform(0, 0, callback(biform1), SYM, 1);
-  wf.add_biform(0, 0, callback(biform2), SYM, 2);
+  wf.add_biform(0, 0, callback(biform1), H2D_SYM, 1);
+  wf.add_biform(0, 0, callback(biform2), H2D_SYM, 2);
 
   // visualize solution, gradient, and mesh
   ScalarView sview("Coarse solution", 0, 0, 600, 1000);
@@ -156,7 +156,7 @@ int main(int argc, char* argv[])
 
     // view the solution -- this can be slow; for illustration only
     sview.show(&sln_coarse);
-    gview.show(&sln_coarse, &sln_coarse, H2D_EPS_NORMAL, FN_DX_0, FN_DY_0);
+    gview.show(&sln_coarse, &sln_coarse, H2D_EPS_NORMAL, H2D_FN_DX_0, H2D_FN_DY_0);
     oview.show(&space);
 
     // time measurement
@@ -205,7 +205,7 @@ int main(int argc, char* argv[])
   // show the fine solution - this is the final result
   sview.set_title("Final solution");
   sview.show(&sln_fine);
-  gview.show(&sln_fine, &sln_fine, H2D_EPS_HIGH, FN_DX_0, FN_DY_0);
+  gview.show(&sln_fine, &sln_fine, H2D_EPS_HIGH, H2D_FN_DX_0, H2D_FN_DY_0);
 
   // wait for all views to be closed
   View::wait();

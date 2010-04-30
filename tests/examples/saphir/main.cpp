@@ -180,11 +180,11 @@ int main(int argc, char* argv[])
 
   // initialize the weak formulation
   WeakForm wf(1);
-  wf.add_biform(0, 0, bilinear_form_1, bilinear_form_ord, SYM, 1);
-  wf.add_biform(0, 0, bilinear_form_2, bilinear_form_ord, SYM, 2);
-  wf.add_biform(0, 0, bilinear_form_3, bilinear_form_ord, SYM, 3);
-  wf.add_biform(0, 0, bilinear_form_4, bilinear_form_ord, SYM, 4);
-  wf.add_biform(0, 0, bilinear_form_5, bilinear_form_ord, SYM, 5);
+  wf.add_biform(0, 0, bilinear_form_1, bilinear_form_ord, H2D_SYM, 1);
+  wf.add_biform(0, 0, bilinear_form_2, bilinear_form_ord, H2D_SYM, 2);
+  wf.add_biform(0, 0, bilinear_form_3, bilinear_form_ord, H2D_SYM, 3);
+  wf.add_biform(0, 0, bilinear_form_4, bilinear_form_ord, H2D_SYM, 4);
+  wf.add_biform(0, 0, bilinear_form_5, bilinear_form_ord, H2D_SYM, 5);
   wf.add_liform(0, linear_form_1, linear_form_ord, 1);
   wf.add_liform(0, linear_form_3, linear_form_ord, 3);
 

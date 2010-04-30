@@ -97,7 +97,7 @@ string TimePeriod::to_string(double secs) const {
   }
 }
 
-HERMES2D_API ostream& operator<<(ostream& stream, const TimePeriod& period) {
+H2D_API ostream& operator<<(ostream& stream, const TimePeriod& period) {
   stream << period.accumulated_str();
   return stream;
 }
