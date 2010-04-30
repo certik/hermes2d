@@ -55,7 +55,9 @@ macro(LIBRARY_SETTINGS BIN)
     target_link_libraries(${BIN} ${JUDY_LIBRARY} ${PTHREAD_LIBRARY})
 
     if(NOT MSVC)
-        target_link_libraries(${BIN} "rt")
+        IF(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+            target_link_libraries(${BIN} "rt")
+        ENDIF(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     endif(NOT MSVC)
 
     if(WITH_GLUT)
