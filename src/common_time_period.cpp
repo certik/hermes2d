@@ -26,6 +26,10 @@ TimePeriod::SysTime TimePeriod::get_time() const {
   else {
     return clock();
   }
+#elif defined(__APPLE__) //Mac
+  // FIXME: implement time measurement on Mac
+  timespec tm;
+  return tm;
 #else //Linux
   timespec tm;
   clock_gettime(CLOCK_REALTIME, &tm);
