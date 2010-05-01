@@ -259,6 +259,9 @@ void Space::distribute_orders(Mesh* mesh, int* parents)
 
 int Space::assign_dofs(int first_dof, int stride)
 {
+  //warn("Deprecated function used. Please update your code to use assign_dofs(Space *s) or assign_dofs(int n, Space *s1, Space *s2, ..., Space *sn).");
+
+
   if (first_dof < 0) error("Invalid first_dof.");
   if (stride < 1)    error("Invalid stride.");
 

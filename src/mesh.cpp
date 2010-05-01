@@ -1585,7 +1585,7 @@ void Mesh::refine_element_to_triangles(int id)
 
 void Mesh::load(const char* filename, bool debug)
 {
-	warn("Deprecated function used. Please update your code to use MeshLoader classes");
+	warn("Deprecated function used. Please update your code to use MeshLoader classes.");
 
 	H2DReader loader;
 	loader.load(filename, this);
@@ -1594,7 +1594,7 @@ void Mesh::load(const char* filename, bool debug)
 
 void Mesh::save(const char* filename)
 {
-	warn("Deprecated function used. Please update your code to use MeshLoader classes");
+	warn("Deprecated function used. Please update your code to use MeshLoader classes.");
 
 	H2DReader loader;
   loader.save(filename, this);
@@ -1602,7 +1602,7 @@ void Mesh::save(const char* filename)
 
 void Mesh::load_old(const char* filename)
 {
-  warn("Deprecated function used. Please update your code to use MeshLoader classes");
+  warn("Deprecated function used. Please update your code to use MeshLoader classes.");
 
   H2DReader loader;
   loader.load_old(filename, this);
@@ -1610,7 +1610,7 @@ void Mesh::load_old(const char* filename)
 
 void Mesh::load_stream(FILE *f)
 {
-  warn("Deprecated function used. Please update your code to use MeshLoader classes");
+  warn("Deprecated function used. Please update your code to use MeshLoader classes.");
 
   H2DReader loader;
   loader.load_stream(f, this);
@@ -1618,7 +1618,7 @@ void Mesh::load_stream(FILE *f)
 
 void Mesh::load_str(char *mesh)
 {
-  warn("Deprecated function used. Please update your code to use MeshLoader classes");
+  warn("Deprecated function used. Please update your code to use MeshLoader classes.");
 
   H2DReader loader;
   loader.load_str(mesh, this);

@@ -76,72 +76,49 @@ template<typename Real, typename Scalar>
 Scalar bilinear_form(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
   Scalar result = 0;
-    // epsilon times int_grad_u_grad_v:
-  result += EPSILON * int_grad_u_grad_v<Real, Scalar>(n, wt, u, v);
-  for (int i=0; i < n; i++) {
-    // VERSION A (convective term integrated by parts):
-    result += - wt[i] * (B1 * u->val[i] * v->dx[i] + B2 * u->val[i] * v->dy[i]);
-    // VERSION B (convective term not integrated by parts):
-    //result += wt[i] * (B1 * u->dx[i] * v->val[i] + B2 * u->dy[i] * v->val[i]);
+  for (int i=0; i < n; i++)
+  {
+    result += wt[i] * (EPSILON * (u->dx[i]*v->dx[i] + u->dy[i]*v->dy[i]) - (B1 * u->val[i] * v->dx[i] + B2 * u->val[i] * v->dy[i]));
   }
   return result;
 }
 
-#ifdef H2D_SECOND_DERIVATIVES_ENABLED
+
 // bilinear form for the variational multiscale stabilization
 template<typename Real, typename Scalar>
-Scalar bilinear_form_stabilization(int n, double *wt, Func<Real> *u, Func<Real> *v,
-        Geom<Real> *e, ExtData<Scalar> *ext)
+Scalar bilinear_form_stabilization(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
-  assert(e->element != NULL);
-  double h_e = e->element->get_diameter();
+#ifdef H2D_SECOND_DERIVATIVES_ENABLED
+  Real h_e = e->diam;
   Scalar result = 0;
   for (int i=0; i < n; i++) {
     double b_norm = sqrt(B1*B1 + B2*B2);
-    double tau = 1. / sqrt(9*pow(4*EPSILON/pow(h_e, 2), 2) + pow(2*b_norm/h_e, 2));
+    Real tau = 1. / sqrt(9*pow(4*EPSILON/pow(h_e, 2), 2) + pow(2*b_norm/h_e, 2));
     result += -wt[i]*(-B1 * v->dx[i] - B2 * v->dy[i] - EPSILON * v->laplace[i]) * tau *
                 (B1 * u->dx[i] + B2 * u->dy[i] - EPSILON * u->laplace[i]);
   }
   return result;
-}
 #else
-template<typename Real, typename Scalar>
-Scalar bilinear_form_stabilization(int n, double *wt, Func<Real> *u, Func<Real> *v,
-        Geom<Real> *e, ExtData<Scalar> *ext)
-{
   error("Define H2D_SECOND_DERIVATIVES_ENABLED in common.h if you want to use second derivatives of shape functions in weak forms.");
-}
 #endif
-
-// simplified bilinear form for automatic order determination
-Ord bilinear_form_stabilization_order(int n, double *wt, Func<Ord> *u, Func<Ord> *v,
-        Geom<Ord> *e, ExtData<Ord> *ext)
-{
-  return (v->dx[0] - v->dy[0]) * (u->dx[0] + u->dy[0]);
 }
 
 template<typename Real, typename Scalar>
 Scalar bilinear_form_shock_capturing(int n, double *wt, Func<Real> *u, Func<Real> *v,
         Geom<Real> *e, ExtData<Scalar> *ext)
 {
-  double h_e = e->element->get_diameter();
-  double s_c = 0.9;
-  Scalar result = 0;
+  Real h_e = e->diam;
+  Real s_c = 0.9;
+  Real result = 0;
   for (int i=0; i < n; i++) {
     // This R makes it nonlinear! So we need to use the Newton method:
-    double R = fabs(B1 * u->dx[i] + B2 * u->dy[i]);
+    Real R_squared = pow(B1 * u->dx[i] + B2 * u->dy[i], 2.);
+    Real R = sqrt(R_squared); //This just does fabs(B1 * u->dx[i] + B2 * u->dy[i]); but it can be parsed
     result += wt[i] * s_c * 0.5 * h_e * R *
               (u->dx[i]*v->dx[i] + u->dy[i]*v->dy[i]) /
               (sqrt(pow(u->dx[i], 2) + pow(u->dy[i], 2)) + 1.e-8);
   }
   return result;
-}
-
-Ord bilinear_form_shock_capturing_order(int n, double *wt, Func<Ord> *u, Func<Ord> *v,
-        Geom<Ord> *e, ExtData<Ord> *ext)
-{
-  return (B1 * u->dx[0] + B2 * u->dy[0]) * (u->dx[0]*v->dx[0] + u->dy[0]*v->dy[0]) /
-         (sqrt(pow(u->dx[0], 2) + pow(u->dy[0], 2)) + 1.e-8);
 }
 
 int main(int argc, char* argv[])
@@ -171,11 +148,10 @@ int main(int argc, char* argv[])
   WeakForm wf(1);
   wf.add_biform(0, 0, callback(bilinear_form));
   if (STABILIZATION_ON == true) {
-    wf.add_biform(0, 0, bilinear_form_stabilization,
-            bilinear_form_stabilization_order);
+    wf.add_biform(0, 0, callback(bilinear_form_stabilization));
   }
   if (SHOCK_CAPTURING_ON == true) {
-    wf.add_biform(0, 0, bilinear_form_shock_capturing, bilinear_form_shock_capturing_order);
+    wf.add_biform(0, 0, callback(bilinear_form_shock_capturing));
   }
 
   // visualize solution and mesh
