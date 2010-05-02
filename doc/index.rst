@@ -9,7 +9,9 @@ Hermes2D Documentation
 .. toctree::
     :maxdepth: 2
 
-    src/introduction
+    src/intro-1
+    src/intro-2
+    src/intro-3
     src/tutorial-1
     src/tutorial-2
     src/tutorial-3

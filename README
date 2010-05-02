@@ -1,0 +1,8 @@
+Installation instructions for Linux, Mac OS X, Windows Cygwin,
+and Windows MSVC can be found in the Sphinx documentation 
+at http://hpfem.org/hermes2d/doc/index.html. Sources of the 
+documentation can be found in doc/src/. The documentation  
+can be also built and viewed locally (without using Internet): 
+cd doc
+make html
+firefox _build/html 
