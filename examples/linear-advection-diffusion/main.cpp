@@ -78,7 +78,9 @@ Scalar bilinear_form(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real>
   Scalar result = 0;
   for (int i=0; i < n; i++)
   {
-    result += wt[i] * (EPSILON * (u->dx[i]*v->dx[i] + u->dy[i]*v->dy[i]) - (B1 * u->val[i] * v->dx[i] + B2 * u->val[i] * v->dy[i]));
+    result += wt[i] * (EPSILON * (u->dx[i]*v->dx[i] + u->dy[i]*v->dy[i])
+                               - (B1 * u->val[i] * v->dx[i] + B2 * u->val[i] * v->dy[i])
+                      );
   }
   return result;
 }
@@ -94,8 +96,8 @@ Scalar bilinear_form_stabilization(int n, double *wt, Func<Real> *u, Func<Real> 
   for (int i=0; i < n; i++) {
     double b_norm = sqrt(B1*B1 + B2*B2);
     Real tau = 1. / sqrt(9*pow(4*EPSILON/pow(h_e, 2), 2) + pow(2*b_norm/h_e, 2));
-    result += -wt[i]*(-B1 * v->dx[i] - B2 * v->dy[i] - EPSILON * v->laplace[i]) * tau *
-                (B1 * u->dx[i] + B2 * u->dy[i] - EPSILON * u->laplace[i]);
+    result += wt[i] * tau * (-B1 * v->dx[i] - B2 * v->dy[i] + EPSILON * v->laplace[i])
+      * (-B1 * u->dx[i] - B2 * u->dy[i] + EPSILON * u->laplace[i]);
   }
   return result;
 #else
@@ -193,7 +195,8 @@ int main(int argc, char* argv[])
     int p_increase;
     if (ADAPT_TYPE == RefinementSelectors::H2DRS_CAND_HP) p_increase = 1;
     else p_increase = 0;
-    RefSystem rs(&ls, p_increase, 1);  // the '1' is for one level of global refinement in space
+    int ref_level = 1; 
+    RefSystem rs(&ls, p_increase, ref_level);
     rs.assemble();
     rs.solve(1, &sln_fine);
 
@@ -204,7 +207,7 @@ int main(int argc, char* argv[])
     oview.show(&space);
     sview.show(&sln_coarse);
     sview2.show(&sln_fine);
-    //sview.wait_for_keypress();
+    //View::wait(H2DV_WAIT_KEYPRESS);
 
     // time measurement
     cpu_time.tick(H2D_SKIP);
@@ -217,7 +220,8 @@ int main(int argc, char* argv[])
     cpu_time.tick();
 
     // report results
-    info("Estimate of error: %g%%", err_est);
+    info("ndof_coarse: %d, ndof_fine: %d, err_est: %g%%", 
+      space.get_num_dofs(), rs.get_ref_space()->get_num_dofs(), err_est);
 
     // add entry to DOF convergence graph
     graph_dof_est.add_values(space.get_num_dofs(), err_est);

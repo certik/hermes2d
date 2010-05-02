@@ -53,6 +53,11 @@ public:
   /// automatically on desctruction.
   void free_ref_data();
 
+  /// Gets pointer to reference space [i]
+  Space* get_ref_space(int i=0) {return ref_spaces[i];}
+
+  /// Gets pointer to reference mesh [i]
+  Mesh* get_ref_mesh(int i=0) {return ref_meshes[i];}
 
 protected:
 
