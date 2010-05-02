@@ -27,16 +27,13 @@ If you are using a Debian-based system, install the required libraries first:
 (Note: cmake has to be at least version 2.6 or later, matplotlib has to be at
 least 0.98.5.2 or higher.)
 
-Configure:
+Clone the Git repository, configure and build:
 
 ::
-    
+  
+    git clone http://hpfem.org/git/hermes2d.git
+    cd hermes2d/
     cmake .
-
-Build:
-
-::
-
     make
 
 If you have more than one CPU, you can use "make -jN" where N is
@@ -105,14 +102,19 @@ Debugging with Eclipse
 ~~~~~~~~~~~~~~~~~~~~~~
 
 To use eclipse as debugger, in the root folder of the project:
-mkdir eclipse_build
-cd eclipse_build
-cmake -G"Eclipse CDT4 - Unix Makefiles" -D CMAKE_BUILD_TYPE=Debug ../
+
+::
+
+    mkdir eclipse_build
+    cd eclipse_build
+    cmake -G"Eclipse CDT4 - Unix Makefiles" -D CMAKE_BUILD_TYPE=Debug ../
 
 In Eclipse:
-Import project using Menu File->Import
-Select General->Existing projects into workspace:
-Browse where your build tree is and select the root build tree directory. Keep "Copy projects into workspace" unchecked.
+
+    - Import project using Menu File->Import
+    - Select General->Existing projects into workspace:
+    - Browse where your build tree is and select the root build tree directory. 
+    - Keep "Copy projects into workspace" unchecked.
 
 
 Install Hermes2D
@@ -123,8 +125,6 @@ Install Hermes2D
     cmake -DCMAKE_INSTALL_PREFIX=~/usr .
     make
     make install
-
-
 
 Mac OS X Users
 --------------
@@ -148,19 +148,16 @@ Also install cmake, cython, judy, and git.
 (Note: cmake has to be at least version 2.6 or later, matplotlib has to be at
 least 0.98.5.2 or higher.)
 
-Configure:
+Clone the Git repository, configure and build:
 
 ::
-
+  
+    git clone http://hpfem.org/git/hermes2d.git
+    cd hermes2d/
     cmake .
-
-Build:
-
-::
-
     make
 
-If you have more than one CPU, you can use "make -j N" where N is
+If you have more than one CPU, you can use "make -jN" where N is
 the number of CPUs of your computer.
 
 Tests
