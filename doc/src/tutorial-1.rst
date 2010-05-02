@@ -184,12 +184,14 @@ meshes are at the heart of Hermes:
 Other ways of modifying meshes on the fly include
 ::
 
-    Mesh::refine_element(int id, int refinement = 0)
-    Mesh::refine_by_criterion(int (*criterion)(Element* e), int depth)
-    Mesh::refine_towards_vertex(int vertex_id, int depth)
-    Mesh::regularize(int n)
-    Mesh::unrefine_element(int id)
-    Mesh::unrefine_all_elements()
+    Mesh::refine_element(int id, int refinement = 0);
+    Mesh::convert_quads_to_triangles();
+    Mesh::convert_triangles_to_quads();
+    Mesh::refine_by_criterion(int (*criterion)(Element* e), int depth);
+    Mesh::refine_towards_vertex(int vertex_id, int depth);
+    Mesh::regularize(int n);
+    Mesh::unrefine_element(int id);
+    Mesh::unrefine_all_elements();
 
 See the file `src/mesh.cpp <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/src/mesh.cpp>`_ for more details. 
 The following code illustrates how to visualize the mesh using the class MeshView:

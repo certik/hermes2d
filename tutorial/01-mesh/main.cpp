@@ -23,28 +23,38 @@ Click into the image window and:\n\
 
 int main(int argc, char* argv[])
 {
-  // load the mesh file
+  // Load the mesh file.
   Mesh mesh;
   H2DReader mloader;
   mloader.load("domain.mesh", &mesh);
 
-  // perform some sample initial refinements
+  // Conversions between triangular and quadrilateral elements 
+  // and vice versa. 
+  //mesh.convert_quads_to_triangles();
+  //mesh.convert_triangles_to_quads();
+
+  // Uniform mesh refinement.
   mesh.refine_all_elements();          // Refines all elements.
-  mesh.refine_towards_vertex(3, 4);    // Refines mesh towards vertex #3 (4x).
-  mesh.refine_towards_boundary(2, 4);  // Refines all elements along boundary 2 (4x).
-  mesh.refine_element(86, 0);          // Refines element #86 isotropically.
-  mesh.refine_element(112, 0);         // Refines element #112 isotropically.
-  mesh.refine_element(84, 2);          // Refines element #84 anisotropically.
-  mesh.refine_element(114, 1);         // Refines element #114 anisotropically.
+
+  // Refinement towards s vertex (such as a re-entrant corner)
+  mesh.refine_towards_vertex(3, 4);    // Four refinements to wards vertex #3.
+  mesh.refine_towards_boundary(2, 4);  // Four refinements towards boundary #2.
+
+  // Refinements of individual elements
+  mesh.refine_element(86, 0);          // 0... isotropical refinement.
+  mesh.refine_element(112, 0);         // 0... isotropical refinement.
+  mesh.refine_element(84, 2);          // 2... anisotropical refinement.
+  mesh.refine_element(114, 1);         // 1... anisotropical refinement.
 
   // display the mesh
-  MeshView mview("Hello world!", 100, 100, 500, 500);  // (100, 100) is the upper left corner position
+  MeshView mview("Hello world!", 100, 100, 500, 500);  // (100, 100) is the upper 
+                                                       // left corner position
   mview.show(&mesh);                                   // 500 x 500 is the window size
 
-  // practice some keyboard and mouse controls
+  // Practice some keyboard and mouse controls
   printf("%s", text);
 
-  // wait for a view to be closed
+  // Wait for a view to be closed
   View::wait();
   return 0;
 }
