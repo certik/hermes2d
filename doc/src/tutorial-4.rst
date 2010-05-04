@@ -68,13 +68,13 @@ Description coming soon.
 Flame Propagation Problem
 -------------------------
 
-Coming soon.
+Description coming soon.
 
 
 Navier-Stokes Equations
 -----------------------
 
-Coming soon.
+Description coming soon.
 
 
 Gross-Pitaevski Equation
