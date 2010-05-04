@@ -575,10 +575,10 @@ The surface linear form is defined as follows:
       return CONST_GAMMA[e->marker - 1] * int_v<Real, Scalar>(n, wt, v);
     }
 
-Here, we have used the predefined surface integral surf_int_v (see the
+Here, we have used the predefined surface integral int_v (see the
 file `src/integrals_h1.h <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/src/integrals_h1.h>`_). 
 If the boundary conditions were more complicated, we could also
-have used surf_int_F_v, where F stands for an arbitrary user-supplied
+have used int_F_v, where F stands for an arbitrary user-supplied
 function returning the value $\partial u/\partial n$.
 
 Note that the mesh is refined towards the re-entrant corner in order to 
@@ -645,7 +645,7 @@ The surface bilinear form must have the following prototype:
     Scalar bilinear_form_surf(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext);
 
 Inside this function you can use predefined
-forms such as surf_int_u_v, surf_int_F_u_v (see the
+forms such as int_u_v, int_F_u_v (see the
 file `src/integrals_h1.h <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/src/integrals_h1.h>`_) or your custom forms.
 
 The following code snippet contains the linear and bilinear forms:
