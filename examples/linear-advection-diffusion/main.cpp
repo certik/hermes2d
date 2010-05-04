@@ -18,7 +18,7 @@
 //
 //  BC:  Dirichlet, see the function scalar bc_values() below.
 
-const int P_INIT = 1;                   // Initial polynomial degree of all mesh elements.
+const int P_INIT = 1;                  // Initial polynomial degree of all mesh elements.
 const bool STABILIZATION_ON = false;    // Stabilization on/off (assumes that H2D_SECOND_DERIVATIVES_ENABLED is defined)
 const bool SHOCK_CAPTURING_ON = false;  // Shock capturing on/off.
 const int INIT_REF_NUM = 2;       // Number of initial uniform mesh refinements.
@@ -97,7 +97,7 @@ Scalar bilinear_form_stabilization(int n, double *wt, Func<Real> *u, Func<Real> 
     double b_norm = sqrt(B1*B1 + B2*B2);
     Real tau = 1. / sqrt(9*pow(4*EPSILON/pow(h_e, 2), 2) + pow(2*b_norm/h_e, 2));
     result += wt[i] * tau * (-B1 * v->dx[i] - B2 * v->dy[i] + EPSILON * v->laplace[i])
-      * (-B1 * u->dx[i] - B2 * u->dy[i] + EPSILON * u->laplace[i]);
+                          * (-B1 * u->dx[i] - B2 * u->dy[i] + EPSILON * u->laplace[i]);
   }
   return result;
 #else

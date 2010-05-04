@@ -1337,16 +1337,15 @@ Bilinear weak form corresponding to the left-hand side of the equation:
 
     // bilinear form
     template<typename Real, typename Scalar>
-    Scalar bilinear_form(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
-    {
-      Scalar result = 0;
-      // epsilon times int_grad_u_grad_v:
-      result += EPSILON * int_grad_u_grad_v<Real, Scalar>(n, wt, u, v);
-      for (int i=0; i < n; i++) {
-        // VERSION A (convective term integrated by parts):
-        result += - wt[i] * (B1 * u->val[i] * v->dx[i] + B2 * u->val[i] * v->dy[i]);
-        // VERSION B (convective term not integrated by parts):
-        //result += wt[i] * (B1 * u->dx[i] * v->val[i] + B2 * u->dy[i] * v->val[i]);
+    Scalar bilinear_form(int n, double *wt, Func<Real> *u, 
+                         Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+      {
+        Scalar result = 0;
+        for (int i=0; i < n; i++)
+        {
+          result += wt[i] * (EPSILON * (u->dx[i]*v->dx[i] + u->dy[i]*v->dy[i])
+                                     - (B1 * u->val[i] * v->dx[i] + B2 * u->val[i] * v->dy[i])
+                            );
       }
       return result;
     }
@@ -1368,7 +1367,14 @@ prevent the solution from oscillating:
 
 Here we use the same view as for the solution above. 
 As you can see, this approximation is not very close to the final solution. The oscillations 
-can be suppressed by applying a suitable stabilization, but automatic adaptivity can sometimes
+can be suppressed by applying the multiscale stabilization (STABILIZATION_ON = true):
+
+.. image:: img/linear-advection-diffusion/sol_init_2.png
+   :align: center
+   :height: 400
+   :alt: Solution.
+
+Automatic adaptivity can sometimes
 take care of them as well, as we will see below. Standard stabilization techniques 
 include SUPG, GLS and others. For this example, we implemented the so-called *variational 
 multiscale stabilization* that can be used on an optional basis:
@@ -1377,19 +1383,23 @@ multiscale stabilization* that can be used on an optional basis:
 
     // bilinear form for the variational multiscale stabilization
     template<typename Real, typename Scalar>
-    Scalar bilinear_form_stabilization(int n, double *wt, Func<Real> *u, Func<Real> *v,
-            Geom<Real> *e, ExtData<Scalar> *ext)
+    Scalar bilinear_form_stabilization(int n, double *wt, Func<Real> *u, 
+                                       Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
     {
-      assert(e->element != NULL);
-      double h_e = e->element->get_diameter();
+    #ifdef H2D_SECOND_DERIVATIVES_ENABLED
+      Real h_e = e->diam;
       Scalar result = 0;
       for (int i=0; i < n; i++) {
         double b_norm = sqrt(B1*B1 + B2*B2);
-        double tau = 1. / sqrt(9*pow(4*EPSILON/pow(h_e, 2), 2) + pow(2*b_norm/h_e, 2));
-        result += -wt[i]*(-B1 * v->dx[i] - B2 * v->dy[i] - EPSILON * v->laplace[i]) * tau * 
-                         (B1 * u->dx[i] + B2 * u->dy[i] - EPSILON * u->laplace[i]);
+        Real tau = 1. / sqrt(9*pow(4*EPSILON/pow(h_e, 2), 2) + pow(2*b_norm/h_e, 2));
+        result += wt[i] * tau * (-B1 * v->dx[i] - B2 * v->dy[i] + EPSILON * v->laplace[i])
+                              * (-B1 * u->dx[i] - B2 * u->dy[i] + EPSILON * u->laplace[i]);
       }
       return result;
+    #else
+      error("Define H2D_SECOND_DERIVATIVES_ENABLED in common.h if you want to use second 
+             derivatives of shape functions in weak forms.");
+    #endif
     }
 
 We have also implemented a shock-capturing term for the reader to experiment with:
@@ -1400,7 +1410,7 @@ We have also implemented a shock-capturing term for the reader to experiment wit
     Scalar bilinear_form_shock_capturing(int n, double *wt, Func<Real> *u, Func<Real> *v,
             Geom<Real> *e, ExtData<Scalar> *ext)
     {
-      double h_e = e->element->get_diameter();
+      double h_e = e->diam();
       double s_c = 0.9;
       Scalar result = 0;
       for (int i=0; i < n; i++) {
