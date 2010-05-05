@@ -4,7 +4,7 @@
 #define H2D_REPORT_FILE "application.log"
 #include "hermes2d.h"
 #include "solver_umfpack.h"
-#include "math.h"
+#include <cmath>
 #include <iostream>
 
 
@@ -12,14 +12,9 @@
 //
 // -->PDEs:
 //
-// 1/v1 d/dt phi_1 = div(D_1 grad phi_1) + (nu Sigma_f1 - Sigma_r1) phi_1 + Sigma_f2 phi_2 
-//                        + lambda_1 C1 + lambda_2 C2 + Q_1
+// 1/v d/dt phi = div(D grad phi) + nu Sigma_f phi_1 + q
 //
-// 1/v2 d/dt phi_2 = div(D_2 grad phi_2) - Sigma_r2 phi_2 + Sigma_12 phi_1 + Q_2
-//
-// d/dt C_i = beta_1i nu Sigma_f1 phi_1 + beta_2i nu Sigma_f2 phi_2 - lambda_i C_i    i = 1,2
-//
-// rho c_p d/dt T = div(k grad T) + kappa_1 Sigma_f1 phi_1 + kappa_2 Sigma_f2 phi_2 + Q_T
+// rho c_p d/dt T = div(k grad T) + kappa Sigma_f phi + qT
 //
 // -->Domain: rectangle Lx Ly
 //
@@ -28,18 +23,20 @@
 
 
 
-const int PROJ_TYPE = 1;               // For the projection of the initial condition 
-                                       // on the initial mesh: 1 = H1 projection, 0 = L2 projection
+const int PROJ_TYPE = 1;                 // For the projection of the initial condition 
+                                         // on the initial mesh: 1 = H1 projection, 0 = L2 projection
 
-const int INIT_GLOB_REF_NUM = 2;       // Number of initial uniform mesh refinements
-const int INIT_BDY_REF_NUM = 0;        // Number of initial refinements towards boundary
+// Initial refinements
+const int INIT_GLOB_REF_NUM = 3;         // Number of initial uniform mesh refinements
+const int INIT_BDY_REF_NUM = 0;          // Number of initial refinements towards boundary
 
 
 // Time-stepping
 double TIME = 0.0;
-const int P_INIT = 1;                    // Initial polynomial degree of all mesh elements
 const double TAU = 0.1;                  // Time step
 const double T_FINAL = 10.0;             // Time interval length
+
+const int P_INIT = 1;                    // Initial polynomial degree of all mesh elements
 
 // Adaptivity
 const int UNREF_FREQ = 1;                // Every UNREF_FREQ time step the mesh is unrefined
@@ -77,32 +74,15 @@ const int NDOF_STOP = 10000;             // Adaptivity process stops when the nu
 
 
 // Newton's method
-const double NEWTON_TOL_COARSE = 1.0e-2;     // Stopping criterion for Newton on coarse mesh
-const double NEWTON_TOL_FINE = 5.0e-2;       // Stopping criterion for Newton on fine mesh
-const int NEWTON_MAX_ITER = 20;              // Maximum allowed number of Newton iterations
-const bool NEWTON_ON_COARSE_MESH = false;    // true... Newton is done on coarse mesh in every adaptivity step
-                                             // false...Newton is done on coarse mesh only once, then projection
-                                             // of the fine mesh solution to coarse mesh is used
+const double NEWTON_TOL_COARSE = 1.0e-2; // Stopping criterion for Newton on coarse mesh
+const double NEWTON_TOL_FINE = 5.0e-2;   // Stopping criterion for Newton on fine mesh
+const int NEWTON_MAX_ITER = 20;          // Maximum allowed number of Newton iterations
 
-static char text[] = "\
-Click into the image window and:\n\
-  press 'm' to show element numbers,\n\
-  press 'b' to toggle boundary markers,\n\
-  enlarge your window and press 'c' to center the mesh,\n\
-  zoom into the mesh using the right mouse button\n\
-  and move the mesh around using the left mouse button\n\
-    -- in this way you can read the numbers of all elements,\n\
-  press 'c' to center the mesh again,\n\
-  press 'm' to hide element numbers,\n\
-  press 's' to save a screenshot in bmp format\n\
-    -- the bmp file can be converted to any standard\n\
-       image format using the command \"convert\",\n\
-  press 'q' to quit.\n\
-  Also see help - click into the image window and press F1.\n";
 
 
 /*********************************************************************************************************/
 /********** Problem parameters ***********/
+
 
 const double CT = 1.0;
 const double CF = 1.0;
@@ -112,7 +92,7 @@ const double LX = 100.0;          // Domain sizes in the x and y dimensions
 const double LY = 100.0;
 const double invvel = 2.0e-4;     // Inverse of neutron velocity
 const double xsdiff = 1.268;      // Diffusion coefficient
-const double Tref = 0.0;          // Temperature at boundary
+const double Tref = 0.0;         // Temperature at boundary
 
 const double nu = 2.41;           // Number of neutrons emitted per fission event
 const double xsfiss = 0.00191244; // Fission cross section
@@ -144,14 +124,15 @@ const double xsa_ref = 0.0349778;
 const double doppler_coeff = 1.0e-5;
 template<typename Real>
 Real xsrem(Real T) {
-  return xsa_ref + doppler_coeff * (sqrt(T) - sqrt(Tref));
+  return xsa_ref + doppler_coeff * (sqrt(T+1.0e-10) - sqrt(Tref));
+  //return xsa_ref + doppler_coeff * (sqrt(T) - sqrt(Tref));
 }
 
 // Derivative of the removal cross section with respect to temperature
 template<typename Real>
 Real dxsrem_dT(Real T) {
-  //  return doppler_coeff / (2*sqrt(T+1.0e-10));
-  return doppler_coeff / (2*sqrt(T));
+  return doppler_coeff / (2*sqrt(T+1.0e-10));
+  //return doppler_coeff / (2*sqrt(T));
 }
 
 // Heat source
@@ -177,8 +158,7 @@ invvel*CF*rF*exp(rF*TIME)*sin(x/LX*PI)*sin(y/LY*PI)*x/LX*y/LY-xsdiff*(-CF*(1.0+e
 // Boundary condition types (essential = Dirichlet)
 int bc_types_T(int marker)
 {
-  //return BC_ESSENTIAL;
-  return BC_NATURAL;
+  return BC_ESSENTIAL;
 }
  
 
@@ -191,8 +171,7 @@ scalar bc_values_T(int marker, double x, double y)
 
 int bc_types_phi(int marker)
 {
-  //return BC_ESSENTIAL;
-  return BC_NATURAL;
+  return BC_ESSENTIAL;
 }
  
 scalar bc_values_phi(int marker, double x, double y)
@@ -202,6 +181,8 @@ scalar bc_values_phi(int marker, double x, double y)
 
 /*********************************************************************************************************/
 /********** Jacobian and residual  ***********/
+
+
 # include "forms.cpp"
 
 /*********************************************************************************************************/
@@ -233,8 +214,8 @@ scalar phi_exact(double x, double y, double& dx, double& dy)
 
 scalar T_exact(double x, double y, double& dx, double& dy)
 {
-  dx = CT*(1+tanh(rT*TIME))*PI/LX*(PI*x/LX)*sin(PI*y/LY);
-  dy = CT*(1+tanh(rT*TIME))*sin(PI*x/LX)*PI/LY*sin(PI*y/LY);
+  dx = CT*(1+tanh(rT*TIME))*PI/LX*cos(PI*x/LX)*sin(PI*y/LY);
+  dy = CT*(1+tanh(rT*TIME))*sin(PI*x/LX)*PI/LY*cos(PI*y/LY);
   return CT*(1+tanh(rT*TIME))*sin(PI*x/LX)*sin(PI*y/LY);
 }
 
@@ -250,7 +231,8 @@ int main(int argc, char* argv[])
   mloader.load("domain.mesh", &basemesh);
 
   // perform initial refinements
-  for (int i=0; i < INIT_GLOB_REF_NUM; i++) basemesh.refine_all_elements();
+  for (int i=0; i < INIT_GLOB_REF_NUM; i++)
+    basemesh.refine_all_elements();
   basemesh.refine_towards_boundary(1, INIT_BDY_REF_NUM);
   mesh_T.copy(&basemesh);
   mesh_phi.copy(&basemesh);
@@ -269,41 +251,30 @@ int main(int argc, char* argv[])
   space_phi.set_bc_values(bc_values_phi);
   space_phi.set_uniform_order(P_INIT);
 
+  // assign degrees of freedom
   int ndofs = assign_dofs(2, &space_T, &space_phi);
+
+  // visualisation
+  char title[100];
+  ScalarView sview_T("Solution computed for the temperature T", 0, 0, 500, 400);
+  sview_T.fix_scale_width(80);
+  ScalarView sview_phi("Solution computed for the neutron flux phi", 0, 450, 500, 400);
+  sview_phi.fix_scale_width(80);
+  ScalarView sview_T_exact("Exact solution for the temperature T", 550, 0, 500, 400);
+  sview_T_exact.fix_scale_width(80);
+  ScalarView sview_phi_exact("Exact solution for the neutron flux phi", 550, 450, 500, 400);
+  sview_phi_exact.fix_scale_width(80);
+  OrderView ordview_T("Order for the temperature T", 1100, 0, 500, 400);
+  ordview_T.fix_scale_width(80);
+  OrderView ordview_phi("Order for the neutron flux phi", 1100, 450, 500, 400);
+  ordview_phi.fix_scale_width(80);
+
+  // prepare selector
+  RefinementSelectors::H1NonUniformHP selector(ISO_ONLY, ADAPT_TYPE, CONV_EXP, H2DRS_DEFAULT_ORDER, &shapeset);
 
   // solutions for the Newton's iteration and time stepping
   Solution T_prev_newton, T_prev_time,
            phi_prev_newton, phi_prev_time;
-
-  // exact solutions for error evaluation
-  ExactSolution T_solution(&mesh_T, T_exact),
-                phi_solution(&mesh_phi, phi_exact);
-
-  // exact errors
-  double T_error,
-         phi_error,
-         error;
-
-  // visualisation
-  char title[100];
-  ScalarView sview_T("Solution computed for the temperature T", 0, 0, 400, 300);
-  sview_T.fix_scale_width(80);
-  ScalarView sview_phi("Solution computed for the neutron flux phi", 0, 350, 400, 300);
-  sview_phi.fix_scale_width(80);
-  ScalarView sview_T_exact("Exact solution for the temperature T", 450, 0, 400, 300);
-  sview_T_exact.fix_scale_width(80);
-  ScalarView sview_phi_exact("Exact solution for the neutron flux phi", 450, 350, 400, 300);
-  sview_phi_exact.fix_scale_width(80);
-  OrderView ordview_T("Order for the temperature T", 650, 0, 400, 300);
-  ordview_T.fix_scale_width(80);
-  OrderView ordview_phi("Order for the neutron flux phi", 650, 350, 400, 300);
-  ordview_phi.fix_scale_width(80);
-
-  // DOF and CPU convergence graphs
-  SimpleGraph graph_dof_est, graph_dof_exact, graph_cpu_est, graph_cpu_exact;
-
-  // prepare selector
-  RefinementSelectors::H1NonUniformHP selector(ISO_ONLY, ADAPT_TYPE, CONV_EXP, H2DRS_DEFAULT_ORDER, &shapeset);
 
   // initialize the weak formulation
   WeakForm wf(2);
@@ -320,29 +291,32 @@ int main(int argc, char* argv[])
   nls.set_spaces(2, &space_T, &space_phi);
   nls.set_pss(1, &pss);
 
-
-  // set initial conditions
+  // set initial conditions at zero time level
   T_prev_time.set_exact(&mesh_T, T_exact);
   phi_prev_time.set_exact(&mesh_phi, phi_exact);
-  nls.set_ic(&T_prev_time, &phi_prev_time, &T_prev_newton, &phi_prev_newton, PROJ_TYPE);
 
-  // Newton's loop on the coarse mesh
-  //info("---- Time step 1, Newton solve on coarse mesh:\n");
-  //if (!nls.solve_newton_2(&T_prev_newton, &phi_prev_newton, NEWTON_TOL_COARSE, NEWTON_MAX_ITER))
-  //  error("Newton's method did not converge.");
+  // exact solutions for error evaluation
+  ExactSolution T_solution(&mesh_T, T_exact),
+                phi_solution(&mesh_phi, phi_exact);
 
-  // store coarse solution
-  Solution T_coarse, T_fine,
-           phi_coarse, phi_fine;
-  T_coarse.copy(&T_prev_time);
-  phi_coarse.copy(&phi_prev_time);
+  // error
+  double T_error,
+         phi_error,
+         error;
 
   // time stepping loop
-  int t_step = 1;
-  for (int t_step = 1; t_step <= (int)(T_FINAL/TAU); t_step++) {
-    TIME += TAU;
-    info("!---- Time step %d, t = %g s:", t_step, TIME);
+  for (int t_step = 1; TIME<=T_FINAL; t_step++) {
+    TIME+=TAU;
+    info("-------- Time step %d, t = %g s ------------------------------------------------------", t_step, TIME);
     
+    Solution T_coarse, T_fine,
+             phi_coarse, phi_fine;
+
+    if (t_step==1) {
+      T_fine.copy(&T_prev_time);
+      phi_fine.copy(&phi_prev_time);
+    }
+
     // periodic global derefinements
     if (t_step > 1 && t_step % UNREF_FREQ == 0) {
       info("---- Time step %d, global derefinement.", t_step);
@@ -352,129 +326,102 @@ int main(int argc, char* argv[])
       space_phi.set_uniform_order(P_INIT);
       ndofs = assign_dofs(2, &space_T, &space_phi);
 
-      // project the fine mesh solutions on the globally derefined meshs
-      info("---- Time step %d, projecting fine mesh solution on globally derefined mesh:", t_step);
-      nls.set_ic(&T_fine, &phi_fine, &T_prev_newton, &phi_prev_newton, PROJ_TYPE);
-
-      /*
-      if (NEWTON_ON_COARSE_MESH) {
-        // Newton's loop on the globally derefined mesh
-        info("---- Time step %d, Newton solve on globally derefined mesh:", t_step);
-	if (!nls.solve_newton_2(&T_prev_newton, &phi_prev_newton, NEWTON_TOL_COARSE, NEWTON_MAX_ITER))
-          error("Newton's method did not converge.");
-      }
-
-      // store the result in coarse solutions
-      T_coarse.copy(&T_prev_newton);
-      phi_coarse.copy(&phi_prev_newton);
-    }
-      */
+      // project the fine mesh solutions on the globally derefined meshes
+      info("---- Time step %d, projecting fine mesh solution on globally derefined mesh.", t_step);
+      nls.set_ic(&T_fine, &phi_fine, &T_prev_time, &phi_prev_time, PROJ_TYPE);
     }
 
-    TimePeriod cpu_time;
+    // set initial conditions for the Newton's loop on the coarse mesh
+    nls.set_ic(&T_prev_time, &phi_prev_time, &T_prev_newton, &phi_prev_newton, PROJ_TYPE);
+
+    // Newton's loop on the coarse mesh
+    info("---- Time step %d, adaptivity step 1, Newton solve on coarse mesh.", t_step);
+    if (!nls.solve_newton_2(&T_prev_newton, &phi_prev_newton, NEWTON_TOL_COARSE, NEWTON_MAX_ITER))
+      error("Newton's method did not converge.");
+
+    // store coarse solution
+    T_coarse.copy(&T_prev_newton);
+    phi_coarse.copy(&phi_prev_newton);
 
     // adaptivity loop
-    bool done = false;
     double err_est;
-    int a_step = 1;
-    do {
-      info("---- Time step %d, adaptivity step %d, Newton solve on fine mesh:", t_step, a_step);
+    for(int a_step = 1; ; a_step++) {
+      // project the fine mesh solution on the new coarse mesh
+      if (a_step>1) {
+	info("---- Time step %d, adaptivity step %d, projecting fine mesh solution on new coarse mesh.", t_step, a_step);
+	nls.set_ic(&T_fine, &phi_fine, &T_coarse, &phi_coarse, PROJ_TYPE);
+       }
 
-      // time measurement
-      cpu_time.tick(H2D_SKIP);
-
-      if (NEWTON_ON_COARSE_MESH) {
-        // Newton's loop on the coarse mesh
-        info("---- Time step %d, adaptivity step %d, Newton solve on new coarse mesh:", t_step, a_step);
-        if (!nls.solve_newton_2(&T_prev_newton, &phi_prev_newton, NEWTON_TOL_COARSE, NEWTON_MAX_ITER))
-          error("Newton's method did not converge.");
-      }
-      // store the result in sln_coarse
-      T_coarse.copy(&T_prev_newton);
-      phi_coarse.copy(&phi_prev_newton);
-
+      info("---- Time step %d, adaptivity step %d, Newton solve on fine mesh.", t_step, a_step);
       // reference nonlinear system
       RefNonlinSystem rnls(&nls);
       rnls.prepare();
 
       // set initial condition for the Newton's method on the fine mesh
-      if (a_step == 1) rnls.set_ic(&T_coarse, &phi_coarse, &T_prev_newton, &phi_prev_newton, PROJ_TYPE);
-      else rnls.set_ic(&T_fine, &phi_fine, &T_prev_newton, &phi_prev_newton, PROJ_TYPE);
+      rnls.set_ic(&T_fine, &phi_fine, &T_prev_newton, &phi_prev_newton, PROJ_TYPE);
 
-      // Newton's method on fine mesh
+      // Newton's loop on the fine mesh
       if (!rnls.solve_newton_2(&T_prev_newton, &phi_prev_newton, NEWTON_TOL_FINE, NEWTON_MAX_ITER))
         error("Newton's method did not converge.");
 
-      // time measurement
-      cpu_time.tick();
-
-      // store the result in sln_fine
+      // store fine solution
       T_fine.copy(&T_prev_newton);
       phi_fine.copy(&phi_prev_newton);
 
       // visualization of intermediate solution and mesh during adaptivity
       sprintf(title, "Solution for T, t = %g, adapt step %d", TIME, a_step);
       sview_T.set_title(title);
-      sview_T.show(&T_prev_newton);
+      sview_T.show(&T_fine);
       sprintf(title, "Solution for phi, t = %g, adapt step %d", TIME, a_step);
       sview_phi.set_title(title);
-      sview_phi.show(&phi_prev_newton);
+      sview_phi.show(&phi_fine);
       sprintf(title, "Fine mesh for T, t = %g, adapt step %d", TIME, a_step);
       ordview_T.set_title(title);
       ordview_T.show(rnls.get_space(0));
       sprintf(title, "Fine mesh for phi, t = %g, adapt step %d", TIME, a_step);
       ordview_phi.set_title(title);
       ordview_phi.show(rnls.get_space(1));
-      ordview_phi.show(rnls.get_space(1));
 
       // calculate element errors and total error estimate
       H1AdaptHP hp(2, &space_T, &space_phi);
       err_est = hp.calc_error_2(&T_coarse, &phi_coarse, &T_fine, &phi_fine) * 100;
       // report error
-      info("Error estimate: %g%%", err_est);
+      info("Error estimate with hp.calc_error_2: %g%%", err_est);
+
+      // compute exact error with function h1_error for comparision with hp.calc_error_2
+      T_error = h1_error(&T_coarse, &T_fine) * 100;
+      phi_error = h1_error(&phi_coarse, &phi_fine) * 100;
+      error = std::max(T_error, phi_error);
+      //      info("Error estimate with h1_error for T: %g %%", T_error);
+      //      info("Error estimate with h1_error for phi: %g %%", phi_error);
+      info("Error estimate with h1_error: %g %%", error);
 
       // if err_est too large, adapt the mesh
-      if (err_est < ERR_STOP) done = true;
+      if (err_est < ERR_STOP) break;
       else {
 	hp.adapt(THRESHOLD, STRATEGY, &selector, MESH_REGULARITY);
 	ndofs = assign_dofs(2, &space_T, &space_phi);
-        if (ndofs >= NDOF_STOP) done = true;
+        if (ndofs >= NDOF_STOP) break;
       }
-      // project the fine mesh solution on the new coarse mesh
-      info("---- Time step %d, adaptivity step %d, projecting fine mesh solution on new coarse mesh:", t_step, a_step);
-      //nls.set_ic(&T_prev_newton, &phi_prev_newton, &T_fine, &phi_fine, PROJ_TYPE);
+
+      // compute exact solution for comparison with computational results
+      T_solution.update(&mesh_T, T_exact);
+      phi_solution.update(&mesh_phi, phi_exact);
+
+      // show exact solution
+      sprintf(title, "Exact solution for T, t = %g", TIME);
+      sview_T_exact.set_title(title);
+      sview_T_exact.show(&T_solution);
+      sprintf(title, "Exact solution for phi, t = %g", TIME);
+      sview_phi_exact.set_title(title);
+      sview_phi_exact.show(&phi_solution);
 
       // moving to new adaptivity step
-      a_step++;
     }
-    while (!done);
 
     // update previous time level solution
-    T_prev_time.copy(&T_prev_newton);
-    phi_prev_time.copy(&phi_prev_newton);
-
-    // show the new time level solution
-    /*    sprintf(title, "Solution for T, t = %g", TIME);
-    sview_T.set_title(title);
-    sview_T.show(&T_prev_newton);
-    sprintf(title, "Solution for phi, t = %g", TIME);
-    sview_phi.set_title(title);
-    sview_phi.show(&phi_prev_newton);
-    */
-
-    // compute exact solution for comparison with computational results
-    // COMMENT: I added membre function update to the class ExactSolution
-    //          This is helpful for time-dependent problems
-    T_solution.update(&mesh_T, T_exact);
-    phi_solution.update(&mesh_phi, phi_exact);
-
-    // show exact solution
-    sprintf(title, "Exact solution for T, t = %g", TIME);
-    sview_T_exact.set_title(title);
-    sview_T_exact.show(&T_solution);
-    sprintf(title, "Exact solution for phi, t = %g", TIME);
-    sview_phi_exact.set_title(title);
-    sview_phi_exact.show(&phi_solution);
+    T_prev_time.copy(&T_fine);
+    phi_prev_time.copy(&phi_fine);
 
     // compute exact error
     T_error = h1_error(&T_prev_time, &T_solution) * 100;
@@ -485,7 +432,6 @@ int main(int argc, char* argv[])
     info("Exact solution error (maximum): %g %%", error);
   }
 
-  // wait for all views to be closed
   View::wait();
 
   return 0;
