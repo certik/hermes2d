@@ -1,6 +1,10 @@
 add_subdirectory(examples)
 SET(CYTHON_INCLUDE_DIRECTORIES . -I../../hermes_common/)
 cython_add_module(_hermes2d dummy_solver.cpp stdcython.c)
+add_custom_target(convert_api ./convert_api.py
+    DEPENDS _hermes2d.cpp
+    )
+add_dependencies(_hermes2d convert_api)
 target_link_libraries(_hermes2d hermes_common ${HERMES_REAL_BIN})
 set_property(TARGET _hermes2d PROPERTY COMPILE_FLAGS "-g -DH2D_REPORT_ALL -DH2D_REPORT_RUNTIME_CONTROL")
 if(WITH_PYTHON_UMFPACK)
