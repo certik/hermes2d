@@ -1,3 +1,8 @@
+#define H2D_REPORT_WARN
+#define H2D_REPORT_INFO
+#define H2D_REPORT_VERBOSE
+#define H2D_REPORT_FILE "application.log"
+
 #include "hermes2d.h"
 #include "solver_umfpack.h"
 
@@ -9,7 +14,11 @@
 //  - \nabla \cdot D_g \nabla \phi_g + \Sigma_{Rg}\phi_g - \sum_{g' \neq g} \Sigma_s^{g'\to g} \phi_{g'} =
 //  = \frac{\chi_g}{k_{eff}} \sum_{g'} \nu_{g'} \Sigma_{fg'}\phi_{g'}
 //
-// where 1/k_{eff} is eigenvalue and \phi_g, g = 1,...,4 are eigenvectors (neutron fluxes)
+// where 1/k_{eff} is eigenvalue and \phi_g, g = 1,...,4 are eigenvectors (neutron fluxes). The current problem
+// is posed in a 3D cylindrical axisymmetric geometry, leading to a 2D problem with r-z as the independent spatial 
+// coordinates. The corresponding diffusion operator is given by (r = x, z = y):
+//
+//	\nabla \cdot D \nabla \phi = \frac{1}{x} (x D \phi_x)_x  + (D \phi_y)_y 
 //
 // BC:
 //
@@ -22,9 +31,9 @@
 //  2) For n = 1, 2,...
 //         solve for \phi_g using previous k_prev
 //         solve for new k_{eff}
-//                                \int_{Active Core} \sum^4_{g = 1} \nu_{g} \Sigma_{fg}\phi_{g}_{prev}
-//               k_new =  k_prev -------------------------------------------------------------------------
 //                                \int_{Active Core} \sum^4_{g = 1} \nu_{g} \Sigma_{fg}\phi_{g}_{new}
+//               k_new =  k_prev -------------------------------------------------------------------------
+//                                \int_{Active Core} \sum^4_{g = 1} \nu_{g} \Sigma_{fg}\phi_{g}_{prev}
 //  3) Stop iterations when
 //
 //     |   k_new - k_prev  |
@@ -34,8 +43,8 @@
 //
 
 
-const int P_INIT = 1;
-const int INIT_REF_NUM = 4;
+const int P_INIT = 2;
+const int INIT_REF_NUM = 2;
 
 // Area markers
 const int marker_reflector = 1;
@@ -141,7 +150,6 @@ int main(int argc, char* argv[])
   // solution variables
   Solution sln1, sln2, sln3, sln4;
   Solution iter1, iter2, iter3, iter4;
-  Solution ref1, ref2, ref3, ref4;
   iter1.set_const(&mesh, 1.00);
   iter2.set_const(&mesh, 1.00);
   iter3.set_const(&mesh, 1.00);
@@ -202,11 +210,12 @@ int main(int argc, char* argv[])
 
   // Main power iteration loop
   bool eigen_done = false; int it = 0;
+  bool rhs_only = false;
   do
   {
     info("\n------------ Power iteration %d ----------------------\n", it++);
 
-    sys.assemble();
+    sys.assemble(rhs_only);
     sys.solve(4, &sln1, &sln2, &sln3, &sln4);
 
     // visualization
@@ -218,7 +227,7 @@ int main(int argc, char* argv[])
 
     // compute eigenvalue
     double k_new = k_eff * (integrate(&source, marker_core) / integrate(&source_prev, marker_core));
-    info("Largest eigenvalue (est): %g, rel error: %g", k_new, fabs((k_eff - k_new) / k_new));
+    info("Largest eigenvalue (est): %.8g, rel error: %g", k_new, fabs((k_eff - k_new) / k_new));
 
     // stopping criterion
     if (fabs((k_eff - k_new) / k_new) < 1e-5) eigen_done = true;
@@ -229,9 +238,13 @@ int main(int argc, char* argv[])
 
     // update eigenvalue
     k_eff = k_new;
+    
+    // don't need to reassemble the system matrix in further iterations,
+    // only the rhs changes to reflect the progressively updated source
+    rhs_only = true;
   }
   while (!eigen_done);
-
+	
   View::wait();
   return 0;
 }
