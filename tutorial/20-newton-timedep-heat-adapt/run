@@ -1,4 +1,4 @@
 rm *~ 
-newton-timedep-heat-adapt
+./newton-timedep-heat-adapt
 python plot_graph.py &
 

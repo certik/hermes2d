@@ -238,7 +238,7 @@ int main(int argc, char* argv[])
       // calculate element errors and total error estimate
       H1OrthoHP hp(1, &space);
       err_est = hp.calc_error(&sln_coarse, &sln_fine) * 100;   // relative h1-error in percent
-      info("Error estimate: %g%%", err_est);
+      info("ndof: %d, err_est: %g%%", space.get_num_dofs(), err_est);
 
       // if err_est too large, adapt the mesh
       if (err_est < ERR_STOP) done = true;

@@ -245,7 +245,7 @@ int main(int argc, char* argv[])
     cpu_time.tick();
 
     // report results
-    info("Error estimate: %g%%", err_est);
+    info("ndof: %d, err_est: %g%%", space.get_num_dofs(), err_est);
 
     // add entry to DOF convergence graph
     graph_dof.add_values(space.get_num_dofs(), err_est);
