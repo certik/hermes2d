@@ -224,7 +224,7 @@ void power_iteration( Solution *sln1, Solution *sln2, Solution *sln3, Solution *
 	bool eigen_done = false; int it = 0;
 	do
 	{
-	  info("\n------------------------ Power iteration %d ------------------------\n", it++);
+	  info("------------------------ Power iteration %d ------------------------", it++);
 	  cpu_time->tick(H2D_SKIP);
 	  
 		// solve for new eigenvectors
@@ -352,7 +352,7 @@ int main(int argc, char* argv[])
 	
 	TimePeriod cpu_time;
 	for (int iadapt = 0; iadapt < MAX_ADAPTATIONS; iadapt++) {
-		info("!---- Adaptivity step %d ---------------------------------------------", iadapt);
+		info("---- Adaptivity step %d ---------------------------------------------", iadapt);
 		
 		// time measurement
 		cpu_time.tick(H2D_SKIP);
@@ -366,7 +366,7 @@ int main(int argc, char* argv[])
 		
 	  // solve the coarse mesh problem
 	  cpu_time.tick();
-		info("----------- Coarse mesh power iteration; NDOF=%d -----------------", ndof);	  
+		info("----------- Coarse mesh power iteration; ndof = %d -----------------", ndof);	  
 	  cpu_time.tick(H2D_SKIP);
 	    
 	  LinSystem cmsys(&wf, &umfpack);
@@ -409,7 +409,7 @@ int main(int argc, char* argv[])
     				fmsys.get_ref_space(3)->get_num_dofs();
     if (ndof > 1.5e5) break; // !!! hack so that UMFPACK does not terminate due to insufficient memory
     
-		info("---------- Reference mesh power iteration; NDOF=%d ----------------", ndof);	
+		info("---------- Reference mesh power iteration; ndof = %d ----------------", ndof);	
 		
     cpu_time.tick(H2D_SKIP);
 		
@@ -438,23 +438,22 @@ int main(int argc, char* argv[])
   	double err_est = hp.calc_error_n(4, &sln1_coarse, &sln2_coarse, &sln3_coarse, &sln4_coarse, 
   																			&sln1_fine, &sln2_fine, &sln3_fine, &sln4_fine) * 100;
   
-    // report results
-    
+    // time measurement
     cpu_time.tick();        
-    
     double cta = cpu_time.accumulated();
+
+    // report results
+    ndof = sln1_coarse.get_num_dofs() + 
+  	   sln2_coarse.get_num_dofs() + 
+  	   sln3_coarse.get_num_dofs() + 
+  	   sln4_coarse.get_num_dofs();
     
-    info("Estimate of error: %g%%", err_est);
+    info("ndof: %d, err_est: %g%%", ndof, err_est);
   
-  	ndof = 	sln1_coarse.get_num_dofs() + 
-  					sln2_coarse.get_num_dofs() + 
-  					sln3_coarse.get_num_dofs() + 
-  					sln4_coarse.get_num_dofs();
-  	
-  	// eigenvalue error w.r.t. solution obtained on a 3x uniformly refined mesh
-  	// with uniform distribution of polynomial degrees (=3), converged to within
-  	// tolerance of 1e-7; in units of percent-milli (pcm)
-  	double keff_err = 1e5*fabs(k_eff - 1.140911)/1.140911;
+    // eigenvalue error w.r.t. solution obtained on a 3x uniformly refined mesh
+    // with uniform distribution of polynomial degrees (=3), converged to within
+    // tolerance of 1e-7; in units of percent-milli (pcm)
+    double keff_err = 1e5*fabs(k_eff - 1.140911)/1.140911;
   					
     // add entry to DOF convergence graph
     graph_dof.add_values(ndof, err_est);

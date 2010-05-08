@@ -1,4 +1,4 @@
 rm *~ 
-thermoelasticity
+./thermoelasticity
 python plot_graph.py &
 

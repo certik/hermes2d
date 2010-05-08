@@ -213,7 +213,7 @@ int main(int argc, char* argv[])
   bool rhs_only = false;
   do
   {
-    info("\n------------ Power iteration %d ----------------------\n", it++);
+    info("------------ Power iteration %d ----------------------", it++);
 
     sys.assemble(rhs_only);
     sys.solve(4, &sln1, &sln2, &sln3, &sln4);

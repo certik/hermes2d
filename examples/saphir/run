@@ -1,4 +1,4 @@
 rm *~ 
-saphir
+./saphir
 python plot_graph.py &
 

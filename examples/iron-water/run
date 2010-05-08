@@ -1,4 +1,4 @@
 rm *~ 
-iron-water
+./iron-water
 python plot_graph.py &
 

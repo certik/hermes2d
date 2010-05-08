@@ -1,4 +1,4 @@
 rm *~ 
-waveguide
+./waveguide
 python plot_graph.py &
 
