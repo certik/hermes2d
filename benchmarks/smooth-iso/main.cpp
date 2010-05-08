@@ -143,7 +143,7 @@ int main(int argc, char* argv[])
   Solution sln_coarse, sln_fine;
   do
   {
-    info("!---- Adaptivity step %d ---------------------------------------------", it); it++;
+    info("---- Adaptivity step %d ---------------------------------------------", it); it++;
 
     // time measurement
     cpu_time.tick(H2D_SKIP);
@@ -160,8 +160,7 @@ int main(int argc, char* argv[])
 
     // calculate error wrt. exact solution
     ExactSolution exact(&mesh, fndd);
-    double error = h1_error(&sln_coarse, &exact) * 100;
-    info("Exact solution error: %g%%", error);
+    double err_exact = h1_error(&sln_coarse, &exact) * 100;
 
     // show the solution
     sview.show(&sln_coarse);
@@ -183,16 +182,16 @@ int main(int argc, char* argv[])
     cpu_time.tick();
 
     // report results
-    info("Estimate of error: %g%%", err_est);
+    info("ndof: %d, err_est: %g%%, err_exact: %g%%", space.get_num_dofs(), err_est, err_exact);
 
     // add entries to DOF convergence graphs
-    graph_dof_exact.add_values(space.get_num_dofs(), error);
+    graph_dof_exact.add_values(space.get_num_dofs(), err_exact);
     graph_dof_exact.save("conv_dof_exact.dat");
     graph_dof_est.add_values(space.get_num_dofs(), err_est);
     graph_dof_est.save("conv_dof_est.dat");
 
     // add entries to CPU convergence graphs
-    graph_cpu_exact.add_values(cpu_time.accumulated(), error); 
+    graph_cpu_exact.add_values(cpu_time.accumulated(), err_exact); 
     graph_cpu_exact.save("conv_cpu_exact.dat");
     graph_cpu_est.add_values(cpu_time.accumulated(), err_est);
     graph_cpu_est.save("conv_cpu_est.dat");

@@ -1,4 +1,4 @@
 rm *~  
-bessel
+./bessel
 python plot_graph.py &
 

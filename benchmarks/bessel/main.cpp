@@ -127,7 +127,7 @@ int main(int argc, char* argv[])
   Solution sln_coarse, sln_fine;
   do
   {
-    info("!---- Adaptivity step %d ---------------------------------------------", it); it++;
+    info("---- Adaptivity step %d ---------------------------------------------", it); it++;
 
     // time measurement
     cpu_time.tick(H2D_SKIP);
@@ -145,7 +145,6 @@ int main(int argc, char* argv[])
     // calculating error wrt. exact solution
     ExactSolution ex(&mesh, exact);
     double err_exact = 100 * hcurl_error(&sln_coarse, &ex);
-    info("Exact solution error: %g%%", err_exact);
 
     // show real part of the solution and mesh
     ordview.show(&space);
@@ -170,8 +169,7 @@ int main(int argc, char* argv[])
     cpu_time.tick();
 
     // report results
-    info("Error estimate (adapt): %g%%", err_est_adapt);
-    info("Error estimate (hcurl): %g%%", err_est_hcurl);
+    info("ndof: %d, err_est: %g%%, err_exact: %g%%", space.get_num_dofs(), err_est_hcurl, err_exact);
 
     // add entries to DOF convergence graphs
     graph_dof_exact.add_values(space.get_num_dofs(), err_exact);

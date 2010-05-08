@@ -1,4 +1,4 @@
 rm *~  
-lshape-square
+./lshape-square
 python plot_graph.py &
 

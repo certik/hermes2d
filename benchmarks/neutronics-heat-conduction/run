@@ -1,4 +1,4 @@
 rm *~ 
-./layer
+./neutronics-heat-conduction
 python plot_graph.py &
 

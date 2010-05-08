@@ -330,9 +330,8 @@ int main(int argc, char* argv[])
   space_phi.set_bc_values(bc_values_phi);
   space_phi.set_uniform_order(P_INIT);
 
-  int ndofs = 0;
-  ndofs += space_T.assign_dofs(ndofs);
-  ndofs += space_phi.assign_dofs(ndofs);
+  // enumerate degrees of freedom
+  int ndof = assign_dofs(2, &space_T, &space_phi);
 
   // solutions for the Newton's iteration and time stepping
   Solution T_prev_newton, T_prev_time,
@@ -380,7 +379,7 @@ int main(int argc, char* argv[])
   do {
     TIME += TAU;
 
-    info("!---- Time step %d, t = %g s", t_step, TIME); t_step++;
+    info("---- Time step %d, t = %g s", t_step, TIME); t_step++;
 
     // Newton's method
     if (!nls.solve_newton_2(&T_prev_newton, &phi_prev_newton, NEWTON_TOL, NEWTON_MAX_ITER)) error("Newton's method did not converge.");
