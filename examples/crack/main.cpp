@@ -138,7 +138,6 @@ int main(int argc, char* argv[])
 
   // enumerate basis functions
   int ndof = assign_dofs(2, &xdisp, &ydisp);
-  printf("xdof=%d, ydof=%d\n", xdisp.get_num_dofs(), ydisp.get_num_dofs());
 
   // initialize the weak formulation
   WeakForm wf(2);
@@ -165,7 +164,7 @@ int main(int argc, char* argv[])
   Solution sln_x_coarse, sln_y_coarse, sln_x_fine, sln_y_fine;
   do
   {
-    info("!---- Adaptivity step %d ---------------------------------------------", it); it++;
+    info("---- Adaptivity step %d ---------------------------------------------", it); it++;
 
     // time measurement
     cpu_time.tick(H2D_SKIP);
@@ -207,7 +206,8 @@ int main(int argc, char* argv[])
     cpu_time.tick();
 
     // report results
-    info("Error estimate: %g %%", err_est);
+    info("xdof=%d, ydof=%d", xdisp.get_num_dofs(), ydisp.get_num_dofs());
+    info("err_est: %g %%", err_est);
 
     // add entry to DOF convergence graph
     graph_dof.add_values(xdisp.get_num_dofs() + ydisp.get_num_dofs(), err_est);
@@ -223,9 +223,9 @@ int main(int argc, char* argv[])
     // if err_est too large, adapt the mesh
     if (err_est < ERR_STOP || xdisp.get_num_dofs() + ydisp.get_num_dofs() >= NDOF_STOP) done = true;
     else {
-      hp.adapt(MULTI ? THRESHOLD_MULTI : THRESHOLD_SINGLE, STRATEGY, ADAPT_TYPE, ISO_ONLY, MESH_REGULARITY, CONV_EXP, MAX_ORDER, SAME_ORDERS);
+      hp.adapt(MULTI ? THRESHOLD_MULTI : THRESHOLD_SINGLE, STRATEGY, ADAPT_TYPE, ISO_ONLY, 
+               MESH_REGULARITY, CONV_EXP, MAX_ORDER, SAME_ORDERS);
       ndof = assign_dofs(2, &xdisp, &ydisp);
-      printf("xdof=%d, ydof=%d\n", xdisp.get_num_dofs(), ydisp.get_num_dofs());
       if (ndof >= NDOF_STOP) done = true;
     }
 

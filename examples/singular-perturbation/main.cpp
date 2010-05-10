@@ -128,7 +128,7 @@ int main(int argc, char* argv[])
   Solution sln_coarse, sln_fine;
   do
   {
-    info("!---- Adaptivity step %d ---------------------------------------------", it); it++;
+    info("---- Adaptivity step %d ---------------------------------------------", it); it++;
 
     // time measurement
     cpu_time.tick(H2D_SKIP);
@@ -163,7 +163,7 @@ int main(int argc, char* argv[])
     cpu_time.tick();
 
     // report results
-    info("Estimate of error: %g%%", err_est);
+    info("ndof: %d, err_est: %g%%", space.get_num_dofs(), err_est);
 
     // add entries to DOF convergence graph
     graph_dof_est.add_values(space.get_num_dofs(), err_est);

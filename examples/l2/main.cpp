@@ -4,11 +4,13 @@
 // This example shows how to use the L2 finite element space and L2 shapeset.
 // As a sample problem, a continuous function x^3 + y^3 is projected onto the
 // L2 finite element space in the L2 norm. When zero-order is used, the result
-// is a piecewice constant function.
+// is a piecewice constant function. The class BaseView will show you the basis
+// functions.
 //
 // The following parameters can be changed:
 
-const int P_INIT = 1;
+const int P_INIT = 1;          // Polynomial degree of mesh elements
+const int INIT_REF_NUM = 2;    // Number ofinitial uniform mesh refinements
 
 // projected function
 double F(double x, double y)
@@ -49,10 +51,7 @@ int main(int argc, char* argv[])
   mloader.load(argv[1], &mesh);
 
   // uniform mesh refinements
-  mesh.refine_all_elements();
-  mesh.refine_all_elements();
-  mesh.refine_all_elements();
-  mesh.refine_all_elements();
+  for (int i=0; i<INIT_REF_NUM; i++) mesh.refine_all_elements();
 
   // initialize the shapeset and the cache
   L2Shapeset shapeset;
@@ -68,10 +67,9 @@ int main(int argc, char* argv[])
   // enumerate basis functions
   int ndof = assign_dofs(&space);
 
-/*  BaseView bview;
+  BaseView bview;
   bview.show(&space);
   bview.wait_for_close();
-*/
 
   Solution sln;
 
@@ -93,10 +91,9 @@ int main(int argc, char* argv[])
   // visualize the solution
   ScalarView view1("Solution 1");
   view1.show(&sln);
-  view1.wait_for_keypress();
 
   // wait for keyboard or mouse input
-  View::wait("Waiting for all views to be closed.");
+  View::wait();
   return 0;
 }
 

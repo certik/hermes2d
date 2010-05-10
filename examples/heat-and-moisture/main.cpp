@@ -185,8 +185,8 @@ int main(int argc, char* argv[])
   static int step = 0;
   while (current_time < SIMULATION_TIME)
   {
-    info("*** Time step %d, current time = %g s (%d h, %d d, %d y)",
-        step, (current_time + tau), (int) (current_time + tau) / 3600,
+    info("---- Physical time = %g s (%d h, %d d, %d y)",
+        (current_time + tau), (int) (current_time + tau) / 3600,
         (int) (current_time + tau) / (3600*24), (int) (current_time + tau) / (3600*24*364));
 
     //  initiate meshes
@@ -200,10 +200,11 @@ int main(int argc, char* argv[])
     int it = 0;
     do // adaptivity in space
     {
-      info("*** Adaptivity step %d:", it++);
+      info("---- Time step %d, adaptivity step %d:", step+1, it+1);
 
       // enumerate degrees of freedom and update time-dependent Dirichlet BCs
       int ndof = assign_dofs(2, &temp, &moist);
+      info("ndof_t: %d, ndof_m: %d", temp.get_num_dofs(), moist.get_num_dofs());
       if (ndof >= NDOF_STOP) {
         done = true;
         break;
@@ -240,9 +241,11 @@ int main(int argc, char* argv[])
       hp.set_biform(1, 0, callback(bilinear_form_sym_1_0));
       hp.set_biform(1, 1, callback(bilinear_form_sym_1_1));
       double space_err = hp.calc_error_2(&temp_sln, &moist_sln, &temp_rsln, &moist_rsln) * 100;
-      info("Energy error est %g%%", space_err);
-      if (space_err > SPACE_TOL) hp.adapt(THRESHOLD, STRATEGY, ADAPT_TYPE, ISO_ONLY, MESH_REGULARITY, CONV_EXP, MAXIMUM_ORDER, SAME_ORDERS);
+      info("err_est: %g%%", space_err);
+      if (space_err > SPACE_TOL) hp.adapt(THRESHOLD, STRATEGY, ADAPT_TYPE, 
+          ISO_ONLY, MESH_REGULARITY, CONV_EXP, MAXIMUM_ORDER, SAME_ORDERS);
       else done = true;
+      it++;
     }
     while (!done);
 
@@ -252,6 +255,7 @@ int main(int argc, char* argv[])
     moist_prev = moist_rsln;
   }
 
+  // wait for keyboard or mouse input
   View::wait();
   return 0;
 }

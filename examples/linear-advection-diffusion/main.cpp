@@ -179,7 +179,7 @@ int main(int argc, char* argv[])
   Solution sln_coarse, sln_fine;
   do
   {
-    info("!---- Adaptivity step %d ---------------------------------------------", it); it++;
+    info("---- Adaptivity step %d ---------------------------------------------", it); it++;
 
     // time measurement
     cpu_time.tick(H2D_SKIP);
@@ -192,9 +192,7 @@ int main(int argc, char* argv[])
     ls.solve(1, &sln_coarse);
 
     // solve the fine mesh problem
-    int p_increase;
-    if (ADAPT_TYPE == RefinementSelectors::H2DRS_CAND_HP) p_increase = 1;
-    else p_increase = 0;
+    int p_increase = 1;
     int ref_level = 1; 
     RefSystem rs(&ls, p_increase, ref_level);
     rs.assemble();

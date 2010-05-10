@@ -188,7 +188,7 @@ int main(int argc, char* argv[])
   Solution x_sln_fine, y_sln_fine;
   do
   {
-    info("!---- Adaptivity step %d ---------------------------------------------", it); it++;
+    info("---- Adaptivity step %d ---------------------------------------------", it); it++;
 
     // time measurement
     cpu_time.tick(H2D_SKIP);
@@ -207,7 +207,7 @@ int main(int argc, char* argv[])
     cpu_time.tick();
 
     // report dofs
-    info("xdof=%d, ydof=%d\n", xdisp.get_num_dofs(), ydisp.get_num_dofs());
+    info("xdof=%d, ydof=%d", xdisp.get_num_dofs(), ydisp.get_num_dofs());
 
     // view the solution -- this can be slow; for illustration only
     VonMisesFilter stress_coarse(&x_sln_coarse, &y_sln_coarse, mu, lambda);
@@ -236,7 +236,7 @@ int main(int argc, char* argv[])
     cpu_time.tick();
 
     // report results
-    info("Estimate of error: %g%%", err_est);
+    info("err_est: %g%%", err_est);
 
     // add entry to DOF convergence graph
     graph_dof.add_values(xdisp.get_num_dofs() + ydisp.get_num_dofs(), err_est);
