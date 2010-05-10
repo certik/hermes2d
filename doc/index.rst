@@ -16,6 +16,7 @@ Hermes2D Documentation
     src/tutorial-2
     src/tutorial-3
     src/tutorial-4
+    src/tutorial-5
     src/benchmarks
     src/examples
 

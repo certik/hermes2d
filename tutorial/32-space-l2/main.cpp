@@ -1,5 +1,6 @@
 #include "hermes2d.h"
 #include "solver_umfpack.h"
+#include "shapeset_common.h"
 
 // This example shows how to use the L2 finite element space and L2 shapeset.
 // As a sample problem, a continuous function x^3 + y^3 is projected onto the
@@ -9,13 +10,13 @@
 //
 // The following parameters can be changed:
 
-const int P_INIT = 1;          // Polynomial degree of mesh elements
-const int INIT_REF_NUM = 2;    // Number ofinitial uniform mesh refinements
+const int P_INIT = 3;          // Polynomial degree of mesh elements
+const int INIT_REF_NUM = 1;    // Number ofinitial uniform mesh refinements
 
 // projected function
 double F(double x, double y)
 {
-  return x*x*x + y*y*y;
+  return - pow(x, 4) * pow(y, 5); 
 }
 
 // bilinear and linear form defining the projection
@@ -31,7 +32,7 @@ Scalar linear_form(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scal
 {
   Scalar result = 0;
   for (int i = 0; i < n; i++)
-    result += wt[i] * ((pow(e->x[i], 3) + pow(e->y[i], 3)) * v->val[i]);
+    result += wt[i] * (-pow(e->x[i], 4) * pow(e->y[i], 5)) * v->val[i];
   return result;
 }
 
