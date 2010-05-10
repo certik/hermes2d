@@ -6,8 +6,8 @@ This section is a collection of various examples and techniques
 that are worth showing even though they do not fit exactly into 
 the previous sections.  
 
-Space H(curl)
--------------
+Space H(curl) (30)
+------------------
 
 **Git reference:** Tutorial example `30-space-hcurl <http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/tutorial/30-space-hcurl>`_. 
 
@@ -81,8 +81,8 @@ arrows show its direction.
 The space H(curl) is implemented for both quadrilateral and triangular 
 elements, and both elements types can be combined in one mesh. 
 
-Space H(div)
-------------
+Space H(div) (31)
+-----------------
 
 **Git reference:** Tutorial example `31-space-hdiv <http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/tutorial/31-space-hdiv>`_. 
 
@@ -155,8 +155,8 @@ corresponding to a boundary edge are shown below:
 
 So far the space H(div) only can be used with quadrilateral elements.
 
-Space L2
---------
+Space L2 (32)
+-------------
 
 **Git reference:** Tutorial example `32-space-l2 <http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/tutorial/31-space-l2>`_. 
 

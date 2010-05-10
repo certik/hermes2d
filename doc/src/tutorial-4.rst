@@ -56,8 +56,8 @@ situation, however, can be handled routinely via the multimesh discretization
 method. In fact, the user does not have to worry about anything. The methodology is 
 illustrated below.
 
-Nonlinear Parabolic Problem
----------------------------
+Nonlinear Parabolic Problem (20)
+--------------------------------
 
 **Git reference:** Tutorial example `20-newton-timedep-heat-adapt 
 <http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/tutorial/20-newton-timedep-heat-adapt>`_.
@@ -65,29 +65,8 @@ Nonlinear Parabolic Problem
 Description coming soon.
 
 
-Flame Propagation Problem
--------------------------
-
-Description coming soon.
-
-
-Navier-Stokes Equations
------------------------
-
-Description coming soon.
-
-
-
-Heat and Moisture Transfer in Concrete
---------------------------------------
-
-Description coming soon.
-
-
-
-
-Gross-Pitaevski Equation
-------------------------
+Gross-Pitaevski Equation (23)
+-----------------------------
 
 **Git reference:** Tutorial example `23-newton-timedep-gp-adapt 
 <http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/tutorial/23-newton-timedep-gp-adapt>`_.

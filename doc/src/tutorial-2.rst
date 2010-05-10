@@ -179,8 +179,8 @@ This is shown in the figure below.
    :height: 450
    :alt: Convergence graph.
 
-Electrostatic Micromotor Problem
---------------------------------
+Electrostatic Micromotor Problem (10)
+-------------------------------------
 
 **Git reference:** Tutorial example `10-adapt <http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/tutorial/10-adapt>`_. 
 
@@ -483,8 +483,8 @@ largest error are refined. In other words, it may happen that all elements marke
 will belong just to one mesh.
 
 
-Simplified Fitzhugh-Nagumo System
----------------------------------
+Simplified Fitzhugh-Nagumo System (11)
+--------------------------------------
 
 **Git reference:** Tutorial example `11-adapt-system <http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/tutorial/11-adapt-system>`_. 
 
@@ -666,8 +666,8 @@ CPU time convergence graphs:
    :height: 400
    :alt: CPU convergence graph.
 
-Adaptivity for General 2nd-Order Linear Equation
-------------------------------------------------
+Adaptivity for General 2nd-Order Linear Equation (12)
+-----------------------------------------------------
 
 **Git reference:** Tutorial example `12-adapt-general <http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/tutorial/12-adapt-general>`_. 
 

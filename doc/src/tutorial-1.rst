@@ -9,8 +9,8 @@ Hermes2D git repository -- there you will always find the corresponding main.cpp
 The document is under continuous development - if you find bugs or would like us to 
 improve something, let us know through the `mailing list <http://groups.google.com/group/hermes2d/>`_.
 
-Finite Element Mesh
--------------------
+Finite Element Mesh (01)
+--------------------------------
 
 **Git reference:** Tutorial example `01-mesh <http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/tutorial/01-mesh>`_. 
 
@@ -224,8 +224,8 @@ so that you have a chance to see the graphical output.
 
 
 
-Setting Up Finite Element Space
--------------------------------
+Setting Up Finite Element Space (02)
+------------------------------------
 
 **Git reference:** Tutorial example `02-space <http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/tutorial/02-space>`_. 
 
@@ -308,8 +308,8 @@ This is how the last figure above was obtained (press the '3' key for 3D mode).
 We suggest that you spend some time experimenting with element refinements and 
 hanging nodes to see how basis functions on irregular meshes look like.
 
-Solving Poisson Equation
-------------------------
+Solving Poisson Equation (03)
+-----------------------------
 
 **Git reference:** Tutorial example `03-poisson <http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/tutorial/03-poisson>`_. 
 
@@ -445,8 +445,8 @@ The following figure shows the output.
    :height: 350
    :alt: Solution of the Poisson equation.
 
-Boundary Conditions
--------------------
+Boundary Conditions (04, 05, 06)
+--------------------------------
 
 Hermes recognizes two basic types of boundary conditions: *essential* and *natural*.
 Essential boundary conditions influence the finite element space while natural
@@ -837,8 +837,8 @@ described in examples `iron-water <http://hpfem.org/git/gitweb.cgi/hermes2d.git/
 
 The following example handles quadrature orders manually. 
 
-General 2nd-Order Linear Equation
----------------------------------
+General 2nd-Order Linear Equation (07)
+--------------------------------------
 
 **Git reference:** Tutorial example `07-general <http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/tutorial/07-general>`_. 
 
@@ -937,8 +937,8 @@ The output of this example is shown below:
    :height: 400
    :alt: Output of example 07-general.
 
-Systems of Equations
---------------------
+Systems of Equations (08)
+-------------------------
 
 **Git reference:** Tutorial example `08-system <http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/tutorial/08-system>`_. 
 
@@ -1151,8 +1151,8 @@ and a multiplier to make the displacements visible.
    :height: 300
    :alt: Elastic stress plotted on deformed domain.
 
-Time-Dependent Problems
------------------------
+Time-Dependent Problems (09)
+----------------------------
 
 **Git reference:** Tutorial example `09-timedep <http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/tutorial/09-timedep>`_. 
 

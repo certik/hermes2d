@@ -119,8 +119,8 @@ The Newton's method is now
 Therefore, the Newton's method will converge in one iteration.
 
 
-Constant Initial Guess
-----------------------
+Constant Initial Guess (13)
+---------------------------
 
 **Git reference:** Tutorial example `13-newton-elliptic-1 
 <http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/tutorial/13-newton-elliptic-1>`_.
@@ -272,8 +272,8 @@ Approximate solution $u$ for $\alpha = 4$:
    :height: 400
    :alt: result for alpha = 4
 
-General Initial Guess
----------------------
+General Initial Guess (14)
+--------------------------
 
 **Git reference:** Tutorial example `14-newton-elliptic-2 
 <http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/tutorial/14-newton-elliptic-2>`_.
@@ -366,8 +366,8 @@ method looks as follows:
    :height: 350
    :alt: approximate solution
 
-Newton's Method and Adaptivity
-------------------------------
+Newton's Method and Adaptivity (15)
+-----------------------------------
 
 **Git reference:** Tutorial example `15-newton-elliptic-adapt 
 <http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/tutorial/15-newton-elliptic-adapt>`_.
@@ -508,8 +508,8 @@ Resulting fine mesh.
    :height: 400
    :alt: fine mesh
 
-Nonlinear Parabolic Problem
----------------------------
+Nonlinear Parabolic Problem (16)
+--------------------------------
 
 **Git reference:** Tutorial example `16-newton-timedep-heat 
 <http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/tutorial/16-newton-timedep-heat>`_.
@@ -612,8 +612,8 @@ The entire time-stepping loop looks as follows:
 The stationary solution is not shown since we already saw it in the previous sections.
 
 
-Flame Propagation Problem
--------------------------
+Flame Propagation Problem (17)
+------------------------------
 
 **Git reference:** Tutorial example `17-newton-timedep-flame 
 <http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/tutorial/17-newton-timedep-flame>`_.
@@ -801,8 +801,8 @@ A few snapshots of the reaction rate $\omega$ are shown below:
    :width: 800
    :alt: solution
 
-Navier-Stokes Equations
------------------------
+Navier-Stokes Equations (18)
+----------------------------
 
 **Git reference:** Tutorial example `18-newton-timedep-ns 
 <http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/tutorial/18-newton-timedep-ns>`_.
@@ -1026,8 +1026,8 @@ Snapshot of a discontinuous pressure approximation (t = 20 s):
    :width: 840
    :alt: solution
 
-Gross-Pitaevski Equation
-------------------------
+Gross-Pitaevski Equation (19)
+-----------------------------
 
 **Git reference:** Tutorial example `19-newton-timedep-gp 
 <http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/tutorial/19-newton-timedep-gp>`_.
