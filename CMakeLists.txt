@@ -11,8 +11,8 @@ cmake_minimum_required(VERSION 2.6)
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 
 # build with debugging symbols
-set(DEBUG NO)
-set(RELEASE YES)
+set(DEBUG YES)
+set(RELEASE NO)
 
 # real/complex version of the library (you can build either of both)
 set(H2D_REAL     YES)
