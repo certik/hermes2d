@@ -6,8 +6,8 @@ This section contains the description of selected `examples
 Its purpose is to complement rather than duplicate the information 
 in the source code.
 
-Saphir
-------
+Neutronics: Saphir
+------------------
 
 **Git reference:** Example `saphir <http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/examples/saphir>`_.
 
@@ -147,8 +147,8 @@ CPU time convergence graphs:
    :height: 400
    :alt: CPU convergence graph for example saphir.
 
-Iron-Water
-----------
+Neutronics: Iron-Water
+----------------------
 
 **Git reference:** Example `iron-water <http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/examples/iron-water>`_.
 
@@ -248,6 +248,15 @@ CPU time convergence graphs:
    :width: 600
    :height: 400
    :alt: CPU convergence graph for example iron-water.
+
+Neutronics: 4-Group
+-------------------
+
+**Git reference:** Example `neutronics-4-group-adapt <http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/examples/neutronics-4-group-adapt>`_.
+
+
+Description coming soon.
+
 
 Nernst-Planck
 -------------
