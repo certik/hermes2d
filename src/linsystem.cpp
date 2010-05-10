@@ -37,7 +37,7 @@ LinSystem::LinSystem(WeakForm* wf, Solver* solver)
   slv_ctx = solver ? solver->new_context(false) : NULL;
 
   RHS = Dir = Vec = NULL;
-  A = NULL;
+  this->A = NULL;
   mat_sym = false;
 
   spaces = new Space*[wf->neq];
@@ -105,16 +105,16 @@ void LinSystem::copy(LinSystem* sys)
 
 void LinSystem::free()
 {
-  if (A != NULL) { ::free(A); A = NULL; }
-  if (RHS != NULL) { ::free(RHS); RHS = NULL; }
-  if (Dir != NULL) { ::free(Dir-1); Dir = NULL; }
-  if (Vec != NULL) { ::free(Vec); Vec = NULL; }
+  if (this->A != NULL) { ::free(this->A); this->A = NULL; }
+  if (this->RHS != NULL) { ::free(this->RHS); this->RHS = NULL; }
+  if (this->Dir != NULL) { ::free(this->Dir-1); this->Dir = NULL; }
+  if (this->Vec != NULL) { ::free(this->Vec); this->Vec = NULL; }
 
-  if (solver) solver->free_data(slv_ctx);
+  if (this->solver) this->solver->free_data(this->slv_ctx);
 
-  struct_changed = values_changed = true;
-  memset(sp_seq, -1, sizeof(int) * wf->neq);
-  wf_seq = -1;
+  this->struct_changed = this->values_changed = true;
+  memset(this->sp_seq, -1, sizeof(int) * this->wf->neq);
+  this->wf_seq = -1;
 }
 
 
@@ -256,15 +256,15 @@ static int get_num_indices(Page** pages, int ndofs)
 void LinSystem::create_matrix(bool rhsonly)
 {
   // sanity check
-  if (!have_spaces)
+  if (!this->have_spaces)
     error("Before assemble(), you need to call set_spaces().");
 
   // check if we can reuse the matrix structure
   bool up_to_date = true;
-  for (int i = 0; i < wf->neq; i++)
-    if (spaces[i]->get_seq() != sp_seq[i])
+  for (int i = 0; i < this->wf->neq; i++)
+    if (this->spaces[i]->get_seq() != this->sp_seq[i])
       { up_to_date = false; break; }
-  if (wf->get_seq() != wf_seq)
+  if (this->wf->get_seq() != this->wf_seq)
     up_to_date = false;
 
   // if yes, just zero the values and we're done
@@ -273,44 +273,44 @@ void LinSystem::create_matrix(bool rhsonly)
     verbose("Reusing matrix sparse structure.");
     if (!rhsonly) {
       this->A = new CooMatrix(this->ndofs);
-      memset(Dir, 0, sizeof(scalar) * ndofs);
+      memset(this->Dir, 0, sizeof(scalar) * this->ndofs);
     }
-    memset(RHS, 0, sizeof(scalar) * ndofs);
+    memset(this->RHS, 0, sizeof(scalar) * this->ndofs);
     return;
   }
   else if (rhsonly)
     error("Cannot reassemble RHS only: spaces have changed.");
 
   // spaces have changed: create the matrix from scratch
-  free();
+  this->free();
   trace("Creating matrix sparse structure...");
   TimePeriod cpu_time;
 
   // calculate the total number of DOFs
-  ndofs = 0;
-  for (int i = 0; i < wf->neq; i++)
-    ndofs += spaces[i]->get_num_dofs();
-  if (!ndofs)
+  this->ndofs = 0;
+  for (int i = 0; i < this->wf->neq; i++)
+    this->ndofs += this->spaces[i]->get_num_dofs();
+  if (!this->ndofs)
     error("Zero matrix size while creating matrix sparse structure.");
 
   // get row and column indices of nonzero matrix elements
-  Page** pages = new Page*[ndofs];
-  memset(pages, 0, sizeof(Page*) * ndofs);
+  Page** pages = new Page*[this->ndofs];
+  memset(pages, 0, sizeof(Page*) * this->ndofs);
 
-  RHS = (scalar*) malloc(sizeof(scalar) * ndofs);
+  this->RHS = (scalar*) malloc(sizeof(scalar) * this->ndofs);
 
-  A = new CooMatrix(ndofs);
-  Dir = (scalar*) malloc(sizeof(scalar) * (ndofs + 1)) + 1;
-  if (RHS == NULL || Dir == NULL) error("Out of memory. Error allocating the RHS vector.");
-  memset(RHS, 0, sizeof(scalar) * ndofs);
-  memset(Dir, 0, sizeof(scalar) * ndofs);
+  this->A = new CooMatrix(this->ndofs);
+  this->Dir = (scalar*) malloc(sizeof(scalar) * (this->ndofs + 1)) + 1;
+  if (this->RHS == NULL || this->Dir == NULL) error("Out of memory. Error allocating the RHS vector.");
+  memset(this->RHS, 0, sizeof(scalar) * this->ndofs);
+  memset(this->Dir, 0, sizeof(scalar) * this->ndofs);
 
   // save space seq numbers and weakform seq number, so we can detect their changes
-  for (int i = 0; i < wf->neq; i++)
-    sp_seq[i] = spaces[i]->get_seq();
-  wf_seq = wf->get_seq();
+  for (int i = 0; i < this->wf->neq; i++)
+    this->sp_seq[i] = this->spaces[i]->get_seq();
+  this->wf_seq = this->wf->get_seq();
 
-  struct_changed = true;
+  this->struct_changed = true;
 }
 
 
@@ -345,7 +345,7 @@ void LinSystem::assemble(bool rhsonly)
   EdgePos ep[4];
   reset_warn_order();
 
-  if (rhsonly && A == NULL)
+  if (rhsonly && this->A == NULL)
     error("Cannot reassemble RHS only: matrix is has not been assembled yet.");
 
   // create the sparse structure
@@ -814,24 +814,24 @@ scalar LinSystem::eval_form(WeakForm::LiFormSurf *lf, PrecalcShapeset *fv, RefMa
 
 bool LinSystem::solve(int n, ...)
 {
-  if (!solver) error("Cannot solve -- no solver was provided.");
+  if (!this->solver) error("Cannot solve -- no solver was provided.");
   TimePeriod cpu_time;
 
   // solve the system
-  if (Vec != NULL) ::free(Vec);
-  Vec = (scalar*) malloc(ndofs * sizeof(scalar));
-  memcpy(Vec, RHS, sizeof(scalar) * this->A->get_size());
-  solve_linear_system_scipy_umfpack(this->A, Vec);
+  if (this->Vec != NULL) ::free(this->Vec);
+  this->Vec = (scalar*) malloc(this->ndofs * sizeof(scalar));
+  memcpy(this->Vec, this->RHS, sizeof(scalar) * this->A->get_size());
+  solve_linear_system_scipy_umfpack(this->A, this->Vec);
   report_time("LinSystem solved in %g s", cpu_time.tick().last());
 
   // initialize the Solution classes
   va_list ap;
   va_start(ap, n);
-  if (n > wf->neq) n = wf->neq;
+  if (n > this->wf->neq) n = this->wf->neq;
   for (int i = 0; i < n; i++)
   {
     Solution* sln = va_arg(ap, Solution*);
-    sln->set_fe_solution(spaces[i], pss[i], Vec);
+    sln->set_fe_solution(this->spaces[i], this->pss[i], this->Vec);
   }
   va_end(ap);
   report_time("Exported solution in %g s", cpu_time.tick().last());
