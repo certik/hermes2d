@@ -272,7 +272,11 @@ void LinSystem::create_matrix(bool rhsonly)
   {
     verbose("Reusing matrix sparse structure.");
     if (!rhsonly) {
+#ifdef H2D_COMPLEX
+      this->A = new CooMatrix(this->ndofs, true);
+#else
       this->A = new CooMatrix(this->ndofs);
+#endif
       memset(this->Dir, 0, sizeof(scalar) * this->ndofs);
     }
     memset(this->RHS, 0, sizeof(scalar) * this->ndofs);
@@ -299,7 +303,11 @@ void LinSystem::create_matrix(bool rhsonly)
 
   this->RHS = (scalar*) malloc(sizeof(scalar) * this->ndofs);
 
+#ifdef H2D_COMPLEX
+  this->A = new CooMatrix(this->ndofs, true);
+#else
   this->A = new CooMatrix(this->ndofs);
+#endif
   this->Dir = (scalar*) malloc(sizeof(scalar) * (this->ndofs + 1)) + 1;
   if (this->RHS == NULL || this->Dir == NULL) error("Out of memory. Error allocating the RHS vector.");
   memset(this->RHS, 0, sizeof(scalar) * this->ndofs);
@@ -323,7 +331,13 @@ void LinSystem::get_matrix(int*& Ap, int*& Ai, scalar*& Ax, int& size) const
 {
     /// XXX: this is a memory leak:
     CSRMatrix *m = new CSRMatrix(this->A);
-    Ap = m->get_IA(); Ai = m->get_JA(); Ax = m->get_A(); size = m->get_size();
+    Ap = m->get_IA(); Ai = m->get_JA();
+    size = m->get_size();
+#ifdef H2D_COMPLEX
+    Ax = m->get_A_cplx();
+#else
+    Ax = m->get_A();
+#endif
 }
 
 
