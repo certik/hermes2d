@@ -1615,7 +1615,7 @@ Description coming soon.
 Flame Propagation Problem
 -------------------------
 
-Description coming soon.
+Example coming soon.
 
 
 Trilinos - Linear
