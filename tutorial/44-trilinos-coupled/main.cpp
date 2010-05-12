@@ -6,17 +6,22 @@
 //  Domain: pipe with rods
 //
 
+#define H2D_REPORT_WARN
+#define H2D_REPORT_INFO
+#define H2D_REPORT_VERBOSE
+#define H2D_REPORT_FILE "application.log"
+
 #include "hermes2d.h"
 #include "solver_umfpack.h"
 
-const bool jfnk = false;     // true = jacobian-free method,
+const bool jfnk = true;     // true = jacobian-free method,
                             // false = Newton
-const int precond = 2;      // preconditioning by jacobian (1) (less GMRES iterations, more time to create precond)
+const int precond = 1;      // preconditioning by jacobian (1) (less GMRES iterations, more time to create precond)
                             // or by approximation of jacobian (2) (less time for precond creation, more GMRES iters)
                             // in case of jfnk,
                             // default Ifpack proconditioner in case of Newton
 
-const bool trilinos_output = false;  // display more details about nonlinear and linear solvers
+const bool trilinos_output = true;  // display more details about nonlinear and linear solvers
 
 
 // problem constants - all according to the paper SchmichVexler2008
@@ -216,7 +221,21 @@ Scalar jacobian_1_1(int n, double *wt,  Func<Scalar>* u[], Func<Real> *vj, Func<
   return result;
 }
 
-//// main //////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+
+TimePeriod cpu_time;
+
+inline void begin_time() { cpu_time.tick(); }
+inline double end_time() 
+{ 
+	double time = cpu_time.accumulated();  
+	cpu_time.tick_reset(); 
+	return time;
+}
+inline double pause_time() { cpu_time.tick(); }
+inline double resume_time() { cpu_time.tick(H2D_SKIP); }
+
+//////////////////////////////////////////////////////////////////////////////
 
 int main(int argc, char* argv[])
 {
@@ -251,8 +270,8 @@ int main(int argc, char* argv[])
   DXDYFilter omega_dt(omega_dt_fn, &tprev1, &cprev1);
   DXDYFilter omega_dc(omega_dc_fn, &tprev1, &cprev1);
 
-  begin_time();
   info("Projecting initial solution");
+  begin_time();
   Projection proj(2, &titer, &citer, &tspace, &cspace, &tpss, &cpss);
   UmfpackSolver umfpack;
   proj.set_solver(&umfpack);
@@ -278,9 +297,9 @@ int main(int argc, char* argv[])
     wf.add_jacform(1, 1, callback(precond_1_1));
   }
 
-  wf.add_resform(0, callback(residual_0), ANY, 2, &tprev1, &tprev2);
+  wf.add_resform(0, callback(residual_0), H2D_ANY, 2, &tprev1, &tprev2);
   wf.add_resform_surf(0, callback(residual_0_surf), 3);
-  wf.add_resform(1, callback(residual_1), ANY, 2, &cprev1, &cprev2);
+  wf.add_resform(1, callback(residual_1), H2D_ANY, 2, &cprev1, &cprev2);
 
   FeProblem fep(&wf);
   fep.set_spaces(2, &tspace, &cspace);
@@ -312,6 +331,7 @@ int main(int argc, char* argv[])
       tsln.set_fe_solution(&tspace, &tpss, vec);
       csln.set_fe_solution(&cspace, &cpss, vec);
 
+			pause_time();
       info("Number of nonlin iters: %d (norm of residual: %g)",
           solver.get_num_iters(), solver.get_residual());
       info("Total number of iters in linsolver: %d (achieved tolerance in the last step: %g)",
@@ -320,7 +340,8 @@ int main(int argc, char* argv[])
       // visualization
       DXDYFilter omega_view(omega_fn, &tsln, &csln);
       rview.show(&omega_view);
-
+			resume_time();
+			
       total_time += tau;
 
       tprev2.copy(&tprev1);

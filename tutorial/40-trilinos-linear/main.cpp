@@ -12,6 +12,10 @@
 //  Exact solution: sqr(x) + sqr(y)
 //
 
+#define H2D_REPORT_WARN
+#define H2D_REPORT_INFO
+#define H2D_REPORT_VERBOSE
+
 #include "hermes2d.h"
 #include "solver_umfpack.h"
 
@@ -80,6 +84,18 @@ Scalar residual_form(int n, double *wt, Func<Real> *u[], Func<Real> *vi, Geom<Re
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+TimePeriod cpu_time;
+
+inline void begin_time() { cpu_time.tick(); }
+inline double end_time() 
+{ 
+	double time = cpu_time.accumulated();  
+	cpu_time.tick_reset(); 
+	return time;
+}
+inline double pause_time() { cpu_time.tick(); }
+inline double resume_time() { cpu_time.tick(H2D_SKIP); }
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 int main(int argc, char **argv)
@@ -105,7 +121,7 @@ int main(int argc, char **argv)
 
   info("\n******************** Using Linsystem, Solving by Umfpack ************************");
 
-  begin_time();
+	begin_time();
 
   UmfpackSolver umfpack;
   Solution sln1;
@@ -125,18 +141,18 @@ int main(int argc, char **argv)
 
   info("\n******************** Using FeProblem, Solving by NOX Solver ************************");
 
-  begin_time();
   info("Projecting initial solution");
+  begin_time();
   Solution init;  init.set_zero(&mesh);
   Projection proj(1, &init, &space, &pss);
   proj.set_solver(&umfpack);
   double* vec = proj.project();
   double proj_time = end_time();
 
-  begin_time();
   info("Number of DOF: %d", ndof);
+  begin_time();
   WeakForm wf2(1, jfnk ? true : false);
-  wf2.add_jacform(0, 0, callback(jacobian_form), SYM);
+  wf2.add_jacform(0, 0, callback(jacobian_form), H2D_SYM);
   wf2.add_resform(0, callback(residual_form));
 
   FeProblem fep(&wf2);
@@ -157,8 +173,10 @@ int main(int argc, char **argv)
   {
     double *s = solver.get_solution();
     sln2.set_fe_solution(&space, &pss, s);
+    pause_time();
     info("Number of nonlin iters: %d (norm of residual: %g)", solver.get_num_iters(), solver.get_residual());
     info("Total number of iters in linsolver: %d (achieved tolerance in the last step: %g)", solver.get_num_lin_iters(), solver.get_achieved_tol());
+    resume_time();
 
   }
   else

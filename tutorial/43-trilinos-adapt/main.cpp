@@ -73,7 +73,6 @@ Scalar residual_form(int n, double *wt, Func<Real> *u[], Func<Real> *vj, Geom<Re
   return int_grad_u_grad_v<Real, Scalar>(n, wt, u[0], vj) + int_F_v<Real, Scalar>(n, wt, rhs, vj, e);
 }
 
-
 int main(int argc, char* argv[])
 {
   // load the mesh
@@ -94,7 +93,7 @@ int main(int argc, char* argv[])
 
   // initialize the weak formulation
   WeakForm wf(1, jfnk ? true : false);
-  if (precond) wf.add_jacform(0, 0, callback(precond_form), SYM);
+  if (precond) wf.add_jacform(0, 0, callback(precond_form), H2D_SYM);
   wf.add_resform(0, callback(residual_form));
 
   // visualize solution and mesh

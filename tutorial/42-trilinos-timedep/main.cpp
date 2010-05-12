@@ -79,6 +79,19 @@ Scalar residual_surf(int n, double *wt, Func<Scalar> *u[], Func<Real> *vj, Geom<
 }
 
 ////////////////////////////////////////////////////////////////////////////
+
+TimePeriod cpu_time;
+
+inline void begin_time() { cpu_time.tick(); }
+inline double end_time() 
+{ 
+	double time = cpu_time.accumulated();  
+	cpu_time.tick_reset(); 
+	return time;
+}
+inline double pause_time() { cpu_time.tick(); }
+inline double resume_time() { cpu_time.tick(H2D_SKIP); }
+
 //////////////////////////////////////////////////////////////////////////////
 
 int main(int argc, char* argv[])
@@ -112,7 +125,7 @@ int main(int argc, char* argv[])
   WeakForm wf(1, jfnk ? true : false);
   wf.add_jacform(0, 0, callback(jacobian));
   wf.add_jacform_surf(0, 0, callback(jacobian_surf));
-  wf.add_resform(0, callback(residual), ANY, 1, &tprev);
+  wf.add_resform(0, callback(residual), H2D_ANY, 1, &tprev);
   wf.add_resform_surf(0, callback(residual_surf));
 
   // Finite element problem
@@ -121,8 +134,8 @@ int main(int argc, char* argv[])
   fep.set_pss(1, &pss);
 
   // Obtain solution vector for initial guess
-  begin_time();
   info("Projecting initial solution");
+  begin_time();
   Projection proj(1, &titer, &space, &pss);
   UmfpackSolver umfpack;
   proj.set_solver(&umfpack);
@@ -142,11 +155,14 @@ int main(int argc, char* argv[])
   ScalarView Tview("Temperature", 0, 0, 450, 600);
   Tview.set_min_max_range(10,20);
 
+	begin_time();
+
   double total_time = 0.0;
-  begin_time();
   for (int it = 1; total_time <= 2000.0; it++)
   {
+  	pause_time();
     info("\n*** Time iteration %d, t = %g s ***", it, total_time += tau);
+    resume_time();
 
     solver.set_init_sln(vec);
     bool solved = solver.solve();
@@ -160,8 +176,10 @@ int main(int argc, char* argv[])
     else
       error("Failed.");
 
+		pause_time();
     info("Number of nonlin iters: %d (norm of residual: %g)", solver.get_num_iters(), solver.get_residual());
     info("Total number of iters in linsolver: %d (achieved tolerance in the last step: %g)", solver.get_num_lin_iters(), solver.get_achieved_tol());
+    resume_time();
   }
 
   info("Total running time: %g", end_time());

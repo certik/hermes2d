@@ -122,6 +122,19 @@ Scalar residual_form_nox(int n, double *wt, Func<Real> *u[], Func<Real> *vj, Geo
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
+
+TimePeriod cpu_time;
+
+inline void begin_time() { cpu_time.tick(); }
+inline double end_time() 
+{ 
+	double time = cpu_time.accumulated();  
+	cpu_time.tick_reset(); 
+	return time;
+}
+inline double pause_time() { cpu_time.tick(); }
+inline double resume_time() { cpu_time.tick(H2D_SKIP); }
+
 // main ////////////////////////////////////////////////////////////////////////////////////////////
 
 int main(int argc, char **argv)
@@ -151,8 +164,8 @@ int main(int argc, char **argv)
   Solution prev;  prev.set_zero(&mesh);
 
   WeakForm wf1(1);
-  wf1.add_biform(0, 0, callback(jacobian_form_hermes), UNSYM, ANY, 1, &prev);
-  wf1.add_liform(0, callback(residual_form_hermes), ANY, 1, &prev);
+  wf1.add_biform(0, 0, callback(jacobian_form_hermes), H2D_UNSYM, H2D_ANY, 1, &prev);
+  wf1.add_liform(0, callback(residual_form_hermes), H2D_ANY, 1, &prev);
 
   NonlinSystem sys(&wf1, &umfpack);
   sys.set_spaces(1, &space);
@@ -179,19 +192,19 @@ int main(int argc, char **argv)
 
   info("******************** Using FeProblem, Solving by NOX ************************");
 
-  begin_time();
   info("Projecting initial solution");
+  begin_time();
   Solution init;  init.set_zero(&mesh);
   Projection proj(1, &init, &space, &pss);
   proj.set_solver(&umfpack);
   double* vec = proj.project();
   double proj_time = end_time();
 
-  begin_time();
   info("Number of DOF: %d", ndof);
+  begin_time();
   WeakForm wf2(1, jfnk ? true : false);
-  if (!jfnk || (jfnk && precond == 1)) wf2.add_jacform(0, 0, callback(jacobian_form_nox), SYM);
-  if (jfnk && precond == 2) wf2.add_jacform(0, 0, callback(precond_form_nox), SYM);
+  if (!jfnk || (jfnk && precond == 1)) wf2.add_jacform(0, 0, callback(jacobian_form_nox), H2D_SYM);
+  if (jfnk && precond == 2) wf2.add_jacform(0, 0, callback(precond_form_nox), H2D_SYM);
   wf2.add_resform(0, callback(residual_form_nox));
 
   FeProblem fep(&wf2);
@@ -214,8 +227,10 @@ int main(int argc, char **argv)
     vec = solver.get_solution();
     sln2.set_fe_solution(&space, &pss, vec);
 
+		pause_time();
     info("Number of nonlin iters: %d (norm of residual: %g)", solver.get_num_iters(), solver.get_residual());
     info("Total number of iters in linsolver: %d (achieved tolerance in the last step: %g)", solver.get_num_lin_iters(), solver.get_achieved_tol());
+    resume_time();
   }
   else
     error("Failed.");
