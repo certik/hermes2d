@@ -21,12 +21,3 @@ add_subdirectory(neutronics-4-group)
 add_subdirectory(neutronics-4-group-adapt)
 add_subdirectory(singular-perturbation)
 add_subdirectory(heat-and-moisture)
-
-
-if(WITH_TRILINOS)
-  add_subdirectory(trilinos-linear)
-  add_subdirectory(trilinos-nonlinear)
-  add_subdirectory(trilinos-timedep)
-  add_subdirectory(trilinos-adapt)
-  add_subdirectory(trilinos-coupled)
-endif(WITH_TRILINOS)
