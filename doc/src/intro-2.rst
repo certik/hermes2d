@@ -141,14 +141,29 @@ Developer documentation can be compiled by running 'doxygen' in 'src/'.
 Compilation
 ~~~~~~~~~~~
 
-Download and install Xcode. You have to register as Apple Developer but this is quick. Do not pay any fees. Xcode contains make and other things that are required to build Hermes2D.
+Download and install Xcode. You have to register as Apple Developer but this is quick. Do not pay any fees.
 
-Also install cmake, cython, judy, and git. 
+Also install git, cmake, cython, judy, and glew. 
 
 (Note: cmake has to be at least version 2.6 or later, matplotlib has to be at
 least 0.98.5.2 or higher.)
 
-Clone the Git repository, configure and build:
+The installation of git may look as follows:
+
+::
+    
+    curl -O http://kernel.org/pub/software/scm/git/git-1.6.5.tar.bz2
+    tar xzvf git-1.6.5.tar.bz2
+    cd git-1.6.5
+    ./configure --prefix=/usr/local
+    make
+    sudo make install
+
+For the other packages, it is usually enough to download a
+tgz file from the web, untar and follow simple instructions 
+in the README file.
+
+Next, clone the Git repository, configure and build:
 
 ::
   
