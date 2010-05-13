@@ -11,12 +11,12 @@ Hermes2D Documentation
 
     src/intro-1
     src/intro-2
-    src/intro-3
     src/tutorial-1
     src/tutorial-2
     src/tutorial-3
     src/tutorial-4
     src/tutorial-5
+    src/tutorial-6
     src/benchmarks
     src/examples
 

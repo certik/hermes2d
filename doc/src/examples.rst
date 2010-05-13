@@ -1618,44 +1618,5 @@ Flame Propagation Problem
 Example coming soon.
 
 
-Trilinos - Linear
------------------
-
-**Git reference:** Example `trilinos-linear 
-<http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/examples/trilinos-linear>`_.
-
-Description coming soon.
-
-Trilinos - Nonlinear
---------------------
-
-**Git reference:** Example `trilinos-nonlinear 
-<http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/examples/trilinos-nonlinear>`_.
-
-Description coming soon.
-
-Trilinos - Timedep
-------------------
-
-**Git reference:** Example `trilinos-timedep 
-<http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/examples/trilinos-timedep>`_.
-
-Description coming soon.
-
-Trilinos - Adapt
-----------------
-
-**Git reference:** Example `trilinos-adapt
-<http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/examples/trilinos-adapt>`_.
-
-Description coming soon.
-
-Trilinos - Coupled
-------------------
-
-**Git reference:** Example `trilinos-coupled
-<http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/examples/trilinos-coupled>`_.
-
-Description coming soon.
 
 
