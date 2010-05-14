@@ -688,12 +688,15 @@ Click on the link "index.html" and you should see
 the local form of your Sphinx docs that include your 
 changes. 
 
-Further Reading
----------------
+Further Reading and Video
+-------------------------
 
 Git is very powerful and we covered just a tiny part of 
 it. After the above works for you, please
 read more about git in `Pro Git <http://progit.org/book/>`_.
+
+Also watch this `YouTube video <http://www.youtube.com/watch?v=OFkgSjRnay4>`_
+by Scott Chacon.
 
 GitHub
 ------

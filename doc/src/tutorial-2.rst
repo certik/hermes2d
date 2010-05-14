@@ -512,7 +512,7 @@ In order to make it simpler for this tutorial, we replace the function $f(u)$ wi
 
     f(u) = u.
 
-The original nonlinear version is the subject of a separate benchmark example. 
+The original nonlinear version of this example is planned for inclusion in benchmarks. 
 
 Our computational domain is the square $(-1,1)^2$ and we consider zero Dirichlet conditions 
 for both $u$ and $v$. In order to enable fair convergence comparisons, we will use the following 
@@ -578,7 +578,7 @@ they are registered as follows:
 
 Beware that despite each of the forms is actually symmetric, one cannot use the H2D_SYM flag as in the 
 elasticity equations, since it has a slightly different 
-meaning (see example `08-system <http://hpfem.org/hermes2d/doc/src/tutorial.html#systems-of-equations>`_).
+meaning (see example `08-system <http://hpfem.org/hermes2d/doc/src/tutorial-1.html#systems-of-equations-08>`_).
 
 The exact error is for us the maximum of the relative errors of the two solution components:
 
