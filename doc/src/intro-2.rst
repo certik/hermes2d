@@ -172,8 +172,9 @@ libraries and applications on your Mac) by doing the following:
 to download the Hermes2D source and clone the git repository by doing 
 'git clone http://hpfem.org/git/hermes2d.git'.
 
-**Step 5**: Configure and build Hermes by doing 'cd hermes2d/ && cmake . && make'.
-If you have more than one CPU, you can use -Y´make -jN¡ where N is the 
+**Step 5**: Configure and build Hermes by doing 'cd hermes2d/ && cmake . 
+&& make'.
+If you have more than one CPU, you can use 'make -jN' where N is the 
 number of CPUs of your computer. To set the location where Hermes2D 
 will be installed, pass the -DCMAKE_INSTALL_PREFIX=<your location> 
 flag to cmake (i.e. to install in /usr/local, replace the cmake 
@@ -222,14 +223,6 @@ You can also easily generate it from a script (e.g. a debian/rules file) by:
 
     python -c 'print "set(H2D_COMPLEX no)\nset(WITH_EXAMPLES no)\nset(WITH_TUTORIAL no)\nset(WITH_PYTHON yes)\nset(WITH_GLUT no)\nset(WITH_UTIL no)"' > CMake.vars
 
-If you are on OS X, you have to disable GLUT as the glut library is not easily
-installable on OS X. To do so, just put the following line into your
-CMake.vars:
-
-::
-
-    set(WITH_GLUT NO)
-
 
 For development, it is good to say (in global CMake.vars):
 
@@ -244,16 +237,6 @@ Then type:
 
     make debug    (to build debug versions)
     make release  (to build release versions)
-
-Install Hermes2D
-~~~~~~~~~~~~~~~~
-
-::
-
-    cmake -DCMAKE_INSTALL_PREFIX=~/usr .
-    make
-    make install
-
 
 Windows Cygwin Users
 --------------------
@@ -442,3 +425,293 @@ This list works for 32-bit version of Hermes2D. If you intend to cross-compile 6
       - copy 'exoIIv2c.lib' to 'lib' dependency directory structure
       - copy 'my_exodusii_root/cbind/include/exodusII.h' and 'my_netcdf_root/libsrc4/exodusII_ext.h' to 'include' dependency directory
 	
+
+====================================
+How to Survive an Encounter with Git
+====================================
+
+The following is an embarrassingly trivial git primer
+whose objective is to show you how to create and send 
+your first patch without losing much time and good humor. 
+We begin with cloning the Hermes2D git repository and 
+continue through setting 
+up the .gitconfig file, creating a new branch, committing 
+changes, and generating patches. A good reference for 
+further reading is given at the end. 
+
+Clone the Hermes2D Git Repository
+---------------------------------
+
+To clone the repository, type
+
+::
+
+    git clone http://hpfem.org/git/hermes2d.git
+
+This will create a new directory hermes2d/ with a copy 
+of the entire Hermes2D git repository. Before doing anything 
+else, you may want to build Hermes2D to make sure that 
+everything works:
+
+::
+
+    cd hermes2d/
+    cmake .
+    make
+
+The list of prerequisites and installation instructions 
+for various platforms can be found 
+`here <http://hpfem.org/hermes2d/doc/src/intro-2.html>`_.
+
+Create the .gitconfig File
+--------------------------
+
+The .gitconfig file can be used to define your identity
+for git as well as useful abbreviations. In hermes2d/
+type 
+
+::
+
+    cd .. 
+
+and save the following as your .gitconfig file:
+
+::
+
+    [user]
+       name = Pavel Solin
+       email = solin.pavel@gmail.com
+
+    [color]
+       ui = auto
+       interactive = true
+
+    [alias]
+       ci = commit
+       di = diff --color-words
+       st = status
+       co = checkout
+
+You may want to change the name and email address in there.
+
+Create a Local Branch
+---------------------
+
+Type 
+
+::
+
+    cd hermes2d/ 
+
+You can get an overview of existing branches by typing 
+
+::
+
+    git branch 
+
+This will show you something like this:
+
+  .. image:: img/terminal-git.png
+   :align: center
+   :width: 600
+   :alt: Terminal screenshot
+
+If this is your first time, then you will see
+just the master branch with the star next to it,
+which tells you that there are no other branches.
+
+If you want to make any changes to the source files, then 
+it is a good idea to always create a new branch for it. 
+This is done by typing
+
+::
+
+    git co -b test-1
+
+where test-1 is the name of your new local branch. Now you 
+can do any changes you like and you do not have to be afraid
+of damaging your master branch. HOWEVER, you always must 
+commit your changes as described below. 
+Unless you commit your changes, git does not 
+know that they belong to your local branch. Then you are not 
+able to switch branches, and YOU ARE IN TROUBLE!
+
+Commit Your Changes
+-------------------
+
+The file src/git-sandbox.cpp contains 
+a flawed factorial function:
+
+::
+
+    int factorial(int n) {
+      if(n == 0) return 0;
+      else return n*factorial(n-1);
+    }
+
+If you are able to find the mistake, just correct it 
+and save the file to the disk. Then commit your changes 
+by typing 
+
+::
+
+    git add src/git-sandbox.cpp
+    git commit
+
+The latter command will invoke a basic text editor 
+where you will be asked to enter a one-line comment
+describing your changes. 
+
+  .. image:: img/terminal-git-4.png
+   :align: center
+   :width: 600
+   :alt: Terminal screenshot
+
+
+If you decide to skip this 
+and commit with an empty line, your commit will not 
+be accepted. 
+
+Create and Send a Patch
+-----------------------
+
+You are almost there! Just type 
+
+::
+
+    git format-patch -1
+
+and a new text file starting with three zeros will be 
+created. This is a "patch". The parameter '-1' in there
+means that you want only the last commit included in 
+the patch. If you typed '-2', git would include the last 
+two commits, etc. 
+
+Last, send an email with the patch to the mailing 
+list hermes2d@googlegroups.com, begin the subject 
+line with saying "[PATCH] ...", and attach the 
+text file with the patch to your email. Someone
+will be with you shortly!
+
+Change to Master and Update the Repository
+------------------------------------------
+
+Before changing to a different branch, type 
+
+::
+
+    git st
+
+This stands for 'git status'. You will see 
+something like this:
+
+  .. image:: img/terminal-git-2.png
+   :align: center
+   :width: 600
+   :alt: Terminal screenshot
+
+The green font tells you that git has the latest 
+version of the file. All modified files in red 
+need to be added using "git add". It is a good
+idea to go through the untracked files too, in case
+that you wish to add some of them as well. 
+Related to the sample screenshot above, after 
+typing 
+
+::
+
+    git add src/intro-2.rst
+    git st
+
+you will see
+
+  .. image:: img/terminal-git-3.png
+   :align: center
+   :width: 600
+   :alt: Terminal screenshot
+
+Now you can proceed with "git commit" as described above. 
+After the commit, you can switch to the master branch:
+
+::
+
+    git co master
+
+This brings you to the point where you can 
+return to the beginning of this short
+tutorial, and start working on a new change.
+
+To update your master to the latest state of
+the repository, just type:
+
+::
+
+    git remote add http://hpfem.org/git/hermes2d.git
+
+This tells git where to download the git repository from
+(needs to be done just the first time). Then type
+
+::
+
+    git pull origin master
+
+Special Note on Sphinx Docs
+-------------------------
+
+The Sphinx documentation you are just reading is also 
+part of the Hermes2D git repository and can be developed
+in the same way as source files of Hermes2D. This very 
+file can be found in doc/src/intro-2.rst. After making 
+any changes to Sphinx docs, type 
+
+::
+
+    make html
+
+in the doc/ directory. This will launch 
+a build process that will take a few seconds. 
+After it finishes, type
+
+::
+
+    firefox _build/html
+
+This will open a new tab in your Firefox where you will
+see something like 
+
+  .. image:: img/firefox.png
+   :align: center
+   :width: 600
+   :alt: Firefox screenshot
+
+Click on the link "index.html" and you should see
+the local form of your Sphinx docs that include your 
+changes. 
+
+Further Reading
+---------------
+
+Git is very powerful and we covered just a tiny part of 
+it. After the above works for you, please
+read more about git in `Pro Git <http://progit.org/book/>`_.
+
+GitHub
+------
+
+You should also learn how to upload
+your local branch to `GitHub <http://github.com/>`_
+instead of sending a patch, since this makes the
+work with your changes easier. 
+
+Good luck and let us know if you think 
+that this document could be improved!
+
+
+ 
+
+
+
+
+
+
+
