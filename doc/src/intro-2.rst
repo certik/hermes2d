@@ -141,39 +141,49 @@ Developer documentation can be compiled by running 'doxygen' in 'src/'.
 Compilation
 ~~~~~~~~~~~
 
-Download and install Xcode. You have to register as Apple Developer but this is quick. Do not pay any fees.
+**Step 1**: Make sure you have XCode installed. This should be on the installation 
+disks which came with your Mac. XCode contains the GNU compilers, make 
+and many other things which are required to build Hermes2D.
 
-Also install git, cmake, cython, judy, and glew. 
+**Step 2**: Download and install MacPython version 2.6 using the disk image for 
+your version of OSX at http://www.python.org/download/releases/2.6.5/. 
+You will already have a version of Python which gets installed with 
+your operating system, but it will probably be out of date. Once this 
+is installed, go to the Python 2.6 directory which will be in your 
+Applications folder and double click the 'Update Shell 
+Profile.command' script to run it. This will update your system to use 
+the latest version of Python.
 
-(Note: cmake has to be at least version 2.6 or later, matplotlib has to be at
-least 0.98.5.2 or higher.)
+**Step 3**: Install the following libraries and applications: judy, Suitesparse, 
+glew, cmake, git. If you don't already have these on your Mac, then 
+the easiest way to get them is to use MacPorts (which is an 
+application which allows you to easily install and manage UNIX 
+libraries and applications on your Mac) by doing the following:
 
-The installation of git may look as follows:
+  (a) Download and install MacPorts from 
+      http://www.macports.org/install.php.
+  (b) Do 'sudo port install judy suitesparse glew'.
+  (c) If you don't already have git installed, do 
+      'sudo port install git'.
+  (d) If you don't already have cmake installed, do 
+      'sudo port install cmake'.
 
-::
-    
-    curl -O http://kernel.org/pub/software/scm/git/git-1.6.5.tar.bz2
-    tar xzvf git-1.6.5.tar.bz2
-    cd git-1.6.5
-    ./configure --prefix=/usr/local
-    make
-    sudo make install
+**Step 4**: Get the Hermes2D source code. Change to the directory where you want 
+to download the Hermes2D source and clone the git repository by doing 
+'git clone http://hpfem.org/git/hermes2d.git'.
 
-For the other packages, it is usually enough to download a
-tgz file from the web, untar and follow simple instructions 
-in the README file.
+**Step 5**: Configure and build Hermes by doing 'cd hermes2d/ && cmake . && make'.
+If you have more than one CPU, you can use -Y´make -jN¡ where N is the 
+number of CPUs of your computer. To set the location where Hermes2D 
+will be installed, pass the -DCMAKE_INSTALL_PREFIX=<your location> 
+flag to cmake (i.e. to install in /usr/local, replace the cmake 
+command above with 'cmake -DCMAKE_INSTALL_PREFIX=/usr/local .').
 
-Next, clone the Git repository, configure and build:
+**Step 6**: To execute all tests, do 'make test'. Note that some of the tests can 
+take a long time to finish. To just execute the short running tests, 
+do 'make test-quick'.
 
-::
-  
-    git clone http://hpfem.org/git/hermes2d.git
-    cd hermes2d/
-    cmake .
-    make
-
-If you have more than one CPU, you can use "make -jN" where N is
-the number of CPUs of your computer.
+**Step 7**: Install Hermes2D by doing 'make install'.
 
 Tests
 ~~~~~
