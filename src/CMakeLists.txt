@@ -57,6 +57,7 @@ endmacro(MAKE_PATH)
 # Sets linker settings
 macro(LIBRARY_SETTINGS BIN)
     target_link_libraries(${BIN} ${JUDY_LIBRARY} ${PTHREAD_LIBRARY})
+    target_link_libraries(${BIN} hermes_common)
 
     if(NOT MSVC)
         IF(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
