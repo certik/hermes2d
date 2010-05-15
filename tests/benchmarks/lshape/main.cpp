@@ -1,21 +1,26 @@
 #include "hermes2d.h"
 #include "solver_umfpack.h"
 
-///  This test makes sure that the benchmark "lshape" works correctly.
-///
-///  Parameters
-///  * P_INIT=1
-///  * THERSHOLD=0.3
-///  * ADAPT_TYPE=HP, P-cand order + 2 allowed
-///  * ISO_ONLY=false
-///  * MESH_REGULARITY=-1
-///  * ERR_STOP=0.1
-///  * CONV_EXP=1.0
-///  * NDOF_STOP=40000
-///
-///  Results for given parameters
-///  * Uniform orders: 555 DOFs
-///  * Nonuniform orders: 539 DOFs
+using namespace RefinementSelectors;
+
+/** \addtogroup t_bench_lshape Benchmarks/LShape
+ *  \{
+ *  \brief This test makes sure that the benchmark "lshape" works correctly.
+ *
+ *  \section s_params Parameters
+ *  - P_INIT=1
+ *  - THERSHOLD=0.3
+ *  - STRATEGY=0
+ *  - CAND_LIST=HP_ANISO
+ *  - MESH_REGULARITY=-1
+ *  - ERR_STOP=0.1
+ *  - CONV_EXP=1.0
+ *  - NDOF_STOP=40000
+ *  - ERROR_WEIGHTS=(H: 1; P: 1; ANISO: 1)
+ *
+ *  \section s_res Results
+ *  - DOFs: 595
+ */
 
 const int P_INIT = 1;             // Initial polynomial degree of all mesh elements.
 const double THRESHOLD = 0.3;     // This is a quantitative parameter of the adapt(...) function and
@@ -29,12 +34,10 @@ const int STRATEGY = 0;           // Adaptive strategy:
                                   // STRATEGY = 2 ... refine all elements whose error is larger
                                   //   than THRESHOLD.
                                   // More adaptive strategies can be created in adapt_ortho_h1.cpp.
-const RefinementSelectors::AllowedCandidates ADAPT_TYPE = RefinementSelectors::H2DRS_CAND_HP;         // Type of automatic adaptivity.
-const bool ISO_ONLY = false;      // Isotropic refinement flag (concerns quadrilateral elements only).
-                                  // ISO_ONLY = false ... anisotropic refinement of quad elements
-                                  // is allowed (default),
-                                  // ISO_ONLY = true ... only isotropic refinements of quad elements
-                                  // are allowed.
+const CandList CAND_LIST = H2D_HP_ANISO; // Predefined list of element refinement candidates. Possible values are
+                                         // H2D_P_ISO, H2D_P_ANISO, H2D_H_ISO, H2D_H_ANISO, H2D_HP_ISO,
+                                         // H2D_HP_ANISO_H, H2D_HP_ANISO_P, H2D_HP_ANISO.
+                                         // See the Sphinx tutorial (http://hpfem.org/hermes2d/doc/src/tutorial-2.html#adaptive-h-fem-and-hp-fem) for details.
 const int MESH_REGULARITY = -1;   // Maximum allowed level of hanging nodes:
                                   // MESH_REGULARITY = -1 ... arbitrary level hangning nodes (default),
                                   // MESH_REGULARITY = 1 ... at most one-level hanging nodes,
@@ -115,9 +118,6 @@ int main(int argc, char* argv[])
   // matrix solver
   UmfpackSolver solver;
 
-  // prepare selector
-  RefinementSelectors::H1NonUniformHP selector(ISO_ONLY, ADAPT_TYPE, CONV_EXP, H2DRS_DEFAULT_ORDER, &shapeset);
-
   // convergence graph wrt. the number of degrees of freedom
   GnuplotGraph graph;
   graph.set_log_y();
@@ -132,14 +132,19 @@ int main(int argc, char* argv[])
   graph_cpu.add_row("error estimate", "k", "--");
   graph_cpu.set_log_y();
 
+  // create a selector which will select optimal candidate
+  H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER, &shapeset);
+  selector.set_error_weights(1.0, 1.0, 1.0);
+
   // adaptivity loop
-  int it = 1, ndofs;
+  int it = 1;
+  int ndof;
   bool done = false;
   TimePeriod cpu_time;
   Solution sln_coarse, sln_fine;
   do
   {
-    info("!---- Adaptivity step %d ---------------------------------------------", it); it++;
+    info("---- Adaptivity step %d ---------------------------------------------", it); it++;
 
     // time measurement
     cpu_time.tick(H2D_SKIP);
@@ -168,13 +173,12 @@ int main(int argc, char* argv[])
     rs.solve(1, &sln_fine);
 
     // calculate error estimate wrt. fine mesh solution
-    H1AdaptHP hp(1, &space);
-    double err_est = hp.calc_error(&sln_coarse, &sln_fine) * 100;
-
-    // time measurement
-    cpu_time.tick();
+    H1Adapt hp(&space);
+    hp.set_solutions(&sln_coarse, &sln_fine);
+    double err_est = hp.calc_error() * 100;
 
     // report results
+    cpu_time.tick();
     info("Estimate of error: %g%%", err_est);
 
     // add entry to DOF convergence graph
@@ -193,9 +197,9 @@ int main(int argc, char* argv[])
     // if err_est too large, adapt the mesh
     if (err_est < ERR_STOP) done = true;
     else {
-      hp.adapt(THRESHOLD, STRATEGY, &selector, MESH_REGULARITY);
-      ndofs = space.assign_dofs();
-      if (ndofs >= NDOF_STOP) done = true;
+      hp.adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY);
+      ndof = assign_dofs(&space);
+      if (ndof >= NDOF_STOP) done = true;
     }
 
     // time measurement
@@ -207,9 +211,9 @@ int main(int argc, char* argv[])
 #define ERROR_SUCCESS                               0
 #define ERROR_FAILURE                               -1
   int n_dof_allowed = 700;
-  printf("n_dof_actual = %d\n", ndofs);
+  printf("n_dof_actual = %d\n", ndof);
   printf("n_dof_allowed = %d\n", n_dof_allowed);
-  if (ndofs <= n_dof_allowed) {
+  if (ndof <= n_dof_allowed) {
     printf("Success!\n");
     return ERROR_SUCCESS;
   }

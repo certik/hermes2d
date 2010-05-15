@@ -1,6 +1,8 @@
 #include "hermes2d.h"
 #include "solver_umfpack.h"
 
+using namespace RefinementSelectors;
+
 // This test makes sure that example 11-adapt-system works correctly with MULTI = true.
 
 const int P_INIT = 1;            // Initial polynomial degree of all mesh elements.
@@ -25,15 +27,10 @@ const int STRATEGY = 1;          // Adaptive strategy:
                                  // STRATEGY = 2 ... refine all elements whose error is larger
                                  //   than THRESHOLD.
                                  // More adaptive strategies can be created in adapt_ortho_h1.cpp.
-const int ADAPT_TYPE = 0;        // Type of automatic adaptivity:
-                                 // ADAPT_TYPE = 0 ... adaptive hp-FEM (default),
-                                 // ADAPT_TYPE = 1 ... adaptive h-FEM,
-                                 // ADAPT_TYPE = 2 ... adaptive p-FEM.
-const bool ISO_ONLY = false;     // Isotropic refinement flag (concerns quadrilateral elements only).
-                                 // ISO_ONLY = false ... anisotropic refinement of quad elements
-                                 // is allowed (default),
-                                 // ISO_ONLY = true ... only isotropic refinements of quad elements
-                                 // are allowed.
+const CandList CAND_LIST = H2D_HP_ANISO; // Predefined list of element refinement candidates. Possible values are
+                                         // H2D_P_ISO, H2D_P_ANISO, H2D_H_ISO, H2D_H_ANISO, H2D_HP_ISO,
+                                         // H2D_HP_ANISO_H, H2D_HP_ANISO_P, H2D_HP_ANISO.
+                                         // See the Sphinx tutorial (http://hpfem.org/hermes2d/doc/src/tutorial-2.html#adaptive-h-fem-and-hp-fem) for details.
 const int MESH_REGULARITY = -1;  // Maximum allowed level of hanging nodes:
                                  // MESH_REGULARITY = -1 ... arbitrary level hangning nodes (default),
                                  // MESH_REGULARITY = 1 ... at most one-level hanging nodes,
@@ -140,8 +137,7 @@ int main(int argc, char* argv[])
   ydisp.set_uniform_order(P_INIT);
 
   // enumerate basis functions
-  int ndofs = xdisp.assign_dofs();
-  ndofs += ydisp.assign_dofs(ndofs);
+  int ndof = assign_dofs(2, &xdisp, &ydisp);
 
   // initialize the weak formulation
   WeakForm wf(2);
@@ -153,6 +149,9 @@ int main(int argc, char* argv[])
   // matrix solver
   UmfpackSolver umfpack;
 
+  // create a selector which will select optimal candidate
+  H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, MAX_ORDER, &shapeset);
+
   // adaptivity loop
   int it = 1;
   bool done = false;
@@ -161,15 +160,13 @@ int main(int argc, char* argv[])
   Solution x_sln_fine, y_sln_fine;
   do
   {
-    info("!---- Adaptivity step %d ---------------------------------------------", it); it++;
+    info("---- Adaptivity step %d ---------------------------------------------", it); it++;
 
     // time measurement
     cpu_time.tick(H2D_SKIP);
 
-    //calculating the number of degrees of freedom
-    ndofs = xdisp.assign_dofs();
-    ndofs += ydisp.assign_dofs(ndofs);
-    printf("xdof=%d, ydof=%d\n", xdisp.get_num_dofs(), ydisp.get_num_dofs());
+    // enumerate degrees of freedom
+    ndof = assign_dofs(2, &xdisp, &ydisp);
 
     // solve the coarse mesh problem
     LinSystem ls(&wf, &umfpack);
@@ -178,24 +175,34 @@ int main(int argc, char* argv[])
     ls.assemble();
     ls.solve(2, &x_sln_coarse, &y_sln_coarse);
 
+    // time measurement
+    cpu_time.tick();
+
+    // report dofs
+    info("xdof=%d, ydof=%d\n", xdisp.get_num_dofs(), ydisp.get_num_dofs());
+
+    // time measurement
+    cpu_time.tick(H2D_SKIP);
+
     // solve the fine mesh problem
     RefSystem rs(&ls);
     rs.assemble();
     rs.solve(2, &x_sln_fine, &y_sln_fine);
 
     // calculate element errors and total error estimate
-    H1OrthoHP hp(2, &xdisp, &ydisp);
+    H1Adapt hp(Tuple<Space*>(&xdisp, &ydisp));
+    hp.set_solutions(Tuple<Solution*>(&x_sln_coarse, &y_sln_coarse), Tuple<Solution*>(&x_sln_fine, &y_sln_fine));
     hp.set_biform(0, 0, bilinear_form_0_0<scalar, scalar>, bilinear_form_0_0<Ord, Ord>);
     hp.set_biform(0, 1, bilinear_form_0_1<scalar, scalar>, bilinear_form_0_1<Ord, Ord>);
     hp.set_biform(1, 0, bilinear_form_1_0<scalar, scalar>, bilinear_form_1_0<Ord, Ord>);
     hp.set_biform(1, 1, bilinear_form_1_1<scalar, scalar>, bilinear_form_1_1<Ord, Ord>);
-    double err_est = hp.calc_error_2(&x_sln_coarse, &y_sln_coarse, &x_sln_fine, &y_sln_fine) * 100;
+    double err_est = hp.calc_error() * 100;
 
     // time measurement
     cpu_time.tick();
 
     // report results
-    info("\nEstimate of error: %g%%", err_est);
+    info("Estimate of error: %g%%", err_est);
 
     // time measurement
     cpu_time.tick(H2D_SKIP);
@@ -203,10 +210,9 @@ int main(int argc, char* argv[])
     // if err_est too large, adapt the mesh
     if (err_est < ERR_STOP) done = true;
     else {
-      hp.adapt(THRESHOLD, STRATEGY, ADAPT_TYPE, ISO_ONLY, MESH_REGULARITY, CONV_EXP, MAX_ORDER, SAME_ORDERS);
-      ndofs = xdisp.assign_dofs();
-      ndofs += ydisp.assign_dofs(ndofs);
-      if (ndofs >= NDOF_STOP) done = true;
+      hp.adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY, SAME_ORDERS);
+      ndof = assign_dofs(2, &xdisp, &ydisp);
+      if (ndof >= NDOF_STOP) done = true;
     }
 
     // time measurement
@@ -218,9 +224,9 @@ int main(int argc, char* argv[])
 #define ERROR_SUCCESS       0
 #define ERROR_FAILURE      -1
   int ndof_allowed = 820;
-  printf("ndof actual = %d\n", ndofs);
+  printf("ndof actual = %d\n", ndof);
   printf("ndof allowed = %d\n", ndof_allowed);
-  if (ndofs <= ndof_allowed) {      // ndofs was 816 at the time this test was created
+  if (ndof <= ndof_allowed) {      // ndofs was 816 at the time this test was created
     printf("Success!\n");
     return ERROR_SUCCESS;
   }

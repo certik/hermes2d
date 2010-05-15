@@ -114,7 +114,7 @@ public:
   void set_bc_values(scalar (*bc_value_callback_by_edge)(EdgePos* ep)); // for EdgePos, see mesh.h
 
   /// Sets element polynomial order.
-  void set_element_order(int id, int order);
+  virtual void set_element_order(int id, int order);
   /// Returns element polynomial order.
   int  get_element_order(int id) const;
   /// Sets the same polynomial order for all elements in the mesh.
@@ -165,6 +165,8 @@ public:
   void get_edge_assembly_list(Element* e, int edge, AsmList* al);
 
 protected:
+  static const int H2D_UNASSIGNED_DOF = -2; ///< DOF which was not assigned yet.
+  static const int H2D_CONSTRAINED_DOF = -1; ///< DOF which is constrained.
 
   Mesh* mesh;
   Shapeset* shapeset;
@@ -190,7 +192,7 @@ protected:
         scalar* edge_bc_proj;
         scalar* vertex_bc_coef;
       };
-      int n; // # of dofs
+      int n; ///< Number of dofs. Temporarily used during assignment of DOFs to indicate nodes which were not processed yet.
     };
     struct // constrained vertex node
     {
@@ -217,7 +219,7 @@ public:
   ElementData* edata; ///< element data table
   int esize;
 
-protected: //DEBUG
+protected: //debugging support
   virtual int get_edge_order_internal(Node* en);
 
   /// \brief Updates internal node and element tables.
@@ -232,13 +234,14 @@ protected: //DEBUG
   void H2D_CHECK_ORDER(int order);
   void copy_orders_recurrent(Element* e, int order);
 
+  virtual void reset_dof_assignment(); ///< Resets assignment of DOF to an unassigned state.
   virtual void assign_vertex_dofs() = 0;
   virtual void assign_edge_dofs() = 0;
   virtual void assign_bubble_dofs() = 0;
 
   virtual void get_vertex_assembly_list(Element* e, int iv, AsmList* al) = 0;
   virtual void get_edge_assembly_list_internal(Element* e, int ie, AsmList* al) = 0;
-  virtual void get_bubble_assembly_list(Element* e, AsmList* al) = 0;
+  virtual void get_bubble_assembly_list(Element* e, AsmList* al);
 
   double** proj_mat;
   double*  chol_p;

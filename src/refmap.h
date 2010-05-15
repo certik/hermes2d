@@ -139,7 +139,7 @@ public:
   {
     this->sub_idx = sub_idx;
     stack[top] = *ctm;
-    ctm = stack+top;
+    this->ctm = stack+top;
     update_cur_node();
     if (is_const) calc_const_inv_ref_map();
   }

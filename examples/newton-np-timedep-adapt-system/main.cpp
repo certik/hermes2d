@@ -1,45 +1,3 @@
-/// \addtogroup e_newton_np_timedep_adapt_system Newton Time-dependant System with Adaptivity
-/// \{
-/// \brief This example shows how to combine the automatic adaptivity with the Newton's method for a nonlinear time-dependent PDE system.
-///
-/// This example shows how to combine the automatic adaptivity with the
-/// Newton's method for a nonlinear time-dependent PDE system.
-/// The time discretization is done using implicit Euler or
-/// Crank Nicholson method (see parameter TIME_DISCR).
-/// The following PDE's are solved:
-/// Nernst-Planck (describes the diffusion and migration of charged particles):
-/// \f[dC/dt - D*div[grad(C)] - K*C*div[grad(\phi)]=0,\f]
-/// where D and K are constants and C is the cation concentration variable,
-/// phi is the voltage variable in the Poisson equation:
-/// \f[ - div[grad(\phi)] = L*(C - C_0),\f]
-/// where \f$C_0\f$, and L are constant (anion concentration). \f$C_0\f$ is constant
-/// anion concentration in the domain and L is material parameter.
-/// So, the equation variables are phi and C and the system describes the
-/// migration/diffusion of charged particles due to applied voltage.
-/// The simulation domain looks as follows:
-/// <pre>
-///      2
-///  +----------+
-///  |          |
-/// 1|          |1
-///  |          |
-///  +----------+
-///      3
-/// </pre>
-/// For the Nernst-Planck equation, all the boundaries are natural i.e. Neumann.
-/// Which basically means that the normal derivative is 0:
-/// \f[ BC: -D*dC/dn - K*C*d\phi/dn = 0 \f]
-/// For Poisson equation, boundary 1 has a natural boundary condition
-/// (electric field derivative is 0).
-/// The voltage is applied to the boundaries 2 and 3 (Dirichlet boundaries)
-/// It is possible to adjust system paramter VOLT_BOUNDARY to apply
-/// Neumann boundary condition to 2 (instead of Dirichlet). But by default:
-///  - BC 2: \f$\phi = VOLTAGE\f$
-///  - BC 3: \f$\phi = 0\f$
-///  - BC 1: \f$\frac{d\phi}{dn} = 0\f$
-/// \dontinclude hermes2d.h
-/// \dontinclude solver_umfpack.h
-
 #define H2D_REPORT_WARN
 #define H2D_REPORT_INFO
 #define H2D_REPORT_VERBOSE
@@ -48,6 +6,49 @@
 #include "hermes2d.h"
 #include "solver_umfpack.h"
 #include <string>
+
+using namespace RefinementSelectors;
+
+/** \addtogroup e_newton_np_timedep_adapt_system Newton Time-dependant System with Adaptivity
+ \{
+ \brief This example shows how to combine the automatic adaptivity with the Newton's method for a nonlinear time-dependent PDE system.
+
+ This example shows how to combine the automatic adaptivity with the
+ Newton's method for a nonlinear time-dependent PDE system.
+ The time discretization is done using implicit Euler or
+ Crank Nicholson method (see parameter TIME_DISCR).
+ The following PDE's are solved:
+ Nernst-Planck (describes the diffusion and migration of charged particles):
+ \f[dC/dt - D*div[grad(C)] - K*C*div[grad(\phi)]=0,\f]
+ where D and K are constants and C is the cation concentration variable,
+ phi is the voltage variable in the Poisson equation:
+ \f[ - div[grad(\phi)] = L*(C - C_0),\f]
+ where \f$C_0\f$, and L are constant (anion concentration). \f$C_0\f$ is constant
+ anion concentration in the domain and L is material parameter.
+ So, the equation variables are phi and C and the system describes the
+ migration/diffusion of charged particles due to applied voltage.
+ The simulation domain looks as follows:
+ \verbatim
+      2
+  +----------+
+  |          |
+ 1|          |1
+  |          |
+  +----------+
+      3
+ \endverbatim
+ For the Nernst-Planck equation, all the boundaries are natural i.e. Neumann.
+ Which basically means that the normal derivative is 0:
+ \f[ BC: -D*dC/dn - K*C*d\phi/dn = 0 \f]
+ For Poisson equation, boundary 1 has a natural boundary condition
+ (electric field derivative is 0).
+ The voltage is applied to the boundaries 2 and 3 (Dirichlet boundaries)
+ It is possible to adjust system paramter VOLT_BOUNDARY to apply
+ Neumann boundary condition to 2 (instead of Dirichlet). But by default:
+  - BC 2: \f$\phi = VOLTAGE\f$
+  - BC 3: \f$\phi = 0\f$
+  - BC 1: \f$\frac{d\phi}{dn} = 0\f$
+ */
 
 #define SIDE_MARKER 1
 #define TOP_MARKER 2
@@ -109,11 +110,18 @@ const int STRATEGY = 0;               // Adaptive strategy:
                                       // STRATEGY = 2 ... refine all elements whose error is larger
                                       //   than THRESHOLD.
                                       // More adaptive strategies can be created in adapt_ortho_h1.cpp.
-const int ADAPT_TYPE = 0;             // Type of automatic adaptivity:
-                                      // ADAPT_TYPE = 0 ... adaptive hp-FEM (default),
-                                      // ADAPT_TYPE = 1 ... adaptive h-FEM,
-                                      // ADAPT_TYPE = 2 ... adaptive p-FEM.
-
+const CandList CAND_LIST = H2D_HP_ANISO; // Predefined list of element refinement candidates. Possible values are
+                                         // H2D_P_ISO, H2D_P_ANISO, H2D_H_ISO, H2D_H_ANISO, H2D_HP_ISO,
+                                         // H2D_HP_ANISO_H, H2D_HP_ANISO_P, H2D_HP_ANISO.
+                                         // See the Sphinx tutorial (http://hpfem.org/hermes2d/doc/src/tutorial-2.html#adaptive-h-fem-and-hp-fem) for details.
+const int MESH_REGULARITY = -1;  // Maximum allowed level of hanging nodes:
+                                 // MESH_REGULARITY = -1 ... arbitrary level hangning nodes (default),
+                                 // MESH_REGULARITY = 1 ... at most one-level hanging nodes,
+                                 // MESH_REGULARITY = 2 ... at most two-level hanging nodes, etc.
+                                 // Note that regular meshes are not supported, this is due to
+                                 // their notoriously bad performance.
+const double CONV_EXP = 1.0;     // Default value is 1.0. This parameter influences the selection of
+                                 // cancidates in hp-adaptivity. See get_optimal_refinement() for details.
 const int NDOF_STOP = 5000;		        // To prevent adaptivity from going on forever.
 const double ERR_STOP = 0.1;          // Stopping criterion for adaptivity (rel. error tolerance between the
                                       // fine mesh and coarse mesh solution in percent).
@@ -191,7 +199,7 @@ void solveNonadaptive(Mesh &mesh, NonlinSystem &nls,
 /** Adaptive solver.*/
 void solveAdaptive(Mesh &Cmesh, Mesh &phimesh, Mesh &basemesh, NonlinSystem &nls,
      H1Space &Cspace, H1Space &phispace, Solution &C_prev_time, Solution &C_prev_newton,
-     Solution &phi_prev_time, Solution &phi_prev_newton) {
+     Solution &phi_prev_time, Solution &phi_prev_newton, H1Shapeset& shapeset) {
 
   char title[100];
   //VectorView vview("electric field [V/m]", 0, 0, 600, 600);
@@ -210,6 +218,8 @@ void solveAdaptive(Mesh &Cmesh, Mesh &phimesh, Mesh &basemesh, NonlinSystem &nls
   graph_dof.set_captions("", "Timestep", "DOF");
   graph_dof.add_row(MULTIMESH ? "multi-mesh" : "single-mesh", "k", "-", "o");
 
+  // create a selector which will select optimal candidate
+  H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER, &shapeset);
 
   phiview.set_title(title);
   Cview.set_title(title);
@@ -280,15 +290,16 @@ void solveAdaptive(Mesh &Cmesh, Mesh &phimesh, Mesh &basemesh, NonlinSystem &nls
       Cview.show(&mag2); 
 
       // Calculate element errors and total estimate
-      H1OrthoHP hp(2, &Cspace, &phispace);
+      H1Adapt hp(Tuple<Space*>(&Cspace, &phispace));
       info("\n Calculating element errors\n");
-      err = hp.calc_error_2(&Csln_coarse, &phisln_coarse, &Csln_fine, &phisln_fine) * 100;
+      hp.set_solutions(Tuple<Solution*>(&Csln_coarse, &phisln_coarse), Tuple<Solution*>(&Csln_fine, &phisln_fine));
+      err = hp.calc_error() * 100;
       info("Error: %g%%", err);
 
       if (err < ERR_STOP) {
         done = true;
       } else {
-        hp.adapt(THRESHOLD, STRATEGY, ADAPT_TYPE);
+        hp.adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY);
         // enumerate degrees of freedom
         ndof = assign_dofs(2, &Cspace, &phispace);
 
@@ -468,7 +479,7 @@ int main (int argc, char* argv[]) {
 
   if (adaptive) {
     solveAdaptive(Cmesh, phimesh, basemesh, nls, C, phi, C_prev_time,
-        C_prev_newton, phi_prev_time, phi_prev_newton);
+        C_prev_newton, phi_prev_time, phi_prev_newton, shapeset);
   } else {
     solveNonadaptive(Cmesh, nls, C_prev_time, C_prev_newton, phi_prev_time, phi_prev_newton);
   }

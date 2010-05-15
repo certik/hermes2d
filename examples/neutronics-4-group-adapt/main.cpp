@@ -6,6 +6,8 @@
 #include "hermes2d.h"
 #include "solver_umfpack.h"
 
+using namespace RefinementSelectors;
+
 // This example uses automatic adaptivity to solve a 4-group neutron diffusion equation in the reactor core.
 // The eigenproblem is solved using power interations.
 //
@@ -42,6 +44,8 @@
 //
 //
 
+#include "h1_adapt_norm_maxim.h"
+
 
 // Adaptivity control
 
@@ -61,15 +65,10 @@ const int STRATEGY = 1;          // Adaptive strategy:
                                  // STRATEGY = 2 ... refine all elements whose error is larger
                                  //   than THRESHOLD.
                                  // More adaptive strategies can be created in adapt_ortho_h1.cpp.
-const int ADAPT_TYPE = 0;        // Type of automatic adaptivity:
-                                 // ADAPT_TYPE = 0 ... adaptive hp-FEM (default),
-                                 // ADAPT_TYPE = 1 ... adaptive h-FEM (works only with ISO_ONLY = true),
-                                 // ADAPT_TYPE = 2 ... adaptive p-FEM.                                
-const bool ISO_ONLY = false;     // Isotropic refinement flag (concerns quadrilateral elements only).
-                                 // ISO_ONLY = false ... anisotropic refinement of quad elements
-                                 // is allowed (default),
-                                 // ISO_ONLY = true ... only isotropic refinements of quad elements
-                                 // are allowed.
+const CandList CAND_LIST = H2D_HP_ANISO; // Predefined list of element refinement candidates. Possible values are
+                                         // H2D_P_ISO, H2D_P_ANISO, H2D_H_ISO, H2D_H_ANISO, H2D_HP_ISO,
+                                         // H2D_HP_ANISO_H, H2D_HP_ANISO_P, H2D_HP_ANISO.
+                                         // See the Sphinx tutorial (http://hpfem.org/hermes2d/doc/src/tutorial-2.html#adaptive-h-fem-and-hp-fem) for details.
 const int MESH_REGULARITY = -1;  // Maximum allowed level of hanging nodes:
                                  // MESH_REGULARITY = -1 ... arbitrary level hangning nodes (default),
                                  // MESH_REGULARITY = 1 ... at most one-level hanging nodes,
@@ -85,11 +84,11 @@ const int NDOF_STOP = 60000;     // Adaptivity process stops when the number of 
                                  // this limit. This is mainly to prevent h-adaptivity to go on forever.
 const int MAX_ADAPTATIONS = 30;	 // Adaptivity process stops when the number of adaptation steps grows over
                                  // this limit.
-const int ERR_NORMALIZATION = 1; // When H1 norm is used to measure the error, this parameter specifies the 
+const NormType NORM_TYPE = NORM_EUCLEDIAN; // When H1 norm is used to measure the error, this parameter specifies the
 																 // norm used for normalizing the error (so that solution components with different
 																 // scales get same attention). Ignored when energetic norm is used to estimate the error.
-																 // ERR_NORMALIZATION = 0	...	H1 norm
-																 // ERR_NORMALIZATION = 1	...	L_infty norm
+																 // NORM_EUCLEDIAN = 0	...	H1 norm
+																 // NORM_MAXIMA = 1	...	L_infty norm
 
 // Macro for simpler definition of bilinear forms in the energy norm
 #define callback_egnorm(a)     a<scalar, scalar>, a<Ord, Ord>
@@ -136,9 +135,6 @@ double TOL_PIT_RM = 5e-7;		// tolerance for eigenvalue convergence when solving 
 
 // Weak forms
 #include "forms.cpp"
-
-// Supplemental classes for adaptivity with custom error estimates
-#include "H1OrthoHPNormalized.cpp"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -348,8 +344,10 @@ int main(int argc, char* argv[])
   // DOF and CPU convergence graphs
   SimpleGraph graph_dof, graph_cpu, graph_dof_keff, graph_cpu_keff;
 
+  // prepare selector
+  H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, MAX_ORDER, &shapeset);
+
 	// adaptivity loop
-	
 	TimePeriod cpu_time;
 	for (int iadapt = 0; iadapt < MAX_ADAPTATIONS; iadapt++) {
 		info("---- Adaptivity step %d ---------------------------------------------", iadapt);
@@ -420,7 +418,7 @@ int main(int argc, char* argv[])
 		// calculate element errors and total error estimate
 
 		// H1 normalized by H1 or L_inf
-		H1OrthoHPNormalized2 hp(ERR_NORMALIZATION, 4, &space1, &space2, &space3, &space4);
+    H1AdaptNormMaxim hp(NORM_TYPE, Tuple<Space*>(&space1, &space2, &space3, &space4));
 		// normalized energetic
     // H1OrthoHPNormalized hp(4, &space1, &space2, &space3, &space4);
     // default energetic
@@ -435,8 +433,9 @@ int main(int argc, char* argv[])
 		*/
 		// how to include surface elements in the energy norm ?
 		
-  	double err_est = hp.calc_error_n(4, &sln1_coarse, &sln2_coarse, &sln3_coarse, &sln4_coarse, 
-  																			&sln1_fine, &sln2_fine, &sln3_fine, &sln4_fine) * 100;
+    hp.set_solutions(Tuple<Solution*>(&sln1_coarse, &sln2_coarse, &sln3_coarse, &sln4_coarse),
+      Tuple<Solution*>(&sln1_fine, &sln2_fine, &sln3_fine, &sln4_fine));
+    double err_est = hp.calc_error(H2D_TOTAL_ERROR_REL | H2D_ELEMENT_ERROR_REL) * 100;
   
     // time measurement
     cpu_time.tick();        
@@ -475,7 +474,7 @@ int main(int argc, char* argv[])
     
     // if err_est too large, adapt the mesh
     if (err_est < ERR_STOP) break;
-    else hp.adapt(THRESHOLD, STRATEGY, ADAPT_TYPE, ISO_ONLY, MESH_REGULARITY, CONV_EXP, MAX_ORDER);
+    else hp.adapt(&selector, THRESHOLD, STRATEGY,  MESH_REGULARITY);
 
     // time measurement
     cpu_time.tick();

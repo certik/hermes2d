@@ -41,7 +41,7 @@ int main(int argc, char* argv[])
   VectorBaseView bview;
   bview.show(&space);
 
-  // wait for keyboard or mouse input
+  // wait for all views to be closed
   View::wait();
   return 0;
 }

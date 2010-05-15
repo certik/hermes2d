@@ -1,3 +1,12 @@
+#define H2D_REPORT_WARN
+#define H2D_REPORT_INFO
+#define H2D_REPORT_VERBOSE
+#define H2D_REPORT_FILE "application.log"
+#include "hermes2d.h"
+#include "solver_umfpack.h"
+
+using namespace RefinementSelectors;
+
 //  The purpose of this example is to show how to use Trilinos
 //  for time-dependent PDE problem.
 //  NOX solver is used, either using Newton's method or JFNK and
@@ -9,9 +18,6 @@
 //
 //  BC: cooling Dirichlet at the bottom
 //
-
-#include "hermes2d.h"
-#include "solver_umfpack.h"
 
 const double ALPHA = 10.0;
 const double LAMBDA = 1e5;
@@ -25,7 +31,7 @@ const double tau = 50.0;
 const bool jfnk = true;
 const bool precond = true;
 
-const int ORDER = 1;
+const int P_INIT = 1;                // Initial polynomial degree of all mesh elements.
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 int bc_types(int marker)
@@ -78,20 +84,6 @@ Scalar residual_surf(int n, double *wt, Func<Scalar> *u[], Func<Real> *vj, Geom<
   return result;
 }
 
-////////////////////////////////////////////////////////////////////////////
-
-TimePeriod cpu_time;
-
-inline void begin_time() { cpu_time.tick(); }
-inline double end_time() 
-{ 
-	double time = cpu_time.accumulated();  
-	cpu_time.tick_reset(); 
-	return time;
-}
-inline double pause_time() { cpu_time.tick(); }
-inline double resume_time() { cpu_time.tick(H2D_SKIP); }
-
 //////////////////////////////////////////////////////////////////////////////
 
 int main(int argc, char* argv[])
@@ -114,7 +106,7 @@ int main(int argc, char* argv[])
   H1Space space(&mesh, &shapeset);
   space.set_bc_types(bc_types);
   space.set_bc_values(bc_values);
-  space.set_uniform_order(ORDER);
+  space.set_uniform_order(P_INIT);
   int ndof = assign_dofs(&space);
 
   // set initial condition
@@ -133,14 +125,14 @@ int main(int argc, char* argv[])
   fep.set_spaces(1, &space);
   fep.set_pss(1, &pss);
 
-  // Obtain solution vector for initial guess
+  // Obtain solution vector for initial guess  
   info("Projecting initial solution");
-  begin_time();
+  TimePeriod cpu_time;
   Projection proj(1, &titer, &space, &pss);
   UmfpackSolver umfpack;
   proj.set_solver(&umfpack);
   double* vec = proj.project();
-  double proj_time = end_time();
+  double proj_time = cpu_time.tick().last();
 
   // Solver + preconditioner
   NoxSolver solver(&fep);
@@ -155,14 +147,13 @@ int main(int argc, char* argv[])
   ScalarView Tview("Temperature", 0, 0, 450, 600);
   Tview.set_min_max_range(10,20);
 
-	begin_time();
+  cpu_time.tick(H2D_SKIP);
 
   double total_time = 0.0;
+  cpu_time.tick_reset();
   for (int it = 1; total_time <= 2000.0; it++)
   {
-  	pause_time();
-    info("\n*** Time iteration %d, t = %g s ***", it, total_time += tau);
-    resume_time();
+    info("!*** Time iteration %d, t = %g s ***", it, total_time += tau);
 
     solver.set_init_sln(vec);
     bool solved = solver.solve();
@@ -176,14 +167,14 @@ int main(int argc, char* argv[])
     else
       error("Failed.");
 
-		pause_time();
+    cpu_time.tick();
     info("Number of nonlin iters: %d (norm of residual: %g)", solver.get_num_iters(), solver.get_residual());
     info("Total number of iters in linsolver: %d (achieved tolerance in the last step: %g)", solver.get_num_lin_iters(), solver.get_achieved_tol());
-    resume_time();
+    cpu_time.tick(H2D_SKIP);
   }
 
-  info("Total running time: %g", end_time());
+  info("Total running time: %g", cpu_time.accumulated());
 
-  View::wait("Waiting for all views to be closed.");
+  View::wait();
   return 0;
 }

@@ -19,10 +19,12 @@
 #include "common.h"
 #include "config.h"
 
-/* Indices of values in the quadrature vector of a type double3. */
-#define H2D_GIP2D_X 0
-#define H2D_GIP2D_Y 1
-#define H2D_GIP2D_W 2
+/// Indices of values in the value returned by Quad2D::get_points().
+enum GIP2DIndices {
+  H2D_GIP2D_X = 0, ///< X-axis coordinate.
+  H2D_GIP2D_Y = 1, ///< Y-axis coordinate.
+  H2D_GIP2D_W = 2  ///< A weight.
+};
 
 #define H2D_GIP1D_X 0
 #define H2D_GIP1D_W 1

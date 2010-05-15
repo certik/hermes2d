@@ -1,3 +1,10 @@
+#define H2D_REPORT_WARN
+#define H2D_REPORT_INFO
+#define H2D_REPORT_VERBOSE
+#define H2D_REPORT_FILE "application.log"
+#include "hermes2d.h"
+#include "solver_umfpack.h"
+
 //  The purpose of this example is to show how to use Trilinos
 //  for linear PDE problem. It compares performance of LinSystem with Umfpack
 //  and performance of NOX solver (either using Newton's method or JFNK,
@@ -12,18 +19,11 @@
 //  Exact solution: sqr(x) + sqr(y)
 //
 
-#define H2D_REPORT_WARN
-#define H2D_REPORT_INFO
-#define H2D_REPORT_VERBOSE
-
-#include "hermes2d.h"
-#include "solver_umfpack.h"
-
 const bool jfnk = true;     // true = jacobian-free method,
                             // false = Newton
 const bool precond = true;  // preconditioning by jacobian in case of jfnk,
                             // default ML proconditioner in case of Newton
-const int ORDER = 1;
+const int P_INIT = 1;                // Initial polynomial degree of all mesh elements.
 
 int bc_types(int marker)
 {
@@ -84,18 +84,6 @@ Scalar residual_form(int n, double *wt, Func<Real> *u[], Func<Real> *vi, Geom<Re
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-TimePeriod cpu_time;
-
-inline void begin_time() { cpu_time.tick(); }
-inline double end_time() 
-{ 
-	double time = cpu_time.accumulated();  
-	cpu_time.tick_reset(); 
-	return time;
-}
-inline double pause_time() { cpu_time.tick(); }
-inline double resume_time() { cpu_time.tick(H2D_SKIP); }
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 int main(int argc, char **argv)
@@ -116,12 +104,14 @@ int main(int argc, char **argv)
   H1Space space(&mesh, &shapeset);
   space.set_bc_types(bc_types);
   space.set_bc_values(bc_values);
-  space.set_uniform_order(ORDER);
+  space.set_uniform_order(P_INIT);
   int ndof = assign_dofs(&space);
 
-  info("\n******************** Using Linsystem, Solving by Umfpack ************************");
+  TimePeriod cpu_time;
 
-	begin_time();
+  info("!******************** Using Linsystem, Solving by Umfpack ************************");
+
+  cpu_time.tick(H2D_SKIP);
 
   UmfpackSolver umfpack;
   Solution sln1;
@@ -137,20 +127,20 @@ int main(int argc, char **argv)
   sys.assemble();
   sys.solve(1, &sln1);
 
-  double umf_time = end_time();
+  double umf_time = cpu_time.tick().last();
 
-  info("\n******************** Using FeProblem, Solving by NOX Solver ************************");
-
+  info("!******************** Using FeProblem, Solving by NOX Solver ************************");
   info("Projecting initial solution");
-  begin_time();
+
+  cpu_time.tick(H2D_SKIP);
   Solution init;  init.set_zero(&mesh);
   Projection proj(1, &init, &space, &pss);
   proj.set_solver(&umfpack);
   double* vec = proj.project();
-  double proj_time = end_time();
-
+  double proj_time = cpu_time.tick().last();
+  
   info("Number of DOF: %d", ndof);
-  begin_time();
+  cpu_time.tick(H2D_SKIP);
   WeakForm wf2(1, jfnk ? true : false);
   wf2.add_jacform(0, 0, callback(jacobian_form), H2D_SYM);
   wf2.add_resform(0, callback(residual_form));
@@ -173,21 +163,21 @@ int main(int argc, char **argv)
   {
     double *s = solver.get_solution();
     sln2.set_fe_solution(&space, &pss, s);
-    pause_time();
+    cpu_time.tick();
     info("Number of nonlin iters: %d (norm of residual: %g)", solver.get_num_iters(), solver.get_residual());
     info("Total number of iters in linsolver: %d (achieved tolerance in the last step: %g)", solver.get_num_lin_iters(), solver.get_achieved_tol());
-    resume_time();
+    cpu_time.tick(H2D_SKIP);
 
   }
   else
     error("Failed");
 
-  double nox_time = end_time();
+  double nox_time = cpu_time.tick().last();
 
   Solution ex;
   ex.set_exact(&mesh, &exact);
-  info("\nSolution 1 (Umfpack):  h1 error: %g (time %g s)", 100 * h1_error(&sln1, &ex), umf_time);
-  info("Solution 2 (Trilinos): h1 error: %g (time %g + %g s)\n", 100 * h1_error(&sln2, &ex), proj_time, nox_time);
+  info("Solution 1 (Umfpack):  h1 error: %g (time %g s)", 100 * h1_error(&sln1, &ex), umf_time);
+  info("Solution 2 (Trilinos): h1 error: %g (time %g + %g s)", 100 * h1_error(&sln2, &ex), proj_time, nox_time);
 
   ScalarView view1("Solution 1", 0, 0, 500, 400);
   view1.set_min_max_range(0, 2);
@@ -197,7 +187,6 @@ int main(int argc, char **argv)
   view2.set_min_max_range(0, 2);
   view2.show(&sln2);
 
-
-  View::wait("Waiting for all views to be closed.");
+  View::wait();
   return 0;
 }

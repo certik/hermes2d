@@ -22,50 +22,10 @@
 #include "refmap.h"
 #include "solution.h"
 #include "config.h"
-
+#include "limit_order.h"
+#include <algorithm>
 
 void qsort_int(int* pbase, size_t total_elems); // defined in qsort.cpp
-
-static int default_order_table_tri[] =
-{
-  0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16,
-  17, 18, 19, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20,
-  20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20,
-  20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20,
-  20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20
-};
-
-#ifdef EXTREME_QUAD
-static int default_order_table_quad[] =
-{
-  1, 1, 3, 3, 5, 5, 7, 7, 9, 9, 11, 11, 13, 13, 15, 15,
-  17, 17, 19, 19, 21, 21, 23, 23, 25, 25, 27, 27, 29, 29, 31, 31,
-  33, 33, 35, 35, 37, 37, 39, 39, 41, 41, 43, 43, 45, 45, 47, 47,
-  49, 49, 51, 51, 53, 53, 55, 55, 57, 57, 59, 59, 61, 61, 63, 63,
-  65, 65, 67, 67, 69, 69, 71, 71, 73, 73, 75, 75, 77, 77, 79, 79,
-  81, 81, 83, 83, 85, 85, 87, 87, 89, 89, 91, 91, 93, 93, 95, 95,
-  97, 97, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99
-};
-#else
-static int default_order_table_quad[] =
-{
-  1, 1, 3, 3, 5, 5, 7, 7, 9, 9, 11, 11, 13, 13, 15, 15, 17,
-  17, 19, 19, 21, 21, 23, 23, 24, 24, 24, 24, 24, 24, 24,
-  24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24,
-  24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24,
-  24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24
-};
-#endif
-
-H2D_API int  g_max_order;
-H2D_API int  g_safe_max_order;
-int* g_order_table_quad = default_order_table_quad;
-int* g_order_table_tri  = default_order_table_tri;
-H2D_API int* g_order_table = NULL;
-bool warned_order = false;
-//extern bool warned_order;
-extern void update_limit_table(int mode);
-
 
 //// interface /////////////////////////////////////////////////////////////////////////////////////
 
@@ -202,7 +162,7 @@ static inline void page_add_ij(Page** pages, int i, int j)
 void LinSystem::precalc_sparse_structure(Page** pages)
 {
   int i, j, m, n;
-  AUTOLA_CL(AsmList, al, wf->neq);
+  std::vector<AsmList> al(wf->neq);
   AsmList *am, *an;
   AUTOLA_OR(Mesh*, meshes, wf->neq);
   bool** blocks = wf->get_blocks();
@@ -220,7 +180,7 @@ void LinSystem::precalc_sparse_structure(Page** pages)
     // obtain assembly lists for the element at all spaces
     for (i = 0; i < wf->neq; i++)
       if (e[i] != NULL)
-        spaces[i]->get_element_assembly_list(e[i], al + i);
+        spaces[i]->get_element_assembly_list(e[i], &al[i]);
       // todo: neziskavat znova, pokud se element nezmenil
 
     // go through all equation-blocks of the local stiffness matrix
@@ -228,8 +188,8 @@ void LinSystem::precalc_sparse_structure(Page** pages)
       for (n = 0; n < wf->neq; n++)
         if (blocks[m][n] && e[m] != NULL && e[n] != NULL)
         {
-          am = al + m;
-          an = al + n;
+          am = &al[m];
+          an = &al[n];
 
           // pretend assembling of the element stiffness matrix
           if (mat_row)
@@ -462,12 +422,13 @@ void LinSystem::insert_block(scalar** mat, int* iidx, int* jidx, int ilen, int j
 
 void LinSystem::assemble(bool rhsonly)
 {
-  int j, k, m, n, marker;
-  AUTOLA_CL(AsmList, al, wf->neq);
-  AsmList *am, *an;
-  bool bnd[4]; AUTOLA_OR(bool, nat, wf->neq); AUTOLA_OR(bool, isempty, wf->neq);
+  int k, m, n, marker;
+  std::vector<AsmList> al(wf->neq);
+  AsmList* am, * an;
+  bool bnd[4];
+  std::vector<bool> nat(wf->neq), isempty(wf->neq);
   EdgePos ep[4];
-  warned_order = false;
+  reset_warn_order();
 
   if (rhsonly && Ax == NULL)
     error("Cannot reassemble RHS only: matrix is has not been assembled yet.");
@@ -480,9 +441,9 @@ void LinSystem::assemble(bool rhsonly)
   TimePeriod cpu_time;
 
   // create slave pss's for test functions, init quadrature points
-  AUTOLA_OR(PrecalcShapeset*, spss, wf->neq);
+  std::vector<PrecalcShapeset*> spss(wf->neq, static_cast<PrecalcShapeset*>(NULL));
   PrecalcShapeset *fu, *fv;
-  AUTOLA_CL(RefMap, refmap, wf->neq);
+  std::vector<RefMap> refmap(wf->neq);
   for (int i = 0; i < wf->neq; i++)
   {
     spss[i] = new PrecalcShapeset(pss[i]);
@@ -520,7 +481,7 @@ void LinSystem::assemble(bool rhsonly)
     while ((e = trav.get_next_state(bnd, ep)) != NULL)
     {
       // find a non-NULL e[i]
-      Element* e0;
+      Element* e0 = NULL;
       for (unsigned int i = 0; i < s->idx.size(); i++)
         if ((e0 = e[i]) != NULL) break;
       if (e0 == NULL) continue;
@@ -529,13 +490,13 @@ void LinSystem::assemble(bool rhsonly)
       update_limit_table(e0->get_mode());
 
       // obtain assembly lists for the element at all spaces, set appropriate mode for each pss
-      memset(isempty, 0, sizeof(bool) * wf->neq);
+      std::fill(isempty.begin(), isempty.end(), false);
       for (unsigned int i = 0; i < s->idx.size(); i++)
       {
-        j = s->idx[i];
+        int j = s->idx[i];
         if (e[i] == NULL) { isempty[j] = true; continue; }
-        spaces[j]->get_element_assembly_list(e[i], al+j);
-        // todo: neziskavat znova, pokud se element nezmenil
+        spaces[j]->get_element_assembly_list(e[i], &al[j]);
+        /** \todo Do not retrieve assembly list gain if the element has not changed */
 
         spss[j]->set_active_element(e[i]);
         spss[j]->set_master_transform();
@@ -565,18 +526,18 @@ void LinSystem::assemble(bool rhsonly)
 
           if (!sym) // unsymmetric block
           {
-            for (j = 0; j < an->cnt; j++) {
+            for (int j = 0; j < an->cnt; j++) {
               fu->set_active_shape(an->idx[j]);
-              bi = eval_form(bfv, fu, fv, refmap+n, refmap+m) * an->coef[j] * am->coef[i];
+              bi = eval_form(bfv, fu, fv, &refmap[n], &refmap[m]) * an->coef[j] * am->coef[i];
               if (an->dof[j] < 0) Dir[k] -= bi; else mat[i][j] = bi;
             }
           }
           else // symmetric block
           {
-            for (j = 0; j < an->cnt; j++) {
+            for (int j = 0; j < an->cnt; j++) {
               if (j < i && an->dof[j] >= 0) continue;
               fu->set_active_shape(an->idx[j]);
-              bi = eval_form(bfv, fu, fv, refmap+n, refmap+m) * an->coef[j] * am->coef[i];
+              bi = eval_form(bfv, fu, fv, &refmap[n], &refmap[m]) * an->coef[j] * am->coef[i];
               if (an->dof[j] < 0) Dir[k] -= bi; else mat[i][j] = mat[j][i] = bi;
             }
           }
@@ -593,7 +554,7 @@ void LinSystem::assemble(bool rhsonly)
           insert_block(mat, an->dof, am->dof, an->cnt, am->cnt);
 
           // we also need to take care of the RHS...
-          for (j = 0; j < am->cnt; j++)
+          for (int j = 0; j < am->cnt; j++)
             if (am->dof[j] < 0)
               for (int i = 0; i < an->cnt; i++)
                 if (an->dof[i] >= 0)
@@ -613,7 +574,7 @@ void LinSystem::assemble(bool rhsonly)
         {
           if (am->dof[i] < 0) continue;
           fv->set_active_shape(am->idx[i]);
-          RHS[am->dof[i]] += eval_form(lfv, fv, refmap+m) * am->coef[i];
+          RHS[am->dof[i]] += eval_form(lfv, fv, &refmap[m]) * am->coef[i];
         }
       }
 
@@ -627,9 +588,9 @@ void LinSystem::assemble(bool rhsonly)
         // obtain the list of shape functions which are nonzero on this edge
         for (unsigned int i = 0; i < s->idx.size(); i++) {
           if (e[i] == NULL) continue;
-          j = s->idx[i];
+          int j = s->idx[i];
           if ((nat[j] = (spaces[j]->bc_type_callback(marker) == BC_NATURAL)))
-            spaces[j]->get_edge_assembly_list(e[i], edge, al + j);
+            spaces[j]->get_edge_assembly_list(e[i], edge, &al[j]);
         }
 
         // assemble surface bilinear forms ///////////////////////////////////
@@ -651,10 +612,10 @@ void LinSystem::assemble(bool rhsonly)
           {
             if ((k = am->dof[i]) < 0) continue;
             fv->set_active_shape(am->idx[i]);
-            for (j = 0; j < an->cnt; j++)
+            for (int j = 0; j < an->cnt; j++)
             {
               fu->set_active_shape(an->idx[j]);
-              bi = eval_form(bfs, fu, fv, refmap+n, refmap+m, ep+edge) * an->coef[j] * am->coef[i];
+              bi = eval_form(bfs, fu, fv, &refmap[n], &refmap[m], ep+edge) * an->coef[j] * am->coef[i];
               if (an->dof[j] >= 0) mat[i][j] = bi; else Dir[k] -= bi;
             }
           }
@@ -677,7 +638,7 @@ void LinSystem::assemble(bool rhsonly)
           {
             if (am->dof[i] < 0) continue;
             fv->set_active_shape(am->idx[i]);
-            RHS[am->dof[i]] += eval_form(lfs, fv, refmap+m, ep+edge) * am->coef[i];
+            RHS[am->dof[i]] += eval_form(lfs, fv, &refmap[m], ep+edge) * am->coef[i];
           }
         }
       }
@@ -977,7 +938,15 @@ bool LinSystem::solve(int n, ...)
 }
 
 
-//// matrix output /////////////////////////////////////////////////////////////////////////////////
+//// matrix and solution output /////////////////////////////////////////////////////////////////////////////////
+
+void LinSystem::get_solution_vector(std::vector<scalar>& sln_vector_out) const {
+  assert_msg(ndofs > 0, "Number of DOFs is not greater than zero");
+  std::vector<scalar> temp(ndofs);
+  sln_vector_out.swap(temp);
+  for(int i = 0; i < ndofs; i++)
+    sln_vector_out[i] = Vec[i];
+}
 
 void LinSystem::save_matrix_matlab(const char* filename, const char* varname)
 {
@@ -1047,33 +1016,3 @@ void LinSystem::save_rhs_bin(const char* filename)
   hermes2d_fwrite(RHS, sizeof(scalar), ndofs, f);
   fclose(f);
 }
-
-
-//// order limitation and warning //////////////////////////////////////////////////////////////////
-
-H2D_API void set_order_limit_table(int* tri_table, int* quad_table, int n)
-{
-  if (n < 24) error("Order limit tables must have at least 24 entries.");
-  g_order_table_tri  = tri_table;
-  g_order_table_quad = quad_table;
-}
-
-
-H2D_API void update_limit_table(int mode)
-{
-  g_quad_2d_std.set_mode(mode);
-  g_max_order = g_quad_2d_std.get_max_order();
-  g_safe_max_order = g_quad_2d_std.get_safe_max_order();
-  g_order_table = (mode == H2D_MODE_TRIANGLE) ? g_order_table_tri : g_order_table_quad;
-}
-
-
-H2D_API void warn_order()
-{
-  if (!warned_order)
-  {
-    warn_intr("Not enough integration rules for exact integration.");
-    warned_order = true;
-  }
-}
-

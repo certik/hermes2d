@@ -63,7 +63,7 @@ public:
   void save_rhs_bin(const char* filename);
 
   void enable_dir_contrib(bool enable = true) {  want_dir_contrib = enable;  }
-  scalar* get_solution_vec() { return Vec; }
+  const scalar* get_solution_vec() const { return Vec; }
 
   int get_num_dofs() const { return ndofs; };
   int get_matrix_size() const;
@@ -71,6 +71,7 @@ public:
     { Ap = this->Ap; Ai = this->Ai; Ax = this->Ax; size = ndofs; }
   void get_rhs(scalar*& RHS, int& size) const { RHS = this->RHS; size=ndofs; }
   void get_solution_vector(scalar*& sln_vector, int& sln_vector_len) { sln_vector = Vec; sln_vector_len = ndofs; }
+  void get_solution_vector(std::vector<scalar>& sln_vector_out) const; ///< Returns a copy of a solution vector.
 
 protected:
 
@@ -175,31 +176,5 @@ protected:
   friend class RefSystem;
 
 };
-
-// can be called to set a custom order limiting table
-extern H2D_API void set_order_limit_table(int* tri_table, int* quad_table, int n);
-
-// limit_order is used in integrals
-extern H2D_API int  g_safe_max_order;
-extern H2D_API int  g_max_order;
-extern H2D_API int* g_order_table;
-
-#ifndef DEBUG_ORDER
-  #define limit_order(o) \
-    if (o > g_safe_max_order) { o = g_safe_max_order; warn_order(); } \
-    o = g_order_table[o];
-  #define limit_order_nowarn(o) \
-    if (o > g_safe_max_order) o = g_safe_max_order; \
-    o = g_order_table[o];
-#else
-  #define limit_order(o) \
-    if (o > g_max_order) warn_order(); \
-    o = g_safe_max_order;
-  #define limit_order_nowarn(o) \
-    o = g_safe_max_order;
-#endif
-
-extern H2D_API void warn_order();
-extern H2D_API void update_limit_table(int mode);
 
 #endif
