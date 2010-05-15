@@ -49,7 +49,7 @@ const int MESH_REGULARITY = -1;  // Maximum allowed level of hanging nodes:
 const double CONV_EXP = 1.0;     // Default value is 1.0. This parameter influences the selection of
                                  // cancidates in hp-adaptivity. See get_optimal_refinement() for details.
 const int MAX_ORDER = 10;        // Maximum allowed element degree
-const double SPACE_TOL = 0.1;    // Stopping criterion for adaptivity (rel. error tolerance between the
+const double SPACE_TOL = 0.2;    // Stopping criterion for adaptivity (rel. error tolerance between the
                                  // fine mesh and coarse mesh solution in percent).
 const int NDOF_STOP = 60000;     // Adaptivity process stops when the number of degrees of freedom grows over
                                  // this limit. This is mainly to prevent h-adaptivity to go on forever.
@@ -82,8 +82,8 @@ const int MARKER_REACTOR_WALL = 2;       // NOTE: this must be compatible with t
 const int MARKER_EXTERIOR_WALL = 5;      // NOTE: this must be compatible with the mesh file!
 
 // for internal use
-double current_time = 0.0;      // (seconds) current physical time
-double tau = 24*60*60;           // time step: 24 hours
+double current_time = 0.0;          // (seconds) current physical time
+double tau = 5.*24*60*60;           // time step: 120 hours
 
 
 //// boundary conditions ///////////////////////////////////////////////////////////////////////////
@@ -211,6 +211,11 @@ int main(int argc, char* argv[])
       sys.assemble();
       sys.solve(2, &temp_sln, &moist_sln);
 
+      // solve the fine (reference) problem
+      RefSystem rs(&sys);
+      rs.assemble();
+      rs.solve(2, &temp_rsln, &moist_rsln);
+
       // visualisation
       char title[100];
       sprintf(title, "Temperature mesh, time = %g days", current_time/86400.);
@@ -226,11 +231,6 @@ int main(int argc, char* argv[])
       moist_view.set_title(title);
       moist_view.show(&moist_sln, H2D_EPS_HIGH);
 
-      // solve the fine (reference) problem
-      RefSystem rs(&sys);
-      rs.assemble();
-      rs.solve(2, &temp_rsln, &moist_rsln);
-
       // calculate errors and adapt the solution
       H1Adapt hp(Tuple<Space*>(&temp, &moist));
       hp.set_solutions(Tuple<Solution*>(&temp_sln, &moist_sln), Tuple<Solution*>(&temp_rsln, &moist_rsln));
@@ -238,7 +238,7 @@ int main(int argc, char* argv[])
       hp.set_biform(0, 1, callback(bilinear_form_sym_0_1));
       hp.set_biform(1, 0, callback(bilinear_form_sym_1_0));
       hp.set_biform(1, 1, callback(bilinear_form_sym_1_1));
-      double space_err = hp.calc_error() * 100;
+      double space_err = hp.calc_error(H2D_TOTAL_ERROR_REL | H2D_ELEMENT_ERROR_REL) * 100;
       info("Energy error est %g%%", space_err);
       if (space_err > SPACE_TOL) hp.adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY, SAME_ORDERS);
       else done = true;

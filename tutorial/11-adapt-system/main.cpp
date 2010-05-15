@@ -21,7 +21,7 @@ using namespace RefinementSelectors;
 //      -d_u^2 \Delta u - f(u) + \sigma v = g_1,
 //      -d_v^2 \Delta v - u + v = g_2.
 // In the original equation, f(u) = \lambda u - u^3 - \kappa. For
-// simplicity, here we just take f(u) = u.
+// simplicity, here we just take f(u) = -u.
 //
 // Domain: Square (-1,1)^2.
 //
@@ -29,9 +29,9 @@ using namespace RefinementSelectors;
 //
 // Exact solution: The functions g_1 and g_2 were calculated so that
 //                 the exact solution is:
-//        u(x,y) = cos(M_PI*x/2)*cos(M_PI*y/2)
-//        v(x,y) = U(x)U(y) where U(t) = 1 - (exp(K*x)+exp(-K*x))/(exp(K) + exp(-K))
-// Note: U(t) is the exact solution of the 1D singularly perturbed equation
+//        u(x,y) = U(x)*U(y) where U(t) = cos(M_PI*t/2)
+//        v(x,y) = V(x)V(y) where V(t) = 1 - (exp(K*t)+exp(-K*t))/(exp(K) + exp(-K))
+// Note: V(t) is the exact solution of the 1D singularly perturbed equation
 //       -u'' + K*K*u = K*K in (-1, 1) with zero Dirichlet BC.
 //
 // The following parameters can be changed: In particular, compare hp- and
@@ -40,7 +40,7 @@ using namespace RefinementSelectors;
 
 const int P_INIT_U = 2;          // Initial polynomial degree for u.
 const int P_INIT_V = 2;          // Initial polynomial degree for v.
-const int INIT_REF_BDY = 3;      // Number of initial boundary refinements
+const int INIT_REF_BDY = 5;      // Number of initial boundary refinements
 const bool MULTI = true;         // MULTI = true  ... use multi-mesh,
                                  // MULTI = false ... use single-mesh.
                                  // Note: In the single mesh option, the meshes are
@@ -89,33 +89,55 @@ int bc_types(int marker) { return BC_ESSENTIAL; }
 // Dirichlet BC values
 scalar bc_values(int marker, double x, double y) { return 0;}
 
-// functions g_1 and g_2
+// exact solution u(x,y) = U(x)*U(y) and its derivatives
+double U(double t) {
+  return cos(M_PI*t/2);
+}
+double dUdt(double t) {
+  return -sin(M_PI*t/2)*(M_PI/2.);
+}
+double ddUdtt(double t) {
+  return -cos(M_PI*t/2)*(M_PI/2.)*(M_PI/2.);
+}
+static double u_exact(double x, double y, double& dx, double& dy)
+{
+  dx = dUdt(x)*U(y);
+  dy = U(x)*dUdt(y);
+  return U(x)*U(y);
+}
+
+// exact solution v(x,y) = V(x)*V(y)
+double V(double t) {
+  return 1. - (exp(K*t) + exp(-K*t))/(exp(K) + exp(-K));
+}
+double dVdt(double t) {
+  return -K*(exp(K*t) - exp(-K*t))/(exp(K) + exp(-K));
+}
+double ddVdtt(double t) {
+  return -K*K*(exp(K*t) + exp(-K*t))/(exp(K) + exp(-K));
+}
+static double v_exact(double x, double y, double& dx, double& dy)
+{
+  dx = dVdt(x)*V(y);
+  dy = V(x)*dVdt(y);
+  return V(x)*V(y);
+}
+
+// right-hand side functions g_1 and g_2
 double g_1(double x, double y)
 {
-  return (-cos(M_PI*x/2.)*cos(M_PI*y/2.) + SIGMA*(1. - (exp(K*x) + exp(-K*x))/(exp(K) + exp(-K)))*(1. - (exp(K*y) + exp(-K*y))/(exp(K) + exp(-K)))
-	  + pow(M_PI,2.)*pow(D_u,2.)*cos(M_PI*x/2.)*cos(M_PI*y/2.)/2.);
+  double Laplace_u = ddUdtt(x)*U(y) + U(x)*ddUdtt(y);
+  double u = U(x)*U(y);
+  double v = V(x)*V(y);
+  return -D_u*D_u * Laplace_u + u + SIGMA*v;
 }
 
 double g_2(double x, double y)
 {
-  return ((1. - (exp(K*x) + exp(-K*x))/(exp(K) + exp(-K)))*(1. - (exp(K*y) + exp(-K*y))/(exp(K) + exp(-K))) - pow(D_v,2.)*(-(1 - (exp(K*x) + exp(-K*x))/(exp(K) + exp(-K)))*(pow(K,2.)*exp(K*y) + pow(K,2.)*exp(-K*y))/(exp(K) + exp(-K)) - (1. - (exp(K*y) + exp(-K*y))/(exp(K) + exp(-K)))*(pow(K,2.)*exp(K*x) + pow(K,2.)*exp(-K*x))/(exp(K) + exp(-K))) - cos(M_PI*x/2.)*cos(M_PI*y/2.));
-
-}
-
-// exact solution u
-static double u_exact(double x, double y, double& dx, double& dy)
-{
-  dx = -M_PI*cos(M_PI*y/2.)*sin(M_PI*x/2.)/2.;
-  dy = -M_PI*cos(M_PI*x/2.)*sin(M_PI*y/2.)/2.;
-  return cos(M_PI*x/2.)*cos(M_PI*y/2.);
-}
-
-// exact solution v
-static double v_exact(double x, double y, double& dx, double& dy)
-{
-  dx = -(1. - (exp(K*y) + exp(-K*y))/(exp(K) + exp(-K)))*(K*exp(K*x) - K*exp(-K*x))/(exp(K) + exp(-K));
-  dy = -(1. - (exp(K*x) + exp(-K*x))/(exp(K) + exp(-K)))*(K*exp(K*y) - K*exp(-K*y))/(exp(K) + exp(-K));
-  return (1. - (exp(K*x) + exp(-K*x))/(exp(K) + exp(-K)))*(1. - (exp(K*y) + exp(-K*y))/(exp(K) + exp(-K)));
+  double Laplace_v = ddVdtt(x)*V(y) + V(x)*ddVdtt(y);
+  double u = U(x)*U(y);
+  double v = V(x)*V(y);
+  return -D_v*D_v * Laplace_v + u + v;
 }
 
 // weak forms
@@ -131,9 +153,7 @@ int main(int argc, char* argv[])
   mloader.load("square.mesh", &umesh);
   if (MULTI == false) umesh.refine_towards_boundary(1, INIT_REF_BDY);
 
-  // create initial mesh for the vertical displacement component,
-  // identical to the mesh for the horizontal displacement
-  // (bracket.mesh becomes a master mesh)
+  // create initial mesh (master mesh)
   vmesh.copy(&umesh);
 
   // initial mesh refinements in the vmesh towards the boundary
@@ -227,7 +247,7 @@ int main(int argc, char* argv[])
     hp.set_biform(0, 1, bilinear_form_0_1<scalar, scalar>, bilinear_form_0_1<Ord, Ord>);
     hp.set_biform(1, 0, bilinear_form_1_0<scalar, scalar>, bilinear_form_1_0<Ord, Ord>);
     hp.set_biform(1, 1, bilinear_form_1_1<scalar, scalar>, bilinear_form_1_1<Ord, Ord>);
-    double err_est = hp.calc_error() * 100;
+    double err_est = hp.calc_error(H2D_TOTAL_ERROR_REL | H2D_ELEMENT_ERROR_ABS) * 100;
 
     // time measurement
     cpu_time.tick();
