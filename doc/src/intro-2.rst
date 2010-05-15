@@ -474,25 +474,43 @@ type
 
     cd .. 
 
-and save the following as your .gitconfig file:
+Then adjust and save the following as "~/.gitconfig":
 
 ::
 
     [user]
-       name = Pavel Solin
-       email = solin.pavel@gmail.com
+	    name = Pavel Solin
+	    email = solin.pavel@gmail.com
+
+    [core]
+	    editor = vim
 
     [color]
-       ui = auto
-       interactive = true
+	    ui = true
+    [color "branch"]
+	    current = yellow reverse
+	    local = yellow
+	    remote = green
+    [color "diff"]
+	    meta = yellow bold
+	    frag = magenta bold
+	    old = red bold
+	    new = green bold
+	    whitespace = red reverse
+    [color "status"]
+	    added = yellow
+	    changed = green
+	    untracked = cyan
+    [core]
+	    whitespace=fix,-indent-with-non-tab,trailing-space,cr-at-eol
 
     [alias]
-       ci = commit
-       di = diff --color-words
-       st = status
-       co = checkout
-
-You may want to change the name and email address in there.
+	    st = status
+	    ci = commit
+	    br = branch
+	    co = checkout
+	    df = diff
+	    lg = log -p
 
 Create a Local Branch
 ---------------------
