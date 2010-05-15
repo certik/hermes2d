@@ -69,4 +69,4 @@ sys.solve_system(sln)
 sln.plot()
 
 # Visualize the mesh
-mesh.plot(sapce=sapce)
+mesh.plot(space=space)
