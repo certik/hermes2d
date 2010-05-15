@@ -458,6 +458,15 @@ cdef class Mesh:
         m = MeshView()
         m.show(self, *args, **kwargs)
 
+    def show(self, *args, **kwargs):
+        """
+        Plots the mesh and shows it to the user.
+
+        It passes all arguments to the MeshView.show() function, so read its
+        documentation for the meaning.
+        """
+        self.plot(*args, **kwargs)
+
     def convert_triangles_to_quads(self):
         self.thisptr.convert_triangles_to_quads()
 
@@ -606,6 +615,15 @@ cdef class Solution(MeshFunction):
         sview = ScalarView()
         sview.show(self, *args, **kwargs)
 
+    def show(self, *args, **kwargs):
+        """
+        Plots the solution and shows it to the user.
+
+        It passes all arguments to the ScalarView.show() function, so read its
+        documentation for the meaning.
+        """
+        self.plot(*args, **kwargs)
+ 
     # the get_fe_solution() method is is not yet implemented in the C++ hermes:
     #def get_fe_solution(self):
     #    """
