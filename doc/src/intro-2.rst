@@ -5,16 +5,6 @@ Installation
 Linux Users
 -----------
 
-Documentation
-~~~~~~~~~~~~~
-
-Hermes2D Sphinx documentation (tutorial, benchmarks, examples) can be found in
-the directory 'doc/'. Type 'make html' there to build it. The documentation is
-available online at http://hpfem.org/hermes2d/doc/index.html.
-
-Developer documentation can be compiled by running 'doxygen' in 'src/'.
-
-
 Compilation
 ~~~~~~~~~~~
 
@@ -129,15 +119,6 @@ Install Hermes2D
 Mac OS X Users
 --------------
 
-Documentation
-~~~~~~~~~~~~~
-
-Hermes2D Sphinx documentation (tutorial, benchmarks, examples) can be found in
-the directory 'doc/'. Type 'make html' there to build it. The documentation is
-available online at http://hpfem.org/hermes2d/doc/index.html.
-
-Developer documentation can be compiled by running 'doxygen' in 'src/'.
-
 Compilation
 ~~~~~~~~~~~
 
@@ -240,6 +221,9 @@ Then type:
 
 Windows Cygwin Users
 --------------------
+
+Compilation
+~~~~~~~~~~~
 
 Download and install the Linux emulator Cygwin from `here <http://www.cygwin.com/>`_ (the small icon in the top-right corner). While running setup.exe, you need to install 
 
