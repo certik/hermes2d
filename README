@@ -1,8 +1,19 @@
+Download and Installation
+-------------------------
+
 Installation instructions for Linux, Mac OS X, Windows Cygwin,
 and Windows MSVC can be found in the Sphinx documentation 
-at http://hpfem.org/hermes2d/doc/index.html. Sources of the 
-documentation can be found in doc/src/. The documentation  
-can be also built and viewed locally (without using Internet): 
+at http://hpfem.org/hermes2d/doc/index.html. 
+
+Generating and Viewing User Documentation Offline
+-------------------------------------------------
+
+For this, you need to install Sphinx. To build the 
+documentation, follow these steps:
+
 cd doc
 make html
 firefox _build/html 
+
+Source files of the user documentation are in the
+directory src/.
