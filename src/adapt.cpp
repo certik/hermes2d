@@ -153,7 +153,7 @@ bool Adapt::adapt(RefinementSelectors::Selector* refinement_selector, double thr
       bool refined = refinement_selector->select_refinement(e, current, rsln[comp], elem_ref);
 
       //add to a list of elements that are going to be refined
-      if (refined && can_adapt_element(mesh, e, elem_ref) ) {
+      if (can_refine_element(mesh, e, refined, elem_ref) ) {
         idx[id][comp] = (int)elem_inx_to_proc.size();
         elem_inx_to_proc.push_back(elem_ref);
         err0_squared = err_squared;

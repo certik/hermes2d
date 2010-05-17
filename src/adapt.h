@@ -99,8 +99,8 @@ public:
   virtual double calc_error(unsigned int error_flags = H2D_TOTAL_ERROR_REL | H2D_ELEMENT_ERROR_ABS);
 
   /// Refines elements based on results from calc_error().
-  /** The behavior of adaptivity can be controlled through methods should_ignore_element() and can_adapt_element()
-   *  which are inteteded to be overriden if neccessary.
+  /** The behavior of adaptivity can be controlled through methods should_ignore_element()
+   *  and can_refine_element() which are inteteded to be overriden if neccessary.
    *  \param[in] refinement_selector A point to a selector which will select a refinement.
    *  \param[in] thr A threshold. The meaning of the threshold is defined by the parameter strat.
    *  \param[in] strat A strategy. It specifies a stop condition which quits processing elements in the Adapt::regular_queue. Possible values are 0, 1, 2, and 3.
@@ -165,14 +165,15 @@ protected: //adaptivity
   virtual bool should_ignore_element(const int inx_element, const Mesh* mesh, const Element* element) { return false; };
 
   /// Returns true if a given element can be refined using proposed refinement.
-  /** Overload this method to avoid application of a refinement
-   *  even thought a selector considered this refinement as the optimal one.
-   *  The method is not called if the selector decides that the element should not be refined.
+  /** Overload this method to
+   *  - avoid application of a refinement even thought a selector considered this refinement as the optimal one,
+   *  - suggest a new refinement despite that the selector was not able to select a refinement.
    *  \param[in] mesh A mesh that contains the element.
    *  \param[in] e A point to the element.
-   *  \param[in] elem_ref The proposed refinement.
-   *  \return True if the element should not be refined using the proposed refinement. */
-  virtual bool can_adapt_element(Mesh* mesh, Element* e, const ElementToRefine& elem_ref) { return true; };
+   *  \param[in] refined True if a refinement of the element was found.
+   *  \param[in,out] elem_ref The proposed refinement. Change a value of this parameter to select a different refinement.
+   *  \return True if the element should not be refined using the refinement. */
+  virtual bool can_refine_element(Mesh* mesh, Element* e, bool refined, ElementToRefine& elem_ref) { return refined; };
 
   /// Fixes refinements of a mesh which is shared among multiple components of a multimesh.
   /** If a mesh is shared among components, it has to be refined similarly in order to avoid incosistency.
