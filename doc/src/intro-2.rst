@@ -538,39 +538,24 @@ Unless you commit your changes, git does not
 know that they belong to your local branch. Then you are not 
 able to switch branches, and YOU ARE IN TROUBLE!
 
-Commit Your Changes
--------------------
+Make and Commit Your Changes
+----------------------------
 
-The file util/git-sandbox.cpp contains 
-a flawed factorial function:
-
-::
-
-    int factorial(int n) {
-      if(n == 0) return 0;
-      else return n*factorial(n-1);
-    }
-
-If you are able to find the mistake, just correct it 
-and save the file to the disk. Then commit your changes 
-by typing 
+The best way to get your first patch in 
+is to look into the source files in the 
+directory src/, find any function that 
+is missing a comment, and fix this. 
+Say that this file was src/file.cpp.
+After adding the comment there, type:
 
 ::
 
-    git add util/git-sandbox.cpp
+    git add src/file.cpp
     git commit
 
 The latter command will invoke a basic text editor 
 where you will be asked to enter a one-line comment
-describing your changes. 
-
-  .. image:: img/terminal-git-4.png
-   :align: center
-   :width: 600
-   :alt: Terminal screenshot
-
-
-If you decide to skip this 
+describing your changes. If you decide to skip this 
 and commit with an empty line, your commit will not 
 be accepted. 
 
