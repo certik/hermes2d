@@ -541,7 +541,7 @@ able to switch branches, and YOU ARE IN TROUBLE!
 Commit Your Changes
 -------------------
 
-The file src/git-sandbox.cpp contains 
+The file util/git-sandbox.cpp contains 
 a flawed factorial function:
 
 ::
@@ -557,7 +557,7 @@ by typing
 
 ::
 
-    git add src/git-sandbox.cpp
+    git add util/git-sandbox.cpp
     git commit
 
 The latter command will invoke a basic text editor 
