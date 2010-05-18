@@ -400,11 +400,17 @@ the coarse mesh solution:
 ::
 
     // Newton's loop on the coarse mesh
-    info("---- Solving on coarse mesh:\n");
+    info("---- Solving on coarse mesh:");
     if (!nls.solve_newton_1(&u_prev, NEWTON_TOL_COARSE, NEWTON_MAX_ITER)) error("Newton's method did not converge.");
 
     // store the result in sln_coarse
     sln_coarse.copy(&u_prev);
+
+In order to support adaptivity, a selector is created:
+
+::
+
+    H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER, &shapeset);
 
 Next the nonlinear problem on the fine mesh is initialized as follows:
 
@@ -434,9 +440,9 @@ Now we have the desired solution pair, and the error estimate is calculated as u
 ::
 
     // calculate element errors and total error estimate
-    H1OrthoHP hp(1, &space);
-    err_est = hp.calc_error(&sln_coarse, &sln_fine) * 100;
-    if (verbose) info("Error estimate: %g%%", err_est);
+    H1Adapt hp(&space);
+    hp.set_solutions(&sln_coarse, &sln_fine);
+    err_est = hp.calc_error() * 100;
 
 After adapting the mesh, we must not forget to update the coarse mesh solution. 
 This can be done either by just projecting the fine mesh solution onto 
@@ -448,7 +454,7 @@ problem on the new coarse mesh:
     // if err_est too large, adapt the mesh
     if (err_est < ERR_STOP) done = true;
     else {
-      hp.adapt(THRESHOLD, STRATEGY, ADAPT_TYPE, ISO_ONLY, MESH_REGULARITY);
+      hp.adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY);
       int ndof = assign_dofs(&space);
       if (ndof >= NDOF_STOP) done = true;
 
@@ -596,7 +602,7 @@ The entire time-stepping loop looks as follows:
     double current_time = 0.0;
     int t_step = 1;
     do {
-      info("\n**** Time step %d, t = %g s:\n", t_step++, current_time);
+      info("---- Time step %d, t = %g s:", t_step, current_time); t_step++;
 
       // Newton's method
       nls.solve_newton_1(&u_prev_newton, NEWTON_TOL, NEWTON_MAX_ITER);
@@ -927,7 +933,7 @@ The time stepping loop looks as follows:
     {
       TIME += TAU;
 
-      info("\n---- Time step %d, time = %g:\n", i, TIME);
+      info("---- Time step %d, time = %g:", i, TIME);
 
       // this is needed to update the time-dependent boundary conditions
       ndof = assign_dofs(3, &xvel_space, &yvel_space, &p_space);
@@ -1051,8 +1057,7 @@ $g$ the coupling constant (proportional to the scattering length of two interact
 $\omega$ the frequency.
 
 From the implementation point of view, the only detail worth mentioning is the 
-use of the complex version of Hermes in the `CMakeLists.txt 
-<http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/tutorial/19-newton-timedep-gp/CMakeLists.txt>`_ file:
+use of the complex version of Hermes in the file `CMakeLists.txt <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/tutorial/19-newton-timedep-gp/CMakeLists.txt>`_:
 
 ::
 
@@ -1159,7 +1164,7 @@ will not surprize a reader who made it this far in the tutorial:
     int nstep = (int)(T_FINAL/TAU + 0.5);
     for(int n = 1; n <= nstep; n++)
     {
-      info("\n---- Time step %d:\n", n);
+      info("---- Time step %d:", n);
 
       // Newton's method
       nls.solve_newton_1(&Psi_prev_newton, NEWTON_TOL, NEWTON_MAX_ITER);

@@ -5,8 +5,11 @@ Installation instructions for Linux, Mac OS X, Windows Cygwin,
 and Windows MSVC can be found in the Sphinx documentation 
 at http://hpfem.org/hermes2d/doc/index.html. 
 
-Generating and Viewing User Documentation Offline
--------------------------------------------------
+Source files of the user documentation are in the
+directory src/.
+
+Generating and Viewing User Documentation Offline (Linux)
+---------------------------------------------------------
 
 For this, you need to install Sphinx. To build the 
 documentation, follow these steps:
@@ -15,5 +18,30 @@ cd doc
 make html
 firefox _build/html 
 
-Source files of the user documentation are in the
-directory src/.
+Generating and Viewing User Documentation Offline (Windows+MSVC)
+----------------------------------------------------------------
+
+This is a sequence of steps which will install Sphinx and which
+will allow to generate user documentation. The steps assume that you
+have already installed Microsoft Visual Studio 9 (MSVC) Express
+Edition (or any higher edition) and you have a copy of Hermes2D sources.
+
+All commands, which are marked with a keyword 'prompt:', are executed
+in a command prompt opened in the step 3. Search for all mentioned
+application through Google since, usually, the first link is the right
+one.
+
+1) Download and install python 2.6
+2) Add paths 'my_python_path\' and 'my_python_path\Scripts' to
+   the enviromental variable PATH.
+3) Open a command prompt with MSVC variables:
+   Search for 'Visual Studio 2008 Command Prompt' in the start menu.
+4) Download and install setuptools 0.6c11
+5) Install Sphinx using setuptools (Internet access required)
+   prompt: easy_install -U Sphinx
+6) Go to a folder doc folder of Hermes2D source tree
+   prompt: cd my_hermes2d\doc
+7) Run NMAKE requesting HTML version
+   prompt: nmake html
+8) View the documentation using a file
+   'my_hermes2d\doc\_build\index.html'

@@ -113,19 +113,24 @@ The weak forms are registered as usual:
     wf.add_biform(1, 1, callback(bilinear_form_1_1), H2D_SYM);
     wf.add_liform_surf(1, callback(linear_form_surf_1), marker_top);
 
-Next we set bilinear forms for the calculation of the global energy norm,
-and calculate the error:
+Before entering the adaptivity loop, we create an instance of a selector:
 
 ::
 
+    H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, MAX_ORDER, &shapeset);
+
+Next, we set bilinear forms for the calculation of the global energy norm,
+and calculate the error. In this case, we require that the error of elements is devided by a corresponding norm:
+::
+
     // calculate error estimate wrt. fine mesh solution in energy norm
-    H1OrthoHP hp(2, &xdisp, &ydisp);
+    H1Adapt hp(Tuple<Space*>(&xdisp, &ydisp));
+    hp.set_solutions(Tuple<Solution*>(&sln_x_coarse, &sln_y_coarse), Tuple<Solution*>(&sln_x_fine, &sln_y_fine));
     hp.set_biform(0, 0, bilinear_form_0_0<scalar, scalar>, bilinear_form_0_0<Ord, Ord>);
     hp.set_biform(0, 1, bilinear_form_0_1<scalar, scalar>, bilinear_form_0_1<Ord, Ord>);
     hp.set_biform(1, 0, bilinear_form_1_0<scalar, scalar>, bilinear_form_1_0<Ord, Ord>);
     hp.set_biform(1, 1, bilinear_form_1_1<scalar, scalar>, bilinear_form_1_1<Ord, Ord>);
-    double err_est = hp.calc_error_2(&sln_x_coarse, &sln_y_coarse, &sln_x_fine, &sln_y_fine) * 100;
-    info("Error estimate: %g %%", err_est);
+    double err_est = hp.calc_error(H2D_TOTAL_ERROR_REL | H2D_ELEMENT_ERROR_REL) * 100;
 
 The rest is straightforward and details can be found in the 
 `main.cpp <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/examples/crack/main.cpp>`_ file.
@@ -229,18 +234,18 @@ The dimensions are L = 0.7 m, T = 0.1 m and the force $f = 10^3$ N.
    :height: 400
    :alt: Computational domain for the elastic bracket problem.
 
-As usual, adaptivity is based on the difference between the coarse and fine mesh solutions.
-This time we have two equations in the system, two meshes, two spaces, etc.
-Instead of calc_error() we use the method calc_energy_error(), also a member of the
-class H1OrthoHP:
+As usual, adaptivity is based on the difference between the coarse and fine mesh solutions. The selector is created outside the adaptivity loop.
+This time we have two equations in the system, two meshes, two spaces, etc.:
+
 ::
 
-    H1OrthoHP hp(2, &xdisp, &ydisp);
+    H1Adapt hp(Tuple<Space*>(&xdisp, &ydisp));
+    hp.set_solutions(Tuple<Solution*>(&x_sln_coarse, &y_sln_coarse), Tuple<Solution*>(&x_sln_fine, &y_sln_fine));
     hp.set_biform(0, 0, bilinear_form_0_0<scalar, scalar>, bilinear_form_0_0<Ord, Ord>);
     hp.set_biform(0, 1, bilinear_form_0_1<scalar, scalar>, bilinear_form_0_1<Ord, Ord>);
     hp.set_biform(1, 0, bilinear_form_1_0<scalar, scalar>, bilinear_form_1_0<Ord, Ord>);
     hp.set_biform(1, 1, bilinear_form_1_1<scalar, scalar>, bilinear_form_1_1<Ord, Ord>);
-    double err_est = hp.calc_error_2(&x_sln_coarse, &y_sln_coarse, &x_sln_fine, &y_sln_fine) * 100;
+    double err_est = hp.calc_error(H2D_TOTAL_ERROR_REL | H2D_ELEMENT_ERROR_REL) * 100;
 
 The following figures show the two meshes and their polynomial
 degrees after several adaptive steps: 
@@ -453,13 +458,12 @@ The coarse mesh problem is solved using
     ls.solve(3, &x_sln_coarse, &y_sln_coarse, &t_sln_coarse);
 
 The following code defines the global norm for error measurement, and 
-calculates element errors. In particular, notice the function 
-hp.calc_error_n()
+calculates element errors. The code uses a selector which instance is created outside the adaptivity loop:
 
 ::
 
-    // calculate element errors and total error estimate
-    H1OrthoHP hp(3, &xdisp, &ydisp, &temp);
+    H1Adapt hp(Tuple<Space*>(&xdisp, &ydisp, &temp));
+    hp.set_solutions(Tuple<Solution*>(&x_sln_coarse, &y_sln_coarse, &t_sln_coarse), Tuple<Solution*>(&x_sln_fine, &y_sln_fine, &t_sln_fine));
     hp.set_biform(0, 0, bilinear_form_0_0<scalar, scalar>, bilinear_form_0_0<Ord, Ord>);
     hp.set_biform(0, 1, bilinear_form_0_1<scalar, scalar>, bilinear_form_0_1<Ord, Ord>);
     hp.set_biform(0, 2, bilinear_form_0_2<scalar, scalar>, bilinear_form_0_2<Ord, Ord>);
@@ -467,7 +471,7 @@ hp.calc_error_n()
     hp.set_biform(1, 1, bilinear_form_1_1<scalar, scalar>, bilinear_form_1_1<Ord, Ord>);
     hp.set_biform(1, 2, bilinear_form_1_2<scalar, scalar>, bilinear_form_1_2<Ord, Ord>);
     hp.set_biform(2, 2, bilinear_form_2_2<scalar, scalar>, bilinear_form_2_2<Ord, Ord>);
-    double err_est = hp.calc_error_n(3, &x_sln_coarse, &y_sln_coarse, &t_sln_coarse, &x_sln_fine, &y_sln_fine, &t_sln_fine) * 100;
+    double err_est = hp.calc_error(H2D_TOTAL_ERROR_REL | H2D_ELEMENT_ERROR_ABS) * 100;
 
 Sample snapshot of solutions, meshes and convergence graphs are below. 
 

@@ -21,34 +21,34 @@ In `example 02-space <http://hpfem.org/hermes2d/doc/src/tutorial-1.html#setting-
     {
       if (argc < 2) error("Missing mesh file name parameter.");
 
-        // load the mesh
-  	Mesh mesh;
-  	H2DReader mloader;
-  	mloader.load(argv[1], &mesh);
+      // load the mesh
+      Mesh mesh;
+      H2DReader mloader;
+      mloader.load(argv[1], &mesh);
 
-  	// uniform mesh refinements
-  	mesh.refine_all_elements();
-  	mesh.refine_all_elements();
+      // uniform mesh refinements
+      mesh.refine_all_elements();
+      mesh.refine_all_elements();
 
-        // initialize the shapeset and the cache
-        HcurlShapeset shapeset;
+      // initialize the shapeset and the cache
+      HcurlShapeset shapeset;
 
-  	// create the Hdiv space
-  	HcurlSpace space(&mesh, &shapeset);
+      // create the Hdiv space
+      HcurlSpace space(&mesh, &shapeset);
 
-  	// set uniform polynomial degrees
-  	space.set_uniform_order(P_INIT);
+      // set uniform polynomial degrees
+      space.set_uniform_order(P_INIT);
 
-	// enumerate basis functions
-	int ndof = assign_dofs(&space);
+      // enumerate basis functions
+      int ndof = assign_dofs(&space);
 
-  	// visualise the FE basis
-  	VectorBaseView bview;
-        bview.show(&space);
+      // visualise the FE basis
+      VectorBaseView bview;
+      bview.show(&space);
 
-        // wait for keyboard or mouse input
-        View::wait();
-        return 0;
+      // wait for all views to be closed
+      View::wait();
+      return 0;
     } 
 
 The class VectorBaseView allows the user to browse through 
@@ -125,7 +125,7 @@ its basis functions:
       VectorBaseView bview;
       bview.show(&space);
 
-      // wait for keyboard or mouse input
+      // wait for all views to be closed
       View::wait();
       return 0;
     }
@@ -190,7 +190,7 @@ projected function):
     {
       Scalar result = 0;
       for (int i = 0; i < n; i++) {
-        result += wt[i] * ((pow(e->x[i], 3) + pow(e->y[i], 3)) * v->val[i]);
+      result += wt[i] * ((pow(e->x[i], 3) + pow(e->y[i], 3)) * v->val[i]);
       }
       return result;
     }
@@ -212,7 +212,7 @@ degrees of freedom, and show the FE basis:
 
     BaseView bview;
     bview.show(&space);
-    bview.wait_for_close();
+    View::wait(H2DV_WAIT_KEYPRESS);
 
 Next we register the weak forms, assemble and solve 
 the matrix problem, and visualize the solution:
