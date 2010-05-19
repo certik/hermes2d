@@ -3,7 +3,7 @@
 template<typename Real, typename Scalar>
 Scalar bilinear_form_0_0(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
-  return D_u * D_u * int_grad_u_grad_v<Real, Scalar>(n, wt, u, v) + int_u_v<Real, Scalar>(n, wt, u, v);
+  return D_u * D_u * int_grad_u_grad_v<Real, Scalar>(n, wt, u, v) - int_u_v<Real, Scalar>(n, wt, u, v);
 }
 
 template<typename Real, typename Scalar>
@@ -15,7 +15,7 @@ Scalar bilinear_form_0_1(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<R
 template<typename Real, typename Scalar>
 Scalar bilinear_form_1_0(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
-  return int_u_v<Real, Scalar>(n, wt, u, v);
+  return -int_u_v<Real, Scalar>(n, wt, u, v);
 }
 
 template<typename Real, typename Scalar>

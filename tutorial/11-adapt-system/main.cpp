@@ -21,7 +21,7 @@ using namespace RefinementSelectors;
 //      -d_u^2 \Delta u - f(u) + \sigma v = g_1,
 //      -d_v^2 \Delta v - u + v = g_2.
 // In the original equation, f(u) = \lambda u - u^3 - \kappa. For
-// simplicity, here we just take f(u) = -u.
+// simplicity, here we just take f(u) = u.
 //
 // Domain: Square (-1,1)^2.
 //
@@ -40,7 +40,7 @@ using namespace RefinementSelectors;
 
 const int P_INIT_U = 2;          // Initial polynomial degree for u.
 const int P_INIT_V = 2;          // Initial polynomial degree for v.
-const int INIT_REF_BDY = 5;      // Number of initial boundary refinements
+const int INIT_REF_BDY = 3;      // Number of initial boundary refinements
 const bool MULTI = true;         // MULTI = true  ... use multi-mesh,
                                  // MULTI = false ... use single-mesh.
                                  // Note: In the single mesh option, the meshes are
@@ -67,10 +67,10 @@ const int MESH_REGULARITY = -1;  // Maximum allowed level of hanging nodes:
                                  // MESH_REGULARITY = 2 ... at most two-level hanging nodes, etc.
                                  // Note that regular meshes are not supported, this is due to
                                  // their notoriously bad performance.
-const double CONV_EXP = 0.5;     // Default value is 1.0. This parameter influences the selection of
+const double CONV_EXP = 1;       // Default value is 1.0. This parameter influences the selection of
                                  // cancidates in hp-adaptivity. See get_optimal_refinement() for details.
 const int MAX_ORDER = 10;        // Maximum allowed element degree
-const double ERR_STOP = 0.01;    // Stopping criterion for adaptivity (rel. error tolerance between the
+const double ERR_STOP = 0.5;     // Stopping criterion for adaptivity (rel. error tolerance between the
                                  // fine mesh and coarse mesh solution in percent).
 const int NDOF_STOP = 60000;     // Adaptivity process stops when the number of degrees of freedom grows over
                                  // this limit. This is mainly to prevent h-adaptivity to go on forever.
@@ -129,7 +129,7 @@ double g_1(double x, double y)
   double Laplace_u = ddUdtt(x)*U(y) + U(x)*ddUdtt(y);
   double u = U(x)*U(y);
   double v = V(x)*V(y);
-  return -D_u*D_u * Laplace_u + u + SIGMA*v;
+  return -D_u*D_u * Laplace_u - u + SIGMA*v;
 }
 
 double g_2(double x, double y)
@@ -137,7 +137,7 @@ double g_2(double x, double y)
   double Laplace_v = ddVdtt(x)*V(y) + V(x)*ddVdtt(y);
   double u = U(x)*U(y);
   double v = V(x)*V(y);
-  return -D_v*D_v * Laplace_v + u + v;
+  return -D_v*D_v * Laplace_v - u + v;
 }
 
 // weak forms
@@ -281,7 +281,7 @@ int main(int argc, char* argv[])
     // if err_est too large, adapt the mesh
     if (error < ERR_STOP) done = true;
     else {
-      hp.adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY, MULTI == true ? false : true);
+      done = hp.adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY, MULTI == true ? false : true);
       ndof = assign_dofs(2, &uspace, &vspace);
       if (ndof >= NDOF_STOP) done = true;
     }
