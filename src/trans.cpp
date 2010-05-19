@@ -68,7 +68,7 @@ double2 *transform_element(Element *e, int np, double2 *pt)
 	return tpt;
 }
 
-double2 *transform(Element *e)
+H2D_API double2 *transform(Element *e)
 {
 	double2 *tpt1 = NULL;
 	double2 *tpt2 = NULL;
@@ -93,7 +93,7 @@ double2 *transform(Element *e)
 	return tpt3;
 }
 
-void element_polygonal_boundary(Element *e, double2 **tp, int *npoints)
+H2D_API void element_polygonal_boundary(Element *e, double2 **tp, int *npoints)
 {
 	double2 *pt;
     int n;

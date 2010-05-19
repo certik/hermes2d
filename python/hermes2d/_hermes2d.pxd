@@ -66,6 +66,20 @@ cdef extern from "hermes2d.h":
     int c_info_mode "__h2d_report_info"
     int c_warn_integration "__h2d_report_warn_intr"
 
+    int c_H2D_P_ISO "RefinementSelectors::H2D_P_ISO"
+    int c_H2D_P_ANISO "RefinementSelectors::H2D_P_ANISO"
+    int c_H2D_H_ISO "RefinementSelectors::H2D_H_ISO"
+    int c_H2D_H_ANISO "RefinementSelectors::H2D_H_ANISO"
+    int c_H2D_HP_ISO "RefinementSelectors::H2D_HP_ISO"
+    int c_H2D_HP_ANISO_H "RefinementSelectors::H2D_HP_ANISO_H"
+    int c_H2D_HP_ANISO_P "RefinementSelectors::H2D_HP_ANISO_P"
+    int c_H2D_HP_ANISO "RefinementSelectors::H2D_HP_ANISO"
+
+    int c_H2D_TOTAL_ERROR_REL "H2D_TOTAL_ERROR_REL"
+    int c_H2D_TOTAL_ERROR_ABS "H2D_TOTAL_ERROR_ABS"
+    int c_H2D_ELEMENT_ERROR_REL "H2D_ELEMENT_ERROR_REL"
+    int c_H2D_ELEMENT_ERROR_ABS "H2D_ELEMENT_ERROR_ABS"
+
     ctypedef double double4[4]
     ctypedef double double3[3]
     ctypedef double double2[2]
@@ -133,6 +147,9 @@ cdef extern from "hermes2d.h":
     ctypedef struct c_H1Shapeset "H1Shapeset"
     c_H1Shapeset *new_H1Shapeset "new H1Shapeset" ()
 
+    ctypedef struct c_L2Shapeset "L2Shapeset"
+    c_L2Shapeset *new_L2Shapeset "new L2Shapeset" ()
+
     cdef struct c_PrecalcShapeset "PrecalcShapeset"
     c_PrecalcShapeset *new_PrecalcShapeset "new PrecalcShapeset" (c_H1Shapeset *s)
 
@@ -153,6 +170,18 @@ cdef extern from "hermes2d.h":
     c_H1Space *new_H1Space "new H1Space" (c_Mesh *m,
             c_H1Shapeset *h)
 
+    cdef struct c_L2Space "L2Space":
+        void set_uniform_order(int tri_order)
+        int assign_dofs(int first_dof, int stride)
+        void copy_orders(c_L2Space *s, int inc)
+        int get_element_order(int id)
+        int get_num_dofs()
+        void set_bc_types(int (*bc_type_callback)(int marker))
+        void set_bc_values(scalar (*bc_value_callback_by_coord)(int marker,
+            double x, double y))
+        void set_bc_values_edge "set_bc_values"(scalar (*bc_value_callback_by_edge)(EdgePos *ep))
+    c_L2Space *new_L2Space "new L2Space" (c_Mesh *m, c_L2Shapeset *h)
+
     ctypedef struct RealFunction "Function<double>":
         c_Element* get_active_element()
     cdef struct RefMap "RefMap"
@@ -168,7 +197,7 @@ cdef extern from "hermes2d.h":
         double *dx, *dy	
     ctypedef struct GeomReal "Geom<double>":
         int marker
-        double *x, *y	
+        double *x, *y
     ctypedef struct ExtDataReal "ExtData<double>":
         FuncReal **fn
     ctypedef struct FuncOrd "Func<Ord>":
@@ -266,23 +295,46 @@ cdef extern from "hermes2d.h":
     #    void free_matrix()
     #c_DiscreteProblem *new_DiscreteProblem "new DiscreteProblem" ()
 
-    cdef struct c_L2OrthoHP "L2OrthoHP":
-        #double calc_error(c_Solution *sln, c_Solution *rsln)
-        double calc_error(...)
-        double calc_error_n(int n, ...)
-        void adapt(double thr, int strat, int h_only)
-    c_L2OrthoHP *new_L2OrthoHP "new L2OrthoHP" (int num, ...)
+    ctypedef enum c_CandList "RefinementSelectors::CandList":
+        pass
 
-    cdef struct c_H1OrthoHP "H1OrthoHP":
-        #double calc_error(c_Solution *sln, c_Solution *rsln)
-        int num
-        double calc_error(...)
-        double calc_error_2(...)
-        double calc_error_n(int n, ...)
-        void adapt(double thr, int strat, int h_only)
+    ctypedef struct c_H1SpaceTuple "Tuple<Space*>":
+        void (* push_back)(c_H1Space*)
+
+    ctypedef struct c_L2SpaceTuple "Tuple<Space*>":
+        void (* push_back)(c_L2Space*)
+
+    ctypedef struct c_SolutionTuple "Tuple<Solution*>":
+        void (* push_back)(c_Solution*)
+
+    ctypedef struct c_ProjBasedSelector "RefinementSelectors::ProjBasedSelector":
+        void set_error_weights(double, double, double)
+
+    ctypedef struct c_H1ProjBasedSelector "RefinementSelectors::H1ProjBasedSelector":
+        pass
+
+    c_H1ProjBasedSelector *new_H1ProjBasedSelector "new RefinementSelectors::H1ProjBasedSelector" (c_CandList, double, int, c_H1Shapeset*)
+
+    ctypedef struct c_L2ProjBasedSelector "RefinementSelectors::L2ProjBasedSelector":
+        pass
+	    
+    c_L2ProjBasedSelector *new_L2ProjBasedSelector "new RefinementSelectors::L2ProjBasedSelector" (c_CandList, double, int, c_L2Shapeset*)
+
+    ctypedef struct c_Adapt "Adapt":
+        void set_solutions(c_SolutionTuple, c_SolutionTuple)
+        double calc_error(int)
         void set_biform(int i, int j, ...)
+        int adapt(c_ProjBasedSelector*, double, int, int, int, double)
 
-    c_H1OrthoHP *new_H1OrthoHP "new H1OrthoHP" (int num, ...)
+    ctypedef struct c_H1Adapt "H1Adapt":
+        pass
+
+    c_H1Adapt *new_H1Adapt "new H1Adapt" (c_H1SpaceTuple)
+
+    ctypedef struct c_L2Adapt "L2Adapt":
+        pass
+
+    c_L2Adapt *new_L2Adapt "new L2Adapt" (c_L2SpaceTuple)
 
     cdef struct c_Linearizer "Linearizer":
         void process_solution(c_MeshFunction* sln, ...)
@@ -410,11 +462,11 @@ cdef class DummySolver(Solver):
 cdef class WeakForm:
     cdef c_WeakForm *thisptr
 
-cdef class H1OrthoHP:
-    cdef c_H1OrthoHP *thisptr
-
 cdef class H1Space:
     cdef c_H1Space *thisptr
+
+cdef class L2Space:
+    cdef c_L2Space *thisptr
 
 cdef class Transformable:
     pass
@@ -436,3 +488,22 @@ cdef class Linearizer:
 
 cdef class Vectorizer(Linearizer):
     pass
+
+cdef class ProjBasedSelector:
+    cdef c_ProjBasedSelector *thisptr
+
+cdef class H1ProjBasedSelector(ProjBasedSelector):
+    pass
+
+cdef class L2ProjBasedSelector(ProjBasedSelector):
+    pass
+
+cdef class Adapt:
+    cdef c_Adapt *thisptr
+
+cdef class H1Adapt(Adapt):
+    pass
+
+cdef class L2Adapt(Adapt):
+    pass
+

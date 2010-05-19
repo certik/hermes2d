@@ -12,7 +12,8 @@ def demo_layer(lib="mayavi"):
     """
     from hermes2d import (Mesh, MeshView, H1Shapeset, PrecalcShapeset, H1Space,
            WeakForm, Solution, DummySolver, LinSystem, ScalarView, RefSystem,
-           H1OrthoHP, set_verbose)
+           H1Adapt, H1ProjBasedSelector, CandList,
+	   set_verbose)
     from hermes2d.examples.c22 import set_bc, set_forms
 
     set_verbose(False)
@@ -50,6 +51,8 @@ def demo_layer(lib="mayavi"):
        rsln = Solution()
        solver = DummySolver()
 
+       selector = H1ProjBasedSelector(CandList.HP_ANISO, 1.0, -1, shapeset)
+
        view = ScalarView("Solution")
        iter = 0
        graph = []
@@ -71,13 +74,16 @@ def demo_layer(lib="mayavi"):
 
            rsys.solve_system(rsln)
 
-           hp = H1OrthoHP(space)
+           hp = H1Adapt([space])
+	   hp.set_solutions([sln], [rsln])
+	   err_est = hp.calc_error() * 100
+
            err_est =  hp.calc_error(sln, rsln)*100
            print "iter=%02d, err_est=%5.2f%%, DOFS=%d" % (iter, err_est, dofs)
            graph.append([dofs, err_est])
            if err_est < error_tol:
                break
-           hp.adapt(threshold, strategy, h_only)
+           hp.adapt(selector, threshold, strategy)
            iter += 1
 
 

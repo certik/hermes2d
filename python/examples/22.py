@@ -17,14 +17,14 @@
 # Import modules
 from hermes2d import (Mesh, MeshView, H1Shapeset, PrecalcShapeset, H1Space,
         WeakForm, Solution, DummySolver, LinSystem, ScalarView, RefSystem,
-        H1OrthoHP, set_verbose)
+        H1Adapt, H1ProjBasedSelector, CandList, \
+	set_verbose)
 from hermes2d.examples.c22 import set_bc, set_forms
 
 # The following parameters can be changed:
 threshold = 0.3
 strategy = 0
 
-h_only = False
 error_tol = 1
 interactive_plotting = False    # should the plot be interactively updated
                                 # during the calculation? (slower)
@@ -70,6 +70,8 @@ graph = []
 iter = 0
 print "Calculating..."
 
+selector = H1ProjBasedSelector(CandType.HP_ANISO, 1.0, -1, shapeset)
+
 while 1:
     space.assign_dofs()
 
@@ -89,13 +91,15 @@ while 1:
 
     rsys.solve_system(rsln)
 
-    hp = H1OrthoHP(space)
-    error_est =  hp.calc_error(sln, rsln)*100
+    hp = H1Adapt([space])
+    hp.set_solutions([sln], [rsln])
+    err_est = hp.calc_error() * 100
+
     print "iter=%02d, error_est=%5.2f%%, DOFS=%d" % (iter, error_est, dofs)
     graph.append([dofs, error_est])
     if error_est < error_tol:
         break
-    hp.adapt(threshold, strategy, h_only)
+    hp.adapt(selector, threshold, strategy)
     iter += 1
 
 if not interactive_plotting:

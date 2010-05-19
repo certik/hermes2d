@@ -29,7 +29,8 @@
 
 # Import modules
 from hermes2d import Mesh, MeshView, VectorView, OrderView, H1Shapeset, PrecalcShapeset, H1Space, \
-        WeakForm, Solution, ScalarView, LinSystem, DummySolver, RefSystem, H1OrthoHP, \
+        WeakForm, Solution, ScalarView, LinSystem, DummySolver, RefSystem, \
+	H1Adapt, H1ProjBasedSelector, CandList, \
         H2D_EPS_HIGH, H2D_FN_DX, H2D_FN_DY
 
 from hermes2d.examples.c10 import set_bc, set_forms
@@ -51,16 +52,10 @@ STRATEGY = 1            # Adaptive strategy:
                         #   than THRESHOLD.
                         # More adaptive strategies can be created in adapt_ortho_h1.cpp.
 
-ADAPT_TYPE = 0          # Type of automatic adaptivity:
-                        # ADAPT_TYPE = 0 ... adaptive hp-FEM (default),
-                        # ADAPT_TYPE = 1 ... adaptive h-FEM,
-                        # ADAPT_TYPE = 2 ... adaptive p-FEM.
-
-ISO_ONLY = False        # Isotropic refinement flag (concerns quadrilateral elements only).
-                        # ISO_ONLY = false ... anisotropic refinement of quad elements
-                        # is allowed (default),
-                        # ISO_ONLY = true ... only isotropic refinements of quad elements
-                        # are allowed.
+CAND_TYPE = CandList.HP_ANISO  # Predefined list of element refinement candidates.
+                        # Possible values are are attributes of the class CandList:
+                        # P_ISO, P_ANISO, H_ISO, H_ANISO, HP_ISO, HP_ANISO_H, HP_ANISO_P, HP_ANISO
+			# See the Sphinx tutorial (http://hpfem.org/hermes2d/doc/src/tutorial-2.html#adaptive-h-fem-and-hp-fem) for details.											   
 
 MESH_REGULARITY = -1    # Maximum allowed level of hanging nodes:
                         # MESH_REGULARITY = -1 ... arbitrary level hangning nodes (default),
@@ -113,6 +108,8 @@ cpu = 0.0
 sln_coarse = Solution()
 sln_fine = Solution()
 
+selector = H1ProjBasedSelector(CAND_TYPE, 1.0, -1, shapeset)
+
 while(not done):
 
     print("\n---- Adaptivity step %d ---------------------------------------------\n" % it)
@@ -137,15 +134,16 @@ while(not done):
     rs.solve_system(sln_fine)
 
     # Calculate element errors and total error estimate
-    hp = H1OrthoHP(space);
-    err_est = hp.calc_error(sln_coarse, sln_fine) * 100
+    hp = H1Adapt([space])
+    hp.set_solutions([sln_coarse], [sln_fine])
+    err_est = hp.calc_error() * 100
     print("Error estimate: %d" % err_est)
 
     # If err_est too large, adapt the mesh
     if (err_est < ERR_STOP):
         done = True
     else:
-        hp.adapt(THRESHOLD, STRATEGY, ADAPT_TYPE)#, ISO_ONLY, MESH_REGULARITY)
+        hp.adapt(selector, THRESHOLD, STRATEGY, MESH_REGULARITY)
         ndofs = space.assign_dofs()
 
         if (ndofs >= NDOF_STOP):
@@ -156,3 +154,4 @@ print ("Total running time: %d sec" % cpu)
 # Show the fine solution - this is the final result
 sview.show(sln_fine)
 gview.show(sln_fine, sln_fine, H2D_EPS_HIGH)
+
