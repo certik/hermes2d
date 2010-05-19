@@ -35,7 +35,7 @@ Scalar linear_form_0(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Sc
 // integration order for linear_form_0
 Ord linear_form_0_ord(int n, double *wt, Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext)
 {
-  return 30;
+  return Ord(30);
 }
 
 template<typename Real, typename Scalar>
@@ -47,5 +47,5 @@ Scalar linear_form_1(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Sc
 // integration order for linear_form_1
 Ord linear_form_1_ord(int n, double *wt, Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext)
 {
-  return 30;
+  return Ord(30);
 }
