@@ -21,10 +21,22 @@ class Space
 .. autoclass:: Space
     :members:
 
+class L2Space
+-------------
+
+.. autoclass:: L2Space
+    :members:
+
 class Shapeset
 --------------
 
 .. autoclass:: Shapeset
+    :members:
+
+class L2Shapeset
+----------------
+
+.. autoclass:: L2Shapeset
     :members:
 
 class PrecalcShapeset
@@ -150,27 +162,46 @@ class Filter
 .. autoclass:: Filter
     :members:
 
+class CandList
+--------------
 
-
-class H1OrthoHP
----------------
-
-.. autoclass:: H1OrthoHP
+.. autoclass:: CandList
     :members:
 
-class HcurlOrthoHP
-------------------
+class ProjBasedSelector
+-----------------------
 
-.. autoclass:: HcurlOrthoHP
+.. autoclass:: ProjBasedSelector
     :members:
 
-class L2OrthoHP
----------------
+class H1ProjBasedSelector
+-------------------------
 
-.. autoclass:: L2OrthoHP
+.. autoclass:: H1ProjBasedSelector
     :members:
 
+class L2ProjBasedSelector
+-------------------------
 
+.. autoclass:: L2ProjBasedSelector
+    :members:
 
+class Adapt
+-----------
+
+.. autoclass:: Adapt
+    :members:
+
+class H1Adapt
+-------------
+
+.. autoclass:: H1Adapt
+    :members:
+
+class L2Adapt
+-------------
+
+.. autoclass:: L2Adapt
+    :members:
 
 
