@@ -410,9 +410,9 @@ This list works for 32-bit version of Hermes2D. If you intend to cross-compile 6
       - copy 'my_exodusii_root/cbind/include/exodusII.h' and 'my_netcdf_root/libsrc4/exodusII_ext.h' to 'include' dependency directory
 	
 
-====================================
-How to Survive an Encounter with Git
-====================================
+=============================
+How to Submit the First Patch
+=============================
 
 The following is an embarrassingly trivial git primer
 whose objective is to show you how to create and send 
@@ -633,7 +633,7 @@ the repository, just type:
 
 ::
 
-    git remote add http://hpfem.org/git/hermes2d.git
+    git remote add origin http://hpfem.org/git/hermes2d.git
 
 This tells git where to download the git repository from
 (needs to be done just the first time). Then type
