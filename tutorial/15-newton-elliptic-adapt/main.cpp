@@ -190,7 +190,7 @@ int main(int argc, char* argv[])
   OrderView oview_fine("Fine mesh", 1510, 0, 450, 400);            // fine mesh
 
   // Newton's loop on the coarse mesh
-  info("---- Solving on coarse mesh:\n");
+  info("---- Solving on coarse mesh:");
   if (!nls.solve_newton_1(&u_prev, NEWTON_TOL_COARSE, NEWTON_MAX_ITER)) error("Newton's method did not converge.");
 
   // store the result in sln_coarse

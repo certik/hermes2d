@@ -103,8 +103,8 @@ or $err \approx O(h^p)$. When local refinements are enabled, the meaning of $O(h
 convergence rate loses its meaning, and one should switch to convergence in terms of 
 the number of degrees of freedom (DOF) or CPU time - Hermes provides both. 
 
-Algebraic convergence of adaptive $h$-FEM
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Algebraic convergence of adaptive :math:`h`-FEM
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 When using elements of degree $p$, the convergence rate of adaptive $h$-FEM will not exceed the 
 one predicted for uniformly refined meshes (this can be explained using 
@@ -234,33 +234,59 @@ the forms:
     wf.add_biform(0, 0, callback(biform1), H2D_SYM, 1);
     wf.add_biform(0, 0, callback(biform2), H2D_SYM, 2);
 
-The principal part of the example is the main adaptivity loop. In each iteration, the coarse problem
-is solved first:
-
+The principal part of the example is the main adaptivity loop. However, before the loop is entered, a selector should be created:
 ::
 
-    // solve the coarse problem
+    H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER, &shapeset);
+
+The selector is used by the class H1Adapt to determine how an element should be refined. For that purpose, the selector does following steps:
+
+#. It generates candidates. A candidate is a result of a proposed refinement.
+#. It estimates their local error by projecting elements of candidates onto the reference solution.
+#. It calculates a number of degree of freedoms (DOFs).
+#. It calculates a score of every candidate and sorts candidates accordin to the score.
+#. It selects a candidate with the highest score. If the next candidate has almost the same score, it skips both of them since it is not able to decide which is the best. This helps to keep a mesh symmetric if anistropic refinements are used on a symmetric solution.
+
+By default, the score is
+
+.. math::
+
+    s = \frac{\log_{10} e_0 - \log_{10} e}{(d_0 - d)^\xi},
+
+where $e$ and $d$ are an estimated error and an estimated number of DOFs of a candidate respectively, $e_0$ and $d_0$ are an estimated error and an estimated number of DOFs of the examined element respectively, and $\xi$ is a convergence exponent.
+
+The first parameter ``CAND_LIST`` specifies which candidates are generated. In a case of quadrilaterals, all possible values and considered candidates are summarized in the following table:
+
+.. image:: img/cand_list.quads.*
+   :align: center
+   :alt: Candidates generated for a given candidate list.
+
+The second parameter ``CONV_EXP`` is a convergence exponent used to evaluate a score.
+
+The third parameter specifies the the maximum considered order used in the resulting refinement. In this case, a constant ``H2DRS_DEFAULT_ORDER`` is used. The constant is defined by Hermes2D library and it corresponds to the maximum order supported by the selector. In this case, this is 9.
+
+In each iteration, the coarse problem is solved first:
+::
+
     LinSystem ls(&wf, &solver);
     ls.set_spaces(1, &space);
     ls.set_pss(1, &pss);
     ls.assemble();
     ls.solve(1, &sln_coarse);
 
-Next, the reference solution is computed on a globally refined copy of the mesh,
-defining a temporary space with increased element orders and by assembling and solving an extra
-linear system. However, for most problems, this can be automated using the class RefSystem, which
-handles all the temporary reference meshes and spaces transparently. All it needs is a pointer 
-to the coarse LinSystem:
+Next, the reference solution is computed on a globally refined copy of the mesh. For this purpose
+a temporary space with increased element orders is defined and an extra linear system is assembled and solved.
+However, in the most of the cases, this can be done using the class RefSystem. All it needs is a pointer
+to an instance of the class LinSystem:
 
 ::
 
-    // solve the fine mesh problem
     RefSystem rs(&ls);
     rs.assemble();
     rs.solve(1, &sln_fine);
 
-The constructor of the RefSystem class admits two optional parameters where the user 
-can choose a different polynomial degree increment (default value 1) 
+The constructor of the class RefSystem allows a user
+to choose a different polynomial degree increment (default value 1)
 and another element refinement (default value 1) - see the file 
 `src/refsystem.h <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/src/refsystem.h>`_:
 
@@ -274,12 +300,12 @@ mesh is still very coarse and thus the reference solution does not give a meanin
 error estimate. 
  
 In the third and last step of each iteration, we refine our mesh and polynomial degrees stored
-in our space using a class called H1OrthoHP. This class offers two services: it is able to
-calculate  the estimate of the overall error of the coarse solution in $H^1$ norm, and if the
-error is too large, you can ask the class to *hp*-adapt your mesh and element orders optimally.
+in our space using a class H1Adapt. This class offers two services:
 
-H1OrthoHP is initialized with the number of spaces in the problem and pointers to them.
-The method calc_error() takes pointers to the coarse and reference solutions and returns
+* it estimates the overall error of the coarse solution in $H^1$ norm,
+* it selects elements with the highest error and uses a user-supplied selector to find a refinement.
+
+In a general case, the class H1Adapt is initialized with a list of spaces through the class Tuple. Since we use just a single component in this case, a pointer to an instance of the class H1Space is the only parameter. Then, the user sets the coarse solution and the fine solution and evaluates the error. By default, the error is calculated as
 
 .. math::
 
@@ -289,41 +315,32 @@ In the code this looks as follows:
 
 ::
 
-    H1OrthoHP hp(1, &space);
-    double err_est = hp.calc_error(&sln_coarse, &sln_fine) * 100;
+    H1Adapt hp(&space);
+    hp.set_solutions(&sln_coarse, &sln_fine);
+    double err_est = hp.calc_error() * 100;
 
-Finally, if err_est is still above the threshold ERR_STOP, we perform one
+Finally, if ``err_est`` is still above the threshold ``ERR_STOP``, we perform one
 adaptivity step:
 
 ::
 
     if (err_est < ERR_STOP) done = true;
     else {
-      hp.adapt(THRESHOLD, STRATEGY, ADAPT_TYPE, ISO_ONLY, MESH_REGULARITY);
+      hp.adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY);
       ndof = assign_dofs(&space);
       if (ndof >= NDOF_STOP) done = true;
     }
 
-The function adapt() accepts additional optional input parameters for more 
-advanced use - see the file 
-`src/adapt_h1_ortho.h <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/src/adapt_ortho_h1.h>`_ 
-for more details. 
-The basic parameters THRESHOLD, STRATEGY, ADAPT_TYPE, ISO_ONLY and MESH_REGULARITY
-have the following meaning: STRATEGY indicates which adaptive strategy we
-want to use:
+The constants ``THRESHOLD``, ``STRATEGY`` and ``MESH_REGULARITY``
+have the following meaning:
 
-* STRATEGY == 0: Refine elements until sqrt(THRESHOLD) times total error is processed. If more elements have similar error refine all to keep the mesh symmetric.
-* STRATEGY == 1: Refine all elements whose error is bigger than THRESHOLD times maximum element error.
-* STRATEGY == 2: Refine all elements whose error is bigger than THRESHOLD.
+The constant ``STRATEGY`` indicates which adaptive strategy is used. In all cases, the strategy is applied to elements in an order defined through the error. If the user request to process an element outside this order, the element is processed regardless the strategy. Currently, Hermes2D supportes following strategies:
 
-If ADAPT_TYPE == 0, *hp*-adaptivity is performed (default). If ADAPT_TYPE == 1,
-the algorithm does *h*-adaptivity (fixed polynomial degrees of elements). This option is there
-for comparison purposes. With ADAPT_TYPE == 2 the algorithm does pure *p*-adaptivity (element
-geometries fixed). This option is there for completeness, adaptive *p*-FEM is not very 
-useful in practice.
+* ``STRATEGY == 0``: Refine elements until sqrt(``THRESHOLD``) times total error is processed. If more elements have similar error refine all to keep the mesh symmetric.
+* ``STRATEGY == 1``: Refine all elements whose error is bigger than ``THRESHOLD`` times the error of the first processed element, i.e., the maximum error of an element.
+* ``STRATEGY == 2``: Refine all elements whose error is bigger than ``THRESHOLD``.
 
-The parameter ISO_ONLY determines whether quadrilateral elements
-can be split anisotropically (into two elements). The parameter MESH_REGULARITY
+The constant ``MESH_REGULARITY``
 specifies maximum allowed level of hanging nodes: -1 means arbitrary-level
 hanging nodes (default), and 1, 2, 3, ... means 1-irregular mesh,
 2-irregular mesh, etc. Hermes does not support adaptivity on regular meshes
@@ -343,14 +360,14 @@ adaptivity for time-dependent problems on dynamical meshes, etc.
 But let's return to the micromotor example for a moment again: The computation
 starts with a very coarse mesh consisting of a few quadrilaterals, some
 of which are moreover very ill-shaped. Thanks to the anisotropic refinement
-capabilities of H1OrthoHP, the mesh quickly adapts to the solution
+capabilities of the selector, the mesh quickly adapts to the solution
 and elements of reasonable shape are created near singularities, which occur
 at the corners of the electrode. Initially, all elements of the mesh
 are of a low degree, but as the *hp*-adaptive process progresses, the elements
 receive different polynomial degrees, depending on the local smoothness of the
 solution.
 
-The gradient was visualized using VectorView. We have
+The gradient was visualized using the class VectorView. We have
 seen this in the previous section. We plug in the same solution for both vector
 components, but specify that its derivatives should be used:
 
@@ -451,9 +468,9 @@ Adaptivity in the Multimesh hp-FEM
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 In principle, the adaptivity procedure for single PDE could be extended 
-directly to systems of PDEs. In other words, two spaces can be passed into H1OrthoHP,
-four solutions (two coarse, two reference) can be passed into calc_error_2(),
-and finally, adapt can be called as before. In this way, error estimates in
+directly to systems of PDEs. In other words, two spaces can be passed into a constructor of the class H1Adapt,
+two coarse and two fine solutions can be passed into set_solutions(),
+and finally, calc_error() and adapt() can be called as before. In this way, error estimates in
 $H^1$ norm are calculated for elements in both spaces independently and the
 worst ones are refined. However, this approach is not optimal if the PDEs are
 coupled, since an error caused in one solution component influences the errors
@@ -601,13 +618,16 @@ paragraph:
 ::
 
     // calculate element error estimates and the total error estimate
-    H1OrthoHP hp(2, &uspace, &vspace);
+    H1Adapt hp(Tuple<Space*>(&uspace, &vspace));
+    hp.set_solutions(Tuple<Solution*>(&u_sln_coarse, &v_sln_coarse), Tuple<Solution*>(&u_sln_fine, &v_sln_fine));
     hp.set_biform(0, 0, bilinear_form_0_0<scalar, scalar>, bilinear_form_0_0<Ord, Ord>);
     hp.set_biform(0, 1, bilinear_form_0_1<scalar, scalar>, bilinear_form_0_1<Ord, Ord>);
     hp.set_biform(1, 0, bilinear_form_1_0<scalar, scalar>, bilinear_form_1_0<Ord, Ord>);
     hp.set_biform(1, 1, bilinear_form_1_1<scalar, scalar>, bilinear_form_1_1<Ord, Ord>);
-    double err_est = hp.calc_error_2(&u_sln_coarse, &v_sln_coarse, &u_sln_fine, &v_sln_fine) * 100;
+    double err_est = hp.calc_error(H2D_TOTAL_ERROR_REL | H2D_ELEMENT_ERROR_ABS) * 100;
     info("Estimate of error wrt. ref. solution (energy norm): %g%%", err_est);
+
+Notice that in this case, the method calc_error() specifies explicitly that an error of an element is not devided by the norm of a component and the method should return a total error which is relative, i.e., divided by the norm. This is a default behavior.
 
 The following two figures show the solutions $u$ and $v$. Notice their 
 large qualitative differences: While $u$ is smooth in the entire domain, 
