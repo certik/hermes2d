@@ -87,7 +87,7 @@ double SIGMA_A_4 = SIGMA_T_4 - SIGMA_S_4;
 double SIGMA_A_5 = SIGMA_T_5 - SIGMA_S_5;
 
 // Boundary condition types
-int bc_types(int marker)
+BCType bc_types(int marker)
 {
   if (marker == 1) return BC_NATURAL;
   else return BC_ESSENTIAL;

@@ -52,7 +52,7 @@ double SIGMA_A_WATER = SIGMA_T_WATER - C_WATER*SIGMA_T_WATER;  // absorbing cros
 double SIGMA_A_IRON = SIGMA_T_IRON - C_IRON*SIGMA_T_IRON;
 
 // Boundary condition types
-int bc_types(int marker)
+BCType bc_types(int marker)
 {
   if (marker == 1) return BC_NATURAL;
   else return BC_ESSENTIAL;

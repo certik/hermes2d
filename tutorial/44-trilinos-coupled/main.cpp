@@ -34,7 +34,7 @@ const int P_INIT = 2;                // Initial polynomial degree of all mesh el
 
 //// BCs, omega ////////////////////////////////////////////////////////////////////////////////////
 
-int bc_types(int marker)
+BCType bc_types(int marker)
   { return (marker == 1) ? BC_ESSENTIAL : BC_NATURAL; }
 
 scalar temp_bc_values(int marker, double x, double y)

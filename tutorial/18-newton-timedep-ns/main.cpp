@@ -70,7 +70,7 @@ int marker_obstacle = 5;
 double TIME = 0;
 
 // Boundary condition types for x-velocity
-int xvel_bc_type(int marker) {
+BCType xvel_bc_type(int marker) {
   if (marker == marker_right) return BC_NONE;
   else return BC_ESSENTIAL;
 }
@@ -87,12 +87,12 @@ scalar xvel_bc_value(int marker, double x, double y) {
 }
 
 // Boundary condition types for y-velocity
-int yvel_bc_type(int marker) {
+BCType yvel_bc_type(int marker) {
   if (marker == marker_right) return BC_NONE;
   else return BC_ESSENTIAL;
 }
 
-int p_bc_type(int marker)
+BCType p_bc_type(int marker)
   { return BC_NONE; }
 
 // Weak forms

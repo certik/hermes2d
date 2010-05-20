@@ -88,10 +88,10 @@ double tau = 5.*24*60*60;           // time step: 120 hours
 
 //// boundary conditions ///////////////////////////////////////////////////////////////////////////
 
-int temp_bc_type(int marker)
+BCType temp_bc_type(int marker)
   { return (marker == MARKER_REACTOR_WALL) ? BC_ESSENTIAL : BC_NATURAL; }
 
-int moist_bc_type(int marker)
+BCType moist_bc_type(int marker)
   { return BC_NATURAL; }
 
 scalar temp_bc_value(int marker, double x, double y)

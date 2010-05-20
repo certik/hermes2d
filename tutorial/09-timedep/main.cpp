@@ -46,7 +46,7 @@ int marker_ground = 1;
 int marker_air = 2;
 
 // boundary condition types
-int bc_types(int marker)
+BCType bc_types(int marker)
 {
   if (marker == marker_ground) return BC_ESSENTIAL;
   else return BC_NATURAL;

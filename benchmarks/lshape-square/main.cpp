@@ -76,7 +76,7 @@ static double fndd(double x, double y, double& dx, double& dy)
 }
 
 // boundary condition types
-int bc_types(int marker)
+BCType bc_types(int marker)
 {
   return BC_ESSENTIAL;
 }

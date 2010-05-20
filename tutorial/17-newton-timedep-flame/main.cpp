@@ -39,7 +39,7 @@ const double kappa = 0.1;
 const double x1    = 9.0;
 
 // Boundary conditions
-int bc_types(int marker)
+BCType bc_types(int marker)
   { return (marker == 1) ? BC_ESSENTIAL : BC_NATURAL; }
 
 scalar temp_bc_values(int marker, double x, double y)

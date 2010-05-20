@@ -84,7 +84,7 @@ const double KAPPA = 1;
 const double K = 100;
 
 // boundary condition types
-int bc_types(int marker) { return BC_ESSENTIAL; }
+BCType bc_types(int marker) { return BC_ESSENTIAL; }
 
 // Dirichlet BC values
 scalar bc_values(int marker, double x, double y) { return 0;}

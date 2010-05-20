@@ -37,7 +37,7 @@ Scalar linear_form(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scal
 }
 
 // boundary conditions
-int bc_types(int marker)
+BCType bc_types(int marker)
 {
    return BC_NONE;
 }

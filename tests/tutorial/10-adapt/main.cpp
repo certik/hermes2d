@@ -40,7 +40,7 @@ const double EPS2 = 10.0;         // Relative electric permittivity in Omega_2.
 const double VOLTAGE = 50.0;      // Voltage on the stator.
 
 // boundary condition types
-int bc_types(int marker)
+BCType bc_types(int marker)
 {
   return BC_ESSENTIAL;
 }

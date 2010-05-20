@@ -70,13 +70,13 @@ const double ERR_STOP = 0.5;            // Stopping criterion for adaptivity (re
 /*** Boundary types and conditions ***/
 
 // Poisson takes Dirichlet and Neumann boundaries
-int phi_bc_types(int marker) {
+BCType phi_bc_types(int marker) {
   return (marker == SIDE_MARKER || marker == TOP_MARKER)
     ? BC_NATURAL : BC_ESSENTIAL;
 }
 
 // Nernst-Planck takes Neumann boundaries
-int C_bc_types(int marker) {
+BCType C_bc_types(int marker) {
   return BC_NATURAL;
 }
 

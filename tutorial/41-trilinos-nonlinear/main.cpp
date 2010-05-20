@@ -26,7 +26,7 @@ const int precond = 2;      // preconditioning by jacobian (1) or approximation 
                             // default ML proconditioner in case of Newton
 const int P_INIT = 3;                // Initial polynomial degree of all mesh elements.
 
-int bc_types(int marker)
+BCType bc_types(int marker)
 {
   return BC_ESSENTIAL;
 }

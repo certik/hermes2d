@@ -136,13 +136,13 @@ const std::string USE_ADAPTIVE("adapt");
 /*** Boundary types and conditions ***/
 
 // Poisson takes Dirichlet and Neumann boundaries
-int phi_bc_types(int marker) {
+BCType phi_bc_types(int marker) {
   return (marker == SIDE_MARKER || (marker == TOP_MARKER && VOLT_BOUNDARY == 2)) 
     ? BC_NATURAL : BC_ESSENTIAL;
 }
 
 // Nernst-Planck takes Neumann boundaries
-int C_bc_types(int marker) {
+BCType C_bc_types(int marker) {
   return BC_NATURAL;
 }
 

@@ -27,7 +27,7 @@ const double mu = E / (2*(1 + nu));                        // second Lame consta
 const int GAMMA_3_BDY = 3;
 
 // boundary condition types
-int bc_types(int marker)
+BCType bc_types(int marker)
   { return (marker == 1) ? BC_ESSENTIAL : BC_NATURAL; }
 
 // function values for Dirichlet boundary conditions

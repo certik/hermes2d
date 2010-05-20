@@ -76,7 +76,7 @@ double SIGMA_A_5 = SIGMA_T_5 - SIGMA_S_5;
 /********** Boundary conditions ***********/
 
 // Boundary condition types
-int bc_types(int marker)
+BCType bc_types(int marker)
 {
   if (marker == 1) return BC_NATURAL;
   else return BC_ESSENTIAL;

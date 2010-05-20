@@ -57,7 +57,7 @@ const double k = 1.0;
 #include "exact_sol.cpp"
 
 // boundary conditions
-int bc_types(int marker)
+BCType bc_types(int marker)
 {
   return BC_ESSENTIAL;
 }

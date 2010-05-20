@@ -383,7 +383,7 @@ void Space::get_bubble_assembly_list(Element* e, AsmList* al)
 
 //// BC stuff /////////////////////////////////////////////////////////////////////////////////////
 
-static int default_bc_type(int marker)
+static BCType default_bc_type(int marker)
 {
   return BC_NATURAL;
 }
@@ -402,7 +402,7 @@ scalar default_bc_value_by_edge(EdgePos* ep)
 }
 
 
-void Space::set_bc_types(int (*bc_type_callback)(int))
+void Space::set_bc_types(BCType (*bc_type_callback)(int))
 {
   if (bc_type_callback == NULL) bc_type_callback = default_bc_type;
   this->bc_type_callback = bc_type_callback;

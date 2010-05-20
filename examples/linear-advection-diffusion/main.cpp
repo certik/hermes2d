@@ -58,7 +58,7 @@ const double EPSILON = 0.01;      // diffusivity
 const double B1 = 1., B2 = 1.;    // advection direction, div(B) = 0
 
 // boundary condition types
-int bc_types(int marker)
+BCType bc_types(int marker)
 {
   return BC_ESSENTIAL;
 }

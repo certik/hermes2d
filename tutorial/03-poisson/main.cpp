@@ -21,7 +21,7 @@ double CONST_F = 2.0;   // Constant right-hand side.
 int P_INIT = 5;         // Uniform polynomial degree of mesh elements.
 
 // boundary condition types (essential = Dirichlet)
-int bc_types(int marker)
+BCType bc_types(int marker)
 {
   return BC_ESSENTIAL;
 }

@@ -23,7 +23,7 @@ template<typename Real>
 Real dlam_du(Real u) { return 4*pow(u, 3); }
 
 // Boundary condition type (essential = Dirichlet)
-int bc_types(int marker)
+BCType bc_types(int marker)
 {
   return BC_ESSENTIAL;
 }

@@ -81,13 +81,13 @@ const int marker_top = 3;
 const int marker_holes = 4;
 
 // Boundary condition types
-int bc_types_x(int marker)
+BCType bc_types_x(int marker)
   { return (marker == marker_bottom) ? BC_ESSENTIAL : BC_NATURAL; }
 
-int bc_types_y(int marker)
+BCType bc_types_y(int marker)
   { return (marker == marker_bottom) ? BC_ESSENTIAL : BC_NATURAL; }
 
-int bc_types_t(int marker)
+BCType bc_types_t(int marker)
   { return (marker == marker_holes) ? BC_ESSENTIAL : BC_NATURAL; }
 
 // Boundary condition values

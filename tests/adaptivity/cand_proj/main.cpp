@@ -57,7 +57,7 @@ double numerical_zero = 0.0; ///< A numberical zero
 TestCase* cur_test_case = NULL; ///< Current test case: required by callbacks.
 
 /// Boundary condition types
-int bc_types(int marker) { return BC_NONE; }
+BCType bc_types(int marker) { return BC_NONE; }
 
 /// Bilinear form: H1
 template<typename T, typename D>

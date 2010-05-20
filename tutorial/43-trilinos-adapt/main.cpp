@@ -67,7 +67,7 @@ static double fndd(double x, double y, double& dx, double& dy)
   return fn(x, y);
 }
 
-int bc_types(int marker)
+BCType bc_types(int marker)
 {
   return BC_ESSENTIAL;
 }

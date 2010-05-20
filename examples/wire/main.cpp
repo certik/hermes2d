@@ -59,7 +59,7 @@ double omega = 2*3.141592654*freq;
 double gamma_iron = 6E6;
 double mu_iron = 1000*mu_0;
 
-int bc_types(int marker)
+BCType bc_types(int marker)
 {
   if (marker==1) {return BC_NATURAL;}
   if (marker==2) {return BC_ESSENTIAL;}

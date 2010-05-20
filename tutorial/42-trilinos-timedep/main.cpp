@@ -34,7 +34,7 @@ const bool precond = true;
 const int P_INIT = 1;                // Initial polynomial degree of all mesh elements.
 
 //////////////////////////////////////////////////////////////////////////////////////////////
-int bc_types(int marker)
+BCType bc_types(int marker)
 {
   if (marker == 1) return BC_ESSENTIAL;
   else return BC_NATURAL;

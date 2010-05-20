@@ -59,7 +59,7 @@ scalar initial_condition(double x, double y, double& dx, double& dy)
 }
 
 // Boundary condition type (essential = Dirichlet)
-int bc_types(int marker)
+BCType bc_types(int marker)
 {
   return BC_ESSENTIAL;
 }

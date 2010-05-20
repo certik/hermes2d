@@ -68,12 +68,12 @@ const double lambda = 1.0;
 #include "forms.cpp"
 
 // boundary conditions
-int bc_types(int marker)
+BCType bc_types(int marker)
 {
   if (marker == 1 || marker == 6)
     return BC_ESSENTIAL; // perfect conductor
   else
-    return BC_NATURAL; // impedance
+    return BC_NATURAL;   // impedance
 }
 
 int main(int argc, char* argv[])

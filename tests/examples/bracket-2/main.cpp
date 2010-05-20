@@ -57,7 +57,7 @@ const int marker_left = 1;
 const int marker_top = 2;
 
 // boundary condition types
-int bc_types(int marker)
+BCType bc_types(int marker)
   { return (marker == marker_left) ? BC_ESSENTIAL : BC_NATURAL; }
 
 // function values for Dirichlet boundary markers

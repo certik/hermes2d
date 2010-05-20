@@ -24,11 +24,12 @@
 
 
 // Possible return values for bc_type_callback():
-enum
+enum BCType
 {
-  BC_ESSENTIAL, ///< Essential (Dirichlet) BC
-  BC_NATURAL,   ///< Natural (Neumann, Newton) BC
-  BC_NONE       ///< Do-nothing BC
+  BC_ESSENTIAL, ///< Essential (Dirichlet) BC.
+  BC_NATURAL,   ///< Natural (Neumann, Newton) BC.
+  BC_NONE       ///< Hermes will not attempt to evaluate any boundary
+                ///< integrals on this part of the boundary.
 };
 
 
@@ -107,7 +108,7 @@ public:
   virtual void free();
 
   /// Sets the BC types callback function.
-  void set_bc_types(int (*bc_type_callback)(int marker));
+  void set_bc_types(BCType (*bc_type_callback)(int marker));
   /// Sets the BC values callback function, which takes absolute boundary coordinates.
   void set_bc_values(scalar (*bc_value_callback_by_coord)(int marker, double x, double y));
   /// Sets the BC values callback function, which takes parametric edge position.
@@ -269,7 +270,7 @@ protected: //debugging support
 
 public:
 
-  int (*bc_type_callback)(int);
+  BCType (*bc_type_callback)(int);
   scalar (*bc_value_callback_by_coord)(int marker, double x, double y);
   scalar (*bc_value_callback_by_edge)(EdgePos* ep);
 

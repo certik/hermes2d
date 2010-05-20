@@ -8,7 +8,7 @@
 double CONST_F = -4.0;       // constant right-hand side
 
 // boundary condition type (essential = Dirichlet)
-int bc_types(int marker)
+BCType bc_types(int marker)
 {
   return BC_ESSENTIAL;
 }

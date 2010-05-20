@@ -124,7 +124,7 @@ scalar2& exact(double x, double y, scalar2& dx, scalar2& dy)
 }
 
 // boundary conditions
-int bc_types(int marker)
+BCType bc_types(int marker)
 {
   if (marker == 1 || marker == 6)
     return BC_ESSENTIAL; // perfect conductor

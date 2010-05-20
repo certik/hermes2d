@@ -23,7 +23,7 @@ int CORNER_REF_LEVEL = 12;    // number of mesh refinements towards the re-entra
 // boundary condition types
 // Note: natural means Neumann, Newton, or any other type of condition
 // where the solution value is not prescribed.
-int bc_types(int marker)
+BCType bc_types(int marker)
 {
   return (marker == 4) ? BC_ESSENTIAL : BC_NATURAL;
 }

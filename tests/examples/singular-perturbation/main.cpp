@@ -55,7 +55,7 @@ const int NDOF_STOP = 100000;     // Adaptivity process stops when the number of
 const double K_squared = 1e4;     // Equation parameter.
 
 // boundary condition types
-int bc_types(int marker)
+BCType bc_types(int marker)
 {
   return BC_ESSENTIAL;
 }

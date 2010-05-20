@@ -23,7 +23,7 @@ int P_INIT = 2;              // initial polynomial degree in all elements
 int UNIFORM_REF_LEVEL = 3;   // number of initial uniform mesh refinements
 
 // boundary condition type (essential = Dirichlet)
-int bc_types(int marker)
+BCType bc_types(int marker)
 {
   return BC_ESSENTIAL;
 }

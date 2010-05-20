@@ -103,7 +103,7 @@ const int bc_vacuum = 1;
 const int bc_sym = 2;
 
 // Boundary condition types
-int bc_types(int marker)
+BCType bc_types(int marker)
 {
   return BC_NATURAL;
 }

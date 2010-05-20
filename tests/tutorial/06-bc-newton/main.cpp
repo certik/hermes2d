@@ -12,7 +12,7 @@ int UNIFORM_REF_LEVEL = 1;   // number of initial uniform mesh refinements
 int CORNER_REF_LEVEL = 3;   // number of mesh refinements towards the re-entrant corner
 
 // boundary condition types
-int bc_types(int marker)
+BCType bc_types(int marker)
   { return (marker == 3) ? BC_ESSENTIAL : BC_NATURAL; }
 
 // function values for Dirichlet boundary markers

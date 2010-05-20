@@ -155,7 +155,7 @@ invvel*CF*rF*exp(rF*TIME)*sin(x/LX*PI)*sin(y/LY*PI)*x/LX*y/LY-xsdiff*(-CF*(1.0+e
 
 
 // Boundary condition types (essential = Dirichlet)
-int bc_types_T(int marker)
+BCType bc_types_T(int marker)
 {
   return BC_ESSENTIAL;
 }
@@ -168,7 +168,7 @@ scalar bc_values_T(int marker, double x, double y)
 }
 
 
-int bc_types_phi(int marker)
+BCType bc_types_phi(int marker)
 {
   return BC_ESSENTIAL;
 }

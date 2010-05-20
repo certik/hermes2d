@@ -14,7 +14,7 @@ const double lambda = (E * nu) / ((1 + nu) * (1 - 2*nu));  // first Lame constan
 const double mu = E / (2*(1 + nu));                        // second Lame constant
 
 // boundary condition types
-int bc_types(int marker)
+BCType bc_types(int marker)
   { return (marker == 1) ? BC_ESSENTIAL : BC_NATURAL; }
 
 // function values for Dirichlet boundary conditions

@@ -71,7 +71,7 @@ const int marker_left = 1;
 const int marker_top = 2;
 
 // boundary conditions
-int bc_types_xy(int marker)
+BCType bc_types_xy(int marker)
   { return (marker == marker_left) ? BC_ESSENTIAL : BC_NATURAL; }
 
 // linear and bilinear forms

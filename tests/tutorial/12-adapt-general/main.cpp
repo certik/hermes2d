@@ -80,7 +80,7 @@ double g_N(double x, double y) {
 /********** Boundary conditions ***********/
 
 // Boundary condition types
-int bc_types(int marker)
+BCType bc_types(int marker)
 {
   if (marker == 1) return BC_ESSENTIAL;
   else return BC_NATURAL;

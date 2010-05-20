@@ -82,7 +82,7 @@ const double kappa  = 2 * M_PI * freq * sqrt(e_0 * mu_0);
 const double J = 0.0000033333;
 
 // boundary conditions
-int e_bc_types(int marker)
+BCType e_bc_types(int marker)
 {
   if (marker == 2) return BC_ESSENTIAL; // perfect conductor BC
   else return BC_NATURAL;               // impedance BC

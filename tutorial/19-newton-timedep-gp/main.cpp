@@ -48,7 +48,7 @@ scalar fn_init(double x, double y, scalar& dx, scalar& dy)
 }
 
 // Boundary condition types
-int bc_types(int marker)
+BCType bc_types(int marker)
 {
   return BC_ESSENTIAL;
 }
