@@ -1261,13 +1261,13 @@ It was done by implementing the callback functions found in  `newton-np-timedep-
 The functions along with the boundary conditions::
 
 	// Poisson takes Dirichlet and Neumann boundaries
-	int phi_bc_types(int marker) {
+	BCType phi_bc_types(int marker) {
 		  return (marker == SIDE_MARKER || (marker == TOP_MARKER && VOLT_BOUNDARY == 2))
 		      ? BC_NATURAL : BC_ESSENTIAL;
 	}
 
 	// Nernst-Planck takes Neumann boundaries
-	int C_bc_types(int marker) {
+	BCType C_bc_types(int marker) {
 		  return BC_NATURAL;
 	}
 

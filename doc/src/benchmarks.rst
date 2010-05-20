@@ -59,7 +59,7 @@ Code for the exact solution and the weak forms:
     }
 
     // boundary condition types
-    int bc_types(int marker)
+    BCType bc_types(int marker)
     {
       return BC_ESSENTIAL;
     }
@@ -320,7 +320,7 @@ Code for the exact solution and the weak forms:
     }
 
     // boundary condition types
-    int bc_types(int marker)
+    BCType bc_types(int marker)
     {
       return BC_ESSENTIAL;
     }
@@ -439,7 +439,7 @@ Code for the exact solution and the weak forms:
     }
     
     // boundary condition types
-    int bc_types(int marker)
+    BCType bc_types(int marker)
     {
       return BC_ESSENTIAL;
     }

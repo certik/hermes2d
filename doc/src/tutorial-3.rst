@@ -304,7 +304,7 @@ The treatment of the Dirichlet boundary conditions in the code looks as follows:
     }
 
     // Boundary condition type (essential = Dirichlet)
-    int bc_types(int marker)
+    BCType bc_types(int marker)
     {
       return BC_ESSENTIAL;
     }

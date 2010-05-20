@@ -459,17 +459,17 @@ Dirichlet BC
 
 **Git reference:** Tutorial example `04-bc-dirichlet <http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/tutorial/04-bc-dirichlet>`_. 
 
-Since essential conditions restrict degrees of freedom (DOF) in the FE space, 
+Since essential boundary conditions eliminate degrees of freedom (DOF) from the FE space, 
 they need to be incorporated while the space is set up.
 The user has to provide the following two callback functions:
 ::
 
-    int bc_types(int marker);
+    BCType bc_types(int marker);
     scalar bc_values(int marker, double x, double y);
 
 The first one, given the boundary marker number, determines the type of BC which the associated
 portion of the domain boundary belongs to, by returning one of the predefined constants 
-BC_ESSENTIAL or BC_NATURAL. The second callback needs to return the boundary value for a given marker
+BC_ESSENTIAL, BC_NATURAL, BC_NONE. The second callback needs to return the boundary value for a given marker
 and position on the boundary (only needed for essential boundary condition markers - for natural
 boundary conditions this value is ignored).
 The space initialization can then look as follows:
@@ -489,7 +489,7 @@ Besides changing the linear form, we need to specify that all the boundary marke
 denote the essential boundary condition:
 ::
 
-    int bc_types(int marker)
+    BCType bc_types(int marker)
     {
       return BC_ESSENTIAL;
     }
@@ -1033,7 +1033,7 @@ conditions can be implemented as
 ::
 
     // boundary condition types
-    int bc_types(int marker)
+    BCType bc_types(int marker)
       { return (marker == 1) ? BC_ESSENTIAL : BC_NATURAL;; }
 
     // function values for Dirichlet boundary conditions
@@ -1228,7 +1228,7 @@ The implementation starts by defining the
 boundary condition types
 ::
 
-    int bc_types(int marker)
+    BCType bc_types(int marker)
     {
       if (marker == marker_ground) return BC_ESSENTIAL;
       else return BC_NATURAL;
