@@ -22,7 +22,7 @@ and thus they are far from PDE-independent. Heuristic techniques are not
 employed in Hermes for the same reason, and moreover since such criteria
 lack a transparent relation to the true approximation error.
 
-Adaptive low-order FEM is known to be notoriously ineffcient, and practitioners
+Adaptive low-order FEM is known to be notoriously inefficient, and practitioners
 are rightfully skeptical of it. The reason is illustrated here:
 
 .. image:: img/lshape/conv_dof.png
@@ -184,7 +184,7 @@ Electrostatic Micromotor Problem (10)
 
 **Git reference:** Tutorial example `10-adapt <http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/tutorial/10-adapt>`_. 
 
-Let us demostrate the use of adaptive h-FEM and hp-FEM on a linear elliptic problem
+Let us demonstrate the use of adaptive h-FEM and hp-FEM on a linear elliptic problem
 concerned with the calculation of
 the electrostatic potential in the vicinity of the electrodes of an electrostatic
 micromotor. This is a MEMS device free of any coils, and thus resistive to
@@ -241,11 +241,11 @@ The principal part of the example is the main adaptivity loop. However, before t
 
 The selector is used by the class H1Adapt to determine how an element should be refined. For that purpose, the selector does following steps:
 
-#. It generates candidates. A candidate is a result of a proposed refinement.
-#. It estimates their local error by projecting elements of candidates onto the reference solution.
-#. It calculates a number of degree of freedoms (DOFs).
-#. It calculates a score of every candidate and sorts candidates accordin to the score.
-#. It selects a candidate with the highest score. If the next candidate has almost the same score, it skips both of them since it is not able to decide which is the best. This helps to keep a mesh symmetric if anistropic refinements are used on a symmetric solution.
+#. It generates candidates.  A candidate is a proposed refinement.
+#. It estimates their local error by projecting the reference solution onto the refinement candidates.
+#. It calculates a number of degree of freedom (DOF).
+#. It calculates a score of every candidate and sorts candidates according to the score.
+#. It selects a candidate with the highest score. If the next candidate has almost the same score, it skips both of them since it is not able to decide which is the best. This helps to keep a mesh symmetric if anisotropic refinements are used on a symmetric solution.
 
 By default, the score is
 
@@ -253,7 +253,7 @@ By default, the score is
 
     s = \frac{\log_{10} e_0 - \log_{10} e}{(d_0 - d)^\xi},
 
-where $e$ and $d$ are an estimated error and an estimated number of DOFs of a candidate respectively, $e_0$ and $d_0$ are an estimated error and an estimated number of DOFs of the examined element respectively, and $\xi$ is a convergence exponent.
+where $e$ and $d$ are an estimated error and an estimated number of DOF of a candidate respectively, $e_0$ and $d_0$ are an estimated error and an estimated number of DOF of the examined element respectively, and $\xi$ is a convergence exponent.
 
 The first parameter ``CAND_LIST`` specifies which candidates are generated. In a case of quadrilaterals, all possible values and considered candidates are summarized in the following table:
 
@@ -275,7 +275,7 @@ In each iteration, the coarse problem is solved first:
     ls.solve(1, &sln_coarse);
 
 Next, the reference solution is computed on a globally refined copy of the mesh. For this purpose
-a temporary space with increased element orders is defined and an extra linear system is assembled and solved.
+a temporary space with (optionally) increased element orders is defined and an extra linear system is assembled and solved.
 However, in the most of the cases, this can be done using the class RefSystem. All it needs is a pointer
 to an instance of the class LinSystem:
 
@@ -498,6 +498,19 @@ between various meshes. The elements of *all meshes in the system* are put into 
 single array, sorted according to their estimated errors, and then the ones with the 
 largest error are refined. In other words, it may happen that all elements marked for refinement 
 will belong just to one mesh.
+
+If norms of components are substantially different, it is more beneficial to use a relative error of an element rather than an absolute error. The relative error of an element is an absolute error divided by a norm of a component. This behavior can be requested while calling the method calc_error():
+
+::
+
+    hp.calc_error(H2D_TOTAL_ERROR_REL | H2D_ELEMENT_ERROR_REL)
+
+The input parameter of the method calc_error() is a combination that is a pair: one member of the pair has to be a constant ```H2D_TOTAL_ERROR_*```, the other member has to be a constant ```H2D_ELEMENT_ERROR_*```. If not specified, the default pair is ```H2D_TOTAL_ERROR_REL | H2D_ELEMENT_ERROR_ABS```. Currently available contants are:
+
+- ```H2D_TOTAL_ERROR_REL```: A returned total error will be an absolute error divided by a total norm.
+- ```H2D_TOTAL_ERROR_ABS```: A returned total error will be an absolute error.
+- ```H2D_TOTAL_ERROR_REL```: An element error which is used to select elements for refinement will be an absolute error divided by a norm of a corresponding component.
+- ```H2D_TOTAL_ERROR_ABS```: An element error which is used to select elements for refinement will be an absolute error.
 
 
 Simplified Fitzhugh-Nagumo System (11)
