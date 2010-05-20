@@ -3,21 +3,26 @@
 
 using namespace RefinementSelectors;
 
-/// This test makes sure that the benchmark "screen" works correctly.
-///
-///  Parameters
-///  - P_INIT=1
-///  - THERSHOLD=0.5
-///  - STRATEGY=1
-///  - CAND_LIST=HP_ANISO
-///  - MESH_REGULARITY=-1
-///  - ERR_STOP=0.1
-///  - CONV_EXP=1.0
-///  - NDOF_STOP=40000
-///  - ERROR_WEIGHTS=(H: 1; P: 1; ANISO: 1)
-///
-///  Results for given parameters
-///  - DOFs: 3994
+/** \addtogroup t_bench_screen Benchmarks/Screen
+ *  \{
+ *  \brief This test makes sure that the benchmark "screen" works correctly.
+ *
+ *  \section s_params Parameters
+ *   - P_INIT=1
+ *   - THERSHOLD=0.5
+ *   - STRATEGY=1
+ *   - CAND_LIST=HP_ANISO
+ *   - MESH_REGULARITY=-1
+ *   - ERR_STOP=0.1
+ *   - CONV_EXP=1.0
+ *   - NDOF_STOP=40000
+ *   - ERROR_WEIGHTS=(H: 1; P: 1; ANISO: 1)
+ *
+ *  \section s_res Results
+ *   - DOFs: 3994
+ *   - Error estimate: 9.22E-2%
+ *   - Iterations: 36 (the last iteration at which ERR_STOP is fulfilled)
+ */
 
 const int P_INIT = 1;             // Initial polynomial degree of all mesh elements.
 const double THRESHOLD = 0.5;     // This is a quantitative parameter of the adapt(...) function and
@@ -201,7 +206,7 @@ int main(int argc, char* argv[])
 #define ERROR_FAILURE                               -1
   int n_dof_allowed = 4000;
   printf("n_dof_actual = %d\n", ndof);
-  printf("n_dof_allowed = %d\n", n_dof_allowed);// ndofs was 3161 at the time this test was created
+  printf("n_dof_allowed = %d\n", n_dof_allowed);
   if (ndof <= n_dof_allowed) {
     printf("Success!\n");
     return ERROR_SUCCESS;
@@ -212,3 +217,4 @@ int main(int argc, char* argv[])
   }
 }
 
+/**  \{ */

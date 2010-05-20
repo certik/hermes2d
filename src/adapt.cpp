@@ -64,6 +64,7 @@ bool Adapt::adapt(RefinementSelectors::Selector* refinement_selector, double thr
 {
   error_if(!have_errors, "element errors have to be calculated first, call calc_error().");
   error_if(refinement_selector == NULL, "selector not provided");
+  TimePeriod cpu_time;
 
   //get meshes
   int max_id = -1;
@@ -214,6 +215,7 @@ bool Adapt::adapt(RefinementSelectors::Selector* refinement_selector, double thr
     rsln[j]->enable_transform(true);
 
   verbose("Refined elements: %d", elem_inx_to_proc.size());
+  report_time("Refined elements in: %g s", cpu_time.tick().last());
 
   //store for the user to retrieve
   last_refinements.swap(elem_inx_to_proc);
