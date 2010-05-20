@@ -288,7 +288,7 @@ The following graph shows convergence in terms of CPU time.
    :align: center
    :width: 600
    :height: 400
-   :alt: CPU convergence graph for tutorial example 11-adapt-system.
+   :alt: CPU convergence graph for example bracket
 
 Comparison of the multimesh and single-mesh hp-FEM: 
 
@@ -311,7 +311,7 @@ For other applications of the multimesh hp-FEM see a `linear elasticity model wi
 <http://hpfem.org/hermes2d/doc/src/examples.html#crack>`_, 
 a `thermoelasticity example <http://hpfem.org/hermes2d/doc/src/examples.html#thermoelasticity>`_,
 and especially the tutorial 
-example `11-adapt-system <http://hpfem.org/hermes2d/doc/src/tutorial.html#adaptivity-for-systems-and-the-multimesh-hp-fem>`_.
+example `11-adapt-system <http://hpfem.org/hermes2d/doc/src/tutorial-2.html#adaptivity-for-systems-and-the-multimesh-hp-fem>`_.
 
 Thermoelasticity
 ----------------
