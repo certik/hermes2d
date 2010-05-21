@@ -1,5 +1,5 @@
 from hermes2d._hermes2d cimport scalar, WeakForm, H1Space, EdgePos, \
-        FuncReal, GeomReal, ExtDataReal, BC_ESSENTIAL, \
+        FuncReal, GeomReal, ExtDataReal, BC_ESSENTIAL, c_BCType, \
         BC_NATURAL, c_Ord, create_Ord, FuncOrd, GeomOrd, \
         ExtDataOrd, ExtDataReal, FuncReal, GeomReal, H2D_SYM, int_F_v
 
@@ -76,11 +76,11 @@ cdef c_Ord linear_form_ord(int n, double *wt, FuncOrd *v, GeomOrd *e, ExtDataOrd
     #return v.val[0] * e.x[0] * e.x[0]
     return create_Ord(20)
 
-cdef int bc_types(int marker):
+cdef c_BCType bc_types(int marker):
     if marker == 1:
-        return BC_ESSENTIAL
+        return <c_BCType>BC_ESSENTIAL
     else:
-        return BC_NATURAL
+        return <c_BCType>BC_NATURAL
 
 cdef scalar bc_values(int marker, double x, double y):
     return g_D(x, y)

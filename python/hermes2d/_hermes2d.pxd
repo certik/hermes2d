@@ -157,13 +157,16 @@ cdef extern from "hermes2d.h":
     cdef struct EdgePos "EdgePos":
         int marker
 
+    ctypedef enum c_BCType "BCType":
+        pass
+
     cdef struct c_H1Space "H1Space":
         void set_uniform_order(int tri_order)
         int assign_dofs(int first_dof, int stride)
         void copy_orders(c_H1Space *s, int inc)
         int get_element_order(int id)
         int get_num_dofs()
-        void set_bc_types(int (*bc_type_callback)(int marker))
+        void set_bc_types(c_BCType (*bc_type_callback)(int marker))
         void set_bc_values(scalar (*bc_value_callback_by_coord)(int marker,
             double x, double y))
         void set_bc_values_edge "set_bc_values"(scalar (*bc_value_callback_by_edge)(EdgePos *ep))
@@ -176,7 +179,7 @@ cdef extern from "hermes2d.h":
         void copy_orders(c_L2Space *s, int inc)
         int get_element_order(int id)
         int get_num_dofs()
-        void set_bc_types(int (*bc_type_callback)(int marker))
+        void set_bc_types(c_BCType (*bc_type_callback)(int marker))
         void set_bc_values(scalar (*bc_value_callback_by_coord)(int marker,
             double x, double y))
         void set_bc_values_edge "set_bc_values"(scalar (*bc_value_callback_by_edge)(EdgePos *ep))

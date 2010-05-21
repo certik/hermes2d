@@ -1,8 +1,8 @@
-from hermes2d._hermes2d cimport scalar, H1Space, BC_ESSENTIAL
+from hermes2d._hermes2d cimport scalar, H1Space, BC_ESSENTIAL, c_BCType
 
 # boundary condition types (essential = Dirichlet)
-cdef int bc_type(int marker):
-    return BC_ESSENTIAL
+cdef c_BCType bc_type(int marker):
+    return <c_BCType>BC_ESSENTIAL
 
 # function values for Dirichlet boundary conditions
 cdef scalar bc_values(int marker, double x, double y):
