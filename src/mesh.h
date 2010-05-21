@@ -257,9 +257,13 @@ public:
   Element* get_element_fast(int id) const { return &(elements[id]);}
   /// Refines all triangle elements to quads.
   /// It can refine a triangle element into three quadrilateral,
+  /// Note: this function can use only at the initialize the mesh 
+  ///       before any kind of refinement function.
   void convert_triangles_to_quads();
   /// Refines all quad elements to triangles.
   /// It can refine a quadrilateral element into two triangles.
+  /// Note: this function can use only at the initialize the mesh 
+  ///       before any kind of refinement function.
   void convert_quads_to_triangles();
 
 protected:

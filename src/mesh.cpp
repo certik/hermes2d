@@ -1115,6 +1115,18 @@ void Mesh::convert_triangles_to_quads()
   elements.set_append_only(false);
 
   tmp.copy_converted(this);
+  for (int i = 0; i < tmp.ntopvert; i++)
+  {
+     if (tmp.nodes[i].type == 1)
+     {
+       tmp.nodes[i].y = 0.0;
+     }
+  }
+  tmp.save("mesh_temp_for_convert.mesh");
+  Mesh mesh_tmp_for_convert;
+  H2DReader loader_mesh_tmp_for_convert;
+  loader_mesh_tmp_for_convert.load("mesh_temp_for_convert.mesh", &tmp);
+  remove("mesh_temp_for_convert.mesh");
   copy(&tmp);
 }
 
@@ -1130,6 +1142,18 @@ void Mesh::convert_quads_to_triangles()
   elements.set_append_only(false);
 
   tmp.copy_converted(this);
+  for (int i = 0; i < tmp.ntopvert; i++)
+  {
+     if (tmp.nodes[i].type == 1)
+     {
+       tmp.nodes[i].y = 0.0;
+     }
+  }
+  tmp.save("mesh_temp_for_convert.mesh");
+  Mesh mesh_tmp_for_convert;
+  H2DReader loader_mesh_tmp_for_convert;
+  loader_mesh_tmp_for_convert.load("mesh_temp_for_convert.mesh", &tmp);
+  remove("mesh_temp_for_convert.mesh");
   copy(&tmp);
 }
 
