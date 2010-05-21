@@ -20,7 +20,7 @@
 
 # Import modules
 from hermes2d import Mesh, MeshView, VectorView, OrderView, H1Shapeset, PrecalcShapeset, H1Space, \
-WeakForm, Solution, ScalarView, LinSystem, DummySolver, RefSystem, H1OrthoHP
+WeakForm, Solution, ScalarView, LinSystem, DummySolver, RefSystem
 
 from hermes2d.examples.c09 import set_bc, temp_ext, set_forms, update_time
 from hermes2d.examples import get_cathedral_mesh

@@ -1,7 +1,9 @@
 from hermes2d import Mesh, H1Shapeset, PrecalcShapeset, H1Space, \
         LinSystem, WeakForm, Solution, ScalarView, VonMisesFilter, \
         set_verbose, set_warn_integration, DummySolver, H2D_EPS_HIGH, H2D_FN_DX, \
-        H2D_FN_DY, H1OrthoHP, RefSystem
+        H2D_FN_DY, \
+	H1Adapt, H1ProjBasedSelector, CandList, \
+	RefSystem
 from hermes2d.forms import set_forms
 from hermes2d.examples import get_example_mesh, get_sample_mesh, \
         get_cylinder_mesh, get_07_mesh, get_cathedral_mesh, get_bracket_mesh
@@ -354,16 +356,10 @@ def test_example_10():
                             #   than THRESHOLD.
                             # More adaptive strategies can be created in adapt_ortho_h1.cpp.
 
-    ADAPT_TYPE = 0          # Type of automatic adaptivity:
-                            # ADAPT_TYPE = 0 ... adaptive hp-FEM (default),
-                            # ADAPT_TYPE = 1 ... adaptive h-FEM,
-                            # ADAPT_TYPE = 2 ... adaptive p-FEM.
-
-    ISO_ONLY = False        # Isotropic refinement flag (concerns quadrilateral elements only).
-                            # ISO_ONLY = false ... anisotropic refinement of quad elements
-                            # is allowed (default),
-                            # ISO_ONLY = true ... only isotropic refinements of quad elements
-                            # are allowed.
+    CAND_TYPE = CandList.HP_ANISO  # Predefined list of element refinement candidates.
+                            # Possible values are are attributes of the class CandList:
+                            # P_ISO, P_ANISO, H_ISO, H_ANISO, HP_ISO, HP_ANISO_H, HP_ANISO_P, HP_ANISO
+                            # See the Sphinx tutorial (http://hpfem.org/hermes2d/doc/src/tutorial-2.html#adaptive-h-fem-and-hp-fem) for details.
 
     MESH_REGULARITY = -1    # Maximum allowed level of hanging nodes:
                             # MESH_REGULARITY = -1 ... arbitrary level hangning nodes (default),
@@ -424,8 +420,9 @@ def test_example_10():
     rs.solve_system(sln_fine)
 
     # Calculate element errors and total error estimate
-    hp = H1OrthoHP(space);
-    err_est = hp.calc_error(sln_coarse, sln_fine) * 100
+    hp = H1Adapt([space]);
+    hp.set_solutions([sln_coarse], [sln_fine]);
+    err_est = hp.calc_error() * 100
 
 def test_example_11():
     from hermes2d.examples.c11 import set_bc, set_wf_forms, set_hp_forms
@@ -455,15 +452,12 @@ def test_example_11():
                                 # STRATEGY = 2 ... refine all elements whose error is larger
                                 #   than THRESHOLD.
                                 # More adaptive strategies can be created in adapt_ortho_h1.cpp.
-    ADAPT_TYPE = 0           # Type of automatic adaptivity:
-                                # ADAPT_TYPE = 0 ... adaptive hp-FEM (default),
-                                # ADAPT_TYPE = 1 ... adaptive h-FEM,
-                                # ADAPT_TYPE = 2 ... adaptive p-FEM.
-    ISO_ONLY = False         # Isotropic refinement flag (concerns quadrilateral elements only).
-                                # ISO_ONLY = false ... anisotropic refinement of quad elements
-                                # is allowed (default),
-                                # ISO_ONLY = true ... only isotropic refinements of quad elements
-                                # are allowed.
+
+    CAND_TYPE = CandList.HP_ANISO  # Predefined list of element refinement candidates.
+                             # Possible values are are attributes of the class CandList:
+                             # P_ISO, P_ANISO, H_ISO, H_ANISO, HP_ISO, HP_ANISO_H, HP_ANISO_P, HP_ANISO
+                             # See the Sphinx tutorial (http://hpfem.org/hermes2d/doc/src/tutorial-2.html#adaptive-h-fem-and-hp-fem) for details.
+
     MESH_REGULARITY = -1     # Maximum allowed level of hanging nodes:
                                 # MESH_REGULARITY = -1 ... arbitrary level hangning nodes (default),
                                 # MESH_REGULARITY = 1 ... at most one-level hanging nodes,
@@ -553,9 +547,10 @@ def test_example_11():
     rs.solve_system(x_sln_fine, y_sln_fine)
 
     # Calculate element errors and total error estimate
-    hp = H1OrthoHP(xdisp, ydisp)
+    hp = H1Adapt([xdisp, ydisp])
+    hp.set_solutions([x_sln_coarse, y_sln_coarse], [x_sln_fine, y_sln_fine]);
     set_hp_forms(hp)
-    err_est = hp.calc_error_2(x_sln_coarse, y_sln_coarse, x_sln_fine, y_sln_fine) * 100
+    err_est = hp.calc_error() * 100
 
     # Show the fine solution - this is the final result
     stress_fine = VonMisesFilter(x_sln_fine, y_sln_fine, mu, lamda)
@@ -577,15 +572,10 @@ def test_example_12():
                                 # STRATEGY = 2 ... refine all elements whose error is larger
                                 #   than THRESHOLD.
                                 # More adaptive strategies can be created in adapt_ortho_h1.cpp.
-    ADAPT_TYPE = 0          # Type of automatic adaptivity:
-                                # ADAPT_TYPE = 0 ... adaptive hp-FEM (default),
-                                # ADAPT_TYPE = 1 ... adaptive h-FEM,
-                                # ADAPT_TYPE = 2 ... adaptive p-FEM.
-    ISO_ONLY = False        # Isotropic refinement flag (concerns quadrilateral elements only).
-                                # ISO_ONLY = false ... anisotropic refinement of quad elements
-                                # is allowed (default),
-                                # ISO_ONLY = true ... only isotropic refinements of quad elements
-                                # are allowed.
+    CAND_TYPE = CandList.HP_ANISO  # Predefined list of element refinement candidates.
+                            # Possible values are are attributes of the class CandList:
+                            # P_ISO, P_ANISO, H_ISO, H_ANISO, HP_ISO, HP_ANISO_H, HP_ANISO_P, HP_ANISO
+                            # See the Sphinx tutorial (http://hpfem.org/hermes2d/doc/src/tutorial-2.html#adaptive-h-fem-and-hp-fem) for details.
     MESH_REGULARITY = -1    # Maximum allowed level of hanging nodes:
                                 # MESH_REGULARITY = -1 ... arbitrary level hangning nodes (default),
                                 # MESH_REGULARITY = 1 ... at most one-level hanging nodes,
@@ -642,5 +632,6 @@ def test_example_12():
     rs.solve_system(sln_fine)
 
     # Calculate element errors and total error estimate
-    hp = H1OrthoHP(space);
-    err_est = hp.calc_error(sln_coarse, sln_fine) * 100
+    hp = H1Adapt([space])
+    hp.set_solutions([sln_coarse], [sln_fine])
+    err_est = hp.calc_error() * 100

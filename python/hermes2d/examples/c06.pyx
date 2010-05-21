@@ -1,14 +1,14 @@
 from hermes2d._hermes2d cimport scalar, FuncReal, GeomReal, WeakForm, \
         int_grad_u_grad_v, int_grad_u_grad_v_ord, int_v, int_v_ord, malloc, ExtDataReal, c_Ord, create_Ord, \
-        FuncOrd, GeomOrd, ExtDataOrd, int_u_v, int_u_v_ord, BC_NATURAL, BC_ESSENTIAL, \
+        FuncOrd, GeomOrd, ExtDataOrd, int_u_v, int_u_v_ord, BC_NATURAL, BC_ESSENTIAL, c_BCType, \
         H1Space
 
 # Boundary condition types
-cdef int bc_type_06(int marker):
+cdef c_BCType bc_type_06(int marker):
     if marker == 3:
-        return BC_ESSENTIAL
+        return <c_BCType>BC_ESSENTIAL
     else:
-        return BC_NATURAL
+        return <c_BCType>BC_NATURAL
 
 # Function values for Dirichlet boundary markers
 cdef scalar bc_values_06(int marker, double x, double y):

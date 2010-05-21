@@ -1,5 +1,5 @@
 from hermes2d._hermes2d cimport scalar, WeakForm, H1Space, EdgePos, \
-        FuncReal, GeomReal, ExtDataReal, BC_ESSENTIAL, \
+        FuncReal, GeomReal, ExtDataReal, BC_ESSENTIAL, c_BCType, \
         BC_NATURAL, int_v, c_Ord, create_Ord, FuncOrd, GeomOrd, ExtDataOrd, \
         int_v_ord
 
@@ -8,11 +8,11 @@ CONST_GAMMA = [-0.5, 1.0, -0.5]
 # Boundary condition types
 # Note: natural means Neumann, Newton, or any other type of condition
 # where the solution value is not prescribed.
-cdef int bc_type_05(int marker):
+cdef c_BCType bc_type_05(int marker):
     if marker == 4:
-        return BC_ESSENTIAL
+        return <c_BCType>BC_ESSENTIAL
     else:
-        return BC_NATURAL
+        return <c_BCType>BC_NATURAL
         
 # Function values for Dirichlet boundary markers
 cdef scalar bc_values_05(int marker, double x, double y):
