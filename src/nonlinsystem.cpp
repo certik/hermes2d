@@ -234,12 +234,6 @@ bool NonlinSystem::solve_newton_1(Solution* u_prev, double newton_tol, int newto
       // assemble the Jacobian matrix and residual vector,
       // solve the system
       this->assemble();
-      if (import__hermes_common())
-          throw std::runtime_error("hermes_common failed to import.");
-      cmd("print 'ok'");
-      insert_object("A", c2py_CooMatrix(A));
-      cmd("print A.to_scipy_coo().tocsr()");
-      cmd("print 'done'");
       this->solve(1, &sln_iter);
 
       // calculate the l2-norm of residual vector
