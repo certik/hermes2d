@@ -466,7 +466,42 @@ void Traverse::begin(int n, Mesh** meshes, Transformable** fn)
   subs = new uint64_t[num];
   id = 0;
 
-  // todo: check that meshes are compatible
+#ifndef H2D_DISABLE_MULTIMESH_TESTS
+  // Test whether all master mashes have the same number of elements
+  int base_elem_num = meshes[0]->get_num_base_elements();
+  for (int i = 1; i < n; i++)
+    if (base_elem_num != meshes[i]->get_num_base_elements())
+      error("Meshes not compatible in Traverse::begin().");
+
+  // Test whether areas of corresponding elements are the same
+  double *areas = (double*)malloc(base_elem_num*sizeof(double));
+  if (areas == NULL) error("Not enough memory in Traverse::begin().");
+  // read base element areas from the first mesh,
+  // also get minimum element area
+  int counter = 0;
+  double min_elem_area = 1e30;
+  Element* e;
+  for_all_base_elements(e, meshes[0]) 
+  {
+    areas[counter] = e->get_area();
+    if (areas[counter] < min_elem_area) min_elem_area = areas[counter];
+    //printf("base_element[%d].area = %g\n", counter, areas[counter]);
+    counter++;
+  }
+  // take one mesh at a time and compare element areas to the areas[] array
+  double tolerance = min_elem_area/100.;
+  for (int i = 1; i < n; i++) {
+    counter = 0;
+    for_all_base_elements(e, meshes[i]) 
+    {
+      if (fabs(areas[counter] - e->get_area()) > tolerance) {
+        printf("counter = %d, area_1 = %g, area_2 = %g.\n", counter, areas[counter], e->get_area());
+        error("Meshes not compatible in Traverse::begin().");
+      }
+      counter++;
+    }
+  }
+#endif
 }
 
 

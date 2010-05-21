@@ -437,5 +437,9 @@ void __hermes2d_fread(void* ptr, size_t size, size_t nitems, FILE* stream, const
 /** \param[in] text A text (a cause) of the exception. */
 extern H2D_API void throw_exception(char *text);
 
+/* Uncomment this line to disable internal mesh compatibility 
+   tests in Traverse:begin(). */ 
+//#define H2D_DISABLE_MULTIMESH_TESTS
+
 #endif
 
