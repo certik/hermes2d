@@ -232,10 +232,10 @@ a constant function:
 
     // use a constant function as the initial guess
     u_prev.set_const(&mesh, 3.0);
-    nls.set_ic(&u_prev, &u_prev, PROJ_TYPE);
+    nls.project_global(&u_prev, &u_prev, PROJ_TYPE);
 
-The function set_ic() takes an initial guess (the first argument),
-projects it on the finite element mesh, and stores the result in the 
+The function project_global() takes an initial guess (the first argument),
+projects it on the space determined by the NonlinSystem, and stores the result in the 
 second argument. 
 The projection norm PROJ_TYPE needs to be compatible with the Sobolev
 space where the solution is sought ($H^1$ in this example). 
@@ -250,7 +250,7 @@ The Newton's loop is very simple,
 ::
 
     // Newton's loop
-    nls.solve_newton_1(&u_prev, NEWTON_TOL, NEWTON_MAX_ITER);
+    nls.solve_newton(&u_prev, NEWTON_TOL, NEWTON_MAX_ITER);
 
 Note that up to three Filters can be passed to the function 
 as optional parameters at the end. This function can be found in 
@@ -329,14 +329,15 @@ Dirichlet lift function elevated by 2:
       double val = dir_lift(x, y, dx, dy) + 2;
     }
 
-The initial guess is projected to the initial mesh using the set_ic()
-method of the Nonlinsystem class:
+The initial guess is projected to the finite element space 
+determined by NonlinSystem using the project_global()
+method:
 
 ::
 
     // project the function init_guess() on the mesh 
     // to obtain initial guess u_prev for the Newton's method
-    nls.set_ic(init_guess, &mesh, &u_prev, PROJ_TYPE);
+    nls.project_global(init_guess, &u_prev, PROJ_TYPE);
 
 This function creates an orthogonal projection of the initial guess
 on the mesh "mesh" and stores the result in u_prev. 
@@ -354,7 +355,7 @@ The Newton's iteration is performed again using
 ::
 
     // Newton's loop
-    nls.solve_newton_1(&u_prev, NEWTON_TOL, NEWTON_MAX_ITER);
+    nls.solve_newton(&u_prev, NEWTON_TOL, NEWTON_MAX_ITER);
 
 
 The converged solution after 7 steps of the Newton's
@@ -392,7 +393,7 @@ the initial condition is projected on the coarse mesh:
 
     // project the function init_guess() on the coarse mesh 
     // to obtain initial guess u_prev for the Newton's method
-    nls.set_ic(init_guess, &mesh, &u_prev, PROJ_TYPE);
+    nls.project_global(init_guess, &u_prev, PROJ_TYPE);
 
 Then we solve the nonlinear problem on the coarse mesh and store
 the coarse mesh solution:
@@ -401,7 +402,7 @@ the coarse mesh solution:
 
     // Newton's loop on the coarse mesh
     info("---- Solving on coarse mesh:");
-    if (!nls.solve_newton_1(&u_prev, NEWTON_TOL_COARSE, NEWTON_MAX_ITER)) error("Newton's method did not converge.");
+    if (!nls.solve_newton(&u_prev, NEWTON_TOL_COARSE, NEWTON_MAX_ITER)) error("Newton's method did not converge.");
 
     // store the result in sln_coarse
     sln_coarse.copy(&u_prev);
@@ -419,8 +420,8 @@ Next the nonlinear problem on the fine mesh is initialized as follows:
     // Setting initial guess for the Newton's method on the fine mesh
     RefNonlinSystem rnls(&nls);
     rnls.prepare();
-    if (a_step == 1) rnls.set_ic(&sln_coarse, &u_prev, PROJ_TYPE);
-    else rnls.set_ic(&sln_fine, &u_prev, PROJ_TYPE);    
+    if (a_step == 1) rnls.project_global(&sln_coarse, &u_prev, PROJ_TYPE);
+    else rnls.project_global(&sln_fine, &u_prev, PROJ_TYPE);    
 
 Notice that we only use sln_coarse as the initial guess on the fine mesh 
 in the first adaptivity step when we do not have any fine mesh solution yet,
@@ -430,7 +431,7 @@ Newton's loop on the fine mesh and store the result in sln_fine:
 ::
 
     // Newton's loop on the fine mesh
-    if (!rnls.solve_newton_1(&u_prev, NEWTON_TOL_FINE, NEWTON_MAX_ITER)) error("Newton's method did not converge.");
+    if (!rnls.solve_newton(&u_prev, NEWTON_TOL_FINE, NEWTON_MAX_ITER)) error("Newton's method did not converge.");
 
     // stote the fine mesh solution in sln_fine
     sln_fine.copy(&u_prev);
@@ -460,12 +461,12 @@ problem on the new coarse mesh:
 
       // project the fine mesh solution on the new coarse mesh
       info("---- Projecting fine mesh solution on new coarse mesh:\n");
-      nls.set_ic(&sln_fine, &u_prev, PROJ_TYPE);
+      nls.project_global(&sln_fine, &u_prev, PROJ_TYPE);
 
       if (NEWTON_ON_COARSE_MESH) {
         // Newton's loop on the coarse mesh
         info("---- Solving on coarse mesh:\n");
-        if (!nls.solve_newton_1(&u_prev, NEWTON_TOL_COARSE, NEWTON_MAX_ITER)) error("Newton's method did not converge.");
+        if (!nls.solve_newton(&u_prev, NEWTON_TOL_COARSE, NEWTON_MAX_ITER)) error("Newton's method did not converge.");
       }
 
       // store the result in sln_coarse
@@ -605,7 +606,7 @@ The entire time-stepping loop looks as follows:
       info("---- Time step %d, t = %g s:", t_step, current_time); t_step++;
 
       // Newton's method
-      nls.solve_newton_1(&u_prev_newton, NEWTON_TOL, NEWTON_MAX_ITER);
+      nls.solve_newton(&u_prev_newton, NEWTON_TOL, NEWTON_MAX_ITER);
 
       // update previous time level solution
       u_prev_time.copy(&u_prev_newton);
@@ -750,7 +751,7 @@ and how we initialize the nonlinear system and solver:
   NonlinSystem nls(&wf, &umfpack);
   nls.set_spaces(2, &tspace, &cspace);
   nls.set_pss(1, &pss);
-  nls.set_ic(&t_prev_time_1, &y_prev_time_1, &t_prev_newton, &y_prev_newton, PROJ_TYPE);
+  nls.project_global(&t_prev_time_1, &y_prev_time_1, &t_prev_newton, &y_prev_newton, PROJ_TYPE);
 
 The time stepping loop looks as follows, notice the visualization of $\omega$
 through a DXDYFilter:
@@ -764,7 +765,7 @@ through a DXDYFilter:
       info("\n**** Time step %d, t = %g s:\n", ++t_step, current_time);
 
       // Newton's method
-      nls.solve_newton_2(&t_prev_newton, &y_prev_newton, NEWTON_TOL, NEWTON_MAX_ITER, 
+      nls.solve_newton(&t_prev_newton, &y_prev_newton, NEWTON_TOL, NEWTON_MAX_ITER, 
                          &omega, &omega_dt, &omega_dy);
 
       // visualization
@@ -940,7 +941,7 @@ The time stepping loop looks as follows:
 
       if (NEWTON) {
         // Newton's method
-        nls.solve_newton_3(&xvel_prev_newton, &yvel_prev_newton, &p_prev, NEWTON_TOL, NEWTON_MAX_ITER);
+        nls.solve_newton(&xvel_prev_newton, &yvel_prev_newton, &p_prev, NEWTON_TOL, NEWTON_MAX_ITER);
 
         // copy the result of the Newton's iteration into the 
         // previous time level solutions
@@ -1167,7 +1168,7 @@ will not surprize a reader who made it this far in the tutorial:
       info("---- Time step %d:", n);
 
       // Newton's method
-      nls.solve_newton_1(&Psi_prev_newton, NEWTON_TOL, NEWTON_MAX_ITER);
+      nls.solve_newton(&Psi_prev_newton, NEWTON_TOL, NEWTON_MAX_ITER);
 
       // copy result of the Newton's iteration into Psi_prev_time
       Psi_prev_time.copy(&Psi_prev_newton);
