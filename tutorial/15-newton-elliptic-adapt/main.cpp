@@ -181,7 +181,7 @@ int main(int argc, char* argv[])
 
   // project the function init_guess() on the coarse mesh
   // to obtain initial guess u_prev for the Newton's method
-  nls.set_ic(init_guess, &mesh, &u_prev, PROJ_TYPE);
+  nls.project_global(init_guess, &u_prev, PROJ_TYPE);
 
   // visualisation
   ScalarView sview_coarse("Coarse mesh solution", 0, 0, 500, 400); // coarse mesh solution
@@ -191,7 +191,7 @@ int main(int argc, char* argv[])
 
   // Newton's loop on the coarse mesh
   info("---- Solving on coarse mesh:");
-  if (!nls.solve_newton_1(&u_prev, NEWTON_TOL_COARSE, NEWTON_MAX_ITER)) error("Newton's method did not converge.");
+  if (!nls.solve_newton(&u_prev, NEWTON_TOL_COARSE, NEWTON_MAX_ITER)) error("Newton's method did not converge.");
 
   // store the result in sln_coarse
   sln_coarse.copy(&u_prev);
@@ -220,11 +220,11 @@ int main(int argc, char* argv[])
     // Setting initial guess for the Newton's method on the fine mesh
     RefNonlinSystem rnls(&nls);
     rnls.prepare();
-    if (a_step == 1) rnls.set_ic(&sln_coarse, &u_prev, PROJ_TYPE);
-    else rnls.set_ic(&sln_fine, &u_prev, PROJ_TYPE);
+    if (a_step == 1) rnls.project_global(&sln_coarse, &u_prev, PROJ_TYPE);
+    else rnls.project_global(&sln_fine, &u_prev, PROJ_TYPE);
 
     // Newton's loop on the fine mesh
-    if (!rnls.solve_newton_1(&u_prev, NEWTON_TOL_FINE, NEWTON_MAX_ITER)) error("Newton's method did not converge.");
+    if (!rnls.solve_newton(&u_prev, NEWTON_TOL_FINE, NEWTON_MAX_ITER)) error("Newton's method did not converge.");
 
     // stote the fine mesh solution in sln_fine
     sln_fine.copy(&u_prev);
@@ -270,12 +270,12 @@ int main(int argc, char* argv[])
 
       // project the fine mesh solution on the new coarse mesh
       info("---- Projecting fine mesh solution on new coarse mesh -----------------");
-      nls.set_ic(&sln_fine, &u_prev, PROJ_TYPE);
+      nls.project_global(&sln_fine, &u_prev, PROJ_TYPE);
 
       if (NEWTON_ON_COARSE_MESH) {
         // Newton's loop on the coarse mesh
         info("---- Solving on coarse mesh -------------------------------------------");
-        if (!nls.solve_newton_1(&u_prev, NEWTON_TOL_COARSE, NEWTON_MAX_ITER)) error("Newton's method did not converge.");
+        if (!nls.solve_newton(&u_prev, NEWTON_TOL_COARSE, NEWTON_MAX_ITER)) error("Newton's method did not converge.");
       }
 
       // store the result in sln_coarse

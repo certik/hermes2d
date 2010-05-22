@@ -64,7 +64,7 @@ scalar bc_values(int marker, double x, double y)
 
 // Implicit Euler method (1st-order in time)
 template<typename Real, typename Scalar>
-Scalar residuum_euler(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+Scalar residual_euler(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {  return F_euler(n, wt, v, e, ext);  }
 template<typename Real, typename Scalar>
 Scalar jacobian_euler(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
@@ -72,7 +72,7 @@ Scalar jacobian_euler(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real
 
 // Crank-Nicolson method (1st-order in time)
 template<typename Real, typename Scalar>
-Scalar residuum_cranic(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+Scalar residual_cranic(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {  return F_cranic(n, wt, v, e, ext);  }
 template<typename Real, typename Scalar>
 Scalar jacobian_cranic(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
@@ -109,11 +109,11 @@ int main(int argc, char* argv[])
   WeakForm wf(1);
   if(TIME_DISCR == 1) {
     wf.add_biform(0, 0, callback(jacobian_euler), H2D_UNSYM, H2D_ANY, 1, &Psi_prev_newton);
-    wf.add_liform(0, callback(residuum_euler), H2D_ANY, 2, &Psi_prev_newton, &Psi_prev_time);
+    wf.add_liform(0, callback(residual_euler), H2D_ANY, 2, &Psi_prev_newton, &Psi_prev_time);
   }
   else {
     wf.add_biform(0, 0, callback(jacobian_cranic), H2D_UNSYM, H2D_ANY, 1, &Psi_prev_newton);
-    wf.add_liform(0, callback(residuum_cranic), H2D_ANY, 2, &Psi_prev_newton, &Psi_prev_time);
+    wf.add_liform(0, callback(residual_cranic), H2D_ANY, 2, &Psi_prev_newton, &Psi_prev_time);
   }
 
   // initialize the nonlinear system and solver
@@ -129,7 +129,7 @@ int main(int argc, char* argv[])
   // setting initial condition at zero time level
   Psi_prev_time.set_exact(&mesh, fn_init);
   Psi_prev_newton.set_exact(&mesh, fn_init);
-  nls.set_ic(&Psi_prev_newton, &Psi_prev_newton, PROJ_TYPE);
+  nls.project_global(&Psi_prev_newton, &Psi_prev_newton, PROJ_TYPE);
 
   // time stepping loop
   int nstep = (int)(T_FINAL/TAU + 0.5);
@@ -139,7 +139,7 @@ int main(int argc, char* argv[])
     info("---- Time step %d:", n);
 
     // Newton's method
-    if (!nls.solve_newton_1(&Psi_prev_newton, NEWTON_TOL, NEWTON_MAX_ITER)) error("Newton's method did not converge.");
+    if (!nls.solve_newton(&Psi_prev_newton, NEWTON_TOL, NEWTON_MAX_ITER)) error("Newton's method did not converge.");
 
     // show the new time level solution
     char title[100];

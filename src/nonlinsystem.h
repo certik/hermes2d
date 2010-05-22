@@ -36,60 +36,45 @@ class H2D_API NonlinSystem : public LinSystem
 {
 public:
 
-  /// Initializes the class and sets zero initial coefficient vector.
+  /// Initializes the class and creates a zero initial coefficient vector.
   NonlinSystem(WeakForm* wf, Solver* solver);
 
+  /// Frees the memory for the RHS, Dir and Vec vectors, and solver data, 
   virtual void free();
-
-  /// Sets the initial coefficient vector so that it represents the given function(s).
-  /// You can pass pointer(s) to Solution(s) or to a Filter(s).
-  /// The projected Solution(s) are returned in "result" (satisfy Dirichlet BC)
-  /// You can specify in which norm "fn" should be projected: 0 - L2 norm, 1 - H1 norm
-  void set_ic(MeshFunction* fn, Solution* result, int proj_norm = 1)
-    {  set_ic_n(proj_norm, 1, fn, result);  }
-
-  void set_ic(MeshFunction* fn1, MeshFunction* fn2, Solution* result1, Solution* result2, int proj_norm = 1)
-    {  set_ic_n(proj_norm, 2, fn1, fn2, result1, result2);  }
-
-  /// Sets the initial coefficient vector using an exact function.
-  void set_ic(scalar (*exactfn)(double x, double y, scalar& dx, scalar& dy),
-              Mesh* mesh, Solution* result, int proj_norm = 1)
-  {
-    result->set_exact(mesh, exactfn);
-    set_ic_n(proj_norm, 1, result, result);
-  }
-
-  void set_ic_n(int proj_norm, int n, ...);
-
-  /// Sets the solution coefficient vector to zero
-  void set_vec_zero();
 
   /// Adjusts the iteration coefficient. The default value for alpha is 1.
   void set_alpha(double alpha) { this->alpha = alpha; }
 
-  /// Assembles the jacobian and the residuum vector.
+  /// Assembles the Jacobian matrix and the residual vector (as opposed to 
+  /// LibSystem::assemble() that constructs a stiffness matrix and load 
+  /// vector). 
   void assemble(bool rhsonly = false);
 
-  /// Performs one Newton iteration, stores the result in the given Solutions.
+  /// Performs one step of the Newton's method for an arbitrary number of equations, 
+  /// stores the result in the given Solutions.
   bool solve(int n, ...);
 
   /// Performs complete Newton's loop for one equation
-  bool solve_newton_1(Solution* u_prev, double newton_tol, int newton_max_iter,
+  bool solve_newton(Solution* u_prev, double newton_tol, int newton_max_iter,
                       Filter* f1 = NULL, Filter* f2 = NULL, Filter* f3 = NULL);
+
   /// Performs complete Newton's loop for two equations
-  bool solve_newton_2(Solution* u_prev_1, Solution* u_prev_2, double newton_tol, int newton_max_iter,
+  bool solve_newton(Solution* u_prev_1, Solution* u_prev_2, double newton_tol, int newton_max_iter,
                       Filter* f1 = NULL, Filter* f2 = NULL, Filter* f3 = NULL);
-  /// Performs complete Newton's loop for two equations
-  bool solve_newton_3(Solution* u_prev_1, Solution* u_prev_2, Solution* u_prev_3,
+
+  /// Performs complete Newton's loop for three equations
+  bool solve_newton(Solution* u_prev_1, Solution* u_prev_2, Solution* u_prev_3,
                       double newton_tol, int newton_max_iter,
                       Filter* f1 = NULL, Filter* f2 = NULL, Filter* f3 = NULL);
 
-  /// returns the L2-norm of the residuum
-  double get_residuum_l2_norm() const { return res_l2; }
-  /// returns the L1-norm of the residuum
-  double get_residuum_l1_norm() const { return res_l1; }
-  /// returns the L_inf-norm of the residuum
-  double get_residuum_max_norm() const { return res_max; }
+  /// returns the L2-norm of the residual vector
+  double get_residual_l2_norm() const { return res_l2; }
+
+  /// returns the L1-norm of the residual vector
+  double get_residual_l1_norm() const { return res_l1; }
+
+  /// returns the L_inf-norm of the residual vector
+  double get_residual_max_norm() const { return res_max; }
 
 
 protected:

@@ -103,7 +103,7 @@ bool solveNonadaptive(Mesh &mesh, NonlinSystem &nls,
 			it++;
 			nls.assemble();
 			nls.solve(2, &Csln, &phisln);
-			res_l2_norm = nls.get_residuum_l2_norm();
+			res_l2_norm = nls.get_residual_l2_norm();
 
 			Ci.copy(&Csln);
 			phii.copy(&phisln);
@@ -160,10 +160,10 @@ bool solveAdaptive(Mesh &Cmesh, Mesh &phimesh, Mesh &basemesh, NonlinSystem &nls
       int it = 1;
       double res_l2_norm;
       if (n > 1 || at > 1) {
-        nls.set_ic(&Csln_fine, &phisln_fine, &Ci, &phii);
+        nls.project_global(&Csln_fine, &phisln_fine, &Ci, &phii);
       } else {
         /* No need to set anything, already set. */
-        nls.set_ic(&Ci, &phii, &Ci, &phii);
+        nls.project_global(&Ci, &phii, &Ci, &phii);
       }
       //Loop for coarse mesh solution
       do {
@@ -171,7 +171,7 @@ bool solveAdaptive(Mesh &Cmesh, Mesh &phimesh, Mesh &basemesh, NonlinSystem &nls
 
         nls.assemble();
         nls.solve(2, &Csln_coarse, &phisln_coarse);
-        res_l2_norm = nls.get_residuum_l2_norm();
+        res_l2_norm = nls.get_residual_l2_norm();
 
         Ci.copy(&Csln_coarse);
         phii.copy(&phisln_coarse);
@@ -182,9 +182,9 @@ bool solveAdaptive(Mesh &Cmesh, Mesh &phimesh, Mesh &basemesh, NonlinSystem &nls
       RefNonlinSystem rs(&nls);
       rs.prepare();
       if (n > 1 || at > 1) {
-        rs.set_ic(&Csln_fine, &phisln_fine, &Ci, &phii);
+        rs.project_global(&Csln_fine, &phisln_fine, &Ci, &phii);
       } else {
-        rs.set_ic(&Ci, &phii, &Ci, &phii);
+        rs.project_global(&Ci, &phii, &Ci, &phii);
       }
 
       do {
@@ -192,7 +192,7 @@ bool solveAdaptive(Mesh &Cmesh, Mesh &phimesh, Mesh &basemesh, NonlinSystem &nls
 
         rs.assemble();
         rs.solve(2, &Csln_fine, &phisln_fine);
-        res_l2_norm = rs.get_residuum_l2_norm();
+        res_l2_norm = rs.get_residual_l2_norm();
 
         Ci.copy(&Csln_fine);
         phii.copy(&phisln_fine);
@@ -325,7 +325,7 @@ int main (int argc, char* argv[]) {
 	Ci.copy(&Cp);
 	phii.copy(&phip);
 
-	nls.set_ic(&Ci, &phii, &Ci, &phii);
+	nls.project_global(&Ci, &phii, &Ci, &phii);
 
   bool success = solveAdaptive(Cmesh, phimesh, basemesh, nls, C, phi, Cp, Ci, phip, phii, shapeset);
 	//bool success = solveNonadaptive(Cmesh, nls, Cp, Ci, phip, phii);

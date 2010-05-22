@@ -227,7 +227,7 @@ int main(int argc, char* argv[])
 
     if (NEWTON) {
       // Newton's method
-      if (!nls.solve_newton_3(&xvel_prev_newton, &yvel_prev_newton, &p_prev, NEWTON_TOL, NEWTON_MAX_ITER)) error("Newton's method did not converge.");
+      if (!nls.solve_newton(&xvel_prev_newton, &yvel_prev_newton, &p_prev, NEWTON_TOL, NEWTON_MAX_ITER)) error("Newton's method did not converge.");
 
       // show the solution at the end of time step
       sprintf(title, "Velocity, time %g", TIME);

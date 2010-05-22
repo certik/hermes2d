@@ -97,10 +97,10 @@ int main(int argc, char* argv[])
 
   // use a constant function as the initial guess
   u_prev.set_const(&mesh, 3.0);
-  nls.set_ic(&u_prev, &u_prev, PROJ_TYPE);
+  nls.project_global(&u_prev, &u_prev, PROJ_TYPE);
 
   // Newton's loop
-  bool success = nls.solve_newton_1(&u_prev, NEWTON_TOL, NEWTON_MAX_ITER);
+  bool success = nls.solve_newton(&u_prev, NEWTON_TOL, NEWTON_MAX_ITER);
 
 #define ERROR_SUCCESS                               0
 #define ERROR_FAILURE                               -1

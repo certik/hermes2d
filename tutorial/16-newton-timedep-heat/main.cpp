@@ -145,7 +145,7 @@ int main(int argc, char* argv[])
   nls.set_pss(1, &pss);
 
   // project the function initial_condition() on the mesh
-  nls.set_ic(initial_condition, &mesh, &u_prev_time, PROJ_TYPE);
+  nls.project_global(initial_condition, &u_prev_time, PROJ_TYPE);
   u_prev_newton.copy(&u_prev_time);
 
   // visualisation
@@ -160,7 +160,7 @@ int main(int argc, char* argv[])
     info("---- Time step %d, t = %g s:", t_step, current_time); t_step++;
 
     // Newton's method
-    if (!nls.solve_newton_1(&u_prev_newton, NEWTON_TOL, NEWTON_MAX_ITER)) error("Newton's method did not converge.");
+    if (!nls.solve_newton(&u_prev_newton, NEWTON_TOL, NEWTON_MAX_ITER)) error("Newton's method did not converge.");
 
     // update previous time level solution
     u_prev_time.copy(&u_prev_newton);

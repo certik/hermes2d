@@ -37,44 +37,6 @@ NonlinSystem::NonlinSystem(WeakForm* wf, Solver* solver)
   want_dir_contrib = false;
 }
 
-
-template<typename Real, typename Scalar>
-Scalar H1projection_biform(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
-{
-  Scalar result = 0;
-  for (int i = 0; i < n; i++)
-    result += wt[i] * (u->val[i] * v->val[i] + u->dx[i] * v->dx[i] + u->dy[i] * v->dy[i]);
-  return result;
-}
-
-template<typename Real, typename Scalar>
-Scalar H1projection_liform(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
-{
-  Scalar result = 0;
-  for (int i = 0; i < n; i++)
-    result += wt[i] * (ext->fn[0]->val[i] * v->val[i] + ext->fn[0]->dx[i] * v->dx[i] + ext->fn[0]->dy[i] * v->dy[i]);
-  return result;
-}
-
-template<typename Real, typename Scalar>
-Scalar L2projection_biform(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
-{
-  Scalar result = 0;
-  for (int i = 0; i < n; i++)
-    result += wt[i] * (u->val[i] * v->val[i]);
-  return result;
-}
-
-template<typename Real, typename Scalar>
-Scalar L2projection_liform(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
-{
-  Scalar result = 0;
-  for (int i = 0; i < n; i++)
-    result += wt[i] * (ext->fn[0]->val[i] * v->val[i]);
-  return result;
-}
-
-
 void NonlinSystem::free()
 {
   if (RHS != NULL) { ::free(RHS); RHS = NULL; }
@@ -92,64 +54,6 @@ void NonlinSystem::free()
   memset(sp_seq, -1, sizeof(int) * wf->neq);
   wf_seq = -1;
 }
-
-
-void NonlinSystem::set_ic_n(int proj_norm, int n, ...)
-{
-  if (!have_spaces)
-    error("You need to call set_ic() after calling set_spaces().");
-  if (n != wf->neq || n > 10)
-    error("Wrong number of initial conditions.");
-
-  int i;
-  MeshFunction* fn[10];
-  Solution* result[10];
-
-  va_list ap;
-  va_start(ap, n);
-  for (i = 0; i < n; i++)
-    fn[i] = va_arg(ap, MeshFunction*);
-  for (i = 0; i < n; i++)
-    result[i] = va_arg(ap, Solution*);
-  va_end(ap);
-
-  WeakForm* wf_orig = wf;
-
-  WeakForm wf_proj(n);
-  wf = &wf_proj;
-  if (proj_norm == 1)
-    for (i = 0; i < n; i++)
-    {
-      wf->add_biform(i, i, H1projection_biform<double, scalar>, H1projection_biform<Ord, Ord>);
-      wf->add_liform(i, H1projection_liform<double, scalar>, H1projection_liform<Ord, Ord>, H2D_ANY, 1, fn[i]);
-    }
-  else
-    for (i = 0; i < n; i++)
-    {
-      wf->add_biform(i, i, L2projection_biform<double, scalar>, L2projection_biform<Ord, Ord>);
-      wf->add_liform(i, L2projection_liform<double, scalar>, L2projection_liform<Ord, Ord>, H2D_ANY, 1, fn[i]);
-    }
-
-  want_dir_contrib = true;
-  LinSystem::assemble();
-  LinSystem::solve(n, result[0], result[1], result[2], result[3], result[4],
-                      result[5], result[6], result[7], result[8], result[9]);
-  want_dir_contrib = false;
-
-  wf = wf_orig;
-  wf_seq = -1;
-}
-
-
-void NonlinSystem::set_vec_zero()
-{
-  if (Vec != NULL) ::free(Vec);
-  Vec = (scalar*) malloc(ndofs * sizeof(scalar));
-  for(int i=0; i<ndofs; i++) Vec[i] = 0;
-}
-
-
-
 
 void NonlinSystem::assemble(bool rhsonly)
 {
@@ -215,7 +119,7 @@ bool NonlinSystem::solve(int n, ...)
 }
 
 // Newton's loop for one equation
-bool NonlinSystem::solve_newton_1(Solution* u_prev, double newton_tol, int newton_max_iter,
+bool NonlinSystem::solve_newton(Solution* u_prev, double newton_tol, int newton_max_iter,
                                   Filter* f1, Filter* f2, Filter* f3) {
     int it = 1;
     double res_l2_norm;
@@ -237,8 +141,8 @@ bool NonlinSystem::solve_newton_1(Solution* u_prev, double newton_tol, int newto
       this->solve(1, &sln_iter);
 
       // calculate the l2-norm of residual vector
-      res_l2_norm = this->get_residuum_l2_norm();
-      info("Residuum L2 norm: %g", res_l2_norm);
+      res_l2_norm = this->get_residual_l2_norm();
+      info("Residual L2 norm: %g", res_l2_norm);
 
       // save the new solution as "previous" for the
       // next Newton's iteration
@@ -252,7 +156,7 @@ bool NonlinSystem::solve_newton_1(Solution* u_prev, double newton_tol, int newto
 }
 
 // Newton's loop for two equations
-bool NonlinSystem::solve_newton_2(Solution* u_prev_1, Solution* u_prev_2, double newton_tol, int newton_max_iter,
+bool NonlinSystem::solve_newton(Solution* u_prev_1, Solution* u_prev_2, double newton_tol, int newton_max_iter,
                                   Filter* f1, Filter* f2, Filter* f3) {
     int it = 1;
     double res_l2_norm;
@@ -275,8 +179,8 @@ bool NonlinSystem::solve_newton_2(Solution* u_prev_1, Solution* u_prev_2, double
       this->solve(2, &sln_iter_1, &sln_iter_2);
 
       // calculate the l2-norm of residual vector
-      res_l2_norm = this->get_residuum_l2_norm();
-      info("Residuum L2 norm: %g", res_l2_norm);
+      res_l2_norm = this->get_residual_l2_norm();
+      info("Residual L2 norm: %g", res_l2_norm);
 
       // save the new solutions as "previous" for the
       // next Newton's iteration
@@ -291,7 +195,7 @@ bool NonlinSystem::solve_newton_2(Solution* u_prev_1, Solution* u_prev_2, double
 }
 
 // Newton's loop for three equations
-bool NonlinSystem::solve_newton_3(Solution* u_prev_1, Solution* u_prev_2, Solution* u_prev_3,
+bool NonlinSystem::solve_newton(Solution* u_prev_1, Solution* u_prev_2, Solution* u_prev_3,
                                   double newton_tol, int newton_max_iter,
                                   Filter* f1, Filter* f2, Filter* f3) {
     int it = 1;
@@ -316,8 +220,8 @@ bool NonlinSystem::solve_newton_3(Solution* u_prev_1, Solution* u_prev_2, Soluti
       this->solve(3, &sln_iter_1, &sln_iter_2, &sln_iter_3);
 
       // calculate the l2-norm of residual vector
-      res_l2_norm = this->get_residuum_l2_norm();
-      info("Residuum L2 norm: %g", res_l2_norm);
+      res_l2_norm = this->get_residual_l2_norm();
+      info("Residual L2 norm: %g", res_l2_norm);
 
       // save the new solutions as "previous" for the
       // next Newton's iteration

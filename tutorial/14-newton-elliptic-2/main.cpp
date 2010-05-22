@@ -142,10 +142,10 @@ int main(int argc, char* argv[])
 
   // project the function init_guess() on the mesh
   // to obtain initial guess u_prev for the Newton's method
-  nls.set_ic(init_guess, &mesh, &u_prev, PROJ_TYPE);
+  nls.project_global(init_guess, &u_prev, PROJ_TYPE);
 
   // Newton's loop
-  if (!nls.solve_newton_1(&u_prev, NEWTON_TOL, NEWTON_MAX_ITER)) error("Newton's method did not converge.");
+  if (!nls.solve_newton(&u_prev, NEWTON_TOL, NEWTON_MAX_ITER)) error("Newton's method did not converge.");
 
   // visualise the solution and mesh
   ScalarView sview("Solution", 0, 0, 800, 600);

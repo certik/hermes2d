@@ -169,7 +169,7 @@ int main(int argc, char* argv[])
   SimpleGraph graph_time_err, graph_time_dof;
 
   // project the function initial_condition() on the coarse mesh
-  nls.set_ic(initial_condition, &mesh, &u_prev_time, PROJ_TYPE);
+  nls.project_global(initial_condition, &u_prev_time, PROJ_TYPE);
   u_prev_newton.copy(&u_prev_time);
 
   // view initial guess for Newton's method
@@ -179,7 +179,7 @@ int main(int argc, char* argv[])
 
   // Newton's loop on the coarse mesh
   info("---- Time step 1, Newton solve on coarse mesh:");
-  if (!nls.solve_newton_1(&u_prev_newton, NEWTON_TOL_COARSE, NEWTON_MAX_ITER))
+  if (!nls.solve_newton(&u_prev_newton, NEWTON_TOL_COARSE, NEWTON_MAX_ITER))
     error("Newton's method did not converge.");
 
   // store the result in sln_coarse
@@ -202,12 +202,12 @@ int main(int argc, char* argv[])
 
       // project the fine mesh solution on the globally derefined mesh
       info("---- Time step %d, projecting fine mesh solution on globally derefined mesh:", n);
-      nls.set_ic(&sln_fine, &u_prev_newton, PROJ_TYPE);
+      nls.project_global(&sln_fine, &u_prev_newton, PROJ_TYPE);
 
       if (NEWTON_ON_COARSE_MESH) {
         // Newton's loop on the globally derefined mesh
         info("---- Time step %d, Newton solve on globally derefined mesh:", n);
-        if (!nls.solve_newton_1(&u_prev_newton, NEWTON_TOL_COARSE, NEWTON_MAX_ITER))
+        if (!nls.solve_newton(&u_prev_newton, NEWTON_TOL_COARSE, NEWTON_MAX_ITER))
           error("Newton's method did not converge.");
       }
 
@@ -228,11 +228,11 @@ int main(int argc, char* argv[])
       rnls.prepare();
 
       // set initial condition for the Newton's method on the fine mesh
-      if (a_step == 1) rnls.set_ic(&sln_coarse, &u_prev_newton);
-      else rnls.set_ic(&sln_fine, &u_prev_newton);
+      if (a_step == 1) rnls.project_global(&sln_coarse, &u_prev_newton);
+      else rnls.project_global(&sln_fine, &u_prev_newton);
 
       // Newton's method on fine mesh
-      if (!rnls.solve_newton_1(&u_prev_newton, NEWTON_TOL_FINE, NEWTON_MAX_ITER))
+      if (!rnls.solve_newton(&u_prev_newton, NEWTON_TOL_FINE, NEWTON_MAX_ITER))
         error("Newton's method did not converge.");
 
       // store the result in sln_fine
@@ -264,7 +264,7 @@ int main(int argc, char* argv[])
         // project the fine mesh solution on the new coarse mesh
         info("---- Time step %d, adaptivity step %d, projecting fine mesh solution on new coarse mesh:",
           n, a_step);
-        nls.set_ic(&sln_fine, &u_prev_newton, PROJ_TYPE);
+        nls.project_global(&sln_fine, &u_prev_newton, PROJ_TYPE);
 
         // moving to new adaptivity step
         a_step++;
@@ -272,7 +272,7 @@ int main(int argc, char* argv[])
         if (NEWTON_ON_COARSE_MESH) {
           // Newton's loop on the coarse mesh
           info("---- Time step %d, adaptivity step %d, Newton solve on new coarse mesh:", n, a_step);
-          if (!nls.solve_newton_1(&u_prev_newton, NEWTON_TOL_COARSE, NEWTON_MAX_ITER))
+          if (!nls.solve_newton(&u_prev_newton, NEWTON_TOL_COARSE, NEWTON_MAX_ITER))
             error("Newton's method did not converge.");
         }
 

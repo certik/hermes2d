@@ -193,7 +193,7 @@ protected:
 };
 
 
-/// \brief Represents and exact solution of a PDE.
+/// \brief Represents an exact solution of a PDE.
 ///
 /// ExactSolution represents an arbitrary user-specified function defined on a domain (mesh),
 /// typically an exact solution to a PDE. This can be used to compare an approximate solution

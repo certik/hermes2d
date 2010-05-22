@@ -295,8 +295,8 @@ int main(int argc, char* argv[])
 
           nls.assemble();
           nls.solve(3, &xvel_prev_newton, &yvel_prev_newton, &p_prev);
-          res_l2_norm = nls.get_residuum_l2_norm();
-          info("Residuum L2 norm: %g", res_l2_norm);
+          res_l2_norm = nls.get_residual_l2_norm();
+          info("Residual L2 norm: %g", res_l2_norm);
           if (it == 1) res_l2_norm = 100.0;
         }
         while (res_l2_norm > NEWTON_TOL && it <= NEWTON_MAX_ITER);
@@ -320,8 +320,8 @@ int main(int argc, char* argv[])
 
           refnls.assemble();
           refnls.solve(3, &xvel_prev_newton, &yvel_prev_newton, &p_prev);
-          res_l2_norm = refnls.get_residuum_l2_norm();
-          info("Residuum L2 norm: %g", res_l2_norm);
+          res_l2_norm = refnls.get_residual_l2_norm();
+          info("Residual L2 norm: %g", res_l2_norm);
         }
         while (res_l2_norm > NEWTON_TOL && it <= NEWTON_MAX_ITER);
 

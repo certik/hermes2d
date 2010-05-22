@@ -330,15 +330,15 @@ int main(int argc, char* argv[])
 
       // project the fine mesh solutions on the globally derefined meshes
       info("---- Time step %d, projecting fine mesh solution on globally derefined mesh.", t_step);
-      nls.set_ic(&T_fine, &phi_fine, &T_prev_time, &phi_prev_time, PROJ_TYPE);
+      nls.project_global(&T_fine, &phi_fine, &T_prev_time, &phi_prev_time, PROJ_TYPE);
     }
 
     // set initial conditions for the Newton's loop on the coarse mesh
-    nls.set_ic(&T_prev_time, &phi_prev_time, &T_prev_newton, &phi_prev_newton, PROJ_TYPE);
+    nls.project_global(&T_prev_time, &phi_prev_time, &T_prev_newton, &phi_prev_newton, PROJ_TYPE);
 
     // Newton's loop on the coarse mesh
     info("---- Time step %d, adaptivity step 1, Newton solve on coarse mesh.", t_step);
-    if (!nls.solve_newton_2(&T_prev_newton, &phi_prev_newton, NEWTON_TOL_COARSE, NEWTON_MAX_ITER))
+    if (!nls.solve_newton(&T_prev_newton, &phi_prev_newton, NEWTON_TOL_COARSE, NEWTON_MAX_ITER))
       error("Newton's method did not converge.");
 
     // store coarse solution
@@ -351,7 +351,7 @@ int main(int argc, char* argv[])
       // project the fine mesh solution on the new coarse mesh
       if (a_step>1) {
 	info("---- Time step %d, adaptivity step %d, projecting fine mesh solution on new coarse mesh.", t_step, a_step);
-	nls.set_ic(&T_fine, &phi_fine, &T_coarse, &phi_coarse, PROJ_TYPE);
+	nls.project_global(&T_fine, &phi_fine, &T_coarse, &phi_coarse, PROJ_TYPE);
        }
 
       info("---- Time step %d, adaptivity step %d, Newton solve on fine mesh.", t_step, a_step);
@@ -360,10 +360,10 @@ int main(int argc, char* argv[])
       rnls.prepare();
 
       // set initial condition for the Newton's method on the fine mesh
-      rnls.set_ic(&T_fine, &phi_fine, &T_prev_newton, &phi_prev_newton, PROJ_TYPE);
+      rnls.project_global(&T_fine, &phi_fine, &T_prev_newton, &phi_prev_newton, PROJ_TYPE);
 
       // Newton's loop on the fine mesh
-      if (!rnls.solve_newton_2(&T_prev_newton, &phi_prev_newton, NEWTON_TOL_FINE, NEWTON_MAX_ITER))
+      if (!rnls.solve_newton(&T_prev_newton, &phi_prev_newton, NEWTON_TOL_FINE, NEWTON_MAX_ITER))
         error("Newton's method did not converge.");
 
       // store fine solution

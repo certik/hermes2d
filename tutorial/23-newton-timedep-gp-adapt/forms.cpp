@@ -1,4 +1,4 @@
-// Residuum for the implicit Euler time discretization
+// Residual for the implicit Euler time discretization
 template<typename Real, typename Scalar>
 Scalar F_euler(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
@@ -69,7 +69,7 @@ Scalar J_cranic(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, 
 
 // Implicit Euler method (1st-order in time)
 template<typename Real, typename Scalar>
-Scalar residuum_euler(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+Scalar residual_euler(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {  return F_euler(n, wt, v, e, ext);  }
 template<typename Real, typename Scalar>
 Scalar jacobian_euler(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
@@ -77,7 +77,7 @@ Scalar jacobian_euler(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real
 
 // Crank-Nicolson (2nd-order in time)
 template<typename Real, typename Scalar>
-Scalar residuum_cranic(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+Scalar residual_cranic(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {  return F_cranic(n, wt, v, e, ext);  }
 template<typename Real, typename Scalar>
 Scalar jacobian_cranic(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)

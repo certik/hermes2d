@@ -181,7 +181,7 @@ void solveNonadaptive(Mesh &mesh, NonlinSystem &nls,
 
   for (int n = 1; n <= NSTEP; n++) {
     verbose("\n---- Time step %d ----", n);
-    if (!nls.solve_newton_2(&C_prev_newton, &phi_prev_newton,
+    if (!nls.solve_newton(&C_prev_newton, &phi_prev_newton,
          NEWTON_TOL, NEWTON_MAX_ITER)) error("Newton's method did not converge.");
 
     sprintf(title, "Solution, timestep = %i", n);
@@ -231,7 +231,7 @@ void solveAdaptive(Mesh &Cmesh, Mesh &phimesh, Mesh &basemesh, NonlinSystem &nls
   
   //Newton's loop on a coarse mesh
   info("---- Time step 1, Newton solve on the coarse mesh\n");
-  if (!nls.solve_newton_2(&C_prev_newton, &phi_prev_newton, NEWTON_TOL_COARSE, NEWTON_MAX_ITER)) 
+  if (!nls.solve_newton(&C_prev_newton, &phi_prev_newton, NEWTON_TOL_COARSE, NEWTON_MAX_ITER)) 
     error("Newton's method did not converge.");
 
   Solution Csln_coarse, phisln_coarse, Csln_fine, phisln_fine;
@@ -253,12 +253,12 @@ void solveAdaptive(Mesh &Cmesh, Mesh &phimesh, Mesh &basemesh, NonlinSystem &nls
 
       // project the fine mesh solution on the globally derefined mesh
       info("---- Time step %d, projecting fine mesh solution on globally derefined mesh:\n", n);
-      nls.set_ic(&Csln_fine, &phisln_fine, &C_prev_newton, &phi_prev_newton, PROJ_TYPE);
+      nls.project_global(&Csln_fine, &phisln_fine, &C_prev_newton, &phi_prev_newton, PROJ_TYPE);
 
       if (NEWTON_ON_COARSE_MESH) {
         // Newton's loop on the globally derefined mesh
         info("---- Time step %d, Newton solve on globally derefined mesh:\n", n);
-        if (!nls.solve_newton_2(&C_prev_newton, &phi_prev_newton, NEWTON_TOL_COARSE, NEWTON_MAX_ITER))
+        if (!nls.solve_newton(&C_prev_newton, &phi_prev_newton, NEWTON_TOL_COARSE, NEWTON_MAX_ITER))
           error("Newton's method did not converge.");
       }
       Csln_coarse.copy(&C_prev_newton);
@@ -273,10 +273,10 @@ void solveAdaptive(Mesh &Cmesh, Mesh &phimesh, Mesh &basemesh, NonlinSystem &nls
       RefNonlinSystem rs(&nls);
       rs.prepare();
 
-      if (at == 1) rs.set_ic(&Csln_coarse, &phisln_coarse, &C_prev_newton, &phi_prev_newton);
-      else rs.set_ic(&Csln_fine, &phisln_fine, &C_prev_newton, &phi_prev_newton);
+      if (at == 1) rs.project_global(&Csln_coarse, &phisln_coarse, &C_prev_newton, &phi_prev_newton);
+      else rs.project_global(&Csln_fine, &phisln_fine, &C_prev_newton, &phi_prev_newton);
       
-      rs.solve_newton_2(&C_prev_newton, &phi_prev_newton, NEWTON_TOL_FINE, NEWTON_MAX_ITER);
+      rs.solve_newton(&C_prev_newton, &phi_prev_newton, NEWTON_TOL_FINE, NEWTON_MAX_ITER);
       Csln_fine.copy(&C_prev_newton);
       phisln_fine.copy(&phi_prev_newton);
 
@@ -312,12 +312,12 @@ void solveAdaptive(Mesh &Cmesh, Mesh &phimesh, Mesh &basemesh, NonlinSystem &nls
         // project the fine mesh solution on the new coarse mesh
         info("---- Time step %d, adaptivity step %d, projecting fine mesh solution on new coarse mesh:\n",
             n, at);
-        nls.set_ic(&Csln_fine, &phisln_fine, &C_prev_newton, &phi_prev_newton, PROJ_TYPE);
+        nls.project_global(&Csln_fine, &phisln_fine, &C_prev_newton, &phi_prev_newton, PROJ_TYPE);
         at++;
         if (NEWTON_ON_COARSE_MESH) {
           // Newton's loop on the globally derefined mesh
           info("---- Time step %d, Newton solve on globally derefined mesh:\n", n);
-          if (!nls.solve_newton_2(&C_prev_newton, &phi_prev_newton, NEWTON_TOL_COARSE, NEWTON_MAX_ITER))
+          if (!nls.solve_newton(&C_prev_newton, &phi_prev_newton, NEWTON_TOL_COARSE, NEWTON_MAX_ITER))
             error("Newton's method did not converge.");
         }
 
@@ -475,7 +475,7 @@ int main (int argc, char* argv[]) {
   C_prev_newton.copy(&C_prev_time);
   phi_prev_newton.copy(&phi_prev_time);
 
-  nls.set_ic(&C_prev_newton, &phi_prev_newton, &C_prev_newton, &phi_prev_newton);
+  nls.project_global(&C_prev_newton, &phi_prev_newton, &C_prev_newton, &phi_prev_newton);
 
   if (adaptive) {
     solveAdaptive(Cmesh, phimesh, basemesh, nls, C, phi, C_prev_time,

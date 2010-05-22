@@ -113,7 +113,7 @@ int main(int argc, char* argv[])
   NonlinSystem nls(&wf, &umfpack);
   nls.set_spaces(2, &tspace, &cspace);
   nls.set_pss(1, &pss);
-  nls.set_ic(&t_prev_time_1, &y_prev_time_1, &t_prev_newton, &y_prev_newton, PROJ_TYPE);
+  nls.project_global(&t_prev_time_1, &y_prev_time_1, &t_prev_newton, &y_prev_newton, PROJ_TYPE);
 
   // time stepping loop
   double current_time = 0.0;
@@ -123,7 +123,7 @@ int main(int argc, char* argv[])
     info("**** Time step %d, t = %g s:", t_step, current_time);
 
     // Newton's method
-    if (!nls.solve_newton_2(&t_prev_newton, &y_prev_newton, NEWTON_TOL, NEWTON_MAX_ITER,
+    if (!nls.solve_newton(&t_prev_newton, &y_prev_newton, NEWTON_TOL, NEWTON_MAX_ITER,
                        &omega, &omega_dt, &omega_dy)) error("Newton's method did not converge.");
 
     // visualization
