@@ -1,4 +1,5 @@
 Welcome to Hermes2D!
+====================
 
 Hermes2D is a C++ library for rapid prototyping of space- and 
 space-time adaptive hp-FEM solvers. Novel PDE-independent 
@@ -15,6 +16,10 @@ methods, or in the theory of partial differential equations.
 Plus, there is a very active user community  where you will 
 get help quickly. 
 
+
+License
+=======
+
 Hermes2D is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -24,6 +29,10 @@ You should have received a copy of the GNU General Public
 License along with Hermes2D; If not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, 
 MA  02110-1301, USA.
+
+
+Copyright
+=========
 
 Copyright (c) 2009 hp-FEM group at the University of Nevada, 
 Reno (UNR). Email: hpfem@unr.edu, home page: http://hpfem.org/.
@@ -36,14 +45,16 @@ Installation instructions for Linux, Mac OS X, Windows Cygwin,
 and Windows MSVC can be found in the Sphinx documentation 
 at http://hpfem.org/hermes2d/doc/index.html. 
 
-Source files of the user documentation are in the
-directory src/.
+
+Documentation
+=============
 
 Generating and Viewing User Documentation Offline (Linux)
 ---------------------------------------------------------
 
-For this, you need to install Sphinx. To build the 
-documentation, follow these steps:
+Source files of the (Sphinx) user documentation are in the
+directory doc/. In order to compile the user documentation, 
+you need to install Sphinx. Then follow these steps:
 
 cd doc
 make html
@@ -76,3 +87,22 @@ one.
    prompt: nmake html
 8) View the documentation using a file
    'my_hermes2d\doc\_build\index.html'
+
+Generating and Viewing Developer Documentation Offline (Linux)
+--------------------------------------------------------------
+
+Source files of the (Doxygen) developer documentation are
+in the directory doc.cpp/. In order to build them you need
+to install Doxygen. Then do:
+
+cd doc.cpp/
+doxygen hermes2d.lib-real.doxyfile
+doxygen hermes2d.lib-cplx.doxyfile
+
+This will generate documentation for the real and complex
+version of the library, respectively. To view the docs, 
+type
+
+firefox h2d-real/html/index.html
+
+
