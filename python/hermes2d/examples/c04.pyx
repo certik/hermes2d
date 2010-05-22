@@ -4,13 +4,13 @@ from hermes2d._hermes2d cimport scalar, H1Space, BC_ESSENTIAL, c_BCType
 cdef c_BCType bc_type_04(int marker):
     return <c_BCType>BC_ESSENTIAL
 
-# Function values for Dirichlet boundary markers
-cdef scalar bc_values_04(int marker, double x, double y):
+# Function values for essential(Dirichlet) boundary markers
+cdef scalar essential_bc_values(int essential_marker, double x, double y):
     return x*x + y*y
 
 def set_bc(H1Space space):
     space.thisptr.set_bc_types(&bc_type_04)
-    space.thisptr.set_bc_values(&bc_values_04)
+    space.thisptr.set_essential_bc_values(&essential_bc_values)
 
 """
 cdef scalar bilinear_form(int n, double *wt, FuncReal *u, FuncReal *v, GeomReal *e, ExtDataReal *ext):

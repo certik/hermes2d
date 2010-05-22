@@ -48,7 +48,7 @@ enum BCType
 ///         of the boundary. The callback is set by the function set_bc_types().
 ///
 ///         On Dirichlet edges the Space class calls another callback, set by either of the two
-///         functions set_bc_values(). The obtained scalar values are projected onto the available
+///         functions set_essential_bc_values(). The obtained scalar values are projected onto the available
 ///         edge shape functions on each edge. This way the Dirichlet lift is obtained, which
 ///         matches as closely as possible the user-defined boundary data. Two kinds of value
 ///         callback functions are defined: the first provides the absolute coordinates on the edge
@@ -110,9 +110,9 @@ public:
   /// Sets the BC types callback function.
   void set_bc_types(BCType (*bc_type_callback)(int marker));
   /// Sets the BC values callback function, which takes absolute boundary coordinates.
-  void set_bc_values(scalar (*bc_value_callback_by_coord)(int marker, double x, double y));
+  void set_essential_bc_values(scalar (*bc_value_callback_by_coord)(int ess_bdy_marker, double x, double y));
   /// Sets the BC values callback function, which takes parametric edge position.
-  void set_bc_values(scalar (*bc_value_callback_by_edge)(EdgePos* ep)); // for EdgePos, see mesh.h
+  void set_essential_bc_values(scalar (*bc_value_callback_by_edge)(EdgePos* ep)); // for EdgePos, see mesh.h
 
   /// Sets element polynomial order.
   virtual void set_element_order(int id, int order);
@@ -271,7 +271,7 @@ protected: //debugging support
 public:
 
   BCType (*bc_type_callback)(int);
-  scalar (*bc_value_callback_by_coord)(int marker, double x, double y);
+  scalar (*bc_value_callback_by_coord)(int ess_bdy_marker, double x, double y);
   scalar (*bc_value_callback_by_edge)(EdgePos* ep);
 
   /// Internal. Used by LinSystem to detect changes in the space.

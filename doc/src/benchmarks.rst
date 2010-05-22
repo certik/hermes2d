@@ -64,8 +64,8 @@ Code for the exact solution and the weak forms:
       return BC_ESSENTIAL;
     }
 
-    // function values for Dirichlet boundary conditions
-    scalar bc_values(int marker, double x, double y)
+    // function values for essential(Dirichlet) boundary conditions
+    scalar essential_bc_values(int ess_bdy_marker, double x, double y)
     {
       return fn(x, y);
     }
@@ -445,7 +445,7 @@ Code for the exact solution and the weak forms:
     }
     
     // Dirichlet boundary condition values
-    scalar bc_values(int marker, double x, double y)
+    scalar essential_bc_values(int ess_bdy_marker, double x, double y)
     {
       return fn(x, y);
     }

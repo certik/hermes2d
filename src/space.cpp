@@ -32,8 +32,8 @@ Space::Space(Mesh* mesh, Shapeset* shapeset)
   was_assigned = false;
 
   set_bc_types(NULL);
-  set_bc_values((scalar (*)(int, double, double)) NULL);
-  set_bc_values((scalar (*)(EdgePos*)) NULL);
+  set_essential_bc_values((scalar (*)(int, double, double)) NULL);
+  set_essential_bc_values((scalar (*)(EdgePos*)) NULL);
 }
 
 
@@ -409,14 +409,14 @@ void Space::set_bc_types(BCType (*bc_type_callback)(int))
   seq++;
 }
 
-void Space::set_bc_values(scalar (*bc_value_callback_by_coord)(int, double, double))
+void Space::set_essential_bc_values(scalar (*bc_value_callback_by_coord)(int, double, double))
 {
   if (bc_value_callback_by_coord == NULL) bc_value_callback_by_coord = default_bc_value_by_coord;
   this->bc_value_callback_by_coord = bc_value_callback_by_coord;
   seq++;
 }
 
-void Space::set_bc_values(scalar (*bc_value_callback_by_edge)(EdgePos*))
+void Space::set_essential_bc_values(scalar (*bc_value_callback_by_edge)(EdgePos*))
 {
   if (bc_value_callback_by_edge == NULL) bc_value_callback_by_edge = default_bc_value_by_edge;
   this->bc_value_callback_by_edge = bc_value_callback_by_edge;

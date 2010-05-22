@@ -23,7 +23,7 @@ using namespace RefinementSelectors;
 //          "screen-tri.mesh" (triangular mesh). See the command mesh.load(...) below
 //
 //  BC: tangential component of solution taken from known exact solution (essential BC),
-//      see function bc_values(...) below
+//      see function essential_bc_values(...) below
 //
 // The following parameters can be changed:
 
@@ -76,10 +76,10 @@ BCType bc_types(int marker)
 
 double2 tau[5] = { { 0, 0}, { 1, 0 },  { 0, 1 }, { -1, 0 }, { 0, -1 } };
 
-cplx bc_values(int marker, double x, double y)
+scalar essential_bc_values(int ess_bdy_marker, double x, double y)
 {
   scalar dx, dy;
-  return exact0(x, y, dx, dy)*tau[marker][0] + exact1(x, y, dx, dy)*tau[marker][1];
+  return exact0(x, y, dx, dy)*tau[ess_bdy_marker][0] + exact1(x, y, dx, dy)*tau[ess_bdy_marker][1];
 }
 
 template<typename Real, typename Scalar>
@@ -103,7 +103,7 @@ int main(int argc, char* argv[])
   // create finite element space
   HcurlSpace space(&mesh, &shapeset);
   space.set_bc_types(bc_types);
-  space.set_bc_values(bc_values);
+  space.set_essential_bc_values(essential_bc_values);
   space.set_uniform_order(P_INIT);
 
   // enumerate degrees of freedom

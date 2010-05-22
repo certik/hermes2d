@@ -1272,8 +1272,8 @@ The functions along with the boundary conditions::
 	}
 
 	// Diricleht Boundary conditions for Poisson equation.
-	scalar phi_bc_values(int marker, double x, double y) {
-		  return marker == TOP_MARKER ? VOLTAGE : 0.0;
+	scalar essential_bc_values(int ess_bdy_marker, double x, double y) {
+		  return ess_bdy_marker == TOP_MARKER ? VOLTAGE : 0.0;
 	}
 
 are assembled as follows::
@@ -1449,9 +1449,9 @@ conditions are Dirichlet, defined as follows:
 ::
 
     // Dirichlet boundary condition values
-    scalar bc_values(int marker, double x, double y)
+    scalar essential_bc_values(int ess_bdy_marker, double x, double y)
     {
-        if (marker == 1) return 1;
+        if (ess_bdy_marker == 1) return 1;
         else return 2 - pow(x, 0.1) - pow(y, 0.1);
     }
 

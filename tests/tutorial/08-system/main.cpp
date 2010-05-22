@@ -18,7 +18,7 @@ BCType bc_types(int marker)
   { return (marker == 1) ? BC_ESSENTIAL : BC_NATURAL; }
 
 // function values for Dirichlet boundary conditions
-double bc_values(int marker, double x, double y)
+scalar essential_bc_values(int ess_bdy_marker, double x, double y)
   { return 0; }
 
 // bilinear forms
@@ -75,12 +75,12 @@ int main(int argc, char* argv[])
   // create the x displacement space
   H1Space xdisp(&mesh, &shapeset);
   xdisp.set_bc_types(bc_types);
-  xdisp.set_bc_values(bc_values);
+  xdisp.set_essential_bc_values(essential_bc_values);
 
   // create the y displacement space
   H1Space ydisp(&mesh, &shapeset);
   ydisp.set_bc_types(bc_types);
-  ydisp.set_bc_values(bc_values);
+  ydisp.set_essential_bc_values(essential_bc_values);
 
   // initialize the weak formulation
   WeakForm wf(2);

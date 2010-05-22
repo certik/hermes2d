@@ -465,7 +465,7 @@ The user has to provide the following two callback functions:
 ::
 
     BCType bc_types(int marker);
-    scalar bc_values(int marker, double x, double y);
+    scalar essential_bc_values(int ess_bdy_marker, double x, double y);
 
 The first one, given the boundary marker number, determines the type of BC which the associated
 portion of the domain boundary belongs to, by returning one of the predefined constants 
@@ -477,7 +477,7 @@ The space initialization can then look as follows:
 
     H1Space space(&mesh, &shapeset);
     space.set_bc_types(bc_types);
-    space.set_bc_values(bc_values);
+    space.set_essential_bc_values(essential_bc_values);
 
 Suppose we would like to modify the previous Poisson model problem in the following way:
 
@@ -497,7 +497,7 @@ denote the essential boundary condition:
 Further, the value callback must return the value of the Dirichlet BC:
 ::
 
-    scalar bc_values(int marker, double x, double y)
+    scalar essential_bc_values(int ess_bdy_marker, double x, double y)
     {
       return (-CONST_F/4)*(x*x + y*y);
     }
@@ -1036,8 +1036,8 @@ conditions can be implemented as
     BCType bc_types(int marker)
       { return (marker == 1) ? BC_ESSENTIAL : BC_NATURAL;; }
 
-    // function values for Dirichlet boundary conditions
-    double bc_values(int marker, double x, double y)
+    // function values for essential(Dirichlet) boundary conditions
+    scalar essential_bc_values(int ess_bdy_marker, double x, double y)
       { return 0;}
 
 Next we create the two displacement spaces, xdisp and ydisp:
@@ -1046,13 +1046,13 @@ Next we create the two displacement spaces, xdisp and ydisp:
     // create the x displacement space
     H1Space xdisp(&mesh, &shapeset);
     xdisp.set_bc_types(bc_types);
-    xdisp.set_bc_values(bc_values);
+    xdisp.set_essential_bc_values(essential_bc_values);
     xdisp.set_uniform_order(P\_INIT);
 
     // create the y displacement space
     H1Space ydisp(&mesh, &shapeset);
     ydisp.set_bc_types(bc_types);
-    ydisp.set_bc_values(bc_values);
+    ydisp.set_essential_bc_values(essential_bc_values);
     ydisp.set_uniform_order(P\_INIT);
 
 Our WeakForm instance will be initialized for two equations in the system.
@@ -1237,9 +1237,9 @@ boundary condition types
 and values
 ::
 
-    scalar bc_values(int marker, double x, double y)
+    scalar essential_bc_values(int ess_bdy_marker, double x, double y)
     {
-      if (marker == marker_ground) return T_INIT;
+      if (ess_bdy_marker == marker_ground) return T_INIT;
     }
 
 Then the space for the temperature $T$ is set up:
@@ -1248,7 +1248,7 @@ Then the space for the temperature $T$ is set up:
     // set up spaces
     H1Space space(&mesh, &shapeset);
     space.set_bc_types(bc_types);
-    space.set_bc_values(bc_values);
+    space.set_essential_bc_values(essential_bc_values);
     space.set_uniform_order(P_INIT);
 
 The bilinear and linear forms are defined as follows:

@@ -17,8 +17,8 @@ cdef c_BCType bc_type(int marker):
         return <c_BCType>BC_ESSENTIAL
     return <c_BCType>BC_NATURAL
 
-# Function values for Dirichlet boundary conditions    
-cdef scalar bc_values(int marker, double x, double y):
+# Function values for essential(Dirichlet) boundary conditions    
+cdef scalar essential_bc_values(int ess_bdy_marker, double x, double y):
     return 0.0
 
 # Bilinear forms
@@ -57,5 +57,5 @@ def set_bc(H1Space xdisp, H1Space ydisp):
     xdisp.thisptr.set_bc_types(&bc_type)
     ydisp.thisptr.set_bc_types(&bc_type)
 
-    xdisp.thisptr.set_bc_values(&bc_values)
-    ydisp.thisptr.set_bc_values(&bc_values)
+    xdisp.thisptr.set_essential_bc_values(&essential_bc_values)
+    ydisp.thisptr.set_essential_bc_values(&essential_bc_values)

@@ -37,8 +37,8 @@ const int P_INIT = 2;                // Initial polynomial degree of all mesh el
 BCType bc_types(int marker)
   { return (marker == 1) ? BC_ESSENTIAL : BC_NATURAL; }
 
-scalar temp_bc_values(int marker, double x, double y)
-  { return (marker == 1) ? 1.0 : 0; }
+scalar essential__bc_values(int ess_bdy_marker, double x, double y)
+  { return (ess_bdy_marker == 1) ? 1.0 : 0; }
 
 
 scalar temp_ic(double x, double y, scalar& dx, scalar& dy)
@@ -237,7 +237,7 @@ int main(int argc, char* argv[])
   H1Space tspace(&mesh, &shapeset);
   H1Space cspace(&mesh, &shapeset);
   tspace.set_bc_types(bc_types);
-  tspace.set_bc_values(temp_bc_values);
+  tspace.set_essential_bc_values(essential__bc_values);
   cspace.set_bc_types(bc_types);
   tspace.set_uniform_order(P_INIT);
   cspace.set_uniform_order(P_INIT);

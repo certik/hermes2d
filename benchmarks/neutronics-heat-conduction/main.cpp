@@ -125,7 +125,7 @@ BCType bc_types_T(int marker)
  
 
 // Dirichlet boundary condition values
-scalar bc_values_T(int marker, double x, double y)
+scalar essential_bc_values_T(int ess_bdy_marker, double x, double y)
 {
   return Tref;
 }
@@ -137,7 +137,7 @@ BCType bc_types_phi(int marker)
   return BC_NATURAL;
 }
  
-scalar bc_values_phi(int marker, double x, double y)
+scalar essential_bc_values_phi(int ess_bdy_marker, double x, double y)
 {
   return 0.0;
 }
@@ -323,11 +323,11 @@ int main(int argc, char* argv[])
   // create H1 spaces
   H1Space space_T(&mesh, &shapeset);
   space_T.set_bc_types(bc_types_T);
-  space_T.set_bc_values(bc_values_T);
+  space_T.set_essential_bc_values(essential_bc_values_T);
   space_T.set_uniform_order(P_INIT);
   H1Space space_phi(&mesh, &shapeset);
   space_phi.set_bc_types(bc_types_phi);
-  space_phi.set_bc_values(bc_values_phi);
+  space_phi.set_essential_bc_values(essential_bc_values_phi);
   space_phi.set_uniform_order(P_INIT);
 
   // enumerate degrees of freedom

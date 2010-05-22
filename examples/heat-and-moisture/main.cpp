@@ -94,9 +94,9 @@ BCType temp_bc_type(int marker)
 BCType moist_bc_type(int marker)
   { return BC_NATURAL; }
 
-scalar temp_bc_value(int marker, double x, double y)
+scalar essential_bc_values(int ess_bdy_marker, double x, double y)
 {
-  if (marker == MARKER_REACTOR_WALL)
+  if (ess_bdy_marker == MARKER_REACTOR_WALL)
   {
     double current_reactor_temperature = TEMP_REACTOR_MAX;
     if (current_time < REACTOR_START_TIME) {
@@ -129,7 +129,7 @@ int main(int argc, char* argv[])
   // space for temperature
   H1Space temp(&temp_mesh, &shapeset);
   temp.set_bc_types(temp_bc_type);
-  temp.set_bc_values(temp_bc_value);
+  temp.set_essential_bc_values(essential_bc_values);
   temp.set_uniform_order(P_INIT);
 
   // space for moisture

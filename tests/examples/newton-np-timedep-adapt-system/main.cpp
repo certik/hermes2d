@@ -81,7 +81,7 @@ BCType C_bc_types(int marker) {
 }
 
 // Diricleht Boundary conditions for Poisson equation.
-scalar phi_bc_values(int marker, double x, double y) {
+scalar essential_bc_values(int ess_bdy_marker, double x, double y) {
   return 0.0;
 }
 
@@ -265,7 +265,7 @@ int main (int argc, char* argv[]) {
 	// Initialize boundary conditions
 	C.set_bc_types(C_bc_types);
 	phi.set_bc_types(phi_bc_types);
-	phi.set_bc_values(phi_bc_values);
+	phi.set_essential_bc_values(essential_bc_values);
 	//C.set_bc_values(C_bc_values);
 
 	// set polynomial degrees

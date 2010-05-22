@@ -310,7 +310,7 @@ The treatment of the Dirichlet boundary conditions in the code looks as follows:
     }
 
     // Dirichlet boundary condition values
-    scalar bc_values(int marker, double x, double y)
+    scalar essential_bc_values(int ess_bdy_marker, double x, double y)
     {
       double dx, dy;
       return dir_lift(x, y, dx, dy); 

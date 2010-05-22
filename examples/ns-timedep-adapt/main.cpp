@@ -107,8 +107,8 @@ BCType xvel_bc_type(int marker) {
 }
 
 // Boundary condition values for x-velocity
-scalar xvel_bc_value(int marker, double x, double y) {
-  if (marker == marker_left) {
+scalar essential_bc_value(int ess_bdy_marker, double x, double y) {
+  if (ess_bdy_marker == marker_left) {
     // time-dependent inlet velocity (parabolic profile)
     double val_y = VEL_INLET * y*(H-y) / (H/2.)/(H/2.); //parabolic profile with peak VEL_INLET at y = H/2
     if (TIME <= STARTUP_TIME) return val_y * TIME/STARTUP_TIME;
@@ -172,7 +172,7 @@ int main(int argc, char* argv[])
 
   // initialize boundary conditions
   xvel_space.set_bc_types(xvel_bc_type);
-  xvel_space.set_bc_values(xvel_bc_value);
+  xvel_space.set_essential_bc_values(essential_bc_value);
   yvel_space.set_bc_types(yvel_bc_type);
   p_space.set_bc_types(p_bc_type);
 

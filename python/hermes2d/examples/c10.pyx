@@ -11,15 +11,15 @@ cdef c_BCType bc_types(int marker):
     return <c_BCType>BC_ESSENTIAL
 
 # Dirichlet boundary condition values
-cdef scalar bc_values(int marker, double x, double y):
-    if marker == 2:
+cdef scalar essential_bc_values(int ess_bdy_marker, double x, double y):
+    if ess_bdy_marker == 2:
         return VOLTAGE
     else:
         return 0.0
 
 def set_bc(H1Space space):
     space.thisptr.set_bc_types(&bc_types)
-    space.thisptr.set_bc_values(&bc_values)
+    space.thisptr.set_essential_bc_values(&essential_bc_values)
 
 
 cdef scalar biform1(int n, double *wt, FuncReal *u, FuncReal *v, GeomReal *e, ExtDataReal *ext):

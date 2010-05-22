@@ -18,7 +18,7 @@ using namespace RefinementSelectors;
 //
 //  Domain: Square (0, 1)x(0, 1)
 //
-//  BC:  Dirichlet, see the function scalar bc_values() below.
+//  BC:  Dirichlet, see the function scalar essential_bc_values() below.
 
 const int P_INIT = 1;                  // Initial polynomial degree of all mesh elements.
 const bool STABILIZATION_ON = false;    // Stabilization on/off (assumes that H2D_SECOND_DERIVATIVES_ENABLED is defined)
@@ -64,9 +64,9 @@ BCType bc_types(int marker)
 }
 
 // Dirichlet boundary condition values
-scalar bc_values(int marker, double x, double y)
+scalar essential_bc_values(int ess_bdy_marker, double x, double y)
 {
-    if (marker == 1) return 1;
+    if (ess_bdy_marker == 1) return 1;
     else return 2 - pow(x, 0.1) - pow(y, 0.1);
 }
 
@@ -139,7 +139,7 @@ int main(int argc, char* argv[])
   // create finite element space
   H1Space space(&mesh, &shapeset);
   space.set_bc_types(bc_types);
-  space.set_bc_values(bc_values);
+  space.set_essential_bc_values(essential_bc_values);
   space.set_uniform_order(P_INIT);
 
   // enumerate degrees of freedom

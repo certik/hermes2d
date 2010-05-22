@@ -91,7 +91,7 @@ BCType bc_types_t(int marker)
   { return (marker == marker_holes) ? BC_ESSENTIAL : BC_NATURAL; }
 
 // Boundary condition values
-double bc_values_t(int marker, double x, double y)
+scalar essential_bc_values(int ess_bdy_marker, double x, double y)
   { return TEMP_INNER; }
 
 // Weak forms
@@ -125,7 +125,7 @@ int main(int argc, char* argv[])
   // Create the temperature space
   H1Space temp(MULTI ? &tmesh : &xmesh, &shapeset);
   temp.set_bc_types(bc_types_t);
-  temp.set_bc_values(bc_values_t);
+  temp.set_essential_bc_values(essential_bc_values);
   temp.set_uniform_order(P_INIT_TEMP);
 
   // Initialize the weak formulation

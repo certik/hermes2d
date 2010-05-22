@@ -15,7 +15,7 @@
 //
 //  Domain: Square (-1, 1)^2.
 //
-//  BC: Nonhomogeneous Dirichlet, see the function bc_values() below.
+//  BC: Nonhomogeneous Dirichlet, see the function essential_bc_values() below.
 //
 //  Exact solution: sqr(x) + sqr(y).
 //
@@ -43,7 +43,7 @@ double exact(double x, double y, double &dx, double &dy)
 }
 
 // Essential boundary condition values.
-double bc_values(int marker, double x, double y)
+scalar essential_bc_values(int ess_bdy_marker, double x, double y)
 {
   return x*x + y*y;
 }
@@ -102,7 +102,7 @@ int main(int argc, char **argv)
   // Create an H1 space.
   H1Space space(&mesh, &shapeset);
   space.set_bc_types(bc_types);
-  space.set_bc_values(bc_values);
+  space.set_essential_bc_values(essential_bc_values);
   space.set_uniform_order(P_INIT);
 
   // Enumerate degrees of freedom.

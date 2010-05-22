@@ -60,9 +60,9 @@ const int marker_top = 2;
 BCType bc_types(int marker)
   { return (marker == marker_left) ? BC_ESSENTIAL : BC_NATURAL; }
 
-// function values for Dirichlet boundary markers
+// function values for essential(Dirichlet) boundary markers
 // (if the return value is zero, this can be omitted)
-scalar bc_values(int marker, double x, double y)
+scalar essential_bc_values(int ess_bdy_marker, double x, double y)
 {
   return 0;
 }
@@ -127,13 +127,13 @@ int main(int argc, char* argv[])
   // create the x displacement space
   H1Space xdisp(&xmesh, &shapeset);
   xdisp.set_bc_types(bc_types);
-  xdisp.set_bc_values(bc_values);
+  xdisp.set_essential_bc_values(essential_bc_values);
   xdisp.set_uniform_order(P_INIT);
 
   // create the y displacement space
   H1Space ydisp(MULTI ? &ymesh : &xmesh, &shapeset);
   ydisp.set_bc_types(bc_types);
-  ydisp.set_bc_values(bc_values);
+  ydisp.set_essential_bc_values(essential_bc_values);
   ydisp.set_uniform_order(P_INIT);
 
   // enumerate basis functions

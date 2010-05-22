@@ -170,9 +170,9 @@ cdef extern from "hermes2d.h":
         int get_element_order(int id)
         int get_num_dofs()
         void set_bc_types(c_BCType (*bc_type_callback)(int marker))
-        void set_bc_values(scalar (*bc_value_callback_by_coord)(int marker,
+        void set_essential_bc_values(scalar (*bc_value_callback_by_coord)(int ess_bdy_marker,
             double x, double y))
-        void set_bc_values_edge "set_bc_values"(scalar (*bc_value_callback_by_edge)(EdgePos *ep))
+        void set_essential_bc_values_edge "set_essential_bc_values"(scalar (*bc_value_callback_by_edge)(EdgePos *ep))
     c_H1Space *new_H1Space "new H1Space" (c_Mesh *m,
             c_H1Shapeset *h)
 
@@ -183,9 +183,9 @@ cdef extern from "hermes2d.h":
         int get_element_order(int id)
         int get_num_dofs()
         void set_bc_types(c_BCType (*bc_type_callback)(int marker))
-        void set_bc_values(scalar (*bc_value_callback_by_coord)(int marker,
+        void set_essential_bc_values(scalar (*bc_value_callback_by_coord)(int ess_bdy_marker,
             double x, double y))
-        void set_bc_values_edge "set_bc_values"(scalar (*bc_value_callback_by_edge)(EdgePos *ep))
+        void set_essential_bc_values_edge "set_essential_bc_values"(scalar (*bc_value_callback_by_edge)(EdgePos *ep))
     c_L2Space *new_L2Space "new L2Space" (c_Mesh *m, c_L2Shapeset *h)
 
     ctypedef struct RealFunction "Function<double>":

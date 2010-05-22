@@ -51,12 +51,12 @@ cdef c_BCType bc_types(int marker):
         return <c_BCType>BC_NATURAL
 
 # Dirichlet boundary condition values
-cdef scalar bc_values(int marker, double x, double y):
+cdef scalar essential_bc_values(int marker, double x, double y):
     return g_D(x, y)
 
 def set_bc(H1Space space):
     space.thisptr.set_bc_types(&bc_types)
-    space.thisptr.set_bc_values(&bc_values)
+    space.thisptr.set_essential_bc_values(&essential_bc_values)
 
 def set_forms(WeakForm wf):
     wf.thisptr.add_biform(0, 0, &bilinear_form, &bilinear_form_ord, H2D_SYM);

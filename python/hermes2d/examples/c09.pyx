@@ -25,13 +25,13 @@ cdef c_BCType bc_types(int marker):
     else:
         return <c_BCType>BC_NATURAL
 
-# Function values for Dirichlet boundary markers
-cdef scalar bc_values(int marker, double x, double y):
+# Function values for essential(Dirichlet) boundary markers
+cdef scalar essential_bc_values(int ess_bdy_marker, double x, double y):
     return T_INIT
 
 def set_bc(H1Space space):
     space.thisptr.set_bc_types(&bc_types)
-    space.thisptr.set_bc_values(&bc_values)
+    space.thisptr.set_essential_bc_values(&essential_bc_values)
 
 # Time-dependent exterior temperature
 def temp_ext(t):

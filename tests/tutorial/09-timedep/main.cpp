@@ -37,7 +37,7 @@ BCType bc_types(int marker)
 }
 
 // function values for Dirichlet boundary markers
-scalar bc_values(int marker, double x, double y)
+scalar essential_bc_values(int ess_bdy_marker, double x, double y)
 {
   return T_INIT;
 }
@@ -84,7 +84,7 @@ int main(int argc, char* argv[])
   // set up spaces
   H1Space space(&mesh, &shapeset);
   space.set_bc_types(bc_types);
-  space.set_bc_values(bc_values);
+  space.set_essential_bc_values(essential_bc_values);
   space.set_uniform_order(P_INIT);
 
   // enumerate basis functions

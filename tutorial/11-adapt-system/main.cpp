@@ -89,7 +89,7 @@ const double K = 100;
 BCType bc_types(int marker) { return BC_ESSENTIAL; }
 
 // Dirichlet BC values
-scalar bc_values(int marker, double x, double y) { return 0;}
+scalar essential_bc_values(int ess_bdy_marker, double x, double y) { return 0;}
 
 // exact solution u(x,y) = U(x)*U(y) and its derivatives
 double U(double t) {
@@ -168,13 +168,13 @@ int main(int argc, char* argv[])
   // Create the x displacement space.
   H1Space uspace(&umesh, &shapeset);
   uspace.set_bc_types(bc_types);
-  uspace.set_bc_values(bc_values);
+  uspace.set_essential_bc_values(essential_bc_values);
   uspace.set_uniform_order(P_INIT_U);
 
   // Create the y displacement space.
   H1Space vspace(MULTI ? &vmesh : &umesh, &shapeset);
   vspace.set_bc_types(bc_types);
-  vspace.set_bc_values(bc_values);
+  vspace.set_essential_bc_values(essential_bc_values);
   vspace.set_uniform_order(P_INIT_V);
 
   // Enumerate degrees of freedom.

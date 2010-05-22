@@ -24,7 +24,7 @@ cdef scalar linear_form(int n, double *wt, FuncReal *u, GeomReal
 cdef c_BCType bc_type(int marker):
     return <c_BCType>BC_ESSENTIAL
 
-cdef scalar bc_values(int marker, double x, double y):
+cdef scalar essential_bc_values(int ess_bdy_marker, double x, double y):
     return fn(x, y)
 
 cdef c_Ord _order_bf(int n, double *wt, FuncOrd *u, FuncOrd *v, GeomOrd
@@ -43,4 +43,4 @@ def set_forms(WeakForm dp):
 
 def set_bc(H1Space space):
     space.thisptr.set_bc_types(&bc_type)
-    space.thisptr.set_bc_values(&bc_values)
+    space.thisptr.set_essential_bc_values(&essential_bc_values)

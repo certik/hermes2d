@@ -14,8 +14,8 @@ cdef c_BCType bc_type_05(int marker):
     else:
         return <c_BCType>BC_NATURAL
         
-# Function values for Dirichlet boundary markers
-cdef scalar bc_values_05(int marker, double x, double y):
+# Function values for essential(Dirichlet) boundary markers
+cdef scalar essential_bc_values(int marker, double x, double y):
     return 0.0
 
 cdef c_Ord _order_lf(int n, double *wt, FuncOrd *u, GeomOrd
@@ -31,4 +31,4 @@ def set_forms(WeakForm dp):
 
 def set_bc(H1Space space):
     space.thisptr.set_bc_types(&bc_type_05)
-    space.thisptr.set_bc_values(&bc_values_05)
+    space.thisptr.set_essential_bc_values(&essential_bc_values)
