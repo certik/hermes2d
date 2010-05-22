@@ -45,6 +45,12 @@ namespace RefinementSelectors {
     H2D_HP_ANISO ///< H-, ANISO- and P-candidates. Orders are modified non-uniformly.
   };
 
+  /// Options of the selector. \ingroup g_selectors
+  enum SelOption {
+    H2D_PREFER_SYMMETRIC_MESH, ///< Prefer symmetric mesh when selection of the best candidate is done. If two or more candiates has the same score, they are skipped. This option is set by default.
+    H2D_APPLY_CONV_EXP_DOF ///< Use \f$d^c - d_0^c\f$, where \f$c\f$ is the convergence exponent, instead of \f$(d - d_0)^c\f$ to evaluate the score in the method OptimumSelector::evaluate_cands_score(). This option is not set by default.
+  };
+
   /// Returns a string representation of a predefined candidate list. \ingroup g_selectors
   /** Used for debugging and output purposes.
    *  \param cand_list A predefined list of candidates.
@@ -65,6 +71,16 @@ namespace RefinementSelectors {
   /** This is a base class for all selectors that chooses an candidate based on some
    *  evaluated criteria. Currently, the criteria is based on an error change per DOF. */
   class H2D_API OptimumSelector : public Selector {
+  protected: //options
+    bool opt_symmetric_mesh; ///< True if ::H2D_PREFER_SYMMETRIC_MESH is set. True by default.
+    bool opt_apply_exp_dof; ///< True if ::H2D_APPLY_CONV_EXP_DOF is set. False by default.
+  public:
+    /// Enables or disables an option.
+    /** If overriden, the implementation has to call a parent implementation.
+     *  \param[in] option An option that is going to be enabled. For possible values, see SelOption.
+     *  \param[in] enable True to enable, false to disable. */
+    virtual void set_option(const SelOption option, bool enable);
+
   public: //candidates
     /// A candidate.
     struct Cand {

@@ -168,6 +168,12 @@ class CandList
 .. autoclass:: CandList
     :members:
 
+class SelOption
+---------------
+
+.. autoclass:: SelOption
+    :members:
+
 class ProjBasedSelector
 -----------------------
 

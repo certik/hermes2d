@@ -276,7 +276,18 @@ In this particular case, a default error weights are used. The default weights p
 Since these weights are default, it is not necessary to express them explicitly. Nevertheless, if expressed, a particular line of the code would be:
 ::
 
-    hp.set_error_weights(2.0, 1.0, sqrt(2.0));
+    selector.set_error_weights(2.0, 1.0, sqrt(2.0));
+
+Besides the error weights, the selector allows you to modify a default behaviour through the method set_option(). The behavior can be modified anytime. Currently, the method accepts following options:
+
+- ``H2D_PREFER_SYMMETRIC_MESH``: Prefer symmetric mesh when selection of the best candidate is done. If set and if two or more candidates has the same score, they are skipped. This option is set by default.
+- ``H2D_APPLY_CONV_EXP_DOF``: Use $d^c - d_0^c$, where $c$ is the convergence exponent, instead of $(d - d_0)^c$ to evaluate the score. This options is *not* set by default.
+
+In this case, default settings are used. If expressed explicitly, the code would be:
+::
+
+    selector.set_option(H2D_PREFER_SYMMETRIC_MESH, true);
+    selector.set_option(H2D_APPLY_CONV_EXP_DOF, false);
 
 After the selector has been created, an adaptivity loop can be entered. The adaptivity loop is an ordinary while-loop or a for-loop. In each iteration of the adaptivity loop, the coarse problem is solved first:
 ::
