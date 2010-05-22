@@ -120,7 +120,6 @@ int main(int argc, char* argv[])
 
   // create a selector which will select optimal candidate
   H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER, &shapeset);
-  selector.set_error_weights(2.0, 1.0, 1.4);
 
   // adaptivity loop
   int it = 1;

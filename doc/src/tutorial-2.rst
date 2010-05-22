@@ -265,7 +265,20 @@ The second parameter ``CONV_EXP`` is a convergence exponent used to evaluate a s
 
 The third parameter specifies the the maximum considered order used in the resulting refinement. In this case, a constant ``H2DRS_DEFAULT_ORDER`` is used. The constant is defined by Hermes2D library and it corresponds to the maximum order supported by the selector. In this case, this is 9.
 
-In each iteration, the coarse problem is solved first:
+Furthermore, the selector allows you to weight errors though a method set_error_weights(). Error weights are applied before the error of a candidate is passed to the calculation of the score. Through this method it is possible to set a preference for a given type of a candidate, i.e., H-candidate, P-candidate, and ANISO-candidate. The error weights can be set anytime and setting error weights to appropriate values can lead to a lower number of DOF. However, the best values of weights depend on a solved problem.
+
+In this particular case, a default error weights are used. The default weights prefer the P-candidate and they are defined as:
+
+- H-candidate weight: $2.0$ (see a constant ``H2DRS_DEFAULT_ERR_WEIGHT_H``)
+- P-candidate weight: $1.0$ (see a constant ``H2DRS_DEFAULT_ERR_WEIGHT_P``)
+- ANISO-candidate weight: $\sqrt{2.0}$ (see a constant ``H2DRS_DEFAULT_ERR_WEIGHT_ANISO``)
+
+Since these weights are default, it is not necessary to express them explicitly. Nevertheless, if expressed, a particular line of the code would be:
+::
+
+    hp.set_error_weights(2.0, 1.0, sqrt(2.0));
+
+After the selector has been created, an adaptivity loop can be entered. The adaptivity loop is an ordinary while-loop or a for-loop. In each iteration of the adaptivity loop, the coarse problem is solved first:
 ::
 
     LinSystem ls(&wf, &solver);
