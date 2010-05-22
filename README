@@ -104,5 +104,6 @@ version of the library, respectively. To view the docs,
 type
 
 firefox h2d-real/html/index.html
+firefox h2d-cplx/html/index.html
 
 
