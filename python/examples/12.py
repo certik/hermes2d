@@ -33,7 +33,7 @@ STRATEGY = 0            # Adaptive strategy:
                             # STRATEGY = 2 ... refine all elements whose error is larger
                             #   than THRESHOLD.
                             # More adaptive strategies can be created in adapt_ortho_h1.cpp.
-CAND_TYPE = CandList.HP_ANISO  # Predefined list of element refinement candidates.
+CAND_LIST = CandList.HP_ANISO  # Predefined list of element refinement candidates.
                         # Possible values are are attributes of the class CandList:
                         # P_ISO, P_ANISO, H_ISO, H_ANISO, HP_ISO, HP_ANISO_H, HP_ANISO_P, HP_ANISO
                         # See the Sphinx tutorial (http://hpfem.org/hermes2d/doc/src/tutorial-2.html#adaptive-h-fem-and-hp-fem) for details.
@@ -83,7 +83,7 @@ done = False
 sln_coarse = Solution()
 sln_fine = Solution()
 
-selector = H1ProjBasedSelector(CAND_TYPE, 1.0, -1, shapeset)
+selector = H1ProjBasedSelector(CAND_LIST, 1.0, -1, shapeset)
 
 while (not done):
     print("\n---- Adaptivity step %d ---------------------------------------------\n" % (it+1))

@@ -356,7 +356,7 @@ def test_example_10():
                             #   than THRESHOLD.
                             # More adaptive strategies can be created in adapt_ortho_h1.cpp.
 
-    CAND_TYPE = CandList.HP_ANISO  # Predefined list of element refinement candidates.
+    CAND_LIST = CandList.HP_ANISO  # Predefined list of element refinement candidates.
                             # Possible values are are attributes of the class CandList:
                             # P_ISO, P_ANISO, H_ISO, H_ANISO, HP_ISO, HP_ANISO_H, HP_ANISO_P, HP_ANISO
                             # See the Sphinx tutorial (http://hpfem.org/hermes2d/doc/src/tutorial-2.html#adaptive-h-fem-and-hp-fem) for details.
@@ -428,7 +428,7 @@ def test_example_11():
     from hermes2d.examples.c11 import set_bc, set_wf_forms, set_hp_forms
 
     # The following parameters can be changed: In particular, compare hp- and
-    # h-adaptivity via the ADAPT_TYPE option, and compare the multi-mesh vs. single-mesh
+    # h-adaptivity via the CAND_LIST option, and compare the multi-mesh vs. single-mesh
     # using the MULTI parameter.
     P_INIT = 1               # Initial polynomial degree of all mesh elements.
     MULTI = True             # MULTI = true  ... use multi-mesh,
@@ -453,7 +453,7 @@ def test_example_11():
                                 #   than THRESHOLD.
                                 # More adaptive strategies can be created in adapt_ortho_h1.cpp.
 
-    CAND_TYPE = CandList.HP_ANISO  # Predefined list of element refinement candidates.
+    CAND_LIST = CandList.HP_ANISO  # Predefined list of element refinement candidates.
                              # Possible values are are attributes of the class CandList:
                              # P_ISO, P_ANISO, H_ISO, H_ANISO, HP_ISO, HP_ANISO_H, HP_ANISO_P, HP_ANISO
                              # See the Sphinx tutorial (http://hpfem.org/hermes2d/doc/src/tutorial-2.html#adaptive-h-fem-and-hp-fem) for details.
@@ -572,7 +572,7 @@ def test_example_12():
                                 # STRATEGY = 2 ... refine all elements whose error is larger
                                 #   than THRESHOLD.
                                 # More adaptive strategies can be created in adapt_ortho_h1.cpp.
-    CAND_TYPE = CandList.HP_ANISO  # Predefined list of element refinement candidates.
+    CAND_LIST = CandList.HP_ANISO  # Predefined list of element refinement candidates.
                             # Possible values are are attributes of the class CandList:
                             # P_ISO, P_ANISO, H_ISO, H_ANISO, HP_ISO, HP_ANISO_H, HP_ANISO_P, HP_ANISO
                             # See the Sphinx tutorial (http://hpfem.org/hermes2d/doc/src/tutorial-2.html#adaptive-h-fem-and-hp-fem) for details.

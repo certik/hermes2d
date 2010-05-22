@@ -3,14 +3,17 @@
 # This example shows how to run adaptive hp-FEM, h-FEM and p-FEM with
 # basic control parameters. The underlying problem is a planar model
 # of an electrostatic micromotor (MEMS). You may want to first run the model
-# with hp-FEM (ADAPT_TYPE = 0), then with h-FEM (ADAPT_TYPE = 1), and
-# last with p-FEM (ADAPT_TYPE = 2). The last option is there solely for
-# completeness, since adaptive p-FEM is not really useful in practice.
-# Uniform initial polynomial degree of mesh elements can be set using
-# the variable P_INIT. The function adapt(...) takes the parameters THRESHOLD,
-# STRATEGY, ADAPT_TYPE, ISO_ONLY, and MESH_REGULARITY whose meaning is
-# explained below. Only the first parameter THRESHOLD is mandatory, all
+# with hp-FEM (CAND_LIST = CandList.HP_ANISO), then with h-FEM (CAND_LIST = CandList.H_ANISO),
+# and last with p-FEM (CAND_LIST = CandList.P_ANISO). The last option
+# is there solely for completeness, since adaptive p-FEM is not really
+# useful in practice. Uniform initial polynomial degree of mesh elements
+# can be set using the variable P_INIT. 
+#
+# The function adapt(...) takes the parameters selector, THRESHOLD,
+# STRATEGY and MESH_REGULARITY whose meaning is explained below.
+# Only the first two parameters selector and THRESHOLD are mandatory, all
 # others can be left out and in that case default values are used.
+#
 # Additional control parameters are possible, these are demonstrated
 # in the next tutorial example. Two types of convergence graphs are created
 # -- error estimate wrt. the number of degrees of freedom (DOF), and error
@@ -52,7 +55,7 @@ STRATEGY = 1            # Adaptive strategy:
                         #   than THRESHOLD.
                         # More adaptive strategies can be created in adapt_ortho_h1.cpp.
 
-CAND_TYPE = CandList.HP_ANISO  # Predefined list of element refinement candidates.
+CAND_LIST = CandList.HP_ANISO  # Predefined list of element refinement candidates.
                         # Possible values are are attributes of the class CandList:
                         # P_ISO, P_ANISO, H_ISO, H_ANISO, HP_ISO, HP_ANISO_H, HP_ANISO_P, HP_ANISO
 			# See the Sphinx tutorial (http://hpfem.org/hermes2d/doc/src/tutorial-2.html#adaptive-h-fem-and-hp-fem) for details.											   
@@ -108,7 +111,7 @@ cpu = 0.0
 sln_coarse = Solution()
 sln_fine = Solution()
 
-selector = H1ProjBasedSelector(CAND_TYPE, 1.0, -1, shapeset)
+selector = H1ProjBasedSelector(CAND_LIST, 1.0, -1, shapeset)
 
 while(not done):
 
