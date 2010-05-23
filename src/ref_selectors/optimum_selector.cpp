@@ -69,7 +69,8 @@ namespace RefinementSelectors {
 
   OptimumSelector::OptimumSelector(CandList cand_list, double conv_exp, int max_order, Shapeset* shapeset, const Range<int>& vertex_order, const Range<int>& edge_bubble_order)
     : Selector(max_order), cand_list(cand_list)
-    , conv_exp(conv_exp), shapeset(shapeset) {
+    , conv_exp(conv_exp), shapeset(shapeset)
+    , opt_symmetric_mesh(true), opt_apply_exp_dof(false) {
     error_if(shapeset == NULL, "Shapeset is NULL.");
 
     //build shape indices
@@ -454,10 +455,15 @@ namespace RefinementSelectors {
     Cand& unrefined = candidates[0];
     const int num_cands = (int)candidates.size();
     unrefined.score = 0;
+    const double unrefined_dofs_exp = pow(unrefined.dofs, conv_exp);
     for (int i = 1; i < num_cands; i++) {
       Cand& cand = candidates[i];
-      if (cand.error < unrefined.error && cand.dofs > unrefined.dofs)
-        candidates[i].score = (log10(unrefined.error) - log10(cand.error)) / pow(cand.dofs - unrefined.dofs, conv_exp);
+      if (cand.error < unrefined.error && cand.dofs > unrefined.dofs) {
+        double delta_dof_exp = pow(cand.dofs - unrefined.dofs, conv_exp);
+	if (opt_apply_exp_dof)
+	  delta_dof_exp = pow(cand.dofs, conv_exp) - unrefined_dofs_exp;
+        candidates[i].score = (log10(unrefined.error) - log10(cand.error)) / delta_dof_exp;
+      }
       else
         candidates[i].score = 0;
     }
@@ -475,22 +481,25 @@ namespace RefinementSelectors {
     if (num_cands > 2)
       std::sort(candidates.begin()+1, candidates.end(), compare_cand_score);
 
-    //find first valid score that diffres from the next scores
-    int imax = 1;
-    while ((imax+1) < num_cands && std::abs(candidates[imax].score - candidates[imax+1].score) < H2DRS_SCORE_DIFF_ZERO) {
-      //find the first candidate with a different score
-      Cand& cand_current = candidates[imax];
-      int imax_end = imax + 2;
-      while (imax_end < num_cands && std::abs(cand_current.score - candidates[imax_end].score) < H2DRS_SCORE_DIFF_ZERO)
-        imax_end++;
+    //select best candidate
+    int imax = 1, h_imax = 1;
+    if (opt_symmetric_mesh) { //prefer symmetric mesh
+      //find first valid score that diffres from the next scores
+      while ((imax+1) < num_cands && std::abs(candidates[imax].score - candidates[imax+1].score) < H2DRS_SCORE_DIFF_ZERO) {
+        //find the first candidate with a different score
+        Cand& cand_current = candidates[imax];
+        int imax_end = imax + 2;
+        while (imax_end < num_cands && std::abs(cand_current.score - candidates[imax_end].score) < H2DRS_SCORE_DIFF_ZERO)
+          imax_end++;
 
-      imax = imax_end;
+        imax = imax_end;
+      }
+
+      //find valid H-refinement candidate
+      h_imax = imax;
+      while (h_imax < num_cands && candidates[h_imax].split != H2D_REFINEMENT_H)
+        h_imax++;
     }
-
-    //find valid H-refinement candidate
-    int h_imax = imax;
-    while (h_imax < num_cands && candidates[h_imax].split != H2D_REFINEMENT_H)
-      h_imax++;
 
     //make sure the result is valid: index is valid, selected candidate has a valid score
     if (imax >= num_cands || candidates[imax].score == 0)
@@ -609,4 +618,13 @@ namespace RefinementSelectors {
       tgt_quad_orders[i] = 0;
 #endif
   }
+
+  void OptimumSelector::set_option(const SelOption option, bool enable) {
+    switch(option) {
+    case H2D_PREFER_SYMMETRIC_MESH: opt_symmetric_mesh = enable; break;
+    case H2D_APPLY_CONV_EXP_DOF: opt_apply_exp_dof = enable; break;
+    default: error("Unknown option %d.", (int)option);
+    }
+  }
+
 }

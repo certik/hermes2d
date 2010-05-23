@@ -75,6 +75,9 @@ cdef extern from "hermes2d.h":
     int c_H2D_HP_ANISO_P "RefinementSelectors::H2D_HP_ANISO_P"
     int c_H2D_HP_ANISO "RefinementSelectors::H2D_HP_ANISO"
 
+    int c_H2D_PREFER_SYMMETRIC_MESH "RefinementSelectors::H2D_PREFER_SYMMETRIC_MESH"
+    int c_H2D_APPLY_CONV_EXP_DOF "RefinementSelectors::H2D_APPLY_CONV_EXP_DOF"
+
     int c_H2D_TOTAL_ERROR_REL "H2D_TOTAL_ERROR_REL"
     int c_H2D_TOTAL_ERROR_ABS "H2D_TOTAL_ERROR_ABS"
     int c_H2D_ELEMENT_ERROR_REL "H2D_ELEMENT_ERROR_REL"
@@ -301,6 +304,9 @@ cdef extern from "hermes2d.h":
     ctypedef enum c_CandList "RefinementSelectors::CandList":
         pass
 
+    ctypedef enum c_SelOption "RefinementSelectors::SelOption":
+        pass
+
     ctypedef struct c_H1SpaceTuple "Tuple<Space*>":
         void (* push_back)(c_H1Space*)
 
@@ -312,6 +318,7 @@ cdef extern from "hermes2d.h":
 
     ctypedef struct c_ProjBasedSelector "RefinementSelectors::ProjBasedSelector":
         void set_error_weights(double, double, double)
+        void set_option(c_SelOption, int)
 
     ctypedef struct c_H1ProjBasedSelector "RefinementSelectors::H1ProjBasedSelector":
         pass

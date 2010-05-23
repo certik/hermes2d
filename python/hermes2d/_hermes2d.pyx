@@ -1033,6 +1033,7 @@ cdef class RefSystem(LinSystem):
 
 cdef class CandList:
     """ A prefined list of andidates.
+
         Possible values are attributes of the class:
 
         - P_ISO: P-candidates only. Orders are modified uniformly.
@@ -1052,6 +1053,17 @@ cdef class CandList:
     HP_ANISO_H = c_H2D_HP_ANISO_H
     HP_ANISO_P = c_H2D_HP_ANISO_P
     HP_ANISO = c_H2D_HP_ANISO
+
+cdef class SelOption:
+    """ Options of the selector.
+
+        Possible values are attributes of the class:
+
+	- PREFER_SYMMETRIC_MESH: Prefer symmetric mesh when selection of the best candidate is done. If two or more candiates has the same score, they are skipped. This option is set by default.
+	- APPLY_CONV_EXP_DOF: Use $d^c - d_0^c$, where $c$ is the convergence exponent, instead of $(d - d_0)^c$ to evaluate the score. This option is not set by default.
+    """
+    PREFER_SYMMETRIC_MESH = c_H2D_PREFER_SYMMETRIC_MESH
+    APPLY_CONV_EXP_DOF = c_H2D_APPLY_CONV_EXP_DOF
 
 cdef class ProjBasedSelector:
     """ A base class for projection based selector.
@@ -1085,6 +1097,16 @@ cdef class ProjBasedSelector:
 	    - settings the default weights: ```selector.set_error_weights(2.0, 1.0, 1.4142)```
         """
         self.thisptr.set_error_weights(weight_h, weight_p, weight_aniso)
+
+    def set_option(self, int option, int enable):
+        """ Enables or disables an option.
+
+	    Suggested Use:
+
+	    - enabling an option ``PREFER_SYMMETRIC_MESH``: ``selector.set_option(SelOption.PREFER_SYMMETRIC_MESH, true)``
+	    - disabling an option ``APPLY_CONV_EXP_DOF``: ``selector.set_optin(SelOption.APPLY_CONV_EXP_DOF, false)``
+	"""
+        self.thisptr.set_option(<c_SelOption>option, enable)
 
 cdef class H1ProjBasedSelector(ProjBasedSelector):
     """ A projection based selector for H1 space by the method adapt() of the class Adapt
