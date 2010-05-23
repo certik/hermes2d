@@ -148,8 +148,8 @@ namespace RefinementSelectors {
       int min_quad_order; ///< Minimum quad order of all elements of all examined candidates. If less than zero, no candidate is generated.
       int max_quad_order; ///< Maximum quad order of all elements of all examined candidates. If less than zero, no candidate is generated.
 
-      /// Default constructor. Creates info that declares no candidates.
-      CandsInfo() : uniform_orders(false), min_quad_order(-1), max_quad_order(-1) {};
+      /// Default constructor. Creates info that declares no candidates and uniform orders.
+      CandsInfo() : uniform_orders(true), min_quad_order(-1), max_quad_order(-1) {};
 
       /// Returns true if there are no candidates.
       /** \return True if there are no candidates. */

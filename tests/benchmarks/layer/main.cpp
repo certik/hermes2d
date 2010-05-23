@@ -3,22 +3,26 @@
 
 using namespace RefinementSelectors;
 
-///  This test makes sure that the benchmark "layer" works correctly.
-///
-///  Parameters
-///  - INIT_REF_NUM=2
-///  - P_INIT=1
-///  - THRESHOLD=0.3
-///  - STRATEGY=0
-///  - CAND_LIST=HP_ANISO
-///  - MESH_REGULARITY=-1
-///  - CONV_EXP=1.0
-///  - ERR_STOP=0.1
-///  - NDOF_STOP=60000
-///  - SLOPE = 60
-///
-///  Results for given parameters
-///  - DOFs: 2798
+/** \addtogroup t_bench_layer Benchmarks/Layer
+ *  \{
+ *  \brief This test makes sure that the benchmark "layer" works correctly.
+ *
+ *  \section s_params Parameters
+ *   - INIT_REF_NUM=2
+ *   - P_INIT=1
+ *   - THRESHOLD=0.3
+ *   - STRATEGY=0
+ *   - CAND_LIST=HP_ANISO
+ *   - MESH_REGULARITY=-1
+ *   - CONV_EXP=1.0
+ *   - ERR_STOP=0.1
+ *   - NDOF_STOP=60000
+ *   - SLOPE = 60
+ *
+ *  \section s_res Results
+ *   - DOFs: 2878
+ *   - Iterations: 23 (the last iteration at which ERR_STOP is fulfilled)
+ */
 
 const int P_INIT = 1;             // Initial polynomial degree of all mesh elements.
 const int INIT_REF_NUM = 2;       // Number of initial uniform mesh refinements.
@@ -243,3 +247,5 @@ int main(int argc, char* argv[])
     return ERROR_FAILURE;
   }
 }
+
+/**  \{ */

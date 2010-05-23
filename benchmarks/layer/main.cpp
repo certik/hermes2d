@@ -178,6 +178,7 @@ int main(int argc, char* argv[])
     // view the solution and mesh
     sview.show(&sln_coarse);
     oview.show(&space);
+    //View::wait(H2DV_WAIT_KEYPRESS);
 
     // time measurement
     cpu_time.tick(H2D_SKIP);

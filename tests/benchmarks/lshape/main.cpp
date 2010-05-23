@@ -222,3 +222,5 @@ int main(int argc, char* argv[])
     return ERROR_FAILURE;
   }
 }
+
+/**  \{ */

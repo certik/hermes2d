@@ -3,7 +3,25 @@
 
 using namespace RefinementSelectors;
 
-//  This test makes sure that the benchmark "anisopoly" works correctly.
+/** \addtogroup t_bench_sm_aniso_x Benchmarks/Smooth Aniso-X
+ *  \{
+ *  \brief This test makes sure that the benchmark "anisopoly" works correctly.
+ *
+ *  \section s_params Parameters
+ *  - P_INIT=2
+ *  - THERSHOLD=0.3
+ *  - STRATEGY=0
+ *  - CAND_LIST=HP_ANISO
+ *  - MESH_REGULARITY=-1
+ *  - ERR_STOP=1E-4
+ *  - CONV_EXP=1.0
+ *  - NDOF_STOP=400
+ *
+ *  \section s_res Results
+ *  - DOFs: 14
+ *  - Error estimate: 3.68E-5 %
+ *  - Iterations: 4 (the last iteration at which ERR_STOP is fulfilled)
+ */
 
 const int P_INIT = 2;             // Initial polynomial degree of all mesh elements.
 const double THRESHOLD = 0.3;     // This is a quantitative parameter of the adapt(...) function and
@@ -219,4 +237,4 @@ int main(int argc, char* argv[])
   }
 }
 
-
+/** \{ */

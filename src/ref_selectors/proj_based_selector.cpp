@@ -11,23 +11,27 @@ namespace RefinementSelectors {
   ProjBasedSelector::ProjBasedSelector(CandList cand_list, double conv_exp, int max_order, Shapeset* shapeset, const Range<int>& vertex_order, const Range<int>& edge_bubble_order)
     : OptimumSelector(cand_list, conv_exp, max_order, shapeset, vertex_order, edge_bubble_order)
     , error_weight_h(H2DRS_DEFAULT_ERR_WEIGHT_H), error_weight_p(H2DRS_DEFAULT_ERR_WEIGHT_P), error_weight_aniso(H2DRS_DEFAULT_ERR_WEIGHT_ANISO)
-    , rhs_cache(NULL)
+    , warn_uniform_orders(false)
   {
+    //clean svals initialization state
+    std::fill(cached_shape_vals_valid, cached_shape_vals_valid + H2D_NUM_MODES, false);
+
     //clear matrix cache
     for(int m = 0; m < H2D_NUM_MODES; m++)
       for(int i = 0; i < H2DRS_MAX_ORDER+1; i++)
         for(int k = 0; k < H2DRS_MAX_ORDER+1; k++)
           proj_matrix_cache[m][i][k] = NULL;
 
-    //allocate cache
+    //allocate caches
     int max_inx = max_shape_inx[0];
     for(int i = 1; i < H2D_NUM_MODES; i++)
       max_inx = std::max(max_inx, max_shape_inx[i]);
-    rhs_cache = new ValueCacheItem<scalar>[max_inx + 1];
+    nonortho_rhs_cache.resize(max_inx + 1);
+    ortho_rhs_cache.resize(max_inx + 1);
   }
 
   ProjBasedSelector::~ProjBasedSelector() {
-    delete[] rhs_cache;
+    //delete matrix cache
     for(int m = 0; m < H2D_NUM_MODES; m++)
       for(int i = 0; i < H2DRS_MAX_ORDER+1; i++)
         for(int k = 0; k < H2DRS_MAX_ORDER+1; k++) {
@@ -171,55 +175,85 @@ namespace RefinementSelectors {
       rval[son] = precalc_ref_solution(son, rsln, e, H2DRS_INTR_GIP_ORDER);
     }
 
+    //retrieve transformations
+    Trf* trfs = NULL;
+    int num_noni_trfs = 0;
+    if (mode == H2D_MODE_TRIANGLE) {
+      trfs = tri_trf;
+      num_noni_trfs = H2D_TRF_TRI_NUM;
+    }
+    else {
+      trfs = quad_trf;
+      num_noni_trfs = H2D_TRF_QUAD_NUM;
+    }
+
+    // precalculate values of shape functions
+    TrfShape empty_shape_vals;
+    if (!cached_shape_vals_valid[mode]) {
+      precalc_ortho_shapes(gip_points, num_gip_points, trfs, num_noni_trfs, shape_indices[mode], max_shape_inx[mode], cached_shape_ortho_vals[mode]);
+      precalc_shapes(gip_points, num_gip_points, trfs, num_noni_trfs, shape_indices[mode], max_shape_inx[mode], cached_shape_vals[mode]);
+      cached_shape_vals_valid[mode] = true;
+
+      //issue a warning if ortho values are defined and the selected cand_list might benefit from that but it cannot because elements do not have uniform orders
+      if (!warn_uniform_orders && mode == H2D_MODE_QUAD && !cached_shape_ortho_vals[mode][H2D_TRF_IDENTITY].empty()) {
+        warn_uniform_orders = true;
+        if (cand_list == H2D_H_ISO || cand_list == H2D_H_ANISO || cand_list == H2D_P_ISO || cand_list == H2D_HP_ISO || cand_list == H2D_HP_ANISO_H) {
+          warn_if(!info_h.uniform_orders || !info_aniso.uniform_orders || !info_p.uniform_orders, "Possible inefficiency: %s might be more efficient if the input mesh contains elements with uniform orders strictly.", get_cand_list_str(cand_list));
+        }
+      }
+    }
+    TrfShape& svals = cached_shape_vals[mode];
+    TrfShape& ortho_svals = cached_shape_ortho_vals[mode];
+
     //H-candidates
     if (!info_h.is_empty()) {
-      Trf trf_identity = { {1.0, 1.0}, {0.0, 0.0} };
-      Trf* p_trf_identity[1] = { &trf_identity };
-      double coef_mm = 1;
+      Trf* p_trf_identity[1] = { &trfs[H2D_TRF_IDENTITY] };
+      std::vector<TrfShapeExp>* p_trf_svals[1] = { &svals[H2D_TRF_IDENTITY] };
+      std::vector<TrfShapeExp>* p_trf_ortho_svals[1] = { &ortho_svals[H2D_TRF_IDENTITY] };
       for(int son = 0; son < H2D_MAX_ELEMENT_SONS; son++) {
         scalar **sub_rval[1] = { rval[son] };
         calc_error_cand_element(mode, gip_points, num_gip_points
-          , 1, &base_element->sons[son], p_trf_identity, sub_rval, &coef_mm, &coef_mm
+          , 1, &base_element->sons[son], p_trf_identity, sub_rval
+          , p_trf_svals, p_trf_ortho_svals
           , info_h, herr[son]);
       }
     }
 
     //ANISO-candidates
     if (!info_aniso.is_empty()) {
-      const double mx[4] = { 2.0, 2.0, 1.0, 1.0}; //scale coefficients of dx for X-axis due to trasformations
-      const double my[4] = { 1.0, 1.0, 2.0, 2.0}; //scale coefficients of dy for Y-axis due to trasformations
       const int sons[4][2] = { {0,1}, {3,2}, {0,3}, {1,2} }; //indices of sons for sub-areas
       const int tr[4][2]   = { {6,7}, {6,7}, {4,5}, {4,5} }; //indices of ref. domain transformations for sub-areas
       for(int version = 0; version < 4; version++) { // 2 elements for vertical split, 2 elements for horizontal split
-        Trf* sub_trfs[2] = { &quad_trf[tr[version][0]], &quad_trf[tr[version][1]] };
+        Trf* sub_trfs[2] = { &trfs[tr[version][0]], &trfs[tr[version][1]] };
         Element* sub_domains[2] = { base_element->sons[sons[version][0]], base_element->sons[sons[version][1]] };
         scalar **sub_rval[2] = { rval[sons[version][0]], rval[sons[version][1]] };
-        double coefs_mx[2] = { mx[version], mx[version] }, coefs_my[2] = { my[version], my[version] };
+        std::vector<TrfShapeExp>* sub_svals[2] = { &svals[tr[version][0]], &svals[tr[version][1]] };
+        std::vector<TrfShapeExp>* sub_ortho_svals[2] = { &ortho_svals[tr[version][0]], &ortho_svals[tr[version][1]] };
         calc_error_cand_element(mode, gip_points, num_gip_points
-          , 2, sub_domains, sub_trfs, sub_rval, coefs_mx, coefs_my
+          , 2, sub_domains, sub_trfs, sub_rval
+          , sub_svals, sub_ortho_svals
           , info_aniso, anisoerr[version]);
       }
     }
 
     //P-candidates
     if (!info_p.is_empty()) {
-      Trf* src_trfs = NULL;
-      if (mode == H2D_MODE_TRIANGLE)
-        src_trfs = tri_trf;
-      else
-        src_trfs = quad_trf;
-      Trf* sub_trfs[4] = { &src_trfs[0], &src_trfs[1], &src_trfs[2], &src_trfs[3] };
+      Trf* sub_trfs[4] = { &trfs[0], &trfs[1], &trfs[2], &trfs[3] };
       scalar **sub_rval[4] = { rval[0], rval[1], rval[2], rval[3] };
-      double coefs_mm[4] = { 2.0, 2.0, 2.0, (mode == H2D_MODE_TRIANGLE) ? -2.0 : 2.0 };
+      std::vector<TrfShapeExp>* sub_svals[4] = { &svals[0], &svals[1], &svals[2], &svals[3] };
+      std::vector<TrfShapeExp>* sub_ortho_svals[4] = { &ortho_svals[0], &ortho_svals[1], &ortho_svals[2], &ortho_svals[3] };
+
       calc_error_cand_element(mode, gip_points, num_gip_points
-        , 4, base_element->sons, sub_trfs, sub_rval, coefs_mm, coefs_mm
+        , 4, base_element->sons, sub_trfs, sub_rval
+        , sub_svals, sub_ortho_svals
         , info_p, perr);
     }
   }
 
   void ProjBasedSelector::calc_error_cand_element(const int mode
     , double3* gip_points, int num_gip_points
-    , const int num_sub, Element** sub_domains, Trf** sub_trfs, scalar*** sub_rvals, double* coefs_mx, double* coefs_my
+    , const int num_sub, Element** sub_domains, Trf** sub_trfs, scalar*** sub_rvals
+    , std::vector<TrfShapeExp>** sub_nonortho_svals, std::vector<TrfShapeExp>** sub_ortho_svals
     , const CandsInfo& info
     , CandElemProjError errors_squared
     ) {
@@ -233,9 +267,16 @@ namespace RefinementSelectors {
     ProjMatrixCache& proj_matrices = proj_matrix_cache[mode];
     std::vector<ShapeInx>& full_shape_indices = shape_indices[mode];
 
+    //check whether ortho-svals are available
+    bool ortho_svals_available = true;
+    for(int i = 0; i < num_sub && ortho_svals_available; i++)
+      ortho_svals_available &= !sub_ortho_svals[i]->empty();
+
     //clenup of the cache
-    for(int i = 0; i <= max_shape_inx[mode]; i++)
-      rhs_cache[i] = ValueCacheItem<scalar>();
+    for(int i = 0; i <= max_shape_inx[mode]; i++) {
+      nonortho_rhs_cache[i] = ValueCacheItem<scalar>();
+      ortho_rhs_cache[i] = ValueCacheItem<scalar>();
+    }
 
     //calculate for all orders
     double sub_area_corr_coef = 1.0 / num_sub;
@@ -259,47 +300,62 @@ namespace RefinementSelectors {
 
       //continue only if there are shapes to process
       if (num_shapes > 0) {
-        //calculate projection matrix
-        if (proj_matrices[order_h][order_v] == NULL)
-          proj_matrices[order_h][order_v] = build_projection_matrix(gip_points, num_gip_points, shape_inxs, num_shapes);
-        copy_matrix(proj_matrix, proj_matrices[order_h][order_v], num_shapes, num_shapes); //copy projection matrix because original matrix will be modified
+        bool use_ortho = ortho_svals_available && order_perm.get_order_h() == order_perm.get_order_v();
+        //error_if(!use_ortho, "Non-ortho"); //DEBUG
+
+        //select a cache
+        std::vector< ValueCacheItem<scalar> >& rhs_cache = use_ortho ? ortho_rhs_cache : nonortho_rhs_cache;
+        std::vector<TrfShapeExp>** sub_svals = use_ortho ? sub_ortho_svals : sub_nonortho_svals;
+
+        //calculate projection matrix iff no ortho is used
+        if (!use_ortho) {
+          //error_if(!use_ortho, "Non-ortho"); //DEBUG
+          if (proj_matrices[order_h][order_v] == NULL)
+            proj_matrices[order_h][order_v] = build_projection_matrix(gip_points, num_gip_points, shape_inxs, num_shapes);
+          copy_matrix(proj_matrix, proj_matrices[order_h][order_v], num_shapes, num_shapes); //copy projection matrix because original matrix will be modified
+        }
 
         //build right side (fill cache values that are missing)
         for(int inx_sub = 0; inx_sub < num_sub; inx_sub++) {
-          Element* sub_domain = sub_domains[inx_sub];
-          ElemSubTrf sub_trf = { sub_trfs[inx_sub], coefs_mx[inx_sub], coefs_my[inx_sub] };
-          ElemGIP sub_gip = { gip_points, num_gip_points, sub_rvals[inx_sub] };
+          Element* this_sub_domain = sub_domains[inx_sub];
+          ElemSubTrf this_sub_trf = { sub_trfs[inx_sub], 1 / sub_trfs[inx_sub]->m[0], 1 / sub_trfs[inx_sub]->m[1] };
+          ElemGIP this_sub_gip = { gip_points, num_gip_points, sub_rvals[inx_sub] };
+          std::vector<TrfShapeExp>& this_sub_svals = *(sub_svals[inx_sub]);
 
           for(int k = 0; k < num_shapes; k++) {
             int shape_inx = shape_inxs[k];
             ValueCacheItem<scalar>& shape_rhs_cache = rhs_cache[shape_inx];
-            if (!shape_rhs_cache.is_valid())
-              shape_rhs_cache.set(shape_rhs_cache.get() + evaluate_rhs_subdomain(sub_domain, sub_gip, sub_trf, shape_inx));
+            if (!shape_rhs_cache.is_valid()) {
+              TrfShapeExp empty_sub_vals;
+              ElemSubShapeFunc this_sub_shape = { shape_inx, this_sub_svals.empty() ? empty_sub_vals : this_sub_svals[shape_inx] };
+              shape_rhs_cache.set(shape_rhs_cache.get() + evaluate_rhs_subdomain(this_sub_domain, this_sub_gip, this_sub_trf, this_sub_shape));
+            }
           }
         }
 
         //copy values from cache and apply area correction coefficient
         for(int k = 0; k < num_shapes; k++) {
-          ValueCacheItem<scalar>& shape_rhs_cache = rhs_cache[shape_inxs[k]];
-          right_side[k] = sub_area_corr_coef * shape_rhs_cache.get();
-          shape_rhs_cache.mark();
+          ValueCacheItem<scalar>& rhs_cache_value = rhs_cache[shape_inxs[k]];
+          right_side[k] = sub_area_corr_coef * rhs_cache_value.get();
+          rhs_cache_value.mark();
         }
 
-        //solve
-        ludcmp(proj_matrix, num_shapes, indx, d);
-        lubksb<scalar>(proj_matrix, num_shapes, indx, right_side);
+        //solve iff no ortho is used
+        if (!use_ortho) {
+          //error_if(!use_ortho, "Non-ortho"); //DEBUG
+          ludcmp(proj_matrix, num_shapes, indx, d);
+          lubksb<scalar>(proj_matrix, num_shapes, indx, right_side);
+        }
 
         //calculate error
         double error_squared = 0;
         for(int inx_sub = 0; inx_sub < num_sub; inx_sub++) {
-          Element* sub_domain = sub_domains[inx_sub];
-          Trf* ref_coord_transf = sub_trfs[inx_sub];
-          double coef_mx = coefs_mx[inx_sub], coef_my = coefs_my[inx_sub];
-          ElemSubTrf sub_trf = { sub_trfs[inx_sub], coefs_mx[inx_sub], coefs_my[inx_sub] };
-          ElemGIP sub_gip = { gip_points, num_gip_points, sub_rvals[inx_sub] };
-          ElemProj elem_proj = { shape_inxs, num_shapes, right_side, quad_order };
+          Element* this_sub_domain = sub_domains[inx_sub];
+          ElemSubTrf this_sub_trf = { sub_trfs[inx_sub], 1 / sub_trfs[inx_sub]->m[0], 1 / sub_trfs[inx_sub]->m[1] };
+          ElemGIP this_sub_gip = { gip_points, num_gip_points, sub_rvals[inx_sub] };
+          ElemProj elem_proj = { shape_inxs, num_shapes, *(sub_svals[inx_sub]), right_side, quad_order };
 
-          error_squared += evaluate_error_squared_subdomain(sub_domain, sub_gip, sub_trf, elem_proj);
+          error_squared += evaluate_error_squared_subdomain(this_sub_domain, this_sub_gip, this_sub_trf, elem_proj);
         }
         errors_squared[order_h][order_v] = error_squared * sub_area_corr_coef; //apply area correction coefficient
       }
