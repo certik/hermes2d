@@ -5,7 +5,7 @@ Introduction
 About Hermes2D
 --------------
 
-Hermes2D is a free C++/Python library for rapid prototyping of
+Hermes2D is a free C++/Python library for rapid development of
 adaptive FEM and *hp*-FEM solvers for partial differential equations (PDE),
 developed by the `hp-FEM group <http://hpfem.org/>`_ at the University of 
 Nevada, Reno. The library is available under the GPL license (Version 2, 1991).
