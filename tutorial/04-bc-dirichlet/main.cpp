@@ -50,46 +50,48 @@ Scalar linear_form(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scal
 
 int main(int argc, char* argv[])
 {
-  // load the mesh file
+  // Load the mesh file.
   Mesh mesh;
   H2DReader mloader;
   mloader.load("domain.mesh", &mesh);
+
+  // Refine mesh uniformly.
   for(int i=0; i<UNIFORM_REF_LEVEL; i++) mesh.refine_all_elements();
 
-  // initialize the shapeset and the cache
+  // Initialize the shapeset and the cache.
   H1Shapeset shapeset;
   PrecalcShapeset pss(&shapeset);
 
-  // create an H1 space
+  // Create an H1 space.
   H1Space space(&mesh, &shapeset);
   space.set_bc_types(bc_types);
   space.set_bc_values(bc_values);
   space.set_uniform_order(P_INIT);
 
-  // enumerate degrees of freedom
+  // Enumerate degrees of freedom.
   int ndof = assign_dofs(&space);
 
-  // initialize the weak formulation
-  WeakForm wf(1);
-  wf.add_biform(0, 0, callback(bilinear_form));
-  wf.add_liform(0, callback(linear_form));
+  // Initialize the weak formulation.
+  WeakForm wf;
+  wf.add_biform(callback(bilinear_form));
+  wf.add_liform(callback(linear_form));
 
-  // initialize the linear system and solver
+  // Initialize the linear system and solver.
   UmfpackSolver umfpack;
   LinSystem sys(&wf, &umfpack);
-  sys.set_spaces(1, &space);
-  sys.set_pss(1, &pss);
+  sys.set_space(&space);
+  sys.set_pss(&pss);
 
-  // assemble the stiffness matrix and solve the system
+  // Assemble the stiffness matrix and solve the system.
   Solution sln;
   sys.assemble();
-  sys.solve(1, &sln);
+  sys.solve(&sln);
 
-  // visualize the solution
+  // Visualize the solution.
   ScalarView view("Solution");
   view.show(&sln);
 
-  // wait for a view to be closed
+  // Wait for the view to be closed.
   View::wait();
   return 0;
 }

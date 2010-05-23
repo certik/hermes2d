@@ -54,6 +54,9 @@ public:
   /// stores the result in the given Solutions.
   bool solve(int n, ...);
 
+  // single equation case
+  bool solve(Solution* sln);
+
   /// Performs complete Newton's loop for one equation
   bool solve_newton(Solution* u_prev, double newton_tol, int newton_max_iter,
                       Filter* f1 = NULL, Filter* f2 = NULL, Filter* f3 = NULL);

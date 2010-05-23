@@ -4,6 +4,7 @@
 # in that subdirectory instead.
 #
 
+CMake.vars
 .*
 *.o
 *.o.*

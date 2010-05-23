@@ -21,9 +21,7 @@ using namespace RefinementSelectors;
 //     du_2/dn = f on Gamma_2
 //     du_1/dn = du_2/dn = 0 elsewhere
 //
-// The following parameters can be changed: In particular, compare hp- and
-// h-adaptivity via the ADAPT_TYPE option, and compare the multi-mesh vs. single-mesh
-// using the MULTI parameter.
+// The following parameters can be changed: 
 
 const int P_INIT = 2;            // Initial polynomial degree of all mesh elements.
 const bool MULTI = true;         // MULTI = true  ... use multi-mesh,

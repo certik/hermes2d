@@ -42,7 +42,9 @@ public:
   virtual ~LinSystem();
 
   void set_spaces(int n, ...);
+  void set_space(Space* s); // single equation case
   void set_pss(int n, ...);
+  void set_pss(PrecalcShapeset* p); // single equation case
   void copy(LinSystem* sys);
   Space* get_space(int n) {
       //if (n < 0 || n >= this->wf->neq) error("Bad number of the space.");
@@ -56,6 +58,7 @@ public:
   void assemble(bool rhsonly = false);
   void assemble_rhs_only() { assemble(true); }
   bool solve(int n, ...);
+  bool solve(Solution* sln); // single equation case
   virtual void free();
 
   void save_matrix_matlab(const char* filename, const char* varname = "A");
@@ -64,7 +67,7 @@ public:
   void save_rhs_bin(const char* filename);
 
   void enable_dir_contrib(bool enable = true) {  want_dir_contrib = enable;  }
-  const scalar* get_solution_vec() const { return Vec; }
+  scalar* get_solution_vector() { return Vec; }
 
   int get_num_dofs() const { return ndofs; };
   int get_matrix_size() const;
@@ -103,11 +106,38 @@ public:
 
   /// Global orthogonal projection of an exact function.
   void project_global(scalar (*exactfn)(double x, double y, scalar& dx, scalar& dy),
-              Solution* result, int proj_norm = 1)
+                      Solution* result, int proj_norm = 1)
   {
     Mesh *mesh = this->get_space(0)->get_mesh();
     result->set_exact(mesh, exactfn);
     project_global_n(proj_norm, 1, result, result);
+  }
+
+  /// Global orthogonal projection of two exact functions.
+  void project_global(scalar (*exactfn1)(double x, double y, scalar& dx, scalar& dy), 
+                      scalar (*exactfn2)(double x, double y, scalar& dx, scalar& dy),
+                      Solution* result1, Solution* result2, int proj_norm = 1)
+  {
+    Mesh *mesh1 = this->get_space(0)->get_mesh();
+    Mesh *mesh2 = this->get_space(1)->get_mesh();
+    result1->set_exact(mesh1, exactfn1);
+    result2->set_exact(mesh2, exactfn2);
+    project_global_n(proj_norm, 2, result1, result2, result1, result2);
+  }
+
+  /// Global orthogonal projection of three exact functions.
+  void project_global(scalar (*exactfn1)(double x, double y, scalar& dx, scalar& dy), 
+                      scalar (*exactfn2)(double x, double y, scalar& dx, scalar& dy),
+                      scalar (*exactfn3)(double x, double y, scalar& dx, scalar& dy),
+                      Solution* result1, Solution* result2, Solution* result3, int proj_norm = 1)
+  {
+    Mesh *mesh1 = this->get_space(0)->get_mesh();
+    Mesh *mesh2 = this->get_space(1)->get_mesh();
+    Mesh *mesh3 = this->get_space(2)->get_mesh();
+    result1->set_exact(mesh1, exactfn1);
+    result2->set_exact(mesh2, exactfn2);
+    result3->set_exact(mesh3, exactfn3);
+    project_global_n(proj_norm, 3, result1, result2, result3, result1, result2, result3);
   }
 
   /// Projection-based interpolation of an exact function. This is faster than the 

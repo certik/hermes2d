@@ -56,7 +56,7 @@ class H2D_API WeakForm
 {
 public:
 
-  WeakForm(int neq, bool mat_free = false);
+  WeakForm(int neq = 1, bool mat_free = false);
 
   int def_area(int n, ...);
 
@@ -76,16 +76,25 @@ public:
 
   // linear case
   void add_biform(int i, int j, biform_val_t fn, biform_ord_t ord, SymFlag sym = H2D_UNSYM, int area = H2D_ANY, int nx = 0, ...);
+  void add_biform(biform_val_t fn, biform_ord_t ord, SymFlag sym = H2D_UNSYM, int area = H2D_ANY, int nx = 0, ...); // single equation case
   void add_biform_surf(int i, int j, biform_val_t fn, biform_ord_t ord, int area = H2D_ANY, int nx = 0, ...);
+  void add_biform_surf(biform_val_t fn, biform_ord_t ord, int area = H2D_ANY, int nx = 0, ...); // single equation case
   void add_liform(int i, liform_val_t fn, liform_ord_t ord, int area = H2D_ANY, int nx = 0, ...);
+  void add_liform(liform_val_t fn, liform_ord_t ord, int area = H2D_ANY, int nx = 0, ...); // single equation case
   void add_liform_surf(int i, liform_val_t fn, liform_ord_t ord, int area = H2D_ANY, int nx = 0, ...);
+  void add_liform_surf(liform_val_t fn, liform_ord_t ord, int area = H2D_ANY, int nx = 0, ...); // single equation case
   void add_liform(int i, liform_val_extended_t fn, liform_ord_extended_t ord, int area = H2D_ANY, int nx = 0, ...);
+  void add_liform(liform_val_extended_t fn, liform_ord_extended_t ord, int area = H2D_ANY, int nx = 0, ...); // single equation case
 
   // nonlinear case
   void add_jacform(int i, int j, jacform_val_t fn, jacform_ord_t ord, SymFlag sym = H2D_UNSYM, int area = H2D_ANY, int nx = 0, ...);
+  void add_jacform(jacform_val_t fn, jacform_ord_t ord, SymFlag sym = H2D_UNSYM, int area = H2D_ANY, int nx = 0, ...); // single equation case
   void add_jacform_surf(int i, int j, jacform_val_t fn, jacform_ord_t ord, int area = H2D_ANY, int nx = 0, ...);
+  void add_jacform_surf(jacform_val_t fn, jacform_ord_t ord, int area = H2D_ANY, int nx = 0, ...); // single equation case
   void add_resform(int i, resform_val_t fn, resform_ord_t ord, int area = H2D_ANY, int nx = 0, ...);
+  void add_resform(resform_val_t fn, resform_ord_t ord, int area = H2D_ANY, int nx = 0, ...); // single equation case
   void add_resform_surf(int i, resform_val_t fn, resform_ord_t ord, int area = H2D_ANY, int nx = 0, ...);
+  void add_resform_surf(resform_val_t fn, resform_ord_t ord, int area = H2D_ANY, int nx = 0, ...); // single equation case
 
   void set_ext_fns(void* fn, int nx, ...);
 

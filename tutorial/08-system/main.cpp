@@ -76,31 +76,31 @@ Scalar linear_form_surf_1(int n, double *wt, Func<Real> *v, Geom<Real> *e,
 
 int main(int argc, char* argv[])
 {
-  // load the mesh file
+  // Load the mesh file.
   Mesh mesh;
   H2DReader mloader;
   mloader.load("sample.mesh", &mesh);
 
-  // initialize the shapeset and the cache
+  // Initialize the shapeset and the cache.
   H1Shapeset shapeset;
   PrecalcShapeset pss(&shapeset);
 
-  // create the x displacement space
+  // Create the x displacement space.
   H1Space xdisp(&mesh, &shapeset);
   xdisp.set_bc_types(bc_types);
   xdisp.set_bc_values(bc_values);
   xdisp.set_uniform_order(P_INIT);
 
-   // create the y displacement space
+  // Create the y displacement space.
   H1Space ydisp(&mesh, &shapeset);
   ydisp.set_bc_types(bc_types);
   ydisp.set_bc_values(bc_values);
   ydisp.set_uniform_order(P_INIT);
 
-  // enumerate degrees of freedom
+  // Enumerate degrees of freedom.
   int ndof = assign_dofs(2, &xdisp, &ydisp);
 
-  // initialize the weak formulation
+  // Initialize the weak formulation.
   WeakForm wf(2);
   wf.add_biform(0, 0, callback(bilinear_form_0_0), H2D_SYM);  // Note that only one symmetric part is
   wf.add_biform(0, 1, callback(bilinear_form_0_1), H2D_SYM);  // added in the case of symmetric bilinear
@@ -108,23 +108,23 @@ int main(int argc, char* argv[])
   wf.add_liform_surf(0, callback(linear_form_surf_0), GAMMA_3_BDY);
   wf.add_liform_surf(1, callback(linear_form_surf_1), GAMMA_3_BDY);
 
-  // initialize the linear system and solver
+  // Initialize the linear system and solver.
   UmfpackSolver umfpack;
   LinSystem sys(&wf, &umfpack);
   sys.set_spaces(2, &xdisp, &ydisp);
-  sys.set_pss(1, &pss);
+  sys.set_pss(&pss);
 
-  // assemble the stiffness matrix and solve the system
+  // Assemble the stiffness matrix and solve the system.
   Solution xsln, ysln;
   sys.assemble();
   sys.solve(2, &xsln, &ysln);
 
-  // visualize the solution
+  // Visualize the solution.
   ScalarView view("Von Mises stress [Pa]", 50, 50, 1200, 600);
   VonMisesFilter stress(&xsln, &ysln, lambda, mu);
   view.show(&stress, H2D_EPS_HIGH, H2D_FN_VAL_0, &xsln, &ysln, 1.5e5);
 
-  // wait for a view to be closed
+  // Wait for the view to be closed.
   View::wait();
   return 0;
 }

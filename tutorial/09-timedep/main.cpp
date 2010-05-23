@@ -86,46 +86,46 @@ Scalar linear_form_surf(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData
 
 int main(int argc, char* argv[])
 {
-  // load and refine mesh
+  // Load and refine mesh.
   Mesh mesh;
   H2DReader mloader;
   mloader.load("cathedral.mesh", &mesh);
   for(int i = 0; i < INIT_REF_NUM; i++) mesh.refine_all_elements();
   mesh.refine_towards_boundary(2, 5);
 
-  // set up shapeset
+  // Initialize the shapeset and cache.
   H1Shapeset shapeset;
   PrecalcShapeset pss(&shapeset);
 
-  // set up spaces
+  // Initialize the FE space.
   H1Space space(&mesh, &shapeset);
   space.set_bc_types(bc_types);
   space.set_bc_values(bc_values);
   space.set_uniform_order(P_INIT);
 
-  // enumerate degrees of freedom
+  // Enumerate degrees of freedom.
   int ndof = assign_dofs(&space);
 
-  // set initial condition
+  // Set initial condition.
   Solution tsln;
   tsln.set_const(&mesh, T_INIT);
 
-  // weak formulation
-  WeakForm wf(1);
-  wf.add_biform(0, 0, bilinear_form<double, double>, bilinear_form<Ord, Ord>);
-  wf.add_biform_surf(0, 0, bilinear_form_surf<double, double>, bilinear_form_surf<Ord, Ord>, marker_air);
-  wf.add_liform(0, linear_form<double, double>, linear_form<Ord, Ord>, H2D_ANY, 1, &tsln);
-  wf.add_liform_surf(0, linear_form_surf<double, double>, linear_form_surf<Ord, Ord>, marker_air);
+  // Initialize weak formulation.
+  WeakForm wf;
+  wf.add_biform(bilinear_form<double, double>, bilinear_form<Ord, Ord>);
+  wf.add_biform_surf(bilinear_form_surf<double, double>, bilinear_form_surf<Ord, Ord>, marker_air);
+  wf.add_liform(linear_form<double, double>, linear_form<Ord, Ord>, H2D_ANY, 1, &tsln);
+  wf.add_liform_surf(linear_form_surf<double, double>, linear_form_surf<Ord, Ord>, marker_air);
 
-  // matrix solver
+  // Matrix solver.
   UmfpackSolver umfpack;
 
-  // linear system
+  // Linear system.
   LinSystem ls(&wf, &umfpack);
-  ls.set_spaces(1, &space);
-  ls.set_pss(1, &pss);
+  ls.set_space(&space);
+  ls.set_pss(&pss);
 
-  // visualisation
+  // Visualisation.
   ScalarView Tview("Temperature", 0, 0, 450, 600);
   char title[100];
   sprintf(title, "Time %3.5f, exterior temperature %3.5f", TIME, temp_ext(TIME));
@@ -133,7 +133,7 @@ int main(int argc, char* argv[])
   Tview.set_title(title);
   Tview.fix_scale_width(3);
 
-  // time stepping
+  // Time stepping:
   int nsteps = (int)(FINAL_TIME/TAU + 0.5);
   bool rhsonly = false;
   for(int n = 1; n <= nsteps; n++)
@@ -141,15 +141,15 @@ int main(int argc, char* argv[])
 
     info("\n---- Time %3.5f, time step %d, ext_temp %g ----------", TIME, n, temp_ext(TIME));
 
-    // assemble and solve
+    // Assemble and solve.
     ls.assemble(rhsonly);
     rhsonly = true;
-    ls.solve(1, &tsln);
+    ls.solve(&tsln);
 
-    // shifting the time variable
+    // Update the time variable.
     TIME += TAU;
 
-    // visualization of solution
+    // Visualize the solution.
     sprintf(title, "Time %3.2f, exterior temperature %3.5f", TIME, temp_ext(TIME));
     Tview.set_title(title);
     Tview.show(&tsln);
@@ -157,9 +157,7 @@ int main(int argc, char* argv[])
 
   }
 
-  // Note: a separate example shows how to create videos
-
-  // wait for a view to be closed
+  // Wait for the view to be closed.
   View::wait();
   return 0;
 }

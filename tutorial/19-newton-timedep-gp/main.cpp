@@ -23,7 +23,7 @@
 //  BC:  homogeneous Dirichlet everywhere on the boundary
 
 const int P_INIT = 4;            // Initial polynomial degree
-const double TAU = 0.001;        // Time step
+const double TAU = 0.01;         // Time step
 const double T_FINAL = 2;        // Time interval length
 const int INIT_REF_NUM = 3;      // Number of initial uniform refinements
 const int TIME_DISCR = 2;        // 1 for implicit Euler, 2 for Crank-Nicolson
@@ -80,78 +80,80 @@ Scalar jacobian_cranic(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Rea
 
 int main(int argc, char* argv[])
 {
-  // load the mesh file
+  // Load the mesh file.
   Mesh mesh;
   H2DReader mloader;
   mloader.load("square.mesh", &mesh);
 
-  // initial mesh refinements
+  // Initial mesh refinements.
   for(int i = 0; i < INIT_REF_NUM; i++) mesh.refine_all_elements();
 
-  // initialize the shapeset and the cache
+  // Initialize the shapeset and the cache.
   H1Shapeset shapeset;
   PrecalcShapeset pss(&shapeset);
 
-  // create an H1 space
+  // Create an H1 space.
   H1Space space(&mesh, &shapeset);
   space.set_bc_types(bc_types);
   space.set_bc_values(bc_values);
   space.set_uniform_order(P_INIT);
 
-  // enumerate degrees of freedom
+  // Enumerate degrees of freedom.
   int ndof = assign_dofs(&space);
 
-  // solutions for the Newton's iteration and time stepping
+  // Solutions for the Newton's iteration and time stepping.
   Solution Psi_prev_time,
            Psi_prev_newton;
 
-  // initialize the weak formulation
-  WeakForm wf(1);
+  // Initialize the weak formulation.
+  WeakForm wf;
   if(TIME_DISCR == 1) {
-    wf.add_biform(0, 0, callback(jacobian_euler), H2D_UNSYM, H2D_ANY, 1, &Psi_prev_newton);
-    wf.add_liform(0, callback(residual_euler), H2D_ANY, 2, &Psi_prev_newton, &Psi_prev_time);
+    wf.add_biform(callback(jacobian_euler), H2D_UNSYM, H2D_ANY, 1, &Psi_prev_newton);
+    wf.add_liform(callback(residual_euler), H2D_ANY, 2, &Psi_prev_newton, &Psi_prev_time);
   }
   else {
-    wf.add_biform(0, 0, callback(jacobian_cranic), H2D_UNSYM, H2D_ANY, 1, &Psi_prev_newton);
-    wf.add_liform(0, callback(residual_cranic), H2D_ANY, 2, &Psi_prev_newton, &Psi_prev_time);
+    wf.add_biform(callback(jacobian_cranic), H2D_UNSYM, H2D_ANY, 1, &Psi_prev_newton);
+    wf.add_liform(callback(residual_cranic), H2D_ANY, 2, &Psi_prev_newton, &Psi_prev_time);
   }
 
-  // initialize the nonlinear system and solver
+  // Initialize the nonlinear system and solver.
   UmfpackSolver umfpack;
   NonlinSystem nls(&wf, &umfpack);
-  nls.set_spaces(1, &space);
-  nls.set_pss(1, &pss);
+  nls.set_space(&space);
+  nls.set_pss(&pss);
 
-  // visualisation
+  // Visualisation.
   ScalarView view("", 0, 0, 700, 600);
   view.fix_scale_width(80);
 
-  // setting initial condition at zero time level
+  // Setting initial condition at zero time level.
   Psi_prev_time.set_exact(&mesh, fn_init);
-  Psi_prev_newton.set_exact(&mesh, fn_init);
-  nls.project_global(&Psi_prev_newton, &Psi_prev_newton, PROJ_TYPE);
 
-  // time stepping loop
+  // Project fn_init() on the coarse mesh and use it as initial condition
+  // for the Newton's method. 
+  nls.project_global(&fn_init, &Psi_prev_newton, PROJ_TYPE);
+
+  // Time stepping loop:
   int nstep = (int)(T_FINAL/TAU + 0.5);
   for(int n = 1; n <= nstep; n++)
   {
 
     info("---- Time step %d:", n);
 
-    // Newton's method
+    // Newton's method.
     if (!nls.solve_newton(&Psi_prev_newton, NEWTON_TOL, NEWTON_MAX_ITER)) error("Newton's method did not converge.");
 
-    // show the new time level solution
+    // Show the new time level solution.
     char title[100];
     sprintf(title, "Time level %d", n);
     view.set_title(title);
     view.show(&Psi_prev_newton);
 
-    // copy result of the Newton's iteration into Psi_prev_time
+    // Copy result of the Newton's iteration into Psi_prev_time.
     Psi_prev_time.copy(&Psi_prev_newton);
   }
 
-  // wait for all views to be closed
+  // Wait for all views to be closed.
   View::wait();
   return 0;
 }

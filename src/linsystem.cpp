@@ -76,6 +76,12 @@ void LinSystem::set_spaces(int n, ...)
   have_spaces = true;
 }
 
+void LinSystem::set_space(Space* s)
+{
+  spaces[0] = s;
+  memset(sp_seq, -1, sizeof(int) * wf->neq);
+  have_spaces = true;
+}
 
 void LinSystem::set_pss(int n, ...)
 {
@@ -96,6 +102,19 @@ void LinSystem::set_pss(int n, ...)
   }
 }
 
+void LinSystem::set_pss(PrecalcShapeset* p)
+{
+  int n = 1;
+  pss[0] = p;
+  num_user_pss = n;
+
+  for (int i = n; i < wf->neq; i++)
+  {
+    if (spaces[i]->get_shapeset() != spaces[n-1]->get_shapeset())
+      error("Spaces with different shapesets must have different pss's.");
+    pss[i] = new PrecalcShapeset(pss[n-1]);
+  }
+}
 
 void LinSystem::copy(LinSystem* sys)
 {
@@ -848,6 +867,26 @@ bool LinSystem::solve(int n, ...)
     sln->set_fe_solution(this->spaces[i], this->pss[i], this->Vec);
   }
   va_end(ap);
+  report_time("Exported solution in %g s", cpu_time.tick().last());
+
+  return true;
+}
+
+bool LinSystem::solve(Solution* sln)
+{
+  if (!this->solver) error("Cannot solve -- no solver was provided.");
+  TimePeriod cpu_time;
+
+  // solve the system
+  if (this->Vec != NULL) ::free(this->Vec);
+  this->Vec = (scalar*) malloc(this->ndofs * sizeof(scalar));
+  memcpy(this->Vec, this->RHS, sizeof(scalar) * this->A->get_size());
+  solve_linear_system_scipy_umfpack(this->A, this->Vec);
+  report_time("LinSystem solved in %g s", cpu_time.tick().last());
+
+  // initialize the Solution class
+  sln->set_fe_solution(this->spaces[0], this->pss[0], this->Vec);
+  
   report_time("Exported solution in %g s", cpu_time.tick().last());
 
   return true;

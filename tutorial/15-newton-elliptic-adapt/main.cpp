@@ -20,6 +20,9 @@ using namespace RefinementSelectors;
 //
 //  The following parameters can be changed:
 
+const bool NEWTON_ON_COARSE_MESH = false;  // true...  Newton is done on coarse mesh in every adaptivity step
+                                           // false... Newton is done on coarse mesh only once, then projection
+                                           // of the fine mesh solution to coarse mesh is used
 const int P_INIT = 1;                      // Initial polynomial degree
 const int PROJ_TYPE = 1;                   // For the projection of the initial condition
                                            // on the initial mesh: 1 = H1 projection, 0 = L2 projection
@@ -37,10 +40,10 @@ const int STRATEGY = 1;                    // Adaptive strategy:
                                            // STRATEGY = 2 ... refine all elements whose error is larger
                                            //   than THRESHOLD.
                                            // More adaptive strategies can be created in adapt_ortho_h1.cpp.
-const CandList CAND_LIST = H2D_HP_ANISO; // Predefined list of element refinement candidates. Possible values are
-                                         // H2D_P_ISO, H2D_P_ANISO, H2D_H_ISO, H2D_H_ANISO, H2D_HP_ISO,
-                                         // H2D_HP_ANISO_H, H2D_HP_ANISO_P, H2D_HP_ANISO.
-                                         // See the Sphinx tutorial (http://hpfem.org/hermes2d/doc/src/tutorial-2.html#adaptive-h-fem-and-hp-fem) for details.
+const CandList CAND_LIST = H2D_HP_ANISO;   // Predefined list of element refinement candidates. Possible values are
+                                           // H2D_P_ISO, H2D_P_ANISO, H2D_H_ISO, H2D_H_ANISO, H2D_HP_ISO,
+                                           // H2D_HP_ANISO_H, H2D_HP_ANISO_P, H2D_HP_ANISO.
+                                           // See the User Documentation for details.
 const int MESH_REGULARITY = -1;            // Maximum allowed level of hanging nodes:
                                            // MESH_REGULARITY = -1 ... arbitrary level hangning nodes (default),
                                            // MESH_REGULARITY = 1 ... at most one-level hanging nodes,
@@ -56,9 +59,6 @@ const int NDOF_STOP = 60000;               // Adaptivity process stops when the 
 const double NEWTON_TOL_COARSE = 1e-6;     // Stopping criterion for the Newton's method on coarse mesh
 const double NEWTON_TOL_FINE = 1e-6;       // Stopping criterion for the Newton's method on fine mesh
 const int NEWTON_MAX_ITER = 100;           // Maximum allowed number of Newton iterations
-const bool NEWTON_ON_COARSE_MESH = false;  // true... Newton is done on coarse mesh in every adaptivity step
-                                           // false...Newton is done on coarse mesh only once, then projection
-                                           // of the fine mesh solution to coarse mesh is used
 
 // Thermal conductivity (temperature-dependent)
 // Note: for any u, this function has to be positive
@@ -137,156 +137,162 @@ Scalar res(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext
 
 int main(int argc, char* argv[])
 {
-  // load the mesh file
+  // Load the mesh file.
   Mesh mesh;
   H2DReader mloader;
   mloader.load("square.mesh", &mesh);
 
-  // initial mesh refinements
+  // Initial mesh refinements.
   for(int i = 0; i < INIT_GLOB_REF_NUM; i++) mesh.refine_all_elements();
   mesh.refine_towards_boundary(1, INIT_BDY_REF_NUM);
 
-  // initialize the shapeset and the cache
+  // Initialize the shapeset and the cache.
   H1Shapeset shapeset;
   PrecalcShapeset pss(&shapeset);
 
-  // create an H1 space
+  // Create an H1 space.
   H1Space space(&mesh, &shapeset);
   space.set_bc_types(bc_types);
   space.set_bc_values(bc_values);
   space.set_uniform_order(P_INIT);
 
-  // enumerate degrees of freedom
+  // Enumerate degrees of freedom.
   int ndof = assign_dofs(&space);
 
-  // solutions for the Newton's iteration and adaptivity
+  // Solutions for the Newton's iteration and adaptivity.
   Solution u_prev, sln_coarse, sln_fine;
 
-  // initialize the weak formulation
-  WeakForm wf(1);
-  wf.add_biform(0, 0, callback(jac), H2D_UNSYM, H2D_ANY, 1, &u_prev);
-  wf.add_liform(0, callback(res), H2D_ANY, 1, &u_prev);
+  // Initialize the weak formulation.
+  WeakForm wf;
+  wf.add_biform(callback(jac), H2D_UNSYM, H2D_ANY, 1, &u_prev);
+  wf.add_liform(callback(res), H2D_ANY, 1, &u_prev);
 
-  // initialize the nonlinear system and solver
+  // Initialize the nonlinear system and solver.
   UmfpackSolver umfpack;
   NonlinSystem nls(&wf, &umfpack);
   nls.set_spaces(1, &space);
   nls.set_pss(1, &pss);
 
-  // DOF and CPU convergence graphs
+  // DOF and CPU convergence graphs.
   SimpleGraph graph_dof, graph_cpu;
 
-  // time measurement
+  // Time measurement.
   TimePeriod cpu_time;
 
-  // project the function init_guess() on the coarse mesh
-  // to obtain initial guess u_prev for the Newton's method
+  // Project the function init_guess() on the coarse mesh
+  // to obtain initial guess u_prev for the Newton's method.
   nls.project_global(init_guess, &u_prev, PROJ_TYPE);
 
-  // visualisation
-  ScalarView sview_coarse("Coarse mesh solution", 0, 0, 500, 400); // coarse mesh solution
-  OrderView oview_coarse("Coarse mesh", 520, 0, 450, 400);         // coarse mesh
-  ScalarView sview_fine("Fine mesh solution", 990, 0, 500, 400);   // fine mesh solution
-  OrderView oview_fine("Fine mesh", 1510, 0, 450, 400);            // fine mesh
+  // Visualisation.
+  ScalarView sview_coarse("Coarse mesh solution", 0, 0, 350, 300); // coarse mesh solution
+  OrderView oview_coarse("Coarse mesh", 360, 0, 350, 300);         // coarse mesh
+  ScalarView sview_fine("Fine mesh solution", 720, 0, 350, 300);   // fine mesh solution
+  OrderView oview_fine("Fine mesh", 1080, 0, 350, 300);            // fine mesh
 
-  // Newton's loop on the coarse mesh
+  // Newton's loop on the coarse mesh.
   info("---- Solving on coarse mesh:");
-  if (!nls.solve_newton(&u_prev, NEWTON_TOL_COARSE, NEWTON_MAX_ITER)) error("Newton's method did not converge.");
+  if (!nls.solve_newton(&u_prev, NEWTON_TOL_COARSE, NEWTON_MAX_ITER)) 
+    error("Newton's method did not converge.");
 
-  // store the result in sln_coarse
+  // Store the result in sln_coarse.
   sln_coarse.copy(&u_prev);
 
-  // create a selector which will select optimal candidate
+  // Create a selector which will select optimal candidate.
   H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER, &shapeset);
 
-  // adaptivity loop
+  // Adaptivity loop:
   bool done = false;
-  int a_step = 0;
+  int as = 1;
   do {
     double err_est;
 
-    a_step++;
-    info("---- Adaptivity step %d ---------------------------------------------", a_step);
+    info("---- Adaptivity step %d:", as);
 
-    // show coarse mesh and solution
+    // Show coarse mesh and solution.
     sview_coarse.show(&sln_coarse);
     oview_coarse.show(&space);
 
-    info("---- Solving on fine mesh ---------------------------------------------");
+    info("---- Solving on fine mesh");
 
-    // do not measure showing of results
+    // Skip visualization.
     cpu_time.tick(H2D_SKIP);
 
-    // Setting initial guess for the Newton's method on the fine mesh
+    // Set initial guess for the Newton's method on the fine mesh.
     RefNonlinSystem rnls(&nls);
     rnls.prepare();
-    if (a_step == 1) rnls.project_global(&sln_coarse, &u_prev, PROJ_TYPE);
+    if (as == 1) rnls.project_global(&sln_coarse, &u_prev, PROJ_TYPE);
     else rnls.project_global(&sln_fine, &u_prev, PROJ_TYPE);
 
     // Newton's loop on the fine mesh
     if (!rnls.solve_newton(&u_prev, NEWTON_TOL_FINE, NEWTON_MAX_ITER)) error("Newton's method did not converge.");
 
-    // stote the fine mesh solution in sln_fine
+    // Store the fine mesh solution in sln_fine.
     sln_fine.copy(&u_prev);
 
-    // time measurement
+    // Time measurement.
     cpu_time.tick();
 
-    // show fine mesh and solution
+    // Show fine mesh and solution.
     sview_fine.show(&sln_fine);
     oview_fine.show(rnls.get_space(0));
 
-    // time measurement
+    // Time measurement.
     cpu_time.tick(H2D_SKIP);
 
-    // calculate element errors and total error estimate
+    // Calculate element errors and total error estimate.
     H1Adapt hp(&space);
     hp.set_solutions(&sln_coarse, &sln_fine);
     err_est = hp.calc_error() * 100;
 
-    // time measurement
+    // Time measurement.
     cpu_time.tick();
 
-    // report results
-    info("ndof: %d, err_est: %g%%", space.get_num_dofs(), err_est);
+    // Report results.
+    info("ndof_coarse: %d, ndof_fine: %d, err_est: %g%%", 
+      space.get_num_dofs(), rnls.get_space(0)->get_num_dofs(), err_est);
 
-    // add entry to DOF convergence graph
+    // Add entry to DOF convergence graph.
     graph_dof.add_values(space.get_num_dofs(), err_est);
     graph_dof.save("conv_dof.dat");
 
-    // add entry to CPU convergence graph
+    // Add entry to CPU convergence graph.
     graph_cpu.add_values(cpu_time.accumulated(), err_est);
     graph_cpu.save("conv_cpu.dat");
 
-    // time measurement
+    // Time measurement.
     cpu_time.tick(H2D_SKIP);
 
-    // if err_est too large, adapt the mesh
+    // If err_est too large, adapt the mesh.
     if (err_est < ERR_STOP) done = true;
     else {
-      hp.adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY);
+      done = hp.adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY);
       ndof = assign_dofs(&space);
       if (ndof >= NDOF_STOP) done = true;
 
-      // project the fine mesh solution on the new coarse mesh
-      info("---- Projecting fine mesh solution on new coarse mesh -----------------");
+      // Project the fine mesh solution on the new coarse mesh
+      info("---- Projecting fine mesh solution on new coarse mesh");
       nls.project_global(&sln_fine, &u_prev, PROJ_TYPE);
 
       if (NEWTON_ON_COARSE_MESH) {
         // Newton's loop on the coarse mesh
-        info("---- Solving on coarse mesh -------------------------------------------");
+        info("---- Solving on coarse mesh");
         if (!nls.solve_newton(&u_prev, NEWTON_TOL_COARSE, NEWTON_MAX_ITER)) error("Newton's method did not converge.");
       }
 
-      // store the result in sln_coarse
+      // Store the result in sln_coarse.
       sln_coarse.copy(&u_prev);
     }
 
-    // time measurement
+    // Time measurement.
     cpu_time.tick();
+
+    as++;
   }
   while (!done);
+
+  // Timemeasurement.
   cpu_time.tick();
+
   verbose("Total running time: %g s", cpu_time.accumulated());
 
   // wait for keyboard or mouse input

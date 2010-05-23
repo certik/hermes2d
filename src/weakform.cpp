@@ -74,10 +74,46 @@ void WeakForm::add_biform(int i, int j, biform_val_t fn, biform_ord_t ord, SymFl
   seq++;
 }
 
+// single equation case
+void WeakForm::add_biform(biform_val_t fn, biform_ord_t ord, SymFlag sym, int area, int nx, ...)
+{
+  int i = 0, j = 0;
+
+  // FIXME: the code below should be replaced with a call to the full function.
+  if (sym < -1 || sym > 1)
+    error("\"sym\" must be -1, 0 or 1.");
+  if (sym < 0 && i == j)
+    error("Only off-diagonal forms can be antisymmetric.");
+  if (area != H2D_ANY && area < 0 && -area > (int)areas.size())
+    error("Invalid area number.");
+  if (bfvol.size() > 100)
+    warn("Large number of forms (> 100). Is this the intent?");
+
+  BiFormVol form = { i, j, sym, area, fn, ord };
+  init_ext;
+  bfvol.push_back(form);
+  seq++;
+}
+
 void WeakForm::add_biform_surf(int i, int j, biform_val_t fn, biform_ord_t ord, int area, int nx, ...)
 {
   if (i < 0 || i >= neq || j < 0 || j >= neq)
     error("Invalid equation number.");
+  if (area != H2D_ANY && area < 0 && -area > (int)areas.size())
+    error("Invalid area number.");
+
+  BiFormSurf form = { i, j, area, fn, ord };
+  init_ext;
+  bfsurf.push_back(form);
+  seq++;
+}
+
+// single equation case
+void WeakForm::add_biform_surf(biform_val_t fn, biform_ord_t ord, int area, int nx, ...)
+{
+  int i = 0, j = 0;
+
+  // FIXME: the code below should be replaced with a call to the full function.
   if (area != H2D_ANY && area < 0 && -area > (int)areas.size())
     error("Invalid area number.");
 
@@ -100,6 +136,21 @@ void WeakForm::add_liform(int i, liform_val_t fn, liform_ord_t ord, int area, in
   seq++;
 }
 
+// single equation case
+void WeakForm::add_liform(liform_val_t fn, liform_ord_t ord, int area, int nx, ...)
+{
+  int i = 0;
+
+  // FIXME: the code below should be replaced with a call to the full function.
+  if (area != H2D_ANY && area < 0 && -area > (int)areas.size())
+    error("Invalid area number.");
+
+  LiFormVol form(i, area, fn, ord);
+  init_ext;
+  lfvol.push_back(form);
+  seq++;
+}
+
 void WeakForm::add_liform(int i, liform_val_extended_t fn_ext, liform_ord_extended_t ord_ext, int area, int nx, ...)
 {
   if (i < 0 || i >= neq)
@@ -113,10 +164,40 @@ void WeakForm::add_liform(int i, liform_val_extended_t fn_ext, liform_ord_extend
   seq++;
 }
 
+// single equation case
+void WeakForm::add_liform(liform_val_extended_t fn_ext, liform_ord_extended_t ord_ext, int area, int nx, ...)
+{
+  int i = 0;
+
+  // FIXME: the code below should be replaced with a call to the full function.
+  if (area != H2D_ANY && area < 0 && -area > (int)areas.size())
+    error("Invalid area number.");
+
+  LiFormVol form(i, area, fn_ext, ord_ext);
+  init_ext;
+  lfvol.push_back(form);
+  seq++;
+}
+
 void WeakForm::add_liform_surf(int i, liform_val_t fn, liform_ord_t ord, int area, int nx, ...)
 {
   if (i < 0 || i >= neq)
     error("Invalid equation number.");
+  if (area != H2D_ANY && area < 0 && -area > (int)areas.size())
+    error("Invalid area number.");
+
+  LiFormSurf form = { i, area, fn, ord };
+  init_ext;
+  lfsurf.push_back(form);
+  seq++;
+}
+
+// single equation case
+void WeakForm::add_liform_surf(liform_val_t fn, liform_ord_t ord, int area, int nx, ...)
+{
+  int i = 0;
+
+  // FIXME: the code below should be replaced with a call to the full function.
   if (area != H2D_ANY && area < 0 && -area > (int)areas.size())
     error("Invalid area number.");
 
@@ -145,10 +226,46 @@ void WeakForm::add_jacform(int i, int j, jacform_val_t fn, jacform_ord_t ord, Sy
   seq++;
 }
 
+// single equation case
+void WeakForm::add_jacform(jacform_val_t fn, jacform_ord_t ord, SymFlag sym, int area, int nx, ...)
+{
+  int i = 0, j = 0;
+
+  // FIXME: the code below should be replaced with a call to the full function.
+  if (sym < -1 || sym > 1)
+    error("\"sym\" must be -1, 0 or 1.");
+  if (sym < 0 && i == j)
+    error("Only off-diagonal forms can be antisymmetric.");
+  if (area != H2D_ANY && area < 0 && -area > areas.size())
+    error("Invalid area number.");
+  if (jfvol.size() > 100)
+    warn("Large number of forms (> 100). Is this the intent?");
+
+  JacFormVol form = { i, j, sym, area, fn, ord };
+  init_ext;
+  jfvol.push_back(form);
+  seq++;
+}
+
 void WeakForm::add_jacform_surf(int i, int j, jacform_val_t fn, jacform_ord_t ord, int area, int nx, ...)
 {
   if (i < 0 || i >= neq || j < 0 || j >= neq)
     error("Invalid equation number.");
+  if (area != H2D_ANY && area < 0 && -area > areas.size())
+    error("Invalid area number.");
+
+  JacFormSurf form = { i, j, area, fn, ord };
+  init_ext;
+  jfsurf.push_back(form);
+  seq++;
+}
+
+// single equation case
+void WeakForm::add_jacform_surf(jacform_val_t fn, jacform_ord_t ord, int area, int nx, ...)
+{
+  int i = 0, j = 0;
+
+  // FIXME: the code below should be replaced with a call to the full function. 
   if (area != H2D_ANY && area < 0 && -area > areas.size())
     error("Invalid area number.");
 
@@ -171,10 +288,40 @@ void WeakForm::add_resform(int i, resform_val_t fn, resform_ord_t ord, int area,
   seq++;
 }
 
+// single equation case
+void WeakForm::add_resform(resform_val_t fn, resform_ord_t ord, int area, int nx, ...)
+{
+  int i = 0;
+
+  // FIXME: the code below should be replaced with a call to the full function. 
+  if (area != H2D_ANY && area < 0 && -area > areas.size())
+    error("Invalid area number.");
+
+  ResFormVol form = { i, area, fn, ord };
+  init_ext;
+  rfvol.push_back(form);
+  seq++;
+}
+
 void WeakForm::add_resform_surf(int i, resform_val_t fn, resform_ord_t ord, int area, int nx, ...)
 {
   if (i < 0 || i >= neq)
     error("Invalid equation number.");
+  if (area != H2D_ANY && area < 0 && -area > areas.size())
+    error("Invalid area number.");
+
+  ResFormSurf form = { i, area, fn, ord };
+  init_ext;
+  rfsurf.push_back(form);
+  seq++;
+}
+
+// single equation case
+void WeakForm::add_resform_surf(resform_val_t fn, resform_ord_t ord, int area, int nx, ...)
+{
+  int i = 0;
+
+  // FIXME: the code below should be replaced with a call to the full function. 
   if (area != H2D_ANY && area < 0 && -area > areas.size())
     error("Invalid area number.");
 

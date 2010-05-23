@@ -11,8 +11,6 @@ using namespace RefinementSelectors;
 //  This example shows that it makes sense to use anisotropic polynomial
 //  degrees in quadrilateral elements. The exact solution to this Poisson
 //  problem is u(x,y) = sin(x), defined in the square (0, pi)x(0, pi).
-//  Anisotropic refinements are allowed when ISO_ONLY == 0, otherwise
-//  the adaptivity only uses isotropic refinements.
 //
 //  PDE: -Laplace u = f
 //

@@ -118,6 +118,41 @@ bool NonlinSystem::solve(int n, ...)
   return true;
 }
 
+// single equation case
+bool NonlinSystem::solve(Solution* sln)
+{
+  // The solve() function is almost identical to the original one in LinSystem
+  // except that Y_{n+1} = Y_{n} + dY_{n+1}
+  TimePeriod cpu_time;
+
+  // solve the system
+  scalar* delta = (scalar*) malloc(ndofs * sizeof(scalar));
+  memcpy(delta, RHS, sizeof(scalar) * this->A->get_size());
+  solve_linear_system_scipy_umfpack(this->A, delta);
+  report_time("Solved in %g s", cpu_time.tick().last());
+
+  // if not initialized by set_ic(), assume Vec is a zero vector
+  if (Vec == NULL)
+  {
+    Vec = (scalar*) malloc(ndofs * sizeof(scalar));
+    memset(Vec, 0, ndofs * sizeof(scalar));
+  }
+
+  // add the increment dY_{n+1} to the previous solution vector
+  for (int i = 0; i < ndofs; i++)
+    Vec[i] += delta[i];
+  ::free(delta);
+
+  // initialize the Solution classes
+  cpu_time.tick(H2D_SKIP);
+
+  sln->set_fe_solution(spaces[0], pss[0], Vec);
+
+  report_time("Exported solution in %g s", cpu_time.tick().last());
+
+  return true;
+}
+
 // Newton's loop for one equation
 bool NonlinSystem::solve_newton(Solution* u_prev, double newton_tol, int newton_max_iter,
                                   Filter* f1, Filter* f2, Filter* f3) {

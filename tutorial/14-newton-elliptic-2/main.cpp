@@ -104,52 +104,53 @@ Scalar res(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext
 
 int main(int argc, char* argv[])
 {
-  // load the mesh file
+  // Load the mesh file.
   Mesh mesh;
   H2DReader mloader;
   mloader.load("square.mesh", &mesh);
 
-  // initial mesh refinements
+  // Initial mesh refinements.
   for(int i = 0; i < INIT_GLOB_REF_NUM; i++) mesh.refine_all_elements();
   mesh.refine_towards_boundary(1,INIT_BDY_REF_NUM);
 
-  // initialize the shapeset and the cache
+  // Initialize the shapeset and the cache.
   H1Shapeset shapeset;
   PrecalcShapeset pss(&shapeset);
 
-  // create an H1 space
+  // Create an H1 space.
   H1Space space(&mesh, &shapeset);
   space.set_bc_types(bc_types);
   space.set_bc_values(bc_values);
   space.set_uniform_order(P_INIT);
 
-  // enumerate degrees of freedom
+  // Enumerate degrees of freedom.
   int ndof = assign_dofs(&space);
 
-  // previous solution for the Newton's iteration
+  // Previous solution for the Newton's method.
   Solution u_prev;
 
-  // initialize the weak formulation
-  WeakForm wf(1);
-  wf.add_biform(0, 0, callback(jac), H2D_UNSYM, H2D_ANY, 1, &u_prev);
-  wf.add_liform(0, callback(res), H2D_ANY, 1, &u_prev);
+  // Initialize the weak formulation
+  WeakForm wf;
+  wf.add_biform(callback(jac), H2D_UNSYM, H2D_ANY, 1, &u_prev);
+  wf.add_liform(callback(res), H2D_ANY, 1, &u_prev);
 
-  // initialize the nonlinear system and solver
+  // Initialize the nonlinear system and solver.
   UmfpackSolver umfpack;
   NonlinSystem nls(&wf, &umfpack);
-  nls.set_spaces(1, &space);
-  nls.set_pss(1, &pss);
+  nls.set_space(&space);
+  nls.set_pss(&pss);
 
-  // project the function init_guess() on the mesh
+  // Project the function init_guess() on the FE space
   // to obtain initial guess u_prev for the Newton's method
   nls.project_global(init_guess, &u_prev, PROJ_TYPE);
 
-  // Newton's loop
-  if (!nls.solve_newton(&u_prev, NEWTON_TOL, NEWTON_MAX_ITER)) error("Newton's method did not converge.");
+  // Perform Newton's iteration.
+  if (!nls.solve_newton(&u_prev, NEWTON_TOL, NEWTON_MAX_ITER)) 
+    error("Newton's method did not converge.");
 
-  // visualise the solution and mesh
-  ScalarView sview("Solution", 0, 0, 800, 600);
-  OrderView oview("Mesh", 820, 0, 800, 600);
+  // Visualise the solution and mesh.
+  ScalarView sview("Solution", 0, 0, 400, 300);
+  OrderView oview("Mesh", 410, 0, 400, 300);
   char title[100];
   sprintf(title, "Solution");
   sview.set_title(title);
@@ -158,7 +159,7 @@ int main(int argc, char* argv[])
   oview.set_title(title);
   oview.show(&space);
 
-  // wait for all views to be closed
+  // Wait for all views to be closed.
   View::wait();
   return 0;
 }

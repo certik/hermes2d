@@ -33,34 +33,34 @@ Click into the image window and:\n\
 
 int main(int argc, char* argv[])
 {
-  // load the mesh file
+  // Load the mesh file.
   Mesh mesh;
   H2DReader mloader;
   mloader.load("domain.mesh", &mesh);            // original L-shape domain
   //mloader.load("domain_quad.mesh", &mesh);     // reference square
   //mloader.load("domain_tri.mesh", &mesh);      // reference triangle
 
-  // sample element refinement, to see more basis functions
+  // Refine all elements.
   //mesh.refine_all_elements();
 
-  // create a shapeset and an H1 space
+  // Create a shapeset and an H1 space.
   H1Shapeset shapeset;
   H1Space space(&mesh, &shapeset);
 
-  // set polynomial degrees in elements
+  // Set polynomial degrees in elements.
   space.set_uniform_order(P_INIT); 
 
-  // enumerate degrees of freedom
+  // Enumerate degrees of freedom.
   int ndof = assign_dofs(&space);
 
-  // view the basis functions
+  // View FE basis functions.
   BaseView bview;
   bview.show(&space);
 
-  // practice some keyboard and mouse controls
+  // Practice some keyboard and mouse controls.
   printf("%s", text);
 
-  // wait for a view to be closed
+  // Wait for the view to be closed.
   View::wait();
   return 0;
 }

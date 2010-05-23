@@ -16,32 +16,32 @@ int main(int argc, char* argv[])
 {
   if (argc < 2) error("Missing mesh file name parameter.");
 
-  // load the mesh
+  // Load the mesh.
   Mesh mesh;
   H2DReader mloader;
   mloader.load(argv[1], &mesh);
 
-  // uniform mesh refinements
+  // Uniform mesh refinements.
   mesh.refine_all_elements();
   mesh.refine_all_elements();
 
-  // initialize the shapeset and the cache
+  // Initialize the shapeset and the cache.
   HcurlShapeset shapeset;
 
-  // create the Hdiv space
+  // Create the Hcurl space.
   HcurlSpace space(&mesh, &shapeset);
 
-  // set uniform polynomial degrees
+  // Set uniform polynomial degrees.
   space.set_uniform_order(P_INIT);
 
-  // enumerate basis functions
+  // Enumerate basis functions.
   int ndof = assign_dofs(&space);
 
-  // visualise the FE basis
+  // Visualise FE basis.
   VectorBaseView bview;
   bview.show(&space);
 
-  // wait for all views to be closed
+  // Wait for all views to be closed.
   View::wait();
   return 0;
 }

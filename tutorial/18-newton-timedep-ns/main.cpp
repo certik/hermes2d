@@ -100,18 +100,18 @@ BCType p_bc_type(int marker)
 
 int main(int argc, char* argv[])
 {
-  // load the mesh file
+  // Load the mesh file.
   Mesh mesh;
   H2DReader mloader;
   mloader.load("domain.mesh", &mesh);
 
-  // a-priori mesh refinements
+  // Initial mesh refinements.
   mesh.refine_all_elements();
   mesh.refine_towards_boundary(5, 4, false);
   mesh.refine_towards_boundary(1, 4);
   mesh.refine_towards_boundary(3, 4);
 
-  // initialize shapesets and the cache
+  // Initialize shapesets and the cache.
   H1ShapesetBeuchler h1_shapeset;
   PrecalcShapeset h1_pss(&h1_shapeset);
 #ifdef PRESSURE_IN_L2
@@ -119,7 +119,7 @@ int main(int argc, char* argv[])
   PrecalcShapeset l2_pss(&l2_shapeset);
 #endif
 
-  // spaces for velocities and pressure
+  // Spaces for velocity components and pressure.
   H1Space xvel_space(&mesh, &h1_shapeset);
   H1Space yvel_space(&mesh, &h1_shapeset);
 #ifdef PRESSURE_IN_L2
@@ -128,21 +128,21 @@ int main(int argc, char* argv[])
   H1Space p_space(&mesh, &h1_shapeset);
 #endif
 
-  // initialize boundary conditions
+  // Initialize boundary conditions.
   xvel_space.set_bc_types(xvel_bc_type);
   xvel_space.set_bc_values(xvel_bc_value);
   yvel_space.set_bc_types(yvel_bc_type);
   p_space.set_bc_types(p_bc_type);
 
-  // set velocity and pressure polynomial degrees
+  // Set velocity and pressure polynomial degrees.
   xvel_space.set_uniform_order(P_INIT_VEL);
   yvel_space.set_uniform_order(P_INIT_VEL);
   p_space.set_uniform_order(P_INIT_PRESSURE);
 
-  // assign degrees of freedom
+  // Assign degrees of freedom.
   int ndof = assign_dofs(3, &xvel_space, &yvel_space, &p_space);
 
-  // solutions for the Newton's iteration and time stepping
+  // Solutions for the Newton's iteration and time stepping.
   Solution xvel_prev_time, yvel_prev_time, xvel_prev_newton, yvel_prev_newton, p_prev;
   xvel_prev_time.set_zero(&mesh);
   yvel_prev_time.set_zero(&mesh);
@@ -150,7 +150,7 @@ int main(int argc, char* argv[])
   yvel_prev_newton.set_zero(&mesh);
   p_prev.set_zero(&mesh);
 
-  // set up weak formulation
+  // Initialize weak formulation.
   WeakForm wf(3);
   if (NEWTON) {
     wf.add_biform(0, 0, callback(bilinear_form_sym_0_0_1_1), H2D_SYM);
@@ -176,7 +176,7 @@ int main(int argc, char* argv[])
     wf.add_liform(1, callback(simple_linear_form), H2D_ANY, 1, &yvel_prev_time);
   }
 
-  // visualization
+  // Visualization.
   VectorView vview("velocity [m/s]", 0, 0, 1500, 470);
   ScalarView pview("pressure [Pa]", 0, 530, 1500, 470);
   vview.set_min_max_range(0, 1.6);
@@ -185,17 +185,17 @@ int main(int argc, char* argv[])
   pview.fix_scale_width(80);
   pview.show_mesh(true);
 
-  // matrix solver
+  // Matrix solver.
   UmfpackSolver umfpack;
 
-  // linear system
+  // Linear system.
   LinSystem ls(&wf, &umfpack);
 
-  // nonlinear system
+  // Nonlinear system.
   NonlinSystem nls(&wf, &umfpack);
 
   if (NEWTON) {
-    // set up the nonlinear system
+    // Set up the nonlinear system
     nls.set_spaces(3, &xvel_space, &yvel_space, &p_space);
 #ifdef PRESSURE_IN_L2
     nls.set_pss(3, &h1_pss, &h1_pss, &l2_pss);
@@ -204,7 +204,7 @@ int main(int argc, char* argv[])
 #endif
   }
   else {
-    // set up the linear system
+    // Set up the linear system
     ls.set_spaces(3, &xvel_space, &yvel_space, &p_space);
 #ifdef PRESSURE_IN_L2
     ls.set_pss(3, &h1_pss, &h1_pss, &l2_pss);
@@ -213,7 +213,7 @@ int main(int argc, char* argv[])
 #endif
   }
 
-  // time-stepping loop
+  // Time-stepping loop.
   char title[100];
   int num_time_steps = T_FINAL / TAU;
   for (int i = 1; i <= num_time_steps; i++)
@@ -227,9 +227,10 @@ int main(int argc, char* argv[])
 
     if (NEWTON) {
       // Newton's method
-      if (!nls.solve_newton(&xvel_prev_newton, &yvel_prev_newton, &p_prev, NEWTON_TOL, NEWTON_MAX_ITER)) error("Newton's method did not converge.");
+      if (!nls.solve_newton(&xvel_prev_newton, &yvel_prev_newton, &p_prev, NEWTON_TOL, NEWTON_MAX_ITER)) 
+        error("Newton's method did not converge.");
 
-      // show the solution at the end of time step
+      // Show the solution at the end of time step
       sprintf(title, "Velocity, time %g", TIME);
       vview.set_title(title);
       vview.show(&xvel_prev_newton, &yvel_prev_newton, H2D_EPS_LOW);
@@ -237,18 +238,18 @@ int main(int argc, char* argv[])
       pview.set_title(title);
       pview.show(&p_prev);
 
-      // copy the result of the Newton's iteration into the
-      // previous time level solutions
+      // Copy the result of the Newton's iteration into the
+      // previous time level solutions.
       xvel_prev_time.copy(&xvel_prev_newton);
       yvel_prev_time.copy(&yvel_prev_newton);
     }
     else {
-      // assemble and solve
+      // Assemble and solve.
       Solution xvel_sln, yvel_sln, p_sln;
       ls.assemble();
       ls.solve(3, &xvel_sln, &yvel_sln, &p_sln);
 
-      // show the solution at the end of time step
+      // Show the solution at the end of time step.
       sprintf(title, "Velocity, time %g", TIME);
       vview.set_title(title);
       vview.show(&xvel_sln, &yvel_sln, H2D_EPS_LOW);
@@ -256,14 +257,14 @@ int main(int argc, char* argv[])
       pview.set_title(title);
       pview.show(&p_sln);
 
-      // this copy destroys xvel_sln and yvel_sln
-      // which are no longer needed
+      // This copy destroys xvel_sln and yvel_sln
+      // which are no longer needed.
       xvel_prev_time = xvel_sln;
       yvel_prev_time = yvel_sln;
     }
   }
 
-  // wait for all views to be closed
+  // Wait for all views to be closed.
   View::wait();
   return 0;
 }

@@ -66,8 +66,6 @@ double g_N(double x, double y) {
   return 0;
 }
 
-/********** Boundary conditions ***********/
-
 // Boundary condition types
 BCType bc_types(int marker)
 {
@@ -80,8 +78,6 @@ scalar bc_values(int marker, double x, double y)
 {
   return g_D(x, y);
 }
-
-/********** Weak forms ***********/
 
 // (Volumetric) bilinear form
 template<typename Real, typename Scalar>
@@ -138,60 +134,60 @@ Ord linear_form_ord(int n, double *wt, Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> 
 
 int main(int argc, char* argv[])
 {
-  // Load the mesh
+  // Load the mesh.
   Mesh mesh;
   H2DReader mloader;
   mloader.load("domain.mesh", &mesh);
   for (int i=0; i < INIT_REF_NUM; i++) mesh.refine_all_elements();
 
-  // Initialize the shapeset and the cache
+  // Initialize the shapeset and the cache.
   H1Shapeset shapeset;
   PrecalcShapeset pss(&shapeset);
 
-  // Create finite element space
+  // Create the finite element space.
   H1Space space(&mesh, &shapeset);
   space.set_bc_types(bc_types);
   space.set_bc_values(bc_values);
   space.set_uniform_order(P_INIT);
 
-  // Enumerate degrees of freedom
+  // Enumerate degrees of freedom.
   int ndof = assign_dofs(&space);
 
-  // Initialize the weak formulation
-  WeakForm wf(1);
-  wf.add_biform(0, 0, bilinear_form, bilinear_form_ord, H2D_SYM);
-  wf.add_liform(0, linear_form, linear_form_ord);
-  wf.add_liform_surf(0, linear_form_surf, linear_form_surf_ord, 2);
+  // Initialize the weak formulation.
+  WeakForm wf;
+  wf.add_biform(bilinear_form, bilinear_form_ord, H2D_SYM);
+  wf.add_liform(linear_form, linear_form_ord);
+  wf.add_liform_surf(linear_form_surf, linear_form_surf_ord, 2);
 
-  // Visualize solution and mesh
+  // Visualize solution and mesh.
   ScalarView sview("Coarse solution", 0, 100, 798, 700);
   OrderView  oview("Polynomial orders", 800, 100, 798, 700);
 
-  // Matrix solver
+  // Matrix solver.
   UmfpackSolver solver;
 
-  // Time measurement
+  // Time measurement.
   TimePeriod cpu_time;
 
-  // Solve the problem
+  // Solve the problem.
   Solution sln;
   LinSystem ls(&wf, &solver);
-  ls.set_spaces(1, &space);
-  ls.set_pss(1, &pss);
+  ls.set_space(&space);
+  ls.set_pss(&pss);
   ls.assemble();
-  ls.solve(1, &sln);
+  ls.solve(&sln);
 
-  // Time measurement
+  // Time measurement.
   cpu_time.tick();
 
-  // View the solution and mesh
+  // View the solution and mesh.
   sview.show(&sln);
   oview.show(&space);
 
-  // Print cpu_time information
+  // Print cpu_time information.
   verbose("Total running time: %g s", cpu_time.accumulated());
 
-  // wait for all views to be closed
+  // Wait for all views to be closed.
   View::wait();
   return 0;
 }

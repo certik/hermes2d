@@ -57,19 +57,19 @@ scalar conc_ic(double x, double y, scalar& dx, scalar& dy)
 
 int main(int argc, char* argv[])
 {
-  // load the mesh file
+  // Load the mesh file.
   Mesh mesh;
   H2DReader mloader;
   mloader.load("domain.mesh", &mesh);
 
-  // initial mesh refinements
+  // Initial mesh refinements.
   for(int i = 0; i < INIT_GLOB_REF_NUM; i++) mesh.refine_all_elements();
 
-  // initialize the shapeset and the cache
+  // Initialize the shapeset and the cache.
   H1Shapeset shapeset;
   PrecalcShapeset pss(&shapeset);
 
-  // create H1 spaces
+  // Create H1 spaces.
   H1Space tspace(&mesh, &shapeset);
   H1Space cspace(&mesh, &shapeset);
   tspace.set_bc_types(bc_types);
@@ -78,55 +78,61 @@ int main(int argc, char* argv[])
   tspace.set_uniform_order(P_INIT);
   cspace.set_uniform_order(P_INIT);
 
-  // enumerate degrees of freedom
+  // Enumerate degrees of freedom.
   int ndof = assign_dofs(2, &tspace, &cspace);
 
-  // solutions for the Newton's iteration and time stepping
-  Solution t_prev_time_1, y_prev_time_1, t_prev_time_2, y_prev_time_2, t_prev_newton, y_prev_newton, tsln, csln;
+  // Solutions for the Newton's iteration and time stepping.
+  Solution t_prev_time_1, y_prev_time_1, t_prev_time_2, 
+           y_prev_time_2, t_prev_newton, y_prev_newton, tsln, csln;
 
-  // setting initial conditions
+  // Set initial conditions.
   t_prev_time_1.set_exact(&mesh, temp_ic); y_prev_time_1.set_exact(&mesh, conc_ic);
   t_prev_time_2.set_exact(&mesh, temp_ic); y_prev_time_2.set_exact(&mesh, conc_ic);
   t_prev_newton.set_exact(&mesh, temp_ic);  y_prev_newton.set_exact(&mesh, conc_ic);
 
-  // defining filters for the reaction rate omega
+  // Define filters for the reaction rate omega.
   DXDYFilter omega(omega_fn, &t_prev_newton, &y_prev_newton);
   DXDYFilter omega_dt(omega_dt_fn, &t_prev_newton, &y_prev_newton);
   DXDYFilter omega_dy(omega_dy_fn, &t_prev_newton, &y_prev_newton);
 
-  // visualization
+  // Visualization.
   ScalarView rview("Reaction rate", 0, 0, 1600, 460);
 
-  // initialize the weak formulation
+  // Initialize the weak formulation.
   WeakForm wf(2);
   wf.add_biform(0, 0, callback(newton_bilinear_form_0_0), H2D_UNSYM, H2D_ANY, 1, &omega_dt);
   wf.add_biform_surf(0, 0, callback(newton_bilinear_form_0_0_surf), 3);
   wf.add_biform(0, 1, callback(newton_bilinear_form_0_1), H2D_UNSYM, H2D_ANY, 1, &omega_dy);
   wf.add_biform(1, 0, callback(newton_bilinear_form_1_0), H2D_UNSYM, H2D_ANY, 1, &omega_dt);
   wf.add_biform(1, 1, callback(newton_bilinear_form_1_1), H2D_UNSYM, H2D_ANY, 1, &omega_dy);
-  wf.add_liform(0, callback(newton_linear_form_0), H2D_ANY, 4, &t_prev_newton, &t_prev_time_1, &t_prev_time_2, &omega);
+  wf.add_liform(0, callback(newton_linear_form_0), H2D_ANY, 4, &t_prev_newton, &t_prev_time_1, 
+                &t_prev_time_2, &omega);
   wf.add_liform_surf(0, callback(newton_linear_form_0_surf), 3, 1, &t_prev_newton);
-  wf.add_liform(1, callback(newton_linear_form_1), H2D_ANY, 4, &y_prev_newton, &y_prev_time_1, &y_prev_time_2, &omega);
+  wf.add_liform(1, callback(newton_linear_form_1), H2D_ANY, 4, &y_prev_newton, &y_prev_time_1, 
+                &y_prev_time_2, &omega);
 
-  // initialize the nonlinear system and solver
+  // Initialize the nonlinear system and solver.
   UmfpackSolver umfpack;
   NonlinSystem nls(&wf, &umfpack);
   nls.set_spaces(2, &tspace, &cspace);
-  nls.set_pss(1, &pss);
-  nls.project_global(&t_prev_time_1, &y_prev_time_1, &t_prev_newton, &y_prev_newton, PROJ_TYPE);
+  nls.set_pss(&pss);
+
+  // Project temp_ic() and conc_ic() onto the FE spaces and use them as initial
+  // conditions for the Newton's method.   
+  nls.project_global(temp_ic, conc_ic, &t_prev_newton, &y_prev_newton, PROJ_TYPE);
 
   // time stepping loop
   double current_time = 0.0;
   int t_step = 0;
   do {
     t_step++;
-    info("**** Time step %d, t = %g s:", t_step, current_time);
+    info("---- Time step %d, t = %g s.", t_step, current_time);
 
     // Newton's method
     if (!nls.solve_newton(&t_prev_newton, &y_prev_newton, NEWTON_TOL, NEWTON_MAX_ITER,
                        &omega, &omega_dt, &omega_dy)) error("Newton's method did not converge.");
 
-    // visualization
+    // Visualization.
     DXDYFilter omega_view(omega_fn, &t_prev_newton, &y_prev_newton);
     rview.set_min_max_range(0.0,2.0);
     char title[100];
@@ -134,17 +140,17 @@ int main(int argc, char* argv[])
     rview.set_title(title);
     rview.show(&omega_view);
 
-    // update current time
+    // Update current time.
     current_time += TAU;
 
-    // store two time levels of previous solutions
+    // Store two time levels of previous solutions.
     t_prev_time_2.copy(&t_prev_time_1);
     y_prev_time_2.copy(&y_prev_time_1);
     t_prev_time_1.copy(&t_prev_newton);
     y_prev_time_1.copy(&y_prev_newton);
   } while (current_time <= T_FINAL);
 
-  // wait for all views to be closed
+  // Wait for all views to be closed.
   View::wait();
   return 0;
 }

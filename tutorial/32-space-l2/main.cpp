@@ -13,20 +13,20 @@
 const int P_INIT = 3;          // Polynomial degree of mesh elements
 const int INIT_REF_NUM = 1;    // Number ofinitial uniform mesh refinements
 
-// projected function
+// Projected function.
 double F(double x, double y)
 {
   return - pow(x, 4) * pow(y, 5); 
 }
 
-// bilinear and linear form defining the projection
+// Bilinear and linear form defining the projection.
 template<typename Real, typename Scalar>
 Scalar bilinear_form(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
   return int_u_v<Real, Scalar>(n, wt, u, v);
 }
 
-// return the value \int v dx
+// Returns the value \int v dx.
 template<typename Real, typename Scalar>
 Scalar linear_form(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
@@ -36,7 +36,7 @@ Scalar linear_form(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scal
   return result;
 }
 
-// boundary conditions
+// Boundary conditions.
 BCType bc_types(int marker)
 {
    return BC_NONE;
@@ -46,54 +46,55 @@ int main(int argc, char* argv[])
 {
   if (argc < 2) error("Missing mesh file name parameter.");
 
-  // load the mesh
+  // Load the mesh.
   Mesh mesh;
   H2DReader mloader;
   mloader.load(argv[1], &mesh);
 
-  // uniform mesh refinements
+  // Perform uniform mesh refinements.
   for (int i=0; i<INIT_REF_NUM; i++) mesh.refine_all_elements();
 
-  // initialize the shapeset and the cache
+  // Initialize the shapeset and the cache.
   L2Shapeset shapeset;
   PrecalcShapeset pss(&shapeset);
 
-  // create the L2 space
+  // Create the L2 space.
   L2Space space(&mesh, &shapeset);
   space.set_bc_types(bc_types);
 
-  // set uniform polynomial degrees
+  // Set uniform polynomial degrees.
   space.set_uniform_order(P_INIT);
 
-  // enumerate basis functions
+  // Enumerate basis functions.
   int ndof = assign_dofs(&space);
 
+  // View basis functions.
   BaseView bview;
   bview.show(&space);
   View::wait(H2DV_WAIT_KEYPRESS);
 
   Solution sln;
 
-  // matrix solver
+  // Matrix solver.
   UmfpackSolver umfpack;
 
-  // initialize the weak formulation
-  WeakForm wf(1);
-  wf.add_biform(0, 0, callback(bilinear_form));
-  wf.add_liform(0, callback(linear_form));
+  // Initialize the weak formulation.
+  WeakForm wf;
+  wf.add_biform(callback(bilinear_form));
+  wf.add_liform(callback(linear_form));
 
-  // assemble and solve the finite element problem
+  // Assemble and solve the finite element problem.
   LinSystem sys(&wf, &umfpack);
-  sys.set_spaces(1, &space);
-  sys.set_pss(1, &pss);
+  sys.set_space(&space);
+  sys.set_pss(&pss);
   sys.assemble();
-  sys.solve(1, &sln);
+  sys.solve(&sln);
 
-  // visualize the solution
+  // Visualize the solution.
   ScalarView view1("Solution 1");
   view1.show(&sln);
 
-  // wait for all views to be closed
+  // Wait for all views to be closed.
   View::wait();
   return 0;
 }

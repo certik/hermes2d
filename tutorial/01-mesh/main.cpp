@@ -1,8 +1,7 @@
 #include "hermes2d.h"
 
 // This example shows how to load a mesh, perform various types
-// of "manual"  element refinements, and use keyboard and mouse
-// controls.
+// of initial refinements, and use keyboard and mouse controls.
 
 static char text[] = "\
 Click into the image window and:\n\
@@ -29,32 +28,33 @@ int main(int argc, char* argv[])
   mloader.load("domain.mesh", &mesh);
 
   // Conversions between triangular and quadrilateral elements 
-  // and vice versa. 
+  // and vice versa. Need to be done before any other types
+  // of mesh refinements.
   //mesh.convert_quads_to_triangles();
   //mesh.convert_triangles_to_quads();
 
-  // Uniform mesh refinement.
+  // Refine mesh uniformly.
   mesh.refine_all_elements();          // Refines all elements.
 
-  // Refinement towards s vertex (such as a re-entrant corner)
+  // Refine towards a vertex (such as a re-entrant corner).
   mesh.refine_towards_vertex(3, 4);    // Four refinements to wards vertex #3.
   mesh.refine_towards_boundary(2, 4);  // Four refinements towards boundary #2.
 
-  // Refinements of individual elements
+  // Refine individual elements.
   mesh.refine_element(86, 0);          // 0... isotropical refinement.
   mesh.refine_element(112, 0);         // 0... isotropical refinement.
   mesh.refine_element(84, 2);          // 2... anisotropical refinement.
   mesh.refine_element(114, 1);         // 1... anisotropical refinement.
 
-  // display the mesh
-  MeshView mview("Hello world!", 100, 100, 500, 500);  // (100, 100) is the upper 
-                                                       // left corner position
-  mview.show(&mesh);                                   // 500 x 500 is the window size
+  // Display the mesh.
+  // (100, 100) is the upper left corner position, 500 x 500 is the window size
+  MeshView mview("Hello world!", 100, 100, 500, 500);
+  mview.show(&mesh);
 
-  // Practice some keyboard and mouse controls
+  // Practice some keyboard and mouse controls.
   printf("%s", text);
 
-  // Wait for a view to be closed
+  // Wait for the view to be closed.
   View::wait();
   return 0;
 }
