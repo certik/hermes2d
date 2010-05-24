@@ -13,18 +13,18 @@ using namespace RefinementSelectors;
 //  the parameter MESH_REGULARITY to see the influence of hanging nodes on the adaptive process.
 //  The problem is made harder for adaptive algorithms by increasing the parameter SLOPE.
 //
-//  PDE: -Laplace u = f
+//  PDE: -Laplace u = f.
 //
-//  Known exact solution, see functions fn() and fndd()
+//  Known exact solution, see functions fn() and fndd().
 //
-//  Domain: unit square (0, 1)x(0, 1), see the file square.mesh
+//  Domain: unit square (0, 1)x(0, 1), see the file square.mesh.
 //
-//  BC:  Dirichlet, given by exact solution
+//  BC:  Dirichlet, given by exact solution.
 //
 //  The following parameters can be changed:
 
-const int P_INIT = 1;             // Initial polynomial degree of all mesh elements.
-const int INIT_REF_NUM = 2;       // Number of initial uniform mesh refinements.
+const int INIT_REF_NUM = 1;       // Number of initial uniform mesh refinements.
+const int P_INIT = 2;             // Initial polynomial degree of all mesh elements.
 const double THRESHOLD = 0.3;     // This is a quantitative parameter of the adapt(...) function and
                                   // it has different meanings for various adaptive strategies (see below).
 const int STRATEGY = 0;           // Adaptive strategy:
@@ -39,7 +39,7 @@ const int STRATEGY = 0;           // Adaptive strategy:
 const CandList CAND_LIST = H2D_HP_ANISO; // Predefined list of element refinement candidates. Possible values are
                                          // H2D_P_ISO, H2D_P_ANISO, H2D_H_ISO, H2D_H_ANISO, H2D_HP_ISO,
                                          // H2D_HP_ANISO_H, H2D_HP_ANISO_P, H2D_HP_ANISO.
-                                         // See the Sphinx tutorial (http://hpfem.org/hermes2d/doc/src/tutorial-2.html#adaptive-h-fem-and-hp-fem) for details.
+                                         // See User Documentation for details.
 const int MESH_REGULARITY = -1;   // Maximum allowed level of hanging nodes:
                                   // MESH_REGULARITY = -1 ... arbitrary level hangning nodes (default),
                                   // MESH_REGULARITY = 1 ... at most one-level hanging nodes,
@@ -53,168 +53,128 @@ const double ERR_STOP = 0.1;      // Stopping criterion for adaptivity (rel. err
 const int NDOF_STOP = 60000;      // Adaptivity process stops when the number of degrees of freedom grows
                                   // over this limit. This is to prevent h-adaptivity to go on forever.
 
-// problem constants
+// Problem parameters.
 double SLOPE = 60;                // slope of the layer
 
-// exact solution
-static double fn(double x, double y)
-{
-  return atan(SLOPE * (sqrt(sqr(x-1.25) + sqr(y+0.25)) - M_PI/3));
-}
+// Exact solution.
+#include "exact_solution.cpp"
 
-static double fndd(double x, double y, double& dx, double& dy)
-{
-  double t = sqrt(sqr(x-1.25) + sqr(y+0.25));
-  double u = t * (sqr(SLOPE) * sqr(t - M_PI/3) + 1);
-  dx = SLOPE * (x-1.25) / u;
-  dy = SLOPE * (y+0.25) / u;
-  return fn(x, y);
-}
-
-// boundary condition types
+// Boundary condition types.
 BCType bc_types(int marker)
 {
   return BC_ESSENTIAL;
 }
 
-// Dirichlet boundary condition values
+// Essential (Dirichlet) boundary condition values.
 scalar essential_bc_values(int ess_bdy_marker, double x, double y)
 {
   return fn(x, y);
 }
 
-// bilinear form for the Poisson equation
-template<typename Real, typename Scalar>
-Scalar bilinear_form(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
-{
-  return int_grad_u_grad_v<Real, Scalar>(n, wt, u, v);
-}
-
-template<typename Real>
-Real rhs(Real x, Real y)
-{
-  Real t2 = sqr(y + 0.25) + sqr(x - 1.25);
-  Real t = sqrt(t2);
-  Real u = (sqr(M_PI - 3.0*t)*sqr(SLOPE) + 9.0);
-  return 27.0/2.0 * sqr(2.0*y + 0.5) * (M_PI - 3.0*t) * pow(SLOPE,3.0) / (sqr(u) * t2) +
-         27.0/2.0 * sqr(2.0*x - 2.5) * (M_PI - 3.0*t) * pow(SLOPE,3.0) / (sqr(u) * t2) -
-          9.0/4.0 * sqr(2.0*y + 0.5) * SLOPE / (u * pow(t,3.0)) -
-          9.0/4.0 * sqr(2.0*x - 2.5) * SLOPE / (u * pow(t,3.0)) +
-          18.0 * SLOPE / (u * t);
-}
-
-template<typename Real, typename Scalar>
-Scalar linear_form(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
-{
-  return -int_F_v<Real, Scalar>(n, wt, rhs, v, e);
-}
+// Weak forms.
+#include "forms.cpp"
 
 int main(int argc, char* argv[])
 {
-  // load the mesh
+  // Time measurement.
+  TimePeriod cpu_time;
+  cpu_time.tick();
+
+  // Load the mesh.
   Mesh mesh;
   H2DReader mloader;
-  mloader.load("square_quad.mesh", &mesh);
-  // mloader.load("square_tri.mesh", &mesh);
+  mloader.load("square_quad.mesh", &mesh);     // quadrilaterals
+  // mloader.load("square_tri.mesh", &mesh);   // triangles
+
+  // Perform initial mesh refinements.
   for (int i=0; i<INIT_REF_NUM; i++) mesh.refine_all_elements();
 
-  // initialize the shapeset and the cache
+  // Initialize the shapeset and the cache.
   H1Shapeset shapeset;
   PrecalcShapeset pss(&shapeset);
 
-  // create finite element space
+  // Create an H1 space.
   H1Space space(&mesh, &shapeset);
   space.set_bc_types(bc_types);
   space.set_essential_bc_values(essential_bc_values);
   space.set_uniform_order(P_INIT);
 
-  // enumerate basis functions
+  // Enumerate basis functions.
   int ndof = assign_dofs(&space);
 
-  // initialize the weak formulation
-  WeakForm wf(1);
-  wf.add_biform(0, 0, callback(bilinear_form), H2D_SYM);
-  wf.add_liform(0, callback(linear_form));
+  // Initialize the weak formulation.
+  WeakForm wf;
+  wf.add_biform(callback(bilinear_form), H2D_SYM);
+  wf.add_liform(callback(linear_form));
 
-  // visualize solution and mesh
+  // Initialize views.
   ScalarView sview("Coarse solution", 0, 0, 500, 400);
   OrderView  oview("Polynomial orders", 505, 0, 500, 400);
 
-  // matrix solver
+  // Matrix solver.
   UmfpackSolver solver;
 
-  // DOF and CPU convergence graphs
+  // DOF and CPU convergence graphs.
   SimpleGraph graph_dof_est, graph_dof_exact, graph_cpu_est, graph_cpu_exact;
 
   // Initialize refinement selector.
   H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER, &shapeset);
 
-  // adaptivity loop
-  int it = 1;
-  bool done = false;
-  TimePeriod cpu_time;
+  // Adaptivity loop
+  int as = 1; bool done = false;
   Solution sln_coarse, sln_fine;
   do
   {
-    info("---- Adaptivity step %d ---------------------------------------------", it); it++;
+    info("---- Adaptivity step %d:", as); 
 
-    // time measurement
-    cpu_time.tick(H2D_SKIP);
-
-    // solve the coarse mesh problem
+    // Solve the coarse mesh problem.
     LinSystem ls(&wf, &solver);
     ls.set_spaces(1, &space);
     ls.set_pss(1, &pss);
     ls.assemble();
     ls.solve(1, &sln_coarse);
 
-    // time measurement
+    // Time measurement.
     cpu_time.tick();
 
-    // calculate error wrt. exact solution
+    // Calculate error wrt. exact solution.
     ExactSolution exact(&mesh, fndd);
     double err_exact = h1_error(&sln_coarse, &exact) * 100;
 
-    // view the solution and mesh
+    // View the solution and mesh.
     sview.show(&sln_coarse);
     oview.show(&space);
-    //View::wait(H2DV_WAIT_KEYPRESS);
 
-    // time measurement
+    // Skip exact error calculation and visualization time. 
     cpu_time.tick(H2D_SKIP);
 
-    // solve the fine mesh problem
+    // Solve the fine mesh problem.
     RefSystem rs(&ls);
     rs.assemble();
-    rs.solve(1, &sln_fine);
+    rs.solve(&sln_fine);
 
-    // calculate error estimate wrt. fine mesh solution
+    // Calculate error estimate wrt. fine mesh solution.
     H1Adapt hp(&space);
     hp.set_solutions(&sln_coarse, &sln_fine);
     double err_est = hp.calc_error() * 100;
 
-    // time measurement
-    cpu_time.tick();
+    // Report results.
+    info("ndof_coarse: %d, ndof_fine: %d, err_est: %g%%, err_exact: %g%%", 
+         space.get_num_dofs(), rs.get_space(0)->get_num_dofs(), err_est, err_exact);
 
-    // report results
-    info("ndof: %d, err_est: %g%%, err_exact: %g%%", space.get_num_dofs(), err_est, err_exact);
-
-    // add entries to DOF convergence graphs
+    // Add entries to DOF convergence graphs.
     graph_dof_exact.add_values(space.get_num_dofs(), err_exact);
     graph_dof_exact.save("conv_dof_exact.dat");
     graph_dof_est.add_values(space.get_num_dofs(), err_est);
     graph_dof_est.save("conv_dof_est.dat");
 
-    // add entries to CPU convergence graphs
+    // Add entries to CPU convergence graphs.
     graph_cpu_exact.add_values(cpu_time.accumulated(), err_exact);
     graph_cpu_exact.save("conv_cpu_exact.dat");
     graph_cpu_est.add_values(cpu_time.accumulated(), err_est);
     graph_cpu_est.save("conv_cpu_est.dat");
 
-    // time measurement
-    cpu_time.tick(H2D_SKIP);
-
-    // if err_est too large, adapt the mesh
+    // If err_est too large, adapt the mesh,
     if (err_est < ERR_STOP) done = true;
     else {
       done = hp.adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY);
@@ -222,17 +182,16 @@ int main(int argc, char* argv[])
       if (ndof >= NDOF_STOP) done = true;
     }
 
-    // time measurement
-    cpu_time.tick();
+    as++;
   }
   while (done == false);
   verbose("Total running time: %g s", cpu_time.accumulated());
 
-  // show the fine solution - this is the final result
+  // Show the fine solution - the final result.
   sview.set_title("Final solution");
   sview.show(&sln_fine);
 
-  // wait for all views to be closed
+  // Wait for all views to be closed
   View::wait();
   return 0;
 }

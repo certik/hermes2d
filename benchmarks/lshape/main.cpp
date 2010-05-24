@@ -7,21 +7,21 @@
 
 using namespace RefinementSelectors;
 
-//  This is a very simple but nice example that allows you to compare h- and hp-adaptivity
-//  from the point of view of both CPU time requirements and discrete problem size, see
-//  that the a-posteriori error estimate Hermes uses is almost as good as the exact error, etc.
+//  This is a standard benchmark for adaptive FEM algorithms. The exact solution is a harmonic 
+//  function in an L-shaped domain and it contains singular gradient at the re-entrant corner.
 //
-//  PDE: -Laplace u = 0
+//  PDE: -Laplace u = 0.
 //
-//  Known exact solution, see functions fn() and fndd()
+//  Known exact solution, see functions fn() and fndd().
 //
-//  Domain: L-shape domain, see the file lshape.mesh
+//  Domain: L-shape domain, see the file lshape.mesh.
 //
-//  BC:  Dirichlet, given by exact solution
+//  BC:  Dirichlet, given by exact solution.
 //
 //  The following parameters can be changed:
 
-const int P_INIT = 1;             // Initial polynomial degree of all mesh elements.
+const int INIT_REF_NUM = 1;       // Number of initial mesh refinements.
+const int P_INIT = 4;             // Initial polynomial degree of all mesh elements.
 const double THRESHOLD = 0.3;     // This is a quantitative parameter of the adapt(...) function and
                                   // it has different meanings for various adaptive strategies (see below).
 const int STRATEGY = 0;           // Adaptive strategy:
@@ -33,10 +33,10 @@ const int STRATEGY = 0;           // Adaptive strategy:
                                   // STRATEGY = 2 ... refine all elements whose error is larger
                                   //   than THRESHOLD.
                                   // More adaptive strategies can be created in adapt_ortho_h1.cpp.
-const CandList CAND_LIST = H2D_HP_ANISO; // Predefined list of element refinement candidates. Possible values are
-                                         // H2D_P_ISO, H2D_P_ANISO, H2D_H_ISO, H2D_H_ANISO, H2D_HP_ISO,
-                                         // H2D_HP_ANISO_H, H2D_HP_ANISO_P, H2D_HP_ANISO.
-                                         // See the Sphinx tutorial (http://hpfem.org/hermes2d/doc/src/tutorial-2.html#adaptive-h-fem-and-hp-fem) for details.
+const CandList CAND_LIST = H2D_HP_ANISO_H; // Predefined list of element refinement candidates. Possible values are
+                                           // H2D_P_ISO, H2D_P_ANISO, H2D_H_ISO, H2D_H_ANISO, H2D_HP_ISO,
+                                           // H2D_HP_ANISO_H, H2D_HP_ANISO_P, H2D_HP_ANISO.
+                                           // See User Documentation for details.
 const int MESH_REGULARITY = -1;   // Maximum allowed level of hanging nodes:
                                   // MESH_REGULARITY = -1 ... arbitrary level hangning nodes (default),
                                   // MESH_REGULARITY = 1 ... at most one-level hanging nodes,
@@ -46,152 +46,128 @@ const int MESH_REGULARITY = -1;   // Maximum allowed level of hanging nodes:
 const double CONV_EXP = 1.0;      // Default value is 1.0. This parameter influences the selection of
                                   // cancidates in hp-adaptivity. See get_optimal_refinement() for details.
                                   // error behavior err \approx const1*exp(-const2*pow(NDOF, CONV_EXP)).
-const double ERR_STOP = 0.001;    // Stopping criterion for adaptivity (rel. error tolerance between the
+const double ERR_STOP = 0.01;     // Stopping criterion for adaptivity (rel. error tolerance between the
                                   // fine mesh and coarse mesh solution in percent).
 const int NDOF_STOP = 60000;      // Adaptivity process stops when the number of degrees of freedom grows
                                   // over this limit. This is to prevent h-adaptivity to go on forever.
 
-// exact solution
-static double fn(double x, double y)
-{
-  double r = sqrt(x*x + y*y);
-  double a = atan2(x, y);
-  return pow(r, 2.0/3.0) * sin(2.0*a/3.0 + M_PI/3);
-}
+// Exact solution.
+#include "exact_solution.cpp"
 
-static double fndd(double x, double y, double& dx, double& dy)
-{
-  double t1 = 2.0/3.0*atan2(x, y) + M_PI/3;
-  double t2 = pow(x*x + y*y, 1.0/3.0);
-  double t3 = x*x * ((y*y)/(x*x) + 1);
-  dx = 2.0/3.0*x*sin(t1)/(t2*t2) + 2.0/3.0*y*t2*cos(t1)/t3;
-  dy = 2.0/3.0*y*sin(t1)/(t2*t2) - 2.0/3.0*x*t2*cos(t1)/t3;
-  return fn(x, y);
-}
-
-// boundary condition types
+// Boundary condition types.
 BCType bc_types(int marker)
 {
   return BC_ESSENTIAL;
 }
 
-// Dirichlet boundary condition values
+// Essential (Dirichlet) boundary condition values.
 scalar essential_bc_values(int ess_bdy_marker, double x, double y)
 {
   return fn(x, y);
 }
 
-// bilinear form corresponding to the Laplace equation
-template<typename Real, typename Scalar>
-Scalar bilinear_form(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
-{
-  return int_grad_u_grad_v<Real, Scalar>(n, wt, u, v);
-}
+// Weak forms.
+#include "forms.cpp"
 
 int main(int argc, char* argv[])
 {
-  // load the mesh
+  // Time measurement
+  TimePeriod cpu_time;
+  cpu_time.tick();
+
+  // Load the mesh.
   Mesh mesh;
   H2DReader mloader;
   mloader.load("lshape.mesh", &mesh);
-  if(P_INIT == 1) mesh.refine_all_elements();  // this is because there are no degrees of freedom
-                                               // on the coarse mesh lshape.mesh if P_INIT == 1
 
-  // initialize the shapeset and the cache
+  // Perform initial mesh refinement.
+  mesh.refine_all_elements();
+
+  // Initialize the shapeset and the cache.
   H1Shapeset shapeset;
   PrecalcShapeset pss(&shapeset);
 
-  // create finite element space
+  // Create an H1 space.
   H1Space space(&mesh, &shapeset);
   space.set_bc_types(bc_types);
   space.set_essential_bc_values(essential_bc_values);
   space.set_uniform_order(P_INIT);
 
-  // enumerate basis functions
+  // Enumerate degrees of freedom.
   int ndof = assign_dofs(&space);
 
-  // initialize the weak formulation
-  WeakForm wf(1);
-  wf.add_biform(0, 0, callback(bilinear_form), H2D_SYM);
+  // Initialize the weak formulation.
+  WeakForm wf;
+  wf.add_biform(callback(bilinear_form), H2D_SYM);
 
-  // visualize solution and mesh
+  // Initialize views.
   ScalarView sview("Coarse solution", 0, 0, 500, 400);
   OrderView  oview("Polynomial orders", 505, 0, 500, 400);
 
-  // matrix solver
+  // Matrix solver.
   UmfpackSolver solver;
 
-  // create a selector which will select optimal candidate
+  // Initialize refinement selector.
   H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER, &shapeset);
 
-  // DOF and CPU convergence graphs
+  // DOF and CPU convergence graphs.
   SimpleGraph graph_dof_est, graph_dof_exact, graph_cpu_est, graph_cpu_exact;
 
-  // adaptivity loop
-  int it = 1;
-  bool done = false;
-  TimePeriod cpu_time;
+  // Adaptivity loop:
+  int as = 1; bool done = false;
   Solution sln_coarse, sln_fine;
   do
   {
-    info("---- Adaptivity step %d ---------------------------------------------", it); it++;
+    info("---- Adaptivity step %d:", as);
 
-    // time measurement
-    cpu_time.tick(H2D_SKIP);
-
-    // solve the coarse mesh problem
+    // Solve the coarse mesh problem.
     LinSystem ls(&wf, &solver);
-    ls.set_spaces(1, &space);
-    ls.set_pss(1, &pss);
+    ls.set_space(&space);
+    ls.set_pss(&pss);
     ls.assemble();
-    ls.solve(1, &sln_coarse);
+    ls.solve(&sln_coarse);
 
-    // time measurement
+    // Time measurement.
     cpu_time.tick();
 
-    // calculate error wrt. exact solution
+    // Calculate error wrt. exact solution.
     ExactSolution exact(&mesh, fndd);
     double err_exact = h1_error(&sln_coarse, &exact) * 100;
 
-    // view the solution
+    // View the solution and mesh.
     sview.show(&sln_coarse);
     oview.show(&space);
 
-    // time measurement
+    // Skip exact error calculation and visualization time. 
     cpu_time.tick(H2D_SKIP);
 
-    // solve the fine mesh problem
+    // Solve the fine mesh problem.
     RefSystem rs(&ls);
     rs.assemble();
-    rs.solve(1, &sln_fine);
+    rs.solve(&sln_fine);
 
-    // calculate error estimate wrt. fine mesh solution
+    // Calculate error estimate wrt. fine mesh solution.
     H1Adapt hp(&space);
     hp.set_solutions(&sln_coarse, &sln_fine);
     double err_est = hp.calc_error() * 100;
 
-    // time measurement
-    cpu_time.tick();
+    // Report results.  
+    info("ndof_coarse: %d, ndof_fine: %d, err_est: %g%%, err_exact: %g%%", 
+         space.get_num_dofs(), rs.get_space(0)->get_num_dofs(), err_est, err_exact);
 
-    // report results  
-    info("ndof: %d, err_est: %g%%, err_exact: %g%%", space.get_num_dofs(), err_est, err_exact);
-
-    // add entries to DOF convergence graphs
+    // Add entries to DOF convergence graphs.
     graph_dof_exact.add_values(space.get_num_dofs(), err_exact);
     graph_dof_exact.save("conv_dof_exact.dat");
     graph_dof_est.add_values(space.get_num_dofs(), err_est);
     graph_dof_est.save("conv_dof_est.dat");
 
-    // add entries to CPU convergence graphs
+    // Add entries to CPU convergence graphs.
     graph_cpu_exact.add_values(cpu_time.accumulated(), err_exact);
     graph_cpu_exact.save("conv_cpu_exact.dat");
     graph_cpu_est.add_values(cpu_time.accumulated(), err_est);
     graph_cpu_est.save("conv_cpu_est.dat");
 
-    // time measurement
-    cpu_time.tick(H2D_SKIP);
-
-    // if err_est too large, adapt the mesh
+    // If err_est too large, adapt the mesh.
     if (err_est < ERR_STOP) done = true;
     else {
       hp.adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY);
@@ -199,17 +175,16 @@ int main(int argc, char* argv[])
       if (ndof >= NDOF_STOP) done = true;
     }
 
-    // time measurement
-    cpu_time.tick();
+    as++;
   }
   while (done == false);
   verbose("Total running time: %g s", cpu_time.accumulated());
 
-  // show the fine solution - this is the final result
+  // Show the fine mesh solution - the final result.
   sview.set_title("Final solution");
   sview.show(&sln_fine);
 
-  // wait for all views to be closed
+  // Wait for all views to be closed.
   View::wait();
   return 0;
 }

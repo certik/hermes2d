@@ -154,7 +154,9 @@ int main(int argc, char* argv[])
     ls.set_pss(&pss);
 
     // Initialize and solve the fine mesh problem.
-    RefSystem rs(&ls);
+    int order_increase = 1; // >= 0 (default = 1) 
+    int refinement = 1; // only '0' or '1' supported (default = 1)
+    RefSystem rs(&ls, order_increase, refinement);
     rs.assemble();
     rs.solve(&sln_fine);
 
