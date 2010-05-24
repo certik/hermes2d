@@ -5,269 +5,98 @@
 #include "hermes2d.h"
 #include "solver_umfpack.h"
 
-//  The purpose of this example is to show how to use Trilinos for nonlinear time-dependent coupled system of PDEs
-//  Solved by NOX solver, JFNK (derivation of Jacobian is not needed), with or without preconditioning
+//  The purpose of this example is to show how to use Trilinos for nonlinear time-dependent coupled PDE systems.
+//  Solved by NOX solver via Newton, or JFNK with or without preconditioning.
 //
-//  PDE: Flame propagation
+//  PDE: Flame propagation (same as tutorial example 17-newton-timedep-flame).
 //
-//  Domain: pipe with rods
+//  Domain: Same as in tutorial example 17-newton-timedep-flame.
 //
 
-const bool jfnk = false;     // true = jacobian-free method,
-                            // false = Newton
-const int precond = 1;      // preconditioning by jacobian (1) (less GMRES iterations, more time to create precond)
-                            // or by approximation of jacobian (2) (less time for precond creation, more GMRES iters)
-                            // in case of jfnk,
-                            // default Ifpack proconditioner in case of Newton
+const int INIT_REF_NUM = 2;         // Number of initial uniform mesh refinements.
+const int P_INIT = 2;               // Initial polynomial degree of all mesh elements.
+const bool JFNK = false;            // true = jacobian-free method,
+                                    // false = Newton
+const int PRECOND = 1;              // Preconditioning by jacobian (1) (less GMRES iterations, more time to create precond)
+                                    // or by approximation of jacobian (2) (less time for precond creation, more GMRES iters).
+                                    // in case of jfnk,
+                                    // default Ifpack proconditioner in case of Newton.
+const double TAU = 0.05;            // Time step.
+const bool TRILINOS_OUTPUT = true;  // Display more details about nonlinear and linear solvers.
 
-const bool trilinos_output = true;  // display more details about nonlinear and linear solvers
-
-// problem constants - all according to the paper SchmichVexler2008
+// Problem parameters.
 const double Le    = 1.0;
 const double alpha = 0.8;
 const double beta  = 10.0;
 const double kappa = 0.1;
 const double x1    = 9.0;
 
-const double tau = 0.05;
-const int P_INIT = 2;                // Initial polynomial degree of all mesh elements.
-
-//// BCs, omega ////////////////////////////////////////////////////////////////////////////////////
-
+// Boundary condition types.
 BCType bc_types(int marker)
   { return (marker == 1) ? BC_ESSENTIAL : BC_NATURAL; }
 
-scalar essential__bc_values(int ess_bdy_marker, double x, double y)
+// Essential (Dirichlet) boundary condition values.
+scalar essential_bc_values(int ess_bdy_marker, double x, double y)
   { return (ess_bdy_marker == 1) ? 1.0 : 0; }
 
-
+// Initial conditions.
 scalar temp_ic(double x, double y, scalar& dx, scalar& dy)
   { return (x <= x1) ? 1.0 : exp(x1 - x); }
 
 scalar conc_ic(double x, double y, scalar& dx, scalar& dy)
   { return (x <= x1) ? 0.0 : 1.0 - exp(Le*(x1 - x)); }
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////
-void omega_fn(int n, scalar* a, scalar* dadx, scalar* dady, scalar* b, scalar* dbdx, scalar* dbdy,
-                      scalar* out, scalar* outdx, scalar* outdy)
-{
-  for (int i = 0; i < n; i++)
-  {
-    double t1 = a[i] - 1.0;
-    double t2 = t1 * beta;
-    double t3 = 1.0 + t1 * alpha;
-    double t4 = sqr(beta) / (2.0*Le) * exp(t2 / t3);
-    double t5 = (beta / (t3 * t3)) * b[i];
-    out[i] = t4 * b[i];
-    outdx[i] = t4 * (dbdx[i] + dadx[i] * t5);
-    outdy[i] = t4 * (dbdy[i] + dady[i] * t5);
-  }
-}
-
-void omega_dt_fn(int n, scalar* a, scalar* dadx, scalar* dady, scalar* b, scalar* dbdx, scalar* dbdy,
-                        scalar* out, scalar* outdx, scalar* outdy)
-{
-  for (int i = 0; i < n; i++)
-  {
-    double t1 = a[i] - 1.0;
-    double t2 = t1 * beta;
-    double t3 = 1.0 + t1 * alpha;
-    double t4 = sqr(beta) / (2.0*Le) * exp(t2 / t3);
-    double t5 = (beta / (t3 * t3));
-    out[i] = t4 * t5 * b[i];
-    outdx[i] = 0.0;
-    outdy[i] = 0.0; // not important
-  }
-}
-
-void omega_dc_fn(int n, scalar* a, scalar* dadx, scalar* dady, scalar* b, scalar* dbdx, scalar* dbdy,
-                        scalar* out, scalar* outdx, scalar* outdy)
-{
-  for (int i = 0; i < n; i++)
-  {
-    double t1 = a[i] - 1.0;
-    double t2 = t1 * beta;
-    double t3 = 1.0 + t1 * alpha;
-    double t4 = sqr(beta) / (2.0*Le) * exp(t2 / t3);
-    out[i] = t4;
-    outdx[i] = 0.0;
-    outdy[i] = 0.0; // not important
-  }
-}
-///////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-template<typename Real>
-Real omega(Real t, Real c)
-{
-  Real t2 = beta * (t - 1.0);
-  Real t3 = 1.0 + alpha * (t - 1.0);
-  return c * sqr(beta) / (2.0*Le) * exp(t2 / t3);
-}
-
-/////////   Residual   ///////////////////////////////////////////////////////////////////////////////////////////
-template<typename Real, typename Scalar>
-Scalar residual_0(int n, double *wt, Func<Real> *u[], Func<Real> *vi, Geom<Real> *e, ExtData<Scalar> *ext)
-{
-  Scalar result = 0;
-  Func<Real>* tprev1 = ext->fn[0];
-  Func<Real>* tprev2 = ext->fn[1];
-  for (int i = 0; i < n; i++)
-    result += wt[i] * ( (3.0 * u[0]->val[i] - 4.0 * tprev1->val[i] + tprev2->val[i]) * vi->val[i] / (2.0 * tau) +
-                        (u[0]->dx[i] * vi->dx[i] + u[0]->dy[i] * vi->dy[i]) -
-                        omega(u[0]->val[i], u[1]->val[i]) * vi->val[i]);
-  return result;
-}
-
-template<typename Real, typename Scalar>
-Scalar residual_0_surf(int n, double *wt, Func<Real> *u[], Func<Real> *vi, Geom<Real> *e, ExtData<Scalar> *ext)
-{
-  Scalar result = 0;
-  for (int i = 0; i < n; i++)
-    result += wt[i] * (kappa * u[0]->val[i] * vi->val[i]);
-  return result;
-}
-
-template<typename Real, typename Scalar>
-Scalar residual_1(int n, double *wt, Func<Real> *u[], Func<Real> *vi, Geom<Real> *e, ExtData<Scalar> *ext)
-{
-  Scalar result = 0;
-  Func<Real>* cprev1 = ext->fn[0];
-  Func<Real>* cprev2 = ext->fn[1];
-  for (int i = 0; i < n; i++)
-    result += wt[i] * ( (3.0 * u[1]->val[i] - 4.0 * cprev1->val[i] + cprev2->val[i]) * vi->val[i] / (2.0 * tau) +
-                        (u[1]->dx[i] * vi->dx[i] + u[1]->dy[i] * vi->dy[i]) / Le +
-                        omega(u[0]->val[i], u[1]->val[i]) * vi->val[i] );
-  return result;
-}
-
-//////////   Preconditioning   /////////////////////////////////////////////////////////////////////////////////////////////
-template<typename Real, typename Scalar>
-Scalar precond_0_0(int n, double *wt, Func<Scalar>* u[], Func<Real> *vj, Func<Real> *vi, Geom<Real> *e, ExtData<Scalar> *ext)
-{
-  Scalar result = 0;
-  for (int i = 0; i < n; i++)
-    result += wt[i] * (  1.5 * vj->val[i] * vi->val[i] / tau
-                      +  vj->dx[i] * vi->dx[i] + vj->dy[i] * vi->dy[i]);
-  return result;
-}
-
-template<typename Real, typename Scalar>
-Scalar precond_1_1(int n, double *wt,  Func<Scalar>* u[], Func<Real> *vj, Func<Real> *vi, Geom<Real> *e, ExtData<Scalar> *ext)
-{
-  Scalar result = 0;
-  for (int i = 0; i < n; i++)
-    result += wt[i] * (  1.5 * vj->val[i] * vi->val[i] / tau
-                      +  (vj->dx[i] * vi->dx[i] + vj->dy[i] * vi->dy[i]) / Le );
-  return result;
-}
-
-//////   Jacobian   /////////////////////////////////////////////////////////////////////////////////////////////////////////
-template<typename Real, typename Scalar>
-Scalar jacobian_0_0(int n, double *wt, Func<Scalar>* u[], Func<Real> *vj, Func<Real> *vi, Geom<Real> *e, ExtData<Scalar> *ext)
-{
-  Scalar result = 0;
-  for (int i = 0; i < n; i++)
-    result += wt[i] * (  1.5 * vj->val[i] * vi->val[i] / tau
-                      +  vj->dx[i] * vi->dx[i] + vj->dy[i] * vi->dy[i]
-                      - (u[1]->val[i] * sqr(beta)/(2*Le) *
-                         exp(beta * (u[0]->val[i] - 1)/(1.0 + alpha*(u[0]->val[i] - 1))) *
-                         beta / (sqr(1.0 + alpha*(u[0]->val[i] - 1))))
-                           * vj->val[i] * vi->val[i] );
-  return result;
-}
-
-template<typename Real, typename Scalar>
-Scalar jacobian_0_0_surf(int n, double *wt, Func<Scalar>* u[], Func<Real> *vj, Func<Real> *vi, Geom<Real> *e, ExtData<Scalar> *ext)
-{
-  Scalar result = 0;
-  for (int i = 0; i < n; i++)
-    result += wt[i] * (kappa * vj->val[i] * vi->val[i]);
-  return result;
-}
-
-template<typename Real, typename Scalar>
-Scalar jacobian_0_1(int n, double *wt, Func<Scalar>* u[], Func<Real> *vj, Func<Real> *vi, Geom<Real> *e, ExtData<Scalar> *ext)
-{
-  Scalar result = 0;
-  Func<Real>* dodc = ext->fn[0];
-  for (int i = 0; i < n; i++)
-    result += wt[i] * (- (sqr(beta)/(2*Le) * exp(beta * (u[0]->val[i]-1)/(1.0 + alpha*(u[0]->val[i]-1)))) * vj->val[i] * vi->val[i] );
-  return result;
-}
-
-template<typename Real, typename Scalar>
-Scalar jacobian_1_0(int n, double *wt, Func<Scalar>* u[], Func<Real> *vj, Func<Real> *vi, Geom<Real> *e, ExtData<Scalar> *ext)
-{
-  Scalar result = 0;
-  Func<Real>* dodt = ext->fn[0];
-  for (int i = 0; i < n; i++)
-    result += wt[i] * ( (u[1]->val[i] * sqr(beta)/(2*Le) *
-                         exp(beta * (u[0]->val[i] - 1)/(1.0 + alpha*(u[0]->val[i] - 1))) *
-                         beta / (sqr(1.0 + alpha*(u[0]->val[i] - 1)))) * vj->val[i] * vi->val[i] );
-  return result;
-}
-
-template<typename Real, typename Scalar>
-Scalar jacobian_1_1(int n, double *wt,  Func<Scalar>* u[], Func<Real> *vj, Func<Real> *vi, Geom<Real> *e, ExtData<Scalar> *ext)
-{
-  Scalar result = 0;
-  for (int i = 0; i < n; i++)
-    result += wt[i] * (  1.5 * vj->val[i] * vi->val[i] / tau
-                      +  (vj->dx[i] * vi->dx[i] + vj->dy[i] * vi->dy[i]) / Le
-                      + (sqr(beta)/(2*Le) * exp(beta * (u[0]->val[i]-1)/(1.0 + alpha*(u[0]->val[i]-1))))
-                        * vj->val[i] * vi->val[i] );
-  return result;
-}
-
-//////////////////////////////////////////////////////////////////////////////
+// Weak forms. 
+# include "forms.cpp"
 
 int main(int argc, char* argv[])
 {
+  // Load the mesh.
   Mesh mesh;
   H2DReader mloader;
   mloader.load("domain.mesh", &mesh);
-  mesh.refine_all_elements();
-  mesh.refine_all_elements();
 
+  // Perform initial mesh refinemets.
+  for (int i=0; i < INIT_REF_NUM; i++)  mesh.refine_all_elements();
+
+  // Initialize the shapeset and the cache.
   H1Shapeset shapeset;
-  PrecalcShapeset tpss(&shapeset);
-  PrecalcShapeset cpss(&shapeset);
+  PrecalcShapeset pss(&shapeset);
 
-  // initialize meshes
+  // Create H1 spaces.
   H1Space tspace(&mesh, &shapeset);
   H1Space cspace(&mesh, &shapeset);
   tspace.set_bc_types(bc_types);
-  tspace.set_essential_bc_values(essential__bc_values);
+  tspace.set_essential_bc_values(essential_bc_values);
   cspace.set_bc_types(bc_types);
   tspace.set_uniform_order(P_INIT);
   cspace.set_uniform_order(P_INIT);
 
-  // enumerate degrees of freedom
-  int ndof = assign_dofs(2, &tspace, &cspace);
-  info("Number of DOFs: %d", ndof);
+  // Time measurement,
+  TimePeriod cpu_time;
 
-  // initial conditions
+  // Enumerate degrees of freedom.
+  int ndof = assign_dofs(2, &tspace, &cspace);
+  info("Number of DOF: %d", ndof);
+
+  // Define initial conditions.
   Solution tprev1, cprev1, tprev2, cprev2, titer, citer, tsln, csln;
-  tprev1.set_exact(&mesh, temp_ic);  cprev1.set_exact(&mesh, conc_ic);
-  tprev2.set_exact(&mesh, temp_ic);  cprev2.set_exact(&mesh, conc_ic);
-  titer.set_exact(&mesh, temp_ic);   citer.set_exact(&mesh, conc_ic);
+  tprev1.set_exact(&mesh, temp_ic);  
+  cprev1.set_exact(&mesh, conc_ic);
+  tprev2.set_exact(&mesh, temp_ic);  
+  cprev2.set_exact(&mesh, conc_ic);
+  titer.set_exact(&mesh, temp_ic);   
+  citer.set_exact(&mesh, conc_ic);
   DXDYFilter omega_dt(omega_dt_fn, &tprev1, &cprev1);
   DXDYFilter omega_dc(omega_dc_fn, &tprev1, &cprev1);
 
-  info("Projecting initial solution");
-  TimePeriod cpu_time;
-  Projection proj(2, &titer, &citer, &tspace, &cspace, &tpss, &cpss);
-  UmfpackSolver umfpack;
-  proj.set_solver(&umfpack);
-  double* vec = proj.project();
-  double proj_time = cpu_time.tick().last();
-
-  //   visualization
+  // Initialize visualization.
   ScalarView rview("Reaction rate", 0, 0, 1600, 460);
   rview.set_min_max_range(0.0,2.0);
 
-  WeakForm wf(2, jfnk ? true : false);
-  if (!jfnk || (jfnk && precond == 1))
+  // Initialize weak formulation.
+  WeakForm wf(2, JFNK ? true : false);
+  if (!JFNK || (JFNK && PRECOND == 1))
   {
     wf.add_jacform(0, 0, callback(jacobian_0_0));
     wf.add_jacform_surf(0, 0, callback(jacobian_0_0_surf));
@@ -275,70 +104,91 @@ int main(int argc, char* argv[])
     wf.add_jacform(0, 1, callback(jacobian_0_1));
     wf.add_jacform(1, 0, callback(jacobian_1_0));
   }
-  else if (precond == 2)
+  else if (PRECOND == 2)
   {
     wf.add_jacform(0, 0, callback(precond_0_0));
     wf.add_jacform(1, 1, callback(precond_1_1));
   }
-
   wf.add_resform(0, callback(residual_0), H2D_ANY, 2, &tprev1, &tprev2);
   wf.add_resform_surf(0, callback(residual_0_surf), 3);
   wf.add_resform(1, callback(residual_1), H2D_ANY, 2, &cprev1, &cprev2);
 
+  // Project the functions "titer" and "citer" on the FE space 
+  // in order to obtain initial vector for NOX. 
+  info("Projecting initial solutions...");
+  UmfpackSolver umfpack;
+  LinSystem ls(&wf, &umfpack);
+  ls.set_spaces(2, &tspace, &cspace);
+  ls.set_pss(&pss);
+  ls.project_global(&tprev1, &cprev1, &tprev1, &cprev1);
+  info("Done.");
+
+  // Get the coefficient vector.
+  scalar *vec = ls.get_solution_vector();
+
+  // Measure the projection time.
+  double proj_time = cpu_time.tick().last();
+
+  // Initialize finite element problem.
   FeProblem fep(&wf);
   fep.set_spaces(2, &tspace, &cspace);
-  fep.set_pss(2, &tpss, &cpss);
+  fep.set_pss(1, &pss);
 
+  // Initialize NOX solver and preconditioner.
   NoxSolver solver(&fep);
   MlPrecond pc("sa");
-  if (precond)
+  if (PRECOND)
   {
-    if (jfnk) solver.set_precond(&pc);
+    if (JFNK) solver.set_precond(&pc);
     else solver.set_precond("Ifpack");
   }
-  if (trilinos_output)
+  if (TRILINOS_OUTPUT)
     solver.set_output_flags(NOX::Utils::Error | NOX::Utils::OuterIteration |
                             NOX::Utils::OuterIterationStatusTest |
                             NOX::Utils::LinearSolverDetails);
 
+  // Time stepping loop:
   double total_time = 0.0;
-  for (int it = 1; total_time <= 60.0; it++)
+  cpu_time.tick_reset();
+  for (int ts = 1; total_time <= 60.0; ts++)
   {
-    info("!*** Time iteration %d, t = %g s ***", it, total_time + tau);
+    info("---- Time step %d, t = %g s ***", ts, total_time + TAU);
 
     cpu_time.tick(H2D_SKIP);
     solver.set_init_sln(vec);
     bool solved = solver.solve();
     if (solved)
     {
-      vec = solver.get_solution();
-      tsln.set_fe_solution(&tspace, &tpss, vec);
-      csln.set_fe_solution(&cspace, &cpss, vec);
+      vec = solver.get_solution_vector();
+      tsln.set_fe_solution(&tspace, &pss, vec);
+      csln.set_fe_solution(&cspace, &pss, vec);
 
       cpu_time.tick();
-      info("Number of nonlin iters: %d (norm of residual: %g)",
+      info("Number of nonlin iterations: %d (norm of residual: %g)",
           solver.get_num_iters(), solver.get_residual());
-      info("Total number of iters in linsolver: %d (achieved tolerance in the last step: %g)",
+      info("Total number of iterations in linsolver: %d (achieved tolerance in the last step: %g)",
           solver.get_num_lin_iters(), solver.get_achieved_tol());
 
-      // visualization
+      // Visualization.
       DXDYFilter omega_view(omega_fn, &tsln, &csln);
       rview.show(&omega_view);
       cpu_time.tick(H2D_SKIP);
 			
-      total_time += tau;
+      total_time += TAU;
 
+      // Saving solutions for the next time step.
       tprev2.copy(&tprev1);
       cprev2.copy(&cprev1);
       tprev1 = tsln;
       cprev1 = csln;
     }
     else
-      error("Failed.");
+      error("NOX failed.");
 
-    info("Total running time for time level %d: %g s.", it, cpu_time.tick().last());
+    info("Total running time for time level %d: %g s.", ts, cpu_time.tick().last());
   }
 
+  // Wait for all views to be closed.
   View::wait();
   return 0;
 }

@@ -184,7 +184,7 @@ int main(int argc, char **argv)
   bool solved = solver.solve();
   if (solved)
   {
-    double *s = solver.get_solution();
+    double *s = solver.get_solution_vector();
     sln2.set_fe_solution(&space, &pss, s);
     info("Number of nonlin iterations: %d (norm of residual: %g)", 
       solver.get_num_iters(), solver.get_residual());

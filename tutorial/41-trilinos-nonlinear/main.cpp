@@ -33,13 +33,13 @@ const int PRECOND = 2;            // Preconditioning by jacobian (1) or approxim
                                   // in case of jfnk,
                                   // default ML proconditioner in case of Newton
 
-// Boundary condition types
+// Boundary condition types.
 BCType bc_types(int marker)
 {
   return BC_ESSENTIAL;
 }
 
-// Exact solution and its derivatives
+// Exact solution and its derivatives.
 double exact(double x, double y, double &dx, double &dy)
 {
 	dx = (1- 2*x) * y * (1 - y);
@@ -74,88 +74,32 @@ template<typename Real>
 Real f(Real x, Real y)
 {  return - kx(x,y) * dudx(x,y) - ky(x,y) * dudy(x,y) - k(x,y) * (dudxx(x,y) + dudyy(x,y)); }
 
-// Weak forms
-template<typename Real, typename Scalar>
-Scalar jacobian_form_hermes(int n, double *wt, Func<Real> *vi, Func<Real> *vj, 
-                            Geom<Real> *e, ExtData<Scalar> *ext)
-{
-  Func<Scalar>* u = ext->fn[0];
-  Scalar result = 0;
-  for (int i = 0; i < n; i++)
-    result += wt[i] * ( -0.5 * pow(1.0 + sqr(u->dx[i]) + sqr(u->dy[i]), -1.5) * 
-                       (2.0 * u->dx[i] * vi->dx[i] + 2.0 * u->dx[i] * vi->dx[i])
-                       * (u->dx[i] * vj->dx[i] + u->dy[i] * vj->dy[i]) +
-                       (pow(1.0 + sqr(u->dx[i]) + sqr(u->dy[i]), -0.5))
-                       * (vi->dx[i] * vj->dx[i] + vi->dy[i] * vj->dy[i]) );
-  return result;
-}
+// Weak forms.
+#include "forms.cpp"
 
-template<typename Real, typename Scalar>
-Scalar residual_form_hermes(int n, double *wt, Func<Real> *vj, Geom<Real> *e, ExtData<Scalar> *ext)
-{
-  Func<Scalar>* u = ext->fn[0];
-  Scalar result = 0;
-  for (int i = 0; i < n; i++)
-    result += wt[i] * ((pow(1.0 + sqr(u->dx[i]) + sqr(u->dy[i]), -0.5)) * (u->dx[i] * vj->dx[i] + u->dy[i] * vj->dy[i])
-                       - f(e->x[i], e->y[i]) * vj->val[i] );
-  return result;
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////
-template<typename Real, typename Scalar>
-Scalar jacobian_form_nox(int n, double *wt, Func<Real> *u[], Func<Real> *vi, Func<Real> *vj, Geom<Real> *e, ExtData<Scalar> *ext)
-{
-  Scalar result = 0;
-  for (int i = 0; i < n; i++)
-    result += wt[i] * ( -0.5 * pow(1.0 + sqr(u[0]->dx[i]) + sqr(u[0]->dy[i]), -1.5) *
-                              (2.0 * u[0]->dx[i] * vi->dx[i] + 2.0 * u[0]->dx[i] * vi->dx[i])
-                       * (u[0]->dx[i] * vj->dx[i] + u[0]->dy[i] * vj->dy[i]) +
-                       (pow(1.0 + sqr(u[0]->dx[i]) + sqr(u[0]->dy[i]), -0.5))
-                       * (vi->dx[i] * vj->dx[i] + vi->dy[i] * vj->dy[i]) );
-  return result;
-}
-
-template<typename Real, typename Scalar>
-Scalar precond_form_nox(int n, double *wt, Func<Real> *u[], Func<Real> *vi, Func<Real> *vj, Geom<Real> *e, ExtData<Scalar> *ext)
-{
-  Scalar result = 0;
-  for (int i = 0; i < n; i++)
-    result += wt[i] * ( vi->dx[i] * vj->dx[i] + vi->dy[i] * vj->dy[i]);
-  return result;
-}
-
-template<typename Real, typename Scalar>
-Scalar residual_form_nox(int n, double *wt, Func<Real> *u[], Func<Real> *vj, Geom<Real> *e, ExtData<Scalar> *ext)
-{
-  Scalar result = 0;
-  for (int i = 0; i < n; i++)
-    result += wt[i] * ((pow(1.0 + sqr(u[0]->dx[i]) + sqr(u[0]->dy[i]), -0.5)) *
-                        (u[0]->dx[i] * vj->dx[i] + u[0]->dy[i] * vj->dy[i])
-                       - f(e->x[i], e->y[i]) * vj->val[i] );
-  return result;
-}
-
-int main(int argc, char **argv)
+int main(int argc, char* argv[])
 {
   // Load the mesh.
   Mesh mesh;
   H2DReader mloader;
   mloader.load("square.mesh", &mesh);
 
-  // Perform initial mesh refinemets.
+  // Perform initial mesh refinements.
   for (int i=0; i < INIT_REF_NUM; i++)  mesh.refine_all_elements();
 
-  // Solutions
+  // Solutions.
   Solution prev, sln1, sln2;
 
   // Initialize the shapeset and the cache,
   H1Shapeset shapeset;
   PrecalcShapeset pss(&shapeset);
 
-  // Create an H1 space,
+  // Create an H1 space.
   H1Space space(&mesh, &shapeset);
   space.set_bc_types(bc_types);
   space.set_uniform_order(P_INIT);
+
+  // Enumerate degrees of freedom.
   int ndof = assign_dofs(&space);
   info("Number of DOF: %d", space.get_num_dofs());
 
@@ -243,7 +187,7 @@ int main(int argc, char **argv)
   bool solved = solver.solve();
   if (solved)
   {
-    vec = solver.get_solution();
+    vec = solver.get_solution_vector();
     sln2.set_fe_solution(&space, &pss, vec);
 
     info("Number of nonlin iters: %d (norm of residual: %g)", solver.get_num_iters(), solver.get_residual());

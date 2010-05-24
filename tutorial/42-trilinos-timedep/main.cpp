@@ -10,15 +10,17 @@ using namespace RefinementSelectors;
 //  The purpose of this example is to show how to use Trilinos
 //  for time-dependent PDE problem.
 //  NOX solver is used, either using Newton's method or JFNK and
-//  with or without preconditioning
+//  with or without preconditioning,
 //
-//  PDE: heat-transfer
+//  PDE: Heat transfer.
 //
-//  Domain: square
+//  Domain: Unit square.
 //
-//  BC: cooling Dirichlet at the bottom
+//  BC: Dirichlet at the bottom, Newton elsewhere.
 //
 
+const int INIT_REF_NUM = 4;       // Number of initial uniform mesh refinements.
+const int P_INIT = 1;             // Initial polynomial degree of all mesh elements.
 const double ALPHA = 10.0;
 const double LAMBDA = 1e5;
 const double HEATCAP = 1e6;
@@ -26,155 +28,132 @@ const double RHO = 3000.0;
 const double TEMP_EXT = 20.0;
 const double TEMP_INIT = 10.0;
 
-const double tau = 50.0;
+const double TAU = 50.0;             // Time step.        
 
-const bool jfnk = true;
-const bool precond = true;
+const bool JFNK = true;
+const bool PRECOND = true;
 
-const int P_INIT = 1;                // Initial polynomial degree of all mesh elements.
+const int BDY_BOTTOM = 1;
 
-//////////////////////////////////////////////////////////////////////////////////////////////
+// Boundary condition types.
 BCType bc_types(int marker)
 {
-  if (marker == 1) return BC_ESSENTIAL;
+  if (marker == BDY_BOTTOM) return BC_ESSENTIAL;
   else return BC_NATURAL;
 }
 
+// Essential (Dirichlet) boundary conditions values.
 scalar essential_bc_values(int ess_bdy_marker, double x, double y)
 {
   return TEMP_INIT;
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////////
-template<typename Real, typename Scalar>
-Scalar jacobian(int n, double *wt, Func<Scalar> *u[], Func<Real> *vi, Func<Real> *vj, Geom<Real> *e, ExtData<Scalar> *ext)
-{
-  Scalar result = 0;
-  for (int i = 0; i < n; i++)
-    result += wt[i] * (HEATCAP * RHO * vi->val[i] * vj->val[i] / tau
-                     + LAMBDA * (vi->dx[i] * vj->dx[i] + vi->dy[i] * vj->dy[i]));
-  return result;
-}
-
-template<typename Real, typename Scalar>
-Scalar jacobian_surf(int n, double *wt, Func<Scalar> *u[], Func<Real> *vi, Func<Real> *vj, Geom<Real> *e, ExtData<Scalar> *ext)
-{
-  Scalar result = 0;
-  for (int i = 0; i < n; i++)
-    result += wt[i] *(LAMBDA * ALPHA * vi->val[i] * vj->val[i]);
-  return result;
-}
-
-template<typename Real, typename Scalar>
-Scalar residual(int n, double *wt, Func<Scalar> *u[], Func<Real> *vj, Geom<Real> *e, ExtData<Scalar> *ext)
-{
-  Scalar result = 0;
-  for (int i = 0; i < n; i++)
-    result += wt[i] * (HEATCAP * RHO * (u[0]->val[i] - ext->fn[0]->val[i]) * vj->val[i] / tau
-                     + LAMBDA * (u[0]->dx[i] * vj->dx[i] + u[0]->dy[i] * vj->dy[i]));
-  return result;
-}
-
-template<typename Real, typename Scalar>
-Scalar residual_surf(int n, double *wt, Func<Scalar> *u[], Func<Real> *vj, Geom<Real> *e, ExtData<Scalar> *ext)
-{
-  Scalar result = 0;
-  for (int i = 0; i < n; i++)
-    result += wt[i] * (LAMBDA * ALPHA * (u[0]->val[i] - TEMP_EXT) * vj->val[i]);
-  return result;
-}
-
-//////////////////////////////////////////////////////////////////////////////
+// Weak forms.
+#include "forms.cpp"
 
 int main(int argc, char* argv[])
 {
-  // load and refine mesh
+  // Load the mesh.
   Mesh mesh;
   H2DReader mloader;
   mloader.load("square.mesh", &mesh);
-  mesh.refine_all_elements();
-  mesh.refine_all_elements();
-  mesh.refine_all_elements();
-  mesh.refine_all_elements();
-  mesh.refine_all_elements();
 
-  // set up shapeset
+  // Perform initial mesh refinemets.
+  for (int i=0; i < INIT_REF_NUM; i++)  mesh.refine_all_elements();
+
+  // Initialize the shapeset and the cache.
   H1Shapeset shapeset;
   PrecalcShapeset pss(&shapeset);
 
-  // set up spaces
+  // Create an H1 space.
   H1Space space(&mesh, &shapeset);
   space.set_bc_types(bc_types);
   space.set_essential_bc_values(essential_bc_values);
   space.set_uniform_order(P_INIT);
-  int ndof = assign_dofs(&space);
 
-  // set initial condition
+  // Time measurement,
+  TimePeriod cpu_time;
+
+  // Enumerate degrees of freedom.
+  int ndof = assign_dofs(&space);
+  info("Number of DOF: %d", space.get_num_dofs());
+
+  // Solutions.
   Solution tprev, titer, tsln;
+
+  // Define constant initial condition. 
   tprev.set_const(&mesh, 20.0);
   titer.set_const(&mesh, 20.0);
 
-  WeakForm wf(1, jfnk ? true : false);
-  wf.add_jacform(0, 0, callback(jacobian));
-  wf.add_jacform_surf(0, 0, callback(jacobian_surf));
-  wf.add_resform(0, callback(residual), H2D_ANY, 1, &tprev);
-  wf.add_resform_surf(0, callback(residual_surf));
+  // Initialize the weak formulation.
+  WeakForm wf(1, JFNK ? true : false);
+  wf.add_jacform(callback(jacobian));
+  wf.add_jacform_surf(callback(jacobian_surf));
+  wf.add_resform(callback(residual), H2D_ANY, 1, &tprev);
+  wf.add_resform_surf(callback(residual_surf));
 
-  // Finite element problem
+  // Initialize the finite element problem.
   FeProblem fep(&wf);
   fep.set_spaces(1, &space);
   fep.set_pss(1, &pss);
 
-  // Obtain solution vector for initial guess  
-  info("Projecting initial solution");
-  TimePeriod cpu_time;
-  Projection proj(1, &titer, &space, &pss);
+  // Project the function "titer" on the FE space 
+  // in order to obtain initial vector for NOX. 
+  info("Projecting initial solution...");
   UmfpackSolver umfpack;
-  proj.set_solver(&umfpack);
-  double* vec = proj.project();
+  LinSystem ls(&wf, &umfpack);
+  ls.set_space(&space);
+  ls.set_pss(&pss);
+  ls.project_global(&tprev, &tprev);
+  info("Done.");
+
+  // Get the coefficient vector.
+  scalar *vec = ls.get_solution_vector();
+
+  // Measure the projection time.
   double proj_time = cpu_time.tick().last();
 
-  // Solver + preconditioner
+  // Initialize NOX solver + preconditioner.
   NoxSolver solver(&fep);
   MlPrecond pc("sa");
-  if (precond)
+  if (PRECOND)
   {
-    if (jfnk) solver.set_precond(&pc);
+    if (JFNK) solver.set_precond(&pc);
     else solver.set_precond("ML");
   }
 
-  // visualisation
+  // Visualize the solution.
   ScalarView Tview("Temperature", 0, 0, 450, 600);
   Tview.set_min_max_range(10,20);
 
-  cpu_time.tick(H2D_SKIP);
-
+  // Time stepping loop:
   double total_time = 0.0;
   cpu_time.tick_reset();
-  for (int it = 1; total_time <= 2000.0; it++)
+  for (int ts = 1; total_time <= 2000.0; ts++)
   {
-    info("!*** Time iteration %d, t = %g s ***", it, total_time += tau);
+    info("---- Time step %d, t = %g s ***", ts, total_time += TAU);
 
     solver.set_init_sln(vec);
     bool solved = solver.solve();
     if (solved)
     {
-      vec = solver.get_solution();
+      vec = solver.get_solution_vector();
       tsln.set_fe_solution(&space, &pss, vec);
       Tview.show(&tsln);
       tprev = tsln;
     }
     else
-      error("Failed.");
+      error("NOX failed.");
 
-    cpu_time.tick();
-    info("Number of nonlin iters: %d (norm of residual: %g)", solver.get_num_iters(), solver.get_residual());
-    info("Total number of iters in linsolver: %d (achieved tolerance in the last step: %g)", solver.get_num_lin_iters(), solver.get_achieved_tol());
-    cpu_time.tick(H2D_SKIP);
+    info("Number of nonlin iterations: %d (norm of residual: %g)", 
+      solver.get_num_iters(), solver.get_residual());
+    info("Total number of iterations in linsolver: %d (achieved tolerance in the last step: %g)", 
+      solver.get_num_lin_iters(), solver.get_achieved_tol());
   }
 
   info("Total running time: %g", cpu_time.accumulated());
 
+  // Wait for all views to be closed.
   View::wait();
   return 0;
 }

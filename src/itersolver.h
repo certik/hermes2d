@@ -31,7 +31,7 @@ public:
 	virtual ~IterSolver() { delete [] sln; }
 
 	virtual bool solve() = 0;
-	scalar *get_solution() { return sln; }
+	scalar *get_solution_vector() { return sln; }
 
 	int get_error() { return error; }
 
