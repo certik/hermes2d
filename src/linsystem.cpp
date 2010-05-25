@@ -124,7 +124,7 @@ void LinSystem::copy(LinSystem* sys)
 
 void LinSystem::free()
 {
-  if (this->A != NULL) { ::free(this->A); this->A = NULL; }
+  if (this->A != NULL) { ::delete(this->A); this->A = NULL; }
   if (this->RHS != NULL) { ::free(this->RHS); this->RHS = NULL; }
   if (this->Dir != NULL) { ::free(this->Dir-1); this->Dir = NULL; }
   if (this->Vec != NULL) { ::free(this->Vec); this->Vec = NULL; }
