@@ -7,27 +7,28 @@
 
 using namespace RefinementSelectors;
 
-//  This example has a known exact solution. It describes an electromagnetic wave that hits
-//  a screen under the angle of 45 degrees, causing a singularity at the tip of the screen.
-//  Convergence graphs saved (both exact error and error estimate, and both wrt. dof number
+//  This benchmark problem with known exact solution describes an electromagnetic wave that hits
+//  a screen under the angle of 45 degrees, causing a very strong singularity at the tip of the 
+//  screen. Convergence graphs saved (both exact error and error estimate, and both wrt. dof number.
 //  and cpu time).
 //
-//  PDE: time-harmonic Maxwell's equations
+//  PDE: time-harmonic Maxwell's equations.
 //
-//  Known exact solution, see the function exact()
+//  Known exact solution, see the function exact().
 //
 //  Domain: square domain cut from the midpoint of the left edge to the center (center
-//          point of left edge duplicated)
+//          point of left edge duplicated).
 //
 //  Meshes: you can either use "screen-quad.mesh" (quadrilateral mesh) or
-//          "screen-tri.mesh" (triangular mesh). See the command mesh.load(...) below
+//          "screen-tri.mesh" (triangular mesh). See the command mesh.load(...) below.
 //
 //  BC: tangential component of solution taken from known exact solution (essential BC),
-//      see function essential_bc_values(...) below
+//      see function essential_bc_values() below.
 //
 // The following parameters can be changed:
 
-const int P_INIT = 0;             // Initial polynomial degree. NOTE: The meaning is different from
+const int INIT_REF_NUM = 1;       // Number of initial uniform mesh refinements.
+const int P_INIT = 1;             // Initial polynomial degree. NOTE: The meaning is different from
                                   // standard continuous elements in the space H1. Here, P_INIT refers
                                   // to the maximum poly order of the tangential component, and polynomials
                                   // of degree P_INIT + 1 are present in element interiors. P_INIT = 0
@@ -46,7 +47,7 @@ const int STRATEGY = 1;           // Adaptive strategy:
 const CandList CAND_LIST = H2D_HP_ANISO; // Predefined list of element refinement candidates. Possible values are
                                          // H2D_P_ISO, H2D_P_ANISO, H2D_H_ISO, H2D_H_ANISO, H2D_HP_ISO,
                                          // H2D_HP_ANISO_H, H2D_HP_ANISO_P, H2D_HP_ANISO.
-                                         // See the Sphinx tutorial (http://hpfem.org/hermes2d/doc/src/tutorial-2.html#adaptive-h-fem-and-hp-fem) for details.
+                                         // See User Documentation for details.
 const int MESH_REGULARITY = -1;   // Maximum allowed level of hanging nodes:
                                   // MESH_REGULARITY = -1 ... arbitrary level hangning nodes (default),
                                   // MESH_REGULARITY = 1 ... at most one-level hanging nodes,
@@ -55,33 +56,36 @@ const int MESH_REGULARITY = -1;   // Maximum allowed level of hanging nodes:
                                   // their notoriously bad performance.
 const double CONV_EXP = 1.0;      // Default value is 1.0. This parameter influences the selection of
                                   // cancidates in hp-adaptivity. See get_optimal_refinement() for details.
-const double ERR_STOP = 0.1;      // Stopping criterion for adaptivity (rel. error tolerance between the
+const double ERR_STOP = 1;        // Stopping criterion for adaptivity (rel. error tolerance between the
                                   // fine mesh and coarse mesh solution in percent).
 const int NDOF_STOP = 50000;      // Adaptivity process stops when the number of degrees of freedom grows
                                   // over this limit. This is to prevent h-adaptivity to go on forever.
 
-// problem constants
+// Problem parameters.
 const double e_0  = 8.8541878176 * 1e-12;
 const double mu_0 = 1.256 * 1e-6;
 const double k = 1.0;
 
-// exact solution
-#include "exact_sol.cpp"
+// Exact solution.
+#include "exact_solution.cpp"
 
-// boundary conditions
+// Boundary condition types.
 BCType bc_types(int marker)
 {
   return BC_ESSENTIAL;
 }
 
+// Unit tangential vectors to the boundary. 
 double2 tau[5] = { { 0, 0}, { 1, 0 },  { 0, 1 }, { -1, 0 }, { 0, -1 } };
 
+// Essential boundary condition values.
 scalar essential_bc_values(int ess_bdy_marker, double x, double y)
 {
   scalar dx, dy;
   return exact0(x, y, dx, dy)*tau[ess_bdy_marker][0] + exact1(x, y, dx, dy)*tau[ess_bdy_marker][1];
 }
 
+// Weak forms.
 template<typename Real, typename Scalar>
 Scalar bilinear_form(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
@@ -90,81 +94,83 @@ Scalar bilinear_form(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real>
 
 int main(int argc, char* argv[])
 {
-  // load the mesh
+  // Time measurement
+  TimePeriod cpu_time;
+  cpu_time.tick();
+
+  // Load the mesh.
   Mesh mesh;
   H2DReader mloader;
-  mloader.load("screen-quad.mesh", &mesh);
-//    mloader.load("screen-tri.mesh", &mesh);
+  mloader.load("screen-quad.mesh", &mesh);    // quadrilaterals
+  // mloader.load("screen-tri.mesh", &mesh);  // triangles
 
-  // initialize the shapeset and the cache
+  // Perform initial mesh refinemets.
+  for (int i=0; i < INIT_REF_NUM; i++)  mesh.refine_all_elements();
+
+
+  // Initialize the shapeset and the cache.
   HcurlShapeset shapeset;
   PrecalcShapeset pss(&shapeset);
 
-  // create finite element space
+  // Create an Hcurl space.
   HcurlSpace space(&mesh, &shapeset);
   space.set_bc_types(bc_types);
   space.set_essential_bc_values(essential_bc_values);
   space.set_uniform_order(P_INIT);
 
-  // enumerate degrees of freedom
+  // Enumerate degrees of freedom.
   int ndof = assign_dofs(&space);
 
-  // initialize the weak formulation
-  WeakForm wf(1);
-  wf.add_biform(0, 0, callback(bilinear_form), H2D_SYM);
+  // Initialize the weak formulation.
+  WeakForm wf;
+  wf.add_biform(callback(bilinear_form), H2D_SYM);
 
-  // visualize solution and mesh
-  ScalarView Xview_r("Electric field X - real",   0, 0, 450, 420);
-  ScalarView Yview_r("Electric field Y - real", 460, 0, 450, 420);
-  ScalarView Xview_i("Electric field X - imag", 920, 0, 450, 420);
-  ScalarView Yview_i("Electric field Y - imag", 1380, 0, 450, 420);
-  OrderView  ord("Polynomial Orders", 0, 460, 450, 420);
+  // Initialize views.
+  ScalarView Xview_r("Electric field X - real",   0, 0, 300, 280);
+  ScalarView Yview_r("Electric field Y - real", 310, 0, 300, 280);
+  ScalarView Xview_i("Electric field X - imag", 620, 0, 300, 280);
+  ScalarView Yview_i("Electric field Y - imag", 930, 0, 300, 280);
+  OrderView  ord("Polynomial Orders", 0, 335, 300, 280);
 
   /*
-  // view the basis functions
+  // View the basis functions.
   VectorBaseView bview;
   vbview.show(&space);
-  vbview.wait_for_keypress();
+  View::wait(H2DV_WAIT_KEYPRESS);
   */
 
-  // matrix solver
+  // Matrix solver.
   UmfpackSolver solver;
 
-  // create a selector which will select optimal candidate
-  HcurlProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER, &shapeset);
-
-  // DOF and CPU convergence graphs
+  // DOF and CPU convergence graphs.
   SimpleGraph graph_dof_est, graph_dof_exact, graph_cpu_est, graph_cpu_exact;
 
-  // adaptivity loop
-  int it = 1;
-  bool done = false;
-  TimePeriod cpu_time;
+  // Initialize refinement selector.
+  HcurlProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER, &shapeset);
+
+  // Adaptivity loop.
+  int as = 1; bool done = false;
   Solution sln_coarse, sln_fine;
   do
   {
-    info("---- Adaptivity step %d ---------------------------------------------", it); it++;
+    info("---- Adaptivity step %d:", as);
 
-    // time measurement
-    cpu_time.tick(H2D_SKIP);
+    // Solve the coarse mesh problem.
+    LinSystem ls(&wf, &solver);
+    ls.set_space(&space);
+    ls.set_pss(&pss);
+    ls.assemble();
+    ls.solve(&sln_coarse);
 
-    // solve the coarse mesh problem
-    LinSystem sys(&wf, &solver);
-    sys.set_spaces(1, &space);
-    sys.set_pss(1, &pss);
-    sys.assemble();
-    sys.solve(1, &sln_coarse);
-
-    // time measurement
+    // Time measurement.
     cpu_time.tick();
 
-    // calculating error wrt. exact solution
+    // Calculate error wrt. exact solution.
     Solution ex;
     ex.set_exact(&mesh, exact);
     double err_exact = 100 * hcurl_error(&sln_coarse, &ex);
-    info("Exact solution error: %g%%", err_exact);
 
-    // visualization
+    // Visualization.
     RealFilter real(&sln_coarse);
     ImagFilter imag(&sln_coarse);
     Xview_r.set_min_max_range(-3.0, 1.0);
@@ -181,55 +187,50 @@ int main(int argc, char* argv[])
     Yview_i.show(&imag, H2D_EPS_NORMAL, H2D_FN_VAL_1);
     ord.show(&space);
 
-    // time measurement
+    // Skip exact error calculation and visualization time. 
     cpu_time.tick(H2D_SKIP);
 
-    // solve the fine mesh problem
-    RefSystem ref(&sys);
-    ref.assemble();
-    ref.solve(1, &sln_fine);
+    // Solve the fine mesh problem.
+    RefSystem rs(&ls);
+    rs.assemble();
+    rs.solve(&sln_fine);
 
-    // calculate error estimate wrt. fine mesh solution
+    // Calculate error estimate wrt. fine mesh solution.
     HcurlAdapt hp(&space);
     hp.set_solutions(&sln_coarse, &sln_fine);
     double err_est_adapt = hp.calc_error() * 100;
     double err_est_hcurl = hcurl_error(&sln_coarse, &sln_fine) * 100;
     
-    // report results
-    cpu_time.tick();
-    info("Error estimate (adapt): %g%%", err_est_adapt);
-    info("Error estimate (hcurl): %g%%", err_est_hcurl);
+    // Report results.
+    info("ndof_coarse: %d, ndof_fine: %d, err_est: %g%%, err_exact: %g%%", 
+         space.get_num_dofs(), rs.get_space(0)->get_num_dofs(), err_est_hcurl, err_exact);
 
-    // add entries to DOF convergence graphs
+    // Add entries to DOF convergence graphs.
     graph_dof_exact.add_values(space.get_num_dofs(), err_exact);
     graph_dof_exact.save("conv_dof_exact.dat");
     graph_dof_est.add_values(space.get_num_dofs(), err_est_hcurl);
     graph_dof_est.save("conv_dof_est.dat");
 
-    // add entries to CPU convergence graphs
+    // Add entries to CPU convergence graphs.
     graph_cpu_exact.add_values(cpu_time.accumulated(), err_exact);
     graph_cpu_exact.save("conv_cpu_exact.dat");
     graph_cpu_est.add_values(cpu_time.accumulated(), err_est_hcurl);
     graph_cpu_est.save("conv_cpu_est.dat");
 
-    // time measurement
-    cpu_time.tick(H2D_SKIP);
-
-    // if err_est_adapt too large, adapt the mesh
+    // If err_est_adapt too large, adapt the mesh.
     if (err_est_adapt < ERR_STOP) done = true;
     else {
-      hp.adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY);
+      done = hp.adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY);
       ndof = assign_dofs(&space);
       if (ndof >= NDOF_STOP) done = true;
     }
 
-    // time measurement
-    cpu_time.tick();
+    as++;
   }
   while (!done);
   verbose("Total running time: %g s", cpu_time.accumulated());
 
-  // wait for all views to be closed
+  // Wait for all views to be closed.
   View::wait();
   return 0;
 }

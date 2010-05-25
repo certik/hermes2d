@@ -137,11 +137,11 @@ int main(int argc, char* argv[])
     info("---- Adaptivity step %d:", as); 
 
     // Solve the coarse mesh problem.
-    LinSystem sys(&wf, &solver);
-    sys.set_space(&space);
-    sys.set_pss(&pss);
-    sys.assemble();
-    sys.solve(&sln_coarse);
+    LinSystem ls(&wf, &solver);
+    ls.set_space(&space);
+    ls.set_pss(&pss);
+    ls.assemble();
+    ls.solve(&sln_coarse);
 
     // Time measurement.
     cpu_time.tick();
@@ -160,7 +160,7 @@ int main(int argc, char* argv[])
     cpu_time.tick(H2D_SKIP);
 
     // Solve the fine mesh problem.
-    RefSystem rs(&sys);
+    RefSystem rs(&ls);
     rs.assemble();
     rs.solve(&sln_fine);
 
