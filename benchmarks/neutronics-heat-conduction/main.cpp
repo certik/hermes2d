@@ -9,9 +9,11 @@
 #include <iostream>
 
 
-// Neutronics/Heat Conduction Test Case
+// Neutronics/heat conduction test case.
 //
-// -->PDEs:
+// Author: Damien Lebrun-Grandie (Texas A&M University).
+//
+// PDE:
 //
 // 1/v1 d/dt phi_1 = div(D_1 grad phi_1) + (nu Sigma_f1 - Sigma_r1) phi_1 + Sigma_f2 phi_2 
 //                        + lambda_1 C1 + lambda_2 C2 + Q_1
@@ -22,30 +24,24 @@
 //
 // rho c_p d/dt T = div(k grad T) + kappa_1 Sigma_f1 phi_1 + kappa_2 Sigma_f2 phi_2 + Q_T
 //
-// -->Domain: rectangle Lx Ly
+// Domain: rectangle (Lx, Ly).
 //
-// -->BC: homogeneous Dirichlet
+// BC: homogeneous Dirichlet.
+// 
+// The following parameters can be changed:
 //
 
+const int INIT_GLOB_REF_NUM = 4;                // Number of initial uniform mesh refinements.
+const int INIT_BDY_REF_NUM = 0;                 // Number of initial refinements towards boundary.
+const int P_INIT = 2;                           // Initial polynomial degree of all mesh elements.
+const double TAU = 0.1;                         // Time step.
+const double T_FINAL = 10.0;                    // Time interval length.
+const int PROJ_TYPE = 1;                        // For the projection of the initial condition 
+                                                // on the initial mesh: 1 = H1 projection, 0 = L2 projection.
+const double NEWTON_TOL = 1e-6;                 // Stopping criterion for the Newton's method.
+const int NEWTON_MAX_ITER = 100;                // Maximum allowed number of Newton iterations.
 
-double TIME = 0.0;
-const int P_INIT = 2;                 // Initial polynomial degree of all mesh elements
-
-const double TAU = 0.1;               // Time step
-const double T_FINAL = 10.0;          // Time interval length
-const int TIME_MAX_ITER = int(T_FINAL / TAU);
-
-const int PROJ_TYPE = 1;               // For the projection of the initial condition 
-                                       // on the initial mesh: 1 = H1 projection, 0 = L2 projection
-
-const int INIT_GLOB_REF_NUM = 4;       // Number of initial uniform mesh refinements
-const int INIT_BDY_REF_NUM = 0;        // Number of initial refinements towards boundary
-
-const double NEWTON_TOL = 1e-6;        // Stopping criterion for the Newton's method
-const int NEWTON_MAX_ITER = 100;       // Maximum allowed number of Newton iterations
-
-/*********************************************************************************************************/
-/********** Problem parameters ***********/
+// Problem parameters.
 
 const double CT = 1.0;
 const double CF = 1.0;
@@ -67,6 +63,10 @@ const double PI = acos(-1.0);
 const double normalization_const = 1.0;
 
 const double energy_per_fission = kappa * xsfiss;
+
+// Internal variables.
+double TIME = 0.0;                              // Current time.
+const int TIME_MAX_ITER = int(T_FINAL / TAU);   // Number of time steps.
 
 // Thermal conductivity depends on temperature
 const  double k0 = 3.0e-3;
@@ -112,11 +112,7 @@ Real q(Real x, Real y) {
 invvel*CF*rF*exp(rF*TIME)*sin(x/LX*PI)*sin(y/LY*PI)*x/LX*y/LY-xsdiff*(-CF*(1.0+exp(rF*TIME))*sin(x/LX*PI)/(LX*LX*LX)*PI*PI*sin(y/LY*PI)*x*y/LY+2.0*CF*(1.0+exp(rF*TIME))*cos(x/LX*PI)/(LX*LX)*PI*sin(y/LY*PI)*y/LY)-xsdiff*(-CF*(1.0+exp(rF*TIME))*sin(x/LX*PI)*sin(y/LY*PI)/(LY*LY*LY)*PI*PI*x/LX*y+2.0*CF*(1.0+exp(rF*TIME))*sin(x/LX*PI)*cos(y/LY*PI)/(LY*LY)*PI*x/LX)+(xsa_ref+doppler_coeff*(sqrt(CT*(1.0+tanh(rT*TIME))*sin(x/LX*PI)*sin(y/LY*PI))-sqrt(Tref)))*CF*(1.0+exp(rF*TIME))*sin(x/LX*PI)*sin(y/LY*PI)*x/LX*y/LY-nu*xsfiss*CF*(1.0+exp(rF*TIME))*sin(x/LX*PI)*sin(y/LY*PI)*x/LX*y/LY;
 }
 
-/*********************************************************************************************************/
-/********** Boundary conditions ***********/
-
-
-// Boundary condition types (essential = Dirichlet)
+// Boundary condition types.
 BCType bc_types_T(int marker)
 {
   //return BC_ESSENTIAL;
@@ -142,128 +138,10 @@ scalar essential_bc_values_phi(int ess_bdy_marker, double x, double y)
   return 0.0;
 }
 
-/*********************************************************************************************************/
-/********** Jacobian and residual  ***********/
+// Weak forms.
+#include "forms.cpp"
 
-
-// Heat conduction equation
-template<typename Real, typename Scalar>
-Scalar jac_TT(int n, double *wt, Func<Real> *uj, Func<Real> *ui, Geom<Real> *e, ExtData<Scalar> *ext)
-{
-  Scalar result = 0.0;
-  Func<Scalar>* T_prev_newton = ext->fn[0];
-  for (int i = 0; i < n; i++)
-    result += wt[i] * (rho * cp * uj->val[i] * ui->val[i] / TAU
-		       + dk_dT(T_prev_newton->val[i]) * uj->val[i] * (T_prev_newton->dx[i] * ui->dx[i]
-								     + T_prev_newton->dy[i] * ui->dy[i])
-                       + k(T_prev_newton->val[i]) * (uj->dx[i] * ui->dx[i]
-						     + uj->dy[i] * ui->dy[i]));
-  return result;
-}
-
-Ord jac_TT_ord(int n, double *wt, Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext)
-{
-  return Ord(10);
-}
-
-
-template<typename Real, typename Scalar>
-Scalar jac_Tphi(int n, double *wt, Func<Real> *uj, Func<Real> *ui, Geom<Real> *e, ExtData<Scalar> *ext)
-{
-  Scalar result = 0.0;
-  for (int i = 0; i < n; i++)
-    result += wt[i] * (-kappa * xsfiss * uj->val[i] * ui->val[i]);
-  return result;
-}
-
-Ord jac_Tphi_ord(int n, double *wt, Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext)
-{
-  return Ord(10);
-}
-
-template<typename Real, typename Scalar>
-Scalar res_T(int n, double *wt, Func<Real> *ui, Geom<Real> *e, ExtData<Scalar> *ext)
-{
-  Scalar result = 0.0;
-  Func<Scalar>* T_prev_newton = ext->fn[0];
-  Func<Scalar>* T_prev_time = ext->fn[1];
-  Func<Scalar>* phi_prev_newton = ext->fn[2];
-  for (int i = 0; i < n; i++)
-    result += wt[i] * (rho * cp * (T_prev_newton->val[i] - T_prev_time->val[i]) / TAU * ui->val[i]
-                       + k(T_prev_newton->val[i]) * (T_prev_newton->dx[i] * ui->dx[i]
-						     + T_prev_newton->dy[i] * ui->dy[i])
-		       - kappa * xsfiss * phi_prev_newton->val[i] * ui->val[i]
-                       - qT(e->x[i], e->y[i]) * ui->val[i]);
-  return result;
-}
-
-Ord res_T_ord(int n, double *wt, Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext)
-{
-  return Ord(30);
-}
-
-// Neutronics equation
-template<typename Real, typename Scalar>
-Scalar jac_phiphi(int n, double *wt, Func<Real> *uj, Func<Real> *ui, Geom<Real> *e, ExtData<Scalar> *ext)
-{
-  Scalar result = 0.0;
-  Func<Scalar>* T_prev_newton = ext->fn[0];
-  for (int i = 0; i < n; i++)
-    result += wt[i] * (invvel * uj->val[i] * ui->val[i] / TAU
-                       + xsdiff * (uj->dx[i] * ui->dx[i]
-				   + uj->dy[i] * ui->dy[i])
-		       + xsrem(T_prev_newton->val[i]) * uj->val[i] * ui->val[i]
-		       - nu * xsfiss * uj->val[i] * ui->val[i]);
-  return result;
-}
-
-Ord jac_phiphi_ord(int n, double *wt, Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext)
-{
-  return Ord(10);
-}
-
-template<typename Real, typename Scalar>
-Scalar jac_phiT(int n, double *wt, Func<Real> *uj, Func<Real> *ui, Geom<Real> *e, ExtData<Scalar> *ext)
-{
-  Scalar result = 0.0;
-  Func<Scalar>* phi_prev_newton = ext->fn[0];
-  Func<Scalar>* T_prev_newton = ext->fn[1];
-  for (int i = 0; i < n; i++)
-    result += wt[i] * (dxsrem_dT(T_prev_newton->val[i]) * uj->val[i] * phi_prev_newton->val[i] * ui->val[i]);
-  return result;
-}
-
-Ord jac_phiT_ord(int n, double *wt, Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext)
-{
-  return Ord(10);
-}
-
-template<typename Real, typename Scalar>
-Scalar res_phi(int n, double *wt, Func<Real> *ui, Geom<Real> *e, ExtData<Scalar> *ext)
-{
-  Scalar result = 0.0;
-  Func<Scalar>* phi_prev_newton = ext->fn[0];
-  Func<Scalar>* phi_prev_time = ext->fn[1];
-  Func<Scalar>* T_prev_newton = ext->fn[2];
-  for (int i = 0; i < n; i++)
-    result += wt[i] * (invvel * (phi_prev_newton->val[i] - phi_prev_time->val[i]) / TAU * ui->val[i]
-                       + xsdiff * (phi_prev_newton->dx[i] * ui->dx[i]
-				   + phi_prev_newton->dy[i] * ui->dy[i])
-		       + xsrem(T_prev_newton->val[i]) * phi_prev_newton->val[i] * ui->val[i] 
-                       - nu * xsfiss * phi_prev_newton->val[i] * ui->val[i]
-		       - q(e->x[i], e->y[i]) * ui->val[i]);
-  return result;
-}
-
-Ord res_phi_ord(int n, double *wt, Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext)
-{
-  return Ord(30);
-}
-
-
-/*********************************************************************************************************/
-/********** Initial conditions ***********/
-
+// Initial conditions.
 
 scalar T_ic(double x, double y, double& dx, double& dy)
 {
@@ -279,86 +157,67 @@ scalar phi_ic(double x, double y, double& dx, double& dy)
   return y;
 }
 
-/*********************************************************************************************************/
-/********** Exact solutions ***********/
-
-
-scalar phi_exact(double x, double y, double& dx, double& dy)
-{
-  dx = CF*(1+exp(rF*TIME))*sin(PI*x/LX)*sin(PI*y/LY)/LX*y/LY
-       + CF*(1+exp(rF*TIME))*PI/LX*cos(PI*x/LX)*sin(PI*y/LY)*x/LX*y/LY;
-  dy = CF*(1+exp(rF*TIME))*sin(PI*x/LX)*sin(PI*y/LY)*x/LX/LY
-       + CF*(1+exp(rF*TIME))*sin(PI*x/LX)*PI/LY*cos(PI*y/LY)*x/LX*y/LY;
-  return CF*(1+exp(rF*TIME))*sin(PI*x/LX)*sin(PI*y/LY)*x/LX*y/LY;
-}
-
-scalar T_exact(double x, double y, double& dx, double& dy)
-{
-  dx = CT*(1+tanh(rT*TIME))*PI/LX*(PI*x/LX)*sin(PI*y/LY);
-  dy = CT*(1+tanh(rT*TIME))*sin(PI*x/LX)*PI/LY*sin(PI*y/LY);
-  return CT*(1+tanh(rT*TIME))*sin(PI*x/LX)*sin(PI*y/LY);
-}
-
-/*********************************************************************************************************/
-/********** This is the main ***********/
-
+// Exact solutions.
+# include "exact_solution.cpp"
 
 int main(int argc, char* argv[])
 {
-  std::cout<<"TIME_MAX_ITER = "<<TIME_MAX_ITER<<std::endl;
-  TIME_MAX_ITER;
-  // load the mesh file
+  // Time measurement.
+  TimePeriod cpu_time;
+  cpu_time.tick();
+
+  info("TIME_MAX_ITER = %d", TIME_MAX_ITER);
+
+  // Load the mesh file.
   Mesh mesh;
   H2DReader mloader;
   mloader.load("domain.mesh", &mesh);
 
-  // perform initial refinements
+  // Perform initial mesh refinements.
   for (int i=0; i < INIT_GLOB_REF_NUM; i++) mesh.refine_all_elements();
   mesh.refine_towards_boundary(1, INIT_BDY_REF_NUM);
 
-  // initialize the shapeset and the cache
+  // Initialize the shapeset and the cache.
   H1Shapeset shapeset;
   PrecalcShapeset pss(&shapeset);
 
-  // create H1 spaces
+  // Create an H1 space for T.
   H1Space space_T(&mesh, &shapeset);
   space_T.set_bc_types(bc_types_T);
   space_T.set_essential_bc_values(essential_bc_values_T);
   space_T.set_uniform_order(P_INIT);
+
+  // Create an H1 space for phi.
   H1Space space_phi(&mesh, &shapeset);
   space_phi.set_bc_types(bc_types_phi);
   space_phi.set_essential_bc_values(essential_bc_values_phi);
   space_phi.set_uniform_order(P_INIT);
 
-  // enumerate degrees of freedom
+  // Enumerate degrees of freedom.
   int ndof = assign_dofs(2, &space_T, &space_phi);
 
-  // solutions for the Newton's iteration and time stepping
+  // Solutions for the Newton's iteration and time stepping.
   Solution T_prev_newton, T_prev_time,
            phi_prev_newton, phi_prev_time;
 
-  // exact solutions for error evaluation
+  // Exact solutions for error evaluation.
   ExactSolution T_solution(&mesh, T_exact),
                 phi_solution(&mesh, phi_exact);
 
-  // exact errors
-  double T_error,
-         phi_error,
-         error;
+  // Exact errors.
+  double T_error, phi_error, error;
 
-  // setting initial conditions
+  // Set initial conditions.
   T_prev_time.set_exact(&mesh, T_exact);
-  //  T_prev_newton.copy(&T_prev_time);
   phi_prev_time.set_exact(&mesh, phi_exact);
-  //  phi_prev_newton.copy(&phi_prev_time);
 
-  // visualisation
+  // Initialize views.
   ScalarView sview_T("Solution for the temperature T", 0, 0, 500, 400);
   ScalarView sview_phi("Solution for the neutron flux phi", 0, 500, 500, 400);
   ScalarView sview_T_exact("Solution for the temperature T", 550, 0, 500, 400);
   ScalarView sview_phi_exact("Solution for the neutron flux phi", 550, 500, 500, 400);
 
-  // initialize the weak formulation
+  // Initialize the weak formulation.
   WeakForm wf(2);
   wf.add_biform(0, 0, jac_TT, jac_TT_ord, H2D_UNSYM, H2D_ANY, 1, &T_prev_newton);
   wf.add_biform(0, 1, jac_Tphi, jac_Tphi_ord, H2D_UNSYM, H2D_ANY, 0);
@@ -367,51 +226,56 @@ int main(int argc, char* argv[])
   wf.add_biform(1, 1, jac_phiphi, jac_phiphi_ord, H2D_UNSYM, H2D_ANY, 1, &T_prev_newton);
   wf.add_liform(1, res_phi, res_phi_ord, H2D_ANY, 3, &phi_prev_newton, &phi_prev_time, &T_prev_newton);
 
-  // initialize the nonlinear system and solver
+  // Matrix solver.
   UmfpackSolver umfpack;
+
+  // Initialize nonlinear system.
   NonlinSystem nls(&wf, &umfpack);
   nls.set_spaces(2, &space_T, &space_phi);
-  nls.set_pss(1, &pss);
-  nls.project_global(&T_prev_time, &phi_prev_time, &T_prev_newton, &phi_prev_newton, PROJ_TYPE);
+  nls.set_pss(&pss);
 
-  // time stepping loop
+  // Set initial conditions for the Newton's method.
+  T_prev_newton.copy(&T_prev_time);
+  phi_prev_newton.copy(&phi_prev_time);
+
+  // Time stepping.
   int t_step = 1;
   do {
     TIME += TAU;
 
-    info("---- Time step %d, t = %g s", t_step, TIME); t_step++;
+    info("---- Time step %d, t = %g s:", t_step, TIME); t_step++;
 
-    // Newton's method
-    if (!nls.solve_newton(&T_prev_newton, &phi_prev_newton, NEWTON_TOL, NEWTON_MAX_ITER)) error("Newton's method did not converge.");
+    // Newton's method.
+    info("Newton's iteration...");
+    if (!nls.solve_newton(&T_prev_newton, &phi_prev_newton, NEWTON_TOL, NEWTON_MAX_ITER)) 
+      error("Newton's method did not converge.");
 
-    // update previous time level solution
+    // Update previous time level solution.
     T_prev_time.copy(&T_prev_newton);
     phi_prev_time.copy(&phi_prev_newton);
 
-    // show the new time level solution
+    // Show the new time level solution.
     char title[100];
-    sprintf(title, "Solution for T, t = %g", TIME);
+    sprintf(title, "Approx. solution for T, t = %g s", TIME);
     sview_T.set_title(title);
     sview_T.show(&T_prev_newton);
-    sprintf(title, "Solution for phi, t = %g", TIME);
+    sprintf(title, "Approx. solution for phi, t = %g s", TIME);
     sview_phi.set_title(title);
     sview_phi.show(&phi_prev_newton);
 
-    // compute exact solution for comparison with computational results
-    // COMMENT: I added membre function update to the class ExactSolution
-    //          This is helpful for time-dependent problems
+    // Exact solution for comparison with computational results.
     T_solution.update(&mesh, T_exact);
     phi_solution.update(&mesh, phi_exact);
 
-    // show exact solution
-    sprintf(title, "Exact solution for T, t = %g", TIME);
+    // Show exact solution.
+    sprintf(title, "Exact solution for T, t = %g s", TIME);
     sview_T_exact.set_title(title);
     sview_T_exact.show(&T_solution);
-    sprintf(title, "Exact solution for phi, t = %g", TIME);
+    sprintf(title, "Exact solution for phi, t = %g s", TIME);
     sview_phi_exact.set_title(title);
     sview_phi_exact.show(&phi_solution);
 
-    // compute exact error
+    // Calculate exact error.
     T_error = h1_error(&T_prev_time, &T_solution) * 100;
     phi_error = h1_error(&phi_prev_time, &phi_solution) * 100;
     error = std::max(T_error, phi_error);
@@ -421,7 +285,7 @@ int main(int argc, char* argv[])
   }
   while (t_step < TIME_MAX_ITER);
 
-  // wait for all views to be closed
+  // Wait for all views to be closed.
   View::wait();
 
   return 0;

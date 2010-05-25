@@ -144,16 +144,15 @@ void mag(int n, scalar* a, scalar* dadx, scalar* dady,
 int main(int argc, char* argv[])
 {
 
-  // load the mesh file
+  // Load the mesh file.
   Mesh basemesh, mesh;
   H2DReader mloader;
   mloader.load("domain.mesh", &basemesh); // master mesh
   basemesh.refine_all_elements();
   basemesh.refine_towards_boundary(5, 2, false);
-
   mesh.copy(&basemesh);
 
-  // initialize shapesets and the cache
+  // Initialize shapesets and the cache.
   H1ShapesetBeuchler h1_shapeset;
   PrecalcShapeset h1_pss(&h1_shapeset);
 #ifdef PRESSURE_IN_L2
@@ -170,21 +169,21 @@ int main(int argc, char* argv[])
   H1Space p_space(&mesh, &h1_shapeset);
 #endif
 
-  // initialize boundary conditions
+  // Set velocity and pressure polynomial degrees.
+  xvel_space.set_uniform_order(P_INIT_VEL);
+  yvel_space.set_uniform_order(P_INIT_VEL);
+  p_space.set_uniform_order(P_INIT_PRESSURE);
+
+  // Initialize boundary conditions.
   xvel_space.set_bc_types(xvel_bc_type);
   xvel_space.set_essential_bc_values(essential_bc_value);
   yvel_space.set_bc_types(yvel_bc_type);
   p_space.set_bc_types(p_bc_type);
 
-  // set velocity and pressure polynomial degrees
-  xvel_space.set_uniform_order(P_INIT_VEL);
-  yvel_space.set_uniform_order(P_INIT_VEL);
-  p_space.set_uniform_order(P_INIT_PRESSURE);
-
-  // assign degrees of freedom
+  // Enumerate degrees of freedom.
   int ndof = assign_dofs(3, &xvel_space, &yvel_space, &p_space);
 
-  // solutions for the Newton's iteration and time stepping
+  // Solutions for the Newton's iteration and time stepping.
   Solution xvel_crs, yvel_crs, xvel_fine, yvel_fine, p_crs, p_fine;
   Solution xvel_prev_time, yvel_prev_time, xvel_prev_newton, yvel_prev_newton, p_prev;
   xvel_prev_time.set_zero(&mesh);
@@ -193,33 +192,41 @@ int main(int argc, char* argv[])
   yvel_prev_newton.set_zero(&mesh);
   p_prev.set_zero(&mesh);
 
-  // set up weak formulation
+  // Initialize the weak formulation.
   WeakForm wf(3);
   if (NEWTON) {
     wf.add_biform(0, 0, callback(bilinear_form_sym_0_0_1_1), H2D_SYM);
-    wf.add_biform(0, 0, callback(newton_bilinear_form_unsym_0_0), H2D_UNSYM, H2D_ANY, 2, &xvel_prev_newton, &yvel_prev_newton);
-    wf.add_biform(0, 1, callback(newton_bilinear_form_unsym_0_1), H2D_UNSYM, H2D_ANY, 1, &xvel_prev_newton);
+    wf.add_biform(0, 0, callback(newton_bilinear_form_unsym_0_0), H2D_UNSYM, H2D_ANY, 
+                  2, &xvel_prev_newton, &yvel_prev_newton);
+    wf.add_biform(0, 1, callback(newton_bilinear_form_unsym_0_1), H2D_UNSYM, H2D_ANY, 
+                  1, &xvel_prev_newton);
     wf.add_biform(0, 2, callback(bilinear_form_unsym_0_2), H2D_ANTISYM);
-    wf.add_biform(1, 0, callback(newton_bilinear_form_unsym_1_0), H2D_UNSYM, H2D_ANY, 1, &yvel_prev_newton);
+    wf.add_biform(1, 0, callback(newton_bilinear_form_unsym_1_0), H2D_UNSYM, H2D_ANY, 
+                  1, &yvel_prev_newton);
     wf.add_biform(1, 1, callback(bilinear_form_sym_0_0_1_1), H2D_SYM);
-    wf.add_biform(1, 1, callback(newton_bilinear_form_unsym_1_1), H2D_UNSYM, H2D_ANY, 2, &xvel_prev_newton, &yvel_prev_newton);
+    wf.add_biform(1, 1, callback(newton_bilinear_form_unsym_1_1), H2D_UNSYM, H2D_ANY, 
+                  2, &xvel_prev_newton, &yvel_prev_newton);
     wf.add_biform(1, 2, callback(bilinear_form_unsym_1_2), H2D_ANTISYM);
-    wf.add_liform(0, callback(newton_F_0), H2D_ANY, 5, &xvel_prev_time, &yvel_prev_time, &xvel_prev_newton, &yvel_prev_newton, &p_prev);
-    wf.add_liform(1, callback(newton_F_1), H2D_ANY, 5, &xvel_prev_time, &yvel_prev_time, &xvel_prev_newton, &yvel_prev_newton, &p_prev);
+    wf.add_liform(0, callback(newton_F_0), H2D_ANY, 5, &xvel_prev_time, &yvel_prev_time, 
+                  &xvel_prev_newton, &yvel_prev_newton, &p_prev);
+    wf.add_liform(1, callback(newton_F_1), H2D_ANY, 5, &xvel_prev_time, &yvel_prev_time, 
+                  &xvel_prev_newton, &yvel_prev_newton, &p_prev);
     wf.add_liform(2, callback(newton_F_2), H2D_ANY, 2, &xvel_prev_newton, &yvel_prev_newton);
   }
   else {
     wf.add_biform(0, 0, callback(bilinear_form_sym_0_0_1_1), H2D_SYM);
-    wf.add_biform(0, 0, callback(simple_bilinear_form_unsym_0_0_1_1), H2D_UNSYM, H2D_ANY, 2, &xvel_prev_time, &yvel_prev_time);
+    wf.add_biform(0, 0, callback(simple_bilinear_form_unsym_0_0_1_1), H2D_UNSYM, H2D_ANY, 
+                  2, &xvel_prev_time, &yvel_prev_time);
     wf.add_biform(1, 1, callback(bilinear_form_sym_0_0_1_1), H2D_SYM);
-    wf.add_biform(1, 1, callback(simple_bilinear_form_unsym_0_0_1_1), H2D_UNSYM, H2D_ANY, 2, &xvel_prev_time, &yvel_prev_time);
+    wf.add_biform(1, 1, callback(simple_bilinear_form_unsym_0_0_1_1), H2D_UNSYM, H2D_ANY, 
+                  2, &xvel_prev_time, &yvel_prev_time);
     wf.add_biform(0, 2, callback(bilinear_form_unsym_0_2), H2D_ANTISYM);
     wf.add_biform(1, 2, callback(bilinear_form_unsym_1_2), H2D_ANTISYM);
     wf.add_liform(0, callback(simple_linear_form), H2D_ANY, 1, &xvel_prev_time);
     wf.add_liform(1, callback(simple_linear_form), H2D_ANY, 1, &yvel_prev_time);
   }
 
-  // visualization
+  // Initialize views.
   VectorView vview("velocity [m/s]", 0, 0, 1500, 470);
   ScalarView pview("pressure [Pa]", 0, 530, 1500, 470);
   vview.set_min_max_range(0, 1.6);
@@ -228,17 +235,17 @@ int main(int argc, char* argv[])
   pview.fix_scale_width(80);
   pview.show_mesh(true);
 
-  // matrix solver
+  // Matrix solver.
   UmfpackSolver umfpack;
 
-  // linear system
+  // Initialize linear system.
   LinSystem ls(&wf, &umfpack);
 
-  // nonlinear system
+  // Initialize nonlinear system.
   NonlinSystem nls(&wf, &umfpack);
 
   if (NEWTON) {
-    // set up the nonlinear system
+    // Initialize the nonlinear system.
     nls.set_spaces(3, &xvel_space, &yvel_space, &p_space);
 #ifdef PRESSURE_IN_L2
     nls.set_pss(3, &h1_pss, &h1_pss, &l2_pss);
@@ -247,7 +254,7 @@ int main(int argc, char* argv[])
 #endif
   }
   else {
-    // set up the linear system
+    // Initialize the linear system.
     ls.set_spaces(3, &xvel_space, &yvel_space, &p_space);
 #ifdef PRESSURE_IN_L2
     ls.set_pss(3, &h1_pss, &h1_pss, &l2_pss);
@@ -256,10 +263,10 @@ int main(int argc, char* argv[])
 #endif
   }
 
-  // create a selector which will select optimal candidate
+  // Initialize refinement selector.
   H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER, &h1_shapeset);
 
-  // time-stepping loop
+  // Time-stepping loop:
   char title[100];
   int num_time_steps = T_FINAL / TAU;
   for (int i = 1; i <= num_time_steps; i++)
@@ -267,19 +274,19 @@ int main(int argc, char* argv[])
     TIME += TAU;
     info("---- Time step %d, time = %g:", i, TIME);
 
-    // initial mesh and spaces
+    // Initial mesh and spaces:
     mesh.copy(&basemesh);
     xvel_space.set_uniform_order(P_INIT_VEL);
     yvel_space.set_uniform_order(P_INIT_VEL);
     p_space.set_uniform_order(P_INIT_PRESSURE);
 
-    // space adaptivity
+    // Space adaptivity.
     bool done = false; int at = 0;
     do
     {
       info("---- Adaptivity step %d:", at++);
 
-      // assign degrees of freedom
+      // Enumerate degrees of freedom.
       ndof = assign_dofs(3, &xvel_space, &yvel_space, &p_space);
       if (ndof >= NDOF_STOP) {
         done = true;
@@ -356,20 +363,22 @@ int main(int argc, char* argv[])
       hp.set_solutions(&xvel_crs, &xvel_fine);
       space_err = hp.calc_error() * 100;
       info("L2 error (xvel) %g%%", space_err);
-      if (space_err > SPACE_TOL) hp.adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY);
+      if (space_err > SPACE_TOL) {
+        done = hp.adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY);
+        xvel_space.set_uniform_order(P_INIT_VEL);
+        yvel_space.set_uniform_order(P_INIT_VEL);
+        p_space.set_uniform_order(P_INIT_PRESSURE);
+      }
       else done = true;
-
-      xvel_space.set_uniform_order(P_INIT_VEL);
-      yvel_space.set_uniform_order(P_INIT_VEL);
-      p_space.set_uniform_order(P_INIT_PRESSURE);
     }
     while (!done);
 
+    // Saving solutions for the next time step.
     xvel_prev_time = xvel_fine;
     yvel_prev_time = yvel_fine;
   }
 
-  // wait for all views to be closed
+  // Wait for all views to be closed.
   View::wait();
   return 0;
 }

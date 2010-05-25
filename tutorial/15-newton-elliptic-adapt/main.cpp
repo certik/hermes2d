@@ -170,8 +170,8 @@ int main(int argc, char* argv[])
   // Initialize the nonlinear system and solver.
   UmfpackSolver umfpack;
   NonlinSystem nls(&wf, &umfpack);
-  nls.set_spaces(1, &space);
-  nls.set_pss(1, &pss);
+  nls.set_space(&space);
+  nls.set_pss(&pss);
 
   // DOF and CPU convergence graphs.
   SimpleGraph graph_dof, graph_cpu;
@@ -201,8 +201,7 @@ int main(int argc, char* argv[])
   H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER, &shapeset);
 
   // Adaptivity loop:
-  bool done = false;
-  int as = 1;
+  bool done = false; int as = 1;
   do {
     double err_est;
 

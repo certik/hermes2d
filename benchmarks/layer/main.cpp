@@ -129,10 +129,10 @@ int main(int argc, char* argv[])
 
     // Solve the coarse mesh problem.
     LinSystem ls(&wf, &solver);
-    ls.set_spaces(1, &space);
-    ls.set_pss(1, &pss);
+    ls.set_space(&space);
+    ls.set_pss(&pss);
     ls.assemble();
-    ls.solve(1, &sln_coarse);
+    ls.solve(&sln_coarse);
 
     // Time measurement.
     cpu_time.tick();
