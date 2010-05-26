@@ -124,11 +124,10 @@ void LinSystem::copy(LinSystem* sys)
 
 void LinSystem::free()
 {
-  if (this->A != NULL) { ::delete(this->A); this->A = NULL; }
+  matrix_free();
   if (this->RHS != NULL) { ::free(this->RHS); this->RHS = NULL; }
   if (this->Dir != NULL) { ::free(this->Dir-1); this->Dir = NULL; }
   if (this->Vec != NULL) { ::free(this->Vec); this->Vec = NULL; }
-
   if (this->solver) this->solver->free_data(this->slv_ctx);
 
   this->struct_changed = this->values_changed = true;
@@ -136,7 +135,10 @@ void LinSystem::free()
   this->wf_seq = -1;
 }
 
-
+void LinSystem::matrix_free()
+{
+  if (this->A != NULL) { ::delete this->A; this->A = NULL; }
+}
 //// matrix structure precalculation ///////////////////////////////////////////////////////////////
 
 // How it works: a special assembly-like procedure is invoked before the real assembly, whose goal is
@@ -316,10 +318,6 @@ void LinSystem::create_matrix(bool rhsonly)
   if (!this->ndofs)
     error("Zero matrix size while creating matrix sparse structure.");
 
-  // get row and column indices of nonzero matrix elements
-  Page** pages = new Page*[this->ndofs];
-  memset(pages, 0, sizeof(Page*) * this->ndofs);
-
   this->RHS = (scalar*) malloc(sizeof(scalar) * this->ndofs);
 
 #ifdef H2D_COMPLEX
@@ -370,6 +368,8 @@ void LinSystem::insert_block(scalar** mat, int* iidx, int* jidx, int ilen, int j
 
 void LinSystem::assemble(bool rhsonly)
 {
+  if (!rhsonly)
+    matrix_free();
   int k, m, n, marker;
   std::vector<AsmList> al(wf->neq);
   AsmList* am, * an;
@@ -868,7 +868,6 @@ bool LinSystem::solve(int n, ...)
   }
   va_end(ap);
   report_time("Exported solution in %g s", cpu_time.tick().last());
-
   return true;
 }
 
@@ -886,9 +885,7 @@ bool LinSystem::solve(Solution* sln)
 
   // initialize the Solution class
   sln->set_fe_solution(this->spaces[0], this->pss[0], this->Vec);
-  
   report_time("Exported solution in %g s", cpu_time.tick().last());
-
   return true;
 }
 

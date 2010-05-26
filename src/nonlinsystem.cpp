@@ -39,6 +39,7 @@ NonlinSystem::NonlinSystem(WeakForm* wf, Solver* solver)
 
 void NonlinSystem::free()
 {
+  LinSystem:matrix_free();
   if (RHS != NULL) { ::free(RHS); RHS = NULL; }
   if (Dir != NULL) { ::free(Dir-1); Dir = NULL; }
   if (Vec != NULL)
@@ -54,6 +55,7 @@ void NonlinSystem::free()
   memset(sp_seq, -1, sizeof(int) * wf->neq);
   wf_seq = -1;
 }
+
 
 void NonlinSystem::assemble(bool rhsonly)
 {
@@ -114,7 +116,6 @@ bool NonlinSystem::solve(int n, ...)
   }
   va_end(ap);
   report_time("Exported solution in %g s", cpu_time.tick().last());
-
   return true;
 }
 
@@ -184,7 +185,7 @@ bool NonlinSystem::solve_newton(Solution* u_prev, double newton_tol, int newton_
       u_prev->copy(&sln_iter);
     }
     while (res_l2_norm > newton_tol && it <= newton_max_iter);
-
+    
     // returning "true" if converged, otherwise returning "false"
     if (it <= newton_max_iter) return true;
     else return false;

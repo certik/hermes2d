@@ -60,6 +60,7 @@ public:
   bool solve(int n, ...);
   bool solve(Solution* sln); // single equation case
   virtual void free();
+  virtual void matrix_free();
 
   void save_matrix_matlab(const char* filename, const char* varname = "A");
   void save_rhs_matlab(const char* filename, const char* varname = "b");
