@@ -26,8 +26,6 @@ class Space;
 class PrecalcShapeset;
 class WeakForm;
 class Solver;
-struct Page;
-
 
 ///
 ///
@@ -167,7 +165,6 @@ protected:
   scalar* Vec; ///< last solution vector
 
   void create_matrix(bool rhsonly);
-  void precalc_sparse_structure(Page** pages);
   void insert_block(scalar** mat, int* iidx, int* jidx, int ilen, int jlen);
 
   ExtData<Ord>* init_ext_fns_ord(std::vector<MeshFunction *> &ext);
