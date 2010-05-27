@@ -22,7 +22,7 @@
 //
 // BC:
 //
-// homogeneous neumann on symmetry axis
+// Homogeneous neumann on symmetry axis,
 // d \phi_g / d n = - 0.5 \phi_g   elsewhere
 //
 // The eigenproblem is numerically solved using common technique known as the power method (power iterations):
@@ -41,18 +41,20 @@
 //     |       k_new       |
 //
 //
+//  The following parameters can be changed:
 
 
-const int P_INIT = 2;
-const int INIT_REF_NUM = 2;
+const int INIT_REF_NUM = 2;                  // Number of initial uniform mesh refinements.
+const int P_INIT = 2;                        // Initial polynomial degree of all mesh elements.
+const double ERROR_STOP = 1e-5;              // Tolerance for the eigenvalue.
 
-// Area markers
-const int marker_reflector = 1;
-const int marker_core = 2;
+// Element markers
+const int MAT_REFLECTOR = 1;
+const int MAT_CORE = 2;
 
 // Boundary indices
-const int bc_vacuum = 1;
-const int bc_sym = 2;
+const int BDY_VACUUM = 1;
+const int BDY_SYMMETRY = 2;
 
 // Boundary condition types
 BCType bc_types(int marker)
@@ -79,13 +81,13 @@ const double Ss[2][4][4] = {{{ 0.0,   0.0,  0.0, 0.0},
                              { 0.0, 0.367,  0.0, 0.0},
                              { 0.0,   0.0, 2.28, 0.0}}};
 
-// Initial eigenvalue approximation
+// Initial eigenvalue approximation.
 double k_eff = 1.0;
 
-// Weak forms
+// Weak forms.
 #include "forms.cpp"
 
-// source function
+// Source function.
 void source_fn(int n, scalar* a, scalar* b, scalar* c, scalar* d, scalar* out)
 {
   for (int i = 0; i < n; i++)
@@ -97,7 +99,7 @@ void source_fn(int n, scalar* a, scalar* b, scalar* c, scalar* d, scalar* out)
   }
 }
 
-// Integral over the active core
+// Integral over the active core.
 double integrate(MeshFunction* sln, int marker)
 {
   Quad2D* quad = &g_quad_2d_std;
@@ -128,37 +130,37 @@ double integrate(MeshFunction* sln, int marker)
   return 2.0 * M_PI * integral;
 }
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 int main(int argc, char* argv[])
 {
-  // load the mesh
+  // Load the mesh.
   Mesh mesh;
   H2DReader mloader;
   mloader.load("reactor.mesh", &mesh);
 
-  // initial uniform refinements
+  // Perform initial uniform refinements.
   for (int i = 0; i < INIT_REF_NUM; i++) mesh.refine_all_elements();
 
-  // initialize the shapeset and the cache
+  // Initialize the shapeset and the cache.
   H1Shapeset shapeset;
   PrecalcShapeset pss1(&shapeset);
   PrecalcShapeset pss2(&shapeset);
   PrecalcShapeset pss3(&shapeset);
   PrecalcShapeset pss4(&shapeset);
 
-  // solution variables
+  // Solution variables.
   Solution sln1, sln2, sln3, sln4;
   Solution iter1, iter2, iter3, iter4;
+
+  // Define initial conditions.
   iter1.set_const(&mesh, 1.00);
   iter2.set_const(&mesh, 1.00);
   iter3.set_const(&mesh, 1.00);
   iter4.set_const(&mesh, 1.00);
 
-  // matrix solver
+  // Matrix solver.
   UmfpackSolver umfpack;
 
-  // create finite element spaces
+  // Create finite element spaces.
   H1Space space1(&mesh, &shapeset);
   H1Space space2(&mesh, &shapeset);
   H1Space space3(&mesh, &shapeset);
@@ -172,7 +174,7 @@ int main(int argc, char* argv[])
   space3.set_uniform_order(P_INIT);
   space4.set_uniform_order(P_INIT);
 
-  // initialize the weak formulation
+  // Initialize the weak formulation.
   WeakForm wf(4);
   wf.add_biform(0, 0, callback(biform_0_0));
   wf.add_biform(1, 1, callback(biform_1_1));
@@ -181,21 +183,21 @@ int main(int argc, char* argv[])
   wf.add_biform(2, 1, callback(biform_2_1));
   wf.add_biform(3, 3, callback(biform_3_3));
   wf.add_biform(3, 2, callback(biform_3_2));
-  wf.add_liform(0, callback(liform_0), marker_core, 4, &iter1, &iter2, &iter3, &iter4);
-  wf.add_liform(1, callback(liform_1), marker_core, 4, &iter1, &iter2, &iter3, &iter4);
-  wf.add_liform(2, callback(liform_2), marker_core, 4, &iter1, &iter2, &iter3, &iter4);
-  wf.add_liform(3, callback(liform_3), marker_core, 4, &iter1, &iter2, &iter3, &iter4);
-  wf.add_biform_surf(0, 0, callback(biform_surf_0_0), bc_vacuum);
-  wf.add_biform_surf(1, 1, callback(biform_surf_1_1), bc_vacuum);
-  wf.add_biform_surf(2, 2, callback(biform_surf_2_2), bc_vacuum);
-  wf.add_biform_surf(3, 3, callback(biform_surf_3_3), bc_vacuum);
+  wf.add_liform(0, callback(liform_0), MAT_CORE, 4, &iter1, &iter2, &iter3, &iter4);
+  wf.add_liform(1, callback(liform_1), MAT_CORE, 4, &iter1, &iter2, &iter3, &iter4);
+  wf.add_liform(2, callback(liform_2), MAT_CORE, 4, &iter1, &iter2, &iter3, &iter4);
+  wf.add_liform(3, callback(liform_3), MAT_CORE, 4, &iter1, &iter2, &iter3, &iter4);
+  wf.add_biform_surf(0, 0, callback(biform_surf_0_0), BDY_VACUUM);
+  wf.add_biform_surf(1, 1, callback(biform_surf_1_1), BDY_VACUUM);
+  wf.add_biform_surf(2, 2, callback(biform_surf_2_2), BDY_VACUUM);
+  wf.add_biform_surf(3, 3, callback(biform_surf_3_3), BDY_VACUUM);
 
-  // initialize the LinSystem class
-  LinSystem sys(&wf, &umfpack);
-  sys.set_spaces(4, &space1, &space2, &space3, &space4);
-  sys.set_pss(4, &pss1, &pss2, &pss3, &pss4);
+  // Initialize coarse mesh problem.
+  LinSystem ls(&wf, &umfpack);
+  ls.set_spaces(4, &space1, &space2, &space3, &space4);
+  ls.set_pss(4, &pss1, &pss2, &pss3, &pss4);
 
-  // visualization
+  // View solutions and meshes.
   ScalarView view1("Neutron flux 1", 0, 0, 320, 600);
   ScalarView view2("Neutron flux 2", 350, 0, 320, 600);
   ScalarView view3("Neutron flux 3", 700, 0, 320, 600);
@@ -205,47 +207,54 @@ int main(int argc, char* argv[])
   view3.show_mesh(false);
   view4.show_mesh(false);
 
-  // enumerate basis functions
+  // Enumerate degrees of freedom.
   int ndof = assign_dofs(4, &space1, &space2, &space3, &space4);
 
-  // Main power iteration loop
-  bool eigen_done = false; int it = 0;
+  // Main power iteration loop:
+  int iter = 0; bool done = false; 
   bool rhs_only = false;
   do
   {
-    info("!------------ Power iteration %d ----------------------", it); it++;
+    info("------------ Power iteration %d:", iter);
 
-    sys.assemble(rhs_only);
-    sys.solve(4, &sln1, &sln2, &sln3, &sln4);
+    // Assemble and solve the coarse mesh problem.
+    ls.assemble(rhs_only);
+    ls.solve(4, &sln1, &sln2, &sln3, &sln4);
 
-    // visualization
+    // Visualization.
     view1.show(&sln1);    view2.show(&sln2);
     view3.show(&sln3);    view4.show(&sln4);
 
     SimpleFilter source(source_fn, &sln1, &sln2, &sln3, &sln4);
     SimpleFilter source_prev(source_fn, &iter1, &iter2, &iter3, &iter4);
 
-    // compute eigenvalue
-    double k_new = k_eff * (integrate(&source, marker_core) / integrate(&source_prev, marker_core));
-    info("Largest eigenvalue (est): %.8g, rel error: %g", k_new, fabs((k_eff - k_new) / k_new));
+    // Compute eigenvalue.
+    double k_new = k_eff * (integrate(&source, MAT_CORE) / integrate(&source_prev, MAT_CORE));
+    info("ndofs: %d, %d, %d, %d", space1.get_num_dofs(),space2.get_num_dofs(), 
+                                  space3.get_num_dofs(), space4.get_num_dofs());
+    info("Largest eigenvalue: (%.8g, %.8g), rel error: %g", k_eff, k_new, fabs((k_eff - k_new) / k_new));
 
-    // stopping criterion
-    if (fabs((k_eff - k_new) / k_new) < 1e-5) eigen_done = true;
+    // Stopping criterion.
+    if (fabs((k_eff - k_new) / k_new) < ERROR_STOP) done = true;
 
-    // update eigenvectors
-    iter1.copy(&sln1);    iter2.copy(&sln2);
-    iter3.copy(&sln3);    iter4.copy(&sln4);
+    // Save solutions for the next iteration.
+    iter1.copy(&sln1);    
+    iter2.copy(&sln2);
+    iter3.copy(&sln3);    
+    iter4.copy(&sln4);
 
-    // update eigenvalue
+    // Update eigenvalue.
     k_eff = k_new;
     
-    // don't need to reassemble the system matrix in further iterations,
-    // only the rhs changes to reflect the progressively updated source
+    // Don't need to reassemble the system matrix in further iterations,
+    // only the rhs changes to reflect the progressively updated source.
     rhs_only = true;
-  }
-  while (!eigen_done);
 
-  // wait for all views to be closed
+    iter++;
+  }
+  while (!done);
+
+  // Wait for all views to be closed.
   View::wait();
   return 0;
 }
