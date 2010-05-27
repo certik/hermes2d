@@ -97,7 +97,8 @@ int main(int argc, char* argv[])
 
   // Initialize the shapeset and the cache.
   H1Shapeset shapeset;
-  PrecalcShapeset pss(&shapeset);
+  PrecalcShapeset xpss(&shapeset);
+  PrecalcShapeset ypss(&shapeset);
 
   // Create the x displacement space.
   H1Space xdisp(&xmesh, &shapeset);
@@ -143,7 +144,7 @@ int main(int argc, char* argv[])
     // Solve the coarse mesh problem.
     LinSystem ls(&wf, &solver);
     ls.set_spaces(2, &xdisp, &ydisp);
-    ls.set_pss(&pss);
+    ls.set_pss(2, &xpss, &ypss);
     ls.assemble();
     ls.solve(2, &sln_x_coarse, &sln_y_coarse);
 

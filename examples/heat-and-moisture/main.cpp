@@ -124,7 +124,8 @@ int main(int argc, char* argv[])
 
   // Initialize the shapeset and the cache.
   H1Shapeset shapeset;
-  PrecalcShapeset pss(&shapeset);
+  PrecalcShapeset pss1(&shapeset);
+  PrecalcShapeset pss2(&shapeset);
 
   // Create the temperature space.
   H1Space temp(&temp_mesh, &shapeset);
@@ -169,7 +170,7 @@ int main(int argc, char* argv[])
   UmfpackSolver umfpack;
   LinSystem ls(&wf, &umfpack);
   ls.set_spaces(2, &temp, &moist);
-  ls.set_pss(&pss);
+  ls.set_pss(2, &pss1, &pss2);
 
   // Solutions.
   Solution temp_sln, moist_sln;
