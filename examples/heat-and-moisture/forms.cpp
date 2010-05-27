@@ -4,7 +4,7 @@ Scalar bilinear_form_sym_0_0(int n, double *wt, Func<Real> *u, Func<Real> *v, Ge
 {
   Scalar result = 0;
   for (int i = 0; i < n; i++)
-    result += wt[i] * e->x[i] * ( (c_TT/tau) * u->val[i] * v->val[i] + d_TT * (u->dx[i]*v->dx[i] + u->dy[i]*v->dy[i]) );
+    result += wt[i] * e->x[i] * ( (c_TT/TAU) * u->val[i] * v->val[i] + d_TT * (u->dx[i]*v->dx[i] + u->dy[i]*v->dy[i]) );
   return result;
 }
 
@@ -31,7 +31,7 @@ Scalar linear_form_0(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Sc
 {
   Scalar result = 0;
   for (int i = 0; i < n; i++)
-    result += wt[i] * e->x[i] * ( (c_TT/tau) * ext->fn[0]->val[i] * v->val[i] );
+    result += wt[i] * e->x[i] * ( (c_TT/TAU) * ext->fn[0]->val[i] * v->val[i] );
   return result;
 }
 
@@ -59,7 +59,7 @@ Scalar bilinear_form_sym_1_1(int n, double *wt, Func<Real> *u, Func<Real> *v, Ge
 {
   Scalar result = 0;
   for (int i = 0; i < n; i++)
-    result += wt[i] * e->x[i] * ( (c_ww/tau) * u->val[i] * v->val[i] + d_ww * (u->dx[i]*v->dx[i] + u->dy[i]*v->dy[i]) );
+    result += wt[i] * e->x[i] * ( (c_ww/TAU) * u->val[i] * v->val[i] + d_ww * (u->dx[i]*v->dx[i] + u->dy[i]*v->dy[i]) );
   return result;
 }
 
@@ -77,7 +77,7 @@ Scalar linear_form_1(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Sc
 {
   Scalar result = 0;
   for (int i = 0; i < n; i++)
-    result += wt[i] * e->x[i] * ( (c_ww/tau) * ext->fn[0]->val[i] * v->val[i] );
+    result += wt[i] * e->x[i] * ( (c_ww/TAU) * ext->fn[0]->val[i] * v->val[i] );
   return result;
 }
 

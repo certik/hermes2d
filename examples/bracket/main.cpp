@@ -15,7 +15,7 @@ using namespace RefinementSelectors;
 // mesh.
 //
 // PDE: Lame equations of linear elasticity, treated as a coupled system
-//      of two PDEs
+//      of two PDEs.
 //
 // BC: u_1 = u_2 = 0 on Gamma_1
 //     du_2/dn = f on Gamma_2
@@ -48,7 +48,7 @@ const int STRATEGY = 1;          // Adaptive strategy:
 const CandList CAND_LIST = H2D_HP_ANISO; // Predefined list of element refinement candidates. Possible values are
                                          // H2D_P_ISO, H2D_P_ANISO, H2D_H_ISO, H2D_H_ANISO, H2D_HP_ISO,
                                          // H2D_HP_ANISO_H, H2D_HP_ANISO_P, H2D_HP_ANISO.
-                                         // See the Sphinx tutorial (http://hpfem.org/hermes2d/doc/src/tutorial-2.html#adaptive-h-fem-and-hp-fem) for details.
+                                         // See User Documentation for details.
 const int MESH_REGULARITY = -1;  // Maximum allowed level of hanging nodes:
                                  // MESH_REGULARITY = -1 ... arbitrary level hangning nodes (default),
                                  // MESH_REGULARITY = 1 ... at most one-level hanging nodes,
@@ -57,172 +57,129 @@ const int MESH_REGULARITY = -1;  // Maximum allowed level of hanging nodes:
                                  // their notoriously bad performance.
 const double CONV_EXP = 1.0;     // Default value is 1.0. This parameter influences the selection of
                                  // cancidates in hp-adaptivity. See get_optimal_refinement() for details.
-const int MAX_ORDER = 10;        // Maximum allowed element degree
-const double ERR_STOP = 0.01;    // Stopping criterion for adaptivity (rel. error tolerance between the
+const double ERR_STOP = 0.5;     // Stopping criterion for adaptivity (rel. error tolerance between the
                                  // fine mesh and coarse mesh solution in percent).
 const int NDOF_STOP = 60000;     // Adaptivity process stops when the number of degrees of freedom grows over
                                  // this limit. This is mainly to prevent h-adaptivity to go on forever.
 
-// problem constants
+// Problem parameters.
 const double E  = 200e9;  // Young modulus for steel: 200 GPa
 const double nu = 0.3;    // Poisson ratio
 const double f  = 1e3;    // load force: 10^3 N
 const double lambda = (E * nu) / ((1 + nu) * (1 - 2*nu));
 const double mu = E / (2*(1 + nu));
 
-// boundary markers
-const int marker_left = 1;
-const int marker_top = 2;
+// Boundary markers.
+const int BDY_LEFT = 1;
+const int BDY_TOP = 2;
 
-// boundary condition types
+// Boundary condition types.
 BCType bc_types(int marker)
-  { return (marker == marker_left) ? BC_ESSENTIAL : BC_NATURAL; }
+  { return (marker == BDY_LEFT) ? BC_ESSENTIAL : BC_NATURAL; }
 
-// function values for essential(Dirichlet) boundary markers
-// (if the return value is zero, this can be omitted)
+// Essential (Dirichlet) boundary condition values.
 scalar essential_bc_values(int ess_bdy_marker, double x, double y)
 {
   return 0;
 }
 
-// bilinear forms
-template<typename Real, typename Scalar>
-Scalar bilinear_form_0_0(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
-{
-  return (lambda + 2*mu) * int_dudx_dvdx<Real, Scalar>(n, wt, u, v) +
-                      mu * int_dudy_dvdy<Real, Scalar>(n, wt, u, v);
-}
-
-template<typename Real, typename Scalar>
-Scalar bilinear_form_0_1(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
-{
-  return lambda * int_dudy_dvdx<Real, Scalar>(n, wt, u, v) +
-             mu * int_dudx_dvdy<Real, Scalar>(n, wt, u, v);
-}
-
-template<typename Real, typename Scalar>
-Scalar bilinear_form_1_0(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
-{
-  return     mu * int_dudy_dvdx<Real, Scalar>(n, wt, u, v) +
-         lambda * int_dudx_dvdy<Real, Scalar>(n, wt, u, v);
-}
-
-template<typename Real, typename Scalar>
-Scalar bilinear_form_1_1(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
-{
-  return              mu * int_dudx_dvdx<Real, Scalar>(n, wt, u, v) +
-         (lambda + 2*mu) * int_dudy_dvdy<Real, Scalar>(n, wt, u, v);
-}
-
-template<typename Real, typename Scalar>
-Scalar linear_form_surf_1(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
-{
-  return -f * int_v<Real, Scalar>(n, wt, v);
-}
-////////////////////////////////////////////////////////////////////////////////////////////////
+// Weak forms.
+#include "forms.cpp"
 
 int main(int argc, char* argv[])
 {
-  // load the mesh
+  // Time measurement.
+  TimePeriod cpu_time;
+  cpu_time.tick();
+
+  // Load the mesh.
   Mesh xmesh, ymesh;
   H2DReader mloader;
   mloader.load("bracket.mesh", &xmesh);
 
-  // initial mesh refinements
+  // Initial mesh refinements.
   xmesh.refine_element(1);
   xmesh.refine_element(4);
 
-  // create initial mesh for the vertical displacement component,
-  // identical to the mesh for the horizontal displacement
-  // (bracket.mesh becomes a master mesh)
+  // Create initial mesh for the vertical displacement component.
+  // This also initializes the multimesh hp-FEM.
   ymesh.copy(&xmesh);
 
-  // initialize the shapeset and the cache
+  // Initialize the shapeset and the cache.
   H1Shapeset shapeset;
   PrecalcShapeset xpss(&shapeset);
   PrecalcShapeset ypss(&shapeset);
 
-  // create the x displacement space
+  // Create the x displacement space.
   H1Space xdisp(&xmesh, &shapeset);
   xdisp.set_bc_types(bc_types);
   xdisp.set_essential_bc_values(essential_bc_values);
   xdisp.set_uniform_order(P_INIT);
 
-  // create the y displacement space
+  // Create the y displacement space.
   H1Space ydisp(MULTI ? &ymesh : &xmesh, &shapeset);
   ydisp.set_bc_types(bc_types);
   ydisp.set_essential_bc_values(essential_bc_values);
   ydisp.set_uniform_order(P_INIT);
 
-  // enumerate basis functions
-  int ndof = assign_dofs(2, &xdisp, &ydisp);
-
-  // initialize the weak formulation
+  // Initialize the weak formulation.
   WeakForm wf(2);
   wf.add_biform(0, 0, callback(bilinear_form_0_0), H2D_SYM);  // note that only one symmetric part is
   wf.add_biform(0, 1, callback(bilinear_form_0_1), H2D_SYM);  // added in the case of symmetric bilinear
   wf.add_biform(1, 1, callback(bilinear_form_1_1), H2D_SYM);  // forms
-  wf.add_liform_surf(1, callback(linear_form_surf_1), marker_top);
+  wf.add_liform_surf(1, callback(linear_form_surf_1), BDY_TOP);
 
-  // visualization of solution and meshes
+  // Initialize views.
   OrderView  xoview("X polynomial orders", 0, 0, 500, 500);
   OrderView  yoview("Y polynomial orders", 510, 0, 500, 500);
   ScalarView sview("Von Mises stress [Pa]", 1020, 0, 500, 500);
 
-  // matrix solver
+  // Matrix solver.
   UmfpackSolver umfpack;
 
-  // DOF and CPU convergence graphs
+  // DOF and CPU convergence graphs.
   SimpleGraph graph_dof, graph_cpu;
 
-  // create a selector which will select optimal candidate
-  H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, MAX_ORDER, &shapeset);
+  // Initialize refinement selector.
+  H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER, &shapeset);
 
-  // adaptivity loop
-  int it = 1;
-  bool done = false;
-  TimePeriod cpu_time;
+  // Adaptivity loop:
+  int as = 1; bool done = false;
   Solution x_sln_coarse, y_sln_coarse;
   Solution x_sln_fine, y_sln_fine;
   do
   {
-    info("---- Adaptivity step %d ---------------------------------------------", it); it++;
+    info("---- Adaptivity step %d:", as);
 
-    // time measurement
-    cpu_time.tick(H2D_SKIP);
+    // Enumerate degrees of freedom.
+    int ndof = assign_dofs(2, &xdisp, &ydisp);
 
-    // enumerate degrees of freedom
-    ndof = assign_dofs(2, &xdisp, &ydisp);
-
-    // solve the coarse mesh problem
+    // Solve the coarse mesh problem.
     LinSystem ls(&wf, &umfpack);
     ls.set_spaces(2, &xdisp, &ydisp);
     ls.set_pss(2, &xpss, &ypss);
     ls.assemble();
     ls.solve(2, &x_sln_coarse, &y_sln_coarse);
 
-    // time measurement
+    // Time measurement.
     cpu_time.tick();
 
-    // report dofs
-    info("xdof=%d, ydof=%d", xdisp.get_num_dofs(), ydisp.get_num_dofs());
-
-    // view the solution -- this can be slow; for illustration only
+    // View the solution and mesh.
     VonMisesFilter stress_coarse(&x_sln_coarse, &y_sln_coarse, mu, lambda);
     sview.set_min_max_range(0, 3e4);
     sview.show(&stress_coarse);
     xoview.show(&xdisp);
     yoview.show(&ydisp);
 
-    // time measurement
+    // Skip visualization time. 
     cpu_time.tick(H2D_SKIP);
 
-    // solve the fine mesh problem
+    // Solve the fine mesh problem.
     RefSystem rs(&ls);
     rs.assemble();
     rs.solve(2, &x_sln_fine, &y_sln_fine);
 
-    // calculate element errors and total error estimate
+    // Calculate element errors and total error estimate.
     H1Adapt hp(Tuple<Space*>(&xdisp, &ydisp));
     hp.set_solutions(Tuple<Solution*>(&x_sln_coarse, &y_sln_coarse), Tuple<Solution*>(&x_sln_fine, &y_sln_fine));
     hp.set_biform(0, 0, bilinear_form_0_0<scalar, scalar>, bilinear_form_0_0<Ord, Ord>);
@@ -231,44 +188,41 @@ int main(int argc, char* argv[])
     hp.set_biform(1, 1, bilinear_form_1_1<scalar, scalar>, bilinear_form_1_1<Ord, Ord>);
     double err_est = hp.calc_error(H2D_TOTAL_ERROR_REL | H2D_ELEMENT_ERROR_REL) * 100;
 
-    // time measurement
-    cpu_time.tick();
-
-    // report results
+    // Report results.
+    info("ndof_x_coarse: %d, ndof_x_fine: %d", 
+         xdisp.get_num_dofs(), rs.get_space(0)->get_num_dofs());
+    info("ndof_y_coarse: %d, ndof_y_fine: %d", 
+         ydisp.get_num_dofs(), rs.get_space(1)->get_num_dofs());
     info("err_est: %g%%", err_est);
 
-    // add entry to DOF convergence graph
+    // Add entry to DOF convergence graph.
     graph_dof.add_values(xdisp.get_num_dofs() + ydisp.get_num_dofs(), err_est);
     graph_dof.save("conv_dof.dat");
 
-    // add entry to CPU convergence graph
+    // Add entry to CPU convergence graph.
     graph_cpu.add_values(cpu_time.accumulated(), err_est);
     graph_cpu.save("conv_cpu.dat");
 
-    // time measurement
-    cpu_time.tick(H2D_SKIP);
-
-    // if err_est too large, adapt the mesh
+    // If err_est too large, adapt the mesh.
     if (err_est < ERR_STOP) done = true;
     else {
-      hp.adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY, SAME_ORDERS);
+      done = hp.adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY, SAME_ORDERS);
       ndof = assign_dofs(2, &xdisp, &ydisp);
       if (ndof >= NDOF_STOP) done = true;
     }
 
-    // time measurement
-    cpu_time.tick();
+    as++;
   }
   while (!done);
   verbose("Total running time: %g s", cpu_time.accumulated());
 
-  // show the fine solution - this is the final result
+  // Show the fine mesh solution - the final result
   VonMisesFilter stress_fine(&x_sln_fine, &y_sln_fine, mu, lambda);
-  sview.set_title("Final solution");
+  sview.set_title("Fine mesh solution");
   sview.set_min_max_range(0, 3e4);
   sview.show(&stress_fine);
 
-  // wait for all views to be closed
+  // Wait for all views to be closed.
   View::wait();
   return 0;
 }
