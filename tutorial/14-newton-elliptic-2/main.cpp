@@ -27,21 +27,21 @@ const int NEWTON_MAX_ITER = 100;  // Maximum allowed number of Newton iterations
 const int INIT_GLOB_REF_NUM = 3;  // Number of initial uniform mesh refinements
 const int INIT_BDY_REF_NUM = 4;   // Number of initial refinements towards boundary
 
-// Thermal conductivity (temperature-dependent)
-// Note: for any u, this function has to be positive
+// Thermal conductivity (temperature-dependent).
+// Note: for any u, this function has to be positive.
 template<typename Real>
 Real lam(Real u)
 {
   return 1 + pow(u, 4);
 }
 
-// Derivative of the thermal conductivity with respect to 'u'
+// Derivative of the thermal conductivity with respect to 'u'.
 template<typename Real>
 Real dlam_du(Real u) {
   return 4*pow(u, 3);
 }
 
-// This function is used to define Dirichlet boundary conditions
+// This function is used to define Dirichlet boundary conditions.
 double dir_lift(double x, double y, double& dx, double& dy) {
   dx = (y+10)/10.;
   dy = (x+10)/10.;
@@ -49,67 +49,45 @@ double dir_lift(double x, double y, double& dx, double& dy) {
 }
 
 // This function will be projected on the initial mesh and
-// used as initial guess for the Newton's method
+// used as initial guess for the Newton's method.
 scalar init_guess(double x, double y, double& dx, double& dy)
 {
-  // using the Dirichlet lift elevated by two
+  // Using the Dirichlet lift elevated by two
   double val = dir_lift(x, y, dx, dy) + 2;
   return val;
 }
 
-// Boundary condition type (essential = Dirichlet)
+// Boundary condition types.
 BCType bc_types(int marker)
 {
   return BC_ESSENTIAL;
 }
 
-// Dirichlet boundary condition values
+// Essential (Dirichlet) boundary condition values.
 scalar essential_bc_values(int ess_bdy_marker, double x, double y)
 {
   double dx, dy;
   return dir_lift(x, y, dx, dy);
 }
 
-// Heat sources (can be a general function of 'x' and 'y')
+// Heat sources (can be a general function of 'x' and 'y').
 template<typename Real>
 Real heat_src(Real x, Real y)
 {
   return 1.0;
 }
 
-// Jacobian matrix
-template<typename Real, typename Scalar>
-Scalar jac(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
-{
-  Scalar result = 0;
-  Func<Scalar>* u_prev = ext->fn[0];
-  for (int i = 0; i < n; i++)
-    result += wt[i] * (dlam_du(u_prev->val[i]) * u->val[i] * (u_prev->dx[i] * v->dx[i] + u_prev->dy[i] * v->dy[i])
-                       + lam(u_prev->val[i]) * (u->dx[i] * v->dx[i] + u->dy[i] * v->dy[i]));
-
-  return result;
-}
-
-// Fesidual vector
-template<typename Real, typename Scalar>
-Scalar res(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
-{
-  Scalar result = 0;
-  Func<Scalar>* u_prev = ext->fn[0];
-  for (int i = 0; i < n; i++)
-    result += wt[i] * (lam(u_prev->val[i]) * (u_prev->dx[i] * v->dx[i] + u_prev->dy[i] * v->dy[i])
-		       - heat_src(e->x[i], e->y[i]) * v->val[i]);
-  return result;
-}
+// Weak forms.
+#include "forms.cpp"
 
 int main(int argc, char* argv[])
 {
-  // Load the mesh file.
+  // Load the mesh.
   Mesh mesh;
   H2DReader mloader;
   mloader.load("square.mesh", &mesh);
 
-  // Initial mesh refinements.
+  // Perform initial mesh refinements.
   for(int i = 0; i < INIT_GLOB_REF_NUM; i++) mesh.refine_all_elements();
   mesh.refine_towards_boundary(1,INIT_BDY_REF_NUM);
 
@@ -134,14 +112,16 @@ int main(int argc, char* argv[])
   wf.add_biform(callback(jac), H2D_UNSYM, H2D_ANY, 1, &u_prev);
   wf.add_liform(callback(res), H2D_ANY, 1, &u_prev);
 
-  // Initialize the nonlinear system and solver.
+  // Matrix solver.
   UmfpackSolver umfpack;
+
+  // Initialize the nonlinear system.
   NonlinSystem nls(&wf, &umfpack);
   nls.set_space(&space);
   nls.set_pss(&pss);
 
   // Project the function init_guess() on the FE space
-  // to obtain initial guess u_prev for the Newton's method
+  // to obtain initial guess u_prev for the Newton's method.
   nls.project_global(init_guess, &u_prev, PROJ_TYPE);
 
   // Perform Newton's iteration.

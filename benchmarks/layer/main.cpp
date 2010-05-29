@@ -54,7 +54,7 @@ const int NDOF_STOP = 60000;      // Adaptivity process stops when the number of
                                   // over this limit. This is to prevent h-adaptivity to go on forever.
 
 // Problem parameters.
-double SLOPE = 60;                // slope of the layer
+double SLOPE = 60;                // Slope of the layer.
 
 // Exact solution.
 #include "exact_solution.cpp"

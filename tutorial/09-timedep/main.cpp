@@ -1,3 +1,7 @@
+#define H2D_REPORT_WARN
+#define H2D_REPORT_INFO
+#define H2D_REPORT_VERBOSE
+#define H2D_REPORT_FILE "application.log"
 #include "hermes2d.h"
 #include "solver_umfpack.h"
 
@@ -9,87 +13,66 @@
 //  solution calculated in the previous time step.
 //
 //  PDE: non-stationary heat transfer equation
-//  HEATCAP * RHO * dT/dt - LAMBDA * Laplace T = 0
+//  HEATCAP * RHO * dT/dt - LAMBDA * Laplace T = 0.
 //
-//  Domain: St. Vitus cathedral (cathedral.mesh)
+//  Domain: St. Vitus cathedral (cathedral.mesh).
 //
-//  IC:  T = T_INIT
-//  BC:  T = T_INIT on the bottom edge ... Dirichlet
-//       dT/dn = ALPHA*(t_exterior(time) - T) ... Newton, time-dependent
+//  IC:  T = T_INIT.
+//  BC:  T = T_INIT on the bottom edge ... Dirichlet,
+//       dT/dn = ALPHA*(t_exterior(time) - T) ... Newton, time-dependent.
 //
-//  Time-stepping: implicit Euler
+//  Time-stepping: implicit Euler.
 //
-//  The following parameters can be played with:
+//  The following parameters can be changed:
 
-const int P_INIT = 1;            // polynomial degree of elements
-const int INIT_REF_NUM = 4;      // number of initial uniform refinements
-const double TAU = 300.0;        // time step in seconds
+const int INIT_REF_NUM = 4;      // Number of initial uniform mesh refinements.
+const int P_INIT = 1;            // Polynomial degree of all mesh elements.
+const double TAU = 300.0;        // Time step in seconds.
 
-// problem constants
-const double T_INIT = 10;        // temperature of the ground (also initial temperature)
-const double ALPHA = 10;         // heat flux coefficient for Newton's boundary condition
-const double LAMBDA = 1e5;       // thermal conductivity of the material
-const double HEATCAP = 1e6;      // heat capacity
-const double RHO = 3000;         // material density
-const double FINAL_TIME = 86400; // length of time interval (24 hours) in seconds
+// Problem parameters.
+const double T_INIT = 10;        // Temperature of the ground (also initial temperature).
+const double ALPHA = 10;         // Heat flux coefficient for Newton's boundary condition.
+const double LAMBDA = 1e5;       // Thermal conductivity of the material.
+const double HEATCAP = 1e6;      // Heat capacity.
+const double RHO = 3000;         // Material density.
+const double FINAL_TIME = 86400; // Length of time interval (24 hours) in seconds.
 
-// global variable
+// Global time variable.
 double TIME = 0;
 
-// time-dependent exterior temperature
+// Time-dependent exterior temperature.
 double temp_ext(double t) {
   return T_INIT + 10. * sin(2*M_PI*t/FINAL_TIME);
 }
 
-// boundary markers
+// Boundary markers.
 int marker_ground = 1;
 int marker_air = 2;
 
-// boundary condition types
+// Boundary condition types.
 BCType bc_types(int marker)
 {
   if (marker == marker_ground) return BC_ESSENTIAL;
   else return BC_NATURAL;
 }
 
-// function values for essential(Dirichlet) boundary markers
+// Essential (Dirichlet) boundary condition values.
 scalar essential_bc_values(int ess_bdy_marker, double x, double y)
 {
   return T_INIT;
 }
 
-template<typename Real, typename Scalar>
-Scalar bilinear_form(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
-{
-  return HEATCAP * RHO * int_u_v<Real, Scalar>(n, wt, u, v) / TAU +
-         LAMBDA * int_grad_u_grad_v<Real, Scalar>(n, wt, u, v);
-}
-
-template<typename Real, typename Scalar>
-Scalar linear_form(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
-{
-  return HEATCAP * RHO * int_u_v<Real, Scalar>(n, wt, ext->fn[0], v) / TAU;
-}
-
-template<typename Real, typename Scalar>
-Scalar bilinear_form_surf(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
-{
-  return LAMBDA * ALPHA * int_u_v<Real, Scalar>(n, wt, u, v);
-}
-
-template<typename Real, typename Scalar>
-Scalar linear_form_surf(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
-{
-  return LAMBDA * ALPHA * temp_ext(TIME) * int_v<Real, Scalar>(n, wt, v);
-}
-
+// Weak forms.
+#include "forms.cpp"
 
 int main(int argc, char* argv[])
 {
-  // Load and refine mesh.
+  // Load the mesh.
   Mesh mesh;
   H2DReader mloader;
   mloader.load("cathedral.mesh", &mesh);
+
+  // Perform initial mesh refinements.
   for(int i = 0; i < INIT_REF_NUM; i++) mesh.refine_all_elements();
   mesh.refine_towards_boundary(2, 5);
 
@@ -97,7 +80,7 @@ int main(int argc, char* argv[])
   H1Shapeset shapeset;
   PrecalcShapeset pss(&shapeset);
 
-  // Initialize the FE space.
+  // Initialize an H1 space.
   H1Space space(&mesh, &shapeset);
   space.set_bc_types(bc_types);
   space.set_essential_bc_values(essential_bc_values);
@@ -120,12 +103,12 @@ int main(int argc, char* argv[])
   // Matrix solver.
   UmfpackSolver umfpack;
 
-  // Linear system.
+  // Initialize linear system.
   LinSystem ls(&wf, &umfpack);
   ls.set_space(&space);
   ls.set_pss(&pss);
 
-  // Visualisation.
+  // Initialize views.
   ScalarView Tview("Temperature", 0, 0, 450, 600);
   char title[100];
   sprintf(title, "Time %3.5f, exterior temperature %3.5f", TIME, temp_ext(TIME));
@@ -136,10 +119,10 @@ int main(int argc, char* argv[])
   // Time stepping:
   int nsteps = (int)(FINAL_TIME/TAU + 0.5);
   bool rhsonly = false;
-  for(int n = 1; n <= nsteps; n++)
+  for(int ts = 1; ts <= nsteps; ts++)
   {
 
-    info("\n---- Time %3.5f, time step %d, ext_temp %g ----------", TIME, n, temp_ext(TIME));
+    info("---- Time step %d, time %3.5f, ext_temp %g", ts, TIME, temp_ext(TIME));
 
     // Assemble and solve.
     ls.assemble(rhsonly);
@@ -153,8 +136,6 @@ int main(int argc, char* argv[])
     sprintf(title, "Time %3.2f, exterior temperature %3.5f", TIME, temp_ext(TIME));
     Tview.set_title(title);
     Tview.show(&tsln);
-    //Tview.wait_for_keypress();
-
   }
 
   // Wait for the view to be closed.

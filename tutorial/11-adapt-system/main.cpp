@@ -88,65 +88,21 @@ const double K = 100;
 // Boundary condition types.
 BCType bc_types(int marker) { return BC_ESSENTIAL; }
 
-// Dirichlet BC values
+// Essential (Dirichlet) boundary condition values.
 scalar essential_bc_values(int ess_bdy_marker, double x, double y) { return 0;}
 
-// Exact solution u(x,y) = U(x)*U(y) and its derivatives.
-double U(double t) {
-  return cos(M_PI*t/2);
-}
-double dUdt(double t) {
-  return -sin(M_PI*t/2)*(M_PI/2.);
-}
-double ddUdtt(double t) {
-  return -cos(M_PI*t/2)*(M_PI/2.)*(M_PI/2.);
-}
-static double u_exact(double x, double y, double& dx, double& dy)
-{
-  dx = dUdt(x)*U(y);
-  dy = U(x)*dUdt(y);
-  return U(x)*U(y);
-}
-
-// Exact solution v(x,y) = V(x)*V(y).
-double V(double t) {
-  return 1. - (exp(K*t) + exp(-K*t))/(exp(K) + exp(-K));
-}
-double dVdt(double t) {
-  return -K*(exp(K*t) - exp(-K*t))/(exp(K) + exp(-K));
-}
-double ddVdtt(double t) {
-  return -K*K*(exp(K*t) + exp(-K*t))/(exp(K) + exp(-K));
-}
-static double v_exact(double x, double y, double& dx, double& dy)
-{
-  dx = dVdt(x)*V(y);
-  dy = V(x)*dVdt(y);
-  return V(x)*V(y);
-}
-
-// Right-hand side functions g_1 and g_2.
-double g_1(double x, double y)
-{
-  double Laplace_u = ddUdtt(x)*U(y) + U(x)*ddUdtt(y);
-  double u = U(x)*U(y);
-  double v = V(x)*V(y);
-  return -D_u*D_u * Laplace_u - u + SIGMA*v;
-}
-
-double g_2(double x, double y)
-{
-  double Laplace_v = ddVdtt(x)*V(y) + V(x)*ddVdtt(y);
-  double u = U(x)*U(y);
-  double v = V(x)*V(y);
-  return -D_v*D_v * Laplace_v - u + v;
-}
+// Exact solution.
+#include "exact_solution.cpp"
 
 // Weak forms.
 #include "forms.cpp"
 
 int main(int argc, char* argv[])
 {
+  // Time measurement.
+  TimePeriod cpu_time;
+  cpu_time.tick();
+
   // Load the mesh.
   Mesh umesh, vmesh;
   H2DReader mloader;
@@ -188,7 +144,7 @@ int main(int argc, char* argv[])
   wf.add_liform(0, linear_form_0, linear_form_0_ord);
   wf.add_liform(1, linear_form_1, linear_form_1_ord);
 
-  // Visualize solution and meshes.
+  // Initialize views.
   OrderView  uoview("Coarse mesh for u", 0, 0, 300, 300);
   OrderView  voview("Coarse mesh for v", 310, 0, 300, 300);
   ScalarView uview("Coarse mesh solution u", 620, 0, 400, 300);
@@ -204,28 +160,20 @@ int main(int argc, char* argv[])
   H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER, &shapeset);
 
   // Adaptivity loop.
-  int as = 1;
-  bool done = false;
-  TimePeriod cpu_time;
+  int as = 1; bool done = false;
   Solution u_sln_coarse, v_sln_coarse;
   Solution u_sln_fine, v_sln_fine;
   do
   {
-    info("---- Adaptivity step %d:", as); as++;
+    info("---- Adaptivity step %d:", as);
 
-    // Time measurement.
-    cpu_time.tick(H2D_SKIP);
-
-    // Enumerate degrees of freedom.
-    ndof = assign_dofs(2, &uspace, &vspace);
-
-    // Initialize the coarse mesh problem.
+    // Initialize the coarse and fine mesh problems.
     LinSystem ls(&wf, &umfpack);
     ls.set_spaces(2, &uspace, &vspace);
     ls.set_pss(2, &pss1, &pss2);
-
-    // Initialize and solve the fine mesh problem.
     RefSystem rs(&ls);
+
+    // Assemble and solve the fine mesh problem.
     rs.assemble();
     rs.solve(2, &u_sln_fine, &v_sln_fine);
 
@@ -260,9 +208,6 @@ int main(int argc, char* argv[])
     hp.set_biform(1, 1, bilinear_form_1_1<scalar, scalar>, bilinear_form_1_1<Ord, Ord>);
     double err_est = hp.calc_error(H2D_TOTAL_ERROR_REL | H2D_ELEMENT_ERROR_ABS) * 100;
 
-    // Time measurement.
-    cpu_time.tick();
-
     // Calculate error wrt. exact solution.
     ExactSolution uexact(&umesh, u_exact);
     ExactSolution vexact(&vmesh, v_exact);
@@ -286,9 +231,6 @@ int main(int argc, char* argv[])
     if (MULTI == true) graph_cpu.save("conv_cpu_m.dat");
     else graph_cpu.save("conv_cpu_s.dat");
 
-    // Time measurement.
-    cpu_time.tick(H2D_SKIP);
-
     // If err_est too large, adapt the mesh.
     if (error < ERR_STOP) done = true;
     else {
@@ -297,8 +239,7 @@ int main(int argc, char* argv[])
       if (ndof >= NDOF_STOP) done = true;
     }
 
-    // Time measurement.
-    cpu_time.tick();
+    as++;
   }
   while (!done);
   verbose("Total running time: %g s", cpu_time.accumulated());

@@ -5,78 +5,41 @@
 // to solve a simple problem of linear elasticity. At the end, VonMises
 // filter is used to visualize the stress.
 //
-// PDE: Lame equations of linear elasticity
+// PDE: Lame equations of linear elasticity.
 //
-// BC: du_1/dn = f_0 on Gamma_3 and du_1/dn = 0 on Gamma_2, Gamma_4, Gamma_5
-//     du_2/dn = f_1 on Gamma_3 and du_2/dn = 0 on Gamma_2, Gamma_4, Gamma_5
-//     u_1 = 0 and u_2 = 0 on Gamma_1
+// BC: du_1/dn = f_0 on Gamma_3 and du_1/dn = 0 on Gamma_2, Gamma_4, Gamma_5,
+//     du_2/dn = f_1 on Gamma_3 and du_2/dn = 0 on Gamma_2, Gamma_4, Gamma_5,
+//     u_1 = 0 and u_2 = 0 on Gamma_1.
 //
 // The following parameters can be changed:
 
-const int P_INIT = 8;                                      // initial polynomial degree in all elements
+const int P_INIT = 8;                                      // Initial polynomial degree of all elements.
 
-// problem constants
-const double E  = 200e9;                                   // Young modulus (steel)
-const double nu = 0.3;                                     // Poisson ratio
-const double f_0  = 0;                                     // external force in x-direction
-const double f_1  = 1e4;                                   // external force in y-direction
-const double lambda = (E * nu) / ((1 + nu) * (1 - 2*nu));  // first Lame constant
-const double mu = E / (2*(1 + nu));                        // second Lame constant
+// Problem parameters.
+const double E  = 200e9;                                   // Young modulus (steel).
+const double nu = 0.3;                                     // Poisson ratio.
+const double f_0  = 0;                                     // External force in x-direction.
+const double f_1  = 1e4;                                   // External force in y-direction.
+const double lambda = (E * nu) / ((1 + nu) * (1 - 2*nu));  // First Lame constant.
+const double mu = E / (2*(1 + nu));                        // Second Lame constant.
 
-// boundary marker for the external force
+// Boundary marker (external force).
 const int GAMMA_3_BDY = 3;
 
-// boundary condition types
+// Boundary condition types.
 BCType bc_types(int marker)
   { return (marker == 1) ? BC_ESSENTIAL : BC_NATURAL; }
 
-// function values for essential(Dirichlet) boundary conditions
+// Essential (Dirichlet) boundary condition values.
 scalar essential_bc_values(int ess_bdy_marker, double x, double y)
   { return 0; }
 
-// bilinear forms
-template<typename Real, typename Scalar>
-Scalar bilinear_form_0_0(int n, double *wt, Func<Real> *u, Func<Real> *v,
-                         Geom<Real> *e, ExtData<Scalar> *ext)
-{
-  return (lambda + 2*mu) * int_dudx_dvdx<Real, Scalar>(n, wt, u, v) +
-                      mu * int_dudy_dvdy<Real, Scalar>(n, wt, u, v);
-}
-
-template<typename Real, typename Scalar>
-Scalar bilinear_form_0_1(int n, double *wt, Func<Real> *u, Func<Real> *v,
-                         Geom<Real> *e, ExtData<Scalar> *ext)
-{
-  return lambda * int_dudy_dvdx<Real, Scalar>(n, wt, u, v) +
-             mu * int_dudx_dvdy<Real, Scalar>(n, wt, u, v);
-}
-
-template<typename Real, typename Scalar>
-Scalar bilinear_form_1_1(int n, double *wt, Func<Real> *u, Func<Real> *v,
-                         Geom<Real> *e, ExtData<Scalar> *ext)
-{
-  return              mu * int_dudx_dvdx<Real, Scalar>(n, wt, u, v) +
-         (lambda + 2*mu) * int_dudy_dvdy<Real, Scalar>(n, wt, u, v);
-}
-
-// linear forms
-template<typename Real, typename Scalar>
-Scalar linear_form_surf_0(int n, double *wt, Func<Real> *v, Geom<Real> *e,
-                          ExtData<Scalar> *ext)
-{
-  return f_0 * int_v<Real, Scalar>(n, wt, v);
-}
-
-template<typename Real, typename Scalar>
-Scalar linear_form_surf_1(int n, double *wt, Func<Real> *v, Geom<Real> *e,
-                          ExtData<Scalar> *ext)
-{
-  return f_1 * int_v<Real, Scalar>(n, wt, v);
-}
+// Weak forms.
+#include "forms.cpp"
 
 int main(int argc, char* argv[])
 {
-  // Load the mesh file.
+  // Load the mesh.
   Mesh mesh;
   H2DReader mloader;
   mloader.load("sample.mesh", &mesh);
@@ -108,13 +71,15 @@ int main(int argc, char* argv[])
   wf.add_liform_surf(0, callback(linear_form_surf_0), GAMMA_3_BDY);
   wf.add_liform_surf(1, callback(linear_form_surf_1), GAMMA_3_BDY);
 
-  // Initialize the linear system and solver.
+  // Matrix solver.
   UmfpackSolver umfpack;
+
+  // Initialize the linear system.
   LinSystem sys(&wf, &umfpack);
   sys.set_spaces(2, &xdisp, &ydisp);
   sys.set_pss(&pss);
 
-  // Assemble the stiffness matrix and solve the system.
+  // Assemble and solve the matrix problem.
   Solution xsln, ysln;
   sys.assemble();
   sys.solve(2, &xsln, &ysln);

@@ -57,14 +57,14 @@ const int MESH_REGULARITY = -1;   // Maximum allowed level of hanging nodes:
                                   // MESH_REGULARITY = 2 ... at most two-level hanging nodes, etc.
                                   // Note that regular meshes are not supported, this is due to
                                   // their notoriously bad performance.
-const double ERR_STOP = 0.1;      // Stopping criterion for adaptivity (rel. error tolerance between the
+const double ERR_STOP = 1.0;      // Stopping criterion for adaptivity (rel. error tolerance between the
 const double CONV_EXP = 1.0;      // Default value is 1.0. This parameter influences the selection of
                                   // cancidates in hp-adaptivity. See get_optimal_refinement() for details.
                                   // fine mesh and coarse mesh solution in percent).
 const int NDOF_STOP = 60000;      // Adaptivity process stops when the number of degrees of freedom grows
                                   // over this limit. This is to prevent h-adaptivity to go on forever.
 
-// problem constants
+// Problem parameters.
 const int OMEGA_1 = 1;
 const int OMEGA_2 = 2;
 const int STATOR_BDY = 2;
@@ -72,32 +72,27 @@ const double EPS_1 = 1.0;         // Relative electric permittivity in Omega_1.
 const double EPS_2 = 10.0;        // Relative electric permittivity in Omega_2.
 const double VOLTAGE = 50.0;      // Voltage on the stator.
 
-// boundary condition types
+// Boundary condition types.
 BCType bc_types(int marker)
 {
   return BC_ESSENTIAL;
 }
 
-// Dirichlet boundary condition values
+// Essential (Dirichlet) boundary condition values.
 scalar essential_bc_values(int ess_bdy_marker, double x, double y)
 {
   return (ess_bdy_marker == STATOR_BDY) ? VOLTAGE : 0.0;
 }
 
-template<typename Real, typename Scalar>
-Scalar biform1(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
-{
-  return EPS_1 * int_grad_u_grad_v<Real, Scalar>(n, wt, u, v);
-}
-
-template<typename Real, typename Scalar>
-Scalar biform2(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
-{
-  return EPS_2 * int_grad_u_grad_v<Real, Scalar>(n, wt, u, v);
-}
+// Weak forms.
+#include "forms.cpp"
 
 int main(int argc, char* argv[])
 {
+  // Time measurement.
+  TimePeriod cpu_time;
+  cpu_time.tick();
+
   // Load the mesh.
   Mesh mesh;
   H2DReader mloader;
@@ -121,7 +116,7 @@ int main(int argc, char* argv[])
   wf.add_biform(callback(biform1), H2D_SYM, OMEGA_1);
   wf.add_biform(callback(biform2), H2D_SYM, OMEGA_2);
 
-  // Visualize the solution, its gradient, and mesh.
+  // Initialize views.
   ScalarView sview("Scalar potential Phi", 0, 0, 400, 600);
   VectorView gview("Gradient of Phi", 410, 0, 400, 600);
   gview.set_min_max_range(0, 1e8);
@@ -133,30 +128,25 @@ int main(int argc, char* argv[])
   // DOF and CPU convergence graphs.
   SimpleGraph graph_dof, graph_cpu;
 
-  // Initialize a refinement selector.
+  // Initialize refinement selector.
   H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER, &shapeset);
 
   // Adaptivity loop:
-  int as = 1;
-  bool done = false;
-  TimePeriod cpu_time;
+  int as = 1; bool done = false;
   Solution sln_coarse, sln_fine;
   do
   {
-    info("---- Adaptivity step %d:", as); as++;
+    info("---- Adaptivity step %d:", as);
 
-    // Time measurement.
-    cpu_time.tick(H2D_SKIP);
-
-    // Initialize the coarse mesh problem.
+    // Initialize the coarse and fine mesh problems.
     LinSystem ls(&wf, &solver);
     ls.set_space(&space);
     ls.set_pss(&pss);
-
-    // Initialize and solve the fine mesh problem.
-    int order_increase = 1; // >= 0 (default = 1) 
-    int refinement = 1; // only '0' or '1' supported (default = 1)
+    int order_increase = 1;   // >= 0 (default = 1) 
+    int refinement = 1;       // only '0' or '1' supported (default = 1)
     RefSystem rs(&ls, order_increase, refinement);
+
+    // Assemble and solve the fine mesh problem.
     rs.assemble();
     rs.solve(&sln_fine);
 
@@ -184,11 +174,9 @@ int main(int argc, char* argv[])
     hp.set_solutions(&sln_coarse, &sln_fine);
     double err_est = hp.calc_error() * 100;
 
-    // Time measurement.
-    cpu_time.tick();
-
     // Report results.
-    info("ndof_coarse: %d, ndof_fine: %d, err_est: %g%%", space.get_num_dofs(), rs.get_space(0)->get_num_dofs(), err_est);
+    info("ndof_coarse: %d, ndof_fine: %d, err_est: %g%%", 
+      space.get_num_dofs(), rs.get_space(0)->get_num_dofs(), err_est);
 
     // Add entry to DOF convergence graph.
     graph_dof.add_values(space.get_num_dofs(), err_est);
@@ -198,9 +186,6 @@ int main(int argc, char* argv[])
     graph_cpu.add_values(cpu_time.accumulated(), err_est);
     graph_cpu.save("conv_cpu.dat");
 
-    // Time measurement.
-    cpu_time.tick(H2D_SKIP);
-
     // If err_est too large, adapt the mesh.
     if (err_est < ERR_STOP) done = true;
     else {
@@ -209,8 +194,7 @@ int main(int argc, char* argv[])
       if (ndof >= NDOF_STOP) done = true;
     }
 
-    // Time measurement.
-    cpu_time.tick();
+    as++;
   }
   while (done == false);
   verbose("Total running time: %g s", cpu_time.accumulated());

@@ -17,43 +17,36 @@
 // initial polynomial degree P_INIT, and play with various initial
 // mesh refinements at the beginning of the main() function.
 
-double CONST_F = 2.0;   // Constant right-hand side.
-int P_INIT = 5;         // Uniform polynomial degree of mesh elements.
+int P_INIT = 5;            // Uniform polynomial degree of mesh elements.
 
-// boundary condition types (essential = Dirichlet)
+// Problem parameters.
+double CONST_F = 2.0;  
+
+// Boundary condition types.
+// Note: "essential" boundary condition means that 
+// the solution value is prescribed.
 BCType bc_types(int marker)
 {
   return BC_ESSENTIAL;
 }
 
-// function values for essential(Dirichlet) boundary conditions
+// Essential (Dirichlet) boundary condition values.
 scalar essential_bc_values(int ess_bdy_marker, double x, double y)
 {
   return 0;
 }
 
-// return the value \int \nabla u . \nabla v dx
-template<typename Real, typename Scalar>
-Scalar bilinear_form(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
-{
-  return int_grad_u_grad_v<Real, Scalar>(n, wt, u, v);
-}
-
-// return the value \int v dx
-template<typename Real, typename Scalar>
-Scalar linear_form(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
-{
-  return CONST_F * int_v<Real, Scalar>(n, wt, v);
-}
+// Weak forms.
+#include "forms.cpp"
 
 int main(int argc, char* argv[])
 {
-  // Load the mesh file.
+  // Load the mesh.
   Mesh mesh;
   H2DReader mloader;
   mloader.load("domain.mesh", &mesh);
 
-  // Perform sample initial mesh refinement.
+  // Perform initial mesh refinements.
   mesh.refine_element(0);
 
   // Initialize the shapeset and the cache.
@@ -74,13 +67,15 @@ int main(int argc, char* argv[])
   wf.add_biform(callback(bilinear_form));
   wf.add_liform(callback(linear_form));
 
-  // Initialize the linear system and solver.
+  // Matrix solver.
   UmfpackSolver umfpack;
+
+  // Initialize the linear system.
   LinSystem sys(&wf, &umfpack);
   sys.set_space(&space);
   sys.set_pss(&pss);
 
-  // Assemble the stiffness matrix and solve the system.
+  // Assemble and solve the matrix problem.
   Solution sln;
   sys.assemble();
   sys.solve(&sln);

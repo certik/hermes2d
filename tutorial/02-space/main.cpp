@@ -33,7 +33,7 @@ Click into the image window and:\n\
 
 int main(int argc, char* argv[])
 {
-  // Load the mesh file.
+  // Load the mesh.
   Mesh mesh;
   H2DReader mloader;
   mloader.load("domain.mesh", &mesh);            // original L-shape domain

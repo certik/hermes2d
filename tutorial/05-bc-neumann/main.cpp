@@ -15,51 +15,38 @@
 // the solution has a singular (infinite) gradient at the re-entrant corner.
 // Therefore we visualize not only the solution but also its gradient.
 
-double CONST_F = -1.0;        // right-hand side
-double CONST_GAMMA[3] = {-0.5, 1.0, -0.5}; // outer normal derivative on Gamma_1,2,3
-int P_INIT = 4;               // initial polynomial degree in all elements
-int CORNER_REF_LEVEL = 12;    // number of mesh refinements towards the re-entrant corner
+int P_INIT = 4;               // Initial polynomial degree in all elements.
+int CORNER_REF_LEVEL = 12;    // Number of mesh refinements towards the re-entrant corner.
 
-// boundary condition types
-// Note: natural means Neumann, Newton, or any other type of condition
-// where the solution value is not prescribed.
+// Problem parameters.
+double CONST_F = -1.0;                        // Right-hand side.
+double CONST_GAMMA[3] = {-0.5, 1.0, -0.5};    // Outer normal derivative on Gamma_1,2,3.
+
+// Boundary condition types.
+// Note: "natural" boundary condition means that 
+// the solution value is not prescribed.
 BCType bc_types(int marker)
 {
   return (marker == 4) ? BC_ESSENTIAL : BC_NATURAL;
 }
 
-// function values for essential(Dirichlet) boundary markers
+// Essential (Dirichlet) boundary condition values.
 scalar essential_bc_values(int ess_bdy_marker, double x, double y)
 {
   return 0.0;
 }
 
-template<typename Real, typename Scalar>
-Scalar bilinear_form(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
-{
-  return int_grad_u_grad_v<Real, Scalar>(n, wt, u, v);
-}
-
-template<typename Real, typename Scalar>
-Scalar linear_form(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
-{
-  return CONST_F*int_v<Real, Scalar>(n, wt, v);
-}
-
-template<typename Real, typename Scalar>
-Scalar linear_form_surf(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
-{
-  return CONST_GAMMA[e->marker - 1] * int_v<Real, Scalar>(n, wt, v);
-}
+// Weak forms.
+#include "forms.cpp"
 
 int main(int argc, char* argv[])
 {
-  // Load the mesh file.
+  // Load the mesh.
   Mesh mesh;
   H2DReader mloader;
   mloader.load("domain.mesh", &mesh);
 
-  // Perform mesh refinements towards the re-entrant corner.
+  // Perform initial mesh refinements.
   mesh.refine_towards_vertex(3, CORNER_REF_LEVEL);
 
   // Initialize the shapeset and the cache.
@@ -81,13 +68,15 @@ int main(int argc, char* argv[])
   wf.add_liform(callback(linear_form));
   wf.add_liform_surf(callback(linear_form_surf));
 
-  // Initialize the linear system and solver.
+  // Matrix solver.
   UmfpackSolver umfpack;
+
+  // Initialize the linear system.
   LinSystem sys(&wf, &umfpack);
   sys.set_space(&space);
   sys.set_pss(&pss);
 
-  // Assemble the stiffness matrix and solve the system.
+  // Assemble and solve the matrix problem.
   Solution sln;
   sys.assemble();
   sys.solve(&sln);

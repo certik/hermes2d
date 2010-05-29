@@ -16,45 +16,32 @@
 //
 // The following parameters can be changed:
 
-double T1 = 30.0;            // prescribed temperature on Gamma_3
-double T0 = 20.0;            // outer temperature on Gamma_1
-double H  = 0.05;            // heat flux on Gamma_1
-int P_INIT = 6;              // uniform polynomial degree in the mesh
-int UNIFORM_REF_LEVEL = 2;   // number of initial uniform mesh refinements
-int CORNER_REF_LEVEL = 12;   // number of mesh refinements towards the re-entrant corner
+int UNIFORM_REF_LEVEL = 2;   // Number of initial uniform mesh refinements.
+int CORNER_REF_LEVEL = 12;   // Number of mesh refinements towards the re-entrant corner.
+int P_INIT = 6;              // Uniform polynomial degree of all mesh elements.
 
+// Problem parameters.
+double T1 = 30.0;            // Prescribed temperature on Gamma_3.
+double T0 = 20.0;            // Outer temperature on Gamma_1.
+double H  = 0.05;            // Heat flux on Gamma_1.
+
+// Boundary markers.
 const int NEWTON_BDY = 1;
 
-// boundary condition types
+// Boundary condition types.
 BCType bc_types(int marker)
   { return (marker == 3) ? BC_ESSENTIAL : BC_NATURAL; }
 
-// function values for essential(Dirichlet) boundary markers
+// Essential (Dirichlet) boundary condition values.
 scalar essential_bc_values(int ess_bdy_marker, double x, double y)
   { return T1; }
 
-template<typename Real, typename Scalar>
-Scalar bilinear_form(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
-{
-  return int_grad_u_grad_v<Real, Scalar>(n, wt, u, v);
-}
-
-template<typename Real, typename Scalar>
-Scalar bilinear_form_surf(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
-{
-  return H * int_u_v<Real, Scalar>(n, wt, u, v);
-}
-
-template<typename Real, typename Scalar>
-Scalar linear_form_surf(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
-{
-  return T0 * H * int_v<Real, Scalar>(n, wt, v);
-}
-
+// Weak forms.
+#include "forms.cpp"
 
 int main(int argc, char* argv[])
 {
-  // Load the mesh file.
+  // Load the mesh.
   Mesh mesh;
   H2DReader mloader;
   mloader.load("domain.mesh", &mesh);
@@ -82,13 +69,15 @@ int main(int argc, char* argv[])
   wf.add_biform_surf(callback(bilinear_form_surf), NEWTON_BDY);
   wf.add_liform_surf(callback(linear_form_surf), NEWTON_BDY);
 
-  // Initialize the linear system and solver.
+  // Matrix solver.
   UmfpackSolver umfpack;
+
+  // Initialize the linear system.
   LinSystem sys(&wf, &umfpack);
   sys.set_space(&space);
   sys.set_pss(&pss);
 
-  // Assemble the stiffness matrix and solve the system.
+  // Assemble and solve the matrix problem.
   Solution sln;
   sys.assemble();
   sys.solve(&sln);

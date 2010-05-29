@@ -21,9 +21,9 @@
 //  The following parameters can be changed:
 
 const int P_INIT = 2;             // Initial polynomial degree of all mesh elements.
-const int INIT_REF_NUM = 4;       // Number of initial uniform refinements
+const int INIT_REF_NUM = 3;       // Number of initial uniform refinements.
 
-// Problem parameters
+// Problem parameters.
 double a_11(double x, double y) {
   if (y > 0) return 1 + x*x + y*y;
   else return 1;
@@ -66,74 +66,28 @@ double g_N(double x, double y) {
   return 0;
 }
 
-// Boundary condition types
+// Boundary condition types.
 BCType bc_types(int marker)
 {
   if (marker == 1) return BC_ESSENTIAL;
   else return BC_NATURAL;
 }
 
-// Dirichlet boundary condition values
+// Essential (Dirichlet) boundary condition values.
 scalar essential_bc_values(int ess_bdy_marker, double x, double y)
 {
   return g_D(x, y);
 }
 
-// (Volumetric) bilinear form
-template<typename Real, typename Scalar>
-Scalar bilinear_form(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
-{
-  Scalar result = 0;
-  for (int i=0; i < n; i++) {
-    double x = e->x[i];
-    double y = e->y[i];
-    result += (a_11(x, y)*u->dx[i]*v->dx[i] +
-               a_12(x, y)*u->dy[i]*v->dx[i] +
-               a_21(x, y)*u->dx[i]*v->dy[i] +
-               a_22(x, y)*u->dy[i]*v->dy[i] +
-               a_1(x, y)*u->dx[i]*v->val[i] +
-               a_2(x, y)*u->dy[i]*v->val[i] +
-               a_0(x, y)*u->val[i]*v->val[i]) * wt[i];
-  }
-  return result;
-}
-
-// Integration order for the bilinear form
-Ord bilinear_form_ord(int n, double *wt, Func<Ord> *u,
-                      Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext)
-{
-  return u->val[0] * v->val[0] * e->x[0] * e->x[0]; // returning the sum of the degrees of the basis
-                                                    // and test function plus two
-}
-
-// Surface linear form (natural boundary conditions)
-template<typename Real, typename Scalar>
-Scalar linear_form_surf(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
-{
-  return int_F_v<Real, Scalar>(n, wt, g_N, v, e);
-}
-
-// Integration order for surface linear form
-Ord linear_form_surf_ord(int n, double *wt, Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext)
-{
-  return v->val[0] * e->x[0] * e->x[0];  // returning the polynomial degree of the test function plus two
-}
-
-// Volumetric linear form (right-hand side)
-template<typename Real, typename Scalar>
-Scalar linear_form(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
-{
-  return int_F_v<Real, Scalar>(n, wt, rhs, v, e);
-}
-
-// Integration order for the volumetric linear form
-Ord linear_form_ord(int n, double *wt, Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext)
-{
-  return v->val[0] * e->x[0] * e->x[0];  // returning the polynomial degree of the test function plus two
-}
+// Weak forms.
+#include "forms.cpp"
 
 int main(int argc, char* argv[])
 {
+  // Time measurement.
+  TimePeriod cpu_time;
+  cpu_time.tick();
+
   // Load the mesh.
   Mesh mesh;
   H2DReader mloader;
@@ -159,15 +113,12 @@ int main(int argc, char* argv[])
   wf.add_liform(linear_form, linear_form_ord);
   wf.add_liform_surf(linear_form_surf, linear_form_surf_ord, 2);
 
-  // Visualize solution and mesh.
+  // Initialize views.
   ScalarView sview("Coarse solution", 0, 100, 798, 700);
   OrderView  oview("Polynomial orders", 800, 100, 798, 700);
 
   // Matrix solver.
   UmfpackSolver solver;
-
-  // Time measurement.
-  TimePeriod cpu_time;
 
   // Solve the problem.
   Solution sln;
@@ -184,7 +135,10 @@ int main(int argc, char* argv[])
   sview.show(&sln);
   oview.show(&space);
 
-  // Print cpu_time information.
+  // Skip visualization time.
+  cpu_time.tick(H2D_SKIP);
+
+  // Print timing information.
   verbose("Total running time: %g s", cpu_time.accumulated());
 
   // Wait for all views to be closed.
