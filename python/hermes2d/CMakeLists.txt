@@ -49,7 +49,7 @@ install(FILES tests/test_basics.py tests/test_examples.py tests/test_plots.py
     DESTINATION lib/python/hermes2d/tests
     )
 
-install(FILES dummy_solver.h config.h stdcython.h _hermes2d_api.h
+install(FILES dummy_solver.h config.h stdcython.h
     DESTINATION lib/python/hermes2d/include
     )
 
