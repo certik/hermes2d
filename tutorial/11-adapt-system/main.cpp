@@ -77,7 +77,7 @@ const double ERR_STOP = 0.5;     // Stopping criterion for adaptivity (rel. erro
 const int NDOF_STOP = 60000;     // Adaptivity process stops when the number of degrees of freedom grows over
                                  // this limit. This is mainly to prevent h-adaptivity to go on forever.
 
-// problem constants
+// Problem parameters.
 const double D_u = 1;
 const double D_v = 1;
 const double SIGMA = 1;
@@ -85,13 +85,13 @@ const double LAMBDA = 1;
 const double KAPPA = 1;
 const double K = 100;
 
-// boundary condition types
+// Boundary condition types.
 BCType bc_types(int marker) { return BC_ESSENTIAL; }
 
 // Dirichlet BC values
 scalar essential_bc_values(int ess_bdy_marker, double x, double y) { return 0;}
 
-// exact solution u(x,y) = U(x)*U(y) and its derivatives
+// Exact solution u(x,y) = U(x)*U(y) and its derivatives.
 double U(double t) {
   return cos(M_PI*t/2);
 }
@@ -108,7 +108,7 @@ static double u_exact(double x, double y, double& dx, double& dy)
   return U(x)*U(y);
 }
 
-// exact solution v(x,y) = V(x)*V(y)
+// Exact solution v(x,y) = V(x)*V(y).
 double V(double t) {
   return 1. - (exp(K*t) + exp(-K*t))/(exp(K) + exp(-K));
 }
@@ -125,7 +125,7 @@ static double v_exact(double x, double y, double& dx, double& dy)
   return V(x)*V(y);
 }
 
-// right-hand side functions g_1 and g_2
+// Right-hand side functions g_1 and g_2.
 double g_1(double x, double y)
 {
   double Laplace_u = ddUdtt(x)*U(y) + U(x)*ddUdtt(y);
@@ -142,10 +142,8 @@ double g_2(double x, double y)
   return -D_v*D_v * Laplace_v - u + v;
 }
 
-// weak forms
+// Weak forms.
 #include "forms.cpp"
-
-////////////////////////////////////////////////////////////////////////////////////////////////
 
 int main(int argc, char* argv[])
 {
@@ -163,7 +161,8 @@ int main(int argc, char* argv[])
 
   // Initialize the shapeset and the cache.
   H1Shapeset shapeset;
-  PrecalcShapeset pss(&shapeset);
+  PrecalcShapeset pss1(&shapeset);
+  PrecalcShapeset pss2(&shapeset);
 
   // Create the x displacement space.
   H1Space uspace(&umesh, &shapeset);
@@ -223,7 +222,7 @@ int main(int argc, char* argv[])
     // Initialize the coarse mesh problem.
     LinSystem ls(&wf, &umfpack);
     ls.set_spaces(2, &uspace, &vspace);
-    ls.set_pss(&pss);
+    ls.set_pss(2, &pss1, &pss2);
 
     // Initialize and solve the fine mesh problem.
     RefSystem rs(&ls);
