@@ -19,13 +19,14 @@ using namespace RefinementSelectors;
 //
 //  Known exact solution, see functions fn() and fndd().
 //
+//  The following parameters can be changed:
 
 const int INIT_REF_NUM = 4;              // Number of initial uniform mesh refinements.
 const int P_INIT = 2;                    // Initial polynomial degree of all mesh elements.
 const bool JFNK = true;                  // true = jacobian-free method,
-                                         // false = Newton
+                                         // false = Newton.
 const bool PRECOND = true;               // Preconditioning by jacobian in case of jfnk,
-                                         // default ML proconditioner in case of Newton
+                                         // default ML proconditioner in case of Newton.
 const double THRESHOLD = 0.3;            // This is a quantitative parameter of the adapt(...) function and
                                          // it has different meanings for various adaptive strategies (see below).
 const int STRATEGY = 0;                  // Adaptive strategy:
@@ -52,9 +53,9 @@ const double CONV_EXP = 1.0;             // Default value is 1.0. This parameter
 const double ERR_STOP = 1.0;             // Stopping criterion for adaptivity (rel. error tolerance between the
                                          // fine mesh and coarse mesh solution in percent).
 const int NDOF_STOP = 60000;             // Adaptivity process stops when the number of degrees of freedom grows
-                                         // over this limit. This is to prevent h-adaptivity to go on fore
+                                         // over this limit. This is to prevent h-adaptivity to go on forever.
 
-// Problem constants.
+// Problem parameters.
 double SLOPE = 60;                       // Slope of the layer inside the domain
 
 // Exact solution.
@@ -113,6 +114,10 @@ Scalar residual_form(int n, double *wt, Func<Real> *u[], Func<Real> *vj, Geom<Re
 
 int main(int argc, char* argv[])
 {
+  // Time measurement.
+  TimePeriod cpu_time;
+  cpu_time.tick();
+
   // Load the mesh.
   Mesh mesh;
   H2DReader mloader;
@@ -125,7 +130,7 @@ int main(int argc, char* argv[])
   H1Shapeset shapeset;
   PrecalcShapeset pss(&shapeset);
 
-  // Create finite element space.
+  // Create an H1 space.
   H1Space space(&mesh, &shapeset);
   space.set_bc_types(bc_types);
   space.set_essential_bc_values(essential_bc_values);
@@ -133,13 +138,14 @@ int main(int argc, char* argv[])
 
   // Enumerate degrees of freedom.
   int ndof = assign_dofs(&space);
+  info("Number of DOF: %d", space.get_num_dofs());
 
   // Initialize the weak formulation.
   WeakForm wf(1, JFNK ? true : false);
   if (PRECOND) wf.add_jacform(callback(precond_form), H2D_SYM);
   wf.add_resform(callback(residual_form));
 
-  // Visualize solution and mesh.
+  // Initialize views.
   ScalarView sview("Coarse mesh solution", 0, 100, 798, 700);
   OrderView  oview("Coarse mesh", 800, 100, 798, 700);
 
@@ -164,8 +170,10 @@ int main(int argc, char* argv[])
     fep.set_spaces(1, &space);
     fep.set_pss(1, &pss);
 
-    // Initialize NOX solver and preconditioner.
+    // Initialize NOX solver.
     NoxSolver solver(&fep);
+
+    // Choose preconditioner.
     MlPrecond pc("sa");
     if (PRECOND)
     {
@@ -174,6 +182,7 @@ int main(int argc, char* argv[])
     }
 
     // Solve the matrix problem.
+    info("Coarse mesh problem: Assembling by FeProblem, solving by NOX.");
     bool solved = solver.solve();
     if (solved)
     {
@@ -186,9 +195,15 @@ int main(int argc, char* argv[])
       info(" Total number of iterations in linsolver: %d (achieved tolerance in the last step: %g)", 
         solver.get_num_lin_iters(), solver.get_achieved_tol());
 
+      // Time measurement.
+      cpu_time.tick();
+
       // View the solution and mesh.
       sview.show(&sln_coarse);
       oview.show(&space);
+
+      // Skip visualization time.
+      cpu_time.tick(H2D_SKIP);
     }
 
     // FIXME: RefSystem should be used instead of the following:
@@ -217,16 +232,17 @@ int main(int argc, char* argv[])
     }
 
     // Solve the matrix problem using NOX.
+    info("Fine mesh problem: Assembling by FeProblem, solving by NOX.");
     solved = ref_solver.solve();
     if (solved)
     {
       s = ref_solver.get_solution_vector();
       sln_fine.set_fe_solution(&rspace, &pss, s);
 
-      info("Reference Solution info:");
-      info(" Number of nonlin iters: %d (norm of residual: %g)",
+      info("Reference solution info:");
+      info(" Number of nonlin iterations: %d (norm of residual: %g)",
             ref_solver.get_num_iters(), ref_solver.get_residual());
-      info(" Total number of iters in linsolver: %d (achieved tolerance in the last step: %g)",
+      info(" Total number of iterations in linsolver: %d (achieved tolerance in the last step: %g)",
             ref_solver.get_num_lin_iters(), ref_solver.get_achieved_tol());
     }
     else
@@ -250,6 +266,7 @@ int main(int argc, char* argv[])
     // If err_est too large, adapt the mesh.
     if (err_est < ERR_STOP) done = true;
     else {
+      info("Adapting the coarse mesh.");
       done = hp.adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY);
       ndof = assign_dofs(&space);
 

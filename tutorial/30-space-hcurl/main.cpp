@@ -9,26 +9,26 @@
 // associated with the edge), and bubble functions 
 // associated with elements (tangential component is 
 // zero on the element boundary).
+//
+// The following parameters can be changed:
 
-int P_INIT = 3;
+int INIT_REF_NUM = 2;      // Initial uniform mesh refinement.
+int P_INIT = 3;            // Polynomial degree of mesh elements.
 
 int main(int argc, char* argv[])
 {
-  if (argc < 2) error("Missing mesh file name parameter.");
-
   // Load the mesh.
   Mesh mesh;
   H2DReader mloader;
-  mloader.load(argv[1], &mesh);
+  mloader.load("square.mesh", &mesh);
 
-  // Uniform mesh refinements.
-  mesh.refine_all_elements();
-  mesh.refine_all_elements();
+  // Initial mesh refinement.
+  for (int i = 0; i < INIT_REF_NUM; i++) mesh.refine_all_elements();
 
   // Initialize the shapeset and the cache.
   HcurlShapeset shapeset;
 
-  // Create the Hcurl space.
+  // Create an Hcurl space.
   HcurlSpace space(&mesh, &shapeset);
 
   // Set uniform polynomial degrees.
@@ -37,7 +37,7 @@ int main(int argc, char* argv[])
   // Enumerate basis functions.
   int ndof = assign_dofs(&space);
 
-  // Visualise FE basis.
+  // Visualize FE basis.
   VectorBaseView bview;
   bview.show(&space);
 

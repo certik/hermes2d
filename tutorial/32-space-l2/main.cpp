@@ -10,8 +10,8 @@
 //
 // The following parameters can be changed:
 
-const int P_INIT = 3;          // Polynomial degree of mesh elements
-const int INIT_REF_NUM = 1;    // Number ofinitial uniform mesh refinements
+const int INIT_REF_NUM = 1;    // Number of initial uniform mesh refinements.
+const int P_INIT = 3;          // Polynomial degree of mesh elements.
 
 // Projected function.
 double F(double x, double y)
@@ -36,7 +36,7 @@ Scalar linear_form(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scal
   return result;
 }
 
-// Boundary conditions.
+// Boundary condition types.
 BCType bc_types(int marker)
 {
    return BC_NONE;
@@ -44,12 +44,10 @@ BCType bc_types(int marker)
 
 int main(int argc, char* argv[])
 {
-  if (argc < 2) error("Missing mesh file name parameter.");
-
   // Load the mesh.
   Mesh mesh;
   H2DReader mloader;
-  mloader.load(argv[1], &mesh);
+  mloader.load("square.mesh", &mesh);
 
   // Perform uniform mesh refinements.
   for (int i=0; i<INIT_REF_NUM; i++) mesh.refine_all_elements();
@@ -58,7 +56,7 @@ int main(int argc, char* argv[])
   L2Shapeset shapeset;
   PrecalcShapeset pss(&shapeset);
 
-  // Create the L2 space.
+  // Create an L2 space.
   L2Space space(&mesh, &shapeset);
   space.set_bc_types(bc_types);
 
@@ -73,6 +71,7 @@ int main(int argc, char* argv[])
   bview.show(&space);
   View::wait(H2DV_WAIT_KEYPRESS);
 
+  // Initialize solution.
   Solution sln;
 
   // Matrix solver.

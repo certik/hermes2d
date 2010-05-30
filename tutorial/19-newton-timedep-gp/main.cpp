@@ -13,32 +13,32 @@
 //  method.
 //
 //  PDE: non-stationary complex Gross-Pitaevski equation
-//  describing resonances in Bose-Einstein condensates
+//  describing resonances in Bose-Einstein condensates.
 //
 //  ih \partial \psi/\partial t = -h^2/(2m) \Delta \psi +
-//  g \psi |\psi|^2 + 1/2 m \omega^2 (x^2 + y^2) \psi
+//  g \psi |\psi|^2 + 1/2 m \omega^2 (x^2 + y^2) \psi.
 //
-//  Domain: square (-1, 1)^2
+//  Domain: square (-1, 1)^2.
 //
 //  BC:  homogeneous Dirichlet everywhere on the boundary
 
-const int P_INIT = 4;            // Initial polynomial degree
-const double TAU = 0.01;         // Time step
-const double T_FINAL = 2;        // Time interval length
-const int INIT_REF_NUM = 3;      // Number of initial uniform refinements
-const int TIME_DISCR = 2;        // 1 for implicit Euler, 2 for Crank-Nicolson
+const int P_INIT = 4;            // Initial polynomial degree.
+const double TAU = 0.01;         // Time step.
+const double T_FINAL = 2;        // Time interval length.
+const int INIT_REF_NUM = 3;      // Number of initial uniform refinements.
+const int TIME_DISCR = 2;        // 1 for implicit Euler, 2 for Crank-Nicolson.
 const int PROJ_TYPE = 1;         // For the projection of the initial condition
-                                 // on the initial mesh: 1 = H1 projection, 0 = L2 projection
-const double NEWTON_TOL = 1e-5;  // Stopping criterion for the Newton's method
-const int NEWTON_MAX_ITER = 100; // Maximum allowed number of Newton iterations
+                                 // on the initial mesh: 1 = H1 projection, 0 = L2 projection.
+const double NEWTON_TOL = 1e-5;  // Stopping criterion for the Newton's method.
+const int NEWTON_MAX_ITER = 100; // Maximum allowed number of Newton iterations.
 
 // Problem constants
-const double H = 1;              // Planck constant 6.626068e-34;
-const double M = 1;              // mass of boson
-const double G = 1;              // coupling constant
-const double OMEGA = 1;          // frequency
+const double H = 1;              // Planck constant 6.626068e-34.
+const double M = 1;              // Mass of boson.
+const double G = 1;              // Coupling constant.
+const double OMEGA = 1;          // Frequency.
 
-// Initial conditions
+// Initial conditions.
 scalar fn_init(double x, double y, scalar& dx, scalar& dy)
 {
   scalar val = exp(-10*(x*x + y*y));
@@ -47,22 +47,22 @@ scalar fn_init(double x, double y, scalar& dx, scalar& dy)
   return val;
 }
 
-// Boundary condition types
+// Boundary condition types.
 BCType bc_types(int marker)
 {
   return BC_ESSENTIAL;
 }
 
-// Boundary condition values
+// Essential (Dirichlet) boundary condition values.
 scalar essential_bc_values(int ess_bdy_marker, double x, double y)
 {
  return 0;
 }
 
-// Weak forms
+// Weak forms.
 #include "forms.cpp"
 
-// Implicit Euler method (1st-order in time)
+// Implicit Euler method (1st-order in time).
 template<typename Real, typename Scalar>
 Scalar residual_euler(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {  return F_euler(n, wt, v, e, ext);  }
@@ -70,7 +70,7 @@ template<typename Real, typename Scalar>
 Scalar jacobian_euler(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {  return J_euler(n, wt, u, v, e, ext);  }
 
-// Crank-Nicolson method (1st-order in time)
+// Crank-Nicolson method (1st-order in time).
 template<typename Real, typename Scalar>
 Scalar residual_cranic(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {  return F_cranic(n, wt, v, e, ext);  }
@@ -80,7 +80,7 @@ Scalar jacobian_cranic(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Rea
 
 int main(int argc, char* argv[])
 {
-  // Load the mesh file.
+  // Load the mesh.
   Mesh mesh;
   H2DReader mloader;
   mloader.load("square.mesh", &mesh);
@@ -116,36 +116,41 @@ int main(int argc, char* argv[])
     wf.add_liform(callback(residual_cranic), H2D_ANY, 2, &Psi_prev_newton, &Psi_prev_time);
   }
 
-  // Initialize the nonlinear system and solver.
+  // Matrix solver.
   UmfpackSolver umfpack;
+
+  // Initialize the nonlinear system.
   NonlinSystem nls(&wf, &umfpack);
   nls.set_space(&space);
   nls.set_pss(&pss);
 
-  // Visualisation.
+  // Initialize views.
   ScalarView view("", 0, 0, 700, 600);
   view.fix_scale_width(80);
 
-  // Setting initial condition at zero time level.
+  // Set initial condition at zero time level.
   Psi_prev_time.set_exact(&mesh, fn_init);
 
   // Project fn_init() on the coarse mesh and use it as initial condition
   // for the Newton's method. 
+  info("Projecting initial condition on FE space.");
   nls.project_global(&fn_init, &Psi_prev_newton, PROJ_TYPE);
 
   // Time stepping loop:
   int nstep = (int)(T_FINAL/TAU + 0.5);
-  for(int n = 1; n <= nstep; n++)
+  for(int ts = 1; ts <= nstep; ts++)
   {
 
-    info("---- Time step %d:", n);
+    info("---- Time step %d:", ts);
 
     // Newton's method.
-    if (!nls.solve_newton(&Psi_prev_newton, NEWTON_TOL, NEWTON_MAX_ITER)) error("Newton's method did not converge.");
+    info("Performing Newton's method.");
+    if (!nls.solve_newton(&Psi_prev_newton, NEWTON_TOL, NEWTON_MAX_ITER)) 
+      error("Newton's method did not converge.");
 
     // Show the new time level solution.
     char title[100];
-    sprintf(title, "Time level %d", n);
+    sprintf(title, "Time step %d", ts);
     view.set_title(title);
     view.show(&Psi_prev_newton);
 

@@ -12,6 +12,7 @@
 //
 //  Domain: Same as in tutorial example 17-newton-timedep-flame.
 //
+//  The following parameters can be changed:
 
 const int INIT_REF_NUM = 2;         // Number of initial uniform mesh refinements.
 const int P_INIT = 2;               // Initial polynomial degree of all mesh elements.
@@ -51,6 +52,10 @@ scalar conc_ic(double x, double y, scalar& dx, scalar& dy)
 
 int main(int argc, char* argv[])
 {
+  // Time measurement.
+  TimePeriod cpu_time;
+  cpu_time.tick();
+
   // Load the mesh.
   Mesh mesh;
   H2DReader mloader;
@@ -71,9 +76,6 @@ int main(int argc, char* argv[])
   cspace.set_bc_types(bc_types);
   tspace.set_uniform_order(P_INIT);
   cspace.set_uniform_order(P_INIT);
-
-  // Time measurement,
-  TimePeriod cpu_time;
 
   // Enumerate degrees of freedom.
   int ndof = assign_dofs(2, &tspace, &cspace);
@@ -115,13 +117,12 @@ int main(int argc, char* argv[])
 
   // Project the functions "titer" and "citer" on the FE space 
   // in order to obtain initial vector for NOX. 
-  info("Projecting initial solutions...");
+  info("Projecting initial solutions on the FE meshes.");
   UmfpackSolver umfpack;
   LinSystem ls(&wf, &umfpack);
   ls.set_spaces(2, &tspace, &cspace);
   ls.set_pss(&pss);
   ls.project_global(&tprev1, &cprev1, &tprev1, &cprev1);
-  info("Done.");
 
   // Get the coefficient vector.
   scalar *vec = ls.get_solution_vector();
@@ -152,7 +153,7 @@ int main(int argc, char* argv[])
   cpu_time.tick_reset();
   for (int ts = 1; total_time <= 60.0; ts++)
   {
-    info("---- Time step %d, t = %g s ***", ts, total_time + TAU);
+    info("---- Time step %d, t = %g s", ts, total_time + TAU);
 
     cpu_time.tick(H2D_SKIP);
     solver.set_init_sln(vec);
@@ -169,11 +170,18 @@ int main(int argc, char* argv[])
       info("Total number of iterations in linsolver: %d (achieved tolerance in the last step: %g)",
           solver.get_num_lin_iters(), solver.get_achieved_tol());
 
+      // Time measurement.
+      cpu_time.tick(H2D_SKIP);
+
       // Visualization.
       DXDYFilter omega_view(omega_fn, &tsln, &csln);
       rview.show(&omega_view);
       cpu_time.tick(H2D_SKIP);
 			
+      // Skip visualization time.
+      cpu_time.tick(H2D_SKIP);
+
+      // Update global time.
       total_time += TAU;
 
       // Saving solutions for the next time step.

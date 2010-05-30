@@ -13,30 +13,32 @@ using namespace RefinementSelectors;
 //  discretized implicitly in time (via implicit Euler or Crank-Nicolson).
 //
 //  PDE: non-stationary complex Gross-Pitaevski equation
-//  describing resonances in Bose-Einstein condensates
+//  describing resonances in Bose-Einstein condensates.
 //
 //  ih \partial \psi/\partial t = -h^2/(2m) \Delta \psi +
-//  g \psi |\psi|^2 + 1/2 m \omega^2 (x^2 + y^2) \psi
+//  g \psi |\psi|^2 + 1/2 m \omega^2 (x^2 + y^2) \psi.
 //
-//  square (-1, 1)^2
+//  Domain: square (-1, 1)^2.
 //
-//  BC:  homogeneous Dirichlet everywhere on the boundary
+//  BC:  homogeneous Dirichlet everywhere on the boundary.
 //
-//  Time-stepping: either implicit Euler or Crank-Nicolson
+//  Time-stepping: either implicit Euler or Crank-Nicolson.
+//
+//  The following parameters can be changed:
 
-const bool NEWTON_ON_COARSE_MESH = false;  // true... Newton is done on coarse mesh in every adaptivity step
+const bool NEWTON_ON_COARSE_MESH = false;  // true... Newton is done on coarse mesh in every adaptivity step,
                                            // false...Newton is done on coarse mesh only once, then projection
-                                           // of the fine mesh solution to coarse mesh is used
-const int P_INIT = 1;                      // Initial polynomial degree
+                                           // of the fine mesh solution to coarse mesh is used.
+const int INIT_REF_NUM = 2;                // Number of initial uniform refinements.
+const int P_INIT = 1;                      // Initial polynomial degree.
 const int PROJ_TYPE = 1;                   // For the projection of the initial condition
-                                           // on the initial mesh: 1 = H1 projection, 0 = L2 projection
-const int TIME_DISCR = 2;                  // 1 for implicit Euler, 2 for Crank-Nicolson
-const double T_FINAL = 200.0;              // Time interval length
-const double TAU = 0.01;                   // Time step
-const int INIT_REF_NUM = 2;                // Number of initial uniform refinements
+                                           // on the initial mesh: 1 = H1 projection, 0 = L2 projection.
+const int TIME_DISCR = 2;                  // 1 for implicit Euler, 2 for Crank-Nicolson.
+const double T_FINAL = 200.0;              // Time interval length.
+const double TAU = 0.01;                   // Time step.
 
-// Adaptivity
-const int UNREF_FREQ = 1;                  // Every UNREF_FREQ time step the mesh is unrefined
+// Adaptivity.
+const int UNREF_FREQ = 1;                  // Every UNREF_FREQ time step the mesh is unrefined.
 const double THRESHOLD = 0.3;              // This is a quantitative parameter of the adapt(...) function and
                                            // it has different meanings for various adaptive strategies (see below).
 const int STRATEGY = 1;                    // Adaptive strategy:
@@ -67,19 +69,19 @@ const double ERR_STOP = 2.0;               // Stopping criterion for hp-adaptivi
 const int NDOF_STOP = 60000;               // Adaptivity process stops when the number of degrees of freedom grows
                                            // over this limit. This is to prevent h-adaptivity to go on forever.
 
-// Newton's method
-const double NEWTON_TOL_COARSE = 0.01;     // Stopping criterion for Newton on coarse mesh
-const double NEWTON_TOL_FINE = 0.05;       // Stopping criterion for Newton on fine mesh
-const int NEWTON_MAX_ITER = 20;            // Maximum allowed number of Newton iterations
+// Newton's method.
+const double NEWTON_TOL_COARSE = 0.01;     // Stopping criterion for Newton on coarse mesh.
+const double NEWTON_TOL_FINE = 0.05;       // Stopping criterion for Newton on fine mesh.
+const int NEWTON_MAX_ITER = 20;            // Maximum allowed number of Newton iterations.
 
-// Problem constants
-const double H = 1;                      // Planck constant 6.626068e-34;
-const double M = 1;                      // mass of boson
-const double G = 1;                      // coupling constant
-const double OMEGA = 1;                  // frequency
+// Problem parameters.
+const double H = 1;                      // Planck constant 6.626068e-34.
+const double M = 1;                      // Mass of boson.
+const double G = 1;                      // Coupling constant.
+const double OMEGA = 1;                  // Frequency.
 
 
-// Initial conditions
+// Initial condition.
 scalar fn_init(double x, double y, scalar& dx, scalar& dy)
 {
   scalar val = exp(-20*(x*x + y*y));
@@ -88,24 +90,24 @@ scalar fn_init(double x, double y, scalar& dx, scalar& dy)
   return val;
 }
 
-// Boundary condition types
+// Boundary condition types.
 BCType bc_types(int marker)
 {
   return BC_ESSENTIAL;
 }
 
-// Boundary condition values
+// Essential (Dirichlet) boundary condition values.
 scalar essential_bc_values(int ess_bdy_marker, double x, double y)
 {
- return 0;
+  return 0;
 }
 
-// Weak forms
+// Weak forms.
 # include "forms.cpp"
 
 int main(int argc, char* argv[])
 {
-  // Load the mesh file.
+  // Load the mesh.
   Mesh mesh, basemesh;
   H2DReader mloader;
   mloader.load("square.mesh", &basemesh);
@@ -118,7 +120,7 @@ int main(int argc, char* argv[])
   H1Shapeset shapeset;
   PrecalcShapeset pss(&shapeset);
 
-  // Create finite element space.
+  // Create an H1 space.
   H1Space space(&mesh, &shapeset);
   space.set_bc_types(bc_types);
   space.set_essential_bc_values(essential_bc_values);
@@ -141,13 +143,15 @@ int main(int argc, char* argv[])
     wf.add_liform(callback(residual_cranic), H2D_ANY, 2, &Psi_prev_newton, &Psi_prev_time);
   }
 
-  // Initialize the nonlinear system and solver.
+  // Matrix solver.
   UmfpackSolver umfpack;
+
+  // Initialize the nonlinear system.
   NonlinSystem nls(&wf, &umfpack);
   nls.set_space(&space);
   nls.set_pss(&pss);
 
-  // Visualization.
+  // Initialize views.
   char title[100];
   ScalarView view("", 0, 0, 600, 500);
   view.fix_scale_width(80);
@@ -164,10 +168,11 @@ int main(int argc, char* argv[])
 
   // Project fn_init() on the FE space and use it as initial 
   // condition for the Newton's method.
+  info("Projecting initial condition on FE mesh.");
   nls.project_global(&fn_init, &Psi_prev_newton, PROJ_TYPE);
 
   // Newton's loop on the coarse mesh.
-  info("---- Time step 1, Newton solve on coarse mesh:");
+  info("Newton solve on coarse mesh.");
   if (!nls.solve_newton(&Psi_prev_newton, NEWTON_TOL_COARSE, NEWTON_MAX_ITER))
     error("Newton's method did not converge.");
 
@@ -180,22 +185,23 @@ int main(int argc, char* argv[])
 
   // Time stepping loop.
   int nstep = (int)(T_FINAL/TAU + 0.5);
-  for(int n = 1; n <= nstep; n++)
+  for(int ts = 1; ts <= nstep; ts++)
   {
     // Periodic global derefinements.
-    if (n > 1 && n % UNREF_FREQ == 0) {
-      info("---- Time step %d, global derefinement.", n);
+    if (ts > 1 && ts % UNREF_FREQ == 0) {
+      info("---- Time step %d, global derefinement.", ts);
       mesh.copy(&basemesh);
       space.set_uniform_order(P_INIT);
       ndof = assign_dofs(&space);
 
       // Project the fine mesh solution on the globally derefined mesh.
-      info("---- Time step %d, projecting fine mesh solution on globally derefined mesh:", n);
+      info("---- Time step %d:", ts);
+      info("Projecting fine mesh solution on globally derefined mesh:");
       nls.project_global(&sln_fine, &Psi_prev_newton, PROJ_TYPE);
 
       if (NEWTON_ON_COARSE_MESH) {
         // Newton's loop on the globally derefined mesh.
-        info("---- Time step %d, Newton solve on globally derefined mesh:", n);
+        info("Newton solve on globally derefined mesh.", ts);
         if (!nls.solve_newton(&Psi_prev_newton, NEWTON_TOL_COARSE, NEWTON_MAX_ITER))
           error("Newton's method did not converge.");
       }
@@ -210,17 +216,24 @@ int main(int argc, char* argv[])
     int as = 1;
     do
     {
-      info("---- Time step %d, adaptivity step %d, Newton solve on fine mesh:", n, as);
+      info("---- Time step %d, adaptivity step %d:", ts, as);
 
-      // Reference nonlinear system.
+      // Initialize reference nonlinear system.
       RefNonlinSystem rnls(&nls);
       rnls.prepare();
 
       // Set initial condition for the Newton's method on the fine mesh.
-      if (as == 1) rnls.project_global(&sln_coarse, &Psi_prev_newton);
-      else rnls.project_global(&sln_fine, &Psi_prev_newton);
+      if (as == 1) {
+        info("Projecting coarse mesh solution on fine mesh.");
+        rnls.project_global(&sln_coarse, &Psi_prev_newton);
+      }
+      else {
+        info("Projecting previous fine mesh solution on new fine mesh.");
+        rnls.project_global(&sln_fine, &Psi_prev_newton);
+      }
 
       // Newton's method on fine mesh.
+      info("Newton solve on fine mesh.");
       if (!rnls.solve_newton(&Psi_prev_newton, NEWTON_TOL_FINE, NEWTON_MAX_ITER))
         error("Newton's method did not converge.");
 
@@ -228,11 +241,11 @@ int main(int argc, char* argv[])
       sln_fine.copy(&Psi_prev_newton);
 
       // Visualize intermediate solutions and mesh during adaptivity.
-      sprintf(title, "Solution, time level %d, adapt step %d", n, as);
+      sprintf(title, "Solution, time level %d, adapt step %d", ts, as);
       magview.set_title(title);
       AbsFilter mag(&Psi_prev_newton);
       magview.show(&mag);
-      sprintf(title, "Fine mesh, time level %d, adapt step %d", n, as);
+      sprintf(title, "Fine mesh, time level %d, adapt step %d", ts, as);
       ordview.set_title(title);
       ordview.show(rnls.get_space(0));
 
@@ -246,18 +259,18 @@ int main(int argc, char* argv[])
       // If err_est too large, adapt the mesh.
       if (err_est < ERR_STOP) done = true;
       else {
-        hp.adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY);
+        info("Adapting coarse mesh.");
+        done = hp.adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY);
         ndof = assign_dofs(&space);
         if (ndof >= NDOF_STOP) done = true;
 
         // Project the fine mesh solution on the new coarse mesh.
-        info("---- Time step %d, adaptivity step %d, projecting fine mesh solution on new coarse mesh:",
-          n, as);
+        info("Projecting fine mesh solution on new coarse mesh.");
         nls.project_global(&sln_fine, &Psi_prev_newton, PROJ_TYPE);
 
         if (NEWTON_ON_COARSE_MESH) {
           // Newton's loop on the coarse mesh.
-          info("---- Time step %d, adaptivity step %d, Newton solve on new coarse mesh:", n, as);
+          info("---- Time step %d, adaptivity step %d, Newton solve on new coarse mesh.", ts, as);
           if (!nls.solve_newton(&Psi_prev_newton, NEWTON_TOL_COARSE, NEWTON_MAX_ITER))
             error("Newton's method did not converge.");
         }
@@ -271,9 +284,9 @@ int main(int argc, char* argv[])
     while (!done);
 
     // Add entries to convergence graphs.
-    graph_time_err.add_values(n*TAU, err_est);
+    graph_time_err.add_values(ts*TAU, err_est);
     graph_time_err.save("time_error.dat");
-    graph_time_dof.add_values(n*TAU, space.get_num_dofs());
+    graph_time_dof.add_values(ts*TAU, space.get_num_dofs());
     graph_time_dof.save("time_dof.dat");
 
     // Copy result of the Newton's iteration into Psi_prev_time.

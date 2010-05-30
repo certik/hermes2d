@@ -23,15 +23,21 @@
 
 const int INIT_REF_NUM = 4;      // Number of initial uniform mesh refinements.
 const int P_INIT = 2;            // Initial polynomial degree of all mesh elements.
-const bool JFNK = true;          // true = jacobian-free method,
-                                 // false = Newton
+const bool JFNK = true;          // true = Jacobian-free method,
+                                 // false = Newton.
 const bool PRECOND = true;       // Preconditioning by jacobian in case of jfnk,
-                                 // default ML proconditioner in case of Newton
+                                 // default ML preconditioner in case of Newton.
 
 // Boundary condition types.
 BCType bc_types(int marker)
 {
   return BC_ESSENTIAL;
+}
+
+// Essential (Dirichlet) boundary condition values.
+scalar essential_bc_values(int ess_bdy_marker, double x, double y)
+{
+  return x*x + y*y;
 }
 
 // Exact solution.
@@ -42,51 +48,15 @@ double exact(double x, double y, double &dx, double &dy)
 	return x*x +y*y;
 }
 
-// Essential boundary condition values.
-scalar essential_bc_values(int ess_bdy_marker, double x, double y)
-{
-  return x*x + y*y;
-}
-
 // Weak forms.
-template<typename Real, typename Scalar>
-Scalar bilinear_form(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
-{
-  Scalar result = 0;
-  for (int i = 0; i < n; i++)
-    result += wt[i] * (u->dx[i] * v->dx[i] + u->dy[i] * v->dy[i]);
-  return result;
-}
-
-template<typename Real, typename Scalar>
-Scalar linear_form(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
-{
-  Scalar result = 0;
-  for (int i = 0; i < n; i++)
-    result += wt[i] * ((-4.0) * v->val[i]);
-  return result;
-}
-
-template<typename Real, typename Scalar>
-Scalar jacobian_form(int n, double *wt, Func<Real> *u[], Func<Real> *vi, Func<Real> *vj, Geom<Real> *e, ExtData<Scalar> *ext)
-{
-  Scalar result = 0;
-  for (int i = 0; i < n; i++)
-    result += wt[i] * ( vi->dx[i] * vj->dx[i] + vi->dy[i] * vj->dy[i]);
-  return result;
-}
-
-template<typename Real, typename Scalar>
-Scalar residual_form(int n, double *wt, Func<Real> *u[], Func<Real> *vi, Geom<Real> *e, ExtData<Scalar> *ext)
-{
-  Scalar result = 0;
-  for (int i = 0; i < n; i++)
-    result += wt[i] * ( u[0]->dx[i] * vi->dx[i] + u[0]->dy[i] * vi->dy[i] + 4.0 * vi->val[i] );
-  return result;
-}
+#include "forms.cpp"
 
 int main(int argc, char **argv)
 {
+  // Time measurement.
+  TimePeriod cpu_time;
+  cpu_time.tick();
+
   // Load the mesh.
   Mesh mesh;
   H2DReader mloader;
@@ -109,17 +79,15 @@ int main(int argc, char **argv)
   int ndof = assign_dofs(&space);
   info("Number of DOF: %d", ndof);
 
-  // Time measurement.
-  TimePeriod cpu_time;
-
   // Solutions.
   Solution prev, sln1, sln2;
 
-  info("!******************** Using LinSystem, Solving by UMFpack ************************");
+  info("---- Using LinSystem, solving by UMFpack:");
 
+  // Time measurement.
   cpu_time.tick(H2D_SKIP);
 
-  // Initialize matrix solver
+  // Matrix solver.
   UmfpackSolver umfpack;
 
   // Initialize weak formulation.
@@ -132,25 +100,26 @@ int main(int argc, char **argv)
   ls.set_space(&space);
   ls.set_pss(&pss);
 
-  // Assemble and solve
+  // Assemble and solve.
+  info("Assembling by LinSystem, solving by UMFpack.");
   ls.assemble();
   ls.solve(&sln1);
 
-  // CPU time needed by UMFpack
+  // CPU time needed by UMFpack.
   double umf_time = cpu_time.tick().last();
 
-  info("!******************** Using FeProblem, Solving by NOX Solver ************************");
+  info("---- Using FeProblem, solving by NOX:");
 
+  // Time measurement.
   cpu_time.tick(H2D_SKIP);
  
-  // Define zero function
+  // Define zero function.
   prev.set_zero(&mesh);
   
   // Project the function "prev" on the FE space 
   // in order to obtain initial vector for NOX. 
-  info("Projecting initial solution...");
+  info("Projecting initial solution on the FE mesh.");
   ls.project_global(&prev, &prev);
-  info("Done.");
 
   // Get the coefficient vector.
   scalar *vec = ls.get_solution_vector();
@@ -169,6 +138,7 @@ int main(int argc, char **argv)
   fep.set_pss(1, &pss);
 
   // Initialize the NOX solver with the vector "vec".
+  info("Initializing NOX.");
   NoxSolver solver(&fep);
   solver.set_init_sln(vec);
 
@@ -181,6 +151,7 @@ int main(int argc, char **argv)
   }
 
   // Solve the matrix problem using NOX.
+  info("Assembling by FeProblem, solving by NOX.");
   bool solved = solver.solve();
   if (solved)
   {
@@ -194,18 +165,18 @@ int main(int argc, char **argv)
   else
     error("NOX failed");
 
-  // CPU time needed by NOX
+  // CPU time needed by NOX.
   double nox_time = cpu_time.tick().last();
 
-  // Calculate exact errors
+  // Calculate exact errors.
   Solution ex;
   ex.set_exact(&mesh, &exact);
-  info("Solution 1 (Hermes-Newton): exact H1 error: %g (time %g s)", 
+  info("Solution 1 (LinSystem - UMFpack): exact H1 error: %g (time %g s)", 
     100 * h1_error(&sln1, &ex), umf_time);
-  info("Solution 2 (Trilinos-NOX):  exact H1 error: %g (time %g + %g s)", 
+  info("Solution 2 (FeProblem - NOX):  exact H1 error: %g (time %g + %g s)", 
     100 * h1_error(&sln2, &ex), proj_time, nox_time);
 
-  // Show both solutions
+  // Show both solutions.
   ScalarView view1("Solution 1", 0, 0, 500, 400);
   view1.set_min_max_range(0, 2);
   view1.show(&sln1);

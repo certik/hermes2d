@@ -147,16 +147,21 @@ int main(int argc, char* argv[])
     RefSystem rs(&ls, order_increase, refinement);
 
     // Assemble and solve the fine mesh problem.
+    info("Solving on fine mesh.");
     rs.assemble();
     rs.solve(&sln_fine);
 
     // Either solve on coarse mesh or project the fine mesh solution 
     // on the coarse mesh.
     if (SOLVE_ON_COARSE_MESH) {
+      info("Solving on coarse mesh.");
       ls.assemble();
       ls.solve(&sln_coarse);
     }
-    else ls.project_global(&sln_fine, &sln_coarse);
+    else {
+      info("Projecting fine mesh solution on coarse mesh.");
+      ls.project_global(&sln_fine, &sln_coarse);
+    }
 
     // Time measurement.
     cpu_time.tick();
@@ -189,6 +194,7 @@ int main(int argc, char* argv[])
     // If err_est too large, adapt the mesh.
     if (err_est < ERR_STOP) done = true;
     else {
+      info("Adapting coarse mesh.");
       done = hp.adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY);
       ndof = assign_dofs(&space);
       if (ndof >= NDOF_STOP) done = true;

@@ -21,17 +21,18 @@
 //
 //  Initial guess for the Newton's method: zero function.
 //
+//  The following parameters can be changed:
 
 const int INIT_REF_NUM = 4;       // Number of initial uniform mesh refinements.
 const int P_INIT = 3;             // Initial polynomial degree of all mesh elements.
-const double NEWTON_TOL = 1e-6;   // Stopping criterion for the Newton's method
-const int NEWTON_MAX_ITER = 100;  // Maximum allowed number of Newton iterations
+const double NEWTON_TOL = 1e-6;   // Stopping criterion for the Newton's method.
+const int NEWTON_MAX_ITER = 100;  // Maximum allowed number of Newton iterations.
 
 const bool JFNK = false;          // true = jacobian-free method,
-                                  // false = Newton
+                                  // false = Newton.
 const int PRECOND = 2;            // Preconditioning by jacobian (1) or approximation of jacobian (2)
-                                  // in case of jfnk,
-                                  // default ML proconditioner in case of Newton
+                                  // in case of JFNK,
+                                  // Default ML proconditioner in case of Newton.
 
 // Boundary condition types.
 BCType bc_types(int marker)
@@ -39,46 +40,18 @@ BCType bc_types(int marker)
   return BC_ESSENTIAL;
 }
 
-// Exact solution and its derivatives.
-double exact(double x, double y, double &dx, double &dy)
-{
-	dx = (1- 2*x) * y * (1 - y);
-	dy = (1- 2*y) * x * (1 - x);
-	return  x * y * (1-x) * (1-y);
-}
-
-template<typename Real>
-Real u(Real x, Real y)  {  return (x - x*x) * (y - y*y);  }
-template<typename Real>
-Real dudx(Real x, Real y)  {  return (1- 2*x) * y * (1 - y);  }
-template<typename Real>
-Real dudy(Real x, Real y)  {  return (1- 2*y) * x * (1 - x);  }
-
-template<typename Real>
-Real dudxx(Real x, Real y)  {  return -2.0 * (y-y*y);  }
-template<typename Real>
-Real dudyy(Real x, Real y)  {  return -2.0 * (x-x*x);  }
-template<typename Real>
-Real dudxy(Real x, Real y)  {  return (1- 2*y) * (1 - 2*x);  }
-
-template<typename Real>
-Real k(Real x, Real y)  {  return 1.0 / sqrt(1.0 + sqr(dudx(x,y)) + sqr(dudy(x,y)));  }
-template<typename Real>
-Real kx(Real x, Real y)  {  return -0.5 * pow(1.0 + sqr(dudx(x,y)) + sqr(dudy(x,y)), -1.5) *
-                 (2.0 * dudx(x,y) * dudxx(x,y) + 2.0 * dudy(x,y) * dudxy(x,y));  }
-template<typename Real>
-Real ky(Real x, Real y)  {  return -0.5 * pow(1.0 + sqr(dudx(x,y)) + sqr(dudy(x,y)), -1.5) *
-                 (2.0 * dudx(x,y) * dudxy(x,y) + 2.0 * dudy(x,y) * dudyy(x,y));  }
-
-template<typename Real>
-Real f(Real x, Real y)
-{  return - kx(x,y) * dudx(x,y) - ky(x,y) * dudy(x,y) - k(x,y) * (dudxx(x,y) + dudyy(x,y)); }
+// Exact solution.
+#include "exact_solution.cpp"
 
 // Weak forms.
 #include "forms.cpp"
 
 int main(int argc, char* argv[])
 {
+  // Time measurement.
+  TimePeriod cpu_time;
+  cpu_time.tick();
+
   // Load the mesh.
   Mesh mesh;
   H2DReader mloader;
@@ -103,12 +76,10 @@ int main(int argc, char* argv[])
   int ndof = assign_dofs(&space);
   info("Number of DOF: %d", space.get_num_dofs());
 
-  // Time measurement,
-  TimePeriod cpu_time;
+  info("---- Using NonlinSystem, solving by Umfpack:");
 
-  // First solve the problem using Hermes / NonlinSystem class / UMFpack matrix solver,
-
-  info("!***************** Using NonlinSystem, Solving by Umfpack *****************");
+  // Time measurement.
+  cpu_time.tick(H2D_SKIP);
   
   // Matrix solver,
   UmfpackSolver umfpack;
@@ -126,14 +97,14 @@ int main(int argc, char* argv[])
   nls.set_space(&space);
   nls.set_pss(&pss);
 
-  // Project the function "prev" on the FE space "space",
+  // Project the function "prev" on the FE space "space".
+  info("Projecting initial condition on the FE space.");
   nls.project_global(&prev, &prev);
 
   // Perform Newton's iteration,
-  info("NonlinSystem: Starting Newton's iteration... ");
+  info("Performing Newton's method.");
   if (!nls.solve_newton(&prev, NEWTON_TOL, NEWTON_MAX_ITER)) 
     error("Newton's method did not converge.");
-  info("Done.");
 
   // Storing the solution in "sln1"
   sln1.copy(&prev);
@@ -141,8 +112,9 @@ int main(int argc, char* argv[])
   // CPU time needed by UMFpack
   double umf_time = cpu_time.tick().last();
 
-  info("!******************** Using FeProblem, Solving by NOX ************************");
+  info("---- Using FeProblem, solving by NOX:");
 
+  // Time measurement.
   cpu_time.tick(H2D_SKIP);
  
   // Define zero function (again)
@@ -150,9 +122,8 @@ int main(int argc, char* argv[])
 
   // Project the function "prev" on the FE space 
   // in order to obtain initial vector for NOX. 
-  info("Projecting initial solution...");
+  info("Projecting initial solution on the FE space.");
   nls.project_global(&prev, &prev);
-  info("Done.");
 
   // Get the coefficient vector.
   scalar *vec = nls.get_solution_vector();
@@ -172,6 +143,7 @@ int main(int argc, char* argv[])
   fep.set_pss(1, &pss);
 
   // Initialize the NOX solver with the vector "vec".
+  info("Initializing NOX.");
   NoxSolver solver(&fep);
   solver.set_init_sln(vec);
 
@@ -184,31 +156,32 @@ int main(int argc, char* argv[])
   }
 
   // Solve the matrix problem using NOX.
+  info("Assembling by FeProblem, solving by NOX.");
   bool solved = solver.solve();
   if (solved)
   {
     vec = solver.get_solution_vector();
     sln2.set_fe_solution(&space, &pss, vec);
 
-    info("Number of nonlin iters: %d (norm of residual: %g)", solver.get_num_iters(), solver.get_residual());
-    info("Total number of iters in linsolver: %d (achieved tolerance in the last step: %g)", 
+    info("Number of nonlin iterations: %d (norm of residual: %g)", solver.get_num_iters(), solver.get_residual());
+    info("Total number of iterations in linsolver: %d (achieved tolerance in the last step: %g)", 
          solver.get_num_lin_iters(), solver.get_achieved_tol());
   }
   else
     error("NOX failed.");
 
-  // CPU time needed by NOX
+  // CPU time needed by NOX.
   double nox_time = cpu_time.tick().last();
 
-  // Calculate exact errors
+  // Calculate exact errors.
   Solution ex;
   ex.set_exact(&mesh, &exact);
-  info("Solution 1 (Hermes-Newton): exact H1 error: %g (time %g s)", 
+  info("Solution 1 (NonlinSystem - UMFpack): exact H1 error: %g (time %g s)", 
     100 * h1_error(&sln1, &ex), umf_time);
-  info("Solution 2 (Trilinos-NOX):  exact H1 error: %g (time %g + %g s)", 
+  info("Solution 2 (FeProblem - NOX):  exact H1 error: %g (time %g + %g s)", 
     100 * h1_error(&sln2, &ex), proj_time, nox_time);
 
-  // Show both solutions
+  // Show both solutions.
   ScalarView view1("Solution 1", 0, 0, 500, 400);
   view1.show(&sln1);
   ScalarView view2("Solution 2", 600, 0, 500, 400);

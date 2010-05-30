@@ -21,19 +21,17 @@
 //
 // PDE: incompressible Navier-Stokes equations in the form
 // \partial v / \partial t - \Delta v / Re + (v \cdot \nabla) v + \nabla p = 0,
-// div v = 0
+// div v = 0.
 //
-// BC: u_1 is a time-dependent constant and u_2 = 0 on Gamma_4 (inlet)
-//     u_1 = u_2 = 0 on Gamma_1 (bottom), Gamma_3 (top) and Gamma_5 (obstacle)
-//     "do nothing" on Gamma_2 (outlet)
+// BC: u_1 is a time-dependent constant and u_2 = 0 on Gamma_4 (inlet),
+//     u_1 = u_2 = 0 on Gamma_1 (bottom), Gamma_3 (top) and Gamma_5 (obstacle),
+//     "do nothing" on Gamma_2 (outlet).
 //
 // Geometry: Rectangular channel containing an off-axis circular obstacle. The
 //           radius and position of the circle, as well as other geometry
 //           parameters can be changed in the mesh file "domain.mesh".
 //
-//
 // The following parameters can be changed:
-//
 
 #define PRESSURE_IN_L2               // If this is defined, the pressure is approximated using
                                      // discontinuous L2 elements (making the velocity discreetely
@@ -41,75 +39,77 @@
                                      // pressure approximation). Otherwise the standard continuous
                                      // elements are used. The results are striking - check the
                                      // tutorial for comparisons.
-const bool NEWTON = true;            // If NEWTON == true then the Newton's iteration is performed
+const bool NEWTON = true;            // If NEWTON == true then the Newton's iteration is performed.
                                      // in every time step. Otherwise the convective term is linearized
-                                     // using the velocities from the previous time step
-const int P_INIT_VEL = 2;            // Initial polynomial degree for velocity components
-const int P_INIT_PRESSURE = 1;       // Initial polynomial degree for pressure
+                                     // using the velocities from the previous time step.
+const int P_INIT_VEL = 2;            // Initial polynomial degree for velocity components.
+const int P_INIT_PRESSURE = 1;       // Initial polynomial degree for pressure.
                                      // Note: P_INIT_VEL should always be greater than
-                                     // P_INIT_PRESSURE because of the inf-sup condition
-const double RE = 200.0;             // Reynolds number
-const double VEL_INLET = 1.0;        // Inlet velocity (reached after STARTUP_TIME)
+                                     // P_INIT_PRESSURE because of the inf-sup condition.
+const double RE = 200.0;             // Reynolds number.
+const double VEL_INLET = 1.0;        // Inlet velocity (reached after STARTUP_TIME).
 const double STARTUP_TIME = 1.0;     // During this time, inlet velocity increases gradually
-                                     // from 0 to VEL_INLET, then it stays constant
-const double TAU = 0.1;              // time step
-const double T_FINAL = 30000.0;      // Time interval length
-const double NEWTON_TOL = 1e-3;      // Stopping criterion for the Newton's method
-const int NEWTON_MAX_ITER = 10;      // Maximum allowed number of Newton iterations
+                                     // from 0 to VEL_INLET, then it stays constant.
+const double TAU = 0.1;              // Time step.
+const double T_FINAL = 30000.0;      // Time interval length.
+const double NEWTON_TOL = 1e-3;      // Stopping criterion for the Newton's method.
+const int NEWTON_MAX_ITER = 10;      // Maximum allowed number of Newton iterations.
 const double H = 5;                  // Domain height (necessary to define the parabolic
-                                     // velocity profile at inlet)
+                                     // velocity profile at inlet).
 
-// Boundary markers in the mesh file
-int marker_bottom = 1;
-int marker_right  = 2;
-int marker_top = 3;
-int marker_left = 4;
-int marker_obstacle = 5;
+// Boundary markers.
+int bdy_bottom = 1;
+int bdy_right  = 2;
+int bdy_top = 3;
+int bdy_left = 4;
+int bdy_obstacle = 5;
 
-// Current time (defined as global since needed in weak forms)
+// Current time (used in weak forms).
 double TIME = 0;
 
-// Boundary condition types for x-velocity
+// Boundary condition types for x-velocity.
 BCType xvel_bc_type(int marker) {
-  if (marker == marker_right) return BC_NONE;
+  if (marker == bdy_right) return BC_NONE;
   else return BC_ESSENTIAL;
 }
 
-// Boundary condition values for x-velocity
-scalar essential__bc_value(int ess_bdy_marker, double x, double y) {
-  if (ess_bdy_marker == marker_left) {
-    // time-dependent inlet velocity (parabolic profile)
-    double val_y = VEL_INLET * y*(H-y) / (H/2.)/(H/2.); //parabolic profile with peak VEL_INLET at y = H/2
+// Boundary condition types for y-velocity.
+BCType yvel_bc_type(int marker) {
+  if (marker == bdy_right) return BC_NONE;
+  else return BC_ESSENTIAL;
+}
+
+// Boundary condition types for pressure.
+BCType p_bc_type(int marker)
+  { return BC_NONE; }
+
+// Essential (Dirichlet) boundary condition values for x-velocity.
+// (These are zero for y-velocity and irrelevant for pressure.) 
+scalar essential_bc_value(int ess_bdy_marker, double x, double y) {
+  if (ess_bdy_marker == bdy_left) {
+    // Time-dependent parabolic profile at inlet.
+    double val_y = VEL_INLET * y*(H-y) / (H/2.)/(H/2.); // Peak value VEL_INLET at y = H/2.
     if (TIME <= STARTUP_TIME) return val_y * TIME/STARTUP_TIME;
     else return val_y;
   }
   else return 0;
 }
 
-// Boundary condition types for y-velocity
-BCType yvel_bc_type(int marker) {
-  if (marker == marker_right) return BC_NONE;
-  else return BC_ESSENTIAL;
-}
-
-BCType p_bc_type(int marker)
-  { return BC_NONE; }
-
-// Weak forms
+// Weak forms.
 #include "forms.cpp"
 
 int main(int argc, char* argv[])
 {
-  // Load the mesh file.
+  // Load the mesh.
   Mesh mesh;
   H2DReader mloader;
   mloader.load("domain.mesh", &mesh);
 
   // Initial mesh refinements.
   mesh.refine_all_elements();
-  mesh.refine_towards_boundary(5, 4, false);
-  mesh.refine_towards_boundary(1, 4);
-  mesh.refine_towards_boundary(3, 4);
+  mesh.refine_towards_boundary(bdy_obstacle, 4, false);
+  mesh.refine_towards_boundary(bdy_top, 4, true);     // '4' is the number of levels,
+  mesh.refine_towards_boundary(bdy_bottom, 4, true);  // 'true' stands for anisotropic refinements.
 
   // Initialize shapesets and the cache.
   H1ShapesetBeuchler h1_shapeset;
@@ -130,7 +130,7 @@ int main(int argc, char* argv[])
 
   // Initialize boundary conditions.
   xvel_space.set_bc_types(xvel_bc_type);
-  xvel_space.set_essential_bc_values(essential__bc_value);
+  xvel_space.set_essential_bc_values(essential_bc_value);
   yvel_space.set_bc_types(yvel_bc_type);
   p_space.set_bc_types(p_bc_type);
 
@@ -176,7 +176,7 @@ int main(int argc, char* argv[])
     wf.add_liform(1, callback(simple_linear_form), H2D_ANY, 1, &yvel_prev_time);
   }
 
-  // Visualization.
+  // Initialize views.
   VectorView vview("velocity [m/s]", 0, 0, 1500, 470);
   ScalarView pview("pressure [Pa]", 0, 530, 1500, 470);
   vview.set_min_max_range(0, 1.6);
@@ -188,14 +188,14 @@ int main(int argc, char* argv[])
   // Matrix solver.
   UmfpackSolver umfpack;
 
-  // Linear system.
+  // Initialize linear system.
   LinSystem ls(&wf, &umfpack);
 
-  // Nonlinear system.
+  // Initialize nonlinear system.
   NonlinSystem nls(&wf, &umfpack);
 
   if (NEWTON) {
-    // Set up the nonlinear system
+    // Set up the nonlinear system.
     nls.set_spaces(3, &xvel_space, &yvel_space, &p_space);
 #ifdef PRESSURE_IN_L2
     nls.set_pss(3, &h1_pss, &h1_pss, &l2_pss);
@@ -204,7 +204,7 @@ int main(int argc, char* argv[])
 #endif
   }
   else {
-    // Set up the linear system
+    // Set up the linear system.
     ls.set_spaces(3, &xvel_space, &yvel_space, &p_space);
 #ifdef PRESSURE_IN_L2
     ls.set_pss(3, &h1_pss, &h1_pss, &l2_pss);
@@ -213,24 +213,25 @@ int main(int argc, char* argv[])
 #endif
   }
 
-  // Time-stepping loop.
+  // Time-stepping loop:
   char title[100];
   int num_time_steps = T_FINAL / TAU;
-  for (int i = 1; i <= num_time_steps; i++)
+  for (int ts = 1; ts <= num_time_steps; ts++)
   {
     TIME += TAU;
 
-    info("---- Time step %d, time = %g:", i, TIME);
+    info("---- Time step %d, time = %g:", ts, TIME);
 
-    // this is needed to update the time-dependent boundary conditions
+    // This is needed to update the time-dependent boundary conditions.
     ndof = assign_dofs(3, &xvel_space, &yvel_space, &p_space);
 
     if (NEWTON) {
-      // Newton's method
+      // Newton's method.
+      info("Performing Newton's method.");
       if (!nls.solve_newton(&xvel_prev_newton, &yvel_prev_newton, &p_prev, NEWTON_TOL, NEWTON_MAX_ITER)) 
         error("Newton's method did not converge.");
 
-      // Show the solution at the end of time step
+      // Show the solution at the end of time step.
       sprintf(title, "Velocity, time %g", TIME);
       vview.set_title(title);
       vview.show(&xvel_prev_newton, &yvel_prev_newton, H2D_EPS_LOW);
@@ -246,6 +247,7 @@ int main(int argc, char* argv[])
     else {
       // Assemble and solve.
       Solution xvel_sln, yvel_sln, p_sln;
+      info("Assembling and solving linear problem.");
       ls.assemble();
       ls.solve(3, &xvel_sln, &yvel_sln, &p_sln);
 

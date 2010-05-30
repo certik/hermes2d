@@ -12,22 +12,22 @@ using namespace RefinementSelectors;
 //  automatic adaptivity.
 //
 //  PDE: stationary heat transfer equation with nonlinear thermal
-//  conductivity, - div[lambda(u)grad u] = 0
+//  conductivity, - div[lambda(u)grad u] = 0.
 //
-//  Domain: unit square (-10,10)^2
+//  Domain: unit square (-10,10)^2.
 //
 //  BC: Dirichlet, see function dir_lift() below.
 //
 //  The following parameters can be changed:
 
-const bool NEWTON_ON_COARSE_MESH = false;  // true...  Newton is done on coarse mesh in every adaptivity step
+const bool NEWTON_ON_COARSE_MESH = false;  // true...  Newton is done on coarse mesh in every adaptivity step.
                                            // false... Newton is done on coarse mesh only once, then projection
-                                           // of the fine mesh solution to coarse mesh is used
-const int P_INIT = 1;                      // Initial polynomial degree
+                                           // of the fine mesh solution to coarse mesh is used.
+const int P_INIT = 1;                      // Initial polynomial degree.
 const int PROJ_TYPE = 1;                   // For the projection of the initial condition
-                                           // on the initial mesh: 1 = H1 projection, 0 = L2 projection
-const int INIT_GLOB_REF_NUM = 1;           // Number of initial uniform mesh refinements
-const int INIT_BDY_REF_NUM = 0;            // Number of initial refinements towards boundary
+                                           // on the initial mesh: 1 = H1 projection, 0 = L2 projection.
+const int INIT_GLOB_REF_NUM = 1;           // Number of initial uniform mesh refinements.
+const int INIT_BDY_REF_NUM = 3;            // Number of initial refinements towards boundary.
 
 const double THRESHOLD = 0.2;              // This is a quantitative parameter of the adapt(...) function and
                                            // it has different meanings for various adaptive strategies (see below).
@@ -56,25 +56,25 @@ const double ERR_STOP = 1.0;               // Stopping criterion for adaptivity 
                                            // fine mesh and coarse mesh solution in percent).
 const int NDOF_STOP = 60000;               // Adaptivity process stops when the number of degrees of freedom grows
                                            // over this limit. This is to prevent h-adaptivity to go on forever.
-const double NEWTON_TOL_COARSE = 1e-6;     // Stopping criterion for the Newton's method on coarse mesh
-const double NEWTON_TOL_FINE = 1e-6;       // Stopping criterion for the Newton's method on fine mesh
-const int NEWTON_MAX_ITER = 100;           // Maximum allowed number of Newton iterations
+const double NEWTON_TOL_COARSE = 1e-4;     // Stopping criterion for the Newton's method on coarse mesh.
+const double NEWTON_TOL_FINE = 1e-4;       // Stopping criterion for the Newton's method on fine mesh.
+const int NEWTON_MAX_ITER = 100;           // Maximum allowed number of Newton iterations.
 
-// Thermal conductivity (temperature-dependent)
-// Note: for any u, this function has to be positive
+// Thermal conductivity (temperature-dependent).
+// Note: for any u, this function has to be positive.
 template<typename Real>
 Real lam(Real u)
 {
   return 1 + pow(u, 4);
 }
 
-// Derivative of the thermal conductivity with respect to 'u'
+// Derivative of the thermal conductivity with respect to 'u'.
 template<typename Real>
 Real dlam_du(Real u) {
   return 4*pow(u, 3);
 }
 
-// This function is used to define Dirichlet boundary conditions
+// This function is used to define Dirichlet boundary conditions.
 double dir_lift(double x, double y, double& dx, double& dy) {
   dx = (y+10)/10.;
   dy = (x+10)/10.;
@@ -82,67 +82,49 @@ double dir_lift(double x, double y, double& dx, double& dy) {
 }
 
 // This function will be projected on the initial mesh and
-// used as initial guess for the Newton's method
+// used as initial guess for the Newton's method.
 scalar init_guess(double x, double y, double& dx, double& dy)
 {
-  // using the Dirichlet lift elevated by two
+  // Using the Dirichlet lift elevated by two
   double val = dir_lift(x, y, dx, dy) + 2;
   return val;
 }
 
-// Boundary condition type (essential = Dirichlet)
+// Boundary condition types.
 BCType bc_types(int marker)
 {
   return BC_ESSENTIAL;
 }
 
-// Dirichlet boundary condition values
+// Essential (Dirichlet) boundary condition values.
 scalar essential_bc_values(int ess_bdy_marker, double x, double y)
 {
   double dx, dy;
   return dir_lift(x, y, dx, dy);
 }
 
-// Heat sources (can be a general function of 'x' and 'y')
+// Heat sources (can be a general function of 'x' and 'y').
 template<typename Real>
 Real heat_src(Real x, Real y)
 {
   return 1.0;
 }
 
-// Jacobian matrix
-template<typename Real, typename Scalar>
-Scalar jac(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
-{
-  Scalar result = 0;
-  Func<Scalar>* u_prev = ext->fn[0];
-  for (int i = 0; i < n; i++)
-    result += wt[i] * (dlam_du(u_prev->val[i]) * u->val[i] * (u_prev->dx[i] * v->dx[i] + u_prev->dy[i] * v->dy[i])
-                       + lam(u_prev->val[i]) * (u->dx[i] * v->dx[i] + u->dy[i] * v->dy[i]));
-
-  return result;
-}
-
-// Fesidual vector
-template<typename Real, typename Scalar>
-Scalar res(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
-{
-  Scalar result = 0;
-  Func<Scalar>* u_prev = ext->fn[0];
-  for (int i = 0; i < n; i++)
-    result += wt[i] * (lam(u_prev->val[i]) * (u_prev->dx[i] * v->dx[i] + u_prev->dy[i] * v->dy[i])
-		       - heat_src(e->x[i], e->y[i]) * v->val[i]);
-  return result;
-}
+// Weak forms.
+#include "forms.cpp"
 
 int main(int argc, char* argv[])
 {
-  // Load the mesh file.
+  // Time measurement.
+  TimePeriod cpu_time;
+  cpu_time.tick();
+
+  // Load the mesh.
   Mesh mesh;
   H2DReader mloader;
   mloader.load("square.mesh", &mesh);
 
-  // Initial mesh refinements.
+  // Perform initial mesh refinements.
   for(int i = 0; i < INIT_GLOB_REF_NUM; i++) mesh.refine_all_elements();
   mesh.refine_towards_boundary(1, INIT_BDY_REF_NUM);
 
@@ -167,8 +149,10 @@ int main(int argc, char* argv[])
   wf.add_biform(callback(jac), H2D_UNSYM, H2D_ANY, 1, &u_prev);
   wf.add_liform(callback(res), H2D_ANY, 1, &u_prev);
 
-  // Initialize the nonlinear system and solver.
+  // Matrix solver.
   UmfpackSolver umfpack;
+
+  // Initialize the nonlinear system.
   NonlinSystem nls(&wf, &umfpack);
   nls.set_space(&space);
   nls.set_pss(&pss);
@@ -176,21 +160,18 @@ int main(int argc, char* argv[])
   // DOF and CPU convergence graphs.
   SimpleGraph graph_dof, graph_cpu;
 
-  // Time measurement.
-  TimePeriod cpu_time;
-
   // Project the function init_guess() on the coarse mesh
   // to obtain initial guess u_prev for the Newton's method.
   nls.project_global(init_guess, &u_prev, PROJ_TYPE);
 
-  // Visualisation.
+  // Initialize views.
   ScalarView sview_coarse("Coarse mesh solution", 0, 0, 350, 300); // coarse mesh solution
   OrderView oview_coarse("Coarse mesh", 360, 0, 350, 300);         // coarse mesh
   ScalarView sview_fine("Fine mesh solution", 720, 0, 350, 300);   // fine mesh solution
   OrderView oview_fine("Fine mesh", 1080, 0, 350, 300);            // fine mesh
 
   // Newton's loop on the coarse mesh.
-  info("---- Solving on coarse mesh:");
+  info("Solving on coarse mesh.");
   if (!nls.solve_newton(&u_prev, NEWTON_TOL_COARSE, NEWTON_MAX_ITER)) 
     error("Newton's method did not converge.");
 
@@ -202,28 +183,39 @@ int main(int argc, char* argv[])
 
   // Adaptivity loop:
   bool done = false; int as = 1;
+  double err_est;
   do {
-    double err_est;
-
     info("---- Adaptivity step %d:", as);
+
+    // Time measurement..
+    cpu_time.tick();
 
     // Show coarse mesh and solution.
     sview_coarse.show(&sln_coarse);
     oview_coarse.show(&space);
 
-    info("---- Solving on fine mesh");
-
     // Skip visualization.
     cpu_time.tick(H2D_SKIP);
 
-    // Set initial guess for the Newton's method on the fine mesh.
+    // Initialize fine mesh problem.
     RefNonlinSystem rnls(&nls);
     rnls.prepare();
-    if (as == 1) rnls.project_global(&sln_coarse, &u_prev, PROJ_TYPE);
-    else rnls.project_global(&sln_fine, &u_prev, PROJ_TYPE);
 
-    // Newton's loop on the fine mesh
-    if (!rnls.solve_newton(&u_prev, NEWTON_TOL_FINE, NEWTON_MAX_ITER)) error("Newton's method did not converge.");
+    // Set initial condition for the Newton's method on the fine mesh.
+    if (as == 1) {
+      info("Projecting coarse mesh solution on fine mesh.");
+      rnls.project_global(&sln_coarse, &u_prev, PROJ_TYPE);
+    }
+    else {
+      info("Projecting previous fine mesh solution on new fine mesh.");
+      rnls.project_global(&sln_fine, &u_prev, PROJ_TYPE);
+    }
+
+    info("Solving on fine mesh.");
+
+    // Newton's loop on the fine mesh.
+    if (!rnls.solve_newton(&u_prev, NEWTON_TOL_FINE, NEWTON_MAX_ITER)) 
+      error("Newton's method did not converge.");
 
     // Store the fine mesh solution in sln_fine.
     sln_fine.copy(&u_prev);
@@ -235,16 +227,13 @@ int main(int argc, char* argv[])
     sview_fine.show(&sln_fine);
     oview_fine.show(rnls.get_space(0));
 
-    // Time measurement.
+    // Skip visualization time.
     cpu_time.tick(H2D_SKIP);
 
     // Calculate element errors and total error estimate.
     H1Adapt hp(&space);
     hp.set_solutions(&sln_coarse, &sln_fine);
     err_est = hp.calc_error() * 100;
-
-    // Time measurement.
-    cpu_time.tick();
 
     // Report results.
     info("ndof_coarse: %d, ndof_fine: %d, err_est: %g%%", 
@@ -258,32 +247,31 @@ int main(int argc, char* argv[])
     graph_cpu.add_values(cpu_time.accumulated(), err_est);
     graph_cpu.save("conv_cpu.dat");
 
-    // Time measurement.
-    cpu_time.tick(H2D_SKIP);
-
     // If err_est too large, adapt the mesh.
     if (err_est < ERR_STOP) done = true;
     else {
+      info("Adapting coarse mesh.");
       done = hp.adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY);
       ndof = assign_dofs(&space);
-      if (ndof >= NDOF_STOP) done = true;
+      if (ndof >= NDOF_STOP) {
+        done = true;
+        break;
+      }
 
-      // Project the fine mesh solution on the new coarse mesh
-      info("---- Projecting fine mesh solution on new coarse mesh");
+      // Project the fine mesh solution on the new coarse mesh.
+      info("Projecting fine mesh solution on new coarse mesh.");
       nls.project_global(&sln_fine, &u_prev, PROJ_TYPE);
 
       if (NEWTON_ON_COARSE_MESH) {
-        // Newton's loop on the coarse mesh
-        info("---- Solving on coarse mesh");
-        if (!nls.solve_newton(&u_prev, NEWTON_TOL_COARSE, NEWTON_MAX_ITER)) error("Newton's method did not converge.");
+        // Newton's loop on the new coarse mesh.
+        info("Solving on coarse mesh.");
+        if (!nls.solve_newton(&u_prev, NEWTON_TOL_COARSE, NEWTON_MAX_ITER)) 
+          error("Newton's method did not converge.");
       }
 
       // Store the result in sln_coarse.
       sln_coarse.copy(&u_prev);
     }
-
-    // Time measurement.
-    cpu_time.tick();
 
     as++;
   }

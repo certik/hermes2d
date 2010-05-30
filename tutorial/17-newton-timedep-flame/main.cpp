@@ -11,25 +11,25 @@
 //
 //  PDEs:
 //
-//  dT/dt - laplace T = omega(T,Y)
-//  dY/dt - 1/Le * laplace Y = - omega(T,Y)
+//  dT/dt - laplace T = omega(T,Y),
+//  dY/dt - 1/Le * laplace Y = - omega(T,Y).
 //
-//  Domain: rectangle with cooled rods
+//  Domain: rectangle with cooled rods.
 //
-//  BC:  T = 1, Y = 0 on the inlet
-//       dT/dn = - kappa T on cooled rods
-//       dT/dn = 0, dY/dn = 0 elsewhere
+//  BC:  T = 1, Y = 0 on the inlet,
+//       dT/dn = - kappa T on cooled rods,
+//       dT/dn = 0, dY/dn = 0 elsewhere.
 //
 //  Time-stepping: second order BDF formula
 
-const int P_INIT = 2;                  // Initial polynomial degree
-const double TAU = 0.5;                // Time step
-const double T_FINAL = 60.0;           // Time interval length
-const int PROJ_TYPE = 1;               // For the projection of the initial condition
-                                       // on the initial mesh: 1 = H1 projection, 0 = L2 projection
-const int INIT_GLOB_REF_NUM = 2;       // Number of initial uniform mesh refinements
-const double NEWTON_TOL = 1e-4;        // Stopping criterion for the Newton's method
-const int NEWTON_MAX_ITER = 15;        // Maximum allowed number of Newton iterations
+const int INIT_REF_NUM = 2;            // Number of initial uniform mesh refinements.
+const int P_INIT = 2;                  // Initial polynomial degree.
+const double TAU = 0.5;                // Time step.
+const double T_FINAL = 60.0;           // Time interval length.
+const int PROJ_TYPE = 1;               // For the projection of the initial condition.
+                                       // on the initial mesh: 1 = H1 projection, 0 = L2 projection.
+const double NEWTON_TOL = 1e-4;        // Stopping criterion for the Newton's method.
+const int NEWTON_MAX_ITER = 15;        // Maximum allowed number of Newton iterations.
 
 // Problem constants
 const double Le    = 1.0;
@@ -57,13 +57,13 @@ scalar conc_ic(double x, double y, scalar& dx, scalar& dy)
 
 int main(int argc, char* argv[])
 {
-  // Load the mesh file.
+  // Load the mesh.
   Mesh mesh;
   H2DReader mloader;
   mloader.load("domain.mesh", &mesh);
 
   // Initial mesh refinements.
-  for(int i = 0; i < INIT_GLOB_REF_NUM; i++) mesh.refine_all_elements();
+  for(int i = 0; i < INIT_REF_NUM; i++) mesh.refine_all_elements();
 
   // Initialize the shapeset and the cache.
   H1Shapeset shapeset;
@@ -95,8 +95,8 @@ int main(int argc, char* argv[])
   DXDYFilter omega_dt(omega_dt_fn, &t_prev_newton, &y_prev_newton);
   DXDYFilter omega_dy(omega_dy_fn, &t_prev_newton, &y_prev_newton);
 
-  // Visualization.
-  ScalarView rview("Reaction rate", 0, 0, 1600, 460);
+  // Initialize view.
+  ScalarView rview("Reaction rate", 0, 0, 800, 230);
 
   // Initialize the weak formulation.
   WeakForm wf(2);
@@ -111,24 +111,26 @@ int main(int argc, char* argv[])
   wf.add_liform(1, callback(newton_linear_form_1), H2D_ANY, 4, &y_prev_newton, &y_prev_time_1, 
                 &y_prev_time_2, &omega);
 
-  // Initialize the nonlinear system and solver.
+  // Matrix solver.
   UmfpackSolver umfpack;
+
+  // Initialize the nonlinear system.
   NonlinSystem nls(&wf, &umfpack);
   nls.set_spaces(2, &tspace, &cspace);
   nls.set_pss(&pss);
 
   // Project temp_ic() and conc_ic() onto the FE spaces and use them as initial
   // conditions for the Newton's method.   
-  nls.project_global(temp_ic, conc_ic, &t_prev_newton, &y_prev_newton, PROJ_TYPE);
+  info("Projecting initial conditions on the FE spaces.");
+  nls.project_global(&t_prev_newton, &y_prev_newton, &t_prev_newton, &y_prev_newton, PROJ_TYPE);
 
-  // time stepping loop
-  double current_time = 0.0;
-  int t_step = 0;
+  // Time stepping loop:
+  double current_time = 0.0; int ts = 1;
   do {
-    t_step++;
-    info("---- Time step %d, t = %g s.", t_step, current_time);
+    info("---- Time step %d, t = %g s.", ts, current_time);
 
-    // Newton's method
+    // Newton's method.
+    info("Performing Newton's iteration.");
     if (!nls.solve_newton(&t_prev_newton, &y_prev_newton, NEWTON_TOL, NEWTON_MAX_ITER,
                        &omega, &omega_dt, &omega_dy)) error("Newton's method did not converge.");
 
@@ -148,6 +150,8 @@ int main(int argc, char* argv[])
     y_prev_time_2.copy(&y_prev_time_1);
     t_prev_time_1.copy(&t_prev_newton);
     y_prev_time_1.copy(&y_prev_newton);
+
+    ts++;
   } while (current_time <= T_FINAL);
 
   // Wait for all views to be closed.

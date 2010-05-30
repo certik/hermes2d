@@ -100,9 +100,11 @@ int main(int argc, char* argv[])
 
   // Project the function u_prev() on the FE space
   // to obtain initial guess u_prev for the Newton's method.
+  info("Projecting initial condition on the FE space.");
   nls.project_global(&u_prev, &u_prev, PROJ_TYPE);
 
   // Perform Newton's iteration.
+  info("Performing Newton's iteration.");
   if (!nls.solve_newton(&u_prev, NEWTON_TOL, NEWTON_MAX_ITER)) 
     error("Newton's method did not converge.");
 

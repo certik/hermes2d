@@ -174,23 +174,28 @@ int main(int argc, char* argv[])
     RefSystem rs(&ls);
 
     // Assemble and solve the fine mesh problem.
+    info("Solving on fine meshes.");
     rs.assemble();
     rs.solve(2, &u_sln_fine, &v_sln_fine);
 
     // Either solve on coarse mesh or project the fine mesh solution 
     // on the coarse mesh.
     if (SOLVE_ON_COARSE_MESH) {
+      info("Solving on coarse meshes.");
       ls.assemble();
       ls.solve(2, &u_sln_coarse, &v_sln_coarse);
     }
-    else ls.project_global(&u_sln_fine, &v_sln_fine, &u_sln_coarse, &v_sln_coarse);
+    else {
+      info("Projecting fine mesh solutions on coarse meshes.");
+      ls.project_global(&u_sln_fine, &v_sln_fine, &u_sln_coarse, &v_sln_coarse);
+    }
 
     // Time measurement.
     cpu_time.tick();
 
     // View the solutions and meshes.
-    info("u_dof_coarse: %d, u_dof_fine: %d", uspace.get_num_dofs(), rs.get_space(0)->get_num_dofs());
-    info("v_dof_coarse: %d, v_dof_fine: %d", vspace.get_num_dofs(), rs.get_space(1)->get_num_dofs());
+    info("u_dof_coarse: %d, v_dof_coarse: %d", uspace.get_num_dofs(), vspace.get_num_dofs());
+    info("u_dof_fine: %d, v_dof_fine: %d", rs.get_space(0)->get_num_dofs(), rs.get_space(1)->get_num_dofs());
     uview.show(&u_sln_coarse);
     vview.show(&v_sln_coarse);
     uoview.show(&uspace);
@@ -234,6 +239,7 @@ int main(int argc, char* argv[])
     // If err_est too large, adapt the mesh.
     if (error < ERR_STOP) done = true;
     else {
+      info("Adapting coarse meshes.");
       done = hp.adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY, MULTI == true ? false : true);
       ndof = assign_dofs(2, &uspace, &vspace);
       if (ndof >= NDOF_STOP) done = true;

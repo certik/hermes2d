@@ -28,7 +28,7 @@ const double RHO = 3000.0;
 const double TEMP_EXT = 20.0;
 const double TEMP_INIT = 10.0;
 
-const double TAU = 50.0;             // Time step.        
+const double TAU = 50.0;          // Time step.        
 
 const bool JFNK = true;
 const bool PRECOND = true;
@@ -53,6 +53,10 @@ scalar essential_bc_values(int ess_bdy_marker, double x, double y)
 
 int main(int argc, char* argv[])
 {
+  // Time measurement.
+  TimePeriod cpu_time;
+  cpu_time.tick();
+
   // Load the mesh.
   Mesh mesh;
   H2DReader mloader;
@@ -70,9 +74,6 @@ int main(int argc, char* argv[])
   space.set_bc_types(bc_types);
   space.set_essential_bc_values(essential_bc_values);
   space.set_uniform_order(P_INIT);
-
-  // Time measurement,
-  TimePeriod cpu_time;
 
   // Enumerate degrees of freedom.
   int ndof = assign_dofs(&space);
@@ -99,13 +100,12 @@ int main(int argc, char* argv[])
 
   // Project the function "titer" on the FE space 
   // in order to obtain initial vector for NOX. 
-  info("Projecting initial solution...");
+  info("Projecting initial solution on the FE mesh.");
   UmfpackSolver umfpack;
   LinSystem ls(&wf, &umfpack);
   ls.set_space(&space);
   ls.set_pss(&pss);
   ls.project_global(&tprev, &tprev);
-  info("Done.");
 
   // Get the coefficient vector.
   scalar *vec = ls.get_solution_vector();
@@ -113,8 +113,10 @@ int main(int argc, char* argv[])
   // Measure the projection time.
   double proj_time = cpu_time.tick().last();
 
-  // Initialize NOX solver + preconditioner.
+  // Initialize NOX solver.
   NoxSolver solver(&fep);
+
+  // Select preconditioner.
   MlPrecond pc("sa");
   if (PRECOND)
   {
@@ -122,7 +124,7 @@ int main(int argc, char* argv[])
     else solver.set_precond("ML");
   }
 
-  // Visualize the solution.
+  // Initialize the view.
   ScalarView Tview("Temperature", 0, 0, 450, 600);
   Tview.set_min_max_range(10,20);
 
@@ -131,8 +133,9 @@ int main(int argc, char* argv[])
   cpu_time.tick_reset();
   for (int ts = 1; total_time <= 2000.0; ts++)
   {
-    info("---- Time step %d, t = %g s ***", ts, total_time += TAU);
+    info("---- Time step %d, t = %g s", ts, total_time += TAU);
 
+    info("Assembling by FeProblem, solving by NOX.");
     solver.set_init_sln(vec);
     bool solved = solver.solve();
     if (solved)
