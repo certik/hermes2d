@@ -250,6 +250,7 @@ int main(int argc, char* argv[])
       ordview.show(rnls.get_space(0));
 
       // Calculate element errors and total error estimate.
+      info("Calculating error.");
       H1Adapt hp(&space);
       hp.set_solutions(&sln_coarse, &sln_fine);
       err_est = hp.calc_error() * 100;   // relative h1-error in percent

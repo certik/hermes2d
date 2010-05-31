@@ -817,6 +817,26 @@ void LinSystem::set_vec_zero()
   for(int i=0; i<ndofs; i++) Vec[i] = 0;
 }
 
+// L2 projections
+template<typename Real, typename Scalar>
+Scalar L2projection_biform(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+{
+  Scalar result = 0;
+  for (int i = 0; i < n; i++)
+    result += wt[i] * (u->val[i] * v->val[i]);
+  return result;
+}
+
+template<typename Real, typename Scalar>
+Scalar L2projection_liform(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+{
+  Scalar result = 0;
+  for (int i = 0; i < n; i++)
+    result += wt[i] * (ext->fn[0]->val[i] * v->val[i]);
+  return result;
+}
+
+// H1 projections
 template<typename Real, typename Scalar>
 Scalar H1projection_biform(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
@@ -835,21 +855,27 @@ Scalar H1projection_liform(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtD
   return result;
 }
 
+// Hcurl projections
 template<typename Real, typename Scalar>
-Scalar L2projection_biform(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+Scalar Hcurlprojection_biform(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
   Scalar result = 0;
-  for (int i = 0; i < n; i++)
-    result += wt[i] * (u->val[i] * v->val[i]);
+  for (int i = 0; i < n; i++) {
+    result += wt[i] * (u->curl[i] * conj(v->curl[i]));
+    result += wt[i] * (u->val0[i] * conj(v->val0[i]) + u->val1[i] * conj(v->val1[i]));
+  }
   return result;
 }
 
 template<typename Real, typename Scalar>
-Scalar L2projection_liform(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+Scalar Hcurlprojection_liform(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
   Scalar result = 0;
-  for (int i = 0; i < n; i++)
-    result += wt[i] * (ext->fn[0]->val[i] * v->val[i]);
+  for (int i = 0; i < n; i++) {
+    result += wt[i] * (ext->fn[0]->curl[i] * conj(v->curl[i]));
+    result += wt[i] * (ext->fn[0]->val0[i] * conj(v->val0[i]) + ext->fn[0]->val1[i] * conj(v->val1[i]));
+  }
+
   return result;
 }
 
@@ -876,18 +902,32 @@ void LinSystem::project_global_n(int proj_norm, int n, ...)
 
   WeakForm wf_proj(n);
   wf = &wf_proj;
-  if (proj_norm == 1)
-    for (i = 0; i < n; i++)
-    {
-      wf->add_biform(i, i, H1projection_biform<double, scalar>, H1projection_biform<Ord, Ord>);
-      wf->add_liform(i, H1projection_liform<double, scalar>, H1projection_liform<Ord, Ord>, H2D_ANY, 1, fn[i]);
-    }
-  else
+  int found = 0;
+  if (proj_norm == 0) {
+    found = 1;
     for (i = 0; i < n; i++)
     {
       wf->add_biform(i, i, L2projection_biform<double, scalar>, L2projection_biform<Ord, Ord>);
       wf->add_liform(i, L2projection_liform<double, scalar>, L2projection_liform<Ord, Ord>, H2D_ANY, 1, fn[i]);
     }
+  }
+  if (proj_norm == 1) {
+    found = 1;
+    for (i = 0; i < n; i++)
+    {
+      wf->add_biform(i, i, H1projection_biform<double, scalar>, H1projection_biform<Ord, Ord>);
+      wf->add_liform(i, H1projection_liform<double, scalar>, H1projection_liform<Ord, Ord>, H2D_ANY, 1, fn[i]);
+    }
+  }
+  if (proj_norm == 2) {
+    found = 1;
+    for (i = 0; i < n; i++)
+    {
+      wf->add_biform(i, i, Hcurlprojection_biform<double, scalar>, Hcurlprojection_biform<Ord, Ord>);
+      wf->add_liform(i, Hcurlprojection_liform<double, scalar>, Hcurlprojection_liform<Ord, Ord>, H2D_ANY, 1, fn[i]);
+    }
+  }
+  if (!found) error("Wrong projection type in project_global_n().");
 
   want_dir_contrib = true;
   LinSystem::assemble();

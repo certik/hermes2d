@@ -463,6 +463,17 @@ void Adapt::set_biform(int i, int j, biform_val_t bi_form, biform_ord_t bi_ord)
   ord[i][j] = bi_ord;
 }
 
+// case i = j = 0
+void Adapt::set_biform(biform_val_t bi_form, biform_ord_t bi_ord)
+{
+  int i = 0;
+  int j = 0;
+
+  form[i][j] = bi_form;
+  ord[i][j] = bi_ord;
+}
+
+
 void Adapt::set_solutions(Tuple<Solution*> solutions, Tuple<Solution*> ref_solutions) {
   error_if(solutions.size() != ref_solutions.size(), "Number of solutions (%d) and a number of reference solutions (%d) is not the same.", solutions.size(), ref_solutions.size());
   error_if(solutions.size() != num_comps, "Wrong number of solutions (%d), expected %d.", solutions.size(), num_comps);

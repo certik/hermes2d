@@ -175,6 +175,7 @@ int main(int argc, char* argv[])
     cpu_time.tick(H2D_SKIP);
 
     // Calculate element errors and total error estimate.
+    info("Calculating error.");
     H1Adapt hp(&space);
     hp.set_solutions(&sln_coarse, &sln_fine);
     double err_est = hp.calc_error() * 100;

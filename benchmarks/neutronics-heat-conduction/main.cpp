@@ -276,6 +276,7 @@ int main(int argc, char* argv[])
     sview_phi_exact.show(&phi_solution);
 
     // Calculate exact error.
+    info("Calculating error (exact).");
     T_error = h1_error(&T_prev_time, &T_solution) * 100;
     phi_error = h1_error(&phi_prev_time, &phi_solution) * 100;
     error = std::max(T_error, phi_error);

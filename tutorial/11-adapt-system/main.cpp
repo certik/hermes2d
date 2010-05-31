@@ -205,6 +205,7 @@ int main(int argc, char* argv[])
     cpu_time.tick(H2D_SKIP);
 
     // Calculate element errors and total error estimate.
+    info("Calculating error (est).");
     H1Adapt hp(Tuple<Space*>(&uspace, &vspace));
     hp.set_solutions(Tuple<Solution*>(&u_sln_coarse, &v_sln_coarse), Tuple<Solution*>(&u_sln_fine, &v_sln_fine));
     hp.set_biform(0, 0, bilinear_form_0_0<scalar, scalar>, bilinear_form_0_0<Ord, Ord>);
@@ -214,6 +215,7 @@ int main(int argc, char* argv[])
     double err_est = hp.calc_error(H2D_TOTAL_ERROR_REL | H2D_ELEMENT_ERROR_ABS) * 100;
 
     // Calculate error wrt. exact solution.
+    info("Calculating error (exact).");
     ExactSolution uexact(&umesh, u_exact);
     ExactSolution vexact(&vmesh, v_exact);
     double u_error = h1_error(&u_sln_coarse, &uexact) * 100;

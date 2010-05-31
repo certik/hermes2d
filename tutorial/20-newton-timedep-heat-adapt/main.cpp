@@ -123,7 +123,7 @@ int main(int argc, char* argv[])
   H2DReader mloader;
   mloader.load("square.mesh", &basemesh);
 
-  // Initial mesh refinements.
+  // Perform initial mesh refinements.
   for(int i = 0; i < INIT_REF_NUM; i++) basemesh.refine_all_elements();
   mesh.copy(&basemesh);
 
@@ -131,7 +131,7 @@ int main(int argc, char* argv[])
   H1Shapeset shapeset;
   PrecalcShapeset pss(&shapeset);
 
-  // Create finite element space.
+  // Create an H1 space.
   H1Space space(&mesh, &shapeset);
   space.set_bc_types(bc_types);
   space.set_essential_bc_values(essential_bc_values);
@@ -154,13 +154,15 @@ int main(int argc, char* argv[])
     wf.add_liform(callback(F_cranic), H2D_ANY, 2, &u_prev_newton, &u_prev_time);
   }
 
-  // Initialize the nonlinear system and solver.
+  // Matrix solver.
   UmfpackSolver solver;
+
+  // Initialize the nonlinear system.
   NonlinSystem nls(&wf, &solver);
   nls.set_space(&space);
   nls.set_pss(&pss);
 
-  // Visualize solution and mesh.
+  // Initialize views.
   ScalarView view("Initial condition", 0, 0, 410, 300);
   view.fix_scale_width(80);
   OrderView ordview("Initial mesh", 420, 0, 350, 300);
@@ -169,6 +171,7 @@ int main(int argc, char* argv[])
   SimpleGraph graph_time_err, graph_time_dof;
 
   // Project the function initial_condition() on the coarse mesh.
+  info("Projecting initial condition on the FE mesh.");
   nls.project_global(initial_condition, &u_prev_time, PROJ_TYPE);
   u_prev_newton.copy(&u_prev_time);
 
@@ -255,6 +258,7 @@ int main(int argc, char* argv[])
       ordview.show(&space);
 
       // Calculate error estimate wrt. fine mesh solution.
+      info("Calculating error.");
       H1Adapt hp(&space);
       hp.set_solutions(&sln_coarse, &sln_fine);
       err_est = hp.calc_error() * 100;
@@ -267,7 +271,10 @@ int main(int argc, char* argv[])
         info("Adapting coarse mesh.");
         done = hp.adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY);
         ndof = assign_dofs(&space);
-        if (ndof >= NDOF_STOP) done = true;
+        if (ndof >= NDOF_STOP) {
+          done = true;
+          break;
+        }
 
         // Project the fine mesh solution on the new coarse mesh.
         info("Projecting fine mesh solution on new coarse mesh.");

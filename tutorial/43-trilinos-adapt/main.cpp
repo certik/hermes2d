@@ -249,6 +249,7 @@ int main(int argc, char* argv[])
       error("NOX failed.");
 
     // Calculate error estimate wrt. fine mesh solution.
+    info("Calculating error.");
     H1Adapt hp(&space);
     hp.set_solutions(&sln_coarse, &sln_fine);
     double err_est = hp.calc_error() * 100;

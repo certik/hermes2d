@@ -81,9 +81,9 @@ public:
 
   /// Basic procedure performing orthogonal projection for an arbitrary number of 
   /// functions onto (the same number of) spaces determined by the LinSystem; proj_norm = 0  
-  /// for L2 norm and proj_norm = 1 for H1 norm. Projected can be any MeshFunction, 
-  /// Solution or Filter. The result of the projection will satisfy essential boundary 
-  /// conditions. The projection defines the vector Vec in the class LinSystem.
+  /// for L2 norm, proj_norm = 1 for H1 norm, proj_norm = 2 for Hcurl norm. Projected can 
+  /// be any MeshFunction, Solution or Filter. The result of the projection will satisfy essential 
+  /// boundary conditions. The projection defines the vector Vec in the class LinSystem.
   /// All projection functionality defined here is also available in the class NonlinSystem. 
   /// TODO: Implement projection-based interpolation (PBI) as an alternative of this. 
   /// PBI is almost as good as global orthogonal projection but way faster.

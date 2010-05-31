@@ -86,6 +86,7 @@ public:
    *  \param[in] bi_form A bilinear form which calculates value.
    *  \param[in] bi_ord A bilinear form which calculates order. */
   void set_biform(int i, int j, biform_val_t bi_form, biform_ord_t bi_ord);
+  void set_biform(biform_val_t bi_form, biform_ord_t bi_ord);   // i = j = 0
 
   /// Sets solutions and reference solutions.
   /** \param[in] solutions Coarse solutions. The number of solutions has to match a number of components.
