@@ -32,9 +32,9 @@ scalar H1AdaptNormMaxim::eval_norm(biform_val_t bi_fn, biform_ord_t bi_ord, Mesh
   error_if(rrv1 != rrv2, "Multiple components not supported.");
 
   switch (norm_type) {
-    case NORM_EUCLEDIAN:
+    case NORM_EUCL:
       return H1Adapt::eval_norm(bi_fn, bi_ord, rsln1, rsln2, rrv1, rrv2);
-    case NORM_MAXIMA:
+    case NORM_MAX:
       return norm_fn_inf(rsln1, rrv1);
   }
 }

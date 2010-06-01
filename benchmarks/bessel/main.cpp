@@ -216,7 +216,7 @@ int main(int argc, char* argv[])
   while (!done);
   verbose("Total running time: %g s", cpu_time.accumulated());
 
-  // Show the fine solution - the final result
+  // Show the fine mesh solution - the final result
   vecview.set_title("Final solution");
   vecview.show(&sln_fine);
 

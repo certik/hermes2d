@@ -2,8 +2,8 @@
 #define __H1_ADAPT_NORM_MAXIM
 
 enum NormType {
-  NORM_EUCLEDIAN,
-  NORM_MAXIMA
+  NORM_EUCL,
+  NORM_MAX
 };
 
 class H1AdaptNormMaxim : public H1Adapt {

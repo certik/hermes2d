@@ -68,7 +68,9 @@ public:
   void enable_dir_contrib(bool enable = true) {  want_dir_contrib = enable;  }
   scalar* get_solution_vector() { return Vec; }
 
-  int get_num_dofs() const { return ndofs; };
+  int get_num_dofs();
+  int get_num_dofs(int i) {return this->spaces[i]->get_num_dofs();}
+  int get_num_spaces() const { return num_spaces; };
   int get_matrix_size() const;
   void get_matrix(int*& Ap, int*& Ai, scalar*& Ax, int& size) const;
   void get_rhs(scalar*& RHS, int& size) const { RHS = this->RHS; size=ndofs; }
@@ -102,6 +104,11 @@ public:
   void project_global(MeshFunction* fn1, MeshFunction* fn2, MeshFunction* fn3, 
                       Solution* result1, Solution* result2, Solution* result3, int proj_norm = 1)
     {  project_global_n(proj_norm, 3, fn1, fn2, fn3, result1, result2, result3);  }
+
+  /// Global orthogonal projection of four functions. 
+  void project_global(MeshFunction* fn1, MeshFunction* fn2, MeshFunction* fn3, MeshFunction* fn4, 
+                      Solution* result1, Solution* result2, Solution* result3, Solution* result4, int proj_norm = 1)
+  {  project_global_n(proj_norm, 4, fn1, fn2, fn3, fn4, result1, result2, result3, result4);  }
 
   /// Global orthogonal projection of an exact function.
   void project_global(scalar (*exactfn)(double x, double y, scalar& dx, scalar& dy),
@@ -157,6 +164,7 @@ protected:
   PrecalcShapeset** pss;
 
   int ndofs;
+  int num_spaces;
   CooMatrix *A;
   bool mat_sym; ///< true if symmetric and only upper half stored
 

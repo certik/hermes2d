@@ -67,6 +67,7 @@ LinSystem::~LinSystem()
 void LinSystem::set_spaces(int n, ...)
 {
   if (n <= 0 || n > wf->neq) error("Bad number of spaces.");
+  num_spaces = n;
   va_list ap;
   va_start(ap, n);
   for (int i = 0; i < wf->neq; i++)
@@ -78,6 +79,7 @@ void LinSystem::set_spaces(int n, ...)
 
 void LinSystem::set_space(Space* s)
 {
+  num_spaces = 1; 
   spaces[0] = s;
   memset(sp_seq, -1, sizeof(int) * wf->neq);
   have_spaces = true;
@@ -127,7 +129,7 @@ void LinSystem::free()
   matrix_free();
   if (this->RHS != NULL) { ::free(this->RHS); this->RHS = NULL; }
   if (this->Dir != NULL) { ::free(this->Dir-1); this->Dir = NULL; }
-  if (this->Vec != NULL) { ::free(this->Vec); this->Vec = NULL; }
+  if (this->Vec != NULL) { delete [] this->Vec; this->Vec = NULL; }
   if (this->solver) this->solver->free_data(this->slv_ctx);
 
   this->struct_changed = this->values_changed = true;
@@ -179,12 +181,8 @@ void LinSystem::create_matrix(bool rhsonly)
   trace("Creating matrix sparse structure...");
   TimePeriod cpu_time;
 
-  // calculate the total number of DOFs
-  this->ndofs = 0;
-  for (int i = 0; i < this->wf->neq; i++)
-    this->ndofs += this->spaces[i]->get_num_dofs();
-  if (!this->ndofs)
-    error("Zero matrix size while creating matrix sparse structure.");
+  // calculate the total number of DOF
+  this->ndofs = this->get_num_dofs();
 
   this->RHS = (scalar*) malloc(sizeof(scalar) * this->ndofs);
 
@@ -236,8 +234,7 @@ void LinSystem::insert_block(scalar** mat, int* iidx, int* jidx, int ilen, int j
 
 void LinSystem::assemble(bool rhsonly)
 {
-  if (!rhsonly)
-    matrix_free();
+  if (!rhsonly) matrix_free();
   int k, m, n, marker;
   std::vector<AsmList> al(wf->neq);
   AsmList* am, * an;
@@ -715,13 +712,13 @@ scalar LinSystem::eval_form(WeakForm::LiFormSurf *lf, PrecalcShapeset *fv, RefMa
 
 bool LinSystem::solve(int n, ...)
 {
-  if (!this->solver) error("Cannot solve -- no solver was provided.");
+  if (!this->solver) error("Cannot solve -- no matrix solver was provided.");
   TimePeriod cpu_time;
 
   // solve the system
-  if (this->Vec != NULL) ::free(this->Vec);
-  this->Vec = (scalar*) malloc(this->ndofs * sizeof(scalar));
-  memcpy(this->Vec, this->RHS, sizeof(scalar) * this->A->get_size());
+  if (this->Vec != NULL) delete [] this->Vec;
+  this->Vec = new scalar[this->ndofs];
+  memcpy(this->Vec, this->RHS, sizeof(scalar) * this->ndofs);
   solve_linear_system_scipy_umfpack(this->A, this->Vec);
   report_time("LinSystem solved in %g s", cpu_time.tick().last());
 
@@ -745,15 +742,24 @@ bool LinSystem::solve(Solution* sln)
   TimePeriod cpu_time;
 
   // solve the system
-  if (this->Vec != NULL) ::free(this->Vec);
-  this->Vec = (scalar*) malloc(this->ndofs * sizeof(scalar));
-  memcpy(this->Vec, this->RHS, sizeof(scalar) * this->A->get_size());
+  if (this->Vec != NULL) delete [] this->Vec;
+  //this->Vec = (scalar*) malloc(this->ndofs * sizeof(scalar));
+  this->Vec = new scalar[this->ndofs];
+  if (this->Vec == NULL) error("Malloc problem in LinSystem::solve()");
+
+  // copy the content of RHS into Vec
+  memcpy(this->Vec, this->RHS, sizeof(scalar) * this->ndofs);
+
+  // call UMFpack in Scipy
   solve_linear_system_scipy_umfpack(this->A, this->Vec);
   report_time("LinSystem solved in %g s", cpu_time.tick().last());
 
   // initialize the Solution class
+  if (this->spaces[0] == NULL) error("No spaces in LinSystem::solve().");
+  if (this->pss[0] == NULL) error("No precalc shapeset in LinSystem::solve().");
   sln->set_fe_solution(this->spaces[0], this->pss[0], this->Vec);
   report_time("Exported solution in %g s", cpu_time.tick().last());
+
   return true;
 }
 
@@ -812,9 +818,9 @@ void LinSystem::save_rhs_bin(const char* filename)
 
 void LinSystem::set_vec_zero()
 {
-  if (Vec != NULL) ::free(Vec);
-  Vec = (scalar*) malloc(ndofs * sizeof(scalar));
-  for(int i=0; i<ndofs; i++) Vec[i] = 0;
+  if (this->Vec != NULL) delete [] this->Vec;
+  this->Vec = new scalar[this->ndofs];
+  for(int i=0; i<this->ndofs; i++) this->Vec[i] = 0;
 }
 
 // L2 projections
@@ -937,4 +943,15 @@ void LinSystem::project_global_n(int proj_norm, int n, ...)
 
   wf = wf_orig;
   wf_seq = -1;
+}
+
+int LinSystem::get_num_dofs()
+{
+  int ndof = 0;
+  for (int i = 0; i < this->num_spaces; i++) {
+    ndof += this->spaces[i]->get_num_dofs();
+  }
+  if (ndof == 0)
+    error("Zero matrix size while creating matrix sparse structure.");
+  return ndof;
 }

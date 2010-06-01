@@ -43,17 +43,23 @@ public:
   /// reference system.
   void assemble(bool rhsonly = false);
 
-  /// Creates reference (fine) meshes. Called internally by RefSystem::assemble.
-  void refine_mesh();
+  /// Copies and refines meshes from coarse mesh linsystem
+  void prepare();
 
   bool solve_exact(scalar (*exactfn)(double x, double y, scalar& dx, scalar& dy), Solution* sln);
 
   /// Frees reference spaces and meshes. Called
   /// automatically on desctruction.
-  void free_ref_data();
+  void free_meshes_and_spaces();
 
   /// Gets pointer to reference space [i]
-  Space* get_ref_space(int i=0) {return ref_spaces[i];}
+  Space* get_ref_space(int i = 0) {return ref_spaces[i];}
+
+  /// Gets number of DOF in reference space 'i'
+  int get_num_dofs(int i) {return ref_spaces[i]->get_num_dofs();}
+
+  /// Gets total number of DOF in the reference system.
+  int get_num_dofs();
 
   /// Gets pointer to reference mesh [i]
   Mesh* get_ref_mesh(int i=0) {return ref_meshes[i];}
@@ -61,7 +67,7 @@ public:
 protected:
 
   LinSystem* base;
-  int* order_inc;
+  int order_inc[1000];   // FIXME: this should be done using dynamic allocation.
   int refinement;
 
   Mesh**  ref_meshes;

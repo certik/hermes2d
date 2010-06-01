@@ -207,7 +207,8 @@ int main(int argc, char* argv[])
     // Calculate element errors and total error estimate.
     info("Calculating error (est).");
     H1Adapt hp(Tuple<Space*>(&uspace, &vspace));
-    hp.set_solutions(Tuple<Solution*>(&u_sln_coarse, &v_sln_coarse), Tuple<Solution*>(&u_sln_fine, &v_sln_fine));
+    hp.set_solutions(Tuple<Solution*>(&u_sln_coarse, &v_sln_coarse), 
+                     Tuple<Solution*>(&u_sln_fine, &v_sln_fine));
     hp.set_biform(0, 0, bilinear_form_0_0<scalar, scalar>, bilinear_form_0_0<Ord, Ord>);
     hp.set_biform(0, 1, bilinear_form_0_1<scalar, scalar>, bilinear_form_0_1<Ord, Ord>);
     hp.set_biform(1, 0, bilinear_form_1_0<scalar, scalar>, bilinear_form_1_0<Ord, Ord>);

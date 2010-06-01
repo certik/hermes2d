@@ -14,7 +14,7 @@ using namespace RefinementSelectors;
 //  does only work for linear elements. Nevertheless, we were able to solve the
 //  problem without stabilization using adaptive hp-FEM.
 //
-//  PDE: div(bu - \epsilon \nabla u) = 0 where b = (b1, b2) is a constant vector
+//  PDE: div(bu - \epsilon \nabla u) = 0 where b = (b1, b2) is a constant vector.
 //
 //  Domain: Square (0, 1)x(0, 1).
 //
@@ -52,7 +52,7 @@ const int MESH_REGULARITY = -1;          // Maximum allowed level of hanging nod
                                          // their notoriously bad performance.
 const double CONV_EXP = 1.0;             // Default value is 1.0. This parameter influences the selection of
                                          // cancidates in hp-adaptivity. See get_optimal_refinement() for details.
-const double ERR_STOP = 1.0;             // Stopping criterion for adaptivity (rel. error tolerance between the
+const double ERR_STOP = 5.0;             // Stopping criterion for adaptivity (rel. error tolerance between the
                                          // fine mesh and coarse mesh solution in percent).
 const int NDOF_STOP = 60000;             // Adaptivity process stops when the number of degrees of freedom grows
                                          // over this limit. This is to prevent h-adaptivity to go on forever.
@@ -100,7 +100,7 @@ int main(int argc, char* argv[])
   H1Shapeset shapeset;
   PrecalcShapeset pss(&shapeset);
 
-  // Create finite element space.
+  // Create an H1 space.
   H1Space space(&mesh, &shapeset);
   space.set_bc_types(bc_types);
   space.set_essential_bc_values(essential_bc_values);
@@ -119,7 +119,7 @@ int main(int argc, char* argv[])
     wf.add_biform(callback(bilinear_form_shock_capturing));
   }
 
-  // Initialize view.
+  // Initialize views.
   OrderView  oview("Coarse mesh", 0, 0, 500, 400);
   ScalarView sview("Coarse mesh solution", 510, 0, 500, 400);
   ScalarView sview2("Fine mesh solution", 1020, 0, 500, 400);
@@ -140,25 +140,30 @@ int main(int argc, char* argv[])
   {
     info("---- Adaptivity step %d:", as);
 
-    // Solve the coarse mesh problem.
+    // Initialize the coarse and fine mesh problems.
     LinSystem ls(&wf, &solver);
     ls.set_space(&space);
     ls.set_pss(&pss);
-
-    // Solve the fine mesh problem.
     int p_increase = 1;
     int ref_level = 1; 
     RefSystem rs(&ls, p_increase, ref_level);
+
+    // Assemble and solve the fine mesh problem.
+    info("Solving on fine mesh.");
     rs.assemble();
     rs.solve(&sln_fine);
 
     // Either solve on coarse mesh or project the fine mesh solution 
     // on the coarse mesh.
     if (SOLVE_ON_COARSE_MESH) {
+      info("Solving on coarse mesh.");
       ls.assemble();
       ls.solve(&sln_coarse);
     }
-    else ls.project_global(&sln_fine, &sln_coarse);
+    else {
+      info("Projecting fine mesh solution on coarse mesh.");
+      ls.project_global(&sln_fine, &sln_coarse);
+    }
 
     // Time measurement.
     cpu_time.tick();
@@ -173,6 +178,7 @@ int main(int argc, char* argv[])
     cpu_time.tick(H2D_SKIP);
 
     // Calculate error estimate wrt. fine mesh solution.
+    info("Calculating error (est).");
     H1Adapt hp(&space);
     hp.set_solutions(&sln_coarse, &sln_fine);
     double err_est = hp.calc_error() * 100;
@@ -192,6 +198,7 @@ int main(int argc, char* argv[])
     // If err_est too large, adapt the mesh.
     if (err_est < ERR_STOP) done = true;
     else {
+      info("Adapting the coarse mesh.");
       done = hp.adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY);
       ndof = assign_dofs(&space);
       if (ndof >= NDOF_STOP) done = true;

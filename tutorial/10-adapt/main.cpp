@@ -182,10 +182,10 @@ int main(int argc, char* argv[])
 
     // Report results.
     info("ndof_coarse: %d, ndof_fine: %d, err_est: %g%%", 
-      space.get_num_dofs(), rs.get_space(0)->get_num_dofs(), err_est);
+      space.get_num_dofs(), rs.get_num_dofs(), err_est);
 
     // Add entry to DOF convergence graph.
-    graph_dof.add_values(space.get_num_dofs(), err_est);
+    graph_dof.add_values(ls.get_num_dofs(), err_est);
     graph_dof.save("conv_dof.dat");
 
     // Add entry to CPU convergence graph.

@@ -43,26 +43,25 @@
 //
 //  The following parameters can be changed:
 
-
 const int INIT_REF_NUM = 2;                  // Number of initial uniform mesh refinements.
 const int P_INIT = 2;                        // Initial polynomial degree of all mesh elements.
 const double ERROR_STOP = 1e-5;              // Tolerance for the eigenvalue.
 
-// Element markers
+// Element markers.
 const int MAT_REFLECTOR = 1;
 const int MAT_CORE = 2;
 
-// Boundary indices
+// Boundary merkers.
 const int BDY_VACUUM = 1;
 const int BDY_SYMMETRY = 2;
 
-// Boundary condition types
+// Boundary condition types.
 BCType bc_types(int marker)
 {
   return BC_NATURAL;
 }
 
-// Reflector properties (0) core properties (1),
+// Reflector properties (0) core properties (1).
 const double D[2][4] = {{0.0164, 0.0085, 0.00832, 0.00821},
                         {0.0235, 0.0121, 0.0119, 0.0116}};
 const double Sa[2][4] = {{0.00139, 0.000218, 0.00197, 0.0106},
@@ -137,7 +136,7 @@ int main(int argc, char* argv[])
   H2DReader mloader;
   mloader.load("reactor.mesh", &mesh);
 
-  // Perform initial uniform refinements.
+  // Perform initial mesh refinements.
   for (int i = 0; i < INIT_REF_NUM; i++) mesh.refine_all_elements();
 
   // Initialize the shapeset and the cache.
@@ -152,6 +151,7 @@ int main(int argc, char* argv[])
   Solution iter1, iter2, iter3, iter4;
 
   // Define initial conditions.
+  info("Setting initial conditions.");
   iter1.set_const(&mesh, 1.00);
   iter2.set_const(&mesh, 1.00);
   iter3.set_const(&mesh, 1.00);
@@ -160,7 +160,7 @@ int main(int argc, char* argv[])
   // Matrix solver.
   UmfpackSolver umfpack;
 
-  // Create finite element spaces.
+  // Create H1 spaces.
   H1Space space1(&mesh, &shapeset);
   H1Space space2(&mesh, &shapeset);
   H1Space space3(&mesh, &shapeset);
@@ -173,6 +173,9 @@ int main(int argc, char* argv[])
   space2.set_uniform_order(P_INIT);
   space3.set_uniform_order(P_INIT);
   space4.set_uniform_order(P_INIT);
+
+  // Enumerate degrees of freedom.
+  int ndof = assign_dofs(4, &space1, &space2, &space3, &space4);
 
   // Initialize the weak formulation.
   WeakForm wf(4);
@@ -197,18 +200,17 @@ int main(int argc, char* argv[])
   ls.set_spaces(4, &space1, &space2, &space3, &space4);
   ls.set_pss(4, &pss1, &pss2, &pss3, &pss4);
 
-  // View solutions and meshes.
+  // Initialize views.
   ScalarView view1("Neutron flux 1", 0, 0, 320, 600);
   ScalarView view2("Neutron flux 2", 350, 0, 320, 600);
   ScalarView view3("Neutron flux 3", 700, 0, 320, 600);
   ScalarView view4("Neutron flux 4", 1050, 0, 320, 600);
+
+  // Show meshes.
   view1.show_mesh(false);
   view2.show_mesh(false);
   view3.show_mesh(false);
   view4.show_mesh(false);
-
-  // Enumerate degrees of freedom.
-  int ndof = assign_dofs(4, &space1, &space2, &space3, &space4);
 
   // Main power iteration loop:
   int iter = 0; bool done = false; 
@@ -221,16 +223,18 @@ int main(int argc, char* argv[])
     ls.assemble(rhs_only);
     ls.solve(4, &sln1, &sln2, &sln3, &sln4);
 
-    // Visualization.
-    view1.show(&sln1);    view2.show(&sln2);
-    view3.show(&sln3);    view4.show(&sln4);
+    // Show solutions.
+    view1.show(&sln1);    
+    view2.show(&sln2);
+    view3.show(&sln3);    
+    view4.show(&sln4);
 
     SimpleFilter source(source_fn, &sln1, &sln2, &sln3, &sln4);
     SimpleFilter source_prev(source_fn, &iter1, &iter2, &iter3, &iter4);
 
     // Compute eigenvalue.
     double k_new = k_eff * (integrate(&source, MAT_CORE) / integrate(&source_prev, MAT_CORE));
-    info("ndofs: %d, %d, %d, %d", space1.get_num_dofs(),space2.get_num_dofs(), 
+    info("ndof: %d, %d, %d, %d", space1.get_num_dofs(),space2.get_num_dofs(), 
                                   space3.get_num_dofs(), space4.get_num_dofs());
     info("Largest eigenvalue: (%.8g, %.8g), rel error: %g", k_eff, k_new, fabs((k_eff - k_new) / k_new));
 

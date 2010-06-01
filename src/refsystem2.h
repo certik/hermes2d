@@ -29,6 +29,9 @@ public:
           : NonlinSystem(base->wf, base->solver)
   {
     this->base = base;
+    this->Vec = NULL;
+    this->RHS = NULL;
+    this->num_spaces = base->num_spaces;
     order_inc = order_increase;
     this->refinement = refinement;
     ref_meshes = NULL;
@@ -37,7 +40,7 @@ public:
 
   virtual ~RefNonlinSystem()
   {
-    free_ref_data();
+    free_meshes_and_spaces();
   }
 
 
@@ -54,15 +57,15 @@ public:
   }
 
 
-  /// Creates reference (fine) meshes and spaces and assembles the
-  /// reference system.
+  /// Creates reference (fine) meshes and spaces.
   void prepare()
   {
     int i, j;
 
-    // get rid of any previous data
-    free_ref_data();
+    // free meshes and spaces
+    free_meshes_and_spaces();
 
+    // create new meshes and spaces
     ref_meshes = new Mesh*[NonlinSystem::wf->neq];
     ref_spaces = new Space*[NonlinSystem::wf->neq];
 
@@ -128,6 +131,7 @@ public:
       dofs += ref_spaces[i]->assign_dofs(dofs);
     }
 
+    this->ndofs = dofs;
     memcpy(NonlinSystem::spaces, ref_spaces, sizeof(Space*) * NonlinSystem::wf->neq);
     memcpy(NonlinSystem::pss, base->pss, sizeof(PrecalcShapeset*) * NonlinSystem::wf->neq);
     NonlinSystem::have_spaces = true;
@@ -142,7 +146,7 @@ public:
 
   /// Frees reference spaces and meshes. Called
   /// automatically on desctruction.
-  void free_ref_data()
+  void free_meshes_and_spaces()
   {
     int i, j;
 

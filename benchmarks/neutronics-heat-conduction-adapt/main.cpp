@@ -185,7 +185,7 @@ scalar phi_ic(double x, double y, double& dx, double& dy)
 
 int main(int argc, char* argv[])
 {
-  // Load the mesh file.
+  // Load the mesh.
   Mesh basemesh, mesh_T, mesh_phi;
   H2DReader mloader;
   mloader.load("domain.mesh", &basemesh);

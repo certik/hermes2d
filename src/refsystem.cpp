@@ -20,15 +20,14 @@
 #include "refsystem.h"
 #include "solution.h"
 
-
-
 RefSystem::RefSystem(LinSystem* base, int order_increase, int refinement)
          : LinSystem(base->wf, base->solver)
 {
   this->base = base;
-  order_inc = new int[base->wf->neq];
-  for (int i = 0; i < base->wf->neq; i++)
-    order_inc[i] = order_increase;
+  this->Vec = NULL;
+  this->RHS = NULL;
+  this->num_spaces = base->num_spaces;
+  for (int i = 0; i < this->num_spaces; i++) order_inc[i] = order_increase;
   this->refinement = refinement;
   ref_meshes = NULL;
   ref_spaces = NULL;
@@ -36,10 +35,8 @@ RefSystem::RefSystem(LinSystem* base, int order_increase, int refinement)
 
 RefSystem::~RefSystem()
 {
-  free_ref_data();
-  delete [] order_inc;
+  free_meshes_and_spaces();
 }
-
 
 void RefSystem::set_spaces(int n, ...)
 {
@@ -51,10 +48,18 @@ void RefSystem::set_pss(int n, ...)
   error("Method set_pss must not be called in RefSystem.");
 }
 
+int RefSystem::get_num_dofs() 
+{
+  int n = 0;
+  for (int i=0; i < this->num_spaces; i++) {
+    n += ref_spaces[i]->get_num_dofs();
+  }
+  return n;
+}
 
 void RefSystem::set_order_increase(int* order_increase)
 {
-  for (int i = 0; i < base->wf->neq; i++)
+  for (int i = 0; i < this->num_spaces; i++)
   {
     if ((order_increase[i] < -5) || (order_increase[i] > 5))
       error("Wrong length of array (must be equal to the number of equations).");
@@ -62,27 +67,28 @@ void RefSystem::set_order_increase(int* order_increase)
   }
 }
 
-
 void RefSystem::assemble(bool rhsonly)
-{
-  refine_mesh();
+{  
+  // copy and refines meshes from coarse mesh linsystem
+  prepare();
 
+  // call LinSystem's assemble() function.
   LinSystem::assemble(rhsonly);
 }
 
-
-void RefSystem::refine_mesh()
+void RefSystem::prepare()
 {
   int i, j;
 
-  // get rid of any previous data
-  free_ref_data();
+  // free meshes and spaces
+  free_meshes_and_spaces();
 
-  ref_meshes = new Mesh*[wf->neq];
-  ref_spaces = new Space*[wf->neq];
+  // create new meshes and spaces
+  ref_meshes = new Mesh*[this->num_spaces];
+  ref_spaces = new Space*[this->num_spaces];
 
-  // copy meshes from the coarse problem, refine them
-  for (i = 0; i < wf->neq; i++)
+  // copy meshes from the coarse problem and refine them
+  for (i = 0; i < this->num_spaces; i++)
   {
     Mesh* mesh = base->spaces[i]->get_mesh();
 
@@ -107,7 +113,7 @@ void RefSystem::refine_mesh()
 
   // duplicate spaces from the coarse problem, assign reference orders and dofs
   int dofs = 0;
-  for (i = 0; i < wf->neq; i++)
+  for (i = 0; i < this->num_spaces; i++)
   {
     ref_spaces[i] = base->spaces[i]->dup(ref_meshes[i]);
     if (refinement == -1)
@@ -151,8 +157,9 @@ void RefSystem::refine_mesh()
     dofs += ref_spaces[i]->assign_dofs(dofs);
   }
 
-  memcpy(spaces, ref_spaces, sizeof(Space*) * wf->neq);
-  memcpy(pss, base->pss, sizeof(PrecalcShapeset*) * wf->neq);
+  this->ndofs = dofs;
+  memcpy(spaces, ref_spaces, sizeof(Space*) * this->num_spaces);
+  memcpy(pss, base->pss, sizeof(PrecalcShapeset*) * this->num_spaces);
   have_spaces = true;
 }
 
@@ -171,14 +178,14 @@ bool RefSystem::solve_exact(scalar (*exactfn)(double x, double y, scalar& dx , s
 }
 
 
-void RefSystem::free_ref_data()
+void RefSystem::free_meshes_and_spaces()
 {
   int i, j;
 
   // free reference meshes
   if (ref_meshes != NULL)
   {
-    for (i = 0; i < wf->neq; i++)
+    for (i = 0; i < this->num_spaces; i++)
     {
       for (j = 0; j < i; j++)
         if (ref_meshes[j] == ref_meshes[i])
@@ -194,7 +201,7 @@ void RefSystem::free_ref_data()
   // free reference spaces
   if (ref_spaces != NULL)
   {
-    for (i = 0; i < wf->neq; i++)
+    for (i = 0; i < this->num_spaces; i++)
       delete ref_spaces[i];
 
     delete [] ref_spaces;

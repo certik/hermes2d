@@ -7,10 +7,11 @@
 
 using namespace RefinementSelectors;
 
-// This example employs the multimesh adaptive hp-FEM for linear
-// elasticity equations. The domain contains two horizontal
-// cracks causing strong singularities at their corners. Each
-// displacement component is approximated on an individual mesh.
+// This example uses adaptive multimesh hp-FEM to solve a simple problem
+// of linear elasticity. Note that since both displacement components
+// have similar qualitative behavior, the advantage of the multimesh 
+// discretization is less striking than for example in the tutorial 
+// example 11-adapt-system.
 //
 // PDE: Lame equations of linear elasticity.
 //
@@ -23,46 +24,48 @@ using namespace RefinementSelectors;
 //
 // The following parameters can be changed:
 
-const int INIT_REF_NUM = 0;          // Number of initial uniform mesh refinements.
-const int P_INIT = 2;                // Initial polynomial degree of all mesh elements.
-const bool MULTI = true;             // true = use multi-mesh, false = use single-mesh.
-                                     // Note: in the single mesh option, the meshes are
-                                     // forced to be geometrically the same but the
-                                     // polynomial degrees can still vary.
-const bool SAME_ORDERS = false;      // true = when single mesh is used it forces same pol.
-                                     // orders for components
-                                     // when multi mesh used, parameter is ignored
-const double THRESHOLD_MULTI = 0.35; // error threshold for element refinement (multi-mesh)
-const double THRESHOLD_SINGLE = 0.7; // error threshold for element refinement (single-mesh)
-const int STRATEGY = 0;              // Adaptive strategy:
-                                     // STRATEGY = 0 ... refine elements until sqrt(THRESHOLD) times total
-                                     //   error is processed. If more elements have similar errors, refine
-                                     //   all to keep the mesh symmetric.
-                                     // STRATEGY = 1 ... refine all elements whose error is larger
-                                     //   than THRESHOLD times maximum element error.
-                                     // STRATEGY = 2 ... refine all elements whose error is larger
-                                     //   than THRESHOLD.
-                                     // More adaptive strategies can be created in adapt_ortho_h1.cpp.
+const bool SOLVE_ON_COARSE_MESH = false; // If true, coarse mesh FE problem is solved in every adaptivity step.
+                                         // If false, projection of the fine mesh solution on the coarse mesh is used. 
+const int INIT_REF_NUM = 0;              // Number of initial uniform mesh refinements.
+const int P_INIT = 2;                    // Initial polynomial degree of all mesh elements.
+const bool MULTI = true;                 // true = use multi-mesh, false = use single-mesh.
+                                         // Note: in the single mesh option, the meshes are
+                                         // forced to be geometrically the same but the
+                                         // polynomial degrees can still vary.
+const bool SAME_ORDERS = false;          // true = when single mesh is used it forces same pol.
+                                         // orders for components
+                                         // when multi mesh used, parameter is ignored
+const double THRESHOLD_MULTI = 0.35;     // error threshold for element refinement (multi-mesh)
+const double THRESHOLD_SINGLE = 0.7;     // error threshold for element refinement (single-mesh)
+const int STRATEGY = 0;                  // Adaptive strategy:
+                                         // STRATEGY = 0 ... refine elements until sqrt(THRESHOLD) times total
+                                         //   error is processed. If more elements have similar errors, refine
+                                         //   all to keep the mesh symmetric.
+                                         // STRATEGY = 1 ... refine all elements whose error is larger
+                                         //   than THRESHOLD times maximum element error.
+                                         // STRATEGY = 2 ... refine all elements whose error is larger
+                                         //   than THRESHOLD.
+                                         // More adaptive strategies can be created in adapt_ortho_h1.cpp.
 const CandList CAND_LIST = H2D_HP_ANISO; // Predefined list of element refinement candidates. Possible values are
                                          // H2D_P_ISO, H2D_P_ANISO, H2D_H_ISO, H2D_H_ANISO, H2D_HP_ISO,
                                          // H2D_HP_ANISO_H, H2D_HP_ANISO_P, H2D_HP_ANISO.
                                          // See User Documentation for details.
-const int MESH_REGULARITY = -1;      // Maximum allowed level of hanging nodes:
-                                     // MESH_REGULARITY = -1 ... arbitrary level hangning nodes (default),
-                                     // MESH_REGULARITY = 1 ... at most one-level hanging nodes,
-                                     // MESH_REGULARITY = 2 ... at most two-level hanging nodes, etc.
-                                     // Note that regular meshes are not supported, this is due to
-                                     // their notoriously bad performance.
-const double CONV_EXP = 1.0;         // Default value is 1.0. This parameter influences the selection of
-                                     // cancidates in hp-adaptivity. See get_optimal_refinement() for details.
-const double ERR_STOP = 0.5;         // Stopping criterion for adaptivity (rel. error tolerance between the
-                                     // fine mesh and coarse mesh solution in percent).
-const int NDOF_STOP = 60000;         // Adaptivity process stops when the number of degrees of freedom grows.
+const int MESH_REGULARITY = -1;          // Maximum allowed level of hanging nodes:
+                                         // MESH_REGULARITY = -1 ... arbitrary level hangning nodes (default),
+                                         // MESH_REGULARITY = 1 ... at most one-level hanging nodes,
+                                         // MESH_REGULARITY = 2 ... at most two-level hanging nodes, etc.
+                                         // Note that regular meshes are not supported, this is due to
+                                         // their notoriously bad performance.
+const double CONV_EXP = 1.0;             // Default value is 1.0. This parameter influences the selection of
+                                         // cancidates in hp-adaptivity. See get_optimal_refinement() for details.
+const double ERR_STOP = 0.5;             // Stopping criterion for adaptivity (rel. error tolerance between the
+                                         // fine mesh and coarse mesh solution in percent).
+const int NDOF_STOP = 60000;             // Adaptivity process stops when the number of degrees of freedom grows.
 
 // Problem parameters.
-const double E  = 200e9;             // Young modulus for steel: 200 GPa.
-const double nu = 0.3;               // Poisson ratio.
-const double f  = 1e3;               // Load force.
+const double E  = 200e9;                 // Young modulus for steel: 200 GPa.
+const double nu = 0.3;                   // Poisson ratio.
+const double f  = 1e3;                   // Load force.
 const double lambda = (E * nu) / ((1 + nu) * (1 - 2*nu));
 const double mu = E / (2*(1 + nu));
 
@@ -126,7 +129,7 @@ int main(int argc, char* argv[])
   OrderView  yoview("Y polynomial orders", 910, 0, 900, 300);
 
   // Matrix solver.
-  UmfpackSolver solver;
+  UmfpackSolver umfpack;
 
   // DOF and CPU convergence graphs.
   SimpleGraph graph_dof, graph_cpu;
@@ -136,39 +139,51 @@ int main(int argc, char* argv[])
 
   // Adaptivity loop:
   int as = 1; bool done = false;
-  Solution sln_x_coarse, sln_y_coarse, sln_x_fine, sln_y_fine;
+  Solution x_sln_coarse, y_sln_coarse, x_sln_fine, y_sln_fine;
   do
   {
     info("---- Adaptivity step %d:", as);
 
-    // Solve the coarse mesh problem.
-    LinSystem ls(&wf, &solver);
+    // Initialize the coarse and fine mesh problems.
+    LinSystem ls(&wf, &umfpack);
     ls.set_spaces(2, &xdisp, &ydisp);
     ls.set_pss(2, &xpss, &ypss);
-    ls.assemble();
-    ls.solve(2, &sln_x_coarse, &sln_y_coarse);
+    RefSystem rs(&ls);
+
+    // Assemble and solve the fine mesh problem.
+    info("Solving on fine mesh.");
+    rs.assemble();
+    rs.solve(2, &x_sln_fine, &y_sln_fine);
+
+    // Either solve on coarse mesh or project the fine mesh solution 
+    // on the coarse mesh.
+    if (SOLVE_ON_COARSE_MESH) {
+      info("Solving on coarse mesh.");
+      ls.assemble();
+      ls.solve(2, &x_sln_coarse, &y_sln_coarse);
+    }
+    else {
+      info("Projecting fine mesh solution on coarse mesh.");
+      ls.project_global(&x_sln_fine, &y_sln_fine, &x_sln_coarse, &y_sln_coarse);
+    }
 
     // Time measurement.
     cpu_time.tick();
 
     // Visualize the solution and meshes.
-    VonMisesFilter stress(&sln_x_coarse, &sln_y_coarse, mu, lambda);
+    VonMisesFilter stress(&x_sln_coarse, &y_sln_coarse, mu, lambda);
     //sview.set_min_max_range(0, 3e4);
     sview.show(&stress, H2D_EPS_HIGH);
     xoview.show(&xdisp);
     yoview.show(&ydisp);
 
-    // Time measurement.
+    // Skip visualization time. 
     cpu_time.tick(H2D_SKIP);
 
-    // Solve the fine mesh problem.
-    RefSystem rs(&ls);
-    rs.assemble();
-    rs.solve(2, &sln_x_fine, &sln_y_fine);
-
     // Calculate error estimate wrt. fine mesh solution in energy norm.
+    info("Calculating error (est).");
     H1Adapt hp(Tuple<Space*>(&xdisp, &ydisp));
-    hp.set_solutions(Tuple<Solution*>(&sln_x_coarse, &sln_y_coarse), Tuple<Solution*>(&sln_x_fine, &sln_y_fine));
+    hp.set_solutions(Tuple<Solution*>(&x_sln_coarse, &y_sln_coarse), Tuple<Solution*>(&x_sln_fine, &y_sln_fine));
     hp.set_biform(0, 0, bilinear_form_0_0<scalar, scalar>, bilinear_form_0_0<Ord, Ord>);
     hp.set_biform(0, 1, bilinear_form_0_1<scalar, scalar>, bilinear_form_0_1<Ord, Ord>);
     hp.set_biform(1, 0, bilinear_form_1_0<scalar, scalar>, bilinear_form_1_0<Ord, Ord>);
@@ -183,7 +198,7 @@ int main(int argc, char* argv[])
          xdisp.get_num_dofs(), rs.get_space(0)->get_num_dofs());
     info("ndof_y_coarse: %d, ndof_y_fine: %d", 
          ydisp.get_num_dofs(), rs.get_space(1)->get_num_dofs());
-    info("err_est: %g%%", err_est);
+    info("ndof: %d, err_est: %g%%", xdisp.get_num_dofs() + ydisp.get_num_dofs(), err_est);
 
     // Add entry to DOF convergence graph.
     graph_dof.add_values(xdisp.get_num_dofs() + ydisp.get_num_dofs(), err_est);
@@ -196,6 +211,7 @@ int main(int argc, char* argv[])
     // If err_est too large, adapt the mesh.
     if (err_est < ERR_STOP || xdisp.get_num_dofs() + ydisp.get_num_dofs() >= NDOF_STOP) done = true;
     else {
+      info("Adapting the coarse mesh.");
       done = hp.adapt(&selector, MULTI ? THRESHOLD_MULTI : THRESHOLD_SINGLE, STRATEGY, MESH_REGULARITY, SAME_ORDERS);
       ndof = assign_dofs(2, &xdisp, &ydisp);
       if (ndof >= NDOF_STOP) done = true;

@@ -135,7 +135,7 @@ double er(int marker, Ord x, Ord y)
 
 int main(int argc, char* argv[])
 {
-  // Time measurement
+  // Time measurement.
   TimePeriod cpu_time;
   cpu_time.tick();
 
@@ -248,10 +248,10 @@ int main(int argc, char* argv[])
     graph_cpu_est.save("conv_cpu_est.dat");
 
     // If err_est_adapt too large, adapt the mesh.
-    if (err_est_adapt < ERR_STOP) done = true;
+    if (err_est_hcurl < ERR_STOP) done = true;
     else {
       info("Adapting coarse mesh.");
-      hp.adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY);
+      done = hp.adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY);
       ndof = assign_dofs(&space);
       if (ndof >= NDOF_STOP) done = true;
     }
@@ -260,6 +260,10 @@ int main(int argc, char* argv[])
   }
   while (done == false);
   verbose("Total running time: %g s", cpu_time.accumulated());
+
+  // Show the fine mesh solution - the final result
+  eview.set_title("Final solution");
+  eview.show(&sln_fine);
 
   // Wait for all views to be closed.
   View::wait();

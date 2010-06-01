@@ -8,54 +8,57 @@
 using namespace RefinementSelectors;
 
 // This example solves adaptively a time-dependent coupled problem of heat and moisture 
-// transfer in massive concrete walls of a nuclear reactor vessel. 
+// transfer in massive concrete walls of a nuclear reactor vessel (simplified axi-symmetric 
+// geometry). 
 //
 // PDE: Lengthy. See the paper P. Solin, L. Dubcova, J. Kruis: Adaptive hp-FEM with Dynamical 
 // Meshes for Transient Heat and Moisture Transfer Problems, J. Comput. Appl. Math. 233 (2010) 3103-3112.
 //
 // The following parameters can be changed:
 
-const int P_INIT = 1;            // Initial polynomial degrees.
-const bool MULTI = true;         // MULTI = true  ... use multi-mesh,
-                                 // MULTI = false ... use single-mesh.
-                                 // Note: In the single mesh option, the meshes are
-                                 // forced to be geometrically the same but the
-                                 // polynomial degrees can still vary.
-const bool SAME_ORDERS = true;   // SAME_ORDERS = true ... when single-mesh is used,
-                                 // this forces the meshes for all components to be
-                                 // identical, including the polynomial degrees of
-                                 // corresponding elements. When multi-mesh is used,
-                                 // this parameter is ignored.
-const double THRESHOLD = 0.3;    // This is a quantitative parameter of the adapt(...) function and
-                                 // it has different meanings for various adaptive strategies (see below).
-const int STRATEGY = 1;          // Adaptive strategy:
-                                 // STRATEGY = 0 ... refine elements until sqrt(THRESHOLD) times total
-                                 //   error is processed. If more elements have similar errors, refine
-                                 //   all to keep the mesh symmetric.
-                                 // STRATEGY = 1 ... refine all elements whose error is larger
-                                 //   than THRESHOLD times maximum element error.
-                                 // STRATEGY = 2 ... refine all elements whose error is larger
-                                 //   than THRESHOLD.
-                                 // More adaptive strategies can be created in adapt_ortho_h1.cpp.
+const bool SOLVE_ON_COARSE_MESH = false; // If true, coarse mesh FE problem is solved in every adaptivity step.
+                                         // If false, projection of the fine mesh solution on the coarse mesh is used. 
+const int P_INIT = 1;                    // Initial polynomial degrees.
+const bool MULTI = true;                 // MULTI = true  ... use multi-mesh,
+                                         // MULTI = false ... use single-mesh.
+                                         // Note: In the single mesh option, the meshes are
+                                         // forced to be geometrically the same but the
+                                         // polynomial degrees can still vary.
+const bool SAME_ORDERS = true;           // SAME_ORDERS = true ... when single-mesh is used,
+                                         // this forces the meshes for all components to be
+                                         // identical, including the polynomial degrees of
+                                         // corresponding elements. When multi-mesh is used,
+                                         // this parameter is ignored.
+const double THRESHOLD = 0.3;            // This is a quantitative parameter of the adapt(...) function and
+                                         // it has different meanings for various adaptive strategies (see below).
+const int STRATEGY = 1;                  // Adaptive strategy:
+                                         // STRATEGY = 0 ... refine elements until sqrt(THRESHOLD) times total
+                                         //   error is processed. If more elements have similar errors, refine
+                                         //   all to keep the mesh symmetric.
+                                         // STRATEGY = 1 ... refine all elements whose error is larger
+                                         //   than THRESHOLD times maximum element error.
+                                         // STRATEGY = 2 ... refine all elements whose error is larger
+                                         //   than THRESHOLD.
+                                         // More adaptive strategies can be created in adapt_ortho_h1.cpp.
 const CandList CAND_LIST = H2D_HP_ANISO; // Predefined list of element refinement candidates. Possible values are
                                          // H2D_P_ISO, H2D_P_ANISO, H2D_H_ISO, H2D_H_ANISO, H2D_HP_ISO,
                                          // H2D_HP_ANISO_H, H2D_HP_ANISO_P, H2D_HP_ANISO.
                                          // See User Documentation for details.
-const int MESH_REGULARITY = -1;  // Maximum allowed level of hanging nodes:
-                                 // MESH_REGULARITY = -1 ... arbitrary level hangning nodes (default),
-                                 // MESH_REGULARITY = 1 ... at most one-level hanging nodes,
-                                 // MESH_REGULARITY = 2 ... at most two-level hanging nodes, etc.
-                                 // Note that regular meshes are not supported, this is due to
-                                 // their notoriously bad performance.
-const double CONV_EXP = 1.0;     // Default value is 1.0. This parameter influences the selection of
-                                 // cancidates in hp-adaptivity. See get_optimal_refinement() for details.
-const double SPACE_TOL = 0.2;    // Stopping criterion for adaptivity (rel. error tolerance between the
-                                 // fine mesh and coarse mesh solution in percent).
-const int NDOF_STOP = 60000;     // Adaptivity process stops when the number of degrees of freedom grows over
-                                 // this limit. This is mainly to prevent h-adaptivity to go on forever.
+const int MESH_REGULARITY = -1;          // Maximum allowed level of hanging nodes:
+                                         // MESH_REGULARITY = -1 ... arbitrary level hangning nodes (default),
+                                         // MESH_REGULARITY = 1 ... at most one-level hanging nodes,
+                                         // MESH_REGULARITY = 2 ... at most two-level hanging nodes, etc.
+                                         // Note that regular meshes are not supported, this is due to
+                                         // their notoriously bad performance.
+const double CONV_EXP = 1.0;             // Default value is 1.0. This parameter influences the selection of
+                                         // cancidates in hp-adaptivity. See get_optimal_refinement() for details.
+const double SPACE_TOL = 0.2;            // Stopping criterion for adaptivity (rel. error tolerance between the
+                                         // fine mesh and coarse mesh solution in percent).
+const int NDOF_STOP = 60000;             // Adaptivity process stops when the number of degrees of freedom grows over
+                                         // this limit. This is mainly to prevent h-adaptivity to go on forever.
 
 // Time step and simulation time.
-const double TAU = 5.*24*60*60;           // time step: 120 hours
+const double TAU = 5.*24*60*60;                 // time step: 120 hours
 const double SIMULATION_TIME = 3600*24*365*30;  // (seconds) physical time
 
 // Equation parameters.
@@ -112,15 +115,15 @@ scalar essential_bc_values(int ess_bdy_marker, double x, double y)
 
 int main(int argc, char* argv[])
 {
-  // Load the master mesh.
-  Mesh basemesh, temp_mesh, moist_mesh;
+  // Load the mesh.
+  Mesh basemesh, mesh_T, mesh_M;
   H2DReader mloader;
   mloader.load("domain2.mesh", &basemesh);
 
   // Create temperature and moisture meshes.
   // This also initializes the multimesh hp-FEM.
-  temp_mesh.copy(&basemesh);
-  moist_mesh.copy(&basemesh);
+  mesh_T.copy(&basemesh);
+  mesh_M.copy(&basemesh);
 
   // Initialize the shapeset and the cache.
   H1Shapeset shapeset;
@@ -128,20 +131,24 @@ int main(int argc, char* argv[])
   PrecalcShapeset pss2(&shapeset);
 
   // Create the temperature space.
-  H1Space temp(&temp_mesh, &shapeset);
-  temp.set_bc_types(temp_bc_type);
-  temp.set_essential_bc_values(essential_bc_values);
-  temp.set_uniform_order(P_INIT);
+  H1Space space_T(&mesh_T, &shapeset);
+  space_T.set_bc_types(temp_bc_type);
+  space_T.set_essential_bc_values(essential_bc_values);
+  space_T.set_uniform_order(P_INIT);
 
   // Create the moisture space.
-  H1Space moist(MULTI ? &moist_mesh : &temp_mesh, &shapeset);
-  moist.set_bc_types(moist_bc_type);
-  moist.set_uniform_order(P_INIT);
+  H1Space space_M(MULTI ? &mesh_M : &mesh_T, &shapeset);
+  space_M.set_bc_types(moist_bc_type);
+  space_M.set_uniform_order(P_INIT);
 
-  // Define initial conditions.
-  Solution temp_prev, moist_prev;
-  temp_prev.set_const(&temp_mesh, TEMP_INITIAL);
-  moist_prev.set_const(&moist_mesh, MOIST_INITIAL);
+  // Enumerate degrees of freedom.
+  int ndof = assign_dofs(2, &space_T, &space_M);
+
+  // Define constant initial conditions.
+  info("Setting initial conditions.");
+  Solution T_prev, M_prev;
+  T_prev.set_const(&mesh_T, TEMP_INITIAL);
+  M_prev.set_const(&mesh_M, MOIST_INITIAL);
 
   // Initialize the weak formulation.
   WeakForm wf(2);
@@ -149,32 +156,33 @@ int main(int argc, char* argv[])
   wf.add_biform(0, 1, callback(bilinear_form_sym_0_1));
   wf.add_biform(1, 1, callback(bilinear_form_sym_1_1));
   wf.add_biform(1, 0, callback(bilinear_form_sym_1_0));
-  wf.add_liform(0, callback(linear_form_0), H2D_ANY, 1, &temp_prev);
-  wf.add_liform(1, callback(linear_form_1), H2D_ANY, 1, &moist_prev);
+  wf.add_liform(0, callback(linear_form_0), H2D_ANY, 1, &T_prev);
+  wf.add_liform(1, callback(linear_form_1), H2D_ANY, 1, &M_prev);
   wf.add_biform_surf(0, 0, callback(bilinear_form_surf_0_0_ext), MARKER_EXTERIOR_WALL);
   wf.add_biform_surf(1, 1, callback(bilinear_form_surf_1_1_ext), MARKER_EXTERIOR_WALL);
   wf.add_liform_surf(0, callback(linear_form_surf_0_ext), MARKER_EXTERIOR_WALL);
   wf.add_liform_surf(1, callback(linear_form_surf_1_ext), MARKER_EXTERIOR_WALL);
 
-  // Visualize solution and meshes.
-  ScalarView temp_view("Temperature [K]", 0, 0, 500, 700);
-  OrderView temp_ord("Temperature mesh", 520, 0, 500, 700);
-  ScalarView moist_view("Moisture [-]", 1040, 0, 500, 700);
-  OrderView moist_ord("Moisture mesh", 1560, 0, 500, 700);
+  // Initialize views.
+  ScalarView temp_view("Temperature [K]", 0, 0, 280, 400);
+  OrderView temp_ord("Temperature mesh", 300, 0, 280, 400);
+  ScalarView moist_view("Moisture [-]", 600, 0, 280, 400);
+  OrderView moist_ord("Moisture mesh", 900, 0, 280, 400);
   temp_view.set_min_max_range(TEMP_INITIAL, TEMP_REACTOR_MAX);
   moist_view.set_min_max_range(MOIST_EXTERIOR, MOIST_INITIAL);
   temp_view.show_mesh(false);
   moist_view.show_mesh(false);
 
-  // Initialize the coarse mesh problem.
+  // Matrix solver.
   UmfpackSolver umfpack;
+
+  // Initialize the coarse mesh problem.
   LinSystem ls(&wf, &umfpack);
-  ls.set_spaces(2, &temp, &moist);
+  ls.set_spaces(2, &space_T, &space_M);
   ls.set_pss(2, &pss1, &pss2);
 
   // Solutions.
-  Solution temp_sln, moist_sln;
-  Solution temp_rsln, moist_rsln;
+  Solution T_coarse, M_coarse, T_fine, M_fine;
 
   // Initialize refinement selector.
   H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER, &shapeset);
@@ -184,15 +192,15 @@ int main(int argc, char* argv[])
   static int ts = 1;
   while (CURRENT_TIME < SIMULATION_TIME)
   {
-    info("---- Physical time = %g s (%d h, %d d, %d y)",
+    info("Physical time = %g s (%d h, %d d, %d y)",
         (CURRENT_TIME + TAU), (int) (CURRENT_TIME + TAU) / 3600,
         (int) (CURRENT_TIME + TAU) / (3600*24), (int) (CURRENT_TIME + TAU) / (3600*24*364));
 
     // Uniform mesh derefinement.
-    temp_mesh.copy(&basemesh);
-    moist_mesh.copy(&basemesh);
-    temp.set_uniform_order(P_INIT);
-    moist.set_uniform_order(P_INIT);
+    mesh_T.copy(&basemesh);
+    mesh_M.copy(&basemesh);
+    space_T.set_uniform_order(P_INIT);
+    space_M.set_uniform_order(P_INIT);
 
     // Adaptivity loop (in space):
     int as = 1; bool done = false;
@@ -201,52 +209,64 @@ int main(int argc, char* argv[])
       info("---- Time step %d, adaptivity step %d:", ts, as);
 
       // Enumerate degrees of freedom and update time-dependent Dirichlet BCs.
-      int ndof = assign_dofs(2, &temp, &moist);
-
-      // Solve the coarse mesh problem.
-      ls.assemble();
-      ls.solve(2, &temp_sln, &moist_sln);
+      int ndof = assign_dofs(2, &space_T, &space_M);
 
       // Solve the fine mesh problem.
       RefSystem rs(&ls);
+      info("Solving on fine meshes.");
       rs.assemble();
-      rs.solve(2, &temp_rsln, &moist_rsln);
+      rs.solve(2, &T_fine, &M_fine);
+
+      // Either solve on coarse mesh or project the fine mesh solution 
+      // on the coarse mesh.
+      if (SOLVE_ON_COARSE_MESH) {
+        info("Solving on coarse meshes.");
+        ls.assemble();
+        ls.solve(2, &T_coarse, &M_coarse);
+      }
+      else {
+        info("Projecting fine mesh solutions on coarse meshes.");
+        ls.project_global(&T_fine, &M_fine, &T_coarse, &M_coarse);
+      }
 
       // Visualize the solution and meshes.
       char title[100];
-      sprintf(title, "Temperature mesh, time = %g days", CURRENT_TIME/86400.);
+      sprintf(title, "T mesh (coarse), time = %g days", CURRENT_TIME/86400.);
       temp_ord.set_title(title);
-      temp_ord.show(&temp);
-      sprintf(title, "Moisture mesh, time = %g days", CURRENT_TIME/86400.);
+      temp_ord.show(&space_T);
+      sprintf(title, "M mesh (coarse), time = %g days", CURRENT_TIME/86400.);
       moist_ord.set_title(title);
-      moist_ord.show(&moist);
-      sprintf(title, "Temperature, time = %g days", CURRENT_TIME/86400.);
+      moist_ord.show(&space_M);
+      sprintf(title, "T (coarse mesh), time = %g days", CURRENT_TIME/86400.);
       temp_view.set_title(title);
-      temp_view.show(&temp_sln, H2D_EPS_HIGH);
-      sprintf(title, "Moisture, time = %g days", CURRENT_TIME/86400.);
+      temp_view.show(&T_coarse, H2D_EPS_HIGH);
+      sprintf(title, "M (coarse mesh), time = %g days", CURRENT_TIME/86400.);
       moist_view.set_title(title);
-      moist_view.show(&moist_sln, H2D_EPS_HIGH);
+      moist_view.show(&M_coarse, H2D_EPS_HIGH);
 
-      // Calculate element errors and total error estimate.
-      H1Adapt hp(Tuple<Space*>(&temp, &moist));
-      hp.set_solutions(Tuple<Solution*>(&temp_sln, &moist_sln), Tuple<Solution*>(&temp_rsln, &moist_rsln));
+      // Calculate error estimates.
+      info("Calculating errors.");
+      double T_err_est = h1_error(&T_coarse, &T_fine) * 100;
+      double M_err_est = h1_error(&M_coarse, &M_fine) * 100;
+      info("T: ndof_coarse: %d, ndof_fine: %d, err_est: %g %%", 
+	   space_T.get_num_dofs(), rs.get_space(0)->get_num_dofs(), T_err_est);
+      info("M: ndof_coarse: %d, ndof_fine: %d, err_est: %g %%", 
+	   space_M.get_num_dofs(), rs.get_space(0)->get_num_dofs(), M_err_est);
+
+      // Calculate errors for adaptivity.
+      H1Adapt hp(Tuple<Space*>(&space_T, &space_M));
+      hp.set_solutions(Tuple<Solution*>(&T_coarse, &M_coarse), Tuple<Solution*>(&T_fine, &M_fine));
       hp.set_biform(0, 0, callback(bilinear_form_sym_0_0));
       hp.set_biform(0, 1, callback(bilinear_form_sym_0_1));
       hp.set_biform(1, 0, callback(bilinear_form_sym_1_0));
       hp.set_biform(1, 1, callback(bilinear_form_sym_1_1));
       double space_err_est = hp.calc_error(H2D_TOTAL_ERROR_REL | H2D_ELEMENT_ERROR_REL) * 100;
 
-      // Report results.
-      info("ndof_temp_coarse: %d, ndof_temp_fine: %d", 
-           temp.get_num_dofs(), rs.get_space(0)->get_num_dofs());
-      info("ndof_moist_coarse: %d, ndof_moist_fine: %d", 
-           moist.get_num_dofs(), rs.get_space(1)->get_num_dofs());
-      info("space_err_est: %g%%", space_err_est);
-
       // If err_est too large, adapt the mesh.
       if (space_err_est > SPACE_TOL) {
+        info("Adapting coarse meshes.");
         done = hp.adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY, SAME_ORDERS);
-        ndof = assign_dofs(2, &temp, &moist);
+        ndof = assign_dofs(2, &space_T, &space_M);
         if (ndof >= NDOF_STOP) done = true;
       }
       else done = true;
@@ -259,8 +279,8 @@ int main(int argc, char* argv[])
     CURRENT_TIME += TAU;
 
     // Save solutions for the next time step.
-    temp_prev = temp_rsln;
-    moist_prev = moist_rsln;
+    T_prev = T_fine;
+    M_prev = M_fine;
 
     ts++;
   }
