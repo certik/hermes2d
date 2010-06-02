@@ -439,7 +439,7 @@ Nurbs* H2DReader::load_nurbs(Mesh *mesh, MItem* curve, int id, Node** en, int &p
 
   // get the number of knot vector points
   inner = 0;
-  MItem* knot;
+  MItem* knot=pts;
   if (!circle && knot != NULL)
   {
     knot = pts->next;

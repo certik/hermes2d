@@ -319,7 +319,7 @@ int main(int argc, char* argv[])
         yvel_crs.copy(&yvel_prev_newton);
 
         it = 0;
-        RefNonlinSystem refnls(&nls, 0);
+        RefSystem refnls(&nls, 0);
         refnls.prepare();
         do
         {

@@ -3,12 +3,21 @@
 # file for the exact terms).
 # Email: hermes1d@googlegroups.com, home page: http://hpfem.org/
 
+from ref cimport PyObject, Py_INCREF, Py_DECREF
+
 ctypedef double complex cplx
 
 
 cdef extern from *:
     ctypedef char* char_p       "char*"
     ctypedef char* const_char_p "const char*"
+
+    # This is just the C++ "delete" statement
+    void delete(...)
+
+cdef extern from "Python.h":
+    ctypedef struct RichPyTypeObject "PyTypeObject":
+        object tp_new(RichPyTypeObject*, object, PyObject*)
 
 
 cdef extern from "math.h":
@@ -70,19 +79,7 @@ cdef extern from "arrayobject.h":
     void import_array()
 
 
-cdef extern from "Python.h":
-    ctypedef void PyObject
-    void Py_INCREF(PyObject *x)
-    void Py_DECREF(PyObject *x)
-
-
 cdef extern from "stdcython.h":
-    void init_global_empty_tuple()
-    object PY_NEW(object t)
-
-    # This is just the C++ "delete" statement
-    void delete(...)
-
     void throw_exception(char *msg)
 
 cdef extern from "matrix.h":
@@ -128,3 +125,5 @@ cdef extern from "matrix.h":
 
 cdef api object c2numpy_int(int *A, int len)
 cdef api object c2numpy_double(double *A, int len)
+
+cdef inline PY_NEW(T)

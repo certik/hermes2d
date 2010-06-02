@@ -441,9 +441,5 @@ extern H2D_API void throw_exception(char *text);
    tests in Traverse:begin(). */ 
 //#define H2D_DISABLE_MULTIMESH_TESTS
 
-// To avoid compilation warnings:
-#undef _XOPEN_SOURCE
-#undef _POSIX_C_SOURCE
-
 #endif
 

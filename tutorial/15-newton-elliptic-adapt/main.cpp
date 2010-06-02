@@ -198,7 +198,7 @@ int main(int argc, char* argv[])
     cpu_time.tick(H2D_SKIP);
 
     // Initialize fine mesh problem.
-    RefNonlinSystem rnls(&nls);
+    RefSystem rnls(&nls);
     rnls.prepare();
 
     // Set initial condition for the Newton's method on the fine mesh.

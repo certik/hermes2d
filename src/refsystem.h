@@ -17,6 +17,7 @@
 #define __H2D_REFSYSTEM_H
 
 #include "linsystem.h"
+#include "nonlinsystem.h"
 
 class Mesh;
 class ExactSolution;
@@ -24,7 +25,7 @@ class ExactSolution;
 ///
 ///
 ///
-class H2D_API RefSystem : public LinSystem
+class H2D_API RefSystem : public NonlinSystem
 {
 public:
   RefSystem(LinSystem* base, int order_increase = 1, int refinement = 1);
@@ -52,6 +53,7 @@ protected:
   LinSystem* base;
   int order_increase;
   int refinement;
+  bool linear;
 };
 
 

@@ -270,7 +270,7 @@ void solveAdaptive(Mesh &Cmesh, Mesh &phimesh, Mesh &basemesh, NonlinSystem &nls
     double err;
     do {
       // Loop for fine mesh solution
-      RefNonlinSystem rs(&nls);
+      RefSystem rs(&nls);
       rs.prepare();
 
       if (at == 1) rs.project_global(&Csln_coarse, &phisln_coarse, &C_prev_newton, &phi_prev_newton);

@@ -20,15 +20,25 @@
 #include "refsystem.h"
 #include "solution.h"
 
-RefSystem::RefSystem(LinSystem* base, int order_increase, int refinement)
-         : LinSystem(base->wf, base->solver)
+RefSystem::RefSystem(LinSystem* base, int order_increase,
+    int refinement) : NonlinSystem(base->wf, base->solver)
 {
   this->base = base;
   this->spaces = NULL;
-  this->num_spaces = base->num_spaces;
+  this->num_spaces = base->get_num_spaces();
   this->order_increase = order_increase;
   this->refinement = refinement;
+  this->linear = base->is_linear();
+
+  // Have to set it manually as Nonlinsystem constructor
+  // always sets it false;
+  if (this->linear) {
+    this->want_dir_contrib = true;
+  } else {
+    this->want_dir_contrib = false;
+  }
 }
+
 
 RefSystem::~RefSystem()
 {
@@ -56,7 +66,11 @@ void RefSystem::assemble(bool rhsonly)
   prepare();
 
   // call LinSystem's assemble() function.
-  LinSystem::assemble(rhsonly);
+  if (!linear) {
+    NonlinSystem::assemble(rhsonly);
+  } else {
+    LinSystem::assemble(rhsonly);
+  }
 }
 
 void RefSystem::prepare()
