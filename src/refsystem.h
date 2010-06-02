@@ -35,44 +35,23 @@ public:
   /// Do not call in this class
   void set_pss(int n, ...);
 
-  /// Sets different order increases for components
-  /// The length of array "order_increase" must be equal to the number of equations
-  void set_order_increase(int* order_increase);
+  /// Sets order increases (same for all components)
+  void set_order_increase(int order_increase);
 
   /// Creates reference (fine) meshes and spaces and assembles the
   /// reference system.
   void assemble(bool rhsonly = false);
 
-  /// Copies and refines meshes from coarse mesh linsystem
+  /// Copies and refines meshes from the base linsystem
   void prepare();
 
   bool solve_exact(scalar (*exactfn)(double x, double y, scalar& dx, scalar& dy), Solution* sln);
 
-  /// Frees reference spaces and meshes. Called
-  /// automatically on desctruction.
-  void free_meshes_and_spaces();
-
-  /// Gets pointer to reference space [i]
-  Space* get_ref_space(int i = 0) {return ref_spaces[i];}
-
-  /// Gets number of DOF in reference space 'i'
-  int get_num_dofs(int i) {return ref_spaces[i]->get_num_dofs();}
-
-  /// Gets total number of DOF in the reference system.
-  int get_num_dofs();
-
-  /// Gets pointer to reference mesh [i]
-  Mesh* get_ref_mesh(int i=0) {return ref_meshes[i];}
-
 protected:
 
   LinSystem* base;
-  int order_inc[1000];   // FIXME: this should be done using dynamic allocation.
+  int order_increase;
   int refinement;
-
-  Mesh**  ref_meshes;
-  Space** ref_spaces;
-
 };
 
 

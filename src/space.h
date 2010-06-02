@@ -159,6 +159,9 @@ public:
 
 public:
 
+  /// FE mesh
+  Mesh* mesh;
+
   /// Obtains an assembly list for the given element.
   void get_element_assembly_list(Element* e, AsmList* al);
 
@@ -169,7 +172,6 @@ protected:
   static const int H2D_UNASSIGNED_DOF = -2; ///< DOF which was not assigned yet.
   static const int H2D_CONSTRAINED_DOF = -1; ///< DOF which is constrained.
 
-  Mesh* mesh;
   Shapeset* shapeset;
 
   int default_tri_order, default_quad_order;

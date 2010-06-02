@@ -30,39 +30,82 @@ void qsort_int(int* pbase, size_t total_elems); // defined in qsort.cpp
 
 //// interface /////////////////////////////////////////////////////////////////////////////////////
 
-LinSystem::LinSystem(WeakForm* wf, Solver* solver)
+LinSystem::LinSystem(WeakForm* wf_, Solver* solver_)
 {
-  this->wf = wf;
-  this->solver = solver;
-  slv_ctx = solver ? solver->new_context(false) : NULL;
+  this->wf = wf_;
+  this->solver = solver_;
+  slv_ctx = this->solver ? this->solver->new_context(false) : NULL;
 
-  RHS = Dir = Vec = NULL;
+  this->RHS = this->Dir = this->Vec = NULL;
   this->A = NULL;
-  mat_sym = false;
+  this->mat_sym = false;
 
-  spaces = new Space*[wf->neq];
-  sp_seq = new int[wf->neq];
-  wf_seq = -1;
+  this->num_spaces = this->wf->neq;
+  this->spaces = new Space*[this->wf->neq];
+  for (int i=0; i<this->wf->neq; i++) this->spaces[i] = NULL;
+  this->meshes = new Mesh*[this->wf->neq];
+  for (int i=0; i<this->wf->neq; i++) this->meshes[i] = NULL;
+  this->sp_seq = new int[this->wf->neq];
+  this->wf_seq = -1;
   memset(sp_seq, -1, sizeof(int) * wf->neq);
-  pss = new PrecalcShapeset*[wf->neq];
-  num_user_pss = 0;
+  this->pss = new PrecalcShapeset*[this->wf->neq];
+  for (int i=0; i<this->wf->neq; i++) this->pss[i] = NULL;
+  this->num_user_pss = 0;
 
-  values_changed = true;
-  struct_changed = true;
-  have_spaces = false;
-  want_dir_contrib = true;
+  this->values_changed = true;
+  this->struct_changed = true;
+  this->have_spaces = false;
+  this->want_dir_contrib = true;
 }
 
 
 LinSystem::~LinSystem()
 {
   free();
-  delete [] spaces;
-  delete [] sp_seq;
-  delete [] pss;
-  if (solver) solver->free_context(slv_ctx);
+  /* FIXME SOON - this is a huge memory leak. Uncommenting 
+     this was causing a double-free segfault. */
+  //free_meshes_and_spaces();
+  if (this->sp_seq != NULL) delete [] this->sp_seq;
+  if (this->pss != NULL) delete [] this->pss;
+  if (this->solver) this->solver->free_context(this->slv_ctx);
 }
 
+void LinSystem::free_meshes_and_spaces()
+{
+  // free spaces, making sure that duplicated ones do not get deleted twice
+  if (spaces != NULL)
+  {
+    for (int i = 0; i < this->num_spaces; i++) {
+      for (int j = i+1; j < this->num_spaces; j++) {
+        if (spaces[j] == spaces[i]) spaces[j] = NULL;
+      }
+    }
+    for (int i = 0; i < this->num_spaces; i++) {
+      if (spaces[i] != NULL) {
+        delete spaces[i];
+        spaces[i] = NULL;
+      }
+    }
+    //spaces = NULL;
+  }
+
+  // free meshes, making sure that duplicated ones do not get deleted twice
+  if (meshes != NULL)
+  {
+    for (int i = 0; i < this->num_spaces; i++) {
+      for (int j = i+1; j < this->num_spaces; j++) {
+        if (meshes[j] == meshes[i]) meshes[j] = NULL;
+      }
+    }
+    for (int i = 0; i < this->num_spaces; i++) {
+      if (meshes[i] != NULL) {
+        delete meshes[i];
+        meshes[i] = NULL;
+      }
+    }
+    //meshes = NULL;
+  }
+} 
 
 void LinSystem::set_spaces(int n, ...)
 {
@@ -70,8 +113,11 @@ void LinSystem::set_spaces(int n, ...)
   num_spaces = n;
   va_list ap;
   va_start(ap, n);
-  for (int i = 0; i < wf->neq; i++)
+  // set spaces and meshes at the same time
+  for (int i = 0; i < wf->neq; i++) {
     spaces[i] = (i < n) ? va_arg(ap, Space*) : spaces[n-1];
+    meshes[i] = (i < n) ? spaces[i]->mesh : spaces[n-1]->mesh;
+  }
   va_end(ap);
   memset(sp_seq, -1, sizeof(int) * wf->neq);
   have_spaces = true;
@@ -81,6 +127,7 @@ void LinSystem::set_space(Space* s)
 {
   num_spaces = 1; 
   spaces[0] = s;
+  meshes[0] = s->mesh;
   memset(sp_seq, -1, sizeof(int) * wf->neq);
   have_spaces = true;
 }
