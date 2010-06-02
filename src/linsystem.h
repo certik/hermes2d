@@ -56,8 +56,12 @@ public:
       if (n < 0 || n >= this->wf->neq) error("Bad index of precalc shapeset.");
       return this->pss[n];
   }
+  
+  /// Helps to determine if linear or nonlinear class instance is used
+  /// similar to Java instanceof functionality
+  virtual bool is_linear() { return true; }
 
-  void assemble(bool rhsonly = false);
+  virtual void assemble(bool rhsonly = false);
   void assemble_rhs_only() { assemble(true); }
   bool solve(int n, ...);
   bool solve(Solution* sln); // single equation case

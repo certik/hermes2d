@@ -227,7 +227,7 @@ int main(int argc, char* argv[])
       info("---- Time step %d, adaptivity step %d:", ts, as);
 
       // Initialize reference nonlinear system.
-      RefNonlinSystem rnls(&nls);
+      RefSystem rnls(&nls);
       rnls.prepare();
 
       // Set initial condition for the Newton's method on the fine mesh.

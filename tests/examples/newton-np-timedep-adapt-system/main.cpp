@@ -179,7 +179,7 @@ bool solveAdaptive(Mesh &Cmesh, Mesh &phimesh, Mesh &basemesh, NonlinSystem &nls
 
       it = 1;
       // Loop for fine mesh solution
-      RefNonlinSystem rs(&nls);
+      RefSystem rs(&nls);
       rs.prepare();
       if (n > 1 || at > 1) {
         rs.project_global(&Csln_fine, &phisln_fine, &Ci, &phii);
