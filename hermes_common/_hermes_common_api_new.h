@@ -2,6 +2,11 @@
 
 #ifndef __PYX_HAVE_API___hermes_common
 #define __PYX_HAVE_API___hermes_common
+
+// To avoid compilation warnings:
+#undef _XOPEN_SOURCE
+#undef _POSIX_C_SOURCE
+
 #include "Python.h"
 
 #include <complex>
