@@ -565,14 +565,6 @@ h-FEM:
    :height: 400
    :alt: DOF convergence graph.
 
-Heat and Moisture Transfer in Concrete
---------------------------------------
-
-**Git reference:** Tutorial example `23-newton-timedep-gp-adapt 
-<http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/tutorial/23-newton-timedep-gp-adapt>`_.
-
-Description coming soon.
-
 Saphir (Neutronics)
 -------------------
 

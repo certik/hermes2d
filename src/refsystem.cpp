@@ -24,18 +24,15 @@ RefSystem::RefSystem(LinSystem* base, int order_increase, int refinement)
          : LinSystem(base->wf, base->solver)
 {
   this->base = base;
-  this->Vec = NULL;
-  this->RHS = NULL;
+  this->spaces = NULL;
   this->num_spaces = base->num_spaces;
-  for (int i = 0; i < this->num_spaces; i++) order_inc[i] = order_increase;
+  this->order_increase = order_increase;
   this->refinement = refinement;
-  ref_meshes = NULL;
-  ref_spaces = NULL;
 }
 
 RefSystem::~RefSystem()
 {
-  free_meshes_and_spaces();
+  // Nothing to do here, all is freed in the destructor to LinSystem.
 }
 
 void RefSystem::set_spaces(int n, ...)
@@ -48,23 +45,9 @@ void RefSystem::set_pss(int n, ...)
   error("Method set_pss must not be called in RefSystem.");
 }
 
-int RefSystem::get_num_dofs() 
+void RefSystem::set_order_increase(int order_increase)
 {
-  int n = 0;
-  for (int i=0; i < this->num_spaces; i++) {
-    n += ref_spaces[i]->get_num_dofs();
-  }
-  return n;
-}
-
-void RefSystem::set_order_increase(int* order_increase)
-{
-  for (int i = 0; i < this->num_spaces; i++)
-  {
-    if ((order_increase[i] < -5) || (order_increase[i] > 5))
-      error("Wrong length of array (must be equal to the number of equations).");
-    order_inc[i] = order_increase[i];
-  }
+  this->order_increase = order_increase;
 }
 
 void RefSystem::assemble(bool rhsonly)
@@ -84,8 +67,8 @@ void RefSystem::prepare()
   free_meshes_and_spaces();
 
   // create new meshes and spaces
-  ref_meshes = new Mesh*[this->num_spaces];
-  ref_spaces = new Space*[this->num_spaces];
+  meshes = new Mesh*[this->num_spaces];
+  spaces = new Space*[this->num_spaces];
 
   // copy meshes from the coarse problem and refine them
   for (i = 0; i < this->num_spaces; i++)
@@ -99,7 +82,7 @@ void RefSystem::prepare()
 
     if (j < i) // yes
     {
-      ref_meshes[i] = ref_meshes[j];
+      meshes[i] = meshes[j];
     }
     else // no, copy and refine the coarse one
     {
@@ -107,7 +90,7 @@ void RefSystem::prepare()
       rmesh->copy(mesh);
       if (refinement ==  1) rmesh->refine_all_elements();
       if (refinement == -1) rmesh->unrefine_all_elements();
-      ref_meshes[i] = rmesh;
+      meshes[i] = rmesh;
     }
   }
 
@@ -115,11 +98,11 @@ void RefSystem::prepare()
   int dofs = 0;
   for (i = 0; i < this->num_spaces; i++)
   {
-    ref_spaces[i] = base->spaces[i]->dup(ref_meshes[i]);
+    spaces[i] = base->spaces[i]->dup(meshes[i]);
     if (refinement == -1)
     {
       Element* re;
-      for_all_active_elements(re, ref_meshes[i])
+      for_all_active_elements(re, meshes[i])
       {
         Mesh* mesh = base->spaces[i]->get_mesh();
         Element* e = mesh->get_element(re->id);
@@ -143,22 +126,22 @@ void RefSystem::prepare()
         }
 
         //increase order and set it to element
-        max_order_h = std::max(1, max_order_h + order_inc[i]);
+        max_order_h = std::max(1, max_order_h + order_increase);
         if (re->is_triangle())
           max_order_v = 0;
         else
-          max_order_v = std::max(1, max_order_v + order_inc[i]);
-        ref_spaces[i]->set_element_order(re->id, H2D_MAKE_QUAD_ORDER(max_order_h, max_order_v));
+          max_order_v = std::max(1, max_order_v + order_increase);
+        spaces[i]->set_element_order(re->id, H2D_MAKE_QUAD_ORDER(max_order_h, max_order_v));
       }
     }
     else
-      ref_spaces[i]->copy_orders(base->spaces[i], order_inc[i]);
+      spaces[i]->copy_orders(base->spaces[i], order_increase);
 
-    dofs += ref_spaces[i]->assign_dofs(dofs);
+    dofs += spaces[i]->assign_dofs(dofs);
   }
 
   this->ndofs = dofs;
-  memcpy(spaces, ref_spaces, sizeof(Space*) * this->num_spaces);
+  memcpy(spaces, spaces, sizeof(Space*) * this->num_spaces);
   memcpy(pss, base->pss, sizeof(PrecalcShapeset*) * this->num_spaces);
   have_spaces = true;
 }
@@ -172,39 +155,9 @@ bool RefSystem::solve_exact(scalar (*exactfn)(double x, double y, scalar& dx , s
   //  error("'space' is not up to date.");
 
   //set mesh and function
-  sln->set_exact(ref_meshes[0], exactfn);
+  sln->set_exact(meshes[0], exactfn);
 
   return true;
 }
 
 
-void RefSystem::free_meshes_and_spaces()
-{
-  int i, j;
-
-  // free reference meshes
-  if (ref_meshes != NULL)
-  {
-    for (i = 0; i < this->num_spaces; i++)
-    {
-      for (j = 0; j < i; j++)
-        if (ref_meshes[j] == ref_meshes[i])
-          break;
-
-      if (i == j) delete ref_meshes[i];
-    }
-
-    delete [] ref_meshes;
-    ref_meshes = NULL;
-  }
-
-  // free reference spaces
-  if (ref_spaces != NULL)
-  {
-    for (i = 0; i < this->num_spaces; i++)
-      delete ref_spaces[i];
-
-    delete [] ref_spaces;
-    ref_spaces = NULL;
-  }
-}

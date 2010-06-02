@@ -45,11 +45,15 @@ public:
   void set_pss(PrecalcShapeset* p); // single equation case
   void copy(LinSystem* sys);
   Space* get_space(int n) {
-      //if (n < 0 || n >= this->wf->neq) error("Bad number of the space.");
+      if (n < 0 || n >= this->wf->neq) error("Bad index of space.");
       return this->spaces[n];
   }
+  Mesh* get_mesh(int n) {
+      if (n < 0 || n >= this->wf->neq) error("Bad index of mesh.");
+      return this->spaces[n]->mesh;
+  }
   PrecalcShapeset* get_pss(int n) {
-      //if (n < 0 || n >= this->wf->neq) error("Bad number of the space.");
+      if (n < 0 || n >= this->wf->neq) error("Bad index of precalc shapeset.");
       return this->pss[n];
   }
 
@@ -71,6 +75,7 @@ public:
   int get_num_dofs();
   int get_num_dofs(int i) {return this->spaces[i]->get_num_dofs();}
   int get_num_spaces() const { return num_spaces; };
+  int get_num_meshes() const { return num_spaces; };
   int get_matrix_size() const;
   void get_matrix(int*& Ap, int*& Ai, scalar*& Ax, int& size) const;
   void get_rhs(scalar*& RHS, int& size) const { RHS = this->RHS; size=ndofs; }
@@ -154,6 +159,10 @@ public:
     /// TODO
   }
 
+  /// Frees reference spaces and meshes. Called
+  /// automatically on desctruction.
+  void free_meshes_and_spaces();
+
 protected:
 
   WeakForm* wf;
@@ -161,6 +170,7 @@ protected:
   void* slv_ctx;
 
   Space** spaces;
+  Mesh** meshes;
   PrecalcShapeset** pss;
 
   int ndofs;
