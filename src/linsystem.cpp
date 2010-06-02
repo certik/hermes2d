@@ -19,6 +19,7 @@
 #include "traverse.h"
 #include "space.h"
 #include "precalc.h"
+#include "shapeset_h1_all.h"
 #include "refmap.h"
 #include "solution.h"
 #include "config.h"
@@ -75,14 +76,25 @@ void LinSystem::set_spaces(int n, ...)
   va_end(ap);
   memset(sp_seq, -1, sizeof(int) * wf->neq);
   have_spaces = true;
+  for (int i = 0; i < n; i++){
+    Shapeset *shapeset = spaces[i]->get_shapeset();
+    PrecalcShapeset *p = new PrecalcShapeset(shapeset);
+    pss[i] = p;
+  }
+  num_user_pss = n;
+
 }
 
 void LinSystem::set_space(Space* s)
 {
-  num_spaces = 1; 
+  num_spaces = 1;
   spaces[0] = s;
   memset(sp_seq, -1, sizeof(int) * wf->neq);
   have_spaces = true;
+  Shapeset *shapeset = spaces[0]->get_shapeset();
+  PrecalcShapeset *p = new PrecalcShapeset(shapeset);
+  pss[0] = p;
+  num_user_pss = 1;
 }
 
 void LinSystem::set_pss(int n, ...)
