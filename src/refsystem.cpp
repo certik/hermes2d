@@ -28,7 +28,15 @@ RefSystem::RefSystem(LinSystem* base, int order_increase,
   this->num_spaces = base->get_num_spaces();
   this->order_increase = order_increase;
   this->refinement = refinement;
-  this->nonlinear = !base->is_linear();
+  this->linear = base->is_linear();
+
+  // Have to set it manually as Nonlinsystem constructor
+  // always sets it false;
+  if (this->linear) {
+    this->want_dir_contrib = true;
+  } else {
+    this->want_dir_contrib = false;
+  }
 }
 
 
@@ -58,7 +66,7 @@ void RefSystem::assemble(bool rhsonly)
   prepare();
 
   // call LinSystem's assemble() function.
-  if (nonlinear) {
+  if (!linear) {
     NonlinSystem::assemble(rhsonly);
   } else {
     LinSystem::assemble(rhsonly);

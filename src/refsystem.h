@@ -53,7 +53,7 @@ protected:
   LinSystem* base;
   int order_increase;
   int refinement;
-  bool nonlinear;
+  bool linear;
 };
 
 
