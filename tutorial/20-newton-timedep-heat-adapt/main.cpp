@@ -127,9 +127,8 @@ int main(int argc, char* argv[])
   for(int i = 0; i < INIT_REF_NUM; i++) basemesh.refine_all_elements();
   mesh.copy(&basemesh);
 
-  // Initialize the shapeset and the cache.
+  // Initialize the shapeset.
   H1Shapeset shapeset;
-  PrecalcShapeset pss(&shapeset);
 
   // Create an H1 space.
   H1Space space(&mesh, &shapeset);
@@ -158,9 +157,7 @@ int main(int argc, char* argv[])
   UmfpackSolver solver;
 
   // Initialize the nonlinear system.
-  NonlinSystem nls(&wf, &solver);
-  nls.set_space(&space);
-  nls.set_pss(&pss);
+  NonlinSystem nls(&wf, &solver, &space);
 
   // Initialize views.
   ScalarView view("Initial condition", 0, 0, 410, 300);

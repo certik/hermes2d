@@ -27,14 +27,99 @@
 
 #include "python_solvers.h"
 
-NonlinSystem::NonlinSystem(WeakForm* wf, Solver* solver)
-            : LinSystem(wf, solver)
+void NonlinSystem::init_nonlin()
 {
   alpha = 1.0;
   res_l2 = res_l1 = res_max = -1.0;
 
-  // tell LinSystem not to add Dirichlet contributions to the RHS
+  // Tell LinSystem not to add Dirichlet contributions to the RHS.
+  // The reason for this is that in NonlinSystem the Jacobian matrix 
+  // is assembled, and the Dirichlet lift is cancelled by the derivative 
+  // with respect to the coefficient vector.
   want_dir_contrib = false;
+}
+
+NonlinSystem::NonlinSystem(WeakForm* wf, Solver* solver)
+            : LinSystem(wf, solver)
+{
+  init_nonlin();
+}
+
+NonlinSystem::NonlinSystem(WeakForm* wf)
+            : LinSystem(wf)
+{
+  init_nonlin();
+}
+
+NonlinSystem::NonlinSystem(WeakForm* wf, Solver* solver, Space *s)
+  : LinSystem(wf, solver, s)
+{
+  init_nonlin();
+}
+
+NonlinSystem::NonlinSystem(WeakForm* wf, Space *s)
+  : LinSystem(wf, s)
+{
+  init_nonlin();
+}
+
+// NOTE: there is some code duplication in the two constructors below.
+// FIXME: Ivo's Tuples should be used here, then the duplication can be avoided.
+NonlinSystem::NonlinSystem(WeakForm* wf, Solver* solver, int n, ...)
+{
+  this->init(wf, solver);
+  // set spaces, meshes and pss
+  if (n <= 0 || n > wf->neq) error("Bad number of spaces.");
+  this->num_spaces = n;
+  va_list ap;
+  va_start(ap, n);
+  // set spaces and meshes at the same time
+  for (int i = 0; i < wf->neq; i++) {
+    this->spaces[i] = (i < n) ? va_arg(ap, Space*) : this->spaces[n-1];
+    this->meshes[i] = (i < n) ? this->spaces[i]->mesh : this->spaces[n-1]->mesh;
+  }
+  va_end(ap);
+  memset(sp_seq, -1, sizeof(int) * wf->neq);
+  this->have_spaces = true;
+  for (int i = 0; i < n; i++){
+    if (this->pss[i] == NULL) {
+      Shapeset *shapeset = this->spaces[i]->get_shapeset();
+      PrecalcShapeset *p = new PrecalcShapeset(shapeset);
+      if (p == NULL) error("New PrecalcShapeset could not be allocated.");
+      this->pss[i] = p;
+      this->num_user_pss++;
+    }
+  }
+  this->init_nonlin();
+}
+
+NonlinSystem::NonlinSystem(WeakForm* wf, int n, ...)
+{
+  Solver* solver = NULL;
+  this->init(wf, solver);
+  // set spaces, meshes and pss
+  if (n <= 0 || n > wf->neq) error("Bad number of spaces.");
+  this->num_spaces = n;
+  va_list ap;
+  va_start(ap, n);
+  // set spaces and meshes at the same time
+  for (int i = 0; i < wf->neq; i++) {
+    this->spaces[i] = (i < n) ? va_arg(ap, Space*) : this->spaces[n-1];
+    this->meshes[i] = (i < n) ? this->spaces[i]->mesh : this->spaces[n-1]->mesh;
+  }
+  va_end(ap);
+  memset(sp_seq, -1, sizeof(int) * wf->neq);
+  this->have_spaces = true;
+  for (int i = 0; i < n; i++){
+    if (this->pss[i] == NULL) {
+      Shapeset *shapeset = this->spaces[i]->get_shapeset();
+      PrecalcShapeset *p = new PrecalcShapeset(shapeset);
+      if (p == NULL) error("New PrecalcShapeset could not be allocated.");
+      this->pss[i] = p;
+      this->num_user_pss++;
+    }
+  }
+  this->init_nonlin();
 }
 
 void NonlinSystem::free()

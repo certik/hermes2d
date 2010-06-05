@@ -118,7 +118,6 @@ int main(int argc, char* argv[])
 
   // Initialize the shapeset and the cache.
   H1Shapeset shapeset;
-  PrecalcShapeset pss(&shapeset);
 
   // Create an H1 space.
   H1Space space(&mesh, &shapeset);
@@ -144,12 +143,10 @@ int main(int argc, char* argv[])
   }
 
   // Matrix solver.
-  UmfpackSolver umfpack;
+  UmfpackSolver solver;
 
   // Initialize the nonlinear system.
-  NonlinSystem nls(&wf, &umfpack);
-  nls.set_space(&space);
-  nls.set_pss(&pss);
+  NonlinSystem nls(&wf, &solver, &space);
 
   // Initialize views.
   char title[100];

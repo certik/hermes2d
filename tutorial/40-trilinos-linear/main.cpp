@@ -65,9 +65,8 @@ int main(int argc, char **argv)
   // Perform initial mesh refinemets.
   for (int i=0; i < INIT_REF_NUM; i++)  mesh.refine_all_elements();
  
-  // Initialize shapeset and cache.
+  // Initialize shapeset.
   H1Shapeset shapeset;
-  PrecalcShapeset pss(&shapeset);
 
   // Create an H1 space.
   H1Space space(&mesh, &shapeset);
@@ -96,9 +95,7 @@ int main(int argc, char **argv)
   wf1.add_liform(callback(linear_form));
 
   // Initialize the linear system.
-  LinSystem ls(&wf1, &umfpack);
-  ls.set_space(&space);
-  ls.set_pss(&pss);
+  LinSystem ls(&wf1, &umfpack, &space);
 
   // Assemble and solve.
   info("Assembling by LinSystem, solving by UMFpack.");
@@ -132,9 +129,12 @@ int main(int argc, char **argv)
   wf2.add_jacform(callback(jacobian_form), H2D_SYM);
   wf2.add_resform(callback(residual_form));
 
+  // FIXME: The entire FeProblem should be removed
+  // and functionality merged into LinSystem.
   // Initialize FeProblem.
   FeProblem fep(&wf2);
   fep.set_spaces(1, &space);
+  PrecalcShapeset pss(&shapeset);
   fep.set_pss(1, &pss);
 
   // Initialize the NOX solver with the vector "vec".

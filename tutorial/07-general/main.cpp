@@ -94,11 +94,10 @@ int main(int argc, char* argv[])
   mloader.load("domain.mesh", &mesh);
   for (int i=0; i < INIT_REF_NUM; i++) mesh.refine_all_elements();
 
-  // Initialize the shapeset and the cache.
+  // Initialize the shapeset.
   H1Shapeset shapeset;
-  PrecalcShapeset pss(&shapeset);
 
-  // Create the finite element space.
+  // Create an H1 space.
   H1Space space(&mesh, &shapeset);
   space.set_bc_types(bc_types);
   space.set_essential_bc_values(essential_bc_values);
@@ -114,17 +113,15 @@ int main(int argc, char* argv[])
   wf.add_liform_surf(linear_form_surf, linear_form_surf_ord, 2);
 
   // Initialize views.
-  ScalarView sview("Coarse solution", 0, 100, 798, 700);
-  OrderView  oview("Polynomial orders", 800, 100, 798, 700);
+  ScalarView sview("Coarse solution", 0, 0, 700, 600);
+  OrderView  oview("Polynomial orders", 710, 0, 700, 600);
 
   // Matrix solver.
   UmfpackSolver solver;
 
   // Solve the problem.
   Solution sln;
-  LinSystem ls(&wf, &solver);
-  ls.set_space(&space);
-  ls.set_pss(&pss);
+  LinSystem ls(&wf, &solver, &space);
   ls.assemble();
   ls.solve(&sln);
 

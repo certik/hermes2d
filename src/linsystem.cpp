@@ -31,7 +31,7 @@ void qsort_int(int* pbase, size_t total_elems); // defined in qsort.cpp
 
 //// interface /////////////////////////////////////////////////////////////////////////////////////
 
-LinSystem::LinSystem(WeakForm* wf_, Solver* solver_)
+void LinSystem::init(WeakForm* wf_, Solver* solver_) 
 {
   this->wf = wf_;
   this->solver = solver_;
@@ -59,11 +59,94 @@ LinSystem::LinSystem(WeakForm* wf_, Solver* solver_)
   this->want_dir_contrib = true;
 }
 
+// this is needed because of a constructor in NonlinSystem 
+LinSystem::LinSystem() {}
+
+LinSystem::LinSystem(WeakForm* wf, Solver* solver)
+{
+  this->init(wf, solver);
+}
+
+LinSystem::LinSystem(WeakForm* wf)
+{
+  Solver *solver = NULL;
+  this->init(wf, solver);
+}
+
+LinSystem::LinSystem(WeakForm* wf, Solver* solver, Space* s)
+{
+  this->init(wf, solver);
+  this->init_space(s);
+}
+
+LinSystem::LinSystem(WeakForm* wf, Space* s)
+{
+  Solver *solver = NULL;
+  this->init(wf, solver);
+  this->init_space(s);
+}
+
+// NOTE: there is some code duplication in the two constructors below.
+// FIXME: Ivo's Tuples should be used here, then the duplication can be avoided.
+LinSystem::LinSystem(WeakForm* wf, Solver* solver, int n, ...)
+{
+  this->init(wf, solver);
+  // set spaces, meshes and pss
+  if (n <= 0 || n > wf->neq) error("Bad number of spaces.");
+  this->num_spaces = n;
+  va_list ap;
+  va_start(ap, n);
+  // set spaces and meshes at the same time
+  for (int i = 0; i < wf->neq; i++) {
+    this->spaces[i] = (i < n) ? va_arg(ap, Space*) : this->spaces[n-1];
+    this->meshes[i] = (i < n) ? this->spaces[i]->mesh : this->spaces[n-1]->mesh;
+  }
+  va_end(ap);
+  memset(sp_seq, -1, sizeof(int) * wf->neq);
+  this->have_spaces = true;
+  for (int i = 0; i < n; i++){
+    if (this->pss[i] == NULL) {
+      Shapeset *shapeset = this->spaces[i]->get_shapeset();
+      PrecalcShapeset *p = new PrecalcShapeset(shapeset);
+      if (p == NULL) error("New PrecalcShapeset could not be allocated.");
+      this->pss[i] = p;
+      this->num_user_pss++;
+    }
+  }
+}
+
+LinSystem::LinSystem(WeakForm* wf, int n, ...)
+{
+  Solver* solver = NULL;
+  this->init(wf, solver);
+  // set spaces, meshes and pss
+  if (n <= 0 || n > wf->neq) error("Bad number of spaces.");
+  this->num_spaces = n;
+  va_list ap;
+  va_start(ap, n);
+  // set spaces and meshes at the same time
+  for (int i = 0; i < wf->neq; i++) {
+    this->spaces[i] = (i < n) ? va_arg(ap, Space*) : this->spaces[n-1];
+    this->meshes[i] = (i < n) ? this->spaces[i]->mesh : this->spaces[n-1]->mesh;
+  }
+  va_end(ap);
+  memset(sp_seq, -1, sizeof(int) * wf->neq);
+  this->have_spaces = true;
+  for (int i = 0; i < n; i++){
+    if (this->pss[i] == NULL) {
+      Shapeset *shapeset = this->spaces[i]->get_shapeset();
+      PrecalcShapeset *p = new PrecalcShapeset(shapeset);
+      if (p == NULL) error("New PrecalcShapeset could not be allocated.");
+      this->pss[i] = p;
+      this->num_user_pss++;
+    }
+  }
+}
 
 LinSystem::~LinSystem()
 {
   free();
-  /* FIXME SOON - this is a huge memory leak. Uncommenting 
+  /* FIXME SOON - this is a memory leak. Uncommenting 
      this was causing a double-free segfault. */
   //free_meshes_and_spaces();
   if (this->sp_seq != NULL) delete [] this->sp_seq;
@@ -108,7 +191,8 @@ void LinSystem::free_meshes_and_spaces()
   }
 } 
 
-void LinSystem::set_spaces(int n, ...)
+// Should not be called by the user.
+void LinSystem::init_spaces(int n, ...)
 {
   if (n <= 0 || n > wf->neq) error("Bad number of spaces.");
   num_spaces = n;
@@ -123,29 +207,81 @@ void LinSystem::set_spaces(int n, ...)
   memset(sp_seq, -1, sizeof(int) * wf->neq);
   have_spaces = true;
   for (int i = 0; i < n; i++){
-    Shapeset *shapeset = spaces[i]->get_shapeset();
-    PrecalcShapeset *p = new PrecalcShapeset(shapeset);
-    pss[i] = p;
+    if (pss[i] == NULL) {
+      Shapeset *shapeset = spaces[i]->get_shapeset();
+      PrecalcShapeset *p = new PrecalcShapeset(shapeset);
+      if (p == NULL) error("New PrecalcShapeset could not be allocated.");
+      pss[i] = p;
+      num_user_pss++;
+   }
   }
-  num_user_pss = n;
-
 }
 
-void LinSystem::set_space(Space* s)
+// Deprecated.
+void LinSystem::set_spaces(int n, ...)
+{
+  warn("Call to deprecated function set_spaces().");
+  if (n <= 0 || n > wf->neq) error("Bad number of spaces.");
+  num_spaces = n;
+  va_list ap;
+  va_start(ap, n);
+  // set spaces and meshes at the same time
+  for (int i = 0; i < wf->neq; i++) {
+    spaces[i] = (i < n) ? va_arg(ap, Space*) : spaces[n-1];
+    meshes[i] = (i < n) ? spaces[i]->mesh : spaces[n-1]->mesh;
+  }
+  va_end(ap);
+  memset(sp_seq, -1, sizeof(int) * wf->neq);
+  have_spaces = true;
+  for (int i = 0; i < n; i++){
+    if (pss[i] == NULL) {
+      Shapeset *shapeset = spaces[i]->get_shapeset();
+      PrecalcShapeset *p = new PrecalcShapeset(shapeset);
+      if (p == NULL) error("New PrecalcShapeset could not be allocated.");
+      pss[i] = p;
+      num_user_pss++;
+   }
+  }
+}
+
+// Should not be called by the user.
+void LinSystem::init_space(Space* s)
 {
   num_spaces = 1;
   spaces[0] = s;
   meshes[0] = s->mesh;
   memset(sp_seq, -1, sizeof(int) * wf->neq);
   have_spaces = true;
-  Shapeset *shapeset = spaces[0]->get_shapeset();
-  PrecalcShapeset *p = new PrecalcShapeset(shapeset);
-  pss[0] = p;
-  num_user_pss = 1;
+  if (pss[0] == NULL) {
+    Shapeset *shapeset = spaces[0]->get_shapeset();
+    PrecalcShapeset *p = new PrecalcShapeset(shapeset);
+    if (p == NULL) error("New PrecalcShapeset could not be allocated.");
+    pss[0] = p;
+    num_user_pss = 1;
+  }
+}
+
+// Deprecated.
+void LinSystem::set_space(Space* s)
+{
+  warn("Call to deprecated function set_space().");
+  num_spaces = 1;
+  spaces[0] = s;
+  meshes[0] = s->mesh;
+  memset(sp_seq, -1, sizeof(int) * wf->neq);
+  have_spaces = true;
+  if (pss[0] == NULL) {
+    Shapeset *shapeset = spaces[0]->get_shapeset();
+    PrecalcShapeset *p = new PrecalcShapeset(shapeset);
+    if (p == NULL) error("New PrecalcShapeset could not be allocated.");
+    pss[0] = p;
+    num_user_pss = 1;
+  }
 }
 
 void LinSystem::set_pss(int n, ...)
 {
+  warn("Call to deprecated function LinSystem::set_pss().");
   if (n <= 0 || n > wf->neq) error("Bad number of pss's.");
 
   va_list ap;
@@ -207,7 +343,7 @@ void LinSystem::create_matrix(bool rhsonly)
 {
   // sanity check
   if (!this->have_spaces)
-    error("Before assemble(), you need to call set_spaces().");
+    error("Before assemble(), you need to call init_spaces().");
 
   // check if we can reuse the matrix structure
   bool up_to_date = true;
@@ -947,7 +1083,7 @@ Scalar Hcurlprojection_liform(int n, double *wt, Func<Real> *v, Geom<Real> *e, E
 void LinSystem::project_global_n(int proj_norm, int n, ...)
 {
   if (!have_spaces)
-    error("You have to set_spaces() before using project_global_n().");
+    error("You have to init_spaces() before using project_global_n().");
   if (n != wf->neq || n > 10)
     error("Wrong number of functions in project_global_n().");
 

@@ -98,9 +98,8 @@ int main(int argc, char* argv[])
   H2DReader mloader;
   mloader.load("motor.mesh", &mesh);
 
-  // Initialize the shapeset and the cache.
+  // Initialize the shapeset.
   H1Shapeset shapeset;
-  PrecalcShapeset pss(&shapeset);
 
   // Create an H1 space.
   H1Space space(&mesh, &shapeset);
@@ -131,6 +130,9 @@ int main(int argc, char* argv[])
   // Initialize refinement selector.
   H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER, &shapeset);
 
+  // Initialize the coarse mesh problem.
+  LinSystem ls(&wf, &solver, &space);
+  
   // Adaptivity loop:
   int as = 1; bool done = false;
   Solution sln_coarse, sln_fine;
@@ -138,10 +140,7 @@ int main(int argc, char* argv[])
   {
     info("---- Adaptivity step %d:", as);
 
-    // Initialize the coarse and fine mesh problems.
-    LinSystem ls(&wf, &solver);
-    ls.set_space(&space);
-    ls.set_pss(&pss);
+    // Initialize the fine mesh problem.
     int order_increase = 1;   // >= 0 (default = 1) 
     int refinement = 1;       // only '0' or '1' supported (default = 1)
     RefSystem rs(&ls, order_increase, refinement);
@@ -208,6 +207,7 @@ int main(int argc, char* argv[])
 
   // Show the fine mesh solution - the final result.
   sview.set_title("Fine mesh solution");
+  sview.show_mesh(false);
   sview.show(&sln_fine);
   gview.show(&sln_fine, &sln_fine, H2D_EPS_HIGH, H2D_FN_DX_0, H2D_FN_DY_0);
 

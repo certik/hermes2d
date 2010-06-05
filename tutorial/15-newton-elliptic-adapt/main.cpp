@@ -128,9 +128,8 @@ int main(int argc, char* argv[])
   for(int i = 0; i < INIT_GLOB_REF_NUM; i++) mesh.refine_all_elements();
   mesh.refine_towards_boundary(1, INIT_BDY_REF_NUM);
 
-  // Initialize the shapeset and the cache.
+  // Initialize the shapeset.
   H1Shapeset shapeset;
-  PrecalcShapeset pss(&shapeset);
 
   // Create an H1 space.
   H1Space space(&mesh, &shapeset);
@@ -150,12 +149,10 @@ int main(int argc, char* argv[])
   wf.add_liform(callback(res), H2D_ANY, 1, &u_prev);
 
   // Matrix solver.
-  UmfpackSolver umfpack;
+  UmfpackSolver solver;
 
   // Initialize the nonlinear system.
-  NonlinSystem nls(&wf, &umfpack);
-  nls.set_space(&space);
-  nls.set_pss(&pss);
+  NonlinSystem nls(&wf, &solver, &space);
 
   // DOF and CPU convergence graphs.
   SimpleGraph graph_dof, graph_cpu;
@@ -278,12 +275,12 @@ int main(int argc, char* argv[])
   }
   while (!done);
 
-  // Timemeasurement.
+  // Time measurement.
   cpu_time.tick();
 
   verbose("Total running time: %g s", cpu_time.accumulated());
 
-  // wait for keyboard or mouse input
+  // Wait for keyboard or mouse input.
   View::wait();
   return 0;
 }

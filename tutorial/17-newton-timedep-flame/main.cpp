@@ -65,9 +65,8 @@ int main(int argc, char* argv[])
   // Initial mesh refinements.
   for(int i = 0; i < INIT_REF_NUM; i++) mesh.refine_all_elements();
 
-  // Initialize the shapeset and the cache.
+  // Initialize the shapeset.
   H1Shapeset shapeset;
-  PrecalcShapeset pss(&shapeset);
 
   // Create H1 spaces.
   H1Space tspace(&mesh, &shapeset);
@@ -112,12 +111,10 @@ int main(int argc, char* argv[])
                 &y_prev_time_2, &omega);
 
   // Matrix solver.
-  UmfpackSolver umfpack;
+  UmfpackSolver solver;
 
   // Initialize the nonlinear system.
-  NonlinSystem nls(&wf, &umfpack);
-  nls.set_spaces(2, &tspace, &cspace);
-  nls.set_pss(&pss);
+  NonlinSystem nls(&wf, &solver, 2, &tspace, &cspace);
 
   // Project temp_ic() and conc_ic() onto the FE spaces and use them as initial
   // conditions for the Newton's method.   

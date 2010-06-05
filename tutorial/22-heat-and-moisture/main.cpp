@@ -127,8 +127,6 @@ int main(int argc, char* argv[])
 
   // Initialize the shapeset and the cache.
   H1Shapeset shapeset;
-  PrecalcShapeset pss1(&shapeset);
-  PrecalcShapeset pss2(&shapeset);
 
   // Create the temperature space.
   H1Space space_T(&mesh_T, &shapeset);
@@ -174,12 +172,10 @@ int main(int argc, char* argv[])
   moist_view.show_mesh(false);
 
   // Matrix solver.
-  UmfpackSolver umfpack;
+  UmfpackSolver solver;
 
   // Initialize the coarse mesh problem.
-  LinSystem ls(&wf, &umfpack);
-  ls.set_spaces(2, &space_T, &space_M);
-  ls.set_pss(2, &pss1, &pss2);
+  LinSystem ls(&wf, &solver, 2, &space_T, &space_M);
 
   // Solutions.
   Solution T_coarse, M_coarse, T_fine, M_fine;
@@ -285,7 +281,7 @@ int main(int argc, char* argv[])
     ts++;
   }
 
-  // wait for all views to be closed
+  // Wait for all views to be closed.
   View::wait();
   return 0;
 }

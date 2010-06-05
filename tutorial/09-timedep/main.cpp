@@ -76,9 +76,8 @@ int main(int argc, char* argv[])
   for(int i = 0; i < INIT_REF_NUM; i++) mesh.refine_all_elements();
   mesh.refine_towards_boundary(2, 5);
 
-  // Initialize the shapeset and cache.
+  // Initialize the shapeset.
   H1Shapeset shapeset;
-  PrecalcShapeset pss(&shapeset);
 
   // Initialize an H1 space.
   H1Space space(&mesh, &shapeset);
@@ -101,12 +100,10 @@ int main(int argc, char* argv[])
   wf.add_liform_surf(linear_form_surf<double, double>, linear_form_surf<Ord, Ord>, marker_air);
 
   // Matrix solver.
-  UmfpackSolver umfpack;
+  UmfpackSolver solver;
 
   // Initialize linear system.
-  LinSystem ls(&wf, &umfpack);
-  ls.set_space(&space);
-  ls.set_pss(&pss);
+  LinSystem ls(&wf, &solver, &space);
 
   // Initialize views.
   ScalarView Tview("Temperature", 0, 0, 450, 600);

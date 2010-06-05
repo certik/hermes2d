@@ -126,9 +126,8 @@ int main(int argc, char* argv[])
   // Perform initial mesh refinements.
   for (int i=0; i < INIT_REF_NUM; i++)  mesh.refine_all_elements();
 
-  // Initialize the shapeset and the cache.
+  // Initialize the shapeset.
   H1Shapeset shapeset;
-  PrecalcShapeset pss(&shapeset);
 
   // Create an H1 space.
   H1Space space(&mesh, &shapeset);
@@ -168,6 +167,7 @@ int main(int argc, char* argv[])
     // Initialize finite element problem.
     FeProblem fep(&wf);
     fep.set_spaces(1, &space);
+  PrecalcShapeset pss(&shapeset);
     fep.set_pss(1, &pss);
 
     // Initialize NOX solver.

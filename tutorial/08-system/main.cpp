@@ -44,9 +44,8 @@ int main(int argc, char* argv[])
   H2DReader mloader;
   mloader.load("sample.mesh", &mesh);
 
-  // Initialize the shapeset and the cache.
+  // Initialize the shapeset.
   H1Shapeset shapeset;
-  PrecalcShapeset pss(&shapeset);
 
   // Create the x displacement space.
   H1Space xdisp(&mesh, &shapeset);
@@ -72,12 +71,10 @@ int main(int argc, char* argv[])
   wf.add_liform_surf(1, callback(linear_form_surf_1), GAMMA_3_BDY);
 
   // Matrix solver.
-  UmfpackSolver umfpack;
+  UmfpackSolver solver;
 
   // Initialize the linear system.
-  LinSystem sys(&wf, &umfpack);
-  sys.set_spaces(2, &xdisp, &ydisp);
-  sys.set_pss(&pss);
+  LinSystem sys(&wf, &solver, 2, &xdisp, &ydisp);
 
   // Assemble and solve the matrix problem.
   Solution xsln, ysln;

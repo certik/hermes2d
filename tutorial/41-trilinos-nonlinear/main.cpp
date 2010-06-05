@@ -65,7 +65,6 @@ int main(int argc, char* argv[])
 
   // Initialize the shapeset and the cache,
   H1Shapeset shapeset;
-  PrecalcShapeset pss(&shapeset);
 
   // Create an H1 space.
   H1Space space(&mesh, &shapeset);
@@ -93,9 +92,7 @@ int main(int argc, char* argv[])
   wf1.add_liform(callback(residual_form_hermes), H2D_ANY, 1, &prev);
 
   // Initialize NonlinSystem,
-  NonlinSystem nls(&wf1, &umfpack);
-  nls.set_space(&space);
-  nls.set_pss(&pss);
+  NonlinSystem nls(&wf1, &umfpack, &space);
 
   // Project the function "prev" on the FE space "space".
   info("Projecting initial condition on the FE space.");
@@ -140,6 +137,7 @@ int main(int argc, char* argv[])
   // Initialize FeProblem.
   FeProblem fep(&wf2);
   fep.set_spaces(1, &space);
+  PrecalcShapeset pss(&shapeset);
   fep.set_pss(1, &pss);
 
   // Initialize the NOX solver with the vector "vec".

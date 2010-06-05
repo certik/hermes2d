@@ -65,9 +65,8 @@ int main(int argc, char* argv[])
   // Perform initial mesh refinemets.
   for (int i=0; i < INIT_REF_NUM; i++)  mesh.refine_all_elements();
 
-  // Initialize the shapeset and the cache.
+  // Initialize the shapeset.
   H1Shapeset shapeset;
-  PrecalcShapeset pss(&shapeset);
 
   // Create an H1 space.
   H1Space space(&mesh, &shapeset);
@@ -96,15 +95,14 @@ int main(int argc, char* argv[])
   // Initialize the finite element problem.
   FeProblem fep(&wf);
   fep.set_spaces(1, &space);
+  PrecalcShapeset pss(&shapeset);
   fep.set_pss(1, &pss);
 
   // Project the function "titer" on the FE space 
   // in order to obtain initial vector for NOX. 
   info("Projecting initial solution on the FE mesh.");
   UmfpackSolver umfpack;
-  LinSystem ls(&wf, &umfpack);
-  ls.set_space(&space);
-  ls.set_pss(&pss);
+  LinSystem ls(&wf, &umfpack, &space);
   ls.project_global(&tprev, &tprev);
 
   // Get the coefficient vector.

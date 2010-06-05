@@ -88,9 +88,8 @@ int main(int argc, char* argv[])
   // Initial mesh refinements.
   for(int i = 0; i < INIT_REF_NUM; i++) mesh.refine_all_elements();
 
-  // Initialize the shapeset and the cache.
+  // Initialize the shapeset.
   H1Shapeset shapeset;
-  PrecalcShapeset pss(&shapeset);
 
   // Create an H1 space.
   H1Space space(&mesh, &shapeset);
@@ -117,12 +116,10 @@ int main(int argc, char* argv[])
   }
 
   // Matrix solver.
-  UmfpackSolver umfpack;
+  UmfpackSolver solver;
 
   // Initialize the nonlinear system.
-  NonlinSystem nls(&wf, &umfpack);
-  nls.set_space(&space);
-  nls.set_pss(&pss);
+  NonlinSystem nls(&wf, &solver, &space);
 
   // Initialize views.
   ScalarView view("", 0, 0, 700, 600);

@@ -37,7 +37,13 @@ class H2D_API NonlinSystem : public LinSystem
 public:
 
   /// Initializes the class and creates a zero initial coefficient vector.
+  void init_nonlin();
   NonlinSystem(WeakForm* wf, Solver* solver);
+  NonlinSystem(WeakForm* wf);                  // solver will be set to NULL and default solver will be used
+  NonlinSystem(WeakForm* wf, Solver* solver, Space* s);
+  NonlinSystem(WeakForm* wf, Space* s);        // solver will be set to NULL and default solver will be used
+  NonlinSystem(WeakForm* wf, Solver* solver, int n, ...);
+  NonlinSystem(WeakForm* wf, int n, ...);      // solver will be set to NULL and default solver will be used
 
   /// Frees the memory for the RHS, Dir and Vec vectors, and solver data, 
   virtual void free();

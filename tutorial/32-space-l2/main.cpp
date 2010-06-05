@@ -52,9 +52,8 @@ int main(int argc, char* argv[])
   // Perform uniform mesh refinements.
   for (int i=0; i<INIT_REF_NUM; i++) mesh.refine_all_elements();
 
-  // Initialize the shapeset and the cache.
+  // Initialize the shapeset.
   L2Shapeset shapeset;
-  PrecalcShapeset pss(&shapeset);
 
   // Create an L2 space.
   L2Space space(&mesh, &shapeset);
@@ -75,7 +74,7 @@ int main(int argc, char* argv[])
   Solution sln;
 
   // Matrix solver.
-  UmfpackSolver umfpack;
+  UmfpackSolver solver;
 
   // Initialize the weak formulation.
   WeakForm wf;
@@ -83,9 +82,7 @@ int main(int argc, char* argv[])
   wf.add_liform(callback(linear_form));
 
   // Assemble and solve the finite element problem.
-  LinSystem sys(&wf, &umfpack);
-  sys.set_space(&space);
-  sys.set_pss(&pss);
+  LinSystem sys(&wf, &solver, &space);
   sys.assemble();
   sys.solve(&sln);
 

@@ -50,9 +50,8 @@ int main(int argc, char* argv[])
   for(int i=0; i<UNIFORM_REF_LEVEL; i++) mesh.refine_all_elements();
   mesh.refine_towards_vertex(3, CORNER_REF_LEVEL);
 
-  // Initialize the shapeset and the cache.
+  // Initialize the shapeset.
   H1Shapeset shapeset;
-  PrecalcShapeset pss(&shapeset);
 
   // Create an H1 space.
   H1Space space(&mesh, &shapeset);
@@ -70,12 +69,10 @@ int main(int argc, char* argv[])
   wf.add_liform_surf(callback(linear_form_surf), NEWTON_BDY);
 
   // Matrix solver.
-  UmfpackSolver umfpack;
+  UmfpackSolver solver;
 
   // Initialize the linear system.
-  LinSystem sys(&wf, &umfpack);
-  sys.set_space(&space);
-  sys.set_pss(&pss);
+  LinSystem sys(&wf, &solver, &space);
 
   // Assemble and solve the matrix problem.
   Solution sln;

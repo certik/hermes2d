@@ -49,9 +49,8 @@ int main(int argc, char* argv[])
   // Perform initial mesh refinements.
   for(int i=0; i < INIT_REF_NUM; i++) mesh.refine_all_elements();
 
-  // Initialize the shapeset and the cache.
+  // Initialize the shapeset.
   H1Shapeset shapeset;
-  PrecalcShapeset pss(&shapeset);
 
   // Create an H1 space.
   H1Space space(&mesh, &shapeset);
@@ -68,12 +67,10 @@ int main(int argc, char* argv[])
   wf.add_liform(callback(linear_form));
 
   // Matrix solver.
-  UmfpackSolver umfpack;
+  UmfpackSolver solver;
 
   // Initialize the linear system.
-  LinSystem sys(&wf, &umfpack);
-  sys.set_space(&space);
-  sys.set_pss(&pss);
+  LinSystem sys(&wf, &solver, &space);
 
   // Assemble and solve the matrix problem.
   Solution sln;

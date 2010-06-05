@@ -115,10 +115,8 @@ int main(int argc, char* argv[])
   // Initial mesh refinements in the vmesh towards the boundary.
   if (MULTI == true) vmesh.refine_towards_boundary(1, INIT_REF_BDY);
 
-  // Initialize the shapeset and the cache.
+  // Initialize the shapeset.
   H1Shapeset shapeset;
-  PrecalcShapeset pss1(&shapeset);
-  PrecalcShapeset pss2(&shapeset);
 
   // Create the x displacement space.
   H1Space uspace(&umesh, &shapeset);
@@ -145,19 +143,22 @@ int main(int argc, char* argv[])
   wf.add_liform(1, linear_form_1, linear_form_1_ord);
 
   // Initialize views.
-  OrderView  uoview("Coarse mesh for u", 0, 0, 300, 300);
-  OrderView  voview("Coarse mesh for v", 310, 0, 300, 300);
-  ScalarView uview("Coarse mesh solution u", 620, 0, 400, 300);
-  ScalarView vview("Coarse mesh solution v", 1030, 0, 400, 300);
+  OrderView  uoview("Coarse mesh for u", 0, 0, 360, 300);
+  OrderView  voview("Coarse mesh for v", 370, 0, 360, 300);
+  ScalarView uview("Coarse mesh solution u", 740, 0, 400, 300);
+  ScalarView vview("Coarse mesh solution v", 1150, 0, 400, 300);
 
   // Matrix solver.
-  UmfpackSolver umfpack;
+  UmfpackSolver solver;
 
   // DOF and CPU convergence graphs.
   SimpleGraph graph_dof, graph_cpu;
 
   // Initialize refinement selector.
   H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER, &shapeset);
+
+  // Initialize the coarse mesh problem.
+  LinSystem ls(&wf, &solver, 2, &uspace, &vspace);
 
   // Adaptivity loop.
   int as = 1; bool done = false;
@@ -167,10 +168,7 @@ int main(int argc, char* argv[])
   {
     info("---- Adaptivity step %d:", as);
 
-    // Initialize the coarse and fine mesh problems.
-    LinSystem ls(&wf, &umfpack);
-    ls.set_spaces(2, &uspace, &vspace);
-    ls.set_pss(2, &pss1, &pss2);
+    // Initialize the fine mesh problem.
     RefSystem rs(&ls);
 
     // Assemble and solve the fine mesh problem.
@@ -255,8 +253,10 @@ int main(int argc, char* argv[])
 
   // Show the fine solution - the final result.
   uview.set_title("Fine mesh solution u");
+  uview.show_mesh(false);
   uview.show(&u_sln_fine);
   vview.set_title("Fine mesh solution v");
+  vview.show_mesh(false);
   vview.show(&v_sln_fine);
 
   // Wait for all views to be closed.

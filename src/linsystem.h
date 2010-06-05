@@ -36,13 +36,23 @@ class H2D_API LinSystem
 {
 public:
 
-  LinSystem(WeakForm* wf, Solver* solver = NULL);
+  LinSystem();
+  LinSystem(WeakForm* wf, Solver* solver);
+  LinSystem(WeakForm* wf);                  // solver will be set to NULL and default solver will be used
+  LinSystem(WeakForm* wf, Solver* solver, Space* s);
+  LinSystem(WeakForm* wf, Space* s);        // solver will be set to NULL and default solver will be used
+  LinSystem(WeakForm* wf, Solver* solver, int n, ...);
+  LinSystem(WeakForm* wf, int n, ...);      // solver will be set to NULL and default solver will be used
+
   virtual ~LinSystem();
 
+  void init(WeakForm* wf, Solver* solver);
+  void init_spaces(int n, ...);
+  void init_space(Space* s);         // single equation case
   void set_spaces(int n, ...);
-  void set_space(Space* s); // single equation case
+  void set_space(Space* s);          // single equation case
   void set_pss(int n, ...);
-  void set_pss(PrecalcShapeset* p); // single equation case
+  void set_pss(PrecalcShapeset* p);  // single equation case
   void copy(LinSystem* sys);
   Space* get_space(int n) {
       if (n < 0 || n >= this->wf->neq) error("Bad index of space.");

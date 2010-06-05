@@ -111,21 +111,22 @@ int main(int argc, char* argv[])
   mesh.refine_towards_boundary(bdy_top, 4, true);     // '4' is the number of levels,
   mesh.refine_towards_boundary(bdy_bottom, 4, true);  // 'true' stands for anisotropic refinements.
 
-  // Initialize shapesets and the cache.
-  H1ShapesetBeuchler h1_shapeset;
-  PrecalcShapeset h1_pss(&h1_shapeset);
+  // Initialize shapeset.
+  H1Shapeset xvel_shapeset;
+  H1Shapeset yvel_shapeset;
 #ifdef PRESSURE_IN_L2
-  L2Shapeset l2_shapeset;
-  PrecalcShapeset l2_pss(&l2_shapeset);
+  L2Shapeset p_shapeset;
+#else
+  H1Shapeset p_shapeset;
 #endif
 
   // Spaces for velocity components and pressure.
-  H1Space xvel_space(&mesh, &h1_shapeset);
-  H1Space yvel_space(&mesh, &h1_shapeset);
+  H1Space xvel_space(&mesh, &xvel_shapeset);
+  H1Space yvel_space(&mesh, &yvel_shapeset);
 #ifdef PRESSURE_IN_L2
-  L2Space p_space(&mesh, &l2_shapeset);
+  L2Space p_space(&mesh, &p_shapeset);
 #else
-  H1Space p_space(&mesh, &h1_shapeset);
+  H1Space p_space(&mesh, &p_shapeset);
 #endif
 
   // Initialize boundary conditions.
@@ -154,22 +155,30 @@ int main(int argc, char* argv[])
   WeakForm wf(3);
   if (NEWTON) {
     wf.add_biform(0, 0, callback(bilinear_form_sym_0_0_1_1), H2D_SYM);
-    wf.add_biform(0, 0, callback(newton_bilinear_form_unsym_0_0), H2D_UNSYM, H2D_ANY, 2, &xvel_prev_newton, &yvel_prev_newton);
-    wf.add_biform(0, 1, callback(newton_bilinear_form_unsym_0_1), H2D_UNSYM, H2D_ANY, 1, &xvel_prev_newton);
+    wf.add_biform(0, 0, callback(newton_bilinear_form_unsym_0_0), 
+                  H2D_UNSYM, H2D_ANY, 2, &xvel_prev_newton, &yvel_prev_newton);
+    wf.add_biform(0, 1, callback(newton_bilinear_form_unsym_0_1), 
+                  H2D_UNSYM, H2D_ANY, 1, &xvel_prev_newton);
     wf.add_biform(0, 2, callback(bilinear_form_unsym_0_2), H2D_ANTISYM);
-    wf.add_biform(1, 0, callback(newton_bilinear_form_unsym_1_0), H2D_UNSYM, H2D_ANY, 1, &yvel_prev_newton);
+    wf.add_biform(1, 0, callback(newton_bilinear_form_unsym_1_0), 
+                  H2D_UNSYM, H2D_ANY, 1, &yvel_prev_newton);
     wf.add_biform(1, 1, callback(bilinear_form_sym_0_0_1_1), H2D_SYM);
-    wf.add_biform(1, 1, callback(newton_bilinear_form_unsym_1_1), H2D_UNSYM, H2D_ANY, 2, &xvel_prev_newton, &yvel_prev_newton);
+    wf.add_biform(1, 1, callback(newton_bilinear_form_unsym_1_1), 
+                  H2D_UNSYM, H2D_ANY, 2, &xvel_prev_newton, &yvel_prev_newton);
     wf.add_biform(1, 2, callback(bilinear_form_unsym_1_2), H2D_ANTISYM);
-    wf.add_liform(0, callback(newton_F_0), H2D_ANY, 5, &xvel_prev_time, &yvel_prev_time, &xvel_prev_newton, &yvel_prev_newton, &p_prev);
-    wf.add_liform(1, callback(newton_F_1), H2D_ANY, 5, &xvel_prev_time, &yvel_prev_time, &xvel_prev_newton, &yvel_prev_newton, &p_prev);
+    wf.add_liform(0, callback(newton_F_0), H2D_ANY, 5, &xvel_prev_time, 
+                  &yvel_prev_time, &xvel_prev_newton, &yvel_prev_newton, &p_prev);
+    wf.add_liform(1, callback(newton_F_1), H2D_ANY, 5, &xvel_prev_time, 
+                  &yvel_prev_time, &xvel_prev_newton, &yvel_prev_newton, &p_prev);
     wf.add_liform(2, callback(newton_F_2), H2D_ANY, 2, &xvel_prev_newton, &yvel_prev_newton);
   }
   else {
     wf.add_biform(0, 0, callback(bilinear_form_sym_0_0_1_1), H2D_SYM);
-    wf.add_biform(0, 0, callback(simple_bilinear_form_unsym_0_0_1_1), H2D_UNSYM, H2D_ANY, 2, &xvel_prev_time, &yvel_prev_time);
+    wf.add_biform(0, 0, callback(simple_bilinear_form_unsym_0_0_1_1), 
+                  H2D_UNSYM, H2D_ANY, 2, &xvel_prev_time, &yvel_prev_time);
     wf.add_biform(1, 1, callback(bilinear_form_sym_0_0_1_1), H2D_SYM);
-    wf.add_biform(1, 1, callback(simple_bilinear_form_unsym_0_0_1_1), H2D_UNSYM, H2D_ANY, 2, &xvel_prev_time, &yvel_prev_time);
+    wf.add_biform(1, 1, callback(simple_bilinear_form_unsym_0_0_1_1), 
+                  H2D_UNSYM, H2D_ANY, 2, &xvel_prev_time, &yvel_prev_time);
     wf.add_biform(0, 2, callback(bilinear_form_unsym_0_2), H2D_ANTISYM);
     wf.add_biform(1, 2, callback(bilinear_form_unsym_1_2), H2D_ANTISYM);
     wf.add_liform(0, callback(simple_linear_form), H2D_ANY, 1, &xvel_prev_time);
@@ -177,8 +186,8 @@ int main(int argc, char* argv[])
   }
 
   // Initialize views.
-  VectorView vview("velocity [m/s]", 0, 0, 1500, 470);
-  ScalarView pview("pressure [Pa]", 0, 530, 1500, 470);
+  VectorView vview("velocity [m/s]", 0, 0, 750, 240);
+  ScalarView pview("pressure [Pa]", 0, 290, 750, 240);
   vview.set_min_max_range(0, 1.6);
   vview.fix_scale_width(80);
   //pview.set_min_max_range(-0.9, 1.0);
@@ -189,29 +198,10 @@ int main(int argc, char* argv[])
   UmfpackSolver umfpack;
 
   // Initialize linear system.
-  LinSystem ls(&wf, &umfpack);
+  LinSystem ls(&wf, &umfpack, 3, &xvel_space, &yvel_space, &p_space);
 
   // Initialize nonlinear system.
-  NonlinSystem nls(&wf, &umfpack);
-
-  if (NEWTON) {
-    // Set up the nonlinear system.
-    nls.set_spaces(3, &xvel_space, &yvel_space, &p_space);
-#ifdef PRESSURE_IN_L2
-    nls.set_pss(3, &h1_pss, &h1_pss, &l2_pss);
-#else
-    nls.set_pss(1, &h1_pss);
-#endif
-  }
-  else {
-    // Set up the linear system.
-    ls.set_spaces(3, &xvel_space, &yvel_space, &p_space);
-#ifdef PRESSURE_IN_L2
-    ls.set_pss(3, &h1_pss, &h1_pss, &l2_pss);
-#else
-    ls.set_pss(1, &h1_pss);
-#endif
-  }
+  NonlinSystem nls(&wf, &umfpack, 3, &xvel_space, &yvel_space, &p_space);
 
   // Time-stepping loop:
   char title[100];
