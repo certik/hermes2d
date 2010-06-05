@@ -106,10 +106,8 @@ int main(int argc, char* argv[])
   // This also initializes the multimesh hp-FEM.
   ymesh.copy(&xmesh);
 
-  // Initialize the shapeset and the cache.
+  // Initialize the shapeset.
   H1Shapeset shapeset;
-  PrecalcShapeset xpss(&shapeset);
-  PrecalcShapeset ypss(&shapeset);
 
   // Create the x displacement space.
   H1Space xdisp(&xmesh, &shapeset);
@@ -136,16 +134,19 @@ int main(int argc, char* argv[])
   // Initialize views.
   OrderView  xoview("X polynomial orders", 0, 0, 500, 500);
   OrderView  yoview("Y polynomial orders", 510, 0, 500, 500);
-  ScalarView sview("Von Mises stress [Pa]", 1020, 0, 500, 500);
+  ScalarView sview("Von Mises stress [Pa]", 1020, 0, 540, 500);
 
   // Matrix solver.
-  UmfpackSolver umfpack;
+  UmfpackSolver solver;
 
   // DOF and CPU convergence graphs.
   SimpleGraph graph_dof, graph_cpu;
 
   // Initialize refinement selector.
   H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER, &shapeset);
+
+  // Initialize the coarse mesh problem.
+  LinSystem ls(&wf, &solver, 2, &xdisp, &ydisp);
 
   // Adaptivity loop:
   int as = 1; bool done = false;
@@ -154,14 +155,9 @@ int main(int argc, char* argv[])
   {
     info("---- Adaptivity step %d:", as);
 
-    // Initialize the coarse and fine mesh problems.
-    LinSystem ls(&wf, &umfpack);
-    ls.set_spaces(2, &xdisp, &ydisp);
-    ls.set_pss(2, &xpss, &ypss);
-    RefSystem rs(&ls);
-
     // Assemble and solve the fine mesh problem.
     info("Solving on fine mesh.");
+    RefSystem rs(&ls);
     rs.assemble();
     rs.solve(2, &x_sln_fine, &y_sln_fine);
 
@@ -233,6 +229,7 @@ int main(int argc, char* argv[])
   VonMisesFilter stress_fine(&x_sln_fine, &y_sln_fine, mu, lambda);
   sview.set_title("Fine mesh solution");
   sview.set_min_max_range(0, 3e4);
+  sview.show_mesh(false);
   sview.show(&stress_fine);
 
   // Wait for all views to be closed.

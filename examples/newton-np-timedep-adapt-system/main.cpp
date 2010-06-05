@@ -54,51 +54,50 @@ using namespace RefinementSelectors;
 #define TOP_MARKER 2
 #define BOT_MARKER 3
 
-// Parameters to tweak the amount of output to the console
+// Parameters to tweak the amount of output to the console.
 #define NOSCREENSHOT
 
 /*** Fundamental coefficients ***/
-const double D = 10e-11; 	            // [m^2/s] Diffusion coefficient
-const double R = 8.31; 		            // [J/mol*K] Gas constant
-const double T = 293; 		            // [K] Aboslute temperature
-const double F = 96485.3415;	        // [s * A / mol] Faraday constant
-const double eps = 2.5e-2; 	          // [F/m] Electric permeability
-const double mu = D / (R * T);        // Mobility of ions
-const double z = 1;		                // Charge number
-const double K = z * mu * F;          // Constant for equation
-const double L =  F / eps;	          // Constant for equation
-const double VOLTAGE = 1;	            // [V] Applied voltage
-const scalar C0 = 1200;	              // [mol/m^3] Anion and counterion concentration
+const double D = 10e-11; 	            // [m^2/s] Diffusion coefficient.
+const double R = 8.31; 		            // [J/mol*K] Gas constant.
+const double T = 293; 		            // [K] Aboslute temperature.
+const double F = 96485.3415;	            // [s * A / mol] Faraday constant.
+const double eps = 2.5e-2; 	            // [F/m] Electric permeability.
+const double mu = D / (R * T);              // Mobility of ions.
+const double z = 1;		            // Charge number.
+const double K = z * mu * F;                // Constant for equation.
+const double L =  F / eps;	            // Constant for equation.
+const double VOLTAGE = 1;	            // [V] Applied voltage.
+const scalar C0 = 1200;	                    // [mol/m^3] Anion and counterion concentration.
 
 /* For Neumann boundary */
-const double height = 180e-6;	              // [m] thickness of the domain
+const double height = 180e-6;	            // [m] thickness of the domain.
 const double E_FIELD = VOLTAGE / height;    // Boundary condtion for positive voltage electrode
 
 
 /* Simulation parameters */
-const int PROJ_TYPE = 1;              // For the projection of the initial condition 
-                                      // on the initial mesh: 1 = H1 projection, 0 = L2 projection
-const int NSTEP = 50;                 // Number of time steps
-const double TAU = 0.1;               // Size of the time step
-const int P_INIT = 3;       	        // Initial polynomial degree of all mesh elements.
-const int REF_INIT = 1;     	        // Number of initial refinements
-const bool MULTIMESH = false;	        // Multimesh?
-const int TIME_DISCR = 2;             // 1 for implicit Euler, 2 for Crank-Nicolson
-const int VOLT_BOUNDARY = 1;          // 1 for Dirichlet, 2 for Neumann
+const int PROJ_TYPE = 1;              // For the projection of the initial condition.
+                                      // on the initial mesh: 1 = H1 projection, 0 = L2 projection.
+const int NSTEP = 50;                 // Number of time steps.
+const double TAU = 0.1;               // Size of the time step.
+const int P_INIT = 3;       	      // Initial polynomial degree of all mesh elements.
+const int REF_INIT = 1;     	      // Number of initial refinements.
+const bool MULTIMESH = false;	      // Multimesh?
+const int TIME_DISCR = 2;             // 1 for implicit Euler, 2 for Crank-Nicolson.
+const int VOLT_BOUNDARY = 1;          // 1 for Dirichlet, 2 for Neumann.
 
 /* Nonadaptive solution parameters */
-const double NEWTON_TOL = 1e-6;       // Stopping criterion for nonadaptive solution
+const double NEWTON_TOL = 1e-6;       // Stopping criterion for nonadaptive solution.
 
 /* Adaptive solution parameters */
-const double NEWTON_TOL_COARSE = 0.01;// Stopping criterion for Newton on coarse mesh
-const double NEWTON_TOL_FINE = 0.05;  // Stopping criterion for Newton on fine mesh
-const int NEWTON_MAX_ITER = 20;       // Maximum allowed number of Newton iterations
-const bool NEWTON_ON_COARSE_MESH = false;  // true... Newton is done on coarse mesh in every adaptivity step
+const double NEWTON_TOL_COARSE = 0.01;// Stopping criterion for Newton on coarse mesh.
+const double NEWTON_TOL_FINE = 0.05;  // Stopping criterion for Newton on fine mesh.
+const int NEWTON_MAX_ITER = 20;       // Maximum allowed number of Newton iterations.
+const bool NEWTON_ON_COARSE_MESH = false;  // true... Newton is done on coarse mesh in every adaptivity step.
                                       // false...Newton is done on coarse mesh only once, then projection 
-                                      // of the fine mesh solution to coarse mesh is used
+                                      // of the fine mesh solution to coarse mesh is used.
 
-const int UNREF_FREQ = 5;             // every UNREF_FREQth time step the mesh
-                                      // is unrefined
+const int UNREF_FREQ = 5;             // every UNREF_FREQth time step the mesh is unrefined.
 const double THRESHOLD = 0.3;         // This is a quantitative parameter of the adapt(...) function and
                                       // it has different meanings for various adaptive strategies (see below).
 const int STRATEGY = 0;               // Adaptive strategy:
@@ -113,7 +112,7 @@ const int STRATEGY = 0;               // Adaptive strategy:
 const CandList CAND_LIST = H2D_HP_ANISO; // Predefined list of element refinement candidates. Possible values are
                                          // H2D_P_ISO, H2D_P_ANISO, H2D_H_ISO, H2D_H_ANISO, H2D_HP_ISO,
                                          // H2D_HP_ANISO_H, H2D_HP_ANISO_P, H2D_HP_ANISO.
-                                         // See the Sphinx tutorial (http://hpfem.org/hermes2d/doc/src/tutorial-2.html#adaptive-h-fem-and-hp-fem) for details.
+                                         // See User Documentation for details.
 const int MESH_REGULARITY = -1;  // Maximum allowed level of hanging nodes:
                                  // MESH_REGULARITY = -1 ... arbitrary level hangning nodes (default),
                                  // MESH_REGULARITY = 1 ... at most one-level hanging nodes,
@@ -180,7 +179,7 @@ void solveNonadaptive(Mesh &mesh, NonlinSystem &nls,
   char title[100];
 
   for (int n = 1; n <= NSTEP; n++) {
-    verbose("\n---- Time step %d ----", n);
+    verbose("---- Time step %d:", n);
     if (!nls.solve_newton(&C_prev_newton, &phi_prev_newton,
          NEWTON_TOL, NEWTON_MAX_ITER)) error("Newton's method did not converge.");
 
@@ -191,7 +190,7 @@ void solveNonadaptive(Mesh &mesh, NonlinSystem &nls,
     Cview.show(&C_prev_newton);
     phi_prev_time.copy(&phi_prev_newton);
     C_prev_time.copy(&C_prev_newton);
-    info("Just for debugging");
+    //info("Just for debugging");
   }
   View::wait();
 }
@@ -401,10 +400,8 @@ int main (int argc, char* argv[]) {
   Cmesh.copy(&basemesh);
   phimesh.copy(&basemesh);
 
-  // create the shapeset
+  // Initialize the shapeset.
   H1Shapeset shapeset;
-  PrecalcShapeset Cpss(&shapeset);
-  PrecalcShapeset phipss(&shapeset);
 
   // Spaces for concentration and the voltage
   H1Space C(&Cmesh, &shapeset);
@@ -459,15 +456,8 @@ int main (int argc, char* argv[]) {
   }
 
   // Nonlinear solver
-  UmfpackSolver umfpack;
-  NonlinSystem nls(&wf, &umfpack);
-  nls.set_spaces(2, &C, &phi);
-
-  if (MULTIMESH) {
-    nls.set_pss(2, &Cpss, &phipss);
-  } else {
-    nls.set_pss(1, &Cpss);
-  }
+  UmfpackSolver solver;
+  NonlinSystem nls(&wf, &solver, 2, &C, &phi);
 
   phi_prev_time.set_exact(MULTIMESH ? &phimesh : &Cmesh, voltage_ic);
   C_prev_time.set_exact(&Cmesh, concentration_ic);

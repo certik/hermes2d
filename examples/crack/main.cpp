@@ -98,10 +98,8 @@ int main(int argc, char* argv[])
   // This also initializes the multimesh hp-FEM.
   ymesh.copy(&xmesh);
 
-  // Initialize the shapeset and the cache.
+  // Initialize the shapeset.
   H1Shapeset shapeset;
-  PrecalcShapeset xpss(&shapeset);
-  PrecalcShapeset ypss(&shapeset);
 
   // Create the x displacement space.
   H1Space xdisp(&xmesh, &shapeset);
@@ -129,13 +127,16 @@ int main(int argc, char* argv[])
   OrderView  yoview("Y polynomial orders", 910, 0, 900, 300);
 
   // Matrix solver.
-  UmfpackSolver umfpack;
+  UmfpackSolver solver;
 
   // DOF and CPU convergence graphs.
   SimpleGraph graph_dof, graph_cpu;
 
   // Initialize refinement selector.
   H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER, &shapeset);
+
+  // Initialize the coarse mesh problem.
+  LinSystem ls(&wf, &solver, 2, &xdisp, &ydisp);
 
   // Adaptivity loop:
   int as = 1; bool done = false;
@@ -144,14 +145,9 @@ int main(int argc, char* argv[])
   {
     info("---- Adaptivity step %d:", as);
 
-    // Initialize the coarse and fine mesh problems.
-    LinSystem ls(&wf, &umfpack);
-    ls.set_spaces(2, &xdisp, &ydisp);
-    ls.set_pss(2, &xpss, &ypss);
-    RefSystem rs(&ls);
-
     // Assemble and solve the fine mesh problem.
     info("Solving on fine mesh.");
+    RefSystem rs(&ls);
     rs.assemble();
     rs.solve(2, &x_sln_fine, &y_sln_fine);
 
@@ -172,7 +168,7 @@ int main(int argc, char* argv[])
 
     // Visualize the solution and meshes.
     VonMisesFilter stress(&x_sln_coarse, &y_sln_coarse, mu, lambda);
-    //sview.set_min_max_range(0, 3e4);
+    sview.set_min_max_range(0, 2e5);
     sview.show(&stress, H2D_EPS_HIGH);
     xoview.show(&xdisp);
     yoview.show(&ydisp);
@@ -221,6 +217,13 @@ int main(int argc, char* argv[])
   }
   while (!done);
   verbose("Total running time: %g s", cpu_time.accumulated());
+
+  // Show the fine mesh solution - the final result
+  VonMisesFilter stress_fine(&x_sln_fine, &y_sln_fine, mu, lambda);
+  sview.set_title("Fine mesh solution");
+  sview.set_min_max_range(0, 2e5);
+  sview.show_mesh(false);
+  sview.show(&stress_fine);
 
   // Wait for all views to be closed.
   View::wait();

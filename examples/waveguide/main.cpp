@@ -40,7 +40,7 @@ const int P_INIT = 2;                    // Initial polynomial degree. NOTE: The
                                          // to the maximum poly order of the tangential component, and polynomials
                                          // of degree P_INIT + 1 are present in element interiors. P_INIT = 0
                                          // is for Whitney elements.
-const bool ALIGN_MESH = false;           // if ALIGN_MESH == true, curvilinear elements aligned with the
+const bool ALIGN_MESH = true;           // if ALIGN_MESH == true, curvilinear elements aligned with the
                                          // circular load are used, otherwise one uses a non-aligned mesh.
 const double THRESHOLD = 0.3;            // This is a quantitative parameter of the adapt(...) function and
                                          // it has different meanings for various adaptive strategies (see below).
@@ -69,7 +69,6 @@ const double ERR_STOP = 1.0;             // Stopping criterion for adaptivity (r
                                          // fine mesh and coarse mesh solution in percent).
 const int NDOF_STOP = 60000;             // Adaptivity process stops when the number of degrees of freedom grows
                                          // over this limit. This is to prevent h-adaptivity to go on forever.
-
 
 // Problem parameters.
 const double e_0   = 8.8541878176 * 1e-12;
@@ -148,9 +147,8 @@ int main(int argc, char* argv[])
   // Perform initial mesh refinemets.
   for (int i=0; i < INIT_REF_NUM; i++)  mesh.refine_all_elements();
 
-  // Initialize the shapeset and the cache.
+  // Initialize the shapeset.
   HcurlShapeset shapeset;
-  PrecalcShapeset pss(&shapeset);
 
   // Create an Hcurl space.
   HcurlSpace space(&mesh, &shapeset);
@@ -166,8 +164,8 @@ int main(int argc, char* argv[])
   wf.add_liform_surf(callback(linear_form_surf));
 
   // Initialize views.
-  VectorView eview("Electric field",0,0,800, 590);
-  OrderView ord("Order", 800, 0, 700, 590);
+  VectorView eview("Electric field", 0, 0, 580, 400);
+  OrderView ord("Order", 590, 0, 550, 400);
 
   /*
   // View the basis functions.
@@ -184,6 +182,9 @@ int main(int argc, char* argv[])
   // Initialize refinements selector.
   HcurlProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER, &shapeset);
 
+  // Initialize the coarse mesh problem.
+  LinSystem ls(&wf, &solver, &space);
+
   // Adaptivity loop:
   int as = 1; bool done = false;
   Solution sln_coarse, sln_fine;
@@ -191,14 +192,9 @@ int main(int argc, char* argv[])
   {
     info("---- Adaptivity step %d:", as);
 
-    // Initialize the coarse and fine mesh problems.
-    LinSystem ls(&wf, &solver);
-    ls.set_space(&space);
-    ls.set_pss(&pss);
-    RefSystem rs(&ls);
-
     // Assemble and solve the fine mesh problem.
     info("Solving on fine mesh.");
+    RefSystem rs(&ls);
     rs.assemble();
     rs.solve(&sln_fine);
 
@@ -237,7 +233,7 @@ int main(int argc, char* argv[])
 
     // Report results.
     info("ndof_coarse: %d, ndof_fine: %d, err_est: %g%%", 
-         space.get_num_dofs(), rs.get_space(0)->get_num_dofs(), err_est_hcurl);
+         ls.get_num_dofs(), rs.get_num_dofs(), err_est_hcurl);
 
     // Add entries to DOF convergence graphs.
     graph_dof_est.add_values(space.get_num_dofs(), err_est_hcurl);
@@ -261,7 +257,7 @@ int main(int argc, char* argv[])
   while (done == false);
   verbose("Total running time: %g s", cpu_time.accumulated());
 
-  // Show the fine mesh solution - the final result
+  // Show the fine mesh solution - the final result.
   eview.set_title("Final solution");
   eview.show(&sln_fine);
 

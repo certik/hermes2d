@@ -265,12 +265,8 @@ int main(int argc, char* argv[])
   for (int i = 0; i < INIT_REF_NUM[2]; i++) mesh3.refine_all_elements();
   for (int i = 0; i < INIT_REF_NUM[3]; i++) mesh4.refine_all_elements();
   	
-  // Initialize the shapeset and the cache.
+  // Initialize the shapeset.
   H1Shapeset shapeset;
-  PrecalcShapeset pss1(&shapeset);
-  PrecalcShapeset pss2(&shapeset);
-  PrecalcShapeset pss3(&shapeset);
-  PrecalcShapeset pss4(&shapeset);
 
   // Solution variables.
   Solution iter1, iter2, iter3, iter4,                          // Previous iterations.
@@ -322,13 +318,10 @@ int main(int argc, char* argv[])
   wf.add_biform_surf(3, 3, callback(biform_surf_3_3), bc_vacuum);
 
   // Initialize and solve coarse mesh problem.
-  LinSystem ls(&wf, &umfpack);
-  ls.set_spaces(4, &space1, &space2, &space3, &space4);
-  ls.set_pss(4, &pss1, &pss2, &pss3, &pss4);
+  LinSystem ls(&wf, &umfpack, 4, &space1, &space2, &space3, &space4);
   ls.assemble();
   info("Coarse mesh power iteration, %d + %d + %d + %d = %d ndof:", 
-  ls.get_num_dofs(0), ls.get_num_dofs(1), ls.get_num_dofs(2), ls.get_num_dofs(3), 
-  ls.get_num_dofs(0) + ls.get_num_dofs(1) + ls.get_num_dofs(2) + ls.get_num_dofs(3)); 
+  ls.get_num_dofs(0), ls.get_num_dofs(1), ls.get_num_dofs(2), ls.get_num_dofs(3), ls.get_num_dofs()); 
   power_iteration(&sln1_coarse, &sln2_coarse, &sln3_coarse, &sln4_coarse, 
 	          &iter1, &iter2, &iter3, &iter4,
 		  &ls, TOL_PIT_CM, &cpu_time);

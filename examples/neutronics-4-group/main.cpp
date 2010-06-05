@@ -139,12 +139,8 @@ int main(int argc, char* argv[])
   // Perform initial mesh refinements.
   for (int i = 0; i < INIT_REF_NUM; i++) mesh.refine_all_elements();
 
-  // Initialize the shapeset and the cache.
+  // Initialize the shapeset.
   H1Shapeset shapeset;
-  PrecalcShapeset pss1(&shapeset);
-  PrecalcShapeset pss2(&shapeset);
-  PrecalcShapeset pss3(&shapeset);
-  PrecalcShapeset pss4(&shapeset);
 
   // Solution variables.
   Solution sln1, sln2, sln3, sln4;
@@ -196,9 +192,7 @@ int main(int argc, char* argv[])
   wf.add_biform_surf(3, 3, callback(biform_surf_3_3), BDY_VACUUM);
 
   // Initialize coarse mesh problem.
-  LinSystem ls(&wf, &umfpack);
-  ls.set_spaces(4, &space1, &space2, &space3, &space4);
-  ls.set_pss(4, &pss1, &pss2, &pss3, &pss4);
+  LinSystem ls(&wf, &umfpack, 4, &space1, &space2, &space3, &space4);
 
   // Initialize views.
   ScalarView view1("Neutron flux 1", 0, 0, 320, 600);

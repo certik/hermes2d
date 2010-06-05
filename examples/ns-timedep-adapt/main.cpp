@@ -152,21 +152,20 @@ int main(int argc, char* argv[])
   basemesh.refine_towards_boundary(5, 2, false);
   mesh.copy(&basemesh);
 
-  // Initialize shapesets and the cache.
-  H1ShapesetBeuchler h1_shapeset;
-  PrecalcShapeset h1_pss(&h1_shapeset);
+  // Initialize shapesets.
+  H1Shapeset xvel_shapeset;
+  H1Shapeset yvel_shapeset;
 #ifdef PRESSURE_IN_L2
-  L2Shapeset l2_shapeset;
-  PrecalcShapeset l2_pss(&l2_shapeset);
+  L2Shapeset p_shapeset;
 #endif
 
   // spaces for velocities and pressure
-  H1Space xvel_space(&mesh, &h1_shapeset);
-  H1Space yvel_space(&mesh, &h1_shapeset);
+  H1Space xvel_space(&mesh, &xvel_shapeset);
+  H1Space yvel_space(&mesh, &yvel_shapeset);
 #ifdef PRESSURE_IN_L2
-  L2Space p_space(&mesh, &l2_shapeset);
+  L2Space p_space(&mesh, &p_shapeset);
 #else
-  H1Space p_space(&mesh, &h1_shapeset);
+  H1Space p_space(&mesh, &p_shapeset);
 #endif
 
   // Set velocity and pressure polynomial degrees.
@@ -236,35 +235,16 @@ int main(int argc, char* argv[])
   pview.show_mesh(true);
 
   // Matrix solver.
-  UmfpackSolver umfpack;
+  UmfpackSolver solver;
 
   // Initialize linear system.
-  LinSystem ls(&wf, &umfpack);
+  LinSystem ls(&wf, &solver, 3, &xvel_space, &yvel_space, &p_space);
 
   // Initialize nonlinear system.
-  NonlinSystem nls(&wf, &umfpack);
-
-  if (NEWTON) {
-    // Initialize the nonlinear system.
-    nls.set_spaces(3, &xvel_space, &yvel_space, &p_space);
-#ifdef PRESSURE_IN_L2
-    nls.set_pss(3, &h1_pss, &h1_pss, &l2_pss);
-#else
-    nls.set_pss(1, &h1_pss);
-#endif
-  }
-  else {
-    // Initialize the linear system.
-    ls.set_spaces(3, &xvel_space, &yvel_space, &p_space);
-#ifdef PRESSURE_IN_L2
-    ls.set_pss(3, &h1_pss, &h1_pss, &l2_pss);
-#else
-    ls.set_pss(1, &h1_pss);
-#endif
-  }
+  NonlinSystem nls(&wf, &solver, 3, &xvel_space, &yvel_space, &p_space);
 
   // Initialize refinement selector.
-  H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER, &h1_shapeset);
+  H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER, &xvel_shapeset);
 
   // Time-stepping loop:
   char title[100];

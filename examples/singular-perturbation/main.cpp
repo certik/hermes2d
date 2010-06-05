@@ -97,9 +97,8 @@ int main(int argc, char* argv[])
   for (int i=0; i < INIT_REF_NUM; i++) mesh.refine_all_elements();
   mesh.refine_towards_boundary(1, INIT_REF_NUM_BDY);
 
-  // Initialize the shapeset and the cache.
+  // Initialize the shapeset.
   H1Shapeset shapeset;
-  PrecalcShapeset pss(&shapeset);
 
   // Create an H1 space.
   H1Space space(&mesh, &shapeset);
@@ -128,6 +127,9 @@ int main(int argc, char* argv[])
   // Initialize refinement selector.
   H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER, &shapeset);
 
+  // Initialize the coarse mesh problem.
+  LinSystem ls(&wf, &solver, &space);
+
   // Adaptivity loop:
   int as = 1; bool done = false;
   Solution sln_coarse, sln_fine;
@@ -135,14 +137,9 @@ int main(int argc, char* argv[])
   {
     info("---- Adaptivity step %d:", as); 
 
-    // Initialize the coarse and fine mesh problems.
-    LinSystem ls(&wf, &solver);
-    ls.set_space(&space);
-    ls.set_pss(&pss);
-    RefSystem rs(&ls);
-
     // Assemble and solve the fine mesh problem.
     info("Solving on fine mesh.");
+    RefSystem rs(&ls);
     rs.assemble();
     rs.solve(&sln_fine);
 
