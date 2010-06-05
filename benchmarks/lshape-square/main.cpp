@@ -88,9 +88,8 @@ int main(int argc, char* argv[])
   // refine towards vertex #4 (center)
   //mesh.refine_towards_vertex(4, 10);
 
-  // Initialize the shapeset and the cache.
+  // Initialize the shapeset.
   H1Shapeset shapeset;
-  PrecalcShapeset pss(&shapeset);
 
   // Create an H1 space.
   H1Space space(&mesh, &shapeset);
@@ -118,6 +117,9 @@ int main(int argc, char* argv[])
   // DOF and CPU convergence graphs.
   SimpleGraph graph_dof_est, graph_dof_exact, graph_cpu_est, graph_cpu_exact;
 
+  // Initialize the coarse mesh problem.
+  LinSystem ls(&wf, &solver, &space);
+
   // Adaptivity loop:
   int as = 1; bool done = false;
   Solution sln_coarse, sln_fine;
@@ -125,16 +127,9 @@ int main(int argc, char* argv[])
   {
     info("---- Adaptivity step %d:", as);
 
-    // Initialize the coarse and fine mesh problems.
-    LinSystem ls(&wf, &solver);
-    ls.set_space(&space);
-    ls.set_pss(&pss);
-    int order_increase = 1;   // >= 0 (default = 1) 
-    int refinement = 1;       // only '0' or '1' supported (default = 1)
-    RefSystem rs(&ls, order_increase, refinement);
-
     // Assemble and solve the fine mesh problem.
     info("Solving on fine mesh.");
+    RefSystem rs(&ls);
     rs.assemble();
     rs.solve(&sln_fine);
 

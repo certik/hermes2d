@@ -177,9 +177,8 @@ int main(int argc, char* argv[])
   for (int i=0; i < INIT_GLOB_REF_NUM; i++) mesh.refine_all_elements();
   mesh.refine_towards_boundary(1, INIT_BDY_REF_NUM);
 
-  // Initialize the shapeset and the cache.
+  // Initialize the shapeset.
   H1Shapeset shapeset;
-  PrecalcShapeset pss(&shapeset);
 
   // Create an H1 space for T.
   H1Space space_T(&mesh, &shapeset);
@@ -227,12 +226,10 @@ int main(int argc, char* argv[])
   wf.add_liform(1, res_phi, res_phi_ord, H2D_ANY, 3, &phi_prev_newton, &phi_prev_time, &T_prev_newton);
 
   // Matrix solver.
-  UmfpackSolver umfpack;
+  UmfpackSolver solver;
 
   // Initialize nonlinear system.
-  NonlinSystem nls(&wf, &umfpack);
-  nls.set_spaces(2, &space_T, &space_phi);
-  nls.set_pss(&pss);
+  NonlinSystem nls(&wf, &solver, 2, &space_T, &space_phi);
 
   // Set initial conditions for the Newton's method.
   T_prev_newton.copy(&T_prev_time);

@@ -110,9 +110,8 @@ int main(int argc, char* argv[])
   for (int i=0; i < INIT_REF_NUM; i++)  mesh.refine_all_elements();
 
 
-  // Initialize the shapeset and the cache.
+  // Initialize the shapeset.
   HcurlShapeset shapeset;
-  PrecalcShapeset pss(&shapeset);
 
   // Create an Hcurl space.
   HcurlSpace space(&mesh, &shapeset);
@@ -150,6 +149,9 @@ int main(int argc, char* argv[])
   // Initialize refinement selector.
   HcurlProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER, &shapeset);
 
+  // Initialize the coarse mesh problem.
+  LinSystem ls(&wf, &solver, &space);
+
   // Adaptivity loop.
   int as = 1; bool done = false;
   Solution sln_coarse, sln_fine;
@@ -157,14 +159,9 @@ int main(int argc, char* argv[])
   {
     info("---- Adaptivity step %d:", as);
 
-    // Initialize the coarse and fine mesh problems.
-    LinSystem ls(&wf, &solver);
-    ls.set_space(&space);
-    ls.set_pss(&pss);
-    RefSystem rs(&ls);
-
     // Assemble and solve the fine mesh problem.
     info("Solving on fine mesh.");
+    RefSystem rs(&ls);
     rs.assemble();
     rs.solve(&sln_fine);
 
@@ -219,7 +216,8 @@ int main(int argc, char* argv[])
     
     // Report results.
     info("ndof_coarse: %d, ndof_fine: %d, err_est: %g%%, err_exact: %g%%", 
-         space.get_num_dofs(), rs.get_space(0)->get_num_dofs(), err_est_hcurl, err_exact);
+         space.get_num_dofs(), rs.get_space(0)->get_num_dofs(), 
+         err_est_hcurl, err_exact);
 
     // Add entries to DOF convergence graphs.
     graph_dof_exact.add_values(space.get_num_dofs(), err_exact);

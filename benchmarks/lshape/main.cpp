@@ -85,9 +85,8 @@ int main(int argc, char* argv[])
   // Perform initial mesh refinement.
   mesh.refine_all_elements();
 
-  // Initialize the shapeset and the cache.
+  // Initialize the shapeset.
   H1Shapeset shapeset;
-  PrecalcShapeset pss(&shapeset);
 
   // Create an H1 space.
   H1Space space(&mesh, &shapeset);
@@ -115,6 +114,9 @@ int main(int argc, char* argv[])
   // DOF and CPU convergence graphs.
   SimpleGraph graph_dof_est, graph_dof_exact, graph_cpu_est, graph_cpu_exact;
 
+  // Initialize the coarse mesh problem.
+  LinSystem ls(&wf, &solver, &space);
+
   // Adaptivity loop:
   int as = 1; bool done = false;
   Solution sln_coarse, sln_fine;
@@ -122,16 +124,9 @@ int main(int argc, char* argv[])
   {
     info("---- Adaptivity step %d:", as);
 
-    // Initialize the coarse and fine mesh problems.
-    LinSystem ls(&wf, &solver);
-    ls.set_space(&space);
-    ls.set_pss(&pss);
-    int order_increase = 1;   // >= 0 (default = 1) 
-    int refinement = 1;       // only '0' or '1' supported (default = 1)
-    RefSystem rs(&ls, order_increase, refinement);
-
     // Assemble and solve the fine mesh problem.
     info("Solving on fine mesh.");
+    RefSystem rs(&ls);
     rs.assemble();
     rs.solve(&sln_fine);
 
@@ -200,6 +195,7 @@ int main(int argc, char* argv[])
 
   // Show the fine mesh solution - the final result.
   sview.set_title("Final solution");
+  sview.show_mesh(false);
   sview.show(&sln_fine);
 
   // Wait for all views to be closed.

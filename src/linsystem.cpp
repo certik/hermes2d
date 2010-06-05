@@ -213,7 +213,7 @@ void LinSystem::init_spaces(int n, ...)
       if (p == NULL) error("New PrecalcShapeset could not be allocated.");
       pss[i] = p;
       num_user_pss++;
-   }
+    }
   }
 }
 

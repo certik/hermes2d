@@ -62,6 +62,8 @@ void RefSystem::set_order_increase(int order_increase)
 
 void RefSystem::assemble(bool rhsonly)
 {  
+  if (this->base->have_spaces == false) error("Missing space(s).");
+
   // copy and refines meshes from coarse mesh linsystem
   prepare();
 

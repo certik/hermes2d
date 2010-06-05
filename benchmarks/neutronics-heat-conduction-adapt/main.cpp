@@ -199,8 +199,6 @@ int main(int argc, char* argv[])
 
   // Initialize the shapeset and the cache.
   H1Shapeset shapeset;
-  PrecalcShapeset pss_T(&shapeset);
-  PrecalcShapeset pss_phi(&shapeset);
 
   // Create an H1 space for T.
   H1Space space_T(&mesh_T, &shapeset);
@@ -230,12 +228,10 @@ int main(int argc, char* argv[])
   wf.add_liform(1, res_phi, res_phi_ord, H2D_ANY, 3, &phi_prev_newton, &phi_prev_time, &T_prev_newton);
 
   // Matrix solver.
-  UmfpackSolver umfpack;
+  UmfpackSolver solver;
 
   // Initialize the nonlinear system.
-  NonlinSystem nls(&wf, &umfpack);
-  nls.set_spaces(2, &space_T, &space_phi);
-  nls.set_pss(2, &pss_T, &pss_phi);
+  NonlinSystem nls(&wf, &solver, 2, &space_T, &space_phi);
 
   // Initialize solution views.
   ScalarView view_T("", 360, 0, 350, 250);
@@ -441,7 +437,7 @@ int main(int argc, char* argv[])
   }
 
 
-  // Wait for all views to be closed
+  // Wait for all views to be closed.
   View::wait();
   return 0;
 }
