@@ -181,10 +181,10 @@ int main(int argc, char* argv[])
       ls.project_global(&sln_fine, &sln_coarse);
     }
 
-    // Time measurement
+    // Time measurement.
     cpu_time.tick();
 
-    // View the solution and mesh
+    // View the solution and mesh.
     sview.show(&sln_coarse);
     oview.show(&space);
 

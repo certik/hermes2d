@@ -27,7 +27,7 @@ set(WITH_TESTS      YES)
 set(WITH_GLUT       YES)
 set(WITH_VIEWER_GUI NO)
 set(WITH_UTIL       YES)
-set(WITH_TRILINOS NO)
+set(WITH_TRILINOS   NO)
 set(WITH_EXODUSII   NO)
 
 # reporting and logging

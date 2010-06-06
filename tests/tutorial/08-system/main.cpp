@@ -12,16 +12,20 @@ const double f_0  = 0;                                     // external force in 
 const double f_1  = 1e4;                                   // external force in y-direction
 const double lambda = (E * nu) / ((1 + nu) * (1 - 2*nu));  // first Lame constant
 const double mu = E / (2*(1 + nu));                        // second Lame constant
+const int P_INIT = 8;                                      // Initial polynomial degree of all elements.
 
-// boundary condition types
+// Boundary marker (external force).
+const int GAMMA_3_BDY = 3;
+
+// Boundary condition types.
 BCType bc_types(int marker)
   { return (marker == 1) ? BC_ESSENTIAL : BC_NATURAL; }
 
-// function values for Dirichlet boundary conditions
+// Function values for Dirichlet boundary conditions.
 scalar essential_bc_values(int ess_bdy_marker, double x, double y)
   { return 0; }
 
-// bilinear forms
+// Bilinear forms.
 template<typename Real, typename Scalar>
 Scalar bilinear_form_0_0(int n, double *wt, Func<Real> *u, Func<Real> *v,
                          Geom<Real> *e, ExtData<Scalar> *ext)
@@ -46,7 +50,7 @@ Scalar bilinear_form_1_1(int n, double *wt, Func<Real> *u, Func<Real> *v,
          (lambda + 2*mu) * int_dudy_dvdy<Real, Scalar>(n, wt, u, v);
 }
 
-// linear forms
+// Linear forms.
 template<typename Real, typename Scalar>
 Scalar linear_form_surf_0(int n, double *wt, Func<Real> *v, Geom<Real> *e,
                           ExtData<Scalar> *ext)
@@ -63,42 +67,47 @@ Scalar linear_form_surf_1(int n, double *wt, Func<Real> *v, Geom<Real> *e,
 
 int main(int argc, char* argv[])
 {
-  // load the mesh file
+  // Load the mesh file.
   Mesh mesh;
   H2DReader mloader;
   mloader.load("sample.mesh", &mesh);
 
-  // initialize the shapeset and the cache
+  // Initialize the shapeset.
   H1Shapeset shapeset;
-  PrecalcShapeset pss(&shapeset);
 
-  // create the x displacement space
+  // Create the x displacement space.
   H1Space xdisp(&mesh, &shapeset);
   xdisp.set_bc_types(bc_types);
   xdisp.set_essential_bc_values(essential_bc_values);
+  xdisp.set_uniform_order(P_INIT);
 
-  // create the y displacement space
+  // Create the y displacement space.
   H1Space ydisp(&mesh, &shapeset);
   ydisp.set_bc_types(bc_types);
   ydisp.set_essential_bc_values(essential_bc_values);
+  ydisp.set_uniform_order(P_INIT);
 
-  // initialize the weak formulation
+  // Enumerate degrees of freedom.
+  int ndof = assign_dofs(2, &xdisp, &ydisp);
+
+  // Initialize the weak formulation.
   WeakForm wf(2);
   wf.add_biform(0, 0, callback(bilinear_form_0_0), H2D_SYM);  // Note that only one symmetric part is
   wf.add_biform(0, 1, callback(bilinear_form_0_1), H2D_SYM);  // added in the case of symmetric bilinear
   wf.add_biform(1, 1, callback(bilinear_form_1_1), H2D_SYM);  // forms.
-  wf.add_liform_surf(0, callback(linear_form_surf_0), 3);
-  wf.add_liform_surf(1, callback(linear_form_surf_1), 3);
+  wf.add_liform_surf(0, callback(linear_form_surf_0), GAMMA_3_BDY);
+  wf.add_liform_surf(1, callback(linear_form_surf_1), GAMMA_3_BDY);
 
-  // initialize the linear system and solver
-  UmfpackSolver umfpack;
-  LinSystem sys(&wf, &umfpack);
-  sys.set_spaces(2, &xdisp, &ydisp);
-  sys.set_pss(1, &pss);
+  // Matrix solver.
+  UmfpackSolver solver;
 
-  // testing n_dof and correctness of solution vector
+  // Initialize the linear system.
+  LinSystem sys(&wf, &solver, 2, &xdisp, &ydisp);
+
+  // Testing n_dof and correctness of solution vector
   // for p_init = 1, 2, ..., 10
   int success = 1;
+  Solution xsln, ysln;
   for (int p_init = 1; p_init <= 10; p_init++) {
     printf("********* p_init = %d *********\n", p_init);
     xdisp.set_uniform_order(p_init);
@@ -106,8 +115,7 @@ int main(int argc, char* argv[])
     ydisp.set_uniform_order(p_init);
     ndofs += ydisp.assign_dofs(ndofs);
 
-    // assemble the stiffness matrix and solve the system
-    Solution xsln, ysln;
+    // Assemble and solve the matrix problem.
     sys.assemble();
     sys.solve(2, &xsln, &ysln);
 

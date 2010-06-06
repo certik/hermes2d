@@ -1,32 +1,33 @@
 #include "hermes2d.h"
-#include "solver_umfpack.h"  // defines the class UmfpackSolver
+#include "solver_umfpack.h"  // defines the class UmfpackSolver.
 
 // This test makes sure that example 03-poisson works correctly.
 // CAUTION: This test will fail when any changes to the shapeset
 // are made, but it is easy to fix (see below).
 
+int P_INIT = 5;            // Uniform polynomial degree of mesh elements.
 double CONST_F = 2.0;   // Constant right-hand side.
 
-// boundary condition types (essential = Dirichlet)
+// boundary condition types (essential = Dirichlet).
 BCType bc_types(int marker)
 {
   return BC_ESSENTIAL;
 }
 
-// function values for Dirichlet boundary conditions
+// function values for Dirichlet boundary conditions.
 scalar essential_bc_values(int ess_bdy_marker, double x, double y)
 {
   return 0;
 }
 
-// return the value \int \nabla u . \nabla v dx
+// return the value \int \nabla u . \nabla v dx .
 template<typename Real, typename Scalar>
 Scalar bilinear_form(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
   return int_grad_u_grad_v<Real, Scalar>(n, wt, u, v);
 }
 
-// return the value \int v dx
+// return the value \int v dx .
 template<typename Real, typename Scalar>
 Scalar linear_form(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
@@ -35,50 +36,53 @@ Scalar linear_form(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scal
 
 int main(int argc, char* argv[])
 {
-  // load the mesh file
+  // Load the mesh.
   Mesh mesh;
   H2DReader mloader;
   mloader.load("domain.mesh", &mesh);
 
-  // sample "manual" mesh refinement
+  // Perform initial mesh refinements.
   mesh.refine_element(0);
 
-  // initialize the shapeset and the cache
+  // Initialize the shapeset.
   H1Shapeset shapeset;
-  PrecalcShapeset pss(&shapeset);
 
-  // create an H1 space
+  // Create an H1 space.
   H1Space space(&mesh, &shapeset);
   space.set_bc_types(bc_types);
   space.set_essential_bc_values(essential_bc_values);
+  space.set_uniform_order(P_INIT);
 
-  // initialize the weak formulation
-  WeakForm wf(1);
-  wf.add_biform(0, 0, callback(bilinear_form));
-  wf.add_liform(0, callback(linear_form));
+  // Enumerate degrees of freedom.
+  int ndof = assign_dofs(&space);
 
-  // initialize the linear system and solver
-  UmfpackSolver umfpack;
-  LinSystem sys(&wf, &umfpack);
-  sys.set_spaces(1, &space);
-  sys.set_pss(1, &pss);
+  // Initialize the weak formulation.
+  WeakForm wf;
+  wf.add_biform(callback(bilinear_form));
+  wf.add_liform(callback(linear_form));
 
-  // testing n_dof and correctness of solution vector
+  // Matrix solver.
+  UmfpackSolver solver;
+
+  // Initialize the linear system.
+  LinSystem ls(&wf, &solver, &space);
+
+  // Testing n_dof and correctness of solution vector
   // for p_init = 1, 2, ..., 10
   int success = 1;
+  Solution sln;
   for (int p_init = 1; p_init <= 10; p_init++) {
     printf("********* p_init = %d *********\n", p_init);
     space.set_uniform_order(p_init);
-    space.assign_dofs();
+    assign_dofs(&space);
 
-    // assemble the stiffness matrix and solve the system
-    Solution sln;
-    sys.assemble();
-    sys.solve(1, &sln);
+    // Assemble and solve the matrix problem.
+    ls.assemble();
+    ls.solve(1, &sln);
 
     scalar *sol_vector;
     int n_dof;
-    sys.get_solution_vector(sol_vector, n_dof);
+    ls.get_solution_vector(sol_vector, n_dof);
     printf("n_dof = %d\n", n_dof);
     double sum = 0;
     for (int i=0; i < n_dof; i++) sum += sol_vector[i];

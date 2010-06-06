@@ -5,17 +5,21 @@
 // CAUTION: This test will fail when any changes to the shapeset
 // are made, but it is easy to fix (see below).
 
-double T1 = 30.0;            // prescribed temperature on Gamma_3
-double T0 = 20.0;            // outer temperature on Gamma_1
-double H  = 0.05;            // heat flux on Gamma_1
-int UNIFORM_REF_LEVEL = 1;   // number of initial uniform mesh refinements
-int CORNER_REF_LEVEL = 3;   // number of mesh refinements towards the re-entrant corner
+double T1 = 30.0;            // prescribed temperature on Gamma_3.
+double T0 = 20.0;            // outer temperature on Gamma_1.
+double H  = 0.05;            // heat flux on Gamma_1.
+int UNIFORM_REF_LEVEL = 1;   // number of initial uniform mesh refinements.
+int CORNER_REF_LEVEL = 3;    // number of mesh refinements towards the re-entrant corner.
+int P_INIT = 6;              // Uniform polynomial degree of all mesh elements.
 
-// boundary condition types
+// Boundary markers.
+const int NEWTON_BDY = 1;
+
+// Boundary condition types.
 BCType bc_types(int marker)
   { return (marker == 3) ? BC_ESSENTIAL : BC_NATURAL; }
 
-// function values for essential(Dirichlet) boundary markers
+// Function values for essential(Dirichlet) boundary markers.
 scalar essential_bc_values(int ess_bdy_marker, double x, double y)
   { return T1; }
 
@@ -40,50 +44,55 @@ Scalar linear_form_surf(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData
 
 int main(int argc, char* argv[])
 {
-  // load the mesh file
+  // Load the mesh file.
   Mesh mesh;
   H2DReader mloader;
   mloader.load("domain.mesh", &mesh);
+
+  // Perform initial mesh refinements.
   for(int i=0; i<UNIFORM_REF_LEVEL; i++) mesh.refine_all_elements();
   mesh.refine_towards_vertex(3, CORNER_REF_LEVEL);
 
-  // initialize the shapeset and the cache
+  // Initialize the shapeset.
   H1Shapeset shapeset;
-  PrecalcShapeset pss(&shapeset);
 
-  // create an H1 space
+  // Create an H1 space.
   H1Space space(&mesh, &shapeset);
   space.set_bc_types(bc_types);
   space.set_essential_bc_values(essential_bc_values);
+  space.set_uniform_order(P_INIT);
 
-  // initialize the weak formulation
-  WeakForm wf(1);
-  wf.add_biform(0, 0, callback(bilinear_form));
-  wf.add_biform_surf(0, 0, callback(bilinear_form_surf), 1);
-  wf.add_liform_surf(0, callback(linear_form_surf), 1);
+  // Enumerate degrees of freedom.
+  int ndof = assign_dofs(&space);
 
-  // initialize the linear system and solver
-  UmfpackSolver umfpack;
-  LinSystem sys(&wf, &umfpack);
-  sys.set_spaces(1, &space);
-  sys.set_pss(1, &pss);
+  // Initialize the weak formulation.
+  WeakForm wf;
+  wf.add_biform(callback(bilinear_form));
+  wf.add_biform_surf(callback(bilinear_form_surf), NEWTON_BDY);
+  wf.add_liform_surf(callback(linear_form_surf), NEWTON_BDY);
 
-  // testing n_dof and correctness of solution vector
+  // Matrix solver.
+  UmfpackSolver solver;
+
+  // Initialize the linear system.
+  LinSystem ls(&wf, &solver, &space);
+
+  // Testing n_dof and correctness of solution vector
   // for p_init = 1, 2, ..., 10
   int success = 1;
+  Solution sln;
   for (int p_init = 1; p_init <= 10; p_init++) {
     printf("********* p_init = %d *********\n", p_init);
     space.set_uniform_order(p_init);
-    space.assign_dofs();
+    assign_dofs(&space);
 
-    // assemble the stiffness matrix and solve the system
-    Solution sln;
-    sys.assemble();
-    sys.solve(1, &sln);
+    // Assemble and solve the matrix problem.
+    ls.assemble();
+    ls.solve(&sln);
 
     scalar *sol_vector;
     int n_dof;
-    sys.get_solution_vector(sol_vector, n_dof);
+    ls.get_solution_vector(sol_vector, n_dof);
     printf("n_dof = %d\n", n_dof);
     double sum = 0;
     for (int i=0; i < n_dof; i++) sum += sol_vector[i];

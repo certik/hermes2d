@@ -118,7 +118,6 @@ int main(int argc, char* argv[])
   bool rhsonly = false;
   for(int ts = 1; ts <= nsteps; ts++)
   {
-
     info("---- Time step %d, time %3.5f, ext_temp %g", ts, TIME, temp_ext(TIME));
 
     // Assemble and solve.

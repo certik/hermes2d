@@ -7,5 +7,6 @@ add_executable(${PROJECT_NAME} main.cpp)
 include (../../CMake.common)
 
 set(BIN ${PROJECT_BINARY_DIR}/${PROJECT_NAME})
-add_test(benchmark-lshape ${BIN})
+add_test(benchmark-lshape-projection ${BIN})
+add_test(benchmark-lshape-coarse ${BIN} -coarse_mesh)
 

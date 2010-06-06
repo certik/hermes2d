@@ -9,34 +9,34 @@ const int P_INIT = 3;            // initial polynomial degree in elements
 const int INIT_REF_NUM = 1;      // number of initial uniform refinements
 const double TAU = 200.0;        // time step in seconds
 
-// problem constants
+// Problem constants
 const double T_INIT = 10;        // temperature of the ground (also initial temperature)
 const double ALPHA = 10;         // heat flux coefficient for Newton's boundary condition
 const double LAMBDA = 1e5;       // thermal conductivity of the material
 const double HEATCAP = 1e6;      // heat capacity
 const double RHO = 3000;         // material density
-const double FINAL_TIME = 2100; // length of time interval (24 hours) in seconds
+const double FINAL_TIME = 2100;  // length of time interval (24 hours) in seconds
 
-// global variable
+// Global variable.
 double TIME = 0;
 
-// time-dependent exterior temperature
+// Time-dependent exterior temperature.
 double temp_ext(double t) {
   return T_INIT + 10. * sin(2*M_PI*t/FINAL_TIME);
 }
 
-// boundary markers
+// Boundary markers.
 int marker_ground = 1;
 int marker_air = 2;
 
-// boundary condition types
+// Boundary condition types.
 BCType bc_types(int marker)
 {
   if (marker == marker_ground) return BC_ESSENTIAL;
   else return BC_NATURAL;
 }
 
-// function values for Dirichlet boundary markers
+// Function values for Dirichlet boundary markers.
 scalar essential_bc_values(int ess_bdy_marker, double x, double y)
 {
   return T_INIT;
@@ -70,59 +70,57 @@ Scalar linear_form_surf(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData
 
 int main(int argc, char* argv[])
 {
-  // load and refine mesh
+  // Load the mesh.
   Mesh mesh;
   H2DReader mloader;
   mloader.load("cathedral.mesh", &mesh);
+
+  // Perform initial mesh refinements.
   for(int i = 0; i < INIT_REF_NUM; i++) mesh.refine_all_elements();
   mesh.refine_towards_boundary(2, 5);
 
-  // set up shapeset
+  // Initialize the shapeset.
   H1Shapeset shapeset;
-  PrecalcShapeset pss(&shapeset);
 
-  // set up spaces
+  // Initialize an H1 space.
   H1Space space(&mesh, &shapeset);
   space.set_bc_types(bc_types);
   space.set_essential_bc_values(essential_bc_values);
   space.set_uniform_order(P_INIT);
 
-  // enumerate basis functions
-  space.assign_dofs();
+  // Enumerate degrees of freedom.
+  int ndof = assign_dofs(&space);
 
-  // set initial condition
+  // Set initial condition.
   Solution tsln;
   tsln.set_const(&mesh, T_INIT);
 
-  // weak formulation
-  WeakForm wf(1);
-  wf.add_biform(0, 0, bilinear_form<double, double>, bilinear_form<Ord, Ord>);
-  wf.add_biform_surf(0, 0, bilinear_form_surf<double, double>, bilinear_form_surf<Ord, Ord>, marker_air);
-  wf.add_liform(0, linear_form<double, double>, linear_form<Ord, Ord>, H2D_ANY, 1, &tsln);
-  wf.add_liform_surf(0, linear_form_surf<double, double>, linear_form_surf<Ord, Ord>, marker_air);
+  // Initialize weak formulation.
+  WeakForm wf;
+  wf.add_biform(bilinear_form<double, double>, bilinear_form<Ord, Ord>);
+  wf.add_biform_surf(bilinear_form_surf<double, double>, bilinear_form_surf<Ord, Ord>, marker_air);
+  wf.add_liform(linear_form<double, double>, linear_form<Ord, Ord>, H2D_ANY, 1, &tsln);
+  wf.add_liform_surf(linear_form_surf<double, double>, linear_form_surf<Ord, Ord>, marker_air);
 
-  // matrix solver
-  UmfpackSolver umfpack;
+  // Matrix solver.
+  UmfpackSolver solver;
 
-  // linear system
-  LinSystem ls(&wf, &umfpack);
-  ls.set_spaces(1, &space);
-  ls.set_pss(1, &pss);
+  // Initialize linear system.
+  LinSystem ls(&wf, &solver, &space);
 
   // time stepping
   int nsteps = (int)(FINAL_TIME/TAU + 0.5);
   bool rhsonly = false;
   for(int n = 1; n <= nsteps; n++)
   {
+    info("---- Time step %d, time %3.5f, ext_temp %g", ts, TIME, temp_ext(TIME));
 
-    info("\n---- Time %3.5f, time step %d, ext_temp %g ----------", TIME, n, temp_ext(TIME));
-
-    // assemble and solve
+    // Assemble and solve.
     ls.assemble(rhsonly);
     rhsonly = true;
-    ls.solve(1, &tsln);
+    ls.solve(&tsln);
 
-    // shifting the time variable
+    // Update the time variable.
     TIME += TAU;
   }
 
@@ -134,9 +132,9 @@ int main(int argc, char* argv[])
   for (int i=0; i < n_dof; i++) sum += sol_vector[i];
   printf("coefficient sum = %g\n", sum);
 
-    // Actual test. The value of 'sum' depend on the
-    // current shapeset. If you change the shapeset,
-    // you need to correct this number.
+  // Actual test. The value of 'sum' depend on the
+  // current shapeset. If you change the shapeset,
+  // you need to correct this number.
   int success = 1;
   if (fabs(sum - 9122.66) > 1e-1) success = 0;
 
@@ -151,3 +149,4 @@ int main(int argc, char* argv[])
     return ERROR_FAILURE;
   }
 }
+

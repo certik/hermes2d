@@ -5,28 +5,29 @@
 // CAUTION: This test will fail when any changes to the shapeset
 // are made, but it is easy to fix (see below).
 
-double CONST_F = -4.0;       // constant right-hand side
+double CONST_F = -4.0;       // constant right-hand side.
+int P_INIT = 2;              // Initial polynomial degree in all elements.
 
-// boundary condition type (essential = Dirichlet)
+// boundary condition type (essential = Dirichlet).
 BCType bc_types(int marker)
 {
   return BC_ESSENTIAL;
 }
 
-// function values for essential(Dirichlet) boundary markers
+// function values for essential(Dirichlet) boundary markers.
 scalar essential_bc_values(int ess_bdy_marker, double x, double y)
 {
   return (-CONST_F/4.0)*(x*x + y*y);
 }
 
-// return the value \int \nabla u . \nabla v dx
+// return the value \int \nabla u . \nabla v dx .
 template<typename Real, typename Scalar>
 Scalar bilinear_form(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
   return int_grad_u_grad_v<Real, Scalar>(n, wt, u, v);
 }
 
-// return the value \int v dx
+// return the value \int v dx .
 template<typename Real, typename Scalar>
 Scalar linear_form(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
@@ -35,44 +36,47 @@ Scalar linear_form(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scal
 
 int main(int argc, char* argv[])
 {
-  // load the mesh file
+  // Load the mesh.
   Mesh mesh;
   H2DReader mloader;
   mloader.load("domain.mesh", &mesh);
   mesh.refine_all_elements();
 
-  // initialize the shapeset and the cache
+  // Initialize the shapeset.
   H1Shapeset shapeset;
-  PrecalcShapeset pss(&shapeset);
 
-  // create an H1 space
+  // Create an H1 space.
   H1Space space(&mesh, &shapeset);
   space.set_bc_types(bc_types);
   space.set_essential_bc_values(essential_bc_values);
+  space.set_uniform_order(P_INIT);
 
-  // initialize the weak formulation
-  WeakForm wf(1);
-  wf.add_biform(0, 0, callback(bilinear_form));
-  wf.add_liform(0, callback(linear_form));
+  // Enumerate degrees of freedom.
+  int ndof = assign_dofs(&space);
 
-  // initialize the linear system and solver
-  UmfpackSolver umfpack;
-  LinSystem sys(&wf, &umfpack);
-  sys.set_spaces(1, &space);
-  sys.set_pss(1, &pss);
+  // Initialize the weak formulation.
+  WeakForm wf;
+  wf.add_biform(callback(bilinear_form));
+  wf.add_liform(callback(linear_form));
 
-  // testing n_dof and correctness of solution vector
+  // Matrix solver.
+  UmfpackSolver solver;
+
+  // Initialize the linear system.
+  LinSystem sys(&wf, &solver, &space);
+
+  // Testing n_dof and correctness of solution vector
   // for p_init = 1, 2, ..., 10
   int success = 1;
+  Solution sln;
   for (int p_init = 1; p_init <= 10; p_init++) {
     printf("********* p_init = %d *********\n", p_init);
     space.set_uniform_order(p_init);
-    space.assign_dofs();
+    assign_dofs(&space);
 
-    // assemble the stiffness matrix and solve the system
-    Solution sln;
+    // Assemble and solve the matrix problem.
     sys.assemble();
-    sys.solve(1, &sln);
+    sys.solve(&sln);
 
     scalar *sol_vector;
     int n_dof;

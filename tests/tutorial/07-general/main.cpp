@@ -124,43 +124,46 @@ Scalar linear_form_ord(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<
 
 int main(int argc, char* argv[])
 {
-  // Load the mesh
+  // Load the mesh.
   Mesh mesh;
   H2DReader mloader;
   mloader.load("domain.mesh", &mesh);
   for (int i=0; i < INIT_REF_NUM; i++) mesh.refine_all_elements();
 
-  // Initialize the shapeset and the cache
+  // Initialize the shapeset.
   H1Shapeset shapeset;
-  PrecalcShapeset pss(&shapeset);
 
-  // Create finite element space
+  // Create an H1 space.
   H1Space space(&mesh, &shapeset);
   space.set_bc_types(bc_types);
   space.set_essential_bc_values(essential_bc_values);
+  space.set_uniform_order(P_INIT);
 
-  // Initialize the weak formulation
-  WeakForm wf(1);
-  wf.add_biform(0, 0, bilinear_form, bilinear_form_ord, H2D_SYM);
-  wf.add_liform(0, linear_form, linear_form_ord);
-  wf.add_liform_surf(0, linear_form_surf, linear_form_surf_ord, 2);
+  // Enumerate degrees of freedom.
+  int ndof = assign_dofs(&space);
 
-  // Matrix solver and linear system
+  // Initialize the weak formulation.
+  WeakForm wf;
+  wf.add_biform(bilinear_form, bilinear_form_ord, H2D_SYM);
+  wf.add_liform(linear_form, linear_form_ord);
+  wf.add_liform_surf(linear_form_surf, linear_form_surf_ord, 2);
+
+  // Matrix solver.
   UmfpackSolver solver;
-  LinSystem ls(&wf, &solver);
-  ls.set_spaces(1, &space);
-  ls.set_pss(1, &pss);
 
-  // testing n_dof and correctness of solution vector
+  // Solve the problem.
+  LinSystem ls(&wf, &solver, &space);
+
+  // Testing n_dof and correctness of solution vector
   // for p_init = 1, 2, ..., 10
   int success = 1;
+  Solution sln;
   for (int p_init = 1; p_init <= 10; p_init++) {
     printf("********* p_init = %d *********\n", p_init);
     space.set_uniform_order(p_init);
-    space.assign_dofs();
+    assign_dofs(&space);
 
-    // Solve the problem
-    Solution sln;
+    // Solve the problem.
     ls.assemble();
     ls.solve(1, &sln);
 

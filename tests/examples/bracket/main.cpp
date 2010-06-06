@@ -105,7 +105,18 @@ Scalar linear_form_surf_1(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtDa
 
 int main(int argc, char* argv[])
 {
-  // load the mesh
+  // Check input parameters.
+  // If true, coarse mesh FE problem is solved in every adaptivity step.
+  // If false, projection of the fine mesh solution on the coarse mesh is used. 
+  bool SOLVE_ON_COARSE_MESH = false;
+  if (argc > 1 && strcmp(argv[1], "-coarse_mesh") == 0)
+    SOLVE_ON_COARSE_MESH = true;
+
+  // Time measurement.
+  TimePeriod cpu_time;
+  cpu_time.tick();
+
+  // Load the mesh.
   Mesh xmesh, ymesh;
   H2DReader mloader;
   mloader.load("bracket.mesh", &xmesh);
@@ -121,8 +132,6 @@ int main(int argc, char* argv[])
 
   // initialize the shapeset and the cache
   H1Shapeset shapeset;
-  PrecalcShapeset xpss(&shapeset);
-  PrecalcShapeset ypss(&shapeset);
 
   // create the x displacement space
   H1Space xdisp(&xmesh, &shapeset);
@@ -146,77 +155,81 @@ int main(int argc, char* argv[])
   wf.add_biform(1, 1, callback(bilinear_form_1_1), H2D_SYM);  // forms
   wf.add_liform_surf(1, callback(linear_form_surf_1), marker_top);
 
-  // matrix solver
-  UmfpackSolver umfpack;
+  // Matrix solver.
+  UmfpackSolver solver;
 
-  // create a selector which will select optimal candidate
+  // DOF and CPU convergence graphs.
+  SimpleGraph graph_dof, graph_cpu;
+
+  // Initialize refinement selector.
   H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, MAX_ORDER, &shapeset);
 
-  // adaptivity loop
-  int it = 1;
-  bool done = false;
-  TimePeriod cpu_time;
-  Solution x_sln_coarse, y_sln_coarse;
-  Solution x_sln_fine, y_sln_fine;
+  // Initialize the coarse mesh problem.
+  LinSystem ls(&wf, &solver, 2, &xdisp, &ydisp);
+
+  // Adaptivity loop:
+  int as = 1; bool done = false;
+  Solution x_sln_coarse, y_sln_coarse, x_sln_fine, y_sln_fine;
   do
   {
-    info("---- Adaptivity step %d ---------------------------------------------", it); it++;
+    info("---- Adaptivity step %d:", as);
 
-    // time measurement
-    cpu_time.tick(H2D_SKIP);
-
-    // enumerate degrees of freedom
-    ndof = assign_dofs(2, &xdisp, &ydisp);
-
-    // solve the coarse mesh problem
-    LinSystem ls(&wf, &umfpack);
-    ls.set_spaces(2, &xdisp, &ydisp);
-    ls.set_pss(2, &xpss, &ypss);
-    ls.assemble();
-    ls.solve(2, &x_sln_coarse, &y_sln_coarse);
-
-    // time measurement
-    cpu_time.tick();
-
-    // report dofs
-    info("xdof=%d, ydof=%d\n", xdisp.get_num_dofs(), ydisp.get_num_dofs());
-
-    // time measurement
-    cpu_time.tick(H2D_SKIP);
-
-    // solve the fine mesh problem
+    // Assemble and solve the fine mesh problem.
+    info("Solving on fine mesh.");
     RefSystem rs(&ls);
     rs.assemble();
     rs.solve(2, &x_sln_fine, &y_sln_fine);
 
-    // calculate element errors and total error estimate
+    // Either solve on coarse mesh or project the fine mesh solution 
+    // on the coarse mesh.
+    if (SOLVE_ON_COARSE_MESH) {
+      info("Solving on coarse mesh.");
+      ls.assemble();
+      ls.solve(2, &x_sln_coarse, &y_sln_coarse);
+    }
+    else {
+      info("Projecting fine mesh solution on coarse mesh.");
+      ls.project_global(&x_sln_fine, &y_sln_fine, &x_sln_coarse, &y_sln_coarse);
+    }
+
+    // Time measurement.
+    cpu_time.tick();
+
+    // Calculate element errors and total error estimate.
+    info("Calculating error (est).");
     H1Adapt hp(Tuple<Space*>(&xdisp, &ydisp));
     hp.set_solutions(Tuple<Solution*>(&x_sln_coarse, &y_sln_coarse), Tuple<Solution*>(&x_sln_fine, &y_sln_fine));
     hp.set_biform(0, 0, bilinear_form_0_0<scalar, scalar>, bilinear_form_0_0<Ord, Ord>);
     hp.set_biform(0, 1, bilinear_form_0_1<scalar, scalar>, bilinear_form_0_1<Ord, Ord>);
     hp.set_biform(1, 0, bilinear_form_1_0<scalar, scalar>, bilinear_form_1_0<Ord, Ord>);
     hp.set_biform(1, 1, bilinear_form_1_1<scalar, scalar>, bilinear_form_1_1<Ord, Ord>);
-    double err_est = hp.calc_error() * 100;
+    double err_est = hp.calc_error(H2D_TOTAL_ERROR_REL | H2D_ELEMENT_ERROR_REL) * 100;
 
-    // time measurement
-    cpu_time.tick();
+    // Report results.
+    info("ndof_x_coarse: %d, ndof_x_fine: %d", 
+         xdisp.get_num_dofs(), rs.get_space(0)->get_num_dofs());
+    info("ndof_y_coarse: %d, ndof_y_fine: %d", 
+         ydisp.get_num_dofs(), rs.get_space(1)->get_num_dofs());
+    info("ndof: %d, err_est: %g%%", xdisp.get_num_dofs() + ydisp.get_num_dofs(), err_est);
 
-    // report results
-    info("Estimate of error: %g%%", err_est);
+    // Add entry to DOF convergence graph.
+    graph_dof.add_values(xdisp.get_num_dofs() + ydisp.get_num_dofs(), err_est);
+    graph_dof.save("conv_dof.dat");
 
-    // time measurement
-    cpu_time.tick(H2D_SKIP);
+    // Add entry to CPU convergence graph.
+    graph_cpu.add_values(cpu_time.accumulated(), err_est);
+    graph_cpu.save("conv_cpu.dat");
 
-    // if err_est too large, adapt the mesh
+    // If err_est too large, adapt the mesh.
     if (err_est < ERR_STOP) done = true;
     else {
-      hp.adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY, SAME_ORDERS);
+      info("Adapting the coarse mesh.");
+      done = hp.adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY, SAME_ORDERS);
       ndof = assign_dofs(2, &xdisp, &ydisp);
       if (ndof >= NDOF_STOP) done = true;
     }
 
-    // time measurement
-    cpu_time.tick();
+    as++;
   }
   while (!done);
   verbose("Total running time: %g s", cpu_time.accumulated());

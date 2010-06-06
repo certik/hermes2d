@@ -173,120 +173,114 @@ Ord linear_form_surf_ord(int n, double *wt, Func<Ord> *v, Geom<Ord> *e, ExtData<
 
 int main(int argc, char* argv[])
 {
-  // load the mesh
+  // Check input parameters.
+  // If true, coarse mesh FE problem is solved in every adaptivity step.
+  // If false, projection of the fine mesh solution on the coarse mesh is used. 
+  bool SOLVE_ON_COARSE_MESH = false;
+  if (argc > 1 && strcmp(argv[1], "-coarse_mesh") == 0)
+    SOLVE_ON_COARSE_MESH = true;
+
+
+  // Time measurement.
+  TimePeriod cpu_time;
+  cpu_time.tick();
+
+  // Load the mesh.
   Mesh mesh;
   H2DReader mloader;
   mloader.load("lshape3q.mesh", &mesh);
 //   mloader.load("lshape3t.mesh", &mesh);
 
-  // initialize the shapeset and the cache
+  // Initialize the shapeset.
   HcurlShapeset shapeset;
-  PrecalcShapeset pss(&shapeset);
 
-  // create finite element space
+  // Create an Hcul space.
   HcurlSpace space(&mesh, &shapeset);
   space.set_bc_types(bc_types);
   space.set_uniform_order(P_INIT);
 
-  // enumerate basis functions
-  space.assign_dofs();
+  // Enumerate degrees of freedom.
+  int ndof = assign_dofs(&space);
 
-  // initialize the weak formulation
+  // Initialize the weak formulation.
   WeakForm wf(1);
   wf.add_biform(0, 0, callback(bilinear_form), H2D_SYM);
   wf.add_biform_surf(0, 0, callback(bilinear_form_surf));
   wf.add_liform_surf(0, linear_form_surf, linear_form_surf_ord);
 
-  // matrix solver
+  // Matrix solver.
   UmfpackSolver solver;
 
-  // convergence graph wrt. the number of degrees of freedom
-  GnuplotGraph graph;
-  graph.set_captions("Error Convergence for the Bessel Problem in H(curl)", "Degrees of Freedom", "Error [%]");
-  graph.add_row("exact error", "k", "-", "o");
-  graph.add_row("error estimate", "k", "--");
-  graph.set_log_y();
+  // DOF and CPU convergence graphs.
+  SimpleGraph graph_dof, graph_cpu;
 
-  // convergence graph wrt. CPU time
-  GnuplotGraph graph_cpu;
-  graph_cpu.set_captions("Error Convergence for the Bessel Problem in H(curl)", "CPU Time", "Error [%]");
-  graph_cpu.add_row("exact error", "k", "-", "o");
-  graph_cpu.add_row("error estimate", "k", "--");
-  graph_cpu.set_log_y();
-
-  // create a selector which will select optimal candidate
+  // Initialize refinement selector.
   HcurlProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER, &shapeset);
 
-  // adaptivity loop
-  int it = 1;
-  int ndof;
+  // Initialize the coarse mesh problem.
+  LinSystem ls(&wf, &solver, &space);
+
+  // Adaptivity loop:
+  int as = 1;
   bool done = false;
-  TimePeriod cpu_time;
   Solution sln_coarse, sln_fine;
   do
   {
-    info("---- Adaptivity step %d ---------------------------------------------", it); it++;
+    info("---- Adaptivity step %d:", as);
 
-    // time measurement
-    cpu_time.tick(H2D_SKIP);
+    // Initialize the fine mesh problem.
+    RefSystem rs(&ls);
 
-    // solve the coarse mesh problem
-    LinSystem sys(&wf, &solver);
-    sys.set_spaces(1, &space);
-    sys.set_pss(1, &pss);
-    sys.assemble();
-    sys.solve(1, &sln_coarse);
-
-    // time measurement
-    cpu_time.tick();
-
-    // calculating error wrt. exact solution
-    ExactSolution ex(&mesh, exact);
-    double err = 100 * hcurl_error(&sln_coarse, &ex);
-    info("Exact solution error: %g%%", err);
-
-    // time measurement
-    cpu_time.tick(H2D_SKIP);
-
-    // solve the fine mesh problem
-    RefSystem rs(&sys);
+    // Assemble and solve the fine mesh problem.
+    info("Solving on fine meshes.");
     rs.assemble();
     rs.solve(1, &sln_fine);
 
-    // calculate error estimate wrt. fine mesh solution
-    HcurlAdapt hp(&space);
-    hp.set_solutions(&sln_coarse, &sln_fine);
-    double err_est = hp.calc_error() * 100;
+    // Either solve on coarse mesh or project the fine mesh solution 
+    // on the coarse mesh.
+    if (SOLVE_ON_COARSE_MESH) {
+      info("Solving on coarse mesh.");
+      ls.assemble();
+      ls.solve(&sln_coarse);
+    }
+    else {
+      info("Projecting fine mesh solution on coarse mesh.");
+      int proj_type = 2;    // Hcurl projection.
+      ls.project_global(&sln_fine, &sln_coarse, proj_type);
+    }
 
-    // time measurement
+    // Time measurement.
     cpu_time.tick();
 
-    // report results
-    info("Error estimate: %g%%", err_est);
+    // Calculate element errors and total error estimate.
+    info("Calculating error.");
+    HcurlAdapt hp(&space);
+    hp.set_solutions(&sln_coarse, &sln_fine); 
+    double err_est = hp.calc_error() * 100;
+    // double err_est_hcurl = hcurl_error(&sln_coarse, &sln_fine) * 100;
 
-    // add entry to DOF convergence graph
-    graph.add_values(0, space.get_num_dofs(), err);
-    graph.add_values(1, space.get_num_dofs(), err_est);
-    graph.save("conv_dof.gp");
+    // Report results.
+    info("ndof_coarse: %d, ndof_fine: %d, err_est: %g%%", 
+      space.get_num_dofs(), rs.get_num_dofs(), err_est);
 
-    // add entry to CPU convergence graph
-    graph_cpu.add_values(0, cpu_time.accumulated(),err);
-    graph_cpu.add_values(1, cpu_time.accumulated(),err_est);
-    graph_cpu.save("conv_cpu.gp");
+    // Add entry to DOF convergence graph.
+    graph_dof.add_values(ls.get_num_dofs(), err_est);
+    graph_dof.save("conv_dof.dat");
 
-    // time measurement
-    cpu_time.tick(H2D_SKIP);
+    // Add entry to CPU convergence graph.
+    graph_cpu.add_values(cpu_time.accumulated(), err_est);
+    graph_cpu.save("conv_cpu.dat");
 
-    // if err_est_adapt too large, adapt the mesh
+    // If err_est too large, adapt the mesh.
     if (err_est < ERR_STOP) done = true;
     else {
-      hp.adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY);
+      info("Adapting coarse mesh.");
+      done = hp.adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY);
       ndof = assign_dofs(&space);
       if (ndof >= NDOF_STOP) done = true;
     }
 
-    // time measurement
-    cpu_time.tick();
+    as++;
  }
   while (!done);
   verbose("Total running time: %g s", cpu_time.accumulated());
@@ -295,7 +289,7 @@ int main(int argc, char* argv[])
 #define ERROR_FAILURE                               -1
   int n_dof_allowed = 3150;
   printf("n_dof_actual = %d\n", ndof);
-  printf("n_dof_allowed = %d\n", n_dof_allowed);// ndofs was 2680 at the time this test was created
+  printf("n_dof_allowed = %d\n", n_dof_allowed);// ndofs was 2680 at the time this test was created. 
   if (ndof <= n_dof_allowed) {
     printf("Success!\n");
     return ERROR_SUCCESS;

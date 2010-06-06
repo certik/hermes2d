@@ -386,7 +386,7 @@ int main (int argc, char* argv[]) {
     info("Using NON-adaptive solution");
   }
 
-  // load the mesh file
+  // Load the mesh file.
   Mesh Cmesh, phimesh, basemesh;
 
   H2DReader mloader;
@@ -403,26 +403,26 @@ int main (int argc, char* argv[]) {
   // Initialize the shapeset.
   H1Shapeset shapeset;
 
-  // Spaces for concentration and the voltage
+  // Spaces for concentration and the voltage.
   H1Space C(&Cmesh, &shapeset);
   H1Space phi(MULTIMESH ? &phimesh : &Cmesh, &shapeset);
 
-  // Initialize boundary conditions
+  // Initialize boundary conditions.
   C.set_bc_types(C_bc_types);
   phi.set_bc_types(phi_bc_types);
   phi.set_essential_bc_values(essential_bc_values);
 
-  // set polynomial degrees
+  // Set polynomial degrees.
   C.set_uniform_order(P_INIT);
   phi.set_uniform_order(P_INIT);
 
 
-  // enumerate degrees of freedom
+  // Enumerate degrees of freedom.
   int ndof = assign_dofs(2, &C, &phi);
 
   info("ndof: %d", ndof);
 
-  // The weak form for 2 equations
+  // The weak form for 2 equations.
   WeakForm wf(2);
 
   Solution C_prev_time,    // prveious time step solution, for the time integration
@@ -450,12 +450,12 @@ int main (int argc, char* argv[]) {
     wf.add_biform(1, 1, callback(J_cranic_DFphiDYphi), H2D_UNSYM);
     
   }
-  // Neumann voltage boundary
+  // Neumann voltage boundary.
   if (VOLT_BOUNDARY == 2) {
     wf.add_liform_surf(1, callback(linear_form_surf_top), TOP_MARKER);
   }
 
-  // Nonlinear solver
+  // Nonlinear solver.
   UmfpackSolver solver;
   NonlinSystem nls(&wf, &solver, 2, &C, &phi);
 

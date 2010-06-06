@@ -13,29 +13,29 @@ const int NEWTON_MAX_ITER = 8;  // Maximum allowed number of Newton iterations
 const int INIT_GLOB_REF_NUM = 3;  // Number of initial uniform mesh refinements
 const int INIT_BDY_REF_NUM = 5;   // Number of initial refinements towards boundary
 
-// Thermal conductivity (temperature-dependent)
-// Note: for any u, this function has to be positive
+// Thermal conductivity (temperature-dependent).
+// Note: for any u, this function has to be positive.
 template<typename Real>
 Real lam(Real u) { return 1 + pow(u, 4); }
 
-// Derivative of the thermal conductivity with respect to 'u'
+// Derivative of the thermal conductivity with respect to 'u'.
 template<typename Real>
 Real dlam_du(Real u) { return 4*pow(u, 3); }
 
-// Boundary condition type (essential = Dirichlet)
+// Boundary condition type (essential = Dirichlet).
 BCType bc_types(int marker)
 {
   return BC_ESSENTIAL;
 }
 
-// Heat sources (can be a general function of 'x' and 'y')
+// Heat sources (can be a general function of 'x' and 'y').
 template<typename Real>
 Real heat_src(Real x, Real y)
 {
   return 1.0;
 }
 
-// Jacobian matrix
+// Jacobian matrix.
 template<typename Real, typename Scalar>
 Scalar jac(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
@@ -48,7 +48,7 @@ Scalar jac(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtDa
   return result;
 }
 
-// Fesidual vector
+// Fesidual vector.
 template<typename Real, typename Scalar>
 Scalar res(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
@@ -62,45 +62,54 @@ Scalar res(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext
 
 int main(int argc, char* argv[])
 {
-  // load the mesh file
+  // Load the mesh.
   Mesh mesh;
   H2DReader mloader;
   mloader.load("square.mesh", &mesh);
 
-  // initial mesh refinements
+   // Initial mesh refinements.
   for(int i = 0; i < INIT_GLOB_REF_NUM; i++) mesh.refine_all_elements();
   mesh.refine_towards_boundary(1,INIT_BDY_REF_NUM);
 
-  // initialize the shapeset and the cache
+  // Initialize the shapeset.
   H1Shapeset shapeset;
-  PrecalcShapeset pss(&shapeset);
 
-  // create an H1 space
+  // Create an H1 space.
   H1Space space(&mesh, &shapeset);
   space.set_bc_types(bc_types);
   space.set_uniform_order(P_INIT);
-  space.assign_dofs();
+  
+  // Enumerate degrees of freedom.
+  int ndof = assign_dofs(&space);
 
-  // previous solution for the Newton's iteration
+  // Previous solution for the Newton's iteration.
   Solution u_prev;
 
-  // initialize the weak formulation
-  WeakForm wf(1);
-  wf.add_biform(0, 0, callback(jac), H2D_UNSYM, H2D_ANY, 1, &u_prev);
-  wf.add_liform(0, callback(res), H2D_ANY, 1, &u_prev);
+  // Initialize the weak formulation.
+  WeakForm wf;
+  wf.add_biform(callback(jac), H2D_UNSYM, H2D_ANY, 1, &u_prev);
+  wf.add_liform(callback(res), H2D_ANY, 1, &u_prev);
 
-  // initialize the nonlinear system and solver
-  UmfpackSolver umfpack;
-  NonlinSystem nls(&wf, &umfpack);
-  nls.set_spaces(1, &space);
-  nls.set_pss(1, &pss);
+  // Matrix solver.
+  UmfpackSolver solver;
 
-  // use a constant function as the initial guess
-  u_prev.set_const(&mesh, 3.0);
+  // Initialize the nonlinear system.
+  NonlinSystem nls(&wf, &solver, &space);
+
+  // Use a constant function as initial guess.
+  double const_val = 3.0;
+  u_prev.set_const(&mesh, const_val);
+
+  // Project the function u_prev() on the FE space
+  // to obtain initial guess u_prev for the Newton's method.
+  info("Projecting initial condition on the FE space.");
   nls.project_global(&u_prev, &u_prev, PROJ_TYPE);
 
-  // Newton's loop
+  // Perform Newton's iteration.
+  info("Performing Newton's iteration.");
   bool success = nls.solve_newton(&u_prev, NEWTON_TOL, NEWTON_MAX_ITER);
+  if (!success) 
+    error("Newton's method did not converge.");
 
 #define ERROR_SUCCESS                               0
 #define ERROR_FAILURE                               -1

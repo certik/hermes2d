@@ -7,5 +7,6 @@ add_executable(${PROJECT_NAME} main.cpp)
 include (../../../examples/CMake.common)
 
 set(BIN ${PROJECT_BINARY_DIR}/${PROJECT_NAME})
-add_test(example-bracket ${BIN})
+add_test(example-bracket-projection ${BIN})
+add_test(example-bracket-coarse ${BIN} -coarse_mesh)
 

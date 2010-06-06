@@ -7,4 +7,5 @@ add_executable(${PROJECT_NAME} main.cpp)
 include (../../CMake.common)
 
 set(BIN ${PROJECT_BINARY_DIR}/${PROJECT_NAME})
-add_test(benchmark-smooth-aniso-y ${BIN})
+add_test(benchmark-smooth-aniso-y-projection ${BIN})
+add_test(benchmark-smooth-aniso-y-coarse ${BIN} -coarse_mesh)

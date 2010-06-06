@@ -26,7 +26,7 @@ int main(int argc, char* argv[])
   // testing all poly degrees between 1 and 10
   for (int i=1; i <= 10; i++) {
     space.set_uniform_order(i);
-    space.assign_dofs();
+    assign_dofs(&space);
     n_dof[i-1] = space.get_num_dofs();
     dof_max[i-1] = space.get_max_dof();
 

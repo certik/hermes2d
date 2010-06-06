@@ -47,7 +47,6 @@ using namespace RefinementSelectors;
 /* global variables */
 Mesh* mesh = NULL; ///< Mesh used by the test.
 Shapeset* shapeset = NULL; ///< Shapeset used by the test.
-PrecalcShapeset* pss = NULL; ///< Precalculated shapeset used by the test.
 Space* space = NULL; ///< Space used by the test.
 WeakForm* weakform = NULL; ///< Weakform used by the test.
 UmfpackSolver* solver = NULL; ///< Solved used by the test.
@@ -118,7 +117,6 @@ void cleanup() {
   delete_not_null(weakform);
   delete_not_null(space);
   delete_not_null(mesh);
-  delete_not_null(pss);
   delete_not_null(shapeset);
 }
 
@@ -149,7 +147,6 @@ bool init_h1(bool tri) {
   try {
     // shapeset, cache and mesh
     H1Shapeset* h1_shapeset = new H1Shapeset();
-    pss = new PrecalcShapeset(h1_shapeset);
     mesh = init_mesh(tri);
     shapeset = h1_shapeset;
 
@@ -157,7 +154,7 @@ bool init_h1(bool tri) {
     space = new H1Space(mesh, shapeset);
     space->set_bc_types(bc_types);
     space->set_uniform_order(1);
-    space->assign_dofs();
+    assign_dofs(1, space);
 
     // weakform
     weakform = new WeakForm(1);
@@ -183,7 +180,6 @@ bool init_l2(bool tri) {
   try {
     // shapeset, cache and mesh
     L2Shapeset* l2_shapeset = new L2Shapeset();
-    pss = new PrecalcShapeset(l2_shapeset);
     mesh = init_mesh(tri);
     shapeset = l2_shapeset;
 
@@ -191,7 +187,7 @@ bool init_l2(bool tri) {
     space = new L2Space(mesh, shapeset);
     space->set_bc_types(bc_types);
     space->set_uniform_order(1);
-    space->assign_dofs();
+    assign_dofs(1, space);
 
     // weakform
     weakform = new WeakForm(1);
@@ -348,14 +344,11 @@ bool test(bool tri, const std::string& space_name, int min_order, int max_order 
 
     //process
     space->set_element_order(H2D_TEST_ELEM_ID, test_case.start_quad_order());
-    int ndofs = space->assign_dofs();
-    space->assign_dofs();
+    int ndofs = assign_dofs(1, space);
 
     //create and solve the reference system
     Solution sln, rsln;
-    LinSystem ls(weakform, solver);
-    ls.set_spaces(1, space);
-    ls.set_pss(1, pss);
+    LinSystem ls(weakform, solver, space);
     ls.assemble();
     ls.solve(1, &sln);
     RefSystem rs(&ls);

@@ -3,7 +3,7 @@
 
 using namespace RefinementSelectors;
 
-// This is a test for Nernst-Planck examle
+// This is a test for Nernst-Planck example
 
 #define SIDE_MARKER 1
 #define TOP_MARKER 2
@@ -243,100 +243,94 @@ bool solveAdaptive(Mesh &Cmesh, Mesh &phimesh, Mesh &basemesh, NonlinSystem &nls
 }
 
 int main (int argc, char* argv[]) {
-	// load the mesh file
-	Mesh Cmesh, phimesh, basemesh;
+  
+  // load the mesh file
+  Mesh Cmesh, phimesh, basemesh;
 
   H2DReader mloader;
   mloader.load("small.mesh", &basemesh);
-	basemesh.refine_towards_boundary(TOP_MARKER, REF_INIT);
-	basemesh.refine_towards_boundary(BOT_MARKER, REF_INIT - 1);
-	Cmesh.copy(&basemesh);
-	phimesh.copy(&basemesh);
+  
+  basemesh.refine_towards_boundary(TOP_MARKER, REF_INIT);
+  basemesh.refine_towards_boundary(BOT_MARKER, REF_INIT - 1);
+  Cmesh.copy(&basemesh);
+  phimesh.copy(&basemesh);
 
-	// create the shapeset
-	H1Shapeset shapeset;
-	PrecalcShapeset Cpss(&shapeset);
-	PrecalcShapeset phipss(&shapeset);
+  // Initialize the shapeset.
+  H1Shapeset shapeset;
 
-	// Spaces for concentration and the voltage
-	H1Space C(&Cmesh, &shapeset);
-	H1Space phi(MULTIMESH ? &phimesh : &Cmesh, &shapeset);
+  // Spaces for concentration and the voltage.
+  H1Space C(&Cmesh, &shapeset);
+  H1Space phi(MULTIMESH ? &phimesh : &Cmesh, &shapeset);
 
-	// Initialize boundary conditions
-	C.set_bc_types(C_bc_types);
-	phi.set_bc_types(phi_bc_types);
-	phi.set_essential_bc_values(essential_bc_values);
-	//C.set_bc_values(C_bc_values);
+  // Initialize boundary conditions.
+  C.set_bc_types(C_bc_types);
+  phi.set_bc_types(phi_bc_types);
+  phi.set_essential_bc_values(essential_bc_values);
 
-	// set polynomial degrees
-	C.set_uniform_order(P_INIT);
-	phi.set_uniform_order(P_INIT);
+  // set polynomial degrees.
+  C.set_uniform_order(P_INIT);
+  phi.set_uniform_order(P_INIT);
 
-	// assign degrees of freedom
-	int ndofs = 0;
-	ndofs += C.assign_dofs(ndofs);
-	ndofs += phi.assign_dofs(ndofs);
-	info("ndofs: %d", ndofs);
+  // Enumerate degrees of freedom.
+  int ndof = assign_dofs(2, &C, &phi);
+  info("ndof: %d", ndof);
 
-	// The weak form for 2 equations
-	WeakForm wf(2);
+  // The weak form for 2 equations.
+  WeakForm wf(2);
 
-	Solution Cp,		// prveious time step solution, for the time integration
-		Ci,		// solution convergin during the Newton's iteration
-		phip,
-		phii;
+  Solution C_prev_time,    // prveious time step solution, for the time integration
+           C_prev_newton,   // solution convergin during the Newton's iteration
+           phi_prev_time,
+           phi_prev_newton;
 
+  // Add the bilinear and linear forms
+  // generally, the equation system is described:
+  // a11(u1, v1) + a12(u2, v1) + a1n(un, v1) = l1(v1)
+  // a21(u1, v2) + a22(u2, v2) + a2n(un, v2) = l2(v2)
+  // an1(u1, vn) + an2(u2, vn) + ann(un, vn) = ln(vn)
+  wf.add_biform(0, 0, callback(J_euler_DFcDYc), H2D_UNSYM, H2D_ANY, 1, &phi_prev_newton);
+  wf.add_biform(0, 1, callback(J_euler_DFcDYphi), H2D_UNSYM, H2D_ANY, 1, &C_prev_newton);
+  wf.add_biform(1, 0, callback(J_euler_DFphiDYc), H2D_UNSYM);
+  wf.add_biform(1, 1, callback(J_euler_DFphiDYphi), H2D_UNSYM);
 
-	// Add the bilinear and linear forms
-	// generally, the equation system is described:
-	// a11(u1, v1) + a12(u2, v1) + a1n(un, v1) = l1(v1)
-	// a21(u1, v2) + a22(u2, v2) + a2n(un, v2) = l2(v2)
-	// an1(u1, vn) + an2(u2, vn) + ann(un, vn) = ln(vn)
-	wf.add_biform(0, 0, callback(J_euler_DFcDYc), H2D_UNSYM, H2D_ANY, 1, &phii);
-	wf.add_biform(1, 1, callback(J_euler_DFphiDYphi), H2D_UNSYM);
-	wf.add_biform(0, 1, callback(J_euler_DFcDYphi), H2D_UNSYM, H2D_ANY, 1, &Ci);
-	wf.add_biform(1, 0, callback(J_euler_DFphiDYc), H2D_UNSYM);
+  wf.add_liform(0, callback(Fc_euler), H2D_ANY, 3,
+        &C_prev_time, &C_prev_newton, &phi_prev_newton);
+  wf.add_liform(1, callback(Fphi_euler), H2D_ANY, 2, &C_prev_newton, &phi_prev_newton);
 
-	wf.add_liform(0, callback(Fc_euler), H2D_ANY, 3, &Cp, &Ci, &phii);
-	wf.add_liform(1, callback(Fphi_euler), H2D_ANY, 2, &Ci, &phii);
+  // Neumann voltage boundary.
+  wf.add_liform_surf(1, callback(linear_form_surf_top), TOP_MARKER);
 
-	wf.add_liform_surf(1, callback(linear_form_surf_top), TOP_MARKER);
+  // Nonlinear solver.
+  UmfpackSolver solver;
+  NonlinSystem nls(&wf, &solver, 2, &C, &phi);
 
-	// Noninear solver
-	UmfpackSolver umfpack;
-	NonlinSystem nls(&wf, &umfpack);
-	nls.set_spaces(2, &C, &phi);
-	if (MULTIMESH) {
-		nls.set_pss(2, &Cpss, &phipss);
-	} else {
-		nls.set_pss(1, &Cpss);
-	}
+  info("UmfpackSolver initialized");
 
-	info("UmfpackSolver initialized");
+  // View initial guess for Newton's method
+  // initial BC
+  
+  C_prev_time.set_const(&Cmesh, C_CONC);
+  phi_prev_time.set_const(MULTIMESH ? &phimesh : &Cmesh, 0);
 
-	// View initial guess for Newton's method
-	// initial BC
+  //  phi_prev_time.set_exact(MULTIMESH ? &phimesh : &Cmesh, voltage_ic);
+  //  C_prev_time.set_exact(&Cmesh, concentration_ic);
+  C_prev_newton.copy(&C_prev_time);
+  phi_prev_newton.copy(&phi_prev_time);
 
-	//Cp.set_dirichlet_lift(&C, &Cpss);
-	//phip.set_dirichlet_lift(&phi, MULTIMESH ? &phipss : &Cpss);
-	Cp.set_const(&Cmesh, C_CONC);
-	phip.set_const(MULTIMESH ? &phimesh : &Cmesh, 0);
+  nls.project_global(&C_prev_newton, &phi_prev_newton, &C_prev_newton, &phi_prev_newton);
 
-	Ci.copy(&Cp);
-	phii.copy(&phip);
+  bool success = solveAdaptive(Cmesh, phimesh, basemesh, nls, C, phi, C_prev_time,
+        C_prev_newton, phi_prev_time, phi_prev_newton, shapeset);
+  // bool success = solveNonadaptive(Cmesh, nls, C_prev_time, C_prev_newton, 
+  // phi_prev_time, phi_prev_newton);
 
-	nls.project_global(&Ci, &phii, &Ci, &phii);
+  if (success) {
+    printf("SUCCESSFUL\n");
+    } else {
+    printf("FAIL\n");
+  }
+  #define ERROR_SUCCESS 0
+  #define ERROR_FAILURE -1
 
-  bool success = solveAdaptive(Cmesh, phimesh, basemesh, nls, C, phi, Cp, Ci, phip, phii, shapeset);
-	//bool success = solveNonadaptive(Cmesh, nls, Cp, Ci, phip, phii);
-
-	if (success) {
-		printf("SUCCESSFUL\n");
-	} else {
-		printf("FAIL\n");
-	}
-	#define ERROR_SUCCESS 0
-	#define ERROR_FAILURE -1
-
-	return success ? ERROR_SUCCESS : ERROR_FAILURE;
+  return success ? ERROR_SUCCESS : ERROR_FAILURE;
 }
