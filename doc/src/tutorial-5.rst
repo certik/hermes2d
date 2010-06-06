@@ -9,7 +9,7 @@ the previous sections.
 Space H(curl) (30)
 ------------------
 
-**Git reference:** Tutorial example `30-space-hcurl <http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/tutorial/30-space-hcurl>`_. 
+**Git reference:** Tutorial example `30-space-hcurl <http://git.hpfem.org/hermes2d.git/tree/HEAD:/tutorial/30-space-hcurl>`_. 
 
 In `example 02-space <http://hpfem.org/hermes2d/doc/src/tutorial-1.html#setting-up-finite-element-space>`_ we first saw how a finite element space over a mesh is created. That was an $H^1$ space suitable for continuous approximations. Another widely used Sobolev space, H(curl), is typically present in Maxwell's problems of electromagnetics. H(curl) approximations are discontinuous, elementwise polynomial vector fields that behave like gradients of $H^1$ functions. (Recall that in electrostatics $E = - \nabla \varphi$.) In particular, H(curl) functions have continuous tangential components along all mesh edges. For the application of the H(curl) space check examples related to Maxwell's equations in the previous sections. Below is a simple code that shows how to set up an H(curl) space and visualize its finite element basis functions:
 
@@ -84,7 +84,7 @@ elements, and both elements types can be combined in one mesh.
 Space H(div) (31)
 -----------------
 
-**Git reference:** Tutorial example `31-space-hdiv <http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/tutorial/31-space-hdiv>`_. 
+**Git reference:** Tutorial example `31-space-hdiv <http://git.hpfem.org/hermes2d.git/tree/HEAD:/tutorial/31-space-hdiv>`_. 
 
 The space H(div) in 2D is very similar in nature to the space H(curl), except its functions 
 behave like (vector-valued) divergences of $H^1$ functions. Finite element basis functions 
@@ -158,7 +158,7 @@ So far the space H(div) only can be used with quadrilateral elements.
 Space L2 (32)
 -------------
 
-**Git reference:** Tutorial example `32-space-l2 <http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/tutorial/31-space-l2>`_. 
+**Git reference:** Tutorial example `32-space-l2 <http://git.hpfem.org/hermes2d.git/tree/HEAD:/tutorial/31-space-l2>`_. 
 
 We already saw the $L^2$ space in the `Navier-Stokes example <http://hpfem.org/hermes2d/doc/src/tutorial-3.html#navier-stokes-equations>`_ where it was used for pressure to keep the velocity discreetely divergence-free. This example shows how to create an $L^2$ space, visualize 
 finite element basis functions, and perform an orthogonal $L^2$-projection of a continuous function onto the FE space. The projected function has the form

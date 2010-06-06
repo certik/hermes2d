@@ -2,7 +2,7 @@ Benchmarks with Known Exact Solution
 ====================================
 
 This section contains the description of selected `benchmarks 
-<http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/benchmarks>`_.
+<http://git.hpfem.org/hermes2d.git/tree/HEAD:/benchmarks>`_.
 Contrary to regular examples, benchmarks typically do not have 
 a significant physical or engineering motivation but they come with 
 a known exact solution and thus they are a great resource for 
@@ -11,7 +11,7 @@ comparisons of various methods and adaptivity algorithms.
 Smooth-iso (Elliptic)
 ---------------------
 
-**Git reference:** Benchmark `smooth-iso <http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/benchmarks/smooth-iso>`_.
+**Git reference:** Benchmark `smooth-iso <http://git.hpfem.org/hermes2d.git/tree/HEAD:/benchmarks/smooth-iso>`_.
 
 We show that it is a very bad idea to approximate smooth solutions using low-order 
 elements.
@@ -145,7 +145,7 @@ CPU time convergence graphs:
 Smooth-aniso-x (Elliptic)
 -------------------------
 
-**Git reference:** Benchmark `smooth-aniso-x <http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/benchmarks/smooth-aniso-x>`_.
+**Git reference:** Benchmark `smooth-aniso-x <http://git.hpfem.org/hermes2d.git/tree/HEAD:/benchmarks/smooth-aniso-x>`_.
 
 We show that one should use (spatially as well as polynomially) anisotropic refinements for solutions 
 containing anisotropy. 
@@ -259,7 +259,7 @@ CPU time convergence graphs:
 Smooth-aniso-y (Elliptic)
 -------------------------
 
-**Git reference:** Benchmark `smooth-aniso-y <http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/benchmarks/smooth-aniso-y>`_.
+**Git reference:** Benchmark `smooth-aniso-y <http://git.hpfem.org/hermes2d.git/tree/HEAD:/benchmarks/smooth-aniso-y>`_.
 
 This example is very similar to the previous one, except now the solution is 
 constant in the x-direction. It is good to have both to be able to check that 
@@ -268,7 +268,7 @@ anisotropic refinements work correctly.
 L-Shape (Elliptic)
 ------------------
 
-**Git reference:** Benchmark `lshape <http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/benchmarks/lshape>`_.
+**Git reference:** Benchmark `lshape <http://git.hpfem.org/hermes2d.git/tree/HEAD:/benchmarks/lshape>`_.
 
 This is a standard adaptivity benchmark whose exact solution is smooth but
 contains singular gradient in a re-entrant corner. 
@@ -383,7 +383,7 @@ CPU time convergence graphs:
 Internal Layer (Elliptic)
 -------------------------
 
-**Git reference:** Benchmark `layer <http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/benchmarks/layer>`_.
+**Git reference:** Benchmark `layer <http://git.hpfem.org/hermes2d.git/tree/HEAD:/benchmarks/layer>`_.
 
 This example has a smooth solution that exhibits a steep internal layer inside the domain.
 
@@ -527,7 +527,7 @@ CPU time convergence graphs:
 Boundary Layer (Elliptic)
 -------------------------
 
-**Git reference:** Benchmark `layer-2 <http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/benchmarks/layer-2>`_.
+**Git reference:** Benchmark `layer-2 <http://git.hpfem.org/hermes2d.git/tree/HEAD:/benchmarks/layer-2>`_.
 
 This example is a singularly perturbed problem with known exact solution that exhibits a thin boundary layer, that 
 the reader can use to perform various experiments with adaptivity for problems with boundary layers. The sample 
@@ -788,7 +788,7 @@ equally important as allowing spatially anisotropic ones.
 Line singularity (Elliptic)
 ---------------------------
 
-**Git reference:** Benchmark `line-singularity <http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/benchmarks/line-singularity>`_.
+**Git reference:** Benchmark `line-singularity <http://git.hpfem.org/hermes2d.git/tree/HEAD:/benchmarks/line-singularity>`_.
 
 The is another example with anisotropic solution that is suitable for testing 
 anisotropic element refinements.
@@ -926,7 +926,7 @@ CPU convergence graphs:
 Kellogg (Elliptic)
 ------------------
 
-**Git reference:** Benchmark `kellogg <http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/benchmarks/kellogg>`_.
+**Git reference:** Benchmark `kellogg <http://git.hpfem.org/hermes2d.git/tree/HEAD:/benchmarks/kellogg>`_.
 
 The solution to this elliptic problems contains a severe singularity that poses a challenge to 
 adaptive methods. 
@@ -1049,7 +1049,7 @@ CPU time convergence graphs:
 Bessel (Maxwell's Equations)
 ----------------------------
 
-**Git reference:** Benchmark `bessel <http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/benchmarks/bessel>`_.
+**Git reference:** Benchmark `bessel <http://git.hpfem.org/hermes2d.git/tree/HEAD:/benchmarks/bessel>`_.
 
 This example solves time-harmonic Maxwell's equations in an L-shaped domain and it 
 describes the diffraction of an electromagnetic wave from a re-entrant corner. It comes with an 
@@ -1072,7 +1072,7 @@ fourth quadrant. It is filled with air:
    :alt: Computational domain.
 
 Boundary conditions: Combined essential and natural, see the 
-`main.cpp <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/benchmarks/bessel/main.cpp>`_ file.
+`main.cpp <http://git.hpfem.org/hermes2d.git/blob/HEAD:/benchmarks/bessel/main.cpp>`_ file.
 
 Exact solution:
 
@@ -1109,7 +1109,7 @@ computer code, this reads:
     }  
 
 Here jv() is the Bessel function $\bfJ_{\alpha}$. For its source code see the 
-`forms.cpp <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/benchmarks/bessel/forms.cpp>`_ file.
+`forms.cpp <http://git.hpfem.org/hermes2d.git/blob/HEAD:/benchmarks/bessel/forms.cpp>`_ file.
 
 Code for the weak forms:
 
@@ -1207,7 +1207,7 @@ CPU time convergence graphs:
 Screen (Maxwell's Equations)
 ----------------------------
 
-**Git reference:** Benchmark `screen <http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/benchmarks/screen>`_.
+**Git reference:** Benchmark `screen <http://git.hpfem.org/hermes2d.git/tree/HEAD:/benchmarks/screen>`_.
 
 This example solves time-harmonic Maxwell's equations. It describes an electromagnetic wave that 
 hits a thin screen under the angle of 45 degrees, causing a singularity at the tip of the screen.
@@ -1231,11 +1231,11 @@ the midpoint of the left side. It is filled with air:
 
 Boundary conditions: Tangential component of solution taken from known exact solution 
 (essential BC). See the 
-`main.cpp <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/benchmarks/screen/main.cpp>`_ file.
+`main.cpp <http://git.hpfem.org/hermes2d.git/blob/HEAD:/benchmarks/screen/main.cpp>`_ file.
 
 Exact solution: This is rather complicated in this case - please look into the 
 corresponding file 
-`exact_sol.cpp <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/benchmarks/screen/exact_sol.cpp>`_.
+`exact_sol.cpp <http://git.hpfem.org/hermes2d.git/blob/HEAD:/benchmarks/screen/exact_sol.cpp>`_.
 
 Code for the weak forms:
 

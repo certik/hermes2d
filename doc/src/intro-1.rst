@@ -29,15 +29,15 @@ you should get all answers quickly.
 
 The best way of reading this tutorial is to run the code at the same time. 
 After making your way through the tutorial, you may want to browse the directories 
-with `benchmarks <http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/benchmarks>`_ 
-and `examples <http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/examples>`_ 
+with `benchmarks <http://git.hpfem.org/git/hermes2d.git/tree/HEAD:/benchmarks>`_ 
+and `examples <http://git.hpfem.org/git/hermes2d.git/tree/HEAD:/examples>`_ 
 that contain a variety of different PDE models. If you create an interesting model 
 using Hermes, let us know and we will add it to the repository. 
 
 The source code can be 
-viewed in the `git repository <http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree>`_, 
+viewed in the `git repository <http://git.hpfem.org/git/hermes2d.git/tree>`_, 
 and all tutorial examples can be found in the directory 
-`tutorial/ <http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/tutorial>`_.
+`tutorial/ <http://git.hpfem.org/git/hermes2d.git/tree/HEAD:/tutorial>`_.
 For the 1D and 3D codes, see the `Hermes1D <http://hpfem.org/hermes1d/>`_ and 
 `Hermes3D <http://hpfem.org/hermes3d/>`_ home pages, respectively.
 

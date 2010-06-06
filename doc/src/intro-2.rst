@@ -21,7 +21,7 @@ Clone the Git repository, configure and build:
 
 ::
   
-    git clone http://hpfem.org/git/hermes2d.git
+    git clone http://git.hpfem.org/git/hermes2d.git
     cd hermes2d/
     cmake .
     make
@@ -151,7 +151,7 @@ libraries and applications on your Mac) by doing the following:
 
 **Step 4**: Get the Hermes2D source code. Change to the directory where you want 
 to download the Hermes2D source and clone the git repository by doing 
-'git clone http://hpfem.org/git/hermes2d.git'.
+'git clone http://git.hpfem.org/git/hermes2d.git'.
 
 **Step 5**: Configure and build Hermes by doing 'cd hermes2d/ && cmake . 
 && make'.
@@ -234,7 +234,7 @@ Then download, unpack, and build FEMhub as in Linux:
 
 ::
 
-    git clone http://hpfem.org/git/hermes2d.git
+    git clone http://git.hpfem.org/git/hermes2d.git
     cd hermes2d
     cmake .
     make
@@ -430,7 +430,7 @@ To clone the repository, type
 
 ::
 
-    git clone http://hpfem.org/git/hermes2d.git
+    git clone http://git.hpfem.org/git/hermes2d.git
 
 This will create a new directory hermes2d/ with a copy 
 of the entire Hermes2D git repository. Before doing anything 
@@ -633,7 +633,7 @@ the repository, just type:
 
 ::
 
-    git remote add origin http://hpfem.org/git/hermes2d.git
+    git remote add origin http://git.hpfem.org/git/hermes2d.git
 
 This tells git where to download the git repository from
 (needs to be done just the first time). Then type

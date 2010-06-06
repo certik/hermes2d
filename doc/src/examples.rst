@@ -2,14 +2,14 @@ Examples
 ========
 
 This section contains the description of selected `examples 
-<http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/examples>`_.
+<http://git.hpfem.org/hermes2d.git/tree/HEAD:/examples>`_.
 Its purpose is to complement rather than duplicate the information 
 in the source code.
 
 Crack (Linear Elasticity)
 -------------------------
 
-**Git reference:** Example `crack <http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/examples/crack>`_.
+**Git reference:** Example `crack <http://git.hpfem.org/hermes2d.git/tree/HEAD:/examples/crack>`_.
 
 The example employs the adaptive multimesh hp-FEM to solve the 
 equations of linear elasticity. The domain contains two horizontal 
@@ -26,7 +26,7 @@ cracks, as shown in the following figure:
 
 The cracks have a flat diamond-like shape and their width along with some other parameters 
 can be changed in the mesh file `crack.mesh 
-<http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/examples/crack/crack.mesh>`_:
+<http://git.hpfem.org/hermes2d.git/blob/HEAD:/examples/crack/crack.mesh>`_:
 
 ::
 
@@ -133,7 +133,7 @@ and calculate the error. In this case, we require that the error of elements is 
     double err_est = hp.calc_error(H2D_TOTAL_ERROR_REL | H2D_ELEMENT_ERROR_REL) * 100;
 
 The rest is straightforward and details can be found in the 
-`main.cpp <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/examples/crack/main.cpp>`_ file.
+`main.cpp <http://git.hpfem.org/hermes2d.git/blob/HEAD:/examples/crack/main.cpp>`_ file.
 
 Detail of singularity in Von Mises stress at the left end of the left crack:
 
@@ -214,10 +214,10 @@ The same comparison in terms of CPU time:
 Bracket (Linear Elasticity)
 ---------------------------
 
-**Git reference:** Example `bracket <http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/examples/bracket>`_.
+**Git reference:** Example `bracket <http://git.hpfem.org/hermes2d.git/tree/HEAD:/examples/bracket>`_.
 
 We will use the equations of linear elasticity from example 
-`08-system <http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/tutorial/08-system>`_, but
+`08-system <http://git.hpfem.org/hermes2d.git/tree/HEAD:/tutorial/08-system>`_, but
 now we will view them as a coupled PDE system.
 Our domain is a bracket loaded on its top edge and fixed to the wall:
 
@@ -316,7 +316,7 @@ example `11-adapt-system <http://hpfem.org/hermes2d/doc/src/tutorial-2.html#adap
 Thermoelasticity
 ----------------
 
-**Git reference:** Example `thermoelasticity <http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/examples/thermoelasticity>`_.
+**Git reference:** Example `thermoelasticity <http://git.hpfem.org/hermes2d.git/tree/HEAD:/examples/thermoelasticity>`_.
 
 The example deals with a massive hollow conductor is heated by induction and 
 cooled by water running inside. We will model this problem using linear thermoelasticity 
@@ -325,7 +325,7 @@ on individual meshes equipped with mutually independent adaptivity mechanisms.
 
 The computational domain is shown in the following figure and the details of the geometry can be found 
 in the corresponding 
-`mesh file <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/examples/thermoelasticity/domain.mesh>`_.
+`mesh file <http://git.hpfem.org/hermes2d.git/blob/HEAD:/examples/thermoelasticity/domain.mesh>`_.
 It is worth mentioning how the circular arcs are defined via NURBS:
 
 ::
@@ -568,7 +568,7 @@ h-FEM:
 Saphir (Neutronics)
 -------------------
 
-**Git reference:** Example `saphir <http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/examples/saphir>`_.
+**Git reference:** Example `saphir <http://git.hpfem.org/hermes2d.git/tree/HEAD:/examples/saphir>`_.
 
 This is a standard nuclear engineering benchmark (IAEA number EIR-2) describing 
 an external-force-driven configuration without fissile materials present, using one-group 
@@ -639,8 +639,8 @@ for each material:
 
 Recall that this is not the only way to handle spatially-dependent material parameters. Alternatively, one can define 
 a global function returning material parameters as a function of spatial coordinates. This was done, e.g., 
-in the tutorial examples `07 <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/tutorial/07-general>`_ 
-and `12 <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/tutorial/12-adapt-general>`_.
+in the tutorial examples `07 <http://git.hpfem.org/hermes2d.git/blob/HEAD:/tutorial/07-general>`_ 
+and `12 <http://git.hpfem.org/hermes2d.git/blob/HEAD:/tutorial/12-adapt-general>`_.
 
 The weak forms are associated with element material flags (coming from the mesh file) as follows:
 
@@ -709,7 +709,7 @@ CPU time convergence graphs:
 Iron-Water (Neutronics)
 -----------------------
 
-**Git reference:** Example `iron-water <http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/examples/iron-water>`_.
+**Git reference:** Example `iron-water <http://git.hpfem.org/hermes2d.git/tree/HEAD:/examples/iron-water>`_.
 
 This example is very similar to the example "saphir", the main difference being that 
 it reads a mesh file in the exodusii format (created by Cubit). This example only builds 
@@ -725,7 +725,7 @@ The latter can be done, for example, in the CMake.vars file as follows:
     SET(NETCDF_ROOT   /opt/packages/netcdf)
 
 The mesh is now loaded using the ExodusIIReader (see 
-the `mesh_loader.h <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/src/mesh_loader.h>`_ file):
+the `mesh_loader.h <http://git.hpfem.org/hermes2d.git/blob/HEAD:/src/mesh_loader.h>`_ file):
 
 ::
 
@@ -811,7 +811,7 @@ CPU time convergence graphs:
 4-Group (Neutronics)
 --------------------
 
-**Git reference:** Example `neutronics-4-group-adapt <http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/examples/neutronics-4-group-adapt>`_.
+**Git reference:** Example `neutronics-4-group-adapt <http://git.hpfem.org/hermes2d.git/tree/HEAD:/examples/neutronics-4-group-adapt>`_.
 
 
 Description coming soon.
@@ -820,7 +820,7 @@ Description coming soon.
 Wire (Electromagnetics)
 -----------------------
 
-**Git reference:** Example `wire <http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/examples/wire>`_.
+**Git reference:** Example `wire <http://git.hpfem.org/hermes2d.git/tree/HEAD:/examples/wire>`_.
 
 This example solves a complex-valued vector potential problem
 
@@ -838,7 +838,7 @@ shown in the following schematic picture:
 
 The computational domain is a rectangle of height 0.003 and width 0.004. 
 Different material markers are used for the wire, air, and iron 
-(see mesh file `domain2.mesh <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/examples/wire/domain2.mesh>`_).
+(see mesh file `domain2.mesh <http://git.hpfem.org/hermes2d.git/blob/HEAD:/examples/wire/domain2.mesh>`_).
 
 
 Boundary conditions are zero Dirichlet on the top and right edges, and zero Neumann
@@ -928,7 +928,7 @@ Waveguide (Electromagnetics)
 ----------------------------
 
 
-**Git reference:** Example `waveguide <http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/examples/waveguide>`_.
+**Git reference:** Example `waveguide <http://git.hpfem.org/hermes2d.git/tree/HEAD:/examples/waveguide>`_.
 
 
 Description coming soon.
@@ -938,7 +938,7 @@ Description coming soon.
 Nernst-Planck
 -------------
 
-**Git reference:** Example `newton-np-timedep-adapt-system <http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/examples/newton-np-timedep-adapt-system>`_.
+**Git reference:** Example `newton-np-timedep-adapt-system <http://git.hpfem.org/hermes2d.git/tree/HEAD:/examples/newton-np-timedep-adapt-system>`_.
 
 **Equation reference:** The first version of the following derivation was published in:
 *IPMC: recent progress in modeling, manufacturing, and new applications 
@@ -1246,7 +1246,7 @@ Simulation
 ^^^^^^^^^^
 
 To begin with simulations in Hermes2D, the equations :eq:`Fic` - :eq:`bilin4` were be implemented.
-It was done by implementing the callback functions found in  `newton-np-timedep-adapt-system/forms.cpp <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/examples/newton-np-timedep-adapt-system/forms.cpp>`_.
+It was done by implementing the callback functions found in  `newton-np-timedep-adapt-system/forms.cpp <http://git.hpfem.org/hermes2d.git/blob/HEAD:/examples/newton-np-timedep-adapt-system/forms.cpp>`_.
 
 .. highlight:: c
 
@@ -1287,7 +1287,7 @@ time step, respectively.
 
 When it comes to meshing, it should be considered that the gradient of $C$ near the boundaries will
 be higher than gradients of $\phi$. This allows us to create different meshes for those variables. In
-`main.cpp <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/examples/newton-np-timedep-adapt-system/main.cpp>`_.
+`main.cpp <http://git.hpfem.org/hermes2d.git/blob/HEAD:/examples/newton-np-timedep-adapt-system/main.cpp>`_.
 the following code in the *main()* function enables multimeshing
 
 
@@ -1296,7 +1296,7 @@ the following code in the *main()* function enables multimeshing
 	H1Space C(&Cmesh, &shapeset);
 	H1Space phi(MULTIMESH ? &phimesh : &Cmesh, &shapeset);
 
-When ``MULTIMESH`` is defined in `main.cpp <http://hpfem.org/git/gitweb.cgi/hermes2d.git/blob/HEAD:/examples/newton-np-timedep-adapt-system/main.cpp>`_.
+When ``MULTIMESH`` is defined in `main.cpp <http://git.hpfem.org/hermes2d.git/blob/HEAD:/examples/newton-np-timedep-adapt-system/main.cpp>`_.
 then different H1Spaces for ``phi`` and ``C`` are created. It must be noted that when adaptivity
 is not used, the multimeshing in this example does not have any advantage, however, when
 adaptivity is turned on, then mesh for H1Space ``C`` is refined much more than for ``phi``.
@@ -1332,7 +1332,7 @@ To be added soon.
 Singular Perturbation
 ---------------------
 
-**Git reference:** Example `singular-perturbation <http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/examples/singular-perturbation>`_.
+**Git reference:** Example `singular-perturbation <http://git.hpfem.org/hermes2d.git/tree/HEAD:/examples/singular-perturbation>`_.
 
 We solve a singularly perturbed elliptic problem that exhibits a thin anisotropic boundary layer that is 
 difficult to resolve. 
@@ -1426,7 +1426,7 @@ Linear Advection-Diffusion
 --------------------------
 
 **Git reference:** Example `linear-advection-diffusion 
-<http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/examples/linear-advection-diffusion>`_.
+<http://git.hpfem.org/hermes2d.git/tree/HEAD:/examples/linear-advection-diffusion>`_.
 
 This example solves the equation 
 
@@ -1603,7 +1603,7 @@ Navier-Stokes Equations
 -----------------------
 
 **Git reference:** Example `ns-timedep-adapt 
-<http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/examples/ns-timedep-adapt>`_.
+<http://git.hpfem.org/hermes2d.git/tree/HEAD:/examples/ns-timedep-adapt>`_.
 
 Description coming soon.
 

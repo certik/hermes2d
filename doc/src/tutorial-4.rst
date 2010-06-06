@@ -60,7 +60,7 @@ Nonlinear Parabolic Problem (20)
 --------------------------------
 
 **Git reference:** Tutorial example `20-newton-timedep-heat-adapt 
-<http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/tutorial/20-newton-timedep-heat-adapt>`_.
+<http://git.hpfem.org/hermes2d.git/tree/HEAD:/tutorial/20-newton-timedep-heat-adapt>`_.
 
 Description coming soon.
 
@@ -68,7 +68,7 @@ Flame Propagation Problem (21)
 ------------------------------
 
 **Git reference:** Tutorial example `21-newton-timedep-flame-adapt 
-<http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/tutorial/21-newton-timedep-flame-adapt>`_.
+<http://git.hpfem.org/hermes2d.git/tree/HEAD:/tutorial/21-newton-timedep-flame-adapt>`_.
 
 Description coming soon.
 
@@ -76,7 +76,7 @@ Heat and Moisture Transfer in Concrete (22)
 -------------------------------------------
 
 **Git reference:** Tutorial example `22-heat-and-moisture 
-<http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/tutorial/22-heat-and-moisture>`_.
+<http://git.hpfem.org/hermes2d.git/tree/HEAD:/tutorial/22-heat-and-moisture>`_.
 
 Description coming soon.
 
@@ -84,6 +84,6 @@ Gross-Pitaevski Equation (23)
 -----------------------------
 
 **Git reference:** Tutorial example `23-newton-timedep-gp-adapt 
-<http://hpfem.org/git/gitweb.cgi/hermes2d.git/tree/HEAD:/tutorial/23-newton-timedep-gp-adapt>`_.
+<http://git.hpfem.org/hermes2d.git/tree/HEAD:/tutorial/23-newton-timedep-gp-adapt>`_.
 
 Description coming soon.
