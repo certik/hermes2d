@@ -189,6 +189,9 @@ public:
   T *nx, *ny;       // normals [in physical domain] (locally oriented
                     // to point outside the element)
   T *tx, *ty;       // tangents [in physical domain]
+  int orientation;  // 0 .... if (nx, ny) is equal to the global normal,
+                    // otherwise 1 (each mesh edge has a unique global normal
+                    // vector)
 
   Geom()
   {

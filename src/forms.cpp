@@ -72,6 +72,7 @@ Geom<double>* init_geom_surf(RefMap *rm, EdgePos* ep, const int order)
     e->tx[i] = tan[i][0];  e->ty[i] =   tan[i][1];
     e->nx[i] = tan[i][1];  e->ny[i] = - tan[i][0];
   }
+    e->orientation = rm->get_active_element()->get_edge_orientation(ep->edge);
 	return e;
 }
 
