@@ -881,6 +881,7 @@ scalar LinSystem::eval_form(WeakForm::BiFormSurf *bf, PrecalcShapeset *fu,
   Quad2D* quad = fu->get_quad_2d();
   assert(ep->edge < 5);
   int eo = quad->get_edge_points(ep->edge);
+  //printf("edge=%d, eo=%d\n", ep->edge, eo);
   double3* pt = quad->get_points(eo);
   int np = quad->get_num_points(eo);
 
@@ -936,6 +937,16 @@ scalar LinSystem::eval_form(WeakForm::LiFormSurf *lf, PrecalcShapeset *fv, RefMa
   Func<double>* v = get_fn(fv, rv, eo);
   ExtData<scalar>* ext = init_ext_fns(lf->ext, rv, eo);
   Func<scalar>** ext_fn2 = new Func<scalar>*[lf->ext.size()];
+  /*
+  printf("---------------------------\n");
+  printf("element=%d\n",rv->get_active_element()->id);
+  printf("vertices=(%d, %d, %d, %d)\n",
+          rv->get_active_element()->vn[0]->id,
+          rv->get_active_element()->vn[1]->id,
+          rv->get_active_element()->vn[2]->id,
+          rv->get_active_element()->vn[3]->id
+          );
+          */
   for (int i = 0; i < lf->ext.size(); i++) {
       // This is the element, that we are currently assembling in the main
       // assembly loop
