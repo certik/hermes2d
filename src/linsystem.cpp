@@ -504,7 +504,7 @@ void LinSystem::assemble(bool rhsonly)
         int j = s->idx[i];
         if (e[i] == NULL) { isempty[j] = true; continue; }
         spaces[j]->get_element_assembly_list(e[i], &al[j]);
-        /** \todo Do not retrieve assembly list gain if the element has not changed */
+        /** \todo Do not retrieve assembly list again if the element has not changed */
 
         spss[j]->set_active_element(e[i]);
         spss[j]->set_master_transform();
@@ -623,7 +623,7 @@ void LinSystem::assemble(bool rhsonly)
             for (int j = 0; j < an->cnt; j++)
             {
               fu->set_active_shape(an->idx[j]);
-              bi = eval_form(bfs, fu, fv, &refmap[n], &refmap[m], ep+edge) * an->coef[j] * am->coef[i];
+              bi = eval_form(bfs, fu, fv, &refmap[n], &refmap[m], &(ep[edge])) * an->coef[j] * am->coef[i];
               if (an->dof[j] >= 0) mat[i][j] = bi; else Dir[k] -= bi;
             }
           }
@@ -646,7 +646,7 @@ void LinSystem::assemble(bool rhsonly)
           {
             if (am->dof[i] < 0) continue;
             fv->set_active_shape(am->idx[i]);
-            RHS[am->dof[i]] += eval_form(lfs, fv, &refmap[m], ep+edge) * am->coef[i];
+            RHS[am->dof[i]] += eval_form(lfs, fv, &refmap[m], &(ep[edge])) * am->coef[i];
           }
         }
       }
@@ -839,6 +839,7 @@ scalar LinSystem::eval_form(WeakForm::BiFormSurf *bf, PrecalcShapeset *fu,
 {
   // eval the form
   Quad2D* quad = fu->get_quad_2d();
+  assert(ep->edge < 5);
   int eo = quad->get_edge_points(ep->edge);
   double3* pt = quad->get_points(eo);
   int np = quad->get_num_points(eo);
@@ -874,6 +875,7 @@ scalar LinSystem::eval_form(WeakForm::LiFormSurf *lf, PrecalcShapeset *fv, RefMa
 {
   // eval the form
   Quad2D* quad = fv->get_quad_2d();
+  assert(ep->edge < 5);
   int eo = quad->get_edge_points(ep->edge);
   double3* pt = quad->get_points(eo);
   int np = quad->get_num_points(eo);
