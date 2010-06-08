@@ -18,6 +18,8 @@ if(${HERMES} STREQUAL ${HERMES_CPLX_BIN})
 endif(${HERMES} STREQUAL ${HERMES_CPLX_BIN})
 endif(H2D_COMPLEX)
 
+set_target_properties(${PROJECT_NAME} PROPERTIES COMPILE_FLAGS "${HERMES_FLAGS}")
+
 include_directories(${UMFPACK_INCLUDE_DIR} ${AMD_INCLUDE_DIR})
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 include_directories(${hermes2d_SOURCE_DIR}/src)

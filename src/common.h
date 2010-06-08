@@ -72,6 +72,14 @@ enum ElementMode { // element modes
 
 const int H2D_ANY = -1234;
 
+enum Edges_flag
+{
+	H2D_ANY_BOUNDARY_EDGE = H2D_ANY,
+	H2D_ANY_EDGE = -12345,
+	H2D_ANY_INNER_EDGE = -123456,
+};
+
+
 // how many bits the order number takes
 const int H2D_ORDER_BITS = 5;
 const int H2D_ORDER_MASK = (1 << H2D_ORDER_BITS) - 1;

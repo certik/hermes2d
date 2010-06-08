@@ -59,7 +59,8 @@ Geom<double>* init_geom_surf(RefMap *rm, EdgePos* ep, const int order)
 	e->x = rm->get_phys_x(order);
 	e->y = rm->get_phys_y(order);
 	double3 *tan;
-  tan = rm->get_tangent(ep->edge);
+
+  tan = rm->get_tangent(ep->edge, order);
 
   Quad2D* quad = rm->get_quad_2d();
   int np = quad->get_num_points(order);
@@ -230,4 +231,21 @@ Func<scalar>* init_fn(MeshFunction *fu, RefMap *rm, const int order)
 
   return u;
 }
+
+
+
+/*
+void ExtData::set_fn_neighbor(Func<T>** functions)
+{
+	for(int i = 0; i < nf_neighbor; i++)
+		fn_neighbor[i] = functions[i];
+}
+void ExtData::set_nf_neighbor(int n)
+{
+	nf_neighbor = n;
+}
+*/
+
+
+
 

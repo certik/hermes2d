@@ -26,6 +26,7 @@
 #include "limit_order.h"
 #include <algorithm>
 #include "python_solvers.h"
+#include "neighbor.h"
 
 void qsort_int(int* pbase, size_t total_elems); // defined in qsort.cpp
 
@@ -496,7 +497,6 @@ void LinSystem::assemble(bool rhsonly)
 
       // set maximum integration order for use in integrals, see limit_order()
       update_limit_table(e0->get_mode());
-
       // obtain assembly lists for the element at all spaces, set appropriate mode for each pss
       std::fill(isempty.begin(), isempty.end(), false);
       for (unsigned int i = 0; i < s->idx.size(); i++)
@@ -512,8 +512,8 @@ void LinSystem::assemble(bool rhsonly)
         refmap[j].force_transform(pss[j]->get_transform(), pss[j]->get_ctm());
       }
       marker = e0->marker;
-
       init_cache();
+
       //// assemble volume bilinear forms //////////////////////////////////////
       for (unsigned int ww = 0; ww < s->bfvol.size(); ww++)
       {
@@ -527,6 +527,7 @@ void LinSystem::assemble(bool rhsonly)
 
         // assemble the local stiffness matrix for the form bfv
         scalar bi, **mat = get_matrix_buffer(std::max(am->cnt, an->cnt));
+
         for (int i = 0; i < am->cnt; i++)
         {
           if (!tra && (k = am->dof[i]) < 0) continue;
@@ -586,68 +587,151 @@ void LinSystem::assemble(bool rhsonly)
         }
       }
 
-
-      // assemble surface integrals now: loop through boundary edges of the element
+       // assemble surface integrals now: loop through boundary edges of the element
       for (unsigned int edge = 0; edge < e0->nvert; edge++)
       {
-        if (!bnd[edge]) continue;
         marker = ep[edge].marker;
-
         // obtain the list of shape functions which are nonzero on this edge
         for (unsigned int i = 0; i < s->idx.size(); i++) {
           if (e[i] == NULL) continue;
           int j = s->idx[i];
-          if ((nat[j] = (spaces[j]->bc_type_callback(marker) == BC_NATURAL)))
-            spaces[j]->get_edge_assembly_list(e[i], edge, &al[j]);
+          nat[j] = (spaces[j]->bc_type_callback(marker) == BC_NATURAL);
+          int type_of_space = spaces[j]->get_type();
+
+          if (type_of_space == 3) // case when we are in L2 space
+            spaces[j]->get_element_assembly_list(e[i], al + j);
+          else
+          	spaces[j]->get_edge_assembly_list(e[i], edge, al + j);
+
         }
 
-        // assemble surface bilinear forms ///////////////////////////////////
-        for (unsigned int ww = 0; ww < s->bfsurf.size(); ww++)
+        if(bnd[edge] == 1)
         {
-          WeakForm::BiFormSurf* bfs = s->bfsurf[ww];
-          if (isempty[bfs->i] || isempty[bfs->j]) continue;
-          if (bfs->area != H2D_ANY && !wf->is_in_area(marker, bfs->area)) continue;
-          m = bfs->i;  fv = spss[m];  am = &al[m];
-          n = bfs->j;  fu = pss[n];   an = &al[n];
+					// assemble surface bilinear forms ///////////////////////////////////
+					for (unsigned int ww = 0; ww < s->bfsurf.size(); ww++)
+					{
+						WeakForm::BiFormSurf* bfs = s->bfsurf[ww];
+						if (isempty[bfs->i] || isempty[bfs->j]) continue;
+						if ((bfs->area != H2D_ANY_BOUNDARY_EDGE && bfs->area != H2D_ANY_EDGE && bfs->area != H2D_ANY_INNER_EDGE)&& !wf->is_in_area(marker, bfs->area)) continue;
+						m = bfs->i;  fv = spss[m];  am = &al[m];
+						n = bfs->j;  fu = pss[n];   an = &al[n];
 
-          if (!nat[m] || !nat[n]) continue;
-          ep[edge].base = trav.get_base();
-          ep[edge].space_v = spaces[m];
-          ep[edge].space_u = spaces[n];
+						if (!nat[m] || !nat[n]) continue;
+						ep[edge].base = trav.get_base();
+						ep[edge].space_v = spaces[m];
+						ep[edge].space_u = spaces[n];
 
-          scalar bi, **mat = get_matrix_buffer(std::max(am->cnt, an->cnt));
-          for (int i = 0; i < am->cnt; i++)
-          {
-            if ((k = am->dof[i]) < 0) continue;
-            fv->set_active_shape(am->idx[i]);
-            for (int j = 0; j < an->cnt; j++)
-            {
-              fu->set_active_shape(an->idx[j]);
-              bi = eval_form(bfs, fu, fv, &refmap[n], &refmap[m], ep+edge) * an->coef[j] * am->coef[i];
-              if (an->dof[j] >= 0) mat[i][j] = bi; else Dir[k] -= bi;
-            }
-          }
-          insert_block(mat, am->dof, an->dof, am->cnt, an->cnt);
+							scalar bi, **mat = get_matrix_buffer(std::max(am->cnt, an->cnt));
+							for (int i = 0; i < am->cnt; i++)
+							{
+								if ((k = am->dof[i]) < 0) continue;
+								fv->set_active_shape(am->idx[i]);
+								for (j = 0; j < an->cnt; j++)
+								{
+									fu->set_active_shape(an->idx[j]);
+									bi = eval_form(bfs, fu, fv, refmap+n, refmap+m, ep+edge) * an->coef[j] * am->coef[i];
+									if (an->dof[j] >= 0) mat[i][j] = bi; else Dir[k] -= bi;
+
+								}
+							}
+						insert_block(mat, am->dof, an->dof, am->cnt, an->cnt);
+					}
+
+					// assemble surface linear forms /////////////////////////////////////
+					for (unsigned int ww = 0; ww < s->lfsurf.size(); ww++)
+					{
+						WeakForm::LiFormSurf* lfs = s->lfsurf[ww];
+						if (isempty[lfs->i]) continue;
+
+						if ((lfs->area != H2D_ANY_BOUNDARY_EDGE && lfs->area != H2D_ANY_EDGE && lfs->area != H2D_ANY_INNER_EDGE) && !wf->is_in_area(marker, lfs->area)) continue;
+						m = lfs->i;  fv = spss[m];  am = &al[m];
+						if (!nat[m]) continue;
+						ep[edge].base = trav.get_base();
+						ep[edge].space_v = spaces[m];
+						for (int i = 0; i < am->cnt; i++)
+						{
+							if (am->dof[i] < 0) continue;
+							fv->set_active_shape(am->idx[i]);
+							RHS[am->dof[i]] += eval_form(lfs, fv, refmap+m, ep+edge) * am->coef[i];
+						}
+					}
         }
-
-        // assemble surface linear forms /////////////////////////////////////
-        for (unsigned int ww = 0; ww < s->lfsurf.size(); ww++)
+        else // inner edge
         {
-          WeakForm::LiFormSurf* lfs = s->lfsurf[ww];
-          if (isempty[lfs->i]) continue;
-          if (lfs->area != H2D_ANY && !wf->is_in_area(marker, lfs->area)) continue;
-          m = lfs->i;  fv = spss[m];  am = &al[m];
+					// assemble surface bilinear forms ///////////////////////////////////
+					for (unsigned int ww = 0; ww < s->bfsurf.size(); ww++)
+					{
 
-          if (!nat[m]) continue;
-          ep[edge].base = trav.get_base();
-          ep[edge].space_v = spaces[m];
+						WeakForm::BiFormSurf* bfs = s->bfsurf[ww];
 
-          for (int i = 0; i < am->cnt; i++)
-          {
-            if (am->dof[i] < 0) continue;
-            fv->set_active_shape(am->idx[i]);
-            RHS[am->dof[i]] += eval_form(lfs, fv, &refmap[m], ep+edge) * am->coef[i];
-          }
+						if (isempty[bfs->i] || isempty[bfs->j]) continue;
+
+						if ((bfs->area != H2D_ANY_BOUNDARY_EDGE && bfs->area != H2D_ANY_EDGE && bfs->area != H2D_ANY_INNER_EDGE) && !wf->is_in_area(marker, bfs->area)) continue;
+
+						m = bfs->i;  fv = spss[m];  am = &al[m];
+						n = bfs->j;  fu = pss[n];   an = &al[n];
+
+						ep[edge].base = trav.get_base();
+						ep[edge].space_v = spaces[m];
+						ep[edge].space_u = spaces[n];
+
+						if(bfs->area == H2D_ANY_EDGE)
+						{
+							scalar bi, **mat = get_matrix_buffer(std::max(am->cnt, an->cnt));
+							for (int i = 0; i < am->cnt; i++)
+							{
+								if ((k = am->dof[i]) < 0) continue;
+								fv->set_active_shape(am->idx[i]);
+								for (j = 0; j < an->cnt; j++)
+								{
+									fu->set_active_shape(an->idx[j]);
+									bi = eval_form(bfs, fu, fv, refmap+n, refmap+m, ep+edge) * an->coef[j] * am->coef[i];
+									if (an->dof[j] >= 0) mat[i][j] = bi; else Dir[k] -= bi;
+									}
+								}
+							insert_block(mat, am->dof, an->dof, am->cnt, an->cnt);
+						}
+						// still will be filled when this optionality would be needed.
+						else if(bfs->area == H2D_ANY_INNER_EDGE)
+							continue;
+						else
+							continue;
+					}
+
+					// assemble surface linear forms /////////////////////////////////////
+					for (unsigned int ww = 0; ww < s->lfsurf.size(); ww++)
+					{
+						WeakForm::LiFormSurf* lfs = s->lfsurf[ww];
+						if (isempty[lfs->i]) continue;
+
+						if ((lfs->area != H2D_ANY_BOUNDARY_EDGE &&lfs->area != H2D_ANY_EDGE && lfs->area != H2D_ANY_INNER_EDGE) && !wf->is_in_area(marker, lfs->area)) continue;
+						m = lfs->i;  fv = spss[m];  am = &al[m];
+
+						ep[edge].base = trav.get_base();
+						ep[edge].space_v = spaces[m];
+
+						if(lfs->area == H2D_ANY_EDGE)
+						{
+							for (int i = 0; i < am->cnt; i++)
+							{
+								if (am->dof[i] < 0) continue;
+								fv->set_active_shape(am->idx[i]);
+								RHS[am->dof[i]] += eval_form(lfs, fv, refmap+m, ep+edge) * am->coef[i];
+							}
+						}
+						// here the form will use for evaluation information from neighbors
+						else if(lfs->area == H2D_ANY_INNER_EDGE)
+						{
+							for (int i = 0; i < am->cnt; i++)
+							{
+								if (am->dof[i] < 0) continue;
+								fv->set_active_shape(am->idx[i]);
+								RHS[am->dof[i]] += eval_form_neighbor(lfs, fv, refmap+m, ep+edge) * am->coef[i];
+							}
+						}
+						else
+							continue;
+					}
         }
       }
       delete_cache();
@@ -710,7 +794,7 @@ Func<double>* LinSystem::get_fn(PrecalcShapeset *fu, RefMap *rm, const int order
 // Caching transformed values
 void LinSystem::init_cache()
 {
-  for (int i = 0; i < g_max_quad + 1 + 4; i++)
+  for (int i = 0; i < g_max_quad+1 + 4 * g_max_quad + 4; i++)
   {
     cache_e[i] = NULL;
     cache_jwt[i] = NULL;
@@ -719,7 +803,7 @@ void LinSystem::init_cache()
 
 void LinSystem::delete_cache()
 {
-  for (int i = 0; i < g_max_quad + 1 + 4; i++)
+  for (int i = 0; i < g_max_quad+1 + 4 * g_max_quad + 4; i++)
   {
     if (cache_e[i] != NULL)
     {
@@ -877,7 +961,6 @@ scalar LinSystem::eval_form(WeakForm::LiFormSurf *lf, PrecalcShapeset *fv, RefMa
   int eo = quad->get_edge_points(ep->edge);
   double3* pt = quad->get_points(eo);
   int np = quad->get_num_points(eo);
-
   // init geometry and jacobian*weights
   if (cache_e[eo] == NULL)
   {
@@ -889,18 +972,166 @@ scalar LinSystem::eval_form(WeakForm::LiFormSurf *lf, PrecalcShapeset *fv, RefMa
   }
   Geom<double>* e = cache_e[eo];
   double* jwt = cache_jwt[eo];
-
   // function values and values of external functions
   Func<double>* v = get_fn(fv, rv, eo);
   ExtData<scalar>* ext = init_ext_fns(lf->ext, rv, eo);
-
   scalar res = lf->fn(np, jwt, v, e, ext);
-
   ext->free(); delete ext;
   return 0.5 * res; // Edges are parametrized from 0 to 1 while integration weights
                     // are defined in (-1, 1). Thus multiplying with 0.5 to correct
                     // the weights.
 }
+
+// Actual evaluation of surface linear form, just in case using information from neighbors.
+// Used only for inner edges.
+scalar LinSystem::eval_form_neighbor(WeakForm::LiFormSurf *lf, PrecalcShapeset *fv, RefMap *rv, EdgePos* ep)
+{
+	// determine the integration order
+  int inc = (fv->get_num_components() == 2) ? 1 : 0;
+  Func<Ord>* ov = init_fn_ord(fv->get_fn_order() + inc);
+
+  double fake_wt = 1.0;
+  Geom<Ord>* fake_e = init_geom_ord();
+  int order = rv->get_inv_ref_order();
+
+  Quad2D* quad = fv->get_quad_2d();
+  scalar res = 0;
+  int idx_ref = rv->get_transform();
+  int idx_form = fv->get_transform();
+	int n_ext = lf->ext.size();
+	if(n_ext == 0)
+	{
+		warn("In initialization of surface linear form weren't added any extern functions (f.e. solution from previous step)");
+		return 0;
+	}
+
+	Element* el;
+	el = rv->get_active_element();
+	Mesh* mesh = lf->ext[0]->get_mesh();
+	NeighborSearch* neighb;
+	Space* space = ep->space_v;
+
+	neighb = new NeighborSearch(el, mesh);
+	neighb->set_active_edge(ep->edge);
+	int n_neighbors = neighb->get_number_of_neighbs();
+	
+	std::vector<int> max_of_orders(n_neighbors, -1);
+
+	std::vector<NeighborSearch*> neighbors(n_ext, NULL);
+	std::vector<std::vector<int>*> neighbors_orders(n_ext, NULL);
+	for(int i = 0; i < n_ext; i++)
+	{
+		neighbors[i] = new NeighborSearch(el, mesh, lf->ext[i], space);
+		neighbors[i]->set_active_edge(ep->edge);
+		neighbors_orders[i] = neighbors[i]->get_orders();
+	}
+
+	// find the highest order
+	int help_var;
+	for(int i = 0; i < n_neighbors; i++)
+	{
+		help_var = 0;
+		for(int j = 0; j < n_ext; j++)
+		{
+			help_var = neighbors_orders[j]->at(i);
+			if(help_var > max_of_orders[i])
+				max_of_orders[i] = help_var;
+		}
+	}
+
+	for(int i = 0; i < n_neighbors; i++)
+	{
+		
+		ExtData<Ord>* fake_ext = new ExtData<Ord>;
+		Func<Ord>** fake_ext_fn = new Func<Ord>*[n_ext];
+		Func<Ord>** fake_ext_fn_neighbor = new Func<Ord>*[n_ext];
+		for (int j = 0; j < n_ext; j++){
+			fake_ext_fn[j] = init_fn_ord(max_of_orders[i]);
+			fake_ext_fn_neighbor[j] = init_fn_ord(max_of_orders[i]);
+		}
+		fake_ext->fn = fake_ext_fn;
+		fake_ext->set_fn_neighbor(fake_ext_fn_neighbor);
+		fake_ext->nf = n_ext;
+		fake_ext->set_nf_neighbor(n_ext);
+
+		Ord o = lf->ord(1, &fake_wt, ov, fake_e, fake_ext);
+
+		order += o.get_order();
+
+		limit_order(order);
+//		int order = max_of_orders[i];
+
+		fake_ext->free_ord();
+		fake_ext->free_neighbor_ord();
+		delete fake_ext;
+
+	  ExtData<scalar>* ext_data = new ExtData<scalar>;
+	  Func<scalar>** ext_fn_central = new Func<scalar>*[lf->ext.size()];
+	  Func<scalar>** ext_fn_neighbor = new Func<scalar>*[lf->ext.size()];
+
+		for(int j = 0; j < lf->ext.size(); j++)
+		{
+			neighbors[j]->set_order_of_integration(order);
+			neighbors[j]->set_solution(lf->ext[j]);
+			ext_fn_central[j] = neighbors[j]->get_values_central(i);
+	    ext_fn_neighbor[j] = neighbors[j]->get_values_neighbor(i);
+		}
+
+		if(n_neighbors > 1) //way down
+		{
+			int* transformations = neighb->get_transformations(i);
+			int index = 0;
+			while(transformations[index] != -1)
+			{
+				rv->push_transform(transformations[index]);
+				fv->push_transform(transformations[index]);
+				index = index + 1;
+			}
+		}
+
+		int eo = quad->get_edge_points(ep->edge,order);
+	  double3* pt = quad->get_points(eo);
+		int np = quad->get_num_points(eo);
+
+
+    cache_e[eo] = init_geom_surf(rv, ep, eo);
+    double3* tan = rv->get_tangent(ep->edge, order);
+    cache_jwt[eo] = new double[np];
+    for(int i = 0; i < np; i++)
+      cache_jwt[eo][i] = pt[i][2] * tan[i][2];
+
+    Geom<double>* e = cache_e[eo];
+	  double* jwt = cache_jwt[eo];
+
+	  ext_data->fn = ext_fn_central;
+	  ext_data->nf = lf->ext.size();
+	  ext_data->set_fn_neighbor(ext_fn_neighbor);
+	  ext_data->set_nf_neighbor(lf->ext.size());
+
+	  // function values
+		Func<double>* v = get_fn(fv, rv, eo);
+	  scalar local = lf->fn(np, jwt, v, e, ext_data);
+	  res += lf->fn(np, jwt, v, e, ext_data);
+	  ext_data->free();
+	  ext_data->free_neighbor();
+	  delete ext_data;
+
+	  rv->set_transform(idx_ref);
+	  fv->set_transform(idx_form);
+	}
+
+  ov->free_ord(); delete ov;
+  delete fake_e;
+
+
+	delete neighb;
+	neighbors.clear();
+  return 0.5 * res; // Edges are parametrized from 0 to 1 while integration weights
+                    // are defined in (-1, 1). Thus multiplying with 0.5 to correct
+                    // the weights.
+}
+
+
 
 
 //// solve /////////////////////////////////////////////////////////////////////////////////////////

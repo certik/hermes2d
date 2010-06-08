@@ -9,10 +9,10 @@ CFLAGS = /RTC1 /MDd /Z7 /DEBUG /D "DEBUG" /D "_DEBUG"
 ARFLAGS = /DEBUG
 !ELSE
 CFLAGS = /MD /O2 /Oi /GL
-ARFLAGS = /LTCG
+ARFLAGS = /OPT:REF /OPT:ICF
 !ENDIF
 
-CONFIG = /D "WIN32" /D "_CONSOLE" /D "_UNICODE" /D "UNICODE"
+CONFIG =  /D "WIN32" /D "_CONSOLE" /D "_WINDLL" /D "_AMDDLL" /D "_UNICODE" /D "UNICODE"
 C = $(CC) $(CFLAGS) $(CONFIG) /I../Include /I ../../UFconfig
 OBJS = amd_i_aat.obj amd_i_1.obj amd_i_2.obj amd_i_dump.obj \
     amd_i_postorder.obj amd_i_post_tree.obj amd_i_defaults.obj amd_i_order.obj \

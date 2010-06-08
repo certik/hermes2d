@@ -35,6 +35,7 @@ enum GIP2DIndices {
   // debug
   //const int g_max_quad = 30;
   const int g_max_quad = 24;
+  const int g_max_tri = 20;
 #endif
 
 /// Quad1D is a base class for all 1D quadrature points.
@@ -73,7 +74,8 @@ public:
 
   int get_num_points(int order)  const { return np[mode][order]; };
   double3* get_points(int order) const { assert(order < num_tables[mode]); return tables[mode][order]; }
-  int get_edge_points(int edge)  const { return max_order[mode]+1 + edge; }
+  int get_edge_points(int edge)  const { return max_order[mode]+1 + (3*(1-mode) + 4*mode)*max_order[mode] + edge; }
+  int get_edge_points(int edge, int order) {return  max_order[mode]+1 + (3*(1-mode) + 4*mode)*order + edge;}
 
   int get_max_order() const { return max_order[mode]; }
   int get_safe_max_order() const { return safe_max_order[mode]; }

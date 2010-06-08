@@ -1,0 +1,41 @@
+
+a = 1.0  # size of the mesh
+b = sqrt(2)/2
+
+vertices =
+{
+  { -a, -a },    # vertex 0
+  { -a, 0 },    # vertex 1
+  { -a, a },    # vertex 2
+  { 0, -a },     # vertex 3
+  { 0, 0 },     # vertex 4
+  { 0, a },    # vertex 5
+  { a, -a },     # vertex 6
+  { a, 0 },  # vertex 7
+  { a, a },  # vertex 8
+  { 2*a, 0}  # vertex 9
+}
+
+elements =
+{
+  { 0, 3, 4, 1, 0 },  # quad 0
+  { 3, 6, 4, 0 },     # tri 1
+  { 6, 7, 4, 0 },     # tri 2
+  { 1, 4, 5, 2, 0 },   # quad 3
+  { 4, 7, 8, 5, 0 },  # quad 4
+  { 7, 9, 8, 0 }     # tri 5
+}
+
+boundaries =
+{
+  { 0, 1, 1 },
+  { 1, 2, 1 },
+  { 0, 3, 2 },
+  { 3, 6, 2 },
+  { 6, 7, 2 },
+  { 2, 5, 2 },
+  { 5, 8, 2 },
+  { 7, 9, 2 },
+  { 8, 9, 3 }
+}
+

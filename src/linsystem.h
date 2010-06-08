@@ -246,8 +246,8 @@ protected:
 
   // Caching transformed values for element
   std::map<Key, Func<double>*, Compare> cache_fn;
-  Geom<double>* cache_e[g_max_quad + 1 + 4];
-  double* cache_jwt[g_max_quad + 1 + 4];
+  Geom<double>* cache_e[g_max_quad+1 + 4 * g_max_quad + 4];
+  double* cache_jwt[g_max_quad+1 + 4 * g_max_quad + 4];
 
   void init_cache();
   void delete_cache();
@@ -256,7 +256,7 @@ protected:
   scalar eval_form(WeakForm::LiFormVol *lf, PrecalcShapeset *fv, RefMap *rv);
   scalar eval_form(WeakForm::BiFormSurf *bf, PrecalcShapeset *fu, PrecalcShapeset *fv, RefMap *ru, RefMap *rv, EdgePos* ep);
   scalar eval_form(WeakForm::LiFormSurf *lf, PrecalcShapeset *fv, RefMap *rv, EdgePos* ep);
-
+  scalar eval_form_neighbor(WeakForm::LiFormSurf *lf, PrecalcShapeset *fv, RefMap *rv, EdgePos* ep);
   scalar** get_matrix_buffer(int n)
   {
     if (n <= mat_size) return buffer;

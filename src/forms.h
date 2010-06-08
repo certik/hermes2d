@@ -232,8 +232,10 @@ public:
 	Func<T>** fn;				// array of pointers to functions
 
 	ExtData() {
-          nf = 0;
-          fn = NULL;
+		nf = 0;
+		fn = NULL;
+		nf_neighbor = 0;
+		fn_neighbor = NULL;
 	}
 
   void free()
@@ -246,6 +248,17 @@ public:
     delete [] fn;
   }
 
+  void free_neighbor()
+  {
+    for (int i = 0; i < nf_neighbor; i++)
+    {
+      fn_neighbor[i]->free_fn();
+      delete fn_neighbor[i];
+    }
+    delete [] fn_neighbor;
+  }
+
+
   void free_ord()
   {
     for (int i = 0; i < nf; i++)
@@ -255,6 +268,35 @@ public:
     }
     delete [] fn;
   }
+
+  void free_neighbor_ord()
+  {
+    for (int i = 0; i < nf_neighbor; i++)
+    {
+      fn_neighbor[i]->free_ord();
+      delete fn_neighbor[i];
+    }
+    delete [] fn_neighbor;
+  }
+
+
+  // Used for getting neighbor function values in forms (now only in linear surface form)
+  int get_nf_neighbor()
+  {
+  	return nf_neighbor;
+  }
+
+  Func<T>* get_fn_neighbor(int index)
+  {
+  	return fn_neighbor[index];
+  }
+
+	void set_nf_neighbor(int n){ nf_neighbor = n;}
+
+	void set_fn_neighbor(Func<T>** functions){fn_neighbor = functions;}
+private:
+	int nf_neighbor;			  			// number of functions in 'fn_neighbor' array
+	Func<T>** fn_neighbor;				// array of pointers to functions on neighbor element
 
 };
 

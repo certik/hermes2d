@@ -114,7 +114,29 @@ public:
   /// 1D quadrature rule is always used.
   double3* get_tangent(int edge)
   {
-    if (cur_node->tan[edge] == NULL) calc_tangent(edge);
+  	int edge_order = -1;
+  	if(quad_2d != NULL)
+  		edge_order = quad_2d->get_edge_points(edge);
+  	else
+  		error("2d quadrature wasn't set.");
+
+  	delete[] cur_node->tan[edge];
+  	cur_node->tan[edge] = NULL;
+
+		get_tangent(edge, edge_order);
+
+    return cur_node->tan[edge];
+  }
+
+  /// This version behaves same as the above, but now for arbitrary given order.
+  double3* get_tangent(int edge, int order)
+	{
+  	if(cur_node->tan[edge] != NULL)
+  	{
+  		delete[] cur_node->tan[edge];
+  		cur_node->tan[edge] = NULL;
+  	}
+  	calc_tangent(edge, order);
     return cur_node->tan[edge];
   }
 
@@ -156,7 +178,7 @@ protected:
   double const_jacobian;
   double2x2 const_inv_ref_map;
 
-  static const int H2D_MAX_TABLES = g_max_quad + 1 + 4;
+  static const int H2D_MAX_TABLES = g_max_quad+1 + 4 * g_max_quad + 4;
 
   struct Node
   {
@@ -192,7 +214,7 @@ protected:
 
   void calc_phys_x(int order);
   void calc_phys_y(int order);
-  void calc_tangent(int edge);
+  void calc_tangent(int edge, int order);
 
   /// Finds the necessary quadrature degree needed to integrate the inverse reference mapping
   /// matrix alone. This is added to the total integration order in weak form itegrals.

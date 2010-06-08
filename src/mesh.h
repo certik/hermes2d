@@ -95,6 +95,8 @@ struct H2D_API Element
   int marker;        ///< element marker
   int userdata;     ///< arbitrary user-defined data
   int iro_cache;     ///< increase in integration order, see RefMap::calc_inv_ref_order()
+	Element* parent; ///< pointer to the element from which this arise
+
 
   Node* vn[4];   ///< vertex node pointers
   union

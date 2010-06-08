@@ -189,7 +189,7 @@ protected:
   bool** get_blocks();
 
   bool is_in_area(int marker, int area) const
-    { return area >= 0 ? area == marker : is_in_area_2(marker, area); }
+    {	return area >= 0 ? area == marker : is_in_area_2(marker, area); }
 
   bool is_sym() const { return false; /* not impl. yet */ }
 
