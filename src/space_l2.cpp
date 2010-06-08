@@ -70,3 +70,85 @@ void L2Space::assign_bubble_dofs()
 }
 
 
+//// assembly lists ////////////////////////////////////////////////////////////////////////////////
+
+void L2Space::get_element_assembly_list(Element* e, AsmList* al)
+{
+  int i;
+
+  // some checks
+  if (e->id >= esize || edata[e->id].order < 0)
+    error("Uninitialized element order (id = #%d).", e->id);
+  if (!is_up_to_date())
+    error("The space is out of date. You need to update it with assign_dofs()"
+          " any time the mesh changes.");
+
+  // add vertex, edge and bubble functions to the assembly list
+  al->clear();
+  shapeset->set_mode(e->get_mode());
+  /*
+  for (i = 0; i < e->nvert; i++)
+    get_vertex_assembly_list(e, i, al);
+  for (i = 0; i < e->nvert; i++)
+    get_edge_assembly_list_internal(e, i, al);
+  */
+  get_bubble_assembly_list(e, al);
+}
+
+void L2Space::get_bubble_assembly_list(Element* e, AsmList* al)
+{
+  ElementData* ed = &edata[e->id];
+  if (!ed->n) return;
+
+  int* indices = shapeset->get_bubble_indices(ed->order);
+  for (int i = 0, dof = ed->bdof; i < ed->n; i++, dof += stride) {
+    //printf("triplet: %d, %d, %f\n", *indices, dof, 1.0);
+    al->add_triplet(*indices++, dof, 1.0);
+  }
+}
+
+
+void L2Space::get_edge_assembly_list_internal(Element* e, int ie, AsmList* al)
+{
+    this->get_bubble_assembly_list(e, al);
+}
+
+scalar* L2Space::get_bc_projection(EdgePos* ep, int order)
+{
+  assert(order >= 1);
+  scalar* proj = new scalar[order + 1];
+
+  // obtain linear part of the projection
+  ep->t = ep->lo;
+  proj[0] = bc_value_callback_by_edge(ep);
+  ep->t = ep->hi;
+  proj[1] = bc_value_callback_by_edge(ep);
+
+  if (order-- > 1)
+  {
+    Quad1DStd quad1d;
+    scalar* rhs = proj + 2;
+    int mo = quad1d.get_max_order();
+    double2* pt = quad1d.get_points(mo);
+
+    // get boundary values at integration points, construct rhs
+    for (int i = 0; i < order; i++)
+    {
+      rhs[i] = 0.0;
+      int ii = shapeset->get_edge_index(0, 0, i+2);
+      for (int j = 0; j < quad1d.get_num_points(mo); j++)
+      {
+        double t = (pt[j][0] + 1) * 0.5, s = 1.0 - t;
+        scalar l = proj[0] * s + proj[1] * t;
+        ep->t = ep->lo * s + ep->hi * t;
+        rhs[i] += pt[j][1] * shapeset->get_fn_value(ii, pt[j][0], -1.0, 0)
+                           * (bc_value_callback_by_edge(ep) - l);
+      }
+    }
+
+    // solve the system using a precalculated Cholesky decomposed projection matrix
+    cholsl(proj_mat, order, chol_p, rhs, rhs);
+  }
+
+  return proj;
+}
