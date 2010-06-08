@@ -93,6 +93,10 @@ cdef class Node:
         return self.thisptr.bnd
 
     @property
+    def marker(self):
+        return self.thisptr.marker
+
+    @property
     def used(self):
         return self.thisptr.used == 1
 
@@ -180,7 +184,6 @@ def get_node_id(node):
 
 
 cdef class Mesh:
-    cdef c_Mesh *thisptr
 
     def __cinit__(self):
         self.thisptr = new_Mesh()
@@ -223,6 +226,18 @@ cdef class Mesh:
             el = self.get_element(i)
             if el.active:
                 element_list.append(el.nodes_vertex_id)
+        return element_list
+
+    @property
+    def active_elements(self):
+        """
+        Return the list of active elements (as Element instances).
+        """
+        element_list = []
+        for i in range(self.num_elements):
+            el = self.get_element(i)
+            if el.active:
+                element_list.append(el)
         return element_list
 
     @property
@@ -595,6 +610,12 @@ cdef api object Mesh_from_C(c_Mesh *h):
     n.thisptr = h
     return n
 
+cdef api object LinSystem_from_C(c_LinSystem *h):
+    cdef LinSystem n
+    n = <LinSystem>PY_NEW(LinSystem)
+    n.thisptr = h
+    return n
+
 cdef class Transformable:
     pass
 
@@ -653,6 +674,12 @@ cdef class Solution(MeshFunction):
 
     #def __dealloc__(self):
     #    delete(self.thisptr)
+
+    def copy(self, Solution s):
+        (<c_Solution *>(self.thisptr)).copy((<c_Solution *>(s.thisptr)))
+
+    def copy_by_reference(self, Solution s):
+        self.thisptr = s.thisptr
 
     def set_zero(self, Mesh m):
         (<c_Solution *>(self.thisptr)).set_zero(m.thisptr)
@@ -784,7 +811,7 @@ cdef class LinSystem:
     def set_spaces(self, *args):
         self._spaces = args
         cdef int n = len(args)
-        cdef H1Space a, b, c
+        cdef H1Space a, b, c, d
         if n == 1:
             a = args[0]
             self.thisptr.set_spaces(n, a.thisptr)
@@ -794,20 +821,30 @@ cdef class LinSystem:
         elif n == 3:
             a, b, c = args
             self.thisptr.set_spaces(n, a.thisptr, b.thisptr, c.thisptr)
+        elif n == 4:
+            a, b, c, d = args
+            self.thisptr.set_spaces(n, a.thisptr, b.thisptr, c.thisptr,
+                    d.thisptr)
         else:
             raise NotImplementedError()
 
     def set_pss(self, *args):
         self._pss = args
         cdef int n = len(args)
-        cdef PrecalcShapeset s1, s2
+        cdef PrecalcShapeset s1, s2, s3, s4
         if n == 1:
-            s1 = args[0]
+            s1, = args
             self.thisptr.set_pss(n, s1.thisptr)
         elif n == 2:
-            s1 = args[0]
-            s2 = args[1]
+            s1, s2 = args
             self.thisptr.set_pss(n, s1.thisptr, s2.thisptr)
+        elif n == 3:
+            s1, s2, s3 = args
+            self.thisptr.set_pss(n, s1.thisptr, s2.thisptr, s3.thisptr)
+        elif n == 4:
+            s1, s2, s3, s4 = args
+            self.thisptr.set_pss(n, s1.thisptr, s2.thisptr, s3.thisptr,
+                    s4.thisptr)
         else:
             raise NotImplementedError()
 

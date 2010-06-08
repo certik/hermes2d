@@ -107,6 +107,7 @@ cdef extern from "hermes2d.h":
         unsigned ref
         unsigned type
         unsigned bnd
+        unsigned marker
         unsigned used
         double x, y
 
@@ -235,6 +236,7 @@ cdef extern from "hermes2d.h":
     cdef struct c_Solution "Solution":
         void set_zero(c_Mesh *m)
         void set_const(c_Mesh *m, scalar c)
+        void copy(c_Solution *s)
         void set_fe_solution(c_H1Space *s, c_PrecalcShapeset *pss, scalar *vec)
         void get_fe_solution(int *Ylen, scalar **Y)
     c_Solution *new_Solution "new Solution" ()
@@ -517,3 +519,5 @@ cdef class H1Adapt(Adapt):
 cdef class L2Adapt(Adapt):
     pass
 
+cdef class Mesh:
+    cdef c_Mesh *thisptr
