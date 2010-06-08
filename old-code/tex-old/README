@@ -1,6 +1,0 @@
-To compile the tutorial, you need the following:
-
-  * pdfLaTeX
-  * Inkscape (for SVG -> EPS conversion)
-  * Bakoma fonts (TTF versions of Computer Modern - used by some SVG figures)
-
