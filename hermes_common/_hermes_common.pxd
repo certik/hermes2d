@@ -125,5 +125,6 @@ cdef extern from "matrix.h":
 
 cdef api object c2numpy_int(int *A, int len)
 cdef api object c2numpy_double(double *A, int len)
+cdef api void numpy2c_double_inplace(object A_n, double **A_c, int *n)
 
 cdef inline PY_NEW(T)
