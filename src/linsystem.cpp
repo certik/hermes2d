@@ -590,15 +590,20 @@ void LinSystem::assemble(bool rhsonly)
       // assemble surface integrals now: loop through boundary edges of the element
       for (unsigned int edge = 0; edge < e0->nvert; edge++)
       {
-        if (!bnd[edge]) continue;
+          // we now determine this for each weakform, so we comment this out
+          // for now:
+        //if (!bnd[edge]) continue;
         marker = ep[edge].marker;
+
+
 
         // obtain the list of shape functions which are nonzero on this edge
         for (unsigned int i = 0; i < s->idx.size(); i++) {
           if (e[i] == NULL) continue;
           int j = s->idx[i];
-          if ((nat[j] = (spaces[j]->bc_type_callback(marker) == BC_NATURAL)))
-            spaces[j]->get_edge_assembly_list(e[i], edge, &al[j]);
+          //nat[j] = (spaces[j]->bc_type_callback(marker) == BC_NATURAL);
+          //if (nat[j])
+          spaces[j]->get_edge_assembly_list(e[i], edge, &al[j]);
         }
 
         // assemble surface bilinear forms ///////////////////////////////////
@@ -606,11 +611,30 @@ void LinSystem::assemble(bool rhsonly)
         {
           WeakForm::BiFormSurf* bfs = s->bfsurf[ww];
           if (isempty[bfs->i] || isempty[bfs->j]) continue;
-          if (bfs->area != H2D_ANY && !wf->is_in_area(marker, bfs->area)) continue;
+          // now we determine whether to call the form depending on the "area"
+          // and the BC "marker" parameters:
+          int call_form = 0;
+          if (bfs->area == H2D_ANY_EDGE) {
+              // call the form on all element edges (both boundary and interior)
+              call_form = 1;
+          } else if (bnd[edge]) {
+              if (bfs->area == H2D_ANY_BOUNDARY) {
+                  // call the form on all domain boundary edges only
+                  call_form = 1;
+              } else if (wf->is_in_area(marker, bfs->area)) {
+                  // call the form on the domain boundary edges with the
+                  // correct marker only
+                  call_form = 1;
+              }
+          }
+          if (!call_form) continue;
+
+          // old conditions:
+          //if (bfs->area != H2D_ANY && !wf->is_in_area(marker, bfs->area)) continue;
           m = bfs->i;  fv = spss[m];  am = &al[m];
           n = bfs->j;  fu = pss[n];   an = &al[n];
 
-          if (!nat[m] || !nat[n]) continue;
+          //if (!nat[m] || !nat[n]) continue;
           ep[edge].base = trav.get_base();
           ep[edge].space_v = spaces[m];
           ep[edge].space_u = spaces[n];
@@ -635,10 +659,26 @@ void LinSystem::assemble(bool rhsonly)
         {
           WeakForm::LiFormSurf* lfs = s->lfsurf[ww];
           if (isempty[lfs->i]) continue;
-          if (lfs->area != H2D_ANY && !wf->is_in_area(marker, lfs->area)) continue;
+          // now we determine whether to call the form depending on the "area"
+          // and the BC "marker" parameters:
+          int call_form = 0;
+          if (lfs->area == H2D_ANY_EDGE) {
+              // call the form on all element edges (both boundary and interior)
+              call_form = 1;
+          } else if (bnd[edge]) {
+              if (lfs->area == H2D_ANY_BOUNDARY) {
+                  // call the form on all domain boundary edges only
+                  call_form = 1;
+              } else if (wf->is_in_area(marker, lfs->area)) {
+                  // call the form on the domain boundary edges with the
+                  // correct marker only
+                  call_form = 1;
+              }
+          }
+          if (!call_form) continue;
           m = lfs->i;  fv = spss[m];  am = &al[m];
 
-          if (!nat[m]) continue;
+          //if (!nat[m]) continue;
           ep[edge].base = trav.get_base();
           ep[edge].space_v = spaces[m];
 
@@ -895,6 +935,44 @@ scalar LinSystem::eval_form(WeakForm::LiFormSurf *lf, PrecalcShapeset *fv, RefMa
   // function values and values of external functions
   Func<double>* v = get_fn(fv, rv, eo);
   ExtData<scalar>* ext = init_ext_fns(lf->ext, rv, eo);
+  Func<scalar>** ext_fn2 = new Func<scalar>*[lf->ext.size()];
+  for (int i = 0; i < lf->ext.size(); i++) {
+      // This is the element, that we are currently assembling in the main
+      // assembly loop
+      Element *e_central = rv->get_active_element();
+      // this is the "other" element, that we want to calculate the flux over
+      Element *e_neigh = e_central->get_neighbor(ep->edge);
+      if (e_neigh != NULL) {
+          // Obtain the i-th solution from the ExtData
+          MeshFunction *m = (lf->ext[i]);
+          Solution *sln = dynamic_cast<Solution*>(m);
+
+          // Obtain the corresponding edge number from the neighboring element
+          Node *en = e_central->en[ep->edge];
+          int edge_neigh = -1;
+          for (int j=0; j < e_neigh->nvert; j++)
+              if (e_neigh->en[j] == en) edge_neigh = j;
+          assert(edge_neigh != -1);
+
+          // initialize the quadrature rules
+          Quad2D* quad = fv->get_quad_2d();
+          int eo_neigh = quad->get_edge_points(edge_neigh);
+          // obtain the solution values at the edge
+          sln->set_active_element(e_neigh);
+          sln->set_quad_order(eo_neigh);
+          double *fn_neigh = sln->get_fn_values();
+          // assign those values into ext_fn2[i]
+          int np = quad->get_num_points(eo_neigh);
+          int nc = fv->get_num_components();
+          Func<scalar>* u = new Func<scalar>(np, nc);
+          u->val = new scalar[np];
+          for (int k=0; k < np; k++)
+              u->val[k] = fn_neigh[k];
+          ext_fn2[i] = u;
+      }
+  }
+  ext->nf2 = lf->ext.size();
+  ext->fn2 = ext_fn2;
 
   scalar res = lf->fn(np, jwt, v, e, ext);
 

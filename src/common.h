@@ -70,7 +70,13 @@ enum ElementMode { // element modes
   H2D_MODE_QUAD = 1
 };
 
+// DEPRECATED:
+// TODO: go over all hermes and rename ANY to ANY_BOUNDARY
 const int H2D_ANY = -1234;
+// call the form on all element edges (both boundary and interior)
+const int H2D_ANY_EDGE = -12345;
+// call the form on all domain boundary edges only
+const int H2D_ANY_BOUNDARY = -1234;
 
 // how many bits the order number takes
 const int H2D_ORDER_BITS = 5;
