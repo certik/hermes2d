@@ -30,14 +30,19 @@ class WeakForm;
 class Solver;
 
 // Default H2D projection norm in H1 norm.
-extern int H2D_DEFAULT_PROJ_NORM; 
+extern int H2D_DEFAULT_PROJ_NORM;
 
 /// Instantiated template. It is used to create a clean Windows DLL interface.
-H2D_API_USED_TEMPLATE(Tuple<int>); 
-H2D_API_USED_TEMPLATE(Tuple<Space*>); 
-H2D_API_USED_TEMPLATE(Tuple<MeshFunction*>); 
-H2D_API_USED_TEMPLATE(Tuple<Solution*>); 
-H2D_API_USED_TEMPLATE(Tuple<PrecalcShapeset*>); 
+H2D_API_USED_TEMPLATE(Tuple<int>);
+H2D_API_USED_TEMPLATE(Tuple<Space*>);
+H2D_API_USED_TEMPLATE(Tuple<MeshFunction*>);
+H2D_API_USED_TEMPLATE(Tuple<Solution*>);
+H2D_API_USED_TEMPLATE(Tuple<PrecalcShapeset*>);
+
+/// For projection, the user may provide bi/linear forms for each solution component stored
+/// in tuples of following types
+typedef Tuple< std::pair<WeakForm::biform_val_t, WeakForm::biform_ord_t> > biforms_tuple_t;
+typedef Tuple< std::pair<WeakForm::liform_val_t, WeakForm::liform_ord_t> > liforms_tuple_t;
 
 ///
 ///
@@ -63,7 +68,7 @@ public:
   void init_spaces(Tuple<Space*> spaces);
   void init_space(Space* s);         // single equation case
   void set_spaces(Tuple<Space*> spaces);
-  void set_pss(Tuple<PrecalcShapeset*> pss); 
+  void set_pss(Tuple<PrecalcShapeset*> pss);
   void set_pss(PrecalcShapeset* p);  // single equation case
   void copy(LinSystem* sys);
   Space* get_space(int n) {
@@ -78,35 +83,35 @@ public:
       if (n < 0 || n >= this->wf->neq) error("Bad index of precalc shapeset.");
       return this->pss[n];
   }
-  
+
   /// Helps to determine if linear or nonlinear class instance is used
   /// similar to Java instance of functionality
   virtual bool is_linear() { return true; }
 
-  /// Assembles the stiffness matrix and load vector. Vectors Vec, Dir and 
+  /// Assembles the stiffness matrix and load vector. Vectors Vec, Dir and
   /// RHS must be allocated when assemble() is called.
   virtual void assemble(bool rhsonly = false);
   void assemble_rhs_only() { assemble(true); }
 
-  /// Solves the matrix problem and propagates the resulting coefficient vector into 
+  /// Solves the matrix problem and propagates the resulting coefficient vector into
   /// one or more Solutions. The solution class does not contain the original solution
-  /// vector. Instead it contains a new coefficient vector that corresponds to a monomial 
-  /// In this way, Solution does not require a copy of Space. In other words, Solution 
-  /// contains the last copy of the vector Vec even after this vector is freed in consequent 
-  /// computation. This is used in algorithms that require previous solutions, such as 
+  /// vector. Instead it contains a new coefficient vector that corresponds to a monomial
+  /// In this way, Solution does not require a copy of Space. In other words, Solution
+  /// contains the last copy of the vector Vec even after this vector is freed in consequent
+  /// computation. This is used in algorithms that require previous solutions, such as
   /// the Newton's method, time stepping, etc.
   bool solve(Tuple<Solution*> sln);
   bool solve(Solution* sln); // single equation case
   bool solve(Solution* sln1, Solution* sln2); // two equations case
   bool solve(Solution* sln1, Solution* sln2, Solution* sln3); // three equations case
 
-  /// Frees the stiffness matrix. 
+  /// Frees the stiffness matrix.
   virtual void free_matrix();
 
   /// Frees the stiffness matrix, coefficient vectors, and matrix solver data.
   virtual void free();
 
-  /// Saves the stiffness matrix in various formats. 
+  /// Saves the stiffness matrix in various formats.
   void save_matrix_matlab(const char* filename, const char* varname = "A");
   void save_rhs_matlab(const char* filename, const char* varname = "b");
   void save_matrix_bin(const char* filename);
@@ -124,26 +129,26 @@ public:
   int get_matrix_size();
   void get_matrix(int*& Ap, int*& Ai, scalar*& Ax, int& size);
   void get_rhs(scalar*& RHS, int& size) { RHS = this->RHS; size=this->get_num_dofs(); }
-  void get_solution_vector(scalar*& sln_vector, int& sln_vector_len) 
+  void get_solution_vector(scalar*& sln_vector, int& sln_vector_len)
        { sln_vector = Vec; sln_vector_len = this->get_num_dofs(); }
 
   /// Returns a copy of the solution vector.
-  void get_solution_vector(std::vector<scalar>& sln_vector_out); 
+  void get_solution_vector(std::vector<scalar>& sln_vector_out);
 
-  /// Allocate vectors Vec, RHS and Dir of length this->ndof. All vectors 
-  /// must be NULL at input, to make sure that the user is not losing 
-  /// information stored in these vectors. 
+  /// Allocate vectors Vec, RHS and Dir of length this->ndof. All vectors
+  /// must be NULL at input, to make sure that the user is not losing
+  /// information stored in these vectors.
   void alloc_and_zero_vectors();
 
   /// Reallocates vectors Vec, RHS and Dir according to a new this->ndof.
   void realloc_and_zero_vectors();
 
-  /// Frees vectors Vec, RHS and Dir and sets them to NULL. This should 
-  /// be used very carefully since the vector Vec stores the actual solution 
+  /// Frees vectors Vec, RHS and Dir and sets them to NULL. This should
+  /// be used very carefully since the vector Vec stores the actual solution
   /// coefficients. Typicaly this needs to be done after the space changes
-  /// and thus the vector Vec loses its meaning. Before freeing it, however, 
-  /// the information contained in it should be recycled, for example via 
-  /// a projection onto the new space. 
+  /// and thus the vector Vec loses its meaning. Before freeing it, however,
+  /// the information contained in it should be recycled, for example via
+  /// a projection onto the new space.
   void free_vectors();
 
   /*
@@ -154,23 +159,38 @@ public:
   /// Assigning DOF = enumerating basis functions in the FE spaces.
   int assign_dofs();  // all spaces
 
-  /// Global orthogonal projection of multiple solution components. For each of 
-  /// them a different proj_norm can be used. This defines the entire coefficient 
+  /// Global orthogonal projection of multiple solution components. For each of
+  /// them a different proj_norm can be used. This defines the entire coefficient
   /// vector Vec. Calls assign_dofs() at the beginning.
   void project_global(Tuple<MeshFunction*> source, Tuple<Solution*> target, Tuple<int> proj_norms = Tuple<int>());
+
+  /// The same as above, but the user may specify the forms that are used in the projection
+  /// (useful e.g. when working in curvilinear coordinate systems).
+  void project_global(Tuple<MeshFunction*> source, Tuple<Solution*> target, biforms_tuple_t proj_biforms, liforms_tuple_t proj_liforms);
 
   /// Global orthogonal projection of one MeshFunction.
   void project_global(MeshFunction* source, Solution* target, int proj_norm = H2D_DEFAULT_PROJ_NORM)
   {
-    if (this->wf->neq != 1) 
+    if (this->wf->neq != 1)
       error("Number of projected functions must be one if there is only one equation, in LinSystem::project_global().");
     this->project_global(Tuple<MeshFunction*>(source), Tuple<Solution*>(target), Tuple<int>(proj_norm));
   };
 
+  /// Global orthogonal projection of one MeshFunction -- user specified projection bi/linear forms.
+  void project_global(MeshFunction* source, Solution* target,
+                  std::pair<WeakForm::biform_val_t, WeakForm::biform_ord_t> proj_biform,
+                  std::pair<WeakForm::liform_val_t, WeakForm::liform_ord_t> proj_liform)
+  {
+    if (this->wf->neq != 1)
+      error("Number of projected functions must be one if there is only one equation, in LinSystem::project_global().");
+    this->project_global(Tuple<MeshFunction*>(source), Tuple<Solution*>(target), biforms_tuple_t(proj_biform), liforms_tuple_t(proj_liform));
+  };
+
+
   /// Global orthogonal projection of one scalar ExactFunction.
   void project_global(ExactFunction source, Solution* target, int proj_norm = H2D_DEFAULT_PROJ_NORM)
   {
-    if (this->wf->neq != 1) 
+    if (this->wf->neq != 1)
       error("Number of projected functions must be one if there is only one equation, in LinSystem::project_global().");
     if (proj_norm != 0 && proj_norm != 1) error("Wrong norm used in orthogonal projection (scalar case).");
     Mesh *mesh = this->get_mesh(0);
@@ -180,10 +200,25 @@ public:
     this->project_global(Tuple<MeshFunction*>(&sln), Tuple<Solution*>(target), Tuple<int>(proj_norm));
   };
 
+  /// Global orthogonal projection of one scalar ExactFunction -- user specified projection bi/linear forms.
+  void project_global(ExactFunction source, Solution* target,
+                  std::pair<WeakForm::biform_val_t, WeakForm::biform_ord_t> proj_biform,
+                  std::pair<WeakForm::liform_val_t, WeakForm::liform_ord_t> proj_liform)
+  {
+    if (this->wf->neq != 1)
+      error("Number of projected functions must be one if there is only one equation, in LinSystem::project_global().");
+    // todo: check that supplied forms take scalar valued functions
+    Mesh *mesh = this->get_mesh(0);
+    if (mesh == NULL) error("Mesh is NULL in project_global().");
+    Solution sln;
+    sln.set_exact(mesh, source);
+    this->project_global(Tuple<MeshFunction*>(&sln), Tuple<Solution*>(target), biforms_tuple_t(proj_biform), liforms_tuple_t(proj_liform));
+  };
+
   /// Global orthogonal projection of one vector-valued ExactFunction.
   void project_global(ExactFunction2 source, Solution* target)
   {
-    if (this->wf->neq != 1) 
+    if (this->wf->neq != 1)
       error("Number of projected functions must be one if there is only one equation, in LinSystem::project_global().");
     int proj_norm = 2; // Hcurl
     Mesh *mesh = this->get_mesh(0);
@@ -193,9 +228,9 @@ public:
     this->project_global(Tuple<MeshFunction*>(&sln), Tuple<Solution*>(target), Tuple<int>(proj_norm));
   };
 
-  /// Projection-based interpolation of an exact function. This is faster than the 
-  /// global projection since no global matrix problem is solved. 
-  void project_local(ExactFunction exactfn, Mesh* mesh, 
+  /// Projection-based interpolation of an exact function. This is faster than the
+  /// global projection since no global matrix problem is solved.
+  void project_local(ExactFunction exactfn, Mesh* mesh,
                      Solution* result, int proj_norm = H2D_DEFAULT_PROJ_NORM)
   {
     /// TODO

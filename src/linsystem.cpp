@@ -27,13 +27,13 @@
 #include <algorithm>
 #include "python_solvers.h"
 
-int H2D_DEFAULT_PROJ_NORM = 1; 
+int H2D_DEFAULT_PROJ_NORM = 1;
 
 void qsort_int(int* pbase, size_t total_elems); // defined in qsort.cpp
 
 //// interface /////////////////////////////////////////////////////////////////////////////////////
 
-void LinSystem::init_lin(WeakForm* wf_, Solver* solver_) 
+void LinSystem::init_lin(WeakForm* wf_, Solver* solver_)
 {
   if (wf_ == NULL) error("LinSystem: a weak form must be given.");
   this->wf = wf_;
@@ -42,7 +42,7 @@ void LinSystem::init_lin(WeakForm* wf_, Solver* solver_)
   this->wf_seq = -1;
 
   this->RHS = this->Dir = this->Vec = NULL;
-  this->RHS_length = this->Dir_length = this->Vec_length = 0; 
+  this->RHS_length = this->Dir_length = this->Vec_length = 0;
   this->A = NULL;
   this->mat_sym = false;
 
@@ -55,7 +55,7 @@ void LinSystem::init_lin(WeakForm* wf_, Solver* solver_)
   this->want_dir_contrib = true;
 }
 
-// this is needed because of a constructor in NonlinSystem 
+// this is needed because of a constructor in NonlinSystem
 LinSystem::LinSystem() {}
 
 LinSystem::LinSystem(WeakForm* wf_, Solver* solver_)
@@ -74,7 +74,7 @@ LinSystem::LinSystem(WeakForm* wf_, Solver* solver_, Tuple<Space*> sp)
   int n = sp.size();
   if (wf_ == NULL) warn("Weak form is NULL.");
   if (wf_ != NULL) {
-    if (n != wf_->neq) 
+    if (n != wf_->neq)
       error("Number of spaces does not match number of equations in LinSystem::LinSystem().");
   }
   this->init_lin(wf_, solver_);
@@ -94,7 +94,7 @@ LinSystem::LinSystem(WeakForm* wf_, Solver* solver_, Space* s_)
 {
   if (wf_ == NULL) warn("Weak form is NULL.");
   if (wf_ != NULL) {
-    if (wf_->neq != 1) 
+    if (wf_->neq != 1)
       error("Number of spaces does not match number of equations in LinSystem::LinSystem().");
   }
   this->init_lin(wf_, solver_);
@@ -115,7 +115,7 @@ LinSystem::LinSystem(WeakForm* wf_, Solver* solver_, Space* space1_, Space* spac
   int n = 2;
   if (wf_ == NULL) warn("Weak form is NULL.");
   if (wf_ != NULL) {
-    if (n != wf_->neq) 
+    if (n != wf_->neq)
       error("Number of spaces does not match number of equations in LinSystem::LinSystem().");
   }
   this->init_lin(wf_, solver_);
@@ -125,8 +125,8 @@ LinSystem::LinSystem(WeakForm* wf_, Solver* solver_, Space* space1_, Space* spac
 
 LinSystem::~LinSystem()
 {
-  /* FIXME - this should be uncommented but then it gives double-free 
-             segfaults in adaptive examples. 
+  /* FIXME - this should be uncommented but then it gives double-free
+             segfaults in adaptive examples.
   free();
   if (this->sp_seq != NULL) delete [] this->sp_seq;
   if (this->pss != NULL) delete [] this->pss;
@@ -155,21 +155,21 @@ void LinSystem::free_spaces()
     delete this->spaces;
     this->spaces = NULL;
   }
-} 
+}
 
 // Should not be called by the user.
 void LinSystem::init_spaces(Tuple<Space*> sp)
 {
   int n = sp.size();
-  if (n != this->wf->neq) 
-    error("Number of spaces does not match number of equations in LinSystem::init_spaces().");  
+  if (n != this->wf->neq)
+    error("Number of spaces does not match number of equations in LinSystem::init_spaces().");
 
   // initialize spaces
   this->spaces = new Space*[this->wf->neq];
   for (int i = 0; i < this->wf->neq; i++) this->spaces[i] = sp[i];
   this->sp_seq = new int[this->wf->neq];
   memset(sp_seq, -1, sizeof(int) * this->wf->neq);
-  this->assign_dofs(); // Create global enumeration of DOF in all spacesin the system. NOTE: this 
+  this->assign_dofs(); // Create global enumeration of DOF in all spacesin the system. NOTE: this
                        // overwrites possible existing local enumeration of DOF in the spaces
   this->have_spaces = true;
 
@@ -184,13 +184,13 @@ void LinSystem::init_spaces(Tuple<Space*> sp)
     if (p == NULL) error("New PrecalcShapeset could not be allocated in LinSystem::init_spaces().");
     this-> pss[i] = p;
     this->num_user_pss++;
-  }  
+  }
 }
 
 // Should not be called by the user.
 void LinSystem::init_space(Space* s)
 {
-  if (this->wf->neq != 1) 
+  if (this->wf->neq != 1)
     error("Do not call init_space() for PDE systems, call init_spaces() instead.");
   this->init_spaces(Tuple<Space*>(s));
 }
@@ -205,7 +205,7 @@ void LinSystem::set_pss(Tuple<PrecalcShapeset*> pss)
 {
   warn("Call to deprecated function LinSystem::set_pss().");
   int n = pss.size();
-  if (n != this->wf->neq) 
+  if (n != this->wf->neq)
     error("The number of precalculated shapesets must match the number of equations.");
 
   for (int i = 0; i < n; i++) this->pss[i] = pss[i];
@@ -222,34 +222,34 @@ void LinSystem::copy(LinSystem* sys)
   error("Not implemented yet.");
 }
 
-void LinSystem::free_vectors() 
+void LinSystem::free_vectors()
 {
   if (this->Vec != NULL || this->RHS != NULL || this->Dir != NULL)
     //printf("debug: freeing vectors Vec, RHS, Dir for lengths   %d\n", this->Vec_length);
 
   if (this->RHS != NULL) {
-    delete [] this->RHS; 
+    delete [] this->RHS;
     this->RHS = NULL;
     this->RHS_length = 0;
-  } 
+  }
   if (this->Dir != NULL) {
-    delete [] this->Dir; 
+    delete [] this->Dir;
     this->Dir = NULL;
     this->Dir_length = 0;
-  } 
+  }
   if (this->Vec != NULL) {
-    delete [] this->Vec; 
+    delete [] this->Vec;
     this->Vec = NULL;
     this->Vec_length = 0;
-  } 
+  }
 }
 
-void LinSystem::alloc_and_zero_vectors() 
+void LinSystem::alloc_and_zero_vectors()
 {
   int ndof = this->get_num_dofs();
   //printf("debug: allocating vectors Vec, RHS, Dir for ndof   %d\n", ndof);
 
-  if (this->RHS != NULL || this->Dir != NULL || this->Vec != NULL) 
+  if (this->RHS != NULL || this->Dir != NULL || this->Vec != NULL)
     error("All vectors must be NULL in alloc_and_zero_vectors() to prevent loss of information.");
 
   this->Vec = new scalar[ndof];
@@ -268,7 +268,7 @@ void LinSystem::alloc_and_zero_vectors()
   this->Dir_length = ndof;
 }
 
-void LinSystem::realloc_and_zero_vectors() 
+void LinSystem::realloc_and_zero_vectors()
 {
   int ndof = this->get_num_dofs();
   //printf("debug: reallocating vectors Vec, RHS, Dir length   %d -> %d\n", this->Vec_length, ndof);
@@ -319,9 +319,9 @@ void LinSystem::create_matrix(bool rhsonly)
   bool up_to_date = true;
   for (int i = 0; i < this->wf->neq; i++) {
     if (this->spaces[i] ==  NULL) error("this->spaces[%d] is NULL in LinSystem::get_num_dofs().", i);
-    if (this->spaces[i]->get_seq() != this->sp_seq[i]) { 
-      up_to_date = false; 
-      break; 
+    if (this->spaces[i]->get_seq() != this->sp_seq[i]) {
+      up_to_date = false;
+      break;
     }
   }
   if (this->wf->get_seq() != this->wf_seq) up_to_date = false;
@@ -402,10 +402,10 @@ void LinSystem::assemble(bool rhsonly)
   if (this->wf == NULL) error("this->wf = NULL in LinSystem::assemble().");
   if (this->spaces == NULL) error("this->spaces = NULL in LinSystem::assemble().");
   int n = this->wf->neq;
-  for (int i=0; i<n; i++) if (this->spaces[i] == NULL) 
+  for (int i=0; i<n; i++) if (this->spaces[i] == NULL)
 			    error("this->spaces[%d] is NULL in LinSystem::assemble().", i);
-  
-  // enumerate DOF to get new length of the vectors Vec, RHS and Dir, 
+
+  // enumerate DOF to get new length of the vectors Vec, RHS and Dir,
   // and realloc these vectors if needed
   this->assign_dofs();
   int ndof = this->get_num_dofs();
@@ -811,7 +811,7 @@ scalar LinSystem::eval_form(WeakForm::LiFormVol *lf, PrecalcShapeset *fv, RefMap
   Func<double>* v = get_fn(fv, rv, order);
   ExtData<scalar>* ext = init_ext_fns(lf->ext, rv, order);
 
-  scalar res = lf->evaluate_fn(np, jwt, v, e, ext, rv->get_active_element(), 
+  scalar res = lf->evaluate_fn(np, jwt, v, e, ext, rv->get_active_element(),
                fv->get_shapeset(), fv->get_active_shape());
 
   ext->free(); delete ext;
@@ -899,7 +899,7 @@ bool LinSystem::solve(Tuple<Solution*> sln)
   int n = sln.size();
 
   // if the number of solutions does not match the number of equations, throw error
-  if (n != this->wf->neq) 
+  if (n != this->wf->neq)
     error("Number of solutions does not match the number of equations in LinSystem::solve().");
 
   // if no matrix solver defined, throw error
@@ -915,7 +915,7 @@ bool LinSystem::solve(Tuple<Solution*> sln)
 
   // check matrix size
   if (ndof == 0) error("ndof = 0 in LinSystem::solve().");
-  if (ndof != this->A->get_size()) 
+  if (ndof != this->A->get_size())
     error("Matrix size does not match vector length in LinSystem:solve().");
 
   // time measurement
@@ -1080,14 +1080,14 @@ Scalar Hcurlprojection_liform(int n, double *wt, Func<Real> *v, Geom<Real> *e, E
   return result;
 }
 
-int LinSystem::assign_dofs() 
-{ 
+int LinSystem::assign_dofs()
+{
   // sanity checks
-  if (this->wf == NULL) error("this->wf = NULL in LinSystem::assign_dofs().");  
+  if (this->wf == NULL) error("this->wf = NULL in LinSystem::assign_dofs().");
 
   // assigning dofs to each space
   if (this->spaces == NULL) error("this->spaces is NULL in LinSystem::assign_dofs().");
-  int ndof = 0;  
+  int ndof = 0;
   for (int i = 0; i < this->wf->neq; i++) {
     if (this->spaces[i] == NULL) error("this->spaces[%d] is NULL in assign_dofs().", i);
     int inc = this->spaces[i]->assign_dofs(ndof);
@@ -1097,31 +1097,31 @@ int LinSystem::assign_dofs()
   return ndof;
 }
 
-// global orthogonal projection 
+// global orthogonal projection
 void LinSystem::project_global(Tuple<MeshFunction*> source, Tuple<Solution*> target, Tuple<int>proj_norms)
 {
   // sanity checks
   int n = source.size();
   if (this->spaces == NULL) error("this->spaces == NULL in LinSystem::project_global().");
-  for (int i=0; i<n; i++) if(this->spaces[i] == NULL) 
+  for (int i=0; i<n; i++) if(this->spaces[i] == NULL)
 			    error("this->spaces[%d] == NULL in LinSystem::project_global().", i);
-  if (n != target.size()) 
+  if (n != target.size())
     error("Mismatched numbers of projected functions and solutions in LinSystem::project_global().");
-  if (n > 10) 
+  if (n > 10)
     error("Wrong number of projected functions in LinSystem::project_global().");
   if (proj_norms != Tuple<int>()) {
-    if (n != proj_norms.size()) 
+    if (n != proj_norms.size())
       error("Mismatched numbers of projected functions and projection norms in LinSystem::project_global().");
   }
   if (wf != NULL) {
     if (n != wf->neq)
-      error("Wrong number of functions in project_global_n().");
+      error("Wrong number of functions in LinSystem::project_global().");
   }
   if (!have_spaces)
-    error("You have to init_spaces() before using project_global_.");
+    error("You have to init_spaces() before using LinSystem::project_global().");
 
-  // this is needed since spaces may have their DOFs enumerated only locally 
-  // when they come here. 
+  // this is needed since spaces may have their DOFs enumerated only locally
+  // when they come here.
   this->assign_dofs();
 
   // back up original weak form
@@ -1134,31 +1134,31 @@ void LinSystem::project_global(Tuple<MeshFunction*> source, Tuple<Solution*> tar
   for (int i = 0; i < 100; i++) found[i] = 0;
   for (int i = 0; i < n; i++) {
     int norm;
-    if (proj_norms == Tuple<int>()) norm = 1; 
+    if (proj_norms == Tuple<int>()) norm = 1;
     else norm = proj_norms[i];
     if (norm == 0) {
       found[i] = 1;
       wf->add_matrix_form(i, i, L2projection_biform<double, scalar>, L2projection_biform<Ord, Ord>);
-      wf->add_vector_form(i, L2projection_liform<double, scalar>, L2projection_liform<Ord, Ord>, 
+      wf->add_vector_form(i, L2projection_liform<double, scalar>, L2projection_liform<Ord, Ord>,
                      H2D_ANY, source[i]);
     }
     if (norm == 1) {
       found[i] = 1;
       wf->add_matrix_form(i, i, H1projection_biform<double, scalar>, H1projection_biform<Ord, Ord>);
-      wf->add_vector_form(i, H1projection_liform<double, scalar>, H1projection_liform<Ord, Ord>, 
+      wf->add_vector_form(i, H1projection_liform<double, scalar>, H1projection_liform<Ord, Ord>,
                      H2D_ANY, source[i]);
     }
     if (norm == 2) {
       found[i] = 1;
       wf->add_matrix_form(i, i, Hcurlprojection_biform<double, scalar>, Hcurlprojection_biform<Ord, Ord>);
-      wf->add_vector_form(i, Hcurlprojection_liform<double, scalar>, Hcurlprojection_liform<Ord, Ord>, 
+      wf->add_vector_form(i, Hcurlprojection_liform<double, scalar>, Hcurlprojection_liform<Ord, Ord>,
                      H2D_ANY, source[i]);
     }
   }
   for (int i=0; i < n; i++) {
     if (found[i] == 0) {
       printf("index of component: %d\n", i);
-      error("Wrong projection norm in project_global_n().");
+      error("Wrong projection norm in LinSystem::project_global().");
     }
   }
 
@@ -1167,7 +1167,70 @@ void LinSystem::project_global(Tuple<MeshFunction*> source, Tuple<Solution*> tar
   LinSystem::solve(target);
   want_dir_contrib = false;
 
-  // restoring original wesk form
+  // restoring original weak form
+  wf = wf_orig;
+  wf_seq = -1;
+}
+
+void LinSystem::project_global( Tuple<MeshFunction*> source, Tuple<Solution*> target,
+                                biforms_tuple_t proj_biforms, liforms_tuple_t proj_liforms )
+{
+  // sanity checks
+  int n = source.size();
+  if (this->spaces == NULL) error("this->spaces == NULL in LinSystem::project_global().");
+  for (int i=0; i<n; i++) if(this->spaces[i] == NULL)
+			    error("this->spaces[%d] == NULL in LinSystem::project_global().", i);
+  if (n != target.size())
+    error("Mismatched numbers of projected functions and solutions in LinSystem::project_global().");
+  if (n > 10)
+    error("Wrong number of projected functions in LinSystem::project_global().");
+
+  biforms_tuple_t::size_type n_biforms = proj_biforms.size();
+  if (n_biforms != proj_liforms.size())
+    error("Mismatched numbers of projection forms in LinSystem::project_global().");
+  if (n_biforms > 0) {
+    if (n != n_biforms)
+      error("Mismatched numbers of projected functions and projection forms in LinSystem::project_global().");
+  }
+  else
+    warn("LinSystem::project_global() expected %d user defined biform(s) & liform(s); ordinary H1 projection will be performed", n);
+
+  if (wf != NULL) {
+    if (n != wf->neq)
+      error("Wrong number of functions in LinSystem::project_global().");
+  }
+  if (!have_spaces)
+    error("You have to init_spaces() before using LinSystem::project_global().");
+
+  // this is needed since spaces may have their DOFs enumerated only locally
+  // when they come here.
+  this->assign_dofs();
+
+  // back up original weak form
+  WeakForm* wf_orig = wf;
+
+  // define temporary projection weak form
+  WeakForm wf_proj(n);
+  wf = &wf_proj;
+  for (int i = 0; i < n; i++) {
+    if (n_biforms == 0) {
+      wf->add_matrix_form(i, i, H1projection_biform<double, scalar>, H1projection_biform<Ord, Ord>);
+      wf->add_vector_form(i, H1projection_liform<double, scalar>, H1projection_liform<Ord, Ord>,
+                     H2D_ANY, source[i]);
+    }
+    else {
+      wf->add_matrix_form(i, i, proj_biforms[i].first, proj_biforms[i].second);
+      wf->add_vector_form(i, proj_liforms[i].first, proj_liforms[i].second,
+                     H2D_ANY, source[i]);
+    }
+  }
+
+  want_dir_contrib = true;
+  LinSystem::assemble();
+  LinSystem::solve(target);
+  want_dir_contrib = false;
+
+  // restoring original weak form
   wf = wf_orig;
   wf_seq = -1;
 }
