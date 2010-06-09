@@ -1,5 +1,6 @@
 add_subdirectory(quadrature)
 add_subdirectory(bubbles)
+add_subdirectory(timer)
 add_subdirectory(mesh)
 add_subdirectory(tutorial)
 add_subdirectory(benchmarks)
