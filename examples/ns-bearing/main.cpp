@@ -38,7 +38,7 @@
                                      // pressure approximation). Otherwise the standard continuous
                                      // elements are used. The results are striking - check the
                                      // tutorial for comparisons.
-const int INIT_REF_NUM = 3;          // Number of initial uniform mesh refinements. 
+const int INIT_REF_NUM = 2;          // Number of initial uniform mesh refinements. 
 const int INIT_BDY_REF_NUM = 2;      // Number of initial mesh refinements towards boundary. 
 const bool NEWTON = true;            // If NEWTON == true then the Newton's iteration is performed.
                                      // in every time step. Otherwise the convective term is linearized
@@ -114,7 +114,7 @@ int main(int argc, char* argv[])
 
   // Initial mesh refinements.
   for (int i=0; i < INIT_REF_NUM; i++) mesh.refine_all_elements();
-  mesh.refine_towards_boundary(bdy_inner, INIT_BDY_REF_NUM, true); // '2' is the number of levels,
+  mesh.refine_towards_boundary(bdy_inner, INIT_BDY_REF_NUM, false); // '2' is the number of levels,
   //mesh.refine_towards_boundary(bdy_outer, INIT_BDY_REF_NUM, true); // 'true' stands for anisotropic refinements.
 
   // Initialize shapeset.
