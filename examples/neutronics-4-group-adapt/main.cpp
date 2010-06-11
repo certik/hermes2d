@@ -25,7 +25,7 @@ using namespace RefinementSelectors;
 // BC:
 //
 // homogeneous neumann on symmetry axis
-// d \phi_g / d n = - 0.5 \phi_g   elsewhere
+// d D_g\phi_g / d n = - 0.5 \phi_g   elsewhere
 //
 // The eigenproblem is numerically solved using common technique known as the power method (power iterations):
 //
@@ -44,7 +44,7 @@ using namespace RefinementSelectors;
 //
 //  The following parameters can be changed:
 
-#include "h1_adapt_norm_maxim.h"
+#include "h1_adapt_custom_norm.h"
 
 const bool SOLVE_ON_COARSE_MESH = false; // If true, coarse mesh FE problem is solved in every adaptivity step.
                                          // If false, projection of the fine mesh solution on the coarse mesh is used. 
@@ -77,14 +77,13 @@ const double ERR_STOP = 0.01;            // Stopping criterion for adaptivity (r
                                          // fine mesh and coarse mesh solution in percent).
 const int NDOF_STOP = 60000;             // Adaptivity process stops when the number of degrees of freedom grows over
                                          // this limit. This is mainly to prevent h-adaptivity to go on forever.
-const int MAX_ADAPT_NUM = 30;	         // Adaptivity process stops when the number of adaptation steps grows over
+const int MAX_ADAPT_NUM = 30;	         	 // Adaptivity process stops when the number of adaptation steps grows over
                                          // this limit.
-/* OLD CODE
-const NormType NORM_TYPE = NORM_EUCL;    // When H1 norm is used to measure the error, this parameter specifies the
-					 // norm used for normalizing the error (so that solution components with 
-					 // different scales get same attention). Ignored when energetic norm is 
-                                         // used to estimate the error. NORM_EUCL = 0, NORM_MAX = 1.
-*/
+const NormType NORM_TYPE = NORM_DEFAULT; // Specifies norm used by the class H1AdaptCustomNorm to calculate relative error 
+																				 // NORM_DEFAULT = 0 ... the same norm as used by H1Adapt 
+																				 //		(defined either by the supplied bilinear forms or by the standard H1 norm)
+																				 // NORM_MAX = 1 ... maximum (L_infty) norm
+
 
 // Macro for simpler definition of bilinear forms in the energy norm.
 #define callback_egnorm(a)     a<scalar, scalar>, a<Ord, Ord>
@@ -213,7 +212,7 @@ int get_num_of_neg(MeshFunction *sln)
 // eigenvectors are stored in "sln_X" and the eigenvalue in global variable "k_eff".
 void power_iteration(Solution *sln1, Solution *sln2, Solution *sln3, Solution *sln4,
 		     Solution *iter1, Solution *iter2, Solution *iter3, Solution *iter4,
-		     LinSystem *ls, double tol, TimePeriod *cpu_time)
+		     LinSystem *ls, double tol)
 {
   bool eigen_done = false; int it = 0;
   do {
@@ -240,11 +239,12 @@ void power_iteration(Solution *sln1, Solution *sln2, Solution *sln3, Solution *s
 	  
     // Update eigenvalue.
     k_eff = k_new;
-	  
-    // Update rhs of the system considering the updated eigenpair approximation.
-    ls->assemble(true);
-  }
-  while (!eigen_done);
+	  	  
+	if (!eigen_done)
+		// Update rhs of the system considering the updated eigenpair approximation.
+		ls->assemble(true);
+	}
+	while (!eigen_done);
 }
 
 int main(int argc, char* argv[])
@@ -293,12 +293,12 @@ int main(int argc, char* argv[])
 
   // Initialize the weak formulation.
   WeakForm wf(4);
-  wf.add_matrix_form(0, 0, callback(biform_0_0));
-  wf.add_matrix_form(1, 1, callback(biform_1_1));
+  wf.add_matrix_form(0, 0, callback(biform_0_0), H2D_SYM);
+  wf.add_matrix_form(1, 1, callback(biform_1_1), H2D_SYM);
   wf.add_matrix_form(1, 0, callback(biform_1_0));
-  wf.add_matrix_form(2, 2, callback(biform_2_2));
+  wf.add_matrix_form(2, 2, callback(biform_2_2), H2D_SYM);
   wf.add_matrix_form(2, 1, callback(biform_2_1));
-  wf.add_matrix_form(3, 3, callback(biform_3_3));
+  wf.add_matrix_form(3, 3, callback(biform_3_3), H2D_SYM);
   wf.add_matrix_form(3, 2, callback(biform_3_2));
   wf.add_vector_form(0, callback(liform_0), marker_core, Tuple<MeshFunction*>(&iter1, &iter2, &iter3, &iter4));
   wf.add_vector_form(1, callback(liform_1), marker_core, Tuple<MeshFunction*>(&iter1, &iter2, &iter3, &iter4));
@@ -316,7 +316,7 @@ int main(int argc, char* argv[])
   ls.get_num_dofs(0), ls.get_num_dofs(1), ls.get_num_dofs(2), ls.get_num_dofs(3), ls.get_num_dofs()); 
   power_iteration(&sln1_coarse, &sln2_coarse, &sln3_coarse, &sln4_coarse, 
 	          &iter1, &iter2, &iter3, &iter4,
-		  &ls, TOL_PIT_CM, &cpu_time);
+		  &ls, TOL_PIT_CM);
 
   // Initialize views.
   ScalarView view1("Neutron flux 1", 0, 0, 320, 400);
@@ -362,7 +362,7 @@ int main(int argc, char* argv[])
       rs.get_num_dofs(0), rs.get_num_dofs(1), rs.get_num_dofs(2), rs.get_num_dofs(3), rs.get_num_dofs());
     power_iteration(&sln1_fine, &sln2_fine, &sln3_fine, &sln4_fine,
 		    &iter1, &iter2, &iter3, &iter4,
-		    &rs, TOL_PIT_RM, &cpu_time);
+		    &rs, TOL_PIT_RM);
 
     // Either solve on coarse mesh or project the fine mesh solution 
     // on the coarse mesh.
@@ -373,7 +373,7 @@ int main(int argc, char* argv[])
         ls.assemble();
         power_iteration(&sln1_coarse, &sln2_coarse, &sln3_coarse, &sln4_coarse, 
 	  	        &iter1, &iter2, &iter3, &iter4,
-		        &ls, TOL_PIT_CM, &cpu_time);
+		        &ls, TOL_PIT_CM);
       }
     }
     else {
@@ -398,27 +398,20 @@ int main(int argc, char* argv[])
     // Skip visualization time.
     cpu_time.tick(H2D_SKIP);
     
-    // Report the number of negative eigenvalues.
+    // Report the number of negative eigenfunction values.
     info("Num. of negative values: %d, %d, %d, %d", 
 	 get_num_of_neg(&sln1_coarse), get_num_of_neg(&sln2_coarse), 
          get_num_of_neg(&sln3_coarse), get_num_of_neg(&sln4_coarse));		
 		    
     // Calculate element errors and total error estimate.
-    // H1 normalized by H1 or L_inf.
-    H1Adapt hp(&ls);
-    // normalized energetic
-    // H1OrthoHPNormalized hp(4, &space1, &space2, &space3, &space4);
-    // default energetic
-    // H1OrthoHP hp(4, &space1, &space2, &space3, &space4);
-    /* hp.set_biform(0, 0, callback_egnorm(biform_0_0));
-  	   hp.set_biform(1, 1, callback_egnorm(biform_1_1));
-		   hp.set_biform(1, 0, callback_egnorm(biform_1_0));
-		   hp.set_biform(2, 2, callback_egnorm(biform_2_2));
-		   hp.set_biform(2, 1, callback_egnorm(biform_2_1));
-	   	 hp.set_biform(3, 3, callback_egnorm(biform_3_3));
-		   hp.set_biform(3, 2, callback_egnorm(biform_3_2));
-		*/
-		// how to include surface elements in the energy norm ?
+    H1AdaptCustomNorm hp(NORM_TYPE, Tuple<Space*>(&space1, &space2, &space3, &space4));
+    hp.set_biform(0, 0, callback_egnorm(biform_0_0));
+  	hp.set_biform(1, 1, callback_egnorm(biform_1_1));
+		hp.set_biform(1, 0, callback_egnorm(biform_1_0));
+		hp.set_biform(2, 2, callback_egnorm(biform_2_2));
+		hp.set_biform(2, 1, callback_egnorm(biform_2_1));
+		hp.set_biform(3, 3, callback_egnorm(biform_3_3));
+		hp.set_biform(3, 2, callback_egnorm(biform_3_2));
 		
     // Calculate element errors and error estimate for adaptivity.
     info("Calculating error.");
@@ -441,10 +434,10 @@ int main(int argc, char* argv[])
 	 ls.get_num_dofs(3), ls.get_num_dofs());  
     info("err_est_coarse: %g%%, %g%%, %g%%, %g%%", err_est_1, err_est_2, err_est_3, err_est_4); 
   
-    // Eigenvalue error w.r.t. solution obtained on a 3x uniformly refined mesh
-    // with uniform distribution of polynomial degrees (=3), converged to within
-    // tolerance of 1e-7; in units of percent-milli (pcm).
-    double keff_err = 1e5*fabs(k_eff - 1.140911)/1.140911;
+    // eigenvalue error w.r.t. solution obtained on a 3x uniformly refined mesh
+  	// with uniform distribution of polynomial degrees (=4), converged to within
+  	// tolerance of 5e-11; in units of percent-milli (pcm)
+  	double keff_err = 1e5*fabs(k_eff - 1.14091443)/1.14091443;
   					
     // Add entry to DOF convergence graph.
     graph_dof.add_values(ls.get_num_dofs(), err_est);
