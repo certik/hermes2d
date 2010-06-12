@@ -18,9 +18,8 @@ using namespace RefinementSelectors;
 //
 // where 1/k_{eff} is eigenvalue and \phi_g, g = 1,...,4 are eigenvectors (neutron fluxes). The current problem
 // is posed in a 3D cylindrical axisymmetric geometry, leading to a 2D problem with r-z as the independent spatial 
-// coordinates. The corresponding diffusion operator is given by (r = x, z = y):
-//
-//	\nabla \cdot D \nabla \phi = \frac{1}{x} (x D \phi_x)_x  + (D \phi_y)_y 
+// coordinates. Identifying r = x, z = y, the gradient in the weak form has the same components as in the 
+// x-y system, while all integrands are multiplied by 2\pi x (determinant of the transformation matrix).
 //
 // BC:
 //
@@ -316,7 +315,7 @@ int main(int argc, char* argv[])
   ls.get_num_dofs(0), ls.get_num_dofs(1), ls.get_num_dofs(2), ls.get_num_dofs(3), ls.get_num_dofs()); 
   power_iteration(&sln1_coarse, &sln2_coarse, &sln3_coarse, &sln4_coarse, 
 	          &iter1, &iter2, &iter3, &iter4,
-		  &ls, TOL_PIT_CM);
+		  			&ls, TOL_PIT_CM);
 
   // Initialize views.
   ScalarView view1("Neutron flux 1", 0, 0, 320, 400);
@@ -351,9 +350,10 @@ int main(int argc, char* argv[])
 
     // First time project coarse mesh solutions on fine meshes.
     if (as == 1) {
-      info("Projecting coarse mesh solutions on fine meshes.");
-      rs.project_global(Tuple<MeshFunction*>(&sln1_coarse, &sln2_coarse, &sln3_coarse, &sln4_coarse), 
-                        Tuple<Solution*>(&iter1, &iter2, &iter3, &iter4));
+      info("Projecting first coarse mesh solutions on fine meshes.");
+      rs.project_global_n(callback(projection_biform), callback(projection_liform),
+      									4, &sln1_coarse, &sln2_coarse, &sln3_coarse, &sln4_coarse, 
+                       	&iter1, &iter2, &iter3, &iter4);
     }
 
     // Solve the fine mesh problem.
@@ -371,15 +371,17 @@ int main(int argc, char* argv[])
         info("Coarse mesh power iteration, %d + %d + %d + %d = %d ndof:", 
         ls.get_num_dofs(0), ls.get_num_dofs(1), ls.get_num_dofs(2), ls.get_num_dofs(3), ls.get_num_dofs()); 
         ls.assemble();
+        
         power_iteration(&sln1_coarse, &sln2_coarse, &sln3_coarse, &sln4_coarse, 
 	  	        &iter1, &iter2, &iter3, &iter4,
-		        &ls, TOL_PIT_CM);
+		        	&ls, TOL_PIT_CM);
       }
     }
     else {
       info("Projecting fine mesh solutions on coarse meshes.");
-      ls.project_global(Tuple<MeshFunction*>(&sln1_fine, &sln2_fine, &sln3_fine, &sln4_fine), 
-                        Tuple<Solution*>(&sln1_coarse, &sln2_coarse, &sln3_coarse, &sln4_coarse));
+      ls.project_global_n(callback(projection_biform), callback(projection_liform),
+      									4, &sln1_fine, &sln2_fine, &sln3_fine, &sln4_fine, 
+                        &sln1_coarse, &sln2_coarse, &sln3_coarse, &sln4_coarse);
     }
 
     // Time measurement.

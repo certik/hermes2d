@@ -18,6 +18,18 @@ Scalar int_x_grad_u_grad_v(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom
   return result;
 }
 
+template<typename Real, typename Scalar>
+Scalar projection_biform(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+{
+  return int_x_u_v<Real, Scalar>(n, wt, u, v, e) + int_x_grad_u_grad_v<Real, Scalar>(n, wt, u, v, e);
+}
+
+template<typename Real, typename Scalar>
+Scalar projection_liform(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+{
+  return int_x_u_v<Real, Scalar>(n, wt, ext->fn[0], v, e) + int_x_grad_u_grad_v<Real, Scalar>(n, wt, ext->fn[0], v, e);
+}
+
 //////////   Eq 1   /////////////////////////////////////////////////////////////////////////////////////////
 
 template<typename Real, typename Scalar>
