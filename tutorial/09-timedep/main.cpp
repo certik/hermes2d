@@ -85,9 +85,6 @@ int main(int argc, char* argv[])
   space.set_essential_bc_values(essential_bc_values);
   space.set_uniform_order(P_INIT);
 
-  // Enumerate degrees of freedom.
-  int ndof = assign_dofs(&space);
-
   // Set initial condition.
   Solution tsln;
   tsln.set_const(&mesh, T_INIT);

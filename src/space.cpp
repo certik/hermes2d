@@ -21,6 +21,7 @@
 Space::Space(Mesh* mesh, Shapeset* shapeset)
      : mesh(mesh), shapeset(shapeset)
 {
+  if (shapeset == NULL) error("Shapeset NULL in Space::Space().");
   default_tri_order = -1;
   default_quad_order = -1;
   ndata = NULL;
@@ -30,12 +31,12 @@ Space::Space(Mesh* mesh, Shapeset* shapeset)
   mesh_seq = -1;
   seq = 0;
   was_assigned = false;
+  ndof = 0;
 
   set_bc_types(NULL);
   set_essential_bc_values((scalar (*)(int, double, double)) NULL);
   set_essential_bc_values((scalar (*)(EdgePos*)) NULL);
 }
-
 
 Space::~Space()
 {
@@ -263,7 +264,6 @@ int Space::assign_dofs(int first_dof, int stride)
 {
   //warn("Deprecated function used. Please update your code to use assign_dofs(Space *s) or assign_dofs(int n, Space *s1, Space *s2, ..., Space *sn).");
 
-
   if (first_dof < 0) error("Invalid first_dof.");
   if (stride < 1)    error("Invalid stride.");
 
@@ -291,14 +291,15 @@ int Space::assign_dofs(int first_dof, int stride)
   assign_bubble_dofs();
 
   free_extra_data();
-  update_bc_dofs();
+  update_essential_bc_values();
   update_constraints();
   post_assign();
 
   mesh_seq = mesh->get_seq();
   was_assigned = true;
   seq++;
-  return get_num_dofs();
+  this->ndof = (next_dof - first_dof) / stride;
+  return this->ndof;
 }
 
 void Space::reset_dof_assignment() {
@@ -501,7 +502,7 @@ void Space::update_edge_bc(Element* e, EdgePos* ep)
 }
 
 
-void Space::update_bc_dofs()
+void Space::update_essential_bc_values()
 {
   Element* e;
   for_all_base_elements(e, mesh)
@@ -573,5 +574,17 @@ H2D_API int assign_dofs(int n, ...) {
 
 H2D_API int assign_dofs(Space *s) {
   return assign_dofs(1, s);
+}
+
+// updating time-dependent essential BC
+H2D_API void update_essential_bc_values(Tuple<Space*> spaces) {
+  int n = spaces.size();
+  for (int i = 0; i < n; i++) {
+    spaces[i]->update_essential_bc_values();
+  }
+}
+
+H2D_API void update_essential_bc_values(Space *s) {
+  return update_essential_bc_values(Tuple<Space*>(s));
 }
 

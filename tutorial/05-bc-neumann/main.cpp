@@ -57,9 +57,6 @@ int main(int argc, char* argv[])
   space.set_bc_types(bc_types);
   space.set_essential_bc_values(essential_bc_values);
   space.set_uniform_order(P_INIT);
-  
-  // Enumerate degrees of freedom.
-  int ndof = assign_dofs(&space);
 
   // Initialize the weak formulation.
   WeakForm wf;

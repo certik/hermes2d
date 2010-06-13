@@ -18,6 +18,7 @@
 
 #include "linsystem.h"
 #include "nonlinsystem.h"
+#include "views/order_view.h"
 
 class Mesh;
 class ExactSolution;
@@ -31,10 +32,13 @@ public:
   RefSystem(LinSystem* base, int order_increase = 1, int refinement = 1);
   virtual ~RefSystem();
 
-  /// Do not call in this class
-  void set_spaces(int n, ...);
-  /// Do not call in this class
-  void set_pss(int n, ...);
+  /// Do not call in this class - contains just an error message.
+  void set_spaces(Tuple<Space*> spaces);
+  /// Do not call in this class - contains just an error message.
+  void set_pss(Tuple<PrecalcShapeset*> pss);
+
+  /// Performs global mesh refinement and related things.
+  void prepare();
 
   /// Sets order increases (same for all components)
   void set_order_increase(int order_increase);
@@ -42,9 +46,6 @@ public:
   /// Creates reference (fine) meshes and spaces and assembles the
   /// reference system.
   void assemble(bool rhsonly = false);
-
-  /// Copies and refines meshes from the base linsystem
-  void prepare();
 
   bool solve_exact(scalar (*exactfn)(double x, double y, scalar& dx, scalar& dy), Solution* sln);
 

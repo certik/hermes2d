@@ -16,6 +16,7 @@
 #ifndef __H2D_NONLINSYSTEM_H
 #define __H2D_NONLINSYSTEM_H
 
+#include "tuple.h"
 #include "matrix_old.h"
 #include "filter.h"
 #include "views/scalar_view.h"
@@ -25,7 +26,8 @@
 class Solution;
 class MeshFunction;
 
-
+H2D_API_USED_TEMPLATE(Tuple<Space*>); ///< Instantiated template. It is used to create a clean Windows DLL interface.
+H2D_API_USED_TEMPLATE(Tuple<Solution*>); ///< Instantiated template. It is used to create a clean Windows DLL interface.
 
 ///
 ///
@@ -38,17 +40,18 @@ public:
 
   /// Initializes the class and creates a zero initial coefficient vector.
   void init_nonlin();
-  NonlinSystem(WeakForm* wf, Solver* solver);
-  NonlinSystem(WeakForm* wf);                  // solver will be set to NULL and default solver will be used
-  NonlinSystem(WeakForm* wf, Solver* solver, Space* s);
-  NonlinSystem(WeakForm* wf, Space* s);        // solver will be set to NULL and default solver will be used
-  NonlinSystem(WeakForm* wf, Solver* solver, int n, ...);
-  NonlinSystem(WeakForm* wf, int n, ...);      // solver will be set to NULL and default solver will be used
+  NonlinSystem();
+  NonlinSystem(WeakForm* wf_, Solver* solver_);
+  NonlinSystem(WeakForm* wf_);                  // solver will be set to NULL and default solver will be used
+  NonlinSystem(WeakForm* wf_, Solver* solver_, Space* s_);
+  NonlinSystem(WeakForm* wf_, Space* s_);        // solver will be set to NULL and default solver will be used
+  NonlinSystem(WeakForm* wf_, Solver* solver_, Tuple<Space*> spaces_);
+  NonlinSystem(WeakForm* wf_, Tuple<Space*> spaces_);      // solver will be set to NULL and default solver will be used
 
-  /// Frees the memory for the RHS, Dir and Vec vectors, and solver data, 
+  /// Frees the memory for the RHS, Dir and Vec vectors, and solver data.
   virtual void free();
 
-  /// Adjusts the iteration coefficient. The default value for alpha is 1.
+  /// Adjusts the Newton iteration coefficient. The default value for alpha is 1.
   void set_alpha(double alpha) { this->alpha = alpha; }
 
   /// Assembles the Jacobian matrix and the residual vector (as opposed to 
@@ -58,7 +61,7 @@ public:
 
   /// Performs one step of the Newton's method for an arbitrary number of equations, 
   /// stores the result in the given Solutions.
-  bool solve(int n, ...);
+  bool solve(Tuple<Solution*> sln);
 
   // single equation case
   bool solve(Solution* sln);
@@ -92,7 +95,8 @@ protected:
   double alpha;
   double res_l2, res_l1, res_max;
 
-  friend class RefNonlinSystem;
+  //NOTE: THIS IS OLD CODE THAT WILL BE REMOVED AFTER SOME TIME.
+  //friend class RefNonlinSystem;
 
 };
 

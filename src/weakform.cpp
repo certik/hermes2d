@@ -537,6 +537,7 @@ bool** WeakForm::get_blocks()
 
 //// areas /////////////////////////////////////////////////////////////////////////////////////////
 
+/*
 int WeakForm::def_area(int n, ...)
 {
   Area newarea;
@@ -548,7 +549,7 @@ int WeakForm::def_area(int n, ...)
   areas.push_back(newarea);
   return -(int)areas.size();
 }
-
+*/
 
 bool WeakForm::is_in_area_2(int marker, int area) const
 {

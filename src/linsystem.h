@@ -16,6 +16,7 @@
 #ifndef __H2D_LINSYSTEM_H
 #define __H2D_LINSYSTEM_H
 
+#include "tuple.h"
 #include "matrix.h"
 #include "matrix_old.h"
 #include "forms.h"
@@ -27,6 +28,11 @@ class PrecalcShapeset;
 class WeakForm;
 class Solver;
 
+H2D_API_USED_TEMPLATE(Tuple<Space*>); ///< Instantiated template. It is used to create a clean Windows DLL interface.
+H2D_API_USED_TEMPLATE(Tuple<Solution*>); ///< Instantiated template. It is used to create a clean Windows DLL interface.
+H2D_API_USED_TEMPLATE(Tuple<PrecalcShapeset*>); ///< Instantiated template. It is used to create a clean Windows DLL interface.
+
+
 ///
 ///
 ///
@@ -37,21 +43,21 @@ class H2D_API LinSystem
 public:
 
   LinSystem();
-  LinSystem(WeakForm* wf, Solver* solver);
-  LinSystem(WeakForm* wf);                  // solver will be set to NULL and default solver will be used
-  LinSystem(WeakForm* wf, Solver* solver, Space* s);
-  LinSystem(WeakForm* wf, Space* s);        // solver will be set to NULL and default solver will be used
-  LinSystem(WeakForm* wf, Solver* solver, int n, ...);
-  LinSystem(WeakForm* wf, int n, ...);      // solver will be set to NULL and default solver will be used
+  LinSystem(WeakForm* wf_, Solver* solver_);
+  LinSystem(WeakForm* wf_);                  // solver will be set to NULL and default solver will be used
+  LinSystem(WeakForm* wf_, Solver* solver_, Space* s_);
+  LinSystem(WeakForm* wf_, Space* s_);       // solver will be set to NULL and default solver will be used
+  LinSystem(WeakForm* wf_, Solver* solver_, Tuple<Space*> spaces_);
+  LinSystem(WeakForm* wf_, Tuple<Space*> spaces_);      // solver will be set to NULL and default solver will be used
+  LinSystem(WeakForm* wf_, Solver* solver_, Space* space1_, Space* space2_);
 
   virtual ~LinSystem();
 
-  void init(WeakForm* wf, Solver* solver);
-  void init_spaces(int n, ...);
+  void init_lin(WeakForm* wf, Solver* solver);
+  void init_spaces(Tuple<Space*> spaces);
   void init_space(Space* s);         // single equation case
-  void set_spaces(int n, ...);
-  void set_space(Space* s);          // single equation case
-  void set_pss(int n, ...);
+  void set_spaces(Tuple<Space*> spaces);
+  void set_pss(Tuple<PrecalcShapeset*> pss); 
   void set_pss(PrecalcShapeset* p);  // single equation case
   void copy(LinSystem* sys);
   Space* get_space(int n) {
@@ -68,15 +74,17 @@ public:
   }
   
   /// Helps to determine if linear or nonlinear class instance is used
-  /// similar to Java instanceof functionality
+  /// similar to Java instance of functionality
   virtual bool is_linear() { return true; }
 
   virtual void assemble(bool rhsonly = false);
   void assemble_rhs_only() { assemble(true); }
-  bool solve(int n, ...);
+  bool solve(Tuple<Solution*> sln);
   bool solve(Solution* sln); // single equation case
+  bool solve(Solution* sln1, Solution* sln2); // two equations case
+  bool solve(Solution* sln1, Solution* sln2, Solution* sln3); // three equations case
   virtual void free();
-  virtual void matrix_free();
+  virtual void free_matrix();
 
   void save_matrix_matlab(const char* filename, const char* varname = "A");
   void save_rhs_matlab(const char* filename, const char* varname = "b");
@@ -87,18 +95,30 @@ public:
   scalar* get_solution_vector() { return Vec; }
 
   int get_num_dofs();
-  int get_num_dofs(int i) {return this->spaces[i]->get_num_dofs();}
-  int get_num_spaces() const { return num_spaces; };
-  int get_num_meshes() const { return num_spaces; };
-  int get_matrix_size() const;
-  void get_matrix(int*& Ap, int*& Ai, scalar*& Ax, int& size) const;
-  void get_rhs(scalar*& RHS, int& size) const { RHS = this->RHS; size=ndofs; }
-  void get_solution_vector(scalar*& sln_vector, int& sln_vector_len) { sln_vector = Vec; sln_vector_len = ndofs; }
-  void get_solution_vector(std::vector<scalar>& sln_vector_out) const; ///< Returns a copy of a solution vector.
+  int get_num_dofs(int i) {
+    if (this->spaces[i] == NULL) error("spaces[%d] is NULL in LinSystem::get_num_dofs().", i);
+    return this->spaces[i]->get_num_dofs();
+  }
+  int get_num_spaces() { return this->wf->neq; };
+  int get_matrix_size();
+  void get_matrix(int*& Ap, int*& Ai, scalar*& Ax, int& size);
+  void get_rhs(scalar*& RHS, int& size) { RHS = this->RHS; size=this->get_num_dofs(); }
+  void get_solution_vector(scalar*& sln_vector, int& sln_vector_len) 
+       { sln_vector = Vec; sln_vector_len = this->get_num_dofs(); }
+  void get_solution_vector(std::vector<scalar>& sln_vector_out); ///< Returns a copy of the solution vector.
 
-  /// Creates a zero solution coefficient vector Vec
-  /// (after freeing it first if it is not NULL)
-  void set_vec_zero();
+  /// Frees (if not NULL) and creates zero solution coefficient vectors Vec, Dir and RHS.
+  void reset_coeff_vectors();
+
+  /// Frees vectors Vec, RHS and Dir. These vectors should 
+  /// not be freed anywhere else.
+  void free_vectors();
+
+  /// For debug purposes.
+  void print_vector();
+
+  /// Assigning DOF = enumerating basis functions in the FE spaces.
+  int assign_dofs();  // all spaces
 
   /// Basic procedure performing orthogonal projection for an arbitrary number of 
   /// functions onto (the same number of) spaces determined by the LinSystem; proj_norm = 0  
@@ -108,61 +128,48 @@ public:
   /// All projection functionality defined here is also available in the class NonlinSystem. 
   /// TODO: Implement projection-based interpolation (PBI) as an alternative of this. 
   /// PBI is almost as good as global orthogonal projection but way faster.
-  void project_global_n(int proj_norm, int n, ...);
+  void project_global(Tuple<MeshFunction*> source, Tuple<Solution*> target, int proj_norm = 1);
 
   /// Global orthogonal projection of MeshFunction* fn. Result of the projection is 
   /// returned as "result".
-  void project_global(MeshFunction* fn, Solution* result, int proj_norm = 1)
-    {  project_global_n(proj_norm, 1, fn, result);  }
-
-  /// Global orthogonal projection of two functions. 
-  void project_global(MeshFunction* fn1, MeshFunction* fn2, Solution* result1, Solution* result2, int proj_norm = 1)
-    {  project_global_n(proj_norm, 2, fn1, fn2, result1, result2);  }
-
-  /// Global orthogonal projection of three functions. 
-  void project_global(MeshFunction* fn1, MeshFunction* fn2, MeshFunction* fn3, 
-                      Solution* result1, Solution* result2, Solution* result3, int proj_norm = 1)
-    {  project_global_n(proj_norm, 3, fn1, fn2, fn3, result1, result2, result3);  }
-
-  /// Global orthogonal projection of four functions. 
-  void project_global(MeshFunction* fn1, MeshFunction* fn2, MeshFunction* fn3, MeshFunction* fn4, 
-                      Solution* result1, Solution* result2, Solution* result3, Solution* result4, int proj_norm = 1)
-  {  project_global_n(proj_norm, 4, fn1, fn2, fn3, fn4, result1, result2, result3, result4);  }
+  void project_global(MeshFunction* source, Solution* target, int proj_norm = 1)
+  {  project_global(Tuple<MeshFunction*>(source), Tuple<Solution*>(target), proj_norm);  }
 
   /// Global orthogonal projection of an exact function.
   void project_global(scalar (*exactfn)(double x, double y, scalar& dx, scalar& dy),
-                      Solution* result, int proj_norm = 1)
+                      Solution* target, int proj_norm = 1)
   {
-    Mesh *mesh = this->get_space(0)->get_mesh();
-    result->set_exact(mesh, exactfn);
-    project_global_n(proj_norm, 1, result, result);
+    Mesh *mesh = this->get_mesh(0);
+    target->set_exact(mesh, exactfn);
+    project_global(target, target, proj_norm);
   }
 
   /// Global orthogonal projection of two exact functions.
   void project_global(scalar (*exactfn1)(double x, double y, scalar& dx, scalar& dy), 
                       scalar (*exactfn2)(double x, double y, scalar& dx, scalar& dy),
-                      Solution* result1, Solution* result2, int proj_norm = 1)
+                      Solution* target1, Solution* target2, int proj_norm = 1)
   {
-    Mesh *mesh1 = this->get_space(0)->get_mesh();
-    Mesh *mesh2 = this->get_space(1)->get_mesh();
-    result1->set_exact(mesh1, exactfn1);
-    result2->set_exact(mesh2, exactfn2);
-    project_global_n(proj_norm, 2, result1, result2, result1, result2);
+    Mesh *mesh1 = this->get_mesh(0);
+    Mesh *mesh2 = this->get_mesh(1);
+    target1->set_exact(mesh1, exactfn1);
+    target2->set_exact(mesh2, exactfn2);
+    project_global(Tuple<MeshFunction*>(target1, target2), Tuple<Solution*>(target1, target2), proj_norm);
   }
 
   /// Global orthogonal projection of three exact functions.
   void project_global(scalar (*exactfn1)(double x, double y, scalar& dx, scalar& dy), 
                       scalar (*exactfn2)(double x, double y, scalar& dx, scalar& dy),
                       scalar (*exactfn3)(double x, double y, scalar& dx, scalar& dy),
-                      Solution* result1, Solution* result2, Solution* result3, int proj_norm = 1)
+                      Solution* target1, Solution* target2, Solution* target3, int proj_norm = 1)
   {
-    Mesh *mesh1 = this->get_space(0)->get_mesh();
-    Mesh *mesh2 = this->get_space(1)->get_mesh();
-    Mesh *mesh3 = this->get_space(2)->get_mesh();
-    result1->set_exact(mesh1, exactfn1);
-    result2->set_exact(mesh2, exactfn2);
-    result3->set_exact(mesh3, exactfn3);
-    project_global_n(proj_norm, 3, result1, result2, result3, result1, result2, result3);
+    Mesh *mesh1 = this->get_mesh(0);
+    Mesh *mesh2 = this->get_mesh(1);
+    Mesh *mesh3 = this->get_mesh(2);
+    target1->set_exact(mesh1, exactfn1);
+    target2->set_exact(mesh2, exactfn2);
+    target3->set_exact(mesh3, exactfn3);
+    project_global(Tuple<MeshFunction*>(target1, target2, target3), 
+                   Tuple<Solution*>(target1, target2, target3), proj_norm);
   }
 
   /// Projection-based interpolation of an exact function. This is faster than the 
@@ -173,22 +180,21 @@ public:
     /// TODO
   }
 
-  /// Frees reference spaces and meshes. Called
-  /// automatically on desctruction.
+  /// Frees spaces and meshes. Called
+  /// automatically on destruction.
   void free_meshes_and_spaces();
-
-protected:
-
-  WeakForm* wf;
-  Solver* solver;
-  void* slv_ctx;
 
   Space** spaces;
   Mesh** meshes;
+  WeakForm* wf;
+
+protected:
+
+  Solver* solver;
+  void* slv_ctx;
+
   PrecalcShapeset** pss;
 
-  int ndofs;
-  int num_spaces;
   CooMatrix *A;
   bool mat_sym; ///< true if symmetric and only upper half stored
 

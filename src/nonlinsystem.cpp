@@ -24,6 +24,8 @@
 #include "refmap.h"
 #include "solution.h"
 #include "integrals_h1.h"
+#include "views/view.h"
+#include "views/vector_view.h"
 
 #include "python_solvers.h"
 
@@ -39,111 +41,60 @@ void NonlinSystem::init_nonlin()
   want_dir_contrib = false;
 }
 
-NonlinSystem::NonlinSystem(WeakForm* wf, Solver* solver)
-            : LinSystem(wf, solver)
-{
-  init_nonlin();
-}
+// this is needed because of a constructor in RefSystem
+NonlinSystem::NonlinSystem() {}
 
-NonlinSystem::NonlinSystem(WeakForm* wf)
-            : LinSystem(wf)
-{
-  init_nonlin();
-}
-
-NonlinSystem::NonlinSystem(WeakForm* wf, Solver* solver, Space *s)
-  : LinSystem(wf, solver, s)
-{
-  init_nonlin();
-}
-
-NonlinSystem::NonlinSystem(WeakForm* wf, Space *s)
-  : LinSystem(wf, s)
-{
-  init_nonlin();
-}
-
-// NOTE: there is some code duplication in the two constructors below.
-// FIXME: Ivo's Tuples should be used here, then the duplication can be avoided.
-NonlinSystem::NonlinSystem(WeakForm* wf, Solver* solver, int n, ...)
-{
-  this->init(wf, solver);
-  // set spaces, meshes and pss
-  if (n <= 0 || n > wf->neq) error("Bad number of spaces.");
-  this->num_spaces = n;
-  va_list ap;
-  va_start(ap, n);
-  // set spaces and meshes at the same time
-  for (int i = 0; i < wf->neq; i++) {
-    this->spaces[i] = (i < n) ? va_arg(ap, Space*) : this->spaces[n-1];
-    this->meshes[i] = (i < n) ? this->spaces[i]->mesh : this->spaces[n-1]->mesh;
-  }
-  va_end(ap);
-  memset(sp_seq, -1, sizeof(int) * wf->neq);
-  this->have_spaces = true;
-  for (int i = 0; i < n; i++){
-    if (this->pss[i] == NULL) {
-      Shapeset *shapeset = this->spaces[i]->get_shapeset();
-      PrecalcShapeset *p = new PrecalcShapeset(shapeset);
-      if (p == NULL) error("New PrecalcShapeset could not be allocated.");
-      this->pss[i] = p;
-      this->num_user_pss++;
-    }
-  }
+NonlinSystem::NonlinSystem(WeakForm* wf_, 
+    Solver* solver_) : LinSystem(wf_, solver_)
+{ 
   this->init_nonlin();
 }
 
-NonlinSystem::NonlinSystem(WeakForm* wf, int n, ...)
+NonlinSystem::NonlinSystem(WeakForm* wf_) : LinSystem(wf_)
 {
-  Solver* solver = NULL;
-  this->init(wf, solver);
-  // set spaces, meshes and pss
-  if (n <= 0 || n > wf->neq) error("Bad number of spaces.");
-  this->num_spaces = n;
-  va_list ap;
-  va_start(ap, n);
-  // set spaces and meshes at the same time
-  for (int i = 0; i < wf->neq; i++) {
-    this->spaces[i] = (i < n) ? va_arg(ap, Space*) : this->spaces[n-1];
-    this->meshes[i] = (i < n) ? this->spaces[i]->mesh : this->spaces[n-1]->mesh;
-  }
-  va_end(ap);
-  memset(sp_seq, -1, sizeof(int) * wf->neq);
-  this->have_spaces = true;
-  for (int i = 0; i < n; i++){
-    if (this->pss[i] == NULL) {
-      Shapeset *shapeset = this->spaces[i]->get_shapeset();
-      PrecalcShapeset *p = new PrecalcShapeset(shapeset);
-      if (p == NULL) error("New PrecalcShapeset could not be allocated.");
-      this->pss[i] = p;
-      this->num_user_pss++;
-    }
-  }
+  this->init_nonlin();
+}
+
+NonlinSystem::NonlinSystem(WeakForm* wf_, Solver* solver_, 
+    Tuple<Space*> spaces_) : LinSystem(wf_, solver_, spaces_)
+{
+  this->init_nonlin();
+}
+
+NonlinSystem::NonlinSystem(WeakForm* wf_, 
+    Tuple<Space*> spaces_) : LinSystem(wf_, spaces_)
+{
+  this->init_nonlin();
+}
+
+NonlinSystem::NonlinSystem(WeakForm* wf_, Solver* solver_, 
+    Space *s_) : LinSystem(wf_, solver_, s_)
+{
+  this->init_nonlin();
+}
+
+NonlinSystem::NonlinSystem(WeakForm* wf_, 
+    Space *s_) : LinSystem(wf_, s_)
+{
   this->init_nonlin();
 }
 
 void NonlinSystem::free()
 {
-  LinSystem:matrix_free();
-  if (RHS != NULL) { ::free(RHS); RHS = NULL; }
-  if (Dir != NULL) { ::free(Dir-1); Dir = NULL; }
-  if (Vec != NULL)
-  {
-   for (int i = 0; i < wf->neq; i++)
-      if (spaces[i]->get_seq() != sp_seq[i])
-        { ::free(Vec); Vec = NULL;  break; }
-  }
-
+  /* FIXME - HUGE MEMORY LEAK THAT NEEDS TO BE FIXED SOON
+  LinSystem::free_matrix();
+  LinSystem::free_vectors();
   if (solver) solver->free_data(slv_ctx);
 
   struct_changed = values_changed = true;
   memset(sp_seq, -1, sizeof(int) * wf->neq);
   wf_seq = -1;
+  */
 }
-
 
 void NonlinSystem::assemble(bool rhsonly)
 {
+  int ndof = this->get_num_dofs();
   if (rhsonly) error("Parameter rhsonly = true has no meaning in NonlinSystem.");
 
   // assemble J(Y_n) and store in A, assemble F(Y_n) and store in RHS
@@ -151,7 +102,7 @@ void NonlinSystem::assemble(bool rhsonly)
 
   // calculate norms of the residual F(Y_n)
   res_l2 = res_l1 = res_max = 0.0;
-  for (int i = 0; i < ndofs; i++)
+  for (int i = 0; i < ndof; i++)
   {
     res_l2 += sqr(RHS[i]);
     res_l1 += magn(RHS[i]);
@@ -160,46 +111,48 @@ void NonlinSystem::assemble(bool rhsonly)
   res_l2 = sqrt(res_l2);
 
   // multiply RHS by -alpha
-  for (int i = 0; i < ndofs; i++)
+  for (int i = 0; i < ndof; i++)
     RHS[i] *= -alpha;
 }
 
 
-bool NonlinSystem::solve(int n, ...)
+bool NonlinSystem::solve(Tuple<Solution*> sln)
 {
+  // if the number of solutions does not match the number of equations, throw error
+  int n = sln.size();
+  if (n != this->wf->neq) 
+    error("Number of solutions does not match the number of equations in LinSystem::solve().");
+
+  // if no matrix solver defined, throw error
+  if (!this->solver) error("No matrix solver defined in NonlinSystem::solve().");
+
+  // if Vec is not initialized, throw error
+  if (this->Vec == NULL) error("Vec is NULL in NonlinSystem::solve().");
+
+  // if vector length is not equal to matrix size, throw error
+  int ndof = this->get_num_dofs();
+  if (ndof != this->A->get_size()) 
+    error("Matrix size does not match vector length in NonlinSystem:solve().");
+
   // The solve() function is almost identical to the original one in LinSystem
   // except that Y_{n+1} = Y_{n} + dY_{n+1}
   TimePeriod cpu_time;
 
-  // solve the system
-  scalar* delta = (scalar*) malloc(ndofs * sizeof(scalar));
-  memcpy(delta, RHS, sizeof(scalar) * this->A->get_size());
+  // solve the system - this is different from LinSystem
+  scalar* delta = (scalar*) malloc(ndof * sizeof(scalar));
+  memcpy(delta, RHS, sizeof(scalar) * ndof);
   solve_linear_system_scipy_umfpack(this->A, delta);
   report_time("Solved in %g s", cpu_time.tick().last());
-
-  // if not initialized by set_ic(), assume Vec is a zero vector
-  if (Vec == NULL)
-  {
-    Vec = (scalar*) malloc(ndofs * sizeof(scalar));
-    memset(Vec, 0, ndofs * sizeof(scalar));
-  }
-
   // add the increment dY_{n+1} to the previous solution vector
-  for (int i = 0; i < ndofs; i++)
-    Vec[i] += delta[i];
+  for (int i = 0; i < ndof; i++) Vec[i] += delta[i];
   ::free(delta);
 
-  // initialize the Solution classes
+  // copy the solution coefficient vectors into Solutions
   cpu_time.tick(H2D_SKIP);
-  va_list ap;
-  va_start(ap, n);
-  if (n > wf->neq) n = wf->neq;
   for (int i = 0; i < n; i++)
   {
-    Solution* sln = va_arg(ap, Solution*);
-    sln->set_fe_solution(spaces[i], pss[i], Vec);
+    sln[i]->set_fe_solution(spaces[i], pss[i], Vec);
   }
-  va_end(ap);
   report_time("Exported solution in %g s", cpu_time.tick().last());
   return true;
 }
@@ -207,36 +160,9 @@ bool NonlinSystem::solve(int n, ...)
 // single equation case
 bool NonlinSystem::solve(Solution* sln)
 {
-  // The solve() function is almost identical to the original one in LinSystem
-  // except that Y_{n+1} = Y_{n} + dY_{n+1}
-  TimePeriod cpu_time;
-
-  // solve the system
-  scalar* delta = (scalar*) malloc(ndofs * sizeof(scalar));
-  memcpy(delta, RHS, sizeof(scalar) * this->A->get_size());
-  solve_linear_system_scipy_umfpack(this->A, delta);
-  report_time("Solved in %g s", cpu_time.tick().last());
-
-  // if not initialized by set_ic(), assume Vec is a zero vector
-  if (Vec == NULL)
-  {
-    Vec = (scalar*) malloc(ndofs * sizeof(scalar));
-    memset(Vec, 0, ndofs * sizeof(scalar));
-  }
-
-  // add the increment dY_{n+1} to the previous solution vector
-  for (int i = 0; i < ndofs; i++)
-    Vec[i] += delta[i];
-  ::free(delta);
-
-  // initialize the Solution classes
-  cpu_time.tick(H2D_SKIP);
-
-  sln->set_fe_solution(spaces[0], pss[0], Vec);
-
-  report_time("Exported solution in %g s", cpu_time.tick().last());
-
-  return true;
+  bool flag;
+  flag = this->solve(Tuple<Solution*>(sln));
+  return flag;
 }
 
 // Newton's loop for one equation
@@ -259,7 +185,7 @@ bool NonlinSystem::solve_newton(Solution* u_prev, double newton_tol, int newton_
       // assemble the Jacobian matrix and residual vector,
       // solve the system
       this->assemble();
-      this->solve(1, &sln_iter);
+      this->solve(&sln_iter);
 
       // calculate the l2-norm of residual vector
       res_l2_norm = this->get_residual_l2_norm();
@@ -297,7 +223,7 @@ bool NonlinSystem::solve_newton(Solution* u_prev_1, Solution* u_prev_2, double n
       // assemble the Jacobian matrix and residual vector,
       // solve the system
       this->assemble();
-      this->solve(2, &sln_iter_1, &sln_iter_2);
+      this->solve(Tuple<Solution*>(&sln_iter_1, &sln_iter_2));
 
       // calculate the l2-norm of residual vector
       res_l2_norm = this->get_residual_l2_norm();
@@ -328,7 +254,6 @@ bool NonlinSystem::solve_newton(Solution* u_prev_1, Solution* u_prev_2, Solution
     do
     {
       info("---- Newton iter %d:", it); it++;
-      //printf("ndof = %d\n", space_1->get_num_dofs() + space_2->get_num_dofs() + space_3->get_num_dofs());
 
       // reinitialization of filters (if relevant)
       if (f1 != NULL) f1->reinit();
@@ -338,11 +263,34 @@ bool NonlinSystem::solve_newton(Solution* u_prev_1, Solution* u_prev_2, Solution
       // assemble the Jacobian matrix and residual vector,
       // solve the system
       this->assemble();
-      this->solve(3, &sln_iter_1, &sln_iter_2, &sln_iter_3);
+      this->solve(Tuple<Solution*>(&sln_iter_1, &sln_iter_2, &sln_iter_3));
 
       // calculate the l2-norm of residual vector
       res_l2_norm = this->get_residual_l2_norm();
-      info("Residual L2 norm: %g", res_l2_norm);
+      //info("Residual L2 norm: %g", res_l2_norm);
+      printf("Residual L2 norm: %g\n", res_l2_norm);
+
+
+
+  // Show the solution at the end of time step.
+  // Initialize views.
+  VectorView vview("velocity [m/s]", 0, 0, 500, 400);
+  ScalarView pview("pressure [Pa]", 510, 0, 500, 400);
+  //vview.set_min_max_range(0, 1.6);
+  vview.fix_scale_width(80);
+  //pview.set_min_max_range(-0.9, 1.0);
+  pview.fix_scale_width(80);
+  pview.show_mesh(true);
+  char title[100];
+  sprintf(title, "Velocity, iter %d", it);
+      vview.set_title(title);
+      vview.show(&sln_iter_1, &sln_iter_2, H2D_EPS_LOW);
+      sprintf(title, "Pressure, iter %d", it);
+      pview.set_title(title);
+      pview.show(&sln_iter_3);
+      pview.wait(H2DV_WAIT_KEYPRESS);
+
+
 
       // save the new solutions as "previous" for the
       // next Newton's iteration

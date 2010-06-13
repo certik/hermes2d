@@ -59,9 +59,6 @@ int main(int argc, char* argv[])
   ydisp.set_essential_bc_values(essential_bc_values);
   ydisp.set_uniform_order(P_INIT);
 
-  // Enumerate degrees of freedom.
-  int ndof = assign_dofs(2, &xdisp, &ydisp);
-
   // Initialize the weak formulation.
   WeakForm wf(2);
   wf.add_biform(0, 0, callback(bilinear_form_0_0), H2D_SYM);  // Note that only one symmetric part is
@@ -74,12 +71,12 @@ int main(int argc, char* argv[])
   UmfpackSolver solver;
 
   // Initialize the linear system.
-  LinSystem sys(&wf, &solver, 2, &xdisp, &ydisp);
+  LinSystem ls(&wf, &solver, &xdisp, &ydisp);
 
   // Assemble and solve the matrix problem.
   Solution xsln, ysln;
-  sys.assemble();
-  sys.solve(2, &xsln, &ysln);
+  ls.assemble();
+  ls.solve(&xsln, &ysln);
 
   // Visualize the solution.
   ScalarView view("Von Mises stress [Pa]", 50, 50, 1200, 600);

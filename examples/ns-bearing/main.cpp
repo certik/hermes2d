@@ -5,24 +5,24 @@
 #include "hermes2d.h"
 #include "solver_umfpack.h"
 
-// Flow in between two circles, inner circle is rorating with angular 
-// velocity V. The time-dependent laminar incompressible Navier-Stokes equations are
-// discretized in time via the implicit Euler method. If NEWTON == true,
+// Flow in between two circles, inner circle is rotating with surface 
+// velocity VEL. The time-dependent laminar incompressible Navier-Stokes equations
+// are discretized in time via the implicit Euler method. If NEWTON == true,
 // the Newton's method is used to solve the nonlinear problem at each time
 // step. If NEWTON == false, the convective term is only linearized using the
 // velocities from the previous time step. Obviously the latter approach is wrong,
 // but people do this frequently because it is faster and simpler to implement.
 // Therefore we include this case for comparison purposes. We also show how
 // to use discontinuous ($L^2$) elements for pressure and thus make the
-// velocity discreetely divergence free. Comparison to approximating the
+// velocity discretely divergence-free. Comparison to approximating the
 // pressure with the standard (continuous) Taylor-Hood elements is enabled.
-// The Reynolds number Re = 200 which is embarrassingly low. You
-// can increase it but then you will need to make the mesh finer, and the
-// computation will take more time.
+// The Reynolds number Re = 200 which is very low. You can increase it but 
+// then you will need to make the mesh finer, and the computation will take 
+// more time.
 //
 // PDE: incompressible Navier-Stokes equations in the form
-// \partial v / \partial t - \Delta v / Re + (v \cdot \nabla) v + \nabla p = 0,
-// div v = 0.
+//     \partial v / \partial t - \Delta v / Re + (v \cdot \nabla) v + \nabla p = 0,
+//     div v = 0.
 //
 // BC: tangential velocity V on Gamma_1 (inner circle),
 //     zero velocity on Gamma_2 (outer circle).
@@ -32,14 +32,15 @@
 //
 // The following parameters can be changed:
 
+//#define STOKES                     // If this is defined, Stokes problem is solved, otherwise N-S.
 #define PRESSURE_IN_L2               // If this is defined, the pressure is approximated using
                                      // discontinuous L2 elements (making the velocity discreetely
                                      // divergence-free, more accurate than using a continuous
                                      // pressure approximation). Otherwise the standard continuous
                                      // elements are used. The results are striking - check the
                                      // tutorial for comparisons.
-const int INIT_REF_NUM = 2;          // Number of initial uniform mesh refinements. 
-const int INIT_BDY_REF_NUM = 2;      // Number of initial mesh refinements towards boundary. 
+const int INIT_REF_NUM = 1;          // Number of initial uniform mesh refinements. 
+const int INIT_BDY_REF_NUM = 1;      // Number of initial mesh refinements towards boundary. 
 const bool NEWTON = true;            // If NEWTON == true then the Newton's iteration is performed.
                                      // in every time step. Otherwise the convective term is linearized
                                      // using the velocities from the previous time step.
@@ -51,9 +52,9 @@ const double RE = 200.0;             // Reynolds number.
 const double VEL = 0.1;              // Surface velocity of inner circle.
 const double STARTUP_TIME = 1.0;     // During this time, surface velocity of the inner circle increases 
                                      // gradually from 0 to VEL, then it stays constant.
-const double TAU = 0.05;              // Time step.
+const double TAU = 0.1;             // Time step.
 const double T_FINAL = 30000.0;      // Time interval length.
-const double NEWTON_TOL = 1e-3;      // Stopping criterion for the Newton's method.
+const double NEWTON_TOL = 1e-5;      // Stopping criterion for the Newton's method.
 const int NEWTON_MAX_ITER = 10;      // Maximum allowed number of Newton iterations.
 
 // Boundary markers.
@@ -114,7 +115,7 @@ int main(int argc, char* argv[])
 
   // Initial mesh refinements.
   for (int i=0; i < INIT_REF_NUM; i++) mesh.refine_all_elements();
-  mesh.refine_towards_boundary(bdy_inner, INIT_BDY_REF_NUM, false); // '2' is the number of levels,
+  mesh.refine_towards_boundary(bdy_inner, INIT_BDY_REF_NUM, false); // INIT_BDY_REF_NUM is the number of levels,
   //mesh.refine_towards_boundary(bdy_outer, INIT_BDY_REF_NUM, true); // 'true' stands for anisotropic refinements.
 
   // Initialize shapeset.
@@ -146,10 +147,6 @@ int main(int argc, char* argv[])
   xvel_space.set_uniform_order(P_INIT_VEL);
   yvel_space.set_uniform_order(P_INIT_VEL);
   p_space.set_uniform_order(P_INIT_PRESSURE);
-
-  // Enumerate degrees of freedom.
-  int ndof = assign_dofs(3, &xvel_space, &yvel_space, &p_space);
-  info("ndof = %d", ndof);
 
   // Solutions for the Newton's iteration and time stepping.
   Solution xvel_prev_time, yvel_prev_time, xvel_prev_newton, yvel_prev_newton, p_prev;
@@ -206,10 +203,46 @@ int main(int argc, char* argv[])
   UmfpackSolver umfpack;
 
   // Initialize linear system.
+  /*
   LinSystem ls(&wf, &umfpack, 3, &xvel_space, &yvel_space, &p_space);
+  if (!NEWTON) printf("LinSystem ndof = %d\n", ls.get_num_dofs());
+  if (!NEWTON) ls.project_global(&xvel_prev_newton, &yvel_prev_newton, &p_prev, 
+                                 &xvel_prev_newton, &yvel_prev_newton, &p_prev);
+  */
 
   // Initialize nonlinear system.
-  NonlinSystem nls(&wf, &umfpack, 3, &xvel_space, &yvel_space, &p_space);
+  printf("here 1\n");
+  NonlinSystem nls(&wf, &umfpack, Tuple<Space*>(&xvel_space, &yvel_space, &p_space));
+
+  printf("here 2\n");
+
+  //assign_dofs(3, &xvel_space, &yvel_space, &p_space);
+
+  // View FE basis functions.
+  BaseView view1;
+  view1.show(&p_space);
+  View::wait();
+
+
+
+
+  if (NEWTON) printf("NonlinSystem ndof = %d\n", nls.get_num_dofs());
+  if(nls.get_solution_vector() == NULL) error("Vec is NULL.");
+  printf("here 1\n");
+  if (NEWTON) nls.project_global(Tuple<MeshFunction*>(&xvel_prev_time, &yvel_prev_time, &p_prev), 
+                                 Tuple<Solution*>(&xvel_prev_time, &yvel_prev_time, &p_prev));
+
+  printf("here 2\n");
+
+  // Setting initial conditions for Newton's iteration.
+  xvel_prev_newton.copy(&xvel_prev_time);
+  yvel_prev_newton.copy(&yvel_prev_time);
+
+  printf("here 3\n");
+
+  // Show initial condition for velocity. 
+  vview.show(&xvel_prev_time, &yvel_prev_time, H2D_EPS_LOW);
+  vview.wait(H2DV_WAIT_KEYPRESS);
 
   // Time-stepping loop:
   char title[100];
@@ -220,11 +253,13 @@ int main(int argc, char* argv[])
 
     info("---- Time step %d, time = %g:", ts, TIME);
 
-    // This is needed to update the time-dependent boundary conditions.
-    ndof = assign_dofs(3, &xvel_space, &yvel_space, &p_space);
+    // This is needed to update time-dependent boundary conditions.
+    update_essential_bc_values(Tuple<Space*>(&xvel_space, &yvel_space, &p_space));
 
     if (NEWTON) {
       // Newton's method.
+      // debug 
+      nls.print_vector();
       info("Performing Newton's method.");
       if (!nls.solve_newton(&xvel_prev_newton, &yvel_prev_newton, &p_prev, NEWTON_TOL, NEWTON_MAX_ITER)) 
         error("Newton's method did not converge.");
@@ -237,6 +272,12 @@ int main(int argc, char* argv[])
       pview.set_title(title);
       pview.show(&p_prev);
 
+      // Calculate an estimate of the temporal change of the x-velocity.
+      H1Adapt hp(&xvel_space);
+      hp.set_solutions(&xvel_prev_time, &xvel_prev_newton);
+      double err_est = hp.calc_error(H2D_TOTAL_ERROR_ABS | H2D_ELEMENT_ERROR_ABS) / TAU;
+      info("x_vel temporal change: %g", err_est);
+
       // Copy the result of the Newton's iteration into the
       // previous time level solutions.
       xvel_prev_time.copy(&xvel_prev_newton);
@@ -246,8 +287,10 @@ int main(int argc, char* argv[])
       // Assemble and solve.
       Solution xvel_sln, yvel_sln, p_sln;
       info("Assembling and solving linear problem.");
+      /*
       ls.assemble();
       ls.solve(3, &xvel_sln, &yvel_sln, &p_sln);
+      */
 
       // Show the solution at the end of time step.
       sprintf(title, "Velocity, time %g", TIME);
@@ -257,6 +300,12 @@ int main(int argc, char* argv[])
       pview.set_title(title);
       pview.show(&p_sln);
 
+      // Calculate an estimate of the temporal change of the x-velocity.
+      H1Adapt hp(&xvel_space);
+      hp.set_solutions(&xvel_prev_time, &xvel_sln);
+      double err_est = hp.calc_error(H2D_TOTAL_ERROR_ABS | H2D_ELEMENT_ERROR_ABS) / TAU;
+      info("x_vel temporal change: %g", err_est);
+  
       // This copy destroys xvel_sln and yvel_sln
       // which are no longer needed.
       xvel_prev_time = xvel_sln;

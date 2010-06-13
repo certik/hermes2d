@@ -1,3 +1,8 @@
+/* 
+  NOTE: THIS IS OLD CODE THAT WILL BE REMOVED AFTER SOME TIME.
+*/
+
+
 // This file is part of Hermes2D.
 //
 // Hermes2D is free software: you can redistribute it and/or modify
@@ -13,6 +18,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Hermes2D.  If not, see <http://www.gnu.org/licenses/>.
 
+/*
 #ifndef __H2D_REFSYSTEM2_H
 #define __H2D_REFSYSTEM2_H
 
@@ -152,3 +158,4 @@ protected:
 
 #endif
 
+*/

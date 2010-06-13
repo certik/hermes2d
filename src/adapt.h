@@ -34,7 +34,7 @@
  *  is proposed through refinement selectors, see \ref g_selectors.
  *
  *  All adaptivity classes have to be derived from the class Adapt.
- *  Curently available classes are:
+ *  Currently available classes are:
  *  - H1Adapt
  *  - L2Adapt
  *    \if H2D_COMPLEX # -HcurlAdapt \endif

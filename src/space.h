@@ -16,6 +16,7 @@
 #ifndef __H2D_SPACE_H
 #define __H2D_SPACE_H
 
+#include "tuple.h"
 #include "mesh.h"
 #include "shapeset.h"
 #include "asmlist.h"
@@ -140,7 +141,7 @@ public:
   virtual int assign_dofs(int first_dof = 0, int stride = 1);
 
   /// \brief Returns the number of basis functions contained in the space.
-  int get_num_dofs() const { return (next_dof - first_dof) / stride; }
+  int get_num_dofs() { return ndof; }
   /// \brief Returns the DOF number of the last basis function.
   int get_max_dof() const { return next_dof - stride; }
 
@@ -162,11 +163,18 @@ public:
   /// FE mesh
   Mesh* mesh;
 
+  /// Number of degrees of freedom (dimension of the space)
+  int ndof;
+
   /// Obtains an assembly list for the given element.
   virtual void get_element_assembly_list(Element* e, AsmList* al);
 
   /// Obtains an edge assembly list (contains shape functions that are nonzero on the specified edge).
   void get_edge_assembly_list(Element* e, int edge, AsmList* al);
+
+  /// Updates essential BC values. Typically used for time-dependent 
+  /// essnetial boundary conditions.
+  void update_essential_bc_values();
 
 protected:
   static const int H2D_UNASSIGNED_DOF = -2; ///< DOF which was not assigned yet.
@@ -253,7 +261,6 @@ protected: //debugging support
   void precalculate_projection_matrix(int nv, double**& mat, double*& p);
   virtual scalar* get_bc_projection(EdgePos* ep, int order) = 0;
   void update_edge_bc(Element* e, EdgePos* ep);
-  void update_bc_dofs();
 
   /// Called by Space to update constraining relationships between shape functions due
   /// to hanging nodes in the mesh. As this is space-specific, this function is reimplemented
@@ -278,13 +285,18 @@ public:
 
   /// Internal. Used by LinSystem to detect changes in the space.
   int get_seq() const { return seq; }
+  int set_seq(int seq_) { seq = seq_; }
 
   /// Internal. Return type of this space (H1 = 0, Hcurl = 1, Hdiv = 2, L2 = 3)
   virtual int get_type() const = 0;
 };
 
 // new way of enumerating degrees of freedom
-extern H2D_API int assign_dofs(int n, ...);  // assigns dofs in multiple spaces
-extern H2D_API int assign_dofs(Space *s);    // assigns dofs to one space
+extern H2D_API int assign_dofs(Tuple<Space*> spaces);  // multiple spaces
+extern H2D_API int assign_dofs(Space* s);    // one space
+
+// updating time-dependent essential (Dirichlet) boundary conditions
+extern H2D_API void update_essential_bc_values(Tuple<Space*> spaces);  // multiple spaces
+extern H2D_API void update_essential_bc_values(Space *s);    // one space
 
 #endif

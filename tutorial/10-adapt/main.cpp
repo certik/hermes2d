@@ -107,9 +107,6 @@ int main(int argc, char* argv[])
   space.set_essential_bc_values(essential_bc_values);
   space.set_uniform_order(P_INIT);
 
-  // Enumerate degrees of freedom.
-  int ndof = assign_dofs(&space);
-
   // Initialize the weak formulation.
   WeakForm wf;
   wf.add_biform(callback(biform1), H2D_SYM, OMEGA_1);
@@ -130,25 +127,23 @@ int main(int argc, char* argv[])
   // Initialize refinement selector.
   H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER, &shapeset);
 
-  // Initialize the coarse mesh problem.
+  // Initialize the coarse and fine mesh problems.
   LinSystem ls(&wf, &solver, &space);
-  
+  int order_increase = 1;   // >= 0 (default = 1) 
+  int refinement = 1;       // only '0' or '1' supported (default = 1)
+  RefSystem rs(&ls, order_increase, refinement);
+
   // Adaptivity loop:
-  int as = 1; bool done = false;
   Solution sln_coarse, sln_fine;
+  int as = 1; bool done = false;
   do
   {
     info("---- Adaptivity step %d:", as);
 
-    // Initialize the fine mesh problem.
-    int order_increase = 1;   // >= 0 (default = 1) 
-    int refinement = 1;       // only '0' or '1' supported (default = 1)
-    RefSystem rs(&ls, order_increase, refinement);
-
     // Assemble and solve the fine mesh problem.
     info("Solving on fine mesh.");
     rs.assemble();
-    rs.solve(&sln_fine);
+    rs.solve(&sln_fine);    
 
     // Either solve on coarse mesh or project the fine mesh solution 
     // on the coarse mesh.
@@ -196,7 +191,13 @@ int main(int argc, char* argv[])
     else {
       info("Adapting coarse mesh.");
       done = hp.adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY);
-      ndof = assign_dofs(&space);
+      int ndof = assign_dofs(&space);
+
+      // debug
+      printf("ndof new = %d\n", ndof);
+      OrderView ov;
+      ov.show(&space);
+
       if (ndof >= NDOF_STOP) done = true;
     }
 

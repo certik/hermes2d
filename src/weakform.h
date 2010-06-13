@@ -57,8 +57,8 @@ class H2D_API WeakForm
 public:
 
   WeakForm(int neq = 1, bool mat_free = false);
-
-  int def_area(int n, ...);
+  
+  //int def_area(int n, ...);
 
   // linear case
   typedef scalar (*biform_val_t) (int n, double *wt, Func<double> *u, Func<double> *v, Geom<double> *e, ExtData<scalar> *);
@@ -97,6 +97,9 @@ public:
   void add_resform_surf(resform_val_t fn, resform_ord_t ord, int area = H2D_ANY, int nx = 0, ...); // single equation case
 
   void set_ext_fns(void* fn, int nx, ...);
+
+  /// Returns the number of equations
+  int get_neq() { return neq; }
 
   /// Internal. Used by LinSystem to detect changes in the weakform.
   int get_seq() const { return seq; }

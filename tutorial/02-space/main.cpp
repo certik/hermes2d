@@ -13,7 +13,7 @@
 // just load the corresponding mesh at the beginning of the
 // main.cpp file.
 
-int P_INIT = 1;
+int P_INIT = 3;
 
 static char text[] = "\
 Click into the image window and:\n\

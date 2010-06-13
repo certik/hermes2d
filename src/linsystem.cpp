@@ -27,31 +27,26 @@
 #include <algorithm>
 #include "python_solvers.h"
 
+
+
 void qsort_int(int* pbase, size_t total_elems); // defined in qsort.cpp
 
 //// interface /////////////////////////////////////////////////////////////////////////////////////
 
-void LinSystem::init(WeakForm* wf_, Solver* solver_) 
+void LinSystem::init_lin(WeakForm* wf_, Solver* solver_) 
 {
   this->wf = wf_;
   this->solver = solver_;
   slv_ctx = this->solver ? this->solver->new_context(false) : NULL;
+  this->wf_seq = -1;
 
   this->RHS = this->Dir = this->Vec = NULL;
   this->A = NULL;
   this->mat_sym = false;
 
-  this->num_spaces = this->wf->neq;
-  this->spaces = new Space*[this->wf->neq];
-  for (int i=0; i<this->wf->neq; i++) this->spaces[i] = NULL;
-  this->meshes = new Mesh*[this->wf->neq];
-  for (int i=0; i<this->wf->neq; i++) this->meshes[i] = NULL;
-  this->sp_seq = new int[this->wf->neq];
-  this->wf_seq = -1;
-  memset(sp_seq, -1, sizeof(int) * wf->neq);
-  this->pss = new PrecalcShapeset*[this->wf->neq];
-  for (int i=0; i<this->wf->neq; i++) this->pss[i] = NULL;
-  this->num_user_pss = 0;
+  this->spaces = NULL;
+  this->meshes = NULL;
+  this->pss = NULL;
 
   this->values_changed = true;
   this->struct_changed = true;
@@ -62,109 +57,85 @@ void LinSystem::init(WeakForm* wf_, Solver* solver_)
 // this is needed because of a constructor in NonlinSystem 
 LinSystem::LinSystem() {}
 
-LinSystem::LinSystem(WeakForm* wf, Solver* solver)
+LinSystem::LinSystem(WeakForm* wf_, Solver* solver_)
 {
-  this->init(wf, solver);
+  this->init_lin(wf_, solver_);
 }
 
-LinSystem::LinSystem(WeakForm* wf)
+LinSystem::LinSystem(WeakForm* wf_)
 {
-  Solver *solver = NULL;
-  this->init(wf, solver);
+  Solver *solver_ = NULL;
+  this->init_lin(wf_, solver_);
 }
 
-LinSystem::LinSystem(WeakForm* wf, Solver* solver, Space* s)
+LinSystem::LinSystem(WeakForm* wf_, Solver* solver_, Tuple<Space*> spaces_)
 {
-  this->init(wf, solver);
-  this->init_space(s);
+  int n = spaces_.size();
+  if (n != wf_->neq) 
+    error("Number of spaces does not match number of equations in LinSystem::LinSystem().");
+  this->init_lin(wf_, solver_);
+  this->init_spaces(spaces_);
+  this->assign_dofs();
 }
 
-LinSystem::LinSystem(WeakForm* wf, Space* s)
+LinSystem::LinSystem(WeakForm* wf_, Tuple<Space*> spaces_)
 {
-  Solver *solver = NULL;
-  this->init(wf, solver);
-  this->init_space(s);
+  Solver* solver_ = NULL;
+  this->init_lin(wf_, solver_);
+  this->init_spaces(spaces_);
+  this->assign_dofs();
 }
 
-// NOTE: there is some code duplication in the two constructors below.
-// FIXME: Ivo's Tuples should be used here, then the duplication can be avoided.
-LinSystem::LinSystem(WeakForm* wf, Solver* solver, int n, ...)
+LinSystem::LinSystem(WeakForm* wf_, Solver* solver_, Space* s_)
 {
-  this->init(wf, solver);
-  // set spaces, meshes and pss
-  if (n <= 0 || n > wf->neq) error("Bad number of spaces.");
-  this->num_spaces = n;
-  va_list ap;
-  va_start(ap, n);
-  // set spaces and meshes at the same time
-  for (int i = 0; i < wf->neq; i++) {
-    this->spaces[i] = (i < n) ? va_arg(ap, Space*) : this->spaces[n-1];
-    this->meshes[i] = (i < n) ? this->spaces[i]->mesh : this->spaces[n-1]->mesh;
-  }
-  va_end(ap);
-  memset(sp_seq, -1, sizeof(int) * wf->neq);
-  this->have_spaces = true;
-  for (int i = 0; i < n; i++){
-    if (this->pss[i] == NULL) {
-      Shapeset *shapeset = this->spaces[i]->get_shapeset();
-      PrecalcShapeset *p = new PrecalcShapeset(shapeset);
-      if (p == NULL) error("New PrecalcShapeset could not be allocated.");
-      this->pss[i] = p;
-      this->num_user_pss++;
-    }
-  }
+  if (wf_->neq != 1) 
+    error("Number of spaces does not match number of equations in LinSystem::LinSystem().");
+  this->init_lin(wf_, solver_);
+  this->init_space(s_);
+  this->assign_dofs();
 }
 
-LinSystem::LinSystem(WeakForm* wf, int n, ...)
+LinSystem::LinSystem(WeakForm* wf_, Space* s_)
 {
-  Solver* solver = NULL;
-  this->init(wf, solver);
-  // set spaces, meshes and pss
-  if (n <= 0 || n > wf->neq) error("Bad number of spaces.");
-  this->num_spaces = n;
-  va_list ap;
-  va_start(ap, n);
-  // set spaces and meshes at the same time
-  for (int i = 0; i < wf->neq; i++) {
-    this->spaces[i] = (i < n) ? va_arg(ap, Space*) : this->spaces[n-1];
-    this->meshes[i] = (i < n) ? this->spaces[i]->mesh : this->spaces[n-1]->mesh;
-  }
-  va_end(ap);
-  memset(sp_seq, -1, sizeof(int) * wf->neq);
-  this->have_spaces = true;
-  for (int i = 0; i < n; i++){
-    if (this->pss[i] == NULL) {
-      Shapeset *shapeset = this->spaces[i]->get_shapeset();
-      PrecalcShapeset *p = new PrecalcShapeset(shapeset);
-      if (p == NULL) error("New PrecalcShapeset could not be allocated.");
-      this->pss[i] = p;
-      this->num_user_pss++;
-    }
-  }
+  Solver *solver_ = NULL;
+  this->init_lin(wf_, solver_);
+  this->init_space(s_);
+  this->assign_dofs();
 }
+
+LinSystem::LinSystem(WeakForm* wf_, Solver* solver_, Space* space1_, Space* space2_)
+{
+  int n = 2;
+  if (n != wf_->neq) 
+    error("Number of spaces does not match number of equations in LinSystem::LinSystem().");
+  this->init_lin(wf_, solver_);
+  this->init_spaces(Tuple<Space*>(space1_, space2_));
+  this->assign_dofs();
+}
+
 
 LinSystem::~LinSystem()
 {
+  /* FIXME - this is now a memory leak that needs to be fixed soon. 
+     Uncommenting this was causing a double-free segfault.
   free();
-  /* FIXME SOON - this is a memory leak. Uncommenting 
-     this was causing a double-free segfault. */
-  //free_meshes_and_spaces();
   if (this->sp_seq != NULL) delete [] this->sp_seq;
   if (this->pss != NULL) delete [] this->pss;
   if (this->solver) this->solver->free_context(this->slv_ctx);
+  */
 }
 
 void LinSystem::free_meshes_and_spaces()
 {
   // free spaces, making sure that duplicated ones do not get deleted twice
-  if (spaces != NULL)
+  if (this->spaces != NULL)
   {
-    for (int i = 0; i < this->num_spaces; i++) {
-      for (int j = i+1; j < this->num_spaces; j++) {
+    for (int i = 0; i < this->wf->neq; i++) {
+      for (int j = i+1; j < this->wf->neq; j++) {
         if (spaces[j] == spaces[i]) spaces[j] = NULL;
       }
     }
-    for (int i = 0; i < this->num_spaces; i++) {
+    for (int i = 0; i < this->wf->neq; i++) {
       if (spaces[i] != NULL) {
         delete spaces[i];
         spaces[i] = NULL;
@@ -174,14 +145,14 @@ void LinSystem::free_meshes_and_spaces()
   }
 
   // free meshes, making sure that duplicated ones do not get deleted twice
-  if (meshes != NULL)
+  if (this->meshes != NULL)
   {
-    for (int i = 0; i < this->num_spaces; i++) {
-      for (int j = i+1; j < this->num_spaces; j++) {
+    for (int i = 0; i < this->wf->neq; i++) {
+      for (int j = i+1; j < this->wf->neq; j++) {
         if (meshes[j] == meshes[i]) meshes[j] = NULL;
       }
     }
-    for (int i = 0; i < this->num_spaces; i++) {
+    for (int i = 0; i < this->wf->neq; i++) {
       if (meshes[i] != NULL) {
         delete meshes[i];
         meshes[i] = NULL;
@@ -192,125 +163,65 @@ void LinSystem::free_meshes_and_spaces()
 } 
 
 // Should not be called by the user.
-void LinSystem::init_spaces(int n, ...)
+void LinSystem::init_spaces(Tuple<Space*> spaces_)
 {
-  if (n <= 0 || n > wf->neq) error("Bad number of spaces.");
-  num_spaces = n;
-  va_list ap;
-  va_start(ap, n);
-  // set spaces and meshes at the same time
-  for (int i = 0; i < wf->neq; i++) {
-    spaces[i] = (i < n) ? va_arg(ap, Space*) : spaces[n-1];
-    meshes[i] = (i < n) ? spaces[i]->mesh : spaces[n-1]->mesh;
-  }
-  va_end(ap);
-  memset(sp_seq, -1, sizeof(int) * wf->neq);
-  have_spaces = true;
-  for (int i = 0; i < n; i++){
-    if (pss[i] == NULL) {
-      Shapeset *shapeset = spaces[i]->get_shapeset();
-      PrecalcShapeset *p = new PrecalcShapeset(shapeset);
-      if (p == NULL) error("New PrecalcShapeset could not be allocated.");
-      pss[i] = p;
-      num_user_pss++;
-    }
-  }
-}
+  int n = spaces_.size();
+  if (n != this->wf->neq) 
+    error("Number of spaces does not match number of equations in LinSystem::init_spaces().");  
 
-// Deprecated.
-void LinSystem::set_spaces(int n, ...)
-{
-  warn("Call to deprecated function set_spaces().");
-  if (n <= 0 || n > wf->neq) error("Bad number of spaces.");
-  num_spaces = n;
-  va_list ap;
-  va_start(ap, n);
-  // set spaces and meshes at the same time
-  for (int i = 0; i < wf->neq; i++) {
-    spaces[i] = (i < n) ? va_arg(ap, Space*) : spaces[n-1];
-    meshes[i] = (i < n) ? spaces[i]->mesh : spaces[n-1]->mesh;
-  }
-  va_end(ap);
-  memset(sp_seq, -1, sizeof(int) * wf->neq);
-  have_spaces = true;
+  // initialize spaces
+  this->spaces = new Space*[this->wf->neq];
+  for (int i = 0; i < this->wf->neq; i++) this->spaces[i] = spaces_[i];
+  this->sp_seq = new int[this->wf->neq];
+  memset(sp_seq, -1, sizeof(int) * this->wf->neq);
+  this->have_spaces = true;
+
+  // initialize meshes
+  this->meshes = new Mesh*[this->wf->neq];
+  for (int i = 0; i < this->wf->neq; i++) this->meshes[i] = spaces[i]->mesh;
+
+  // initialize precalc shapesets
+  this->pss = new PrecalcShapeset*[this->wf->neq];
+  for (int i=0; i<this->wf->neq; i++) this->pss[i] = NULL;
+  this->num_user_pss = 0;
   for (int i = 0; i < n; i++){
-    if (pss[i] == NULL) {
-      Shapeset *shapeset = spaces[i]->get_shapeset();
-      PrecalcShapeset *p = new PrecalcShapeset(shapeset);
-      if (p == NULL) error("New PrecalcShapeset could not be allocated.");
-      pss[i] = p;
-      num_user_pss++;
-   }
+    Shapeset *shapeset = spaces[i]->get_shapeset();
+    if (shapeset == NULL) error("Internal in LinSystem::init_spaces().");
+    PrecalcShapeset *p = new PrecalcShapeset(shapeset);
+    if (p == NULL) error("New PrecalcShapeset could not be allocated in LinSystem::init_spaces().");
+    this-> pss[i] = p;
+    this->num_user_pss++;
   }
 }
 
 // Should not be called by the user.
 void LinSystem::init_space(Space* s)
 {
-  num_spaces = 1;
-  spaces[0] = s;
-  meshes[0] = s->mesh;
-  memset(sp_seq, -1, sizeof(int) * wf->neq);
-  have_spaces = true;
-  if (pss[0] == NULL) {
-    Shapeset *shapeset = spaces[0]->get_shapeset();
-    PrecalcShapeset *p = new PrecalcShapeset(shapeset);
-    if (p == NULL) error("New PrecalcShapeset could not be allocated.");
-    pss[0] = p;
-    num_user_pss = 1;
-  }
+  if (this->wf->neq != 1) 
+    error("Do not call init_space() for PDE systems, call init_spaces() instead.");
+  this->init_spaces(Tuple<Space*>(s));
 }
 
-// Deprecated.
-void LinSystem::set_space(Space* s)
+// Obsolete. Should be removed after FeProblem is removed.
+void LinSystem::set_spaces(Tuple<Space*>spaces)
 {
-  warn("Call to deprecated function set_space().");
-  num_spaces = 1;
-  spaces[0] = s;
-  meshes[0] = s->mesh;
-  memset(sp_seq, -1, sizeof(int) * wf->neq);
-  have_spaces = true;
-  if (pss[0] == NULL) {
-    Shapeset *shapeset = spaces[0]->get_shapeset();
-    PrecalcShapeset *p = new PrecalcShapeset(shapeset);
-    if (p == NULL) error("New PrecalcShapeset could not be allocated.");
-    pss[0] = p;
-    num_user_pss = 1;
-  }
+  this->init_spaces(spaces);
 }
 
-void LinSystem::set_pss(int n, ...)
+void LinSystem::set_pss(Tuple<PrecalcShapeset*> pss)
 {
   warn("Call to deprecated function LinSystem::set_pss().");
-  if (n <= 0 || n > wf->neq) error("Bad number of pss's.");
+  int n = pss.size();
+  if (n != this->wf->neq) 
+    error("The number of precalculated shapesets must match the number of equations.");
 
-  va_list ap;
-  va_start(ap, n);
-  for (int i = 0; i < n; i++)
-    pss[i] = va_arg(ap, PrecalcShapeset*);
-  va_end(ap);
+  for (int i = 0; i < n; i++) this->pss[i] = pss[i];
   num_user_pss = n;
-
-  for (int i = n; i < wf->neq; i++)
-  {
-    if (spaces[i]->get_shapeset() != spaces[n-1]->get_shapeset())
-      error("Spaces with different shapesets must have different pss's.");
-    pss[i] = new PrecalcShapeset(pss[n-1]);
-  }
 }
 
-void LinSystem::set_pss(PrecalcShapeset* p)
+void LinSystem::set_pss(PrecalcShapeset* pss)
 {
-  int n = 1;
-  pss[0] = p;
-  num_user_pss = n;
-
-  for (int i = n; i < wf->neq; i++)
-  {
-    if (spaces[i]->get_shapeset() != spaces[n-1]->get_shapeset())
-      error("Spaces with different shapesets must have different pss's.");
-    pss[i] = new PrecalcShapeset(pss[n-1]);
-  }
+  this->set_pss(Tuple<PrecalcShapeset*>(pss));
 }
 
 void LinSystem::copy(LinSystem* sys)
@@ -318,13 +229,17 @@ void LinSystem::copy(LinSystem* sys)
   error("Not implemented yet.");
 }
 
+void LinSystem::free_vectors() 
+{
+  if (this->RHS != NULL) { delete [] this->RHS; this->RHS = NULL; }
+  if (this->Dir != NULL) { delete [] this->Dir; this->Dir = NULL; }
+  if (this->Vec != NULL) { delete [] this->Vec; this->Vec = NULL; }
+}
 
 void LinSystem::free()
-{
-  matrix_free();
-  if (this->RHS != NULL) { ::free(this->RHS); this->RHS = NULL; }
-  if (this->Dir != NULL) { ::free(this->Dir-1); this->Dir = NULL; }
-  if (this->Vec != NULL) { delete [] this->Vec; this->Vec = NULL; }
+{;
+  free_matrix();
+  free_vectors();
   if (this->solver) this->solver->free_data(this->slv_ctx);
 
   this->struct_changed = this->values_changed = true;
@@ -332,7 +247,7 @@ void LinSystem::free()
   this->wf_seq = -1;
 }
 
-void LinSystem::matrix_free()
+void LinSystem::free_matrix()
 {
   if (this->A != NULL) { ::delete this->A; this->A = NULL; }
 }
@@ -341,31 +256,36 @@ void LinSystem::matrix_free()
 
 void LinSystem::create_matrix(bool rhsonly)
 {
-  // sanity check
-  if (!this->have_spaces)
-    error("Before assemble(), you need to call init_spaces().");
+  if (this->have_spaces == false)
+    error("Before assemble(), you need to initialize spaces.");
+  if (this->spaces == NULL) error("spaces = NULL in LinSystem.");
 
   // check if we can reuse the matrix structure
   bool up_to_date = true;
-  for (int i = 0; i < this->wf->neq; i++)
-    if (this->spaces[i]->get_seq() != this->sp_seq[i])
-      { up_to_date = false; break; }
-  if (this->wf->get_seq() != this->wf_seq)
-    up_to_date = false;
+  for (int i = 0; i < this->wf->neq; i++) {
+    if (this->spaces[i]->get_seq() != this->sp_seq[i]) { 
+      up_to_date = false; break; 
+    }
+  }
+  if (this->wf->get_seq() != this->wf_seq) up_to_date = false;
 
-  // if yes, just zero the values and we're done
+  // calculate the number of DOF
+  int ndof = this->get_num_dofs();
+  if (ndof == 0) error("ndof = 0 in LinSystem::create_matrix().");
+
+  // if the matrix has not changed, just zero the values and we're done
   if (up_to_date)
   {
     verbose("Reusing matrix sparse structure.");
     if (!rhsonly) {
 #ifdef H2D_COMPLEX
-      this->A = new CooMatrix(this->ndofs, true);
+      this->A = new CooMatrix(ndof, true);
 #else
-      this->A = new CooMatrix(this->ndofs);
+      this->A = new CooMatrix(ndof);
 #endif
-      memset(this->Dir, 0, sizeof(scalar) * this->ndofs);
+      memset(this->Dir, 0, sizeof(scalar) * ndof);
     }
-    memset(this->RHS, 0, sizeof(scalar) * this->ndofs);
+    memset(this->RHS, 0, sizeof(scalar) * ndof);
     return;
   }
   else if (rhsonly)
@@ -376,20 +296,20 @@ void LinSystem::create_matrix(bool rhsonly)
   trace("Creating matrix sparse structure...");
   TimePeriod cpu_time;
 
-  // calculate the total number of DOF
-  this->ndofs = this->get_num_dofs();
-
-  this->RHS = (scalar*) malloc(sizeof(scalar) * this->ndofs);
-
 #ifdef H2D_COMPLEX
-  this->A = new CooMatrix(this->ndofs, true);
+  this->A = new CooMatrix(ndof, true);
 #else
-  this->A = new CooMatrix(this->ndofs);
+  this->A = new CooMatrix(ndof);
 #endif
-  this->Dir = (scalar*) malloc(sizeof(scalar) * (this->ndofs + 1)) + 1;
-  if (this->RHS == NULL || this->Dir == NULL) error("Out of memory. Error allocating the RHS vector.");
-  memset(this->RHS, 0, sizeof(scalar) * this->ndofs);
-  memset(this->Dir, 0, sizeof(scalar) * this->ndofs);
+
+  this->Vec = new scalar[ndof];
+  this->Dir = new scalar[ndof];
+  this->RHS = new scalar[ndof];
+  if (this->Vec == NULL || this->RHS == NULL || this->Dir == NULL) 
+    error("Out of memory. Error allocating the RHS vector.");
+ memset(this->Vec, 0, sizeof(scalar) * ndof);
+ memset(this->RHS, 0, sizeof(scalar) * ndof);
+ memset(this->Dir, 0, sizeof(scalar) * ndof);
 
   // save space seq numbers and weakform seq number, so we can detect their changes
   for (int i = 0; i < this->wf->neq; i++)
@@ -400,14 +320,14 @@ void LinSystem::create_matrix(bool rhsonly)
 }
 
 
-int LinSystem::get_matrix_size() const
+int LinSystem::get_matrix_size()
 {
     return this->A->get_size();
 }
 
-void LinSystem::get_matrix(int*& Ap, int*& Ai, scalar*& Ax, int& size) const
+void LinSystem::get_matrix(int*& Ap, int*& Ai, scalar*& Ax, int& size)
 {
-    /// XXX: this is a memory leak:
+    /// FIXME: this is a memory leak:
     CSRMatrix *m = new CSRMatrix(this->A);
     Ap = m->get_IA(); Ai = m->get_JA();
     size = m->get_size();
@@ -426,10 +346,12 @@ void LinSystem::insert_block(scalar** mat, int* iidx, int* jidx, int ilen, int j
     this->A->add_block(iidx, ilen, jidx, jlen, mat);
 }
 
-
 void LinSystem::assemble(bool rhsonly)
 {
-  if (!rhsonly) matrix_free();
+  int ndof = this->get_num_dofs();
+  if (ndof == 0) error("ndof = 0 in LinSystem::assemble().");
+
+  if (!rhsonly) free_matrix();
   int k, m, n, marker;
   std::vector<AsmList> al(wf->neq);
   AsmList* am, * an;
@@ -443,7 +365,6 @@ void LinSystem::assemble(bool rhsonly)
 
   // create the sparse structure
   create_matrix(rhsonly);
-  if (!ndofs) return;
 
   trace("Assembling stiffness matrix...");
   TimePeriod cpu_time;
@@ -656,9 +577,11 @@ void LinSystem::assemble(bool rhsonly)
   }
 
   // add to RHS the dirichlet contributions
-  if (want_dir_contrib)
-    for (int i = 0; i < ndofs; i++)
+  if (want_dir_contrib) {
+    for (int i = 0; i < ndof; i++) {
       RHS[i] += Dir[i];
+    }
+  }
 
   verbose("Stiffness matrix assembled (stages: %d)", stages.size());
   report_time("Stiffness matrix assembled in %g s", cpu_time.tick().last());
@@ -825,7 +748,8 @@ scalar LinSystem::eval_form(WeakForm::LiFormVol *lf, PrecalcShapeset *fv, RefMap
   Func<double>* v = get_fn(fv, rv, order);
   ExtData<scalar>* ext = init_ext_fns(lf->ext, rv, order);
 
-  scalar res = lf->evaluate_fn(np, jwt, v, e, ext, rv->get_active_element(), fv->get_shapeset(), fv->get_active_shape());
+  scalar res = lf->evaluate_fn(np, jwt, v, e, ext, rv->get_active_element(), 
+               fv->get_shapeset(), fv->get_active_shape());
 
   ext->free(); delete ext;
   return res;
@@ -907,83 +831,96 @@ scalar LinSystem::eval_form(WeakForm::LiFormSurf *lf, PrecalcShapeset *fv, RefMa
 
 //// solve /////////////////////////////////////////////////////////////////////////////////////////
 
-bool LinSystem::solve(int n, ...)
+bool LinSystem::solve(Tuple<Solution*> sln)
 {
-  if (!this->solver) error("Cannot solve -- no matrix solver was provided.");
+  int n = sln.size();
+
+  // if the number of solutions does not match the number of equations, throw error
+  if (n != this->wf->neq) 
+    error("Number of solutions does not match the number of equations in LinSystem::solve().");
+
+  // if no matrix solver defined, throw error
+  if (!this->solver) error("No matrix solver defined in LinSystem::solve().");
+
+  // if Vec is not initialized, throw error
+  if (this->Vec == NULL) error("Vec is NULL in LinSystem::solve().");
+
+  // if vector length is not equal to matrix size, throw error
+  int ndof = this->get_num_dofs();
+  if (ndof == 0) error("ndof = 0 in LinSystem::solve().");
+  if (ndof != this->A->get_size()) 
+    error("Matrix size does not match vector length in LinSystem:solve().");
+
+  // time measurement
   TimePeriod cpu_time;
 
   // solve the system
-  if (this->Vec != NULL) delete [] this->Vec;
-  this->Vec = new scalar[this->ndofs];
-  memcpy(this->Vec, this->RHS, sizeof(scalar) * this->ndofs);
+  memcpy(this->Vec, this->RHS, sizeof(scalar) * ndof);
   solve_linear_system_scipy_umfpack(this->A, this->Vec);
   report_time("LinSystem solved in %g s", cpu_time.tick().last());
 
-  // initialize the Solution classes
-  va_list ap;
-  va_start(ap, n);
-  if (n > this->wf->neq) n = this->wf->neq;
+  // copy solution coefficient vectors into Solutions
   for (int i = 0; i < n; i++)
   {
-    Solution* sln = va_arg(ap, Solution*);
-    sln->set_fe_solution(this->spaces[i], this->pss[i], this->Vec);
+    sln[i]->set_fe_solution(this->spaces[i], this->pss[i], this->Vec);
   }
-  va_end(ap);
+
   report_time("Exported solution in %g s", cpu_time.tick().last());
   return true;
 }
 
+// single equation case
 bool LinSystem::solve(Solution* sln)
 {
-  if (!this->solver) error("Cannot solve -- no solver was provided.");
-  TimePeriod cpu_time;
+  bool flag;
+  flag = this->solve(Tuple<Solution*>(sln));
+  return flag;
+}
 
-  // solve the system
-  if (this->Vec != NULL) delete [] this->Vec;
-  //this->Vec = (scalar*) malloc(this->ndofs * sizeof(scalar));
-  this->Vec = new scalar[this->ndofs];
-  if (this->Vec == NULL) error("Malloc problem in LinSystem::solve()");
+// two equations case
+bool LinSystem::solve(Solution* sln1, Solution *sln2)
+{
+  bool flag;
+  flag = this->solve(Tuple<Solution*>(sln1, sln2));
+  return flag;
+}
 
-  // copy the content of RHS into Vec
-  memcpy(this->Vec, this->RHS, sizeof(scalar) * this->ndofs);
-
-  // call UMFpack in Scipy
-  solve_linear_system_scipy_umfpack(this->A, this->Vec);
-  report_time("LinSystem solved in %g s", cpu_time.tick().last());
-
-  // initialize the Solution class
-  if (this->spaces[0] == NULL) error("No spaces in LinSystem::solve().");
-  if (this->pss[0] == NULL) error("No precalc shapeset in LinSystem::solve().");
-  sln->set_fe_solution(this->spaces[0], this->pss[0], this->Vec);
-  report_time("Exported solution in %g s", cpu_time.tick().last());
-
-  return true;
+// three equations case
+bool LinSystem::solve(Solution* sln1, Solution *sln2, Solution* sln3)
+{
+  bool flag;
+  flag = this->solve(Tuple<Solution*>(sln1, sln2, sln3));
+  return flag;
 }
 
 
 //// matrix and solution output /////////////////////////////////////////////////////////////////////////////////
 
-void LinSystem::get_solution_vector(std::vector<scalar>& sln_vector_out) const {
-  assert_msg(ndofs > 0, "Number of DOFs is not greater than zero");
-  std::vector<scalar> temp(ndofs);
+void LinSystem::get_solution_vector(std::vector<scalar>& sln_vector_out) {
+  int ndof = this->get_num_dofs();
+  if (ndof == 0) error("ndof = 0 in LinSystem::get_solution_vector().");
+
+  std::vector<scalar> temp(ndof);
   sln_vector_out.swap(temp);
-  for(int i = 0; i < ndofs; i++)
+  for(int i = 0; i < ndof; i++)
     sln_vector_out[i] = Vec[i];
 }
 
 void LinSystem::save_matrix_matlab(const char* filename, const char* varname)
 {
+  warn("Saving matrix in Matlab format not implemented yet.");
 }
-
 
 void LinSystem::save_rhs_matlab(const char* filename, const char* varname)
 {
+  int ndof = this->get_num_dofs();
+  if (ndof == 0) error("ndof = 0 in LinSystem::save_rhs_matlab().");
   if (RHS == NULL) error("RHS has not been assembled yet.");
   FILE* f = fopen(filename, "w");
   if (f == NULL) error("Could not open file %s for writing.", filename);
   verbose("Saving RHS vector in MATLAB format...");
-  fprintf(f, "%% Size: %dx1\n%s = [\n", ndofs, varname);
-  for (int i = 0; i < ndofs; i++)
+  fprintf(f, "%% Size: %dx1\n%s = [\n", ndof, varname);
+  for (int i = 0; i < ndof; i++)
     #ifndef H2D_COMPLEX
       fprintf(f, "%.18e\n", RHS[i]);
     #else
@@ -1001,6 +938,8 @@ void LinSystem::save_matrix_bin(const char* filename)
 
 void LinSystem::save_rhs_bin(const char* filename)
 {
+  int ndof = this->get_num_dofs();
+  if (ndof == 0) error("ndof = 0 in LinSystem::save_rhs_bin().");
   if (RHS == NULL) error("RHS has not been assembled yet.");
   FILE* f = fopen(filename, "wb");
   if (f == NULL) error("Could not open file %s for writing.", filename);
@@ -1008,16 +947,44 @@ void LinSystem::save_rhs_bin(const char* filename)
   hermes2d_fwrite("H2DR\001\000\000\000", 1, 8, f);
   int ssize = sizeof(scalar);
   hermes2d_fwrite(&ssize, sizeof(int), 1, f);
-  hermes2d_fwrite(&ndofs, sizeof(int), 1, f);
-  hermes2d_fwrite(RHS, sizeof(scalar), ndofs, f);
+  hermes2d_fwrite(&ndof, sizeof(int), 1, f);
+  hermes2d_fwrite(RHS, sizeof(scalar), ndof, f);
   fclose(f);
 }
 
-void LinSystem::set_vec_zero()
+// This is the only function where the vectors Vec, RHS and Dir 
+// should be allocated.
+void LinSystem::reset_coeff_vectors()
 {
+  int ndof = this->get_num_dofs();
+  if (ndof == 0) error("ndof = 0 in LinSystem::reset_coeff_vectors().");
+
   if (this->Vec != NULL) delete [] this->Vec;
-  this->Vec = new scalar[this->ndofs];
-  for(int i=0; i<this->ndofs; i++) this->Vec[i] = 0;
+  this->Vec = new scalar[ndof];
+  if (Vec == NULL) error("Vec = NULL in LinSystem::reset_coeff_vectors().");
+  for(int i=0; i < ndof; i++) this->Vec[i] = 0;
+
+  if (this->Dir != NULL) delete [] this->Dir;
+  this->Dir = new scalar[ndof];
+  if (Dir == NULL) error("Dir = NULL in LinSystem::reset_coeff_vectors().");
+  for(int i=0; i < ndof; i++) this->Dir[i] = 0;
+
+  if (this->RHS != NULL) delete [] this->RHS;
+  this->RHS = new scalar[ndof];
+  if (RHS == NULL) error("RHS = NULL in LinSystem::reset_coeff_vectors().");
+  for(int i=0; i < ndof; i++) this->RHS[i] = 0;
+}
+
+// debug
+void LinSystem::print_vector()
+{
+  int ndof = this->get_num_dofs();
+  if (ndof == 0) error("ndof = 0 in LinSystem::print_vector().");
+
+  printf("LinSystem::print_vector(): ndof = %d\n", ndof);
+  if (this->Vec == NULL) error("NULL vector in print_vector().");
+  printf("Vec:");
+  for(int i=0; i < ndof; i++) printf(" %g", this->Vec[i]);
 }
 
 // L2 projections
@@ -1082,24 +1049,32 @@ Scalar Hcurlprojection_liform(int n, double *wt, Func<Real> *v, Geom<Real> *e, E
   return result;
 }
 
-void LinSystem::project_global_n(int proj_norm, int n, ...)
+int LinSystem::assign_dofs() 
+{ 
+  // assigning dofs to each space
+  int ndof = 0;  
+  for (int i = 0; i < this->wf->neq; i++) {
+    int inc = this->spaces[i]->assign_dofs(ndof);
+    ndof += inc;
+  }
+
+  // resetting vectors Vec, Dir and RHS 
+  this->reset_coeff_vectors();
+
+  return ndof;
+}
+
+void LinSystem::project_global(Tuple<MeshFunction*> source, Tuple<Solution*> target, int proj_norm)
 {
+  int n = source.size();
+  if (n != target.size()) error("Mismatched length of tuples in LinSystem::project_global()."); 
+  int ndof = this->get_num_dofs();
+  if (ndof == 0) error("ndof = 0 in LinSystem::project_global().");
+  if (this->Vec == NULL) error("Vec = NULL in LinSystem::project_global().");
   if (!have_spaces)
-    error("You have to init_spaces() before using project_global_n().");
+    error("You have to init_spaces() before using project_global().");
   if (n != wf->neq || n > 10)
-    error("Wrong number of functions in project_global_n().");
-
-  int i;
-  MeshFunction* fn[10];
-  Solution* result[10];
-
-  va_list ap;
-  va_start(ap, n);
-  for (i = 0; i < n; i++)
-    fn[i] = va_arg(ap, MeshFunction*);
-  for (i = 0; i < n; i++)
-    result[i] = va_arg(ap, Solution*);
-  va_end(ap);
+    error("Wrong number of functions in project_global().");
 
   WeakForm* wf_orig = wf;
 
@@ -1108,34 +1083,34 @@ void LinSystem::project_global_n(int proj_norm, int n, ...)
   int found = 0;
   if (proj_norm == 0) {
     found = 1;
-    for (i = 0; i < n; i++)
+    for (int i = 0; i < n; i++)
     {
       wf->add_biform(i, i, L2projection_biform<double, scalar>, L2projection_biform<Ord, Ord>);
-      wf->add_liform(i, L2projection_liform<double, scalar>, L2projection_liform<Ord, Ord>, H2D_ANY, 1, fn[i]);
+      wf->add_liform(i, L2projection_liform<double, scalar>, L2projection_liform<Ord, Ord>, H2D_ANY, 1, source[i]);
     }
   }
   if (proj_norm == 1) {
     found = 1;
-    for (i = 0; i < n; i++)
+    for (int i = 0; i < n; i++)
     {
       wf->add_biform(i, i, H1projection_biform<double, scalar>, H1projection_biform<Ord, Ord>);
-      wf->add_liform(i, H1projection_liform<double, scalar>, H1projection_liform<Ord, Ord>, H2D_ANY, 1, fn[i]);
+      wf->add_liform(i, H1projection_liform<double, scalar>, H1projection_liform<Ord, Ord>, H2D_ANY, 1, source[i]);
     }
   }
   if (proj_norm == 2) {
     found = 1;
-    for (i = 0; i < n; i++)
+    for (int i = 0; i < n; i++)
     {
       wf->add_biform(i, i, Hcurlprojection_biform<double, scalar>, Hcurlprojection_biform<Ord, Ord>);
-      wf->add_liform(i, Hcurlprojection_liform<double, scalar>, Hcurlprojection_liform<Ord, Ord>, H2D_ANY, 1, fn[i]);
+      wf->add_liform(i, Hcurlprojection_liform<double, scalar>, Hcurlprojection_liform<Ord, Ord>, 
+      H2D_ANY, 1, source[i]);
     }
   }
-  if (!found) error("Wrong projection type in project_global_n().");
+  if (!found) error("Wrong projection type in project_global().");
 
   want_dir_contrib = true;
   LinSystem::assemble();
-  LinSystem::solve(n, result[0], result[1], result[2], result[3], result[4],
-                      result[5], result[6], result[7], result[8], result[9]);
+  LinSystem::solve(target);
   want_dir_contrib = false;
 
   wf = wf_orig;
@@ -1144,11 +1119,12 @@ void LinSystem::project_global_n(int proj_norm, int n, ...)
 
 int LinSystem::get_num_dofs()
 {
+  if (this->wf->neq == 0) error("Zero number of spaces in LinSystem::get_num_dofs().");
+  if (this->spaces == NULL) error("spaces[] is NULL in LinSystem::get_num_dofs().");
+
   int ndof = 0;
-  for (int i = 0; i < this->num_spaces; i++) {
-    ndof += this->spaces[i]->get_num_dofs();
+  for (int i = 0; i < this->wf->neq; i++) {
+    ndof += this->get_num_dofs(i);
   }
-  if (ndof == 0)
-    error("Zero matrix size while creating matrix sparse structure.");
   return ndof;
 }

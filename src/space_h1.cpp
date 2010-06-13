@@ -17,7 +17,7 @@
 #include "space_h1.h"
 #include "matrix_old.h"
 #include "quad_all.h"
-
+#include "shapeset_h1_all.h"
 
 double** H1Space::h1_proj_mat = NULL;
 double*  H1Space::h1_chol_p   = NULL;
@@ -29,7 +29,7 @@ H1Space::H1Space(Mesh* mesh, Shapeset* shapeset)
 {
   if (!h1_proj_ref++)
   {
-    // fixme: separate projection matrices for different shapesets
+    // FIXME: separate projection matrices for different shapesets
     precalculate_projection_matrix(2, h1_proj_mat, h1_chol_p);
   }
   proj_mat = h1_proj_mat;

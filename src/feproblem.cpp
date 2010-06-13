@@ -57,36 +57,22 @@ FeProblem::~FeProblem()
 }
 
 
-void FeProblem::set_spaces(int n, ...)
+void FeProblem::set_spaces(Tuple<Space*>spaces)
 {
-  if (n <= 0 || n > wf->neq) error("Bad number of spaces.");
-  va_list ap;
-  va_start(ap, n);
+  int n = spaces.size();
+  if (n != this->wf->neq) error("Bad number of spaces in FeProblem.");
   for (int i = 0; i < wf->neq; i++)
-    spaces[i] = (i < n) ? va_arg(ap, Space*) : spaces[n-1];
-  va_end(ap);
+    this->spaces[i] = spaces[i];
   memset(sp_seq, -1, sizeof(int) * wf->neq);
   have_spaces = true;
 }
 
 
-void FeProblem::set_pss(int n, ...)
+void FeProblem::set_pss(Tuple<PrecalcShapeset*> pss)
 {
-  if (n <= 0 || n > wf->neq) error("Bad number of pss's.");
-
-  va_list ap;
-  va_start(ap, n);
-  for (int i = 0; i < n; i++)
-    pss[i] = va_arg(ap, PrecalcShapeset*);
-  va_end(ap);
-  num_user_pss = n;
-
-  for (int i = n; i < wf->neq; i++)
-  {
-    if (spaces[i]->get_shapeset() != spaces[n-1]->get_shapeset())
-      error("Spaces with different shapesets must have different pss's.");
-    pss[i] = new PrecalcShapeset(pss[n-1]);
-  }
+  int n = pss.size();
+  if (n != n > this->wf->neq) error("Bad number of pss in FeProblem.");
+  for (int i = 0; i < n; i++) this->pss[i] = pss[i];
 }
 
 
@@ -759,6 +745,8 @@ void Projection::set_solver(Solver* solver)
 
 scalar* Projection::project()
 {
+  error("project() in FeProblem does not work currently. Employ LinSystem::project_global()");
+  /*
   WeakForm wf(num);
   for (int i = 0; i < num; i++)
   {
@@ -766,10 +754,7 @@ scalar* Projection::project()
     wf.add_liform(i, callback(L2projection_liform), H2D_ANY, 1, slns[i]);
   }
 
-  LinSystem ps(&wf, solver);
-  ps.set_spaces(num, spaces[0], spaces[1], spaces[2], spaces[3], spaces[4],
-                    spaces[5], spaces[6], spaces[7], spaces[8], spaces[9]);
-  ps.set_pss(num, pss[0], pss[1], pss[2], pss[3], pss[4], pss[5], pss[6], pss[7], pss[8], pss[9]);
+  LinSystem ps(&wf, solver, // SPACES MISSING HERE ));
   ps.assemble();
   Solution temp;
   ps.solve(0);
@@ -777,8 +762,9 @@ scalar* Projection::project()
   int ndofs = ps.get_num_dofs();
   vec = new scalar[ndofs];
   memcpy(vec, sln_vec, ndofs * sizeof(scalar));
-
   return vec;
+  */
+
 }
 
 

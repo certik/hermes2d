@@ -40,8 +40,8 @@ public:
   virtual ~FeProblem();
   void free();
 
-  void set_spaces(int n, ...);
-  void set_pss(int n, ...);
+  void set_spaces(Tuple<Space*>spaces);
+  void set_pss(Tuple<PrecalcShapeset*>pss);
   Space* get_space(int n) {  return this->spaces[n];  }
   PrecalcShapeset* get_pss(int n) {  return this->pss[n];  }
 
