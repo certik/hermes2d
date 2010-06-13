@@ -24,7 +24,8 @@
 
 using namespace std;
 
-H1Adapt::H1Adapt(const Tuple<Space*>& spaces) : Adapt(spaces) {
+H1Adapt::H1Adapt(const Tuple<Space*>& spaces) : Adapt(spaces) 
+{
   for (int i = 0; i < num_comps; i++)
     for (int j = 0; j < num_comps; j++) {
       if (i == j) {
@@ -33,3 +34,5 @@ H1Adapt::H1Adapt(const Tuple<Space*>& spaces) : Adapt(spaces) {
       }
     }
 }
+
+

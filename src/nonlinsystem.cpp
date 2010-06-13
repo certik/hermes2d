@@ -165,6 +165,22 @@ bool NonlinSystem::solve(Solution* sln)
   return flag;
 }
 
+// two equations case
+bool NonlinSystem::solve(Solution* sln1, Solution* sln2)
+{
+  bool flag;
+  flag = this->solve(Tuple<Solution*>(sln1, sln2));
+  return flag;
+}
+
+// three equations case
+bool NonlinSystem::solve(Solution* sln1, Solution* sln2, Solution* sln3)
+{
+  bool flag;
+  flag = this->solve(Tuple<Solution*>(sln1, sln2, sln3));
+  return flag;
+}
+
 // Newton's loop for one equation
 bool NonlinSystem::solve_newton(Solution* u_prev, double newton_tol, int newton_max_iter,
                                   Filter* f1, Filter* f2, Filter* f3) {

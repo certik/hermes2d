@@ -127,38 +127,42 @@ LinSystem::~LinSystem()
 
 void LinSystem::free_meshes_and_spaces()
 {
-  // free spaces, making sure that duplicated ones do not get deleted twice
+  // free spaces and meshes, making sure that duplicated ones do not get deleted twice
   if (this->spaces != NULL)
   {
+    // this loop skipped if there is only one space
     for (int i = 0; i < this->wf->neq; i++) {
       for (int j = i+1; j < this->wf->neq; j++) {
-        if (spaces[j] == spaces[i]) spaces[j] = NULL;
+        if (this->spaces[j] == this->spaces[i]) this->spaces[j] = NULL;
       }
     }
     for (int i = 0; i < this->wf->neq; i++) {
-      if (spaces[i] != NULL) {
-        delete spaces[i];
-        spaces[i] = NULL;
+      if (this->spaces[i] != NULL) {
+        delete this->spaces[i];
+        this->spaces[i] = NULL;
       }
     }
-    //spaces = NULL;
+    delete this->spaces;
+    this->spaces = NULL;
   }
 
   // free meshes, making sure that duplicated ones do not get deleted twice
   if (this->meshes != NULL)
   {
+    // this loop skipped if there is only one space
     for (int i = 0; i < this->wf->neq; i++) {
       for (int j = i+1; j < this->wf->neq; j++) {
-        if (meshes[j] == meshes[i]) meshes[j] = NULL;
+        if (this->meshes[j] == this->meshes[i]) this->meshes[j] = NULL;
       }
     }
     for (int i = 0; i < this->wf->neq; i++) {
-      if (meshes[i] != NULL) {
-        delete meshes[i];
-        meshes[i] = NULL;
+      if (this->meshes[i] != NULL) {
+        delete this->meshes[i];
+        this->meshes[i] = NULL;
       }
     }
-    //meshes = NULL;
+    delete this->meshes;
+    this->meshes = NULL;
   }
 } 
 
@@ -256,10 +260,6 @@ void LinSystem::free_matrix()
 
 void LinSystem::create_matrix(bool rhsonly)
 {
-  if (this->have_spaces == false)
-    error("Before assemble(), you need to initialize spaces.");
-  if (this->spaces == NULL) error("spaces = NULL in LinSystem.");
-
   // check if we can reuse the matrix structure
   bool up_to_date = true;
   for (int i = 0; i < this->wf->neq; i++) {
@@ -292,7 +292,7 @@ void LinSystem::create_matrix(bool rhsonly)
     error("Cannot reassemble RHS only: spaces have changed.");
 
   // spaces have changed: create the matrix from scratch
-  this->free();
+  this->free_matrix();
   trace("Creating matrix sparse structure...");
   TimePeriod cpu_time;
 
@@ -302,14 +302,14 @@ void LinSystem::create_matrix(bool rhsonly)
   this->A = new CooMatrix(ndof);
 #endif
 
-  this->Vec = new scalar[ndof];
-  this->Dir = new scalar[ndof];
-  this->RHS = new scalar[ndof];
-  if (this->Vec == NULL || this->RHS == NULL || this->Dir == NULL) 
-    error("Out of memory. Error allocating the RHS vector.");
- memset(this->Vec, 0, sizeof(scalar) * ndof);
- memset(this->RHS, 0, sizeof(scalar) * ndof);
- memset(this->Dir, 0, sizeof(scalar) * ndof);
+  //this->Vec = new scalar[ndof];
+  //this->Dir = new scalar[ndof];
+  //this->RHS = new scalar[ndof];
+  //if (this->Vec == NULL || this->RHS == NULL || this->Dir == NULL) 
+  //  error("Out of memory. Error allocating the RHS vector.");
+  //memset(this->Vec, 0, sizeof(scalar) * ndof);
+  //memset(this->RHS, 0, sizeof(scalar) * ndof);
+  //memset(this->Dir, 0, sizeof(scalar) * ndof);
 
   // save space seq numbers and weakform seq number, so we can detect their changes
   for (int i = 0; i < this->wf->neq; i++)
@@ -350,6 +350,13 @@ void LinSystem::assemble(bool rhsonly)
 {
   int ndof = this->get_num_dofs();
   if (ndof == 0) error("ndof = 0 in LinSystem::assemble().");
+
+  if (this->have_spaces == false)
+    error("Before assemble(), you need to initialize spaces.");
+  if (this->spaces == NULL) error("spaces = NULL in LinSystem::assemble().");
+  if (this->Vec == NULL) error("Vec = NULL in LinSystem::assemble().");
+  if (this->RHS == NULL) error("RHS = NULL in LinSystem::assemble().");
+  if (this->Dir == NULL) error("Dir = NULL in LinSystem::assemble().");
 
   if (!rhsonly) free_matrix();
   int k, m, n, marker;
@@ -935,7 +942,6 @@ void LinSystem::save_matrix_bin(const char* filename)
 {
 }
 
-
 void LinSystem::save_rhs_bin(const char* filename)
 {
   int ndof = this->get_num_dofs();
@@ -952,27 +958,28 @@ void LinSystem::save_rhs_bin(const char* filename)
   fclose(f);
 }
 
-// This is the only function where the vectors Vec, RHS and Dir 
-// should be allocated.
-void LinSystem::reset_coeff_vectors()
+// To be called each time the number of DOF in the system changes.
+// The vectors Vec, RHS and Dir are freed and allocated again.
+// Their length equals to the actual LinSystem::get_num_dofs().
+void LinSystem::create_new_coeff_vectors()
 {
   int ndof = this->get_num_dofs();
-  if (ndof == 0) error("ndof = 0 in LinSystem::reset_coeff_vectors().");
+  if (ndof == 0) error("ndof = 0 in LinSystem::recreate_coeff_vectors().");
 
-  if (this->Vec != NULL) delete [] this->Vec;
+  // vectors are freed if not NULL
+  this->free_vectors();
+  
   this->Vec = new scalar[ndof];
-  if (Vec == NULL) error("Vec = NULL in LinSystem::reset_coeff_vectors().");
+  if (Vec == NULL) error("Not enough memory LinSystem::recreate_coeff_vectors().");
   for(int i=0; i < ndof; i++) this->Vec[i] = 0;
 
-  if (this->Dir != NULL) delete [] this->Dir;
-  this->Dir = new scalar[ndof];
-  if (Dir == NULL) error("Dir = NULL in LinSystem::reset_coeff_vectors().");
-  for(int i=0; i < ndof; i++) this->Dir[i] = 0;
-
-  if (this->RHS != NULL) delete [] this->RHS;
   this->RHS = new scalar[ndof];
-  if (RHS == NULL) error("RHS = NULL in LinSystem::reset_coeff_vectors().");
+  if (RHS == NULL) error("Not enough memory in LinSystem::recreate_coeff_vectors().");
   for(int i=0; i < ndof; i++) this->RHS[i] = 0;
+
+  this->Dir = new scalar[ndof];
+  if (Dir == NULL) error("Not enough memory in LinSystem::recreate_coeff_vectors().");
+  for(int i=0; i < ndof; i++) this->Dir[i] = 0;
 }
 
 // debug
@@ -1058,8 +1065,8 @@ int LinSystem::assign_dofs()
     ndof += inc;
   }
 
-  // resetting vectors Vec, Dir and RHS 
-  this->reset_coeff_vectors();
+  // creating vectors Vec, Dir and RHS
+  this->create_new_coeff_vectors();
 
   return ndof;
 }

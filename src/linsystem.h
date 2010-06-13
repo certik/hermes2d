@@ -77,23 +77,36 @@ public:
   /// similar to Java instance of functionality
   virtual bool is_linear() { return true; }
 
+  /// Assembles the stiffness matrix and load vector. Vectors Vec, Dir and 
+  /// RHS must be allocated when assemble() is called.
   virtual void assemble(bool rhsonly = false);
   void assemble_rhs_only() { assemble(true); }
+
+  /// Solves the matrix problem. 
   bool solve(Tuple<Solution*> sln);
   bool solve(Solution* sln); // single equation case
   bool solve(Solution* sln1, Solution* sln2); // two equations case
   bool solve(Solution* sln1, Solution* sln2, Solution* sln3); // three equations case
-  virtual void free();
+
+  /// Frees the stiffness matrix
   virtual void free_matrix();
 
+  /// Frees vectors Vec, RHS and Dir. These vectors should 
+  /// not be freed anywhere else.
+  void free_vectors();
+
+  /// Frees the stiffness matrix, coefficient vectors, and matrix solver data.
+  virtual void free();
+
+  /// Saves the stiffness matrix in various formats. 
   void save_matrix_matlab(const char* filename, const char* varname = "A");
   void save_rhs_matlab(const char* filename, const char* varname = "b");
   void save_matrix_bin(const char* filename);
   void save_rhs_bin(const char* filename);
 
   void enable_dir_contrib(bool enable = true) {  want_dir_contrib = enable;  }
-  scalar* get_solution_vector() { return Vec; }
 
+  scalar* get_solution_vector() { return Vec; }
   int get_num_dofs();
   int get_num_dofs(int i) {
     if (this->spaces[i] == NULL) error("spaces[%d] is NULL in LinSystem::get_num_dofs().", i);
@@ -105,14 +118,12 @@ public:
   void get_rhs(scalar*& RHS, int& size) { RHS = this->RHS; size=this->get_num_dofs(); }
   void get_solution_vector(scalar*& sln_vector, int& sln_vector_len) 
        { sln_vector = Vec; sln_vector_len = this->get_num_dofs(); }
-  void get_solution_vector(std::vector<scalar>& sln_vector_out); ///< Returns a copy of the solution vector.
 
-  /// Frees (if not NULL) and creates zero solution coefficient vectors Vec, Dir and RHS.
-  void reset_coeff_vectors();
+  /// Returns a copy of the solution vector.
+  void get_solution_vector(std::vector<scalar>& sln_vector_out); 
 
-  /// Frees vectors Vec, RHS and Dir. These vectors should 
-  /// not be freed anywhere else.
-  void free_vectors();
+  /// Deletes and creates new zero solution coefficient vectors Vec, Dir and RHS. 
+  void create_new_coeff_vectors();
 
   /// For debug purposes.
   void print_vector();

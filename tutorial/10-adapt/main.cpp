@@ -176,7 +176,7 @@ int main(int argc, char* argv[])
 
     // Report results.
     info("ndof_coarse: %d, ndof_fine: %d, err_est: %g%%", 
-      space.get_num_dofs(), rs.get_num_dofs(), err_est);
+      ls.get_num_dofs(), rs.get_num_dofs(), err_est);
 
     // Add entry to DOF convergence graph.
     graph_dof.add_values(ls.get_num_dofs(), err_est);
@@ -191,14 +191,10 @@ int main(int argc, char* argv[])
     else {
       info("Adapting coarse mesh.");
       done = hp.adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY);
-      int ndof = assign_dofs(&space);
+      ls.assign_dofs();
 
-      // debug
-      printf("ndof new = %d\n", ndof);
-      OrderView ov;
-      ov.show(&space);
+      if (ls.get_num_dofs() >= NDOF_STOP) done = true;
 
-      if (ndof >= NDOF_STOP) done = true;
     }
 
     as++;

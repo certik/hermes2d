@@ -43,17 +43,13 @@ RefSystem::RefSystem(LinSystem* base, int order_increase,
 
 void RefSystem::prepare() 
 {
-  // free meshes and spaces
+  // after this, meshes and spaces are NULL
   this->free_meshes_and_spaces();
 
   // create new meshes and spaces
   this->meshes = new Mesh*[this->wf->neq];
   this->spaces = new Space*[this->wf->neq];
   this->sp_seq = new int[this->wf->neq];
-  for (int i=0; i < this->wf->neq; i++) {
-    this->spaces[i]->set_seq(this->base->spaces[i]->get_seq());
-    this->sp_seq[i] = this->base->spaces[i]->get_seq();
-  }
 
   int i, j;
   // copy meshes from the coarse problem and refine them
@@ -122,15 +118,17 @@ void RefSystem::prepare()
       }
     }
     else {
-      spaces[i]->copy_orders(base->spaces[i], order_increase);
+      this->spaces[i]->copy_orders(base->spaces[i], order_increase);
     }
-
-    ndof += spaces[i]->assign_dofs(ndof);
   }
 
-  //memcpy(spaces, base->spaces, sizeof(Space*) * this->wf->neq);
-  //memcpy(pss, base->pss, sizeof(PrecalcShapeset*) * this->wf->neq);
-  
+  this->assign_dofs();
+
+  for (int i=0; i < this->wf->neq; i++) {
+    this->spaces[i]->set_seq(this->base->spaces[i]->get_seq());
+    this->sp_seq[i] = this->base->spaces[i]->get_seq();
+  }
+
   this->pss = new PrecalcShapeset*[this->wf->neq];
   for(int i=0; i < this->wf->neq; i++) this->pss[i] = this->base->pss[i];
   this->have_spaces = true;
@@ -161,9 +159,7 @@ void RefSystem::set_order_increase(int order_increase)
 void RefSystem::assemble(bool rhsonly)
 {  
   // perform uniform mesh refinement
-  printf("prepare refsystem 1\n");
   prepare();
-  printf("prepare refsystem 2\n");
 
   // internal check
   if (this->have_spaces == false) error("RefSystem: missing space(s).");

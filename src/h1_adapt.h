@@ -27,6 +27,11 @@ public:
   /// Constructor.
   /** \param[in] spaces An array of spaces. The number of spaces determines the number of components. For the best results, use instances of the class H1Space. */
   H1Adapt(const Tuple<Space*>& spaces);
+
+  /** \param[in] ls Pointer to LinSystem. */
+  H1Adapt(LinSystem* ls);
 };
+
+
 
 #endif

@@ -62,9 +62,9 @@ public:
   /// Performs one step of the Newton's method for an arbitrary number of equations, 
   /// stores the result in the given Solutions.
   bool solve(Tuple<Solution*> sln);
-
-  // single equation case
-  bool solve(Solution* sln);
+  bool solve(Solution* sln); // single equation case
+  bool solve(Solution* sln1, Solution* sln2); // two equations case
+  bool solve(Solution* sln1, Solution* sln2, Solution* sln3); // three equations case
 
   /// Performs complete Newton's loop for one equation
   bool solve_newton(Solution* u_prev, double newton_tol, int newton_max_iter,
