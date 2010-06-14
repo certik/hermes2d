@@ -92,16 +92,12 @@ int main(int argc, char* argv[])
   Mesh mesh;
   H2DReader mloader;
   mloader.load("domain.mesh", &mesh);
+
+  // Perform initial mesh refinements.
   for (int i=0; i < INIT_REF_NUM; i++) mesh.refine_all_elements();
 
-  // Initialize the shapeset.
-  H1Shapeset shapeset;
-
-  // Create an H1 space.
-  H1Space space(&mesh, &shapeset);
-  space.set_bc_types(bc_types);
-  space.set_essential_bc_values(essential_bc_values);
-  space.set_uniform_order(P_INIT);
+  // Create an H1 space with default shapeset.
+  H1Space space(&mesh, bc_types, essential_bc_values, P_INIT);
 
   // Initialize the weak formulation.
   WeakForm wf;
@@ -116,9 +112,11 @@ int main(int argc, char* argv[])
   // Matrix solver.
   UmfpackSolver solver;
 
-  // Solve the problem.
-  Solution sln;
+  // Initialize the linear system.
   LinSystem ls(&wf, &solver, &space);
+
+  // Assemble and solve the matrix problem.
+  Solution sln;
   ls.assemble();
   ls.solve(&sln);
 

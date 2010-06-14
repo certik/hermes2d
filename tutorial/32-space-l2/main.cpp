@@ -36,12 +36,6 @@ Scalar linear_form(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scal
   return result;
 }
 
-// Boundary condition types.
-BCType bc_types(int marker)
-{
-   return BC_NONE;
-}
-
 int main(int argc, char* argv[])
 {
   // Load the mesh.
@@ -52,12 +46,8 @@ int main(int argc, char* argv[])
   // Perform uniform mesh refinements.
   for (int i=0; i<INIT_REF_NUM; i++) mesh.refine_all_elements();
 
-  // Initialize the shapeset.
-  L2Shapeset shapeset;
-
-  // Create an L2 space.
-  L2Space space(&mesh, &shapeset);
-  space.set_bc_types(bc_types);
+  // Create an L2 space with default shapeset.
+  L2Space space(&mesh);
 
   // Set uniform polynomial degrees.
   space.set_uniform_order(P_INIT);

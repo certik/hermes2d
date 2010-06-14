@@ -104,7 +104,8 @@ class H2D_API Space
 {
 public:
 
-  Space(Mesh* mesh, Shapeset* shapeset);
+  Space(Mesh* mesh, Shapeset* shapeset, BCType (*bc_type_callback)(int), 
+        scalar (*bc_value_callback_by_coord)(int, double, double), int p_init);
   virtual ~Space();
   virtual void free();
 

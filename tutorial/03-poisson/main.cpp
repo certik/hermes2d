@@ -23,8 +23,7 @@ int P_INIT = 5;            // Uniform polynomial degree of mesh elements.
 double CONST_F = 2.0;  
 
 // Boundary condition types.
-// Note: "essential" boundary condition means that 
-// the solution value is prescribed.
+// Note: "essential" means that solution value is prescribed.
 BCType bc_types(int marker)
 {
   return BC_ESSENTIAL;
@@ -46,17 +45,11 @@ int main(int argc, char* argv[])
   H2DReader mloader;
   mloader.load("domain.mesh", &mesh);
 
-  // Perform initial mesh refinements.
-  mesh.refine_element(0);
+  // Perform initial mesh refinement.
+  mesh.refine_all_elements();
 
-  // Initialize the shapeset.
-  H1Shapeset shapeset;
-
-  // Create an H1 space.
-  H1Space space(&mesh, &shapeset);
-  space.set_bc_types(bc_types);
-  space.set_essential_bc_values(essential_bc_values);
-  space.set_uniform_order(P_INIT);
+  // Create an H1 space with default shapeset.
+  H1Space space(&mesh, bc_types, essential_bc_values, P_INIT);
 
   // Initialize the weak formulation.
   WeakForm wf;

@@ -50,14 +50,8 @@ int main(int argc, char* argv[])
   for(int i=0; i<UNIFORM_REF_LEVEL; i++) mesh.refine_all_elements();
   mesh.refine_towards_vertex(3, CORNER_REF_LEVEL);
 
-  // Initialize the shapeset.
-  H1Shapeset shapeset;
-
-  // Create an H1 space.
-  H1Space space(&mesh, &shapeset);
-  space.set_bc_types(bc_types);
-  space.set_essential_bc_values(essential_bc_values);
-  space.set_uniform_order(P_INIT);
+  // Create an H1 space with default shapeset.
+  H1Space space(&mesh, bc_types, essential_bc_values, P_INIT);
 
   // Initialize the weak formulation.
   WeakForm wf;
@@ -69,12 +63,12 @@ int main(int argc, char* argv[])
   UmfpackSolver solver;
 
   // Initialize the linear system.
-  LinSystem sys(&wf, &solver, &space);
+  LinSystem ls(&wf, &solver, &space);
 
   // Assemble and solve the matrix problem.
   Solution sln;
-  sys.assemble();
-  sys.solve(&sln);
+  ls.assemble();
+  ls.solve(&sln);
 
   // Visualize the solution.
   ScalarView view("Solution", 0, 0, 600, 600);

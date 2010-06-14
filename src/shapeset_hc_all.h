@@ -16,7 +16,7 @@
 #ifndef __H2D_SHAPESET_HC_ALL_H
 #define __H2D_SHAPESET_HC_ALL_H
 
-#ifdef H2D_COMPLEX
+//#ifdef H2D_COMPLEX
 
 #include "shapeset.h"
 
@@ -57,6 +57,6 @@ class H2D_API HcurlShapesetGradLeg : public Shapeset
 typedef HcurlShapesetGradLeg HcurlShapeset;
 
 
-#endif // H2D_COMPLEX
+//#endif // H2D_COMPLEX
 
 #endif

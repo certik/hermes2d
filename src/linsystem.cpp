@@ -75,7 +75,7 @@ LinSystem::LinSystem(WeakForm* wf_, Solver* solver_, Tuple<Space*> spaces_)
     error("Number of spaces does not match number of equations in LinSystem::LinSystem().");
   this->init_lin(wf_, solver_);
   this->init_spaces(spaces_);
-  this->assign_dofs();
+  this->create_new_coeff_vectors();
 }
 
 LinSystem::LinSystem(WeakForm* wf_, Tuple<Space*> spaces_)
@@ -83,7 +83,7 @@ LinSystem::LinSystem(WeakForm* wf_, Tuple<Space*> spaces_)
   Solver* solver_ = NULL;
   this->init_lin(wf_, solver_);
   this->init_spaces(spaces_);
-  this->assign_dofs();
+  this->create_new_coeff_vectors();
 }
 
 LinSystem::LinSystem(WeakForm* wf_, Solver* solver_, Space* s_)
@@ -92,7 +92,7 @@ LinSystem::LinSystem(WeakForm* wf_, Solver* solver_, Space* s_)
     error("Number of spaces does not match number of equations in LinSystem::LinSystem().");
   this->init_lin(wf_, solver_);
   this->init_space(s_);
-  this->assign_dofs();
+  this->create_new_coeff_vectors();
 }
 
 LinSystem::LinSystem(WeakForm* wf_, Space* s_)
@@ -100,7 +100,7 @@ LinSystem::LinSystem(WeakForm* wf_, Space* s_)
   Solver *solver_ = NULL;
   this->init_lin(wf_, solver_);
   this->init_space(s_);
-  this->assign_dofs();
+  this->create_new_coeff_vectors();
 }
 
 LinSystem::LinSystem(WeakForm* wf_, Solver* solver_, Space* space1_, Space* space2_)
@@ -110,7 +110,7 @@ LinSystem::LinSystem(WeakForm* wf_, Solver* solver_, Space* space1_, Space* spac
     error("Number of spaces does not match number of equations in LinSystem::LinSystem().");
   this->init_lin(wf_, solver_);
   this->init_spaces(Tuple<Space*>(space1_, space2_));
-  this->assign_dofs();
+  this->create_new_coeff_vectors();
 }
 
 

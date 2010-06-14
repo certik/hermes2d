@@ -53,9 +53,6 @@ int main(int argc, char* argv[])
   space.set_essential_bc_values(essential_bc_values);
   space.set_uniform_order(P_INIT);
 
-  // Enumerate degrees of freedom.
-  int ndof = assign_dofs(&space);
-
   // Initialize the weak formulation.
   WeakForm wf;
   wf.add_biform(callback(bilinear_form));
@@ -78,7 +75,7 @@ int main(int argc, char* argv[])
 
     // Assemble and solve the matrix problem.
     ls.assemble();
-    ls.solve(1, &sln);
+    ls.solve(&sln);
 
     scalar *sol_vector;
     int n_dof;

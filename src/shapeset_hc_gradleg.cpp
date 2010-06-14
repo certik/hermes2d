@@ -17,7 +17,7 @@
 #include "shapeset_common.h"
 #include "shapeset_hc_all.h"
 
-#ifdef H2D_COMPLEX
+//#ifdef H2D_COMPLEX
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -15885,4 +15885,4 @@ HcurlShapesetGradLeg::HcurlShapesetGradLeg()
   set_mode(H2D_MODE_TRIANGLE);
 }
 
-#endif
+//#endif

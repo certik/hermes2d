@@ -37,21 +37,21 @@ int main(int argc, char* argv[])
   Mesh mesh;
   H2DReader mloader;
   mloader.load("domain.mesh", &mesh);            // original L-shape domain
-  //mloader.load("domain_quad.mesh", &mesh);     // reference square
-  //mloader.load("domain_tri.mesh", &mesh);      // reference triangle
 
-  // Refine all elements.
-  //mesh.refine_all_elements();
+  // The following can be used to view higher-order shape functions
+  // on reference domains (disable uniform mesh refinememts for that).
+  //mloader.load("ref_square.mesh", &mesh);      // reference square
+  //mloader.load("ref_triangle.mesh", &mesh);    // reference triangle
 
-  // Create a shapeset and an H1 space.
-  H1Shapeset shapeset;
-  H1Space space(&mesh, &shapeset);
+  // Refine all elements (optional).
+  mesh.refine_all_elements();
 
-  // Set polynomial degrees in elements.
-  space.set_uniform_order(P_INIT); 
+  // Create an H1 space with default shapeset,
+  // natural BC, and linear elements.
+  H1Space space(&mesh);
 
-  // Enumerate degrees of freedom.
-  int ndof = assign_dofs(&space);
+  // Change the poly order of elements (optional).
+  space.set_uniform_order(P_INIT);
 
   // View FE basis functions.
   BaseView bview;

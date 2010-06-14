@@ -28,7 +28,9 @@ class H2D_API HdivSpace : public Space
 {
 public:
 
-  HdivSpace(Mesh* mesh, Shapeset* shapeset);
+  HdivSpace(Mesh* mesh = NULL, BCType (*bc_type_callback)(int) = NULL, 
+                 scalar (*bc_value_callback_by_coord)(int, double, double) = NULL, int p_init = 1, 
+                 Shapeset* shapeset = NULL);
   virtual ~HdivSpace();
 
   virtual Space* dup(Mesh* mesh) const;

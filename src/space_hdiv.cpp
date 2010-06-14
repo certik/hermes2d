@@ -17,6 +17,7 @@
 #include "space_hdiv.h"
 #include "matrix_old.h"
 #include "quad_all.h"
+#include "shapeset_hd_all.h"
 
 
 double** HdivSpace::hdiv_proj_mat = NULL;
@@ -24,10 +25,13 @@ double*  HdivSpace::hdiv_chol_p   = NULL;
 int      HdivSpace::hdiv_proj_ref = 0;
 
 
-HdivSpace::HdivSpace(Mesh* mesh, Shapeset* shapeset)
-          : Space(mesh, shapeset)
+HdivSpace::HdivSpace(Mesh* mesh, BCType (*bc_type_callback)(int), 
+                 scalar (*bc_value_callback_by_coord)(int, double, double), int p_init, 
+                 Shapeset* shapeset)
+          : Space(mesh, shapeset, bc_type_callback, bc_value_callback_by_coord, p_init)
 {
-  if (shapeset->get_num_components() < 2) error("HdivSpace requires a vector shapeset.");
+  if (shapeset == NULL) this->shapeset = new HdivShapeset;
+  if (this->shapeset->get_num_components() < 2) error("HdivSpace requires a vector shapeset.");
 
   if (!hdiv_proj_ref++)
   {
@@ -36,6 +40,13 @@ HdivSpace::HdivSpace(Mesh* mesh, Shapeset* shapeset)
 
   proj_mat = hdiv_proj_mat;
   chol_p   = hdiv_chol_p;
+
+  // set uniform poly order in elements
+  if (p_init < 0) error("P_INIT must be >= 0 in an Hdiv space.");
+  else this->set_uniform_order(p_init);
+
+  // enumerate basis functions
+  this->assign_dofs();
 }
 
 
@@ -51,7 +62,7 @@ HdivSpace::~HdivSpace()
 
 Space* HdivSpace::dup(Mesh* mesh) const
 {
-  HdivSpace* space = new HdivSpace(mesh, shapeset);
+  HdivSpace* space = new HdivSpace(mesh, bc_type_callback, bc_value_callback_by_coord, 0, shapeset);
   space->copy_callbacks(this);
   return space;
 }

@@ -18,23 +18,23 @@
 #include "matrix_old.h"
 #include "auto_local_array.h"
 
-Space::Space(Mesh* mesh, Shapeset* shapeset)
+Space::Space(Mesh* mesh, Shapeset* shapeset, BCType (*bc_type_callback)(int), 
+             scalar (*bc_value_callback_by_coord)(int, double, double), int p_init)
      : mesh(mesh), shapeset(shapeset)
 {
-  if (shapeset == NULL) error("Shapeset NULL in Space::Space().");
-  default_tri_order = -1;
-  default_quad_order = -1;
-  ndata = NULL;
-  edata = NULL;
-  nsize = esize = 0;
-  ndata_allocated = 0;
-  mesh_seq = -1;
-  seq = 0;
-  was_assigned = false;
-  ndof = 0;
+  this->default_tri_order = -1;
+  this->default_quad_order = -1;
+  this->ndata = NULL;
+  this->edata = NULL;
+  this->nsize = esize = 0;
+  this->ndata_allocated = 0;
+  this->mesh_seq = -1;
+  this->seq = 0;
+  this->was_assigned = false;
+  this->ndof = 0;
 
-  set_bc_types(NULL);
-  set_essential_bc_values((scalar (*)(int, double, double)) NULL);
+  this->set_bc_types(bc_type_callback);
+  this->set_essential_bc_values(bc_value_callback_by_coord);
   set_essential_bc_values((scalar (*)(EdgePos*)) NULL);
 }
 
@@ -136,6 +136,9 @@ void Space::set_uniform_order(int order, int marker)
     }
   }
   seq++;
+
+  // enumerate basis functions
+  this->assign_dofs();
 }
 
 

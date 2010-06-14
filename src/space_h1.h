@@ -27,7 +27,9 @@ class H2D_API H1Space : public Space
 {
 public:
 
-  H1Space(Mesh* mesh = NULL, Shapeset* shapeset = NULL);
+  H1Space(Mesh* mesh = NULL, BCType (*bc_type_callback)(int) = NULL, 
+	  scalar (*bc_value_callback_by_coord)(int, double, double) = NULL, int p_init = 1,
+          Shapeset* shapeset = NULL);
   virtual ~H1Space();
 
   /// Removes the degree of freedom from a vertex node with the given id (i.e., its number

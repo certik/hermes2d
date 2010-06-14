@@ -27,28 +27,29 @@ int main(int argc, char* argv[])
   H2DReader mloader;
   mloader.load("domain.mesh", &mesh);
 
-  // Conversions between triangular and quadrilateral elements 
-  // and vice versa. Need to be done before any other types
-  // of mesh refinements.
+  // Conversion between triangular and quadrilateral meshes (optional). 
+  // Need to be done before any other type of mesh refinement.
   //mesh.convert_quads_to_triangles();
   //mesh.convert_triangles_to_quads();
 
-  // Refine mesh uniformly.
-  mesh.refine_all_elements();          // Refines all elements.
+  // Refine mesh uniformly (optional).
+  mesh.refine_all_elements();          
 
-  // Refine towards a vertex (such as a re-entrant corner).
-  mesh.refine_towards_vertex(3, 4);    // Four refinements to wards vertex #3.
-  mesh.refine_towards_boundary(2, 4);  // Four refinements towards boundary #2.
+  // Refine towards a mesh vertex (optional).
+  mesh.refine_towards_vertex(3, 4);    // Four refinements towards vertex no. 3.
 
-  // Refine individual elements.
-  mesh.refine_element(86, 0);          // 0... isotropical refinement.
-  mesh.refine_element(112, 0);         // 0... isotropical refinement.
-  mesh.refine_element(84, 2);          // 2... anisotropical refinement.
-  mesh.refine_element(114, 1);         // 1... anisotropical refinement.
+  // Refine towards boundary (optional).
+  mesh.refine_towards_boundary(2, 4);  // Four refinements towards boundary with marker 2.
+
+  // Refine individual elements (optional).
+  mesh.refine_element(86, 0);          // 0... isotropic refinement.
+  mesh.refine_element(112, 0);         // 0... isotropic refinement.
+  mesh.refine_element(84, 2);          // 2... anisotropic refinement.
+  mesh.refine_element(114, 1);         // 1... anisotropic refinement.
 
   // Display the mesh.
-  // (100, 100) is the upper left corner position, 500 x 500 is the window size
-  MeshView mview("Hello world!", 100, 100, 500, 500);
+  // (100, 0) is the upper left corner position, 600 x 500 is the window size
+  MeshView mview("Hello world!", 100, 0, 600, 500);
   mview.show(&mesh);
 
   // Practice some keyboard and mouse controls.

@@ -27,7 +27,7 @@ class H2D_API L2Space : public Space
 {
 public:
 
-  L2Space(Mesh* mesh, Shapeset* shapeset);
+  L2Space(Mesh* mesh = NULL, int p_init = 1, Shapeset* shapeset = NULL);
   virtual ~L2Space();
 
   virtual Space* dup(Mesh* mesh) const;

@@ -16,7 +16,7 @@
 #ifndef __H2D_SHAPESET_HD_ALL_H
 #define __H2D_SHAPESET_HD_ALL_H
 
-#ifdef H2D_COMPLEX
+//#ifdef H2D_COMPLEX
 
 #include "shapeset.h"
 
@@ -33,6 +33,6 @@ class H2D_API HdivShapesetLegendre : public Shapeset
 typedef HdivShapesetLegendre HdivShapeset;
 
 
-#endif // H2D_COMPLEX
+//#endif // H2D_COMPLEX
 
 #endif

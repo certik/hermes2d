@@ -17,7 +17,7 @@
 #include "shapeset_common.h"
 #include "shapeset_hd_all.h"
 
-#ifdef H2D_COMPLEX
+//#ifdef H2D_COMPLEX
 
 /////////////////////////////////////////////////////////////////////////////////////////
 /* EDGE FUNCTIONS */
@@ -8741,4 +8741,4 @@ HdivShapesetLegendre::HdivShapesetLegendre()
   set_mode(H2D_MODE_TRIANGLE);
 }
 
-#endif
+//#endif
