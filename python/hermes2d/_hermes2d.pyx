@@ -876,13 +876,17 @@ cdef class LinSystem:
                 raise NotImplementedError()
 
         elif lib == "scipy":
+            import warnings
             from scipy.sparse.linalg import cg
             from scipy.sparse.linalg import spsolve
             from numpy import array
             A = self.get_matrix()
             rhs = self.get_rhs()
             #x, res = cg(A, rhs)
-            x = spsolve(A, rhs)
+            # Ignore the warning in scipy:
+            with warnings.catch_warnings():
+                warnings.simplefilter('ignore')
+                x = spsolve(A, rhs)
             vec = array(x, dtype="double")
             pvec = <scalar *>vec.data
 
