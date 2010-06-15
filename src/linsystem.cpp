@@ -41,6 +41,7 @@ void LinSystem::init_lin(WeakForm* wf_, Solver* solver_)
   this->wf_seq = -1;
 
   this->RHS = this->Dir = this->Vec = NULL;
+  RHS_length = Dir_length = Vec_length = -1; 
   this->A = NULL;
   this->mat_sym = false;
 
@@ -75,7 +76,7 @@ LinSystem::LinSystem(WeakForm* wf_, Solver* solver_, Tuple<Space*> spaces_)
     error("Number of spaces does not match number of equations in LinSystem::LinSystem().");
   this->init_lin(wf_, solver_);
   this->init_spaces(spaces_);
-  this->create_new_coeff_vectors();
+  this->alloc_vectors();
 }
 
 LinSystem::LinSystem(WeakForm* wf_, Tuple<Space*> spaces_)
@@ -83,7 +84,7 @@ LinSystem::LinSystem(WeakForm* wf_, Tuple<Space*> spaces_)
   Solver* solver_ = NULL;
   this->init_lin(wf_, solver_);
   this->init_spaces(spaces_);
-  this->create_new_coeff_vectors();
+  this->alloc_vectors();
 }
 
 LinSystem::LinSystem(WeakForm* wf_, Solver* solver_, Space* s_)
@@ -92,7 +93,7 @@ LinSystem::LinSystem(WeakForm* wf_, Solver* solver_, Space* s_)
     error("Number of spaces does not match number of equations in LinSystem::LinSystem().");
   this->init_lin(wf_, solver_);
   this->init_space(s_);
-  this->create_new_coeff_vectors();
+  this->alloc_vectors();
 }
 
 LinSystem::LinSystem(WeakForm* wf_, Space* s_)
@@ -100,7 +101,7 @@ LinSystem::LinSystem(WeakForm* wf_, Space* s_)
   Solver *solver_ = NULL;
   this->init_lin(wf_, solver_);
   this->init_space(s_);
-  this->create_new_coeff_vectors();
+  this->alloc_vectors();
 }
 
 LinSystem::LinSystem(WeakForm* wf_, Solver* solver_, Space* space1_, Space* space2_)
@@ -110,9 +111,8 @@ LinSystem::LinSystem(WeakForm* wf_, Solver* solver_, Space* space1_, Space* spac
     error("Number of spaces does not match number of equations in LinSystem::LinSystem().");
   this->init_lin(wf_, solver_);
   this->init_spaces(Tuple<Space*>(space1_, space2_));
-  this->create_new_coeff_vectors();
+  this->alloc_vectors();
 }
-
 
 LinSystem::~LinSystem()
 {
@@ -235,9 +235,36 @@ void LinSystem::copy(LinSystem* sys)
 
 void LinSystem::free_vectors() 
 {
-  if (this->RHS != NULL) { delete [] this->RHS; this->RHS = NULL; }
-  if (this->Dir != NULL) { delete [] this->Dir; this->Dir = NULL; }
-  if (this->Vec != NULL) { delete [] this->Vec; this->Vec = NULL; }
+  if (Vec != NULL || RHS != NULL || Dir != NULL)
+    printf("debug: freeing vectors Vec, RHS, Dir for lengths       %d\n", Vec_length);
+
+  if (RHS != NULL) {delete [] this->RHS; this->RHS = NULL;} 
+  if (Dir != NULL) {delete [] this->Dir; this->Dir = NULL;} 
+  if (Vec != NULL) {delete [] this->Vec; this->Vec = NULL;} 
+}
+
+void LinSystem::alloc_vectors() 
+{
+  int ndof = this->get_num_dofs();
+  printf("debug: allocating new vectors Vec, RHS, Dir for ndof = %d\n", ndof);
+
+  if (this->RHS != NULL || this->Dir != NULL || this->Vec != NULL) 
+    error("All vectors must be NULL in alloc_vectors().");
+
+  this->Vec = new scalar[ndof];
+  if (Vec == NULL) error("Not enough memory LinSystem::recreate_coeff_vectors().");
+  for(int i=0; i < ndof; i++) this->Vec[i] = 0;
+  Vec_length = ndof;
+
+  this->RHS = new scalar[ndof];
+  if (RHS == NULL) error("Not enough memory in LinSystem::recreate_coeff_vectors().");
+  for(int i=0; i < ndof; i++) this->RHS[i] = 0;
+  RHS_length = ndof;
+
+  this->Dir = new scalar[ndof];
+  if (Dir == NULL) error("Not enough memory in LinSystem::recreate_coeff_vectors().");
+  for(int i=0; i < ndof; i++) this->Dir[i] = 0;
+  Dir_length = ndof;
 }
 
 void LinSystem::free()
@@ -349,14 +376,17 @@ void LinSystem::insert_block(scalar** mat, int* iidx, int* jidx, int ilen, int j
 void LinSystem::assemble(bool rhsonly)
 {
   int ndof = this->get_num_dofs();
-  if (ndof == 0) error("ndof = 0 in LinSystem::assemble().");
 
+  // checking
+  if (ndof == 0) error("ndof = 0 in LinSystem::assemble().");
   if (this->have_spaces == false)
     error("Before assemble(), you need to initialize spaces.");
   if (this->spaces == NULL) error("spaces = NULL in LinSystem::assemble().");
-  if (this->Vec == NULL) error("Vec = NULL in LinSystem::assemble().");
-  if (this->RHS == NULL) error("RHS = NULL in LinSystem::assemble().");
-  if (this->Dir == NULL) error("Dir = NULL in LinSystem::assemble().");
+  
+  // create new vectors if needed
+  if (Vec_length != ndof || RHS_length != ndof || Dir_length != ndof) {
+    create_new_coeff_vectors();
+  }
 
   if (!rhsonly) free_matrix();
   int k, m, n, marker;
@@ -964,22 +994,13 @@ void LinSystem::save_rhs_bin(const char* filename)
 void LinSystem::create_new_coeff_vectors()
 {
   int ndof = this->get_num_dofs();
-  if (ndof == 0) error("ndof = 0 in LinSystem::recreate_coeff_vectors().");
+  if (ndof == 0) error("ndof = 0 in LinSystem::create_new_coeff_vectors().");
 
-  // vectors are freed if not NULL
+  // old vectors are freed
   this->free_vectors();
   
-  this->Vec = new scalar[ndof];
-  if (Vec == NULL) error("Not enough memory LinSystem::recreate_coeff_vectors().");
-  for(int i=0; i < ndof; i++) this->Vec[i] = 0;
-
-  this->RHS = new scalar[ndof];
-  if (RHS == NULL) error("Not enough memory in LinSystem::recreate_coeff_vectors().");
-  for(int i=0; i < ndof; i++) this->RHS[i] = 0;
-
-  this->Dir = new scalar[ndof];
-  if (Dir == NULL) error("Not enough memory in LinSystem::recreate_coeff_vectors().");
-  for(int i=0; i < ndof; i++) this->Dir[i] = 0;
+  // new vectors are created
+  this->alloc_vectors();
 }
 
 // debug
@@ -1065,12 +1086,10 @@ int LinSystem::assign_dofs()
     ndof += inc;
   }
 
-  // creating vectors Vec, Dir and RHS
-  this->create_new_coeff_vectors();
-
   return ndof;
 }
 
+// projecting multiple functions
 void LinSystem::project_global(Tuple<MeshFunction*> source, Tuple<Solution*> target, int proj_norm)
 {
   int n = source.size();

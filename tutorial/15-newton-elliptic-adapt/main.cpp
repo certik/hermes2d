@@ -24,8 +24,6 @@ const bool NEWTON_ON_COARSE_MESH = false;  // true...  Newton is done on coarse 
                                            // false... Newton is done on coarse mesh only once, then projection
                                            // of the fine mesh solution to coarse mesh is used.
 const int P_INIT = 1;                      // Initial polynomial degree.
-const int PROJ_TYPE = 1;                   // For the projection of the initial condition
-                                           // on the initial mesh: 1 = H1 projection, 0 = L2 projection.
 const int INIT_GLOB_REF_NUM = 1;           // Number of initial uniform mesh refinements.
 const int INIT_BDY_REF_NUM = 3;            // Number of initial refinements towards boundary.
 
@@ -128,17 +126,8 @@ int main(int argc, char* argv[])
   for(int i = 0; i < INIT_GLOB_REF_NUM; i++) mesh.refine_all_elements();
   mesh.refine_towards_boundary(1, INIT_BDY_REF_NUM);
 
-  // Initialize the shapeset.
-  H1Shapeset shapeset;
-
-  // Create an H1 space.
-  H1Space space(&mesh, &shapeset);
-  space.set_bc_types(bc_types);
-  space.set_essential_bc_values(essential_bc_values);
-  space.set_uniform_order(P_INIT);
-
-  // Enumerate degrees of freedom.
-  int ndof = assign_dofs(&space);
+  // Create an H1 space with default shapeset.
+  H1Space space(&mesh, bc_types, essential_bc_values, P_INIT);
 
   // Solutions for the Newton's iteration and adaptivity.
   Solution u_prev, sln_coarse, sln_fine;
@@ -151,15 +140,16 @@ int main(int argc, char* argv[])
   // Matrix solver.
   UmfpackSolver solver;
 
-  // Initialize the nonlinear system.
+  // Initialize the coarse and fine mesh problems.
   NonlinSystem nls(&wf, &solver, &space);
+  RefSystem rnls(&nls);
 
   // DOF and CPU convergence graphs.
   SimpleGraph graph_dof, graph_cpu;
 
   // Project the function init_guess() on the coarse mesh
   // to obtain initial guess u_prev for the Newton's method.
-  nls.project_global(init_guess, &u_prev, PROJ_TYPE);
+  nls.project_global(init_guess, &u_prev);
 
   // Initialize views.
   ScalarView sview_coarse("Coarse mesh solution", 0, 0, 350, 300); // coarse mesh solution
@@ -176,7 +166,7 @@ int main(int argc, char* argv[])
   sln_coarse.copy(&u_prev);
 
   // Create a selector which will select optimal candidate.
-  H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER, &shapeset);
+  H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
 
   // Adaptivity loop:
   bool done = false; int as = 1;
@@ -194,18 +184,14 @@ int main(int argc, char* argv[])
     // Skip visualization.
     cpu_time.tick(H2D_SKIP);
 
-    // Initialize fine mesh problem.
-    RefSystem rnls(&nls);
-    rnls.prepare();
-
     // Set initial condition for the Newton's method on the fine mesh.
     if (as == 1) {
       info("Projecting coarse mesh solution on fine mesh.");
-      rnls.project_global(&sln_coarse, &u_prev, PROJ_TYPE);
+      rnls.project_global(&sln_coarse, &u_prev);
     }
     else {
       info("Projecting previous fine mesh solution on new fine mesh.");
-      rnls.project_global(&sln_fine, &u_prev, PROJ_TYPE);
+      rnls.project_global(&sln_fine, &u_prev);
     }
 
     info("Solving on fine mesh.");
@@ -235,10 +221,10 @@ int main(int argc, char* argv[])
 
     // Report results.
     info("ndof_coarse: %d, ndof_fine: %d, err_est: %g%%", 
-      space.get_num_dofs(), rnls.get_space(0)->get_num_dofs(), err_est);
+      nls.get_num_dofs(), rnls.get_num_dofs(), err_est);
 
     // Add entry to DOF convergence graph.
-    graph_dof.add_values(space.get_num_dofs(), err_est);
+    graph_dof.add_values(nls.get_num_dofs(), err_est);
     graph_dof.save("conv_dof.dat");
 
     // Add entry to CPU convergence graph.
@@ -250,15 +236,14 @@ int main(int argc, char* argv[])
     else {
       info("Adapting coarse mesh.");
       done = hp.adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY);
-      ndof = assign_dofs(&space);
-      if (ndof >= NDOF_STOP) {
+      if (nls.get_num_dofs() >= NDOF_STOP) {
         done = true;
         break;
       }
 
       // Project the fine mesh solution on the new coarse mesh.
       info("Projecting fine mesh solution on new coarse mesh.");
-      nls.project_global(&sln_fine, &u_prev, PROJ_TYPE);
+      nls.project_global(&sln_fine, &u_prev);
 
       if (NEWTON_ON_COARSE_MESH) {
         // Newton's loop on the new coarse mesh.

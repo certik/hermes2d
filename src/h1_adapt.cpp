@@ -26,13 +26,20 @@ using namespace std;
 
 H1Adapt::H1Adapt(const Tuple<Space*>& spaces) : Adapt(spaces) 
 {
-  for (int i = 0; i < num_comps; i++)
-    for (int j = 0; j < num_comps; j++) {
+  for (int i = 0; i < spaces.size(); i++) {
+    for (int j = 0; j < spaces.size(); j++) {
       if (i == j) {
         form[i][j] = h1_form<double, scalar>;
         ord[i][j]  = h1_form<Ord, Ord>;
       }
     }
+  }
 }
 
+H1Adapt::H1Adapt(Space* s) : Adapt(Tuple<Space*>(s))
+{
+  int i = 0, j = 0;
+  form[i][j] = h1_form<double, scalar>;
+  ord[i][j]  = h1_form<Ord, Ord>;
+} 
 

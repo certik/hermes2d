@@ -109,19 +109,31 @@ public:
   virtual ~Space();
   virtual void free();
 
-  /// Sets the BC types callback function.
+  /// Sets the BC types callback function. Calls assign_dofs() since the 
+  /// Space changes. The user can call this when changing BC types at runtime. 
   void set_bc_types(BCType (*bc_type_callback)(int marker));
+  /// Sets the BC types callback function; does not call assign_dofs(). To be 
+  /// used in constructor of the Space class only.
+  void set_bc_types_init(BCType (*bc_type_callback)(int marker));
   /// Sets the BC values callback function, which takes absolute boundary coordinates.
   void set_essential_bc_values(scalar (*bc_value_callback_by_coord)(int ess_bdy_marker, double x, double y));
   /// Sets the BC values callback function, which takes parametric edge position.
   void set_essential_bc_values(scalar (*bc_value_callback_by_edge)(EdgePos* ep)); // for EdgePos, see mesh.h
 
-  /// Sets element polynomial order.
+  /// Sets element polynomial order. Can be called by the user. Should not be called  
+  /// for many elements at once, since assign_dofs() is called at the end of this function.
   virtual void set_element_order(int id, int order);
+  /// Sets element polynomial order. This version does not call assign_dofs() and is 
+  /// intended primarily for internal use.
+  virtual void set_element_order_internal(int id, int order);
   /// Returns element polynomial order.
   int  get_element_order(int id) const;
-  /// Sets the same polynomial order for all elements in the mesh.
+  /// Sets the same polynomial order for all elements in the mesh. Intended for 
+  /// the user and thus assign_dofs() is called at the end of this function.
   void set_uniform_order(int order, int marker = H2D_ANY);
+  /// Sets the same polynomial order for all elements in the mesh. Does not 
+  /// call assign_dofs(). For internal use.
+  void set_uniform_order_internal(int order, int marker = H2D_ANY);
   /// Sets the order automatically assigned to all newly created elements.
   /// (The order of these is normally undefined and has to be set explicitly.)
   void set_default_order(int tri_order, int quad_order = 0);

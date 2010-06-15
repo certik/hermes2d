@@ -567,17 +567,17 @@ void L2OrthoHP::adapt(double thr, int strat, bool h_only, bool iso_only, double 
 
     //apply found division
     if (split < 0) {
-      spaces[comp]->set_element_order(id, p[0]);
+      spaces[comp]->set_element_order_internal(id, p[0]);
     }
     else if (split == 0) {
       mesh[comp]->refine_element(id);
       for (j = 0; j < 4; j++)
-        spaces[comp]->set_element_order(e->sons[j]->id, p[j]);
+        spaces[comp]->set_element_order_internal(e->sons[j]->id, p[j]);
     }
     else {
       mesh[comp]->refine_element(id, split);
       for (j = 0; j < 2; j++)
-        spaces[comp]->set_element_order(e->sons[ (split == 1) ? j : j+2 ]->id, p[j]);
+        spaces[comp]->set_element_order_internal(e->sons[ (split == 1) ? j : j+2 ]->id, p[j]);
     }
 
     err0 = err;

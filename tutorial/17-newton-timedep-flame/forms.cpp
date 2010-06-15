@@ -32,7 +32,7 @@ void omega_dt_fn(int n, scalar* a, scalar* dadx, scalar* dady, scalar* b, scalar
   }
 }
 
-void omega_dy_fn(int n, scalar* a, scalar* dadx, scalar* dady, scalar* b, scalar* dbdx, scalar* dbdy,
+void omega_dc_fn(int n, scalar* a, scalar* dadx, scalar* dady, scalar* b, scalar* dbdx, scalar* dbdy,
                         scalar* out, scalar* outdx, scalar* outdy)
 {
   for (int i = 0; i < n; i++)

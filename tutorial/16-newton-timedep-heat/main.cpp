@@ -25,9 +25,6 @@ const int INIT_BDY_REF_NUM = 4;        // Number of initial refinements towards 
 const int P_INIT = 2;                  // Initial polynomial degree.
 const double TAU = 0.2;                // Time step.
 const double T_FINAL = 10.0;           // Time interval length.
-const int PROJ_TYPE = 1;               // For the projection of the initial condition
-                                       // on the initial mesh: 1 = H1 projection, 0 = L2 projection.
-
 const double NEWTON_TOL = 1e-6;        // Stopping criterion for the Newton's method.
 const int NEWTON_MAX_ITER = 100;       // Maximum allowed number of Newton iterations.
 
@@ -92,17 +89,8 @@ int main(int argc, char* argv[])
   for(int i = 0; i < INIT_GLOB_REF_NUM; i++) mesh.refine_all_elements();
   mesh.refine_towards_boundary(1, INIT_BDY_REF_NUM);
 
-  // Initialize the shapeset.
-  H1Shapeset shapeset;
-
-  // Create an H1 space.
-  H1Space space(&mesh, &shapeset);
-  space.set_bc_types(bc_types);
-  space.set_essential_bc_values(essential_bc_values);
-  space.set_uniform_order(P_INIT);
-
-  // Enumerate degrees of freedom.
-  int ndof = assign_dofs(&space);
+  // Create an H1 space with default shapeset.
+  H1Space space(&mesh, bc_types, essential_bc_values, P_INIT);
 
   // Solutions for the Newton's iteration and
   // time stepping.
@@ -121,7 +109,7 @@ int main(int argc, char* argv[])
 
   // Project the function initial_condition() on the mesh.
   info("Projecting initial condition on the FE space.");
-  nls.project_global(initial_condition, &u_prev_time, PROJ_TYPE);
+  nls.project_global(initial_condition, &u_prev_time);
   u_prev_newton.copy(&u_prev_time);
 
   // Initialize views.
@@ -137,7 +125,8 @@ int main(int argc, char* argv[])
 
     // Newton's method.
     info("Performing Newton's method.");
-    if (!nls.solve_newton(&u_prev_newton, NEWTON_TOL, NEWTON_MAX_ITER)) error("Newton's method did not converge.");
+    if (!nls.solve_newton(&u_prev_newton, NEWTON_TOL, NEWTON_MAX_ITER)) 
+      error("Newton's method did not converge.");
 
     // Update previous time level solution.
     u_prev_time.copy(&u_prev_newton);

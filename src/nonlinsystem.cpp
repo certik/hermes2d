@@ -45,43 +45,65 @@ void NonlinSystem::init_nonlin()
 NonlinSystem::NonlinSystem() {}
 
 NonlinSystem::NonlinSystem(WeakForm* wf_, 
-    Solver* solver_) : LinSystem(wf_, solver_)
+    Solver* solver_)
 { 
+  this->init_lin(wf_, solver_);
   this->init_nonlin();
 }
 
-NonlinSystem::NonlinSystem(WeakForm* wf_) : LinSystem(wf_)
+NonlinSystem::NonlinSystem(WeakForm* wf_)
 {
-  this->init_nonlin();
-}
-
-NonlinSystem::NonlinSystem(WeakForm* wf_, Solver* solver_, 
-    Tuple<Space*> spaces_) : LinSystem(wf_, solver_, spaces_)
-{
-  this->init_nonlin();
-}
-
-NonlinSystem::NonlinSystem(WeakForm* wf_, 
-    Tuple<Space*> spaces_) : LinSystem(wf_, spaces_)
-{
+  Solver *solver_ = NULL;
+  this->init_lin(wf_, solver_);
   this->init_nonlin();
 }
 
 NonlinSystem::NonlinSystem(WeakForm* wf_, Solver* solver_, 
-    Space *s_) : LinSystem(wf_, solver_, s_)
+    Tuple<Space*> spaces_)
 {
+  int n = spaces_.size();
+  if (n != wf_->neq) 
+    error("Number of spaces does not match number of equations in LinSystem::LinSystem().");
+  this->init_lin(wf_, solver_);
+  this->init_spaces(spaces_);
+  this->alloc_vectors();
   this->init_nonlin();
 }
 
 NonlinSystem::NonlinSystem(WeakForm* wf_, 
-    Space *s_) : LinSystem(wf_, s_)
+    Tuple<Space*> spaces_)
 {
+  Solver* solver_ = NULL;
+  this->init_lin(wf_, solver_);
+  this->init_spaces(spaces_);
+  this->alloc_vectors();
+  this->init_nonlin();
+}
+
+NonlinSystem::NonlinSystem(WeakForm* wf_, Solver* solver_, 
+    Space *s_) 
+{
+  if (wf_->neq != 1) 
+    error("Number of spaces does not match number of equations in LinSystem::LinSystem().");
+  this->init_lin(wf_, solver_);
+  this->init_space(s_);
+  this->alloc_vectors();
+  this->init_nonlin();
+}
+
+NonlinSystem::NonlinSystem(WeakForm* wf_, 
+    Space *s_)
+{
+  Solver *solver_ = NULL;
+  this->init_lin(wf_, solver_);
+  this->init_space(s_);
+  this->alloc_vectors();
   this->init_nonlin();
 }
 
 void NonlinSystem::free()
 {
-  /* FIXME - HUGE MEMORY LEAK THAT NEEDS TO BE FIXED SOON
+  /* FIXME - MEMORY LEAK
   LinSystem::free_matrix();
   LinSystem::free_vectors();
   if (solver) solver->free_data(slv_ctx);

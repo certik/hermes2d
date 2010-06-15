@@ -54,7 +54,7 @@ int main(int argc, char* argv[])
   space.set_uniform_order(P_INIT);
 
   // View FE basis functions.
-  BaseView bview;
+  BaseView bview("FE Space", 0, 0, 600, 600);
   bview.show(&space);
 
   // Practice some keyboard and mouse controls.

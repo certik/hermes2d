@@ -25,8 +25,9 @@
 //
 //  The following parameters can be changed:
 
-const int INIT_REF_NUM = 4;      // Number of initial uniform mesh refinements.
-const int P_INIT = 1;            // Polynomial degree of all mesh elements.
+const int INIT_REF_NUM = 1;      // Number of initial uniform mesh refinements.
+const int INIT_REF_NUM_BDY = 1;  // Number of initial uniform mesh refinements towards the boundary.
+const int P_INIT = 4;            // Polynomial degree of all mesh elements.
 const double TAU = 300.0;        // Time step in seconds.
 
 // Problem parameters.
@@ -46,13 +47,13 @@ double temp_ext(double t) {
 }
 
 // Boundary markers.
-int marker_ground = 1;
-int marker_air = 2;
+int bdy_ground = 1;
+int bdy_air = 2;
 
 // Boundary condition types.
 BCType bc_types(int marker)
 {
-  if (marker == marker_ground) return BC_ESSENTIAL;
+  if (marker == bdy_ground) return BC_ESSENTIAL;
   else return BC_NATURAL;
 }
 
@@ -74,16 +75,11 @@ int main(int argc, char* argv[])
 
   // Perform initial mesh refinements.
   for(int i = 0; i < INIT_REF_NUM; i++) mesh.refine_all_elements();
-  mesh.refine_towards_boundary(2, 5);
+  mesh.refine_towards_boundary(bdy_air, INIT_REF_NUM_BDY);
 
-  // Initialize the shapeset.
-  H1Shapeset shapeset;
-
-  // Initialize an H1 space.
-  H1Space space(&mesh, &shapeset);
-  space.set_bc_types(bc_types);
-  space.set_essential_bc_values(essential_bc_values);
-  space.set_uniform_order(P_INIT);
+  // Initialize an H1 space with default shepeset.
+  H1Space space(&mesh, bc_types, essential_bc_values, P_INIT);
+  info("ndof = %d", space.get_num_dofs());
 
   // Set initial condition.
   Solution tsln;
@@ -92,9 +88,9 @@ int main(int argc, char* argv[])
   // Initialize weak formulation.
   WeakForm wf;
   wf.add_biform(bilinear_form<double, double>, bilinear_form<Ord, Ord>);
-  wf.add_biform_surf(bilinear_form_surf<double, double>, bilinear_form_surf<Ord, Ord>, marker_air);
+  wf.add_biform_surf(bilinear_form_surf<double, double>, bilinear_form_surf<Ord, Ord>, bdy_air);
   wf.add_liform(linear_form<double, double>, linear_form<Ord, Ord>, H2D_ANY, 1, &tsln);
-  wf.add_liform_surf(linear_form_surf<double, double>, linear_form_surf<Ord, Ord>, marker_air);
+  wf.add_liform_surf(linear_form_surf<double, double>, linear_form_surf<Ord, Ord>, bdy_air);
 
   // Matrix solver.
   UmfpackSolver solver;
@@ -118,7 +114,7 @@ int main(int argc, char* argv[])
     info("---- Time step %d, time %3.5f, ext_temp %g", ts, TIME, temp_ext(TIME));
 
     // Assemble and solve.
-    ls.assemble(rhsonly);
+    ls.assemble(rhsonly);   // Stiffness matrix assembled only the first time.
     rhsonly = true;
     ls.solve(&tsln);
 

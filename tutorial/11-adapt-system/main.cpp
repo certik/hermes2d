@@ -115,20 +115,9 @@ int main(int argc, char* argv[])
   // Initial mesh refinements in the vmesh towards the boundary.
   if (MULTI == true) vmesh.refine_towards_boundary(1, INIT_REF_BDY);
 
-  // Initialize the shapeset.
-  H1Shapeset shapeset;
-
   // Create the x displacement space.
-  H1Space uspace(&umesh, &shapeset);
-  uspace.set_bc_types(bc_types);
-  uspace.set_essential_bc_values(essential_bc_values);
-  uspace.set_uniform_order(P_INIT_U);
-
-  // Create the y displacement space.
-  H1Space vspace(MULTI ? &vmesh : &umesh, &shapeset);
-  vspace.set_bc_types(bc_types);
-  vspace.set_essential_bc_values(essential_bc_values);
-  vspace.set_uniform_order(P_INIT_V);
+  H1Space uspace(&umesh, bc_types, essential_bc_values, P_INIT_U);
+  H1Space vspace(MULTI ? &vmesh : &umesh, bc_types, essential_bc_values, P_INIT_V);
 
   // Initialize the weak formulation.
   WeakForm wf(2);
@@ -152,10 +141,10 @@ int main(int argc, char* argv[])
   SimpleGraph graph_dof, graph_cpu;
 
   // Initialize refinement selector.
-  H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER, &shapeset);
+  H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
 
   // Initialize the coarse and fine mesh problems.
-  LinSystem ls(&wf, &solver, &uspace, &vspace);
+  LinSystem ls(&wf, &solver, Tuple<Space*>(&uspace, &vspace));
   RefSystem rs(&ls);
 
   // Adaptivity loop.
@@ -169,14 +158,14 @@ int main(int argc, char* argv[])
     // Assemble and solve the fine mesh problem.
     info("Solving on fine meshes.");
     rs.assemble();
-    rs.solve(&u_sln_fine, &v_sln_fine);
+    rs.solve(Tuple<Solution*>(&u_sln_fine, &v_sln_fine));
 
     // Either solve on coarse mesh or project the fine mesh solution 
     // on the coarse mesh.
     if (SOLVE_ON_COARSE_MESH) {
       info("Solving on coarse meshes.");
       ls.assemble();
-      ls.solve(&u_sln_coarse, &v_sln_coarse);
+      ls.solve(Tuple<Solution*>(&u_sln_coarse, &v_sln_coarse));
     }
     else {
       info("Projecting fine mesh solutions on coarse meshes.");
@@ -224,7 +213,7 @@ int main(int argc, char* argv[])
     info("Estimate of error wrt. ref. solution (energy norm): %g%%", err_est);
 
     // Add entry to DOF convergence graph.
-    graph_dof.add_values(uspace.get_num_dofs() + vspace.get_num_dofs(), error);
+    graph_dof.add_values(ls.get_num_dofs(), error);
     if (MULTI == true) graph_dof.save("conv_dof_m.dat");
     else graph_dof.save("conv_dof_s.dat");
 
@@ -238,7 +227,6 @@ int main(int argc, char* argv[])
     else {
       info("Adapting coarse meshes.");
       done = hp.adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY, MULTI == true ? false : true);
-      int ndof = ls.assign_dofs();
       if (ls.get_num_dofs() >= NDOF_STOP) done = true;
     }
 

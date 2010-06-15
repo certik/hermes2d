@@ -38,7 +38,7 @@ public:
   void set_pss(Tuple<PrecalcShapeset*> pss);
 
   /// Performs global mesh refinement and related things.
-  void prepare();
+  void global_refinement();
 
   /// Sets order increases (same for all components)
   void set_order_increase(int order_increase);

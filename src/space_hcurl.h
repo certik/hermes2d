@@ -37,8 +37,12 @@ public:
 
   virtual int get_type() const { return 1; }
 
-  /// Sets element polynomial order.
+  /// Sets element polynomial order and calls assign_dofs(). Intended for the user.
   virtual void set_element_order(int id, int order);
+
+  /// Sets element polynomial order without calling assign_dofs(). For internal use.
+  virtual void set_element_order_internal(int id, int order);
+
 
 protected:
 

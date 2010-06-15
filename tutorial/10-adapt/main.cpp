@@ -98,14 +98,8 @@ int main(int argc, char* argv[])
   H2DReader mloader;
   mloader.load("motor.mesh", &mesh);
 
-  // Initialize the shapeset.
-  H1Shapeset shapeset;
-
-  // Create an H1 space.
-  H1Space space(&mesh, &shapeset);
-  space.set_bc_types(bc_types);
-  space.set_essential_bc_values(essential_bc_values);
-  space.set_uniform_order(P_INIT);
+  // Create an H1 space with default shapeset.
+  H1Space space(&mesh, bc_types, essential_bc_values, P_INIT);
 
   // Initialize the weak formulation.
   WeakForm wf;
@@ -125,13 +119,11 @@ int main(int argc, char* argv[])
   SimpleGraph graph_dof, graph_cpu;
 
   // Initialize refinement selector.
-  H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER, &shapeset);
+  H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
 
   // Initialize the coarse and fine mesh problems.
   LinSystem ls(&wf, &solver, &space);
-  int order_increase = 1;   // >= 0 (default = 1) 
-  int refinement = 1;       // only '0' or '1' supported (default = 1)
-  RefSystem rs(&ls, order_increase, refinement);
+  RefSystem rs(&ls);
 
   // Adaptivity loop:
   Solution sln_coarse, sln_fine;
@@ -178,11 +170,9 @@ int main(int argc, char* argv[])
     info("ndof_coarse: %d, ndof_fine: %d, err_est: %g%%", 
       ls.get_num_dofs(), rs.get_num_dofs(), err_est);
 
-    // Add entry to DOF convergence graph.
+    // Add entry to DOF and CPU convergence graphs.
     graph_dof.add_values(ls.get_num_dofs(), err_est);
     graph_dof.save("conv_dof.dat");
-
-    // Add entry to CPU convergence graph.
     graph_cpu.add_values(cpu_time.accumulated(), err_est);
     graph_cpu.save("conv_cpu.dat");
 
@@ -191,10 +181,8 @@ int main(int argc, char* argv[])
     else {
       info("Adapting coarse mesh.");
       done = hp.adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY);
-      ls.assign_dofs();
 
       if (ls.get_num_dofs() >= NDOF_STOP) done = true;
-
     }
 
     as++;

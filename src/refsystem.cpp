@@ -39,9 +39,18 @@ RefSystem::RefSystem(LinSystem* base, int order_increase,
   } else {
     this->want_dir_contrib = false;
   }
+
+  // perform uniform mesh refinement
+  this->global_refinement();
+
+  // internal check
+  if (this->have_spaces == false) error("RefSystem: missing space(s).");
+
+  // allocate vectors Vec, RHS and Dir
+  this->alloc_vectors();
 }
 
-void RefSystem::prepare() 
+void RefSystem::global_refinement() 
 {
   // after this, meshes and spaces are NULL
   this->free_meshes_and_spaces();
@@ -114,7 +123,7 @@ void RefSystem::prepare()
           max_order_v = 0;
         else
           max_order_v = std::max(1, max_order_v + order_increase);
-        spaces[i]->set_element_order(re->id, H2D_MAKE_QUAD_ORDER(max_order_h, max_order_v));
+        spaces[i]->set_element_order_internal(re->id, H2D_MAKE_QUAD_ORDER(max_order_h, max_order_v));
       }
     }
     else {
@@ -159,7 +168,7 @@ void RefSystem::set_order_increase(int order_increase)
 void RefSystem::assemble(bool rhsonly)
 {  
   // perform uniform mesh refinement
-  prepare();
+  global_refinement();
 
   // internal check
   if (this->have_spaces == false) error("RefSystem: missing space(s).");

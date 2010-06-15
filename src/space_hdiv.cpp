@@ -43,7 +43,7 @@ HdivSpace::HdivSpace(Mesh* mesh, BCType (*bc_type_callback)(int),
 
   // set uniform poly order in elements
   if (p_init < 0) error("P_INIT must be >= 0 in an Hdiv space.");
-  else this->set_uniform_order(p_init);
+  else this->set_uniform_order_internal(p_init);
 
   // enumerate basis functions
   this->assign_dofs();

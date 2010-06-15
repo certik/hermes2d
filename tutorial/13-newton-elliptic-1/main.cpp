@@ -24,9 +24,6 @@
 const int INIT_GLOB_REF_NUM = 3;  // Number of initial uniform mesh refinements.
 const int INIT_BDY_REF_NUM = 5;   // Number of initial refinements towards boundary.
 const int P_INIT = 2;             // Initial polynomial degree.
-const int PROJ_TYPE = 1;          // For the projection of the initial condition
-                                  // on the initial mesh: 1 = H1 projection,
-                                  // 0 = L2 projection.
 const double NEWTON_TOL = 1e-6;   // Stopping criterion for the Newton's method.
 const int NEWTON_MAX_ITER = 100;  // Maximum allowed number of Newton iterations.
 
@@ -43,6 +40,12 @@ Real dlam_du(Real u) { return 4*pow(u, 3); }
 BCType bc_types(int marker)
 {
   return BC_ESSENTIAL;
+}
+
+// Essential (Dirichlet) boundary condition values.
+scalar essential_bc_values(int marker, double x, double y)
+{
+  return 0;
 }
 
 // Heat sources (can be a general function of 'x' and 'y').
@@ -66,16 +69,8 @@ int main(int argc, char* argv[])
   for(int i = 0; i < INIT_GLOB_REF_NUM; i++) mesh.refine_all_elements();
   mesh.refine_towards_boundary(1,INIT_BDY_REF_NUM);
 
-  // Initialize the shapeset.
-  H1Shapeset shapeset;
-
-  // Create an H1 space.
-  H1Space space(&mesh, &shapeset);
-  space.set_bc_types(bc_types);
-  space.set_uniform_order(P_INIT);
-  
-  // Enumerate degrees of freedom.
-  int ndof = assign_dofs(&space);
+  // Create an H1 space with default shapeset.
+  H1Space space(&mesh, bc_types, essential_bc_values, P_INIT);
 
   // Previous solution for the Newton's iteration.
   Solution u_prev;
@@ -98,7 +93,7 @@ int main(int argc, char* argv[])
   // Project the function u_prev() on the FE space
   // to obtain initial guess u_prev for the Newton's method.
   info("Projecting initial condition on the FE space.");
-  nls.project_global(&u_prev, &u_prev, PROJ_TYPE);
+  nls.project_global(&u_prev, &u_prev);
 
   // Perform Newton's iteration.
   info("Performing Newton's iteration.");

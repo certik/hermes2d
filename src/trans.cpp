@@ -2,7 +2,7 @@
 #define countof(a) (sizeof(a)/sizeof(a[0]))
 
 // taken form RefMap.cpp
-extern H1ShapesetBeuchler ref_map_shapeset;
+extern H1ShapesetJacobi ref_map_shapeset;
 
 // vertical edge
 double2 e0_pt[] = {

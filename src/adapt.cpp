@@ -224,6 +224,12 @@ bool Adapt::adapt(RefinementSelectors::Selector* refinement_selector, double thr
   if (strat == 2 && done == true)
     have_errors = true; // space without changes
 
+  // since space changed, assign dofs:
+  int ndof = 0;
+  for (int i=0; i < num_comps; i++) {
+    ndof += spaces[i]->assign_dofs(ndof);
+  }
+
   return done;
 }
 
@@ -306,7 +312,7 @@ void Adapt::homogenize_shared_mesh_orders(Mesh** meshes) {
           current_order_v = std::max(current_order_v, H2D_GET_V_ORDER(quad_order));
         }
 
-      spaces[i]->set_element_order(e->id, H2D_MAKE_QUAD_ORDER(current_order_h, current_order_v));
+      spaces[i]->set_element_order_internal(e->id, H2D_MAKE_QUAD_ORDER(current_order_h, current_order_v));
     }
   }
 }
@@ -317,8 +323,10 @@ const std::vector<ElementToRefine>& Adapt::get_last_refinements() const {
 
 void Adapt::apply_refinements(std::vector<ElementToRefine>& elems_to_refine)
 {
-  for (vector<ElementToRefine>::const_iterator elem_ref = elems_to_refine.begin(); elem_ref != elems_to_refine.end(); elem_ref++) // go over elements to be refined
+  for (vector<ElementToRefine>::const_iterator elem_ref = elems_to_refine.begin(); 
+       elem_ref != elems_to_refine.end(); elem_ref++) { // go over elements to be refined
     apply_refinement(*elem_ref);
+  }
 }
 
 void Adapt::apply_refinement(const ElementToRefine& elem_ref) {
@@ -329,18 +337,18 @@ void Adapt::apply_refinement(const ElementToRefine& elem_ref) {
   e = mesh->get_element(elem_ref.id);
 
   if (elem_ref.split == H2D_REFINEMENT_P)
-    space->set_element_order(elem_ref.id, elem_ref.p[0]);
+    space->set_element_order_internal(elem_ref.id, elem_ref.p[0]);
   else if (elem_ref.split == H2D_REFINEMENT_H) {
     if (e->active)
       mesh->refine_element(elem_ref.id);
     for (int j = 0; j < 4; j++)
-      space->set_element_order(e->sons[j]->id, elem_ref.p[j]);
+      space->set_element_order_internal(e->sons[j]->id, elem_ref.p[j]);
   }
   else {
     if (e->active)
       mesh->refine_element(elem_ref.id, elem_ref.split);
     for (int j = 0; j < 2; j++)
-      space->set_element_order(e->sons[ (elem_ref.split == 1) ? j : j+2 ]->id, elem_ref.p[j]);
+      space->set_element_order_internal(e->sons[ (elem_ref.split == 1) ? j : j+2 ]->id, elem_ref.p[j]);
   }
 }
 
@@ -388,8 +396,8 @@ void Adapt::unrefine(double thr)
           mesh[1]->unrefine_element(e->id);
           errors_squared[0][e->id] = sum1_squared;
           errors_squared[1][e->id] = sum2_squared;
-          spaces[0]->set_element_order(e->id, max1);
-          spaces[1]->set_element_order(e->id, max2);
+          spaces[0]->set_element_order_internal(e->id, max1);
+          spaces[1]->set_element_order_internal(e->id, max2);
           k++; // number of unrefined elements
         }
       }
@@ -400,7 +408,7 @@ void Adapt::unrefine(double thr)
         if (errors_squared[i][e->id] < thr/4 * errors_squared[regular_queue[0].comp][regular_queue[0].id])
       {
         int oo = H2D_GET_H_ORDER(spaces[i]->get_element_order(e->id));
-        spaces[i]->set_element_order(e->id, std::max(oo - 1, 1));
+        spaces[i]->set_element_order_internal(e->id, std::max(oo - 1, 1));
         k++;
       }
     }
@@ -433,7 +441,7 @@ void Adapt::unrefine(double thr)
           {
             mesh[m]->unrefine_element(e->id);
             errors_squared[m][e->id] = sum_squared;
-            spaces[m]->set_element_order(e->id, max);
+            spaces[m]->set_element_order_internal(e->id, max);
             k++; // number of unrefined elements
           }
         }
@@ -443,7 +451,7 @@ void Adapt::unrefine(double thr)
         if (errors_squared[m][e->id] < thr/4 * errors_squared[regular_queue[0].comp][regular_queue[0].id])
         {
           int oo = H2D_GET_H_ORDER(spaces[m]->get_element_order(e->id));
-          spaces[m]->set_element_order(e->id, std::max(oo - 1, 1));
+          spaces[m]->set_element_order_internal(e->id, std::max(oo - 1, 1));
           k++;
         }
       }

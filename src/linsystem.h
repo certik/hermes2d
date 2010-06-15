@@ -95,6 +95,10 @@ public:
   /// not be freed anywhere else.
   void free_vectors();
 
+  /// Allocate new vectors Vec, RHS and Dir. These vectors should 
+  /// not be allocated anywhere else.
+  void alloc_vectors();
+
   /// Frees the stiffness matrix, coefficient vectors, and matrix solver data.
   virtual void free();
 
@@ -207,11 +211,14 @@ protected:
   PrecalcShapeset** pss;
 
   CooMatrix *A;
-  bool mat_sym; ///< true if symmetric and only upper half stored
+  bool mat_sym; ///< true if symmetric - then only upper half stored
 
+  scalar* Vec; ///< solution coefficient vector
+  int Vec_length;
   scalar* RHS; ///< assembled right-hand side
-  scalar* Dir; ///< contributions to the RHS from Dirichlet DOFs
-  scalar* Vec; ///< last solution vector
+  int RHS_length;
+  scalar* Dir; ///< contributions to the RHS from Dirichlet lift
+  int Dir_length;
 
   void create_matrix(bool rhsonly);
   void insert_block(scalar** mat, int* iidx, int* jidx, int ilen, int jlen);

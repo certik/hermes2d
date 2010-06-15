@@ -19,7 +19,7 @@
 #include "shapeset_h1_all.h"
 
 
-H1ShapesetBeuchler ref_map_shapeset;
+H1ShapesetJacobi ref_map_shapeset;
 PrecalcShapeset ref_map_pss(&ref_map_shapeset);
 
 

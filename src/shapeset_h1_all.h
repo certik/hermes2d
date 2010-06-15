@@ -29,10 +29,10 @@ class H2D_API H1ShapesetOrtho : public Shapeset
 };
 
 
-/// Sven Beuchler's shape functions based on integrated Jacobi polynomials.
-class H2D_API H1ShapesetBeuchler : public Shapeset
+/// Shape functions based on integrated Jacobi polynomials.
+class H2D_API H1ShapesetJacobi : public Shapeset
 {
-  public: H1ShapesetBeuchler();
+  public: H1ShapesetJacobi();
   virtual int get_id() const { return 1; }
 };
 
@@ -46,7 +46,7 @@ class H2D_API H1ShapesetEigen : public Shapeset
 
 
 /// This is the default shapeset typedef
-typedef H1ShapesetBeuchler H1Shapeset;
+typedef H1ShapesetJacobi H1Shapeset;
 
 
 #endif

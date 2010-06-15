@@ -7,7 +7,7 @@ set(SRC
        space_hdiv.cpp
        linear1.cpp linear2.cpp linear3.cpp graph.cpp
        quad_std.cpp
-       shapeset_h1_ortho.cpp shapeset_h1_beuchler.cpp shapeset_h1_quad.cpp
+       shapeset_h1_ortho.cpp shapeset_h1_jacobi.cpp shapeset_h1_quad.cpp
        shapeset_hc_legendre.cpp shapeset_hc_gradleg.cpp
        shapeset_hd_legendre.cpp
        shapeset_l2_legendre.cpp

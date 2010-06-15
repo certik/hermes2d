@@ -24,7 +24,7 @@
 
 
 // defined in refmap.cpp
-extern H1ShapesetBeuchler ref_map_shapeset;
+extern H1ShapesetJacobi ref_map_shapeset;
 extern PrecalcShapeset ref_map_pss;
 
 static double** edge_proj_matrix = NULL;  //projection matrix for each edge is the same

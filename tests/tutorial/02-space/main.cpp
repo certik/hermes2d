@@ -14,9 +14,8 @@ int main(int argc, char* argv[])
   // sample element refinement, to see more basis functions
   //mesh.refine_all_elements();
 
-  // create a shapeset and an H1 space
-  H1Shapeset shapeset;
-  H1Space space(&mesh, &shapeset);
+  // create an H1 space
+  H1Space space(&mesh);
 
   // new code for the test
 #define ERROR_SUCCESS                               0
@@ -26,7 +25,6 @@ int main(int argc, char* argv[])
   // testing all poly degrees between 1 and 10
   for (int i=1; i <= 10; i++) {
     space.set_uniform_order(i);
-    assign_dofs(&space);
     n_dof[i-1] = space.get_num_dofs();
     dof_max[i-1] = space.get_max_dof();
 

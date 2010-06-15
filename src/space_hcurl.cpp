@@ -42,7 +42,7 @@ HcurlSpace::HcurlSpace(Mesh* mesh, BCType (*bc_type_callback)(int),
 
   // set uniform poly order in elements
   if (p_init < 0) error("P_INIT must be >= 0 in an Hcurl space.");
-  else this->set_uniform_order(p_init);
+  else this->set_uniform_order_internal(p_init);
 
   // enumerate basis functions
   this->assign_dofs();
@@ -66,7 +66,18 @@ Space* HcurlSpace::dup(Mesh* mesh) const
   return space;
 }
 
+// Sets element order and updates enumeration of dofs. Intended for 
+// the user.
 void HcurlSpace::set_element_order(int id, int order)
+{
+  set_element_order_internal(id, order);
+
+  // since space changed, call assign_dofs()
+  this->assign_dofs();
+}
+
+// Sets element order without updating the enumeration of dofs. For internal use.
+void HcurlSpace::set_element_order_internal(int id, int order)
 {
   assert_msg(mesh->get_element(id)->is_quad() || H2D_GET_V_ORDER(order) == 0, "Element #%d is triangle but vertical is not zero", id);
   if (id < 0 || id >= mesh->get_max_element_id())

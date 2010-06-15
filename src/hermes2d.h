@@ -49,7 +49,6 @@
 #include "feproblem.h"
 #include "nonlinsystem.h"
 #include "refsystem.h"
-#include "refsystem2.h"
 #include "forms.h"
 
 #include "itersolver.h"
@@ -175,7 +174,7 @@ Shapeset is a base class for all shapesets, both scalar (H1) and vector-valued (
 the interface (basically it is just a bunch of tables) and the functionality for constrained shape
 functions.
 
-The actual shapesets are H1ShapesetOrtho, H1ShapesetBeuchler, HcurlShapesetLegendre and
+The actual shapesets are H1ShapesetOrtho, H1ShapesetJacobi, HcurlShapesetLegendre and
 HcurlShapesetGradLeg. The other ("eigen") shapesets are experimental and not recommended for normal
 use.
 

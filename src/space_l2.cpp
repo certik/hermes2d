@@ -28,7 +28,7 @@ L2Space::L2Space(Mesh* mesh, int p_init, Shapeset* shapeset)
 
   // set uniform poly order in elements
   if (p_init < 0) error("P_INIT must be >= 0 in an Hcurl space.");
-  else this->set_uniform_order(p_init);
+  else this->set_uniform_order_internal(p_init);
 
   // enumerate basis functions
   this->assign_dofs();

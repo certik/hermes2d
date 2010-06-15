@@ -26,8 +26,6 @@ const int INIT_REF_NUM = 2;            // Number of initial uniform mesh refinem
 const int P_INIT = 2;                  // Initial polynomial degree.
 const double TAU = 0.5;                // Time step.
 const double T_FINAL = 60.0;           // Time interval length.
-const int PROJ_TYPE = 1;               // For the projection of the initial condition.
-                                       // on the initial mesh: 1 = H1 projection, 0 = L2 projection.
 const double NEWTON_TOL = 1e-4;        // Stopping criterion for the Newton's method.
 const int NEWTON_MAX_ITER = 15;        // Maximum allowed number of Newton iterations.
 
@@ -42,8 +40,11 @@ const double x1    = 9.0;
 BCType bc_types(int marker)
   { return (marker == 1) ? BC_ESSENTIAL : BC_NATURAL; }
 
-scalar essential_bc_values(int ess_bdy_marker, double x, double y)
+scalar essential_bc_values_t(int ess_bdy_marker, double x, double y)
   { return (ess_bdy_marker == 1) ? 1.0 : 0; }
+
+scalar essential_bc_values_c(int ess_bdy_marker, double x, double y)
+  { return 0; }
 
 // Initial conditions
 scalar temp_ic(double x, double y, scalar& dx, scalar& dy)
@@ -65,34 +66,23 @@ int main(int argc, char* argv[])
   // Initial mesh refinements.
   for(int i = 0; i < INIT_REF_NUM; i++) mesh.refine_all_elements();
 
-  // Initialize the shapeset.
-  H1Shapeset shapeset;
-
-  // Create H1 spaces.
-  H1Space tspace(&mesh, &shapeset);
-  H1Space cspace(&mesh, &shapeset);
-  tspace.set_bc_types(bc_types);
-  tspace.set_essential_bc_values(essential_bc_values);
-  cspace.set_bc_types(bc_types);
-  tspace.set_uniform_order(P_INIT);
-  cspace.set_uniform_order(P_INIT);
-
-  // Enumerate degrees of freedom.
-  int ndof = assign_dofs(2, &tspace, &cspace);
+  // Create H1 spaces with default shapesets.
+  H1Space tspace(&mesh, bc_types, essential_bc_values_t, P_INIT);
+  H1Space cspace(&mesh, bc_types, essential_bc_values_c, P_INIT);
 
   // Solutions for the Newton's iteration and time stepping.
-  Solution t_prev_time_1, y_prev_time_1, t_prev_time_2, 
-           y_prev_time_2, t_prev_newton, y_prev_newton, tsln, csln;
+  Solution t_prev_time_1, c_prev_time_1, t_prev_time_2, 
+           c_prev_time_2, t_prev_newton, c_prev_newton, tsln, csln;
 
   // Set initial conditions.
-  t_prev_time_1.set_exact(&mesh, temp_ic); y_prev_time_1.set_exact(&mesh, conc_ic);
-  t_prev_time_2.set_exact(&mesh, temp_ic); y_prev_time_2.set_exact(&mesh, conc_ic);
-  t_prev_newton.set_exact(&mesh, temp_ic);  y_prev_newton.set_exact(&mesh, conc_ic);
+  t_prev_time_1.set_exact(&mesh, temp_ic); c_prev_time_1.set_exact(&mesh, conc_ic);
+  t_prev_time_2.set_exact(&mesh, temp_ic); c_prev_time_2.set_exact(&mesh, conc_ic);
+  t_prev_newton.set_exact(&mesh, temp_ic);  c_prev_newton.set_exact(&mesh, conc_ic);
 
   // Define filters for the reaction rate omega.
-  DXDYFilter omega(omega_fn, &t_prev_newton, &y_prev_newton);
-  DXDYFilter omega_dt(omega_dt_fn, &t_prev_newton, &y_prev_newton);
-  DXDYFilter omega_dy(omega_dy_fn, &t_prev_newton, &y_prev_newton);
+  DXDYFilter omega(omega_fn, &t_prev_newton, &c_prev_newton);
+  DXDYFilter omega_dt(omega_dt_fn, &t_prev_newton, &c_prev_newton);
+  DXDYFilter omega_dc(omega_dc_fn, &t_prev_newton, &c_prev_newton);
 
   // Initialize view.
   ScalarView rview("Reaction rate", 0, 0, 800, 230);
@@ -101,25 +91,29 @@ int main(int argc, char* argv[])
   WeakForm wf(2);
   wf.add_biform(0, 0, callback(newton_bilinear_form_0_0), H2D_UNSYM, H2D_ANY, 1, &omega_dt);
   wf.add_biform_surf(0, 0, callback(newton_bilinear_form_0_0_surf), 3);
-  wf.add_biform(0, 1, callback(newton_bilinear_form_0_1), H2D_UNSYM, H2D_ANY, 1, &omega_dy);
+  wf.add_biform(0, 1, callback(newton_bilinear_form_0_1), H2D_UNSYM, H2D_ANY, 1, &omega_dc);
   wf.add_biform(1, 0, callback(newton_bilinear_form_1_0), H2D_UNSYM, H2D_ANY, 1, &omega_dt);
-  wf.add_biform(1, 1, callback(newton_bilinear_form_1_1), H2D_UNSYM, H2D_ANY, 1, &omega_dy);
+  wf.add_biform(1, 1, callback(newton_bilinear_form_1_1), H2D_UNSYM, H2D_ANY, 1, &omega_dc);
   wf.add_liform(0, callback(newton_linear_form_0), H2D_ANY, 4, &t_prev_newton, &t_prev_time_1, 
                 &t_prev_time_2, &omega);
   wf.add_liform_surf(0, callback(newton_linear_form_0_surf), 3, 1, &t_prev_newton);
-  wf.add_liform(1, callback(newton_linear_form_1), H2D_ANY, 4, &y_prev_newton, &y_prev_time_1, 
-                &y_prev_time_2, &omega);
+  wf.add_liform(1, callback(newton_linear_form_1), H2D_ANY, 4, &c_prev_newton, &c_prev_time_1, 
+                &c_prev_time_2, &omega);
 
   // Matrix solver.
   UmfpackSolver solver;
 
   // Initialize the nonlinear system.
-  NonlinSystem nls(&wf, &solver, 2, &tspace, &cspace);
+  NonlinSystem nls(&wf, &solver, Tuple<Space*>(&tspace, &cspace));
+
+  rview.show(&c_prev_newton);
+  View::wait();
 
   // Project temp_ic() and conc_ic() onto the FE spaces and use them as initial
   // conditions for the Newton's method.   
   info("Projecting initial conditions on the FE spaces.");
-  nls.project_global(&t_prev_newton, &y_prev_newton, &t_prev_newton, &y_prev_newton, PROJ_TYPE);
+  nls.project_global(Tuple<MeshFunction*>(&t_prev_newton, &c_prev_newton), 
+                     Tuple<Solution*>(&t_prev_newton, &c_prev_newton));
 
   // Time stepping loop:
   double current_time = 0.0; int ts = 1;
@@ -128,11 +122,11 @@ int main(int argc, char* argv[])
 
     // Newton's method.
     info("Performing Newton's iteration.");
-    if (!nls.solve_newton(&t_prev_newton, &y_prev_newton, NEWTON_TOL, NEWTON_MAX_ITER,
-                       &omega, &omega_dt, &omega_dy)) error("Newton's method did not converge.");
+    if (!nls.solve_newton(&t_prev_newton, &c_prev_newton, NEWTON_TOL, NEWTON_MAX_ITER,
+                       &omega, &omega_dt, &omega_dc)) error("Newton's method did not converge.");
 
     // Visualization.
-    DXDYFilter omega_view(omega_fn, &t_prev_newton, &y_prev_newton);
+    DXDYFilter omega_view(omega_fn, &t_prev_newton, &c_prev_newton);
     rview.set_min_max_range(0.0,2.0);
     char title[100];
     sprintf(title, "Reaction rate, t = %g", current_time);
@@ -144,9 +138,9 @@ int main(int argc, char* argv[])
 
     // Store two time levels of previous solutions.
     t_prev_time_2.copy(&t_prev_time_1);
-    y_prev_time_2.copy(&y_prev_time_1);
+    c_prev_time_2.copy(&c_prev_time_1);
     t_prev_time_1.copy(&t_prev_newton);
-    y_prev_time_1.copy(&y_prev_newton);
+    c_prev_time_1.copy(&c_prev_newton);
 
     ts++;
   } while (current_time <= T_FINAL);

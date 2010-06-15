@@ -68,7 +68,7 @@ int main(int argc, char* argv[])
   ls.solve(&sln);
 
   // Visualize the solution.
-  ScalarView view("Solution");
+  ScalarView view("Solution", 0, 0, 600, 600);
   view.show(&sln);
 
   // Wait for the view to be closed.

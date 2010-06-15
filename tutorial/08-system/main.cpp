@@ -1,9 +1,10 @@
 #include "hermes2d.h"
 #include "solver_umfpack.h"
 
-// This example explains how to create two spaces over a mesh and use them
-// to solve a simple problem of linear elasticity. At the end, VonMises
-// filter is used to visualize the stress.
+// This example explains how to create multiple spaces over a mesh and use them
+// to solve a simple problem of linear elasticity. Note how Tuples are used, 
+// they replace variable-length argument lists. At the end, VonMises filter is 
+// used to visualize the stress.
 //
 // PDE: Lame equations of linear elasticity.
 //
@@ -13,7 +14,7 @@
 //
 // The following parameters can be changed:
 
-const int P_INIT = 8;                                      // Initial polynomial degree of all elements.
+const int P_INIT = 4;                                      // Initial polynomial degree of all elements.
 
 // Problem parameters.
 const double E  = 200e9;                                   // Young modulus (steel).
@@ -44,20 +45,12 @@ int main(int argc, char* argv[])
   H2DReader mloader;
   mloader.load("sample.mesh", &mesh);
 
-  // Initialize the shapeset.
-  H1Shapeset shapeset;
+  // Perform uniform mesh refinement.
+  mesh.refine_all_elements();
 
-  // Create the x displacement space.
-  H1Space xdisp(&mesh, &shapeset);
-  xdisp.set_bc_types(bc_types);
-  xdisp.set_essential_bc_values(essential_bc_values);
-  xdisp.set_uniform_order(P_INIT);
-
-  // Create the y displacement space.
-  H1Space ydisp(&mesh, &shapeset);
-  ydisp.set_bc_types(bc_types);
-  ydisp.set_essential_bc_values(essential_bc_values);
-  ydisp.set_uniform_order(P_INIT);
+  // Create x- and y- displacement space using the default H1 shapeset.
+  H1Space xdisp(&mesh, bc_types, essential_bc_values, P_INIT);
+  H1Space ydisp(&mesh, bc_types, essential_bc_values, P_INIT);
 
   // Initialize the weak formulation.
   WeakForm wf(2);
@@ -71,16 +64,17 @@ int main(int argc, char* argv[])
   UmfpackSolver solver;
 
   // Initialize the linear system.
-  LinSystem ls(&wf, &solver, &xdisp, &ydisp);
+  LinSystem ls(&wf, &solver, Tuple<Space*>(&xdisp, &ydisp));
 
   // Assemble and solve the matrix problem.
   Solution xsln, ysln;
   ls.assemble();
-  ls.solve(&xsln, &ysln);
+  ls.solve(Tuple<Solution*>(&xsln, &ysln));
 
   // Visualize the solution.
-  ScalarView view("Von Mises stress [Pa]", 50, 50, 1200, 600);
+  ScalarView view("Von Mises stress [Pa]", 0, 0, 800, 400);
   VonMisesFilter stress(&xsln, &ysln, lambda, mu);
+  view.show_mesh(false);
   view.show(&stress, H2D_EPS_HIGH, H2D_FN_VAL_0, &xsln, &ysln, 1.5e5);
 
   // Wait for the view to be closed.
