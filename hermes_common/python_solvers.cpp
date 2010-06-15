@@ -47,7 +47,11 @@ void solve_linear_system_scipy_umfpack(Matrix *mat, double *res)
     p->push("rhs", c2numpy_double_inplace(res, mat->get_size()));
     p->exec("A = m.to_scipy_csc()");
     p->exec("from scipy.sparse.linalg import spsolve");
-    p->exec("x = spsolve(A, rhs)");
+    // Turn off warnings in spsolve (only there)
+    p->exec("import warnings");
+    p->exec("with warnings.catch_warnings():\n"
+            "    warnings.simplefilter('ignore')\n"
+            "    x = spsolve(A, rhs)");
     double *x;
     int n;
     numpy2c_double_inplace(p->pull("x"), &x, &n);
