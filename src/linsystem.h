@@ -140,8 +140,10 @@ public:
   /// a projection onto the new space. 
   void free_vectors();
 
+  /*
   /// For debug purposes.
   void print_vector();
+  */
 
   /// Assigning DOF = enumerating basis functions in the FE spaces.
   int assign_dofs();  // all spaces

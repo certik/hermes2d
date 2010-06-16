@@ -36,8 +36,6 @@ const int INIT_BDY_REF_NUM = 0;                 // Number of initial refinements
 const int P_INIT = 2;                           // Initial polynomial degree of all mesh elements.
 const double TAU = 0.1;                         // Time step.
 const double T_FINAL = 10.0;                    // Time interval length.
-const int PROJ_TYPE = 1;                        // For the projection of the initial condition 
-                                                // on the initial mesh: 1 = H1 projection, 0 = L2 projection.
 const double NEWTON_TOL = 1e-6;                 // Stopping criterion for the Newton's method.
 const int NEWTON_MAX_ITER = 100;                // Maximum allowed number of Newton iterations.
 
@@ -177,23 +175,9 @@ int main(int argc, char* argv[])
   for (int i=0; i < INIT_GLOB_REF_NUM; i++) mesh.refine_all_elements();
   mesh.refine_towards_boundary(1, INIT_BDY_REF_NUM);
 
-  // Initialize the shapeset.
-  H1Shapeset shapeset;
-
-  // Create an H1 space for T.
-  H1Space space_T(&mesh, &shapeset);
-  space_T.set_bc_types(bc_types_T);
-  space_T.set_essential_bc_values(essential_bc_values_T);
-  space_T.set_uniform_order(P_INIT);
-
-  // Create an H1 space for phi.
-  H1Space space_phi(&mesh, &shapeset);
-  space_phi.set_bc_types(bc_types_phi);
-  space_phi.set_essential_bc_values(essential_bc_values_phi);
-  space_phi.set_uniform_order(P_INIT);
-
-  // Enumerate degrees of freedom.
-  int ndof = assign_dofs(2, &space_T, &space_phi);
+  // Create H1 spaces with default shapesets.
+  H1Space space_T(&mesh, bc_types_T, essential_bc_values_T, P_INIT);
+  H1Space space_phi(&mesh, bc_types_phi, essential_bc_values_phi, P_INIT);
 
   // Solutions for the Newton's iteration and time stepping.
   Solution T_prev_newton, T_prev_time,
@@ -229,7 +213,7 @@ int main(int argc, char* argv[])
   UmfpackSolver solver;
 
   // Initialize nonlinear system.
-  NonlinSystem nls(&wf, &solver, 2, &space_T, &space_phi);
+  NonlinSystem nls(&wf, &solver, Tuple<Space*>(&space_T, &space_phi));
 
   // Set initial conditions for the Newton's method.
   T_prev_newton.copy(&T_prev_time);

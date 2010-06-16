@@ -22,7 +22,7 @@
 //
 //  Time-stepping: second order BDF formula
 
-const int INIT_REF_NUM = 0;            // Number of initial uniform mesh refinements.
+const int INIT_REF_NUM = 1;            // Number of initial uniform mesh refinements.
 const int P_INIT = 2;                  // Initial polynomial degree.
 const double TAU = 0.5;                // Time step.
 const double T_FINAL = 60.0;           // Time interval length.
@@ -125,12 +125,6 @@ int main(int argc, char* argv[])
     info("Performing Newton's iteration.");
     if (!nls.solve_newton(&t_prev_newton, &c_prev_newton, NEWTON_TOL, NEWTON_MAX_ITER,
                        &omega, &omega_dt, &omega_dc)) error("Newton's method did not converge.");
-
-    ScalarView sv1, sv2;
-    sv1.show(&t_prev_newton);
-    sv2.show(&c_prev_newton);
-    View::wait();
-    exit(0);
 
     // Visualization.
     DXDYFilter omega_view(omega_fn, &t_prev_newton, &c_prev_newton);

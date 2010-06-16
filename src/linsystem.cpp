@@ -277,9 +277,10 @@ void LinSystem::realloc_and_zero_vectors()
 }
 
 void LinSystem::free()
-{;
+{
   free_matrix();
   free_vectors();
+  free_spaces();
   if (this->solver) this->solver->free_data(this->slv_ctx);
 
   this->struct_changed = this->values_changed = true;
@@ -992,6 +993,7 @@ void LinSystem::save_rhs_bin(const char* filename)
   fclose(f);
 }
 
+/*
 // debug
 void LinSystem::print_vector()
 {
@@ -1003,6 +1005,7 @@ void LinSystem::print_vector()
   printf("Vec:");
   for(int i=0; i < ndof; i++) printf(" %g", this->Vec[i]);
 }
+*/
 
 // L2 projections
 template<typename Real, typename Scalar>

@@ -38,7 +38,7 @@ using namespace RefinementSelectors;
 // h-adaptivity via the CAND_LIST option, and compare the multi-mesh vs.
 // single-mesh using the MULTI parameter.
 
-const bool SOLVE_ON_COARSE_MESH = false; // If true, coarse mesh FE problem is solved in every adaptivity step.
+const bool SOLVE_ON_COARSE_MESH = true; // If true, coarse mesh FE problem is solved in every adaptivity step.
                                          // If false, projection of the fine mesh solution on the coarse mesh is used. 
 const int P_INIT_U = 2;                  // Initial polynomial degree for u.
 const int P_INIT_V = 2;                  // Initial polynomial degree for v.
@@ -143,9 +143,8 @@ int main(int argc, char* argv[])
   // Initialize refinement selector.
   H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
 
-  // Initialize the coarse and fine mesh problems.
+  // Initialize the coarse mesh problem.
   LinSystem ls(&wf, &solver, Tuple<Space*>(&uspace, &vspace));
-  RefSystem rs(&ls);
 
   // Adaptivity loop.
   int as = 1; bool done = false;
@@ -157,6 +156,7 @@ int main(int argc, char* argv[])
 
     // Assemble and solve the fine mesh problem.
     info("Solving on fine meshes.");
+    RefSystem rs(&ls);
     rs.assemble();
     rs.solve(Tuple<Solution*>(&u_sln_fine, &v_sln_fine));
 

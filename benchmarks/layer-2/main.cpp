@@ -22,7 +22,7 @@ using namespace RefinementSelectors;
 //
 //  The following parameters can be changed:
 
-const bool SOLVE_ON_COARSE_MESH = false; // If true, coarse mesh FE problem is solved in every adaptivity step.
+const bool SOLVE_ON_COARSE_MESH = true; // If true, coarse mesh FE problem is solved in every adaptivity step.
                                          // If false, projection of the fine mesh solution on the coarse mesh is used. 
 const int INIT_REF_NUM = 1;              // Number of initial mesh refinements (the original mesh is just one element).
 const int INIT_REF_NUM_BDY = 3;          // Number of initial mesh refinements towards the boundary.
@@ -91,17 +91,8 @@ int main(int argc, char* argv[])
   for (int i=0; i < INIT_REF_NUM; i++) mesh.refine_all_elements();
   mesh.refine_towards_boundary(1, INIT_REF_NUM_BDY);
 
-  // Initialize the shapeset.
-  H1Shapeset shapeset;
-
-  // Create an H1 space.
-  H1Space space(&mesh, &shapeset);
-  space.set_bc_types(bc_types);
-  space.set_essential_bc_values(essential_bc_values);
-  space.set_uniform_order(P_INIT);
-
-  // Enumerate degrees of freedom.
-  int ndof = assign_dofs(&space);
+  // Create an H1 space with default shapeset.
+  H1Space space(&mesh, bc_types, essential_bc_values, P_INIT);
 
   // Initialize the weak formulation.
   WeakForm wf;
@@ -119,7 +110,7 @@ int main(int argc, char* argv[])
   SimpleGraph graph_dof_est, graph_dof_exact, graph_cpu_est, graph_cpu_exact;
 
   // Initialize refinement selector.
-  H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER, &shapeset);
+  H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
 
   // Initialize the coarse mesh problem.
   LinSystem ls(&wf, &solver, &space);
@@ -172,12 +163,12 @@ int main(int argc, char* argv[])
 
     // Report results.
     info("ndof_coarse: %d, ndof_fine: %d, err_est: %g%%, err_exact: %g%%", 
-         space.get_num_dofs(), rs.get_space(0)->get_num_dofs(), err_est, err_exact);
+         ls.get_num_dofs(), rs.get_num_dofs(), err_est, err_exact);
 
     // Add entries to DOF convergence graph.
-    graph_dof_exact.add_values(space.get_num_dofs(), err_exact);
+    graph_dof_exact.add_values(ls.get_num_dofs(), err_exact);
     graph_dof_exact.save("conv_dof_exact.dat");
-    graph_dof_est.add_values(space.get_num_dofs(), err_est);
+    graph_dof_est.add_values(ls.get_num_dofs(), err_est);
     graph_dof_est.save("conv_dof_est.dat");
 
     // Add entries to CPU convergence graph.
@@ -191,8 +182,7 @@ int main(int argc, char* argv[])
     else {
       info("Adapting the coarse mesh.");
       done = hp.adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY);
-      ndof = assign_dofs(&space);
-      if (ndof >= NDOF_STOP) done = true;
+      if (ls.get_num_dofs() >= NDOF_STOP) done = true;
     }
 
     as++;

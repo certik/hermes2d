@@ -279,15 +279,6 @@ bool NonlinSystem::solve_newton(Solution* u_prev_1, Solution* u_prev_2, double n
       this->assemble();
       this->solve(Tuple<Solution*>(&sln_iter_1, &sln_iter_2));
 
-
-    ScalarView sv1, sv2;
-    sv1.show(u_prev_1);
-    sv2.show(u_prev_2);
-    View::wait(H2DV_WAIT_KEYPRESS);
-    //exit(0);
-
-
-
       // calculate the l2-norm of residual vector
       res_l2_norm = this->get_residual_l2_norm();
       info("Residual L2 norm: %g", res_l2_norm);

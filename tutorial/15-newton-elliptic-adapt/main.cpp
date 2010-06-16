@@ -20,7 +20,7 @@ using namespace RefinementSelectors;
 //
 //  The following parameters can be changed:
 
-const bool NEWTON_ON_COARSE_MESH = false;  // true...  Newton is done on coarse mesh in every adaptivity step.
+const bool NEWTON_ON_COARSE_MESH = true;  // true...  Newton is done on coarse mesh in every adaptivity step.
                                            // false... Newton is done on coarse mesh only once, then projection
                                            // of the fine mesh solution to coarse mesh is used.
 const int P_INIT = 1;                      // Initial polynomial degree.
