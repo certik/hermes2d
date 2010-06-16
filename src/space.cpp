@@ -36,14 +36,13 @@ Space::Space(Mesh* mesh, Shapeset* shapeset, BCType (*bc_type_callback)(int),
 
   this->set_bc_types_init(bc_type_callback);
   this->set_essential_bc_values(bc_value_callback_by_coord);
-  set_essential_bc_values((scalar (*)(EdgePos*)) NULL);
+  this->set_essential_bc_values((scalar (*)(EdgePos*)) NULL);
 }
 
 Space::~Space()
 {
   free();
 }
-
 
 void Space::free()
 {

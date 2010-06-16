@@ -79,17 +79,8 @@ int main(int argc, char* argv[])
   for(int i = 0; i < INIT_REF_NUM; i++) mesh.refine_all_elements();
   mesh.refine_towards_boundary(2, 5);
 
-  // Initialize the shapeset.
-  H1Shapeset shapeset;
-
   // Initialize an H1 space.
-  H1Space space(&mesh, &shapeset);
-  space.set_bc_types(bc_types);
-  space.set_essential_bc_values(essential_bc_values);
-  space.set_uniform_order(P_INIT);
-
-  // Enumerate degrees of freedom.
-  int ndof = assign_dofs(&space);
+  H1Space space(&mesh, bc_types, essential_bc_values, P_INIT);
 
   // Set initial condition.
   Solution tsln;

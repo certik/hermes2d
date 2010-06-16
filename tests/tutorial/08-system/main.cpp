@@ -72,23 +72,10 @@ int main(int argc, char* argv[])
   H2DReader mloader;
   mloader.load("sample.mesh", &mesh);
 
-  // Initialize the shapeset.
-  H1Shapeset shapeset;
 
-  // Create the x displacement space.
-  H1Space xdisp(&mesh, &shapeset);
-  xdisp.set_bc_types(bc_types);
-  xdisp.set_essential_bc_values(essential_bc_values);
-  xdisp.set_uniform_order(P_INIT);
-
-  // Create the y displacement space.
-  H1Space ydisp(&mesh, &shapeset);
-  ydisp.set_bc_types(bc_types);
-  ydisp.set_essential_bc_values(essential_bc_values);
-  ydisp.set_uniform_order(P_INIT);
-
-  // Enumerate degrees of freedom.
-  int ndof = assign_dofs(2, &xdisp, &ydisp);
+  // Create the x- and y-displacement spaces.
+  H1Space xdisp(&mesh, bc_types, essential_bc_values, P_INIT);
+  H1Space ydisp(&mesh, bc_types, essential_bc_values, P_INIT);
 
   // Initialize the weak formulation.
   WeakForm wf(2);
@@ -102,7 +89,7 @@ int main(int argc, char* argv[])
   UmfpackSolver solver;
 
   // Initialize the linear system.
-  LinSystem sys(&wf, &solver, 2, &xdisp, &ydisp);
+  LinSystem sys(&wf, &solver, Tuple<Space*>(&xdisp, &ydisp));
 
   // Testing n_dof and correctness of solution vector
   // for p_init = 1, 2, ..., 10
@@ -111,13 +98,11 @@ int main(int argc, char* argv[])
   for (int p_init = 1; p_init <= 10; p_init++) {
     printf("********* p_init = %d *********\n", p_init);
     xdisp.set_uniform_order(p_init);
-    int ndofs = xdisp.assign_dofs(0);
     ydisp.set_uniform_order(p_init);
-    ndofs += ydisp.assign_dofs(ndofs);
 
     // Assemble and solve the matrix problem.
     sys.assemble();
-    sys.solve(2, &xsln, &ysln);
+    sys.solve(Tuple<Solution*>(&xsln, &ysln));
 
     scalar *sol_vector;
     int n_dof;

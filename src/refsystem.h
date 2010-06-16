@@ -49,14 +49,23 @@ public:
 
   bool solve_exact(scalar (*exactfn)(double x, double y, scalar& dx, scalar& dy), Solution* sln);
 
+  /// This is almost identical to the corresponding method of LinSystem, but as a first 
+  /// step, here the corresponding mesh is refined globally and "source" is projected 
+  /// onto the refined mesh. 
+  //void project_global(int comp, MeshFunction* source, Solution* target, int proj_norm = 1);
+  //void project_global(MeshFunction* source, Solution* target, int proj_norm = 1) {
+  //  int comp = 0;
+  //  RefSystem::project_global(comp, source, target, proj_norm);
+  //};
+
 protected:
 
   LinSystem* base;
+  Mesh** meshes;
   int order_increase;
   int refinement;
   bool linear;
 };
-
 
 
 #endif

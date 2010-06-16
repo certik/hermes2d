@@ -44,8 +44,7 @@ void NonlinSystem::init_nonlin()
 // this is needed because of a constructor in RefSystem
 NonlinSystem::NonlinSystem() {}
 
-NonlinSystem::NonlinSystem(WeakForm* wf_, 
-    Solver* solver_)
+NonlinSystem::NonlinSystem(WeakForm* wf_, Solver* solver_)
 { 
   this->init_lin(wf_, solver_);
   this->init_nonlin();
@@ -66,7 +65,7 @@ NonlinSystem::NonlinSystem(WeakForm* wf_, Solver* solver_,
     error("Number of spaces does not match number of equations in LinSystem::LinSystem().");
   this->init_lin(wf_, solver_);
   this->init_spaces(spaces_);
-  this->alloc_vectors();
+  this->alloc_and_zero_vectors();
   this->init_nonlin();
 }
 
@@ -76,7 +75,7 @@ NonlinSystem::NonlinSystem(WeakForm* wf_,
   Solver* solver_ = NULL;
   this->init_lin(wf_, solver_);
   this->init_spaces(spaces_);
-  this->alloc_vectors();
+  this->alloc_and_zero_vectors();
   this->init_nonlin();
 }
 
@@ -87,17 +86,27 @@ NonlinSystem::NonlinSystem(WeakForm* wf_, Solver* solver_,
     error("Number of spaces does not match number of equations in LinSystem::LinSystem().");
   this->init_lin(wf_, solver_);
   this->init_space(s_);
-  this->alloc_vectors();
+  this->alloc_and_zero_vectors();
   this->init_nonlin();
 }
 
-NonlinSystem::NonlinSystem(WeakForm* wf_, 
-    Space *s_)
+NonlinSystem::NonlinSystem(WeakForm* wf_, Space *s_)
 {
   Solver *solver_ = NULL;
   this->init_lin(wf_, solver_);
   this->init_space(s_);
-  this->alloc_vectors();
+  this->alloc_and_zero_vectors();
+  this->init_nonlin();
+}
+
+NonlinSystem::NonlinSystem(WeakForm* wf_, Solver* solver_, Space* space1_, Space* space2_)
+{
+  int n = 2;
+  if (n != wf_->neq) 
+    error("Number of spaces does not match number of equations in LinSystem::LinSystem().");
+  this->init_lin(wf_, solver_);
+  this->init_spaces(Tuple<Space*>(space1_, space2_));
+  this->alloc_and_zero_vectors();
   this->init_nonlin();
 }
 
@@ -126,22 +135,24 @@ void NonlinSystem::assemble(bool rhsonly)
   res_l2 = res_l1 = res_max = 0.0;
   for (int i = 0; i < ndof; i++)
   {
-    res_l2 += sqr(RHS[i]);
-    res_l1 += magn(RHS[i]);
-    if (magn(RHS[i]) > res_max) res_max = magn(RHS[i]);
+    res_l2 += sqr(this->RHS[i]);
+    res_l1 += magn(this->RHS[i]);
+    if (magn(this->RHS[i]) > res_max) res_max = magn(this->RHS[i]);
   }
   res_l2 = sqrt(res_l2);
 
   // multiply RHS by -alpha
   for (int i = 0; i < ndof; i++)
-    RHS[i] *= -alpha;
+    this->RHS[i] *= -this->alpha;
 }
 
-
+// The solve() function is almost identical to the original one in LinSystem
+// except that Y_{n+1} = Y_{n} + dY_{n+1}
 bool NonlinSystem::solve(Tuple<Solution*> sln)
 {
-  // if the number of solutions does not match the number of equations, throw error
   int n = sln.size();
+
+  // if the number of solutions does not match the number of equations, throw error
   if (n != this->wf->neq) 
     error("Number of solutions does not match the number of equations in LinSystem::solve().");
 
@@ -151,29 +162,33 @@ bool NonlinSystem::solve(Tuple<Solution*> sln)
   // if Vec is not initialized, throw error
   if (this->Vec == NULL) error("Vec is NULL in NonlinSystem::solve().");
 
-  // if vector length is not equal to matrix size, throw error
+  // check vector size
   int ndof = this->get_num_dofs();
-  if (ndof != this->A->get_size()) 
-    error("Matrix size does not match vector length in NonlinSystem:solve().");
+  if (Vec_length != ndof || RHS_length != ndof || Dir_length != ndof)
+    error("Length of vectors Vec, RHS or Dir does not match this->ndof in LinSystem::solve().");
 
-  // The solve() function is almost identical to the original one in LinSystem
-  // except that Y_{n+1} = Y_{n} + dY_{n+1}
+  // check matrix size
+  if (ndof == 0) error("ndof = 0 in LinSystem::solve().");
+  if (ndof != this->A->get_size()) 
+    error("Matrix size does not match vector length in LinSystem:solve().");
+
+  // time measurement
   TimePeriod cpu_time;
 
   // solve the system - this is different from LinSystem
   scalar* delta = (scalar*) malloc(ndof * sizeof(scalar));
-  memcpy(delta, RHS, sizeof(scalar) * ndof);
+  memcpy(delta, this->RHS, sizeof(scalar) * ndof);
   solve_linear_system_scipy_umfpack(this->A, delta);
   report_time("Solved in %g s", cpu_time.tick().last());
   // add the increment dY_{n+1} to the previous solution vector
-  for (int i = 0; i < ndof; i++) Vec[i] += delta[i];
+  for (int i = 0; i < ndof; i++) this->Vec[i] += delta[i];
   ::free(delta);
 
   // copy the solution coefficient vectors into Solutions
   cpu_time.tick(H2D_SKIP);
   for (int i = 0; i < n; i++)
   {
-    sln[i]->set_fe_solution(spaces[i], pss[i], Vec);
+    sln[i]->set_fe_solution(this->spaces[i], this->pss[i], this->Vec);
   }
   report_time("Exported solution in %g s", cpu_time.tick().last());
   return true;
@@ -205,7 +220,7 @@ bool NonlinSystem::solve(Solution* sln1, Solution* sln2, Solution* sln3)
 
 // Newton's loop for one equation
 bool NonlinSystem::solve_newton(Solution* u_prev, double newton_tol, int newton_max_iter,
-                                  Filter* f1, Filter* f2, Filter* f3) {
+                                Filter* f1, Filter* f2, Filter* f3) {
     int it = 1;
     double res_l2_norm;
     Solution sln_iter;
@@ -213,7 +228,7 @@ bool NonlinSystem::solve_newton(Solution* u_prev, double newton_tol, int newton_
     do
     {
       info("---- Newton iter %d:", it); it++;
-      //printf("ndof = %d\n", space->get_num_dofs());
+      //printf("ndof = %d\n", this->get_num_dofs());
 
       // reinitialization of filters (if relevant)
       if (f1 != NULL) f1->reinit();
@@ -242,16 +257,17 @@ bool NonlinSystem::solve_newton(Solution* u_prev, double newton_tol, int newton_
 
 // Newton's loop for two equations
 bool NonlinSystem::solve_newton(Solution* u_prev_1, Solution* u_prev_2, double newton_tol, int newton_max_iter,
-                                  Filter* f1, Filter* f2, Filter* f3) {
+                                Filter* f1, Filter* f2, Filter* f3) {
     int it = 1;
     double res_l2_norm;
     Solution sln_iter_1, sln_iter_2;
     Space *space_1 = this->get_space(0);
     Space *space_2 = this->get_space(1);
+
     do
     {
       info("---- Newton iter %d:", it); it++;
-      //printf("ndof = %d\n", space_1->get_num_dofs() + space_2->get_num_dofs());
+      //printf("ndof = %d\n", this->get_num_dofs());
 
       // reinitialization of filters (if relevant)
       if (f1 != NULL) f1->reinit();
@@ -262,6 +278,15 @@ bool NonlinSystem::solve_newton(Solution* u_prev_1, Solution* u_prev_2, double n
       // solve the system
       this->assemble();
       this->solve(Tuple<Solution*>(&sln_iter_1, &sln_iter_2));
+
+
+    ScalarView sv1, sv2;
+    sv1.show(u_prev_1);
+    sv2.show(u_prev_2);
+    View::wait(H2DV_WAIT_KEYPRESS);
+    //exit(0);
+
+
 
       // calculate the l2-norm of residual vector
       res_l2_norm = this->get_residual_l2_norm();
@@ -327,8 +352,6 @@ bool NonlinSystem::solve_newton(Solution* u_prev_1, Solution* u_prev_2, Solution
       pview.set_title(title);
       pview.show(&sln_iter_3);
       pview.wait(H2DV_WAIT_KEYPRESS);
-
-
 
       // save the new solutions as "previous" for the
       // next Newton's iteration

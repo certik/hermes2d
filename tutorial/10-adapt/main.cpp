@@ -121,9 +121,8 @@ int main(int argc, char* argv[])
   // Initialize refinement selector.
   H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
 
-  // Initialize the coarse and fine mesh problems.
+  // Initialize the coarse mesh problem.
   LinSystem ls(&wf, &solver, &space);
-  RefSystem rs(&ls);
 
   // Adaptivity loop:
   Solution sln_coarse, sln_fine;
@@ -134,6 +133,7 @@ int main(int argc, char* argv[])
 
     // Assemble and solve the fine mesh problem.
     info("Solving on fine mesh.");
+    RefSystem rs(&ls);
     rs.assemble();
     rs.solve(&sln_fine);    
 

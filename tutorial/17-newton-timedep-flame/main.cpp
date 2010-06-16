@@ -22,7 +22,7 @@
 //
 //  Time-stepping: second order BDF formula
 
-const int INIT_REF_NUM = 2;            // Number of initial uniform mesh refinements.
+const int INIT_REF_NUM = 0;            // Number of initial uniform mesh refinements.
 const int P_INIT = 2;                  // Initial polynomial degree.
 const double TAU = 0.5;                // Time step.
 const double T_FINAL = 60.0;           // Time interval length.
@@ -36,12 +36,15 @@ const double beta  = 10.0;
 const double kappa = 0.1;
 const double x1    = 9.0;
 
+// Boundary markers.
+int bdy_left = 1;
+
 // Boundary conditions
 BCType bc_types(int marker)
-  { return (marker == 1) ? BC_ESSENTIAL : BC_NATURAL; }
+  { return (marker == bdy_left) ? BC_ESSENTIAL : BC_NATURAL; }
 
 scalar essential_bc_values_t(int ess_bdy_marker, double x, double y)
-  { return (ess_bdy_marker == 1) ? 1.0 : 0; }
+  { return (ess_bdy_marker == bdy_left) ? 1.0 : 0; }
 
 scalar essential_bc_values_c(int ess_bdy_marker, double x, double y)
   { return 0; }
@@ -106,12 +109,10 @@ int main(int argc, char* argv[])
   // Initialize the nonlinear system.
   NonlinSystem nls(&wf, &solver, Tuple<Space*>(&tspace, &cspace));
 
-  rview.show(&c_prev_newton);
-  View::wait();
-
   // Project temp_ic() and conc_ic() onto the FE spaces and use them as initial
   // conditions for the Newton's method.   
   info("Projecting initial conditions on the FE spaces.");
+
   nls.project_global(Tuple<MeshFunction*>(&t_prev_newton, &c_prev_newton), 
                      Tuple<Solution*>(&t_prev_newton, &c_prev_newton));
 
@@ -124,6 +125,12 @@ int main(int argc, char* argv[])
     info("Performing Newton's iteration.");
     if (!nls.solve_newton(&t_prev_newton, &c_prev_newton, NEWTON_TOL, NEWTON_MAX_ITER,
                        &omega, &omega_dt, &omega_dc)) error("Newton's method did not converge.");
+
+    ScalarView sv1, sv2;
+    sv1.show(&t_prev_newton);
+    sv2.show(&c_prev_newton);
+    View::wait();
+    exit(0);
 
     // Visualization.
     DXDYFilter omega_view(omega_fn, &t_prev_newton, &c_prev_newton);

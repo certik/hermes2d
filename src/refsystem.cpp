@@ -13,7 +13,6 @@
 // You should have received a copy of the GNU General Public License
 // along with Hermes2D.  If not, see <http://www.gnu.org/licenses/>.
 
-
 #include "common.h"
 #include "space.h"
 #include "weakform.h"
@@ -41,19 +40,23 @@ RefSystem::RefSystem(LinSystem* base, int order_increase,
   }
 
   // perform uniform mesh refinement
-  this->global_refinement();
+  global_refinement();
 
   // internal check
   if (this->have_spaces == false) error("RefSystem: missing space(s).");
 
-  // allocate vectors Vec, RHS and Dir
-  this->alloc_vectors();
+  // (re)allocate vectors Vec, RHS and Dir
+  int ndof = this->get_num_dofs();
+  if (Vec_length != ndof || RHS_length != ndof || Dir_length != ndof) {
+    if (Vec == NULL && RHS == NULL && Dir == NULL) this->alloc_and_zero_vectors();
+    else this->realloc_and_zero_vectors();
+  }
 }
 
 void RefSystem::global_refinement() 
 {
   // after this, meshes and spaces are NULL
-  this->free_meshes_and_spaces();
+  this->free_spaces();
 
   // create new meshes and spaces
   this->meshes = new Mesh*[this->wf->neq];
@@ -145,7 +148,6 @@ void RefSystem::global_refinement()
 
 RefSystem::~RefSystem()
 {
-  // Nothing to do here, all is freed in the destructor to LinSystem.
 }
 
 // just to prevent the user from calling this
@@ -167,12 +169,6 @@ void RefSystem::set_order_increase(int order_increase)
 
 void RefSystem::assemble(bool rhsonly)
 {  
-  // perform uniform mesh refinement
-  global_refinement();
-
-  // internal check
-  if (this->have_spaces == false) error("RefSystem: missing space(s).");
-
   // call LinSystem's assemble() function.
   if (!linear) {
     NonlinSystem::assemble(rhsonly);
@@ -185,9 +181,8 @@ bool RefSystem::solve_exact(scalar (*exactfn)(double x, double y, scalar& dx , s
 {
   Space* space = spaces[0];
 
-  // some sanity checkz
-  //if (!space->is_up_to_date())
-  //  error("'space' is not up to date.");
+  // sanity checkz
+  if (!space->is_up_to_date()) error("'space' is not up to date.");
 
   //set mesh and function
   sln->set_exact(meshes[0], exactfn);
@@ -195,4 +190,21 @@ bool RefSystem::solve_exact(scalar (*exactfn)(double x, double y, scalar& dx , s
   return true;
 }
 
+/*
+// This is almost identical to the corresponding method of LinSystem, but as a first 
+// step, here the corresponding mesh is refined globally and "source" is projected 
+// onto the refined mesh. 
+void RefSystem::project_global(int comp, MeshFunction* source, Solution* target, int proj_norm)
+{
+  // perform uniform mesh refinement
+  global_refinement();
 
+  // internal check
+  if (this->have_spaces == false) error("RefSystem: missing space(s).");
+
+  // reallocate vectors Vec, RHS and Dir
+  this->realloc_and_zero_vectors();
+
+  LinSystem::project_global(comp, source, target, proj_norm);
+}
+*/

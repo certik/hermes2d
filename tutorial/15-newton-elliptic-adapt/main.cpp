@@ -142,13 +142,13 @@ int main(int argc, char* argv[])
 
   // Initialize the coarse and fine mesh problems.
   NonlinSystem nls(&wf, &solver, &space);
-  RefSystem rnls(&nls);
 
   // DOF and CPU convergence graphs.
   SimpleGraph graph_dof, graph_cpu;
 
   // Project the function init_guess() on the coarse mesh
   // to obtain initial guess u_prev for the Newton's method.
+  info("Projecting initial condition on coarse mesh.");
   nls.project_global(init_guess, &u_prev);
 
   // Initialize views.
@@ -184,9 +184,13 @@ int main(int argc, char* argv[])
     // Skip visualization.
     cpu_time.tick(H2D_SKIP);
 
+    // Initialize the fine mesh problem.
+    RefSystem rnls(&nls);
+
     // Set initial condition for the Newton's method on the fine mesh.
     if (as == 1) {
       info("Projecting coarse mesh solution on fine mesh.");
+      printf("debug 1: ndof = %d\n", rnls.get_num_dofs());
       rnls.project_global(&sln_coarse, &u_prev);
     }
     else {
@@ -196,9 +200,13 @@ int main(int argc, char* argv[])
 
     info("Solving on fine mesh.");
 
+    printf("debug 2: ndof = %d\n", rnls.get_num_dofs());
+
     // Newton's loop on the fine mesh.
     if (!rnls.solve_newton(&u_prev, NEWTON_TOL_FINE, NEWTON_MAX_ITER)) 
       error("Newton's method did not converge.");
+
+    printf("debug 3: ndof = %d\n", rnls.get_num_dofs());
 
     // Store the fine mesh solution in sln_fine.
     sln_fine.copy(&u_prev);
@@ -236,6 +244,7 @@ int main(int argc, char* argv[])
     else {
       info("Adapting coarse mesh.");
       done = hp.adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY);
+      printf("debug 4: ndof_new = %d\n", nls.get_num_dofs());
       if (nls.get_num_dofs() >= NDOF_STOP) {
         done = true;
         break;

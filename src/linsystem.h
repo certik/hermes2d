@@ -82,22 +82,20 @@ public:
   virtual void assemble(bool rhsonly = false);
   void assemble_rhs_only() { assemble(true); }
 
-  /// Solves the matrix problem. 
+  /// Solves the matrix problem and propagates the resulting coefficient vector into 
+  /// one or more Solutions. The solution class does not contain the original solution
+  /// vector. Instead it contains a new coefficient vector that corresponds to a monomial 
+  /// In this way, Solution does not require a copy of Space. In other words, Solution 
+  /// contains the last copy of the vector Vec even after this vector is freed in consequent 
+  /// computation. This is used in algorithms that require previous solutions, such as 
+  /// the Newton's method, time stepping, etc.
   bool solve(Tuple<Solution*> sln);
   bool solve(Solution* sln); // single equation case
   bool solve(Solution* sln1, Solution* sln2); // two equations case
   bool solve(Solution* sln1, Solution* sln2, Solution* sln3); // three equations case
 
-  /// Frees the stiffness matrix
+  /// Frees the stiffness matrix. 
   virtual void free_matrix();
-
-  /// Frees vectors Vec, RHS and Dir. These vectors should 
-  /// not be freed anywhere else.
-  void free_vectors();
-
-  /// Allocate new vectors Vec, RHS and Dir. These vectors should 
-  /// not be allocated anywhere else.
-  void alloc_vectors();
 
   /// Frees the stiffness matrix, coefficient vectors, and matrix solver data.
   virtual void free();
@@ -126,8 +124,21 @@ public:
   /// Returns a copy of the solution vector.
   void get_solution_vector(std::vector<scalar>& sln_vector_out); 
 
-  /// Deletes and creates new zero solution coefficient vectors Vec, Dir and RHS. 
-  void create_new_coeff_vectors();
+  /// Allocate vectors Vec, RHS and Dir of length this->ndof. All vectors 
+  /// must be NULL at input, to make sure that the user is not losing 
+  /// information stored in these vectors. 
+  void alloc_and_zero_vectors();
+
+  /// Reallocates vectors Vec, RHS and Dir according to a new this->ndof.
+  void realloc_and_zero_vectors();
+
+  /// Frees vectors Vec, RHS and Dir and sets them to NULL. This should 
+  /// be used very carefully since the vector Vec stores the actual solution 
+  /// coefficients. Typicaly this needs to be done after the space changes
+  /// and thus the vector Vec loses its meaning. Before freeing it, however, 
+  /// the information contained in it should be recycled, for example via 
+  /// a projection onto the new space. 
+  void free_vectors();
 
   /// For debug purposes.
   void print_vector();
@@ -135,28 +146,38 @@ public:
   /// Assigning DOF = enumerating basis functions in the FE spaces.
   int assign_dofs();  // all spaces
 
-  /// Basic procedure performing orthogonal projection for an arbitrary number of 
-  /// functions onto (the same number of) spaces determined by the LinSystem; proj_norm = 0  
-  /// for L2 norm, proj_norm = 1 for H1 norm, proj_norm = 2 for Hcurl norm. Projected can 
-  /// be any MeshFunction, Solution or Filter. The result of the projection will satisfy essential 
-  /// boundary conditions. The projection defines the vector Vec in the class LinSystem.
+  /// Elementary orthogonal projection of one solution component (index "comp"): proj_norm = 0 
+  /// for L2 norm, proj_norm = 1 for H1 norm, proj_norm = 2 
+  /// for Hcurl norm. Projected can be any MeshFunction, Solution or Filter. The result of the 
+  /// projection will satisfy essential boundary conditions in the corresponding space. 
+  /// The resulting coefficient vector is copied into the corresponding portion of the global 
+  /// coefficient vector Vec.
   /// All projection functionality defined here is also available in the class NonlinSystem. 
   /// TODO: Implement projection-based interpolation (PBI) as an alternative of this. 
   /// PBI is almost as good as global orthogonal projection but way faster.
+  void project_global(int comp, MeshFunction *source, Solution* target, int proj_norm = 1); 
+  void project_global(MeshFunction* source, Solution* target, int proj_norm = 1)
+  {  project_global(0, source, target, proj_norm);  }
+
+  /// Global orthogonal projection of multiple solution components simultaneously 
+  /// (so far all must be in the same norm but this can be fixed easily). This 
+  /// projection defines the entire coefficient vector Vec.
   void project_global(Tuple<MeshFunction*> source, Tuple<Solution*> target, int proj_norm = 1);
 
-  /// Global orthogonal projection of MeshFunction* fn. Result of the projection is 
-  /// returned as "result".
-  void project_global(MeshFunction* source, Solution* target, int proj_norm = 1)
-  {  project_global(Tuple<MeshFunction*>(source), Tuple<Solution*>(target), proj_norm);  }
-
-  /// Global orthogonal projection of an exact function.
+  /// Global orthogonal projection of one exact function.
+  void project_global(int comp, scalar (*exactfn)(double x, double y, scalar& dx, scalar& dy),
+                      Solution* target, int proj_norm = 1)
+  {
+    Mesh *mesh = this->get_mesh(comp);
+    Solution tmp;
+    tmp.set_exact(mesh, exactfn);
+    project_global(comp, &tmp, target, proj_norm);
+  }
   void project_global(scalar (*exactfn)(double x, double y, scalar& dx, scalar& dy),
                       Solution* target, int proj_norm = 1)
   {
-    Mesh *mesh = this->get_mesh(0);
-    target->set_exact(mesh, exactfn);
-    project_global(target, target, proj_norm);
+    int comp = 0;
+    project_global(comp, exactfn, target, proj_norm);
   }
 
   /// Global orthogonal projection of two exact functions.
@@ -166,9 +187,10 @@ public:
   {
     Mesh *mesh1 = this->get_mesh(0);
     Mesh *mesh2 = this->get_mesh(1);
-    target1->set_exact(mesh1, exactfn1);
-    target2->set_exact(mesh2, exactfn2);
-    project_global(Tuple<MeshFunction*>(target1, target2), Tuple<Solution*>(target1, target2), proj_norm);
+    Solution tmp1, tmp2;
+    tmp1.set_exact(mesh1, exactfn1);
+    tmp2.set_exact(mesh2, exactfn2);
+    project_global(Tuple<MeshFunction*>(&tmp1, &tmp2), Tuple<Solution*>(target1, target2), proj_norm);
   }
 
   /// Global orthogonal projection of three exact functions.
@@ -180,10 +202,11 @@ public:
     Mesh *mesh1 = this->get_mesh(0);
     Mesh *mesh2 = this->get_mesh(1);
     Mesh *mesh3 = this->get_mesh(2);
-    target1->set_exact(mesh1, exactfn1);
-    target2->set_exact(mesh2, exactfn2);
-    target3->set_exact(mesh3, exactfn3);
-    project_global(Tuple<MeshFunction*>(target1, target2, target3), 
+    Solution tmp1, tmp2, tmp3;
+    tmp1.set_exact(mesh1, exactfn1);
+    tmp2.set_exact(mesh2, exactfn2);
+    tmp3.set_exact(mesh3, exactfn3);
+    project_global(Tuple<MeshFunction*>(&tmp1, &tmp2, &tmp3), 
                    Tuple<Solution*>(target1, target2, target3), proj_norm);
   }
 
@@ -195,12 +218,10 @@ public:
     /// TODO
   }
 
-  /// Frees spaces and meshes. Called
-  /// automatically on destruction.
-  void free_meshes_and_spaces();
+  /// Frees spaces. Called automatically on destruction.
+  void free_spaces();
 
   Space** spaces;
-  Mesh** meshes;
   WeakForm* wf;
 
 protected:

@@ -44,14 +44,8 @@ int main(int argc, char* argv[])
   // Perform initial mesh refinements.
   mesh.refine_element(0);
 
-  // Initialize the shapeset.
-  H1Shapeset shapeset;
-
   // Create an H1 space.
-  H1Space space(&mesh, &shapeset);
-  space.set_bc_types(bc_types);
-  space.set_essential_bc_values(essential_bc_values);
-  space.set_uniform_order(P_INIT);
+  H1Space space(&mesh, bc_types, essential_bc_values, P_INIT);
 
   // Initialize the weak formulation.
   WeakForm wf;
@@ -71,7 +65,6 @@ int main(int argc, char* argv[])
   for (int p_init = 1; p_init <= 10; p_init++) {
     printf("********* p_init = %d *********\n", p_init);
     space.set_uniform_order(p_init);
-    assign_dofs(&space);
 
     // Assemble and solve the matrix problem.
     ls.assemble();
