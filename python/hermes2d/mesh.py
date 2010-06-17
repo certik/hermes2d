@@ -7,7 +7,19 @@ class ParseError(Exception):
 
 def convert2tuple(s):
     """
-    Converts any iterable to tuple recursively.
+    Converts any iterable to a tuple recursively.
+
+    Insert your iterable into parameter "s".
+
+    Example:
+
+    >>> convert2tuple([[0,0],[0,1],[1,1],[1,0],[0.25,0.25],[0.25,0.75],[0.75,0.75],[0.75,0.25]]) 
+    ((0, 0), (0, 1), (1, 1), (1, 0), (0.25, 0.25), (0.25, 0.75), (0.75,
+    0.75), (0.75, 0.25)) 
+    >>> convert2tuple([[0,0],[0,1],[1,1],[1,0],[0.25,0.25],[0.25,0.75],[0.75,0.5]]) 
+    ((0, 0), (0, 1), (1, 1), (1, 0), (0.25, 0.25), (0.25, 0.75), (0.75,
+    0.5)) 
+
     """
     if hasattr(s, "__iter__"):
         return tuple([convert2tuple(y) for y in s])
