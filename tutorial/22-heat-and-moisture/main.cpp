@@ -141,8 +141,8 @@ int main(int argc, char* argv[])
   wf.add_biform(0, 1, callback(bilinear_form_sym_0_1));
   wf.add_biform(1, 1, callback(bilinear_form_sym_1_1));
   wf.add_biform(1, 0, callback(bilinear_form_sym_1_0));
-  wf.add_liform(0, callback(linear_form_0), H2D_ANY, 1, &T_prev);
-  wf.add_liform(1, callback(linear_form_1), H2D_ANY, 1, &M_prev);
+  wf.add_liform(0, callback(linear_form_0), H2D_ANY, &T_prev);
+  wf.add_liform(1, callback(linear_form_1), H2D_ANY, &M_prev);
   wf.add_biform_surf(0, 0, callback(bilinear_form_surf_0_0_ext), MARKER_EXTERIOR_WALL);
   wf.add_biform_surf(1, 1, callback(bilinear_form_surf_1_1_ext), MARKER_EXTERIOR_WALL);
   wf.add_liform_surf(0, callback(linear_form_surf_0_ext), MARKER_EXTERIOR_WALL);

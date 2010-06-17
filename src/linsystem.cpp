@@ -120,6 +120,7 @@ LinSystem::~LinSystem()
   if (this->pss != NULL) delete [] this->pss;
   if (this->solver != NULL) this->solver->free_context(this->slv_ctx);
   */
+  free_vectors();
 }
 
 void LinSystem::free_spaces()
@@ -1081,82 +1082,75 @@ int LinSystem::assign_dofs()
   return ndof;
 }
 
-// Orthogonal projection of a single solution component. Here "comp" is the solution 
-// component index. This functions alters the corresponding portion of the vector Vec. 
-void LinSystem::project_global(int comp, MeshFunction* source, Solution* target, int proj_norm)
+// global orthogonal projection 
+// FIXME: so far all solution components must be projected in the same norm "proj_norm"
+void LinSystem::project_global(Tuple<MeshFunction*> source, Tuple<Solution*> target, int proj_norm)
 {
-  // sanity checks
-  if (comp < 0 || comp > this->wf->neq) 
-    error("Wrong solution component in LinSystem::project_global().");
-  if (this->spaces == NULL) error("this->spaces = NULL in LinSystem::project_global().");
-  if (this->spaces[comp] == NULL) error("spaces[comp] = NULL in LinSystem::project_global()."); 
-  int ndof_comp = this->get_num_dofs(comp);
-  if (ndof_comp == 0) error("ndof_comp = 0 for component %d LinSystem::project_global().", comp);
+  int n = source.size();
+  if (n != target.size()) 
+    error("Mismatched numbers of projected functions and solutions in LinSystem::project_global().");
+  if (n != wf->neq)
+    error("Wrong number of functions in project_global_n().");
   if (!have_spaces)
-    error("You have to init_spaces() before using project_global().");
+    error("You have to init_spaces() before using project_global_.");
 
-  // defining projection weak form
-  WeakForm wf_proj;
+  // this is needed since spaces may have their DOFs enumerated locally 
+  // when they come here. 
+  this->assign_dofs();
+
+  // back up original weak form
+  WeakForm* wf_orig = wf;
+
+  // define temporary projection weak form
+  int i;
+  WeakForm wf_proj(n);
+  wf = &wf_proj;
   int found = 0;
   if (proj_norm == 0) {
     found = 1;
-    wf_proj.add_biform(L2projection_biform<double, scalar>, L2projection_biform<Ord, Ord>);
-    wf_proj.add_liform(L2projection_liform<double, scalar>, L2projection_liform<Ord, Ord>, 
-                       H2D_ANY, 1, source);
+    for (i = 0; i < n; i++)
+    {
+      wf->add_biform(i, i, L2projection_biform<double, scalar>, L2projection_biform<Ord, Ord>);
+      wf->add_liform(i, L2projection_liform<double, scalar>, L2projection_liform<Ord, Ord>, 
+                     H2D_ANY, source[i]);
+    }
   }
   if (proj_norm == 1) {
     found = 1;
-    wf_proj.add_biform(H1projection_biform<double, scalar>, H1projection_biform<Ord, Ord>);
-    wf_proj.add_liform(H1projection_liform<double, scalar>, H1projection_liform<Ord, Ord>, 
-                       H2D_ANY, 1, source);
+    for (i = 0; i < n; i++)
+    {
+      wf->add_biform(i, i, H1projection_biform<double, scalar>, H1projection_biform<Ord, Ord>);
+      wf->add_liform(i, H1projection_liform<double, scalar>, H1projection_liform<Ord, Ord>, 
+                     H2D_ANY, source[i]);
+    }
   }
   if (proj_norm == 2) {
     found = 1;
-    wf_proj.add_biform(Hcurlprojection_biform<double, scalar>, Hcurlprojection_biform<Ord, Ord>);
-    wf_proj.add_liform(Hcurlprojection_liform<double, scalar>, Hcurlprojection_liform<Ord, Ord>, 
-                       H2D_ANY, 1, source);
+    for (i = 0; i < n; i++)
+    {
+      wf->add_biform(i, i, Hcurlprojection_biform<double, scalar>, Hcurlprojection_biform<Ord, Ord>);
+      wf->add_liform(i, Hcurlprojection_liform<double, scalar>, Hcurlprojection_liform<Ord, Ord>, 
+                     H2D_ANY, source[i]);
+    }
   }
-  if (!found) error("Wrong projection type in LinSystem::project_global().");
+  if (!found) error("Wrong projection type in project_global_n().");
 
-  // Setup and solve the projection system.
-  // NOTE: the projection system is using solver and spaces from the underlying LinSystem.
-  LinSystem *ps = new LinSystem(&wf_proj, this->solver, this->spaces[comp]);
-  ps->assemble();
-  ps->solve(target);
-  
-  // copy the coefficient vector Vec into the corresponding 
-  // portion of the global coefficient vector
-  int start_index = 0;
-  for (int i=0; i < comp; i++) start_index += this->get_num_dofs(i);
-  for (int i=0; i < ndof_comp; i++) this->Vec[start_index + i] = ps->Vec[i];
+  want_dir_contrib = true;
+  LinSystem::assemble();
+  LinSystem::solve(target);
+  want_dir_contrib = false;
 
-  // destroying the temporary projection LinSystem
-  ps->free_vectors();
-  delete ps;
-  
-  // overwriting back the enumeration of DOF which was changed in this->spaces[comp]
-  // while the temporary projection system was initialized. 
-  this->assign_dofs();
+  // restoring original wesk form
+  wf = wf_orig;
+  wf_seq = -1;
 }
 
-// projecting all solution components at once
-void LinSystem::project_global(Tuple<MeshFunction*> source, 
-                               Tuple<Solution*> target, int proj_norm)
+// global orthogonal projection of one function
+void LinSystem::project_global(MeshFunction* source, Solution* target, int proj_norm)
 {
-  // sanity checks
-  int n = source.size();
-  if (n != target.size()) error("Mismatched length of tuples in LinSystem::project_global()."); 
-  int ndof = this->get_num_dofs();
-  if (ndof == 0) error("ndof = 0 in LinSystem::project_global().");
-  if (this->Vec == NULL) error("Vec = NULL in LinSystem::project_global().");
-  if (!have_spaces)
-    error("You have to init_spaces() before using project_global().");
-  if (n != wf->neq || n > 10)
-    error("Wrong number of functions in project_global().");
-  // projecting all components one by one
-  for(int comp = 0; comp < n; comp++) {
-    this->project_global(comp, source[comp], target[comp], proj_norm);
-  }
+  if (this->wf->neq != 1) 
+    error("Number of projected functions must be one if there is only one equation, in LinSystem::project_global().");
+  this->project_global(Tuple<MeshFunction*>(source), Tuple<Solution*>(target));
 }
 
 int LinSystem::get_num_dofs()

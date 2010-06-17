@@ -300,10 +300,10 @@ int main(int argc, char* argv[])
   wf.add_biform(2, 1, callback(biform_2_1));
   wf.add_biform(3, 3, callback(biform_3_3));
   wf.add_biform(3, 2, callback(biform_3_2));
-  wf.add_liform(0, callback(liform_0), marker_core, 4, &iter1, &iter2, &iter3, &iter4);
-  wf.add_liform(1, callback(liform_1), marker_core, 4, &iter1, &iter2, &iter3, &iter4);
-  wf.add_liform(2, callback(liform_2), marker_core, 4, &iter1, &iter2, &iter3, &iter4);
-  wf.add_liform(3, callback(liform_3), marker_core, 4, &iter1, &iter2, &iter3, &iter4);
+  wf.add_liform(0, callback(liform_0), marker_core, Tuple<MeshFunction*>(&iter1, &iter2, &iter3, &iter4));
+  wf.add_liform(1, callback(liform_1), marker_core, Tuple<MeshFunction*>(&iter1, &iter2, &iter3, &iter4));
+  wf.add_liform(2, callback(liform_2), marker_core, Tuple<MeshFunction*>(&iter1, &iter2, &iter3, &iter4));
+  wf.add_liform(3, callback(liform_3), marker_core, Tuple<MeshFunction*>(&iter1, &iter2, &iter3, &iter4));
   wf.add_biform_surf(0, 0, callback(biform_surf_0_0), bc_vacuum);
   wf.add_biform_surf(1, 1, callback(biform_surf_1_1), bc_vacuum);
   wf.add_biform_surf(2, 2, callback(biform_surf_2_2), bc_vacuum);

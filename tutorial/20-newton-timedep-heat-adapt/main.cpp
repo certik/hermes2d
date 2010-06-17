@@ -21,7 +21,7 @@ using namespace RefinementSelectors;
 //
 //  The following parameters can be changed:
 
-const bool NEWTON_ON_COARSE_MESH = false;  // true... Newton is done on coarse mesh in every adaptivity step.
+const bool SOLVE_ON_COARSE_MESH = false;   // true... Newton is done on coarse mesh in every adaptivity step.
                                            // false...Newton is done on coarse mesh only once, then projection
                                            // of the fine mesh solution to coarse mesh is used.
 const int INIT_REF_NUM = 2;                // Number of initial uniform mesh refinements.
@@ -135,12 +135,12 @@ int main(int argc, char* argv[])
   // Initialize the weak formulation.
   WeakForm wf;
   if(TIME_DISCR == 1) {
-    wf.add_biform(callback(J_euler), H2D_UNSYM, H2D_ANY, 1, &u_prev_newton);
-    wf.add_liform(callback(F_euler), H2D_ANY, 2, &u_prev_newton, &u_prev_time);
+    wf.add_biform(callback(J_euler), H2D_UNSYM, H2D_ANY, &u_prev_newton);
+    wf.add_liform(callback(F_euler), H2D_ANY, Tuple<MeshFunction*>(&u_prev_newton, &u_prev_time));
   }
   else {
-    wf.add_biform(callback(J_cranic), H2D_UNSYM, H2D_ANY, 1, &u_prev_newton);
-    wf.add_liform(callback(F_cranic), H2D_ANY, 2, &u_prev_newton, &u_prev_time);
+    wf.add_biform(callback(J_cranic), H2D_UNSYM, H2D_ANY, &u_prev_newton);
+    wf.add_liform(callback(F_cranic), H2D_ANY, Tuple<MeshFunction*>(&u_prev_newton, &u_prev_time));
   }
 
   // Matrix solver.
@@ -193,7 +193,7 @@ int main(int argc, char* argv[])
       info("Projecting fine mesh solution on globally derefined mesh:");
       nls.project_global(&sln_fine, &u_prev_newton);
 
-      if (NEWTON_ON_COARSE_MESH) {
+      if (SOLVE_ON_COARSE_MESH) {
         // Newton's loop on the globally derefined mesh.
         info("Newton solve on globally derefined mesh.", ts);
         if (!nls.solve_newton(&u_prev_newton, NEWTON_TOL_COARSE, NEWTON_MAX_ITER))
@@ -264,7 +264,7 @@ int main(int argc, char* argv[])
         info("Projecting fine mesh solution on new coarse mesh.");
         nls.project_global(&sln_fine, &u_prev_newton);
 
-        if (NEWTON_ON_COARSE_MESH) {
+        if (SOLVE_ON_COARSE_MESH) {
           // Newton's loop on the coarse mesh.
           info("---- Time step %d, adaptivity step %d, Newton solve on new coarse mesh.", ts, as);
           if (!nls.solve_newton(&u_prev_newton, NEWTON_TOL_COARSE, NEWTON_MAX_ITER))

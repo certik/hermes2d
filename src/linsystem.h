@@ -148,38 +148,23 @@ public:
   /// Assigning DOF = enumerating basis functions in the FE spaces.
   int assign_dofs();  // all spaces
 
-  /// Elementary orthogonal projection of one solution component (index "comp"): proj_norm = 0 
-  /// for L2 norm, proj_norm = 1 for H1 norm, proj_norm = 2 
-  /// for Hcurl norm. Projected can be any MeshFunction, Solution or Filter. The result of the 
-  /// projection will satisfy essential boundary conditions in the corresponding space. 
-  /// The resulting coefficient vector is copied into the corresponding portion of the global 
-  /// coefficient vector Vec.
-  /// All projection functionality defined here is also available in the class NonlinSystem. 
-  /// TODO: Implement projection-based interpolation (PBI) as an alternative of this. 
-  /// PBI is almost as good as global orthogonal projection but way faster.
-  void project_global(int comp, MeshFunction *source, Solution* target, int proj_norm = 1); 
-  void project_global(MeshFunction* source, Solution* target, int proj_norm = 1)
-  {  project_global(0, source, target, proj_norm);  }
-
   /// Global orthogonal projection of multiple solution components simultaneously 
   /// (so far all must be in the same norm but this can be fixed easily). This 
-  /// projection defines the entire coefficient vector Vec.
+  /// projection defines the entire coefficient vector Vec. Calls assign_dofs() 
+  /// at the beginning.
   void project_global(Tuple<MeshFunction*> source, Tuple<Solution*> target, int proj_norm = 1);
 
+  /// Global orthogonal projection of one function.
+  void project_global(MeshFunction* source, Solution* target, int proj_norm = 1);
+
   /// Global orthogonal projection of one exact function.
-  void project_global(int comp, scalar (*exactfn)(double x, double y, scalar& dx, scalar& dy),
-                      Solution* target, int proj_norm = 1)
-  {
-    Mesh *mesh = this->get_mesh(comp);
-    Solution tmp;
-    tmp.set_exact(mesh, exactfn);
-    project_global(comp, &tmp, target, proj_norm);
-  }
   void project_global(scalar (*exactfn)(double x, double y, scalar& dx, scalar& dy),
                       Solution* target, int proj_norm = 1)
   {
-    int comp = 0;
-    project_global(comp, exactfn, target, proj_norm);
+    Mesh *mesh = this->get_mesh(0);
+    Solution tmp;
+    tmp.set_exact(mesh, exactfn);
+    project_global(&tmp, target, proj_norm);
   }
 
   /// Global orthogonal projection of two exact functions.

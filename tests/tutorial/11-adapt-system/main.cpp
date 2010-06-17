@@ -5,8 +5,6 @@ using namespace RefinementSelectors;
 
 // This test makes sure that example 11-adapt-system works correctly.
 
-const bool SOLVE_ON_COARSE_MESH = false; // If true, coarse mesh FE problem is solved in every adaptivity step.
-                                         // If false, projection of the fine mesh solution on the coarse mesh is used. 
 const int P_INIT_U = 2;                  // Initial polynomial degree for u.
 const int P_INIT_V = 2;                  // Initial polynomial degree for v.
 const int INIT_REF_BDY = 3;              // Number of initial boundary refinements
@@ -64,6 +62,7 @@ scalar essential_bc_values(int ess_bdy_marker, double x, double y) { return 0;}
 // Weak forms.
 #include "forms.cpp"
 
+
 int main(int argc, char* argv[])
 {
   // Check input parameters.
@@ -105,15 +104,11 @@ int main(int argc, char* argv[])
   // Matrix solver.
   UmfpackSolver solver;
 
-  // DOF and CPU convergence graphs.
-  SimpleGraph graph_dof, graph_cpu;
-
   // Initialize refinement selector.
   H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
 
-  // Initialize the coarse and fine mesh problems.
+  // Initialize the coarse mesh problem.
   LinSystem ls(&wf, &solver, Tuple<Space*>(&uspace, &vspace));
-  RefSystem rs(&ls);
 
   // Adaptivity loop.
   int as = 1; bool done = false;
@@ -125,6 +120,7 @@ int main(int argc, char* argv[])
 
     // Assemble and solve the fine mesh problem.
     info("Solving on fine meshes.");
+    RefSystem rs(&ls);
     rs.assemble();
     rs.solve(Tuple<Solution*>(&u_sln_fine, &v_sln_fine));
 
@@ -172,16 +168,6 @@ int main(int argc, char* argv[])
     info("Exact solution error (maximum): %g%%", error);
     info("Estimate of error wrt. ref. solution (energy norm): %g%%", err_est);
 
-    // Add entry to DOF convergence graph.
-    graph_dof.add_values(ls.get_num_dofs(), error);
-    if (MULTI == true) graph_dof.save("conv_dof_m.dat");
-    else graph_dof.save("conv_dof_s.dat");
-
-    // Add entry to CPU convergence graph.
-    graph_cpu.add_values(cpu_time.accumulated(), error);
-    if (MULTI == true) graph_cpu.save("conv_cpu_m.dat");
-    else graph_cpu.save("conv_cpu_s.dat");
-
     // If err_est too large, adapt the mesh.
     if (error < ERR_STOP) done = true;
     else {
@@ -193,6 +179,7 @@ int main(int argc, char* argv[])
     as++;
   }
   while (!done);
+  verbose("Total running time: %g s", cpu_time.accumulated());
 
   int ndof = ls.get_num_dofs();
 

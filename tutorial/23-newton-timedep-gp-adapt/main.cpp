@@ -26,7 +26,7 @@ using namespace RefinementSelectors;
 //
 //  The following parameters can be changed:
 
-const bool NEWTON_ON_COARSE_MESH = true;  // true... Newton is done on coarse mesh in every adaptivity step,
+const bool SOLVE_ON_COARSE_MESH = false;   // true... Newton is done on coarse mesh in every adaptivity step,
                                            // false...Newton is done on coarse mesh only once, then projection
                                            // of the fine mesh solution to coarse mesh is used.
 const int INIT_REF_NUM = 2;                // Number of initial uniform refinements.
@@ -62,7 +62,7 @@ const double CONV_EXP = 1.0;               // Default value is 1.0. This paramet
                                            // cancidates in hp-adaptivity. See get_optimal_refinement() for details.
 const int MAX_ORDER = 5;                   // Maximum polynomial order allowed in hp-adaptivity
                                            // had to be limited due to complicated integrals
-const double ERR_STOP = 2.0;               // Stopping criterion for hp-adaptivity
+const double ERR_STOP = 5.0;               // Stopping criterion for hp-adaptivity
                                            // (relative error between reference and coarse solution in percent)
 const int NDOF_STOP = 60000;               // Adaptivity process stops when the number of degrees of freedom grows
                                            // over this limit. This is to prevent h-adaptivity to go on forever.
@@ -123,12 +123,12 @@ int main(int argc, char* argv[])
   // Initialize the weak formulation.
   WeakForm wf;
   if(TIME_DISCR == 1) {
-    wf.add_biform(callback(jacobian_euler), H2D_UNSYM, H2D_ANY, 1, &Psi_prev_newton);
-    wf.add_liform(callback(residual_euler), H2D_ANY, 2, &Psi_prev_newton, &Psi_prev_time);
+    wf.add_biform(callback(jacobian_euler), H2D_UNSYM, H2D_ANY, &Psi_prev_newton);
+    wf.add_liform(callback(residual_euler), H2D_ANY, Tuple<MeshFunction*>(&Psi_prev_newton, &Psi_prev_time));
   }
   else {
-    wf.add_biform(callback(jacobian_cranic), H2D_UNSYM, H2D_ANY, 1, &Psi_prev_newton);
-    wf.add_liform(callback(residual_cranic), H2D_ANY, 2, &Psi_prev_newton, &Psi_prev_time);
+    wf.add_biform(callback(jacobian_cranic), H2D_UNSYM, H2D_ANY, &Psi_prev_newton);
+    wf.add_liform(callback(residual_cranic), H2D_ANY, Tuple<MeshFunction*>(&Psi_prev_newton, &Psi_prev_time));
   }
 
   // Matrix solver.
@@ -184,7 +184,7 @@ int main(int argc, char* argv[])
       info("Projecting fine mesh solution on globally derefined mesh:");
       nls.project_global(&sln_fine, &Psi_prev_newton);
 
-      if (NEWTON_ON_COARSE_MESH) {
+      if (SOLVE_ON_COARSE_MESH) {
         // Newton's loop on the globally derefined mesh.
         info("Newton solve on globally derefined mesh.", ts);
         if (!nls.solve_newton(&Psi_prev_newton, NEWTON_TOL_COARSE, NEWTON_MAX_ITER))
@@ -252,7 +252,7 @@ int main(int argc, char* argv[])
         info("Projecting fine mesh solution on new coarse mesh.");
         nls.project_global(&sln_fine, &Psi_prev_newton);
 
-        if (NEWTON_ON_COARSE_MESH) {
+        if (SOLVE_ON_COARSE_MESH) {
           // Newton's loop on the coarse mesh.
           info("---- Time step %d, adaptivity step %d, Newton solve on new coarse mesh.", ts, as);
           if (!nls.solve_newton(&Psi_prev_newton, NEWTON_TOL_COARSE, NEWTON_MAX_ITER))

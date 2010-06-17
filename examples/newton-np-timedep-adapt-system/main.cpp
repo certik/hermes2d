@@ -88,12 +88,12 @@ const int VOLT_BOUNDARY = 1;          // 1 for Dirichlet, 2 for Neumann.
 const double NEWTON_TOL = 1e-6;       // Stopping criterion for nonadaptive solution.
 
 /* Adaptive solution parameters */
+const bool SOLVE_ON_COARSE_MESH = false;  // true... Newton is done on coarse mesh in every adaptivity step.
+                                      // false...Newton is done on coarse mesh only once, then projection 
+                                      // of the fine mesh solution to coarse mesh is used.
 const double NEWTON_TOL_COARSE = 0.01;// Stopping criterion for Newton on coarse mesh.
 const double NEWTON_TOL_FINE = 0.05;  // Stopping criterion for Newton on fine mesh.
 const int NEWTON_MAX_ITER = 20;       // Maximum allowed number of Newton iterations.
-const bool NEWTON_ON_COARSE_MESH = false;  // true... Newton is done on coarse mesh in every adaptivity step.
-                                      // false...Newton is done on coarse mesh only once, then projection 
-                                      // of the fine mesh solution to coarse mesh is used.
 
 const int UNREF_FREQ = 5;             // every UNREF_FREQth time step the mesh is unrefined.
 const double THRESHOLD = 0.3;         // This is a quantitative parameter of the adapt(...) function and
@@ -257,7 +257,7 @@ void solveAdaptive(Mesh &Cmesh, Mesh &phimesh, Mesh &basemesh, NonlinSystem &nls
       nls.project_global(Tuple<MeshFunction*>(&Csln_fine, &phisln_fine), 
                          Tuple<Solution*>(&C_prev_newton, &phi_prev_newton));
 
-      if (NEWTON_ON_COARSE_MESH) {
+      if (SOLVE_ON_COARSE_MESH) {
         // Newton's loop on the globally derefined mesh
         info("---- Time step %d, Newton solve on globally derefined mesh:\n", n);
         if (!nls.solve_newton(&C_prev_newton, &phi_prev_newton, NEWTON_TOL_COARSE, NEWTON_MAX_ITER))
@@ -315,7 +315,7 @@ void solveAdaptive(Mesh &Cmesh, Mesh &phimesh, Mesh &basemesh, NonlinSystem &nls
         nls.project_global(Tuple<MeshFunction*>(&Csln_fine, &phisln_fine), 
                            Tuple<Solution*>(&C_prev_newton, &phi_prev_newton));
         at++;
-        if (NEWTON_ON_COARSE_MESH) {
+        if (SOLVE_ON_COARSE_MESH) {
           // Newton's loop on the globally derefined mesh
           info("---- Time step %d, Newton solve on globally derefined mesh:\n", n);
           if (!nls.solve_newton(&C_prev_newton, &phi_prev_newton, NEWTON_TOL_COARSE, NEWTON_MAX_ITER))
@@ -417,6 +417,27 @@ int main (int argc, char* argv[]) {
   // Add the bilinear and linear forms
   // generally, the equation system is described:
   if (TIME_DISCR == 1) {  //implicit euler
+    wf.add_liform(0, callback(Fc_euler), H2D_ANY,
+		  Tuple<MeshFunction*>(&C_prev_time, &C_prev_newton, &phi_prev_newton));
+    wf.add_liform(1, callback(Fphi_euler), H2D_ANY, Tuple<MeshFunction*>(&C_prev_newton, &phi_prev_newton));
+    wf.add_biform(0, 0, callback(J_euler_DFcDYc), H2D_UNSYM, H2D_ANY, &phi_prev_newton);
+    wf.add_biform(0, 1, callback(J_euler_DFcDYphi), H2D_UNSYM, H2D_ANY, &C_prev_newton);
+    wf.add_biform(1, 0, callback(J_euler_DFphiDYc), H2D_UNSYM);
+    wf.add_biform(1, 1, callback(J_euler_DFphiDYphi), H2D_UNSYM);
+  } else {
+    wf.add_liform(0, callback(Fc_cranic), H2D_ANY, 
+		  Tuple<MeshFunction*>(&C_prev_time, &C_prev_newton, &phi_prev_newton, &phi_prev_time));
+    wf.add_liform(1, callback(Fphi_cranic), H2D_ANY, Tuple<MeshFunction*>(&C_prev_newton, &phi_prev_newton));
+    wf.add_biform(0, 0, callback(J_cranic_DFcDYc), H2D_UNSYM, H2D_ANY, Tuple<MeshFunction*>(&phi_prev_newton, &phi_prev_time));
+    wf.add_biform(0, 1, callback(J_cranic_DFcDYphi), H2D_UNSYM, H2D_ANY, Tuple<MeshFunction*>(&C_prev_newton, &C_prev_time));
+    wf.add_biform(1, 0, callback(J_cranic_DFphiDYc), H2D_UNSYM);
+    wf.add_biform(1, 1, callback(J_cranic_DFphiDYphi), H2D_UNSYM);
+  }
+
+  /* OLD WAY OF REGISTERING FORMS
+  // Add the bilinear and linear forms
+  // generally, the equation system is described:
+  if (TIME_DISCR == 1) {  //implicit euler
     wf.add_liform(0, callback(Fc_euler), H2D_ANY, 3,
         &C_prev_time, &C_prev_newton, &phi_prev_newton);
     wf.add_liform(1, callback(Fphi_euler), H2D_ANY, 2, &C_prev_newton, &phi_prev_newton);
@@ -431,9 +452,10 @@ int main (int argc, char* argv[]) {
     wf.add_biform(0, 0, callback(J_cranic_DFcDYc), H2D_UNSYM, H2D_ANY, 2, &phi_prev_newton, &phi_prev_time);
     wf.add_biform(0, 1, callback(J_cranic_DFcDYphi), H2D_UNSYM, H2D_ANY, 2, &C_prev_newton, &C_prev_time);
     wf.add_biform(1, 0, callback(J_cranic_DFphiDYc), H2D_UNSYM);
-    wf.add_biform(1, 1, callback(J_cranic_DFphiDYphi), H2D_UNSYM);
-    
+    wf.add_biform(1, 1, callback(J_cranic_DFphiDYphi), H2D_UNSYM);    
   }
+  */
+
   // Neumann voltage boundary.
   if (VOLT_BOUNDARY == 2) {
     wf.add_liform_surf(1, callback(linear_form_surf_top), TOP_MARKER);

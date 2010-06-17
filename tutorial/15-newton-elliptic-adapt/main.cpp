@@ -20,7 +20,7 @@ using namespace RefinementSelectors;
 //
 //  The following parameters can be changed:
 
-const bool NEWTON_ON_COARSE_MESH = true;  // true...  Newton is done on coarse mesh in every adaptivity step.
+const bool SOLVE_ON_COARSE_MESH = false;  // true...  Newton is done on coarse mesh in every adaptivity step.
                                            // false... Newton is done on coarse mesh only once, then projection
                                            // of the fine mesh solution to coarse mesh is used.
 const int P_INIT = 1;                      // Initial polynomial degree.
@@ -134,8 +134,8 @@ int main(int argc, char* argv[])
 
   // Initialize the weak formulation.
   WeakForm wf;
-  wf.add_biform(callback(jac), H2D_UNSYM, H2D_ANY, 1, &u_prev);
-  wf.add_liform(callback(res), H2D_ANY, 1, &u_prev);
+  wf.add_biform(callback(jac), H2D_UNSYM, H2D_ANY, &u_prev);
+  wf.add_liform(callback(res), H2D_ANY, &u_prev);
 
   // Matrix solver.
   UmfpackSolver solver;
@@ -190,7 +190,6 @@ int main(int argc, char* argv[])
     // Set initial condition for the Newton's method on the fine mesh.
     if (as == 1) {
       info("Projecting coarse mesh solution on fine mesh.");
-      printf("debug 1: ndof = %d\n", rnls.get_num_dofs());
       rnls.project_global(&sln_coarse, &u_prev);
     }
     else {
@@ -198,15 +197,10 @@ int main(int argc, char* argv[])
       rnls.project_global(&sln_fine, &u_prev);
     }
 
-    info("Solving on fine mesh.");
-
-    printf("debug 2: ndof = %d\n", rnls.get_num_dofs());
-
     // Newton's loop on the fine mesh.
+    info("Solving on fine mesh.");
     if (!rnls.solve_newton(&u_prev, NEWTON_TOL_FINE, NEWTON_MAX_ITER)) 
       error("Newton's method did not converge.");
-
-    printf("debug 3: ndof = %d\n", rnls.get_num_dofs());
 
     // Store the fine mesh solution in sln_fine.
     sln_fine.copy(&u_prev);
@@ -244,7 +238,6 @@ int main(int argc, char* argv[])
     else {
       info("Adapting coarse mesh.");
       done = hp.adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY);
-      printf("debug 4: ndof_new = %d\n", nls.get_num_dofs());
       if (nls.get_num_dofs() >= NDOF_STOP) {
         done = true;
         break;
@@ -254,7 +247,7 @@ int main(int argc, char* argv[])
       info("Projecting fine mesh solution on new coarse mesh.");
       nls.project_global(&sln_fine, &u_prev);
 
-      if (NEWTON_ON_COARSE_MESH) {
+      if (SOLVE_ON_COARSE_MESH) {
         // Newton's loop on the new coarse mesh.
         info("Solving on coarse mesh.");
         if (!nls.solve_newton(&u_prev, NEWTON_TOL_COARSE, NEWTON_MAX_ITER)) 

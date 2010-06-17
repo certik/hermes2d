@@ -148,6 +148,7 @@ void RefSystem::global_refinement()
 
 RefSystem::~RefSystem()
 {
+  this->free_vectors();
 }
 
 // just to prevent the user from calling this

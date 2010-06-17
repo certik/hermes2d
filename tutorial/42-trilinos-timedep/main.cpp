@@ -80,7 +80,7 @@ int main(int argc, char* argv[])
   WeakForm wf(1, JFNK ? true : false);
   wf.add_jacform(callback(jacobian));
   wf.add_jacform_surf(callback(jacobian_surf));
-  wf.add_resform(callback(residual), H2D_ANY, 1, &tprev);
+  wf.add_resform(callback(residual), H2D_ANY, &tprev);
   wf.add_resform_surf(callback(residual_surf));
 
   // Initialize the finite element problem.

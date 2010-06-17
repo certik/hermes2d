@@ -38,7 +38,7 @@ using namespace RefinementSelectors;
 // h-adaptivity via the CAND_LIST option, and compare the multi-mesh vs.
 // single-mesh using the MULTI parameter.
 
-const bool SOLVE_ON_COARSE_MESH = true; // If true, coarse mesh FE problem is solved in every adaptivity step.
+const bool SOLVE_ON_COARSE_MESH = false; // If true, coarse mesh FE problem is solved in every adaptivity step.
                                          // If false, projection of the fine mesh solution on the coarse mesh is used. 
 const int P_INIT_U = 2;                  // Initial polynomial degree for u.
 const int P_INIT_V = 2;                  // Initial polynomial degree for v.

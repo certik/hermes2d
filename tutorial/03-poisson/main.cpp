@@ -51,6 +51,8 @@ int main(int argc, char* argv[])
   // Create an H1 space with default shapeset.
   H1Space space(&mesh, bc_types, essential_bc_values, P_INIT);
 
+  
+
   // Initialize the weak formulation.
   WeakForm wf;
   wf.add_biform(callback(bilinear_form));

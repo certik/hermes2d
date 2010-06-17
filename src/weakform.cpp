@@ -29,12 +29,13 @@ WeakForm::WeakForm(int neq, bool mat_free)
   this->is_matfree = mat_free;
 }
 
-
-#define init_ext \
+/* OLD CODE
+#define init_ext		\
   va_list ap; va_start(ap, nx); \
   for (int i = 0; i < nx; i++) \
     form.ext.push_back(va_arg(ap, MeshFunction*)); \
   va_end(ap)
+*/
 
 scalar WeakForm::LiFormVol::evaluate_fn(int point_cnt, double *weights, Func<double> *values_v, Geom<double> *geometry, ExtData<scalar> *values_ext_fnc, Element* element, Shapeset* shape_set, int shape_inx)
 {
@@ -54,8 +55,7 @@ Ord WeakForm::LiFormVol::evaluate_ord(int point_cnt, double *weights, Func<Ord> 
     return ord_extended(point_cnt, weights, values_v, geometry, values_ext_fnc, element, shape_set, shape_inx);
 }
 
-
-void WeakForm::add_biform(int i, int j, biform_val_t fn, biform_ord_t ord, SymFlag sym, int area, int nx, ...)
+void WeakForm::add_biform(int i, int j, biform_val_t fn, biform_ord_t ord, SymFlag sym, int area, Tuple<MeshFunction*>ext)
 {
   if (i < 0 || i >= neq || j < 0 || j >= neq)
     error("Invalid equation number.");
@@ -69,13 +69,17 @@ void WeakForm::add_biform(int i, int j, biform_val_t fn, biform_ord_t ord, SymFl
     warn("Large number of forms (> 100). Is this the intent?");
 
   BiFormVol form = { i, j, sym, area, fn, ord };
-  init_ext;
+  if (ext.size() != 0) {
+    //printf("ext.size() = %d\n", ext.size());
+    int nx = ext.size(); 
+    for (int i = 0; i < nx; i++) form.ext.push_back(ext[i]);
+  }
   bfvol.push_back(form);
   seq++;
 }
 
 // single equation case
-void WeakForm::add_biform(biform_val_t fn, biform_ord_t ord, SymFlag sym, int area, int nx, ...)
+void WeakForm::add_biform(biform_val_t fn, biform_ord_t ord, SymFlag sym, int area, Tuple<MeshFunction*>ext)
 {
   int i = 0, j = 0;
 
@@ -90,12 +94,15 @@ void WeakForm::add_biform(biform_val_t fn, biform_ord_t ord, SymFlag sym, int ar
     warn("Large number of forms (> 100). Is this the intent?");
 
   BiFormVol form = { i, j, sym, area, fn, ord };
-  init_ext;
+  if (ext.size() != 0) {
+    int nx = ext.size(); 
+    for (int i = 0; i < nx; i++) form.ext.push_back(ext[i]);
+  }
   bfvol.push_back(form);
   seq++;
 }
 
-void WeakForm::add_biform_surf(int i, int j, biform_val_t fn, biform_ord_t ord, int area, int nx, ...)
+void WeakForm::add_biform_surf(int i, int j, biform_val_t fn, biform_ord_t ord, int area, Tuple<MeshFunction*>ext)
 {
   if (i < 0 || i >= neq || j < 0 || j >= neq)
     error("Invalid equation number.");
@@ -103,13 +110,16 @@ void WeakForm::add_biform_surf(int i, int j, biform_val_t fn, biform_ord_t ord, 
     error("Invalid area number.");
 
   BiFormSurf form = { i, j, area, fn, ord };
-  init_ext;
+  if (ext.size() != 0) {
+    int nx = ext.size(); 
+    for (int i = 0; i < nx; i++) form.ext.push_back(ext[i]);
+  }
   bfsurf.push_back(form);
   seq++;
 }
 
 // single equation case
-void WeakForm::add_biform_surf(biform_val_t fn, biform_ord_t ord, int area, int nx, ...)
+void WeakForm::add_biform_surf(biform_val_t fn, biform_ord_t ord, int area, Tuple<MeshFunction*>ext)
 {
   int i = 0, j = 0;
 
@@ -118,12 +128,15 @@ void WeakForm::add_biform_surf(biform_val_t fn, biform_ord_t ord, int area, int 
     error("Invalid area number.");
 
   BiFormSurf form = { i, j, area, fn, ord };
-  init_ext;
+  if (ext.size() != 0) {
+    int nx = ext.size(); 
+    for (int i = 0; i < nx; i++) form.ext.push_back(ext[i]);
+  }
   bfsurf.push_back(form);
   seq++;
 }
 
-void WeakForm::add_liform(int i, liform_val_t fn, liform_ord_t ord, int area, int nx, ...)
+void WeakForm::add_liform(int i, liform_val_t fn, liform_ord_t ord, int area, Tuple<MeshFunction*>ext)
 {
   if (i < 0 || i >= neq)
     error("Invalid equation number.");
@@ -131,13 +144,16 @@ void WeakForm::add_liform(int i, liform_val_t fn, liform_ord_t ord, int area, in
     error("Invalid area number.");
 
   LiFormVol form(i, area, fn, ord);
-  init_ext;
+  if (ext.size() != 0) {
+    int nx = ext.size(); 
+    for (int i = 0; i < nx; i++) form.ext.push_back(ext[i]);
+  }
   lfvol.push_back(form);
   seq++;
 }
 
 // single equation case
-void WeakForm::add_liform(liform_val_t fn, liform_ord_t ord, int area, int nx, ...)
+void WeakForm::add_liform(liform_val_t fn, liform_ord_t ord, int area, Tuple<MeshFunction*>ext)
 {
   int i = 0;
 
@@ -146,12 +162,15 @@ void WeakForm::add_liform(liform_val_t fn, liform_ord_t ord, int area, int nx, .
     error("Invalid area number.");
 
   LiFormVol form(i, area, fn, ord);
-  init_ext;
+  if (ext.size() != 0) {
+    int nx = ext.size(); 
+    for (int i = 0; i < nx; i++) form.ext.push_back(ext[i]);
+  }
   lfvol.push_back(form);
   seq++;
 }
 
-void WeakForm::add_liform(int i, liform_val_extended_t fn_ext, liform_ord_extended_t ord_ext, int area, int nx, ...)
+void WeakForm::add_liform(int i, liform_val_extended_t fn_ext, liform_ord_extended_t ord_ext, int area, Tuple<MeshFunction*>ext)
 {
   if (i < 0 || i >= neq)
     error("Invalid equation number.");
@@ -159,13 +178,16 @@ void WeakForm::add_liform(int i, liform_val_extended_t fn_ext, liform_ord_extend
     error("Invalid area number.");
 
   LiFormVol form(i, area, fn_ext, ord_ext);
-  init_ext;
+  if (ext.size() != 0) {
+    int nx = ext.size(); 
+    for (int i = 0; i < nx; i++) form.ext.push_back(ext[i]);
+  }
   lfvol.push_back(form);
   seq++;
 }
 
 // single equation case
-void WeakForm::add_liform(liform_val_extended_t fn_ext, liform_ord_extended_t ord_ext, int area, int nx, ...)
+void WeakForm::add_liform(liform_val_extended_t fn_ext, liform_ord_extended_t ord_ext, int area, Tuple<MeshFunction*>ext)
 {
   int i = 0;
 
@@ -174,12 +196,15 @@ void WeakForm::add_liform(liform_val_extended_t fn_ext, liform_ord_extended_t or
     error("Invalid area number.");
 
   LiFormVol form(i, area, fn_ext, ord_ext);
-  init_ext;
+  if (ext.size() != 0) {
+    int nx = ext.size(); 
+    for (int i = 0; i < nx; i++) form.ext.push_back(ext[i]);
+  }
   lfvol.push_back(form);
   seq++;
 }
 
-void WeakForm::add_liform_surf(int i, liform_val_t fn, liform_ord_t ord, int area, int nx, ...)
+void WeakForm::add_liform_surf(int i, liform_val_t fn, liform_ord_t ord, int area, Tuple<MeshFunction*>ext)
 {
   if (i < 0 || i >= neq)
     error("Invalid equation number.");
@@ -187,13 +212,16 @@ void WeakForm::add_liform_surf(int i, liform_val_t fn, liform_ord_t ord, int are
     error("Invalid area number.");
 
   LiFormSurf form = { i, area, fn, ord };
-  init_ext;
+  if (ext.size() != 0) {
+    int nx = ext.size(); 
+    for (int i = 0; i < nx; i++) form.ext.push_back(ext[i]);
+  }
   lfsurf.push_back(form);
   seq++;
 }
 
 // single equation case
-void WeakForm::add_liform_surf(liform_val_t fn, liform_ord_t ord, int area, int nx, ...)
+void WeakForm::add_liform_surf(liform_val_t fn, liform_ord_t ord, int area, Tuple<MeshFunction*>ext)
 {
   int i = 0;
 
@@ -202,12 +230,15 @@ void WeakForm::add_liform_surf(liform_val_t fn, liform_ord_t ord, int area, int 
     error("Invalid area number.");
 
   LiFormSurf form = { i, area, fn, ord };
-  init_ext;
+  if (ext.size() != 0) {
+    int nx = ext.size(); 
+    for (int i = 0; i < nx; i++) form.ext.push_back(ext[i]);
+  }
   lfsurf.push_back(form);
   seq++;
 }
 
-void WeakForm::add_jacform(int i, int j, jacform_val_t fn, jacform_ord_t ord, SymFlag sym, int area, int nx, ...)
+void WeakForm::add_jacform(int i, int j, jacform_val_t fn, jacform_ord_t ord, SymFlag sym, int area, Tuple<MeshFunction*>ext)
 {
   if (i < 0 || i >= neq || j < 0 || j >= neq)
     error("Invalid equation number.");
@@ -221,13 +252,16 @@ void WeakForm::add_jacform(int i, int j, jacform_val_t fn, jacform_ord_t ord, Sy
     warn("Large number of forms (> 100). Is this the intent?");
 
   JacFormVol form = { i, j, sym, area, fn, ord };
-  init_ext;
+  if (ext.size() != 0) {
+    int nx = ext.size(); 
+    for (int i = 0; i < nx; i++) form.ext.push_back(ext[i]);
+  }
   jfvol.push_back(form);
   seq++;
 }
 
 // single equation case
-void WeakForm::add_jacform(jacform_val_t fn, jacform_ord_t ord, SymFlag sym, int area, int nx, ...)
+void WeakForm::add_jacform(jacform_val_t fn, jacform_ord_t ord, SymFlag sym, int area, Tuple<MeshFunction*>ext)
 {
   int i = 0, j = 0;
 
@@ -242,12 +276,15 @@ void WeakForm::add_jacform(jacform_val_t fn, jacform_ord_t ord, SymFlag sym, int
     warn("Large number of forms (> 100). Is this the intent?");
 
   JacFormVol form = { i, j, sym, area, fn, ord };
-  init_ext;
+  if (ext.size() != 0) {
+    int nx = ext.size(); 
+    for (int i = 0; i < nx; i++) form.ext.push_back(ext[i]);
+  }
   jfvol.push_back(form);
   seq++;
 }
 
-void WeakForm::add_jacform_surf(int i, int j, jacform_val_t fn, jacform_ord_t ord, int area, int nx, ...)
+void WeakForm::add_jacform_surf(int i, int j, jacform_val_t fn, jacform_ord_t ord, int area, Tuple<MeshFunction*>ext)
 {
   if (i < 0 || i >= neq || j < 0 || j >= neq)
     error("Invalid equation number.");
@@ -255,13 +292,16 @@ void WeakForm::add_jacform_surf(int i, int j, jacform_val_t fn, jacform_ord_t or
     error("Invalid area number.");
 
   JacFormSurf form = { i, j, area, fn, ord };
-  init_ext;
+  if (ext.size() != 0) {
+    int nx = ext.size(); 
+    for (int i = 0; i < nx; i++) form.ext.push_back(ext[i]);
+  }
   jfsurf.push_back(form);
   seq++;
 }
 
 // single equation case
-void WeakForm::add_jacform_surf(jacform_val_t fn, jacform_ord_t ord, int area, int nx, ...)
+void WeakForm::add_jacform_surf(jacform_val_t fn, jacform_ord_t ord, int area, Tuple<MeshFunction*>ext)
 {
   int i = 0, j = 0;
 
@@ -270,12 +310,15 @@ void WeakForm::add_jacform_surf(jacform_val_t fn, jacform_ord_t ord, int area, i
     error("Invalid area number.");
 
   JacFormSurf form = { i, j, area, fn, ord };
-  init_ext;
+  if (ext.size() != 0) {
+    int nx = ext.size(); 
+    for (int i = 0; i < nx; i++) form.ext.push_back(ext[i]);
+  }
   jfsurf.push_back(form);
   seq++;
 }
 
-void WeakForm::add_resform(int i, resform_val_t fn, resform_ord_t ord, int area, int nx, ...)
+void WeakForm::add_resform(int i, resform_val_t fn, resform_ord_t ord, int area, Tuple<MeshFunction*>ext)
 {
   if (i < 0 || i >= neq)
     error("Invalid equation number.");
@@ -283,13 +326,16 @@ void WeakForm::add_resform(int i, resform_val_t fn, resform_ord_t ord, int area,
     error("Invalid area number.");
 
   ResFormVol form = { i, area, fn, ord };
-  init_ext;
+  if (ext.size() != 0) {
+    int nx = ext.size(); 
+    for (int i = 0; i < nx; i++) form.ext.push_back(ext[i]);
+  }
   rfvol.push_back(form);
   seq++;
 }
 
 // single equation case
-void WeakForm::add_resform(resform_val_t fn, resform_ord_t ord, int area, int nx, ...)
+void WeakForm::add_resform(resform_val_t fn, resform_ord_t ord, int area, Tuple<MeshFunction*>ext)
 {
   int i = 0;
 
@@ -298,12 +344,15 @@ void WeakForm::add_resform(resform_val_t fn, resform_ord_t ord, int area, int nx
     error("Invalid area number.");
 
   ResFormVol form = { i, area, fn, ord };
-  init_ext;
+  if (ext.size() != 0) {
+    int nx = ext.size(); 
+    for (int i = 0; i < nx; i++) form.ext.push_back(ext[i]);
+  }
   rfvol.push_back(form);
   seq++;
 }
 
-void WeakForm::add_resform_surf(int i, resform_val_t fn, resform_ord_t ord, int area, int nx, ...)
+void WeakForm::add_resform_surf(int i, resform_val_t fn, resform_ord_t ord, int area, Tuple<MeshFunction*>ext)
 {
   if (i < 0 || i >= neq)
     error("Invalid equation number.");
@@ -311,13 +360,16 @@ void WeakForm::add_resform_surf(int i, resform_val_t fn, resform_ord_t ord, int 
     error("Invalid area number.");
 
   ResFormSurf form = { i, area, fn, ord };
-  init_ext;
+  if (ext.size() != 0) {
+    int nx = ext.size(); 
+    for (int i = 0; i < nx; i++) form.ext.push_back(ext[i]);
+  }
   rfsurf.push_back(form);
   seq++;
 }
 
 // single equation case
-void WeakForm::add_resform_surf(resform_val_t fn, resform_ord_t ord, int area, int nx, ...)
+void WeakForm::add_resform_surf(resform_val_t fn, resform_ord_t ord, int area, Tuple<MeshFunction*>ext)
 {
   int i = 0;
 
@@ -326,12 +378,15 @@ void WeakForm::add_resform_surf(resform_val_t fn, resform_ord_t ord, int area, i
     error("Invalid area number.");
 
   ResFormSurf form = { i, area, fn, ord };
-  init_ext;
+  if (ext.size() != 0) {
+    int nx = ext.size(); 
+    for (int i = 0; i < nx; i++) form.ext.push_back(ext[i]);
+  }
   rfsurf.push_back(form);
   seq++;
 }
 
-void WeakForm::set_ext_fns(void* fn, int nx, ...)
+void WeakForm::set_ext_fns(void* fn, Tuple<MeshFunction*>ext)
 {
   error("Not implemented yet.");
 }
@@ -536,20 +591,6 @@ bool** WeakForm::get_blocks()
 
 
 //// areas /////////////////////////////////////////////////////////////////////////////////////////
-
-/*
-int WeakForm::def_area(int n, ...)
-{
-  Area newarea;
-  va_list ap; va_start(ap, n);
-  for (int i = 0; i < n; i++)
-    newarea.markers.push_back(va_arg(ap, int));
-  va_end(ap);
-
-  areas.push_back(newarea);
-  return -(int)areas.size();
-}
-*/
 
 bool WeakForm::is_in_area_2(int marker, int area) const
 {

@@ -99,9 +99,9 @@ int main(int argc, char* argv[])
     wf.add_jacform(0, 0, callback(precond_0_0));
     wf.add_jacform(1, 1, callback(precond_1_1));
   }
-  wf.add_resform(0, callback(residual_0), H2D_ANY, 2, &tprev1, &tprev2);
+  wf.add_resform(0, callback(residual_0), H2D_ANY, Tuple<MeshFunction*>(&tprev1, &tprev2));
   wf.add_resform_surf(0, callback(residual_0_surf), 3);
-  wf.add_resform(1, callback(residual_1), H2D_ANY, 2, &cprev1, &cprev2);
+  wf.add_resform(1, callback(residual_1), H2D_ANY, Tuple<MeshFunction*>(&cprev1, &cprev2));
 
   // Project the functions "titer" and "citer" on the FE space 
   // in order to obtain initial vector for NOX. 

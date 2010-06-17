@@ -96,12 +96,12 @@ int main(int argc, char* argv[])
   // Initialize the weak formulation.
   WeakForm wf;
   if(TIME_DISCR == 1) {
-    wf.add_biform(callback(jacobian_euler), H2D_UNSYM, H2D_ANY, 1, &Psi_prev_newton);
-    wf.add_liform(callback(residual_euler), H2D_ANY, 2, &Psi_prev_newton, &Psi_prev_time);
+    wf.add_biform(callback(jacobian_euler), H2D_UNSYM, H2D_ANY, &Psi_prev_newton);
+    wf.add_liform(callback(residual_euler), H2D_ANY, Tuple<MeshFunction*>(&Psi_prev_newton, &Psi_prev_time));
   }
   else {
-    wf.add_biform(callback(jacobian_cranic), H2D_UNSYM, H2D_ANY, 1, &Psi_prev_newton);
-    wf.add_liform(callback(residual_cranic), H2D_ANY, 2, &Psi_prev_newton, &Psi_prev_time);
+    wf.add_biform(callback(jacobian_cranic), H2D_UNSYM, H2D_ANY, &Psi_prev_newton);
+    wf.add_liform(callback(residual_cranic), H2D_ANY, Tuple<MeshFunction*>(&Psi_prev_newton, &Psi_prev_time));
   }
 
   // Matrix solver.
@@ -111,7 +111,7 @@ int main(int argc, char* argv[])
   NonlinSystem nls(&wf, &solver, &space);
 
   // Initialize views.
-  ScalarView view("", 0, 0, 700, 600);
+  ScalarView view("", 0, 0, 600, 500);
   view.fix_scale_width(80);
 
   // Set initial condition at zero time level.
