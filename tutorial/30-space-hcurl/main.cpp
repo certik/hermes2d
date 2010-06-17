@@ -25,20 +25,12 @@ int main(int argc, char* argv[])
   // Initial mesh refinement.
   for (int i = 0; i < INIT_REF_NUM; i++) mesh.refine_all_elements();
 
-  // Initialize the shapeset.
-  HcurlShapeset shapeset;
-
-  // Create an Hcurl space.
-  HcurlSpace space(&mesh, &shapeset);
-
-  // Set uniform polynomial degrees.
-  space.set_uniform_order(P_INIT);
-
-  // Enumerate basis functions.
-  int ndof = assign_dofs(&space);
+  // Create an Hcurl space with default shapeset.
+  // (BC types and essential BC values not relevant.)
+  HcurlSpace space(&mesh, NULL, NULL, P_INIT);
 
   // Visualize FE basis.
-  VectorBaseView bview;
+  VectorBaseView bview("BaseView", 0, 0, 700, 600);
   bview.show(&space);
 
   // Wait for all views to be closed.

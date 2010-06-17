@@ -63,17 +63,9 @@ int main(int argc, char* argv[])
   // Solutions.
   Solution prev, sln1, sln2;
 
-  // Initialize the shapeset and the cache,
-  H1Shapeset shapeset;
-
-  // Create an H1 space.
-  H1Space space(&mesh, &shapeset);
-  space.set_bc_types(bc_types);
-  space.set_uniform_order(P_INIT);
-
-  // Enumerate degrees of freedom.
-  int ndof = assign_dofs(&space);
-  info("Number of DOF: %d", space.get_num_dofs());
+  // Create an H1 space with default shapeset.
+  H1Space space(&mesh, bc_types, NULL, P_INIT);
+  info("Number of DOF: %d",  space.get_num_dofs());
 
   info("---- Using NonlinSystem, solving by Umfpack:");
 
@@ -135,10 +127,11 @@ int main(int argc, char* argv[])
   wf2.add_resform(callback(residual_form_nox));
 
   // Initialize FeProblem.
+  H1Shapeset shapeset;
   FeProblem fep(&wf2);
-  fep.set_spaces(1, &space);
+  fep.set_spaces(&space);
   PrecalcShapeset pss(&shapeset);
-  fep.set_pss(1, &pss);
+  //fep.set_pss(1, &pss);
 
   // Initialize the NOX solver with the vector "vec".
   info("Initializing NOX.");

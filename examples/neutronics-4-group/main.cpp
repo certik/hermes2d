@@ -61,6 +61,12 @@ BCType bc_types(int marker)
   return BC_NATURAL;
 }
 
+// Essential (Dirichlet) boundary condition values.
+scalar essential_bc_values(int ess_bdy_marker, double x, double y)
+{
+  return 0;
+}
+
 // Reflector properties (0) core properties (1).
 const double D[2][4] = {{0.0164, 0.0085, 0.00832, 0.00821},
                         {0.0235, 0.0121, 0.0119, 0.0116}};
@@ -139,9 +145,6 @@ int main(int argc, char* argv[])
   // Perform initial mesh refinements.
   for (int i = 0; i < INIT_REF_NUM; i++) mesh.refine_all_elements();
 
-  // Initialize the shapeset.
-  H1Shapeset shapeset;
-
   // Solution variables.
   Solution sln1, sln2, sln3, sln4;
   Solution iter1, iter2, iter3, iter4;
@@ -156,22 +159,11 @@ int main(int argc, char* argv[])
   // Matrix solver.
   UmfpackSolver umfpack;
 
-  // Create H1 spaces.
-  H1Space space1(&mesh, &shapeset);
-  H1Space space2(&mesh, &shapeset);
-  H1Space space3(&mesh, &shapeset);
-  H1Space space4(&mesh, &shapeset);
-  space1.set_bc_types(bc_types);
-  space2.set_bc_types(bc_types);
-  space3.set_bc_types(bc_types);
-  space4.set_bc_types(bc_types);
-  space1.set_uniform_order(P_INIT);
-  space2.set_uniform_order(P_INIT);
-  space3.set_uniform_order(P_INIT);
-  space4.set_uniform_order(P_INIT);
-
-  // Enumerate degrees of freedom.
-  int ndof = assign_dofs(4, &space1, &space2, &space3, &space4);
+  // Create H1 spaces with default shapesets.
+  H1Space space1(&mesh, bc_types, essential_bc_values, P_INIT);
+  H1Space space2(&mesh, bc_types, essential_bc_values, P_INIT); 
+  H1Space space3(&mesh, bc_types, essential_bc_values, P_INIT); 
+  H1Space space4(&mesh, bc_types, essential_bc_values, P_INIT); 
 
   // Initialize the weak formulation.
   WeakForm wf(4);
@@ -192,7 +184,7 @@ int main(int argc, char* argv[])
   wf.add_biform_surf(3, 3, callback(biform_surf_3_3), BDY_VACUUM);
 
   // Initialize coarse mesh problem.
-  LinSystem ls(&wf, &umfpack, 4, &space1, &space2, &space3, &space4);
+  LinSystem ls(&wf, &umfpack, Tuple<Space*>(&space1, &space2, &space3, &space4));
 
   // Initialize views.
   ScalarView view1("Neutron flux 1", 0, 0, 320, 600);
@@ -200,7 +192,7 @@ int main(int argc, char* argv[])
   ScalarView view3("Neutron flux 3", 700, 0, 320, 600);
   ScalarView view4("Neutron flux 4", 1050, 0, 320, 600);
 
-  // Show meshes.
+  // Do not show meshes.
   view1.show_mesh(false);
   view2.show_mesh(false);
   view3.show_mesh(false);
@@ -215,7 +207,7 @@ int main(int argc, char* argv[])
 
     // Assemble and solve the coarse mesh problem.
     ls.assemble(rhs_only);
-    ls.solve(4, &sln1, &sln2, &sln3, &sln4);
+    ls.solve(Tuple<Solution*>(&sln1, &sln2, &sln3, &sln4));
 
     // Show solutions.
     view1.show(&sln1);    

@@ -20,52 +20,53 @@ using namespace RefinementSelectors;
 ///  Results for given parameters
 ///  - DOFs: 3081
 
-const int INIT_REF_NUM = 1;       // Number of initial mesh refinements (the original mesh is just one element)
-const int INIT_REF_NUM_BDY = 3;   // Number of initial mesh refinements towards the boundary
-const int P_INIT = 1;             // Initial polynomial degree of all mesh elements.
-const double THRESHOLD = 0.3;     // This is a quantitative parameter of the adapt(...) function and
-                                  // it has different meanings for various adaptive strategies (see below).
-const int STRATEGY = 0;           // Adaptive strategy:
-                                  // STRATEGY = 0 ... refine elements until sqrt(THRESHOLD) times total
-                                  //   error is processed. If more elements have similar errors, refine
-                                  //   all to keep the mesh symmetric.
-                                  // STRATEGY = 1 ... refine all elements whose error is larger
-                                  //   than THRESHOLD times maximum element error.
-                                  // STRATEGY = 2 ... refine all elements whose error is larger
-                                  //   than THRESHOLD.
-                                  // More adaptive strategies can be created in adapt_ortho_h1.cpp.
+const int INIT_REF_NUM = 1;              // Number of initial mesh refinements (the original mesh is just one element)
+const int INIT_REF_NUM_BDY = 3;          // Number of initial mesh refinements towards the boundary
+const int P_INIT = 1;                    // Initial polynomial degree of all mesh elements.
+const double THRESHOLD = 0.3;            // This is a quantitative parameter of the adapt(...) function and
+                                         // it has different meanings for various adaptive strategies (see below).
+const int STRATEGY = 0;                  // Adaptive strategy:
+                                         // STRATEGY = 0 ... refine elements until sqrt(THRESHOLD) times total
+                                         //   error is processed. If more elements have similar errors, refine
+                                         //   all to keep the mesh symmetric.
+                                         // STRATEGY = 1 ... refine all elements whose error is larger
+                                         //   than THRESHOLD times maximum element error.
+                                         // STRATEGY = 2 ... refine all elements whose error is larger
+                                         //   than THRESHOLD.
+                                         // More adaptive strategies can be created in adapt_ortho_h1.cpp.
 const CandList CAND_LIST = H2D_HP_ANISO; // Predefined list of element refinement candidates. Possible values are
                                          // H2D_P_ISO, H2D_P_ANISO, H2D_H_ISO, H2D_H_ANISO, H2D_HP_ISO,
                                          // H2D_HP_ANISO_H, H2D_HP_ANISO_P, H2D_HP_ANISO.
-                                         // See the Sphinx tutorial (http://hpfem.org/hermes2d/doc/src/tutorial-2.html#adaptive-h-fem-and-hp-fem) for details.
-const int MESH_REGULARITY = -1;   // Maximum allowed level of hanging nodes:
-                                  // MESH_REGULARITY = -1 ... arbitrary level hangning nodes (default),
-                                  // MESH_REGULARITY = 1 ... at most one-level hanging nodes,
-                                  // MESH_REGULARITY = 2 ... at most two-level hanging nodes, etc.
-                                  // Note that regular meshes are not supported, this is due to
-                                  // their notoriously bad performance.
-const double CONV_EXP = 1.0;      // Default value is 1.0. This parameter influences the selection of
-                                  // cancidates in hp-adaptivity. See get_optimal_refinement() for details.
-const double ERR_STOP = 0.001;   // Stopping criterion for adaptivity (rel. error tolerance between the
-                                  // fine mesh and coarse mesh solution in percent).
-const int NDOF_STOP = 100000;     // Adaptivity process stops when the number of degrees of freedom grows
-                                  // over this limit. This is to prevent h-adaptivity to go on forever.
+                                         // See User Documentation for details.
+const int MESH_REGULARITY = -1;          // Maximum allowed level of hanging nodes:
+                                         // MESH_REGULARITY = -1 ... arbitrary level hangning nodes (default),
+                                         // MESH_REGULARITY = 1 ... at most one-level hanging nodes,
+                                         // MESH_REGULARITY = 2 ... at most two-level hanging nodes, etc.
+                                         // Note that regular meshes are not supported, this is due to
+                                         // their notoriously bad performance.
+const double CONV_EXP = 1.0;             // Default value is 1.0. This parameter influences the selection of
+                                         // cancidates in hp-adaptivity. See get_optimal_refinement() for details.
+const double ERR_STOP = 0.001;           // Stopping criterion for adaptivity (rel. error tolerance between the
+                                         // fine mesh and coarse mesh solution in percent).
+const int NDOF_STOP = 100000;            // Adaptivity process stops when the number of degrees of freedom grows
+                                         // over this limit. This is to prevent h-adaptivity to go on forever.
 
-// problem constants
-const double K_squared = 1e4;     // Equation parameter.
+// Problem parameters.
+const double K_squared = 1e4;    
 
-// boundary condition types
+// Boundary condition types.
 BCType bc_types(int marker)
 {
   return BC_ESSENTIAL;
 }
 
-// function values for essential(Dirichlet) boundary conditions
-scalar essential_bc_values(int essential_marker, double x, double y)
+// Essential (Dirichlet) boundary condition values.
+scalar essential_bc_values(int ess_bdy_marker, double x, double y)
 {
   return 0;
 }
 
+// Weak forms.
 template<typename Real, typename Scalar>
 Scalar bilinear_form(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
@@ -77,7 +78,6 @@ Scalar linear_form(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scal
 {
   return K_squared * int_v<Real, Scalar>(n, wt, v);
 }
-
 
 int main(int argc, char* argv[])
 {
@@ -101,17 +101,8 @@ int main(int argc, char* argv[])
   for (int i=0; i < INIT_REF_NUM; i++) mesh.refine_all_elements();
   mesh.refine_towards_boundary(1, INIT_REF_NUM_BDY);
 
-  // Initialize the shapeset.
-  H1Shapeset shapeset;
-
-  // Create an H1 space.
-  H1Space space(&mesh, &shapeset);
-  space.set_bc_types(bc_types);
-  space.set_essential_bc_values(essential_bc_values);
-  space.set_uniform_order(P_INIT);
-
-  // Enumerate degrees of freedom.
-  int ndof = assign_dofs(&space);
+  // Create an H1 space with default shapeset.
+  H1Space space(&mesh, bc_types, essential_bc_values, P_INIT);
 
   // Initialize the weak formulation.
   WeakForm wf;
@@ -121,11 +112,8 @@ int main(int argc, char* argv[])
   // Matrix solver.
   UmfpackSolver solver;
 
-  // DOF and CPU convergence graphs
-  SimpleGraph graph_dof_est, graph_cpu_est;
-
   // Initialize refinement selector.
-  H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER, &shapeset);
+  H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
 
   // Initialize the coarse mesh problem.
   LinSystem ls(&wf, &solver, &space);
@@ -155,9 +143,6 @@ int main(int argc, char* argv[])
       ls.project_global(&sln_fine, &sln_coarse);
     }
 
-    // Time measurement.
-    cpu_time.tick();
-
     // Calculate error estimate wrt. fine mesh solution.
     info("Calculating error (est).");
     H1Adapt hp(&space);
@@ -166,29 +151,22 @@ int main(int argc, char* argv[])
 
     // Report results.
     info("ndof_coarse: %d, ndof_fine: %d, err_est: %g%%", 
-         space.get_num_dofs(), rs.get_space(0)->get_num_dofs(), err_est);
-
-    // Add entries to DOF convergence graph.
-    graph_dof_est.add_values(space.get_num_dofs(), err_est);
-    graph_dof_est.save("conv_dof_est.dat");
-
-    // Add entries to CPU convergence graph.
-    graph_cpu_est.add_values(cpu_time.accumulated(), err_est);
-    graph_cpu_est.save("conv_cpu_est.dat");
+         ls.get_num_dofs(), rs.get_num_dofs(), err_est);
 
     // If err_est too large, adapt the mesh.
     if (err_est < ERR_STOP) done = true;
     else {
       info("Adapting the coarse mesh.");
       done = hp.adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY);
-      ndof = assign_dofs(&space);
-      if (ndof >= NDOF_STOP) done = true;
+      if (ls.get_num_dofs() >= NDOF_STOP) done = true;
     }
 
     as++;
   }
   while (done == false);
   verbose("Total running time: %g s", cpu_time.accumulated());
+
+  int ndof = ls.get_num_dofs();
 
 #define ERROR_SUCCESS                               0
 #define ERROR_FAILURE                               -1

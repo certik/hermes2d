@@ -27,8 +27,6 @@ const double TAU = 0.01;         // Time step.
 const double T_FINAL = 2;        // Time interval length.
 const int INIT_REF_NUM = 3;      // Number of initial uniform refinements.
 const int TIME_DISCR = 2;        // 1 for implicit Euler, 2 for Crank-Nicolson.
-const int PROJ_TYPE = 1;         // For the projection of the initial condition
-                                 // on the initial mesh: 1 = H1 projection, 0 = L2 projection.
 const double NEWTON_TOL = 1e-5;  // Stopping criterion for the Newton's method.
 const int NEWTON_MAX_ITER = 100; // Maximum allowed number of Newton iterations.
 
@@ -88,17 +86,8 @@ int main(int argc, char* argv[])
   // Initial mesh refinements.
   for(int i = 0; i < INIT_REF_NUM; i++) mesh.refine_all_elements();
 
-  // Initialize the shapeset.
-  H1Shapeset shapeset;
-
   // Create an H1 space.
-  H1Space space(&mesh, &shapeset);
-  space.set_bc_types(bc_types);
-  space.set_essential_bc_values(essential_bc_values);
-  space.set_uniform_order(P_INIT);
-
-  // Enumerate degrees of freedom.
-  int ndof = assign_dofs(&space);
+  H1Space space(&mesh, bc_types, essential_bc_values, P_INIT);
 
   // Solutions for the Newton's iteration and time stepping.
   Solution Psi_prev_time,
@@ -131,7 +120,7 @@ int main(int argc, char* argv[])
   // Project fn_init() on the coarse mesh and use it as initial condition
   // for the Newton's method. 
   info("Projecting initial condition on FE space.");
-  nls.project_global(&fn_init, &Psi_prev_newton, PROJ_TYPE);
+  nls.project_global(&fn_init, &Psi_prev_newton);
 
   // Time stepping loop:
   int nstep = (int)(T_FINAL/TAU + 0.5);

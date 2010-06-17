@@ -118,35 +118,14 @@ int main(int argc, char* argv[])
   mesh.refine_towards_boundary(bdy_inner, INIT_BDY_REF_NUM, false); // INIT_BDY_REF_NUM is the number of levels,
   //mesh.refine_towards_boundary(bdy_outer, INIT_BDY_REF_NUM, true); // 'true' stands for anisotropic refinements.
 
-  // Initialize shapeset.
-  H1Shapeset xvel_shapeset;
-  H1Shapeset yvel_shapeset;
-#ifdef PRESSURE_IN_L2
-  L2Shapeset p_shapeset;
-#else
-  H1Shapeset p_shapeset;
-#endif
-
   // Spaces for velocity components and pressure.
-  H1Space xvel_space(&mesh, &xvel_shapeset);
-  H1Space yvel_space(&mesh, &yvel_shapeset);
+  H1Space xvel_space(&mesh, vel_bc_type, essential_bc_value_xvel, P_INIT_VEL);
+  H1Space yvel_space(&mesh, vel_bc_type, essential_bc_value_yvel, P_INIT_VEL);
 #ifdef PRESSURE_IN_L2
-  L2Space p_space(&mesh, &p_shapeset);
+  L2Space p_space(&mesh, P_INIT_VEL);
 #else
-  H1Space p_space(&mesh, &p_shapeset);
+  H1Space p_space(&mesh, p_bc_type, NULL, P_INIT_PRESSURE);
 #endif
-
-  // Initialize boundary conditions.
-  xvel_space.set_bc_types(vel_bc_type);
-  xvel_space.set_essential_bc_values(essential_bc_value_xvel);
-  yvel_space.set_bc_types(vel_bc_type);
-  yvel_space.set_essential_bc_values(essential_bc_value_yvel);
-  p_space.set_bc_types(p_bc_type);
-
-  // Set velocity and pressure polynomial degrees.
-  xvel_space.set_uniform_order(P_INIT_VEL);
-  yvel_space.set_uniform_order(P_INIT_VEL);
-  p_space.set_uniform_order(P_INIT_PRESSURE);
 
   // Solutions for the Newton's iteration and time stepping.
   Solution xvel_prev_time, yvel_prev_time, xvel_prev_newton, yvel_prev_newton, p_prev;
@@ -211,34 +190,21 @@ int main(int argc, char* argv[])
   */
 
   // Initialize nonlinear system.
-  printf("here 1\n");
   NonlinSystem nls(&wf, &umfpack, Tuple<Space*>(&xvel_space, &yvel_space, &p_space));
 
-  printf("here 2\n");
-
-  //assign_dofs(3, &xvel_space, &yvel_space, &p_space);
-
   // View FE basis functions.
-  BaseView view1;
-  view1.show(&p_space);
-  View::wait();
-
-
-
+  //BaseView view1;
+  //view1.show(&p_space);
+  //View::wait();
 
   if (NEWTON) printf("NonlinSystem ndof = %d\n", nls.get_num_dofs());
   if(nls.get_solution_vector() == NULL) error("Vec is NULL.");
-  printf("here 1\n");
   if (NEWTON) nls.project_global(Tuple<MeshFunction*>(&xvel_prev_time, &yvel_prev_time, &p_prev), 
                                  Tuple<Solution*>(&xvel_prev_time, &yvel_prev_time, &p_prev));
-
-  printf("here 2\n");
 
   // Setting initial conditions for Newton's iteration.
   xvel_prev_newton.copy(&xvel_prev_time);
   yvel_prev_newton.copy(&yvel_prev_time);
-
-  printf("here 3\n");
 
   // Show initial condition for velocity. 
   vview.show(&xvel_prev_time, &yvel_prev_time, H2D_EPS_LOW);
@@ -258,8 +224,6 @@ int main(int argc, char* argv[])
 
     if (NEWTON) {
       // Newton's method.
-      // debug 
-      nls.print_vector();
       info("Performing Newton's method.");
       if (!nls.solve_newton(&xvel_prev_newton, &yvel_prev_newton, &p_prev, NEWTON_TOL, NEWTON_MAX_ITER)) 
         error("Newton's method did not converge.");

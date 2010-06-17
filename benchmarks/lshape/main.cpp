@@ -101,6 +101,7 @@ int main(int argc, char* argv[])
 
   // Initialize refinement selector.
   H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
+  //selector.set_error_weights(1.0, 1.0, 1.0);
 
   // DOF and CPU convergence graphs.
   SimpleGraph graph_dof_est, graph_dof_exact, graph_cpu_est, graph_cpu_exact;

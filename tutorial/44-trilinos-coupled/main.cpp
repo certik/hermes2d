@@ -64,21 +64,10 @@ int main(int argc, char* argv[])
   // Perform initial mesh refinemets.
   for (int i=0; i < INIT_REF_NUM; i++)  mesh.refine_all_elements();
 
-  // Initialize the shapeset.
-  H1Shapeset shapeset;
-
-  // Create H1 spaces.
-  H1Space tspace(&mesh, &shapeset);
-  H1Space cspace(&mesh, &shapeset);
-  tspace.set_bc_types(bc_types);
-  tspace.set_essential_bc_values(essential_bc_values);
-  cspace.set_bc_types(bc_types);
-  tspace.set_uniform_order(P_INIT);
-  cspace.set_uniform_order(P_INIT);
-
-  // Enumerate degrees of freedom.
-  int ndof = assign_dofs(2, &tspace, &cspace);
-  info("Number of DOF: %d", ndof);
+  // Create H1 spaces with default shapesets.
+  H1Space tspace(&mesh, bc_types, essential_bc_values, P_INIT);
+  H1Space cspace(&mesh, bc_types, NULL, P_INIT);
+  info("Number of DOF: %d", tspace.get_num_dofs() + cspace.get_num_dofs());
 
   // Define initial conditions.
   Solution tprev1, cprev1, tprev2, cprev2, titer, citer, tsln, csln;
@@ -118,8 +107,9 @@ int main(int argc, char* argv[])
   // in order to obtain initial vector for NOX. 
   info("Projecting initial solutions on the FE meshes.");
   UmfpackSolver umfpack;
-  LinSystem ls(&wf, &umfpack, 2, &tspace, &cspace);
-  ls.project_global(&tprev1, &cprev1, &tprev1, &cprev1);
+  LinSystem ls(&wf, &umfpack, Tuple<Space*>(&tspace, &cspace));
+  ls.project_global(Tuple<MeshFunction*>(&tprev1, &cprev1), 
+                    Tuple<Solution*>(&tprev1, &cprev1));
 
   // Get the coefficient vector.
   scalar *vec = ls.get_solution_vector();
@@ -128,10 +118,11 @@ int main(int argc, char* argv[])
   double proj_time = cpu_time.tick().last();
 
   // Initialize finite element problem.
+  H1Shapeset shapeset;
   FeProblem fep(&wf);
-  fep.set_spaces(2, &tspace, &cspace);
+  fep.set_spaces(Tuple<Space*>(&tspace, &cspace));
   PrecalcShapeset pss(&shapeset);
-  fep.set_pss(1, &pss);
+  //fep.set_pss(1, &pss);
 
   // Initialize NOX solver and preconditioner.
   NoxSolver solver(&fep);

@@ -107,7 +107,7 @@ BCType xvel_bc_type(int marker) {
 }
 
 // Boundary condition values for x-velocity
-scalar essential_bc_value(int ess_bdy_marker, double x, double y) {
+scalar essential_bc_values_xvel(int ess_bdy_marker, double x, double y) {
   if (ess_bdy_marker == marker_left) {
     // time-dependent inlet velocity (parabolic profile)
     double val_y = VEL_INLET * y*(H-y) / (H/2.)/(H/2.); //parabolic profile with peak VEL_INLET at y = H/2
@@ -147,40 +147,19 @@ int main(int argc, char* argv[])
   // Load the mesh file.
   Mesh basemesh, mesh;
   H2DReader mloader;
-  mloader.load("domain.mesh", &basemesh); // master mesh
+  mloader.load("domain.mesh", &basemesh);  // Master mesh.
   basemesh.refine_all_elements();
   basemesh.refine_towards_boundary(5, 2, false);
   mesh.copy(&basemesh);
 
-  // Initialize shapesets.
-  H1Shapeset xvel_shapeset;
-  H1Shapeset yvel_shapeset;
+  // Spaces for velocities and pressure
+  H1Space xvel_space(&mesh, xvel_bc_type, essential_bc_values_xvel, P_INIT_VEL);
+  H1Space yvel_space(&mesh, yvel_bc_type, NULL, P_INIT_VEL);
 #ifdef PRESSURE_IN_L2
-  L2Shapeset p_shapeset;
-#endif
-
-  // spaces for velocities and pressure
-  H1Space xvel_space(&mesh, &xvel_shapeset);
-  H1Space yvel_space(&mesh, &yvel_shapeset);
-#ifdef PRESSURE_IN_L2
-  L2Space p_space(&mesh, &p_shapeset);
+  L2Space p_space(&mesh, P_INIT_PRESSURE);
 #else
-  H1Space p_space(&mesh, &p_shapeset);
+  H1Space p_space(&mesh, p_bc_type, NULL, P_INIT_PRESSURE);
 #endif
-
-  // Set velocity and pressure polynomial degrees.
-  xvel_space.set_uniform_order(P_INIT_VEL);
-  yvel_space.set_uniform_order(P_INIT_VEL);
-  p_space.set_uniform_order(P_INIT_PRESSURE);
-
-  // Initialize boundary conditions.
-  xvel_space.set_bc_types(xvel_bc_type);
-  xvel_space.set_essential_bc_values(essential_bc_value);
-  yvel_space.set_bc_types(yvel_bc_type);
-  p_space.set_bc_types(p_bc_type);
-
-  // Enumerate degrees of freedom.
-  int ndof = assign_dofs(3, &xvel_space, &yvel_space, &p_space);
 
   // Solutions for the Newton's iteration and time stepping.
   Solution xvel_crs, yvel_crs, xvel_fine, yvel_fine, p_crs, p_fine;
@@ -226,8 +205,8 @@ int main(int argc, char* argv[])
   }
 
   // Initialize views.
-  VectorView vview("velocity [m/s]", 0, 0, 1500, 470);
-  ScalarView pview("pressure [Pa]", 0, 530, 1500, 470);
+  VectorView vview("velocity [m/s]", 0, 0, 750, 240);
+  ScalarView pview("pressure [Pa]", 0, 290, 750, 240);
   vview.set_min_max_range(0, 1.6);
   vview.fix_scale_width(80);
   //pview.set_min_max_range(-0.9, 1.0);
@@ -238,13 +217,13 @@ int main(int argc, char* argv[])
   UmfpackSolver solver;
 
   // Initialize linear system.
-  LinSystem ls(&wf, &solver, 3, &xvel_space, &yvel_space, &p_space);
+  LinSystem ls(&wf, &solver, Tuple<Space*>(&xvel_space, &yvel_space, &p_space));
 
   // Initialize nonlinear system.
-  NonlinSystem nls(&wf, &solver, 3, &xvel_space, &yvel_space, &p_space);
+  NonlinSystem nls(&wf, &solver, Tuple<Space*>(&xvel_space, &yvel_space, &p_space));
 
   // Initialize refinement selector.
-  H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER, &xvel_shapeset);
+  H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
 
   // Time-stepping loop:
   char title[100];
@@ -266,9 +245,7 @@ int main(int argc, char* argv[])
     {
       info("---- Adaptivity step %d:", at++);
 
-      // Enumerate degrees of freedom.
-      ndof = assign_dofs(3, &xvel_space, &yvel_space, &p_space);
-      if (ndof >= NDOF_STOP) {
+      if (xvel_space.get_num_dofs() + yvel_space.get_num_dofs() + p_space.get_num_dofs() >= NDOF_STOP) {
         done = true;
         break;
       }      
@@ -281,7 +258,7 @@ int main(int argc, char* argv[])
           info("---- Newton iter %d (coarse mesh):", it++);
 
           nls.assemble();
-          nls.solve(3, &xvel_prev_newton, &yvel_prev_newton, &p_prev);
+          nls.solve(Tuple<Solution*>(&xvel_prev_newton, &yvel_prev_newton, &p_prev));
           res_l2_norm = nls.get_residual_l2_norm();
           info("Residual L2 norm: %g", res_l2_norm);
           if (it == 1) res_l2_norm = 100.0;
@@ -300,13 +277,12 @@ int main(int argc, char* argv[])
 
         it = 0;
         RefSystem refnls(&nls, 0);
-        refnls.prepare();
         do
         {
           info("---- Newton iter %d (fine mesh):", it++);
 
           refnls.assemble();
-          refnls.solve(3, &xvel_prev_newton, &yvel_prev_newton, &p_prev);
+          refnls.solve(Tuple<Solution*>(&xvel_prev_newton, &yvel_prev_newton, &p_prev));
           res_l2_norm = refnls.get_residual_l2_norm();
           info("Residual L2 norm: %g", res_l2_norm);
         }
@@ -319,7 +295,7 @@ int main(int argc, char* argv[])
       else // linearized NS
       {
         ls.assemble();
-        ls.solve(3, &xvel_crs, &yvel_crs, &p_crs);
+        ls.solve(Tuple<Solution*>(&xvel_crs, &yvel_crs, &p_crs));
 
         sprintf(title, "Velocity, time %g", TIME);
         vview.set_title(title);
@@ -330,7 +306,7 @@ int main(int argc, char* argv[])
 
         RefSystem refls(&ls, 0);
         refls.assemble();
-        refls.solve(3, &xvel_fine, &yvel_fine, &p_fine);
+        refls.solve(Tuple<Solution*>(&xvel_fine, &yvel_fine, &p_fine));
       }
 
       DXDYFilter crs_mag(mag, &xvel_crs, &yvel_crs);

@@ -26,7 +26,6 @@ const bool NEWTON_ON_COARSE_MESH = false;  // true... Newton is done on coarse m
                                            // of the fine mesh solution to coarse mesh is used.
 const int INIT_REF_NUM = 2;                // Number of initial uniform mesh refinements.
 const int P_INIT = 2;                      // Initial polynomial degree of all mesh elements.
-const int PROJ_TYPE = 1;                   // 1 for H1 projection, 0 for L2 projection.
 const int TIME_DISCR = 2;                  // 1 for implicit Euler, 2 for Crank-Nicolson.
 const double TAU = 0.5;                    // Time step.
 const double T_FINAL = 5.0;                // Time interval length.
@@ -127,17 +126,8 @@ int main(int argc, char* argv[])
   for(int i = 0; i < INIT_REF_NUM; i++) basemesh.refine_all_elements();
   mesh.copy(&basemesh);
 
-  // Initialize the shapeset.
-  H1Shapeset shapeset;
-
   // Create an H1 space.
-  H1Space space(&mesh, &shapeset);
-  space.set_bc_types(bc_types);
-  space.set_essential_bc_values(essential_bc_values);
-  space.set_uniform_order(P_INIT);
-
-  // Enumerate degrees of freedom.
-  int ndof = assign_dofs(&space);
+  H1Space space(&mesh, bc_types, essential_bc_values, P_INIT);
 
   // Solutions for the time stepping and the Newton's method.
   Solution u_prev_time, u_prev_newton;
@@ -169,7 +159,7 @@ int main(int argc, char* argv[])
 
   // Project the function initial_condition() on the coarse mesh.
   info("Projecting initial condition on the FE mesh.");
-  nls.project_global(initial_condition, &u_prev_time, PROJ_TYPE);
+  nls.project_global(initial_condition, &u_prev_time);
   u_prev_newton.copy(&u_prev_time);
 
   // View initial guess for Newton's method.
@@ -186,7 +176,7 @@ int main(int argc, char* argv[])
   sln_coarse.copy(&u_prev_newton);
 
   // Initialize refinement selector.
-  H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER, &shapeset);
+  H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
 
   // Time stepping loop.
   int nstep = (int)(T_FINAL/TAU + 0.5);
@@ -197,12 +187,11 @@ int main(int argc, char* argv[])
       info("Global mesh derefinement.");
       mesh.copy(&basemesh);
       space.set_uniform_order(P_INIT);
-      ndof = assign_dofs(&space);
 
       // Project fine mesh solution on the globally derefined mesh.
       info("---- Time step %d:", ts);
       info("Projecting fine mesh solution on globally derefined mesh:");
-      nls.project_global(&sln_fine, &u_prev_newton, PROJ_TYPE);
+      nls.project_global(&sln_fine, &u_prev_newton);
 
       if (NEWTON_ON_COARSE_MESH) {
         // Newton's loop on the globally derefined mesh.
@@ -225,7 +214,6 @@ int main(int argc, char* argv[])
 
       // Initialize reference nonlinear system.
       RefSystem rnls(&nls);
-      rnls.prepare();
 
       // Set initial condition for the Newton's method on the fine mesh.
       if (as == 1) {
@@ -260,22 +248,21 @@ int main(int argc, char* argv[])
       hp.set_solutions(&sln_coarse, &sln_fine);
       err_est = hp.calc_error() * 100;
       info("ndof_coarse: %d, ndof_fine: %d, err_est: %g%%", 
-        space.get_num_dofs(), rnls.get_space(0)->get_num_dofs(), err_est);
+        nls.get_num_dofs(), rnls.get_num_dofs(), err_est);
 
       // If err_est too large, adapt the mesh.
       if (err_est < ERR_STOP) done = true;
       else {
         info("Adapting coarse mesh.");
         done = hp.adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY);
-        ndof = assign_dofs(&space);
-        if (ndof >= NDOF_STOP) {
+        if (nls.get_num_dofs() >= NDOF_STOP) {
           done = true;
           break;
         }
 
         // Project the fine mesh solution on the new coarse mesh.
         info("Projecting fine mesh solution on new coarse mesh.");
-        nls.project_global(&sln_fine, &u_prev_newton, PROJ_TYPE);
+        nls.project_global(&sln_fine, &u_prev_newton);
 
         if (NEWTON_ON_COARSE_MESH) {
           // Newton's loop on the coarse mesh.
@@ -295,7 +282,7 @@ int main(int argc, char* argv[])
     // Add entries to convergence graphs.
     graph_time_err.add_values(ts*TAU, err_est);
     graph_time_err.save("time_error.dat");
-    graph_time_dof.add_values(ts*TAU, space.get_num_dofs());
+    graph_time_dof.add_values(ts*TAU, nls.get_num_dofs());
     graph_time_dof.save("time_dof.dat");
 
     // Copy new time level solution into u_prev_time.

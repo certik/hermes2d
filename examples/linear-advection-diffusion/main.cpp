@@ -22,7 +22,7 @@ using namespace RefinementSelectors;
 //
 //  The following parameters can be changed:
 
-const bool SOLVE_ON_COARSE_MESH = false; // If true, coarse mesh FE problem is solved in every adaptivity step.
+const bool SOLVE_ON_COARSE_MESH = true; // If true, coarse mesh FE problem is solved in every adaptivity step.
                                          // If false, projection of the fine mesh solution on the coarse mesh is used. 
 const int P_INIT = 1;                    // Initial polynomial degree of all mesh elements.
 const bool STABILIZATION_ON = false;     // Stabilization on/off (assumes that H2D_SECOND_DERIVATIVES_ENABLED is defined).
@@ -96,17 +96,8 @@ int main(int argc, char* argv[])
   for (int i=0; i<INIT_REF_NUM; i++) mesh.refine_all_elements();
   mesh.refine_towards_boundary(BDY_LAYER, INIT_REF_NUM_BDY);
 
-  // Initialize the shapeset.
-  H1Shapeset shapeset;
-
-  // Create an H1 space.
-  H1Space space(&mesh, &shapeset);
-  space.set_bc_types(bc_types);
-  space.set_essential_bc_values(essential_bc_values);
-  space.set_uniform_order(P_INIT);
-
-  // Enumerate degrees of freedom.
-  int ndof = assign_dofs(&space);
+  // Create an H1 space with default shapeset.
+  H1Space space(&mesh, bc_types, essential_bc_values, P_INIT);
 
   // Initialize the weak formulation.
   WeakForm wf;
@@ -130,7 +121,7 @@ int main(int argc, char* argv[])
   SimpleGraph graph_dof_est, graph_cpu_est;
 
   // Initialize refinement selector.
-  H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER, &shapeset);
+  H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
 
   // Initialize the coarse mesh problem.
   LinSystem ls(&wf, &solver, &space);
@@ -195,8 +186,7 @@ int main(int argc, char* argv[])
     else {
       info("Adapting the coarse mesh.");
       done = hp.adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY);
-      ndof = assign_dofs(&space);
-      if (ndof >= NDOF_STOP) done = true;
+      if (ls.get_num_dofs() >= NDOF_STOP) done = true;
     }
 
     as++;

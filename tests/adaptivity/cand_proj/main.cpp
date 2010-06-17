@@ -151,10 +151,7 @@ bool init_h1(bool tri) {
     shapeset = h1_shapeset;
 
     // finite element space
-    space = new H1Space(mesh, shapeset);
-    space->set_bc_types(bc_types);
-    space->set_uniform_order(1);
-    assign_dofs(1, space);
+    space = new H1Space(mesh, bc_types, NULL, 1);
 
     // weakform
     weakform = new WeakForm(1);
@@ -184,10 +181,7 @@ bool init_l2(bool tri) {
     shapeset = l2_shapeset;
 
     // finite element space
-    space = new L2Space(mesh, shapeset);
-    space->set_bc_types(bc_types);
-    space->set_uniform_order(1);
-    assign_dofs(1, space);
+    space = new L2Space(mesh, 1);
 
     // weakform
     weakform = new WeakForm(1);
@@ -344,16 +338,15 @@ bool test(bool tri, const std::string& space_name, int min_order, int max_order 
 
     //process
     space->set_element_order(H2D_TEST_ELEM_ID, test_case.start_quad_order());
-    int ndofs = assign_dofs(1, space);
 
     //create and solve the reference system
     Solution sln, rsln;
     LinSystem ls(weakform, solver, space);
     ls.assemble();
-    ls.solve(1, &sln);
+    ls.solve(&sln);
     RefSystem rs(&ls);
     rs.assemble();
-    rs.solve(1, &rsln);
+    rs.solve(&rsln);
 
     //check projected functions
     if (test_ref_solution(rsln))

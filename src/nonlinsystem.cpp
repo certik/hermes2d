@@ -324,26 +324,6 @@ bool NonlinSystem::solve_newton(Solution* u_prev_1, Solution* u_prev_2, Solution
       //info("Residual L2 norm: %g", res_l2_norm);
       printf("Residual L2 norm: %g\n", res_l2_norm);
 
-
-
-  // Show the solution at the end of time step.
-  // Initialize views.
-  VectorView vview("velocity [m/s]", 0, 0, 500, 400);
-  ScalarView pview("pressure [Pa]", 510, 0, 500, 400);
-  //vview.set_min_max_range(0, 1.6);
-  vview.fix_scale_width(80);
-  //pview.set_min_max_range(-0.9, 1.0);
-  pview.fix_scale_width(80);
-  pview.show_mesh(true);
-  char title[100];
-  sprintf(title, "Velocity, iter %d", it);
-      vview.set_title(title);
-      vview.show(&sln_iter_1, &sln_iter_2, H2D_EPS_LOW);
-      sprintf(title, "Pressure, iter %d", it);
-      pview.set_title(title);
-      pview.show(&sln_iter_3);
-      pview.wait(H2DV_WAIT_KEYPRESS);
-
       // save the new solutions as "previous" for the
       // next Newton's iteration
       u_prev_1->copy(&sln_iter_1);

@@ -65,16 +65,30 @@ void FeProblem::set_spaces(Tuple<Space*>spaces)
     this->spaces[i] = spaces[i];
   memset(sp_seq, -1, sizeof(int) * wf->neq);
   have_spaces = true;
+
+  // initialize precalc shapesets
+  this->pss = new PrecalcShapeset*[this->wf->neq];
+  for (int i=0; i<this->wf->neq; i++) this->pss[i] = NULL;
+  this->num_user_pss = 0;
+  for (int i = 0; i < n; i++){
+    Shapeset *shapeset = spaces[i]->get_shapeset();
+    if (shapeset == NULL) error("Internal in LinSystem::init_spaces().");
+    PrecalcShapeset *p = new PrecalcShapeset(shapeset);
+    if (p == NULL) error("New PrecalcShapeset could not be allocated in LinSystem::init_spaces().");
+    this-> pss[i] = p;
+    this->num_user_pss++;
+  }  
 }
 
-
+/*
 void FeProblem::set_pss(Tuple<PrecalcShapeset*> pss)
 {
   int n = pss.size();
-  if (n != n > this->wf->neq) error("Bad number of pss in FeProblem.");
+  //printf("size = %d\n", n);
+  if (n != this->wf->neq) error("Bad number of pss in FeProblem.");
   for (int i = 0; i < n; i++) this->pss[i] = pss[i];
 }
-
+*/
 
 void FeProblem::free()
 {

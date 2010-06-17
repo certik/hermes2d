@@ -26,13 +26,11 @@ using namespace RefinementSelectors;
 //
 //  The following parameters can be changed:
 
-const bool NEWTON_ON_COARSE_MESH = false;  // true... Newton is done on coarse mesh in every adaptivity step,
+const bool NEWTON_ON_COARSE_MESH = true;  // true... Newton is done on coarse mesh in every adaptivity step,
                                            // false...Newton is done on coarse mesh only once, then projection
                                            // of the fine mesh solution to coarse mesh is used.
 const int INIT_REF_NUM = 2;                // Number of initial uniform refinements.
 const int P_INIT = 1;                      // Initial polynomial degree.
-const int PROJ_TYPE = 1;                   // For the projection of the initial condition
-                                           // on the initial mesh: 1 = H1 projection, 0 = L2 projection.
 const int TIME_DISCR = 2;                  // 1 for implicit Euler, 2 for Crank-Nicolson.
 const double T_FINAL = 200.0;              // Time interval length.
 const double TAU = 0.01;                   // Time step.
@@ -116,17 +114,8 @@ int main(int argc, char* argv[])
   for(int i = 0; i < INIT_REF_NUM; i++) basemesh.refine_all_elements();
   mesh.copy(&basemesh);
 
-  // Initialize the shapeset and the cache.
-  H1Shapeset shapeset;
-
-  // Create an H1 space.
-  H1Space space(&mesh, &shapeset);
-  space.set_bc_types(bc_types);
-  space.set_essential_bc_values(essential_bc_values);
-  space.set_uniform_order(P_INIT);
-
-  // Enumerate degrees of freedom.
-  int ndof = assign_dofs(&space);
+  // Create an H1 space with default shapeset.
+  H1Space space(&mesh, bc_types, essential_bc_values, P_INIT);
 
   // Solutions for the Newton's iteration and adaptivity.
   Solution Psi_prev_time, Psi_prev_newton;
@@ -166,7 +155,7 @@ int main(int argc, char* argv[])
   // Project fn_init() on the FE space and use it as initial 
   // condition for the Newton's method.
   info("Projecting initial condition on FE mesh.");
-  nls.project_global(&fn_init, &Psi_prev_newton, PROJ_TYPE);
+  nls.project_global(&fn_init, &Psi_prev_newton);
 
   // Newton's loop on the coarse mesh.
   info("Newton solve on coarse mesh.");
@@ -178,7 +167,7 @@ int main(int argc, char* argv[])
   sln_coarse.copy(&Psi_prev_newton);
 
   // Create selector which will select optimal candidate.
-  H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, MAX_ORDER, &shapeset);
+  H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, MAX_ORDER);
 
   // Time stepping loop.
   int nstep = (int)(T_FINAL/TAU + 0.5);
@@ -189,12 +178,11 @@ int main(int argc, char* argv[])
       info("---- Time step %d, global derefinement.", ts);
       mesh.copy(&basemesh);
       space.set_uniform_order(P_INIT);
-      ndof = assign_dofs(&space);
 
       // Project the fine mesh solution on the globally derefined mesh.
       info("---- Time step %d:", ts);
       info("Projecting fine mesh solution on globally derefined mesh:");
-      nls.project_global(&sln_fine, &Psi_prev_newton, PROJ_TYPE);
+      nls.project_global(&sln_fine, &Psi_prev_newton);
 
       if (NEWTON_ON_COARSE_MESH) {
         // Newton's loop on the globally derefined mesh.
@@ -217,7 +205,6 @@ int main(int argc, char* argv[])
 
       // Initialize reference nonlinear system.
       RefSystem rnls(&nls);
-      rnls.prepare();
 
       // Set initial condition for the Newton's method on the fine mesh.
       if (as == 1) {
@@ -252,19 +239,18 @@ int main(int argc, char* argv[])
       hp.set_solutions(&sln_coarse, &sln_fine);
       err_est = hp.calc_error() * 100;   // relative h1-error in percent
       info("ndof_coarse: %d, ndof_fine: %d, err_est: %g%%", 
-	   space.get_num_dofs(), rnls.get_space(0)->get_num_dofs(), err_est);
+	   nls.get_num_dofs(), rnls.get_num_dofs(), err_est);
 
       // If err_est too large, adapt the mesh.
       if (err_est < ERR_STOP) done = true;
       else {
         info("Adapting coarse mesh.");
         done = hp.adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY);
-        ndof = assign_dofs(&space);
-        if (ndof >= NDOF_STOP) done = true;
+        if (nls.get_num_dofs() >= NDOF_STOP) done = true;
 
         // Project the fine mesh solution on the new coarse mesh.
         info("Projecting fine mesh solution on new coarse mesh.");
-        nls.project_global(&sln_fine, &Psi_prev_newton, PROJ_TYPE);
+        nls.project_global(&sln_fine, &Psi_prev_newton);
 
         if (NEWTON_ON_COARSE_MESH) {
           // Newton's loop on the coarse mesh.
@@ -284,7 +270,7 @@ int main(int argc, char* argv[])
     // Add entries to convergence graphs.
     graph_time_err.add_values(ts*TAU, err_est);
     graph_time_err.save("time_error.dat");
-    graph_time_dof.add_values(ts*TAU, space.get_num_dofs());
+    graph_time_dof.add_values(ts*TAU, nls.get_num_dofs());
     graph_time_dof.save("time_dof.dat");
 
     // Copy result of the Newton's iteration into Psi_prev_time.

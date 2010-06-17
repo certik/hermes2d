@@ -76,8 +76,6 @@ const double E_FIELD = VOLTAGE / height;    // Boundary condtion for positive vo
 
 
 /* Simulation parameters */
-const int PROJ_TYPE = 1;              // For the projection of the initial condition.
-                                      // on the initial mesh: 1 = H1 projection, 0 = L2 projection.
 const int NSTEP = 50;                 // Number of time steps.
 const double TAU = 0.1;               // Size of the time step.
 const int P_INIT = 3;       	      // Initial polynomial degree of all mesh elements.
@@ -146,7 +144,12 @@ BCType C_bc_types(int marker) {
 }
 
 // Diricleht Boundary conditions for Poisson equation.
-scalar essential_bc_values(int ess_bdy_marker, double x, double y) {
+scalar C_essential_bc_values(int ess_bdy_marker, double x, double y) {
+  return 0;
+}
+
+// Diricleht Boundary conditions for Poisson equation.
+scalar phi_essential_bc_values(int ess_bdy_marker, double x, double y) {
   return ess_bdy_marker == TOP_MARKER ? VOLTAGE : 0.0;
 }
 
@@ -198,7 +201,7 @@ void solveNonadaptive(Mesh &mesh, NonlinSystem &nls,
 /** Adaptive solver.*/
 void solveAdaptive(Mesh &Cmesh, Mesh &phimesh, Mesh &basemesh, NonlinSystem &nls,
      H1Space &Cspace, H1Space &phispace, Solution &C_prev_time, Solution &C_prev_newton,
-     Solution &phi_prev_time, Solution &phi_prev_newton, H1Shapeset& shapeset) {
+     Solution &phi_prev_time, Solution &phi_prev_newton) {
 
   char title[100];
   //VectorView vview("electric field [V/m]", 0, 0, 600, 600);
@@ -218,7 +221,7 @@ void solveAdaptive(Mesh &Cmesh, Mesh &phimesh, Mesh &basemesh, NonlinSystem &nls
   graph_dof.add_row(MULTIMESH ? "multi-mesh" : "single-mesh", "k", "-", "o");
 
   // create a selector which will select optimal candidate
-  H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER, &shapeset);
+  H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
 
   phiview.set_title(title);
   Cview.set_title(title);
@@ -248,11 +251,11 @@ void solveAdaptive(Mesh &Cmesh, Mesh &phimesh, Mesh &basemesh, NonlinSystem &nls
       }
       Cspace.set_uniform_order(P_INIT);
       phispace.set_uniform_order(P_INIT);
-      ndof = assign_dofs(2, &Cspace, &phispace);
 
       // project the fine mesh solution on the globally derefined mesh
       info("---- Time step %d, projecting fine mesh solution on globally derefined mesh:\n", n);
-      nls.project_global(&Csln_fine, &phisln_fine, &C_prev_newton, &phi_prev_newton, PROJ_TYPE);
+      nls.project_global(Tuple<MeshFunction*>(&Csln_fine, &phisln_fine), 
+                         Tuple<Solution*>(&C_prev_newton, &phi_prev_newton));
 
       if (NEWTON_ON_COARSE_MESH) {
         // Newton's loop on the globally derefined mesh
@@ -270,10 +273,11 @@ void solveAdaptive(Mesh &Cmesh, Mesh &phimesh, Mesh &basemesh, NonlinSystem &nls
     do {
       // Loop for fine mesh solution
       RefSystem rs(&nls);
-      rs.prepare();
 
-      if (at == 1) rs.project_global(&Csln_coarse, &phisln_coarse, &C_prev_newton, &phi_prev_newton);
-      else rs.project_global(&Csln_fine, &phisln_fine, &C_prev_newton, &phi_prev_newton);
+      if (at == 1) rs.project_global(Tuple<MeshFunction*>(&Csln_coarse, &phisln_coarse), 
+                                     Tuple<Solution*>(&C_prev_newton, &phi_prev_newton));
+      else rs.project_global(Tuple<MeshFunction*>(&Csln_fine, &phisln_fine), 
+                             Tuple<Solution*>(&C_prev_newton, &phi_prev_newton));
       
       rs.solve_newton(&C_prev_newton, &phi_prev_newton, NEWTON_TOL_FINE, NEWTON_MAX_ITER);
       Csln_fine.copy(&C_prev_newton);
@@ -299,11 +303,8 @@ void solveAdaptive(Mesh &Cmesh, Mesh &phimesh, Mesh &basemesh, NonlinSystem &nls
         done = true;
       } else {
         hp.adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY);
-        // enumerate degrees of freedom
-        ndof = assign_dofs(2, &Cspace, &phispace);
-
-        info("NDOF after adapting: %d", ndof);
-        if (ndof >= NDOF_STOP) {
+        info("NDOF after adapting: %d", nls.get_num_dofs());
+        if (nls.get_num_dofs() >= NDOF_STOP) {
           info("NDOF reached to the max %d", NDOF_STOP);
           done = true;
         }
@@ -311,7 +312,8 @@ void solveAdaptive(Mesh &Cmesh, Mesh &phimesh, Mesh &basemesh, NonlinSystem &nls
         // project the fine mesh solution on the new coarse mesh
         info("---- Time step %d, adaptivity step %d, projecting fine mesh solution on new coarse mesh:\n",
             n, at);
-        nls.project_global(&Csln_fine, &phisln_fine, &C_prev_newton, &phi_prev_newton, PROJ_TYPE);
+        nls.project_global(Tuple<MeshFunction*>(&Csln_fine, &phisln_fine), 
+                           Tuple<Solution*>(&C_prev_newton, &phi_prev_newton));
         at++;
         if (NEWTON_ON_COARSE_MESH) {
           // Newton's loop on the globally derefined mesh
@@ -339,7 +341,7 @@ void solveAdaptive(Mesh &Cmesh, Mesh &phimesh, Mesh &basemesh, NonlinSystem &nls
     } while (!done);
     graph_err.add_values(0, n, err);
     graph_err.save("error.gp");
-    graph_dof.add_values(0, n, Cspace.get_num_dofs() + phispace.get_num_dofs());
+    graph_dof.add_values(0, n, nls.get_num_dofs());
     graph_dof.save("dofs.gp");
     if (n == 1) {
       sprintf(title, "phi after time step %d, adjust the graph and PRESS ANY KEY", n);
@@ -400,27 +402,9 @@ int main (int argc, char* argv[]) {
   Cmesh.copy(&basemesh);
   phimesh.copy(&basemesh);
 
-  // Initialize the shapeset.
-  H1Shapeset shapeset;
-
   // Spaces for concentration and the voltage.
-  H1Space C(&Cmesh, &shapeset);
-  H1Space phi(MULTIMESH ? &phimesh : &Cmesh, &shapeset);
-
-  // Initialize boundary conditions.
-  C.set_bc_types(C_bc_types);
-  phi.set_bc_types(phi_bc_types);
-  phi.set_essential_bc_values(essential_bc_values);
-
-  // Set polynomial degrees.
-  C.set_uniform_order(P_INIT);
-  phi.set_uniform_order(P_INIT);
-
-
-  // Enumerate degrees of freedom.
-  int ndof = assign_dofs(2, &C, &phi);
-
-  info("ndof: %d", ndof);
+  H1Space C(&Cmesh, C_bc_types, C_essential_bc_values, P_INIT);
+  H1Space phi(MULTIMESH ? &phimesh : &Cmesh, phi_bc_types, phi_essential_bc_values, P_INIT);
 
   // The weak form for 2 equations.
   WeakForm wf(2);
@@ -457,7 +441,7 @@ int main (int argc, char* argv[]) {
 
   // Nonlinear solver.
   UmfpackSolver solver;
-  NonlinSystem nls(&wf, &solver, 2, &C, &phi);
+  NonlinSystem nls(&wf, &solver, Tuple<Space*>(&C, &phi));
 
   phi_prev_time.set_exact(MULTIMESH ? &phimesh : &Cmesh, voltage_ic);
   C_prev_time.set_exact(&Cmesh, concentration_ic);
@@ -465,11 +449,12 @@ int main (int argc, char* argv[]) {
   C_prev_newton.copy(&C_prev_time);
   phi_prev_newton.copy(&phi_prev_time);
 
-  nls.project_global(&C_prev_newton, &phi_prev_newton, &C_prev_newton, &phi_prev_newton);
+  nls.project_global(Tuple<MeshFunction*>(&C_prev_newton, &phi_prev_newton), 
+                     Tuple<Solution*>(&C_prev_newton, &phi_prev_newton));
 
   if (adaptive) {
     solveAdaptive(Cmesh, phimesh, basemesh, nls, C, phi, C_prev_time,
-        C_prev_newton, phi_prev_time, phi_prev_newton, shapeset);
+        C_prev_newton, phi_prev_time, phi_prev_newton);
   } else {
     solveNonadaptive(Cmesh, nls, C_prev_time, C_prev_newton, phi_prev_time, phi_prev_newton);
   }

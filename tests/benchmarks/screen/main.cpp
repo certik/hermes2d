@@ -98,19 +98,9 @@ int main(int argc, char* argv[])
   Mesh mesh;
   H2DReader mloader;
   mloader.load("screen-quad.mesh", &mesh);
-//    mloader.load("screen-tri.mesh", &mesh);
 
-  // Initialize the shapeset.
-  HcurlShapeset shapeset;
-
-  // Create an Hcurl space.
-  HcurlSpace space(&mesh, &shapeset);
-  space.set_bc_types(bc_types);
-  space.set_essential_bc_values(essential_bc_values);
-  space.set_uniform_order(P_INIT);
-
-  // Enumerate degrees of freedom.
-  int ndof = assign_dofs(&space);
+  // Create an Hcurl space with default shapeset.
+  HcurlSpace space(&mesh, bc_types, essential_bc_values, P_INIT);
 
   // Initialize the weak formulation.
   WeakForm wf;
@@ -123,7 +113,7 @@ int main(int argc, char* argv[])
   SimpleGraph graph_dof_est, graph_dof_exact, graph_cpu_est, graph_cpu_exact;
 
   // Initialize refinement selector.
-  HcurlProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER, &shapeset);
+  HcurlProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
   selector.set_error_weights(1.0, 1.0, 1.0);
 
   // Initialize the coarse mesh problem.
@@ -173,7 +163,7 @@ int main(int argc, char* argv[])
 
     // Report results.
     info("ndof_coarse: %d, ndof_fine: %d, err_est: %g%%, err_exact: %g%%", 
-         space.get_num_dofs(), rs.get_space(0)->get_num_dofs(), 
+         ls.get_num_dofs(), rs.get_num_dofs(), 
          err_est_hcurl, err_exact);
 
     // Add entries to DOF convergence graphs.
@@ -193,14 +183,15 @@ int main(int argc, char* argv[])
     else {
       info("Adapting coarse mesh.");
       done = hp.adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY);
-      ndof = assign_dofs(&space);
-      if (ndof >= NDOF_STOP) done = true;
+      if (ls.get_num_dofs() >= NDOF_STOP) done = true;
     }
 
     as++;
   }
   while (!done);
   verbose("Total running time: %g s", cpu_time.accumulated());
+
+  int ndof = ls.get_num_dofs();
 
 #define ERROR_SUCCESS                               0
 #define ERROR_FAILURE                               -1

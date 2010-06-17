@@ -33,7 +33,7 @@ const int STRATEGY = 1;           // Adaptive strategy:
 const CandList CAND_LIST = H2D_HP_ANISO; // Predefined list of element refinement candidates. Possible values are
                                          // H2D_P_ISO, H2D_P_ANISO, H2D_H_ISO, H2D_H_ANISO, H2D_HP_ISO,
                                          // H2D_HP_ANISO_H, H2D_HP_ANISO_P, H2D_HP_ANISO.
-                                         // See the Sphinx tutorial (http://hpfem.org/hermes2d/doc/src/tutorial-2.html#adaptive-h-fem-and-hp-fem) for details.
+                                         // See User Documentation for details.
 const int MESH_REGULARITY = -1;   // Maximum allowed level of hanging nodes:
                                   // MESH_REGULARITY = -1 ... arbitrary level hangning nodes (default),
                                   // MESH_REGULARITY = 1 ... at most one-level hanging nodes,
@@ -132,6 +132,11 @@ BCType bc_types(int marker)
     return BC_NATURAL; // impedance
 }
 
+// Essential (Dirichlet) boundary condition values.
+scalar essential_bc_values(int ess_bdy_marker, double x, double y)
+{
+  return 0;
+}
 
 template<typename Real, typename Scalar>
 Scalar bilinear_form(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
@@ -189,18 +194,9 @@ int main(int argc, char* argv[])
   Mesh mesh;
   H2DReader mloader;
   mloader.load("lshape3q.mesh", &mesh);
-//   mloader.load("lshape3t.mesh", &mesh);
 
-  // Initialize the shapeset.
-  HcurlShapeset shapeset;
-
-  // Create an Hcul space.
-  HcurlSpace space(&mesh, &shapeset);
-  space.set_bc_types(bc_types);
-  space.set_uniform_order(P_INIT);
-
-  // Enumerate degrees of freedom.
-  int ndof = assign_dofs(&space);
+  // Create an Hcurl space with default shapeset.
+  HcurlSpace space(&mesh, bc_types, essential_bc_values, P_INIT);
 
   // Initialize the weak formulation.
   WeakForm wf(1);
@@ -215,7 +211,7 @@ int main(int argc, char* argv[])
   SimpleGraph graph_dof, graph_cpu;
 
   // Initialize refinement selector.
-  HcurlProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER, &shapeset);
+  HcurlProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
 
   // Initialize the coarse mesh problem.
   LinSystem ls(&wf, &solver, &space);
@@ -228,13 +224,11 @@ int main(int argc, char* argv[])
   {
     info("---- Adaptivity step %d:", as);
 
-    // Initialize the fine mesh problem.
-    RefSystem rs(&ls);
-
     // Assemble and solve the fine mesh problem.
     info("Solving on fine meshes.");
+    RefSystem rs(&ls);
     rs.assemble();
-    rs.solve(1, &sln_fine);
+    rs.solve(&sln_fine);
 
     // Either solve on coarse mesh or project the fine mesh solution 
     // on the coarse mesh.
@@ -261,7 +255,7 @@ int main(int argc, char* argv[])
 
     // Report results.
     info("ndof_coarse: %d, ndof_fine: %d, err_est: %g%%", 
-      space.get_num_dofs(), rs.get_num_dofs(), err_est);
+      ls.get_num_dofs(), rs.get_num_dofs(), err_est);
 
     // Add entry to DOF convergence graph.
     graph_dof.add_values(ls.get_num_dofs(), err_est);
@@ -276,14 +270,15 @@ int main(int argc, char* argv[])
     else {
       info("Adapting coarse mesh.");
       done = hp.adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY);
-      ndof = assign_dofs(&space);
-      if (ndof >= NDOF_STOP) done = true;
+      if (ls.get_num_dofs() >= NDOF_STOP) done = true;
     }
 
     as++;
  }
   while (!done);
   verbose("Total running time: %g s", cpu_time.accumulated());
+
+  int ndof = ls.get_num_dofs();
 
 #define ERROR_SUCCESS                               0
 #define ERROR_FAILURE                               -1

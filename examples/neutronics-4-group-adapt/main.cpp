@@ -46,7 +46,7 @@ using namespace RefinementSelectors;
 
 #include "h1_adapt_norm_maxim.h"
 
-const bool SOLVE_ON_COARSE_MESH = false; // If true, coarse mesh FE problem is solved in every adaptivity step.
+const bool SOLVE_ON_COARSE_MESH = true; // If true, coarse mesh FE problem is solved in every adaptivity step.
                                          // If false, projection of the fine mesh solution on the coarse mesh is used. 
 const int INIT_REF_NUM[4] = {1, 1, 1, 1};// Initial uniform mesh refinement for the individual solution components.
 const int P_INIT[4] = {1, 1, 1, 1};      // Initial polynomial orders for the individual solution components.	
@@ -101,6 +101,12 @@ const int bc_sym = 2;
 BCType bc_types(int marker)
 {
   return BC_NATURAL;
+}
+
+// Essential (Dirichlet) boundary condition values.
+scalar essential_bc_values(int ess_bdy_marker, double x, double y)
+{
+  return 0;
 }
 
 // Reflector properties (0) core properties (1),
@@ -212,7 +218,7 @@ void power_iteration(Solution *sln1, Solution *sln2, Solution *sln3, Solution *s
   bool eigen_done = false; int it = 0;
   do {
     // Solve for new eigenvectors.
-    ls->solve(4, sln1, sln2, sln3, sln4);
+    ls->solve(Tuple<Solution*>(sln1, sln2, sln3, sln4));
 
     // Update fission sources.
     SimpleFilter source(source_fn, sln1, sln2, sln3, sln4);
@@ -264,9 +270,6 @@ int main(int argc, char* argv[])
   for (int i = 0; i < INIT_REF_NUM[1]; i++) mesh2.refine_all_elements();
   for (int i = 0; i < INIT_REF_NUM[2]; i++) mesh3.refine_all_elements();
   for (int i = 0; i < INIT_REF_NUM[3]; i++) mesh4.refine_all_elements();
-  	
-  // Initialize the shapeset.
-  H1Shapeset shapeset;
 
   // Solution variables.
   Solution iter1, iter2, iter3, iter4,                          // Previous iterations.
@@ -282,22 +285,11 @@ int main(int argc, char* argv[])
   // Matrix solver.
   UmfpackSolver umfpack;
 
-  // Create H1 spaces.
-  H1Space space1(&mesh1, &shapeset);
-  H1Space space2(&mesh2, &shapeset);
-  H1Space space3(&mesh3, &shapeset);
-  H1Space space4(&mesh4, &shapeset);
-  space1.set_bc_types(bc_types);
-  space2.set_bc_types(bc_types);
-  space3.set_bc_types(bc_types);
-  space4.set_bc_types(bc_types);
-  space1.set_uniform_order(P_INIT[0]);
-  space2.set_uniform_order(P_INIT[1]);
-  space3.set_uniform_order(P_INIT[2]);
-  space4.set_uniform_order(P_INIT[3]);
-
-  // Enumerate degrees of freedom.
-  int ndof_coarse = assign_dofs(4, &space1, &space2, &space3, &space4);
+  // Create H1 spaces with default shapesets.
+  H1Space space1(&mesh1, bc_types, essential_bc_values, P_INIT[0]);
+  H1Space space2(&mesh2, bc_types, essential_bc_values, P_INIT[1]); 
+  H1Space space3(&mesh3, bc_types, essential_bc_values, P_INIT[2]); 
+  H1Space space4(&mesh4, bc_types, essential_bc_values, P_INIT[3]); 
 
   // Initialize the weak formulation.
   WeakForm wf(4);
@@ -318,7 +310,7 @@ int main(int argc, char* argv[])
   wf.add_biform_surf(3, 3, callback(biform_surf_3_3), bc_vacuum);
 
   // Initialize and solve coarse mesh problem.
-  LinSystem ls(&wf, &umfpack, 4, &space1, &space2, &space3, &space4);
+  LinSystem ls(&wf, &umfpack, Tuple<Space*>(&space1, &space2, &space3, &space4));
   ls.assemble();
   info("Coarse mesh power iteration, %d + %d + %d + %d = %d ndof:", 
   ls.get_num_dofs(0), ls.get_num_dofs(1), ls.get_num_dofs(2), ls.get_num_dofs(3), ls.get_num_dofs()); 
@@ -336,7 +328,7 @@ int main(int argc, char* argv[])
   OrderView oview3("Mesh for group 3", 660, 450, 320, 500);
   OrderView oview4("Mesh for group 4", 990, 450, 320, 500);
 
-  // Show meshes.
+  // Do not show meshes.
   view1.show_mesh(false);
   view2.show_mesh(false);
   view3.show_mesh(false);
@@ -346,7 +338,7 @@ int main(int argc, char* argv[])
   SimpleGraph graph_dof, graph_cpu, graph_dof_keff, graph_cpu_keff;
 
   // Initialize refinement selector.
-  H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER, &shapeset);
+  H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
 
   // Adaptivity loop:
   int as = 1; bool done = false;
@@ -356,21 +348,18 @@ int main(int argc, char* argv[])
 
     // Initialize reference problem. 
     RefSystem rs(&ls);
-    rs.prepare();
 
     // First time project coarse mesh solutions on fine meshes.
     if (as == 1) {
       info("Projecting coarse mesh solutions on fine meshes.");
-      rs.project_global(&sln1_coarse, &sln2_coarse, &sln3_coarse, &sln4_coarse, 
-                       &iter1, &iter2, &iter3, &iter4);
+      rs.project_global(Tuple<MeshFunction*>(&sln1_coarse, &sln2_coarse, &sln3_coarse, &sln4_coarse), 
+                        Tuple<Solution*>(&iter1, &iter2, &iter3, &iter4));
     }
 
     // Solve the fine mesh problem.
     rs.assemble();	
-    int ndof_fine = rs.get_num_dofs();
     info("Fine mesh power iteration, %d + %d + %d + %d = %d ndof:", 
-      rs.get_num_dofs(0), rs.get_num_dofs(1), rs.get_num_dofs(2), rs.get_num_dofs(3), 
-      rs.get_num_dofs(0) + rs.get_num_dofs(1) + rs.get_num_dofs(2) + rs.get_num_dofs(3));
+      rs.get_num_dofs(0), rs.get_num_dofs(1), rs.get_num_dofs(2), rs.get_num_dofs(3), rs.get_num_dofs());
     power_iteration(&sln1_fine, &sln2_fine, &sln3_fine, &sln4_fine,
 		    &iter1, &iter2, &iter3, &iter4,
 		    &rs, TOL_PIT_RM, &cpu_time);
@@ -380,8 +369,7 @@ int main(int argc, char* argv[])
     if (SOLVE_ON_COARSE_MESH) {
       if (as > 1) {
         info("Coarse mesh power iteration, %d + %d + %d + %d = %d ndof:", 
-        ls.get_num_dofs(0), ls.get_num_dofs(1), ls.get_num_dofs(2), ls.get_num_dofs(3), 
-        ls.get_num_dofs(0) + ls.get_num_dofs(1) + ls.get_num_dofs(2) + ls.get_num_dofs(3)); 
+        ls.get_num_dofs(0), ls.get_num_dofs(1), ls.get_num_dofs(2), ls.get_num_dofs(3), ls.get_num_dofs()); 
         ls.assemble();
         power_iteration(&sln1_coarse, &sln2_coarse, &sln3_coarse, &sln4_coarse, 
 	  	        &iter1, &iter2, &iter3, &iter4,
@@ -390,8 +378,8 @@ int main(int argc, char* argv[])
     }
     else {
       info("Projecting fine mesh solutions on coarse meshes.");
-      ls.project_global(&sln1_fine, &sln2_fine, &sln3_fine, &sln4_fine, 
-                        &sln1_coarse, &sln2_coarse, &sln3_coarse, &sln4_coarse);
+      ls.project_global(Tuple<MeshFunction*>(&sln1_fine, &sln2_fine, &sln3_fine, &sln4_fine), 
+                        Tuple<Solution*>(&sln1_coarse, &sln2_coarse, &sln3_coarse, &sln4_coarse));
     }
 
     // Time measurement.
@@ -449,9 +437,8 @@ int main(int argc, char* argv[])
     double err_est_4 = h1_error(&sln4_coarse, &sln4_fine);
 
     // Report results.
-    ndof_coarse = ls.get_num_dofs();
     info("ndof_coarse: %d + %d + %d + %d = %d", ls.get_num_dofs(0), ls.get_num_dofs(1), ls.get_num_dofs(2), 
-	 ls.get_num_dofs(3), ls.get_num_dofs(0) + ls.get_num_dofs(1) + ls.get_num_dofs(2) + ls.get_num_dofs(3));  
+	 ls.get_num_dofs(3), ls.get_num_dofs());  
     info("err_est_coarse: %g%%, %g%%, %g%%, %g%%", err_est_1, err_est_2, err_est_3, err_est_4); 
   
     // Eigenvalue error w.r.t. solution obtained on a 3x uniformly refined mesh
@@ -460,7 +447,7 @@ int main(int argc, char* argv[])
     double keff_err = 1e5*fabs(k_eff - 1.140911)/1.140911;
   					
     // Add entry to DOF convergence graph.
-    graph_dof.add_values(ndof_coarse, err_est);
+    graph_dof.add_values(ls.get_num_dofs(), err_est);
     graph_dof.save("conv_dof.dat");
   
     // Add entry to CPU convergence graph.
@@ -468,7 +455,7 @@ int main(int argc, char* argv[])
     graph_cpu.save("conv_cpu.dat");
     
     // Add entry to DOF convergence graph w.r.t. dominant eigenvalue.
-    graph_dof_keff.add_values(ndof_coarse, keff_err);
+    graph_dof_keff.add_values(ls.get_num_dofs(), keff_err);
     graph_dof_keff.save("conv_dof_keff.dat");
     
     // Add entry to CPU convergence graph w.r.t. dominant eigenvalue.
@@ -480,8 +467,7 @@ int main(int argc, char* argv[])
     else {
       info("Adapting the coarse mesh.");
       done = hp.adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY);
-      ndof_coarse = assign_dofs(4, &space1, &space2, &space3, &space4);
-      if (ndof_coarse >= NDOF_STOP) done = true;
+      if (ls.get_num_dofs() >= NDOF_STOP) done = true;
     }
 
     as++;

@@ -84,15 +84,21 @@ BCType p_bc_type(int marker)
   { return BC_NONE; }
 
 // Essential (Dirichlet) boundary condition values for x-velocity.
-// (These are zero for y-velocity and irrelevant for pressure.) 
-scalar essential_bc_value(int ess_bdy_marker, double x, double y) {
-  if (ess_bdy_marker == bdy_left) {
+scalar essential_bc_values_xvel(int ess_bdy_marker, double x, double y) {
+  if (ess_bdy_marker == bdy_left) 
+{
     // Time-dependent parabolic profile at inlet.
     double val_y = VEL_INLET * y*(H-y) / (H/2.)/(H/2.); // Peak value VEL_INLET at y = H/2.
     if (TIME <= STARTUP_TIME) return val_y * TIME/STARTUP_TIME;
     else return val_y;
   }
   else return 0;
+}
+
+// Essential (Dirichlet) boundary condition values for y-velocity.
+scalar essential_bc_values_yvel(int ess_bdy_marker, double x, double y) 
+{
+  return 0;
 }
 
 // Weak forms.
@@ -111,37 +117,14 @@ int main(int argc, char* argv[])
   mesh.refine_towards_boundary(bdy_top, 4, true);     // '4' is the number of levels,
   mesh.refine_towards_boundary(bdy_bottom, 4, true);  // 'true' stands for anisotropic refinements.
 
-  // Initialize shapeset.
-  H1Shapeset xvel_shapeset;
-  H1Shapeset yvel_shapeset;
-#ifdef PRESSURE_IN_L2
-  L2Shapeset p_shapeset;
-#else
-  H1Shapeset p_shapeset;
-#endif
-
   // Spaces for velocity components and pressure.
-  H1Space xvel_space(&mesh, &xvel_shapeset);
-  H1Space yvel_space(&mesh, &yvel_shapeset);
+  H1Space xvel_space(&mesh, xvel_bc_type, essential_bc_values_xvel, P_INIT_VEL);
+  H1Space yvel_space(&mesh, yvel_bc_type, essential_bc_values_yvel, P_INIT_VEL);
 #ifdef PRESSURE_IN_L2
-  L2Space p_space(&mesh, &p_shapeset);
+  L2Space p_space(&mesh, P_INIT_PRESSURE);
 #else
-  H1Space p_space(&mesh, &p_shapeset);
+  H1Space p_space(&mesh, p_bc_type, NULL, P_INIT_PRESSURE);
 #endif
-
-  // Initialize boundary conditions.
-  xvel_space.set_bc_types(xvel_bc_type);
-  xvel_space.set_essential_bc_values(essential_bc_value);
-  yvel_space.set_bc_types(yvel_bc_type);
-  p_space.set_bc_types(p_bc_type);
-
-  // Set velocity and pressure polynomial degrees.
-  xvel_space.set_uniform_order(P_INIT_VEL);
-  yvel_space.set_uniform_order(P_INIT_VEL);
-  p_space.set_uniform_order(P_INIT_PRESSURE);
-
-  // Assign degrees of freedom.
-  int ndof = assign_dofs(3, &xvel_space, &yvel_space, &p_space);
 
   // Solutions for the Newton's iteration and time stepping.
   Solution xvel_prev_time, yvel_prev_time, xvel_prev_newton, yvel_prev_newton, p_prev;
@@ -198,10 +181,10 @@ int main(int argc, char* argv[])
   UmfpackSolver umfpack;
 
   // Initialize linear system.
-  LinSystem ls(&wf, &umfpack, 3, &xvel_space, &yvel_space, &p_space);
+  LinSystem ls(&wf, &umfpack, Tuple<Space*>(&xvel_space, &yvel_space, &p_space));
 
   // Initialize nonlinear system.
-  NonlinSystem nls(&wf, &umfpack, 3, &xvel_space, &yvel_space, &p_space);
+  NonlinSystem nls(&wf, &umfpack, Tuple<Space*>(&xvel_space, &yvel_space, &p_space));
 
   // Time-stepping loop:
   char title[100];
@@ -212,10 +195,8 @@ int main(int argc, char* argv[])
 
     info("---- Time step %d, time = %g:", ts, TIME);
 
-    // This is needed to update the time-dependent boundary conditions.
-    ndof = assign_dofs(3, &xvel_space, &yvel_space, &p_space);
-
     if (NEWTON) {
+      nls.update_essential_bc_values();
       // Newton's method.
       info("Performing Newton's method.");
       if (!nls.solve_newton(&xvel_prev_newton, &yvel_prev_newton, &p_prev, NEWTON_TOL, NEWTON_MAX_ITER)) 
@@ -235,11 +216,12 @@ int main(int argc, char* argv[])
       yvel_prev_time.copy(&yvel_prev_newton);
     }
     else {
+      ls.update_essential_bc_values();
       // Assemble and solve.
       Solution xvel_sln, yvel_sln, p_sln;
       info("Assembling and solving linear problem.");
       ls.assemble();
-      ls.solve(3, &xvel_sln, &yvel_sln, &p_sln);
+      ls.solve(Tuple<Solution*>(&xvel_sln, &yvel_sln, &p_sln));
 
       // Show the solution at the end of time step.
       sprintf(title, "Velocity, time %g", TIME);

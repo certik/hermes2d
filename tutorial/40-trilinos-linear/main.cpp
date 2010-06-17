@@ -65,18 +65,9 @@ int main(int argc, char **argv)
   // Perform initial mesh refinemets.
   for (int i=0; i < INIT_REF_NUM; i++)  mesh.refine_all_elements();
  
-  // Initialize shapeset.
-  H1Shapeset shapeset;
-
-  // Create an H1 space.
-  H1Space space(&mesh, &shapeset);
-  space.set_bc_types(bc_types);
-  space.set_essential_bc_values(essential_bc_values);
-  space.set_uniform_order(P_INIT);
-
-  // Enumerate degrees of freedom.
-  int ndof = assign_dofs(&space);
-  info("Number of DOF: %d", ndof);
+  // Create an H1 space with default shapeset.
+  H1Space space(&mesh, bc_types, essential_bc_values, P_INIT);
+  info("Number of DOF: %d", space.get_num_dofs());
 
   // Solutions.
   Solution prev, sln1, sln2;
@@ -132,10 +123,11 @@ int main(int argc, char **argv)
   // FIXME: The entire FeProblem should be removed
   // and functionality merged into LinSystem.
   // Initialize FeProblem.
+  H1Shapeset shapeset;
   FeProblem fep(&wf2);
-  fep.set_spaces(1, &space);
+  fep.set_spaces(&space);
   PrecalcShapeset pss(&shapeset);
-  fep.set_pss(1, &pss);
+  //fep.set_pss(Tuple<PrecalcShapeset*>(&pss));
 
   // Initialize the NOX solver with the vector "vec".
   info("Initializing NOX.");

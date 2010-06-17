@@ -47,16 +47,11 @@ int main(int argc, char* argv[])
   for (int i=0; i<INIT_REF_NUM; i++) mesh.refine_all_elements();
 
   // Create an L2 space with default shapeset.
-  L2Space space(&mesh);
-
-  // Set uniform polynomial degrees.
-  space.set_uniform_order(P_INIT);
-
-  // Enumerate basis functions.
-  int ndof = assign_dofs(&space);
+  // (BC types and essential BC values not relevant.)
+  L2Space space(&mesh, P_INIT);
 
   // View basis functions.
-  BaseView bview;
+  BaseView bview("BaseView", 0, 0, 600, 500);
   bview.show(&space);
   View::wait(H2DV_WAIT_KEYPRESS);
 
@@ -77,7 +72,7 @@ int main(int argc, char* argv[])
   sys.solve(&sln);
 
   // Visualize the solution.
-  ScalarView view1("Solution 1");
+  ScalarView view1("Projection", 610, 0, 600, 500);
   view1.show(&sln);
 
   // Wait for all views to be closed.

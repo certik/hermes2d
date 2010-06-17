@@ -1171,3 +1171,9 @@ int LinSystem::get_num_dofs()
   }
   return ndof;
 }
+
+void LinSystem::update_essential_bc_values()
+{
+  int n = this->wf->neq;
+  for (int i=0; i<n; i++) this->spaces[i]->update_essential_bc_values();
+}

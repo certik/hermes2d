@@ -22,7 +22,7 @@ using namespace RefinementSelectors;
 //
 // The following parameters can be changed: 
 
-const bool SOLVE_ON_COARSE_MESH = false; // If true, coarse mesh FE problem is solved in every adaptivity step.
+const bool SOLVE_ON_COARSE_MESH = true; // If true, coarse mesh FE problem is solved in every adaptivity step.
                                          // If false, projection of the fine mesh solution on the coarse mesh is used. 
 const int P_INIT = 2;                    // Initial polynomial degree of all mesh elements.
 const bool MULTI = true;                 // MULTI = true  ... use multi-mesh,
@@ -106,23 +106,9 @@ int main(int argc, char* argv[])
   // This also initializes the multimesh hp-FEM.
   ymesh.copy(&xmesh);
 
-  // Initialize the shapeset.
-  H1Shapeset shapeset;
-
-  // Create the x displacement space.
-  H1Space xdisp(&xmesh, &shapeset);
-  xdisp.set_bc_types(bc_types);
-  xdisp.set_essential_bc_values(essential_bc_values);
-  xdisp.set_uniform_order(P_INIT);
-
-  // Create the y displacement space.
-  H1Space ydisp(MULTI ? &ymesh : &xmesh, &shapeset);
-  ydisp.set_bc_types(bc_types);
-  ydisp.set_essential_bc_values(essential_bc_values);
-  ydisp.set_uniform_order(P_INIT);
-
-  // Enumerate degrees of freedom.
-  int ndof = assign_dofs(2, &xdisp, &ydisp);
+  // Create H1 spaces with default shapesets.
+  H1Space xdisp(&xmesh, bc_types, essential_bc_values, P_INIT);
+  H1Space ydisp(MULTI ? &ymesh : &xmesh, bc_types, essential_bc_values, P_INIT);
 
   // Initialize the weak formulation.
   WeakForm wf(2);
@@ -143,10 +129,10 @@ int main(int argc, char* argv[])
   SimpleGraph graph_dof, graph_cpu;
 
   // Initialize refinement selector.
-  H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER, &shapeset);
+  H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
 
   // Initialize the coarse mesh problem.
-  LinSystem ls(&wf, &solver, 2, &xdisp, &ydisp);
+  LinSystem ls(&wf, &solver, Tuple<Space*>(&xdisp, &ydisp));
 
   // Adaptivity loop:
   int as = 1; bool done = false;
@@ -159,18 +145,19 @@ int main(int argc, char* argv[])
     info("Solving on fine mesh.");
     RefSystem rs(&ls);
     rs.assemble();
-    rs.solve(2, &x_sln_fine, &y_sln_fine);
+    rs.solve(Tuple<Solution*>(&x_sln_fine, &y_sln_fine));
 
     // Either solve on coarse mesh or project the fine mesh solution 
     // on the coarse mesh.
     if (SOLVE_ON_COARSE_MESH) {
       info("Solving on coarse mesh.");
       ls.assemble();
-      ls.solve(2, &x_sln_coarse, &y_sln_coarse);
+      ls.solve(Tuple<Solution*>(&x_sln_coarse, &y_sln_coarse));
     }
     else {
       info("Projecting fine mesh solution on coarse mesh.");
-      ls.project_global(&x_sln_fine, &y_sln_fine, &x_sln_coarse, &y_sln_coarse);
+      ls.project_global(Tuple<MeshFunction*>(&x_sln_fine, &y_sln_fine), 
+                        Tuple<Solution*>(&x_sln_coarse, &y_sln_coarse));
     }
 
     // Time measurement.
@@ -198,13 +185,13 @@ int main(int argc, char* argv[])
 
     // Report results.
     info("ndof_x_coarse: %d, ndof_x_fine: %d", 
-         xdisp.get_num_dofs(), rs.get_space(0)->get_num_dofs());
+         ls.get_num_dofs(0), rs.get_num_dofs(0));
     info("ndof_y_coarse: %d, ndof_y_fine: %d", 
-         ydisp.get_num_dofs(), rs.get_space(1)->get_num_dofs());
-    info("ndof: %d, err_est: %g%%", xdisp.get_num_dofs() + ydisp.get_num_dofs(), err_est);
+         ls.get_num_dofs(1), rs.get_num_dofs(1));
+    info("ndof: %d, err_est: %g%%", ls.get_num_dofs(), err_est);
 
     // Add entry to DOF convergence graph.
-    graph_dof.add_values(xdisp.get_num_dofs() + ydisp.get_num_dofs(), err_est);
+    graph_dof.add_values(ls.get_num_dofs(), err_est);
     graph_dof.save("conv_dof.dat");
 
     // Add entry to CPU convergence graph.
@@ -216,8 +203,7 @@ int main(int argc, char* argv[])
     else {
       info("Adapting the coarse mesh.");
       done = hp.adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY, SAME_ORDERS);
-      ndof = assign_dofs(2, &xdisp, &ydisp);
-      if (ndof >= NDOF_STOP) done = true;
+      if (ls.get_num_dofs() >= NDOF_STOP) done = true;
     }
 
     as++;

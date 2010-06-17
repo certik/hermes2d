@@ -102,7 +102,7 @@ bool solveNonadaptive(Mesh &mesh, NonlinSystem &nls,
 
 			it++;
 			nls.assemble();
-			nls.solve(2, &Csln, &phisln);
+			nls.solve(Tuple<Solution*>(&Csln, &phisln));
 			res_l2_norm = nls.get_residual_l2_norm();
 
 			Ci.copy(&Csln);
@@ -131,10 +131,10 @@ bool solveNonadaptive(Mesh &mesh, NonlinSystem &nls,
 }
 
 bool solveAdaptive(Mesh &Cmesh, Mesh &phimesh, Mesh &basemesh, NonlinSystem &nls, H1Space &C, H1Space &phi,
-                   Solution &Cp, Solution &Ci, Solution &phip, Solution &phii, H1Shapeset& shapeset) {
+                   Solution &Cp, Solution &Ci, Solution &phip, Solution &phii) {
 
   // create a selector which will select optimal candidate
-  H1ProjBasedSelector selector(CAND_LIST, 1.0, H2DRS_DEFAULT_ORDER, &shapeset);
+  H1ProjBasedSelector selector(CAND_LIST, 1.0, H2DRS_DEFAULT_ORDER);
 
   Solution Csln_coarse, phisln_coarse, Csln_fine, phisln_fine;
   int at_index = 1; //for saving screenshot
@@ -160,17 +160,19 @@ bool solveAdaptive(Mesh &Cmesh, Mesh &phimesh, Mesh &basemesh, NonlinSystem &nls
       int it = 1;
       double res_l2_norm;
       if (n > 1 || at > 1) {
-        nls.project_global(&Csln_fine, &phisln_fine, &Ci, &phii);
+        nls.project_global(Tuple<MeshFunction*>(&Csln_fine, &phisln_fine), 
+                           Tuple<Solution*>(&Ci, &phii));
       } else {
         /* No need to set anything, already set. */
-        nls.project_global(&Ci, &phii, &Ci, &phii);
+        nls.project_global(Tuple<MeshFunction*>(&Ci, &phii), 
+                           Tuple<Solution*>(&Ci, &phii));
       }
       //Loop for coarse mesh solution
       do {
         it++;
 
         nls.assemble();
-        nls.solve(2, &Csln_coarse, &phisln_coarse);
+        nls.solve(Tuple<Solution*>(&Csln_coarse, &phisln_coarse));
         res_l2_norm = nls.get_residual_l2_norm();
 
         Ci.copy(&Csln_coarse);
@@ -180,18 +182,19 @@ bool solveAdaptive(Mesh &Cmesh, Mesh &phimesh, Mesh &basemesh, NonlinSystem &nls
       it = 1;
       // Loop for fine mesh solution
       RefSystem rs(&nls);
-      rs.prepare();
       if (n > 1 || at > 1) {
-        rs.project_global(&Csln_fine, &phisln_fine, &Ci, &phii);
+        rs.project_global(Tuple<MeshFunction*>(&Csln_fine, &phisln_fine), 
+                          Tuple<Solution*>(&Ci, &phii));
       } else {
-        rs.project_global(&Ci, &phii, &Ci, &phii);
+        rs.project_global(Tuple<MeshFunction*>(&Ci, &phii), 
+                          Tuple<Solution*>(&Ci, &phii));
       }
 
       do {
         it++;
 
         rs.assemble();
-        rs.solve(2, &Csln_fine, &phisln_fine);
+        rs.solve(Tuple<Solution*>(&Csln_fine, &phisln_fine));
         res_l2_norm = rs.get_residual_l2_norm();
 
         Ci.copy(&Csln_fine);
@@ -255,25 +258,14 @@ int main (int argc, char* argv[]) {
   Cmesh.copy(&basemesh);
   phimesh.copy(&basemesh);
 
-  // Initialize the shapeset.
-  H1Shapeset shapeset;
-
   // Spaces for concentration and the voltage.
-  H1Space C(&Cmesh, &shapeset);
-  H1Space phi(MULTIMESH ? &phimesh : &Cmesh, &shapeset);
-
-  // Initialize boundary conditions.
-  C.set_bc_types(C_bc_types);
-  phi.set_bc_types(phi_bc_types);
-  phi.set_essential_bc_values(essential_bc_values);
+  H1Space C(&Cmesh, C_bc_types, NULL, P_INIT);
+  H1Space phi(MULTIMESH ? &phimesh : &Cmesh, phi_bc_types, essential_bc_values, P_INIT);
 
   // set polynomial degrees.
   C.set_uniform_order(P_INIT);
   phi.set_uniform_order(P_INIT);
-
-  // Enumerate degrees of freedom.
-  int ndof = assign_dofs(2, &C, &phi);
-  info("ndof: %d", ndof);
+  info("ndof: %d", C.get_num_dofs() + phi.get_num_dofs());
 
   // The weak form for 2 equations.
   WeakForm wf(2);
@@ -302,7 +294,7 @@ int main (int argc, char* argv[]) {
 
   // Nonlinear solver.
   UmfpackSolver solver;
-  NonlinSystem nls(&wf, &solver, 2, &C, &phi);
+  NonlinSystem nls(&wf, &solver, Tuple<Space*>(&C, &phi));
 
   info("UmfpackSolver initialized");
 
@@ -317,10 +309,11 @@ int main (int argc, char* argv[]) {
   C_prev_newton.copy(&C_prev_time);
   phi_prev_newton.copy(&phi_prev_time);
 
-  nls.project_global(&C_prev_newton, &phi_prev_newton, &C_prev_newton, &phi_prev_newton);
+  nls.project_global(Tuple<MeshFunction*>(&C_prev_newton, &phi_prev_newton), 
+                     Tuple<Solution*>(&C_prev_newton, &phi_prev_newton));
 
   bool success = solveAdaptive(Cmesh, phimesh, basemesh, nls, C, phi, C_prev_time,
-        C_prev_newton, phi_prev_time, phi_prev_newton, shapeset);
+        C_prev_newton, phi_prev_time, phi_prev_newton);
   // bool success = solveNonadaptive(Cmesh, nls, C_prev_time, C_prev_newton, 
   // phi_prev_time, phi_prev_newton);
 

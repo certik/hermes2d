@@ -32,7 +32,7 @@ using namespace RefinementSelectors;
 //
 // The following parameters can be changed:
 
-const bool SOLVE_ON_COARSE_MESH = false; // If true, coarse mesh FE problem is solved in every adaptivity step.
+const bool SOLVE_ON_COARSE_MESH = true; // If true, coarse mesh FE problem is solved in every adaptivity step.
                                          // If false, projection of the fine mesh solution on the coarse mesh is used. 
 const int INIT_REF_NUM = 0;              // Number of initial uniform mesh refinements.
 const int P_INIT = 2;                    // Initial polynomial degree. NOTE: The meaning is different from
@@ -65,7 +65,7 @@ const int MESH_REGULARITY = -1;          // Maximum allowed level of hanging nod
                                          // their notoriously bad performance.
 const double CONV_EXP = 1.0;             // Default value is 1.0. This parameter influences the selection of
                                          // cancidates in hp-adaptivity. See get_optimal_refinement() for details.
-const double ERR_STOP = 1.0;             // Stopping criterion for adaptivity (rel. error tolerance between the
+const double ERR_STOP = 5.0;             // Stopping criterion for adaptivity (rel. error tolerance between the
                                          // fine mesh and coarse mesh solution in percent).
 const int NDOF_STOP = 60000;             // Adaptivity process stops when the number of degrees of freedom grows
                                          // over this limit. This is to prevent h-adaptivity to go on forever.
@@ -84,10 +84,16 @@ const double kappa  = 2 * M_PI * freq * sqrt(e_0 * mu_0);
 const double J = 0.0000033333;
 
 // Boundary condition types.
-BCType e_bc_types(int marker)
+BCType bc_types(int marker)
 {
   if (marker == 2) return BC_ESSENTIAL; // perfect conductor BC
   else return BC_NATURAL;               // impedance BC
+}
+
+// Essential (Dirichlet) boundary condition values.
+scalar essential_bc_values(int ess_bdy_marker, double x, double y)
+{
+  return 0;
 }
 
 // Geometry of the load.
@@ -147,16 +153,8 @@ int main(int argc, char* argv[])
   // Perform initial mesh refinemets.
   for (int i=0; i < INIT_REF_NUM; i++)  mesh.refine_all_elements();
 
-  // Initialize the shapeset.
-  HcurlShapeset shapeset;
-
   // Create an Hcurl space.
-  HcurlSpace space(&mesh, &shapeset);
-  space.set_bc_types(e_bc_types);
-  space.set_uniform_order(P_INIT);
-
-  // Enumerate degrees of freedom.
-  int ndof = assign_dofs(&space);
+  HcurlSpace space(&mesh, bc_types, essential_bc_values, P_INIT);
 
   // Initialize the weak formulation.
   WeakForm wf;
@@ -180,7 +178,7 @@ int main(int argc, char* argv[])
   SimpleGraph graph_dof_est, graph_cpu_est;
 
   // Initialize refinements selector.
-  HcurlProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER, &shapeset);
+  HcurlProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
 
   // Initialize the coarse mesh problem.
   LinSystem ls(&wf, &solver, &space);
@@ -236,7 +234,7 @@ int main(int argc, char* argv[])
          ls.get_num_dofs(), rs.get_num_dofs(), err_est_hcurl);
 
     // Add entries to DOF convergence graphs.
-    graph_dof_est.add_values(space.get_num_dofs(), err_est_hcurl);
+    graph_dof_est.add_values(ls.get_num_dofs(), err_est_hcurl);
     graph_dof_est.save("conv_dof_est.dat");
 
     // Add entries to CPU convergence graphs.
@@ -248,8 +246,7 @@ int main(int argc, char* argv[])
     else {
       info("Adapting coarse mesh.");
       done = hp.adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY);
-      ndof = assign_dofs(&space);
-      if (ndof >= NDOF_STOP) done = true;
+      if (ls.get_num_dofs() >= NDOF_STOP) done = true;
     }
 
     as++;

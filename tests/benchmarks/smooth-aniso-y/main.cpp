@@ -20,7 +20,7 @@ const int STRATEGY = 0;           // Adaptive strategy:
 const CandList CAND_LIST = H2D_HP_ANISO; // Predefined list of element refinement candidates. Possible values are
                                          // H2D_P_ISO, H2D_P_ANISO, H2D_H_ISO, H2D_H_ANISO, H2D_HP_ISO,
                                          // H2D_HP_ANISO_H, H2D_HP_ANISO_P, H2D_HP_ANISO.
-                                         // See the Sphinx tutorial (http://hpfem.org/hermes2d/doc/src/tutorial-2.html#adaptive-h-fem-and-hp-fem) for details.
+                                         // See the User Documentation for details.
 const int MESH_REGULARITY = -1;   // Maximum allowed level of hanging nodes:
                                   // MESH_REGULARITY = -1 ... arbitrary level hangning nodes (default),
                                   // MESH_REGULARITY = 1 ... at most one-level hanging nodes,
@@ -100,20 +100,10 @@ int main(int argc, char* argv[])
   if(P_INIT == 1) mesh.refine_all_elements();  // this is because there are no degrees of freedom
                                                // on the coarse mesh lshape.mesh if P_INIT == 1
 
-  // Initialize the shapeset.
-  H1Shapeset shapeset;
-
-  // Create an H1 space.
-  H1Space space(&mesh, &shapeset);
-  space.set_bc_types(bc_types);
-  space.set_essential_bc_values(essential_bc_values);
+  // Create an H1 space with default shapeset.
+  H1Space space(&mesh, bc_types, essential_bc_values, P_INIT);
   if (is_p_aniso(CAND_LIST))
     space.set_element_order(0, H2D_MAKE_QUAD_ORDER(1, P_INIT));
-  else
-    space.set_uniform_order(P_INIT);
-
-  // Enumerate basis functions.
-  int ndof = assign_dofs(&space);
 
   // Initialize the weak formulation.
   WeakForm wf;
@@ -127,7 +117,7 @@ int main(int argc, char* argv[])
   SimpleGraph graph_dof_est, graph_dof_exact, graph_cpu_est, graph_cpu_exact;
 
   // Initialize refinement selector.
-  H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER, &shapeset);
+  H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
 
   // Initialize the coarse mesh problem.
   LinSystem ls(&wf, &solver, &space);
@@ -176,12 +166,12 @@ int main(int argc, char* argv[])
 
     // Report results.
     info("ndof_coarse: %d, ndof_fine: %d, err_est: %g%%, err_exact: %g%%", 
-         space.get_num_dofs(), rs.get_space(0)->get_num_dofs(), err_est, err_exact);
+         ls.get_num_dofs(), rs.get_num_dofs(), err_est, err_exact);
 
     // Add entries to DOF convergence graphs.
-    graph_dof_exact.add_values(space.get_num_dofs(), err_exact);
+    graph_dof_exact.add_values(ls.get_num_dofs(), err_exact);
     graph_dof_exact.save("conv_dof_exact.dat");
-    graph_dof_est.add_values(space.get_num_dofs(), err_est);
+    graph_dof_est.add_values(ls.get_num_dofs(), err_est);
     graph_dof_est.save("conv_dof_est.dat");
 
     // Add entries to CPU convergence graphs.
@@ -198,14 +188,15 @@ int main(int argc, char* argv[])
     else {
       info("Adapting the coarse mesh.");
       done = hp.adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY);
-      ndof = assign_dofs(&space);
-      if (ndof >= NDOF_STOP) done = true;
+      if (ls.get_num_dofs() >= NDOF_STOP) done = true;
     }
 
     as++;
   }
   while (done == false);
   verbose("Total running time: %g s", cpu_time.accumulated());
+
+  int ndof = ls.get_num_dofs();
 
 #define ERROR_SUCCESS                               0
 #define ERROR_FAILURE                               -1

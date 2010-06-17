@@ -129,14 +129,8 @@ int main(int argc, char* argv[])
   // Initialize the shapeset.
   H1Shapeset shapeset;
 
-  // Create an H1 space.
-  H1Space space(&mesh, &shapeset);
-  space.set_bc_types(bc_types);
-  space.set_essential_bc_values(essential_bc_values);
-  space.set_uniform_order(P_INIT);
-
-  // Enumerate degrees of freedom.
-  int ndof = assign_dofs(&space);
+  // Create an H1 space with default shapeset.
+  H1Space space(&mesh, bc_types, essential_bc_values, P_INIT);
   info("Number of DOF: %d", space.get_num_dofs());
 
   // Initialize the weak formulation.
@@ -165,10 +159,11 @@ int main(int argc, char* argv[])
     info("---- Adaptivity step %d:", as);
    
     // Initialize finite element problem.
+    H1Shapeset shapeset;
     FeProblem fep(&wf);
-    fep.set_spaces(1, &space);
-  PrecalcShapeset pss(&shapeset);
-    fep.set_pss(1, &pss);
+    fep.set_spaces(&space);
+    PrecalcShapeset pss(&shapeset);
+    //fep.set_pss(1, &pss);
 
     // Initialize NOX solver.
     NoxSolver solver(&fep);
@@ -211,17 +206,13 @@ int main(int argc, char* argv[])
         Mesh rmesh; rmesh.copy(&mesh); 
         rmesh.refine_all_elements();
         // Reference FE space.
-        H1Space rspace(&rmesh, &shapeset);
-        rspace.set_bc_types(bc_types);
-        rspace.set_essential_bc_values(essential_bc_values);
+        H1Space rspace(&rmesh, bc_types, essential_bc_values, 1);
         int order_increase = 1;
         rspace.copy_orders(&space, order_increase); // increase orders by one
-        // Enumerate degrees of freedom in reference space.
-        int rndof = assign_dofs(&rspace);
         // Initialize FE problem on reference mesh.
         FeProblem ref_fep(&wf);
-        ref_fep.set_spaces(1, &rspace);
-        ref_fep.set_pss(1, &pss);
+        ref_fep.set_spaces(&rspace);
+        //ref_fep.set_pss(1, &pss);
 
     // Initialize NOX solver.
     NoxSolver ref_solver(&ref_fep);
@@ -256,7 +247,7 @@ int main(int argc, char* argv[])
     ExactSolution exact(&mesh, fndd);
     err_exact = h1_error(&sln_coarse, &exact) * 100;
     info("ndof_coarse: %d, ndof_fine: %d, err_est: %g%%, err_exact: %g%%", 
-	 ndof, rspace.get_num_dofs(), err_est, err_exact);
+	 space.get_num_dofs(), rspace.get_num_dofs(), err_est, err_exact);
 
     // Add entries to DOF convergence graphs.
     graph_dof_exact.add_values(space.get_num_dofs(), err_exact);
@@ -269,9 +260,8 @@ int main(int argc, char* argv[])
     else {
       info("Adapting the coarse mesh.");
       done = hp.adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY);
-      ndof = assign_dofs(&space);
 
-      if (ndof >= NDOF_STOP) done = true;
+      if (space.get_num_dofs() >= NDOF_STOP) done = true;
     }
 
     as++;

@@ -109,17 +109,8 @@ int main(int argc, char* argv[])
   if(P_INIT == 1) mesh.refine_all_elements();  // this is because there are no degrees of freedom
                                                // on the coarse mesh lshape.mesh if P_INIT == 1
 
-  // Initialize the shapeset.
-  H1Shapeset shapeset;
-
-  // Create an Hcul space.
-  H1Space space(&mesh, &shapeset);
-  space.set_bc_types(bc_types);
-  space.set_essential_bc_values(essential_bc_values);
-  space.set_uniform_order(P_INIT);
-
-  // Enumerate degrees of freedom.
-  int ndof = assign_dofs(&space);
+  // Create an H1 space with default shapeset.
+  H1Space space(&mesh, bc_types, essential_bc_values, P_INIT);
 
   // Initialize the weak formulation.
   WeakForm wf;
@@ -132,7 +123,7 @@ int main(int argc, char* argv[])
   SimpleGraph graph_dof, graph_cpu;
 
   // Initialize refinement selector.
-  H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER, &shapeset);
+  H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
   selector.set_error_weights(1.0, 1.0, 1.0);
 
   // Initialize the coarse mesh problem.
@@ -152,7 +143,7 @@ int main(int argc, char* argv[])
     // Assemble and solve the fine mesh problem.
     info("Solving on fine meshes.");
     rs.assemble();
-    rs.solve(1, &sln_fine);
+    rs.solve(&sln_fine);
 
     // Either solve on coarse mesh or project the fine mesh solution 
     // on the coarse mesh.
@@ -182,7 +173,7 @@ int main(int argc, char* argv[])
 
     // Report results.
     info("ndof_coarse: %d, ndof_fine: %d, err_est: %g%%", 
-      space.get_num_dofs(), rs.get_num_dofs(), err_est);
+      ls.get_num_dofs(), rs.get_num_dofs(), err_est);
 
    // Add entry to DOF convergence graph.
     graph_dof.add_values(ls.get_num_dofs(), err_est);
@@ -197,14 +188,15 @@ int main(int argc, char* argv[])
     else {
       info("Adapting coarse mesh.");
       done = hp.adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY);
-      ndof = assign_dofs(&space);
-      if (ndof >= NDOF_STOP) done = true;
+      if (ls.get_num_dofs() >= NDOF_STOP) done = true;
     }
 
     as++;
   }
   while (done == false);
   verbose("Total running time: %g s", cpu_time.accumulated());
+
+  int ndof = ls.get_num_dofs();
 
 #define ERROR_SUCCESS                               0
 #define ERROR_FAILURE                               -1

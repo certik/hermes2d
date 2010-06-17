@@ -16,7 +16,7 @@ using namespace RefinementSelectors;
 //
 // The following parameters can be changed:
 
-const bool SOLVE_ON_COARSE_MESH = false; // If true, coarse mesh FE problem is solved in every adaptivity step.
+const bool SOLVE_ON_COARSE_MESH = true; // If true, coarse mesh FE problem is solved in every adaptivity step.
                                          // If false, projection of the fine mesh solution on the coarse mesh is used. 
 const int P_INIT = 1;                    // Initial polynomial degrees.
 const bool MULTI = true;                 // MULTI = true  ... use multi-mesh,
@@ -95,8 +95,8 @@ BCType temp_bc_type(int marker)
 BCType moist_bc_type(int marker)
   { return BC_NATURAL; }
 
-// Essential (Dirichlet) boundary condition values.
-scalar essential_bc_values(int ess_bdy_marker, double x, double y)
+// Essential (Dirichlet) boundary condition values for T.
+scalar essential_bc_values_T(int ess_bdy_marker, double x, double y)
 {
   if (ess_bdy_marker == MARKER_REACTOR_WALL)
   {
@@ -125,22 +125,9 @@ int main(int argc, char* argv[])
   mesh_T.copy(&basemesh);
   mesh_M.copy(&basemesh);
 
-  // Initialize the shapeset and the cache.
-  H1Shapeset shapeset;
-
-  // Create the temperature space.
-  H1Space space_T(&mesh_T, &shapeset);
-  space_T.set_bc_types(temp_bc_type);
-  space_T.set_essential_bc_values(essential_bc_values);
-  space_T.set_uniform_order(P_INIT);
-
-  // Create the moisture space.
-  H1Space space_M(MULTI ? &mesh_M : &mesh_T, &shapeset);
-  space_M.set_bc_types(moist_bc_type);
-  space_M.set_uniform_order(P_INIT);
-
-  // Enumerate degrees of freedom.
-  int ndof = assign_dofs(2, &space_T, &space_M);
+  // Create H1 spaces with default shapesets.
+  H1Space space_T(&mesh_T, temp_bc_type, essential_bc_values_T, P_INIT);
+  H1Space space_M(MULTI ? &mesh_M : &mesh_T, moist_bc_type, NULL, P_INIT);
 
   // Define constant initial conditions.
   info("Setting initial conditions.");
@@ -175,13 +162,13 @@ int main(int argc, char* argv[])
   UmfpackSolver solver;
 
   // Initialize the coarse mesh problem.
-  LinSystem ls(&wf, &solver, 2, &space_T, &space_M);
+  LinSystem ls(&wf, &solver, Tuple<Space*>(&space_T, &space_M));
 
   // Solutions.
   Solution T_coarse, M_coarse, T_fine, M_fine;
 
   // Initialize refinement selector.
-  H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER, &shapeset);
+  H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
 
   // Time stepping loop:
   double comp_time = 0.0;
@@ -204,25 +191,26 @@ int main(int argc, char* argv[])
     {
       info("---- Time step %d, adaptivity step %d:", ts, as);
 
-      // Enumerate degrees of freedom and update time-dependent Dirichlet BCs.
-      int ndof = assign_dofs(2, &space_T, &space_M);
+      // Update time-dependent Dirichlet BCs.
+      ls.update_essential_bc_values();
 
       // Solve the fine mesh problem.
       RefSystem rs(&ls);
       info("Solving on fine meshes.");
       rs.assemble();
-      rs.solve(2, &T_fine, &M_fine);
+      rs.solve(Tuple<Solution*>(&T_fine, &M_fine));
 
       // Either solve on coarse mesh or project the fine mesh solution 
       // on the coarse mesh.
       if (SOLVE_ON_COARSE_MESH) {
         info("Solving on coarse meshes.");
         ls.assemble();
-        ls.solve(2, &T_coarse, &M_coarse);
+        ls.solve(Tuple<Solution*>(&T_coarse, &M_coarse));
       }
       else {
         info("Projecting fine mesh solutions on coarse meshes.");
-        ls.project_global(&T_fine, &M_fine, &T_coarse, &M_coarse);
+        ls.project_global(Tuple<MeshFunction*>(&T_fine, &M_fine), 
+                          Tuple<Solution*>(&T_coarse, &M_coarse));
       }
 
       // Visualize the solution and meshes.
@@ -245,9 +233,9 @@ int main(int argc, char* argv[])
       double T_err_est = h1_error(&T_coarse, &T_fine) * 100;
       double M_err_est = h1_error(&M_coarse, &M_fine) * 100;
       info("T: ndof_coarse: %d, ndof_fine: %d, err_est: %g %%", 
-	   space_T.get_num_dofs(), rs.get_space(0)->get_num_dofs(), T_err_est);
+	   ls.get_num_dofs(0), rs.get_num_dofs(), T_err_est);
       info("M: ndof_coarse: %d, ndof_fine: %d, err_est: %g %%", 
-	   space_M.get_num_dofs(), rs.get_space(0)->get_num_dofs(), M_err_est);
+	   ls.get_num_dofs(1), rs.get_num_dofs(), M_err_est);
 
       // Calculate errors for adaptivity.
       H1Adapt hp(Tuple<Space*>(&space_T, &space_M));
@@ -262,8 +250,7 @@ int main(int argc, char* argv[])
       if (space_err_est > SPACE_TOL) {
         info("Adapting coarse meshes.");
         done = hp.adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY, SAME_ORDERS);
-        ndof = assign_dofs(2, &space_T, &space_M);
-        if (ndof >= NDOF_STOP) done = true;
+        if (ls.get_num_dofs() >= NDOF_STOP) done = true;
       }
       else done = true;
 

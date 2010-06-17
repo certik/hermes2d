@@ -20,7 +20,7 @@ using namespace RefinementSelectors;
 //     temp = TEMP_INNER on Gamma_4
 //     negative heat flux with HEAT_FLUX_OUTER elsewhere.
 
-const bool SOLVE_ON_COARSE_MESH = false; // If true, coarse mesh FE problem is solved in every adaptivity step.
+const bool SOLVE_ON_COARSE_MESH = true; // If true, coarse mesh FE problem is solved in every adaptivity step.
                                          // If false, projection of the fine mesh solution on the coarse mesh is used. 
 const int P_INIT_TEMP = 1;               // Initial polynomial degrees in temperature mesh.
 const int P_INIT_DISP = 1;               // Initial polynomial degrees for displacement meshes.
@@ -92,7 +92,7 @@ BCType bc_types_t(int marker)
   { return (marker == marker_holes) ? BC_ESSENTIAL : BC_NATURAL; }
 
 // Essential (Dirichlet) boundary condition values.
-scalar essential_bc_values(int ess_bdy_marker, double x, double y)
+scalar essential_bc_values_temp(int ess_bdy_marker, double x, double y)
   { return TEMP_INNER; }
 
 // Weak forms.
@@ -113,27 +113,10 @@ int main(int argc, char* argv[])
   ymesh.copy(&xmesh);                  // Ydisp will share master mesh with xdisp.
   tmesh.copy(&xmesh);                  // Temp will share master mesh with xdisp.
 
-  // Initialize the shapeset.
-  H1Shapeset shapeset;
-
-  // Create the x displacement space.
-  H1Space xdisp(&xmesh, &shapeset);
-  xdisp.set_bc_types(bc_types_x);
-  xdisp.set_uniform_order(P_INIT_DISP);
-
-  // Create the y displacement space.
-  H1Space ydisp(MULTI ? &ymesh : &xmesh, &shapeset);
-  ydisp.set_bc_types(bc_types_y);
-  ydisp.set_uniform_order(P_INIT_DISP);
-
-  // Create the temperature space.
-  H1Space temp(MULTI ? &tmesh : &xmesh, &shapeset);
-  temp.set_bc_types(bc_types_t);
-  temp.set_essential_bc_values(essential_bc_values);
-  temp.set_uniform_order(P_INIT_TEMP);
-
-  // Enumerate degrees of freedom.
-  int ndof = assign_dofs(3, &xdisp, &ydisp, &temp);
+  // Create H1 spaces with default shapesets.
+  H1Space xdisp(&xmesh, bc_types_x, NULL, P_INIT_DISP);
+  H1Space ydisp(MULTI ? &ymesh : &xmesh, bc_types_y, NULL, P_INIT_DISP);
+  H1Space temp(MULTI ? &tmesh : &xmesh, bc_types_t, essential_bc_values_temp, P_INIT_TEMP);
 
   // Initialize the weak formulation.
   WeakForm wf(3);
@@ -161,10 +144,10 @@ int main(int argc, char* argv[])
   SimpleGraph graph_dof, graph_cpu;
 
   // Initialize refinement selector.
-  H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER, &shapeset);
+  H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
 
   // Initialize the coarse mesh problem.
-  LinSystem ls(&wf, &solver, 3, &xdisp, &ydisp, &temp);
+  LinSystem ls(&wf, &solver, Tuple<Space*>(&xdisp, &ydisp, &temp));
 
   // Adaptivity loop:
   int as = 1; bool done = false;
@@ -177,19 +160,19 @@ int main(int argc, char* argv[])
     // Solve the fine mesh problems.
     RefSystem rs(&ls);
     rs.assemble();
-    rs.solve(3, &x_sln_fine, &y_sln_fine, &t_sln_fine);
+    rs.solve(Tuple<Solution*>(&x_sln_fine, &y_sln_fine, &t_sln_fine));
 
     // Either solve on coarse meshes or project the fine mesh solutions
     // on the coarse mesh.
     if (SOLVE_ON_COARSE_MESH) {
       info("Solving on coarse mesh.");
       ls.assemble();
-      ls.solve(3, &x_sln_coarse, &y_sln_coarse, &t_sln_coarse);
+      ls.solve(Tuple<Solution*>(&x_sln_coarse, &y_sln_coarse, &t_sln_coarse));
     }
     else {
       info("Projecting fine mesh solution on coarse mesh.");
-      ls.project_global(&x_sln_fine, &y_sln_fine, &t_sln_fine, 
-                        &x_sln_coarse, &y_sln_coarse, &t_sln_coarse);
+      ls.project_global(Tuple<MeshFunction*>(&x_sln_fine, &y_sln_fine, &t_sln_fine), 
+                        Tuple<Solution*>(&x_sln_coarse, &y_sln_coarse, &t_sln_coarse));
     }
 
     // Time measurement.
@@ -239,8 +222,7 @@ int main(int argc, char* argv[])
     if (err_est < ERR_STOP) done = true;
     else {
       done = hp.adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY, SAME_ORDERS);
-      ndof = assign_dofs(3, &xdisp, &ydisp, &temp);
-      if (ndof >= NDOF_STOP) done = true;
+      if (ls.get_num_dofs() >= NDOF_STOP) done = true;
     }
 
     as++;

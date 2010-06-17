@@ -65,17 +65,8 @@ int main(int argc, char* argv[])
   // Perform initial mesh refinemets.
   for (int i=0; i < INIT_REF_NUM; i++)  mesh.refine_all_elements();
 
-  // Initialize the shapeset.
-  H1Shapeset shapeset;
-
-  // Create an H1 space.
-  H1Space space(&mesh, &shapeset);
-  space.set_bc_types(bc_types);
-  space.set_essential_bc_values(essential_bc_values);
-  space.set_uniform_order(P_INIT);
-
-  // Enumerate degrees of freedom.
-  int ndof = assign_dofs(&space);
+  // Create an H1 space with default shapeset.
+  H1Space space(&mesh, bc_types, essential_bc_values, P_INIT);
   info("Number of DOF: %d", space.get_num_dofs());
 
   // Solutions.
@@ -93,10 +84,11 @@ int main(int argc, char* argv[])
   wf.add_resform_surf(callback(residual_surf));
 
   // Initialize the finite element problem.
+  H1Shapeset shapeset;
   FeProblem fep(&wf);
-  fep.set_spaces(1, &space);
+  fep.set_spaces(&space);
   PrecalcShapeset pss(&shapeset);
-  fep.set_pss(1, &pss);
+  //fep.set_pss(1, &pss);
 
   // Project the function "titer" on the FE space 
   // in order to obtain initial vector for NOX. 

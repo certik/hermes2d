@@ -220,6 +220,9 @@ public:
     /// TODO
   }
 
+  /// Needed for time-dependent problems where BC depend on time.
+  void update_essential_bc_values();
+
   /// Frees spaces. Called automatically on destruction.
   void free_spaces();
 
