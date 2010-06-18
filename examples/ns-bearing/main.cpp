@@ -109,6 +109,40 @@ scalar essential_bc_values_yvel(int ess_bdy_marker, double x, double y) {
 // Weak forms.
 #include "forms.cpp"
 
+// Custom function to calculate drag coefficient.
+double integrate_over_wall(MeshFunction* meshfn, int marker)
+{
+  Quad2D* quad = &g_quad_2d_std;
+  meshfn->set_quad_2d(quad);
+
+  double integral = 0.0;
+  Element* e;
+  Mesh* mesh = meshfn->get_mesh();
+
+  for_all_active_elements(e, mesh)
+  {
+    for(int edge = 0; edge < e->nvert; edge++)
+    {
+      if ((e->en[edge]->bnd) && (e->en[edge]->marker == marker))
+      {
+        update_limit_table(e->get_mode());
+        RefMap* ru = meshfn->get_refmap();
+
+        meshfn->set_active_element(e);
+        int eo = quad->get_edge_points(edge);
+        meshfn->set_quad_order(eo, H2D_FN_VAL);
+        scalar *uval = meshfn->get_fn_values();
+        double3* pt = quad->get_points(eo);
+        double3* tan = ru->get_tangent(edge);
+        for (int i = 0; i < quad->get_num_points(eo); i++)
+          integral += pt[i][2] * uval[i] * tan[i][2];
+      }
+    }
+  }
+  return integral * 0.5;
+}
+
+
 int main(int argc, char* argv[])
 {
   // Load the mesh.
@@ -244,6 +278,10 @@ int main(int argc, char* argv[])
     sprintf(title, "Pressure, time %g", TIME);
     pview.set_title(title);
     pview.show(&p_prev);
+
+    // Calculate drag coefficient along inner circle.
+    double val = integrate_over_wall(&p_prev, bdy_inner);    
+    printf("Pressure integral: %g\n", val);
 
     // Copy the result of the Newton's iteration into the
     // previous time level solutions.

@@ -207,10 +207,13 @@ int main(int argc, char* argv[])
   WeakForm wf(2);
   wf.add_biform(0, 0, jac_TT, jac_TT_ord, H2D_UNSYM, H2D_ANY, &T_prev_newton);
   wf.add_biform(0, 1, jac_Tphi, jac_Tphi_ord, H2D_UNSYM, H2D_ANY, 0);
-  wf.add_liform(0, res_T, res_T_ord, H2D_ANY, Tuple<MeshFunction*>(&T_prev_newton, &T_prev_time, &phi_prev_newton));
-  wf.add_biform(1, 0, jac_phiT, jac_phiT_ord, H2D_UNSYM, H2D_ANY, Tuple<MeshFunction*>(&phi_prev_newton, &T_prev_newton));
+  wf.add_liform(0, res_T, res_T_ord, H2D_ANY, 
+                Tuple<MeshFunction*>(&T_prev_newton, &T_prev_time, &phi_prev_newton));
+  wf.add_biform(1, 0, jac_phiT, jac_phiT_ord, H2D_UNSYM, H2D_ANY, 
+                Tuple<MeshFunction*>(&phi_prev_newton, &T_prev_newton));
   wf.add_biform(1, 1, jac_phiphi, jac_phiphi_ord, H2D_UNSYM, H2D_ANY, &T_prev_newton);
-  wf.add_liform(1, res_phi, res_phi_ord, H2D_ANY, Tuple<MeshFunction*>(&phi_prev_newton, &phi_prev_time, &T_prev_newton));
+  wf.add_liform(1, res_phi, res_phi_ord, H2D_ANY, 
+                Tuple<MeshFunction*>(&phi_prev_newton, &phi_prev_time, &T_prev_newton));
 
   // Matrix solver.
   UmfpackSolver solver;
@@ -249,7 +252,8 @@ int main(int argc, char* argv[])
 
   // Newton's loop on the coarse mesh.
   info("Newton solve on coarse meshes.");
-  if (!nls.solve_newton(&T_prev_newton, &phi_prev_newton, NEWTON_TOL_COARSE, NEWTON_MAX_ITER))
+  bool verbose = true; // Default is false.
+  if (!nls.solve_newton(&T_prev_newton, &phi_prev_newton, NEWTON_TOL_COARSE, NEWTON_MAX_ITER, verbose))
     error("Newton's method did not converge.");
 
   // Store the result in T_coarse, phi_coarse.
@@ -304,7 +308,7 @@ int main(int argc, char* argv[])
       if (SOLVE_ON_COARSE_MESH) {
         // Newton's loop on the globally derefined mesh.
         info("Newton solve on globally derefined meshes.", ts);
-        if (!nls.solve_newton(&T_prev_newton, &phi_prev_newton, NEWTON_TOL_COARSE, NEWTON_MAX_ITER))
+        if (!nls.solve_newton(&T_prev_newton, &phi_prev_newton, NEWTON_TOL_COARSE, NEWTON_MAX_ITER, verbose))
           error("Newton's method did not converge.");
       }
 
@@ -337,7 +341,7 @@ int main(int argc, char* argv[])
 
       // Newton's loop on the fine meshes.
       info("Newton solve on fine meshes.");
-      if (!rnls.solve_newton(&T_prev_newton, &phi_prev_newton, NEWTON_TOL_FINE, NEWTON_MAX_ITER))
+      if (!rnls.solve_newton(&T_prev_newton, &phi_prev_newton, NEWTON_TOL_FINE, NEWTON_MAX_ITER, verbose))
         error("Newton's method did not converge.");
 
       // Store the result in T_fine, phi_fine.
@@ -399,7 +403,7 @@ int main(int argc, char* argv[])
         if (SOLVE_ON_COARSE_MESH) {
           // Newton's loop on the coarse meshes.
           info("Newton solve on coarse meshes.");
-          if (!nls.solve_newton(&T_prev_newton, &phi_prev_newton, NEWTON_TOL_COARSE, NEWTON_MAX_ITER))
+          if (!nls.solve_newton(&T_prev_newton, &phi_prev_newton, NEWTON_TOL_COARSE, NEWTON_MAX_ITER, verbose))
             error("Newton's method did not converge.");
         }
 
