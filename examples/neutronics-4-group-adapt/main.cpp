@@ -46,7 +46,7 @@ using namespace RefinementSelectors;
 
 #include "h1_adapt_norm_maxim.h"
 
-const bool SOLVE_ON_COARSE_MESH = true; // If true, coarse mesh FE problem is solved in every adaptivity step.
+const bool SOLVE_ON_COARSE_MESH = false; // If true, coarse mesh FE problem is solved in every adaptivity step.
                                          // If false, projection of the fine mesh solution on the coarse mesh is used. 
 const int INIT_REF_NUM[4] = {1, 1, 1, 1};// Initial uniform mesh refinement for the individual solution components.
 const int P_INIT[4] = {1, 1, 1, 1};      // Initial polynomial orders for the individual solution components.	

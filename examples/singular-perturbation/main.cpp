@@ -20,7 +20,7 @@ using namespace RefinementSelectors;
 //
 //  The following parameters can be changed:
 
-const bool SOLVE_ON_COARSE_MESH = true; // If true, coarse mesh FE problem is solved in every adaptivity step.
+const bool SOLVE_ON_COARSE_MESH = false; // If true, coarse mesh FE problem is solved in every adaptivity step.
                                          // If false, projection of the fine mesh solution on the coarse mesh is used. 
 const int INIT_REF_NUM = 1;              // Number of initial mesh refinements (the original mesh is just one element)
 const int INIT_REF_NUM_BDY = 3;          // Number of initial mesh refinements towards the boundary

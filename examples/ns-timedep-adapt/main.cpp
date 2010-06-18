@@ -245,7 +245,7 @@ int main(int argc, char* argv[])
     {
       info("---- Adaptivity step %d:", at++);
 
-      if (xvel_space.get_num_dofs() + yvel_space.get_num_dofs() + p_space.get_num_dofs() >= NDOF_STOP) {
+      if (nls.get_num_dofs() >= NDOF_STOP) {
         done = true;
         break;
       }      

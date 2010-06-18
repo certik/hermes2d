@@ -22,7 +22,7 @@ using namespace RefinementSelectors;
 //
 //  The following parameters can be changed:
 
-const bool SOLVE_ON_COARSE_MESH = true; // If true, coarse mesh FE problem is solved in every adaptivity step.
+const bool SOLVE_ON_COARSE_MESH = false; // If true, coarse mesh FE problem is solved in every adaptivity step.
                                          // If false, projection of the fine mesh solution on the coarse mesh is used. 
 const int P_INIT = 1;                    // Initial polynomial degree of all mesh elements.
 const bool STABILIZATION_ON = false;     // Stabilization on/off (assumes that H2D_SECOND_DERIVATIVES_ENABLED is defined).

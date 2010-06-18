@@ -20,7 +20,7 @@ using namespace RefinementSelectors;
 //     temp = TEMP_INNER on Gamma_4
 //     negative heat flux with HEAT_FLUX_OUTER elsewhere.
 
-const bool SOLVE_ON_COARSE_MESH = true; // If true, coarse mesh FE problem is solved in every adaptivity step.
+const bool SOLVE_ON_COARSE_MESH = false; // If true, coarse mesh FE problem is solved in every adaptivity step.
                                          // If false, projection of the fine mesh solution on the coarse mesh is used. 
 const int P_INIT_TEMP = 1;               // Initial polynomial degrees in temperature mesh.
 const int P_INIT_DISP = 1;               // Initial polynomial degrees for displacement meshes.

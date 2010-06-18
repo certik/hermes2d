@@ -210,17 +210,10 @@ void solveAdaptive(Mesh &Cmesh, Mesh &phimesh, Mesh &basemesh, NonlinSystem &nls
   OrderView Cordview("C order", 0, 300, 600, 600);
   OrderView phiordview("Phi order", 600, 300, 600, 600);
 
-  // convergence graph wrt. the number of degrees of freedom
-  GnuplotGraph graph_err;
-  graph_err.set_captions("", "Timestep", "Error (Energy Norm)");
-  graph_err.add_row("Reference solution", "k", "-", "O");
+  // Convergence graph wrt. the number of degrees of freedom.
+  SimpleGraph graph_err, graph_dof;
 
-  // convergence graph wrt. CPU time
-  GnuplotGraph graph_dof;
-  graph_dof.set_captions("", "Timestep", "DOF");
-  graph_dof.add_row(MULTIMESH ? "multi-mesh" : "single-mesh", "k", "-", "o");
-
-  // create a selector which will select optimal candidate
+  // Create a selector which will select optimal candidate.
   H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
 
   phiview.set_title(title);
@@ -241,7 +234,7 @@ void solveAdaptive(Mesh &Cmesh, Mesh &phimesh, Mesh &basemesh, NonlinSystem &nls
   Csln_coarse.copy(&C_prev_newton);
   phisln_coarse.copy(&phi_prev_newton);
 
-  int at_index = 1; //for saving screenshot
+  int at_index = 1; // For saving screenshots.
   int ndof;
   for (int n = 1; n <= NSTEP; n++) {
     if (n > 1 && n % UNREF_FREQ == 0) {
@@ -252,13 +245,13 @@ void solveAdaptive(Mesh &Cmesh, Mesh &phimesh, Mesh &basemesh, NonlinSystem &nls
       Cspace.set_uniform_order(P_INIT);
       phispace.set_uniform_order(P_INIT);
 
-      // project the fine mesh solution on the globally derefined mesh
+      // Project the fine mesh solution on the globally derefined mesh.
       info("---- Time step %d, projecting fine mesh solution on globally derefined mesh:\n", n);
       nls.project_global(Tuple<MeshFunction*>(&Csln_fine, &phisln_fine), 
                          Tuple<Solution*>(&C_prev_newton, &phi_prev_newton));
 
       if (SOLVE_ON_COARSE_MESH) {
-        // Newton's loop on the globally derefined mesh
+        // Newton's loop on the globally derefined mesh.
         info("---- Time step %d, Newton solve on globally derefined mesh:\n", n);
         if (!nls.solve_newton(&C_prev_newton, &phi_prev_newton, NEWTON_TOL_COARSE, NEWTON_MAX_ITER))
           error("Newton's method did not converge.");
@@ -271,7 +264,7 @@ void solveAdaptive(Mesh &Cmesh, Mesh &phimesh, Mesh &basemesh, NonlinSystem &nls
     bool done = false;
     double err;
     do {
-      // Loop for fine mesh solution
+      // Loop for fine mesh solution.
       RefSystem rs(&nls);
 
       if (at == 1) rs.project_global(Tuple<MeshFunction*>(&Csln_coarse, &phisln_coarse), 
@@ -292,7 +285,7 @@ void solveAdaptive(Mesh &Cmesh, Mesh &phimesh, Mesh &basemesh, NonlinSystem &nls
       AbsFilter mag2(&C_prev_newton);
       Cview.show(&mag2); 
 
-      // Calculate element errors and total estimate
+      // Calculate element errors and total estimate.
       H1Adapt hp(Tuple<Space*>(&Cspace, &phispace));
       info("\n Calculating element errors\n");
       hp.set_solutions(Tuple<Solution*>(&Csln_coarse, &phisln_coarse), Tuple<Solution*>(&Csln_fine, &phisln_fine));
@@ -309,14 +302,14 @@ void solveAdaptive(Mesh &Cmesh, Mesh &phimesh, Mesh &basemesh, NonlinSystem &nls
           done = true;
         }
 
-        // project the fine mesh solution on the new coarse mesh
+        // Project the fine mesh solution on the new coarse mesh.
         info("---- Time step %d, adaptivity step %d, projecting fine mesh solution on new coarse mesh:\n",
             n, at);
         nls.project_global(Tuple<MeshFunction*>(&Csln_fine, &phisln_fine), 
                            Tuple<Solution*>(&C_prev_newton, &phi_prev_newton));
         at++;
         if (SOLVE_ON_COARSE_MESH) {
-          // Newton's loop on the globally derefined mesh
+          // Newton's loop on the globally derefined mesh.
           info("---- Time step %d, Newton solve on globally derefined mesh:\n", n);
           if (!nls.solve_newton(&C_prev_newton, &phi_prev_newton, NEWTON_TOL_COARSE, NEWTON_MAX_ITER))
             error("Newton's method did not converge.");
@@ -339,9 +332,9 @@ void solveAdaptive(Mesh &Cmesh, Mesh &phimesh, Mesh &basemesh, NonlinSystem &nls
       #endif
       at_index++;
     } while (!done);
-    graph_err.add_values(0, n, err);
+    graph_err.add_values(n, err);
     graph_err.save("error.gp");
-    graph_dof.add_values(0, n, nls.get_num_dofs());
+    graph_dof.add_values(n, nls.get_num_dofs());
     graph_dof.save("dofs.gp");
     if (n == 1) {
       sprintf(title, "phi after time step %d, adjust the graph and PRESS ANY KEY", n);
@@ -363,7 +356,7 @@ void solveAdaptive(Mesh &Cmesh, Mesh &phimesh, Mesh &basemesh, NonlinSystem &nls
     #endif
     if (n == 1) {
       // Wait for key press, so one can go to 3D mode
-      // which is way more informative in case of Nernst Planck
+      // which is way more informative in case of Nernst Planck.
       View::wait(H2DV_WAIT_KEYPRESS);
     }
     phi_prev_time.copy(&phisln_fine);
@@ -394,7 +387,7 @@ int main (int argc, char* argv[]) {
   H2DReader mloader;
   mloader.load("small.mesh", &basemesh);
   
-  // When nonadaptive solution, refine the mesh
+  // When nonadaptive solution, refine the mesh.
   basemesh.refine_towards_boundary(TOP_MARKER,
       adaptive ? REF_INIT : REF_INIT * 25);
   basemesh.refine_towards_boundary(BOT_MARKER,
@@ -409,14 +402,13 @@ int main (int argc, char* argv[]) {
   // The weak form for 2 equations.
   WeakForm wf(2);
 
-  Solution C_prev_time,    // prveious time step solution, for the time integration
-    C_prev_newton,   // solution convergin during the Newton's iteration
+  Solution C_prev_time,    // Previous time step solution, for the time integration.
+    C_prev_newton,         // Solution converging during the Newton's iteration.
     phi_prev_time,
     phi_prev_newton;
 
-  // Add the bilinear and linear forms
-  // generally, the equation system is described:
-  if (TIME_DISCR == 1) {  //implicit euler
+  // Add the bilinear and linear forms.
+  if (TIME_DISCR == 1) {  // Implicit Euler.
     wf.add_liform(0, callback(Fc_euler), H2D_ANY,
 		  Tuple<MeshFunction*>(&C_prev_time, &C_prev_newton, &phi_prev_newton));
     wf.add_liform(1, callback(Fphi_euler), H2D_ANY, Tuple<MeshFunction*>(&C_prev_newton, &phi_prev_newton));
