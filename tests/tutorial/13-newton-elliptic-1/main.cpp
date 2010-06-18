@@ -12,7 +12,7 @@ const int INIT_GLOB_REF_NUM = 3;  // Number of initial uniform mesh refinements.
 const int INIT_BDY_REF_NUM = 5;   // Number of initial refinements towards boundary.
 const int P_INIT = 2;             // Initial polynomial degree.
 const double NEWTON_TOL = 1e-6;   // Stopping criterion for the Newton's method.
-const int NEWTON_MAX_ITER = 100;  // Maximum allowed number of Newton iterations.
+const int NEWTON_MAX_ITER = 13;    // Maximum allowed number of Newton iterations.
 
 // Thermal conductivity (temperature-dependent)
 // Note: for any u, this function has to be positive.
@@ -84,13 +84,11 @@ int main(int argc, char* argv[])
 
   // Perform Newton's iteration.
   info("Performing Newton's iteration.");
-  bool success;
-  if (success = nls.solve_newton(&u_prev, NEWTON_TOL, NEWTON_MAX_ITER)) 
-    error("Newton's method did not converge.");
+  int success = nls.solve_newton(&u_prev, NEWTON_TOL, NEWTON_MAX_ITER);
 
 #define ERROR_SUCCESS                               0
 #define ERROR_FAILURE                               -1
-  if (success) {  // should pass with NEWTON_MAX_ITER = 8 and fail with NEWTON_MAX_ITER = 7
+  if (success) {  // should pass with NEWTON_MAX_ITER = 13 and fail with NEWTON_MAX_ITER = 12
     printf("Success!\n");
     return ERROR_SUCCESS;
   }

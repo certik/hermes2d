@@ -69,17 +69,18 @@ public:
 
   /// Performs complete Newton's loop for one equation
   bool solve_newton(Solution* u_prev, double newton_tol, int newton_max_iter,
-                      Filter* f1 = NULL, Filter* f2 = NULL, Filter* f3 = NULL);
+                    bool verbose = false, 
+                    Filter* f1 = NULL, Filter* f2 = NULL, Filter* f3 = NULL);
 
   /// Performs complete Newton's loop for two equations
   bool solve_newton(Solution* u_prev_1, Solution* u_prev_2, double newton_tol, 
-                    int newton_max_iter,
+                    int newton_max_iter, bool verbose = false, 
                     Filter* f1 = NULL, Filter* f2 = NULL, Filter* f3 = NULL);
 
   /// Performs complete Newton's loop for three equations
   bool solve_newton(Solution* u_prev_1, Solution* u_prev_2, Solution* u_prev_3,
-                      double newton_tol, int newton_max_iter,
-                      Filter* f1 = NULL, Filter* f2 = NULL, Filter* f3 = NULL);
+                    double newton_tol, int newton_max_iter, bool verbose = false,
+                    Filter* f1 = NULL, Filter* f2 = NULL, Filter* f3 = NULL);
 
   /// returns the L2-norm of the residual vector
   double get_residual_l2_norm() const { return res_l2; }

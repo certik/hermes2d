@@ -1083,18 +1083,21 @@ int LinSystem::assign_dofs()
 }
 
 // global orthogonal projection 
-// FIXME: so far all solution components must be projected in the same norm "proj_norm"
-void LinSystem::project_global(Tuple<MeshFunction*> source, Tuple<Solution*> target, int proj_norm)
+void LinSystem::project_global(Tuple<MeshFunction*> source, Tuple<Solution*> target, Tuple<int>proj_norms)
 {
   int n = source.size();
   if (n != target.size()) 
     error("Mismatched numbers of projected functions and solutions in LinSystem::project_global().");
+  if (proj_norms != Tuple<int>()) {
+    if (n != proj_norms.size()) 
+      error("Mismatched numbers of projected functions and projection norms in LinSystem::project_global().");
+  }
   if (n != wf->neq)
     error("Wrong number of functions in project_global_n().");
   if (!have_spaces)
     error("You have to init_spaces() before using project_global_.");
 
-  // this is needed since spaces may have their DOFs enumerated locally 
+  // this is needed since spaces may have their DOFs enumerated only locally 
   // when they come here. 
   this->assign_dofs();
 
@@ -1102,38 +1105,39 @@ void LinSystem::project_global(Tuple<MeshFunction*> source, Tuple<Solution*> tar
   WeakForm* wf_orig = wf;
 
   // define temporary projection weak form
-  int i;
   WeakForm wf_proj(n);
   wf = &wf_proj;
-  int found = 0;
-  if (proj_norm == 0) {
-    found = 1;
-    for (i = 0; i < n; i++)
-    {
+  int found[100];
+  for (int i = 0; i < 100; i++) found[i] = 0;
+  for (int i = 0; i < n; i++) {
+    int norm;
+    if (proj_norms == Tuple<int>()) norm = 1; 
+    else norm = proj_norms[i];
+    if (norm == 0) {
+      found[i] = 1;
       wf->add_biform(i, i, L2projection_biform<double, scalar>, L2projection_biform<Ord, Ord>);
       wf->add_liform(i, L2projection_liform<double, scalar>, L2projection_liform<Ord, Ord>, 
                      H2D_ANY, source[i]);
     }
-  }
-  if (proj_norm == 1) {
-    found = 1;
-    for (i = 0; i < n; i++)
-    {
+    if (norm == 1) {
+      found[i] = 1;
       wf->add_biform(i, i, H1projection_biform<double, scalar>, H1projection_biform<Ord, Ord>);
       wf->add_liform(i, H1projection_liform<double, scalar>, H1projection_liform<Ord, Ord>, 
                      H2D_ANY, source[i]);
     }
-  }
-  if (proj_norm == 2) {
-    found = 1;
-    for (i = 0; i < n; i++)
-    {
+    if (norm == 2) {
+      found[i] = 1;
       wf->add_biform(i, i, Hcurlprojection_biform<double, scalar>, Hcurlprojection_biform<Ord, Ord>);
       wf->add_liform(i, Hcurlprojection_liform<double, scalar>, Hcurlprojection_liform<Ord, Ord>, 
                      H2D_ANY, source[i]);
     }
   }
-  if (!found) error("Wrong projection type in project_global_n().");
+  for (int i=0; i < n; i++) {
+    if (found[i] == 0) {
+      printf("index of component: %d\n", i);
+      error("Wrong projection norm in project_global_n().");
+    }
+  }
 
   want_dir_contrib = true;
   LinSystem::assemble();
@@ -1143,14 +1147,6 @@ void LinSystem::project_global(Tuple<MeshFunction*> source, Tuple<Solution*> tar
   // restoring original wesk form
   wf = wf_orig;
   wf_seq = -1;
-}
-
-// global orthogonal projection of one function
-void LinSystem::project_global(MeshFunction* source, Solution* target, int proj_norm)
-{
-  if (this->wf->neq != 1) 
-    error("Number of projected functions must be one if there is only one equation, in LinSystem::project_global().");
-  this->project_global(Tuple<MeshFunction*>(source), Tuple<Solution*>(target));
 }
 
 int LinSystem::get_num_dofs()

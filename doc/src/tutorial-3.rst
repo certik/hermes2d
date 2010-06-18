@@ -463,7 +463,7 @@ problem on the new coarse mesh:
       info("---- Projecting fine mesh solution on new coarse mesh:\n");
       nls.project_global(&sln_fine, &u_prev, PROJ_TYPE);
 
-      if (NEWTON_ON_COARSE_MESH) {
+      if (SOLVE_ON_COARSE_MESH) {
         // Newton's loop on the coarse mesh
         info("---- Solving on coarse mesh:\n");
         if (!nls.solve_newton(&u_prev, NEWTON_TOL_COARSE, NEWTON_MAX_ITER)) error("Newton's method did not converge.");
@@ -473,8 +473,8 @@ problem on the new coarse mesh:
       sln_coarse.copy(&u_prev);
     }
 
-The parameter NEWTON_ON_COARSE_MESH is provided to allow the user to do his 
-own experiments, but the default value is NEWTON_ON_COARSE_MESH = false.
+The parameter SOLVE_ON_COARSE_MESH is provided to allow the user to do his 
+own experiments, but the default value is SOLVE_ON_COARSE_MESH = false.
 In our experience, the Newton's loop on the coarse mesh can be skipped
 in most cases since it does not affect the convergence and one saves some
 CPU time. This is illustrated in the following two convergence comparisons:
@@ -496,7 +496,7 @@ Convergence in CPU time (with and without Newton solve on coarse mesh):
    :alt: CPU convergence graph for tutorial example 15.
 
 In the following we show the resulting meshes (corresponding to 
-NEWTON_ON_COARSE_MESH = false). The solution itself is not 
+SOLVE_ON_COARSE_MESH = false). The solution itself is not 
 shown since the reader knows it from the previous example.
 
 Resulting coarse mesh.

@@ -16,6 +16,7 @@
 #ifndef __H2D_LINSYSTEM_H
 #define __H2D_LINSYSTEM_H
 
+#include "common.h"
 #include "tuple.h"
 #include "matrix.h"
 #include "matrix_old.h"
@@ -28,10 +29,18 @@ class PrecalcShapeset;
 class WeakForm;
 class Solver;
 
-H2D_API_USED_TEMPLATE(Tuple<Space*>); ///< Instantiated template. It is used to create a clean Windows DLL interface.
-H2D_API_USED_TEMPLATE(Tuple<Solution*>); ///< Instantiated template. It is used to create a clean Windows DLL interface.
-H2D_API_USED_TEMPLATE(Tuple<PrecalcShapeset*>); ///< Instantiated template. It is used to create a clean Windows DLL interface.
+// Default H2D projection norm. Used in project_global(...)
+// FIXME: this should be defined in common.h and used in all
+// versions of project_global, but then it complains about 
+// multiple definitions.
+//int H2D_DEFAULT_PROJ_NORM = 1; 
 
+/// Instantiated template. It is used to create a clean Windows DLL interface.
+H2D_API_USED_TEMPLATE(Tuple<int>); 
+H2D_API_USED_TEMPLATE(Tuple<Space*>); 
+H2D_API_USED_TEMPLATE(Tuple<MeshFunction*>); 
+H2D_API_USED_TEMPLATE(Tuple<Solution*>); 
+H2D_API_USED_TEMPLATE(Tuple<PrecalcShapeset*>); 
 
 ///
 ///
@@ -148,14 +157,18 @@ public:
   /// Assigning DOF = enumerating basis functions in the FE spaces.
   int assign_dofs();  // all spaces
 
-  /// Global orthogonal projection of multiple solution components simultaneously 
-  /// (so far all must be in the same norm but this can be fixed easily). This 
-  /// projection defines the entire coefficient vector Vec. Calls assign_dofs() 
-  /// at the beginning.
-  void project_global(Tuple<MeshFunction*> source, Tuple<Solution*> target, int proj_norm = 1);
+  /// Global orthogonal projection of multiple solution components. For each of 
+  /// them a different proj_norm can be used. This defines the entire coefficient 
+  /// vector Vec. Calls assign_dofs() at the beginning.
+  void project_global(Tuple<MeshFunction*> source, Tuple<Solution*> target, Tuple<int> proj_norms = Tuple<int>());
 
   /// Global orthogonal projection of one function.
-  void project_global(MeshFunction* source, Solution* target, int proj_norm = 1);
+  void project_global(MeshFunction* source, Solution* target, int proj_norm = 1)
+  {
+    if (this->wf->neq != 1) 
+      error("Number of projected functions must be one if there is only one equation, in LinSystem::project_global().");
+    this->project_global(Tuple<MeshFunction*>(source), Tuple<Solution*>(target), Tuple<int>(proj_norm));
+  };
 
   /// Global orthogonal projection of one exact function.
   void project_global(scalar (*exactfn)(double x, double y, scalar& dx, scalar& dy),
@@ -177,7 +190,9 @@ public:
     Solution tmp1, tmp2;
     tmp1.set_exact(mesh1, exactfn1);
     tmp2.set_exact(mesh2, exactfn2);
-    project_global(Tuple<MeshFunction*>(&tmp1, &tmp2), Tuple<Solution*>(target1, target2), proj_norm);
+    project_global(Tuple<MeshFunction*>(&tmp1, &tmp2), 
+                   Tuple<Solution*>(target1, target2), 
+                   Tuple<int>(proj_norm, proj_norm));
   }
 
   /// Global orthogonal projection of three exact functions.
@@ -194,7 +209,8 @@ public:
     tmp2.set_exact(mesh2, exactfn2);
     tmp3.set_exact(mesh3, exactfn3);
     project_global(Tuple<MeshFunction*>(&tmp1, &tmp2, &tmp3), 
-                   Tuple<Solution*>(target1, target2, target3), proj_norm);
+                   Tuple<Solution*>(target1, target2, target3), 
+                   Tuple<int>(proj_norm, proj_norm, proj_norm));
   }
 
   /// Projection-based interpolation of an exact function. This is faster than the 
@@ -205,7 +221,7 @@ public:
     /// TODO
   }
 
-  /// Needed for time-dependent problems where BC depend on time.
+  /// Needed for problems where BC depend on time.
   void update_essential_bc_values();
 
   /// Frees spaces. Called automatically on destruction.

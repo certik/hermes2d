@@ -95,14 +95,19 @@ int main(int argc, char* argv[])
   info("Projecting initial condition on the FE space.");
   nls.project_global(&u_prev, &u_prev);
 
+  // Show the initial condition for the Newton's method. 
+  ScalarView pview("Projection of initial condition", 0, 0, 400, 300);
+  pview.show(&u_prev);
+  
   // Perform Newton's iteration.
   info("Performing Newton's iteration.");
-  if (!nls.solve_newton(&u_prev, NEWTON_TOL, NEWTON_MAX_ITER)) 
+  bool verbose = true; // Default is false.
+  if (!nls.solve_newton(&u_prev, NEWTON_TOL, NEWTON_MAX_ITER, verbose)) 
     error("Newton's method did not converge.");
 
   // Visualise the solution and mesh.
-  ScalarView sview("Solution", 0, 0, 400, 300);
-  OrderView oview("Mesh", 410, 0, 400, 300);
+  ScalarView sview("Solution", 410, 0, 400, 300);
+  OrderView oview("Mesh", 820, 0, 400, 300);
   char title[100];
   sprintf(title, "Solution");
   sview.set_title(title);

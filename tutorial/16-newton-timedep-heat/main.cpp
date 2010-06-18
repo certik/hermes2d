@@ -125,7 +125,8 @@ int main(int argc, char* argv[])
 
     // Newton's method.
     info("Performing Newton's method.");
-    if (!nls.solve_newton(&u_prev_newton, NEWTON_TOL, NEWTON_MAX_ITER)) 
+    bool verbose = true; // Default is false.
+    if (!nls.solve_newton(&u_prev_newton, NEWTON_TOL, NEWTON_MAX_ITER, verbose)) 
       error("Newton's method did not converge.");
 
     // Update previous time level solution.

@@ -16,7 +16,7 @@ using namespace RefinementSelectors;
 //
 // The following parameters can be changed:
 
-const bool SOLVE_ON_COARSE_MESH = true; // If true, coarse mesh FE problem is solved in every adaptivity step.
+const bool SOLVE_ON_COARSE_MESH = false; // If true, coarse mesh FE problem is solved in every adaptivity step.
                                          // If false, projection of the fine mesh solution on the coarse mesh is used. 
 const int P_INIT = 1;                    // Initial polynomial degrees.
 const bool MULTI = true;                 // MULTI = true  ... use multi-mesh,
@@ -158,6 +158,9 @@ int main(int argc, char* argv[])
   temp_view.show_mesh(false);
   moist_view.show_mesh(false);
 
+  // Error estimate and discrete problem size as a function of physical time.
+  SimpleGraph graph_time_err, graph_time_dof;
+
   // Matrix solver.
   UmfpackSolver solver;
 
@@ -186,7 +189,9 @@ int main(int argc, char* argv[])
     space_M.set_uniform_order(P_INIT);
 
     // Adaptivity loop (in space):
-    int as = 1; bool done = false;
+    bool done = false;
+    double space_err_est;
+    int as = 1;
     do
     {
       info("---- Time step %d, adaptivity step %d:", ts, as);
@@ -213,21 +218,6 @@ int main(int argc, char* argv[])
                           Tuple<Solution*>(&T_coarse, &M_coarse));
       }
 
-      // Visualize the solution and meshes.
-      char title[100];
-      sprintf(title, "T mesh (coarse), time = %g days", CURRENT_TIME/86400.);
-      temp_ord.set_title(title);
-      temp_ord.show(&space_T);
-      sprintf(title, "M mesh (coarse), time = %g days", CURRENT_TIME/86400.);
-      moist_ord.set_title(title);
-      moist_ord.show(&space_M);
-      sprintf(title, "T (coarse mesh), time = %g days", CURRENT_TIME/86400.);
-      temp_view.set_title(title);
-      temp_view.show(&T_coarse, H2D_EPS_HIGH);
-      sprintf(title, "M (coarse mesh), time = %g days", CURRENT_TIME/86400.);
-      moist_view.set_title(title);
-      moist_view.show(&M_coarse, H2D_EPS_HIGH);
-
       // Calculate error estimates.
       info("Calculating errors.");
       double T_err_est = h1_error(&T_coarse, &T_fine) * 100;
@@ -244,7 +234,7 @@ int main(int argc, char* argv[])
       hp.set_biform(0, 1, callback(bilinear_form_sym_0_1));
       hp.set_biform(1, 0, callback(bilinear_form_sym_1_0));
       hp.set_biform(1, 1, callback(bilinear_form_sym_1_1));
-      double space_err_est = hp.calc_error(H2D_TOTAL_ERROR_REL | H2D_ELEMENT_ERROR_REL) * 100;
+      space_err_est = hp.calc_error(H2D_TOTAL_ERROR_REL | H2D_ELEMENT_ERROR_REL) * 100;
 
       // If err_est too large, adapt the mesh.
       if (space_err_est > SPACE_TOL) {
@@ -257,6 +247,27 @@ int main(int argc, char* argv[])
       as++;
     }
     while (!done);
+
+    // Visualize the solution and meshes.
+    char title[100];
+    sprintf(title, "T mesh, time = %g days", CURRENT_TIME/86400.);
+    temp_ord.set_title(title);
+    temp_ord.show(&space_T);
+    sprintf(title, "M mesh, time = %g days", CURRENT_TIME/86400.);
+    moist_ord.set_title(title);
+    moist_ord.show(&space_M);
+    sprintf(title, "T, time = %g days", CURRENT_TIME/86400.);
+    temp_view.set_title(title);
+    temp_view.show(&T_coarse, H2D_EPS_HIGH);
+    sprintf(title, "M, time = %g days", CURRENT_TIME/86400.);
+    moist_view.set_title(title);
+    moist_view.show(&M_coarse, H2D_EPS_HIGH);
+
+    // Add entries to convergence graphs.
+    graph_time_err.add_values(ts*TAU, space_err_est);
+    graph_time_err.save("time_error.dat");
+    graph_time_dof.add_values(ts*TAU, ls.get_num_dofs());
+    graph_time_dof.save("time_dof.dat");
 
     // Update time.
     CURRENT_TIME += TAU;

@@ -22,12 +22,12 @@
 //
 //  Time-stepping: second order BDF formula
 
-const int INIT_REF_NUM = 1;            // Number of initial uniform mesh refinements.
-const int P_INIT = 2;                  // Initial polynomial degree.
+const int INIT_REF_NUM = 2;            // Number of initial uniform mesh refinements.
+const int P_INIT = 1;                  // Initial polynomial degree.
 const double TAU = 0.5;                // Time step.
 const double T_FINAL = 60.0;           // Time interval length.
 const double NEWTON_TOL = 1e-4;        // Stopping criterion for the Newton's method.
-const int NEWTON_MAX_ITER = 15;        // Maximum allowed number of Newton iterations.
+const int NEWTON_MAX_ITER = 50;        // Maximum allowed number of Newton iterations.
 
 // Problem constants
 const double Le    = 1.0;
@@ -123,7 +123,8 @@ int main(int argc, char* argv[])
 
     // Newton's method.
     info("Performing Newton's iteration.");
-    if (!nls.solve_newton(&t_prev_newton, &c_prev_newton, NEWTON_TOL, NEWTON_MAX_ITER,
+    bool verbose = true; // Default is false.
+    if (!nls.solve_newton(&t_prev_newton, &c_prev_newton, NEWTON_TOL, NEWTON_MAX_ITER, verbose,
                        &omega, &omega_dt, &omega_dc)) error("Newton's method did not converge.");
 
     // Visualization.

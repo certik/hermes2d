@@ -79,10 +79,6 @@ BCType yvel_bc_type(int marker) {
   else return BC_ESSENTIAL;
 }
 
-// Boundary condition types for pressure.
-BCType p_bc_type(int marker)
-  { return BC_NONE; }
-
 // Essential (Dirichlet) boundary condition values for x-velocity.
 scalar essential_bc_values_xvel(int ess_bdy_marker, double x, double y) {
   if (ess_bdy_marker == bdy_left) 
@@ -123,10 +119,11 @@ int main(int argc, char* argv[])
 #ifdef PRESSURE_IN_L2
   L2Space p_space(&mesh, P_INIT_PRESSURE);
 #else
-  H1Space p_space(&mesh, p_bc_type, NULL, P_INIT_PRESSURE);
+  H1Space p_space(&mesh, NULL, NULL, P_INIT_PRESSURE);
 #endif
 
   // Solutions for the Newton's iteration and time stepping.
+  info("Setting initial conditions.");
   Solution xvel_prev_time, yvel_prev_time, xvel_prev_newton, yvel_prev_newton, p_prev;
   xvel_prev_time.set_zero(&mesh);
   yvel_prev_time.set_zero(&mesh);
@@ -150,10 +147,11 @@ int main(int argc, char* argv[])
                   H2D_UNSYM, H2D_ANY, Tuple<MeshFunction*>(&xvel_prev_newton, &yvel_prev_newton));
     wf.add_biform(1, 2, callback(bilinear_form_unsym_1_2), H2D_ANTISYM);
     wf.add_liform(0, callback(newton_F_0), H2D_ANY, Tuple<MeshFunction*>(&xvel_prev_time, 
-									 &yvel_prev_time, &xvel_prev_newton, &yvel_prev_newton, &p_prev));
+		  &yvel_prev_time, &xvel_prev_newton, &yvel_prev_newton, &p_prev));
     wf.add_liform(1, callback(newton_F_1), H2D_ANY, Tuple<MeshFunction*>(&xvel_prev_time, 
-									 &yvel_prev_time, &xvel_prev_newton, &yvel_prev_newton, &p_prev));
-    wf.add_liform(2, callback(newton_F_2), H2D_ANY, Tuple<MeshFunction*>(&xvel_prev_newton, &yvel_prev_newton));
+		  &yvel_prev_time, &xvel_prev_newton, &yvel_prev_newton, &p_prev));
+    wf.add_liform(2, callback(newton_F_2), H2D_ANY, Tuple<MeshFunction*>(&xvel_prev_newton, 
+                  &yvel_prev_newton));
   }
   else {
     wf.add_biform(0, 0, callback(bilinear_form_sym_0_0_1_1), H2D_SYM);
@@ -192,50 +190,45 @@ int main(int argc, char* argv[])
   for (int ts = 1; ts <= num_time_steps; ts++)
   {
     TIME += TAU;
-
     info("---- Time step %d, time = %g:", ts, TIME);
 
     if (NEWTON) {
-      nls.update_essential_bc_values();
+      if (TIME <= STARTUP_TIME) {
+        info("Updating time-dependent essential BC.");
+        nls.update_essential_bc_values();
+      }
       // Newton's method.
       info("Performing Newton's method.");
-      if (!nls.solve_newton(&xvel_prev_newton, &yvel_prev_newton, &p_prev, NEWTON_TOL, NEWTON_MAX_ITER)) 
+      bool verbose = true; // Default is false.
+      if (!nls.solve_newton(&xvel_prev_newton, &yvel_prev_newton, &p_prev, 
+                            NEWTON_TOL, NEWTON_MAX_ITER, verbose)) {
         error("Newton's method did not converge.");
-
-      // Show the solution at the end of time step.
-      sprintf(title, "Velocity, time %g", TIME);
-      vview.set_title(title);
-      vview.show(&xvel_prev_newton, &yvel_prev_newton, H2D_EPS_LOW);
-      sprintf(title, "Pressure, time %g", TIME);
-      pview.set_title(title);
-      pview.show(&p_prev);
-
-      // Copy the result of the Newton's iteration into the
-      // previous time level solutions.
-      xvel_prev_time.copy(&xvel_prev_newton);
-      yvel_prev_time.copy(&yvel_prev_newton);
+      }
     }
     else {
-      ls.update_essential_bc_values();
+      // Needed if time-dependent essential BC are used.
+      if (TIME <= STARTUP_TIME) {
+        info("Updating time-dependent essential BC.");
+        ls.update_essential_bc_values();
+      }
       // Assemble and solve.
-      Solution xvel_sln, yvel_sln, p_sln;
       info("Assembling and solving linear problem.");
       ls.assemble();
-      ls.solve(Tuple<Solution*>(&xvel_sln, &yvel_sln, &p_sln));
-
-      // Show the solution at the end of time step.
-      sprintf(title, "Velocity, time %g", TIME);
-      vview.set_title(title);
-      vview.show(&xvel_sln, &yvel_sln, H2D_EPS_LOW);
-      sprintf(title, "Pressure, time %g", TIME);
-      pview.set_title(title);
-      pview.show(&p_sln);
-
-      // This copy destroys xvel_sln and yvel_sln
-      // which are no longer needed.
-      xvel_prev_time = xvel_sln;
-      yvel_prev_time = yvel_sln;
+      ls.solve(Tuple<Solution*>(&xvel_prev_newton, &yvel_prev_newton, &p_prev));
     }
+
+    // Show the solution at the end of time step.
+    sprintf(title, "Velocity, time %g", TIME);
+    vview.set_title(title);
+    vview.show(&xvel_prev_newton, &yvel_prev_newton, H2D_EPS_LOW);
+    sprintf(title, "Pressure, time %g", TIME);
+    pview.set_title(title);
+    pview.show(&p_prev);
+
+    // Copy the result of the Newton's iteration into the
+    // previous time level solutions.
+    xvel_prev_time.copy(&xvel_prev_newton);
+    yvel_prev_time.copy(&yvel_prev_newton);
   }
 
   // Wait for all views to be closed.

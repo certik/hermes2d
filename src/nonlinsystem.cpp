@@ -219,7 +219,8 @@ bool NonlinSystem::solve(Solution* sln1, Solution* sln2, Solution* sln3)
 }
 
 // Newton's loop for one equation
-bool NonlinSystem::solve_newton(Solution* u_prev, double newton_tol, int newton_max_iter,
+bool NonlinSystem::solve_newton(Solution* u_prev, double newton_tol, 
+                                int newton_max_iter, bool verbose, 
                                 Filter* f1, Filter* f2, Filter* f3) {
     int it = 1;
     double res_l2_norm;
@@ -227,9 +228,8 @@ bool NonlinSystem::solve_newton(Solution* u_prev, double newton_tol, int newton_
     Space *space = this->get_space(0);
     do
     {
-      info("---- Newton iter %d:", it); it++;
-      //printf("ndof = %d\n", this->get_num_dofs());
-
+      info("---- Newton iter %d:", it);
+  
       // reinitialization of filters (if relevant)
       if (f1 != NULL) f1->reinit();
       if (f2 != NULL) f2->reinit();
@@ -242,11 +242,14 @@ bool NonlinSystem::solve_newton(Solution* u_prev, double newton_tol, int newton_
 
       // calculate the l2-norm of residual vector
       res_l2_norm = this->get_residual_l2_norm();
-      info("Residual L2 norm: %g", res_l2_norm);
+      if (verbose) printf("---- Newton iter %d, ndof %d, res. l2 norm %g\n", 
+                          it, this->get_num_dofs(), res_l2_norm);
 
       // save the new solution as "previous" for the
       // next Newton's iteration
       u_prev->copy(&sln_iter);
+
+      it++;
     }
     while (res_l2_norm > newton_tol && it <= newton_max_iter);
     
@@ -257,6 +260,7 @@ bool NonlinSystem::solve_newton(Solution* u_prev, double newton_tol, int newton_
 
 // Newton's loop for two equations
 bool NonlinSystem::solve_newton(Solution* u_prev_1, Solution* u_prev_2, double newton_tol, int newton_max_iter,
+                                bool verbose, 
                                 Filter* f1, Filter* f2, Filter* f3) {
     int it = 1;
     double res_l2_norm;
@@ -266,8 +270,7 @@ bool NonlinSystem::solve_newton(Solution* u_prev_1, Solution* u_prev_2, double n
 
     do
     {
-      info("---- Newton iter %d:", it); it++;
-      //printf("ndof = %d\n", this->get_num_dofs());
+      info("---- Newton iter %d:", it); 
 
       // reinitialization of filters (if relevant)
       if (f1 != NULL) f1->reinit();
@@ -281,12 +284,15 @@ bool NonlinSystem::solve_newton(Solution* u_prev_1, Solution* u_prev_2, double n
 
       // calculate the l2-norm of residual vector
       res_l2_norm = this->get_residual_l2_norm();
-      info("Residual L2 norm: %g", res_l2_norm);
+      if (verbose) printf("---- Newton iter %d, ndof %d, res. l2 norm %g\n", 
+                          it, this->get_num_dofs(), res_l2_norm);
 
       // save the new solutions as "previous" for the
       // next Newton's iteration
       u_prev_1->copy(&sln_iter_1);
       u_prev_2->copy(&sln_iter_2);
+
+      it++;
     }
     while (res_l2_norm > newton_tol && it <= newton_max_iter);
 
@@ -297,8 +303,8 @@ bool NonlinSystem::solve_newton(Solution* u_prev_1, Solution* u_prev_2, double n
 
 // Newton's loop for three equations
 bool NonlinSystem::solve_newton(Solution* u_prev_1, Solution* u_prev_2, Solution* u_prev_3,
-                                  double newton_tol, int newton_max_iter,
-                                  Filter* f1, Filter* f2, Filter* f3) {
+				double newton_tol, int newton_max_iter, bool verbose, 
+                                Filter* f1, Filter* f2, Filter* f3) {
     int it = 1;
     double res_l2_norm;
     Solution sln_iter_1, sln_iter_2, sln_iter_3;
@@ -307,7 +313,7 @@ bool NonlinSystem::solve_newton(Solution* u_prev_1, Solution* u_prev_2, Solution
     Space *space_3 = this->get_space(2);
     do
     {
-      info("---- Newton iter %d:", it); it++;
+      info("---- Newton iter %d:", it); 
 
       // reinitialization of filters (if relevant)
       if (f1 != NULL) f1->reinit();
@@ -321,14 +327,16 @@ bool NonlinSystem::solve_newton(Solution* u_prev_1, Solution* u_prev_2, Solution
 
       // calculate the l2-norm of residual vector
       res_l2_norm = this->get_residual_l2_norm();
-      //info("Residual L2 norm: %g", res_l2_norm);
-      printf("Residual L2 norm: %g\n", res_l2_norm);
+      if (verbose) printf("---- Newton iter %d, ndof %d, res. l2 norm %g\n", 
+                          it, this->get_num_dofs(), res_l2_norm);
 
       // save the new solutions as "previous" for the
       // next Newton's iteration
       u_prev_1->copy(&sln_iter_1);
       u_prev_2->copy(&sln_iter_2);
       u_prev_3->copy(&sln_iter_3);
+
+      it++;
     }
     while (res_l2_norm > newton_tol && it <= newton_max_iter);
 

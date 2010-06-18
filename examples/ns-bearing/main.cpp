@@ -32,6 +32,10 @@
 //
 // The following parameters can be changed:
 
+const int INIT_REF_NUM = 2;                // Number of initial uniform mesh refinements. 
+const int INIT_BDY_REF_NUM_INNER = 2;      // Number of initial mesh refinements towards boundary. 
+const int INIT_BDY_REF_NUM_OUTER = 2;      // Number of initial mesh refinements towards boundary. 
+
 //#define STOKES                     // If this is defined, Stokes problem is solved, otherwise N-S.
 #define PRESSURE_IN_L2               // If this is defined, the pressure is approximated using
                                      // discontinuous L2 elements (making the velocity discreetely
@@ -39,8 +43,6 @@
                                      // pressure approximation). Otherwise the standard continuous
                                      // elements are used. The results are striking - check the
                                      // tutorial for comparisons.
-const int INIT_REF_NUM = 1;          // Number of initial uniform mesh refinements. 
-const int INIT_BDY_REF_NUM = 1;      // Number of initial mesh refinements towards boundary. 
 const bool NEWTON = true;            // If NEWTON == true then the Newton's iteration is performed.
                                      // in every time step. Otherwise the convective term is linearized
                                      // using the velocities from the previous time step.
@@ -52,29 +54,30 @@ const double RE = 200.0;             // Reynolds number.
 const double VEL = 0.1;              // Surface velocity of inner circle.
 const double STARTUP_TIME = 1.0;     // During this time, surface velocity of the inner circle increases 
                                      // gradually from 0 to VEL, then it stays constant.
-const double TAU = 0.1;             // Time step.
+const double TAU = 0.1;              // Time step.
 const double T_FINAL = 30000.0;      // Time interval length.
 const double NEWTON_TOL = 1e-5;      // Stopping criterion for the Newton's method.
 const int NEWTON_MAX_ITER = 10;      // Maximum allowed number of Newton iterations.
 
 // Boundary markers.
 int bdy_inner = 1;
-int bdy_outer  = 2;
+int bdy_outer = 2;
 
 // Current time (used in weak forms).
 double TIME = 0;
 
-// Boundary condition types for velocity.
-BCType vel_bc_type(int marker) {
+// Boundary condition types for x-velocity.
+BCType xvel_bc_type(int marker) {
   return BC_ESSENTIAL;
 }
 
-// Boundary condition types for pressure.
-BCType p_bc_type(int marker)
-  { return BC_NONE; }
+// Boundary condition types for y-velocity.
+BCType yvel_bc_type(int marker) {
+  return BC_ESSENTIAL;
+}
 
 // Essential (Dirichlet) boundary condition values for x-velocity.
-scalar essential_bc_value_xvel(int ess_bdy_marker, double x, double y) {
+scalar essential_bc_values_xvel(int ess_bdy_marker, double x, double y) {
   if (ess_bdy_marker == bdy_inner) {
     // Time-dependent surface velocity of inner circle.
     double velocity;
@@ -89,7 +92,7 @@ scalar essential_bc_value_xvel(int ess_bdy_marker, double x, double y) {
 }
 
 // Essential (Dirichlet) boundary condition values for y-velocity.
-scalar essential_bc_value_yvel(int ess_bdy_marker, double x, double y) {
+scalar essential_bc_values_yvel(int ess_bdy_marker, double x, double y) {
   if (ess_bdy_marker == bdy_inner) {
     // Time-dependent surface velocity of inner circle.
     double velocity;
@@ -111,23 +114,30 @@ int main(int argc, char* argv[])
   // Load the mesh.
   Mesh mesh;
   H2DReader mloader;
-  mloader.load("domain.mesh", &mesh);
+  mloader.load("domain-excentric.mesh", &mesh);
+  //mloader.load("domain-concentric.mesh", &mesh);
 
   // Initial mesh refinements.
   for (int i=0; i < INIT_REF_NUM; i++) mesh.refine_all_elements();
-  mesh.refine_towards_boundary(bdy_inner, INIT_BDY_REF_NUM, false); // INIT_BDY_REF_NUM is the number of levels,
-  //mesh.refine_towards_boundary(bdy_outer, INIT_BDY_REF_NUM, true); // 'true' stands for anisotropic refinements.
+  mesh.refine_towards_boundary(bdy_inner, INIT_BDY_REF_NUM_INNER, false);  // true for anisotropic refinements
+  mesh.refine_towards_boundary(bdy_outer, INIT_BDY_REF_NUM_OUTER, false);  // false for isotropic refinements
+
+  // View mesh.
+  MeshView mv("Mesh", 0, 0, 500, 500);
+  mv.show(&mesh);
+  View::wait();
 
   // Spaces for velocity components and pressure.
-  H1Space xvel_space(&mesh, vel_bc_type, essential_bc_value_xvel, P_INIT_VEL);
-  H1Space yvel_space(&mesh, vel_bc_type, essential_bc_value_yvel, P_INIT_VEL);
+  H1Space xvel_space(&mesh, xvel_bc_type, essential_bc_values_xvel, P_INIT_VEL);
+  H1Space yvel_space(&mesh, yvel_bc_type, essential_bc_values_yvel, P_INIT_VEL);
 #ifdef PRESSURE_IN_L2
-  L2Space p_space(&mesh, P_INIT_VEL);
+  L2Space p_space(&mesh, P_INIT_PRESSURE);
 #else
-  H1Space p_space(&mesh, p_bc_type, NULL, P_INIT_PRESSURE);
+  H1Space p_space(&mesh, NULL, NULL, P_INIT_PRESSURE);
 #endif
 
   // Solutions for the Newton's iteration and time stepping.
+  info("Setting initial conditions.");
   Solution xvel_prev_time, yvel_prev_time, xvel_prev_newton, yvel_prev_newton, p_prev;
   xvel_prev_time.set_zero(&mesh);
   yvel_prev_time.set_zero(&mesh);
@@ -151,10 +161,11 @@ int main(int argc, char* argv[])
                   H2D_UNSYM, H2D_ANY, Tuple<MeshFunction*>(&xvel_prev_newton, &yvel_prev_newton));
     wf.add_biform(1, 2, callback(bilinear_form_unsym_1_2), H2D_ANTISYM);
     wf.add_liform(0, callback(newton_F_0), H2D_ANY, Tuple<MeshFunction*>(&xvel_prev_time, 
-									 &yvel_prev_time, &xvel_prev_newton, &yvel_prev_newton, &p_prev));
+		  &yvel_prev_time, &xvel_prev_newton, &yvel_prev_newton, &p_prev));
     wf.add_liform(1, callback(newton_F_1), H2D_ANY, Tuple<MeshFunction*>(&xvel_prev_time, 
-									 &yvel_prev_time, &xvel_prev_newton, &yvel_prev_newton, &p_prev));
-    wf.add_liform(2, callback(newton_F_2), H2D_ANY, Tuple<MeshFunction*>(&xvel_prev_newton, &yvel_prev_newton));
+		  &yvel_prev_time, &xvel_prev_newton, &yvel_prev_newton, &p_prev));
+    wf.add_liform(2, callback(newton_F_2), H2D_ANY, Tuple<MeshFunction*>(&xvel_prev_newton, 
+                  &yvel_prev_newton));
   }
   else {
     wf.add_biform(0, 0, callback(bilinear_form_sym_0_0_1_1), H2D_SYM);
@@ -170,8 +181,8 @@ int main(int argc, char* argv[])
   }
 
   // Initialize views.
-  VectorView vview("velocity [m/s]", 0, 0, 500, 400);
-  ScalarView pview("pressure [Pa]", 510, 0, 500, 400);
+  VectorView vview("velocity [m/s]", 0, 0, 600, 500);
+  ScalarView pview("pressure [Pa]", 610, 0, 600, 500);
   //vview.set_min_max_range(0, 1.6);
   vview.fix_scale_width(80);
   //pview.set_min_max_range(-0.9, 1.0);
@@ -182,33 +193,10 @@ int main(int argc, char* argv[])
   UmfpackSolver umfpack;
 
   // Initialize linear system.
-  /*
-  LinSystem ls(&wf, &umfpack, 3, &xvel_space, &yvel_space, &p_space);
-  if (!NEWTON) printf("LinSystem ndof = %d\n", ls.get_num_dofs());
-  if (!NEWTON) ls.project_global(&xvel_prev_newton, &yvel_prev_newton, &p_prev, 
-                                 &xvel_prev_newton, &yvel_prev_newton, &p_prev);
-  */
+  LinSystem ls(&wf, &umfpack, Tuple<Space*>(&xvel_space, &yvel_space, &p_space));
 
   // Initialize nonlinear system.
   NonlinSystem nls(&wf, &umfpack, Tuple<Space*>(&xvel_space, &yvel_space, &p_space));
-
-  // View FE basis functions.
-  //BaseView view1;
-  //view1.show(&p_space);
-  //View::wait();
-
-  if (NEWTON) printf("NonlinSystem ndof = %d\n", nls.get_num_dofs());
-  if(nls.get_solution_vector() == NULL) error("Vec is NULL.");
-  if (NEWTON) nls.project_global(Tuple<MeshFunction*>(&xvel_prev_time, &yvel_prev_time, &p_prev), 
-                                 Tuple<Solution*>(&xvel_prev_time, &yvel_prev_time, &p_prev));
-
-  // Setting initial conditions for Newton's iteration.
-  xvel_prev_newton.copy(&xvel_prev_time);
-  yvel_prev_newton.copy(&yvel_prev_time);
-
-  // Show initial condition for velocity. 
-  vview.show(&xvel_prev_time, &yvel_prev_time, H2D_EPS_LOW);
-  vview.wait(H2DV_WAIT_KEYPRESS);
 
   // Time-stepping loop:
   char title[100];
@@ -216,65 +204,51 @@ int main(int argc, char* argv[])
   for (int ts = 1; ts <= num_time_steps; ts++)
   {
     TIME += TAU;
-
     info("---- Time step %d, time = %g:", ts, TIME);
 
-    // This is needed to update time-dependent boundary conditions.
-    update_essential_bc_values(Tuple<Space*>(&xvel_space, &yvel_space, &p_space));
-
     if (NEWTON) {
+      if (TIME <= STARTUP_TIME) {
+        info("Updating time-dependent essential BC.");
+        nls.update_essential_bc_values();
+      }
       // Newton's method.
       info("Performing Newton's method.");
-      if (!nls.solve_newton(&xvel_prev_newton, &yvel_prev_newton, &p_prev, NEWTON_TOL, NEWTON_MAX_ITER)) 
+      bool verbose = true; // Default is false.
+      if (!nls.solve_newton(&xvel_prev_newton, &yvel_prev_newton, &p_prev, 
+                            NEWTON_TOL, NEWTON_MAX_ITER, verbose)) {
         error("Newton's method did not converge.");
-
-      // Show the solution at the end of time step.
-      sprintf(title, "Velocity, time %g", TIME);
-      vview.set_title(title);
-      vview.show(&xvel_prev_newton, &yvel_prev_newton, H2D_EPS_LOW);
-      sprintf(title, "Pressure, time %g", TIME);
-      pview.set_title(title);
-      pview.show(&p_prev);
-
-      // Calculate an estimate of the temporal change of the x-velocity.
-      H1Adapt hp(&xvel_space);
-      hp.set_solutions(&xvel_prev_time, &xvel_prev_newton);
-      double err_est = hp.calc_error(H2D_TOTAL_ERROR_ABS | H2D_ELEMENT_ERROR_ABS) / TAU;
-      info("x_vel temporal change: %g", err_est);
-
-      // Copy the result of the Newton's iteration into the
-      // previous time level solutions.
-      xvel_prev_time.copy(&xvel_prev_newton);
-      yvel_prev_time.copy(&yvel_prev_newton);
+      }
     }
     else {
+      // Needed if time-dependent essential BC are used.
+      if (TIME <= STARTUP_TIME) {
+        info("Updating time-dependent essential BC.");
+        ls.update_essential_bc_values();
+      }
       // Assemble and solve.
-      Solution xvel_sln, yvel_sln, p_sln;
       info("Assembling and solving linear problem.");
-      /*
       ls.assemble();
-      ls.solve(3, &xvel_sln, &yvel_sln, &p_sln);
-      */
-
-      // Show the solution at the end of time step.
-      sprintf(title, "Velocity, time %g", TIME);
-      vview.set_title(title);
-      vview.show(&xvel_sln, &yvel_sln, H2D_EPS_LOW);
-      sprintf(title, "Pressure, time %g", TIME);
-      pview.set_title(title);
-      pview.show(&p_sln);
-
-      // Calculate an estimate of the temporal change of the x-velocity.
-      H1Adapt hp(&xvel_space);
-      hp.set_solutions(&xvel_prev_time, &xvel_sln);
-      double err_est = hp.calc_error(H2D_TOTAL_ERROR_ABS | H2D_ELEMENT_ERROR_ABS) / TAU;
-      info("x_vel temporal change: %g", err_est);
-  
-      // This copy destroys xvel_sln and yvel_sln
-      // which are no longer needed.
-      xvel_prev_time = xvel_sln;
-      yvel_prev_time = yvel_sln;
+      ls.solve(Tuple<Solution*>(&xvel_prev_newton, &yvel_prev_newton, &p_prev));
     }
+
+    // Calculate an estimate of the temporal change of the x-velocity.
+    H1Adapt hp(&xvel_space);
+    hp.set_solutions(&xvel_prev_time, &xvel_prev_newton);
+    double err_est = hp.calc_error(H2D_TOTAL_ERROR_ABS | H2D_ELEMENT_ERROR_ABS) / TAU;
+    info("x_vel temporal change: %g", err_est);
+
+    // Show the solution at the end of time step.
+    sprintf(title, "Velocity, time %g", TIME);
+    vview.set_title(title);
+    vview.show(&xvel_prev_newton, &yvel_prev_newton, H2D_EPS_LOW);
+    sprintf(title, "Pressure, time %g", TIME);
+    pview.set_title(title);
+    pview.show(&p_prev);
+
+    // Copy the result of the Newton's iteration into the
+    // previous time level solutions.
+    xvel_prev_time.copy(&xvel_prev_newton);
+    yvel_prev_time.copy(&yvel_prev_newton);
   }
 
   // Wait for all views to be closed.

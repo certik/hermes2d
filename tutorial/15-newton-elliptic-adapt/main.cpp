@@ -20,7 +20,7 @@ using namespace RefinementSelectors;
 //
 //  The following parameters can be changed:
 
-const bool SOLVE_ON_COARSE_MESH = false;  // true...  Newton is done on coarse mesh in every adaptivity step.
+const bool SOLVE_ON_COARSE_MESH = false;   // true...  Newton is done on coarse mesh in every adaptivity step.
                                            // false... Newton is done on coarse mesh only once, then projection
                                            // of the fine mesh solution to coarse mesh is used.
 const int P_INIT = 1;                      // Initial polynomial degree.
@@ -159,7 +159,8 @@ int main(int argc, char* argv[])
 
   // Newton's loop on the coarse mesh.
   info("Solving on coarse mesh.");
-  if (!nls.solve_newton(&u_prev, NEWTON_TOL_COARSE, NEWTON_MAX_ITER)) 
+  bool verbose = true; // Default is false.
+  if (!nls.solve_newton(&u_prev, NEWTON_TOL_COARSE, NEWTON_MAX_ITER, verbose)) 
     error("Newton's method did not converge.");
 
   // Store the result in sln_coarse.
@@ -199,7 +200,7 @@ int main(int argc, char* argv[])
 
     // Newton's loop on the fine mesh.
     info("Solving on fine mesh.");
-    if (!rnls.solve_newton(&u_prev, NEWTON_TOL_FINE, NEWTON_MAX_ITER)) 
+    if (!rnls.solve_newton(&u_prev, NEWTON_TOL_FINE, NEWTON_MAX_ITER, verbose)) 
       error("Newton's method did not converge.");
 
     // Store the fine mesh solution in sln_fine.
@@ -250,7 +251,7 @@ int main(int argc, char* argv[])
       if (SOLVE_ON_COARSE_MESH) {
         // Newton's loop on the new coarse mesh.
         info("Solving on coarse mesh.");
-        if (!nls.solve_newton(&u_prev, NEWTON_TOL_COARSE, NEWTON_MAX_ITER)) 
+        if (!nls.solve_newton(&u_prev, NEWTON_TOL_COARSE, NEWTON_MAX_ITER, verbose)) 
           error("Newton's method did not converge.");
       }
 

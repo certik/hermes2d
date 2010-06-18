@@ -30,7 +30,7 @@ const bool SOLVE_ON_COARSE_MESH = false;   // true... Newton is done on coarse m
                                            // false...Newton is done on coarse mesh only once, then projection
                                            // of the fine mesh solution to coarse mesh is used.
 const int INIT_REF_NUM = 2;                // Number of initial uniform refinements.
-const int P_INIT = 1;                      // Initial polynomial degree.
+const int P_INIT = 2;                      // Initial polynomial degree.
 const int TIME_DISCR = 2;                  // 1 for implicit Euler, 2 for Crank-Nicolson.
 const double T_FINAL = 200.0;              // Time interval length.
 const double TAU = 0.01;                   // Time step.
@@ -137,15 +137,6 @@ int main(int argc, char* argv[])
   // Initialize the nonlinear system.
   NonlinSystem nls(&wf, &solver, &space);
 
-  // Initialize views.
-  char title[100];
-  ScalarView view("", 0, 0, 600, 500);
-  view.fix_scale_width(80);
-  ScalarView magview("", 0, 0, 600, 500);
-  magview.fix_scale_width(80);
-  OrderView ordview("", 610, 0, 600, 500);
-  ordview.fix_scale_width(80);
-
   // DOF and CPU convergence graphs.
   SimpleGraph graph_time_dof, graph_time_err;
 
@@ -157,9 +148,20 @@ int main(int argc, char* argv[])
   info("Projecting initial condition on FE mesh.");
   nls.project_global(&fn_init, &Psi_prev_newton);
 
+  // Show the projection of the initial condition.
+  char title[100];
+  ScalarView magview("Projection of initial condition", 0, 0, 600, 500);
+  magview.fix_scale_width(80);
+  AbsFilter mag(&Psi_prev_newton);
+  magview.show(&mag);
+  OrderView ordview("Initial mesh", 610, 0, 600, 500);
+  ordview.fix_scale_width(80);
+  ordview.show(&space);
+  
   // Newton's loop on the coarse mesh.
   info("Newton solve on coarse mesh.");
-  if (!nls.solve_newton(&Psi_prev_newton, NEWTON_TOL_COARSE, NEWTON_MAX_ITER))
+  bool verbose = true; // Default is false.
+  if (!nls.solve_newton(&Psi_prev_newton, NEWTON_TOL_COARSE, NEWTON_MAX_ITER, verbose))
     error("Newton's method did not converge.");
 
   // Store the result in sln_coarse.
@@ -187,7 +189,7 @@ int main(int argc, char* argv[])
       if (SOLVE_ON_COARSE_MESH) {
         // Newton's loop on the globally derefined mesh.
         info("Newton solve on globally derefined mesh.", ts);
-        if (!nls.solve_newton(&Psi_prev_newton, NEWTON_TOL_COARSE, NEWTON_MAX_ITER))
+        if (!nls.solve_newton(&Psi_prev_newton, NEWTON_TOL_COARSE, NEWTON_MAX_ITER, verbose))
           error("Newton's method did not converge.");
       }
 
@@ -197,7 +199,7 @@ int main(int argc, char* argv[])
 
     // Adaptivity loop.
     bool done = false;
-    double err_est;
+    double space_err_est;
     int as = 1;
     do
     {
@@ -218,31 +220,22 @@ int main(int argc, char* argv[])
 
       // Newton's method on fine mesh.
       info("Newton solve on fine mesh.");
-      if (!rnls.solve_newton(&Psi_prev_newton, NEWTON_TOL_FINE, NEWTON_MAX_ITER))
+      if (!rnls.solve_newton(&Psi_prev_newton, NEWTON_TOL_FINE, NEWTON_MAX_ITER, verbose))
         error("Newton's method did not converge.");
 
       // Store the result in sln_fine.
       sln_fine.copy(&Psi_prev_newton);
 
-      // Visualize intermediate solutions and mesh during adaptivity.
-      sprintf(title, "Solution, time level %d, adapt step %d", ts, as);
-      magview.set_title(title);
-      AbsFilter mag(&Psi_prev_newton);
-      magview.show(&mag);
-      sprintf(title, "Fine mesh, time level %d, adapt step %d", ts, as);
-      ordview.set_title(title);
-      ordview.show(rnls.get_space(0));
-
       // Calculate element errors and total error estimate.
       info("Calculating error.");
       H1Adapt hp(&space);
       hp.set_solutions(&sln_coarse, &sln_fine);
-      err_est = hp.calc_error() * 100;   // relative h1-error in percent
-      info("ndof_coarse: %d, ndof_fine: %d, err_est: %g%%", 
-	   nls.get_num_dofs(), rnls.get_num_dofs(), err_est);
+      space_err_est = hp.calc_error() * 100;   // relative h1-error in percent
+      info("ndof_coarse: %d, ndof_fine: %d, space_err_est: %g%%", 
+	   nls.get_num_dofs(), rnls.get_num_dofs(), space_err_est);
 
-      // If err_est too large, adapt the mesh.
-      if (err_est < ERR_STOP) done = true;
+      // If space_err_est too large, adapt the mesh.
+      if (space_err_est < ERR_STOP) done = true;
       else {
         info("Adapting coarse mesh.");
         done = hp.adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY);
@@ -255,7 +248,7 @@ int main(int argc, char* argv[])
         if (SOLVE_ON_COARSE_MESH) {
           // Newton's loop on the coarse mesh.
           info("---- Time step %d, adaptivity step %d, Newton solve on new coarse mesh.", ts, as);
-          if (!nls.solve_newton(&Psi_prev_newton, NEWTON_TOL_COARSE, NEWTON_MAX_ITER))
+          if (!nls.solve_newton(&Psi_prev_newton, NEWTON_TOL_COARSE, NEWTON_MAX_ITER, verbose))
             error("Newton's method did not converge.");
         }
 
@@ -267,8 +260,17 @@ int main(int argc, char* argv[])
     }
     while (!done);
 
+    // Visualize solution and mesh.
+    sprintf(title, "Solution, time level %d", ts);
+    magview.set_title(title);
+    AbsFilter mag(&sln_coarse);
+    magview.show(&mag);
+    sprintf(title, "Mesh, time level %d", ts);
+    ordview.set_title(title);
+    ordview.show(&space);
+
     // Add entries to convergence graphs.
-    graph_time_err.add_values(ts*TAU, err_est);
+    graph_time_err.add_values(ts*TAU, space_err_est);
     graph_time_err.save("time_error.dat");
     graph_time_dof.add_values(ts*TAU, nls.get_num_dofs());
     graph_time_dof.save("time_dof.dat");

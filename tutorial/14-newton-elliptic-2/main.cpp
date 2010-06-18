@@ -112,7 +112,8 @@ int main(int argc, char* argv[])
 
   // Perform Newton's iteration.
   info("Performing Newton's iteration.");
-  if (!nls.solve_newton(&u_prev, NEWTON_TOL, NEWTON_MAX_ITER)) 
+  bool verbose = true; // Default is false.
+  if (!nls.solve_newton(&u_prev, NEWTON_TOL, NEWTON_MAX_ITER, verbose)) 
     error("Newton's method did not converge.");
 
   // Visualise the solution and mesh.
