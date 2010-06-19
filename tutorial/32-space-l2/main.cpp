@@ -14,27 +14,29 @@ const int INIT_REF_NUM = 1;    // Number of initial uniform mesh refinements.
 const int P_INIT = 3;          // Polynomial degree of mesh elements.
 
 // Projected function.
-double F(double x, double y)
+scalar F(double x, double y, double& dx, double& dy)
 {
   return - pow(x, 4) * pow(y, 5); 
+  dx = 0; // not needed for L2-projection
+  dy = 0; // not needed for L2-projection
 }
 
 // Bilinear and linear form defining the projection.
-template<typename Real, typename Scalar>
-Scalar bilinear_form(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
-{
-  return int_u_v<Real, Scalar>(n, wt, u, v);
-}
+//template<typename Real, typename Scalar>
+//Scalar bilinear_form(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)/
+//{
+//  return int_u_v<Real, Scalar>(n, wt, u, v);
+//}
 
 // Returns the value \int v dx.
-template<typename Real, typename Scalar>
-Scalar linear_form(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
-{
-  Scalar result = 0;
-  for (int i = 0; i < n; i++)
-    result += wt[i] * (-pow(e->x[i], 4) * pow(e->y[i], 5)) * v->val[i];
-  return result;
-}
+//template<typename Real, typename Scalar>
+//Scalar linear_form(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+//{
+//  Scalar result = 0;
+//  for (int i = 0; i < n; i++)
+//    result += wt[i] * (-pow(e->x[i], 4) * pow(e->y[i], 5)) * v->val[i];
+//  return result;
+//}
 
 int main(int argc, char* argv[])
 {
@@ -47,7 +49,6 @@ int main(int argc, char* argv[])
   for (int i=0; i<INIT_REF_NUM; i++) mesh.refine_all_elements();
 
   // Create an L2 space with default shapeset.
-  // (BC types and essential BC values not relevant.)
   L2Space space(&mesh, P_INIT);
 
   // View basis functions.
@@ -55,21 +56,16 @@ int main(int argc, char* argv[])
   bview.show(&space);
   View::wait(H2DV_WAIT_KEYPRESS);
 
-  // Initialize solution.
-  Solution sln;
-
   // Matrix solver.
   UmfpackSolver solver;
 
-  // Initialize the weak formulation.
-  WeakForm wf;
-  wf.add_biform(callback(bilinear_form));
-  wf.add_liform(callback(linear_form));
-
   // Assemble and solve the finite element problem.
-  LinSystem sys(&wf, &solver, &space);
-  sys.assemble();
-  sys.solve(&sln);
+  WeakForm wf_dummy;
+  LinSystem ls(&wf_dummy, &solver, &space);
+  Solution sln;
+  int proj_norm_l2 = 0;
+  sln.set_exact(&mesh, F);
+  ls.project_global(&sln, &sln, proj_norm_l2);
 
   // Visualize the solution.
   ScalarView view1("Projection", 610, 0, 600, 500);

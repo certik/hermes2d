@@ -100,10 +100,10 @@ int main(int argc, char* argv[])
 
   // Initialize the weak formulation.
   WeakForm wf(2);
-  wf.add_biform(0, 0, callback(bilinear_form_0_0), H2D_SYM);  // note that only one symmetric part is
-  wf.add_biform(0, 1, callback(bilinear_form_0_1), H2D_SYM);  // added in the case of symmetric bilinear
-  wf.add_biform(1, 1, callback(bilinear_form_1_1), H2D_SYM);  // forms
-  wf.add_liform_surf(1, callback(linear_form_surf_1), BDY_TOP);
+  wf.add_matrix_form(0, 0, callback(bilinear_form_0_0), H2D_SYM);  // note that only one symmetric part is
+  wf.add_matrix_form(0, 1, callback(bilinear_form_0_1), H2D_SYM);  // added in the case of symmetric bilinear
+  wf.add_matrix_form(1, 1, callback(bilinear_form_1_1), H2D_SYM);  // forms
+  wf.add_vector_form_surf(1, callback(linear_form_surf_1), BDY_TOP);
 
   // Matrix solver.
   UmfpackSolver solver;

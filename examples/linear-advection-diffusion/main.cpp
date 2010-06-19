@@ -101,12 +101,12 @@ int main(int argc, char* argv[])
 
   // Initialize the weak formulation.
   WeakForm wf;
-  wf.add_biform(callback(bilinear_form));
+  wf.add_matrix_form(callback(bilinear_form));
   if (STABILIZATION_ON == true) {
-    wf.add_biform(callback(bilinear_form_stabilization));
+    wf.add_matrix_form(callback(bilinear_form_stabilization));
   }
   if (SHOCK_CAPTURING_ON == true) {
-    wf.add_biform(callback(bilinear_form_shock_capturing));
+    wf.add_matrix_form(callback(bilinear_form_shock_capturing));
   }
 
   // Initialize views.

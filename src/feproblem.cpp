@@ -764,8 +764,8 @@ scalar* Projection::project()
   WeakForm wf(num);
   for (int i = 0; i < num; i++)
   {
-    wf.add_biform(i, i, callback(L2projection_biform));
-    wf.add_liform(i, callback(L2projection_liform), H2D_ANY, 1, slns[i]);
+    wf.add_matrix_form(i, i, callback(L2projection_biform));
+    wf.add_vector_form(i, callback(L2projection_liform), H2D_ANY, 1, slns[i]);
   }
 
   LinSystem ps(&wf, solver, // SPACES MISSING HERE ));

@@ -134,9 +134,9 @@ int main(int argc, char* argv[])
 
   // Initialize the weak formulation.
   WeakForm wf;
-  wf.add_biform(bilinear_form, bilinear_form_ord, H2D_SYM);
-  wf.add_liform(linear_form, linear_form_ord);
-  wf.add_liform_surf(linear_form_surf, linear_form_surf_ord, BDY_NEUMANN);
+  wf.add_matrix_form(bilinear_form, bilinear_form_ord, H2D_SYM);
+  wf.add_vector_form(linear_form, linear_form_ord);
+  wf.add_vector_form_surf(linear_form_surf, linear_form_surf_ord, BDY_NEUMANN);
 
   // Initialize views.
   ScalarView sview("Coarse solution", 0, 0, 450, 350);

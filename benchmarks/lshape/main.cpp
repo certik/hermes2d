@@ -90,7 +90,7 @@ int main(int argc, char* argv[])
 
   // Initialize the weak formulation.
   WeakForm wf;
-  wf.add_biform(callback(bilinear_form), H2D_SYM);
+  wf.add_matrix_form(callback(bilinear_form), H2D_SYM);
 
   // Initialize views.
   ScalarView sview("Coarse solution", 0, 0, 500, 400);

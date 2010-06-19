@@ -167,21 +167,21 @@ int main(int argc, char* argv[])
 
   // Initialize the weak formulation.
   WeakForm wf(4);
-  wf.add_biform(0, 0, callback(biform_0_0));
-  wf.add_biform(1, 1, callback(biform_1_1));
-  wf.add_biform(1, 0, callback(biform_1_0));
-  wf.add_biform(2, 2, callback(biform_2_2));
-  wf.add_biform(2, 1, callback(biform_2_1));
-  wf.add_biform(3, 3, callback(biform_3_3));
-  wf.add_biform(3, 2, callback(biform_3_2));
-  wf.add_liform(0, callback(liform_0), MAT_CORE, Tuple<MeshFunction*>(&iter1, &iter2, &iter3, &iter4));
-  wf.add_liform(1, callback(liform_1), MAT_CORE, Tuple<MeshFunction*>(&iter1, &iter2, &iter3, &iter4));
-  wf.add_liform(2, callback(liform_2), MAT_CORE, Tuple<MeshFunction*>(&iter1, &iter2, &iter3, &iter4));
-  wf.add_liform(3, callback(liform_3), MAT_CORE, Tuple<MeshFunction*>(&iter1, &iter2, &iter3, &iter4));
-  wf.add_biform_surf(0, 0, callback(biform_surf_0_0), BDY_VACUUM);
-  wf.add_biform_surf(1, 1, callback(biform_surf_1_1), BDY_VACUUM);
-  wf.add_biform_surf(2, 2, callback(biform_surf_2_2), BDY_VACUUM);
-  wf.add_biform_surf(3, 3, callback(biform_surf_3_3), BDY_VACUUM);
+  wf.add_matrix_form(0, 0, callback(biform_0_0));
+  wf.add_matrix_form(1, 1, callback(biform_1_1));
+  wf.add_matrix_form(1, 0, callback(biform_1_0));
+  wf.add_matrix_form(2, 2, callback(biform_2_2));
+  wf.add_matrix_form(2, 1, callback(biform_2_1));
+  wf.add_matrix_form(3, 3, callback(biform_3_3));
+  wf.add_matrix_form(3, 2, callback(biform_3_2));
+  wf.add_vector_form(0, callback(liform_0), MAT_CORE, Tuple<MeshFunction*>(&iter1, &iter2, &iter3, &iter4));
+  wf.add_vector_form(1, callback(liform_1), MAT_CORE, Tuple<MeshFunction*>(&iter1, &iter2, &iter3, &iter4));
+  wf.add_vector_form(2, callback(liform_2), MAT_CORE, Tuple<MeshFunction*>(&iter1, &iter2, &iter3, &iter4));
+  wf.add_vector_form(3, callback(liform_3), MAT_CORE, Tuple<MeshFunction*>(&iter1, &iter2, &iter3, &iter4));
+  wf.add_matrix_form_surf(0, 0, callback(biform_surf_0_0), BDY_VACUUM);
+  wf.add_matrix_form_surf(1, 1, callback(biform_surf_1_1), BDY_VACUUM);
+  wf.add_matrix_form_surf(2, 2, callback(biform_surf_2_2), BDY_VACUUM);
+  wf.add_matrix_form_surf(3, 3, callback(biform_surf_3_3), BDY_VACUUM);
 
   // Initialize coarse mesh problem.
   LinSystem ls(&wf, &umfpack, Tuple<Space*>(&space1, &space2, &space3, &space4));

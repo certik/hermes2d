@@ -104,9 +104,9 @@ int main(int argc, char* argv[])
 
   // Initialize the weak formulation.
   WeakForm wf;
-  wf.add_biform(callback(bilinear_form), H2D_SYM);
-  wf.add_biform_surf(callback(bilinear_form_surf));
-  wf.add_liform_surf(linear_form_surf, linear_form_surf_ord);
+  wf.add_matrix_form(callback(bilinear_form), H2D_SYM);
+  wf.add_matrix_form_surf(callback(bilinear_form_surf));
+  wf.add_vector_form_surf(linear_form_surf, linear_form_surf_ord);
 
   // Initialize views.
   OrderView  ordview("Coarse mesh", 600, 0, 600, 500);

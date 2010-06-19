@@ -33,6 +33,7 @@ void qsort_int(int* pbase, size_t total_elems); // defined in qsort.cpp
 
 void LinSystem::init_lin(WeakForm* wf_, Solver* solver_) 
 {
+  if (wf_ == NULL) error("LinSystem: a weak form must be given.");
   this->wf = wf_;
   this->solver = solver_;
   slv_ctx = (this->solver != NULL) ? this->solver->new_context(false) : NULL;
@@ -69,8 +70,11 @@ LinSystem::LinSystem(WeakForm* wf_)
 LinSystem::LinSystem(WeakForm* wf_, Solver* solver_, Tuple<Space*> spaces_)
 {
   int n = spaces_.size();
-  if (n != wf_->neq) 
-    error("Number of spaces does not match number of equations in LinSystem::LinSystem().");
+  if (wf_ == NULL) warn("Weak form is NULL.");
+  if (wf_ != NULL) {
+    if (n != wf_->neq) 
+      error("Number of spaces does not match number of equations in LinSystem::LinSystem().");
+  }
   this->init_lin(wf_, solver_);
   this->init_spaces(spaces_);
   this->alloc_and_zero_vectors();
@@ -86,8 +90,11 @@ LinSystem::LinSystem(WeakForm* wf_, Tuple<Space*> spaces_)
 
 LinSystem::LinSystem(WeakForm* wf_, Solver* solver_, Space* s_)
 {
-  if (wf_->neq != 1) 
-    error("Number of spaces does not match number of equations in LinSystem::LinSystem().");
+  if (wf_ == NULL) warn("Weak form is NULL.");
+  if (wf_ != NULL) {
+    if (wf_->neq != 1) 
+      error("Number of spaces does not match number of equations in LinSystem::LinSystem().");
+  }
   this->init_lin(wf_, solver_);
   this->init_space(s_);
   this->alloc_and_zero_vectors();
@@ -104,8 +111,11 @@ LinSystem::LinSystem(WeakForm* wf_, Space* s_)
 LinSystem::LinSystem(WeakForm* wf_, Solver* solver_, Space* space1_, Space* space2_)
 {
   int n = 2;
-  if (n != wf_->neq) 
-    error("Number of spaces does not match number of equations in LinSystem::LinSystem().");
+  if (wf_ == NULL) warn("Weak form is NULL.");
+  if (wf_ != NULL) {
+    if (n != wf_->neq) 
+      error("Number of spaces does not match number of equations in LinSystem::LinSystem().");
+  }
   this->init_lin(wf_, solver_);
   this->init_spaces(Tuple<Space*>(space1_, space2_));
   this->alloc_and_zero_vectors();
@@ -213,7 +223,7 @@ void LinSystem::copy(LinSystem* sys)
 void LinSystem::free_vectors() 
 {
   if (this->Vec != NULL || this->RHS != NULL || this->Dir != NULL)
-    printf("debug: freeing vectors Vec, RHS, Dir for lengths   %d\n", this->Vec_length);
+    //printf("debug: freeing vectors Vec, RHS, Dir for lengths   %d\n", this->Vec_length);
 
   if (this->RHS != NULL) {
     delete [] this->RHS; 
@@ -235,7 +245,7 @@ void LinSystem::free_vectors()
 void LinSystem::alloc_and_zero_vectors() 
 {
   int ndof = this->get_num_dofs();
-  printf("debug: allocating vectors Vec, RHS, Dir for ndof   %d\n", ndof);
+  //printf("debug: allocating vectors Vec, RHS, Dir for ndof   %d\n", ndof);
 
   if (this->RHS != NULL || this->Dir != NULL || this->Vec != NULL) 
     error("All vectors must be NULL in alloc_and_zero_vectors() to prevent loss of information.");
@@ -259,7 +269,7 @@ void LinSystem::alloc_and_zero_vectors()
 void LinSystem::realloc_and_zero_vectors() 
 {
   int ndof = this->get_num_dofs();
-  printf("debug: reallocating vectors Vec, RHS, Dir length   %d -> %d\n", this->Vec_length, ndof);
+  //printf("debug: reallocating vectors Vec, RHS, Dir length   %d -> %d\n", this->Vec_length, ndof);
 
   this->Vec = (scalar*)realloc(this->Vec, ndof*sizeof(scalar));
   if (this->Vec == NULL) error("Not enough memory LinSystem::realloc_and_zero_vectors().");
@@ -994,20 +1004,6 @@ void LinSystem::save_rhs_bin(const char* filename)
   fclose(f);
 }
 
-/*
-// debug
-void LinSystem::print_vector()
-{
-  int ndof = this->get_num_dofs();
-  if (ndof == 0) error("ndof = 0 in LinSystem::print_vector().");
-
-  printf("LinSystem::print_vector(): ndof = %d\n", ndof);
-  if (this->Vec == NULL) error("NULL vector in print_vector().");
-  printf("Vec:");
-  for(int i=0; i < ndof; i++) printf(" %g", this->Vec[i]);
-}
-*/
-
 // L2 projections
 template<typename Real, typename Scalar>
 Scalar L2projection_biform(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
@@ -1094,8 +1090,10 @@ void LinSystem::project_global(Tuple<MeshFunction*> source, Tuple<Solution*> tar
     if (n != proj_norms.size()) 
       error("Mismatched numbers of projected functions and projection norms in LinSystem::project_global().");
   }
-  if (n != wf->neq)
-    error("Wrong number of functions in project_global_n().");
+  if (wf != NULL) {
+    if (n != wf->neq)
+      error("Wrong number of functions in project_global_n().");
+  }
   if (!have_spaces)
     error("You have to init_spaces() before using project_global_.");
 
@@ -1117,20 +1115,20 @@ void LinSystem::project_global(Tuple<MeshFunction*> source, Tuple<Solution*> tar
     else norm = proj_norms[i];
     if (norm == 0) {
       found[i] = 1;
-      wf->add_biform(i, i, L2projection_biform<double, scalar>, L2projection_biform<Ord, Ord>);
-      wf->add_liform(i, L2projection_liform<double, scalar>, L2projection_liform<Ord, Ord>, 
+      wf->add_matrix_form(i, i, L2projection_biform<double, scalar>, L2projection_biform<Ord, Ord>);
+      wf->add_vector_form(i, L2projection_liform<double, scalar>, L2projection_liform<Ord, Ord>, 
                      H2D_ANY, source[i]);
     }
     if (norm == 1) {
       found[i] = 1;
-      wf->add_biform(i, i, H1projection_biform<double, scalar>, H1projection_biform<Ord, Ord>);
-      wf->add_liform(i, H1projection_liform<double, scalar>, H1projection_liform<Ord, Ord>, 
+      wf->add_matrix_form(i, i, H1projection_biform<double, scalar>, H1projection_biform<Ord, Ord>);
+      wf->add_vector_form(i, H1projection_liform<double, scalar>, H1projection_liform<Ord, Ord>, 
                      H2D_ANY, source[i]);
     }
     if (norm == 2) {
       found[i] = 1;
-      wf->add_biform(i, i, Hcurlprojection_biform<double, scalar>, Hcurlprojection_biform<Ord, Ord>);
-      wf->add_liform(i, Hcurlprojection_liform<double, scalar>, Hcurlprojection_liform<Ord, Ord>, 
+      wf->add_matrix_form(i, i, Hcurlprojection_biform<double, scalar>, Hcurlprojection_biform<Ord, Ord>);
+      wf->add_vector_form(i, Hcurlprojection_liform<double, scalar>, Hcurlprojection_liform<Ord, Ord>, 
                      H2D_ANY, source[i]);
     }
   }

@@ -110,10 +110,10 @@ int main(int argc, char* argv[])
 
   // Initialize the weak formulation.
   WeakForm wf(2);
-  wf.add_biform(0, 0, callback(bilinear_form_0_0), H2D_SYM);
-  wf.add_biform(0, 1, callback(bilinear_form_0_1), H2D_SYM);
-  wf.add_biform(1, 1, callback(bilinear_form_1_1), H2D_SYM);
-  wf.add_liform_surf(1, callback(linear_form_surf_1), BDY_TOP);
+  wf.add_matrix_form(0, 0, callback(bilinear_form_0_0), H2D_SYM);
+  wf.add_matrix_form(0, 1, callback(bilinear_form_0_1), H2D_SYM);
+  wf.add_matrix_form(1, 1, callback(bilinear_form_1_1), H2D_SYM);
+  wf.add_vector_form_surf(1, callback(linear_form_surf_1), BDY_TOP);
 
   // Initialize views.
   ScalarView sview("Von Mises stress [Pa]", 0, 355, 900, 300);

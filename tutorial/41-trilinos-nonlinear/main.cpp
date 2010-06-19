@@ -80,8 +80,8 @@ int main(int argc, char* argv[])
 
   // Initialize weak formulation,
   WeakForm wf1;
-  wf1.add_biform(callback(jacobian_form_hermes), H2D_UNSYM, H2D_ANY, &prev);
-  wf1.add_liform(callback(residual_form_hermes), H2D_ANY, &prev);
+  wf1.add_matrix_form(callback(jacobian_form_hermes), H2D_UNSYM, H2D_ANY, &prev);
+  wf1.add_vector_form(callback(residual_form_hermes), H2D_ANY, &prev);
 
   // Initialize NonlinSystem,
   NonlinSystem nls(&wf1, &umfpack, &space);

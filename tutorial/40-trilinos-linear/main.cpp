@@ -82,8 +82,8 @@ int main(int argc, char **argv)
 
   // Initialize weak formulation.
   WeakForm wf1;
-  wf1.add_biform(callback(bilinear_form));
-  wf1.add_liform(callback(linear_form));
+  wf1.add_matrix_form(callback(bilinear_form));
+  wf1.add_vector_form(callback(linear_form));
 
   // Initialize the linear system.
   LinSystem ls(&wf1, &umfpack, &space);

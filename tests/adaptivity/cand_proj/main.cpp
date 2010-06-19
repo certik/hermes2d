@@ -154,9 +154,9 @@ bool init_h1(bool tri) {
     space = new H1Space(mesh, bc_types, NULL, 1);
 
     // weakform
-    weakform = new WeakForm(1);
-    weakform->add_biform(0, 0, callback(h1_biform), H2D_SYM);
-    weakform->add_liform(0, h1_liform, h1_liform, H2D_ANY);
+    weakform = new WeakForm();
+    weakform->add_matrix_form(callback(h1_biform), H2D_SYM);
+    weakform->add_vector_form(h1_liform, h1_liform, H2D_ANY);
 
     //solver
     solver = new UmfpackSolver();
@@ -184,9 +184,9 @@ bool init_l2(bool tri) {
     space = new L2Space(mesh, 1);
 
     // weakform
-    weakform = new WeakForm(1);
-    weakform->add_biform(0, 0, callback(l2_biform), H2D_SYM);
-    weakform->add_liform(0, l2_liform, l2_liform, H2D_ANY);
+    weakform = new WeakForm();
+    weakform->add_matrix_form(callback(l2_biform), H2D_SYM);
+    weakform->add_vector_form(l2_liform, l2_liform, H2D_ANY);
 
     //solver
     solver = new UmfpackSolver();

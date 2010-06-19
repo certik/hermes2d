@@ -126,9 +126,6 @@ int main(int argc, char* argv[])
   // Perform initial mesh refinements.
   for (int i=0; i < INIT_REF_NUM; i++)  mesh.refine_all_elements();
 
-  // Initialize the shapeset.
-  H1Shapeset shapeset;
-
   // Create an H1 space with default shapeset.
   H1Space space(&mesh, bc_types, essential_bc_values, P_INIT);
   info("Number of DOF: %d", space.get_num_dofs());
@@ -146,7 +143,7 @@ int main(int argc, char* argv[])
   SimpleGraph graph_dof_est, graph_dof_exact;
 
   // Initialize refinement selector.
-  H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER, &shapeset);
+  H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
 
   // Adaptivity loop:
   int as = 1;

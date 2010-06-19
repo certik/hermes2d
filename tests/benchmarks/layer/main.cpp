@@ -137,8 +137,8 @@ int main(int argc, char* argv[])
 
   // Initialize the weak formulation.
   WeakForm wf(1);
-  wf.add_biform(0, 0, callback(bilinear_form), H2D_SYM);
-  wf.add_liform(0, callback(linear_form));
+  wf.add_matrix_form(0, 0, callback(bilinear_form), H2D_SYM);
+  wf.add_vector_form(0, callback(linear_form));
 
   // Matrix solver.
   UmfpackSolver solver;

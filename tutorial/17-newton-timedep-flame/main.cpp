@@ -92,16 +92,16 @@ int main(int argc, char* argv[])
 
   // Initialize the weak formulation.
   WeakForm wf(2);
-  wf.add_biform(0, 0, callback(newton_bilinear_form_0_0), H2D_UNSYM, H2D_ANY, &omega_dt);
-  wf.add_biform_surf(0, 0, callback(newton_bilinear_form_0_0_surf), 3);
-  wf.add_biform(0, 1, callback(newton_bilinear_form_0_1), H2D_UNSYM, H2D_ANY, &omega_dc);
-  wf.add_biform(1, 0, callback(newton_bilinear_form_1_0), H2D_UNSYM, H2D_ANY, &omega_dt);
-  wf.add_biform(1, 1, callback(newton_bilinear_form_1_1), H2D_UNSYM, H2D_ANY, &omega_dc);
-  wf.add_liform(0, callback(newton_linear_form_0), H2D_ANY, Tuple<MeshFunction*>(&t_prev_newton, &t_prev_time_1, 
-										 &t_prev_time_2, &omega));
-  wf.add_liform_surf(0, callback(newton_linear_form_0_surf), 3, &t_prev_newton);
-  wf.add_liform(1, callback(newton_linear_form_1), H2D_ANY, Tuple<MeshFunction*>(&c_prev_newton, &c_prev_time_1, 
-										 &c_prev_time_2, &omega));
+  wf.add_matrix_form(0, 0, callback(newton_bilinear_form_0_0), H2D_UNSYM, H2D_ANY, &omega_dt);
+  wf.add_matrix_form_surf(0, 0, callback(newton_bilinear_form_0_0_surf), 3);
+  wf.add_matrix_form(0, 1, callback(newton_bilinear_form_0_1), H2D_UNSYM, H2D_ANY, &omega_dc);
+  wf.add_matrix_form(1, 0, callback(newton_bilinear_form_1_0), H2D_UNSYM, H2D_ANY, &omega_dt);
+  wf.add_matrix_form(1, 1, callback(newton_bilinear_form_1_1), H2D_UNSYM, H2D_ANY, &omega_dc);
+  wf.add_vector_form(0, callback(newton_linear_form_0), H2D_ANY, 
+                     Tuple<MeshFunction*>(&t_prev_newton, &t_prev_time_1, &t_prev_time_2, &omega));
+  wf.add_vector_form_surf(0, callback(newton_linear_form_0_surf), 3, &t_prev_newton);
+  wf.add_vector_form(1, callback(newton_linear_form_1), H2D_ANY, 
+                     Tuple<MeshFunction*>(&c_prev_newton, &c_prev_time_1, &c_prev_time_2, &omega));
 
   // Matrix solver.
   UmfpackSolver solver;

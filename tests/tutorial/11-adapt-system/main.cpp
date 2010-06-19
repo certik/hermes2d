@@ -94,12 +94,12 @@ int main(int argc, char* argv[])
 
   // Initialize the weak formulation.
   WeakForm wf(2);
-  wf.add_biform(0, 0, callback(bilinear_form_0_0));
-  wf.add_biform(0, 1, callback(bilinear_form_0_1));
-  wf.add_biform(1, 0, callback(bilinear_form_1_0));
-  wf.add_biform(1, 1, callback(bilinear_form_1_1));
-  wf.add_liform(0, linear_form_0, linear_form_0_ord);
-  wf.add_liform(1, linear_form_1, linear_form_1_ord);
+  wf.add_matrix_form(0, 0, callback(bilinear_form_0_0));
+  wf.add_matrix_form(0, 1, callback(bilinear_form_0_1));
+  wf.add_matrix_form(1, 0, callback(bilinear_form_1_0));
+  wf.add_matrix_form(1, 1, callback(bilinear_form_1_1));
+  wf.add_vector_form(0, linear_form_0, linear_form_0_ord);
+  wf.add_vector_form(1, linear_form_1, linear_form_1_ord);
 
   // Matrix solver.
   UmfpackSolver solver;

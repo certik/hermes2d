@@ -120,15 +120,15 @@ int main(int argc, char* argv[])
 
   // Initialize the weak formulation.
   WeakForm wf(3);
-  wf.add_biform(0, 0, callback(bilinear_form_0_0));
-  wf.add_biform(0, 1, callback(bilinear_form_0_1), H2D_SYM);
-  wf.add_biform(0, 2, callback(bilinear_form_0_2));
-  wf.add_biform(1, 1, callback(bilinear_form_1_1));
-  wf.add_biform(1, 2, callback(bilinear_form_1_2));
-  wf.add_biform(2, 2, callback(bilinear_form_2_2));
-  wf.add_liform(1, callback(linear_form_1));
-  wf.add_liform(2, callback(linear_form_2));
-  wf.add_liform_surf(2, callback(linear_form_surf_2));
+  wf.add_matrix_form(0, 0, callback(bilinear_form_0_0));
+  wf.add_matrix_form(0, 1, callback(bilinear_form_0_1), H2D_SYM);
+  wf.add_matrix_form(0, 2, callback(bilinear_form_0_2));
+  wf.add_matrix_form(1, 1, callback(bilinear_form_1_1));
+  wf.add_matrix_form(1, 2, callback(bilinear_form_1_2));
+  wf.add_matrix_form(2, 2, callback(bilinear_form_2_2));
+  wf.add_vector_form(1, callback(linear_form_1));
+  wf.add_vector_form(2, callback(linear_form_2));
+  wf.add_vector_form_surf(2, callback(linear_form_surf_2));
 
   // Initialize views.
   OrderView xord("X displacement mesh", 0, 0, 600, 300);

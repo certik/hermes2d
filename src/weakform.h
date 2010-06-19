@@ -34,7 +34,7 @@ template<typename T> class Func;
 template<typename T> class Geom;
 template<typename T> class ExtData;
 
-// Bilinear form symmetry flag, see WeakForm::add_biform
+// Bilinear form symmetry flag, see WeakForm::add_matrix_form
 enum SymFlag
 {
   H2D_ANTISYM = -1,
@@ -74,26 +74,26 @@ public:
   typedef Ord (*resform_ord_t)(int n, double *wt, Func<Ord> *u[], Func<Ord> *vi, Geom<Ord> *e, ExtData<Ord> *);
 
   // linear case
-  void add_biform(int i, int j, biform_val_t fn, biform_ord_t ord, 
+  void add_matrix_form(int i, int j, biform_val_t fn, biform_ord_t ord, 
                   SymFlag sym = H2D_UNSYM, int area = H2D_ANY, Tuple<MeshFunction*>ext = Tuple<MeshFunction*>());
-  void add_biform(biform_val_t fn, biform_ord_t ord, 
+  void add_matrix_form(biform_val_t fn, biform_ord_t ord, 
                   SymFlag sym = H2D_UNSYM, int area = H2D_ANY, 
                   Tuple<MeshFunction*>ext = Tuple<MeshFunction*>()); // single equation case
-  void add_biform_surf(int i, int j, biform_val_t fn, biform_ord_t ord, 
+  void add_matrix_form_surf(int i, int j, biform_val_t fn, biform_ord_t ord, 
 		       int area = H2D_ANY, Tuple<MeshFunction*>ext = Tuple<MeshFunction*>());
-  void add_biform_surf(biform_val_t fn, biform_ord_t ord, 
+  void add_matrix_form_surf(biform_val_t fn, biform_ord_t ord, 
 		       int area = H2D_ANY, Tuple<MeshFunction*>ext = Tuple<MeshFunction*>()); // single equation case
-  void add_liform(int i, liform_val_t fn, liform_ord_t ord, 
+  void add_vector_form(int i, liform_val_t fn, liform_ord_t ord, 
                   int area = H2D_ANY, Tuple<MeshFunction*>ext = Tuple<MeshFunction*>());
-  void add_liform(liform_val_t fn, liform_ord_t ord, 
+  void add_vector_form(liform_val_t fn, liform_ord_t ord, 
                   int area = H2D_ANY, Tuple<MeshFunction*>ext = Tuple<MeshFunction*>()); // single equation case
-  void add_liform_surf(int i, liform_val_t fn, liform_ord_t ord, 
+  void add_vector_form_surf(int i, liform_val_t fn, liform_ord_t ord, 
 		       int area = H2D_ANY, Tuple<MeshFunction*>ext = Tuple<MeshFunction*>()); 
-  void add_liform_surf(liform_val_t fn, liform_ord_t ord, 
+  void add_vector_form_surf(liform_val_t fn, liform_ord_t ord, 
 		       int area = H2D_ANY, Tuple<MeshFunction*>ext = Tuple<MeshFunction*>()); // single equation case
-  void add_liform(int i, liform_val_extended_t fn, liform_ord_extended_t ord, 
+  void add_vector_form(int i, liform_val_extended_t fn, liform_ord_extended_t ord, 
                   int area = H2D_ANY, Tuple<MeshFunction*>ext = Tuple<MeshFunction*>());
-  void add_liform(liform_val_extended_t fn, liform_ord_extended_t ord, 
+  void add_vector_form(liform_val_extended_t fn, liform_ord_extended_t ord, 
                   int area = H2D_ANY, Tuple<MeshFunction*>ext = Tuple<MeshFunction*>()); // single equation case
 
   // nonlinear case

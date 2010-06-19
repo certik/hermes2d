@@ -55,7 +55,7 @@ Ord WeakForm::LiFormVol::evaluate_ord(int point_cnt, double *weights, Func<Ord> 
     return ord_extended(point_cnt, weights, values_v, geometry, values_ext_fnc, element, shape_set, shape_inx);
 }
 
-void WeakForm::add_biform(int i, int j, biform_val_t fn, biform_ord_t ord, SymFlag sym, int area, Tuple<MeshFunction*>ext)
+void WeakForm::add_matrix_form(int i, int j, biform_val_t fn, biform_ord_t ord, SymFlag sym, int area, Tuple<MeshFunction*>ext)
 {
   if (i < 0 || i >= neq || j < 0 || j >= neq)
     error("Invalid equation number.");
@@ -79,7 +79,7 @@ void WeakForm::add_biform(int i, int j, biform_val_t fn, biform_ord_t ord, SymFl
 }
 
 // single equation case
-void WeakForm::add_biform(biform_val_t fn, biform_ord_t ord, SymFlag sym, int area, Tuple<MeshFunction*>ext)
+void WeakForm::add_matrix_form(biform_val_t fn, biform_ord_t ord, SymFlag sym, int area, Tuple<MeshFunction*>ext)
 {
   int i = 0, j = 0;
 
@@ -102,7 +102,7 @@ void WeakForm::add_biform(biform_val_t fn, biform_ord_t ord, SymFlag sym, int ar
   seq++;
 }
 
-void WeakForm::add_biform_surf(int i, int j, biform_val_t fn, biform_ord_t ord, int area, Tuple<MeshFunction*>ext)
+void WeakForm::add_matrix_form_surf(int i, int j, biform_val_t fn, biform_ord_t ord, int area, Tuple<MeshFunction*>ext)
 {
   if (i < 0 || i >= neq || j < 0 || j >= neq)
     error("Invalid equation number.");
@@ -119,7 +119,7 @@ void WeakForm::add_biform_surf(int i, int j, biform_val_t fn, biform_ord_t ord, 
 }
 
 // single equation case
-void WeakForm::add_biform_surf(biform_val_t fn, biform_ord_t ord, int area, Tuple<MeshFunction*>ext)
+void WeakForm::add_matrix_form_surf(biform_val_t fn, biform_ord_t ord, int area, Tuple<MeshFunction*>ext)
 {
   int i = 0, j = 0;
 
@@ -136,7 +136,7 @@ void WeakForm::add_biform_surf(biform_val_t fn, biform_ord_t ord, int area, Tupl
   seq++;
 }
 
-void WeakForm::add_liform(int i, liform_val_t fn, liform_ord_t ord, int area, Tuple<MeshFunction*>ext)
+void WeakForm::add_vector_form(int i, liform_val_t fn, liform_ord_t ord, int area, Tuple<MeshFunction*>ext)
 {
   if (i < 0 || i >= neq)
     error("Invalid equation number.");
@@ -153,7 +153,7 @@ void WeakForm::add_liform(int i, liform_val_t fn, liform_ord_t ord, int area, Tu
 }
 
 // single equation case
-void WeakForm::add_liform(liform_val_t fn, liform_ord_t ord, int area, Tuple<MeshFunction*>ext)
+void WeakForm::add_vector_form(liform_val_t fn, liform_ord_t ord, int area, Tuple<MeshFunction*>ext)
 {
   int i = 0;
 
@@ -170,7 +170,7 @@ void WeakForm::add_liform(liform_val_t fn, liform_ord_t ord, int area, Tuple<Mes
   seq++;
 }
 
-void WeakForm::add_liform(int i, liform_val_extended_t fn_ext, liform_ord_extended_t ord_ext, int area, Tuple<MeshFunction*>ext)
+void WeakForm::add_vector_form(int i, liform_val_extended_t fn_ext, liform_ord_extended_t ord_ext, int area, Tuple<MeshFunction*>ext)
 {
   if (i < 0 || i >= neq)
     error("Invalid equation number.");
@@ -187,7 +187,7 @@ void WeakForm::add_liform(int i, liform_val_extended_t fn_ext, liform_ord_extend
 }
 
 // single equation case
-void WeakForm::add_liform(liform_val_extended_t fn_ext, liform_ord_extended_t ord_ext, int area, Tuple<MeshFunction*>ext)
+void WeakForm::add_vector_form(liform_val_extended_t fn_ext, liform_ord_extended_t ord_ext, int area, Tuple<MeshFunction*>ext)
 {
   int i = 0;
 
@@ -204,7 +204,7 @@ void WeakForm::add_liform(liform_val_extended_t fn_ext, liform_ord_extended_t or
   seq++;
 }
 
-void WeakForm::add_liform_surf(int i, liform_val_t fn, liform_ord_t ord, int area, Tuple<MeshFunction*>ext)
+void WeakForm::add_vector_form_surf(int i, liform_val_t fn, liform_ord_t ord, int area, Tuple<MeshFunction*>ext)
 {
   if (i < 0 || i >= neq)
     error("Invalid equation number.");
@@ -221,7 +221,7 @@ void WeakForm::add_liform_surf(int i, liform_val_t fn, liform_ord_t ord, int are
 }
 
 // single equation case
-void WeakForm::add_liform_surf(liform_val_t fn, liform_ord_t ord, int area, Tuple<MeshFunction*>ext)
+void WeakForm::add_vector_form_surf(liform_val_t fn, liform_ord_t ord, int area, Tuple<MeshFunction*>ext)
 {
   int i = 0;
 

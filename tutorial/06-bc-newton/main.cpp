@@ -55,9 +55,9 @@ int main(int argc, char* argv[])
 
   // Initialize the weak formulation.
   WeakForm wf;
-  wf.add_biform(callback(bilinear_form));
-  wf.add_biform_surf(callback(bilinear_form_surf), NEWTON_BDY);
-  wf.add_liform_surf(callback(linear_form_surf), NEWTON_BDY);
+  wf.add_matrix_form(callback(bilinear_form));
+  wf.add_matrix_form_surf(callback(bilinear_form_surf), NEWTON_BDY);
+  wf.add_vector_form_surf(callback(linear_form_surf), NEWTON_BDY);
 
   // Matrix solver.
   UmfpackSolver solver;

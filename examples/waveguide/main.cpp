@@ -65,7 +65,7 @@ const int MESH_REGULARITY = -1;          // Maximum allowed level of hanging nod
                                          // their notoriously bad performance.
 const double CONV_EXP = 1.0;             // Default value is 1.0. This parameter influences the selection of
                                          // cancidates in hp-adaptivity. See get_optimal_refinement() for details.
-const double ERR_STOP = 5.0;             // Stopping criterion for adaptivity (rel. error tolerance between the
+const double ERR_STOP = 2.0;             // Stopping criterion for adaptivity (rel. error tolerance between the
                                          // fine mesh and coarse mesh solution in percent).
 const int NDOF_STOP = 60000;             // Adaptivity process stops when the number of degrees of freedom grows
                                          // over this limit. This is to prevent h-adaptivity to go on forever.
@@ -158,8 +158,8 @@ int main(int argc, char* argv[])
 
   // Initialize the weak formulation.
   WeakForm wf;
-  wf.add_biform(callback(bilinear_form));
-  wf.add_liform_surf(callback(linear_form_surf));
+  wf.add_matrix_form(callback(bilinear_form));
+  wf.add_vector_form_surf(callback(linear_form_surf));
 
   // Initialize views.
   VectorView eview("Electric field", 0, 0, 580, 400);

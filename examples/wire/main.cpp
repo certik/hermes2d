@@ -99,10 +99,10 @@ int main(int argc, char* argv[])
 
   // Initialize the weak formulation.
   WeakForm wf;
-  wf.add_biform(callback(bilinear_form_iron), H2D_SYM, 3);
-  wf.add_biform(callback(bilinear_form_wire), H2D_SYM, 2);
-  wf.add_biform(callback(bilinear_form_air), H2D_SYM, 1);
-  wf.add_liform(callback(linear_form_wire), 2);
+  wf.add_matrix_form(callback(bilinear_form_iron), H2D_SYM, 3);
+  wf.add_matrix_form(callback(bilinear_form_wire), H2D_SYM, 2);
+  wf.add_matrix_form(callback(bilinear_form_air), H2D_SYM, 1);
+  wf.add_vector_form(callback(linear_form_wire), 2);
 
   // Initialize views.
   ScalarView view("Vector potential A", 0, 0, 510, 350);

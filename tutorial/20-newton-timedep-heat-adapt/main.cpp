@@ -135,12 +135,12 @@ int main(int argc, char* argv[])
   // Initialize the weak formulation.
   WeakForm wf;
   if(TIME_DISCR == 1) {
-    wf.add_biform(callback(J_euler), H2D_UNSYM, H2D_ANY, &u_prev_newton);
-    wf.add_liform(callback(F_euler), H2D_ANY, Tuple<MeshFunction*>(&u_prev_newton, &u_prev_time));
+    wf.add_matrix_form(callback(J_euler), H2D_UNSYM, H2D_ANY, &u_prev_newton);
+    wf.add_vector_form(callback(F_euler), H2D_ANY, Tuple<MeshFunction*>(&u_prev_newton, &u_prev_time));
   }
   else {
-    wf.add_biform(callback(J_cranic), H2D_UNSYM, H2D_ANY, &u_prev_newton);
-    wf.add_liform(callback(F_cranic), H2D_ANY, Tuple<MeshFunction*>(&u_prev_newton, &u_prev_time));
+    wf.add_matrix_form(callback(J_cranic), H2D_UNSYM, H2D_ANY, &u_prev_newton);
+    wf.add_vector_form(callback(F_cranic), H2D_ANY, Tuple<MeshFunction*>(&u_prev_newton, &u_prev_time));
   }
 
   // Matrix solver.

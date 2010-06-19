@@ -122,8 +122,8 @@ int main(int argc, char* argv[])
 
   // Initialize the weak formulation.
   WeakForm wf;
-  wf.add_biform(callback(bilinear_form), H2D_SYM);
-  wf.add_liform(callback(linear_form));
+  wf.add_matrix_form(callback(bilinear_form), H2D_SYM);
+  wf.add_vector_form(callback(linear_form));
 
   // Initialize views.
   ScalarView sview("Coarse mesh solution", 0, 0, 500, 400);

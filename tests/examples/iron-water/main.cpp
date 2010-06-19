@@ -98,10 +98,10 @@ int main(int argc, char* argv[])
 
   // Initialize the weak formulation
   WeakForm wf;
-  wf.add_biform(bilinear_form_water, bilinear_form_ord, H2D_SYM, WATER_1);
-  wf.add_biform(bilinear_form_water, bilinear_form_ord, H2D_SYM, WATER_2);
-  wf.add_biform(bilinear_form_iron, bilinear_form_ord, H2D_SYM, IRON);
-  wf.add_liform(linear_form_source, linear_form_ord, WATER_1);
+  wf.add_matrix_form(bilinear_form_water, bilinear_form_ord, H2D_SYM, WATER_1);
+  wf.add_matrix_form(bilinear_form_water, bilinear_form_ord, H2D_SYM, WATER_2);
+  wf.add_matrix_form(bilinear_form_iron, bilinear_form_ord, H2D_SYM, IRON);
+  wf.add_vector_form(linear_form_source, linear_form_ord, WATER_1);
 
   // Matrix solver.
   UmfpackSolver solver;

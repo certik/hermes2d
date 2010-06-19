@@ -416,48 +416,48 @@ int main (int argc, char* argv[]) {
 
   // Add the bilinear and linear forms.
   if (TIME_DISCR == 1) {  // Implicit Euler.
-    wf.add_liform(0, callback(Fc_euler), H2D_ANY,
+    wf.add_vector_form(0, callback(Fc_euler), H2D_ANY,
 		  Tuple<MeshFunction*>(&C_prev_time, &C_prev_newton, &phi_prev_newton));
-    wf.add_liform(1, callback(Fphi_euler), H2D_ANY, Tuple<MeshFunction*>(&C_prev_newton, &phi_prev_newton));
-    wf.add_biform(0, 0, callback(J_euler_DFcDYc), H2D_UNSYM, H2D_ANY, &phi_prev_newton);
-    wf.add_biform(0, 1, callback(J_euler_DFcDYphi), H2D_UNSYM, H2D_ANY, &C_prev_newton);
-    wf.add_biform(1, 0, callback(J_euler_DFphiDYc), H2D_UNSYM);
-    wf.add_biform(1, 1, callback(J_euler_DFphiDYphi), H2D_UNSYM);
+    wf.add_vector_form(1, callback(Fphi_euler), H2D_ANY, Tuple<MeshFunction*>(&C_prev_newton, &phi_prev_newton));
+    wf.add_matrix_form(0, 0, callback(J_euler_DFcDYc), H2D_UNSYM, H2D_ANY, &phi_prev_newton);
+    wf.add_matrix_form(0, 1, callback(J_euler_DFcDYphi), H2D_UNSYM, H2D_ANY, &C_prev_newton);
+    wf.add_matrix_form(1, 0, callback(J_euler_DFphiDYc), H2D_UNSYM);
+    wf.add_matrix_form(1, 1, callback(J_euler_DFphiDYphi), H2D_UNSYM);
   } else {
-    wf.add_liform(0, callback(Fc_cranic), H2D_ANY, 
+    wf.add_vector_form(0, callback(Fc_cranic), H2D_ANY, 
 		  Tuple<MeshFunction*>(&C_prev_time, &C_prev_newton, &phi_prev_newton, &phi_prev_time));
-    wf.add_liform(1, callback(Fphi_cranic), H2D_ANY, Tuple<MeshFunction*>(&C_prev_newton, &phi_prev_newton));
-    wf.add_biform(0, 0, callback(J_cranic_DFcDYc), H2D_UNSYM, H2D_ANY, Tuple<MeshFunction*>(&phi_prev_newton, &phi_prev_time));
-    wf.add_biform(0, 1, callback(J_cranic_DFcDYphi), H2D_UNSYM, H2D_ANY, Tuple<MeshFunction*>(&C_prev_newton, &C_prev_time));
-    wf.add_biform(1, 0, callback(J_cranic_DFphiDYc), H2D_UNSYM);
-    wf.add_biform(1, 1, callback(J_cranic_DFphiDYphi), H2D_UNSYM);
+    wf.add_vector_form(1, callback(Fphi_cranic), H2D_ANY, Tuple<MeshFunction*>(&C_prev_newton, &phi_prev_newton));
+    wf.add_matrix_form(0, 0, callback(J_cranic_DFcDYc), H2D_UNSYM, H2D_ANY, Tuple<MeshFunction*>(&phi_prev_newton, &phi_prev_time));
+    wf.add_matrix_form(0, 1, callback(J_cranic_DFcDYphi), H2D_UNSYM, H2D_ANY, Tuple<MeshFunction*>(&C_prev_newton, &C_prev_time));
+    wf.add_matrix_form(1, 0, callback(J_cranic_DFphiDYc), H2D_UNSYM);
+    wf.add_matrix_form(1, 1, callback(J_cranic_DFphiDYphi), H2D_UNSYM);
   }
 
   /* OLD WAY OF REGISTERING FORMS
   // Add the bilinear and linear forms
   // generally, the equation system is described:
   if (TIME_DISCR == 1) {  //implicit euler
-    wf.add_liform(0, callback(Fc_euler), H2D_ANY, 3,
+    wf.add_vector_form(0, callback(Fc_euler), H2D_ANY, 3,
         &C_prev_time, &C_prev_newton, &phi_prev_newton);
-    wf.add_liform(1, callback(Fphi_euler), H2D_ANY, 2, &C_prev_newton, &phi_prev_newton);
-    wf.add_biform(0, 0, callback(J_euler_DFcDYc), H2D_UNSYM, H2D_ANY, 1, &phi_prev_newton);
-    wf.add_biform(0, 1, callback(J_euler_DFcDYphi), H2D_UNSYM, H2D_ANY, 1, &C_prev_newton);
-    wf.add_biform(1, 0, callback(J_euler_DFphiDYc), H2D_UNSYM);
-    wf.add_biform(1, 1, callback(J_euler_DFphiDYphi), H2D_UNSYM);
+    wf.add_vector_form(1, callback(Fphi_euler), H2D_ANY, 2, &C_prev_newton, &phi_prev_newton);
+    wf.add_matrix_form(0, 0, callback(J_euler_DFcDYc), H2D_UNSYM, H2D_ANY, 1, &phi_prev_newton);
+    wf.add_matrix_form(0, 1, callback(J_euler_DFcDYphi), H2D_UNSYM, H2D_ANY, 1, &C_prev_newton);
+    wf.add_matrix_form(1, 0, callback(J_euler_DFphiDYc), H2D_UNSYM);
+    wf.add_matrix_form(1, 1, callback(J_euler_DFphiDYphi), H2D_UNSYM);
   } else {
-    wf.add_liform(0, callback(Fc_cranic), H2D_ANY, 4,
+    wf.add_vector_form(0, callback(Fc_cranic), H2D_ANY, 4,
         &C_prev_time, &C_prev_newton, &phi_prev_newton, &phi_prev_time);
-    wf.add_liform(1, callback(Fphi_cranic), H2D_ANY, 2, &C_prev_newton, &phi_prev_newton);
-    wf.add_biform(0, 0, callback(J_cranic_DFcDYc), H2D_UNSYM, H2D_ANY, 2, &phi_prev_newton, &phi_prev_time);
-    wf.add_biform(0, 1, callback(J_cranic_DFcDYphi), H2D_UNSYM, H2D_ANY, 2, &C_prev_newton, &C_prev_time);
-    wf.add_biform(1, 0, callback(J_cranic_DFphiDYc), H2D_UNSYM);
-    wf.add_biform(1, 1, callback(J_cranic_DFphiDYphi), H2D_UNSYM);    
+    wf.add_vector_form(1, callback(Fphi_cranic), H2D_ANY, 2, &C_prev_newton, &phi_prev_newton);
+    wf.add_matrix_form(0, 0, callback(J_cranic_DFcDYc), H2D_UNSYM, H2D_ANY, 2, &phi_prev_newton, &phi_prev_time);
+    wf.add_matrix_form(0, 1, callback(J_cranic_DFcDYphi), H2D_UNSYM, H2D_ANY, 2, &C_prev_newton, &C_prev_time);
+    wf.add_matrix_form(1, 0, callback(J_cranic_DFphiDYc), H2D_UNSYM);
+    wf.add_matrix_form(1, 1, callback(J_cranic_DFphiDYphi), H2D_UNSYM);    
   }
   */
 
   // Neumann voltage boundary.
   if (VOLT_BOUNDARY == 2) {
-    wf.add_liform_surf(1, callback(linear_form_surf_top), TOP_MARKER);
+    wf.add_vector_form_surf(1, callback(linear_form_surf_top), TOP_MARKER);
   }
 
   // Nonlinear solver.
