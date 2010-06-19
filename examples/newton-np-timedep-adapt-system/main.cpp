@@ -93,7 +93,7 @@ const bool SOLVE_ON_COARSE_MESH = false;  // true... Newton is done on coarse me
                                       // of the fine mesh solution to coarse mesh is used.
 const double NEWTON_TOL_COARSE = 0.01;// Stopping criterion for Newton on coarse mesh.
 const double NEWTON_TOL_FINE = 0.05;  // Stopping criterion for Newton on fine mesh.
-const int NEWTON_MAX_ITER = 20;       // Maximum allowed number of Newton iterations.
+const int NEWTON_MAX_ITER = 100;      // Maximum allowed number of Newton iterations.
 
 const int UNREF_FREQ = 5;             // every UNREF_FREQth time step the mesh is unrefined.
 const double THRESHOLD = 0.3;         // This is a quantitative parameter of the adapt(...) function and
@@ -183,8 +183,10 @@ void solveNonadaptive(Mesh &mesh, NonlinSystem &nls,
 
   for (int n = 1; n <= NSTEP; n++) {
     verbose("---- Time step %d:", n);
-    if (!nls.solve_newton(&C_prev_newton, &phi_prev_newton,
-         NEWTON_TOL, NEWTON_MAX_ITER)) error("Newton's method did not converge.");
+    bool verbose = true; // Default is false.
+    if (!nls.solve_newton(Tuple<Solution*>(&C_prev_newton, &phi_prev_newton),
+			  NEWTON_TOL, NEWTON_MAX_ITER, verbose)) 
+      error("Newton's method did not converge.");
 
     sprintf(title, "Solution, timestep = %i", n);
     phiview.set_title(title);
@@ -226,7 +228,9 @@ void solveAdaptive(Mesh &Cmesh, Mesh &phimesh, Mesh &basemesh, NonlinSystem &nls
   
   //Newton's loop on a coarse mesh
   info("---- Time step 1, Newton solve on the coarse mesh\n");
-  if (!nls.solve_newton(&C_prev_newton, &phi_prev_newton, NEWTON_TOL_COARSE, NEWTON_MAX_ITER)) 
+  bool verbose = true; // Default is false.
+  if (!nls.solve_newton(Tuple<Solution*>(&C_prev_newton, &phi_prev_newton), 
+                        NEWTON_TOL_COARSE, NEWTON_MAX_ITER, verbose)) 
     error("Newton's method did not converge.");
 
   Solution Csln_coarse, phisln_coarse, Csln_fine, phisln_fine;
@@ -253,7 +257,8 @@ void solveAdaptive(Mesh &Cmesh, Mesh &phimesh, Mesh &basemesh, NonlinSystem &nls
       if (SOLVE_ON_COARSE_MESH) {
         // Newton's loop on the globally derefined mesh.
         info("---- Time step %d, Newton solve on globally derefined mesh:\n", n);
-        if (!nls.solve_newton(&C_prev_newton, &phi_prev_newton, NEWTON_TOL_COARSE, NEWTON_MAX_ITER))
+        if (!nls.solve_newton(Tuple<Solution*>(&C_prev_newton, &phi_prev_newton), 
+                              NEWTON_TOL_COARSE, NEWTON_MAX_ITER, verbose))
           error("Newton's method did not converge.");
       }
       Csln_coarse.copy(&C_prev_newton);
@@ -272,7 +277,8 @@ void solveAdaptive(Mesh &Cmesh, Mesh &phimesh, Mesh &basemesh, NonlinSystem &nls
       else rs.project_global(Tuple<MeshFunction*>(&Csln_fine, &phisln_fine), 
                              Tuple<Solution*>(&C_prev_newton, &phi_prev_newton));
       
-      rs.solve_newton(&C_prev_newton, &phi_prev_newton, NEWTON_TOL_FINE, NEWTON_MAX_ITER);
+      rs.solve_newton(Tuple<Solution*>(&C_prev_newton, &phi_prev_newton), 
+                      NEWTON_TOL_FINE, NEWTON_MAX_ITER, verbose);
       Csln_fine.copy(&C_prev_newton);
       phisln_fine.copy(&phi_prev_newton);
 
@@ -311,7 +317,8 @@ void solveAdaptive(Mesh &Cmesh, Mesh &phimesh, Mesh &basemesh, NonlinSystem &nls
         if (SOLVE_ON_COARSE_MESH) {
           // Newton's loop on the globally derefined mesh.
           info("---- Time step %d, Newton solve on globally derefined mesh:\n", n);
-          if (!nls.solve_newton(&C_prev_newton, &phi_prev_newton, NEWTON_TOL_COARSE, NEWTON_MAX_ITER))
+          if (!nls.solve_newton(Tuple<Solution*>(&C_prev_newton, &phi_prev_newton), 
+                                NEWTON_TOL_COARSE, NEWTON_MAX_ITER, verbose))
             error("Newton's method did not converge.");
         }
 
@@ -460,11 +467,11 @@ int main (int argc, char* argv[]) {
   phi_prev_time.set_exact(MULTIMESH ? &phimesh : &Cmesh, voltage_ic);
   C_prev_time.set_exact(&Cmesh, concentration_ic);
 
+  nls.project_global(Tuple<MeshFunction*>(&C_prev_time, &phi_prev_time), 
+                     Tuple<Solution*>(&C_prev_time, &phi_prev_time));
+
   C_prev_newton.copy(&C_prev_time);
   phi_prev_newton.copy(&phi_prev_time);
-
-  nls.project_global(Tuple<MeshFunction*>(&C_prev_newton, &phi_prev_newton), 
-                     Tuple<Solution*>(&C_prev_newton, &phi_prev_newton));
 
   if (adaptive) {
     solveAdaptive(Cmesh, phimesh, basemesh, nls, C, phi, C_prev_time,

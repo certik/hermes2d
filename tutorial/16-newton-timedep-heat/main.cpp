@@ -109,7 +109,8 @@ int main(int argc, char* argv[])
 
   // Project the function initial_condition() on the mesh.
   info("Projecting initial condition on the FE space.");
-  nls.project_global(initial_condition, &u_prev_time);
+  u_prev_time.set_exact(&mesh, initial_condition);
+  nls.project_global(&u_prev_time, &u_prev_time);
   u_prev_newton.copy(&u_prev_time);
 
   // Initialize views.

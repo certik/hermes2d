@@ -171,13 +171,7 @@ int main(int argc, char* argv[])
 #endif
 
   // Solutions for the Newton's iteration and time stepping.
-  info("Setting initial conditions.");
   Solution xvel_prev_time, yvel_prev_time, xvel_prev_newton, yvel_prev_newton, p_prev;
-  xvel_prev_time.set_zero(&mesh);
-  yvel_prev_time.set_zero(&mesh);
-  xvel_prev_newton.set_zero(&mesh);
-  yvel_prev_newton.set_zero(&mesh);
-  p_prev.set_zero(&mesh);
 
   // Initialize weak formulation.
   WeakForm wf(3);
@@ -232,6 +226,14 @@ int main(int argc, char* argv[])
   // Initialize nonlinear system.
   NonlinSystem nls(&wf, &umfpack, Tuple<Space*>(&xvel_space, &yvel_space, &p_space));
 
+  // Projecting initial conditions on FE meshes.
+  info("Setting initial conditions.");
+  xvel_prev_time.set_zero(&mesh);
+  yvel_prev_time.set_zero(&mesh);
+  xvel_prev_newton.set_zero(&mesh);
+  yvel_prev_newton.set_zero(&mesh);
+  p_prev.set_zero(&mesh);
+
   // Time-stepping loop:
   char title[100];
   int num_time_steps = T_FINAL / TAU;
@@ -248,7 +250,7 @@ int main(int argc, char* argv[])
       // Newton's method.
       info("Performing Newton's method.");
       bool verbose = true; // Default is false.
-      if (!nls.solve_newton(&xvel_prev_newton, &yvel_prev_newton, &p_prev, 
+      if (!nls.solve_newton(Tuple<Solution*>(&xvel_prev_newton, &yvel_prev_newton, &p_prev), 
                             NEWTON_TOL, NEWTON_MAX_ITER, verbose)) {
         error("Newton's method did not converge.");
       }

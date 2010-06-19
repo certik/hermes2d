@@ -32,7 +32,7 @@
 void NonlinSystem::init_nonlin()
 {
   alpha = 1.0;
-  res_l2 = res_l1 = res_max = -1.0;
+  //res_l2 = res_l1 = res_max = -1.0;
 
   // Tell LinSystem not to add Dirichlet contributions to the RHS.
   // The reason for this is that in NonlinSystem the Jacobian matrix 
@@ -57,8 +57,7 @@ NonlinSystem::NonlinSystem(WeakForm* wf_)
   this->init_nonlin();
 }
 
-NonlinSystem::NonlinSystem(WeakForm* wf_, Solver* solver_, 
-    Tuple<Space*> spaces_)
+NonlinSystem::NonlinSystem(WeakForm* wf_, Solver* solver_, Tuple<Space*> spaces_)
 {
   int n = spaces_.size();
   if (n != wf_->neq) 
@@ -69,8 +68,7 @@ NonlinSystem::NonlinSystem(WeakForm* wf_, Solver* solver_,
   this->init_nonlin();
 }
 
-NonlinSystem::NonlinSystem(WeakForm* wf_, 
-    Tuple<Space*> spaces_)
+NonlinSystem::NonlinSystem(WeakForm* wf_, Tuple<Space*> spaces_)
 {
   Solver* solver_ = NULL;
   this->init_lin(wf_, solver_);
@@ -79,8 +77,7 @@ NonlinSystem::NonlinSystem(WeakForm* wf_,
   this->init_nonlin();
 }
 
-NonlinSystem::NonlinSystem(WeakForm* wf_, Solver* solver_, 
-    Space *s_) 
+NonlinSystem::NonlinSystem(WeakForm* wf_, Solver* solver_, Space *s_) 
 {
   if (wf_->neq != 1) 
     error("Number of spaces does not match number of equations in LinSystem::LinSystem().");
@@ -95,17 +92,6 @@ NonlinSystem::NonlinSystem(WeakForm* wf_, Space *s_)
   Solver *solver_ = NULL;
   this->init_lin(wf_, solver_);
   this->init_space(s_);
-  this->alloc_and_zero_vectors();
-  this->init_nonlin();
-}
-
-NonlinSystem::NonlinSystem(WeakForm* wf_, Solver* solver_, Space* space1_, Space* space2_)
-{
-  int n = 2;
-  if (n != wf_->neq) 
-    error("Number of spaces does not match number of equations in LinSystem::LinSystem().");
-  this->init_lin(wf_, solver_);
-  this->init_spaces(Tuple<Space*>(space1_, space2_));
   this->alloc_and_zero_vectors();
   this->init_nonlin();
 }
@@ -125,8 +111,12 @@ void NonlinSystem::free()
 
 void NonlinSystem::assemble(bool rhsonly)
 {
+  // sanity checks
   int ndof = this->get_num_dofs();
   if (rhsonly) error("Parameter rhsonly = true has no meaning in NonlinSystem.");
+  if (this->have_spaces == false)
+    error("Before assemble(), you need to initialize spaces.");
+  if (this->spaces == NULL) error("spaces = NULL in LinSystem::assemble().");
 
   // assemble J(Y_n) and store in A, assemble F(Y_n) and store in RHS
   LinSystem::assemble();
@@ -146,8 +136,8 @@ void NonlinSystem::assemble(bool rhsonly)
     this->RHS[i] *= -this->alpha;
 }
 
-// The solve() function is almost identical to the original one in LinSystem
-// except that Y_{n+1} = Y_{n} + dY_{n+1}
+// The solve() function is almost identical to the original one in LinSystem.
+// It does not put the Dirichlet lift vector Dir to the right-hand side.
 bool NonlinSystem::solve(Tuple<Solution*> sln)
 {
   int n = sln.size();
@@ -202,145 +192,51 @@ bool NonlinSystem::solve(Solution* sln)
   return flag;
 }
 
-// two equations case
-bool NonlinSystem::solve(Solution* sln1, Solution* sln2)
-{
-  bool flag;
-  flag = this->solve(Tuple<Solution*>(sln1, sln2));
-  return flag;
-}
-
-// three equations case
-bool NonlinSystem::solve(Solution* sln1, Solution* sln2, Solution* sln3)
-{
-  bool flag;
-  flag = this->solve(Tuple<Solution*>(sln1, sln2, sln3));
-  return flag;
-}
-
-// Newton's loop for one equation
-bool NonlinSystem::solve_newton(Solution* u_prev, double newton_tol, 
+// Newton's method for an arbitrary number of equations.
+bool NonlinSystem::solve_newton(Tuple<Solution*> u_prev, double newton_tol, 
                                 int newton_max_iter, bool verbose, 
-                                Filter* f1, Filter* f2, Filter* f3) {
-    int it = 1;
-    double res_l2_norm;
-    Solution sln_iter;
-    Space *space = this->get_space(0);
-    do
-    {
-      info("---- Newton iter %d:", it);
-  
-      // reinitialization of filters (if relevant)
-      if (f1 != NULL) f1->reinit();
-      if (f2 != NULL) f2->reinit();
-      if (f3 != NULL) f3->reinit();
+                                Tuple<MeshFunction*> mesh_fns) 
+{
+  // sanity checks
+  int n = u_prev.size();
+  if (n != this->wf->neq) 
+    error("The number of solutions in newton_solve() must match the number of equation in the PDE system.");
+  if (this->spaces == NULL) error("spaces is NULL in solve_newton().");
+  for (int i=0; i < n; i++) {
+    if (this->spaces[i] == NULL) error("spaces[%d] is NULL in solve_newton().", i);
+  }
+  int n_mesh_fns;
+  if (mesh_fns == Tuple<MeshFunction*>()) n_mesh_fns = 0;
+  else n_mesh_fns = mesh_fns.size();
+  for (int i=0; i<n_mesh_fns; i++) {
+    if (mesh_fns[i] == NULL) error("a filter is NULL in solve_newton().");
+  }
 
-      // assemble the Jacobian matrix and residual vector,
-      // solve the system
-      this->assemble();
-      this->solve(&sln_iter);
+  int it = 1;
+  double res_l2_norm;
+  do
+  {
+    info("---- Newton iter %d:", it); 
 
-      // calculate the l2-norm of residual vector
-      res_l2_norm = this->get_residual_l2_norm();
-      if (verbose) printf("---- Newton iter %d, ndof %d, res. l2 norm %g\n", 
-                          it, this->get_num_dofs(), res_l2_norm);
+    // reinitialize filters
+    for (int i=0; i < n_mesh_fns; i++) mesh_fns[i]->reinit();
 
-      // save the new solution as "previous" for the
-      // next Newton's iteration
-      u_prev->copy(&sln_iter);
+    // assemble the Jacobian matrix and residual vector,
+    // solve the system
+    this->assemble();
+    this->solve(u_prev);
 
-      it++;
-    }
-    while (res_l2_norm > newton_tol && it <= newton_max_iter);
-    
-    // returning "true" if converged, otherwise returning "false"
-    if (it <= newton_max_iter) return true;
-    else return false;
+    // calculate the l2-norm of residual vector
+    res_l2_norm = this->get_residual_l2_norm();
+    if (verbose) printf("---- Newton iter %d, ndof %d, res. l2 norm %g\n", 
+                        it, this->get_num_dofs(), res_l2_norm);
+
+    it++;
+  }
+  while (res_l2_norm > newton_tol && it <= newton_max_iter);
+
+  // returning "true" if converged, otherwise returning "false"
+  if (it <= newton_max_iter) return true;
+  else return false;
 }
 
-// Newton's loop for two equations
-bool NonlinSystem::solve_newton(Solution* u_prev_1, Solution* u_prev_2, double newton_tol, int newton_max_iter,
-                                bool verbose, 
-                                Filter* f1, Filter* f2, Filter* f3) {
-    int it = 1;
-    double res_l2_norm;
-    Solution sln_iter_1, sln_iter_2;
-    Space *space_1 = this->get_space(0);
-    Space *space_2 = this->get_space(1);
-
-    do
-    {
-      info("---- Newton iter %d:", it); 
-
-      // reinitialization of filters (if relevant)
-      if (f1 != NULL) f1->reinit();
-      if (f2 != NULL) f2->reinit();
-      if (f3 != NULL) f3->reinit();
-
-      // assemble the Jacobian matrix and residual vector,
-      // solve the system
-      this->assemble();
-      this->solve(Tuple<Solution*>(&sln_iter_1, &sln_iter_2));
-
-      // calculate the l2-norm of residual vector
-      res_l2_norm = this->get_residual_l2_norm();
-      if (verbose) printf("---- Newton iter %d, ndof %d, res. l2 norm %g\n", 
-                          it, this->get_num_dofs(), res_l2_norm);
-
-      // save the new solutions as "previous" for the
-      // next Newton's iteration
-      u_prev_1->copy(&sln_iter_1);
-      u_prev_2->copy(&sln_iter_2);
-
-      it++;
-    }
-    while (res_l2_norm > newton_tol && it <= newton_max_iter);
-
-    // returning "true" if converged, otherwise returning "false"
-    if (it <= newton_max_iter) return true;
-    else return false;
-}
-
-// Newton's loop for three equations
-bool NonlinSystem::solve_newton(Solution* u_prev_1, Solution* u_prev_2, Solution* u_prev_3,
-				double newton_tol, int newton_max_iter, bool verbose, 
-                                Filter* f1, Filter* f2, Filter* f3) {
-    int it = 1;
-    double res_l2_norm;
-    Solution sln_iter_1, sln_iter_2, sln_iter_3;
-    Space *space_1 = this->get_space(0);
-    Space *space_2 = this->get_space(1);
-    Space *space_3 = this->get_space(2);
-    do
-    {
-      info("---- Newton iter %d:", it); 
-
-      // reinitialization of filters (if relevant)
-      if (f1 != NULL) f1->reinit();
-      if (f2 != NULL) f2->reinit();
-      if (f3 != NULL) f3->reinit();
-
-      // assemble the Jacobian matrix and residual vector,
-      // solve the system
-      this->assemble();
-      this->solve(Tuple<Solution*>(&sln_iter_1, &sln_iter_2, &sln_iter_3));
-
-      // calculate the l2-norm of residual vector
-      res_l2_norm = this->get_residual_l2_norm();
-      if (verbose) printf("---- Newton iter %d, ndof %d, res. l2 norm %g\n", 
-                          it, this->get_num_dofs(), res_l2_norm);
-
-      // save the new solutions as "previous" for the
-      // next Newton's iteration
-      u_prev_1->copy(&sln_iter_1);
-      u_prev_2->copy(&sln_iter_2);
-      u_prev_3->copy(&sln_iter_3);
-
-      it++;
-    }
-    while (res_l2_norm > newton_tol && it <= newton_max_iter);
-
-    // returning "true" if converged, otherwise returning "false"
-    if (it <= newton_max_iter) return true;
-    else return false;
-}

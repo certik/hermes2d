@@ -377,15 +377,15 @@ void LinSystem::insert_block(scalar** mat, int* iidx, int* jidx, int ilen, int j
 
 void LinSystem::assemble(bool rhsonly)
 {
-  int ndof = this->get_num_dofs();
-
   // sanity checks
+  int ndof = this->get_num_dofs();
   if (ndof == 0) error("ndof = 0 in LinSystem::assemble().");
   if (this->have_spaces == false)
     error("Before assemble(), you need to initialize spaces.");
   if (this->spaces == NULL) error("spaces = NULL in LinSystem::assemble().");
   
-  // realloc vectors if needed
+  // enumerate DOF and realloc vectors if needed
+  //this->assign_dofs();
   if (this->Vec_length != ndof || this->RHS_length != ndof || this->Dir_length != ndof) {
     this->realloc_and_zero_vectors();
   }
@@ -1073,8 +1073,10 @@ Scalar Hcurlprojection_liform(int n, double *wt, Func<Real> *v, Geom<Real> *e, E
 int LinSystem::assign_dofs() 
 { 
   // assigning dofs to each space
+  if (this->spaces == NULL) error("spaces is NULL in assign_dofs().");
   int ndof = 0;  
   for (int i = 0; i < this->wf->neq; i++) {
+    if (this->spaces[i] == NULL) error("spaces[%d] is NULL in assign_dofs().", i);
     int inc = this->spaces[i]->assign_dofs(ndof);
     ndof += inc;
   }
@@ -1156,7 +1158,7 @@ int LinSystem::get_num_dofs()
 
   int ndof = 0;
   for (int i = 0; i < this->wf->neq; i++) {
-    if (spaces[i] ==  NULL) error(" a space is NULL in LinSystem::get_num_dofs().");
+    if (spaces[i] ==  NULL) error("a space is NULL in LinSystem::get_num_dofs().");
     ndof += this->get_num_dofs(i);
   }
   return ndof;

@@ -218,9 +218,6 @@ int main(int argc, char* argv[])
   // Matrix solver.
   UmfpackSolver solver;
 
-  // Initialize the nonlinear system.
-  NonlinSystem nls(&wf, &solver, Tuple<Space*>(&space_T, &space_phi));
-
   // Initialize solution views.
   ScalarView view_T("", 360, 0, 350, 250);
   view_T.fix_scale_width(80);
@@ -241,10 +238,13 @@ int main(int argc, char* argv[])
   OrderView ordview_phi_fine("", 1080, 300, 350, 250);
   ordview_phi_fine.fix_scale_width(80);
 
+  // Initialize the nonlinear system.
+  NonlinSystem nls(&wf, &solver, Tuple<Space*>(&space_T, &space_phi));
+
   // Project initial conditions on the coarse mesh.
   info("Projecting initial conditions on FE meshes.");
-  T_prev_time.set_exact(&mesh_T, T_exact);
-  phi_prev_time.set_exact(&mesh_phi, phi_exact);
+  T_prev_time.set_exact(&mesh_T, T_ic);
+  phi_prev_time.set_exact(&mesh_phi, phi_ic);
   nls.project_global(Tuple<MeshFunction*>(&T_prev_time, &phi_prev_time), 
                      Tuple<Solution*>(&T_prev_time, &phi_prev_time));
   T_prev_newton.copy(&T_prev_time);
@@ -253,7 +253,8 @@ int main(int argc, char* argv[])
   // Newton's loop on the coarse mesh.
   info("Newton solve on coarse meshes.");
   bool verbose = true; // Default is false.
-  if (!nls.solve_newton(&T_prev_newton, &phi_prev_newton, NEWTON_TOL_COARSE, NEWTON_MAX_ITER, verbose))
+  if (!nls.solve_newton(Tuple<Solution*>(&T_prev_newton, &phi_prev_newton), 
+                        NEWTON_TOL_COARSE, NEWTON_MAX_ITER, verbose))
     error("Newton's method did not converge.");
 
   // Store the result in T_coarse, phi_coarse.
@@ -308,7 +309,8 @@ int main(int argc, char* argv[])
       if (SOLVE_ON_COARSE_MESH) {
         // Newton's loop on the globally derefined mesh.
         info("Newton solve on globally derefined meshes.", ts);
-        if (!nls.solve_newton(&T_prev_newton, &phi_prev_newton, NEWTON_TOL_COARSE, NEWTON_MAX_ITER, verbose))
+        if (!nls.solve_newton(Tuple<Solution*>(&T_prev_newton, &phi_prev_newton), 
+                              NEWTON_TOL_COARSE, NEWTON_MAX_ITER, verbose))
           error("Newton's method did not converge.");
       }
 
@@ -341,7 +343,8 @@ int main(int argc, char* argv[])
 
       // Newton's loop on the fine meshes.
       info("Newton solve on fine meshes.");
-      if (!rnls.solve_newton(&T_prev_newton, &phi_prev_newton, NEWTON_TOL_FINE, NEWTON_MAX_ITER, verbose))
+      if (!rnls.solve_newton(Tuple<Solution*>(&T_prev_newton, &phi_prev_newton), 
+                             NEWTON_TOL_FINE, NEWTON_MAX_ITER, verbose))
         error("Newton's method did not converge.");
 
       // Store the result in T_fine, phi_fine.
@@ -403,7 +406,8 @@ int main(int argc, char* argv[])
         if (SOLVE_ON_COARSE_MESH) {
           // Newton's loop on the coarse meshes.
           info("Newton solve on coarse meshes.");
-          if (!nls.solve_newton(&T_prev_newton, &phi_prev_newton, NEWTON_TOL_COARSE, NEWTON_MAX_ITER, verbose))
+          if (!nls.solve_newton(Tuple<Solution*>(&T_prev_newton, &phi_prev_newton), 
+                                NEWTON_TOL_COARSE, NEWTON_MAX_ITER, verbose))
             error("Newton's method did not converge.");
         }
 

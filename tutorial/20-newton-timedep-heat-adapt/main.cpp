@@ -126,7 +126,7 @@ int main(int argc, char* argv[])
   for(int i = 0; i < INIT_REF_NUM; i++) basemesh.refine_all_elements();
   mesh.copy(&basemesh);
 
-  // Create an H1 space.
+  // Create an H1 space with default shapeset.
   H1Space space(&mesh, bc_types, essential_bc_values, P_INIT);
 
   // Solutions for the time stepping and the Newton's method.
@@ -154,7 +154,8 @@ int main(int argc, char* argv[])
 
   // Project the function initial_condition() on the coarse mesh.
   info("Projecting initial condition on the FE mesh.");
-  nls.project_global(initial_condition, &u_prev_time);
+  u_prev_time.set_exact(&mesh, initial_condition);
+  nls.project_global(&u_prev_time, &u_prev_time);
   u_prev_newton.copy(&u_prev_time);
 
   // View the projection of the initial condition.
@@ -178,8 +179,8 @@ int main(int argc, char* argv[])
   H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
 
   // Time stepping loop.
-  int nstep = (int)(T_FINAL/TAU + 0.5);
-  for(int ts = 1; ts <= nstep; ts++)
+  int num_time_steps = (int)(T_FINAL/TAU + 0.5);
+  for(int ts = 1; ts <= num_time_steps; ts++)
   {
     // Periodic global derefinements.
     if (ts > 1 && ts % UNREF_FREQ == 0) {

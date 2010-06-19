@@ -149,7 +149,8 @@ int main(int argc, char* argv[])
   // Project the function init_guess() on the coarse mesh
   // to obtain initial guess u_prev for the Newton's method.
   info("Projecting initial condition on coarse mesh.");
-  nls.project_global(init_guess, &u_prev);
+  u_prev.set_exact(&mesh, init_guess);
+  nls.project_global(&u_prev, &u_prev);
 
   // Initialize views.
   ScalarView sview_coarse("Coarse mesh solution", 0, 0, 350, 300); // coarse mesh solution

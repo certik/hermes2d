@@ -146,7 +146,8 @@ int main(int argc, char* argv[])
   // Project fn_init() on the FE space and use it as initial 
   // condition for the Newton's method.
   info("Projecting initial condition on FE mesh.");
-  nls.project_global(&fn_init, &Psi_prev_newton);
+  Psi_prev_newton.set_exact(&mesh, fn_init);
+  nls.project_global(&Psi_prev_newton, &Psi_prev_newton);
 
   // Show the projection of the initial condition.
   char title[100];

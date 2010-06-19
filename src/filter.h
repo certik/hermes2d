@@ -45,6 +45,8 @@ public:
   virtual void push_transform(int son);
   virtual void pop_transform();
 
+  virtual void init();
+
 protected:
 
   int num;
@@ -55,7 +57,6 @@ protected:
   bool unimesh;
   UniData** unidata;
 
-  void init();
   void copy_base(Filter* flt);
 
 };

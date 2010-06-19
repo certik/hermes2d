@@ -179,10 +179,6 @@ int main(int argc, char* argv[])
   H1Space space_T(&mesh, bc_types_T, essential_bc_values_T, P_INIT);
   H1Space space_phi(&mesh, bc_types_phi, essential_bc_values_phi, P_INIT);
 
-  // Solutions for the Newton's iteration and time stepping.
-  Solution T_prev_newton, T_prev_time,
-           phi_prev_newton, phi_prev_time;
-
   // Exact solutions for error evaluation.
   ExactSolution T_solution(&mesh, T_exact),
                 phi_solution(&mesh, phi_exact);
@@ -190,15 +186,14 @@ int main(int argc, char* argv[])
   // Exact errors.
   double T_error, phi_error, error;
 
-  // Set initial conditions.
-  T_prev_time.set_exact(&mesh, T_exact);
-  phi_prev_time.set_exact(&mesh, phi_exact);
-
   // Initialize views.
   ScalarView sview_T("Solution for the temperature T", 0, 0, 500, 400);
   ScalarView sview_phi("Solution for the neutron flux phi", 0, 500, 500, 400);
   ScalarView sview_T_exact("Solution for the temperature T", 550, 0, 500, 400);
   ScalarView sview_phi_exact("Solution for the neutron flux phi", 550, 500, 500, 400);
+
+  // Solutions.
+  Solution T_prev_time, phi_prev_time, T_prev_newton, phi_prev_newton;
 
   // Initialize the weak formulation.
   WeakForm wf(2);
@@ -218,7 +213,12 @@ int main(int argc, char* argv[])
   // Initialize nonlinear system.
   NonlinSystem nls(&wf, &solver, Tuple<Space*>(&space_T, &space_phi));
 
-  // Set initial conditions for the Newton's method.
+  // Project the exact solutions on the FE spaces.
+  info("Projecting initial conditions on FE spaces.");
+  T_prev_time.set_exact(&mesh, T_ic);
+  phi_prev_time.set_exact(&mesh, phi_ic);
+  nls.project_global(Tuple<MeshFunction*>(&T_prev_time, &phi_prev_time), 
+                     Tuple<Solution*>(&T_prev_time, &phi_prev_time));
   T_prev_newton.copy(&T_prev_time);
   phi_prev_newton.copy(&phi_prev_time);
 
@@ -232,7 +232,8 @@ int main(int argc, char* argv[])
     // Newton's method.
     info("Newton's iteration...");
     bool verbose = true; // Default is false.
-    if (!nls.solve_newton(&T_prev_newton, &phi_prev_newton, NEWTON_TOL, NEWTON_MAX_ITER, verbose)) 
+    if (!nls.solve_newton(Tuple<Solution*>(&T_prev_newton, &phi_prev_newton), 
+                          NEWTON_TOL, NEWTON_MAX_ITER, verbose)) 
       error("Newton's method did not converge.");
 
     // Update previous time level solution.

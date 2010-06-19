@@ -200,7 +200,7 @@ int main(int argc, char* argv[])
       // Newton's method.
       info("Performing Newton's method.");
       bool verbose = true; // Default is false.
-      if (!nls.solve_newton(&xvel_prev_newton, &yvel_prev_newton, &p_prev, 
+      if (!nls.solve_newton(Tuple<Solution*>(&xvel_prev_newton, &yvel_prev_newton, &p_prev), 
                             NEWTON_TOL, NEWTON_MAX_ITER, verbose)) {
         error("Newton's method did not converge.");
       }

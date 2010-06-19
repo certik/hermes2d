@@ -170,49 +170,6 @@ public:
     this->project_global(Tuple<MeshFunction*>(source), Tuple<Solution*>(target), Tuple<int>(proj_norm));
   };
 
-  /// Global orthogonal projection of one exact function.
-  void project_global(scalar (*exactfn)(double x, double y, scalar& dx, scalar& dy),
-                      Solution* target, int proj_norm = 1)
-  {
-    Mesh *mesh = this->get_mesh(0);
-    Solution tmp;
-    tmp.set_exact(mesh, exactfn);
-    project_global(&tmp, target, proj_norm);
-  }
-
-  /// Global orthogonal projection of two exact functions.
-  void project_global(scalar (*exactfn1)(double x, double y, scalar& dx, scalar& dy), 
-                      scalar (*exactfn2)(double x, double y, scalar& dx, scalar& dy),
-                      Solution* target1, Solution* target2, int proj_norm = 1)
-  {
-    Mesh *mesh1 = this->get_mesh(0);
-    Mesh *mesh2 = this->get_mesh(1);
-    Solution tmp1, tmp2;
-    tmp1.set_exact(mesh1, exactfn1);
-    tmp2.set_exact(mesh2, exactfn2);
-    project_global(Tuple<MeshFunction*>(&tmp1, &tmp2), 
-                   Tuple<Solution*>(target1, target2), 
-                   Tuple<int>(proj_norm, proj_norm));
-  }
-
-  /// Global orthogonal projection of three exact functions.
-  void project_global(scalar (*exactfn1)(double x, double y, scalar& dx, scalar& dy), 
-                      scalar (*exactfn2)(double x, double y, scalar& dx, scalar& dy),
-                      scalar (*exactfn3)(double x, double y, scalar& dx, scalar& dy),
-                      Solution* target1, Solution* target2, Solution* target3, int proj_norm = 1)
-  {
-    Mesh *mesh1 = this->get_mesh(0);
-    Mesh *mesh2 = this->get_mesh(1);
-    Mesh *mesh3 = this->get_mesh(2);
-    Solution tmp1, tmp2, tmp3;
-    tmp1.set_exact(mesh1, exactfn1);
-    tmp2.set_exact(mesh2, exactfn2);
-    tmp3.set_exact(mesh3, exactfn3);
-    project_global(Tuple<MeshFunction*>(&tmp1, &tmp2, &tmp3), 
-                   Tuple<Solution*>(target1, target2, target3), 
-                   Tuple<int>(proj_norm, proj_norm, proj_norm));
-  }
-
   /// Projection-based interpolation of an exact function. This is faster than the 
   /// global projection since no global matrix problem is solved. 
   void project_local(scalar (*exactfn)(double x, double y, scalar& dx, scalar& dy),

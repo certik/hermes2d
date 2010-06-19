@@ -8,12 +8,8 @@
 using namespace RefinementSelectors;
 
 // The time-dependent laminar incompressible Navier-Stokes equations are
-// discretized in time via the implicit Euler method. If NEWTON == true,
-// the Newton's method is used to solve the nonlinear problem at each time
-// step. If NEWTON == false, the convective term is only linearized using the
-// velocities from the previous time step. Obviously the latter approach is wrong,
-// but people do this frequently because it is faster and simpler to implement.
-// Therefore we include this case for comparison purposes. We also show how
+// discretized in time via the implicit Euler method. The Newton's method 
+// is used to solve the nonlinear problem at each time step. We show how
 // to use discontinuous ($L^2$) elements for pressure and thus make the
 // velocity discreetely divergence free. Comparison to approximating the
 // pressure with the standard (continuous) Taylor-Hood elements is enabled.
@@ -33,23 +29,24 @@ using namespace RefinementSelectors;
 //           radius and position of the circle, as well as other geometry
 //           parameters can be changed in the mesh file "domain.mesh".
 //
-//
 // The following parameters can be changed:
-//
 
+const bool SOLVE_ON_COARSE_MESH = false;   // true... Newton is done on coarse mesh in every adaptivity step.
+                                           // false...Newton is done on coarse mesh only once, then projection
+                                           // of the fine mesh solution to coarse mesh is used.
 #define PRESSURE_IN_L2           // If this is defined, the pressure is approximated using
                                  // discontinuous L2 elements (making the velocity discreetely
                                  // divergence-free, more accurate than using a continuous
                                  // pressure approximation). Otherwise the standard continuous
                                  // elements are used. The results are striking - check the
                                  // tutorial for comparisons.
-const bool NEWTON = true;        // If NEWTON == true then the Newton's iteration is performed
-                                 // in every time step. Otherwise the convective term is linearized
-                                 // using the velocities from the previous time step
 const int P_INIT_VEL = 2;        // Initial polynomial degree for velocity components
 const int P_INIT_PRESSURE = 1;   // Initial polynomial degree for pressure
                                  // Note: P_INIT_VEL should always be greater than
                                  // P_INIT_PRESSURE because of the inf-sup condition
+
+// Adaptivity
+const int UNREF_FREQ = 1;        // Every UNREF_FREQth time step the mesh is unrefined.
 const double THRESHOLD = 0.3;    // This is a quantitative parameter of the adapt(...) function and
                                  // it has different meanings for various adaptive strategies (see below).
 const int STRATEGY = 1;          // Adaptive strategy:
@@ -61,10 +58,10 @@ const int STRATEGY = 1;          // Adaptive strategy:
                                  // STRATEGY = 2 ... refine all elements whose error is larger
                                  //   than THRESHOLD.
                                  // More adaptive strategies can be created in adapt_ortho_h1.cpp.
-const CandList CAND_LIST = H2D_HP_ANISO; // Predefined list of element refinement candidates. Possible values are
+const CandList CAND_LIST = H2D_H_ANISO; // Predefined list of element refinement candidates. Possible values are
                                          // H2D_P_ISO, H2D_P_ANISO, H2D_H_ISO, H2D_H_ANISO, H2D_HP_ISO,
                                          // H2D_HP_ANISO_H, H2D_HP_ANISO_P, H2D_HP_ANISO.
-                                         // See the Sphinx tutorial (http://hpfem.org/hermes2d/doc/src/tutorial-2.html#adaptive-h-fem-and-hp-fem) for details.
+                                         // See the Used Documentation for details.
 const int MESH_REGULARITY = -1;  // Maximum allowed level of hanging nodes:
                                  // MESH_REGULARITY = -1 ... arbitrary level hangning nodes (default),
                                  // MESH_REGULARITY = 1 ... at most one-level hanging nodes,
@@ -79,36 +76,41 @@ const int NDOF_STOP = 60000;     // Adaptivity process stops when the number of 
                                  // this limit. This is mainly to prevent h-adaptivity to go on forever.
 
 // Problem parameters
-const double RE = 200.0;             // Reynolds number
-const double VEL_INLET = 1.0;        // Inlet velocity (reached after STARTUP_TIME)
+const double RE = 200.0;             // Reynolds number.
+const double VEL_INLET = 1.0;        // Inlet velocity (reached after STARTUP_TIME).
 const double STARTUP_TIME = 1.0;     // During this time, inlet velocity increases gradually
-                                     // from 0 to VEL_INLET, then it stays constant
-const double TAU = 0.1;              // time step
-const double T_FINAL = 30000.0;      // Time interval length
-const double NEWTON_TOL = 1e-3;      // Stopping criterion for the Newton's method
-const int NEWTON_MAX_ITER = 10;      // Maximum allowed number of Newton iterations
+                                     // from 0 to VEL_INLET, then it stays constant.
+const double TAU = 0.05;             // Time step.
+const double T_FINAL = 30000.0;      // Time interval length.
+
+// Newton's method
+const double NEWTON_TOL_COARSE = 0.01;     // Stopping criterion for Newton on coarse mesh.
+const double NEWTON_TOL_FINE = 0.05;       // Stopping criterion for Newton on fine mesh.
+const int NEWTON_MAX_ITER = 20;            // Maximum allowed number of Newton iterations.
+
+// Geometry
 const double H = 5;                  // Domain height (necessary to define the parabolic
                                      // velocity profile at inlet)
 
-// Boundary markers in the mesh file
-int marker_bottom = 1;
-int marker_right  = 2;
-int marker_top = 3;
-int marker_left = 4;
-int marker_obstacle = 5;
+// Boundary markers.
+int bdy_bottom = 1;
+int bdy_right  = 2;
+int bdy_top = 3;
+int bdy_left = 4;
+int bdy_obstacle = 5;
 
 // Current time (defined as global since needed in weak forms)
 double TIME = 0;
 
 // Boundary condition types for x-velocity
 BCType xvel_bc_type(int marker) {
-  if (marker == marker_right) return BC_NONE;
+  if (marker == bdy_right) return BC_NONE;
   else return BC_ESSENTIAL;
 }
 
 // Boundary condition values for x-velocity
 scalar essential_bc_values_xvel(int ess_bdy_marker, double x, double y) {
-  if (ess_bdy_marker == marker_left) {
+  if (ess_bdy_marker == bdy_left) {
     // time-dependent inlet velocity (parabolic profile)
     double val_y = VEL_INLET * y*(H-y) / (H/2.)/(H/2.); //parabolic profile with peak VEL_INLET at y = H/2
     if (TIME <= STARTUP_TIME) return val_y * TIME/STARTUP_TIME;
@@ -119,7 +121,7 @@ scalar essential_bc_values_xvel(int ess_bdy_marker, double x, double y) {
 
 // Boundary condition types for y-velocity
 BCType yvel_bc_type(int marker) {
-  if (marker == marker_right) return BC_NONE;
+  if (marker == bdy_right) return BC_NONE;
   else return BC_ESSENTIAL;
 }
 
@@ -143,16 +145,20 @@ void mag(int n, scalar* a, scalar* dadx, scalar* dady,
 
 int main(int argc, char* argv[])
 {
-
   // Load the mesh file.
   Mesh basemesh, mesh;
   H2DReader mloader;
   mloader.load("domain.mesh", &basemesh);  // Master mesh.
-  basemesh.refine_all_elements();
-  basemesh.refine_towards_boundary(5, 2, false);
+
+  // Perform initial mesh refinements.
+  // Initial mesh refinements.
+  //basemesh.refine_all_elements();
+  basemesh.refine_towards_boundary(bdy_obstacle, 3, false);
+  basemesh.refine_towards_boundary(bdy_top, 3, true);     // '4' is the number of levels,
+  basemesh.refine_towards_boundary(bdy_bottom, 3, true);  // 'true' stands for anisotropic refinements.
   mesh.copy(&basemesh);
 
-  // Spaces for velocities and pressure
+  // Create spaces with default shapesets. 
   H1Space xvel_space(&mesh, xvel_bc_type, essential_bc_values_xvel, P_INIT_VEL);
   H1Space yvel_space(&mesh, yvel_bc_type, NULL, P_INIT_VEL);
 #ifdef PRESSURE_IN_L2
@@ -161,177 +167,225 @@ int main(int argc, char* argv[])
   H1Space p_space(&mesh, p_bc_type, NULL, P_INIT_PRESSURE);
 #endif
 
+  // Define projection norms.
+  int vel_proj_norm = 1;
+#ifdef PRESSURE_IN_L2
+  int p_proj_norm = 0;
+#else
+  int p_proj_norm = 1;
+#endif
+
   // Solutions for the Newton's iteration and time stepping.
-  Solution xvel_crs, yvel_crs, xvel_fine, yvel_fine, p_crs, p_fine;
-  Solution xvel_prev_time, yvel_prev_time, xvel_prev_newton, yvel_prev_newton, p_prev;
+  Solution xvel_fine, yvel_fine, p_fine;
+  Solution xvel_prev_time, yvel_prev_time, p_prev_time;
+  Solution xvel_prev_newton, yvel_prev_newton, p_prev;
+
+  // Initialize the weak formulation.
+  WeakForm wf(3);
+  wf.add_biform(0, 0, callback(bilinear_form_sym_0_0_1_1), H2D_SYM);
+  wf.add_biform(0, 0, callback(newton_bilinear_form_unsym_0_0), H2D_UNSYM, H2D_ANY, 
+                Tuple<MeshFunction*>(&xvel_prev_newton, &yvel_prev_newton));
+  wf.add_biform(0, 1, callback(newton_bilinear_form_unsym_0_1), H2D_UNSYM, H2D_ANY, 
+                &xvel_prev_newton);
+  wf.add_biform(0, 2, callback(bilinear_form_unsym_0_2), H2D_ANTISYM);
+  wf.add_biform(1, 0, callback(newton_bilinear_form_unsym_1_0), H2D_UNSYM, H2D_ANY, 
+                &yvel_prev_newton);
+  wf.add_biform(1, 1, callback(bilinear_form_sym_0_0_1_1), H2D_SYM);
+  wf.add_biform(1, 1, callback(newton_bilinear_form_unsym_1_1), H2D_UNSYM, H2D_ANY, 
+                Tuple<MeshFunction*>(&xvel_prev_newton, &yvel_prev_newton));
+  wf.add_biform(1, 2, callback(bilinear_form_unsym_1_2), H2D_ANTISYM);
+  wf.add_liform(0, callback(newton_F_0), H2D_ANY, Tuple<MeshFunction*>(&xvel_prev_time, &yvel_prev_time, 
+							 &xvel_prev_newton, &yvel_prev_newton, &p_prev));
+  wf.add_liform(1, callback(newton_F_1), H2D_ANY, Tuple<MeshFunction*>(&xvel_prev_time, &yvel_prev_time, 
+							 &xvel_prev_newton, &yvel_prev_newton, &p_prev));
+  wf.add_liform(2, callback(newton_F_2), H2D_ANY, Tuple<MeshFunction*>(&xvel_prev_newton, &yvel_prev_newton));
+
+  // Matrix solver.
+  UmfpackSolver solver;
+
+  // Initialize nonlinear system.
+  NonlinSystem nls(&wf, &solver, Tuple<Space*>(&xvel_space, &yvel_space, &p_space));
+
+  // Update time-dependent essential BC.
+  info("Updating time-dependent essential BC.");
+  TIME += TAU;
+  nls.update_essential_bc_values();
+
+  // Define initial conditions on the coarse mesh.
   xvel_prev_time.set_zero(&mesh);
   yvel_prev_time.set_zero(&mesh);
   xvel_prev_newton.set_zero(&mesh);
   yvel_prev_newton.set_zero(&mesh);
   p_prev.set_zero(&mesh);
 
-  // Initialize the weak formulation.
-  WeakForm wf(3);
-  if (NEWTON) {
-    wf.add_biform(0, 0, callback(bilinear_form_sym_0_0_1_1), H2D_SYM);
-    wf.add_biform(0, 0, callback(newton_bilinear_form_unsym_0_0), H2D_UNSYM, H2D_ANY, 
-                  Tuple<MeshFunction*>(&xvel_prev_newton, &yvel_prev_newton));
-    wf.add_biform(0, 1, callback(newton_bilinear_form_unsym_0_1), H2D_UNSYM, H2D_ANY, 
-                  &xvel_prev_newton);
-    wf.add_biform(0, 2, callback(bilinear_form_unsym_0_2), H2D_ANTISYM);
-    wf.add_biform(1, 0, callback(newton_bilinear_form_unsym_1_0), H2D_UNSYM, H2D_ANY, 
-                  &yvel_prev_newton);
-    wf.add_biform(1, 1, callback(bilinear_form_sym_0_0_1_1), H2D_SYM);
-    wf.add_biform(1, 1, callback(newton_bilinear_form_unsym_1_1), H2D_UNSYM, H2D_ANY, 
-                  Tuple<MeshFunction*>(&xvel_prev_newton, &yvel_prev_newton));
-    wf.add_biform(1, 2, callback(bilinear_form_unsym_1_2), H2D_ANTISYM);
-    wf.add_liform(0, callback(newton_F_0), H2D_ANY, Tuple<MeshFunction*>(&xvel_prev_time, &yvel_prev_time, 
-									 &xvel_prev_newton, &yvel_prev_newton, &p_prev));
-    wf.add_liform(1, callback(newton_F_1), H2D_ANY, Tuple<MeshFunction*>(&xvel_prev_time, &yvel_prev_time, 
-									 &xvel_prev_newton, &yvel_prev_newton, &p_prev));
-    wf.add_liform(2, callback(newton_F_2), H2D_ANY, Tuple<MeshFunction*>(&xvel_prev_newton, &yvel_prev_newton));
-  }
-  else {
-    wf.add_biform(0, 0, callback(bilinear_form_sym_0_0_1_1), H2D_SYM);
-    wf.add_biform(0, 0, callback(simple_bilinear_form_unsym_0_0_1_1), H2D_UNSYM, H2D_ANY, 
-                  Tuple<MeshFunction*>(&xvel_prev_time, &yvel_prev_time));
-    wf.add_biform(1, 1, callback(bilinear_form_sym_0_0_1_1), H2D_SYM);
-    wf.add_biform(1, 1, callback(simple_bilinear_form_unsym_0_0_1_1), H2D_UNSYM, H2D_ANY, 
-                  Tuple<MeshFunction*>(&xvel_prev_time, &yvel_prev_time));
-    wf.add_biform(0, 2, callback(bilinear_form_unsym_0_2), H2D_ANTISYM);
-    wf.add_biform(1, 2, callback(bilinear_form_unsym_1_2), H2D_ANTISYM);
-    wf.add_liform(0, callback(simple_linear_form), H2D_ANY, &xvel_prev_time);
-    wf.add_liform(1, callback(simple_linear_form), H2D_ANY, &yvel_prev_time);
-  }
-
-  // Initialize views.
-  VectorView vview("velocity [m/s]", 0, 0, 750, 240);
-  ScalarView pview("pressure [Pa]", 0, 290, 750, 240);
+  // View the initial condition.
+  VectorView vview("Velocity initial condition", 0, 0, 750, 240);
+  ScalarView pview("Pressure initial condition", 0, 290, 750, 240);
   vview.set_min_max_range(0, 1.6);
   vview.fix_scale_width(80);
   //pview.set_min_max_range(-0.9, 1.0);
   pview.fix_scale_width(80);
   pview.show_mesh(true);
+  vview.show(&xvel_prev_newton, &yvel_prev_newton, H2D_EPS_LOW);
+  pview.show(&p_prev);
 
-  // Matrix solver.
-  UmfpackSolver solver;
+  // Solve on the coarse meshes.
+  // Newton's loop on the coarse mesh.
+  bool verbose = true; // Default is false.
+  info("Newton solve on coarse meshes.");
+  if (!nls.solve_newton(Tuple<Solution*>(&xvel_prev_newton, &yvel_prev_newton, &p_prev), 
+                        NEWTON_TOL_COARSE, NEWTON_MAX_ITER, verbose))
+    error("Newton's method did not converge.");
 
-  // Initialize linear system.
-  LinSystem ls(&wf, &solver, Tuple<Space*>(&xvel_space, &yvel_space, &p_space));
-
-  // Initialize nonlinear system.
-  NonlinSystem nls(&wf, &solver, Tuple<Space*>(&xvel_space, &yvel_space, &p_space));
+  // Store the results on coarse meshes.
+  Solution xvel_coarse, yvel_coarse, p_coarse;
+  xvel_coarse.copy(&xvel_prev_newton);
+  yvel_coarse.copy(&yvel_prev_newton);
+  p_coarse.copy(&p_prev);
 
   // Initialize refinement selector.
   H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
 
   // Time-stepping loop:
-  char title[100];
-  int num_time_steps = T_FINAL / TAU;
-  for (int i = 1; i <= num_time_steps; i++)
+  int num_time_steps = (int)(T_FINAL / TAU + 0.5);
+  for (int ts = 1; ts <= num_time_steps; ts++)
   {
-    TIME += TAU;
-    info("---- Time step %d, time = %g:", i, TIME);
+    // Periodic global derefinements.
+    if (ts > 1 && ts % UNREF_FREQ == 0) {
+      info("Global mesh derefinement.");
+      mesh.copy(&basemesh);
+      xvel_space.set_uniform_order(P_INIT_VEL);
+      yvel_space.set_uniform_order(P_INIT_VEL);
+      p_space.set_uniform_order(P_INIT_PRESSURE);
 
-    // Initial mesh and spaces:
-    mesh.copy(&basemesh);
-    xvel_space.set_uniform_order(P_INIT_VEL);
-    yvel_space.set_uniform_order(P_INIT_VEL);
-    p_space.set_uniform_order(P_INIT_PRESSURE);
+      // Project fine mesh solution on the globally derefined meshes.
+      info("---- Time step %d:", ts);
+      info("Projecting fine mesh solution on globally derefined meshes:");
+      nls.project_global(Tuple<MeshFunction*>(&xvel_prev_newton, &yvel_prev_newton, &p_prev),
+                         Tuple<Solution*>(&xvel_prev_newton, &yvel_prev_newton, &p_prev),
+                         Tuple<int>(vel_proj_norm, vel_proj_norm, p_proj_norm));
 
-    // Space adaptivity.
-    bool done = false; int at = 0;
+      if (SOLVE_ON_COARSE_MESH) {
+        // Newton's loop on the globally derefined meshes.
+        info("Newton solve on globally derefined meshes.", ts);
+        if (!nls.solve_newton(Tuple<Solution*>(&xvel_prev_newton, &yvel_prev_newton, &p_prev), 
+                              NEWTON_TOL_COARSE, NEWTON_MAX_ITER, verbose))
+          error("Newton's method did not converge.");
+      }
+
+      // Store the result on coarse meshes..
+      xvel_coarse.copy(&xvel_prev_newton);
+      yvel_coarse.copy(&yvel_prev_newton);
+      p_coarse.copy(&p_prev);
+    }
+
+    // Adaptivity loop (in space):
+    bool done = false;
+    double space_err_est;
+    int as = 1;
+
     do
     {
-      info("---- Adaptivity step %d:", at++);
+      info("---- Time step %d, adaptivity step %d:", ts, as);
 
-      if (nls.get_num_dofs() >= NDOF_STOP) {
-        done = true;
-        break;
-      }      
+      // Initialize reference nonlinear system.
+      RefSystem rnls(&nls, 0);
 
-      if (NEWTON)
-      {
-        int it = 0; double res_l2_norm;
-        do
-        {
-          info("---- Newton iter %d (coarse mesh):", it++);
-
-          nls.assemble();
-          nls.solve(Tuple<Solution*>(&xvel_prev_newton, &yvel_prev_newton, &p_prev));
-          res_l2_norm = nls.get_residual_l2_norm();
-          info("Residual L2 norm: %g", res_l2_norm);
-          if (it == 1) res_l2_norm = 100.0;
-        }
-        while (res_l2_norm > NEWTON_TOL && it <= NEWTON_MAX_ITER);
-
-        sprintf(title, "Velocity, time %g s", TIME);
-        vview.set_title(title);
-        vview.show(&xvel_prev_newton, &yvel_prev_newton, H2D_EPS_LOW);
-        sprintf(title, "Pressure, time %g s", TIME);
-        pview.set_title(title);
-        pview.show(&p_prev);
-
-        xvel_crs.copy(&xvel_prev_newton);
-        yvel_crs.copy(&yvel_prev_newton);
-
-        it = 0;
-        RefSystem refnls(&nls, 0);
-        do
-        {
-          info("---- Newton iter %d (fine mesh):", it++);
-
-          refnls.assemble();
-          refnls.solve(Tuple<Solution*>(&xvel_prev_newton, &yvel_prev_newton, &p_prev));
-          res_l2_norm = refnls.get_residual_l2_norm();
-          info("Residual L2 norm: %g", res_l2_norm);
-        }
-        while (res_l2_norm > NEWTON_TOL && it <= NEWTON_MAX_ITER);
-
-        xvel_fine.copy(&xvel_prev_newton);
-        yvel_fine.copy(&yvel_prev_newton);
-
+      // Set initial condition for the Newton's method on the fine meshes.
+      if (as == 1) {
+        info("Projecting coarse mesh solution on fine meshes.");
+        rnls.project_global(Tuple<MeshFunction*>(&xvel_coarse, &yvel_coarse, &p_coarse),
+                            Tuple<Solution*>(&xvel_prev_newton, &yvel_prev_newton, &p_prev),
+                            Tuple<int>(vel_proj_norm, vel_proj_norm, p_proj_norm));
       }
-      else // linearized NS
-      {
-        ls.assemble();
-        ls.solve(Tuple<Solution*>(&xvel_crs, &yvel_crs, &p_crs));
-
-        sprintf(title, "Velocity, time %g", TIME);
-        vview.set_title(title);
-        vview.show(&xvel_crs, &yvel_crs, H2D_EPS_LOW);
-        sprintf(title, "Pressure, time %g", TIME);
-        pview.set_title(title);
-        pview.show(&p_crs);
-
-        RefSystem refls(&ls, 0);
-        refls.assemble();
-        refls.solve(Tuple<Solution*>(&xvel_fine, &yvel_fine, &p_fine));
+      else {
+        info("Projecting previous fine mesh solution on new fine meshes.");
+        rnls.project_global(Tuple<MeshFunction*>(&xvel_fine, &yvel_fine, &p_fine),
+                            Tuple<Solution*>(&xvel_prev_newton, &yvel_prev_newton, &p_prev),
+                            Tuple<int>(vel_proj_norm, vel_proj_norm, p_proj_norm));
       }
 
+      // Newton's method on fine meshes
+      info("Newton solve on fine meshes.");
+      if (!rnls.solve_newton(Tuple<Solution*>(&xvel_prev_newton, &yvel_prev_newton, &p_prev),
+                             NEWTON_TOL_FINE, NEWTON_MAX_ITER, verbose))
+        error("Newton's method did not converge.");
+
+      // Store the result on fine meshes.
+      xvel_fine.copy(&xvel_prev_newton);
+      yvel_fine.copy(&yvel_prev_newton);
+      p_fine.copy(&p_prev);
+
+      /*
+      // Measure error in velocity magnitude.
       DXDYFilter crs_mag(mag, &xvel_crs, &yvel_crs);
-      DXDYFilter fine_mag(mag, &xvel_fine, &yvel_fine);
-      double space_err = 100 * l2_error(&crs_mag, &fine_mag);
+      DXDYFilter fine_mag(mag, &xvel_prev_newton, &yvel_prev_newton);
+      double space_err = 100 * h1_error(&crs_mag, &fine_mag);
       info("Velocity rel error est %g%%", space_err);
+      */
 
       H1Adapt hp(&xvel_space);
-      hp.set_biform(0, 0, callback(l2_form));
-      hp.set_solutions(&xvel_crs, &xvel_fine);
-      space_err = hp.calc_error() * 100;
-      info("L2 error (xvel) %g%%", space_err);
-      if (space_err > SPACE_TOL) {
+      //hp.set_biform(callback(l2_form));
+      hp.set_solutions(&xvel_coarse, &xvel_fine);
+      double space_err_est = hp.calc_error() * 100;
+      info("ndof_coarse: %d, ndof_fine: %d, space_err_est: %g%%", 
+        nls.get_num_dofs(), rnls.get_num_dofs(), space_err_est);
+ 
+      // If space_err_est too large, adapt the mesh.
+      if (space_err_est > SPACE_TOL) done = true;
+      else {
         done = hp.adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY);
-        xvel_space.set_uniform_order(P_INIT_VEL);
-        yvel_space.set_uniform_order(P_INIT_VEL);
-        p_space.set_uniform_order(P_INIT_PRESSURE);
+        if (nls.get_num_dofs() >= NDOF_STOP) {
+          done = true;
+          break;
+        }
+
+        // Project the fine mesh solution on the new coarse mesh.
+        info("Projecting fine mesh solution on new coarse meshes.");
+        nls.project_global(Tuple<MeshFunction*>(&xvel_fine, &yvel_fine, &p_fine),
+                           Tuple<Solution*>(&xvel_prev_newton, &yvel_prev_newton, &p_prev),
+                           Tuple<int>(vel_proj_norm, vel_proj_norm, p_proj_norm));
+
+        if (SOLVE_ON_COARSE_MESH) {
+          // Newton's loop on the coarse meshes.
+          info("---- Time step %d, adaptivity step %d, Newton solve on new coarse mesh.", ts, as);
+          if (!nls.solve_newton(Tuple<Solution*>(&xvel_prev_newton, &yvel_prev_newton, &p_prev), 
+                                NEWTON_TOL_COARSE, NEWTON_MAX_ITER, verbose))
+            error("Newton's method did not converge.");
+        }
+
+        // Store the result in sln_coarse.
+        xvel_coarse.copy(&xvel_prev_newton);
+        yvel_coarse.copy(&yvel_prev_newton);
+        p_coarse.copy(&p_prev);
+      
+        as++;
       }
-      else done = true;
     }
     while (!done);
 
-    // Saving solutions for the next time step.
-    xvel_prev_time = xvel_fine;
-    yvel_prev_time = yvel_fine;
+    // Save solutions for the next time step.
+    xvel_prev_time.copy(&xvel_fine);
+    yvel_prev_time.copy(&yvel_fine);
+    p_prev_time.copy(&p_fine);
+
+    // Visualize the solution and mesh.
+    char title[100];
+    sprintf(title, "Velocity, time %g s", TIME);
+    vview.set_title(title);
+    vview.show(&xvel_coarse, &yvel_coarse, H2D_EPS_LOW);
+    sprintf(title, "Pressure, time %g s", TIME);
+    pview.set_title(title);
+    pview.show(&p_coarse);
+
+    // Updating global time.
+    TIME += TAU;
+
+    // Update time dependent essential BC.
+    if (TIME <= STARTUP_TIME) {
+      info("Updating time-dependent essential BC.");
+      nls.update_essential_bc_values();
+    }
   }
 
   // Wait for all views to be closed.

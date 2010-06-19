@@ -124,8 +124,8 @@ int main(int argc, char* argv[])
     // Newton's method.
     info("Performing Newton's iteration.");
     bool verbose = true; // Default is false.
-    if (!nls.solve_newton(&t_prev_newton, &c_prev_newton, NEWTON_TOL, NEWTON_MAX_ITER, verbose,
-                       &omega, &omega_dt, &omega_dc)) error("Newton's method did not converge.");
+    if (!nls.solve_newton(Tuple<Solution*>(&t_prev_newton, &c_prev_newton), NEWTON_TOL, NEWTON_MAX_ITER, verbose,
+			  Tuple<MeshFunction*>(&omega, &omega_dt, &omega_dc))) error("Newton's method did not converge.");
 
     // Visualization.
     DXDYFilter omega_view(omega_fn, &t_prev_newton, &c_prev_newton);

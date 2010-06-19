@@ -47,7 +47,7 @@ double dir_lift(double x, double y, double& dx, double& dy) {
 
 // This function will be projected on the initial mesh and
 // used as initial guess for the Newton's method.
-scalar init_guess(double x, double y, double& dx, double& dy)
+scalar init_cond(double x, double y, double& dx, double& dy)
 {
   // Using the Dirichlet lift elevated by two
   double val = dir_lift(x, y, dx, dy) + 2;
@@ -105,10 +105,11 @@ int main(int argc, char* argv[])
   // Initialize the nonlinear system.
   NonlinSystem nls(&wf, &solver, &space);
 
-  // Project the function init_guess() on the FE space
+  // Project the function init_cond() on the FE space
   // to obtain initial guess u_prev for the Newton's method.
   info("Projecting initial condition on the FE space.");
-  nls.project_global(init_guess, &u_prev);
+  u_prev.set_exact(&mesh, init_cond);
+  nls.project_global(&u_prev, &u_prev);
 
   // Perform Newton's iteration.
   info("Performing Newton's iteration.");

@@ -47,7 +47,6 @@ public:
   NonlinSystem(WeakForm* wf_, Space* s_);        // solver will be set to NULL and default solver will be used
   NonlinSystem(WeakForm* wf_, Solver* solver_, Tuple<Space*> spaces_);
   NonlinSystem(WeakForm* wf_, Tuple<Space*> spaces_);      // solver will be set to NULL and default solver will be used
-  NonlinSystem(WeakForm* wf_, Solver* solver_, Space* space_1, Space* space_2);
 
   /// Frees the memory for the RHS, Dir and Vec vectors, and solver data.
   virtual void free();
@@ -67,20 +66,17 @@ public:
   bool solve(Solution* sln1, Solution* sln2); // 2 equations
   bool solve(Solution* sln1, Solution* sln2, Solution* sln3); // 3 equations
 
+  /// Performs complete Newton's loop for a Tuple of solutions.
+  bool solve_newton(Tuple<Solution*> u_prev, double newton_tol, int newton_max_iter,
+                    bool verbose = false, Tuple<MeshFunction*> mesh_fns = Tuple<MeshFunction*>());
+
   /// Performs complete Newton's loop for one equation
   bool solve_newton(Solution* u_prev, double newton_tol, int newton_max_iter,
                     bool verbose = false, 
-                    Filter* f1 = NULL, Filter* f2 = NULL, Filter* f3 = NULL);
-
-  /// Performs complete Newton's loop for two equations
-  bool solve_newton(Solution* u_prev_1, Solution* u_prev_2, double newton_tol, 
-                    int newton_max_iter, bool verbose = false, 
-                    Filter* f1 = NULL, Filter* f2 = NULL, Filter* f3 = NULL);
-
-  /// Performs complete Newton's loop for three equations
-  bool solve_newton(Solution* u_prev_1, Solution* u_prev_2, Solution* u_prev_3,
-                    double newton_tol, int newton_max_iter, bool verbose = false,
-                    Filter* f1 = NULL, Filter* f2 = NULL, Filter* f3 = NULL);
+                    Tuple<MeshFunction*> mesh_fns = Tuple<MeshFunction*>())
+  {
+    return this->solve_newton(Tuple<Solution*>(u_prev), newton_tol, newton_max_iter, verbose, mesh_fns);
+  }
 
   /// returns the L2-norm of the residual vector
   double get_residual_l2_norm() const { return res_l2; }
@@ -97,10 +93,6 @@ protected:
 
   double alpha;
   double res_l2, res_l1, res_max;
-
-  //NOTE: THIS IS OLD CODE THAT WILL BE REMOVED AFTER SOME TIME.
-  //friend class RefNonlinSystem;
-
 };
 
 

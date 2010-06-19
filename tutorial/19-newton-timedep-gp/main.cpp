@@ -22,8 +22,8 @@
 //
 //  BC:  homogeneous Dirichlet everywhere on the boundary
 
-const int P_INIT = 4;            // Initial polynomial degree.
-const double TAU = 0.01;         // Time step.
+const int P_INIT = 3;            // Initial polynomial degree.
+const double TAU = 0.005;         // Time step.
 const double T_FINAL = 2;        // Time interval length.
 const int INIT_REF_NUM = 3;      // Number of initial uniform refinements.
 const int TIME_DISCR = 2;        // 1 for implicit Euler, 2 for Crank-Nicolson.
@@ -120,7 +120,8 @@ int main(int argc, char* argv[])
   // Project fn_init() on the coarse mesh and use it as initial condition
   // for the Newton's method. 
   info("Projecting initial condition on FE space.");
-  nls.project_global(&fn_init, &Psi_prev_newton);
+  Psi_prev_newton.set_exact(&mesh, fn_init);
+  nls.project_global(&Psi_prev_newton, &Psi_prev_newton);
 
   // Time stepping loop:
   int nstep = (int)(T_FINAL/TAU + 0.5);

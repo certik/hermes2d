@@ -39,6 +39,9 @@ public:
   MeshFunction();
   virtual ~MeshFunction();
 
+  virtual void init() {};
+  virtual void reinit() {free(); init();};
+
   virtual void set_quad_2d(Quad2D* quad_2d);
   virtual void set_active_element(Element* e);
 

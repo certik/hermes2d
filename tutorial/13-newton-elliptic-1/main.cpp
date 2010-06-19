@@ -21,11 +21,12 @@
 //
 //  The following parameters can be changed:
 
-const int INIT_GLOB_REF_NUM = 3;  // Number of initial uniform mesh refinements.
-const int INIT_BDY_REF_NUM = 5;   // Number of initial refinements towards boundary.
-const int P_INIT = 2;             // Initial polynomial degree.
-const double NEWTON_TOL = 1e-6;   // Stopping criterion for the Newton's method.
-const int NEWTON_MAX_ITER = 100;  // Maximum allowed number of Newton iterations.
+const int INIT_GLOB_REF_NUM = 3;      // Number of initial uniform mesh refinements.
+const int INIT_BDY_REF_NUM = 5;       // Number of initial refinements towards boundary.
+const int P_INIT = 2;                 // Initial polynomial degree.
+const double NEWTON_TOL = 1e-6;       // Stopping criterion for the Newton's method.
+const int NEWTON_MAX_ITER = 100;      // Maximum allowed number of Newton iterations.
+const double INIT_COND_CONST = 3.0;   // COnstant initial condition.
 
 // Thermal conductivity (temperature-dependent)
 // Note: for any u, this function has to be positive.
@@ -86,13 +87,10 @@ int main(int argc, char* argv[])
   // Initialize the nonlinear system.
   NonlinSystem nls(&wf, &solver, &space);
 
-  // Use a constant function as initial guess.
-  double const_val = 3.0;
-  u_prev.set_const(&mesh, const_val);
-
   // Project the function u_prev() on the FE space
   // to obtain initial guess u_prev for the Newton's method.
   info("Projecting initial condition on the FE space.");
+  u_prev.set_const(&mesh, INIT_COND_CONST);
   nls.project_global(&u_prev, &u_prev);
 
   // Show the initial condition for the Newton's method. 
