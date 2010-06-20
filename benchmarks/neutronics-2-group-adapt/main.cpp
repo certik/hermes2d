@@ -9,7 +9,7 @@
 
 using namespace RefinementSelectors;
 
-// This example uses automatic adaptivity to solve a 2-group neutron diffusion equation with a known exact solution.
+// This benchmark uses automatic adaptivity to solve a 2-group neutron diffusion equation with a known exact solution.
 // The solution reflects the typical behavior observed in real cases, where one component is very smooth and the 
 // other more oscillating. Typical boundary conditions prescribed in real models have also been chosen.
 //
