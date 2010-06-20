@@ -22,30 +22,36 @@
 
 Filter::Filter(MeshFunction* sln1) : MeshFunction()
 {
-  num = 1;
-  sln[0] = sln1;
-  init();
+  this->num = 1;
+  this->sln[0] = sln1;
+  this->init();
 }
 
 Filter::Filter(MeshFunction* sln1, MeshFunction* sln2) : MeshFunction()
 {
-  num = 2;
-  sln[0] = sln1;  sln[1] = sln2;
-  init();
+  this->num = 2;
+  this->sln[0] = sln1;  
+  this->sln[1] = sln2;
+  this->init();
 }
 
 Filter::Filter(MeshFunction* sln1, MeshFunction* sln2, MeshFunction* sln3) : MeshFunction()
 {
-  num = 3;
-  sln[0] = sln1;  sln[1] = sln2;  sln[2] = sln3;
-  init();
+  this->num = 3;
+  this->sln[0] = sln1;  
+  this->sln[1] = sln2;  
+  this->sln[2] = sln3;
+  this->init();
 }
 
 Filter::Filter(MeshFunction* sln1, MeshFunction* sln2, MeshFunction* sln3, MeshFunction* sln4) : MeshFunction()
 {
-  num = 4;
-  sln[0] = sln1;  sln[1] = sln2;  sln[2] = sln3;  sln[3] = sln4;
-  init();
+  this->num = 4;
+  this->sln[0] = sln1;  
+  this->sln[1] = sln2;  
+  this->sln[2] = sln3;  
+  this->sln[3] = sln4;
+  this->init();
 }
 
 
@@ -65,9 +71,14 @@ void Filter::init()
   mesh = meshes[0];
   unimesh = false;
 
-  for (int i = 1; i < num; i++)
+  for (int i = 1; i < num; i++) {
+    if (meshes[i] == NULL) {
+      warn("You may be initializing a Filter with Solution that is missing Mesh.");
+      error("this->meshes[%d] is NULL in Filter::init().", i);
+    }
     if (meshes[i]->get_seq() != mesh->get_seq())
       { unimesh = true; break; }
+  }
 
   if (unimesh)
   {

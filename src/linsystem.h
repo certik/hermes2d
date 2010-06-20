@@ -29,11 +29,8 @@ class PrecalcShapeset;
 class WeakForm;
 class Solver;
 
-// Default H2D projection norm. Used in project_global(...)
-// FIXME: this should be defined in common.h and used in all
-// versions of project_global, but then it complains about 
-// multiple definitions.
-//int H2D_DEFAULT_PROJ_NORM = 1; 
+// Default H2D projection norm in H1 norm.
+extern int H2D_DEFAULT_PROJ_NORM; 
 
 /// Instantiated template. It is used to create a clean Windows DLL interface.
 H2D_API_USED_TEMPLATE(Tuple<int>); 
@@ -162,18 +159,44 @@ public:
   /// vector Vec. Calls assign_dofs() at the beginning.
   void project_global(Tuple<MeshFunction*> source, Tuple<Solution*> target, Tuple<int> proj_norms = Tuple<int>());
 
-  /// Global orthogonal projection of one function.
-  void project_global(MeshFunction* source, Solution* target, int proj_norm = 1)
+  /// Global orthogonal projection of one MeshFunction.
+  void project_global(MeshFunction* source, Solution* target, int proj_norm = H2D_DEFAULT_PROJ_NORM)
   {
     if (this->wf->neq != 1) 
       error("Number of projected functions must be one if there is only one equation, in LinSystem::project_global().");
     this->project_global(Tuple<MeshFunction*>(source), Tuple<Solution*>(target), Tuple<int>(proj_norm));
   };
 
+  /// Global orthogonal projection of one scalar ExactFunction.
+  void project_global(ExactFunction source, Solution* target, int proj_norm = H2D_DEFAULT_PROJ_NORM)
+  {
+    if (this->wf->neq != 1) 
+      error("Number of projected functions must be one if there is only one equation, in LinSystem::project_global().");
+    if (proj_norm != 0 && proj_norm != 1) error("Wrong norm used in orthogonal projection (scalar case).");
+    Mesh *mesh = this->get_mesh(0);
+    if (mesh == NULL) error("Mesh is NULL in project_global().");
+    Solution sln;
+    sln.set_exact(mesh, source);
+    this->project_global(Tuple<MeshFunction*>(&sln), Tuple<Solution*>(target), Tuple<int>(proj_norm));
+  };
+
+  /// Global orthogonal projection of one vector-valued ExactFunction.
+  void project_global(ExactFunction2 source, Solution* target)
+  {
+    if (this->wf->neq != 1) 
+      error("Number of projected functions must be one if there is only one equation, in LinSystem::project_global().");
+    int proj_norm = 2; // Hcurl
+    Mesh *mesh = this->get_mesh(0);
+    if (mesh == NULL) error("Mesh is NULL in project_global().");
+    Solution sln;
+    sln.set_exact(mesh, source);
+    this->project_global(Tuple<MeshFunction*>(&sln), Tuple<Solution*>(target), Tuple<int>(proj_norm));
+  };
+
   /// Projection-based interpolation of an exact function. This is faster than the 
   /// global projection since no global matrix problem is solved. 
-  void project_local(scalar (*exactfn)(double x, double y, scalar& dx, scalar& dy),
-              Mesh* mesh, Solution* result, int proj_norm = 1)
+  void project_local(ExactFunction exactfn, Mesh* mesh, 
+                     Solution* result, int proj_norm = H2D_DEFAULT_PROJ_NORM)
   {
     /// TODO
   }

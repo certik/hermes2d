@@ -49,8 +49,9 @@ double dir_lift(double x, double y, double& dx, double& dy) {
   return (x+10)*(y+10)/100.;
 }
 
-// Initial condition.
-scalar initial_condition(double x, double y, double& dx, double& dy)
+// Initial condition. It will be projected on the FE mesh 
+// to obtain initial coefficient vector for the Newton's method.
+scalar init_cond(double x, double y, double& dx, double& dy)
 {
   return dir_lift(x, y, dx, dy);
 }
@@ -107,11 +108,11 @@ int main(int argc, char* argv[])
   // Initialize the nonlinear system.
   NonlinSystem nls(&wf, &solver, &space);
 
-  // Project the function initial_condition() on the mesh.
-  info("Projecting initial condition on the FE space.");
-  u_prev_time.set_exact(&mesh, initial_condition);
-  nls.project_global(&u_prev_time, &u_prev_time);
-  u_prev_newton.copy(&u_prev_time);
+  // Project the function init_cond() on the FE space
+  // to obtain initial coefficient vector for the Newton's method.
+  info("Projecting initial condition to obtain initial vector for the Newton'w method.");
+  u_prev_time.set_exact(&mesh, init_cond);         // u_prev_time set equal to init_cond(). 
+  nls.project_global(init_cond, &u_prev_newton);   // Initial vector calculated here.
 
   // Initialize views.
   ScalarView sview("Solution", 0, 0, 500, 400);

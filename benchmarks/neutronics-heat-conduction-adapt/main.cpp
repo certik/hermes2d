@@ -168,17 +168,6 @@ scalar essential_bc_values_phi(int ess_bdy_marker, double x, double y)
 // Weak forms.
 # include "forms.cpp"
 
-// Initial conditions.
-scalar T_ic(double x, double y, double& dx, double& dy)
-{ 
-  dx = 1.0;  dy = 0.0;  return x; 
-}
-
-scalar phi_ic(double x, double y, double& dx, double& dy)
-{
-  dx = 0.0;  dy = 1.0;  return y;
-}
-
 // Exact solutions.
 #include "exact_solution.cpp"
 
@@ -241,17 +230,16 @@ int main(int argc, char* argv[])
   // Initialize the nonlinear system.
   NonlinSystem nls(&wf, &solver, Tuple<Space*>(&space_T, &space_phi));
 
-  // Project initial conditions on the coarse mesh.
-  info("Projecting initial conditions on FE meshes.");
-  T_prev_time.set_exact(&mesh_T, T_ic);
-  phi_prev_time.set_exact(&mesh_phi, phi_ic);
+  // Project initial conditions on FE spaces to obtain initial 
+  // vector for the Newton's method.
+  info("Projecting initial conditions to obtain initial vector for the Newton's method.");
+  T_prev_time.set_exact(&mesh_T, T_exact);
+  phi_prev_time.set_exact(&mesh_phi, phi_exact);
   nls.project_global(Tuple<MeshFunction*>(&T_prev_time, &phi_prev_time), 
-                     Tuple<Solution*>(&T_prev_time, &phi_prev_time));
-  T_prev_newton.copy(&T_prev_time);
-  phi_prev_newton.copy(&phi_prev_time);
+                     Tuple<Solution*>(&T_prev_newton, &phi_prev_newton));
 
   // Newton's loop on the coarse mesh.
-  info("Newton solve on coarse meshes.");
+  info("Solving on coarse meshes.");
   bool verbose = true; // Default is false.
   if (!nls.solve_newton(Tuple<Solution*>(&T_prev_newton, &phi_prev_newton), 
                         NEWTON_TOL_COARSE, NEWTON_MAX_ITER, verbose))
@@ -301,14 +289,17 @@ int main(int argc, char* argv[])
       space_T.set_uniform_order(P_INIT);
       space_phi.set_uniform_order(P_INIT);
 
-      // Project fine mesh solutions on the globally derefined meshes.
-      info("Projecting fine mesh solutions on globally derefined meshes.");
+      // Project fine mesh solutions on globally derefined meshes.
+      if (SOLVE_ON_COARSE_MESH) 
+        info("Projecting fine mesh solution to obtain initial vector on globally derefined mesh.");
+      else 
+        info("Projecting fine mesh solution on globally derefined mesh for error calculation.");
       nls.project_global(Tuple<MeshFunction*>(&T_fine, &phi_fine), 
                          Tuple<Solution*>(&T_prev_newton, &phi_prev_newton));
 
       if (SOLVE_ON_COARSE_MESH) {
         // Newton's loop on the globally derefined mesh.
-        info("Newton solve on globally derefined meshes.", ts);
+        info("Solving on globally derefined meshes.", ts);
         if (!nls.solve_newton(Tuple<Solution*>(&T_prev_newton, &phi_prev_newton), 
                               NEWTON_TOL_COARSE, NEWTON_MAX_ITER, verbose))
           error("Newton's method did not converge.");
@@ -331,18 +322,18 @@ int main(int argc, char* argv[])
 
       // Set initial condition for the Newton's method on the fine mesh.
       if (as == 1) {
-        info("Projecting coarse mesh solutions on fine meshes.");
+        info("Projecting coarse mesh solution to obtain initial vector on new fine mesh.");
         rnls.project_global(Tuple<MeshFunction*>(&T_coarse, &phi_coarse), 
                             Tuple<Solution*>(&T_prev_newton, &phi_prev_newton));
       }
       else {
-        info("Projecting previous fine mesh solutions on new fine meshes.");
+        info("Projecting previous fine mesh solution to obtain initial vector on new fine mesh.");
         rnls.project_global(Tuple<MeshFunction*>(&T_fine, &phi_fine), 
                             Tuple<Solution*>(&T_prev_newton, &phi_prev_newton));
       }
 
       // Newton's loop on the fine meshes.
-      info("Newton solve on fine meshes.");
+      info("Solving on fine meshes.");
       if (!rnls.solve_newton(Tuple<Solution*>(&T_prev_newton, &phi_prev_newton), 
                              NEWTON_TOL_FINE, NEWTON_MAX_ITER, verbose))
         error("Newton's method did not converge.");
@@ -399,13 +390,16 @@ int main(int argc, char* argv[])
         }
 
         // Project the fine mesh solutions on the new coarse meshes.
-        info("Projecting fine mesh solutions on new coarse meshes.");
+        if (SOLVE_ON_COARSE_MESH) 
+          info("Projecting fine mesh solution to obtain initial vector on new coarse mesh.");
+        else 
+          info("Projecting fine mesh solution on coarse mesh for error calculation.");
         nls.project_global(Tuple<MeshFunction*>(&T_fine, &phi_fine), 
                            Tuple<Solution*>(&T_prev_newton, &phi_prev_newton));
 
         if (SOLVE_ON_COARSE_MESH) {
           // Newton's loop on the coarse meshes.
-          info("Newton solve on coarse meshes.");
+          info("Solving on coarse meshes.");
           if (!nls.solve_newton(Tuple<Solution*>(&T_prev_newton, &phi_prev_newton), 
                                 NEWTON_TOL_COARSE, NEWTON_MAX_ITER, verbose))
             error("Newton's method did not converge.");

@@ -22,10 +22,10 @@
 //
 //  BC:  homogeneous Dirichlet everywhere on the boundary
 
-const int P_INIT = 3;            // Initial polynomial degree.
-const double TAU = 0.005;         // Time step.
+const int INIT_REF_NUM = 2;      // Number of initial uniform refinements.
+const int P_INIT = 4;            // Initial polynomial degree.
+const double TAU = 0.005;        // Time step.
 const double T_FINAL = 2;        // Time interval length.
-const int INIT_REF_NUM = 3;      // Number of initial uniform refinements.
 const int TIME_DISCR = 2;        // 1 for implicit Euler, 2 for Crank-Nicolson.
 const double NEWTON_TOL = 1e-5;  // Stopping criterion for the Newton's method.
 const int NEWTON_MAX_ITER = 100; // Maximum allowed number of Newton iterations.
@@ -37,7 +37,7 @@ const double G = 1;              // Coupling constant.
 const double OMEGA = 1;          // Frequency.
 
 // Initial conditions.
-scalar fn_init(double x, double y, scalar& dx, scalar& dy)
+scalar init_cond(double x, double y, scalar& dx, scalar& dy)
 {
   scalar val = exp(-10*(x*x + y*y));
   dx = val * (-20.0 * x);
@@ -114,14 +114,11 @@ int main(int argc, char* argv[])
   ScalarView view("", 0, 0, 600, 500);
   view.fix_scale_width(80);
 
-  // Set initial condition at zero time level.
-  Psi_prev_time.set_exact(&mesh, fn_init);
-
-  // Project fn_init() on the coarse mesh and use it as initial condition
-  // for the Newton's method. 
-  info("Projecting initial condition on FE space.");
-  Psi_prev_newton.set_exact(&mesh, fn_init);
-  nls.project_global(&Psi_prev_newton, &Psi_prev_newton);
+  // Project initial conditions on FE spaces to obtain initial coefficient 
+  // vector for the Newton's method.
+  info("Projecting initial condition to obtain initial vector for the Newton'w method.");
+  Psi_prev_time.set_exact(&mesh, init_cond);              // Psi_prev_time is set equal to init_cond().
+  nls.project_global(&Psi_prev_time, &Psi_prev_newton);   // Initial vector calculated here. 
 
   // Time stepping loop:
   int nstep = (int)(T_FINAL/TAU + 0.5);

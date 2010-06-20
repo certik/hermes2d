@@ -305,8 +305,10 @@ int Space::assign_dofs(int first_dof, int stride)
   //check validity of orders
   for_all_active_elements(e, mesh) {
     if (e->id >= esize || edata[e->id].order < 0) {
-      printf("edata[e->id].order = %d\n", edata[e->id].order);
-      error("Uninitialized element order (id = #%d).", e->id);
+      printf("e->id = %d\n", e->id);
+      printf("esize = %d\n", esize);
+      printf("edata[%d].order = %d\n", e->id, edata[e->id].order);
+      error("Uninitialized element order.");
     }
   }
 
@@ -325,7 +327,6 @@ int Space::assign_dofs(int first_dof, int stride)
 
   mesh_seq = mesh->get_seq();
   was_assigned = true;
-  seq++;
   this->ndof = (next_dof - first_dof) / stride;
   return this->ndof;
 }

@@ -45,8 +45,8 @@ double dir_lift(double x, double y, double& dx, double& dy) {
   return (x+10)*(y+10)/100.;
 }
 
-// This function will be projected on the initial mesh and
-// used as initial guess for the Newton's method.
+// Initial condition. It will be projected on the FE mesh 
+// to obtain initial coefficient vector for the Newton's method.
 scalar init_cond(double x, double y, double& dx, double& dy)
 {
   // Using the Dirichlet lift elevated by two
@@ -106,10 +106,9 @@ int main(int argc, char* argv[])
   NonlinSystem nls(&wf, &solver, &space);
 
   // Project the function init_cond() on the FE space
-  // to obtain initial guess u_prev for the Newton's method.
-  info("Projecting initial condition on the FE space.");
-  u_prev.set_exact(&mesh, init_cond);
-  nls.project_global(&u_prev, &u_prev);
+  // to obtain initial coefficient vector for the Newton's method.
+  info("Projecting initial condition to obtain initial vector for the Newton'w method.");
+  nls.project_global(init_cond, &u_prev);
 
   // Perform Newton's iteration.
   info("Performing Newton's iteration.");

@@ -31,19 +31,21 @@ using namespace RefinementSelectors;
 //
 // The following parameters can be changed:
 
-const bool SOLVE_ON_COARSE_MESH = false;   // true... Newton is done on coarse mesh in every adaptivity step.
-                                           // false...Newton is done on coarse mesh only once, then projection
-                                           // of the fine mesh solution to coarse mesh is used.
-#define PRESSURE_IN_L2           // If this is defined, the pressure is approximated using
-                                 // discontinuous L2 elements (making the velocity discreetely
-                                 // divergence-free, more accurate than using a continuous
-                                 // pressure approximation). Otherwise the standard continuous
-                                 // elements are used. The results are striking - check the
-                                 // tutorial for comparisons.
-const int P_INIT_VEL = 2;        // Initial polynomial degree for velocity components
-const int P_INIT_PRESSURE = 1;   // Initial polynomial degree for pressure
-                                 // Note: P_INIT_VEL should always be greater than
-                                 // P_INIT_PRESSURE because of the inf-sup condition
+const bool SOLVE_ON_COARSE_MESH = true; // true... Newton is done on coarse mesh in every adaptivity step.
+                                         // false...Newton is done on coarse mesh only once, then projection
+                                         // of the fine mesh solution to coarse mesh is used.
+const int INIT_REF_NUM = 0;              // Number of initial uniform mesh refinements.
+const int INIT_REF_NUM_BDY = 3;          // Number of initial mesh refinements towards boundary.
+#define PRESSURE_IN_L2                   // If this is defined, the pressure is approximated using
+                                         // discontinuous L2 elements (making the velocity discreetely
+                                         // divergence-free, more accurate than using a continuous
+                                         // pressure approximation). Otherwise the standard continuous
+                                         // elements are used. The results are striking - check the
+                                         // tutorial for comparisons.
+const int P_INIT_VEL = 2;                // Initial polynomial degree for velocity components
+const int P_INIT_PRESSURE = 1;           // Initial polynomial degree for pressure
+                                         // Note: P_INIT_VEL should always be greater than
+                                         // P_INIT_PRESSURE because of the inf-sup condition
 
 // Adaptivity
 const int UNREF_FREQ = 1;        // Every UNREF_FREQth time step the mesh is unrefined.
@@ -62,25 +64,25 @@ const CandList CAND_LIST = H2D_H_ANISO; // Predefined list of element refinement
                                          // H2D_P_ISO, H2D_P_ANISO, H2D_H_ISO, H2D_H_ANISO, H2D_HP_ISO,
                                          // H2D_HP_ANISO_H, H2D_HP_ANISO_P, H2D_HP_ANISO.
                                          // See the Used Documentation for details.
-const int MESH_REGULARITY = -1;  // Maximum allowed level of hanging nodes:
-                                 // MESH_REGULARITY = -1 ... arbitrary level hangning nodes (default),
-                                 // MESH_REGULARITY = 1 ... at most one-level hanging nodes,
-                                 // MESH_REGULARITY = 2 ... at most two-level hanging nodes, etc.
-                                 // Note that regular meshes are not supported, this is due to
-                                 // their notoriously bad performance.
-const double CONV_EXP = 1.0;     // Default value is 1.0. This parameter influences the selection of
-                                 // cancidates in hp-adaptivity. See get_optimal_refinement() for details.
-const double SPACE_TOL = 1.0;    // Stopping criterion for adaptivity (rel. error tolerance between the
-                                 // fine mesh and coarse mesh solution in percent).
-const int NDOF_STOP = 60000;     // Adaptivity process stops when the number of degrees of freedom grows over
-                                 // this limit. This is mainly to prevent h-adaptivity to go on forever.
+const int MESH_REGULARITY = -1;          // Maximum allowed level of hanging nodes:
+                                         // MESH_REGULARITY = -1 ... arbitrary level hangning nodes (default),
+                                         // MESH_REGULARITY = 1 ... at most one-level hanging nodes,
+                                         // MESH_REGULARITY = 2 ... at most two-level hanging nodes, etc.
+                                         // Note that regular meshes are not supported, this is due to
+                                         // their notoriously bad performance.
+const double CONV_EXP = 1.0;             // Default value is 1.0. This parameter influences the selection of
+                                         // cancidates in hp-adaptivity. See get_optimal_refinement() for details.
+const double SPACE_ERR_STOP = 5.0;       // Stopping criterion for adaptivity (rel. error tolerance between the
+                                         // fine mesh and coarse mesh solution in percent).
+const int NDOF_STOP = 60000;             // Adaptivity process stops when the number of degrees of freedom grows over
+                                         // this limit. This is mainly to prevent h-adaptivity to go on forever.
 
 // Problem parameters
 const double RE = 200.0;             // Reynolds number.
 const double VEL_INLET = 1.0;        // Inlet velocity (reached after STARTUP_TIME).
 const double STARTUP_TIME = 1.0;     // During this time, inlet velocity increases gradually
                                      // from 0 to VEL_INLET, then it stays constant.
-const double TAU = 0.05;             // Time step.
+const double TAU = 0.01;             // Time step.
 const double T_FINAL = 30000.0;      // Time interval length.
 
 // Newton's method
@@ -119,6 +121,12 @@ scalar essential_bc_values_xvel(int ess_bdy_marker, double x, double y) {
   else return 0;
 }
 
+// Essential (Dirichlet) boundary condition values for y-velocity.
+scalar essential_bc_values_yvel(int ess_bdy_marker, double x, double y) 
+{
+  return 0;
+}
+
 // Boundary condition types for y-velocity
 BCType yvel_bc_type(int marker) {
   if (marker == bdy_right) return BC_NONE;
@@ -151,16 +159,15 @@ int main(int argc, char* argv[])
   mloader.load("domain.mesh", &basemesh);  // Master mesh.
 
   // Perform initial mesh refinements.
-  // Initial mesh refinements.
-  //basemesh.refine_all_elements();
-  basemesh.refine_towards_boundary(bdy_obstacle, 3, false);
-  basemesh.refine_towards_boundary(bdy_top, 3, true);     // '4' is the number of levels,
-  basemesh.refine_towards_boundary(bdy_bottom, 3, true);  // 'true' stands for anisotropic refinements.
+  for (int i=0; i < INIT_REF_NUM; i++) basemesh.refine_all_elements();
+  basemesh.refine_towards_boundary(bdy_obstacle, INIT_REF_NUM_BDY, false); // 'true' stands for anisotropic refinements,
+  basemesh.refine_towards_boundary(bdy_top, INIT_REF_NUM_BDY, true);       // 'false' for isotropic.
+  basemesh.refine_towards_boundary(bdy_bottom, INIT_REF_NUM_BDY, true);
   mesh.copy(&basemesh);
 
   // Create spaces with default shapesets. 
   H1Space xvel_space(&mesh, xvel_bc_type, essential_bc_values_xvel, P_INIT_VEL);
-  H1Space yvel_space(&mesh, yvel_bc_type, NULL, P_INIT_VEL);
+  H1Space yvel_space(&mesh, yvel_bc_type, essential_bc_values_yvel, P_INIT_VEL);
 #ifdef PRESSURE_IN_L2
   L2Space p_space(&mesh, P_INIT_PRESSURE);
 #else
@@ -178,7 +185,12 @@ int main(int argc, char* argv[])
   // Solutions for the Newton's iteration and time stepping.
   Solution xvel_fine, yvel_fine, p_fine;
   Solution xvel_prev_time, yvel_prev_time, p_prev_time;
-  Solution xvel_prev_newton, yvel_prev_newton, p_prev;
+  Solution xvel_prev_newton, yvel_prev_newton, p_prev_newton;
+
+  // Define initial conditions on the coarse mesh.
+  xvel_prev_time.set_zero(&mesh);
+  yvel_prev_time.set_zero(&mesh);
+  p_prev_time.set_zero(&mesh);
 
   // Initialize the weak formulation.
   WeakForm wf(3);
@@ -195,9 +207,9 @@ int main(int argc, char* argv[])
                 Tuple<MeshFunction*>(&xvel_prev_newton, &yvel_prev_newton));
   wf.add_matrix_form(1, 2, callback(bilinear_form_unsym_1_2), H2D_ANTISYM);
   wf.add_vector_form(0, callback(newton_F_0), H2D_ANY, Tuple<MeshFunction*>(&xvel_prev_time, &yvel_prev_time, 
-							 &xvel_prev_newton, &yvel_prev_newton, &p_prev));
+							 &xvel_prev_newton, &yvel_prev_newton, &p_prev_newton));
   wf.add_vector_form(1, callback(newton_F_1), H2D_ANY, Tuple<MeshFunction*>(&xvel_prev_time, &yvel_prev_time, 
-							 &xvel_prev_newton, &yvel_prev_newton, &p_prev));
+							 &xvel_prev_newton, &yvel_prev_newton, &p_prev_newton));
   wf.add_vector_form(2, callback(newton_F_2), H2D_ANY, Tuple<MeshFunction*>(&xvel_prev_newton, &yvel_prev_newton));
 
   // Matrix solver.
@@ -211,12 +223,12 @@ int main(int argc, char* argv[])
   TIME += TAU;
   nls.update_essential_bc_values();
 
-  // Define initial conditions on the coarse mesh.
-  xvel_prev_time.set_zero(&mesh);
-  yvel_prev_time.set_zero(&mesh);
-  xvel_prev_newton.set_zero(&mesh);
-  yvel_prev_newton.set_zero(&mesh);
-  p_prev.set_zero(&mesh);
+  // Project initial conditions on FE spaces to obtain initial coefficient 
+  // vector for the Newton's method.
+  info("Projecting initial conditions to obtain initial vector for the Newton'w method.");
+  nls.project_global(Tuple<MeshFunction*>(&xvel_prev_time, &yvel_prev_time, &p_prev_time),
+                     Tuple<Solution*>(&xvel_prev_newton, &yvel_prev_newton, &p_prev_newton),
+                     Tuple<int>(vel_proj_norm, vel_proj_norm, p_proj_norm));  
 
   // View the initial condition.
   VectorView vview("Velocity initial condition", 0, 0, 750, 240);
@@ -226,14 +238,14 @@ int main(int argc, char* argv[])
   //pview.set_min_max_range(-0.9, 1.0);
   pview.fix_scale_width(80);
   pview.show_mesh(true);
-  vview.show(&xvel_prev_newton, &yvel_prev_newton, H2D_EPS_LOW);
-  pview.show(&p_prev);
+  vview.show(&xvel_prev_time, &yvel_prev_time, H2D_EPS_LOW);
+  pview.show(&p_prev_time);
 
   // Solve on the coarse meshes.
   // Newton's loop on the coarse mesh.
   bool verbose = true; // Default is false.
-  info("Newton solve on coarse meshes.");
-  if (!nls.solve_newton(Tuple<Solution*>(&xvel_prev_newton, &yvel_prev_newton, &p_prev), 
+  info("Solving on coarse meshes.");
+  if (!nls.solve_newton(Tuple<Solution*>(&xvel_prev_newton, &yvel_prev_newton, &p_prev_newton), 
                         NEWTON_TOL_COARSE, NEWTON_MAX_ITER, verbose))
     error("Newton's method did not converge.");
 
@@ -241,7 +253,7 @@ int main(int argc, char* argv[])
   Solution xvel_coarse, yvel_coarse, p_coarse;
   xvel_coarse.copy(&xvel_prev_newton);
   yvel_coarse.copy(&yvel_prev_newton);
-  p_coarse.copy(&p_prev);
+  p_coarse.copy(&p_prev_newton);
 
   // Initialize refinement selector.
   H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
@@ -260,15 +272,18 @@ int main(int argc, char* argv[])
 
       // Project fine mesh solution on the globally derefined meshes.
       info("---- Time step %d:", ts);
-      info("Projecting fine mesh solution on globally derefined meshes:");
-      nls.project_global(Tuple<MeshFunction*>(&xvel_prev_newton, &yvel_prev_newton, &p_prev),
-                         Tuple<Solution*>(&xvel_prev_newton, &yvel_prev_newton, &p_prev),
+      if (SOLVE_ON_COARSE_MESH) 
+        info("Projecting fine mesh solutions to obtain initial vector on globally derefined meshes.");
+      else 
+        info("Projecting fine mesh solutions on globally derefined meshes for error calculation.");
+      nls.project_global(Tuple<MeshFunction*>(&xvel_prev_newton, &yvel_prev_newton, &p_prev_newton),
+                         Tuple<Solution*>(&xvel_prev_newton, &yvel_prev_newton, &p_prev_newton),
                          Tuple<int>(vel_proj_norm, vel_proj_norm, p_proj_norm));
 
       if (SOLVE_ON_COARSE_MESH) {
         // Newton's loop on the globally derefined meshes.
-        info("Newton solve on globally derefined meshes.", ts);
-        if (!nls.solve_newton(Tuple<Solution*>(&xvel_prev_newton, &yvel_prev_newton, &p_prev), 
+        info("Solving on globally derefined meshes.", ts);
+        if (!nls.solve_newton(Tuple<Solution*>(&xvel_prev_newton, &yvel_prev_newton, &p_prev_newton), 
                               NEWTON_TOL_COARSE, NEWTON_MAX_ITER, verbose))
           error("Newton's method did not converge.");
       }
@@ -276,7 +291,7 @@ int main(int argc, char* argv[])
       // Store the result on coarse meshes..
       xvel_coarse.copy(&xvel_prev_newton);
       yvel_coarse.copy(&yvel_prev_newton);
-      p_coarse.copy(&p_prev);
+      p_coarse.copy(&p_prev_newton);
     }
 
     // Adaptivity loop (in space):
@@ -289,32 +304,32 @@ int main(int argc, char* argv[])
       info("---- Time step %d, adaptivity step %d:", ts, as);
 
       // Initialize reference nonlinear system.
-      RefSystem rnls(&nls, 0);
+      RefSystem rnls(&nls);
 
       // Set initial condition for the Newton's method on the fine meshes.
       if (as == 1) {
-        info("Projecting coarse mesh solution on fine meshes.");
+        info("Projecting coarse mesh solutions to obtain initial vector on new fine meshes.");
         rnls.project_global(Tuple<MeshFunction*>(&xvel_coarse, &yvel_coarse, &p_coarse),
-                            Tuple<Solution*>(&xvel_prev_newton, &yvel_prev_newton, &p_prev),
+                            Tuple<Solution*>(&xvel_prev_newton, &yvel_prev_newton, &p_prev_newton),
                             Tuple<int>(vel_proj_norm, vel_proj_norm, p_proj_norm));
       }
       else {
-        info("Projecting previous fine mesh solution on new fine meshes.");
+        info("Projecting fine mesh solution to obtain initial vector on new fine mesh.");
         rnls.project_global(Tuple<MeshFunction*>(&xvel_fine, &yvel_fine, &p_fine),
-                            Tuple<Solution*>(&xvel_prev_newton, &yvel_prev_newton, &p_prev),
+                            Tuple<Solution*>(&xvel_prev_newton, &yvel_prev_newton, &p_prev_newton),
                             Tuple<int>(vel_proj_norm, vel_proj_norm, p_proj_norm));
       }
 
       // Newton's method on fine meshes
-      info("Newton solve on fine meshes.");
-      if (!rnls.solve_newton(Tuple<Solution*>(&xvel_prev_newton, &yvel_prev_newton, &p_prev),
+      info("Solving on fine meshes.");
+      if (!rnls.solve_newton(Tuple<Solution*>(&xvel_prev_newton, &yvel_prev_newton, &p_prev_newton),
                              NEWTON_TOL_FINE, NEWTON_MAX_ITER, verbose))
         error("Newton's method did not converge.");
 
       // Store the result on fine meshes.
       xvel_fine.copy(&xvel_prev_newton);
       yvel_fine.copy(&yvel_prev_newton);
-      p_fine.copy(&p_prev);
+      p_fine.copy(&p_prev_newton);
 
       /*
       // Measure error in velocity magnitude.
@@ -332,24 +347,30 @@ int main(int argc, char* argv[])
         nls.get_num_dofs(), rnls.get_num_dofs(), space_err_est);
  
       // If space_err_est too large, adapt the mesh.
-      if (space_err_est > SPACE_TOL) done = true;
+      if (space_err_est < SPACE_ERR_STOP) done = true;
       else {
+        info("Adapting coarse meshes.");
         done = hp.adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY);
+	printf("aaa\n");
         if (nls.get_num_dofs() >= NDOF_STOP) {
           done = true;
           break;
         }
+	printf("bbb\n");
 
         // Project the fine mesh solution on the new coarse mesh.
-        info("Projecting fine mesh solution on new coarse meshes.");
+        if (SOLVE_ON_COARSE_MESH) 
+          info("Projecting fine mesh solutions to obtain initial vector on new coarse meshes.");
+        else 
+          info("Projecting fine mesh solutions on coarse meshes for error calculation.");
         nls.project_global(Tuple<MeshFunction*>(&xvel_fine, &yvel_fine, &p_fine),
-                           Tuple<Solution*>(&xvel_prev_newton, &yvel_prev_newton, &p_prev),
+                           Tuple<Solution*>(&xvel_prev_newton, &yvel_prev_newton, &p_prev_newton),
                            Tuple<int>(vel_proj_norm, vel_proj_norm, p_proj_norm));
 
         if (SOLVE_ON_COARSE_MESH) {
           // Newton's loop on the coarse meshes.
-          info("---- Time step %d, adaptivity step %d, Newton solve on new coarse mesh.", ts, as);
-          if (!nls.solve_newton(Tuple<Solution*>(&xvel_prev_newton, &yvel_prev_newton, &p_prev), 
+          info("---- Time step %d, adaptivity step %d, solving on new coarse mesh.", ts, as);
+          if (!nls.solve_newton(Tuple<Solution*>(&xvel_prev_newton, &yvel_prev_newton, &p_prev_newton), 
                                 NEWTON_TOL_COARSE, NEWTON_MAX_ITER, verbose))
             error("Newton's method did not converge.");
         }
@@ -357,7 +378,7 @@ int main(int argc, char* argv[])
         // Store the result in sln_coarse.
         xvel_coarse.copy(&xvel_prev_newton);
         yvel_coarse.copy(&yvel_prev_newton);
-        p_coarse.copy(&p_prev);
+        p_coarse.copy(&p_prev_newton);
       
         as++;
       }
@@ -378,7 +399,7 @@ int main(int argc, char* argv[])
     pview.set_title(title);
     pview.show(&p_coarse);
 
-    // Updating global time.
+    // Update global time.
     TIME += TAU;
 
     // Update time dependent essential BC.

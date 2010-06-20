@@ -34,10 +34,12 @@ using namespace std;
 
 Adapt::Adapt(const Tuple<Space*>& spaces)
   : num_comps(spaces.size()), num_act_elems(-1)
-  , have_solutions(false), have_errors(false) {
-  // check validity
+  , have_solutions(false), have_errors(false) 
+{
+  // sanity checks
   error_if(num_comps <= 0, "Too few components (%d), only %d supported.", num_comps, H2D_MAX_COMPONENTS);
   error_if(num_comps >= H2D_MAX_COMPONENTS, "Too many components (%d), only %d supported.", num_comps, H2D_MAX_COMPONENTS);
+  for (int i=0; i<num_comps; i++) if (spaces[i] == NULL) error("spaces[%d] is NULL in Adapt::Adapt().", i);
 
   // reset values
   memset(errors_squared, 0, sizeof(errors_squared));
@@ -48,8 +50,7 @@ Adapt::Adapt(const Tuple<Space*>& spaces)
   memset(this->spaces, 0, sizeof(this->spaces));
 
   //initialize spaces
-  for(int i = 0; i < num_comps; i++)
-    this->spaces[i] = spaces[i];
+  for(int i = 0; i < num_comps; i++) this->spaces[i] = spaces[i];
 }
 
 Adapt::~Adapt()
@@ -135,7 +136,8 @@ bool Adapt::adapt(RefinementSelectors::Selector* refinement_selector, double thr
         // first refinement strategy:
         // refine elements until prescribed amount of error is processed
         // if more elements have similar error refine all to keep the mesh symmetric
-        if ((strat == 0) && (processed_error_squared > sqrt(thr) * errors_squared_sum) && fabs((err_squared - err0_squared)/err0_squared) > 1e-3) break;
+        if ((strat == 0) && (processed_error_squared > sqrt(thr) * errors_squared_sum) 
+                         && fabs((err_squared - err0_squared)/err0_squared) > 1e-3) break;
 
         // second refinement strategy:
         // refine all elements whose error is bigger than some portion of maximal error
@@ -227,7 +229,8 @@ bool Adapt::adapt(RefinementSelectors::Selector* refinement_selector, double thr
   // since space changed, assign dofs:
   int ndof = 0;
   for (int i=0; i < num_comps; i++) {
-    ndof += spaces[i]->assign_dofs(ndof);
+    int inc = spaces[i]->assign_dofs(ndof);
+    ndof += inc;
   }
 
   return done;

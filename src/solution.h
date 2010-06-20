@@ -92,8 +92,8 @@ public:
   Solution& operator = (Solution& sln) { assign(&sln); return *this; }
   void copy(const Solution* sln);
 
-  void set_exact(Mesh* mesh, scalar   (*exactfn)(double x, double y, scalar& dx , scalar& dy));
-  void set_exact(Mesh* mesh, scalar2& (*exactfn)(double x, double y, scalar2& dx, scalar2& dy));
+  void set_exact(Mesh* mesh, ExactFunction exactfn);
+  void set_exact(Mesh* mesh, ExactFunction2 exactfn);
 
   void set_const(Mesh* mesh, scalar c);
   void set_const(Mesh* mesh, scalar c0, scalar c1); // two-component (Hcurl) const
@@ -177,8 +177,8 @@ protected:
   int space_type;
   void transform_values(int order, Node* node, int newmask, int oldmask, int np);
 
-  scalar   (*exactfn1)(double x, double y, scalar& dx,  scalar& dy);
-  scalar2& (*exactfn2)(double x, double y, scalar2& dx, scalar2& dy);
+  ExactFunction exactfn1;
+  ExactFunction2 exactfn2;
   scalar   cnst[2];
   scalar   exact_mult;
 
@@ -209,16 +209,16 @@ class H2D_API ExactSolution : public Solution
 {
 public:
 
-  ExactSolution(Mesh* mesh, scalar   (*exactfn)(double x, double y, scalar& dx , scalar& dy))
+  ExactSolution(Mesh* mesh, ExactFunction exactfn)
     { set_exact(mesh, exactfn); }
 
-  ExactSolution(Mesh* mesh, scalar2& (*exactfn)(double x, double y, scalar2& dx, scalar2& dy))
+  ExactSolution(Mesh* mesh, ExactFunction2 exactfn)
     { set_exact(mesh, exactfn); }
 
-  int update(Mesh* mesh, scalar   (*exactfn)(double x, double y, scalar& dx , scalar& dy))
+  int update(Mesh* mesh, ExactFunction exactfn)
     { set_exact(mesh, exactfn);  return 1; }
 
-  int update(Mesh* mesh, scalar2& (*exactfn)(double x, double y, scalar2& dx, scalar2& dy))
+  int update(Mesh* mesh, ExactFunction2 exactfn)
     { set_exact(mesh, exactfn);  return 1; }
 
 };

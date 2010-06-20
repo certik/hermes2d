@@ -79,9 +79,9 @@ double dir_lift(double x, double y, double& dx, double& dy) {
   return (x+10)*(y+10)/100.;
 }
 
-// This function will be projected on the initial mesh and
-// used as initial guess for the Newton's method.
-scalar init_guess(double x, double y, double& dx, double& dy)
+// Initial condition. It will be projected on the FE mesh 
+// to obtain initial coefficient vector for the Newton's method.
+scalar init_cond(double x, double y, double& dx, double& dy)
 {
   // Using the Dirichlet lift elevated by two
   double val = dir_lift(x, y, dx, dy) + 2;
@@ -146,11 +146,10 @@ int main(int argc, char* argv[])
   // DOF and CPU convergence graphs.
   SimpleGraph graph_dof, graph_cpu;
 
-  // Project the function init_guess() on the coarse mesh
-  // to obtain initial guess u_prev for the Newton's method.
-  info("Projecting initial condition on coarse mesh.");
-  u_prev.set_exact(&mesh, init_guess);
-  nls.project_global(&u_prev, &u_prev);
+  // Project the function init_cond() on the FE space
+  // to obtain initial coefficient vector for the Newton's method.
+  info("Projecting initial condition to obtain initial vector on coarse mesh.");
+  nls.project_global(init_cond, &u_prev);
 
   // Initialize views.
   ScalarView sview_coarse("Coarse mesh solution", 0, 0, 350, 300); // coarse mesh solution
@@ -191,11 +190,11 @@ int main(int argc, char* argv[])
 
     // Set initial condition for the Newton's method on the fine mesh.
     if (as == 1) {
-      info("Projecting coarse mesh solution on fine mesh.");
+      info("Projecting coarse mesh solution to obtain initial vector on new fine mesh.");
       rnls.project_global(&sln_coarse, &u_prev);
     }
     else {
-      info("Projecting previous fine mesh solution on new fine mesh.");
+      info("Projecting fine mesh solution to obtain initial vector on new fine mesh.");
       rnls.project_global(&sln_fine, &u_prev);
     }
 
@@ -246,7 +245,10 @@ int main(int argc, char* argv[])
       }
 
       // Project the fine mesh solution on the new coarse mesh.
-      info("Projecting fine mesh solution on new coarse mesh.");
+      if (SOLVE_ON_COARSE_MESH) 
+        info("Projecting fine mesh solution to obtain initial vector on new coarse mesh.");
+      else 
+        info("Projecting fine mesh solution on coarse mesh for error calculation.");
       nls.project_global(&sln_fine, &u_prev);
 
       if (SOLVE_ON_COARSE_MESH) {

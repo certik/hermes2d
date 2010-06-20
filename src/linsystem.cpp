@@ -27,6 +27,8 @@
 #include <algorithm>
 #include "python_solvers.h"
 
+int H2D_DEFAULT_PROJ_NORM = 1; 
+
 void qsort_int(int* pbase, size_t total_elems); // defined in qsort.cpp
 
 //// interface /////////////////////////////////////////////////////////////////////////////////////
@@ -67,24 +69,24 @@ LinSystem::LinSystem(WeakForm* wf_)
   this->init_lin(wf_, solver_);
 }
 
-LinSystem::LinSystem(WeakForm* wf_, Solver* solver_, Tuple<Space*> spaces_)
+LinSystem::LinSystem(WeakForm* wf_, Solver* solver_, Tuple<Space*> sp)
 {
-  int n = spaces_.size();
+  int n = sp.size();
   if (wf_ == NULL) warn("Weak form is NULL.");
   if (wf_ != NULL) {
     if (n != wf_->neq) 
       error("Number of spaces does not match number of equations in LinSystem::LinSystem().");
   }
   this->init_lin(wf_, solver_);
-  this->init_spaces(spaces_);
+  this->init_spaces(sp);
   this->alloc_and_zero_vectors();
 }
 
-LinSystem::LinSystem(WeakForm* wf_, Tuple<Space*> spaces_)
+LinSystem::LinSystem(WeakForm* wf_, Tuple<Space*> sp)
 {
   Solver* solver_ = NULL;
   this->init_lin(wf_, solver_);
-  this->init_spaces(spaces_);
+  this->init_spaces(sp);
   this->alloc_and_zero_vectors();
 }
 
@@ -156,15 +158,15 @@ void LinSystem::free_spaces()
 } 
 
 // Should not be called by the user.
-void LinSystem::init_spaces(Tuple<Space*> spaces_)
+void LinSystem::init_spaces(Tuple<Space*> sp)
 {
-  int n = spaces_.size();
+  int n = sp.size();
   if (n != this->wf->neq) 
     error("Number of spaces does not match number of equations in LinSystem::init_spaces().");  
 
   // initialize spaces
   this->spaces = new Space*[this->wf->neq];
-  for (int i = 0; i < this->wf->neq; i++) this->spaces[i] = spaces_[i];
+  for (int i = 0; i < this->wf->neq; i++) this->spaces[i] = sp[i];
   this->sp_seq = new int[this->wf->neq];
   memset(sp_seq, -1, sizeof(int) * this->wf->neq);
   this->assign_dofs(); // Create global enumeration of DOF in all spacesin the system. NOTE: this 
@@ -308,11 +310,18 @@ void LinSystem::free_matrix()
 
 void LinSystem::create_matrix(bool rhsonly)
 {
+  // sanity checks
+  if (this->wf == NULL) error("this->wf is NULL in LinSystem::get_num_dofs().");
+  if (this->wf->neq == 0) error("this->wf->neq is 0 in LinSystem::get_num_dofs().");
+  if (this->spaces == NULL) error("this->spaces[%d] is NULL in LinSystem::get_num_dofs().");
+
   // check if we can reuse the matrix structure
   bool up_to_date = true;
   for (int i = 0; i < this->wf->neq; i++) {
+    if (this->spaces[i] ==  NULL) error("this->spaces[%d] is NULL in LinSystem::get_num_dofs().", i);
     if (this->spaces[i]->get_seq() != this->sp_seq[i]) { 
-      up_to_date = false; break; 
+      up_to_date = false; 
+      break; 
     }
   }
   if (this->wf->get_seq() != this->wf_seq) up_to_date = false;
@@ -388,20 +397,26 @@ void LinSystem::insert_block(scalar** mat, int* iidx, int* jidx, int ilen, int j
 void LinSystem::assemble(bool rhsonly)
 {
   // sanity checks
-  int ndof = this->get_num_dofs();
-  if (ndof == 0) error("ndof = 0 in LinSystem::assemble().");
   if (this->have_spaces == false)
     error("Before assemble(), you need to initialize spaces.");
-  if (this->spaces == NULL) error("spaces = NULL in LinSystem::assemble().");
+  if (this->wf == NULL) error("this->wf = NULL in LinSystem::assemble().");
+  if (this->spaces == NULL) error("this->spaces = NULL in LinSystem::assemble().");
+  int n = this->wf->neq;
+  for (int i=0; i<n; i++) if (this->spaces[i] == NULL) 
+			    error("this->spaces[%d] is NULL in LinSystem::assemble().", i);
   
-  // enumerate DOF and realloc vectors if needed
-  //this->assign_dofs();
+  // enumerate DOF to get new length of the vectors Vec, RHS and Dir, 
+  // and realloc these vectors if needed
+  this->assign_dofs();
+  int ndof = this->get_num_dofs();
+  if (ndof == 0) error("ndof = 0 in LinSystem::assemble().");
   if (this->Vec_length != ndof || this->RHS_length != ndof || this->Dir_length != ndof) {
+    printf("assemble: zeroing and reallocating\n");
     this->realloc_and_zero_vectors();
   }
 
   if (!rhsonly) free_matrix();
-  int k, m, n, marker;
+  int k, m, marker;
   std::vector<AsmList> al(wf->neq);
   AsmList* am, * an;
   bool bnd[4];
@@ -1068,11 +1083,14 @@ Scalar Hcurlprojection_liform(int n, double *wt, Func<Real> *v, Geom<Real> *e, E
 
 int LinSystem::assign_dofs() 
 { 
+  // sanity checks
+  if (this->wf == NULL) error("this->wf = NULL in LinSystem::assign_dofs().");  
+
   // assigning dofs to each space
-  if (this->spaces == NULL) error("spaces is NULL in assign_dofs().");
+  if (this->spaces == NULL) error("this->spaces is NULL in LinSystem::assign_dofs().");
   int ndof = 0;  
   for (int i = 0; i < this->wf->neq; i++) {
-    if (this->spaces[i] == NULL) error("spaces[%d] is NULL in assign_dofs().", i);
+    if (this->spaces[i] == NULL) error("this->spaces[%d] is NULL in assign_dofs().", i);
     int inc = this->spaces[i]->assign_dofs(ndof);
     ndof += inc;
   }
@@ -1083,9 +1101,15 @@ int LinSystem::assign_dofs()
 // global orthogonal projection 
 void LinSystem::project_global(Tuple<MeshFunction*> source, Tuple<Solution*> target, Tuple<int>proj_norms)
 {
+  // sanity checks
   int n = source.size();
+  if (this->spaces == NULL) error("this->spaces == NULL in LinSystem::project_global().");
+  for (int i=0; i<n; i++) if(this->spaces[i] == NULL) 
+			    error("this->spaces[%d] == NULL in LinSystem::project_global().", i);
   if (n != target.size()) 
     error("Mismatched numbers of projected functions and solutions in LinSystem::project_global().");
+  if (n > 10) 
+    error("Wrong number of projected functions in LinSystem::project_global().");
   if (proj_norms != Tuple<int>()) {
     if (n != proj_norms.size()) 
       error("Mismatched numbers of projected functions and projection norms in LinSystem::project_global().");
@@ -1151,12 +1175,14 @@ void LinSystem::project_global(Tuple<MeshFunction*> source, Tuple<Solution*> tar
 
 int LinSystem::get_num_dofs()
 {
-  if (this->wf->neq == 0) error("Zero number of spaces in LinSystem::get_num_dofs().");
-  if (this->spaces == NULL) error("spaces[] is NULL in LinSystem::get_num_dofs().");
+  // sanity checks
+  if (this->wf == NULL) error("this->wf is NULL in LinSystem::get_num_dofs().");
+  if (this->wf->neq == 0) error("this->wf->neq is 0 in LinSystem::get_num_dofs().");
+  if (this->spaces == NULL) error("this->spaces[%d] is NULL in LinSystem::get_num_dofs().");
 
   int ndof = 0;
   for (int i = 0; i < this->wf->neq; i++) {
-    if (spaces[i] ==  NULL) error("a space is NULL in LinSystem::get_num_dofs().");
+    if (this->spaces[i] ==  NULL) error("this->spaces[%d] is NULL in LinSystem::get_num_dofs().", i);
     ndof += this->get_num_dofs(i);
   }
   return ndof;

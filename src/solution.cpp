@@ -429,7 +429,7 @@ void Solution::set_fe_solution(Space* space, PrecalcShapeset* pss, scalar* vec, 
 
 //// set_exact etc. ////////////////////////////////////////////////////////////////////////////////
 
-void Solution::set_exact(Mesh* mesh, scalar (*exactfn)(double x, double y, scalar& dx, scalar& dy))
+void Solution::set_exact(Mesh* mesh, ExactFunction exactfn)
 {
   free();
   this->mesh = mesh;
@@ -441,7 +441,7 @@ void Solution::set_exact(Mesh* mesh, scalar (*exactfn)(double x, double y, scala
 }
 
 
-void Solution::set_exact(Mesh* mesh, scalar2& (*exactfn)(double x, double y, scalar2& dx, scalar2& dy))
+void Solution::set_exact(Mesh* mesh, ExactFunction2 exactfn)
 {
   free();
   this->mesh = mesh;

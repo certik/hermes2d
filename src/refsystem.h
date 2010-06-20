@@ -47,7 +47,7 @@ public:
   /// reference system.
   void assemble(bool rhsonly = false);
 
-  bool solve_exact(scalar (*exactfn)(double x, double y, scalar& dx, scalar& dy), Solution* sln);
+  bool solve_exact(ExactFunction exactfn, Solution* sln);
 
   /// This is almost identical to the corresponding method of LinSystem, but as a first 
   /// step, here the corresponding mesh is refined globally and "source" is projected 

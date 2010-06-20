@@ -20,6 +20,9 @@
 #include "transform.h"
 #include "quad_all.h"
 
+// Type for exact functions
+typedef scalar(*ExactFunction)(double x, double y, scalar& dx, scalar& dy);
+typedef scalar2&(*ExactFunction2)(double x, double y, scalar2& dx, scalar2& dy);
 
 // Precalculation masks
 enum

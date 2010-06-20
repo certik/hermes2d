@@ -115,21 +115,28 @@ int main(int argc, char* argv[])
 
   // Spaces for velocity components and pressure.
   H1Space xvel_space(&mesh, xvel_bc_type, essential_bc_values_xvel, P_INIT_VEL);
-  H1Space yvel_space(&mesh, yvel_bc_type, essential_bc_values_yvel, P_INIT_VEL);
+  H1Space yvel_space(&mesh, yvel_bc_type, NULL, P_INIT_VEL);
 #ifdef PRESSURE_IN_L2
   L2Space p_space(&mesh, P_INIT_PRESSURE);
 #else
   H1Space p_space(&mesh, NULL, NULL, P_INIT_PRESSURE);
 #endif
 
+  // Define projection norms.
+  int vel_proj_norm = 1;
+#ifdef PRESSURE_IN_L2
+  int p_proj_norm = 0;
+#else
+  int p_proj_norm = 1;
+#endif
+
   // Solutions for the Newton's iteration and time stepping.
   info("Setting initial conditions.");
-  Solution xvel_prev_time, yvel_prev_time, xvel_prev_newton, yvel_prev_newton, p_prev;
+  Solution xvel_prev_time, yvel_prev_time, p_prev_time; 
+  Solution xvel_prev_newton, yvel_prev_newton, p_prev_newton;
   xvel_prev_time.set_zero(&mesh);
   yvel_prev_time.set_zero(&mesh);
-  xvel_prev_newton.set_zero(&mesh);
-  yvel_prev_newton.set_zero(&mesh);
-  p_prev.set_zero(&mesh);
+  p_prev_time.set_zero(&mesh);
 
   // Initialize weak formulation.
   WeakForm wf(3);
@@ -147,9 +154,9 @@ int main(int argc, char* argv[])
                   H2D_UNSYM, H2D_ANY, Tuple<MeshFunction*>(&xvel_prev_newton, &yvel_prev_newton));
     wf.add_matrix_form(1, 2, callback(bilinear_form_unsym_1_2), H2D_ANTISYM);
     wf.add_vector_form(0, callback(newton_F_0), H2D_ANY, Tuple<MeshFunction*>(&xvel_prev_time, 
-		  &yvel_prev_time, &xvel_prev_newton, &yvel_prev_newton, &p_prev));
+		  &yvel_prev_time, &xvel_prev_newton, &yvel_prev_newton, &p_prev_newton));
     wf.add_vector_form(1, callback(newton_F_1), H2D_ANY, Tuple<MeshFunction*>(&xvel_prev_time, 
-		  &yvel_prev_time, &xvel_prev_newton, &yvel_prev_newton, &p_prev));
+		  &yvel_prev_time, &xvel_prev_newton, &yvel_prev_newton, &p_prev_newton));
     wf.add_vector_form(2, callback(newton_F_2), H2D_ANY, Tuple<MeshFunction*>(&xvel_prev_newton, 
                   &yvel_prev_newton));
   }
@@ -184,6 +191,15 @@ int main(int argc, char* argv[])
   // Initialize nonlinear system.
   NonlinSystem nls(&wf, &umfpack, Tuple<Space*>(&xvel_space, &yvel_space, &p_space));
 
+  // Project initial conditions on FE spaces to obtain initial coefficient 
+  // vector for the Newton's method.
+  if (NEWTON) {
+    info("Projecting initial conditions to obtain initial vector for the Newton'w method.");
+    nls.project_global(Tuple<MeshFunction*>(&xvel_prev_time, &yvel_prev_time, &p_prev_time),
+                       Tuple<Solution*>(&xvel_prev_newton, &yvel_prev_newton, &p_prev_newton),
+                       Tuple<int>(vel_proj_norm, vel_proj_norm, p_proj_norm));  
+  }
+
   // Time-stepping loop:
   char title[100];
   int num_time_steps = T_FINAL / TAU;
@@ -200,7 +216,7 @@ int main(int argc, char* argv[])
       // Newton's method.
       info("Performing Newton's method.");
       bool verbose = true; // Default is false.
-      if (!nls.solve_newton(Tuple<Solution*>(&xvel_prev_newton, &yvel_prev_newton, &p_prev), 
+      if (!nls.solve_newton(Tuple<Solution*>(&xvel_prev_newton, &yvel_prev_newton, &p_prev_newton), 
                             NEWTON_TOL, NEWTON_MAX_ITER, verbose)) {
         error("Newton's method did not converge.");
       }
@@ -214,7 +230,7 @@ int main(int argc, char* argv[])
       // Assemble and solve.
       info("Assembling and solving linear problem.");
       ls.assemble();
-      ls.solve(Tuple<Solution*>(&xvel_prev_newton, &yvel_prev_newton, &p_prev));
+      ls.solve(Tuple<Solution*>(&xvel_prev_newton, &yvel_prev_newton, &p_prev_newton));
     }
 
     // Show the solution at the end of time step.
@@ -223,13 +239,14 @@ int main(int argc, char* argv[])
     vview.show(&xvel_prev_newton, &yvel_prev_newton, H2D_EPS_LOW);
     sprintf(title, "Pressure, time %g", TIME);
     pview.set_title(title);
-    pview.show(&p_prev);
+    pview.show(&p_prev_newton);
 
     // Copy the result of the Newton's iteration into the
     // previous time level solutions.
     xvel_prev_time.copy(&xvel_prev_newton);
     yvel_prev_time.copy(&yvel_prev_newton);
-  }
+    p_prev_time.copy(&p_prev_newton);
+ }
 
   // Wait for all views to be closed.
   View::wait();

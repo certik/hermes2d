@@ -178,7 +178,7 @@ void RefSystem::assemble(bool rhsonly)
   }
 }
 
-bool RefSystem::solve_exact(scalar (*exactfn)(double x, double y, scalar& dx , scalar& dy), Solution* sln)
+bool RefSystem::solve_exact(ExactFunction exactfn, Solution* sln)
 {
   Space* space = spaces[0];
 

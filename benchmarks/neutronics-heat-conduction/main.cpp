@@ -139,22 +139,6 @@ scalar essential_bc_values_phi(int ess_bdy_marker, double x, double y)
 // Weak forms.
 #include "forms.cpp"
 
-// Initial conditions.
-
-scalar T_ic(double x, double y, double& dx, double& dy)
-{
-  dx = 1.0;
-  dy = 0.0;
-  return x;
-}
-
-scalar phi_ic(double x, double y, double& dx, double& dy)
-{
-  dx = 0.0;
-  dy = 1.0;
-  return y;
-}
-
 // Exact solutions.
 # include "exact_solution.cpp"
 
@@ -213,14 +197,13 @@ int main(int argc, char* argv[])
   // Initialize nonlinear system.
   NonlinSystem nls(&wf, &solver, Tuple<Space*>(&space_T, &space_phi));
 
-  // Project the exact solutions on the FE spaces.
-  info("Projecting initial conditions on FE spaces.");
-  T_prev_time.set_exact(&mesh, T_ic);
-  phi_prev_time.set_exact(&mesh, phi_ic);
+  // Project initial conditions on FE spaces to obtain initial 
+  // vector for the Newton's method.
+  info("Projecting initial conditions to obtain initial vector for the Newton's method.");
+  T_prev_time.set_exact(&mesh, T_exact);
+  phi_prev_time.set_exact(&mesh, phi_exact);
   nls.project_global(Tuple<MeshFunction*>(&T_prev_time, &phi_prev_time), 
-                     Tuple<Solution*>(&T_prev_time, &phi_prev_time));
-  T_prev_newton.copy(&T_prev_time);
-  phi_prev_newton.copy(&phi_prev_time);
+                     Tuple<Solution*>(&T_prev_newton, &phi_prev_newton));
 
   // Time stepping.
   int t_step = 1;

@@ -20,7 +20,7 @@
 //       dT/dn = - kappa T on cooled rods,
 //       dT/dn = 0, dY/dn = 0 elsewhere.
 //
-//  Time-stepping: second order BDF formula
+//  Time-stepping: second order BDF formula.
 
 const int INIT_REF_NUM = 2;            // Number of initial uniform mesh refinements.
 const int P_INIT = 1;                  // Initial polynomial degree.
@@ -29,7 +29,7 @@ const double T_FINAL = 60.0;           // Time interval length.
 const double NEWTON_TOL = 1e-4;        // Stopping criterion for the Newton's method.
 const int NEWTON_MAX_ITER = 50;        // Maximum allowed number of Newton iterations.
 
-// Problem constants
+// Problem constants.
 const double Le    = 1.0;
 const double alpha = 0.8;
 const double beta  = 10.0;
@@ -39,7 +39,7 @@ const double x1    = 9.0;
 // Boundary markers.
 int bdy_left = 1;
 
-// Boundary conditions
+// Boundary conditions.
 BCType bc_types(int marker)
   { return (marker == bdy_left) ? BC_ESSENTIAL : BC_NATURAL; }
 
@@ -49,14 +49,14 @@ scalar essential_bc_values_t(int ess_bdy_marker, double x, double y)
 scalar essential_bc_values_c(int ess_bdy_marker, double x, double y)
   { return 0; }
 
-// Initial conditions
+// Initial conditions.
 scalar temp_ic(double x, double y, scalar& dx, scalar& dy)
   { return (x <= x1) ? 1.0 : exp(x1 - x); }
 
 scalar conc_ic(double x, double y, scalar& dx, scalar& dy)
   { return (x <= x1) ? 0.0 : 1.0 - exp(Le*(x1 - x)); }
 
-// Weak forms, definition of reaction rate omega
+// Weak forms, definition of reaction rate omega.
 # include "forms.cpp"
 
 int main(int argc, char* argv[])
@@ -109,10 +109,9 @@ int main(int argc, char* argv[])
   // Initialize the nonlinear system.
   NonlinSystem nls(&wf, &solver, Tuple<Space*>(&tspace, &cspace));
 
-  // Project temp_ic() and conc_ic() onto the FE spaces and use them as initial
-  // conditions for the Newton's method.   
-  info("Projecting initial conditions on the FE spaces.");
-
+  // Project temp_ic() and conc_ic() onto the FE spaces to obtain initial 
+  // coefficient vector for the Newton's method.   
+  info("Projecting initial conditions to obtain initial vector for the Newton'w method.");
   nls.project_global(Tuple<MeshFunction*>(&t_prev_newton, &c_prev_newton), 
                      Tuple<Solution*>(&t_prev_newton, &c_prev_newton));
 

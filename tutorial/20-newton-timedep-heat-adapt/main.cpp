@@ -87,7 +87,7 @@ double dir_lift(double x, double y, double& dx, double& dy) {
 }
 
 // Initial condition.
-scalar initial_condition(double x, double y, double& dx, double& dy)
+scalar init_cond(double x, double y, double& dx, double& dy)
 {
   return dir_lift(x, y, dx, dy);
 }
@@ -152,11 +152,11 @@ int main(int argc, char* argv[])
   // Error estimate and discrete problem size as a function of physical time.
   SimpleGraph graph_time_err, graph_time_dof;
 
-  // Project the function initial_condition() on the coarse mesh.
-  info("Projecting initial condition on the FE mesh.");
-  u_prev_time.set_exact(&mesh, initial_condition);
-  nls.project_global(&u_prev_time, &u_prev_time);
-  u_prev_newton.copy(&u_prev_time);
+  // Project the function init_cond() on the FE space
+  // to obtain initial coefficient vector for the Newton's method.
+  info("Projecting initial condition to obtain initial vector for the Newton'w method.");
+  u_prev_time.set_exact(&mesh, init_cond);            // u_prev_time set equal to init_cond().
+  nls.project_global(&u_prev_time, &u_prev_newton);   // Initial vector calculated here.
 
   // View the projection of the initial condition.
   ScalarView view("Projection of initial condition", 0, 0, 410, 300);
@@ -166,7 +166,7 @@ int main(int argc, char* argv[])
   ordview.show(&space);
 
   // Newton's loop on the coarse mesh.
-  info("Newton solve on coarse mesh.");
+  info("Solving on coarse mesh.");
   bool verbose = true; // Default is false.
   if (!nls.solve_newton(&u_prev_newton, NEWTON_TOL_COARSE, NEWTON_MAX_ITER, verbose))
     error("Newton's method did not converge.");
@@ -190,12 +190,15 @@ int main(int argc, char* argv[])
 
       // Project fine mesh solution on the globally derefined mesh.
       info("---- Time step %d:", ts);
-      info("Projecting fine mesh solution on globally derefined mesh:");
+      if (SOLVE_ON_COARSE_MESH) 
+        info("Projecting fine mesh solution to obtain initial vector on globally derefined mesh.");
+      else 
+        info("Projecting fine mesh solution on globally derefined mesh for error calculation.");
       nls.project_global(&sln_fine, &u_prev_newton);
 
       if (SOLVE_ON_COARSE_MESH) {
         // Newton's loop on the globally derefined mesh.
-        info("Newton solve on globally derefined mesh.", ts);
+        info("Solving on globally derefined mesh.", ts);
         if (!nls.solve_newton(&u_prev_newton, NEWTON_TOL_COARSE, NEWTON_MAX_ITER, verbose))
           error("Newton's method did not converge.");
       }
@@ -217,16 +220,16 @@ int main(int argc, char* argv[])
 
       // Set initial condition for the Newton's method on the fine mesh.
       if (as == 1) {
-        info("Projecting coarse mesh solution on fine mesh.");
+        info("Projecting coarse mesh solution to obtain initial vector on new fine mesh.");
         rnls.project_global(&sln_coarse, &u_prev_newton);
       }
       else {
-        info("Projecting previous fine mesh solution on new fine mesh.");
+        info("Projecting previous fine mesh solution to obtain initial vector on new fine mesh.");
         rnls.project_global(&sln_fine, &u_prev_newton);
       }
 
       // Newton's method on fine mesh
-      info("Newton solve on fine mesh.");
+      info("Solving on fine mesh.");
       if (!rnls.solve_newton(&u_prev_newton, NEWTON_TOL_FINE, NEWTON_MAX_ITER, verbose))
         error("Newton's method did not converge.");
 
@@ -252,12 +255,15 @@ int main(int argc, char* argv[])
         }
 
         // Project the fine mesh solution on the new coarse mesh.
-        info("Projecting fine mesh solution on new coarse mesh.");
+        if (SOLVE_ON_COARSE_MESH) 
+          info("Projecting fine mesh solution to obtain initial vector on new coarse mesh.");
+        else 
+          info("Projecting fine mesh solution on coarse mesh for error calculation.");
         nls.project_global(&sln_fine, &u_prev_newton);
 
         if (SOLVE_ON_COARSE_MESH) {
           // Newton's loop on the coarse mesh.
-          info("---- Time step %d, adaptivity step %d, Newton solve on new coarse mesh.", ts, as);
+          info("---- Time step %d, adaptivity step %d, solving on new coarse mesh.", ts, as);
           if (!nls.solve_newton(&u_prev_newton, NEWTON_TOL_COARSE, NEWTON_MAX_ITER, verbose))
             error("Newton's method did not converge.");
         }

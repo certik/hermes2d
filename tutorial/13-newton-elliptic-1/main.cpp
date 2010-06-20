@@ -56,6 +56,15 @@ Real heat_src(Real x, Real y)
   return 1.0;
 }
 
+// Initial condition. It will be projected on the FE mesh 
+// to obtain initial coefficient vector for the Newton's method.
+scalar init_cond(double x, double y, double& dx, double& dy)
+{
+  dx = 0;
+  dy = 0;
+  return INIT_COND_CONST;
+}
+
 // Weak forms.
 #include "forms.cpp"
 
@@ -87,11 +96,10 @@ int main(int argc, char* argv[])
   // Initialize the nonlinear system.
   NonlinSystem nls(&wf, &solver, &space);
 
-  // Project the function u_prev() on the FE space
-  // to obtain initial guess u_prev for the Newton's method.
-  info("Projecting initial condition on the FE space.");
-  u_prev.set_const(&mesh, INIT_COND_CONST);
-  nls.project_global(&u_prev, &u_prev);
+  // Project the function init_cond() on the FE space
+  // to obtain initial coefficient vector for the Newton's method.
+  info("Projecting initial condition to obtain initial vector for the Newton'w method.");
+  nls.project_global(init_cond, &u_prev);  
 
   // Show the initial condition for the Newton's method. 
   ScalarView pview("Projection of initial condition", 0, 0, 400, 300);
