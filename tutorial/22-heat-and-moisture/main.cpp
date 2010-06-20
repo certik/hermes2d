@@ -19,7 +19,7 @@ using namespace RefinementSelectors;
 const bool SOLVE_ON_COARSE_MESH = false; // If true, coarse mesh FE problem is solved in every adaptivity step.
                                          // If false, projection of the fine mesh solution on the coarse mesh is used. 
 const int P_INIT = 1;                    // Initial polynomial degrees.
-const bool MULTI = false;                 // MULTI = true  ... use multi-mesh,
+const bool MULTI = true;                 // MULTI = true  ... use multi-mesh,
                                          // MULTI = false ... use single-mesh.
                                          // Note: In the single mesh option, the meshes are
                                          // forced to be geometrically the same but the
@@ -47,7 +47,7 @@ const int MESH_REGULARITY = -1;          // Maximum allowed level of hanging nod
                                          // their notoriously bad performance.
 const double CONV_EXP = 1.0;             // Default value is 1.0. This parameter influences the selection of
                                          // cancidates in hp-adaptivity. See get_optimal_refinement() for details.
-const double SPACE_TOL = 0.2;            // Stopping criterion for adaptivity (rel. error tolerance between the
+const double SPACE_ERR_STOP = 0.2;       // Stopping criterion for adaptivity (rel. error tolerance between the
                                          // fine mesh and coarse mesh solution in percent).
 const int NDOF_STOP = 60000;             // Adaptivity process stops when the number of degrees of freedom grows over
                                          // this limit. This is mainly to prevent h-adaptivity to go on forever.
@@ -218,13 +218,14 @@ int main(int argc, char* argv[])
       double T_err_est = h1_error(&T_coarse, &T_fine) * 100;
       double M_err_est = h1_error(&M_coarse, &M_fine) * 100;
       info("T: ndof_coarse: %d, ndof_fine: %d, err_est: %g %%", 
-	   ls.get_num_dofs(0), rs.get_num_dofs(), T_err_est);
+	   ls.get_num_dofs(0), rs.get_num_dofs(0), T_err_est);
       info("M: ndof_coarse: %d, ndof_fine: %d, err_est: %g %%", 
-	   ls.get_num_dofs(1), rs.get_num_dofs(), M_err_est);
+	   ls.get_num_dofs(1), rs.get_num_dofs(1), M_err_est);
 
       // Calculate errors for adaptivity.
       H1Adapt hp(Tuple<Space*>(&space_T, &space_M));
-      hp.set_solutions(Tuple<Solution*>(&T_coarse, &M_coarse), Tuple<Solution*>(&T_fine, &M_fine));
+      hp.set_solutions(Tuple<Solution*>(&T_coarse, &M_coarse), 
+                       Tuple<Solution*>(&T_fine, &M_fine));
       hp.set_biform(0, 0, callback(bilinear_form_sym_0_0));
       hp.set_biform(0, 1, callback(bilinear_form_sym_0_1));
       hp.set_biform(1, 0, callback(bilinear_form_sym_1_0));
@@ -232,7 +233,7 @@ int main(int argc, char* argv[])
       space_err_est = hp.calc_error(H2D_TOTAL_ERROR_REL | H2D_ELEMENT_ERROR_REL) * 100;
 
       // If err_est too large, adapt the mesh.
-      if (space_err_est > SPACE_TOL) {
+      if (space_err_est > SPACE_ERR_STOP) {
         info("Adapting coarse meshes.");
         done = hp.adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY);
         if (ls.get_num_dofs() >= NDOF_STOP) done = true;
