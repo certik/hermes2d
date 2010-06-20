@@ -108,10 +108,19 @@ class H2D_API GnuplotGraph : public Graph
 public:
 
   GnuplotGraph(const char* title = NULL, const char* x_axis_name = NULL, const char* y_axis_name = NULL)
-       : Graph(title, x_axis_name, y_axis_name) {}
+       : Graph(title, x_axis_name, y_axis_name), legend_pos() {}
 
   virtual void save(const char* filename);
 
+  /// set legend position (see documentation to gnuplot for possible strings);
+  ///   when a non-empty string is used, "legend" is automatically set to true
+  void set_legend_pos(const char* posspec);
+
+protected:
+    /// legend position
+    ///   initially empty (may be changed by calling "set_legend_pos") -- "legend == true" with empty "legend_pos"
+    ///   means that the default gnuplot setting will be used
+    std::string legend_pos;
 };
 
 
