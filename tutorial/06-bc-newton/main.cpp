@@ -1,5 +1,4 @@
 #include "hermes2d.h"
-#include "solver_umfpack.h"
 
 // This example explains how to use Newton boundary conditions. Again,
 // a Filter is used to visualize the solution gradient.
@@ -59,11 +58,8 @@ int main(int argc, char* argv[])
   wf.add_matrix_form_surf(callback(bilinear_form_surf), NEWTON_BDY);
   wf.add_vector_form_surf(callback(linear_form_surf), NEWTON_BDY);
 
-  // Matrix solver.
-  UmfpackSolver solver;
-
   // Initialize the linear system.
-  LinSystem ls(&wf, &solver, &space);
+  LinSystem ls(&wf, &space);
 
   // Assemble and solve the matrix problem.
   Solution sln;

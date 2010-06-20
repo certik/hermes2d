@@ -75,7 +75,7 @@ const int H2D_ANY = -1234;
 // how many bits the order number takes
 const int H2D_ORDER_BITS = 5;
 const int H2D_ORDER_MASK = (1 << H2D_ORDER_BITS) - 1;
-
+const int H2D_DEFAULT_PROJ_TYPE = 1;
 
 // macros for combining quad horizontal and vertical orders
 #define H2D_MAKE_QUAD_ORDER(h_order, v_order) (((v_order) << H2D_ORDER_BITS) + (h_order))

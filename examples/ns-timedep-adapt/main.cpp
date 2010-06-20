@@ -3,7 +3,6 @@
 #define H2D_REPORT_VERBOSE
 #define H2D_REPORT_FILE "application.log"
 #include "hermes2d.h"
-#include "solver_umfpack.h"
 
 using namespace RefinementSelectors;
 
@@ -212,11 +211,8 @@ int main(int argc, char* argv[])
 							 &xvel_prev_newton, &yvel_prev_newton, &p_prev_newton));
   wf.add_vector_form(2, callback(newton_F_2), H2D_ANY, Tuple<MeshFunction*>(&xvel_prev_newton, &yvel_prev_newton));
 
-  // Matrix solver.
-  UmfpackSolver solver;
-
   // Initialize nonlinear system.
-  NonlinSystem nls(&wf, &solver, Tuple<Space*>(&xvel_space, &yvel_space, &p_space));
+  NonlinSystem nls(&wf, Tuple<Space*>(&xvel_space, &yvel_space, &p_space));
 
   // Update time-dependent essential BC.
   info("Updating time-dependent essential BC.");

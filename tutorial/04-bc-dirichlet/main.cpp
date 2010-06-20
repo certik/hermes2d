@@ -1,5 +1,4 @@
 #include "hermes2d.h"
-#include "solver_umfpack.h"
 
 // This example illustrates how to use nonhomogeneous (nonzero)
 // Dirichlet boundary conditions.
@@ -57,11 +56,8 @@ int main(int argc, char* argv[])
   wf.add_matrix_form(callback(bilinear_form));
   wf.add_vector_form(callback(linear_form));
 
-  // Matrix solver.
-  UmfpackSolver solver;
-
   // Initialize the linear system.
-  LinSystem ls(&wf, &solver, &space);
+  LinSystem ls(&wf, &space);
 
   // Assemble and solve the matrix problem.
   Solution sln;

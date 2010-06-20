@@ -25,7 +25,8 @@
 #include "config.h"
 #include "limit_order.h"
 #include <algorithm>
-#include "python_solvers.h"
+
+#include "solvers.h"
 
 int H2D_DEFAULT_PROJ_NORM = 1;
 
@@ -33,12 +34,12 @@ void qsort_int(int* pbase, size_t total_elems); // defined in qsort.cpp
 
 //// interface /////////////////////////////////////////////////////////////////////////////////////
 
-void LinSystem::init_lin(WeakForm* wf_, Solver* solver_)
+void LinSystem::init_lin(WeakForm* wf_, CommonSolver* solver_)
 {
   if (wf_ == NULL) error("LinSystem: a weak form must be given.");
   this->wf = wf_;
-  this->solver = solver_;
-  slv_ctx = (this->solver != NULL) ? this->solver->new_context(false) : NULL;
+  this->solver_default = new CommonSolverSciPyUmfpack();
+  this->solver = (solver_) ? solver_ : solver_default;
   this->wf_seq = -1;
 
   this->RHS = this->Dir = this->Vec = NULL;
@@ -58,18 +59,18 @@ void LinSystem::init_lin(WeakForm* wf_, Solver* solver_)
 // this is needed because of a constructor in NonlinSystem
 LinSystem::LinSystem() {}
 
-LinSystem::LinSystem(WeakForm* wf_, Solver* solver_)
+LinSystem::LinSystem(WeakForm* wf_, CommonSolver* solver_)
 {
   this->init_lin(wf_, solver_);
 }
 
 LinSystem::LinSystem(WeakForm* wf_)
 {
-  Solver *solver_ = NULL;
+  CommonSolver *solver_ = NULL;
   this->init_lin(wf_, solver_);
 }
 
-LinSystem::LinSystem(WeakForm* wf_, Solver* solver_, Tuple<Space*> sp)
+LinSystem::LinSystem(WeakForm* wf_, CommonSolver* solver_, Tuple<Space*> sp)
 {
   int n = sp.size();
   if (wf_ == NULL) warn("Weak form is NULL.");
@@ -84,13 +85,13 @@ LinSystem::LinSystem(WeakForm* wf_, Solver* solver_, Tuple<Space*> sp)
 
 LinSystem::LinSystem(WeakForm* wf_, Tuple<Space*> sp)
 {
-  Solver* solver_ = NULL;
+  CommonSolver* solver_ = NULL;
   this->init_lin(wf_, solver_);
   this->init_spaces(sp);
   this->alloc_and_zero_vectors();
 }
 
-LinSystem::LinSystem(WeakForm* wf_, Solver* solver_, Space* s_)
+LinSystem::LinSystem(WeakForm* wf_, CommonSolver* solver_, Space* s_)
 {
   if (wf_ == NULL) warn("Weak form is NULL.");
   if (wf_ != NULL) {
@@ -104,13 +105,13 @@ LinSystem::LinSystem(WeakForm* wf_, Solver* solver_, Space* s_)
 
 LinSystem::LinSystem(WeakForm* wf_, Space* s_)
 {
-  Solver *solver_ = NULL;
+  CommonSolver *solver_ = NULL;
   this->init_lin(wf_, solver_);
   this->init_space(s_);
   this->alloc_and_zero_vectors();
 }
 
-LinSystem::LinSystem(WeakForm* wf_, Solver* solver_, Space* space1_, Space* space2_)
+LinSystem::LinSystem(WeakForm* wf_, CommonSolver* solver_, Space* space1_, Space* space2_)
 {
   int n = 2;
   if (wf_ == NULL) warn("Weak form is NULL.");
@@ -294,7 +295,7 @@ void LinSystem::free()
   free_matrix();
   free_vectors();
   free_spaces();
-  if (this->solver) this->solver->free_data(this->slv_ctx);
+  delete solver_default;
 
   this->struct_changed = this->values_changed = true;
   memset(this->sp_seq, -1, sizeof(int) * this->wf->neq);
@@ -377,12 +378,12 @@ void LinSystem::get_matrix(int*& Ap, int*& Ai, scalar*& Ax, int& size)
 {
     /// FIXME: this is a memory leak:
     CSRMatrix *m = new CSRMatrix(this->A);
-    Ap = m->get_IA(); Ai = m->get_JA();
+    Ap = m->get_Ap(); Ai = m->get_Ai();
     size = m->get_size();
 #ifdef H2D_COMPLEX
-    Ax = m->get_A_cplx();
+    Ax = m->get_Ax_cplx();
 #else
-    Ax = m->get_A();
+    Ax = m->get_Ax();
 #endif
 }
 
@@ -902,9 +903,6 @@ bool LinSystem::solve(Tuple<Solution*> sln)
   if (n != this->wf->neq)
     error("Number of solutions does not match the number of equations in LinSystem::solve().");
 
-  // if no matrix solver defined, throw error
-  if (!this->solver) error("No matrix solver defined in LinSystem::solve().");
-
   // if Vec is not initialized, throw error
   if (this->Vec == NULL) error("Vec is NULL in LinSystem::solve().");
 
@@ -923,7 +921,7 @@ bool LinSystem::solve(Tuple<Solution*> sln)
 
   // solve the system
   memcpy(this->Vec, this->RHS, sizeof(scalar) * ndof);
-  solve_linear_system_scipy_umfpack(this->A, this->Vec);
+  this->solver->solve(this->A, this->Vec);
   report_time("LinSystem solved in %g s", cpu_time.tick().last());
 
   // copy solution coefficient vectors into Solutions

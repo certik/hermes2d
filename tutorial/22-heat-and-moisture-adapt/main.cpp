@@ -3,7 +3,6 @@
 #define H2D_REPORT_VERBOSE
 #define H2D_REPORT_FILE "application.log"
 #include "hermes2d.h"
-#include "solver_umfpack.h"
 
 using namespace RefinementSelectors;
 
@@ -156,11 +155,8 @@ int main(int argc, char* argv[])
   // Error estimate and discrete problem size as a function of physical time.
   SimpleGraph graph_time_err, graph_time_dof;
 
-  // Matrix solver.
-  UmfpackSolver solver;
-
   // Initialize the coarse mesh problem.
-  LinSystem ls(&wf, &solver, Tuple<Space*>(&space_T, &space_M));
+  LinSystem ls(&wf, Tuple<Space*>(&space_T, &space_M));
 
   // Solutions.
   Solution T_coarse, M_coarse, T_fine, M_fine;

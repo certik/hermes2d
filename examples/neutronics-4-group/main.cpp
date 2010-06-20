@@ -4,7 +4,6 @@
 #define H2D_REPORT_FILE "application.log"
 
 #include "hermes2d.h"
-#include "solver_umfpack.h"
 
 // This example solves a 4-group neutron diffusion equation in the reactor core.
 // The eigenproblem is solved using power interations.
@@ -156,9 +155,6 @@ int main(int argc, char* argv[])
   iter3.set_const(&mesh, 1.00);
   iter4.set_const(&mesh, 1.00);
 
-  // Matrix solver.
-  UmfpackSolver umfpack;
-
   // Create H1 spaces with default shapesets.
   H1Space space1(&mesh, bc_types, essential_bc_values, P_INIT);
   H1Space space2(&mesh, bc_types, essential_bc_values, P_INIT); 
@@ -184,7 +180,7 @@ int main(int argc, char* argv[])
   wf.add_matrix_form_surf(3, 3, callback(biform_surf_3_3), BDY_VACUUM);
 
   // Initialize coarse mesh problem.
-  LinSystem ls(&wf, &umfpack, Tuple<Space*>(&space1, &space2, &space3, &space4));
+  LinSystem ls(&wf, Tuple<Space*>(&space1, &space2, &space3, &space4));
 
   // Initialize views.
   ScalarView view1("Neutron flux 1", 0, 0, 320, 600);

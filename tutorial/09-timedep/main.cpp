@@ -3,7 +3,6 @@
 #define H2D_REPORT_VERBOSE
 #define H2D_REPORT_FILE "application.log"
 #include "hermes2d.h"
-#include "solver_umfpack.h"
 
 //  This example shows how to solve a time-dependent PDE discretized
 //  in time via the implicit Euler method. The St. Vitus Cathedral
@@ -92,11 +91,8 @@ int main(int argc, char* argv[])
   wf.add_vector_form(linear_form<double, double>, linear_form<Ord, Ord>, H2D_ANY, &tsln);
   wf.add_vector_form_surf(linear_form_surf<double, double>, linear_form_surf<Ord, Ord>, bdy_air);
 
-  // Matrix solver.
-  UmfpackSolver solver;
-
-  // Initialize linear system.
-  LinSystem ls(&wf, &solver, &space);
+  // Initialize the linear system.
+  LinSystem ls(&wf, &space);
 
   // Initialize views.
   ScalarView Tview("Temperature", 0, 0, 450, 600);

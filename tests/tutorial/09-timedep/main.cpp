@@ -1,5 +1,4 @@
 #include "hermes2d.h"
-#include "solver_umfpack.h"
 
 // This test makes sure that example 09-timedep works correctly.
 // CAUTION: This test will fail when any changes to the shapeset
@@ -93,11 +92,8 @@ int main(int argc, char* argv[])
   wf.add_vector_form(linear_form<double, double>, linear_form<Ord, Ord>, H2D_ANY, &tsln);
   wf.add_vector_form_surf(linear_form_surf<double, double>, linear_form_surf<Ord, Ord>, marker_air);
 
-  // Matrix solver.
-  UmfpackSolver solver;
-
   // Initialize linear system.
-  LinSystem ls(&wf, &solver, &space);
+  LinSystem ls(&wf, &space);
 
   // time stepping
   int nsteps = (int)(FINAL_TIME/TAU + 0.5);

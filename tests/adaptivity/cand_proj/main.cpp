@@ -1,5 +1,4 @@
 #include <hermes2d.h>
-#include <solver_umfpack.h>
 
 using namespace RefinementSelectors;
 
@@ -49,7 +48,6 @@ Mesh* mesh = NULL; ///< Mesh used by the test.
 Shapeset* shapeset = NULL; ///< Shapeset used by the test.
 Space* space = NULL; ///< Space used by the test.
 WeakForm* weakform = NULL; ///< Weakform used by the test.
-UmfpackSolver* solver = NULL; ///< Solved used by the test.
 OptimumSelector* selector = NULL; ///< Selector used by the test.
 double numerical_zero = 0.0; ///< A numberical zero
 
@@ -113,7 +111,6 @@ scalar h1_exact_func(double x, double y, scalar& dx, scalar& dy) {
 /// Cleanup
 void cleanup() {
   delete_not_null(selector);
-  delete_not_null(solver);
   delete_not_null(weakform);
   delete_not_null(space);
   delete_not_null(mesh);
@@ -158,9 +155,6 @@ bool init_h1(bool tri) {
     weakform->add_matrix_form(callback(h1_biform), H2D_SYM);
     weakform->add_vector_form(h1_liform, h1_liform, H2D_ANY);
 
-    //solver
-    solver = new UmfpackSolver();
-
     //prepare selector
     selector = new H1ProjBasedSelector(H2D_HP_ANISO, 1.0, H2DRS_DEFAULT_ORDER, h1_shapeset);
 
@@ -187,9 +181,6 @@ bool init_l2(bool tri) {
     weakform = new WeakForm();
     weakform->add_matrix_form(callback(l2_biform), H2D_SYM);
     weakform->add_vector_form(l2_liform, l2_liform, H2D_ANY);
-
-    //solver
-    solver = new UmfpackSolver();
 
     //prepare selector
     selector = new L2ProjBasedSelector(H2D_HP_ANISO, 1.0, H2DRS_DEFAULT_ORDER, l2_shapeset);
@@ -341,7 +332,7 @@ bool test(bool tri, const std::string& space_name, int min_order, int max_order 
 
     //create and solve the reference system
     Solution sln, rsln;
-    LinSystem ls(weakform, solver, space);
+    LinSystem ls(weakform, space);
     ls.assemble();
     ls.solve(&sln);
     RefSystem rs(&ls);

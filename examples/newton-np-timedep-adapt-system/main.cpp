@@ -4,7 +4,6 @@
 #define H2D_REPORT_FILE "application.log"
 
 #include "hermes2d.h"
-#include "solver_umfpack.h"
 #include <string>
 
 using namespace RefinementSelectors;
@@ -463,9 +462,7 @@ int main (int argc, char* argv[]) {
     wf.add_vector_form_surf(1, callback(linear_form_surf_top), TOP_MARKER);
   }
 
-  // Nonlinear solver.
-  UmfpackSolver solver;
-  NonlinSystem nls(&wf, &solver, Tuple<Space*>(&C, &phi));
+  NonlinSystem nls(&wf, Tuple<Space*>(&C, &phi));
 
   // Set initial conditions.
   phi_prev_time.set_exact(MULTIMESH ? &phimesh : &Cmesh, voltage_ic);

@@ -1,5 +1,4 @@
 #include "hermes2d.h"
-#include "solver_umfpack.h"  // defines the class UmfpackSolver
 
 // This example shows how to solve a first simple PDE:
 //   - load the mesh,
@@ -51,18 +50,13 @@ int main(int argc, char* argv[])
   // Create an H1 space with default shapeset.
   H1Space space(&mesh, bc_types, essential_bc_values, P_INIT);
 
-  
-
   // Initialize the weak formulation.
   WeakForm wf;
   wf.add_matrix_form(callback(bilinear_form));
   wf.add_vector_form(callback(linear_form));
 
-  // Matrix solver.
-  UmfpackSolver solver;
-
   // Initialize the linear system.
-  LinSystem ls(&wf, &solver, &space);
+  LinSystem ls(&wf, &space);
 
   // Assemble and solve the matrix problem.
   Solution sln;

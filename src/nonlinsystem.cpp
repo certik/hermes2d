@@ -27,7 +27,7 @@
 #include "views/view.h"
 #include "views/vector_view.h"
 
-#include "python_solvers.h"
+#include "solvers.h"
 
 void NonlinSystem::init_nonlin()
 {
@@ -44,7 +44,7 @@ void NonlinSystem::init_nonlin()
 // this is needed because of a constructor in RefSystem
 NonlinSystem::NonlinSystem() {}
 
-NonlinSystem::NonlinSystem(WeakForm* wf_, Solver* solver_)
+NonlinSystem::NonlinSystem(WeakForm* wf_, CommonSolver* solver_)
 { 
   this->init_lin(wf_, solver_);
   this->init_nonlin();
@@ -52,12 +52,12 @@ NonlinSystem::NonlinSystem(WeakForm* wf_, Solver* solver_)
 
 NonlinSystem::NonlinSystem(WeakForm* wf_)
 {
-  Solver *solver_ = NULL;
+  CommonSolver *solver_ = NULL;
   this->init_lin(wf_, solver_);
   this->init_nonlin();
 }
 
-NonlinSystem::NonlinSystem(WeakForm* wf_, Solver* solver_, Tuple<Space*> spaces_)
+NonlinSystem::NonlinSystem(WeakForm* wf_, CommonSolver* solver_, Tuple<Space*> spaces_)
 {
   int n = spaces_.size();
   if (n != wf_->neq) 
@@ -70,14 +70,14 @@ NonlinSystem::NonlinSystem(WeakForm* wf_, Solver* solver_, Tuple<Space*> spaces_
 
 NonlinSystem::NonlinSystem(WeakForm* wf_, Tuple<Space*> spaces_)
 {
-  Solver* solver_ = NULL;
+  CommonSolver* solver_ = NULL;
   this->init_lin(wf_, solver_);
   this->init_spaces(spaces_);
   this->alloc_and_zero_vectors();
   this->init_nonlin();
 }
 
-NonlinSystem::NonlinSystem(WeakForm* wf_, Solver* solver_, Space *s_) 
+NonlinSystem::NonlinSystem(WeakForm* wf_, CommonSolver* solver_, Space *s_)
 {
   if (wf_->neq != 1) 
     error("Number of spaces does not match number of equations in LinSystem::LinSystem().");
@@ -89,7 +89,7 @@ NonlinSystem::NonlinSystem(WeakForm* wf_, Solver* solver_, Space *s_)
 
 NonlinSystem::NonlinSystem(WeakForm* wf_, Space *s_)
 {
-  Solver *solver_ = NULL;
+  CommonSolver *solver_ = NULL;
   this->init_lin(wf_, solver_);
   this->init_space(s_);
   this->alloc_and_zero_vectors();
@@ -146,9 +146,6 @@ bool NonlinSystem::solve(Tuple<Solution*> sln)
   if (n != this->wf->neq) 
     error("Number of solutions does not match the number of equations in LinSystem::solve().");
 
-  // if no matrix solver defined, throw error
-  if (!this->solver) error("No matrix solver defined in NonlinSystem::solve().");
-
   // if Vec is not initialized, throw error
   if (this->Vec == NULL) error("Vec is NULL in NonlinSystem::solve().");
 
@@ -168,7 +165,7 @@ bool NonlinSystem::solve(Tuple<Solution*> sln)
   // solve the system - this is different from LinSystem
   scalar* delta = (scalar*) malloc(ndof * sizeof(scalar));
   memcpy(delta, this->RHS, sizeof(scalar) * ndof);
-  solve_linear_system_scipy_umfpack(this->A, delta);
+  this->solver->solve(this->A, this->Vec);
   report_time("Solved in %g s", cpu_time.tick().last());
   // add the increment dY_{n+1} to the previous solution vector
   for (int i = 0; i < ndof; i++) this->Vec[i] += delta[i];

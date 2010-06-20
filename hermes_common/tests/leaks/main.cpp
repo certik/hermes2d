@@ -32,7 +32,7 @@ void test_leaks1()
     // If the matrices are not deallocated, this should take ~19GB:
     for (int i=0; i<5; i++)
         // Roughly 3.8GB:
-        use_big_numpy_array1((int)(5*pow(10,8)));
+        use_big_numpy_array1(5*pow(10,8));
 }
 
 class MyCallback: public CppCallback {
