@@ -188,11 +188,11 @@ BCType bc_types(int marker)
   	return BC_NATURAL;
 }
 
-scalar bc_values1(int marker, double x, double y)
+scalar essential_bc_values_1(int marker, double x, double y)
 {
   return g1_D(x, y);
 }
-scalar bc_values2(int marker, double x, double y)
+scalar essential_bc_values_2(int marker, double x, double y)
 {
   return g2_D(x, y);
 }
@@ -254,25 +254,19 @@ int main(int argc, char* argv[])
   UmfpackSolver umfpack;
 
   // create finite element spaces
-  H1Space space1(&mesh1, &shapeset);
-  H1Space space2(&mesh2, &shapeset);
-  space1.set_bc_types(bc_types);
-  space2.set_bc_types(bc_types);
-  space1.set_essential_bc_values(bc_values1);
-  space2.set_essential_bc_values(bc_values2);
-  space1.set_uniform_order(P_INIT[0]);
-  space2.set_uniform_order(P_INIT[1]);
+  H1Space space1(&mesh1, bc_types, essential_bc_values_1, P_INIT[0]);
+  H1Space space2(&mesh2, bc_types, essential_bc_values_2, P_INIT[0]);
 
   // initialize the weak formulation
   WeakForm wf(2);
-  wf.add_biform(0, 0, callback(biform_0_0), H2D_SYM);
-  wf.add_biform(0, 1, callback(biform_0_1));
-  wf.add_biform(1, 0, callback(biform_1_0));
-  wf.add_biform(1, 1, callback(biform_1_1), H2D_SYM);
-  wf.add_liform(0, liform_0, liform_0_ord);
-  wf.add_liform(1, liform_1, liform_1_ord);
-  wf.add_biform_surf(0, 0, callback(biform_surf_0_0), bc_gamma);
-  wf.add_biform_surf(1, 1, callback(biform_surf_1_1), bc_gamma);
+  wf.add_matrix_form(0, 0, callback(biform_0_0), H2D_SYM);
+  wf.add_matrix_form(0, 1, callback(biform_0_1));
+  wf.add_matrix_form(1, 0, callback(biform_1_0));
+  wf.add_matrix_form(1, 1, callback(biform_1_1), H2D_SYM);
+  wf.add_vector_form(0, liform_0, liform_0_ord);
+  wf.add_vector_form(1, liform_1, liform_1_ord);
+  wf.add_matrix_form_surf(0, 0, callback(biform_surf_0_0), bc_gamma);
+  wf.add_matrix_form_surf(1, 1, callback(biform_surf_1_1), bc_gamma);
 
   // visualization
   ScaledScalarView view1("Neutron flux 1", 0, 0, 500, 460);
@@ -321,21 +315,22 @@ int main(int argc, char* argv[])
   
 	// start time measurement
 	cpu_time.tick();
-	
-	// enumerate DoF
-	int ndof = assign_dofs(2, &space1, &space2);
 		
 	// initial coarse mesh solution
-	LinSystem sys(&wf, &umfpack, 2, &space1, &space2);
+	LinSystem sys(&wf, &umfpack, Tuple<Space*>(&space1, &space2));
 	sys.assemble();
 
 	double cta;
 	int order_increase = 1;
 	for (int iadapt = 0; iadapt < MAX_ADAPT_NUM; iadapt++) {
+    
+    int ndof = sys.get_num_dofs();
+    if (ndof >= NDOF_STOP)	break;
+    	  
 		cpu_time.tick();	
 		info("!---- Adaptivity step %d ---------------------------------------------", iadapt);
     cpu_time.tick(H2D_SKIP);
-    
+    		
     // solve the fine mesh problem
  
     RefSystem refsys(&sys, order_increase);
@@ -348,7 +343,7 @@ int main(int argc, char* argv[])
 		
     cpu_time.tick(H2D_SKIP);
     
-		refsys.solve(2, &sln1_ref, &sln2_ref);
+		refsys.solve(Tuple<Solution*>(&sln1_ref, &sln2_ref));
 		
     if (SOLVE_ON_COARSE_MESH) {
 	    cpu_time.tick();	
@@ -356,18 +351,19 @@ int main(int argc, char* argv[])
 	    cpu_time.tick(H2D_SKIP);
 	     
 	    sys.assemble();	
-	    sys.solve(2, &sln1, &sln2);
+	    sys.solve(Tuple<Solution*>(&sln1, &sln2));
     }	else {
 	    // project the fine mesh solution on the new coarse mesh
 	    cpu_time.tick();
       info("---- Projecting fine mesh solution on new coarse mesh -----------------");
       cpu_time.tick(H2D_SKIP);
-      sys.project_global(&sln1_ref, &sln2_ref, &sln1, &sln2);
+      sys.project_global(Tuple<MeshFunction*>(&sln1_ref, &sln2_ref), 
+                         Tuple<Solution*>(&sln1, &sln2));
     }
 		
 		// calculate element errors and total error estimate
     
-    H1Adapt hp(Tuple<Space*>(&space1, &space2));
+    H1Adapt hp(&sys);
     if (ENERGY_NORM == 2) {
 		  hp.set_biform(0, 0, callback_egnorm(biform_0_0));
 		  hp.set_biform(0, 1, callback_egnorm(biform_0_1));
@@ -438,16 +434,8 @@ int main(int argc, char* argv[])
     cpu_time.tick(H2D_SKIP);   
     	
     // if err_est too large, adapt the mesh
-    if (err_est < ERR_STOP) {
-    	break;
-    }
-    else {
-    	hp.adapt(&selector, THRESHOLD, STRATEGY,  MESH_REGULARITY);	
-    	ndof = assign_dofs(2, &space1, &space2);
-    	
-    	if (ndof >= NDOF_STOP)
-    		break;
-		}
+    if (err_est < ERR_STOP)	break;
+    else hp.adapt(&selector, THRESHOLD, STRATEGY,  MESH_REGULARITY);	
 	}
 	
 	cpu_time.tick();

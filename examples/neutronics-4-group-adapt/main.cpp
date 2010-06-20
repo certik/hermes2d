@@ -79,6 +79,8 @@ const int MAX_ADAPT_NUM = 30;	         	 // Adaptivity process stops when the nu
 
 // Macro for simpler definition of bilinear forms in the energy norm.
 #define callback_egnorm(a)     a<scalar, scalar>, a<Ord, Ord>
+// Macros for simpler definition of tuples used in projections
+#define callback_pairs(a)      std::make_pair(callback(a)), std::make_pair(callback(a)), std::make_pair(callback(a)), std::make_pair(callback(a))
 
 // Element markers.
 const int marker_reflector = 1;
@@ -382,9 +384,9 @@ int main(int argc, char* argv[])
     // First time project coarse mesh solutions on fine meshes.
     if (as == 1) {
       info("Projecting first coarse mesh solutions on fine meshes.");
-      rs.project_global_n(callback(projection_biform), callback(projection_liform),
-      									4, &sln1_coarse, &sln2_coarse, &sln3_coarse, &sln4_coarse, 
-                       	&iter1, &iter2, &iter3, &iter4);
+      rs.project_global(Tuple<MeshFunction*>(&sln1_coarse, &sln2_coarse, &sln3_coarse, &sln4_coarse), 
+                       	Tuple<Solution*>(&iter1, &iter2, &iter3, &iter4),
+                       	biforms_tuple_t(callback_pairs(projection_biform)), liforms_tuple_t(callback_pairs(projection_liform)));
     }
 
     // Solve the fine mesh problem.
@@ -410,9 +412,9 @@ int main(int argc, char* argv[])
     }
     else {
       info("Projecting fine mesh solutions on coarse meshes.");
-      ls.project_global_n(callback(projection_biform), callback(projection_liform),
-      									4, &sln1_fine, &sln2_fine, &sln3_fine, &sln4_fine, 
-                        &sln1_coarse, &sln2_coarse, &sln3_coarse, &sln4_coarse);
+      ls.project_global(Tuple<MeshFunction*>(&sln1_fine, &sln2_fine, &sln3_fine, &sln4_fine), 
+                        Tuple<Solution*>(&sln1_coarse, &sln2_coarse, &sln3_coarse, &sln4_coarse),
+                        biforms_tuple_t(callback_pairs(projection_biform)), liforms_tuple_t(callback_pairs(projection_liform)));
     }
 
     // Time measurement.
@@ -437,7 +439,7 @@ int main(int argc, char* argv[])
           get_num_of_neg(&sln3_coarse), get_num_of_neg(&sln4_coarse));		
 		    
     // Calculate element errors and total error estimate.
-    H1Adapt hp(Tuple<Space*>(&space1, &space2, &space3, &space4));
+    H1Adapt hp(&ls);
     hp.set_biform(0, 0, callback_egnorm(biform_0_0));
     hp.set_biform(1, 1, callback_egnorm(biform_1_1));
     hp.set_biform(1, 0, callback_egnorm(biform_1_0));
@@ -475,7 +477,6 @@ int main(int argc, char* argv[])
     // Report results.
     info("ndof_coarse: %d + %d + %d + %d = %d", ls.get_num_dofs(0), ls.get_num_dofs(1), ls.get_num_dofs(2), 
 	 ls.get_num_dofs(3), ls.get_num_dofs());  
-    info("err_est_coarse: %g%%, %g%%, %g%%, %g%%", err_est_1, err_est_2, err_est_3, err_est_4); 
   
     // eigenvalue error w.r.t. solution obtained on a 3x uniformly refined mesh
   	// with uniform distribution of polynomial degrees (=4), converged to within
@@ -490,6 +491,7 @@ int main(int argc, char* argv[])
   	info("k_eff err: %g%%", keff_err);
   				
     // Add entry to DOF convergence graph.
+    int ndof_coarse = ls.get_num_dofs();
     graph_dof.add_values(0, ndof_coarse, h1_err_est);
     graph_dof.add_values(1, ndof_coarse, l2_err_est);
     graph_dof.add_values(2, ndof_coarse, keff_err);
