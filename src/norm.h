@@ -22,18 +22,25 @@
 extern H2D_API double calc_error(double (*fn)(MeshFunction*, MeshFunction*, RefMap*, RefMap*), MeshFunction* sln1, MeshFunction* sln2);
 extern H2D_API double calc_norm(double (*fn)(MeshFunction*, RefMap*), MeshFunction* sln);
 
-
+extern H2D_API double error_fn_l2(MeshFunction* sln1, MeshFunction* sln2, RefMap* ru, RefMap* rv);
+extern H2D_API double norm_fn_l2(MeshFunction* sln, RefMap* ru);
 extern H2D_API double l2_error(MeshFunction* sln1, MeshFunction* sln2);
 extern H2D_API double l2_norm(MeshFunction* sln);
 
+extern H2D_API double error_fn_h1(MeshFunction* sln1, MeshFunction* sln2, RefMap* ru, RefMap* rv);
+extern H2D_API double norm_fn_h1(MeshFunction* sln, RefMap* ru);
 extern H2D_API double h1_error(MeshFunction* sln1, MeshFunction* sln2);
 extern H2D_API double h1_norm(MeshFunction* sln);
 
 #ifdef H2D_COMPLEX
 
+extern H2D_API double error_fn_hc(MeshFunction* sln1, MeshFunction* sln2, RefMap* ru, RefMap* rv);
+extern H2D_API double norm_fn_hc(MeshFunction* sln, RefMap* ru);
 extern H2D_API double hcurl_error(MeshFunction* sln1, MeshFunction* sln2);
 extern H2D_API double hcurl_norm(MeshFunction* sln);
 
+extern H2D_API double error_fn_hcl2(MeshFunction* sln1, MeshFunction* sln2, RefMap* ru, RefMap* rv);
+extern H2D_API double norm_fn_hcl2(MeshFunction* sln, RefMap* ru);
 extern H2D_API double hcurl_l2error(MeshFunction* sln1, MeshFunction* sln2);
 extern H2D_API double hcurl_l2norm(MeshFunction* sln);
 
