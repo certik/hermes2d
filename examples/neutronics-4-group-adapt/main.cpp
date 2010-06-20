@@ -43,8 +43,6 @@ using namespace RefinementSelectors;
 //
 //  The following parameters can be changed:
 
-#include "h1_adapt_custom_norm.h"
-
 const bool SOLVE_ON_COARSE_MESH = false; // If true, coarse mesh FE problem is solved in every adaptivity step.
                                          // If false, projection of the fine mesh solution on the coarse mesh is used. 
 const int INIT_REF_NUM[4] = {1, 1, 1, 1};// Initial uniform mesh refinement for the individual solution components.
@@ -72,17 +70,12 @@ const int MESH_REGULARITY = -1;          // Maximum allowed level of hanging nod
                                          // their notoriously bad performance.
 const double CONV_EXP = 1.0;             // Default value is 1.0. This parameter influences the selection of
                                          // candidates in hp-adaptivity. See get_optimal_refinement() for details.
-const double ERR_STOP = 0.01;            // Stopping criterion for adaptivity (rel. error tolerance between the
+const double ERR_STOP = 0.05;            // Stopping criterion for adaptivity (rel. error tolerance between the
                                          // fine mesh and coarse mesh solution in percent).
 const int NDOF_STOP = 60000;             // Adaptivity process stops when the number of degrees of freedom grows over
                                          // this limit. This is mainly to prevent h-adaptivity to go on forever.
 const int MAX_ADAPT_NUM = 30;	         	 // Adaptivity process stops when the number of adaptation steps grows over
                                          // this limit.
-const NormType NORM_TYPE = NORM_DEFAULT; // Specifies norm used by the class H1AdaptCustomNorm to calculate relative error 
-																				 // NORM_DEFAULT = 0 ... the same norm as used by H1Adapt 
-																				 //		(defined either by the supplied bilinear forms or by the standard H1 norm)
-																				 // NORM_MAX = 1 ... maximum (L_infty) norm
-
 
 // Macro for simpler definition of bilinear forms in the energy norm.
 #define callback_egnorm(a)     a<scalar, scalar>, a<Ord, Ord>
@@ -133,6 +126,8 @@ double TOL_PIT_RM = 5e-7;		// Tolerance for eigenvalue convergence when solving 
 
 // Weak forms.
 #include "forms.cpp"
+// Norms in the axisymmetric coordinate system.
+#include "norms.cpp"
 
 // Source function.
 void source_fn(int n, scalar* a, scalar* b, scalar* c, scalar* d, scalar* out)
@@ -239,11 +234,11 @@ void power_iteration(Solution *sln1, Solution *sln2, Solution *sln3, Solution *s
     // Update eigenvalue.
     k_eff = k_new;
 	  	  
-	if (!eigen_done)
-		// Update rhs of the system considering the updated eigenpair approximation.
-		ls->assemble(true);
-	}
-	while (!eigen_done);
+    if (!eigen_done)
+      // Update rhs of the system considering the updated eigenpair approximation.
+      ls->assemble(true);
+  }
+  while (!eigen_done);
 }
 
 int main(int argc, char* argv[])
@@ -273,7 +268,7 @@ int main(int argc, char* argv[])
   // Solution variables.
   Solution iter1, iter2, iter3, iter4,                          // Previous iterations.
            sln1_coarse, sln2_coarse, sln3_coarse, sln4_coarse,	// Current iterations on coarse meshes.
-	   sln1_fine, sln2_fine, sln3_fine, sln4_fine;	        // Current iterations on fine meshes.
+	         sln1_fine, sln2_fine, sln3_fine, sln4_fine;	        // Current iterations on fine meshes.
 
   // Set initial conditions for the Newton's method.
   iter1.set_const(&mesh1, 1.00);
@@ -318,6 +313,7 @@ int main(int argc, char* argv[])
 		  			&ls, TOL_PIT_CM);
 
   // Initialize views.
+  /* for 1280x800 display */
   ScalarView view1("Neutron flux 1", 0, 0, 320, 400);
   ScalarView view2("Neutron flux 2", 330, 0, 320, 400);
   ScalarView view3("Neutron flux 3", 660, 0, 320, 400);
@@ -327,26 +323,61 @@ int main(int argc, char* argv[])
   OrderView oview3("Mesh for group 3", 660, 450, 320, 500);
   OrderView oview4("Mesh for group 4", 990, 450, 320, 500);
 
-  // Do not show meshes.
-  view1.show_mesh(false);
-  view2.show_mesh(false);
-  view3.show_mesh(false);
-  view4.show_mesh(false);
+  /* for adjacent 1280x800 and 1680x1050 displays
+  ScalarView view1("Neutron flux 1", 0, 0, 640, 480);
+  ScalarView view2("Neutron flux 2", 650, 0, 640, 480);
+  ScalarView view3("Neutron flux 3", 1300, 0, 640, 480);
+  ScalarView view4("Neutron flux 4", 1950, 0, 640, 480);
+  OrderView oview1("Mesh for group 1", 1300, 500, 340, 500);
+  OrderView oview2("Mesh for group 2", 1650, 500, 340, 500);
+  OrderView oview3("Mesh for group 3", 2000, 500, 340, 500);
+  OrderView oview4("Mesh for group 4", 2350, 500, 340, 500);
+  */
+
+  view1.show_mesh(false); view1.set_3d_mode(true);
+  view2.show_mesh(false); view2.set_3d_mode(true);
+  view3.show_mesh(false); view3.set_3d_mode(true);
+  view4.show_mesh(false); view4.set_3d_mode(true);
+    
+  // DOF and CPU convergence graphs
+  GnuplotGraph graph_dof("Error convergence", "NDOF", "log(error [%])");
+  graph_dof.add_row("H1 error est.", "r", "-", "o");
+  graph_dof.add_row("L2 error est.", "g", "-", "s");
+  graph_dof.add_row("Keff error est.", "b", "-", "d");
+  graph_dof.set_log_y();
+  graph_dof.show_legend(); 
+  graph_dof.show_grid(); 
   
-  // DOF and CPU convergence graphs.
-  SimpleGraph graph_dof, graph_cpu, graph_dof_keff, graph_cpu_keff;
+  GnuplotGraph graph_dof_evol("Evolution of NDOF", "Adaptation step", "NDOF");
+  graph_dof_evol.add_row("group 1", "r", "-", "o");
+  graph_dof_evol.add_row("group 2", "g", "-", "x"); 
+  graph_dof_evol.add_row("group 3", "b", "-", "+");
+  graph_dof_evol.add_row("group 4", "m", "-", "*");
+  graph_dof_evol.set_log_y();
+  graph_dof_evol.set_legend_pos("bottom right"); 
+  graph_dof_evol.show_grid();
+  
+  GnuplotGraph graph_cpu("Error convergence", "CPU time [s]", "log(error [%])");
+  graph_cpu.add_row("H1 error est.", "r", "-", "o");
+  graph_cpu.add_row("L2 error est.", "g", "-", "s");
+  graph_cpu.add_row("Keff error est.", "b", "-", "d");
+  graph_cpu.set_log_y();
+  graph_cpu.show_legend(); 
+  graph_cpu.show_grid();
 
   // Initialize refinement selector.
   H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
 
   // Adaptivity loop:
   int as = 1; bool done = false;
+  int order_increase = 1;
   do {
 		
     info("---- Adaptivity step %d:", as);
 
     // Initialize reference problem. 
-    RefSystem rs(&ls);
+    RefSystem rs(&ls, order_increase);
+    if (order_increase > 1)  order_increase--;
 
     // First time project coarse mesh solutions on fine meshes.
     if (as == 1) {
@@ -361,8 +392,8 @@ int main(int argc, char* argv[])
     info("Fine mesh power iteration, %d + %d + %d + %d = %d ndof:", 
       rs.get_num_dofs(0), rs.get_num_dofs(1), rs.get_num_dofs(2), rs.get_num_dofs(3), rs.get_num_dofs());
     power_iteration(&sln1_fine, &sln2_fine, &sln3_fine, &sln4_fine,
-		    &iter1, &iter2, &iter3, &iter4,
-		    &rs, TOL_PIT_RM);
+		          &iter1, &iter2, &iter3, &iter4,
+		          &rs, TOL_PIT_RM);
 
     // Either solve on coarse mesh or project the fine mesh solution 
     // on the coarse mesh.
@@ -402,34 +433,44 @@ int main(int argc, char* argv[])
     
     // Report the number of negative eigenfunction values.
     info("Num. of negative values: %d, %d, %d, %d", 
-	 get_num_of_neg(&sln1_coarse), get_num_of_neg(&sln2_coarse), 
-         get_num_of_neg(&sln3_coarse), get_num_of_neg(&sln4_coarse));		
+          get_num_of_neg(&sln1_coarse), get_num_of_neg(&sln2_coarse), 
+          get_num_of_neg(&sln3_coarse), get_num_of_neg(&sln4_coarse));		
 		    
     // Calculate element errors and total error estimate.
-    H1AdaptCustomNorm hp(NORM_TYPE, Tuple<Space*>(&space1, &space2, &space3, &space4));
+    H1Adapt hp(Tuple<Space*>(&space1, &space2, &space3, &space4));
     hp.set_biform(0, 0, callback_egnorm(biform_0_0));
-  	hp.set_biform(1, 1, callback_egnorm(biform_1_1));
-		hp.set_biform(1, 0, callback_egnorm(biform_1_0));
-		hp.set_biform(2, 2, callback_egnorm(biform_2_2));
-		hp.set_biform(2, 1, callback_egnorm(biform_2_1));
-		hp.set_biform(3, 3, callback_egnorm(biform_3_3));
-		hp.set_biform(3, 2, callback_egnorm(biform_3_2));
+    hp.set_biform(1, 1, callback_egnorm(biform_1_1));
+    hp.set_biform(1, 0, callback_egnorm(biform_1_0));
+    hp.set_biform(2, 2, callback_egnorm(biform_2_2));
+    hp.set_biform(2, 1, callback_egnorm(biform_2_1));
+    hp.set_biform(3, 3, callback_egnorm(biform_3_3));
+    hp.set_biform(3, 2, callback_egnorm(biform_3_2));
 		
     // Calculate element errors and error estimate for adaptivity.
     info("Calculating error.");
-    hp.set_solutions(Tuple<Solution*>(&sln1_coarse, &sln2_coarse, &sln3_coarse, &sln4_coarse),
-                     Tuple<Solution*>(&sln1_fine, &sln2_fine, &sln3_fine, &sln4_fine));
-    double err_est = hp.calc_error(H2D_TOTAL_ERROR_REL | H2D_ELEMENT_ERROR_REL) * 100;
+    
+    Tuple<Solution*> slns_coarse(&sln1_coarse, &sln2_coarse, &sln3_coarse, &sln4_coarse);
+    Tuple<Solution*> slns_fine(&sln1_fine, &sln2_fine, &sln3_fine, &sln4_fine);
+    hp.set_solutions(slns_coarse, slns_fine);
+    
+    double energy_err_est = hp.calc_error(H2D_TOTAL_ERROR_REL | H2D_ELEMENT_ERROR_REL) * 100;
+    double h1_err_est = error_total(error_fn_h1_axisym, norm_fn_h1_axisym, slns_coarse, slns_fine);
+    double l2_err_est = error_total(error_fn_l2_axisym, norm_fn_l2_axisym, slns_coarse, slns_fine);
   
     // Time measurement.
     cpu_time.tick();        
     double cta = cpu_time.accumulated();
 
-    // Calculate H1 error estimates.
-    double err_est_1 = h1_error(&sln1_coarse, &sln1_fine);
-    double err_est_2 = h1_error(&sln2_coarse, &sln2_fine);
-    double err_est_3 = h1_error(&sln3_coarse, &sln3_fine);
-    double err_est_4 = h1_error(&sln4_coarse, &sln4_fine);
+    // Calculate L2 error estimates.
+    Tuple<double> l2_errors(  100*l2_error_axisym(&sln1_coarse, &sln1_fine),
+                              100*l2_error_axisym(&sln2_coarse, &sln2_fine),
+                              100*l2_error_axisym(&sln3_coarse, &sln3_fine),
+                              100*l2_error_axisym(&sln4_coarse, &sln4_fine) );
+    // Calculate H1 error estimates.                              
+    Tuple<double> h1_errors(  100*h1_error_axisym(&sln1_coarse, &sln1_fine),
+                              100*h1_error_axisym(&sln2_coarse, &sln2_fine),
+                              100*h1_error_axisym(&sln3_coarse, &sln3_fine),
+                              100*h1_error_axisym(&sln4_coarse, &sln4_fine) );                                   													
 
     // Report results.
     info("ndof_coarse: %d + %d + %d + %d = %d", ls.get_num_dofs(0), ls.get_num_dofs(1), ls.get_num_dofs(2), 
@@ -439,26 +480,31 @@ int main(int argc, char* argv[])
     // eigenvalue error w.r.t. solution obtained on a 3x uniformly refined mesh
   	// with uniform distribution of polynomial degrees (=4), converged to within
   	// tolerance of 5e-11; in units of percent-milli (pcm)
-  	double keff_err = 1e5*fabs(k_eff - 1.14091443)/1.14091443;
-  					
+  	double keff_err = 1e5*fabs(k_eff - 1.1409144)/1.1409144;
+  
+  	info("per-group err_est_coarse (H1): %g%%, %g%%, %g%%, %g%%", h1_errors[0],h1_errors[1],h1_errors[2],h1_errors[3]);
+  	info("per-group err_est_coarse (L2): %g%%, %g%%, %g%%, %g%%", l2_errors[0],l2_errors[1],l2_errors[2],l2_errors[3]);
+  	info("total err_est_coarse (energy): %g%%", energy_err_est);
+  	info("total err_est_coarse (H1): %g%%", h1_err_est);
+  	info("total err_est_coarse (L2): %g%%", l2_err_est);
+  	info("k_eff err: %g%%", keff_err);
+  				
     // Add entry to DOF convergence graph.
-    graph_dof.add_values(ls.get_num_dofs(), err_est);
-    graph_dof.save("conv_dof.dat");
+    graph_dof.add_values(0, ndof_coarse, h1_err_est);
+    graph_dof.add_values(1, ndof_coarse, l2_err_est);
+    graph_dof.add_values(2, ndof_coarse, keff_err);
   
     // Add entry to CPU convergence graph.
-    graph_cpu.add_values(cta, err_est);
-    graph_cpu.save("conv_cpu.dat");
+    graph_cpu.add_values(0, cta, h1_err_est);
+    graph_cpu.add_values(1, cta, l2_err_est);
+    graph_cpu.add_values(2, cta, keff_err);
     
-    // Add entry to DOF convergence graph w.r.t. dominant eigenvalue.
-    graph_dof_keff.add_values(ls.get_num_dofs(), keff_err);
-    graph_dof_keff.save("conv_dof_keff.dat");
-    
-    // Add entry to CPU convergence graph w.r.t. dominant eigenvalue.
-    graph_cpu_keff.add_values(cta, keff_err);
-    graph_cpu_keff.save("conv_cpu_keff.dat");
+    for (int g = 0; g < 4; g++)	graph_dof_evol.add_values(g, as, ls.get_num_dofs(g));
+
+    cpu_time.tick(H2D_SKIP);
     
     // If err_est too large, adapt the mesh.
-    if (err_est < ERR_STOP) break;
+    if (energy_err_est < ERR_STOP) break;
     else {
       info("Adapting the coarse mesh.");
       done = hp.adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY);
@@ -470,6 +516,10 @@ int main(int argc, char* argv[])
   }
   while(done == false);	
   verbose("Total running time: %g s", cpu_time.accumulated());
+  
+  graph_dof.save("conv_dof.gp");
+  graph_cpu.save("conv_cpu.gp");
+  graph_dof_evol.save("dof_evol.gp");
   
   // Wait for all views to be closed.
   View::wait();
