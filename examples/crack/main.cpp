@@ -32,9 +32,6 @@ const bool MULTI = true;                 // true = use multi-mesh, false = use s
                                          // Note: in the single mesh option, the meshes are
                                          // forced to be geometrically the same but the
                                          // polynomial degrees can still vary.
-const bool SAME_ORDERS = false;          // true = when single mesh is used it forces same pol.
-                                         // orders for components
-                                         // when multi mesh used, parameter is ignored
 const double THRESHOLD_MULTI = 0.35;     // error threshold for element refinement (multi-mesh)
 const double THRESHOLD_SINGLE = 0.7;     // error threshold for element refinement (single-mesh)
 const int STRATEGY = 0;                  // Adaptive strategy:
@@ -201,7 +198,7 @@ int main(int argc, char* argv[])
     if (err_est < ERR_STOP || ls.get_num_dofs() >= NDOF_STOP) done = true;
     else {
       info("Adapting the coarse mesh.");
-      done = hp.adapt(&selector, MULTI ? THRESHOLD_MULTI : THRESHOLD_SINGLE, STRATEGY, MESH_REGULARITY, SAME_ORDERS);
+      done = hp.adapt(&selector, MULTI ? THRESHOLD_MULTI : THRESHOLD_SINGLE, STRATEGY, MESH_REGULARITY);
       if (ls.get_num_dofs() >= NDOF_STOP) done = true;
     }
 

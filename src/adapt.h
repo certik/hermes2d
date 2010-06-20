@@ -110,8 +110,7 @@ public:
    *  \param[in] to_be_processed Error which has to be processed. Used in strategy number 3.
    *  \return True if no element was refined. In usual case, this indicates that adaptivity is not able to refine anything and the adaptivity loop should end. */
   bool adapt(RefinementSelectors::Selector* refinement_selector, double thr, int strat = 0,
-             int regularize = -1,
-             bool same_orders = false, double to_be_processed = 0.0);
+             int regularize = -1, double to_be_processed = 0.0);
 
   /// Unrefines the elements with the smallest error.
   /** \note This method is provided just for backward compatibility reasons. Currently, it is not used by the library.

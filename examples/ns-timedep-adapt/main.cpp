@@ -31,7 +31,7 @@ using namespace RefinementSelectors;
 //
 // The following parameters can be changed:
 
-const bool SOLVE_ON_COARSE_MESH = true; // true... Newton is done on coarse mesh in every adaptivity step.
+const bool SOLVE_ON_COARSE_MESH = false; // true... Newton is done on coarse mesh in every adaptivity step.
                                          // false...Newton is done on coarse mesh only once, then projection
                                          // of the fine mesh solution to coarse mesh is used.
 const int INIT_REF_NUM = 0;              // Number of initial uniform mesh refinements.
@@ -60,7 +60,7 @@ const int STRATEGY = 1;          // Adaptive strategy:
                                  // STRATEGY = 2 ... refine all elements whose error is larger
                                  //   than THRESHOLD.
                                  // More adaptive strategies can be created in adapt_ortho_h1.cpp.
-const CandList CAND_LIST = H2D_H_ANISO; // Predefined list of element refinement candidates. Possible values are
+const CandList CAND_LIST = H2D_H_ANISO;  // Predefined list of element refinement candidates. Possible values are
                                          // H2D_P_ISO, H2D_P_ANISO, H2D_H_ISO, H2D_H_ANISO, H2D_HP_ISO,
                                          // H2D_HP_ANISO_H, H2D_HP_ANISO_P, H2D_HP_ANISO.
                                          // See the Used Documentation for details.
@@ -304,7 +304,8 @@ int main(int argc, char* argv[])
       info("---- Time step %d, adaptivity step %d:", ts, as);
 
       // Initialize reference nonlinear system.
-      RefSystem rnls(&nls);
+      int p_increment = 0;
+      RefSystem rnls(&nls, p_increment);
 
       // Set initial condition for the Newton's method on the fine meshes.
       if (as == 1) {

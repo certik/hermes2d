@@ -19,16 +19,11 @@ using namespace RefinementSelectors;
 const bool SOLVE_ON_COARSE_MESH = false; // If true, coarse mesh FE problem is solved in every adaptivity step.
                                          // If false, projection of the fine mesh solution on the coarse mesh is used. 
 const int P_INIT = 1;                    // Initial polynomial degrees.
-const bool MULTI = true;                 // MULTI = true  ... use multi-mesh,
+const bool MULTI = false;                 // MULTI = true  ... use multi-mesh,
                                          // MULTI = false ... use single-mesh.
                                          // Note: In the single mesh option, the meshes are
                                          // forced to be geometrically the same but the
                                          // polynomial degrees can still vary.
-const bool SAME_ORDERS = true;           // SAME_ORDERS = true ... when single-mesh is used,
-                                         // this forces the meshes for all components to be
-                                         // identical, including the polynomial degrees of
-                                         // corresponding elements. When multi-mesh is used,
-                                         // this parameter is ignored.
 const double THRESHOLD = 0.3;            // This is a quantitative parameter of the adapt(...) function and
                                          // it has different meanings for various adaptive strategies (see below).
 const int STRATEGY = 1;                  // Adaptive strategy:
@@ -239,7 +234,7 @@ int main(int argc, char* argv[])
       // If err_est too large, adapt the mesh.
       if (space_err_est > SPACE_TOL) {
         info("Adapting coarse meshes.");
-        done = hp.adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY, SAME_ORDERS);
+        done = hp.adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY);
         if (ls.get_num_dofs() >= NDOF_STOP) done = true;
       }
       else done = true;

@@ -411,7 +411,6 @@ void LinSystem::assemble(bool rhsonly)
   int ndof = this->get_num_dofs();
   if (ndof == 0) error("ndof = 0 in LinSystem::assemble().");
   if (this->Vec_length != ndof || this->RHS_length != ndof || this->Dir_length != ndof) {
-    printf("assemble: zeroing and reallocating\n");
     this->realloc_and_zero_vectors();
   }
 

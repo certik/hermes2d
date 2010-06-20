@@ -11,11 +11,6 @@ const bool MULTI = true;                 // MULTI = true  ... use multi-mesh,
                                          // Note: In the single mesh option, the meshes are
                                          // forced to be geometrically the same but the
                                          // polynomial degrees can still vary.
-const bool SAME_ORDERS = false;          // SAME_ORDERS = true ... when single-mesh is used,
-                                         // this forces the meshes for all components to be
-                                         // identical, including the polynomial degrees of
-                                         // corresponding elements. When multi-mesh is used,
-                                                 // this parameter is ignored.
 const double THRESHOLD = 0.3;            // This is a quantitative parameter of the adapt(...) function and
                                          // it has different meanings for various adaptive strategies (see below).
 const int STRATEGY = 1;                  // Adaptive strategy:
@@ -167,7 +162,7 @@ int main(int argc, char* argv[])
     if (err_est < ERR_STOP) done = true;
     else {
       info("Adapting the coarse mesh.");
-      done = hp.adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY, SAME_ORDERS);
+      done = hp.adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY);
       if (ls.get_num_dofs() >= NDOF_STOP) done = true;
     }
 

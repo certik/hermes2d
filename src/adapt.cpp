@@ -61,7 +61,8 @@ Adapt::~Adapt()
 
 //// adapt /////////////////////////////////////////////////////////////////////////////////////////
 
-bool Adapt::adapt(RefinementSelectors::Selector* refinement_selector, double thr, int strat, int regularize, bool same_orders, double to_be_processed)
+bool Adapt::adapt(RefinementSelectors::Selector* refinement_selector, double thr, int strat, 
+            int regularize, double to_be_processed)
 {
   error_if(!have_errors, "element errors have to be calculated first, call calc_error().");
   error_if(refinement_selector == NULL, "selector not provided");
@@ -192,9 +193,8 @@ bool Adapt::adapt(RefinementSelectors::Selector* refinement_selector, double thr
   //apply refinements
   apply_refinements(elem_inx_to_proc);
 
-  //homogenize orders in a case of a multimesh
-  if (same_orders)
-    homogenize_shared_mesh_orders(meshes);
+  // in singlemesh case, impose same orders across meshes
+  homogenize_shared_mesh_orders(meshes);
 
   // mesh regularization
   if (regularize >= 0)
