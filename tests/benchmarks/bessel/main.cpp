@@ -248,7 +248,7 @@ int main(int argc, char* argv[])
 
     // Calculate element errors and total error estimate.
     info("Calculating error.");
-    HcurlAdapt hp(&space);
+    HcurlAdapt hp(&ls);
     hp.set_solutions(&sln_coarse, &sln_fine); 
     double err_est = hp.calc_error() * 100;
     // double err_est_hcurl = hcurl_error(&sln_coarse, &sln_fine) * 100;

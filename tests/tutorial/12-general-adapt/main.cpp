@@ -1,28 +1,10 @@
-#define H2D_REPORT_WARN
-#define H2D_REPORT_INFO
-#define H2D_REPORT_VERBOSE
-#define H2D_REPORT_FILE "application.log"
 #include "hermes2d.h"
 #include "solver_umfpack.h"
 
 using namespace RefinementSelectors;
 
-//  This example uses automatic adaptivity to solve a general second-order linear
-//  equation with non-constant coefficients.
-//
-//  PDE: -d/dx(a_11(x,y)du/dx) - d/dx(a_12(x,y)du/dy) - d/dy(a_21(x,y)du/dx) - d/dy(a_22(x,y)du/dy)
-//       + a_1(x,y)du/dx + a_21(x,y)du/dy + a_0(x,y)u = rhs(x,y).
-//
-//  Domain: arbitrary.
-//
-//  BC:  Dirichlet for boundary marker 1: u = g_D(x,y)
-//       Natural for any other boundary marker:   (a_11(x,y)*nu_1 + a_21(x,y)*nu_2) * dudx
-//                                              + (a_12(x,y)*nu_1 + s_22(x,y)*nu_2) * dudy = g_N(x,y).
-//
-//  The following parameters can be changed:
+// This test makes sure that example 12-adapt-general works correctly.
 
-const bool SOLVE_ON_COARSE_MESH = false; // If true, coarse mesh FE problem is solved in every adaptivity step.
-                                         // If false, projection of the fine mesh solution on the coarse mesh is used. 
 const int P_INIT = 2;                    // Initial polynomial degree of all mesh elements.
 const double THRESHOLD = 0.6;            // This is a quantitative parameter of the adapt(...) function and
                                          // it has different meanings for various adaptive strategies (see below).
@@ -115,8 +97,16 @@ scalar essential_bc_values(int ess_bdy_marker, double x, double y)
 // Weak forms.
 #include "forms.cpp"
 
+
 int main(int argc, char* argv[])
 {
+  // Check input parameters.
+  // If true, coarse mesh FE problem is solved in every adaptivity step.
+  // If false, projection of the fine mesh solution on the coarse mesh is used. 
+  bool SOLVE_ON_COARSE_MESH = false;
+  if (argc > 1 && strcmp(argv[1], "-coarse_mesh") == 0)
+    SOLVE_ON_COARSE_MESH = true;
+
   // Time measurement.
   TimePeriod cpu_time;
   cpu_time.tick();
@@ -138,15 +128,8 @@ int main(int argc, char* argv[])
   wf.add_vector_form(linear_form, linear_form_ord);
   wf.add_vector_form_surf(linear_form_surf, linear_form_surf_ord, BDY_NEUMANN);
 
-  // Initialize views.
-  ScalarView sview("Coarse solution", 0, 0, 450, 350);
-  OrderView  oview("Polynomial orders", 460, 0, 400, 350);
-
   // Matrix solver.
   UmfpackSolver solver;
-
-  // DOF and CPU convergence graphs.
-  SimpleGraph graph_dof, graph_cpu;
 
   // Initialize refinement selector. 
   H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
@@ -179,33 +162,15 @@ int main(int argc, char* argv[])
       ls.project_global(&sln_fine, &sln_coarse);
     }
 
-    // Time measurement.
-    cpu_time.tick();
-
-    // View the solution and mesh.
-    sview.show(&sln_coarse);
-    oview.show(&space);
-
-    // Time measurement.
-    cpu_time.tick(H2D_SKIP);
-
     // Calculate error estimate wrt. fine mesh solution.
     info("Calculating error.");
-    H1Adapt hp(&space);
+    H1Adapt hp(&ls);
     hp.set_solutions(&sln_coarse, &sln_fine);
     double err_est = hp.calc_error() * 100;
 
     // Report results.
     info("ndof_coarse: %d, ndof_fine: %d, err_est: %g%%", 
       ls.get_num_dofs(), rs.get_num_dofs(), err_est);
-
-    // Add entry to DOF convergence graph.
-    graph_dof.add_values(ls.get_num_dofs(), err_est);
-    graph_dof.save("conv_dof.dat");
-
-    // Add entry to CPU convergence graph.
-    graph_cpu.add_values(cpu_time.accumulated(), err_est);
-    graph_cpu.save("conv_cpu.dat");
 
     // If err_est too large, adapt the mesh.
     if (err_est < ERR_STOP) done = true;
@@ -220,12 +185,16 @@ int main(int argc, char* argv[])
   while (done == false);
   verbose("Total running time: %g s", cpu_time.accumulated());
 
-  // Show the fine solution - the final result.
-  sview.set_title("Final solution");
-  sview.show_mesh(false);
-  sview.show(&sln_fine);
+  int ndof = ls.get_num_dofs();
 
-  // Wait for all views to be closed.
-  View::wait();
-  return 0;
+#define ERROR_SUCCESS                               0
+#define ERROR_FAILURE                               -1
+  if (ndof < 1200) {      // ndofs was 1108 atthe time this test was created
+    printf("Success!\n");
+    return ERROR_SUCCESS;
+  }
+  else {
+    printf("Failure!\n");
+    return ERROR_FAILURE;
+  }
 }

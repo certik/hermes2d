@@ -160,7 +160,7 @@ int main(int argc, char* argv[])
 
     // Calculate error estimate wrt. fine mesh solution.
     info("Calculating error (est).");
-    H1Adapt hp(&space);
+    H1Adapt hp(&ls);
     hp.set_solutions(&sln_coarse, &sln_fine);
     double err_est = hp.calc_error() * 100;
 

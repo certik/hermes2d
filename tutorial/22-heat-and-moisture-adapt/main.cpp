@@ -47,7 +47,7 @@ const int MESH_REGULARITY = -1;          // Maximum allowed level of hanging nod
                                          // their notoriously bad performance.
 const double CONV_EXP = 1.0;             // Default value is 1.0. This parameter influences the selection of
                                          // cancidates in hp-adaptivity. See get_optimal_refinement() for details.
-const double SPACE_ERR_STOP = 0.2;       // Stopping criterion for adaptivity (rel. error tolerance between the
+const double SPACE_ERR_STOP = 0.5;       // Stopping criterion for adaptivity (rel. error tolerance between the
                                          // fine mesh and coarse mesh solution in percent).
 const int NDOF_STOP = 60000;             // Adaptivity process stops when the number of degrees of freedom grows over
                                          // this limit. This is mainly to prevent h-adaptivity to go on forever.
@@ -223,7 +223,7 @@ int main(int argc, char* argv[])
 	   ls.get_num_dofs(1), rs.get_num_dofs(1), M_err_est);
 
       // Calculate errors for adaptivity.
-      H1Adapt hp(Tuple<Space*>(&space_T, &space_M));
+      H1Adapt hp(&ls);
       hp.set_solutions(Tuple<Solution*>(&T_coarse, &M_coarse), 
                        Tuple<Solution*>(&T_fine, &M_fine));
       hp.set_biform(0, 0, callback(bilinear_form_sym_0_0));

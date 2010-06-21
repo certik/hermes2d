@@ -374,7 +374,7 @@ int main(int argc, char* argv[])
 	   nls.get_num_dofs(1), rnls.get_num_dofs(1), phi_err_est, phi_err_exact);
  
       // Calculate element errors and total error estimate for adaptivity.
-      H1Adapt hp(Tuple<Space*>(&space_T, &space_phi));
+      H1Adapt hp(&nls);
       hp.set_solutions(Tuple<Solution*>(&T_coarse, &phi_coarse), 
                        Tuple<Solution*>(&T_fine, &phi_fine));
       err_est = hp.calc_error() * 100;

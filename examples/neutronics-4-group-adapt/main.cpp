@@ -405,7 +405,7 @@ int main(int argc, char* argv[])
 		    
     // Calculate element errors and total error estimate.
     // H1 normalized by H1 or L_inf.
-    H1Adapt hp(Tuple<Space*>(&space1, &space2, &space3, &space4));
+    H1Adapt hp(&ls);
     // normalized energetic
     // H1OrthoHPNormalized hp(4, &space1, &space2, &space3, &space4);
     // default energetic

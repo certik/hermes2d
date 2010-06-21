@@ -199,7 +199,7 @@ int main(int argc, char* argv[])
 
     // Calculate error estimate wrt. fine mesh solution.
     info("Calculating error (est).");
-    HcurlAdapt hp(&space);
+    HcurlAdapt hp(&ls);
     hp.set_solutions(&sln_coarse, &sln_fine);
     double err_est_adapt = hp.calc_error() * 100;
     double err_est_hcurl = hcurl_error(&sln_coarse, &sln_fine) * 100;

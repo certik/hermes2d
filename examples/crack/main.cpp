@@ -170,7 +170,7 @@ int main(int argc, char* argv[])
 
     // Calculate error estimate wrt. fine mesh solution in energy norm.
     info("Calculating error (est).");
-    H1Adapt hp(Tuple<Space*>(&xdisp, &ydisp));
+    H1Adapt hp(&ls);
     hp.set_solutions(Tuple<Solution*>(&x_sln_coarse, &y_sln_coarse), Tuple<Solution*>(&x_sln_fine, &y_sln_fine));
     hp.set_biform(0, 0, bilinear_form_0_0<scalar, scalar>, bilinear_form_0_0<Ord, Ord>);
     hp.set_biform(0, 1, bilinear_form_0_1<scalar, scalar>, bilinear_form_0_1<Ord, Ord>);

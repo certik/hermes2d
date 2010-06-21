@@ -340,9 +340,12 @@ int main(int argc, char* argv[])
       info("Velocity rel error est %g%%", space_err);
       */
 
-      H1Adapt hp(&xvel_space);
-      //hp.set_biform(callback(l2_form));
-      hp.set_solutions(&xvel_coarse, &xvel_fine);
+      H1Adapt hp(&nls);
+      hp.set_solutions(Tuple<Solution*>(&xvel_coarse, &yvel_coarse, &p_coarse),
+                       Tuple<Solution*>(&xvel_fine, &yvel_fine, &p_fine));
+      // Error calculated using velocity components only.
+      hp.set_biform(0, 0, callback(h1_form));
+      hp.set_biform(1, 1, callback(h1_form));
       double space_err_est = hp.calc_error() * 100;
       info("ndof_coarse: %d, ndof_fine: %d, space_err_est: %g%%", 
         nls.get_num_dofs(), rnls.get_num_dofs(), space_err_est);

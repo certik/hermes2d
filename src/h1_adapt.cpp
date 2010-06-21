@@ -21,13 +21,15 @@
 #include "element_to_refine.h"
 #include "adapt.h"
 #include "h1_adapt.h"
+#include "linsystem.h"
 
 using namespace std;
 
-H1Adapt::H1Adapt(const Tuple<Space*>& spaces) : Adapt(spaces) 
+H1Adapt::H1Adapt(LinSystem* ls) : Adapt(ls) 
 {
-  for (int i = 0; i < spaces.size(); i++) {
-    for (int j = 0; j < spaces.size(); j++) {
+  int n = ls->wf->get_neq();
+  for (int i = 0; i < n; i++) {
+    for (int j = 0; j < n; j++) {
       if (i == j) {
         form[i][j] = h1_form<double, scalar>;
         ord[i][j]  = h1_form<Ord, Ord>;
@@ -35,11 +37,3 @@ H1Adapt::H1Adapt(const Tuple<Space*>& spaces) : Adapt(spaces)
     }
   }
 }
-
-H1Adapt::H1Adapt(Space* s) : Adapt(Tuple<Space*>(s))
-{
-  int i = 0, j = 0;
-  form[i][j] = h1_form<double, scalar>;
-  ord[i][j]  = h1_form<Ord, Ord>;
-} 
-

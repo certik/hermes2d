@@ -70,7 +70,7 @@ H2D_API_USED_TEMPLATE(Tuple<Solution*>); ///< Instantiated template. It is used 
 class H2D_API Adapt
 {
 protected:
-  Adapt(const Tuple<Space*>& spaces); ///< Constructor. Used by children of the class.
+  Adapt(LinSystem* ls); ///< Constructor. Used by children of the class.
 
 public:
   virtual ~Adapt(); ///< Destruktor. Deallocates allocated private data.
@@ -92,6 +92,10 @@ public:
   /** \param[in] solutions Coarse solutions. The number of solutions has to match a number of components.
    *  \param[in] ref_solutions Reference solutions. The number of reference solutions has to match a number of components. */
   void set_solutions(Tuple<Solution*> solutions, Tuple<Solution*> ref_solutions);
+  void set_solutions(Solution* solution, Solution* ref_solution) 
+  {
+    set_solutions(Tuple<Solution*>(solution), Tuple<Solution*>(ref_solution));
+  }
 
   /// Calculates error between a coarse solution and a reference solution and sorts components according to the error.
   /** If overrided, this method has to initialize errors (Array::errors), sum of errors (Array::error_sum), norms of components (Array::norm), number of active elements (Array::num_act_elems). Also, it has to fill the regular queue through the method fill_regular_queue().
@@ -192,10 +196,11 @@ protected: //object state
   bool have_solutions; ///< True if solutions were set.
 
 protected: // spaces & solutions
-  const int num_comps; ///< A number of components.
-  Space* spaces[H2D_MAX_COMPONENTS]; ///< Spaces. A first unused index in equal to an attribute Adapt::num_comps.
-  Solution* sln[H2D_MAX_COMPONENTS]; ///< Coarse solution. A first unused index in equal to an attribute Adapt::num_comps.
-  Solution* rsln[H2D_MAX_COMPONENTS];  ///< Reference solutions. A first unused index in equal to an attribute Adapt::num_comps.
+  LinSystem* ls;                     ///< To store a pointer to LinSystem / NonlinSystem
+  int num_comps;                     ///< Number of components, equal to ls->wf->neq;
+  Space* spaces[H2D_MAX_COMPONENTS]; ///< Spaces. 
+  Solution* sln[H2D_MAX_COMPONENTS]; ///< Coarse solution. 
+  Solution* rsln[H2D_MAX_COMPONENTS];  ///< Reference solutions. 
 
 protected: // element error arrays
   double* errors_squared[H2D_MAX_COMPONENTS]; ///< Errors of elements. Meaning of the error depeds on flags used when the method calc_error() was calls. Initialized in the method calc_error().

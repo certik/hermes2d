@@ -202,7 +202,7 @@ bool solveAdaptive(Mesh &Cmesh, Mesh &phimesh, Mesh &basemesh, NonlinSystem &nls
       } while (res_l2_norm > NEWTON_TOL_REF);
 
       // Calculate element errors and total estimate
-      H1Adapt hp(Tuple<Space*>(&C, &phi));
+      H1Adapt hp(&nls);
       hp.set_solutions(Tuple<Solution*>(&Csln_coarse, &phisln_coarse), Tuple<Solution*>(&Csln_fine, &phisln_fine));
       info("Calculating element errors");
       err = hp.calc_error() * 100;

@@ -229,7 +229,7 @@ int main(int argc, char* argv[])
 
       // Calculate element errors and total error estimate.
       info("Calculating error.");
-      H1Adapt hp(&space);
+      H1Adapt hp(&nls);
       hp.set_solutions(&sln_coarse, &sln_fine);
       space_err_est = hp.calc_error() * 100;   // relative h1-error in percent
       info("ndof_coarse: %d, ndof_fine: %d, space_err_est: %g%%", 

@@ -1,10 +1,45 @@
+#define H2D_REPORT_WARN
+#define H2D_REPORT_INFO
+#define H2D_REPORT_VERBOSE
+#define H2D_REPORT_FILE "application.log"
 #include "hermes2d.h"
 #include "solver_umfpack.h"
 
 using namespace RefinementSelectors;
 
-// This test makes sure that example 11-adapt-system works correctly.
+// This example explains how to use the multimesh adaptive hp-FEM,
+// where different physical fields (or solution components) can be
+// approximated using different meshes and equipped with mutually
+// independent adaptivity mechanisms. For the tutorial purposes,
+// we manufactured an exact solution for a simplified version of
+// the FitzHugh-Nagumo equation. This equation, in its full form,
+// is a prominent example of activator-inhibitor systems in two-component
+// reaction-diffusion equations, It describes a prototype of an
+// excitable system (e.g., a neuron).
+//
+// PDE: Linearized FitzHugh-Nagumo equation
+//      -d_u^2 \Delta u - f(u) + \sigma v = g_1,
+//      -d_v^2 \Delta v - u + v = g_2.
+// In the original equation, f(u) = \lambda u - u^3 - \kappa. For
+// simplicity, here we just take f(u) = u.
+//
+// Domain: Square (-1,1)^2.
+//
+// BC: Both solution components are zero on the boundary.
+//
+// Exact solution: The functions g_1 and g_2 were calculated so that
+//                 the exact solution is:
+//        u(x,y) = U(x)*U(y) where U(t) = cos(M_PI*t/2)
+//        v(x,y) = V(x)V(y) where V(t) = 1 - (exp(K*t)+exp(-K*t))/(exp(K) + exp(-K))
+// Note: V(t) is the exact solution of the 1D singularly perturbed equation
+//       -u'' + K*K*u = K*K in (-1, 1) with zero Dirichlet BC.
+//
+// The following parameters can be changed: In particular, compare hp- and
+// h-adaptivity via the CAND_LIST option, and compare the multi-mesh vs.
+// single-mesh using the MULTI parameter.
 
+const bool SOLVE_ON_COARSE_MESH = false; // If true, coarse mesh FE problem is solved in every adaptivity step.
+                                         // If false, projection of the fine mesh solution on the coarse mesh is used. 
 const int P_INIT_U = 2;                  // Initial polynomial degree for u.
 const int P_INIT_V = 2;                  // Initial polynomial degree for v.
 const int INIT_REF_BDY = 3;              // Number of initial boundary refinements
@@ -62,16 +97,8 @@ scalar essential_bc_values(int ess_bdy_marker, double x, double y) { return 0;}
 // Weak forms.
 #include "forms.cpp"
 
-
 int main(int argc, char* argv[])
 {
-  // Check input parameters.
-  // If true, coarse mesh FE problem is solved in every adaptivity step.
-  // If false, projection of the fine mesh solution on the coarse mesh is used. 
-  bool SOLVE_ON_COARSE_MESH = false;
-  if (argc > 1 && strcmp(argv[1], "-coarse_mesh") == 0)
-    SOLVE_ON_COARSE_MESH = true;
-
   // Time measurement.
   TimePeriod cpu_time;
   cpu_time.tick();
@@ -101,8 +128,17 @@ int main(int argc, char* argv[])
   wf.add_vector_form(0, linear_form_0, linear_form_0_ord);
   wf.add_vector_form(1, linear_form_1, linear_form_1_ord);
 
+  // Initialize views.
+  OrderView  uoview("Coarse mesh for u", 0, 0, 360, 300);
+  OrderView  voview("Coarse mesh for v", 370, 0, 360, 300);
+  ScalarView uview("Coarse mesh solution u", 740, 0, 400, 300);
+  ScalarView vview("Coarse mesh solution v", 1150, 0, 400, 300);
+
   // Matrix solver.
   UmfpackSolver solver;
+
+  // DOF and CPU convergence graphs.
+  SimpleGraph graph_dof, graph_cpu;
 
   // Initialize refinement selector.
   H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
@@ -140,12 +176,20 @@ int main(int argc, char* argv[])
     // Time measurement.
     cpu_time.tick();
 
+    // View the solutions and meshes.
+    info("u_dof_coarse: %d, v_dof_coarse: %d", ls.get_num_dofs(0), ls.get_num_dofs(1));
+    info("u_dof_fine: %d, v_dof_fine: %d", rs.get_num_dofs(0), rs.get_num_dofs(1));
+    uview.show(&u_sln_coarse);
+    vview.show(&v_sln_coarse);
+    uoview.show(&uspace);
+    voview.show(&vspace);
+
     // Time measurement.
     cpu_time.tick(H2D_SKIP);
 
     // Calculate element errors and total error estimate.
     info("Calculating error (est).");
-    H1Adapt hp(Tuple<Space*>(&uspace, &vspace));
+    H1Adapt hp(&ls);
     hp.set_solutions(Tuple<Solution*>(&u_sln_coarse, &v_sln_coarse), 
                      Tuple<Solution*>(&u_sln_fine, &v_sln_fine));
     hp.set_biform(0, 0, bilinear_form_0_0<scalar, scalar>, bilinear_form_0_0<Ord, Ord>);
@@ -168,6 +212,16 @@ int main(int argc, char* argv[])
     info("Exact solution error (maximum): %g%%", error);
     info("Estimate of error wrt. ref. solution (energy norm): %g%%", err_est);
 
+    // Add entry to DOF convergence graph.
+    graph_dof.add_values(ls.get_num_dofs(), error);
+    if (MULTI == true) graph_dof.save("conv_dof_m.dat");
+    else graph_dof.save("conv_dof_s.dat");
+
+    // Add entry to CPU convergence graph.
+    graph_cpu.add_values(cpu_time.accumulated(), error);
+    if (MULTI == true) graph_cpu.save("conv_cpu_m.dat");
+    else graph_cpu.save("conv_cpu_s.dat");
+
     // If err_est too large, adapt the mesh.
     if (error < ERR_STOP) done = true;
     else {
@@ -181,17 +235,15 @@ int main(int argc, char* argv[])
   while (!done);
   verbose("Total running time: %g s", cpu_time.accumulated());
 
-  int ndof = ls.get_num_dofs();
+  // Show the fine solution - the final result.
+  uview.set_title("Fine mesh solution u");
+  uview.show_mesh(false);
+  uview.show(&u_sln_fine);
+  vview.set_title("Fine mesh solution v");
+  vview.show_mesh(false);
+  vview.show(&v_sln_fine);
 
-#define ERROR_SUCCESS                               0
-#define ERROR_FAILURE                               -1
-  if (ndof < 1200) {      // ndofs was 1142 at the time this test was created
-    printf("Success!\n");
-    return ERROR_SUCCESS;
-  }
-  else {
-    printf("Failure!\n");
-    return ERROR_FAILURE;
-  }
+  // Wait for all views to be closed.
+  View::wait();
+  return 0;
 }
-

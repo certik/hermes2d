@@ -142,6 +142,12 @@ int main(int argc, char* argv[])
   // DOF convergence graphs.
   SimpleGraph graph_dof_est, graph_dof_exact;
 
+  // Matrix solver.
+  UmfpackSolver solver;
+
+  // Initialize the coarse mesh problem.
+  LinSystem ls(&wf, &solver, &space);
+
   // Initialize refinement selector.
   H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
 
@@ -238,7 +244,7 @@ int main(int argc, char* argv[])
 
     // Calculate error estimate wrt. fine mesh solution.
     info("Calculating error.");
-    H1Adapt hp(&space);
+    H1Adapt hp(&ls);
     hp.set_solutions(&sln_coarse, &sln_fine);
     double err_est = hp.calc_error() * 100;
     ExactSolution exact(&mesh, fndd);

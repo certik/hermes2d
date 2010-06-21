@@ -14,7 +14,7 @@ protected:
   virtual scalar eval_norm(biform_val_t bi_fn, biform_ord_t bi_ord, MeshFunction *rsln1, MeshFunction *rsln2, RefMap *rrv1, RefMap *rrv2);
 
 public:
-  H1AdaptNormMaxim(NormType norm_type, const Tuple<Space*>& spaces) : H1Adapt(spaces), norm_type(norm_type) {};
+  H1AdaptNormMaxim(NormType norm_type, LinSystem* ls) : H1Adapt(ls), norm_type(norm_type) {};
 
 };
 

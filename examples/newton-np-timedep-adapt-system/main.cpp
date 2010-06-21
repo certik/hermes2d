@@ -305,7 +305,7 @@ void solveAdaptive(Mesh &Cmesh, Mesh &phimesh, Mesh &basemesh, NonlinSystem &nls
 
       // Calculate error estimate wrt. fine mesh solution.
       info("Calculating error.");
-      H1Adapt hp(Tuple<Space*>(&Cspace, &phispace));
+      H1Adapt hp(&nls);
       hp.set_solutions(Tuple<Solution*>(&Csln_coarse, &phisln_coarse), 
                        Tuple<Solution*>(&Csln_fine, &phisln_fine));
       err_est = hp.calc_error() * 100;

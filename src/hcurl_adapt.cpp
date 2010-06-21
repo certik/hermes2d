@@ -21,14 +21,17 @@
 #include "element_to_refine.h"
 #include "adapt.h"
 #include "hcurl_adapt.h"
+#include "linsystem.h"
 
 using namespace std;
 
 #ifdef H2D_COMPLEX
 
-HcurlAdapt::HcurlAdapt(const Tuple<Space*>& spaces) : Adapt(spaces) {
-  for (int i = 0; i < num_comps; i++)
-    for (int j = 0; j < num_comps; j++) {
+HcurlAdapt::HcurlAdapt(LinSystem* ls) : Adapt(ls) 
+{
+  int n = ls->wf->get_neq();
+  for (int i = 0; i < n; i++)
+    for (int j = 0; j < n; j++) {
       if (i == j) {
         form[i][j] = hcurl_form<double, scalar>;
         ord[i][j]  = hcurl_form<Ord, Ord>;

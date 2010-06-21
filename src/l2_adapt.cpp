@@ -21,12 +21,15 @@
 #include "element_to_refine.h"
 #include "adapt.h"
 #include "l2_adapt.h"
+#include "linsystem.h"
 
 using namespace std;
 
-L2Adapt::L2Adapt(const Tuple<Space*>& spaces) : Adapt(spaces) {
-  for (int i = 0; i < num_comps; i++)
-    for (int j = 0; j < num_comps; j++) {
+L2Adapt::L2Adapt(LinSystem* ls) : Adapt(ls) 
+{
+  int n = ls->wf->get_neq();  
+  for (int i = 0; i < n; i++)
+    for (int j = 0; j < n; j++) {
       if (i == j) {
         form[i][j] = l2_form<double, scalar>;
         ord[i][j]  = l2_form<Ord, Ord>;

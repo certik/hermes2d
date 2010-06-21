@@ -186,7 +186,7 @@ int main(int argc, char* argv[])
     cpu_time.tick(H2D_SKIP);
 
     // Calculate element errors and total error estimate.
-    H1Adapt hp(Tuple<Space*>(&xdisp, &ydisp, &temp));
+    H1Adapt hp(&ls);
     hp.set_solutions(Tuple<Solution*>(&x_sln_coarse, &y_sln_coarse, &t_sln_coarse), 
                      Tuple<Solution*>(&x_sln_fine, &y_sln_fine, &t_sln_fine));
     hp.set_biform(0, 0, bilinear_form_0_0<scalar, scalar>, bilinear_form_0_0<Ord, Ord>);
