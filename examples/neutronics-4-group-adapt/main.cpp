@@ -41,7 +41,7 @@ using namespace RefinementSelectors;
 //     | ----------------- |  < epsilon
 //     |       k_new       |
 //
-//  The following parameters can be changed:
+//  Author: Milan Hanus (University of West Bohemia, Pilsen, Czech Republic).
 
 const bool SOLVE_ON_COARSE_MESH = false; // If true, coarse mesh FE problem is solved in every adaptivity step.
                                          // If false, projection of the fine mesh solution on the coarse mesh is used. 
@@ -79,7 +79,7 @@ const int MAX_ADAPT_NUM = 30;	         	 // Adaptivity process stops when the nu
 
 // Macro for simpler definition of bilinear forms in the energy norm.
 #define callback_egnorm(a)     a<scalar, scalar>, a<Ord, Ord>
-// Macros for simpler definition of tuples used in projections
+// Macros for simpler definition of tuples used in projections.
 #define callback_pairs(a)      std::make_pair(callback(a)), std::make_pair(callback(a)), std::make_pair(callback(a)), std::make_pair(callback(a))
 
 // Element markers.
@@ -102,7 +102,7 @@ scalar essential_bc_values(int ess_bdy_marker, double x, double y)
   return 0;
 }
 
-// Reflector properties (0) core properties (1),
+// Reflector properties (0), core properties (1).
 const double D[2][4] = {{0.0164, 0.0085, 0.00832, 0.00821},
                         {0.0235, 0.0121, 0.0119, 0.0116}};
 const double Sa[2][4] = {{0.00139, 0.000218, 0.00197, 0.0106},
