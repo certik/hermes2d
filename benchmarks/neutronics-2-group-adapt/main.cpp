@@ -24,7 +24,7 @@ using namespace RefinementSelectors;
 //
 // homogeneous neumann on symmetry axes
 // homogeneous dirichlet on zero flux boundary
-// -d D_g\phi_g / d n = 8 \phi_g   on albedo boundary (homogeneous Robin)
+// -d D_g\phi_g / d n = 8 \phi_g   on albedo boundary (homogeneous Robin).
 //
 
 // INITIALIZATION
@@ -34,7 +34,7 @@ using namespace RefinementSelectors;
 const bool SOLVE_ON_COARSE_MESH = false;   // If true, coarse mesh FE problem is solved in every adaptivity step.
                                            // If false, projection of the fine mesh solution on the coarse mesh is used. 
 const int P_INIT[2] = 
-	{1, 1};				   // Initial polynomial orders for the individual solution components
+	{1, 1};				   // Initial polynomial orders for the individual solution components.
 const int INIT_REF_NUM[2] = 
 	{1, 1};			 	   // Initial uniform mesh refinement for the individual solution components
 	
@@ -72,7 +72,7 @@ const int ADAPTIVITY_NORM = 2;             // Specifies the norm used by H1Adapt
                                            // ADAPTIVITY_NORM = 1 ... norm defined by the diagonal parts of the bilinear form.
                                            // ADAPTIVITY_NORM = 2 ... energy norm defined by the full (non-symmetric) bilinear form.
 
-// Macro for simpler definition of bilinear forms in the energy norm
+// Macro for simpler definition of bilinear forms in the energy norm.
 #define callback_egnorm(a)     a<scalar, scalar>, a<Ord, Ord>
 		
 // Variables used for reporting of results														 
@@ -86,7 +86,7 @@ const int GROUP_2 = 1;			   // Row in the NDOFs evolution graph for group 2.
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Problem data:
 
-// Two-group material properties for the 4 macroregions.
+// Two-group material properties for the 4 macro regions.
 const double D[4][2] = {	{1.12, 0.6},
                         	{1.2, 0.5},
                         	{1.35, 0.8},
@@ -114,44 +114,49 @@ const double Ss[4][2][2] = {	{	{ 0.0, 0.0 },
 
 double a = 0., b = 1., c = (a+b)/2.;
 
-inline int get_material(double x, double y) {
-	if (x >= a && x <= c && y >= a && y <= c) return 0;
-	if (x >= c && x <= b && y >= a && y <= c) return 1;
-	if (x >= c && x <= b && y >= c && y <= b) return 2;
-	if (x >= a && x <= c && y >= c && y <= b) return 3;
+inline int get_material(double x, double y) 
+{
+  if (x >= a && x <= c && y >= a && y <= c) return 0;
+  if (x >= c && x <= b && y >= a && y <= c) return 1;
+  if (x >= c && x <= b && y >= c && y <= b) return 2;
+  if (x >= a && x <= c && y >= c && y <= b) return 3;
 }
 
-double Q1(double x, double y) {
-	int q = get_material(x,y);
+double Q1(double x, double y) 
+{
+  int q = get_material(x,y);
 	
-	double exfl1 = exp(-4*sqr(x))*(y/2.-sqr(y/2.));
-	double exfl2 = exfl1 * (1 + sqr(sin(4*M_PI*x)) * sqr(sin(4*M_PI*y))) / 10.0;
+  double exfl1 = exp(-4*sqr(x))*(y/2.-sqr(y/2.));
+  double exfl2 = exfl1 * (1 + sqr(sin(4*M_PI*x)) * sqr(sin(4*M_PI*y))) / 10.0;
 	
-	double L = 0.5*exp(-4*sqr(x))*(1+4*(8*sqr(x)-1)*y*(y-2))*D[q][0];
-	return L + Sr[q][0]*exfl1 - chi[q][0]*nSf[q][0]*exfl1 - chi[q][1]*nSf[q][1]*exfl2;
+  double L = 0.5*exp(-4*sqr(x))*(1+4*(8*sqr(x)-1)*y*(y-2))*D[q][0];
+  return L + Sr[q][0]*exfl1 - chi[q][0]*nSf[q][0]*exfl1 - chi[q][1]*nSf[q][1]*exfl2;
 }
-double Q2(double x, double y) {
-	int q = get_material(x,y);
 
-	double yym2 = (y-2)*y;
-	double pi2 = sqr(M_PI), x2 = sqr(x), pix = M_PI*x, piy = M_PI*y;
-	double 	cy2 = sqr(cos(4*piy)),
-			    sy2 = sqr(sin(4*piy)),
-			    sx2 = sqr(sin(4*pix)),
-			    em4x2 = exp(-4*x2);
+double Q2(double x, double y) 
+{
+  int q = get_material(x,y);
+
+  double yym2 = (y-2)*y;
+  double pi2 = sqr(M_PI), x2 = sqr(x), pix = M_PI*x, piy = M_PI*y;
+  double cy2 = sqr(cos(4*piy)),
+	 sy2 = sqr(sin(4*piy)),
+	 sx2 = sqr(sin(4*pix)),
+	 em4x2 = exp(-4*x2);
 					
-	double exfl1 = em4x2*(y/2.-sqr(y/2.));
-	double exfl2 = exfl1 * (1 + sx2 * sy2) / 10.0;
+  double exfl1 = em4x2*(y/2.-sqr(y/2.));
+  double exfl2 = exfl1 * (1 + sx2 * sy2) / 10.0;
 	
-	double L = 1./20.*em4x2*D[q][1]*( 
-		1+4*(8*x2-1)*yym2+16*pi2*yym2*cy2*sx2 + 0.5*sy2*(1-4*(1+4*pi2-8*x2)*yym2 + 
-                (4*(1+12*pi2-8*x2)*yym2-1)*cos(8*pix) - 64*pix*yym2*sin(8*pix)) + 8*M_PI*(y-1)*sx2*sin(8*piy) );
-	return L + Sr[q][1]*exfl2 - Ss[q][1][0]*exfl1;
+  double L = 1./20.*em4x2*D[q][1]*( 
+	     1+4*(8*x2-1)*yym2+16*pi2*yym2*cy2*sx2 + 0.5*sy2*(1-4*(1+4*pi2-8*x2)*yym2 + 
+             (4*(1+12*pi2-8*x2)*yym2-1)*cos(8*pix) - 64*pix*yym2*sin(8*pix)) + 8*M_PI*(y-1)*sx2*sin(8*piy) );
+  return L + Sr[q][1]*exfl2 - Ss[q][1][0]*exfl1;
 }
 
 double g1_D(double x, double y) {
   return 0.0;
 }
+
 double g2_D(double x, double y) {
   return 0.0;
 }
@@ -161,7 +166,7 @@ double g2_D(double x, double y) {
 
 static double exact_flux1(double x, double y, double& dx, double& dy)
 {
-	double em4x2 = exp(-4*sqr(x));
+  double em4x2 = exp(-4*sqr(x));
   dx =  2.0*em4x2*x*y*(y-2);
   dy = -0.5*em4x2*(y-1);
   return em4x2*(y/2.-sqr(y/2.));
@@ -169,7 +174,7 @@ static double exact_flux1(double x, double y, double& dx, double& dy)
 
 static double exact_flux2(double x, double y, double& dx, double& dy)
 {
-	double em4x2 = exp(-4*sqr(x));
+  double em4x2 = exp(-4*sqr(x));
   dx = 0.1*em4x2*y*(y-2)*(2*x+(2*x*sqr(sin(4*M_PI*x))-M_PI*sin(8*M_PI*x))*sqr(sin(4*M_PI*y)));
   dy = 0.05*em4x2*(1-y+sqr(sin(4*M_PI*x))*(-(y-1)*sqr(sin(4*M_PI*y))-2*M_PI*y*(y-2)*sin(8*M_PI*y)));
   return em4x2*(y/2.-sqr(y/2.)) * (1 + sqr(sin(4*M_PI*x)) * sqr(sin(4*M_PI*y))) / 10.0;
@@ -208,10 +213,8 @@ scalar essential_bc_values_2(int marker, double x, double y)
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Functions for calculating errors:
 
-double error_total(	double (*efn)(MeshFunction*, MeshFunction*, RefMap*, RefMap*), 
-										double (*nfn)(MeshFunction*, RefMap*), 
-										Tuple<Solution*>& slns1, 
-										Tuple<Solution*>& slns2	)
+double error_total(double (*efn)(MeshFunction*, MeshFunction*, RefMap*, RefMap*), 
+		   double (*nfn)(MeshFunction*, RefMap*), Tuple<Solution*>& slns1, Tuple<Solution*>& slns2	)
 {
   Tuple<Solution*>::iterator it1, it2;
   double error = 0.0, norm = 0.0;
@@ -225,20 +228,15 @@ double error_total(	double (*efn)(MeshFunction*, MeshFunction*, RefMap*, RefMap*
   return (nfn ? sqrt(error/norm) : sqrt(error));
 }
 
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 int main(int argc, char* argv[])
 {
-	///////////////////////////////  initialization  /////////////////////////////
-
   // Load the mesh.
   Mesh mesh1, mesh2;
   H2DReader mloader;
   mloader.load("square.mesh", &mesh1);
 
-	// Obtain meshes for the 2nd group by cloning the mesh loaded for the 1st group.
-	mesh2.copy(&mesh1);
+  // Obtain meshes for the 2nd group by cloning the mesh loaded for the 1st group.
+  mesh2.copy(&mesh1);
 
   // Initial uniform refinements.
   for (int i = 0; i < INIT_REF_NUM[0]; i++) mesh1.refine_all_elements();
@@ -250,13 +248,13 @@ int main(int argc, char* argv[])
   PrecalcShapeset pss2(&shapeset);
 
   // Solution variables.
-  Solution sln1, sln2;					// Coarse solution.
-	Solution sln1_ref, sln2_ref;	// Refined solution.
+  Solution sln1, sln2;		  // Coarse mesh solution.
+  Solution sln1_ref, sln2_ref;	  // Reference solution.
 
   // Matrix solver.
   UmfpackSolver umfpack;
 
-  // Create finite element spaces.
+  // Create H1 space with default shapesets.
   H1Space space1(&mesh1, bc_types, essential_bc_values_1, P_INIT[0]);
   H1Space space2(&mesh2, bc_types, essential_bc_values_2, P_INIT[0]);
 
@@ -271,15 +269,15 @@ int main(int argc, char* argv[])
   wf.add_matrix_form_surf(0, 0, callback(biform_surf_0_0), bc_gamma);
   wf.add_matrix_form_surf(1, 1, callback(biform_surf_1_1), bc_gamma);
 
-  // Visualization.
+  // Initialize views.
   ScaledScalarView view1("Neutron flux 1", 0, 0, 500, 460);
   ScaledScalarView view2("Neutron flux 2", 510, 0, 500, 460);
-  //ScaledScalarView view3("Error in neutron flux 1", 1000, 0, 500, 460);
-  //ScaledScalarView view4("Error in neutron flux 2", 1500, 0, 500, 460);
   ScaledScalarView view3("Error in neutron flux 1", 0, 0, 500, 460);
   ScaledScalarView view4("Error in neutron flux 2", 510, 0, 500, 460);
   OrderView oview1("Mesh for group 1", 0, 520, 360, 300);
   OrderView oview2("Mesh for group 2", 360, 520, 360, 300);
+
+  // Show meshes.
   view1.show_mesh(false); view1.set_3d_mode(true);
   view2.show_mesh(false); view2.set_3d_mode(true);
   view3.show_mesh(false); view3.set_3d_mode(true);
@@ -308,30 +306,29 @@ int main(int argc, char* argv[])
   graph_cpu.show_legend(); 
   graph_cpu.show_grid();
 
-  // Prepare selector.
+  // Initialize refinement selector.
   H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER, &shapeset);
-	//selector.set_option(H2D_PREFER_SYMMETRIC_MESH, false);
-	//selector.set_error_weights(2.25, 1, sqrt(2.0));
+  //selector.set_option(H2D_PREFER_SYMMETRIC_MESH, false);
+  //selector.set_error_weights(2.25, 1, sqrt(2.0));
 
-
-  //////////////////////////////  adaptivity loop  /////////////////////////////
+  //////////////////////////////  Adaptivity loop  /////////////////////////////
   
-	// Start time measurement.
-	cpu_time.tick();
+  // Start time measurement.
+  cpu_time.tick();
 		
-	// Initial coarse mesh solution.
-	LinSystem ls(&wf, &umfpack, Tuple<Space*>(&space1, &space2));
-	ls.assemble();
+  // Initial coarse mesh solution.
+  LinSystem ls(&wf, &umfpack, Tuple<Space*>(&space1, &space2));
+  ls.assemble();
 
-	double cta;
-	int order_increase = 1;
-	for (int iadapt = 0; iadapt < MAX_ADAPT_NUM; iadapt++) {
+  double cta;
+  int order_increase = 1;
+  for (int iadapt = 0; iadapt < MAX_ADAPT_NUM; iadapt++) {
     
     int ndof = ls.get_num_dofs();
-    if (ndof >= NDOF_STOP)	break;
+    if (ndof >= NDOF_STOP) break;
     	  
-		cpu_time.tick();	
-		info("!---- Adaptivity step %d ---------------------------------------------", iadapt);
+    cpu_time.tick();	
+    info("!---- Adaptivity step %d ---------------------------------------------", iadapt);
     cpu_time.tick(H2D_SKIP);
     		
     // Solve on refined meshes.
@@ -340,44 +337,47 @@ int main(int argc, char* argv[])
     rs.assemble();	
       
     cpu_time.tick();  
-    int ndof_ref =	rs.get_num_dofs();  
-		info("---------- Reference mesh solution; NDOF=%d ----------------", ndof_ref);	
+    int ndof_ref = rs.get_num_dofs();  
+    info("---------- Reference mesh solution; NDOF=%d ----------------", ndof_ref);	
     cpu_time.tick(H2D_SKIP);
     
-		rs.solve(Tuple<Solution*>(&sln1_ref, &sln2_ref));
+    rs.solve(Tuple<Solution*>(&sln1_ref, &sln2_ref));
 		
     if (SOLVE_ON_COARSE_MESH) {
-    	// Solve on coarse meshes.
-	    cpu_time.tick();	
-	    info("----------- Coarse mesh solution; NDOF=%d -----------------", ndof);	  
-	    cpu_time.tick(H2D_SKIP);
+      // Solve on coarse meshes.
+      cpu_time.tick();	
+      info("----------- Coarse mesh solution; NDOF=%d -----------------", ndof);	  
+      cpu_time.tick(H2D_SKIP);
 	     
-	    ls.assemble();	
-	    ls.solve(Tuple<Solution*>(&sln1, &sln2));
-    }	else {
-	    // Project the fine mesh solution on the new coarse mesh.
-	    cpu_time.tick();
+      ls.assemble();	
+      ls.solve(Tuple<Solution*>(&sln1, &sln2));
+    }	
+    else {
+      // Project the fine mesh solution on the new coarse mesh.
+      cpu_time.tick();
       info("---- Projecting fine mesh solution on new coarse mesh -----------------");
       cpu_time.tick(H2D_SKIP);
       ls.project_global(Tuple<MeshFunction*>(&sln1_ref, &sln2_ref), 
-                         Tuple<Solution*>(&sln1, &sln2));
+                        Tuple<Solution*>(&sln1, &sln2));
     }
 		
-		// Calculate element errors and total error estimate.
+    // Calculate element errors and total error estimate.
     
     H1Adapt hp(&ls);
     if (ADAPTIVITY_NORM == 2) {
-		  hp.set_biform(0, 0, callback_egnorm(biform_0_0));
-		  hp.set_biform(0, 1, callback_egnorm(biform_0_1));
-		  hp.set_biform(1, 0, callback_egnorm(biform_1_0));
-		  hp.set_biform(1, 1, callback_egnorm(biform_1_1));
-		} else if (ADAPTIVITY_NORM == 1) {
-		  hp.set_biform(0, 0, callback_egnorm(biform_0_0));
-		  hp.set_biform(1, 1, callback_egnorm(biform_1_1));
-		}
+      hp.set_biform(0, 0, callback_egnorm(biform_0_0));
+      hp.set_biform(0, 1, callback_egnorm(biform_0_1));
+      hp.set_biform(1, 0, callback_egnorm(biform_1_0));
+      hp.set_biform(1, 1, callback_egnorm(biform_1_1));
+    } else {
+      if (ADAPTIVITY_NORM == 1) {
+	hp.set_biform(0, 0, callback_egnorm(biform_0_0));
+	hp.set_biform(1, 1, callback_egnorm(biform_1_1));
+      }
+    }
 		
-		Tuple<Solution*> slns(&sln1, &sln2);
-		Tuple<Solution*> slns_ref(&sln1_ref, &sln2_ref);
+    Tuple<Solution*> slns(&sln1, &sln2);
+    Tuple<Solution*> slns_ref(&sln1_ref, &sln2_ref);
 
     hp.set_solutions(slns, slns_ref);
 
@@ -385,11 +385,10 @@ int main(int argc, char* argv[])
     double err_est_h1 = error_total(error_fn_h1, norm_fn_h1, slns, slns_ref) * 100;
         	
     // Report results.
-    
     cpu_time.tick();            
-   	cta = cpu_time.accumulated();
+    cta = cpu_time.accumulated();
    	
-   	info("flux1_dof=%d, flux2_dof=%d", ls.get_num_dofs(0), ls.get_num_dofs(1));
+    info("flux1_dof=%d, flux2_dof=%d", ls.get_num_dofs(0), ls.get_num_dofs(1));
     oview1.show(&space1);
     oview2.show(&space2);
     
@@ -399,7 +398,7 @@ int main(int argc, char* argv[])
     DiffFilter err_distrib_2(&ex2, &sln2);
     
     double err_exact_h1_1 = h1_error(&ex1, &sln1) * 100;
-	  double err_exact_h1_2 = h1_error(&ex2, &sln2) * 100;
+    double err_exact_h1_2 = h1_error(&ex2, &sln2) * 100;
 
     Tuple<Solution*> exslns(&ex1, &ex2);
     double error_h1 = error_total(error_fn_h1, norm_fn_h1, slns, exslns) * 100;
@@ -422,26 +421,26 @@ int main(int argc, char* argv[])
     }
    
     if (ndof > 100) {				
-		  // Add entry to DOF convergence graphs.
-		  graph_dof.add_values(ERR_PLOT, ndof, error_h1);  
-		  graph_dof.add_values(ERR_EST_PLOT, ndof, err_est_h1);
-		  // Add entry to DOF evolution graphs.
-		  graph_dof_evol.add_values(GROUP_1, iadapt, ls.get_num_dofs(0));
- 		  graph_dof_evol.add_values(GROUP_2, iadapt, ls.get_num_dofs(1));
-		  // Add entry to CPU convergence graphs.
-		  graph_cpu.add_values(ERR_PLOT, cta, error_h1);
-		  graph_cpu.add_values(ERR_EST_PLOT, cta, err_est_h1);
-		}
+      // Add entry to DOF convergence graphs.
+      graph_dof.add_values(ERR_PLOT, ndof, error_h1);  
+      graph_dof.add_values(ERR_EST_PLOT, ndof, err_est_h1);
+      // Add entry to DOF evolution graphs.
+      graph_dof_evol.add_values(GROUP_1, iadapt, ls.get_num_dofs(0));
+      graph_dof_evol.add_values(GROUP_2, iadapt, ls.get_num_dofs(1));
+      // Add entry to CPU convergence graphs.
+      graph_cpu.add_values(ERR_PLOT, cta, error_h1);
+      graph_cpu.add_values(ERR_EST_PLOT, cta, err_est_h1);
+    }
            
     cpu_time.tick(H2D_SKIP);   
     	
     // If err_est too large, adapt the mesh.
-    if (err_est < ERR_STOP)	break;
+    if (err_est < ERR_STOP) break;
     else hp.adapt(&selector, THRESHOLD, STRATEGY,  MESH_REGULARITY);	
-	}
+  }
 	
-	cpu_time.tick();
-	cta = cpu_time.accumulated();
+  cpu_time.tick();
+  cta = cpu_time.accumulated();
   verbose("Total running time: %g s", cta);
   
   // Save convergence graphs.
