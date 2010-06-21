@@ -205,10 +205,51 @@ cdef class Mesh:
     @property
     def elements_markers(self):
         """
-        Return the list of elements (as ids), together with their markers.
+        Returns the list of elements (as ids) made up by their corresponding vertices,
+        plus and extra number denoting the element (material) marker.
 
-        This is equaivalent to the format of the elements argument to the
-        Mesh.create() method.
+        Element markers allow you to use different material parameters in areas 
+        with different material identity.
+ 
+        Example:
+
+        >>> import hermes2d
+        >>> m = hermes2d.Mesh() 
+        >>> m.create([
+        ...         [0, -1],
+        ...         [1, -1],
+        ...         [-1, 0],
+        ...         [0, 0],
+        ...         [1, 0],
+        ...         [-1, 1],
+        ...         [0, 1],
+        ...         [0.707106781, 0.707106781],
+        ...     ], [
+        ...         [0, 1, 4, 3, 0],
+        ...         [3, 4, 7, 0],
+        ...         [3, 7, 6, 0],
+        ...         [2, 3, 6, 5, 0],
+        ...     ], [
+        ...         [0, 1, 1],
+        ...         [1, 4, 2],
+        ...         [3, 0, 4],
+        ...         [4, 7, 2],
+        ...         [7, 6, 2],
+        ...         [2, 3, 4],
+        ...         [6, 5, 2],
+        ...         [5, 2, 3],
+        ...     ], [
+        ...         [4, 7, 45],
+        ...         [7, 6, 45],
+        ...     ])
+        >>> m.elements_markers
+        [[0, 1, 4, 3, 0], [3, 4, 7, 0], [3, 7, 6, 0], [2, 3, 6, 5, 0]] 
+
+        If the domain is composed of only one material, as in the example above,
+        all elements may be assigned a zero marker.  In the example above
+        "[0, 1, 4, 3, 0]" is an element with "0" being the corresponding element
+        marker.
+    
         """
         element_list = []
         for i in range(self.num_elements):
