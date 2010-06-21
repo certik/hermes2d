@@ -76,11 +76,11 @@ const int ADAPTIVITY_NORM = 2;             // Specifies the norm used by H1Adapt
 #define callback_egnorm(a)     a<scalar, scalar>, a<Ord, Ord>
 		
 // Variables used for reporting of results														 
-TimePeriod cpu_time;						// Time measurements.
-const int ERR_PLOT = 0;						// Row in the convergence graphs for exact errors .
-const int ERR_EST_PLOT = 1;				        // Row in the convergence graphs for error estimates.
-const int GROUP_1 = 0;						// Row in the NDOFs evolution graph for group 1.
-const int GROUP_2 = 1;						// Row in the NDOFs evolution graph for group 2.
+TimePeriod cpu_time;			   // Time measurements.
+const int ERR_PLOT = 0;			   // Row in the convergence graphs for exact errors .
+const int ERR_EST_PLOT = 1;		   // Row in the convergence graphs for error estimates.
+const int GROUP_1 = 0;			   // Row in the NDOFs evolution graph for group 1.
+const int GROUP_2 = 1;			   // Row in the NDOFs evolution graph for group 2.
 
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -103,13 +103,13 @@ const double chi[4][2] ={	{1, 0},
                         	{1, 0},
                         	{1, 0},
                         	{1, 0}	};
-const double Ss[4][2][2] = {	{	{	0.0, 0.0 },
+const double Ss[4][2][2] = {	{	{ 0.0, 0.0 },
                              		{ 0.05, 0.0 }	},
-                             	{	{	0.0, 0.0 },
+                             	{	{ 0.0, 0.0 },
                              		{ 0.08, 0.0 }	},
-                             	{	{	0.0, 0.0 },
+                             	{	{ 0.0, 0.0 },
                              		{ 0.025, 0.0 }	},
-                             	{	{	0.0, 0.0 },
+                             	{	{ 0.0, 0.0 },
                              		{ 0.014, 0.0 }	}	};
 
 double a = 0., b = 1., c = (a+b)/2.;
@@ -136,9 +136,9 @@ double Q2(double x, double y) {
 	double yym2 = (y-2)*y;
 	double pi2 = sqr(M_PI), x2 = sqr(x), pix = M_PI*x, piy = M_PI*y;
 	double 	cy2 = sqr(cos(4*piy)),
-					sy2 = sqr(sin(4*piy)),
-					sx2 = sqr(sin(4*pix)),
-					em4x2 = exp(-4*x2);
+			    sy2 = sqr(sin(4*piy)),
+			    sx2 = sqr(sin(4*pix)),
+			    em4x2 = exp(-4*x2);
 					
 	double exfl1 = em4x2*(y/2.-sqr(y/2.));
 	double exfl2 = exfl1 * (1 + sx2 * sy2) / 10.0;
@@ -177,7 +177,7 @@ static double exact_flux2(double x, double y, double& dx, double& dy)
 
 // APPROXIMATE SOLUTION
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Boundary conditions
+// Boundary conditions:
 
 const int bc_flux = 1;
 const int bc_gamma = 2;
@@ -201,12 +201,12 @@ scalar essential_bc_values_2(int marker, double x, double y)
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Weak forms
+// Weak forms:
 
 #include "forms.cpp"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Functions for calculating errors
+// Functions for calculating errors:
 
 double error_total(	double (*efn)(MeshFunction*, MeshFunction*, RefMap*, RefMap*), 
 										double (*nfn)(MeshFunction*, RefMap*), 
@@ -232,35 +232,35 @@ int main(int argc, char* argv[])
 {
 	///////////////////////////////  initialization  /////////////////////////////
 
-  // load the mesh
+  // Load the mesh.
   Mesh mesh1, mesh2;
   H2DReader mloader;
   mloader.load("square.mesh", &mesh1);
 
-	// obtain meshes for the 2nd group by cloning the mesh loaded for the 1st group
+	// Obtain meshes for the 2nd group by cloning the mesh loaded for the 1st group.
 	mesh2.copy(&mesh1);
 
-  // initial uniform refinements
+  // Initial uniform refinements.
   for (int i = 0; i < INIT_REF_NUM[0]; i++) mesh1.refine_all_elements();
   for (int i = 0; i < INIT_REF_NUM[1]; i++) mesh2.refine_all_elements();
   
-  // initialize the shapeset and the cache
+  // Initialize the shapeset and the cache.
   H1Shapeset shapeset;
   PrecalcShapeset pss1(&shapeset);
   PrecalcShapeset pss2(&shapeset);
 
-  // solution variables
-  Solution sln1, sln2;					// coarse solution
-	Solution sln1_ref, sln2_ref;	// refined solution
+  // Solution variables.
+  Solution sln1, sln2;					// Coarse solution.
+	Solution sln1_ref, sln2_ref;	// Refined solution.
 
-  // matrix solver
+  // Matrix solver.
   UmfpackSolver umfpack;
 
-  // create finite element spaces
+  // Create finite element spaces.
   H1Space space1(&mesh1, bc_types, essential_bc_values_1, P_INIT[0]);
   H1Space space2(&mesh2, bc_types, essential_bc_values_2, P_INIT[0]);
 
-  // initialize the weak formulation
+  // Initialize the weak formulation.
   WeakForm wf(2);
   wf.add_matrix_form(0, 0, callback(biform_0_0), H2D_SYM);
   wf.add_matrix_form(0, 1, callback(biform_0_1));
@@ -271,7 +271,7 @@ int main(int argc, char* argv[])
   wf.add_matrix_form_surf(0, 0, callback(biform_surf_0_0), bc_gamma);
   wf.add_matrix_form_surf(1, 1, callback(biform_surf_1_1), bc_gamma);
 
-  // visualization
+  // Visualization.
   ScaledScalarView view1("Neutron flux 1", 0, 0, 500, 460);
   ScaledScalarView view2("Neutron flux 2", 510, 0, 500, 460);
   //ScaledScalarView view3("Error in neutron flux 1", 1000, 0, 500, 460);
@@ -285,7 +285,7 @@ int main(int argc, char* argv[])
   view3.show_mesh(false); view3.set_3d_mode(true);
   view4.show_mesh(false); view4.set_3d_mode(true);
     
-  // DOF and CPU convergence graphs
+  // DOF and CPU convergence graphs.
   GnuplotGraph graph_dof("Error convergence", "Degrees of freedom", "Error [%]");
   graph_dof.add_row("exact error (H1)", "b", "-", "o");
   graph_dof.add_row("est.  error (H1)", "r", "-", "s");
@@ -308,7 +308,7 @@ int main(int argc, char* argv[])
   graph_cpu.show_legend(); 
   graph_cpu.show_grid();
 
-  // prepare selector
+  // Prepare selector.
   H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER, &shapeset);
 	//selector.set_option(H2D_PREFER_SYMMETRIC_MESH, false);
 	//selector.set_error_weights(2.25, 1, sqrt(2.0));
@@ -316,10 +316,10 @@ int main(int argc, char* argv[])
 
   //////////////////////////////  adaptivity loop  /////////////////////////////
   
-	// start time measurement
+	// Start time measurement.
 	cpu_time.tick();
 		
-	// initial coarse mesh solution
+	// Initial coarse mesh solution.
 	LinSystem ls(&wf, &umfpack, Tuple<Space*>(&space1, &space2));
 	ls.assemble();
 
@@ -334,21 +334,20 @@ int main(int argc, char* argv[])
 		info("!---- Adaptivity step %d ---------------------------------------------", iadapt);
     cpu_time.tick(H2D_SKIP);
     		
-    // solve the fine mesh problem
- 
+    // Solve on refined meshes.
+    
     RefSystem rs(&ls, order_increase);
     rs.assemble();	
       
-    cpu_time.tick();
-    
+    cpu_time.tick();  
     int ndof_ref =	rs.get_num_dofs();  
 		info("---------- Reference mesh solution; NDOF=%d ----------------", ndof_ref);	
-		
     cpu_time.tick(H2D_SKIP);
     
 		rs.solve(Tuple<Solution*>(&sln1_ref, &sln2_ref));
 		
     if (SOLVE_ON_COARSE_MESH) {
+    	// Solve on coarse meshes.
 	    cpu_time.tick();	
 	    info("----------- Coarse mesh solution; NDOF=%d -----------------", ndof);	  
 	    cpu_time.tick(H2D_SKIP);
@@ -356,7 +355,7 @@ int main(int argc, char* argv[])
 	    ls.assemble();	
 	    ls.solve(Tuple<Solution*>(&sln1, &sln2));
     }	else {
-	    // project the fine mesh solution on the new coarse mesh
+	    // Project the fine mesh solution on the new coarse mesh.
 	    cpu_time.tick();
       info("---- Projecting fine mesh solution on new coarse mesh -----------------");
       cpu_time.tick(H2D_SKIP);
@@ -364,7 +363,7 @@ int main(int argc, char* argv[])
                          Tuple<Solution*>(&sln1, &sln2));
     }
 		
-		// calculate element errors and total error estimate
+		// Calculate element errors and total error estimate.
     
     H1Adapt hp(&ls);
     if (ADAPTIVITY_NORM == 2) {
@@ -385,7 +384,7 @@ int main(int argc, char* argv[])
     double err_est = hp.calc_error(H2D_TOTAL_ERROR_REL | H2D_ELEMENT_ERROR_REL) * 100;
     double err_est_h1 = error_total(error_fn_h1, norm_fn_h1, slns, slns_ref) * 100;
         	
-    // report results
+    // Report results.
     
     cpu_time.tick();            
    	cta = cpu_time.accumulated();
@@ -394,7 +393,7 @@ int main(int argc, char* argv[])
     oview1.show(&space1);
     oview2.show(&space2);
     
-    // error w.r.t. the exact solution
+    // Error w.r.t. the exact solution.
     ExactSolution ex1(&mesh1, exact_flux1), ex2(&mesh2, exact_flux2);
     DiffFilter err_distrib_1(&ex1, &sln1);
     DiffFilter err_distrib_2(&ex2, &sln2);
@@ -423,20 +422,20 @@ int main(int argc, char* argv[])
     }
    
     if (ndof > 100) {				
-		  // add entry to DOF convergence graphs
+		  // Add entry to DOF convergence graphs.
 		  graph_dof.add_values(ERR_PLOT, ndof, error_h1);  
 		  graph_dof.add_values(ERR_EST_PLOT, ndof, err_est_h1);
-		  // add entry to DOF evolution graphs
+		  // Add entry to DOF evolution graphs.
 		  graph_dof_evol.add_values(GROUP_1, iadapt, ls.get_num_dofs(0));
  		  graph_dof_evol.add_values(GROUP_2, iadapt, ls.get_num_dofs(1));
-		  // add entry to CPU convergence graphs
+		  // Add entry to CPU convergence graphs.
 		  graph_cpu.add_values(ERR_PLOT, cta, error_h1);
 		  graph_cpu.add_values(ERR_EST_PLOT, cta, err_est_h1);
 		}
            
     cpu_time.tick(H2D_SKIP);   
     	
-    // if err_est too large, adapt the mesh
+    // If err_est too large, adapt the mesh.
     if (err_est < ERR_STOP)	break;
     else hp.adapt(&selector, THRESHOLD, STRATEGY,  MESH_REGULARITY);	
 	}
@@ -445,12 +444,12 @@ int main(int argc, char* argv[])
 	cta = cpu_time.accumulated();
   verbose("Total running time: %g s", cta);
   
-  // save convergence graphs
+  // Save convergence graphs.
   graph_dof.save("conv_dof.gp");
   graph_cpu.save("conv_cpu.gp");
   graph_dof_evol.save("dof_evol.gp");
   
-  // wait for all views to be closed
+  // Wait for all views to be closed.
   View::wait();
   return 0;
 };
