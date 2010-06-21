@@ -540,7 +540,7 @@ The input parameter of the method calc_error() is a combination that is a pair: 
 Simplified Fitzhugh-Nagumo System (11)
 --------------------------------------
 
-**Git reference:** Tutorial example `11-adapt-system <http://git.hpfem.org/hermes2d.git/tree/HEAD:/tutorial/11-adapt-system>`_. 
+**Git reference:** Tutorial example `11-system-adapt <http://git.hpfem.org/hermes2d.git/tree/HEAD:/tutorial/11-system-adapt>`_. 
 
 We consider a simplified version of the Fitzhugh-Nagumo equation.
 This equation is a~prominent example of activator-inhibitor systems in two-component reaction-diffusion 
@@ -616,7 +616,7 @@ are not extremely pretty, but they are not too bad either:
     }
 
 The weak forms can be found in the 
-file `forms.cpp <http://git.hpfem.org/hermes2d.git/blob/HEAD:/tutorial/11-adapt-system/forms.cpp>`_ and 
+file `forms.cpp <http://git.hpfem.org/hermes2d.git/blob/HEAD:/tutorial/11-system-adapt/forms.cpp>`_ and 
 they are registered as follows:
 
 ::
@@ -726,13 +726,13 @@ CPU time convergence graphs:
 Adaptivity for General 2nd-Order Linear Equation (12)
 -----------------------------------------------------
 
-**Git reference:** Tutorial example `12-adapt-general <http://git.hpfem.org/hermes2d.git/tree/HEAD:/tutorial/12-adapt-general>`_. 
+**Git reference:** Tutorial example `12-general-adapt <http://git.hpfem.org/hermes2d.git/tree/HEAD:/tutorial/12-general-adapt>`_. 
 
 This example does not bring anything substantially new and its purpose is solely to 
 save you work adding adaptivity to the tutorial example 
 `07-general <http://git.hpfem.org/hermes2d.git/tree/HEAD:/tutorial/07-general>`_. 
 Feel free to adjust the 
-`main.cpp <http://git.hpfem.org/hermes2d.git/blob/HEAD:/tutorial/12-adapt-general/main.cpp>`_ 
+`main.cpp <http://git.hpfem.org/hermes2d.git/blob/HEAD:/tutorial/12-general-adapt/main.cpp>`_ 
 file for your own applications.
 
 Solution:
@@ -758,7 +758,7 @@ and hp-FEM.
    :align: center
    :width: 600
    :height: 400
-   :alt: DOF convergence graph for tutorial example 12-adapt-general.
+   :alt: DOF convergence graph for tutorial example 12-general-adapt.
 
 Convergence comparison in terms of CPU time. 
 
@@ -766,5 +766,5 @@ Convergence comparison in terms of CPU time.
    :align: center
    :width: 600
    :height: 400
-   :alt: CPU convergence graph for tutorial example 12-adapt-general.
+   :alt: CPU convergence graph for tutorial example 12-general-adapt.
 

@@ -75,8 +75,8 @@ Description coming soon.
 Heat and Moisture Transfer in Concrete (22)
 -------------------------------------------
 
-**Git reference:** Tutorial example `22-heat-and-moisture 
-<http://git.hpfem.org/hermes2d.git/tree/HEAD:/tutorial/22-heat-and-moisture>`_.
+**Git reference:** Tutorial example `22-heat-and-moisture-adapt 
+<http://git.hpfem.org/hermes2d.git/tree/HEAD:/tutorial/22-heat-and-moisture-adapt>`_.
 
 Description coming soon.
 
