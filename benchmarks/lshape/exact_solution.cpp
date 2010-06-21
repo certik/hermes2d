@@ -1,3 +1,4 @@
+// Exact solution.
 static double fn(double x, double y)
 {
   double r = sqrt(x*x + y*y);

@@ -81,51 +81,79 @@ for both displacement components:
 
 ::
 
-    // load the mesh
+    // Load the mesh.
     Mesh xmesh, ymesh;
     H2DReader mloader;
     mloader.load("crack.mesh", &xmesh);
-    ymesh.copy(&xmesh);          // this defines the common master mesh for
-                                 // both displacement fields
+
+    // Perform initial uniform mesh refinement.
+    for (int i=0; i < INIT_REF_NUM; i++) xmesh.refine_all_elements();
+
+    // Create initial mesh for the vertical displacement component.
+    // This also initializes the multimesh hp-FEM.
+    ymesh.copy(&xmesh);
 
 Then we define separate spaces for $u_1$ and $u_2$:
 
 ::
 
-    // create the x displacement space
-    H1Space xdisp(&xmesh, &shapeset);
-    xdisp.set_bc_types(bc_types_xy);
-    xdisp.set_uniform_order(P_INIT);
-
-    // create the y displacement space
-    H1Space ydisp(MULTI ? &ymesh : &xmesh, &shapeset);
-    ydisp.set_bc_types(bc_types_xy);
-    ydisp.set_uniform_order(P_INIT);
+    // Create H1 spaces with default shapesets.
+    H1Space xdisp(&xmesh, bc_types_xy, essential_bc_values, P_INIT);
+    H1Space ydisp(MULTI ? &ymesh : &xmesh, bc_types_xy, essential_bc_values, P_INIT);
 
 The weak forms are registered as usual:
 
 ::
 
-    // initialize the weak formulation
+    // Initialize the weak formulation.
     WeakForm wf(2);
-    wf.add_biform(0, 0, callback(bilinear_form_0_0), H2D_SYM);
-    wf.add_biform(0, 1, callback(bilinear_form_0_1), H2D_SYM);
-    wf.add_biform(1, 1, callback(bilinear_form_1_1), H2D_SYM);
-    wf.add_liform_surf(1, callback(linear_form_surf_1), marker_top);
+    wf.add_matrix_form(0, 0, callback(bilinear_form_0_0), H2D_SYM);
+    wf.add_matrix_form(0, 1, callback(bilinear_form_0_1), H2D_SYM);
+    wf.add_matrix_form(1, 1, callback(bilinear_form_1_1), H2D_SYM);
+    wf.add_vector_form_surf(1, callback(linear_form_surf_1), BDY_TOP);
 
 Before entering the adaptivity loop, we create an instance of a selector:
 
 ::
 
-    H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, MAX_ORDER, &shapeset);
+    // Initialize refinement selector.
+    H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
 
-Next, we set bilinear forms for the calculation of the global energy norm,
-and calculate the error. In this case, we require that the error of elements is devided by a corresponding norm:
+Then we solve on the uniformly refined mesh and either project 
+the solution on the coarse mesh, or solve on the coarse mesh,
+to obtain the pair of solutions needed for error estimation:
+
 ::
 
-    // calculate error estimate wrt. fine mesh solution in energy norm
-    H1Adapt hp(Tuple<Space*>(&xdisp, &ydisp));
-    hp.set_solutions(Tuple<Solution*>(&sln_x_coarse, &sln_y_coarse), Tuple<Solution*>(&sln_x_fine, &sln_y_fine));
+    // Assemble and solve the fine mesh problem.
+    info("Solving on fine mesh.");
+    RefSystem rs(&ls);
+    rs.assemble();
+    rs.solve(Tuple<Solution*>(&x_sln_fine, &y_sln_fine));
+
+    // Either solve on coarse mesh or project the fine mesh solution 
+    // on the coarse mesh.
+    if (SOLVE_ON_COARSE_MESH) {
+      info("Solving on coarse mesh.");
+      ls.assemble();
+      ls.solve(Tuple<Solution*>(&x_sln_coarse, &y_sln_coarse));
+    }
+    else {
+      info("Projecting fine mesh solution on coarse mesh.");
+      ls.project_global(Tuple<MeshFunction*>(&x_sln_fine, &y_sln_fine), 
+                        Tuple<Solution*>(&x_sln_coarse, &y_sln_coarse));
+    }
+
+Next, we set bilinear forms for the calculation of the global energy norm,
+and calculate the error. In this case, we require that the error of elements 
+is devided by a corresponding norm:
+
+::
+
+    // Calculate error estimate wrt. fine mesh solution in energy norm.
+    info("Calculating error (est).");
+    H1Adapt hp(&ls);
+    hp.set_solutions(Tuple<Solution*>(&x_sln_coarse, &y_sln_coarse), Tuple<Solution*>(&x_sln_fine, &y_sln_fine));
     hp.set_biform(0, 0, bilinear_form_0_0<scalar, scalar>, bilinear_form_0_0<Ord, Ord>);
     hp.set_biform(0, 1, bilinear_form_0_1<scalar, scalar>, bilinear_form_0_1<Ord, Ord>);
     hp.set_biform(1, 0, bilinear_form_1_0<scalar, scalar>, bilinear_form_1_0<Ord, Ord>);
@@ -234,12 +262,38 @@ The dimensions are L = 0.7 m, T = 0.1 m and the force $f = 10^3$ N.
    :height: 400
    :alt: Computational domain for the elastic bracket problem.
 
-As usual, adaptivity is based on the difference between the coarse and fine mesh solutions. The selector is created outside the adaptivity loop.
-This time we have two equations in the system, two meshes, two spaces, etc.:
+Then we solve on the uniformly refined mesh and either project 
+the solution on the coarse mesh, or solve on the coarse mesh,
+to obtain the pair of solutions needed for error estimation:
 
 ::
 
-    H1Adapt hp(Tuple<Space*>(&xdisp, &ydisp));
+    // Assemble and solve the fine mesh problem.
+    info("Solving on fine mesh.");
+    RefSystem rs(&ls);
+    rs.assemble();
+    rs.solve(Tuple<Solution*>(&x_sln_fine, &y_sln_fine));
+
+    // Either solve on coarse mesh or project the fine mesh solution 
+    // on the coarse mesh.
+    if (SOLVE_ON_COARSE_MESH) {
+      info("Solving on coarse mesh.");
+      ls.assemble();
+      ls.solve(Tuple<Solution*>(&x_sln_coarse, &y_sln_coarse));
+    }
+    else {
+      info("Projecting fine mesh solution on coarse mesh.");
+      ls.project_global(Tuple<MeshFunction*>(&x_sln_fine, &y_sln_fine), 
+                        Tuple<Solution*>(&x_sln_coarse, &y_sln_coarse));
+    }
+
+The selector is created outside the adaptivity loop. We have two equations in the system, two meshes, two spaces, etc.:
+
+::
+
+    // Calculate element errors and total error estimate.
+    info("Calculating error (est).");
+    H1Adapt hp(&ls);
     hp.set_solutions(Tuple<Solution*>(&x_sln_coarse, &y_sln_coarse), Tuple<Solution*>(&x_sln_fine, &y_sln_fine));
     hp.set_biform(0, 0, bilinear_form_0_0<scalar, scalar>, bilinear_form_0_0<Ord, Ord>);
     hp.set_biform(0, 1, bilinear_form_0_1<scalar, scalar>, bilinear_form_0_1<Ord, Ord>);
@@ -423,47 +477,74 @@ via copying the xmesh into ymesh and tmesh:
 
 ::
 
-    // Load the mesh
+    // Load the mesh.
     Mesh xmesh, ymesh, tmesh;
     H2DReader mloader;
-    mloader.load("domain.mesh", &xmesh); // master mesh
-    ymesh.copy(&xmesh);                // ydisp will share master mesh with xdisp
-    tmesh.copy(&xmesh);                // temp will share master mesh with xdisp
+    mloader.load("domain.mesh", &xmesh); // Master mesh.
+
+    // Initialize multimesh hp-FEM.
+    ymesh.copy(&xmesh);                  // Ydisp will share master mesh with xdisp.
+    tmesh.copy(&xmesh);                  // Temp will share master mesh with xdisp.
+
+Then three H1 spaces are created. Note that we do not have to provide essential 
+boundary conditions functions if they are zero Dirichlet:
+
+::
+
+    // Create H1 spaces with default shapesets.
+    H1Space xdisp(&xmesh, bc_types_x, NULL, P_INIT_DISP);
+    H1Space ydisp(MULTI ? &ymesh : &xmesh, bc_types_y, NULL, P_INIT_DISP);
+    H1Space temp(MULTI ? &tmesh : &xmesh, bc_types_t, essential_bc_values_temp, P_INIT_TEMP);
 
 The weak formulation is initialized as follows:
 
 ::
 
-    // Initialize the weak formulation
+    // Initialize the weak formulation.
     WeakForm wf(3);
-    wf.add_biform(0, 0, callback(bilinear_form_0_0));
-    wf.add_biform(0, 1, callback(bilinear_form_0_1), H2D_SYM);
-    wf.add_biform(0, 2, callback(bilinear_form_0_2));
-    wf.add_biform(1, 1, callback(bilinear_form_1_1));
-    wf.add_biform(1, 2, callback(bilinear_form_1_2));
-    wf.add_biform(2, 2, callback(bilinear_form_2_2));
-    wf.add_liform(1, callback(linear_form_1));
-    wf.add_liform(2, callback(linear_form_2));
-    wf.add_liform_surf(2, callback(linear_form_surf_2));
+    wf.add_matrix_form(0, 0, callback(bilinear_form_0_0));
+    wf.add_matrix_form(0, 1, callback(bilinear_form_0_1), H2D_SYM);
+    wf.add_matrix_form(0, 2, callback(bilinear_form_0_2));
+    wf.add_matrix_form(1, 1, callback(bilinear_form_1_1));
+    wf.add_matrix_form(1, 2, callback(bilinear_form_1_2));
+    wf.add_matrix_form(2, 2, callback(bilinear_form_2_2));
+    wf.add_vector_form(1, callback(linear_form_1));
+    wf.add_vector_form(2, callback(linear_form_2));
+    wf.add_vector_form_surf(2, callback(linear_form_surf_2));
 
-The coarse mesh problem is solved using
+Then we solve on the uniformly refined mesh and either project 
+the solution on the coarse mesh, or solve on the coarse mesh,
+to obtain the pair of solutions needed for error estimation:
 
 ::
 
-    // solve the coarse mesh problem
-    LinSystem ls(&wf, &solver);
-    ls.set_spaces(3, &xdisp, &ydisp, &temp);
-    ls.set_pss(3, &xpss, &ypss, &tpss);
-    ls.assemble();
-    ls.solve(3, &x_sln_coarse, &y_sln_coarse, &t_sln_coarse);
+    // Solve the fine mesh problems.
+    RefSystem rs(&ls);
+    rs.assemble();
+    rs.solve(Tuple<Solution*>(&x_sln_fine, &y_sln_fine, &t_sln_fine));
+
+    // Either solve on coarse meshes or project the fine mesh solutions
+    // on the coarse mesh.
+    if (SOLVE_ON_COARSE_MESH) {
+      info("Solving on coarse mesh.");
+      ls.assemble();
+      ls.solve(Tuple<Solution*>(&x_sln_coarse, &y_sln_coarse, &t_sln_coarse));
+    }
+    else {
+      info("Projecting fine mesh solution on coarse mesh.");
+      ls.project_global(Tuple<MeshFunction*>(&x_sln_fine, &y_sln_fine, &t_sln_fine), 
+                        Tuple<Solution*>(&x_sln_coarse, &y_sln_coarse, &t_sln_coarse));
+    }
 
 The following code defines the global norm for error measurement, and 
 calculates element errors. The code uses a selector which instance is created outside the adaptivity loop:
 
 ::
 
-    H1Adapt hp(Tuple<Space*>(&xdisp, &ydisp, &temp));
-    hp.set_solutions(Tuple<Solution*>(&x_sln_coarse, &y_sln_coarse, &t_sln_coarse), Tuple<Solution*>(&x_sln_fine, &y_sln_fine, &t_sln_fine));
+    // Calculate element errors and total error estimate.
+    H1Adapt hp(&ls);
+    hp.set_solutions(Tuple<Solution*>(&x_sln_coarse, &y_sln_coarse, &t_sln_coarse), 
+                     Tuple<Solution*>(&x_sln_fine, &y_sln_fine, &t_sln_fine));
     hp.set_biform(0, 0, bilinear_form_0_0<scalar, scalar>, bilinear_form_0_0<Ord, Ord>);
     hp.set_biform(0, 1, bilinear_form_0_1<scalar, scalar>, bilinear_form_0_1<Ord, Ord>);
     hp.set_biform(0, 2, bilinear_form_0_2<scalar, scalar>, bilinear_form_0_2<Ord, Ord>);
@@ -648,13 +729,37 @@ The weak forms are associated with element material flags (coming from the mesh 
 
     // initialize the weak formulation
     WeakForm wf(1);
-    wf.add_biform(0, 0, bilinear_form_1, bilinear_form_ord, H2D_SYM, 1);
-    wf.add_biform(0, 0, bilinear_form_2, bilinear_form_ord, H2D_SYM, 2);
-    wf.add_biform(0, 0, bilinear_form_3, bilinear_form_ord, H2D_SYM, 3);
-    wf.add_biform(0, 0, bilinear_form_4, bilinear_form_ord, H2D_SYM, 4);
-    wf.add_biform(0, 0, bilinear_form_5, bilinear_form_ord, H2D_SYM, 5);
-    wf.add_liform(0, linear_form_1, linear_form_ord, 1);
-    wf.add_liform(0, linear_form_3, linear_form_ord, 3);
+    wf.add_matrix_form(0, 0, bilinear_form_1, bilinear_form_ord, H2D_SYM, 1);
+    wf.add_matrix_form(0, 0, bilinear_form_2, bilinear_form_ord, H2D_SYM, 2);
+    wf.add_matrix_form(0, 0, bilinear_form_3, bilinear_form_ord, H2D_SYM, 3);
+    wf.add_matrix_form(0, 0, bilinear_form_4, bilinear_form_ord, H2D_SYM, 4);
+    wf.add_matrix_form(0, 0, bilinear_form_5, bilinear_form_ord, H2D_SYM, 5);
+    wf.add_vector_form(0, linear_form_1, linear_form_ord, 1);
+    wf.add_vector_form(0, linear_form_3, linear_form_ord, 3);
+
+Then we solve on the uniformly refined mesh and either project 
+the solution on the coarse mesh, or solve on the coarse mesh,
+to obtain the pair of solutions needed for error estimation:
+
+::
+
+    // Assemble and solve the fine mesh problem.
+    info("Solving on fine mesh.");
+    RefSystem rs(&ls);
+    rs.assemble();
+    rs.solve(&sln_fine);
+
+    // Either solve on coarse mesh or project the fine mesh solution 
+    // on the coarse mesh.
+    if (SOLVE_ON_COARSE_MESH) {
+      info("Solving on coarse mesh.");
+      ls.assemble();
+      ls.solve(&sln_coarse);
+    }
+    else {
+      info("Projecting fine mesh solution on coarse mesh.");
+      ls.project_global(&sln_fine, &sln_coarse);
+    }
 
 Sample results of this computation are shown below.
 
@@ -808,6 +913,7 @@ CPU time convergence graphs:
    :height: 400
    :alt: CPU convergence graph for example iron-water.
 
+
 4-Group (Neutronics)
 --------------------
 
@@ -839,7 +945,6 @@ shown in the following schematic picture:
 The computational domain is a rectangle of height 0.003 and width 0.004. 
 Different material markers are used for the wire, air, and iron 
 (see mesh file `domain2.mesh <http://git.hpfem.org/hermes2d.git/blob/HEAD:/examples/wire/domain2.mesh>`_).
-
 
 Boundary conditions are zero Dirichlet on the top and right edges, and zero Neumann
 elsewhere.
@@ -880,16 +985,24 @@ Complex-valued weak forms:
       return J_wire * int_v<Real, Scalar>(n, wt, v);
     }
 
+After loading the mesh and performing initial mesh refinements, we create an H1 space:
+
+::
+
+    // Create an H1 space with default shapeset.
+    H1Space space(&mesh, bc_types, essential_bc_values, P_INIT);
+
+
 The weak forms are registered as follows:
 
 ::
 
-    // initialize the weak formulation
-    WeakForm wf(1);
-    wf.add_biform(0, 0, callback(bilinear_form_iron), H2D_SYM, 3);
-    wf.add_biform(0, 0, callback(bilinear_form_wire), H2D_SYM, 2);
-    wf.add_biform(0, 0, callback(bilinear_form_air), H2D_SYM, 1);
-    wf.add_liform(0, callback(linear_form_wire), 2);
+    // Initialize the weak formulation.
+    WeakForm wf;
+    wf.add_matrix_form(callback(bilinear_form_iron), H2D_SYM, 3);
+    wf.add_matrix_form(callback(bilinear_form_wire), H2D_SYM, 2);
+    wf.add_matrix_form(callback(bilinear_form_air), H2D_SYM, 1);
+    wf.add_vector_form(callback(linear_form_wire), 2);
 
 Let us compare adaptive $h$-FEM with linear and quadratic elements and the $hp$-FEM.
 
@@ -927,16 +1040,30 @@ and hp-FEM are shown below.
 Waveguide (Electromagnetics)
 ----------------------------
 
-
 **Git reference:** Example `waveguide <http://git.hpfem.org/hermes2d.git/tree/HEAD:/examples/waveguide>`_.
 
+Description coming soon.
+
+
+Navier-Stokes Equations
+-----------------------
+
+**Git reference:** Example `ns-timedep-adapt <http://git.hpfem.org/hermes2d.git/tree/HEAD:/examples/ns-timedep-adapt>`_.
+
+Description coming soon.
+
+
+Bearing (Navier-Stokes)
+-----------------------
+
+**Git reference:** Example `ns-bearing <http://git.hpfem.org/hermes2d.git/tree/HEAD:/examples/ns-bearing>`_.
 
 Description coming soon.
 
 
 
-Nernst-Planck
--------------
+Nernst-Planck Equation System
+-----------------------------
 
 **Git reference:** Example `newton-np-timedep-adapt-system <http://git.hpfem.org/hermes2d.git/tree/HEAD:/examples/newton-np-timedep-adapt-system>`_.
 
@@ -1270,15 +1397,24 @@ The functions along with the boundary conditions::
 
 are assembled as follows::
 	
-	WeakForm wf(2);
-	Solution C_prev_time, C_prev_newton, phi_prev_time, phi_prev_newton;
-	wf.add_liform(0, callback(Fc_euler), H2D_ANY, 3,
-		&C_prev_time, &C_prev_newton, &phi_prev_newton);
-	wf.add_liform(1, callback(Fphi_euler), H2D_ANY, 2, &C_prev_newton, &phi_prev_newton);
-	wf.add_biform(0, 0, callback(J_euler_DFcDYc), H2D_UNSYM, H2D_ANY, 1, &phi_prev_newton);
-	wf.add_biform(0, 1, callback(J_euler_DFcDYphi), H2D_UNSYM, H2D_ANY, 1, &C_prev_newton);
-	wf.add_biform(1, 0, callback(J_euler_DFphiDYc), H2D_UNSYM);
-	wf.add_biform(1, 1, callback(J_euler_DFphiDYphi), H2D_UNSYM);
+        // Add the bilinear and linear forms.
+        if (TIME_DISCR == 1) {  // Implicit Euler.
+          wf.add_vector_form(0, callback(Fc_euler), H2D_ANY,
+		             Tuple<MeshFunction*>(&C_prev_time, &C_prev_newton, &phi_prev_newton));
+          wf.add_vector_form(1, callback(Fphi_euler), H2D_ANY, Tuple<MeshFunction*>(&C_prev_newton, &phi_prev_newton));
+          wf.add_matrix_form(0, 0, callback(J_euler_DFcDYc), H2D_UNSYM, H2D_ANY, &phi_prev_newton);
+          wf.add_matrix_form(0, 1, callback(J_euler_DFcDYphi), H2D_UNSYM, H2D_ANY, &C_prev_newton);
+          wf.add_matrix_form(1, 0, callback(J_euler_DFphiDYc), H2D_UNSYM);
+          wf.add_matrix_form(1, 1, callback(J_euler_DFphiDYphi), H2D_UNSYM);
+        } else {
+          wf.add_vector_form(0, callback(Fc_cranic), H2D_ANY, 
+		             Tuple<MeshFunction*>(&C_prev_time, &C_prev_newton, &phi_prev_newton, &phi_prev_time));
+          wf.add_vector_form(1, callback(Fphi_cranic), H2D_ANY, Tuple<MeshFunction*>(&C_prev_newton, &phi_prev_newton));
+          wf.add_matrix_form(0, 0, callback(J_cranic_DFcDYc), H2D_UNSYM, H2D_ANY, Tuple<MeshFunction*>(&phi_prev_newton, &phi_prev_time));
+          wf.add_matrix_form(0, 1, callback(J_cranic_DFcDYphi), H2D_UNSYM, H2D_ANY, Tuple<MeshFunction*>(&C_prev_newton, &C_prev_time));
+          wf.add_matrix_form(1, 0, callback(J_cranic_DFphiDYc), H2D_UNSYM);
+          wf.add_matrix_form(1, 1, callback(J_cranic_DFphiDYphi), H2D_UNSYM);
+        }
 
 where the variables ``C_prev_time``, ``C_prev_newton``, 
 ``phi_prev_time``, and ``phi_prev_newton`` are solutions of concentration
@@ -1293,8 +1429,9 @@ the following code in the *main()* function enables multimeshing
 
 .. code-block:: c
 	
-	H1Space C(&Cmesh, &shapeset);
-	H1Space phi(MULTIMESH ? &phimesh : &Cmesh, &shapeset);
+    // Spaces for concentration and the voltage.
+    H1Space C(&Cmesh, C_bc_types, C_essential_bc_values, P_INIT);
+    H1Space phi(MULTIMESH ? &phimesh : &Cmesh, phi_bc_types, phi_essential_bc_values, P_INIT);
 
 When ``MULTIMESH`` is defined in `main.cpp <http://git.hpfem.org/hermes2d.git/blob/HEAD:/examples/newton-np-timedep-adapt-system/main.cpp>`_.
 then different H1Spaces for ``phi`` and ``C`` are created. It must be noted that when adaptivity
@@ -1440,7 +1577,7 @@ conditions are Dirichlet, defined as follows:
 
 ::
 
-    // Dirichlet boundary condition values
+    // Essemtial (Dirichlet) boundary condition values.
     scalar essential_bc_values(int ess_bdy_marker, double x, double y)
     {
         if (ess_bdy_marker == 1) return 1;
@@ -1462,17 +1599,16 @@ Bilinear weak form corresponding to the left-hand side of the equation:
 
 ::
 
-    // bilinear form
+    // Bilinear form.
     template<typename Real, typename Scalar>
-    Scalar bilinear_form(int n, double *wt, Func<Real> *u, 
-                         Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+    Scalar bilinear_form(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+    {
+      Scalar result = 0;
+      for (int i=0; i < n; i++)
       {
-        Scalar result = 0;
-        for (int i=0; i < n; i++)
-        {
-          result += wt[i] * (EPSILON * (u->dx[i]*v->dx[i] + u->dy[i]*v->dy[i])
-                                     - (B1 * u->val[i] * v->dx[i] + B2 * u->val[i] * v->dy[i])
-                            );
+        result += wt[i] * (EPSILON * (u->dx[i]*v->dx[i] + u->dy[i]*v->dy[i])
+                                   - (B1 * u->val[i] * v->dx[i] + B2 * u->val[i] * v->dy[i])
+                          );
       }
       return result;
     }
@@ -1555,14 +1691,14 @@ are **turned off for this computation**:
 
 ::
 
-    // initialize the weak formulation
-    WeakForm wf(1);
-    wf.add_biform(0, 0, callback(bilinear_form));
+    // Initialize the weak formulation.
+    WeakForm wf;
+    wf.add_matrix_form(callback(bilinear_form));
     if (STABILIZATION_ON == true) {
-      wf.add_biform(0, 0, callback(bilinear_form_stabilization));
+      wf.add_matrix_form(callback(bilinear_form_stabilization));
     }
     if (SHOCK_CAPTURING_ON == true) {
-      wf.add_biform(0, 0, bilinear_form_shock_capturing, bilinear_form_shock_capturing_order);
+      wf.add_matrix_form(callback(bilinear_form_shock_capturing));
     }
 
 Let us compare adaptive $h$-FEM with linear and quadratic elements and the $hp$-FEM.
@@ -1588,8 +1724,6 @@ Final mesh for $hp$-FEM: 1854 DOF, error = 0.28 \%
    :height: 400
    :alt: Mesh.
 
-
-
 Convergence graphs of adaptive h-FEM with linear elements, h-FEM with quadratic elements
 and hp-FEM are shown below.
 
@@ -1599,17 +1733,9 @@ and hp-FEM are shown below.
    :height: 400
    :alt: DOF convergence graph.
 
-Navier-Stokes Equations
------------------------
 
-**Git reference:** Example `ns-timedep-adapt 
-<http://git.hpfem.org/hermes2d.git/tree/HEAD:/examples/ns-timedep-adapt>`_.
-
-Description coming soon.
-
-
-Flame Propagation Problem
--------------------------
+Simplified Flame Propagation
+----------------------------
 
 Example coming soon.
 

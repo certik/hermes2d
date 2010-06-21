@@ -102,7 +102,8 @@ scalar linear_form_surf(int n, double *wt, Func<double> *v, Geom<double> *e, Ext
   }
   return result;
 }
-// maximal polynomial order to integrate surface linear form
+
+// Maximum polynomial order to integrate surface linear form
 Ord linear_form_surf_ord(int n, double *wt, Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext)
   {  return Ord(v->val[0].get_max_order());  }
 

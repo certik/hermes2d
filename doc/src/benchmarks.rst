@@ -45,7 +45,7 @@ Code for the exact solution and the weak forms:
 
 ::
 
-    // exact solution
+    // Exact solution.
     static double fn(double x, double y)
     {
       return sin(x)*sin(y);
@@ -58,18 +58,19 @@ Code for the exact solution and the weak forms:
       return fn(x, y);
     }
 
-    // boundary condition types
+    // Boundary condition types.
     BCType bc_types(int marker)
     {
       return BC_ESSENTIAL;
     }
 
-    // function values for essential(Dirichlet) boundary conditions
+    // Essential (Dirichlet) boundary conditions.
     scalar essential_bc_values(int ess_bdy_marker, double x, double y)
     {
-      return fn(x, y);
+      return 0;
     }
 
+    // Weak forms.
     template<typename Real, typename Scalar>
     Scalar bilinear_form(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
     {
@@ -79,7 +80,7 @@ Code for the exact solution and the weak forms:
     template<typename Real>
     Real rhs(Real x, Real y)
     {
-      return 2 * sin(x) * sin(y);
+      return 2*sin(x)*sin(y);
     }
 
     template<typename Real, typename Scalar>
@@ -297,11 +298,11 @@ Exact solution:
 
 where $r(x,y) = \sqrt{x^2 + y^2}$ and $a(x,y) = \mbox{atan}(x/y)$. 
 
-Code for the exact solution and the weak forms:
+Code for the exact solution, bundary conditions, and weak forms:
 
 ::
 
-    // exact solution
+    // Exact solution.
     static double fn(double x, double y)
     {
       double r = sqrt(x*x + y*y);
@@ -319,13 +320,19 @@ Code for the exact solution and the weak forms:
       return fn(x, y);
     }
 
-    // boundary condition types
+    // Boundary condition types.
     BCType bc_types(int marker)
     {
       return BC_ESSENTIAL;
     }
 
-    // bilinear form corresponding to the Laplace equation
+    // Essential (Dirichlet) boundary condition values.
+    scalar essential_bc_values(int ess_bdy_marker, double x, double y)
+    {
+      return fn(x, y);
+    }
+
+    // Bilinear form corresponding to the Laplace equation.
     template<typename Real, typename Scalar>
     Scalar bilinear_form(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
     {
@@ -423,7 +430,7 @@ Code for the exact solution and the weak forms:
 
 ::
 
-    // exact solution
+    // Exact solution.
     static double fn(double x, double y)
     {
       return atan(SLOPE * (sqrt(sqr(x-1.25) + sqr(y+0.25)) - M_PI/3));
@@ -438,19 +445,19 @@ Code for the exact solution and the weak forms:
       return fn(x, y);
     }
     
-    // boundary condition types
+    // Boundary condition types.
     BCType bc_types(int marker)
     {
       return BC_ESSENTIAL;
     }
     
-    // Dirichlet boundary condition values
+    // Essential (Dirichlet) boundary condition values.
     scalar essential_bc_values(int ess_bdy_marker, double x, double y)
     {
       return fn(x, y);
     }
     
-    // bilinear form for the Poisson equation
+    // Bilinear form for the Poisson equation.
     template<typename Real, typename Scalar>
     Scalar bilinear_form(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
     {
@@ -569,7 +576,7 @@ is the code snippet with both the exact solution and the right-hand side:
 
 ::
 
-    // solution to the 1D problem -u'' + K*K*u = K*K in (-1,1) with zero Dirichlet BC
+    // Solution to the 1D problem -u'' + K*K*u = K*K in (-1,1) with zero Dirichlet BC.
     double uhat(double x) {
       return 1. - (exp(K*x) + exp(-K*x)) / (exp(K) + exp(-K));
     }
@@ -580,8 +587,8 @@ is the code snippet with both the exact solution and the right-hand side:
       return -K*K * (exp(K*x) + exp(-K*x)) / (exp(K) + exp(-K));
     }
 
-    // exact solution u(x,y) to the 2D problem is defined as the
-    // Cartesian product of the 1D solutions
+    // Exact solution u(x,y) to the 2D problem is defined as the
+    // Cartesian product of the 1D solutions.
     static double sol_exact(double x, double y, double& dx, double& dy)
     {
       dx = duhat_dx(x) * uhat(y);
@@ -589,7 +596,7 @@ is the code snippet with both the exact solution and the right-hand side:
       return uhat(x) * uhat(y);
     }
 
-    // right-hand side
+    // Right-hand side.
     double rhs(double x, double y) {
       return -(dduhat_dxx(x)*uhat(y) + uhat(x)*dduhat_dxx(y)) + K*K*uhat(x)*uhat(y);
     }
@@ -599,7 +606,7 @@ here is that we integrate the non-polynomial right-hand side with a very hign or
 
 ::
 
-    // weak forms
+    // Weak forms.
     template<typename Real, typename Scalar>
     Scalar bilinear_form(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
     {
@@ -612,7 +619,7 @@ here is that we integrate the non-polynomial right-hand side with a very hign or
       return int_F_v<Real, Scalar>(n, wt, rhs, v, e);;
     }
 
-    // integration order for linear_form_0
+    // Integration order for linear_form_0.
     Ord linear_form_ord(int n, double *wt, Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext)
     {
       return 24;
@@ -785,7 +792,7 @@ CPU convergence graphs (hp-FEM):
 The reader can see that enabling polynomially anisotropic refinements in the hp-FEM is 
 equally important as allowing spatially anisotropic ones. 
 
-Line singularity (Elliptic)
+Line Singularity (Elliptic)
 ---------------------------
 
 **Git reference:** Benchmark `line-singularity <http://git.hpfem.org/hermes2d.git/tree/HEAD:/benchmarks/line-singularity>`_.
@@ -897,13 +904,10 @@ Final mesh (hp-FEM, hp-anisotropic refinements):
    :width: 450
    :alt: Final mesh.
 
-The following convergence comparisons show that, surprizingly, 
-the h-anisotropic version is the most efficient one. The reason is
-that both the hp-FEM with isotropic refinements and hp-FEM with hp-anisotropic 
-refinements hit the maximum polynomial degree (p=9) early in the mesh 
-adaptation process (while hp-FEM with h-anisotropic refinements does not). 
-We expect that this problem should go away after we increase the 
-maximum polynomial degree in Hermes - this is on the TODO list now.  
+The following convergence comparisons still correspond to an older
+version of Hermes2D when we did not have anisotropic hp-refinements. 
+With those, the convergence of adaptive hp-FEM has improved a lot. 
+These results will be updated soon.
 
 DOF convergence graphs:
 
@@ -950,13 +954,13 @@ Exact solution: Quite complicated, see the code below.
 
 ::
 
-    // problem constants
+    // Problem constants.
     const double R = 161.4476387975881;      // Equation parameter.
     const double TAU = 0.1;                  // Equation parameter.
     const double RHO = M_PI/4.;              // Equation parameter
     const double SIGMA = -14.92256510455152; // Equation parameter
 
-    // exact solution
+    // Exact solution.
     static double fn(double x, double y)
     {
       double theta = atan2(y,x);
@@ -1045,6 +1049,17 @@ CPU time convergence graphs:
    :width: 600
    :height: 400
    :alt: CPU convergence graph.
+
+
+2-Group (Neutronics)
+--------------------
+
+**Git reference:** Example `neutronics-2-group-adapt <http://git.hpfem.org/hermes2d.git/tree/HEAD:/benchmarks/neutronics-2-group-adapt>`_.
+
+
+Description coming soon.
+
+
 
 Bessel (Maxwell's Equations)
 ----------------------------
@@ -1148,7 +1163,8 @@ Code for the weak forms:
       }
       return result;
     }
-    // maximal polynomial order to integrate surface linear form
+
+    // Maximal polynomial order to integrate surface linear form.
     Ord linear_form_surf_ord(int n, double *wt, Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext)
     {  return Ord(v->val[0].get_max_order());  }
 
