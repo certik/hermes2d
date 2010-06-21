@@ -13,6 +13,8 @@ using namespace RefinementSelectors;
 // The solution reflects the typical behavior observed in real cases, where one component is very smooth and the 
 // other more oscillating. Typical boundary conditions prescribed in real models have also been chosen.
 //
+// Author: Milan Hanus (University of West Bohemia, Pilsen, Czech Republic).
+//
 // EQUATION:
 //
 //  - \nabla \cdot D_g \nabla \phi_g + \Sigma_{Rg}\phi_g 
@@ -27,64 +29,64 @@ using namespace RefinementSelectors;
 
 // INITIALIZATION
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Adaptivity control
+// Adaptivity control:
 
-const bool SOLVE_ON_COARSE_MESH = false; 					// If true, coarse mesh FE problem is solved in every adaptivity step.
-                                         					// If false, projection of the fine mesh solution on the coarse mesh is used. 
+const bool SOLVE_ON_COARSE_MESH = false;   // If true, coarse mesh FE problem is solved in every adaptivity step.
+                                           // If false, projection of the fine mesh solution on the coarse mesh is used. 
 const int P_INIT[2] = 
-	{1, 1};						 			 				// Initial polynomial orders for the individual solution components
+	{1, 1};				   // Initial polynomial orders for the individual solution components
 const int INIT_REF_NUM[2] = 
-	{1, 1};			 						 				// Initial uniform mesh refinement for the individual solution components
+	{1, 1};			 	   // Initial uniform mesh refinement for the individual solution components
 	
-const double THRESHOLD = 0.3;    	// This is a quantitative parameter of the adapt(...) function and
-                                 	// it has different meanings for various adaptive strategies (see below).
-const int STRATEGY = 1;          	// Adaptive strategy:
-																	// STRATEGY = 0 ... refine elements until sqrt(THRESHOLD) times total
-																	//   error is processed. If more elements have similar errors, refine
-																	//   all to keep the mesh symmetric.
-																	// STRATEGY = 1 ... refine all elements whose error is larger
-																	//   than THRESHOLD times maximum element error.
-																	// STRATEGY = 2 ... refine all elements whose error is larger
-																	//   than THRESHOLD.
-																	// More adaptive strategies can be created in adapt_ortho_h1.cpp.
+const double THRESHOLD = 0.3;    	   // This is a quantitative parameter of the adapt(...) function and
+                                 	   // it has different meanings for various adaptive strategies (see below).
+const int STRATEGY = 1;          	   // Adaptive strategy:
+					   // STRATEGY = 0 ... refine elements until sqrt(THRESHOLD) times total
+					   //   error is processed. If more elements have similar errors, refine
+					   //   all to keep the mesh symmetric.
+					   // STRATEGY = 1 ... refine all elements whose error is larger
+					   //   than THRESHOLD times maximum element error.
+					   // STRATEGY = 2 ... refine all elements whose error is larger
+					   //   than THRESHOLD.
+					   // More adaptive strategies can be created in adapt_ortho_h1.cpp.
 const CandList CAND_LIST = H2D_HP_ANISO_P; // Predefined list of element refinement candidates. Possible values are
-                                         // H2D_P_ISO, H2D_P_ANISO, H2D_H_ISO, H2D_H_ANISO, H2D_HP_ISO,
-                                         // H2D_HP_ANISO_H, H2D_HP_ANISO_P, H2D_HP_ANISO.
-                                         // See User Documentation for details.
-const int MESH_REGULARITY = -1;          // Maximum allowed level of hanging nodes:
-                                         // MESH_REGULARITY = -1 ... arbitrary level hangning nodes (default),
-                                         // MESH_REGULARITY = 1 ... at most one-level hanging nodes,
-                                         // MESH_REGULARITY = 2 ... at most two-level hanging nodes, etc.
-                                         // Note that regular meshes are not supported, this is due to
-                                         // their notoriously bad performance.
-const double CONV_EXP = 1.0;             // Default value is 1.0. This parameter influences the selection of
-                                         // candidates in hp-adaptivity. See get_optimal_refinement() for details.
-const double ERR_STOP = 0.01;            // Stopping criterion for adaptivity (rel. error tolerance between the
-                                         // fine mesh and coarse mesh solution in percent).
-const int NDOF_STOP = 60000;             // Adaptivity process stops when the number of degrees of freedom grows over
-                                         // this limit. This is mainly to prevent h-adaptivity to go on forever.
-const int MAX_ADAPT_NUM = 30;	         	 // Adaptivity process stops when the number of adaptation steps grows over
-                                         // this limit.
-const int ENERGY_NORM = 2;               // Specifies the norm used by H1Adapt to calculate the error and norm
-																				 // ENERGY_NORM = 0 ... H1 norm
-                                         // ENERGY_NORM = 1 ... norm defined by the diagonal parts of the bilinear form
-                                         // ENERGY_NORM = 2 ... energy norm defined by the full non-symmetric bilinear form
+                                           // H2D_P_ISO, H2D_P_ANISO, H2D_H_ISO, H2D_H_ANISO, H2D_HP_ISO,
+                                           // H2D_HP_ANISO_H, H2D_HP_ANISO_P, H2D_HP_ANISO.
+                                           // See User Documentation for details.
+const int MESH_REGULARITY = -1;            // Maximum allowed level of hanging nodes:
+                                           // MESH_REGULARITY = -1 ... arbitrary level hangning nodes (default),
+                                           // MESH_REGULARITY = 1 ... at most one-level hanging nodes,
+                                           // MESH_REGULARITY = 2 ... at most two-level hanging nodes, etc.
+                                           // Note that regular meshes are not supported, this is due to
+                                           // their notoriously bad performance.
+const double CONV_EXP = 1.0;               // Default value is 1.0. This parameter influences the selection of
+                                           // candidates in hp-adaptivity. See get_optimal_refinement() for details.
+const double ERR_STOP = 0.01;              // Stopping criterion for adaptivity (rel. error tolerance between the
+                                           // fine mesh and coarse mesh solution in percent).
+const int NDOF_STOP = 60000;               // Adaptivity process stops when the number of degrees of freedom grows over
+                                           // this limit. This is mainly to prevent h-adaptivity to go on forever.
+const int MAX_ADAPT_NUM = 30;	           // Adaptivity process stops when the number of adaptation steps grows over
+                                           // this limit.
+const int ADAPTIVITY_NORM = 2;             // Specifies the norm used by H1Adapt to calculate the error and norm.
+					   // ADAPTIVITY_NORM = 0 ... H1 norm.
+                                           // ADAPTIVITY_NORM = 1 ... norm defined by the diagonal parts of the bilinear form.
+                                           // ADAPTIVITY_NORM = 2 ... energy norm defined by the full (non-symmetric) bilinear form.
 
 // Macro for simpler definition of bilinear forms in the energy norm
 #define callback_egnorm(a)     a<scalar, scalar>, a<Ord, Ord>
 		
 // Variables used for reporting of results														 
-TimePeriod cpu_time;							// Time measurements
-const int ERR_PLOT = 0;						// Row in the convergence graphs for exact errors 
-const int ERR_EST_PLOT = 1;				// Row in the convergence graphs for error estimates 
-const int GROUP_1 = 0;						// Row in the NDOFs evolution graph for group 1
-const int GROUP_2 = 1;						// Row in the NDOFs evolution graph for group 2
+TimePeriod cpu_time;						// Time measurements.
+const int ERR_PLOT = 0;						// Row in the convergence graphs for exact errors .
+const int ERR_EST_PLOT = 1;				        // Row in the convergence graphs for error estimates.
+const int GROUP_1 = 0;						// Row in the NDOFs evolution graph for group 1.
+const int GROUP_2 = 1;						// Row in the NDOFs evolution graph for group 2.
 
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Problem data
+// Problem data:
 
-// Two-group material properties for the 4 macroregions
+// Two-group material properties for the 4 macroregions.
 const double D[4][2] = {	{1.12, 0.6},
                         	{1.2, 0.5},
                         	{1.35, 0.8},
@@ -142,7 +144,8 @@ double Q2(double x, double y) {
 	double exfl2 = exfl1 * (1 + sx2 * sy2) / 10.0;
 	
 	double L = 1./20.*em4x2*D[q][1]*( 
-		1+4*(8*x2-1)*yym2+16*pi2*yym2*cy2*sx2 + 0.5*sy2*(1-4*(1+4*pi2-8*x2)*yym2 + (4*(1+12*pi2-8*x2)*yym2-1)*cos(8*pix) - 64*pix*yym2*sin(8*pix)) + 8*M_PI*(y-1)*sx2*sin(8*piy) );
+		1+4*(8*x2-1)*yym2+16*pi2*yym2*cy2*sx2 + 0.5*sy2*(1-4*(1+4*pi2-8*x2)*yym2 + 
+                (4*(1+12*pi2-8*x2)*yym2-1)*cos(8*pix) - 64*pix*yym2*sin(8*pix)) + 8*M_PI*(y-1)*sx2*sin(8*piy) );
 	return L + Sr[q][1]*exfl2 - Ss[q][1][0]*exfl1;
 }
 
@@ -154,7 +157,7 @@ double g2_D(double x, double y) {
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Exact solution
+// Exact solution:
 
 static double exact_flux1(double x, double y, double& dx, double& dy)
 {
@@ -270,13 +273,13 @@ int main(int argc, char* argv[])
 
   // visualization
   ScaledScalarView view1("Neutron flux 1", 0, 0, 500, 460);
-  ScaledScalarView view2("Neutron flux 2", 500, 0, 500, 460);
+  ScaledScalarView view2("Neutron flux 2", 510, 0, 500, 460);
   //ScaledScalarView view3("Error in neutron flux 1", 1000, 0, 500, 460);
   //ScaledScalarView view4("Error in neutron flux 2", 1500, 0, 500, 460);
   ScaledScalarView view3("Error in neutron flux 1", 0, 0, 500, 460);
-  ScaledScalarView view4("Error in neutron flux 2", 500, 0, 500, 460);
-  OrderView oview1("Mesh for group 1", 0, 500, 360, 300);
-  OrderView oview2("Mesh for group 2", 360, 500, 360, 300);
+  ScaledScalarView view4("Error in neutron flux 2", 510, 0, 500, 460);
+  OrderView oview1("Mesh for group 1", 0, 520, 360, 300);
+  OrderView oview2("Mesh for group 2", 360, 520, 360, 300);
   view1.show_mesh(false); view1.set_3d_mode(true);
   view2.show_mesh(false); view2.set_3d_mode(true);
   view3.show_mesh(false); view3.set_3d_mode(true);
@@ -317,14 +320,14 @@ int main(int argc, char* argv[])
 	cpu_time.tick();
 		
 	// initial coarse mesh solution
-	LinSystem sys(&wf, &umfpack, Tuple<Space*>(&space1, &space2));
-	sys.assemble();
+	LinSystem ls(&wf, &umfpack, Tuple<Space*>(&space1, &space2));
+	ls.assemble();
 
 	double cta;
 	int order_increase = 1;
 	for (int iadapt = 0; iadapt < MAX_ADAPT_NUM; iadapt++) {
     
-    int ndof = sys.get_num_dofs();
+    int ndof = ls.get_num_dofs();
     if (ndof >= NDOF_STOP)	break;
     	  
 		cpu_time.tick();	
@@ -333,43 +336,43 @@ int main(int argc, char* argv[])
     		
     // solve the fine mesh problem
  
-    RefSystem refsys(&sys, order_increase);
-    refsys.assemble();	
+    RefSystem rs(&ls, order_increase);
+    rs.assemble();	
       
     cpu_time.tick();
     
-    int ndof_ref =	refsys.get_num_dofs(0) + refsys.get_num_dofs(1);  
+    int ndof_ref =	rs.get_num_dofs();  
 		info("---------- Reference mesh solution; NDOF=%d ----------------", ndof_ref);	
 		
     cpu_time.tick(H2D_SKIP);
     
-		refsys.solve(Tuple<Solution*>(&sln1_ref, &sln2_ref));
+		rs.solve(Tuple<Solution*>(&sln1_ref, &sln2_ref));
 		
     if (SOLVE_ON_COARSE_MESH) {
 	    cpu_time.tick();	
 	    info("----------- Coarse mesh solution; NDOF=%d -----------------", ndof);	  
 	    cpu_time.tick(H2D_SKIP);
 	     
-	    sys.assemble();	
-	    sys.solve(Tuple<Solution*>(&sln1, &sln2));
+	    ls.assemble();	
+	    ls.solve(Tuple<Solution*>(&sln1, &sln2));
     }	else {
 	    // project the fine mesh solution on the new coarse mesh
 	    cpu_time.tick();
       info("---- Projecting fine mesh solution on new coarse mesh -----------------");
       cpu_time.tick(H2D_SKIP);
-      sys.project_global(Tuple<MeshFunction*>(&sln1_ref, &sln2_ref), 
+      ls.project_global(Tuple<MeshFunction*>(&sln1_ref, &sln2_ref), 
                          Tuple<Solution*>(&sln1, &sln2));
     }
 		
 		// calculate element errors and total error estimate
     
-    H1Adapt hp(&sys);
-    if (ENERGY_NORM == 2) {
+    H1Adapt hp(&ls);
+    if (ADAPTIVITY_NORM == 2) {
 		  hp.set_biform(0, 0, callback_egnorm(biform_0_0));
 		  hp.set_biform(0, 1, callback_egnorm(biform_0_1));
 		  hp.set_biform(1, 0, callback_egnorm(biform_1_0));
 		  hp.set_biform(1, 1, callback_egnorm(biform_1_1));
-		} else if (ENERGY_NORM == 1) {
+		} else if (ADAPTIVITY_NORM == 1) {
 		  hp.set_biform(0, 0, callback_egnorm(biform_0_0));
 		  hp.set_biform(1, 1, callback_egnorm(biform_1_1));
 		}
@@ -387,7 +390,7 @@ int main(int argc, char* argv[])
     cpu_time.tick();            
    	cta = cpu_time.accumulated();
    	
-   	info("flux1_dof=%d, flux2_dof=%d", space1.get_num_dofs(), space2.get_num_dofs());
+   	info("flux1_dof=%d, flux2_dof=%d", ls.get_num_dofs(0), ls.get_num_dofs(1));
     oview1.show(&space1);
     oview2.show(&space2);
     
@@ -424,8 +427,8 @@ int main(int argc, char* argv[])
 		  graph_dof.add_values(ERR_PLOT, ndof, error_h1);  
 		  graph_dof.add_values(ERR_EST_PLOT, ndof, err_est_h1);
 		  // add entry to DOF evolution graphs
-		  graph_dof_evol.add_values(GROUP_1, iadapt, sys.get_num_dofs(0));
- 		  graph_dof_evol.add_values(GROUP_2, iadapt, sys.get_num_dofs(1));
+		  graph_dof_evol.add_values(GROUP_1, iadapt, ls.get_num_dofs(0));
+ 		  graph_dof_evol.add_values(GROUP_2, iadapt, ls.get_num_dofs(1));
 		  // add entry to CPU convergence graphs
 		  graph_cpu.add_values(ERR_PLOT, cta, error_h1);
 		  graph_cpu.add_values(ERR_EST_PLOT, cta, err_est_h1);

@@ -1,4 +1,4 @@
-./neutronics-2-group-adapt-exact
+./neutronics-2-group-adapt
 
 if [ ! -d "res/$1" ]; then
 	mkdir "res/$1"
