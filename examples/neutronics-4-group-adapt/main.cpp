@@ -74,7 +74,7 @@ const double ERR_STOP = 0.05;            // Stopping criterion for adaptivity (r
                                          // fine mesh and coarse mesh solution in percent).
 const int NDOF_STOP = 60000;             // Adaptivity process stops when the number of degrees of freedom grows over
                                          // this limit. This is mainly to prevent h-adaptivity to go on forever.
-const int MAX_ADAPT_NUM = 30;	         	 // Adaptivity process stops when the number of adaptation steps grows over
+const int MAX_ADAPT_NUM = 1;	         	 // Adaptivity process stops when the number of adaptation steps grows over
                                          // this limit.
 
 // Macro for simpler definition of bilinear forms in the energy norm.
@@ -211,10 +211,11 @@ void power_iteration(Solution *sln1, Solution *sln2, Solution *sln3, Solution *s
 		     LinSystem *ls, double tol)
 {
   bool eigen_done = false; int it = 0;
+  info("%.8g, %.8g, %.8g, %.8g", h1_norm_axisym(iter1), h1_norm_axisym(iter2), h1_norm_axisym(iter3), h1_norm_axisym(iter4));
   do {
     // Solve for new eigenvectors.
     ls->solve(Tuple<Solution*>(sln1, sln2, sln3, sln4));
-
+    if (it++ == 0) info("%.8g, %.8g, %.8g, %.8g", h1_norm_axisym(sln1), h1_norm_axisym(sln2), h1_norm_axisym(sln3), h1_norm_axisym(sln4));
     // Update fission sources.
     SimpleFilter source(source_fn, sln1, sln2, sln3, sln4);
     SimpleFilter source_prev(source_fn, iter1, iter2, iter3, iter4);
