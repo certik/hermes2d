@@ -260,7 +260,45 @@ cdef class Mesh:
     @property
     def elements(self):
         """
-        Return the list of elements (as ids).
+        Returns the list of elements (as ids) made up by their corresponding vertices.
+
+        Elements in a mesh are made up of zero based indices of their vertices in a 
+        counterclockwise order.
+
+        Example:
+
+        >>> m.create([
+        ...         [0, -1],
+        ...         [1, -1],
+        ...         [-1, 0],
+        ...         [0, 0],
+        ...         [1, 0],
+        ...         [-1, 1],
+        ...         [0, 1],
+        ...         [0.707106781, 0.707106781],
+        ...     ], [
+        ...         [0, 1, 4, 3, 0],
+        ...         [3, 4, 7, 0],
+        ...         [3, 7, 6, 0],
+        ...         [2, 3, 6, 5, 0],
+        ...     ], [
+        ...         [0, 1, 1],
+        ...         [1, 4, 2],
+        ...         [3, 0, 4],
+        ...         [4, 7, 2],
+        ...         [7, 6, 2],
+        ...         [2, 3, 4],
+        ...         [6, 5, 2],
+        ...         [5, 2, 3],
+        ...     ], [
+        ...         [4, 7, 45],
+        ...         [7, 6, 45],
+        ...     ])
+        >>> m.elements
+        [[0, 1, 4, 3], [3, 4, 7], [3, 7, 6], [2, 3, 6, 5]] 
+
+        In the example above "[0, 1, 4, 3]" is an element.
+
         """
         element_list = []
         for i in range(self.num_elements):
@@ -434,7 +472,7 @@ cdef class Mesh:
 
     def create(self, nodes, elements, boundary, nurbs):
         """
-        Creates a mesh from a list of nodes, elements, boundary and nurbs.
+        Creates a mesh from a list of nodes, elements, boundaries and nurbs.
 
         Example:
 
