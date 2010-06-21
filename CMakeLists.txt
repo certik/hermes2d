@@ -16,7 +16,7 @@ set(RELEASE NO)
 
 # real/complex version of the library (you can build either of both)
 set(H2D_REAL     YES)
-set(H2D_COMPLEX  NO)
+set(H2D_COMPLEX  YES)
 
 # optional functionality
 set(WITH_PYTHON     NO)

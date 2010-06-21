@@ -60,7 +60,6 @@ bool CommonSolverSciPyUmfpack::solve(Matrix *mat, double *res)
     p->exec("with warnings.catch_warnings():\n"
             "    warnings.simplefilter('ignore')\n"
             "    x = spsolve(A, rhs)");
-
     double *x;
     int n;
     numpy2c_double_inplace(p->pull("x"), &x, &n);

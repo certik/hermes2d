@@ -3,7 +3,6 @@
 #define H2D_REPORT_VERBOSE
 #define H2D_REPORT_FILE "application.log"
 #include "hermes2d.h"
-#include "solver_umfpack.h"  // defines the class UmfpackSolver
 
 using namespace RefinementSelectors;
 
@@ -108,9 +107,6 @@ int main(int argc, char* argv[])
   ScalarView view("Vector potential A", 0, 0, 510, 350);
   OrderView  oview("Polynomial orders", 520, 0, 450, 350);
 
-  // Matrix solver.
-  UmfpackSolver solver;
-
   // DOF and CPU convergence graphs.
   SimpleGraph graph_dof_est, graph_dof_exact, graph_cpu_est, graph_cpu_exact;
 
@@ -118,7 +114,7 @@ int main(int argc, char* argv[])
   H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
 
   // Initialize the coarse mesh problem.
-  LinSystem ls(&wf, &solver, &space);
+  LinSystem ls(&wf, &space);
 
   // Adaptivity loop:
   int as = 1; bool done = false;

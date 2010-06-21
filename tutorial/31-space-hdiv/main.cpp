@@ -1,5 +1,4 @@
 #include "hermes2d.h"
-#include "solver_umfpack.h"
 
 // This example shows how to use the Hdiv space and
 // visualize finite element basis functions. Note that 

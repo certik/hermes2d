@@ -27,6 +27,8 @@ bool CommonSolverSparseLib::solve(Matrix *mat, double *res)
 
     if (CooMatrix *mcoo = dynamic_cast<CooMatrix*>(mat))
         Acsc = new CSCMatrix(mcoo);
+    else if (DenseMatrix *mden = dynamic_cast<DenseMatrix *>(mat))
+        Acsc = new CSCMatrix(mden);
     else if (CSCMatrix *mcsc = dynamic_cast<CSCMatrix*>(mat))
         Acsc = mcsc;
     else if (CSRMatrix *mcsr = dynamic_cast<CSRMatrix*>(mat))

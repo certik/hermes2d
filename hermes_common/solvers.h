@@ -20,6 +20,50 @@ private:
     char *log;
 };
 
+// c++ cg
+class CommonSolverCG : public CommonSolver
+{
+public:
+    bool solve(Matrix *mat, double *res)
+    {
+        solve(mat, res, 1e-6, 1000);
+    }
+    bool solve(Matrix *mat, double *res,
+               double tol,
+               int maxiter);
+    bool solve(Matrix *mat, cplx *res);
+};
+inline void solve_linear_system_cg(Matrix *mat, double *res,
+                                   double tol,
+                                   int maxiter)
+{
+    CommonSolverCG solver;
+    solver.solve(mat, res, tol, maxiter);
+}
+inline void solve_linear_system_cg(Matrix *mat, cplx *res)
+{
+    CommonSolverCG solver;
+    solver.solve(mat, res);
+}
+
+// c++ lu
+class CommonSolverDenseLU : public CommonSolver
+{
+public:
+    bool solve(Matrix *mat, double *res);
+    bool solve(Matrix *mat, cplx *res);
+};
+inline void solve_linear_system_dense_lu(Matrix *mat, double *res)
+{
+    CommonSolverDenseLU solver;
+    solver.solve(mat, res);
+}
+inline void solve_linear_system_dense_lu(Matrix *mat, cplx *res)
+{
+    CommonSolverDenseLU solver;
+    solver.solve(mat, res);
+}
+
 // c++ umfpack - optional
 class CommonSolverUmfpack : public CommonSolver
 {

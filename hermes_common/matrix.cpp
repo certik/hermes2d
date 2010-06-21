@@ -130,15 +130,15 @@ void CooMatrix::add_from_csr(CSRMatrix *m)
     // loop through rows...
     for (int i = 1; i <= m->get_size(); i++)
     {
-       for (int j = count; j < Ap[i]; j++)
-       {
-           if (is_complex())
+        for (int j = count; j < Ap[i]; j++)
+        {
+            if (is_complex())
                 add(i-1, Ai[count], Ax_cplx[count]);
-           else
-               add(i-1, Ai[count], Ax[count]);
-           count++;
-       }
-   }
+            else
+                add(i-1, Ai[count], Ax[count]);
+            count++;
+        }
+    }
 }
 
 void CooMatrix::add_from_csc(CSCMatrix *m)
@@ -534,6 +534,12 @@ CSCMatrix::CSCMatrix(CooMatrix *m) : Matrix()
     this->add_from_coo(m);
 }
 
+CSCMatrix::CSCMatrix(DenseMatrix *m) : Matrix()
+{
+    init();
+    this->add_from_dense(m);
+}
+
 CSCMatrix::CSCMatrix(CSRMatrix *m) : Matrix()
 {
     init();
@@ -546,6 +552,8 @@ CSCMatrix::CSCMatrix(Matrix *m) : Matrix()
 
     if (dynamic_cast<CooMatrix*>(m))
         this->add_from_coo((CooMatrix *) m);
+    else if (dynamic_cast<DenseMatrix *>(m))
+        this->add_from_dense((DenseMatrix *) m);
     else if (dynamic_cast<CSRMatrix *>(m))
         this->add_from_csr((CSRMatrix *) m);
     else
@@ -601,6 +609,48 @@ void CSCMatrix::free_data()
 
     size = 0;
     nnz = 0;
+}
+
+void CSCMatrix::add_from_dense(DenseMatrix *m)
+{
+    free_data();
+
+    this->size = m->get_size();
+    this->nnz = m->get_nnz();
+    this->complex = m->is_complex();
+
+    // allocate data
+    this->Ap = new int[this->size + 1];
+    this->Ai = new int[this->nnz];
+    if (is_complex())
+        this->Ax_cplx = new cplx[this->nnz];
+    else
+        this->Ax = new double[this->nnz];
+
+    // get data
+    int *row = new int[this->nnz];
+    int *col = new int[this->nnz];
+    if (is_complex())
+    {
+        cplx *data = new cplx[this->nnz];
+        dense_to_coo(size, nnz, m->get_A_cplx(), row, col, data);
+        coo_to_csc(this->size, this->nnz, row, col, data, Ap, Ai, Ax_cplx);
+        if (data) delete[] data;
+    }
+    else
+    {
+        double *data = new double[this->nnz];
+        dense_to_coo(size, nnz, m->get_A(), row, col, data);
+        print_vector("row", row, this->nnz);
+        print_vector("col", col, this->nnz);
+        print_vector("Ax", data, this->nnz);
+        coo_to_csc(this->size, this->nnz, row, col, data, Ap, Ai, Ax);
+        if (data) delete[] data;
+    }
+
+    // free data
+    if (row) delete[] row;
+    if (col) delete[] col;
 }
 
 void CSCMatrix::add_from_coo(CooMatrix *m)
@@ -683,6 +733,26 @@ void CSCMatrix::print()
 }
 
 // ******************************************************************************************************************************
+
+template<typename T>
+void dense_to_coo(int size, int nnz, T **Ad, int *row, int *col, T *A)
+{
+    int count = 0;
+    for (int i = 0; i < size; i++)
+    {
+        for (int j = 0; j < size; j++)
+        {
+            if (std::abs(Ad[i][j]) > 1e-12)
+            {
+                row[count] = i;
+                col[count] = j;
+                A[count] = Ad[i][j];
+
+                count++;
+            }
+        }
+    }
+}
 
 template<typename T>
 void coo_to_csr(int size, int nnz, int *row, int *col, T *A, int *Ap, int *Ai, T *Ax)
@@ -800,13 +870,120 @@ void csr_to_coo(int size, int nnz, int *Ap, int *Ai, T *Ax, int *row, int *col, 
     // loop through rows...
     for (int i = 1; i <= size; i++)
     {
-       for (int j = count; j < Ap[i]; j++)
-       {
-          A[count] = Ax[count];
-          col[count] = Ai[count];
-          row[count] = i-1;
+        for (int j = count; j < Ap[i]; j++)
+        {
+            A[count] = Ax[count];
+            col[count] = Ai[count];
+            row[count] = i-1;
 
-          count++;
-       }
-   }
+            count++;
+        }
+    }
+}
+
+// matrix vector multiplication
+void mat_dot(Matrix *A, double *x, double *result, int n_dof)
+{
+    A->times_vector(x, result, n_dof);
+}
+
+// vector vector multiplication
+double vec_dot(double *r, double *s, int n_dof)
+{
+    double result = 0;
+    for (int i=0; i < n_dof; i++) result += r[i]*s[i];
+    return result;
+}
+
+/// Solves the set of n linear equations A*x = b, where a is a positive-definite symmetric matrix.
+/// a[n][n] and p[n] are input as the output of the routine choldc. Only the lower
+/// subdiagonal portion of a is accessed. b[n] is input as the right-hand side vector. The
+/// solution vector is returned in x[n]. a, n, and p are not modified and can be left in place
+/// for successive calls with different right-hand sides b. b is not modified unless you identify b and
+/// x in the calling sequence, which is allowed. The right-hand side b can be complex, in which case
+/// the solution x is also complex.
+void ludcmp(double** a, int n, int* indx, double* d)
+{
+    int i, imax = 0, j, k;
+    double big, dum, sum, temp;
+    double* vv = new double[n];
+
+    *d = 1.0;
+    for (i = 0; i < n; i++)
+    {
+        big=0.0;
+        for (j = 0; j < n; j++)
+            if ((temp = fabs(a[i][j])) > big)
+                big = temp;
+        if (big == 0.0) _error("Singular matrix!");
+        vv[i] = 1.0 / big;
+    }
+    for (j = 0; j < n; j++)
+    {
+        for (i = 0; i < j; i++)
+        {
+            sum = a[i][j];
+            for (k = 0; k < i; k++) sum -= a[i][k]*a[k][j];
+            a[i][j] = sum;
+        }
+        big = 0.0;
+        for (i = j; i < n; i++)
+        {
+            sum = a[i][j];
+            for (k = 0; k < j; k++) sum -= a[i][k]*a[k][j];
+            a[i][j] = sum;
+            if ((dum = vv[i]*fabs(sum)) >= big)
+            {
+                big = dum;
+                imax = i;
+            }
+        }
+        if (j != imax)
+        {
+            for (k = 0; k < n; k++)
+            {
+                dum = a[imax][k];
+                a[imax][k] = a[j][k];
+                a[j][k] = dum;
+            }
+            *d = -(*d);
+            vv[imax] = vv[j];
+        }
+        indx[j] = imax;
+        if (a[j][j] == 0.0) a[j][j] = 1e-20;
+        if (j != n-1)
+        {
+            dum = 1.0 / (a[j][j]);
+            for (i = j+1; i < n; i++) a[i][j] *= dum;
+        }
+    }
+    delete [] vv;
+}
+
+/// Solves the set of n linear equations AX = B. Here a[n][n] is input, not as the matrix
+/// A but rather as its LU decomposition, determined by the routine ludcmp. indx[n] is input
+/// as the permutation vector returned by ludcmp. b[n] is input as the right-hand side vector
+/// B, and returns with the solution vector X. a, n, and indx are not modified by this routine
+/// and can be left in place for successive calls with different right-hand sides b. This routine takes
+/// into account the possibility that b will begin with many zero elements, so it is efficient for use
+/// in matrix inversion.
+void lubksb(double** a, int n, int* indx, double* b)
+{
+    int i, ip, j;
+    double sum;
+
+    for (i = 0; i < n; i++)
+    {
+        ip = indx[i];
+        sum = b[ip];
+        b[ip] = b[i];
+        for (j = 0; j < i; j++) sum -= a[i][j]*b[j];
+        b[i] = sum;
+    }
+    for (i = n-1; i >= 0; i--)
+    {
+        sum = b[i];
+        for (j = i+1; j < n; j++) sum -= a[i][j]*b[j];
+        b[i] = sum / a[i][i];
+    }
 }

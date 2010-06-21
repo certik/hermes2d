@@ -51,6 +51,9 @@ public:
 
     inline virtual void init() { this->complex = false; free_data(); }
     virtual void free_data() = 0;
+
+    virtual void set_zero() = 0;
+
     inline virtual int get_size() { return this->size; }
     inline bool is_complex() { return this->complex; }
     virtual void print() = 0;
@@ -106,6 +109,12 @@ public:
 
     inline virtual void init() { this->complex = false; free_data(); }
     virtual void free_data();
+
+    virtual void set_zero()
+    {
+        _error("CooMatrix::set_zero() not implemented.");
+    }
+
     virtual int get_nnz();
     virtual void print();
 
@@ -139,32 +148,32 @@ public:
         this->complex = is_complex;
 
         if (is_complex)
-            this->mat_cplx = _new_matrix<cplx>(size, size);
+            this->A_cplx = _new_matrix<cplx>(size, size);
         else
-            this->mat = _new_matrix<double>(size, size);
+            this->A = _new_matrix<double>(size, size);
         this->size = size;
 
         if (is_complex)
         {
             for (int i = 0; i<size; i++)
                 for (int j = 0; j<size; j++)
-                    this->mat_cplx[i][j] = 0;
+                    this->A_cplx[i][j] = 0;
         }
         else
         {
             for (int i = 0; i<size; i++)
                 for (int j = 0; j<size; j++)
-                    this->mat[i][j] = 0;
+                    this->A[i][j] = 0;
         }
     }
     DenseMatrix(Matrix *m, bool is_complex = false)
     {
         this->complex = is_complex;
         if (is_complex)
-            this->mat_cplx =
+            this->A_cplx =
                     _new_matrix<cplx>(m->get_size(), m->get_size());
         else
-            this->mat = _new_matrix<double>(m->get_size(), m->get_size());
+            this->A = _new_matrix<double>(m->get_size(), m->get_size());
         this->size = m->get_size();
         m->copy_into(this);
     }
@@ -175,36 +184,38 @@ public:
 
     virtual void free_data()
     {
-        if (this->mat) { delete[] this->mat; this->mat = NULL; };
-        if (this->mat_cplx) { delete[] this->mat_cplx; this->mat_cplx = NULL; };
+        if (this->A) { delete[] this->A; this->A = NULL; };
+        if (this->A_cplx) { delete[] this->A_cplx; this->A_cplx = NULL; };
 
         this->size = 0;
     }
 
-    virtual void add(int m, int n, double v)
-    {
-        this->mat[m][n] += v;
-    }
-    virtual void add(int m, int n, cplx v)
-    {
-        this->mat_cplx[m][n] += v;
-    }
     virtual void set_zero()
     {
         if (this->complex)
         {
             for (int i = 0; i<size; i++)
                 for (int j = 0; j<size; j++)
-                    this->mat_cplx[i][j] = 0;
+                    this->A_cplx[i][j] = 0;
         }
         else
         {
             for (int i = 0; i<size; i++)
                 for (int j = 0; j<size; j++)
-                    this->mat[i][j] = 0;
+                    this->A[i][j] = 0;
         }
     }
-    inline virtual double get(int m, int n) { return this->mat[m][n]; }
+
+    virtual void add(int m, int n, double v)
+    {
+        this->A[m][n] += v;
+    }
+    virtual void add(int m, int n, cplx v)
+    {
+        this->A_cplx[m][n] += v;
+    }
+
+    inline virtual double get(int m, int n) { return this->A[m][n]; }
 
     virtual void copy_into(Matrix *m)
     {
@@ -213,11 +224,35 @@ public:
         {
             for (int j = 0; j < this->size; j++)
             {
-                double v = this->get(i, j);
-                if (fabs(v) > 1e-12)
-                    m->add(i, j, v);
+                for (int j = 0; j < this->size; j++)
+                {
+                    if (complex)
+                        if (std::abs(A_cplx[i][j]) > 1e-12)
+                             m->add(i, j, A_cplx[i][j]);
+                    else
+                        if (fabs(A[i][j]) > 1e-12)
+                            m->add(i, j, A[i][j]);
+                }
             }
         }
+    }
+
+    virtual int get_nnz()
+    {
+        int nnz = 0;
+        for (int i = 0; i < this->size; i++)
+        {
+            for (int j = 0; j < this->size; j++)
+            {
+                if (complex)
+                    if (fabs(A[i][j]) > 1e-12)
+                        nnz++;
+                else
+                    if (std::abs(A_cplx[i][j]) > 1e-12)
+                        nnz++;
+            }
+        }
+        return nnz;
     }
 
     virtual void print()
@@ -234,11 +269,12 @@ public:
     }
 
     // Return the internal matrix.
-    inline double **get_mat() { return this->mat; }
+    inline double **get_A() { return this->A; }
+    inline cplx **get_A_cplx() { return this->A_cplx; }
 
 private:
-    double **mat;
-    cplx **mat_cplx;
+    double **A;
+    cplx **A_cplx;
 };
 
 // **********************************************************************************************************
@@ -255,6 +291,11 @@ public:
 
     virtual void init();
     virtual void free_data();
+
+    virtual void set_zero()
+    {
+        _error("CSRMatrix::set_zero() not implemented.");
+    }
 
     void add_from_dense(DenseMatrix *m);
     void add_from_coo(CooMatrix *m);
@@ -303,6 +344,7 @@ class CSCMatrix : public Matrix
 public:
     CSCMatrix(int size);
     CSCMatrix(Matrix *m);
+    CSCMatrix(DenseMatrix *m);
     CSCMatrix(CooMatrix *m);
     CSCMatrix(CSRMatrix *m);
     CSCMatrix(int size, int nnz, int *Ap, int *Ai, double *Ax);
@@ -312,16 +354,18 @@ public:
     virtual void init();
     virtual void free_data();
 
+    virtual void set_zero()
+    {
+        _error("CSCMatrix::set_zero() not implemented.");
+    }
+
+    void add_from_dense(DenseMatrix *m);
     void add_from_coo(CooMatrix *m);
     void add_from_csr(CSRMatrix *m);
 
     virtual void add(int m, int n, double v)
     {
         _error("CSC matrix add() not implemented.");
-    }
-    virtual void set_zero()
-    {
-        _error("CSC matrix set_zero() not implemented.");
     }
     virtual double get(int m, int n)
     {
@@ -365,6 +409,8 @@ void print_vector(const char *label, double *value, int size);
 void print_vector(const char *label, cplx *value, int size);
 
 template<typename T>
+void dense_to_coo(int size, int nnz, T **Ad, int *row, int *col, T *A);
+template<typename T>
 void coo_to_csr(int size, int nnz, int *row, int *col, T *A, int *Ap, int *Ai, T *Ax);
 template<typename T>
 void coo_to_csc(int size, int nnz, int *row, int *col, T *A, int *Ap, int *Ai, T *Ax);
@@ -376,5 +422,13 @@ template<typename T>
 void csc_to_coo(int size, int nnz, int *Ap, int *Ai, T *Ax, int *row, int *col, T *A);
 template<typename T>
 void csr_to_coo(int size, int nnz, int *Ap, int *Ai, T *Ax, int *row, int *col, T *A);
+
+// matrix vector multiplication
+void mat_dot(Matrix *A, double *x, double *result, int n_dof);
+// vector vector multiplication
+double vec_dot(double *r, double *s, int n_dof);
+
+void ludcmp(double** a, int n, int* indx, double* d);
+void lubksb(double** a, int n, int* indx, double* b);
 
 #endif
