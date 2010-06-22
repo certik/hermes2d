@@ -919,10 +919,22 @@ bool LinSystem::solve(Tuple<Solution*> sln)
   // time measurement
   TimePeriod cpu_time;
 
-  // solve the system
-  memcpy(this->Vec, this->RHS, sizeof(scalar) * ndof);
-  this->solver->solve(this->A, this->Vec);
-  report_time("LinSystem solved in %g s", cpu_time.tick().last());
+  if (this->is_linear()) {
+    // solve the system
+    memcpy(this->Vec, this->RHS, sizeof(scalar) * ndof);
+    this->solver->solve(this->A, this->Vec);
+    report_time("LinSystem solved in %g s", cpu_time.tick().last());
+  }
+  else {
+    // solve the system - this is different from LinSystem
+    scalar* delta = (scalar*) malloc(ndof * sizeof(scalar));
+    memcpy(delta, this->RHS, sizeof(scalar) * ndof);
+    this->solver->solve(this->A, this->Vec);
+    report_time("Solved in %g s", cpu_time.tick().last());
+    // add the increment dY_{n+1} to the previous solution vector
+    for (int i = 0; i < ndof; i++) this->Vec[i] += delta[i];
+    ::free(delta);
+  }
 
   // copy solution coefficient vectors into Solutions
   for (int i = 0; i < n; i++)

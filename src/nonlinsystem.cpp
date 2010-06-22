@@ -136,6 +136,8 @@ void NonlinSystem::assemble(bool rhsonly)
     this->RHS[i] *= -this->alpha;
 }
 
+/* OLD CODE - NonlinSystem::solve() was merged into LinSystem::solve().
+   TO BE REMOVED AFTER SOME TIME - today's date is June 22, 2010. 
 // The solve() function is almost identical to the original one in LinSystem.
 // It does not put the Dirichlet lift vector Dir to the right-hand side.
 bool NonlinSystem::solve(Tuple<Solution*> sln)
@@ -188,6 +190,7 @@ bool NonlinSystem::solve(Solution* sln)
   flag = this->solve(Tuple<Solution*>(sln));
   return flag;
 }
+*/
 
 // Newton's method for an arbitrary number of equations.
 bool NonlinSystem::solve_newton(Tuple<Solution*> u_prev, double newton_tol, 
