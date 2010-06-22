@@ -3,7 +3,6 @@
 #define H2D_REPORT_VERBOSE
 #define H2D_REPORT_FILE "application.log"
 #include "hermes2d.h"
-#include "solver_umfpack.h"
 
 //  The purpose of this example is to show how to use Trilinos for nonlinear PDE problems. It 
 //  compares performance of The Newton's method in the NonlinSystem class in Hermes (using the 
@@ -71,9 +70,6 @@ int main(int argc, char* argv[])
 
   // Time measurement.
   cpu_time.tick(H2D_SKIP);
-  
-  // Matrix solver,
-  UmfpackSolver umfpack;
 
   // Define zero function on the mesh
   prev.set_zero(&mesh);
@@ -84,7 +80,7 @@ int main(int argc, char* argv[])
   wf1.add_vector_form(callback(residual_form_hermes), H2D_ANY, &prev);
 
   // Initialize NonlinSystem,
-  NonlinSystem nls(&wf1, &umfpack, &space);
+  NonlinSystem nls(&wf1, &space);
 
   // Project the function "prev" on the FE space "space".
   info("Projecting initial condition on the FE space.");

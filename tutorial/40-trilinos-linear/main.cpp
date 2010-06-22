@@ -3,7 +3,6 @@
 #define H2D_REPORT_VERBOSE
 #define H2D_REPORT_FILE "application.log"
 #include "hermes2d.h"
-#include "solver_umfpack.h"
 
 //  The purpose of this example is to show how to use Trilinos
 //  for linear PDE problems. It compares performance of the LinSystem 
@@ -77,16 +76,13 @@ int main(int argc, char **argv)
   // Time measurement.
   cpu_time.tick(H2D_SKIP);
 
-  // Matrix solver.
-  UmfpackSolver umfpack;
-
   // Initialize weak formulation.
   WeakForm wf1;
   wf1.add_matrix_form(callback(bilinear_form));
   wf1.add_vector_form(callback(linear_form));
 
   // Initialize the linear system.
-  LinSystem ls(&wf1, &umfpack, &space);
+  LinSystem ls(&wf1, &space);
 
   // Assemble and solve.
   info("Assembling by LinSystem, solving by UMFpack.");

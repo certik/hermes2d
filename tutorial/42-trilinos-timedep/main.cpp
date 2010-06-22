@@ -3,7 +3,6 @@
 #define H2D_REPORT_VERBOSE
 #define H2D_REPORT_FILE "application.log"
 #include "hermes2d.h"
-#include "solver_umfpack.h"
 
 using namespace RefinementSelectors;
 
@@ -93,8 +92,8 @@ int main(int argc, char* argv[])
   // Project the function "titer" on the FE space 
   // in order to obtain initial vector for NOX. 
   info("Projecting initial solution on the FE mesh.");
-  UmfpackSolver umfpack;
-  LinSystem ls(&wf, &umfpack, &space);
+
+  LinSystem ls(&wf, &space);
   ls.project_global(&tprev, &tprev);
 
   // Get the coefficient vector.

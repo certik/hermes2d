@@ -3,7 +3,6 @@
 #define H2D_REPORT_VERBOSE
 #define H2D_REPORT_FILE "application.log"
 #include "hermes2d.h"
-#include "solver_umfpack.h"
 
 //  The purpose of this example is to show how to use Trilinos for nonlinear time-dependent coupled PDE systems.
 //  Solved by NOX solver via Newton, or JFNK with or without preconditioning.
@@ -106,8 +105,8 @@ int main(int argc, char* argv[])
   // Project the functions "titer" and "citer" on the FE space 
   // in order to obtain initial vector for NOX. 
   info("Projecting initial solutions on the FE meshes.");
-  UmfpackSolver umfpack;
-  LinSystem ls(&wf, &umfpack, Tuple<Space*>(&tspace, &cspace));
+
+  LinSystem ls(&wf, Tuple<Space*>(&tspace, &cspace));
   ls.project_global(Tuple<MeshFunction*>(&tprev1, &cprev1), 
                     Tuple<Solution*>(&tprev1, &cprev1));
 
