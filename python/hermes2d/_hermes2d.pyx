@@ -322,11 +322,58 @@ cdef class Mesh:
     @property
     def nodes(self):
         """
-        Returns a list of nodes coordinates.
+        Returns the list of nodes made up by the coordinates of the vertices.
 
-        However, this is only usable if you don't refine.
+        Note that this function works even after mesh refinement.
 
-        Use nodes_dict for more usable implementation.
+        Example:
+
+        >>> import hermes2d
+        >>> m = hermes2d.Mesh() 
+        >>> m.create([
+        ...         [0, -1],
+        ...         [1, -1],
+        ...         [-1, 0],
+        ...         [0, 0],
+        ...         [1, 0],
+        ...         [-1, 1],
+        ...         [0, 1],
+        ...         [0.707106781, 0.707106781],
+        ...     ], [
+        ...         [0, 1, 4, 3, 0],
+        ...         [3, 4, 7, 0],
+        ...         [3, 7, 6, 0],
+        ...         [2, 3, 6, 5, 0],
+        ...     ], [
+        ...         [0, 1, 1],
+        ...         [1, 4, 2],
+        ...         [3, 0, 4],
+        ...         [4, 7, 2],
+        ...         [7, 6, 2],
+        ...         [2, 3, 4],
+        ...         [6, 5, 2],
+        ...         [5, 2, 3],
+        ...     ], [
+        ...         [4, 7, 45],
+        ...         [7, 6, 45],
+        ...     ])
+        >>> m.nodes
+        [(0.0, -1.0), (1.0, -1.0), (-1.0, 0.0), (0.0, 0.0), (1.0, 0.0), (-1.0,
+        1.0), (0.0, 1.0), (0.70710700000000004, 0.70710700000000004)]
+
+        >>> m.refine_all_elements(); 
+        >>> m.nodes
+        [(0.0, -1.0), (1.0, -1.0), (-1.0, 0.0), (0.0, 0.0), (1.0, 0.0), (-1.0,
+        1.0), (0.0, 1.0), (0.70710700000000004, 0.70710700000000004), (0.5,
+        0.0), (1.0, -0.5), (0.0, 0.5), (0.5, -1.0), (0.38268352000946515,
+        0.923879663680364), (-1.0, 0.5), (-0.5, 0.5), (-0.5, 1.0), (-0.5, 0.0),
+        (       0.0, -0.5), (0.5, -0.5), (0.92387966368036412, 0.38268352000946509),
+        (0.35355350000000002, 0.35355350000000002)] 
+
+        Notice how in the example above we refined our mesh with "m.refine_all_elements();"
+        and diplayed our new "list of nodes" after refinement.  In the example above
+        "(0.0, -1.0)" represents a node.       
+
         """
         # This is a really slow implementation, but it gets the job
         # done for now. Later on, we should get the list of nodes from C++
