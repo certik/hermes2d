@@ -27,7 +27,7 @@
 class Space;
 class PrecalcShapeset;
 class WeakForm;
-class Solver;
+class CommonSolver;
 
 // Default H2D projection norm in H1 norm.
 extern int H2D_DEFAULT_PROJ_NORM;
@@ -54,17 +54,17 @@ class H2D_API LinSystem
 public:
 
   LinSystem();
-  LinSystem(WeakForm* wf_, Solver* solver_);
+  LinSystem(WeakForm* wf_, CommonSolver* solver_);
   LinSystem(WeakForm* wf_);                  // solver will be set to NULL and default solver will be used
-  LinSystem(WeakForm* wf_, Solver* solver_, Space* s_);
+  LinSystem(WeakForm* wf_, CommonSolver* solver_, Space* s_);
   LinSystem(WeakForm* wf_, Space* s_);       // solver will be set to NULL and default solver will be used
-  LinSystem(WeakForm* wf_, Solver* solver_, Tuple<Space*> spaces_);
+  LinSystem(WeakForm* wf_, CommonSolver* solver_, Tuple<Space*> spaces_);
   LinSystem(WeakForm* wf_, Tuple<Space*> spaces_);      // solver will be set to NULL and default solver will be used
-  LinSystem(WeakForm* wf_, Solver* solver_, Space* space1_, Space* space2_);
+  LinSystem(WeakForm* wf_, CommonSolver* solver_, Space* space1_, Space* space2_);
 
   virtual ~LinSystem();
 
-  void init_lin(WeakForm* wf, Solver* solver);
+  void init_lin(WeakForm* wf, CommonSolver* solver);
   void init_spaces(Tuple<Space*> spaces);
   void init_space(Space* s);         // single equation case
   void set_spaces(Tuple<Space*> spaces);
@@ -247,8 +247,8 @@ public:
 
 protected:
 
-  Solver* solver;
-  void* slv_ctx;
+  CommonSolver* solver;
+  CommonSolver* solver_default;
 
   PrecalcShapeset** pss;
 

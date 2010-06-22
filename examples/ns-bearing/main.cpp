@@ -3,7 +3,6 @@
 #define H2D_REPORT_VERBOSE
 #define H2D_REPORT_FILE "application.log"
 #include "hermes2d.h"
-#include "solver_umfpack.h"
 #include "forms.h"
 
 // Flow in between two circles, inner circle is rotating with surface 
@@ -226,14 +225,11 @@ int main(int argc, char* argv[])
   pview.fix_scale_width(80);
   pview.show_mesh(true);
 
-  // Matrix solver.
-  UmfpackSolver umfpack;
-
   // Initialize linear system.
-  LinSystem ls(&wf, &umfpack, Tuple<Space*>(&xvel_space, &yvel_space, &p_space));
+  LinSystem ls(&wf, Tuple<Space*>(&xvel_space, &yvel_space, &p_space));
 
   // Initialize nonlinear system.
-  NonlinSystem nls(&wf, &umfpack, Tuple<Space*>(&xvel_space, &yvel_space, &p_space));
+  NonlinSystem nls(&wf, Tuple<Space*>(&xvel_space, &yvel_space, &p_space));
 
   // Set initial conditions.
   info("Setting initial conditions.");

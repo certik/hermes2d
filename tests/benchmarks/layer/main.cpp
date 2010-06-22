@@ -1,5 +1,4 @@
 #include "hermes2d.h"
-#include "solver_umfpack.h"
 
 using namespace RefinementSelectors;
 
@@ -140,9 +139,6 @@ int main(int argc, char* argv[])
   wf.add_matrix_form(0, 0, callback(bilinear_form), H2D_SYM);
   wf.add_vector_form(0, callback(linear_form));
 
-  // Matrix solver.
-  UmfpackSolver solver;
-
   // DOF and CPU convergence graphs.
   SimpleGraph graph_dof, graph_cpu;
 
@@ -150,7 +146,7 @@ int main(int argc, char* argv[])
   H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
 
   // Initialize the coarse mesh problem.
-  LinSystem ls(&wf, &solver, &space);
+  LinSystem ls(&wf, &space);
 
   // Adaptivity loop:
   int as = 1;

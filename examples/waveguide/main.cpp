@@ -3,7 +3,6 @@
 #define H2D_REPORT_VERBOSE
 #define H2D_REPORT_FILE "application.log"
 #include "hermes2d.h"
-#include "solver_umfpack.h"
 
 using namespace RefinementSelectors;
 
@@ -171,9 +170,6 @@ int main(int argc, char* argv[])
   vbview.show(&space);
   */
 
-  // Matrix solver.
-  UmfpackSolver solver;
-
   // DOF and CPU convergence graphs.
   SimpleGraph graph_dof_est, graph_cpu_est;
 
@@ -181,7 +177,7 @@ int main(int argc, char* argv[])
   HcurlProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
 
   // Initialize the coarse mesh problem.
-  LinSystem ls(&wf, &solver, &space);
+  LinSystem ls(&wf, &space);
 
   // Adaptivity loop:
   int as = 1; bool done = false;

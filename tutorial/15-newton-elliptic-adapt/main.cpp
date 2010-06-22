@@ -3,7 +3,6 @@
 #define H2D_REPORT_VERBOSE
 #define H2D_REPORT_FILE "application.log"
 #include "hermes2d.h"
-#include "solver_umfpack.h"
 #include "function.h"
 
 using namespace RefinementSelectors;
@@ -137,11 +136,8 @@ int main(int argc, char* argv[])
   wf.add_matrix_form(callback(jac), H2D_UNSYM, H2D_ANY, &u_prev);
   wf.add_vector_form(callback(res), H2D_ANY, &u_prev);
 
-  // Matrix solver.
-  UmfpackSolver solver;
-
   // Initialize the coarse and fine mesh problems.
-  NonlinSystem nls(&wf, &solver, &space);
+  NonlinSystem nls(&wf, &space);
 
   // DOF and CPU convergence graphs.
   SimpleGraph graph_dof, graph_cpu;

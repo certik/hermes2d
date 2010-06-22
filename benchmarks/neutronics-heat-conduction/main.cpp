@@ -3,7 +3,6 @@
 #define H2D_REPORT_VERBOSE
 #define H2D_REPORT_FILE "application.log"
 #include "hermes2d.h"
-#include "solver_umfpack.h"
 #include "function.h"
 #include "math.h"
 #include <iostream>
@@ -191,11 +190,8 @@ int main(int argc, char* argv[])
   wf.add_vector_form(1, res_phi, res_phi_ord, H2D_ANY, 
                 Tuple<MeshFunction*>(&phi_prev_newton, &phi_prev_time, &T_prev_newton));
 
-  // Matrix solver.
-  UmfpackSolver solver;
-
   // Initialize nonlinear system.
-  NonlinSystem nls(&wf, &solver, Tuple<Space*>(&space_T, &space_phi));
+  NonlinSystem nls(&wf, Tuple<Space*>(&space_T, &space_phi));
 
   // Project initial conditions on FE spaces to obtain initial 
   // vector for the Newton's method.

@@ -41,11 +41,11 @@ public:
   /// Initializes the class and creates a zero initial coefficient vector.
   void init_nonlin();
   NonlinSystem();
-  NonlinSystem(WeakForm* wf_, Solver* solver_);
+  NonlinSystem(WeakForm* wf_, CommonSolver* solver_);
   NonlinSystem(WeakForm* wf_);                  // solver will be set to NULL and default solver will be used
-  NonlinSystem(WeakForm* wf_, Solver* solver_, Space* s_);
+  NonlinSystem(WeakForm* wf_, CommonSolver* solver_, Space* s_);
   NonlinSystem(WeakForm* wf_, Space* s_);        // solver will be set to NULL and default solver will be used
-  NonlinSystem(WeakForm* wf_, Solver* solver_, Tuple<Space*> spaces_);
+  NonlinSystem(WeakForm* wf_, CommonSolver* solver_, Tuple<Space*> spaces_);
   NonlinSystem(WeakForm* wf_, Tuple<Space*> spaces_);      // solver will be set to NULL and default solver will be used
 
   /// Frees the memory for the RHS, Dir and Vec vectors, and solver data.

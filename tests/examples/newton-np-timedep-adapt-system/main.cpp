@@ -1,5 +1,4 @@
 #include "hermes2d.h"
-#include "solver_umfpack.h"
 
 using namespace RefinementSelectors;
 
@@ -292,8 +291,7 @@ int main (int argc, char* argv[]) {
   wf.add_vector_form_surf(1, callback(linear_form_surf_top), TOP_MARKER);
 
   // Nonlinear solver.
-  UmfpackSolver solver;
-  NonlinSystem nls(&wf, &solver, Tuple<Space*>(&C, &phi));
+  NonlinSystem nls(&wf, Tuple<Space*>(&C, &phi));
 
   info("UmfpackSolver initialized");
 

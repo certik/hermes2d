@@ -1,5 +1,4 @@
 #include "hermes2d.h"
-#include "solver_umfpack.h"
 
 // This test makes sure that example 07-general works correctly.
 // CAUTION: This test will fail when any changes to the shapeset
@@ -139,11 +138,8 @@ int main(int argc, char* argv[])
   wf.add_vector_form(linear_form, linear_form_ord);
   wf.add_vector_form_surf(linear_form_surf, linear_form_surf_ord, 2);
 
-  // Matrix solver.
-  UmfpackSolver solver;
-
   // Solve the problem.
-  LinSystem ls(&wf, &solver, &space);
+  LinSystem ls(&wf, &space);
 
   // Testing n_dof and correctness of solution vector
   // for p_init = 1, 2, ..., 10

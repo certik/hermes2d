@@ -1,5 +1,4 @@
 #include "hermes2d.h"
-#include "solver_umfpack.h"
 #include "shapeset_common.h"
 
 // This example shows how to use the L2 finite element space and L2 shapeset.
@@ -56,12 +55,9 @@ int main(int argc, char* argv[])
   bview.show(&space);
   View::wait(H2DV_WAIT_KEYPRESS);
 
-  // Matrix solver.
-  UmfpackSolver solver;
-
   // Assemble and solve the finite element problem.
   WeakForm wf_dummy;
-  LinSystem ls(&wf_dummy, &solver, &space);
+  LinSystem ls(&wf_dummy, &space);
   Solution sln;
   int proj_norm_l2 = 0;
   sln.set_exact(&mesh, F);

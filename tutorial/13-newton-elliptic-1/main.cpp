@@ -3,7 +3,6 @@
 #define H2D_REPORT_VERBOSE
 #define H2D_REPORT_FILE "application.log"
 #include "hermes2d.h"
-#include "solver_umfpack.h"
 #include "function.h"
 
 //  This example shows an introductory application of the Newton's
@@ -90,11 +89,8 @@ int main(int argc, char* argv[])
   wf.add_matrix_form(callback(jac), H2D_UNSYM, H2D_ANY, &u_prev);
   wf.add_vector_form(callback(res), H2D_ANY, &u_prev);
 
-  // Matrix solver.
-  UmfpackSolver solver;
-
-  // Initialize the nonlinear system.
-  NonlinSystem nls(&wf, &solver, &space);
+  // Initialize the linear system.
+  NonlinSystem nls(&wf, &space);
 
   // Project the function init_cond() on the FE space
   // to obtain initial coefficient vector for the Newton's method.

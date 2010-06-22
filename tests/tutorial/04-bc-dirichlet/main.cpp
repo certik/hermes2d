@@ -1,5 +1,4 @@
 #include "hermes2d.h"
-#include "solver_umfpack.h"
 
 // This test makes sure that example 04-bc-dirichlet works correctly.
 // CAUTION: This test will fail when any changes to the shapeset
@@ -50,11 +49,8 @@ int main(int argc, char* argv[])
   wf.add_matrix_form(callback(bilinear_form));
   wf.add_vector_form(callback(linear_form));
 
-  // Matrix solver.
-  UmfpackSolver solver;
-
   // Initialize the linear system.
-  LinSystem sys(&wf, &solver, &space);
+  LinSystem sys(&wf, &space);
 
   // Testing n_dof and correctness of solution vector
   // for p_init = 1, 2, ..., 10

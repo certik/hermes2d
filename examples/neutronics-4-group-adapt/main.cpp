@@ -4,7 +4,6 @@
 #define H2D_REPORT_FILE "application.log"
 
 #include "hermes2d.h"
-#include "solver_umfpack.h"
 
 using namespace RefinementSelectors;
 
@@ -278,9 +277,6 @@ int main(int argc, char* argv[])
   iter3.set_const(&mesh3, 1.00);
   iter4.set_const(&mesh4, 1.00);
 
-  // Matrix solver.
-  UmfpackSolver umfpack;
-
   // Create H1 spaces with default shapesets.
   H1Space space1(&mesh1, bc_types, essential_bc_values, P_INIT[0]);
   H1Space space2(&mesh2, bc_types, essential_bc_values, P_INIT[1]); 
@@ -306,7 +302,7 @@ int main(int argc, char* argv[])
   wf.add_matrix_form_surf(3, 3, callback(biform_surf_3_3), bc_vacuum);
 
   // Initialize and solve coarse mesh problem.
-  LinSystem ls(&wf, &umfpack, Tuple<Space*>(&space1, &space2, &space3, &space4));
+  LinSystem ls(&wf, Tuple<Space*>(&space1, &space2, &space3, &space4));
   ls.assemble();
   info("Coarse mesh power iteration, %d + %d + %d + %d = %d ndof:", 
   ls.get_num_dofs(0), ls.get_num_dofs(1), ls.get_num_dofs(2), ls.get_num_dofs(3), ls.get_num_dofs()); 

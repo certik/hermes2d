@@ -4,7 +4,6 @@
 #define H2D_REPORT_FILE "application.log"
 #define DEBUG_ORDER
 #include "hermes2d.h"
-#include "solver_umfpack.h"
 
 //  This example uses the Newton's method to solve a nonlinear complex-valued
 //  time-dependent PDE (the Gross-Pitaevski equation describing the behavior
@@ -104,11 +103,8 @@ int main(int argc, char* argv[])
     wf.add_vector_form(callback(residual_cranic), H2D_ANY, Tuple<MeshFunction*>(&Psi_prev_newton, &Psi_prev_time));
   }
 
-  // Matrix solver.
-  UmfpackSolver solver;
-
   // Initialize the nonlinear system.
-  NonlinSystem nls(&wf, &solver, &space);
+  NonlinSystem nls(&wf, &space);
 
   // Initialize views.
   ScalarView view("", 0, 0, 600, 500);

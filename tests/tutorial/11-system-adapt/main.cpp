@@ -1,5 +1,4 @@
 #include "hermes2d.h"
-#include "solver_umfpack.h"
 
 using namespace RefinementSelectors;
 
@@ -101,14 +100,11 @@ int main(int argc, char* argv[])
   wf.add_vector_form(0, linear_form_0, linear_form_0_ord);
   wf.add_vector_form(1, linear_form_1, linear_form_1_ord);
 
-  // Matrix solver.
-  UmfpackSolver solver;
-
   // Initialize refinement selector.
   H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
 
   // Initialize the coarse mesh problem.
-  LinSystem ls(&wf, &solver, Tuple<Space*>(&uspace, &vspace));
+  LinSystem ls(&wf, Tuple<Space*>(&uspace, &vspace));
 
   // Adaptivity loop.
   int as = 1; bool done = false;

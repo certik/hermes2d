@@ -1,5 +1,4 @@
 #include "hermes2d.h"
-#include "solver_umfpack.h"
 
 // This example explains how to create multiple spaces over a mesh and use them
 // to solve a simple problem of linear elasticity. Note how Tuples are used, 
@@ -60,11 +59,8 @@ int main(int argc, char* argv[])
   wf.add_vector_form_surf(0, callback(linear_form_surf_0), GAMMA_3_BDY);
   wf.add_vector_form_surf(1, callback(linear_form_surf_1), GAMMA_3_BDY);
 
-  // Matrix solver.
-  UmfpackSolver solver;
-
   // Initialize the linear system.
-  LinSystem ls(&wf, &solver, Tuple<Space*>(&xdisp, &ydisp));
+  LinSystem ls(&wf, Tuple<Space*>(&xdisp, &ydisp));
 
   // Assemble and solve the matrix problem.
   Solution xsln, ysln;

@@ -1,5 +1,4 @@
 #include <hermes2d.h>
-#include <solver_umfpack.h>
 
 using namespace RefinementSelectors;
 

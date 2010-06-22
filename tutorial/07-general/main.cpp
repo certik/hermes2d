@@ -3,7 +3,6 @@
 #define H2D_REPORT_VERBOSE
 #define H2D_REPORT_FILE "application.log"
 #include "hermes2d.h"
-#include "solver_umfpack.h"
 
 //  This example solves a general second-order linear equation with non-constant
 //  coefficients, and shows how integration orders in linear and bilinear forms
@@ -109,11 +108,8 @@ int main(int argc, char* argv[])
   ScalarView sview("Coarse solution", 0, 0, 700, 600);
   OrderView  oview("Polynomial orders", 710, 0, 700, 600);
 
-  // Matrix solver.
-  UmfpackSolver solver;
-
   // Initialize the linear system.
-  LinSystem ls(&wf, &solver, &space);
+  LinSystem ls(&wf, &space);
 
   // Assemble and solve the matrix problem.
   Solution sln;

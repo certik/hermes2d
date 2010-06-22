@@ -4,7 +4,6 @@
 #define H2D_REPORT_FILE "application.log"
 
 #include "hermes2d.h"
-#include "solver_umfpack.h"
 #include "scaled_scalar_view.h"
 
 using namespace RefinementSelectors;
@@ -251,9 +250,6 @@ int main(int argc, char* argv[])
   Solution sln1, sln2;		  // Coarse mesh solution.
   Solution sln1_ref, sln2_ref;	  // Reference solution.
 
-  // Matrix solver.
-  UmfpackSolver umfpack;
-
   // Create H1 space with default shapesets.
   H1Space space1(&mesh1, bc_types, essential_bc_values_1, P_INIT[0]);
   H1Space space2(&mesh2, bc_types, essential_bc_values_2, P_INIT[0]);
@@ -317,7 +313,7 @@ int main(int argc, char* argv[])
   cpu_time.tick();
 		
   // Initial coarse mesh solution.
-  LinSystem ls(&wf, &umfpack, Tuple<Space*>(&space1, &space2));
+  LinSystem ls(&wf, Tuple<Space*>(&space1, &space2));
   ls.assemble();
 
   double cta;

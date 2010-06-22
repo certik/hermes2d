@@ -1,5 +1,4 @@
 #include "hermes2d.h"
-#include "solver_umfpack.h"
 
 // This example shows how to define Neumann boundary conditions. In addition,
 // you will see how a Filter is used to visualize gradient of the solution
@@ -58,11 +57,8 @@ int main(int argc, char* argv[])
   wf.add_vector_form(callback(linear_form));
   wf.add_vector_form_surf(callback(linear_form_surf));
 
-  // Matrix solver.
-  UmfpackSolver solver;
-
   // Initialize the linear system.
-  LinSystem ls(&wf, &solver, &space);
+  LinSystem ls(&wf, &space);
 
   // Assemble and solve the matrix problem.
   Solution sln;

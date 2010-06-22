@@ -3,7 +3,6 @@
 #define H2D_REPORT_VERBOSE
 #define H2D_REPORT_FILE "application.log"
 #include "hermes2d.h"
-#include "solver_umfpack.h"
 
 //  This example is a very simple flame propagation model (laminar flame,
 //  zero flow velocity), and its purpose is to show how the Newton's method
@@ -103,11 +102,8 @@ int main(int argc, char* argv[])
   wf.add_vector_form(1, callback(newton_linear_form_1), H2D_ANY, 
                      Tuple<MeshFunction*>(&c_prev_newton, &c_prev_time_1, &c_prev_time_2, &omega));
 
-  // Matrix solver.
-  UmfpackSolver solver;
-
   // Initialize the nonlinear system.
-  NonlinSystem nls(&wf, &solver, Tuple<Space*>(&tspace, &cspace));
+  NonlinSystem nls(&wf, Tuple<Space*>(&tspace, &cspace));
 
   // Project temp_ic() and conc_ic() onto the FE spaces to obtain initial 
   // coefficient vector for the Newton's method.   
