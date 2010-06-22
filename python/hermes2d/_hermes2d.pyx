@@ -393,7 +393,48 @@ cdef class Mesh:
     @property
     def nodes_dict(self):
         """
-        Returns a dict of all active nodes coordinates.
+        Returns a Python dictionary of all the active nodes made up by the
+        coordinates of their corresponding vertices.
+
+        Example:
+
+        >>> import hermes2d
+        >>> m = hermes2d.Mesh() 
+        >>> m.create([
+        ...         [0, -1],
+        ...         [1, -1],
+        ...         [-1, 0],
+        ...         [0, 0],
+        ...         [1, 0],
+        ...         [-1, 1],
+        ...         [0, 1],
+        ...         [0.707106781, 0.707106781],
+        ...     ], [
+        ...         [0, 1, 4, 3, 0],
+        ...         [3, 4, 7, 0],
+        ...         [3, 7, 6, 0],
+        ...         [2, 3, 6, 5, 0],
+        ...     ], [
+        ...         [0, 1, 1],
+        ...         [1, 4, 2],
+        ...         [3, 0, 4],
+        ...         [4, 7, 2],
+        ...         [7, 6, 2],
+        ...         [2, 3, 4],
+        ...         [6, 5, 2],
+        ...         [5, 2, 3],
+        ...     ], [
+        ...         [4, 7, 45],
+        ...         [7, 6, 45],
+        ...     ])
+        >>> m.nodes_dict
+        {0: (0.0, -1.0), 1: (1.0, -1.0), 2: (-1.0, 0.0), 3: (0.0, 0.0), 4: (1.0,
+        0.0), 5: (-1.0, 1.0), 6: (0.0, 1.0), 7: (0.70710700000000004,
+        0.70710700000000004)}
+
+        In the example above "0: (0.0, -1.0)", "(0.0, -1.0)" is a node and the lone "0"
+        to the left of the colon is the corresponding dictionary item number.
+
         """
         nodes = []
         for i in range(self.num_elements):
