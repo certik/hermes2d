@@ -2,8 +2,8 @@
 Tutorial Part III (Nonlinear Problems)
 ======================================
 
-The next part of the tutorial assumes that the reader is familiar with basic concepts 
-covered in the first part. We will discuss the Newton's method for nonlinear PDE and 
+This part of the tutorial assumes that the reader is familiar with linear problems
+(Part I). We will discuss the Newton's method for nonlinear PDE and 
 PDE systems, for both stationary and time-dependent models. At the end of this chapter,
 the reader will be able to solve time-dependent nonlinear problems adaptively using
 dynamical meshes. 

@@ -2,11 +2,11 @@
 Tutorial Part II (Automatic Adaptivity)
 =======================================
 
-In the computations that we carried out so far, we have not paid any attention
-to the accuracy of the results. In general, a computation on a fixed mesh is
-not likely to be very accurate. There is a need for *adaptive mesh refinement
-(AMR)* algorithms that improve the quality of the approximation by refining
-mesh elements where the approximation is bad.
+So far we have not paid any attention to the accuracy of the results. In general, 
+a computation on a fixed mesh is not likely to be very accurate. There is a need 
+for *adaptive mesh refinement (AMR)* that improves the quality of the approximation 
+by refining mesh elements or increases the polynomial degree of approximation 
+where the approximation is bad. 
 
 Adaptive h-FEM and hp-FEM
 -------------------------
@@ -16,14 +16,23 @@ and so the most difficult part is to find out what elements should be
 refined. To do this, people employ various techniques ranging from rigorous
 guaranteed a-posteriori error estimates to heuristic criteria such as residual
 error indicators, error indicators based on steep gradients, etc. Unfortunately,
-none of these approaches is suitable for Hermes: The rigorous guaranteed error
-estimates only exist for very simple problems, such as linear elliptic PDEs,
-and thus they are far from PDE-independent. Heuristic techniques are not
-employed in Hermes for the same reason, and moreover since such criteria
-lack a transparent relation to the true approximation error.
+none of these approaches is suitable for real-life multiphysics coupled problems 
+or higher-order finite element methods: Rigorous guaranteed error
+estimates only exist for very simple problems (such as linear elliptic PDE),
+and moreover only for low-order finite elements (such as piecewise linear 
+approximations). Note that virtually no a-posteriori error estimates capable of 
+guiding automatic hp-adaptivity are available even for simplest elliptic problems,
+this will be discussed in a moment. 
+The heuristic techniques listed above are not employed in Hermes since they may fail 
+in non-standard situations, and because they lack a transparent relation to the 
+true approximation error.
 
 Adaptive low-order FEM is known to be notoriously inefficient, and practitioners
-are rightfully skeptical of it. The reason is illustrated here:
+are rightfully skeptical of it. The reason is its extremely slow convergence 
+that makes large computations virtually freeze without getting anywhere. 
+This is illustrated in the following graph that compares a typical convergence of 
+adaptive FEM with linear elements, adaptive FEM with quadratic elements, and 
+adaptive hp-FEM:
 
 .. image:: img/lshape/conv_dof.png
    :align: center
@@ -31,33 +40,64 @@ are rightfully skeptical of it. The reason is illustrated here:
    :height: 400
    :alt: Typical convergence curves for adaptive linear FEM, quadratic FEM, and *hp*-FEM.
 
+Note that the linear FEM would need in the order of 1,000,000,000,000,000,000 degrees of freedom 
+(DOF) to reach a level of accuracy where the hp-FEM is with less than 10,000 DOF. 
 These convergence curves are typical representative examples, confirmed with
 many numerical experiments of independent researchers, and supported with
 theory. The horizontal axis shows (in linear scale) the number of degrees of freedom
 (= size of the stiffness matrix) that increases during automatic adaptivity. The
 vertical one shows the approximation error (in logarithmic scale). Note that in all
-three cases, the error drops very fast during a short initial phase of the adaptive
-computation. However, with both linear and quadratic FEM, the convergence slows
-down dramatically as the adaptivity progresses. Note that the low-order FEM
-is doomed to such slow convergence by its poor approximation properties -
-an excellent adaptivity algorithm cannot improve it (and a bad
-algorithm can make it even worse).
+three cases, the convergence is similar during a short initial phase. However, with 
+the hp-FEM the convergence becomes faster and faster as the adaptivity progresses. Note that 
+low-order FEM is doomed to such slow convergence by its poor approximation properties -
+this cannot be fixed no matter how smart the adaptivity algorithm might be. 
 
-In order to obtain fast, usable adaptivity (the green curve), one
-has to resort to adaptive *hp*-FEM. The *hp*-FEM takes advantage of two facts:
+In order to obtain fast, usable adaptivity (the red curve), one
+has to resort to adaptive *hp*-FEM. The *hp*-FEM takes advantage of 
+the following facts:
 
-* Large high-degree elements approximate smooth parts of solution much better than small linear ones. We created the example 'smooth' to illustrate this fact. Check it out, the results are impressive.
-* This holds the other way where the solution is not smooth.
+* Large high-degree elements approximate smooth parts of solution *much* better than small linear ones. 
+  The benchmark `smooth-iso <http://hpfem.org/hermes2d/doc/src/benchmarks.html#smooth-iso-elliptic>`_ 
+  illustrates this - spend a few minutes to check it out, the results are truly impressive. In the 
+  Hermes2D repository, it can be found in the directory 
+  `benchmarks/ <http://git.hpfem.org/hermes2d.git/tree/HEAD:/benchmarks>`_.
+* This holds the other way where the solution is not smooth, i.e., singularities,
+  steep gradients, oscillations and such are approximated best using locally small 
+  low-order elements.
+* In order to capture efficiently anisotropic solution behavior, one needs adaptivity algorithms 
+  that can refine meshes anisotropically both in $h$ and $p$. Often this is the case with 
+  boundary layers (viscous flows, singularly perturbed problems, etc.). This is illustrated 
+  in  benchmarks 
+  `smooth-aniso-x <http://hpfem.org/hermes2d/doc/src/benchmarks.html#smooth-aniso-x-elliptic>`_ and
+  `boundary layer <http://hpfem.org/hermes2d/doc/src/benchmarks.html#boundary-layer-elliptic>`_. However, 
+  solutions without boundary layers can have significant anisotropic behavior too, as illustrated
+  in benchmark  `line singularity <http://hpfem.org/hermes2d/doc/src/benchmarks.html#line-singularity-elliptic>`_.
+
+Large number of possible element refinements in hp-FEM
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Automatic adaptivity in the *hp*-FEM is substantially different from adaptivity
 in low-order FEM, since every element can be refined in many different ways.
-The following figure shows several refinement candidates for a fourth-order element.
+The following figure shows several illustrative refinement candidates for a fourth-order element.
 
 .. image:: img/refinements.png
    :align: center
    :width: 650
    :height: 300
    :alt: Examples of *hp*-refinements.
+
+Of course, the number of possible element refinements is implementation-dependent.
+In general it is very low in $h$ or $p$ adaptivity, much higher in $hp$ adaptivity, 
+and it rises even more when anisotropic refinements are enabled. This is why Hermes 
+has eight different adaptivity options P_ISO, P_ANISO, H_ISO, H_ANISO,
+HP_ISO, HP_ANISO_P, HP_ANISO_H, HP_ANISO. In this ordering, usually P_ISO yields the 
+worst results and HP_ANISO the best. In the most general HP_ANISO 
+option, around 100 refinement candidates for each element are considered. 
+Naturally, the adaptivity algorithm takes progressively more time as more 
+refinement candidates are considered. The difference between the HP_ANISO_H
+option (next best to HP_ANISO) and HP_ANISO is quite significant. So, this is 
+where the user has to make a choice based on his a-priori knowledge of the 
+solution behavior. 
 
 Due to the large number of refinement options, classical error estimators (that
 provide a constant error estimate per element) cannot be used to guide automatic 
@@ -71,18 +111,23 @@ this information: *coarse mesh solution* and
 and the initial fine mesh is created through its global refinement both in
 $h$ and $p$.
 The fine mesh solution is the approximation of interest both during the adaptive
-process and at the end of computation. The coarse mesh
-solution represents its low-order part.
+process and at the end of computation. The coarse mesh solution represents its 
+low-order part. In all adaptivity examples in Hermes, the coarse mesh solution
+can be turned off and a global orthogonal projection of the fine mesh solution 
+on the coarse mesh can be used instead. In most cases, this yields a better 
+convergence behavior than using the coarse mesh solve (and the projection 
+problem is always linear and better conditioned than solving on the coarse mesh). 
 
-Both these solutions are evolved during the adaptive process
-in a PDE-independent manner, based on the discrepancies between global and local
-orthogonal projections. (Sometimes we replace the global orthogonal projection with
-the solve on the coarse mesh, the difference is negligible.)
+Note that this approach is PDE independent, which is truly great for multiphysics
+coupled problems. Currently, Hermes does not use a single analytical error estimate 
+or any other technique that would narrow down its applicability to just some 
+equations or just low-order FEM. 
 
-The obvious disadvantage of this approach to adaptivity is its higher computational cost,
-especially in 3D. We are aware of this fact and would not mind at all replacing it with
-some cheaper technique (as long as it also is PDE-independent, works for elements of high 
-orders, and can be successfully used to guide *hp*-adaptivity).
+The obvious disadvantage of the Hermes approach to automatic adaptivity is its higher 
+computational cost, especially in 3D. We are aware of this fact and would not mind 
+at all replacing it with some cheaper technique (as long as it also is PDE-independent, 
+works for elements of high orders, and can be successfully used to guide *hp*-adaptivity).
+So far, however, no alternatives meeting these criteria exist yet to our best knowledge.
 
 Understanding Convergence Rates
 -------------------------------
@@ -177,7 +222,18 @@ This is shown in the figure below.
    :align: center
    :width: 600
    :height: 450
-   :alt: Convergence graph.
+   :alt: Convergence graph to the Layer benchmark.
+
+In problems with extremely strong singularities the difference between the 
+exact and estimated error can be significant. This is illustrated in the 
+following graph that belongs to the benchmark 
+`kellogg <http://hpfem.org/hermes2d/doc/src/benchmarks.html#kellogg-elliptic>`_.
+
+ .. image:: img/conv-intro/kellogg.png
+   :align: center
+   :width: 600
+   :height: 450
+   :alt: Convergence graph to the Kellogg benchmark.
 
 Electrostatic Micromotor Problem (10)
 -------------------------------------
@@ -223,29 +279,32 @@ $\epsilon_r = 10$ in $\Omega_2$. The weak formulation reads
 
     \int_\Omega \epsilon_r \nabla u \cdot \nabla v \dx = 0.
 
-The varying parameter $\epsilon_r$ is handled by defining two bilinear forms in the code, one for
-$\Omega_1$ and the other for $\Omega_2$. These two areas are delimited by element markers 1 and 2 in
-the mesh, and the two forms are assigned to the corresponding markers during the registration of
-the forms:
+The piecewise constant parameter $\epsilon_r$ is handled by defining two bilinear forms in the code, one for
+$\Omega_1$ and the other for $\Omega_2$. The two different materials are distinguished by different 
+element markers OMEGA_1 = 1 and OMEGA_2 = 2 in the mesh file, and two different weak forms are assigned 
+to the corresponding markers during the registration of the forms::
 
-::
+    // Initialize the weak formulation.
+    WeakForm wf;
+    wf.add_matrix_form(callback(biform1), H2D_SYM, OMEGA_1);
+    wf.add_matrix_form(callback(biform2), H2D_SYM, OMEGA_2);
 
-    WeakForm wf(1);
-    wf.add_biform(0, 0, callback(biform1), H2D_SYM, 1);
-    wf.add_biform(0, 0, callback(biform2), H2D_SYM, 2);
+Refinement selector
+~~~~~~~~~~~~~~~~~~~
 
-The principal part of the example is the main adaptivity loop. However, before the loop is entered, a selector should be created:
-::
+The principal part of the example is the main adaptivity loop. However, before the loop is entered, 
+a refinement selector should be initialized::
 
-    H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER, &shapeset);
+    H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
 
 The selector is used by the class H1Adapt to determine how an element should be refined. For that purpose, the selector does following steps:
 
-#. It generates candidates.  A candidate is a proposed refinement.
-#. It estimates their local error by projecting the reference solution onto the refinement candidates.
-#. It calculates a number of degree of freedom (DOF).
-#. It calculates a score of every candidate and sorts candidates according to the score.
-#. It selects a candidate with the highest score. If the next candidate has almost the same score, it skips both of them since it is not able to decide which is the best. This helps to keep a mesh symmetric if anisotropic refinements are used on a symmetric solution.
+#. It generates candidates (proposed refinements).
+#. It estimates their local errors by projecting the reference solution onto their FE spaces.
+#. It calculates the number of degree of freedom (DOF) contributed by each candidate.
+#. It calculates a score for each candidate, and sorts them according to their scores.
+#. It selects a candidate with the highest score. If the next candidate has almost the same score and symmetric mesh is 
+   preferred, it skips both of them. More detailed explanation of this will follow.
 
 By default, the score is
 
@@ -261,7 +320,7 @@ The first parameter ``CAND_LIST`` specifies which candidates are generated. In a
    :align: center
    :alt: Candidates generated for a given candidate list.
 
-The second parameter ``CONV_EXP`` is a convergence exponent used to evaluate a score.
+The second parameter ``CONV_EXP`` is a convergence exponent used to calculate the score.
 
 The third parameter specifies the the maximum considered order used in the resulting refinement. In this case, a constant ``H2DRS_DEFAULT_ORDER`` is used. The constant is defined by Hermes2D library and it corresponds to the maximum order supported by the selector. In this case, this is 9.
 
@@ -289,57 +348,77 @@ In this case, default settings are used. If expressed explicitly, the code would
     selector.set_option(H2D_PREFER_SYMMETRIC_MESH, true);
     selector.set_option(H2D_APPLY_CONV_EXP_DOF, false);
 
-After the selector has been created, an adaptivity loop can be entered. The adaptivity loop is an ordinary while-loop or a for-loop. In each iteration of the adaptivity loop, the coarse problem is solved first:
-::
+Computing the coarse and fine mesh approximations
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    LinSystem ls(&wf, &solver);
-    ls.set_spaces(1, &space);
-    ls.set_pss(1, &pss);
-    ls.assemble();
-    ls.solve(1, &sln_coarse);
+After the selector has been created, the adaptivity can begin. The adaptivity loop is an ordinary while-loop 
+or a for-loop that (for linear problems) usually starts like this::
 
-Next, the reference solution is computed on a globally refined copy of the mesh. For this purpose
-a temporary space with (optionally) increased element orders is defined and an extra linear system is assembled and solved.
-However, in the most of the cases, this can be done using the class RefSystem. All it needs is a pointer
-to an instance of the class LinSystem:
+    // Adaptivity loop:
+    Solution sln_coarse, sln_fine;
+    int as = 1; bool done = false;
+    do
+    {
+      info("---- Adaptivity step %d:", as);
 
-::
+      // Assemble and solve the fine mesh problem.
+      info("Solving on fine mesh.");
+      RefSystem rs(&ls);
+      rs.assemble();
+      rs.solve(&sln_fine);    
 
-    RefSystem rs(&ls);
-    rs.assemble();
-    rs.solve(1, &sln_fine);
+      // Either solve on coarse mesh or project the fine mesh solution 
+      // on the coarse mesh.
+      if (SOLVE_ON_COARSE_MESH) {
+        info("Solving on coarse mesh.");
+        ls.assemble();
+        ls.solve(&sln_coarse);
+      }
+      else {
+        info("Projecting fine mesh solution on coarse mesh.");
+        ls.project_global(&sln_fine, &sln_coarse);
+      }
 
-The constructor of the class RefSystem allows a user
+The code above creates the pair of coarse and fine mesh approximations, 
+either by solving on both meshes or by just solving on the fine mesh and projecting 
+the fine mesh solution on the coarse mesh. We prefer the latter approach as for us it has 
+worked better in many situations.
+
+The reference (fine mesh) solution is computed on a globally refined copy of the mesh
+using the class RefSystem. The constructor of the class RefSystem allows the  user
 to choose a different polynomial degree increment (default value 1)
 and another element refinement (default value 1) - see the file 
-`src/refsystem.h <http://git.hpfem.org/hermes2d.git/blob/HEAD:/src/refsystem.h>`_:
-
-::
+`src/refsystem.h <http://git.hpfem.org/hermes2d.git/blob/HEAD:/src/refsystem.h>`_::
 
     RefSystem(LinSystem* base, int order_increase = 1, int refinement = 1);
 
-In particular, one may want to use order_increase = 0 for h-adaptivity, and 
-order_increase = 2 or 3 at the very beginning of computation when the reference 
-mesh is still very coarse and thus the reference solution does not give a meaningful 
-error estimate. 
+In particular, sometimes one may want to use order_increase = 2 or 3 at the very beginning 
+of computation when the reference mesh is still very coarse and thus the reference solution 
+with order_increase = 1 does not give a meaningful error estimate. 
  
-In the third and last step of each iteration, we refine our mesh and polynomial degrees stored
-in our space using a class H1Adapt. This class offers two services:
+Adapting the mesh
+~~~~~~~~~~~~~~~~~
 
-* it estimates the overall error of the coarse solution in $H^1$ norm,
-* it selects elements with the highest error and uses a user-supplied selector to find a refinement.
+In the third and last step of each iteration, we use the class H1Dadpt to adjust the coarse mesh and polynomial degrees 
+of finite elements stored in the corresponding Space. (Classes HcurlAdapt, HdivAdapt and L2Adapt will be discussed later.)
+The H1Adapt class has two main functionalities:
 
-In a general case, the class H1Adapt is initialized with a list of spaces through the class Tuple. Since we use just a single component in this case, a pointer to an instance of the class H1Space is the only parameter. Then, the user sets the coarse solution and the fine solution and evaluates the error. By default, the error is calculated as
+* It estimates the overall error of the coarse solution in the $H^1$ norm (user-defined norms for 
+  error calculation will be discussed later),
+* It selects elements with the highest error and uses the user-supplied refinement selector to find a refinement for each of them.
+
+The class H1Adapt is initialized with a pointer to the underlying LinSystem (or NonlinSystem - this will be discussed
+later). Then the user sets the coarse solution and the fine solution and evaluates the error. By default, the error is calculated as
 
 .. math::
 
     e = \frac{|| u - u_{ref} ||_{H^1}}{|| u_{ref} ||_{H^1}}.
 
-In the code this looks as follows:
+In the code this looks as follows::
 
-::
-
-    H1Adapt hp(&space);
+    // Calculate element errors and total error estimate.
+    info("Calculating error.");
+    H1Adapt hp(&ls);
     hp.set_solutions(&sln_coarse, &sln_fine);
     double err_est = hp.calc_error() * 100;
 
@@ -348,15 +427,16 @@ adaptivity step:
 
 ::
 
+    // If err_est too large, adapt the mesh.
     if (err_est < ERR_STOP) done = true;
     else {
-      hp.adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY);
-      ndof = assign_dofs(&space);
-      if (ndof >= NDOF_STOP) done = true;
+      info("Adapting coarse mesh.");
+      done = hp.adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY);
+
+      if (ls.get_num_dofs() >= NDOF_STOP) done = true;
     }
 
-The constants ``THRESHOLD``, ``STRATEGY`` and ``MESH_REGULARITY``
-have the following meaning:
+The constants ``THRESHOLD``, ``STRATEGY`` and ``MESH_REGULARITY`` have the following meaning:
 
 The constant ``STRATEGY`` indicates which adaptive strategy is used. In all cases, the strategy is applied to elements in an order defined through the error. If the user request to process an element outside this order, the element is processed regardless the strategy. Currently, Hermes2D supportes following strategies:
 
@@ -438,8 +518,8 @@ The following graph shows convergence in terms of CPU time.
    :height: 400
    :alt: CPU convergence graph for tutorial example 10-adapt.
 
-The Multimesh hp-FEM
---------------------
+Multimesh hp-FEM
+----------------
 
 In multiphysics PDE systems (or just PDE systems) it can happen that one
 physical field (solution component) has a singularity or a boundary layer 
@@ -523,18 +603,16 @@ single array, sorted according to their estimated errors, and then the ones with
 largest error are refined. In other words, it may happen that all elements marked for refinement 
 will belong just to one mesh.
 
-If norms of components are substantially different, it is more beneficial to use a relative error of an element rather than an absolute error. The relative error of an element is an absolute error divided by a norm of a component. This behavior can be requested while calling the method calc_error():
-
-::
+If norms of components are substantially different, it is more beneficial to use a relative error of an element rather than an absolute error. The relative error of an element is an absolute error divided by a norm of a component. This behavior can be requested while calling the method calc_error()::
 
     hp.calc_error(H2D_TOTAL_ERROR_REL | H2D_ELEMENT_ERROR_REL)
 
 The input parameter of the method calc_error() is a combination that is a pair: one member of the pair has to be a constant ```H2D_TOTAL_ERROR_*```, the other member has to be a constant ```H2D_ELEMENT_ERROR_*```. If not specified, the default pair is ```H2D_TOTAL_ERROR_REL | H2D_ELEMENT_ERROR_ABS```. Currently available contants are:
 
-- ```H2D_TOTAL_ERROR_REL```: A returned total error will be an absolute error divided by a total norm.
-- ```H2D_TOTAL_ERROR_ABS```: A returned total error will be an absolute error.
-- ```H2D_TOTAL_ERROR_REL```: An element error which is used to select elements for refinement will be an absolute error divided by a norm of a corresponding component.
-- ```H2D_TOTAL_ERROR_ABS```: An element error which is used to select elements for refinement will be an absolute error.
+- ```H2D_TOTAL_ERROR_REL```: Returned total error will be the absolute error divided by the total norm.
+- ```H2D_TOTAL_ERROR_ABS```: Returned total error will be the absolute error.
+- ```H2D_TOTAL_ERROR_REL```: Element error which is used to select elements for refinement will be an absolute error divided by the norm of the corresponding solution component.
+- ```H2D_TOTAL_ERROR_ABS```: Element error which is used to select elements for refinement will be the absolute error.
 
 
 Simplified Fitzhugh-Nagumo System (11)
@@ -598,7 +676,7 @@ are not extremely pretty, but they are not too bad either:
 
 ::
 
-    // functions g_1 and g_2
+    // Functions g_1 and g_2.
     double g_1(double x, double y) 
     {
       return (-cos(M_PI*x/2.)*cos(M_PI*y/2.) + SIGMA*(1. - (exp(K*x) + exp(-K*x))/(exp(K) + exp(-K))) 
@@ -617,54 +695,66 @@ are not extremely pretty, but they are not too bad either:
 
 The weak forms can be found in the 
 file `forms.cpp <http://git.hpfem.org/hermes2d.git/blob/HEAD:/tutorial/11-system-adapt/forms.cpp>`_ and 
-they are registered as follows:
+they are registered as follows::
 
-::
-
-    // initialize the weak formulation
+    // Initialize the weak formulation.
     WeakForm wf(2);
-    wf.add_biform(0, 0, callback(bilinear_form_0_0));  
-    wf.add_biform(0, 1, callback(bilinear_form_0_1));  
-    wf.add_biform(1, 0, callback(bilinear_form_1_0));
-    wf.add_biform(1, 1, callback(bilinear_form_1_1));
-    wf.add_liform(0, linear_form_0, linear_form_0_ord);
-    wf.add_liform(1, linear_form_1, linear_form_1_ord);
+    wf.add_matrix_form(0, 0, callback(bilinear_form_0_0));
+    wf.add_matrix_form(0, 1, callback(bilinear_form_0_1));
+    wf.add_matrix_form(1, 0, callback(bilinear_form_1_0));
+    wf.add_matrix_form(1, 1, callback(bilinear_form_1_1));
+    wf.add_vector_form(0, linear_form_0, linear_form_0_ord);
+    wf.add_vector_form(1, linear_form_1, linear_form_1_ord);
 
-Beware that despite each of the forms is actually symmetric, one cannot use the H2D_SYM flag as in the 
+Beware that although each of the forms is actually symmetric, one cannot use the H2D_SYM flag as in the 
 elasticity equations, since it has a slightly different 
 meaning (see example `08-system <http://hpfem.org/hermes2d/doc/src/tutorial-1.html#systems-of-equations-08>`_).
 
-The exact error is for us the maximum of the relative errors of the two solution components:
+At the beginning of the adaptivity loop, a coarse and fine mesh approximation on both 
+meshes is obtained as follows::
 
-::
+    // Assemble and solve the fine mesh problem.
+    info("Solving on fine meshes.");
+    RefSystem rs(&ls);
+    rs.assemble();
+    rs.solve(Tuple<Solution*>(&u_sln_fine, &v_sln_fine));
 
-    // calculate error wrt. exact solution
-    ExactSolution uexact(&umesh, u_exact);
-    ExactSolution vexact(&vmesh, v_exact);
-    double u_error = h1_error(&u_sln_coarse, &uexact) * 100;
-    double v_error = h1_error(&v_sln_coarse, &vexact) * 100;
-    double error = fmax(u_error, v_error);
-    info("Exact solution error for u (H1 norm): %g%%", u_error);
-    info("Exact solution error for v (H1 norm): %g%%", v_error);
-    info("Exact solution error (maximum): %g%%", error);
+    // Either solve on coarse mesh or project the fine mesh solution 
+    // on the coarse mesh.
+    if (SOLVE_ON_COARSE_MESH) {
+      info("Solving on coarse meshes.");
+      ls.assemble();
+      ls.solve(Tuple<Solution*>(&u_sln_coarse, &v_sln_coarse));
+    }
+    else {
+      info("Projecting fine mesh solutions on coarse meshes.");
+      ls.project_global(Tuple<MeshFunction*>(&u_sln_fine, &v_sln_fine), 
+                        Tuple<Solution*>(&u_sln_coarse, &v_sln_coarse));
+    }
 
-The next code snippet shows how we define the energy norm for adaptive
-multimesh hp-FEM, whose necessity was explained in the previous 
-paragraph:
+Error estimate for adaptivity is now calculated using an energetic norm
+that employs the original weak forms of the problem::
 
-::
-
-    // calculate element error estimates and the total error estimate
-    H1Adapt hp(Tuple<Space*>(&uspace, &vspace));
-    hp.set_solutions(Tuple<Solution*>(&u_sln_coarse, &v_sln_coarse), Tuple<Solution*>(&u_sln_fine, &v_sln_fine));
+    // Calculate element errors and total error estimate.
+    info("Calculating error (est).");
+    H1Adapt hp(&ls);
+    hp.set_solutions(Tuple<Solution*>(&u_sln_coarse, &v_sln_coarse), 
+                     Tuple<Solution*>(&u_sln_fine, &v_sln_fine));
     hp.set_biform(0, 0, bilinear_form_0_0<scalar, scalar>, bilinear_form_0_0<Ord, Ord>);
     hp.set_biform(0, 1, bilinear_form_0_1<scalar, scalar>, bilinear_form_0_1<Ord, Ord>);
     hp.set_biform(1, 0, bilinear_form_1_0<scalar, scalar>, bilinear_form_1_0<Ord, Ord>);
     hp.set_biform(1, 1, bilinear_form_1_1<scalar, scalar>, bilinear_form_1_1<Ord, Ord>);
     double err_est = hp.calc_error(H2D_TOTAL_ERROR_REL | H2D_ELEMENT_ERROR_ABS) * 100;
-    info("Estimate of error wrt. ref. solution (energy norm): %g%%", err_est);
 
-Notice that in this case, the method calc_error() specifies explicitly that an error of an element is not devided by the norm of a component and the method should return a total error which is relative, i.e., divided by the norm. This is a default behavior.
+We also calculate error wrt. exact solution for comparison purposes::
+
+    // Calculate error wrt. exact solution.
+    info("Calculating error (exact).");
+    ExactSolution uexact(&umesh, u_exact);
+    ExactSolution vexact(&vmesh, v_exact);
+    double u_error = h1_error(&u_sln_coarse, &uexact) * 100;
+    double v_error = h1_error(&v_sln_coarse, &vexact) * 100;
+    double error = std::max(u_error, v_error);
 
 The following two figures show the solutions $u$ and $v$. Notice their 
 large qualitative differences: While $u$ is smooth in the entire domain, 
