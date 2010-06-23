@@ -3,11 +3,13 @@ Tutorial Part I (Linear Problems)
 =================================
 
 This tutorial should give you a good idea of how Hermes2D works. After reading it, you will
-be able to create your own applications and/or adjust existing Hermes2D examples for your 
+be able to create your own applications and/or adjust existing Hermes examples for your 
 purposes. At the beginning of every section we give a reference to the corresponding example in the 
-Hermes2D git repository -- there you will always find the corresponding main.cpp file, mesh file(s) etc.
-The document is under continuous development - if you find bugs or would like us to 
-improve something, let us know through the `mailing list <http://groups.google.com/group/hermes2d/>`_.
+Hermes git repository -- there you will always find the corresponding main.cpp file, mesh file(s) etc.
+
+This document is under active development. If you find bugs, typos, dead links or such, or have 
+a nice example to add to the tutorial or to the Hermes repository, please 
+do us a favor and let us know through the `mailing list <http://groups.google.com/group/hermes2d/>`_.
 
 Finite Element Mesh (01)
 --------------------------------

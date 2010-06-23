@@ -2,18 +2,15 @@
 Tutorial Part III (Nonlinear Problems)
 ======================================
 
-This part of the tutorial assumes that the reader is familiar with linear problems
-(Part I). We will discuss the Newton's method for nonlinear PDE and 
-PDE systems, for both stationary and time-dependent models. At the end of this chapter,
-the reader will be able to solve time-dependent nonlinear problems adaptively using
-dynamical meshes. 
+This part of the tutorial assumes that the reader is familiar with the solution of 
+linear problems (Part I). We will begin with explaining the basics of the Newton's 
+method for nonlinear PDE problems, and then illustrate it on examples with gradually 
+increasing complexity. At the end of Part III the reader will be able to solve time-dependent 
+nonlinear multiphysics PDE systems. 
 
 The Newton's Method
 -------------------
 
-Hermes can solve nonlinear problems via the Newton's method, both single nonlinear
-PDE and nonlinear PDE systems. We begin with explaining how the Newton's method works, and 
-concrete implementation details will be shown after that. 
 Consider a simple model problem of the form 
 
 .. math::
@@ -119,13 +116,13 @@ The Newton's method is now
 Therefore, the Newton's method will converge in one iteration.
 
 
-Constant Initial Guess (13)
----------------------------
+Constant Initial Condition (13)
+-------------------------------
 
 **Git reference:** Tutorial example `13-newton-elliptic-1 
 <http://git.hpfem.org/hermes2d.git/tree/HEAD:/tutorial/13-newton-elliptic-1>`_.
 
-We will solve the nonlinear model problem defined in the previous section,
+Let us solve the nonlinear model problem from the previous section,
 
 .. math::
 
@@ -159,14 +156,14 @@ In the code, this becomes
 
 ::
 
-    // Heat sources (can be a general function of 'x' and 'y')
+    // Heat sources (can be a general function of 'x' and 'y').
     template<typename Real>
     Real heat_src(Real x, Real y)
     {
       return 1.0;
     }
 
-    // Jacobian matrix
+    // Jacobian matrix.
     template<typename Real, typename Scalar>
     Scalar jac(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
     {
@@ -179,7 +176,7 @@ In the code, this becomes
       return result;
     }
 
-    // Fesidual vector
+    // Residual vector.
     template<typename Real, typename Scalar>
     Scalar res(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
     {
@@ -192,8 +189,8 @@ In the code, this becomes
     }
 
 Notice that the basis function $v_j$ and the test function 
-$v_i$ are entering the weak forms via the parameters u and v, respectively (same as for linear problems). 
-The user does not have to 
+$v_i$ are entering the weak forms via the parameters u and v, respectively (same as for linear 
+problems). The user does not have to 
 take care about their indices $i$ and $j$, this is handled by Hermes outside the weak forms. 
 
 The code snippet above also shows how values and derivatives of the solution $u$ can be accessed via 
@@ -203,58 +200,68 @@ including the unit normal and tangential vectors to the boundary at the integrat
 (also for curved boundaries). See the file 
 `src/forms.h <http://git.hpfem.org/hermes2d.git/blob/HEAD:/src/forms.h>`_ for more details. 
 
-The weak forms are registered as usual, except that the previous solution u_prev has to be declared in advance:
+The Newton's method always has to start from an initial condition, and in this example 
+this is 
 
 ::
 
-    // previous solution for the Newton's iteration
+    // Initial condition. It will be projected on the FE mesh 
+    // to obtain initial coefficient vector for the Newton's method.
+    scalar init_cond(double x, double y, double& dx, double& dy)
+    {
+      dx = 0;
+      dy = 0;
+      return INIT_COND_CONST;
+    }
+
+The weak forms are registered as usual, except that the previous solution u_prev 
+is passed into the form as an extra argument::
+
+    // Previous solution for the Newton's iteration.
     Solution u_prev;
 
-    // initialize the weak formulation
-    WeakForm wf(1);
-    wf.add_biform(0, 0, callback(jac), H2D_UNSYM, H2D_ANY, 1, &u_prev);
-    wf.add_liform(0, callback(res), H2D_ANY, 1, &u_prev);
+    // Initialize the weak formulation.
+    WeakForm wf;
+    wf.add_matrix_form(callback(jac), H2D_UNSYM, H2D_ANY, &u_prev);
+    wf.add_vector_form(callback(res), H2D_ANY, &u_prev);
 
-The nonlinear system needs to be initialized:
+Recall that by H2D_UNSYM we declare that the Jacobian bilinear form is not symmetric,
+and by H2D_ANY that the form should be used for elements with any material marker.
 
-::
+The NonlinSystem class is initialized in the same way as LinSystem::
 
-    // initialize the nonlinear system and solver
-    UmfpackSolver umfpack;
-    NonlinSystem nls(&wf, &umfpack);
-    nls.set_spaces(1, &space);
-    nls.set_pss(1, &pss);
+    // Initialize the linear system.
+    NonlinSystem nls(&wf, &space);
 
-In this example, we set the initial guess for the Newton's iteration to be 
-a constant function:
+An important step in the Newton's method that cannot be skipped is the projection 
+of the initial condition on the FE space. This is where the initial coefficient 
+vector $\bfY_0$ for the Newton's iteration is created::
 
-::
+    // Project the function init_cond() on the FE space
+    // to obtain initial coefficient vector for the Newton's method.
+    info("Projecting initial condition to obtain initial vector for the Newton'w method.");
+    nls.project_global(init_cond, &u_prev);  
 
-    // use a constant function as the initial guess
-    u_prev.set_const(&mesh, 3.0);
-    nls.project_global(&u_prev, &u_prev, PROJ_TYPE);
+The method project_global() has an optional third argument which is the projection 
+norm. Its default value is H2D_DEFAULT_PROJ_NORM = 1 ($H^1$ norm). Other 
+admissible values are 0 ($L^2$ norm), 2 ($Hcurl$ norm) and 3 ($Hdiv$ norm) whose 
+use will be shown later. Later we'll also see how to handle the projection for PDE systems.
 
-The function project_global() takes an initial guess (the first argument),
-projects it on the space determined by the NonlinSystem, and stores the result in the 
-second argument. 
-The projection norm PROJ_TYPE needs to be compatible with the Sobolev
-space where the solution is sought ($H^1$ in this example). 
-Hermes currently provides $H^1$-projection (PROJ_TYPE = 1) and 
-$L^2$-projection (PROJ_TYPE = 0). Other projections (H(curl), H(div) etc.)
-will be added later when a need arises. 
+The Newton's iteration is done using the method solve_newton()::
 
-A more advanced example showing how to define a general initial guess 
-and how to deal with nonzero Dirichlet boundary conditions will follow. 
-The Newton's loop is very simple,
+  // Perform Newton's iteration.
+  info("Performing Newton's iteration.");
+  bool verbose = true; // Default is false.
+  if (!nls.solve_newton(&u_prev, NEWTON_TOL, NEWTON_MAX_ITER, verbose)) 
+    error("Newton's method did not converge.");
 
-::
+If the optional parameter "verbose" is set to "true", convergence 
+information is printed. 
 
-    // Newton's loop
-    nls.solve_newton(&u_prev, NEWTON_TOL, NEWTON_MAX_ITER);
-
-Note that up to three Filters can be passed to the function 
-as optional parameters at the end. This function can be found in 
-`src/nonlinsystem.h <http://git.hpfem.org/hermes2d.git/blob/HEAD:/src/nonlinsystem.h>`_.
+Note that arbitrary Filters can be passed as additional optional parameters. 
+This will be shown in the tutorial example 
+`18-timedep-flame <http://hpfem.org/hermes2d/doc/src/tutorial-3.html#flame-propagation-problem-17>`_.
+Results for this example are shown below.
 
 Approximate solution $u$ for $\alpha = 2$: 
 
@@ -272,8 +279,8 @@ Approximate solution $u$ for $\alpha = 4$:
    :height: 400
    :alt: result for alpha = 4
 
-General Initial Guess (14)
---------------------------
+General Initial Condition (14)
+------------------------------
 
 **Git reference:** Tutorial example `14-newton-elliptic-2 
 <http://git.hpfem.org/hermes2d.git/tree/HEAD:/tutorial/14-newton-elliptic-2>`_.
@@ -296,53 +303,50 @@ The treatment of the Dirichlet boundary conditions in the code looks as follows:
 
 ::
 
-    // This function is used to define Dirichlet boundary conditions
+    // This function is used to define Dirichlet boundary conditions.
     double dir_lift(double x, double y, double& dx, double& dy) {
       dx = (y+10)/10.;
       dy = (x+10)/10.;
       return (x+10)*(y+10)/100.;
     }
 
-    // Boundary condition type (essential = Dirichlet)
+    // Boundary condition types.
     BCType bc_types(int marker)
     {
       return BC_ESSENTIAL;
     }
 
-    // Dirichlet boundary condition values
+    // Essential (Dirichlet) boundary condition values.
     scalar essential_bc_values(int ess_bdy_marker, double x, double y)
     {
       double dx, dy;
-      return dir_lift(x, y, dx, dy); 
+      return dir_lift(x, y, dx, dy);
     }
 
-The initial guess for the Newton's method will be chosen to be the 
-Dirichlet lift function elevated by 2:
+The initial condition has the form::
 
-::
-
-    // This function will be projected on the initial mesh and 
-    // used as initial guess for the Newton's method
-    scalar init_guess(double x, double y, double& dx, double& dy)
+    // Initial condition. It will be projected on the FE mesh 
+    // to obtain initial coefficient vector for the Newton's method.
+    scalar init_cond(double x, double y, double& dx, double& dy)
     {
-      // using the Dirichlet lift elevated by two
+      // Using the Dirichlet lift elevated by two
       double val = dir_lift(x, y, dx, dy) + 2;
+      return val;
     }
 
-The initial guess is projected to the finite element space 
-determined by NonlinSystem using the project_global()
-method:
+The initial condition must be projected on the finite element space 
+in order to obtain the initial coefficient vector $\bfY_0$ for the Newton's
+iteration::
 
-::
+    // Project the function init_cond() on the FE space
+    // to obtain initial coefficient vector for the Newton's method.
+    info("Projecting initial condition to obtain initial vector for the Newton'w method.");
+    nls.project_global(init_cond, &u_prev);
 
-    // project the function init_guess() on the mesh 
-    // to obtain initial guess u_prev for the Newton's method
-    nls.project_global(init_guess, &u_prev, PROJ_TYPE);
+Recall that the vector $\bfY_0$ can be retrieved from the NonLinSystem
+class using the method get_solution_vector(). 
 
-This function creates an orthogonal projection of the initial guess
-on the mesh "mesh" and stores the result in u_prev. 
-The following figure shows the  
-$H^1$-projection of the above-defined initial guess init_guess():
+The following figure shows the $H^1$-projection of the initial condition init_cond():
 
 .. image:: img/example-14/proj-h1.png
    :align: center
@@ -350,16 +354,17 @@ $H^1$-projection of the above-defined initial guess init_guess():
    :height: 350
    :alt: H1 projection
 
-The Newton's iteration is performed again using
+The Newton's iteration is again performed using
 
 ::
 
-    // Newton's loop
-    nls.solve_newton(&u_prev, NEWTON_TOL, NEWTON_MAX_ITER);
+  // Perform Newton's iteration.
+  info("Performing Newton's iteration.");
+  bool verbose = true; // Default is false.
+  if (!nls.solve_newton(&u_prev, NEWTON_TOL, NEWTON_MAX_ITER, verbose)) 
+    error("Newton's method did not converge.");
 
-
-The converged solution after 7 steps of the Newton's
-method looks as follows:
+The converged solution looks as follows:
 
 .. image:: img/example-14/solution.png
    :align: center
@@ -373,7 +378,7 @@ Newton's Method and Adaptivity (15)
 **Git reference:** Tutorial example `15-newton-elliptic-adapt 
 <http://git.hpfem.org/hermes2d.git/tree/HEAD:/tutorial/15-newton-elliptic-adapt>`_.
 
-We will keep the simple model problem
+We will still keep the simple model problem
 
 .. math::
 
@@ -391,95 +396,119 @@ the initial condition is projected on the coarse mesh:
 
 ::
 
-    // project the function init_guess() on the coarse mesh 
-    // to obtain initial guess u_prev for the Newton's method
-    nls.project_global(init_guess, &u_prev, PROJ_TYPE);
+    // Project the function init_cond() on the FE space
+    // to obtain initial coefficient vector for the Newton's method.
+    info("Projecting initial condition to obtain initial vector on coarse mesh.");
+    nls.project_global(init_cond, &u_prev);
 
 Then we solve the nonlinear problem on the coarse mesh and store
 the coarse mesh solution:
 
 ::
 
-    // Newton's loop on the coarse mesh
-    info("---- Solving on coarse mesh:");
-    if (!nls.solve_newton(&u_prev, NEWTON_TOL_COARSE, NEWTON_MAX_ITER)) error("Newton's method did not converge.");
+    // Newton's loop on the coarse mesh.
+    info("Solving on coarse mesh.");
+    bool verbose = true; // Default is false.
+    if (!nls.solve_newton(&u_prev, NEWTON_TOL_COARSE, NEWTON_MAX_ITER, verbose)) 
+      error("Newton's method did not converge.");
 
-    // store the result in sln_coarse
+    // Store the result in sln_coarse.
     sln_coarse.copy(&u_prev);
 
-In order to support adaptivity, a selector is created:
+Note that storing the solution u_prev in sln_coarse is equivalent to storing the 
+converged coefficient vector $\bfY$, but the Solution can be passed into weak 
+forms. 
 
-::
+Next a refinement selector is initialized::
 
-    H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER, &shapeset);
+    // Initialize a refinement selector.
+    H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
 
-Next the nonlinear problem on the fine mesh is initialized as follows:
+Then the nonlinear problem on the fine mesh is initialized and the initial
+coefficient vector $\bfY_0$ on the fine mesh is calculated::
 
-::
+    // Initialize the fine mesh problem.
+    RefSystem rnls(&nls);
 
-    // Setting initial guess for the Newton's method on the fine mesh
-    RefNonlinSystem rnls(&nls);
-    rnls.prepare();
-    if (a_step == 1) rnls.project_global(&sln_coarse, &u_prev, PROJ_TYPE);
-    else rnls.project_global(&sln_fine, &u_prev, PROJ_TYPE);    
+    // Set initial condition for the Newton's method on the fine mesh.
+    if (as == 1) {
+      info("Projecting coarse mesh solution to obtain initial vector on new fine mesh.");
+      rnls.project_global(&sln_coarse, &u_prev);
+    }
+    else {
+      info("Projecting fine mesh solution to obtain initial vector on new fine mesh.");
+      rnls.project_global(&sln_fine, &u_prev);
+    }
 
 Notice that we only use sln_coarse as the initial guess on the fine mesh 
 in the first adaptivity step when we do not have any fine mesh solution yet,
-otherwise a projection of the last fine mesh solution is used. Then we perform the 
-Newton's loop on the fine mesh and store the result in sln_fine:
+otherwise a projection of the last fine mesh solution is used. 
 
-::
+Note that the procedure explained here is what we typically do and the reader 
+does not have to follow it. It is possible to start the Newton's method on the 
+fine mesh using zero or any other initial condition. 
 
-    // Newton's loop on the fine mesh
-    if (!rnls.solve_newton(&u_prev, NEWTON_TOL_FINE, NEWTON_MAX_ITER)) error("Newton's method did not converge.");
+Next we perform the Newton's loop on the fine mesh and store the result in 
+sln_fine::
 
-    // stote the fine mesh solution in sln_fine
+    // Newton's loop on the fine mesh.
+    info("Solving on fine mesh.");
+    if (!rnls.solve_newton(&u_prev, NEWTON_TOL_FINE, NEWTON_MAX_ITER, verbose)) 
+      error("Newton's method did not converge.");
+
+    // Store the fine mesh solution in sln_fine.
     sln_fine.copy(&u_prev);
 
-Now we have the desired solution pair, and the error estimate is calculated as usual:
+Now we have the solution pair to guide automatic adaptivity, and we can calculate 
+the error estimate:
 
 ::
 
-    // calculate element errors and total error estimate
-    H1Adapt hp(&space);
+    // Calculate element errors and total error estimate.
+    info("Calculating error.");
+    H1Adapt hp(&nls);
     hp.set_solutions(&sln_coarse, &sln_fine);
     err_est = hp.calc_error() * 100;
 
-After adapting the mesh, we must not forget to update the coarse mesh solution. 
-This can be done either by just projecting the fine mesh solution onto 
-the new coarse mesh, or by solving in addition to that the nonlinear
-problem on the new coarse mesh:
+After adapting the mesh, we must not forget to calculate a new initial coefficient 
+vector $\bfY_0$ on the new coarse mesh. This can be done either by just projecting 
+the fine mesh solution onto the new coarse mesh, or by solving (in addition to that) 
+the nonlinear problem on the new coarse mesh:
 
 ::
 
-    // if err_est too large, adapt the mesh
+    // If err_est too large, adapt the mesh.
     if (err_est < ERR_STOP) done = true;
     else {
-      hp.adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY);
-      int ndof = assign_dofs(&space);
-      if (ndof >= NDOF_STOP) done = true;
-
-      // project the fine mesh solution on the new coarse mesh
-      info("---- Projecting fine mesh solution on new coarse mesh:\n");
-      nls.project_global(&sln_fine, &u_prev, PROJ_TYPE);
-
-      if (SOLVE_ON_COARSE_MESH) {
-        // Newton's loop on the coarse mesh
-        info("---- Solving on coarse mesh:\n");
-        if (!nls.solve_newton(&u_prev, NEWTON_TOL_COARSE, NEWTON_MAX_ITER)) error("Newton's method did not converge.");
+      info("Adapting coarse mesh.");
+      done = hp.adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY);
+      if (nls.get_num_dofs() >= NDOF_STOP) {
+        done = true;
+        break;
       }
 
-      // store the result in sln_coarse
+      // Project the fine mesh solution on the new coarse mesh.
+      if (SOLVE_ON_COARSE_MESH) 
+        info("Projecting fine mesh solution to obtain initial vector on new coarse mesh.");
+      else 
+        info("Projecting fine mesh solution on coarse mesh for error calculation.");
+      nls.project_global(&sln_fine, &u_prev);
+
+      if (SOLVE_ON_COARSE_MESH) {
+        // Newton's loop on the new coarse mesh.
+        info("Solving on coarse mesh.");
+        if (!nls.solve_newton(&u_prev, NEWTON_TOL_COARSE, NEWTON_MAX_ITER, verbose)) 
+          error("Newton's method did not converge.");
+      }
+
+      // Store the result in sln_coarse.
       sln_coarse.copy(&u_prev);
-    }
 
-The parameter SOLVE_ON_COARSE_MESH is provided to allow the user to do his 
-own experiments, but the default value is SOLVE_ON_COARSE_MESH = false.
-In our experience, the Newton's loop on the coarse mesh can be skipped
-in most cases since it does not affect the convergence and one saves some
-CPU time. This is illustrated in the following two convergence comparisons:
+In our experience, the Newton's loop on the new coarse mesh can be skipped since this 
+does not affect convergence and one saves some CPU time. This is illustrated in the 
+following convergence comparison:
 
-Convergence in the number of DOF (with and without Newton solve on coarse mesh):
+Convergence in the number of DOF (with and without Newton solve on the new coarse mesh):
 
 .. image:: img/example-15/conv_dof_compar.png
    :align: center
@@ -522,14 +551,14 @@ Nonlinear Parabolic Problem (16)
 <http://git.hpfem.org/hermes2d.git/tree/HEAD:/tutorial/16-newton-timedep-heat>`_.
 
 We will employ the Newton's method to solve a nonlinear parabolic PDE discretized 
-in time by means of the implicit Euler method. To keep things simple, our model problem is 
+in time by the implicit Euler method. To keep things simple, our model problem is 
 a time-dependent version of the nonlinear equation used in the previous three sections,
 
 .. math::
 
     \frac{\partial u}{\partial t} -\nabla \cdot (\lambda(u)\nabla u) - f(x,y) = 0.
 
-Again we prescribe nonhomogeneous Dirichlet boundary conditions 
+We prescribe nonhomogeneous Dirichlet boundary conditions 
 
 .. math::
 
@@ -551,7 +580,7 @@ need to be enhanced with a simple term containing the time step $\tau$ (called T
 
 ::
 
-    // Jacobian matrix
+    // Jacobian matrix.
     template<typename Real, typename Scalar>
     Scalar jac(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
     {
@@ -566,11 +595,9 @@ need to be enhanced with a simple term containing the time step $\tau$ (called T
 
 Here the function u_prev_newton plays the role of u_prev from the previous sections - this is the 
 previous solution inside the Newton's iteration. Note that the previous time level solution 
-$u^n$ that we call u_prev_time is not used in the Jacobian. It is used in the residual only:
+$u^n$ that we call u_prev_time is not present in the Jacobian matrix. It is used in the residual only::
 
-::
-
-    // Fesidual vector
+    // Fesidual vector.
     template<typename Real, typename Scalar>
     Scalar res(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
     {
@@ -584,40 +611,39 @@ $u^n$ that we call u_prev_time is not used in the Jacobian. It is used in the re
       return result;
     }
 
-Notice that the function u_prev_newton evolves during the Newton's iteration
+Note that the function u_prev_newton evolves during the Newton's iteration
 but the previous time level solution u_prev_time only is updated after the time step
-is finished. The weak forms and the previous solutions are registered as usual:
+is finished. The weak forms are registered as usual::
 
-::
+  // Initialize the weak formulation.
+  WeakForm wf;
+  wf.add_matrix_form(callback(jac), H2D_UNSYM, H2D_ANY, &u_prev_newton);
+  wf.add_vector_form(callback(res), H2D_ANY, Tuple<MeshFunction*>(&u_prev_newton, &u_prev_time));
 
-    // initialize the weak formulation
-    WeakForm wf(1);
-    wf.add_biform(0, 0, callback(jac), H2D_UNSYM, H2D_ANY, 1, &u_prev_newton);
-    wf.add_liform(0, callback(res), H2D_ANY, 2, &u_prev_newton, &u_prev_time);
+The entire time-stepping loop (minus visualization) looks as follows::
 
-The entire time-stepping loop looks as follows:
+  // Time stepping loop:
+  double current_time = 0.0;
+  int t_step = 1;
+  do {
+    info("---- Time step %d, t = %g s.", t_step, current_time); t_step++;
 
-::
+    // Newton's method.
+    info("Performing Newton's method.");
+    bool verbose = true; // Default is false.
+    if (!nls.solve_newton(&u_prev_newton, NEWTON_TOL, NEWTON_MAX_ITER, verbose)) 
+      error("Newton's method did not converge.");
 
-    // time stepping loop
-    double current_time = 0.0;
-    int t_step = 1;
-    do {
-      info("---- Time step %d, t = %g s:", t_step, current_time); t_step++;
+    // Update previous time level solution.
+    u_prev_time.copy(&u_prev_newton);
 
-      // Newton's method
-      nls.solve_newton(&u_prev_newton, NEWTON_TOL, NEWTON_MAX_ITER);
+    // Update time.
+    current_time += TAU;
 
-      // update previous time level solution
-      u_prev_time.copy(&u_prev_newton);
+  } while (current_time < T_FINAL);
 
-      // update time
-      current_time += TAU;
-
-    } while (current_time < T_FINAL);
-
-The stationary solution is not shown since we already saw it in the previous sections.
-
+The stationary solution is not shown here since we already saw it 
+in the previous sections.
 
 Flame Propagation Problem (17)
 ------------------------------
@@ -695,31 +721,28 @@ It is worth mentioning that the initial conditions for $T$ and $Y$,
 
 ::
 
-    // Initial conditions
+    // Initial conditions.
     scalar temp_ic(double x, double y, scalar& dx, scalar& dy)
       { return (x <= x1) ? 1.0 : exp(x1 - x); }
 
     scalar conc_ic(double x, double y, scalar& dx, scalar& dy)
       { return (x <= x1) ? 0.0 : 1.0 - exp(Le*(x1 - x)); }
 
-are defined as exact functions
+are defined as exact functions::
 
-::
+    // Set initial conditions.
+    t_prev_time_1.set_exact(&mesh, temp_ic); c_prev_time_1.set_exact(&mesh, conc_ic);
+    t_prev_time_2.set_exact(&mesh, temp_ic); c_prev_time_2.set_exact(&mesh, conc_ic);
+    t_prev_newton.set_exact(&mesh, temp_ic);  c_prev_newton.set_exact(&mesh, conc_ic);
 
-    // setting initial conditions
-    t_prev_time_1.set_exact(&mesh, temp_ic); y_prev_time_1.set_exact(&mesh, conc_ic);
-    t_prev_time_2.set_exact(&mesh, temp_ic); y_prev_time_2.set_exact(&mesh, conc_ic);
-    t_prev_newton.set_exact(&mesh, temp_ic);  y_prev_newton.set_exact(&mesh, conc_ic);
 
 Here the pairs of solutions (t_prev_time_1, y_prev_time_1) and (t_prev_time_2, y_prev_time_2)
 correspond to the two first-order time-stepping methods described above. and 
 (t_prev_newton, y_prev_newton) are used to store the previous step approximation
 in the Newton's method. The reaction rate $\omega$ and its derivatives are handled
-via filters,
+via Filters::
 
-::
-
-    // defining filters for the reaction rate omega
+    // Define filters for the reaction rate omega.
     DXDYFilter omega(omega_fn, &t_prev_newton, &y_prev_newton);
     DXDYFilter omega_dt(omega_dt_fn, &t_prev_newton, &y_prev_newton);
     DXDYFilter omega_dy(omega_dy_fn, &t_prev_newton, &y_prev_newton);
@@ -731,62 +754,68 @@ Here is how we register the weak forms,
 
 ::
 
-    // initialize the weak formulation
+    // Initialize the weak formulation.
     WeakForm wf(2);
-    wf.add_biform(0, 0, callback(newton_bilinear_form_0_0), H2D_UNSYM, H2D_ANY, 1, &omega_dt);
-    wf.add_biform_surf(0, 0, callback(newton_bilinear_form_0_0_surf), 3);
-    wf.add_biform(0, 1, callback(newton_bilinear_form_0_1), H2D_UNSYM, H2D_ANY, 1, &omega_dy);
-    wf.add_biform(1, 0, callback(newton_bilinear_form_1_0), H2D_UNSYM, H2D_ANY, 1, &omega_dt);
-    wf.add_biform(1, 1, callback(newton_bilinear_form_1_1), H2D_UNSYM, H2D_ANY, 1, &omega_dy);
-    wf.add_liform(0, callback(newton_linear_form_0), H2D_ANY, 4, &t_prev_newton, &t_prev_time_1, &t_prev_time_2, &omega);
-    wf.add_liform_surf(0, callback(newton_linear_form_0_surf), 3, 1, &t_prev_newton);
-    wf.add_liform(1, callback(newton_linear_form_1), H2D_ANY, 4, &y_prev_newton, &y_prev_time_1, &y_prev_time_2, &omega);
+    wf.add_matrix_form(0, 0, callback(newton_bilinear_form_0_0), H2D_UNSYM, H2D_ANY, &omega_dt);
+    wf.add_matrix_form_surf(0, 0, callback(newton_bilinear_form_0_0_surf), 3);
+    wf.add_matrix_form(0, 1, callback(newton_bilinear_form_0_1), H2D_UNSYM, H2D_ANY, &omega_dc);
+    wf.add_matrix_form(1, 0, callback(newton_bilinear_form_1_0), H2D_UNSYM, H2D_ANY, &omega_dt);
+    wf.add_matrix_form(1, 1, callback(newton_bilinear_form_1_1), H2D_UNSYM, H2D_ANY, &omega_dc);
+    wf.add_vector_form(0, callback(newton_linear_form_0), H2D_ANY, 
+                       Tuple<MeshFunction*>(&t_prev_newton, &t_prev_time_1, &t_prev_time_2, &omega));
+    wf.add_vector_form_surf(0, callback(newton_linear_form_0_surf), 3, &t_prev_newton);
+    wf.add_vector_form(1, callback(newton_linear_form_1), H2D_ANY, 
+                       Tuple<MeshFunction*>(&c_prev_newton, &c_prev_time_1, &c_prev_time_2, &omega));
 
-and how we initialize the nonlinear system and solver:
+The nonlinear system is initialized as follows::
 
-::
+    // Initialize the nonlinear system.
+    NonlinSystem nls(&wf, Tuple<Space*>(&tspace, &cspace));
 
-  // initialize the nonlinear system and solver
-  UmfpackSolver umfpack;
-  NonlinSystem nls(&wf, &umfpack);
-  nls.set_spaces(2, &tspace, &cspace);
-  nls.set_pss(1, &pss);
-  nls.project_global(&t_prev_time_1, &y_prev_time_1, &t_prev_newton, &y_prev_newton, PROJ_TYPE);
+The initial coefficient vector $\bfY_0$ for the Newton's method is calculated 
+by projecting the initial conditions on the FE spaces::
+
+    // Project temp_ic() and conc_ic() onto the FE spaces to obtain initial 
+    // coefficient vector for the Newton's method.   
+    info("Projecting initial conditions to obtain initial vector for the Newton'w method.");
+    nls.project_global(Tuple<MeshFunction*>(&t_prev_newton, &c_prev_newton), 
+                       Tuple<Solution*>(&t_prev_newton, &c_prev_newton));
 
 The time stepping loop looks as follows, notice the visualization of $\omega$
-through a DXDYFilter:
+through a DXDYFilter::
 
-::
-
-    // time stepping loop
-    double current_time = 0.0;
-    int t_step = 0;
+    // Time stepping loop:
+    double current_time = 0.0; int ts = 1;
     do {
-      info("\n**** Time step %d, t = %g s:\n", ++t_step, current_time);
+      info("---- Time step %d, t = %g s.", ts, current_time);
 
-      // Newton's method
-      nls.solve_newton(&t_prev_newton, &y_prev_newton, NEWTON_TOL, NEWTON_MAX_ITER, 
-                         &omega, &omega_dt, &omega_dy);
+      // Newton's method.
+      info("Performing Newton's iteration.");
+      bool verbose = true; // Default is false.
+      if (!nls.solve_newton(Tuple<Solution*>(&t_prev_newton, &c_prev_newton), NEWTON_TOL, NEWTON_MAX_ITER, verbose,
+	  		    Tuple<MeshFunction*>(&omega, &omega_dt, &omega_dc))) error("Newton's method did not converge.");
 
-      // visualization
-      DXDYFilter omega_view(omega_fn, &t_prev_newton, &y_prev_newton);
+      // Visualization.
+      DXDYFilter omega_view(omega_fn, &t_prev_newton, &c_prev_newton);
       rview.set_min_max_range(0.0,2.0);
       char title[100];
       sprintf(title, "Reaction rate, t = %g", current_time);
       rview.set_title(title);
       rview.show(&omega_view);
 
-      // update current time
+      // Update current time.
       current_time += TAU;
 
-      // store two previous time solutions
+      // Store two time levels of previous solutions.
       t_prev_time_2.copy(&t_prev_time_1);
-      y_prev_time_2.copy(&y_prev_time_1);
+      c_prev_time_2.copy(&c_prev_time_1);
       t_prev_time_1.copy(&t_prev_newton);
-      y_prev_time_1.copy(&y_prev_newton);
+      c_prev_time_1.copy(&c_prev_newton);
+
+      ts++;
     } while (current_time <= T_FINAL);
 
-A few snapshots of the reaction rate $\omega$ are shown below:
+A few snapshots of the reaction rate $\omega$ at various times are shown below:
 
 .. image:: img/example-17/sol1.png
    :align: center
@@ -885,83 +914,82 @@ The time derivative is approximated using the implicit Euler method:
     \frac{\bfv^{n+1}}{\tau} - \frac{\bfv^n}{\tau} - \frac{1}{Re}\Delta \bfv^{n+1} + (\bfv^{n+1} \cdot \nabla) \bfv^{n+1} + \nabla p^{n+1} = 0,\\
     \mbox{div} \bfv^{n+1} = 0,
 
-where $\tau$ is the time step. This is a nonlinear problem that involves three equations (two for velocity components and 
-the continuity equation). Accordingly, we define three spaces:
+where $\tau$ is the time step. This is a nonlinear problem that involves three equations (two 
+for velocity components and the continuity equation). Accordingly, we define three spaces::
 
-::
-
-      // spaces for velocities and pressure
-      H1Space xvel_space(&mesh, &h1_shapeset);
-      H1Space yvel_space(&mesh, &h1_shapeset);
+      // Spaces for velocity components and pressure.
+      H1Space xvel_space(&mesh, xvel_bc_type, essential_bc_values_xvel, P_INIT_VEL);
+      H1Space yvel_space(&mesh, yvel_bc_type, NULL, P_INIT_VEL);
     #ifdef PRESSURE_IN_L2
-      L2Space p_space(&mesh, &l2_shapeset);
+      L2Space p_space(&mesh, P_INIT_PRESSURE);
     #else
-      H1Space p_space(&mesh, &h1_shapeset);
+      H1Space p_space(&mesh, NULL, NULL, P_INIT_PRESSURE);
     #endif
 
-Next we define a nonlinear or linear problem to be solved in each time step,
-depending on whether we want to employ the Newton's method or not:
+We also need to define the proper projection norms in these spaces::
 
-::
+      // Define projection norms.
+      int vel_proj_norm = 1;
+    #ifdef PRESSURE_IN_L2
+      int p_proj_norm = 0;
+    #else
+      int p_proj_norm = 1;
+    #endif
 
-      if (NEWTON) {
-        // set up the nonlinear system
-        nls.set_spaces(3, &xvel_space, &yvel_space, &p_space);
-    #ifdef PRESSURE_IN_L2
-        nls.set_pss(3, &h1_pss, &h1_pss, &l2_pss);
-    #else
-        nls.set_pss(1, &h1_pss);
-    #endif
-      }
-      else {
-        // set up the linear system
-        ls.set_spaces(3, &xvel_space, &yvel_space, &p_space);
-    #ifdef PRESSURE_IN_L2
-        ls.set_pss(3, &h1_pss, &h1_pss, &l2_pss);
-    #else
-        ls.set_pss(1, &h1_pss);
-    #endif
-      }
+After registering weak forms and initializing the LinSystem and NonlinSystem, if NEWTON == true 
+we calculate the initial coefficient vector $\bfY_0$ for the Newton's method::
+
+  // Project initial conditions on FE spaces to obtain initial coefficient 
+  // vector for the Newton's method.
+  if (NEWTON) {
+    info("Projecting initial conditions to obtain initial vector for the Newton'w method.");
+    nls.project_global(Tuple<MeshFunction*>(&xvel_prev_time, &yvel_prev_time, &p_prev_time),
+                       Tuple<Solution*>(&xvel_prev_newton, &yvel_prev_newton, &p_prev_newton),
+                       Tuple<int>(vel_proj_norm, vel_proj_norm, p_proj_norm));  
+  }
+
+Note that when projecting multiple functions, we can use different projection 
+norms for each. 
 
 The time stepping loop looks as follows:
 
 ::
 
-    // time-stepping loop
+    // Time-stepping loop:
     char title[100];
     int num_time_steps = T_FINAL / TAU;
-    for (int i = 1; i <= num_time_steps; i++)
+    for (int ts = 1; ts <= num_time_steps; ts++)
     {
       TIME += TAU;
-
-      info("---- Time step %d, time = %g:", i, TIME);
-
-      // this is needed to update the time-dependent boundary conditions
-      ndof = assign_dofs(3, &xvel_space, &yvel_space, &p_space);
+      info("---- Time step %d, time = %g:", ts, TIME);
 
       if (NEWTON) {
-        // Newton's method
-        nls.solve_newton(&xvel_prev_newton, &yvel_prev_newton, &p_prev, NEWTON_TOL, NEWTON_MAX_ITER);
-
-        // copy the result of the Newton's iteration into the 
-        // previous time level solutions
-        xvel_prev_time.copy(&xvel_prev_newton);
-        yvel_prev_time.copy(&yvel_prev_newton);
+        if (TIME <= STARTUP_TIME) {
+          info("Updating time-dependent essential BC.");
+          nls.update_essential_bc_values();
+        }
+        // Newton's method.
+        info("Performing Newton's method.");
+        bool verbose = true; // Default is false.
+        if (!nls.solve_newton(Tuple<Solution*>(&xvel_prev_newton, &yvel_prev_newton, &p_prev_newton), 
+                              NEWTON_TOL, NEWTON_MAX_ITER, verbose)) {
+          error("Newton's method did not converge.");
+        }
       }
       else {
-        // assemble and solve
-        Solution xvel_sln, yvel_sln, p_sln;
+        // Needed if time-dependent essential BC are used.
+        if (TIME <= STARTUP_TIME) {
+          info("Updating time-dependent essential BC.");
+          ls.update_essential_bc_values();
+        }
+        // Assemble and solve.
+        info("Assembling and solving linear problem.");
         ls.assemble();
-        ls.solve(3, &xvel_sln, &yvel_sln, &p_sln);
-
-        // this copy destroys xvel_sln and yvel_sln 
-        // which are no longer needed
-        xvel_prev_time = xvel_sln;
-        yvel_prev_time = yvel_sln;
+        ls.solve(Tuple<Solution*>(&xvel_prev_newton, &yvel_prev_newton, &p_prev_newton));
       }
-    }
 
-The following comparisons demonstrate the effect of using the Newton's method, and continuous vs. discontinuous 
+The following comparisons demonstrate the effect of using the Newton's method, and of using 
+continuous vs. discontinuous 
 elements for the pressure. There are three triplets of velocity snapshots. In each one, the images 
 were obtained with (1) NEWTON == false && PRESSURE_IN_L2 undefined, (2) NEWTON == true && PRESSURE_IN_L2 
 undefined, and (3) NEWTON == true && PRESSURE_IN_L2 defined. It follows from these comparisons that one 
@@ -1141,36 +1169,36 @@ The weak forms can be found in the file `forms.cpp <http://git.hpfem.org/hermes2
       return result; 
     }
 
-The way the weak forms are registered is standard:
+The way the weak forms are registered is standard::
 
-::
-
-    // initialize the weak formulation
-    WeakForm wf(1);
+    // Initialize the weak formulation.
+    WeakForm wf;
     if(TIME_DISCR == 1) {
-      wf.add_biform(0, 0, callback(jacobian_euler), H2D_UNSYM, H2D_ANY, 1, &Psi_prev_newton);
-      wf.add_liform(0, callback(residuum_euler), H2D_ANY, 2, &Psi_prev_newton, &Psi_prev_time);
+      wf.add_matrix_form(callback(jacobian_euler), H2D_UNSYM, H2D_ANY, &Psi_prev_newton);
+      wf.add_vector_form(callback(residual_euler), H2D_ANY, Tuple<MeshFunction*>(&Psi_prev_newton, &Psi_prev_time));
     }
     else {
-      wf.add_biform(0, 0, callback(jacobian_cranic), H2D_UNSYM, H2D_ANY, 1, &Psi_prev_newton);
-      wf.add_liform(0, callback(residuum_cranic), H2D_ANY, 2, &Psi_prev_newton, &Psi_prev_time);
+      wf.add_matrix_form(callback(jacobian_cranic), H2D_UNSYM, H2D_ANY, &Psi_prev_newton);
+      wf.add_vector_form(callback(residual_cranic), H2D_ANY, Tuple<MeshFunction*>(&Psi_prev_newton, &Psi_prev_time));
     }
 
 Also the time stepping loop and the call to the Newton's method 
-will not surprize a reader who made it this far in the tutorial:
+will not surprize a reader who made it this far in the tutorial::
 
-::
-
-    // time stepping loop
+    // Time stepping loop:
     int nstep = (int)(T_FINAL/TAU + 0.5);
-    for(int n = 1; n <= nstep; n++)
+    for(int ts = 1; ts <= nstep; ts++)
     {
-      info("---- Time step %d:", n);
 
-      // Newton's method
-      nls.solve_newton(&Psi_prev_newton, NEWTON_TOL, NEWTON_MAX_ITER);
+      info("---- Time step %d:", ts);
 
-      // copy result of the Newton's iteration into Psi_prev_time
+      // Newton's method.
+      info("Performing Newton's method.");
+      bool verbose = true; // Default is false.
+      if (!nls.solve_newton(&Psi_prev_newton, NEWTON_TOL, NEWTON_MAX_ITER, verbose)) 
+        error("Newton's method did not converge.");
+
+      // Copy result of the Newton's iteration into Psi_prev_time.
       Psi_prev_time.copy(&Psi_prev_newton);
     }
 
