@@ -15,41 +15,31 @@ In `example 02-space <http://hpfem.org/hermes2d/doc/src/tutorial-1.html#setting-
 
 ::
 
-    int P_INIT = 3;
+    int INIT_REF_NUM = 2;      // Initial uniform mesh refinement.
+    int P_INIT = 3;            // Polynomial degree of mesh elements.
 
     int main(int argc, char* argv[])
     {
-      if (argc < 2) error("Missing mesh file name parameter.");
-
-      // load the mesh
+      // Load the mesh.
       Mesh mesh;
       H2DReader mloader;
-      mloader.load(argv[1], &mesh);
+      mloader.load("square.mesh", &mesh);
 
-      // uniform mesh refinements
-      mesh.refine_all_elements();
-      mesh.refine_all_elements();
+      // Initial mesh refinement.
+      for (int i = 0; i < INIT_REF_NUM; i++) mesh.refine_all_elements();
 
-      // initialize the shapeset and the cache
-      HcurlShapeset shapeset;
+      // Create an Hcurl space with default shapeset.
+      // (BC types and essential BC values not relevant.)
+      HcurlSpace space(&mesh, NULL, NULL, P_INIT);
 
-      // create the Hdiv space
-      HcurlSpace space(&mesh, &shapeset);
-
-      // set uniform polynomial degrees
-      space.set_uniform_order(P_INIT);
-
-      // enumerate basis functions
-      int ndof = assign_dofs(&space);
-
-      // visualise the FE basis
-      VectorBaseView bview;
+      // Visualize FE basis.
+      VectorBaseView bview("BaseView", 0, 0, 700, 600);
       bview.show(&space);
 
-      // wait for all views to be closed
+      // Wait for all views to be closed.
       View::wait();
       return 0;
-    } 
+    }
 
 The class VectorBaseView allows the user to browse through 
 the finite element basis functions using the left and right 
@@ -94,38 +84,28 @@ its basis functions:
 
 ::
 
-    int P_INIT = 3;
+    int INIT_REF_NUM = 2;      // Initial uniform mesh refinement.
+    int P_INIT = 3;            // Polynomial degree of mesh elements.
 
     int main(int argc, char* argv[])
     {
-      if (argc < 2) error("Missing mesh file name parameter.");
-
-      // load the mesh
+      // Load the mesh.
       Mesh mesh;
       H2DReader mloader;
-      mloader.load(argv[1], &mesh);
+      mloader.load("square.mesh", &mesh);
 
-      // uniform mesh refinements
-      mesh.refine_all_elements();
-      mesh.refine_all_elements();
+      // Initial mesh refinement.
+      for (int i = 0; i < INIT_REF_NUM; i++) mesh.refine_all_elements();
 
-      // initialize the shapeset and the cache
-      HdivShapeset shapeset;
+      // Create an Hdiv space with default shapeset.
+      // (BC types and essential BC values not relevant.)
+      HdivSpace space(&mesh, NULL, NULL, P_INIT);
 
-      // create the Hdiv space
-      HdivSpace space(&mesh, &shapeset);
-
-      // set uniform polynomial degrees
-      space.set_uniform_order(P_INIT);
-
-      // enumerate basis functions
-      int ndof = assign_dofs(&space);
-
-      // visualise the FE basis
-      VectorBaseView bview;
+      // Visualise the FE basis.
+      VectorBaseView bview("BaseView", 0, 0, 700, 600);
       bview.show(&space);
 
-      // wait for all views to be closed
+      // Wait for all views to be closed.
       View::wait();
       return 0;
     }
@@ -160,80 +140,57 @@ Space L2 (32)
 
 **Git reference:** Tutorial example `32-space-l2 <http://git.hpfem.org/hermes2d.git/tree/HEAD:/tutorial/31-space-l2>`_. 
 
-We already saw the $L^2$ space in the `Navier-Stokes example <http://hpfem.org/hermes2d/doc/src/tutorial-3.html#navier-stokes-equations>`_ where it was used for pressure to keep the velocity discreetely divergence-free. This example shows how to create an $L^2$ space, visualize 
-finite element basis functions, and perform an orthogonal $L^2$-projection of a continuous function onto the FE space. The projected function has the form
+We already saw the $L^2$ space in the `Navier-Stokes example 
+<http://hpfem.org/hermes2d/doc/src/tutorial-3.html#navier-stokes-equations>`_ where 
+it was used for pressure to keep the velocity discreetely divergence-free. This example 
+shows how to create an $L^2$ space, visualize 
+finite element basis functions, and perform an orthogonal $L^2$-projection of a continuous 
+function onto the FE space::
 
-::
+    const int INIT_REF_NUM = 1;    // Number of initial uniform mesh refinements.
+    const int P_INIT = 3;          // Polynomial degree of mesh elements.
 
-    // projected function
-    double F(double x, double y)
+    // Projected function.
+    scalar F(double x, double y, double& dx, double& dy)
     {
-      return x*x*x + y*y*y;
+      return - pow(x, 4) * pow(y, 5); 
+      dx = 0; // not needed for L2-projection
+      dy = 0; // not needed for L2-projection
     }
 
-The orthogonal projection is defined via a bilinear form (just an $L^2$ product 
-of basis functions) and a linear form ($L^2$ product of basis functions with the 
-projected function):
-
-::
-
-    // bilinear and linear form defining the projection
-    template<typename Real, typename Scalar>
-    Scalar bilinear_form(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+    int main(int argc, char* argv[])
     {
-      return int_u_v<Real, Scalar>(n, wt, u, v);
+      // Load the mesh.
+      Mesh mesh;
+      H2DReader mloader;
+      mloader.load("square.mesh", &mesh);
+
+      // Perform uniform mesh refinements.
+      for (int i=0; i<INIT_REF_NUM; i++) mesh.refine_all_elements();
+
+      // Create an L2 space with default shapeset.
+      L2Space space(&mesh, P_INIT);
+
+      // View basis functions.
+      BaseView bview("BaseView", 0, 0, 600, 500);
+      bview.show(&space);
+      View::wait(H2DV_WAIT_KEYPRESS);
+
+      // Assemble and solve the finite element problem.
+      WeakForm wf_dummy;
+      LinSystem ls(&wf_dummy, &space);
+      Solution sln;
+      int proj_norm_l2 = 0;
+      ls.project_global(F, &sln, proj_norm_l2);
+
+      // Visualize the solution.
+      ScalarView view1("Projection", 610, 0, 600, 500);
+      view1.show(&sln);
+
+      // Wait for all views to be closed.
+      View::wait();
+      return 0;
     }
-
-    // return the value \int v dx
-    template<typename Real, typename Scalar>
-    Scalar linear_form(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
-    {
-      Scalar result = 0;
-      for (int i = 0; i < n; i++) {
-      result += wt[i] * ((pow(e->x[i], 3) + pow(e->y[i], 3)) * v->val[i]);
-      }
-      return result;
-    }
-
-Here is how to create the space, set a uniform poly degree, enumerate 
-degrees of freedom, and show the FE basis:
-
-::
-
-    // create the L2 space
-    L2Space space(&mesh, &shapeset);
-    space.set_bc_types(bc_types);
-
-    // set uniform polynomial degrees
-    space.set_uniform_order(P_INIT);
-
-    // enumerate basis functions
-    int ndof = assign_dofs(&space);
-
-    BaseView bview;
-    bview.show(&space);
-    View::wait(H2DV_WAIT_KEYPRESS);
-
-Next we register the weak forms, assemble and solve 
-the matrix problem, and visualize the solution:
-
-::
-
-    // initialize the weak formulation
-    WeakForm wf(1);
-    wf.add_biform(0, 0, callback(bilinear_form));
-    wf.add_liform(0, callback(linear_form));
-
-    // assemble and solve the finite element problem
-    LinSystem sys(&wf, &umfpack);
-    sys.set_spaces(1, &space);
-    sys.set_pss(1, &pss);
-    sys.assemble();
-    sys.solve(1, &sln);
-
-    // visualize the solution
-    ScalarView view1("Solution 1");
-    view1.show(&sln);
 
 Sample basis functions:
 
@@ -257,7 +214,7 @@ Sample basis functions:
    :width: 400
    :alt: Sample basis function
 
-The projection. Note that this is a discontinuous function:
+The projection (note that this is a discontinuous function):
 
 .. image:: img/example-32/sol.png
    :align: center

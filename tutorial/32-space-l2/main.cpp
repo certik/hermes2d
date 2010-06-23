@@ -20,23 +20,6 @@ scalar F(double x, double y, double& dx, double& dy)
   dy = 0; // not needed for L2-projection
 }
 
-// Bilinear and linear form defining the projection.
-//template<typename Real, typename Scalar>
-//Scalar bilinear_form(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)/
-//{
-//  return int_u_v<Real, Scalar>(n, wt, u, v);
-//}
-
-// Returns the value \int v dx.
-//template<typename Real, typename Scalar>
-//Scalar linear_form(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
-//{
-//  Scalar result = 0;
-//  for (int i = 0; i < n; i++)
-//    result += wt[i] * (-pow(e->x[i], 4) * pow(e->y[i], 5)) * v->val[i];
-//  return result;
-//}
-
 int main(int argc, char* argv[])
 {
   // Load the mesh.
@@ -60,8 +43,7 @@ int main(int argc, char* argv[])
   LinSystem ls(&wf_dummy, &space);
   Solution sln;
   int proj_norm_l2 = 0;
-  sln.set_exact(&mesh, F);
-  ls.project_global(&sln, &sln, proj_norm_l2);
+  ls.project_global(F, &sln, proj_norm_l2);
 
   // Visualize the solution.
   ScalarView view1("Projection", 610, 0, 600, 500);
