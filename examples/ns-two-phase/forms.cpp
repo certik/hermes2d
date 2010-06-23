@@ -1,5 +1,3 @@
-
-
 template<typename Real, typename Scalar>
 double int_sign_u_v(double a, double b, Func<Real>* l, Func<Real>* fu, Func<Real>* fv)
 {
@@ -23,7 +21,7 @@ double int_sign_u_v(double a, double b, Func<Real>* l, Func<Real>* fu, Func<Real
 }
 
 template<typename Real, typename Scalar>
-double int_sign_grad_u_grad_v(double a, double b, Func<Real>* l, Func<Real>* fu, Func<Real>* fv)
+double int_sign_grad_u_grad_v(double nu1, double nu2, Func<Real>* l, Func<Real>* fu, Func<Real>* fv)
 {
   Quad2D* quad = fu->get_quad_2d();
 
@@ -39,13 +37,13 @@ double int_sign_grad_u_grad_v(double a, double b, Func<Real>* l, Func<Real>* fu,
   double* lval = l->get_fn_values();
 
   // FIXME: Where is number i in lval[i]?
-  //h1_integrate_dd_expression(((lval[i] < 0.0) ? b : a) * (t_dudx * t_dvdx + t_dudy * t_dvdy));
+  //h1_integrate_dd_expression(((lval[i] < 0.0) ? nu2 : nu1) * (t_dudx * t_dvdx + t_dudy * t_dvdy));
   double result = 0;
   return result;
 }
 
 template<typename Real, typename Scalar>
-double int_sign_w_nabla_u_v(double a, double b, Func<Real>* l, Func<Real>* w1, Func<Real>* w2,
+double int_sign_w_nabla_u_v(double ro1, double ro2, Func<Real>* l, Func<Real>* w1, Func<Real>* w2,
 			    Func<Real>* fu, Func<Real>* fv)
 {
   Quad2D* quad = fu->get_quad_2d();
@@ -67,7 +65,7 @@ double int_sign_w_nabla_u_v(double a, double b, Func<Real>* l, Func<Real>* w1, F
   double* w2val = w2->get_fn_values();
 
   // FIXME: the same as above, could not find the define of number 'i'.
-  //h1_integrate_dd_expression(((lval[i] < 0.0) ? b : a) * (w1val[i] * t_dudx + w2val[i] * t_dudy) * vval[i]);
+  //h1_integrate_dd_expression(((lval[i] < 0.0) ? ro2 : ro1) * (w1val[i] * t_dudx + w2val[i] * t_dudy) * vval[i]);
   double result = 0;
   return result;
 }
@@ -100,8 +98,9 @@ Scalar bilinear_form_0_0(int n, double *wt, Func<Real>* fu, Func<Real>* fv,
   Func<Scalar>* xprev = ext->fn[1];
   Func<Scalar>* yprev = ext->fn[2];
 
-  return int_sign_grad_u_grad_v(Nu1, Nu2, lprev, fu, fv) + int_sign_u_v(Ro1, Ro2, lprev, fu, fv)/tau + 
-         int_sign_w_nabla_u_v( Ro1, Ro2, lprev, xprev, yprev, fu, fv); 
+  // FIXME - mismatched templates cause compilation error
+  //return int_sign_grad_u_grad_v(Nu1, Nu2, lprev, fu, fv) + int_sign_u_v(Ro1, Ro2, lprev, fu, fv)/tau + 
+  //       int_sign_w_nabla_u_v( Ro1, Ro2, lprev, xprev, yprev, fu, fv); 
 }
 
 // FIXME: Please check the following functions.
@@ -109,28 +108,36 @@ Scalar bilinear_form_0_0(int n, double *wt, Func<Real>* fu, Func<Real>* fv,
 //  { return int_dudx_v(fu, fv, ru ,rv ); }
 template<typename Real, typename Scalar>
 Scalar bilinear_form_0_2(int n, double *wt, Func<Real>* fu, Func<Real>* fv, Geom<Real> *e, ExtData<Scalar> *ext)
-  { return int_dudx_v<Real, Scalar>(n, wt, fu, fv); }
+{ 
+  return int_dudx_v<Real, Scalar>(n, wt, fu, fv); 
+}
  
 // FIXME: Please check the following functions.
 //scalar bilinear_form_1_2(RealFunction* fu, RealFunction* fv, RefMap* ru, RefMap* rv)
 //  { return int_dudy_v(fu, fv, ru ,rv ); } 
 template<typename Real, typename Scalar>
 Scalar bilinear_form_1_2(int n, double *wt, Func<Real>* fu, Func<Real>* fv, Geom<Real> *e, ExtData<Scalar> *ext)
-  { return int_dudy_v<Real, Scalar>(n, wt, fu, fv); }
+{ 
+  return int_dudy_v<Real, Scalar>(n, wt, fu, fv); 
+}
 
 // FIXME: 
 //scalar bilinear_form_2_0(RealFunction* fu, RealFunction* fv, RefMap* ru, RefMap* rv) 
 //  { return int_dudx_v(fu, fv, ru, rv);}
 template<typename Real, typename Scalar>
 Scalar bilinear_form_2_0(int n, double *wt, Func<Real>* fu, Func<Real>* fv, Geom<Real> *e, ExtData<Scalar> *ext) 
-  { return int_dudx_v<Real, Scalar>(n, wt, fu, fv);}
+{ 
+  return int_dudx_v<Real, Scalar>(n, wt, fu, fv);
+}
 
 // FIXME:
 //scalar bilinear_form_2_1(RealFunction* fu, RealFunction* fv, RefMap* ru, RefMap* rv)  
 //  { return int_dudy_v(fu, fv, ru, rv); }
 template<typename Real, typename Scalar>
 Scalar bilinear_form_2_1(int n, double *wt, Func<Real>* fu, Func<Real>* fv, Geom<Real> *e, ExtData<Scalar> *ext)  
-  { return int_dudy_v<Real, Scalar>(n, wt, fu, fv); }
+{ 
+  return int_dudy_v<Real, Scalar>(n, wt, fu, fv); 
+}
 
 // FIXME:
 //scalar bilinear_form_3_3(RealFunction* fu, RealFunction* fv, RefMap* ru, RefMap* rv)
@@ -141,7 +148,10 @@ Scalar bilinear_form_3_3(int n, double *wt, Func<Real>* fu, Func<Real>* fv, Geom
   Func<Scalar>* xprev = ext->fn[0];
   Func<Scalar>* yprev = ext->fn[1];
 
-  return  int_u_v<Real, Scalar>(n, wt, fu, fv)/tau + int_w_nabla_u_v(n, wt, &xprev, &yprev, fu, fv); }
+  // FIXME - mismatched templates cause compilation error
+  //return  int_u_v<Real, Scalar>(n, wt, fu, fv)/tau + int_w_nabla_u_v(n, wt, xprev, yprev, fu, fv); 
+  return 0;
+}
 
 // FIXME:
 //scalar linear_form_0(RealFunction* fv, RefMap* rv)
@@ -152,7 +162,10 @@ Scalar linear_form_0(int n, double *wt, Func<Real>* fv, Geom<Real> *e, ExtData<S
   Func<Scalar>* lprev = ext->fn[0];
   Func<Scalar>* xprev = ext->fn[1];
 
-  return int_sign_u_v(Ro1, Ro2, lprev, xprev, fv)/tau; }
+  // FIXME - mismatched templates cause compilation error
+  //return int_sign_u_v(Ro1, Ro2, lprev, xprev, fv)/tau; 
+  return 0;
+}
 
 // FIXME:
 //scalar linear_form_1(RealFunction* fv, RefMap* rv)
@@ -163,7 +176,9 @@ Scalar linear_form_1(int n, double *wt, Func<Real>* fv, Geom<Real> *e, ExtData<S
   Func<Scalar>* lprev = ext->fn[0];
   Func<Scalar>* yprev = ext->fn[1];
 
-  return int_sign_u_v(Ro1, Ro2, lprev, &yprev, fv)/tau - int_sign_v(10*Ro1, 10*Ro2, lprev, fv); 
+  // FIXME - mismatched templates cause compilation error
+  //return int_sign_u_v(Ro1, Ro2, lprev, &yprev, fv)/tau - int_sign_v(10*Ro1, 10*Ro2, lprev, fv); 
+  return 0;
 }
 
 // FIXME:
@@ -174,5 +189,7 @@ Scalar linear_form_3(int n, double *wt, Func<Real>* fv, Geom<Real> *e, ExtData<S
 {  
   Func<Scalar>* lprev = ext->fn[0];
 
-  return int_u_v<Real, Scalar>(n, wt, lprev, fv)/tau; 
+  // FIXME - mismatched templates cause compilation error
+  //return int_u_v<Real, Scalar>(n, wt, lprev, fv)/tau; 
+  return 0;
 }
