@@ -35,6 +35,7 @@ set(SRC
     umfpack_solver.cpp
     superlu_solver.cpp
     sparselib_solver.cpp
+    common_time_period.cpp
     )
 
 add_library(${HERMES_COMMON} SHARED ${SRC})
@@ -87,3 +88,10 @@ if(COMMON_WITH_SUPERLU)
     include_directories(${SUPERLU_INCLUDE_DIR})
     target_link_libraries(${HERMES_COMMON} ${SUPERLU_LIBRARY})
 endif(COMMON_WITH_SUPERLU)
+
+if(NOT MSVC)
+  IF(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+    target_link_libraries(${HERMES_COMMON} "rt")
+  ENDIF(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+endif(NOT MSVC)
+
