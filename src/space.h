@@ -16,7 +16,6 @@
 #ifndef __H2D_SPACE_H
 #define __H2D_SPACE_H
 
-#include "tuple.h"
 #include "mesh.h"
 #include "shapeset.h"
 #include "asmlist.h"

@@ -16,7 +16,7 @@
 #ifndef __H2D_REFINEMENT_PROJ_BASED_SELECTOR_H
 #define __H2D_REFINEMENT_PROJ_BASED_SELECTOR_H
 
-#include "../tuple.h"
+#include "../common.h"
 #include "../matrix_old.h"
 #include "optimum_selector.h"
 

@@ -13,10 +13,8 @@
 // You should have received a copy of the GNU General Public License
 // along with Hermes2D.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef __H2D_TUPLE_H
-#define __H2D_TUPLE_H
-
-#include "common.h"
+#ifndef __HERMES_COMMON_TUPLE_H
+#define __HERMES_COMMON_TUPLE_H
 
 /// A vector of values.
 /** This class is used to pass a variable number of parameters in a type-safe fashion.

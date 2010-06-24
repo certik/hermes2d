@@ -18,7 +18,6 @@
 #define __H2D_WEAKFORM_H
 
 #include "function.h"
-#include "tuple.h"
 
 class RefMap;
 class LinSystem;
