@@ -206,7 +206,7 @@ cdef class Mesh:
     def elements_markers(self):
         """
         Returns the list of elements (as ids) made up by their corresponding vertices,
-        plus and extra number denoting the element (material) marker.
+        plus an extra number denoting the element (material) marker.
 
         Element markers allow you to use different material parameters in areas 
         with different material identity.
@@ -620,6 +620,53 @@ cdef class Mesh:
         self.thisptr.save(filename)
 
     def refine_element(self, int id, int refinement=0):
+        """
+        Refines the element of interest.
+
+        The first parameter takes your element of interest, and the second 
+        parameter takes your refinement option.  0:isotropically  1:anisotropically
+
+        Example:
+
+        >>> import hermes2d
+        >>> m = hermes2d.Mesh()
+        >>> m.create([
+        ...         [0, -1],
+        ...         [1, -1],
+        ...         [-1, 0],
+        ...         [0, 0],
+        ...         [1, 0],
+        ...         [-1, 1],
+        ...         [0, 1],
+        ...         [0.707106781, 0.707106781],
+        ...     ], [
+        ...         [0, 1, 4, 3, 0],
+        ...         [3, 4, 7, 0],
+        ...         [3, 7, 6, 0],
+        ...         [2, 3, 6, 5, 0],
+        ...     ], [
+        ...         [0, 1, 1],
+        ...         [1, 4, 2],
+        ...         [3, 0, 4],
+        ...         [4, 7, 2],
+        ...         [7, 6, 2],
+        ...         [2, 3, 4],
+        ...         [6, 5, 2],
+        ...         [5, 2, 3],
+        ...     ], [
+        ...         [4, 7, 45],
+        ...         [7, 6, 45],
+        ...     ])
+        >>>m.refine_element(0,0);
+        >>>m.elements 
+        [[3, 4, 7], [3, 7, 6], [2, 3, 6, 5], [0, 11, 20, 19], [11, 1, 9, 20],
+        [20, 9, 4, 8], [19, 20, 8, 3]]
+
+        As can be seen from the example above, more elements were created after the
+        refinement of the element of interest.  Originally we had four elements but
+        now we have seven.        
+
+        """
         self.thisptr.refine_element(id, refinement)
 
     def refine_all_elements(self):
