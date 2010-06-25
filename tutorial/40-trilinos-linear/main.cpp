@@ -113,8 +113,8 @@ int main(int argc, char **argv)
   
   // Initialize the weak formulation for Trilinos.
   WeakForm wf2(1, JFNK ? true : false);
-  wf2.add_jacform(callback(jacobian_form), H2D_SYM);
-  wf2.add_resform(callback(residual_form));
+  wf2.add_matrix_form(callback(jacobian_form), H2D_SYM);
+  wf2.add_vector_form(callback(residual_form));
 
   // FIXME: The entire FeProblem should be removed
   // and functionality merged into LinSystem.

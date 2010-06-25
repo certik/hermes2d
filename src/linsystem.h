@@ -86,7 +86,7 @@ public:
 
   /// Helps to determine if linear or nonlinear class instance is used
   /// similar to Java instance of functionality
-  virtual bool is_linear() { return true; }
+  virtual bool set_linearity() { this->linear = true; }
 
   /// Assembles the stiffness matrix and load vector. Vectors Vec, Dir and
   /// RHS must be allocated when assemble() is called.
@@ -261,6 +261,7 @@ protected:
   int RHS_length;
   scalar* Dir; ///< contributions to the RHS from Dirichlet lift
   int Dir_length;
+  bool linear;
 
   void create_matrix(bool rhsonly);
   void insert_block(scalar** mat, int* iidx, int* jidx, int ilen, int jlen);

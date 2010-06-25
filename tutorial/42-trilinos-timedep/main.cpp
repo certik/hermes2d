@@ -77,10 +77,10 @@ int main(int argc, char* argv[])
 
   // Initialize the weak formulation.
   WeakForm wf(1, JFNK ? true : false);
-  wf.add_jacform(callback(jacobian));
-  wf.add_jacform_surf(callback(jacobian_surf));
-  wf.add_resform(callback(residual), H2D_ANY, &tprev);
-  wf.add_resform_surf(callback(residual_surf));
+  wf.add_matrix_form(callback(jacobian));
+  wf.add_matrix_form_surf(callback(jacobian_surf));
+  wf.add_vector_form(callback(residual), H2D_ANY, &tprev);
+  wf.add_vector_form_surf(callback(residual_surf));
 
   // Initialize the finite element problem.
   H1Shapeset shapeset;

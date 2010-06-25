@@ -38,7 +38,9 @@ void NonlinSystem::init_nonlin()
   // The reason for this is that in NonlinSystem the Jacobian matrix 
   // is assembled, and the Dirichlet lift is cancelled by the derivative 
   // with respect to the coefficient vector.
-  want_dir_contrib = false;
+  this->want_dir_contrib = false;
+  
+  this->set_linearity();
 }
 
 // this is needed because of a constructor in RefSystem

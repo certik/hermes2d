@@ -1,6 +1,6 @@
 // first equation:
 template<typename Real, typename Scalar>
-Scalar bilinear_form_sym_0_0(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+Scalar bilinear_form_sym_0_0(int n, double *wt, Func<Real> *u_ext[], Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
   Scalar result = 0;
   for (int i = 0; i < n; i++)
@@ -9,7 +9,7 @@ Scalar bilinear_form_sym_0_0(int n, double *wt, Func<Real> *u, Func<Real> *v, Ge
 }
 
 template<typename Real, typename Scalar>
-Scalar bilinear_form_sym_0_1(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+Scalar bilinear_form_sym_0_1(int n, double *wt, Func<Real> *u_ext[], Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
   Scalar result = 0;
   for (int i = 0; i < n; i++)
@@ -18,7 +18,7 @@ Scalar bilinear_form_sym_0_1(int n, double *wt, Func<Real> *u, Func<Real> *v, Ge
 }
 
 template<typename Real, typename Scalar>
-Scalar bilinear_form_surf_0_0_ext(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+Scalar bilinear_form_surf_0_0_ext(int n, double *wt, Func<Real> *u_ext[], Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
   Scalar result = 0;
   for (int i = 0; i < n; i++)
@@ -27,7 +27,7 @@ Scalar bilinear_form_surf_0_0_ext(int n, double *wt, Func<Real> *u, Func<Real> *
 }
 
 template<typename Real, typename Scalar>
-Scalar linear_form_0(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+Scalar linear_form_0(int n, double *wt, Func<Real> *u_ext[], Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
   Scalar result = 0;
   for (int i = 0; i < n; i++)
@@ -36,7 +36,7 @@ Scalar linear_form_0(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Sc
 }
 
 template<typename Real, typename Scalar>
-Scalar linear_form_surf_0_ext(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+Scalar linear_form_surf_0_ext(int n, double *wt, Func<Real> *u_ext[], Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
   Scalar result = 0;
   for (int i = 0; i < n; i++)
@@ -46,7 +46,7 @@ Scalar linear_form_surf_0_ext(int n, double *wt, Func<Real> *v, Geom<Real> *e, E
 
 // second equation:
 template<typename Real, typename Scalar>
-Scalar bilinear_form_sym_1_0(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+Scalar bilinear_form_sym_1_0(int n, double *wt, Func<Real> *u_ext[], Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
   Scalar result = 0;
   for (int i = 0; i < n; i++)
@@ -55,7 +55,7 @@ Scalar bilinear_form_sym_1_0(int n, double *wt, Func<Real> *u, Func<Real> *v, Ge
 }
 
 template<typename Real, typename Scalar>
-Scalar bilinear_form_sym_1_1(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+Scalar bilinear_form_sym_1_1(int n, double *wt, Func<Real> *u_ext[], Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
   Scalar result = 0;
   for (int i = 0; i < n; i++)
@@ -64,7 +64,7 @@ Scalar bilinear_form_sym_1_1(int n, double *wt, Func<Real> *u, Func<Real> *v, Ge
 }
 
 template<typename Real, typename Scalar>
-Scalar bilinear_form_surf_1_1_ext(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+Scalar bilinear_form_surf_1_1_ext(int n, double *wt, Func<Real> *u_ext[], Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
   Scalar result = 0;
   for (int i = 0; i < n; i++)
@@ -73,7 +73,7 @@ Scalar bilinear_form_surf_1_1_ext(int n, double *wt, Func<Real> *u, Func<Real> *
 }
 
 template<typename Real, typename Scalar>
-Scalar linear_form_1(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+Scalar linear_form_1(int n, double *wt, Func<Real> *u_ext[], Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
   Scalar result = 0;
   for (int i = 0; i < n; i++)
@@ -82,7 +82,7 @@ Scalar linear_form_1(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Sc
 }
 
 template<typename Real, typename Scalar>
-Scalar linear_form_surf_1_ext(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+Scalar linear_form_surf_1_ext(int n, double *wt, Func<Real> *u_ext[], Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
   Scalar result = 0;
   for (int i = 0; i < n; i++)

@@ -321,7 +321,8 @@ void View::draw_fps()
   glDisable(GL_BLEND);
   glColor3f(1.0f, 0.0f, 0.0f);
   glRasterPos2i(output_width - (width_px + edge_thickness), edge_thickness + height_px);
-  glutBitmapString(font, buffer);
+  // If the following line is uncommented, timing information is printed into the image.
+  //glutBitmapString(font, buffer);
 }
 
 void View::on_reshape(int width, int height)
@@ -835,7 +836,7 @@ void View::save_screenshot_internal(const char *file_name)
 
   fclose(file);
   free((void*) pixels);
-  info("Image \"%s\" saved.", file_name);
+  printf("Image \"%s\" saved.\n", file_name);
 }
 
 

@@ -22,18 +22,22 @@
 RefSystem::RefSystem(LinSystem* base, int order_increase, 
 		     int refinement) : NonlinSystem(base->wf, base->solver)
 {
+  if(base->linear == true) this->linear = true;
+  else this->linear = false;
+
   this->base = base;
   if (this->base->have_spaces == false) 
     error("RefSystem: spaces in base system not up to date.");
+  
+  if(this->base->get_num_dofs() <= 0) error("RefSystem - base system has ndof = 0.");
 
   this->wf = this->base->wf;
   this->order_increase = order_increase;
   this->refinement = refinement;
-  this->linear = base->is_linear();
 
   // Have to set it manually as Nonlinsystem constructor
   // always sets it false;
-  if (this->linear) {
+  if (this->linear == true) {
     this->want_dir_contrib = true;
   } else {
     this->want_dir_contrib = false;
@@ -170,12 +174,9 @@ void RefSystem::set_order_increase(int order_increase)
 
 void RefSystem::assemble(bool rhsonly)
 {  
-  // call LinSystem's assemble() function.
-  if (!linear) {
-    NonlinSystem::assemble(rhsonly);
-  } else {
-    LinSystem::assemble(rhsonly);
-  }
+  // call LinSystem's or NonlinSystem's assemble() function.
+  if (this->linear == true) LinSystem::assemble(rhsonly);
+  else NonlinSystem::assemble(rhsonly);
 }
 
 bool RefSystem::solve_exact(ExactFunction exactfn, Solution* sln)
@@ -191,21 +192,3 @@ bool RefSystem::solve_exact(ExactFunction exactfn, Solution* sln)
   return true;
 }
 
-/*
-// This is almost identical to the corresponding method of LinSystem, but as a first 
-// step, here the corresponding mesh is refined globally and "source" is projected 
-// onto the refined mesh. 
-void RefSystem::project_global(int comp, MeshFunction* source, Solution* target, int proj_norm)
-{
-  // perform uniform mesh refinement
-  global_refinement();
-
-  // internal check
-  if (this->have_spaces == false) error("RefSystem: missing space(s).");
-
-  // reallocate vectors Vec, RHS and Dir
-  this->realloc_and_zero_vectors();
-
-  LinSystem::project_global(comp, source, target, proj_norm);
-}
-*/

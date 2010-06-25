@@ -99,16 +99,16 @@ Real rhs(Real x, Real y)
 
 // Preconditioner weak form.
 template<typename Real, typename Scalar>
-Scalar precond_form(int n, double *wt, Func<Real> *u[], Func<Real> *vi, Func<Real> *vj, Geom<Real> *e, ExtData<Scalar> *ext)
+Scalar precond_form(int n, double *wt, Func<Real> *u_ext[], Func<Real> *vi, Func<Real> *vj, Geom<Real> *e, ExtData<Scalar> *ext)
 {
   return int_grad_u_grad_v<Real, Scalar>(n, wt, vi, vj);
 }
 
 // Residual weak form.
 template<typename Real, typename Scalar>
-Scalar residual_form(int n, double *wt, Func<Real> *u[], Func<Real> *vj, Geom<Real> *e, ExtData<Scalar> *ext)
+Scalar residual_form(int n, double *wt, Func<Real> *u_ext[], Func<Real> *vj, Geom<Real> *e, ExtData<Scalar> *ext)
 {
-  return int_grad_u_grad_v<Real, Scalar>(n, wt, u[0], vj) + int_F_v<Real, Scalar>(n, wt, rhs, vj, e);
+  return int_grad_u_grad_v<Real, Scalar>(n, wt, u_ext[0], vj) + int_F_v<Real, Scalar>(n, wt, rhs, vj, e);
 }
 
 int main(int argc, char* argv[])
@@ -131,8 +131,8 @@ int main(int argc, char* argv[])
 
   // Initialize the weak formulation.
   WeakForm wf(1, JFNK ? true : false);
-  if (PRECOND) wf.add_jacform(callback(precond_form), H2D_SYM);
-  wf.add_resform(callback(residual_form));
+  if (PRECOND) wf.add_matrix_form(callback(precond_form), H2D_SYM);
+  wf.add_vector_form(callback(residual_form));
 
   // Initialize views.
   ScalarView sview("Coarse mesh solution", 0, 100, 798, 700);

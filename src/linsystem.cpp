@@ -54,6 +54,8 @@ void LinSystem::init_lin(WeakForm* wf_, CommonSolver* solver_)
   this->struct_changed = true;
   this->have_spaces = false;
   this->want_dir_contrib = true;
+
+  this->set_linearity();
 }
 
 // this is needed because of a constructor in NonlinSystem
@@ -1202,14 +1204,14 @@ bool LinSystem::solve(Tuple<Solution*> sln)
   // time measurement
   TimePeriod cpu_time;
 
-  if (this->is_linear()) {
-    // solve the system
+  if (this->linear == true) {
+    // solve linear system "Ax = b"
     memcpy(this->Vec, this->RHS, sizeof(scalar) * ndof);
     this->solver->solve(this->A, this->Vec);
     report_time("LinSystem solved in %g s", cpu_time.tick().last());
   }
   else {
-    // solve the system - this is different from LinSystem
+    // solve Jacobian system "J times dY_{n+1} = -F(Y_{n+1})"
     scalar* delta = new scalar[ndof];
     memcpy(delta, this->RHS, sizeof(scalar) * ndof);
     this->solver->solve(this->A, delta);
@@ -1313,7 +1315,7 @@ void LinSystem::save_rhs_bin(const char* filename)
 
 // L2 projections
 template<typename Real, typename Scalar>
-Scalar L2projection_biform(int n, double *wt, Func<Real> *u_ext[], Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+Scalar L2projection_biform(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
   Scalar result = 0;
   for (int i = 0; i < n; i++)
@@ -1322,7 +1324,7 @@ Scalar L2projection_biform(int n, double *wt, Func<Real> *u_ext[], Func<Real> *u
 }
 
 template<typename Real, typename Scalar>
-Scalar L2projection_liform(int n, double *wt, Func<Real> *u_ext[], Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+Scalar L2projection_liform(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
   Scalar result = 0;
   for (int i = 0; i < n; i++)
@@ -1332,7 +1334,7 @@ Scalar L2projection_liform(int n, double *wt, Func<Real> *u_ext[], Func<Real> *v
 
 // H1 projections
 template<typename Real, typename Scalar>
-Scalar H1projection_biform(int n, double *wt, Func<Real> *u_ext[], Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+Scalar H1projection_biform(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
   Scalar result = 0;
   for (int i = 0; i < n; i++)
@@ -1341,7 +1343,7 @@ Scalar H1projection_biform(int n, double *wt, Func<Real> *u_ext[], Func<Real> *u
 }
 
 template<typename Real, typename Scalar>
-Scalar H1projection_liform(int n, double *wt, Func<Real> *u_ext[], Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+Scalar H1projection_liform(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
   Scalar result = 0;
   for (int i = 0; i < n; i++)
@@ -1351,7 +1353,7 @@ Scalar H1projection_liform(int n, double *wt, Func<Real> *u_ext[], Func<Real> *v
 
 // Hcurl projections
 template<typename Real, typename Scalar>
-Scalar Hcurlprojection_biform(int n, double *wt, Func<Real> *u_ext[], Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+Scalar Hcurlprojection_biform(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
   Scalar result = 0;
   for (int i = 0; i < n; i++) {
@@ -1362,7 +1364,7 @@ Scalar Hcurlprojection_biform(int n, double *wt, Func<Real> *u_ext[], Func<Real>
 }
 
 template<typename Real, typename Scalar>
-Scalar Hcurlprojection_liform(int n, double *wt, Func<Real> *u_ext[], Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+Scalar Hcurlprojection_liform(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
   Scalar result = 0;
   for (int i = 0; i < n; i++) {

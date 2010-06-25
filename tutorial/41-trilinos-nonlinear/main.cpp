@@ -118,9 +118,9 @@ int main(int argc, char* argv[])
 
   // Initialize the weak formulation for Trilinos.
   WeakForm wf2(1, JFNK ? true : false);
-  if (!JFNK || (JFNK && PRECOND == 1)) wf2.add_jacform(callback(jacobian_form_nox), H2D_SYM);
-  if (JFNK && PRECOND == 2) wf2.add_jacform(callback(precond_form_nox), H2D_SYM);
-  wf2.add_resform(callback(residual_form_nox));
+  if (!JFNK || (JFNK && PRECOND == 1)) wf2.add_matrix_form(callback(jacobian_form_nox), H2D_SYM);
+  if (JFNK && PRECOND == 2) wf2.add_matrix_form(callback(precond_form_nox), H2D_SYM);
+  wf2.add_vector_form(callback(residual_form_nox));
 
   // Initialize FeProblem.
   H1Shapeset shapeset;

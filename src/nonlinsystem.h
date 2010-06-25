@@ -90,7 +90,7 @@ public:
   /// returns the L_inf-norm of the residual vector
   double get_residual_max_norm() const { return res_max; }
   
-  virtual bool is_linear() { return false; }
+  virtual bool set_linearity() { this->linear = false; }
 
 protected:
 

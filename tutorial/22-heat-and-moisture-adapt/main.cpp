@@ -34,7 +34,7 @@ const int STRATEGY = 1;                  // Adaptive strategy:
                                          // STRATEGY = 2 ... refine all elements whose error is larger
                                          //   than THRESHOLD.
                                          // More adaptive strategies can be created in adapt_ortho_h1.cpp.
-const CandList CAND_LIST = H2D_HP_ANISO; // Predefined list of element refinement candidates. Possible values are
+const CandList CAND_LIST = H2D_HP_ANISO_H; // Predefined list of element refinement candidates. Possible values are
                                          // H2D_P_ISO, H2D_P_ANISO, H2D_H_ISO, H2D_H_ANISO, H2D_HP_ISO,
                                          // H2D_HP_ANISO_H, H2D_HP_ANISO_P, H2D_HP_ANISO.
                                          // See User Documentation for details.
@@ -222,10 +222,10 @@ int main(int argc, char* argv[])
       H1Adapt hp(&ls);
       hp.set_solutions(Tuple<Solution*>(&T_coarse, &M_coarse), 
                        Tuple<Solution*>(&T_fine, &M_fine));
-      hp.set_biform(0, 0, callback(bilinear_form_sym_0_0));
-      hp.set_biform(0, 1, callback(bilinear_form_sym_0_1));
-      hp.set_biform(1, 0, callback(bilinear_form_sym_1_0));
-      hp.set_biform(1, 1, callback(bilinear_form_sym_1_1));
+      hp.set_error_form(0, 0, callback(bilinear_form_sym_0_0));
+      hp.set_error_form(0, 1, callback(bilinear_form_sym_0_1));
+      hp.set_error_form(1, 0, callback(bilinear_form_sym_1_0));
+      hp.set_error_form(1, 1, callback(bilinear_form_sym_1_1));
       space_err_est = hp.calc_error(H2D_TOTAL_ERROR_REL | H2D_ELEMENT_ERROR_REL) * 100;
 
       // If err_est too large, adapt the mesh.
