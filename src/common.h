@@ -50,7 +50,7 @@
 // others
 #include <Judy.h>
 #include "auto_local_array.h"
-#include "../hermes_common/common_time_period.h"
+#include "common_time_period.h"
 
 // Enabling second derivatives in weak forms. Turned off by default. Second
 // derivatives are employed, among others, by stabilization methods for

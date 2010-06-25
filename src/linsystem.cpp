@@ -134,6 +134,7 @@ LinSystem::~LinSystem()
   if (this->solver != NULL) this->solver->free_context(this->slv_ctx);
   */
   free_vectors();
+  delete this->solver_default;
 }
 
 void LinSystem::free_spaces()
@@ -295,7 +296,6 @@ void LinSystem::free()
   free_matrix();
   free_vectors();
   free_spaces();
-  delete solver_default;
 
   this->struct_changed = this->values_changed = true;
   memset(this->sp_seq, -1, sizeof(int) * this->wf->neq);
@@ -927,13 +927,13 @@ bool LinSystem::solve(Tuple<Solution*> sln)
   }
   else {
     // solve the system - this is different from LinSystem
-    scalar* delta = (scalar*) malloc(ndof * sizeof(scalar));
+    scalar* delta = new scalar[ndof];
     memcpy(delta, this->RHS, sizeof(scalar) * ndof);
-    this->solver->solve(this->A, this->Vec);
+    this->solver->solve(this->A, delta);
     report_time("Solved in %g s", cpu_time.tick().last());
     // add the increment dY_{n+1} to the previous solution vector
     for (int i = 0; i < ndof; i++) this->Vec[i] += delta[i];
-    ::free(delta);
+    delete [] delta;
   }
 
   // copy solution coefficient vectors into Solutions
