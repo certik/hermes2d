@@ -134,6 +134,7 @@ LinSystem::~LinSystem()
   if (this->solver != NULL) this->solver->free_context(this->slv_ctx);
   */
   free_vectors();
+  delete this->solver_default;
 }
 
 void LinSystem::free_spaces()
