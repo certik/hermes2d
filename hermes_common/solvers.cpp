@@ -11,6 +11,8 @@
 // x... comes as right-hand side, leaves as solution
 bool CommonSolverCG::solve(Matrix* A, double *x, double tol, int maxiter)
 {
+    printf("CG solver\n");
+
     int n_dof = A->get_size();
     double *r = new double[n_dof];
     double *p = new double[n_dof];
@@ -46,14 +48,17 @@ bool CommonSolverCG::solve(Matrix* A, double *x, double tol, int maxiter)
         double beta = r_times_r_new/r_times_r;
         for (int i=0; i < n_dof; i++) p[i] = r[i] + beta*p[i];
     }
-    int flag;
-    if (tol_current <= tol) flag = 1;
-    else flag = 0;
+    bool flag;
+    if (tol_current <= tol)
+        flag = true;
+    else
+        flag = false;
+
     if (r != NULL) delete [] r;
     if (p != NULL) delete [] p;
     if (help_vec != NULL) delete [] help_vec;
 
-    printf("CG (regular) made %d iteration(s) (tol = %g)\n",
+    printf("CG solver: maxiter: %i, tol: %e\n",
            iter_current, tol_current);
 
     return flag;
@@ -69,26 +74,27 @@ bool CommonSolverCG::solve(Matrix* A, cplx *x)
 
 bool CommonSolverDenseLU::solve(Matrix* A, double *x)
 {
-    if (DenseMatrix *dmat = dynamic_cast<DenseMatrix*>(A))
-    {
-        bool free_dmat = false;
-        if (dmat == NULL)
-        {
-            dmat = new DenseMatrix(A);
-            free_dmat = true;
-        }
-        int n = dmat->get_size();
-        int *indx = new int[n];
-        double **_mat = dmat->get_A();
-        double d;
-        ludcmp(_mat, n, indx, &d);
-        lubksb(_mat, n, indx, x);
+    printf("DenseLU solver\n");
 
-        if (free_dmat)
-            delete dmat;
-    }
+    DenseMatrix *Aden = NULL;
+
+    if (DenseMatrix *mden = dynamic_cast<DenseMatrix*>(A))
+        Aden = mden;
+    else if (CooMatrix *mcoo = dynamic_cast<CooMatrix*>(A))
+        Aden = new DenseMatrix(mcoo);
     else
         _error("Matrix type not supported.");
+
+    int n = Aden->get_size();
+    int *indx = new int[n];
+    double **_mat = Aden->get_A();
+    double d;
+    ludcmp(_mat, n, indx, &d);
+    lubksb(_mat, n, indx, x);
+
+    delete[] indx;
+    if (!dynamic_cast<DenseMatrix*>(A))
+        delete Aden;
 }
 
 bool CommonSolverDenseLU::solve(Matrix* A, cplx *x)

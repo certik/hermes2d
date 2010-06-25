@@ -11,7 +11,7 @@
 
 bool CommonSolverNumPy::solve(Matrix *mat, double *res)
 {
-    printf("NumPy solver\n");
+  //printf("NumPy solver\n");
 
     CSRMatrix M(mat);
     Python *p = new Python();
@@ -29,7 +29,7 @@ bool CommonSolverNumPy::solve(Matrix *mat, double *res)
 
 bool CommonSolverNumPy::solve(Matrix *mat, cplx *res)
 {
-    printf("NumPy solver - cplx\n");
+  //printf("NumPy solver - cplx\n");
 
     CSRMatrix M(mat);
     Python *p = new Python();
@@ -47,7 +47,7 @@ bool CommonSolverNumPy::solve(Matrix *mat, cplx *res)
 
 bool CommonSolverSciPyUmfpack::solve(Matrix *mat, double *res)
 {
-    printf("SciPy UMFPACK solver\n");
+  //printf("SciPy UMFPACK solver\n");
 
     CSCMatrix M(mat);
     Python *p = new Python();
@@ -69,7 +69,7 @@ bool CommonSolverSciPyUmfpack::solve(Matrix *mat, double *res)
 
 bool CommonSolverSciPyUmfpack::solve(Matrix *mat, cplx *res)
 {
-    printf("SciPy UMFPACK solver - cplx\n");
+  //printf("SciPy UMFPACK solver - cplx\n");
 
     CSCMatrix M(mat);
     Python *p = new Python();
@@ -91,7 +91,7 @@ bool CommonSolverSciPyUmfpack::solve(Matrix *mat, cplx *res)
 
 bool CommonSolverSciPyCG::solve(Matrix *mat, double *res)
 {
-    printf("SciPy CG solver\n");
+  //printf("SciPy CG solver\n");
 
     CSRMatrix M(mat);
     Python *p = new Python();
@@ -114,7 +114,7 @@ bool CommonSolverSciPyCG::solve(Matrix *mat, cplx *res)
 
 bool CommonSolverSciPyGMRES::solve(Matrix *mat, double *res)
 {
-    printf("SciPy GMRES solver\n");
+  //printf("SciPy GMRES solver\n");
 
     CSRMatrix M(mat);
     Python *p = new Python();

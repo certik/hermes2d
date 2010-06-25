@@ -56,7 +56,6 @@ add_custom_command(
     OUTPUT _hermes_common_api.h
     COMMAND cython _hermes_common.pyx
     )
-add_subdirectory(tests)
 
 cython_add_module(_hermes_common stdcython.cpp)
 target_link_libraries(_hermes_common ${HERMES_COMMON})
@@ -95,3 +94,4 @@ if(NOT MSVC)
   ENDIF(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 endif(NOT MSVC)
 
+add_subdirectory(tests)

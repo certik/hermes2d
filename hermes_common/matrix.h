@@ -143,77 +143,20 @@ protected:
 class DenseMatrix : public Matrix
 {
 public:
-    DenseMatrix(int size, bool is_complex = false)
-    {
-        this->complex = is_complex;
+    DenseMatrix(Matrix *m);
+    DenseMatrix(CooMatrix *m);
+    DenseMatrix(int size, bool is_complex = false);
+    ~DenseMatrix();
 
-        if (is_complex)
-            this->A_cplx = _new_matrix<cplx>(size, size);
-        else
-            this->A = _new_matrix<double>(size, size);
-        this->size = size;
+    virtual void init();
 
-        if (is_complex)
-        {
-            for (int i = 0; i<size; i++)
-                for (int j = 0; j<size; j++)
-                    this->A_cplx[i][j] = 0;
-        }
-        else
-        {
-            for (int i = 0; i<size; i++)
-                for (int j = 0; j<size; j++)
-                    this->A[i][j] = 0;
-        }
-    }
-    DenseMatrix(Matrix *m, bool is_complex = false)
-    {
-        this->complex = is_complex;
-        if (is_complex)
-            this->A_cplx =
-                    _new_matrix<cplx>(m->get_size(), m->get_size());
-        else
-            this->A = _new_matrix<double>(m->get_size(), m->get_size());
-        this->size = m->get_size();
-        m->copy_into(this);
-    }
-    ~DenseMatrix()
-    {
-        free_data();
-    }
+    virtual void free_data();
+    virtual void set_zero();
 
-    virtual void free_data()
-    {
-        if (this->A) { delete[] this->A; this->A = NULL; };
-        if (this->A_cplx) { delete[] this->A_cplx; this->A_cplx = NULL; };
+    inline virtual void add(int m, int n, double v) { this->A[m][n] += v; }
+    inline virtual void add(int m, int n, cplx v) { this->A_cplx[m][n] += v; }
 
-        this->size = 0;
-    }
-
-    virtual void set_zero()
-    {
-        if (this->complex)
-        {
-            for (int i = 0; i<size; i++)
-                for (int j = 0; j<size; j++)
-                    this->A_cplx[i][j] = 0;
-        }
-        else
-        {
-            for (int i = 0; i<size; i++)
-                for (int j = 0; j<size; j++)
-                    this->A[i][j] = 0;
-        }
-    }
-
-    virtual void add(int m, int n, double v)
-    {
-        this->A[m][n] += v;
-    }
-    virtual void add(int m, int n, cplx v)
-    {
-        this->A_cplx[m][n] += v;
-    }
+    void add_from_coo(CooMatrix *m);
 
     inline virtual double get(int m, int n) { return this->A[m][n]; }
 
@@ -237,36 +180,9 @@ public:
         }
     }
 
-    virtual int get_nnz()
-    {
-        int nnz = 0;
-        for (int i = 0; i < this->size; i++)
-        {
-            for (int j = 0; j < this->size; j++)
-            {
-                if (complex)
-                    if (fabs(A[i][j]) > 1e-12)
-                        nnz++;
-                else
-                    if (std::abs(A_cplx[i][j]) > 1e-12)
-                        nnz++;
-            }
-        }
-        return nnz;
-    }
+    virtual int get_nnz();
 
-    virtual void print()
-    {
-        for (int i = 0; i < this->size; i++)
-        {
-            for (int j = 0; j < this->size; j++)
-            {
-                double v = this->get(i, j);
-                printf("%f ", v);
-            }
-            printf("\n");
-        }
-    }
+    virtual void print();
 
     // Return the internal matrix.
     inline double **get_A() { return this->A; }

@@ -63,7 +63,6 @@ bool CommonSolverSparseLib::solve(Matrix *mat, double *res)
         _error("SparseLib++ error. Method is not defined.");
     }
 
-    printf("SparseLib++ solver: maxiter: %i, tol: %e\n", maxiter, tolerance);
     if (result == 0)
         printf("SparseLib++ solver: maxiter: %i, tol: %e\n", maxiter, tolerance);
     else
@@ -76,6 +75,7 @@ bool CommonSolverSparseLib::solve(Matrix *mat, double *res)
         x[i] = xv(i);
 
     memcpy(res, x, size*sizeof(double));
+    delete[] x;
 
     if (!dynamic_cast<CSCMatrix*>(mat))
         delete Acsc;

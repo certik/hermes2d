@@ -33,17 +33,17 @@ public:
                int maxiter);
     bool solve(Matrix *mat, cplx *res);
 };
-inline void solve_linear_system_cg(Matrix *mat, double *res,
-                                   double tol,
+inline bool solve_linear_system_cg(Matrix *mat, double *res,
+                                   double tolerance,
                                    int maxiter)
 {
     CommonSolverCG solver;
-    solver.solve(mat, res, tol, maxiter);
+    return solver.solve(mat, res, tolerance, maxiter);
 }
-inline void solve_linear_system_cg(Matrix *mat, cplx *res)
+inline bool solve_linear_system_cg(Matrix *mat, cplx *res)
 {
     CommonSolverCG solver;
-    solver.solve(mat, res);
+    return solver.solve(mat, res);
 }
 
 // c++ lu
@@ -110,16 +110,20 @@ private:
     int maxiter;
     CommonSolverSparseLibSolver method;
 };
-inline void solve_linear_system_sparselib_cgs(Matrix *mat, double *res)
+inline void solve_linear_system_sparselib_cgs(Matrix *mat, double *res, double tolerance = 1e-8, int maxiter = 1000)
 {
     CommonSolverSparseLib solver;
     solver.set_method(CommonSolverSparseLib::CommonSolverSparseLibSolver_ConjugateGradientSquared);
+    solver.set_tolerance(tolerance);
+    solver.set_maxiter(maxiter);
     solver.solve(mat, res);
 }
-inline void solve_linear_system_sparselib_ir(Matrix *mat, double *res)
+inline void solve_linear_system_sparselib_ir(Matrix *mat, double *res, double tolerance = 1e-8, int maxiter = 1000)
 {
     CommonSolverSparseLib solver;
     solver.set_method(CommonSolverSparseLib::CommonSolverSparseLibSolver_RichardsonIterativeRefinement);
+    solver.set_tolerance(tolerance);
+    solver.set_maxiter(maxiter);
     solver.solve(mat, res);
 }
 

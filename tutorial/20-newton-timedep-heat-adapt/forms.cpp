@@ -1,6 +1,6 @@
 // Jacobian for the implicit Euler time discretization
 template<typename Real, typename Scalar>
-Scalar J_euler(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+Scalar J_euler(int n, double *wt, Func<Real> *u_ext[], Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
   Scalar result = 0;
   Func<Scalar>* u_prev_newton = ext->fn[0];
@@ -13,7 +13,7 @@ Scalar J_euler(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, E
 
 // Residuum for the implicit Euler time discretization
 template<typename Real, typename Scalar>
-Scalar F_euler(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+Scalar F_euler(int n, double *wt, Func<Real> *u_ext[], Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
   Scalar result = 0;
   Func<Scalar>* u_prev_newton = ext->fn[0];
@@ -27,7 +27,7 @@ Scalar F_euler(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> 
 
 // Jacobian for the Crank-Nicolson time discretization
 template<typename Real, typename Scalar>
-Scalar J_cranic(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+Scalar J_cranic(int n, double *wt, Func<Real> *u_ext[], Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
   Scalar result = 0;
   Func<Scalar>* u_prev_newton = ext->fn[0];
@@ -40,7 +40,7 @@ Scalar J_cranic(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, 
 
 // Residuum for the Crank-Nicolson time discretization
 template<typename Real, typename Scalar>
-Scalar F_cranic(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+Scalar F_cranic(int n, double *wt, Func<Real> *u_ext[], Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
   Scalar result = 0;
   Func<Scalar>* u_prev_newton = ext->fn[0];

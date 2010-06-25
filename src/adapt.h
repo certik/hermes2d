@@ -73,10 +73,10 @@ protected:
   Adapt(LinSystem* ls); ///< Constructor. Used by children of the class.
 
 public:
-  virtual ~Adapt(); ///< Destruktor. Deallocates allocated private data.
+  virtual ~Adapt(); ///< Destructor. Deallocates allocated private data.
 
-  typedef scalar (*biform_val_t) (int n, double *wt, Func<scalar> *u, Func<scalar> *v, Geom<double> *e, ExtData<scalar> *); ///< A bilinear form callback function.
-  typedef Ord (*biform_ord_t) (int n, double *wt, Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *); ///< A bilinear form to estimate order of a function.
+  typedef scalar (*jacform_val_t) (int n, double *wt, Func<scalar> *u_ext[], Func<scalar> *u, Func<scalar> *v, Geom<double> *e, ExtData<scalar> *); ///< A bilinear form callback function.
+  typedef Ord (*jacform_ord_t) (int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *); ///< A bilinear form to estimate order of a function.
 
   /// Sets user defined bilinear form which is used to calculate error.
   /** By default, all inherited class should set default bilinear forms for each element (i.e. i = j).
@@ -85,8 +85,8 @@ public:
    *  \param[in] j The second component index.
    *  \param[in] bi_form A bilinear form which calculates value.
    *  \param[in] bi_ord A bilinear form which calculates order. */
-  void set_biform(int i, int j, biform_val_t bi_form, biform_ord_t bi_ord);
-  void set_biform(biform_val_t bi_form, biform_ord_t bi_ord);   // i = j = 0
+  void set_error_form(int i, int j, jacform_val_t bi_form, jacform_ord_t bi_ord);
+  void set_error_form(jacform_val_t bi_form, jacform_ord_t bi_ord);   // i = j = 0
 
   /// Sets solutions and reference solutions.
   /** \param[in] solutions Coarse solutions. The number of solutions has to match a number of components.
@@ -207,8 +207,8 @@ protected: // element error arrays
   double  errors_squared_sum; ///< Sum of errors in the array Adapt::errors_squared. Used by a method adapt() in some strategies.
 
 protected: //forms and error evaluation
-  biform_val_t form[H2D_MAX_COMPONENTS][H2D_MAX_COMPONENTS]; ///< Bilinear forms to calculate error
-  biform_ord_t ord[H2D_MAX_COMPONENTS][H2D_MAX_COMPONENTS]; ///< Bilinear forms to calculate error
+  jacform_val_t form[H2D_MAX_COMPONENTS][H2D_MAX_COMPONENTS]; ///< Bilinear forms to calculate error
+  jacform_ord_t ord[H2D_MAX_COMPONENTS][H2D_MAX_COMPONENTS]; ///< Bilinear forms to calculate error
 
   /// Evaluates a square of an absolute error of an active element among a given pair of components.
   /** The method uses a bilinear forms to calculate the error. This is done by supplying a differences (f1 - v1) and (f2 - v2) at integration points to the bilinear form,
@@ -225,7 +225,7 @@ protected: //forms and error evaluation
    *  \param[in] rrv1 A reference map of a reference solution rsln1.
    *  \param[in] rrv2 A reference map of a reference solution rsln2.
    *  \return A square of an absolute error. */
-  virtual scalar eval_error(biform_val_t bi_fn, biform_ord_t bi_ord,
+  virtual scalar eval_error(jacform_val_t bi_fn, jacform_ord_t bi_ord,
                     MeshFunction *sln1, MeshFunction *sln2, MeshFunction *rsln1, MeshFunction *rsln2,
                     RefMap *rv1,        RefMap *rv2,        RefMap *rrv1,        RefMap *rrv2);
 
@@ -239,7 +239,7 @@ protected: //forms and error evaluation
    *  \param[in] rrv1 A reference map of a reference solution rsln1.
    *  \param[in] rrv2 A reference map of a reference solution rsln2.
    *  \return A square of a norm. */
-  virtual scalar eval_norm(biform_val_t bi_fn, biform_ord_t bi_ord,
+  virtual scalar eval_norm(jacform_val_t bi_fn, jacform_ord_t bi_ord,
                    MeshFunction *rsln1, MeshFunction *rsln2, RefMap *rrv1, RefMap *rrv2);
 
   /// Builds an ordered queue of elements that are be examined.

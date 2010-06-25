@@ -463,7 +463,7 @@ void Adapt::unrefine(double thr)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Adapt::set_biform(int i, int j, biform_val_t bi_form, biform_ord_t bi_ord)
+void Adapt::set_error_form(int i, int j, jacform_val_t bi_form, jacform_ord_t bi_ord)
 {
   error_if(i < 0 || i >= num_comps || j < 0 || j >= num_comps, "invalid component number (%d, %d), max. supported components: %d", i, j, H2D_MAX_COMPONENTS);
 
@@ -472,7 +472,7 @@ void Adapt::set_biform(int i, int j, biform_val_t bi_form, biform_ord_t bi_ord)
 }
 
 // case i = j = 0
-void Adapt::set_biform(biform_val_t bi_form, biform_ord_t bi_ord)
+void Adapt::set_error_form(jacform_val_t bi_form, jacform_ord_t bi_ord)
 {
   int i = 0;
   int j = 0;
@@ -499,7 +499,7 @@ void Adapt::set_solutions(Tuple<Solution*> solutions, Tuple<Solution*> ref_solut
   have_solutions = true;
 }
 
-scalar Adapt::eval_error(biform_val_t bi_fn, biform_ord_t bi_ord,
+scalar Adapt::eval_error(jacform_val_t bi_fn, jacform_ord_t bi_ord,
                              MeshFunction *sln1, MeshFunction *sln2, MeshFunction *rsln1, MeshFunction *rsln2,
                              RefMap *rv1,        RefMap *rv2,        RefMap *rrv1,        RefMap *rrv2)
 {
@@ -510,7 +510,7 @@ scalar Adapt::eval_error(biform_val_t bi_fn, biform_ord_t bi_ord,
 
   double fake_wt = 1.0;
   Geom<Ord>* fake_e = init_geom_ord();
-  Ord o = bi_ord(1, &fake_wt, ou, ov, fake_e, NULL);
+  Ord o = bi_ord(1, &fake_wt, NULL, ou, ov, fake_e, NULL);
   int order = rrv1->get_inv_ref_order();
   order += o.get_order();
   limit_order(order);
@@ -540,7 +540,7 @@ scalar Adapt::eval_error(biform_val_t bi_fn, biform_ord_t bi_ord,
   err1->subtract(*v1);
   err2->subtract(*v2);
 
-  scalar res = bi_fn(np, jwt, err1, err2, e, NULL);
+  scalar res = bi_fn(np, jwt, NULL, err1, err2, e, NULL);
 
   e->free(); delete e;
   delete [] jwt;
@@ -553,7 +553,7 @@ scalar Adapt::eval_error(biform_val_t bi_fn, biform_ord_t bi_ord,
 }
 
 
-scalar Adapt::eval_norm(biform_val_t bi_fn, biform_ord_t bi_ord,
+scalar Adapt::eval_norm(jacform_val_t bi_fn, jacform_ord_t bi_ord,
                             MeshFunction *rsln1, MeshFunction *rsln2, RefMap *rrv1, RefMap *rrv2)
 {
   // determine the integration order
@@ -563,7 +563,7 @@ scalar Adapt::eval_norm(biform_val_t bi_fn, biform_ord_t bi_ord,
 
   double fake_wt = 1.0;
   Geom<Ord>* fake_e = init_geom_ord();
-  Ord o = bi_ord(1, &fake_wt, ou, ov, fake_e, NULL);
+  Ord o = bi_ord(1, &fake_wt, NULL, ou, ov, fake_e, NULL);
   int order = rrv1->get_inv_ref_order();
   order += o.get_order();
   limit_order(order);
@@ -588,7 +588,7 @@ scalar Adapt::eval_norm(biform_val_t bi_fn, biform_ord_t bi_ord,
   Func<scalar>* v1 = init_fn(rsln1, rrv1, order);
   Func<scalar>* v2 = init_fn(rsln2, rrv2, order);
 
-  scalar res = bi_fn(np, jwt, v1, v2, e, NULL);
+  scalar res = bi_fn(np, jwt, NULL, v1, v2, e, NULL);
 
   e->free(); delete e;
   delete [] jwt;

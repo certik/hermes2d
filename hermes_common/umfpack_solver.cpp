@@ -86,6 +86,7 @@ bool CommonSolverUmfpack::solve(Matrix *mat, double *res)
     if (numeric) umfpack_di_free_numeric(&numeric);
 
     memcpy(res, x, size*sizeof(double));
+    delete[] x;
 
     if (!dynamic_cast<CSCMatrix*>(mat))
         delete Acsc;

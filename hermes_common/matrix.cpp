@@ -63,6 +63,154 @@ void transpose(T** matrix, int m, int n)
 
 // *********************************************************************************************************************
 
+DenseMatrix::DenseMatrix(Matrix *m)
+{
+    this->size = m->get_size();
+    this->complex = m->is_complex();
+    init();
+
+    if (dynamic_cast<CooMatrix *>(m))
+        this->add_from_coo((CooMatrix *)m);
+    else
+        _error("Matrix type not supported.");
+}
+
+DenseMatrix::DenseMatrix(CooMatrix *m)
+{
+    this->size = m->get_size();
+    this->complex = m->is_complex();
+    init();
+
+    this->add_from_coo(m);
+}
+
+DenseMatrix::DenseMatrix(int size, bool is_complex)
+{
+    this->complex = is_complex;
+    this->size = size;
+
+    init();
+}
+
+DenseMatrix::~DenseMatrix()
+{
+    free_data();
+}
+
+void DenseMatrix::free_data()
+{
+    if (this->A) { delete[] A; this->A = NULL; };
+    if (this->A_cplx) { delete[] this->A_cplx; this->A_cplx = NULL; };
+
+    this->size = 0;
+}
+
+void DenseMatrix::init()
+{
+    this->A = NULL;
+    this->A_cplx = NULL;
+
+    if (complex)
+        this->A_cplx = _new_matrix<cplx>(this->size, this->size);
+    else
+        this->A = _new_matrix<double>(this->size, this->size);
+
+    if (complex)
+    {
+        for (int i = 0; i<size; i++)
+            for (int j = 0; j<size; j++)
+                this->A_cplx[i][j] = 0;
+    }
+    else
+    {
+        for (int i = 0; i<size; i++)
+            for (int j = 0; j<size; j++)
+                this->A[i][j] = 0;
+    }
+}
+
+void DenseMatrix::add_from_coo(CooMatrix *m)
+{
+    int nnz = m->get_nnz();
+
+    // get data
+    int *row = new int[nnz];
+    int *col = new int[nnz];
+
+    if (complex)
+    {
+        cplx *data = new cplx[nnz];
+        m->get_row_col_data(row, col, data);
+
+        for (int i = 0; i < nnz; i++)
+            A_cplx[row[i]][col[i]] = data[i];
+
+        if (data) delete[] data;
+    }
+    else
+    {
+        double *data = new double[nnz];
+        m->get_row_col_data(row, col, data);
+
+        for (int i = 0; i < nnz; i++)
+            A[row[i]][col[i]] = data[i];
+
+        if (data) delete[] data;
+    }
+
+    // free data
+    if (row) delete[] row;
+    if (col) delete[] col;
+}
+
+int DenseMatrix::get_nnz()
+{
+    int nnz = 0;
+    for (int i = 0; i < this->size; i++)
+    {
+        for (int j = 0; j < this->size; j++)
+        {
+            if (complex)
+                if (fabs(A[i][j]) > 1e-12)
+                    nnz++;
+            else
+                if (std::abs(A_cplx[i][j]) > 1e-12)
+                    nnz++;
+        }
+    }
+    return nnz;
+}
+
+void DenseMatrix::set_zero()
+{
+    if (this->complex)
+        for (int i = 0; i<size; i++)
+            for (int j = 0; j<size; j++)
+                this->A_cplx[i][j] = 0;
+    else
+        for (int i = 0; i<size; i++)
+            for (int j = 0; j<size; j++)
+                this->A[i][j] = 0;
+}
+
+void DenseMatrix::print()
+{
+    for (int i = 0; i < this->size; i++)
+    {
+        for (int j = 0; j < this->size; j++)
+        {
+            if (complex)
+                printf("(%i, %i): (%f, %f)\n",
+                       i, j, A_cplx[i][j].real(), A_cplx[i][j].imag());
+            else
+                printf("(%i, %i): %f\n",
+                       i, j, A[i][j]);
+        }
+    }
+}
+
+// *********************************************************************************************************************
+
 CooMatrix::CooMatrix(bool complex) : Matrix()
 {
     init();
@@ -291,13 +439,13 @@ int CooMatrix::get_nnz()
 
 void CooMatrix::times_vector(double* vec, double* result, int rank)
 {
-    int index = 0;
+    for (int i=0; i < rank; i++) result[i] = 0;
+
     for(std::map<size_t, std::map<size_t, double> >::const_iterator it_row = A.begin(); it_row != A.end(); ++it_row)
     {
         for(std::map<size_t, double>::const_iterator it_col = it_row->second.begin(); it_col != it_row->second.end(); ++it_col)
         {
-            result[index] += it_col->second * vec[index];
-            index++;
+            result[it_row->first] += it_col->second * vec[it_col->first];
         }
     }
 }
