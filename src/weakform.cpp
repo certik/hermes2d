@@ -37,6 +37,7 @@ WeakForm::WeakForm(int neq, bool mat_free)
   va_end(ap)
 */
 
+/*
 scalar WeakForm::LiFormVol::evaluate_fn(int point_cnt, double *weights, Func<double> *values_v, Geom<double> *geometry, ExtData<scalar> *values_ext_fnc, Element* element, Shapeset* shape_set, int shape_inx)
 {
   assert_msg(fn != NULL || fn_extended != NULL, "Both version of functions of LinForm are NULL");
@@ -237,8 +238,9 @@ void WeakForm::add_vector_form_surf(liform_val_t fn, liform_ord_t ord, int area,
   lfsurf.push_back(form);
   seq++;
 }
+*/
 
-void WeakForm::add_jacform(int i, int j, jacform_val_t fn, jacform_ord_t ord, SymFlag sym, int area, Tuple<MeshFunction*>ext)
+void WeakForm::add_matrix_form(int i, int j, jacform_val_t fn, jacform_ord_t ord, SymFlag sym, int area, Tuple<MeshFunction*>ext)
 {
   if (i < 0 || i >= neq || j < 0 || j >= neq)
     error("Invalid equation number.");
@@ -261,7 +263,7 @@ void WeakForm::add_jacform(int i, int j, jacform_val_t fn, jacform_ord_t ord, Sy
 }
 
 // single equation case
-void WeakForm::add_jacform(jacform_val_t fn, jacform_ord_t ord, SymFlag sym, int area, Tuple<MeshFunction*>ext)
+void WeakForm::add_matrix_form(jacform_val_t fn, jacform_ord_t ord, SymFlag sym, int area, Tuple<MeshFunction*>ext)
 {
   int i = 0, j = 0;
 
@@ -284,7 +286,7 @@ void WeakForm::add_jacform(jacform_val_t fn, jacform_ord_t ord, SymFlag sym, int
   seq++;
 }
 
-void WeakForm::add_jacform_surf(int i, int j, jacform_val_t fn, jacform_ord_t ord, int area, Tuple<MeshFunction*>ext)
+void WeakForm::add_matrix_form_surf(int i, int j, jacform_val_t fn, jacform_ord_t ord, int area, Tuple<MeshFunction*>ext)
 {
   if (i < 0 || i >= neq || j < 0 || j >= neq)
     error("Invalid equation number.");
@@ -301,7 +303,7 @@ void WeakForm::add_jacform_surf(int i, int j, jacform_val_t fn, jacform_ord_t or
 }
 
 // single equation case
-void WeakForm::add_jacform_surf(jacform_val_t fn, jacform_ord_t ord, int area, Tuple<MeshFunction*>ext)
+void WeakForm::add_matrix_form_surf(jacform_val_t fn, jacform_ord_t ord, int area, Tuple<MeshFunction*>ext)
 {
   int i = 0, j = 0;
 
@@ -318,7 +320,7 @@ void WeakForm::add_jacform_surf(jacform_val_t fn, jacform_ord_t ord, int area, T
   seq++;
 }
 
-void WeakForm::add_resform(int i, resform_val_t fn, resform_ord_t ord, int area, Tuple<MeshFunction*>ext)
+void WeakForm::add_vector_form(int i, resform_val_t fn, resform_ord_t ord, int area, Tuple<MeshFunction*>ext)
 {
   if (i < 0 || i >= neq)
     error("Invalid equation number.");
@@ -335,7 +337,7 @@ void WeakForm::add_resform(int i, resform_val_t fn, resform_ord_t ord, int area,
 }
 
 // single equation case
-void WeakForm::add_resform(resform_val_t fn, resform_ord_t ord, int area, Tuple<MeshFunction*>ext)
+void WeakForm::add_vector_form(resform_val_t fn, resform_ord_t ord, int area, Tuple<MeshFunction*>ext)
 {
   int i = 0;
 
@@ -352,7 +354,7 @@ void WeakForm::add_resform(resform_val_t fn, resform_ord_t ord, int area, Tuple<
   seq++;
 }
 
-void WeakForm::add_resform_surf(int i, resform_val_t fn, resform_ord_t ord, int area, Tuple<MeshFunction*>ext)
+void WeakForm::add_vector_form_surf(int i, resform_val_t fn, resform_ord_t ord, int area, Tuple<MeshFunction*>ext)
 {
   if (i < 0 || i >= neq)
     error("Invalid equation number.");
@@ -369,7 +371,7 @@ void WeakForm::add_resform_surf(int i, resform_val_t fn, resform_ord_t ord, int 
 }
 
 // single equation case
-void WeakForm::add_resform_surf(resform_val_t fn, resform_ord_t ord, int area, Tuple<MeshFunction*>ext)
+void WeakForm::add_vector_form_surf(resform_val_t fn, resform_ord_t ord, int area, Tuple<MeshFunction*>ext)
 {
   int i = 0;
 
@@ -405,87 +407,42 @@ void WeakForm::get_stages(Space** spaces, std::vector<WeakForm::Stage>& stages, 
 
   if (!rhsonly)
   {
-    if (is_linear())
-    {
-      // process volume biforms
-      for (i = 0; i < bfvol.size(); i++)
-      {
-        int ii = bfvol[i].i, jj = bfvol[i].j;
-        Mesh* m1 = spaces[ii]->get_mesh();
-        Mesh* m2 = spaces[jj]->get_mesh();
-        Stage* s = find_stage(stages, ii, jj, m1, m2, bfvol[i].ext);
-        s->bfvol.push_back(&bfvol[i]);
-      }
 
-      // process surface biforms
-      for (i = 0; i < bfsurf.size(); i++)
-      {
-        int ii = bfsurf[i].i, jj = bfsurf[i].j;
-        Mesh* m1 = spaces[ii]->get_mesh();
-        Mesh* m2 = spaces[jj]->get_mesh();
-        Stage* s = find_stage(stages, ii, jj, m1, m2, bfsurf[i].ext);
-        s->bfsurf.push_back(&bfsurf[i]);
-      }
+    // process volume jacforms
+    for (i = 0; i < jfvol.size(); i++)
+    {
+      int ii = jfvol[i].i, jj = jfvol[i].j;
+      Mesh* m1 = spaces[ii]->get_mesh();
+      Mesh* m2 = spaces[jj]->get_mesh();
+      Stage* s = find_stage(stages, ii, jj, m1, m2, jfvol[i].ext);
+      s->jfvol.push_back(&jfvol[i]);
     }
-    else
-    {
-      // process volume jacforms
-      for (i = 0; i < jfvol.size(); i++)
-      {
-        int ii = jfvol[i].i, jj = jfvol[i].j;
-        Mesh* m1 = spaces[ii]->get_mesh();
-        Mesh* m2 = spaces[jj]->get_mesh();
-        Stage* s = find_stage(stages, ii, jj, m1, m2, jfvol[i].ext);
-        s->jfvol.push_back(&jfvol[i]);
-      }
 
-      // process surface jacforms
-      for (i = 0; i < jfsurf.size(); i++)
-      {
-        int ii = jfsurf[i].i, jj = jfsurf[i].j;
-        Mesh* m1 = spaces[ii]->get_mesh();
-        Mesh* m2 = spaces[jj]->get_mesh();
-        Stage* s = find_stage(stages, ii, jj, m1, m2, jfsurf[i].ext);
-        s->jfsurf.push_back(&jfsurf[i]);
-      }
+    // process surface jacforms
+    for (i = 0; i < jfsurf.size(); i++)
+    {
+      int ii = jfsurf[i].i, jj = jfsurf[i].j;
+      Mesh* m1 = spaces[ii]->get_mesh();
+      Mesh* m2 = spaces[jj]->get_mesh();
+      Stage* s = find_stage(stages, ii, jj, m1, m2, jfsurf[i].ext);
+      s->jfsurf.push_back(&jfsurf[i]);
     }
   }
 
-  if (is_linear())
-  {
-    // process volume liforms
-    for (i = 0; i < lfvol.size(); i++) {
-      int ii = lfvol[i].i;
-      Mesh *m = spaces[ii]->get_mesh();
-      Stage *s = find_stage(stages, ii, ii, m, m, lfvol[i].ext);
-      s->lfvol.push_back(&lfvol[i]);
-    }
-
-    // process surface liforms
-    for (i = 0; i < lfsurf.size(); i++) {
-      int ii = lfsurf[i].i;
-      Mesh *m = spaces[ii]->get_mesh();
-      Stage *s = find_stage(stages, ii, ii, m, m, lfsurf[i].ext);
-      s->lfsurf.push_back(&lfsurf[i]);
-    }
+  // process volume res forms
+  for (unsigned i = 0; i < rfvol.size(); i++) {
+    int ii = rfvol[i].i;
+    Mesh *m = spaces[ii]->get_mesh();
+    Stage *s = find_stage(stages, ii, ii, m, m, rfvol[i].ext);
+    s->rfvol.push_back(&rfvol[i]);
   }
-  else
-  {
-    // process volume res forms
-    for (unsigned i = 0; i < rfvol.size(); i++) {
-      int ii = rfvol[i].i;
-      Mesh *m = spaces[ii]->get_mesh();
-      Stage *s = find_stage(stages, ii, ii, m, m, rfvol[i].ext);
-      s->rfvol.push_back(&rfvol[i]);
-    }
 
-    // process surface res forms
-    for (unsigned i = 0; i < rfsurf.size(); i++) {
-      int ii = rfsurf[i].i;
-      Mesh *m = spaces[ii]->get_mesh();
-      Stage *s = find_stage(stages, ii, ii, m, m, rfsurf[i].ext);
-      s->rfsurf.push_back(&rfsurf[i]);
-    }
+  // process surface res forms
+  for (unsigned i = 0; i < rfsurf.size(); i++) {
+    int ii = rfsurf[i].i;
+    Mesh *m = spaces[ii]->get_mesh();
+    Stage *s = find_stage(stages, ii, ii, m, m, rfsurf[i].ext);
+    s->rfsurf.push_back(&rfsurf[i]);
   }
 
   // helper macro for iterating in a set
@@ -563,6 +520,7 @@ bool** WeakForm::get_blocks()
     for (int j = 0; j < neq; j++)
       blocks[i][j] = false;
 
+  /* OLD CODE
   if (is_linear())
   {
     for (unsigned i = 0; i < bfvol.size(); i++) {
@@ -576,15 +534,15 @@ bool** WeakForm::get_blocks()
   }
   else
   {
-    for (unsigned i = 0; i < jfvol.size(); i++) {
-      blocks[jfvol[i].i][jfvol[i].j] = true;
-      if (jfvol[i].sym)
-        blocks[jfvol[i].j][jfvol[i].i] = true;
-    }
-
-    for (unsigned i = 0; i < jfsurf.size(); i++)
-      blocks[jfsurf[i].i][jfsurf[i].j] = true;
+  */
+  for (unsigned i = 0; i < jfvol.size(); i++) {
+    blocks[jfvol[i].i][jfvol[i].j] = true;
+    if (jfvol[i].sym)
+      blocks[jfvol[i].j][jfvol[i].i] = true;
   }
+
+  for (unsigned i = 0; i < jfsurf.size(); i++)
+    blocks[jfsurf[i].i][jfsurf[i].j] = true;
 
   return blocks;
 }

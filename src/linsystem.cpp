@@ -295,7 +295,6 @@ void LinSystem::free()
   free_matrix();
   free_vectors();
   free_spaces();
-  delete solver_default;
 
   this->struct_changed = this->values_changed = true;
   memset(this->sp_seq, -1, sizeof(int) * this->wf->neq);
@@ -500,17 +499,17 @@ void LinSystem::assemble(bool rhsonly)
 
       init_cache();
       //// assemble volume bilinear forms //////////////////////////////////////
-      for (unsigned int ww = 0; ww < s->bfvol.size(); ww++)
+      for (unsigned int ww = 0; ww < s->jfvol.size(); ww++)
       {
-        WeakForm::BiFormVol* bfv = s->bfvol[ww];
-        if (isempty[bfv->i] || isempty[bfv->j]) continue;
-        if (bfv->area != H2D_ANY && !wf->is_in_area(marker, bfv->area)) continue;
-        m = bfv->i;  fv = spss[m];  am = &al[m];
-        n = bfv->j;  fu = pss[n];   an = &al[n];
-        bool tra = (m != n) && (bfv->sym != 0);
-        bool sym = (m == n) && (bfv->sym == 1);
+        WeakForm::JacFormVol* jfv = s->jfvol[ww];
+        if (isempty[jfv->i] || isempty[jfv->j]) continue;
+        if (jfv->area != H2D_ANY && !wf->is_in_area(marker, jfv->area)) continue;
+        m = jfv->i;  fv = spss[m];  am = &al[m];
+        n = jfv->j;  fu = pss[n];   an = &al[n];
+        bool tra = (m != n) && (jfv->sym != 0);
+        bool sym = (m == n) && (jfv->sym == 1);
 
-        // assemble the local stiffness matrix for the form bfv
+        // assemble the local stiffness matrix for the form jfv
         scalar bi, **mat = get_matrix_buffer(std::max(am->cnt, an->cnt));
         for (int i = 0; i < am->cnt; i++)
         {
@@ -521,7 +520,9 @@ void LinSystem::assemble(bool rhsonly)
           {
             for (int j = 0; j < an->cnt; j++) {
               fu->set_active_shape(an->idx[j]);
-              bi = eval_form(bfv, fu, fv, &refmap[n], &refmap[m]) * an->coef[j] * am->coef[i];
+              // FIXME - the NULL on the following line is temporary, an array of solutions 
+              // should be passed there.
+              bi = eval_form(jfv, NULL, fu, fv, &refmap[n], &refmap[m]) * an->coef[j] * am->coef[i];
               if (an->dof[j] < 0) Dir[k] -= bi; else mat[i][j] = bi;
             }
           }
@@ -530,7 +531,9 @@ void LinSystem::assemble(bool rhsonly)
             for (int j = 0; j < an->cnt; j++) {
               if (j < i && an->dof[j] >= 0) continue;
               fu->set_active_shape(an->idx[j]);
-              bi = eval_form(bfv, fu, fv, &refmap[n], &refmap[m]) * an->coef[j] * am->coef[i];
+              // FIXME - the NULL on the following line is temporary, an array of solutions 
+              // should be passed there.
+              bi = eval_form(jfv, NULL, fu, fv, &refmap[n], &refmap[m]) * an->coef[j] * am->coef[i];
               if (an->dof[j] < 0) Dir[k] -= bi; else mat[i][j] = mat[j][i] = bi;
             }
           }
@@ -542,7 +545,7 @@ void LinSystem::assemble(bool rhsonly)
         // insert also the off-diagonal (anti-)symmetric block, if required
         if (tra)
         {
-          if (bfv->sym < 0) chsgn(mat, am->cnt, an->cnt);
+          if (jfv->sym < 0) chsgn(mat, am->cnt, an->cnt);
           transpose(mat, am->cnt, an->cnt);
           insert_block(mat, an->dof, am->dof, an->cnt, am->cnt);
 
@@ -556,18 +559,20 @@ void LinSystem::assemble(bool rhsonly)
       }
 
       //// assemble volume linear forms ////////////////////////////////////////
-      for (unsigned int ww = 0; ww < s->lfvol.size(); ww++)
+      for (unsigned int ww = 0; ww < s->rfvol.size(); ww++)
       {
-        WeakForm::LiFormVol* lfv = s->lfvol[ww];
-        if (isempty[lfv->i]) continue;
-        if (lfv->area != H2D_ANY && !wf->is_in_area(marker, lfv->area)) continue;
-        m = lfv->i;  fv = spss[m];  am = &al[m];
+        WeakForm::ResFormVol* rfv = s->rfvol[ww];
+        if (isempty[rfv->i]) continue;
+        if (rfv->area != H2D_ANY && !wf->is_in_area(marker, rfv->area)) continue;
+        m = rfv->i;  fv = spss[m];  am = &al[m];
 
         for (int i = 0; i < am->cnt; i++)
         {
           if (am->dof[i] < 0) continue;
           fv->set_active_shape(am->idx[i]);
-          RHS[am->dof[i]] += eval_form(lfv, fv, &refmap[m]) * am->coef[i];
+          // FIXME - the NULL on the following line is temporary, an array of solutions 
+          // should be passed there.
+          RHS[am->dof[i]] += eval_form(rfv, NULL, fv, &refmap[m]) * am->coef[i];
         }
       }
 
@@ -587,13 +592,13 @@ void LinSystem::assemble(bool rhsonly)
         }
 
         // assemble surface bilinear forms ///////////////////////////////////
-        for (unsigned int ww = 0; ww < s->bfsurf.size(); ww++)
+        for (unsigned int ww = 0; ww < s->jfsurf.size(); ww++)
         {
-          WeakForm::BiFormSurf* bfs = s->bfsurf[ww];
-          if (isempty[bfs->i] || isempty[bfs->j]) continue;
-          if (bfs->area != H2D_ANY && !wf->is_in_area(marker, bfs->area)) continue;
-          m = bfs->i;  fv = spss[m];  am = &al[m];
-          n = bfs->j;  fu = pss[n];   an = &al[n];
+          WeakForm::JacFormSurf* jfs = s->jfsurf[ww];
+          if (isempty[jfs->i] || isempty[jfs->j]) continue;
+          if (jfs->area != H2D_ANY && !wf->is_in_area(marker, jfs->area)) continue;
+          m = jfs->i;  fv = spss[m];  am = &al[m];
+          n = jfs->j;  fu = pss[n];   an = &al[n];
 
           if (!nat[m] || !nat[n]) continue;
           ep[edge].base = trav.get_base();
@@ -608,7 +613,9 @@ void LinSystem::assemble(bool rhsonly)
             for (int j = 0; j < an->cnt; j++)
             {
               fu->set_active_shape(an->idx[j]);
-              bi = eval_form(bfs, fu, fv, &refmap[n], &refmap[m], &(ep[edge])) * an->coef[j] * am->coef[i];
+              // FIXME - the NULL on the following line is temporary, an array of solutions 
+              // should be passed there.
+              bi = eval_form(jfs, NULL, fu, fv, &refmap[n], &refmap[m], &(ep[edge])) * an->coef[j] * am->coef[i];
               if (an->dof[j] >= 0) mat[i][j] = bi; else Dir[k] -= bi;
             }
           }
@@ -616,12 +623,12 @@ void LinSystem::assemble(bool rhsonly)
         }
 
         // assemble surface linear forms /////////////////////////////////////
-        for (unsigned int ww = 0; ww < s->lfsurf.size(); ww++)
+        for (unsigned int ww = 0; ww < s->rfsurf.size(); ww++)
         {
-          WeakForm::LiFormSurf* lfs = s->lfsurf[ww];
-          if (isempty[lfs->i]) continue;
-          if (lfs->area != H2D_ANY && !wf->is_in_area(marker, lfs->area)) continue;
-          m = lfs->i;  fv = spss[m];  am = &al[m];
+          WeakForm::ResFormSurf* rfs = s->rfsurf[ww];
+          if (isempty[rfs->i]) continue;
+          if (rfs->area != H2D_ANY && !wf->is_in_area(marker, rfs->area)) continue;
+          m = rfs->i;  fv = spss[m];  am = &al[m];
 
           if (!nat[m]) continue;
           ep[edge].base = trav.get_base();
@@ -631,7 +638,9 @@ void LinSystem::assemble(bool rhsonly)
           {
             if (am->dof[i] < 0) continue;
             fv->set_active_shape(am->idx[i]);
-            RHS[am->dof[i]] += eval_form(lfs, fv, &refmap[m], &(ep[edge])) * am->coef[i];
+            // FIXME - the NULL on the following line is temporary, an array of solutions 
+            // should be passed there.
+            RHS[am->dof[i]] += eval_form(rfs, NULL, fv, &refmap[m], &(ep[edge])) * am->coef[i];
           }
         }
       }
@@ -721,7 +730,8 @@ void LinSystem::delete_cache()
   cache_fn.clear();
 }
 
-////////////////////////////////////////////////////////////////////////////////////////////////////
+/* OLD CODE
+//// evaluation of forms, linear case //////////////////////////////////////////////////////////////
 
 // Actual evaluation of volume bilinear form (calculates integral)
 scalar LinSystem::eval_form(WeakForm::BiFormVol *bf, PrecalcShapeset *fu, PrecalcShapeset *fv, RefMap *ru, RefMap *rv)
@@ -892,6 +902,278 @@ scalar LinSystem::eval_form(WeakForm::LiFormSurf *lf, PrecalcShapeset *fv, RefMa
                     // the weights.
 }
 
+*/
+
+//// evaluation of forms, general case ///////////////////////////////////////////////////////////
+
+
+// Actual evaluation of volume Jacobian form (calculates integral)
+scalar LinSystem::eval_form(WeakForm::JacFormVol *jfv, Solution *sln[], PrecalcShapeset *fu, PrecalcShapeset *fv, RefMap *ru, RefMap *rv)
+{
+  // determine the integration order
+  int inc = (fu->get_num_components() == 2) ? 1 : 0;
+  AUTOLA_OR(Func<Ord>*, oi, wf->neq);
+  //for (int i = 0; i < wf->neq; i++) oi[i] = init_fn_ord(sln[i]->get_fn_order() + inc);
+  if (sln != NULL) {
+    for (int i = 0; i < wf->neq; i++) {
+      if (sln[i] != NULL) oi[i] = init_fn_ord(sln[i]->get_fn_order() + inc);
+      else oi[i] = init_fn_ord(0);
+    }
+  }
+  else {
+    for (int i = 0; i < wf->neq; i++) oi[i] = init_fn_ord(0);
+  }
+
+  Func<Ord>* ou = init_fn_ord(fu->get_fn_order() + inc);
+  Func<Ord>* ov = init_fn_ord(fv->get_fn_order() + inc);
+  ExtData<Ord>* fake_ext = init_ext_fns_ord(jfv->ext);
+
+  double fake_wt = 1.0;
+  Geom<Ord>* fake_e = init_geom_ord();
+  Ord o = jfv->ord(1, &fake_wt, oi, ou, ov, fake_e, fake_ext);
+  int order = ru->get_inv_ref_order();
+  order += o.get_order();
+  limit_order_nowarn(order);
+
+  for (int i = 0; i < wf->neq; i++) {  
+    if (oi[i] != NULL) { oi[i]->free_ord(); delete oi[i]; }
+  }
+  if (ou != NULL) {
+    ou->free_ord(); delete ou;
+  }
+  if (ov != NULL) {
+    ov->free_ord(); delete ov;
+  }
+  if (fake_e != NULL) delete fake_e;
+  if (fake_ext != NULL) {fake_ext->free_ord(); delete fake_ext;}
+
+  // eval the form
+  Quad2D* quad = fu->get_quad_2d();
+  double3* pt = quad->get_points(order);
+  int np = quad->get_num_points(order);
+
+  // init geometry and jacobian*weights
+  if (cache_e[order] == NULL)
+  {
+    cache_e[order] = init_geom_vol(ru, order);
+    double* jac = ru->get_jacobian(order);
+    cache_jwt[order] = new double[np];
+    for(int i = 0; i < np; i++)
+      cache_jwt[order][i] = pt[i][2] * jac[i];
+  }
+  Geom<double>* e = cache_e[order];
+  double* jwt = cache_jwt[order];
+
+  // function values and values of external functions
+  AUTOLA_OR(Func<scalar>*, prev, wf->neq);
+  //for (int i = 0; i < wf->neq; i++) prev[i]  = init_fn(sln[i], rv, order);
+  if (sln != NULL) {
+    for (int i = 0; i < wf->neq; i++) {
+      if (sln[i] != NULL) prev[i]  = init_fn(sln[i], rv, order);
+      else prev[i] = NULL;
+    }
+  }
+  else {
+    for (int i = 0; i < wf->neq; i++) prev[i] = NULL;
+  }
+
+  Func<double>* u = get_fn(fu, ru, order);
+  Func<double>* v = get_fn(fv, rv, order);
+  ExtData<scalar>* ext = init_ext_fns(jfv->ext, rv, order);
+
+  scalar res = jfv->fn(np, jwt, prev, u, v, e, ext);
+
+  for (int i = 0; i < wf->neq; i++) {  
+    if (prev[i] != NULL) prev[i]->free_fn(); delete prev[i]; 
+  }
+  if (ext != NULL) {ext->free(); delete ext;}
+  return res;
+}
+
+
+// Actual evaluation of volume residual form (calculates integral)
+scalar LinSystem::eval_form(WeakForm::ResFormVol *rfv, Solution *sln[], PrecalcShapeset *fv, RefMap *rv)
+{
+  // determine the integration order
+  int inc = (fv->get_num_components() == 2) ? 1 : 0;
+  AUTOLA_OR(Func<Ord>*, oi, wf->neq);
+  //for (int i = 0; i < wf->neq; i++) oi[i] = init_fn_ord(sln[i]->get_fn_order() + inc);
+  if (sln != NULL) {
+    for (int i = 0; i < wf->neq; i++) {
+      if (sln[i] != NULL) oi[i] = init_fn_ord(sln[i]->get_fn_order() + inc);
+      else oi[i] = init_fn_ord(0);
+    }
+  }
+  else {
+    for (int i = 0; i < wf->neq; i++) oi[i] = init_fn_ord(0);
+  }
+  Func<Ord>* ov = init_fn_ord(fv->get_fn_order() + inc);
+  ExtData<Ord>* fake_ext = init_ext_fns_ord(rfv->ext);
+
+  double fake_wt = 1.0;
+  Geom<Ord>* fake_e = init_geom_ord();
+  Ord o = rfv->ord(1, &fake_wt, oi, ov, fake_e, fake_ext);
+  int order = rv->get_inv_ref_order();
+  order += o.get_order();
+  limit_order_nowarn(order);
+
+  for (int i = 0; i < wf->neq; i++) { 
+    if (oi[i] != NULL) {
+      oi[i]->free_ord(); delete oi[i]; 
+    }
+  }
+  if (ov != NULL) {ov->free_ord(); delete ov;}
+  if (fake_e != NULL) delete fake_e;
+  if (fake_ext != NULL) {fake_ext->free_ord(); delete fake_ext;}
+
+  // eval the form
+  Quad2D* quad = fv->get_quad_2d();
+  double3* pt = quad->get_points(order);
+  int np = quad->get_num_points(order);
+
+  // init geometry and jacobian*weights
+  if (cache_e[order] == NULL)
+  {
+    cache_e[order] = init_geom_vol(rv, order);
+    double* jac = rv->get_jacobian(order);
+    cache_jwt[order] = new double[np];
+    for(int i = 0; i < np; i++)
+      cache_jwt[order][i] = pt[i][2] * jac[i];
+  }
+  Geom<double>* e = cache_e[order];
+  double* jwt = cache_jwt[order];
+
+  // function values and values of external functions
+  AUTOLA_OR(Func<scalar>*, prev, wf->neq);
+  //for (int i = 0; i < wf->neq; i++) prev[i]  = init_fn(sln[i], rv, order);
+  if (sln != NULL) {
+    for (int i = 0; i < wf->neq; i++) {
+      if (sln[i] != NULL) prev[i]  = init_fn(sln[i], rv, order);
+      else prev[i] = NULL;
+    }
+  }
+  else {
+    for (int i = 0; i < wf->neq; i++) prev[i] = NULL;
+  }
+
+  Func<double>* v = get_fn(fv, rv, order);
+  ExtData<scalar>* ext = init_ext_fns(rfv->ext, rv, order);
+
+  scalar res = rfv->fn(np, jwt, prev, v, e, ext);
+
+  for (int i = 0; i < wf->neq; i++) { 
+    if (prev[i] != NULL) {
+      prev[i]->free_fn(); delete prev[i]; 
+    }
+  }
+  if (ext != NULL) {ext->free(); delete ext;}
+  return res;
+
+}
+
+// Actual evaluation of surface Jacobian form (calculates integral)
+scalar LinSystem::eval_form(WeakForm::JacFormSurf *jfs, Solution *sln[], PrecalcShapeset *fu, PrecalcShapeset *fv, RefMap *ru, RefMap *rv, EdgePos* ep)
+{
+  // eval the form
+  Quad2D* quad = fu->get_quad_2d();
+  // FIXME - this needs to be order-dependent
+  int eo = quad->get_edge_points(ep->edge);
+  double3* pt = quad->get_points(eo);
+  int np = quad->get_num_points(eo);
+
+  // init geometry and jacobian*weights
+  if (cache_e[eo] == NULL)
+  {
+    cache_e[eo] = init_geom_surf(ru, ep, eo);
+    double3* tan = ru->get_tangent(ep->edge);
+    cache_jwt[eo] = new double[np];
+    for(int i = 0; i < np; i++)
+      cache_jwt[eo][i] = pt[i][2] * tan[i][2];
+  }
+  Geom<double>* e = cache_e[eo];
+  double* jwt = cache_jwt[eo];
+
+  // function values and values of external functions
+  AUTOLA_OR(Func<scalar>*, prev, wf->neq);
+  //for (int i = 0; i < wf->neq; i++) prev[i]  = init_fn(sln[i], rv, eo);
+  if (sln != NULL) {
+    for (int i = 0; i < wf->neq; i++) {
+      if (sln[i] != NULL) prev[i]  = init_fn(sln[i], rv, eo);
+      else prev[i] = NULL;
+    }
+  }
+  else {
+    for (int i = 0; i < wf->neq; i++) prev[i] = NULL;
+  }
+
+  Func<double>* u = get_fn(fu, ru, eo);
+  Func<double>* v = get_fn(fv, rv, eo);
+  ExtData<scalar>* ext = init_ext_fns(jfs->ext, rv, eo);
+
+  scalar res = jfs->fn(np, jwt, prev, u, v, e, ext);
+
+  for (int i = 0; i < wf->neq; i++) { 
+    if (prev[i] != NULL) {
+      prev[i]->free_fn(); delete prev[i]; 
+    }
+  }
+  if (ext != NULL) {ext->free(); delete ext;}
+  return 0.5 * res; // Edges are parameterized from 0 to 1 while integration weights
+                    // are defined in (-1, 1). Thus multiplying with 0.5 to correct
+                    // the weights.
+}
+
+
+// Actual evaluation of surface residual form (calculates integral)
+scalar LinSystem::eval_form(WeakForm::ResFormSurf *rfs, Solution *sln[], PrecalcShapeset *fv, RefMap *rv, EdgePos* ep)
+{
+  // eval the form
+  Quad2D* quad = fv->get_quad_2d();
+  // FIXME - this needs to be order-dependent
+  int eo = quad->get_edge_points(ep->edge);
+  double3* pt = quad->get_points(eo);
+  int np = quad->get_num_points(eo);
+
+  // init geometry and jacobian*weights
+  if (cache_e[eo] == NULL)
+  {
+    cache_e[eo] = init_geom_surf(rv, ep, eo);
+    double3* tan = rv->get_tangent(ep->edge);
+    cache_jwt[eo] = new double[np];
+    for(int i = 0; i < np; i++)
+      cache_jwt[eo][i] = pt[i][2] * tan[i][2];
+  }
+  Geom<double>* e = cache_e[eo];
+  double* jwt = cache_jwt[eo];
+
+  // function values and values of external functions
+  AUTOLA_OR(Func<scalar>*, prev, wf->neq);
+  //for (int i = 0; i < wf->neq; i++) prev[i]  = init_fn(sln[i], rv, eo);
+  if (sln != NULL) {
+    for (int i = 0; i < wf->neq; i++) {
+      if (sln[i] != NULL) prev[i]  = init_fn(sln[i], rv, eo);
+      else prev[i] = NULL;
+    }
+  }
+  else {
+    for (int i = 0; i < wf->neq; i++) prev[i] = NULL;
+  }
+
+  Func<double>* v = get_fn(fv, rv, eo);
+  ExtData<scalar>* ext = init_ext_fns(rfs->ext, rv, eo);
+
+  scalar res = rfs->fn(np, jwt, prev, v, e, ext);
+
+  for (int i = 0; i < wf->neq; i++) {  
+    if (prev[i] != NULL) {prev[i]->free_fn(); delete prev[i]; }
+  }
+  if (ext != NULL) {ext->free(); delete ext;}
+  return 0.5 * res; // Edges are parameterized from 0 to 1 while integration weights
+                    // are defined in (-1, 1). Thus multiplying with 0.5 to correct
+                    // the weights.
+}
+
+
 
 //// solve /////////////////////////////////////////////////////////////////////////////////////////
 
@@ -927,13 +1209,13 @@ bool LinSystem::solve(Tuple<Solution*> sln)
   }
   else {
     // solve the system - this is different from LinSystem
-    scalar* delta = (scalar*) malloc(ndof * sizeof(scalar));
+    scalar* delta = new scalar[ndof];
     memcpy(delta, this->RHS, sizeof(scalar) * ndof);
-    this->solver->solve(this->A, this->Vec);
+    this->solver->solve(this->A, delta);
     report_time("Solved in %g s", cpu_time.tick().last());
     // add the increment dY_{n+1} to the previous solution vector
     for (int i = 0; i < ndof; i++) this->Vec[i] += delta[i];
-    ::free(delta);
+    delete [] delta;
   }
 
   // copy solution coefficient vectors into Solutions
@@ -1030,7 +1312,7 @@ void LinSystem::save_rhs_bin(const char* filename)
 
 // L2 projections
 template<typename Real, typename Scalar>
-Scalar L2projection_biform(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+Scalar L2projection_biform(int n, double *wt, Func<Real> *u_ext[], Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
   Scalar result = 0;
   for (int i = 0; i < n; i++)
@@ -1039,7 +1321,7 @@ Scalar L2projection_biform(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom
 }
 
 template<typename Real, typename Scalar>
-Scalar L2projection_liform(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+Scalar L2projection_liform(int n, double *wt, Func<Real> *u_ext[], Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
   Scalar result = 0;
   for (int i = 0; i < n; i++)
@@ -1049,7 +1331,7 @@ Scalar L2projection_liform(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtD
 
 // H1 projections
 template<typename Real, typename Scalar>
-Scalar H1projection_biform(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+Scalar H1projection_biform(int n, double *wt, Func<Real> *u_ext[], Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
   Scalar result = 0;
   for (int i = 0; i < n; i++)
@@ -1058,7 +1340,7 @@ Scalar H1projection_biform(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom
 }
 
 template<typename Real, typename Scalar>
-Scalar H1projection_liform(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+Scalar H1projection_liform(int n, double *wt, Func<Real> *u_ext[], Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
   Scalar result = 0;
   for (int i = 0; i < n; i++)
@@ -1068,7 +1350,7 @@ Scalar H1projection_liform(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtD
 
 // Hcurl projections
 template<typename Real, typename Scalar>
-Scalar Hcurlprojection_biform(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+Scalar Hcurlprojection_biform(int n, double *wt, Func<Real> *u_ext[], Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
   Scalar result = 0;
   for (int i = 0; i < n; i++) {
@@ -1079,7 +1361,7 @@ Scalar Hcurlprojection_biform(int n, double *wt, Func<Real> *u, Func<Real> *v, G
 }
 
 template<typename Real, typename Scalar>
-Scalar Hcurlprojection_liform(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+Scalar Hcurlprojection_liform(int n, double *wt, Func<Real> *u_ext[], Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
   Scalar result = 0;
   for (int i = 0; i < n; i++) {
@@ -1183,7 +1465,7 @@ void LinSystem::project_global(Tuple<MeshFunction*> source, Tuple<Solution*> tar
 }
 
 void LinSystem::project_global( Tuple<MeshFunction*> source, Tuple<Solution*> target,
-                                biforms_tuple_t proj_biforms, liforms_tuple_t proj_liforms )
+                                jacforms_tuple_t proj_biforms, resforms_tuple_t proj_liforms )
 {
   // sanity checks
   int n = source.size();
@@ -1195,7 +1477,7 @@ void LinSystem::project_global( Tuple<MeshFunction*> source, Tuple<Solution*> ta
   if (n > 10)
     error("Wrong number of projected functions in LinSystem::project_global().");
 
-  biforms_tuple_t::size_type n_biforms = proj_biforms.size();
+  jacforms_tuple_t::size_type n_biforms = proj_biforms.size();
   if (n_biforms != proj_liforms.size())
     error("Mismatched numbers of projection forms in LinSystem::project_global().");
   if (n_biforms > 0) {
