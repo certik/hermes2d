@@ -1,6 +1,6 @@
 // Heat conduction equation
 template<typename Real, typename Scalar>
-Scalar jac_TT(int n, double *wt, Func<Real> *uj, Func<Real> *ui, Geom<Real> *e, ExtData<Scalar> *ext)
+Scalar jac_TT(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *uj, Func<Real> *ui, Geom<Real> *e, ExtData<Scalar> *ext)
 {
   Scalar result = 0.0;
   Func<Scalar>* T_prev_newton = ext->fn[0];
@@ -13,14 +13,14 @@ Scalar jac_TT(int n, double *wt, Func<Real> *uj, Func<Real> *ui, Geom<Real> *e, 
   return result;
 }
 
-Ord jac_TT_ord(int n, double *wt, Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext)
+Ord jac_TT_ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext)
 {
   return Ord(10);
 }
 
 
 template<typename Real, typename Scalar>
-Scalar jac_Tphi(int n, double *wt, Func<Real> *uj, Func<Real> *ui, Geom<Real> *e, ExtData<Scalar> *ext)
+Scalar jac_Tphi(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *uj, Func<Real> *ui, Geom<Real> *e, ExtData<Scalar> *ext)
 {
   Scalar result = 0.0;
   for (int i = 0; i < n; i++)
@@ -28,13 +28,13 @@ Scalar jac_Tphi(int n, double *wt, Func<Real> *uj, Func<Real> *ui, Geom<Real> *e
   return result;
 }
 
-Ord jac_Tphi_ord(int n, double *wt, Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext)
+Ord jac_Tphi_ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext)
 {
   return Ord(10);
 }
 
 template<typename Real, typename Scalar>
-Scalar res_T(int n, double *wt, Func<Real> *ui, Geom<Real> *e, ExtData<Scalar> *ext)
+Scalar res_T(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *ui, Geom<Real> *e, ExtData<Scalar> *ext)
 {
   Scalar result = 0.0;
   Func<Scalar>* T_prev_newton = ext->fn[0];
@@ -49,14 +49,14 @@ Scalar res_T(int n, double *wt, Func<Real> *ui, Geom<Real> *e, ExtData<Scalar> *
   return result;
 }
 
-Ord res_T_ord(int n, double *wt, Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext)
+Ord res_T_ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext)
 {
   return Ord(30);
 }
 
 // Neutronics equation
 template<typename Real, typename Scalar>
-Scalar jac_phiphi(int n, double *wt, Func<Real> *uj, Func<Real> *ui, Geom<Real> *e, ExtData<Scalar> *ext)
+Scalar jac_phiphi(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *uj, Func<Real> *ui, Geom<Real> *e, ExtData<Scalar> *ext)
 {
   Scalar result = 0.0;
   Func<Scalar>* T_prev_newton = ext->fn[0];
@@ -69,13 +69,13 @@ Scalar jac_phiphi(int n, double *wt, Func<Real> *uj, Func<Real> *ui, Geom<Real> 
   return result;
 }
 
-Ord jac_phiphi_ord(int n, double *wt, Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext)
+Ord jac_phiphi_ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext)
 {
   return Ord(10);
 }
 
 template<typename Real, typename Scalar>
-Scalar jac_phiT(int n, double *wt, Func<Real> *uj, Func<Real> *ui, Geom<Real> *e, ExtData<Scalar> *ext)
+Scalar jac_phiT(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *uj, Func<Real> *ui, Geom<Real> *e, ExtData<Scalar> *ext)
 {
   Scalar result = 0.0;
   Func<Scalar>* phi_prev_newton = ext->fn[0];
@@ -85,13 +85,13 @@ Scalar jac_phiT(int n, double *wt, Func<Real> *uj, Func<Real> *ui, Geom<Real> *e
   return result;
 }
 
-Ord jac_phiT_ord(int n, double *wt, Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext)
+Ord jac_phiT_ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext)
 {
   return Ord(10);
 }
 
 template<typename Real, typename Scalar>
-Scalar res_phi(int n, double *wt, Func<Real> *ui, Geom<Real> *e, ExtData<Scalar> *ext)
+Scalar res_phi(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *ui, Geom<Real> *e, ExtData<Scalar> *ext)
 {
   Scalar result = 0.0;
   Func<Scalar>* phi_prev_newton = ext->fn[0];
@@ -107,7 +107,7 @@ Scalar res_phi(int n, double *wt, Func<Real> *ui, Geom<Real> *e, ExtData<Scalar>
   return result;
 }
 
-Ord res_phi_ord(int n, double *wt, Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext)
+Ord res_phi_ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext)
 {
   return Ord(30);
 }

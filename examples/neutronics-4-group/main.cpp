@@ -189,10 +189,10 @@ int main(int argc, char* argv[])
   ScalarView view4("Neutron flux 4", 1050, 0, 320, 600);
 
   // Do not show meshes.
-  view1.show_mesh(false);
-  view2.show_mesh(false);
-  view3.show_mesh(false);
-  view4.show_mesh(false);
+  view1.show_mesh(false); //view1.set_3d_mode(true);
+  view2.show_mesh(false); //view2.set_3d_mode(true);
+  view3.show_mesh(false); //view3.set_3d_mode(true);
+  view4.show_mesh(false); //view4.set_3d_mode(true);
 
   // Main power iteration loop:
   int iter = 0; bool done = false; 

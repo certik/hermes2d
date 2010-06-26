@@ -21,20 +21,20 @@ Scalar int_x_grad_u_grad_v(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom
 //////////   Eq 1   /////////////////////////////////////////////////////////////////////////////////////////
 
 template<typename Real, typename Scalar>
-Scalar biform_0_0(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+Scalar biform_0_0(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
   return (D[e->marker - 1][0]) * int_x_grad_u_grad_v<Real, Scalar>(n, wt, u, v, e) +
          (Sr[e->marker - 1][0]) * int_x_u_v<Real, Scalar>(n, wt, u, v, e);
 }
 
 template<typename Real, typename Scalar>
-Scalar biform_surf_0_0(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+Scalar biform_surf_0_0(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
   return (0.5) * int_x_u_v<Real, Scalar>(n, wt, u, v, e);
 }
 
 template<typename Real, typename Scalar>
-Scalar liform_0(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+Scalar liform_0(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
   Scalar result = 0;
   for (int i = 0; i < n; i++)
@@ -49,26 +49,26 @@ Scalar liform_0(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar>
 //////////   Eq 2   /////////////////////////////////////////////////////////////////////////////////////////
 
 template<typename Real, typename Scalar>
-Scalar biform_1_1(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+Scalar biform_1_1(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
   return (D[e->marker - 1][1]) * int_x_grad_u_grad_v<Real, Scalar>(n, wt, u, v, e) +
          (Sr[e->marker - 1][1]) * int_x_u_v<Real, Scalar>(n, wt, u, v, e);
 }
 
 template<typename Real, typename Scalar>
-Scalar biform_surf_1_1(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+Scalar biform_surf_1_1(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
   return (0.5) * int_x_u_v<Real, Scalar>(n, wt, u, v, e);
 }
 
 template<typename Real, typename Scalar>
-Scalar biform_1_0(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+Scalar biform_1_0(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
   return (- Ss[e->marker - 1][1][0]) * int_x_u_v<Real, Scalar>(n, wt, u, v, e);
 }
 
 template<typename Real, typename Scalar>
-Scalar liform_1(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+Scalar liform_1(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
   Scalar result = 0;
   for (int i = 0; i < n; i++)
@@ -83,26 +83,26 @@ Scalar liform_1(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar>
 //////////   Eq 3   /////////////////////////////////////////////////////////////////////////////////////////
 
 template<typename Real, typename Scalar>
-Scalar biform_2_2(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+Scalar biform_2_2(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
   return (D[e->marker - 1][2]) * int_x_grad_u_grad_v<Real, Scalar>(n, wt, u, v, e) +
          (Sr[e->marker - 1][2]) * int_x_u_v<Real, Scalar>(n, wt, u, v, e);
 }
 
 template<typename Real, typename Scalar>
-Scalar biform_surf_2_2(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+Scalar biform_surf_2_2(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
   return (0.5) * int_x_u_v<Real, Scalar>(n, wt, u, v, e);
 }
 
 template<typename Real, typename Scalar>
-Scalar biform_2_1(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+Scalar biform_2_1(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
   return (- Ss[e->marker - 1][2][1]) * int_x_u_v<Real, Scalar>(n, wt, u, v, e);
 }
 
 template<typename Real, typename Scalar>
-Scalar liform_2(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+Scalar liform_2(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
   Scalar result = 0;
   for (int i = 0; i < n; i++)
@@ -117,26 +117,26 @@ Scalar liform_2(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar>
 //////////   Eq 4   /////////////////////////////////////////////////////////////////////////////////////////
 
 template<typename Real, typename Scalar>
-Scalar biform_3_3(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+Scalar biform_3_3(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
   return (D[e->marker - 1][3]) * int_x_grad_u_grad_v<Real, Scalar>(n, wt, u, v, e) +
          (Sr[e->marker - 1][3]) * int_x_u_v<Real, Scalar>(n, wt, u, v, e);
 }
 
 template<typename Real, typename Scalar>
-Scalar biform_surf_3_3(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+Scalar biform_surf_3_3(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
   return (0.5) * int_x_u_v<Real, Scalar>(n, wt, u, v, e);
 }
 
 template<typename Real, typename Scalar>
-Scalar biform_3_2(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+Scalar biform_3_2(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
   return (- Ss[e->marker - 1][3][2]) * int_x_u_v<Real, Scalar>(n, wt, u, v, e);
 }
 
 template<typename Real, typename Scalar>
-Scalar liform_3(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+Scalar liform_3(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
   Scalar result = 0;
   for (int i = 0; i < n; i++)

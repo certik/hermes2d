@@ -116,6 +116,7 @@ int main(int argc, char* argv[])
 
   // Initialize views.
   ScalarView sview("Coarse solution", 0, 0, 450, 350);
+  sview.show_mesh(false);
   OrderView  oview("Polynomial orders", 460, 0, 400, 350);
 
   // DOF and CPU convergence graphs.
@@ -195,7 +196,6 @@ int main(int argc, char* argv[])
 
   // Show the fine solution - the final result.
   sview.set_title("Final solution");
-  sview.show_mesh(false);
   sview.show(&sln_fine);
   oview.set_title("Final orders");
   oview.show(&space);

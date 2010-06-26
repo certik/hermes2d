@@ -153,7 +153,7 @@ scalar phi_essential_bc_values(int ess_bdy_marker, double x, double y) {
 }
 
 template<class Real, class Scalar>
-Scalar linear_form_surf_top(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext) {
+Scalar linear_form_surf_top(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext) {
   return -E_FIELD * int_v<Real, Scalar>(n, wt, v);
 }
 

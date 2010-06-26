@@ -1,6 +1,6 @@
 // Bilinear form.
 template<typename Real, typename Scalar>
-Scalar bilinear_form(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+Scalar bilinear_form(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
   Scalar result = 0;
   for (int i=0; i < n; i++)
@@ -14,7 +14,7 @@ Scalar bilinear_form(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real>
 
 // Variational multiscale stabilization.
 template<typename Real, typename Scalar>
-Scalar bilinear_form_stabilization(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+Scalar bilinear_form_stabilization(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
 #ifdef H2D_SECOND_DERIVATIVES_ENABLED
   Real h_e = e->diam;
@@ -33,7 +33,7 @@ Scalar bilinear_form_stabilization(int n, double *wt, Func<Real> *u, Func<Real> 
 
 // Shock capturing.
 template<typename Real, typename Scalar>
-Scalar bilinear_form_shock_capturing(int n, double *wt, Func<Real> *u, Func<Real> *v,
+Scalar bilinear_form_shock_capturing(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *u, Func<Real> *v,
         Geom<Real> *e, ExtData<Scalar> *ext)
 {
   Real h_e = e->diam;

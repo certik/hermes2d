@@ -382,7 +382,7 @@ int main(int argc, char* argv[])
       info("Projecting first coarse mesh solutions on fine meshes.");
       rs.project_global(Tuple<MeshFunction*>(&sln1_coarse, &sln2_coarse, &sln3_coarse, &sln4_coarse), 
                        	Tuple<Solution*>(&iter1, &iter2, &iter3, &iter4),
-                       	biforms_tuple_t(callback_pairs(projection_biform)), liforms_tuple_t(callback_pairs(projection_liform)));
+                       	jacforms_tuple_t(callback_pairs(projection_biform)), resforms_tuple_t(callback_pairs(projection_liform)));
     }
 
     // Solve the fine mesh problem.
@@ -410,7 +410,7 @@ int main(int argc, char* argv[])
       info("Projecting fine mesh solutions on coarse meshes.");
       ls.project_global(Tuple<MeshFunction*>(&sln1_fine, &sln2_fine, &sln3_fine, &sln4_fine), 
                         Tuple<Solution*>(&sln1_coarse, &sln2_coarse, &sln3_coarse, &sln4_coarse),
-                        biforms_tuple_t(callback_pairs(projection_biform)), liforms_tuple_t(callback_pairs(projection_liform)));
+                        jacforms_tuple_t(callback_pairs(projection_biform)), resforms_tuple_t(callback_pairs(projection_liform)));
     }
 
     // Time measurement.
@@ -436,13 +436,13 @@ int main(int argc, char* argv[])
 		    
     // Calculate element errors and total error estimate.
     H1Adapt hp(&ls);
-    hp.set_biform(0, 0, callback_egnorm(biform_0_0));
-    hp.set_biform(1, 1, callback_egnorm(biform_1_1));
-    hp.set_biform(1, 0, callback_egnorm(biform_1_0));
-    hp.set_biform(2, 2, callback_egnorm(biform_2_2));
-    hp.set_biform(2, 1, callback_egnorm(biform_2_1));
-    hp.set_biform(3, 3, callback_egnorm(biform_3_3));
-    hp.set_biform(3, 2, callback_egnorm(biform_3_2));
+    hp.set_error_form(0, 0, callback_egnorm(biform_0_0));
+    hp.set_error_form(1, 1, callback_egnorm(biform_1_1));
+    hp.set_error_form(1, 0, callback_egnorm(biform_1_0));
+    hp.set_error_form(2, 2, callback_egnorm(biform_2_2));
+    hp.set_error_form(2, 1, callback_egnorm(biform_2_1));
+    hp.set_error_form(3, 3, callback_egnorm(biform_3_3));
+    hp.set_error_form(3, 2, callback_egnorm(biform_3_2));
 		
     // Calculate element errors and error estimate for adaptivity.
     info("Calculating error.");

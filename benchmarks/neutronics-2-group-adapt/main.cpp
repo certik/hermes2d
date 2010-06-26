@@ -361,14 +361,14 @@ int main(int argc, char* argv[])
     
     H1Adapt hp(&ls);
     if (ADAPTIVITY_NORM == 2) {
-      hp.set_biform(0, 0, callback_egnorm(biform_0_0));
-      hp.set_biform(0, 1, callback_egnorm(biform_0_1));
-      hp.set_biform(1, 0, callback_egnorm(biform_1_0));
-      hp.set_biform(1, 1, callback_egnorm(biform_1_1));
+      hp.set_error_form(0, 0, callback_egnorm(biform_0_0));
+      hp.set_error_form(0, 1, callback_egnorm(biform_0_1));
+      hp.set_error_form(1, 0, callback_egnorm(biform_1_0));
+      hp.set_error_form(1, 1, callback_egnorm(biform_1_1));
     } else {
       if (ADAPTIVITY_NORM == 1) {
-	hp.set_biform(0, 0, callback_egnorm(biform_0_0));
-	hp.set_biform(1, 1, callback_egnorm(biform_1_1));
+	hp.set_error_form(0, 0, callback_egnorm(biform_0_0));
+	hp.set_error_form(1, 1, callback_egnorm(biform_1_1));
       }
     }
 		

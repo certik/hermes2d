@@ -221,7 +221,7 @@ int main(int argc, char* argv[])
     info("Calculating error.");
     HcurlAdapt hp(&ls);
     hp.set_solutions(&sln_coarse, &sln_fine);
-    hp.set_biform(callback(hcurl_form_kappa));  // Adaptivity is done using an "energetic norm".
+    hp.set_error_form(callback(hcurl_form_kappa));  // Adaptivity is done using an "energetic norm".
     double err_est_adapt = hp.calc_error() * 100;
     double err_est_hcurl = hcurl_error(&sln_coarse, &sln_fine) * 100;
 

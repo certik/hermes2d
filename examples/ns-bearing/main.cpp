@@ -278,8 +278,8 @@ int main(int argc, char* argv[])
     H1Adapt hp(&nls);
     hp.set_solutions(Tuple<Solution*>(&xvel_prev_time, &yvel_prev_time, &p_prev_time), 
                      Tuple<Solution*>(&xvel_prev_newton, &yvel_prev_newton, &p_prev_newton));
-    hp.set_biform(0, 0, callback(h1_form));
-    hp.set_biform(1, 1, callback(h1_form));
+    hp.set_error_form(0, 0, callback(h1_form));
+    hp.set_error_form(1, 1, callback(h1_form));
     double err_est = hp.calc_error(H2D_TOTAL_ERROR_ABS | H2D_ELEMENT_ERROR_ABS) / TAU;
     info("x_vel temporal change: %g", err_est);
     // Show the solution at the end of time step.

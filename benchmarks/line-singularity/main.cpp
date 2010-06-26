@@ -23,8 +23,8 @@ using namespace RefinementSelectors;
 
 const bool SOLVE_ON_COARSE_MESH = false; // If true, coarse mesh FE problem is solved in every adaptivity step.
                                          // If false, projection of the fine mesh solution on the coarse mesh is used. 
-const int INIT_REF_NUM = 1;              // Number of initial mesh refinements (the original mesh is just one element)
-const int P_INIT = 1;                    // Initial polynomial degree of all mesh elements.
+const int INIT_REF_NUM = 0;              // Number of initial mesh refinements (the original mesh is just one element)
+const int P_INIT = 2;                    // Initial polynomial degree of all mesh elements.
 const double THRESHOLD = 0.3;            // This is a quantitative parameter of the adapt(...) function and
                                          // it has different meanings for various adaptive strategies (see below).
 const int STRATEGY = 0;                  // Adaptive strategy:
