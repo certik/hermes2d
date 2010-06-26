@@ -138,62 +138,6 @@ void NonlinSystem::assemble(bool rhsonly)
     this->RHS[i] *= -this->alpha;
 }
 
-/* OLD CODE - NonlinSystem::solve() was merged into LinSystem::solve().
-   TO BE REMOVED AFTER SOME TIME - today's date is June 22, 2010. 
-// The solve() function is almost identical to the original one in LinSystem.
-// It does not put the Dirichlet lift vector Dir to the right-hand side.
-bool NonlinSystem::solve(Tuple<Solution*> sln)
-{
-  int n = sln.size();
-
-  // if the number of solutions does not match the number of equations, throw error
-  if (n != this->wf->neq) 
-    error("Number of solutions does not match the number of equations in LinSystem::solve().");
-
-  // if Vec is not initialized, throw error
-  if (this->Vec == NULL) error("Vec is NULL in NonlinSystem::solve().");
-
-  // check vector size
-  int ndof = this->get_num_dofs();
-  if (Vec_length != ndof || RHS_length != ndof || Dir_length != ndof)
-    error("Length of vectors Vec, RHS or Dir does not match this->ndof in LinSystem::solve().");
-
-  // check matrix size
-  if (ndof == 0) error("ndof = 0 in LinSystem::solve().");
-  if (ndof != this->A->get_size()) 
-    error("Matrix size does not match vector length in LinSystem:solve().");
-
-  // time measurement
-  TimePeriod cpu_time;
-
-  // solve the system - this is different from LinSystem
-  scalar* delta = (scalar*) malloc(ndof * sizeof(scalar));
-  memcpy(delta, this->RHS, sizeof(scalar) * ndof);
-  this->solver->solve(this->A, this->Vec);
-  report_time("Solved in %g s", cpu_time.tick().last());
-  // add the increment dY_{n+1} to the previous solution vector
-  for (int i = 0; i < ndof; i++) this->Vec[i] += delta[i];
-  ::free(delta);
-
-  // copy the solution coefficient vectors into Solutions
-  cpu_time.tick(H2D_SKIP);
-  for (int i = 0; i < n; i++)
-  {
-    sln[i]->set_fe_solution(this->spaces[i], this->pss[i], this->Vec);
-  }
-  report_time("Exported solution in %g s", cpu_time.tick().last());
-  return true;
-}
-
-// single equation case
-bool NonlinSystem::solve(Solution* sln)
-{
-  bool flag;
-  flag = this->solve(Tuple<Solution*>(sln));
-  return flag;
-}
-*/
-
 // Newton's method for an arbitrary number of equations.
 bool NonlinSystem::solve_newton(Tuple<Solution*> u_prev, double newton_tol, 
                                 int newton_max_iter, bool verbose, 

@@ -19,7 +19,7 @@ const double z = 1;		            // Charge number
 const double K = z * mu * F;                // Constant for equation
 const double L =  F / eps;	            // Constant for equation
 const double VOLTAGE = 1;	            // [V] Applied voltage
-const double C_CONC = 1200;	            // [mol/m^3] Anion and counterion concentration
+const double C0 = 1200;	            // [mol/m^3] Anion and counterion concentration
 
 /* For Neumann boundary */
 const double height = 180e-6;	            // [m] thickness of the domain
@@ -85,7 +85,7 @@ scalar essential_bc_values(int ess_bdy_marker, double x, double y) {
 }
 
 template<class Real, class Scalar>
-Scalar linear_form_surf_top(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext) {
+Scalar linear_form_surf_top(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext) {
   return -E_FIELD * int_v<Real, Scalar>(n, wt, v);
 }
 
@@ -298,7 +298,7 @@ int main (int argc, char* argv[]) {
   // View initial guess for Newton's method
   // initial BC
   
-  C_prev_time.set_const(&Cmesh, C_CONC);
+  C_prev_time.set_const(&Cmesh, C0);
   phi_prev_time.set_const(MULTIMESH ? &phimesh : &Cmesh, 0);
 
   //  phi_prev_time.set_exact(MULTIMESH ? &phimesh : &Cmesh, voltage_ic);

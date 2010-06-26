@@ -364,10 +364,10 @@ This is done by implementing the following two functions:
 ::
 
     template<typename Real, typename Scalar>
-    Scalar bilinear_form(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext);
+    Scalar bilinear_form(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext);
 
     template<typename Real, typename Scalar>
-    Scalar linear_form(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext);
+    Scalar linear_form(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext);
 
 These functions are called for each element during the stiffness matrix
 assembly and must return the values of the bilinear and linear forms for the given arguments.
@@ -382,14 +382,14 @@ int_grad_u_grad_v and int_v:
 
     // Return the value \int \nabla u . \nabla v dx.
     template<typename Real, typename Scalar>
-    Scalar bilinear_form(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+    Scalar bilinear_form(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
     {
       return int_grad_u_grad_v<Real, Scalar>(n, wt, u, v);
     }
    
     // Return the value \int v dx.
     template<typename Real, typename Scalar>
-    Scalar linear_form(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+    Scalar linear_form(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
     {
       return CONST_F * int_v<Real, Scalar>(n, wt, v);
     }
@@ -544,10 +544,10 @@ Surface linear forms are implemented similarly. Our new right-hand side is
 represented by two functions with the following prototypes::
 
     template<typename Real, typename Scalar>
-    Scalar linear_form(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+    Scalar linear_form(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
     
     template<typename Real, typename Scalar>
-    Scalar linear_form_surf(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext);
+    Scalar linear_form_surf(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext);
 
 and registered as follows::
 
@@ -560,7 +560,7 @@ and registered as follows::
 The surface linear form is defined as::
 
     template<typename Real, typename Scalar>
-    Scalar linear_form_surf(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+    Scalar linear_form_surf(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
     {
       return CONST_GAMMA[e->marker - 1] * int_v<Real, Scalar>(n, wt, v);
     }
@@ -626,7 +626,7 @@ The surface bilinear form must have the following prototype:
 ::
 
     template<typename Real, typename Scalar>
-    Scalar bilinear_form_surf(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext);
+    Scalar bilinear_form_surf(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext);
 
 Inside this function you can use predefined
 forms such as int_u_v, int_F_u_v (see the
@@ -636,19 +636,19 @@ The following code snippet contains the linear and bilinear forms:
 ::
 
     template<typename Real, typename Scalar>
-    Scalar bilinear_form(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+    Scalar bilinear_form(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
     {
       return int_grad_u_grad_v<Real, Scalar>(n, wt, u, v);
     }
 
     template<typename Real, typename Scalar>
-    Scalar bilinear_form_surf(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+    Scalar bilinear_form_surf(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
     {
       return H * int_u_v<Real, Scalar>(n, wt, u, v);
     }
 
     template<typename Real, typename Scalar>
-    Scalar linear_form_surf(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+    Scalar linear_form_surf(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
     {
       return T0 * H * int_v<Real, Scalar>(n, wt, v);
     }
@@ -714,14 +714,14 @@ In example 03-poisson, the bilinear and linear forms were defined using template
 
     // return the value \int \nabla u . \nabla v dx
     template<typename Real, typename Scalar>
-    Scalar bilinear_form(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+    Scalar bilinear_form(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
     {
       return int_grad_u_grad_v<Real, Scalar>(n, wt, u, v);
     }
 
     // return the value \int v dx
     template<typename Real, typename Scalar>
-    Scalar linear_form(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+    Scalar linear_form(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
     {
       return CONST_F * int_v<Real, Scalar>(n, wt, v);
     }
@@ -758,12 +758,12 @@ the bilinear form defined above gives
 
 ::
 
-    scalar bilinear_form(int n, double *wt, Func<double> *u, Func<double> *v, Geom<double> *e, ExtData<scalar> *ext)
+    scalar bilinear_form(int n, double *wt, Func<scalar> *u_ext[], Func<double> *u, Func<double> *v, Geom<double> *e, ExtData<scalar> *ext)
     {
       return int_grad_u_grad_v<double, scalar>(n, wt, u, v);
     }
 
-    Ord bilinear_form(int n, double *wt, Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext)
+    Ord bilinear_form(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext)
     {
       return int_grad_u_grad_v<Ord, Ord>(n, wt, u, v);
     }
@@ -795,7 +795,7 @@ can be handled manually as follows
 
 ::
 
-    Ord bilinear_form_order(int n, double *wt, Func<Ord> *u, 
+    Ord bilinear_form_order(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, 
                           Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext)
     {
       int uo = u->val[0].get_order();
@@ -807,7 +807,7 @@ It is also possible to return a constant order (for example 5) by using
 
 ::
 
-    Ord bilinear_form_ord(int n, double *wt, Func<Ord> *u, 
+    Ord bilinear_form_ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, 
                       Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext)
     {
       return Ord(5);
@@ -858,7 +858,7 @@ additional function are not used for computation.
 
     // (Volumetric) bilinear form
     template<typename Real, typename Scalar>
-    Scalar bilinear_form(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+    Scalar bilinear_form(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
     {
       Scalar result = 0;
       for (int i=0; i < n; i++) {
@@ -876,7 +876,7 @@ additional function are not used for computation.
     }
 
     // Integration order for the bilinear form
-    Ord bilinear_form_ord(int n, double *wt, Func<Ord> *u, 
+    Ord bilinear_form_ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, 
                       Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext)
     {
       return u->val[0] * v->val[0] * e->x[0] * e->x[0]; // returning the sum of the degrees of the basis 
@@ -885,26 +885,26 @@ additional function are not used for computation.
 
     // Surface linear form (natural boundary conditions)
     template<typename Real, typename Scalar>
-    Scalar linear_form_surf(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+    Scalar linear_form_surf(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
     {
       return int_F_v<Real, Scalar>(n, wt, g_N, v, e);
     }
   
     // Integration order for surface linear form
-    Ord linear_form_surf_ord(int n, double *wt, Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext)
+    Ord linear_form_surf_ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext)
     {
       return v->val[0] * e->x[0] * e->x[0];  // returning the polynomial degree of the test function plus two
     }
   
     // Volumetric linear form (right-hand side)
     template<typename Real, typename Scalar>
-    Scalar linear_form(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+    Scalar linear_form(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
     {
       return int_F_v<Real, Scalar>(n, wt, rhs, v, e);
     }
   
     // Integration order for the volumetric linear form
-    Ord linear_form_ord(int n, double *wt, Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext)
+    Ord linear_form_ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext)
     {
       return v->val[0] * e->x[0] * e->x[0];  // returning the polynomial degree of the test function plus two
     }
@@ -1244,26 +1244,26 @@ Then the space for the temperature $T$ is set up::
 Then bilinear and linear forms are defined::
 
     template<typename Real, typename Scalar>
-    Scalar bilinear_form(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+    Scalar bilinear_form(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
     {
       return HEATCAP * RHO * int_u_v<Real, Scalar>(n, wt, u, v) / TAU +
              LAMBDA * int_grad_u_grad_v<Real, Scalar>(n, wt, u, v);
     }
   
     template<typename Real, typename Scalar>
-    Scalar linear_form(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+    Scalar linear_form(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
     {
       return HEATCAP * RHO * int_u_v<Real, Scalar>(n, wt, ext->fn[0], v) / TAU;
     }
   
     template<typename Real, typename Scalar>
-    Scalar bilinear_form_surf(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+    Scalar bilinear_form_surf(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
     {
       return LAMBDA * ALPHA * int_u_v<Real, Scalar>(n, wt, u, v);
     }
   
     template<typename Real, typename Scalar>
-    Scalar linear_form_surf(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+    Scalar linear_form_surf(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
     {
       return LAMBDA * ALPHA * temp_ext(TIME) * int_v<Real, Scalar>(n, wt, v);
     }

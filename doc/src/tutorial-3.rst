@@ -165,7 +165,7 @@ In the code, this becomes
 
     // Jacobian matrix.
     template<typename Real, typename Scalar>
-    Scalar jac(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+    Scalar jac(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
     {
       Scalar result = 0;
       Func<Scalar>* u_prev = ext->fn[0];
@@ -178,7 +178,7 @@ In the code, this becomes
 
     // Residual vector.
     template<typename Real, typename Scalar>
-    Scalar res(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+    Scalar res(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
     {
       Scalar result = 0;
       Func<Scalar>* u_prev = ext->fn[0];
@@ -582,7 +582,7 @@ need to be enhanced with a simple term containing the time step $\tau$ (called T
 
     // Jacobian matrix.
     template<typename Real, typename Scalar>
-    Scalar jac(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+    Scalar jac(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
     {
       Scalar result = 0;
       Func<Scalar>* u_prev_newton = ext->fn[0];
@@ -599,7 +599,7 @@ $u^n$ that we call u_prev_time is not present in the Jacobian matrix. It is used
 
     // Fesidual vector.
     template<typename Real, typename Scalar>
-    Scalar res(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+    Scalar res(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
     {
       Scalar result = 0;
       Func<Scalar>* u_prev_newton = ext->fn[0];
@@ -1099,7 +1099,7 @@ The weak forms can be found in the file `forms.cpp <http://git.hpfem.org/hermes2
 
     // Residuum for the implicit Euler time discretization
     template<typename Real, typename Scalar>
-    Scalar F_euler(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+    Scalar F_euler(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
     {
       scalar ii = cplx(0.0, 1.0);  // imaginary unit, ii^2 = -1
 
@@ -1117,7 +1117,7 @@ The weak forms can be found in the file `forms.cpp <http://git.hpfem.org/hermes2
 
     // Jacobian for the implicit Euler time discretization
     template<typename Real, typename Scalar>
-    Scalar J_euler(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+    Scalar J_euler(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
     {
       scalar ii = cplx(0.0, 1.0);  // imaginary unit, ii^2 = -1
 
@@ -1134,7 +1134,7 @@ The weak forms can be found in the file `forms.cpp <http://git.hpfem.org/hermes2
 
     // Residuum for the Crank-Nicolson method
     template<typename Real, typename Scalar>
-    Scalar F_cranic(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+    Scalar F_cranic(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
     {
       scalar ii = cplx(0.0, 1.0);  // imaginary unit, ii^2 = -1
 
@@ -1154,7 +1154,7 @@ The weak forms can be found in the file `forms.cpp <http://git.hpfem.org/hermes2
 
     // Jacobian for the Crank-Nicolson method
     template<typename Real, typename Scalar>
-    Scalar J_cranic(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+    Scalar J_cranic(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
     {
       scalar ii = cplx(0.0, 1.0);  // imaginary unit, ii^2 = -1
 

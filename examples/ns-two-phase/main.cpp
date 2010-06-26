@@ -453,12 +453,12 @@ int main(int argc, char* argv[])
     info("Calculating error (est).");
     H1Adapt hp(&sys);
     hp.set_solutions(Tuple<Solution*>(&u1, &u2, &u3, &u4), Tuple<Solution*>(&r1, &r2, &r3, &r4));
-    hp.set_biform(0, 0, bilinear_form_0_0<scalar, scalar>, bilinear_form_0_0<Ord, Ord>);
-    hp.set_biform(0, 2, bilinear_form_0_2<scalar, scalar>, bilinear_form_0_2<Ord, Ord>);
-    hp.set_biform(1, 2, bilinear_form_1_2<scalar, scalar>, bilinear_form_1_2<Ord, Ord>);
-    hp.set_biform(2, 0, bilinear_form_2_0<scalar, scalar>, bilinear_form_2_0<Ord, Ord>);
-    hp.set_biform(2, 1, bilinear_form_2_1<scalar, scalar>, bilinear_form_2_1<Ord, Ord>);
-    hp.set_biform(3, 3, bilinear_form_3_3<scalar, scalar>, bilinear_form_3_3<Ord, Ord>);
+    hp.set_error_form(0, 0, bilinear_form_0_0<scalar, scalar>, bilinear_form_0_0<Ord, Ord>);
+    hp.set_error_form(0, 2, bilinear_form_0_2<scalar, scalar>, bilinear_form_0_2<Ord, Ord>);
+    hp.set_error_form(1, 2, bilinear_form_1_2<scalar, scalar>, bilinear_form_1_2<Ord, Ord>);
+    hp.set_error_form(2, 0, bilinear_form_2_0<scalar, scalar>, bilinear_form_2_0<Ord, Ord>);
+    hp.set_error_form(2, 1, bilinear_form_2_1<scalar, scalar>, bilinear_form_2_1<Ord, Ord>);
+    hp.set_error_form(3, 3, bilinear_form_3_3<scalar, scalar>, bilinear_form_3_3<Ord, Ord>);
     double err_est = hp.calc_error(H2D_TOTAL_ERROR_REL | H2D_ELEMENT_ERROR_REL) * 100;
 
   // Report results.

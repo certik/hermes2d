@@ -67,7 +67,7 @@ scalar essential_bc_values(int ess_bdy_marker, double x, double y)
 
 // (Volumetric) bilinear form
 template<typename Real, typename Scalar>
-Scalar bilinear_form(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+Scalar bilinear_form(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
   Scalar result = 0;
   for (int i=0; i < n; i++) {
@@ -86,7 +86,7 @@ Scalar bilinear_form(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real>
 
 // Integration order for the bilinear form
 template<typename Real, typename Scalar>
-Scalar bilinear_form_ord(int n, double *wt, Func<Real> *u,
+Scalar bilinear_form_ord(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *u,
                          Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
   return u->val[0] * v->val[0] * e->x[0] * e->x[0]; // returning the sum of the degrees of the basis
@@ -95,28 +95,28 @@ Scalar bilinear_form_ord(int n, double *wt, Func<Real> *u,
 
 // Surface linear form (natural boundary conditions)
 template<typename Real, typename Scalar>
-Scalar linear_form_surf(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+Scalar linear_form_surf(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
   return int_F_v<Real, Scalar>(n, wt, g_N, v, e);
 }
 
 // Integration order for surface linear form
 template<typename Real, typename Scalar>
-Scalar linear_form_surf_ord(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+Scalar linear_form_surf_ord(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
   return v->val[0] * e->x[0] * e->x[0];  // returning the polynomial degree of the test function plus two
 }
 
 // Volumetric linear form (right-hand side)
 template<typename Real, typename Scalar>
-Scalar linear_form(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+Scalar linear_form(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
   return int_F_v<Real, Scalar>(n, wt, rhs, v, e);
 }
 
 // Integration order for the volumetric linear form
 template<typename Real, typename Scalar>
-Scalar linear_form_ord(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+Scalar linear_form_ord(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
   return v->val[0] * e->x[0] * e->x[0];  // returning the polynomial degree of the test function plus two
 }

@@ -151,11 +151,6 @@ public:
   /// a projection onto the new space.
   void free_vectors();
 
-  /*
-  /// For debug purposes.
-  void print_vector();
-  */
-
   /// Assigning DOF = enumerating basis functions in the FE spaces.
   int assign_dofs();  // all spaces
 
@@ -318,14 +313,6 @@ protected:
 
   void init_cache();
   void delete_cache();
-
-  /* OLD CODE
-  // evaluation of forms, linear case
-  scalar eval_form(WeakForm::BiFormVol *bf, PrecalcShapeset *fu, PrecalcShapeset *fv, RefMap *ru, RefMap *rv);
-  scalar eval_form(WeakForm::LiFormVol *lf, PrecalcShapeset *fv, RefMap *rv);
-  scalar eval_form(WeakForm::BiFormSurf *bf, PrecalcShapeset *fu, PrecalcShapeset *fv, RefMap *ru, RefMap *rv, EdgePos* ep);
-  scalar eval_form(WeakForm::LiFormSurf *lf, PrecalcShapeset *fv, RefMap *rv, EdgePos* ep);
-  */
 
   // evaluation of forms, general case
   scalar eval_form(WeakForm::JacFormVol *bf, Solution *sln[], PrecalcShapeset *fu, PrecalcShapeset *fv, RefMap *ru, RefMap *rv);

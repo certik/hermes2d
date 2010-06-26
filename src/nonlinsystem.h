@@ -59,16 +59,6 @@ public:
   /// vector). 
   void assemble(bool rhsonly = false);
 
-  /* OLD CODE - NonlinSystem::solve() was merged into LinSystem::solve().
-     TO BE REMOVED AFTER SOME TIME - today's date is June 22, 2010. 
-  /// Performs one step of the Newton's method for an arbitrary number of equations, 
-  /// stores the result in the given Solutions.
-  bool solve(Tuple<Solution*> sln);
-  bool solve(Solution* sln); // 1 equation
-  bool solve(Solution* sln1, Solution* sln2); // 2 equations
-  bool solve(Solution* sln1, Solution* sln2, Solution* sln3); // 3 equations
-  */
-
   /// Performs complete Newton's loop for a Tuple of solutions.
   bool solve_newton(Tuple<Solution*> u_prev, double newton_tol, int newton_max_iter,
                     bool verbose = false, Tuple<MeshFunction*> mesh_fns = Tuple<MeshFunction*>());

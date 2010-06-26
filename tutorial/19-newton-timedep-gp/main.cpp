@@ -59,22 +59,6 @@ scalar essential_bc_values(int ess_bdy_marker, double x, double y)
 // Weak forms.
 #include "forms.cpp"
 
-// Implicit Euler method (1st-order in time).
-template<typename Real, typename Scalar>
-Scalar residual_euler(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
-{  return F_euler(n, wt, v, e, ext);  }
-template<typename Real, typename Scalar>
-Scalar jacobian_euler(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
-{  return J_euler(n, wt, u, v, e, ext);  }
-
-// Crank-Nicolson method (1st-order in time).
-template<typename Real, typename Scalar>
-Scalar residual_cranic(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
-{  return F_cranic(n, wt, v, e, ext);  }
-template<typename Real, typename Scalar>
-Scalar jacobian_cranic(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
-{  return J_cranic(n, wt, u, v, e, ext);  }
-
 int main(int argc, char* argv[])
 {
   // Load the mesh.
@@ -89,18 +73,17 @@ int main(int argc, char* argv[])
   H1Space space(&mesh, bc_types, essential_bc_values, P_INIT);
 
   // Solutions for the Newton's iteration and time stepping.
-  Solution Psi_prev_time,
-           Psi_prev_newton;
+  Solution Psi_prev_time, Psi_prev_newton;
 
   // Initialize the weak formulation.
   WeakForm wf;
   if(TIME_DISCR == 1) {
-    wf.add_matrix_form(callback(jacobian_euler), H2D_UNSYM, H2D_ANY, &Psi_prev_newton);
-    wf.add_vector_form(callback(residual_euler), H2D_ANY, Tuple<MeshFunction*>(&Psi_prev_newton, &Psi_prev_time));
+    wf.add_matrix_form(callback(J_euler), H2D_UNSYM, H2D_ANY, &Psi_prev_newton);
+    wf.add_vector_form(callback(F_euler), H2D_ANY, Tuple<MeshFunction*>(&Psi_prev_newton, &Psi_prev_time));
   }
   else {
-    wf.add_matrix_form(callback(jacobian_cranic), H2D_UNSYM, H2D_ANY, &Psi_prev_newton);
-    wf.add_vector_form(callback(residual_cranic), H2D_ANY, Tuple<MeshFunction*>(&Psi_prev_newton, &Psi_prev_time));
+    wf.add_matrix_form(callback(J_cranic), H2D_UNSYM, H2D_ANY, &Psi_prev_newton);
+    wf.add_vector_form(callback(F_cranic), H2D_ANY, Tuple<MeshFunction*>(&Psi_prev_newton, &Psi_prev_time));
   }
 
   // Initialize the nonlinear system.

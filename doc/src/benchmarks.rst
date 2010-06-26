@@ -72,7 +72,7 @@ Code for the exact solution and the weak forms:
 
     // Weak forms.
     template<typename Real, typename Scalar>
-    Scalar bilinear_form(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+    Scalar bilinear_form(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
     {
       return int_grad_u_grad_v<Real, Scalar>(n, wt, u, v);
     }
@@ -84,7 +84,7 @@ Code for the exact solution and the weak forms:
     }
 
     template<typename Real, typename Scalar>
-    Scalar linear_form(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+    Scalar linear_form(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
     {
       return int_F_v<Real, Scalar>(n, wt, rhs, v, e);
     }
@@ -334,7 +334,7 @@ Code for the exact solution, bundary conditions, and weak forms:
 
     // Bilinear form corresponding to the Laplace equation.
     template<typename Real, typename Scalar>
-    Scalar bilinear_form(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+    Scalar bilinear_form(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
     {
       return int_grad_u_grad_v<Real, Scalar>(n, wt, u, v);
     }
@@ -459,7 +459,7 @@ Code for the exact solution and the weak forms:
     
     // Bilinear form for the Poisson equation.
     template<typename Real, typename Scalar>
-    Scalar bilinear_form(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+    Scalar bilinear_form(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
     {
       return int_grad_u_grad_v<Real, Scalar>(n, wt, u, v);
     }
@@ -478,7 +478,7 @@ Code for the exact solution and the weak forms:
     }
      
     template<typename Real, typename Scalar>
-    Scalar linear_form(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+    Scalar linear_form(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
     {
       return -int_F_v<Real, Scalar>(n, wt, rhs, v, e);
     }
@@ -608,19 +608,19 @@ here is that we integrate the non-polynomial right-hand side with a very hign or
 
     // Weak forms.
     template<typename Real, typename Scalar>
-    Scalar bilinear_form(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+    Scalar bilinear_form(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
     {
       return int_grad_u_grad_v<Real, Scalar>(n, wt, u, v) + K*K * int_u_v<Real, Scalar>(n, wt, u, v);
     }
 
     template<typename Real, typename Scalar>
-    Scalar linear_form(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+    Scalar linear_form(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
     {
       return int_F_v<Real, Scalar>(n, wt, rhs, v, e);;
     }
 
     // Integration order for linear_form_0.
-    Ord linear_form_ord(int n, double *wt, Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext)
+    Ord linear_form_ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext)
     {
       return 24;
     }
@@ -994,13 +994,13 @@ The weak forms are as follows:
 
     // Weak forms
     template<typename Real, typename Scalar>
-    Scalar bilinear_form_I_III(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+    Scalar bilinear_form_I_III(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
     {
       return R*int_grad_u_grad_v<Real, Scalar>(n, wt, u, v);
     }
 
     template<typename Real, typename Scalar>
-    Scalar bilinear_form_II_IV(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+    Scalar bilinear_form_II_IV(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
     {
       return 1.*int_grad_u_grad_v<Real, Scalar>(n, wt, u, v);
     }
@@ -1131,20 +1131,20 @@ Code for the weak forms:
 ::
 
     template<typename Real, typename Scalar>
-    Scalar bilinear_form(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+    Scalar bilinear_form(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
     {
     return 1.0/mu_r * int_curl_e_curl_f<Real, Scalar>(n, wt, u, v) -
            sqr(kappa) * int_e_f<Real, Scalar>(n, wt, u, v);
     }
    
     template<typename Real, typename Scalar>
-    Scalar bilinear_form_surf(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+    Scalar bilinear_form_surf(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
     {
       cplx ii = cplx(0.0, 1.0);
       return ii * (-kappa) * int_e_tau_f_tau<Real, Scalar>(n, wt, u, v, e);
     }
    
-    scalar linear_form_surf(int n, double *wt, Func<double> *v, Geom<double> *e, ExtData<scalar> *ext)
+    scalar linear_form_surf(int n, double *wt, Func<scalar> *u_ext[], Func<double> *v, Geom<double> *e, ExtData<scalar> *ext)
     {
       scalar result = 0;
       for (int i = 0; i < n; i++)
@@ -1165,7 +1165,7 @@ Code for the weak forms:
     }
 
     // Maximal polynomial order to integrate surface linear form.
-    Ord linear_form_surf_ord(int n, double *wt, Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext)
+    Ord linear_form_surf_ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext)
     {  return Ord(v->val[0].get_max_order());  }
 
 Solution:
@@ -1258,7 +1258,7 @@ Code for the weak forms:
 ::
 
     template<typename Real, typename Scalar>
-    Scalar bilinear_form(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+    Scalar bilinear_form(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
     {
       return int_curl_e_curl_f<Real, Scalar>(n, wt, u, v) - int_e_f<Real, Scalar>(n, wt, u, v);
     }

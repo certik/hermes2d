@@ -26,7 +26,7 @@ scalar essential_bc_values(int ess_bdy_marker, double x, double y)
 
 // Bilinear forms.
 template<typename Real, typename Scalar>
-Scalar bilinear_form_0_0(int n, double *wt, Func<Real> *u, Func<Real> *v,
+Scalar bilinear_form_0_0(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *u, Func<Real> *v,
                          Geom<Real> *e, ExtData<Scalar> *ext)
 {
   return (lambda + 2*mu) * int_dudx_dvdx<Real, Scalar>(n, wt, u, v) +
@@ -34,7 +34,7 @@ Scalar bilinear_form_0_0(int n, double *wt, Func<Real> *u, Func<Real> *v,
 }
 
 template<typename Real, typename Scalar>
-Scalar bilinear_form_0_1(int n, double *wt, Func<Real> *u, Func<Real> *v,
+Scalar bilinear_form_0_1(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *u, Func<Real> *v,
                          Geom<Real> *e, ExtData<Scalar> *ext)
 {
   return lambda * int_dudy_dvdx<Real, Scalar>(n, wt, u, v) +
@@ -42,7 +42,7 @@ Scalar bilinear_form_0_1(int n, double *wt, Func<Real> *u, Func<Real> *v,
 }
 
 template<typename Real, typename Scalar>
-Scalar bilinear_form_1_1(int n, double *wt, Func<Real> *u, Func<Real> *v,
+Scalar bilinear_form_1_1(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *u, Func<Real> *v,
                          Geom<Real> *e, ExtData<Scalar> *ext)
 {
   return              mu * int_dudx_dvdx<Real, Scalar>(n, wt, u, v) +
@@ -51,14 +51,14 @@ Scalar bilinear_form_1_1(int n, double *wt, Func<Real> *u, Func<Real> *v,
 
 // Linear forms.
 template<typename Real, typename Scalar>
-Scalar linear_form_surf_0(int n, double *wt, Func<Real> *v, Geom<Real> *e,
+Scalar linear_form_surf_0(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *v, Geom<Real> *e,
                           ExtData<Scalar> *ext)
 {
   return f_0 * int_v<Real, Scalar>(n, wt, v);
 }
 
 template<typename Real, typename Scalar>
-Scalar linear_form_surf_1(int n, double *wt, Func<Real> *v, Geom<Real> *e,
+Scalar linear_form_surf_1(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *v, Geom<Real> *e,
                           ExtData<Scalar> *ext)
 {
   return f_1 * int_v<Real, Scalar>(n, wt, v);

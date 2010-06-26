@@ -58,17 +58,17 @@ BCType bc_types(int marker) { return BC_NONE; }
 
 /// Bilinear form: H1
 template<typename T, typename D>
-D h1_biform(int n, double *wt, Func<T> *u, Func<T> *v, Geom<T> *e, ExtData<D> *data) {
+D h1_biform(int n, double *wt, Func<D> *u_ext[], Func<T> *u, Func<T> *v, Geom<T> *e, ExtData<D> *data) {
   return int_u_v<T, T>(n, wt, u, v) + int_grad_u_grad_v<T, T>(n, wt, u, v);
 }
 
 /// Linear form: order in H1
-Ord h1_liform(int point_cnt, double *weights, Func<Ord> *values_v, Geom<Ord> *geometry, ExtData<Ord> *values_fnc_ext) {
+Ord h1_liform(int point_cnt, double *weights, Func<Ord> *u_ext[], Func<Ord> *values_v, Geom<Ord> *geometry, ExtData<Ord> *values_fnc_ext) {
   return Ord(H2D_GET_H_ORDER(cur_test_case->quad_order()) + H2D_GET_V_ORDER(cur_test_case->quad_order()) + 2*values_v->val->get_order());
 }
 
 /// Linear form: value in H1
-scalar h1_liform(int point_cnt, double *weights, Func<double> *values_v, Geom<double> *geometry, ExtData<scalar> *values_fnc_ext) {
+scalar h1_liform(int point_cnt, double *weights, Func<scalar> *u_ext[], Func<double> *values_v, Geom<double> *geometry, ExtData<scalar> *values_fnc_ext) {
   scalar result = 0;
   for(int i = 0; i < point_cnt; i++) {
     double x = geometry->x[i], y = geometry->y[i];
@@ -81,17 +81,17 @@ scalar h1_liform(int point_cnt, double *weights, Func<double> *values_v, Geom<do
 
 /// Bilinear form: L2
 template<typename T, typename D>
-D l2_biform(int n, double *wt, Func<T> *u, Func<T> *v, Geom<T> *e, ExtData<D> *data) {
+D l2_biform(int n, double *wt, Func<D> *u_ext[], Func<T> *u, Func<T> *v, Geom<T> *e, ExtData<D> *data) {
   return int_u_v<T, T>(n, wt, u, v);
 }
 
 /// Linear form: order in L2
-Ord l2_liform(int point_cnt, double *weights, Func<Ord> *values_v, Geom<Ord> *geometry, ExtData<Ord> *values_fnc_ext) {
+Ord l2_liform(int point_cnt, double *weights, Func<Ord> *u_ext[], Func<Ord> *values_v, Geom<Ord> *geometry, ExtData<Ord> *values_fnc_ext) {
   return Ord(H2D_GET_H_ORDER(cur_test_case->quad_order()) + H2D_GET_V_ORDER(cur_test_case->quad_order()) + 2*values_v->val->get_order());
 }
 
 /// Linear form: value in L2
-scalar l2_liform(int point_cnt, double *weights, Func<double> *values_v, Geom<double> *geometry, ExtData<scalar> *values_fnc_ext) {
+scalar l2_liform(int point_cnt, double *weights, Func<scalar> *u_ext[], Func<double> *values_v, Geom<double> *geometry, ExtData<scalar> *values_fnc_ext) {
   scalar result = 0;
   for(int i = 0; i < point_cnt; i++) {
     double x = geometry->x[i], y = geometry->y[i];

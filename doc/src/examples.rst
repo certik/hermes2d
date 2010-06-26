@@ -43,35 +43,35 @@ boundaries. Translated into the weak forms, this becomes:
 
     // linear and bilinear forms
     template<typename Real, typename Scalar>
-    Scalar bilinear_form_0_0(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+    Scalar bilinear_form_0_0(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
     {
       return (lambda + 2*mu) * int_dudx_dvdx<Real, Scalar>(n, wt, u, v) +
                           mu * int_dudy_dvdy<Real, Scalar>(n, wt, u, v);
     }
 
     template<typename Real, typename Scalar>
-    Scalar bilinear_form_0_1(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+    Scalar bilinear_form_0_1(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
     {
       return lambda * int_dudy_dvdx<Real, Scalar>(n, wt, u, v) +
                  mu * int_dudx_dvdy<Real, Scalar>(n, wt, u, v);
     }
 
     template<typename Real, typename Scalar>
-    Scalar bilinear_form_1_0(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+    Scalar bilinear_form_1_0(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
     {
       return     mu * int_dudy_dvdx<Real, Scalar>(n, wt, u, v) +
              lambda * int_dudx_dvdy<Real, Scalar>(n, wt, u, v);
     }
 
     template<typename Real, typename Scalar>
-    Scalar bilinear_form_1_1(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+    Scalar bilinear_form_1_1(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
     {
       return              mu * int_dudx_dvdx<Real, Scalar>(n, wt, u, v) +
              (lambda + 2*mu) * int_dudy_dvdy<Real, Scalar>(n, wt, u, v);
     }
 
     template<typename Real, typename Scalar>
-    Scalar linear_form_surf_1(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+    Scalar linear_form_surf_1(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
     {
       return -f * int_v<Real, Scalar>(n, wt, v);
     }
@@ -154,10 +154,10 @@ is devided by a corresponding norm:
     info("Calculating error (est).");
     H1Adapt hp(&ls);
     hp.set_solutions(Tuple<Solution*>(&x_sln_coarse, &y_sln_coarse), Tuple<Solution*>(&x_sln_fine, &y_sln_fine));
-    hp.set_biform(0, 0, bilinear_form_0_0<scalar, scalar>, bilinear_form_0_0<Ord, Ord>);
-    hp.set_biform(0, 1, bilinear_form_0_1<scalar, scalar>, bilinear_form_0_1<Ord, Ord>);
-    hp.set_biform(1, 0, bilinear_form_1_0<scalar, scalar>, bilinear_form_1_0<Ord, Ord>);
-    hp.set_biform(1, 1, bilinear_form_1_1<scalar, scalar>, bilinear_form_1_1<Ord, Ord>);
+    hp.set_error_form(0, 0, bilinear_form_0_0<scalar, scalar>, bilinear_form_0_0<Ord, Ord>);
+    hp.set_error_form(0, 1, bilinear_form_0_1<scalar, scalar>, bilinear_form_0_1<Ord, Ord>);
+    hp.set_error_form(1, 0, bilinear_form_1_0<scalar, scalar>, bilinear_form_1_0<Ord, Ord>);
+    hp.set_error_form(1, 1, bilinear_form_1_1<scalar, scalar>, bilinear_form_1_1<Ord, Ord>);
     double err_est = hp.calc_error(H2D_TOTAL_ERROR_REL | H2D_ELEMENT_ERROR_REL) * 100;
 
 The rest is straightforward and details can be found in the 
@@ -295,10 +295,10 @@ The selector is created outside the adaptivity loop. We have two equations in th
     info("Calculating error (est).");
     H1Adapt hp(&ls);
     hp.set_solutions(Tuple<Solution*>(&x_sln_coarse, &y_sln_coarse), Tuple<Solution*>(&x_sln_fine, &y_sln_fine));
-    hp.set_biform(0, 0, bilinear_form_0_0<scalar, scalar>, bilinear_form_0_0<Ord, Ord>);
-    hp.set_biform(0, 1, bilinear_form_0_1<scalar, scalar>, bilinear_form_0_1<Ord, Ord>);
-    hp.set_biform(1, 0, bilinear_form_1_0<scalar, scalar>, bilinear_form_1_0<Ord, Ord>);
-    hp.set_biform(1, 1, bilinear_form_1_1<scalar, scalar>, bilinear_form_1_1<Ord, Ord>);
+    hp.set_error_form(0, 0, bilinear_form_0_0<scalar, scalar>, bilinear_form_0_0<Ord, Ord>);
+    hp.set_error_form(0, 1, bilinear_form_0_1<scalar, scalar>, bilinear_form_0_1<Ord, Ord>);
+    hp.set_error_form(1, 0, bilinear_form_1_0<scalar, scalar>, bilinear_form_1_0<Ord, Ord>);
+    hp.set_error_form(1, 1, bilinear_form_1_1<scalar, scalar>, bilinear_form_1_1<Ord, Ord>);
     double err_est = hp.calc_error(H2D_TOTAL_ERROR_REL | H2D_ELEMENT_ERROR_REL) * 100;
 
 The following figures show the two meshes and their polynomial
@@ -409,65 +409,65 @@ The corresponding weak forms are:
 ::
 
     template<typename Real, typename Scalar>
-    Scalar bilinear_form_0_0(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+    Scalar bilinear_form_0_0(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
     {
       return l2m * int_dudx_dvdx<Real, Scalar>(n, wt, u, v) +
               mu * int_dudy_dvdy<Real, Scalar>(n, wt, u, v);
     }
 
     template<typename Real, typename Scalar>
-    Scalar bilinear_form_0_1(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+    Scalar bilinear_form_0_1(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
     {
       return lambda * int_dudy_dvdx<Real, Scalar>(n, wt, u, v) +
                  mu * int_dudx_dvdy<Real, Scalar>(n, wt, u, v);
     }
 
     template<typename Real, typename Scalar>
-    Scalar bilinear_form_0_2(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+    Scalar bilinear_form_0_2(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
     {
       return - (3*lambda + 2*mu) * alpha * int_dudx_v<Real, Scalar>(n, wt, u, v);
     }
 
     template<typename Real, typename Scalar>
-    Scalar bilinear_form_1_0(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+    Scalar bilinear_form_1_0(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
     {
       return     mu * int_dudy_dvdx<Real, Scalar>(n, wt, u, v) +
              lambda * int_dudx_dvdy<Real, Scalar>(n, wt, u, v);
     }
 
     template<typename Real, typename Scalar>
-    Scalar bilinear_form_1_1(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+    Scalar bilinear_form_1_1(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
     {
       return  mu * int_dudx_dvdx<Real, Scalar>(n, wt, u, v) +
              l2m * int_dudy_dvdy<Real, Scalar>(n, wt, u, v);
     }
 
     template<typename Real, typename Scalar>
-    Scalar bilinear_form_1_2(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+    Scalar bilinear_form_1_2(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
     {
       return - (3*lambda + 2*mu) * alpha * int_dudy_v<Real, Scalar>(n, wt, u, v);
     }
 
     template<typename Real, typename Scalar>
-    Scalar bilinear_form_2_2(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+    Scalar bilinear_form_2_2(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
     {
       return int_grad_u_grad_v<Real, Scalar>(n, wt, u, v);
     }
 
     template<typename Real, typename Scalar>
-    Scalar linear_form_1(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+    Scalar linear_form_1(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
     {
       return -g * rho * int_v<Real, Scalar>(n, wt, v);
     }
 
     template<typename Real, typename Scalar>
-    Scalar linear_form_2(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+    Scalar linear_form_2(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
     {
       return HEAT_SRC * int_v<Real, Scalar>(n, wt, v);
     }
 
     template<typename Real, typename Scalar>
-    Scalar linear_form_surf_2(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+    Scalar linear_form_surf_2(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
     {
       return HEAT_FLUX_OUTER * int_v<Real, Scalar>(n, wt, v);
     }
@@ -545,13 +545,13 @@ calculates element errors. The code uses a selector which instance is created ou
     H1Adapt hp(&ls);
     hp.set_solutions(Tuple<Solution*>(&x_sln_coarse, &y_sln_coarse, &t_sln_coarse), 
                      Tuple<Solution*>(&x_sln_fine, &y_sln_fine, &t_sln_fine));
-    hp.set_biform(0, 0, bilinear_form_0_0<scalar, scalar>, bilinear_form_0_0<Ord, Ord>);
-    hp.set_biform(0, 1, bilinear_form_0_1<scalar, scalar>, bilinear_form_0_1<Ord, Ord>);
-    hp.set_biform(0, 2, bilinear_form_0_2<scalar, scalar>, bilinear_form_0_2<Ord, Ord>);
-    hp.set_biform(1, 0, bilinear_form_1_0<scalar, scalar>, bilinear_form_1_0<Ord, Ord>);
-    hp.set_biform(1, 1, bilinear_form_1_1<scalar, scalar>, bilinear_form_1_1<Ord, Ord>);
-    hp.set_biform(1, 2, bilinear_form_1_2<scalar, scalar>, bilinear_form_1_2<Ord, Ord>);
-    hp.set_biform(2, 2, bilinear_form_2_2<scalar, scalar>, bilinear_form_2_2<Ord, Ord>);
+    hp.set_error_form(0, 0, bilinear_form_0_0<scalar, scalar>, bilinear_form_0_0<Ord, Ord>);
+    hp.set_error_form(0, 1, bilinear_form_0_1<scalar, scalar>, bilinear_form_0_1<Ord, Ord>);
+    hp.set_error_form(0, 2, bilinear_form_0_2<scalar, scalar>, bilinear_form_0_2<Ord, Ord>);
+    hp.set_error_form(1, 0, bilinear_form_1_0<scalar, scalar>, bilinear_form_1_0<Ord, Ord>);
+    hp.set_error_form(1, 1, bilinear_form_1_1<scalar, scalar>, bilinear_form_1_1<Ord, Ord>);
+    hp.set_error_form(1, 2, bilinear_form_1_2<scalar, scalar>, bilinear_form_1_2<Ord, Ord>);
+    hp.set_error_form(2, 2, bilinear_form_2_2<scalar, scalar>, bilinear_form_2_2<Ord, Ord>);
     double err_est = hp.calc_error(H2D_TOTAL_ERROR_REL | H2D_ELEMENT_ERROR_ABS) * 100;
 
 Sample snapshot of solutions, meshes and convergence graphs are below. 
@@ -680,7 +680,7 @@ for each material:
 
     // Bilinear form (material 1)  
     template<typename Real, typename Scalar>
-    Scalar bilinear_form_1(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+    Scalar bilinear_form_1(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
     {
       return D_1 * int_grad_u_grad_v<Real, Scalar>(n, wt, u, v) 
              + SIGMA_A_1 * int_u_v<Real, Scalar>(n, wt, u, v);
@@ -688,7 +688,7 @@ for each material:
 
     // Bilinear form (material 2)
     template<typename Real, typename Scalar>
-    Scalar bilinear_form_2(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+    Scalar bilinear_form_2(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
     {
       return D_2 * int_grad_u_grad_v<Real, Scalar>(n, wt, u, v) 
              + SIGMA_A_2 * int_u_v<Real, Scalar>(n, wt, u, v);
@@ -696,7 +696,7 @@ for each material:
 
     // Bilinear form (material 3)
     template<typename Real, typename Scalar>
-    Scalar bilinear_form_3(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+    Scalar bilinear_form_3(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
     {
       return D_3 * int_grad_u_grad_v<Real, Scalar>(n, wt, u, v) 
              + SIGMA_A_3 * int_u_v<Real, Scalar>(n, wt, u, v);
@@ -704,7 +704,7 @@ for each material:
 
     // Bilinear form (material 4)
     template<typename Real, typename Scalar>
-    Scalar bilinear_form_4(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+    Scalar bilinear_form_4(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
     {
       return D_4 * int_grad_u_grad_v<Real, Scalar>(n, wt, u, v) 
              + SIGMA_A_4 * int_u_v<Real, Scalar>(n, wt, u, v);
@@ -712,7 +712,7 @@ for each material:
 
     // Bilinear form (material 5)
     template<typename Real, typename Scalar>
-    Scalar bilinear_form_5(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+    Scalar bilinear_form_5(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
     {
       return D_5 * int_grad_u_grad_v<Real, Scalar>(n, wt, u, v) 
              + SIGMA_A_5 * int_u_v<Real, Scalar>(n, wt, u, v);
@@ -961,26 +961,26 @@ Complex-valued weak forms:
 ::
 
     template<typename Real, typename Scalar>
-    Scalar bilinear_form_iron(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+    Scalar bilinear_form_iron(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
     {
       scalar ii = cplx(0.0, 1.0);
       return 1./mu_iron * int_grad_u_grad_v<Real, Scalar>(n, wt, u, v) + ii*omega*gamma_iron*int_u_v<Real, Scalar>(n, wt, u, v);
     }
 
     template<typename Real, typename Scalar>
-    Scalar bilinear_form_wire(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+    Scalar bilinear_form_wire(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
     {
       return 1./mu_0 * int_grad_u_grad_v<Real, Scalar>(n, wt, u, v);
     }
 
     template<typename Real, typename Scalar>
-    Scalar bilinear_form_air(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+    Scalar bilinear_form_air(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
     {
       return 1./mu_0 * int_grad_u_grad_v<Real, Scalar>(n, wt, u, v); // conductivity gamma is zero
     }
 
     template<typename Real, typename Scalar>
-    Scalar linear_form_wire(int n, double *wt, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+    Scalar linear_form_wire(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
     {
       return J_wire * int_v<Real, Scalar>(n, wt, v);
     }
@@ -1601,7 +1601,7 @@ Bilinear weak form corresponding to the left-hand side of the equation:
 
     // Bilinear form.
     template<typename Real, typename Scalar>
-    Scalar bilinear_form(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+    Scalar bilinear_form(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
     {
       Scalar result = 0;
       for (int i=0; i < n; i++)
@@ -1646,7 +1646,7 @@ multiscale stabilization* that can be used on an optional basis:
 
     // bilinear form for the variational multiscale stabilization
     template<typename Real, typename Scalar>
-    Scalar bilinear_form_stabilization(int n, double *wt, Func<Real> *u, 
+    Scalar bilinear_form_stabilization(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *u, 
                                        Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
     {
     #ifdef H2D_SECOND_DERIVATIVES_ENABLED
@@ -1670,7 +1670,7 @@ We have also implemented a shock-capturing term for the reader to experiment wit
 ::
 
     template<typename Real, typename Scalar>
-    Scalar bilinear_form_shock_capturing(int n, double *wt, Func<Real> *u, Func<Real> *v,
+    Scalar bilinear_form_shock_capturing(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *u, Func<Real> *v,
             Geom<Real> *e, ExtData<Scalar> *ext)
     {
       double h_e = e->diam();
