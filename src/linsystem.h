@@ -17,7 +17,6 @@
 #define __H2D_LINSYSTEM_H
 
 #include "common.h"
-#include "tuple.h"
 #include "matrix.h"
 #include "matrix_old.h"
 #include "forms.h"

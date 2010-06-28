@@ -16,7 +16,6 @@
 #ifndef __H2D_ADAPT_H
 #define __H2D_ADAPT_H
 
-#include "tuple.h"
 #include "forms.h"
 #include "weakform.h"
 #include "integrals_h1.h"
