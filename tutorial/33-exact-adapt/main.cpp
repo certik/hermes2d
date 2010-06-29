@@ -42,9 +42,12 @@ const int NDOF_STOP = 60000;      // Adaptivity process stops when the number of
 // This function can be modified.
 scalar f(double x, double y, double& dx, double& dy)
 {
-  dx = 0.25 * pow(x*x + y*y, -0.75) * 2 * x;
-  dy = 0.25 * pow(x*x + y*y, -0.75) * 2 * y;
-  return pow(x*x + y*y, 0.25);
+    double r = sqrt(x*x+y*y);
+    double drdx = x/r;
+    double drdy = y/r;
+    dx = -2. * exp(-r) * drdx;
+    dx = -2. * exp(-r) * drdy;
+    return 2. * exp(-r);
 }
 
 int main(int argc, char* argv[])
