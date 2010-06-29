@@ -60,6 +60,10 @@ int main(int argc, char* argv[])
   Mesh mesh;
   H2DReader mloader;
   mloader.load("square.mesh", &mesh);
+  mesh.refine_all_elements();
+  mesh.refine_all_elements();
+  mesh.refine_all_elements();
+  mesh.refine_all_elements();
 
   // Create an H1 space with default shapeset.
   H1Space space(&mesh, NULL, NULL, P_INIT);
@@ -102,7 +106,7 @@ int main(int argc, char* argv[])
     cpu_time.tick();
 
     // View the coarse mesh solution.
-    sview.show(&sln_coarse);
+    //sview.show(&sln_coarse);
     oview.show(&space);
 
     // Time measurement.
@@ -112,6 +116,7 @@ int main(int argc, char* argv[])
     info("Calculating error.");
     H1Adapt hp(&ls);
     hp.set_solutions(&sln_coarse, &sln_fine);
+    sview.show(&sln_fine);
     double err_est = hp.calc_error() * 100;
 
     // Report results.
