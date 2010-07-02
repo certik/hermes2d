@@ -200,7 +200,7 @@ void LinSystem::init_space(Space* s)
 }
 
 // Obsolete. Should be removed after FeProblem is removed.
-void LinSystem::set_spaces(Tuple<Space*>spaces)
+void LinSystem::set_spaces(Tuple<Space*> spaces)
 {
   this->init_spaces(spaces);
 }
