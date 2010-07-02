@@ -663,13 +663,64 @@ cdef class Mesh:
         [20, 9, 4, 8], [19, 20, 8, 3]]
 
         As can be seen from the example above, more elements were created after the
-        refinement of the element of interest.  Originally we had four elements but
-        now we have seven.        
+        refinement of the element of interest; in this case element "0" with refinement
+        option "0".  Originally we had four elements, but after the refinement of the
+        element of interest we now have seven.               
 
         """
         self.thisptr.refine_element(id, refinement)
 
     def refine_all_elements(self):
+        """
+        Refines all initial elements in the mesh.
+
+        Example:
+
+        >>> import hermes2d
+        >>> m = hermes2d.Mesh()
+        >>> m.create([
+        ...         [0, -1],
+        ...         [1, -1],
+        ...         [-1, 0],
+        ...         [0, 0],
+        ...         [1, 0],
+        ...         [-1, 1],
+        ...         [0, 1],
+        ...         [0.707106781, 0.707106781],
+        ...     ], [
+        ...         [0, 1, 4, 3, 0],
+        ...         [3, 4, 7, 0],
+        ...         [3, 7, 6, 0],
+        ...         [2, 3, 6, 5, 0],
+        ...     ], [
+        ...         [0, 1, 1],
+        ...         [1, 4, 2],
+        ...         [3, 0, 4],
+        ...         [4, 7, 2],
+        ...         [7, 6, 2],
+        ...         [2, 3, 4],
+        ...         [6, 5, 2],
+        ...         [5, 2, 3],
+        ...     ], [
+        ...         [4, 7, 45],
+        ...         [7, 6, 45],
+        ...     ])
+        >>> m.elements
+        [[0, 1, 4, 3], [3, 4, 7], [3, 7, 6], [2, 3, 6, 5]]
+        >>> m.refine_all_elements();
+        >>> m.elements
+        [[0, 11, 20, 19], [11, 1, 9, 20], [20, 9, 4, 8], [19, 20, 8, 3], [3, 8,
+        34], [8, 4, 33], [34, 33, 7], [33, 34, 8], [3, 34, 10], [34, 7, 12],
+        [10, 12, 6], [12, 10, 34], [2, 18, 16, 15], [18, 3, 10, 16], [16, 10, 6,
+        17], [15, 16, 17, 5]] 
+
+        Notice in the example above how we showed the initial elements that were in the mesh
+        with the command "m.elements".  We then went ahead and refined these initial elements
+        with "m.refine_all_elements();" and displayed the newly refined set of elements with 
+        "m.elements".  In the example above, as an example, "[0, 11, 20, 19]" is an element
+        made up by its corresponding vertices.
+
+        """
         self.thisptr.refine_all_elements()
 
     def refine_towards_boundary(self, int marker, int depth):
