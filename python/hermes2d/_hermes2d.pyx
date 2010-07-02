@@ -657,8 +657,8 @@ cdef class Mesh:
         ...         [4, 7, 45],
         ...         [7, 6, 45],
         ...     ])
-        >>>m.refine_element(0,0);
-        >>>m.elements 
+        >>> m.refine_element(0,0);
+        >>> m.elements 
         [[3, 4, 7], [3, 7, 6], [2, 3, 6, 5], [0, 11, 20, 19], [11, 1, 9, 20],
         [20, 9, 4, 8], [19, 20, 8, 3]]
 
@@ -727,6 +727,60 @@ cdef class Mesh:
         self.thisptr.refine_towards_boundary(marker, depth)
 
     def refine_towards_vertex(self, int marker, int depth):
+        """
+        Refines a mesh towards a given vertex by a certain refinement degree.
+
+        The first parameter inserted is the vertex of interest, followed by a number
+        representing the wanted number of mesh refinements.
+
+        Example:
+
+        >>> import hermes2d
+        >>> m = hermes2d.Mesh()
+        >>> m.create([
+        ...         [0, -1],
+        ...         [1, -1],
+        ...         [-1, 0],
+        ...         [0, 0],
+        ...         [1, 0],
+        ...         [-1, 1],
+        ...         [0, 1],
+        ...         [0.707106781, 0.707106781],
+        ...     ], [
+        ...         [0, 1, 4, 3, 0],
+        ...         [3, 4, 7, 0],
+        ...         [3, 7, 6, 0],
+        ...         [2, 3, 6, 5, 0],
+        ...     ], [
+        ...         [0, 1, 1],
+        ...         [1, 4, 2],
+        ...         [3, 0, 4],
+        ...         [4, 7, 2],
+        ...         [7, 6, 2],
+        ...         [2, 3, 4],
+        ...         [6, 5, 2],
+        ...         [5, 2, 3],
+        ...     ], [
+        ...         [4, 7, 45],
+        ...         [7, 6, 45],
+        ...     ])
+        >>> m.elements
+        [[0, 1, 4, 3], [3, 4, 7], [3, 7, 6], [2, 3, 6, 5]]
+        >>> m.refine_towards_vertex(0,2);
+        >>> m.elements
+        [[3, 4, 7], [3, 7, 6], [2, 3, 6, 5], [11, 1, 9, 20], [20, 9, 4, 8], [19,
+        20, 8, 3], [0, 24, 35, 34], [24, 11, 21, 35], [35, 21, 20, 33], [34, 35,
+        33, 19]]
+        
+        In the example above, to illustrate the post mesh refinement towards the given
+        vertex of interest,  we first show the  initial mesh elements with the command
+        "m.elements".  We then refine our mesh towards vertex "0" (coordinates [0,-1])
+        with a refinement multiplication of "2".  This is shown in the command
+        "m.refine_towards_vertex(0,2);".  And finally the new list of  elements after
+        refinement is shown with "m.elements".  In the example above, as an example,
+        "[3, 4, 7]" is an  element made up of its corresponding vertices.  
+
+        """
         self.thisptr.refine_towards_vertex(marker, depth)
 
     def get_element(self, int id):
