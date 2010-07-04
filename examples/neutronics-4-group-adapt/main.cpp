@@ -382,7 +382,7 @@ int main(int argc, char* argv[])
       info("Projecting first coarse mesh solutions on fine meshes.");
       rs.project_global(Tuple<MeshFunction*>(&sln1_coarse, &sln2_coarse, &sln3_coarse, &sln4_coarse), 
                        	Tuple<Solution*>(&iter1, &iter2, &iter3, &iter4),
-                       	jacforms_tuple_t(callback_pairs(projection_biform)), resforms_tuple_t(callback_pairs(projection_liform)));
+                       	matrix_forms_tuple_t(callback_pairs(projection_biform)), vector_forms_tuple_t(callback_pairs(projection_liform)));
     }
 
     // Solve the fine mesh problem.
@@ -410,7 +410,7 @@ int main(int argc, char* argv[])
       info("Projecting fine mesh solutions on coarse meshes.");
       ls.project_global(Tuple<MeshFunction*>(&sln1_fine, &sln2_fine, &sln3_fine, &sln4_fine), 
                         Tuple<Solution*>(&sln1_coarse, &sln2_coarse, &sln3_coarse, &sln4_coarse),
-                        jacforms_tuple_t(callback_pairs(projection_biform)), resforms_tuple_t(callback_pairs(projection_liform)));
+                        matrix_forms_tuple_t(callback_pairs(projection_biform)), vector_forms_tuple_t(callback_pairs(projection_liform)));
     }
 
     // Time measurement.

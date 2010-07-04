@@ -132,10 +132,10 @@ protected:
   void init_cache();
   void delete_cache();
 
-  scalar eval_form(WeakForm::JacFormVol *bf, Solution *sln[], PrecalcShapeset *fu, PrecalcShapeset *fv, RefMap *ru, RefMap *rv);
-  scalar eval_form(WeakForm::ResFormVol *lf, Solution *sln[], PrecalcShapeset *fv, RefMap *rv);
-  scalar eval_form(WeakForm::JacFormSurf *bf, Solution *sln[], PrecalcShapeset *fu, PrecalcShapeset *fv, RefMap *ru, RefMap *rv, EdgePos* ep);
-  scalar eval_form(WeakForm::ResFormSurf *lf, Solution *sln[], PrecalcShapeset *fv, RefMap *rv, EdgePos* ep);
+  scalar eval_form(WeakForm::MatrixFormVol *mfv, Solution *sln[], PrecalcShapeset *fu, PrecalcShapeset *fv, RefMap *ru, RefMap *rv);
+  scalar eval_form(WeakForm::VectorFormVol *vfv, Solution *sln[], PrecalcShapeset *fv, RefMap *rv);
+  scalar eval_form(WeakForm::MatrixFormSurf *mfv, Solution *sln[], PrecalcShapeset *fu, PrecalcShapeset *fv, RefMap *ru, RefMap *rv, EdgePos* ep);
+  scalar eval_form(WeakForm::VectorFormSurf *vfv, Solution *sln[], PrecalcShapeset *fv, RefMap *rv, EdgePos* ep);
 
 };
 

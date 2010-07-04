@@ -458,7 +458,7 @@ void LinSystem::assemble(bool rhsonly)
 
   // Loop through all assembling stages -- the purpose of this is increased performance
   // in multi-mesh calculations, where, e.g., only the right hand side uses two meshes.
-  // In such a case, the bilinear forms are assembled over one mesh, and only the rhs
+  // In such a case, the matrix forms are assembled over one mesh, and only the rhs
   // traverses through the union mesh. On the other hand, if you don't use multi-mesh
   // at all, there will always be only one stage in which all forms are assembled as usual.
   Traverse trav;
@@ -501,18 +501,18 @@ void LinSystem::assemble(bool rhsonly)
       marker = e0->marker;
 
       init_cache();
-      //// assemble volume bilinear forms //////////////////////////////////////
-      for (unsigned int ww = 0; ww < s->jfvol.size(); ww++)
+      //// assemble volume matrix forms //////////////////////////////////////
+      for (unsigned int ww = 0; ww < s->mfvol.size(); ww++)
       {
-        WeakForm::JacFormVol* jfv = s->jfvol[ww];
-        if (isempty[jfv->i] || isempty[jfv->j]) continue;
-        if (jfv->area != H2D_ANY && !wf->is_in_area(marker, jfv->area)) continue;
-        m = jfv->i;  fv = spss[m];  am = &al[m];
-        n = jfv->j;  fu = pss[n];   an = &al[n];
-        bool tra = (m != n) && (jfv->sym != 0);
-        bool sym = (m == n) && (jfv->sym == 1);
+        WeakForm::MatrixFormVol* mfv = s->mfvol[ww];
+        if (isempty[mfv->i] || isempty[mfv->j]) continue;
+        if (mfv->area != H2D_ANY && !wf->is_in_area(marker, mfv->area)) continue;
+        m = mfv->i;  fv = spss[m];  am = &al[m];
+        n = mfv->j;  fu = pss[n];   an = &al[n];
+        bool tra = (m != n) && (mfv->sym != 0);
+        bool sym = (m == n) && (mfv->sym == 1);
 
-        // assemble the local stiffness matrix for the form jfv
+        // assemble the local stiffness matrix for the form mfv
         scalar bi, **mat = get_matrix_buffer(std::max(am->cnt, an->cnt));
         for (int i = 0; i < am->cnt; i++)
         {
@@ -525,7 +525,7 @@ void LinSystem::assemble(bool rhsonly)
               fu->set_active_shape(an->idx[j]);
               // FIXME - the NULL on the following line is temporary, an array of solutions 
               // should be passed there.
-              bi = eval_form(jfv, NULL, fu, fv, &refmap[n], &refmap[m]) * an->coef[j] * am->coef[i];
+              bi = eval_form(mfv, NULL, fu, fv, &refmap[n], &refmap[m]) * an->coef[j] * am->coef[i];
               if (an->dof[j] < 0) Dir[k] -= bi; else mat[i][j] = bi;
             }
           }
@@ -536,7 +536,7 @@ void LinSystem::assemble(bool rhsonly)
               fu->set_active_shape(an->idx[j]);
               // FIXME - the NULL on the following line is temporary, an array of solutions 
               // should be passed there.
-              bi = eval_form(jfv, NULL, fu, fv, &refmap[n], &refmap[m]) * an->coef[j] * am->coef[i];
+              bi = eval_form(mfv, NULL, fu, fv, &refmap[n], &refmap[m]) * an->coef[j] * am->coef[i];
               if (an->dof[j] < 0) Dir[k] -= bi; else mat[i][j] = mat[j][i] = bi;
             }
           }
@@ -548,7 +548,7 @@ void LinSystem::assemble(bool rhsonly)
         // insert also the off-diagonal (anti-)symmetric block, if required
         if (tra)
         {
-          if (jfv->sym < 0) chsgn(mat, am->cnt, an->cnt);
+          if (mfv->sym < 0) chsgn(mat, am->cnt, an->cnt);
           transpose(mat, am->cnt, an->cnt);
           insert_block(mat, an->dof, am->dof, an->cnt, am->cnt);
 
@@ -562,12 +562,12 @@ void LinSystem::assemble(bool rhsonly)
       }
 
       //// assemble volume linear forms ////////////////////////////////////////
-      for (unsigned int ww = 0; ww < s->rfvol.size(); ww++)
+      for (unsigned int ww = 0; ww < s->vfvol.size(); ww++)
       {
-        WeakForm::ResFormVol* rfv = s->rfvol[ww];
-        if (isempty[rfv->i]) continue;
-        if (rfv->area != H2D_ANY && !wf->is_in_area(marker, rfv->area)) continue;
-        m = rfv->i;  fv = spss[m];  am = &al[m];
+        WeakForm::VectorFormVol* vfv = s->vfvol[ww];
+        if (isempty[vfv->i]) continue;
+        if (vfv->area != H2D_ANY && !wf->is_in_area(marker, vfv->area)) continue;
+        m = vfv->i;  fv = spss[m];  am = &al[m];
 
         for (int i = 0; i < am->cnt; i++)
         {
@@ -575,7 +575,7 @@ void LinSystem::assemble(bool rhsonly)
           fv->set_active_shape(am->idx[i]);
           // FIXME - the NULL on the following line is temporary, an array of solutions 
           // should be passed there.
-          RHS[am->dof[i]] += eval_form(rfv, NULL, fv, &refmap[m]) * am->coef[i];
+          RHS[am->dof[i]] += eval_form(vfv, NULL, fv, &refmap[m]) * am->coef[i];
         }
       }
 
@@ -594,14 +594,14 @@ void LinSystem::assemble(bool rhsonly)
             spaces[j]->get_edge_assembly_list(e[i], edge, &al[j]);
         }
 
-        // assemble surface bilinear forms ///////////////////////////////////
-        for (unsigned int ww = 0; ww < s->jfsurf.size(); ww++)
+        // assemble surface matrix forms ///////////////////////////////////
+        for (unsigned int ww = 0; ww < s->mfsurf.size(); ww++)
         {
-          WeakForm::JacFormSurf* jfs = s->jfsurf[ww];
-          if (isempty[jfs->i] || isempty[jfs->j]) continue;
-          if (jfs->area != H2D_ANY && !wf->is_in_area(marker, jfs->area)) continue;
-          m = jfs->i;  fv = spss[m];  am = &al[m];
-          n = jfs->j;  fu = pss[n];   an = &al[n];
+          WeakForm::MatrixFormSurf* mfs = s->mfsurf[ww];
+          if (isempty[mfs->i] || isempty[mfs->j]) continue;
+          if (mfs->area != H2D_ANY && !wf->is_in_area(marker, mfs->area)) continue;
+          m = mfs->i;  fv = spss[m];  am = &al[m];
+          n = mfs->j;  fu = pss[n];   an = &al[n];
 
           if (!nat[m] || !nat[n]) continue;
           ep[edge].base = trav.get_base();
@@ -618,7 +618,7 @@ void LinSystem::assemble(bool rhsonly)
               fu->set_active_shape(an->idx[j]);
               // FIXME - the NULL on the following line is temporary, an array of solutions 
               // should be passed there.
-              bi = eval_form(jfs, NULL, fu, fv, &refmap[n], &refmap[m], &(ep[edge])) * an->coef[j] * am->coef[i];
+              bi = eval_form(mfs, NULL, fu, fv, &refmap[n], &refmap[m], &(ep[edge])) * an->coef[j] * am->coef[i];
               if (an->dof[j] >= 0) mat[i][j] = bi; else Dir[k] -= bi;
             }
           }
@@ -626,12 +626,12 @@ void LinSystem::assemble(bool rhsonly)
         }
 
         // assemble surface linear forms /////////////////////////////////////
-        for (unsigned int ww = 0; ww < s->rfsurf.size(); ww++)
+        for (unsigned int ww = 0; ww < s->vfsurf.size(); ww++)
         {
-          WeakForm::ResFormSurf* rfs = s->rfsurf[ww];
-          if (isempty[rfs->i]) continue;
-          if (rfs->area != H2D_ANY && !wf->is_in_area(marker, rfs->area)) continue;
-          m = rfs->i;  fv = spss[m];  am = &al[m];
+          WeakForm::VectorFormSurf* vfs = s->vfsurf[ww];
+          if (isempty[vfs->i]) continue;
+          if (vfs->area != H2D_ANY && !wf->is_in_area(marker, vfs->area)) continue;
+          m = vfs->i;  fv = spss[m];  am = &al[m];
 
           if (!nat[m]) continue;
           ep[edge].base = trav.get_base();
@@ -643,7 +643,7 @@ void LinSystem::assemble(bool rhsonly)
             fv->set_active_shape(am->idx[i]);
             // FIXME - the NULL on the following line is temporary, an array of solutions 
             // should be passed there.
-            RHS[am->dof[i]] += eval_form(rfs, NULL, fv, &refmap[m], &(ep[edge])) * am->coef[i];
+            RHS[am->dof[i]] += eval_form(vfs, NULL, fv, &refmap[m], &(ep[edge])) * am->coef[i];
           }
         }
       }
@@ -737,7 +737,7 @@ void LinSystem::delete_cache()
 
 
 // Actual evaluation of volume Jacobian form (calculates integral)
-scalar LinSystem::eval_form(WeakForm::JacFormVol *jfv, Solution *sln[], PrecalcShapeset *fu, PrecalcShapeset *fv, RefMap *ru, RefMap *rv)
+scalar LinSystem::eval_form(WeakForm::MatrixFormVol *mfv, Solution *sln[], PrecalcShapeset *fu, PrecalcShapeset *fv, RefMap *ru, RefMap *rv)
 {
   // determine the integration order
   int inc = (fu->get_num_components() == 2) ? 1 : 0;
@@ -755,11 +755,11 @@ scalar LinSystem::eval_form(WeakForm::JacFormVol *jfv, Solution *sln[], PrecalcS
 
   Func<Ord>* ou = init_fn_ord(fu->get_fn_order() + inc);
   Func<Ord>* ov = init_fn_ord(fv->get_fn_order() + inc);
-  ExtData<Ord>* fake_ext = init_ext_fns_ord(jfv->ext);
+  ExtData<Ord>* fake_ext = init_ext_fns_ord(mfv->ext);
 
   double fake_wt = 1.0;
   Geom<Ord>* fake_e = init_geom_ord();
-  Ord o = jfv->ord(1, &fake_wt, oi, ou, ov, fake_e, fake_ext);
+  Ord o = mfv->ord(1, &fake_wt, oi, ou, ov, fake_e, fake_ext);
   int order = ru->get_inv_ref_order();
   order += o.get_order();
   limit_order_nowarn(order);
@@ -808,9 +808,9 @@ scalar LinSystem::eval_form(WeakForm::JacFormVol *jfv, Solution *sln[], PrecalcS
 
   Func<double>* u = get_fn(fu, ru, order);
   Func<double>* v = get_fn(fv, rv, order);
-  ExtData<scalar>* ext = init_ext_fns(jfv->ext, rv, order);
+  ExtData<scalar>* ext = init_ext_fns(mfv->ext, rv, order);
 
-  scalar res = jfv->fn(np, jwt, prev, u, v, e, ext);
+  scalar res = mfv->fn(np, jwt, prev, u, v, e, ext);
 
   for (int i = 0; i < wf->neq; i++) {  
     if (prev[i] != NULL) prev[i]->free_fn(); delete prev[i]; 
@@ -820,8 +820,8 @@ scalar LinSystem::eval_form(WeakForm::JacFormVol *jfv, Solution *sln[], PrecalcS
 }
 
 
-// Actual evaluation of volume residual form (calculates integral)
-scalar LinSystem::eval_form(WeakForm::ResFormVol *rfv, Solution *sln[], PrecalcShapeset *fv, RefMap *rv)
+// Actual evaluation of volume vector form (calculates integral)
+scalar LinSystem::eval_form(WeakForm::VectorFormVol *vfv, Solution *sln[], PrecalcShapeset *fv, RefMap *rv)
 {
   // determine the integration order
   int inc = (fv->get_num_components() == 2) ? 1 : 0;
@@ -837,11 +837,11 @@ scalar LinSystem::eval_form(WeakForm::ResFormVol *rfv, Solution *sln[], PrecalcS
     for (int i = 0; i < wf->neq; i++) oi[i] = init_fn_ord(0);
   }
   Func<Ord>* ov = init_fn_ord(fv->get_fn_order() + inc);
-  ExtData<Ord>* fake_ext = init_ext_fns_ord(rfv->ext);
+  ExtData<Ord>* fake_ext = init_ext_fns_ord(vfv->ext);
 
   double fake_wt = 1.0;
   Geom<Ord>* fake_e = init_geom_ord();
-  Ord o = rfv->ord(1, &fake_wt, oi, ov, fake_e, fake_ext);
+  Ord o = vfv->ord(1, &fake_wt, oi, ov, fake_e, fake_ext);
   int order = rv->get_inv_ref_order();
   order += o.get_order();
   limit_order_nowarn(order);
@@ -886,9 +886,9 @@ scalar LinSystem::eval_form(WeakForm::ResFormVol *rfv, Solution *sln[], PrecalcS
   }
 
   Func<double>* v = get_fn(fv, rv, order);
-  ExtData<scalar>* ext = init_ext_fns(rfv->ext, rv, order);
+  ExtData<scalar>* ext = init_ext_fns(vfv->ext, rv, order);
 
-  scalar res = rfv->fn(np, jwt, prev, v, e, ext);
+  scalar res = vfv->fn(np, jwt, prev, v, e, ext);
 
   for (int i = 0; i < wf->neq; i++) { 
     if (prev[i] != NULL) {
@@ -901,7 +901,7 @@ scalar LinSystem::eval_form(WeakForm::ResFormVol *rfv, Solution *sln[], PrecalcS
 }
 
 // Actual evaluation of surface Jacobian form (calculates integral)
-scalar LinSystem::eval_form(WeakForm::JacFormSurf *jfs, Solution *sln[], PrecalcShapeset *fu, PrecalcShapeset *fv, RefMap *ru, RefMap *rv, EdgePos* ep)
+scalar LinSystem::eval_form(WeakForm::MatrixFormSurf *mfs, Solution *sln[], PrecalcShapeset *fu, PrecalcShapeset *fv, RefMap *ru, RefMap *rv, EdgePos* ep)
 {
   // eval the form
   Quad2D* quad = fu->get_quad_2d();
@@ -937,9 +937,9 @@ scalar LinSystem::eval_form(WeakForm::JacFormSurf *jfs, Solution *sln[], Precalc
 
   Func<double>* u = get_fn(fu, ru, eo);
   Func<double>* v = get_fn(fv, rv, eo);
-  ExtData<scalar>* ext = init_ext_fns(jfs->ext, rv, eo);
+  ExtData<scalar>* ext = init_ext_fns(mfs->ext, rv, eo);
 
-  scalar res = jfs->fn(np, jwt, prev, u, v, e, ext);
+  scalar res = mfs->fn(np, jwt, prev, u, v, e, ext);
 
   for (int i = 0; i < wf->neq; i++) { 
     if (prev[i] != NULL) {
@@ -953,8 +953,8 @@ scalar LinSystem::eval_form(WeakForm::JacFormSurf *jfs, Solution *sln[], Precalc
 }
 
 
-// Actual evaluation of surface residual form (calculates integral)
-scalar LinSystem::eval_form(WeakForm::ResFormSurf *rfs, Solution *sln[], PrecalcShapeset *fv, RefMap *rv, EdgePos* ep)
+// Actual evaluation of surface vector form (calculates integral)
+scalar LinSystem::eval_form(WeakForm::VectorFormSurf *vfs, Solution *sln[], PrecalcShapeset *fv, RefMap *rv, EdgePos* ep)
 {
   // eval the form
   Quad2D* quad = fv->get_quad_2d();
@@ -989,9 +989,9 @@ scalar LinSystem::eval_form(WeakForm::ResFormSurf *rfs, Solution *sln[], Precalc
   }
 
   Func<double>* v = get_fn(fv, rv, eo);
-  ExtData<scalar>* ext = init_ext_fns(rfs->ext, rv, eo);
+  ExtData<scalar>* ext = init_ext_fns(vfs->ext, rv, eo);
 
-  scalar res = rfs->fn(np, jwt, prev, v, e, ext);
+  scalar res = vfs->fn(np, jwt, prev, v, e, ext);
 
   for (int i = 0; i < wf->neq; i++) {  
     if (prev[i] != NULL) {prev[i]->free_fn(); delete prev[i]; }
@@ -1293,8 +1293,8 @@ void LinSystem::project_global(Tuple<MeshFunction*> source, Tuple<Solution*> tar
   wf_seq = -1;
 }
 
-void LinSystem::project_global( Tuple<MeshFunction*> source, Tuple<Solution*> target,
-                                jacforms_tuple_t proj_biforms, resforms_tuple_t proj_liforms )
+void LinSystem::project_global(Tuple<MeshFunction*> source, Tuple<Solution*> target,
+                               matrix_forms_tuple_t proj_biforms, vector_forms_tuple_t proj_liforms )
 {
   // sanity checks
   int n = source.size();
@@ -1306,7 +1306,7 @@ void LinSystem::project_global( Tuple<MeshFunction*> source, Tuple<Solution*> ta
   if (n > 10)
     error("Wrong number of projected functions in LinSystem::project_global().");
 
-  jacforms_tuple_t::size_type n_biforms = proj_biforms.size();
+  matrix_forms_tuple_t::size_type n_biforms = proj_biforms.size();
   if (n_biforms != proj_liforms.size())
     error("Mismatched numbers of projection forms in LinSystem::project_global().");
   if (n_biforms > 0) {

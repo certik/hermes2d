@@ -40,8 +40,8 @@ H2D_API_USED_TEMPLATE(Tuple<PrecalcShapeset*>);
 
 /// For projection, the user may provide bi/linear forms for each solution component stored
 /// in tuples of following types
-typedef Tuple< std::pair<WeakForm::jacform_val_t, WeakForm::jacform_ord_t> > jacforms_tuple_t;
-typedef Tuple< std::pair<WeakForm::resform_val_t, WeakForm::resform_ord_t> > resforms_tuple_t;
+typedef Tuple< std::pair<WeakForm::matrix_form_val_t, WeakForm::matrix_form_ord_t> > matrix_forms_tuple_t;
+typedef Tuple< std::pair<WeakForm::vector_form_val_t, WeakForm::vector_form_ord_t> > vector_forms_tuple_t;
 
 ///
 ///
@@ -160,7 +160,7 @@ public:
 
   /// The same as above, but the user may specify the forms that are used in the projection
   /// (useful e.g. when working in curvilinear coordinate systems).
-  void project_global(Tuple<MeshFunction*> source, Tuple<Solution*> target, jacforms_tuple_t proj_biforms, resforms_tuple_t proj_liforms);
+  void project_global(Tuple<MeshFunction*> source, Tuple<Solution*> target, matrix_forms_tuple_t proj_biforms, vector_forms_tuple_t proj_liforms);
 
   /// Global orthogonal projection of one MeshFunction.
   void project_global(MeshFunction* source, Solution* target, int proj_norm = H2D_DEFAULT_PROJ_NORM)
@@ -172,12 +172,12 @@ public:
 
   /// Global orthogonal projection of one MeshFunction -- user specified projection bi/linear forms.
   void project_global(MeshFunction* source, Solution* target,
-                  std::pair<WeakForm::jacform_val_t, WeakForm::jacform_ord_t> proj_biform,
-                  std::pair<WeakForm::resform_val_t, WeakForm::resform_ord_t> proj_liform)
+                  std::pair<WeakForm::matrix_form_val_t, WeakForm::matrix_form_ord_t> proj_biform,
+                  std::pair<WeakForm::vector_form_val_t, WeakForm::vector_form_ord_t> proj_liform)
   {
     if (this->wf->neq != 1)
       error("Number of projected functions must be one if there is only one equation, in LinSystem::project_global().");
-    this->project_global(Tuple<MeshFunction*>(source), Tuple<Solution*>(target), jacforms_tuple_t(proj_biform), resforms_tuple_t(proj_liform));
+    this->project_global(Tuple<MeshFunction*>(source), Tuple<Solution*>(target), matrix_forms_tuple_t(proj_biform), vector_forms_tuple_t(proj_liform));
   };
 
 
@@ -196,8 +196,8 @@ public:
 
   /// Global orthogonal projection of one scalar ExactFunction -- user specified projection bi/linear forms.
   void project_global(ExactFunction source, Solution* target,
-                  std::pair<WeakForm::jacform_val_t, WeakForm::jacform_ord_t> proj_biform,
-                  std::pair<WeakForm::resform_val_t, WeakForm::resform_ord_t> proj_liform)
+                  std::pair<WeakForm::matrix_form_val_t, WeakForm::matrix_form_ord_t> proj_biform,
+                  std::pair<WeakForm::vector_form_val_t, WeakForm::vector_form_ord_t> proj_liform)
   {
     if (this->wf->neq != 1)
       error("Number of projected functions must be one if there is only one equation, in LinSystem::project_global().");
@@ -206,7 +206,7 @@ public:
     if (mesh == NULL) error("Mesh is NULL in project_global().");
     Solution sln;
     sln.set_exact(mesh, source);
-    this->project_global(Tuple<MeshFunction*>(&sln), Tuple<Solution*>(target), jacforms_tuple_t(proj_biform), resforms_tuple_t(proj_liform));
+    this->project_global(Tuple<MeshFunction*>(&sln), Tuple<Solution*>(target), matrix_forms_tuple_t(proj_biform), vector_forms_tuple_t(proj_liform));
   };
 
   /// Global orthogonal projection of one vector-valued ExactFunction.
@@ -314,10 +314,10 @@ protected:
   void delete_cache();
 
   // evaluation of forms, general case
-  scalar eval_form(WeakForm::JacFormVol *bf, Solution *sln[], PrecalcShapeset *fu, PrecalcShapeset *fv, RefMap *ru, RefMap *rv);
-  scalar eval_form(WeakForm::ResFormVol *lf, Solution *sln[], PrecalcShapeset *fv, RefMap *rv);
-  scalar eval_form(WeakForm::JacFormSurf *bf, Solution *sln[], PrecalcShapeset *fu, PrecalcShapeset *fv, RefMap *ru, RefMap *rv, EdgePos* ep);
-  scalar eval_form(WeakForm::ResFormSurf *lf, Solution *sln[], PrecalcShapeset *fv, RefMap *rv, EdgePos* ep);
+  scalar eval_form(WeakForm::MatrixFormVol *bf, Solution *sln[], PrecalcShapeset *fu, PrecalcShapeset *fv, RefMap *ru, RefMap *rv);
+  scalar eval_form(WeakForm::VectorFormVol *lf, Solution *sln[], PrecalcShapeset *fv, RefMap *rv);
+  scalar eval_form(WeakForm::MatrixFormSurf *bf, Solution *sln[], PrecalcShapeset *fu, PrecalcShapeset *fv, RefMap *ru, RefMap *rv, EdgePos* ep);
+  scalar eval_form(WeakForm::VectorFormSurf *lf, Solution *sln[], PrecalcShapeset *fv, RefMap *rv, EdgePos* ep);
 
 
 

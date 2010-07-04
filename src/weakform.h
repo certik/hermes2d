@@ -59,27 +59,27 @@ public:
   WeakForm(int neq = 1, bool mat_free = false);
 
   // general case
-  typedef scalar (*jacform_val_t)(int n, double *wt, Func<scalar> *u[], Func<double> *vi, Func<double> *vj, Geom<double> *e, ExtData<scalar> *);
-  typedef Ord (*jacform_ord_t)(int n, double *wt, Func<Ord> *u[], Func<Ord> *vi, Func<Ord> *vj, Geom<Ord> *e, ExtData<Ord> *);
-  typedef scalar (*resform_val_t)(int n, double *wt, Func<scalar> *u[], Func<double> *vi, Geom<double> *e, ExtData<scalar> *);
-  typedef Ord (*resform_ord_t)(int n, double *wt, Func<Ord> *u[], Func<Ord> *vi, Geom<Ord> *e, ExtData<Ord> *);
+  typedef scalar (*matrix_form_val_t)(int n, double *wt, Func<scalar> *u[], Func<double> *vi, Func<double> *vj, Geom<double> *e, ExtData<scalar> *);
+  typedef Ord (*matrix_form_ord_t)(int n, double *wt, Func<Ord> *u[], Func<Ord> *vi, Func<Ord> *vj, Geom<Ord> *e, ExtData<Ord> *);
+  typedef scalar (*vector_form_val_t)(int n, double *wt, Func<scalar> *u[], Func<double> *vi, Geom<double> *e, ExtData<scalar> *);
+  typedef Ord (*vector_form_ord_t)(int n, double *wt, Func<Ord> *u[], Func<Ord> *vi, Geom<Ord> *e, ExtData<Ord> *);
 
   // general case
-  void add_matrix_form(int i, int j, jacform_val_t fn, jacform_ord_t ord, 
+  void add_matrix_form(int i, int j, matrix_form_val_t fn, matrix_form_ord_t ord, 
 		   SymFlag sym = H2D_UNSYM, int area = H2D_ANY, Tuple<MeshFunction*>ext = Tuple<MeshFunction*>());
-  void add_matrix_form(jacform_val_t fn, jacform_ord_t ord, 
+  void add_matrix_form(matrix_form_val_t fn, matrix_form_ord_t ord, 
 		   SymFlag sym = H2D_UNSYM, int area = H2D_ANY, Tuple<MeshFunction*>ext = Tuple<MeshFunction*>()); // single equation case
-  void add_matrix_form_surf(int i, int j, jacform_val_t fn, jacform_ord_t ord, 
+  void add_matrix_form_surf(int i, int j, matrix_form_val_t fn, matrix_form_ord_t ord, 
 			int area = H2D_ANY, Tuple<MeshFunction*>ext = Tuple<MeshFunction*>());
-  void add_matrix_form_surf(jacform_val_t fn, jacform_ord_t ord, 
+  void add_matrix_form_surf(matrix_form_val_t fn, matrix_form_ord_t ord, 
 			int area = H2D_ANY, Tuple<MeshFunction*>ext = Tuple<MeshFunction*>()); // single equation case
-  void add_vector_form(int i, resform_val_t fn, resform_ord_t ord, 
+  void add_vector_form(int i, vector_form_val_t fn, vector_form_ord_t ord, 
 		   int area = H2D_ANY, Tuple<MeshFunction*>ext = Tuple<MeshFunction*>());
-  void add_vector_form(resform_val_t fn, resform_ord_t ord, 
+  void add_vector_form(vector_form_val_t fn, vector_form_ord_t ord, 
 		   int area = H2D_ANY, Tuple<MeshFunction*>ext = Tuple<MeshFunction*>()); // single equation case
-  void add_vector_form_surf(int i, resform_val_t fn, resform_ord_t ord, 
+  void add_vector_form_surf(int i, vector_form_val_t fn, vector_form_ord_t ord, 
 			int area = H2D_ANY, Tuple<MeshFunction*>ext = Tuple<MeshFunction*>());
-  void add_vector_form_surf(resform_val_t fn, resform_ord_t ord, 
+  void add_vector_form_surf(vector_form_val_t fn, vector_form_ord_t ord, 
 			int area = H2D_ANY, Tuple<MeshFunction*>ext = Tuple<MeshFunction*>()); // single equation case
 
   void set_ext_fns(void* fn, Tuple<MeshFunction*>ext = Tuple<MeshFunction*>());
@@ -110,16 +110,16 @@ protected:
     Ord evaluate_ord(int point_cnt, double *weights, Func<Ord> *values_v, Geom<Ord> *geometry, ExtData<Ord> *values_ext_fnc, Element* element, Shapeset* shape_set, int shape_inx); ///< Evaluate order of the user defined function.
 
   // general case
-  struct JacFormVol  {  int i, j, sym, area;  jacform_val_t fn;  jacform_ord_t ord;  std::vector<MeshFunction *> ext; };
-  struct JacFormSurf {  int i, j, area;       jacform_val_t fn;  jacform_ord_t ord;  std::vector<MeshFunction *> ext; };
-  struct ResFormVol  {  int i, area;          resform_val_t fn;  resform_ord_t ord;  std::vector<MeshFunction *> ext; };
-  struct ResFormSurf {  int i, area;          resform_val_t fn;  resform_ord_t ord;  std::vector<MeshFunction *> ext; };
+  struct MatrixFormVol  {  int i, j, sym, area;  matrix_form_val_t fn;  matrix_form_ord_t ord;  std::vector<MeshFunction *> ext; };
+  struct MatrixFormSurf {  int i, j, area;       matrix_form_val_t fn;  matrix_form_ord_t ord;  std::vector<MeshFunction *> ext; };
+  struct VectorFormVol  {  int i, area;          vector_form_val_t fn;  vector_form_ord_t ord;  std::vector<MeshFunction *> ext; };
+  struct VectorFormSurf {  int i, area;          vector_form_val_t fn;  vector_form_ord_t ord;  std::vector<MeshFunction *> ext; };
 
   // general case
-  std::vector<JacFormVol>  jfvol;
-  std::vector<JacFormSurf> jfsurf;
-  std::vector<ResFormVol>  rfvol;
-  std::vector<ResFormSurf> rfsurf;
+  std::vector<MatrixFormVol>  mfvol;
+  std::vector<MatrixFormSurf> mfsurf;
+  std::vector<VectorFormVol>  vfvol;
+  std::vector<VectorFormSurf> vfsurf;
 
   struct Stage
   {
@@ -129,10 +129,10 @@ protected:
     std::vector<MeshFunction*> ext;
 
     // general case
-    std::vector<JacFormVol *>  jfvol;
-    std::vector<JacFormSurf *> jfsurf;
-    std::vector<ResFormVol *>  rfvol;
-    std::vector<ResFormSurf *> rfsurf;
+    std::vector<MatrixFormVol *>  mfvol;
+    std::vector<MatrixFormSurf *> mfsurf;
+    std::vector<VectorFormVol *>  vfvol;
+    std::vector<VectorFormSurf *> vfsurf;
 
     std::set<int> idx_set;
     std::set<unsigned> seq_set;

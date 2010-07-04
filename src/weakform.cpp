@@ -29,7 +29,7 @@ WeakForm::WeakForm(int neq, bool mat_free)
   this->is_matfree = mat_free;
 }
 
-void WeakForm::add_matrix_form(int i, int j, jacform_val_t fn, jacform_ord_t ord, SymFlag sym, int area, Tuple<MeshFunction*>ext)
+void WeakForm::add_matrix_form(int i, int j, matrix_form_val_t fn, matrix_form_ord_t ord, SymFlag sym, int area, Tuple<MeshFunction*>ext)
 {
   if (i < 0 || i >= neq || j < 0 || j >= neq)
     error("Invalid equation number.");
@@ -39,20 +39,20 @@ void WeakForm::add_matrix_form(int i, int j, jacform_val_t fn, jacform_ord_t ord
     error("Only off-diagonal forms can be antisymmetric.");
   if (area != H2D_ANY && area < 0 && -area > areas.size())
     error("Invalid area number.");
-  if (jfvol.size() > 100)
+  if (mfvol.size() > 100)
     warn("Large number of forms (> 100). Is this the intent?");
 
-  JacFormVol form = { i, j, sym, area, fn, ord };
+  MatrixFormVol form = { i, j, sym, area, fn, ord };
   if (ext.size() != 0) {
     int nx = ext.size(); 
     for (int i = 0; i < nx; i++) form.ext.push_back(ext[i]);
   }
-  jfvol.push_back(form);
+  mfvol.push_back(form);
   seq++;
 }
 
 // single equation case
-void WeakForm::add_matrix_form(jacform_val_t fn, jacform_ord_t ord, SymFlag sym, int area, Tuple<MeshFunction*>ext)
+void WeakForm::add_matrix_form(matrix_form_val_t fn, matrix_form_ord_t ord, SymFlag sym, int area, Tuple<MeshFunction*>ext)
 {
   int i = 0, j = 0;
 
@@ -63,36 +63,36 @@ void WeakForm::add_matrix_form(jacform_val_t fn, jacform_ord_t ord, SymFlag sym,
     error("Only off-diagonal forms can be antisymmetric.");
   if (area != H2D_ANY && area < 0 && -area > areas.size())
     error("Invalid area number.");
-  if (jfvol.size() > 100)
+  if (mfvol.size() > 100)
     warn("Large number of forms (> 100). Is this the intent?");
 
-  JacFormVol form = { i, j, sym, area, fn, ord };
+  MatrixFormVol form = { i, j, sym, area, fn, ord };
   if (ext.size() != 0) {
     int nx = ext.size(); 
     for (int i = 0; i < nx; i++) form.ext.push_back(ext[i]);
   }
-  jfvol.push_back(form);
+  mfvol.push_back(form);
   seq++;
 }
 
-void WeakForm::add_matrix_form_surf(int i, int j, jacform_val_t fn, jacform_ord_t ord, int area, Tuple<MeshFunction*>ext)
+void WeakForm::add_matrix_form_surf(int i, int j, matrix_form_val_t fn, matrix_form_ord_t ord, int area, Tuple<MeshFunction*>ext)
 {
   if (i < 0 || i >= neq || j < 0 || j >= neq)
     error("Invalid equation number.");
   if (area != H2D_ANY && area < 0 && -area > areas.size())
     error("Invalid area number.");
 
-  JacFormSurf form = { i, j, area, fn, ord };
+  MatrixFormSurf form = { i, j, area, fn, ord };
   if (ext.size() != 0) {
     int nx = ext.size(); 
     for (int i = 0; i < nx; i++) form.ext.push_back(ext[i]);
   }
-  jfsurf.push_back(form);
+  mfsurf.push_back(form);
   seq++;
 }
 
 // single equation case
-void WeakForm::add_matrix_form_surf(jacform_val_t fn, jacform_ord_t ord, int area, Tuple<MeshFunction*>ext)
+void WeakForm::add_matrix_form_surf(matrix_form_val_t fn, matrix_form_ord_t ord, int area, Tuple<MeshFunction*>ext)
 {
   int i = 0, j = 0;
 
@@ -100,33 +100,33 @@ void WeakForm::add_matrix_form_surf(jacform_val_t fn, jacform_ord_t ord, int are
   if (area != H2D_ANY && area < 0 && -area > areas.size())
     error("Invalid area number.");
 
-  JacFormSurf form = { i, j, area, fn, ord };
+  MatrixFormSurf form = { i, j, area, fn, ord };
   if (ext.size() != 0) {
     int nx = ext.size(); 
     for (int i = 0; i < nx; i++) form.ext.push_back(ext[i]);
   }
-  jfsurf.push_back(form);
+  mfsurf.push_back(form);
   seq++;
 }
 
-void WeakForm::add_vector_form(int i, resform_val_t fn, resform_ord_t ord, int area, Tuple<MeshFunction*>ext)
+void WeakForm::add_vector_form(int i, vector_form_val_t fn, vector_form_ord_t ord, int area, Tuple<MeshFunction*>ext)
 {
   if (i < 0 || i >= neq)
     error("Invalid equation number.");
   if (area != H2D_ANY && area < 0 && -area > areas.size())
     error("Invalid area number.");
 
-  ResFormVol form = { i, area, fn, ord };
+  VectorFormVol form = { i, area, fn, ord };
   if (ext.size() != 0) {
     int nx = ext.size(); 
     for (int i = 0; i < nx; i++) form.ext.push_back(ext[i]);
   }
-  rfvol.push_back(form);
+  vfvol.push_back(form);
   seq++;
 }
 
 // single equation case
-void WeakForm::add_vector_form(resform_val_t fn, resform_ord_t ord, int area, Tuple<MeshFunction*>ext)
+void WeakForm::add_vector_form(vector_form_val_t fn, vector_form_ord_t ord, int area, Tuple<MeshFunction*>ext)
 {
   int i = 0;
 
@@ -134,33 +134,33 @@ void WeakForm::add_vector_form(resform_val_t fn, resform_ord_t ord, int area, Tu
   if (area != H2D_ANY && area < 0 && -area > areas.size())
     error("Invalid area number.");
 
-  ResFormVol form = { i, area, fn, ord };
+  VectorFormVol form = { i, area, fn, ord };
   if (ext.size() != 0) {
     int nx = ext.size(); 
     for (int i = 0; i < nx; i++) form.ext.push_back(ext[i]);
   }
-  rfvol.push_back(form);
+  vfvol.push_back(form);
   seq++;
 }
 
-void WeakForm::add_vector_form_surf(int i, resform_val_t fn, resform_ord_t ord, int area, Tuple<MeshFunction*>ext)
+void WeakForm::add_vector_form_surf(int i, vector_form_val_t fn, vector_form_ord_t ord, int area, Tuple<MeshFunction*>ext)
 {
   if (i < 0 || i >= neq)
     error("Invalid equation number.");
   if (area != H2D_ANY && area < 0 && -area > areas.size())
     error("Invalid area number.");
 
-  ResFormSurf form = { i, area, fn, ord };
+  VectorFormSurf form = { i, area, fn, ord };
   if (ext.size() != 0) {
     int nx = ext.size(); 
     for (int i = 0; i < nx; i++) form.ext.push_back(ext[i]);
   }
-  rfsurf.push_back(form);
+  vfsurf.push_back(form);
   seq++;
 }
 
 // single equation case
-void WeakForm::add_vector_form_surf(resform_val_t fn, resform_ord_t ord, int area, Tuple<MeshFunction*>ext)
+void WeakForm::add_vector_form_surf(vector_form_val_t fn, vector_form_ord_t ord, int area, Tuple<MeshFunction*>ext)
 {
   int i = 0;
 
@@ -168,12 +168,12 @@ void WeakForm::add_vector_form_surf(resform_val_t fn, resform_ord_t ord, int are
   if (area != H2D_ANY && area < 0 && -area > areas.size())
     error("Invalid area number.");
 
-  ResFormSurf form = { i, area, fn, ord };
+  VectorFormSurf form = { i, area, fn, ord };
   if (ext.size() != 0) {
     int nx = ext.size(); 
     for (int i = 0; i < nx; i++) form.ext.push_back(ext[i]);
   }
-  rfsurf.push_back(form);
+  vfsurf.push_back(form);
   seq++;
 }
 
@@ -197,41 +197,41 @@ void WeakForm::get_stages(Space** spaces, std::vector<WeakForm::Stage>& stages, 
   if (!rhsonly)
   {
 
-    // process volume jacforms
-    for (i = 0; i < jfvol.size(); i++)
+    // process volume matrix_forms
+    for (i = 0; i < mfvol.size(); i++)
     {
-      int ii = jfvol[i].i, jj = jfvol[i].j;
+      int ii = mfvol[i].i, jj = mfvol[i].j;
       Mesh* m1 = spaces[ii]->get_mesh();
       Mesh* m2 = spaces[jj]->get_mesh();
-      Stage* s = find_stage(stages, ii, jj, m1, m2, jfvol[i].ext);
-      s->jfvol.push_back(&jfvol[i]);
+      Stage* s = find_stage(stages, ii, jj, m1, m2, mfvol[i].ext);
+      s->mfvol.push_back(&mfvol[i]);
     }
 
-    // process surface jacforms
-    for (i = 0; i < jfsurf.size(); i++)
+    // process surface matrix_forms
+    for (i = 0; i < mfsurf.size(); i++)
     {
-      int ii = jfsurf[i].i, jj = jfsurf[i].j;
+      int ii = mfsurf[i].i, jj = mfsurf[i].j;
       Mesh* m1 = spaces[ii]->get_mesh();
       Mesh* m2 = spaces[jj]->get_mesh();
-      Stage* s = find_stage(stages, ii, jj, m1, m2, jfsurf[i].ext);
-      s->jfsurf.push_back(&jfsurf[i]);
+      Stage* s = find_stage(stages, ii, jj, m1, m2, mfsurf[i].ext);
+      s->mfsurf.push_back(&mfsurf[i]);
     }
   }
 
   // process volume res forms
-  for (unsigned i = 0; i < rfvol.size(); i++) {
-    int ii = rfvol[i].i;
+  for (unsigned i = 0; i < vfvol.size(); i++) {
+    int ii = vfvol[i].i;
     Mesh *m = spaces[ii]->get_mesh();
-    Stage *s = find_stage(stages, ii, ii, m, m, rfvol[i].ext);
-    s->rfvol.push_back(&rfvol[i]);
+    Stage *s = find_stage(stages, ii, ii, m, m, vfvol[i].ext);
+    s->vfvol.push_back(&vfvol[i]);
   }
 
   // process surface res forms
-  for (unsigned i = 0; i < rfsurf.size(); i++) {
-    int ii = rfsurf[i].i;
+  for (unsigned i = 0; i < vfsurf.size(); i++) {
+    int ii = vfsurf[i].i;
     Mesh *m = spaces[ii]->get_mesh();
-    Stage *s = find_stage(stages, ii, ii, m, m, rfsurf[i].ext);
-    s->rfsurf.push_back(&rfsurf[i]);
+    Stage *s = find_stage(stages, ii, ii, m, m, vfsurf[i].ext);
+    s->vfsurf.push_back(&vfsurf[i]);
   }
 
   // helper macro for iterating in a set
@@ -309,14 +309,14 @@ bool** WeakForm::get_blocks()
     for (int j = 0; j < neq; j++)
       blocks[i][j] = false;
 
-  for (unsigned i = 0; i < jfvol.size(); i++) {
-    blocks[jfvol[i].i][jfvol[i].j] = true;
-    if (jfvol[i].sym)
-      blocks[jfvol[i].j][jfvol[i].i] = true;
+  for (unsigned i = 0; i < mfvol.size(); i++) {
+    blocks[mfvol[i].i][mfvol[i].j] = true;
+    if (mfvol[i].sym)
+      blocks[mfvol[i].j][mfvol[i].i] = true;
   }
 
-  for (unsigned i = 0; i < jfsurf.size(); i++)
-    blocks[jfsurf[i].i][jfsurf[i].j] = true;
+  for (unsigned i = 0; i < mfsurf.size(); i++)
+    blocks[mfsurf[i].i][mfsurf[i].j] = true;
 
   return blocks;
 }

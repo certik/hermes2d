@@ -244,7 +244,7 @@ void FeProblem::assemble(const Vector *x, Vector *rhs, _Matrix *jac)
 
   // Loop through all assembling stages -- the purpose of this is increased performance
   // in multi-mesh calculations, where, e.g., only the right hand side uses two meshes.
-  // In such a case, the bilinear forms are assembled over one mesh, and only the rhs
+  // In such a case, the matrix forms are assembled over one mesh, and only the rhs
   // traverses through the union mesh. On the other hand, if you don't use multi-mesh
   // at all, there will always be only one stage in which all forms are assembled as usual.
   Traverse trav;
@@ -289,20 +289,20 @@ void FeProblem::assemble(const Vector *x, Vector *rhs, _Matrix *jac)
       marker = e0->marker;
 
       init_cache();
-      //// assemble volume bilinear forms //////////////////////////////////////
+      //// assemble volume matrix forms //////////////////////////////////////
       if (jac != NULL)
       {
-        for (unsigned ww = 0; ww < s->jfvol.size(); ww++)
+        for (unsigned ww = 0; ww < s->mfvol.size(); ww++)
         {
-          WeakForm::JacFormVol* bfv = s->jfvol[ww];
-          if (isempty[bfv->i] || isempty[bfv->j]) continue;
-          if (bfv->area != H2D_ANY && !wf->is_in_area(marker, bfv->area)) continue;
-          m = bfv->i;  fv = spss[m];  am = &al[m];
-          n = bfv->j;  fu = pss[n];   an = &al[n];
-          bool tra = (m != n) && (bfv->sym != 0);
-          bool sym = (m == n) && (bfv->sym == 1);
+          WeakForm::MatrixFormVol* mfv = s->mfvol[ww];
+          if (isempty[mfv->i] || isempty[mfv->j]) continue;
+          if (mfv->area != H2D_ANY && !wf->is_in_area(marker, mfv->area)) continue;
+          m = mfv->i;  fv = spss[m];  am = &al[m];
+          n = mfv->j;  fu = pss[n];   an = &al[n];
+          bool tra = (m != n) && (mfv->sym != 0);
+          bool sym = (m == n) && (mfv->sym == 1);
 
-          // assemble the local stiffness matrix for the form bfv
+          // assemble the local stiffness matrix for the form mfv
           scalar bi, **mat = get_matrix_buffer(std::max(am->cnt, an->cnt));
           for (int i = 0; i < am->cnt; i++)
           {
@@ -313,7 +313,7 @@ void FeProblem::assemble(const Vector *x, Vector *rhs, _Matrix *jac)
             {
               for (int j = 0; j < an->cnt; j++) {
                 fu->set_active_shape(an->idx[j]);
-                bi = eval_form(bfv, slns, fu, fv, refmap+n, refmap+m) * an->coef[j] * am->coef[i];
+                bi = eval_form(mfv, slns, fu, fv, refmap+n, refmap+m) * an->coef[j] * am->coef[i];
                 if (an->dof[j] >= 0) mat[i][j] = bi;
               }
             }
@@ -322,7 +322,7 @@ void FeProblem::assemble(const Vector *x, Vector *rhs, _Matrix *jac)
               for (int j = 0; j < an->cnt; j++) {
                 if (j < i && an->dof[j] >= 0) continue;
                 fu->set_active_shape(an->idx[j]);
-                bi = eval_form(bfv, slns, fu, fv, refmap+n, refmap+m) * an->coef[j] * am->coef[i];
+                bi = eval_form(mfv, slns, fu, fv, refmap+n, refmap+m) * an->coef[j] * am->coef[i];
                 if (an->dof[j] >= 0) mat[i][j] = mat[j][i] = bi;
               }
             }
@@ -333,7 +333,7 @@ void FeProblem::assemble(const Vector *x, Vector *rhs, _Matrix *jac)
           // insert also the off-diagonal (anti-)symmetric block, if required
           if (tra)
           {
-            if (bfv->sym < 0) chsgn(mat, am->cnt, an->cnt);
+            if (mfv->sym < 0) chsgn(mat, am->cnt, an->cnt);
             transpose(mat, am->cnt, an->cnt);
             jac->add(am->cnt, an->cnt, mat, am->dof, an->dof);
           }
@@ -343,18 +343,18 @@ void FeProblem::assemble(const Vector *x, Vector *rhs, _Matrix *jac)
       //// assemble volume linear forms ////////////////////////////////////////
       if (rhs != NULL)
       {
-        for (unsigned int ww = 0; ww < s->rfvol.size(); ww++)
+        for (unsigned int ww = 0; ww < s->vfvol.size(); ww++)
         {
-          WeakForm::ResFormVol* lfv = s->rfvol[ww];
-          if (isempty[lfv->i]) continue;
-          if (lfv->area != H2D_ANY && !wf->is_in_area(marker, lfv->area)) continue;
-          m = lfv->i;  fv = spss[m];  am = &al[m];
+          WeakForm::VectorFormVol* vfv = s->vfvol[ww];
+          if (isempty[vfv->i]) continue;
+          if (vfv->area != H2D_ANY && !wf->is_in_area(marker, vfv->area)) continue;
+          m = vfv->i;  fv = spss[m];  am = &al[m];
 
           for (int i = 0; i < am->cnt; i++)
           {
             if (am->dof[i] < 0) continue;
             fv->set_active_shape(am->idx[i]);
-            rhs->add(am->dof[i], eval_form(lfv, slns, fv, refmap + m) * am->coef[i]);
+            rhs->add(am->dof[i], eval_form(vfv, slns, fv, refmap + m) * am->coef[i]);
           }
         }
       }
@@ -373,16 +373,16 @@ void FeProblem::assemble(const Vector *x, Vector *rhs, _Matrix *jac)
             spaces[j]->get_edge_assembly_list(e[i], edge, al + j);
         }
 
-        // assemble surface bilinear forms ///////////////////////////////////
+        // assemble surface matrix forms ///////////////////////////////////
         if (jac != NULL)
         {
-          for (unsigned int ww = 0; ww < s->jfsurf.size(); ww++)
+          for (unsigned int ww = 0; ww < s->mfsurf.size(); ww++)
           {
-            WeakForm::JacFormSurf* bfs = s->jfsurf[ww];
-            if (isempty[bfs->i] || isempty[bfs->j]) continue;
-            if (bfs->area != H2D_ANY && !wf->is_in_area(marker, bfs->area)) continue;
-            m = bfs->i;  fv = spss[m];  am = &al[m];
-            n = bfs->j;  fu = pss[n];   an = &al[n];
+            WeakForm::MatrixFormSurf* mfs = s->mfsurf[ww];
+            if (isempty[mfs->i] || isempty[mfs->j]) continue;
+            if (mfs->area != H2D_ANY && !wf->is_in_area(marker, mfs->area)) continue;
+            m = mfs->i;  fv = spss[m];  am = &al[m];
+            n = mfs->j;  fu = pss[n];   an = &al[n];
 
             if (!nat[m] || !nat[n]) continue;
             ep[edge].base = trav.get_base();
@@ -397,7 +397,7 @@ void FeProblem::assemble(const Vector *x, Vector *rhs, _Matrix *jac)
               for (int j = 0; j < an->cnt; j++)
               {
                 fu->set_active_shape(an->idx[j]);
-                bi = eval_form(bfs, slns, fu, fv, refmap+n, refmap+m, ep+edge) * an->coef[j] * am->coef[i];
+                bi = eval_form(mfs, slns, fu, fv, refmap+n, refmap+m, ep+edge) * an->coef[j] * am->coef[i];
                 if (an->dof[j] >= 0) mat[i][j] = bi;
               }
             }
@@ -407,12 +407,12 @@ void FeProblem::assemble(const Vector *x, Vector *rhs, _Matrix *jac)
         // assemble surface linear forms /////////////////////////////////////
         if (rhs != NULL)
         {
-          for (unsigned ww = 0; ww < s->rfsurf.size(); ww++)
+          for (unsigned ww = 0; ww < s->vfsurf.size(); ww++)
           {
-            WeakForm::ResFormSurf* lfs = s->rfsurf[ww];
-            if (isempty[lfs->i]) continue;
-            if (lfs->area != H2D_ANY && !wf->is_in_area(marker, lfs->area)) continue;
-            m = lfs->i;  fv = spss[m];  am = &al[m];
+            WeakForm::VectorFormSurf* vfs = s->vfsurf[ww];
+            if (isempty[vfs->i]) continue;
+            if (vfs->area != H2D_ANY && !wf->is_in_area(marker, vfs->area)) continue;
+            m = vfs->i;  fv = spss[m];  am = &al[m];
 
             if (!nat[m]) continue;
             ep[edge].base = trav.get_base();
@@ -422,7 +422,7 @@ void FeProblem::assemble(const Vector *x, Vector *rhs, _Matrix *jac)
             {
               if (am->dof[i] < 0) continue;
               fv->set_active_shape(am->idx[i]);
-              rhs->add(am->dof[i], eval_form(lfs, slns, fv, refmap+m, ep+edge) * am->coef[i]);
+              rhs->add(am->dof[i], eval_form(vfs, slns, fv, refmap+m, ep+edge) * am->coef[i]);
             }
           }
         }
@@ -513,8 +513,8 @@ void FeProblem::delete_cache()
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// Actual evaluation of volume bilinear form (calculates integral)
-scalar FeProblem::eval_form(WeakForm::JacFormVol *bf, Solution *sln[], PrecalcShapeset *fu, PrecalcShapeset *fv, RefMap *ru, RefMap *rv)
+// Actual evaluation of volume matrix form (calculates integral)
+scalar FeProblem::eval_form(WeakForm::MatrixFormVol *mfv, Solution *sln[], PrecalcShapeset *fu, PrecalcShapeset *fv, RefMap *ru, RefMap *rv)
 {
   // determine the integration order
   int inc = (fu->get_num_components() == 2) ? 1 : 0;
@@ -522,11 +522,11 @@ scalar FeProblem::eval_form(WeakForm::JacFormVol *bf, Solution *sln[], PrecalcSh
   for (int i = 0; i < wf->neq; i++) oi[i] = init_fn_ord(sln[i]->get_fn_order() + inc);
   Func<Ord>* ou = init_fn_ord(fu->get_fn_order() + inc);
   Func<Ord>* ov = init_fn_ord(fv->get_fn_order() + inc);
-  ExtData<Ord>* fake_ext = init_ext_fns_ord(bf->ext);
+  ExtData<Ord>* fake_ext = init_ext_fns_ord(mfv->ext);
 
   double fake_wt = 1.0;
   Geom<Ord>* fake_e = init_geom_ord();
-  Ord o = bf->ord(1, &fake_wt, oi, ou, ov, fake_e, fake_ext);
+  Ord o = mfv->ord(1, &fake_wt, oi, ou, ov, fake_e, fake_ext);
   int order = ru->get_inv_ref_order();
   order += o.get_order();
   limit_order_nowarn(order);
@@ -559,9 +559,9 @@ scalar FeProblem::eval_form(WeakForm::JacFormVol *bf, Solution *sln[], PrecalcSh
   for (int i = 0; i < wf->neq; i++) prev[i]  = init_fn(sln[i], rv, order);
   Func<double>* u = get_fn(fu, ru, order);
   Func<double>* v = get_fn(fv, rv, order);
-  ExtData<scalar>* ext = init_ext_fns(bf->ext, rv, order);
+  ExtData<scalar>* ext = init_ext_fns(mfv->ext, rv, order);
 
-  scalar res = bf->fn(np, jwt, prev, u, v, e, ext);
+  scalar res = mfv->fn(np, jwt, prev, u, v, e, ext);
 
   for (int i = 0; i < wf->neq; i++) {  prev[i]->free_fn(); delete prev[i]; }
   ext->free(); delete ext;
@@ -570,18 +570,18 @@ scalar FeProblem::eval_form(WeakForm::JacFormVol *bf, Solution *sln[], PrecalcSh
 
 
 // Actual evaluation of volume linear form (calculates integral)
-scalar FeProblem::eval_form(WeakForm::ResFormVol *lf, Solution *sln[], PrecalcShapeset *fv, RefMap *rv)
+scalar FeProblem::eval_form(WeakForm::VectorFormVol *vfv, Solution *sln[], PrecalcShapeset *fv, RefMap *rv)
 {
   // determine the integration order
   int inc = (fv->get_num_components() == 2) ? 1 : 0;
   AUTOLA_OR(Func<Ord>*, oi, wf->neq);
   for (int i = 0; i < wf->neq; i++) oi[i] = init_fn_ord(sln[i]->get_fn_order() + inc);
   Func<Ord>* ov = init_fn_ord(fv->get_fn_order() + inc);
-  ExtData<Ord>* fake_ext = init_ext_fns_ord(lf->ext);
+  ExtData<Ord>* fake_ext = init_ext_fns_ord(vfv->ext);
 
   double fake_wt = 1.0;
   Geom<Ord>* fake_e = init_geom_ord();
-  Ord o = lf->ord(1, &fake_wt, oi, ov, fake_e, fake_ext);
+  Ord o = vfv->ord(1, &fake_wt, oi, ov, fake_e, fake_ext);
   int order = rv->get_inv_ref_order();
   order += o.get_order();
   limit_order_nowarn(order);
@@ -612,9 +612,9 @@ scalar FeProblem::eval_form(WeakForm::ResFormVol *lf, Solution *sln[], PrecalcSh
   AUTOLA_OR(Func<scalar>*, prev, wf->neq);
   for (int i = 0; i < wf->neq; i++) prev[i]  = init_fn(sln[i], rv, order);
   Func<double>* v = get_fn(fv, rv, order);
-  ExtData<scalar>* ext = init_ext_fns(lf->ext, rv, order);
+  ExtData<scalar>* ext = init_ext_fns(vfv->ext, rv, order);
 
-  scalar res = lf->fn(np, jwt, prev, v, e, ext);
+  scalar res = vfv->fn(np, jwt, prev, v, e, ext);
 
   for (int i = 0; i < wf->neq; i++) {  prev[i]->free_fn(); delete prev[i]; }
   ext->free(); delete ext;
@@ -623,8 +623,8 @@ scalar FeProblem::eval_form(WeakForm::ResFormVol *lf, Solution *sln[], PrecalcSh
 }
 
 
-// Actual evaluation of surface bilinear form (calculates integral)
-scalar FeProblem::eval_form(WeakForm::JacFormSurf *bf, Solution *sln[], PrecalcShapeset *fu, PrecalcShapeset *fv, RefMap *ru, RefMap *rv, EdgePos* ep)
+// Actual evaluation of surface matrix form (calculates integral)
+scalar FeProblem::eval_form(WeakForm::MatrixFormSurf *mfs, Solution *sln[], PrecalcShapeset *fu, PrecalcShapeset *fv, RefMap *ru, RefMap *rv, EdgePos* ep)
 {
   // eval the form
   Quad2D* quad = fu->get_quad_2d();
@@ -649,9 +649,9 @@ scalar FeProblem::eval_form(WeakForm::JacFormSurf *bf, Solution *sln[], PrecalcS
   for (int i = 0; i < wf->neq; i++) prev[i]  = init_fn(sln[i], rv, eo);
   Func<double>* u = get_fn(fu, ru, eo);
   Func<double>* v = get_fn(fv, rv, eo);
-  ExtData<scalar>* ext = init_ext_fns(bf->ext, rv, eo);
+  ExtData<scalar>* ext = init_ext_fns(mfs->ext, rv, eo);
 
-  scalar res = bf->fn(np, jwt, prev, u, v, e, ext);
+  scalar res = mfs->fn(np, jwt, prev, u, v, e, ext);
 
   for (int i = 0; i < wf->neq; i++) {  prev[i]->free_fn(); delete prev[i]; }
   ext->free(); delete ext;
@@ -660,7 +660,7 @@ scalar FeProblem::eval_form(WeakForm::JacFormSurf *bf, Solution *sln[], PrecalcS
 
 
 // Actual evaluation of surface linear form (calculates integral)
-scalar FeProblem::eval_form(WeakForm::ResFormSurf *lf, Solution *sln[], PrecalcShapeset *fv, RefMap *rv, EdgePos* ep)
+scalar FeProblem::eval_form(WeakForm::VectorFormSurf *vfs, Solution *sln[], PrecalcShapeset *fv, RefMap *rv, EdgePos* ep)
 {
   // eval the form
   Quad2D* quad = fv->get_quad_2d();
@@ -684,9 +684,9 @@ scalar FeProblem::eval_form(WeakForm::ResFormSurf *lf, Solution *sln[], PrecalcS
   AUTOLA_OR(Func<scalar>*, prev, wf->neq);
   for (int i = 0; i < wf->neq; i++) prev[i]  = init_fn(sln[i], rv, eo);
   Func<double>* v = get_fn(fv, rv, eo);
-  ExtData<scalar>* ext = init_ext_fns(lf->ext, rv, eo);
+  ExtData<scalar>* ext = init_ext_fns(vfs->ext, rv, eo);
 
-  scalar res = lf->fn(np, jwt, prev, v, e, ext);
+  scalar res = vfs->fn(np, jwt, prev, v, e, ext);
 
   for (int i = 0; i < wf->neq; i++) {  prev[i]->free_fn(); delete prev[i]; }
   ext->free(); delete ext;
