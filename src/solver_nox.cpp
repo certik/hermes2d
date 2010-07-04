@@ -115,7 +115,7 @@ bool NoxProblemInterface::computeF(const Epetra_Vector &x, Epetra_Vector &f, Fil
 	EpetraVector rhs(f);
 
 	rhs.zero();
-	fep.assemble(&xx, &rhs, NULL);
+	fep.assemble(&rhs, NULL, &xx);
 	return true;
 }
 
@@ -128,7 +128,7 @@ bool NoxProblemInterface::computeJacobian(const Epetra_Vector &x, Epetra_Operato
 	EpetraMatrix jacobian(*jac);
 
 	jacobian.zero();
-	fep.assemble(&xx, NULL, &jacobian);
+	fep.assemble(NULL, &jacobian, &xx);
 	jacobian.finish();
 
 	return true;
@@ -143,7 +143,7 @@ bool NoxProblemInterface::computePreconditioner(const Epetra_Vector &x, Epetra_O
 	EpetraVector xx(x);			// wrap our structures around core Epetra objects
 
 	jacobian.zero();
-	fep.assemble(&xx, NULL, &jacobian);
+	fep.assemble(NULL, &jacobian, &xx);
 	jacobian.finish();
 
 	precond->create(&jacobian);

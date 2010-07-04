@@ -29,8 +29,6 @@ FeProblem::FeProblem(WeakForm* wf)
   this->wf = wf;
 
   spaces = new Space*[wf->neq];
-  slns = new Solution *[wf->neq];
-  memset(slns, 0, wf->neq * sizeof(Solution *));
   sp_seq = new int[wf->neq];
   memset(sp_seq, -1, sizeof(int) * wf->neq);
   wf_seq = -1;
@@ -50,10 +48,9 @@ FeProblem::FeProblem(WeakForm* wf)
 FeProblem::~FeProblem()
 {
   free();
-  delete [] spaces;
-  delete [] slns;
-  delete [] sp_seq;
-  delete [] pss;
+  if (spaces != NULL) delete [] spaces;
+  if (sp_seq != NULL) delete [] sp_seq;
+  if (pss != NULL) delete [] pss;
 }
 
 
@@ -101,11 +98,11 @@ int FeProblem::get_num_dofs()
 {
   if (!is_up_to_date())
   {
-    ndofs = 0;
+    ndof = 0;
     for (int i = 0; i < wf->neq; i++)
-      ndofs += spaces[i]->get_num_dofs();
+      ndof += spaces[i]->get_num_dofs();
   }
-  return ndofs;
+  return ndof;
 }
 
 //// matrix structure precalculation ///////////////////////////////////////////////////////////////
@@ -140,8 +137,8 @@ void FeProblem::create(SparseMatrix* mat)
   // spaces have changed: create the matrix from scratch
   mat->free();
 
-  int ndofs = get_num_dofs();
-  mat->prealloc(ndofs);
+  int ndof = get_num_dofs();
+  mat->prealloc(ndof);
 
   AUTOLA_CL(AsmList, al, wf->neq);
   AUTOLA_OR(Mesh*, meshes, wf->neq);
@@ -198,9 +195,53 @@ void FeProblem::create(SparseMatrix* mat)
 
 //// assembly //////////////////////////////////////////////////////////////////////////////////////
 
-void FeProblem::assemble(const Vector *x, Vector *rhs, _Matrix *jac)
+void FeProblem::assemble(Vector *rhs, _Matrix *jac, Vector *x)
 {
+        // Sanity checks.
+	if (x->length() != this->ndof) error("Wrong vector length in assemble().");
+	if (!have_spaces) error("You have to call set_spaces() before calling assemble().");
+        for (int i=0; i<this->wf->neq; i++) {
+          if (this->spaces[i] == NULL) error("A space is NULL in assemble().");
+        }
+ 
+        // Extract values from the vector 'x'.
+	scalar *vv;
+        if (x != NULL) {
+          vv = new scalar[this->ndof]; // FIXME: Add memory check as in H3D, MEM_CHECK(vv);
+	  memset(vv, 0, this->ndof * sizeof(scalar));
+	  x->extract(vv);
+        }
+
+        // Convert the coefficient vector 'x' into solutions Tuple 'u_ext'.
+        Tuple<Solution*> u_ext;
+	for (int i = 0; i < this->wf->neq; i++) {
+	  if (x != NULL) {
+            u_ext.push_back(new Solution(this->spaces[i]->get_mesh()));
+	    u_ext[i]->set_fe_solution(this->spaces[i], this->pss[i], vv);
+          }
+          else u_ext.push_back(NULL);
+	}
+	if (x != NULL) delete [] vv;
+
+        // Perform assembling.
+        this->assemble(rhs, jac, u_ext);
+
+        // Delete temporary solutions.
+	for (int i = 0; i < wf->neq; i++) {
+	  if (u_ext[i] != NULL) {
+            delete u_ext[i];
+	    u_ext[i] = NULL;
+          }
+	}
+}
+
+void FeProblem::assemble(Vector *rhs, _Matrix *jac, Tuple<Solution*> u_ext)
+{
+  // Sanity checks.
   if (!have_spaces) error("You have to call set_spaces() before calling assemble().");
+  for (int i=0; i<this->wf->neq; i++) {
+    if (this->spaces[i] == NULL) error("A space is NULL in assemble().");
+  }
 
   int k, m, n, marker;
   AUTOLA_CL(AsmList, al, wf->neq);
@@ -210,16 +251,6 @@ void FeProblem::assemble(const Vector *x, Vector *rhs, _Matrix *jac)
   AUTOLA_OR(bool, isempty, wf->neq);
   EdgePos ep[4];
   reset_warn_order();
-
-  scalar *vv = new scalar[ndofs];
-  memset(vv, 0, ndofs * sizeof(scalar));
-  x->extract(vv);
-  for (int i = 0; i < wf->neq; i++)
-  {
-    slns[i] = new Solution;
-    slns[i]->set_fe_solution(spaces[i], pss[i], vv);
-  }
-  delete [] vv;
 
   // create slave pss's for test functions, init quadrature points
   AUTOLA_OR(PrecalcShapeset*, spss, wf->neq);
@@ -283,8 +314,8 @@ void FeProblem::assemble(const Vector *x, Vector *rhs, _Matrix *jac)
         refmap[j].set_active_element(e[i]);
         refmap[j].force_transform(pss[j]->get_transform(), pss[j]->get_ctm());
 
-        slns[j]->set_active_element(e[i]);
-        slns[j]->force_transform(pss[j]->get_transform(), pss[j]->get_ctm());
+        u_ext[j]->set_active_element(e[i]);
+        u_ext[j]->force_transform(pss[j]->get_transform(), pss[j]->get_ctm());
       }
       marker = e0->marker;
 
@@ -313,7 +344,7 @@ void FeProblem::assemble(const Vector *x, Vector *rhs, _Matrix *jac)
             {
               for (int j = 0; j < an->cnt; j++) {
                 fu->set_active_shape(an->idx[j]);
-                bi = eval_form(mfv, slns, fu, fv, refmap+n, refmap+m) * an->coef[j] * am->coef[i];
+                bi = eval_form(mfv, u_ext, fu, fv, refmap+n, refmap+m) * an->coef[j] * am->coef[i];
                 if (an->dof[j] >= 0) mat[i][j] = bi;
               }
             }
@@ -322,7 +353,7 @@ void FeProblem::assemble(const Vector *x, Vector *rhs, _Matrix *jac)
               for (int j = 0; j < an->cnt; j++) {
                 if (j < i && an->dof[j] >= 0) continue;
                 fu->set_active_shape(an->idx[j]);
-                bi = eval_form(mfv, slns, fu, fv, refmap+n, refmap+m) * an->coef[j] * am->coef[i];
+                bi = eval_form(mfv, u_ext, fu, fv, refmap+n, refmap+m) * an->coef[j] * am->coef[i];
                 if (an->dof[j] >= 0) mat[i][j] = mat[j][i] = bi;
               }
             }
@@ -354,7 +385,7 @@ void FeProblem::assemble(const Vector *x, Vector *rhs, _Matrix *jac)
           {
             if (am->dof[i] < 0) continue;
             fv->set_active_shape(am->idx[i]);
-            rhs->add(am->dof[i], eval_form(vfv, slns, fv, refmap + m) * am->coef[i]);
+            rhs->add(am->dof[i], eval_form(vfv, u_ext, fv, refmap + m) * am->coef[i]);
           }
         }
       }
@@ -397,7 +428,7 @@ void FeProblem::assemble(const Vector *x, Vector *rhs, _Matrix *jac)
               for (int j = 0; j < an->cnt; j++)
               {
                 fu->set_active_shape(an->idx[j]);
-                bi = eval_form(mfs, slns, fu, fv, refmap+n, refmap+m, ep+edge) * an->coef[j] * am->coef[i];
+                bi = eval_form(mfs, u_ext, fu, fv, refmap+n, refmap+m, ep+edge) * an->coef[j] * am->coef[i];
                 if (an->dof[j] >= 0) mat[i][j] = bi;
               }
             }
@@ -422,7 +453,7 @@ void FeProblem::assemble(const Vector *x, Vector *rhs, _Matrix *jac)
             {
               if (am->dof[i] < 0) continue;
               fv->set_active_shape(am->idx[i]);
-              rhs->add(am->dof[i], eval_form(vfs, slns, fv, refmap+m, ep+edge) * am->coef[i]);
+              rhs->add(am->dof[i], eval_form(vfs, u_ext, fv, refmap+m, ep+edge) * am->coef[i]);
             }
           }
         }
@@ -430,12 +461,6 @@ void FeProblem::assemble(const Vector *x, Vector *rhs, _Matrix *jac)
       delete_cache();
     }
     trav.finish();
-  }
-
-  for (int i = 0; i < wf->neq; i++)
-  {
-    delete slns[i];
-    slns[i] = NULL;
   }
 
   for (int i = 0; i < wf->neq; i++) delete spss[i];
@@ -514,12 +539,12 @@ void FeProblem::delete_cache()
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // Actual evaluation of volume matrix form (calculates integral)
-scalar FeProblem::eval_form(WeakForm::MatrixFormVol *mfv, Solution *sln[], PrecalcShapeset *fu, PrecalcShapeset *fv, RefMap *ru, RefMap *rv)
+scalar FeProblem::eval_form(WeakForm::MatrixFormVol *mfv, Tuple<Solution *> u_ext, PrecalcShapeset *fu, PrecalcShapeset *fv, RefMap *ru, RefMap *rv)
 {
   // determine the integration order
   int inc = (fu->get_num_components() == 2) ? 1 : 0;
   AUTOLA_OR(Func<Ord>*, oi, wf->neq);
-  for (int i = 0; i < wf->neq; i++) oi[i] = init_fn_ord(sln[i]->get_fn_order() + inc);
+  for (int i = 0; i < wf->neq; i++) oi[i] = init_fn_ord(u_ext[i]->get_fn_order() + inc);
   Func<Ord>* ou = init_fn_ord(fu->get_fn_order() + inc);
   Func<Ord>* ov = init_fn_ord(fv->get_fn_order() + inc);
   ExtData<Ord>* fake_ext = init_ext_fns_ord(mfv->ext);
@@ -556,7 +581,7 @@ scalar FeProblem::eval_form(WeakForm::MatrixFormVol *mfv, Solution *sln[], Preca
 
   // function values and values of external functions
   AUTOLA_OR(Func<scalar>*, prev, wf->neq);
-  for (int i = 0; i < wf->neq; i++) prev[i]  = init_fn(sln[i], rv, order);
+  for (int i = 0; i < wf->neq; i++) prev[i]  = init_fn(u_ext[i], rv, order);
   Func<double>* u = get_fn(fu, ru, order);
   Func<double>* v = get_fn(fv, rv, order);
   ExtData<scalar>* ext = init_ext_fns(mfv->ext, rv, order);
@@ -570,12 +595,12 @@ scalar FeProblem::eval_form(WeakForm::MatrixFormVol *mfv, Solution *sln[], Preca
 
 
 // Actual evaluation of volume linear form (calculates integral)
-scalar FeProblem::eval_form(WeakForm::VectorFormVol *vfv, Solution *sln[], PrecalcShapeset *fv, RefMap *rv)
+scalar FeProblem::eval_form(WeakForm::VectorFormVol *vfv, Tuple<Solution *> u_ext, PrecalcShapeset *fv, RefMap *rv)
 {
   // determine the integration order
   int inc = (fv->get_num_components() == 2) ? 1 : 0;
   AUTOLA_OR(Func<Ord>*, oi, wf->neq);
-  for (int i = 0; i < wf->neq; i++) oi[i] = init_fn_ord(sln[i]->get_fn_order() + inc);
+  for (int i = 0; i < wf->neq; i++) oi[i] = init_fn_ord(u_ext[i]->get_fn_order() + inc);
   Func<Ord>* ov = init_fn_ord(fv->get_fn_order() + inc);
   ExtData<Ord>* fake_ext = init_ext_fns_ord(vfv->ext);
 
@@ -610,7 +635,7 @@ scalar FeProblem::eval_form(WeakForm::VectorFormVol *vfv, Solution *sln[], Preca
 
   // function values and values of external functions
   AUTOLA_OR(Func<scalar>*, prev, wf->neq);
-  for (int i = 0; i < wf->neq; i++) prev[i]  = init_fn(sln[i], rv, order);
+  for (int i = 0; i < wf->neq; i++) prev[i]  = init_fn(u_ext[i], rv, order);
   Func<double>* v = get_fn(fv, rv, order);
   ExtData<scalar>* ext = init_ext_fns(vfv->ext, rv, order);
 
@@ -624,7 +649,7 @@ scalar FeProblem::eval_form(WeakForm::VectorFormVol *vfv, Solution *sln[], Preca
 
 
 // Actual evaluation of surface matrix form (calculates integral)
-scalar FeProblem::eval_form(WeakForm::MatrixFormSurf *mfs, Solution *sln[], PrecalcShapeset *fu, PrecalcShapeset *fv, RefMap *ru, RefMap *rv, EdgePos* ep)
+scalar FeProblem::eval_form(WeakForm::MatrixFormSurf *mfs, Tuple<Solution *> u_ext, PrecalcShapeset *fu, PrecalcShapeset *fv, RefMap *ru, RefMap *rv, EdgePos* ep)
 {
   // eval the form
   Quad2D* quad = fu->get_quad_2d();
@@ -646,7 +671,7 @@ scalar FeProblem::eval_form(WeakForm::MatrixFormSurf *mfs, Solution *sln[], Prec
 
   // function values and values of external functions
   AUTOLA_OR(Func<scalar>*, prev, wf->neq);
-  for (int i = 0; i < wf->neq; i++) prev[i]  = init_fn(sln[i], rv, eo);
+  for (int i = 0; i < wf->neq; i++) prev[i]  = init_fn(u_ext[i], rv, eo);
   Func<double>* u = get_fn(fu, ru, eo);
   Func<double>* v = get_fn(fv, rv, eo);
   ExtData<scalar>* ext = init_ext_fns(mfs->ext, rv, eo);
@@ -660,7 +685,7 @@ scalar FeProblem::eval_form(WeakForm::MatrixFormSurf *mfs, Solution *sln[], Prec
 
 
 // Actual evaluation of surface linear form (calculates integral)
-scalar FeProblem::eval_form(WeakForm::VectorFormSurf *vfs, Solution *sln[], PrecalcShapeset *fv, RefMap *rv, EdgePos* ep)
+scalar FeProblem::eval_form(WeakForm::VectorFormSurf *vfs, Tuple<Solution *> u_ext, PrecalcShapeset *fv, RefMap *rv, EdgePos* ep)
 {
   // eval the form
   Quad2D* quad = fv->get_quad_2d();
@@ -682,7 +707,7 @@ scalar FeProblem::eval_form(WeakForm::VectorFormSurf *vfs, Solution *sln[], Prec
 
   // function values and values of external functions
   AUTOLA_OR(Func<scalar>*, prev, wf->neq);
-  for (int i = 0; i < wf->neq; i++) prev[i]  = init_fn(sln[i], rv, eo);
+  for (int i = 0; i < wf->neq; i++) prev[i]  = init_fn(u_ext[i], rv, eo);
   Func<double>* v = get_fn(fv, rv, eo);
   ExtData<scalar>* ext = init_ext_fns(vfs->ext, rv, eo);
 
@@ -773,9 +798,9 @@ scalar* Projection::project()
   Solution temp;
   ps.solve(0);
   const scalar* sln_vec = ps.get_solution_vector();
-  int ndofs = ps.get_num_dofs();
-  vec = new scalar[ndofs];
-  memcpy(vec, sln_vec, ndofs * sizeof(scalar));
+  int ndof = ps.get_num_dofs();
+  vec = new scalar[ndof];
+  memcpy(vec, sln_vec, ndof * sizeof(scalar));
   return vec;
   */
 

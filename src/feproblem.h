@@ -46,7 +46,9 @@ public:
   PrecalcShapeset* get_pss(int n) {  return this->pss[n];  }
 
   void create(SparseMatrix *mat);
-  void assemble(const Vector *x, Vector *f, _Matrix *jac);
+  // OLD void assemble(const Vector *x, Vector *f, _Matrix *jac);
+  void assemble(Vector* rhs, _Matrix* jac, Vector* x = NULL);
+  void assemble(Vector* rhs, _Matrix* jac, Tuple<Solution*> u_ext =  Tuple<Solution*> ());
 
   int get_num_dofs();
   bool is_matrix_free() { return wf->is_matrix_free(); }
@@ -55,11 +57,10 @@ public:
 protected:
   WeakForm *wf;
 
-  int ndofs;
+  int ndof;
   int *sp_seq;
   int wf_seq;
   Space **spaces;
-  Solution **slns;
   PrecalcShapeset** pss;
 
   int num_user_pss;
@@ -132,10 +133,10 @@ protected:
   void init_cache();
   void delete_cache();
 
-  scalar eval_form(WeakForm::MatrixFormVol *mfv, Solution *sln[], PrecalcShapeset *fu, PrecalcShapeset *fv, RefMap *ru, RefMap *rv);
-  scalar eval_form(WeakForm::VectorFormVol *vfv, Solution *sln[], PrecalcShapeset *fv, RefMap *rv);
-  scalar eval_form(WeakForm::MatrixFormSurf *mfv, Solution *sln[], PrecalcShapeset *fu, PrecalcShapeset *fv, RefMap *ru, RefMap *rv, EdgePos* ep);
-  scalar eval_form(WeakForm::VectorFormSurf *vfv, Solution *sln[], PrecalcShapeset *fv, RefMap *rv, EdgePos* ep);
+  scalar eval_form(WeakForm::MatrixFormVol *mfv, Tuple<Solution *> u_ext, PrecalcShapeset *fu, PrecalcShapeset *fv, RefMap *ru, RefMap *rv);
+  scalar eval_form(WeakForm::VectorFormVol *vfv, Tuple<Solution *> u_ext, PrecalcShapeset *fv, RefMap *rv);
+  scalar eval_form(WeakForm::MatrixFormSurf *mfv, Tuple<Solution *> u_ext, PrecalcShapeset *fu, PrecalcShapeset *fv, RefMap *ru, RefMap *rv, EdgePos* ep);
+  scalar eval_form(WeakForm::VectorFormSurf *vfv, Tuple<Solution *> u_ext, PrecalcShapeset *fv, RefMap *rv, EdgePos* ep);
 
 };
 

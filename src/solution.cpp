@@ -30,6 +30,15 @@ MeshFunction::MeshFunction()
   element = NULL;
 }
 
+MeshFunction::MeshFunction(Mesh *mesh) :
+	ScalarFunction()
+{
+	this->mesh = mesh;
+	this->refmap = new RefMap;
+	// FIXME - this was in H3D: MEM_CHECK(this->refmap);
+	this->element = NULL;		// this comes with Transformable
+}
+
 MeshFunction::~MeshFunction()
 {
   delete refmap;
@@ -146,6 +155,41 @@ public:
 Solution::Solution()
         : MeshFunction()
 {
+  memset(tables, 0, sizeof(tables));
+  memset(elems,  0, sizeof(elems));
+  memset(oldest, 0, sizeof(oldest));
+  transform = true;
+  type = UNDEF;
+  own_mesh = false;
+  num_components = 0;
+  e_last = NULL;
+  exact_mult = 1.0;
+
+  mono_coefs = NULL;
+  elem_coefs[0] = elem_coefs[1] = NULL;
+  elem_orders = NULL;
+  dxdy_buffer = NULL;
+  num_coefs = num_elems = 0;
+  num_dofs = -1;
+
+  set_quad_2d(&g_quad_2d_std);
+}
+
+Solution::Solution(Mesh *mesh) : MeshFunction(mesh) 
+{
+
+  /* THIS IS IN H3D:
+	transform = true;
+	type = UNDEF;
+	num_components = 0;
+	mono_coefs = NULL;
+	elem_coefs[0] = elem_coefs[1] = NULL;
+	elem_orders = NULL;
+	dxdydz_buffer = NULL;
+	num_coefs = num_elems = 0;
+	num_dofs = -1;
+  */
+
   memset(tables, 0, sizeof(tables));
   memset(elems,  0, sizeof(elems));
   memset(oldest, 0, sizeof(oldest));

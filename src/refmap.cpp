@@ -34,6 +34,7 @@ RefMap::RefMap()
 }
 
 
+
 void RefMap::set_quad_2d(Quad2D* quad_2d)
 {
   free();

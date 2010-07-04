@@ -37,6 +37,7 @@ class H2D_API MeshFunction : public ScalarFunction
 public:
 
   MeshFunction();
+  MeshFunction(Mesh *mesh);
   virtual ~MeshFunction();
 
   virtual void init() {};
@@ -84,6 +85,7 @@ class H2D_API Solution : public MeshFunction
 {
 public:
 
+  Solution(Mesh *mesh);
   Solution();
   virtual ~Solution();
   virtual void free();
