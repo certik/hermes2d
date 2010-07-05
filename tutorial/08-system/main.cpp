@@ -60,12 +60,12 @@ int main(int argc, char* argv[])
   wf.add_vector_form_surf(1, callback(linear_form_surf_1), GAMMA_3_BDY);
 
   // Initialize the linear system.
-  LinSystem ls(&wf, Tuple<Space*>(&xdisp, &ydisp));
+  LinearProblem lp(&wf, Tuple<Space*>(&xdisp, &ydisp));
 
   // Assemble and solve the matrix problem.
   Solution xsln, ysln;
-  ls.assemble();
-  ls.solve(Tuple<Solution*>(&xsln, &ysln));
+  lp.assemble();
+  lp.solve(Tuple<Solution*>(&xsln, &ysln));
 
   // Visualize the solution.
   ScalarView view("Von Mises stress [Pa]", 0, 0, 800, 400);

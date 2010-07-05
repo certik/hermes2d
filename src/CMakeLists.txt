@@ -19,10 +19,10 @@ set(SRC
        adapt.cpp l2_adapt.cpp h1_adapt.cpp hcurl_adapt.cpp
 
        common.cpp 
-	   matrix_old.cpp hermes2d.cpp weakform.cpp linsystem.cpp
-       feproblem.cpp solver_nox.cpp solver_epetra.cpp solver_aztecoo.cpp
+	   matrix_old.cpp weakform.cpp discrete_problem.cpp
+       feproblem.cpp linear_problem.cpp solver_nox.cpp solver_epetra.cpp solver_aztecoo.cpp
        precond_ml.cpp precond_ifpack.cpp
-       refsystem.cpp nonlinsystem.cpp forms.cpp
+       ref_discrete_problem.cpp forms.cpp
        mesh_parser.cpp mesh_lexer.cpp
        exodusii.cpp h2d_reader.cpp
 

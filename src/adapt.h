@@ -69,7 +69,7 @@ H2D_API_USED_TEMPLATE(Tuple<Solution*>); ///< Instantiated template. It is used 
 class H2D_API Adapt
 {
 protected:
-  Adapt(LinSystem* ls); ///< Constructor. Used by children of the class.
+  Adapt(DiscreteProblem* ls); ///< Constructor. Used by children of the class.
 
 public:
   virtual ~Adapt(); ///< Destructor. Deallocates allocated private data.
@@ -195,7 +195,7 @@ protected: //object state
   bool have_solutions; ///< True if solutions were set.
 
 protected: // spaces & solutions
-  LinSystem* ls;                     ///< To store a pointer to LinSystem / NonlinSystem
+  DiscreteProblem* ls;                     ///< To store a pointer to DiscreteProblem / LinearProblem
   int num_comps;                     ///< Number of components, equal to ls->wf->neq;
   Space* spaces[H2D_MAX_COMPONENTS]; ///< Spaces. 
   Solution* sln[H2D_MAX_COMPONENTS]; ///< Coarse solution. 

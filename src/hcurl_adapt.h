@@ -28,7 +28,7 @@ class H2D_API HcurlAdapt : public Adapt {
 public:
   /// Constructor.
   /** \param[in] spaces An array of spaces. The number of spaces determines the number of components. For the best results, use instances of the class HcurlSpace. */
-  HcurlAdapt(LinSystem* ls);
+  HcurlAdapt(DiscreteProblem* ls);
 };
 
 #endif

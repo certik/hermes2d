@@ -44,10 +44,10 @@
 #include "trans.h"
 
 #include "weakform.h"
-#include "linsystem.h"
+#include "discrete_problem.h"
 #include "feproblem.h"
-#include "nonlinsystem.h"
-#include "refsystem.h"
+#include "linear_problem.h"
+#include "ref_discrete_problem.h"
 #include "forms.h"
 
 #include "itersolver.h"

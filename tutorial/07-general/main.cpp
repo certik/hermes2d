@@ -109,12 +109,12 @@ int main(int argc, char* argv[])
   OrderView  oview("Polynomial orders", 710, 0, 700, 600);
 
   // Initialize the linear system.
-  LinSystem ls(&wf, &space);
+  LinearProblem lp(&wf, &space);
 
   // Assemble and solve the matrix problem.
   Solution sln;
-  ls.assemble();
-  ls.solve(&sln);
+  lp.assemble();
+  lp.solve(&sln);
 
   // Time measurement.
   cpu_time.tick();

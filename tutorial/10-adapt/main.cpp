@@ -118,7 +118,7 @@ int main(int argc, char* argv[])
   H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
 
   // Initialize the linear system.
-  LinSystem ls(&wf, &space);
+  LinearProblem lp(&wf, &space);
 
   // Adaptivity loop:
   Solution sln_coarse, sln_fine;
@@ -129,20 +129,20 @@ int main(int argc, char* argv[])
 
     // Assemble and solve the fine mesh problem.
     info("Solving on fine mesh.");
-    RefSystem rs(&ls);
-    rs.assemble();
-    rs.solve(&sln_fine);    
+    RefLinearProblem rlp(&lp);
+    rlp.assemble();
+    rlp.solve(&sln_fine);    
 
     // Either solve on coarse mesh or project the fine mesh solution 
     // on the coarse mesh.
     if (SOLVE_ON_COARSE_MESH) {
       info("Solving on coarse mesh.");
-      ls.assemble();
-      ls.solve(&sln_coarse);
+      lp.assemble();
+      lp.solve(&sln_coarse);
     }
     else {
       info("Projecting fine mesh solution on coarse mesh.");
-      ls.project_global(&sln_fine, &sln_coarse);
+      lp.project_global(&sln_fine, &sln_coarse);
     }
 
     // Time measurement.
@@ -158,16 +158,16 @@ int main(int argc, char* argv[])
 
     // Calculate element errors and total error estimate.
     info("Calculating error.");
-    H1Adapt hp(&ls);
+    H1Adapt hp(&lp);
     hp.set_solutions(&sln_coarse, &sln_fine);
     double err_est = hp.calc_error() * 100;
 
     // Report results.
     info("ndof_coarse: %d, ndof_fine: %d, err_est: %g%%", 
-      ls.get_num_dofs(), rs.get_num_dofs(), err_est);
+      lp.get_num_dofs(), rlp.get_num_dofs(), err_est);
 
     // Add entry to DOF and CPU convergence graphs.
-    graph_dof.add_values(ls.get_num_dofs(), err_est);
+    graph_dof.add_values(lp.get_num_dofs(), err_est);
     graph_dof.save("conv_dof.dat");
     graph_cpu.add_values(cpu_time.accumulated(), err_est);
     graph_cpu.save("conv_cpu.dat");
@@ -178,7 +178,7 @@ int main(int argc, char* argv[])
       info("Adapting coarse mesh.");
       done = hp.adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY);
 
-      if (ls.get_num_dofs() >= NDOF_STOP) done = true;
+      if (lp.get_num_dofs() >= NDOF_STOP) done = true;
     }
 
     as++;

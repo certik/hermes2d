@@ -161,7 +161,7 @@ public:
   Mesh* get_mesh() const { return mesh; }
   void set_mesh(Mesh* mesh);
 
-  /// Creates a copy of the space. For internal use (see RefSystem).
+  /// Creates a copy of the space. For internal use (see RefDiscreteProblem).
   virtual Space* dup(Mesh* mesh) const = 0;
 
   /// Returns true if the space is ready for computation, false otherwise.
@@ -295,7 +295,7 @@ public:
   scalar (*bc_value_callback_by_coord)(int ess_bdy_marker, double x, double y);
   scalar (*bc_value_callback_by_edge)(EdgePos* ep);
 
-  /// Internal. Used by LinSystem to detect changes in the space.
+  /// Internal. Used by DiscreteProblem to detect changes in the space.
   int get_seq() const { return seq; }
   int set_seq(int seq_) { seq = seq_; }
 

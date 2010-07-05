@@ -1,6 +1,6 @@
 #include "../common.h"
 #include "../solution.h"
-#include "../linsystem.h"
+#include "../discrete_problem.h"
 #include "../quad_all.h"
 #include "../element_to_refine.h"
 #include "optimum_selector.h"

@@ -22,7 +22,7 @@
 #include "refmap.h"
 #include "solution.h"
 #include "config.h"
-#include "linsystem.h"
+#include "discrete_problem.h"
 
 FeProblem::FeProblem(WeakForm* wf)
 {
@@ -69,9 +69,9 @@ void FeProblem::set_spaces(Tuple<Space*>spaces)
   this->num_user_pss = 0;
   for (int i = 0; i < n; i++){
     Shapeset *shapeset = spaces[i]->get_shapeset();
-    if (shapeset == NULL) error("Internal in LinSystem::init_spaces().");
+    if (shapeset == NULL) error("Internal in DiscreteProblem::init_spaces().");
     PrecalcShapeset *p = new PrecalcShapeset(shapeset);
-    if (p == NULL) error("New PrecalcShapeset could not be allocated in LinSystem::init_spaces().");
+    if (p == NULL) error("New PrecalcShapeset could not be allocated in DiscreteProblem::init_spaces().");
     this-> pss[i] = p;
     this->num_user_pss++;
   }  
@@ -784,7 +784,7 @@ void Projection::set_solver(Solver* solver)
 
 scalar* Projection::project()
 {
-  error("project() in FeProblem does not work currently. Employ LinSystem::project_global()");
+  error("project() in FeProblem does not work currently. Employ DiscreteProblem::project_global()");
   /*
   WeakForm wf(num);
   for (int i = 0; i < num; i++)
@@ -793,7 +793,7 @@ scalar* Projection::project()
     wf.add_vector_form(i, callback(L2projection_liform), H2D_ANY, 1, slns[i]);
   }
 
-  LinSystem ps(&wf, solver, // SPACES MISSING HERE ));
+  DiscreteProblem ps(&wf, solver, // SPACES MISSING HERE ));
   ps.assemble();
   Solution temp;
   ps.solve(0);

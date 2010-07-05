@@ -21,13 +21,13 @@
 #include "element_to_refine.h"
 #include "adapt.h"
 #include "hcurl_adapt.h"
-#include "linsystem.h"
+#include "discrete_problem.h"
 
 using namespace std;
 
 #ifdef H2D_COMPLEX
 
-HcurlAdapt::HcurlAdapt(LinSystem* ls) : Adapt(ls) 
+HcurlAdapt::HcurlAdapt(DiscreteProblem* ls) : Adapt(ls) 
 {
   int n = ls->wf->get_neq();
   for (int i = 0; i < n; i++)

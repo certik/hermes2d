@@ -93,7 +93,7 @@ int main(int argc, char* argv[])
   wf.add_vector_form_surf(linear_form_surf<double, double>, linear_form_surf<Ord, Ord>, marker_air);
 
   // Initialize linear system.
-  LinSystem ls(&wf, &space);
+  LinearProblem ls(&wf, &space);
 
   // time stepping
   int nsteps = (int)(FINAL_TIME/TAU + 0.5);

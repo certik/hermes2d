@@ -14,7 +14,7 @@
 // along with Hermes2D.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "common.h"
-#include "linsystem.h"
+#include "discrete_problem.h"
 #include "solver.h"
 #include "traverse.h"
 #include "space.h"
@@ -34,9 +34,9 @@ void qsort_int(int* pbase, size_t total_elems); // defined in qsort.cpp
 
 //// interface /////////////////////////////////////////////////////////////////////////////////////
 
-void LinSystem::init_lin(WeakForm* wf_, CommonSolver* solver_)
+void DiscreteProblem::init(WeakForm* wf_, CommonSolver* solver_)
 {
-  if (wf_ == NULL) error("LinSystem: a weak form must be given.");
+  if (wf_ == NULL) error("DiscreteProblem: a weak form must be given.");
   this->wf = wf_;
   this->solver_default = new CommonSolverSciPyUmfpack();
   this->solver = (solver_) ? solver_ : solver_default;
@@ -53,80 +53,87 @@ void LinSystem::init_lin(WeakForm* wf_, CommonSolver* solver_)
   this->values_changed = true;
   this->struct_changed = true;
   this->have_spaces = false;
-  this->want_dir_contrib = true;
 
-  this->set_linearity();
+  // nonlinear functionality
+  this->want_dir_contrib = false; // NOTE: This says that the discrete problem assembled will
+                                  // have the meaning "Jacobian matrix times coeff. vector increment 
+                                  // = minus residual"
+  alpha = 1.0;
 }
 
 // this is needed because of a constructor in NonlinSystem
-LinSystem::LinSystem() {}
+DiscreteProblem::DiscreteProblem() {}
 
-LinSystem::LinSystem(WeakForm* wf_, CommonSolver* solver_)
-{
-  this->init_lin(wf_, solver_);
-}
+// OLD CODE
+//DiscreteProblem::DiscreteProblem(WeakForm* wf_, CommonSolver* solver_)
+//{
+//  this->init(wf_, solver_);
+//}
 
-LinSystem::LinSystem(WeakForm* wf_)
+DiscreteProblem::DiscreteProblem(WeakForm* wf_)
 {
   CommonSolver *solver_ = NULL;
-  this->init_lin(wf_, solver_);
+  this->init(wf_, solver_);
 }
 
-LinSystem::LinSystem(WeakForm* wf_, CommonSolver* solver_, Tuple<Space*> sp)
-{
-  int n = sp.size();
-  if (wf_ == NULL) warn("Weak form is NULL.");
-  if (wf_ != NULL) {
-    if (n != wf_->neq)
-      error("Number of spaces does not match number of equations in LinSystem::LinSystem().");
-  }
-  this->init_lin(wf_, solver_);
-  this->init_spaces(sp);
-  this->alloc_and_zero_vectors();
-}
+// OLD CODE
+//DiscreteProblem::DiscreteProblem(WeakForm* wf_, CommonSolver* solver_, Tuple<Space*> sp)
+//{
+//  int n = sp.size();
+//  if (wf_ == NULL) warn("Weak form is NULL.");
+//  if (wf_ != NULL) {
+//    if (n != wf_->neq)
+//      error("Number of spaces does not match number of equations in DiscreteProblem::DiscreteProblem().");
+//  }
+//  this->init(wf_, solver_);
+//  this->init_spaces(sp);
+//  this->alloc_and_zero_vectors();
+//}
 
-LinSystem::LinSystem(WeakForm* wf_, Tuple<Space*> sp)
+DiscreteProblem::DiscreteProblem(WeakForm* wf_, Tuple<Space*> sp)
 {
   CommonSolver* solver_ = NULL;
-  this->init_lin(wf_, solver_);
+  this->init(wf_, solver_);
   this->init_spaces(sp);
   this->alloc_and_zero_vectors();
 }
 
-LinSystem::LinSystem(WeakForm* wf_, CommonSolver* solver_, Space* s_)
-{
-  if (wf_ == NULL) warn("Weak form is NULL.");
-  if (wf_ != NULL) {
-    if (wf_->neq != 1)
-      error("Number of spaces does not match number of equations in LinSystem::LinSystem().");
-  }
-  this->init_lin(wf_, solver_);
-  this->init_space(s_);
-  this->alloc_and_zero_vectors();
-}
+// OLD CODE
+//DiscreteProblem::DiscreteProblem(WeakForm* wf_, CommonSolver* solver_, Space* s_)
+//{
+//  if (wf_ == NULL) warn("Weak form is NULL.");
+//  if (wf_ != NULL) {
+//    if (wf_->neq != 1)
+//      error("Number of spaces does not match number of equations in DiscreteProblem::DiscreteProblem().");
+//  }
+//  this->init(wf_, solver_);
+//  this->init_space(s_);
+//  this->alloc_and_zero_vectors();
+//}
 
-LinSystem::LinSystem(WeakForm* wf_, Space* s_)
+DiscreteProblem::DiscreteProblem(WeakForm* wf_, Space* s_)
 {
   CommonSolver *solver_ = NULL;
-  this->init_lin(wf_, solver_);
+  this->init(wf_, solver_);
   this->init_space(s_);
   this->alloc_and_zero_vectors();
 }
 
-LinSystem::LinSystem(WeakForm* wf_, CommonSolver* solver_, Space* space1_, Space* space2_)
-{
-  int n = 2;
-  if (wf_ == NULL) warn("Weak form is NULL.");
-  if (wf_ != NULL) {
-    if (n != wf_->neq)
-      error("Number of spaces does not match number of equations in LinSystem::LinSystem().");
-  }
-  this->init_lin(wf_, solver_);
-  this->init_spaces(Tuple<Space*>(space1_, space2_));
-  this->alloc_and_zero_vectors();
-}
+// OLD CODE
+//DiscreteProblem::DiscreteProblem(WeakForm* wf_, CommonSolver* solver_, Space* space1_, Space* space2_)
+//{
+//  int n = 2;
+//  if (wf_ == NULL) warn("Weak form is NULL.");
+//  if (wf_ != NULL) {
+//    if (n != wf_->neq)
+//      error("Number of spaces does not match number of equations in DiscreteProblem::DiscreteProblem().");
+//  }
+//  this->init(wf_, solver_);
+//  this->init_spaces(Tuple<Space*>(space1_, space2_));
+//  this->alloc_and_zero_vectors();
+//}
 
-LinSystem::~LinSystem()
+DiscreteProblem::~DiscreteProblem()
 {
   /* FIXME - this should be uncommented but then it gives double-free
              segfaults in adaptive examples.
@@ -139,7 +146,7 @@ LinSystem::~LinSystem()
   delete this->solver_default;
 }
 
-void LinSystem::free_spaces()
+void DiscreteProblem::free_spaces()
 {
   // free spaces, making sure that duplicated ones do not get deleted twice
   if (this->spaces != NULL)
@@ -162,11 +169,11 @@ void LinSystem::free_spaces()
 }
 
 // Should not be called by the user.
-void LinSystem::init_spaces(Tuple<Space*> sp)
+void DiscreteProblem::init_spaces(Tuple<Space*> sp)
 {
   int n = sp.size();
   if (n != this->wf->neq)
-    error("Number of spaces does not match number of equations in LinSystem::init_spaces().");
+    error("Number of spaces does not match number of equations in DiscreteProblem::init_spaces().");
 
   // initialize spaces
   this->spaces = new Space*[this->wf->neq];
@@ -183,16 +190,16 @@ void LinSystem::init_spaces(Tuple<Space*> sp)
   this->num_user_pss = 0;
   for (int i = 0; i < n; i++){
     Shapeset *shapeset = spaces[i]->get_shapeset();
-    if (shapeset == NULL) error("Internal in LinSystem::init_spaces().");
+    if (shapeset == NULL) error("Internal in DiscreteProblem::init_spaces().");
     PrecalcShapeset *p = new PrecalcShapeset(shapeset);
-    if (p == NULL) error("New PrecalcShapeset could not be allocated in LinSystem::init_spaces().");
+    if (p == NULL) error("New PrecalcShapeset could not be allocated in DiscreteProblem::init_spaces().");
     this-> pss[i] = p;
     this->num_user_pss++;
   }
 }
 
 // Should not be called by the user.
-void LinSystem::init_space(Space* s)
+void DiscreteProblem::init_space(Space* s)
 {
   if (this->wf->neq != 1)
     error("Do not call init_space() for PDE systems, call init_spaces() instead.");
@@ -200,14 +207,14 @@ void LinSystem::init_space(Space* s)
 }
 
 // Obsolete. Should be removed after FeProblem is removed.
-void LinSystem::set_spaces(Tuple<Space*>spaces)
+void DiscreteProblem::set_spaces(Tuple<Space*>spaces)
 {
   this->init_spaces(spaces);
 }
 
-void LinSystem::set_pss(Tuple<PrecalcShapeset*> pss)
+void DiscreteProblem::set_pss(Tuple<PrecalcShapeset*> pss)
 {
-  warn("Call to deprecated function LinSystem::set_pss().");
+  warn("Call to deprecated function DiscreteProblem::set_pss().");
   int n = pss.size();
   if (n != this->wf->neq)
     error("The number of precalculated shapesets must match the number of equations.");
@@ -216,17 +223,17 @@ void LinSystem::set_pss(Tuple<PrecalcShapeset*> pss)
   num_user_pss = n;
 }
 
-void LinSystem::set_pss(PrecalcShapeset* pss)
+void DiscreteProblem::set_pss(PrecalcShapeset* pss)
 {
   this->set_pss(Tuple<PrecalcShapeset*>(pss));
 }
 
-void LinSystem::copy(LinSystem* sys)
+void DiscreteProblem::copy(DiscreteProblem* sys)
 {
   error("Not implemented yet.");
 }
 
-void LinSystem::free_vectors()
+void DiscreteProblem::free_vectors()
 {
   if (this->Vec != NULL || this->RHS != NULL || this->Dir != NULL)
     //printf("debug: freeing vectors Vec, RHS, Dir for lengths   %d\n", this->Vec_length);
@@ -248,7 +255,7 @@ void LinSystem::free_vectors()
   }
 }
 
-void LinSystem::alloc_and_zero_vectors()
+void DiscreteProblem::alloc_and_zero_vectors()
 {
   int ndof = this->get_num_dofs();
   //printf("debug: allocating vectors Vec, RHS, Dir for ndof   %d\n", ndof);
@@ -257,43 +264,43 @@ void LinSystem::alloc_and_zero_vectors()
     error("All vectors must be NULL in alloc_and_zero_vectors() to prevent loss of information.");
 
   this->Vec = new scalar[ndof];
-  if (Vec == NULL) error("Not enough memory LinSystem::alloc_and_zero_vectors().");
+  if (Vec == NULL) error("Not enough memory DiscreteProblem::alloc_and_zero_vectors().");
   memset(this->Vec, 0, ndof*sizeof(scalar));
   this->Vec_length = ndof;
 
   this->RHS = new scalar[ndof];
-  if (RHS == NULL) error("Not enough memory in LinSystem::alloc_and_zero_vectors().");
+  if (RHS == NULL) error("Not enough memory in DiscreteProblem::alloc_and_zero_vectors().");
   memset(this->RHS, 0, ndof*sizeof(scalar));
   this->RHS_length = ndof;
 
   this->Dir = new scalar[ndof];
-  if (Dir == NULL) error("Not enough memory in LinSystem::alloc_and_zero_vectors().");
+  if (Dir == NULL) error("Not enough memory in DiscreteProblem::alloc_and_zero_vectors().");
   memset(this->Dir, 0, ndof*sizeof(scalar));
   this->Dir_length = ndof;
 }
 
-void LinSystem::realloc_and_zero_vectors()
+void DiscreteProblem::realloc_and_zero_vectors()
 {
   int ndof = this->get_num_dofs();
   //printf("debug: reallocating vectors Vec, RHS, Dir length   %d -> %d\n", this->Vec_length, ndof);
 
   this->Vec = (scalar*)realloc(this->Vec, ndof*sizeof(scalar));
-  if (this->Vec == NULL) error("Not enough memory LinSystem::realloc_and_zero_vectors().");
+  if (this->Vec == NULL) error("Not enough memory DiscreteProblem::realloc_and_zero_vectors().");
   memset(this->Vec, 0, ndof*sizeof(scalar));
   this->Vec_length = ndof;
 
   this->RHS = (scalar*)realloc(this->RHS, ndof*sizeof(scalar));
-  if (this->RHS == NULL) error("Not enough memory LinSystem::realloc_and_zero_vectors().");
+  if (this->RHS == NULL) error("Not enough memory DiscreteProblem::realloc_and_zero_vectors().");
   memset(this->RHS, 0, ndof*sizeof(scalar));
   this->RHS_length = ndof;
 
   this->Dir = (scalar*)realloc(this->Dir, ndof*sizeof(scalar));
-  if (this->Dir == NULL) error("Not enough memory LinSystem::realloc_and_zero_vectors().");
+  if (this->Dir == NULL) error("Not enough memory DiscreteProblem::realloc_and_zero_vectors().");
   memset(this->Dir, 0, ndof*sizeof(scalar));
   this->Dir_length = ndof;
 }
 
-void LinSystem::free()
+void DiscreteProblem::free()
 {
   free_matrix();
   free_vectors();
@@ -304,24 +311,24 @@ void LinSystem::free()
   this->wf_seq = -1;
 }
 
-void LinSystem::free_matrix()
+void DiscreteProblem::free_matrix()
 {
   if (this->A != NULL) { ::delete this->A; this->A = NULL; }
 }
 
 //// matrix creation ///////////////////////////////////////////////////////////////////////////////
 
-void LinSystem::create_matrix(bool rhsonly)
+void DiscreteProblem::create_matrix(bool rhsonly)
 {
   // sanity checks
-  if (this->wf == NULL) error("this->wf is NULL in LinSystem::get_num_dofs().");
-  if (this->wf->neq == 0) error("this->wf->neq is 0 in LinSystem::get_num_dofs().");
-  if (this->spaces == NULL) error("this->spaces[%d] is NULL in LinSystem::get_num_dofs().");
+  if (this->wf == NULL) error("this->wf is NULL in DiscreteProblem::get_num_dofs().");
+  if (this->wf->neq == 0) error("this->wf->neq is 0 in DiscreteProblem::get_num_dofs().");
+  if (this->spaces == NULL) error("this->spaces[%d] is NULL in DiscreteProblem::get_num_dofs().");
 
   // check if we can reuse the matrix structure
   bool up_to_date = true;
   for (int i = 0; i < this->wf->neq; i++) {
-    if (this->spaces[i] ==  NULL) error("this->spaces[%d] is NULL in LinSystem::get_num_dofs().", i);
+    if (this->spaces[i] ==  NULL) error("this->spaces[%d] is NULL in DiscreteProblem::get_num_dofs().", i);
     if (this->spaces[i]->get_seq() != this->sp_seq[i]) {
       up_to_date = false;
       break;
@@ -331,7 +338,7 @@ void LinSystem::create_matrix(bool rhsonly)
 
   // calculate the number of DOF
   int ndof = this->get_num_dofs();
-  if (ndof == 0) error("ndof = 0 in LinSystem::create_matrix().");
+  if (ndof == 0) error("ndof = 0 in DiscreteProblem::create_matrix().");
 
   // if the matrix has not changed, just zero the values and we're done
   if (up_to_date)
@@ -371,12 +378,12 @@ void LinSystem::create_matrix(bool rhsonly)
 }
 
 
-int LinSystem::get_matrix_size()
+int DiscreteProblem::get_matrix_size()
 {
     return this->A->get_size();
 }
 
-void LinSystem::get_matrix(int*& Ap, int*& Ai, scalar*& Ax, int& size)
+void DiscreteProblem::get_matrix(int*& Ap, int*& Ai, scalar*& Ax, int& size)
 {
     /// FIXME: this is a memory leak:
     CSRMatrix *m = new CSRMatrix(this->A);
@@ -392,27 +399,27 @@ void LinSystem::get_matrix(int*& Ap, int*& Ai, scalar*& Ax, int& size)
 
 //// assembly //////////////////////////////////////////////////////////////////////////////////////
 
-void LinSystem::insert_block(scalar** mat, int* iidx, int* jidx, int ilen, int jlen)
+void DiscreteProblem::insert_block(scalar** mat, int* iidx, int* jidx, int ilen, int jlen)
 {
     this->A->add_block(iidx, ilen, jidx, jlen, mat);
 }
 
-void LinSystem::assemble(bool rhsonly)
+void DiscreteProblem::assemble(CooMatrix* &mat_ext, scalar* &dir_ext, scalar* &rhs_ext, bool rhsonly)
 {
   // sanity checks
   if (this->have_spaces == false)
     error("Before assemble(), you need to initialize spaces.");
-  if (this->wf == NULL) error("this->wf = NULL in LinSystem::assemble().");
-  if (this->spaces == NULL) error("this->spaces = NULL in LinSystem::assemble().");
+  if (this->wf == NULL) error("this->wf = NULL in DiscreteProblem::assemble().");
+  if (this->spaces == NULL) error("this->spaces = NULL in DiscreteProblem::assemble().");
   int n = this->wf->neq;
   for (int i=0; i<n; i++) if (this->spaces[i] == NULL)
-			    error("this->spaces[%d] is NULL in LinSystem::assemble().", i);
+			    error("this->spaces[%d] is NULL in DiscreteProblem::assemble().", i);
 
   // enumerate DOF to get new length of the vectors Vec, RHS and Dir,
   // and realloc these vectors if needed
   this->assign_dofs();
   int ndof = this->get_num_dofs();
-  if (ndof == 0) error("ndof = 0 in LinSystem::assemble().");
+  if (ndof == 0) error("ndof = 0 in DiscreteProblem::assemble().");
   if (this->Vec_length != ndof || this->RHS_length != ndof || this->Dir_length != ndof) {
     this->realloc_and_zero_vectors();
   }
@@ -652,25 +659,22 @@ void LinSystem::assemble(bool rhsonly)
     trav.finish();
   }
 
-  // add to RHS the dirichlet contributions
-  if (want_dir_contrib) {
-    for (int i = 0; i < ndof; i++) {
-      this->RHS[i] += this->Dir[i];
-    }
-  }
-
   verbose("Stiffness matrix assembled (stages: %d)", stages.size());
   report_time("Stiffness matrix assembled in %g s", cpu_time.tick().last());
   for (int i = 0; i < wf->neq; i++) delete spss[i];
   delete [] buffer;
 
   if (!rhsonly) values_changed = true;
+
+  mat_ext = this->A;
+  dir_ext = this->Dir;
+  rhs_ext = this->RHS;
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // Initialize integration order for external functions
-ExtData<Ord>* LinSystem::init_ext_fns_ord(std::vector<MeshFunction *> &ext)
+ExtData<Ord>* DiscreteProblem::init_ext_fns_ord(std::vector<MeshFunction *> &ext)
 {
   ExtData<Ord>* fake_ext = new ExtData<Ord>;
   fake_ext->nf = ext.size();
@@ -683,7 +687,7 @@ ExtData<Ord>* LinSystem::init_ext_fns_ord(std::vector<MeshFunction *> &ext)
 }
 
 // Initialize external functions (obtain values, derivatives,...)
-ExtData<scalar>* LinSystem::init_ext_fns(std::vector<MeshFunction *> &ext, RefMap *rm, const int order)
+ExtData<scalar>* DiscreteProblem::init_ext_fns(std::vector<MeshFunction *> &ext, RefMap *rm, const int order)
 {
   ExtData<scalar>* ext_data = new ExtData<scalar>;
   Func<scalar>** ext_fn = new Func<scalar>*[ext.size()];
@@ -697,7 +701,7 @@ ExtData<scalar>* LinSystem::init_ext_fns(std::vector<MeshFunction *> &ext, RefMa
 }
 
 // Initialize shape function values and derivatives (fill in the cache)
-Func<double>* LinSystem::get_fn(PrecalcShapeset *fu, RefMap *rm, const int order)
+Func<double>* DiscreteProblem::get_fn(PrecalcShapeset *fu, RefMap *rm, const int order)
 {
   Key key(256 - fu->get_active_shape(), order, fu->get_transform(), fu->get_shapeset()->get_id());
   if (cache_fn[key] == NULL)
@@ -707,7 +711,7 @@ Func<double>* LinSystem::get_fn(PrecalcShapeset *fu, RefMap *rm, const int order
 }
 
 // Caching transformed values
-void LinSystem::init_cache()
+void DiscreteProblem::init_cache()
 {
   for (int i = 0; i < g_max_quad + 1 + 4; i++)
   {
@@ -716,7 +720,7 @@ void LinSystem::init_cache()
   }
 }
 
-void LinSystem::delete_cache()
+void DiscreteProblem::delete_cache()
 {
   for (int i = 0; i < g_max_quad + 1 + 4; i++)
   {
@@ -737,7 +741,7 @@ void LinSystem::delete_cache()
 
 
 // Actual evaluation of volume Jacobian form (calculates integral)
-scalar LinSystem::eval_form(WeakForm::MatrixFormVol *mfv, Solution *sln[], PrecalcShapeset *fu, PrecalcShapeset *fv, RefMap *ru, RefMap *rv)
+scalar DiscreteProblem::eval_form(WeakForm::MatrixFormVol *mfv, Solution *sln[], PrecalcShapeset *fu, PrecalcShapeset *fv, RefMap *ru, RefMap *rv)
 {
   // determine the integration order
   int inc = (fu->get_num_components() == 2) ? 1 : 0;
@@ -821,7 +825,7 @@ scalar LinSystem::eval_form(WeakForm::MatrixFormVol *mfv, Solution *sln[], Preca
 
 
 // Actual evaluation of volume vector form (calculates integral)
-scalar LinSystem::eval_form(WeakForm::VectorFormVol *vfv, Solution *sln[], PrecalcShapeset *fv, RefMap *rv)
+scalar DiscreteProblem::eval_form(WeakForm::VectorFormVol *vfv, Solution *sln[], PrecalcShapeset *fv, RefMap *rv)
 {
   // determine the integration order
   int inc = (fv->get_num_components() == 2) ? 1 : 0;
@@ -901,7 +905,7 @@ scalar LinSystem::eval_form(WeakForm::VectorFormVol *vfv, Solution *sln[], Preca
 }
 
 // Actual evaluation of surface Jacobian form (calculates integral)
-scalar LinSystem::eval_form(WeakForm::MatrixFormSurf *mfs, Solution *sln[], PrecalcShapeset *fu, PrecalcShapeset *fv, RefMap *ru, RefMap *rv, EdgePos* ep)
+scalar DiscreteProblem::eval_form(WeakForm::MatrixFormSurf *mfs, Solution *sln[], PrecalcShapeset *fu, PrecalcShapeset *fv, RefMap *ru, RefMap *rv, EdgePos* ep)
 {
   // eval the form
   Quad2D* quad = fu->get_quad_2d();
@@ -954,7 +958,7 @@ scalar LinSystem::eval_form(WeakForm::MatrixFormSurf *mfs, Solution *sln[], Prec
 
 
 // Actual evaluation of surface vector form (calculates integral)
-scalar LinSystem::eval_form(WeakForm::VectorFormSurf *vfs, Solution *sln[], PrecalcShapeset *fv, RefMap *rv, EdgePos* ep)
+scalar DiscreteProblem::eval_form(WeakForm::VectorFormSurf *vfs, Solution *sln[], PrecalcShapeset *fv, RefMap *rv, EdgePos* ep)
 {
   // eval the form
   Quad2D* quad = fv->get_quad_2d();
@@ -1006,26 +1010,26 @@ scalar LinSystem::eval_form(WeakForm::VectorFormSurf *vfs, Solution *sln[], Prec
 
 //// solve /////////////////////////////////////////////////////////////////////////////////////////
 
-bool LinSystem::solve(Tuple<Solution*> sln)
+bool DiscreteProblem::solve(Tuple<Solution*> sln)
 {
   int n = sln.size();
 
   // if the number of solutions does not match the number of equations, throw error
   if (n != this->wf->neq)
-    error("Number of solutions does not match the number of equations in LinSystem::solve().");
+    error("Number of solutions does not match the number of equations in DiscreteProblem::solve().");
 
   // if Vec is not initialized, throw error
-  if (this->Vec == NULL) error("Vec is NULL in LinSystem::solve().");
+  if (this->Vec == NULL) error("Vec is NULL in DiscreteProblem::solve().");
 
   // check vector size
   int ndof = this->get_num_dofs();
   if (this->Vec_length != ndof || this->RHS_length != ndof || this->Dir_length != ndof)
-    error("Length of vectors Vec, RHS or Dir does not match this->ndof in LinSystem::solve().");
+    error("Length of vectors Vec, RHS or Dir does not match this->ndof in DiscreteProblem::solve().");
 
   // check matrix size
-  if (ndof == 0) error("ndof = 0 in LinSystem::solve().");
+  if (ndof == 0) error("ndof = 0 in DiscreteProblem::solve().");
   if (ndof != this->A->get_size())
-    error("Matrix size does not match vector length in LinSystem:solve().");
+    error("Matrix size does not match vector length in DiscreteProblem:solve().");
 
   // time measurement
   TimePeriod cpu_time;
@@ -1034,7 +1038,7 @@ bool LinSystem::solve(Tuple<Solution*> sln)
     // solve linear system "Ax = b"
     memcpy(this->Vec, this->RHS, sizeof(scalar) * ndof);
     this->solver->solve(this->A, this->Vec);
-    report_time("LinSystem solved in %g s", cpu_time.tick().last());
+    report_time("DiscreteProblem solved in %g s", cpu_time.tick().last());
   }
   else {
     // solve Jacobian system "J times dY_{n+1} = -F(Y_{n+1})"
@@ -1058,7 +1062,7 @@ bool LinSystem::solve(Tuple<Solution*> sln)
 }
 
 // single equation case
-bool LinSystem::solve(Solution* sln)
+bool DiscreteProblem::solve(Solution* sln)
 {
   bool flag;
   flag = this->solve(Tuple<Solution*>(sln));
@@ -1066,7 +1070,7 @@ bool LinSystem::solve(Solution* sln)
 }
 
 // two equations case
-bool LinSystem::solve(Solution* sln1, Solution *sln2)
+bool DiscreteProblem::solve(Solution* sln1, Solution *sln2)
 {
   bool flag;
   flag = this->solve(Tuple<Solution*>(sln1, sln2));
@@ -1074,7 +1078,7 @@ bool LinSystem::solve(Solution* sln1, Solution *sln2)
 }
 
 // three equations case
-bool LinSystem::solve(Solution* sln1, Solution *sln2, Solution* sln3)
+bool DiscreteProblem::solve(Solution* sln1, Solution *sln2, Solution* sln3)
 {
   bool flag;
   flag = this->solve(Tuple<Solution*>(sln1, sln2, sln3));
@@ -1084,9 +1088,9 @@ bool LinSystem::solve(Solution* sln1, Solution *sln2, Solution* sln3)
 
 //// matrix and solution output /////////////////////////////////////////////////////////////////////////////////
 
-void LinSystem::get_solution_vector(std::vector<scalar>& sln_vector_out) {
+void DiscreteProblem::get_solution_vector(std::vector<scalar>& sln_vector_out) {
   int ndof = this->get_num_dofs();
-  if (ndof == 0) error("ndof = 0 in LinSystem::get_solution_vector().");
+  if (ndof == 0) error("ndof = 0 in DiscreteProblem::get_solution_vector().");
 
   std::vector<scalar> temp(ndof);
   sln_vector_out.swap(temp);
@@ -1094,15 +1098,15 @@ void LinSystem::get_solution_vector(std::vector<scalar>& sln_vector_out) {
     sln_vector_out[i] = Vec[i];
 }
 
-void LinSystem::save_matrix_matlab(const char* filename, const char* varname)
+void DiscreteProblem::save_matrix_matlab(const char* filename, const char* varname)
 {
   warn("Saving matrix in Matlab format not implemented yet.");
 }
 
-void LinSystem::save_rhs_matlab(const char* filename, const char* varname)
+void DiscreteProblem::save_rhs_matlab(const char* filename, const char* varname)
 {
   int ndof = this->get_num_dofs();
-  if (ndof == 0) error("ndof = 0 in LinSystem::save_rhs_matlab().");
+  if (ndof == 0) error("ndof = 0 in DiscreteProblem::save_rhs_matlab().");
   if (RHS == NULL) error("RHS has not been assembled yet.");
   FILE* f = fopen(filename, "w");
   if (f == NULL) error("Could not open file %s for writing.", filename);
@@ -1119,14 +1123,14 @@ void LinSystem::save_rhs_matlab(const char* filename, const char* varname)
 }
 
 
-void LinSystem::save_matrix_bin(const char* filename)
+void DiscreteProblem::save_matrix_bin(const char* filename)
 {
 }
 
-void LinSystem::save_rhs_bin(const char* filename)
+void DiscreteProblem::save_rhs_bin(const char* filename)
 {
   int ndof = this->get_num_dofs();
-  if (ndof == 0) error("ndof = 0 in LinSystem::save_rhs_bin().");
+  if (ndof == 0) error("ndof = 0 in DiscreteProblem::save_rhs_bin().");
   if (RHS == NULL) error("RHS has not been assembled yet.");
   FILE* f = fopen(filename, "wb");
   if (f == NULL) error("Could not open file %s for writing.", filename);
@@ -1201,13 +1205,13 @@ Scalar Hcurlprojection_liform(int n, double *wt, Func<Scalar> *u_ext[], Func<Rea
   return result;
 }
 
-int LinSystem::assign_dofs()
+int DiscreteProblem::assign_dofs()
 {
   // sanity checks
-  if (this->wf == NULL) error("this->wf = NULL in LinSystem::assign_dofs().");
+  if (this->wf == NULL) error("this->wf = NULL in DiscreteProblem::assign_dofs().");
 
   // assigning dofs to each space
-  if (this->spaces == NULL) error("this->spaces is NULL in LinSystem::assign_dofs().");
+  if (this->spaces == NULL) error("this->spaces is NULL in DiscreteProblem::assign_dofs().");
   int ndof = 0;
   for (int i = 0; i < this->wf->neq; i++) {
     if (this->spaces[i] == NULL) error("this->spaces[%d] is NULL in assign_dofs().", i);
@@ -1219,27 +1223,27 @@ int LinSystem::assign_dofs()
 }
 
 // global orthogonal projection
-void LinSystem::project_global(Tuple<MeshFunction*> source, Tuple<Solution*> target, Tuple<int>proj_norms)
+void DiscreteProblem::project_global(Tuple<MeshFunction*> source, Tuple<Solution*> target, Tuple<int>proj_norms)
 {
   // sanity checks
   int n = source.size();
-  if (this->spaces == NULL) error("this->spaces == NULL in LinSystem::project_global().");
+  if (this->spaces == NULL) error("this->spaces == NULL in DiscreteProblem::project_global().");
   for (int i=0; i<n; i++) if(this->spaces[i] == NULL)
-			    error("this->spaces[%d] == NULL in LinSystem::project_global().", i);
+			    error("this->spaces[%d] == NULL in DiscreteProblem::project_global().", i);
   if (n != target.size())
-    error("Mismatched numbers of projected functions and solutions in LinSystem::project_global().");
+    error("Mismatched numbers of projected functions and solutions in DiscreteProblem::project_global().");
   if (n > 10)
-    error("Wrong number of projected functions in LinSystem::project_global().");
+    error("Wrong number of projected functions in DiscreteProblem::project_global().");
   if (proj_norms != Tuple<int>()) {
     if (n != proj_norms.size())
-      error("Mismatched numbers of projected functions and projection norms in LinSystem::project_global().");
+      error("Mismatched numbers of projected functions and projection norms in DiscreteProblem::project_global().");
   }
   if (wf != NULL) {
     if (n != wf->neq)
-      error("Wrong number of functions in LinSystem::project_global().");
+      error("Wrong number of functions in DiscreteProblem::project_global().");
   }
   if (!have_spaces)
-    error("You have to init_spaces() before using LinSystem::project_global().");
+    error("You have to init_spaces() before using DiscreteProblem::project_global().");
 
   // this is needed since spaces may have their DOFs enumerated only locally
   // when they come here.
@@ -1279,13 +1283,13 @@ void LinSystem::project_global(Tuple<MeshFunction*> source, Tuple<Solution*> tar
   for (int i=0; i < n; i++) {
     if (found[i] == 0) {
       printf("index of component: %d\n", i);
-      error("Wrong projection norm in LinSystem::project_global().");
+      error("Wrong projection norm in DiscreteProblem::project_global().");
     }
   }
 
   want_dir_contrib = true;
-  LinSystem::assemble();
-  LinSystem::solve(target);
+  DiscreteProblem::assemble();
+  DiscreteProblem::solve(target);
   want_dir_contrib = false;
 
   // restoring original weak form
@@ -1293,35 +1297,35 @@ void LinSystem::project_global(Tuple<MeshFunction*> source, Tuple<Solution*> tar
   wf_seq = -1;
 }
 
-void LinSystem::project_global(Tuple<MeshFunction*> source, Tuple<Solution*> target,
+void DiscreteProblem::project_global(Tuple<MeshFunction*> source, Tuple<Solution*> target,
                                matrix_forms_tuple_t proj_biforms, vector_forms_tuple_t proj_liforms )
 {
   // sanity checks
   int n = source.size();
-  if (this->spaces == NULL) error("this->spaces == NULL in LinSystem::project_global().");
+  if (this->spaces == NULL) error("this->spaces == NULL in DiscreteProblem::project_global().");
   for (int i=0; i<n; i++) if(this->spaces[i] == NULL)
-			    error("this->spaces[%d] == NULL in LinSystem::project_global().", i);
+			    error("this->spaces[%d] == NULL in DiscreteProblem::project_global().", i);
   if (n != target.size())
-    error("Mismatched numbers of projected functions and solutions in LinSystem::project_global().");
+    error("Mismatched numbers of projected functions and solutions in DiscreteProblem::project_global().");
   if (n > 10)
-    error("Wrong number of projected functions in LinSystem::project_global().");
+    error("Wrong number of projected functions in DiscreteProblem::project_global().");
 
   matrix_forms_tuple_t::size_type n_biforms = proj_biforms.size();
   if (n_biforms != proj_liforms.size())
-    error("Mismatched numbers of projection forms in LinSystem::project_global().");
+    error("Mismatched numbers of projection forms in DiscreteProblem::project_global().");
   if (n_biforms > 0) {
     if (n != n_biforms)
-      error("Mismatched numbers of projected functions and projection forms in LinSystem::project_global().");
+      error("Mismatched numbers of projected functions and projection forms in DiscreteProblem::project_global().");
   }
   else
-    warn("LinSystem::project_global() expected %d user defined biform(s) & liform(s); ordinary H1 projection will be performed", n);
+    warn("DiscreteProblem::project_global() expected %d user defined biform(s) & liform(s); ordinary H1 projection will be performed", n);
 
   if (wf != NULL) {
     if (n != wf->neq)
-      error("Wrong number of functions in LinSystem::project_global().");
+      error("Wrong number of functions in DiscreteProblem::project_global().");
   }
   if (!have_spaces)
-    error("You have to init_spaces() before using LinSystem::project_global().");
+    error("You have to init_spaces() before using DiscreteProblem::project_global().");
 
   // this is needed since spaces may have their DOFs enumerated only locally
   // when they come here.
@@ -1347,8 +1351,8 @@ void LinSystem::project_global(Tuple<MeshFunction*> source, Tuple<Solution*> tar
   }
 
   want_dir_contrib = true;
-  LinSystem::assemble();
-  LinSystem::solve(target);
+  DiscreteProblem::assemble();
+  DiscreteProblem::solve(target);
   want_dir_contrib = false;
 
   // restoring original weak form
@@ -1356,23 +1360,72 @@ void LinSystem::project_global(Tuple<MeshFunction*> source, Tuple<Solution*> tar
   wf_seq = -1;
 }
 
-int LinSystem::get_num_dofs()
+int DiscreteProblem::get_num_dofs()
 {
   // sanity checks
-  if (this->wf == NULL) error("this->wf is NULL in LinSystem::get_num_dofs().");
-  if (this->wf->neq == 0) error("this->wf->neq is 0 in LinSystem::get_num_dofs().");
-  if (this->spaces == NULL) error("this->spaces[%d] is NULL in LinSystem::get_num_dofs().");
+  if (this->wf == NULL) error("this->wf is NULL in DiscreteProblem::get_num_dofs().");
+  if (this->wf->neq == 0) error("this->wf->neq is 0 in DiscreteProblem::get_num_dofs().");
+  if (this->spaces == NULL) error("this->spaces[%d] is NULL in DiscreteProblem::get_num_dofs().");
 
   int ndof = 0;
   for (int i = 0; i < this->wf->neq; i++) {
-    if (this->spaces[i] ==  NULL) error("this->spaces[%d] is NULL in LinSystem::get_num_dofs().", i);
+    if (this->spaces[i] ==  NULL) error("this->spaces[%d] is NULL in DiscreteProblem::get_num_dofs().", i);
     ndof += this->get_num_dofs(i);
   }
   return ndof;
 }
 
-void LinSystem::update_essential_bc_values()
+void DiscreteProblem::update_essential_bc_values()
 {
   int n = this->wf->neq;
   for (int i=0; i<n; i++) this->spaces[i]->update_essential_bc_values();
 }
+
+// Newton's method for an arbitrary number of equations.
+bool DiscreteProblem::solve_newton(Tuple<Solution*> u_prev, double newton_tol, 
+                                int newton_max_iter, bool verbose, 
+                                Tuple<MeshFunction*> mesh_fns) 
+{
+  // sanity checks
+  int n = u_prev.size();
+  if (n != this->wf->neq) 
+    error("The number of solutions in newton_solve() must match the number of equation in the PDE system.");
+  if (this->spaces == NULL) error("spaces is NULL in solve_newton().");
+  for (int i=0; i < n; i++) {
+    if (this->spaces[i] == NULL) error("spaces[%d] is NULL in solve_newton().", i);
+  }
+  int n_mesh_fns;
+  if (mesh_fns == Tuple<MeshFunction*>()) n_mesh_fns = 0;
+  else n_mesh_fns = mesh_fns.size();
+  for (int i=0; i<n_mesh_fns; i++) {
+    if (mesh_fns[i] == NULL) error("a filter is NULL in solve_newton().");
+  }
+
+  int it = 1;
+  double res_l2_norm;
+  do
+  {
+    info("---- Newton iter %d:", it); 
+
+    // reinitialize filters
+    for (int i=0; i < n_mesh_fns; i++) mesh_fns[i]->reinit();
+
+    // assemble the Jacobian matrix and residual vector,
+    // solve the system
+    this->assemble();
+    this->solve(u_prev);
+
+    // calculate the l2-norm of residual vector
+    res_l2_norm = this->get_residual_l2_norm();
+    if (verbose) printf("---- Newton iter %d, ndof %d, res. l2 norm %g\n", 
+                        it, this->get_num_dofs(), res_l2_norm);
+
+    it++;
+  }
+  while (res_l2_norm > newton_tol && it <= newton_max_iter);
+
+  // returning "true" if converged, otherwise returning "false"
+  if (it <= newton_max_iter) return true;
+  else return false;
+}
+

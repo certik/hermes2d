@@ -152,7 +152,7 @@ public:
 
 public:
 
-  /// Internal. Used by LinSystem::solve(). Should not be called directly
+  /// Internal. Used by DiscreteProblem::solve(). Should not be called directly
   virtual void set_fe_solution(Space* space, PrecalcShapeset* pss, scalar* vec, double dir = 1.0);
 
   /// Internal.

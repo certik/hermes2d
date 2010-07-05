@@ -20,8 +20,8 @@
 #include "function.h"
 
 class RefMap;
-class LinSystem;
-class NonlinSystem;
+class DiscreteProblem;
+class LinearProblem;
 class Space;
 class MeshFunction;
 struct EdgePos;
@@ -87,7 +87,7 @@ public:
   /// Returns the number of equations
   int get_neq() { return neq; }
 
-  /// Internal. Used by LinSystem to detect changes in the weakform.
+  /// Internal. Used by DiscreteProblem to detect changes in the weakform.
   int get_seq() const { return seq; }
 
   bool is_matrix_free() { return is_matfree; }
@@ -147,10 +147,9 @@ protected:
 
   bool is_sym() const { return false; /* not impl. yet */ }
 
-  friend class LinSystem;
-  friend class NonlinSystem;
-  friend class RefSystem;
-  friend class RefNonlinSystem;
+  friend class DiscreteProblem;
+  friend class RefDiscreteProblem;
+  friend class LinearProblem;
   friend class FeProblem;
   friend class Precond;
 

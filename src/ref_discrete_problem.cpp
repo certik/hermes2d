@@ -16,27 +16,28 @@
 #include "common.h"
 #include "space.h"
 #include "weakform.h"
-#include "refsystem.h"
+#include "ref_discrete_problem.h"
 #include "solution.h"
 
-RefSystem::RefSystem(LinSystem* base, int order_increase, 
-		     int refinement) : NonlinSystem(base->wf, base->solver)
+RefDiscreteProblem::RefDiscreteProblem(DiscreteProblem* base, int order_increase, 
+		    int refinement) : DiscreteProblem(base->wf)
 {
   if(base->linear == true) this->linear = true;
   else this->linear = false;
 
   this->base = base;
   if (this->base->have_spaces == false) 
-    error("RefSystem: spaces in base system not up to date.");
+    error("RefDiscreteProblem: spaces in base system not up to date.");
   
-  if(this->base->get_num_dofs() <= 0) error("RefSystem - base system has ndof = 0.");
+  this->solver = base->solver;
+
+  if(this->base->get_num_dofs() <= 0) error("RefDiscreteProblem - base system has ndof = 0.");
 
   this->wf = this->base->wf;
   this->order_increase = order_increase;
   this->refinement = refinement;
 
-  // Have to set it manually as Nonlinsystem constructor
-  // always sets it false;
+  // FIXME: 
   if (this->linear == true) {
     this->want_dir_contrib = true;
   } else {
@@ -47,7 +48,7 @@ RefSystem::RefSystem(LinSystem* base, int order_increase,
   global_refinement();
 
   // internal check
-  if (this->have_spaces == false) error("RefSystem: missing space(s).");
+  if (this->have_spaces == false) error("RefDiscreteProblem: missing space(s).");
 
   // (re)allocate vectors Vec, RHS and Dir
   int ndof = this->get_num_dofs();
@@ -57,7 +58,7 @@ RefSystem::RefSystem(LinSystem* base, int order_increase,
   }
 }
 
-void RefSystem::global_refinement() 
+void RefDiscreteProblem::global_refinement() 
 {
   // after this, meshes and spaces are NULL
   this->free_spaces();
@@ -150,36 +151,36 @@ void RefSystem::global_refinement()
   this->have_spaces = true;
 }
 
-RefSystem::~RefSystem()
+RefDiscreteProblem::~RefDiscreteProblem()
 {
   this->free_vectors();
 }
 
 // just to prevent the user from calling this
-void RefSystem::set_spaces(Tuple<Space*> spaces)
+void RefDiscreteProblem::set_spaces(Tuple<Space*> spaces)
 {
-  error("Method set_spaces must not be called in RefSystem.");
+  error("Method set_spaces must not be called in RefDiscreteProblem.");
 }
 
 // just to prevent the user from calling this
-void RefSystem::set_pss(Tuple<PrecalcShapeset*> pss)
+void RefDiscreteProblem::set_pss(Tuple<PrecalcShapeset*> pss)
 {
-  error("Method set_pss must not be called in RefSystem.");
+  error("Method set_pss must not be called in RefDiscreteProblem.");
 }
 
-void RefSystem::set_order_increase(int order_increase)
+void RefDiscreteProblem::set_order_increase(int order_increase)
 {
   this->order_increase = order_increase;
 }
 
-void RefSystem::assemble(bool rhsonly)
+void RefDiscreteProblem::assemble(bool rhsonly)
 {  
-  // call LinSystem's or NonlinSystem's assemble() function.
-  if (this->linear == true) LinSystem::assemble(rhsonly);
-  else NonlinSystem::assemble(rhsonly);
+  // NOTE: this disregards the Dir vector, i.e., it will not 
+  // work for linear problems. 
+  DiscreteProblem::assemble(rhsonly);
 }
 
-bool RefSystem::solve_exact(ExactFunction exactfn, Solution* sln)
+bool RefDiscreteProblem::solve_exact(ExactFunction exactfn, Solution* sln)
 {
   Space* space = spaces[0];
 

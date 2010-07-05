@@ -59,12 +59,12 @@ int main(int argc, char* argv[])
   wf.add_vector_form_surf(callback(linear_form_surf), NEWTON_BDY);
 
   // Initialize the linear system.
-  LinSystem ls(&wf, &space);
+  LinearProblem lp(&wf, &space);
 
   // Assemble and solve the matrix problem.
   Solution sln;
-  ls.assemble();
-  ls.solve(&sln);
+  lp.assemble();
+  lp.solve(&sln);
 
   // Visualize the solution.
   ScalarView view("Solution", 0, 0, 600, 600);

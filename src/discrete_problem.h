@@ -13,8 +13,8 @@
 // You should have received a copy of the GNU General Public License
 // along with Hermes2D.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef __H2D_LINSYSTEM_H
-#define __H2D_LINSYSTEM_H
+#ifndef __H2D_DISCRETE_PROBLEM_H
+#define __H2D_DISCRETE_PROBLEM_H
 
 #include "common.h"
 #include "matrix.h"
@@ -48,28 +48,28 @@ typedef Tuple< std::pair<WeakForm::vector_form_val_t, WeakForm::vector_form_ord_
 ///
 ///
 ///
-class H2D_API LinSystem
+class H2D_API DiscreteProblem
 {
 public:
 
-  LinSystem();
-  LinSystem(WeakForm* wf_, CommonSolver* solver_);
-  LinSystem(WeakForm* wf_);                  // solver will be set to NULL and default solver will be used
-  LinSystem(WeakForm* wf_, CommonSolver* solver_, Space* s_);
-  LinSystem(WeakForm* wf_, Space* s_);       // solver will be set to NULL and default solver will be used
-  LinSystem(WeakForm* wf_, CommonSolver* solver_, Tuple<Space*> spaces_);
-  LinSystem(WeakForm* wf_, Tuple<Space*> spaces_);      // solver will be set to NULL and default solver will be used
-  LinSystem(WeakForm* wf_, CommonSolver* solver_, Space* space1_, Space* space2_);
+  DiscreteProblem();
+  //DiscreteProblem(WeakForm* wf_, CommonSolver* solver_);
+  DiscreteProblem(WeakForm* wf_);                  // solver will be set to NULL and default solver will be used
+  //DiscreteProblem(WeakForm* wf_, CommonSolver* solver_, Space* s_);
+  DiscreteProblem(WeakForm* wf_, Space* s_);       // solver will be set to NULL and default solver will be used
+  //DiscreteProblem(WeakForm* wf_, CommonSolver* solver_, Tuple<Space*> spaces_);
+  DiscreteProblem(WeakForm* wf_, Tuple<Space*> spaces_);      // solver will be set to NULL and default solver will be used
+  //DiscreteProblem(WeakForm* wf_, CommonSolver* solver_, Space* space1_, Space* space2_);
 
-  virtual ~LinSystem();
+  virtual ~DiscreteProblem();
 
-  void init_lin(WeakForm* wf, CommonSolver* solver);
+  void init(WeakForm* wf, CommonSolver* solver);
   void init_spaces(Tuple<Space*> spaces);
   void init_space(Space* s);         // single equation case
   void set_spaces(Tuple<Space*> spaces);
   void set_pss(Tuple<PrecalcShapeset*> pss);
   void set_pss(PrecalcShapeset* p);  // single equation case
-  void copy(LinSystem* sys);
+  void copy(DiscreteProblem* sys);
   Space* get_space(int n) {
       if (n < 0 || n >= this->wf->neq) error("Bad index of space.");
       return this->spaces[n];
@@ -87,10 +87,14 @@ public:
   /// similar to Java instance of functionality
   virtual bool set_linearity() { this->linear = true; }
 
-  /// Assembles the stiffness matrix and load vector. Vectors Vec, Dir and
-  /// RHS must be allocated when assemble() is called.
-  virtual void assemble(bool rhsonly = false);
-  void assemble_rhs_only() { assemble(true); }
+  /// Assembles the matrix A and vectors Vec, Dir and RHS. Everything must be 
+  /// allocated in advance when assemble() is called. This is the generic functionality 
+  /// to be used for linear problems, nonlinear problems, and eigenproblems.  
+  virtual void assemble(CooMatrix* &A, scalar* &Dir, scalar* &RHS, bool rhsonly = false);
+  virtual void assemble(bool rhsonly = false) {
+    // This is just to expose the matrix and vectors to the user. 
+    this->assemble(this->A, this->Dir, this->RHS, rhsonly);
+  };
 
   /// Solves the matrix problem and propagates the resulting coefficient vector into
   /// one or more Solutions. The solution class does not contain the original solution
@@ -121,7 +125,7 @@ public:
   scalar* get_solution_vector() { return Vec; }
   int get_num_dofs();
   int get_num_dofs(int i) {
-    if (this->spaces[i] == NULL) error("spaces[%d] is NULL in LinSystem::get_num_dofs().", i);
+    if (this->spaces[i] == NULL) error("spaces[%d] is NULL in DiscreteProblem::get_num_dofs().", i);
     return this->spaces[i]->get_num_dofs();
   }
   int get_num_spaces() { return this->wf->neq; };
@@ -166,7 +170,7 @@ public:
   void project_global(MeshFunction* source, Solution* target, int proj_norm = H2D_DEFAULT_PROJ_NORM)
   {
     if (this->wf->neq != 1)
-      error("Number of projected functions must be one if there is only one equation, in LinSystem::project_global().");
+      error("Number of projected functions must be one if there is only one equation, in DiscreteProblem::project_global().");
     this->project_global(Tuple<MeshFunction*>(source), Tuple<Solution*>(target), Tuple<int>(proj_norm));
   };
 
@@ -176,7 +180,7 @@ public:
                   std::pair<WeakForm::vector_form_val_t, WeakForm::vector_form_ord_t> proj_liform)
   {
     if (this->wf->neq != 1)
-      error("Number of projected functions must be one if there is only one equation, in LinSystem::project_global().");
+      error("Number of projected functions must be one if there is only one equation, in DiscreteProblem::project_global().");
     this->project_global(Tuple<MeshFunction*>(source), Tuple<Solution*>(target), matrix_forms_tuple_t(proj_biform), vector_forms_tuple_t(proj_liform));
   };
 
@@ -185,7 +189,7 @@ public:
   void project_global(ExactFunction source, Solution* target, int proj_norm = H2D_DEFAULT_PROJ_NORM)
   {
     if (this->wf->neq != 1)
-      error("Number of projected functions must be one if there is only one equation, in LinSystem::project_global().");
+      error("Number of projected functions must be one if there is only one equation, in DiscreteProblem::project_global().");
     if (proj_norm != 0 && proj_norm != 1) error("Wrong norm used in orthogonal projection (scalar case).");
     Mesh *mesh = this->get_mesh(0);
     if (mesh == NULL) error("Mesh is NULL in project_global().");
@@ -200,7 +204,7 @@ public:
                   std::pair<WeakForm::vector_form_val_t, WeakForm::vector_form_ord_t> proj_liform)
   {
     if (this->wf->neq != 1)
-      error("Number of projected functions must be one if there is only one equation, in LinSystem::project_global().");
+      error("Number of projected functions must be one if there is only one equation, in DiscreteProblem::project_global().");
     // todo: check that supplied forms take scalar valued functions
     Mesh *mesh = this->get_mesh(0);
     if (mesh == NULL) error("Mesh is NULL in project_global().");
@@ -213,7 +217,7 @@ public:
   void project_global(ExactFunction2 source, Solution* target)
   {
     if (this->wf->neq != 1)
-      error("Number of projected functions must be one if there is only one equation, in LinSystem::project_global().");
+      error("Number of projected functions must be one if there is only one equation, in DiscreteProblem::project_global().");
     int proj_norm = 2; // Hcurl
     Mesh *mesh = this->get_mesh(0);
     if (mesh == NULL) error("Mesh is NULL in project_global().");
@@ -238,6 +242,32 @@ public:
 
   Space** spaces;
   WeakForm* wf;
+
+  /* FUNCTIONALITY FOR NONLINEAR PROBLEMS */
+
+  /// Adjusts the Newton iteration coefficient. The default value for alpha is 1.
+  void set_alpha(double alpha) { this->alpha = alpha; }
+
+  /// Performs complete Newton's loop for a Tuple of solutions.
+  bool solve_newton(Tuple<Solution*> u_prev, double newton_tol, int newton_max_iter,
+                    bool verbose = false, Tuple<MeshFunction*> mesh_fns = Tuple<MeshFunction*>());
+
+  /// Performs complete Newton's loop for one equation
+  bool solve_newton(Solution* u_prev, double newton_tol, int newton_max_iter,
+                    bool verbose = false, 
+                    Tuple<MeshFunction*> mesh_fns = Tuple<MeshFunction*>())
+  {
+    return this->solve_newton(Tuple<Solution*>(u_prev), newton_tol, newton_max_iter, verbose, mesh_fns);
+  }
+
+  /// returns the L2-norm of the residual vector
+  double get_residual_l2_norm() const { return res_l2; }
+
+  /// returns the L1-norm of the residual vector
+  double get_residual_l1_norm() const { return res_l1; }
+
+  /// returns the L_inf-norm of the residual vector
+  double get_residual_max_norm() const { return res_max; }
 
 protected:
 
@@ -319,9 +349,6 @@ protected:
   scalar eval_form(WeakForm::MatrixFormSurf *bf, Solution *sln[], PrecalcShapeset *fu, PrecalcShapeset *fv, RefMap *ru, RefMap *rv, EdgePos* ep);
   scalar eval_form(WeakForm::VectorFormSurf *lf, Solution *sln[], PrecalcShapeset *fv, RefMap *rv, EdgePos* ep);
 
-
-
-
   scalar** get_matrix_buffer(int n)
   {
     if (n <= mat_size) return buffer;
@@ -340,7 +367,13 @@ protected:
   bool want_dir_contrib;
   bool have_spaces;
 
-  friend class RefSystem;
+  friend class RefDiscreteProblem;
+
+  /* FUNCTIONALITY FOR NONLINEAR PROBLEMS */
+
+  double alpha;
+  double res_l2, res_l1, res_max;
+
 
 };
 

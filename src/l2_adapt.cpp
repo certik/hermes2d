@@ -21,11 +21,11 @@
 #include "element_to_refine.h"
 #include "adapt.h"
 #include "l2_adapt.h"
-#include "linsystem.h"
+#include "discrete_problem.h"
 
 using namespace std;
 
-L2Adapt::L2Adapt(LinSystem* ls) : Adapt(ls) 
+L2Adapt::L2Adapt(DiscreteProblem* ls) : Adapt(ls) 
 {
   int n = ls->wf->get_neq();  
   for (int i = 0; i < n; i++)

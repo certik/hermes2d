@@ -62,7 +62,7 @@ int main(int argc, char* argv[])
   wf.add_vector_form_surf(callback(linear_form_surf), NEWTON_BDY);
 
   // Initialize the linear system.
-  LinSystem ls(&wf, &space);
+  LinearProblem ls(&wf, &space);
 
   // Testing n_dof and correctness of solution vector
   // for p_init = 1, 2, ..., 10

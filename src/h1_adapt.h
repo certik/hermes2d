@@ -26,7 +26,7 @@ class H2D_API H1Adapt : public Adapt {
 public:
   /// Constructor.
   /** \param[in] spaces An array of spaces. The number of spaces determines the number of components. For the best results, use instances of the class H1Space. */
-  H1Adapt(LinSystem* ls);
+  H1Adapt(DiscreteProblem* ls);
 };
 
 

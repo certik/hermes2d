@@ -16,7 +16,7 @@
 #include "common.h"
 #include "limit_order.h"
 #include "solution.h"
-#include "linsystem.h"
+#include "discrete_problem.h"
 #include "refmap.h"
 #include "quad_all.h"
 #include "matrix.h"
@@ -32,13 +32,13 @@ using namespace std;
 #define H2D_TOTAL_ERROR_MASK 0x0F ///< A mask which mask-out total error type. Used by Adapt::calc_error() internally. \internal
 #define H2D_ELEMENT_ERROR_MASK 0xF0 ///< A mask which mask-out element error type. Used by Adapt::calc_error() internally. \internal
 
-Adapt::Adapt(LinSystem* lsys)
+Adapt::Adapt(DiscreteProblem* lsys)
   : num_act_elems(-1), have_solutions(false), have_errors(false) 
 {
   // sanity checks
-  if (lsys == NULL) error("Pointer to LinSystem is NULL in Adapt::Adapt().");
+  if (lsys == NULL) error("Pointer to DiscreteProblem is NULL in Adapt::Adapt().");
   this->ls = lsys;
-  if (this->ls->wf == NULL) error("LinSystem is missing weak forms in Adapt::Adapt().");
+  if (this->ls->wf == NULL) error("DiscreteProblem is missing weak forms in Adapt::Adapt().");
   this->num_comps = this->ls->wf->get_neq();
   error_if(num_comps <= 0, "Too few components (%d), only %d supported.", num_comps, H2D_MAX_COMPONENTS);
   error_if(num_comps >= H2D_MAX_COMPONENTS, "Too many components (%d), only %d supported.", num_comps, H2D_MAX_COMPONENTS);

@@ -92,7 +92,7 @@ int main(int argc, char* argv[])
   wf.add_vector_form_surf(linear_form_surf<double, double>, linear_form_surf<Ord, Ord>, bdy_air);
 
   // Initialize the linear system.
-  LinSystem ls(&wf, &space);
+  LinearProblem lp(&wf, &space);
 
   // Initialize views.
   ScalarView Tview("Temperature", 0, 0, 450, 600);
@@ -110,9 +110,9 @@ int main(int argc, char* argv[])
     info("---- Time step %d, time %3.5f, ext_temp %g", ts, TIME, temp_ext(TIME));
 
     // Assemble and solve.
-    ls.assemble(rhsonly);   // Stiffness matrix assembled only the first time.
+    lp.assemble(rhsonly);   // Stiffness matrix assembled only the first time.
     rhsonly = true;
-    ls.solve(&tsln);
+    lp.solve(&tsln);
 
     // Update the time variable.
     TIME += TAU;

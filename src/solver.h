@@ -16,15 +16,15 @@
 #ifndef __H2D_SOLVER_H
 #define __H2D_SOLVER_H
 
-class LinSystem;
-class NonlinSystem;
+class DiscreteProblem;
+class LinearProblem;
 
 
 /// \brief Abstract interface to sparse linear solvers.
 ///
 ///  Solver is an abstract class defining the interface to all linear solvers
 ///  used by Hermes2D. A concrete derived class (UmfpackSolver, PardisoSolver...)
-///  is instantiated by the user and passed to the LinSystem class to solve the
+///  is instantiated by the user and passed to the DiscreteProblem class to solve the
 ///  discrete problem. The user never directly calls any of the methods of this
 ///  class.
 ///
@@ -43,7 +43,7 @@ class Solver
 protected:
 
   /// Must return true if the solvers expects compressed row (CSR) format.
-  /// Otherwise LinSystem assumes the compressed column (CSC) format.
+  /// Otherwise DiscreteProblem assumes the compressed column (CSC) format.
   virtual bool is_row_oriented() = 0;
 
   /// Must return true if the solver is capable of solving structurally
@@ -53,28 +53,28 @@ protected:
 
 
   /// Creates a new data block containing (optional) factorization data.
-  /// This method is called by LinSystem on its creation.
+  /// This method is called by DiscreteProblem on its creation.
   virtual void* new_context(bool sym) { return NULL; }
 
-  /// Frees the data block created by new_context(). Called by LinSystem on destruction.
+  /// Frees the data block created by new_context(). Called by DiscreteProblem on destruction.
   virtual void free_context(void *ctx) {}
 
 
-  /// After the sparse structure of the matrix is calculated, LinSystem calls
+  /// After the sparse structure of the matrix is calculated, DiscreteProblem calls
   /// this function to give the solver a chance to analyze the matrix and store
   /// the results for reuse in the execution context. If the solver does not
   /// support the reuse of structural analysis, this method does not have to be
   /// implemented.  \return true on success, false otherwise.
   virtual bool analyze(void* ctx, int n, int* Ap, int* Ai, scalar* Ax, bool sym) { return false; }
 
-  /// Called by LinSystem after the stiffness matrix has been assembled.
+  /// Called by DiscreteProblem after the stiffness matrix has been assembled.
   /// Direct solvers should implement this function and store the result
   /// of the factorization in the execution context, so that it can be used
   /// many times by solve() for different right hand sides.
   /// \return true on success, false otherwise.
   virtual bool factorize(void* ctx, int n, int* Ap, int* Ai, scalar* Ax, bool sym) { return false; }
 
-  /// Called by LinSystem when the user requests the solution of the linear system.
+  /// Called by DiscreteProblem when the user requests the solution of the linear system.
   /// Direct solvers will want to use the matrix factorization stored in "ctx".
   /// Iterative solvers will probably solve the system from scratch in this call,
   /// but can expect "vec" to contain the initial guess for the solution vector.
@@ -89,11 +89,11 @@ protected:
                      scalar* RHS, scalar* vec) = 0;
 
   /// Must free all auxiliary data created in the calls to analyze() and/or factorize().
-  virtual void free_data(void* ctx) {}
+  virtual void free_data(void* ctx) {};
 
 
-  friend class LinSystem;
-  friend class NonlinSystem;
+  friend class DiscreteProblem;
+  friend class LinearProblem;
 
 };
 

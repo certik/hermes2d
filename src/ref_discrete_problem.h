@@ -13,11 +13,11 @@
 // You should have received a copy of the GNU General Public License
 // along with Hermes2D.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef __H2D_REFSYSTEM_H
-#define __H2D_REFSYSTEM_H
+#ifndef __H2D_REFDISCRETEPROBLEM_H
+#define __H2D_REFDISCRETEPROBLEM_H
 
-#include "linsystem.h"
-#include "nonlinsystem.h"
+#include "discrete_problem.h"
+#include "linear_problem.h"
 #include "views/order_view.h"
 
 class Mesh;
@@ -26,11 +26,11 @@ class ExactSolution;
 ///
 ///
 ///
-class H2D_API RefSystem : public NonlinSystem
+class H2D_API RefDiscreteProblem : public DiscreteProblem
 {
 public:
-  RefSystem(LinSystem* base, int order_increase = 1, int refinement = 1);
-  virtual ~RefSystem();
+  RefDiscreteProblem(DiscreteProblem* base, int order_increase = 1, int refinement = 1);
+  virtual ~RefDiscreteProblem();
 
   /// Do not call in this class - contains just an error message.
   void set_spaces(Tuple<Space*> spaces);
@@ -51,7 +51,7 @@ public:
 
 protected:
 
-  LinSystem* base;
+  DiscreteProblem* base;
   Mesh** meshes;
   int order_increase;
   int refinement;

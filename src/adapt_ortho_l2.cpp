@@ -15,7 +15,7 @@
 
 #include "common.h"
 #include "solution.h"
-#include "linsystem.h"
+#include "discrete_problem.h"
 #include "refmap.h"
 #include "shapeset_h1_all.h"
 #include "quad_all.h"
