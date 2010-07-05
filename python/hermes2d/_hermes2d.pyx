@@ -206,7 +206,7 @@ cdef class Mesh:
     def elements_markers(self):
         """
         Returns the list of elements (as ids) made up by their corresponding vertices,
-        plus and extra number denoting the element (material) marker.
+        plus an extra number denoting the element (material) marker.
 
         Element markers allow you to use different material parameters in areas 
         with different material identity.
@@ -620,15 +620,167 @@ cdef class Mesh:
         self.thisptr.save(filename)
 
     def refine_element(self, int id, int refinement=0):
+        """
+        Refines the element of interest.
+
+        The first parameter takes your element of interest, and the second 
+        parameter takes your refinement option.  0:isotropically  1:anisotropically
+
+        Example:
+
+        >>> import hermes2d
+        >>> m = hermes2d.Mesh()
+        >>> m.create([
+        ...         [0, -1],
+        ...         [1, -1],
+        ...         [-1, 0],
+        ...         [0, 0],
+        ...         [1, 0],
+        ...         [-1, 1],
+        ...         [0, 1],
+        ...         [0.707106781, 0.707106781],
+        ...     ], [
+        ...         [0, 1, 4, 3, 0],
+        ...         [3, 4, 7, 0],
+        ...         [3, 7, 6, 0],
+        ...         [2, 3, 6, 5, 0],
+        ...     ], [
+        ...         [0, 1, 1],
+        ...         [1, 4, 2],
+        ...         [3, 0, 4],
+        ...         [4, 7, 2],
+        ...         [7, 6, 2],
+        ...         [2, 3, 4],
+        ...         [6, 5, 2],
+        ...         [5, 2, 3],
+        ...     ], [
+        ...         [4, 7, 45],
+        ...         [7, 6, 45],
+        ...     ])
+        >>> m.refine_element(0,0);
+        >>> m.elements 
+        [[3, 4, 7], [3, 7, 6], [2, 3, 6, 5], [0, 11, 20, 19], [11, 1, 9, 20],
+        [20, 9, 4, 8], [19, 20, 8, 3]]
+
+        As can be seen from the example above, more elements were created after the
+        refinement of the element of interest; in this case element "0" with refinement
+        option "0".  Originally we had four elements, but after the refinement of the
+        element of interest we now have seven.               
+
+        """
         self.thisptr.refine_element(id, refinement)
 
     def refine_all_elements(self):
+        """
+        Refines all initial elements in the mesh.
+
+        Example:
+
+        >>> import hermes2d
+        >>> m = hermes2d.Mesh()
+        >>> m.create([
+        ...         [0, -1],
+        ...         [1, -1],
+        ...         [-1, 0],
+        ...         [0, 0],
+        ...         [1, 0],
+        ...         [-1, 1],
+        ...         [0, 1],
+        ...         [0.707106781, 0.707106781],
+        ...     ], [
+        ...         [0, 1, 4, 3, 0],
+        ...         [3, 4, 7, 0],
+        ...         [3, 7, 6, 0],
+        ...         [2, 3, 6, 5, 0],
+        ...     ], [
+        ...         [0, 1, 1],
+        ...         [1, 4, 2],
+        ...         [3, 0, 4],
+        ...         [4, 7, 2],
+        ...         [7, 6, 2],
+        ...         [2, 3, 4],
+        ...         [6, 5, 2],
+        ...         [5, 2, 3],
+        ...     ], [
+        ...         [4, 7, 45],
+        ...         [7, 6, 45],
+        ...     ])
+        >>> m.elements
+        [[0, 1, 4, 3], [3, 4, 7], [3, 7, 6], [2, 3, 6, 5]]
+        >>> m.refine_all_elements();
+        >>> m.elements
+        [[0, 11, 20, 19], [11, 1, 9, 20], [20, 9, 4, 8], [19, 20, 8, 3], [3, 8,
+        34], [8, 4, 33], [34, 33, 7], [33, 34, 8], [3, 34, 10], [34, 7, 12],
+        [10, 12, 6], [12, 10, 34], [2, 18, 16, 15], [18, 3, 10, 16], [16, 10, 6,
+        17], [15, 16, 17, 5]] 
+
+        Notice in the example above how we showed the initial elements that were in the mesh
+        with the command "m.elements".  We then went ahead and refined these initial elements
+        with "m.refine_all_elements();" and displayed the newly refined set of elements with 
+        "m.elements".  In the example above, as an example, "[0, 11, 20, 19]" is an element
+        made up by its corresponding vertices.
+
+        """
         self.thisptr.refine_all_elements()
 
     def refine_towards_boundary(self, int marker, int depth):
         self.thisptr.refine_towards_boundary(marker, depth)
 
     def refine_towards_vertex(self, int marker, int depth):
+        """
+        Refines a mesh towards a given vertex by a certain refinement degree.
+
+        The first parameter inserted is the vertex of interest, followed by a number
+        representing the wanted number of mesh refinements.
+
+        Example:
+
+        >>> import hermes2d
+        >>> m = hermes2d.Mesh()
+        >>> m.create([
+        ...         [0, -1],
+        ...         [1, -1],
+        ...         [-1, 0],
+        ...         [0, 0],
+        ...         [1, 0],
+        ...         [-1, 1],
+        ...         [0, 1],
+        ...         [0.707106781, 0.707106781],
+        ...     ], [
+        ...         [0, 1, 4, 3, 0],
+        ...         [3, 4, 7, 0],
+        ...         [3, 7, 6, 0],
+        ...         [2, 3, 6, 5, 0],
+        ...     ], [
+        ...         [0, 1, 1],
+        ...         [1, 4, 2],
+        ...         [3, 0, 4],
+        ...         [4, 7, 2],
+        ...         [7, 6, 2],
+        ...         [2, 3, 4],
+        ...         [6, 5, 2],
+        ...         [5, 2, 3],
+        ...     ], [
+        ...         [4, 7, 45],
+        ...         [7, 6, 45],
+        ...     ])
+        >>> m.elements
+        [[0, 1, 4, 3], [3, 4, 7], [3, 7, 6], [2, 3, 6, 5]]
+        >>> m.refine_towards_vertex(0,2);
+        >>> m.elements
+        [[3, 4, 7], [3, 7, 6], [2, 3, 6, 5], [11, 1, 9, 20], [20, 9, 4, 8], [19,
+        20, 8, 3], [0, 24, 35, 34], [24, 11, 21, 35], [35, 21, 20, 33], [34, 35,
+        33, 19]]
+        
+        In the example above, to illustrate the post mesh refinement towards the given
+        vertex of interest,  we first show the  initial mesh elements with the command
+        "m.elements".  We then refine our mesh towards vertex "0" (coordinates [0,-1])
+        with a refinement multiplication of "2".  This is shown in the command
+        "m.refine_towards_vertex(0,2);".  And finally the new list of  elements after
+        refinement is shown with "m.elements".  In the example above, as an example,
+        "[3, 4, 7]" is an  element made up of its corresponding vertices.  
+
+        """
         self.thisptr.refine_towards_vertex(marker, depth)
 
     def get_element(self, int id):
@@ -695,8 +847,8 @@ cdef class PrecalcShapeset:
 
 cdef class H1Space:
 
-    def __init__(self, Mesh m, H1Shapeset s):
-        self.thisptr = new_H1Space(m.thisptr, s.thisptr)
+    def __init__(self, Mesh m):
+        self.thisptr = new_H1Space(m.thisptr)
 
     def __dealloc__(self):
         delete(self.thisptr)
@@ -721,8 +873,8 @@ cdef class L2Space:
 
         Suggested Use: ```l2_space = L2Space(mesh, l2_shapeset)```
     """
-    def __init__(self, Mesh m, L2Shapeset s):
-        self.thisptr = new_L2Space(m.thisptr, s.thisptr)
+    def __init__(self, Mesh m):
+        self.thisptr = new_L2Space(m.thisptr)
 
     def __dealloc__(self):
         delete(self.thisptr)
@@ -969,8 +1121,8 @@ cdef class DummySolver(Solver):
 
 cdef class LinSystem:
 
-    def __init__(self, WeakForm wf, Solver solver):
-        self.thisptr = new_LinSystem(wf.thisptr, solver.thisptr)
+    def __init__(self, WeakForm wf):
+        self.thisptr = new_LinSystem(wf.thisptr)
 
     #def __dealloc__(self):
     #    delete(self.thisptr)
