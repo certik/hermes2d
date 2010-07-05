@@ -246,7 +246,7 @@ protected:
 
   PrecalcShapeset** pss;
 
-  CooMatrix *A;
+  Matrix *A;
   bool mat_sym; ///< true if symmetric - then only upper half stored
 
   scalar* Vec; ///< solution coefficient vector
