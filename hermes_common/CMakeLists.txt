@@ -90,7 +90,7 @@ endif(COMMON_WITH_SUPERLU)
 
 if(NOT MSVC)
   IF(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-    target_link_libraries(${HERMES_COMMON} "rt")
+    target_link_libraries(${HERMES_COMMON} rt dl util)
   ENDIF(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 endif(NOT MSVC)
 
