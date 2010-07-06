@@ -54,41 +54,17 @@ void DiscreteProblem::init(WeakForm* wf_, CommonSolver* solver_)
   this->struct_changed = true;
   this->have_spaces = false;
 
-  // nonlinear functionality
-  this->want_dir_contrib = false; // NOTE: This says that the discrete problem assembled will
-                                  // have the meaning "Jacobian matrix times coeff. vector increment 
-                                  // = minus residual"
-  alpha = 1.0;
+  this->alpha = 1.0;
 }
 
 // this is needed because of a constructor in NonlinSystem
 DiscreteProblem::DiscreteProblem() {}
-
-// OLD CODE
-//DiscreteProblem::DiscreteProblem(WeakForm* wf_, CommonSolver* solver_)
-//{
-//  this->init(wf_, solver_);
-//}
 
 DiscreteProblem::DiscreteProblem(WeakForm* wf_)
 {
   CommonSolver *solver_ = NULL;
   this->init(wf_, solver_);
 }
-
-// OLD CODE
-//DiscreteProblem::DiscreteProblem(WeakForm* wf_, CommonSolver* solver_, Tuple<Space*> sp)
-//{
-//  int n = sp.size();
-//  if (wf_ == NULL) warn("Weak form is NULL.");
-//  if (wf_ != NULL) {
-//    if (n != wf_->neq)
-//      error("Number of spaces does not match number of equations in DiscreteProblem::DiscreteProblem().");
-//  }
-//  this->init(wf_, solver_);
-//  this->init_spaces(sp);
-//  this->alloc_and_zero_vectors();
-//}
 
 DiscreteProblem::DiscreteProblem(WeakForm* wf_, Tuple<Space*> sp)
 {
@@ -98,19 +74,6 @@ DiscreteProblem::DiscreteProblem(WeakForm* wf_, Tuple<Space*> sp)
   this->alloc_and_zero_vectors();
 }
 
-// OLD CODE
-//DiscreteProblem::DiscreteProblem(WeakForm* wf_, CommonSolver* solver_, Space* s_)
-//{
-//  if (wf_ == NULL) warn("Weak form is NULL.");
-//  if (wf_ != NULL) {
-//    if (wf_->neq != 1)
-//      error("Number of spaces does not match number of equations in DiscreteProblem::DiscreteProblem().");
-//  }
-//  this->init(wf_, solver_);
-//  this->init_space(s_);
-//  this->alloc_and_zero_vectors();
-//}
-
 DiscreteProblem::DiscreteProblem(WeakForm* wf_, Space* s_)
 {
   CommonSolver *solver_ = NULL;
@@ -118,20 +81,6 @@ DiscreteProblem::DiscreteProblem(WeakForm* wf_, Space* s_)
   this->init_space(s_);
   this->alloc_and_zero_vectors();
 }
-
-// OLD CODE
-//DiscreteProblem::DiscreteProblem(WeakForm* wf_, CommonSolver* solver_, Space* space1_, Space* space2_)
-//{
-//  int n = 2;
-//  if (wf_ == NULL) warn("Weak form is NULL.");
-//  if (wf_ != NULL) {
-//    if (n != wf_->neq)
-//      error("Number of spaces does not match number of equations in DiscreteProblem::DiscreteProblem().");
-//  }
-//  this->init(wf_, solver_);
-//  this->init_spaces(Tuple<Space*>(space1_, space2_));
-//  this->alloc_and_zero_vectors();
-//}
 
 DiscreteProblem::~DiscreteProblem()
 {
@@ -151,8 +100,8 @@ void DiscreteProblem::free_spaces()
   // free spaces, making sure that duplicated ones do not get deleted twice
   if (this->spaces != NULL)
   {
-    // this loop skipped if there is only one space
     for (int i = 0; i < this->wf->neq; i++) {
+      // this loop skipped if there is only one space
       for (int j = i+1; j < this->wf->neq; j++) {
         if (this->spaces[j] == this->spaces[i]) this->spaces[j] = NULL;
       }
@@ -741,7 +690,8 @@ void DiscreteProblem::delete_cache()
 
 
 // Actual evaluation of volume Jacobian form (calculates integral)
-scalar DiscreteProblem::eval_form(WeakForm::MatrixFormVol *mfv, Solution *sln[], PrecalcShapeset *fu, PrecalcShapeset *fv, RefMap *ru, RefMap *rv)
+scalar DiscreteProblem::eval_form(WeakForm::MatrixFormVol *mfv, Solution *sln[], 
+                        PrecalcShapeset *fu, PrecalcShapeset *fv, RefMap *ru, RefMap *rv)
 {
   // determine the integration order
   int inc = (fu->get_num_components() == 2) ? 1 : 0;
@@ -905,7 +855,8 @@ scalar DiscreteProblem::eval_form(WeakForm::VectorFormVol *vfv, Solution *sln[],
 }
 
 // Actual evaluation of surface Jacobian form (calculates integral)
-scalar DiscreteProblem::eval_form(WeakForm::MatrixFormSurf *mfs, Solution *sln[], PrecalcShapeset *fu, PrecalcShapeset *fv, RefMap *ru, RefMap *rv, EdgePos* ep)
+scalar DiscreteProblem::eval_form(WeakForm::MatrixFormSurf *mfs, Solution *sln[], 
+                        PrecalcShapeset *fu, PrecalcShapeset *fv, RefMap *ru, RefMap *rv, EdgePos* ep)
 {
   // eval the form
   Quad2D* quad = fu->get_quad_2d();
@@ -958,7 +909,8 @@ scalar DiscreteProblem::eval_form(WeakForm::MatrixFormSurf *mfs, Solution *sln[]
 
 
 // Actual evaluation of surface vector form (calculates integral)
-scalar DiscreteProblem::eval_form(WeakForm::VectorFormSurf *vfs, Solution *sln[], PrecalcShapeset *fv, RefMap *rv, EdgePos* ep)
+scalar DiscreteProblem::eval_form(WeakForm::VectorFormSurf *vfs, Solution *sln[], 
+                        PrecalcShapeset *fv, RefMap *rv, EdgePos* ep)
 {
   // eval the form
   Quad2D* quad = fv->get_quad_2d();
@@ -1010,81 +962,88 @@ scalar DiscreteProblem::eval_form(WeakForm::VectorFormSurf *vfs, Solution *sln[]
 
 //// solve /////////////////////////////////////////////////////////////////////////////////////////
 
-bool DiscreteProblem::solve(Tuple<Solution*> sln)
+bool DiscreteProblem::solve_matrix_problem(CooMatrix* mat, scalar* vec) 
 {
-  int n = sln.size();
-
-  // if the number of solutions does not match the number of equations, throw error
-  if (n != this->wf->neq)
-    error("Number of solutions does not match the number of equations in DiscreteProblem::solve().");
-
-  // if Vec is not initialized, throw error
-  if (this->Vec == NULL) error("Vec is NULL in DiscreteProblem::solve().");
-
-  // check vector size
-  int ndof = this->get_num_dofs();
-  if (this->Vec_length != ndof || this->RHS_length != ndof || this->Dir_length != ndof)
-    error("Length of vectors Vec, RHS or Dir does not match this->ndof in DiscreteProblem::solve().");
-
   // check matrix size
+  int ndof = this->get_num_dofs();
   if (ndof == 0) error("ndof = 0 in DiscreteProblem::solve().");
   if (ndof != this->A->get_size())
     error("Matrix size does not match vector length in DiscreteProblem:solve().");
 
-  // time measurement
+  // FIXME: similar test should be done for the vector "vec" also, but we need
+  // to access the information about its length.
+  // ...
+
+  // solve the matrix problem (and report time)
   TimePeriod cpu_time;
+  bool flag = this->solver->solve(mat, vec);
+  report_time("Matrix problem solved in %g s", cpu_time.tick().last());
 
-  if (this->linear == true) {
-    // solve linear system "Ax = b"
-    memcpy(this->Vec, this->RHS, sizeof(scalar) * ndof);
-    this->solver->solve(this->A, this->Vec);
-    report_time("DiscreteProblem solved in %g s", cpu_time.tick().last());
-  }
-  else {
-    // solve Jacobian system "J times dY_{n+1} = -F(Y_{n+1})"
-    scalar* delta = new scalar[ndof];
-    memcpy(delta, this->RHS, sizeof(scalar) * ndof);
-    this->solver->solve(this->A, delta);
-    report_time("Solved in %g s", cpu_time.tick().last());
-    // add the increment dY_{n+1} to the previous solution vector
-    for (int i = 0; i < ndof; i++) this->Vec[i] += delta[i];
-    delete [] delta;
-  }
+  return flag;
+}
 
-  // copy solution coefficient vectors into Solutions
+bool DiscreteProblem::solve(CooMatrix* mat, scalar* rhs, scalar* vec)
+{
+  int ndof = this->get_num_dofs();
+
+  // sanity checks
+  if (mat == NULL) error("matrix is NULL in DiscreteProblem::solve().");
+  if (rhs == NULL) error("rhs is NULL in DiscreteProblem::solve().");
+  if (vec == NULL) error("vec is NULL in DiscreteProblem::solve().");
+  if (ndof == 0) error("ndof = 0 in DiscreteProblem::solve().");
+  if (ndof != mat->get_size())
+    error("Matrix size does not match ndof in in DiscreteProblem:solve().");
+
+  // copy "vec" into "delta" and solve the matrix problem with "mat", "delta"
+  scalar* delta = new scalar[ndof];
+  memcpy(delta, rhs, sizeof(scalar) * ndof);
+  bool flag = this->solve_matrix_problem(mat, delta);
+  if (flag == false) return false;
+
+  // add the result which is in "delta" to the previous 
+  // solution vector which is in "vec"
+  for (int i = 0; i < ndof; i++) vec[i] += delta[i];
+  delete [] delta;
+
+  return true;
+}
+
+bool DiscreteProblem::solve(Tuple<Solution*> sln)
+{
+  int ndof = this->get_num_dofs();
+  int n = sln.size();
+ 
+  // sanity checks
+  if (n != this->wf->neq)
+    error("Number of solutions does not match the number of equations in DiscreteProblem::solve().");
+  if (this->Vec == NULL) error("Vec is NULL in DiscreteProblem::solve().");
+  if (this->Vec_length != ndof || this->RHS_length != ndof || this->Dir_length != ndof)
+    error("Length of vectors Vec, RHS or Dir does not match this->ndof in DiscreteProblem::solve().");
+  if (ndof == 0) error("ndof = 0 in DiscreteProblem::solve().");
+  if (ndof != this->A->get_size())
+    error("Matrix size does not match vector length in DiscreteProblem:solve().");
+
+  // solve the matrix problem with this->A and this->RHS, and add the
+  // result to this->Vec
+  bool flag = this->solve(this->A, this->RHS, this->Vec);
+  if (flag == false) return false; 
+
+  // copy this->Vec into Solutions
+  if (this->spaces == NULL) error("this->spaces == NULL in DiscreteProblem::solve().");
+  if (this->pss == NULL) error("this->pss == NULL in DiscreteProblem::solve().");
   for (int i = 0; i < n; i++)
   {
     sln[i]->set_fe_solution(this->spaces[i], this->pss[i], this->Vec);
   }
 
-  report_time("Exported solution in %g s", cpu_time.tick().last());
   return true;
 }
 
 // single equation case
 bool DiscreteProblem::solve(Solution* sln)
 {
-  bool flag;
-  flag = this->solve(Tuple<Solution*>(sln));
-  return flag;
+  return this->solve(Tuple<Solution*>(sln));
 }
-
-// two equations case
-bool DiscreteProblem::solve(Solution* sln1, Solution *sln2)
-{
-  bool flag;
-  flag = this->solve(Tuple<Solution*>(sln1, sln2));
-  return flag;
-}
-
-// three equations case
-bool DiscreteProblem::solve(Solution* sln1, Solution *sln2, Solution* sln3)
-{
-  bool flag;
-  flag = this->solve(Tuple<Solution*>(sln1, sln2, sln3));
-  return flag;
-}
-
 
 //// matrix and solution output /////////////////////////////////////////////////////////////////////////////////
 
@@ -1145,7 +1104,8 @@ void DiscreteProblem::save_rhs_bin(const char* filename)
 
 // L2 projections
 template<typename Real, typename Scalar>
-Scalar L2projection_biform(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+Scalar L2projection_biform(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *u, 
+                           Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
   Scalar result = 0;
   for (int i = 0; i < n; i++)
@@ -1154,7 +1114,8 @@ Scalar L2projection_biform(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> 
 }
 
 template<typename Real, typename Scalar>
-Scalar L2projection_liform(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+Scalar L2projection_liform(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *v, 
+                           Geom<Real> *e, ExtData<Scalar> *ext)
 {
   Scalar result = 0;
   for (int i = 0; i < n; i++)
@@ -1164,7 +1125,8 @@ Scalar L2projection_liform(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> 
 
 // H1 projections
 template<typename Real, typename Scalar>
-Scalar H1projection_biform(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+Scalar H1projection_biform(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *u, 
+                           Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
   Scalar result = 0;
   for (int i = 0; i < n; i++)
@@ -1173,17 +1135,20 @@ Scalar H1projection_biform(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> 
 }
 
 template<typename Real, typename Scalar>
-Scalar H1projection_liform(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+Scalar H1projection_liform(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *v, 
+                           Geom<Real> *e, ExtData<Scalar> *ext)
 {
   Scalar result = 0;
   for (int i = 0; i < n; i++)
-    result += wt[i] * (ext->fn[0]->val[i] * v->val[i] + ext->fn[0]->dx[i] * v->dx[i] + ext->fn[0]->dy[i] * v->dy[i]);
+    result += wt[i] * (ext->fn[0]->val[i] * v->val[i] + ext->fn[0]->dx[i] * 
+                       v->dx[i] + ext->fn[0]->dy[i] * v->dy[i]);
   return result;
 }
 
 // Hcurl projections
 template<typename Real, typename Scalar>
-Scalar Hcurlprojection_biform(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+Scalar Hcurlprojection_biform(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *u, 
+                              Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
   Scalar result = 0;
   for (int i = 0; i < n; i++) {
@@ -1194,7 +1159,8 @@ Scalar Hcurlprojection_biform(int n, double *wt, Func<Scalar> *u_ext[], Func<Rea
 }
 
 template<typename Real, typename Scalar>
-Scalar Hcurlprojection_liform(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+Scalar Hcurlprojection_liform(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *v, 
+                              Geom<Real> *e, ExtData<Scalar> *ext)
 {
   Scalar result = 0;
   for (int i = 0; i < n; i++) {
@@ -1287,10 +1253,12 @@ void DiscreteProblem::project_global(Tuple<MeshFunction*> source, Tuple<Solution
     }
   }
 
-  want_dir_contrib = true;
-  DiscreteProblem::assemble();
+  //assembling the projection matrix, Dir vector and RHS
+  DiscreteProblem::assemble(this->A, this->Dir, this->RHS, false);
+  // since this is a linear problem, put the Dir vector to the right-hand side:
+  for (int i=0; i < this->get_num_dofs(); i++) RHS[i] += Dir[i];
+
   DiscreteProblem::solve(target);
-  want_dir_contrib = false;
 
   // restoring original weak form
   wf = wf_orig;
@@ -1350,10 +1318,12 @@ void DiscreteProblem::project_global(Tuple<MeshFunction*> source, Tuple<Solution
     }
   }
 
-  want_dir_contrib = true;
-  DiscreteProblem::assemble();
+  //assembling the projection matrix, Dir vector and RHS
+  DiscreteProblem::assemble(this->A, this->Dir, this->RHS, false);
+  // since this is a linear problem, put the Dir vector to the right-hand side:
+  for (int i=0; i < this->get_num_dofs(); i++) RHS[i] += Dir[i];
+
   DiscreteProblem::solve(target);
-  want_dir_contrib = false;
 
   // restoring original weak form
   wf = wf_orig;
@@ -1412,7 +1382,7 @@ bool DiscreteProblem::solve_newton(Tuple<Solution*> u_prev, double newton_tol,
 
     // assemble the Jacobian matrix and residual vector,
     // solve the system
-    this->assemble();
+    this->assemble(this->A, this->Dir, this->RHS, false);
     this->solve(u_prev);
 
     // calculate the l2-norm of residual vector

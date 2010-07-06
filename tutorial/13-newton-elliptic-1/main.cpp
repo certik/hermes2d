@@ -90,12 +90,12 @@ int main(int argc, char* argv[])
   wf.add_vector_form(callback(res), H2D_ANY, &u_prev);
 
   // Initialize the linear system.
-  NonlinSystem nls(&wf, &space);
+  DiscreteProblem dp(&wf, &space);
 
   // Project the function init_cond() on the FE space
   // to obtain initial coefficient vector for the Newton's method.
   info("Projecting initial condition to obtain initial vector for the Newton'w method.");
-  nls.project_global(init_cond, &u_prev);  
+  dp.project_global(init_cond, &u_prev);  
 
   // Show the initial condition for the Newton's method. 
   ScalarView pview("Projection of initial condition", 0, 0, 400, 300);
@@ -104,7 +104,7 @@ int main(int argc, char* argv[])
   // Perform Newton's iteration.
   info("Performing Newton's iteration.");
   bool verbose = true; // Default is false.
-  if (!nls.solve_newton(&u_prev, NEWTON_TOL, NEWTON_MAX_ITER, verbose)) 
+  if (!dp.solve_newton(&u_prev, NEWTON_TOL, NEWTON_MAX_ITER, verbose)) 
     error("Newton's method did not converge.");
 
   // Visualise the solution and mesh.

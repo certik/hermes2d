@@ -53,14 +53,9 @@ class H2D_API DiscreteProblem
 public:
 
   DiscreteProblem();
-  //DiscreteProblem(WeakForm* wf_, CommonSolver* solver_);
-  DiscreteProblem(WeakForm* wf_);                  // solver will be set to NULL and default solver will be used
-  //DiscreteProblem(WeakForm* wf_, CommonSolver* solver_, Space* s_);
-  DiscreteProblem(WeakForm* wf_, Space* s_);       // solver will be set to NULL and default solver will be used
-  //DiscreteProblem(WeakForm* wf_, CommonSolver* solver_, Tuple<Space*> spaces_);
-  DiscreteProblem(WeakForm* wf_, Tuple<Space*> spaces_);      // solver will be set to NULL and default solver will be used
-  //DiscreteProblem(WeakForm* wf_, CommonSolver* solver_, Space* space1_, Space* space2_);
-
+  DiscreteProblem(WeakForm* wf_);
+  DiscreteProblem(WeakForm* wf_, Space* s_);
+  DiscreteProblem(WeakForm* wf_, Tuple<Space*> spaces_);
   virtual ~DiscreteProblem();
 
   void init(WeakForm* wf, CommonSolver* solver);
@@ -83,30 +78,35 @@ public:
       return this->pss[n];
   }
 
-  /// Helps to determine if linear or nonlinear class instance is used
-  /// similar to Java instance of functionality
-  virtual bool set_linearity() { this->linear = true; }
-
-  /// Assembles the matrix A and vectors Vec, Dir and RHS. Everything must be 
-  /// allocated in advance when assemble() is called. This is the generic functionality 
-  /// to be used for linear problems, nonlinear problems, and eigenproblems.  
+  /// Assembles the matrix A and vectors Vec, Dir and RHS, and exposes them to the user. 
+  /// Everything must be allocated in advance when assemble() is called. This is the generic 
+  /// functionality to be used for linear problems, nonlinear problems, and eigenproblems.
+  /// Soon this will be extended to assemble an arbitrary number of matrix and vector
+  /// weak forms. 
   virtual void assemble(CooMatrix* &A, scalar* &Dir, scalar* &RHS, bool rhsonly = false);
+
+  /// User-friendly version, should only be used by users in their main.cpp files (not by
+  /// developers in H2D internal functions). 
+  /// NOTE: this assembles the Jacobian matrix and residual vector (the vector
+  /// Dir is not added to the RHS vector as it must be done for linear problems).
+  /// There is another assemble() function in the LinearProblem class that handles 
+  /// the linear case. 
   virtual void assemble(bool rhsonly = false) {
-    // This is just to expose the matrix and vectors to the user. 
     this->assemble(this->A, this->Dir, this->RHS, rhsonly);
   };
 
-  /// Solves the matrix problem and propagates the resulting coefficient vector into
-  /// one or more Solutions. The solution class does not contain the original solution
-  /// vector. Instead it contains a new coefficient vector that corresponds to a monomial
-  /// In this way, Solution does not require a copy of Space. In other words, Solution
-  /// contains the last copy of the vector Vec even after this vector is freed in consequent
-  /// computation. This is used in algorithms that require previous solutions, such as
-  /// the Newton's method, time stepping, etc.
-  bool solve(Tuple<Solution*> sln);
-  bool solve(Solution* sln); // single equation case
-  bool solve(Solution* sln1, Solution* sln2); // two equations case
-  bool solve(Solution* sln1, Solution* sln2, Solution* sln3); // three equations case
+  /// Basic function that just solves the matrix problem. The right-hand
+  /// side enters through "vec" and the result is stored in "vec" as well. 
+  bool solve_matrix_problem(CooMatrix* mat, scalar* vec); 
+
+  /// Solves the matrix problem with "mat" and "rhs", and adds the result 
+  /// to the vector "vec".
+  virtual bool solve(CooMatrix* mat, scalar* rhs, scalar* vec);
+
+  /// Solves the matrix problem with this->A and this->RHS, adds the result 
+  /// into this->Vec, and propagates this->Vec into one or more Solutions. 
+  virtual bool solve(Tuple<Solution*> sln);
+  virtual bool solve(Solution* sln);            // single equation case
 
   /// Frees the stiffness matrix.
   virtual void free_matrix();
@@ -119,8 +119,6 @@ public:
   void save_rhs_matlab(const char* filename, const char* varname = "b");
   void save_matrix_bin(const char* filename);
   void save_rhs_bin(const char* filename);
-
-  void enable_dir_contrib(bool enable = true) {  want_dir_contrib = enable;  }
 
   scalar* get_solution_vector() { return Vec; }
   int get_num_dofs();
@@ -160,11 +158,13 @@ public:
   /// Global orthogonal projection of multiple solution components. For each of
   /// them a different proj_norm can be used. This defines the entire coefficient
   /// vector Vec. Calls assign_dofs() at the beginning.
-  void project_global(Tuple<MeshFunction*> source, Tuple<Solution*> target, Tuple<int> proj_norms = Tuple<int>());
+  void project_global(Tuple<MeshFunction*> source, Tuple<Solution*> target, 
+                      Tuple<int> proj_norms = Tuple<int>());
 
   /// The same as above, but the user may specify the forms that are used in the projection
   /// (useful e.g. when working in curvilinear coordinate systems).
-  void project_global(Tuple<MeshFunction*> source, Tuple<Solution*> target, matrix_forms_tuple_t proj_biforms, vector_forms_tuple_t proj_liforms);
+  void project_global(Tuple<MeshFunction*> source, Tuple<Solution*> target, 
+                      matrix_forms_tuple_t proj_biforms, vector_forms_tuple_t proj_liforms);
 
   /// Global orthogonal projection of one MeshFunction.
   void project_global(MeshFunction* source, Solution* target, int proj_norm = H2D_DEFAULT_PROJ_NORM)
@@ -181,7 +181,8 @@ public:
   {
     if (this->wf->neq != 1)
       error("Number of projected functions must be one if there is only one equation, in DiscreteProblem::project_global().");
-    this->project_global(Tuple<MeshFunction*>(source), Tuple<Solution*>(target), matrix_forms_tuple_t(proj_biform), vector_forms_tuple_t(proj_liform));
+    this->project_global(Tuple<MeshFunction*>(source), Tuple<Solution*>(target), 
+                         matrix_forms_tuple_t(proj_biform), vector_forms_tuple_t(proj_liform));
   };
 
 
@@ -210,7 +211,8 @@ public:
     if (mesh == NULL) error("Mesh is NULL in project_global().");
     Solution sln;
     sln.set_exact(mesh, source);
-    this->project_global(Tuple<MeshFunction*>(&sln), Tuple<Solution*>(target), matrix_forms_tuple_t(proj_biform), vector_forms_tuple_t(proj_liform));
+    this->project_global(Tuple<MeshFunction*>(&sln), Tuple<Solution*>(target), 
+                         matrix_forms_tuple_t(proj_biform), vector_forms_tuple_t(proj_liform));
   };
 
   /// Global orthogonal projection of one vector-valued ExactFunction.
@@ -242,6 +244,7 @@ public:
 
   Space** spaces;
   WeakForm* wf;
+  bool have_spaces;
 
   /* FUNCTIONALITY FOR NONLINEAR PROBLEMS */
 
@@ -269,23 +272,24 @@ public:
   /// returns the L_inf-norm of the residual vector
   double get_residual_max_norm() const { return res_max; }
 
-protected:
-
   CommonSolver* solver;
   CommonSolver* solver_default;
 
-  PrecalcShapeset** pss;
-
   CooMatrix *A;
-  bool mat_sym; ///< true if symmetric - then only upper half stored
 
   scalar* Vec; ///< solution coefficient vector
-  int Vec_length;
   scalar* RHS; ///< assembled right-hand side
-  int RHS_length;
   scalar* Dir; ///< contributions to the RHS from Dirichlet lift
+
+protected:
+
+  PrecalcShapeset** pss;
+
+  bool mat_sym; ///< true if symmetric - then only upper half stored
+
+  int RHS_length;
+  int Vec_length;
   int Dir_length;
-  bool linear;
 
   void create_matrix(bool rhsonly);
   void insert_block(scalar** mat, int* iidx, int* jidx, int ilen, int jlen);
@@ -344,10 +348,14 @@ protected:
   void delete_cache();
 
   // evaluation of forms, general case
-  scalar eval_form(WeakForm::MatrixFormVol *bf, Solution *sln[], PrecalcShapeset *fu, PrecalcShapeset *fv, RefMap *ru, RefMap *rv);
-  scalar eval_form(WeakForm::VectorFormVol *lf, Solution *sln[], PrecalcShapeset *fv, RefMap *rv);
-  scalar eval_form(WeakForm::MatrixFormSurf *bf, Solution *sln[], PrecalcShapeset *fu, PrecalcShapeset *fv, RefMap *ru, RefMap *rv, EdgePos* ep);
-  scalar eval_form(WeakForm::VectorFormSurf *lf, Solution *sln[], PrecalcShapeset *fv, RefMap *rv, EdgePos* ep);
+  scalar eval_form(WeakForm::MatrixFormVol *bf, Solution *sln[], PrecalcShapeset *fu, 
+                   PrecalcShapeset *fv, RefMap *ru, RefMap *rv);
+  scalar eval_form(WeakForm::VectorFormVol *lf, Solution *sln[], PrecalcShapeset *fv, 
+                   RefMap *rv);
+  scalar eval_form(WeakForm::MatrixFormSurf *bf, Solution *sln[], PrecalcShapeset *fu, 
+                   PrecalcShapeset *fv, RefMap *ru, RefMap *rv, EdgePos* ep);
+  scalar eval_form(WeakForm::VectorFormSurf *lf, Solution *sln[], PrecalcShapeset *fv, 
+                   RefMap *rv, EdgePos* ep);
 
   scalar** get_matrix_buffer(int n)
   {
@@ -364,8 +372,6 @@ protected:
   int num_user_pss;
   bool values_changed;
   bool struct_changed;
-  bool want_dir_contrib;
-  bool have_spaces;
 
   friend class RefDiscreteProblem;
 

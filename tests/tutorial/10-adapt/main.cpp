@@ -96,7 +96,7 @@ int main(int argc, char* argv[])
 
     // Assemble and solve the fine mesh problem.
     info("Solving on fine mesh.");
-    RefLinearProblem rs(&lp);
+    RefLinearProblem rlp(&lp);
     rlp.assemble();
     rlp.solve(&sln_fine);    
 

@@ -17,7 +17,6 @@
 #define __H2D_REFDISCRETEPROBLEM_H
 
 #include "discrete_problem.h"
-#include "linear_problem.h"
 #include "views/order_view.h"
 
 class Mesh;
@@ -29,6 +28,7 @@ class ExactSolution;
 class H2D_API RefDiscreteProblem : public DiscreteProblem
 {
 public:
+  RefDiscreteProblem() {};
   RefDiscreteProblem(DiscreteProblem* base, int order_increase = 1, int refinement = 1);
   virtual ~RefDiscreteProblem();
 
@@ -45,7 +45,7 @@ public:
 
   /// Creates reference (fine) meshes and spaces and assembles the
   /// reference system.
-  void assemble(bool rhsonly = false);
+  virtual void assemble(bool rhsonly = false);
 
   bool solve_exact(ExactFunction exactfn, Solution* sln);
 

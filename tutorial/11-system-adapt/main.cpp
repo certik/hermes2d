@@ -140,7 +140,7 @@ int main(int argc, char* argv[])
   H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
 
   // Initialize the coarse mesh problem.
-  LinSystem ls(&wf, Tuple<Space*>(&uspace, &vspace));
+  LinearProblem lp(&wf, Tuple<Space*>(&uspace, &vspace));
 
   // Adaptivity loop.
   int as = 1; bool done = false;
@@ -152,20 +152,20 @@ int main(int argc, char* argv[])
 
     // Assemble and solve the fine mesh problem.
     info("Solving on fine meshes.");
-    RefSystem rs(&ls);
-    rs.assemble();
-    rs.solve(Tuple<Solution*>(&u_sln_fine, &v_sln_fine));
+    RefLinearProblem rlp(&lp);
+    rlp.assemble();
+    rlp.solve(Tuple<Solution*>(&u_sln_fine, &v_sln_fine));
 
     // Either solve on coarse mesh or project the fine mesh solution 
     // on the coarse mesh.
     if (SOLVE_ON_COARSE_MESH) {
       info("Solving on coarse meshes.");
-      ls.assemble();
-      ls.solve(Tuple<Solution*>(&u_sln_coarse, &v_sln_coarse));
+      lp.assemble();
+      lp.solve(Tuple<Solution*>(&u_sln_coarse, &v_sln_coarse));
     }
     else {
       info("Projecting fine mesh solutions on coarse meshes.");
-      ls.project_global(Tuple<MeshFunction*>(&u_sln_fine, &v_sln_fine), 
+      lp.project_global(Tuple<MeshFunction*>(&u_sln_fine, &v_sln_fine), 
                         Tuple<Solution*>(&u_sln_coarse, &v_sln_coarse));
     }
 
@@ -173,8 +173,8 @@ int main(int argc, char* argv[])
     cpu_time.tick();
 
     // View the solutions and meshes.
-    info("u_dof_coarse: %d, v_dof_coarse: %d", ls.get_num_dofs(0), ls.get_num_dofs(1));
-    info("u_dof_fine: %d, v_dof_fine: %d", rs.get_num_dofs(0), rs.get_num_dofs(1));
+    info("u_dof_coarse: %d, v_dof_coarse: %d", lp.get_num_dofs(0), lp.get_num_dofs(1));
+    info("u_dof_fine: %d, v_dof_fine: %d", rlp.get_num_dofs(0), rlp.get_num_dofs(1));
     uview.show(&u_sln_coarse);
     vview.show(&v_sln_coarse);
     uoview.show(&uspace);
@@ -185,7 +185,7 @@ int main(int argc, char* argv[])
 
     // Calculate element errors and total error estimate.
     info("Calculating error (est).");
-    H1Adapt hp(&ls);
+    H1Adapt hp(&lp);
     hp.set_solutions(Tuple<Solution*>(&u_sln_coarse, &v_sln_coarse), 
                      Tuple<Solution*>(&u_sln_fine, &v_sln_fine));
     hp.set_error_form(0, 0, bilinear_form_0_0<scalar, scalar>, bilinear_form_0_0<Ord, Ord>);
@@ -209,7 +209,7 @@ int main(int argc, char* argv[])
     info("Estimate of error wrt. ref. solution (energy norm): %g%%", err_est);
 
     // Add entry to DOF convergence graph.
-    graph_dof.add_values(ls.get_num_dofs(), error);
+    graph_dof.add_values(lp.get_num_dofs(), error);
     if (MULTI == true) graph_dof.save("conv_dof_m.dat");
     else graph_dof.save("conv_dof_s.dat");
 
@@ -223,7 +223,7 @@ int main(int argc, char* argv[])
     else {
       info("Adapting coarse meshes.");
       done = hp.adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY, MULTI == true ? false : true);
-      if (ls.get_num_dofs() >= NDOF_STOP) done = true;
+      if (lp.get_num_dofs() >= NDOF_STOP) done = true;
     }
 
     as++;

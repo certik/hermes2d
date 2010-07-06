@@ -22,9 +22,6 @@
 RefDiscreteProblem::RefDiscreteProblem(DiscreteProblem* base, int order_increase, 
 		    int refinement) : DiscreteProblem(base->wf)
 {
-  if(base->linear == true) this->linear = true;
-  else this->linear = false;
-
   this->base = base;
   if (this->base->have_spaces == false) 
     error("RefDiscreteProblem: spaces in base system not up to date.");
@@ -36,13 +33,6 @@ RefDiscreteProblem::RefDiscreteProblem(DiscreteProblem* base, int order_increase
   this->wf = this->base->wf;
   this->order_increase = order_increase;
   this->refinement = refinement;
-
-  // FIXME: 
-  if (this->linear == true) {
-    this->want_dir_contrib = true;
-  } else {
-    this->want_dir_contrib = false;
-  }
 
   // perform uniform mesh refinement
   global_refinement();

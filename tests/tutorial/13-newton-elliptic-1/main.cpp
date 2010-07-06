@@ -67,7 +67,7 @@ int main(int argc, char* argv[])
   wf.add_vector_form(callback(res), H2D_ANY, &u_prev);
 
   // Initialize the nonlinear system.
-  NonlinSystem nls(&wf, &space);
+  DiscreteProblem dp(&wf, &space);
 
   // Use a constant function as initial guess.
   double const_val = 3.0;
@@ -76,11 +76,11 @@ int main(int argc, char* argv[])
   // Project the function u_prev() on the FE space
   // to obtain initial guess u_prev for the Newton's method.
   info("Projecting initial condition on the FE space.");
-  nls.project_global(&u_prev, &u_prev);
+  dp.project_global(&u_prev, &u_prev);
 
   // Perform Newton's iteration.
   info("Performing Newton's iteration.");
-  int success = nls.solve_newton(&u_prev, NEWTON_TOL, NEWTON_MAX_ITER);
+  int success = dp.solve_newton(&u_prev, NEWTON_TOL, NEWTON_MAX_ITER);
 
 #define ERROR_SUCCESS                               0
 #define ERROR_FAILURE                               -1

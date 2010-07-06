@@ -28,6 +28,7 @@
 #include "views/vector_view.h"
 
 LinearProblem::LinearProblem() : DiscreteProblem() {};
+LinearProblem::LinearProblem(WeakForm* wf_) : DiscreteProblem(wf_) {};
 LinearProblem::LinearProblem(WeakForm* wf_, Space* s_) : DiscreteProblem(wf_, s_) {};
 LinearProblem::LinearProblem(WeakForm* wf_, Tuple<Space*> spaces_) : DiscreteProblem(wf_, spaces_) {};
 LinearProblem::~LinearProblem() {};
@@ -48,5 +49,63 @@ void LinearProblem::assemble(bool rhsonly)
   for (int i=0; i < this->get_num_dofs(); i++) RHS[i] += Dir[i];
 }
 
+//// solve /////////////////////////////////////////////////////////////////////////////////////////
+
+bool LinearProblem::solve(CooMatrix* mat, scalar* rhs, scalar* vec)
+{
+  int ndof = this->get_num_dofs();
+
+  // sanity checks
+  if (mat == NULL) error("matrix is NULL in LinearProblem::solve().");
+  if (rhs == NULL) error("rhs is NULL in LinearProblem::solve().");
+  if (vec == NULL) error("vec is NULL in LinearProblem::solve().");
+  if (ndof == 0) error("ndof = 0 in LinearProblem::solve().");
+  if (ndof != mat->get_size())
+    error("Matrix size does not match ndof in in LinearProblem:solve().");
+
+  // copy "rhs" into "vec", solve the matrix problem with "mat", "vec" ,
+  // and save the result in "vec"
+  memcpy(vec, rhs, sizeof(scalar) * ndof);
+  bool flag = this->solve_matrix_problem(mat, vec);
+
+  return flag;
+}
+
+bool LinearProblem::solve(Tuple<Solution*> sln)
+{
+  int n = sln.size();
+  int ndof = this->get_num_dofs();
+
+  // sanity checks
+  if (n != this->wf->neq)
+    error("Number of solutions does not match the number of equations in LinearProblem::solve().");
+  if (this->Vec == NULL) error("Vec is NULL in LinearProblem::solve().");
+  if (this->Vec_length != ndof || this->RHS_length != ndof || this->Dir_length != ndof)
+    error("Length of vectors Vec, RHS or Dir does not match this->ndof in LinearProblem::solve().");
+  if (ndof == 0) error("ndof = 0 in LinearProblem::solve().");
+  if (ndof != this->A->get_size())
+    error("Matrix size does not match vector length in LinearProblem:solve().");
+
+  // solve the matrix problem with this->A and this->RHS and copy the 
+  // result into this->Vec
+  bool flag = this->solve(this->A, this->RHS, this->Vec);
+  if (flag == false) return false; 
+
+  // copy this->Vec into Solutions
+  if (this->spaces == NULL) error("this->spaces == NULL in DiscreteProblem::solve().");
+  if (this->pss == NULL) error("this->pss == NULL in DiscreteProblem::solve().");
+  for (int i = 0; i < n; i++)
+  {
+    sln[i]->set_fe_solution(this->spaces[i], this->pss[i], this->Vec);
+  }
+
+  return true;
+}
+
+// single equation case
+bool LinearProblem::solve(Solution* sln)
+{
+  return this->solve(Tuple<Solution*>(sln));
+}
 
 

@@ -38,11 +38,26 @@ class H2D_API LinearProblem : public DiscreteProblem
 {
 public:
   LinearProblem();
+  LinearProblem(WeakForm* _wf);
   LinearProblem(WeakForm* _wf, Space* s_);
   LinearProblem(WeakForm* wf_, Tuple<Space*> spaces_); 
   virtual ~LinearProblem();
 
+
+  /// Simplified version of the assembling procedure for the user. Inside,
+  /// this constructs the matrix A, vectors Dir and RHS, and adds the Dir
+  /// vector to RHS.
   virtual void assemble(bool rhsonly = false);
+
+
+  /// Solves the matrix problem with "mat" and "rhs", and copies the result 
+  /// to the vector "vec".
+  virtual bool solve(CooMatrix* mat, scalar* rhs, scalar* vec);
+
+  /// Solves the matrix problem with this->A and this->RHS, copies the result 
+  /// into this->Vec, and propagates this->Vec into one or more Solutions. 
+  virtual bool solve(Tuple<Solution*> sln);
+  virtual bool solve(Solution* sln);            // single equation case
 
   friend class RefDiscreteProblem;
 
