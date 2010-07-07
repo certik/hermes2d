@@ -39,6 +39,7 @@ set(SRC
     )
 
 add_library(${HERMES_COMMON} SHARED ${SRC})
+set_property(TARGET ${HERMES_COMMON} PROPERTY COMPILE_FLAGS "-g")
 
 set(SPARSELIB_LIBRARIES mv sparse spblas)
 set(SPARSELIB_INCLUDE_DIRS sparselib sparselib/mv sparselib/iml)
