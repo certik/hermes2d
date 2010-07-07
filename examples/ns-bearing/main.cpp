@@ -3,7 +3,6 @@
 #define H2D_REPORT_VERBOSE
 #define H2D_REPORT_FILE "application.log"
 #include "hermes2d.h"
-#include "solver_umfpack.h"
 
 // Flow in between two circles, inner circle is rotating with surface 
 // velocity VEL. The time-dependent laminar incompressible Navier-Stokes equations
@@ -159,7 +158,7 @@ int main(int argc, char* argv[])
   // View mesh.
   MeshView mv("Mesh", 0, 0, 500, 500);
   mv.show(&mesh);
-  View::wait();
+  View::wait(H2DV_WAIT_KEYPRESS);
 
   // Spaces for velocity components and pressure.
   H1Space xvel_space(&mesh, xvel_bc_type, essential_bc_values_xvel, P_INIT_VEL);
@@ -217,14 +216,11 @@ int main(int argc, char* argv[])
   pview.fix_scale_width(80);
   pview.show_mesh(true);
 
-  // Matrix solver.
-  UmfpackSolver umfpack;
-
   // Initialize linear system.
-  LinSystem ls(&wf, &umfpack, Tuple<Space*>(&xvel_space, &yvel_space, &p_space));
+  LinSystem ls(&wf, Tuple<Space*>(&xvel_space, &yvel_space, &p_space));
 
   // Initialize nonlinear system.
-  NonlinSystem nls(&wf, &umfpack, Tuple<Space*>(&xvel_space, &yvel_space, &p_space));
+  NonlinSystem nls(&wf, Tuple<Space*>(&xvel_space, &yvel_space, &p_space));
 
   // Projecting initial conditions on FE meshes.
   info("Setting initial conditions.");
@@ -283,8 +279,9 @@ int main(int argc, char* argv[])
     }
 
     // Calculate an estimate of the temporal change of the x-velocity.
-    H1Adapt hp(&xvel_space);
-    hp.set_solutions(&xvel_prev_time, &xvel_prev_newton);
+    H1Adapt hp(&ls);
+    hp.set_solutions(Tuple<Solution*>(&xvel_prev_time, &yvel_prev_time, &p_prev), 
+                     Tuple<Solution*>(&xvel_prev_newton, &yvel_prev_newton, &p_prev));
     double err_est = hp.calc_error(H2D_TOTAL_ERROR_ABS | H2D_ELEMENT_ERROR_ABS) / TAU;
     info("x_vel temporal change: %g", err_est);
 
