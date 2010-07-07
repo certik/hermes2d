@@ -19,7 +19,7 @@ void print_result(bool value) {
 }
 
 bool test_timer_rough() {
-  #define SECS            3
+  #define SECS            1
 
   // test #1 running timer fo 3 secs
   printf("* Running timer for %d secs...", SECS);

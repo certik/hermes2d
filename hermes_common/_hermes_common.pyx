@@ -21,7 +21,6 @@ cdef inline PY_NEW(T):
 # Matrix classes:
 
 cdef class Matrix:
-    cdef c_Matrix *thisptr
 
     def get_size(self):
         """
@@ -49,6 +48,36 @@ cdef class Matrix:
 
         """
         self.thisptr.add(m, n, v)
+
+    def get(self, int m, int n):
+        """
+        Adds the value ``v`` to self[m, n].
+
+        Example::
+
+            >>> from _hermes_common import CooMatrix
+            >>> a = CooMatrix(5)
+            >>> a.add(1, 3, 4.5)
+            >>> a.get(1, 3)
+            4.5
+
+        """
+        self.thisptr.get(m, n)
+
+cdef class DenseMatrix(Matrix):
+
+    def to_numpy(self):
+        from numpy import empty
+        if self.thisptr.is_complex():
+            raise NotImplementedError("This is not yet implemented")
+        cdef int n, i, j, len=self.get_size()
+        cdef double *cdata
+        row = empty([len*len], dtype="double")
+        numpy2c_double_inplace(row, &cdata, &n)
+        for i in range(len):
+            for j in range(len):
+                cdata[i*len+j] = self.thisptr.get(i, j);
+        return row.reshape((len, len))
 
 cdef class SparseMatrix(Matrix):
     pass
@@ -292,6 +321,12 @@ cdef class CSCMatrix(SparseMatrix):
 
 cdef Matrix py2c_Matrix(object M):
     return M
+
+cdef api object c2py_DenseMatrix(c_DenseMatrix *m):
+    cdef DenseMatrix c
+    c = <DenseMatrix>PY_NEW(DenseMatrix)
+    c.thisptr = <c_Matrix *>m
+    return c
 
 cdef api object c2py_CooMatrix(c_CooMatrix *m):
     cdef CooMatrix c

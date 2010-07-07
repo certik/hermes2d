@@ -70,7 +70,8 @@ bool CommonSolverUmfpack::solve(Matrix *mat, double *res)
 
     umfpack_di_free_symbolic(&symbolic);
 
-    double *x = new double[size];
+    double *x;
+    x = (double*) malloc(size * sizeof(double));
 
     /* solve system */
     int status_solve = umfpack_di_solve(UMFPACK_A,
@@ -135,8 +136,9 @@ bool CommonSolverUmfpack::solve(Matrix *mat, cplx *res)
 
     umfpack_zi_free_symbolic(&symbolic);
 
-    double *xr = new double[size];
-    double *xi = new double[size];
+    double *xr, *xi;
+    xr = (double*) malloc(size * sizeof(double));
+    xi = (double*) malloc(size * sizeof(double));
 
     double *resr = new double[size];
     double *resi = new double[size];
@@ -167,8 +169,8 @@ bool CommonSolverUmfpack::solve(Matrix *mat, cplx *res)
     for (int i = 0; i < Acsc->get_size(); i++)
         res[i] = cplx(xr[i], xi[i]);
 
-    delete[] xr;
-    delete[] xi;
+    delete xr;
+    delete xi;
 
     if (!dynamic_cast<CSCMatrix*>(mat))
         delete Acsc;
@@ -185,4 +187,5 @@ bool CommonSolverUmfpack::solve(Matrix *mat, cplx *res)
 {
     _error("CommonSolverUmfpack::solve(Matrix *mat, cplx *res) not implemented.");
 }
+
 #endif
