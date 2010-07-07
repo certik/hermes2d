@@ -36,7 +36,7 @@ const int INIT_REF_NUM = 2;                // Number of initial uniform mesh ref
 const int INIT_BDY_REF_NUM_INNER = 2;      // Number of initial mesh refinements towards boundary. 
 const int INIT_BDY_REF_NUM_OUTER = 2;      // Number of initial mesh refinements towards boundary. 
 
-//#define STOKES                     // If this is defined, Stokes problem is solved, otherwise N-S.
+#define STOKES                     // If this is defined, Stokes problem is solved, otherwise N-S.
 #define PRESSURE_IN_L2               // If this is defined, the pressure is approximated using
                                      // discontinuous L2 elements (making the velocity discreetely
                                      // divergence-free, more accurate than using a continuous
