@@ -61,9 +61,9 @@ int main(int argc, char* argv[])
 
   // Initialize matrix solver.
 #if defined WITH_UMFPACK
-  UMFPackMatrix mat;
-  UMFPackVector rhs;
-  UMFPackLinearSolver solver(&mat, &rhs);
+  CooMatrix mat(lp.get_num_dofs());
+  double *rhs = new double[lp.get_num_dofs()];
+  CommonSolverSciPyUmfpack solver;
 #elif defined WITH_PETSC
   PetscMatrix mat;
   PetscVector rhs;
@@ -80,15 +80,16 @@ int main(int argc, char* argv[])
 #endif
 
   // Assemble stiffness matrix and rhs.
-  lp.assemble(&mat, &rhs);
+  lp.assemble(&mat, rhs);
 
   // Solve the matrix problem.
-  bool solved = solver.solve();
+  bool solved = solver.solve(&mat, rhs);
   if (solved == false) error ("Matrix solver failed.\n");
 
   // Convert coefficient vector into a Solution.
-  Solution sln();
-  sln.set_fe_solution(&space, solver.get_solution());
+  Solution sln;
+  //sln.set_fe_solution(&space, solver.get_solution());
+  sln.set_fe_solution(&space, lp.get_pss(0), rhs);
 
   // Visualize the solution.
   ScalarView view("Solution", 0, 0, 600, 600);
