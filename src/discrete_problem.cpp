@@ -500,6 +500,7 @@ void DiscreteProblem::assemble(Matrix* &mat_ext, scalar* &dir_ext, scalar* &rhs_
 
         // insert the local stiffness matrix into the global one
         insert_block(this->A, mat, am->dof, an->dof, am->cnt, an->cnt);
+        insert_block(mat_ext, mat, am->dof, an->dof, am->cnt, an->cnt);
 
         // insert also the off-diagonal (anti-)symmetric block, if required
         if (tra)
@@ -507,6 +508,7 @@ void DiscreteProblem::assemble(Matrix* &mat_ext, scalar* &dir_ext, scalar* &rhs_
           if (mfv->sym < 0) chsgn(mat, am->cnt, an->cnt);
           transpose(mat, am->cnt, an->cnt);
           insert_block(this->A, mat, an->dof, am->dof, an->cnt, am->cnt);
+          insert_block(mat_ext, mat, an->dof, am->dof, an->cnt, am->cnt);
 
           // we also need to take care of the RHS...
           for (int j = 0; j < am->cnt; j++)
@@ -579,6 +581,7 @@ void DiscreteProblem::assemble(Matrix* &mat_ext, scalar* &dir_ext, scalar* &rhs_
             }
           }
           insert_block(this->A, mat, am->dof, an->dof, am->cnt, an->cnt);
+          insert_block(mat_ext, mat, am->dof, an->dof, am->cnt, an->cnt);
         }
 
         // assemble surface linear forms /////////////////////////////////////
