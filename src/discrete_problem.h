@@ -83,7 +83,7 @@ public:
   /// functionality to be used for linear problems, nonlinear problems, and eigenproblems.
   /// Soon this will be extended to assemble an arbitrary number of matrix and vector
   /// weak forms. 
-  virtual void assemble(Matrix* &A, scalar* &Dir, scalar* &RHS, bool rhsonly = false);
+  virtual void assemble(Matrix* A, scalar* &Dir, scalar* RHS, bool rhsonly = false);
 
   /// User-friendly version, should only be used by users in their main.cpp files (not by
   /// developers in H2D internal functions). 

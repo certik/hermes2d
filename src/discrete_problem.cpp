@@ -353,7 +353,7 @@ void DiscreteProblem::insert_block(Matrix *A, scalar** mat, int* iidx, int* jidx
     A->add_block(iidx, ilen, jidx, jlen, mat);
 }
 
-void DiscreteProblem::assemble(Matrix* &mat_ext, scalar* &dir_ext, scalar* &rhs_ext, bool rhsonly)
+void DiscreteProblem::assemble(Matrix* mat_ext, scalar* &dir_ext, scalar* rhs_ext, bool rhsonly)
 {
   // sanity checks
   if (this->have_spaces == false)
@@ -533,7 +533,7 @@ void DiscreteProblem::assemble(Matrix* &mat_ext, scalar* &dir_ext, scalar* &rhs_
           fv->set_active_shape(am->idx[i]);
           // FIXME - the NULL on the following line is temporary, an array of solutions 
           // should be passed there.
-          RHS[am->dof[i]] += eval_form(vfv, NULL, fv, &refmap[m]) * am->coef[i];
+          rhs_ext[am->dof[i]] += eval_form(vfv, NULL, fv, &refmap[m]) * am->coef[i];
         }
       }
 
@@ -602,7 +602,7 @@ void DiscreteProblem::assemble(Matrix* &mat_ext, scalar* &dir_ext, scalar* &rhs_
             fv->set_active_shape(am->idx[i]);
             // FIXME - the NULL on the following line is temporary, an array of solutions 
             // should be passed there.
-            RHS[am->dof[i]] += eval_form(vfs, NULL, fv, &refmap[m], &(ep[edge])) * am->coef[i];
+            rhs_ext[am->dof[i]] += eval_form(vfs, NULL, fv, &refmap[m], &(ep[edge])) * am->coef[i];
           }
         }
       }
@@ -618,9 +618,7 @@ void DiscreteProblem::assemble(Matrix* &mat_ext, scalar* &dir_ext, scalar* &rhs_
 
   if (!rhsonly) values_changed = true;
 
-  mat_ext = this->A;
   dir_ext = this->Dir;
-  rhs_ext = this->RHS;
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////

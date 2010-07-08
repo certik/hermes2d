@@ -82,8 +82,17 @@ int main(int argc, char* argv[])
 #endif
 
   // Assemble stiffness matrix and rhs.
+  /*
+  for (int i = 0; i < lp.get_num_dofs(); i++)
+      printf("%f ", rhs[i]);
+  printf("\n--------------------");
+  */
   lp.assemble(&mat, rhs);
+  /*
+  for (int i = 0; i < lp.get_num_dofs(); i++)
+      printf("%f ", rhs[i]);
   info("dofs=%d", lp.get_num_dofs());
+  */
 
   // Solve the matrix problem.
   bool solved = solver.solve(&mat, rhs);

@@ -51,6 +51,7 @@ void LinearProblem::assemble(bool rhsonly)
 
 void LinearProblem::assemble(Matrix *A, scalar *RHS)
 {
+    info("LinearProblem::assemble(Matrix *A, scalar *RHS)");
   // sanity checks
   int ndof = this->get_num_dofs();
 
