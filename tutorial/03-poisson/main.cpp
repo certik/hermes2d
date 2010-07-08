@@ -1,3 +1,4 @@
+#define H2D_REPORT_INFO
 #include "hermes2d.h"
 # define WITH_UMFPACK
 
@@ -61,6 +62,7 @@ int main(int argc, char* argv[])
 
   // Initialize matrix solver.
 #if defined WITH_UMFPACK
+  info("dofs=%d", lp.get_num_dofs());
   CooMatrix mat(lp.get_num_dofs());
   double *rhs = new double[lp.get_num_dofs()];
   CommonSolverSciPyUmfpack solver;
@@ -81,6 +83,7 @@ int main(int argc, char* argv[])
 
   // Assemble stiffness matrix and rhs.
   lp.assemble(&mat, rhs);
+  info("dofs=%d", lp.get_num_dofs());
 
   // Solve the matrix problem.
   bool solved = solver.solve(&mat, rhs);
