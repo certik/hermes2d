@@ -378,6 +378,10 @@ void Solution::set_fe_solution(Space* space, PrecalcShapeset* pss, scalar* vec, 
   int o;
 
   // some sanity checks
+  if (space == NULL) error("Space == NULL in Solution::set_fe_solution().");
+  if (space->get_mesh() == NULL) error("Mesh == NULL in Solution::set_fe_solution().");
+  if (pss == NULL) error("PrecalcShapeset == NULL in Solution::set_fe_solution().");
+  if (vec == NULL) error("Coefficient vector == NULL in Solution::set_fe_solution().");
   if (!space->is_up_to_date())
     error("Provided 'space' is not up to date.");
   if (space->get_shapeset() != pss->get_shapeset())
@@ -416,7 +420,7 @@ void Solution::set_fe_solution(Space* space, PrecalcShapeset* pss, scalar* vec, 
     for (unsigned int k = 0; k < e->nvert; k++) {
       int eo = space->get_edge_order(e, k);
       if (eo > o) o = eo;
-    } // FIXME: eo tam jeste porad necemu vadi...
+    }
 
     // Hcurl: actual order of functions is one higher than element order
     if ((space->get_shapeset())->get_num_components() == 2) o++;
@@ -467,6 +471,7 @@ void Solution::set_fe_solution(Space* space, PrecalcShapeset* pss, scalar* vec, 
     }
   }
 
+  if(mesh == NULL) error("mesh == NULL.\n");
   init_dxdy_buffer();
 }
 

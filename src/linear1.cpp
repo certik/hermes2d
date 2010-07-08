@@ -630,6 +630,9 @@ void Linearizer::find_min_max()
 void Linearizer::process_solution(MeshFunction* sln, int item, double eps, double max_abs,
                                   MeshFunction* xdisp, MeshFunction* ydisp, double dmult)
 {
+  // sanity check
+  if (sln == NULL) error("Solution is NULL in Linearizer:process_solution().");
+
   lock_data();
   TimePeriod time_period;
 
@@ -653,6 +656,10 @@ void Linearizer::process_solution(MeshFunction* sln, int item, double eps, doubl
 
   // estimate the required number of vertices and triangles
   Mesh* mesh = sln->get_mesh();
+  if (mesh == NULL) {
+    warn("Have you used Solution::set_fe_solution() ?");
+    error("Mesh is NULL in Linearizer:process_solution().");
+  }
   int nn = mesh->get_num_elements();
   int ev = std::max(32 * nn, 10000);  // todo: check this
   int et = std::max(64 * nn, 20000);

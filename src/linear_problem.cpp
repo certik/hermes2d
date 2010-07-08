@@ -71,9 +71,9 @@ bool LinearProblem::solve(CooMatrix* mat, scalar* rhs, scalar* vec)
   return flag;
 }
 
-bool LinearProblem::solve(Tuple<Solution*> sln)
+bool LinearProblem::solve(Tuple<Solution*>sln_tuple)
 {
-  int n = sln.size();
+  int n = sln_tuple.size();
   int ndof = this->get_num_dofs();
 
   // sanity checks
@@ -94,18 +94,15 @@ bool LinearProblem::solve(Tuple<Solution*> sln)
   // copy this->Vec into Solutions
   if (this->spaces == NULL) error("this->spaces == NULL in DiscreteProblem::solve().");
   if (this->pss == NULL) error("this->pss == NULL in DiscreteProblem::solve().");
+  if (this->Vec == NULL) error("this->Vec == NULL in LinearProblem::solve().");
   for (int i = 0; i < n; i++)
   {
-    sln[i]->set_fe_solution(this->spaces[i], this->pss[i], this->Vec);
+    if(this->spaces[i] == NULL) error("this->spaces[%d] == NULL in LinearProblem::solve().", i);
+    if(this->spaces[i]->get_mesh() == NULL) error("this->spaces[%d]->get_mesh() == NULL in LinearProblem::solve().", i);
+    sln_tuple[i]->set_fe_solution(this->spaces[i], this->pss[i], this->Vec);
+    if(sln_tuple[i]->get_mesh() == NULL) error("sln_tuple[%d]->get_mesh() == NULL in LinearProblem::solve().\n", i);
   }
 
   return true;
 }
-
-// single equation case
-bool LinearProblem::solve(Solution* sln)
-{
-  return this->solve(Tuple<Solution*>(sln));
-}
-
 

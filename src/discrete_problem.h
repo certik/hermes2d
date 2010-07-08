@@ -106,7 +106,6 @@ public:
   /// Solves the matrix problem with this->A and this->RHS, adds the result 
   /// into this->Vec, and propagates this->Vec into one or more Solutions. 
   virtual bool solve(Tuple<Solution*> sln);
-  virtual bool solve(Solution* sln);            // single equation case
 
   /// Frees the stiffness matrix.
   virtual void free_matrix();

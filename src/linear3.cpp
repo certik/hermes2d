@@ -359,6 +359,10 @@ void Vectorizer::find_min_max()
 
 void Vectorizer::process_solution(MeshFunction* xsln, int xitem, MeshFunction* ysln, int yitem, double eps)
 {
+  // sanity check
+  if (xsln == NULL || ysln == NULL) error("One of the solutions is NULL in Vectorizer:process_solution().");
+
+
   lock_data();
   TimePeriod cpu_time;
 
@@ -372,6 +376,10 @@ void Vectorizer::process_solution(MeshFunction* xsln, int xitem, MeshFunction* y
   del_slot = -1;
 
   Mesh* meshes[2] = { xsln->get_mesh(), ysln->get_mesh() };
+  if (meshes[0] == NULL || meshes[1] == NULL) {
+    error("One of the meshes is NULL in Vectorizer:process_solution().");
+  }
+
   Transformable* fns[2] = { xsln, ysln };
   Traverse trav;
 

@@ -1031,18 +1031,15 @@ bool DiscreteProblem::solve(Tuple<Solution*> sln)
   // copy this->Vec into Solutions
   if (this->spaces == NULL) error("this->spaces == NULL in DiscreteProblem::solve().");
   if (this->pss == NULL) error("this->pss == NULL in DiscreteProblem::solve().");
+  if (this->Vec == NULL) error("this->Vec == NULL in LinearProblem::solve().");
   for (int i = 0; i < n; i++)
   {
+    if(this->spaces[i] == NULL) error("this->spaces[%d] == NULL in LinearProblem::solve().", i);
+    if(this->spaces[i]->get_mesh() == NULL) error("this->spaces[%d]->get_mesh() == NULL in LinearProblem::solve().", i);
     sln[i]->set_fe_solution(this->spaces[i], this->pss[i], this->Vec);
   }
 
   return true;
-}
-
-// single equation case
-bool DiscreteProblem::solve(Solution* sln)
-{
-  return this->solve(Tuple<Solution*>(sln));
 }
 
 //// matrix and solution output /////////////////////////////////////////////////////////////////////////////////

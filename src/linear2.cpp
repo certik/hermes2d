@@ -83,6 +83,9 @@ Orderizer::Orderizer()
 
 void Orderizer::process_solution(Space* space)
 {
+  // sanity check
+  if (space == NULL) error("Space is NULL in Orderizer:process_solution().");
+
   if (!space->is_up_to_date())
     error("The space is not up to date.");
 
@@ -93,6 +96,9 @@ void Orderizer::process_solution(Space* space)
 
   // estimate the required number of vertices and triangles
   Mesh* mesh = space->get_mesh();
+  if (mesh == NULL) {
+    error("Mesh is NULL in Orderizer:process_solution().");
+  }
   int nn = mesh->get_num_active_elements();
   int ev = 77 * nn, et = 64 * nn, ee = 16 * nn, el = nn + 10;
 
