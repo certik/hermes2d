@@ -49,6 +49,24 @@ void LinearProblem::assemble(bool rhsonly)
   for (int i=0; i < this->get_num_dofs(); i++) RHS[i] += Dir[i];
 }
 
+void LinearProblem::assemble(CooMatrix *A, scalar *RHS)
+{
+  // sanity checks
+  int ndof = this->get_num_dofs();
+
+  if (this->have_spaces == false)
+    error("Before assemble(), you need to initialize spaces.");
+  if (this->spaces == NULL) error("spaces = NULL in LinearProblem::assemble().");
+
+  // Assemble the matrix A and vector RHS. If the problem is linear,
+  // we need to subtract the vector Dir from RHS.
+  scalar *Dir = new scalar[ndof];
+  DiscreteProblem::assemble(A, Dir, RHS, false);
+
+  for (int i=0; i < this->get_num_dofs(); i++) RHS[i] += Dir[i];
+  delete Dir;
+}
+
 //// solve /////////////////////////////////////////////////////////////////////////////////////////
 
 bool LinearProblem::solve(CooMatrix* mat, scalar* rhs, scalar* vec)

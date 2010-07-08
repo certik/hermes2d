@@ -49,6 +49,9 @@ public:
   /// vector to RHS.
   virtual void assemble(bool rhsonly = false);
 
+  // Assembles the matrix and RHS into your matrices:
+  virtual void assemble(CooMatrix *A, scalar *RHS);
+
 
   /// Solves the matrix problem with "mat" and "rhs", and copies the result 
   /// to the vector "vec".
