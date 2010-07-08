@@ -61,7 +61,10 @@ int main(int argc, char* argv[])
   // Assemble and solve the matrix problem.
   Solution sln;
   lp.assemble();
-  lp.solve(&sln);
+  if (!lp.solve(&sln))
+      error("lp.solve() failed.");
+  if (sln.get_mesh() == NULL)
+      error("sln.get_mesh() is null");
 
   // Visualize the solution.
   ScalarView view("Solution", 0, 0, 600, 600);
