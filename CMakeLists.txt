@@ -37,7 +37,7 @@ set(REPORT_RUNTIME_CONTROL NO) #reporting will be controlled by preprocessor dir
 set(REPORT_ALL     NO) #do not report all events, just selected ones
 set(REPORT_WARNING YES) #warnings will be reported
 set(REPORT_INTR_WARNING NO) #warnings about itegration points will NOT be reported
-set(REPORT_INFO     NO) #info will not be reported
+set(REPORT_INFO     YES) #info will not be reported
 set(REPORT_VERBOSE  NO) #info details will not be reported
 set(REPORT_TRACE    NO) #code execution tracing will not be reported
 set(REPORT_TIME     NO) #time will not be measured and time measurement will not be reported
