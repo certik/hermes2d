@@ -1,4 +1,5 @@
 #include "hermes2d.h"
+# define WITH_UMFPACK
 
 // This example shows how to solve a first simple PDE:
 //   - load the mesh,
@@ -55,16 +56,39 @@ int main(int argc, char* argv[])
   wf.add_matrix_form(callback(bilinear_form));
   wf.add_vector_form(callback(linear_form));
 
-  // Initialize the linear system.
+  // Initialize the linear problem.
   LinearProblem lp(&wf, &space);
 
-  // Assemble and solve the matrix problem.
-  Solution sln;
-  lp.assemble();
-  if (!lp.solve(&sln))
-      error("lp.solve() failed.");
-  if (sln.get_mesh() == NULL)
-      error("sln.get_mesh() is null");
+  // Initialize matrix solver.
+#if defined WITH_UMFPACK
+  UMFPackMatrix mat;
+  UMFPackVector rhs;
+  UMFPackLinearSolver solver(&mat, &rhs);
+#elif defined WITH_PETSC
+  PetscMatrix mat;
+  PetscVector rhs;
+  PetscLinearSolver solver(&mat, &rhs);
+#elif defined WITH_MUMPS
+  MumpsMatrix mat;
+  MumpsVector rhs;
+  MumpsSolver solver(&mat, &rhs);
+#elif defined WITH_SCIPY
+  // For the future:
+  CooMatrix mat;
+  CooVector rhs;
+  CooSolver solver(&mat, &rhs);
+#endif
+
+  // Assemble stiffness matrix and rhs.
+  lp.assemble(&mat, &rhs);
+
+  // Solve the matrix problem.
+  bool solved = solver.solve();
+  if (solved == false) error ("Matrix solver failed.\n");
+
+  // Convert coefficient vector into a Solution.
+  Solution sln();
+  sln.set_fe_solution(&space, solver.get_solution());
 
   // Visualize the solution.
   ScalarView view("Solution", 0, 0, 600, 600);
