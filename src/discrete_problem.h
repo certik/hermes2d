@@ -83,7 +83,7 @@ public:
   /// functionality to be used for linear problems, nonlinear problems, and eigenproblems.
   /// Soon this will be extended to assemble an arbitrary number of matrix and vector
   /// weak forms. 
-  virtual void assemble(CooMatrix* &A, scalar* &Dir, scalar* &RHS, bool rhsonly = false);
+  virtual void assemble(Matrix* &A, scalar* &Dir, scalar* &RHS, bool rhsonly = false);
 
   /// User-friendly version, should only be used by users in their main.cpp files (not by
   /// developers in H2D internal functions). 
@@ -97,11 +97,11 @@ public:
 
   /// Basic function that just solves the matrix problem. The right-hand
   /// side enters through "vec" and the result is stored in "vec" as well. 
-  bool solve_matrix_problem(CooMatrix* mat, scalar* vec); 
+  bool solve_matrix_problem(Matrix* mat, scalar* vec); 
 
   /// Solves the matrix problem with "mat" and "rhs", and adds the result 
   /// to the vector "vec".
-  virtual bool solve(CooMatrix* mat, scalar* rhs, scalar* vec);
+  virtual bool solve(Matrix* mat, scalar* rhs, scalar* vec);
 
   /// Solves the matrix problem with this->A and this->RHS, adds the result 
   /// into this->Vec, and propagates this->Vec into one or more Solutions. 
@@ -274,7 +274,7 @@ public:
   CommonSolver* solver;
   CommonSolver* solver_default;
 
-  CooMatrix *A;
+  Matrix *A;
 
   scalar* Vec; ///< solution coefficient vector
   scalar* RHS; ///< assembled right-hand side
@@ -291,7 +291,8 @@ protected:
   int Dir_length;
 
   void create_matrix(bool rhsonly);
-  void insert_block(scalar** mat, int* iidx, int* jidx, int ilen, int jlen);
+  void insert_block(Matrix *A, scalar** mat, int* iidx, int* jidx,
+          int ilen, int jlen);
 
   ExtData<Ord>* init_ext_fns_ord(std::vector<MeshFunction *> &ext);
   ExtData<scalar>* init_ext_fns(std::vector<MeshFunction *> &ext, RefMap *rm, const int order);

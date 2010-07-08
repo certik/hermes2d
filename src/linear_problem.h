@@ -50,12 +50,12 @@ public:
   virtual void assemble(bool rhsonly = false);
 
   // Assembles the matrix and RHS into your matrices:
-  virtual void assemble(CooMatrix *A, scalar *RHS);
+  virtual void assemble(Matrix *A, scalar *RHS);
 
 
   /// Solves the matrix problem with "mat" and "rhs", and copies the result 
   /// to the vector "vec".
-  virtual bool solve(CooMatrix* mat, scalar* rhs, scalar* vec);
+  virtual bool solve(Matrix* mat, scalar* rhs, scalar* vec);
 
   /// Solves the matrix problem with this->A and this->RHS, copies the result 
   /// into this->Vec, and propagates this->Vec into one or more Solutions. 

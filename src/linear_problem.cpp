@@ -49,7 +49,7 @@ void LinearProblem::assemble(bool rhsonly)
   for (int i=0; i < this->get_num_dofs(); i++) RHS[i] += Dir[i];
 }
 
-void LinearProblem::assemble(CooMatrix *A, scalar *RHS)
+void LinearProblem::assemble(Matrix *A, scalar *RHS)
 {
   // sanity checks
   int ndof = this->get_num_dofs();
@@ -69,7 +69,7 @@ void LinearProblem::assemble(CooMatrix *A, scalar *RHS)
 
 //// solve /////////////////////////////////////////////////////////////////////////////////////////
 
-bool LinearProblem::solve(CooMatrix* mat, scalar* rhs, scalar* vec)
+bool LinearProblem::solve(Matrix* mat, scalar* rhs, scalar* vec)
 {
   int ndof = this->get_num_dofs();
 

@@ -348,12 +348,12 @@ void DiscreteProblem::get_matrix(int*& Ap, int*& Ai, scalar*& Ax, int& size)
 
 //// assembly //////////////////////////////////////////////////////////////////////////////////////
 
-void DiscreteProblem::insert_block(scalar** mat, int* iidx, int* jidx, int ilen, int jlen)
+void DiscreteProblem::insert_block(Matrix *A, scalar** mat, int* iidx, int* jidx, int ilen, int jlen)
 {
-    this->A->add_block(iidx, ilen, jidx, jlen, mat);
+    A->add_block(iidx, ilen, jidx, jlen, mat);
 }
 
-void DiscreteProblem::assemble(CooMatrix* &mat_ext, scalar* &dir_ext, scalar* &rhs_ext, bool rhsonly)
+void DiscreteProblem::assemble(Matrix* &mat_ext, scalar* &dir_ext, scalar* &rhs_ext, bool rhsonly)
 {
   // sanity checks
   if (this->have_spaces == false)
@@ -499,14 +499,14 @@ void DiscreteProblem::assemble(CooMatrix* &mat_ext, scalar* &dir_ext, scalar* &r
         }
 
         // insert the local stiffness matrix into the global one
-        insert_block(mat, am->dof, an->dof, am->cnt, an->cnt);
+        insert_block(this->A, mat, am->dof, an->dof, am->cnt, an->cnt);
 
         // insert also the off-diagonal (anti-)symmetric block, if required
         if (tra)
         {
           if (mfv->sym < 0) chsgn(mat, am->cnt, an->cnt);
           transpose(mat, am->cnt, an->cnt);
-          insert_block(mat, an->dof, am->dof, an->cnt, am->cnt);
+          insert_block(this->A, mat, an->dof, am->dof, an->cnt, am->cnt);
 
           // we also need to take care of the RHS...
           for (int j = 0; j < am->cnt; j++)
@@ -578,7 +578,7 @@ void DiscreteProblem::assemble(CooMatrix* &mat_ext, scalar* &dir_ext, scalar* &r
               if (an->dof[j] >= 0) mat[i][j] = bi; else Dir[k] -= bi;
             }
           }
-          insert_block(mat, am->dof, an->dof, am->cnt, an->cnt);
+          insert_block(this->A, mat, am->dof, an->dof, am->cnt, an->cnt);
         }
 
         // assemble surface linear forms /////////////////////////////////////
@@ -962,7 +962,7 @@ scalar DiscreteProblem::eval_form(WeakForm::VectorFormSurf *vfs, Solution *sln[]
 
 //// solve /////////////////////////////////////////////////////////////////////////////////////////
 
-bool DiscreteProblem::solve_matrix_problem(CooMatrix* mat, scalar* vec) 
+bool DiscreteProblem::solve_matrix_problem(Matrix* mat, scalar* vec) 
 {
   // check matrix size
   int ndof = this->get_num_dofs();
@@ -982,7 +982,7 @@ bool DiscreteProblem::solve_matrix_problem(CooMatrix* mat, scalar* vec)
   return flag;
 }
 
-bool DiscreteProblem::solve(CooMatrix* mat, scalar* rhs, scalar* vec)
+bool DiscreteProblem::solve(Matrix* mat, scalar* rhs, scalar* vec)
 {
   int ndof = this->get_num_dofs();
 
