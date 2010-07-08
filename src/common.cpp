@@ -125,7 +125,7 @@ static bool write_console(const char code, const bool emphasize, const char* tex
     case H2D_EC_ASSERT: console_attrs |= FOREGROUND_RED; break;
     case H2D_EC_WARNING: console_attrs |= FOREGROUND_RED | FOREGROUND_GREEN; break;
     case H2D_EC_INFO: console_bold = true;
-    case H2D_EC_VERBOSE: console_attrs |= FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE; break;
+    case H2D_EC_VERBOSE: console_attrs |= FOREGROUND_BLUE; break;
     case H2D_EC_TRACE: console_attrs |= FOREGROUND_BLUE; break;
     case H2D_EC_TIME: console_attrs |= FOREGROUND_GREEN | FOREGROUND_BLUE; break;
     case H2D_EC_DEBUG: console_attrs |= FOREGROUND_RED | FOREGROUND_BLUE; break;
