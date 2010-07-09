@@ -177,19 +177,6 @@ Solution::Solution()
 
 Solution::Solution(Mesh *mesh) : MeshFunction(mesh) 
 {
-
-  /* THIS IS IN H3D:
-	transform = true;
-	type = UNDEF;
-	num_components = 0;
-	mono_coefs = NULL;
-	elem_coefs[0] = elem_coefs[1] = NULL;
-	elem_orders = NULL;
-	dxdydz_buffer = NULL;
-	num_coefs = num_elems = 0;
-	num_dofs = -1;
-  */
-
   memset(tables, 0, sizeof(tables));
   memset(elems,  0, sizeof(elems));
   memset(oldest, 0, sizeof(oldest));
@@ -210,6 +197,29 @@ Solution::Solution(Mesh *mesh) : MeshFunction(mesh)
   set_quad_2d(&g_quad_2d_std);
 }
 
+Solution::Solution(Space* s, Vector* vec) : MeshFunction(mesh) 
+{
+  memset(tables, 0, sizeof(tables));
+  memset(elems,  0, sizeof(elems));
+  memset(oldest, 0, sizeof(oldest));
+  transform = true;
+  type = UNDEF;
+  own_mesh = false;
+  num_components = 0;
+  e_last = NULL;
+  exact_mult = 1.0;
+
+  mono_coefs = NULL;
+  elem_coefs[0] = elem_coefs[1] = NULL;
+  elem_orders = NULL;
+  dxdy_buffer = NULL;
+  num_coefs = num_elems = 0;
+  num_dofs = -1;
+
+  set_quad_2d(&g_quad_2d_std);
+
+  this->set_fe_solution(s, vec);
+}
 
 void Solution::assign(Solution* sln)
 {
@@ -372,8 +382,23 @@ double** Solution::calc_mono_matrix(int o, int*& perm)
   return mat;
 }
 
+// to be used by the user
+void Solution::set_fe_solution(Space* space, Vector* vec, double dir)
+{
+    // sanity check
+    if (space == NULL) error("Space == NULL in Solutin::set_fe_solution().");
 
-void Solution::set_fe_solution(Space* space, PrecalcShapeset* pss, scalar* vec, double dir)
+    // initialize precalc shapeset using the space's shapeset
+    Shapeset *shapeset = space->get_shapeset();
+    if (space->get_shapeset() == NULL) error("Space->shapeset == NULL in Solution::set_fe_solution().");
+    PrecalcShapeset *pss = new PrecalcShapeset(shapeset);
+    if (pss == NULL) error("PrecalcShapeset could not be allocated in Solution::set_fe_solution().");
+    
+    this-> set_fe_solution(space, pss, vec, dir);
+}
+
+// for internal use
+void Solution::set_fe_solution(Space* space, PrecalcShapeset* pss, Vector* vec, double dir)
 {
   int o;
 
@@ -457,7 +482,7 @@ void Solution::set_fe_solution(Space* space, PrecalcShapeset* pss, scalar* vec, 
         pss->set_active_shape(al.idx[k]);
         pss->set_quad_order(o, H2D_FN_VAL);
         int dof = al.dof[k];
-        scalar coef = al.coef[k] * (dof >= 0 ? vec[dof] : dir);
+        scalar coef = al.coef[k] * (dof >= 0 ? vec->get(dof) : dir);
         double* shape = pss->get_fn_values(l);
         for (int i = 0; i < np; i++)
           val[i] += shape[i] * coef;
@@ -540,11 +565,11 @@ void Solution::set_zero_2(Mesh* mesh)
 
 void Solution::set_dirichlet_lift(Space* space, PrecalcShapeset* pss)
 {
-  int ndofs = space->get_num_dofs();
-  scalar *temp = new scalar[ndofs];
-  for (int i = 0; i < ndofs; i++) temp[i] = 0;
+  int ndof = space->get_num_dofs();
+  AVector *temp = new AVector(ndof);
+  for (int i = 0; i < ndof; i++) temp->set(i, 0);
   set_fe_solution(space, pss, temp);
-  delete [] temp;
+  delete temp;
 }
 
 

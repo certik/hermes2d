@@ -19,6 +19,7 @@
 #include "function.h"
 #include "space.h"
 #include "refmap.h"
+#include "matrix.h"
 
 class PrecalcShapeset;
 
@@ -85,8 +86,9 @@ class H2D_API Solution : public MeshFunction
 {
 public:
 
-  Solution(Mesh *mesh);
   Solution();
+  Solution(Mesh *mesh);
+  Solution (Space* s, Vector* vec);
   virtual ~Solution();
   virtual void free();
 
@@ -153,7 +155,8 @@ public:
 public:
 
   /// Internal. Used by DiscreteProblem::solve(). Should not be called directly
-  virtual void set_fe_solution(Space* space, PrecalcShapeset* pss, scalar* vec, double dir = 1.0);
+  virtual void set_fe_solution(Space* space, PrecalcShapeset* pss, Vector* vec, double dir = 1.0);
+  virtual void set_fe_solution(Space* space, Vector* vec, double dir = 1.0);
 
   /// Internal.
   virtual void set_active_element(Element* e);

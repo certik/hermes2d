@@ -41,7 +41,7 @@ void BaseView::show(Space* space, double eps, int item)
   // todo: copy space
   pss = new PrecalcShapeset(space->get_shapeset());
   sln = new Solution();
-  ndofs = space->get_num_dofs();
+  ndof = space->get_num_dofs();
   base_index = 0;
   this->space = space;
   this->eps = eps;
@@ -59,11 +59,11 @@ void BaseView::free()
 
 void BaseView::update_solution()
 {
-  scalar* vec = new scalar[ndofs];
-  memset(vec, 0, sizeof(scalar) * ndofs);
+  AVector* vec = new AVector(ndof);
+  memset(vec->get_c_array(), 0, sizeof(scalar) * ndof);
   if (base_index >= 0)
   {
-    if (base_index < ndofs) vec[base_index] = 1.0;
+    if (base_index < ndof) vec[base_index] = 1.0;
     sln->set_fe_solution(space, pss, vec, 0.0);
   }
   else
@@ -96,7 +96,7 @@ void BaseView::on_special_key(int key, int x, int y)
       break;
 
     case GLUT_KEY_RIGHT:
-      if (base_index < ndofs-1) base_index++;
+      if (base_index < ndof-1) base_index++;
       update_solution();
       break;
 

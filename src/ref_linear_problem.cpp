@@ -28,12 +28,5 @@ RefLinearProblem::~RefLinearProblem()
   this->free_vectors();
 }
 
-void RefLinearProblem::assemble(bool rhsonly)
-{  
-  //assembling the projection matrix, Dir vector and RHS
-  DiscreteProblem::assemble(this->A, this->Dir, this->RHS, false);
-  // since this is a linear problem, put the Dir vector to the right-hand side:
-  for (int i=0; i < this->get_num_dofs(); i++) RHS[i] += Dir[i];
-}
 
 

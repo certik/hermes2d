@@ -8,26 +8,17 @@
 
 bool CommonSolver::solve(Matrix *mat, Vector *res)
 {
-    if (res->is_complex())
-        return this->solve(mat, res->get_c_array_cplx());
-    else
-        return this->solve(mat, res->get_c_array());
-}
-
-bool CommonSolverSciPyUmfpack::solve(Matrix *mat, Vector *res)
-{
-    if (res->is_complex())
-        return this->solve(mat, res->get_c_array_cplx());
-    else
-        return this->solve(mat, res->get_c_array());
+  return this->solve(mat, res);
 }
 
 // Standard CG method starting from zero vector
 // (because we solve for the increment)
 // x... comes as right-hand side, leaves as solution
-bool CommonSolverCG::solve(Matrix* A, double *x, double tol, int maxiter)
+bool CommonSolverCG::solve(Matrix* A, Vector *rhs, double tol, int maxiter)
 {
     printf("CG solver\n");
+
+    scalar* x = rhs->get_c_array();
 
     int n_dof = A->get_size();
     double *r = new double[n_dof];
@@ -80,17 +71,17 @@ bool CommonSolverCG::solve(Matrix* A, double *x, double tol, int maxiter)
     return flag;
 }
 
-
-bool CommonSolverCG::solve(Matrix* A, cplx *x)
-{
-    _error("CommonSolverCG::solve(Matrix *mat, cplx *res) not implemented.");
-}
-
 // ***********************************************************************************************************************
 
-bool CommonSolverDenseLU::solve(Matrix* A, double *x)
+bool CommonSolverDenseLU::solve(Matrix* A, Vector *rhs)
 {
     printf("DenseLU solver\n");
+    if (sizeof(scalar) != sizeof(double)) {
+      printf("DenseLU solver can only be used for real matrices.\n");
+      exit(0);
+    }
+
+    scalar* x = rhs->get_c_array();
 
     DenseMatrix *Aden = NULL;
 
@@ -103,17 +94,13 @@ bool CommonSolverDenseLU::solve(Matrix* A, double *x)
 
     int n = Aden->get_size();
     int *indx = new int[n];
-    double **_mat = Aden->get_A();
+    scalar **_mat = Aden->get_A();
     double d;
-    ludcmp(_mat, n, indx, &d);
-    lubksb(_mat, n, indx, x);
+    ludcmp((double**)_mat, n, indx, &d);
+    lubksb((double**)_mat, n, indx, (double*)x);
 
     delete[] indx;
     if (!dynamic_cast<DenseMatrix*>(A))
         delete Aden;
 }
 
-bool CommonSolverDenseLU::solve(Matrix* A, cplx *x)
-{
-    _error("CommonSolverDenseLU::solve(Matrix *mat, cplx *res) not implemented.");
-}

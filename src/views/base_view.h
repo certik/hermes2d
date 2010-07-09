@@ -50,7 +50,7 @@ protected:
   Solution* sln;
 
   double eps;
-  int ndofs, item;
+  int ndof, item;
   int base_index;
 
   void free();

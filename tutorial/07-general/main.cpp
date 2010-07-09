@@ -1,6 +1,4 @@
-#define H2D_REPORT_WARN
 #define H2D_REPORT_INFO
-#define H2D_REPORT_VERBOSE
 #define H2D_REPORT_FILE "application.log"
 #include "hermes2d.h"
 
@@ -104,22 +102,16 @@ int main(int argc, char* argv[])
   wf.add_vector_form(linear_form, linear_form_ord);
   wf.add_vector_form_surf(linear_form_surf, linear_form_surf_ord, 2);
 
-  // Initialize views.
-  ScalarView sview("Coarse solution", 0, 0, 700, 600);
-  OrderView  oview("Polynomial orders", 710, 0, 700, 600);
-
-  // Initialize the linear system.
-  LinearProblem lp(&wf, &space);
-
-  // Assemble and solve the matrix problem.
+  // Solve the linear problem.
   Solution sln;
-  lp.assemble();
-  lp.solve(&sln);
+  solve_linear(&space, &wf, &sln, SOLVER_UMFPACK);
 
   // Time measurement.
   cpu_time.tick();
 
   // View the solution and mesh.
+  ScalarView sview("Coarse solution", 0, 0, 700, 600);
+  OrderView  oview("Polynomial orders", 710, 0, 700, 600);
   sview.show(&sln);
   oview.show(&space);
 

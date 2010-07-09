@@ -9,9 +9,14 @@
 #ifdef COMMON_WITH_SUPERLU
 #include <superlu/slu_ddefs.h>
 
-bool CommonSolverSuperLU::solve(Matrix *mat, double *res)
+bool CommonSolverSuperLU::solve(Matrix *mat, Vector *res)
 {
     printf("SuperLU solver\n");
+
+    if (sizeof(scalar) != sizeof(double)) {
+      printf("SuperLU solver can only be used with real matrices.");
+      exit(0);
+    }
 
     int size = mat->get_size();
     int nnz = 0;
@@ -128,21 +133,11 @@ bool CommonSolverSuperLU::solve(Matrix *mat, double *res)
         delete Acsc;
 }
 
-bool CommonSolverSuperLU::solve(Matrix *mat, cplx *res)
-{
-    _error("CommonSolverSuperLU::solve(Matrix *mat, cplx *res) not implemented.");
-}
-
 #else
 
-bool CommonSolverSuperLU::solve(Matrix *mat, double *res)
+bool CommonSolverSuperLU::solve(Matrix *mat, Vector *res)
 {
-    _error("CommonSolverSuperLU::solve(Matrix *mat, double *res) not implemented.");
-}
-
-bool CommonSolverSuperLU::solve(Matrix *mat, cplx *res)
-{
-    _error("CommonSolverSuperLU::solve(Matrix *mat, cplx *res) not implemented.");
+    _error("CommonSolverSuperLU::solve(Matrix *mat, Vector *res) not implemented.");
 }
 
 #endif

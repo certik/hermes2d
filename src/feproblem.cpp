@@ -205,11 +205,11 @@ void FeProblem::assemble(_Vector *rhs, _Matrix *jac, _Vector *x)
         }
  
         // Extract values from the vector 'x'.
-	scalar *vv;
+	AVector* vv;
         if (x != NULL) {
-          vv = new scalar[this->ndof]; // FIXME: Add memory check as in H3D, MEM_CHECK(vv);
-	  memset(vv, 0, this->ndof * sizeof(scalar));
-	  x->extract(vv);
+          vv = new AVector(this->ndof);
+	  memset(vv->get_c_array(), 0, this->ndof * sizeof(scalar));
+	  for (int i=0; i<this->ndof; i++) vv->set(i, x->get(i));
         }
 
         // Convert the coefficient vector 'x' into solutions Tuple 'u_ext'.

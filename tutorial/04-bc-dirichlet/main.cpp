@@ -1,3 +1,4 @@
+#define H2D_REPORT_INFO
 #include "hermes2d.h"
 
 // This example illustrates how to use nonhomogeneous (nonzero)
@@ -58,15 +59,15 @@ int main(int argc, char* argv[])
 
   // Initialize the linear system.
   LinearProblem lp(&wf, &space);
+  info("ndof = %d", lp.get_num_dofs());
 
-  // Assemble and solve the matrix problem.
+  // Solve the linear problem.
   Solution sln;
-  lp.assemble();
-  lp.solve(&sln);
+  solve_linear(&space, &wf, &sln, SOLVER_UMFPACK);
 
   // Visualize the solution.
-  ScalarView view("Solution", 0, 0, 600, 600);
-  view.show(&sln);
+  ScalarView* view = new ScalarView("Solution", 0, 0, 600, 600);
+  view->show(&sln);
 
   // Wait for the view to be closed.
   View::wait();

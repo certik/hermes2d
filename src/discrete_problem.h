@@ -77,35 +77,27 @@ public:
       if (n < 0 || n >= this->wf->neq) error("Bad index of precalc shapeset.");
       return this->pss[n];
   }
+  PrecalcShapeset* get_pss() {
+      return this->pss[0];
+  }
 
   /// Assembles the matrix A and vectors Vec, Dir and RHS, and exposes them to the user. 
   /// Everything must be allocated in advance when assemble() is called. This is the generic 
   /// functionality to be used for linear problems, nonlinear problems, and eigenproblems.
   /// Soon this will be extended to assemble an arbitrary number of matrix and vector
   /// weak forms. 
-  virtual void assemble(Matrix* A, scalar* &Dir, scalar* RHS, bool rhsonly = false);
+  virtual void assemble(Matrix* mat_ext, Vector* dir_ext, Vector* rhs_ext, bool rhsonly = false);
 
-  /// User-friendly version, should only be used by users in their main.cpp files (not by
-  /// developers in H2D internal functions). 
-  /// NOTE: this assembles the Jacobian matrix and residual vector (the vector
-  /// Dir is not added to the RHS vector as it must be done for linear problems).
-  /// There is another assemble() function in the LinearProblem class that handles 
-  /// the linear case. 
-  virtual void assemble(bool rhsonly = false) {
-    this->assemble(this->A, this->Dir, this->RHS, rhsonly);
-  };
+  /// Version for nonlinear problems -- does not add the dir vector to rhs.
+  virtual void assemble(Matrix* mat_ext, Vector* rhs_ext, bool rhsonly = false);
 
   /// Basic function that just solves the matrix problem. The right-hand
   /// side enters through "vec" and the result is stored in "vec" as well. 
-  bool solve_matrix_problem(Matrix* mat, scalar* vec); 
+  bool solve_matrix_problem(Matrix* mat, Vector* vec); 
 
   /// Solves the matrix problem with "mat" and "rhs", and adds the result 
   /// to the vector "vec".
-  virtual bool solve(Matrix* mat, scalar* rhs, scalar* vec);
-
-  /// Solves the matrix problem with this->A and this->RHS, adds the result 
-  /// into this->Vec, and propagates this->Vec into one or more Solutions. 
-  virtual bool solve(Tuple<Solution*> sln);
+  virtual bool solve(Matrix* mat, Vector* rhs, Vector* vec);
 
   /// Frees the stiffness matrix.
   virtual void free_matrix();
@@ -139,9 +131,6 @@ public:
   /// must be NULL at input, to make sure that the user is not losing
   /// information stored in these vectors.
   void alloc_and_zero_vectors();
-
-  /// Reallocates vectors Vec, RHS and Dir according to a new this->ndof.
-  void realloc_and_zero_vectors();
 
   /// Frees vectors Vec, RHS and Dir and sets them to NULL. This should
   /// be used very carefully since the vector Vec stores the actual solution
@@ -250,6 +239,7 @@ public:
   /// Adjusts the Newton iteration coefficient. The default value for alpha is 1.
   void set_alpha(double alpha) { this->alpha = alpha; }
 
+  /* TEMPORARILY DISABLED
   /// Performs complete Newton's loop for a Tuple of solutions.
   bool solve_newton(Tuple<Solution*> u_prev, double newton_tol, int newton_max_iter,
                     bool verbose = false, Tuple<MeshFunction*> mesh_fns = Tuple<MeshFunction*>());
@@ -261,6 +251,7 @@ public:
   {
     return this->solve_newton(Tuple<Solution*>(u_prev), newton_tol, newton_max_iter, verbose, mesh_fns);
   }
+  */
 
   /// returns the L2-norm of the residual vector
   double get_residual_l2_norm() const { return res_l2; }

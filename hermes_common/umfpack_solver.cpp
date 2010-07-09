@@ -35,7 +35,22 @@ void print_status(int status)
     }
 }
 
-bool CommonSolverUmfpack::solve(Matrix *mat, double *res)
+bool CommonSolverUmfpack::solve(Matrix *mat, Vector *res) 
+{
+  double* vec_real;
+  cplx* vec_cplx;
+  if (sizeof(scalar) ==  sizeof(double)) {
+    vec_real = (double*)res->get_c_array();
+    this->solve_real(mat, vec_real);
+  }
+  else {
+    vec_cplx = (cplx*)res->get_c_array();
+    this->solve_real(mat, vec_cplx);
+  }
+
+}
+
+bool CommonSolverUmfpack::solve_real(Matrix *mat, double *res)
 {
     printf("UMFPACK solver\n");
 
@@ -92,7 +107,7 @@ bool CommonSolverUmfpack::solve(Matrix *mat, double *res)
         delete Acsc;
 }
 
-bool CommonSolverUmfpack::solve(Matrix *mat, cplx *res)
+bool CommonSolverUmfpack::solve_cplx(Matrix *mat, cplx *res)
 {
     printf("UMFPACK solver - cplx\n");
 
@@ -178,14 +193,21 @@ bool CommonSolverUmfpack::solve(Matrix *mat, cplx *res)
 
 #else
 
-bool CommonSolverUmfpack::solve(Matrix *mat, double *res)
+bool CommonSolverUmfpack::solve(Matrix *mat, Vector *res)
 {
-    _error("CommonSolverUmfpack::solve(Matrix *mat, double *res) not implemented.");
+    _error("CommonSolverUmfpack::solve(Matrix *mat, Vec *res) not implemented.");
 }
 
-bool CommonSolverUmfpack::solve(Matrix *mat, cplx *res)
+bool CommonSolverUmfpack::solve_real(Matrix *mat, double *res)
 {
-    _error("CommonSolverUmfpack::solve(Matrix *mat, cplx *res) not implemented.");
+    _error("CommonSolverUmfpack::solve_real(Matrix *mat, double *res) not implemented.");
 }
+
+bool CommonSolverUmfpack::solve_cplx(Matrix *mat, cplx *res)
+{
+    _error("CommonSolverUmfpack::solve_cplx(Matrix *mat, cplx *res) not implemented.");
+}
+
+
 
 #endif

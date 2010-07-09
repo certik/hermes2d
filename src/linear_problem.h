@@ -16,6 +16,7 @@
 #ifndef __H2D_LINPROBLEM_H
 #define __H2D_LINPROBLEM_H
 
+#include "common.h"
 #include "matrix_old.h"
 #include "filter.h"
 #include "views/scalar_view.h"
@@ -43,27 +44,17 @@ public:
   LinearProblem(WeakForm* wf_, Tuple<Space*> spaces_); 
   virtual ~LinearProblem();
 
-
-  /// Simplified version of the assembling procedure for the user. Inside,
-  /// this constructs the matrix A, vectors Dir and RHS, and adds the Dir
-  /// vector to RHS.
-  virtual void assemble(bool rhsonly = false);
-
-  // Assembles the matrix and RHS into your matrices:
-  virtual void assemble(Matrix *A, scalar *RHS);
-  virtual void assemble(Matrix *A, Vector *RHS);
-
-
-  /// Solves the matrix problem with "mat" and "rhs", and copies the result 
-  /// to the vector "vec".
-  virtual bool solve(Matrix* mat, scalar* rhs, scalar* vec);
-
-  /// Solves the matrix problem with this->A and this->RHS, copies the result 
-  /// into this->Vec, and propagates this->Vec into one or more Solutions. 
-  virtual bool solve(Tuple<Solution*>sln);
+  /// Version for linear problems -- adds the dir vector to rhs.
+  virtual void assemble(Matrix* mat_ext, Vector* rhs_ext, bool rhsonly = false);
 
   friend class RefDiscreteProblem;
 
 };
+
+void init_matrix_solver(MatrixSolverType matrix_solver, int ndof, 
+                          Matrix* &mat, Vector* &vec, CommonSolver* &solver);
+
+bool solve_linear(Tuple<Space *> spaces, WeakForm* wf, Tuple<Solution *> solutions, 
+                  MatrixSolverType matrix_solver);
 
 #endif

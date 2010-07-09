@@ -26,6 +26,7 @@
 #include "integrals_h1.h"
 #include "views/view.h"
 #include "views/vector_view.h"
+#include "tuple.h"
 
 LinearProblem::LinearProblem() : DiscreteProblem() {};
 LinearProblem::LinearProblem(WeakForm* wf_) : DiscreteProblem(wf_) {};
@@ -33,103 +34,90 @@ LinearProblem::LinearProblem(WeakForm* wf_, Space* s_) : DiscreteProblem(wf_, s_
 LinearProblem::LinearProblem(WeakForm* wf_, Tuple<Space*> spaces_) : DiscreteProblem(wf_, spaces_) {};
 LinearProblem::~LinearProblem() {};
 
-void LinearProblem::assemble(bool rhsonly)
+void LinearProblem::assemble(Matrix* mat_ext, Vector* rhs_ext, bool rhsonly)
 {
-  // sanity checks
-  int ndof = this->get_num_dofs();
-
-  if (this->have_spaces == false)
-    error("Before assemble(), you need to initialize spaces.");
-  if (this->spaces == NULL) error("spaces = NULL in LinearProblem::assemble().");
-
-  // Assemble the matrix A and vector RHS. If the problem is linear,
-  // we need to subtract the vector Dir from RHS.
-  DiscreteProblem::assemble(this->A, this->Dir, this->RHS, rhsonly);
-
-  for (int i=0; i < this->get_num_dofs(); i++) RHS[i] += Dir[i];
+  AVector* dir = new AVector(this->get_num_dofs());
+  // the vector dir represents the contribution of the Dirichlet lift, 
+  // and it has to be added to the right hand side for linear problems
+  DiscreteProblem::assemble(mat_ext, dir, rhs_ext, rhsonly);
+  for (int i=0; i < dir->get_size(); i++) rhs_ext->add(i, dir->get(i));
+  delete dir;
 }
 
-void LinearProblem::assemble(Matrix *A, Vector *RHS)
+// FIXME: We need to unify the type for Python and 
+// C++ solvers. Right now Solver and CommonSolver
+// are incompatible.
+void init_matrix_solver(MatrixSolverType matrix_solver, int ndof, 
+                          Matrix* &mat, Vector* &rhs, CommonSolver* &solver) 
 {
-#ifdef H2D_COMPLEX
-        this->assemble(A, RHS->get_c_array_cplx());
-#else
-        this->assemble(A, RHS->get_c_array());
-#endif
-}
-void LinearProblem::assemble(Matrix *A, scalar *RHS)
-{
-    info("LinearProblem::assemble(Matrix *A, scalar *RHS)");
-  // sanity checks
-  int ndof = this->get_num_dofs();
-
-  if (this->have_spaces == false)
-    error("Before assemble(), you need to initialize spaces.");
-  if (this->spaces == NULL) error("spaces = NULL in LinearProblem::assemble().");
-
-  // Assemble the matrix A and vector RHS. If the problem is linear,
-  // we need to subtract the vector Dir from RHS.
-  scalar *Dir = new scalar[ndof];
-  DiscreteProblem::assemble(A, Dir, RHS, false);
-
-  for (int i=0; i < this->get_num_dofs(); i++) RHS[i] += Dir[i];
-  delete Dir;
-}
-
-//// solve /////////////////////////////////////////////////////////////////////////////////////////
-
-bool LinearProblem::solve(Matrix* mat, scalar* rhs, scalar* vec)
-{
-  int ndof = this->get_num_dofs();
-
-  // sanity checks
-  if (mat == NULL) error("matrix is NULL in LinearProblem::solve().");
-  if (rhs == NULL) error("rhs is NULL in LinearProblem::solve().");
-  if (vec == NULL) error("vec is NULL in LinearProblem::solve().");
-  if (ndof == 0) error("ndof = 0 in LinearProblem::solve().");
-  if (ndof != mat->get_size())
-    error("Matrix size does not match ndof in in LinearProblem:solve().");
-
-  // copy "rhs" into "vec", solve the matrix problem with "mat", "vec" ,
-  // and save the result in "vec"
-  memcpy(vec, rhs, sizeof(scalar) * ndof);
-  bool flag = this->solve_matrix_problem(mat, vec);
-
-  return flag;
-}
-
-bool LinearProblem::solve(Tuple<Solution*>sln_tuple)
-{
-  int n = sln_tuple.size();
-  int ndof = this->get_num_dofs();
-
-  // sanity checks
-  if (n != this->wf->neq)
-    error("Number of solutions does not match the number of equations in LinearProblem::solve().");
-  if (this->Vec == NULL) error("Vec is NULL in LinearProblem::solve().");
-  if (this->Vec_length != ndof || this->RHS_length != ndof || this->Dir_length != ndof)
-    error("Length of vectors Vec, RHS or Dir does not match this->ndof in LinearProblem::solve().");
-  if (ndof == 0) error("ndof = 0 in LinearProblem::solve().");
-  if (ndof != this->A->get_size())
-    error("Matrix size does not match vector length in LinearProblem:solve().");
-
-  // solve the matrix problem with this->A and this->RHS and copy the 
-  // result into this->Vec
-  bool flag = this->solve(this->A, this->RHS, this->Vec);
-  if (flag == false) return false; 
-
-  // copy this->Vec into Solutions
-  if (this->spaces == NULL) error("this->spaces == NULL in DiscreteProblem::solve().");
-  if (this->pss == NULL) error("this->pss == NULL in DiscreteProblem::solve().");
-  if (this->Vec == NULL) error("this->Vec == NULL in LinearProblem::solve().");
-  for (int i = 0; i < n; i++)
-  {
-    if(this->spaces[i] == NULL) error("this->spaces[%d] == NULL in LinearProblem::solve().", i);
-    if(this->spaces[i]->get_mesh() == NULL) error("this->spaces[%d]->get_mesh() == NULL in LinearProblem::solve().", i);
-    sln_tuple[i]->set_fe_solution(this->spaces[i], this->pss[i], this->Vec);
-    if(sln_tuple[i]->get_mesh() == NULL) error("sln_tuple[%d]->get_mesh() == NULL in LinearProblem::solve().\n", i);
+  // Initialize stiffness matrix, load vector, and matrix solver.
+  // UMFpack.
+  CooMatrix mat_umfpack(ndof);
+  AVector rhs_umfpack(ndof);
+  CommonSolverSciPyUmfpack solver_umfpack;
+  // PETSc.
+  /* FIXME - PETSc solver needs to be ported from H3D.
+  PetscMatrix mat_petsc(ndof);
+  PetscVector rhs_petsc(ndof);
+  PetscLinearSolver solver_petsc;
+  */
+  // MUMPS. 
+  // FIXME - PETSc solver needs to be ported from H3D.
+  /*
+  MumpsMatrix mat_mumps(ndof);
+  MumpsVector rhs_mumps(ndof);
+  MumpsSolver solver_mumps;
+  */
+  
+  switch (matrix_solver) {
+    case SOLVER_UMFPACK: 
+      mat = &mat_umfpack;
+      rhs = &rhs_umfpack;
+      solver = &solver_umfpack;
+      break;
+    case SOLVER_PETSC:  
+      error("Petsc solver not implemented yet.");
+      /*
+      mat = &mat_petsc;
+      rhs = &rhs_petsc;
+      solver = &solver_petsc;
+      */
+      break;
+    case SOLVER_MUMPS:  
+      error("MUMPS solver not implemented yet.");
+      /*
+      mat = &mat_mumps;
+      rhs = &rhs_mumps;
+      solver = &solver_mumps;
+      */
+      break;
+    default: error("Bad matrix solver in solve_linear().");
   }
-
-  return true;
 }
 
+// Shortcut to solve linear problems.
+bool solve_linear(Tuple<Space *> spaces, WeakForm* wf, Tuple<Solution *> solutions, 
+                  MatrixSolverType matrix_solver) 
+{
+  // Initialize the linear problem.
+  LinearProblem lp(wf, spaces);
+  info("ndof = %d", lp.get_num_dofs());
+
+  // Select matrix solver.
+  Matrix* mat;
+  Vector* rhs;
+  CommonSolver* solver;  // FIXME: this should be just Solver, same for
+                         // Python and C++ solvers. 
+  init_matrix_solver(matrix_solver, lp.get_num_dofs(), mat, rhs, solver);
+
+  // Assemble stiffness matrix and rhs.
+  lp.assemble(mat, rhs);
+
+  // Solve the matrix problem.
+  if (!solver->solve(mat, rhs)) error ("Matrix solver failed.\n");
+
+  // Convert coefficient vector into a Solution.
+  for (int i=0; i<solutions.size(); i++) {
+    solutions[i]->set_fe_solution(spaces[i], rhs);
+  }
+}

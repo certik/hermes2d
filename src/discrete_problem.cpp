@@ -228,27 +228,6 @@ void DiscreteProblem::alloc_and_zero_vectors()
   this->Dir_length = ndof;
 }
 
-void DiscreteProblem::realloc_and_zero_vectors()
-{
-  int ndof = this->get_num_dofs();
-  //printf("debug: reallocating vectors Vec, RHS, Dir length   %d -> %d\n", this->Vec_length, ndof);
-
-  this->Vec = (scalar*)realloc(this->Vec, ndof*sizeof(scalar));
-  if (this->Vec == NULL) error("Not enough memory DiscreteProblem::realloc_and_zero_vectors().");
-  memset(this->Vec, 0, ndof*sizeof(scalar));
-  this->Vec_length = ndof;
-
-  this->RHS = (scalar*)realloc(this->RHS, ndof*sizeof(scalar));
-  if (this->RHS == NULL) error("Not enough memory DiscreteProblem::realloc_and_zero_vectors().");
-  memset(this->RHS, 0, ndof*sizeof(scalar));
-  this->RHS_length = ndof;
-
-  this->Dir = (scalar*)realloc(this->Dir, ndof*sizeof(scalar));
-  if (this->Dir == NULL) error("Not enough memory DiscreteProblem::realloc_and_zero_vectors().");
-  memset(this->Dir, 0, ndof*sizeof(scalar));
-  this->Dir_length = ndof;
-}
-
 void DiscreteProblem::free()
 {
   free_matrix();
@@ -348,12 +327,12 @@ void DiscreteProblem::get_matrix(int*& Ap, int*& Ai, scalar*& Ax, int& size)
 
 //// assembly //////////////////////////////////////////////////////////////////////////////////////
 
-void DiscreteProblem::insert_block(Matrix *A, scalar** mat, int* iidx, int* jidx, int ilen, int jlen)
+void DiscreteProblem::insert_block(Matrix *mat_ext, scalar** mat, int* iidx, int* jidx, int ilen, int jlen)
 {
-    A->add_block(iidx, ilen, jidx, jlen, mat);
+    mat_ext->add_block(iidx, ilen, jidx, jlen, mat);
 }
 
-void DiscreteProblem::assemble(Matrix* mat_ext, scalar* &dir_ext, scalar* rhs_ext, bool rhsonly)
+void DiscreteProblem::assemble(Matrix* mat_ext, Vector* dir_ext, Vector* rhs_ext, bool rhsonly)
 {
   // sanity checks
   if (this->have_spaces == false)
@@ -361,17 +340,22 @@ void DiscreteProblem::assemble(Matrix* mat_ext, scalar* &dir_ext, scalar* rhs_ex
   if (this->wf == NULL) error("this->wf = NULL in DiscreteProblem::assemble().");
   if (this->spaces == NULL) error("this->spaces = NULL in DiscreteProblem::assemble().");
   int n = this->wf->neq;
-  for (int i=0; i<n; i++) if (this->spaces[i] == NULL)
-			    error("this->spaces[%d] is NULL in DiscreteProblem::assemble().", i);
+  for (int i=0; i<n; i++) 
+    if (this->spaces[i] == NULL) error("this->spaces[%d] is NULL in DiscreteProblem::assemble().", i);
 
-  // enumerate DOF to get new length of the vectors Vec, RHS and Dir,
+  // enumerate DOF to get new length of the vectors rhs and dir,
   // and realloc these vectors if needed
   this->assign_dofs();
   int ndof = this->get_num_dofs();
   if (ndof == 0) error("ndof = 0 in DiscreteProblem::assemble().");
-  if (this->Vec_length != ndof || this->RHS_length != ndof || this->Dir_length != ndof) {
-    this->realloc_and_zero_vectors();
-  }
+  if (dir_ext->get_size() != ndof) dir_ext->realloc_and_erase(ndof);
+  if (rhs_ext->get_size() != ndof) rhs_ext->realloc_and_erase(ndof);
+
+  //  further checks
+  if (mat_ext->get_size() != this->get_num_dofs())
+    error("Matrix size does not match ndof in DiscreteProblem::assemble().");
+  if (mat_ext->get_size() != dir_ext->get_size() || mat_ext->get_size() != rhs_ext->get_size())
+    error("Mismatched matrix and vector sizes in DiscreteProblem::assemble().");
 
   if (!rhsonly) free_matrix();
   int k, m, marker;
@@ -499,7 +483,7 @@ void DiscreteProblem::assemble(Matrix* mat_ext, scalar* &dir_ext, scalar* rhs_ex
         }
 
         // insert the local stiffness matrix into the global one
-        insert_block(this->A, mat, am->dof, an->dof, am->cnt, an->cnt);
+        insert_block(mat_ext, mat, am->dof, an->dof, am->cnt, an->cnt);
         insert_block(mat_ext, mat, am->dof, an->dof, am->cnt, an->cnt);
 
         // insert also the off-diagonal (anti-)symmetric block, if required
@@ -507,7 +491,7 @@ void DiscreteProblem::assemble(Matrix* mat_ext, scalar* &dir_ext, scalar* rhs_ex
         {
           if (mfv->sym < 0) chsgn(mat, am->cnt, an->cnt);
           transpose(mat, am->cnt, an->cnt);
-          insert_block(this->A, mat, an->dof, am->dof, an->cnt, am->cnt);
+          insert_block(mat_ext, mat, an->dof, am->dof, an->cnt, am->cnt);
           insert_block(mat_ext, mat, an->dof, am->dof, an->cnt, am->cnt);
 
           // we also need to take care of the RHS...
@@ -533,7 +517,7 @@ void DiscreteProblem::assemble(Matrix* mat_ext, scalar* &dir_ext, scalar* rhs_ex
           fv->set_active_shape(am->idx[i]);
           // FIXME - the NULL on the following line is temporary, an array of solutions 
           // should be passed there.
-          rhs_ext[am->dof[i]] += eval_form(vfv, NULL, fv, &refmap[m]) * am->coef[i];
+          rhs_ext->add(am->dof[i], eval_form(vfv, NULL, fv, &refmap[m]) * am->coef[i]);
         }
       }
 
@@ -580,7 +564,7 @@ void DiscreteProblem::assemble(Matrix* mat_ext, scalar* &dir_ext, scalar* rhs_ex
               if (an->dof[j] >= 0) mat[i][j] = bi; else Dir[k] -= bi;
             }
           }
-          insert_block(this->A, mat, am->dof, an->dof, am->cnt, an->cnt);
+          insert_block(mat_ext, mat, am->dof, an->dof, am->cnt, an->cnt);
           insert_block(mat_ext, mat, am->dof, an->dof, am->cnt, an->cnt);
         }
 
@@ -602,7 +586,7 @@ void DiscreteProblem::assemble(Matrix* mat_ext, scalar* &dir_ext, scalar* rhs_ex
             fv->set_active_shape(am->idx[i]);
             // FIXME - the NULL on the following line is temporary, an array of solutions 
             // should be passed there.
-            rhs_ext[am->dof[i]] += eval_form(vfs, NULL, fv, &refmap[m], &(ep[edge])) * am->coef[i];
+            rhs_ext->add(am->dof[i], eval_form(vfs, NULL, fv, &refmap[m], &(ep[edge])) * am->coef[i]);
           }
         }
       }
@@ -617,8 +601,13 @@ void DiscreteProblem::assemble(Matrix* mat_ext, scalar* &dir_ext, scalar* rhs_ex
   delete [] buffer;
 
   if (!rhsonly) values_changed = true;
+}
 
-  dir_ext = this->Dir;
+void DiscreteProblem::assemble(Matrix* mat_ext, Vector* rhs_ext, bool rhsonly)
+{
+  AVector* dir = new AVector(this->get_num_dofs());
+  // the vector dir is irrelevant for nonlinear problems
+  this->assemble(mat_ext, dir, rhs_ext, rhsonly);
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -963,13 +952,15 @@ scalar DiscreteProblem::eval_form(WeakForm::VectorFormSurf *vfs, Solution *sln[]
 
 //// solve /////////////////////////////////////////////////////////////////////////////////////////
 
-bool DiscreteProblem::solve_matrix_problem(Matrix* mat, scalar* vec) 
+bool DiscreteProblem::solve_matrix_problem(Matrix* mat, Vector* vec) 
 {
   // check matrix size
   int ndof = this->get_num_dofs();
   if (ndof == 0) error("ndof = 0 in DiscreteProblem::solve().");
-  if (ndof != this->A->get_size())
-    error("Matrix size does not match vector length in DiscreteProblem:solve().");
+  if (ndof != mat->get_size())
+    error("Matrix size does not match ndof in DiscreteProblem:solve().");
+  if (ndof != vec->get_size())
+    error("Vector size does not match ndof in DiscreteProblem:solve().");
 
   // FIXME: similar test should be done for the vector "vec" also, but we need
   // to access the information about its length.
@@ -983,7 +974,7 @@ bool DiscreteProblem::solve_matrix_problem(Matrix* mat, scalar* vec)
   return flag;
 }
 
-bool DiscreteProblem::solve(Matrix* mat, scalar* rhs, scalar* vec)
+bool DiscreteProblem::solve(Matrix* mat, Vector* rhs, Vector* vec)
 {
   int ndof = this->get_num_dofs();
 
@@ -996,49 +987,15 @@ bool DiscreteProblem::solve(Matrix* mat, scalar* rhs, scalar* vec)
     error("Matrix size does not match ndof in in DiscreteProblem:solve().");
 
   // copy "vec" into "delta" and solve the matrix problem with "mat", "delta"
-  scalar* delta = new scalar[ndof];
-  memcpy(delta, rhs, sizeof(scalar) * ndof);
+  AVector* delta = new AVector(ndof);
+  memcpy(delta->get_c_array(), rhs, sizeof(scalar) * ndof);
   bool flag = this->solve_matrix_problem(mat, delta);
   if (flag == false) return false;
 
   // add the result which is in "delta" to the previous 
   // solution vector which is in "vec"
-  for (int i = 0; i < ndof; i++) vec[i] += delta[i];
-  delete [] delta;
-
-  return true;
-}
-
-bool DiscreteProblem::solve(Tuple<Solution*> sln)
-{
-  int ndof = this->get_num_dofs();
-  int n = sln.size();
- 
-  // sanity checks
-  if (n != this->wf->neq)
-    error("Number of solutions does not match the number of equations in DiscreteProblem::solve().");
-  if (this->Vec == NULL) error("Vec is NULL in DiscreteProblem::solve().");
-  if (this->Vec_length != ndof || this->RHS_length != ndof || this->Dir_length != ndof)
-    error("Length of vectors Vec, RHS or Dir does not match this->ndof in DiscreteProblem::solve().");
-  if (ndof == 0) error("ndof = 0 in DiscreteProblem::solve().");
-  if (ndof != this->A->get_size())
-    error("Matrix size does not match vector length in DiscreteProblem:solve().");
-
-  // solve the matrix problem with this->A and this->RHS, and add the
-  // result to this->Vec
-  bool flag = this->solve(this->A, this->RHS, this->Vec);
-  if (flag == false) return false; 
-
-  // copy this->Vec into Solutions
-  if (this->spaces == NULL) error("this->spaces == NULL in DiscreteProblem::solve().");
-  if (this->pss == NULL) error("this->pss == NULL in DiscreteProblem::solve().");
-  if (this->Vec == NULL) error("this->Vec == NULL in LinearProblem::solve().");
-  for (int i = 0; i < n; i++)
-  {
-    if(this->spaces[i] == NULL) error("this->spaces[%d] == NULL in LinearProblem::solve().", i);
-    if(this->spaces[i]->get_mesh() == NULL) error("this->spaces[%d]->get_mesh() == NULL in LinearProblem::solve().", i);
-    sln[i]->set_fe_solution(this->spaces[i], this->pss[i], this->Vec);
-  }
+  for (int i = 0; i < ndof; i++) vec->add(i, delta->get_c_array()[i]);
+  delete delta;
 
   return true;
 }
@@ -1251,12 +1208,21 @@ void DiscreteProblem::project_global(Tuple<MeshFunction*> source, Tuple<Solution
     }
   }
 
-  //assembling the projection matrix, Dir vector and RHS
-  DiscreteProblem::assemble(this->A, this->Dir, this->RHS, false);
-  // since this is a linear problem, put the Dir vector to the right-hand side:
-  for (int i=0; i < this->get_num_dofs(); i++) RHS[i] += Dir[i];
+  // FIXME: enable other types of matrices and vectors.
+  CooMatrix mat(this->get_num_dofs());
+  CommonSolverSciPyUmfpack solver;
+  AVector* dir = new AVector(this->get_num_dofs());
+  AVector* rhs = new AVector(this->get_num_dofs());
 
-  DiscreteProblem::solve(target);
+  //assembling the projection matrix, Dir vector and RHS
+  DiscreteProblem::assemble(&mat, dir, rhs, false);
+  // since this is a linear problem, put the Dir vector to the right-hand side:
+  for (int i=0; i < this->get_num_dofs(); i++) rhs->add(i, dir->get(i));
+
+  solver.solve(&mat, rhs);
+  for (int i=0; i < this->wf->neq; i++) {
+    target[i]->set_fe_solution(this->spaces[i], rhs);
+  }
 
   // restoring original weak form
   wf = wf_orig;
@@ -1264,7 +1230,7 @@ void DiscreteProblem::project_global(Tuple<MeshFunction*> source, Tuple<Solution
 }
 
 void DiscreteProblem::project_global(Tuple<MeshFunction*> source, Tuple<Solution*> target,
-                               matrix_forms_tuple_t proj_biforms, vector_forms_tuple_t proj_liforms )
+                                     matrix_forms_tuple_t proj_biforms, vector_forms_tuple_t proj_liforms )
 {
   // sanity checks
   int n = source.size();
@@ -1316,12 +1282,22 @@ void DiscreteProblem::project_global(Tuple<MeshFunction*> source, Tuple<Solution
     }
   }
 
-  //assembling the projection matrix, Dir vector and RHS
-  DiscreteProblem::assemble(this->A, this->Dir, this->RHS, false);
-  // since this is a linear problem, put the Dir vector to the right-hand side:
-  for (int i=0; i < this->get_num_dofs(); i++) RHS[i] += Dir[i];
+  // FIXME: enable other types of matrices and vectors.
+  CooMatrix mat(this->get_num_dofs());
+  CommonSolverSciPyUmfpack solver;
+  AVector* dir = new AVector(this->get_num_dofs());
+  AVector* rhs = new AVector(this->get_num_dofs());
 
-  DiscreteProblem::solve(target);
+  //assembling the projection matrix, Dir vector and RHS
+  DiscreteProblem::assemble(&mat, dir, rhs, false);
+  // since this is a linear problem, put the Dir vector to the right-hand side:
+  for (int i=0; i < this->get_num_dofs(); i++) rhs->add(i, dir->get(i));
+
+  solver.solve(&mat, rhs);
+  
+  for (int i=0; i < this->wf->neq; i++) {
+    target[i]->set_fe_solution(this->spaces[i], rhs);
+  }
 
   // restoring original weak form
   wf = wf_orig;
@@ -1349,10 +1325,11 @@ void DiscreteProblem::update_essential_bc_values()
   for (int i=0; i<n; i++) this->spaces[i]->update_essential_bc_values();
 }
 
+/* TEMPORARILY DISABLED
 // Newton's method for an arbitrary number of equations.
 bool DiscreteProblem::solve_newton(Tuple<Solution*> u_prev, double newton_tol, 
-                                int newton_max_iter, bool verbose, 
-                                Tuple<MeshFunction*> mesh_fns) 
+                                   int newton_max_iter, bool verbose, 
+                                   Tuple<MeshFunction*> mesh_fns) 
 {
   // sanity checks
   int n = u_prev.size();
@@ -1380,7 +1357,8 @@ bool DiscreteProblem::solve_newton(Tuple<Solution*> u_prev, double newton_tol,
 
     // assemble the Jacobian matrix and residual vector,
     // solve the system
-    this->assemble(this->A, this->Dir, this->RHS, false);
+    this->assemble(mat, dir, rhs, false);
+    
     this->solve(u_prev);
 
     // calculate the l2-norm of residual vector
@@ -1397,3 +1375,4 @@ bool DiscreteProblem::solve_newton(Tuple<Solution*> u_prev, double newton_tol,
   else return false;
 }
 
+*/

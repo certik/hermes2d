@@ -1,3 +1,5 @@
+#define H2D_REPORT_INFO
+#define H2D_REPORT_FILE "application.log"
 #include "hermes2d.h"
 
 // This example explains how to create multiple spaces over a mesh and use them
@@ -59,13 +61,10 @@ int main(int argc, char* argv[])
   wf.add_vector_form_surf(0, callback(linear_form_surf_0), GAMMA_3_BDY);
   wf.add_vector_form_surf(1, callback(linear_form_surf_1), GAMMA_3_BDY);
 
-  // Initialize the linear system.
-  LinearProblem lp(&wf, Tuple<Space*>(&xdisp, &ydisp));
-
-  // Assemble and solve the matrix problem.
+  // Solve the linear problem.
   Solution xsln, ysln;
-  lp.assemble();
-  lp.solve(Tuple<Solution*>(&xsln, &ysln));
+  solve_linear(Tuple<Space *>(&xdisp, &ydisp), &wf, 
+               Tuple<Solution*>(&xsln, &ysln), SOLVER_UMFPACK);
 
   // Visualize the solution.
   ScalarView view("Von Mises stress [Pa]", 0, 0, 800, 400);

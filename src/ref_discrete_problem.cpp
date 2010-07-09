@@ -39,13 +39,6 @@ RefDiscreteProblem::RefDiscreteProblem(DiscreteProblem* base, int order_increase
 
   // internal check
   if (this->have_spaces == false) error("RefDiscreteProblem: missing space(s).");
-
-  // (re)allocate vectors Vec, RHS and Dir
-  int ndof = this->get_num_dofs();
-  if (Vec_length != ndof || RHS_length != ndof || Dir_length != ndof) {
-    if (Vec == NULL && RHS == NULL && Dir == NULL) this->alloc_and_zero_vectors();
-    else this->realloc_and_zero_vectors();
-  }
 }
 
 void RefDiscreteProblem::global_refinement() 
@@ -161,13 +154,6 @@ void RefDiscreteProblem::set_pss(Tuple<PrecalcShapeset*> pss)
 void RefDiscreteProblem::set_order_increase(int order_increase)
 {
   this->order_increase = order_increase;
-}
-
-void RefDiscreteProblem::assemble(bool rhsonly)
-{  
-  // NOTE: this disregards the Dir vector, i.e., it will not 
-  // work for linear problems. 
-  DiscreteProblem::assemble(rhsonly);
 }
 
 bool RefDiscreteProblem::solve_exact(ExactFunction exactfn, Solution* sln)

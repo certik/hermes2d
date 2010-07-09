@@ -44,7 +44,7 @@ protected:
   PrecalcShapeset* pss;
   Solution* sln;
 
-  int ndofs, component;
+  int ndof, component;
   int base_index;
 
   void free();

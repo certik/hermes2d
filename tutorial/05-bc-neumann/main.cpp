@@ -1,3 +1,4 @@
+#define H2D_REPORT_INFO
 #include "hermes2d.h"
 
 // This example shows how to define Neumann boundary conditions. In addition,
@@ -57,13 +58,15 @@ int main(int argc, char* argv[])
   wf.add_vector_form(callback(linear_form));
   wf.add_vector_form_surf(callback(linear_form_surf));
 
-  // Initialize the linear system.
-  LinearProblem lp(&wf, &space);
 
-  // Assemble and solve the matrix problem.
+
+  // Initialize the linear problem.
+  LinearProblem lp(&wf, &space);
+  info("ndof = %d", lp.get_num_dofs());
+
+  // Solve the linear problem.
   Solution sln;
-  lp.assemble();
-  lp.solve(&sln);
+  solve_linear(&space, &wf, &sln, SOLVER_UMFPACK);
 
   // Visualize the approximation.
   ScalarView view("Solution", 0, 0, 600, 600);

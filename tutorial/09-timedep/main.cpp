@@ -1,6 +1,4 @@
-#define H2D_REPORT_WARN
 #define H2D_REPORT_INFO
-#define H2D_REPORT_VERBOSE
 #define H2D_REPORT_FILE "application.log"
 #include "hermes2d.h"
 
@@ -91,8 +89,14 @@ int main(int argc, char* argv[])
   wf.add_vector_form(linear_form<double, double>, linear_form<Ord, Ord>, H2D_ANY, &tsln);
   wf.add_vector_form_surf(linear_form_surf<double, double>, linear_form_surf<Ord, Ord>, bdy_air);
 
-  // Initialize the linear system.
+  // Initialize the linear problem.
   LinearProblem lp(&wf, &space);
+  info("ndof = %d", lp.get_num_dofs());
+
+  // Initialize matrix solver.
+  // FIXME: this should be just Solver, same for Python and C++ solvers. 
+  Matrix* mat; Vector* rhs; CommonSolver* solver;  
+  init_matrix_solver(SOLVER_UMFPACK, lp.get_num_dofs(), mat, rhs, solver);
 
   // Initialize views.
   ScalarView Tview("Temperature", 0, 0, 450, 600);
@@ -109,10 +113,15 @@ int main(int argc, char* argv[])
   {
     info("---- Time step %d, time %3.5f, ext_temp %g", ts, TIME, temp_ext(TIME));
 
-    // Assemble and solve.
-    lp.assemble(rhsonly);   // Stiffness matrix assembled only the first time.
+    // Assemble stiffness matrix and rhs.
+    lp.assemble(mat, rhs, rhsonly);
     rhsonly = true;
-    lp.solve(&tsln);
+
+    // Solve the matrix problem.
+    if (!solver->solve(mat, rhs)) error ("Matrix solver failed.\n");
+
+    // Convert coefficient vector into a Solution.
+    Solution tsln(&space, rhs);
 
     // Update the time variable.
     TIME += TAU;

@@ -95,9 +95,6 @@
 #include "h1_adapt.h"
 #include "hcurl_adapt.h"
 
-void hermes2d_initialize(int* argc = NULL, char* argv[] = NULL);
-void hermes2d_finalize(bool force_quit = false);
-
 /**
 
 \mainpage
@@ -284,6 +281,8 @@ Relevant files: view.h
 
 
 */
+
+
 
 
 #endif

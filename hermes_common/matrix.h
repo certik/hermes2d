@@ -17,7 +17,8 @@
 #include <complex>
 #include <map>
 
-typedef std::complex<double> cplx;
+#include "scalar.h"
+
 class Matrix;
 
 #include "solvers.h"
@@ -49,50 +50,33 @@ public:
     Matrix() {}
     virtual ~Matrix() {}
 
-    inline virtual void init() { this->complex = false; free_data(); }
+    inline virtual void init() { free_data(); }
     virtual void free_data() = 0;
 
     virtual void set_zero() = 0;
 
     inline virtual int get_size() { return this->size; }
-    inline bool is_complex() { return this->complex; }
     virtual void print() = 0;
 
-    virtual void add(int m, int n, double v) = 0;
-    virtual void add(int m, int n, cplx v)
-    {
-        _error("internal error: add(int, int, cplx) not implemented.");
-    }
-    virtual void add_block(int *iidx, int ilen, int *jidx, int jlen, double** mat)
-    {
-        for (int i = 0; i < ilen; i++)
-            for (int j=0; j < jlen; j++)
-                if (iidx[i] >= 0 && jidx[j] >= 0)
-                    this->add(iidx[i], jidx[j], mat[i][j]);
-    }
-    virtual void add_block(int *iidx, int ilen, int *jidx, int jlen, cplx** mat)
-    {
-        for (int i = 0; i < ilen; i++)
-            for (int j=0; j < jlen; j++)
-                if (iidx[i] >= 0 && jidx[j] >= 0)
-                    this->add(iidx[i], jidx[j], mat[i][j]);
-    }
-    virtual double get(int m, int n) = 0;
-    virtual cplx get_cplx(int m, int n)
-    {
-        _error("internal error: get_cplx() not implemented.");
-    }
+    virtual void add(int m, int n, scalar v) = 0;
 
+    virtual void add_block(int *iidx, int ilen, int *jidx, int jlen, scalar** mat)
+    {
+        for (int i = 0; i < ilen; i++)
+            for (int j=0; j < jlen; j++)
+                if (iidx[i] >= 0 && jidx[j] >= 0)
+                    this->add(iidx[i], jidx[j], mat[i][j]);
+    }
+    virtual scalar get(int m, int n) = 0;
     virtual void copy_into(Matrix *m) = 0;
 
-    virtual void times_vector(double* vec, double* result, int rank)
+    virtual void times_vector(scalar* vec, scalar* result, int rank)
     {
         _error("internal error: times_vector() not implemented.");
     }
 
 protected:
     int size;
-    bool complex;
 };
 
 class Vector {
@@ -100,123 +84,89 @@ public:
     Vector() {}
     virtual ~Vector() {}
     inline virtual int get_size() { return this->size; }
-    inline bool is_complex() { return this->complex; }
     virtual void print() = 0;
 
-    virtual void add(int m, double v) = 0;
-    virtual void add(int m, cplx v)
-    {
-        _error("internal error: add(int, cplx) not implemented.");
-    }
-    virtual void add_block(int *iidx, int ilen, double* vec)
+    virtual void add(int m, scalar v) = 0;
+    virtual void add_block(int *iidx, int ilen, scalar* vec)
     {
         for (int i = 0; i < ilen; i++)
             if (iidx[i] >= 0)
                 this->add(iidx[i], vec[i]);
     }
-    virtual void add_block(int *iidx, int ilen, cplx* vec)
-    {
-        for (int i = 0; i < ilen; i++)
-            if (iidx[i] >= 0)
-                this->add(iidx[i], vec[i]);
-    }
-    virtual double get(int m) = 0;
-    virtual cplx get_cplx(int m)
-    {
-        _error("internal error: get_cplx(int) not implemented.");
-    }
-    virtual double *get_c_array()
+    virtual scalar set(int m, scalar val) = 0;
+    virtual scalar get(int m) = 0;
+    virtual scalar* get_c_array()
     {
         _error("internal error: get_c_array() not implemented.");
     }
-    virtual cplx *get_c_array_cplx()
+    virtual void realloc_and_erase(int new_length) 
     {
-        _error("internal error: get_c_array_cplx() not implemented.");
-    }
+        _error("internal error: realloc_and_erase() not implemented.");
+    };
 protected:
     int size;
-    bool complex;
 };
 
 // print vector - int
 void print_vector(const char *label, int *value, int size);
 // print vector - double
 void print_vector(const char *label, double *value, int size);
-// print vector - cplx
+// print vector - complex
 void print_vector(const char *label, cplx *value, int size);
 
 
 // Uses a C++ array as the internal implementation
 class AVector: public Vector {
 public:
-    AVector(int n, bool is_complex=false) {
+    AVector(int n) {
         this->size = n;
-        this->complex = is_complex;
-        if (is_complex) {
-            this->v_cplx = new cplx[n];
-            for (int i=0; i < n; i++)
-                this->v_cplx[i] = 0;
-        }
-        else {
-            this->v = new double[n];
-            for (int i=0; i < n; i++)
-                this->v[i] = 0;
-        }
+        this->v = new scalar[n];
+        for (int i=0; i < n; i++) this->v[i] = 0;
     }
     virtual ~AVector() {
-        if (complex)
-            delete[] this->v_cplx;
-        else
-            delete[] this->v;
+        delete[] this->v;
     }
     virtual void print() {
-        if (this->complex)
-            print_vector("", this->v_cplx, this->get_size());
-        else
-            print_vector("", this->v, this->get_size());
+        print_vector("", this->v, this->get_size());
     }
 
-    virtual void add(int m, double v) {
-        if (m >= 0)
-            this->v[m] += v;
+    virtual void add(int m, scalar v) {
+        this->v[m] += v;
     }
-    virtual void add(int m, cplx v)
-    {
-        if (m >= 0)
-            this->v_cplx[m] += v;
+    virtual scalar set(int m, scalar val) {
+        this->v[m] = val;
     }
-    virtual double get(int m) {
+    virtual scalar get(int m) {
         return this->v[m];
     }
-    virtual cplx get_cplx(int m) {
-        return this->v_cplx[m];
-    }
-    virtual double *get_c_array()
+    virtual scalar *get_c_array()
     {
         return this->v;
     }
-    virtual cplx *get_c_array_cplx()
-    {
-        return this->v_cplx;
+    virtual void realloc_and_erase(int new_length) 
+    {  
+      this->v = (scalar*)realloc(this->v, new_length*sizeof(scalar));
+      memset(this->v, 0, new_length*sizeof(scalar));
+      this->size = new_length;
     }
+;
 private:
-    double *v;
-    cplx *v_cplx;
+    scalar *v;
 };
 
 // **********************************************************************************************************
 
 class CooMatrix : public Matrix {
 public:
-    CooMatrix(bool complex = false);
-    CooMatrix(int size, bool complex = false);
+    CooMatrix();
+    CooMatrix(int size);
     CooMatrix(Matrix *m);
     CooMatrix(CooMatrix *m);
     CooMatrix(CSRMatrix *m);
     CooMatrix(CSCMatrix *m);
     ~CooMatrix();
 
-    inline virtual void init() { this->complex = false; free_data(); }
+    inline virtual void init() { free_data(); }
     virtual void free_data();
 
     virtual void set_zero()
@@ -230,21 +180,18 @@ public:
     void add_from_csr(CSRMatrix *m);
     void add_from_csc(CSCMatrix *m);
 
-    virtual void add(int m, int n, double v);
-    virtual void add(int m, int n, cplx v);
-    void get_row_col_data(int *row, int *col, double *data);
-    void get_row_col_data(int *row, int *col, cplx *data);
+    virtual void add(int m, int n, scalar v);
+    void get_row_col_data(int *row, int *col, scalar *data);
     void get_row_col_data(int *row, int *col, double *data_real, double *data_imag);
 
     virtual void copy_into(Matrix *m);
 
-    inline virtual double get(int m, int n) { return A[m][n]; }
+    inline virtual scalar get(int m, int n) { return A[m][n]; }
 
-    virtual void times_vector(double* vec, double* result, int rank);
+    virtual void times_vector(scalar* vec, scalar* result, int rank);
 
 protected:
-    std::map<size_t, std::map<size_t, double> > A;
-    std::map<size_t, std::map<size_t, cplx> > A_cplx;
+    std::map<size_t, std::map<size_t, scalar> > A;
 };
 
 // **********************************************************************************************************
@@ -254,7 +201,7 @@ class DenseMatrix : public Matrix
 public:
     DenseMatrix(Matrix *m);
     DenseMatrix(CooMatrix *m);
-    DenseMatrix(int size, bool is_complex = false);
+    DenseMatrix(int size);
     ~DenseMatrix();
 
     virtual void init();
@@ -262,12 +209,11 @@ public:
     virtual void free_data();
     virtual void set_zero();
 
-    inline virtual void add(int m, int n, double v) { this->A[m][n] += v; }
-    inline virtual void add(int m, int n, cplx v) { this->A_cplx[m][n] += v; }
+    inline virtual void add(int m, int n, scalar v) { this->A[m][n] += v; }
 
     void add_from_coo(CooMatrix *m);
 
-    inline virtual double get(int m, int n) { return this->A[m][n]; }
+    inline virtual scalar get(int m, int n) { return this->A[m][n]; }
 
     virtual void copy_into(Matrix *m)
     {
@@ -278,12 +224,7 @@ public:
             {
                 for (int j = 0; j < this->size; j++)
                 {
-                    if (complex)
-                        if (std::abs(A_cplx[i][j]) > 1e-12)
-                             m->add(i, j, A_cplx[i][j]);
-                    else
-                        if (fabs(A[i][j]) > 1e-12)
-                            m->add(i, j, A[i][j]);
+                   if (fabs(A[i][j]) > 1e-12) m->add(i, j, A[i][j]);
                 }
             }
         }
@@ -294,12 +235,10 @@ public:
     virtual void print();
 
     // Return the internal matrix.
-    inline double **get_A() { return this->A; }
-    inline cplx **get_A_cplx() { return this->A_cplx; }
+    inline scalar **get_A() { return this->A; }
 
 private:
-    double **A;
-    cplx **A_cplx;
+    scalar **A;
 };
 
 // **********************************************************************************************************
@@ -326,12 +265,12 @@ public:
     void add_from_coo(CooMatrix *m);
     void add_from_csc(CSCMatrix *m);
 
-    virtual void add(int m, int n, double v)
+    virtual void add(int m, int n, scalar v)
     {
         _error("CSR matrix add() not implemented.");
     }
 
-    virtual double get(int m, int n)
+    virtual scalar get(int m, int n)
     {
         _error("CSR matrix get() not implemented.");
     }
@@ -349,8 +288,7 @@ public:
 
     inline int *get_Ap() { return this->Ap; }
     inline int *get_Ai() { return this->Ai; }
-    inline double *get_Ax() { return this->Ax; }
-    inline cplx *get_Ax_cplx() { return this->Ax_cplx; }
+    inline scalar *get_Ax() { return this->Ax; }
 
 private:
     // number of non-zeros
@@ -358,8 +296,7 @@ private:
 
     int *Ap;
     int *Ai;
-    double *Ax;
-    cplx *Ax_cplx;
+    scalar *Ax;
 };
 
 // **********************************************************************************************************
@@ -372,8 +309,7 @@ public:
     CSCMatrix(DenseMatrix *m);
     CSCMatrix(CooMatrix *m);
     CSCMatrix(CSRMatrix *m);
-    CSCMatrix(int size, int nnz, int *Ap, int *Ai, double *Ax);
-    CSCMatrix(int size, int nnz, int *Ap, int *Ai, cplx *Ax_cplx);
+    CSCMatrix(int size, int nnz, int *Ap, int *Ai, scalar *Ax);
     ~CSCMatrix();
 
     virtual void init();
@@ -388,11 +324,11 @@ public:
     void add_from_coo(CooMatrix *m);
     void add_from_csr(CSRMatrix *m);
 
-    virtual void add(int m, int n, double v)
+    virtual void add(int m, int n, scalar v)
     {
         _error("CSC matrix add() not implemented.");
     }
-    virtual double get(int m, int n)
+    virtual scalar get(int m, int n)
     {
         _error("CSC matrix get() not implemented.");
     }
@@ -412,15 +348,13 @@ public:
 
     inline int *get_Ap() { return this->Ap; }
     inline int *get_Ai() { return this->Ai; }
-    inline double *get_Ax() { return this->Ax; }
-    inline cplx *get_Ax_cplx() { return this->Ax_cplx; }
+    inline scalar *get_Ax() { return this->Ax; }
 
 private:
     // number of non-zeros
     int nnz;
 
-    double *Ax;
-    cplx *Ax_cplx;
+    scalar *Ax;
 
     int *Ap;
     int *Ai;
@@ -442,9 +376,9 @@ template<typename T>
 void csr_to_coo(int size, int nnz, int *Ap, int *Ai, T *Ax, int *row, int *col, T *A);
 
 // matrix vector multiplication
-void mat_dot(Matrix *A, double *x, double *result, int n_dof);
+void mat_dot(Matrix *A, scalar *x, scalar *result, int n_dof);
 // vector vector multiplication
-double vec_dot(double *r, double *s, int n_dof);
+scalar vec_dot(scalar *r, scalar *s, int n_dof);
 
 void ludcmp(double** a, int n, int* indx, double* d);
 void lubksb(double** a, int n, int* indx, double* b);

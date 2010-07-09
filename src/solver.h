@@ -19,7 +19,6 @@
 class DiscreteProblem;
 class LinearProblem;
 
-
 /// \brief Abstract interface to sparse linear solvers.
 ///
 ///  Solver is an abstract class defining the interface to all linear solvers

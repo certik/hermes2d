@@ -34,6 +34,14 @@
 
 #include <cmath>
 
+// Matrix solvers
+enum MatrixSolverType 
+{
+   SOLVER_UMFPACK, 
+   SOLVER_PETSC, 
+   SOLVER_MUMPS
+};
+
 // STL stuff
 #include <algorithm>
 #include <vector>
@@ -84,15 +92,7 @@ const int H2D_DEFAULT_PROJ_TYPE = 1;
 #define H2D_GET_V_ORDER(order) ((order) >> H2D_ORDER_BITS)
 extern H2D_API const std::string get_quad_order_str(const int quad_order); ///< Returns string representation of the quad order: used for debugging purposses.
 
-#ifdef H2D_COMPLEX
-  #include <complex>
-  typedef std::complex<double> cplx;
-  typedef cplx scalar;
-  typedef cplx complex2[2];
-#else
-  typedef double scalar;
-#endif
-
+#include "scalar.h"
 
 typedef int int2[2];
 typedef int int3[3];

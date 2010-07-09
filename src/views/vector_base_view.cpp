@@ -31,7 +31,7 @@ void VectorBaseView::show(Space* space)
   pss = new PrecalcShapeset(space->get_shapeset());
   sln = new Solution();
   this->space = space;
-  ndofs = space->get_num_dofs();
+  ndof = space->get_num_dofs();
   base_index = 0;
   update_solution();
 }
@@ -46,9 +46,9 @@ void VectorBaseView::free()
 
 void VectorBaseView::update_solution()
 {
-  scalar* vec = new scalar[ndofs + 1];
-  memset(vec, 0, sizeof(scalar) * (ndofs + 1));
-  if (base_index >= -1 && base_index < ndofs)
+  AVector* vec = new AVector(ndof + 1);
+  memset(vec->get_c_array(), 0, sizeof(scalar) * (ndof + 1));
+  if (base_index >= -1 && base_index < ndof)
     vec[base_index + 1] = 1.0;
   sln->set_fe_solution(space, pss, vec);
 
@@ -77,7 +77,7 @@ void VectorBaseView::on_special_key(int key, int x, int y)
       break;
 
     case GLUT_KEY_RIGHT:
-      if (base_index < ndofs-1) base_index++;
+      if (base_index < ndof-1) base_index++;
       update_solution();
       break;
 

@@ -19,9 +19,14 @@
 #include <ir.h>
 #include <qmr.h>
 
-bool CommonSolverSparseLib::solve(Matrix *mat, double *res)
+bool CommonSolverSparseLib::solve(Matrix *mat, Vector *res)
 {
     printf("SparseLib++ solver\n");
+
+    if (sizeof(scalar) != sizeof(double)) {
+      printf("Sparselib solver can only be used with real matrices.");
+      exit(0);
+    }
 
     CSCMatrix *Acsc = NULL;
 
@@ -43,7 +48,7 @@ bool CommonSolverSparseLib::solve(Matrix *mat, double *res)
                                                 Acsc->get_Ax(), Acsc->get_Ai(), Acsc->get_Ap());
 
     // rhs
-    VECTOR_double rhs(res, size);
+    VECTOR_double rhs((double*)res->get_c_array(), size);
 
     // preconditioner
     CompCol_ILUPreconditioner_double ILU(Acc);
@@ -81,7 +86,4 @@ bool CommonSolverSparseLib::solve(Matrix *mat, double *res)
         delete Acsc;
 }
 
-bool CommonSolverSparseLib::solve(Matrix *mat, cplx *res)
-{
-    _error("CommonSolverSparseLib::solve(Matrix *mat, cplx *res) not implemented.");
-}
+

@@ -1,3 +1,4 @@
+#define H2D_REPORT_INFO
 #include "hermes2d.h"
 
 // This example explains how to use Newton boundary conditions. Again,
@@ -58,13 +59,9 @@ int main(int argc, char* argv[])
   wf.add_matrix_form_surf(callback(bilinear_form_surf), NEWTON_BDY);
   wf.add_vector_form_surf(callback(linear_form_surf), NEWTON_BDY);
 
-  // Initialize the linear system.
-  LinearProblem lp(&wf, &space);
-
-  // Assemble and solve the matrix problem.
+  // Solve the linear problem.
   Solution sln;
-  lp.assemble();
-  lp.solve(&sln);
+  solve_linear(&space, &wf, &sln, SOLVER_UMFPACK);
 
   // Visualize the solution.
   ScalarView view("Solution", 0, 0, 600, 600);

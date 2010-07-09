@@ -1,6 +1,4 @@
-#define H2D_REPORT_WARN
 #define H2D_REPORT_INFO
-#define H2D_REPORT_VERBOSE
 #define H2D_REPORT_FILE "application.log"
 #include "hermes2d.h"
 
@@ -33,8 +31,6 @@ using namespace RefinementSelectors;
 //
 // The following parameters can be changed:
 
-const bool SOLVE_ON_COARSE_MESH = false;   // If true, coarse mesh FE problem is solved in every adaptivity step.
-                                           // If false, projection of the fine mesh solution on the coarse mesh is used. 
 const int P_INIT = 2;                      // Initial polynomial degree of all mesh elements.
 const double THRESHOLD = 0.2;              // This is a quantitative parameter of the adapt(...) function and
                                            // it has different meanings for various adaptive strategies (see below).
@@ -120,6 +116,11 @@ int main(int argc, char* argv[])
   // Initialize the linear system.
   LinearProblem lp(&wf, &space);
 
+  // Initialize matrix solver.
+  // FIXME: this should be just Solver, same for Python and C++ solvers. 
+  Matrix* mat; Vector* rhs; CommonSolver* solver;  
+  init_matrix_solver(SOLVER_UMFPACK, lp.get_num_dofs(), mat, rhs, solver);
+
   // Adaptivity loop:
   Solution sln_coarse, sln_fine;
   int as = 1; bool done = false;
@@ -130,20 +131,18 @@ int main(int argc, char* argv[])
     // Assemble and solve the fine mesh problem.
     info("Solving on fine mesh.");
     RefLinearProblem rlp(&lp);
-    rlp.assemble();
-    rlp.solve(&sln_fine);    
+    rlp.assemble(mat, rhs);
+
+    // Solve the matrix problem.
+    if (!solver->solve(mat, rhs)) error ("Matrix solver failed.\n");
+
+    // Convert coefficient vector into a Solution.
+    sln_fine.set_fe_solution(&space, rhs);
 
     // Either solve on coarse mesh or project the fine mesh solution 
     // on the coarse mesh.
-    if (SOLVE_ON_COARSE_MESH) {
-      info("Solving on coarse mesh.");
-      lp.assemble();
-      lp.solve(&sln_coarse);
-    }
-    else {
-      info("Projecting fine mesh solution on coarse mesh.");
-      lp.project_global(&sln_fine, &sln_coarse);
-    }
+    info("Projecting fine mesh solution on coarse mesh.");
+    lp.project_global(&sln_fine, &sln_coarse);
 
     // Time measurement.
     cpu_time.tick();

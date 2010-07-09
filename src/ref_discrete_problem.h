@@ -43,10 +43,6 @@ public:
   /// Sets order increases (same for all components)
   void set_order_increase(int order_increase);
 
-  /// Creates reference (fine) meshes and spaces and assembles the
-  /// reference system.
-  virtual void assemble(bool rhsonly = false);
-
   bool solve_exact(ExactFunction exactfn, Solution* sln);
 
 protected:

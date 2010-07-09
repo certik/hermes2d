@@ -32,10 +32,6 @@ public:
   RefLinearProblem(LinearProblem* base, int order_increase = 1, int refinement = 1);
   virtual ~RefLinearProblem();
 
-  /// Assembles the matrix problem for the linear case (the Dir
-  /// vector added to the RHS).
-  virtual void assemble(bool rhsonly = false);
-
 protected:
 
   LinearProblem* base;
