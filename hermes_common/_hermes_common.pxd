@@ -91,6 +91,17 @@ cdef extern from "matrix.h":
         void add_cplx "add"(int m, int n, cplx v)
         double get(int m, int n)
 
+    cdef struct c_Vector "Vector":
+        int get_size()
+        int is_complex()
+        void add(int m, double v)
+        double get(int m)
+        double *get_c_array()
+
+    cdef struct c_AVector "AVector":
+        pass
+    c_AVector *new_AVector "new AVector" (int size, int is_complex)
+
     cdef struct c_DenseMatrix "DenseMatrix"
 
     cdef struct c_CooMatrix "CooMatrix":
@@ -128,8 +139,12 @@ cdef extern from "matrix.h":
 cdef api object c2numpy_int(int *A, int len)
 cdef api object c2numpy_double(double *A, int len)
 cdef api void numpy2c_double_inplace(object A_n, double **A_c, int *n)
+cdef api void numpy2c_int_inplace(object A_n, int **A_c, int *n)
 
 cdef inline PY_NEW(T)
 
 cdef class Matrix:
     cdef c_Matrix *thisptr
+
+cdef class Vector:
+    cdef c_Vector *thisptr

@@ -7,6 +7,7 @@
 #define __HERMES_COMMON_SOLVERS_H
 
 class Matrix;
+class Vector;
 
 // abstract class
 class CommonSolver
@@ -14,6 +15,7 @@ class CommonSolver
 public:
     virtual bool solve(Matrix *mat, double *res) = 0;
     virtual bool solve(Matrix *mat, cplx *res) = 0;
+    virtual bool solve(Matrix *mat, Vector *res);
     inline char *get_log() { return log; }
 
 private:

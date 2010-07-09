@@ -1,6 +1,17 @@
 from numpy import array, abs
 
-from _hermes_common import CooMatrix, CSRMatrix, CSCMatrix
+try:
+    import hermes_common._hermes_common
+    normal_import = True
+except ImportError:
+    normal_import = False
+
+if normal_import:
+    # Running in h1d, h2d or h3d:
+    from hermes_common._hermes_common import CooMatrix, CSRMatrix, CSCMatrix
+else:
+    # Running from inside hermes_common
+    from _hermes_common import CooMatrix, CSRMatrix, CSCMatrix
 
 eps = 1e-10
 

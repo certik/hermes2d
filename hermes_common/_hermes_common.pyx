@@ -64,6 +64,35 @@ cdef class Matrix:
         """
         self.thisptr.get(m, n)
 
+cdef class Vector:
+
+    def get_size(self):
+        return self.thisptr.get_size()
+
+    def add(self, int m, double v):
+        self.thisptr.add(m, v)
+
+    def get(self, int m):
+        self.thisptr.get(m)
+
+cdef class AVector(Vector):
+
+    def __init__(self, size=0, is_complex=False):
+        self.thisptr = <c_Vector *>new_AVector(size, is_complex)
+
+    def to_numpy(self):
+        from numpy import empty
+        if self.thisptr.is_complex():
+            raise NotImplementedError("This is not yet implemented")
+        cdef int n, i, len=self.get_size()
+        cdef double *cdata
+        cdef double *v = self.thisptr.get_c_array()
+        row = empty([len], dtype="double")
+        numpy2c_double_inplace(row, &cdata, &n)
+        for i in range(len):
+            cdata[i] = v[i]
+        return row
+
 cdef class DenseMatrix(Matrix):
 
     def to_numpy(self):
@@ -321,6 +350,12 @@ cdef class CSCMatrix(SparseMatrix):
 
 cdef Matrix py2c_Matrix(object M):
     return M
+
+cdef api object c2py_AVector(c_AVector *m):
+    cdef AVector c
+    c = <AVector>PY_NEW(AVector)
+    c.thisptr = <c_Vector *>m
+    return c
 
 cdef api object c2py_DenseMatrix(c_DenseMatrix *m):
     cdef DenseMatrix c

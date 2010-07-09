@@ -95,6 +95,115 @@ protected:
     bool complex;
 };
 
+class Vector {
+public:
+    Vector() {}
+    virtual ~Vector() {}
+    inline virtual int get_size() { return this->size; }
+    inline bool is_complex() { return this->complex; }
+    virtual void print() = 0;
+
+    virtual void add(int m, double v) = 0;
+    virtual void add(int m, cplx v)
+    {
+        _error("internal error: add(int, cplx) not implemented.");
+    }
+    virtual void add_block(int *iidx, int ilen, double* vec)
+    {
+        for (int i = 0; i < ilen; i++)
+            if (iidx[i] >= 0)
+                this->add(iidx[i], vec[i]);
+    }
+    virtual void add_block(int *iidx, int ilen, cplx* vec)
+    {
+        for (int i = 0; i < ilen; i++)
+            if (iidx[i] >= 0)
+                this->add(iidx[i], vec[i]);
+    }
+    virtual double get(int m) = 0;
+    virtual cplx get_cplx(int m)
+    {
+        _error("internal error: get_cplx(int) not implemented.");
+    }
+    virtual double *get_c_array()
+    {
+        _error("internal error: get_c_array() not implemented.");
+    }
+    virtual cplx *get_c_array_cplx()
+    {
+        _error("internal error: get_c_array_cplx() not implemented.");
+    }
+protected:
+    int size;
+    bool complex;
+};
+
+// print vector - int
+void print_vector(const char *label, int *value, int size);
+// print vector - double
+void print_vector(const char *label, double *value, int size);
+// print vector - cplx
+void print_vector(const char *label, cplx *value, int size);
+
+
+// Uses a C++ array as the internal implementation
+class AVector: public Vector {
+public:
+    AVector(int n, bool is_complex=false) {
+        this->size = n;
+        this->complex = is_complex;
+        if (is_complex) {
+            this->v_cplx = new cplx[n];
+            for (int i=0; i < n; i++)
+                this->v_cplx[i] = 0;
+        }
+        else {
+            this->v = new double[n];
+            for (int i=0; i < n; i++)
+                this->v[i] = 0;
+        }
+    }
+    virtual ~AVector() {
+        if (complex)
+            delete[] this->v_cplx;
+        else
+            delete[] this->v;
+    }
+    virtual void print() {
+        if (this->complex)
+            print_vector("", this->v_cplx, this->get_size());
+        else
+            print_vector("", this->v, this->get_size());
+    }
+
+    virtual void add(int m, double v) {
+        if (m >= 0)
+            this->v[m] += v;
+    }
+    virtual void add(int m, cplx v)
+    {
+        if (m >= 0)
+            this->v_cplx[m] += v;
+    }
+    virtual double get(int m) {
+        return this->v[m];
+    }
+    virtual cplx get_cplx(int m) {
+        return this->v_cplx[m];
+    }
+    virtual double *get_c_array()
+    {
+        return this->v;
+    }
+    virtual cplx *get_c_array_cplx()
+    {
+        return this->v_cplx;
+    }
+private:
+    double *v;
+    cplx *v_cplx;
+};
+
 // **********************************************************************************************************
 
 class CooMatrix : public Matrix {
@@ -316,13 +425,6 @@ private:
     int *Ap;
     int *Ai;
 };
-
-// print vector - int
-void print_vector(const char *label, int *value, int size);
-// print vector - double
-void print_vector(const char *label, double *value, int size);
-// print vector - cplx
-void print_vector(const char *label, cplx *value, int size);
 
 template<typename T>
 void dense_to_coo(int size, int nnz, T **Ad, int *row, int *col, T *A);
