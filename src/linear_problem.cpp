@@ -49,6 +49,14 @@ void LinearProblem::assemble(bool rhsonly)
   for (int i=0; i < this->get_num_dofs(); i++) RHS[i] += Dir[i];
 }
 
+void LinearProblem::assemble(Matrix *A, Vector *RHS)
+{
+#ifdef H2D_COMPLEX
+        this->assemble(A, RHS->get_c_array_cplx());
+#else
+        this->assemble(A, RHS->get_c_array());
+#endif
+}
 void LinearProblem::assemble(Matrix *A, scalar *RHS)
 {
     info("LinearProblem::assemble(Matrix *A, scalar *RHS)");

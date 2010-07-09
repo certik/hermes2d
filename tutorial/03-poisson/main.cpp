@@ -64,7 +64,7 @@ int main(int argc, char* argv[])
 #if defined WITH_UMFPACK
   info("dofs=%d", lp.get_num_dofs());
   CooMatrix mat(lp.get_num_dofs());
-  double *rhs = new double[lp.get_num_dofs()];
+  AVector rhs(lp.get_num_dofs());
   CommonSolverSciPyUmfpack solver;
 #elif defined WITH_PETSC
   PetscMatrix mat;
@@ -87,7 +87,7 @@ int main(int argc, char* argv[])
       printf("%f ", rhs[i]);
   printf("\n--------------------");
   */
-  lp.assemble(&mat, rhs);
+  lp.assemble(&mat, &rhs);
   /*
   for (int i = 0; i < lp.get_num_dofs(); i++)
       printf("%f ", rhs[i]);
@@ -95,13 +95,13 @@ int main(int argc, char* argv[])
   */
 
   // Solve the matrix problem.
-  bool solved = solver.solve(&mat, rhs);
+  bool solved = solver.solve(&mat, &rhs);
   if (solved == false) error ("Matrix solver failed.\n");
 
   // Convert coefficient vector into a Solution.
   Solution sln;
   //sln.set_fe_solution(&space, solver.get_solution());
-  sln.set_fe_solution(&space, lp.get_pss(0), rhs);
+  sln.set_fe_solution(&space, lp.get_pss(0), rhs.get_c_array());
 
   // Visualize the solution.
   ScalarView view("Solution", 0, 0, 600, 600);

@@ -167,6 +167,7 @@ class CommonSolverSciPyUmfpack : public CommonSolver
 public:
     bool solve(Matrix *mat, double *res);
     bool solve(Matrix *mat, cplx *res);
+    bool solve(Matrix *mat, Vector *res);
 };
 inline void solve_linear_system_scipy_umfpack(Matrix *mat, double *res)
 {

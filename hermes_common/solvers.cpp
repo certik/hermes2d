@@ -14,6 +14,14 @@ bool CommonSolver::solve(Matrix *mat, Vector *res)
         return this->solve(mat, res->get_c_array());
 }
 
+bool CommonSolverSciPyUmfpack::solve(Matrix *mat, Vector *res)
+{
+    if (res->is_complex())
+        return this->solve(mat, res->get_c_array_cplx());
+    else
+        return this->solve(mat, res->get_c_array());
+}
+
 // Standard CG method starting from zero vector
 // (because we solve for the increment)
 // x... comes as right-hand side, leaves as solution

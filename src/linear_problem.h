@@ -51,6 +51,7 @@ public:
 
   // Assembles the matrix and RHS into your matrices:
   virtual void assemble(Matrix *A, scalar *RHS);
+  virtual void assemble(Matrix *A, Vector *RHS);
 
 
   /// Solves the matrix problem with "mat" and "rhs", and copies the result 
