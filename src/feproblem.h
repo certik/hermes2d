@@ -27,7 +27,7 @@ class PrecalcShapeset;
 class WeakForm;
 class _Matrix;
 class SparseMatrix;
-class Vector;
+class _Vector;
 class Solver;
 
 /// Finite Element problem class
@@ -46,9 +46,9 @@ public:
   PrecalcShapeset* get_pss(int n) {  return this->pss[n];  }
 
   void create(SparseMatrix *mat);
-  // OLD void assemble(const Vector *x, Vector *f, _Matrix *jac);
-  void assemble(Vector* rhs, _Matrix* jac, Vector* x = NULL);
-  void assemble(Vector* rhs, _Matrix* jac, Tuple<Solution*> u_ext =  Tuple<Solution*> ());
+  // OLD void assemble(const _Vector *x, _Vector *f, _Matrix *jac);
+  void assemble(_Vector* rhs, _Matrix* jac, _Vector* x = NULL);
+  void assemble(_Vector* rhs, _Matrix* jac, Tuple<Solution*> u_ext =  Tuple<Solution*> ());
 
   int get_num_dofs();
   bool is_matrix_free() { return wf->is_matrix_free(); }

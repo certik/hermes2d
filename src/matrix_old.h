@@ -350,9 +350,9 @@ protected:
   int mem_size;
 };
 
-class Vector {
+class _Vector {
 public:
-  virtual ~Vector() { }
+  virtual ~_Vector() { }
 
   /// allocate memory for storing ndofs elements
   ///

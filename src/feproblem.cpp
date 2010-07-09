@@ -195,7 +195,7 @@ void FeProblem::create(SparseMatrix* mat)
 
 //// assembly //////////////////////////////////////////////////////////////////////////////////////
 
-void FeProblem::assemble(Vector *rhs, _Matrix *jac, Vector *x)
+void FeProblem::assemble(_Vector *rhs, _Matrix *jac, _Vector *x)
 {
         // Sanity checks.
 	if (x->length() != this->ndof) error("Wrong vector length in assemble().");
@@ -235,7 +235,7 @@ void FeProblem::assemble(Vector *rhs, _Matrix *jac, Vector *x)
 	}
 }
 
-void FeProblem::assemble(Vector *rhs, _Matrix *jac, Tuple<Solution*> u_ext)
+void FeProblem::assemble(_Vector *rhs, _Matrix *jac, Tuple<Solution*> u_ext)
 {
   // Sanity checks.
   if (!have_spaces) error("You have to call set_spaces() before calling assemble().");
