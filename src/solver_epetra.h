@@ -72,7 +72,7 @@ protected:
 };
 
 
-class EpetraVector : public Vector
+class EpetraVector : public _Vector
 {
 public:
 	EpetraVector();
