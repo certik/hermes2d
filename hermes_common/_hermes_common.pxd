@@ -9,7 +9,7 @@ ctypedef double complex cplx
 
 
 cdef extern from *:
-    ctypedef char* char_p       "char*"
+    ctypedef char* char_p "char*"
     ctypedef char* const_char_p "const char*"
 
     # This is just the C++ "delete" statement
@@ -148,3 +148,4 @@ cdef class Matrix:
 
 cdef class Vector:
     cdef c_Vector *thisptr
+

@@ -88,7 +88,10 @@ bool CommonSolverDenseLU::solve(Matrix* A, Vector *rhs)
     if (DenseMatrix *mden = dynamic_cast<DenseMatrix*>(A))
         Aden = mden;
     else if (CooMatrix *mcoo = dynamic_cast<CooMatrix*>(A))
-        Aden = new DenseMatrix(mcoo);
+         {
+           Aden = new DenseMatrix(mcoo);
+           printf("Converting CooMatrix to DenseMatrix.\n");
+         }
     else
         _error("Matrix type not supported.");
 
@@ -102,5 +105,7 @@ bool CommonSolverDenseLU::solve(Matrix* A, Vector *rhs)
     delete[] indx;
     if (!dynamic_cast<DenseMatrix*>(A))
         delete Aden;
+
+    return true;
 }
 

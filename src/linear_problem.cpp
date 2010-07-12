@@ -48,13 +48,14 @@ void LinearProblem::assemble(Matrix* mat_ext, Vector* rhs_ext, bool rhsonly)
 // C++ solvers. Right now Solver and CommonSolver
 // are incompatible.
 void init_matrix_solver(MatrixSolverType matrix_solver, int ndof, 
-                          Matrix* &mat, Vector* &rhs, CommonSolver* &solver) 
+                        Matrix* &mat, Vector* &rhs, CommonSolver* &solver) 
 {
   // Initialize stiffness matrix, load vector, and matrix solver.
   // UMFpack.
   CooMatrix* mat_umfpack = new CooMatrix(ndof);
   AVector* rhs_umfpack = new AVector(ndof);
-  CommonSolverSciPyUmfpack* solver_umfpack = new CommonSolverSciPyUmfpack();
+  CommonSolverDenseLU* solver_umfpack = new CommonSolverDenseLU();
+    //CommonSolverSciPyUmfpack* solver_umfpack = new CommonSolverSciPyUmfpack();
   // PETSc.
   /* FIXME - PETSc solver needs to be ported from H3D.
   PetscMatrix mat_petsc(ndof);
@@ -95,29 +96,6 @@ void init_matrix_solver(MatrixSolverType matrix_solver, int ndof,
   }
 }
 
-void solve_temporary(Matrix* coomat, Vector* rhs) 
-{
-  int n = coomat->get_size();
-  
-  scalar* b = rhs->get_c_array();
-
-  DenseMatrix* mat = new DenseMatrix(coomat);
-  scalar** a = mat->get_A();
-
-  // solving the dense system
-  double d;
-  int* perm = new int[n];
-  ludcmp(a, n, perm, &d);
-  lubksb(a, n, perm, b);
-  
-  // copy the solution vector "b" back to
-  // the vector "rhs" 
-  for (int i=0; i<n; i++) rhs->add(i, b[i]);
-
-  delete mat;
-}
-
-
 // Shortcut to solve linear problems.
 bool solve_linear(Tuple<Space *> spaces, WeakForm* wf, Tuple<Solution *> solutions, 
                   MatrixSolverType matrix_solver) 
@@ -136,16 +114,9 @@ bool solve_linear(Tuple<Space *> spaces, WeakForm* wf, Tuple<Solution *> solutio
   // Assemble stiffness matrix and rhs.
   lp.assemble(mat, rhs);
 
-  // THIS IS AN EMERGENCY SOLUTION TO GET THE MATRIX PROBLEM
-  // SOLVED AT LEAST USING THE GAUSS ELIMINATION, SO THAT 
-  // THE CHANGES IN PROGRESS IN HERMES2D CAN BE FINISHED
-  // WITHOUT HERMES_COMMON. 
-  solve_temporary(mat, rhs);
-
-  // THIS IS HOW IT SHOULD BE BUT THIS FAILS BECAUSE HERMES_COMMON
-  // DOES NOT IMPORT. 
+  // THIS USES A DENSE MATRIX, WHICH IS A TEMPORARY SOLUTION.
   // Solve the matrix problem.
-  //if (!solver->solve(mat, rhs)) error ("Matrix solver failed.\n");
+  if (!solver->solve(mat, rhs)) error ("Matrix solver failed.\n");
 
   // Convert coefficient vector into a Solution.
   for (int i=0; i<solutions.size(); i++) {
