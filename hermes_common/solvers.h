@@ -90,7 +90,7 @@ class CommonSolverSparseLib : public CommonSolver
 public:
     enum CommonSolverSparseLibSolver
     {
-        CommonSolverSparseLibSolver_ConjugateGradientSquared,
+        HERMES_CommonSolverSparseLibSolver_ConjugateGradientSquared,
         CommonSolverSparseLibSolver_RichardsonIterativeRefinement
     };
 
@@ -98,7 +98,7 @@ public:
     {
         tolerance = 1e-8;
         maxiter = 1000;
-        method = CommonSolverSparseLibSolver_ConjugateGradientSquared;
+        method = HERMES_CommonSolverSparseLibSolver_ConjugateGradientSquared;
     }
 
     bool solve(Matrix *mat, double *res);
@@ -115,7 +115,7 @@ private:
 inline void solve_linear_system_sparselib_cgs(Matrix *mat, double *res, double tolerance = 1e-8, int maxiter = 1000)
 {
     CommonSolverSparseLib solver;
-    solver.set_method(CommonSolverSparseLib::CommonSolverSparseLibSolver_ConjugateGradientSquared);
+    solver.set_method(CommonSolverSparseLib::HERMES_CommonSolverSparseLibSolver_ConjugateGradientSquared);
     solver.set_tolerance(tolerance);
     solver.set_maxiter(maxiter);
     solver.solve(mat, res);

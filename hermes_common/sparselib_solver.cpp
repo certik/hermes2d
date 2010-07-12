@@ -53,7 +53,7 @@ bool CommonSolverSparseLib::solve(Matrix *mat, double *res)
     int result = -1;
     switch (method)
     {
-    case CommonSolverSparseLibSolver_ConjugateGradientSquared:
+    case HERMES_CommonSolverSparseLibSolver_ConjugateGradientSquared:
         result = CGS(Acc, xv, rhs, ILU, maxiter, tolerance);
         break;
     case CommonSolverSparseLibSolver_RichardsonIterativeRefinement:
