@@ -143,7 +143,7 @@ int main(int argc, char* argv[])
   {
     info("---- Time step %d, t = %g s", ts, total_time + TAU);
 
-    cpu_time.tick(H2D_SKIP);
+    cpu_time.tick(HERMES_SKIP);
     solver.set_init_sln(vec);
     bool solved = solver.solve();
     if (solved)
@@ -159,15 +159,15 @@ int main(int argc, char* argv[])
           solver.get_num_lin_iters(), solver.get_achieved_tol());
 
       // Time measurement.
-      cpu_time.tick(H2D_SKIP);
+      cpu_time.tick(HERMES_SKIP);
 
       // Visualization.
       DXDYFilter omega_view(omega_fn, &tsln, &csln);
       rview.show(&omega_view);
-      cpu_time.tick(H2D_SKIP);
+      cpu_time.tick(HERMES_SKIP);
 			
       // Skip visualization time.
-      cpu_time.tick(H2D_SKIP);
+      cpu_time.tick(HERMES_SKIP);
 
       // Update global time.
       total_time += TAU;

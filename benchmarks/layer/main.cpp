@@ -149,7 +149,7 @@ int main(int argc, char* argv[])
     double err_exact = h1_error(&sln_coarse, &exact) * 100;
 
     // Skip exact error calculation and visualization time. 
-    cpu_time.tick(H2D_SKIP);
+    cpu_time.tick(HERMES_SKIP);
 
     // Calculate error estimate wrt. fine mesh solution.
     info("Calculating error (est).");

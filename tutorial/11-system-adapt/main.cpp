@@ -181,7 +181,7 @@ int main(int argc, char* argv[])
     voview.show(&vspace);
 
     // Time measurement.
-    cpu_time.tick(H2D_SKIP);
+    cpu_time.tick(HERMES_SKIP);
 
     // Calculate element errors and total error estimate.
     info("Calculating error (est).");

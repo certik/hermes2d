@@ -168,7 +168,7 @@ int main(int argc, char* argv[])
     vecview.show(&real, H2D_EPS_HIGH);
 
     // Skip exact error calculation and visualization time. 
-    cpu_time.tick(H2D_SKIP);
+    cpu_time.tick(HERMES_SKIP);
 
     // Calculate error estimate wrt. fine mesh solution.
     info("Calculating error (est).");

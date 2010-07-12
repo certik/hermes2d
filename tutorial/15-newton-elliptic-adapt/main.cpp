@@ -179,7 +179,7 @@ int main(int argc, char* argv[])
     oview_coarse.show(&space);
 
     // Skip visualization.
-    cpu_time.tick(H2D_SKIP);
+    cpu_time.tick(HERMES_SKIP);
 
     // Initialize the fine mesh problem.
     RefSystem rnls(&nls);
@@ -210,7 +210,7 @@ int main(int argc, char* argv[])
     oview_fine.show(rnls.get_space(0));
 
     // Skip visualization time.
-    cpu_time.tick(H2D_SKIP);
+    cpu_time.tick(HERMES_SKIP);
 
     // Calculate element errors and total error estimate.
     info("Calculating error.");

@@ -74,7 +74,7 @@ int main(int argc, char **argv)
   info("---- Using LinSystem, solving by UMFpack:");
 
   // Time measurement.
-  cpu_time.tick(H2D_SKIP);
+  cpu_time.tick(HERMES_SKIP);
 
   // Initialize weak formulation.
   WeakForm wf1;
@@ -95,7 +95,7 @@ int main(int argc, char **argv)
   info("---- Using FeProblem, solving by NOX:");
 
   // Time measurement.
-  cpu_time.tick(H2D_SKIP);
+  cpu_time.tick(HERMES_SKIP);
  
   // Define zero function.
   prev.set_zero(&mesh);

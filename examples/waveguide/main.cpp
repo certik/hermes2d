@@ -215,7 +215,7 @@ int main(int argc, char* argv[])
     ord.show(&space);
 
     // Skip visualization time. 
-    cpu_time.tick(H2D_SKIP);
+    cpu_time.tick(HERMES_SKIP);
 
     // Calculate error estimate wrt. fine mesh solution.
     info("Calculating error.");

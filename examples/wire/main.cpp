@@ -149,7 +149,7 @@ int main(int argc, char* argv[])
     oview.show(&space);
 
     // Skip exact error calculation and visualization time. 
-    cpu_time.tick(H2D_SKIP);
+    cpu_time.tick(HERMES_SKIP);
 
     // Calculate element errors and total error estimate.
     info("Calculating error (est).");

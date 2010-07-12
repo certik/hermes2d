@@ -162,7 +162,7 @@ int main(int argc, char* argv[])
     yoview.show(&ydisp);
 
     // Skip visualization time. 
-    cpu_time.tick(H2D_SKIP);
+    cpu_time.tick(HERMES_SKIP);
 
     // Calculate error estimate wrt. fine mesh solution in energy norm.
     info("Calculating error (est).");

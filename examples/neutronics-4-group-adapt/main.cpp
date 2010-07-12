@@ -427,7 +427,7 @@ int main(int argc, char* argv[])
     oview4.show(&space4);
 
     // Skip visualization time.
-    cpu_time.tick(H2D_SKIP);
+    cpu_time.tick(HERMES_SKIP);
     
     // Report the number of negative eigenfunction values.
     info("Num. of negative values: %d, %d, %d, %d", 
@@ -499,7 +499,7 @@ int main(int argc, char* argv[])
     
     for (int g = 0; g < 4; g++)	graph_dof_evol.add_values(g, as, ls.get_num_dofs(g));
 
-    cpu_time.tick(H2D_SKIP);
+    cpu_time.tick(HERMES_SKIP);
     
     // If err_est too large, adapt the mesh.
     if (energy_err_est < ERR_STOP) break;

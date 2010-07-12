@@ -180,7 +180,7 @@ int main(int argc, char* argv[])
     tview.show(&t_sln_coarse, H2D_EPS_HIGH);
 
     // Skip visualization time.
-    cpu_time.tick(H2D_SKIP);
+    cpu_time.tick(HERMES_SKIP);
 
     // Calculate element errors and total error estimate.
     H1Adapt hp(&ls);

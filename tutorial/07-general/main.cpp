@@ -124,7 +124,7 @@ int main(int argc, char* argv[])
   oview.show(&space);
 
   // Skip visualization time.
-  cpu_time.tick(H2D_SKIP);
+  cpu_time.tick(HERMES_SKIP);
 
   // Print timing information.
   verbose("Total running time: %g s", cpu_time.accumulated());

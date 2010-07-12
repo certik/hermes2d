@@ -277,7 +277,7 @@ int main (int argc, char* argv[]) {
     if (n > 1 && n % UNREF_FREQ == 0) {
       
       // Time measurement
-      cpu_time.tick(H2D_SKIP);
+      cpu_time.tick(HERMES_SKIP);
 
       Cmesh.copy(&basemesh);
       if (MULTIMESH) {
@@ -290,7 +290,7 @@ int main (int argc, char* argv[]) {
       info("---- Time step %d, projecting fine mesh solution on globally derefined mesh:\n", n);
 
       // Time measurement
-      cpu_time.tick(H2D_SKIP);
+      cpu_time.tick(HERMES_SKIP);
       nls.project_global(Tuple<MeshFunction*>(&Csln_fine, &phisln_fine), 
                          Tuple<Solution*>(&C_prev_newton, &phi_prev_newton));
 
@@ -312,7 +312,7 @@ int main (int argc, char* argv[]) {
     double err_est;
     do {
       // Time measurement
-      cpu_time.tick(H2D_SKIP);
+      cpu_time.tick(HERMES_SKIP);
       RefSystem rs(&nls);
 
       // Set initial condition for the Newton's method on the fine mesh.
@@ -352,7 +352,7 @@ int main (int argc, char* argv[]) {
       View::wait(H2DV_WAIT_KEYPRESS);
       
       //Time measurement
-      cpu_time.tick(H2D_SKIP);
+      cpu_time.tick(HERMES_SKIP);
 
       // Calculate element errors and total estimate
       info("Calculating error.");
@@ -370,7 +370,7 @@ int main (int argc, char* argv[]) {
       } else {
         
         //Time measurement
-        cpu_time.tick(H2D_SKIP);
+        cpu_time.tick(HERMES_SKIP);
 
         hp.adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY);
         //Time measurement
@@ -386,7 +386,7 @@ int main (int argc, char* argv[]) {
               n, as);
         
         //Time measurement
-        cpu_time.tick(H2D_SKIP);
+        cpu_time.tick(HERMES_SKIP);
 
         // Project the fine mesh solution on the new coarse mesh.
         if (SOLVE_ON_COARSE_MESH) 

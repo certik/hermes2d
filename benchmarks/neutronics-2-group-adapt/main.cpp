@@ -325,7 +325,7 @@ int main(int argc, char* argv[])
     	  
     cpu_time.tick();	
     info("!---- Adaptivity step %d ---------------------------------------------", iadapt);
-    cpu_time.tick(H2D_SKIP);
+    cpu_time.tick(HERMES_SKIP);
     		
     // Solve on refined meshes.
     
@@ -335,7 +335,7 @@ int main(int argc, char* argv[])
     cpu_time.tick();  
     int ndof_ref = rs.get_num_dofs();  
     info("---------- Reference mesh solution; NDOF=%d ----------------", ndof_ref);	
-    cpu_time.tick(H2D_SKIP);
+    cpu_time.tick(HERMES_SKIP);
     
     rs.solve(Tuple<Solution*>(&sln1_ref, &sln2_ref));
 		
@@ -343,7 +343,7 @@ int main(int argc, char* argv[])
       // Solve on coarse meshes.
       cpu_time.tick();	
       info("----------- Coarse mesh solution; NDOF=%d -----------------", ndof);	  
-      cpu_time.tick(H2D_SKIP);
+      cpu_time.tick(HERMES_SKIP);
 	     
       ls.assemble();	
       ls.solve(Tuple<Solution*>(&sln1, &sln2));
@@ -352,7 +352,7 @@ int main(int argc, char* argv[])
       // Project the fine mesh solution on the new coarse mesh.
       cpu_time.tick();
       info("---- Projecting fine mesh solution on new coarse mesh -----------------");
-      cpu_time.tick(H2D_SKIP);
+      cpu_time.tick(HERMES_SKIP);
       ls.project_global(Tuple<MeshFunction*>(&sln1_ref, &sln2_ref), 
                         Tuple<Solution*>(&sln1, &sln2));
     }
@@ -428,7 +428,7 @@ int main(int argc, char* argv[])
       graph_cpu.add_values(ERR_EST_PLOT, cta, err_est_h1);
     }
            
-    cpu_time.tick(H2D_SKIP);   
+    cpu_time.tick(HERMES_SKIP);   
     	
     // If err_est too large, adapt the mesh.
     if (err_est < ERR_STOP) break;
