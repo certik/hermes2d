@@ -33,7 +33,7 @@ bool CommonSolverNumPy::solve(Matrix *mat, Vector *res)
       memcpy(vec_double, x_double, n*sizeof(scalar));
     }
     else {
-      cplx *x_cplx; 
+      cplx *x_cplx;
       numpy2c_double_complex_inplace(p->pull("x"), &x_cplx, &n);
       memcpy(vec_cplx, x_cplx, n*sizeof(scalar));
     }
@@ -59,8 +59,8 @@ bool CommonSolverSciPyUmfpack::solve(Matrix *mat, Vector *res)
     // Turn off warnings in spsolve (only there)
     p->exec("import warnings");
     p->exec("with warnings.catch_warnings():\n"
-            "    warnings.simplefilter('ignore')\n"
-            "    x = spsolve(A, rhs)");   
+            " warnings.simplefilter('ignore')\n"
+            " x = spsolve(A, rhs)");
     int n;
     if (sizeof(scalar) == sizeof(double)) {
       double *x_double;
@@ -101,7 +101,7 @@ bool CommonSolverSciPyCG::solve(Matrix *mat, Vector *res)
       memcpy(vec_double, x_double, n*sizeof(scalar));
     }
     else {
-      cplx *x_cplx; 
+      cplx *x_cplx;
       numpy2c_double_complex_inplace(p->pull("x"), &x_cplx, &n);
       memcpy(vec_cplx, x_cplx, n*sizeof(scalar));
     }
@@ -132,7 +132,7 @@ bool CommonSolverSciPyGMRES::solve(Matrix *mat, Vector *res)
       memcpy(vec_double, x_double, n*sizeof(scalar));
     }
     else {
-      cplx *x_cplx; 
+      cplx *x_cplx;
       numpy2c_double_complex_inplace(p->pull("x"), &x_cplx, &n);
       memcpy(vec_cplx, x_cplx, n*sizeof(scalar));
     }
@@ -183,3 +183,4 @@ bool CommonSolverSciPyGMRES::solve(Matrix *mat, cplx *res)
 
 
 #endif
+

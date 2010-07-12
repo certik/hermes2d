@@ -680,7 +680,7 @@ void coo_to_csr(int size, int nnz, int *row, int *col, T *A, int *Ap, int *Ai, T
     // write Aj, Ax into Bj, Bx
     for(int n = 0; n < nnz; n++)
     {
-        int index  = row[n];
+        int index = row[n];
         int dest = Ap[index];
 
         Ai[dest] = col[n];
@@ -692,8 +692,8 @@ void coo_to_csr(int size, int nnz, int *row, int *col, T *A, int *Ap, int *Ai, T
     for(int i = 0, last = 0; i <= size; i++)
     {
         int temp = Ap[i];
-        Ap[i]  = last;
-        last   = temp;
+        Ap[i] = last;
+        last = temp;
     }
 }
 
@@ -715,7 +715,7 @@ void csr_to_csc(int size, int nnz, int *Arp, int *Ari, T *Arx, int *Acp, int *Ac
     // cumsum the nnz per column to get Bp[]
     for(int col = 0, cumsum = 0; col < size; col++)
     {
-        int temp  = Acp[col];
+        int temp = Acp[col];
         Acp[col] = cumsum;
         cumsum += temp;
     }
@@ -725,7 +725,7 @@ void csr_to_csc(int size, int nnz, int *Arp, int *Ari, T *Arx, int *Acp, int *Ac
     {
         for(int jj = Arp[row]; jj < Arp[row+1]; jj++)
         {
-            int col  = Ari[jj];
+            int col = Ari[jj];
             int dest = Acp[col];
 
             Aci[dest] = row;
@@ -737,7 +737,7 @@ void csr_to_csc(int size, int nnz, int *Arp, int *Ari, T *Arx, int *Acp, int *Ac
 
     for(int col = 0, last = 0; col <= size; col++)
     {
-        int temp  = Acp[col];
+        int temp = Acp[col];
         Acp[col] = last;
         last = temp;
     }

@@ -64,7 +64,7 @@ double TimePeriod::period_in_seconds(const SysTime& begin, const SysTime& end) c
 
 const TimePeriod& TimePeriod::tick(TimerPeriodTickType type) {
   SysTime cur_time = get_time();
-  if (type == H2D_ACCUMULATE) {
+  if (type == HERMES_ACCUMULATE) {
     double secs = period_in_seconds(last_time, cur_time);
     accum += secs;
     last_period = secs;
@@ -77,7 +77,7 @@ const TimePeriod& TimePeriod::tick(TimerPeriodTickType type) {
 }
 
 const TimePeriod& TimePeriod::tick_reset() {
-  tick(H2D_SKIP);
+  tick(HERMES_SKIP);
   reset();
   return *this;
 }

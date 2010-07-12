@@ -99,7 +99,7 @@ public:
     {
         _error("internal error: get_c_array() not implemented.");
     }
-    virtual void realloc_and_erase(int new_length) 
+    virtual void realloc_and_erase(int new_length)
     {
         _error("internal error: realloc_and_erase() not implemented.");
     };
@@ -143,8 +143,8 @@ public:
     {
         return this->v;
     }
-    virtual void realloc_and_erase(int new_length) 
-    {  
+    virtual void realloc_and_erase(int new_length)
+    {
       this->v = (scalar*)realloc(this->v, new_length*sizeof(scalar));
       memset(this->v, 0, new_length*sizeof(scalar));
       this->size = new_length;

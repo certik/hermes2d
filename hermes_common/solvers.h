@@ -25,7 +25,7 @@ class CommonSolverCG : public CommonSolver
 {
 public:
     bool solve(Matrix* mat, Vector* res, double tol = 1e-6, int maxiter = 1000);
-    bool solve(Matrix* mat, Vector* res) 
+    bool solve(Matrix* mat, Vector* res)
     {
       this->solve(mat, res, 1e-6, 1000);
     };

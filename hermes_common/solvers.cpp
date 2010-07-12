@@ -27,7 +27,7 @@ bool CommonSolverCG::solve(Matrix* A, Vector *rhs, double tol, int maxiter)
     if (r == NULL || p == NULL || help_vec == NULL) {
         _error("a vector could not be allocated in solve_linear_system_iter().");
     }
-    // r = b - A*x0  (where b is x and x0 = 0)
+    // r = b - A*x0 (where b is x and x0 = 0)
     for (int i=0; i < n_dof; i++) r[i] = x[i];
     // p = r
     for (int i=0; i < n_dof; i++) p[i] = r[i];

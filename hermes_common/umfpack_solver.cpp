@@ -22,24 +22,24 @@ void print_status(int status)
         _error("UMFPACK: singular stiffness matrix!");
         break;
 
-    case UMFPACK_ERROR_out_of_memory:           _error("UMFPACK: out of memory!");
-    case UMFPACK_ERROR_argument_missing:        _error("UMFPACK: argument missing");
+    case UMFPACK_ERROR_out_of_memory: _error("UMFPACK: out of memory!");
+    case UMFPACK_ERROR_argument_missing: _error("UMFPACK: argument missing");
     case UMFPACK_ERROR_invalid_Symbolic_object: _error("UMFPACK: invalid Symbolic object");
-    case UMFPACK_ERROR_invalid_Numeric_object:  _error("UMFPACK: invalid Numeric object");
-    case UMFPACK_ERROR_different_pattern:       _error("UMFPACK: different pattern");
-    case UMFPACK_ERROR_invalid_system:          _error("UMFPACK: invalid system");
-    case UMFPACK_ERROR_n_nonpositive:           _error("UMFPACK: n nonpositive");
-    case UMFPACK_ERROR_invalid_matrix:          _error("UMFPACK: invalid matrix");
-    case UMFPACK_ERROR_internal_error:          _error("UMFPACK: internal error");
-    default:                                    _error("UMFPACK: unknown error");
+    case UMFPACK_ERROR_invalid_Numeric_object: _error("UMFPACK: invalid Numeric object");
+    case UMFPACK_ERROR_different_pattern: _error("UMFPACK: different pattern");
+    case UMFPACK_ERROR_invalid_system: _error("UMFPACK: invalid system");
+    case UMFPACK_ERROR_n_nonpositive: _error("UMFPACK: n nonpositive");
+    case UMFPACK_ERROR_invalid_matrix: _error("UMFPACK: invalid matrix");
+    case UMFPACK_ERROR_internal_error: _error("UMFPACK: internal error");
+    default: _error("UMFPACK: unknown error");
     }
 }
 
-bool CommonSolverUmfpack::solve(Matrix *mat, Vector *res) 
+bool CommonSolverUmfpack::solve(Matrix *mat, Vector *res)
 {
   double* vec_real;
   cplx* vec_cplx;
-  if (sizeof(scalar) ==  sizeof(double)) {
+  if (sizeof(scalar) == sizeof(double)) {
     vec_real = (double*)res->get_c_array();
     this->solve_real(mat, vec_real);
   }

@@ -43,8 +43,8 @@ bool CommonSolverSuperLU::solve(Matrix *mat, Vector *res)
 
     SuperMatrix A;
     SuperMatrix B;
-    SuperMatrix L;      // factor L
-    SuperMatrix U;      // factor U
+    SuperMatrix L; // factor L
+    SuperMatrix U; // factor U
 
     int nrhs, info;
 
@@ -53,17 +53,17 @@ bool CommonSolverSuperLU::solve(Matrix *mat, Vector *res)
 
     // Set the default input options:
     /*
-    options.Fact = DOFACT;
-    options.Equil = YES;
-    options.ColPerm = COLAMD;
-    options.DiagPivotThresh = 1.0;
-    options.Trans = NOTRANS;
-    options.IterRefine = NOREFINE;
-    options.SymmetricMode = NO;
-    options.PivotGrowth = NO;
-    options.ConditionNumber = NO;
-    options.PrintStat = YES;
-    */
+options.Fact = DOFACT;
+options.Equil = YES;
+options.ColPerm = COLAMD;
+options.DiagPivotThresh = 1.0;
+options.Trans = NOTRANS;
+options.IterRefine = NOREFINE;
+options.SymmetricMode = NO;
+options.PivotGrowth = NO;
+options.ConditionNumber = NO;
+options.PrintStat = YES;
+*/
     set_default_options(&options);
 
     // create csc matrix
@@ -98,17 +98,17 @@ bool CommonSolverSuperLU::solve(Matrix *mat, Vector *res)
         memcpy(res, x, size*sizeof(double));
 
         /*
-        SCformat *Lstore = (SCformat *) L.Store;
-        NCformat *Ustore = (NCformat *) U.Store;
-        printf("No of nonzeros in factor L = %d\n", Lstore->nnz);
-        printf("No of nonzeros in factor U = %d\n", Ustore->nnz);
-        printf("No of nonzeros in L+U = %d\n", Lstore->nnz + Ustore->nnz - mcsc.get_size());
-        printf("FILL ratio = %.1f\n", (float)(Lstore->nnz + Ustore->nnz - mcsc.get_size())/nnz);
+SCformat *Lstore = (SCformat *) L.Store;
+NCformat *Ustore = (NCformat *) U.Store;
+printf("No of nonzeros in factor L = %d\n", Lstore->nnz);
+printf("No of nonzeros in factor U = %d\n", Ustore->nnz);
+printf("No of nonzeros in L+U = %d\n", Lstore->nnz + Ustore->nnz - mcsc.get_size());
+printf("FILL ratio = %.1f\n", (float)(Lstore->nnz + Ustore->nnz - mcsc.get_size())/nnz);
 
-        mem_usage_t mem_usage;
-        dQuerySpace(&L, &U, &mem_usage);
-        printf("L\\U MB %.3f\ttotal MB needed %.3f\n", mem_usage.for_lu/1e6, mem_usage.total_needed/1e6);
-        */
+mem_usage_t mem_usage;
+dQuerySpace(&L, &U, &mem_usage);
+printf("L\\U MB %.3f\ttotal MB needed %.3f\n", mem_usage.for_lu/1e6, mem_usage.total_needed/1e6);
+*/
     }
     else
     {
