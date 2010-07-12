@@ -133,12 +133,6 @@ int main(int argc, char* argv[])
                         Tuple<Solution*>(&u_sln_coarse, &v_sln_coarse));
     }
 
-    // Time measurement.
-    cpu_time.tick();
-
-    // Time measurement.
-    cpu_time.tick(H2D_SKIP);
-
     // Calculate element errors and total error estimate.
     info("Calculating error (est).");
     H1Adapt hp(&ls);

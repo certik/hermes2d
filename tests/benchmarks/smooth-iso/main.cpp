@@ -148,9 +148,6 @@ int main(int argc, char* argv[])
     ExactSolution exact(&mesh, fndd);
     double err_exact = h1_error(&sln_coarse, &exact) * 100;
 
-    // time measurement
-    cpu_time.tick(H2D_SKIP);
-
     // Calculate error estimate wrt. fine mesh solution.
     info("Calculating error (est).");
     H1Adapt hp(&ls);
@@ -159,21 +156,6 @@ int main(int argc, char* argv[])
     // Report results.
     info("ndof_coarse: %d, ndof_fine: %d, err_est: %g%%, err_exact: %g%%", 
          ls.get_num_dofs(), rs.get_num_dofs(), err_est, err_exact);
-
-    // Add entries to DOF convergence graphs.
-    graph_dof_exact.add_values(ls.get_num_dofs(), err_exact);
-    graph_dof_exact.save("conv_dof_exact.dat");
-    graph_dof_est.add_values(ls.get_num_dofs(), err_est);
-    graph_dof_est.save("conv_dof_est.dat");
-
-    // Add entries to CPU convergence graphs.
-    graph_cpu_exact.add_values(cpu_time.accumulated(), err_exact);
-    graph_cpu_exact.save("conv_cpu_exact.dat");
-    graph_cpu_est.add_values(cpu_time.accumulated(), err_est);
-    graph_cpu_est.save("conv_cpu_est.dat");
-
-    // time measurement
-    cpu_time.tick(H2D_SKIP);
 
     // If err_est too large, adapt the mesh.
     if (err_est < ERR_STOP) done = true;

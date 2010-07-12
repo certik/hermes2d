@@ -169,9 +169,6 @@ int main(int argc, char* argv[])
     ExactSolution exact(&mesh, fndd);
     double err_exact = h1_error(&sln_coarse, &exact) * 100;
 
-    // time measurement
-    cpu_time.tick(H2D_SKIP);
-
     // Calculate error estimate wrt. fine mesh solution.
     info("Calculating error (est).");
     H1Adapt hp(&ls);
@@ -193,9 +190,6 @@ int main(int argc, char* argv[])
     graph_cpu_exact.save("conv_cpu_exact.dat");
     graph_cpu_est.add_values(cpu_time.accumulated(), err_est);
     graph_cpu_est.save("conv_cpu_est.dat");
-
-    // time measurement
-    cpu_time.tick(H2D_SKIP);
 
     // If err_est too large, adapt the mesh.
     if (err_est < ERR_STOP) done = true;

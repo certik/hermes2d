@@ -133,12 +133,6 @@ int main(int argc, char* argv[])
       ls.project_global(&sln_fine, &sln_coarse);
     }
 
-    // Time measurement.
-    cpu_time.tick();
-
-    // Skip visualization time. 
-    cpu_time.tick(H2D_SKIP);
-
     // Calculate error estimate wrt. fine mesh solution.
     info("Calculating error (est).");
     H1Adapt hp(&ls);
