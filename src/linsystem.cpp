@@ -205,6 +205,56 @@ void LinSystem::set_spaces(Tuple<Space*> spaces)
   this->init_spaces(spaces);
 }
 
+void LinSystem::set_spaces2(int n, ...)
+{
+	va_list vl;
+	va_start(vl, n);
+
+	Tuple<Space*> s;
+
+	if (n == 1)	{
+		s = Tuple<Space*>(va_arg( vl, Space* ));
+	}
+	else if (n == 2) {
+		s = Tuple<Space*>(va_arg( vl, Space* ), va_arg( vl, Space* ));
+	}
+	else if (n == 3) {
+		s = Tuple<Space*>(va_arg( vl, Space* ), va_arg( vl, Space* ), va_arg( vl, Space* ));
+	}
+    else if (n == 4) {
+		s = Tuple<Space*>(va_arg( vl, Space* ), va_arg( vl, Space* ), va_arg( vl, Space* ), va_arg( vl, Space* ));
+	}
+	
+	set_spaces(s);
+	
+	va_end(vl);
+}
+
+ /* warn("Call to deprecated function set_spaces().");
+  if (n <= 0 || n > wf->neq) error("Bad number of spaces.");
+  num_spaces = n;
+  va_list ap;
+  va_start(ap, n);
+  // set spaces and meshes at the same time
+  for (int i = 0; i < wf->neq; i++) {
+    spaces[i] = (i < n) ? va_arg(ap, Space*) : spaces[n-1];
+    meshes[i] = (i < n) ? spaces[i]->mesh : spaces[n-1]->mesh;
+  }
+  va_end(ap);
+  memset(sp_seq, -1, sizeof(int) * wf->neq);
+  have_spaces = true;
+  for (int i = 0; i < n; i++){
+    if (pss[i] == NULL) {
+      Shapeset *shapeset = spaces[i]->get_shapeset();
+      PrecalcShapeset *p = new PrecalcShapeset(shapeset);
+      if (p == NULL) error("New PrecalcShapeset could not be allocated.");
+      pss[i] = p;
+      num_user_pss++;
+   }
+  }
+*/
+
+
 void LinSystem::set_pss(Tuple<PrecalcShapeset*> pss)
 {
   warn("Call to deprecated function LinSystem::set_pss().");
@@ -219,6 +269,31 @@ void LinSystem::set_pss(Tuple<PrecalcShapeset*> pss)
 void LinSystem::set_pss(PrecalcShapeset* pss)
 {
   this->set_pss(Tuple<PrecalcShapeset*>(pss));
+}
+
+void LinSystem::set_pss2(int n, ...)
+{
+	va_list vl;
+	va_start(vl, n);
+
+	Tuple<PrecalcShapeset*> s;
+
+	if (n == 1)	{
+		s = Tuple<PrecalcShapeset*>(va_arg( vl, PrecalcShapeset* ));
+	}
+	else if (n == 2) {
+		s = Tuple<PrecalcShapeset*>(va_arg( vl, PrecalcShapeset* ), va_arg( vl, PrecalcShapeset* ));
+	}
+	else if (n == 3) {
+		s = Tuple<PrecalcShapeset*>(va_arg( vl, PrecalcShapeset* ), va_arg( vl, PrecalcShapeset* ), va_arg( vl, PrecalcShapeset* ));
+	}
+    else if (n == 4) {
+		s = Tuple<PrecalcShapeset*>(va_arg( vl, PrecalcShapeset* ), va_arg( vl, PrecalcShapeset* ), va_arg( vl, PrecalcShapeset* ), va_arg( vl, PrecalcShapeset* ));
+	}
+	
+	set_pss(s);
+	
+	va_end(vl);
 }
 
 void LinSystem::copy(LinSystem* sys)
@@ -1055,6 +1130,31 @@ bool LinSystem::solve(Tuple<Solution*> sln)
 
   report_time("Exported solution in %g s", cpu_time.tick().last());
   return true;
+}
+
+bool LinSystem::solve2(int n, ...)
+{
+	va_list vl;
+	va_start(vl, n);
+
+	Tuple<Solution*> s;
+
+	if (n == 1)	{
+		s = Tuple<Solution*>(va_arg( vl, Solution* ));
+	}
+	else if (n == 2) {
+		s = Tuple<Solution*>(va_arg( vl, Solution* ), va_arg( vl, Solution* ));
+	}
+	else if (n == 3) {
+		s = Tuple<Solution*>(va_arg( vl, Solution* ), va_arg( vl, Solution* ), va_arg( vl, Solution* ));
+	}
+    else if (n == 4) {
+		s = Tuple<Solution*>(va_arg( vl, Solution* ), va_arg( vl, Solution* ), va_arg( vl, Solution* ), va_arg( vl, Solution* ));
+	}
+	
+	solve(s);
+	
+	va_end(vl);
 }
 
 // single equation case

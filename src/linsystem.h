@@ -67,7 +67,9 @@ public:
   void init_spaces(Tuple<Space*> spaces);
   void init_space(Space* s);         // single equation case
   void set_spaces(Tuple<Space*> spaces);
+  void set_spaces2(int n, ...);  
   void set_pss(Tuple<PrecalcShapeset*> pss);
+  void set_pss2(int n, ...);  
   void set_pss(PrecalcShapeset* p);  // single equation case
   void copy(LinSystem* sys);
   Space* get_space(int n) {
@@ -100,6 +102,7 @@ public:
   /// computation. This is used in algorithms that require previous solutions, such as
   /// the Newton's method, time stepping, etc.
   bool solve(Tuple<Solution*> sln);
+  bool solve2(int n, ...);  
   bool solve(Solution* sln); // single equation case
   bool solve(Solution* sln1, Solution* sln2); // two equations case
   bool solve(Solution* sln1, Solution* sln2, Solution* sln3); // three equations case
