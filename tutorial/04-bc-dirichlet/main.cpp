@@ -57,17 +57,13 @@ int main(int argc, char* argv[])
   wf.add_matrix_form(callback(bilinear_form));
   wf.add_vector_form(callback(linear_form));
 
-  // Initialize the linear system.
-  LinearProblem lp(&wf, &space);
-  info("ndof = %d", lp.get_num_dofs());
-
   // Solve the linear problem.
   Solution sln;
   solve_linear(&space, &wf, &sln, SOLVER_UMFPACK);
 
   // Visualize the solution.
-  ScalarView* view = new ScalarView("Solution", 0, 0, 600, 600);
-  view->show(&sln);
+  ScalarView view("Solution", 0, 0, 600, 600);
+  view.show(&sln);
 
   // Wait for the view to be closed.
   View::wait();

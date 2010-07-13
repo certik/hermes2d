@@ -58,12 +58,6 @@ int main(int argc, char* argv[])
   wf.add_vector_form(callback(linear_form));
   wf.add_vector_form_surf(callback(linear_form_surf));
 
-
-
-  // Initialize the linear problem.
-  LinearProblem lp(&wf, &space);
-  info("ndof = %d", lp.get_num_dofs());
-
   // Solve the linear problem.
   Solution sln;
   solve_linear(&space, &wf, &sln, SOLVER_UMFPACK);
