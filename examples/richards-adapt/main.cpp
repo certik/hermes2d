@@ -18,6 +18,8 @@ using namespace RefinementSelectors;
 //        C(h) = alpha*(theta_s - theta_r)*exp(alpha*h)    for h < 0,
 //        C(h) = alpha*(theta_s - theta_r)                 for h >= 0.
 //
+//  Known exact solution, see the file exact_solution.cpp.
+//
 //  Domain: square (0, 100)^2.
 //
 //  BC: Dirichlet, given by the function init_cond() below.
@@ -76,8 +78,11 @@ int Y_POWER = 50;
 // Problem parameters.
 double K_S = 20.464;
 double ALPHA = 1e-3;
-double THETA_S = 0.45;
 double THETA_R = 0;
+double THETA_S = 0.45;
+
+// Current time.
+double TIME = 0;
 
 // K:
 double K(double h)
@@ -134,8 +139,12 @@ scalar essential_bc_values(int ess_bdy_marker, double x, double y)
   double dx, dy;
   return init_cond(x, y, dx, dy);
 }
+
+// Exact solution.
+#include "exact_solution.cpp"
+
 // Weak forms.
-# include "forms.cpp"
+#include "forms.cpp"
 
 int main(int argc, char* argv[])
 {
@@ -166,7 +175,7 @@ int main(int argc, char* argv[])
   NonlinSystem nls(&wf, &space);
 
   // Error estimate and discrete problem size as a function of physical time.
-  SimpleGraph graph_time_err, graph_time_dof;
+  SimpleGraph graph_time_err_est, graph_time_dof_est, graph_time_err_exact;
 
   // Project the function init_cond() on the FE space
   // to obtain initial coefficient vector for the Newton's method.
@@ -199,6 +208,9 @@ int main(int argc, char* argv[])
   int num_time_steps = (int)(T_FINAL/TAU + 0.5);
   for(int ts = 1; ts <= num_time_steps; ts++)
   {
+    // Updating current time.
+    TIME = ts*TAU;
+
     // Periodic global derefinements.
     if (ts > 1 && ts % UNREF_FREQ == 0) {
       info("Global mesh derefinement.");
@@ -302,11 +314,18 @@ int main(int argc, char* argv[])
     ordview.set_title(title);
     ordview.show(&space);
 
+    // Calculate error wrt. exact solution.
+    info("Calculating error (exact).");
+    ExactSolution exact(&mesh, exact_sol);
+    double space_err_exact = h1_error(&sln_coarse, &exact) * 100;    
+
     // Add entries to convergence graphs.
-    graph_time_err.add_values(ts*TAU, space_err_est);
-    graph_time_err.save("time_error.dat");
-    graph_time_dof.add_values(ts*TAU, nls.get_num_dofs());
-    graph_time_dof.save("time_dof.dat");
+    graph_time_err_est.add_values(ts*TAU, space_err_est);
+    graph_time_err_est.save("time_error_est.dat");
+    graph_time_dof_est.add_values(ts*TAU, nls.get_num_dofs());
+    graph_time_dof_est.save("time_dof_est.dat");
+    graph_time_err_exact.add_values(ts*TAU, space_err_exact);
+    graph_time_err_exact.save("time_error_exact.dat");
 
     // Copy new time level solution into u_prev_time.
     u_prev_time.copy(&sln_fine);
