@@ -114,7 +114,6 @@ bool solve_linear(Tuple<Space *> spaces, WeakForm* wf, Tuple<Solution *> solutio
   // Assemble stiffness matrix and rhs.
   lp.assemble(mat, rhs);
 
-  // THIS USES A DENSE MATRIX, WHICH IS A TEMPORARY SOLUTION.
   // Solve the matrix problem.
   if (!solver->solve(mat, rhs)) error ("Matrix solver failed.\n");
 
