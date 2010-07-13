@@ -601,7 +601,11 @@ void LinSystem::assemble(bool rhsonly)
               // FIXME - the NULL on the following line is temporary, an array of solutions 
               // should be passed there.
               bi = eval_form(jfv, NULL, fu, fv, &refmap[n], &refmap[m]) * an->coef[j] * am->coef[i];
-              if (an->dof[j] < 0) Dir[k] -= bi; else mat[i][j] = bi;
+              if (an->dof[j] < 0) Dir[k] -= bi; 
+              else {
+                mat[i][j] = bi;
+                if (an->dof[j] == 15 && an->dof[i] == 15) printf("%d %d %g\n", i, j, bi);
+              }
             }
           }
           else // symmetric block
@@ -612,7 +616,11 @@ void LinSystem::assemble(bool rhsonly)
               // FIXME - the NULL on the following line is temporary, an array of solutions 
               // should be passed there.
               bi = eval_form(jfv, NULL, fu, fv, &refmap[n], &refmap[m]) * an->coef[j] * am->coef[i];
-              if (an->dof[j] < 0) Dir[k] -= bi; else mat[i][j] = mat[j][i] = bi;
+              if (an->dof[j] < 0) Dir[k] -= bi; 
+              else {
+                mat[i][j] = mat[j][i] = bi;
+                if (an->dof[j] == 15 && an->dof[i] == 15) printf("%d %d %g\n", i, j, bi);
+              }
             }
           }
         }
@@ -631,8 +639,10 @@ void LinSystem::assemble(bool rhsonly)
           for (int j = 0; j < am->cnt; j++)
             if (am->dof[j] < 0)
               for (int i = 0; i < an->cnt; i++)
-                if (an->dof[i] >= 0)
+                if (an->dof[i] >= 0) {
                   Dir[an->dof[i]] -= mat[i][j];
+                  if (an->dof[i] == 15) printf("to rhs %d %g\n", an->dof[i], -mat[i][j]);
+                }
         }
       }
 
@@ -650,7 +660,9 @@ void LinSystem::assemble(bool rhsonly)
           fv->set_active_shape(am->idx[i]);
           // FIXME - the NULL on the following line is temporary, an array of solutions 
           // should be passed there.
-          RHS[am->dof[i]] += eval_form(rfv, NULL, fv, &refmap[m]) * am->coef[i];
+          scalar val = eval_form(rfv, NULL, fv, &refmap[m]) * am->coef[i];
+          RHS[am->dof[i]] += val;
+          //printf("rhs add %d %g\n", am->dof[i], val);
         }
       }
 
@@ -695,6 +707,7 @@ void LinSystem::assemble(bool rhsonly)
               // should be passed there.
               bi = eval_form(jfs, NULL, fu, fv, &refmap[n], &refmap[m], &(ep[edge])) * an->coef[j] * am->coef[i];
               if (an->dof[j] >= 0) mat[i][j] = bi; else Dir[k] -= bi;
+              //printf("%d %d %g\n", i, j, bi);
             }
           }
           insert_block(mat, am->dof, an->dof, am->cnt, an->cnt);
@@ -718,7 +731,9 @@ void LinSystem::assemble(bool rhsonly)
             fv->set_active_shape(am->idx[i]);
             // FIXME - the NULL on the following line is temporary, an array of solutions 
             // should be passed there.
-            RHS[am->dof[i]] += eval_form(rfs, NULL, fv, &refmap[m], &(ep[edge])) * am->coef[i];
+            scalar val = eval_form(rfs, NULL, fv, &refmap[m], &(ep[edge])) * am->coef[i];
+            RHS[am->dof[i]] += val;
+            //printf("rhs add %d %g\n", am->dof[i], val);
           }
         }
       }
@@ -740,6 +755,8 @@ void LinSystem::assemble(bool rhsonly)
   delete [] buffer;
 
   if (!rhsonly) values_changed = true;
+
+  this->A->print();
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1108,7 +1125,9 @@ bool LinSystem::solve(Tuple<Solution*> sln)
   if (this->linear == true) {
     // solve linear system "Ax = b"
     memcpy(this->Vec, this->RHS, sizeof(scalar) * ndof);
+    //this->A->print();
     this->solver->_solve(this->A, this->Vec);
+    //this->Vec->print();
     report_time("LinSystem solved in %g s", cpu_time.tick().last());
   }
   else {

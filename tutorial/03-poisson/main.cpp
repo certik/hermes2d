@@ -16,7 +16,7 @@
 // initial polynomial degree P_INIT, and play with various initial
 // mesh refinements at the beginning of the main() function.
 
-int P_INIT = 5;            // Uniform polynomial degree of mesh elements.
+int P_INIT = 3;            // Uniform polynomial degree of mesh elements.
 
 // Problem parameters.
 double CONST_F = 2.0;  
@@ -45,7 +45,7 @@ int main(int argc, char* argv[])
   mloader.load("domain.mesh", &mesh);
 
   // Perform initial mesh refinement.
-  mesh.refine_all_elements();
+  //mesh.refine_all_elements();
 
   // Create an H1 space with default shapeset.
   H1Space space(&mesh, bc_types, essential_bc_values, P_INIT);
