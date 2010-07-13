@@ -348,8 +348,8 @@ void DiscreteProblem::assemble(Matrix* mat_ext, Vector* dir_ext, Vector* rhs_ext
   this->assign_dofs();
   int ndof = this->get_num_dofs();
   if (ndof == 0) error("ndof = 0 in DiscreteProblem::assemble().");
-  if (dir_ext->get_size() != ndof) dir_ext->realloc_and_erase(ndof);
-  if (rhs_ext->get_size() != ndof) rhs_ext->realloc_and_erase(ndof);
+  if (dir_ext->get_size() != ndof) dir_ext = new AVector(ndof);
+  if (rhs_ext->get_size() != ndof) rhs_ext = new AVector(ndof);
 
   //  further checks
   if (mat_ext->get_size() != this->get_num_dofs())
