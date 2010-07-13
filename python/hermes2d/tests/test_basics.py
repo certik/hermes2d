@@ -23,22 +23,16 @@ def test_matrix():
     mesh = Mesh()
     mesh.load(domain_mesh)
     mesh.refine_element(0)
-    shapeset = H1Shapeset()
-    pss = PrecalcShapeset(shapeset)
 
-    # create an H1 space
-    space = H1Space(mesh, shapeset)
-    space.set_uniform_order(5)
-    space.assign_dofs()
+    # create an H1 space with default shapeset
+    space = H1Space(mesh, 1)
 
     # initialize the discrete problem
     wf = WeakForm(1)
     set_forms(wf)
 
-    solver = DummySolver()
-    sys = LinSystem(wf, solver)
+    sys = LinSystem(wf)
     sys.set_spaces(space)
-    sys.set_pss(pss)
 
     # assemble the stiffness matrix and solve the system
     sln = Solution()
@@ -49,17 +43,14 @@ def test_matrix():
 def test_fe_solutions():
     mesh = Mesh()
     mesh.load(domain_mesh)
-    shapeset = H1Shapeset()
-    pss = PrecalcShapeset(shapeset)
 
-    space = H1Space(mesh, shapeset)
+    space = H1Space(mesh, 1)
     space.set_uniform_order(2)
     space.assign_dofs()
 
     a = array([1, 2, 3, 8, 0.1])
 
     sln = Solution()
-    sln.set_fe_solution(space, pss, a)
 
     # the sln.get_fe_solution() is not yet implemented in hermes2d
     #b = sln.get_fe_solution()
