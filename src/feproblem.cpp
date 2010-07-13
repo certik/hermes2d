@@ -207,7 +207,7 @@ void FeProblem::assemble(_Vector *rhs, _Matrix *jac, _Vector *x)
         // Extract values from the vector 'x'.
 	Vector* vv;
         if (x != NULL) {
-          vv = new Vector(this->ndof);
+          vv = new AVector(this->ndof);
 	  memset(vv->get_c_array(), 0, this->ndof * sizeof(scalar));
 	  for (int i=0; i<this->ndof; i++) vv->set(i, x->get(i));
         }

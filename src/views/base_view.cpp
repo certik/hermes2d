@@ -63,7 +63,7 @@ void BaseView::update_solution()
   memset(vec->get_c_array(), 0, sizeof(scalar) * ndof);
   if (base_index >= 0)
   {
-    if (base_index < ndof) vec[base_index] = 1.0;
+    if (base_index < ndof) vec->set(base_index, 1.0);
     sln->set_fe_solution(space, pss, vec, 0.0);
   }
   else

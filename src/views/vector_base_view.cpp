@@ -49,7 +49,7 @@ void VectorBaseView::update_solution()
   Vector* vec = new AVector(ndof + 1);
   memset(vec->get_c_array(), 0, sizeof(scalar) * (ndof + 1));
   if (base_index >= -1 && base_index < ndof)
-    vec[base_index + 1] = 1.0;
+    vec->set(base_index + 1, 1.0);
   sln->set_fe_solution(space, pss, vec);
 
   VectorView::show(sln,  sln, 0.001, H2D_FN_VAL_0, H2D_FN_VAL_1);
