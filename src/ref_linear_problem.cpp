@@ -25,7 +25,6 @@ RefLinearProblem::RefLinearProblem(LinearProblem* base, int order_increase,
 
 RefLinearProblem::~RefLinearProblem()
 {
-  this->free_vectors();
 }
 
 

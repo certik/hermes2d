@@ -92,7 +92,7 @@ void init_matrix_solver(MatrixSolverType matrix_solver, int ndof,
       solver = &solver_mumps;
       */
       break;
-    default: error("Bad matrix solver in solve_linear().");
+    default: error("Bad matrix solver in init_matrix_solver().");
   }
 }
 
@@ -113,6 +113,8 @@ bool solve_linear(Tuple<Space *> spaces, WeakForm* wf, Tuple<Solution *> solutio
 
   // Assemble stiffness matrix and rhs.
   lp.assemble(mat, rhs);
+
+  //mat->print();
 
   // Solve the matrix problem.
   if (!solver->solve(mat, rhs)) error ("Matrix solver failed.\n");

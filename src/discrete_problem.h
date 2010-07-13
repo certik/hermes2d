@@ -99,46 +99,25 @@ public:
   /// to the vector "vec".
   virtual bool solve(Matrix* mat, Vector* rhs, Vector* vec);
 
-  /// Frees the stiffness matrix.
-  virtual void free_matrix();
-
   /// Frees the stiffness matrix, coefficient vectors, and matrix solver data.
   virtual void free();
 
   /// Saves the stiffness matrix in various formats.
-  void save_matrix_matlab(const char* filename, const char* varname = "A");
-  void save_rhs_matlab(const char* filename, const char* varname = "b");
-  void save_matrix_bin(const char* filename);
-  void save_rhs_bin(const char* filename);
 
-  scalar* get_solution_vector() { return Vec; }
   int get_num_dofs();
   int get_num_dofs(int i) {
     if (this->spaces[i] == NULL) error("spaces[%d] is NULL in DiscreteProblem::get_num_dofs().", i);
     return this->spaces[i]->get_num_dofs();
   }
   int get_num_spaces() { return this->wf->neq; };
-  int get_matrix_size();
-  void get_matrix(int*& Ap, int*& Ai, scalar*& Ax, int& size);
-  void get_rhs(scalar*& RHS, int& size) { RHS = this->RHS; size=this->get_num_dofs(); }
-  void get_solution_vector(scalar*& sln_vector, int& sln_vector_len)
-       { sln_vector = Vec; sln_vector_len = this->get_num_dofs(); }
+  int get_matrix_size(Matrix* mat_ext);
+  //void get_matrix(int*& Ap, int*& Ai, scalar*& Ax, int& size);
+  //void get_rhs(scalar*& RHS, int& size) { RHS = this->RHS; size=this->get_num_dofs(); }
+  //void get_solution_vector(scalar*& sln_vector, int& sln_vector_len)
+  //     { sln_vector = Vec; sln_vector_len = this->get_num_dofs(); }
 
   /// Returns a copy of the solution vector.
   void get_solution_vector(std::vector<scalar>& sln_vector_out);
-
-  /// Allocate vectors Vec, RHS and Dir of length this->ndof. All vectors
-  /// must be NULL at input, to make sure that the user is not losing
-  /// information stored in these vectors.
-  void alloc_and_zero_vectors();
-
-  /// Frees vectors Vec, RHS and Dir and sets them to NULL. This should
-  /// be used very carefully since the vector Vec stores the actual solution
-  /// coefficients. Typicaly this needs to be done after the space changes
-  /// and thus the vector Vec loses its meaning. Before freeing it, however,
-  /// the information contained in it should be recycled, for example via
-  /// a projection onto the new space.
-  void free_vectors();
 
   /// Assigning DOF = enumerating basis functions in the FE spaces.
   int assign_dofs();  // all spaces
@@ -265,12 +244,6 @@ public:
   CommonSolver* solver;
   CommonSolver* solver_default;
 
-  Matrix *A;
-
-  scalar* Vec; ///< solution coefficient vector
-  scalar* RHS; ///< assembled right-hand side
-  scalar* Dir; ///< contributions to the RHS from Dirichlet lift
-
 protected:
 
   PrecalcShapeset** pss;
@@ -281,7 +254,6 @@ protected:
   int Vec_length;
   int Dir_length;
 
-  void create_matrix(bool rhsonly);
   void insert_block(Matrix *A, scalar** mat, int* iidx, int* jidx,
           int ilen, int jlen);
 

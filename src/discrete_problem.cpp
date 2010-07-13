@@ -42,9 +42,6 @@ void DiscreteProblem::init(WeakForm* wf_, CommonSolver* solver_)
   this->solver = (solver_) ? solver_ : solver_default;
   this->wf_seq = -1;
 
-  this->RHS = this->Dir = this->Vec = NULL;
-  this->RHS_length = this->Dir_length = this->Vec_length = 0;
-  this->A = NULL;
   this->mat_sym = false;
 
   this->spaces = NULL;
@@ -71,7 +68,6 @@ DiscreteProblem::DiscreteProblem(WeakForm* wf_, Tuple<Space*> sp)
   CommonSolver* solver_ = NULL;
   this->init(wf_, solver_);
   this->init_spaces(sp);
-  this->alloc_and_zero_vectors();
 }
 
 DiscreteProblem::DiscreteProblem(WeakForm* wf_, Space* s_)
@@ -79,19 +75,12 @@ DiscreteProblem::DiscreteProblem(WeakForm* wf_, Space* s_)
   CommonSolver *solver_ = NULL;
   this->init(wf_, solver_);
   this->init_space(s_);
-  this->alloc_and_zero_vectors();
 }
 
 DiscreteProblem::~DiscreteProblem()
 {
-  /* FIXME - this should be uncommented but then it gives double-free
-             segfaults in adaptive examples.
-  free();
-  if (this->sp_seq != NULL) delete [] this->sp_seq;
-  if (this->pss != NULL) delete [] this->pss;
-  if (this->solver != NULL) this->solver->free_context(this->slv_ctx);
-  */
-  free_vectors();
+  // FIXME: more things should be deleted here
+  // to avoid memory leaks.
   delete this->solver_default;
 }
 
@@ -182,148 +171,14 @@ void DiscreteProblem::copy(DiscreteProblem* sys)
   error("Not implemented yet.");
 }
 
-void DiscreteProblem::free_vectors()
-{
-  if (this->Vec != NULL || this->RHS != NULL || this->Dir != NULL)
-    //printf("debug: freeing vectors Vec, RHS, Dir for lengths   %d\n", this->Vec_length);
-
-  if (this->RHS != NULL) {
-    delete [] this->RHS;
-    this->RHS = NULL;
-    this->RHS_length = 0;
-  }
-  if (this->Dir != NULL) {
-    delete [] this->Dir;
-    this->Dir = NULL;
-    this->Dir_length = 0;
-  }
-  if (this->Vec != NULL) {
-    delete [] this->Vec;
-    this->Vec = NULL;
-    this->Vec_length = 0;
-  }
-}
-
-void DiscreteProblem::alloc_and_zero_vectors()
-{
-  int ndof = this->get_num_dofs();
-  //printf("debug: allocating vectors Vec, RHS, Dir for ndof   %d\n", ndof);
-
-  if (this->RHS != NULL || this->Dir != NULL || this->Vec != NULL)
-    error("All vectors must be NULL in alloc_and_zero_vectors() to prevent loss of information.");
-
-  this->Vec = new scalar[ndof];
-  if (Vec == NULL) error("Not enough memory DiscreteProblem::alloc_and_zero_vectors().");
-  memset(this->Vec, 0, ndof*sizeof(scalar));
-  this->Vec_length = ndof;
-
-  this->RHS = new scalar[ndof];
-  if (RHS == NULL) error("Not enough memory in DiscreteProblem::alloc_and_zero_vectors().");
-  memset(this->RHS, 0, ndof*sizeof(scalar));
-  this->RHS_length = ndof;
-
-  this->Dir = new scalar[ndof];
-  if (Dir == NULL) error("Not enough memory in DiscreteProblem::alloc_and_zero_vectors().");
-  memset(this->Dir, 0, ndof*sizeof(scalar));
-  this->Dir_length = ndof;
-}
-
 void DiscreteProblem::free()
 {
-  free_matrix();
-  free_vectors();
   free_spaces();
 
   this->struct_changed = this->values_changed = true;
   memset(this->sp_seq, -1, sizeof(int) * this->wf->neq);
   this->wf_seq = -1;
 }
-
-void DiscreteProblem::free_matrix()
-{
-  if (this->A != NULL) { ::delete this->A; this->A = NULL; }
-}
-
-//// matrix creation ///////////////////////////////////////////////////////////////////////////////
-
-void DiscreteProblem::create_matrix(bool rhsonly)
-{
-  // sanity checks
-  if (this->wf == NULL) error("this->wf is NULL in DiscreteProblem::get_num_dofs().");
-  if (this->wf->neq == 0) error("this->wf->neq is 0 in DiscreteProblem::get_num_dofs().");
-  if (this->spaces == NULL) error("this->spaces[%d] is NULL in DiscreteProblem::get_num_dofs().");
-
-  // check if we can reuse the matrix structure
-  bool up_to_date = true;
-  for (int i = 0; i < this->wf->neq; i++) {
-    if (this->spaces[i] ==  NULL) error("this->spaces[%d] is NULL in DiscreteProblem::get_num_dofs().", i);
-    if (this->spaces[i]->get_seq() != this->sp_seq[i]) {
-      up_to_date = false;
-      break;
-    }
-  }
-  if (this->wf->get_seq() != this->wf_seq) up_to_date = false;
-
-  // calculate the number of DOF
-  int ndof = this->get_num_dofs();
-  if (ndof == 0) error("ndof = 0 in DiscreteProblem::create_matrix().");
-
-  // if the matrix has not changed, just zero the values and we're done
-  if (up_to_date)
-  {
-    verbose("Reusing matrix sparse structure.");
-    if (!rhsonly) {
-#ifdef H2D_COMPLEX
-      this->A = new CooMatrix(ndof, true);
-#else
-      this->A = new CooMatrix(ndof);
-#endif
-      memset(this->Dir, 0, sizeof(scalar) * ndof);
-    }
-    memset(this->RHS, 0, sizeof(scalar) * ndof);
-    return;
-  }
-  else if (rhsonly)
-    error("Cannot reassemble RHS only: spaces have changed.");
-
-  // spaces have changed: create the matrix from scratch
-  this->free_matrix();
-  trace("Creating matrix sparse structure...");
-  TimePeriod cpu_time;
-
-#ifdef H2D_COMPLEX
-  this->A = new CooMatrix(ndof, true);
-#else
-  this->A = new CooMatrix(ndof);
-#endif
-
-  // save space seq numbers and weakform seq number, so we can detect their changes
-  for (int i = 0; i < this->wf->neq; i++)
-    this->sp_seq[i] = this->spaces[i]->get_seq();
-  this->wf_seq = this->wf->get_seq();
-
-  this->struct_changed = true;
-}
-
-
-int DiscreteProblem::get_matrix_size()
-{
-    return this->A->get_size();
-}
-
-void DiscreteProblem::get_matrix(int*& Ap, int*& Ai, scalar*& Ax, int& size)
-{
-    /// FIXME: this is a memory leak:
-    CSRMatrix *m = new CSRMatrix(this->A);
-    Ap = m->get_Ap(); Ai = m->get_Ai();
-    size = m->get_size();
-#ifdef H2D_COMPLEX
-    Ax = m->get_Ax_cplx();
-#else
-    Ax = m->get_Ax();
-#endif
-}
-
 
 //// assembly //////////////////////////////////////////////////////////////////////////////////////
 
@@ -348,16 +203,21 @@ void DiscreteProblem::assemble(Matrix* mat_ext, Vector* dir_ext, Vector* rhs_ext
   this->assign_dofs();
   int ndof = this->get_num_dofs();
   if (ndof == 0) error("ndof = 0 in DiscreteProblem::assemble().");
-  if (dir_ext->get_size() != ndof) dir_ext = new AVector(ndof);
+  if (dir_ext != NULL) {
+    if (dir_ext->get_size() != ndof) dir_ext = new AVector(ndof);
+    for (int i=0; i<ndof; i++) dir_ext->set(i, 0);
+  }
   if (rhs_ext->get_size() != ndof) rhs_ext = new AVector(ndof);
+  for (int i=0; i<ndof; i++) rhs_ext->set(i, 0);
 
   //  further checks
   if (mat_ext->get_size() != this->get_num_dofs())
     error("Matrix size does not match ndof in DiscreteProblem::assemble().");
-  if (mat_ext->get_size() != dir_ext->get_size() || mat_ext->get_size() != rhs_ext->get_size())
+  if (dir_ext != NULL) {
+    if (mat_ext->get_size() != dir_ext->get_size() || mat_ext->get_size() != rhs_ext->get_size())
     error("Mismatched matrix and vector sizes in DiscreteProblem::assemble().");
+  }
 
-  if (!rhsonly) free_matrix();
   int k, m, marker;
   std::vector<AsmList> al(wf->neq);
   AsmList* am, * an;
@@ -366,11 +226,10 @@ void DiscreteProblem::assemble(Matrix* mat_ext, Vector* dir_ext, Vector* rhs_ext
   EdgePos ep[4];
   reset_warn_order();
 
-  if (rhsonly && this->A == NULL)
-    error("Cannot reassemble RHS only: matrix is has not been assembled yet.");
-
-  // create the sparse structure
-  create_matrix(rhsonly);
+  // FIXME: We need to reimplement the feature of not 
+  // reassembling the stiffness matrix if it has not changed.
+  printf("Creating matrix sparse structure...\n");
+  mat_ext->free_data();
 
   trace("Assembling stiffness matrix...");
   TimePeriod cpu_time;
@@ -466,7 +325,13 @@ void DiscreteProblem::assemble(Matrix* mat_ext, Vector* dir_ext, Vector* rhs_ext
               // FIXME - the NULL on the following line is temporary, an array of solutions 
               // should be passed there.
               bi = eval_form(mfv, NULL, fu, fv, &refmap[n], &refmap[m]) * an->coef[j] * am->coef[i];
-              if (an->dof[j] < 0) Dir[k] -= bi; else mat[i][j] = bi;
+              if (an->dof[j] < 0) {
+                if (dir_ext != NULL) dir_ext->add(k, -bi); 
+              }
+              else {
+                mat[i][j] = bi;
+                if (an->dof[j] == 15 && an->dof[i] == 15) printf("%d %d %g\n", i, j, bi);
+              }
             }
           }
           else // symmetric block
@@ -477,7 +342,13 @@ void DiscreteProblem::assemble(Matrix* mat_ext, Vector* dir_ext, Vector* rhs_ext
               // FIXME - the NULL on the following line is temporary, an array of solutions 
               // should be passed there.
               bi = eval_form(mfv, NULL, fu, fv, &refmap[n], &refmap[m]) * an->coef[j] * am->coef[i];
-              if (an->dof[j] < 0) Dir[k] -= bi; else mat[i][j] = mat[j][i] = bi;
+              if (an->dof[j] < 0) {
+                if (dir_ext != NULL) dir_ext->add(k, -bi);
+              } 
+              else {
+                mat[i][j] = mat[j][i] = bi;
+                if (an->dof[j] == 15 && an->dof[i] == 15) printf("%d %d %g\n", i, j, bi);
+              }
             }
           }
         }
@@ -498,8 +369,10 @@ void DiscreteProblem::assemble(Matrix* mat_ext, Vector* dir_ext, Vector* rhs_ext
           for (int j = 0; j < am->cnt; j++)
             if (am->dof[j] < 0)
               for (int i = 0; i < an->cnt; i++)
-                if (an->dof[i] >= 0)
-                  Dir[an->dof[i]] -= mat[i][j];
+                if (an->dof[i] >= 0) {
+                  if (dir_ext != NULL) dir_ext->add(an->dof[i], -mat[i][j]);
+                  if (an->dof[i] == 15) printf("to rhs %d %g\n", an->dof[i], -mat[i][j]);
+                }
         }
       }
 
@@ -517,7 +390,9 @@ void DiscreteProblem::assemble(Matrix* mat_ext, Vector* dir_ext, Vector* rhs_ext
           fv->set_active_shape(am->idx[i]);
           // FIXME - the NULL on the following line is temporary, an array of solutions 
           // should be passed there.
-          rhs_ext->add(am->dof[i], eval_form(vfv, NULL, fv, &refmap[m]) * am->coef[i]);
+          scalar val = eval_form(vfv, NULL, fv, &refmap[m]) * am->coef[i];
+          rhs_ext->add(am->dof[i], val);
+          //printf("rhs add %d %g\n", am->dof[i], val);
         }
       }
 
@@ -560,8 +435,13 @@ void DiscreteProblem::assemble(Matrix* mat_ext, Vector* dir_ext, Vector* rhs_ext
               fu->set_active_shape(an->idx[j]);
               // FIXME - the NULL on the following line is temporary, an array of solutions 
               // should be passed there.
-              bi = eval_form(mfs, NULL, fu, fv, &refmap[n], &refmap[m], &(ep[edge])) * an->coef[j] * am->coef[i];
-              if (an->dof[j] >= 0) mat[i][j] = bi; else Dir[k] -= bi;
+              bi = eval_form(mfs, NULL, fu, fv, &refmap[n], &refmap[m], &(ep[edge])) 
+                   * an->coef[j] * am->coef[i];
+              if (an->dof[j] >= 0) mat[i][j] = bi; 
+              else {
+                dir_ext->add(k, -bi);
+              }
+              //printf("%d %d %g\n", i, j, bi);
             }
           }
           insert_block(mat_ext, mat, am->dof, an->dof, am->cnt, an->cnt);
@@ -586,7 +466,9 @@ void DiscreteProblem::assemble(Matrix* mat_ext, Vector* dir_ext, Vector* rhs_ext
             fv->set_active_shape(am->idx[i]);
             // FIXME - the NULL on the following line is temporary, an array of solutions 
             // should be passed there.
-            rhs_ext->add(am->dof[i], eval_form(vfs, NULL, fv, &refmap[m], &(ep[edge])) * am->coef[i]);
+            scalar val = eval_form(vfs, NULL, fv, &refmap[m], &(ep[edge])) * am->coef[i];
+            rhs_ext->add(am->dof[i], val);
+            //printf("rhs add %d %g\n", am->dof[i], val);
           }
         }
       }
@@ -601,13 +483,15 @@ void DiscreteProblem::assemble(Matrix* mat_ext, Vector* dir_ext, Vector* rhs_ext
   delete [] buffer;
 
   if (!rhsonly) values_changed = true;
+
+  mat_ext->print();
 }
 
+// assembling of the jacobian matrix and residual vector for nonlinear problems
 void DiscreteProblem::assemble(Matrix* mat_ext, Vector* rhs_ext, bool rhsonly)
 {
-  Vector* dir = new AVector(this->get_num_dofs());
   // the vector dir is irrelevant for nonlinear problems
-  this->assemble(mat_ext, dir, rhs_ext, rhsonly);
+  this->assemble(mat_ext, NULL, rhs_ext, rhsonly);
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -677,7 +561,6 @@ void DiscreteProblem::delete_cache()
 }
 
 //// evaluation of forms, general case ///////////////////////////////////////////////////////////
-
 
 // Actual evaluation of volume Jacobian form (calculates integral)
 scalar DiscreteProblem::eval_form(WeakForm::MatrixFormVol *mfv, Solution *sln[], 
@@ -1000,63 +883,6 @@ bool DiscreteProblem::solve(Matrix* mat, Vector* rhs, Vector* vec)
   return true;
 }
 
-//// matrix and solution output /////////////////////////////////////////////////////////////////////////////////
-
-void DiscreteProblem::get_solution_vector(std::vector<scalar>& sln_vector_out) {
-  int ndof = this->get_num_dofs();
-  if (ndof == 0) error("ndof = 0 in DiscreteProblem::get_solution_vector().");
-
-  std::vector<scalar> temp(ndof);
-  sln_vector_out.swap(temp);
-  for(int i = 0; i < ndof; i++)
-    sln_vector_out[i] = Vec[i];
-}
-
-void DiscreteProblem::save_matrix_matlab(const char* filename, const char* varname)
-{
-  warn("Saving matrix in Matlab format not implemented yet.");
-}
-
-void DiscreteProblem::save_rhs_matlab(const char* filename, const char* varname)
-{
-  int ndof = this->get_num_dofs();
-  if (ndof == 0) error("ndof = 0 in DiscreteProblem::save_rhs_matlab().");
-  if (RHS == NULL) error("RHS has not been assembled yet.");
-  FILE* f = fopen(filename, "w");
-  if (f == NULL) error("Could not open file %s for writing.", filename);
-  verbose("Saving RHS vector in MATLAB format...");
-  fprintf(f, "%% Size: %dx1\n%s = [\n", ndof, varname);
-  for (int i = 0; i < ndof; i++)
-    #ifndef H2D_COMPLEX
-      fprintf(f, "%.18e\n", RHS[i]);
-    #else
-      fprintf(f, "%.18e + %.18ei\n", RHS[i].real(), RHS[i].imag());
-    #endif
-  fprintf(f, "];\n");
-  fclose(f);
-}
-
-
-void DiscreteProblem::save_matrix_bin(const char* filename)
-{
-}
-
-void DiscreteProblem::save_rhs_bin(const char* filename)
-{
-  int ndof = this->get_num_dofs();
-  if (ndof == 0) error("ndof = 0 in DiscreteProblem::save_rhs_bin().");
-  if (RHS == NULL) error("RHS has not been assembled yet.");
-  FILE* f = fopen(filename, "wb");
-  if (f == NULL) error("Could not open file %s for writing.", filename);
-  verbose("Saving RHS vector in binary format...");
-  hermes2d_fwrite("H2DR\001\000\000\000", 1, 8, f);
-  int ssize = sizeof(scalar);
-  hermes2d_fwrite(&ssize, sizeof(int), 1, f);
-  hermes2d_fwrite(&ndof, sizeof(int), 1, f);
-  hermes2d_fwrite(RHS, sizeof(scalar), ndof, f);
-  fclose(f);
-}
-
 // L2 projections
 template<typename Real, typename Scalar>
 Scalar L2projection_biform(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *u, 
@@ -1214,7 +1040,7 @@ void DiscreteProblem::project_global(Tuple<MeshFunction*> source, Tuple<Solution
   Vector* dir = new AVector(this->get_num_dofs());
   Vector* rhs = new AVector(this->get_num_dofs());
 
-  //assembling the projection matrix, Dir vector and RHS
+  //assembling the projection matrix, dir vector and rhs
   DiscreteProblem::assemble(&mat, dir, rhs, false);
   // since this is a linear problem, put the Dir vector to the right-hand side:
   for (int i=0; i < this->get_num_dofs(); i++) rhs->add(i, dir->get(i));
@@ -1288,7 +1114,7 @@ void DiscreteProblem::project_global(Tuple<MeshFunction*> source, Tuple<Solution
   Vector* dir = new AVector(this->get_num_dofs());
   Vector* rhs = new AVector(this->get_num_dofs());
 
-  //assembling the projection matrix, Dir vector and RHS
+  //assembling the projection matrix, dir vector and rhs
   DiscreteProblem::assemble(&mat, dir, rhs, false);
   // since this is a linear problem, put the Dir vector to the right-hand side:
   for (int i=0; i < this->get_num_dofs(); i++) rhs->add(i, dir->get(i));

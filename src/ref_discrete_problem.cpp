@@ -136,7 +136,6 @@ void RefDiscreteProblem::global_refinement()
 
 RefDiscreteProblem::~RefDiscreteProblem()
 {
-  this->free_vectors();
 }
 
 // just to prevent the user from calling this
