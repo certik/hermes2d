@@ -27,7 +27,7 @@ using namespace RefinementSelectors;
 //
 //  The following parameters can be changed:
 
-const double TIME_INIT = 1e-4;             // Initial time.
+const double TIME_INIT = 5e-3;             // Initial time.
 const int INIT_REF_NUM = 0;                // Number of initial uniform mesh refinements.
 const int INIT_REF_NUM_BDY = 2;            // Number of initial mesh refinements towards the top edge.
 const int P_INIT = 2;                      // Initial polynomial degree of all mesh elements.
