@@ -2,6 +2,8 @@ from _hermes_common cimport c2numpy_double, c2numpy_int
 
 H2D_FN_DX = c_H2D_FN_DX
 H2D_FN_DY = c_H2D_FN_DY
+H2D_FN_DX_0 = c_H2D_FN_DX_0
+H2D_FN_DY_0 = c_H2D_FN_DY_0
 H2D_FN_VAL = c_H2D_FN_VAL
 H2D_FN_DX = c_H2D_FN_DX
 H2D_FN_DY = c_H2D_FN_DY
@@ -266,7 +268,8 @@ cdef class Mesh:
         counterclockwise order.
 
         Example:
-
+        >>> import hermes2d
+        >>> m = hermes2d.Mesh() 
         >>> m.create([
         ...         [0, -1],
         ...         [1, -1],
@@ -364,11 +367,11 @@ cdef class Mesh:
         >>> m.refine_all_elements(); 
         >>> m.nodes
         [(0.0, -1.0), (1.0, -1.0), (-1.0, 0.0), (0.0, 0.0), (1.0, 0.0), (-1.0,
-        1.0), (0.0, 1.0), (0.70710700000000004, 0.70710700000000004), (0.5,
-        0.0), (1.0, -0.5), (0.0, 0.5), (0.5, -1.0), (0.38268352000946515,
-        0.923879663680364), (-1.0, 0.5), (-0.5, 0.5), (-0.5, 1.0), (-0.5, 0.0),
-        (       0.0, -0.5), (0.5, -0.5), (0.92387966368036412, 0.38268352000946509),
-        (0.35355350000000002, 0.35355350000000002)] 
+	1.0), (0.0, 1.0), (0.70710700000000004, 0.70710700000000004), (0.5,
+	0.0), (1.0, -0.5), (0.0, 0.5), (0.5, -1.0), (0.38268352000946509,
+	0.92387966368036412), (-1.0, 0.5), (-0.5, 0.5), (-0.5, 1.0), (-0.5,
+	0.0), (0.0, -0.5), (0.5, -0.5), (0.92387966368036412,
+	0.38268352000946509), (0.35355350000000002, 0.35355350000000002)]
 
         Notice how in the example above we refined our mesh with "m.refine_all_elements();"
         and diplayed our new "list of nodes" after refinement.  In the example above
@@ -847,8 +850,8 @@ cdef class PrecalcShapeset:
 
 cdef class H1Space:
 
-    def __init__(self, Mesh m):
-        self.thisptr = new_H1Space(m.thisptr)
+    def __init__(self, Mesh m = None, p_init = 1, H1Shapeset h = None):
+        self.thisptr = new_H1Space(m.thisptr, NULL, NULL, p_init, NULL)
 
     def __dealloc__(self):
         delete(self.thisptr)
@@ -881,40 +884,40 @@ cdef class L2Space:
 
     def set_uniform_order(self, int tri_order):
         """ Sets an order of all elements. In a case of quads, this supplied
-	    order is set to both the horizontal and the vertical direction
+        order is set to both the horizontal and the vertical direction
 
-	    Suggested Use: ```l2_space.set_uniform_order(3)```
-	"""
+        Suggested Use: ```l2_space.set_uniform_order(3)```
+    """
         self.thisptr.set_uniform_order(tri_order)
 
     def assign_dofs(self, first_dof=0, stride=1):
         """ Assign DOFs. Updates internal structures after orders has been changed
-	    Returns a number of DOFs.
+        Returns a number of DOFs.
 
-	    Suggested Use: ```l2_space.assign_dofs()```
-	"""
+        Suggested Use: ```l2_space.assign_dofs()```
+    """
         return self.thisptr.assign_dofs(first_dof, stride)
 
     def copy_orders(self, L2Space s, int inc=0):
         """ Copies order from a supplied L2 space.
 
-	    Suggested Use: ```l2_space.copy_orders(another_l2_space)```
-	"""
+        Suggested Use: ```l2_space.copy_orders(another_l2_space)```
+    """
         self.thisptr.copy_orders(s.thisptr, inc)
 
     def get_element_order(self, int el_id):
         """ Returns order of element. In case of quadrilaterals, the order
-	    is in an encoded form.
+        is in an encoded form.
 
-	    Suggested Use: ```order = l2_space.get_element_order(element_id)```
-	"""
+        Suggested Use: ```order = l2_space.get_element_order(element_id)```
+    """
         return self.thisptr.get_element_order(el_id)
 
     def get_num_dofs(self):
         """ Returns a number of DOFs.
 
-	    Suggested Use: ```num_dofs = l2_space.get_num_dofs()```
-	"""
+        Suggested Use: ```num_dofs = l2_space.get_num_dofs()```
+    """
         return self.thisptr.get_num_dofs()
 
 cdef api object H1Space_from_C(c_H1Space *h):
@@ -1111,10 +1114,10 @@ cdef class WeakForm:
     def __dealloc__(self):
         delete(self.thisptr)
 
-cdef class DummySolver(Solver):
+cdef class DummySolver(CommonSolver):
 
     def __cinit__(self):
-        self.thisptr = <c_Solver *>(new_DummySolver())
+        self.thisptr = <c_CommonSolver *>(new_DummySolver())
 
     def __dealloc__(self):
         delete(self.thisptr)
@@ -1123,6 +1126,10 @@ cdef class LinSystem:
 
     def __init__(self, WeakForm wf):
         self.thisptr = new_LinSystem(wf.thisptr)
+   # def __init__(self, WeakForm wf, CommonSolver solver):
+   #     self.thisptr = new_LinSystem(wf.thisptr, solver.thisptr)
+   # def __init__(self, WeakForm wf, H1Space sp):
+   #    self.thisptr = new_LinSystem(wf.thisptr, sp.thisptr)
 
     #def __dealloc__(self):
     #    delete(self.thisptr)
@@ -1133,21 +1140,22 @@ cdef class LinSystem:
         cdef H1Space a, b, c, d
         if n == 1:
             a = args[0]
-            self.thisptr.set_spaces(n, a.thisptr)
+            self.thisptr.set_spaces2(n, a.thisptr)
         elif n == 2:
             a, b = args
-            self.thisptr.set_spaces(n, a.thisptr, b.thisptr)
+            self.thisptr.set_spaces2(n, a.thisptr, b.thisptr)
         elif n == 3:
             a, b, c = args
-            self.thisptr.set_spaces(n, a.thisptr, b.thisptr, c.thisptr)
+            self.thisptr.set_spaces2(n, a.thisptr, b.thisptr, c.thisptr)
         elif n == 4:
             a, b, c, d = args
-            self.thisptr.set_spaces(n, a.thisptr, b.thisptr, c.thisptr,
+            self.thisptr.set_spaces2(n, a.thisptr, b.thisptr, c.thisptr,
                     d.thisptr)
         else:
             raise NotImplementedError()
 
     def set_pss(self, *args):
+        """
         self._pss = args
         cdef int n = len(args)
         cdef PrecalcShapeset s1, s2, s3, s4
@@ -1166,6 +1174,29 @@ cdef class LinSystem:
                     s4.thisptr)
         else:
             raise NotImplementedError()
+        """
+        pass
+        
+    def set_pss2(self, *args):
+        self._pss = args
+        cdef int n = len(args)
+        cdef PrecalcShapeset s1, s2, s3, s4
+        if n == 1:
+            s1, = args
+            self.thisptr.set_pss2(n, s1.thisptr)
+        elif n == 2:
+            s1, s2 = args
+            self.thisptr.set_pss2(n, s1.thisptr, s2.thisptr)
+        elif n == 3:
+            s1, s2, s3 = args
+            self.thisptr.set_pss2(n, s1.thisptr, s2.thisptr, s3.thisptr)
+        elif n == 4:
+            s1, s2, s3, s4 = args
+            self.thisptr.set_pss2(n, s1.thisptr, s2.thisptr, s3.thisptr,
+                    s4.thisptr)
+        else:
+            raise NotImplementedError()
+
 
     def solve_system(self, *args, lib="scipy"):
         """
@@ -1176,8 +1207,10 @@ cdef class LinSystem:
         cdef Solution s0, s1, s2, s3
         cdef ndarray vec
         cdef scalar *pvec
-
+        
+        """
         if lib == "hermes":
+
             if n == 1:
                 s0 = args[0]
                 self.thisptr.solve(n, s0.thisptr)
@@ -1193,7 +1226,26 @@ cdef class LinSystem:
                         s3.thisptr)
             else:
                 raise NotImplementedError()
+        """
+        
+        if lib == "hermes":
 
+            if n == 1:
+                s0 = args[0]
+                self.thisptr.solve2(n, s0.thisptr)
+            elif n == 2:
+                s0, s1 = args
+                self.thisptr.solve2(n, s0.thisptr, s1.thisptr)
+            elif n == 3:
+                s0, s1, s2 = args
+                self.thisptr.solve2(n, s0.thisptr, s1.thisptr, s2.thisptr)
+            elif n == 4:
+                s0, s1, s2, s3 = args
+                self.thisptr.solve2(n, s0.thisptr, s1.thisptr, s2.thisptr,
+                        s3.thisptr)
+            else:
+                raise NotImplementedError()
+                          
         elif lib == "scipy":
             import warnings
             from scipy.sparse.linalg import cg
@@ -1251,6 +1303,9 @@ cdef class LinSystem:
         cdef int n
         self.thisptr.get_rhs(rhs, n)
         return c2numpy_double(rhs, n)
+
+    def get_num_dofs(self):
+        self.thisptr.get_num_dofs()
 
 cdef class RefSystem(LinSystem):
 
@@ -1397,30 +1452,30 @@ cdef class CandList:
         Possible values are attributes of the class:
 
         - P_ISO: P-candidates only. Orders are modified uniformly.
-	- P_ANISO: P-candidates only. Orders are modified non-uniformly.
-	- H_ISO: H-candidates only. Orders are not modified.
-	- H_ANISO: H- and ANISO-candidates only. Orders are not modified.
-	- HP_ISO: H- and P-candidates only. Orders are modified uniformly.
-	- HP_ANISO_H: H-, ANISO- and P-candidates. Orders are modified uniformly.
-	- HP_ANISO_P: H- and P-candidates only. Orders are modified non-uniformly.
-	- HP_ANISO: H-, ANISO- and P-candidates. Orders are modified non-uniformly.
+    - P_ANISO: P-candidates only. Orders are modified non-uniformly.
+    - H_ISO: H-candidates only. Orders are not modified.
+    - H_ANISO: H- and ANISO-candidates only. Orders are not modified.
+    - HP_ISO: H- and P-candidates only. Orders are modified uniformly.
+    - HP_ANISO_H: H-, ANISO- and P-candidates. Orders are modified uniformly.
+    - HP_ANISO_P: H- and P-candidates only. Orders are modified non-uniformly.
+    - HP_ANISO: H-, ANISO- and P-candidates. Orders are modified non-uniformly.
     """
-    P_ISO = c_H2D_P_ISO
-    P_ANISO = c_H2D_P_ANISO
-    H_ISO = c_H2D_H_ISO
-    H_ANISO = c_H2D_H_ANISO
-    HP_ISO = c_H2D_HP_ISO
-    HP_ANISO_H = c_H2D_HP_ANISO_H
-    HP_ANISO_P = c_H2D_HP_ANISO_P
-    HP_ANISO = c_H2D_HP_ANISO
+    H2D_P_ISO = c_H2D_P_ISO
+    H2D_P_ANISO = c_H2D_P_ANISO
+    H2D_H_ISO = c_H2D_H_ISO
+    H2D_H_ANISO = c_H2D_H_ANISO
+    H2D_HP_ISO = c_H2D_HP_ISO
+    H2D_HP_ANISO_H = c_H2D_HP_ANISO_H
+    H2D_HP_ANISO_P = c_H2D_HP_ANISO_P
+    H2D_HP_ANISO = c_H2D_HP_ANISO
 
 cdef class SelOption:
     """ Options of the selector.
 
         Possible values are attributes of the class:
 
-	- PREFER_SYMMETRIC_MESH: Prefer symmetric mesh when selection of the best candidate is done. If two or more candiates has the same score, they are skipped. This option is set by default.
-	- APPLY_CONV_EXP_DOF: Use $d^c - d_0^c$, where $c$ is the convergence exponent, instead of $(d - d_0)^c$ to evaluate the score. This option is not set by default.
+    - PREFER_SYMMETRIC_MESH: Prefer symmetric mesh when selection of the best candidate is done. If two or more candiates has the same score, they are skipped. This option is set by default.
+    - APPLY_CONV_EXP_DOF: Use $d^c - d_0^c$, where $c$ is the convergence exponent, instead of $(d - d_0)^c$ to evaluate the score. This option is not set by default.
     """
     PREFER_SYMMETRIC_MESH = c_H2D_PREFER_SYMMETRIC_MESH
     APPLY_CONV_EXP_DOF = c_H2D_APPLY_CONV_EXP_DOF
@@ -1429,12 +1484,12 @@ cdef class ProjBasedSelector:
     """ A base class for projection based selector.
 
         Suggests a refinement based on en error of proposed refinements (candidates).
-	An error of a candidate is a combination of errors of
-	elements of a candidate. Each element of a candidate is calculated
-	separatelly.
+    An error of a candidate is a combination of errors of
+    elements of a candidate. Each element of a candidate is calculated
+    separatelly.
 
         Do not use this class directly,
-	use derived classes H1ProjBasedSelector and L2ProjBasedSelector instead.
+    use derived classes H1ProjBasedSelector and L2ProjBasedSelector instead.
     """
     def __cinit__(self):
         pass 
@@ -1445,61 +1500,61 @@ cdef class ProjBasedSelector:
     def set_error_weights(self, double weight_h, double weight_p, double weight_aniso):
         """ Sets error weights.
         
-	    An error weight is a multiplicative coefficient that modifies an error of candidate.
-	    Default wieghts are:
+        An error weight is a multiplicative coefficient that modifies an error of candidate.
+        Default wieghts are:
 
-	    - H-candidate weight: 2.0
-	    - P-candidate weight: 1.0
-	    - ANISO-candidate weight: 1.4142
+        - H-candidate weight: 2.0
+        - P-candidate weight: 1.0
+        - ANISO-candidate weight: 1.4142
 
-	    Suggested Use:
+        Suggested Use:
 
-	    - settings the default weights: ```selector.set_error_weights(2.0, 1.0, 1.4142)```
+        - settings the default weights: ```selector.set_error_weights(2.0, 1.0, 1.4142)```
         """
         self.thisptr.set_error_weights(weight_h, weight_p, weight_aniso)
 
     def set_option(self, int option, int enable):
         """ Enables or disables an option.
 
-	    Suggested Use:
+        Suggested Use:
 
-	    - enabling an option ``PREFER_SYMMETRIC_MESH``: ``selector.set_option(SelOption.PREFER_SYMMETRIC_MESH, true)``
-	    - disabling an option ``APPLY_CONV_EXP_DOF``: ``selector.set_optin(SelOption.APPLY_CONV_EXP_DOF, false)``
-	"""
+        - enabling an option ``PREFER_SYMMETRIC_MESH``: ``selector.set_option(SelOption.PREFER_SYMMETRIC_MESH, true)``
+        - disabling an option ``APPLY_CONV_EXP_DOF``: ``selector.set_optin(SelOption.APPLY_CONV_EXP_DOF, false)``
+    """
         self.thisptr.set_option(<c_SelOption>option, enable)
 
 cdef class H1ProjBasedSelector(ProjBasedSelector):
     """ A projection based selector for H1 space by the method adapt() of the class Adapt
         The selector should be instantiated outside the adaptivity loop.
 
-	Suggested Use:
+    Suggested Use:
 
-	```selector = H1ProjBasedSelector(cand_list, conv_exp, max_order, h1_shapeset)```
+    ```selector = H1ProjBasedSelector(cand_list, conv_exp, max_order, h1_shapeset)```
 
-	where:
+    where:
 
-	- ```cand_list``` defines possible candidates, e.g., CandList.HP_ANISO.
-	- ```conv_exp``` specifies a convergence exponent which incluences selecting of a candidate. For more detials, refer to User Documentation.
-	- ```max_order``` defined a maximum order which should be used by the refinement. Currently, the maximum order is 9. Supply -1 to use the maximum supported order.
-	- ```h1_shapeset``` expects an instance of the class H1Shapeset.
+    - ```cand_list``` defines possible candidates, e.g., CandList.HP_ANISO.
+    - ```conv_exp``` specifies a convergence exponent which incluences selecting of a candidate. For more detials, refer to User Documentation.
+    - ```max_order``` defined a maximum order which should be used by the refinement. Currently, the maximum order is 9. Supply -1 to use the maximum supported order.
+    - ```h1_shapeset``` expects an instance of the class H1Shapeset.
     """
-    def __cinit__(self, int cand_list, double conv_exp, int max_order, H1Shapeset shapeset):
-        self.thisptr = <c_ProjBasedSelector*>(new_H1ProjBasedSelector(<c_CandList>cand_list, conv_exp, max_order, shapeset.thisptr))
+    def __cinit__(self, int cand_list, double conv_exp, int max_order, H1Shapeset shapeset = None):
+        self.thisptr = <c_ProjBasedSelector*>(new_H1ProjBasedSelector(<c_CandList>cand_list, conv_exp, max_order, NULL))
 
 cdef class L2ProjBasedSelector(ProjBasedSelector):
     """ A projection based selector for L2 space used by the method adapt() of the class Adapt.
         The selector should be instantiated outside the adaptivity loop.
 
-	Suggested Use:
+    Suggested Use:
 
-	    ```selector = L2ProjBasedSelector(cand_list, conv_exp, max_order, l2_shapeset)```
+        ```selector = L2ProjBasedSelector(cand_list, conv_exp, max_order, l2_shapeset)```
 
-	where:
+    where:
 
-	- ```cand_list``` defines possible candidates, e.g., CandList.HP_ANISO.
-	- ```conv_exp``` specifies a convergence exponent which incluences selecting of a candidate. For more detials, refer to User Documentation.
-	- ```max_order``` defined a maximum order which should be used by the refinement. Currently, the maximum order is 9. Supply -1 to use the maximum supported order.
-	- ```l2_shapeset``` expects an instance of the class L2Shapeset.
+    - ```cand_list``` defines possible candidates, e.g., CandList.HP_ANISO.
+    - ```conv_exp``` specifies a convergence exponent which incluences selecting of a candidate. For more detials, refer to User Documentation.
+    - ```max_order``` defined a maximum order which should be used by the refinement. Currently, the maximum order is 9. Supply -1 to use the maximum supported order.
+    - ```l2_shapeset``` expects an instance of the class L2Shapeset.
     """
     def __cinit__(self, int cand_list, double conv_exp, int max_order, L2Shapeset shapeset):
         self.thisptr = <c_ProjBasedSelector*>(new_L2ProjBasedSelector(<c_CandList>cand_list, conv_exp, max_order, shapeset.thisptr))
@@ -1515,13 +1570,13 @@ cdef class Adapt:
 
     def set_solutions(self, sln_list, rsln_list):
         """ Sets coarse solutions and reference solutions.
-	    This method has to be called before the method calc_error().
+        This method has to be called before the method calc_error().
 
-	    Suggested Use:
+        Suggested Use:
 
-	    - single component: ```hp.set_solutions([sln1], [rsln1])```
-	    - multiple components: ```hp.set_solutions([sln1, sln2], [rsl1, rsln2])```
-	"""
+        - single component: ```hp.set_solutions([sln1], [rsln1])```
+        - multiple components: ```hp.set_solutions([sln1, sln2], [rsl1, rsln2])```
+    """
         cdef c_SolutionTuple slns
         cdef c_SolutionTuple rslns
         for i in range(len(sln_list)):
@@ -1532,32 +1587,32 @@ cdef class Adapt:
 
     def calc_error(self, int error_flags = H2D_TOTAL_ERROR_REL | H2D_ELEMENT_ERROR_ABS):
         """ Calculates errors of elements and returns a total error.
-	    This method has to be called before the method adapt().
+        This method has to be called before the method adapt().
 
-	    Suggested Use: ```err_percent = hp.calc_error() * 100```
-	"""
+        Suggested Use: ```err_percent = hp.calc_error() * 100```
+    """
         return self.thisptr.calc_error(error_flags)
 
-    def adapt(self, ProjBasedSelector selector, double thr, int strat = 0, int regularize = -1, int same_orders = 0, double to_be_processed = 0.0):
+    def adapt(self, ProjBasedSelector selector, double thr, int strat = 0, int regularize = -1, double to_be_processed = 0.0):
         """ Does adaptive refinement based on errors of elements.
-	    Refinements are selected using a supplied selector.
+        Refinements are selected using a supplied selector.
 
-	    Returns ```True``` if no element was refined.
+        Returns ```True``` if no element was refined.
 
-	    Suggested Use:
-	    
-	        ```hp.adapt(selector, thr, strat, regularize, same_order, to_be_processed)```
+        Suggested Use:
+        
+            ```hp.adapt(selector, thr, strat, regularize, same_order, to_be_processed)```
 
-	    where
+        where
 
-	    - ```selector``` is a selector, see the class ProjBasedSelector.
-	    - ```thr``` is a threshold used by adaptivity strategy.
-	    - ```strat``` is an adaptivity strategy. Possible values are 0, 1, 2, and 3.
-	    - ```regularize``` specifies mesh regularization. Default value is `-1`.
-	    - ```same_orders``` specifies whether all element should have the same order. Default is `False`.
-	    - ```to_be_procesed``` specifies an error to process. Used by strategy 3. Default is `0.0`.
-	"""
-        return self.thisptr.adapt(selector.thisptr, thr, strat, regularize, same_orders, to_be_processed)
+        - ```selector``` is a selector, see the class ProjBasedSelector.
+        - ```thr``` is a threshold used by adaptivity strategy.
+        - ```strat``` is an adaptivity strategy. Possible values are 0, 1, 2, and 3.
+        - ```regularize``` specifies mesh regularization. Default value is `-1`.
+        - ```same_orders``` specifies whether all element should have the same order. Default is `False`.
+        - ```to_be_procesed``` specifies an error to process. Used by strategy 3. Default is `0.0`.
+        """
+        return self.thisptr.adapt(selector.thisptr, thr, strat, regularize, to_be_processed)
 
 cdef class H1Adapt(Adapt):
     """ Adaptivity class for H1 space.
@@ -1565,29 +1620,38 @@ cdef class H1Adapt(Adapt):
 
         Suggested Use:
 
-	- single component: ```hp = H1Adapt([h1_space1])```
-	- multiple components: ```hp = H1Adapt([h1_space1, h1_space2])```
+    - single component: ```hp = H1Adapt([h1_space1])```
+    - multiple components: ```hp = H1Adapt([h1_space1, h1_space2])```
+    """
     """
     def __cinit__(self, space_list):
         cdef c_H1SpaceTuple spaces
         for i in range(len(space_list)):
             spaces.push_back((<H1Space>(space_list[i])).thisptr)
         self.thisptr = <c_Adapt*>(new_H1Adapt(spaces))
-
+    """
+    
+    def __cinit__(self, LinSystem ls):
+        self.thisptr = <c_Adapt*>(new_H1Adapt(ls.thisptr))
+            
 cdef class L2Adapt(Adapt):
     """ Adaptivity class for L2 space.
         For details on class members, see the parent class Adapt.
 
         Suggested Use:
 
-	- single component: ```hp = L2Adapt([l2_space1])```
-	- multiple components: ```hp = L2Adapt([l2_space1, l2_space2])```
+    - single component: ```hp = L2Adapt([l2_space1])```
+    - multiple components: ```hp = L2Adapt([l2_space1, l2_space2])```
+    """
     """
     def __cinit__(self, space_list):
         cdef c_L2SpaceTuple spaces
         for i in range(len(space_list)):
             spaces.push_back((<L2Space>(space_list[i])).thisptr)
         self.thisptr = <c_Adapt*>(new_L2Adapt(spaces))
+    """
+    def __cinit__(self, LinSystem ls):
+        self.thisptr = <c_Adapt*>(new_L2Adapt(ls.thisptr))    
 
 cdef class Linearizer:
     """
