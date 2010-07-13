@@ -1033,14 +1033,14 @@ bool LinSystem::solve(Tuple<Solution*> sln)
   if (this->linear == true) {
     // solve linear system "Ax = b"
     memcpy(this->Vec, this->RHS, sizeof(scalar) * ndof);
-    this->solver->solve(this->A, this->Vec);
+    this->solver->_solve(this->A, this->Vec);
     report_time("LinSystem solved in %g s", cpu_time.tick().last());
   }
   else {
     // solve Jacobian system "J times dY_{n+1} = -F(Y_{n+1})"
     scalar* delta = new scalar[ndof];
     memcpy(delta, this->RHS, sizeof(scalar) * ndof);
-    this->solver->solve(this->A, delta);
+    this->solver->_solve(this->A, delta);
     report_time("Solved in %g s", cpu_time.tick().last());
     // add the increment dY_{n+1} to the previous solution vector
     for (int i = 0; i < ndof; i++) this->Vec[i] += delta[i];

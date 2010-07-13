@@ -120,6 +120,11 @@ public:
             if (iidx[i] >= 0)
                 this->add(iidx[i], vec[i]);
     }
+    virtual void set(int m, double v) = 0;
+    virtual void set(int m, cplx v)
+    {
+        _error("internal error: set(int, cplx) not implemented.");
+    }
     virtual double get(int m) = 0;
     virtual cplx get_cplx(int m)
     {
@@ -184,6 +189,10 @@ public:
     {
         if (m >= 0)
             this->v_cplx[m] += v;
+    }
+    virtual void set(int m, double v) {
+        if (m >= 0)
+            this->v[m] = v;
     }
     virtual double get(int m) {
         return this->v[m];
