@@ -1,18 +1,18 @@
 
 // funkce pro vypocet hodnoty na okrajove podmince, mimo hodnotu jeste spocte derivaci funkce na teto hrane vuci x_1, ale to je asi zbytecny
-double boundary_value(double h_r, double x, double& dh, double& h) {
+double boundary_value(double x, double& dhdx) {
 //  a...intent(in)..materialovy parametr
-//  h_r.intent(in)..saci tlak kdyz je material "very dry"
+//  H_R.intent(in)..saci tlak kdyz je material "very dry"
 //  x.. intent(in)...x_1-slozka bodu na hranici \Gamma_3
 //  dh..intent(out)..derivace okrajove podminky...
 //  h...intent(out)..hodnota okrajove podminky na hranici \Gamma_3
-  dh = (1-exp(ALPHA*h_r)*M_PI*cos(M_PI*x/ALPHA))/(ALPHA*ALPHA*(exp(a*h_r)+(1-exp(ALPHA*h_r))*sin(M_PI*x/ALPHA))); //tohle asi nepotrebujes, derivace op podle x_1 na hrane
-  h = 1/ALPHA*log(exp(ALPHA*h_r)+(1-exp(ALPHA*h_r))*sin(M_PI*x/ALPHA)); //hodnota bodu na hrane s \Gamma_3
+  dhdx = (1-exp(ALPHA*H_R)*M_PI*cos(M_PI*x/ALPHA))/(ALPHA*ALPHA*(exp(A*H_R)+(1-exp(ALPHA*H_R))*sin(M_PI*x/ALPHA))); //tohle asi nepotrebujes, derivace op podle x_1 na hrane
+  return 1/ALPHA*log(exp(ALPHA*H_R) + (1-exp(ALPHA*H_R))*sin(M_PI*x/ALPHA)); //hodnota bodu na hrane s \Gamma_3
 }
 
 
 // funkce pro vypocet funkcni hondoty reseni a derivace reseni na domene
-  double exact_sol(double x, double z, double hr, double a, double L, double& dhdx, double& dhdz) {
+  double exact_sol(double x, double z, double& dhdx, double& dhdz) {
 // !--------i/o variables-------------------------
 //       !> coordinates of the desired point
 //       real(kind=rkind), dimension(:), intent(in) :: x,z
@@ -21,13 +21,13 @@ double boundary_value(double h_r, double x, double& dh, double& h) {
 //       !> material parameter
 //       real(kind=rkind), dimension(:), intent(in) :: ALPHA
 //       !> "a very dry" media pressure head
-//       real(kind=rkind, intent(in)                :: hr
+//       real(kind=rkind, intent(in)                :: H_R
 //       !> saturated water content(porosity) and residual water content
 //       real(kind=rkind), intent(in)               :: THETA_R, THETA_S
 //       !> saturated hydraulic conductivity
 //       real(kind=rkind), intent(in)               :: K_S
 //       !> domain length(x_3) + width(x_1)   --- tohle jsem vlastne nezkousel kdyz to bude jiny tvar nez ctverec, muze se stat, ze to bude treba prohodit
-//       real(kind=rkind), intent(in)               :: L, a 
+//       real(kind=rkind), intent(in)               :: L, A 
 //       !> pressure head at the desired point
 //       real(kind=rkind), intent(out)              :: h
 //       !> solution derivations
@@ -35,29 +35,7 @@ double boundary_value(double h_r, double x, double& dh, double& h) {
 
 
 // !--------local variables--------------------
-      double lambda ;
-      double c ;
-      double gamma ;
-      double phi ;
-      double hbar ;
-      double beta ;
-      double ho ;
-      double suma ;
-      double suma2 ;
-      double hss ;
-      double tmp ;
-      double reps ;
-      double a_const ;
-      double f_xz ;
-      double g_xz ;
-      double k_xz ;
-      double dfdx ;
-      double dfdz ;
-      double dgdx ;
-      double dgdz ;
-      double dkdx ;
-      double dkdz ;
-      int i;
+   
   
       
 // pro kontrolu seznam lokalnich promennych z originalniho kodu
@@ -69,12 +47,12 @@ double boundary_value(double h_r, double x, double& dh, double& h) {
 //       real(kind=rkind) :: hbar
 //       real(kind=rkind) :: beta
 //       real(kind=rkind) :: ho
-//       real(kind=rkind) :: hr
+//       real(kind=rkind) :: H_R
 //       real(kind=rkind) :: suma
 //       real(kind=rkind) :: hss
 //       real(kind=rkind) :: tmp
 //       real(kind=rkind) :: ALPHA
-//       real(kind=rkind) :: a
+//       real(kind=rkind) :: A
 //       real(kind=rkind) :: L, x,z,pi, a_const, f_xz, g_xz, k_xz, dfdx, dfdz, dgdx, dgdz, dkdx, dkdz, suma2
 //       integer :: i
 
@@ -85,78 +63,74 @@ double boundary_value(double h_r, double x, double& dh, double& h) {
 
 
 // !----formula parameters
-      reps = 1e-9 ; //presnost realnych cisel
+      double reps = 1e-9 ; //presnost realnych cisel
 
-      ho = 1-exp(ALPHA*hr) ;
+      double ho = 1 - exp(ALPHA*H_R) ;
 
-      beta = sqrt(ALPHA**2/4 + (M_PI/a)**2) ;
+      double beta = sqrt(ALPHA*ALPHA/4 + (M_PI/A)*(M_PI/A)) ;
 
-      c = ALPHA*(parameters(5)-parameters(4))/parameters(6) ;
+      double c = ALPHA*(THETA_S - THETA_R)/K_S ;
 
-      hss = ho*sin(M_PI*x/a)*exp(ALPHA/2*(L-z))*sinh(beta*z)/sinh(beta*L) ;
+      double hss = ho*sin(M_PI*x/A)*exp(ALPHA/2*(L-z))*sinh(beta*z)/sinh(beta*L) ;
 
-      suma = 0 ;
-
-      i = 0 ;
+      double sum = 0 ;
 
 
 // !----fourier series for solution and for solution x_1 derivate
-      do {
-        i = i+1 ;
-        tmp = suma ;
-        lambda = i*M_PI/L ;
-        gamma = 1/c*(beta*beta + lambda*lambda) ;
-        tmp = pow(-1,i)*lambda/gamma*sin(lambda*z)*exp(-gamma*TIME) ;
-        suma = suma + tmp ;
-      } while (abs(1/c*lambda/gamma * exp(-gamma*TIME)) > reps*reps);  
+      for (int i=1; i >= 0; i++) {
+        double lambda = i*M_PI/L ;
+        double gamma = 1/c*(beta*beta + lambda*lambda) ;
+        double tmp = pow(-1,i)*lambda/gamma*sin(lambda*z)*exp(-gamma*TIME) ;
+        sum += tmp ;
+        if (fabs(1/c*lambda/gamma * exp(-gamma*TIME)) < reps*reps) break;
+      }  
 
 
-     phi = 2*ho/(L*c)*sin(M_PI*x/a)*exp(ALPHA/2*(L-z))*suma ;
+     double phi = 2*ho/(L*c)*sin(M_PI*x/A)*exp(ALPHA/2*(L-z))*sum ;
 
 
-     hbar = phi + hss ;
+     double hbar = phi + hss ;
 
 // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 // !!!!!!!!!!!!! vysledna hodnota funkce h!!!!!!!!!!!!!!!!!!!!!!!!!!!
 // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!11
-     h = 1/ALPHA*log(exp(ALPHA*hr)+hbar) ; // !!!!! function h !!!!
+     double h = 1/ALPHA*log(exp(ALPHA*H_R)+hbar) ; // !!!!! function h !!!!
 //      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!11
 // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
      
      
 //      !!!!!!vypocet derivaci!!!!!!!!!
 
-     a_const = exp(ALPHA*hr) ;
+     double a_const = exp(ALPHA*H_R) ;
 
-     f_xz = 2*ho/(L*c)*sin(M_PI*x/a)*exp(ALPHA/2*(L-z)) ; 
+     double f_xz = 2*ho/(L*c)*sin(M_PI*x/A)*exp(ALPHA/2*(L-z)) ; 
 
-     g_xz = suma ;
+     double g_xz = sum ;
 
-     k_xz = ho*sin(M_PI*x/a)*exp(ALPHA/2*(L-z))*sinh(beta*z)/sinh(beta*L) ;
+     double k_xz = ho*sin(M_PI*x/A)*exp(ALPHA/2*(L-z))*sinh(beta*z)/sinh(beta*L) ;
      
-     dfdx = 2*exp(1/2*ALPHA*(L-z))*ho*M_PI*cos(M_PI*x/a)/(a*c*L) ;
+     double dfdx = 2*exp(1/2*ALPHA*(L-z))*ho*M_PI*cos(M_PI*x/A)/(A*c*L) ;
 
-     dfdz = -ALPHA*exp(1/2*ALPHA*(L-z))*ho*sin(M_PI*x/a)/(c*L) ;
+     double dfdz = -ALPHA*exp(1/2*ALPHA*(L-z))*ho*sin(M_PI*x/A)/(c*L) ;
 
-     i = 0 ;
-     suma2 = 0 ;
+     double sum2 = 0 ;
      
-     do{
-       i = i+1;
-       lambda = i*M_PI/L;
-       gamma = 1/c*(beta*beta + lambda*lambda);
-       tmp  = pow(-1,i)*i*exp(-gamma*TIME)*lambda*lambda*cos(lambda*z)/gamma;
-       suma2 = suma2 + tmp;
-     } while (abs(lambda*lambda*exp(-gamma*TIME)/gamma) > reps*reps);
+     for (int i=1; i >= 0; i++) {
+       double lambda = i*M_PI/L;
+       double gamma = 1/c*(beta*beta + lambda*lambda);
+       double tmp  = pow(-1,i)*i*exp(-gamma*TIME)*lambda*lambda*cos(lambda*z)/gamma;
+       sum2 += tmp;
+       if (fabs(lambda*lambda*exp(-gamma*TIME)/gamma) < reps*reps) break;
+     }
        
        
-    dgdz = suma2 ;
+    double dgdz = sum2 ;
     
-    dgdx = 0 ;
+    double dgdx = 0 ;
     
-    dkdx = exp(1/2*ALPHA*(L-z))*ho*M_PI*cos(M_PI*x/a)*sinh(beta*z)/(a*sinh(beta*L)) ;
+    double dkdx = exp(1/2*ALPHA*(L-z))*ho*M_PI*cos(M_PI*x/A)*sinh(beta*z)/(A*sinh(beta*L)) ;
 
-    dkdz = beta*exp(1/2*ALPHA*(L-z))*ho*cosh(beta*z)*sin(M_PI*x/a)/sinh(beta*L)- ALPHA*exp(1/2*ALPHA*(L-z))*ho*sin(M_PI*x/a)*sinh(beta*z)/(2*sinh(beta*L)) ;
+    double dkdz = beta*exp(1/2*ALPHA*(L-z))*ho*cosh(beta*z)*sin(M_PI*x/A)/sinh(beta*L)- ALPHA*exp(1/2*ALPHA*(L-z))*ho*sin(M_PI*x/A)*sinh(beta*z)/(2*sinh(beta*L)) ;
     
 //  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!11
 // !!!!!!!!!vysledne hodnoty derivaci!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!11

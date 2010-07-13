@@ -7,7 +7,9 @@
 using namespace RefinementSelectors;
 
 // This example shows how to adapt the mesh to match an arbitrary 
-// given function. 
+// given function. Note: This may be handy for the representation of 
+// more complicated initial conditions in time-dependent problems
+// (see example richards-adapt for illustration).
 //
 // The following parameters can be changed:
 
@@ -49,10 +51,6 @@ scalar f(double x, double y, double& dx, double& dy)
 
 int main(int argc, char* argv[])
 {
-  // Time measurement.
-  TimePeriod cpu_time;
-  cpu_time.tick();
-
   // Load the mesh.
   Mesh mesh;
   H2DReader mloader;
@@ -61,83 +59,15 @@ int main(int argc, char* argv[])
   // Create an H1 space with default shapeset.
   H1Space space(&mesh, NULL, NULL, P_INIT);
 
-  // Initialize the weak formulation.
-  WeakForm wf;
-  //wf.add_matrix_form(callback(biform1), H2D_SYM, OMEGA_1);
-  //wf.add_matrix_form(callback(biform2), H2D_SYM, OMEGA_2);
-
-  // Initialize views.
-  ScalarView sview("Scalar potential Phi", 0, 0, 600, 300);
-  OrderView  oview("Mesh", 620, 0, 600, 300);
-
-  // DOF and CPU convergence graphs.
-  SimpleGraph graph_dof, graph_cpu;
-
   // Initialize refinement selector.
   H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
 
-  // Initialize the linear system.
-  LinSystem ls(&wf, &space);
-
-  // Adaptivity loop:
-  Solution sln_coarse, sln_fine;
-  int as = 1; bool done = false;
-  do
-  {
-    info("---- Adaptivity step %d:", as);
-
-    // Refine mesh uniformly.
-    RefSystem rs(&ls);
-
-    // Assign the function f() to the fine mesh.
-    sln_fine.set_exact(rs.get_mesh(0), f);
-
-    // Project the function f() on the coarse mesh.
-    ls.project_global(f, &sln_coarse);
- 
-    // Time measurement.
-    cpu_time.tick();
-
-    // View the coarse mesh solution.
-    sview.show(&sln_coarse);
-    oview.show(&space);
-
-    // Time measurement.
-    cpu_time.tick(HERMES_SKIP);
-
-    // Calculate element errors and total error estimate.
-    info("Calculating error.");
-    H1Adapt hp(&ls);
-    hp.set_solutions(&sln_coarse, &sln_fine);
-    double err_est = hp.calc_error() * 100;
-
-    // Report results.
-    info("ndof_coarse: %d, err_est: %g%%", ls.get_num_dofs(), err_est);
-
-    // Add entry to DOF and CPU convergence graphs.
-    graph_dof.add_values(ls.get_num_dofs(), err_est);
-    graph_dof.save("conv_dof.dat");
-    graph_cpu.add_values(cpu_time.accumulated(), err_est);
-    graph_cpu.save("conv_cpu.dat");
-
-    // If err_est too large, adapt the mesh.
-    if (err_est < ERR_STOP) done = true;
-    else {
-      info("Adapting coarse mesh.");
-      done = hp.adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY);
-
-      if (ls.get_num_dofs() >= NDOF_STOP) done = true;
-    }
-
-    as++;
-  }
-  while (done == false);
-  verbose("Total running time: %g s", cpu_time.accumulated());
-
-  // Show the fine mesh solution - the final result.
-  sview.set_title("Fine mesh solution");
-  sview.show_mesh(false);
-  sview.show(&sln_fine);
+  // Adapt mesh to represent initial condition with given accuracy.
+  bool verbose = true; 
+  Solution sln;
+  adapt_to_exact_function_h1(&space, f, &selector, THRESHOLD, STRATEGY, 
+                             MESH_REGULARITY, ERR_STOP, NDOF_STOP, verbose, &sln);   
+  info("Final mesh: ndof = %d", space.get_num_dofs());
 
   // Wait for all views to be closed.
   View::wait();
