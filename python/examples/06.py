@@ -20,47 +20,42 @@ from hermes2d import Mesh, MeshView, H1Shapeset, PrecalcShapeset, H1Space, \
 from hermes2d.examples.c06 import set_bc, set_forms
 from hermes2d.examples import get_example_mesh
 
-# You can play with the parameters below:
-T1 = 30.0                # prescribed temperature on Gamma_3
-T0 = 20.0                # outer temperature on Gamma_1
-H  = 0.05                # heat flux on Gamma_1
-P_INIT = 6               # uniform polynomial degree in the mesh
-UNIFORM_REF_LEVEL = 2    # number of initial uniform mesh refinements
-CORNER_REF_LEVEL = 12    # number of mesh refinements towards the re-entrant corner
+# The following parameters can be changed:
+
+UNIFORM_REF_LEVEL = 2;   # Number of initial uniform mesh refinements.
+CORNER_REF_LEVEL = 12;   # Number of mesh refinements towards the re-entrant corner.
+P_INIT = 6;              # Uniform polynomial degree of all mesh elements.
+
+# Boundary markers
+NEWTON_BDY = 1
 
 # Load the mesh file
 mesh = Mesh()
 mesh.load(get_example_mesh())
-#for i in range(UNIFORM_REF_LEVEL):
-#    mesh.refine_all_elemenrs()
-#mesh.refine_towards_vertex(3, CORNER_REF_LEVEL)
 
-# Initialize the shapeset and the cache
-shapeset = H1Shapeset()
-pss = PrecalcShapeset(shapeset)
+# Perform initial mesh refinements.
+for i in range(UNIFORM_REF_LEVEL):
+    mesh.refine_all_elements()
+mesh.refine_towards_vertex(3, CORNER_REF_LEVEL)
 
-# Create an H1 space
-space = H1Space(mesh, shapeset)
-space.set_uniform_order(P_INIT)
+# Create an H1 space with default shapeset
+space = H1Space(mesh, P_INIT)
 set_bc(space)
-space.assign_dofs()
 
 # Initialize the weak formulation
-wf = WeakForm(1)
+wf = WeakForm()
 set_forms(wf)
 
-# Initialize the linear system and solver
-solver = DummySolver()
-sys = LinSystem(wf, solver)
-sys.set_spaces(space)
-sys.set_pss(pss)
+# Initialize the linear system.
+ls = LinSystem(wf)
+ls.set_spaces(space)
 
-# Assemble the stiffness matrix and solve the system
+# Assemble and solve the matrix problem
 sln = Solution()
-sys.assemble()
-sys.solve_system(sln)
+ls.assemble()
+ls.solve_system(sln)
 
-# Visualize the solution
+# Visualize the approximation
 sln.plot()
 
 # Visualize the mesh

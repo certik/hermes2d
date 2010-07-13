@@ -29,37 +29,28 @@ INIT_REF_NUM = 4       # Number of initial uniform refinements
 mesh = Mesh()
 mesh.load(get_07_mesh())
 
+# Perform initial mesh refinements.
 for i in range(INIT_REF_NUM):
     mesh.refine_all_elements()
 
-# Initialize the shapeset and the cache
-shapeset = H1Shapeset()
-pss = PrecalcShapeset(shapeset)
-
-# Create finite element space
-space = H1Space(mesh, shapeset)
-space.set_uniform_order(P_INIT)
+# Create an H1 space with default shapeset
+space = H1Space(mesh, P_INIT)
 set_bc(space)
 
-# Enumerate basis functions
-space.assign_dofs()
-
-# Weak formulation
-wf = WeakForm(1)
+# Initialize the weak formulation
+wf = WeakForm()
 set_forms(wf)
 
-# Visualize solution and mesh
+# Initialize views
 sview = ScalarView("Coarse solution", 0, 100, 798, 700)
 oview = OrderView("Polynomial orders", 800, 100, 798, 700)
 
-# Matrix solver
-solver = DummySolver()
-
-# Solve the problem
-sln = Solution()
-ls = LinSystem(wf, solver)
+# Initialize the linear system.
+ls = LinSystem(wf)
 ls.set_spaces(space)
-ls.set_pss(pss)
+
+# Assemble and solve the matrix problem
+sln = Solution()
 ls.assemble()
 ls.solve_system(sln)
 

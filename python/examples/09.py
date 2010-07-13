@@ -25,9 +25,10 @@ WeakForm, Solution, ScalarView, LinSystem, DummySolver, RefSystem
 from hermes2d.examples.c09 import set_bc, temp_ext, set_forms, update_time
 from hermes2d.examples import get_cathedral_mesh
 
-# The following parameters can be played with:
-P_INIT = 1            # polynomial degree of elements
-INIT_REF_NUM = 4      # number of initial uniform refinements
+# The following parameters can be changed:
+INIT_REF_NUM = 4      # number of initial uniform mesh refinements
+INIT_REF_NUM_BDY = 1  # number of initial uniform mesh refinements towards the boundary
+P_INIT = 4            # polynomial degree of all mesh elements
 TAU = 300.0           # time step in seconds
 
 # Problem constants
@@ -37,41 +38,34 @@ FINAL_TIME = 86400    # length of time interval (24 hours) in seconds
 # Global variable
 TIME = 0;
 
+# Boundary markers.
+bdy_ground = 1
+bdy_air = 2
+
 # Load the mesh
 mesh = Mesh()
 mesh.load(get_cathedral_mesh())
 
+# Perform initial mesh refinements
 for i in range(INIT_REF_NUM):
     mesh.refine_all_elements()
-mesh.refine_towards_boundary(2, 5)
+mesh.refine_towards_boundary(bdy_air, INIT_REF_NUM_BDY)
 
-# Set up shapeset
-shapeset = H1Shapeset()
-pss = PrecalcShapeset(shapeset)
-
-# Set up spaces
-space = H1Space(mesh, shapeset)
+# Create an H1 space with default shapeset
+space = H1Space(mesh, P_INIT)
 set_bc(space)
-space.set_uniform_order(P_INIT)
-
-# Enumerate basis functions
-space.assign_dofs()
 
 # Set initial condition
 tsln = Solution()
 tsln.set_const(mesh, T_INIT)
 
-# Weak formulation
-wf = WeakForm(1)
-set_forms(wf, tsln)
+# Initialize the weak formulation
+wf = WeakForm()
+set_forms(wf)
 
-# Matrix solver
-solver = DummySolver()
-
-# Linear system
-ls = LinSystem(wf, solver)
+# Initialize the linear system.
+ls = LinSystem(wf)
 ls.set_spaces(space)
-ls.set_pss(pss)
 
 # Visualisation
 sview = ScalarView("Temperature", 0, 0, 450, 600)
