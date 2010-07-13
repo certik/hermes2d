@@ -59,7 +59,7 @@ void BaseView::free()
 
 void BaseView::update_solution()
 {
-  AVector* vec = new AVector(ndof);
+  Vector* vec = new AVector(ndof);
   memset(vec->get_c_array(), 0, sizeof(scalar) * ndof);
   if (base_index >= 0)
   {

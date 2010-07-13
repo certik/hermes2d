@@ -566,7 +566,7 @@ void Solution::set_zero_2(Mesh* mesh)
 void Solution::set_dirichlet_lift(Space* space, PrecalcShapeset* pss)
 {
   int ndof = space->get_num_dofs();
-  AVector *temp = new AVector(ndof);
+  Vector *temp = new AVector(ndof);
   for (int i = 0; i < ndof; i++) temp->set(i, 0);
   set_fe_solution(space, pss, temp);
   delete temp;

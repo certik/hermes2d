@@ -36,7 +36,7 @@ LinearProblem::~LinearProblem() {};
 
 void LinearProblem::assemble(Matrix* mat_ext, Vector* rhs_ext, bool rhsonly)
 {
-  AVector* dir = new AVector(this->get_num_dofs());
+  Vector* dir = new AVector(this->get_num_dofs());
   // the vector dir represents the contribution of the Dirichlet lift, 
   // and it has to be added to the right hand side for linear problems
   DiscreteProblem::assemble(mat_ext, dir, rhs_ext, rhsonly);
@@ -53,7 +53,7 @@ void init_matrix_solver(MatrixSolverType matrix_solver, int ndof,
   // Initialize stiffness matrix, load vector, and matrix solver.
   // UMFpack.
   CooMatrix* mat_umfpack = new CooMatrix(ndof);
-  AVector* rhs_umfpack = new AVector(ndof);
+  Vector* rhs_umfpack = new AVector(ndof);
   CommonSolverDenseLU* solver_umfpack = new CommonSolverDenseLU();
     //CommonSolverSciPyUmfpack* solver_umfpack = new CommonSolverSciPyUmfpack();
   // PETSc.

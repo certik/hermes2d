@@ -46,7 +46,7 @@ void VectorBaseView::free()
 
 void VectorBaseView::update_solution()
 {
-  AVector* vec = new AVector(ndof + 1);
+  Vector* vec = new AVector(ndof + 1);
   memset(vec->get_c_array(), 0, sizeof(scalar) * (ndof + 1));
   if (base_index >= -1 && base_index < ndof)
     vec[base_index + 1] = 1.0;

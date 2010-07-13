@@ -605,7 +605,7 @@ void DiscreteProblem::assemble(Matrix* mat_ext, Vector* dir_ext, Vector* rhs_ext
 
 void DiscreteProblem::assemble(Matrix* mat_ext, Vector* rhs_ext, bool rhsonly)
 {
-  AVector* dir = new AVector(this->get_num_dofs());
+  Vector* dir = new AVector(this->get_num_dofs());
   // the vector dir is irrelevant for nonlinear problems
   this->assemble(mat_ext, dir, rhs_ext, rhsonly);
 }
@@ -987,7 +987,7 @@ bool DiscreteProblem::solve(Matrix* mat, Vector* rhs, Vector* vec)
     error("Matrix size does not match ndof in in DiscreteProblem:solve().");
 
   // copy "vec" into "delta" and solve the matrix problem with "mat", "delta"
-  AVector* delta = new AVector(ndof);
+  Vector* delta = new AVector(ndof);
   memcpy(delta->get_c_array(), rhs, sizeof(scalar) * ndof);
   bool flag = this->solve_matrix_problem(mat, delta);
   if (flag == false) return false;
@@ -1211,8 +1211,8 @@ void DiscreteProblem::project_global(Tuple<MeshFunction*> source, Tuple<Solution
   // FIXME: enable other types of matrices and vectors.
   CooMatrix mat(this->get_num_dofs());
   CommonSolverSciPyUmfpack solver;
-  AVector* dir = new AVector(this->get_num_dofs());
-  AVector* rhs = new AVector(this->get_num_dofs());
+  Vector* dir = new AVector(this->get_num_dofs());
+  Vector* rhs = new AVector(this->get_num_dofs());
 
   //assembling the projection matrix, Dir vector and RHS
   DiscreteProblem::assemble(&mat, dir, rhs, false);
@@ -1285,8 +1285,8 @@ void DiscreteProblem::project_global(Tuple<MeshFunction*> source, Tuple<Solution
   // FIXME: enable other types of matrices and vectors.
   CooMatrix mat(this->get_num_dofs());
   CommonSolverSciPyUmfpack solver;
-  AVector* dir = new AVector(this->get_num_dofs());
-  AVector* rhs = new AVector(this->get_num_dofs());
+  Vector* dir = new AVector(this->get_num_dofs());
+  Vector* rhs = new AVector(this->get_num_dofs());
 
   //assembling the projection matrix, Dir vector and RHS
   DiscreteProblem::assemble(&mat, dir, rhs, false);
