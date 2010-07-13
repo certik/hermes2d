@@ -11,6 +11,9 @@ cdef double mu = E / (2*(1 + nu))                    # external force in y-direc
 cdef double f_1 = 1e4                                # first Lame constant
 cdef double f_0 = 0                                  # second Lame constant
 
+# Boundary marker (external force).
+cdef int GAMMA_3_BDY = 3
+
 # Boundary condition types
 cdef c_BCType bc_type(int marker):
     if marker == 1:
@@ -22,36 +25,36 @@ cdef scalar essential_bc_values(int ess_bdy_marker, double x, double y):
     return 0.0
 
 # Bilinear forms
-cdef scalar bilinear_form_0_0(int n, double *wt, FuncReal *u, FuncReal *v, GeomReal *e, ExtDataReal *ext):
+cdef scalar bilinear_form_0_0(int n, double *wt, FuncReal **t, FuncReal *u, FuncReal *v, GeomReal *e, ExtDataReal *ext):
     return (l +2*mu) * int_dudx_dvdx(n, wt, u, v) + mu * int_dudy_dvdy(n, wt, u, v)
 
-cdef scalar bilinear_form_0_1(int n, double *wt, FuncReal *u, FuncReal *v, GeomReal *e, ExtDataReal *ext):
+cdef scalar bilinear_form_0_1(int n, double *wt, FuncReal **t, FuncReal *u, FuncReal *v, GeomReal *e, ExtDataReal *ext):
     return l * int_dudy_dvdx(n, wt, u, v) + mu * int_dudx_dvdy(n, wt, u, v)
 
-cdef scalar bilinear_form_1_1(int n, double *wt, FuncReal *u, FuncReal *v, GeomReal *e, ExtDataReal *ext):
+cdef scalar bilinear_form_1_1(int n, double *wt, FuncReal **t, FuncReal *u, FuncReal *v, GeomReal *e, ExtDataReal *ext):
     return mu * int_dudx_dvdx(n, wt, u, v) + (l + 2 * mu) * int_dudy_dvdy(n, wt, u, v)
 
 # Linear forms
-cdef scalar linear_form_surf_0(int n, double *wt, FuncReal *u, GeomReal *e, ExtDataReal *ext):
+cdef scalar linear_form_surf_0(int n, double *wt, FuncReal **t, FuncReal *u, GeomReal *e, ExtDataReal *ext):
     return f_0 * int_v(n, wt, u)
 
-cdef scalar linear_form_surf_1(int n, double *wt, FuncReal *u, GeomReal *e, ExtDataReal *ext):
+cdef scalar linear_form_surf_1(int n, double *wt, FuncReal **t, FuncReal *u, GeomReal *e, ExtDataReal *ext):
     return f_1 * int_v(n, wt, u)
 
-cdef c_Ord _order_bf(int n, double *wt, FuncOrd *u, FuncOrd *v, GeomOrd *e, ExtDataOrd *ext):
+cdef c_Ord _order_bf(int n, double *wt, FuncOrd **t, FuncOrd *u, FuncOrd *v, GeomOrd *e, ExtDataOrd *ext):
     # XXX: with 9 it doesn't shout about the integration order, but gives wrong
     # results...
     return create_Ord(20)
 
-cdef c_Ord _order_lf(int n, double *wt, FuncOrd *u, GeomOrd *e, ExtDataOrd *ext):
+cdef c_Ord _order_lf(int n, double *wt, FuncOrd **t, FuncOrd *u, GeomOrd *e, ExtDataOrd *ext):
     return int_v_ord(n, wt, u).mul_double(f_1)
 
 def set_forms(WeakForm dp):
-    dp.thisptr.add_biform(0, 0, &bilinear_form_0_0, &_order_bf, H2D_SYM)
-    dp.thisptr.add_biform(0, 1, &bilinear_form_0_1, &_order_bf, H2D_SYM)
-    dp.thisptr.add_biform(1, 1, &bilinear_form_1_1, &_order_bf, H2D_SYM)
-    dp.thisptr.add_liform_surf(0, &linear_form_surf_0, &_order_lf);
-    dp.thisptr.add_liform_surf(1, &linear_form_surf_1, &_order_lf);
+    dp.thisptr.add_matrix_form(0, 0, &bilinear_form_0_0, &_order_bf, H2D_SYM)
+    dp.thisptr.add_matrix_form(0, 1, &bilinear_form_0_1, &_order_bf, H2D_SYM)
+    dp.thisptr.add_matrix_form(1, 1, &bilinear_form_1_1, &_order_bf, H2D_SYM)
+    dp.thisptr.add_vector_form_surf(0, &linear_form_surf_0, &_order_lf, GAMMA_3_BDY)
+    dp.thisptr.add_vector_form_surf(1, &linear_form_surf_1, &_order_lf, GAMMA_3_BDY)
 
 def set_bc(H1Space xdisp, H1Space ydisp):
     xdisp.thisptr.set_bc_types(&bc_type)

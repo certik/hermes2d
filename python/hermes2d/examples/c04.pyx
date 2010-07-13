@@ -1,12 +1,15 @@
 from hermes2d._hermes2d cimport scalar, H1Space, BC_ESSENTIAL, c_BCType
 
+# Problem parameters
+cdef double CONST_F = -4.0           # constant right-hand side
+
 # Boundary condition type (essential = Dirichlet)
 cdef c_BCType bc_type_04(int marker):
     return <c_BCType>BC_ESSENTIAL
 
 # Function values for essential(Dirichlet) boundary markers
 cdef scalar essential_bc_values(int essential_marker, double x, double y):
-    return x*x + y*y
+    return (-CONST_F/4.0)*(x*x + y*y)
 
 def set_bc(H1Space space):
     space.thisptr.set_bc_types(&bc_type_04)
