@@ -35,7 +35,7 @@ void print_status(int status)
     }
 }
 
-bool CommonSolverUmfpack::solve(Matrix *mat, double *res)
+bool CommonSolverUmfpack::_solve(Matrix *mat, double *res)
 {
     printf("UMFPACK solver\n");
 
@@ -92,7 +92,7 @@ bool CommonSolverUmfpack::solve(Matrix *mat, double *res)
         delete Acsc;
 }
 
-bool CommonSolverUmfpack::solve(Matrix *mat, cplx *res)
+bool CommonSolverUmfpack::_solve(Matrix *mat, cplx *res)
 {
     printf("UMFPACK solver - cplx\n");
 
@@ -178,12 +178,12 @@ bool CommonSolverUmfpack::solve(Matrix *mat, cplx *res)
 
 #else
 
-bool CommonSolverUmfpack::solve(Matrix *mat, double *res)
+bool CommonSolverUmfpack::_solve(Matrix *mat, double *res)
 {
     _error("CommonSolverUmfpack::solve(Matrix *mat, double *res) not implemented.");
 }
 
-bool CommonSolverUmfpack::solve(Matrix *mat, cplx *res)
+bool CommonSolverUmfpack::_solve(Matrix *mat, cplx *res)
 {
     _error("CommonSolverUmfpack::solve(Matrix *mat, cplx *res) not implemented.");
 }

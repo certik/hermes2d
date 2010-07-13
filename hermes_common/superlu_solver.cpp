@@ -9,7 +9,7 @@
 #ifdef COMMON_WITH_SUPERLU
 #include <superlu/slu_ddefs.h>
 
-bool CommonSolverSuperLU::solve(Matrix *mat, double *res)
+bool CommonSolverSuperLU::_solve(Matrix *mat, double *res)
 {
     printf("SuperLU solver\n");
 
@@ -128,19 +128,19 @@ bool CommonSolverSuperLU::solve(Matrix *mat, double *res)
         delete Acsc;
 }
 
-bool CommonSolverSuperLU::solve(Matrix *mat, cplx *res)
+bool CommonSolverSuperLU::_solve(Matrix *mat, cplx *res)
 {
     _error("CommonSolverSuperLU::solve(Matrix *mat, cplx *res) not implemented.");
 }
 
 #else
 
-bool CommonSolverSuperLU::solve(Matrix *mat, double *res)
+bool CommonSolverSuperLU::_solve(Matrix *mat, double *res)
 {
     _error("CommonSolverSuperLU::solve(Matrix *mat, double *res) not implemented.");
 }
 
-bool CommonSolverSuperLU::solve(Matrix *mat, cplx *res)
+bool CommonSolverSuperLU::_solve(Matrix *mat, cplx *res)
 {
     _error("CommonSolverSuperLU::solve(Matrix *mat, cplx *res) not implemented.");
 }
