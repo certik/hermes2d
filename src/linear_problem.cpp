@@ -54,7 +54,7 @@ void init_matrix_solver(MatrixSolverType matrix_solver, int ndof,
   // UMFpack.
   CooMatrix* mat_umfpack = new CooMatrix(ndof);
   Vector* rhs_umfpack = new AVector(ndof);
-  CommonSolverDenseLU* solver_umfpack = new CommonSolverDenseLU();
+  CommonSolverSciPyUmfpack* solver_umfpack = new CommonSolverSciPyUmfpack();
     //CommonSolverSciPyUmfpack* solver_umfpack = new CommonSolverSciPyUmfpack();
   // PETSc.
   /* FIXME - PETSc solver needs to be ported from H3D.
