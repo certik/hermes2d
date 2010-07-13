@@ -8,17 +8,18 @@
 
 bool CommonSolver::solve(Matrix *mat, Vector *res)
 {
-  return this->solve(mat, res);
+    if (res->is_complex())
+        return this->solve(mat, res->get_c_array_cplx());
+    else
+        return this->solve(mat, res->get_c_array());
 }
 
 // Standard CG method starting from zero vector
 // (because we solve for the increment)
 // x... comes as right-hand side, leaves as solution
-bool CommonSolverCG::solve(Matrix* A, Vector *rhs, double tol, int maxiter)
+bool CommonSolverCG::solve(Matrix* A, double *x, double tol, int maxiter)
 {
     printf("CG solver\n");
-
-    scalar* x = rhs->get_c_array();
 
     int n_dof = A->get_size();
     double *r = new double[n_dof];
@@ -27,7 +28,7 @@ bool CommonSolverCG::solve(Matrix* A, Vector *rhs, double tol, int maxiter)
     if (r == NULL || p == NULL || help_vec == NULL) {
         _error("a vector could not be allocated in solve_linear_system_iter().");
     }
-    // r = b - A*x0 (where b is x and x0 = 0)
+    // r = b - A*x0  (where b is x and x0 = 0)
     for (int i=0; i < n_dof; i++) r[i] = x[i];
     // p = r
     for (int i=0; i < n_dof; i++) p[i] = r[i];
@@ -71,41 +72,40 @@ bool CommonSolverCG::solve(Matrix* A, Vector *rhs, double tol, int maxiter)
     return flag;
 }
 
+
+bool CommonSolverCG::solve(Matrix* A, cplx *x)
+{
+    _error("CommonSolverCG::solve(Matrix *mat, cplx *res) not implemented.");
+}
+
 // ***********************************************************************************************************************
 
-bool CommonSolverDenseLU::solve(Matrix* A, Vector *rhs)
+bool CommonSolverDenseLU::solve(Matrix* A, double *x)
 {
     printf("DenseLU solver\n");
-    if (sizeof(scalar) != sizeof(double)) {
-      printf("DenseLU solver can only be used for real matrices.\n");
-      exit(0);
-    }
-
-    scalar* x = rhs->get_c_array();
 
     DenseMatrix *Aden = NULL;
 
     if (DenseMatrix *mden = dynamic_cast<DenseMatrix*>(A))
         Aden = mden;
     else if (CooMatrix *mcoo = dynamic_cast<CooMatrix*>(A))
-         {
-           Aden = new DenseMatrix(mcoo);
-           printf("Converting CooMatrix to DenseMatrix.\n");
-         }
+        Aden = new DenseMatrix(mcoo);
     else
         _error("Matrix type not supported.");
 
     int n = Aden->get_size();
     int *indx = new int[n];
-    scalar **_mat = Aden->get_A();
+    double **_mat = Aden->get_A();
     double d;
-    ludcmp((double**)_mat, n, indx, &d);
-    lubksb((double**)_mat, n, indx, (double*)x);
+    ludcmp(_mat, n, indx, &d);
+    lubksb(_mat, n, indx, x);
 
     delete[] indx;
     if (!dynamic_cast<DenseMatrix*>(A))
         delete Aden;
-
-    return true;
 }
 
+bool CommonSolverDenseLU::solve(Matrix* A, cplx *x)
+{
+    _error("CommonSolverDenseLU::solve(Matrix *mat, cplx *res) not implemented.");
+}

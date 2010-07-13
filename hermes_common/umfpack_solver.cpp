@@ -22,35 +22,20 @@ void print_status(int status)
         _error("UMFPACK: singular stiffness matrix!");
         break;
 
-    case UMFPACK_ERROR_out_of_memory: _error("UMFPACK: out of memory!");
-    case UMFPACK_ERROR_argument_missing: _error("UMFPACK: argument missing");
+    case UMFPACK_ERROR_out_of_memory:           _error("UMFPACK: out of memory!");
+    case UMFPACK_ERROR_argument_missing:        _error("UMFPACK: argument missing");
     case UMFPACK_ERROR_invalid_Symbolic_object: _error("UMFPACK: invalid Symbolic object");
-    case UMFPACK_ERROR_invalid_Numeric_object: _error("UMFPACK: invalid Numeric object");
-    case UMFPACK_ERROR_different_pattern: _error("UMFPACK: different pattern");
-    case UMFPACK_ERROR_invalid_system: _error("UMFPACK: invalid system");
-    case UMFPACK_ERROR_n_nonpositive: _error("UMFPACK: n nonpositive");
-    case UMFPACK_ERROR_invalid_matrix: _error("UMFPACK: invalid matrix");
-    case UMFPACK_ERROR_internal_error: _error("UMFPACK: internal error");
-    default: _error("UMFPACK: unknown error");
+    case UMFPACK_ERROR_invalid_Numeric_object:  _error("UMFPACK: invalid Numeric object");
+    case UMFPACK_ERROR_different_pattern:       _error("UMFPACK: different pattern");
+    case UMFPACK_ERROR_invalid_system:          _error("UMFPACK: invalid system");
+    case UMFPACK_ERROR_n_nonpositive:           _error("UMFPACK: n nonpositive");
+    case UMFPACK_ERROR_invalid_matrix:          _error("UMFPACK: invalid matrix");
+    case UMFPACK_ERROR_internal_error:          _error("UMFPACK: internal error");
+    default:                                    _error("UMFPACK: unknown error");
     }
 }
 
-bool CommonSolverUmfpack::solve(Matrix *mat, Vector *res)
-{
-  double* vec_real;
-  cplx* vec_cplx;
-  if (sizeof(scalar) == sizeof(double)) {
-    vec_real = (double*)res->get_c_array();
-    this->solve_real(mat, vec_real);
-  }
-  else {
-    vec_cplx = (cplx*)res->get_c_array();
-    this->solve_real(mat, vec_cplx);
-  }
-
-}
-
-bool CommonSolverUmfpack::solve_real(Matrix *mat, double *res)
+bool CommonSolverUmfpack::solve(Matrix *mat, double *res)
 {
     printf("UMFPACK solver\n");
 
@@ -107,7 +92,7 @@ bool CommonSolverUmfpack::solve_real(Matrix *mat, double *res)
         delete Acsc;
 }
 
-bool CommonSolverUmfpack::solve_cplx(Matrix *mat, cplx *res)
+bool CommonSolverUmfpack::solve(Matrix *mat, cplx *res)
 {
     printf("UMFPACK solver - cplx\n");
 
@@ -193,21 +178,14 @@ bool CommonSolverUmfpack::solve_cplx(Matrix *mat, cplx *res)
 
 #else
 
-bool CommonSolverUmfpack::solve(Matrix *mat, Vector *res)
+bool CommonSolverUmfpack::solve(Matrix *mat, double *res)
 {
-    _error("CommonSolverUmfpack::solve(Matrix *mat, Vec *res) not implemented.");
+    _error("CommonSolverUmfpack::solve(Matrix *mat, double *res) not implemented.");
 }
 
-bool CommonSolverUmfpack::solve_real(Matrix *mat, double *res)
+bool CommonSolverUmfpack::solve(Matrix *mat, cplx *res)
 {
-    _error("CommonSolverUmfpack::solve_real(Matrix *mat, double *res) not implemented.");
+    _error("CommonSolverUmfpack::solve(Matrix *mat, cplx *res) not implemented.");
 }
-
-bool CommonSolverUmfpack::solve_cplx(Matrix *mat, cplx *res)
-{
-    _error("CommonSolverUmfpack::solve_cplx(Matrix *mat, cplx *res) not implemented.");
-}
-
-
 
 #endif

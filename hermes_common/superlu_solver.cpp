@@ -9,14 +9,9 @@
 #ifdef COMMON_WITH_SUPERLU
 #include <superlu/slu_ddefs.h>
 
-bool CommonSolverSuperLU::solve(Matrix *mat, Vector *res)
+bool CommonSolverSuperLU::solve(Matrix *mat, double *res)
 {
     printf("SuperLU solver\n");
-
-    if (sizeof(scalar) != sizeof(double)) {
-      printf("SuperLU solver can only be used with real matrices.");
-      exit(0);
-    }
 
     int size = mat->get_size();
     int nnz = 0;
@@ -43,8 +38,8 @@ bool CommonSolverSuperLU::solve(Matrix *mat, Vector *res)
 
     SuperMatrix A;
     SuperMatrix B;
-    SuperMatrix L; // factor L
-    SuperMatrix U; // factor U
+    SuperMatrix L;      // factor L
+    SuperMatrix U;      // factor U
 
     int nrhs, info;
 
@@ -53,17 +48,17 @@ bool CommonSolverSuperLU::solve(Matrix *mat, Vector *res)
 
     // Set the default input options:
     /*
-options.Fact = DOFACT;
-options.Equil = YES;
-options.ColPerm = COLAMD;
-options.DiagPivotThresh = 1.0;
-options.Trans = NOTRANS;
-options.IterRefine = NOREFINE;
-options.SymmetricMode = NO;
-options.PivotGrowth = NO;
-options.ConditionNumber = NO;
-options.PrintStat = YES;
-*/
+    options.Fact = DOFACT;
+    options.Equil = YES;
+    options.ColPerm = COLAMD;
+    options.DiagPivotThresh = 1.0;
+    options.Trans = NOTRANS;
+    options.IterRefine = NOREFINE;
+    options.SymmetricMode = NO;
+    options.PivotGrowth = NO;
+    options.ConditionNumber = NO;
+    options.PrintStat = YES;
+    */
     set_default_options(&options);
 
     // create csc matrix
@@ -98,17 +93,17 @@ options.PrintStat = YES;
         memcpy(res, x, size*sizeof(double));
 
         /*
-SCformat *Lstore = (SCformat *) L.Store;
-NCformat *Ustore = (NCformat *) U.Store;
-printf("No of nonzeros in factor L = %d\n", Lstore->nnz);
-printf("No of nonzeros in factor U = %d\n", Ustore->nnz);
-printf("No of nonzeros in L+U = %d\n", Lstore->nnz + Ustore->nnz - mcsc.get_size());
-printf("FILL ratio = %.1f\n", (float)(Lstore->nnz + Ustore->nnz - mcsc.get_size())/nnz);
+        SCformat *Lstore = (SCformat *) L.Store;
+        NCformat *Ustore = (NCformat *) U.Store;
+        printf("No of nonzeros in factor L = %d\n", Lstore->nnz);
+        printf("No of nonzeros in factor U = %d\n", Ustore->nnz);
+        printf("No of nonzeros in L+U = %d\n", Lstore->nnz + Ustore->nnz - mcsc.get_size());
+        printf("FILL ratio = %.1f\n", (float)(Lstore->nnz + Ustore->nnz - mcsc.get_size())/nnz);
 
-mem_usage_t mem_usage;
-dQuerySpace(&L, &U, &mem_usage);
-printf("L\\U MB %.3f\ttotal MB needed %.3f\n", mem_usage.for_lu/1e6, mem_usage.total_needed/1e6);
-*/
+        mem_usage_t mem_usage;
+        dQuerySpace(&L, &U, &mem_usage);
+        printf("L\\U MB %.3f\ttotal MB needed %.3f\n", mem_usage.for_lu/1e6, mem_usage.total_needed/1e6);
+        */
     }
     else
     {
@@ -133,11 +128,21 @@ printf("L\\U MB %.3f\ttotal MB needed %.3f\n", mem_usage.for_lu/1e6, mem_usage.t
         delete Acsc;
 }
 
+bool CommonSolverSuperLU::solve(Matrix *mat, cplx *res)
+{
+    _error("CommonSolverSuperLU::solve(Matrix *mat, cplx *res) not implemented.");
+}
+
 #else
 
-bool CommonSolverSuperLU::solve(Matrix *mat, Vector *res)
+bool CommonSolverSuperLU::solve(Matrix *mat, double *res)
 {
-    _error("CommonSolverSuperLU::solve(Matrix *mat, Vector *res) not implemented.");
+    _error("CommonSolverSuperLU::solve(Matrix *mat, double *res) not implemented.");
+}
+
+bool CommonSolverSuperLU::solve(Matrix *mat, cplx *res)
+{
+    _error("CommonSolverSuperLU::solve(Matrix *mat, cplx *res) not implemented.");
 }
 
 #endif

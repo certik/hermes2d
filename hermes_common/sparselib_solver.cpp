@@ -19,14 +19,9 @@
 #include <ir.h>
 #include <qmr.h>
 
-bool CommonSolverSparseLib::solve(Matrix *mat, Vector *res)
+bool CommonSolverSparseLib::solve(Matrix *mat, double *res)
 {
     printf("SparseLib++ solver\n");
-
-    if (sizeof(scalar) != sizeof(double)) {
-      printf("Sparselib solver can only be used with real matrices.");
-      exit(0);
-    }
 
     CSCMatrix *Acsc = NULL;
 
@@ -48,7 +43,7 @@ bool CommonSolverSparseLib::solve(Matrix *mat, Vector *res)
                                                 Acsc->get_Ax(), Acsc->get_Ai(), Acsc->get_Ap());
 
     // rhs
-    VECTOR_double rhs((double*)res->get_c_array(), size);
+    VECTOR_double rhs(res, size);
 
     // preconditioner
     CompCol_ILUPreconditioner_double ILU(Acc);
@@ -58,7 +53,7 @@ bool CommonSolverSparseLib::solve(Matrix *mat, Vector *res)
     int result = -1;
     switch (method)
     {
-    case CommonSolverSparseLibSolver_ConjugateGradientSquared:
+    case HERMES_CommonSolverSparseLibSolver_ConjugateGradientSquared:
         result = CGS(Acc, xv, rhs, ILU, maxiter, tolerance);
         break;
     case CommonSolverSparseLibSolver_RichardsonIterativeRefinement:
@@ -86,5 +81,7 @@ bool CommonSolverSparseLib::solve(Matrix *mat, Vector *res)
         delete Acsc;
 }
 
-
-
+bool CommonSolverSparseLib::solve(Matrix *mat, cplx *res)
+{
+    _error("CommonSolverSparseLib::solve(Matrix *mat, cplx *res) not implemented.");
+}

@@ -5,11 +5,11 @@
 
 cdef inline object cp2str(const_char_p p):
     if p == NULL: return None
-    else: return p
+    else:         return p
 
 cdef inline char_p str2cp(object s) except ? NULL:
     if s is None: return NULL
-    else: return s
+    else:         return s
 
 cdef inline PY_NEW(T):
     # The line below is roughly equivalent to "return T()", except that the
@@ -157,7 +157,7 @@ cdef class CooMatrix(SparseMatrix):
             >>> a.add(2, 3, 3.5)
             >>> a.add(0, 2, 1.5)
             >>> a.row_col_data
-            (array([1, 2, 0], dtype=int32), array([3, 3, 2], dtype=int32), array([ 4.5, 3.5, 1.5]))
+            (array([1, 2, 0], dtype=int32), array([3, 3, 2], dtype=int32), array([ 4.5,  3.5,  1.5]))
 
         """
         from numpy import empty
@@ -431,7 +431,7 @@ cdef api void insert_object(const_char_p name, object o):
     insert_object("A", c2numpy_int(a, 3));
     cmd("print A");
 
-    This prints "[1 5 3]" (this is how the NumPy array is printed).
+    This prints "[1  5  3]" (this is how the NumPy array is printed).
 
     Example 3:
 
@@ -439,7 +439,7 @@ cdef api void insert_object(const_char_p name, object o):
     insert_object("A", c2numpy_double(a, 3));
     cmd("print A");
 
-    This prints "[ 1. 5. 3.]" (this is how the NumPy array is printed).
+    This prints "[ 1.  5.  3.]" (this is how the NumPy array is printed).
     """
     namespace_push(global_namespace, name, o)
 
@@ -599,5 +599,4 @@ cdef api void run_cmd(const_char_p text, object namespace):
         s = "".join(traceback.format_exception(etype, value, tb))
         s = "Exception raised in the Python code:\n" + s
         throw_exception(s)
-
 

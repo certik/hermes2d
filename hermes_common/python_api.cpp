@@ -52,10 +52,10 @@ Python::~Python()
     // segfaults when imported again; also the PYTHONPATH is set only once if
     // python_count is never decreased (which is what we want).
     /*python_count--;
-if (python_count == 0) {
-Py_Finalize();
-}
-*/
+    if (python_count == 0) {
+        Py_Finalize();
+    }
+    */
 }
 
 void Python::print()
@@ -76,7 +76,7 @@ void Python::push(const char *name, PyObject *o)
     // but we want to steal the reference, so we decref it here (there is still
     // at least one reference stored in the dictionary this->_namespace, so
     // it's safe). This is so that
-    // this->push("i", c2py_int(5));
+    //     this->push("i", c2py_int(5));
     // doesn't leak (c2py_int() creates a python reference and push() destroys
     // this python reference)
     Py_DECREF(o);
@@ -90,10 +90,9 @@ PyObject *Python::pull(const char *name)
     // borrow a reference, so we decref it here (there is still at least one
     // reference stored in the dictionary this->_namespace, so it's safe)
     // This is so that
-    // int i = py2c_int(this->pull("i"));
+    //     int i = py2c_int(this->pull("i"));
     // doesn't leak (pull() borrows the reference, py2c_int() doesn't do
     // anything with the reference, so no leak nor segfault happens)
     Py_DECREF(tmp);
     return tmp;
 }
-
