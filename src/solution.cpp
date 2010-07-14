@@ -382,7 +382,7 @@ double** Solution::calc_mono_matrix(int o, int*& perm)
   return mat;
 }
 
-// to be used by the user
+// for public use
 void Solution::set_fe_solution(Space* space, Vector* vec, double dir)
 {
     // sanity check

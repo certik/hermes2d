@@ -76,7 +76,6 @@ int main(int argc, char* argv[])
 
   // Initialize an H1 space with default shepeset.
   H1Space space(&mesh, bc_types, essential_bc_values, P_INIT);
-  info("ndof = %d", space.get_num_dofs());
 
   // Set initial condition.
   Solution tsln;
@@ -102,7 +101,7 @@ int main(int argc, char* argv[])
   ScalarView Tview("Temperature", 0, 0, 450, 600);
   char title[100];
   sprintf(title, "Time %3.5f, exterior temperature %3.5f", TIME, temp_ext(TIME));
-  Tview.set_min_max_range(0,20);
+  //Tview.set_min_max_range(0,20);
   Tview.set_title(title);
   Tview.fix_scale_width(3);
 
@@ -120,8 +119,8 @@ int main(int argc, char* argv[])
     // Solve the matrix problem.
     if (!solver->solve(mat, rhs)) error ("Matrix solver failed.\n");
 
-    // Convert coefficient vector into a Solution.
-    Solution tsln(&space, rhs);
+    // Update tsln.
+    tsln.set_fe_solution(&space, rhs);
 
     // Update the time variable.
     TIME += TAU;

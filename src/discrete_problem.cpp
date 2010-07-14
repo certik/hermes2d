@@ -197,6 +197,8 @@ void DiscreteProblem::assemble(Matrix* mat_ext, Vector* dir_ext, Vector* rhs_ext
   int n = this->wf->neq;
   for (int i=0; i<n; i++) 
     if (this->spaces[i] == NULL) error("this->spaces[%d] is NULL in DiscreteProblem::assemble().", i);
+  if (rhs_ext == NULL) error("rhs_ext == NULL in DiscreteProblem::assemble().");
+  if (mat_ext == NULL) error("mat_ext == NULL in DiscreteProblem::assemble().");
 
   // enumerate DOF to get new length of the vectors rhs and dir,
   // and realloc these vectors if needed
@@ -204,18 +206,28 @@ void DiscreteProblem::assemble(Matrix* mat_ext, Vector* dir_ext, Vector* rhs_ext
   int ndof = this->get_num_dofs();
   if (ndof == 0) error("ndof = 0 in DiscreteProblem::assemble().");
   if (dir_ext != NULL) {
-    if (dir_ext->get_size() != ndof) dir_ext = new AVector(ndof);
-    for (int i=0; i<ndof; i++) dir_ext->set(i, 0);
+    if (dir_ext->get_size() != ndof) {
+      //dir_ext->free_data();  // FIXME: this needs to be implemented
+      dir_ext = new AVector(ndof);
+    }
   }
-  if (rhs_ext->get_size() != ndof) rhs_ext = new AVector(ndof);
+  if (rhs_ext->get_size() != ndof) {
+    //rhs_ext->free_data();    // FIXME: this needs to be implemented
+    rhs_ext = new AVector(ndof);
+  }
+  
+  // set dir_ext and rhs_ext zero
+  if (dir_ext != NULL) for (int i=0; i<ndof; i++) dir_ext->set(i, 0);
   for (int i=0; i<ndof; i++) rhs_ext->set(i, 0);
 
-  //  further checks
-  if (mat_ext->get_size() != this->get_num_dofs())
-    error("Matrix size does not match ndof in DiscreteProblem::assemble().");
-  if (dir_ext != NULL) {
-    if (mat_ext->get_size() != dir_ext->get_size() || mat_ext->get_size() != rhs_ext->get_size())
-    error("Mismatched matrix and vector sizes in DiscreteProblem::assemble().");
+  //  further checks if rhsonly == false
+  if (rhsonly == false) {
+    if (mat_ext->get_size() != this->get_num_dofs())
+      error("Matrix size does not match ndof in DiscreteProblem::assemble().");
+    if (dir_ext != NULL) {
+      if (mat_ext->get_size() != dir_ext->get_size() || mat_ext->get_size() != rhs_ext->get_size())
+      error("Mismatched matrix and vector sizes in DiscreteProblem::assemble().");
+    }
   }
 
   int k, m, marker;
@@ -226,10 +238,11 @@ void DiscreteProblem::assemble(Matrix* mat_ext, Vector* dir_ext, Vector* rhs_ext
   EdgePos ep[4];
   reset_warn_order();
 
-  // FIXME: We need to reimplement the feature of not 
-  // reassembling the stiffness matrix if it has not changed.
-  printf("Creating matrix sparse structure...\n");
-  mat_ext->free_data();
+  if (rhsonly == false) {
+    trace("Creating matrix sparse structure...");
+    mat_ext->free_data();
+  }
+  else trace("Reusing matrix sparse structure...");
 
   trace("Assembling stiffness matrix...");
   TimePeriod cpu_time;
@@ -329,8 +342,7 @@ void DiscreteProblem::assemble(Matrix* mat_ext, Vector* dir_ext, Vector* rhs_ext
                 if (dir_ext != NULL) dir_ext->add(k, -bi); 
               }
               else {
-                mat[i][j] = bi;
-                if (an->dof[j] == 15 && an->dof[i] == 15) printf("%d %d %g\n", i, j, bi);
+                if (rhsonly == false) mat[i][j] = bi;
               }
             }
           }
@@ -347,23 +359,24 @@ void DiscreteProblem::assemble(Matrix* mat_ext, Vector* dir_ext, Vector* rhs_ext
               } 
               else {
                 mat[i][j] = mat[j][i] = bi;
-                if (an->dof[j] == 15 && an->dof[i] == 15) printf("%d %d %g\n", i, j, bi);
               }
             }
           }
         }
 
         // insert the local stiffness matrix into the global one
-        insert_block(mat_ext, mat, am->dof, an->dof, am->cnt, an->cnt);
-        insert_block(mat_ext, mat, am->dof, an->dof, am->cnt, an->cnt);
+        if (rhsonly == false) {
+          insert_block(mat_ext, mat, am->dof, an->dof, am->cnt, an->cnt);
+        }
 
         // insert also the off-diagonal (anti-)symmetric block, if required
         if (tra)
         {
           if (mfv->sym < 0) chsgn(mat, am->cnt, an->cnt);
           transpose(mat, am->cnt, an->cnt);
-          insert_block(mat_ext, mat, an->dof, am->dof, an->cnt, am->cnt);
-          insert_block(mat_ext, mat, an->dof, am->dof, an->cnt, am->cnt);
+          if (rhsonly == false) {
+            insert_block(mat_ext, mat, an->dof, am->dof, an->cnt, am->cnt);
+          }
 
           // we also need to take care of the RHS...
           for (int j = 0; j < am->cnt; j++)
@@ -371,7 +384,6 @@ void DiscreteProblem::assemble(Matrix* mat_ext, Vector* dir_ext, Vector* rhs_ext
               for (int i = 0; i < an->cnt; i++)
                 if (an->dof[i] >= 0) {
                   if (dir_ext != NULL) dir_ext->add(an->dof[i], -mat[i][j]);
-                  if (an->dof[i] == 15) printf("to rhs %d %g\n", an->dof[i], -mat[i][j]);
                 }
         }
       }
@@ -444,8 +456,9 @@ void DiscreteProblem::assemble(Matrix* mat_ext, Vector* dir_ext, Vector* rhs_ext
               //printf("%d %d %g\n", i, j, bi);
             }
           }
-          insert_block(mat_ext, mat, am->dof, an->dof, am->cnt, an->cnt);
-          insert_block(mat_ext, mat, am->dof, an->dof, am->cnt, an->cnt);
+          if (rhsonly == false) {
+            insert_block(mat_ext, mat, am->dof, an->dof, am->cnt, an->cnt);
+          }
         }
 
         // assemble surface linear forms /////////////////////////////////////
@@ -483,8 +496,6 @@ void DiscreteProblem::assemble(Matrix* mat_ext, Vector* dir_ext, Vector* rhs_ext
   delete [] buffer;
 
   if (!rhsonly) values_changed = true;
-
-  mat_ext->print();
 }
 
 // assembling of the jacobian matrix and residual vector for nonlinear problems
