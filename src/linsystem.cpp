@@ -604,7 +604,7 @@ void LinSystem::assemble(bool rhsonly)
               if (an->dof[j] < 0) Dir[k] -= bi; 
               else {
                 mat[i][j] = bi;
-                if (an->dof[j] == 15 && an->dof[i] == 15) printf("%d %d %g\n", i, j, bi);
+                //if (an->dof[j] == 15 && an->dof[i] == 15) printf("%d %d %g\n", i, j, bi);
               }
             }
           }
@@ -619,7 +619,7 @@ void LinSystem::assemble(bool rhsonly)
               if (an->dof[j] < 0) Dir[k] -= bi; 
               else {
                 mat[i][j] = mat[j][i] = bi;
-                if (an->dof[j] == 15 && an->dof[i] == 15) printf("%d %d %g\n", i, j, bi);
+                //if (an->dof[j] == 15 && an->dof[i] == 15) printf("%d %d %g\n", i, j, bi);
               }
             }
           }
@@ -641,7 +641,7 @@ void LinSystem::assemble(bool rhsonly)
               for (int i = 0; i < an->cnt; i++)
                 if (an->dof[i] >= 0) {
                   Dir[an->dof[i]] -= mat[i][j];
-                  if (an->dof[i] == 15) printf("to rhs %d %g\n", an->dof[i], -mat[i][j]);
+                  //if (an->dof[i] == 15) printf("to rhs %d %g\n", an->dof[i], -mat[i][j]);
                 }
         }
       }
@@ -756,7 +756,7 @@ void LinSystem::assemble(bool rhsonly)
 
   if (!rhsonly) values_changed = true;
 
-  this->A->print();
+  //this->A->print();
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////

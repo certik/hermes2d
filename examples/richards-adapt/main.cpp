@@ -27,7 +27,7 @@ using namespace RefinementSelectors;
 //
 //  The following parameters can be changed:
 
-const double TIME_INIT = 5e-3;             // Initial time.
+const double TIME_INIT = 1e-3;             // Initial time.
 const int INIT_REF_NUM = 0;                // Number of initial uniform mesh refinements.
 const int INIT_REF_NUM_BDY = 2;            // Number of initial mesh refinements towards the top edge.
 const int P_INIT = 2;                      // Initial polynomial degree of all mesh elements.
@@ -38,7 +38,7 @@ const double T_FINAL = 5.0;                // Time interval length.
 const int UNREF_FREQ = 1;                  // Every UNREF_FREQth time step the mesh is unrefined.
 const double THRESHOLD = 0.3;              // This is a quantitative parameter of the adapt(...) function and
                                            // it has different meanings for various adaptive strategies (see below).
-const int STRATEGY = 0;                    // Adaptive strategy:
+const int STRATEGY = 1;                    // Adaptive strategy:
                                            // STRATEGY = 0 ... refine elements until sqrt(THRESHOLD) times total
                                            //   error is processed. If more elements have similar errors, refine
                                            //   all to keep the mesh symmetric.
@@ -47,7 +47,7 @@ const int STRATEGY = 0;                    // Adaptive strategy:
                                            // STRATEGY = 2 ... refine all elements whose error is larger
                                            //   than THRESHOLD.
                                            // More adaptive strategies can be created in adapt_ortho_h1.cpp.
-const CandList CAND_LIST = H2D_HP_ANISO_H;   // Predefined list of element refinement candidates. Possible values are
+const CandList CAND_LIST = H2D_HP_ANISO;   // Predefined list of element refinement candidates. Possible values are
                                            // H2D_P_ISO, H2D_P_ANISO, H2D_H_ISO, H2D_H_ANISO, H2D_HP_ISO,
                                            // H2D_HP_ANISO_H, H2D_HP_ANISO_P, H2D_HP_ANISO.
                                            // See the User Documentation for details.
@@ -121,18 +121,34 @@ double dCdh(double h)
 }
 
 // Boundary condition types.
-BCType bc_types(int marker)
+BCType bc_types_dirichlet(int marker)
 {
   return BC_ESSENTIAL;
 }
 
-// Exact solution.
+// Boundary condition types.
+BCType bc_types_neumann(int marker)
+{
+  return BC_NATURAL;
+}
+
+/*
+// Nice smooth initial condition for debugging purposes.
+double init_cond(double x, double y, double& dx, double& dy) {
+  dx = (100 - 2*x)/2.5 * pow(y/100, Y_POWER);
+  dy = x*(100 - x)/2.5 * pow(y/100, Y_POWER - 1) * 1./100;
+  return x*(100 - x)/2.5 * pow(y/100, Y_POWER) - 1000;
+}
+*/
+
+// Exact solution (based on Fourier series)
 #include "exact_solution.cpp"
 
 // Essential (Dirichlet) boundary condition markers.
 scalar essential_bc_values(int ess_bdy_marker, double x, double y)
 {
   double dx, dy;
+  //return init_cond(x, y, dx, dy);
   return exact_sol(x, y, dx, dy);
 }
 
@@ -163,7 +179,7 @@ int main(int argc, char* argv[])
   mesh.refine_towards_boundary(2, INIT_REF_NUM_BDY);
 
   // Create an H1 space with default shapeset.
-  H1Space space(&mesh, bc_types, essential_bc_values, P_INIT);
+  H1Space space(&mesh, bc_types_neumann, essential_bc_values, P_INIT);
 
   // Initialize refinement selector.
   H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
@@ -171,7 +187,10 @@ int main(int argc, char* argv[])
   // Adapt mesh to represent initial condition with given accuracy.
   bool verbose = true; 
   adapt_to_exact_function_h1(&space, exact_sol, &selector, THRESHOLD, STRATEGY, 
-                             MESH_REGULARITY, ERR_STOP, NDOF_STOP, verbose);   
+                             MESH_REGULARITY, ERR_STOP, NDOF_STOP, verbose);
+
+  // Set Dirichlet boundary conditions.
+  space.set_bc_types(bc_types_dirichlet);   
   info("Initial mesh: ndof = %d", space.get_num_dofs());
 
   // Solutions for the time stepping and the Newton's method.
