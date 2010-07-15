@@ -195,41 +195,39 @@ void DiscreteProblem::assemble(Matrix* mat_ext, Vector* dir_ext, Vector* rhs_ext
   if (this->wf == NULL) error("this->wf = NULL in DiscreteProblem::assemble().");
   if (this->spaces == NULL) error("this->spaces = NULL in DiscreteProblem::assemble().");
   int n = this->wf->neq;
-  for (int i=0; i<n; i++) 
+  for (int i = 0; i < n; i++) {
     if (this->spaces[i] == NULL) error("this->spaces[%d] is NULL in DiscreteProblem::assemble().", i);
+  }
   if (rhs_ext == NULL) error("rhs_ext == NULL in DiscreteProblem::assemble().");
-  if (rhsonly == false) if (mat_ext == NULL) error("mat_ext == NULL in DiscreteProblem::assemble().");
+  if (rhsonly == false) {
+    if (mat_ext == NULL) error("mat_ext == NULL in DiscreteProblem::assemble().");
+    if (mat_ext->get_size() != rhs_ext->get_size()) {
+	printf("mat_ext matrix size = %d\n", mat_ext->get_size());
+	printf("rhs_ext vector size = %d\n", rhs_ext->get_size());
+        error("Mismatched mat_ext and rhs_ext vector sizes in DiscreteProblem::assemble().");
+    }
+  }
 
-  // enumerate DOF to get new length of the vectors rhs and dir,
-  // and realloc these vectors if needed
-  this->assign_dofs();
-  int ndof = this->get_num_dofs();
+  // realloc matrix and vectors if ndof changed.
+  int ndof = this->assign_dofs();
+  //printf("ndof = %d\n", ndof);
   if (ndof == 0) error("ndof = 0 in DiscreteProblem::assemble().");
+  if (rhsonly == false) {
+    if (mat_ext->get_size() != ndof) {
+      mat_ext->init();
+    }
+  }
   if (dir_ext != NULL) {
     if (dir_ext->get_size() != ndof) {
-      //dir_ext->free_data();  // FIXME: this needs to be implemented
-      dir_ext = new AVector(ndof);
+      dir_ext->free_data();
+      dir_ext->init(ndof);
     }
   }
   if (rhs_ext->get_size() != ndof) {
-    //rhs_ext->free_data();    // FIXME: this needs to be implemented
-    rhs_ext = new AVector(ndof);
+    rhs_ext->free_data();
+    rhs_ext->init(ndof);
   }
   
-  // set dir_ext and rhs_ext zero
-  if (dir_ext != NULL) for (int i=0; i<ndof; i++) dir_ext->set(i, 0);
-  for (int i=0; i<ndof; i++) rhs_ext->set(i, 0);
-
-  //  further checks if rhsonly == false
-  if (rhsonly == false) {
-    if (mat_ext->get_size() != this->get_num_dofs())
-      error("Matrix size does not match ndof in DiscreteProblem::assemble().");
-    if (dir_ext != NULL) {
-      if (mat_ext->get_size() != dir_ext->get_size() || mat_ext->get_size() != rhs_ext->get_size())
-      error("Mismatched matrix and vector sizes in DiscreteProblem::assemble().");
-    }
-  }
-
   int k, m, marker;
   std::vector<AsmList> al(wf->neq);
   AsmList* am, * an;
@@ -991,6 +989,7 @@ int DiscreteProblem::assign_dofs()
   return ndof;
 }
 
+/* OLD CODE
 // global orthogonal projection
 void DiscreteProblem::project_global(Tuple<MeshFunction*> source, Tuple<Solution*> target, Tuple<int>proj_norms)
 {
@@ -1076,80 +1075,162 @@ void DiscreteProblem::project_global(Tuple<MeshFunction*> source, Tuple<Solution
   wf = wf_orig;
   wf_seq = -1;
 }
+*/
 
-void DiscreteProblem::project_global(Tuple<MeshFunction*> source, Tuple<Solution*> target,
-                                     matrix_forms_tuple_t proj_biforms, vector_forms_tuple_t proj_liforms )
+// global orthogonal projection
+void project_global(Tuple<Space *> spaces, Tuple<MeshFunction*> source, 
+                    Tuple<Solution*> target, WeakForm *wf)
 {
-  // sanity checks
   int n = source.size();
-  if (this->spaces == NULL) error("this->spaces == NULL in DiscreteProblem::project_global().");
-  for (int i=0; i<n; i++) if(this->spaces[i] == NULL)
-			    error("this->spaces[%d] == NULL in DiscreteProblem::project_global().", i);
-  if (n != target.size())
-    error("Mismatched numbers of projected functions and solutions in DiscreteProblem::project_global().");
-  if (n > 10)
-    error("Wrong number of projected functions in DiscreteProblem::project_global().");
 
-  matrix_forms_tuple_t::size_type n_biforms = proj_biforms.size();
-  if (n_biforms != proj_liforms.size())
-    error("Mismatched numbers of projection forms in DiscreteProblem::project_global().");
-  if (n_biforms > 0) {
-    if (n != n_biforms)
-      error("Mismatched numbers of projected functions and projection forms in DiscreteProblem::project_global().");
-  }
-  else
-    warn("DiscreteProblem::project_global() expected %d user defined biform(s) & liform(s); ordinary H1 projection will be performed", n);
-
-  if (wf != NULL) {
-    if (n != wf->neq)
-      error("Wrong number of functions in DiscreteProblem::project_global().");
-  }
-  if (!have_spaces)
-    error("You have to init_spaces() before using DiscreteProblem::project_global().");
+  // sanity checks
+  if (n <= 0 || n > 10) error("Wrong number of projected functions in project_global().");
+  for (int i = 0; i < n; i++) if(spaces[i] == NULL) error("this->spaces[%d] == NULL in project_global().", i);
+  if (spaces.size() != n) error("Number of spaces must matchnumber of projected functions in project_global().");
+  if (target.size() != n) error("Mismatched numbers of projected functions and solutions in project_global().");
 
   // this is needed since spaces may have their DOFs enumerated only locally
   // when they come here.
-  this->assign_dofs();
+  int ndof = assign_dofs(spaces);
 
-  // back up original weak form
-  WeakForm* wf_orig = wf;
+  // FIXME: enable other types of matrices and vectors.
+  CooMatrix mat(ndof);
+  CommonSolverSciPyUmfpack solver;
+  Vector* dir = new AVector(ndof);
+  Vector* rhs = new AVector(ndof);
+
+  //assembling the projection matrix, dir vector and rhs  
+  DiscreteProblem dp(wf, spaces);
+  dp.assemble(&mat, dir, rhs, false);
+  // since this is a linear problem, subtract the dir vector from the right-hand side:
+  for (int i=0; i < ndof; i++) rhs->add(i, -dir->get(i));
+
+  solver.solve(&mat, rhs);
+  for (int i=0; i < wf->neq; i++) {
+    target[i]->set_fe_solution(spaces[i], rhs);
+  }
+}
+
+// global orthogonal projection
+void project_global(Tuple<Space *> spaces, Tuple<MeshFunction*> source, 
+                    Tuple<Solution*> target, Tuple<int>proj_norms)
+{
+  int n = spaces.size();  
 
   // define temporary projection weak form
-  WeakForm wf_proj(n);
-  wf = &wf_proj;
+  WeakForm wf(n);
+  int found[100];
+  for (int i = 0; i < 100; i++) found[i] = 0;
+  for (int i = 0; i < n; i++) {
+    int norm;
+    if (proj_norms == Tuple<int>()) norm = 1;
+    else norm = proj_norms[i];
+    if (norm == 0) {
+      found[i] = 1;
+      wf.add_matrix_form(i, i, L2projection_biform<double, scalar>, L2projection_biform<Ord, Ord>);
+      wf.add_vector_form(i, L2projection_liform<double, scalar>, L2projection_liform<Ord, Ord>,
+                     H2D_ANY, source[i]);
+    }
+    if (norm == 1) {
+      found[i] = 1;
+      wf.add_matrix_form(i, i, H1projection_biform<double, scalar>, H1projection_biform<Ord, Ord>);
+      wf.add_vector_form(i, H1projection_liform<double, scalar>, H1projection_liform<Ord, Ord>,
+                     H2D_ANY, source[i]);
+    }
+    if (norm == 2) {
+      found[i] = 1;
+      wf.add_matrix_form(i, i, Hcurlprojection_biform<double, scalar>, Hcurlprojection_biform<Ord, Ord>);
+      wf.add_vector_form(i, Hcurlprojection_liform<double, scalar>, Hcurlprojection_liform<Ord, Ord>,
+                     H2D_ANY, source[i]);
+    }
+  }
+  for (int i=0; i < n; i++) {
+    if (found[i] == 0) {
+      warn("index of component: %d\n", i);
+      error("Wrong projection norm in project_global().");
+    }
+  }
+
+  project_global(spaces, source, target, &wf);
+}
+
+void project_global(Tuple<Space *> spaces, Tuple<MeshFunction*> source, Tuple<Solution*> target,
+               matrix_forms_tuple_t proj_biforms, vector_forms_tuple_t proj_liforms)
+{
+  int n = spaces.size();
+  matrix_forms_tuple_t::size_type n_biforms = proj_biforms.size();
+  if (n_biforms != proj_liforms.size())
+    error("Mismatched numbers of projection forms in project_global().");
+  if (n_biforms > 0) {
+    if (n != n_biforms)
+      error("Mismatched numbers of projected functions and projection forms in project_global().");
+  }
+  else
+    warn("project_global() expected %d user defined biform(s) & liform(s); ordinary H1 projection will be performed", n);
+
+  // this is needed since spaces may have their DOFs enumerated only locally
+  // when they come here.
+  int ndof = assign_dofs(spaces);
+
+  // define projection weak form
+  WeakForm wf(n);
   for (int i = 0; i < n; i++) {
     if (n_biforms == 0) {
-      wf->add_matrix_form(i, i, H1projection_biform<double, scalar>, H1projection_biform<Ord, Ord>);
-      wf->add_vector_form(i, H1projection_liform<double, scalar>, H1projection_liform<Ord, Ord>,
+      wf.add_matrix_form(i, i, H1projection_biform<double, scalar>, H1projection_biform<Ord, Ord>);
+      wf.add_vector_form(i, H1projection_liform<double, scalar>, H1projection_liform<Ord, Ord>,
                      H2D_ANY, source[i]);
     }
     else {
-      wf->add_matrix_form(i, i, proj_biforms[i].first, proj_biforms[i].second);
-      wf->add_vector_form(i, proj_liforms[i].first, proj_liforms[i].second,
+      wf.add_matrix_form(i, i, proj_biforms[i].first, proj_biforms[i].second);
+      wf.add_vector_form(i, proj_liforms[i].first, proj_liforms[i].second,
                      H2D_ANY, source[i]);
     }
   }
 
-  // FIXME: enable other types of matrices and vectors.
-  CooMatrix mat(this->get_num_dofs());
-  CommonSolverSciPyUmfpack solver;
-  Vector* dir = new AVector(this->get_num_dofs());
-  Vector* rhs = new AVector(this->get_num_dofs());
+  project_global(spaces, source, target, &wf);
+}
 
-  //assembling the projection matrix, dir vector and rhs
-  DiscreteProblem::assemble(&mat, dir, rhs, false);
-  // since this is a linear problem, subtract the dir vector from the right-hand side:
-  for (int i=0; i < this->get_num_dofs(); i++) rhs->add(i, -dir->get(i));
+/// Global orthogonal projection of one scalar ExactFunction.
+void project_global(Space *space, ExactFunction source, Solution* target, int proj_norm)
+{
+  if (proj_norm != 0 && proj_norm != 1) error("Wrong norm used in orthogonal projection (scalar case).");
+  Mesh *mesh = space->get_mesh();
+  if (mesh == NULL) error("Mesh is NULL in project_global().");
+  Solution sln;
+  sln.set_exact(mesh, source);
+  project_global(space, &sln, target, proj_norm);
+};
 
-  solver.solve(&mat, rhs);
-  
-  for (int i=0; i < this->wf->neq; i++) {
-    target[i]->set_fe_solution(this->spaces[i], rhs);
-  }
+/// Global orthogonal projection of one scalar ExactFunction -- user specified projection bi/linear forms.
+void project_global(Space *space, ExactFunction source, Solution* target,
+                    std::pair<WeakForm::matrix_form_val_t, WeakForm::matrix_form_ord_t> proj_biform,
+                    std::pair<WeakForm::vector_form_val_t, WeakForm::vector_form_ord_t> proj_liform)
+{
+  // todo: check that supplied forms take scalar valued functions
+  Mesh *mesh = space->get_mesh();
+  if (mesh == NULL) error("Mesh is NULL in project_global().");
+  Solution sln;
+  sln.set_exact(mesh, source);
+  project_global(space, &sln, target, matrix_forms_tuple_t(proj_biform), vector_forms_tuple_t(proj_liform));
+};
 
-  // restoring original weak form
-  wf = wf_orig;
-  wf_seq = -1;
+/// Global orthogonal projection of one vector-valued ExactFunction.
+void project_global(Space *space, ExactFunction2 source, Solution* target)
+{
+  int proj_norm = 2; // Hcurl
+  Mesh *mesh = space->get_mesh();
+  if (mesh == NULL) error("Mesh is NULL in project_global().");
+  Solution sln;
+  sln.set_exact(mesh, source);
+  project_global(space, &sln, target, proj_norm);
+};
+
+/// Projection-based interpolation of an exact function. This is faster than the
+/// global projection since no global matrix problem is solved.
+void project_local(Space *space, ExactFunction exactfn, Mesh* mesh,
+                   Solution* result, int proj_norm)
+{
+  /// TODO
 }
 
 int DiscreteProblem::get_num_dofs()

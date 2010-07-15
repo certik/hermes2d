@@ -99,8 +99,14 @@ DenseMatrix::~DenseMatrix()
 
 void DenseMatrix::free_data()
 {
-    if (this->A) { delete[] A; this->A = NULL; };
-    if (this->A_cplx) { delete[] this->A_cplx; this->A_cplx = NULL; };
+    if (this->A != NULL) { 
+      delete[] A; 
+      this->A = NULL; 
+    };
+    if (this->A_cplx != NULL) { 
+      delete[] this->A_cplx; 
+      this->A_cplx = NULL; 
+    };
 
     this->size = 0;
 }
@@ -145,7 +151,7 @@ void DenseMatrix::add_from_coo(CooMatrix *m)
         for (int i = 0; i < nnz; i++)
             A_cplx[row[i]][col[i]] = data[i];
 
-        if (data) delete[] data;
+        if (data != NULL) delete[] data;
     }
     else
     {
@@ -155,12 +161,12 @@ void DenseMatrix::add_from_coo(CooMatrix *m)
         for (int i = 0; i < nnz; i++)
             A[row[i]][col[i]] = data[i];
 
-        if (data) delete[] data;
+        if (data != NULL) delete[] data;
     }
 
     // free data
-    if (row) delete[] row;
-    if (col) delete[] col;
+    if (row != NULL) delete[] row;
+    if (col != NULL) delete[] col;
 }
 
 int DenseMatrix::get_nnz()
@@ -255,12 +261,16 @@ CooMatrix::~CooMatrix()
 {
     this->free_data();
 }
+void CooMatrix::set_zero()
+{
+    this->free_data();
+}
 
 void CooMatrix::free_data()
 {
-    A_cplx.clear();
-    A.clear();
-    this->size = 0;
+  A_cplx.clear();
+  A.clear();
+  this->size = 0;
 }
 
 void CooMatrix::add_from_csr(CSRMatrix *m)
@@ -460,7 +470,7 @@ void CooMatrix::print()
         {
             for(std::map<size_t, cplx>::const_iterator it_col = it_row->second.begin(); it_col != it_row->second.end(); ++it_col)
             {
-                printf("(%lu, %lu): (%f, %f)\n",
+                printf("(%u, %u): (%g, %g)\n",
                        it_row->first,
                        it_col->first,
                        ((cplx) it_col->second).real(),
@@ -474,7 +484,7 @@ void CooMatrix::print()
         {
             for(std::map<size_t, double>::const_iterator it_col = it_row->second.begin(); it_col != it_row->second.end(); ++it_col)
             {
-                printf("(%lu, %lu): %f\n",
+                printf("(%u, %u): %g\n",
                        it_row->first,
                        it_col->first,
                        it_col->second);
@@ -541,10 +551,10 @@ void CSRMatrix::init()
 
 void CSRMatrix::free_data()
 {
-    if (this->Ap) { delete[] this->Ap; this->Ap = NULL; }
-    if (this->Ai) { delete[] this->Ai; this->Ai = NULL; }
-    if (this->Ax) { delete[] this->Ax; this->Ax = NULL; }
-    if (this->Ax_cplx) { delete[] this->Ax_cplx; this->Ax_cplx = NULL; }
+    if (this->Ap != NULL) { delete[] this->Ap; this->Ap = NULL; }
+    if (this->Ai != NULL) { delete[] this->Ai; this->Ai = NULL; }
+    if (this->Ax != NULL) { delete[] this->Ax; this->Ax = NULL; }
+    if (this->Ax_cplx != NULL) { delete[] this->Ax_cplx; this->Ax_cplx = NULL; }
 
     this->size = 0;
     this->nnz = 0;
@@ -613,19 +623,19 @@ void CSRMatrix::add_from_coo(CooMatrix *m)
         cplx *data = new cplx[this->nnz];
         m->get_row_col_data(row, col, data);
         coo_to_csr(this->size, this->nnz, row, col, data, Ap, Ai, Ax_cplx);
-        if (data) delete[] data;
+        if (data != NULL) delete[] data;
     }
     else
     {
         double *data = new double[this->nnz];
         m->get_row_col_data(row, col, data);
         coo_to_csr(this->size, this->nnz, row, col, data, Ap, Ai, Ax);
-        if (data) delete[] data;
+        if (data != NULL) delete[] data;
     }
 
     // free data
-    if (row) delete[] row;
-    if (col) delete[] col;
+    if (row != NULL) delete[] row;
+    if (col != NULL) delete[] col;
 }
 
 void CSRMatrix::add_from_csc(CSCMatrix *m)
@@ -750,10 +760,10 @@ void CSCMatrix::init()
 
 void CSCMatrix::free_data()
 {
-    if (this->Ap) { delete[] this->Ap; this->Ap = NULL; }
-    if (this->Ai) { delete[] this->Ai; this->Ai = NULL; }
-    if (this->Ax) { delete[] this->Ax; this->Ax = NULL; }
-    if (this->Ax_cplx) { delete[] this->Ax_cplx; this->Ax_cplx = NULL; }
+    if (this->Ap != NULL) { delete[] this->Ap; this->Ap = NULL; }
+    if (this->Ai != NULL) { delete[] this->Ai; this->Ai = NULL; }
+    if (this->Ax != NULL) { delete[] this->Ax; this->Ax = NULL; }
+    if (this->Ax_cplx != NULL) { delete[] this->Ax_cplx; this->Ax_cplx = NULL; }
 
     size = 0;
     nnz = 0;
@@ -783,7 +793,7 @@ void CSCMatrix::add_from_dense(DenseMatrix *m)
         cplx *data = new cplx[this->nnz];
         dense_to_coo(size, nnz, m->get_A_cplx(), row, col, data);
         coo_to_csc(this->size, this->nnz, row, col, data, Ap, Ai, Ax_cplx);
-        if (data) delete[] data;
+        if (data != NULL) delete[] data;
     }
     else
     {
@@ -793,12 +803,12 @@ void CSCMatrix::add_from_dense(DenseMatrix *m)
         print_vector("col", col, this->nnz);
         print_vector("Ax", data, this->nnz);
         coo_to_csc(this->size, this->nnz, row, col, data, Ap, Ai, Ax);
-        if (data) delete[] data;
+        if (data != NULL) delete[] data;
     }
 
     // free data
-    if (row) delete[] row;
-    if (col) delete[] col;
+    if (row != NULL) delete[] row;
+    if (col != NULL) delete[] col;
 }
 
 void CSCMatrix::add_from_coo(CooMatrix *m)
@@ -825,19 +835,19 @@ void CSCMatrix::add_from_coo(CooMatrix *m)
         cplx *data = new cplx[this->nnz];
         m->get_row_col_data(row, col, data);
         coo_to_csc(this->size, this->nnz, row, col, data, Ap, Ai, Ax_cplx);
-        if (data) delete[] data;
+        if (data != NULL) delete[] data;
     }
     else
     {
         double *data = new double[this->nnz];
         m->get_row_col_data(row, col, data);
         coo_to_csc(this->size, this->nnz, row, col, data, Ap, Ai, Ax);
-        if (data) delete[] data;
+        if (data != NULL) delete[] data;
     }
 
     // free data
-    if (row) delete[] row;
-    if (col) delete[] col;
+    if (row != NULL) delete[] row;
+    if (col != NULL) delete[] col;
 }
 
 void CSCMatrix::add_from_csr(CSRMatrix *m)
@@ -1105,7 +1115,7 @@ void ludcmp(double** a, int n, int* indx, double* d)
             for (i = j+1; i < n; i++) a[i][j] *= dum;
         }
     }
-    delete [] vv;
+    if (vv != NULL) delete [] vv;
 }
 
 /// Solves the set of n linear equations AX = B. Here a[n][n] is input, not as the matrix

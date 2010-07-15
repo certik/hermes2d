@@ -28,11 +28,10 @@
 
 using namespace std;
 
-H1Adapt::H1Adapt(DiscreteProblem* ls) : Adapt(ls) 
+H1Adapt::H1Adapt(DiscreteProblem* dp) : Adapt(dp) 
 {
-  int n = ls->wf->get_neq();
-  for (int i = 0; i < n; i++) {
-    for (int j = 0; j < n; j++) {
+  for (int i = 0; i < this->neq; i++) {
+    for (int j = 0; j < this->neq; j++) {
       if (i == j) {
         form[i][j] = h1_form<double, scalar>;
         ord[i][j]  = h1_form<Ord, Ord>;
@@ -41,7 +40,19 @@ H1Adapt::H1Adapt(DiscreteProblem* ls) : Adapt(ls)
   }
 }
 
-// Mesh is adapted to represent initial condition with given accuracy
+H1Adapt::H1Adapt(Tuple<Space *> spaces) : Adapt(spaces) 
+{
+  for (int i = 0; i < this->neq; i++) {
+    for (int j = 0; j < this->neq; j++) {
+      if (i == j) {
+        form[i][j] = h1_form<double, scalar>;
+        ord[i][j]  = h1_form<Ord, Ord>;
+      }
+    }
+  }
+}; 
+
+// Mesh is adapted to represent a given function with given accuracy
 // in a given projection norm.
 void adapt_to_exact_function_h1(Space *space, ExactFunction exactfn, 
 				RefinementSelectors::Selector* selector, double threshold, int strategy, 
@@ -49,12 +60,6 @@ void adapt_to_exact_function_h1(Space *space, ExactFunction exactfn,
                                 Solution* sln) 
 {
   if (verbose == true) printf("Mesh adaptivity to an exact function:\n");
-
-  // Initialize a dummy weak formulation.
-  WeakForm wf_dummy;
-
-  // Initialize the linear system.
-  LinearProblem lp(&wf_dummy, space);
 
   // Initialize views.
   ScalarView* view = new ScalarView("Projection of initial condition", 0, 0, 410, 300);
@@ -67,21 +72,28 @@ void adapt_to_exact_function_h1(Space *space, ExactFunction exactfn,
   int as = 1; bool done = false;
   do
   {
-    // Refine mesh uniformly.
-    RefLinearProblem rlp(&lp);
+    // Construct the globally refined reference mesh.
+    Mesh rmesh;
+    rmesh.copy(space->get_mesh());
+    rmesh.refine_all_elements();
+
+    // Setup space for the reference solution.
+    Space *rspace = space->dup(&rmesh);
+    int order_increase = 1;
+    rspace->copy_orders(space, order_increase);
 
     // Assign the function f() to the fine mesh.
-    sln_fine->set_exact(rlp.get_mesh(0), exactfn);
+    sln_fine->set_exact(&rmesh, exactfn);
 
     // Project the function f() on the coarse mesh.
-    lp.project_global(exactfn, sln_coarse);
+    project_global(space, exactfn, sln_coarse);
 
     // Calculate element errors and total error estimate.
-    H1Adapt hp(&lp);
+    H1Adapt hp(space);
     hp.set_solutions(sln_coarse, sln_fine);
     double err_est = hp.calc_error() * 100;
     if (verbose ==  true) printf("Step %d, ndof %d, proj_error %g%%\n", 
-                 as, lp.get_num_dofs(), err_est);
+                 as, space->get_num_dofs(), err_est);
 
     // If err_est too large, adapt the mesh.
     if (err_est < err_stop) done = true;
@@ -89,7 +101,7 @@ void adapt_to_exact_function_h1(Space *space, ExactFunction exactfn,
       double to_be_processed = 0;
       done = hp.adapt(selector, threshold, strategy, mesh_regularity, to_be_processed);
 
-      if (lp.get_num_dofs() >= ndof_stop) done = true;
+      if (space->get_num_dofs() >= ndof_stop) done = true;
     }
 
     // View the approximation of the exact function.

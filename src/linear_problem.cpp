@@ -57,7 +57,7 @@ void init_matrix_solver(MatrixSolverType matrix_solver, int ndof,
   CooMatrix* mat_umfpack = new CooMatrix(ndof);
   Vector* rhs_umfpack = new AVector(ndof);
   CommonSolverSciPyUmfpack* solver_umfpack = new CommonSolverSciPyUmfpack();
-    //CommonSolverSciPyUmfpack* solver_umfpack = new CommonSolverSciPyUmfpack();
+  //CommonSolverSciPyUmfpack* solver_umfpack = new CommonSolverSciPyUmfpack();
   // PETSc.
   /* FIXME - PETSc solver needs to be ported from H3D.
   PetscMatrix mat_petsc(ndof);
@@ -104,7 +104,7 @@ bool solve_linear(Tuple<Space *> spaces, WeakForm* wf, Tuple<Solution *> solutio
 {
   // Initialize the linear problem.
   LinearProblem lp(wf, spaces);
-  info("ndof = %d", lp.get_num_dofs());
+  //info("ndof = %d", lp.get_num_dofs());
 
   // Select matrix solver.
   Matrix* mat;

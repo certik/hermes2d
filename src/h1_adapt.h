@@ -26,7 +26,8 @@ class H2D_API H1Adapt : public Adapt {
 public:
   /// Constructor.
   /** \param[in] spaces An array of spaces. The number of spaces determines the number of components. For the best results, use instances of the class H1Space. */
-  H1Adapt(DiscreteProblem* ls);
+  H1Adapt(DiscreteProblem* dp);
+  H1Adapt(Tuple<Space *> spaces_);
 };
 
 void adapt_to_exact_function_h1(Space *space, ExactFunction exactfn, 

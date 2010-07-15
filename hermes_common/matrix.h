@@ -97,10 +97,13 @@ protected:
 
 class Vector {
 public:
-    Vector() {}
-    virtual ~Vector() {}
+    virtual void init(int n, bool is_complex=false) = 0; 
+    Vector() {};
+    virtual ~Vector() {};
     inline virtual int get_size() { return this->size; }
     inline bool is_complex() { return this->complex; }
+    virtual void set_zero() = 0;
+    virtual void free_data() = 0;
     virtual void print() = 0;
 
     virtual void add(int m, double v) = 0;
@@ -154,7 +157,7 @@ void print_vector(const char *label, cplx *value, int size);
 // Uses a C++ array as the internal implementation
 class AVector: public Vector {
 public:
-    AVector(int n, bool is_complex=false) {
+    virtual void init(int n, bool is_complex = false) {
         this->size = n;
         this->complex = is_complex;
         if (is_complex) {
@@ -168,11 +171,34 @@ public:
                 this->v[i] = 0;
         }
     }
+    AVector(int n, bool is_complex=false) {
+        this->init(n, is_complex);
+    }
+    virtual void set_zero() {
+      if (complex) {
+        for (int i=0; i < this->size; i++) this->v_cplx[i] = 0;
+      }
+      else {
+        for (int i=0; i < this->size; i++) this->v[i] = 0;
+      }
+    };
+
+    virtual void free_data() {
+      if (complex) {
+	if (this->v_cplx != NULL) {
+          delete[] this->v_cplx;
+          this->v_cplx = NULL;
+        }
+      }
+      else {
+        if (this->v != NULL) {
+          delete[] this->v;
+          this->v = NULL;
+        }
+      }
+    };
     virtual ~AVector() {
-        if (complex)
-            delete[] this->v_cplx;
-        else
-            delete[] this->v;
+      free_data();
     }
     virtual void print() {
         if (this->complex)
@@ -228,10 +254,7 @@ public:
     inline virtual void init() { this->complex = false; free_data(); }
     virtual void free_data();
 
-    virtual void set_zero()
-    {
-        _error("CooMatrix::set_zero() not implemented.");
-    }
+    virtual void set_zero();
 
     virtual int get_nnz();
     virtual void print();

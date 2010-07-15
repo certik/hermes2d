@@ -69,6 +69,10 @@ public:
       if (n < 0 || n >= this->wf->neq) error("Bad index of space.");
       return this->spaces[n];
   }
+  Space* get_space() {
+      if (this->wf->neq != 1) error("get_space() can be used in single PDE case only.");
+      return this->spaces[0];
+  }
   Mesh* get_mesh(int n) {
       if (n < 0 || n >= this->wf->neq) error("Bad index of mesh.");
       return this->spaces[n]->mesh;
@@ -121,87 +125,6 @@ public:
 
   /// Assigning DOF = enumerating basis functions in the FE spaces.
   int assign_dofs();  // all spaces
-
-  /// Global orthogonal projection of multiple solution components. For each of
-  /// them a different proj_norm can be used. This defines the entire coefficient
-  /// vector Vec. Calls assign_dofs() at the beginning.
-  void project_global(Tuple<MeshFunction*> source, Tuple<Solution*> target, 
-                      Tuple<int> proj_norms = Tuple<int>());
-
-  /// The same as above, but the user may specify the forms that are used in the projection
-  /// (useful e.g. when working in curvilinear coordinate systems).
-  void project_global(Tuple<MeshFunction*> source, Tuple<Solution*> target, 
-                      matrix_forms_tuple_t proj_biforms, vector_forms_tuple_t proj_liforms);
-
-  /// Global orthogonal projection of one MeshFunction.
-  void project_global(MeshFunction* source, Solution* target, int proj_norm = H2D_DEFAULT_PROJ_NORM)
-  {
-    if (this->wf->neq != 1)
-      error("Number of projected functions must be one if there is only one equation, in DiscreteProblem::project_global().");
-    this->project_global(Tuple<MeshFunction*>(source), Tuple<Solution*>(target), Tuple<int>(proj_norm));
-  };
-
-  /// Global orthogonal projection of one MeshFunction -- user specified projection bi/linear forms.
-  void project_global(MeshFunction* source, Solution* target,
-                  std::pair<WeakForm::matrix_form_val_t, WeakForm::matrix_form_ord_t> proj_biform,
-                  std::pair<WeakForm::vector_form_val_t, WeakForm::vector_form_ord_t> proj_liform)
-  {
-    if (this->wf->neq != 1)
-      error("Number of projected functions must be one if there is only one equation, in DiscreteProblem::project_global().");
-    this->project_global(Tuple<MeshFunction*>(source), Tuple<Solution*>(target), 
-                         matrix_forms_tuple_t(proj_biform), vector_forms_tuple_t(proj_liform));
-  };
-
-
-  /// Global orthogonal projection of one scalar ExactFunction.
-  void project_global(ExactFunction source, Solution* target, int proj_norm = H2D_DEFAULT_PROJ_NORM)
-  {
-    if (this->wf->neq != 1)
-      error("Number of projected functions must be one if there is only one equation, in DiscreteProblem::project_global().");
-    if (proj_norm != 0 && proj_norm != 1) error("Wrong norm used in orthogonal projection (scalar case).");
-    Mesh *mesh = this->get_mesh(0);
-    if (mesh == NULL) error("Mesh is NULL in project_global().");
-    Solution sln;
-    sln.set_exact(mesh, source);
-    this->project_global(Tuple<MeshFunction*>(&sln), Tuple<Solution*>(target), Tuple<int>(proj_norm));
-  };
-
-  /// Global orthogonal projection of one scalar ExactFunction -- user specified projection bi/linear forms.
-  void project_global(ExactFunction source, Solution* target,
-                  std::pair<WeakForm::matrix_form_val_t, WeakForm::matrix_form_ord_t> proj_biform,
-                  std::pair<WeakForm::vector_form_val_t, WeakForm::vector_form_ord_t> proj_liform)
-  {
-    if (this->wf->neq != 1)
-      error("Number of projected functions must be one if there is only one equation, in DiscreteProblem::project_global().");
-    // todo: check that supplied forms take scalar valued functions
-    Mesh *mesh = this->get_mesh(0);
-    if (mesh == NULL) error("Mesh is NULL in project_global().");
-    Solution sln;
-    sln.set_exact(mesh, source);
-    this->project_global(Tuple<MeshFunction*>(&sln), Tuple<Solution*>(target), 
-                         matrix_forms_tuple_t(proj_biform), vector_forms_tuple_t(proj_liform));
-  };
-
-  /// Global orthogonal projection of one vector-valued ExactFunction.
-  void project_global(ExactFunction2 source, Solution* target)
-  {
-    if (this->wf->neq != 1)
-      error("Number of projected functions must be one if there is only one equation, in DiscreteProblem::project_global().");
-    int proj_norm = 2; // Hcurl
-    Mesh *mesh = this->get_mesh(0);
-    if (mesh == NULL) error("Mesh is NULL in project_global().");
-    Solution sln;
-    sln.set_exact(mesh, source);
-    this->project_global(Tuple<MeshFunction*>(&sln), Tuple<Solution*>(target), Tuple<int>(proj_norm));
-  };
-
-  /// Projection-based interpolation of an exact function. This is faster than the
-  /// global projection since no global matrix problem is solved.
-  void project_local(ExactFunction exactfn, Mesh* mesh,
-                     Solution* result, int proj_norm = H2D_DEFAULT_PROJ_NORM)
-  {
-    /// TODO
-  }
 
   /// Needed for problems where BC depend on time.
   void update_essential_bc_values();
@@ -346,6 +269,26 @@ protected:
 
 };
 
+/// Global orthogonal projection of multiple solution components.
+/// Calls assign_dofs() at the beginning.
+void project_global(Tuple<Space *> spaces, Tuple<MeshFunction*> source, 
+                    Tuple<Solution*> target, WeakForm *wf);
 
+void project_global(Tuple<Space *> spaces, Tuple<MeshFunction*> source, 
+                    Tuple<Solution*> target, Tuple<int>proj_norms = Tuple<int>());
+
+void project_global(Tuple<Space *> spaces, Tuple<MeshFunction*> source, Tuple<Solution*> target,
+               matrix_forms_tuple_t proj_biforms, vector_forms_tuple_t proj_liforms);
+
+void project_global(Space *space, ExactFunction source, Solution* target, int proj_norm = H2D_DEFAULT_PROJ_NORM);
+
+void project_global(Space *space, ExactFunction source, Solution* target,
+                    std::pair<WeakForm::matrix_form_val_t, WeakForm::matrix_form_ord_t> proj_biform,
+                    std::pair<WeakForm::vector_form_val_t, WeakForm::vector_form_ord_t> proj_liform);
+
+void project_global(Space *space, ExactFunction2 source, Solution* target);
+
+void project_local(Space *space, ExactFunction exactfn, Mesh* mesh,
+                   Solution* result, int proj_norm = H2D_DEFAULT_PROJ_NORM);
 
 #endif
