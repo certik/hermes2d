@@ -36,12 +36,14 @@ LinearProblem::~LinearProblem() {};
 
 void LinearProblem::assemble(Matrix* mat_ext, Vector* rhs_ext, bool rhsonly)
 {
-  Vector* dir = new AVector(this->get_num_dofs());
+  int ndof = this->get_num_dofs();
+  if (ndof == 0) error("ndof == 0 in LinearProblem::assemble().");
+  Vector* dir_ext = new AVector(ndof);
   // the vector dir represents the contribution of the Dirichlet lift, 
-  // and it has to be added to the right hand side for linear problems
-  DiscreteProblem::assemble(mat_ext, dir, rhs_ext, rhsonly);
-  for (int i=0; i < dir->get_size(); i++) rhs_ext->add(i, dir->get(i));
-  delete dir;
+  // and it has to be subtracted from the right hand side for linear problems
+  DiscreteProblem::assemble(mat_ext, dir_ext, rhs_ext, rhsonly);
+  for (int i=0; i < ndof; i++) rhs_ext->add(i, -dir_ext->get(i));
+  delete dir_ext;
 }
 
 // FIXME: We need to unify the type for Python and 

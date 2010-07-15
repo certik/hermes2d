@@ -101,7 +101,7 @@ int main(int argc, char* argv[])
   ScalarView Tview("Temperature", 0, 0, 450, 600);
   char title[100];
   sprintf(title, "Time %3.5f, exterior temperature %3.5f", TIME, temp_ext(TIME));
-  //Tview.set_min_max_range(0,20);
+  Tview.set_min_max_range(0,20);
   Tview.set_title(title);
   Tview.fix_scale_width(3);
 

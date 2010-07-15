@@ -198,7 +198,7 @@ void DiscreteProblem::assemble(Matrix* mat_ext, Vector* dir_ext, Vector* rhs_ext
   for (int i=0; i<n; i++) 
     if (this->spaces[i] == NULL) error("this->spaces[%d] is NULL in DiscreteProblem::assemble().", i);
   if (rhs_ext == NULL) error("rhs_ext == NULL in DiscreteProblem::assemble().");
-  if (mat_ext == NULL) error("mat_ext == NULL in DiscreteProblem::assemble().");
+  if (rhsonly == false) if (mat_ext == NULL) error("mat_ext == NULL in DiscreteProblem::assemble().");
 
   // enumerate DOF to get new length of the vectors rhs and dir,
   // and realloc these vectors if needed
@@ -244,7 +244,8 @@ void DiscreteProblem::assemble(Matrix* mat_ext, Vector* dir_ext, Vector* rhs_ext
   }
   else trace("Reusing matrix sparse structure...");
 
-  trace("Assembling stiffness matrix...");
+  if (rhsonly == false) trace("Assembling stiffness matrix and rhs...");
+  else trace("Assembling rhs only...");
   TimePeriod cpu_time;
 
   // create slave pss's for test functions, init quadrature points
@@ -277,10 +278,8 @@ void DiscreteProblem::assemble(Matrix* mat_ext, Vector* dir_ext, Vector* rhs_ext
   for (unsigned int ss = 0; ss < stages.size(); ss++)
   {
     WeakForm::Stage* s = &stages[ss];
-    for (unsigned int i = 0; i < s->idx.size(); i++)
-      s->fns[i] = pss[s->idx[i]];
-    for (unsigned int i = 0; i < s->ext.size(); i++)
-      s->ext[i]->set_quad_2d(&g_quad_2d_std);
+    for (unsigned int i = 0; i < s->idx.size(); i++) s->fns[i] = pss[s->idx[i]];
+    for (unsigned int i = 0; i < s->ext.size(); i++) s->ext[i]->set_quad_2d(&g_quad_2d_std);
     trav.begin(s->meshes.size(), &(s->meshes.front()), &(s->fns.front()));
 
     // assemble one stage
@@ -302,8 +301,8 @@ void DiscreteProblem::assemble(Matrix* mat_ext, Vector* dir_ext, Vector* rhs_ext
       {
         int j = s->idx[i];
         if (e[i] == NULL) { isempty[j] = true; continue; }
+        // FIXME: Do not retrieve assembly list again if the element has not changed.
         spaces[j]->get_element_assembly_list(e[i], &al[j]);
-        /** \todo Do not retrieve assembly list again if the element has not changed */
 
         spss[j]->set_active_element(e[i]);
         spss[j]->set_master_transform();
@@ -325,24 +324,27 @@ void DiscreteProblem::assemble(Matrix* mat_ext, Vector* dir_ext, Vector* rhs_ext
         bool sym = (m == n) && (mfv->sym == 1);
 
         // assemble the local stiffness matrix for the form mfv
-        scalar bi, **mat = get_matrix_buffer(std::max(am->cnt, an->cnt));
+        scalar **local_stiffness_matrix = get_matrix_buffer(std::max(am->cnt, an->cnt));
         for (int i = 0; i < am->cnt; i++)
         {
-          if (!tra && (k = am->dof[i]) < 0) continue;
+          if (!tra && am->dof[i] < 0) continue;
           fv->set_active_shape(am->idx[i]);
 
           if (!sym) // unsymmetric block
           {
             for (int j = 0; j < an->cnt; j++) {
               fu->set_active_shape(an->idx[j]);
-              // FIXME - the NULL on the following line is temporary, an array of solutions 
+              // FIXME - the NULL on the following eval_forms is temporary, an array of solutions 
               // should be passed there.
-              bi = eval_form(mfv, NULL, fu, fv, &refmap[n], &refmap[m]) * an->coef[j] * am->coef[i];
               if (an->dof[j] < 0) {
-                if (dir_ext != NULL) dir_ext->add(k, -bi); 
+                if (dir_ext != NULL) {
+                  scalar val = eval_form(mfv, NULL, fu, fv, &refmap[n], &refmap[m]) * an->coef[j] * am->coef[i];
+                  dir_ext->add(am->dof[i], val);
+                } 
               }
-              else {
-                if (rhsonly == false) mat[i][j] = bi;
+              else if (rhsonly == false) {
+                scalar val = eval_form(mfv, NULL, fu, fv, &refmap[n], &refmap[m]) * an->coef[j] * am->coef[i];
+                local_stiffness_matrix[i][j] = val;
               }
             }
           }
@@ -351,14 +353,17 @@ void DiscreteProblem::assemble(Matrix* mat_ext, Vector* dir_ext, Vector* rhs_ext
             for (int j = 0; j < an->cnt; j++) {
               if (j < i && an->dof[j] >= 0) continue;
               fu->set_active_shape(an->idx[j]);
-              // FIXME - the NULL on the following line is temporary, an array of solutions 
+              // FIXME - the NULL on the following eval_forms is temporary, an array of solutions 
               // should be passed there.
-              bi = eval_form(mfv, NULL, fu, fv, &refmap[n], &refmap[m]) * an->coef[j] * am->coef[i];
               if (an->dof[j] < 0) {
-                if (dir_ext != NULL) dir_ext->add(k, -bi);
+                if (dir_ext != NULL) {
+                  scalar val = eval_form(mfv, NULL, fu, fv, &refmap[n], &refmap[m]) * an->coef[j] * am->coef[i];
+                  dir_ext->add(am->dof[i], val);
+                }
               } 
-              else {
-                mat[i][j] = mat[j][i] = bi;
+              else if (rhsonly == false) {
+                scalar val = eval_form(mfv, NULL, fu, fv, &refmap[n], &refmap[m]) * an->coef[j] * am->coef[i];
+                local_stiffness_matrix[i][j] = local_stiffness_matrix[j][i] = val;
               }
             }
           }
@@ -366,25 +371,28 @@ void DiscreteProblem::assemble(Matrix* mat_ext, Vector* dir_ext, Vector* rhs_ext
 
         // insert the local stiffness matrix into the global one
         if (rhsonly == false) {
-          insert_block(mat_ext, mat, am->dof, an->dof, am->cnt, an->cnt);
+          insert_block(mat_ext, local_stiffness_matrix, am->dof, an->dof, am->cnt, an->cnt);
         }
 
         // insert also the off-diagonal (anti-)symmetric block, if required
         if (tra)
         {
-          if (mfv->sym < 0) chsgn(mat, am->cnt, an->cnt);
-          transpose(mat, am->cnt, an->cnt);
+          if (mfv->sym < 0) chsgn(local_stiffness_matrix, am->cnt, an->cnt);
+          transpose(local_stiffness_matrix, am->cnt, an->cnt);
           if (rhsonly == false) {
-            insert_block(mat_ext, mat, an->dof, am->dof, an->cnt, am->cnt);
+            insert_block(mat_ext, local_stiffness_matrix, an->dof, am->dof, an->cnt, am->cnt);
           }
 
           // we also need to take care of the RHS...
-          for (int j = 0; j < am->cnt; j++)
-            if (am->dof[j] < 0)
-              for (int i = 0; i < an->cnt; i++)
+          for (int j = 0; j < am->cnt; j++) {
+            if (am->dof[j] < 0) {
+              for (int i = 0; i < an->cnt; i++) {
                 if (an->dof[i] >= 0) {
-                  if (dir_ext != NULL) dir_ext->add(an->dof[i], -mat[i][j]);
+                  if (dir_ext != NULL) dir_ext->add(an->dof[i], local_stiffness_matrix[i][j]);
                 }
+              }
+            }
+          }
         }
       }
 
@@ -404,7 +412,6 @@ void DiscreteProblem::assemble(Matrix* mat_ext, Vector* dir_ext, Vector* rhs_ext
           // should be passed there.
           scalar val = eval_form(vfv, NULL, fv, &refmap[m]) * am->coef[i];
           rhs_ext->add(am->dof[i], val);
-          //printf("rhs add %d %g\n", am->dof[i], val);
         }
       }
 
@@ -437,27 +444,32 @@ void DiscreteProblem::assemble(Matrix* mat_ext, Vector* dir_ext, Vector* rhs_ext
           ep[edge].space_v = spaces[m];
           ep[edge].space_u = spaces[n];
 
-          scalar bi, **mat = get_matrix_buffer(std::max(am->cnt, an->cnt));
+          scalar **local_stiffness_matrix = get_matrix_buffer(std::max(am->cnt, an->cnt));
           for (int i = 0; i < am->cnt; i++)
           {
-            if ((k = am->dof[i]) < 0) continue;
+            if (am->dof[i] < 0) continue;
             fv->set_active_shape(am->idx[i]);
             for (int j = 0; j < an->cnt; j++)
             {
               fu->set_active_shape(an->idx[j]);
-              // FIXME - the NULL on the following line is temporary, an array of solutions 
+              // FIXME - the NULL on the following eval_forms is temporary, an array of solutions 
               // should be passed there.
-              bi = eval_form(mfs, NULL, fu, fv, &refmap[n], &refmap[m], &(ep[edge])) 
-                   * an->coef[j] * am->coef[i];
-              if (an->dof[j] >= 0) mat[i][j] = bi; 
-              else {
-                dir_ext->add(k, -bi);
+              if (an->dof[j] < 0) {
+                if (dir_ext != NULL) {
+                  scalar val = eval_form(mfs, NULL, fu, fv, &refmap[n], &refmap[m], &(ep[edge])) 
+                               * an->coef[j] * am->coef[i];
+                  dir_ext->add(am->dof[i], val);
+                }
               }
-              //printf("%d %d %g\n", i, j, bi);
+              else if (rhsonly == false) {
+                scalar val = eval_form(mfs, NULL, fu, fv, &refmap[n], &refmap[m], &(ep[edge])) 
+                             * an->coef[j] * am->coef[i];
+                local_stiffness_matrix[i][j] = val;
+              } 
             }
           }
           if (rhsonly == false) {
-            insert_block(mat_ext, mat, am->dof, an->dof, am->cnt, an->cnt);
+            insert_block(mat_ext, local_stiffness_matrix, am->dof, an->dof, am->cnt, an->cnt);
           }
         }
 
@@ -481,7 +493,6 @@ void DiscreteProblem::assemble(Matrix* mat_ext, Vector* dir_ext, Vector* rhs_ext
             // should be passed there.
             scalar val = eval_form(vfs, NULL, fv, &refmap[m], &(ep[edge])) * am->coef[i];
             rhs_ext->add(am->dof[i], val);
-            //printf("rhs add %d %g\n", am->dof[i], val);
           }
         }
       }
@@ -495,7 +506,7 @@ void DiscreteProblem::assemble(Matrix* mat_ext, Vector* dir_ext, Vector* rhs_ext
   for (int i = 0; i < wf->neq; i++) delete spss[i];
   delete [] buffer;
 
-  if (!rhsonly) values_changed = true;
+  if (rhsonly == false) values_changed = true;
 }
 
 // assembling of the jacobian matrix and residual vector for nonlinear problems
@@ -1040,7 +1051,7 @@ void DiscreteProblem::project_global(Tuple<MeshFunction*> source, Tuple<Solution
   }
   for (int i=0; i < n; i++) {
     if (found[i] == 0) {
-      printf("index of component: %d\n", i);
+      warn("index of component: %d\n", i);
       error("Wrong projection norm in DiscreteProblem::project_global().");
     }
   }
@@ -1053,8 +1064,8 @@ void DiscreteProblem::project_global(Tuple<MeshFunction*> source, Tuple<Solution
 
   //assembling the projection matrix, dir vector and rhs
   DiscreteProblem::assemble(&mat, dir, rhs, false);
-  // since this is a linear problem, put the Dir vector to the right-hand side:
-  for (int i=0; i < this->get_num_dofs(); i++) rhs->add(i, dir->get(i));
+  // since this is a linear problem, subtract the dir vector from the right-hand side:
+  for (int i=0; i < this->get_num_dofs(); i++) rhs->add(i, -dir->get(i));
 
   solver.solve(&mat, rhs);
   for (int i=0; i < this->wf->neq; i++) {
@@ -1127,8 +1138,8 @@ void DiscreteProblem::project_global(Tuple<MeshFunction*> source, Tuple<Solution
 
   //assembling the projection matrix, dir vector and rhs
   DiscreteProblem::assemble(&mat, dir, rhs, false);
-  // since this is a linear problem, put the Dir vector to the right-hand side:
-  for (int i=0; i < this->get_num_dofs(); i++) rhs->add(i, dir->get(i));
+  // since this is a linear problem, subtract the dir vector from the right-hand side:
+  for (int i=0; i < this->get_num_dofs(); i++) rhs->add(i, -dir->get(i));
 
   solver.solve(&mat, rhs);
   
