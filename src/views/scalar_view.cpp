@@ -86,6 +86,8 @@ ScalarView::ScalarView(char* title, WinGeom* wg)
   show_values = true;
   lin_updated = false;
   gl_coord_buffer = 0; gl_index_buffer = 0; gl_edge_inx_buffer = 0;
+
+  do_zoom_to_fit = true;
 }
 
 ScalarView::~ScalarView()
@@ -171,7 +173,7 @@ void ScalarView::create_setup_bar()
 
   TwBar* tw_bar = TwNewBar("View setup");
 
-  //contours
+  // Contours.
   TwAddVarRW(tw_bar, "contours", TW_TYPE_BOOLCPP, &contours, " group=Contour2D label='Show contours'");
   sprintf(buffer, " group=Contour2D label='Begin' step=%g", CONT_CHANGE);
   TwAddVarRW(tw_bar, "cont_orig", TW_TYPE_DOUBLE, &cont_orig, buffer);
@@ -179,14 +181,14 @@ void ScalarView::create_setup_bar()
   TwAddVarRW(tw_bar, "cont_step", TW_TYPE_DOUBLE, &cont_step, buffer);
   TwAddVarRW(tw_bar, "cont_color", TW_TYPE_COLOR3F, &cont_color, " group=Contour2D label='Color'");
 
-  //mesh
+  // Mesh.
   TwAddVarRW(tw_bar, "show_values", TW_TYPE_BOOLCPP, &show_values, " group=Elements2D label='Show Value'");
   TwAddVarRW(tw_bar, "show_edges", TW_TYPE_BOOLCPP, &show_edges, " group=Elements2D label='Show Edges'");
   TwAddVarRW(tw_bar, "show_element_info", TW_TYPE_BOOLCPP, &show_element_info, " group=Elements2D label='Show ID'");
   TwAddVarRW(tw_bar, "allow_node_selection", TW_TYPE_BOOLCPP, &allow_node_selection, " group=Elements2D label='Allow Node Sel.'");
   TwAddVarRW(tw_bar, "edges_color", TW_TYPE_COLOR3F, &edges_color, " group=Elements2D label='Edge color'");
 
-  //help
+  // Help.
   const char* help_text = get_help_text();
   TwSetParam(tw_bar, NULL, "help", TW_PARAM_CSTRING, 1, help_text);
 
@@ -204,10 +206,10 @@ void ScalarView::show(MeshFunction* sln, double eps, int item,
   lin.process_solution(sln, item, eps, max_abs, xdisp, ydisp, dmult);
   update_mesh_info();
 
-  //initialize mesh nodes for displaying and selection
+  // Initialize mesh nodes for displaying and selection.
   init_vertex_nodes(sln->get_mesh());
 
-  //initialize element info
+  // Initialize element info.
   init_element_info(sln->get_mesh());
 
   lin.unlock_data();
@@ -224,7 +226,7 @@ void ScalarView::show(MeshFunction* sln, double eps, int item,
 }
 
 void ScalarView::update_mesh_info() {
-  //calculate normals if necessary
+  // Calculate normals if necessary.
   if (mode3d)
     calculate_normals(lin.get_vertices(), lin.get_num_vertices(), lin.get_triangles(), lin.get_num_triangles());
   else {
@@ -232,22 +234,33 @@ void ScalarView::update_mesh_info() {
     normals = NULL;
   }
 
-  //update range
+  // Update range.
   if (range_auto) {
     range_min = lin.get_min_value();
     range_max = lin.get_max_value();
   }
 
-  //calculate AABB
+  // Calculate AABB.
   lin.calc_vertices_aabb(&vertices_min_x, &vertices_max_x, &vertices_min_y, &vertices_max_y);
 
-  //calculate average value
-  vertices_avg_value = 0.0;
+  // Calculate average value.
+  value_range_avg = 0.0;
   double3* verts = lin.get_vertices();
   const int num_verts = lin.get_num_vertices();
   for(int i = 0; i < num_verts; i++)
-    vertices_avg_value += verts[i][2];
-  vertices_avg_value /= num_verts;
+      value_range_avg += verts[i][2];
+  value_range_avg /= num_verts;
+
+  // Get a range of vertex values (or the range set by user).
+  value_min = range_min; value_max = range_max;
+  // Special case: constant function; offset the lower limit of range so that the domain is drawn under the
+  // function and the scale is drawn correctly.
+  if ((value_max - value_min) < 1e-8) {
+    value_irange = 1.0;
+    range_min -= 0.5;
+  } else {
+    value_irange = 1.0 / (value_max - value_min);
+  }
 
   lin_updated = true;
 }
@@ -648,7 +661,7 @@ void ScalarView::draw_tri_contours(double3* vert, int3* tri)
   }
 }
 
-void ScalarView::prepare_gl_geometry(const double value_min, const double value_irange)
+void ScalarView::prepare_gl_geometry()
 {
   if (lin_updated)
   {
@@ -748,7 +761,7 @@ void ScalarView::prepare_gl_geometry(const double value_min, const double value_
   }
 }
 
-void ScalarView::draw_values_2d(const double value_min, const double value_irange)
+void ScalarView::draw_values_2d()
 {
   assert_msg(gl_pallete_tex_id != 0, "Palette GL texture ID is zero, palette not set");
 
@@ -937,17 +950,10 @@ void ScalarView::on_display()
   int3* tris = lin.get_triangles();
   int3* edges = lin.get_edges();
 
-  // get a range of values
-  double value_min = range_min, value_max = range_max;
-  if (range_auto) { value_min = lin.get_min_value(); value_max = lin.get_max_value(); }
-  double value_irange = 1.0 / (value_max - value_min);
-  // special case: constant solution
-  if ((value_max - value_min) < 1e-8) { value_irange = 1.0; range_min -= 0.5; }
-
   glPolygonMode(GL_FRONT_AND_BACK, pmode ? GL_LINE : GL_FILL);
 
   //prepare vertices
-  prepare_gl_geometry(value_min, value_irange);
+  prepare_gl_geometry();
 
   if (!mode3d)
   {
@@ -968,7 +974,7 @@ void ScalarView::on_display()
 
     // draw all triangles
     if (show_values)
-      draw_values_2d(value_min, value_irange);
+      draw_values_2d();
 
     // draw contours
     glDisable(GL_TEXTURE_1D);
@@ -1014,12 +1020,17 @@ void ScalarView::on_display()
     // initialize light and material
     init_lighting();
 
-
+    // Move from the camera viewpoint.
+    if (do_zoom_to_fit) {
+      ztrans = calculate_ztrans_to_fit_view(50);
+      do_zoom_to_fit = false;
+    }
     glTranslated(xtrans, ytrans, ztrans);
 
     // set model transforamtion
     glRotated(xrot, 1, 0, 0);
     glRotated(yrot, 0, 1, 0);
+
 
     // draw the surface
     glEnable(GL_LIGHTING);
@@ -1069,7 +1080,7 @@ void ScalarView::on_display()
     glBegin(GL_LINES);
     for (i = 0; i < lin.get_num_edges(); i++)
     {
-      double y_coord = (lin.get_min_value() - yctr) * yscale;
+      double y_coord = (range_min - yctr) * yscale;
       int3& edge = edges[i];
       if (edge[2])
       {
@@ -1139,17 +1150,80 @@ void ScalarView::update_layout() {
   View::update_layout();
   xctr = (vertices_max_x + vertices_min_x) / 2.0;
   zctr = (vertices_max_y + vertices_min_y) / 2.0;
-  yctr = vertices_avg_value;
+  //yctr = (value_max + value_min) / 2.0;
+  yctr = value_range_avg;
 }
 
 void ScalarView::reset_view(bool force_reset) {
   if (force_reset || view_not_reset) { //reset 3d view
     xrot = 40.0; yrot = 0.0;
-    xtrans = ytrans = 0.0; ztrans = -3.0;
-    xzscale = 1.8 / std::max(vertices_max_x - vertices_min_y, vertices_max_y - vertices_min_y);
-    yscale = xzscale;
+    xtrans = ytrans = ztrans = 0.0;
+    // Set the scale so that the object (before any model/view transforms) has its largest dimension equal to unity
+    //xzscale = yscale = 1.0 / std::max(vertices_max_x - vertices_min_x, vertices_max_y - vertices_min_y);
+    xzscale = yscale = std::min(value_irange, 1.0 / std::max(vertices_max_x - vertices_min_x, vertices_max_y - vertices_min_y));
+    do_zoom_to_fit = true;
   }
   View::reset_view(force_reset); //reset 2d view
+}
+
+double ScalarView::calculate_ztrans_to_fit_view(int fovy)
+{
+  GLdouble aabb[2][16] =
+  {
+    {
+      vertices_min_x - xctr, vertices_min_y - zctr, range_min - yctr, 1,
+      vertices_max_x - xctr, vertices_min_y - zctr, range_min - yctr, 1,
+      vertices_max_x - xctr, vertices_max_y - zctr, range_min - yctr, 1,
+      vertices_min_x - xctr, vertices_max_y - zctr, range_min - yctr, 1
+    },
+    {
+      vertices_min_x - xctr, vertices_min_y - zctr, range_max - yctr, 1,
+      vertices_max_x - xctr, vertices_min_y - zctr, range_max - yctr, 1,
+      vertices_max_x - xctr, vertices_max_y - zctr, range_max - yctr, 1,
+      vertices_min_x - xctr, vertices_max_y - zctr, range_max - yctr, 1
+    }
+  };
+  GLdouble aabb_base[16];
+
+  glPushMatrix();
+
+  glLoadIdentity();
+  glTranslated(xtrans, ytrans, ztrans);
+  glRotated(xrot, 1, 0, 0);
+  glRotated(yrot, 0, 1, 0);
+  glScaled(xzscale, yscale, xzscale);
+
+  double tan_fovy_half = tan((double) fovy / 2.0 / 180.0 * M_PI);
+  double aspect = (double) output_width / output_height;
+  double tan_fovx_half = tan_fovy_half * aspect;
+  double optimal_viewpoint_pos = 0.0;
+
+  for (int i = 0; i < 2; i++) {
+    glPushMatrix();
+    glMultMatrixd(aabb[i]);
+    glGetDoublev( GL_MODELVIEW_MATRIX, aabb_base );
+    glPopMatrix();
+
+    GLdouble *coord_ptr = &aabb_base[0];
+    GLdouble *coord_ptr2 = &aabb[i][0];
+
+    for (int j = 0; j < 4; j++) {
+      double perspective_center_to_origin_dist = fabs(coord_ptr[0]) / tan_fovx_half - coord_ptr[1];
+      if (perspective_center_to_origin_dist > optimal_viewpoint_pos)
+        optimal_viewpoint_pos = perspective_center_to_origin_dist;
+
+      perspective_center_to_origin_dist = fabs(coord_ptr[2]) / tan_fovy_half - coord_ptr[1];
+      if (perspective_center_to_origin_dist > optimal_viewpoint_pos)
+        optimal_viewpoint_pos = perspective_center_to_origin_dist;
+
+      coord_ptr += 4;
+      coord_ptr2 += 4;
+    }
+  }
+
+  glPopMatrix();
+
+  return -optimal_viewpoint_pos;
 }
 
 void ScalarView::init_lighting()

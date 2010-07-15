@@ -322,8 +322,8 @@ void View::set_ortho_projection(bool no_jitter)
 
 void View::set_3d_projection(int fov, double znear, double zfar)
 {
-  double right = znear * tan((double) fov / 2.0 / 180.0 * M_PI);
-  double top = (double) output_height / output_width * right;
+  double top = znear * tan((double) fov / 2.0 / 180.0 * M_PI);
+  double right = (double) output_width / output_height * top;
   double left = -right;
   double bottom = -top;
 	double offsx = (right - left) / output_width * jitter_x;
