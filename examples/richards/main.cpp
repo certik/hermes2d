@@ -17,62 +17,42 @@
 //
 //  Domain: square (0, 100)^2.
 //
-//  BC: Dirichlet, given by the function init_cond() below.
-//  IC: See init_cond().
+//  BC: Dirichlet, given by the initial condition.
+//  IC: See the function init_cond().
 //
 //  The following parameters can be changed:
 
-const int INIT_GLOB_REF_NUM = 0;       // Number of initial uniform mesh refinements.
+// If this is defined, use van Genuchten's constitutive relations, otherwise use Gardner's.
+//#define CONSTITUTIVE_GENUCHTEN
+
+const int INIT_GLOB_REF_NUM = 1;       // Number of initial uniform mesh refinements.
 const int INIT_BDY_REF_NUM = 0;        // Number of initial refinements towards boundary.
-const int P_INIT = 8;                  // Initial polynomial degree.
+const int P_INIT = 5;                  // Initial polynomial degree.
 const double TAU = 1e-1;               // Time step.
 const double T_FINAL = 10.0;           // Time interval length.
 const double NEWTON_TOL = 1e-6;        // Stopping criterion for the Newton's method.
 const int NEWTON_MAX_ITER = 100;       // Maximum allowed number of Newton iterations.
 
 // For the definition of initial condition.
-int Y_POWER = 1;
+int Y_POWER = 10;
 
 // Problem parameters.
 double K_S = 20.464;
-double ALPHA = 1e-3;
-double THETA_S = 0.45;
+double ALPHA = 0.001;
 double THETA_R = 0;
+double THETA_S = 0.45;
+double H_R = -1000;
+double A = 100;
+double L = 100;
+double STORATIVITY = 0.0;
+double M = 0.6;
+double N = 2.5;
 
-// K:
-double K(double h)
-{
-  if (h < 0) return K_S*exp(ALPHA*h);
-  else return K_S;    
-}
-
-// dK/dh:
-double dKdh(double h)
-{
-  if (h < 0) return K_S*ALPHA*exp(ALPHA*h);
-  else return 0;
-}
-
-// ddK/dhh:
-double ddKdhh(double h)
-{
-  if (h < 0) return K_S*ALPHA*ALPHA*exp(ALPHA*h);
-  else return 0;
-}
-
-// C:
-double C(double h)
-{
-  if (h < 0) return ALPHA*(THETA_S - THETA_R)*exp(ALPHA*h);
-  else return ALPHA*(THETA_S - THETA_R);    
-}
-
-// dC/dh:
-double dCdh(double h)
-{
-  if (h < 0) return ALPHA*(THETA_S - THETA_R)*ALPHA*exp(ALPHA*h);
-  else return 0;    
-}
+#ifdef CONSTITUTIVE_GENUCHTEN
+#include "constitutive_genuchten.cpp"
+#else
+#include "constitutive_gardner.cpp"
+#endif
 
 // Initial condition. It will be projected on the FE mesh 
 // to obtain initial coefficient vector for the Newton's method.
@@ -136,7 +116,7 @@ int main(int argc, char* argv[])
   OrderView oview("Mesh", 520, 0, 450, 400);
   oview.show(&space);
   sview.show(&u_prev_newton);
-  View::wait(H2DV_WAIT_KEYPRESS);
+  //View::wait(H2DV_WAIT_KEYPRESS);
 
   // Time stepping loop:
   double current_time = 0.0;

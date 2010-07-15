@@ -29,10 +29,12 @@ public:
   H1Adapt(LinSystem* ls);
 };
 
-void adapt_to_exact_function_h1(Space *space, ExactFunction exactfn, 
-				RefinementSelectors::Selector* selector, double threshold, int strategy, 
-                                int mesh_regularity, double err_stop, int ndof_stop, bool verbose = false,
-                                Solution* sln = NULL);
+void adapt_to_exact_function(Space *space, ExactFunction exactfn, 
+			     RefinementSelectors::Selector* selector, double threshold, int strategy, 
+                             int mesh_regularity, double err_stop, int ndof_stop, 
+			     int proj_norm = 1, 
+                             bool project_on_fine_mesh = false, bool verbose = false,
+                             Solution* sln = NULL);
 
 
 #endif

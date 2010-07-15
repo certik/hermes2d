@@ -63,10 +63,13 @@ int main(int argc, char* argv[])
   H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
 
   // Adapt mesh to represent initial condition with given accuracy.
+  int proj_norm = 1; // H1 norm.
   bool verbose = true; 
+  bool project_on_fine_mesh = false;
   Solution sln;
-  adapt_to_exact_function_h1(&space, f, &selector, THRESHOLD, STRATEGY, 
-                             MESH_REGULARITY, ERR_STOP, NDOF_STOP, verbose, &sln);   
+  adapt_to_exact_function(&space, f, &selector, THRESHOLD, STRATEGY, 
+                          MESH_REGULARITY, ERR_STOP, NDOF_STOP, proj_norm,
+                          project_on_fine_mesh, verbose, &sln);   
   info("Final mesh: ndof = %d", space.get_num_dofs());
 
   // Wait for all views to be closed.

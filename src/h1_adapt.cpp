@@ -43,11 +43,12 @@ H1Adapt::H1Adapt(LinSystem* ls) : Adapt(ls)
 
 // Mesh is adapted to represent initial condition with given accuracy
 // in a given projection norm.
-void adapt_to_exact_function_h1(Space *space, ExactFunction exactfn, 
+void adapt_to_exact_function(Space *space, ExactFunction exactfn, 
 				RefinementSelectors::Selector* selector, 
                                 double threshold, int strategy, 
                                 int mesh_regularity, double err_stop, 
-                                int ndof_stop, bool verbose,
+                                int ndof_stop, int proj_norm, 
+                                bool project_on_fine_mesh, bool verbose, 
                                 Solution* sln) 
 {
   if (verbose == true) printf("Mesh adaptivity to an exact function:\n");
@@ -76,11 +77,12 @@ void adapt_to_exact_function_h1(Space *space, ExactFunction exactfn,
     RefSystem rs(&ls);
     if (verbose) printf("ndof_fine = %d\n", rs.get_num_dofs());
 
-    // Assign the function f() to the fine mesh.
-    sln_fine->set_exact(rs.get_mesh(0), exactfn);
+    // Assign the function f() to the fine mesh exactly or use global projection.
+    if (project_on_fine_mesh == true) rs.project_global(exactfn, sln_fine, 1);
+    else sln_fine->set_exact(rs.get_mesh(0), exactfn);
 
     // Project the function f() on the coarse mesh.
-    ls.project_global(exactfn, sln_coarse);
+    ls.project_global(exactfn, sln_coarse, 1);
 
     // Create DiffFilter for the error.
     DiffFilter difff(sln_fine, sln_coarse, H2D_FN_VAL, H2D_FN_VAL);
@@ -97,7 +99,7 @@ void adapt_to_exact_function_h1(Space *space, ExactFunction exactfn,
       ordview_f->set_title(title);
       ordview_f->show(rs.get_space(0));
       view_e->show(&difff);
-      View::wait(H2DV_WAIT_KEYPRESS);
+      //View::wait(H2DV_WAIT_KEYPRESS);
     }
 
     // Calculate element errors and total error estimate.
@@ -110,8 +112,7 @@ void adapt_to_exact_function_h1(Space *space, ExactFunction exactfn,
     // If err_est too large, adapt the mesh.
     if (err_est < err_stop) done = true;
     else {
-      double to_be_processed = 0;
-      done = hp.adapt(selector, threshold, strategy, mesh_regularity, to_be_processed);
+      done = hp.adapt(selector, threshold, strategy, mesh_regularity);
 
       if (ls.get_num_dofs() >= ndof_stop) done = true;
     }
