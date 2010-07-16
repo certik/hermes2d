@@ -93,7 +93,6 @@ int main(int argc, char* argv[])
   info("ndof = %d", lp.get_num_dofs());
 
   // Initialize matrix solver.
-  // FIXME: this should be just Solver, same for Python and C++ solvers. 
   Matrix* mat; Vector* rhs; CommonSolver* solver;  
   init_matrix_solver(SOLVER_UMFPACK, lp.get_num_dofs(), mat, rhs, solver);
 

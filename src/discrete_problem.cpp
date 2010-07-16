@@ -208,7 +208,10 @@ void DiscreteProblem::assemble(Matrix* mat_ext, Vector* dir_ext, Vector* rhs_ext
     }
   }
 
-  // realloc matrix and vectors if ndof changed.
+  // Assign dof in all spaces. 
+  // Realloc mat_ext, dir_ext and rhs_ext if ndof changed, 
+  // and clear dir_ext and rhs_ext. 
+  //Do not touch the matrix if rhsonly == true. 
   int ndof = this->assign_dofs();
   //printf("ndof = %d\n", ndof);
   if (ndof == 0) error("ndof = 0 in DiscreteProblem::assemble().");
@@ -222,11 +225,13 @@ void DiscreteProblem::assemble(Matrix* mat_ext, Vector* dir_ext, Vector* rhs_ext
       dir_ext->free_data();
       dir_ext->init(ndof);
     }
+    else dir_ext->set_zero();
   }
   if (rhs_ext->get_size() != ndof) {
     rhs_ext->free_data();
     rhs_ext->init(ndof);
   }
+  else rhs_ext->set_zero();
   
   int k, m, marker;
   std::vector<AsmList> al(wf->neq);
