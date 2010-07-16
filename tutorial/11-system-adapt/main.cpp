@@ -143,8 +143,8 @@ int main(int argc, char* argv[])
                      mat, rhs, solver);
 
   // Adaptivity loop.
-  Solution u_sln_coarse, v_sln_coarse;
-  Solution u_sln_fine, v_sln_fine;
+  Solution u_sln, v_sln;
+  Solution ref_u_sln, ref_v_sln;
   int as = 1; bool done = false;
   do
   {
@@ -167,22 +167,22 @@ int main(int argc, char* argv[])
  
     // Solve the reference problem.
     solve_linear(Tuple<Space *>(ref_u_space, ref_v_space), &wf, 
-                 Tuple<Solution *>(&u_sln_fine, &v_sln_fine), SOLVER_UMFPACK);
+                 Tuple<Solution *>(&ref_u_sln, &ref_v_sln), SOLVER_UMFPACK);
 
     // Project the fine mesh solutions on the coarse meshes.
     info("Projecting fine mesh solutions on coarse meshes.");
     project_global(Tuple<Space *>(&u_space, &v_space), 
-                   Tuple<MeshFunction*>(&u_sln_fine, &v_sln_fine), 
-                   Tuple<Solution*>(&u_sln_coarse, &v_sln_coarse));
+                   Tuple<MeshFunction*>(&ref_u_sln, &ref_v_sln), 
+                   Tuple<Solution*>(&u_sln, &v_sln));
 
     // Time measurement.
     cpu_time.tick();
 
     // View the solutions and meshes.
     info("u_dof_coarse: %d, v_dof_coarse: %d", u_space.get_num_dofs(), v_space.get_num_dofs());
-    info("u_dof_fine: %d, v_dof_fine: %d", ref_u_space->get_num_dofs(), ref_v_space->get_num_dofs());
-    uview.show(&u_sln_coarse);
-    vview.show(&v_sln_coarse);
+    info("ref_u_dof: %d, ref_v_dof: %d", ref_u_space->get_num_dofs(), ref_v_space->get_num_dofs());
+    uview.show(&u_sln);
+    vview.show(&v_sln);
     uoview.show(&u_space);
     voview.show(&v_space);
 
@@ -192,8 +192,8 @@ int main(int argc, char* argv[])
     // Calculate element errors and total error estimate.
     info("Calculating error (est).");
     H1Adapt hp(Tuple<Space *>(&u_space, &v_space));
-    hp.set_solutions(Tuple<Solution*>(&u_sln_coarse, &v_sln_coarse), 
-                     Tuple<Solution*>(&u_sln_fine, &v_sln_fine));
+    hp.set_solutions(Tuple<Solution*>(&u_sln, &v_sln), 
+                     Tuple<Solution*>(&ref_u_sln, &ref_v_sln));
     hp.set_error_form(0, 0, bilinear_form_0_0<scalar, scalar>, bilinear_form_0_0<Ord, Ord>);
     hp.set_error_form(0, 1, bilinear_form_0_1<scalar, scalar>, bilinear_form_0_1<Ord, Ord>);
     hp.set_error_form(1, 0, bilinear_form_1_0<scalar, scalar>, bilinear_form_1_0<Ord, Ord>);
@@ -204,8 +204,8 @@ int main(int argc, char* argv[])
     info("Calculating error (exact).");
     ExactSolution uexact(&u_mesh, u_exact);
     ExactSolution vexact(&v_mesh, v_exact);
-    double u_error = h1_error(&u_sln_coarse, &uexact) * 100;
-    double v_error = h1_error(&v_sln_coarse, &vexact) * 100;
+    double u_error = h1_error(&u_sln, &uexact) * 100;
+    double v_error = h1_error(&v_sln, &vexact) * 100;
     double error = std::max(u_error, v_error);
 
     // Report results.
@@ -240,10 +240,10 @@ int main(int argc, char* argv[])
   // Show the fine solution - the final result.
   uview.set_title("Fine mesh solution u");
   uview.show_mesh(false);
-  uview.show(&u_sln_fine);
+  uview.show(&ref_u_sln);
   vview.set_title("Fine mesh solution v");
   vview.show_mesh(false);
-  vview.show(&v_sln_fine);
+  vview.show(&ref_v_sln);
 
   // Wait for all views to be closed.
   View::wait();

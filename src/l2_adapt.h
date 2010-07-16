@@ -26,7 +26,8 @@ class H2D_API L2Adapt : public Adapt {
 public:
   /// Constructor.
   /** \param[in] spaces An array of spaces. The number of spaces determines the number of components. For the best results, use instances of the class L2Space. */
-  L2Adapt(DiscreteProblem* ls);
+  L2Adapt(DiscreteProblem* dp);
+  L2Adapt(Tuple<Space *> spaces_);
 };
 
 #endif

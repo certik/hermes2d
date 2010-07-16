@@ -117,7 +117,7 @@ int main(int argc, char* argv[])
   H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
 
   // Adaptivity loop:
-  Solution sln_coarse, sln_fine;
+  Solution sln, ref_sln;
   int as = 1; bool done = false;
   do
   {
@@ -125,27 +125,27 @@ int main(int argc, char* argv[])
     info("Solving on fine mesh.");
 
     // Construct the globally refined reference mesh.
-    Mesh rmesh;
-    rmesh.copy(&mesh);
-    rmesh.refine_all_elements();
+    Mesh ref_mesh;
+    ref_mesh.copy(&mesh);
+    ref_mesh.refine_all_elements();
 
     // Setup space for the reference solution.
-    Space *rspace = space.dup(&rmesh);
+    Space *ref_space = space.dup(&ref_mesh);
     int order_increase = 1;
-    rspace->copy_orders(&space, order_increase);
+    ref_space->copy_orders(&space, order_increase);
  
     // Solve the reference problem.
-    solve_linear(rspace, &wf, &sln_fine, SOLVER_UMFPACK);
+    solve_linear(ref_space, &wf, &ref_sln, SOLVER_UMFPACK);
 
     // Project the fine mesh solution on the coarse mesh.
     info("Projecting fine mesh solution on coarse mesh.");
-    project_global(&space, &sln_fine, &sln_coarse);
+    project_global(&space, &ref_sln, &sln);
 
     // Time measurement.
     cpu_time.tick();
 
     // View the solution and mesh.
-    sview.show(&sln_coarse);
+    sview.show(&sln);
     oview.show(&space);
 
     // Time measurement.
@@ -154,12 +154,12 @@ int main(int argc, char* argv[])
     // Calculate error estimate wrt. fine mesh solution.
     info("Calculating error.");
     H1Adapt hp(&space);
-    hp.set_solutions(&sln_coarse, &sln_fine);
+    hp.set_solutions(&sln, &ref_sln);
     double err_est = hp.calc_error() * 100;
 
     // Report results.
     info("ndof_coarse: %d, ndof_fine: %d, err_est: %g%%", 
-      space.get_num_dofs(), rspace->get_num_dofs(), err_est);
+      space.get_num_dofs(), ref_space->get_num_dofs(), err_est);
 
     // Add entry to DOF convergence graph.
     graph_dof.add_values(space.get_num_dofs(), err_est);
@@ -185,7 +185,7 @@ int main(int argc, char* argv[])
   // Show the fine solution - the final result.
   sview.set_title("Final solution");
   sview.show_mesh(false);
-  sview.show(&sln_fine);
+  sview.show(&ref_sln);
 
   // Wait for all views to be closed.
   View::wait();

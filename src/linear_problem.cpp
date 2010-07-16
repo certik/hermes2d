@@ -50,11 +50,11 @@ void LinearProblem::assemble(Matrix* mat_ext, Vector* rhs_ext, bool rhsonly)
 // C++ solvers. Right now Solver and CommonSolver
 // are incompatible.
 void init_matrix_solver(MatrixSolverType matrix_solver, int ndof, 
-                        Matrix* &mat, Vector* &rhs, CommonSolver* &solver) 
+                        Matrix* &mat, Vector* &rhs, CommonSolver* &solver, bool is_complex) 
 {
   // Initialize stiffness matrix, load vector, and matrix solver.
   // UMFpack.
-  CooMatrix* mat_umfpack = new CooMatrix(ndof);
+  CooMatrix* mat_umfpack = new CooMatrix(ndof, is_complex);
   Vector* rhs_umfpack = new AVector(ndof);
   CommonSolverSciPyUmfpack* solver_umfpack = new CommonSolverSciPyUmfpack();
   //CommonSolverSciPyUmfpack* solver_umfpack = new CommonSolverSciPyUmfpack();
@@ -100,7 +100,7 @@ void init_matrix_solver(MatrixSolverType matrix_solver, int ndof,
 
 // Shortcut to solve linear problems.
 bool solve_linear(Tuple<Space *> spaces, WeakForm* wf, Tuple<Solution *> solutions, 
-                  MatrixSolverType matrix_solver) 
+                  MatrixSolverType matrix_solver, bool is_complex) 
 {
   // Initialize the linear problem.
   LinearProblem lp(wf, spaces);
@@ -111,7 +111,7 @@ bool solve_linear(Tuple<Space *> spaces, WeakForm* wf, Tuple<Solution *> solutio
   Vector* rhs;
   CommonSolver* solver;  // FIXME: this should be just Solver, same for
                          // Python and C++ solvers. 
-  init_matrix_solver(matrix_solver, lp.get_num_dofs(), mat, rhs, solver);
+  init_matrix_solver(matrix_solver, lp.get_num_dofs(), mat, rhs, solver, is_complex);
 
   // Assemble stiffness matrix and rhs.
   lp.assemble(mat, rhs);

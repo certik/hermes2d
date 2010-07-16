@@ -27,16 +27,27 @@ using namespace std;
 
 #ifdef H2D_COMPLEX
 
-HcurlAdapt::HcurlAdapt(DiscreteProblem* ls) : Adapt(ls) 
+HcurlAdapt::HcurlAdapt(DiscreteProblem* dp) : Adapt(dp) 
 {
-  int n = ls->wf->get_neq();
-  for (int i = 0; i < n; i++)
-    for (int j = 0; j < n; j++) {
+  for (int i = 0; i < this->neq; i++)
+    for (int j = 0; j < this->neq; j++) {
       if (i == j) {
         form[i][j] = hcurl_form<double, scalar>;
         ord[i][j]  = hcurl_form<Ord, Ord>;
       }
     }
 }
+
+HcurlAdapt::HcurlAdapt(Tuple<Space *> spaces) : Adapt(spaces) 
+{
+  for (int i = 0; i < this->neq; i++) {
+    for (int j = 0; j < this->neq; j++) {
+      if (i == j) {
+        form[i][j] = hcurl_form<double, scalar>;
+        ord[i][j]  = hcurl_form<Ord, Ord>;
+      }
+    }
+  }
+}; 
 
 #endif
