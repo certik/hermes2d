@@ -272,23 +272,25 @@ protected:
 /// Global orthogonal projection of multiple solution components.
 /// Calls assign_dofs() at the beginning.
 void project_global(Tuple<Space *> spaces, Tuple<MeshFunction*> source, 
-                    Tuple<Solution*> target, WeakForm *wf);
+                    Tuple<Solution*> target, WeakForm *wf, bool is_complex = false);
 
 void project_global(Tuple<Space *> spaces, Tuple<MeshFunction*> source, 
-                    Tuple<Solution*> target, Tuple<int>proj_norms = Tuple<int>());
+                    Tuple<Solution*> target, Tuple<int>proj_norms = Tuple<int>(), bool is_complex = false);
 
 void project_global(Tuple<Space *> spaces, Tuple<MeshFunction*> source, Tuple<Solution*> target,
-               matrix_forms_tuple_t proj_biforms, vector_forms_tuple_t proj_liforms);
+               matrix_forms_tuple_t proj_biforms, vector_forms_tuple_t proj_liforms, bool is_complex = false);
 
-void project_global(Space *space, ExactFunction source, Solution* target, int proj_norm = H2D_DEFAULT_PROJ_NORM);
+void project_global(Space *space, ExactFunction source, Solution* target, 
+                    int proj_norm = H2D_DEFAULT_PROJ_NORM, bool is_complex = false);
 
 void project_global(Space *space, ExactFunction source, Solution* target,
                     std::pair<WeakForm::matrix_form_val_t, WeakForm::matrix_form_ord_t> proj_biform,
-                    std::pair<WeakForm::vector_form_val_t, WeakForm::vector_form_ord_t> proj_liform);
+                    std::pair<WeakForm::vector_form_val_t, WeakForm::vector_form_ord_t> proj_liform,
+                    bool is_complex = false);
 
-void project_global(Space *space, ExactFunction2 source, Solution* target);
+void project_global(Space *space, ExactFunction2 source, Solution* target, bool is_complex = false);
 
 void project_local(Space *space, ExactFunction exactfn, Mesh* mesh,
-                   Solution* result, int proj_norm = H2D_DEFAULT_PROJ_NORM);
+                   Solution* result, int proj_norm = H2D_DEFAULT_PROJ_NORM, bool is_complex = false);
 
 #endif

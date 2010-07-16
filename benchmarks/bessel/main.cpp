@@ -146,7 +146,7 @@ int main(int argc, char* argv[])
     ref_space->copy_orders(&space, order_increase);
  
     // Solve the reference problem.
-    solve_linear(ref_space, &wf, &ref_sln, SOLVER_UMFPACK);
+    solve_linear(ref_space, &wf, &ref_sln, SOLVER_UMFPACK, is_complex);
 
     // Project the reference solution on the coarse mesh.
     info("Projecting reference solution on coarse mesh.");

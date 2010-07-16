@@ -45,7 +45,7 @@ public:
   virtual ~LinearProblem();
 
   /// Version for linear problems -- adds the dir vector to rhs.
-  virtual void assemble(Matrix* mat_ext, Vector* rhs_ext, bool rhsonly = false);
+  virtual void assemble(Matrix* mat_ext, Vector* rhs_ext, bool rhsonly = false, bool is_complex = false);
 
   friend class RefDiscreteProblem;
 

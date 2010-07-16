@@ -1084,7 +1084,7 @@ void DiscreteProblem::project_global(Tuple<MeshFunction*> source, Tuple<Solution
 
 // global orthogonal projection
 void project_global(Tuple<Space *> spaces, Tuple<MeshFunction*> source, 
-                    Tuple<Solution*> target, WeakForm *wf)
+                    Tuple<Solution*> target, WeakForm *wf, bool is_complex)
 {
   int n = source.size();
 
@@ -1099,14 +1099,15 @@ void project_global(Tuple<Space *> spaces, Tuple<MeshFunction*> source,
   int ndof = assign_dofs(spaces);
 
   // FIXME: enable other types of matrices and vectors.
-  CooMatrix mat(ndof);
+  CooMatrix mat(ndof, is_complex);
   CommonSolverSciPyUmfpack solver;
-  Vector* dir = new AVector(ndof);
-  Vector* rhs = new AVector(ndof);
+  Vector* dir = new AVector(ndof, is_complex);
+  Vector* rhs = new AVector(ndof, is_complex);
 
   //assembling the projection matrix, dir vector and rhs  
   DiscreteProblem dp(wf, spaces);
-  dp.assemble(&mat, dir, rhs, false);
+  bool rhsonly = false;
+  dp.assemble(&mat, dir, rhs, rhsonly);
   // since this is a linear problem, subtract the dir vector from the right-hand side:
   for (int i=0; i < ndof; i++) rhs->add(i, -dir->get(i));
 
@@ -1118,7 +1119,7 @@ void project_global(Tuple<Space *> spaces, Tuple<MeshFunction*> source,
 
 // global orthogonal projection
 void project_global(Tuple<Space *> spaces, Tuple<MeshFunction*> source, 
-                    Tuple<Solution*> target, Tuple<int>proj_norms)
+                    Tuple<Solution*> target, Tuple<int>proj_norms, bool is_complex)
 {
   int n = spaces.size();  
 
@@ -1156,11 +1157,11 @@ void project_global(Tuple<Space *> spaces, Tuple<MeshFunction*> source,
     }
   }
 
-  project_global(spaces, source, target, &wf);
+  project_global(spaces, source, target, &wf, is_complex);
 }
 
 void project_global(Tuple<Space *> spaces, Tuple<MeshFunction*> source, Tuple<Solution*> target,
-               matrix_forms_tuple_t proj_biforms, vector_forms_tuple_t proj_liforms)
+		    matrix_forms_tuple_t proj_biforms, vector_forms_tuple_t proj_liforms, bool is_complex)
 {
   int n = spaces.size();
   matrix_forms_tuple_t::size_type n_biforms = proj_biforms.size();
@@ -1192,48 +1193,49 @@ void project_global(Tuple<Space *> spaces, Tuple<MeshFunction*> source, Tuple<So
     }
   }
 
-  project_global(spaces, source, target, &wf);
+  project_global(spaces, source, target, &wf, is_complex);
 }
 
 /// Global orthogonal projection of one scalar ExactFunction.
-void project_global(Space *space, ExactFunction source, Solution* target, int proj_norm)
+void project_global(Space *space, ExactFunction source, Solution* target, int proj_norm, bool is_complex)
 {
   if (proj_norm != 0 && proj_norm != 1) error("Wrong norm used in orthogonal projection (scalar case).");
   Mesh *mesh = space->get_mesh();
   if (mesh == NULL) error("Mesh is NULL in project_global().");
   Solution sln;
   sln.set_exact(mesh, source);
-  project_global(space, &sln, target, proj_norm);
+  project_global(space, &sln, target, proj_norm, is_complex);
 };
 
 /// Global orthogonal projection of one scalar ExactFunction -- user specified projection bi/linear forms.
 void project_global(Space *space, ExactFunction source, Solution* target,
                     std::pair<WeakForm::matrix_form_val_t, WeakForm::matrix_form_ord_t> proj_biform,
-                    std::pair<WeakForm::vector_form_val_t, WeakForm::vector_form_ord_t> proj_liform)
+                    std::pair<WeakForm::vector_form_val_t, WeakForm::vector_form_ord_t> proj_liform,
+                    bool is_complex)
 {
   // todo: check that supplied forms take scalar valued functions
   Mesh *mesh = space->get_mesh();
   if (mesh == NULL) error("Mesh is NULL in project_global().");
   Solution sln;
   sln.set_exact(mesh, source);
-  project_global(space, &sln, target, matrix_forms_tuple_t(proj_biform), vector_forms_tuple_t(proj_liform));
+  project_global(space, &sln, target, matrix_forms_tuple_t(proj_biform), vector_forms_tuple_t(proj_liform), is_complex);
 };
 
 /// Global orthogonal projection of one vector-valued ExactFunction.
-void project_global(Space *space, ExactFunction2 source, Solution* target)
+void project_global(Space *space, ExactFunction2 source, Solution* target, bool is_complex)
 {
   int proj_norm = 2; // Hcurl
   Mesh *mesh = space->get_mesh();
   if (mesh == NULL) error("Mesh is NULL in project_global().");
   Solution sln;
   sln.set_exact(mesh, source);
-  project_global(space, &sln, target, proj_norm);
+  project_global(space, &sln, target, proj_norm, is_complex);
 };
 
 /// Projection-based interpolation of an exact function. This is faster than the
 /// global projection since no global matrix problem is solved.
 void project_local(Space *space, ExactFunction exactfn, Mesh* mesh,
-                   Solution* result, int proj_norm)
+                   Solution* result, int proj_norm, bool is_complex)
 {
   /// TODO
 }

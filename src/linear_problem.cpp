@@ -34,15 +34,17 @@ LinearProblem::LinearProblem(WeakForm* wf_, Space* s_) : DiscreteProblem(wf_, s_
 LinearProblem::LinearProblem(WeakForm* wf_, Tuple<Space*> spaces_) : DiscreteProblem(wf_, spaces_) {};
 LinearProblem::~LinearProblem() {};
 
-void LinearProblem::assemble(Matrix* mat_ext, Vector* rhs_ext, bool rhsonly)
+void LinearProblem::assemble(Matrix* mat_ext, Vector* rhs_ext, bool rhsonly, bool is_complex)
 {
   int ndof = this->get_num_dofs();
   if (ndof == 0) error("ndof == 0 in LinearProblem::assemble().");
-  Vector* dir_ext = new AVector(ndof);
+  Vector* dir_ext = new AVector(ndof, is_complex);
   // the vector dir represents the contribution of the Dirichlet lift, 
-  // and it has to be subtracted from the right hand side for linear problems
+  // and for linear problems  it has to be subtracted from the right hand side
   DiscreteProblem::assemble(mat_ext, dir_ext, rhs_ext, rhsonly);
-  for (int i=0; i < ndof; i++) rhs_ext->add(i, -dir_ext->get(i));
+  // FIXME: Do we really need to handle the real and complex cases separately?
+  if (is_complex) for (int i=0; i < ndof; i++) rhs_ext->add(i, -dir_ext->get_cplx(i));
+  else for (int i=0; i < ndof; i++) rhs_ext->add(i, -dir_ext->get(i));
   delete dir_ext;
 }
 
@@ -55,7 +57,7 @@ void init_matrix_solver(MatrixSolverType matrix_solver, int ndof,
   // Initialize stiffness matrix, load vector, and matrix solver.
   // UMFpack.
   CooMatrix* mat_umfpack = new CooMatrix(ndof, is_complex);
-  Vector* rhs_umfpack = new AVector(ndof);
+  Vector* rhs_umfpack = new AVector(ndof, is_complex);
   CommonSolverSciPyUmfpack* solver_umfpack = new CommonSolverSciPyUmfpack();
   //CommonSolverSciPyUmfpack* solver_umfpack = new CommonSolverSciPyUmfpack();
   // PETSc.
@@ -107,14 +109,12 @@ bool solve_linear(Tuple<Space *> spaces, WeakForm* wf, Tuple<Solution *> solutio
   //info("ndof = %d", lp.get_num_dofs());
 
   // Select matrix solver.
-  Matrix* mat;
-  Vector* rhs;
-  CommonSolver* solver;  // FIXME: this should be just Solver, same for
-                         // Python and C++ solvers. 
+  Matrix* mat; Vector* rhs; CommonSolver* solver;
   init_matrix_solver(matrix_solver, lp.get_num_dofs(), mat, rhs, solver, is_complex);
 
   // Assemble stiffness matrix and rhs.
-  lp.assemble(mat, rhs);
+  bool rhsonly = false;
+  lp.assemble(mat, rhs, rhsonly, is_complex);
 
   //mat->print();
 
