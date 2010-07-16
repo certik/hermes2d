@@ -26,8 +26,6 @@ using namespace RefinementSelectors;
 //
 // The following parameters can be changed:
 
-const bool SOLVE_ON_COARSE_MESH = false; // If true, coarse mesh FE problem is solved in every adaptivity step.
-                                         // If false, projection of the fine mesh solution on the coarse mesh is used. 
 const int INIT_REF_NUM = 1;              // Number of initial uniform mesh refinements.
 const int P_INIT = 1;                    // Initial polynomial degree. NOTE: The meaning is different from
                                          // standard continuous elements in the space H1. Here, P_INIT refers
@@ -58,7 +56,7 @@ const int MESH_REGULARITY = -1;          // Maximum allowed level of hanging nod
 const double CONV_EXP = 1.0;             // Default value is 1.0. This parameter influences the selection of
                                          // cancidates in hp-adaptivity. See get_optimal_refinement() for details.
 const double ERR_STOP = 2.0;             // Stopping criterion for adaptivity (rel. error tolerance between the
-                                         // fine mesh and coarse mesh solution in percent).
+                                         // reference mesh and coarse mesh solution in percent).
 const int NDOF_STOP = 50000;             // Adaptivity process stops when the number of degrees of freedom grows
                                          // over this limit. This is to prevent h-adaptivity to go on forever.
 
@@ -135,34 +133,36 @@ int main(int argc, char* argv[])
   // Initialize refinement selector.
   HcurlProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
 
-  // Initialize the coarse mesh problem.
-  LinSystem ls(&wf, &space);
+  // Initialize matrix solver.
+  Matrix* mat; Vector* rhs; CommonSolver* solver;  
+  bool is_complex = true; 
+  init_matrix_solver(SOLVER_UMFPACK, space.get_num_dofs(), mat, rhs, solver, is_complex);
 
   // Adaptivity loop.
+  Solution sln, ref_sln;
   int as = 1; bool done = false;
-  Solution sln_coarse, sln_fine;
   do
   {
     info("---- Adaptivity step %d:", as);
+    info("Solving on reference mesh.");
 
-    // Assemble and solve the fine mesh problem.
-    info("Solving on fine mesh.");
-    RefSystem rs(&ls);
-    rs.assemble();
-    rs.solve(&sln_fine);
+    // Construct the globally refined reference mesh.
+    Mesh ref_mesh;
+    ref_mesh.copy(&mesh);
+    ref_mesh.refine_all_elements();
 
-    // Either solve on coarse mesh or project the fine mesh solution 
-    // on the coarse mesh.
-    if (SOLVE_ON_COARSE_MESH) {
-      info("Solving on coarse mesh.");
-      ls.assemble();
-      ls.solve(&sln_coarse);
-    }
-    else {
-      info("Projecting fine mesh solution on coarse mesh.");
-      int proj_type = 2;    // Hcurl projection.
-      ls.project_global(&sln_fine, &sln_coarse, proj_type);
-    }
+    // Setup space for the reference solution.
+    Space *ref_space = space.dup(&ref_mesh);
+    int order_increase = 1;
+    ref_space->copy_orders(&space, order_increase);
+ 
+    // Solve the reference problem.
+    solve_linear(ref_space, &wf, &ref_sln, SOLVER_UMFPACK);
+
+    // Project the reference solution on the coarse mesh.
+    info("Projecting reference solution on coarse mesh.");
+    int proj_type = 2;    // Hcurl projection.
+    project_global(&space, &ref_sln, &sln, proj_type);
 
     // Time measurement.
     cpu_time.tick();
@@ -171,11 +171,11 @@ int main(int argc, char* argv[])
     info("Calculating error (exact).");
     Solution ex;
     ex.set_exact(&mesh, exact);
-    double err_exact = 100 * hcurl_error(&sln_coarse, &ex);
+    double err_exact = 100 * hcurl_error(&sln, &ex);
 
     // Visualization.
-    RealFilter real(&sln_coarse);
-    ImagFilter imag(&sln_coarse);
+    RealFilter real(&sln);
+    ImagFilter imag(&sln);
     Xview_r.set_min_max_range(-3.0, 1.0);
     //Xview_r.show_scale(false);
     Xview_r.show(&real, H2D_EPS_NORMAL, H2D_FN_VAL_0);
@@ -191,23 +191,23 @@ int main(int argc, char* argv[])
     ord.show(&space);
 
     // Skip exact error calculation and visualization time. 
-    cpu_time.tick(H2D_SKIP);
+    cpu_time.tick(HERMES_SKIP);
 
-    // Calculate error estimate wrt. fine mesh solution.
+    // Calculate error estimate wrt. reference solution.
     info("Calculating error (est).");
-    HcurlAdapt hp(&ls);
-    hp.set_solutions(&sln_coarse, &sln_fine);
+    HcurlAdapt hp(&space);
+    hp.set_solutions(&sln, &ref_sln);
     double err_est_adapt = hp.calc_error() * 100;
-    double err_est_hcurl = hcurl_error(&sln_coarse, &sln_fine) * 100;
+    double err_est_hcurl = hcurl_error(&sln, &ref_sln) * 100;
     
     // Report results.
-    info("ndof_coarse: %d, ndof_fine: %d, err_est: %g%%, err_exact: %g%%", 
-         ls.get_num_dofs(), rs.get_num_dofs(), err_est_hcurl, err_exact);
+    info("ndof: %d, ref_ndof: %d, err_est: %g%%, err_exact: %g%%", 
+         space.get_num_dofs(), ref_space->get_num_dofs(), err_est_hcurl, err_exact);
 
     // Add entries to DOF convergence graphs.
-    graph_dof_exact.add_values(ls.get_num_dofs(), err_exact);
+    graph_dof_exact.add_values(space.get_num_dofs(), err_exact);
     graph_dof_exact.save("conv_dof_exact.dat");
-    graph_dof_est.add_values(ls.get_num_dofs(), err_est_hcurl);
+    graph_dof_est.add_values(space.get_num_dofs(), err_est_hcurl);
     graph_dof_est.save("conv_dof_est.dat");
 
     // Add entries to CPU convergence graphs.
@@ -221,7 +221,7 @@ int main(int argc, char* argv[])
     else {
       info("Adapting coarse mesh.");
       done = hp.adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY);
-      if (ls.get_num_dofs() >= NDOF_STOP) done = true;
+      if (space.get_num_dofs() >= NDOF_STOP) done = true;
     }
 
     as++;

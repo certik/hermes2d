@@ -47,7 +47,7 @@ const int MESH_REGULARITY = -1;   // Maximum allowed level of hanging nodes:
 const double CONV_EXP = 1.0;      // Default value is 1.0. This parameter influences the selection of
                                   // cancidates in hp-adaptivity. See get_optimal_refinement() for details.
 const double ERR_STOP = 0.1;      // Stopping criterion for adaptivity (rel. error tolerance between the
-                                  // fine mesh and coarse mesh solution in percent).
+                                  // reference mesh and coarse mesh solution in percent).
 const int NDOF_STOP = 60000;      // Adaptivity process stops when the number of degrees of freedom grows
                                   // over this limit. This is to prevent h-adaptivity to go on forever.
 
@@ -137,8 +137,8 @@ int main(int argc, char* argv[])
     // Solve the reference problem.
     solve_linear(ref_space, &wf, &ref_sln, SOLVER_UMFPACK);
 
-    // Project the fine mesh solution on the coarse mesh.
-    info("Projecting fine mesh solution on coarse mesh.");
+    // Project the reference mesh solution on the coarse mesh.
+    info("Projecting reference solution on coarse mesh.");
     project_global(&space, &ref_sln, &sln);
 
     // Time measurement.
@@ -151,14 +151,14 @@ int main(int argc, char* argv[])
     // Time measurement.
     cpu_time.tick(HERMES_SKIP);
 
-    // Calculate error estimate wrt. fine mesh solution.
+    // Calculate error estimate wrt. reference solution.
     info("Calculating error.");
     H1Adapt hp(&space);
     hp.set_solutions(&sln, &ref_sln);
     double err_est = hp.calc_error() * 100;
 
     // Report results.
-    info("ndof_coarse: %d, ndof_fine: %d, err_est: %g%%", 
+    info("ndof: %d, ref_ndof: %d, err_est: %g%%", 
       space.get_num_dofs(), ref_space->get_num_dofs(), err_est);
 
     // Add entry to DOF convergence graph.
@@ -182,7 +182,7 @@ int main(int argc, char* argv[])
   while (done == false);
   verbose("Total running time: %g s", cpu_time.accumulated());
 
-  // Show the fine solution - the final result.
+  // Show the reference solution - the final result.
   sview.set_title("Final solution");
   sview.show_mesh(false);
   sview.show(&ref_sln);

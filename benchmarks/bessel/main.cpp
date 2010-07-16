@@ -24,8 +24,6 @@ using namespace RefinementSelectors;
 //
 //  The following parameters can be changed:
 
-const bool SOLVE_ON_COARSE_MESH = false; // If true, coarse mesh FE problem is solved in every adaptivity step.
-                                         // If false, projection of the fine mesh solution on the coarse mesh is used. 
 const int INIT_REF_NUM = 1;              // Number of initial uniform mesh refinements.
 const int P_INIT = 2;                    // Initial polynomial degree. NOTE: The meaning is different from
                                          // standard continuous elements in the space H1. Here, P_INIT refers
@@ -56,7 +54,7 @@ const int MESH_REGULARITY = -1;          // Maximum allowed level of hanging nod
 const double CONV_EXP = 1.0;             // Default value is 1.0. This parameter influences the selection of
                                          // cancidates in hp-adaptivity. See get_optimal_refinement() for details.
 const double ERR_STOP = 1.0;             // Stopping criterion for adaptivity (rel. error tolerance between the
-                                         // fine mesh and coarse mesh solution in percent).
+                                         // reference mesh and coarse mesh solution in percent).
 const int NDOF_STOP = 60000;             // Adaptivity process stops when the number of degrees of freedom grows
                                          // over this limit. This is to prevent h-adaptivity to go on forever.
 
@@ -135,7 +133,7 @@ int main(int argc, char* argv[])
   do
   {
     info("---- Adaptivity step %d:", as); 
-    info("Solving on fine mesh.");
+    info("Solving on reference mesh.");
 
     // Construct the globally refined reference mesh.
     Mesh ref_mesh;
@@ -150,8 +148,8 @@ int main(int argc, char* argv[])
     // Solve the reference problem.
     solve_linear(ref_space, &wf, &ref_sln, SOLVER_UMFPACK);
 
-    // Project the fine mesh solution on the coarse mesh.
-    info("Projecting fine mesh solution on coarse mesh.");
+    // Project the reference solution on the coarse mesh.
+    info("Projecting reference solution on coarse mesh.");
     int proj_type = 2;    // Hcurl projection.
     project_global(&space, &ref_sln, &sln, proj_type);
 
@@ -172,7 +170,7 @@ int main(int argc, char* argv[])
     // Skip exact error calculation and visualization time. 
     cpu_time.tick(HERMES_SKIP);
 
-    // Calculate error estimate wrt. fine mesh solution.
+    // Calculate error estimate wrt. reference solution.
     info("Calculating error (est).");
     HcurlAdapt hp(&space);
     hp.set_solutions(&sln, &ref_sln);
@@ -180,7 +178,7 @@ int main(int argc, char* argv[])
     double err_est_hcurl = hcurl_error(&sln, &ref_sln) * 100;
 
     // Report results.
-    info("ndof_coarse: %d, ndof_fine: %d, err_est: %g%%, err_exact: %g%%", 
+    info("ndof: %d, ref_ndof: %d, err_est: %g%%, err_exact: %g%%", 
          space.get_num_dofs(), ref_space->get_num_dofs(), err_est_hcurl, err_exact);
 
     // Add entries to DOF convergence graphs.

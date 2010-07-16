@@ -149,7 +149,7 @@ int main(int argc, char* argv[])
   do
   {
     info("---- Adaptivity step %d:", as);
-    info("Solving on fine meshes.");
+    info("Solving on reference meshes.");
 
     // Construct globally refined reference meshes.
     Mesh ref_u_mesh, ref_v_mesh;
@@ -169,8 +169,8 @@ int main(int argc, char* argv[])
     solve_linear(Tuple<Space *>(ref_u_space, ref_v_space), &wf, 
                  Tuple<Solution *>(&ref_u_sln, &ref_v_sln), SOLVER_UMFPACK);
 
-    // Project the fine mesh solutions on the coarse meshes.
-    info("Projecting fine mesh solutions on coarse meshes.");
+    // Project the reference solutions on the coarse meshes.
+    info("Projecting reference solutions on coarse meshes.");
     project_global(Tuple<Space *>(&u_space, &v_space), 
                    Tuple<MeshFunction*>(&ref_u_sln, &ref_v_sln), 
                    Tuple<Solution*>(&u_sln, &v_sln));
@@ -238,10 +238,10 @@ int main(int argc, char* argv[])
   verbose("Total running time: %g s", cpu_time.accumulated());
 
   // Show the fine solution - the final result.
-  uview.set_title("Fine mesh solution u");
+  uview.set_title("Reference solution u");
   uview.show_mesh(false);
   uview.show(&ref_u_sln);
-  vview.set_title("Fine mesh solution v");
+  vview.set_title("Reference solution v");
   vview.show_mesh(false);
   vview.show(&ref_v_sln);
 

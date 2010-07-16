@@ -123,7 +123,7 @@ int main(int argc, char* argv[])
   do
   {
     info("---- Adaptivity step %d:", as);
-    info("Solving on fine mesh.");
+    info("Solving on reference mesh.");
 
     // Construct the globally refined reference mesh.
     Mesh ref_mesh;
@@ -138,8 +138,8 @@ int main(int argc, char* argv[])
     // Solve the reference problem.
     solve_linear(ref_space, &wf, &ref_sln, SOLVER_UMFPACK);
 
-    // Project the fine mesh solution on the coarse mesh.
-    info("Projecting fine mesh solution on coarse mesh.");
+    // Project the reference solution on the coarse mesh.
+    info("Projecting reference solution on coarse mesh.");
     project_global(&space, &ref_sln, &sln);
 
     // Time measurement.
@@ -160,7 +160,7 @@ int main(int argc, char* argv[])
     double err_est = hp.calc_error() * 100;
 
     // Report results.
-    info("ndof_coarse: %d, ndof_fine: %d, err_est: %g%%", 
+    info("ndof: %d, ref_ndof: %d, err_est: %g%%", 
          space.get_num_dofs(), ref_space->get_num_dofs(), err_est);
 
     // Add entry to DOF and CPU convergence graphs.
@@ -172,7 +172,7 @@ int main(int argc, char* argv[])
     // If err_est too large, adapt the mesh.
     if (err_est < ERR_STOP) done = true;
     else {
-      info("Adapting coarse mesh.");
+      info("Adapting the coarse mesh.");
       done = hp.adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY);
 
       if (space.get_num_dofs() >= NDOF_STOP) done = true;
@@ -183,8 +183,8 @@ int main(int argc, char* argv[])
   while (done == false);
   verbose("Total running time: %g s", cpu_time.accumulated());
 
-  // Show the fine mesh solution - the final result.
-  sview.set_title("Fine mesh solution");
+  // Show the reference solution - the final result.
+  sview.set_title("Reference solution");
   sview.show_mesh(false);
   sview.show(&ref_sln);
   gview.show(&ref_sln, &ref_sln, H2D_EPS_HIGH, H2D_FN_DX_0, H2D_FN_DY_0);
