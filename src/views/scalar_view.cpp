@@ -240,7 +240,7 @@ void ScalarView::update_mesh_info() {
     range_max = lin.get_max_value();
   }
 
-  // Calculate AABB.
+  // Calculate the axes-aligned bounding box in the xy-plane.
   lin.calc_vertices_aabb(&vertices_min_x, &vertices_max_x, &vertices_min_y, &vertices_max_y);
 
   // Calculate average value.
@@ -254,7 +254,7 @@ void ScalarView::update_mesh_info() {
   // Get a range of vertex values (or the range set by user).
   value_min = range_min; value_max = range_max;
   // Special case: constant function; offset the lower limit of range so that the domain is drawn under the
-  // function and the scale is drawn correctly.
+  // function and also the scale is drawn correctly.
   if ((value_max - value_min) < 1e-8) {
     value_irange = 1.0;
     range_min -= 0.5;
@@ -1008,31 +1008,34 @@ void ScalarView::on_display()
   }
   else
   {
-    set_3d_projection(50, 0.05, 10.0);
+    int fovy = 50;        // Field of view in the vertical direction (in degrees).
+    double znear = 0.05;  // Near clipping plane of the viewing frustum.
+    double zfar = 10;     // Far clipping plane of the viewing frustum.
+    set_3d_projection(fovy, znear, zfar);
 
     glClear(GL_DEPTH_BUFFER_BIT);
     glEnable(GL_DEPTH_TEST);
 
-    //set camera transforamtion
+    // Set camera transforamtion.
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 
-    // initialize light and material
+    // Initialize light and material.
     init_lighting();
 
-    // Move from the camera viewpoint.
     if (do_zoom_to_fit) {
-      ztrans = calculate_ztrans_to_fit_view(50);
+      // If the user presses 'c' to center the view automatically, calculate how far to move
+      // the visualized model away from the viewer so that it is completely visible in current window.
+      ztrans = calculate_ztrans_to_fit_view(fovy);
       do_zoom_to_fit = false;
     }
-    glTranslated(xtrans, ytrans, ztrans);
 
-    // set model transforamtion
+    // Set model transformation.
+    glTranslated(xtrans, ytrans, ztrans);
     glRotated(xrot, 1, 0, 0);
     glRotated(yrot, 0, 1, 0);
 
-
-    // draw the surface
+    // Draw the surface.
     glEnable(GL_LIGHTING);
     glEnable(GL_TEXTURE_1D);
     glBindTexture(GL_TEXTURE_1D, gl_pallete_tex_id);
@@ -1056,7 +1059,7 @@ void ScalarView::on_display()
     glEnd();
     glDisable(GL_POLYGON_OFFSET_FILL);
 
-    // draw edges
+    // Draw edges.
     glDisable(GL_LIGHTING);
     glDisable(GL_TEXTURE_1D);
     if (show_edges)
@@ -1075,11 +1078,12 @@ void ScalarView::on_display()
       glEnd();
     }
 
-    // draw boundary edges
+    // Draw boundary edges.
     glColor3fv(edges_color);
     glBegin(GL_LINES);
     for (i = 0; i < lin.get_num_edges(); i++)
     {
+      // Outline of the domain boundary at the bottom of the plot or at the bottom user-defined limit
       double y_coord = (range_min - yctr) * yscale;
       int3& edge = edges[i];
       if (edge[2])
@@ -1095,7 +1099,7 @@ void ScalarView::on_display()
 
   lin.unlock_data();
 
-  //draw TW
+  // Draw TW.
 #ifdef ENABLE_VIEWER_GUI
   if (tw_wnd_id != TW_WND_ID_NONE)
   {
@@ -1148,26 +1152,44 @@ void ScalarView::calculate_normals(double3* vert, int num_verts, int3* tris, int
 
 void ScalarView::update_layout() {
   View::update_layout();
+  // (x,y,-z) coordinates (in the eye coordinate system) of the point that lies at the center of solution domain
+  // and vertically at the position of the average value of all vertices. This point will be the origin for all
+  // drawing and also the initial position of the camera.
   xctr = (vertices_max_x + vertices_min_x) / 2.0;
-  zctr = (vertices_max_y + vertices_min_y) / 2.0;
-  //yctr = (value_max + value_min) / 2.0;
   yctr = value_range_avg;
+  zctr = (vertices_max_y + vertices_min_y) / 2.0;
 }
 
 void ScalarView::reset_view(bool force_reset) {
-  if (force_reset || view_not_reset) { //reset 3d view
+  if (force_reset || view_not_reset) { // Reset 3d view.
     xrot = 40.0; yrot = 0.0;
     xtrans = ytrans = ztrans = 0.0;
-    // Set the scale so that the object (before any model/view transforms) has its largest dimension equal to unity
-    //xzscale = yscale = 1.0 / std::max(vertices_max_x - vertices_min_x, vertices_max_y - vertices_min_y);
+    // Set the scale so that the model (before applying model transformations) has its largest dimension equal to unity.
+    // This ensures that it is always possible to translate the model completely into the viewing volume of the
+    // perspective projection (set in 'on_display'). Later on, we will modify the translation distance so that the
+    // model occupies as much of the view space as possible.
     xzscale = yscale = std::min(value_irange, 1.0 / std::max(vertices_max_x - vertices_min_x, vertices_max_y - vertices_min_y));
     do_zoom_to_fit = true;
   }
-  View::reset_view(force_reset); //reset 2d view
+  View::reset_view(force_reset); // Reset 2d view.
 }
 
+
+// This function calculates the distance that the model (3D plot of the solution over the whole solution domain) must be
+// translated along the z-axis of the eye coordinate system, so that it fills the actual viewport without being clipped.
+// The only case when the model will be clipped is when the user defines his own vertical range limits - unfortunately,
+// the values beyond these limits are now still included in the displayed model, so the user may e.g. zoom-out to see them
+// - try the benchmark 'screen' for instance...
+// The algorithm essentially performs zooming without changing the field of view of the perspective projection and works as follows:
+//  1. Apply all transformations to the bounding box of the model at the origin.
+//  2. Compute the distance (along z-axis) from the origin to the center of perspective projection of the point with the
+//      biggest vertical (y-axis) distance from the origin.
+//  3. Compute the distance (along z-axis) from the origin to the center of perspective projection of the point with the
+//      biggest horizontal (x-axis) distance from the origin.
+//  4. Take the bigger of the two distances and reverse sign (since we will translate the model, not the camera)
 double ScalarView::calculate_ztrans_to_fit_view(int fovy)
 {
+  // Axis-aligned bounding box of the model (homogeneous coordinates in the model space), divided into the bottom and top base.
   GLdouble aabb[2][16] =
   {
     {
@@ -1185,28 +1207,34 @@ double ScalarView::calculate_ztrans_to_fit_view(int fovy)
   };
   GLdouble aabb_base[16];
 
+  // Tangents of the half of the vertical and horizontal field of view angles.
+  double tan_fovy_half = tan((double) fovy / 2.0 / 180.0 * M_PI);
+  double tan_fovx_half = tan_fovy_half * output_width / output_height;
+
+  // The viewpoint z-coordinate we are looking for.
+  double optimal_viewpoint_pos = 0.0;
+
+  // We will change the model transformation matrix, so save the current one.
   glPushMatrix();
 
+  // Create the model transformation matrix with the default z-translation.
   glLoadIdentity();
   glTranslated(xtrans, ytrans, ztrans);
   glRotated(xrot, 1, 0, 0);
   glRotated(yrot, 0, 1, 0);
   glScaled(xzscale, yscale, xzscale);
 
-  double tan_fovy_half = tan((double) fovy / 2.0 / 180.0 * M_PI);
-  double aspect = (double) output_width / output_height;
-  double tan_fovx_half = tan_fovy_half * aspect;
-  double optimal_viewpoint_pos = 0.0;
-
+  // As far as I know, OpenGL can only perform 4x4 matrix multiplication, so we find the 8 transformed bounding box corners by
+  // first multiplying the transformation matrix with a matrix having as its 4 columns the coordinates of the bottom base corners
+  // and then with a matrix created from the top base corners.
   for (int i = 0; i < 2; i++) {
     glPushMatrix();
     glMultMatrixd(aabb[i]);
     glGetDoublev( GL_MODELVIEW_MATRIX, aabb_base );
     glPopMatrix();
 
+    // Go through the transformed corners and find the biggest distance of its perspective projection center to the origin.
     GLdouble *coord_ptr = &aabb_base[0];
-    GLdouble *coord_ptr2 = &aabb[i][0];
-
     for (int j = 0; j < 4; j++) {
       double perspective_center_to_origin_dist = fabs(coord_ptr[0]) / tan_fovx_half - coord_ptr[1];
       if (perspective_center_to_origin_dist > optimal_viewpoint_pos)
@@ -1217,10 +1245,10 @@ double ScalarView::calculate_ztrans_to_fit_view(int fovy)
         optimal_viewpoint_pos = perspective_center_to_origin_dist;
 
       coord_ptr += 4;
-      coord_ptr2 += 4;
     }
   }
 
+  // Restore the original model transformation matrix.
   glPopMatrix();
 
   return -optimal_viewpoint_pos;

@@ -184,7 +184,7 @@ protected:
   bool contours; ///< true to enable drawing of contours
   double cont_orig, cont_step; ///< contour settings.
   float cont_color[3]; ///< color of contours (RGB)
-  bool do_zoom_to_fit;
+  bool do_zoom_to_fit; ///< true to automatically translate the view so that the whole model si displayed
 
   bool pmode, mode3d, panning;
   double xrot, yrot, xtrans, ytrans, ztrans;
@@ -195,7 +195,7 @@ protected:
 
   double3* normals;
 
-  double calculate_ztrans_to_fit_view(int fovy);
+  double calculate_ztrans_to_fit_view(int fovy); /// Calculates the z-coordinate (in eye coordinates) of the closest viewpoint from which we can still see the whole model under the specified vertical FOV.
   virtual void reset_view(bool force_reset); ///< Resets 2d and 3d view.
   virtual void update_layout(); ///< Updates layout, i.e., centers 2d and 3d mesh.
 
