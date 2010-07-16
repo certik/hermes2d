@@ -51,52 +51,21 @@ const double ERR_STOP = 0.1;      // Stopping criterion for adaptivity (rel. err
 const int NDOF_STOP = 60000;      // Adaptivity process stops when the number of degrees of freedom grows
                                   // over this limit. This is to prevent h-adaptivity to go on forever.
 
+// Problem parameters.
+double a_11(double x, double y) { if (y > 0) return 1 + x*x + y*y; else return 1;}
+double a_22(double x, double y) { if (y > 0) return 1; else return 1 + x*x + y*y;}
+double a_12(double x, double y) { return 1; }
+double a_21(double x, double y) { return 1;}
+double a_1(double x, double y) { return 0.0;}
+double a_2(double x, double y) { return 0.0;}
+double a_0(double x, double y) { return 0.0;}
+double rhs(double x, double y) { return 1 + x*x + y*y;}
+double g_D(double x, double y) { return -cos(M_PI*x);}
+double g_N(double x, double y) { return 0;}
+
 // Boundary markers.
 const int BDY_DIRICHLET = 1;
 const int BDY_NEUMANN = 2;
-
-// Problem parameters.
-double a_11(double x, double y) {
-  if (y > 0) return 1 + x*x + y*y;
-  else return 1;
-}
-
-double a_22(double x, double y) {
-  if (y > 0) return 1;
-  else return 1 + x*x + y*y;
-}
-
-double a_12(double x, double y) {
-  return 1;
-}
-
-double a_21(double x, double y) {
-  return 1;
-}
-
-double a_1(double x, double y) {
-  return 0.0;
-}
-
-double a_2(double x, double y) {
-  return 0.0;
-}
-
-double a_0(double x, double y) {
-  return 0.0;
-}
-
-double rhs(double x, double y) {
-  return 1 + x*x + y*y;
-}
-
-double g_D(double x, double y) {
-  return -cos(M_PI*x);
-}
-
-double g_N(double x, double y) {
-  return 0;
-}
 
 // Boundary condition types.
 BCType bc_types(int marker)
@@ -128,7 +97,7 @@ int main(int argc, char* argv[])
   // Perform initial mesh refinements.
   mesh.refine_all_elements();
 
-  // Create an H1 space with default shapeset
+  // Create an H1 space with default shapeset.
   H1Space space(&mesh, bc_types, essential_bc_values, P_INIT);
 
   // Initialize the weak formulation.
@@ -147,33 +116,30 @@ int main(int argc, char* argv[])
   // Initialize refinement selector. 
   H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
 
-  // Initialize the linear system.
-  LinearProblem lp(&wf, &space);
-
   // Adaptivity loop:
-  int as = 1; bool done = false;
   Solution sln_coarse, sln_fine;
+  int as = 1; bool done = false;
   do
   {
     info("---- Adaptivity step %d:", as);
-
-    // Assemble and solve the fine mesh problem.
     info("Solving on fine mesh.");
-    RefLinearProblem rlp(&lp);
-    rlp.assemble();
-    rlp.solve(&sln_fine);
 
-    // Either solve on coarse mesh or project the fine mesh solution 
-    // on the coarse mesh.
-    if (SOLVE_ON_COARSE_MESH) {
-      info("Solving on coarse mesh.");
-      lp.assemble();
-      lp.solve(&sln_coarse);
-    }
-    else {
-      info("Projecting fine mesh solution on coarse mesh.");
-      lp.project_global(&sln_fine, &sln_coarse);
-    }
+    // Construct the globally refined reference mesh.
+    Mesh rmesh;
+    rmesh.copy(&mesh);
+    rmesh.refine_all_elements();
+
+    // Setup space for the reference solution.
+    Space *rspace = space.dup(&rmesh);
+    int order_increase = 1;
+    rspace->copy_orders(&space, order_increase);
+ 
+    // Solve the reference problem.
+    solve_linear(rspace, &wf, &sln_fine, SOLVER_UMFPACK);
+
+    // Project the fine mesh solution on the coarse mesh.
+    info("Projecting fine mesh solution on coarse mesh.");
+    project_global(&space, &sln_fine, &sln_coarse);
 
     // Time measurement.
     cpu_time.tick();
@@ -183,20 +149,20 @@ int main(int argc, char* argv[])
     oview.show(&space);
 
     // Time measurement.
-    cpu_time.tick(H2D_SKIP);
+    cpu_time.tick(HERMES_SKIP);
 
     // Calculate error estimate wrt. fine mesh solution.
     info("Calculating error.");
-    H1Adapt hp(&lp);
+    H1Adapt hp(&space);
     hp.set_solutions(&sln_coarse, &sln_fine);
     double err_est = hp.calc_error() * 100;
 
     // Report results.
     info("ndof_coarse: %d, ndof_fine: %d, err_est: %g%%", 
-      lp.get_num_dofs(), rlp.get_num_dofs(), err_est);
+      space.get_num_dofs(), rspace->get_num_dofs(), err_est);
 
     // Add entry to DOF convergence graph.
-    graph_dof.add_values(lp.get_num_dofs(), err_est);
+    graph_dof.add_values(space.get_num_dofs(), err_est);
     graph_dof.save("conv_dof.dat");
 
     // Add entry to CPU convergence graph.
@@ -208,7 +174,7 @@ int main(int argc, char* argv[])
     else {
       info("Adapting coarse mesh.");
       done = hp.adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY);
-      if (lp.get_num_dofs() >= NDOF_STOP) done = true;
+      if (space.get_num_dofs() >= NDOF_STOP) done = true;
     }
 
     as++;

@@ -37,8 +37,6 @@ using namespace RefinementSelectors;
 // h-adaptivity via the CAND_LIST option, and compare the multi-mesh vs.
 // single-mesh using the MULTI parameter.
 
-const bool SOLVE_ON_COARSE_MESH = false; // If true, coarse mesh FE problem is solved in every adaptivity step.
-                                         // If false, projection of the fine mesh solution on the coarse mesh is used. 
 const int P_INIT_U = 2;                  // Initial polynomial degree for u.
 const int P_INIT_V = 2;                  // Initial polynomial degree for v.
 const int INIT_REF_BDY = 3;              // Number of initial boundary refinements
@@ -103,20 +101,20 @@ int main(int argc, char* argv[])
   cpu_time.tick();
 
   // Load the mesh.
-  Mesh umesh, vmesh;
+  Mesh u_mesh, v_mesh;
   H2DReader mloader;
-  mloader.load("square.mesh", &umesh);
-  if (MULTI == false) umesh.refine_towards_boundary(1, INIT_REF_BDY);
+  mloader.load("square.mesh", &u_mesh);
+  if (MULTI == false) u_mesh.refine_towards_boundary(1, INIT_REF_BDY);
 
   // Create initial mesh (master mesh).
-  vmesh.copy(&umesh);
+  v_mesh.copy(&u_mesh);
 
-  // Initial mesh refinements in the vmesh towards the boundary.
-  if (MULTI == true) vmesh.refine_towards_boundary(1, INIT_REF_BDY);
+  // Initial mesh refinements in the v_mesh towards the boundary.
+  if (MULTI == true) v_mesh.refine_towards_boundary(1, INIT_REF_BDY);
 
-  // Create the x displacement space.
-  H1Space uspace(&umesh, bc_types, essential_bc_values, P_INIT_U);
-  H1Space vspace(MULTI ? &vmesh : &umesh, bc_types, essential_bc_values, P_INIT_V);
+  // Create H1 spaces with default shapeset for both displacement components.
+  H1Space u_space(&u_mesh, bc_types, essential_bc_values, P_INIT_U);
+  H1Space v_space(MULTI ? &v_mesh : &u_mesh, bc_types, essential_bc_values, P_INIT_V);
 
   // Initialize the weak formulation.
   WeakForm wf(2);
@@ -139,53 +137,61 @@ int main(int argc, char* argv[])
   // Initialize refinement selector.
   H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
 
-  // Initialize the coarse mesh problem.
-  LinearProblem lp(&wf, Tuple<Space*>(&uspace, &vspace));
+  // Initialize matrix solver.
+  Matrix* mat; Vector* rhs; CommonSolver* solver;  
+  init_matrix_solver(SOLVER_UMFPACK, u_space.get_num_dofs() + v_space.get_num_dofs(), 
+                     mat, rhs, solver);
 
   // Adaptivity loop.
-  int as = 1; bool done = false;
   Solution u_sln_coarse, v_sln_coarse;
   Solution u_sln_fine, v_sln_fine;
+  int as = 1; bool done = false;
   do
   {
     info("---- Adaptivity step %d:", as);
-
-    // Assemble and solve the fine mesh problem.
     info("Solving on fine meshes.");
-    RefLinearProblem rlp(&lp);
-    rlp.assemble();
-    rlp.solve(Tuple<Solution*>(&u_sln_fine, &v_sln_fine));
 
-    // Either solve on coarse mesh or project the fine mesh solution 
-    // on the coarse mesh.
-    if (SOLVE_ON_COARSE_MESH) {
-      info("Solving on coarse meshes.");
-      lp.assemble();
-      lp.solve(Tuple<Solution*>(&u_sln_coarse, &v_sln_coarse));
-    }
-    else {
-      info("Projecting fine mesh solutions on coarse meshes.");
-      lp.project_global(Tuple<MeshFunction*>(&u_sln_fine, &v_sln_fine), 
-                        Tuple<Solution*>(&u_sln_coarse, &v_sln_coarse));
-    }
+    // Construct globally refined reference meshes.
+    Mesh ref_u_mesh, ref_v_mesh;
+    ref_u_mesh.copy(&u_mesh);
+    ref_v_mesh.copy(&v_mesh);
+    ref_u_mesh.refine_all_elements();
+    ref_v_mesh.refine_all_elements();
+
+    // Setup spaces for the reference solution.
+    Space *ref_u_space = u_space.dup(&ref_u_mesh);
+    Space *ref_v_space = v_space.dup(&ref_v_mesh);
+    int order_increase = 1;
+    ref_u_space->copy_orders(&u_space, order_increase);
+    ref_v_space->copy_orders(&v_space, order_increase);
+ 
+    // Solve the reference problem.
+    solve_linear(Tuple<Space *>(ref_u_space, ref_v_space), &wf, 
+                 Tuple<Solution *>(&u_sln_fine, &v_sln_fine), SOLVER_UMFPACK);
+
+    // Project the fine mesh solutions on the coarse meshes.
+    info("Projecting fine mesh solutions on coarse meshes.");
+    project_global(Tuple<Space *>(&u_space, &v_space), 
+                   Tuple<MeshFunction*>(&u_sln_fine, &v_sln_fine), 
+                   Tuple<Solution*>(&u_sln_coarse, &v_sln_coarse));
 
     // Time measurement.
     cpu_time.tick();
 
     // View the solutions and meshes.
-    info("u_dof_coarse: %d, v_dof_coarse: %d", lp.get_num_dofs(0), lp.get_num_dofs(1));
-    info("u_dof_fine: %d, v_dof_fine: %d", rlp.get_num_dofs(0), rlp.get_num_dofs(1));
+    info("u_dof_coarse: %d, v_dof_coarse: %d", u_space.get_num_dofs(), v_space.get_num_dofs());
+    info("u_dof_fine: %d, v_dof_fine: %d", ref_u_space->get_num_dofs(), ref_v_space->get_num_dofs());
     uview.show(&u_sln_coarse);
     vview.show(&v_sln_coarse);
-    uoview.show(&uspace);
-    voview.show(&vspace);
+    uoview.show(&u_space);
+    voview.show(&v_space);
 
     // Time measurement.
-    cpu_time.tick(H2D_SKIP);
+    cpu_time.tick(HERMES_SKIP);
 
     // Calculate element errors and total error estimate.
     info("Calculating error (est).");
-    H1Adapt hp(&lp);
+    H1Adapt hp(Tuple<Space *>(&u_space, &v_space));
     hp.set_solutions(Tuple<Solution*>(&u_sln_coarse, &v_sln_coarse), 
                      Tuple<Solution*>(&u_sln_fine, &v_sln_fine));
     hp.set_error_form(0, 0, bilinear_form_0_0<scalar, scalar>, bilinear_form_0_0<Ord, Ord>);
@@ -196,8 +202,8 @@ int main(int argc, char* argv[])
 
     // Calculate error wrt. exact solution.
     info("Calculating error (exact).");
-    ExactSolution uexact(&umesh, u_exact);
-    ExactSolution vexact(&vmesh, v_exact);
+    ExactSolution uexact(&u_mesh, u_exact);
+    ExactSolution vexact(&v_mesh, v_exact);
     double u_error = h1_error(&u_sln_coarse, &uexact) * 100;
     double v_error = h1_error(&v_sln_coarse, &vexact) * 100;
     double error = std::max(u_error, v_error);
@@ -209,7 +215,7 @@ int main(int argc, char* argv[])
     info("Estimate of error wrt. ref. solution (energy norm): %g%%", err_est);
 
     // Add entry to DOF convergence graph.
-    graph_dof.add_values(lp.get_num_dofs(), error);
+    graph_dof.add_values(u_space.get_num_dofs() + v_space.get_num_dofs(), error);
     if (MULTI == true) graph_dof.save("conv_dof_m.dat");
     else graph_dof.save("conv_dof_s.dat");
 
@@ -223,7 +229,7 @@ int main(int argc, char* argv[])
     else {
       info("Adapting coarse meshes.");
       done = hp.adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY, MULTI == true ? false : true);
-      if (lp.get_num_dofs() >= NDOF_STOP) done = true;
+      if (u_space.get_num_dofs() + v_space.get_num_dofs() >= NDOF_STOP) done = true;
     }
 
     as++;
