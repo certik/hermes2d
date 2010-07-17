@@ -47,8 +47,6 @@
 #include "discrete_problem.h"
 #include "feproblem.h"
 #include "linear_problem.h"
-#include "ref_discrete_problem.h"
-#include "ref_linear_problem.h"
 #include "forms.h"
 
 #include "itersolver.h"

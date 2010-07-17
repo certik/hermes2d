@@ -16,6 +16,8 @@
 #ifndef __H2D_H1_ADAPT_H
 #define __H2D_H1_ADAPT_H
 
+#include "adapt.h"
+
 /// Evaluation of an error between a (coarse) solution and a reference solution and adaptivity in H1 space. \ingroup g_adapt
 /** The class provides functionality necessary to adaptively refine elements in H1 space.
  *  Given a reference solution and a coarse solution, it calculates error estimates

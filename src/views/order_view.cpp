@@ -36,6 +36,16 @@ OrderView::OrderView(const char* title, int x, int y, int width, int height)
   scale_box_skip = 9;
 }
 
+OrderView::OrderView(const char* title, const int geom[4])
+         : View(title, geom)
+{
+  b_scale = true;
+  b_orders = false;
+  scale_width = 36;
+  scale_box_height = 25;
+  scale_box_skip = 9;
+}
+
 
 static int order_palette[] =
 {

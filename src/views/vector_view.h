@@ -36,6 +36,7 @@ class H2D_API VectorView : public View
 public:
 
   VectorView(const char* title = "VectorView", DEFAULT_WINDOW_POS);
+  VectorView(const char* title = "VectorView", const int geom[4] = NULL);
 
   void show(MeshFunction* vsln, double eps = H2D_EPS_NORMAL);
   void show(MeshFunction* xsln, MeshFunction* ysln, double eps = H2D_EPS_NORMAL);

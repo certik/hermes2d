@@ -59,6 +59,11 @@ const double CONV_EXP = 1.0;    // Default value is 1.0. This parameter influenc
 const int NDOF_STOP = 60000;    // Adaptivity process stops when the number of degrees of freedom grows
                                 // over this limit. This is to prevent h-adaptivity to go on forever.
 
+// Geometry and position of visualization windows.
+const int SLN_WIN_GEOM[4] = {0, 0, 400, 600};
+const int MESH_WIN_GEOM[4] = {410, 0, 400, 600};
+const int GRAD_WIN_GEOM[4] = {820, 0, 400, 600};
+
 // Problem parameters.
 const int OMEGA_1 = 1;
 const int OMEGA_2 = 2;
@@ -84,10 +89,6 @@ scalar essential_bc_values(int ess_bdy_marker, double x, double y)
 
 int main(int argc, char* argv[])
 {
-  // Time measurement.
-  TimePeriod cpu_time;
-  cpu_time.tick();
-
   // Load the mesh.
   Mesh mesh;
   H2DReader mloader;
@@ -101,93 +102,28 @@ int main(int argc, char* argv[])
   wf.add_matrix_form(callback(biform1), H2D_SYM, OMEGA_1);
   wf.add_matrix_form(callback(biform2), H2D_SYM, OMEGA_2);
 
-  // Initialize views.
-  ScalarView sview("Scalar potential Phi", 0, 0, 400, 600);
-  VectorView gview("Gradient of Phi", 410, 0, 400, 600);
-  gview.set_min_max_range(0, 1e8);
-  OrderView  oview("Mesh", 820, 0, 400, 600);
-
-  // DOF and CPU convergence graphs.
-  SimpleGraph graph_dof, graph_cpu;
-
   // Initialize refinement selector.
   H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
 
-  // Initialize matrix solver.
-  Matrix* mat; Vector* rhs; CommonSolver* solver;  
-  init_matrix_solver(SOLVER_UMFPACK, space.get_num_dofs(), mat, rhs, solver);
+  // Initialize adaptivity parameters.
+  AdaptivityParamType apt(ERR_STOP, NDOF_STOP, THRESHOLD, STRATEGY, 
+                          MESH_REGULARITY);
 
   // Adaptivity loop:
-  Solution sln, ref_sln;
-  int as = 1; bool done = false;
-  do
-  {
-    info("---- Adaptivity step %d:", as);
-    info("Solving on reference mesh.");
+  Solution *sln = new Solution();
+  int proj_norm = 1;  // H1 norm.
+  solve_linear_adapt(&space, &wf, sln, SOLVER_UMFPACK, proj_norm, 
+                     &selector, &apt, SLN_WIN_GEOM, MESH_WIN_GEOM);
 
-    // Construct the globally refined reference mesh.
-    Mesh ref_mesh;
-    ref_mesh.copy(&mesh);
-    ref_mesh.refine_all_elements();
-
-    // Setup space for the reference solution.
-    Space *ref_space = space.dup(&ref_mesh);
-    int order_increase = 1;
-    ref_space->copy_orders(&space, order_increase);
- 
-    // Solve the reference problem.
-    solve_linear(ref_space, &wf, &ref_sln, SOLVER_UMFPACK);
-
-    // Project the reference solution on the coarse mesh.
-    info("Projecting reference solution on coarse mesh.");
-    project_global(&space, &ref_sln, &sln);
-
-    // Time measurement.
-    cpu_time.tick();
-
-    // View the coarse mesh solution.
-    sview.show(&sln);
-    gview.show(&sln, &sln, H2D_EPS_NORMAL, H2D_FN_DX_0, H2D_FN_DY_0);
-    oview.show(&space);
-
-    // Time measurement.
-    cpu_time.tick(HERMES_SKIP);
-
-    // Calculate element errors and total error estimate.
-    info("Calculating error.");
-    H1Adapt hp(&space);
-    hp.set_solutions(&sln, &ref_sln);
-    double err_est = hp.calc_error() * 100;
-
-    // Report results.
-    info("ndof: %d, ref_ndof: %d, err_est: %g%%", 
-         space.get_num_dofs(), ref_space->get_num_dofs(), err_est);
-
-    // Add entry to DOF and CPU convergence graphs.
-    graph_dof.add_values(space.get_num_dofs(), err_est);
-    graph_dof.save("conv_dof.dat");
-    graph_cpu.add_values(cpu_time.accumulated(), err_est);
-    graph_cpu.save("conv_cpu.dat");
-
-    // If err_est too large, adapt the mesh.
-    if (err_est < ERR_STOP) done = true;
-    else {
-      info("Adapting the coarse mesh.");
-      done = hp.adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY);
-
-      if (space.get_num_dofs() >= NDOF_STOP) done = true;
-    }
-
-    as++;
-  }
-  while (done == false);
-  verbose("Total running time: %g s", cpu_time.accumulated());
-
-  // Show the reference solution - the final result.
-  sview.set_title("Reference solution");
+  // Show the final result.
+  ScalarView sview("Scalar potential Phi", SLN_WIN_GEOM);
+  OrderView  oview("Mesh", MESH_WIN_GEOM);
+  VectorView gview("Gradient of Phi", GRAD_WIN_GEOM);
+  gview.set_min_max_range(0, 1e8);
   sview.show_mesh(false);
-  sview.show(&ref_sln);
-  gview.show(&ref_sln, &ref_sln, H2D_EPS_HIGH, H2D_FN_DX_0, H2D_FN_DY_0);
+  sview.show(sln);
+  gview.show(sln, sln, H2D_EPS_HIGH, H2D_FN_DX_0, H2D_FN_DY_0);
+  oview.show(&space);
 
   // Wait for all views to be closed.
   View::wait();

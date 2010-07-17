@@ -34,6 +34,18 @@ VectorView::VectorView(const char* title, int x, int y, int width, int height)
   length_coef = 1.0;
 }
 
+VectorView::VectorView(const char* title, const int geom[4])
+          : View(title, geom)
+{
+  gx = gy = 0.0;
+  gs = 20.0;
+  hexa = true;
+  mode = 0;
+  lines = false;
+  pmode = false;
+  length_coef = 1.0;
+}
+
 
 void VectorView::show(MeshFunction* vsln, double eps)
 {

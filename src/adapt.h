@@ -41,6 +41,28 @@
  *    \if H2D_COMPLEX # -HcurlAdapt \endif
  */
 
+///< Structure to hold adaptivity parameters together.
+struct AdaptivityParamType {
+  double err_stop; 
+  int ndof_stop;
+  double threshold; 
+  int strategy;
+  int mesh_regularity;
+  double to_be_processed;
+
+  AdaptivityParamType(double err_stop = 1.0, int ndof_stop = 50000,
+	  	      double threshold = 0.3, int strategy = 0, 
+                      int mesh_regularity = -1, double to_be_processed = 0.0)
+  {
+    this->err_stop = err_stop;
+    this->ndof_stop = ndof_stop;
+    this->threshold = threshold;
+    this->strategy = strategy;
+    this->mesh_regularity = mesh_regularity;
+    this->to_be_processed = to_be_processed;
+  }; 
+};
+
 #define H2D_MAX_COMPONENTS 10 ///< A maximum number of components.
 
 H2D_API_USED_TEMPLATE(Tuple<Space*>); ///< Instantiated template. It is used to create a clean Windows DLL interface.

@@ -16,6 +16,8 @@
 #ifndef __H2D_L2_ADAPT_H
 #define __H2D_L2_ADAPT_H
 
+#include "adapt.h"
+
 /// Evaluation of an error between a (coarse) solution and a reference solution and adaptivity in L2 space. \ingroup g_adapt
 /** The class provides functionality necessary to adaptively refine elements in L2 space.
  *  Given a reference solution and a coarse solution, it calculates error estimates

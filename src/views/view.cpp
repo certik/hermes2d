@@ -68,6 +68,52 @@ View::View(const char* title, int x, int y, int width, int height)
   memset(rendering_frames, 0, FPS_FRAME_SIZE * sizeof(double));
 }
 
+View::View(const char* title, const int geom[4])
+  : gl_pallete_tex_id(0),
+    title(title), output_id(-1), vertices_min_x(0), vertices_max_x(0), vertices_min_y(0), vertices_max_y(0),
+    view_not_reset(true)
+{
+  if (geom == NULL) {
+    output_x = H2D_DEFAULT_X_POS;
+    output_y = H2D_DEFAULT_Y_POS;
+    output_width = H2D_DEFAULT_WIDTH;
+    output_height = H2D_DEFAULT_HEIGHT;
+  }
+  else {
+    output_x = geom[0];
+    output_y = geom[1];
+    output_width = geom[2];
+    output_height = geom[3];
+  }
+
+  jitter_x = jitter_y = 0.0;
+  dragging = scaling = false;
+  hq_frame = false;
+  frame_ready = false;
+  range_auto = true;
+  range_min = 0;
+  range_max = 1;
+  pal_type = H2DV_PT_DEFAULT;
+  pal_steps = 50;
+  pal_filter = GL_NEAREST;
+  margin = 15;
+  b_scale = true;
+  b_help = false;
+  scale_focused = scale_dragging = false;
+  pos_horz = pos_vert = 0;
+  scale_x = scale_y = labels_width = 0;
+  scale_width = 16;
+  scale_height = 320;
+  scale_numticks = 9;
+  strcpy(scale_fmt, "%.3g");
+  scale_fixed_width = -1;
+  want_screenshot = false;
+
+  rendering_frames_top = 0;
+  memset(rendering_frames, 0, FPS_FRAME_SIZE * sizeof(double));
+}
+
+
 
 View::~View()
 {

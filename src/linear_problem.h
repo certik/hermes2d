@@ -23,6 +23,10 @@
 #include "views/order_view.h"
 #include "function.h"
 #include "discrete_problem.h"
+#include "ref_selectors/selector.h"
+#include "graph.h"
+#include "adapt.h"
+#include "h1_adapt.h"
 
 class Solution;
 class MeshFunction;
@@ -56,5 +60,13 @@ void init_matrix_solver(MatrixSolverType matrix_solver, int ndof,
 
 bool solve_linear(Tuple<Space *> spaces, WeakForm* wf, Tuple<Solution *> solutions, 
                   MatrixSolverType matrix_solver, bool is_complex = false);
+
+// Solve a typical linear problem (without automatic adaptivity).
+// Feel free to adjust this function for more advanced applications.
+bool solve_linear_adapt(Tuple<Space *> spaces, WeakForm* wf, Tuple<Solution *> solutions, 
+                        MatrixSolverType matrix_solver, Tuple<int> proj_norms, 
+                        RefinementSelectors::Selector* selector, AdaptivityParamType* apt,
+                        const int sln_win_geom[4] = NULL, const int mesh_win_geom[4] = NULL, 
+                        bool is_complex = false);
 
 #endif

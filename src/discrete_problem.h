@@ -275,7 +275,7 @@ void project_global(Tuple<Space *> spaces, Tuple<MeshFunction*> source,
                     Tuple<Solution*> target, WeakForm *wf, bool is_complex = false);
 
 void project_global(Tuple<Space *> spaces, Tuple<MeshFunction*> source, 
-                    Tuple<Solution*> target, Tuple<int>proj_norms = Tuple<int>(), bool is_complex = false);
+                    Tuple<Solution*> target, Tuple<int> proj_norms = Tuple<int>(), bool is_complex = false);
 
 void project_global(Tuple<Space *> spaces, Tuple<MeshFunction*> source, Tuple<Solution*> target,
                matrix_forms_tuple_t proj_biforms, vector_forms_tuple_t proj_liforms, bool is_complex = false);

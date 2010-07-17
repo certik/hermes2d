@@ -18,6 +18,8 @@
 
 #ifdef H2D_COMPLEX
 
+#include "adapt.h"
+
 /// Evaluation of an error between a (coarse) solution and a reference solution and adaptivity in Hcurl space. \ingroup g_adapt
 /** The class provides functionality necessary to adaptively refine elements in H1 space.
  *  Given a reference solution and a coarse solution, it calculates error estimates
