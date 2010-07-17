@@ -20,8 +20,6 @@ using namespace RefinementSelectors;
 //
 //  The following parameters can be changed:
 
-const bool SOLVE_ON_COARSE_MESH = false; // If true, coarse mesh FE problem is solved in every adaptivity step.
-                                         // If false, projection of the fine mesh solution on the coarse mesh is used. 
 const int INIT_REF_NUM = 1;              // Number of initial uniform mesh refinements.
 const int P_INIT = 1;                    // Initial polynomial degree of all mesh elements.
 const double THRESHOLD = 0.3;            // This is a quantitative parameter of the adapt(...) function and
@@ -48,7 +46,7 @@ const int MESH_REGULARITY = -1;          // Maximum allowed level of hanging nod
 const double CONV_EXP = 1.0;             // Default value is 1.0. This parameter influences the selection of
                                          // cancidates in hp-adaptivity. See get_optimal_refinement() for details.
 const double ERR_STOP = 1.0;             // Stopping criterion for adaptivity (rel. error tolerance between the
-                                         // fine mesh and coarse mesh solution in percent).
+                                         // reference mesh and coarse mesh solution in percent).
 const int NDOF_STOP = 60000;             // Adaptivity process stops when the number of degrees of freedom grows
                                          // over this limit. This is to prevent h-adaptivity to go on forever.
 
@@ -113,56 +111,57 @@ int main(int argc, char* argv[])
   // Initialize refinement selector.
   H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
 
-  // Initialize the coarse mesh problem.
-  LinSystem ls(&wf, &space);
+  // Initialize matrix solver.
+  Matrix* mat; Vector* rhs; CommonSolver* solver;  
+  init_matrix_solver(SOLVER_UMFPACK, space.get_num_dofs(), mat, rhs, solver);
 
   // Adaptivity loop:
+  Solution sln, ref_sln;
   int as = 1; bool done = false;
-  Solution sln_coarse, sln_fine;
   do
   {
     info("---- Adaptivity step %d:", as); 
+    info("Solving on reference mesh.");
 
-    // Assemble and solve the fine mesh problem.
-    info("Solving on fine mesh.");
-    RefSystem rs(&ls);
-    rs.assemble();
-    rs.solve(&sln_fine);
+    // Construct the globally refined reference mesh.
+    Mesh ref_mesh;
+    ref_mesh.copy(&mesh);
+    ref_mesh.refine_all_elements();
 
-    // Either solve on coarse mesh or project the fine mesh solution 
-    // on the coarse mesh.
-    if (SOLVE_ON_COARSE_MESH) {
-      info("Solving on coarse mesh.");
-      ls.assemble();
-      ls.solve(&sln_coarse);
-    }
-    else {
-      info("Projecting fine mesh solution on coarse mesh.");
-      ls.project_global(&sln_fine, &sln_coarse);
-    }
+    // Setup space for the reference solution.
+    Space *ref_space = space.dup(&ref_mesh);
+    int order_increase = 1;
+    ref_space->copy_orders(&space, order_increase);
+ 
+    // Solve the reference problem.
+    solve_linear(ref_space, &wf, &ref_sln, SOLVER_UMFPACK);
+
+    // Project the reference mesh solution on the coarse mesh.
+    info("Projecting reference solution on coarse mesh.");
+    project_global(&space, &ref_sln, &sln);
 
     // Time measurement.
     cpu_time.tick();
 
     // Visualize the solution and mesh.
-    view.show(&sln_coarse, H2D_EPS_HIGH);
+    view.show(&sln, H2D_EPS_HIGH);
     oview.show(&space);
 
     // Skip exact error calculation and visualization time. 
-    cpu_time.tick(H2D_SKIP);
+    cpu_time.tick(HERMES_SKIP);
 
     // Calculate element errors and total error estimate.
     info("Calculating error (est).");
-    H1Adapt hp(&ls);
-    hp.set_solutions(&sln_coarse, &sln_fine);
+    H1Adapt hp(&space);
+    hp.set_solutions(&sln, &ref_sln);
     double err_est = hp.calc_error() * 100;
 
     // Report results.
-    info("ndof_coarse: %d, ndof_fine: %d, err_est: %g%%", 
-         ls.get_num_dofs(), rs.get_num_dofs(), err_est);
+    info("ndof: %d, ref_ndof: %d, err_est: %g%%", 
+         space.get_num_dofs(), ref_space->get_num_dofs(), err_est);
 
     // Add entries to DOF convergence graph.
-    graph_dof_est.add_values(ls.get_num_dofs(), err_est);
+    graph_dof_est.add_values(space.get_num_dofs(), err_est);
     graph_dof_est.save("conv_dof.dat");
 
     // Add entries to CPU convergence graph.
@@ -174,7 +173,7 @@ int main(int argc, char* argv[])
     else {
       info("Adapting the coarse mesh.");
       done = hp.adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY);
-      if (ls.get_num_dofs() >= NDOF_STOP) done = true;
+      if (space.get_num_dofs() >= NDOF_STOP) done = true;
     }
 
     as++;
@@ -182,10 +181,10 @@ int main(int argc, char* argv[])
   while (done == false);
   verbose("Total running time: %g s", cpu_time.accumulated());
 
-  // Show the fine solution - the final result.
+  // Show the reference solution - the final result.
   view.set_title("Final solution");
   view.show_mesh(false);
-  view.show(&sln_fine);
+  view.show(&ref_sln);
 
   // Wait for all views to be closed.
   View::wait();

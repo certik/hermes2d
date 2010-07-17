@@ -9,7 +9,7 @@ using namespace RefinementSelectors;
 //  This is a simple elliptic problem with known exact solution where one
 //  can compare isotropic and anisotropic refinements.
 //
-//  PDE: -Laplace u - K*K*u = f.
+//  PDE: -Laplace u = f.
 //  where f is dictated by the exact solution.
 //
 //  Exact solution: u(x,y) = cos(K*y)    for x < 0,

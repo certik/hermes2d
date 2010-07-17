@@ -23,8 +23,6 @@ using namespace RefinementSelectors;
 //
 // The following parameters can be changed:
 
-const bool SOLVE_ON_COARSE_MESH = false; // If true, coarse mesh FE problem is solved in every adaptivity step.
-                                         // If false, projection of the fine mesh solution on the coarse mesh is used. 
 const int INIT_REF_NUM = 0;              // Number of initial uniform mesh refinements.
 const int P_INIT = 2;                    // Initial polynomial degree of all mesh elements.
 const bool MULTI = true;                 // true = use multi-mesh, false = use single-mesh.
@@ -55,7 +53,7 @@ const int MESH_REGULARITY = -1;          // Maximum allowed level of hanging nod
 const double CONV_EXP = 1.0;             // Default value is 1.0. This parameter influences the selection of
                                          // cancidates in hp-adaptivity. See get_optimal_refinement() for details.
 const double ERR_STOP = 0.5;             // Stopping criterion for adaptivity (rel. error tolerance between the
-                                         // fine mesh and coarse mesh solution in percent).
+                                         // reference mesh and coarse mesh solution in percent).
 const int NDOF_STOP = 60000;             // Adaptivity process stops when the number of degrees of freedom grows.
 
 // Problem parameters.
@@ -89,20 +87,20 @@ int main(int argc, char* argv[])
   cpu_time.tick();
 
   // Load the mesh.
-  Mesh xmesh, ymesh;
+  Mesh u_mesh, v_mesh;
   H2DReader mloader;
-  mloader.load("crack.mesh", &xmesh);
+  mloader.load("crack.mesh", &u_mesh);
 
   // Perform initial uniform mesh refinement.
-  for (int i=0; i < INIT_REF_NUM; i++) xmesh.refine_all_elements();
+  for (int i=0; i < INIT_REF_NUM; i++) u_mesh.refine_all_elements();
 
   // Create initial mesh for the vertical displacement component.
   // This also initializes the multimesh hp-FEM.
-  ymesh.copy(&xmesh);
+  v_mesh.copy(&u_mesh);
 
   // Create H1 spaces with default shapesets.
-  H1Space xdisp(&xmesh, bc_types_xy, essential_bc_values, P_INIT);
-  H1Space ydisp(MULTI ? &ymesh : &xmesh, bc_types_xy, essential_bc_values, P_INIT);
+  H1Space u_space(&u_mesh, bc_types_xy, essential_bc_values, P_INIT);
+  H1Space v_space(MULTI ? &v_mesh : &u_mesh, bc_types_xy, essential_bc_values, P_INIT);
 
   // Initialize the weak formulation.
   WeakForm wf(2);
@@ -122,52 +120,61 @@ int main(int argc, char* argv[])
   // Initialize refinement selector.
   H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
 
-  // Initialize the coarse mesh problem.
-  LinSystem ls(&wf, Tuple<Space*>(&xdisp, &ydisp));
+  // Initialize matrix solver.
+  Matrix* mat; Vector* rhs; CommonSolver* solver;  
+  init_matrix_solver(SOLVER_UMFPACK, u_space.get_num_dofs() + v_space.get_num_dofs(), 
+                     mat, rhs, solver);
 
   // Adaptivity loop:
+  Solution u_sln, v_sln, ref_u_sln, ref_v_sln;
   int as = 1; bool done = false;
-  Solution x_sln_coarse, y_sln_coarse, x_sln_fine, y_sln_fine;
   do
   {
     info("---- Adaptivity step %d:", as);
+    info("Solving on reference mesh.");
 
-    // Assemble and solve the fine mesh problem.
-    info("Solving on fine mesh.");
-    RefSystem rs(&ls);
-    rs.assemble();
-    rs.solve(Tuple<Solution*>(&x_sln_fine, &y_sln_fine));
+    // Construct globally refined reference meshes.
+    Mesh ref_u_mesh, ref_v_mesh;
+    ref_u_mesh.copy(&u_mesh);
+    ref_v_mesh.copy(&v_mesh);
+    ref_u_mesh.refine_all_elements();
+    ref_v_mesh.refine_all_elements();
 
-    // Either solve on coarse mesh or project the fine mesh solution 
-    // on the coarse mesh.
-    if (SOLVE_ON_COARSE_MESH) {
-      info("Solving on coarse mesh.");
-      ls.assemble();
-      ls.solve(Tuple<Solution*>(&x_sln_coarse, &y_sln_coarse));
-    }
-    else {
-      info("Projecting fine mesh solution on coarse mesh.");
-      ls.project_global(Tuple<MeshFunction*>(&x_sln_fine, &y_sln_fine), 
-                        Tuple<Solution*>(&x_sln_coarse, &y_sln_coarse));
-    }
+    // Setup spaces for the reference solution.
+    Space *ref_u_space = u_space.dup(&ref_u_mesh);
+    Space *ref_v_space = v_space.dup(&ref_v_mesh);
+    int order_increase = 1;
+    ref_u_space->copy_orders(&u_space, order_increase);
+    ref_v_space->copy_orders(&v_space, order_increase);
+ 
+    // Solve the reference problem.
+    solve_linear(Tuple<Space *>(ref_u_space, ref_v_space), &wf, 
+                 Tuple<Solution *>(&ref_u_sln, &ref_v_sln), SOLVER_UMFPACK);
+
+    // Project the reference solutions on the coarse meshes.
+    info("Projecting reference solutions on coarse meshes.");
+    project_global(Tuple<Space *>(&u_space, &v_space), 
+                   Tuple<MeshFunction*>(&ref_u_sln, &ref_v_sln), 
+                   Tuple<Solution*>(&u_sln, &v_sln));
 
     // Time measurement.
     cpu_time.tick();
 
     // Visualize the solution and meshes.
-    VonMisesFilter stress(&x_sln_coarse, &y_sln_coarse, mu, lambda);
+    VonMisesFilter stress(&u_sln, &v_sln, mu, lambda);
     sview.set_min_max_range(0, 2e5);
     sview.show(&stress, H2D_EPS_HIGH);
-    xoview.show(&xdisp);
-    yoview.show(&ydisp);
+    xoview.show(&u_space);
+    yoview.show(&v_space);
 
     // Skip visualization time. 
-    cpu_time.tick(H2D_SKIP);
+    cpu_time.tick(HERMES_SKIP);
 
-    // Calculate error estimate wrt. fine mesh solution in energy norm.
+    // Calculate error estimate wrt. reference solution in energy norm.
     info("Calculating error (est).");
-    H1Adapt hp(&ls);
-    hp.set_solutions(Tuple<Solution*>(&x_sln_coarse, &y_sln_coarse), Tuple<Solution*>(&x_sln_fine, &y_sln_fine));
+    H1Adapt hp(Tuple<Space *>(&u_space, &v_space));
+    hp.set_solutions(Tuple<Solution*>(&u_sln, &v_sln), 
+                     Tuple<Solution*>(&ref_u_sln, &ref_v_sln));
     hp.set_error_form(0, 0, bilinear_form_0_0<scalar, scalar>, bilinear_form_0_0<Ord, Ord>);
     hp.set_error_form(0, 1, bilinear_form_0_1<scalar, scalar>, bilinear_form_0_1<Ord, Ord>);
     hp.set_error_form(1, 0, bilinear_form_1_0<scalar, scalar>, bilinear_form_1_0<Ord, Ord>);
@@ -178,12 +185,12 @@ int main(int argc, char* argv[])
     cpu_time.tick();
 
     // Report results.
-    info("ndof_x_coarse: %d, ndof_x_fine: %d", ls.get_num_dofs(0), rs.get_num_dofs(0));
-    info("ndof_y_coarse: %d, ndof_y_fine: %d", ls.get_num_dofs(1), rs.get_num_dofs(1));
-    info("ndof: %d, err_est: %g%%", ls.get_num_dofs(), err_est);
+    info("u_ndof: %d, ref_u_ndof: %d", u_space.get_num_dofs(), ref_u_space->get_num_dofs());
+    info("v_ndof: %d, ref_v_ndof: %d", v_space.get_num_dofs(), ref_v_space->get_num_dofs());
+    info("ndof: %d, err_est: %g%%", u_space.get_num_dofs() + v_space.get_num_dofs(), err_est);
 
     // Add entry to DOF convergence graph.
-    graph_dof.add_values(ls.get_num_dofs(), err_est);
+    graph_dof.add_values(u_space.get_num_dofs() + v_space.get_num_dofs(), err_est);
     graph_dof.save("conv_dof.dat");
 
     // Add entry to CPU convergence graph.
@@ -191,11 +198,11 @@ int main(int argc, char* argv[])
     graph_cpu.save("conv_cpu.dat");
 
     // If err_est too large, adapt the mesh.
-    if (err_est < ERR_STOP || ls.get_num_dofs() >= NDOF_STOP) done = true;
+    if (err_est < ERR_STOP || u_space.get_num_dofs() + v_space.get_num_dofs() >= NDOF_STOP) done = true;
     else {
       info("Adapting the coarse mesh.");
       done = hp.adapt(&selector, MULTI ? THRESHOLD_MULTI : THRESHOLD_SINGLE, STRATEGY, MESH_REGULARITY);
-      if (ls.get_num_dofs() >= NDOF_STOP) done = true;
+      if (u_space.get_num_dofs() + v_space.get_num_dofs() >= NDOF_STOP) done = true;
     }
 
     as++;
@@ -203,12 +210,12 @@ int main(int argc, char* argv[])
   while (!done);
   verbose("Total running time: %g s", cpu_time.accumulated());
 
-  // Show the fine mesh solution - the final result
-  VonMisesFilter stress_fine(&x_sln_fine, &y_sln_fine, mu, lambda);
-  sview.set_title("Fine mesh solution");
+  // Show the reference solution - the final result
+  VonMisesFilter ref_stress(&ref_u_sln, &ref_v_sln, mu, lambda);
+  sview.set_title("Reference solution");
   sview.set_min_max_range(0, 2e5);
   sview.show_mesh(false);
-  sview.show(&stress_fine);
+  sview.show(&ref_stress);
 
   // Wait for all views to be closed.
   View::wait();
