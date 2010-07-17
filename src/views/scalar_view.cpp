@@ -56,6 +56,7 @@ ScalarView::ScalarView(const char* title, int x, int y, int width, int height)
   cont_color[0] = 0.0f; cont_color[1] = 0.0f; cont_color[2] = 0.0f;
 
   show_edges = true;
+  show_aabb = false;
   edges_color[0] = 0.5f; edges_color[1] = 0.4f; edges_color[2] = 0.4f;
 
   show_values = true;
@@ -159,6 +160,7 @@ void ScalarView::create_setup_bar()
   // Mesh.
   TwAddVarRW(tw_bar, "show_values", TW_TYPE_BOOLCPP, &show_values, " group=Elements2D label='Show Value'");
   TwAddVarRW(tw_bar, "show_edges", TW_TYPE_BOOLCPP, &show_edges, " group=Elements2D label='Show Edges'");
+  TwAddVarRW(tw_bar, "show_aabb", TW_TYPE_BOOLCPP, &show_aabb, " group=Elements2D label='Show Bounding box'");
   TwAddVarRW(tw_bar, "show_element_info", TW_TYPE_BOOLCPP, &show_element_info, " group=Elements2D label='Show ID'");
   TwAddVarRW(tw_bar, "allow_node_selection", TW_TYPE_BOOLCPP, &allow_node_selection, " group=Elements2D label='Allow Node Sel.'");
   TwAddVarRW(tw_bar, "edges_color", TW_TYPE_COLOR3F, &edges_color, " group=Elements2D label='Edge color'");
@@ -191,9 +193,10 @@ void ScalarView::show(MeshFunction* sln, double eps, int item,
 
   create();
   update_layout();
-  reset_view(false);
-  refresh();
   wait_for_draw();
+  // FIXME: find out why this has to be called after wait_for_draw in order for the view to be reset initially.
+  reset_view(true);
+  refresh();
 
   verbose("Showing data in view \"%s\"", title.c_str());
   verbose(" Used value range [%g; %g]", range_min, range_max);
@@ -918,6 +921,52 @@ void ScalarView::draw_edges(DrawSingleEdgeCallback draw_single_edge, void* param
   }
 }
 
+
+#define V0    vertices_min_x - xctr, range_min - yctr, -(vertices_min_y - zctr)
+#define V1    vertices_max_x - xctr, range_min - yctr, -(vertices_min_y - zctr)
+#define V2    vertices_max_x - xctr, range_min - yctr, -(vertices_max_y - zctr)
+#define V3    vertices_min_x - xctr, range_min - yctr, -(vertices_max_y - zctr)
+#define V4    vertices_min_x - xctr, range_max - yctr, -(vertices_min_y - zctr)
+#define V5    vertices_max_x - xctr, range_max - yctr, -(vertices_min_y - zctr)
+#define V6    vertices_max_x - xctr, range_max - yctr, -(vertices_max_y - zctr)
+#define V7    vertices_min_x - xctr, range_max - yctr, -(vertices_max_y - zctr)
+void ScalarView::draw_aabb()
+{
+  // Axis-aligned bounding box of the model.
+  GLdouble aabb[] =
+  {
+    V0,V1,V2,V3,    // bottom
+    V0,V1,V5,V4,    // front
+    V0,V3,V7,V4,    // left
+    V1,V2,V6,V5,    // right
+    V2,V3,V7,V6,    // back
+    V4,V5,V6,V7     // top
+  };
+
+  // Set the edge color.
+  glColor3fv(edges_color);
+
+  // Make the cube wire frame.
+  glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
+  // Scale the box appropriately.
+  glPushMatrix();
+  glScaled(xzscale, yscale, xzscale);
+
+  // Activate and specify pointer to vertex array.
+  glEnableClientState(GL_VERTEX_ARRAY);
+  glVertexPointer(3, GL_DOUBLE, 0, aabb);
+
+  // Draw the box (glDrawElements would be better, but do not work for me).
+  glDrawArrays(GL_QUADS, 0, 24);
+
+  // Deactivate vertex arrays after drawing.
+  glDisableClientState(GL_VERTEX_ARRAY);
+
+  // Recover the original model/view matrix
+  glPopMatrix();
+}
+
 void ScalarView::on_display()
 {
   int i, j;
@@ -1056,23 +1105,27 @@ void ScalarView::on_display()
       glEnd();
     }
 
-    // Draw boundary edges.
-    glColor3fv(edges_color);
-    glBegin(GL_LINES);
-    for (i = 0; i < lin.get_num_edges(); i++)
-    {
-      // Outline of the domain boundary at the bottom of the plot or at the bottom user-defined limit
-      double y_coord = (range_min - yctr) * yscale;
-      int3& edge = edges[i];
-      if (edge[2])
+    // Draw the whole bounding box or only the boundary edges.
+    if (show_aabb)
+      draw_aabb();
+    else {
+      glColor3fv(edges_color);
+      glBegin(GL_LINES);
+      for (i = 0; i < lin.get_num_edges(); i++)
       {
-        glVertex3d((vert[edge[0]][0] - xctr) * xzscale, y_coord,
-                  -(vert[edge[0]][1] - zctr) * xzscale);
-        glVertex3d((vert[edge[1]][0] - xctr) * xzscale, y_coord,
-                  -(vert[edge[1]][1] - zctr) * xzscale);
+        // Outline of the domain boundary at the bottom of the plot or at the bottom user-defined limit
+        double y_coord = (range_min - yctr) * yscale;
+        int3& edge = edges[i];
+        if (edge[2])
+        {
+          glVertex3d((vert[edge[0]][0] - xctr) * xzscale, y_coord,
+                    -(vert[edge[0]][1] - zctr) * xzscale);
+          glVertex3d((vert[edge[1]][0] - xctr) * xzscale, y_coord,
+                    -(vert[edge[1]][1] - zctr) * xzscale);
+        }
       }
+      glEnd();
     }
-    glEnd();
   }
 
   lin.unlock_data();
@@ -1299,6 +1352,12 @@ void ScalarView::on_key_down(unsigned char key, int x, int y)
       case 'i':
         show_element_info = !show_element_info;
         if (!mode3d)
+          refresh();
+        break;
+
+      case 'b':
+        show_aabb = !show_aabb;
+        if (mode3d)
           refresh();
         break;
 
@@ -1599,6 +1658,7 @@ const char* ScalarView::get_help_text() const
   "  H - render high-quality frame\n"
   "  K - toggle contours\n"
   "  M - toggle mesh\n"
+  "  B - toggle bounding box\n"
   "  I - toggle element IDs (2d only)\n"
   "  P - cycle palettes\n"
   "  S - save screenshot\n"
