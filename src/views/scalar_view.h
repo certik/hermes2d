@@ -57,6 +57,7 @@ public:
             MeshFunction* xdisp = NULL, MeshFunction* ydisp = NULL, double dmult = 1.0);
 
   void show_mesh(bool show = true) { show_edges = show; refresh(); }
+  void show_bounding_box(bool show = true) { show_aabb = show; refresh(); }
   void show_contours(double step, double orig = 0.0);
   void hide_contours() { contours = false; refresh(); }
   void set_3d_mode(bool enable = true) { mode3d = enable; refresh(); }
@@ -163,6 +164,7 @@ protected: //values
 
 protected: //edges
   bool show_edges; ///< true to show edges of mesh
+  bool show_aabb;  ///< true to show the bounding box
   float edges_color[3]; ///< color of edges
 
   typedef void (*DrawSingleEdgeCallback)(int inx_vert_a, int inx_vert_b, ScalarView* viewer, void* param); ///< A callback function that draws edge using specified vertex indices. Param is user supplied parameter.
@@ -179,6 +181,7 @@ protected: //edges
   static void draw_svg_edge(int inx_vert_a, int inx_vert_b, ScalarView* viewer, void* param); ///< Draws edge specified by edge into SVG file given as parameter (type: SVGExportParams*). Functions assumes that data are locked.
   static void draw_gl_edge(int inx_vert_a, int inx_vert_b, ScalarView* viewer, void* param); ///< Draws edge specified by edge indices using GL. Functions assumes that data are locked.
   void draw_edges(DrawSingleEdgeCallback draw_single_edge, void* param, bool boundary_only); ///< Draws edges of elements and boundary of mesh. Functions assumes that data are locked.
+  void draw_aabb(); ///< Draws the axes-aligned bounding box of the model. Functions assumes that data are locked.
 
 protected:
   bool contours; ///< true to enable drawing of contours
