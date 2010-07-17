@@ -188,12 +188,14 @@ public:
 	if (this->v_cplx != NULL) {
           delete[] this->v_cplx;
           this->v_cplx = NULL;
+          this->size = 0;
         }
       }
       else {
         if (this->v != NULL) {
           delete[] this->v;
           this->v = NULL;
+          this->size = 0;
         }
       }
     };
@@ -219,6 +221,10 @@ public:
     virtual void set(int m, double v) {
         if (m >= 0)
             this->v[m] = v;
+    }
+    virtual void set(int m, cplx v) {
+        if (m >= 0)
+            this->v_cplx[m] = v;
     }
     virtual double get(int m) {
         return this->v[m];
