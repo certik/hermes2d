@@ -57,8 +57,8 @@ ViewMonitor::~ViewMonitor() {
 static bool glut_initialized = false; ///< True if GLUT is initialized
 static bool glew_initialized = false; ///< True if GLEW is initialized
 
-static bool init_glut();
-static bool shutdown_glut();
+bool init_glut();
+bool shutdown_glut();
 void on_display_stub(void);
 void on_reshape_stub(int width, int height);
 void on_mouse_move_stub(int x, int y);
@@ -374,7 +374,7 @@ void on_close_stub() {
 }
 
 ///initialize GLUT
-static bool init_glut()
+bool init_glut()
 {
   static int argc = 1;
   static const char* argv[1] = { "x" };
@@ -396,7 +396,7 @@ static bool init_glut()
 }
 
 /// shutdowns GLUT
-static bool shutdown_glut()
+bool shutdown_glut()
 {
   return true;
 }

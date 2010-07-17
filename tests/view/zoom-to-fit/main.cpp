@@ -1,0 +1,137 @@
+#include "hermes2d.h"
+#include "views/view_support.h"
+#include <GL/glew.h>
+#include <GL/freeglut.h>
+
+// This test makes sure that automatic zooming capability of ScalarView works correctly.
+// It also tests displaying constant functions and bounding boxes. 
+// Called as 
+//    zoom-to-fit <function> <domain>
+// it displays a plot of a function specified by the argument <function> over the mesh 
+// loaded from file <domain>, using several screen sizes. Before going to another screen 
+// size, the program waits until the tester finishes inspecting the current window and 
+// closes it. 
+// The argument <function> may attain values from 0 to 3, corresponding to functions that 
+// are currently implemented in 'test_functions.cpp':
+//   0: Constant function:  z = 3.
+//   1: Plane parallel to the x-axis with a 50° angle with the xy-plane:  z = tan(50°)*y.
+//      After the default rotation of another 40° around the x-axis, a rectangle in the
+//      screen plane should be shown (the lighting should be fixed somehow however so that 
+//      it is filled).
+//   2: Cuboid-like function
+//   3: Function with a large range of values. This function is displayed twice for each
+//      screen size. Using first the automatic choice of z-axis limits leads to a thin 
+//      tall plot as ScalarView tries to display all function values (this should be 
+//      fixed in future by a suitable automatic y-axis scaling according to the value range
+//      and/or adjusting the zooming range). The second time, the range is set manually -
+//      in future, all above and below the range should be clipped; now, these vertices
+//      are still drawn, but using the color corresponding to the set limits (the tester should
+//      see it by zooming to the top and bottom faces of the bounding box and noticing how the shading
+//      levels vanish into a single shade beyond the box).
+// There are three domains prepared - the square, trapezoid and an l-shape with curved part.
+// Functions 2 and 3 don't work with the trapezoid.
+
+#include "test_functions.cpp"
+
+#define ERROR_SUCCESS       0
+#define ERROR_FAILURE       -1
+
+int main(int argc, char* argv[])
+{
+  if (argc < 3)
+  {
+    printf("Please input as this format: zoom-to-fit <function> <domain> \n");
+    return ERROR_FAILURE;
+  }
+
+  // Define dimensions of the various tested views.
+  init_glut();
+  int screen_width = glutGet(GLUT_SCREEN_WIDTH);
+  int screen_height = glutGet(GLUT_SCREEN_HEIGHT);
+  int rect_size = std::min(screen_height, screen_width);
+
+  int test_dims[][2] = {
+    {rect_size / 6, rect_size / 6},
+    {rect_size, rect_size},
+    {screen_width / 6, screen_height},
+    {screen_width / 2, screen_height},
+    {screen_width, screen_height / 6},
+    {screen_width, screen_height / 2},
+  };
+
+  // Window titles for the selected function.
+  const std::string titles[4] = {
+    "z = c",
+    "z = tan(50)*y",
+    "Cuboid-like function",
+    "Function with a large range"
+  };
+  std::string title;
+
+  bool auto_range = true;      // True to detrmine the vertical limits from function values.
+  double range_min, range_max; // Custom vertical limits.
+
+  // Function for inspection.
+  Solution fn;
+
+
+
+  // Load the mesh file.
+  Mesh mesh;
+  H2DReader mloader;
+  mloader.load(argv[2], &mesh);
+
+  switch(atoi(argv[1])) {
+    case 0:
+      fn.set_exact(&mesh, fn_const);
+      title = titles[0];
+      break;
+    case 1:
+      fn.set_exact(&mesh, fn_plane);
+      title = titles[1];
+      break;
+    case 2:
+      fn.set_exact(&mesh, fn_cuboid);
+      title = titles[2];
+      break;
+    case 3:
+      fn.set_exact(&mesh, fn_bigrange);
+      range_min = -2;
+      range_max = 4;
+      auto_range = false;
+      title = titles[3];
+      break;
+    default:
+      printf("Please set the first argument to a number from 0 to 3: \n");
+      for (int i = 0; i < 3; i++)
+        printf("%d: %s\n", i, title.c_str());
+      return ERROR_FAILURE;
+  }
+
+  for (int i = 0; i < 6; i++) {
+    ScalarView view(title.c_str(), 0, 0, test_dims[i][0], test_dims[i][1]);
+    view.set_3d_mode(true);
+
+    // Show the function.
+    view.show(&fn);
+    // Wait for the view to be closed.
+    View::wait();
+
+    if (!auto_range) {
+      char buf[256];
+      sprintf(buf, "%s - restricted to (%f,%f)", title.c_str(), range_min, range_max);
+      ScalarView view(buf, 0, 0, test_dims[i][0], test_dims[i][1]);
+      view.set_min_max_range(range_min, range_max);
+      view.set_3d_mode();
+      view.show_bounding_box();
+
+      // Show the function.
+      view.show(&fn);
+      // Wait for the view to be closed.
+      View::wait();
+    }
+  }
+
+  printf("Success!\n");
+  return ERROR_SUCCESS;
+}
