@@ -1249,23 +1249,23 @@ double ScalarView::calculate_ztrans_to_fit_view(int fovy)
   GLdouble aabb[2][16] =
   {
     {
-      vertices_min_x - xctr, vertices_min_y - zctr, range_min - yctr, 1,
-      vertices_max_x - xctr, vertices_min_y - zctr, range_min - yctr, 1,
-      vertices_max_x - xctr, vertices_max_y - zctr, range_min - yctr, 1,
-      vertices_min_x - xctr, vertices_max_y - zctr, range_min - yctr, 1
+      V0, 1,
+      V1, 1,
+      V2, 1,
+      V3, 1
     },
     {
-      vertices_min_x - xctr, vertices_min_y - zctr, range_max - yctr, 1,
-      vertices_max_x - xctr, vertices_min_y - zctr, range_max - yctr, 1,
-      vertices_max_x - xctr, vertices_max_y - zctr, range_max - yctr, 1,
-      vertices_min_x - xctr, vertices_max_y - zctr, range_max - yctr, 1
+      V4, 1,
+      V5, 1,
+      V6, 1,
+      V7, 1
     }
   };
   GLdouble aabb_base[16];
 
   // Tangents of the half of the vertical and horizontal field of view angles.
   double tan_fovy_half = tan((double) fovy / 2.0 / 180.0 * M_PI);
-  double tan_fovx_half = tan_fovy_half * output_width / output_height;
+  double tan_fovx_half = tan_fovy_half * (double) output_width / output_height;
 
   // The viewpoint z-coordinate we are looking for.
   double optimal_viewpoint_pos = 0.0;
@@ -1292,11 +1292,11 @@ double ScalarView::calculate_ztrans_to_fit_view(int fovy)
     // Go through the transformed corners and find the biggest distance of its perspective projection center to the origin.
     GLdouble *coord_ptr = &aabb_base[0];
     for (int j = 0; j < 4; j++) {
-      double perspective_center_to_origin_dist = fabs(coord_ptr[0]) / tan_fovx_half - coord_ptr[1];
+      double perspective_center_to_origin_dist = fabs(coord_ptr[0]) / tan_fovx_half + coord_ptr[2];
       if (perspective_center_to_origin_dist > optimal_viewpoint_pos)
         optimal_viewpoint_pos = perspective_center_to_origin_dist;
 
-      perspective_center_to_origin_dist = fabs(coord_ptr[2]) / tan_fovy_half - coord_ptr[1];
+      perspective_center_to_origin_dist = fabs(coord_ptr[1]) / tan_fovy_half + coord_ptr[2];
       if (perspective_center_to_origin_dist > optimal_viewpoint_pos)
         optimal_viewpoint_pos = perspective_center_to_origin_dist;
 
