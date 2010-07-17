@@ -234,7 +234,7 @@ void ScalarView::update_mesh_info() {
     normals = NULL;
   }
 
-  // Update range.
+  // Get a range of vertex values (or use the range set by the user).
   if (range_auto) {
     range_min = lin.get_min_value();
     range_max = lin.get_max_value();
@@ -248,18 +248,21 @@ void ScalarView::update_mesh_info() {
   double3* verts = lin.get_vertices();
   const int num_verts = lin.get_num_vertices();
   for(int i = 0; i < num_verts; i++)
+    if (verts[i][2] > range_max)
+      value_range_avg += range_max;
+    else if (verts[i][2] < range_min)
+      value_range_avg += range_min;
+    else
       value_range_avg += verts[i][2];
   value_range_avg /= num_verts;
 
-  // Get a range of vertex values (or the range set by user).
-  value_min = range_min; value_max = range_max;
   // Special case: constant function; offset the lower limit of range so that the domain is drawn under the
   // function and also the scale is drawn correctly.
-  if ((value_max - value_min) < 1e-8) {
-    value_irange = 1.0;
+  if ((range_max - range_min) < 1e-8) {
+    value_irange = 2.0;
     range_min -= 0.5;
   } else {
-    value_irange = 1.0 / (value_max - value_min);
+    value_irange = 1.0 / (range_max - range_min);
   }
 
   lin_updated = true;
@@ -735,7 +738,7 @@ void ScalarView::prepare_gl_geometry()
       if (gl_verts == NULL)
           throw std::runtime_error("unable to map coord buffer: " + glGetError());
       for(int i = 0; i < vert_cnt; i++)
-        gl_verts[i] = GLVertex2((float)verts[i][0], (float)verts[i][1], (float)((verts[i][2] - value_min) * value_irange));
+        gl_verts[i] = GLVertex2((float)verts[i][0], (float)verts[i][1], (float)((verts[i][2] - range_min) * value_irange));
       glUnmapBufferARB(GL_ARRAY_BUFFER_ARB);
 
       //allocate edge indices
@@ -796,11 +799,11 @@ void ScalarView::draw_values_2d()
 
       if (finite(vert_a[2]) && finite(vert_b[2]) && finite(vert_c[2]))
       {
-        glTexCoord1d((vert_a[2] - value_min) * value_irange);
+        glTexCoord1d((vert_a[2] - range_min) * value_irange);
         glVertex2d(vert_a[0], vert_a[1]);
-        glTexCoord1d((vert_b[2] - value_min) * value_irange);
+        glTexCoord1d((vert_b[2] - range_min) * value_irange);
         glVertex2d(vert_b[0], vert_b[1]);
-        glTexCoord1d((vert_c[2] - value_min) * value_irange);
+        glTexCoord1d((vert_c[2] - range_min) * value_irange);
         glVertex2d(vert_c[0], vert_c[1]);
       }
     }
@@ -1050,7 +1053,7 @@ void ScalarView::on_display()
       for (j = 0; j < 3; j++)
       {
         glNormal3d(normals[tris[i][j]][0] * normal_xzscale, normals[tris[i][j]][2] * normal_yscale, -normals[tris[i][j]][1] * normal_xzscale);
-        glTexCoord2d((vert[tris[i][j]][2] - value_min) * value_irange * tex_scale + tex_shift, 0.0);
+        glTexCoord2d((vert[tris[i][j]][2] - range_min) * value_irange * tex_scale + tex_shift, 0.0);
         glVertex3d((vert[tris[i][j]][0] - xctr) * xzscale,
                    (vert[tris[i][j]][2] - yctr) * yscale,
                    -(vert[tris[i][j]][1] - zctr) * xzscale);

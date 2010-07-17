@@ -190,8 +190,8 @@ protected:
   double xrot, yrot, xtrans, ytrans, ztrans;
   double xzscale, yscale, xctr, yctr, zctr;
 
-  ///< Information about vertex values.
-  double value_min, value_max, value_irange, value_range_avg;
+  ///< Information about the range of vertex values.
+  double value_irange, value_range_avg;
 
   double3* normals;
 
