@@ -1036,9 +1036,6 @@ void ScalarView::on_display()
   }
   else
   {
-    int fovy = 50;        // Field of view in the vertical direction (in degrees).
-    double znear = 0.05;  // Near clipping plane of the viewing frustum.
-    double zfar = 10;     // Far clipping plane of the viewing frustum.
     set_3d_projection(fovy, znear, zfar);
 
     glClear(GL_DEPTH_BUFFER_BIT);
@@ -1054,7 +1051,7 @@ void ScalarView::on_display()
     if (do_zoom_to_fit) {
       // If the user presses 'c' to center the view automatically, calculate how far to move
       // the visualized model away from the viewer so that it is completely visible in current window.
-      ztrans = calculate_ztrans_to_fit_view(fovy);
+      ztrans = calculate_ztrans_to_fit_view();
       do_zoom_to_fit = false;
     }
 
@@ -1196,11 +1193,30 @@ void ScalarView::reset_view(bool force_reset) {
   if (force_reset || view_not_reset) { // Reset 3d view.
     xrot = 40.0; yrot = 0.0;
     xtrans = ytrans = ztrans = 0.0;
-    // Set the scale so that the model (before applying model transformations) has its largest dimension equal to unity.
-    // This ensures that it is always possible to translate the model completely into the viewing volume of the
-    // perspective projection (set in 'on_display'). Later on, we will modify the translation distance so that the
-    // model occupies as much of the view space as possible.
-    xzscale = yscale = std::min(value_irange, 1.0 / std::max(vertices_max_x - vertices_min_x, vertices_max_y - vertices_min_y));
+    // Ensure that the model (before applying any transformations) may be translated along the view axis completely
+    // into the viewing volume. Later on, we will determine the translation distance so that the model occupies as
+    // much of the view space as possible.
+
+    // Set scaling into the (-1,1) range on the x- and z- axes
+    double max_radial = std::max(vertices_max_x - vertices_min_x, vertices_max_y - vertices_min_y);
+    xzscale = 1.0 / max_radial;
+
+    // Determine the largest y-axis distance of the function surface from the line of sight
+    double max_axial = std::max(range_max - yctr, fabs(range_min - yctr));
+
+    // We can use the same scaling for the y-axis as for the x- and z- axes in case that after this
+    // scaling, the model could be translated so that it lies completely below the top clipping plane of the
+    // viewing frustum and its farthest (away from the camera) corner is at least 1 unit before the far clipping plane
+    // (to allow some zooming out). If this is not true, the model is too tall and will be subject to different scaling
+    // along the y-axis, such that it would fit to the viewing frustum at one third of its depth (i.e. at one third of
+    // the total available zooming range).
+    double tan_fovy_half = tan((double) fovy / 2.0 / 180.0 * M_PI);
+    double max_allowed_height = (zfar-3)*tan_fovy_half;
+    if (max_axial * xzscale > max_allowed_height)
+      yscale = (znear + zfar) / 3.0 * tan_fovy_half * value_irange;
+    else
+      yscale = xzscale;
+
     do_zoom_to_fit = true;
   }
   View::reset_view(force_reset); // Reset 2d view.
@@ -1219,7 +1235,7 @@ void ScalarView::reset_view(bool force_reset) {
 //  3. Compute the distance (along z-axis) from the origin to the center of perspective projection of the point with the
 //      biggest horizontal (x-axis) distance from the origin.
 //  4. Take the bigger of the two distances and reverse sign (since we will translate the model, not the camera)
-double ScalarView::calculate_ztrans_to_fit_view(int fovy)
+double ScalarView::calculate_ztrans_to_fit_view()
 {
   // Axis-aligned bounding box of the model (homogeneous coordinates in the model space), divided into the bottom and top base.
   GLdouble aabb[2][16] =
