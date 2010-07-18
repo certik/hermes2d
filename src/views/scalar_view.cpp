@@ -1219,8 +1219,8 @@ void ScalarView::reset_view(bool force_reset) {
     xrot = 40.0; yrot = 0.0;
     xtrans = ytrans = ztrans = 0.0;
     // Ensure that the model (before applying any transformations) may be translated along the view axis completely
-    // into the viewing volume. Later on, we will determine the translation distance so that the model occupies as
-    // much of the view space as possible.
+    // into the viewing volume, and that it is not too flat (so that considerable amount of detail is visible).
+    // Later on, we will determine the translation distance so that the model occupies as much of the view space as possible.
 
     // Set scaling into the (-1,1) range on the x- and z- axes
     double max_radial = std::max(vertices_max_x - vertices_min_x, vertices_max_y - vertices_min_y);
@@ -1229,15 +1229,18 @@ void ScalarView::reset_view(bool force_reset) {
     // Determine the largest y-axis distance of the function surface from the line of sight
     double max_axial = std::max(range_max - yctr, fabs(range_min - yctr));
 
-    // We can use the same scaling for the y-axis as for the x- and z- axes in case that after this
-    // scaling, the model could be translated so that it lies completely below the top clipping plane of the
-    // viewing frustum and its farthest (away from the camera) corner is at least 1 unit before the far clipping plane
-    // (to allow some zooming out). If this is not true, the model is too tall and will be subject to different scaling
+    // We use the same scaling for the y-axis as for the x- and z- axes if after this scaling,
+    //  1. the model could be translated so that it lies completely below the top clipping plane of the viewing frustum and
+    //     its farthest (away from the camera) corner is at least 1 unit before the far clipping plane (to allow some zooming out),
+    //  2. the model's bounding box's part above (or below, whichever is bigger) the average function value (yctr) has dimensions
+    //     (-1,1)x(0,height)x(-1,1), where height > 0.1.
+    // If this is not true, the model is either too tall or too flat and will be subject to different scaling
     // along the y-axis, such that it would fit to the viewing frustum at one third of its depth (i.e. at one third of
     // the total available zooming range).
+    // TODO: allow the user to decide whether he always wants equal axes scaling or prefers actually seeing something sensible...
     double tan_fovy_half = tan((double) fovy / 2.0 / 180.0 * M_PI);
     double max_allowed_height = (zfar-3)*tan_fovy_half;
-    if (max_axial * xzscale > max_allowed_height)
+    if (max_axial * xzscale > max_allowed_height || (max_axial * xzscale < 0.1 && (range_max - range_min) > 1e-8) )
       yscale = (znear + zfar) / 3.0 * tan_fovy_half * value_irange;
     else
       yscale = xzscale;
