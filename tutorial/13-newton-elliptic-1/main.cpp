@@ -86,8 +86,8 @@ int main(int argc, char* argv[])
 
   // Initialize the weak formulation.
   WeakForm wf;
-  wf.add_matrix_form(callback(jac), H2D_UNSYM, H2D_ANY, &u_prev);
-  wf.add_vector_form(callback(res), H2D_ANY, &u_prev);
+  wf.add_matrix_form(callback(jac), H2D_UNSYM, H2D_ANY);
+  wf.add_vector_form(callback(res), H2D_ANY);
 
   // Perform Newton's iteration.
   info("Performing Newton's iteration.");
