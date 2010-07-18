@@ -49,8 +49,10 @@ class H2D_API ScalarView : public View
 {
 public:
 
-  ScalarView(char* title = "ScalarView", DEFAULT_WINDOW_POS);
-  ScalarView(char* title = "ScalarView", WinGeom* wg = NULL);
+  void init();
+  ScalarView(const char* title = "ScalarView", DEFAULT_WINDOW_POS);
+  ScalarView(const char* title = "ScalarView", WinGeom* wg = NULL);
+  ScalarView(char* title, WinGeom* wg = NULL);
   virtual ~ScalarView();
 
   void show(MeshFunction* sln, double eps = H2D_EPS_NORMAL, int item = H2D_FN_VAL_0,

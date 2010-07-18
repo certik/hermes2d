@@ -38,13 +38,7 @@ using namespace std;
 
 //// ScalarView ////////////////////////////////////////////////////////////////////////////////////
 
-ScalarView::ScalarView(char* title, int x, int y, int width, int height)
-           : View(title, x, y, width, height)
-           , show_element_info(false), element_id_widget(0)
-           , vertex_nodes(0), node_pixel_radius(10), pointed_vertex_node(NULL), pointed_node_widget(0), selected_node_widget(0), node_widget_vert_cnt(32), allow_node_selection(false)
-#ifdef ENABLE_VIEWER_GUI
-           , tw_wnd_id(TW_WND_ID_NONE), tw_setup_bar(NULL)
-#endif
+void ScalarView::init() 
 {
   pmode = mode3d = false;
   normals = NULL;
@@ -63,29 +57,43 @@ ScalarView::ScalarView(char* title, int x, int y, int width, int height)
   gl_coord_buffer = 0; gl_index_buffer = 0; gl_edge_inx_buffer = 0;
 }
 
-ScalarView::ScalarView(char* title, WinGeom* wg)
-           : View(title, wg)
+ScalarView::ScalarView(const char* title, int x, int y, int width, int height)
+           : View(title, x, y, width, height)
            , show_element_info(false), element_id_widget(0)
-           , vertex_nodes(0), node_pixel_radius(10), pointed_vertex_node(NULL), pointed_node_widget(0), selected_node_widget(0), node_widget_vert_cnt(32), allow_node_selection(false)
+           , vertex_nodes(0), node_pixel_radius(10), pointed_vertex_node(NULL), 
+             pointed_node_widget(0), selected_node_widget(0), node_widget_vert_cnt(32), 
+             allow_node_selection(false)
 #ifdef ENABLE_VIEWER_GUI
            , tw_wnd_id(TW_WND_ID_NONE), tw_setup_bar(NULL)
 #endif
 {
-  pmode = mode3d = false;
-  normals = NULL;
-  panning = false;
+  init();
+}
 
-  contours = false;
-  cont_orig = 0.0;
-  cont_step = 0.2;
-  cont_color[0] = 0.0f; cont_color[1] = 0.0f; cont_color[2] = 0.0f;
+ScalarView::ScalarView(const char* title, WinGeom* wg)
+           : View(title, wg)
+           , show_element_info(false), element_id_widget(0)
+           , vertex_nodes(0), node_pixel_radius(10), pointed_vertex_node(NULL), 
+             pointed_node_widget(0), selected_node_widget(0), node_widget_vert_cnt(32), 
+             allow_node_selection(false)
+#ifdef ENABLE_VIEWER_GUI
+           , tw_wnd_id(TW_WND_ID_NONE), tw_setup_bar(NULL)
+#endif
+{
+  init();
+}
 
-  show_edges = true;
-  edges_color[0] = 0.5f; edges_color[1] = 0.4f; edges_color[2] = 0.4f;
-
-  show_values = true;
-  lin_updated = false;
-  gl_coord_buffer = 0; gl_index_buffer = 0; gl_edge_inx_buffer = 0;
+ScalarView::ScalarView(char* title, WinGeom* wg)
+  : View(title, wg),
+             show_element_info(false), element_id_widget(0),
+             vertex_nodes(0), node_pixel_radius(10), pointed_vertex_node(NULL), 
+             pointed_node_widget(0), selected_node_widget(0), node_widget_vert_cnt(32), 
+             allow_node_selection(false)
+#ifdef ENABLE_VIEWER_GUI
+           , tw_wnd_id(TW_WND_ID_NONE), tw_setup_bar(NULL)
+#endif
+{
+  init();
 }
 
 ScalarView::~ScalarView()

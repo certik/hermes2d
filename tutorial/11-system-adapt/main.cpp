@@ -68,7 +68,6 @@ const int MESH_REGULARITY = -1;          // Maximum allowed level of hanging nod
                                          // their notoriously bad performance.
 const double CONV_EXP = 1;               // Default value is 1.0. This parameter influences the selection of
                                          // cancidates in hp-adaptivity. See get_optimal_refinement() for details.
-const int MAX_ORDER = 10;                // Maximum allowed element degree
 const double ERR_STOP = 0.5;             // Stopping criterion for adaptivity (rel. error tolerance between the
                                          // fine mesh and coarse mesh solution in percent).
 const int NDOF_STOP = 60000;             // Adaptivity process stops when the number of degrees of freedom grows over
@@ -136,44 +135,38 @@ int main(int argc, char* argv[])
                           MESH_REGULARITY);
 
   // Geometry and position of visualization windows.
-  WinGeom* U_SLN_WIN_GEOM = new WinGeom{0, 0, 360, 300};
-  WinGeom* U_MESH_WIN_GEOM = new WinGeom{370, 0, 360, 300};
-  WinGeom* V_SLN_WIN_GEOM = new WinGeom{740, 0, 400, 300};
-  WinGeom* V_MESH_WIN_GEOM = new WinGeom{1150, 0, 400, 300};
+  WinGeom* u_sln_win_geom = new WinGeom{0, 0, 360, 300};
+  WinGeom* u_mesh_win_geom = new WinGeom{370, 0, 360, 300};
+  WinGeom* v_sln_win_geom = new WinGeom{740, 0, 400, 300};
+  WinGeom* v_mesh_win_geom = new WinGeom{1150, 0, 400, 300};
 
   // Adaptivity loop.
-  Tuple<Space *> spaces = Tuple<Space *>(&u_space, &v_space);
   Solution *u_sln = new Solution();
   Solution *v_sln = new Solution();
-  Tuple<Solution *> slns = Tuple<Solution *>(u_sln, v_sln);
-  Tuple<int> proj_norms = Tuple<int>(H2D_H1_NORM, H2D_H1_NORM);
-  bool verbose = true;
+  Solution *ref_u_sln = new Solution();
+  Solution *ref_v_sln = new Solution();
   ExactSolution u_exact(&u_mesh, uexact);
   ExactSolution v_exact(&v_mesh, vexact);
-  Tuple<ExactSolution *> exact_slns = Tuple<ExactSolution *>(&u_exact, &v_exact);
-  Tuple<WinGeom *> sln_win_geom  = Tuple<WinGeom *>(U_SLN_WIN_GEOM, V_SLN_WIN_GEOM);
-  Tuple<WinGeom *> mesh_win_geom = Tuple<WinGeom *>(U_MESH_WIN_GEOM, V_MESH_WIN_GEOM);
-  solve_linear_adapt(spaces, &wf, slns, SOLVER_UMFPACK, proj_norms, 
-                     &selector, &apt, sln_win_geom, mesh_win_geom, 
-                     verbose, exact_slns);
+  bool verbose = true;  // Print info during adaptivity.
+  solve_linear_adapt(Tuple<Space *>(&u_space, &v_space), &wf, 
+                     Tuple<Solution *>(u_sln, v_sln), SOLVER_UMFPACK, 
+                     Tuple<Solution *>(ref_u_sln, ref_v_sln), 
+                     Tuple<int>(H2D_H1_NORM, H2D_H1_NORM), &selector, &apt, 
+                     Tuple<WinGeom *>(u_sln_win_geom, v_sln_win_geom), 
+                     Tuple<WinGeom *>(u_mesh_win_geom, v_mesh_win_geom), 
+                     verbose, Tuple<ExactSolution *>(&u_exact, &v_exact));
 
   // Show the final result.
-  // Initialize views.
-  char title[100];
-  sprintf(title, "Coarse mesh solution u");
-  ScalarView u_view(title, U_SLN_WIN_GEOM);
-  sprintf(title, "Coarse mesh for u");
-  OrderView  u_oview(title, U_MESH_WIN_GEOM);
-  sprintf(title, "Coarse mesh solution v");
-  ScalarView v_view(title, V_SLN_WIN_GEOM);
-  sprintf(title, "Coarse mesh for v");
-  OrderView  v_oview(title, U_MESH_WIN_GEOM);
-  u_view.set_title("Reference solution u");
+  ScalarView u_view("Coarse mesh solution u", u_sln_win_geom);
   u_view.show_mesh(false);
   u_view.show(u_sln);
-  v_view.set_title("Reference solution v");
+  ScalarView v_view("Coarse mesh solution v", v_sln_win_geom);
   v_view.show_mesh(false);
   v_view.show(v_sln);
+  OrderView  u_oview("Coarse mesh for u", u_mesh_win_geom);
+  u_oview.show(&u_space);
+  OrderView  v_oview("Coarse mesh for v", v_mesh_win_geom);
+  v_oview.show(&v_space);
 
   // Wait for all views to be closed.
   View::wait();

@@ -26,7 +26,7 @@
 #include "../common.h"
 #include "base_view.h"
 
-BaseView::BaseView(char* title, int x, int y, int width, int height)
+BaseView::BaseView(const char* title, int x, int y, int width, int height)
         : ScalarView(title, x, y, width, height)
 {
   pss = NULL;
@@ -34,6 +34,21 @@ BaseView::BaseView(char* title, int x, int y, int width, int height)
   show_edges = true;
 }
 
+BaseView::BaseView(const char* title, WinGeom* wg)
+        : ScalarView(title, wg)
+{
+  pss = NULL;
+  sln = NULL;
+  show_edges = true;
+}
+
+BaseView::BaseView(char* title, WinGeom* wg)
+        : ScalarView(title, wg)
+{
+  pss = NULL;
+  sln = NULL;
+  show_edges = true;
+}
 
 void BaseView::show(Space* space, double eps, int item)
 {

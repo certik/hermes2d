@@ -31,8 +31,12 @@ class H2D_API VectorBaseView : public VectorView
 {
 public:
 
-  VectorBaseView(char* title = "BaseView", DEFAULT_WINDOW_POS)
+  VectorBaseView(const char* title = "BaseView", DEFAULT_WINDOW_POS)
     : VectorView(title, x, y, width, height) { pss = NULL; sln = NULL; lines = false; }
+  VectorBaseView(const char* title = "BaseView", WinGeom* wg = NULL)
+    : VectorView(title, wg) { pss = NULL; sln = NULL; lines = false; }
+  VectorBaseView(char* title, WinGeom* wg = NULL)
+    : VectorView(title, wg) { pss = NULL; sln = NULL; lines = false; }
 
   void show(Space* space);
 

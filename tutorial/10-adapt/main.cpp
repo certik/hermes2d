@@ -105,24 +105,21 @@ int main(int argc, char* argv[])
                           MESH_REGULARITY);
 
   // Geometry and position of visualization windows.
-  WinGeom* SLN_WIN_GEOM = new WinGeom{0, 0, 400, 600};
-  WinGeom* MESH_WIN_GEOM = new WinGeom{410, 0, 400, 600};
-  WinGeom* GRAD_WIN_GEOM = new WinGeom{820, 0, 400, 600};
+  WinGeom* sln_win_geom = new WinGeom{0, 0, 400, 600};
+  WinGeom* mesh_win_geom = new WinGeom{410, 0, 400, 600};
+  WinGeom* grad_win_geom = new WinGeom{820, 0, 400, 600};
 
   // Adaptivity loop.
   Solution *sln = new Solution();
-  bool verbose = true;
-  solve_linear_adapt(&space, &wf, sln, SOLVER_UMFPACK, H2D_H1_NORM, 
-                     &selector, &apt, SLN_WIN_GEOM, MESH_WIN_GEOM, verbose);
+  Solution *ref_sln = new Solution();
+  bool verbose = true;     // Prinf info during adaptivity.
+  solve_linear_adapt(&space, &wf, sln, SOLVER_UMFPACK, ref_sln, H2D_H1_NORM, 
+                     &selector, &apt, sln_win_geom, mesh_win_geom, verbose);
 
   // Show the final result.
-  char title[100];
-  sprintf(title, "Scalar potential Phi");
-  ScalarView sview(title, SLN_WIN_GEOM);
-  sprintf(title, "Mesh");
-  OrderView  oview(title, MESH_WIN_GEOM);
-  sprintf(title, "Gradient of Phi");
-  VectorView gview(title, GRAD_WIN_GEOM);
+  ScalarView sview("Scalar potential Phi", sln_win_geom);
+  OrderView  oview("Mesh", mesh_win_geom);
+  VectorView gview("Gradient of Phi", grad_win_geom);
   gview.set_min_max_range(0, 1e8);
   sview.show_mesh(false);
   sview.show(sln);

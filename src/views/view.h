@@ -78,7 +78,9 @@ class H2D_API View
 {
 public:
 
-  View(char* title, int x, int y, int width, int height);
+  void init();
+  View(const char* title, int x, int y, int width, int height);
+  View(const char* title, WinGeom* wg = NULL);
   View(char* title, WinGeom* wg = NULL);
   virtual ~View();
 

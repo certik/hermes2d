@@ -35,12 +35,7 @@
 int View::screenshot_no = 1;
 
 ///////////////// methods /////////////////
-View::View(char* title, int x, int y, int width, int height)
-  : gl_pallete_tex_id(0)
-  , title(title), output_id(-1), output_x(x), output_y(y), output_width(width), output_height(height)
-  , vertices_min_x(0), vertices_max_x(0), vertices_min_y(0), vertices_max_y(0)
-  , view_not_reset(true)
-{
+void View::init() {
   jitter_x = jitter_y = 0.0;
   dragging = scaling = false;
   hq_frame = false;
@@ -66,6 +61,36 @@ View::View(char* title, int x, int y, int width, int height)
 
   rendering_frames_top = 0;
   memset(rendering_frames, 0, FPS_FRAME_SIZE * sizeof(double));
+}
+
+View::View(const char* title, int x, int y, int width, int height)
+  : gl_pallete_tex_id(0)
+  , title(title), output_id(-1), output_x(x), output_y(y), output_width(width), output_height(height)
+  , vertices_min_x(0), vertices_max_x(0), vertices_min_y(0), vertices_max_y(0)
+  , view_not_reset(true)
+{
+  init();
+}
+
+View::View(const char* title, WinGeom* wg)
+  : gl_pallete_tex_id(0),
+    title(title), output_id(-1), vertices_min_x(0), vertices_max_x(0), vertices_min_y(0), vertices_max_y(0),
+    view_not_reset(true)
+{
+  if (wg == NULL) {
+    output_x = H2D_DEFAULT_X_POS;
+    output_y = H2D_DEFAULT_Y_POS;
+    output_width = H2D_DEFAULT_WIDTH;
+    output_height = H2D_DEFAULT_HEIGHT;
+  }
+  else {
+    output_x = wg->x;
+    output_y = wg->y;
+    output_width = wg->width;
+    output_height = wg->height;
+  }
+
+  init();
 }
 
 View::View(char* title, WinGeom* wg)
@@ -86,34 +111,8 @@ View::View(char* title, WinGeom* wg)
     output_height = wg->height;
   }
 
-  jitter_x = jitter_y = 0.0;
-  dragging = scaling = false;
-  hq_frame = false;
-  frame_ready = false;
-  range_auto = true;
-  range_min = 0;
-  range_max = 1;
-  pal_type = H2DV_PT_DEFAULT;
-  pal_steps = 50;
-  pal_filter = GL_NEAREST;
-  margin = 15;
-  b_scale = true;
-  b_help = false;
-  scale_focused = scale_dragging = false;
-  pos_horz = pos_vert = 0;
-  scale_x = scale_y = labels_width = 0;
-  scale_width = 16;
-  scale_height = 320;
-  scale_numticks = 9;
-  strcpy(scale_fmt, "%.3g");
-  scale_fixed_width = -1;
-  want_screenshot = false;
-
-  rendering_frames_top = 0;
-  memset(rendering_frames, 0, FPS_FRAME_SIZE * sizeof(double));
+  init();
 }
-
-
 
 View::~View()
 {

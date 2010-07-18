@@ -35,7 +35,9 @@ class H2D_API StreamView : public View
 {
 public:
 
-  StreamView(char* title = "StreamView", DEFAULT_WINDOW_POS);
+  StreamView(const char* title = "StreamView", DEFAULT_WINDOW_POS);
+  StreamView(const char* title = "StreamView", WinGeom* wg = NULL);
+  StreamView(char* title, WinGeom* wg = NULL);
   virtual ~StreamView();
 
   /// Using velocity components (xsln, ysln) it creates streamlines that begin at the boundary with "marker"

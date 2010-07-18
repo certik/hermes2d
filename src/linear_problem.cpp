@@ -142,7 +142,7 @@ int get_num_dofs(Tuple<Space *> spaces)
 // Solve a typical linear problem (without automatic adaptivity).
 // Feel free to adjust this function for more advanced applications.
 bool solve_linear_adapt(Tuple<Space *> spaces, WeakForm* wf, Tuple<Solution *> slns, 
-                        MatrixSolverType matrix_solver, Tuple<int> proj_norms, 
+                        MatrixSolverType matrix_solver, Tuple<Solution *> ref_slns, Tuple<int> proj_norms, 
                         RefinementSelectors::Selector* selector, AdaptivityParamType* apt,
                         Tuple<WinGeom *> sln_win_geom, Tuple<WinGeom *> mesh_win_geom, 
                         bool verbose, Tuple<ExactSolution *> exact_slns, bool is_complex) 
@@ -162,33 +162,38 @@ bool solve_linear_adapt(Tuple<Space *> spaces, WeakForm* wf, Tuple<Solution *> s
   // Number of physical fields in the problem.
   int num_comps = spaces.size();
 
-  // Calculate the number of degreeso of freedom 
+  // Number of degreeso of freedom 
   int ndof = get_num_dofs(spaces);
+
+  // Number of exact solutions given.
+  int exact_slns_num = exact_slns.size();
+  if (exact_slns_num != 0 && exact_slns_num != num_comps) 
+    error("Number of exact solutions does not match number of equations.");
 
   // Initialize matrix solver.
   Matrix* mat; Vector* rhs; CommonSolver* solver;  
   init_matrix_solver(matrix_solver, ndof, mat, rhs, solver, is_complex);
 
   // Initialize views.
-  ScalarView* sview[100];
-  OrderView*  oview[100];
-  char* title = (char*)malloc(100);
+  ScalarView* sview[H2D_MAX_COMPONENTS];
+  OrderView*  oview[H2D_MAX_COMPONENTS];
   for (int i = 0; i < num_comps; i++) {
-    sprintf(title, "Solution %d", i); 
-    sview[i] = new ScalarView(title, sln_win_geom[i]);
-    sprintf(title, "Mesh %d", i); 
-    oview[i] = new OrderView(title, mesh_win_geom[i]);
+    char* title = (char*)malloc(100*sizeof(char));
+    if (sln_win_geom[i] != NULL) {
+      sprintf(title, "Solution %d", i); 
+      sview[i] = new ScalarView(title, sln_win_geom[i]);
+      sview[i]->show_mesh(false);
+    }
+    else sview[i] = NULL;
+    if (mesh_win_geom[i] != NULL) {
+      sprintf(title, "Mesh %d", i); 
+      oview[i] = new OrderView(title, mesh_win_geom[i]);
+    }
+    else oview[i] = NULL;
   }
 
   // DOF and CPU convergence graphs.
   SimpleGraph graph_dof, graph_cpu;
-
-  // Declare coarse mesh and reference solutions
-  Tuple<Solution *> ref_slns;
-  for (int i = 0; i < num_comps; i++) {
-    Solution *ref_sln = new Solution();
-    ref_slns.push_back(ref_sln);
-  } 
 
   // Conversion from Tuple<Solution *> to Tuple<MeshFunction *>
   // so that project_global() below compiles. 
@@ -202,9 +207,8 @@ bool solve_linear_adapt(Tuple<Space *> spaces, WeakForm* wf, Tuple<Solution *> s
   do
   {
     if (verbose) {
-    info("---- Adaptivity step %d:", as);
-      if (num_comps == 1) info("Solving on reference mesh.");
-      else info("Solving on reference meshes.");
+      info("---- Adaptivity step %d:", as);
+      info("Solving on reference mesh.");
     }
 
     // Construct globally refined reference mesh(es)
@@ -223,10 +227,7 @@ bool solve_linear_adapt(Tuple<Space *> spaces, WeakForm* wf, Tuple<Solution *> s
     solve_linear(ref_spaces, wf, ref_slns, matrix_solver);
 
     // Project the reference solution on the coarse mesh.
-    if (verbose) {
-      if (num_comps == 1) info("Projecting reference solution on coarse mesh.");
-      else info("Projecting reference solutions on coarse meshes.");
-    }
+    if (verbose) info("Projecting reference solution on coarse mesh.");
     project_global(spaces, ref_slns_mf, slns, proj_norms, is_complex);
 
     // Time measurement.
@@ -234,8 +235,8 @@ bool solve_linear_adapt(Tuple<Space *> spaces, WeakForm* wf, Tuple<Solution *> s
 
     // View the coarse mesh solution (first component only).
     for (int i = 0; i < num_comps; i++) {
-      if (sln_win_geom[i] != NULL) sview[i]->show(slns[i]);
-      if (mesh_win_geom[i] != NULL) oview[i]->show(spaces[i]);
+      if (sview[i] != NULL) sview[i]->show(slns[i]);
+      if (oview[i] != NULL) oview[i]->show(spaces[i]);
     }
 
     // Skip visualization time.
@@ -246,20 +247,22 @@ bool solve_linear_adapt(Tuple<Space *> spaces, WeakForm* wf, Tuple<Solution *> s
     H1Adapt hp(spaces);
     hp.set_solutions(slns, ref_slns);
     double err_est_total = hp.calc_error() * 100;
-
-    // Calculate error wrt. exact solution.
-    if (verbose) info("Calculating error (exact).");
-    double err_est[100];
-    double err_exact[100];
+    double err_est[H2D_MAX_COMPONENTS];
+    double err_est_max = 0;
     for (int i = 0; i < num_comps; i++) {
       err_est[i] = h1_error(slns[i], ref_slns[i]) * 100;
-      if (exact_slns != Tuple<ExactSolution *>()) err_exact[i] = h1_error(slns[i], exact_slns[i]) * 100;
-    }
-    double err_est_max = 0;
-    double err_exact_max = 0;
-    for (int i = 0; i < num_comps; i++) {
       if (err_est[i] > err_est_max) err_est_max = err_est[i];
-      if (exact_slns != Tuple<ExactSolution *>()) if (err_exact[i] > err_exact_max) err_exact_max = err_exact[i];
+    }
+
+    // Calculate error wrt. exact solution.
+    double err_exact[H2D_MAX_COMPONENTS];
+    double err_exact_max = 0;
+    if (exact_slns_num > 0) {
+      if (verbose) info("Calculating error (exact).");
+      for (int i = 0; i < num_comps; i++) {
+        err_exact[i] = h1_error(slns[i], exact_slns[i]) * 100;
+        if (err_exact[i] > err_exact_max) err_exact_max = err_exact[i];
+      }
     }
 
     // Report results.
@@ -267,14 +270,14 @@ bool solve_linear_adapt(Tuple<Space *> spaces, WeakForm* wf, Tuple<Solution *> s
       if (num_comps == 1) {
         info("ndof: %d, ref_ndof: %d, err_est: %g%%", 
              get_num_dofs(spaces), get_num_dofs(ref_spaces), err_est_total);
-        if (exact_slns != Tuple<ExactSolution *>()) info("err_exact: %g%%", err_exact);
+        if (exact_slns_num > 0) info("err_exact: %g%%", err_exact);
       }
       else {
         for (int i = 0; i < num_comps; i++) {
           info("ndof[%d]: %d, ref_ndof[%d]: %d, err_est[%d]: %g%%", 
                i, spaces[i]->get_num_dofs(), i, ref_spaces[i]->get_num_dofs(),
                i, err_est[i]);
-          if (exact_slns != Tuple<ExactSolution *>()) info("err_exact[%d]: %g%%", i, err_exact[i]);
+          if (exact_slns_num > 0) info("err_exact[%d]: %g%%", i, err_exact[i]);
         }
         info("ndof: %d, ref_ndof: %d, err_est: %g%%", 
              get_num_dofs(spaces), get_num_dofs(ref_spaces), err_est_total);
@@ -290,10 +293,7 @@ bool solve_linear_adapt(Tuple<Space *> spaces, WeakForm* wf, Tuple<Solution *> s
     // If err_est too large, adapt the mesh.
     if (err_est_total < err_stop) done = true;
     else {
-      if (verbose) {
-        if (num_comps == 1) info("Adapting the coarse mesh.");
-        else info("Adapting the coarse meshes.");
-      }
+      if (verbose) info("Adapting the coarse mesh.");
       done = hp.adapt(selector, threshold, strategy, mesh_regularity, to_be_processed);
 
       if (get_num_dofs(spaces) >= ndof_stop) done = true;
@@ -303,12 +303,13 @@ bool solve_linear_adapt(Tuple<Space *> spaces, WeakForm* wf, Tuple<Solution *> s
   }
   while (done == false);
 
-  // FIXME: The following should be uncommented, but 
-  // uncommenting causes segfault
-  //for (int i = 0; i < num_comps; i++) {
-  //  delete sview[i]; 
-  //  delete oview[i]; 
-  //}
+  // Close visualization windows.
+  /* FIXME: this should be uncommented but it causes segfaults
+  for (int i = 0; i < num_comps; i++) {
+    if (sview[i] != NULL) sview[i]->close(); 
+    if (oview[i] != NULL) oview[i]->close(); 
+  }
+  */
 
   if (verbose) info("Total running time: %g s", cpu_time.accumulated());
 }

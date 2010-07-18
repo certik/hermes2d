@@ -37,8 +37,9 @@ class H2D_API OrderView : public View
 {
 public:
 
-  OrderView(char* title = "OrderView", DEFAULT_WINDOW_POS);
-  OrderView(char* title = "OrderView", WinGeom* wg = NULL);
+  OrderView(const char* title = "OrderView", DEFAULT_WINDOW_POS);
+  OrderView(const char* title = "OrderView", WinGeom* wg = NULL);
+  OrderView(char* title, WinGeom* wg = NULL);
 
   void show(Space* space);
 
