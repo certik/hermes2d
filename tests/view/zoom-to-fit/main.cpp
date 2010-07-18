@@ -109,7 +109,8 @@ int main(int argc, char* argv[])
   }
 
   for (int i = 0; i < 6; i++) {
-    ScalarView view(title.c_str(), 0, 0, test_dims[i][0], test_dims[i][1]);
+
+    ScalarView view(const_cast<char *>(title.c_str()), 0, 0, test_dims[i][0], test_dims[i][1]);
     view.set_3d_mode(true);
 
     // Show the function.

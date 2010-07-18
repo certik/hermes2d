@@ -97,6 +97,11 @@ ScalarView::ScalarView(char* title, WinGeom* wg)
 #endif
 {
   init();
+  show_values = true;
+  lin_updated = false;
+  gl_coord_buffer = 0; gl_index_buffer = 0; gl_edge_inx_buffer = 0;
+
+  do_zoom_to_fit = true;
 }
 
 ScalarView::~ScalarView()
