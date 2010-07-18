@@ -153,8 +153,8 @@ int main(int argc, char* argv[])
                      Tuple<Solution *>(ref_u_sln, ref_v_sln), 
                      Tuple<int>(H2D_H1_NORM, H2D_H1_NORM), &selector, &apt, 
                      Tuple<WinGeom *>(u_sln_win_geom, v_sln_win_geom), 
-                     Tuple<WinGeom *>(u_mesh_win_geom, v_mesh_win_geom), 
-                     verbose, Tuple<ExactSolution *>(&u_exact, &v_exact));
+                     Tuple<WinGeom *>(u_mesh_win_geom, v_mesh_win_geom), verbose,
+                     Tuple<ExactSolution *>(&u_exact, &v_exact));
 
   // Show the final result.
   ScalarView u_view("Coarse mesh solution u", u_sln_win_geom);

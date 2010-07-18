@@ -89,100 +89,32 @@ int main(int argc, char* argv[])
   WeakForm wf;
   wf.add_matrix_form(callback(bilinear_form), H2D_SYM);
 
-  // Initialize views.
-  ScalarView sview("Coarse solution", 0, 0, 500, 400);
-  OrderView  oview("Polynomial orders", 505, 0, 500, 400);
-
   // Initialize refinement selector.
   H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
   //selector.set_error_weights(1.0, 1.0, 1.0);
 
-  // DOF and CPU convergence graphs.
-  SimpleGraph graph_dof_est, graph_dof_exact, graph_cpu_est, graph_cpu_exact;
+  // Initialize adaptivity parameters.
+  AdaptivityParamType apt(ERR_STOP, NDOF_STOP, THRESHOLD, STRATEGY, 
+                          MESH_REGULARITY);
 
-  // Initialize matrix solver.
-  Matrix* mat; Vector* rhs; CommonSolver* solver;  
-  init_matrix_solver(SOLVER_UMFPACK, space.get_num_dofs(), mat, rhs, solver);
+  // Geometry and position of visualization windows.
+  WinGeom* sln_win_geom = new WinGeom{0, 0, 440, 350};
+  WinGeom* mesh_win_geom = new WinGeom{450, 0, 400, 350};
 
-  // Adaptivity loop:
-  Solution sln, ref_sln;
-  int as = 1; bool done = false;
-  do
-  {
-    info("---- Adaptivity step %d:", as);
-    info("Solving on reference mesh.");
+  // Adaptivity loop.
+  Solution *sln = new Solution();
+  Solution *ref_sln = new Solution();
+  ExactSolution exact(&mesh, fndd);
+  bool verbose = true;     // Prinf info during adaptivity.
+  solve_linear_adapt(&space, &wf, sln, SOLVER_UMFPACK, ref_sln, H2D_H1_NORM, 
+                     &selector, &apt, sln_win_geom, mesh_win_geom, verbose, &exact);
 
-    // Construct the globally refined reference mesh.
-    Mesh ref_mesh;
-    ref_mesh.copy(&mesh);
-    ref_mesh.refine_all_elements();
-
-    // Setup space for the reference solution.
-    Space *ref_space = space.dup(&ref_mesh);
-    int order_increase = 1;
-    ref_space->copy_orders(&space, order_increase);
- 
-    // Solve the reference problem.
-    solve_linear(ref_space, &wf, &ref_sln, SOLVER_UMFPACK);
-
-    // Project the reference mesh solution on the coarse mesh.
-    info("Projecting reference solution on coarse mesh.");
-    project_global(&space, &ref_sln, &sln);
-
-    // Time measurement.
-    cpu_time.tick();
-
-    // Calculate error wrt. exact solution.
-    info("Calculating error (exact).");
-    ExactSolution exact(&mesh, fndd);
-    double err_exact = h1_error(&sln, &exact) * 100;
-
-    // View the solution and mesh.
-    sview.show(&sln);
-    oview.show(&space);
-
-    // Skip exact error calculation and visualization time. 
-    cpu_time.tick(HERMES_SKIP);
-
-    // Calculate error estimate wrt. reference solution.
-    info("Calculating error (est).");
-    H1Adapt hp(&space);
-    hp.set_solutions(&sln, &ref_sln);
-    double err_est = hp.calc_error() * 100;
-
-    // Report results.  
-    info("ndof: %d, ref_ndof: %d, err_est: %g%%, err_exact: %g%%", 
-         space.get_num_dofs(), ref_space->get_num_dofs(), err_est, err_exact);
-
-    // Add entries to DOF convergence graphs.
-    graph_dof_exact.add_values(space.get_num_dofs(), err_exact);
-    graph_dof_exact.save("conv_dof_exact.dat");
-    graph_dof_est.add_values(space.get_num_dofs(), err_est);
-    graph_dof_est.save("conv_dof_est.dat");
-
-    // Add entries to CPU convergence graphs.
-    graph_cpu_exact.add_values(cpu_time.accumulated(), err_exact);
-    graph_cpu_exact.save("conv_cpu_exact.dat");
-    graph_cpu_est.add_values(cpu_time.accumulated(), err_est);
-    graph_cpu_est.save("conv_cpu_est.dat");
-
-    // If err_est too large, adapt the mesh.
-    if (err_est < ERR_STOP) done = true;
-    else {
-      info("Adapting the coarse mesh.");
-      hp.adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY);
-      if (space.get_num_dofs() >= NDOF_STOP) done = true;
-    }
-
-    as++;
-  }
-  while (done == false);
-  verbose("Total running time: %g s", cpu_time.accumulated());
-
-  // Show the reference solution - the final result.
-  sview.set_title("Final solution");
+  // Show the final result.
+  ScalarView sview("Final solution", sln_win_geom);
+  OrderView  oview("Final mesh", mesh_win_geom);
   sview.show_mesh(false);
-  sview.show(&ref_sln);
+  sview.show(sln);
+  oview.show(&space);
 
   // Wait for all views to be closed.
   View::wait();

@@ -21,8 +21,6 @@ using namespace RefinementSelectors;
 //
 //  The following parameters can be changed:
 
-const bool SOLVE_ON_COARSE_MESH = false; // If true, coarse mesh FE problem is solved in every adaptivity step.
-                                         // If false, projection of the fine mesh solution on the coarse mesh is used. 
 const int P_INIT = 1;                    // Initial polynomial degree of all mesh elements.
 const bool STABILIZATION_ON = false;     // Stabilization on/off (assumes that H2D_SECOND_DERIVATIVES_ENABLED is defined).
 const bool SHOCK_CAPTURING_ON = false;   // Shock capturing on/off.
@@ -108,92 +106,30 @@ int main(int argc, char* argv[])
     wf.add_matrix_form(callback(bilinear_form_shock_capturing));
   }
 
-  // Initialize views.
-  OrderView  oview("Coarse mesh", 0, 0, 500, 400);
-  ScalarView sview("Coarse mesh solution", 510, 0, 500, 400);
-  ScalarView sview2("Fine mesh solution", 1020, 0, 500, 400);
-
-  // DOF convergence graph.
-  SimpleGraph graph_dof_est, graph_cpu_est;
-
   // Initialize refinement selector.
   H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
 
-  // Initialize the coarse mesh problem.
-  LinSystem ls(&wf, &space);
+  // Initialize adaptivity parameters.
+  AdaptivityParamType apt(ERR_STOP, NDOF_STOP, THRESHOLD, STRATEGY, 
+                          MESH_REGULARITY);
 
-  // Adaptivity loop:
-  int as = 1; bool done = false;
-  Solution sln_coarse, sln_fine;
-  do
-  {
-    info("---- Adaptivity step %d:", as);
+  // Geometry and position of visualization windows.
+  WinGeom* sln_win_geom = new WinGeom{0, 0, 440, 350};
+  WinGeom* mesh_win_geom = new WinGeom{450, 0, 400, 350};
 
-    // Assemble and solve the fine mesh problem.
-    info("Solving on fine mesh.");
-    RefSystem rs(&ls);
-    rs.assemble();
-    rs.solve(&sln_fine);
+  // Adaptivity loop.
+  Solution *sln = new Solution();
+  Solution *ref_sln = new Solution();
+  bool verbose = true;     // Prinf info during adaptivity.
+  solve_linear_adapt(&space, &wf, sln, SOLVER_UMFPACK, ref_sln, H2D_H1_NORM, 
+                     &selector, &apt, sln_win_geom, mesh_win_geom, verbose);
 
-    // Either solve on coarse mesh or project the fine mesh solution 
-    // on the coarse mesh.
-    if (SOLVE_ON_COARSE_MESH) {
-      info("Solving on coarse mesh.");
-      ls.assemble();
-      ls.solve(&sln_coarse);
-    }
-    else {
-      info("Projecting fine mesh solution on coarse mesh.");
-      ls.project_global(&sln_fine, &sln_coarse);
-    }
-
-    // Time measurement.
-    cpu_time.tick();
-
-    // View the solution and mesh.
-    oview.show(&space);
-    sview.show(&sln_coarse);
-    sview2.show(&sln_fine);
-    //View::wait(H2DV_WAIT_KEYPRESS);
-
-    // Skip visualization time. 
-    cpu_time.tick(H2D_SKIP);
-
-    // Calculate error estimate wrt. fine mesh solution.
-    info("Calculating error (est).");
-    H1Adapt hp(&ls);
-    hp.set_solutions(&sln_coarse, &sln_fine);
-    double err_est = hp.calc_error() * 100;
-
-    // Report results.
-    info("ndof_coarse: %d, ndof_fine: %d, err_est: %g%%", 
-      ls.get_num_dofs(), rs.get_num_dofs(), err_est);
-
-    // Add entry to DOF convergence graph.
-    graph_dof_est.add_values(ls.get_num_dofs(), err_est);
-    graph_dof_est.save("conv_dof_est.dat");
-
-    // Add entry to CPU convergence graph.
-    graph_cpu_est.add_values(cpu_time.accumulated(), err_est);
-    graph_cpu_est.save("conv_cpu_est.dat");
-
-    // If err_est too large, adapt the mesh.
-    if (err_est < ERR_STOP) done = true;
-    else {
-      info("Adapting the coarse mesh.");
-      done = hp.adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY);
-      if (ls.get_num_dofs() >= NDOF_STOP) done = true;
-    }
-
-    as++;
-  }
-  while (done == false);
-  verbose("Total running time: %s", cpu_time.accumulated_str().c_str());
-
-  // Show the fine mesh solution - the final result.
-  sview.set_title("Final solution");
+  // Show the final result.
+  ScalarView sview("Final solution", sln_win_geom);
+  OrderView  oview("Final mesh", mesh_win_geom);
   sview.show_mesh(false);
-  sview.show(&sln_fine);
+  sview.show(sln);
+  oview.show(&space);
 
   // Wait for all views to be closed.
   View::wait();

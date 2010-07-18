@@ -117,8 +117,8 @@ int main(int argc, char* argv[])
                      &selector, &apt, sln_win_geom, mesh_win_geom, verbose);
 
   // Show the final result.
-  ScalarView sview("Scalar potential Phi", sln_win_geom);
-  OrderView  oview("Mesh", mesh_win_geom);
+  ScalarView sview("Final solution (Phi)", sln_win_geom);
+  OrderView  oview("Final mesh", mesh_win_geom);
   VectorView gview("Gradient of Phi", grad_win_geom);
   gview.set_min_max_range(0, 1e8);
   sview.show_mesh(false);

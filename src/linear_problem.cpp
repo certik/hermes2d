@@ -166,9 +166,11 @@ bool solve_linear_adapt(Tuple<Space *> spaces, WeakForm* wf, Tuple<Solution *> s
   int ndof = get_num_dofs(spaces);
 
   // Number of exact solutions given.
-  int exact_slns_num = exact_slns.size();
-  if (exact_slns_num != 0 && exact_slns_num != num_comps) 
+  if (exact_slns.size() != 0 && exact_slns.size() != num_comps) 
     error("Number of exact solutions does not match number of equations.");
+  bool is_exact_solution;
+  if (exact_slns.size() == num_comps) is_exact_solution = true;
+  else is_exact_solution = false;
 
   // Initialize matrix solver.
   Matrix* mat; Vector* rhs; CommonSolver* solver;  
@@ -180,20 +182,22 @@ bool solve_linear_adapt(Tuple<Space *> spaces, WeakForm* wf, Tuple<Solution *> s
   for (int i = 0; i < num_comps; i++) {
     char* title = (char*)malloc(100*sizeof(char));
     if (sln_win_geom[i] != NULL) {
-      sprintf(title, "Solution %d", i); 
+      if (num_comps == 1) sprintf(title, "Solution", i); 
+      else sprintf(title, "Solution %d", i); 
       sview[i] = new ScalarView(title, sln_win_geom[i]);
       sview[i]->show_mesh(false);
     }
     else sview[i] = NULL;
     if (mesh_win_geom[i] != NULL) {
-      sprintf(title, "Mesh %d", i); 
+      if (num_comps == 1) sprintf(title, "Mesh", i); 
+      else sprintf(title, "Mesh %d", i); 
       oview[i] = new OrderView(title, mesh_win_geom[i]);
     }
     else oview[i] = NULL;
   }
 
   // DOF and CPU convergence graphs.
-  SimpleGraph graph_dof, graph_cpu;
+  SimpleGraph graph_dof_est, graph_cpu_est, graph_dof_exact, graph_cpu_exact;
 
   // Conversion from Tuple<Solution *> to Tuple<MeshFunction *>
   // so that project_global() below compiles. 
@@ -242,27 +246,31 @@ bool solve_linear_adapt(Tuple<Space *> spaces, WeakForm* wf, Tuple<Solution *> s
     // Skip visualization time.
     cpu_time.tick(HERMES_SKIP);
 
-    // Calculate element errors and total error estimate.
+    // Calculate element errors.
     if (verbose) info("Calculating error (est).");
     H1Adapt hp(spaces);
     hp.set_solutions(slns, ref_slns);
-    double err_est_total = hp.calc_error() * 100;
+    hp.calc_error();
+ 
+    // Calculate error estimate for each solution component.   
     double err_est[H2D_MAX_COMPONENTS];
-    double err_est_max = 0;
+    double err_est_total = 0;
     for (int i = 0; i < num_comps; i++) {
       err_est[i] = h1_error(slns[i], ref_slns[i]) * 100;
-      if (err_est[i] > err_est_max) err_est_max = err_est[i];
+      err_est_total += err_est[i]*err_est[i];
     }
+    err_est_total = sqrt(err_est_total);
 
-    // Calculate error wrt. exact solution.
+    // Calculate exact error for each solution component.   
     double err_exact[H2D_MAX_COMPONENTS];
-    double err_exact_max = 0;
-    if (exact_slns_num > 0) {
+    double err_exact_total = 0;
+    if (is_exact_solution == true) {
       if (verbose) info("Calculating error (exact).");
       for (int i = 0; i < num_comps; i++) {
         err_exact[i] = h1_error(slns[i], exact_slns[i]) * 100;
-        if (err_exact[i] > err_exact_max) err_exact_max = err_exact[i];
+        err_exact_total += err_exact[i]*err_exact[i];
       }
+      err_exact_total = sqrt(err_exact_total);
     }
 
     // Report results.
@@ -270,14 +278,14 @@ bool solve_linear_adapt(Tuple<Space *> spaces, WeakForm* wf, Tuple<Solution *> s
       if (num_comps == 1) {
         info("ndof: %d, ref_ndof: %d, err_est: %g%%", 
              get_num_dofs(spaces), get_num_dofs(ref_spaces), err_est_total);
-        if (exact_slns_num > 0) info("err_exact: %g%%", err_exact);
+        if (is_exact_solution == true) info("err_exact: %g%%", err_exact[0]);
       }
       else {
         for (int i = 0; i < num_comps; i++) {
           info("ndof[%d]: %d, ref_ndof[%d]: %d, err_est[%d]: %g%%", 
                i, spaces[i]->get_num_dofs(), i, ref_spaces[i]->get_num_dofs(),
                i, err_est[i]);
-          if (exact_slns_num > 0) info("err_exact[%d]: %g%%", i, err_exact[i]);
+          if (is_exact_solution == true) info("err_exact[%d]: %g%%", i, err_exact[i]);
         }
         info("ndof: %d, ref_ndof: %d, err_est: %g%%", 
              get_num_dofs(spaces), get_num_dofs(ref_spaces), err_est_total);
@@ -285,10 +293,16 @@ bool solve_linear_adapt(Tuple<Space *> spaces, WeakForm* wf, Tuple<Solution *> s
     }
 
     // Add entry to DOF and CPU convergence graphs.
-    graph_dof.add_values(get_num_dofs(spaces), err_est_total);
-    graph_dof.save("conv_dof.dat");
-    graph_cpu.add_values(cpu_time.accumulated(), err_est_total);
-    graph_cpu.save("conv_cpu.dat");
+    graph_dof_est.add_values(get_num_dofs(spaces), err_est_total);
+    graph_dof_est.save("conv_dof_est.dat");
+    graph_cpu_est.add_values(cpu_time.accumulated(), err_est_total);
+    graph_cpu_est.save("conv_cpu_est.dat");
+    if (is_exact_solution == true) {
+      graph_dof_exact.add_values(get_num_dofs(spaces), err_exact_total);
+      graph_dof_exact.save("conv_dof_exact.dat");
+      graph_cpu_exact.add_values(cpu_time.accumulated(), err_exact_total);
+      graph_cpu_exact.save("conv_cpu_exact.dat");
+    }
 
     // If err_est too large, adapt the mesh.
     if (err_est_total < err_stop) done = true;

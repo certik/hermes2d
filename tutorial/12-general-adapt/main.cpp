@@ -20,8 +20,6 @@ using namespace RefinementSelectors;
 //
 //  The following parameters can be changed:
 
-const bool SOLVE_ON_COARSE_MESH = false; // If true, coarse mesh FE problem is solved in every adaptivity step.
-                                         // If false, projection of the fine mesh solution on the coarse mesh is used. 
 const int P_INIT = 2;                    // Initial polynomial degree of all mesh elements.
 const double THRESHOLD = 0.6;            // This is a quantitative parameter of the adapt(...) function and
                                          // it has different meanings for various adaptive strategies (see below).
@@ -106,86 +104,30 @@ int main(int argc, char* argv[])
   wf.add_vector_form(linear_form, linear_form_ord);
   wf.add_vector_form_surf(linear_form_surf, linear_form_surf_ord, BDY_NEUMANN);
 
-  // Initialize views.
-  ScalarView sview("Coarse solution", 0, 0, 450, 350);
-  OrderView  oview("Polynomial orders", 460, 0, 400, 350);
-
-  // DOF and CPU convergence graphs.
-  SimpleGraph graph_dof, graph_cpu;
-
   // Initialize refinement selector. 
   H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
 
-  // Adaptivity loop:
-  Solution sln, ref_sln;
-  int as = 1; bool done = false;
-  do
-  {
-    info("---- Adaptivity step %d:", as);
-    info("Solving on fine mesh.");
+  // Initialize adaptivity parameters.
+  AdaptivityParamType apt(ERR_STOP, NDOF_STOP, THRESHOLD, STRATEGY, 
+                          MESH_REGULARITY);
 
-    // Construct the globally refined reference mesh.
-    Mesh ref_mesh;
-    ref_mesh.copy(&mesh);
-    ref_mesh.refine_all_elements();
+  // Geometry and position of visualization windows.
+  WinGeom* sln_win_geom = new WinGeom{0, 0, 440, 350};
+  WinGeom* mesh_win_geom = new WinGeom{450, 0, 400, 350};
 
-    // Setup space for the reference solution.
-    Space *ref_space = space.dup(&ref_mesh);
-    int order_increase = 1;
-    ref_space->copy_orders(&space, order_increase);
- 
-    // Solve the reference problem.
-    solve_linear(ref_space, &wf, &ref_sln, SOLVER_UMFPACK);
+  // Adaptivity loop.
+  Solution *sln = new Solution();
+  Solution *ref_sln = new Solution();
+  bool verbose = true;     // Prinf info during adaptivity.
+  solve_linear_adapt(&space, &wf, sln, SOLVER_UMFPACK, ref_sln, H2D_H1_NORM, 
+                     &selector, &apt, sln_win_geom, mesh_win_geom, verbose);
 
-    // Project the reference mesh solution on the coarse mesh.
-    info("Projecting reference solution on coarse mesh.");
-    project_global(&space, &ref_sln, &sln);
-
-    // Time measurement.
-    cpu_time.tick();
-
-    // View the solution and mesh.
-    sview.show(&sln);
-    oview.show(&space);
-
-    // Time measurement.
-    cpu_time.tick(HERMES_SKIP);
-
-    // Calculate error estimate wrt. reference solution.
-    info("Calculating error.");
-    H1Adapt hp(&space);
-    hp.set_solutions(&sln, &ref_sln);
-    double err_est = hp.calc_error() * 100;
-
-    // Report results.
-    info("ndof: %d, ref_ndof: %d, err_est: %g%%", 
-      space.get_num_dofs(), ref_space->get_num_dofs(), err_est);
-
-    // Add entry to DOF convergence graph.
-    graph_dof.add_values(space.get_num_dofs(), err_est);
-    graph_dof.save("conv_dof.dat");
-
-    // Add entry to CPU convergence graph.
-    graph_cpu.add_values(cpu_time.accumulated(), err_est);
-    graph_cpu.save("conv_cpu.dat");
-
-    // If err_est too large, adapt the mesh.
-    if (err_est < ERR_STOP) done = true;
-    else {
-      info("Adapting coarse mesh.");
-      done = hp.adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY);
-      if (space.get_num_dofs() >= NDOF_STOP) done = true;
-    }
-
-    as++;
-  }
-  while (done == false);
-  verbose("Total running time: %g s", cpu_time.accumulated());
-
-  // Show the reference solution - the final result.
-  sview.set_title("Final solution");
+  // Show the final result.
+  ScalarView sview("Final solution", sln_win_geom);
+  OrderView  oview("Final", mesh_win_geom);
   sview.show_mesh(false);
-  sview.show(&ref_sln);
+  sview.show(sln);
+  oview.show(&space);
 
   // Wait for all views to be closed.
   View::wait();
