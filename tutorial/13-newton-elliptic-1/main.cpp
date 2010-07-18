@@ -89,23 +89,13 @@ int main(int argc, char* argv[])
   wf.add_matrix_form(callback(jac), H2D_UNSYM, H2D_ANY, &u_prev);
   wf.add_vector_form(callback(res), H2D_ANY, &u_prev);
 
-  // Initialize the linear system.
-  DiscreteProblem dp(&wf, &space);
-
-  // Project the function init_cond() on the FE space
-  // to obtain initial coefficient vector for the Newton's method.
-  info("Projecting initial condition to obtain initial vector for the Newton'w method.");
-  dp.project_global(init_cond, &u_prev);  
-
-  // Show the initial condition for the Newton's method. 
-  ScalarView pview("Projection of initial condition", 0, 0, 400, 300);
-  pview.show(&u_prev);
-  
   // Perform Newton's iteration.
   info("Performing Newton's iteration.");
   bool verbose = true; // Default is false.
-  if (!dp.solve_newton(&u_prev, NEWTON_TOL, NEWTON_MAX_ITER, verbose)) 
-    error("Newton's method did not converge.");
+  Solution* init_sln = new Solution();
+  init_sln->set_exact(&mesh, init_cond);
+  if (!solve_newton(&space, &wf, init_sln, &u_prev, SOLVER_UMFPACK, H2D_H1_NORM, 
+                    NEWTON_TOL, NEWTON_MAX_ITER, verbose)) error("Newton's method did not converge.");
 
   // Visualise the solution and mesh.
   ScalarView sview("Solution", 410, 0, 400, 300);

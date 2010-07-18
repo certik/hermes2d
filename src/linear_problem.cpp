@@ -41,65 +41,14 @@ void LinearProblem::assemble(Matrix* mat_ext, Vector* rhs_ext, bool rhsonly, boo
   int ndof = this->get_num_dofs();
   if (ndof == 0) error("ndof == 0 in LinearProblem::assemble().");
   Vector* dir_ext = new AVector(ndof, is_complex);
-  // the vector dir represents the contribution of the Dirichlet lift, 
-  // and for linear problems  it has to be subtracted from the right hand side
-  DiscreteProblem::assemble(mat_ext, dir_ext, rhs_ext, rhsonly);
+  // The vector dir represents the contribution of the Dirichlet lift, 
+  // and for linear problems it has to be subtracted from the right hand side.
+  // The NULL stands for the initial coefficient vector that is not used.
+  DiscreteProblem::assemble(NULL, mat_ext, dir_ext, rhs_ext, rhsonly);
   // FIXME: Do we really need to handle the real and complex cases separately?
   if (is_complex) for (int i=0; i < ndof; i++) rhs_ext->add(i, -dir_ext->get_cplx(i));
   else for (int i=0; i < ndof; i++) rhs_ext->add(i, -dir_ext->get(i));
   delete dir_ext;
-}
-
-// FIXME: We need to unify the type for Python and 
-// C++ solvers. Right now Solver and CommonSolver
-// are incompatible.
-void init_matrix_solver(MatrixSolverType matrix_solver, int ndof, 
-                        Matrix* &mat, Vector* &rhs, CommonSolver* &solver, bool is_complex) 
-{
-  // Initialize stiffness matrix, load vector, and matrix solver.
-  // UMFpack.
-  CooMatrix* mat_umfpack = new CooMatrix(ndof, is_complex);
-  Vector* rhs_umfpack = new AVector(ndof, is_complex);
-  CommonSolverSciPyUmfpack* solver_umfpack = new CommonSolverSciPyUmfpack();
-  //CommonSolverSciPyUmfpack* solver_umfpack = new CommonSolverSciPyUmfpack();
-  // PETSc.
-  /* FIXME - PETSc solver needs to be ported from H3D.
-  PetscMatrix mat_petsc(ndof);
-  PetscVector rhs_petsc(ndof);
-  PetscLinearSolver solver_petsc;
-  */
-  // MUMPS. 
-  // FIXME - PETSc solver needs to be ported from H3D.
-  /*
-  MumpsMatrix mat_mumps(ndof);
-  MumpsVector rhs_mumps(ndof);
-  MumpsSolver solver_mumps;
-  */
-  
-  switch (matrix_solver) {
-    case SOLVER_UMFPACK: 
-      mat = mat_umfpack;
-      rhs = rhs_umfpack;
-      solver = solver_umfpack;
-      break;
-    case SOLVER_PETSC:  
-      error("Petsc solver not implemented yet.");
-      /*
-      mat = &mat_petsc;
-      rhs = &rhs_petsc;
-      solver = &solver_petsc;
-      */
-      break;
-    case SOLVER_MUMPS:  
-      error("MUMPS solver not implemented yet.");
-      /*
-      mat = &mat_mumps;
-      rhs = &rhs_mumps;
-      solver = &solver_mumps;
-      */
-      break;
-    default: error("Bad matrix solver in init_matrix_solver().");
-  }
 }
 
 // Solve a typical linear problem (without automatic adaptivity).
@@ -113,7 +62,7 @@ bool solve_linear(Tuple<Space *> spaces, WeakForm* wf, Tuple<Solution *> solutio
 
   // Select matrix solver.
   Matrix* mat; Vector* rhs; CommonSolver* solver;
-  init_matrix_solver(matrix_solver, lp.get_num_dofs(), mat, rhs, solver, is_complex);
+  init_matrix_solver(matrix_solver, get_num_dofs(spaces), mat, rhs, solver, is_complex);
 
   // Assemble stiffness matrix and rhs.
   bool rhsonly = false;
@@ -130,16 +79,7 @@ bool solve_linear(Tuple<Space *> spaces, WeakForm* wf, Tuple<Solution *> solutio
   }
 }
 
-int get_num_dofs(Tuple<Space *> spaces) 
-{
-  int ndof = 0;
-  for (int i=0; i<spaces.size(); i++) {
-    ndof += spaces[i]->get_num_dofs();
-  }
-  return ndof;
-}
-
-// Solve a typical linear problem (without automatic adaptivity).
+// Solve a typical linear problem using automatic adaptivity.
 // Feel free to adjust this function for more advanced applications.
 bool solve_linear_adapt(Tuple<Space *> spaces, WeakForm* wf, Tuple<Solution *> slns, 
                         MatrixSolverType matrix_solver, Tuple<Solution *> ref_slns, Tuple<int> proj_norms, 
@@ -232,7 +172,7 @@ bool solve_linear_adapt(Tuple<Space *> spaces, WeakForm* wf, Tuple<Solution *> s
 
     // Project the reference solution on the coarse mesh.
     if (verbose) info("Projecting reference solution on coarse mesh.");
-    project_global(spaces, ref_slns_mf, slns, proj_norms, is_complex);
+    project_global(spaces, ref_slns_mf, slns, proj_norms, NULL, is_complex); // NULL means that we do not want to know the resulting coefficient vector.
 
     // Time measurement.
     cpu_time.tick();
@@ -327,3 +267,5 @@ bool solve_linear_adapt(Tuple<Space *> spaces, WeakForm* wf, Tuple<Solution *> s
 
   if (verbose) info("Total running time: %g s", cpu_time.accumulated());
 }
+
+

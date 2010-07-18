@@ -92,10 +92,8 @@ public:
   /// functionality to be used for linear problems, nonlinear problems, and eigenproblems.
   /// Soon this will be extended to assemble an arbitrary number of matrix and vector
   /// weak forms. 
-  virtual void assemble(Matrix* mat_ext, Vector* dir_ext, Vector* rhs_ext, bool rhsonly = false);
-
-  /// Version for nonlinear problems -- does not add the dir vector to rhs.
-  virtual void assemble(Matrix* mat_ext, Vector* rhs_ext, bool rhsonly = false);
+  virtual void assemble(Vector* init_vec, Matrix* mat_ext, Vector* dir_ext, Vector* rhs_ext, 
+                        bool rhsonly = false, bool is_complex = false);
 
   /// Basic function that just solves the matrix problem. The right-hand
   /// side enters through "vec" and the result is stored in "vec" as well. 
@@ -138,34 +136,7 @@ public:
   WeakForm* wf;
   bool have_spaces;
 
-  /* FUNCTIONALITY FOR NONLINEAR PROBLEMS */
-
-  /// Adjusts the Newton iteration coefficient. The default value for alpha is 1.
-  void set_alpha(double alpha) { this->alpha = alpha; }
-
-  /* TEMPORARILY DISABLED
-  /// Performs complete Newton's loop for a Tuple of solutions.
-  bool solve_newton(Tuple<Solution*> u_prev, double newton_tol, int newton_max_iter,
-                    bool verbose = false, Tuple<MeshFunction*> mesh_fns = Tuple<MeshFunction*>());
-
-  /// Performs complete Newton's loop for one equation
-  bool solve_newton(Solution* u_prev, double newton_tol, int newton_max_iter,
-                    bool verbose = false, 
-                    Tuple<MeshFunction*> mesh_fns = Tuple<MeshFunction*>())
-  {
-    return this->solve_newton(Tuple<Solution*>(u_prev), newton_tol, newton_max_iter, verbose, mesh_fns);
-  }
-  */
-
-  /// returns the L2-norm of the residual vector
-  double get_residual_l2_norm() const { return res_l2; }
-
-  /// returns the L1-norm of the residual vector
-  double get_residual_l1_norm() const { return res_l1; }
-
-  /// returns the L_inf-norm of the residual vector
-  double get_residual_max_norm() const { return res_max; }
-
+  /// Matrix solvers.
   CommonSolver* solver;
   CommonSolver* solver_default;
 
@@ -236,13 +207,13 @@ protected:
   void delete_cache();
 
   // evaluation of forms, general case
-  scalar eval_form(WeakForm::MatrixFormVol *bf, Solution *sln[], PrecalcShapeset *fu, 
+  scalar eval_form(WeakForm::MatrixFormVol *bf, Tuple<Solution *> sln, PrecalcShapeset *fu, 
                    PrecalcShapeset *fv, RefMap *ru, RefMap *rv);
-  scalar eval_form(WeakForm::VectorFormVol *lf, Solution *sln[], PrecalcShapeset *fv, 
+  scalar eval_form(WeakForm::VectorFormVol *lf, Tuple<Solution *> sln, PrecalcShapeset *fv, 
                    RefMap *rv);
-  scalar eval_form(WeakForm::MatrixFormSurf *bf, Solution *sln[], PrecalcShapeset *fu, 
+  scalar eval_form(WeakForm::MatrixFormSurf *bf, Tuple<Solution *> sln, PrecalcShapeset *fu, 
                    PrecalcShapeset *fv, RefMap *ru, RefMap *rv, EdgePos* ep);
-  scalar eval_form(WeakForm::VectorFormSurf *lf, Solution *sln[], PrecalcShapeset *fv, 
+  scalar eval_form(WeakForm::VectorFormSurf *lf, Tuple<Solution *> sln, PrecalcShapeset *fv, 
                    RefMap *rv, EdgePos* ep);
 
   scalar** get_matrix_buffer(int n)
@@ -260,39 +231,47 @@ protected:
   int num_user_pss;
   bool values_changed;
   bool struct_changed;
-
-  friend class RefDiscreteProblem;
-
-  /* FUNCTIONALITY FOR NONLINEAR PROBLEMS */
-
-  double alpha;
-  double res_l2, res_l1, res_max;
-
-
 };
+
+int get_num_dofs(Tuple<Space *> spaces);
+
+void init_matrix_solver(MatrixSolverType matrix_solver, int ndof, 
+                        Matrix* &mat, Vector* &rhs, 
+                        CommonSolver* &solver, bool is_complex = false);
 
 /// Global orthogonal projection of multiple solution components.
 /// Calls assign_dofs() at the beginning.
 void project_global(Tuple<Space *> spaces, Tuple<MeshFunction*> source, 
-                    Tuple<Solution*> target, WeakForm *wf, bool is_complex = false);
+                    Tuple<Solution*> target, WeakForm *wf, Vector* vec = NULL, bool is_complex = false);
 
 void project_global(Tuple<Space *> spaces, Tuple<MeshFunction*> source, 
-                    Tuple<Solution*> target, Tuple<int> proj_norms = Tuple<int>(), bool is_complex = false);
+                    Tuple<Solution*> target, Tuple<int> proj_norms = Tuple<int>(), 
+                    Vector* vec = NULL, bool is_complex = false);
 
 void project_global(Tuple<Space *> spaces, Tuple<MeshFunction*> source, Tuple<Solution*> target,
-               matrix_forms_tuple_t proj_biforms, vector_forms_tuple_t proj_liforms, bool is_complex = false);
+                    matrix_forms_tuple_t proj_biforms, vector_forms_tuple_t proj_liforms, 
+                    Vector* vec = NULL, bool is_complex = false);
 
 void project_global(Space *space, ExactFunction source, Solution* target, 
-                    int proj_norm = H2D_DEFAULT_PROJ_NORM, bool is_complex = false);
+                    int proj_norm = H2D_DEFAULT_PROJ_NORM, Vector* vec = NULL, bool is_complex = false);
 
 void project_global(Space *space, ExactFunction source, Solution* target,
                     std::pair<WeakForm::matrix_form_val_t, WeakForm::matrix_form_ord_t> proj_biform,
                     std::pair<WeakForm::vector_form_val_t, WeakForm::vector_form_ord_t> proj_liform,
+                    Vector* vec = NULL, bool is_complex = false);
+
+void project_global(Space *space, ExactFunction2 source, Solution* target, Vector* vec = NULL, 
                     bool is_complex = false);
 
-void project_global(Space *space, ExactFunction2 source, Solution* target, bool is_complex = false);
-
 void project_local(Space *space, ExactFunction exactfn, Mesh* mesh,
-                   Solution* result, int proj_norm = H2D_DEFAULT_PROJ_NORM, bool is_complex = false);
+                   Solution* result, int proj_norm = H2D_DEFAULT_PROJ_NORM, Vector* vec = NULL, 
+                   bool is_complex = false);
+
+/// Performs complete Newton's loop for a Tuple of solutions.
+bool solve_newton(Tuple<Space *> spaces, WeakForm* wf, Tuple<MeshFunction *> init_cond, Tuple<Solution *> u_prev, 
+                  MatrixSolverType matrix_solver, Tuple<int>proj_norms, double newton_tol = 1e-5, 
+                  int newton_max_iter = 100, bool verbose = false, 
+                  Tuple<MeshFunction*> mesh_fns = Tuple<MeshFunction*>(), 
+                  bool is_complex = false);
 
 #endif

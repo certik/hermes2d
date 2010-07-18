@@ -55,9 +55,6 @@ public:
 
 };
 
-void init_matrix_solver(MatrixSolverType matrix_solver, int ndof, 
-                        Matrix* &mat, Vector* &vec, CommonSolver* &solver, bool is_complex = false);
-
 bool solve_linear(Tuple<Space *> spaces, WeakForm* wf, Tuple<Solution *> solutions, 
                   MatrixSolverType matrix_solver, bool is_complex = false);
 
