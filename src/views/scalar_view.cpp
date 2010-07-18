@@ -1224,7 +1224,7 @@ void ScalarView::reset_view(bool force_reset) {
 
     // Set scaling into the (-1,1) range on the x- and z- axes
     double max_radial = std::max(vertices_max_x - vertices_min_x, vertices_max_y - vertices_min_y);
-    xzscale = 1.0 / max_radial;
+    xzscale = 2.0 / max_radial;
 
     // Determine the largest y-axis distance of the function surface from the line of sight
     double max_axial = std::max(range_max - yctr, fabs(range_min - yctr));
