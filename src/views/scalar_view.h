@@ -59,6 +59,7 @@ public:
             MeshFunction* xdisp = NULL, MeshFunction* ydisp = NULL, double dmult = 1.0);
 
   void show_mesh(bool show = true) { show_edges = show; refresh(); }
+  void show_bounding_box(bool show = true) { show_aabb = show; refresh(); }
   void show_contours(double step, double orig = 0.0);
   void hide_contours() { contours = false; refresh(); }
   void set_3d_mode(bool enable = true) { mode3d = enable; refresh(); }
@@ -156,8 +157,8 @@ protected: //values
 
   bool show_values; ///< true to show values
 
-  void prepare_gl_geometry(const double value_min, const double value_irange); ///< prepares geometry in a form compatible with GL arrays; Data are updated if lin is updated. In a case of a failure (out of memory), gl_verts is NULL and an old OpenGL rendering method has to be used.
-  void draw_values_2d(const double value_min, const double value_irange); ///< draws values
+  void prepare_gl_geometry(); ///< prepares geometry in a form compatible with GL arrays; Data are updated if lin is updated. In a case of a failure (out of memory), gl_verts is NULL and an old OpenGL rendering method has to be used.
+  void draw_values_2d(); ///< draws values
   void draw_edges_2d(); ///< draws edges
 
   void draw_normals_3d(); ////< Draws normals of the 3d mesh. Used for debugging purposses only.
@@ -165,6 +166,7 @@ protected: //values
 
 protected: //edges
   bool show_edges; ///< true to show edges of mesh
+  bool show_aabb;  ///< true to show the bounding box
   float edges_color[3]; ///< color of edges
 
   typedef void (*DrawSingleEdgeCallback)(int inx_vert_a, int inx_vert_b, ScalarView* viewer, void* param); ///< A callback function that draws edge using specified vertex indices. Param is user supplied parameter.
@@ -181,18 +183,30 @@ protected: //edges
   static void draw_svg_edge(int inx_vert_a, int inx_vert_b, ScalarView* viewer, void* param); ///< Draws edge specified by edge into SVG file given as parameter (type: SVGExportParams*). Functions assumes that data are locked.
   static void draw_gl_edge(int inx_vert_a, int inx_vert_b, ScalarView* viewer, void* param); ///< Draws edge specified by edge indices using GL. Functions assumes that data are locked.
   void draw_edges(DrawSingleEdgeCallback draw_single_edge, void* param, bool boundary_only); ///< Draws edges of elements and boundary of mesh. Functions assumes that data are locked.
+  void draw_aabb(); ///< Draws the axes-aligned bounding box of the model. Assumes a model/view matrix to be the current matrix on the OpenGL stack.
 
 protected:
   bool contours; ///< true to enable drawing of contours
   double cont_orig, cont_step; ///< contour settings.
   float cont_color[3]; ///< color of contours (RGB)
+  bool do_zoom_to_fit; ///< true to automatically translate the view so that the whole model si displayed
+
+  // Perspective projection parameters.
+  static const int fovy = 50;        ///< Field of view in the vertical direction (in degrees).
+  static const double znear = 0.05;  ///< Distance of the near clipping plane of the viewing frustum from the camera.
+  static const double zfar = 10;     ///< Distance of the Far clipping plane of the viewing frustum from the camera.
 
   bool pmode, mode3d, panning;
   double xrot, yrot, xtrans, ytrans, ztrans;
   double xzscale, yscale, xctr, yctr, zctr;
-  double vertices_avg_value; ///< Average value of a vertex. Used to center the mesh.
+
+  ///< Information about the range of vertex values.
+  double value_irange, value_range_avg;
+
   double3* normals;
 
+  double calculate_ztrans_to_fit_view(); /// Calculates the z-coordinate (in eye coordinates) of the closest viewpoint from which we can still see the whole model.
+                                         /// Assumes a model/view matrix to be the current matrix on the OpenGL stack.
   virtual void reset_view(bool force_reset); ///< Resets 2d and 3d view.
   virtual void update_layout(); ///< Updates layout, i.e., centers 2d and 3d mesh.
 
