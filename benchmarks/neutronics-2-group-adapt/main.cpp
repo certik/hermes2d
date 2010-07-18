@@ -68,9 +68,6 @@ const int ADAPTIVITY_NORM = 2;             // Specifies the norm used by H1Adapt
                                            // ADAPTIVITY_NORM = 1 ... norm defined by the diagonal parts of the bilinear form.
                                            // ADAPTIVITY_NORM = 2 ... energy norm defined by the full (non-symmetric) bilinear form.
 
-// Macro for simpler definition of bilinear forms in the energy norm.
-#define callback_egnorm(a)     a<scalar, scalar>, a<Ord, Ord>
-
 // Variables used for reporting of results
 TimePeriod cpu_time;			   // Time measurements.
 const int ERR_PLOT = 0;			   // Row in the convergence graphs for exact errors .
@@ -359,14 +356,14 @@ int main(int argc, char* argv[])
 
     H1Adapt hp(Tuple<Space *>(&space1, &space2));
     if (ADAPTIVITY_NORM == 2) {
-      hp.set_error_form(0, 0, callback_egnorm(biform_0_0));
-      hp.set_error_form(0, 1, callback_egnorm(biform_0_1));
-      hp.set_error_form(1, 0, callback_egnorm(biform_1_0));
-      hp.set_error_form(1, 1, callback_egnorm(biform_1_1));
+      hp.set_error_form(0, 0, callback(biform_0_0));
+      hp.set_error_form(0, 1, callback(biform_0_1));
+      hp.set_error_form(1, 0, callback(biform_1_0));
+      hp.set_error_form(1, 1, callback(biform_1_1));
     } else {
       if (ADAPTIVITY_NORM == 1) {
-        hp.set_error_form(0, 0, callback_egnorm(biform_0_0));
-        hp.set_error_form(1, 1, callback_egnorm(biform_1_1));
+        hp.set_error_form(0, 0, callback(biform_0_0));
+        hp.set_error_form(1, 1, callback(biform_1_1));
       }
     }
 
