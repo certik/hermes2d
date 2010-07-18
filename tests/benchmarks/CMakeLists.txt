@@ -4,6 +4,7 @@ include_directories(${JUDY_INCLUDE_DIR})
 # examples
 add_subdirectory(nist-1) 
 add_subdirectory(layer)
+add_subdirectory(neutronics-2-group-adapt)
 add_subdirectory(lshape)
 add_subdirectory(smooth-iso)
 add_subdirectory(smooth-aniso-x)
