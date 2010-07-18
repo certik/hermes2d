@@ -39,6 +39,20 @@ enum ViewWaitEvent {
   H2DV_WAIT_KEYPRESS, ///< Wait for any unprocessed keypress to happen.
 };
 
+struct WinGeom {
+  int x;
+  int y;
+  int width;
+  int height;
+
+  WinGeom(int x, int y, int width, int height) {
+    this->x = x;
+    this->y = y;
+    this->width = width;
+    this->height = height;
+  };
+}; 
+
 /// View palette type.
 enum ViewPaletteType {
   H2DV_PT_DEFAULT = -1, ///< Default palette. Depends on viewer.
@@ -64,8 +78,8 @@ class H2D_API View
 {
 public:
 
-  View(const char* title, int x, int y, int width, int height);
-  View(const char* title, const int win_geom[4] = NULL);
+  View(char* title, int x, int y, int width, int height);
+  View(char* title, WinGeom* wg = NULL);
   virtual ~View();
 
   int  create();

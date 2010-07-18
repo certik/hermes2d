@@ -22,7 +22,7 @@
 
 //// StreamView /////////////////////////////////////////////////////////////////////////////////////
 
-StreamView::StreamView(const char* title, int x, int y, int width, int height)
+StreamView::StreamView(char* title, int x, int y, int width, int height)
           : View(title, x, y, width, height)
 {
   lines = false;

@@ -62,8 +62,11 @@ void adapt_to_exact_function_h1(Space *space, ExactFunction exactfn,
   if (verbose == true) printf("Mesh adaptivity to an exact function:\n");
 
   // Initialize views.
-  ScalarView* view = new ScalarView("Projection of initial condition", 0, 0, 410, 300);
-  OrderView* ordview = new OrderView("Initial mesh", 420, 0, 350, 300);
+  char title[200];
+  sprintf(title, "Projection of initial condition");
+  ScalarView* view = new ScalarView(title, 0, 0, 410, 300);
+  sprintf(title, "Initial mesh");
+  OrderView* ordview = new OrderView(title, 420, 0, 350, 300);
   view->fix_scale_width(80);
 
   // Adaptivity loop:

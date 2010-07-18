@@ -23,6 +23,8 @@
 #include "weakform.h"
 #include <map>
 
+typedef enum {H2D_L2_NORM, H2D_H1_NORM, H2D_HCURL_NORM} ProjNormType;
+
 class Space;
 class PrecalcShapeset;
 class WeakForm;

@@ -66,7 +66,10 @@ bool solve_linear(Tuple<Space *> spaces, WeakForm* wf, Tuple<Solution *> solutio
 bool solve_linear_adapt(Tuple<Space *> spaces, WeakForm* wf, Tuple<Solution *> solutions, 
                         MatrixSolverType matrix_solver, Tuple<int> proj_norms, 
                         RefinementSelectors::Selector* selector, AdaptivityParamType* apt,
-                        const int sln_win_geom[4] = NULL, const int mesh_win_geom[4] = NULL, 
+                        Tuple<WinGeom *> sln_win_geom = Tuple<WinGeom *>(), 
+                        Tuple<WinGeom *> mesh_win_geom = Tuple<WinGeom *>(), 
+                        bool verbose = false, 
+                        Tuple<ExactSolution *> exact_slns = Tuple<ExactSolution *>(), 
                         bool is_complex = false);
 
 #endif

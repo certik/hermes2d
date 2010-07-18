@@ -22,7 +22,7 @@
 
 //// VectorView /////////////////////////////////////////////////////////////////////////////////////
 
-VectorView::VectorView(const char* title, int x, int y, int width, int height)
+VectorView::VectorView(char* title, int x, int y, int width, int height)
           : View(title, x, y, width, height)
 {
   gx = gy = 0.0;
@@ -34,8 +34,8 @@ VectorView::VectorView(const char* title, int x, int y, int width, int height)
   length_coef = 1.0;
 }
 
-VectorView::VectorView(const char* title, const int geom[4])
-          : View(title, geom)
+VectorView::VectorView(char* title, WinGeom* wg)
+          : View(title, wg)
 {
   gx = gy = 0.0;
   gs = 20.0;

@@ -60,19 +60,19 @@ const CandList CAND_LIST = H2D_HP_ANISO; // Predefined list of element refinemen
                                          // H2D_P_ISO, H2D_P_ANISO, H2D_H_ISO, H2D_H_ANISO, H2D_HP_ISO,
                                          // H2D_HP_ANISO_H, H2D_HP_ANISO_P, H2D_HP_ANISO.
                                          // See the User Documentation for details.
-const int MESH_REGULARITY = -1;  // Maximum allowed level of hanging nodes:
-                                 // MESH_REGULARITY = -1 ... arbitrary level hangning nodes (default),
-                                 // MESH_REGULARITY = 1 ... at most one-level hanging nodes,
-                                 // MESH_REGULARITY = 2 ... at most two-level hanging nodes, etc.
-                                 // Note that regular meshes are not supported, this is due to
-                                 // their notoriously bad performance.
-const double CONV_EXP = 1;       // Default value is 1.0. This parameter influences the selection of
-                                 // cancidates in hp-adaptivity. See get_optimal_refinement() for details.
-const int MAX_ORDER = 10;        // Maximum allowed element degree
-const double ERR_STOP = 0.5;     // Stopping criterion for adaptivity (rel. error tolerance between the
-                                 // fine mesh and coarse mesh solution in percent).
-const int NDOF_STOP = 60000;     // Adaptivity process stops when the number of degrees of freedom grows over
-                                 // this limit. This is mainly to prevent h-adaptivity to go on forever.
+const int MESH_REGULARITY = -1;          // Maximum allowed level of hanging nodes:
+                                         // MESH_REGULARITY = -1 ... arbitrary level hangning nodes (default),
+                                         // MESH_REGULARITY = 1 ... at most one-level hanging nodes,
+                                         // MESH_REGULARITY = 2 ... at most two-level hanging nodes, etc.
+                                         // Note that regular meshes are not supported, this is due to
+                                         // their notoriously bad performance.
+const double CONV_EXP = 1;               // Default value is 1.0. This parameter influences the selection of
+                                         // cancidates in hp-adaptivity. See get_optimal_refinement() for details.
+const int MAX_ORDER = 10;                // Maximum allowed element degree
+const double ERR_STOP = 0.5;             // Stopping criterion for adaptivity (rel. error tolerance between the
+                                         // fine mesh and coarse mesh solution in percent).
+const int NDOF_STOP = 60000;             // Adaptivity process stops when the number of degrees of freedom grows over
+                                         // this limit. This is mainly to prevent h-adaptivity to go on forever.
 
 // Problem parameters.
 const double D_u = 1;
@@ -125,125 +125,55 @@ int main(int argc, char* argv[])
   wf.add_vector_form(0, linear_form_0, linear_form_0_ord);
   wf.add_vector_form(1, linear_form_1, linear_form_1_ord);
 
-  // Initialize views.
-  OrderView  uoview("Coarse mesh for u", 0, 0, 360, 300);
-  OrderView  voview("Coarse mesh for v", 370, 0, 360, 300);
-  ScalarView uview("Coarse mesh solution u", 740, 0, 400, 300);
-  ScalarView vview("Coarse mesh solution v", 1150, 0, 400, 300);
-
   // DOF and CPU convergence graphs.
   SimpleGraph graph_dof, graph_cpu;
 
   // Initialize refinement selector.
   H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
 
-  // Initialize matrix solver.
-  Matrix* mat; Vector* rhs; CommonSolver* solver;  
-  init_matrix_solver(SOLVER_UMFPACK, u_space.get_num_dofs() + v_space.get_num_dofs(), 
-                     mat, rhs, solver);
+  // Initialize adaptivity parameters.
+  AdaptivityParamType apt(ERR_STOP, NDOF_STOP, THRESHOLD, STRATEGY, 
+                          MESH_REGULARITY);
+
+  // Geometry and position of visualization windows.
+  WinGeom* U_SLN_WIN_GEOM = new WinGeom{0, 0, 360, 300};
+  WinGeom* U_MESH_WIN_GEOM = new WinGeom{370, 0, 360, 300};
+  WinGeom* V_SLN_WIN_GEOM = new WinGeom{740, 0, 400, 300};
+  WinGeom* V_MESH_WIN_GEOM = new WinGeom{1150, 0, 400, 300};
 
   // Adaptivity loop.
-  Solution u_sln, v_sln;
-  Solution ref_u_sln, ref_v_sln;
-  int as = 1; bool done = false;
-  do
-  {
-    info("---- Adaptivity step %d:", as);
-    info("Solving on reference meshes.");
+  Tuple<Space *> spaces = Tuple<Space *>(&u_space, &v_space);
+  Solution *u_sln = new Solution();
+  Solution *v_sln = new Solution();
+  Tuple<Solution *> slns = Tuple<Solution *>(u_sln, v_sln);
+  Tuple<int> proj_norms = Tuple<int>(H2D_H1_NORM, H2D_H1_NORM);
+  bool verbose = true;
+  ExactSolution u_exact(&u_mesh, uexact);
+  ExactSolution v_exact(&v_mesh, vexact);
+  Tuple<ExactSolution *> exact_slns = Tuple<ExactSolution *>(&u_exact, &v_exact);
+  Tuple<WinGeom *> sln_win_geom  = Tuple<WinGeom *>(U_SLN_WIN_GEOM, V_SLN_WIN_GEOM);
+  Tuple<WinGeom *> mesh_win_geom = Tuple<WinGeom *>(U_MESH_WIN_GEOM, V_MESH_WIN_GEOM);
+  solve_linear_adapt(spaces, &wf, slns, SOLVER_UMFPACK, proj_norms, 
+                     &selector, &apt, sln_win_geom, mesh_win_geom, 
+                     verbose, exact_slns);
 
-    // Construct globally refined reference meshes.
-    Mesh ref_u_mesh, ref_v_mesh;
-    ref_u_mesh.copy(&u_mesh);
-    ref_v_mesh.copy(&v_mesh);
-    ref_u_mesh.refine_all_elements();
-    ref_v_mesh.refine_all_elements();
-
-    // Setup spaces for the reference solution.
-    Space *ref_u_space = u_space.dup(&ref_u_mesh);
-    Space *ref_v_space = v_space.dup(&ref_v_mesh);
-    int order_increase = 1;
-    ref_u_space->copy_orders(&u_space, order_increase);
-    ref_v_space->copy_orders(&v_space, order_increase);
- 
-    // Solve the reference problem.
-    solve_linear(Tuple<Space *>(ref_u_space, ref_v_space), &wf, 
-                 Tuple<Solution *>(&ref_u_sln, &ref_v_sln), SOLVER_UMFPACK);
-
-    // Project the reference solutions on the coarse meshes.
-    info("Projecting reference solutions on coarse meshes.");
-    project_global(Tuple<Space *>(&u_space, &v_space), 
-                   Tuple<MeshFunction*>(&ref_u_sln, &ref_v_sln), 
-                   Tuple<Solution*>(&u_sln, &v_sln));
-
-    // Time measurement.
-    cpu_time.tick();
-
-    // View the solutions and meshes.
-    info("u_dof_coarse: %d, v_dof_coarse: %d", u_space.get_num_dofs(), v_space.get_num_dofs());
-    info("ref_u_dof: %d, ref_v_dof: %d", ref_u_space->get_num_dofs(), ref_v_space->get_num_dofs());
-    uview.show(&u_sln);
-    vview.show(&v_sln);
-    uoview.show(&u_space);
-    voview.show(&v_space);
-
-    // Time measurement.
-    cpu_time.tick(HERMES_SKIP);
-
-    // Calculate element errors and total error estimate.
-    info("Calculating error (est).");
-    H1Adapt hp(Tuple<Space *>(&u_space, &v_space));
-    hp.set_solutions(Tuple<Solution*>(&u_sln, &v_sln), 
-                     Tuple<Solution*>(&ref_u_sln, &ref_v_sln));
-    hp.set_error_form(0, 0, bilinear_form_0_0<scalar, scalar>, bilinear_form_0_0<Ord, Ord>);
-    hp.set_error_form(0, 1, bilinear_form_0_1<scalar, scalar>, bilinear_form_0_1<Ord, Ord>);
-    hp.set_error_form(1, 0, bilinear_form_1_0<scalar, scalar>, bilinear_form_1_0<Ord, Ord>);
-    hp.set_error_form(1, 1, bilinear_form_1_1<scalar, scalar>, bilinear_form_1_1<Ord, Ord>);
-    double err_est = hp.calc_error(H2D_TOTAL_ERROR_REL | H2D_ELEMENT_ERROR_ABS) * 100;
-
-    // Calculate error wrt. exact solution.
-    info("Calculating error (exact).");
-    ExactSolution uexact(&u_mesh, u_exact);
-    ExactSolution vexact(&v_mesh, v_exact);
-    double u_error = h1_error(&u_sln, &uexact) * 100;
-    double v_error = h1_error(&v_sln, &vexact) * 100;
-    double error = std::max(u_error, v_error);
-
-    // Report results.
-    info("Exact solution error for u (H1 norm): %g%%", u_error);
-    info("Exact solution error for v (H1 norm): %g%%", v_error);
-    info("Exact solution error (maximum): %g%%", error);
-    info("Estimate of error wrt. ref. solution (energy norm): %g%%", err_est);
-
-    // Add entry to DOF convergence graph.
-    graph_dof.add_values(u_space.get_num_dofs() + v_space.get_num_dofs(), error);
-    if (MULTI == true) graph_dof.save("conv_dof_m.dat");
-    else graph_dof.save("conv_dof_s.dat");
-
-    // Add entry to CPU convergence graph.
-    graph_cpu.add_values(cpu_time.accumulated(), error);
-    if (MULTI == true) graph_cpu.save("conv_cpu_m.dat");
-    else graph_cpu.save("conv_cpu_s.dat");
-
-    // If err_est too large, adapt the mesh.
-    if (error < ERR_STOP) done = true;
-    else {
-      info("Adapting coarse meshes.");
-      done = hp.adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY, MULTI == true ? false : true);
-      if (u_space.get_num_dofs() + v_space.get_num_dofs() >= NDOF_STOP) done = true;
-    }
-
-    as++;
-  }
-  while (!done);
-  verbose("Total running time: %g s", cpu_time.accumulated());
-
-  // Show the fine solution - the final result.
-  uview.set_title("Reference solution u");
-  uview.show_mesh(false);
-  uview.show(&ref_u_sln);
-  vview.set_title("Reference solution v");
-  vview.show_mesh(false);
-  vview.show(&ref_v_sln);
+  // Show the final result.
+  // Initialize views.
+  char title[100];
+  sprintf(title, "Coarse mesh solution u");
+  ScalarView u_view(title, U_SLN_WIN_GEOM);
+  sprintf(title, "Coarse mesh for u");
+  OrderView  u_oview(title, U_MESH_WIN_GEOM);
+  sprintf(title, "Coarse mesh solution v");
+  ScalarView v_view(title, V_SLN_WIN_GEOM);
+  sprintf(title, "Coarse mesh for v");
+  OrderView  v_oview(title, U_MESH_WIN_GEOM);
+  u_view.set_title("Reference solution u");
+  u_view.show_mesh(false);
+  u_view.show(u_sln);
+  v_view.set_title("Reference solution v");
+  v_view.show_mesh(false);
+  v_view.show(v_sln);
 
   // Wait for all views to be closed.
   View::wait();

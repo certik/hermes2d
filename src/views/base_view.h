@@ -37,7 +37,7 @@ class H2D_API BaseView : public ScalarView
 {
 public:
 
-  BaseView(const char* title = "BaseView", DEFAULT_WINDOW_POS);
+  BaseView(char* title = "BaseView", DEFAULT_WINDOW_POS);
 
   void show(Space* space, double eps = H2D_EPS_LOW, int item = H2D_FN_VAL_0);
 

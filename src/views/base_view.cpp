@@ -26,7 +26,7 @@
 #include "../common.h"
 #include "base_view.h"
 
-BaseView::BaseView(const char* title, int x, int y, int width, int height)
+BaseView::BaseView(char* title, int x, int y, int width, int height)
         : ScalarView(title, x, y, width, height)
 {
   pss = NULL;

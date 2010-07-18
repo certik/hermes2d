@@ -26,7 +26,7 @@
 #include "../common.h"
 #include "order_view.h"
 
-OrderView::OrderView(const char* title, int x, int y, int width, int height)
+OrderView::OrderView(char* title, int x, int y, int width, int height)
          : View(title, x, y, width, height)
 {
   b_scale = true;
@@ -36,8 +36,8 @@ OrderView::OrderView(const char* title, int x, int y, int width, int height)
   scale_box_skip = 9;
 }
 
-OrderView::OrderView(const char* title, const int geom[4])
-         : View(title, geom)
+OrderView::OrderView(char* title, WinGeom* wg)
+         : View(title, wg)
 {
   b_scale = true;
   b_orders = false;

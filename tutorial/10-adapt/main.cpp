@@ -46,23 +46,18 @@ const int STRATEGY = 1;                    // Adaptive strategy:
 const CandList CAND_LIST = H2D_HP_ANISO_H; // Predefined list of element refinement candidates. Possible values are
                                            // H2D_P_ISO, H2D_P_ANISO, H2D_H_ISO, H2D_H_ANISO, H2D_HP_ISO, H2D_HP_ANISO_H
                                            // H2D_HP_ANISO_P, H2D_HP_ANISO. See User Documentation for details.
-const int MESH_REGULARITY = -1; // Maximum allowed level of hanging nodes:
-                                // MESH_REGULARITY = -1 ... arbitrary level hangning nodes (default),
-                                // MESH_REGULARITY = 1 ... at most one-level hanging nodes,
-                                // MESH_REGULARITY = 2 ... at most two-level hanging nodes, etc.
-                                // Note that regular meshes are not supported, this is due to
-                                // their notoriously bad performance.
-const double ERR_STOP = 1.0;    // Stopping criterion for adaptivity (rel. error tolerance between the
-const double CONV_EXP = 1.0;    // Default value is 1.0. This parameter influences the selection of
-                                // cancidates in hp-adaptivity. See get_optimal_refinement() for details.
-                                // fine mesh and coarse mesh solution in percent).
-const int NDOF_STOP = 60000;    // Adaptivity process stops when the number of degrees of freedom grows
-                                // over this limit. This is to prevent h-adaptivity to go on forever.
-
-// Geometry and position of visualization windows.
-const int SLN_WIN_GEOM[4] = {0, 0, 400, 600};
-const int MESH_WIN_GEOM[4] = {410, 0, 400, 600};
-const int GRAD_WIN_GEOM[4] = {820, 0, 400, 600};
+const int MESH_REGULARITY = -1;            // Maximum allowed level of hanging nodes:
+                                           // MESH_REGULARITY = -1 ... arbitrary level hangning nodes (default),
+                                           // MESH_REGULARITY = 1 ... at most one-level hanging nodes,
+                                           // MESH_REGULARITY = 2 ... at most two-level hanging nodes, etc.
+                                           // Note that regular meshes are not supported, this is due to
+                                           // their notoriously bad performance.
+const double ERR_STOP = 1.0;               // Stopping criterion for adaptivity (rel. error tolerance between the
+const double CONV_EXP = 1.0;               // Default value is 1.0. This parameter influences the selection of
+                                           // cancidates in hp-adaptivity. See get_optimal_refinement() for details.
+                                           // fine mesh and coarse mesh solution in percent).
+const int NDOF_STOP = 60000;               // Adaptivity process stops when the number of degrees of freedom grows
+                                           // over this limit. This is to prevent h-adaptivity to go on forever.
 
 // Problem parameters.
 const int OMEGA_1 = 1;
@@ -109,16 +104,25 @@ int main(int argc, char* argv[])
   AdaptivityParamType apt(ERR_STOP, NDOF_STOP, THRESHOLD, STRATEGY, 
                           MESH_REGULARITY);
 
-  // Adaptivity loop:
+  // Geometry and position of visualization windows.
+  WinGeom* SLN_WIN_GEOM = new WinGeom{0, 0, 400, 600};
+  WinGeom* MESH_WIN_GEOM = new WinGeom{410, 0, 400, 600};
+  WinGeom* GRAD_WIN_GEOM = new WinGeom{820, 0, 400, 600};
+
+  // Adaptivity loop.
   Solution *sln = new Solution();
-  int proj_norm = 1;  // H1 norm.
-  solve_linear_adapt(&space, &wf, sln, SOLVER_UMFPACK, proj_norm, 
-                     &selector, &apt, SLN_WIN_GEOM, MESH_WIN_GEOM);
+  bool verbose = true;
+  solve_linear_adapt(&space, &wf, sln, SOLVER_UMFPACK, H2D_H1_NORM, 
+                     &selector, &apt, SLN_WIN_GEOM, MESH_WIN_GEOM, verbose);
 
   // Show the final result.
-  ScalarView sview("Scalar potential Phi", SLN_WIN_GEOM);
-  OrderView  oview("Mesh", MESH_WIN_GEOM);
-  VectorView gview("Gradient of Phi", GRAD_WIN_GEOM);
+  char title[100];
+  sprintf(title, "Scalar potential Phi");
+  ScalarView sview(title, SLN_WIN_GEOM);
+  sprintf(title, "Mesh");
+  OrderView  oview(title, MESH_WIN_GEOM);
+  sprintf(title, "Gradient of Phi");
+  VectorView gview(title, GRAD_WIN_GEOM);
   gview.set_min_max_range(0, 1e8);
   sview.show_mesh(false);
   sview.show(sln);

@@ -35,7 +35,7 @@
 int View::screenshot_no = 1;
 
 ///////////////// methods /////////////////
-View::View(const char* title, int x, int y, int width, int height)
+View::View(char* title, int x, int y, int width, int height)
   : gl_pallete_tex_id(0)
   , title(title), output_id(-1), output_x(x), output_y(y), output_width(width), output_height(height)
   , vertices_min_x(0), vertices_max_x(0), vertices_min_y(0), vertices_max_y(0)
@@ -68,22 +68,22 @@ View::View(const char* title, int x, int y, int width, int height)
   memset(rendering_frames, 0, FPS_FRAME_SIZE * sizeof(double));
 }
 
-View::View(const char* title, const int geom[4])
+View::View(char* title, WinGeom* wg)
   : gl_pallete_tex_id(0),
     title(title), output_id(-1), vertices_min_x(0), vertices_max_x(0), vertices_min_y(0), vertices_max_y(0),
     view_not_reset(true)
 {
-  if (geom == NULL) {
+  if (wg == NULL) {
     output_x = H2D_DEFAULT_X_POS;
     output_y = H2D_DEFAULT_Y_POS;
     output_width = H2D_DEFAULT_WIDTH;
     output_height = H2D_DEFAULT_HEIGHT;
   }
   else {
-    output_x = geom[0];
-    output_y = geom[1];
-    output_width = geom[2];
-    output_height = geom[3];
+    output_x = wg->x;
+    output_y = wg->y;
+    output_width = wg->width;
+    output_height = wg->height;
   }
 
   jitter_x = jitter_y = 0.0;

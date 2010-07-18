@@ -28,7 +28,7 @@
 
 //// MeshView //////////////////////////////////////////////////////////////////////////////////////
 
-MeshView::MeshView(const char* title, int x, int y, int width, int height)
+MeshView::MeshView(char* title, int x, int y, int width, int height)
         : View(title, x, y, width, height)
 {
   nodes = elems = NULL;
