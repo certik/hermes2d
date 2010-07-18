@@ -60,6 +60,7 @@ public:
   void show_contours(double step, double orig = 0.0);
   void hide_contours() { contours = false; refresh(); }
   void set_3d_mode(bool enable = true) { mode3d = enable; refresh(); }
+  void set_vertical_scaling(double sc);  ///< Sets the scaling on the vertical axis programmatically.
 
 
 public: // input/output routines
@@ -202,8 +203,7 @@ protected:
 
   double3* normals;
 
-  double calculate_ztrans_to_fit_view(); /// Calculates the z-coordinate (in eye coordinates) of the closest viewpoint from which we can still see the whole model.
-                                         /// Assumes a model/view matrix to be the current matrix on the OpenGL stack.
+  double calculate_ztrans_to_fit_view(); ///< Calculates the z-coordinate (in eye coordinates) of the closest viewpoint from which we can still see the whole model. Assumes a model/view matrix to be the current matrix on the OpenGL stack.
   virtual void reset_view(bool force_reset); ///< Resets 2d and 3d view.
   virtual void update_layout(); ///< Updates layout, i.e., centers 2d and 3d mesh.
 

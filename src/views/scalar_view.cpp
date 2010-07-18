@@ -1305,6 +1305,15 @@ double ScalarView::calculate_ztrans_to_fit_view()
   return -optimal_viewpoint_pos;
 }
 
+void ScalarView::set_vertical_scaling(double sc)
+{
+  if (mode3d)
+    yscale *= sc;
+  else if (contours)
+    cont_step *= sc;
+  refresh();
+}
+
 void ScalarView::init_lighting()
 {
   float light_specular[] = {  1.0f, 1.0f, 1.0f, 1.0f };
