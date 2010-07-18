@@ -181,13 +181,18 @@ protected: //edges
   static void draw_svg_edge(int inx_vert_a, int inx_vert_b, ScalarView* viewer, void* param); ///< Draws edge specified by edge into SVG file given as parameter (type: SVGExportParams*). Functions assumes that data are locked.
   static void draw_gl_edge(int inx_vert_a, int inx_vert_b, ScalarView* viewer, void* param); ///< Draws edge specified by edge indices using GL. Functions assumes that data are locked.
   void draw_edges(DrawSingleEdgeCallback draw_single_edge, void* param, bool boundary_only); ///< Draws edges of elements and boundary of mesh. Functions assumes that data are locked.
-  void draw_aabb(); ///< Draws the axes-aligned bounding box of the model. Functions assumes that data are locked.
+  void draw_aabb(); ///< Draws the axes-aligned bounding box of the model. Assumes a model/view matrix to be the current matrix on the OpenGL stack.
 
 protected:
   bool contours; ///< true to enable drawing of contours
   double cont_orig, cont_step; ///< contour settings.
   float cont_color[3]; ///< color of contours (RGB)
   bool do_zoom_to_fit; ///< true to automatically translate the view so that the whole model si displayed
+
+  // Perspective projection parameters.
+  static const int fovy = 50;        ///< Field of view in the vertical direction (in degrees).
+  static const double znear = 0.05;  ///< Distance of the near clipping plane of the viewing frustum from the camera.
+  static const double zfar = 10;     ///< Distance of the Far clipping plane of the viewing frustum from the camera.
 
   bool pmode, mode3d, panning;
   double xrot, yrot, xtrans, ytrans, ztrans;
@@ -198,7 +203,8 @@ protected:
 
   double3* normals;
 
-  double calculate_ztrans_to_fit_view(int fovy); /// Calculates the z-coordinate (in eye coordinates) of the closest viewpoint from which we can still see the whole model under the specified vertical FOV.
+  double calculate_ztrans_to_fit_view(); /// Calculates the z-coordinate (in eye coordinates) of the closest viewpoint from which we can still see the whole model.
+                                         /// Assumes a model/view matrix to be the current matrix on the OpenGL stack.
   virtual void reset_view(bool force_reset); ///< Resets 2d and 3d view.
   virtual void update_layout(); ///< Updates layout, i.e., centers 2d and 3d mesh.
 
