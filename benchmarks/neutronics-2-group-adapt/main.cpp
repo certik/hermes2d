@@ -36,7 +36,7 @@ const int INIT_REF_NUM[2] =
 
 const double THRESHOLD = 0.3;              // This is a quantitative parameter of the adapt(...) function and
                                            // it has different meanings for various adaptive strategies (see below).
-const int STRATEGY = 1;                    // Adaptive strategy:
+const int STRATEGY = 0;                    // Adaptive strategy:
                                            // STRATEGY = 0 ... refine elements until sqrt(THRESHOLD) times total
                                            //   error is processed. If more elements have similar errors, refine
                                            //   all to keep the mesh symmetric.
