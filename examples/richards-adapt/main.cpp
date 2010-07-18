@@ -51,7 +51,7 @@ const int STRATEGY = 1;                    // Adaptive strategy:
                                            // STRATEGY = 2 ... refine all elements whose error is larger
                                            //   than THRESHOLD.
                                            // More adaptive strategies can be created in adapt_ortho_h1.cpp.
-const CandList CAND_LIST = H2D_HP_ANISO;   // Predefined list of element refinement candidates. Possible values are
+const CandList CAND_LIST = H2D_HP_ANISO;    // Predefined list of element refinement candidates. Possible values are
                                            // H2D_P_ISO, H2D_P_ANISO, H2D_H_ISO, H2D_H_ANISO, H2D_HP_ISO,
                                            // H2D_HP_ANISO_H, H2D_HP_ANISO_P, H2D_HP_ANISO.
                                            // See the User Documentation for details.
@@ -63,7 +63,7 @@ const int MESH_REGULARITY = -1;            // Maximum allowed level of hanging n
                                            // their notoriously bad performance.
 const double CONV_EXP = 1.0;               // Default value is 1.0. This parameter influences the selection of
                                            // cancidates in hp-adaptivity. See get_optimal_refinement() for details.
-const double ERR_STOP = 0.01;               // Stopping criterion for adaptivity (rel. error tolerance between the
+const double ERR_STOP = 0.01;              // Stopping criterion for adaptivity (rel. error tolerance between the
                                            // fine mesh and coarse mesh solution in percent).
 const int NDOF_STOP = 60000;               // Adaptivity process stops when the number of degrees of freedom grows
                                            // over this limit. This is to prevent h-adaptivity to go on forever.
@@ -143,7 +143,6 @@ int main(int argc, char* argv[])
   mloader.load("square.mesh", &basemesh);
 
   // Perform initial mesh refinements.
-  //mesh.refine_all_elements();
   mesh.copy(&basemesh);
   for(int i = 0; i < INIT_REF_NUM; i++) mesh.refine_all_elements();
   mesh.refine_towards_boundary(2, INIT_REF_NUM_BDY);
@@ -156,18 +155,18 @@ int main(int argc, char* argv[])
   //selector.set_error_weights(2.0, 1.0, sqrt(2.0));
   //selector.set_error_weights(1.0, 1.0, 1.0);
 
-  /*
+  /* THIS IS A NEW FUNCTIONALITY THAT NEEDS TO BE TESTED
   // Adapt mesh to represent initial condition with given accuracy.
   int proj_norm = 1;  // H1 norm.
-  bool verbose = false; 
+  bool verbose = true; 
   bool project_on_fine_mesh = true;
   adapt_to_exact_function(&space, init_cond, &selector, THRESHOLD, STRATEGY, 
                           MESH_REGULARITY, ERR_STOP, NDOF_STOP, proj_norm, 
                           project_on_fine_mesh, verbose);
+  */
 
   // Set Dirichlet boundary conditions.
   space.set_bc_types(bc_types_dirichlet);   
-  */
 
   info("Initial mesh: ndof = %d", space.get_num_dofs());
 
@@ -213,6 +212,9 @@ int main(int argc, char* argv[])
   int num_time_steps = (int)(T_FINAL/TAU + 0.5);
   for(int ts = 1; ts <= num_time_steps; ts++)
   {
+    // Time measurement.
+    cpu_time.tick();
+
     // Updating current time.
     TIME = ts*TAU;
 
