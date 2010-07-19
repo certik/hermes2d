@@ -65,6 +65,7 @@ void ScalarView::init()
   gl_coord_buffer = 0; gl_index_buffer = 0; gl_edge_inx_buffer = 0;
 
   do_zoom_to_fit = true;
+  is_constant = false;
 }
 
 ScalarView::ScalarView(const char* title, int x, int y, int width, int height)
@@ -106,11 +107,6 @@ ScalarView::ScalarView(char* title, WinGeom* wg)
 #endif
 {
   init();
-  show_values = true;
-  lin_updated = false;
-  gl_coord_buffer = 0; gl_index_buffer = 0; gl_edge_inx_buffer = 0;
-
-  do_zoom_to_fit = true;
 }
 
 ScalarView::~ScalarView()
@@ -280,10 +276,20 @@ void ScalarView::update_mesh_info() {
   }
 
   // Get a range of vertex values (or use the range set by the user).
-  if (range_auto) {
-    range_min = lin.get_min_value();
-    range_max = lin.get_max_value();
+  double vert_min = lin.get_min_value();
+  double vert_max = lin.get_max_value();
+  // Special case: constant function; offset the lower limit of range so that the domain is drawn under the
+  // function and also the scale is drawn correctly.
+  if ((vert_max - vert_min) < 1e-8) {
+    is_constant = true;
+    vert_min -= 0.5;
   }
+
+  if (range_auto) {
+    range_min = vert_min;
+    range_max = vert_max;
+  }
+  value_irange = 1.0 / (range_max - range_min);
 
   // Calculate the axes-aligned bounding box in the xy-plane.
   lin.calc_vertices_aabb(&vertices_min_x, &vertices_max_x, &vertices_min_y, &vertices_max_y);
@@ -300,15 +306,6 @@ void ScalarView::update_mesh_info() {
     else
       value_range_avg += verts[i][2];
   value_range_avg /= num_verts;
-
-  // Special case: constant function; offset the lower limit of range so that the domain is drawn under the
-  // function and also the scale is drawn correctly.
-  if ((range_max - range_min) < 1e-8) {
-    value_irange = 2.0;
-    range_min -= 0.5;
-  } else {
-    value_irange = 1.0 / (range_max - range_min);
-  }
 
   lin_updated = true;
 }
@@ -1281,7 +1278,7 @@ void ScalarView::reset_view(bool force_reset) {
     // TODO: allow the user to decide whether he always wants equal axes scaling or prefers actually seeing something sensible...
     double tan_fovy_half = tan((double) fovy / 2.0 / 180.0 * M_PI);
     double max_allowed_height = (zfar-3)*tan_fovy_half;
-    if (max_axial * xzscale > max_allowed_height || (max_axial * xzscale < 0.1 && (range_max - range_min) > 1e-8) )
+    if (max_axial * xzscale > max_allowed_height || (max_axial * xzscale < 0.1 && !is_constant) )
       yscale = (znear + zfar) / 3.0 * tan_fovy_half * value_irange;
     else
       yscale = xzscale;
@@ -1378,6 +1375,15 @@ void ScalarView::set_vertical_scaling(double sc)
   else if (contours)
     cont_step *= sc;
   refresh();
+}
+
+void ScalarView::set_min_max_range(double min, double max)
+{
+  if ((max-min) < 1e-8) {
+    warn("Range (%f,%f) is too narrow: adjusted to (%f,%f)", min, max, min-0.5, max);
+    min -= 0.5;
+  }
+  View::set_min_max_range(min, max);
 }
 
 void ScalarView::init_lighting()

@@ -68,6 +68,7 @@ public:
   void hide_contours() { contours = false; refresh(); }
   void set_3d_mode(bool enable = true) { mode3d = enable; refresh(); }
   void set_vertical_scaling(double sc);  ///< Sets the scaling on the vertical axis programmatically.
+  void set_min_max_range(double min, double max);  ///< Sets the limits on displayed values.
 
 
 public: // input/output routines
@@ -196,6 +197,7 @@ protected:
   double cont_orig, cont_step; ///< contour settings.
   float cont_color[3]; ///< color of contours (RGB)
   bool do_zoom_to_fit; ///< true to automatically translate the view so that the whole model si displayed
+  bool is_constant; ///< true if the function to be displayed is constant
 
   // Perspective projection parameters.
 #ifdef _MSC_VER
