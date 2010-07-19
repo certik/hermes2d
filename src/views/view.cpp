@@ -683,6 +683,10 @@ void View::update_tex_adjust()
 
 void View::set_min_max_range(double min, double max)
 {
+  if (max < min) {
+    std::swap(min, max);
+    warn("Upper bound set below the lower bound: reversing to (%f,%f).", min, max);
+  }
   view_sync.enter();
   range_min = min;
   range_max = max;
