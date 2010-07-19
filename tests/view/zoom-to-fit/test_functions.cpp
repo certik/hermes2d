@@ -20,8 +20,8 @@ static double fn_cuboid(double x, double y, double& dx, double& dy)
 {
   static double K = 1e2;
   dx = dy = 0;
-  return  (1. - (exp(K*x) + exp(-K*x))/(exp(K) + exp(-K))) * 
-          (1. - (exp(K*y) + exp(-K*y))/(exp(K) + exp(-K))); 
+  return  (1. - (exp(K*x) + exp(-K*x))/(exp(K) + exp(-K))) *
+          (1. - (exp(K*y) + exp(-K*y))/(exp(K) + exp(-K)));
 }
 
 
@@ -29,7 +29,14 @@ static double fn_cuboid(double x, double y, double& dx, double& dy)
 // requires manual setting of limits on the vertical axis to be displayed reasonably.
 static double fn_bigrange(double x, double y, double& dx, double& dy)
 {
-  dx = dy = 0; // Don't need derivatives for drawing.
+  dx = dy = 0;
   return cos(4*sqr(M_PI)*(sqr(x)+sqr(y)))/exp(-4*(sqr(x)+sqr(y)));
+}
+
+// Paraboloid.
+static double fn_paraboloid(double x, double y, double& dx, double& dy)
+{
+  dx = dy = 0;
+  return sqr(x) + sqr(y);
 }
 

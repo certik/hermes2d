@@ -12,4 +12,5 @@ add_test(zoom-to-fit_cuboid-on-square "${BIN}" 2 square.mesh)
 add_test(zoom-to-fit_cuboid-on-curved "${BIN}" 2 curved.mesh)
 add_test(zoom-to-fit_bigrange-on-square "${BIN}" 3 square.mesh)
 add_test(zoom-to-fit_bigrange-on-curved "${BIN}" 3 curved.mesh)
+add_test(zoom-to-fit_paraboloid-on-distorted "${BIN}" 4 distorted.mesh)
 
