@@ -14,3 +14,13 @@ add_test(zoom-to-fit_bigrange-on-square "${BIN}" 3 square.mesh)
 add_test(zoom-to-fit_bigrange-on-curved "${BIN}" 3 curved.mesh)
 add_test(zoom-to-fit_paraboloid-on-distorted "${BIN}" 4 distorted.mesh)
 
+set_tests_properties(zoom-to-fit_const-on-square PROPERTIES LABELS slow)
+set_tests_properties(zoom-to-fit_const-on-distorted PROPERTIES LABELS slow)
+set_tests_properties(zoom-to-fit_plane-on-square PROPERTIES LABELS slow)
+set_tests_properties(zoom-to-fit_plane-on-distorted PROPERTIES LABELS slow)
+set_tests_properties(zoom-to-fit_cuboid-on-square PROPERTIES LABELS slow)
+set_tests_properties(zoom-to-fit_cuboid-on-curved PROPERTIES LABELS slow)
+set_tests_properties(zoom-to-fit_bigrange-on-square PROPERTIES LABELS slow)
+set_tests_properties(zoom-to-fit_bigrange-on-curved PROPERTIES LABELS slow)
+set_tests_properties(zoom-to-fit_paraboloid-on-distorted PROPERTIES LABELS slow)
+

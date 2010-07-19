@@ -8,4 +8,6 @@ include (../../CMake.common)
 
 set(BIN ${PROJECT_BINARY_DIR}/${PROJECT_NAME})
 add_test(benchmark-neutronics-2-group-adapt-projection ${BIN})
+set_tests_properties(benchmark-neutronics-2-group-adapt-projection PROPERTIES LABELS slow)
+
 
