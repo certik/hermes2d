@@ -188,6 +188,7 @@ int get_num_of_neg(MeshFunction *sln)
     RefMap* ru = sln->get_refmap();
     int o = sln->get_fn_order() + ru->get_inv_ref_order();
     limit_order(o);
+    sln->set_quad_order(o, H2D_FN_VAL);
     scalar *uval = sln->get_fn_values();
     int np = quad->get_num_points(o);
 
