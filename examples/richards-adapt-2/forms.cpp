@@ -1,6 +1,41 @@
 // Jacobian matrix - volumetric part
 double jac_form_vol(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v, Geom<double> *e, ExtData<double> *ext)
 {
+  double x = e->x[0];
+  double y = e->x[1];
+  if (is_in_mat_1(x,y)) {
+    K_S = K_S_1;
+    ALPHA = ALPHA_1;
+    THETA_R = THETA_R_1;
+    THETA_S = THETA_R_1;
+    N = N_1;
+    M = M_1;
+  }
+  if (is_in_mat_2(x,y)) {
+    K_S = K_S_2;
+    ALPHA = ALPHA_2;
+    THETA_R = THETA_R_2;
+    THETA_S = THETA_R_2;
+    N = N_2;
+    M = M_2;
+  }
+  if (is_in_mat_3(x,y)) {
+    K_S = K_S_3;
+    ALPHA = ALPHA_3;
+    THETA_R = THETA_R_3;
+    THETA_S = THETA_R_3;
+    N = N_3;
+    M = M_3;
+  }
+  if (is_in_mat_4(x,y)) {
+    K_S = K_S_4;
+    ALPHA = ALPHA_4;
+    THETA_R = THETA_R_4;
+    THETA_S = THETA_R_4;
+    N = N_4;
+    M = M_4;
+  }
+
   double result = 0;
   Func<double>* h_prev_newton = ext->fn[0];
   Func<double>* h_prev_time = ext->fn[1];

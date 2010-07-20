@@ -102,7 +102,7 @@ public:
   void set_zero_2(Mesh* mesh); // two-component (Hcurl) zero
 
   /// Sets solution equal to Dirichlet lift only, solution vector = 0
-  void set_dirichlet_lift(Space* space, PrecalcShapeset* pss);
+  void set_dirichlet_lift(Space* space, PrecalcShapeset* pss = NULL);
 
   /// Enables or disables transformation of the solution derivatives (H1 case)
   /// or values (vector (Hcurl) case). This means H2D_FN_DX_0 and H2D_FN_DY_0 or

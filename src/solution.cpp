@@ -494,7 +494,13 @@ void Solution::set_dirichlet_lift(Space* space, PrecalcShapeset* pss)
   int ndofs = space->get_num_dofs();
   scalar *temp = new scalar[ndofs];
   for (int i = 0; i < ndofs; i++) temp[i] = 0;
-  set_fe_solution(space, pss, temp);
+  if (pss != NULL) set_fe_solution(space, pss, temp);
+  else {
+    // create temporary (default) shapeset
+    Shapeset *shapeset = space->get_shapeset();
+    PrecalcShapeset *p_temp = new PrecalcShapeset(shapeset);
+    set_fe_solution(space, p_temp, temp);
+  }
   delete [] temp;
 }
 

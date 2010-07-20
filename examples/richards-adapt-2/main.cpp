@@ -25,12 +25,11 @@ using namespace RefinementSelectors;
 //  The following parameters can be changed:
 
 // If this is defined, use van Genuchten's constitutive relations, otherwise use Gardner's.
-#define CONSTITUTIVE_GENUCHTEN
+//#define CONSTITUTIVE_GENUCHTEN
 
-const double TIME_INIT = 1e-3;             // Initial time.
 const int INIT_REF_NUM = 1;                // Number of initial uniform mesh refinements.
-const int INIT_REF_NUM_BDY = 0;            // Number of initial mesh refinements towards the top edge.
-const int P_INIT = 2;                      // Initial polynomial degree of all mesh elements.
+const int INIT_REF_NUM_BDY = 5;            // Number of initial mesh refinements towards the top edge.
+const int P_INIT = 1;                      // Initial polynomial degree of all mesh elements.
 const double TAU = 0.001;                  // Time step.
 const double T_FINAL = 5.0;                // Time interval length.
 
@@ -59,7 +58,7 @@ const int MESH_REGULARITY = -1;            // Maximum allowed level of hanging n
                                            // their notoriously bad performance.
 const double CONV_EXP = 1.0;               // Default value is 1.0. This parameter influences the selection of
                                            // cancidates in hp-adaptivity. See get_optimal_refinement() for details.
-const double ERR_STOP = 0.1;               // Stopping criterion for adaptivity (rel. error tolerance between the
+const double ERR_STOP = 2.0;               // Stopping criterion for adaptivity (rel. error tolerance between the
                                            // fine mesh and coarse mesh solution in percent).
 const int NDOF_STOP = 60000;               // Adaptivity process stops when the number of degrees of freedom grows
                                            // over this limit. This is to prevent h-adaptivity to go on forever.
@@ -67,22 +66,69 @@ const int NDOF_STOP = 60000;               // Adaptivity process stops when the 
 // Newton's method
 const double NEWTON_TOL_COARSE = 0.01;     // Stopping criterion for Newton on coarse mesh.
 const double NEWTON_TOL_FINE = 0.05;       // Stopping criterion for Newton on fine mesh.
-const int NEWTON_MAX_ITER = 20;            // Maximum allowed number of Newton iterations.
+const int NEWTON_MAX_ITER = 50;            // Maximum allowed number of Newton iterations.
 
 // Problem parameters.
-double K_S = 20.464;
-double ALPHA = 1e-3;
-double THETA_R = 0;
-double THETA_S = 0.45;
-double H_R = -1000;
-double A = 100;
-double L = 100;
+double K_S_1 = 7.89; 
+double K_S_2 = 4.69; 
+double K_S_3 = 4.143; 
+//double K_S_4 = 41.143; 
+double K_S_4 = 1e-3; 
+
+double ALPHA_1 = 3.334;
+double ALPHA_2 = 3.63;
+double ALPHA_3 = 3.455;
+double ALPHA_4 = 3.455;
+
+double THETA_R_1 = 0.1020;
+double THETA_R_2 = 0.09849;
+double THETA_R_3 = 0.08590;
+double THETA_R_4 = 0.08590;
+
+double THETA_S_1 = 0.3680;
+double THETA_S_2 = 0.3510;
+double THETA_S_3 = 0.3250;
+double THETA_S_4 = 0.3250;
+
+double N_1 = 1.982;
+double N_2 = 1.632; 
+double N_3 = 5.0;
+double N_4 = 5.0;
+
+double M_1 = 0.49546;
+double M_2 = 0.38726;
+double M_3 = 0.8;
+double M_4 = 0.8;
+
+double Q_CONST = 2.87;
 double STORATIVITY = 0.01;
-double M = 0.6;
-double N = 2.5;
-double Q_CONST = 2e-2;
+
+// Global variables for forms.
+double K_S, ALPHA, THETA_R, THETA_S, N, M;
+
+// Material properties.
+bool is_in_mat_1(double x, double y) {
+  if (y >= 6.0) return true;
+  else return false; 
+}
+
+bool is_in_mat_2(double x, double y) {
+  if (y >= 5.5 && y < 6.0) return true;
+  else return false; 
+}
+
+bool is_in_mat_4(double x, double y) {
+  if (x >= 1.0 && x <= 3.0 && y >= 4.0 && y < 5.0) return true;
+  else return false; 
+}
+
+bool is_in_mat_3(double x, double y) {
+  if (!is_in_mat_1(x, y) && !is_in_mat_2(x, y) && !is_in_mat_4(x, y)) return true;
+  else return false; 
+}
 
 // Current time.
+const double TIME_INIT = 0;                // Initial time.
 double TIME = TIME_INIT;
 
 #ifdef CONSTITUTIVE_GENUCHTEN
@@ -93,13 +139,14 @@ double TIME = TIME_INIT;
 
 // Boundary markers.
 int BDY_1 = 1;
+int BDY_3 = 3;
 int BDY_4 = 4;
 int BDY_6 = 6;
 
 // Boundary condition types.
 BCType bc_types(int marker)
 {
-  if (marker == 3) return BC_ESSENTIAL;
+  if (marker == BDY_3) return BC_ESSENTIAL;
   else return BC_NATURAL;
 }
 
@@ -107,7 +154,7 @@ BCType bc_types(int marker)
 double init_cond(double x, double y, double& dx, double& dy) {
   dx = 0;
   dy = 0;
-  return -89.96;
+  return -9.96;
 }
 
 // Essential (Dirichlet) boundary condition values.
@@ -121,6 +168,16 @@ scalar essential_bc_values(int ess_bdy_marker, double x, double y)
 
 int main(int argc, char* argv[])
 {
+  /*
+  FILE *f = fopen("graf.txt", "wb");
+  for (int i=0; i<1000; i++) {
+    double h = -i;
+    fprintf(f, "%g %g %g\n", h, K(h), C(h));
+  }
+  fclose(f);
+  exit(0);
+  */
+
   // Load the mesh.
   Mesh mesh, basemesh;
   H2DReader mloader;
@@ -129,7 +186,7 @@ int main(int argc, char* argv[])
   // Perform initial mesh refinements.
   mesh.copy(&basemesh);
   for(int i = 0; i < INIT_REF_NUM; i++) mesh.refine_all_elements();
-  mesh.refine_towards_boundary(2, INIT_REF_NUM_BDY);
+  mesh.refine_towards_boundary(3, INIT_REF_NUM_BDY);
 
   // Create an H1 space with default shapeset.
   H1Space space(&mesh, bc_types, essential_bc_values, P_INIT);
@@ -169,10 +226,11 @@ int main(int argc, char* argv[])
   // Error estimate and discrete problem size as a function of physical time.
   SimpleGraph graph_time_err_est, graph_time_dof_est;
 
-  // Project the function init_cond() on the FE space
-  // to obtain initial coefficient vector for the Newton's method.
-  info("Projecting initial condition to obtain initial vector for the Newton'w method.");
-  u_prev_time.set_exact(&mesh, init_cond);            // u_prev_time set equal to init_cond().
+  // Set the Dirichlet lift to be the initial solution.
+  // The initial vector for the Newton's method will be zero. 
+  info("Setting initial vector for the Newton's method zero.");
+  u_prev_time.set_dirichlet_lift(&space);             // u_prev_time set equal to init_cond().
+
   nls.project_global(&u_prev_time, &u_prev_newton);   // Initial vector calculated here.
 
   // View the projection of the initial condition.
@@ -181,7 +239,7 @@ int main(int argc, char* argv[])
   view.fix_scale_width(80);
   view.show(&u_prev_newton);
   ordview.show(&space);
-  View::wait(H2DV_WAIT_KEYPRESS);
+  //View::wait(H2DV_WAIT_KEYPRESS);
 
   // Newton's loop on the coarse mesh.
   info("Solving on coarse mesh.");
