@@ -28,8 +28,8 @@ using namespace RefinementSelectors;
 #define CONSTITUTIVE_GENUCHTEN
 
 const double TIME_INIT = 1e-3;             // Initial time.
-const int INIT_REF_NUM = 0;                // Number of initial uniform mesh refinements.
-const int INIT_REF_NUM_BDY = 6;            // Number of initial mesh refinements towards the top edge.
+const int INIT_REF_NUM = 1;                // Number of initial uniform mesh refinements.
+const int INIT_REF_NUM_BDY = 0;            // Number of initial mesh refinements towards the top edge.
 const int P_INIT = 2;                      // Initial polynomial degree of all mesh elements.
 const double TAU = 0.001;                  // Time step.
 const double T_FINAL = 5.0;                // Time interval length.
@@ -80,6 +80,7 @@ double L = 100;
 double STORATIVITY = 0.01;
 double M = 0.6;
 double N = 2.5;
+double Q_CONST = 2e-2;
 
 // Current time.
 double TIME = TIME_INIT;
@@ -90,31 +91,29 @@ double TIME = TIME_INIT;
 #include "constitutive_gardner.cpp"
 #endif
 
-// Boundary condition types.
-BCType bc_types_dirichlet(int marker)
-{
-  return BC_ESSENTIAL;
-}
+// Boundary markers.
+int BDY_1 = 1;
+int BDY_4 = 4;
+int BDY_6 = 6;
 
 // Boundary condition types.
-BCType bc_types_neumann(int marker)
+BCType bc_types(int marker)
 {
-  return BC_NATURAL;
+  if (marker == 3) return BC_ESSENTIAL;
+  else return BC_NATURAL;
 }
 
-// Nice smooth initial condition for debugging purposes.
-int Y_POWER = 5;
+// Initial condition.
 double init_cond(double x, double y, double& dx, double& dy) {
-  dx = (100 - 2*x)/2.5 * pow(y/100, Y_POWER);
-  dy = x*(100 - x)/2.5 * pow(y/100, Y_POWER - 1) * 1./100;
-  return x*(100 - x)/2.5 * pow(y/100, Y_POWER) - 1000;
+  dx = 0;
+  dy = 0;
+  return -89.96;
 }
 
-// Essential (Dirichlet) boundary condition markers.
+// Essential (Dirichlet) boundary condition values.
 scalar essential_bc_values(int ess_bdy_marker, double x, double y)
 {
-  double dx, dy;
-  return init_cond(x, y, dx, dy);
+  return 2.2 - y;
 }
 
 // Weak forms.
@@ -125,7 +124,7 @@ int main(int argc, char* argv[])
   // Load the mesh.
   Mesh mesh, basemesh;
   H2DReader mloader;
-  mloader.load("square.mesh", &basemesh);
+  mloader.load("domain.mesh", &basemesh);
 
   // Perform initial mesh refinements.
   mesh.copy(&basemesh);
@@ -133,13 +132,14 @@ int main(int argc, char* argv[])
   mesh.refine_towards_boundary(2, INIT_REF_NUM_BDY);
 
   // Create an H1 space with default shapeset.
-  H1Space space(&mesh, bc_types_neumann, essential_bc_values, P_INIT);
+  H1Space space(&mesh, bc_types, essential_bc_values, P_INIT);
 
   // Initialize refinement selector.
   H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
   //selector.set_error_weights(2.0, 1.0, sqrt(2.0));
   //selector.set_error_weights(1.0, 1.0, 1.0);
 
+  /*
   // Adapt mesh to represent initial condition with given accuracy.
   int proj_norm = 1;  // H1 norm.
   bool verbose = false; 
@@ -147,18 +147,21 @@ int main(int argc, char* argv[])
   adapt_to_exact_function(&space, init_cond, &selector, THRESHOLD, STRATEGY, 
                           MESH_REGULARITY, ERR_STOP, NDOF_STOP, proj_norm, 
                           project_on_fine_mesh, verbose);
-
-  // Set Dirichlet boundary conditions.
-  space.set_bc_types(bc_types_dirichlet);   
-  info("Initial mesh: ndof = %d", space.get_num_dofs());
+  */
 
   // Solutions for the time stepping and the Newton's method.
   Solution u_prev_time, u_prev_newton;
 
   // Initialize the weak formulation.
   WeakForm wf;
-  wf.add_matrix_form(jac, jac_ord, H2D_UNSYM, H2D_ANY, Tuple<MeshFunction*>(&u_prev_newton, &u_prev_time));
-  wf.add_vector_form(res, res_ord, H2D_ANY, Tuple<MeshFunction*>(&u_prev_newton, &u_prev_time));
+  wf.add_matrix_form(jac_form_vol, jac_form_vol_ord, H2D_UNSYM, H2D_ANY, Tuple<MeshFunction*>(&u_prev_newton, &u_prev_time));
+  wf.add_matrix_form_surf(jac_form_surf_1, jac_form_surf_1_ord, BDY_1, Tuple<MeshFunction*>(&u_prev_newton));
+  wf.add_matrix_form_surf(jac_form_surf_4, jac_form_surf_4_ord, BDY_4, Tuple<MeshFunction*>(&u_prev_newton));
+  wf.add_matrix_form_surf(jac_form_surf_6, jac_form_surf_6_ord, BDY_6, Tuple<MeshFunction*>(&u_prev_newton));
+  wf.add_vector_form(res_form_vol, res_form_vol_ord, H2D_ANY, Tuple<MeshFunction*>(&u_prev_newton, &u_prev_time));
+  wf.add_vector_form_surf(res_form_surf_1, res_form_surf_1_ord, BDY_1, Tuple<MeshFunction*>(&u_prev_newton));
+  wf.add_vector_form_surf(res_form_surf_4, res_form_surf_4_ord, BDY_4, Tuple<MeshFunction*>(&u_prev_newton));
+  wf.add_vector_form_surf(res_form_surf_6, res_form_surf_6_ord, BDY_6, Tuple<MeshFunction*>(&u_prev_newton));
   
   // Initialize the nonlinear system.
   NonlinSystem nls(&wf, &space);
@@ -182,7 +185,7 @@ int main(int argc, char* argv[])
 
   // Newton's loop on the coarse mesh.
   info("Solving on coarse mesh.");
-  verbose = true; // Default is false.
+  bool verbose = true; // Default is false.
   if (!nls.solve_newton(&u_prev_newton, NEWTON_TOL_COARSE, NEWTON_MAX_ITER, verbose))
     error("Newton's method did not converge.");
 
