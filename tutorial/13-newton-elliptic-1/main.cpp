@@ -81,20 +81,18 @@ int main(int argc, char* argv[])
   // Create an H1 space with default shapeset.
   H1Space space(&mesh, bc_types, essential_bc_values, P_INIT);
 
-  // Previous solution for the Newton's iteration.
-  Solution u_prev;
-
   // Initialize the weak formulation.
   WeakForm wf;
   wf.add_matrix_form(callback(jac), H2D_UNSYM, H2D_ANY);
   wf.add_vector_form(callback(res), H2D_ANY);
 
   // Perform Newton's iteration.
+  Solution sln; 
   info("Performing Newton's iteration.");
   bool verbose = true; // Default is false.
   Solution* init_sln = new Solution();
   init_sln->set_exact(&mesh, init_cond);
-  if (!solve_newton(&space, &wf, init_sln, &u_prev, SOLVER_UMFPACK, H2D_H1_NORM, 
+  if (!solve_newton(&space, &wf, init_sln, &sln, SOLVER_UMFPACK, H2D_H1_NORM, 
                     NEWTON_TOL, NEWTON_MAX_ITER, verbose)) error("Newton's method did not converge.");
 
   // Visualise the solution and mesh.
@@ -103,7 +101,7 @@ int main(int argc, char* argv[])
   char title[100];
   sprintf(title, "Solution");
   sview.set_title(title);
-  sview.show(&u_prev);
+  sview.show(&sln);
   sprintf(title, "Mesh");
   oview.set_title(title);
   oview.show(&space);

@@ -268,7 +268,7 @@ void project_local(Space *space, ExactFunction exactfn, Mesh* mesh,
                    bool is_complex = false);
 
 /// Performs complete Newton's loop for a Tuple of solutions.
-bool solve_newton(Tuple<Space *> spaces, WeakForm* wf, Tuple<MeshFunction *> init_cond, Tuple<Solution *> u_prev, 
+bool solve_newton(Tuple<Space *> spaces, WeakForm* wf, Tuple<MeshFunction *> init_cond, Tuple<Solution *> sln, 
                   MatrixSolverType matrix_solver, Tuple<int>proj_norms, double newton_tol = 1e-5, 
                   int newton_max_iter = 100, bool verbose = false, 
                   Tuple<MeshFunction*> mesh_fns = Tuple<MeshFunction*>(), 

@@ -25,6 +25,7 @@
 #include "config.h"
 #include "limit_order.h"
 #include <algorithm>
+#include "views/scalar_view.h"
 
 #include "solvers.h"
 
@@ -231,7 +232,7 @@ void DiscreteProblem::assemble(Vector* init_vec, Matrix* mat_ext, Vector* dir_ex
     rhs_ext->init(ndof);
   }
   else rhs_ext->set_zero();
-  
+
   // If init_vec != NULL, convert it to a Tuple of solutions u_ext.
   Tuple<Solution*> u_ext;
   for (int i = 0; i < wf->neq; i++) {
@@ -239,7 +240,9 @@ void DiscreteProblem::assemble(Vector* init_vec, Matrix* mat_ext, Vector* dir_ex
       u_ext.push_back(new Solution(spaces[i]->get_mesh()));
       u_ext[i]->set_fe_solution(spaces[i], this->pss[i], init_vec);
     }
-    else u_ext.push_back(NULL);
+    else {
+      u_ext.push_back(NULL);
+    }
   }
 
   int k, m, marker;
@@ -320,6 +323,9 @@ void DiscreteProblem::assemble(Vector* init_vec, Matrix* mat_ext, Vector* dir_ex
         spss[j]->set_master_transform();
         refmap[j].set_active_element(e[i]);
         refmap[j].force_transform(pss[j]->get_transform(), pss[j]->get_ctm());
+
+     if (u_ext[j] != NULL) u_ext[j]->set_active_element(e[i]);
+     if (u_ext[j] != NULL) u_ext[j]->force_transform(pss[j]->get_transform(), pss[j]->get_ctm());
       }
       marker = e0->marker;
 
@@ -1268,13 +1274,13 @@ double get_l2_norm_cplx(Vector* vec)
 // using the Newton's method. 
 // Feel free to adjust this function for more advanced applications.
 bool solve_newton(Tuple<Space *> spaces, WeakForm* wf, 
-                  Tuple<MeshFunction *> init_cond, Tuple<Solution *> u_prev, 
+                  Tuple<MeshFunction *> init_cond, Tuple<Solution *> sln, 
                   MatrixSolverType matrix_solver, Tuple<int>proj_norms, double newton_tol, 
                   int newton_max_iter, bool verbose, Tuple<MeshFunction*> mesh_fns, 
                   bool is_complex) 
 {
   // sanity checks
-  int n = u_prev.size();
+  int n = sln.size();
   if (n != wf->neq) 
     error("The number of solutions in newton_solve() must match the number of equation in the PDE system.");
   for (int i=0; i < n; i++) {
@@ -1291,7 +1297,7 @@ bool solve_newton(Tuple<Space *> spaces, WeakForm* wf,
   // to obtain initial coefficient vector for the Newton's method.
   if (verbose) info("Projecting initial condition to obtain initial vector for the Newton'w method.");
   Vector* init_vec = new AVector(get_num_dofs(spaces));
-  project_global(spaces, init_cond, u_prev, proj_norms, init_vec, is_complex);  
+  project_global(spaces, init_cond, sln, proj_norms, init_vec, is_complex); 
 
   // Initialize the discrete problem.
   DiscreteProblem dp(wf, spaces);
@@ -1303,7 +1309,7 @@ bool solve_newton(Tuple<Space *> spaces, WeakForm* wf,
 
   int it = 1;
   double res_l2_norm;
-  do
+  while (1)
   {
     if (verbose == true) info("---- Newton iter %d:", it); 
 
@@ -1321,22 +1327,28 @@ bool solve_newton(Tuple<Space *> spaces, WeakForm* wf,
                         it, get_num_dofs(spaces), res_l2_norm);
 
     // If l2 norm of the residual vector is in tolerance, quit.
-    if (res_l2_norm < newton_tol) break;
+    if (res_l2_norm < newton_tol || it > newton_max_iter) break;
 
     // Solve the matrix problem.
     if (!solver->solve(mat, rhs)) error ("Matrix solver failed.\n");
 
-    // Convert coefficient vector into a Solution.
-    for (int i=0; i<u_prev.size(); i++) {
-      u_prev[i]->set_fe_solution(spaces[i], rhs);
-    }
-
+    // add the solution vector stored in "rhs" to "init_vec"
+    for (int i = 0; i < init_vec->get_size(); i++) init_vec->add(i, rhs->get(i));
+    
     it++;
-  }
-  while (res_l2_norm > newton_tol && it <= newton_max_iter);
+  };
 
-  // returning "true" if converged, otherwise returning "false"
-  if (it <= newton_max_iter) return true;
-  else return false;
+  if (it > newton_max_iter) {
+    delete init_vec;
+    return false;
+  }
+
+  // Convert coefficient vector into solution(s) "sln".
+  for (int i=0; i<sln.size(); i++) {
+    sln[i]->set_fe_solution(spaces[i], init_vec);
+  }
+
+  delete init_vec;
+  return true;
 }
 
