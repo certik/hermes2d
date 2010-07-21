@@ -324,8 +324,8 @@ void DiscreteProblem::assemble(Vector* init_vec, Matrix* mat_ext, Vector* dir_ex
         refmap[j].set_active_element(e[i]);
         refmap[j].force_transform(pss[j]->get_transform(), pss[j]->get_ctm());
 
-     if (u_ext[j] != NULL) u_ext[j]->set_active_element(e[i]);
-     if (u_ext[j] != NULL) u_ext[j]->force_transform(pss[j]->get_transform(), pss[j]->get_ctm());
+        if (u_ext[j] != NULL) u_ext[j]->set_active_element(e[i]);
+        if (u_ext[j] != NULL) u_ext[j]->force_transform(pss[j]->get_transform(), pss[j]->get_ctm());
       }
       marker = e0->marker;
 
