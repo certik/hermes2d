@@ -34,7 +34,7 @@ void adapt_to_exact_function(Space *space, ExactFunction exactfn,
                              int mesh_regularity, double err_stop, int ndof_stop, 
 			     int proj_norm = 1, 
                              bool project_on_fine_mesh = false, bool verbose = false,
-                             Solution* sln = NULL);
+                             bool debug = false, Solution* sln = NULL);
 
 
 #endif

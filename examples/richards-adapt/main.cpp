@@ -155,15 +155,14 @@ int main(int argc, char* argv[])
   //selector.set_error_weights(2.0, 1.0, sqrt(2.0));
   //selector.set_error_weights(1.0, 1.0, 1.0);
 
-  /* THIS IS A NEW FUNCTIONALITY THAT NEEDS TO BE TESTED
+  // THIS IS A NEW FUNCTIONALITY THAT STILL NEEDS TO BE TESTED.
   // Adapt mesh to represent initial condition with given accuracy.
   int proj_norm = 1;  // H1 norm.
-  bool verbose = true; 
+  bool verbose0 = true, debug = false;
   bool project_on_fine_mesh = true;
   adapt_to_exact_function(&space, init_cond, &selector, THRESHOLD, STRATEGY, 
                           MESH_REGULARITY, ERR_STOP, NDOF_STOP, proj_norm, 
-                          project_on_fine_mesh, verbose);
-  */
+                          project_on_fine_mesh, verbose0, debug);
 
   // Set Dirichlet boundary conditions.
   space.set_bc_types(bc_types_dirichlet);   

@@ -44,12 +44,12 @@ H1Adapt::H1Adapt(LinSystem* ls) : Adapt(ls)
 // Mesh is adapted to represent initial condition with given accuracy
 // in a given projection norm.
 void adapt_to_exact_function(Space *space, ExactFunction exactfn, 
-				RefinementSelectors::Selector* selector, 
-                                double threshold, int strategy, 
-                                int mesh_regularity, double err_stop, 
-                                int ndof_stop, int proj_norm, 
-                                bool project_on_fine_mesh, bool verbose, 
-                                Solution* sln) 
+			     RefinementSelectors::Selector* selector, 
+                             double threshold, int strategy, 
+                             int mesh_regularity, double err_stop, 
+                             int ndof_stop, int proj_norm, 
+                             bool project_on_fine_mesh, bool verbose, 
+                             bool debug, Solution* sln) 
 {
   if (verbose == true) printf("Mesh adaptivity to an exact function:\n");
 
@@ -58,7 +58,6 @@ void adapt_to_exact_function(Space *space, ExactFunction exactfn,
 
   // Initialize the linear system.
   LinSystem ls(&wf_dummy, space);
-  if (verbose) printf("ndof_coarse = %d\n", ls.get_num_dofs());
 
   // Initialize views.
   ScalarView* view_c = new ScalarView("Coarse mesh projection", 0, 0, 410, 300);
@@ -75,7 +74,6 @@ void adapt_to_exact_function(Space *space, ExactFunction exactfn,
   {
     // Refine mesh uniformly.
     RefSystem rs(&ls);
-    if (verbose) printf("ndof_fine = %d\n", rs.get_num_dofs());
 
     // Assign the function f() to the fine mesh exactly or use global projection.
     if (project_on_fine_mesh == true) rs.project_global(exactfn, sln_fine, 1);
@@ -88,7 +86,7 @@ void adapt_to_exact_function(Space *space, ExactFunction exactfn,
     DiffFilter difff(sln_fine, sln_coarse, H2D_FN_VAL, H2D_FN_VAL);
 
     // View the approximation of the exact function.
-    if (verbose) {
+    if (debug) {
       view_c->show(sln_coarse);
       view_f->show(sln_fine);
       char title[100];
@@ -99,15 +97,15 @@ void adapt_to_exact_function(Space *space, ExactFunction exactfn,
       ordview_f->set_title(title);
       ordview_f->show(rs.get_space(0));
       view_e->show(&difff);
-      //View::wait(H2DV_WAIT_KEYPRESS);
+      View::wait(H2DV_WAIT_KEYPRESS);
     }
 
     // Calculate element errors and total error estimate.
     H1Adapt hp(&ls);
     hp.set_solutions(sln_coarse, sln_fine);
     double err_est = hp.calc_error() * 100;
-    if (verbose ==  true) printf("Step %d, ndof %d, proj_error %g%%\n", 
-                                 as, ls.get_num_dofs(), err_est);
+    if (verbose ==  true) printf("Step %d, ndof_coarse %d, ndof_fine %d, proj_error %g%%\n", 
+                                 as, ls.get_num_dofs(), rs.get_num_dofs(), err_est);
 
     // If err_est too large, adapt the mesh.
     if (err_est < err_stop) done = true;

@@ -64,13 +64,19 @@ int main(int argc, char* argv[])
 
   // Adapt mesh to represent initial condition with given accuracy.
   int proj_norm = 1; // H1 norm.
-  bool verbose = true; 
-  bool project_on_fine_mesh = false;
+  bool verbose = true, debug = false;
+  bool project_on_fine_mesh = true;
   Solution sln;
   adapt_to_exact_function(&space, f, &selector, THRESHOLD, STRATEGY, 
                           MESH_REGULARITY, ERR_STOP, NDOF_STOP, proj_norm,
-                          project_on_fine_mesh, verbose, &sln);   
+                          project_on_fine_mesh, verbose, debug, &sln);   
   info("Final mesh: ndof = %d", space.get_num_dofs());
+
+  // Visualization.
+  ScalarView* view_c = new ScalarView("Approximate initial condition", 0, 0, 410, 300);
+  OrderView* ordview_c = new OrderView("Coarse mesh", 420, 0, 350, 300);
+  view_c->show(&sln);
+  ordview_c->show(&space);
 
   // Wait for all views to be closed.
   View::wait();
