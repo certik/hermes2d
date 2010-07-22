@@ -76,7 +76,7 @@ int main(int argc, char* argv[])
   H2DReader mloader;
   mloader.load("square.mesh", &mesh);
 
-  // Initial mesh refinements.
+  // Perform initial mesh refinements.
   for(int i = 0; i < INIT_GLOB_REF_NUM; i++) mesh.refine_all_elements();
   mesh.refine_towards_boundary(1,INIT_BDY_REF_NUM);
 
@@ -102,14 +102,9 @@ int main(int argc, char* argv[])
   // Visualise the solution and mesh.
   WinGeom* sln_win_geom = new WinGeom{0, 0, 440, 350};
   ScalarView sview("Solution", sln_win_geom);
+  sview.show(&sln);
   WinGeom* mesh_win_geom = new WinGeom{450, 0, 400, 350};
   OrderView oview("Mesh", mesh_win_geom);
-  char title[100];
-  sprintf(title, "Solution");
-  sview.set_title(title);
-  sview.show(&sln);
-  sprintf(title, "Mesh");
-  oview.set_title(title);
   oview.show(&space);
 
   // Wait for all views to be closed.

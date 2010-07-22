@@ -19,9 +19,6 @@ using namespace RefinementSelectors;
 //
 //  The following parameters can be changed:
 
-const bool SOLVE_ON_COARSE_MESH = false;   // true...  Newton is done on coarse mesh in every adaptivity step.
-                                           // false... Newton is done on coarse mesh only once, then projection
-                                           // of the fine mesh solution to coarse mesh is used.
 const int P_INIT = 1;                      // Initial polynomial degree.
 const int INIT_GLOB_REF_NUM = 1;           // Number of initial uniform mesh refinements.
 const int INIT_BDY_REF_NUM = 3;            // Number of initial refinements towards boundary.
@@ -56,6 +53,8 @@ const int NDOF_STOP = 60000;               // Adaptivity process stops when the 
 const double NEWTON_TOL_COARSE = 1e-4;     // Stopping criterion for the Newton's method on coarse mesh.
 const double NEWTON_TOL_FINE = 1e-4;       // Stopping criterion for the Newton's method on fine mesh.
 const int NEWTON_MAX_ITER = 100;           // Maximum allowed number of Newton iterations.
+MatrixSolverType matrix_solver = SOLVER_UMFPACK;  // Possibilities: SOLVER_UMFPACK, SOLVER_PETSC,
+                                                  // SOLVER_MUMPS, and more are coming.
 
 // Thermal conductivity (temperature-dependent).
 // Note: for any u, this function has to be positive.
@@ -88,10 +87,7 @@ scalar init_cond(double x, double y, double& dx, double& dy)
 }
 
 // Boundary condition types.
-BCType bc_types(int marker)
-{
-  return BC_ESSENTIAL;
-}
+BCType bc_types(int marker) { return BC_ESSENTIAL;}
 
 // Essential (Dirichlet) boundary condition values.
 scalar essential_bc_values(int ess_bdy_marker, double x, double y)
@@ -102,10 +98,7 @@ scalar essential_bc_values(int ess_bdy_marker, double x, double y)
 
 // Heat sources (can be a general function of 'x' and 'y').
 template<typename Real>
-Real heat_src(Real x, Real y)
-{
-  return 1.0;
-}
+Real heat_src(Real x, Real y) { return 1.0;}
 
 // Weak forms.
 #include "forms.cpp"
@@ -129,35 +122,37 @@ int main(int argc, char* argv[])
   H1Space space(&mesh, bc_types, essential_bc_values, P_INIT);
 
   // Solutions for the Newton's iteration and adaptivity.
-  Solution u_prev, sln_coarse, sln_fine;
+  Solution sln_coarse, sln_fine;
 
   // Initialize the weak formulation.
   WeakForm wf;
-  wf.add_matrix_form(callback(jac), H2D_UNSYM, H2D_ANY, &u_prev);
-  wf.add_vector_form(callback(res), H2D_ANY, &u_prev);
-
-  // Initialize the coarse and fine mesh problems.
-  NonlinSystem nls(&wf, &space);
+  wf.add_matrix_form(callback(jac), H2D_UNSYM, H2D_ANY);
+  wf.add_vector_form(callback(res), H2D_ANY);
 
   // DOF and CPU convergence graphs.
   SimpleGraph graph_dof, graph_cpu;
 
-  // Project the function init_cond() on the FE space
-  // to obtain initial coefficient vector for the Newton's method.
-  info("Projecting initial condition to obtain initial vector on coarse mesh.");
-  nls.project_global(init_cond, &u_prev);
-
   // Initialize views.
-  ScalarView sview_coarse("Coarse mesh solution", 0, 0, 350, 300); // coarse mesh solution
-  OrderView oview_coarse("Coarse mesh", 360, 0, 350, 300);         // coarse mesh
-  ScalarView sview_fine("Fine mesh solution", 720, 0, 350, 300);   // fine mesh solution
-  OrderView oview_fine("Fine mesh", 1080, 0, 350, 300);            // fine mesh
+  WinGeom* sln_coarse_win_geom = new WinGeom{0, 0, 360, 300};
+  WinGeom* mesh_coarse_win_geom = new WinGeom{370, 0, 360, 300};
+  WinGeom* sln_fine_win_geom = new WinGeom{740, 0, 400, 300};
+  WinGeom* mesh_fine_win_geom = new WinGeom{1150, 0, 400, 300};
+  ScalarView sview_coarse("Coarse mesh solution", sln_coarse_win_geom); // coarse mesh solution
+  OrderView oview_coarse("Coarse mesh", mesh_coarse_win_geom);         // coarse mesh
+  ScalarView sview_fine("Fine mesh solution", sln_fine_win_geom);   // fine mesh solution
+  OrderView oview_fine("Fine mesh", mesh_fine_win_geom);            // fine mesh
 
   // Newton's loop on the coarse mesh.
   info("Solving on coarse mesh.");
+  Solution u_prev; 
+  info("Performing Newton's iteration.");
   bool verbose = true; // Default is false.
-  if (!nls.solve_newton(&u_prev, NEWTON_TOL_COARSE, NEWTON_MAX_ITER, verbose)) 
+  Solution* init_sln = new Solution();
+  init_sln->set_exact(&mesh, init_cond);
+  if (!solve_newton(&space, &wf, H2D_H1_NORM, init_sln, &u_prev, 
+                    matrix_solver, NEWTON_TOL_COARSE, NEWTON_MAX_ITER, verbose)) {
     error("Newton's method did not converge.");
+  }
 
   // Store the result in sln_coarse.
   sln_coarse.copy(&u_prev);
@@ -179,25 +174,39 @@ int main(int argc, char* argv[])
     oview_coarse.show(&space);
 
     // Skip visualization.
-    cpu_time.tick(H2D_SKIP);
+    cpu_time.tick(HERMES_SKIP);
 
-    // Initialize the fine mesh problem.
-    RefSystem rnls(&nls);
+    // temporary
+    Tuple<Space *> spaces;
+    spaces.push_back(&space);
+    bool is_complex = false;
 
-    // Set initial condition for the Newton's method on the fine mesh.
-    if (as == 1) {
-      info("Projecting coarse mesh solution to obtain initial vector on new fine mesh.");
-      rnls.project_global(&sln_coarse, &u_prev);
-    }
-    else {
-      info("Projecting fine mesh solution to obtain initial vector on new fine mesh.");
-      rnls.project_global(&sln_fine, &u_prev);
+    // Construct globally refined reference mesh(es)
+    // and setup reference space(s).
+    int num_comps = 1;
+    Tuple<Space *> ref_spaces;
+    for (int i = 0; i < num_comps; i++) {
+      Mesh *ref_mesh = new Mesh();
+      ref_mesh->copy(spaces[i]->get_mesh());
+      ref_mesh->refine_all_elements();
+      ref_spaces.push_back(spaces[i]->dup(ref_mesh));
+      int order_increase = 1;
+      ref_spaces[i]->copy_orders(spaces[i], order_increase);
     }
 
     // Newton's loop on the fine mesh.
-    info("Solving on fine mesh.");
-    if (!rnls.solve_newton(&u_prev, NEWTON_TOL_FINE, NEWTON_MAX_ITER, verbose)) 
-      error("Newton's method did not converge.");
+    if (as == 1) {
+      info("Solving on fine mesh, starting from previous coarse mesh solution.");
+      if (!solve_newton(ref_spaces, &wf, H2D_H1_NORM, Tuple<MeshFunction *>(&sln_coarse), &u_prev, matrix_solver, 
+                        NEWTON_TOL_FINE, NEWTON_MAX_ITER, verbose)) 
+        error("Newton's method did not converge.");
+    }
+    else {
+      info("Solving on fine mesh, starting from previous fine mesh solution.");
+      if (!solve_newton(ref_spaces, &wf, H2D_H1_NORM, Tuple<MeshFunction *>(&sln_fine), &u_prev, matrix_solver, 
+                        NEWTON_TOL_FINE, NEWTON_MAX_ITER, verbose)) 
+        error("Newton's method did not converge.");
+    }
 
     // Store the fine mesh solution in sln_fine.
     sln_fine.copy(&u_prev);
@@ -207,23 +216,23 @@ int main(int argc, char* argv[])
 
     // Show fine mesh and solution.
     sview_fine.show(&sln_fine);
-    oview_fine.show(rnls.get_space(0));
+    oview_fine.show(ref_spaces[0]);
 
     // Skip visualization time.
-    cpu_time.tick(H2D_SKIP);
+    cpu_time.tick(HERMES_SKIP);
 
     // Calculate element errors and total error estimate.
     info("Calculating error.");
-    H1Adapt hp(&nls);
+    H1Adapt hp(spaces);
     hp.set_solutions(&sln_coarse, &sln_fine);
     err_est = hp.calc_error() * 100;
 
     // Report results.
     info("ndof_coarse: %d, ndof_fine: %d, err_est: %g%%", 
-      nls.get_num_dofs(), rnls.get_num_dofs(), err_est);
+      get_num_dofs(spaces), get_num_dofs(ref_spaces), err_est);
 
     // Add entry to DOF convergence graph.
-    graph_dof.add_values(nls.get_num_dofs(), err_est);
+    graph_dof.add_values(get_num_dofs(spaces), err_est);
     graph_dof.save("conv_dof.dat");
 
     // Add entry to CPU convergence graph.
@@ -235,24 +244,14 @@ int main(int argc, char* argv[])
     else {
       info("Adapting coarse mesh.");
       done = hp.adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY);
-      if (nls.get_num_dofs() >= NDOF_STOP) {
+      if (get_num_dofs(spaces) >= NDOF_STOP) {
         done = true;
         break;
       }
 
       // Project the fine mesh solution on the new coarse mesh.
-      if (SOLVE_ON_COARSE_MESH) 
-        info("Projecting fine mesh solution to obtain initial vector on new coarse mesh.");
-      else 
-        info("Projecting fine mesh solution on coarse mesh for error calculation.");
-      nls.project_global(&sln_fine, &u_prev);
-
-      if (SOLVE_ON_COARSE_MESH) {
-        // Newton's loop on the new coarse mesh.
-        info("Solving on coarse mesh.");
-        if (!nls.solve_newton(&u_prev, NEWTON_TOL_COARSE, NEWTON_MAX_ITER, verbose)) 
-          error("Newton's method did not converge.");
-      }
+      info("Projecting fine mesh solution on coarse mesh for error calculation.");
+      project_global(spaces, H2D_H1_NORM, &sln_fine, &u_prev, NULL, is_complex);
 
       // Store the result in sln_coarse.
       sln_coarse.copy(&u_prev);
