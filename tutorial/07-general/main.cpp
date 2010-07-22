@@ -17,8 +17,10 @@
 //
 //  The following parameters can be changed:
 
-const int P_INIT = 2;             // Initial polynomial degree of all mesh elements.
-const int INIT_REF_NUM = 3;       // Number of initial uniform refinements.
+const int P_INIT = 2;                             // Initial polynomial degree of all mesh elements.
+const int INIT_REF_NUM = 3;                       // Number of initial uniform refinements.
+MatrixSolverType matrix_solver = SOLVER_UMFPACK;  // Possibilities: SOLVER_UMFPACK, SOLVER_PETSC,
+                                                  // SOLVER_MUMPS, and more are coming.
 
 // Problem parameters.
 double a_11(double x, double y) {
@@ -95,6 +97,7 @@ int main(int argc, char* argv[])
 
   // Create an H1 space with default shapeset.
   H1Space space(&mesh, bc_types, essential_bc_values, P_INIT);
+  info("ndof = %d.", get_num_dofs(&space));
 
   // Initialize the weak formulation.
   WeakForm wf;
@@ -104,15 +107,17 @@ int main(int argc, char* argv[])
 
   // Solve the linear problem.
   Solution sln;
-  solve_linear(&space, &wf, &sln, SOLVER_UMFPACK);
+  solve_linear(&space, &wf, &sln, matrix_solver);
 
   // Time measurement.
   cpu_time.tick();
 
   // View the solution and mesh.
-  ScalarView sview("Coarse solution", 0, 0, 700, 600);
-  OrderView  oview("Polynomial orders", 710, 0, 700, 600);
+  WinGeom* sln_win_geom = new WinGeom{0, 0, 440, 350};
+  ScalarView sview("Coarse solution", sln_win_geom);
   sview.show(&sln);
+  WinGeom* mesh_win_geom = new WinGeom{450, 0, 400, 350};
+  OrderView  oview("Polynomial orders", mesh_win_geom);
   oview.show(&space);
 
   // Skip visualization time.

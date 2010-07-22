@@ -17,7 +17,9 @@
 // initial polynomial degree P_INIT, and play with various initial
 // mesh refinements at the beginning of the main() function.
 
-int P_INIT = 3;            // Uniform polynomial degree of mesh elements.
+int P_INIT = 3;                                   // Uniform polynomial degree of mesh elements.
+MatrixSolverType matrix_solver = SOLVER_UMFPACK;  // Possibilities: SOLVER_UMFPACK, SOLVER_PETSC,
+                                                  // SOLVER_MUMPS, and more are coming.
 
 // Problem parameters.
 double CONST_F = 2.0;  
@@ -58,10 +60,11 @@ int main(int argc, char* argv[])
 
   // Solve the linear problem.
   Solution sln;
-  solve_linear(&space, &wf, &sln, SOLVER_UMFPACK);
+  solve_linear(&space, &wf, &sln, matrix_solver);
 
   // Visualize the solution.
-  ScalarView view("Solution", 0, 0, 600, 600);
+  WinGeom* sln_win_geom = new WinGeom{0, 0, 440, 350};
+  ScalarView view("Solution", sln_win_geom);
   view.show(&sln);
 
   // Wait for the view to be closed.

@@ -16,9 +16,11 @@
 //
 // The following parameters can be changed:
 
-int UNIFORM_REF_LEVEL = 2;   // Number of initial uniform mesh refinements.
-int CORNER_REF_LEVEL = 12;   // Number of mesh refinements towards the re-entrant corner.
-int P_INIT = 6;              // Uniform polynomial degree of all mesh elements.
+int P_INIT = 6;                                   // Uniform polynomial degree of all mesh elements.
+int UNIFORM_REF_LEVEL = 2;                        // Number of initial uniform mesh refinements.
+int CORNER_REF_LEVEL = 12;                        // Number of mesh refinements towards the re-entrant corner.
+MatrixSolverType matrix_solver = SOLVER_UMFPACK;  // Possibilities: SOLVER_UMFPACK, SOLVER_PETSC,
+                                                  // SOLVER_MUMPS, and more are coming.
 
 // Problem parameters.
 double T1 = 30.0;            // Prescribed temperature on Gamma_3.
@@ -52,6 +54,7 @@ int main(int argc, char* argv[])
 
   // Create an H1 space with default shapeset.
   H1Space space(&mesh, bc_types, essential_bc_values, P_INIT);
+  info("ndof = %d.", get_num_dofs(&space));
 
   // Initialize the weak formulation.
   WeakForm wf;
@@ -61,16 +64,18 @@ int main(int argc, char* argv[])
 
   // Solve the linear problem.
   Solution sln;
-  solve_linear(&space, &wf, &sln, SOLVER_UMFPACK);
+  solve_linear(&space, &wf, &sln, matrix_solver);
 
   // Visualize the solution.
-  ScalarView view("Solution", 0, 0, 600, 600);
+  WinGeom* sln_win_geom = new WinGeom{0, 0, 440, 350};
+  ScalarView view("Solution", sln_win_geom);
   view.show(&sln);
 
   // Compute and show gradient magnitude.
   // (Note that the gradient at the re-entrant
   // corner needs to be truncated for visualization purposes.)
-  ScalarView gradview("Gradient", 650, 0, 600, 600);
+  WinGeom* grad_win_geom = new WinGeom{450, 0, 400, 350};
+  ScalarView gradview("Gradient", grad_win_geom);
   MagFilter grad(&sln, &sln, H2D_FN_DX, H2D_FN_DY);
   gradview.show(&grad);
 

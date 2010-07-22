@@ -16,6 +16,8 @@
 // The following parameters can be changed:
 
 const int P_INIT = 4;                                      // Initial polynomial degree of all elements.
+MatrixSolverType matrix_solver = SOLVER_UMFPACK;           // Possibilities: SOLVER_UMFPACK, SOLVER_PETSC,
+                                                           // SOLVER_MUMPS, and more are coming.
 
 // Problem parameters.
 const double E  = 200e9;                                   // Young modulus (steel).
@@ -50,8 +52,9 @@ int main(int argc, char* argv[])
   mesh.refine_all_elements();
 
   // Create x- and y- displacement space using the default H1 shapeset.
-  H1Space xdisp(&mesh, bc_types, essential_bc_values, P_INIT);
-  H1Space ydisp(&mesh, bc_types, essential_bc_values, P_INIT);
+  H1Space u_space(&mesh, bc_types, essential_bc_values, P_INIT);
+  H1Space v_space(&mesh, bc_types, essential_bc_values, P_INIT);
+  info("ndof = %d.", get_num_dofs(Tuple<Space *>(&u_space, &v_space)));
 
   // Initialize the weak formulation.
   WeakForm wf(2);
@@ -62,15 +65,16 @@ int main(int argc, char* argv[])
   wf.add_vector_form_surf(1, callback(linear_form_surf_1), GAMMA_3_BDY);
 
   // Solve the linear problem.
-  Solution xsln, ysln;
-  solve_linear(Tuple<Space *>(&xdisp, &ydisp), &wf, 
-               Tuple<Solution*>(&xsln, &ysln), SOLVER_UMFPACK);
+  Solution u_sln, v_sln;
+  solve_linear(Tuple<Space *>(&u_space, &v_space), &wf, 
+               Tuple<Solution*>(&u_sln, &v_sln), matrix_solver);
 
   // Visualize the solution.
-  ScalarView view("Von Mises stress [Pa]", 0, 0, 800, 400);
-  VonMisesFilter stress(&xsln, &ysln, lambda, mu);
+  WinGeom* sln_win_geom = new WinGeom{0, 0, 800, 400};
+  ScalarView view("Von Mises stress [Pa]", sln_win_geom);
+  VonMisesFilter stress(&u_sln, &v_sln, lambda, mu);
   view.show_mesh(false);
-  view.show(&stress, H2D_EPS_HIGH, H2D_FN_VAL_0, &xsln, &ysln, 1.5e5);
+  view.show(&stress, H2D_EPS_HIGH, H2D_FN_VAL_0, &u_sln, &v_sln, 1.5e5);
 
   // Wait for the view to be closed.
   View::wait();

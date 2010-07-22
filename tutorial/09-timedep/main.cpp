@@ -22,10 +22,12 @@
 //
 //  The following parameters can be changed:
 
-const int INIT_REF_NUM = 1;      // Number of initial uniform mesh refinements.
-const int INIT_REF_NUM_BDY = 1;  // Number of initial uniform mesh refinements towards the boundary.
-const int P_INIT = 4;            // Polynomial degree of all mesh elements.
-const double TAU = 300.0;        // Time step in seconds.
+const int P_INIT = 4;                             // Polynomial degree of all mesh elements.
+const int INIT_REF_NUM = 1;                       // Number of initial uniform mesh refinements.
+const int INIT_REF_NUM_BDY = 1;                   // Number of initial uniform mesh refinements towards the boundary.
+const double TAU = 300.0;                         // Time step in seconds.
+MatrixSolverType matrix_solver = SOLVER_UMFPACK;  // Possibilities: SOLVER_UMFPACK, SOLVER_PETSC,
+                                                  // SOLVER_MUMPS, and more are coming.
 
 // Problem parameters.
 const double T_INIT = 10;        // Temperature of the ground (also initial temperature).
@@ -76,6 +78,8 @@ int main(int argc, char* argv[])
 
   // Initialize an H1 space with default shepeset.
   H1Space space(&mesh, bc_types, essential_bc_values, P_INIT);
+  int ndof = get_num_dofs(&space);
+  info("ndof = %d.", ndof);
 
   // Set initial condition.
   Solution tsln;
@@ -90,14 +94,14 @@ int main(int argc, char* argv[])
 
   // Initialize the linear problem.
   LinearProblem lp(&wf, &space);
-  info("ndof = %d", lp.get_num_dofs());
 
   // Initialize matrix solver.
   Matrix* mat; Vector* rhs; CommonSolver* solver;  
-  init_matrix_solver(SOLVER_UMFPACK, lp.get_num_dofs(), mat, rhs, solver);
+  init_matrix_solver(matrix_solver, ndof, mat, rhs, solver);
 
   // Initialize views.
-  ScalarView Tview("Temperature", 0, 0, 450, 600);
+  WinGeom* sln_win_geom = new WinGeom{0, 0, 450, 600};
+  ScalarView Tview("Temperature", sln_win_geom);
   char title[100];
   sprintf(title, "Time %3.5f, exterior temperature %3.5f", TIME, temp_ext(TIME));
   Tview.set_min_max_range(0,20);

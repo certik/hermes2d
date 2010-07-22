@@ -20,12 +20,14 @@
 //
 //  The following parameters can be changed:
 
-const int INIT_GLOB_REF_NUM = 3;      // Number of initial uniform mesh refinements.
-const int INIT_BDY_REF_NUM = 5;       // Number of initial refinements towards boundary.
-const int P_INIT = 2;                 // Initial polynomial degree.
-const double NEWTON_TOL = 1e-6;       // Stopping criterion for the Newton's method.
-const int NEWTON_MAX_ITER = 100;      // Maximum allowed number of Newton iterations.
-const double INIT_COND_CONST = 3.0;   // COnstant initial condition.
+const int P_INIT = 2;                             // Initial polynomial degree.
+const int INIT_GLOB_REF_NUM = 3;                  // Number of initial uniform mesh refinements.
+const int INIT_BDY_REF_NUM = 5;                   // Number of initial refinements towards boundary.
+const double NEWTON_TOL = 1e-6;                   // Stopping criterion for the Newton's method.
+const int NEWTON_MAX_ITER = 100;                  // Maximum allowed number of Newton iterations.
+const double INIT_COND_CONST = 3.0;               // COnstant initial condition.
+MatrixSolverType matrix_solver = SOLVER_UMFPACK;  // Possibilities: SOLVER_UMFPACK, SOLVER_PETSC,
+                                                  // SOLVER_MUMPS, and more are coming.
 
 // Thermal conductivity (temperature-dependent)
 // Note: for any u, this function has to be positive.
@@ -92,12 +94,16 @@ int main(int argc, char* argv[])
   bool verbose = true; // Default is false.
   Solution* init_sln = new Solution();
   init_sln->set_exact(&mesh, init_cond);
-  if (!solve_newton(&space, &wf, init_sln, &sln, SOLVER_UMFPACK, H2D_H1_NORM, 
-                    NEWTON_TOL, NEWTON_MAX_ITER, verbose)) error("Newton's method did not converge.");
+  if (!solve_newton(&space, &wf, H2D_H1_NORM, init_sln, &sln, 
+                    matrix_solver, NEWTON_TOL, NEWTON_MAX_ITER, verbose)) {
+    error("Newton's method did not converge.");
+  }
 
   // Visualise the solution and mesh.
-  ScalarView sview("Solution", 410, 0, 400, 300);
-  OrderView oview("Mesh", 820, 0, 400, 300);
+  WinGeom* sln_win_geom = new WinGeom{0, 0, 440, 350};
+  ScalarView sview("Solution", sln_win_geom);
+  WinGeom* mesh_win_geom = new WinGeom{450, 0, 400, 350};
+  OrderView oview("Mesh", mesh_win_geom);
   char title[100];
   sprintf(title, "Solution");
   sview.set_title(title);

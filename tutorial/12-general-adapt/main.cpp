@@ -20,34 +20,36 @@ using namespace RefinementSelectors;
 //
 //  The following parameters can be changed:
 
-const int P_INIT = 2;                    // Initial polynomial degree of all mesh elements.
-const double THRESHOLD = 0.6;            // This is a quantitative parameter of the adapt(...) function and
-                                         // it has different meanings for various adaptive strategies (see below).
-const int STRATEGY = 0;                  // Adaptive strategy:
-                                         // STRATEGY = 0 ... refine elements until sqrt(THRESHOLD) times total
-                                         //   error is processed. If more elements have similar errors, refine
-                                         //   all to keep the mesh symmetric.
-                                         // STRATEGY = 1 ... refine all elements whose error is larger
-                                         //   than THRESHOLD times maximum element error.
-                                         // STRATEGY = 2 ... refine all elements whose error is larger
-                                         //   than THRESHOLD.
-                                         // More adaptive strategies can be created in adapt_ortho_h1.cpp.
-const CandList CAND_LIST = H2D_HP_ANISO; // Predefined list of element refinement candidates. Possible values are
-                                         // H2D_P_ISO, H2D_P_ANISO, H2D_H_ISO, H2D_H_ANISO, H2D_HP_ISO,
-                                         // H2D_HP_ANISO_H, H2D_HP_ANISO_P, H2D_HP_ANISO.
-                                         // See the User Documentation for details.
-const int MESH_REGULARITY = -1;   // Maximum allowed level of hanging nodes:
-                                  // MESH_REGULARITY = -1 ... arbitrary level hangning nodes (default),
-                                  // MESH_REGULARITY = 1 ... at most one-level hanging nodes,
-                                  // MESH_REGULARITY = 2 ... at most two-level hanging nodes, etc.
-                                  // Note that regular meshes are not supported, this is due to
-                                  // their notoriously bad performance.
-const double CONV_EXP = 1.0;      // Default value is 1.0. This parameter influences the selection of
-                                  // cancidates in hp-adaptivity. See get_optimal_refinement() for details.
-const double ERR_STOP = 0.1;      // Stopping criterion for adaptivity (rel. error tolerance between the
-                                  // reference mesh and coarse mesh solution in percent).
-const int NDOF_STOP = 60000;      // Adaptivity process stops when the number of degrees of freedom grows
-                                  // over this limit. This is to prevent h-adaptivity to go on forever.
+const int P_INIT = 2;                             // Initial polynomial degree of all mesh elements.
+const double THRESHOLD = 0.6;                     // This is a quantitative parameter of the adapt(...) function and
+                                                  // it has different meanings for various adaptive strategies (see below).
+const int STRATEGY = 0;                           // Adaptive strategy:
+                                                  // STRATEGY = 0 ... refine elements until sqrt(THRESHOLD) times total
+                                                  //   error is processed. If more elements have similar errors, refine
+                                                  //   all to keep the mesh symmetric.
+                                                  // STRATEGY = 1 ... refine all elements whose error is larger
+                                                  //   than THRESHOLD times maximum element error.
+                                                  // STRATEGY = 2 ... refine all elements whose error is larger
+                                                  //   than THRESHOLD.
+                                                  // More adaptive strategies can be created in adapt_ortho_h1.cpp.
+const CandList CAND_LIST = H2D_HP_ANISO;          // Predefined list of element refinement candidates. Possible values are
+                                                  // H2D_P_ISO, H2D_P_ANISO, H2D_H_ISO, H2D_H_ANISO, H2D_HP_ISO,
+                                                  // H2D_HP_ANISO_H, H2D_HP_ANISO_P, H2D_HP_ANISO.
+                                                  // See the User Documentation for details.
+const int MESH_REGULARITY = -1;                   // Maximum allowed level of hanging nodes:
+                                                  // MESH_REGULARITY = -1 ... arbitrary level hangning nodes (default),
+                                                  // MESH_REGULARITY = 1 ... at most one-level hanging nodes,
+                                                  // MESH_REGULARITY = 2 ... at most two-level hanging nodes, etc.
+                                                  // Note that regular meshes are not supported, this is due to
+                                                  // their notoriously bad performance.
+const double CONV_EXP = 1.0;                      // Default value is 1.0. This parameter influences the selection of
+                                                  // cancidates in hp-adaptivity. See get_optimal_refinement() for details.
+const double ERR_STOP = 0.1;                      // Stopping criterion for adaptivity (rel. error tolerance between the
+                                                  // reference mesh and coarse mesh solution in percent).
+const int NDOF_STOP = 60000;                      // Adaptivity process stops when the number of degrees of freedom grows
+                                                  // over this limit. This is to prevent h-adaptivity to go on forever.
+MatrixSolverType matrix_solver = SOLVER_UMFPACK;  // Possibilities: SOLVER_UMFPACK, SOLVER_PETSC,
+                                                  // SOLVER_MUMPS, and more are coming.
 
 // Problem parameters.
 double a_11(double x, double y) { if (y > 0) return 1 + x*x + y*y; else return 1;}
@@ -111,15 +113,13 @@ int main(int argc, char* argv[])
   AdaptivityParamType apt(ERR_STOP, NDOF_STOP, THRESHOLD, STRATEGY, 
                           MESH_REGULARITY);
 
-  // Geometry and position of visualization windows.
-  WinGeom* sln_win_geom = new WinGeom{0, 0, 440, 350};
-  WinGeom* mesh_win_geom = new WinGeom{450, 0, 400, 350};
-
   // Adaptivity loop.
   Solution *sln = new Solution();
   Solution *ref_sln = new Solution();
+  WinGeom* sln_win_geom = new WinGeom{0, 0, 440, 350};
+  WinGeom* mesh_win_geom = new WinGeom{450, 0, 400, 350};
   bool verbose = true;     // Prinf info during adaptivity.
-  solve_linear_adapt(&space, &wf, sln, SOLVER_UMFPACK, ref_sln, H2D_H1_NORM, 
+  solve_linear_adapt(&space, &wf, sln, matrix_solver, ref_sln, H2D_H1_NORM, 
                      &selector, &apt, sln_win_geom, mesh_win_geom, verbose);
 
   // Show the final result.

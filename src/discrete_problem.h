@@ -241,35 +241,37 @@ void init_matrix_solver(MatrixSolverType matrix_solver, int ndof,
 
 /// Global orthogonal projection of multiple solution components.
 /// Calls assign_dofs() at the beginning.
-void project_global(Tuple<Space *> spaces, Tuple<MeshFunction*> source, 
-                    Tuple<Solution*> target, WeakForm *wf, Vector* vec = NULL, bool is_complex = false);
+void project_global(Tuple<Space *> spaces, WeakForm *wf, Tuple<MeshFunction*> source_meshfns, 
+                    Tuple<Solution*> target_slns, Vector* target_vec = NULL, bool is_complex = false);
 
-void project_global(Tuple<Space *> spaces, Tuple<MeshFunction*> source, 
-                    Tuple<Solution*> target, Tuple<int> proj_norms = Tuple<int>(), 
-                    Vector* vec = NULL, bool is_complex = false);
+void project_global(Tuple<Space *> spaces, Tuple<int> proj_norms, Tuple<MeshFunction*> source_meshfns, 
+                    Tuple<Solution*> target_slns, Vector* target_vec = NULL, bool is_complex = false);
 
-void project_global(Tuple<Space *> spaces, Tuple<MeshFunction*> source, Tuple<Solution*> target,
-                    matrix_forms_tuple_t proj_biforms, vector_forms_tuple_t proj_liforms, 
-                    Vector* vec = NULL, bool is_complex = false);
+void project_global(Tuple<Space *> spaces, matrix_forms_tuple_t proj_biforms, 
+                    vector_forms_tuple_t proj_liforms, Tuple<MeshFunction*> source_meshfns, 
+                    Tuple<Solution*> target_slns,
+                    Vector* target_vec = NULL, bool is_complex = false);
 
-void project_global(Space *space, ExactFunction source, Solution* target, 
-                    int proj_norm = H2D_DEFAULT_PROJ_NORM, Vector* vec = NULL, bool is_complex = false);
+void project_global(Space *space, int proj_norm, ExactFunction source_fn, Solution* target_sln, 
+                    Vector* target_vec = NULL, bool is_complex = false);
 
-void project_global(Space *space, ExactFunction source, Solution* target,
+void project_global(Space *space, 
                     std::pair<WeakForm::matrix_form_val_t, WeakForm::matrix_form_ord_t> proj_biform,
                     std::pair<WeakForm::vector_form_val_t, WeakForm::vector_form_ord_t> proj_liform,
-                    Vector* vec = NULL, bool is_complex = false);
+                    ExactFunction source_fn, Solution* target_sln,
+                    Vector* target_vec = NULL, bool is_complex = false);
 
-void project_global(Space *space, ExactFunction2 source, Solution* target, Vector* vec = NULL, 
+void project_global(Space *space, ExactFunction2 source_fn, Solution* target_sln, Vector* target_vec = NULL, 
                     bool is_complex = false);
 
-void project_local(Space *space, ExactFunction exactfn, Mesh* mesh,
-                   Solution* result, int proj_norm = H2D_DEFAULT_PROJ_NORM, Vector* vec = NULL, 
+void project_local(Space *space, int proj_norm, ExactFunction source_fn, Mesh* mesh,
+                   Solution* target_sln, Vector* target_vec = NULL, 
                    bool is_complex = false);
 
 /// Performs complete Newton's loop for a Tuple of solutions.
-bool solve_newton(Tuple<Space *> spaces, WeakForm* wf, Tuple<MeshFunction *> init_cond, Tuple<Solution *> sln, 
-                  MatrixSolverType matrix_solver, Tuple<int>proj_norms, double newton_tol = 1e-5, 
+bool solve_newton(Tuple<Space *> spaces, WeakForm* wf, Tuple<int>proj_norms,  
+                  Tuple<MeshFunction *> init_meshfns, Tuple<Solution *> target_slns, 
+                  MatrixSolverType matrix_solver, double newton_tol = 1e-5, 
                   int newton_max_iter = 100, bool verbose = false, 
                   Tuple<MeshFunction*> mesh_fns = Tuple<MeshFunction*>(), 
                   bool is_complex = false);

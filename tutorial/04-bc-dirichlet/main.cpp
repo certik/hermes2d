@@ -16,10 +16,13 @@
 // or higher (then the exact solution lies in the finite element space).
 // If some elements in the mesh are linear, Hermes will only find
 // an approximation, Below you can play with the parameters CONST_F,
-// P_INIT, and UNIFORM_REF_LEVEL.
+// P_INIT, and INIT_REF_NUM.
 
-int INIT_REF_NUM = 2;        // Number of initial uniform mesh refinements.
-int P_INIT = 2;              // Initial polynomial degree in all elements.
+int P_INIT = 2;                                   // Initial polynomial degree in all elements.
+int INIT_REF_NUM = 2;                             // Number of initial uniform mesh refinements.
+MatrixSolverType matrix_solver = SOLVER_UMFPACK;  // Possibilities: SOLVER_UMFPACK, SOLVER_PETSC,
+                                                  // SOLVER_MUMPS, and more are coming.
+
 
 // Problem parameters.
 double CONST_F = -4.0; 
@@ -59,10 +62,11 @@ int main(int argc, char* argv[])
 
   // Solve the linear problem.
   Solution sln;
-  solve_linear(&space, &wf, &sln, SOLVER_UMFPACK);
+  solve_linear(&space, &wf, &sln, matrix_solver);
 
   // Visualize the solution.
-  ScalarView view("Solution", 0, 0, 600, 600);
+  WinGeom* sln_win_geom = new WinGeom{0, 0, 440, 350};
+  ScalarView view("Solution", sln_win_geom);
   view.show(&sln);
 
   // Wait for the view to be closed.

@@ -15,12 +15,15 @@
 // the solution has a singular (infinite) gradient at the re-entrant corner.
 // Therefore we visualize not only the solution but also its gradient.
 
-int P_INIT = 4;               // Initial polynomial degree in all elements.
-int CORNER_REF_LEVEL = 12;    // Number of mesh refinements towards the re-entrant corner.
+int P_INIT = 4;                                   // Initial polynomial degree in all elements.
+int CORNER_REF_LEVEL = 12;                        // Number of mesh refinements towards the re-entrant corner.
+MatrixSolverType matrix_solver = SOLVER_UMFPACK;  // Possibilities: SOLVER_UMFPACK, SOLVER_PETSC,
+                                                  // SOLVER_MUMPS, and more are coming.
+
 
 // Problem parameters.
-double CONST_F = -1.0;                        // Right-hand side.
-double CONST_GAMMA[3] = {-0.5, 1.0, -0.5};    // Outer normal derivative on Gamma_1,2,3.
+double CONST_F = -1.0;                            // Right-hand side.
+double CONST_GAMMA[3] = {-0.5, 1.0, -0.5};        // Outer normal derivative on Gamma_1,2,3.
 
 // Boundary condition types.
 // Note: "natural" boundary condition means that 
@@ -60,16 +63,18 @@ int main(int argc, char* argv[])
 
   // Solve the linear problem.
   Solution sln;
-  solve_linear(&space, &wf, &sln, SOLVER_UMFPACK);
+  solve_linear(&space, &wf, &sln, matrix_solver);
 
   // Visualize the approximation.
-  ScalarView view("Solution", 0, 0, 600, 600);
+  WinGeom* sln_win_geom = new WinGeom{0, 0, 440, 350};
+  WinGeom* grad_win_geom = new WinGeom{450, 0, 400, 350};
+  ScalarView view("Solution", sln_win_geom);
   view.show(&sln);
 
   // Compute and show gradient magnitude.
   // (Note that the gradient at the re-entrant
   // corner needs to be truncated for visualization purposes.)
-  ScalarView gradview("Gradient", 650, 0, 600, 600);
+  ScalarView gradview("Gradient", grad_win_geom);
   MagFilter grad(&sln, &sln, H2D_FN_DX, H2D_FN_DY);
   gradview.show(&grad);
 

@@ -89,7 +89,7 @@ void adapt_to_exact_function_h1(Space *space, ExactFunction exactfn,
     sln_fine->set_exact(&rmesh, exactfn);
 
     // Project the function f() on the coarse mesh.
-    project_global(space, exactfn, sln_coarse);
+    project_global(space, H2D_H1_NORM, exactfn, sln_coarse);
 
     // Calculate element errors and total error estimate.
     H1Adapt hp(space);

@@ -172,7 +172,8 @@ bool solve_linear_adapt(Tuple<Space *> spaces, WeakForm* wf, Tuple<Solution *> s
 
     // Project the reference solution on the coarse mesh.
     if (verbose) info("Projecting reference solution on coarse mesh.");
-    project_global(spaces, ref_slns_mf, slns, proj_norms, NULL, is_complex); // NULL means that we do not want to know the resulting coefficient vector.
+    // NULL means that we do not want to know the resulting coefficient vector.
+    project_global(spaces, proj_norms, ref_slns_mf, slns, NULL, is_complex); 
 
     // Time measurement.
     cpu_time.tick();

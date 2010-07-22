@@ -1003,16 +1003,16 @@ int DiscreteProblem::assign_dofs()
 }
 
 // global orthogonal projection
-void project_global(Tuple<Space *> spaces, Tuple<MeshFunction*> source, 
-                    Tuple<Solution*> target, WeakForm *wf, Vector* vec, bool is_complex)
+void project_global(Tuple<Space *> spaces, WeakForm *wf, Tuple<MeshFunction*> source_meshfns, 
+                    Tuple<Solution*> target_slns, Vector* target_vec, bool is_complex)
 {
-  int n = source.size();
+  int n = source_meshfns.size();
 
   // sanity checks
   if (n <= 0 || n > 10) error("Wrong number of projected functions in project_global().");
   for (int i = 0; i < n; i++) if(spaces[i] == NULL) error("this->spaces[%d] == NULL in project_global().", i);
   if (spaces.size() != n) error("Number of spaces must matchnumber of projected functions in project_global().");
-  if (target.size() != n) error("Mismatched numbers of projected functions and solutions in project_global().");
+  if (target_slns.size() != n) error("Mismatched numbers of projected functions and solutions in project_global().");
 
   // this is needed since spaces may have their DOFs enumerated only locally
   // when they come here.
@@ -1025,12 +1025,12 @@ void project_global(Tuple<Space *> spaces, Tuple<MeshFunction*> source,
   
   // See whether the user wants the resulting coefficient vector.  
   Vector* rhs;
-  if (vec == NULL) rhs = new AVector(ndof, is_complex);
-  else rhs = vec;
+  rhs = new AVector(ndof, is_complex);
 
   //assembling the projection matrix, dir vector and rhs  
   DiscreteProblem dp(wf, spaces);
   bool rhsonly = false;
+  // the NULL is there since no external solution vector is needed
   dp.assemble(NULL, &mat, dir, rhs, rhsonly, is_complex);
   // since this is a linear problem, subtract the dir vector from the right-hand side:
   for (int i=0; i < ndof; i++) rhs->add(i, -dir->get(i));
@@ -1038,16 +1038,23 @@ void project_global(Tuple<Space *> spaces, Tuple<MeshFunction*> source,
   // Calculate the Newton coefficient vector.
   solver.solve(&mat, rhs);
 
-  // See whether the user wants the projection resualts as solutions. 
-  for (int i=0; i < wf->neq; i++) {
-    if (target[i] != NULL) target[i]->set_fe_solution(spaces[i], rhs);
+  // If the user wants the resulting Solutions. 
+  if(target_slns != Tuple<Solution *>()) {
+    for (int i=0; i < wf->neq; i++) {
+      if (target_slns[i] != NULL) target_slns[i]->set_fe_solution(spaces[i], rhs);
+    }
   }
+
+  // If the user wants the resulting coefficient vector
+  if (target_vec != NULL) for (int i = 0; i < ndof; i++) target_vec->set(i, rhs->get(i));
+
+  delete rhs;
+  delete dir;
 }
 
 // global orthogonal projection
-void project_global(Tuple<Space *> spaces, Tuple<MeshFunction*> source, 
-                    Tuple<Solution*> target, Tuple<int>proj_norms, 
-                    Vector* vec, bool is_complex)
+void project_global(Tuple<Space *> spaces, Tuple<int>proj_norms, Tuple<MeshFunction*> source_meshfns, 
+                    Tuple<Solution*> target_slns, Vector* target_vec, bool is_complex)
 {
   int n = spaces.size();  
 
@@ -1063,19 +1070,19 @@ void project_global(Tuple<Space *> spaces, Tuple<MeshFunction*> source,
       found[i] = 1;
       wf.add_matrix_form(i, i, L2projection_biform<double, scalar>, L2projection_biform<Ord, Ord>);
       wf.add_vector_form(i, L2projection_liform<double, scalar>, L2projection_liform<Ord, Ord>,
-                     H2D_ANY, source[i]);
+                     H2D_ANY, source_meshfns[i]);
     }
     if (norm == 1) {
       found[i] = 1;
       wf.add_matrix_form(i, i, H1projection_biform<double, scalar>, H1projection_biform<Ord, Ord>);
       wf.add_vector_form(i, H1projection_liform<double, scalar>, H1projection_liform<Ord, Ord>,
-                     H2D_ANY, source[i]);
+                     H2D_ANY, source_meshfns[i]);
     }
     if (norm == 2) {
       found[i] = 1;
       wf.add_matrix_form(i, i, Hcurlprojection_biform<double, scalar>, Hcurlprojection_biform<Ord, Ord>);
       wf.add_vector_form(i, Hcurlprojection_liform<double, scalar>, Hcurlprojection_liform<Ord, Ord>,
-                     H2D_ANY, source[i]);
+                     H2D_ANY, source_meshfns[i]);
     }
   }
   for (int i=0; i < n; i++) {
@@ -1085,12 +1092,12 @@ void project_global(Tuple<Space *> spaces, Tuple<MeshFunction*> source,
     }
   }
 
-  project_global(spaces, source, target, &wf, vec, is_complex);
+  project_global(spaces, &wf, source_meshfns, target_slns, target_vec, is_complex);
 }
 
-void project_global(Tuple<Space *> spaces, Tuple<MeshFunction*> source, Tuple<Solution*> target,
-		    matrix_forms_tuple_t proj_biforms, vector_forms_tuple_t proj_liforms, 
-                    Vector* vec, bool is_complex)
+void project_global(Tuple<Space *> spaces, matrix_forms_tuple_t proj_biforms, 
+                    vector_forms_tuple_t proj_liforms, Tuple<MeshFunction*> source_meshfns, 
+                    Tuple<Solution*> target_slns, Vector* target_vec, bool is_complex)
 {
   int n = spaces.size();
   matrix_forms_tuple_t::size_type n_biforms = proj_biforms.size();
@@ -1113,60 +1120,61 @@ void project_global(Tuple<Space *> spaces, Tuple<MeshFunction*> source, Tuple<So
     if (n_biforms == 0) {
       wf.add_matrix_form(i, i, H1projection_biform<double, scalar>, H1projection_biform<Ord, Ord>);
       wf.add_vector_form(i, H1projection_liform<double, scalar>, H1projection_liform<Ord, Ord>,
-                     H2D_ANY, source[i]);
+                     H2D_ANY, source_meshfns[i]);
     }
     else {
       wf.add_matrix_form(i, i, proj_biforms[i].first, proj_biforms[i].second);
       wf.add_vector_form(i, proj_liforms[i].first, proj_liforms[i].second,
-                     H2D_ANY, source[i]);
+                     H2D_ANY, source_meshfns[i]);
     }
   }
 
-  project_global(spaces, source, target, &wf, vec, is_complex);
+  project_global(spaces, &wf, source_meshfns, target_slns, target_vec, is_complex);
 }
 
 /// Global orthogonal projection of one scalar ExactFunction.
-void project_global(Space *space, ExactFunction source, Solution* target, int proj_norm, Vector* vec, 
-                    bool is_complex)
+void project_global(Space *space, int proj_norm, ExactFunction source_meshfn, Solution* target_sln, 
+                    Vector* target_vec, bool is_complex)
 {
   if (proj_norm != 0 && proj_norm != 1) error("Wrong norm used in orthogonal projection (scalar case).");
   Mesh *mesh = space->get_mesh();
   if (mesh == NULL) error("Mesh is NULL in project_global().");
-  Solution sln;
-  sln.set_exact(mesh, source);
-  project_global(space, &sln, target, proj_norm, vec, is_complex);
+  Solution source_sln;
+  source_sln.set_exact(mesh, source_meshfn);
+  project_global(space, proj_norm, &source_sln, target_sln, target_vec, is_complex);
 };
 
 /// Global orthogonal projection of one scalar ExactFunction -- user specified projection bi/linear forms.
-void project_global(Space *space, ExactFunction source, Solution* target,
+void project_global(Space *space, ExactFunction source_fn, Solution* target_sln,
                     std::pair<WeakForm::matrix_form_val_t, WeakForm::matrix_form_ord_t> proj_biform,
                     std::pair<WeakForm::vector_form_val_t, WeakForm::vector_form_ord_t> proj_liform,
-                    Vector* vec, bool is_complex)
+                    Vector* target_vec, bool is_complex)
 {
   // todo: check that supplied forms take scalar valued functions
   Mesh *mesh = space->get_mesh();
   if (mesh == NULL) error("Mesh is NULL in project_global().");
-  Solution sln;
-  sln.set_exact(mesh, source);
-  project_global(space, &sln, target, matrix_forms_tuple_t(proj_biform), vector_forms_tuple_t(proj_liform), 
-                 vec, is_complex);
+  Solution source_sln;
+  source_sln.set_exact(mesh, source_fn);
+  project_global(space, matrix_forms_tuple_t(proj_biform), vector_forms_tuple_t(proj_liform), 
+                 &source_sln, target_sln, target_vec, is_complex);
 };
 
 /// Global orthogonal projection of one vector-valued ExactFunction.
-void project_global(Space *space, ExactFunction2 source, Solution* target, Vector* vec, bool is_complex)
+void project_global(Space *space, ExactFunction2 source_fn, Solution* target_sln, 
+                    Vector* target_vec, bool is_complex)
 {
   int proj_norm = 2; // Hcurl
   Mesh *mesh = space->get_mesh();
   if (mesh == NULL) error("Mesh is NULL in project_global().");
-  Solution sln;
-  sln.set_exact(mesh, source);
-  project_global(space, &sln, target, proj_norm, vec, is_complex);
+  Solution source_sln;
+  source_sln.set_exact(mesh, source_fn);
+  project_global(space, proj_norm, &source_sln, target_sln, target_vec, is_complex);
 };
 
 /// Projection-based interpolation of an exact function. This is faster than the
 /// global projection since no global matrix problem is solved.
-void project_local(Space *space, ExactFunction exactfn, Mesh* mesh,
-                   Solution* result, int proj_norm, bool is_complex)
+void project_local(Space *space, int proj_norm, ExactFunction source_fn, Mesh* mesh,
+                   Solution* target_sln, bool is_complex)
 {
   /// TODO
 }
@@ -1273,31 +1281,34 @@ double get_l2_norm_cplx(Vector* vec)
 // Solve a typical nonlinear problem (without automatic adaptivity)
 // using the Newton's method. 
 // Feel free to adjust this function for more advanced applications.
-bool solve_newton(Tuple<Space *> spaces, WeakForm* wf, 
-                  Tuple<MeshFunction *> init_cond, Tuple<Solution *> sln, 
-                  MatrixSolverType matrix_solver, Tuple<int>proj_norms, double newton_tol, 
+bool solve_newton(Tuple<Space *> spaces, WeakForm* wf, Tuple<int>proj_norms, 
+                  Tuple<MeshFunction *> init_meshfns, Tuple<Solution *> target_slns, 
+                  MatrixSolverType matrix_solver, double newton_tol, 
                   int newton_max_iter, bool verbose, Tuple<MeshFunction*> mesh_fns, 
                   bool is_complex) 
 {
+  int ndof = get_num_dofs(spaces);
+  int n_mesh_fns;
+
   // sanity checks
-  int n = sln.size();
+  int n = target_slns.size();
   if (n != wf->neq) 
     error("The number of solutions in newton_solve() must match the number of equation in the PDE system.");
   for (int i=0; i < n; i++) {
     if (spaces[i] == NULL) error("spaces[%d] is NULL in solve_newton().", i);
   }
-  int n_mesh_fns;
   if (mesh_fns == Tuple<MeshFunction*>()) n_mesh_fns = 0;
   else n_mesh_fns = mesh_fns.size();
   for (int i=0; i<n_mesh_fns; i++) {
     if (mesh_fns[i] == NULL) error("a filter is NULL in solve_newton().");
   }
 
-  // Project the function init_cond() on the FE space
+  // Project init_meshfns on the FE space
   // to obtain initial coefficient vector for the Newton's method.
   if (verbose) info("Projecting initial condition to obtain initial vector for the Newton'w method.");
-  Vector* init_vec = new AVector(get_num_dofs(spaces));
-  project_global(spaces, init_cond, sln, proj_norms, init_vec, is_complex); 
+  Vector* coeff_vec = new AVector(ndof, is_complex);
+  // the NULL means we do not want the resulting Solution, just the coeff. vector
+  project_global(spaces, proj_norms, init_meshfns, NULL, coeff_vec, is_complex); 
 
   // Initialize the discrete problem.
   DiscreteProblem dp(wf, spaces);
@@ -1305,7 +1316,7 @@ bool solve_newton(Tuple<Space *> spaces, WeakForm* wf,
 
   // Select matrix solver.
   Matrix* mat; Vector* rhs; CommonSolver* solver;
-  init_matrix_solver(matrix_solver, get_num_dofs(spaces), mat, rhs, solver, is_complex);
+  init_matrix_solver(matrix_solver, ndof, mat, rhs, solver, is_complex);
 
   int it = 1;
   double res_l2_norm;
@@ -1316,11 +1327,16 @@ bool solve_newton(Tuple<Space *> spaces, WeakForm* wf,
     // reinitialize filters
     for (int i=0; i < n_mesh_fns; i++) mesh_fns[i]->reinit();
 
-    // Assemble stiffness matrix and rhs.
+    // Assemble the Jacobian matrix and residual vector.
     bool rhsonly = false;
-    dp.assemble(init_vec, mat, NULL, rhs, rhsonly, is_complex); // the NULL stands for the dir vector which is not needed
+    // the NULL stands for the dir vector which is not needed here
+    dp.assemble(coeff_vec, mat, NULL, rhs, rhsonly, is_complex);
 
-    // Calculate the l2-norm of residual vector
+    // Multiply the residual vector with -1 since the matrix 
+    // equation reads J(Y^n) \deltaY^{n+1} = -F(Y^n).
+    for (int i = 0; i < ndof; i++) rhs->set(i, -rhs->get(i));
+
+    // Calculate the l2-norm of residual vector.
     if (!is_complex) res_l2_norm = get_l2_norm(rhs);
     else res_l2_norm = get_l2_norm_cplx(rhs);
     if (verbose) printf("---- Newton iter %d, ndof %d, res. l2 norm %g\n", 
@@ -1332,23 +1348,30 @@ bool solve_newton(Tuple<Space *> spaces, WeakForm* wf,
     // Solve the matrix problem.
     if (!solver->solve(mat, rhs)) error ("Matrix solver failed.\n");
 
-    // add the solution vector stored in "rhs" to "init_vec"
-    for (int i = 0; i < init_vec->get_size(); i++) init_vec->add(i, rhs->get(i));
+    // Add \deltaY^{n+1} to Y^n.
+    for (int i = 0; i < ndof; i++) coeff_vec->add(i, rhs->get(i));
     
     it++;
   };
 
   if (it > newton_max_iter) {
-    delete init_vec;
+    delete coeff_vec;
+    delete rhs;
+    delete mat;
     return false;
   }
 
-  // Convert coefficient vector into solution(s) "sln".
-  for (int i=0; i<sln.size(); i++) {
-    sln[i]->set_fe_solution(spaces[i], init_vec);
+  // If the user wants target_slns, convert coefficient vector into Solution(s).
+  if (target_slns != Tuple<Solution *>()) {
+    for (int i=0; i<target_slns.size(); i++) {
+      if (target_slns[i] != NULL) target_slns[i]->set_fe_solution(spaces[i], coeff_vec);
+    }
   }
 
-  delete init_vec;
+  delete coeff_vec;
+  delete rhs;
+  delete mat;
+
   return true;
 }
 
