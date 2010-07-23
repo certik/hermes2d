@@ -26,7 +26,6 @@
 #include "ref_selectors/selector.h"
 #include "graph.h"
 #include "adapt.h"
-#include "h1_adapt.h"
 
 class Solution;
 class MeshFunction;
@@ -60,9 +59,9 @@ bool solve_linear(Tuple<Space *> spaces, WeakForm* wf, Tuple<Solution *> solutio
 
 // Solve a typical linear problem (without automatic adaptivity).
 // Feel free to adjust this function for more advanced applications.
-bool solve_linear_adapt(Tuple<Space *> spaces, WeakForm* wf, Tuple<Solution *> slns, 
-                        MatrixSolverType matrix_solver, Tuple<Solution *> ref_slns, Tuple<int> proj_norms, 
-                        RefinementSelectors::Selector* selector, AdaptivityParamType* apt,
+bool solve_linear_adapt(Tuple<Space *> spaces, WeakForm* wf, Tuple<int> proj_norms, Tuple<Solution *> slns, 
+                        MatrixSolverType matrix_solver, Tuple<Solution *> ref_slns, 
+                        Tuple<RefinementSelectors::Selector *> selectors, AdaptivityParamType* apt,
                         Tuple<WinGeom *> sln_win_geom = Tuple<WinGeom *>(), 
                         Tuple<WinGeom *> mesh_win_geom = Tuple<WinGeom *>(), 
                         bool verbose = false, 

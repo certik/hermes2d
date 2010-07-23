@@ -81,12 +81,17 @@ bool solve_linear(Tuple<Space *> spaces, WeakForm* wf, Tuple<Solution *> solutio
 
 // Solve a typical linear problem using automatic adaptivity.
 // Feel free to adjust this function for more advanced applications.
-bool solve_linear_adapt(Tuple<Space *> spaces, WeakForm* wf, Tuple<Solution *> slns, 
-                        MatrixSolverType matrix_solver, Tuple<Solution *> ref_slns, Tuple<int> proj_norms, 
-                        RefinementSelectors::Selector* selector, AdaptivityParamType* apt,
+bool solve_linear_adapt(Tuple<Space *> spaces, WeakForm* wf, Tuple<int> proj_norms, 
+                        Tuple<Solution *> slns, 
+                        MatrixSolverType matrix_solver, Tuple<Solution *> ref_slns, 
+                        Tuple<RefinementSelectors::Selector *> selectors, AdaptivityParamType* apt,
                         Tuple<WinGeom *> sln_win_geom, Tuple<WinGeom *> mesh_win_geom, 
                         bool verbose, Tuple<ExactSolution *> exact_slns, bool is_complex) 
 {
+  // sanity checks
+  if (spaces.size() != selectors.size()) error("There must be a refinement selector for each solution component in solve_linear_adapt().");
+  if (spaces.size() != proj_norms.size()) error("There must be a projection norm for each solution component in solve_linear_adapt().");
+
   // Time measurement.
   TimePeriod cpu_time;
   cpu_time.tick();
@@ -189,16 +194,23 @@ bool solve_linear_adapt(Tuple<Space *> spaces, WeakForm* wf, Tuple<Solution *> s
 
     // Calculate element errors.
     if (verbose) info("Calculating error (est).");
-    H1Adapt hp(spaces);
+    // FIXME: so far all solution components must be in H1,
+    // We need to allow each component to be in L2, H1, Hcurl or Hdiv. 
+    Adapt hp(spaces, proj_norms);
     hp.set_solutions(slns, ref_slns);
-    hp.calc_error();
+    hp.calc_elem_errors();
  
     // Calculate error estimate for each solution component.   
     double err_est[H2D_MAX_COMPONENTS];
     double err_est_total = 0;
     for (int i = 0; i < num_comps; i++) {
-      err_est[i] = h1_error(slns[i], ref_slns[i]) * 100;
-      err_est_total += err_est[i]*err_est[i];
+      switch (proj_norms[i]) {
+        case H2D_L2_NORM: err_est[i] = l2_error(slns[i], ref_slns[i]) * 100; break;
+        case H2D_H1_NORM: err_est[i] = h1_error(slns[i], ref_slns[i]) * 100; break;
+        case H2D_HCURL_NORM: err_est[i] = hcurl_error(slns[i], ref_slns[i]) * 100; break;
+      default: error("Unknown error norm in solve_newton_adapt().");
+      }
+      err_est_total += err_est[i]*err_est[i];     
     }
     err_est_total = sqrt(err_est_total);
 
@@ -249,7 +261,7 @@ bool solve_linear_adapt(Tuple<Space *> spaces, WeakForm* wf, Tuple<Solution *> s
     if (err_est_total < err_stop) done = true;
     else {
       if (verbose) info("Adapting the coarse mesh.");
-      done = hp.adapt(selector, threshold, strategy, mesh_regularity, to_be_processed);
+      done = hp.adapt(selectors, threshold, strategy, mesh_regularity, to_be_processed);
 
       if (get_num_dofs(spaces) >= ndof_stop) done = true;
     }

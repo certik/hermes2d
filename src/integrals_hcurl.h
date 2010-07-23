@@ -16,8 +16,6 @@
 #ifndef __H2D_INTEGRALS_HCURL_H
 #define __H2D_INTEGRALS_HCURL_H
 
-#ifdef H2D_COMPLEX
-
 //// new volume integrals //////////////////////////////////////////////////////////////////////////////
 
 template<typename Real, typename Scalar>
@@ -77,8 +75,6 @@ Scalar hcurl_form(int n, double *wt, Func<Scalar> *u_ext[], Func<Scalar> *u, Fun
                        u->val0[i] * conj(v->val0[i]) + u->val1[i] * conj(v->val1[i]));
   return result;
 }
-
-#endif
 
 #endif
 

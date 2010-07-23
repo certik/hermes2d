@@ -22,8 +22,16 @@
 #include "forms.h"
 #include "weakform.h"
 #include <map>
+#include "views/scalar_view.h"
+#include "views/order_view.h"
+#include "function.h"
+#include "discrete_problem.h"
+#include "ref_selectors/selector.h"
+#include "graph.h"
+#include "adapt.h"
+#include "norm.h"
 
-typedef enum {H2D_L2_NORM, H2D_H1_NORM, H2D_HCURL_NORM} ProjNormType;
+typedef enum {H2D_L2_NORM, H2D_H1_NORM, H2D_HCURL_NORM, H2D_HDIV_NORM} ProjNormType;
 
 class Space;
 class PrecalcShapeset;
@@ -268,12 +276,37 @@ void project_local(Space *space, int proj_norm, ExactFunction source_fn, Mesh* m
                    Solution* target_sln, Vector* target_vec = NULL, 
                    bool is_complex = false);
 
-/// Performs complete Newton's loop for a Tuple of solutions.
+/// Newton's loop. Takes a Tuple of MeshFunctions, projects them on "spaces" to
+/// obtain a coefficient vector. Then it employs the function solve_newton() below
+/// that takes a coefficient vector and delivers a coefficient vector. The resulting
+/// coefficient vector is translated into resulting Solutions. 
 bool solve_newton(Tuple<Space *> spaces, WeakForm* wf, Tuple<int>proj_norms,  
                   Tuple<MeshFunction *> init_meshfns, Tuple<Solution *> target_slns, 
                   MatrixSolverType matrix_solver, double newton_tol = 1e-5, 
                   int newton_max_iter = 100, bool verbose = false, 
                   Tuple<MeshFunction*> mesh_fns = Tuple<MeshFunction*>(), 
                   bool is_complex = false);
+
+/// Basic Newton's loop. Takes a coefficient vector, delivers a coefficient vector (in the 
+/// same variable "init_coeff_vector").
+bool solve_newton(Tuple<Space *> spaces, WeakForm* wf, Vector* init_coeff_vec,
+                  MatrixSolverType matrix_solver, double newton_tol = 1e-5, 
+                  int newton_max_iter = 100, bool verbose = false, 
+                  Tuple<MeshFunction*> mesh_fns = Tuple<MeshFunction*>(), 
+                  bool is_complex = false);
+
+
+// Solve a typical nonlinear problem using the Newton's method and 
+// automatic adaptivity. 
+// Feel free to adjust this function for more advanced applications.
+bool solve_newton_adapt(Tuple<Space *> spaces, WeakForm* wf, Tuple<int>proj_norms, 
+                        Tuple<Solution *> slns, 
+                        MatrixSolverType matrix_solver,  Tuple<Solution *> ref_slns, 
+                        RefinementSelectors::Selector* selector, AdaptivityParamType* apt,
+                        Tuple<WinGeom *> sln_win_geom, Tuple<WinGeom *> mesh_win_geom, 
+                        double newton_tol_coarse, double newton_tol_fine, int newton_max_iter, 
+                        bool verbose = false, Tuple<ExactSolution *> exact_slns = Tuple<ExactSolution *>(), 
+                        bool is_complex = false);
+
 
 #endif

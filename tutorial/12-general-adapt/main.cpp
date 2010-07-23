@@ -119,15 +119,8 @@ int main(int argc, char* argv[])
   WinGeom* sln_win_geom = new WinGeom{0, 0, 440, 350};
   WinGeom* mesh_win_geom = new WinGeom{450, 0, 400, 350};
   bool verbose = true;     // Prinf info during adaptivity.
-  solve_linear_adapt(&space, &wf, sln, matrix_solver, ref_sln, H2D_H1_NORM, 
+  solve_linear_adapt(&space, &wf, H2D_H1_NORM, sln, matrix_solver, ref_sln, 
                      &selector, &apt, sln_win_geom, mesh_win_geom, verbose);
-
-  // Show the final result.
-  ScalarView sview("Final solution", sln_win_geom);
-  OrderView  oview("Final", mesh_win_geom);
-  sview.show_mesh(false);
-  sview.show(sln);
-  oview.show(&space);
 
   // Wait for all views to be closed.
   View::wait();

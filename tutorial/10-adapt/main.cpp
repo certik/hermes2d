@@ -112,19 +112,8 @@ int main(int argc, char* argv[])
   WinGeom* sln_win_geom = new WinGeom{0, 0, 400, 600};
   WinGeom* mesh_win_geom = new WinGeom{410, 0, 400, 600};
   bool verbose = true;     // Prinf info during adaptivity.
-  solve_linear_adapt(&space, &wf, sln, matrix_solver, ref_sln, H2D_H1_NORM, 
+  solve_linear_adapt(&space, &wf, H2D_H1_NORM, sln, matrix_solver, ref_sln, 
                      &selector, &apt, sln_win_geom, mesh_win_geom, verbose);
-
-  // Show the final result.
-  ScalarView sview("Final solution (Phi)", sln_win_geom);
-  OrderView  oview("Final mesh", mesh_win_geom);
-  WinGeom* grad_win_geom = new WinGeom{820, 0, 400, 600};
-  VectorView gview("Gradient of Phi", grad_win_geom);
-  gview.set_min_max_range(0, 1e8);
-  sview.show_mesh(false);
-  sview.show(sln);
-  gview.show(sln, sln, H2D_EPS_HIGH, H2D_FN_DX_0, H2D_FN_DY_0);
-  oview.show(&space);
 
   // Wait for all views to be closed.
   View::wait();

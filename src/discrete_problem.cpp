@@ -20,12 +20,17 @@
 #include "space.h"
 #include "precalc.h"
 #include "shapeset_h1_all.h"
+#include "integrals_h1.h"
 #include "refmap.h"
 #include "solution.h"
 #include "config.h"
 #include "limit_order.h"
 #include <algorithm>
+#include "views/view.h"
 #include "views/scalar_view.h"
+#include "views/vector_view.h"
+#include "tuple.h"
+#include "norm.h"
 
 #include "solvers.h"
 
@@ -1288,27 +1293,61 @@ bool solve_newton(Tuple<Space *> spaces, WeakForm* wf, Tuple<int>proj_norms,
                   bool is_complex) 
 {
   int ndof = get_num_dofs(spaces);
-  int n_mesh_fns;
 
   // sanity checks
-  int n = target_slns.size();
-  if (n != wf->neq) 
-    error("The number of solutions in newton_solve() must match the number of equation in the PDE system.");
-  for (int i=0; i < n; i++) {
-    if (spaces[i] == NULL) error("spaces[%d] is NULL in solve_newton().", i);
-  }
+  int num_comps = target_slns.size();
+  int n_mesh_fns;
   if (mesh_fns == Tuple<MeshFunction*>()) n_mesh_fns = 0;
   else n_mesh_fns = mesh_fns.size();
   for (int i=0; i<n_mesh_fns; i++) {
     if (mesh_fns[i] == NULL) error("a filter is NULL in solve_newton().");
   }
+  if (spaces.size() != init_meshfns.size()) error("The number of spaces and initial functions must be the same in newton_solve.");
+  if (init_meshfns.size() != target_slns.size()) error("The number of initial functions and target solutions must be the same in newton_solve.");
 
   // Project init_meshfns on the FE space
   // to obtain initial coefficient vector for the Newton's method.
-  if (verbose) info("Projecting initial condition to obtain initial vector for the Newton'w method.");
-  Vector* coeff_vec = new AVector(ndof, is_complex);
+  if (verbose) info("Projecting to obtain initial vector for the Newton'w method.");
+  Tuple<Solution *> init_slns;
+  for (int i = 0; i < num_comps; i++) init_slns.push_back(new Solution());
+    
+  Vector* init_coeff_vec = new AVector(ndof);
+
   // the NULL means we do not want the resulting Solution, just the coeff. vector
-  project_global(spaces, proj_norms, init_meshfns, NULL, coeff_vec, is_complex); 
+  project_global(spaces, proj_norms, init_meshfns, NULL, init_coeff_vec, is_complex); 
+
+  bool flag;
+  flag = solve_newton(spaces, wf, init_coeff_vec, matrix_solver, 
+                      newton_tol, newton_max_iter, verbose, mesh_fns, is_complex);
+
+  // If the user wants target_slns, convert coefficient vector into Solution(s).
+  if (target_slns != Tuple<Solution *>()) {
+    for (int i=0; i<target_slns.size(); i++) {
+      if (target_slns[i] != NULL) target_slns[i]->set_fe_solution(spaces[i], init_coeff_vec);
+    }
+  }
+
+  return flag;
+}
+
+// Basic Newton's method, takes a coefficient vector and returns a coefficient vector. 
+bool solve_newton(Tuple<Space *> spaces, WeakForm* wf, Vector* init_coeff_vec, 
+                  MatrixSolverType matrix_solver, double newton_tol, 
+                  int newton_max_iter, bool verbose, Tuple<MeshFunction*> mesh_fns, 
+                  bool is_complex) 
+{
+  int ndof = get_num_dofs(spaces);
+  int n_mesh_fns = 0;
+  if (mesh_fns != Tuple<MeshFunction*>()) n_mesh_fns = mesh_fns.size();
+
+  // sanity checks
+  if (init_coeff_vec->get_size() != ndof) error("Bad vector length in solve_newton().");
+  int n = spaces.size();
+  if (spaces.size() != wf->neq) 
+    error("The number of spaces in newton_solve() must match the number of equation in the PDE system.");
+  for (int i=0; i < n; i++) {
+    if (spaces[i] == NULL) error("spaces[%d] is NULL in solve_newton().", i);
+  }
 
   // Initialize the discrete problem.
   DiscreteProblem dp(wf, spaces);
@@ -1322,15 +1361,13 @@ bool solve_newton(Tuple<Space *> spaces, WeakForm* wf, Tuple<int>proj_norms,
   double res_l2_norm;
   while (1)
   {
-    if (verbose == true) info("---- Newton iter %d:", it); 
-
     // reinitialize filters
     for (int i=0; i < n_mesh_fns; i++) mesh_fns[i]->reinit();
 
     // Assemble the Jacobian matrix and residual vector.
     bool rhsonly = false;
     // the NULL stands for the dir vector which is not needed here
-    dp.assemble(coeff_vec, mat, NULL, rhs, rhsonly, is_complex);
+    dp.assemble(init_coeff_vec, mat, NULL, rhs, rhsonly, is_complex);
 
     // Multiply the residual vector with -1 since the matrix 
     // equation reads J(Y^n) \deltaY^{n+1} = -F(Y^n).
@@ -1339,7 +1376,7 @@ bool solve_newton(Tuple<Space *> spaces, WeakForm* wf, Tuple<int>proj_norms,
     // Calculate the l2-norm of residual vector.
     if (!is_complex) res_l2_norm = get_l2_norm(rhs);
     else res_l2_norm = get_l2_norm_cplx(rhs);
-    if (verbose) printf("---- Newton iter %d, ndof %d, res. l2 norm %g\n", 
+    if (verbose) info("---- Newton iter %d, ndof %d, res. l2 norm %g", 
                         it, get_num_dofs(spaces), res_l2_norm);
 
     // If l2 norm of the residual vector is in tolerance, quit.
@@ -1349,29 +1386,249 @@ bool solve_newton(Tuple<Space *> spaces, WeakForm* wf, Tuple<int>proj_norms,
     if (!solver->solve(mat, rhs)) error ("Matrix solver failed.\n");
 
     // Add \deltaY^{n+1} to Y^n.
-    for (int i = 0; i < ndof; i++) coeff_vec->add(i, rhs->get(i));
+    for (int i = 0; i < ndof; i++) init_coeff_vec->add(i, rhs->get(i));
     
     it++;
   };
 
   if (it > newton_max_iter) {
-    delete coeff_vec;
     delete rhs;
     delete mat;
     return false;
   }
 
-  // If the user wants target_slns, convert coefficient vector into Solution(s).
-  if (target_slns != Tuple<Solution *>()) {
-    for (int i=0; i<target_slns.size(); i++) {
-      if (target_slns[i] != NULL) target_slns[i]->set_fe_solution(spaces[i], coeff_vec);
-    }
-  }
-
-  delete coeff_vec;
   delete rhs;
   delete mat;
 
   return true;
 }
 
+// Solve a typical nonlinear problem using the Newton's method and 
+// automatic adaptivity. 
+// Feel free to adjust this function for more advanced applications.
+bool solve_newton_adapt(Tuple<Space *> spaces, WeakForm* wf, Tuple<int>proj_norms, 
+                        Tuple<Solution *> slns, 
+                        MatrixSolverType matrix_solver,  Tuple<Solution *> ref_slns, 
+                        RefinementSelectors::Selector* selector, AdaptivityParamType* apt,
+                        Tuple<WinGeom *> sln_win_geom, Tuple<WinGeom *> mesh_win_geom, 
+                        double newton_tol_coarse, double newton_tol_fine, int newton_max_iter, 
+                        bool verbose, Tuple<ExactSolution *> exact_slns, bool is_complex) 
+{
+  // Time measurement.
+  TimePeriod cpu_time;
+  cpu_time.tick();
+
+  // Adaptivity parameters.
+  double err_stop = apt->err_stop;
+  int ndof_stop = apt->ndof_stop;
+  double threshold = apt->threshold;
+  int strategy = apt->strategy; 
+  int mesh_regularity = apt->mesh_regularity;
+  double to_be_processed = apt->to_be_processed;
+
+  // Number of physical fields in the problem.
+  int num_comps = spaces.size();
+
+  // Number of degreeso of freedom 
+  int ndof = get_num_dofs(spaces);
+
+  // Number of exact solutions given.
+  if (exact_slns.size() != 0 && exact_slns.size() != num_comps) 
+    error("Number of exact solutions does not match number of equations.");
+  bool is_exact_solution;
+  if (exact_slns.size() == num_comps) is_exact_solution = true;
+  else is_exact_solution = false;
+
+  // Initialize matrix solver.
+  Matrix* mat; Vector* rhs; CommonSolver* solver;  
+  init_matrix_solver(matrix_solver, ndof, mat, rhs, solver, is_complex);
+
+  // Initialize views.
+  ScalarView* sview[H2D_MAX_COMPONENTS];
+  OrderView*  oview[H2D_MAX_COMPONENTS];
+  for (int i = 0; i < num_comps; i++) {
+    char* title = (char*)malloc(100*sizeof(char));
+    if (sln_win_geom[i] != NULL) {
+      if (num_comps == 1) sprintf(title, "Solution", i); 
+      else sprintf(title, "Solution %d", i); 
+      sview[i] = new ScalarView(title, sln_win_geom[i]);
+      sview[i]->show_mesh(false);
+    }
+    else sview[i] = NULL;
+    if (mesh_win_geom[i] != NULL) {
+      if (num_comps == 1) sprintf(title, "Mesh", i); 
+      else sprintf(title, "Mesh %d", i); 
+      oview[i] = new OrderView(title, mesh_win_geom[i]);
+    }
+    else oview[i] = NULL;
+  }
+
+  // DOF and CPU convergence graphs.
+  SimpleGraph graph_dof_est, graph_cpu_est, graph_dof_exact, graph_cpu_exact;
+
+  // Conversion from Tuple<Solution *> to Tuple<MeshFunction *>
+  // so that project_global() below compiles. 
+  // FIXME: this should be solved more elegantly
+  Tuple<MeshFunction *> slns_mf;
+  Tuple<MeshFunction *> ref_slns_mf;
+  for (int i = 0; i < num_comps; i++) {
+    slns_mf.push_back((MeshFunction*)slns[i]);
+    ref_slns_mf.push_back((MeshFunction*)ref_slns[i]);
+  }
+
+  // Newton's loop on the coarse mesh.
+  info("Solving on coarse mesh.");
+  Tuple<Solution *> u_prev;
+  for (int i = 0; i < num_comps; i++) u_prev.push_back(new Solution);
+
+  info("Performing Newton's iteration.");
+  if (!solve_newton(spaces, wf, proj_norms, slns_mf, u_prev, 
+                    matrix_solver, newton_tol_coarse, newton_max_iter, verbose)) {
+    error("Newton's method did not converge.");
+  }
+
+  // Store the result in sln.
+  for (int i = 0; i < num_comps; i++) slns[i]->copy(u_prev[i]);
+
+  // Adaptivity loop:
+  bool done = false; int as = 1;
+  double err_est;
+  do {
+    info("---- Adaptivity step %d:", as);
+
+    // Time measurement..
+    cpu_time.tick();
+
+    // Skip visualization.
+    cpu_time.tick(HERMES_SKIP);
+
+    // Construct globally refined reference mesh(es)
+    // and setup reference space(s).
+    int num_comps = 1;
+    Tuple<Space *> ref_spaces;
+    for (int i = 0; i < num_comps; i++) {
+      Mesh *ref_mesh = new Mesh();
+      ref_mesh->copy(spaces[i]->get_mesh());
+      ref_mesh->refine_all_elements();
+      ref_spaces.push_back(spaces[i]->dup(ref_mesh));
+      int order_increase = 1;
+      ref_spaces[i]->copy_orders(spaces[i], order_increase);
+    }
+
+    // Newton's loop on the fine mesh.
+    if (as == 1) {
+      info("Solving on fine mesh, starting from previous coarse mesh solution.");
+      if (!solve_newton(ref_spaces, wf, proj_norms, slns_mf, u_prev, matrix_solver, 
+                        newton_tol_fine, newton_max_iter, verbose)) 
+        error("Newton's method did not converge.");
+    }
+    else {
+      info("Solving on fine mesh, starting from previous fine mesh solution.");
+      if (!solve_newton(ref_spaces, wf, proj_norms, ref_slns_mf, u_prev, matrix_solver, 
+                        newton_tol_fine, newton_max_iter, verbose)) 
+        error("Newton's method did not converge.");
+    }
+
+    // Store the fine mesh solution in ref_sln.
+    for (int i = 0; i < num_comps; i++) ref_slns[i]->copy(u_prev[i]);
+
+    // Time measurement.
+    cpu_time.tick();
+
+    // View the coarse mesh solution (first component only).
+    for (int i = 0; i < num_comps; i++) {
+      if (sview[i] != NULL) sview[i]->show(slns[i]);
+      if (oview[i] != NULL) oview[i]->show(spaces[i]);
+    }    
+
+    // Skip visualization time.
+    cpu_time.tick(HERMES_SKIP);
+
+    // Calculate element errors and total error estimate.
+    if (verbose) info("Calculating error.");
+    // FIXME: so far all solution components must be in H1,
+    // We need to allow each component to be in L2, H1, Hcurl or Hdiv. 
+    Adapt hp(spaces, proj_norms);
+    hp.set_solutions(slns, ref_slns);
+    hp.calc_elem_errors();
+
+    // Calculate error estimate for each solution component.   
+    double err_est[H2D_MAX_COMPONENTS];
+    double err_est_total = 0;
+    for (int i = 0; i < num_comps; i++) {
+      switch (proj_norms[i]) {
+        case H2D_L2_NORM: err_est[i] = l2_error(slns[i], ref_slns[i]) * 100; break;
+        case H2D_H1_NORM: err_est[i] = h1_error(slns[i], ref_slns[i]) * 100; break;
+        case H2D_HCURL_NORM: err_est[i] = hcurl_error(slns[i], ref_slns[i]) * 100; break;
+      default: error("Unknown error norm in solve_newton_adapt().");
+      }
+      err_est_total += err_est[i]*err_est[i];
+    }
+    err_est_total = sqrt(err_est_total);
+
+    // Calculate exact error for each solution component.   
+    double err_exact[H2D_MAX_COMPONENTS];
+    double err_exact_total = 0;
+    if (is_exact_solution == true) {
+      if (verbose) info("Calculating error (exact).");
+      for (int i = 0; i < num_comps; i++) {
+        err_exact[i] = h1_error(slns[i], exact_slns[i]) * 100;
+        err_exact_total += err_exact[i]*err_exact[i];
+      }
+      err_exact_total = sqrt(err_exact_total);
+    }
+
+    // Report results.
+    if (verbose) {
+      if (num_comps == 1) {
+        info("ndof: %d, ref_ndof: %d, err_est: %g%%", 
+             get_num_dofs(spaces), get_num_dofs(ref_spaces), err_est_total);
+        if (is_exact_solution == true) info("err_exact: %g%%", err_exact[0]);
+      }
+      else {
+        for (int i = 0; i < num_comps; i++) {
+          info("ndof[%d]: %d, ref_ndof[%d]: %d, err_est[%d]: %g%%", 
+               i, spaces[i]->get_num_dofs(), i, ref_spaces[i]->get_num_dofs(),
+               i, err_est[i]);
+          if (is_exact_solution == true) info("err_exact[%d]: %g%%", i, err_exact[i]);
+        }
+        info("ndof: %d, ref_ndof: %d, err_est: %g%%", 
+             get_num_dofs(spaces), get_num_dofs(ref_spaces), err_est_total);
+      }
+    }
+
+    // Add entry to DOF and CPU convergence graphs.
+    graph_dof_est.add_values(get_num_dofs(spaces), err_est_total);
+    graph_dof_est.save("conv_dof_est.dat");
+    graph_cpu_est.add_values(cpu_time.accumulated(), err_est_total);
+    graph_cpu_est.save("conv_cpu_est.dat");
+    if (is_exact_solution == true) {
+      graph_dof_exact.add_values(get_num_dofs(spaces), err_exact_total);
+      graph_dof_exact.save("conv_dof_exact.dat");
+      graph_cpu_exact.add_values(cpu_time.accumulated(), err_exact_total);
+      graph_cpu_exact.save("conv_cpu_exact.dat");
+    }
+
+    // If err_est too large, adapt the mesh.
+    if (err_est_total < err_stop) done = true;
+    else {
+      if (verbose) info("Adapting the coarse mesh.");
+      done = hp.adapt(selector, threshold, strategy, mesh_regularity, to_be_processed);
+
+      if (get_num_dofs(spaces) >= ndof_stop) done = true;
+    }
+
+    as++;
+  }
+  while (done == false);
+
+  // Close visualization windows.
+  /* FIXME: this should be uncommented but it causes segfaults
+  for (int i = 0; i < num_comps; i++) {
+    if (sview[i] != NULL) sview[i]->close(); 
+    if (oview[i] != NULL) oview[i]->close(); 
+  }
+  */
+
+  if (verbose) info("Total running time: %g s", cpu_time.accumulated());
+}

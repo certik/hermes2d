@@ -49,6 +49,8 @@ const double ERR_STOP = 0.1;             // Stopping criterion for adaptivity (r
                                          // reference mesh and coarse mesh solution in percent).
 const int NDOF_STOP = 100000;            // Adaptivity process stops when the number of degrees of freedom grows
                                          // over this limit. This is to prevent h-adaptivity to go on forever.
+MatrixSolverType matrix_solver = SOLVER_UMFPACK;  // Possibilities: SOLVER_UMFPACK, SOLVER_PETSC,
+                                                  // SOLVER_MUMPS, and more are coming.
 
 // Problem parameters.
 const double K_squared = 1e4;    
@@ -106,15 +108,8 @@ int main(int argc, char* argv[])
   Solution *sln = new Solution();
   Solution *ref_sln = new Solution();
   bool verbose = true;     // Prinf info during adaptivity.
-  solve_linear_adapt(&space, &wf, sln, SOLVER_UMFPACK, ref_sln, H2D_H1_NORM, 
+  solve_linear_adapt(&space, &wf, H2D_H1_NORM, sln, matrix_solver, ref_sln, 
                      &selector, &apt, sln_win_geom, mesh_win_geom, verbose);
-
-  // Show the final result.
-  ScalarView sview("Final solution", sln_win_geom);
-  OrderView  oview("Final mesh", mesh_win_geom);
-  sview.show_mesh(false);
-  sview.show(sln);
-  oview.show(&space);
 
   // Wait for all views to be closed.
   View::wait();

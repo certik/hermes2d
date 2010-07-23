@@ -189,8 +189,6 @@ double l2_norm(MeshFunction* sln)
 
 //// Hcurl space ///////////////////////////////////////////////////////////////////////////////////
 
-#ifdef H2D_COMPLEX
-
 // function used to calculate error in Hcurl norm
 double error_fn_hc(MeshFunction* sln1, MeshFunction* sln2, RefMap* ru, RefMap* rv)
 {
@@ -301,5 +299,3 @@ double hcurl_l2norm(MeshFunction* sln)
 {
   return calc_norm(norm_fn_hcl2, sln);
 }
-
-#endif

@@ -126,9 +126,6 @@ int main(int argc, char* argv[])
   wf.add_vector_form(0, linear_form_0, linear_form_0_ord);
   wf.add_vector_form(1, linear_form_1, linear_form_1_ord);
 
-  // DOF and CPU convergence graphs.
-  SimpleGraph graph_dof, graph_cpu;
-
   // Initialize refinement selector.
   H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
 
@@ -151,24 +148,13 @@ int main(int argc, char* argv[])
   ExactSolution v_exact(&v_mesh, vexact);
   bool verbose = true;  // Print info during adaptivity.
   solve_linear_adapt(Tuple<Space *>(&u_space, &v_space), &wf, 
+                     Tuple<int>(H2D_H1_NORM, H2D_H1_NORM), 
                      Tuple<Solution *>(u_sln, v_sln), matrix_solver, 
                      Tuple<Solution *>(ref_u_sln, ref_v_sln), 
-                     Tuple<int>(H2D_H1_NORM, H2D_H1_NORM), &selector, &apt, 
+                     Tuple<RefinementSelectors::Selector *> (&selector, &selector), &apt, 
                      Tuple<WinGeom *>(u_sln_win_geom, v_sln_win_geom), 
                      Tuple<WinGeom *>(u_mesh_win_geom, v_mesh_win_geom), verbose,
                      Tuple<ExactSolution *>(&u_exact, &v_exact));
-
-  // Show the final result.
-  ScalarView u_view("Coarse mesh solution u", u_sln_win_geom);
-  u_view.show_mesh(false);
-  u_view.show(u_sln);
-  ScalarView v_view("Coarse mesh solution v", v_sln_win_geom);
-  v_view.show_mesh(false);
-  v_view.show(v_sln);
-  OrderView  u_oview("Coarse mesh for u", u_mesh_win_geom);
-  u_oview.show(&u_space);
-  OrderView  v_oview("Coarse mesh for v", v_mesh_win_geom);
-  v_oview.show(&v_space);
 
   // Wait for all views to be closed.
   View::wait();

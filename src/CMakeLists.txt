@@ -16,7 +16,7 @@ set(SRC
 
        refinement_type.cpp element_to_refine.cpp
        ref_selectors/selector.cpp ref_selectors/order_permutator.cpp ref_selectors/optimum_selector.cpp ref_selectors/proj_based_selector.cpp ref_selectors/l2_proj_based_selector.cpp ref_selectors/h1_proj_based_selector.cpp ref_selectors/hcurl_proj_based_selector.cpp
-       adapt.cpp l2_adapt.cpp h1_adapt.cpp hcurl_adapt.cpp
+       adapt.cpp
 
        common.cpp 
 	   matrix_old.cpp weakform.cpp discrete_problem.cpp

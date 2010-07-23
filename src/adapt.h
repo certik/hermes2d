@@ -16,11 +16,14 @@
 #ifndef __H2D_ADAPT_H
 #define __H2D_ADAPT_H
 
+#include "norm.h"
 #include "forms.h"
 #include "space.h"
 #include "tuple.h"
 #include "weakform.h"
 #include "integrals_h1.h"
+#include "integrals_hcurl.h"
+#include "integrals_hdiv.h"
 #include "ref_selectors/selector.h"
 
 /** \defgroup g_adapt Adaptivity
@@ -71,18 +74,18 @@ H2D_API_USED_TEMPLATE(Tuple<Solution*>); ///< Instantiated template. It is used 
 // Constant used by Adapt::calc_eror().
 #define H2D_TOTAL_ERROR_REL  0x00  ///< A flag which defines interpretation of the total error. \ingroup g_adapt
                                    ///  The total error is divided by the norm and therefore it should be in a range [0, 1].
-                                   ///  \note Used by Adapt::calc_error().. This flag is mutually exclusive with ::H2D_TOTAL_ERROR_ABS.
+                                   ///  \note Used by Adapt::calc_elem_errors().. This flag is mutually exclusive with ::H2D_TOTAL_ERROR_ABS.
 #define H2D_TOTAL_ERROR_ABS  0x01  ///< A flag which defines interpretation of the total error. \ingroup g_adapt
                                    ///  The total error is absolute, i.e., it is an integral over squares of differencies.
-                                   ///  \note Used by Adapt::calc_error(). This flag is mutually exclusive with ::H2D_TOTAL_ERROR_REL.
+                                   ///  \note Used by Adapt::calc_elem_errors(). This flag is mutually exclusive with ::H2D_TOTAL_ERROR_REL.
 #define H2D_ELEMENT_ERROR_REL 0x00 ///< A flag which defines interpretation of an error of an element. \ingroup g_adapt
                                    ///  An error of an element is a square of an error divided by a square of a norm of a corresponding component.
                                    ///  When norms of 2 components are very different (e.g. microwave heating), it can help.
                                    ///  Navier-stokes on different meshes work only when absolute error (see ::H2D_ELEMENT_ERROR_ABS) is used.
-                                   ///  \note Used by Adapt::calc_error(). This flag is mutually exclusive with ::H2D_ELEMENT_ERROR_ABS.
+                                   ///  \note Used by Adapt::calc_elem_errors(). This flag is mutually exclusive with ::H2D_ELEMENT_ERROR_ABS.
 #define H2D_ELEMENT_ERROR_ABS 0x10 ///< A flag which defines interpretation of of an error of an element. \ingroup g_adapt
                                    ///  An error of an element is a square of an asolute error, i.e., it is an integral over squares of differencies.
-                                   ///  \note Used by Adapt::calc_error(). This flag is mutually exclusive with ::H2D_ELEMENT_ERROR_REL.
+                                   ///  \note Used by Adapt::calc_elem_errors(). This flag is mutually exclusive with ::H2D_ELEMENT_ERROR_REL.
 
 /// Evaluation of an error between a (coarse) solution and a refernece solution and adaptivity. \ingroup g_adapt
 /** The class provides basic functionality necessary to adaptively refine elements.
@@ -93,8 +96,8 @@ H2D_API_USED_TEMPLATE(Tuple<Solution*>); ///< Instantiated template. It is used 
 class H2D_API Adapt
 {
 public:
-  Adapt(DiscreteProblem* dp);    ///< Constructor. Used by children of the class.
-  Adapt(Tuple<Space *> spaces_); ///< Constructor. Used by children of the class.
+  Adapt(Tuple<Space *> spaces_, Tuple<int> proj_norms); ///< Constructor. Suitable for problems where various solution components 
+                                 ///< belong to different spaces (L2, H1, Hcurl, Hdiv). 
   virtual ~Adapt();              ///< Destructor. Deallocates allocated private data.
 
   typedef scalar (*matrix_form_val_t) (int n, double *wt, Func<scalar> *u_ext[], Func<scalar> *u, Func<scalar> *v, Geom<double> *e, ExtData<scalar> *); ///< A bilinear form callback function.
@@ -123,9 +126,9 @@ public:
   /** If overrided, this method has to initialize errors (Array::errors), sum of errors (Array::error_sum), norms of components (Array::norm), number of active elements (Array::num_act_elems). Also, it has to fill the regular queue through the method fill_regular_queue().
    *  \param[in] error_flags Flags which calculates the error. It can be a combination of ::H2D_TOTAL_ERROR_REL, ::H2D_TOTAL_ERROR_ABS, ::H2D_ELEMENT_ERROR_REL, ::H2D_ELEMENT_ERROR_ABS.
    *  \return The total error. Interpretation of the error is specified by the parameter error_flags. */
-  virtual double calc_error(unsigned int error_flags = H2D_TOTAL_ERROR_REL | H2D_ELEMENT_ERROR_ABS);
+  virtual double calc_elem_errors(unsigned int error_flags = H2D_TOTAL_ERROR_REL | H2D_ELEMENT_ERROR_ABS);
 
-  /// Refines elements based on results from calc_error().
+  /// Refines elements based on results from calc_elem_errors().
   /** The behavior of adaptivity can be controlled through methods should_ignore_element()
    *  and can_refine_element() which are inteteded to be overriden if neccessary.
    *  \param[in] refinement_selector A point to a selector which will select a refinement.
@@ -135,7 +138,7 @@ public:
    *  \param[in] same_order True if all element have to have same orders after all refinements are applied.
    *  \param[in] to_be_processed Error which has to be processed. Used in strategy number 3.
    *  \return True if no element was refined. In usual case, this indicates that adaptivity is not able to refine anything and the adaptivity loop should end. */
-  bool adapt(RefinementSelectors::Selector* refinement_selector, double thr, int strat = 0,
+  bool adapt(Tuple<RefinementSelectors::Selector *> refinement_selectors, double thr, int strat = 0,
              int regularize = -1, double to_be_processed = 0.0);
 
   /// Unrefines the elements with the smallest error.
@@ -153,8 +156,8 @@ public:
   /// Returns a squared error of an element.
   /** \param[in] A component index.
    *  \param[in] An element index.
-   *  \return Squared error. Meaning of the error depends on parameters of a function calc_error(). */
-  double get_element_error_squared(int component, int id) const { error_if(!have_errors, "Element errors have to be calculated first, call calc_error()."); return errors_squared[component][id]; };
+   *  \return Squared error. Meaning of the error depends on parameters of the function calc_elem_errors(). */
+  double get_element_error_squared(int component, int id) const { error_if(!have_errors, "Element errors have to be calculated first, call calc_elem_errors()."); return errors_squared[component][id]; };
 
   /// Returns regular queue of elements
   /** \return A regular queue. */
@@ -207,7 +210,8 @@ protected: //adaptivity
    *  \param[in] elems_to_refine A vector of refinements.
    *  \param[in] idx A 2D array that translates a pair (a component index, an element id) to an index of a refinement in the vector of refinements. If the index is below zero, a given element was not refined.
    *  \param[in] refinement_selector A selected used by the adaptivity. The selector is used to correct orders of modified refinements using RefinementSelectors::Selector::update_shared_mesh_orders(). */
-  void fix_shared_mesh_refinements(Mesh** meshes, std::vector<ElementToRefine>& elems_to_refine, AutoLocalArray2<int>& idx, RefinementSelectors::Selector* refinement_selector);
+  void fix_shared_mesh_refinements(Mesh** meshes, std::vector<ElementToRefine>& elems_to_refine, AutoLocalArray2<int>& idx, 
+       Tuple<RefinementSelectors::Selector *> refinement_selectors);
 
   /// Enforces the same order to an element of a mesh which is shared among multiple compoenets.
   /** \param[in] meshes An arrat of meshes of components. */
@@ -224,7 +228,7 @@ protected: // spaces & solutions
   Solution* rsln[H2D_MAX_COMPONENTS];   ///< Reference solutions. 
 
 protected: // element error arrays
-  double* errors_squared[H2D_MAX_COMPONENTS]; ///< Errors of elements. Meaning of the error depeds on flags used when the method calc_error() was calls. Initialized in the method calc_error().
+  double* errors_squared[H2D_MAX_COMPONENTS]; ///< Errors of elements. Meaning of the error depeds on flags used when the method calc_elem_errors() was calls. Initialized in the method calc_elem_errors().
   double  errors_squared_sum; ///< Sum of errors in the array Adapt::errors_squared. Used by a method adapt() in some strategies.
 
 protected: //forms and error evaluation
@@ -287,5 +291,12 @@ private:
     };
   };
 };
+
+// Mesh is adapted to represent a given function with given accuracy
+// in a given projection norm.
+void adapt_to_exact(Space *space, int proj_norm, ExactFunction exactfn,
+                    RefinementSelectors::Selector* selector, double threshold, int strategy,
+                    int mesh_regularity, double err_stop, int ndof_stop, bool verbose,
+                    Solution* sln);
 
 #endif
