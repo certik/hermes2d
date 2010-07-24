@@ -3,9 +3,11 @@
 #include "hermes2d.h"
 
 //  This example shows how to save visualization data if you are working 
-//  on a distant computer and cannot use ScalarView, OrderView, and 
-//  related classes. This is demonstrated in the context of the 
-//  time-dependent tutorial example 09-timedep. 
+//  on a distant computer and cannot use ScalarView, OrderView, or 
+//  related classes directly. The two basic ways are to use the methods
+//  Solution::save(), which saves a complete Solution, or Linearizer::save_data()
+//  which saves linearized data for direct OpenGL processing. The underlying 
+//  model for computation is the tutorial example 09-timedep. 
 
 int OUTPUT_FREQUENCY = 20;                        // Number of time steps between saving data.
 
@@ -114,8 +116,16 @@ int main(int argc, char* argv[])
       lin.process_solution(&tsln, item, eps, max_abs, xdisp, ydisp, dmult);
       char* filename = new char[100];
       sprintf(filename, "tsln_%d.lin", ts);
+
+      // Save Linearizer data.
       lin.save_data(filename);
       info("Linearizer data saved to file %s.", filename);
+
+      // Save complete Solution.
+      sprintf(filename, "tsln_%d.dat", ts);
+      bool compress = true;
+      tsln.save(filename, compress);
+      info("Complete Solution saved to file %s.", filename);
     }
 
     // Update the time variable.
@@ -123,19 +133,35 @@ int main(int argc, char* argv[])
   }
 
   info("Let's assume that the remote computation has finished and you fetched the *.lin files.");
+  info("Visualizing Linearizer data from file tsln_40.lin.");
 
-  info("Visualizing data from file tsln_60.lin.");
+  // First use ScalarView to read and show the Linearizer data.
+  WinGeom* win_geom_1 = new WinGeom{0, 0, 450, 600};
+  ScalarView sview_1("Saved Linearizer data", win_geom_1);
+  sview_1.lin.load_data("tsln_40.lin");
+  sview_1.set_min_max_range(0,20);
+  sview_1.fix_scale_width(3);
+  sview_1.show_linearizer_data();
 
-  // Use ScalarView to read and show the data.
-  WinGeom* sln_win_geom = new WinGeom{0, 0, 450, 600};
-  ScalarView Tview("Temperature", sln_win_geom);
-  Tview.lin.load_data("tsln_60.lin");
-  Tview.set_min_max_range(0,20);
-  Tview.fix_scale_width(3);
-  Tview.show_linearizer_data();
+  info("Visualizing Solution from file tsln_60.sln.");
 
-  info("Press 's' to save screenshot as bitmap file.");
+  Solution sln_from_file;
+  sln_from_file.load("tsln_60.dat");
+  WinGeom* win_geom_2 = new WinGeom{460, 0, 450, 600};
+  ScalarView sview_2("Saved Solution data", win_geom_2);
+  sview_2.set_min_max_range(0,20);
+  sview_2.fix_scale_width(3);
+  sview_2.show(&sln_from_file);
 
+  info("Visualizing Mesh extracted from the Solution.");
+ 
+  Mesh* mesh_from_file = sln_from_file.get_mesh();
+  WinGeom* win_geom_3 = new WinGeom{920, 0, 450, 600};
+  MeshView mview("Saved Solution -> Mesh", win_geom_3);
+  mview.show(mesh_from_file);
+
+
+  
   // Wait for the view to be closed.
   View::wait();
   return 0;

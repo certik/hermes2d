@@ -28,7 +28,7 @@
 
 //// MeshView //////////////////////////////////////////////////////////////////////////////////////
 
-MeshView::MeshView(char* title, int x, int y, int width, int height)
+MeshView::MeshView(const char* title, int x, int y, int width, int height)
         : View(title, x, y, width, height)
 {
   nodes = elems = NULL;
@@ -36,6 +36,20 @@ MeshView::MeshView(char* title, int x, int y, int width, int height)
   b_ids = false;
   b_markers = true;
 }
+
+MeshView::MeshView(const char* title, WinGeom* wg)
+        : View(title, wg)
+{
+  nodes = elems = NULL;
+  b_scale = false;
+  b_ids = false;
+  b_markers = true;
+}
+
+
+
+
+
 
 
 void MeshView::show(Mesh* mesh)
