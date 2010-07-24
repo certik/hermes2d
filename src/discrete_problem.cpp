@@ -1484,7 +1484,6 @@ bool solve_newton_adapt(Tuple<Space *> spaces, WeakForm* wf, Tuple<int>proj_norm
   Tuple<Solution *> u_prev;
   for (int i = 0; i < num_comps; i++) u_prev.push_back(new Solution);
 
-  info("Performing Newton's iteration.");
   if (!solve_newton(spaces, wf, proj_norms, slns_mf, u_prev, 
                     matrix_solver, newton_tol_coarse, newton_max_iter, verbose)) {
     error("Newton's method did not converge.");

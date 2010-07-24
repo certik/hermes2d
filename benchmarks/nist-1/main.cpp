@@ -6,15 +6,12 @@
 
 using namespace RefinementSelectors;
 
-//  This is another example that allows you to compare h- and hp-adaptivity from the point of view
-//  of both CPU time requirements and discrete problem size, look at the quality of the a-posteriori
-//  error estimator used by Hermes (exact error is provided), etc. You can also change
-//  the parameter MESH_REGULARITY to see the influence of hanging nodes on the adaptive process.
-//  The problem is made harder for adaptive algorithms by increasing the parameter SLOPE.
+//  This is the first of the series of NIST benchmarks with known exact solutions.
 //
 //  PDE: -Laplace u = f.
 //
-//  Known exact solution; see functions fn() and fndd() in "exact_solution.cpp".
+//  Known exact solution; pow(2, 4*p) * pow(x, p) * pow(1-x, p) * pow(y, p) * pow(1-y, p).
+//  See functions fn() and fndd() in "exact_solution.cpp".
 //
 //  Domain: unit square (0, 1)x(0, 1), see the file square.mesh.
 //
@@ -23,7 +20,7 @@ using namespace RefinementSelectors;
 //  The following parameters can be changed:
 
 const int P_INIT = 2;                             // Initial polynomial degree of all mesh elements.
-const int INIT_REF_NUM = 1;                       // Number of initial uniform mesh refinements.
+const int INIT_REF_NUM = 0;                       // Number of initial uniform mesh refinements.
 const double THRESHOLD = 0.3;                     // This is a quantitative parameter of the adapt(...) function and
                                                   // it has different meanings for various adaptive strategies (see below).
 const int STRATEGY = 0;                           // Adaptive strategy:
@@ -35,7 +32,7 @@ const int STRATEGY = 0;                           // Adaptive strategy:
                                                   // STRATEGY = 2 ... refine all elements whose error is larger
                                                   //   than THRESHOLD.
                                                   // More adaptive strategies can be created in adapt_ortho_h1.cpp.
-const CandList CAND_LIST = H2D_HP_ANISO_H;        // Predefined list of element refinement candidates. Possible values are
+const CandList CAND_LIST = H2D_HP_ANISO;          // Predefined list of element refinement candidates. Possible values are
                                                   // H2D_P_ISO, H2D_P_ANISO, H2D_H_ISO, H2D_H_ANISO, H2D_HP_ISO,
                                                   // H2D_HP_ANISO_H, H2D_HP_ANISO_P, H2D_HP_ANISO.
                                                   // See User Documentation for details.
@@ -47,7 +44,7 @@ const int MESH_REGULARITY = -1;                   // Maximum allowed level of ha
                                                   // their notoriously bad performance.
 const double CONV_EXP = 0.5;                      // Default value is 1.0. This parameter influences the selection of
                                                   // cancidates in hp-adaptivity. See get_optimal_refinement() for details.
-const double ERR_STOP = 1.0;                      // Stopping criterion for adaptivity (rel. error tolerance between the
+const double ERR_STOP = 0.01;                     // Stopping criterion for adaptivity (rel. error tolerance between the
                                                   // reference mesh and coarse mesh solution in percent).
 const int NDOF_STOP = 60000;                      // Adaptivity process stops when the number of degrees of freedom grows
                                                   // over this limit. This is to prevent h-adaptivity to go on forever.
@@ -55,22 +52,16 @@ MatrixSolverType matrix_solver = SOLVER_UMFPACK;  // Possibilities: SOLVER_UMFPA
                                                   // SOLVER_MUMPS, and more are coming.
 
 // Problem parameters.
-double p = 10;                              // "p" determines the degree of the polynomial solution.  It should be chosen to be large 
-                                            // enough that the highest order finite elements to be used will not give the exact solution.
+double EXACT_SOL_P = 10;                          // The exact solution is a polynomial of degree 2*EXACT_SOL_P in the x-direction
+                                                  // as well as in the y-direction. 
 // Exact solution.
 #include "exact_solution.cpp"
 
 // Boundary condition types.
-BCType bc_types(int marker)
-{
-  return BC_ESSENTIAL;
-}
+BCType bc_types(int marker) { return BC_ESSENTIAL;}
 
 // Essential (Dirichlet) boundary condition values.
-scalar essential_bc_values(int ess_bdy_marker, double x, double y)
-{
-  return fn(x, y);
-}
+scalar essential_bc_values(int ess_bdy_marker, double x, double y) { return fn(x, y);}
 
 // Weak forms.
 #include "forms.cpp"
@@ -112,15 +103,8 @@ int main(int argc, char* argv[])
   WinGeom* sln_win_geom = new WinGeom{0, 0, 440, 350};
   WinGeom* mesh_win_geom = new WinGeom{450, 0, 400, 350};
   bool verbose = true;     // Prinf info during adaptivity.
-  solve_linear_adapt(&space, &wf, sln, matrix_solver, ref_sln, H2D_H1_NORM, 
+  solve_linear_adapt(&space, &wf, H2D_H1_NORM, sln, matrix_solver, ref_sln, 
                      &selector, &apt, sln_win_geom, mesh_win_geom, verbose, &exact);
-
-  // Show the final result.
-  ScalarView sview("Final solution", sln_win_geom);
-  OrderView  oview("Final mesh", mesh_win_geom);
-  sview.show_mesh(false);
-  sview.show(sln);
-  oview.show(&space);
 
   // Wait for all views to be closed.
   View::wait();

@@ -70,8 +70,14 @@ double calc_norm(MeshFunction* ref_sln, int norm_type)
 }
 
 /// Calculates the absolute error between sln1 and sln2 using function fn
-double calc_abs_error(double (*fn)(MeshFunction*, MeshFunction*, RefMap*, RefMap*), MeshFunction* sln1, MeshFunction* sln2)
+double calc_abs_error(double (*fn)(MeshFunction*, MeshFunction*, RefMap*, RefMap*), MeshFunction* sln1, 
+                      MeshFunction* sln2)
 {
+  // sanity checks
+  if (fn == NULL) error("error norm function is NULL in calc_abs_error().");
+  if (sln1 == NULL) error("sln1 is NULL in calc_abs_error().");
+  if (sln2 == NULL) error("sln2 is NULL in calc_abs_error().");
+
   Quad2D* quad = &g_quad_2d_std;
   sln1->set_quad_2d(quad);
   sln2->set_quad_2d(quad);

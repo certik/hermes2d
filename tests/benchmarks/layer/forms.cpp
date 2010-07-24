@@ -7,15 +7,14 @@ Scalar bilinear_form(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *u, Fu
 template<typename Real>
 Real rhs(Real x, Real y)
 {
-  Real a = pow(2.0, 4.0*EXACT_SOL_P);
-  Real b = pow(x-1.0, 8.0);
-  Real c = (38.0*pow(x, 2.0) - 38.0*x + 9.0);
-  Real d = pow(y-1.0, EXACT_SOL_P);
-  Real e = pow(y-1.0, 8.0);
-  Real f = (38.0*pow(y, 2.0) - 38.0*y + 9.0);
-  Real g = pow(x-1.0, EXACT_SOL_P);
-
-  return EXACT_SOL_P*a*pow(x, 8.0)*b*c*pow(y, EXACT_SOL_P)*d + EXACT_SOL_P*a*pow(y, 8.0)*e*f*pow(x,EXACT_SOL_P)*g;
+  Real t2 = sqr(y + 0.25) + sqr(x - 1.25);
+  Real t = sqrt(t2);
+  Real u = (sqr(M_PI - 3.0*t)*sqr(SLOPE) + 9.0);
+  return 27.0/2.0 * sqr(2.0*y + 0.5) * (M_PI - 3.0*t) * pow(SLOPE,3.0) / (sqr(u) * t2) +
+         27.0/2.0 * sqr(2.0*x - 2.5) * (M_PI - 3.0*t) * pow(SLOPE,3.0) / (sqr(u) * t2) -
+          9.0/4.0 * sqr(2.0*y + 0.5) * SLOPE / (u * pow(t,3.0)) -
+          9.0/4.0 * sqr(2.0*x - 2.5) * SLOPE / (u * pow(t,3.0)) +
+          18.0 * SLOPE / (u * t);
 }
 
 template<typename Real, typename Scalar>

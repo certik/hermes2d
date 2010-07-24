@@ -194,28 +194,24 @@ void WeakForm::get_stages(Space** spaces, std::vector<WeakForm::Stage>& stages, 
   unsigned i;
   stages.clear();
 
-  if (!rhsonly)
+  // process volume matrix_forms
+  for (i = 0; i < mfvol.size(); i++)
   {
+    int ii = mfvol[i].i, jj = mfvol[i].j;
+    Mesh* m1 = spaces[ii]->get_mesh();
+    Mesh* m2 = spaces[jj]->get_mesh();
+    Stage* s = find_stage(stages, ii, jj, m1, m2, mfvol[i].ext);
+    s->mfvol.push_back(&mfvol[i]);
+  }
 
-    // process volume matrix_forms
-    for (i = 0; i < mfvol.size(); i++)
-    {
-      int ii = mfvol[i].i, jj = mfvol[i].j;
-      Mesh* m1 = spaces[ii]->get_mesh();
-      Mesh* m2 = spaces[jj]->get_mesh();
-      Stage* s = find_stage(stages, ii, jj, m1, m2, mfvol[i].ext);
-      s->mfvol.push_back(&mfvol[i]);
-    }
-
-    // process surface matrix_forms
-    for (i = 0; i < mfsurf.size(); i++)
-    {
-      int ii = mfsurf[i].i, jj = mfsurf[i].j;
-      Mesh* m1 = spaces[ii]->get_mesh();
-      Mesh* m2 = spaces[jj]->get_mesh();
-      Stage* s = find_stage(stages, ii, jj, m1, m2, mfsurf[i].ext);
-      s->mfsurf.push_back(&mfsurf[i]);
-    }
+  // process surface matrix_forms
+  for (i = 0; i < mfsurf.size(); i++)
+  {
+    int ii = mfsurf[i].i, jj = mfsurf[i].j;
+    Mesh* m1 = spaces[ii]->get_mesh();
+    Mesh* m2 = spaces[jj]->get_mesh();
+    Stage* s = find_stage(stages, ii, jj, m1, m2, mfsurf[i].ext);
+    s->mfsurf.push_back(&mfsurf[i]);
   }
 
   // process volume res forms
