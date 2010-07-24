@@ -512,9 +512,9 @@ void Adapt::set_solutions(Tuple<Solution*> solutions, Tuple<Solution*> ref_solut
   have_solutions = true;
 }
 
-scalar Adapt::eval_error(matrix_form_val_t bi_fn, matrix_form_ord_t bi_ord,
-                             MeshFunction *sln1, MeshFunction *sln2, MeshFunction *rsln1, MeshFunction *rsln2,
-                             RefMap *rv1,        RefMap *rv2,        RefMap *rrv1,        RefMap *rrv2)
+double Adapt::eval_elem_error_squared(matrix_form_val_t bi_fn, matrix_form_ord_t bi_ord,
+                                 MeshFunction *sln1, MeshFunction *sln2, MeshFunction *rsln1, MeshFunction *rsln2,
+                                 RefMap *rv1, RefMap *rv2, RefMap *rrv1, RefMap *rrv2)
 {
   // determine the integration order
   int inc = (rsln1->get_num_components() == 2) ? 1 : 0;
@@ -562,12 +562,12 @@ scalar Adapt::eval_error(matrix_form_val_t bi_fn, matrix_form_ord_t bi_ord,
   v1->free_fn(); delete v1;
   v2->free_fn(); delete v2;
 
-  return res;
+  return std::abs(res);
 }
 
 
-scalar Adapt::eval_norm(matrix_form_val_t bi_fn, matrix_form_ord_t bi_ord,
-                            MeshFunction *rsln1, MeshFunction *rsln2, RefMap *rrv1, RefMap *rrv2)
+double Adapt::eval_elem_norm_squared(matrix_form_val_t bi_fn, matrix_form_ord_t bi_ord,
+                                MeshFunction *rsln1, MeshFunction *rsln2, RefMap *rrv1, RefMap *rrv2)
 {
   // determine the integration order
   int inc = (rsln1->get_num_components() == 2) ? 1 : 0;
@@ -608,7 +608,7 @@ scalar Adapt::eval_norm(matrix_form_val_t bi_fn, matrix_form_ord_t bi_ord,
   v1->free_fn(); delete v1;
   v2->free_fn(); delete v2;
 
-  return res;
+  return std::abs(res);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -660,13 +660,8 @@ double Adapt::calc_elem_errors(unsigned int error_flags) {
         double error_squared, norm_squared;
         if (form[i][j] != NULL)
         {
-          #ifndef H2D_COMPLEX
-          error_squared = fabs(eval_error(form[i][j], ord[i][j], sln[i], sln[j], rsln[i], rsln[j], rmi, rmj, rrmi, rrmj));
-          norm_squared = fabs(eval_norm(form[i][j], ord[i][j], rsln[i], rsln[j], rrmi, rrmj));
-          #else
-          error_squared = std::abs(eval_error(form[i][j], ord[i][j], sln[i], sln[j], rsln[i], rsln[j], rmi, rmj, rrmi, rrmj));
-          norm_squared = std::abs(eval_norm(form[i][j], ord[i][j], rsln[i], rsln[j], rrmi, rrmj));
-          #endif
+          error_squared = eval_elem_error_squared(form[i][j], ord[i][j], sln[i], sln[j], rsln[i], rsln[j], rmi, rmj, rrmi, rrmj);
+          norm_squared = eval_elem_norm_squared(form[i][j], ord[i][j], rsln[i], rsln[j], rrmi, rrmj);
 
           norms_squared[i] += norm_squared;
           norms_squared_sum += norm_squared;

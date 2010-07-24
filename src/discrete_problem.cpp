@@ -1547,73 +1547,80 @@ bool solve_newton_adapt(Tuple<Space *> spaces, WeakForm* wf, Tuple<int>proj_norm
     // Skip visualization time.
     cpu_time.tick(HERMES_SKIP);
 
-    // Calculate element errors and total error estimate.
+    // Calculate element errors.
     if (verbose) info("Calculating error.");
-    // FIXME: so far all solution components must be in H1,
-    // We need to allow each component to be in L2, H1, Hcurl or Hdiv. 
     Adapt hp(spaces, proj_norms);
     hp.set_solutions(slns, ref_slns);
     hp.calc_elem_errors();
 
-    // Calculate error estimate for each solution component.   
-    double err_est[H2D_MAX_COMPONENTS];
-    double err_est_total = 0;
+    // Calculate error estimate for each solution component. Note, these can 
+    // have different norms, such as L2, H1, Hcurl and Hdiv. 
+    double err_est_abs[H2D_MAX_COMPONENTS];
+    double norm_est[H2D_MAX_COMPONENTS];
+    double err_est_abs_total = 0;
+    double norm_est_total = 0;
+    double err_est_rel_total;
     for (int i = 0; i < num_comps; i++) {
-      switch (proj_norms[i]) {
-        case H2D_L2_NORM: err_est[i] = l2_error(slns[i], ref_slns[i]) * 100; break;
-        case H2D_H1_NORM: err_est[i] = h1_error(slns[i], ref_slns[i]) * 100; break;
-        case H2D_HCURL_NORM: err_est[i] = hcurl_error(slns[i], ref_slns[i]) * 100; break;
-      default: error("Unknown error norm in solve_newton_adapt().");
-      }
-      err_est_total += err_est[i]*err_est[i];
+      err_est_abs[i] = calc_abs_error(slns[i], ref_slns[i], proj_norms[i]);
+      norm_est[i] = calc_norm(ref_slns[i], proj_norms[i]);
+      err_est_abs_total += err_est_abs[i] * err_est_abs[i];
+      norm_est_total += norm_est[i] * norm_est[i];
     }
-    err_est_total = sqrt(err_est_total);
+    err_est_abs_total = sqrt(err_est_abs_total);
+    norm_est_total = sqrt(norm_est_total);
+    err_est_rel_total = err_est_abs_total / norm_est_total * 100.;
 
     // Calculate exact error for each solution component.   
-    double err_exact[H2D_MAX_COMPONENTS];
-    double err_exact_total = 0;
+    double err_exact_abs[H2D_MAX_COMPONENTS];
+    double norm_exact[H2D_MAX_COMPONENTS];
+    double err_exact_abs_total = 0;
+    double norm_exact_total = 0;
+    double err_exact_rel_total;
     if (is_exact_solution == true) {
-      if (verbose) info("Calculating error (exact).");
       for (int i = 0; i < num_comps; i++) {
-        err_exact[i] = h1_error(slns[i], exact_slns[i]) * 100;
-        err_exact_total += err_exact[i]*err_exact[i];
+        err_exact_abs[i] = calc_abs_error(slns[i], exact_slns[i], proj_norms[i]);
+        norm_exact[i] = calc_norm(exact_slns[i], proj_norms[i]);
+        err_exact_abs_total += err_exact_abs[i] * err_exact_abs[i];
+        norm_exact_total += norm_exact[i] * norm_exact[i];
       }
-      err_exact_total = sqrt(err_exact_total);
+      err_exact_abs_total = sqrt(err_exact_abs_total);
+      norm_exact_total = sqrt(norm_exact_total);
+      err_exact_rel_total = err_exact_abs_total / norm_exact_total * 100.;
     }
 
     // Report results.
     if (verbose) {
       if (num_comps == 1) {
-        info("ndof: %d, ref_ndof: %d, err_est: %g%%", 
-             get_num_dofs(spaces), get_num_dofs(ref_spaces), err_est_total);
-        if (is_exact_solution == true) info("err_exact: %g%%", err_exact[0]);
+        info("ndof: %d, ref_ndof: %d, err_est_rel_total: %g%%", 
+             get_num_dofs(spaces), get_num_dofs(ref_spaces), err_est_rel_total);
+        if (is_exact_solution == true) info("err_exact_rel_total: %g%%", err_exact_rel_total);
       }
       else {
         for (int i = 0; i < num_comps; i++) {
-          info("ndof[%d]: %d, ref_ndof[%d]: %d, err_est[%d]: %g%%", 
+          info("ndof[%d]: %d, ref_ndof[%d]: %d, err_est_rel[%d]: %g%%", 
                i, spaces[i]->get_num_dofs(), i, ref_spaces[i]->get_num_dofs(),
-               i, err_est[i]);
-          if (is_exact_solution == true) info("err_exact[%d]: %g%%", i, err_exact[i]);
+               i, err_est_abs[i]/norm_est[i]*100);
+          if (is_exact_solution == true) info("err_exact_rel[%d]: %g%%", i, err_exact_abs[i]/norm_exact[i]*100);
         }
-        info("ndof: %d, ref_ndof: %d, err_est: %g%%", 
-             get_num_dofs(spaces), get_num_dofs(ref_spaces), err_est_total);
+        info("ndof: %d, ref_ndof: %d, err_est_rel_total: %g%%", 
+             get_num_dofs(spaces), get_num_dofs(ref_spaces), err_est_rel_total);
       }
     }
 
     // Add entry to DOF and CPU convergence graphs.
-    graph_dof_est.add_values(get_num_dofs(spaces), err_est_total);
+    graph_dof_est.add_values(get_num_dofs(spaces), err_est_rel_total);
     graph_dof_est.save("conv_dof_est.dat");
-    graph_cpu_est.add_values(cpu_time.accumulated(), err_est_total);
+    graph_cpu_est.add_values(cpu_time.accumulated(), err_est_rel_total);
     graph_cpu_est.save("conv_cpu_est.dat");
     if (is_exact_solution == true) {
-      graph_dof_exact.add_values(get_num_dofs(spaces), err_exact_total);
+      graph_dof_exact.add_values(get_num_dofs(spaces), err_exact_rel_total);
       graph_dof_exact.save("conv_dof_exact.dat");
-      graph_cpu_exact.add_values(cpu_time.accumulated(), err_exact_total);
+      graph_cpu_exact.add_values(cpu_time.accumulated(), err_exact_rel_total);
       graph_cpu_exact.save("conv_cpu_exact.dat");
     }
 
     // If err_est too large, adapt the mesh.
-    if (err_est_total < err_stop) done = true;
+    if (err_est_rel_total < err_stop) done = true;
     else {
       if (verbose) info("Adapting the coarse mesh.");
       done = hp.adapt(selector, threshold, strategy, mesh_regularity, to_be_processed);
