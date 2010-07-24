@@ -122,6 +122,8 @@ public:
   /// Sets element polynomial order. Can be called by the user. Should not be called  
   /// for many elements at once, since assign_dofs() is called at the end of this function.
   virtual void set_element_order(int id, int order);
+  /// Sets polynomial order to all elements.
+  virtual void set_element_orders(int* elem_orders);
   /// Sets element polynomial order. This version does not call assign_dofs() and is 
   /// intended primarily for internal use.
   virtual void set_element_order_internal(int id, int order);

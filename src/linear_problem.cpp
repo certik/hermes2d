@@ -277,14 +277,6 @@ bool solve_linear_adapt(Tuple<Space *> spaces, WeakForm* wf, Tuple<int> proj_nor
   }
   while (done == false);
 
-  // Close visualization windows.
-  /* FIXME: this should be uncommented but it causes segfaults
-  for (int i = 0; i < num_comps; i++) {
-    if (sview[i] != NULL) sview[i]->close(); 
-    if (oview[i] != NULL) oview[i]->close(); 
-  }
-  */
-
   if (verbose) info("Total running time: %g s", cpu_time.accumulated());
 }
 

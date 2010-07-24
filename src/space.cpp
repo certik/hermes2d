@@ -135,7 +135,6 @@ void Space::set_uniform_order(int order, int marker)
   this->assign_dofs();
 }
   
-
 void Space::set_uniform_order_internal(int order, int marker)
 {
   resize_tables();
@@ -157,6 +156,23 @@ void Space::set_uniform_order_internal(int order, int marker)
   seq++;
 }
 
+void Space::set_element_orders(int* elem_orders_)
+{
+  resize_tables();
+  
+  Element* e;
+  int counter = 0;
+  for_all_elements(e, mesh)
+  {
+    H2D_CHECK_ORDER(elem_orders_[counter]);
+    ElementData* ed = &edata[e->id];
+    if (e->is_triangle())
+      ed->order = elem_orders_[counter];
+    else
+      ed->order = H2D_MAKE_QUAD_ORDER(elem_orders_[counter], elem_orders_[counter]);
+    counter++;
+  }
+}
 
 void Space::set_default_order(int tri_order, int quad_order)
 {

@@ -96,6 +96,8 @@ public:
   Solution& operator = (Solution& sln) { assign(&sln); return *this; }
   void copy(const Solution* sln);
 
+  int* get_element_orders() { return this->elem_orders;}
+
   void set_exact(Mesh* mesh, ExactFunction exactfn);
   void set_exact(Mesh* mesh, ExactFunction2 exactfn);
 

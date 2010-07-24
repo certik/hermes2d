@@ -46,6 +46,15 @@ MeshView::MeshView(const char* title, WinGeom* wg)
   b_markers = true;
 }
 
+MeshView::MeshView(char* title, WinGeom* wg)
+        : View(title, wg)
+{
+  nodes = elems = NULL;
+  b_scale = false;
+  b_ids = false;
+  b_markers = true;
+}
+
 
 
 

@@ -4,10 +4,16 @@
 
 //  This example shows how to save visualization data if you are working 
 //  on a distant computer and cannot use ScalarView, OrderView, or 
-//  related classes directly. The two basic ways are to use the methods
-//  Solution::save(), which saves a complete Solution, or Linearizer::save_data()
-//  which saves linearized data for direct OpenGL processing. The underlying 
-//  model for computation is the tutorial example 09-timedep. 
+//  related classes directly. The two basic ways are:
+//    * to use the methods Solution::save(), which saves a complete 
+//      Solution including Mesh and element orders. Then you can fetch the 
+//      file and use Solution::load() to restore the Solution completely 
+//      in the memory of your local machine. 
+//    * Linearizer::save_data() which only saves linearized data for direct 
+//      OpenGL processing. After fetching the file, you can use the methods
+//      ScalarView::Linearizer::load_data() and ScalarView::show_linearizer_data()
+//      on your local machine.
+//  The underlying model for computation is the tutorial example 09-timedep. 
 
 int OUTPUT_FREQUENCY = 20;                        // Number of time steps between saving data.
 
@@ -123,7 +129,7 @@ int main(int argc, char* argv[])
 
       // Save complete Solution.
       sprintf(filename, "tsln_%d.dat", ts);
-      bool compress = true;
+      bool compress = false;   // Gzip compression not used as it only works on Linux.
       tsln.save(filename, compress);
       info("Complete Solution saved to file %s.", filename);
     }
@@ -143,7 +149,7 @@ int main(int argc, char* argv[])
   sview_1.fix_scale_width(3);
   sview_1.show_linearizer_data();
 
-  info("Visualizing Solution from file tsln_60.sln.");
+  info("Visualizing Solution from file tsln_60.dat.");
 
   Solution sln_from_file;
   sln_from_file.load("tsln_60.dat");
@@ -153,15 +159,16 @@ int main(int argc, char* argv[])
   sview_2.fix_scale_width(3);
   sview_2.show(&sln_from_file);
 
-  info("Visualizing Mesh extracted from the Solution.");
+  info("Visualizing Mesh and Orders extracted from the Solution.");
  
-  Mesh* mesh_from_file = sln_from_file.get_mesh();
+  int p_init = 1;
+  // The NULLs are for bc_types() and essential_bc_values().
+  H1Space space_from_file(sln_from_file.get_mesh(), NULL, NULL, p_init);
+  space_from_file.set_element_orders(sln_from_file.get_element_orders());
   WinGeom* win_geom_3 = new WinGeom{920, 0, 450, 600};
-  MeshView mview("Saved Solution -> Mesh", win_geom_3);
-  mview.show(mesh_from_file);
+  OrderView oview("Saved Solution -> Space", win_geom_3);
+  oview.show(&space_from_file);
 
-
-  
   // Wait for the view to be closed.
   View::wait();
   return 0;

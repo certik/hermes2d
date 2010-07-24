@@ -1032,8 +1032,9 @@ void Solution::save(const char* filename, bool compress)
 
   // write element orders
   char* temp_orders = new char[num_elems];
-  for (i = 0; i < num_elems; i++)
+  for (i = 0; i < num_elems; i++) {
     temp_orders[i] = elem_orders[i];
+  }
   hermes2d_fwrite(temp_orders, sizeof(char), num_elems, f);
   delete [] temp_orders;
 
