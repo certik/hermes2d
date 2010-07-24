@@ -15,4 +15,4 @@ add_subdirectory(screen)
 add_subdirectory(neutronics-heat-conduction)
 add_subdirectory(neutronics-heat-conduction-adapt)
 add_subdirectory(neutronics-2-group-adapt)
-
+add_subdirectory(nist-1) 
