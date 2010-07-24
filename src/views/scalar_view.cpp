@@ -242,6 +242,25 @@ void ScalarView::show(MeshFunction* sln, double eps, int item,
   verbose(" Value range of data: [%g, %g]", lin.get_min_value(), lin.get_max_value());
 }
 
+void ScalarView::show_linearizer_data(double eps, int item)
+{
+  double max_abs = range_auto ? -1.0 : std::max(fabs(range_min), fabs(range_max));
+  
+  update_mesh_info();
+
+  create();
+  update_layout();
+  wait_for_draw();
+  // FIXME: find out why this has to be called after wait_for_draw in order for the view to be reset initially.
+  reset_view(false); // setting true here makes the view always reset after calling 'show'; particularly in the adaptivity process,
+                     // it would disallow the observation of the process from a manually set viewpoint.
+  refresh();
+
+  verbose("Showing data in view \"%s\"", title.c_str());
+  verbose(" Used value range [%g; %g]", range_min, range_max);
+  verbose(" Value range of data: [%g, %g]", lin.get_min_value(), lin.get_max_value());
+}
+
 void ScalarView::update_mesh_info() {
   // Calculate normals if necessary.
   if (mode3d)

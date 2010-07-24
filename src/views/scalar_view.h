@@ -58,6 +58,8 @@ public:
   void show(MeshFunction* sln, double eps = H2D_EPS_NORMAL, int item = H2D_FN_VAL_0,
             MeshFunction* xdisp = NULL, MeshFunction* ydisp = NULL, double dmult = 1.0);
 
+  void show_linearizer_data(double eps = H2D_EPS_NORMAL, int item = H2D_FN_VAL_0);
+
   void show_mesh(bool show = true) { show_edges = show; refresh(); }
   void show_bounding_box(bool show = true) { show_aabb = show; refresh(); }
   void show_contours(double step, double orig = 0.0);
@@ -77,6 +79,8 @@ public: // input/output routines
   "<!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 1.1//EN\" "\
   "\"http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd\">\n"
 #define SVG_UNIT_MM 3.543307 /* size of 1 mm in SVG px */
+
+  Linearizer lin;
 
 protected: // node selection
   struct VertexNodeInfo ///< Information about a vertex node.
@@ -146,7 +150,6 @@ protected: //values
   };
 #pragma pack(pop)
 
-  Linearizer lin;
   bool lin_updated; ///< true, if lin now contains new values
 
   unsigned int gl_coord_buffer; ///< Vertex coordinate buffer. (x,y,t)

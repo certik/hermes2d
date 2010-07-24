@@ -126,7 +126,7 @@ public:
   /// intended primarily for internal use.
   virtual void set_element_order_internal(int id, int order);
   /// Returns element polynomial order.
-  int  get_element_order(int id) const;
+  int get_element_order(int id) const;
   /// Sets the same polynomial order for all elements in the mesh. Intended for 
   /// the user and thus assign_dofs() is called at the end of this function.
   void set_uniform_order(int order, int marker = H2D_ANY);

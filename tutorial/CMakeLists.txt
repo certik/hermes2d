@@ -28,6 +28,7 @@ add_subdirectory(30-space-hcurl)
 add_subdirectory(31-space-hdiv)
 add_subdirectory(32-space-l2)
 add_subdirectory(33-exact-adapt)
+add_subdirectory(34-saving-data)
 
 if(WITH_TRILINOS)
   add_subdirectory(40-trilinos-linear)
