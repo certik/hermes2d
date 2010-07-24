@@ -119,7 +119,9 @@ int main(int argc, char* argv[])
   Solution *ref_sln = new Solution();
   bool verbose = true;     // Prinf info during adaptivity.
   solve_linear_adapt(&space, &wf, H2D_H1_NORM, sln, matrix_solver, ref_sln,  
-                     &selector, &apt, sln_win_geom, mesh_win_geom, verbose);
+                     &selector, &apt, sln_win_geom, mesh_win_geom, verbose,
+                     NULL,
+                     true);
 
   // Wait for all views to be closed.
   View::wait();
