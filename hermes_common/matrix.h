@@ -210,11 +210,15 @@ public:
     }
 
     virtual void add(int m, double v) {
+        if (this->complex)
+            _error("can't call add(int, double) for complex vectors");
         if (m >= 0)
             this->v[m] += v;
     }
     virtual void add(int m, cplx v)
     {
+        if (!(this->complex))
+            _error("can't call add(int, cplx) for real vectors");
         if (m >= 0)
             this->v_cplx[m] += v;
     }

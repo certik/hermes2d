@@ -482,7 +482,11 @@ void Solution::set_fe_solution(Space* space, PrecalcShapeset* pss, Vector* vec, 
         pss->set_active_shape(al.idx[k]);
         pss->set_quad_order(o, H2D_FN_VAL);
         int dof = al.dof[k];
+#ifdef H2D_COMPLEX
+        scalar coef = al.coef[k] * (dof >= 0 ? vec->get_cplx(dof) : dir);
+#else
         scalar coef = al.coef[k] * (dof >= 0 ? vec->get(dof) : dir);
+#endif
         double* shape = pss->get_fn_values(l);
         for (int i = 0; i < np; i++)
           val[i] += shape[i] * coef;

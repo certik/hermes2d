@@ -173,7 +173,7 @@ bool solve_linear_adapt(Tuple<Space *> spaces, WeakForm* wf, Tuple<int> proj_nor
     }
 
     // Solve the reference problem.
-    solve_linear(ref_spaces, wf, ref_slns, matrix_solver);
+    solve_linear(ref_spaces, wf, ref_slns, matrix_solver, is_complex);
 
     // Project the reference solution on the coarse mesh.
     if (verbose) info("Projecting reference solution on coarse mesh.");

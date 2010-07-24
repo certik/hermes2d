@@ -1038,7 +1038,10 @@ void project_global(Tuple<Space *> spaces, WeakForm *wf, Tuple<MeshFunction*> so
   // the NULL is there since no external solution vector is needed
   dp.assemble(NULL, &mat, dir, rhs, rhsonly, is_complex);
   // since this is a linear problem, subtract the dir vector from the right-hand side:
-  for (int i=0; i < ndof; i++) rhs->add(i, -dir->get(i));
+  if (is_complex)
+      for (int i=0; i < ndof; i++) rhs->add(i, -dir->get_cplx(i));
+  else
+      for (int i=0; i < ndof; i++) rhs->add(i, -dir->get(i));
 
   // Calculate the Newton coefficient vector.
   solver.solve(&mat, rhs);

@@ -88,6 +88,7 @@ bool CommonSolverSciPyUmfpack::_solve(Matrix *mat, cplx *res)
     numpy2c_double_complex_inplace(p->pull("x"), &x, &n);
     memcpy(res, x, n*sizeof(cplx));
     delete p;
+    return true;
 }
 
 bool CommonSolverSciPyCG::_solve(Matrix *mat, double *res)
