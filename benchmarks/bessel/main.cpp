@@ -83,8 +83,11 @@ scalar essential_bc_values(int ess_bdy_marker, double x, double y)
   return 0;
 }
 
+#include "/home/ondrej/repos/cpp_stacktrace/stacktrace.cpp"
+
 int main(int argc, char* argv[])
 {
+    print_stack_on_segfault();
   // Time measurement
   TimePeriod cpu_time;
   cpu_time.tick();
