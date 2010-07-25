@@ -73,7 +73,7 @@ protected:
 };
 
 
-///  Outputs just two numbers per row
+///  Outputs just two numbers per row.
 ///
 class H2D_API SimpleGraph : public Graph
 {
@@ -101,27 +101,48 @@ public:
 };
 
 
-///  Outputs a GNUPLOT graph.
+///  Basic class for outputting a graph via GNUPLOT.
 ///
+
+static const char* default_terminal = "set terminal postscript eps enhanced\n";
+
 class H2D_API GnuplotGraph : public Graph
 {
 public:
-
-  GnuplotGraph(const char* title = NULL, const char* x_axis_name = NULL, const char* y_axis_name = NULL)
-       : Graph(title, x_axis_name, y_axis_name), legend_pos() {}
+ 
+  GnuplotGraph(const char* title = NULL, const char* x_axis_name = NULL, const char* y_axis_name = NULL, 
+               double lines_width = 1.0, const std::string& terminal_str = default_terminal)
+       : Graph(title, x_axis_name, y_axis_name), legend_pos(), lw(lines_width), terminal_str(terminal_str) {}
 
   virtual void save(const char* filename);
 
-  /// set legend position (see documentation to gnuplot for possible strings);
-  ///   when a non-empty string is used, "legend" is automatically set to true
+  /// Set legend position (see documentation to gnuplot for possible strings).
+  /// When a non-empty string is used, "legend" is automatically set to true.
   void set_legend_pos(const char* posspec);
 
 protected:
-    /// legend position
-    ///   initially empty (may be changed by calling "set_legend_pos") -- "legend == true" with empty "legend_pos"
-    ///   means that the default gnuplot setting will be used
-    std::string legend_pos;
+  /// Legend position.
+  /// Initially empty (may be changed by calling "set_legend_pos") -- "legend == true" with empty "legend_pos"
+  /// means that the default gnuplot setting will be used.
+  std::string legend_pos;
+  
+  /// Terminal string.
+  /// Specifies GnuPlot output type.
+  std::string terminal_str;
+  
+  /// Line width.
+  /// Specifies relative width of plot lines.
+  double lw;
 };
 
+///  Outputs a graph into a .PNG file via GNUPLOT.
+///
+class H2D_API PNGGraph : public GnuplotGraph
+{
+public:
+    
+  PNGGraph(const char* title = NULL, const char* x_axis_name = NULL, const char* y_axis_name = NULL,
+            double lines_width = 1.0, double plot_width = 800, double plot_height = 600);
+};
 
 #endif

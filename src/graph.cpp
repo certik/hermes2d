@@ -241,7 +241,7 @@ void GnuplotGraph::save(const char* filename)
   FILE* f = fopen(filename, "w");
   if (f == NULL) error("Error writing to %s", filename);
 
-  fprintf(f, "set terminal postscript eps enhanced\n");
+  fprintf(f, terminal_str.c_str());
 
   int len = strlen(filename);
   AUTOLA_OR(char, outname, len + 10);
@@ -282,9 +282,9 @@ void GnuplotGraph::save(const char* filename)
     if (lt == 0)
       fprintf(f, " '-' w p pointtype %d", pt);
     else if (ct < 0)
-      fprintf(f, " '-' w lp linetype %d pointtype %d", lt, pt);
+      fprintf(f, " '-' w lp linewidth %g linetype %d pointtype %d", this->lw, lt, pt);
     else
-      fprintf(f, " '-' w lp linecolor %d linetype %d pointtype %d", ct, lt, pt);
+      fprintf(f, " '-' w lp linewidth %g linecolor %d linetype %d pointtype %d", this->lw, ct, lt, pt);
 
     if (legend)
       fprintf(f, " title '%s' ", rows[i].name.c_str());
@@ -308,3 +308,12 @@ void GnuplotGraph::save(const char* filename)
 
   verbose("Graph saved. Process the file '%s' with gnuplot.", filename);
 }
+
+PNGGraph::PNGGraph( const char* title, const char* x_axis_name, const char* y_axis_name, const double lines_width,
+                    double plot_width, double plot_height )
+{
+  std::stringstream sstm;
+  sstm << "set terminal png font arial 12 size " << plot_width << "," << plot_height << " crop enhanced\n";
+  GnuplotGraph(title, x_axis_name, y_axis_name, lines_width, sstm.str());
+}
+
