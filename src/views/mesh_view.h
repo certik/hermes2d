@@ -49,7 +49,7 @@ protected:
 
   Linearizer lin;
 
-  bool b_ids, b_markers;
+  bool b_ids, b_markers, b_elem_mrk;
 
   struct ObjInfo
   {
