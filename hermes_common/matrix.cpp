@@ -337,6 +337,7 @@ void CooMatrix::add(int m, int n, cplx v)
     if (m+1 > this->size) this->size = m+1;
     if (n+1 > this->size) this->size = n+1;
 
+    char *p; *p=0;
     A_cplx[m][n] += v;
 }
 
