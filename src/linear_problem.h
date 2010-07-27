@@ -20,6 +20,7 @@
 #include "matrix_old.h"
 #include "filter.h"
 #include "views/scalar_view.h"
+#include "views/vector_view.h"
 #include "views/order_view.h"
 #include "function.h"
 #include "discrete_problem.h"

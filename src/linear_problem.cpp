@@ -123,23 +123,42 @@ bool solve_linear_adapt(Tuple<Space *> spaces, WeakForm* wf, Tuple<int> proj_nor
   init_matrix_solver(matrix_solver, ndof, mat, rhs, solver, is_complex);
 
   // Initialize views.
-  ScalarView* sview[H2D_MAX_COMPONENTS];
-  OrderView*  oview[H2D_MAX_COMPONENTS];
+  ScalarView* s_view[H2D_MAX_COMPONENTS];
+  VectorView* v_view[H2D_MAX_COMPONENTS];
+  OrderView*  o_view[H2D_MAX_COMPONENTS];
   for (int i = 0; i < num_comps; i++) {
     char* title = (char*)malloc(100*sizeof(char));
     if (sln_win_geom[i] != NULL) {
       if (num_comps == 1) sprintf(title, "Solution", i); 
-      else sprintf(title, "Solution %d", i); 
-      sview[i] = new ScalarView(title, sln_win_geom[i]);
-      sview[i]->show_mesh(false);
+      else sprintf(title, "Solution[%d]", i); 
+      switch (proj_norms[i]) {
+        case H2D_L2_NORM:    s_view[i] = new ScalarView(title, sln_win_geom[i]);
+                             s_view[i]->show_mesh(false);
+                             v_view[i] = NULL;
+                             break;
+        case H2D_H1_NORM:    s_view[i] = new ScalarView(title, sln_win_geom[i]);
+                             s_view[i]->show_mesh(false);
+                             v_view[i] = NULL;
+                             break;
+        case H2D_HCURL_NORM: s_view[i] = NULL;
+                             v_view[i] = new VectorView(title, sln_win_geom[i]);
+                             break;
+        case H2D_HDIV_NORM:  s_view[i] = NULL;
+		             v_view[i] = new VectorView(title, sln_win_geom[i]);
+                             break;
+      default: error("Unknown norm in solve_linear_adapt().");
+      }
     }
-    else sview[i] = NULL;
+    else {
+      s_view[i] = NULL;
+      v_view[i] = NULL;
+    }
     if (mesh_win_geom[i] != NULL) {
       if (num_comps == 1) sprintf(title, "Mesh", i); 
       else sprintf(title, "Mesh %d", i); 
-      oview[i] = new OrderView(title, mesh_win_geom[i]);
+      o_view[i] = new OrderView(title, mesh_win_geom[i]);
     }
-    else oview[i] = NULL;
+    else o_view[i] = NULL;
   }
 
   // DOF and CPU convergence graphs.
@@ -184,10 +203,11 @@ bool solve_linear_adapt(Tuple<Space *> spaces, WeakForm* wf, Tuple<int> proj_nor
     // Time measurement.
     cpu_time.tick();
 
-    // View the coarse mesh solution (first component only).
+    // View the coarse mesh solution(s).
     for (int i = 0; i < num_comps; i++) {
-      if (sview[i] != NULL) sview[i]->show(slns[i]);
-      if (oview[i] != NULL) oview[i]->show(spaces[i]);
+      if (proj_norms[i] == H2D_H1_NORM || proj_norms[i] == H2D_L2_NORM) if (s_view[i] != NULL) s_view[i]->show(slns[i]);
+      if (proj_norms[i] == H2D_HCURL_NORM || proj_norms[i] == H2D_HDIV_NORM) if (v_view[i] != NULL) v_view[i]->show(slns[i]);
+      if (o_view[i] != NULL) o_view[i]->show(spaces[i]);
     }
 
     // Skip visualization time.

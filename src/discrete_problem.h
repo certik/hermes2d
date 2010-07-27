@@ -23,6 +23,7 @@
 #include "weakform.h"
 #include <map>
 #include "views/scalar_view.h"
+#include "views/vector_view.h"
 #include "views/order_view.h"
 #include "function.h"
 #include "discrete_problem.h"
