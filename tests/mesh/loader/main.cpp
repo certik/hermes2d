@@ -34,7 +34,7 @@ int dump_compare_line(FILE* file, const char* line, const int line_inx) {
 #define DUMP_OUT(__line, ...) { char buffer[MAX_BUFFER]; \
   sprintf(buffer, __VA_ARGS__); \
   size_t sz_buf = strlen(buffer); \
-  if ((sz_buf+line_inx) < MAX_BUFFER) { strcpy(__line + line_inx, buffer); line_inx += sz_buf; } \
+  if ((sz_buf + line_inx) < MAX_BUFFER) { strcpy(__line + line_inx, buffer); line_inx += sz_buf; } \
   else { error("output line exceeds the maximum size of %d characters", MAX_BUFFER); } }
 
 /// Compares dump with the mesh. If file_name_dump is NULL, it just prints the output.
@@ -89,9 +89,33 @@ int dump_compare(const Mesh &mesh, const char* file_name_dump) {
         }
       }
     }
-  }
 
-  // TODO: check curvilinear edges (how?)
+    DUMP_OUT(line, "Curvilinears");
+    DUMP_CMP(line);
+    for (int eid = 0; eid < ne; eid++)
+    {
+      Element *e = mesh.get_element(eid);
+      if (!e->active)
+        continue;
+
+      if (!e->is_curved())
+        continue;
+
+      int nv = e->nvert;
+      for (int iv = 0; iv < nv; iv++)
+      {
+        Node *nd = e->en[iv];
+        if (e->cm->nurbs[iv] == NULL)
+          continue;  
+
+        if (nd->type == 1 && nd->bnd == 1)
+        { 
+          DUMP_OUT(line, " %d, %d | %.6lf", e->vn[iv]->id, e->vn[(iv + 1) % nv]->id, e->cm->nurbs[iv]->angle);
+          DUMP_CMP(line);
+        }
+      }
+    }
+  }
 
   result = ERROR_SUCCESS;
 
