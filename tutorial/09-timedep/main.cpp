@@ -100,7 +100,7 @@ int main(int argc, char* argv[])
   init_matrix_solver(matrix_solver, ndof, mat, rhs, solver);
 
   // Initialize views.
-  WinGeom* sln_win_geom = new WinGeom{0, 0, 450, 600};
+  WinGeom* sln_win_geom = new WinGeom(0, 0, 450, 600);
   ScalarView Tview("Temperature", sln_win_geom);
   char title[100];
   sprintf(title, "Time %3.5f, exterior temperature %3.5f", TIME, temp_ext(TIME));

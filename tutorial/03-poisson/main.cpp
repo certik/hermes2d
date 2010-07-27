@@ -63,7 +63,7 @@ int main(int argc, char* argv[])
   solve_linear(&space, &wf, &sln, matrix_solver);
 
   // Visualize the solution.
-  WinGeom* sln_win_geom = new WinGeom{0, 0, 440, 350};
+  WinGeom* sln_win_geom = new WinGeom(0, 0, 440, 350);
   ScalarView view("Solution", sln_win_geom);
   view.show(&sln);
 

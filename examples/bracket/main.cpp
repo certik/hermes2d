@@ -124,10 +124,10 @@ int main(int argc, char* argv[])
   apt.set_error_form(1, 1, bilinear_form_1_1<scalar, scalar>, bilinear_form_1_1<Ord, Ord>);
 
   // Geometry and position of visualization windows.
-  WinGeom* u_sln_win_geom = new WinGeom{0, 0, 360, 300};
-  WinGeom* u_mesh_win_geom = new WinGeom{370, 0, 360, 300};
-  WinGeom* v_sln_win_geom = new WinGeom{740, 0, 400, 300};
-  WinGeom* v_mesh_win_geom = new WinGeom{1150, 0, 400, 300};
+  WinGeom* u_sln_win_geom = new WinGeom(0, 0, 360, 300);
+  WinGeom* u_mesh_win_geom = new WinGeom(370, 0, 360, 300);
+  WinGeom* v_sln_win_geom = new WinGeom(740, 0, 400, 300);
+  WinGeom* v_mesh_win_geom = new WinGeom(1150, 0, 400, 300);
 
   // Adaptivity loop.
   Solution *u_sln = new Solution();
@@ -144,7 +144,7 @@ int main(int argc, char* argv[])
                      Tuple<WinGeom *>(u_mesh_win_geom, v_mesh_win_geom), verbose);
 
   // Show the Von Mises stress on the reference mesh.
-  WinGeom* stress_win_geom = new WinGeom{0, 355, 360, 300};
+  WinGeom* stress_win_geom = new WinGeom(0, 355, 360, 300);
   ScalarView sview("Von Mises stress [Pa]", stress_win_geom);
   VonMisesFilter stress((MeshFunction*)ref_u_sln, (MeshFunction*)ref_v_sln, mu, lambda);
   sview.set_min_max_range(0, 3e4);

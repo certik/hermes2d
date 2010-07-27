@@ -113,10 +113,10 @@ int main(int argc, char* argv[])
   cpu_time.tick();
 
   // View the solution and mesh.
-  WinGeom* sln_win_geom = new WinGeom{0, 0, 440, 350};
+  WinGeom* sln_win_geom = new WinGeom(0, 0, 440, 350);
   ScalarView sview("Coarse solution", sln_win_geom);
   sview.show(&sln);
-  WinGeom* mesh_win_geom = new WinGeom{450, 0, 400, 350};
+  WinGeom* mesh_win_geom = new WinGeom(450, 0, 400, 350);
   OrderView  oview("Polynomial orders", mesh_win_geom);
   oview.show(&space);
 

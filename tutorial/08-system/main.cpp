@@ -70,7 +70,7 @@ int main(int argc, char* argv[])
                Tuple<Solution*>(&u_sln, &v_sln), matrix_solver);
 
   // Visualize the solution.
-  WinGeom* sln_win_geom = new WinGeom{0, 0, 800, 400};
+  WinGeom* sln_win_geom = new WinGeom(0, 0, 800, 400);
   ScalarView view("Von Mises stress [Pa]", sln_win_geom);
   VonMisesFilter stress(&u_sln, &v_sln, lambda, mu);
   view.show_mesh(false);

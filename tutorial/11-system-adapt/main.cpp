@@ -134,10 +134,10 @@ int main(int argc, char* argv[])
                           MESH_REGULARITY);
 
   // Geometry and position of visualization windows.
-  WinGeom* u_sln_win_geom = new WinGeom{0, 0, 360, 300};
-  WinGeom* u_mesh_win_geom = new WinGeom{370, 0, 360, 300};
-  WinGeom* v_sln_win_geom = new WinGeom{740, 0, 400, 300};
-  WinGeom* v_mesh_win_geom = new WinGeom{1150, 0, 400, 300};
+  WinGeom* u_sln_win_geom = new WinGeom(0, 0, 360, 300);
+  WinGeom* u_mesh_win_geom = new WinGeom(370, 0, 360, 300);
+  WinGeom* v_sln_win_geom = new WinGeom(740, 0, 400, 300);
+  WinGeom* v_mesh_win_geom = new WinGeom(1150, 0, 400, 300);
 
   // Adaptivity loop.
   Solution *u_sln = new Solution();
