@@ -37,7 +37,9 @@ class H2D_API MeshView : public View
 public:
 
   MeshView(const char* title = "MeshView", DEFAULT_WINDOW_POS);
-  MeshView(const char* title = "MeshView", WinGeom* wg = NULL);
+#ifndef _MSC_VER
+	MeshView(const char* title = "MeshView", WinGeom* wg = NULL);
+#endif
   MeshView(char* title, WinGeom* wg = NULL);
   virtual ~MeshView();
 

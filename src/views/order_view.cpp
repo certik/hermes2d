@@ -36,6 +36,7 @@ OrderView::OrderView(const char* title, int x, int y, int width, int height)
   scale_box_skip = 9;
 }
 
+#ifndef _MSC_VER
 OrderView::OrderView(const char* title, WinGeom* wg)
          : View(title, wg)
 {
@@ -45,6 +46,7 @@ OrderView::OrderView(const char* title, WinGeom* wg)
   scale_box_height = 25;
   scale_box_skip = 9;
 }
+#endif
 
 OrderView::OrderView(char* title, WinGeom* wg)
          : View(title, wg)

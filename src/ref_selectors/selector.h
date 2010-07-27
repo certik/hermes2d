@@ -16,11 +16,16 @@
 #ifndef __H2D_REFINEMENT_SELECTOR_H
 #define __H2D_REFINEMENT_SELECTOR_H
 
+#ifndef _MSC_VER
 #include "../refinement_type.h"
 
 class ElementToRefine;
 struct Element;
 class Solution;
+#else
+#include "../element_to_refine.h"
+#endif
+
 
 /** \defgroup g_selectors Refinement Selectors
  *  \brief Refinement selectors allows to select a refinement

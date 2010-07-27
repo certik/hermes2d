@@ -36,7 +36,9 @@ class H2D_API StreamView : public View
 public:
 
   StreamView(const char* title = "StreamView", DEFAULT_WINDOW_POS);
-  StreamView(const char* title = "StreamView", WinGeom* wg = NULL);
+#ifndef _MSC_VER
+	StreamView(const char* title = "StreamView", WinGeom* wg = NULL);
+#endif
   StreamView(char* title, WinGeom* wg = NULL);
   virtual ~StreamView();
 

@@ -803,7 +803,10 @@ scalar* Projection::project()
   memcpy(vec, sln_vec, ndof * sizeof(scalar));
   return vec;
   */
-
+// For Visual Studio compiler it is necessary to return a value.
+#ifdef _MSC_VER
+	return new scalar(0.0);
+#endif
 }
 
 

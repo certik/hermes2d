@@ -34,6 +34,7 @@ VectorView::VectorView(const char* title, int x, int y, int width, int height)
   length_coef = 1.0;
 }
 
+#ifndef _MSC_VER
 VectorView::VectorView(const char* title, WinGeom* wg)
           : View(title, wg)
 {
@@ -45,6 +46,7 @@ VectorView::VectorView(const char* title, WinGeom* wg)
   pmode = false;
   length_coef = 1.0;
 }
+#endif
 
 VectorView::VectorView(char* title, WinGeom* wg)
           : View(title, wg)

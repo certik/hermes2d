@@ -299,7 +299,7 @@ public:
 
   /// Internal. Used by DiscreteProblem to detect changes in the space.
   int get_seq() const { return seq; }
-  int set_seq(int seq_) { seq = seq_; }
+  int set_seq(int seq_) { seq = seq_; return seq;}
 
   /// Internal. Return type of this space (H1 = 0, Hcurl = 1, Hdiv = 2, L2 = 3)
   virtual int get_type() const = 0;

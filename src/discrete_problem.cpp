@@ -1640,4 +1640,5 @@ bool solve_newton_adapt(Tuple<Space *> spaces, WeakForm* wf, Tuple<int>proj_norm
   */
 
   if (verbose) info("Total running time: %g s", cpu_time.accumulated());
+	return true;
 }

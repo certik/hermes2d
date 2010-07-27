@@ -37,6 +37,7 @@ MeshView::MeshView(const char* title, int x, int y, int width, int height)
   b_markers = true;
 }
 
+#ifndef _MSC_VER
 MeshView::MeshView(const char* title, WinGeom* wg)
         : View(title, wg)
 {
@@ -45,6 +46,7 @@ MeshView::MeshView(const char* title, WinGeom* wg)
   b_ids = false;
   b_markers = true;
 }
+#endif
 
 MeshView::MeshView(char* title, WinGeom* wg)
         : View(title, wg)

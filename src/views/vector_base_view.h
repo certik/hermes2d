@@ -33,9 +33,13 @@ public:
 
   VectorBaseView(const char* title = "BaseView", DEFAULT_WINDOW_POS)
     : VectorView(title, x, y, width, height) { pss = NULL; sln = NULL; lines = false; }
-  VectorBaseView(const char* title = "BaseView", WinGeom* wg = NULL)
-    : VectorView(title, wg) { pss = NULL; sln = NULL; lines = false; }
-  VectorBaseView(char* title, WinGeom* wg = NULL)
+
+#ifndef _MSC_VER
+	VectorBaseView(const char* title = "BaseView", WinGeom* wg = NULL)
+		: VectorView(title, wg) { pss = NULL; sln = NULL; lines = false; }
+#endif
+
+	VectorBaseView(char* title, WinGeom* wg = NULL)
     : VectorView(title, wg) { pss = NULL; sln = NULL; lines = false; }
 
   void show(Space* space);
@@ -65,7 +69,7 @@ protected:
 class H2D_API VectorBaseView : public VectorView
 {
 public:
-  VectorBaseView(const char* title = "BaseView", DEFAULT_WINDOW_POS) {}
+  VectorBaseView(char* title = "BaseView", DEFAULT_WINDOW_POS) {}
   virtual ~VectorBaseView() {}
   void show(Space* space)
      { verbose("VectorBaseView: Hermes2D compiled without OpenGL support, skipping visualization."); }

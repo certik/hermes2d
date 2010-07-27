@@ -34,6 +34,7 @@ BaseView::BaseView(const char* title, int x, int y, int width, int height)
   show_edges = true;
 }
 
+#ifndef _MSC_VER
 BaseView::BaseView(const char* title, WinGeom* wg)
         : ScalarView(title, wg)
 {
@@ -41,6 +42,7 @@ BaseView::BaseView(const char* title, WinGeom* wg)
   sln = NULL;
   show_edges = true;
 }
+#endif
 
 BaseView::BaseView(char* title, WinGeom* wg)
         : ScalarView(title, wg)
