@@ -21,7 +21,7 @@ using namespace RefinementSelectors;
  *
  *  \section s_res Results
  *   - DOFs: 793
- *   - Adaptivity steps:  
+ *   - Adaptivity steps: 8
  */
 
 const int P_INIT = 2;                             // Initial polynomial degree of all mesh elements.
