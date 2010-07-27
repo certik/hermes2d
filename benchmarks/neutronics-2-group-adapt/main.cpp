@@ -69,41 +69,43 @@ const int ADAPTIVITY_NORM = 2;             // Specifies the norm used by H1Adapt
                                            // ADAPTIVITY_NORM = 2 ... energy norm defined by the full (non-symmetric) bilinear form.
 
 // Variables used for reporting of results
-TimePeriod cpu_time;			   // Time measurements.
-const int ERR_PLOT = 0;			   // Row in the convergence graphs for exact errors .
-const int ERR_EST_PLOT = 1;		   // Row in the convergence graphs for error estimates.
-const int GROUP_1 = 0;			   // Row in the NDOFs evolution graph for group 1.
-const int GROUP_2 = 1;			   // Row in the NDOFs evolution graph for group 2.
+TimePeriod cpu_time;            // Time measurements.
+const int ERR_PLOT = 0;         // Row in the convergence graphs for exact errors .
+const int ERR_EST_PLOT = 1;     // Row in the convergence graphs for error estimates.
+const int GROUP_1 = 0;          // Row in the NDOFs evolution graph for group 1.
+const int GROUP_2 = 1;          // Row in the NDOFs evolution graph for group 2.
 
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Problem data:
 
 // Two-group material properties for the 4 macro regions.
-const double D[4][2] = {	{1.12, 0.6},
-                        	{1.2, 0.5},
-                        	{1.35, 0.8},
-                        	{1.3, 0.9}	};
-const double Sr[4][2] = {	{0.011, 0.13},
-                        	{0.09, 0.15},
-                        	{0.035, 0.25},
-                        	{0.04, 0.35}	};
-const double nSf[4][2] ={	{0.0025, 0.15},
-                        	{0.0, 0.0},
-                        	{0.0011, 0.1},
-                        	{0.004, 0.25}	};
-const double chi[4][2] ={	{1, 0},
-                        	{1, 0},
-                        	{1, 0},
-                        	{1, 0}	};
-const double Ss[4][2][2] = {	{	{ 0.0, 0.0 },
-                             		{ 0.05, 0.0 }	},
-                             	{	{ 0.0, 0.0 },
-                             		{ 0.08, 0.0 }	},
-                             	{	{ 0.0, 0.0 },
-                             		{ 0.025, 0.0 }	},
-                             	{	{ 0.0, 0.0 },
-                             		{ 0.014, 0.0 }	}	};
+const double D[4][2]  = { {1.12, 0.6},
+                          {1.2, 0.5},
+                          {1.35, 0.8},
+                          {1.3, 0.9}	};
+const double Sr[4][2] = { {0.011, 0.13},
+                          {0.09, 0.15},
+                          {0.035, 0.25},
+                          {0.04, 0.35}	};
+const double nSf[4][2]= { {0.0025, 0.15},
+                          {0.0, 0.0},
+                          {0.0011, 0.1},
+                          {0.004, 0.25}	};
+const double chi[4][2]= { {1, 0},
+                          {1, 0},
+                          {1, 0},
+                          {1, 0} };
+const double Ss[4][2][2] = { 
+                             { { 0.0, 0.0 },
+                               { 0.05, 0.0 }  },
+                             { { 0.0, 0.0 },
+                               { 0.08, 0.0 }  },
+                             { { 0.0, 0.0 },
+                               { 0.025, 0.0 } },
+                             { { 0.0, 0.0 },
+                               { 0.014, 0.0 } } 
+                           };
 
 double a = 0., b = 1., c = (a+b)/2.;
 
@@ -274,14 +276,14 @@ int main(int argc, char* argv[])
   view4.show_mesh(false); view4.set_3d_mode(true);
 
   // DOF and CPU convergence graphs.
-  GnuplotGraph graph_dof("Error convergence", "Degrees of freedom", "Error [%]");
+  PNGGraph graph_dof("Error convergence", "Degrees of freedom", "Error [%]");
   graph_dof.add_row("exact error (H1)", "b", "-", "o");
   graph_dof.add_row("est.  error (H1)", "r", "-", "s");
   graph_dof.set_log_y();
   graph_dof.show_legend();
   graph_dof.show_grid();
 
-  GnuplotGraph graph_dof_evol("Evolution of NDOF", "Adaptation step", "Num. DOF");
+  PNGGraph graph_dof_evol("Evolution of NDOF", "Adaptation step", "Num. DOF");
   graph_dof_evol.add_row("group 1", "b", "-", "o");
   graph_dof_evol.add_row("group 2", "r", "-", "s");
   graph_dof_evol.set_log_y();
@@ -311,7 +313,6 @@ int main(int argc, char* argv[])
   init_matrix_solver(SOLVER_UMFPACK, space1.get_num_dofs() + space2.get_num_dofs(), mat, rhs, solver);
 
   double cta;
-  int order_increase = 1;
   for (int iadapt = 0; iadapt < MAX_ADAPT_NUM; iadapt++) {
 
     int ndof = space1.get_num_dofs() + space2.get_num_dofs();
@@ -399,8 +400,8 @@ int main(int argc, char* argv[])
     info("Total error wrt. ref. solution  (H1 norm): %g%%", err_est_h1);
     info("Total error wrt. ref. solution  (E norm):  %g%%", err_est);
 
-    //view1.show(&sln1);
-    //view2.show(&sln2);
+    view1.show(&sln1);
+    view2.show(&sln2);
     view3.show(&err_distrib_1);
     view4.show(&err_distrib_2);
 
@@ -428,6 +429,16 @@ int main(int argc, char* argv[])
   verbose("Total running time: %g s", cta);
 
   // Save convergence graphs.
+  std::stringstream sstm;
+  sstm << "conv_dof.gp";
+
+  switch (CAND_LIST) {
+    case H2D_H_ANISO :
+    case H2D_H_ISO :
+      
+  switch (CAND_LIST) {
+    case H2D_H_ANISO :
+      
   graph_dof.save("conv_dof.gp");
   graph_cpu.save("conv_cpu.gp");
   graph_dof_evol.save("dof_evol.gp");

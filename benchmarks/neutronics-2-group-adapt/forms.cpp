@@ -27,10 +27,12 @@ Scalar liform_0(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *v, Geom<Re
 	return int_F_v<Real, Scalar>(n, wt, Q1, v, e); 
 }
 
-// Integration order for the volumetric linear form
+// Integration order for the volumetric linear form.
+// Set to the polynomial degree of the test function plus a sufficiently high addition to correctly integrate the non-polynomial, 
+// but still relatively smooth source function for 1st group.
 Ord liform_0_ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext)
 {
-  return 10+v->val[0].get_order();  // returning the polynomial degree of the test function plus two
+  return 10+v->val[0].get_order(); 
 }
 
 //////////   Eq 2   /////////////////////////////////////////////////////////////////////////////////////////
@@ -61,8 +63,10 @@ Scalar liform_1(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *v, Geom<Re
 	return int_F_v<Real, Scalar>(n, wt, Q2, v, e); 
 }
 
-// Integration order for the volumetric linear form
+// Integration order for the volumetric linear form.
+// Set to the polynomial degree of the test function plus a sufficiently high addition to correctly integrate the non-polynomial, 
+// highly oscillating source function for 2nd group.
 Ord liform_1_ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext)
 {
-  return 10+v->val[0].get_order();  // returning the polynomial degree of the test function plus two
+  return 20+v->val[0].get_order(); 
 }
