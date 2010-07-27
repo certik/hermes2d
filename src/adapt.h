@@ -44,28 +44,6 @@
  *    \if H2D_COMPLEX # -HcurlAdapt \endif
  */
 
-///< Structure to hold adaptivity parameters together.
-struct AdaptivityParamType {
-  double err_stop; 
-  int ndof_stop;
-  double threshold; 
-  int strategy;
-  int mesh_regularity;
-  double to_be_processed;
-
-  AdaptivityParamType(double err_stop = 1.0, int ndof_stop = 50000,
-	  	      double threshold = 0.3, int strategy = 0, 
-                      int mesh_regularity = -1, double to_be_processed = 0.0)
-  {
-    this->err_stop = err_stop;
-    this->ndof_stop = ndof_stop;
-    this->threshold = threshold;
-    this->strategy = strategy;
-    this->mesh_regularity = mesh_regularity;
-    this->to_be_processed = to_be_processed;
-  }; 
-};
-
 #define H2D_MAX_COMPONENTS 10 ///< A maximum number of components.
 
 H2D_API_USED_TEMPLATE(Tuple<Space*>); ///< Instantiated template. It is used to create a clean Windows DLL interface.
@@ -87,6 +65,60 @@ H2D_API_USED_TEMPLATE(Tuple<Solution*>); ///< Instantiated template. It is used 
                                    ///  An error of an element is a square of an asolute error, i.e., it is an integral over squares of differencies.
                                    ///  \note Used by Adapt::calc_elem_errors(). This flag is mutually exclusive with ::H2D_ELEMENT_ERROR_REL.
 
+// Matrix forms for error calculation.
+  typedef scalar (*matrix_form_val_t) (int n, double *wt, Func<scalar> *u_ext[], 
+                                       Func<scalar> *u, Func<scalar> *v, Geom<double> *e, 
+                                       ExtData<scalar> *); ///< A bilinear form callback function.
+  typedef Ord (*matrix_form_ord_t) (int n, double *wt, Func<Ord> *u_ext[], 
+                                    Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e, 
+                                    ExtData<Ord> *); ///< A bilinear form to estimate order of a function.
+
+///< Structure to hold adaptivity parameters together.
+struct AdaptivityParamType {
+  double err_stop; 
+  int ndof_stop;
+  double threshold; 
+  int strategy;
+  int mesh_regularity;
+  double to_be_processed;
+  int total_error_flag;
+  int elem_error_flag;
+
+  Tuple<int> error_form_i;
+  Tuple<int> error_form_j;
+  Tuple<matrix_form_val_t> error_form_val;
+  Tuple<matrix_form_ord_t> error_form_ord;
+
+  AdaptivityParamType(double err_stop = 1.0, int ndof_stop = 50000,
+	  	      double threshold = 0.3, int strategy = 0, 
+                      int mesh_regularity = -1, double to_be_processed = 0.0,
+                      int total_error_flag = H2D_TOTAL_ERROR_REL,
+                      int elem_error_flag = H2D_ELEMENT_ERROR_REL)
+  {
+    this->err_stop = err_stop;
+    this->ndof_stop = ndof_stop;
+    this->threshold = threshold;
+    this->strategy = strategy;
+    this->mesh_regularity = mesh_regularity;
+    this->to_be_processed = to_be_processed;
+    this->total_error_flag = total_error_flag;
+    this->elem_error_flag = elem_error_flag;
+    error_form_i = Tuple<int>();
+    error_form_j = Tuple<int>();
+    error_form_val = Tuple<matrix_form_val_t>();
+    error_form_ord = Tuple<matrix_form_ord_t>();
+  }; 
+  
+  void set_error_form(int i, int j, matrix_form_val_t mfv, matrix_form_ord_t mfo) 
+  {
+    if (error_form_val.size() > 100) error("too many error forms in AdaptivityParamType::add_error_form().");
+    this->error_form_i.push_back(i);
+    this->error_form_j.push_back(j);
+    this->error_form_val.push_back(mfv);
+    this->error_form_ord.push_back(mfo);
+  }
+};
+
 /// Evaluation of an error between a (coarse) solution and a refernece solution and adaptivity. \ingroup g_adapt
 /** The class provides basic functionality necessary to adaptively refine elements.
  *  Given a reference solution and a coarse solution, it calculates error estimates
@@ -99,9 +131,6 @@ public:
   Adapt(Tuple<Space *> spaces_, Tuple<int> proj_norms); ///< Constructor. Suitable for problems where various solution components 
                                  ///< belong to different spaces (L2, H1, Hcurl, Hdiv). 
   virtual ~Adapt();              ///< Destructor. Deallocates allocated private data.
-
-  typedef scalar (*matrix_form_val_t) (int n, double *wt, Func<scalar> *u_ext[], Func<scalar> *u, Func<scalar> *v, Geom<double> *e, ExtData<scalar> *); ///< A bilinear form callback function.
-  typedef Ord (*matrix_form_ord_t) (int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *); ///< A bilinear form to estimate order of a function.
 
   /// Sets user defined bilinear form which is used to calculate error.
   /** By default, all inherited class should set default bilinear forms for each element (i.e. i = j).

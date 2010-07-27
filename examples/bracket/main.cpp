@@ -115,8 +115,13 @@ int main(int argc, char* argv[])
   H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
 
   // Initialize adaptivity parameters.
+  double to_be_processed = 0;
   AdaptivityParamType apt(ERR_STOP, NDOF_STOP, THRESHOLD, STRATEGY, 
-                          MESH_REGULARITY);
+                          MESH_REGULARITY, to_be_processed, H2D_TOTAL_ERROR_REL, H2D_ELEMENT_ERROR_REL);
+  apt.set_error_form(0, 0, bilinear_form_0_0<scalar, scalar>, bilinear_form_0_0<Ord, Ord>);
+  apt.set_error_form(0, 1, bilinear_form_0_1<scalar, scalar>, bilinear_form_0_1<Ord, Ord>);
+  apt.set_error_form(1, 0, bilinear_form_1_0<scalar, scalar>, bilinear_form_1_0<Ord, Ord>);
+  apt.set_error_form(1, 1, bilinear_form_1_1<scalar, scalar>, bilinear_form_1_1<Ord, Ord>);
 
   // Geometry and position of visualization windows.
   WinGeom* u_sln_win_geom = new WinGeom{0, 0, 360, 300};
@@ -142,7 +147,8 @@ int main(int argc, char* argv[])
   WinGeom* stress_win_geom = new WinGeom{0, 355, 360, 300};
   ScalarView sview("Von Mises stress [Pa]", stress_win_geom);
   VonMisesFilter stress((MeshFunction*)ref_u_sln, (MeshFunction*)ref_v_sln, mu, lambda);
-  sview.set_min_max_range(0, 2e5);
+  sview.set_min_max_range(0, 3e4);
+  sview.show_mesh(false);
   sview.show(&stress, H2D_EPS_HIGH);
 
   // Wait for all views to be closed.

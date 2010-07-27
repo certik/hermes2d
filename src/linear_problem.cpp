@@ -90,8 +90,10 @@ bool solve_linear_adapt(Tuple<Space *> spaces, WeakForm* wf, Tuple<int> proj_nor
                         bool verbose, Tuple<ExactSolution *> exact_slns, bool is_complex) 
 {
   // sanity checks
-  if (spaces.size() != selectors.size()) error("There must be a refinement selector for each solution component in solve_linear_adapt().");
-  if (spaces.size() != proj_norms.size()) error("There must be a projection norm for each solution component in solve_linear_adapt().");
+  if (spaces.size() != selectors.size()) 
+    error("There must be a refinement selector for each solution component in solve_linear_adapt().");
+  if (spaces.size() != proj_norms.size()) 
+    error("There must be a projection norm for each solution component in solve_linear_adapt().");
 
   // Time measurement.
   TimePeriod cpu_time;
@@ -104,6 +106,8 @@ bool solve_linear_adapt(Tuple<Space *> spaces, WeakForm* wf, Tuple<int> proj_nor
   int strategy = apt->strategy; 
   int mesh_regularity = apt->mesh_regularity;
   double to_be_processed = apt->to_be_processed;
+  int total_error_flag = apt->total_error_flag;
+  int elem_error_flag = apt->elem_error_flag;
 
   // Number of physical fields in the problem.
   int num_comps = spaces.size();
@@ -155,7 +159,7 @@ bool solve_linear_adapt(Tuple<Space *> spaces, WeakForm* wf, Tuple<int> proj_nor
     }
     if (mesh_win_geom[i] != NULL) {
       if (num_comps == 1) sprintf(title, "Mesh", i); 
-      else sprintf(title, "Mesh %d", i); 
+      else sprintf(title, "Mesh[%d]", i); 
       o_view[i] = new OrderView(title, mesh_win_geom[i]);
     }
     else o_view[i] = NULL;
@@ -205,8 +209,12 @@ bool solve_linear_adapt(Tuple<Space *> spaces, WeakForm* wf, Tuple<int> proj_nor
 
     // View the coarse mesh solution(s).
     for (int i = 0; i < num_comps; i++) {
-      if (proj_norms[i] == H2D_H1_NORM || proj_norms[i] == H2D_L2_NORM) if (s_view[i] != NULL) s_view[i]->show(slns[i]);
-      if (proj_norms[i] == H2D_HCURL_NORM || proj_norms[i] == H2D_HDIV_NORM) if (v_view[i] != NULL) v_view[i]->show(slns[i]);
+      if (proj_norms[i] == H2D_H1_NORM || proj_norms[i] == H2D_L2_NORM) {
+        if (s_view[i] != NULL) s_view[i]->show(slns[i]);
+      }
+      if (proj_norms[i] == H2D_HCURL_NORM || proj_norms[i] == H2D_HDIV_NORM) {
+        if (v_view[i] != NULL) v_view[i]->show(slns[i]);
+      }
       if (o_view[i] != NULL) o_view[i]->show(spaces[i]);
     }
 
@@ -216,8 +224,14 @@ bool solve_linear_adapt(Tuple<Space *> spaces, WeakForm* wf, Tuple<int> proj_nor
     // Calculate element errors.
     if (verbose) info("Calculating error (est).");
     Adapt hp(spaces, proj_norms);
+    // Pass special error forms if any.
+    for (int k = 0; k < apt->error_form_val.size(); k++) {
+      hp.set_error_form(apt->error_form_i[k], apt->error_form_j[k], apt->error_form_val[k], apt->error_form_ord[k]);
+    }
     hp.set_solutions(slns, ref_slns);
-    hp.calc_elem_errors();
+    // Below, apt->total_error_flag = H2D_TOTAL_ERROR_REL or H2D_TOTAL_ERROR_ABS
+    // and apt->elem_error_flag = H2D_ELEMENT_ERROR_REL or H2D_ELEMENT_ERROR_ABS
+    hp.calc_elem_errors(total_error_flag | elem_error_flag);
  
     // Calculate error estimate for each solution component. Note, these can 
     // have different norms, such as L2, H1, Hcurl and Hdiv. 
