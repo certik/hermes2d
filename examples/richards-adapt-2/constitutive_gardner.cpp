@@ -23,8 +23,8 @@ double ddKdhh(double h)
 double C(double h)
 {
   if (h < 0) return ALPHA*(THETA_S - THETA_R)*exp(ALPHA*h);
-  // else return ALPHA*(THETA_S - THETA_R); 
-  else return STORATIVITY; 
+  else return ALPHA*(THETA_S - THETA_R); 
+//   else return STORATIVITY; 
 }
 
 // dC/dh (Gardner).

@@ -29,12 +29,32 @@ public:
   H1Adapt(LinSystem* ls);
 };
 
+// Mesh is adapted to represent given exact function with given accuracy
+// in a given projection norm.
 void adapt_to_exact_function(Space *space, ExactFunction exactfn, 
-			     RefinementSelectors::Selector* selector, double threshold, int strategy, 
+			     RefinementSelectors::Selector* selector, 
+                             double threshold, int strategy, 
                              int mesh_regularity, double err_stop, int ndof_stop, 
 			     int proj_norm = 1, 
                              bool project_on_fine_mesh = false, bool verbose = false,
-                             bool debug = false, Solution* sln = NULL);
+                             bool visualization = false, Solution* sln = NULL);
 
+// Mesh is adapted to represent a given reference solution with given accuracy
+// in a given projection norm.
+void adapt_to_ref_solution(Space *space, Solution* ref_sln, 
+			   RefinementSelectors::Selector* selector, 
+                           double threshold, int strategy, 
+                           int mesh_regularity, double err_stop, 
+                           int ndof_stop, int proj_norm, bool verbose = false, 
+			   bool visualization = false, Solution* sln = NULL); 
+
+// Mesh is adapted to represent the Dirichlet lift with given accuracy
+// in a given projection norm.
+void adapt_to_dirichlet_lift(Space *space, RefinementSelectors::Selector* selector, 
+                           double threshold, int strategy, 
+                           int mesh_regularity, double err_stop, 
+                           int ndof_stop, int proj_norm, 
+                           bool use_projection = false, bool verbose = false, 
+			   bool visualization = false, Solution* sln = NULL);
 
 #endif

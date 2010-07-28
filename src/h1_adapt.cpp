@@ -41,17 +41,17 @@ H1Adapt::H1Adapt(LinSystem* ls) : Adapt(ls)
   }
 }
 
-// Mesh is adapted to represent initial condition with given accuracy
+// Mesh is adapted to represent given exact function with given accuracy
 // in a given projection norm.
 void adapt_to_exact_function(Space *space, ExactFunction exactfn, 
 			     RefinementSelectors::Selector* selector, 
                              double threshold, int strategy, 
                              int mesh_regularity, double err_stop, 
                              int ndof_stop, int proj_norm, 
-                             bool project_on_fine_mesh, bool verbose, 
-                             bool debug, Solution* sln) 
+                             bool use_projection, bool verbose, 
+                             bool visualization, Solution* sln) 
 {
-  if (verbose == true) printf("Mesh adaptivity to an exact function:\n");
+  if (verbose == true) printf("Mesh adaptivity to given exact function:\n");
 
   // Initialize a dummy weak formulation.
   WeakForm wf_dummy;
@@ -76,17 +76,17 @@ void adapt_to_exact_function(Space *space, ExactFunction exactfn,
     RefSystem rs(&ls);
 
     // Assign the function f() to the fine mesh exactly or use global projection.
-    if (project_on_fine_mesh == true) rs.project_global(exactfn, sln_fine, 1);
+    if (use_projection == true) rs.project_global(exactfn, sln_fine, proj_norm);
     else sln_fine->set_exact(rs.get_mesh(0), exactfn);
 
     // Project the function f() on the coarse mesh.
-    ls.project_global(exactfn, sln_coarse, 1);
+    ls.project_global(exactfn, sln_coarse, proj_norm);
 
     // Create DiffFilter for the error.
     DiffFilter difff(sln_fine, sln_coarse, H2D_FN_VAL, H2D_FN_VAL);
 
     // View the approximation of the exact function.
-    if (debug) {
+    if (visualization) {
       view_c->show(sln_coarse);
       view_f->show(sln_fine);
       char title[100];
@@ -103,6 +103,170 @@ void adapt_to_exact_function(Space *space, ExactFunction exactfn,
     // Calculate element errors and total error estimate.
     H1Adapt hp(&ls);
     hp.set_solutions(sln_coarse, sln_fine);
+    double err_est = hp.calc_error() * 100;
+    if (verbose ==  true) printf("Step %d, ndof_coarse %d, ndof_fine %d, proj_error %g%%\n", 
+                                 as, ls.get_num_dofs(), rs.get_num_dofs(), err_est);
+
+    // If err_est too large, adapt the mesh.
+    if (err_est < err_stop) done = true;
+    else {
+      done = hp.adapt(selector, threshold, strategy, mesh_regularity);
+
+      if (ls.get_num_dofs() >= ndof_stop) done = true;
+    }
+
+    as++;
+  }
+  while (done == false);
+
+  if (sln != NULL) sln->copy(sln_coarse);
+}
+
+// Mesh is adapted to represent a given reference solution with given accuracy
+// in a given projection norm.
+void adapt_to_ref_solution(Space *space, Solution* ref_sln, 
+			   RefinementSelectors::Selector* selector, 
+                           double threshold, int strategy, 
+                           int mesh_regularity, double err_stop, 
+                           int ndof_stop, int proj_norm, bool verbose, 
+                           bool visualization, Solution* sln) 
+{
+  if (verbose == true) printf("Mesh adaptivity to given solution:\n");
+
+  // Initialize a dummy weak formulation.
+  WeakForm wf_dummy;
+
+  // Initialize the linear system.
+  LinSystem ls(&wf_dummy, space);
+
+  // Initialize views.
+  ScalarView* view_c = new ScalarView("Coarse mesh projection", 0, 0, 410, 300);
+  ScalarView* view_f = new ScalarView("Solution", 420, 0, 410, 300);
+  OrderView* ordview_c = new OrderView("Coarse mesh", 840, 0, 350, 300);
+  OrderView* ordview_f = new OrderView("Fine mesh", 1200, 0, 350, 300);
+  ScalarView* view_e = new ScalarView("Error estimate", 0, 360, 410, 300);
+
+  // Adaptivity loop:
+  Solution* sln_coarse = new Solution();
+  int as = 1; bool done = false;
+  do
+  {
+    // Refine mesh uniformly.
+    RefSystem rs(&ls);
+
+    // Project the function f() on the coarse mesh.
+    ls.project_global(ref_sln, sln_coarse, proj_norm);
+
+    // Create DiffFilter for the error.
+    DiffFilter difff(ref_sln, sln_coarse, H2D_FN_VAL, H2D_FN_VAL);
+
+    // View the approximation of the exact function.
+    if (visualization) {
+      view_c->show(sln_coarse);
+      view_f->show(ref_sln);
+      char title[100];
+      sprintf(title, "Coarse mesh, step %d", as);
+      ordview_c->set_title(title);
+      ordview_c->show(space);
+      sprintf(title, "Fine mesh, step %d", as);
+      ordview_f->set_title(title);
+      ordview_f->show(rs.get_space(0));
+      view_e->show(&difff);
+      View::wait(H2DV_WAIT_KEYPRESS);
+    }
+
+    // Calculate element errors and total error estimate.
+    H1Adapt hp(&ls);
+    hp.set_solutions(sln_coarse, ref_sln);
+    double err_est = hp.calc_error() * 100;
+    if (verbose ==  true) printf("Step %d, ndof_coarse %d, ndof_fine %d, proj_error %g%%\n", 
+                                 as, ls.get_num_dofs(), rs.get_num_dofs(), err_est);
+
+    // If err_est too large, adapt the mesh.
+    if (err_est < err_stop) done = true;
+    else {
+      done = hp.adapt(selector, threshold, strategy, mesh_regularity);
+
+      if (ls.get_num_dofs() >= ndof_stop) done = true;
+    }
+
+    as++;
+  }
+  while (done == false);
+
+  if (sln != NULL) sln->copy(sln_coarse);
+}
+
+// Mesh is adapted to represent the Dirichlet lift with given accuracy
+// in a given projection norm.
+void adapt_to_dirichlet_lift(Space *space, RefinementSelectors::Selector* selector, 
+                             double threshold, int strategy, 
+                             int mesh_regularity, double err_stop, 
+                             int ndof_stop, int proj_norm, 
+                             bool use_projection, bool verbose, 
+                             bool visualization, Solution* sln) 
+{
+  if (verbose == true) printf("Mesh adaptivity to the Dirichlet lift:\n");
+
+  // Initialize a dummy weak formulation.
+  WeakForm wf_dummy;
+
+  // Initialize the linear system.
+  LinSystem ls(&wf_dummy, space);
+
+  // Initialize views.
+  ScalarView* view_c = new ScalarView("Coarse mesh projection", 0, 0, 410, 300);
+  ScalarView* view_f = new ScalarView("Solution", 420, 0, 410, 300);
+  OrderView* ordview_c = new OrderView("Coarse mesh", 840, 0, 350, 300);
+  OrderView* ordview_f = new OrderView("Fine mesh", 1200, 0, 350, 300);
+  ScalarView* view_e = new ScalarView("Error estimate", 0, 360, 410, 300);
+
+  // Adaptivity loop:
+  Solution* sln_coarse = new Solution();
+  Solution* ref_sln = new Solution();
+  int as = 1; bool done = false;
+  do
+  {
+    // Refine mesh uniformly.
+    RefSystem rs(&ls);
+
+    // Set the reference solution to be the Dirichlet lift.
+    if (use_projection == true) {
+      Solution dir_lift;
+      dir_lift.set_dirichlet_lift(rs.get_space(0));
+      rs.project_global(&dir_lift, ref_sln, proj_norm);
+    }
+    else ref_sln->set_dirichlet_lift(rs.get_space(0));
+
+    // Project the reference solution on the coarse mesh.
+    if (use_projection == true) {
+      Solution dir_lift;
+      dir_lift.set_dirichlet_lift(ls.get_space(0));
+      ls.project_global(&dir_lift, sln_coarse, proj_norm);
+    }
+    else sln_coarse->set_dirichlet_lift(ls.get_space(0));
+
+    // Create DiffFilter for the error.
+    DiffFilter difff(ref_sln, sln_coarse, H2D_FN_VAL, H2D_FN_VAL);
+
+    // View the approximation of the exact function.
+    if (visualization) {
+      view_c->show(sln_coarse);
+      view_f->show(ref_sln);
+      char title[100];
+      sprintf(title, "Coarse mesh, step %d", as);
+      ordview_c->set_title(title);
+      ordview_c->show(space);
+      sprintf(title, "Fine mesh, step %d", as);
+      ordview_f->set_title(title);
+      ordview_f->show(rs.get_space(0));
+      view_e->show(&difff);
+      View::wait(H2DV_WAIT_KEYPRESS);
+    }
+
+    // Calculate element errors and total error estimate.
+    H1Adapt hp(&ls);
+    hp.set_solutions(sln_coarse, ref_sln);
     double err_est = hp.calc_error() * 100;
     if (verbose ==  true) printf("Step %d, ndof_coarse %d, ndof_fine %d, proj_error %g%%\n", 
                                  as, ls.get_num_dofs(), rs.get_num_dofs(), err_est);
