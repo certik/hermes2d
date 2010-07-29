@@ -468,7 +468,7 @@ void LinSystem::assemble(bool rhsonly)
   int ndof = this->get_num_dofs();
   if (ndof == 0) error("ndof = 0 in LinSystem::assemble().");
 
-  // realloc vectors if needed. Set RHS to zero.
+  // realloc vectors if needed.
   if (this->Vec_length != ndof) {
     this->Vec = (scalar*)realloc(this->Vec, ndof*sizeof(scalar));
     if (this->Vec == NULL) error("Not enough memory LinSystem::realloc_and_zero_vectors().");
@@ -488,8 +488,9 @@ void LinSystem::assemble(bool rhsonly)
     this->Dir_length = ndof;
   }
 
-  // Erase RHS.
+  // Erase RHS and Dir.
   memset(this->RHS, 0, ndof*sizeof(scalar));
+  memset(this->Dir, 0, ndof*sizeof(scalar));
 
   if (!rhsonly) free_matrix();
   int k, m, marker;
@@ -551,8 +552,7 @@ void LinSystem::assemble(bool rhsonly)
     {
       // find a non-NULL e[i]
       Element* e0 = NULL;
-      for (unsigned int i = 0; i < s->idx.size(); i++)
-        if ((e0 = e[i]) != NULL) break;
+      for (unsigned int i = 0; i < s->idx.size(); i++) if ((e0 = e[i]) != NULL) break;
       if (e0 == NULL) continue;
 
       // set maximum integration order for use in integrals, see limit_order()
@@ -603,7 +603,7 @@ void LinSystem::assemble(bool rhsonly)
               if (an->dof[j] < 0) Dir[k] -= bi; 
               else {
                 mat[i][j] = bi;
-                //if (an->dof[j] == 15 && an->dof[i] == 15) printf("%d %d %g\n", i, j, bi);
+                //if (an->dof[j] == 68 || an->dof[i] == 68) printf("vbf add to matrix %d %d %g\n", i, j, bi);
               }
             }
           }
@@ -618,7 +618,7 @@ void LinSystem::assemble(bool rhsonly)
               if (an->dof[j] < 0) Dir[k] -= bi; 
               else {
                 mat[i][j] = mat[j][i] = bi;
-                //if (an->dof[j] == 15 && an->dof[i] == 15) printf("%d %d %g\n", i, j, bi);
+                //if (an->dof[j] == 68 || an->dof[i] == 68) printf("vbf add to matrix %d %d %g\n", i, j, bi);
               }
             }
           }
@@ -640,7 +640,7 @@ void LinSystem::assemble(bool rhsonly)
               for (int i = 0; i < an->cnt; i++)
                 if (an->dof[i] >= 0) {
                   Dir[an->dof[i]] -= mat[i][j];
-                  //if (an->dof[i] == 15) printf("to rhs %d %g\n", an->dof[i], -mat[i][j]);
+                  //if (an->dof[i] == 68) printf("vbf add to Dir %d %g\n", an->dof[i], -mat[i][j]);
                 }
         }
       }
@@ -661,7 +661,15 @@ void LinSystem::assemble(bool rhsonly)
           // should be passed there.
           scalar val = eval_form(rfv, NULL, fv, &refmap[m]) * am->coef[i];
           RHS[am->dof[i]] += val;
-          //printf("rhs add %d %g\n", am->dof[i], val);
+          //if (am->dof[i] == 68) {
+          //  double* x_coo = refmap[m].get_phys_x(2);
+          //  double* y_coo = refmap[m].get_phys_y(2);
+          //  printf("vlf add to rhs %d %g\n", am->dof[i], val);
+          //  printf("x[0] = %g, y[0] = %g\n", x_coo[0], y_coo[0]);
+          //  printf("x[1] = %g, y[1] = %g\n", x_coo[1], y_coo[1]);
+          //  printf("x[2] = %g, y[2] = %g\n", x_coo[2], y_coo[2]);
+          //  printf("x[3] = %g, y[3] = %g\n", x_coo[3], y_coo[3]);
+          //}
         }
       }
 
@@ -704,7 +712,14 @@ void LinSystem::assemble(bool rhsonly)
               // FIXME - the NULL on the following line is temporary, an array of solutions 
               // should be passed there.
               bi = eval_form(jfs, NULL, fu, fv, &refmap[n], &refmap[m], &(ep[edge])) * an->coef[j] * am->coef[i];
-              if (an->dof[j] >= 0) mat[i][j] = bi; else Dir[k] -= bi;
+              if (an->dof[j] >= 0) {
+                mat[i][j] = bi;
+                //if (am->dof[i] == 68) printf("sbf add to matrix %d %d %g\n", am->dof[i], am->dof[j], bi);
+              } 
+              else { 
+                //if (am->dof[i] == 68) printf("sbf add to Dir %d %g\n", k, bi);
+                Dir[k] -= bi;
+              }
               //printf("%d %d %g\n", i, j, bi);
             }
           }
@@ -731,7 +746,7 @@ void LinSystem::assemble(bool rhsonly)
             // should be passed there.
             scalar val = eval_form(rfs, NULL, fv, &refmap[m], &(ep[edge])) * am->coef[i];
             RHS[am->dof[i]] += val;
-            //printf("rhs add %d %g\n", am->dof[i], val);
+            //if (am->dof[i] == 68) printf("slf add to RHS %d %g\n", am->dof[i], val);
           }
         }
       }
@@ -742,6 +757,7 @@ void LinSystem::assemble(bool rhsonly)
 
   // add to RHS the dirichlet contributions
   if (want_dir_contrib) {
+    //printf("Copying Dir into RHS.\n");
     for (int i = 0; i < ndof; i++) {
       this->RHS[i] += this->Dir[i];
     }
@@ -758,9 +774,28 @@ void LinSystem::assemble(bool rhsonly)
 
   /*
   // debug
+  static int ccc = 0;
+  printf("ccc = %d\n", ccc);
+  if (ccc == 5) for (int m = 0; m < ndof; m++) RHS[m] = 0;
+  ccc++;
+  */
+
+  /*
+  // debug
   printf("RHS = \n");
   for (int m = 0; m < ndof; m++) {
-    printf("%g ", RHS[m]);
+    if (fabs(RHS[m]) > 1e-14) printf("%d %g\n", m, RHS[m]);
+    else printf("%d %g\n", m, 0.0);
+  }
+  printf("\n");
+  */
+
+  /*
+  //debug
+  printf("Dir = \n");
+  for (int m = 0; m < ndof; m++) {
+    if (fabs(Dir[m]) > 1e-14) printf("%g ", Dir[m]);
+    else printf("%g ", 0.0);
   }
   printf("\n");
   */

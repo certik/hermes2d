@@ -138,17 +138,17 @@ double K_S, ALPHA, THETA_R, THETA_S, N, M;
 
 // Material properties.
 bool is_in_mat_1(double x, double y) {
-  if (y >= 6.0) return true;
+  if (y >= -0.5) return true;
   else return false; 
 }
 
 bool is_in_mat_2(double x, double y) {
-  if (y >= 5.5 && y < 6.0) return true;
+  if (y >= -1.0 && y < -0.5) return true;
   else return false; 
 }
 
 bool is_in_mat_4(double x, double y) {
-  if (x >= 1.0 && x <= 3.0 && y >= 4.0 && y < 5.0) return true;
+  if (x >= 1.0 && x <= 3.0 && y >= -2.5 && y < -1.5) return true;
   else return false; 
 }
 
@@ -229,12 +229,14 @@ int main(int argc, char* argv[])
 	                  use_projection, verbose0, visualization, &u_prev_time);
 
   // Initialize views.
-  ScalarView sview("Solution", 0, 0, 500, 350);
-  OrderView oview("Mesh", 520, 0, 500, 350);
+  ScalarView sview_coarse("Solution", 0, 0, 350, 340);
+  OrderView oview_coarse("Mesh", 360, 0, 350, 340);
+  ScalarView sview_fine("Solution", 720, 0, 350, 340);
+  OrderView oview_fine("Mesh", 1080, 0, 350, 340);
 
   // Show initial condition.
-  oview.show(&space);
-  sview.show(&u_prev_time);
+  oview_coarse.show(&space);
+  sview_coarse.show(&u_prev_time);
   View::wait(H2DV_WAIT_KEYPRESS);
 
   // Initialize the weak formulation.
@@ -266,11 +268,6 @@ int main(int argc, char* argv[])
   info("Projecting initial condition to obtain coefficient vector for Newton on coarse mesh.");
   nls.project_global(&u_prev_time, &u_prev_newton);   // Initial vector calculated here.
 
-  // Show projection of initial condition.
-  oview.show(&space);
-  sview.show(&u_prev_newton);
-  View::wait(H2DV_WAIT_KEYPRESS);
-
   // Newton's loop on the coarse mesh.
   info("Solving on coarse mesh.");
   bool verbose = true; // Default is false.
@@ -282,8 +279,8 @@ int main(int argc, char* argv[])
   sln_coarse.copy(&u_prev_newton);
 
   // Show the coarse mesh solution.
-  oview.show(&space);
-  sview.show(&sln_coarse);
+  oview_coarse.show(&space);
+  sview_coarse.show(&sln_coarse);
   View::wait(H2DV_WAIT_KEYPRESS);
 
   // Time stepping loop.
@@ -329,16 +326,14 @@ int main(int argc, char* argv[])
         rnls.project_global(&sln_fine, &u_prev_newton);
       }
 
-      ScalarView sss("Fine solution", 0, 0, 400, 400);
-      sss.show(&u_prev_newton);
-      View::wait(H2DV_WAIT_KEYPRESS);
-
       // Newton's method on fine mesh
       info("Solving on fine mesh.");
       if (!rnls.solve_newton(&u_prev_newton, NEWTON_TOL_FINE, NEWTON_MAX_ITER, verbose))
         error("Newton's method did not converge.");
 
-      sss.show(&u_prev_newton);
+      // debug
+      sview_fine.show(&u_prev_newton);
+      oview_fine.show(rnls.get_space(0));
       View::wait(H2DV_WAIT_KEYPRESS);
 
       // Store the result in sln_fine.
@@ -369,6 +364,17 @@ int main(int argc, char* argv[])
 
         // Store the result in sln_coarse.
         sln_coarse.copy(&u_prev_newton);
+
+        // Show the new time level solution.
+        char title[100];
+        sprintf(title, "Solution, t = %g", TIME);
+        sview_coarse.set_title(title);
+        sview_coarse.show(&sln_coarse);
+        oview_coarse.show(&space);
+        sprintf(title, "Reference solution, t = %g", TIME);
+        sview_fine.set_title(title);
+        sview_fine.show(&sln_fine);
+        oview_fine.show(rnls.get_space(0));
 
         as++;
 
@@ -402,13 +408,6 @@ int main(int argc, char* argv[])
 
     // Copy new time level solution into u_prev_time.
     u_prev_time.copy(&sln_fine);
-
-    // Show the new time level solution.
-    char title[100];
-    sprintf(title, "Solution, t = %g", TIME);
-    sview.set_title(title);
-    sview.show(&u_prev_time);
-    oview.show(&space);
 
     TIME += TAU;
   }

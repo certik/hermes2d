@@ -70,8 +70,9 @@ RefSystem::RefSystem(LinSystem* base, int order_increase,
     this->Dir_length = ndof;
   }
 
-  // Erase RHS.
+  // Erase RHS and Dir.
   memset(this->RHS, 0, ndof*sizeof(scalar));
+  memset(this->Dir, 0, ndof*sizeof(scalar));
 }
 
 void RefSystem::global_refinement() 
@@ -192,7 +193,10 @@ void RefSystem::set_order_increase(int order_increase)
 void RefSystem::assemble(bool rhsonly)
 {  
   // call LinSystem's or NonlinSystem's assemble() function.
-  if (this->linear == true) LinSystem::assemble(rhsonly);
+  if (this->linear == true) {
+    //printf("Assembling linear ref system.\n");
+    LinSystem::assemble(rhsonly);
+  }
   else {
     //printf("Assembling nonlinear ref system.\n");
     NonlinSystem::assemble(rhsonly);
