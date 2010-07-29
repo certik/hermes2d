@@ -347,27 +347,6 @@ void LinSystem::alloc_and_zero_vectors()
   this->Dir_length = ndof;
 }
 
-void LinSystem::realloc_and_zero_vectors()
-{
-  int ndof = this->get_num_dofs();
-  //printf("debug: reallocating vectors Vec, RHS, Dir length   %d -> %d\n", this->Vec_length, ndof);
-
-  this->Vec = (scalar*)realloc(this->Vec, ndof*sizeof(scalar));
-  if (this->Vec == NULL) error("Not enough memory LinSystem::realloc_and_zero_vectors().");
-  memset(this->Vec, 0, ndof*sizeof(scalar));
-  this->Vec_length = ndof;
-
-  this->RHS = (scalar*)realloc(this->RHS, ndof*sizeof(scalar));
-  if (this->RHS == NULL) error("Not enough memory LinSystem::realloc_and_zero_vectors().");
-  memset(this->RHS, 0, ndof*sizeof(scalar));
-  this->RHS_length = ndof;
-
-  this->Dir = (scalar*)realloc(this->Dir, ndof*sizeof(scalar));
-  if (this->Dir == NULL) error("Not enough memory LinSystem::realloc_and_zero_vectors().");
-  memset(this->Dir, 0, ndof*sizeof(scalar));
-  this->Dir_length = ndof;
-}
-
 void LinSystem::free()
 {
   free_matrix();
@@ -488,9 +467,29 @@ void LinSystem::assemble(bool rhsonly)
   this->assign_dofs();
   int ndof = this->get_num_dofs();
   if (ndof == 0) error("ndof = 0 in LinSystem::assemble().");
-  if (this->Vec_length != ndof || this->RHS_length != ndof || this->Dir_length != ndof) {
-    this->realloc_and_zero_vectors();
+
+  // realloc vectors if needed. Set RHS to zero.
+  if (this->Vec_length != ndof) {
+    this->Vec = (scalar*)realloc(this->Vec, ndof*sizeof(scalar));
+    if (this->Vec == NULL) error("Not enough memory LinSystem::realloc_and_zero_vectors().");
+    memset(this->Vec, 0, ndof*sizeof(scalar));
+    this->Vec_length = ndof;
   }
+  if (this->RHS_length != ndof) {
+    this->RHS = (scalar*)realloc(this->RHS, ndof*sizeof(scalar));
+    if (this->RHS == NULL) error("Not enough memory LinSystem::realloc_and_zero_vectors().");
+    memset(this->RHS, 0, ndof*sizeof(scalar));
+    this->RHS_length = ndof;
+  }
+  if (this->Dir_length != ndof) {
+    this->Dir = (scalar*)realloc(this->Dir, ndof*sizeof(scalar));
+    if (this->Dir == NULL) error("Not enough memory LinSystem::realloc_and_zero_vectors().");
+    memset(this->Dir, 0, ndof*sizeof(scalar));
+    this->Dir_length = ndof;
+  }
+
+  // Erase RHS.
+  memset(this->RHS, 0, ndof*sizeof(scalar));
 
   if (!rhsonly) free_matrix();
   int k, m, marker;
@@ -666,7 +665,6 @@ void LinSystem::assemble(bool rhsonly)
         }
       }
 
-
       // assemble surface integrals now: loop through boundary edges of the element
       for (unsigned int edge = 0; edge < e0->nvert; edge++)
       {
@@ -757,6 +755,15 @@ void LinSystem::assemble(bool rhsonly)
   if (!rhsonly) values_changed = true;
 
   //this->A->print();
+
+  /*
+  // debug
+  printf("RHS = \n");
+  for (int m = 0; m < ndof; m++) {
+    printf("%g ", RHS[m]);
+  }
+  printf("\n");
+  */
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1122,6 +1129,16 @@ bool LinSystem::solve(Tuple<Solution*> sln)
   // time measurement
   TimePeriod cpu_time;
 
+  /*
+  // debug
+  printf("RHS = \n");
+  for (int m = 0; m < ndof; m++) {
+    printf("%g ", RHS[m]);
+  }
+  printf("\n");
+  */
+
+
   if (this->linear == true) {
     // solve linear system "Ax = b"
     memcpy(this->Vec, this->RHS, sizeof(scalar) * ndof);
@@ -1135,6 +1152,14 @@ bool LinSystem::solve(Tuple<Solution*> sln)
     scalar* delta = new scalar[ndof];
     memcpy(delta, this->RHS, sizeof(scalar) * ndof);
     this->solver->_solve(this->A, delta);
+    /*
+    // debug
+    printf("delta = \n");
+    for (int m = 0; m < ndof; m++) {
+      printf("%g ", delta[m]);
+    }
+    printf("\n");
+    */
     report_time("Solved in %g s", cpu_time.tick().last());
     // add the increment dY_{n+1} to the previous solution vector
     for (int i = 0; i < ndof; i++) this->Vec[i] += delta[i];

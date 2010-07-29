@@ -30,8 +30,6 @@ using namespace RefinementSelectors;
 const int P_INIT = 1;                      // Initial polynomial degree of all mesh elements.
 const int INIT_REF_NUM = 0;                // Number of initial uniform mesh refinements.
 const int INIT_REF_NUM_BDY = 0;            // Number of initial mesh refinements towards the top edge.
-const double TAU = 1e-5;                   // Time step.
-const double T_FINAL = 5.0;                // Time interval length.
 
 // Adaptivity
 const int UNREF_FREQ = 1;                  // Every UNREF_FREQth time step the mesh is unrefined.
@@ -66,9 +64,16 @@ const int NDOF_STOP = 60000;               // Adaptivity process stops when the 
 // Newton's method
 const double NEWTON_TOL_COARSE = 0.01;     // Stopping criterion for Newton on coarse mesh.
 const double NEWTON_TOL_FINE = 0.05;       // Stopping criterion for Newton on fine mesh.
-const int NEWTON_MAX_ITER = 150;            // Maximum allowed number of Newton iterations.
+const int NEWTON_MAX_ITER = 50;           // Maximum allowed number of Newton iterations.
 
 // Problem parameters.
+const double TAU = 1e-5;                   // Time step.
+const double STARTUP_TIME = 5e-4;          // Start-up time for time-dependent Dirichlet boundary condition.
+const double T_FINAL = 5.0;                // Time interval length.
+double TIME = 0;                           // Global time variable initialized with first time step.
+double H_INIT = -9.5;                      // Initial pressure head.
+double H_ELEVATION = 1.0;
+
 //double K_S_1 = 0.789; 
 //double K_S_2 = 0.469; 
 //double K_S_3 = 1e-2; 
@@ -118,7 +123,14 @@ double M_2 = 0.38726;
 double M_3 = 0.8;
 double M_4 = 0.8;
 
-double Q_CONST = 0.02;
+double Q_MAX_VALUE = 0.02;         // Maximum value, used in function q_function(); 
+double q_function() {
+  //if (STARTUP_TIME > TIME) return Q_MAX_VALUE * TIME / STARTUP_TIME;
+  //else return Q_MAX_VALUE;
+  // debug
+  return 0;
+}
+
 double STORATIVITY = 0.05;
 
 // Global variables for forms.
@@ -145,10 +157,6 @@ bool is_in_mat_3(double x, double y) {
   else return false; 
 }
 
-// Current time.
-const double TIME_INIT = 0;                // Initial time.
-double TIME = TIME_INIT;
-
 #ifdef CONSTITUTIVE_GENUCHTEN
 #include "constitutive_genuchten.cpp"
 #else
@@ -171,14 +179,17 @@ BCType bc_types(int marker)
 // Initial condition.
 double init_cond(double x, double y, double& dx, double& dy) {
   dx = 0;
-  dy = 0;
-  return -3.0;
+  dy = -1;
+  return -y + H_INIT;
 }
 
 // Essential (Dirichlet) boundary condition values.
 scalar essential_bc_values(int ess_bdy_marker, double x, double y)
 {
-  return 2.2 - y;
+  //if (STARTUP_TIME > TIME) return -y + INIT_H + TIME/STARTUP_TIME*H_ELEVATION;
+  //else return -y + INIT_H + H_ELEVATION;
+  // debug
+  return -y + H_INIT;
 }
 
 // Weak forms.
@@ -204,30 +215,46 @@ int main(int argc, char* argv[])
   //selector.set_error_weights(2.0, 1.0, sqrt(2.0));
   //selector.set_error_weights(1.0, 1.0, 1.0);
 
-  // Adapt mesh to represent initial condition with given accuracy.
-  int proj_norm = 1;  // H1 norm.
-  bool verbose = true; 
-  bool use_projection = true;
-  bool visualization = true; 
-  adapt_to_exact_function(&space, init_cond, &selector, THRESHOLD, STRATEGY, 
-                          MESH_REGULARITY, ERR_STOP, NDOF_STOP, proj_norm, 
-	                  use_projection, verbose, visualization);
-
-
-
   // Solutions for the time stepping and the Newton's method.
   Solution u_prev_time, u_prev_newton;
 
+  // Adapt mesh to represent initial condition with given accuracy.
+  int proj_norm = 1;  // H1 norm.
+  bool verbose0 = true; 
+  bool use_projection = true;
+  bool visualization = false;
+  double err_stop_init_cond = 0.1 * ERR_STOP; 
+  adapt_to_exact_function(&space, init_cond, &selector, THRESHOLD, STRATEGY, 
+                          MESH_REGULARITY, ERR_STOP, NDOF_STOP, proj_norm, 
+	                  use_projection, verbose0, visualization, &u_prev_time);
+
+  // Initialize views.
+  ScalarView sview("Solution", 0, 0, 500, 350);
+  OrderView oview("Mesh", 520, 0, 500, 350);
+
+  // Show initial condition.
+  oview.show(&space);
+  sview.show(&u_prev_time);
+  View::wait(H2DV_WAIT_KEYPRESS);
+
   // Initialize the weak formulation.
   WeakForm wf;
-  wf.add_matrix_form(jac_form_vol, jac_form_vol_ord, H2D_UNSYM, H2D_ANY, Tuple<MeshFunction*>(&u_prev_newton, &u_prev_time));
-  wf.add_matrix_form_surf(jac_form_surf_1, jac_form_surf_1_ord, BDY_1, Tuple<MeshFunction*>(&u_prev_newton));
-  wf.add_matrix_form_surf(jac_form_surf_4, jac_form_surf_4_ord, BDY_4, Tuple<MeshFunction*>(&u_prev_newton));
-  wf.add_matrix_form_surf(jac_form_surf_6, jac_form_surf_6_ord, BDY_6, Tuple<MeshFunction*>(&u_prev_newton));
-  wf.add_vector_form(res_form_vol, res_form_vol_ord, H2D_ANY, Tuple<MeshFunction*>(&u_prev_newton, &u_prev_time));
-  wf.add_vector_form_surf(res_form_surf_1, res_form_surf_1_ord, BDY_1, Tuple<MeshFunction*>(&u_prev_newton));
-  wf.add_vector_form_surf(res_form_surf_4, res_form_surf_4_ord, BDY_4, Tuple<MeshFunction*>(&u_prev_newton));
-  wf.add_vector_form_surf(res_form_surf_6, res_form_surf_6_ord, BDY_6, Tuple<MeshFunction*>(&u_prev_newton));
+  wf.add_matrix_form(jac_form_vol, jac_form_vol_ord, H2D_UNSYM, H2D_ANY, 
+                     Tuple<MeshFunction*>(&u_prev_newton, &u_prev_time));
+  wf.add_matrix_form_surf(jac_form_surf_1, jac_form_surf_1_ord, BDY_1, 
+                     Tuple<MeshFunction*>(&u_prev_newton));
+  wf.add_matrix_form_surf(jac_form_surf_4, jac_form_surf_4_ord, BDY_4, 
+                     Tuple<MeshFunction*>(&u_prev_newton));
+  wf.add_matrix_form_surf(jac_form_surf_6, jac_form_surf_6_ord, BDY_6, 
+                     Tuple<MeshFunction*>(&u_prev_newton));
+  wf.add_vector_form(res_form_vol, res_form_vol_ord, H2D_ANY, 
+                     Tuple<MeshFunction*>(&u_prev_newton, &u_prev_time));
+  wf.add_vector_form_surf(res_form_surf_1, res_form_surf_1_ord, BDY_1, 
+                     Tuple<MeshFunction*>(&u_prev_newton));
+  wf.add_vector_form_surf(res_form_surf_4, res_form_surf_4_ord, BDY_4, 
+                     Tuple<MeshFunction*>(&u_prev_newton));
+  wf.add_vector_form_surf(res_form_surf_6, res_form_surf_6_ord, BDY_6, 
+                     Tuple<MeshFunction*>(&u_prev_newton));
   
   // Initialize the nonlinear system.
   NonlinSystem nls(&wf, &space);
@@ -235,37 +262,36 @@ int main(int argc, char* argv[])
   // Error estimate and discrete problem size as a function of physical time.
   SimpleGraph graph_time_err_est, graph_time_dof_est;
 
-  // Set the Dirichlet lift to be the initial solution.
-  // The initial vector for the Newton's method will be zero. 
-  info("Setting initial vector for the Newton's method zero.");
-  u_prev_time.set_dirichlet_lift(&space);             // u_prev_time set equal to init_cond().
-
+  // Calculating initial vector for Newton.
+  info("Projecting initial condition to obtain coefficient vector for Newton on coarse mesh.");
   nls.project_global(&u_prev_time, &u_prev_newton);   // Initial vector calculated here.
 
-  // View the projection of the initial condition.
-//   ScalarView view("Projection of initial condition", 0, 0, 410, 300);
-//   OrderView ordview("Initial mesh", 420, 0, 350, 300);
-//   view.fix_scale_width(80);
-//   view.show(&u_prev_newton);
-//   ordview.show(&space);
-  //View::wait(H2DV_WAIT_KEYPRESS);
+  // Show projection of initial condition.
+  oview.show(&space);
+  sview.show(&u_prev_newton);
+  View::wait(H2DV_WAIT_KEYPRESS);
 
   // Newton's loop on the coarse mesh.
   info("Solving on coarse mesh.");
-  bool verbose2 = true; // Default is false.
-  if (!nls.solve_newton(&u_prev_newton, NEWTON_TOL_COARSE, NEWTON_MAX_ITER, verbose2))
+  bool verbose = true; // Default is false.
+  if (!nls.solve_newton(&u_prev_newton, NEWTON_TOL_COARSE, NEWTON_MAX_ITER, verbose))
     error("Newton's method did not converge.");
 
   // Store the result in sln_coarse.
   Solution sln_coarse, sln_fine;
   sln_coarse.copy(&u_prev_newton);
 
+  // Show the coarse mesh solution.
+  oview.show(&space);
+  sview.show(&sln_coarse);
+  View::wait(H2DV_WAIT_KEYPRESS);
+
   // Time stepping loop.
   int num_time_steps = (int)(T_FINAL/TAU + 0.5);
   for(int ts = 1; ts <= num_time_steps; ts++)
   {
-    // Updating current time.
-    TIME = ts*TAU;
+    // Update time-dependent Dirichlet BC values.
+    if (TIME <= STARTUP_TIME) space.update_essential_bc_values();
 
     // Periodic global derefinements.
     if (ts > 1 && ts % UNREF_FREQ == 0) {
@@ -303,10 +329,17 @@ int main(int argc, char* argv[])
         rnls.project_global(&sln_fine, &u_prev_newton);
       }
 
+      ScalarView sss("Fine solution", 0, 0, 400, 400);
+      sss.show(&u_prev_newton);
+      View::wait(H2DV_WAIT_KEYPRESS);
+
       // Newton's method on fine mesh
       info("Solving on fine mesh.");
-      if (!rnls.solve_newton(&u_prev_newton, NEWTON_TOL_FINE, NEWTON_MAX_ITER, verbose2))
+      if (!rnls.solve_newton(&u_prev_newton, NEWTON_TOL_FINE, NEWTON_MAX_ITER, verbose))
         error("Newton's method did not converge.");
+
+      sss.show(&u_prev_newton);
+      View::wait(H2DV_WAIT_KEYPRESS);
 
       // Store the result in sln_fine.
       sln_fine.copy(&u_prev_newton);
@@ -361,17 +394,6 @@ int main(int argc, char* argv[])
 
   //  mesh.save( filefinemesh ) ;
 
-    
-    
-    // Visualize the solution and mesh.
-    char title[100];
-    sprintf(title, "Solution, time level %d", ts);
-//     view.set_title(title);
-//     view.show(&sln_coarse);
-    sprintf(title, "Mesh, time level %d", ts);
-//     ordview.set_title(title);
-//     ordview.show(&space);
-
     // Add entries to convergence graphs.
     graph_time_err_est.add_values(ts*TAU, space_err_est);
     graph_time_err_est.save("time_error_est.dat");
@@ -380,6 +402,15 @@ int main(int argc, char* argv[])
 
     // Copy new time level solution into u_prev_time.
     u_prev_time.copy(&sln_fine);
+
+    // Show the new time level solution.
+    char title[100];
+    sprintf(title, "Solution, t = %g", TIME);
+    sview.set_title(title);
+    sview.show(&u_prev_time);
+    oview.show(&space);
+
+    TIME += TAU;
   }
 
   // Wait for all views to be closed.

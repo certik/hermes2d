@@ -142,9 +142,6 @@ public:
   /// information stored in these vectors.
   void alloc_and_zero_vectors();
 
-  /// Reallocates vectors Vec, RHS and Dir according to a new this->ndof.
-  void realloc_and_zero_vectors();
-
   /// Frees vectors Vec, RHS and Dir and sets them to NULL. This should
   /// be used very carefully since the vector Vec stores the actual solution
   /// coefficients. Typicaly this needs to be done after the space changes

@@ -49,12 +49,29 @@ RefSystem::RefSystem(LinSystem* base, int order_increase,
   // internal check
   if (this->have_spaces == false) error("RefSystem: missing space(s).");
 
-  // (re)allocate vectors Vec, RHS and Dir
+  // realloc vectors if needed.
   int ndof = this->get_num_dofs();
-  if (Vec_length != ndof || RHS_length != ndof || Dir_length != ndof) {
-    if (Vec == NULL && RHS == NULL && Dir == NULL) this->alloc_and_zero_vectors();
-    else this->realloc_and_zero_vectors();
+  if (this->Vec_length != ndof) {
+    this->Vec = (scalar*)realloc(this->Vec, ndof*sizeof(scalar));
+    if (this->Vec == NULL) error("Not enough memory LinSystem::realloc_and_zero_vectors().");
+    memset(this->Vec, 0, ndof*sizeof(scalar));
+    this->Vec_length = ndof;
   }
+  if (this->RHS_length != ndof) {
+    this->RHS = (scalar*)realloc(this->RHS, ndof*sizeof(scalar));
+    if (this->RHS == NULL) error("Not enough memory LinSystem::realloc_and_zero_vectors().");
+    memset(this->RHS, 0, ndof*sizeof(scalar));
+    this->RHS_length = ndof;
+  }
+  if (this->Dir_length != ndof) {
+    this->Dir = (scalar*)realloc(this->Dir, ndof*sizeof(scalar));
+    if (this->Dir == NULL) error("Not enough memory LinSystem::realloc_and_zero_vectors().");
+    memset(this->Dir, 0, ndof*sizeof(scalar));
+    this->Dir_length = ndof;
+  }
+
+  // Erase RHS.
+  memset(this->RHS, 0, ndof*sizeof(scalar));
 }
 
 void RefSystem::global_refinement() 
@@ -176,7 +193,10 @@ void RefSystem::assemble(bool rhsonly)
 {  
   // call LinSystem's or NonlinSystem's assemble() function.
   if (this->linear == true) LinSystem::assemble(rhsonly);
-  else NonlinSystem::assemble(rhsonly);
+  else {
+    //printf("Assembling nonlinear ref system.\n");
+    NonlinSystem::assemble(rhsonly);
+  }
 }
 
 bool RefSystem::solve_exact(ExactFunction exactfn, Solution* sln)

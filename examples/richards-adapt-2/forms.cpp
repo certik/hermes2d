@@ -41,13 +41,14 @@ double jac_form_vol(int n, double *wt, Func<double> *u_ext[], Func<double> *u, F
   Func<double>* h_prev_time = ext->fn[1];
   for (int i = 0; i < n; i++)
     result += wt[i] * (
-                         C(h_prev_newton->val[i]) * u->val[i] * v->val[i] / TAU
-			 + dCdh(h_prev_newton->val[i]) * u->val[i] * h_prev_newton->val[i] * v->val[i] / TAU
-                         - dCdh(h_prev_newton->val[i]) * u->val[i] * h_prev_time->val[i] * v->val[i] / TAU
+		         C(h_prev_newton->val[i]) * u->val[i] * v->val[i] / TAU
+		         + dCdh(h_prev_newton->val[i]) * u->val[i] * h_prev_newton->val[i] * v->val[i] / TAU
+		         - dCdh(h_prev_newton->val[i]) * u->val[i] * h_prev_time->val[i] * v->val[i] / TAU
 			 + K(h_prev_newton->val[i]) * (u->dx[i] * v->dx[i] + u->dy[i] * v->dy[i])
-                         + dKdh(h_prev_newton->val[i]) * u->val[i] * (h_prev_newton->dx[i]*v->dx[i] + h_prev_newton->dy[i]*v->dy[i])
+                         + dKdh(h_prev_newton->val[i]) * u->val[i] * 
+                           (h_prev_newton->dx[i]*v->dx[i] + h_prev_newton->dy[i]*v->dy[i])
                          - dKdh(h_prev_newton->val[i]) * u->dy[i] * v->val[i]
-                         -  ddKdhh(h_prev_newton->val[i]) * u->val[i] * h_prev_newton->dy[i] * v->val[i]
+                         - ddKdhh(h_prev_newton->val[i]) * u->val[i] * h_prev_newton->dy[i] * v->val[i]
                       );
   return result;
 }
@@ -112,7 +113,7 @@ Ord jac_form_surf_6_ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Fun
   return Ord(30);
 }
 
-// Fesidual vector - volumetric part
+// Residual vector - volumetric part
 double res_form_vol(int n, double *wt, Func<double> *u_ext[], Func<double> *v, Geom<double> *e, ExtData<double> *ext)
 {
   double result = 0;
@@ -120,11 +121,11 @@ double res_form_vol(int n, double *wt, Func<double> *u_ext[], Func<double> *v, G
   Func<double>* h_prev_time = ext->fn[1];
   for (int i = 0; i < n; i++)
     result += wt[i] * (
-                          C(h_prev_newton->val[i]) * h_prev_newton->val[i] * v->val[i] / TAU
-                        - C(h_prev_newton->val[i]) * h_prev_time->val[i] * v->val[i] / TAU
-                        + K(h_prev_newton->val[i]) * (h_prev_newton->dx[i] * v->dx[i] + h_prev_newton->dy[i] * v->dy[i])
-                        - dKdh(h_prev_newton->val[i]) * h_prev_newton->dy[i] * v->val[i]
+		       C(h_prev_newton->val[i]) * (h_prev_newton->val[i] - h_prev_time->val[i]) * v->val[i] / TAU
+                       + K(h_prev_newton->val[i]) * (h_prev_newton->dx[i] * v->dx[i] + h_prev_newton->dy[i] * v->dy[i])
+                       - dKdh(h_prev_newton->val[i]) * h_prev_newton->dy[i] * v->val[i]
                       );
+  //printf("res_vol_form: result = %g\n", result);
   return result;
 }
 
@@ -135,7 +136,7 @@ Ord res_form_vol_ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<O
   return Ord(30);
 }
 
-// Fesidual vector - surface part on bdy 1
+// Residual vector - surface part on bdy 1
 double res_form_surf_1(int n, double *wt, Func<double> *u_ext[], Func<double> *v, Geom<double> *e, ExtData<double> *ext)
 {
   double result = 0;
@@ -144,6 +145,7 @@ double res_form_surf_1(int n, double *wt, Func<double> *u_ext[], Func<double> *v
     result += wt[i] * K(h_prev_newton->val[i]) * v->val[i];
   }
 
+  //printf("res_surf_form_1: result = %g\n", result);
   return result;
 }
 
@@ -153,7 +155,7 @@ Ord res_form_surf_1_ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geo
   return Ord(30);
 }
 
-// Fesidual vector - surface part on bdy 4
+// Residual vector - surface part on bdy 4
 double res_form_surf_4(int n, double *wt, Func<double> *u_ext[], Func<double> *v, Geom<double> *e, ExtData<double> *ext)
 {
   double result = 0;
@@ -162,6 +164,7 @@ double res_form_surf_4(int n, double *wt, Func<double> *u_ext[], Func<double> *v
     result -= wt[i] * K(h_prev_newton->val[i]) * v->val[i];
   }
 
+  //printf("res_surf_form_4: result = %g\n", result);
   return result;
 }
 
@@ -171,15 +174,16 @@ Ord res_form_surf_4_ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geo
   return Ord(30);
 }
 
-// Fesidual vector - surface part on bdy 6
+// Residual vector - surface part on bdy 6
 double res_form_surf_6(int n, double *wt, Func<double> *u_ext[], Func<double> *v, Geom<double> *e, ExtData<double> *ext)
 {
   double result = 0;
   Func<double>* h_prev_newton = ext->fn[0];
   for (int i = 0; i < n; i++) {
-    result -= wt[i] * (Q_CONST - K(h_prev_newton->val[i])) * v->val[i];
+    result += wt[i] * (q_function() + K(h_prev_newton->val[i])) * v->val[i];
   }
 
+  //printf("res_surf_form_6: result = %g\n", result);
   return result;
 }
 
