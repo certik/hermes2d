@@ -1462,10 +1462,11 @@ void LinSystem::project_global(Tuple<MeshFunction*> source, Tuple<Solution*> tar
     }
   }
 
+  bool store_flag = want_dir_contrib;
   want_dir_contrib = true;
   LinSystem::assemble();
   LinSystem::solve(target);
-  want_dir_contrib = false;
+  want_dir_contrib = store_flag;
 
   // restoring original weak form
   wf = wf_orig;
@@ -1525,10 +1526,11 @@ void LinSystem::project_global( Tuple<MeshFunction*> source, Tuple<Solution*> ta
     }
   }
 
+  bool store_flag = want_dir_contrib;
   want_dir_contrib = true;
   LinSystem::assemble();
   LinSystem::solve(target);
-  want_dir_contrib = false;
+  want_dir_contrib = store_flag;
 
   // restoring original weak form
   wf = wf_orig;

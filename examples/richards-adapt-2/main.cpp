@@ -268,7 +268,7 @@ int main(int argc, char* argv[])
   info("Projecting initial condition to obtain coefficient vector for Newton on coarse mesh.");
   nls.project_global(&u_prev_time, &u_prev_newton);   // Initial vector calculated here.
 
-  // Newton's loop on the coarse mesh.
+  // Newton's loop (one time step) on the coarse mesh.
   info("Solving on coarse mesh.");
   bool verbose = true; // Default is false.
   if (!nls.solve_newton(&u_prev_newton, NEWTON_TOL_COARSE, NEWTON_MAX_ITER, verbose))
@@ -294,15 +294,24 @@ int main(int argc, char* argv[])
     if (ts > 1 && ts % UNREF_FREQ == 0) {
       info("Global mesh derefinement.");
       mesh.copy(&basemesh);
-      space.set_uniform_order(P_INIT);
+      for(int i = 0; i < INIT_REF_NUM; i++) mesh.refine_all_elements();
+      mesh.refine_towards_boundary(3, INIT_REF_NUM_BDY);
 
       // Project fine mesh solution on the globally derefined mesh.
       info("---- Time step %d:", ts);
       info("Projecting fine mesh solution on globally derefined mesh for error calculation.");
       nls.project_global(&sln_fine, &u_prev_newton);
 
+      if (!nls.solve_newton(&u_prev_newton, NEWTON_TOL_COARSE, NEWTON_MAX_ITER, verbose))
+        error("Newton's method did not converge.");
+
+
       // Store the result in sln_coarse.
       sln_coarse.copy(&u_prev_newton);
+
+      sview_coarse.show(&sln_coarse);
+      oview_coarse.show(&space);
+      View::wait(H2DV_WAIT_KEYPRESS);
     }
 
     // Adaptivity loop (in space):
@@ -326,7 +335,12 @@ int main(int argc, char* argv[])
         rnls.project_global(&sln_fine, &u_prev_newton);
       }
 
-      // Newton's method on fine mesh
+      // debug
+      sview_fine.show(&u_prev_newton);
+      oview_fine.show(rnls.get_space(0));
+      View::wait(H2DV_WAIT_KEYPRESS);
+
+      // Newton's method (one time step) on fine mesh
       info("Solving on fine mesh.");
       if (!rnls.solve_newton(&u_prev_newton, NEWTON_TOL_FINE, NEWTON_MAX_ITER, verbose))
         error("Newton's method did not converge.");
