@@ -296,15 +296,18 @@ int main(int argc, char* argv[])
       mesh.copy(&basemesh);
       for(int i = 0; i < INIT_REF_NUM; i++) mesh.refine_all_elements();
       mesh.refine_towards_boundary(3, INIT_REF_NUM_BDY);
+  
+      // cleaning the old vectors
+      //nls.free_vectors();
+      //nls.alloc_and_zero_vectors();
 
       // Project fine mesh solution on the globally derefined mesh.
       info("---- Time step %d:", ts);
       info("Projecting fine mesh solution on globally derefined mesh for error calculation.");
       nls.project_global(&sln_fine, &u_prev_newton);
 
-      if (!nls.solve_newton(&u_prev_newton, NEWTON_TOL_COARSE, NEWTON_MAX_ITER, verbose))
-        error("Newton's method did not converge.");
-
+      //if (!nls.solve_newton(&u_prev_newton, NEWTON_TOL_COARSE, NEWTON_MAX_ITER, verbose))
+      //  error("Newton's method did not converge.");
 
       // Store the result in sln_coarse.
       sln_coarse.copy(&u_prev_newton);

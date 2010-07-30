@@ -49,6 +49,7 @@ RefSystem::RefSystem(LinSystem* base, int order_increase,
   // internal check
   if (this->have_spaces == false) error("RefSystem: missing space(s).");
 
+  /*
   // realloc vectors if needed.
   int ndof = this->get_num_dofs();
   if (this->Vec_length != ndof) {
@@ -73,6 +74,7 @@ RefSystem::RefSystem(LinSystem* base, int order_increase,
   // Erase RHS and Dir.
   memset(this->RHS, 0, ndof*sizeof(scalar));
   memset(this->Dir, 0, ndof*sizeof(scalar));
+  */
 }
 
 void RefSystem::global_refinement() 

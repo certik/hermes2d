@@ -66,7 +66,7 @@ NonlinSystem::NonlinSystem(WeakForm* wf_, CommonSolver* solver_, Tuple<Space*> s
     error("Number of spaces does not match number of equations in LinSystem::LinSystem().");
   this->init_lin(wf_, solver_);
   this->init_spaces(spaces_);
-  this->alloc_and_zero_vectors();
+  //this->alloc_and_zero_vectors();
   this->init_nonlin();
 }
 
@@ -75,7 +75,7 @@ NonlinSystem::NonlinSystem(WeakForm* wf_, Tuple<Space*> spaces_)
   CommonSolver* solver_ = NULL;
   this->init_lin(wf_, solver_);
   this->init_spaces(spaces_);
-  this->alloc_and_zero_vectors();
+  //this->alloc_and_zero_vectors();
   this->init_nonlin();
 }
 
@@ -85,7 +85,7 @@ NonlinSystem::NonlinSystem(WeakForm* wf_, CommonSolver* solver_, Space *s_)
     error("Number of spaces does not match number of equations in LinSystem::LinSystem().");
   this->init_lin(wf_, solver_);
   this->init_space(s_);
-  this->alloc_and_zero_vectors();
+  //this->alloc_and_zero_vectors();
   this->init_nonlin();
 }
 
@@ -94,7 +94,7 @@ NonlinSystem::NonlinSystem(WeakForm* wf_, Space *s_)
   CommonSolver *solver_ = NULL;
   this->init_lin(wf_, solver_);
   this->init_space(s_);
-  this->alloc_and_zero_vectors();
+  //this->alloc_and_zero_vectors();
   this->init_nonlin();
 }
 

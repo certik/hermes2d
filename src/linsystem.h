@@ -137,11 +137,6 @@ public:
   /// Returns a copy of the solution vector.
   void get_solution_vector(std::vector<scalar>& sln_vector_out);
 
-  /// Allocate vectors Vec, RHS and Dir of length this->ndof. All vectors
-  /// must be NULL at input, to make sure that the user is not losing
-  /// information stored in these vectors.
-  void alloc_and_zero_vectors();
-
   /// Frees vectors Vec, RHS and Dir and sets them to NULL. This should
   /// be used very carefully since the vector Vec stores the actual solution
   /// coefficients. Typicaly this needs to be done after the space changes

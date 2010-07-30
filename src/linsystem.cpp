@@ -82,7 +82,7 @@ LinSystem::LinSystem(WeakForm* wf_, CommonSolver* solver_, Tuple<Space*> sp)
   }
   this->init_lin(wf_, solver_);
   this->init_spaces(sp);
-  this->alloc_and_zero_vectors();
+  //this->alloc_and_zero_vectors();
 }
 
 LinSystem::LinSystem(WeakForm* wf_, Tuple<Space*> sp)
@@ -90,7 +90,7 @@ LinSystem::LinSystem(WeakForm* wf_, Tuple<Space*> sp)
   CommonSolver* solver_ = NULL;
   this->init_lin(wf_, solver_);
   this->init_spaces(sp);
-  this->alloc_and_zero_vectors();
+  //this->alloc_and_zero_vectors();
 }
 
 LinSystem::LinSystem(WeakForm* wf_, CommonSolver* solver_, Space* s_)
@@ -102,7 +102,7 @@ LinSystem::LinSystem(WeakForm* wf_, CommonSolver* solver_, Space* s_)
   }
   this->init_lin(wf_, solver_);
   this->init_space(s_);
-  this->alloc_and_zero_vectors();
+  //this->alloc_and_zero_vectors();
 }
 
 LinSystem::LinSystem(WeakForm* wf_, Space* s_)
@@ -110,7 +110,7 @@ LinSystem::LinSystem(WeakForm* wf_, Space* s_)
   CommonSolver *solver_ = NULL;
   this->init_lin(wf_, solver_);
   this->init_space(s_);
-  this->alloc_and_zero_vectors();
+  //this->alloc_and_zero_vectors();
 }
 
 LinSystem::LinSystem(WeakForm* wf_, CommonSolver* solver_, Space* space1_, Space* space2_)
@@ -123,7 +123,7 @@ LinSystem::LinSystem(WeakForm* wf_, CommonSolver* solver_, Space* space1_, Space
   }
   this->init_lin(wf_, solver_);
   this->init_spaces(Tuple<Space*>(space1_, space2_));
-  this->alloc_and_zero_vectors();
+  //this->alloc_and_zero_vectors();
 }
 
 LinSystem::~LinSystem()
@@ -135,6 +135,7 @@ LinSystem::~LinSystem()
   if (this->pss != NULL) delete [] this->pss;
   if (this->solver != NULL) this->solver->free_context(this->slv_ctx);
   */
+  //printf("Destructor of LinSystem called.\n");
   free_vectors();
   delete this->solver_default;
 }
@@ -303,48 +304,24 @@ void LinSystem::copy(LinSystem* sys)
 
 void LinSystem::free_vectors()
 {
-  if (this->Vec != NULL || this->RHS != NULL || this->Dir != NULL)
-    //printf("debug: freeing vectors Vec, RHS, Dir for lengths   %d\n", this->Vec_length);
-
   if (this->RHS != NULL) {
     delete [] this->RHS;
     this->RHS = NULL;
     this->RHS_length = 0;
+    //printf("Freeing RHS.\n");
   }
   if (this->Dir != NULL) {
     delete [] this->Dir;
     this->Dir = NULL;
     this->Dir_length = 0;
+    //printf("Freeing Dir.\n");
   }
   if (this->Vec != NULL) {
     delete [] this->Vec;
     this->Vec = NULL;
     this->Vec_length = 0;
+    //printf("Freeing Vec.\n");
   }
-}
-
-void LinSystem::alloc_and_zero_vectors()
-{
-  int ndof = this->get_num_dofs();
-  //printf("debug: allocating vectors Vec, RHS, Dir for ndof   %d\n", ndof);
-
-  if (this->RHS != NULL || this->Dir != NULL || this->Vec != NULL)
-    error("All vectors must be NULL in alloc_and_zero_vectors() to prevent loss of information.");
-
-  this->Vec = new scalar[ndof];
-  if (Vec == NULL) error("Not enough memory LinSystem::alloc_and_zero_vectors().");
-  memset(this->Vec, 0, ndof*sizeof(scalar));
-  this->Vec_length = ndof;
-
-  this->RHS = new scalar[ndof];
-  if (RHS == NULL) error("Not enough memory in LinSystem::alloc_and_zero_vectors().");
-  memset(this->RHS, 0, ndof*sizeof(scalar));
-  this->RHS_length = ndof;
-
-  this->Dir = new scalar[ndof];
-  if (Dir == NULL) error("Not enough memory in LinSystem::alloc_and_zero_vectors().");
-  memset(this->Dir, 0, ndof*sizeof(scalar));
-  this->Dir_length = ndof;
 }
 
 void LinSystem::free()
@@ -466,22 +443,19 @@ void LinSystem::assemble(bool rhsonly)
   // and realloc these vectors if needed
   this->assign_dofs();
   int ndof = this->get_num_dofs();
+  //printf("ndof = %d\n", ndof);
   if (ndof == 0) error("ndof = 0 in LinSystem::assemble().");
 
   // realloc vectors if needed.
-  if (this->Vec_length != ndof) {
-    this->Vec = (scalar*)realloc(this->Vec, ndof*sizeof(scalar));
-    if (this->Vec == NULL) error("Not enough memory LinSystem::realloc_and_zero_vectors().");
-    memset(this->Vec, 0, ndof*sizeof(scalar));
-    this->Vec_length = ndof;
-  }
   if (this->RHS_length != ndof) {
+    //printf("RHS realloc from %d to %d\n", this->RHS_length, ndof);
     this->RHS = (scalar*)realloc(this->RHS, ndof*sizeof(scalar));
     if (this->RHS == NULL) error("Not enough memory LinSystem::realloc_and_zero_vectors().");
     memset(this->RHS, 0, ndof*sizeof(scalar));
     this->RHS_length = ndof;
   }
   if (this->Dir_length != ndof) {
+    //printf("Dir realloc from %d to %d\n", this->Dir_length, ndof);
     this->Dir = (scalar*)realloc(this->Dir, ndof*sizeof(scalar));
     if (this->Dir == NULL) error("Not enough memory LinSystem::realloc_and_zero_vectors().");
     memset(this->Dir, 0, ndof*sizeof(scalar));
@@ -1143,18 +1117,23 @@ scalar LinSystem::eval_form(WeakForm::ResFormSurf *rfs, Solution *sln[], Precalc
 bool LinSystem::solve(Tuple<Solution*> sln)
 {
   int n = sln.size();
+  int ndof = this->get_num_dofs();
 
   // if the number of solutions does not match the number of equations, throw error
   if (n != this->wf->neq)
     error("Number of solutions does not match the number of equations in LinSystem::solve().");
 
-  // if Vec is not initialized, throw error
-  if (this->Vec == NULL) error("Vec is NULL in LinSystem::solve().");
+  // realloc vector Vec if needed.
+  if (this->Vec_length != ndof) {
+    //printf("Vec realloc from %d to %d\n", this->Vec_length, ndof);
+    this->Vec = (scalar*)realloc(this->Vec, ndof*sizeof(scalar));
+    if (this->Vec == NULL) error("Not enough memory LinSystem::realloc_and_zero_vectors().");
+    memset(this->Vec, 0, ndof*sizeof(scalar));
+    this->Vec_length = ndof;
+  }
 
-  // check vector size
-  int ndof = this->get_num_dofs();
-  if (this->Vec_length != ndof || this->RHS_length != ndof || this->Dir_length != ndof)
-    error("Length of vectors Vec, RHS or Dir does not match this->ndof in LinSystem::solve().");
+  // Erase RHS and Dir.
+  //memset(this->Vec, 0, ndof*sizeof(scalar));
 
   // check matrix size
   if (ndof == 0) error("ndof = 0 in LinSystem::solve().");
@@ -1164,17 +1143,8 @@ bool LinSystem::solve(Tuple<Solution*> sln)
   // time measurement
   TimePeriod cpu_time;
 
-  /*
-  // debug
-  printf("RHS = \n");
-  for (int m = 0; m < ndof; m++) {
-    printf("%g ", RHS[m]);
-  }
-  printf("\n");
-  */
-
-
   if (this->linear == true) {
+    //printf("Solving linear system.\n");
     // solve linear system "Ax = b"
     memcpy(this->Vec, this->RHS, sizeof(scalar) * ndof);
     //this->A->print();
@@ -1184,17 +1154,10 @@ bool LinSystem::solve(Tuple<Solution*> sln)
   }
   else {
     // solve Jacobian system "J times dY_{n+1} = -F(Y_{n+1})"
+    //printf("Solving nonlinear system.\n");
     scalar* delta = new scalar[ndof];
     memcpy(delta, this->RHS, sizeof(scalar) * ndof);
     this->solver->_solve(this->A, delta);
-    /*
-    // debug
-    printf("delta = \n");
-    for (int m = 0; m < ndof; m++) {
-      printf("%g ", delta[m]);
-    }
-    printf("\n");
-    */
     report_time("Solved in %g s", cpu_time.tick().last());
     // add the increment dY_{n+1} to the previous solution vector
     for (int i = 0; i < ndof; i++) this->Vec[i] += delta[i];
@@ -1462,11 +1425,14 @@ void LinSystem::project_global(Tuple<MeshFunction*> source, Tuple<Solution*> tar
     }
   }
 
-  bool store_flag = want_dir_contrib;
-  want_dir_contrib = true;
+  bool store_dir_flag = this->want_dir_contrib;
+  bool store_lin_flag = this->linear;
+  this->linear = true;
+  this->want_dir_contrib = true;
   LinSystem::assemble();
   LinSystem::solve(target);
-  want_dir_contrib = store_flag;
+  this->linear = store_lin_flag;
+  this->want_dir_contrib = store_dir_flag;
 
   // restoring original weak form
   wf = wf_orig;
@@ -1526,11 +1492,14 @@ void LinSystem::project_global( Tuple<MeshFunction*> source, Tuple<Solution*> ta
     }
   }
 
-  bool store_flag = want_dir_contrib;
-  want_dir_contrib = true;
+  bool store_dir_flag = this->want_dir_contrib;
+  bool store_lin_flag = this->linear;
+  this->linear = true;
+  this->want_dir_contrib = true;
   LinSystem::assemble();
   LinSystem::solve(target);
-  want_dir_contrib = store_flag;
+  this->linear = store_lin_flag;
+  this->want_dir_contrib = store_dir_flag;
 
   // restoring original weak form
   wf = wf_orig;
