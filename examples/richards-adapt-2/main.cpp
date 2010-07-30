@@ -67,12 +67,12 @@ const double NEWTON_TOL_FINE = 0.0005;     // Stopping criterion for Newton on f
 const int NEWTON_MAX_ITER = 50;            // Maximum allowed number of Newton iterations.
 
 // Problem parameters.
-const double TAU = 1e-3;                   // Time step.
-const double STARTUP_TIME = 5e-2;          // Start-up time for time-dependent Dirichlet boundary condition.
+const double TAU = 1e-2;                   // Time step.
+const double STARTUP_TIME = 1.0/24.0;          // Start-up time for time-dependent Dirichlet boundary condition.
 const double T_FINAL = 5.0;                // Time interval length.
 double TIME = 0;                           // Global time variable initialized with first time step.
 double H_INIT = -9.5;                      // Initial pressure head.
-double H_ELEVATION = 1.0;
+double H_ELEVATION = 5.2;
 
 //double K_S_1 = 0.789; 
 //double K_S_2 = 0.469; 
@@ -80,7 +80,7 @@ double H_ELEVATION = 1.0;
 //double K_S_4 = 41.143; 
 //double K_S_4 = 0.8143; 
 double K_S_1 = 0.108;
-double K_S_3 = 0.0048;
+double K_S_3 = 0.00048;
 double K_S_2 = 0.0168;
 //double K_S_4 = 41.143; 
 double K_S_4 = 1.061;
@@ -110,7 +110,7 @@ double THETA_R_4 = 0.08590;
 
 double THETA_S_1 = 0.4570;
 double THETA_S_2 = 0.4510;
-double THETA_S_3 = 0.4650;
+double THETA_S_3 = 0.1;
 double THETA_S_4 = 0.5650;
 
 double N_1 = 1.982;
@@ -123,7 +123,7 @@ double M_2 = 0.38726;
 double M_3 = 0.8;
 double M_4 = 0.8;
 
-double Q_MAX_VALUE = 0.02;         // Maximum value, used in function q_function(); 
+double Q_MAX_VALUE = 0.2;         // Maximum value, used in function q_function(); 
 double q_function() {
   if (STARTUP_TIME > TIME) return Q_MAX_VALUE * TIME / STARTUP_TIME;
   else return Q_MAX_VALUE;
