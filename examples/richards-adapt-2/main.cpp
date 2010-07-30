@@ -56,19 +56,19 @@ const int MESH_REGULARITY = -1;            // Maximum allowed level of hanging n
                                            // their notoriously bad performance.
 const double CONV_EXP = 1.0;               // Default value is 1.0. This parameter influences the selection of
                                            // cancidates in hp-adaptivity. See get_optimal_refinement() for details.
-const double ERR_STOP = 0.5;               // Stopping criterion for adaptivity (rel. error tolerance between the
+const double ERR_STOP = 0.1;               // Stopping criterion for adaptivity (rel. error tolerance between the
                                            // fine mesh and coarse mesh solution in percent).
 const int NDOF_STOP = 60000;               // Adaptivity process stops when the number of degrees of freedom grows
                                            // over this limit. This is to prevent h-adaptivity to go on forever.
 
 // Newton's method
-const double NEWTON_TOL_COARSE = 0.01;     // Stopping criterion for Newton on coarse mesh.
-const double NEWTON_TOL_FINE = 0.05;       // Stopping criterion for Newton on fine mesh.
-const int NEWTON_MAX_ITER = 50;           // Maximum allowed number of Newton iterations.
+const double NEWTON_TOL_COARSE = 0.0001;   // Stopping criterion for Newton on coarse mesh.
+const double NEWTON_TOL_FINE = 0.0005;     // Stopping criterion for Newton on fine mesh.
+const int NEWTON_MAX_ITER = 50;            // Maximum allowed number of Newton iterations.
 
 // Problem parameters.
-const double TAU = 1e-5;                   // Time step.
-const double STARTUP_TIME = 5e-4;          // Start-up time for time-dependent Dirichlet boundary condition.
+const double TAU = 1e-3;                   // Time step.
+const double STARTUP_TIME = 5e-2;          // Start-up time for time-dependent Dirichlet boundary condition.
 const double T_FINAL = 5.0;                // Time interval length.
 double TIME = 0;                           // Global time variable initialized with first time step.
 double H_INIT = -9.5;                      // Initial pressure head.
@@ -125,10 +125,8 @@ double M_4 = 0.8;
 
 double Q_MAX_VALUE = 0.02;         // Maximum value, used in function q_function(); 
 double q_function() {
-  //if (STARTUP_TIME > TIME) return Q_MAX_VALUE * TIME / STARTUP_TIME;
-  //else return Q_MAX_VALUE;
-  // debug
-  return 0;
+  if (STARTUP_TIME > TIME) return Q_MAX_VALUE * TIME / STARTUP_TIME;
+  else return Q_MAX_VALUE;
 }
 
 double STORATIVITY = 0.05;
@@ -186,10 +184,8 @@ double init_cond(double x, double y, double& dx, double& dy) {
 // Essential (Dirichlet) boundary condition values.
 scalar essential_bc_values(int ess_bdy_marker, double x, double y)
 {
-  //if (STARTUP_TIME > TIME) return -y + INIT_H + TIME/STARTUP_TIME*H_ELEVATION;
-  //else return -y + INIT_H + H_ELEVATION;
-  // debug
-  return -y + H_INIT;
+  if (STARTUP_TIME > TIME) return -y + H_INIT + TIME/STARTUP_TIME*H_ELEVATION;
+  else return -y + H_INIT + H_ELEVATION;
 }
 
 // Weak forms.
@@ -235,9 +231,9 @@ int main(int argc, char* argv[])
   OrderView oview_fine("Mesh", 1080, 0, 350, 340);
 
   // Show initial condition.
-  oview_coarse.show(&space);
-  sview_coarse.show(&u_prev_time);
-  View::wait(H2DV_WAIT_KEYPRESS);
+  //oview_coarse.show(&space);
+  //sview_coarse.show(&u_prev_time);
+  //View::wait(H2DV_WAIT_KEYPRESS);
 
   // Initialize the weak formulation.
   WeakForm wf;
@@ -281,7 +277,7 @@ int main(int argc, char* argv[])
   // Show the coarse mesh solution.
   oview_coarse.show(&space);
   sview_coarse.show(&sln_coarse);
-  View::wait(H2DV_WAIT_KEYPRESS);
+  //View::wait(H2DV_WAIT_KEYPRESS);
 
   // Time stepping loop.
   int num_time_steps = (int)(T_FINAL/TAU + 0.5);
@@ -314,7 +310,7 @@ int main(int argc, char* argv[])
 
       sview_coarse.show(&sln_coarse);
       oview_coarse.show(&space);
-      View::wait(H2DV_WAIT_KEYPRESS);
+      //View::wait(H2DV_WAIT_KEYPRESS);
     }
 
     // Adaptivity loop (in space):
@@ -339,9 +335,9 @@ int main(int argc, char* argv[])
       }
 
       // debug
-      sview_fine.show(&u_prev_newton);
-      oview_fine.show(rnls.get_space(0));
-      View::wait(H2DV_WAIT_KEYPRESS);
+      //sview_fine.show(&u_prev_newton);
+      //oview_fine.show(rnls.get_space(0));
+      //View::wait(H2DV_WAIT_KEYPRESS);
 
       // Newton's method (one time step) on fine mesh
       info("Solving on fine mesh.");
@@ -351,7 +347,7 @@ int main(int argc, char* argv[])
       // debug
       sview_fine.show(&u_prev_newton);
       oview_fine.show(rnls.get_space(0));
-      View::wait(H2DV_WAIT_KEYPRESS);
+      //View::wait(H2DV_WAIT_KEYPRESS);
 
       // Store the result in sln_fine.
       sln_fine.copy(&u_prev_newton);
@@ -430,6 +426,6 @@ int main(int argc, char* argv[])
   }
 
   // Wait for all views to be closed.
-//   View::wait();
+  View::wait();
   return 0;
 }
