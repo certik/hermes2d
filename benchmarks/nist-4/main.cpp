@@ -19,8 +19,8 @@ using namespace RefinementSelectors;
 //
 //  The following parameters can be changed:
 
-const int P_INIT = 2;                             // Initial polynomial degree of all mesh elements.
-const int INIT_REF_NUM = 0;                       // Number of initial uniform mesh refinements.
+const int P_INIT = 1;                             // Initial polynomial degree of all mesh elements.
+const int INIT_REF_NUM = 2;                       // Number of initial uniform mesh refinements.
 const double THRESHOLD = 0.3;                     // This is a quantitative parameter of the adapt(...) function and
                                                   // it has different meanings for various adaptive strategies (see below).
 const int STRATEGY = 0;                           // Adaptive strategy:
@@ -44,7 +44,7 @@ const int MESH_REGULARITY = -1;                   // Maximum allowed level of ha
                                                   // their notoriously bad performance.
 const double CONV_EXP = 0.5;                      // Default value is 1.0. This parameter influences the selection of
                                                   // cancidates in hp-adaptivity. See get_optimal_refinement() for details.
-const double ERR_STOP = 0.01;                    // Stopping criterion for adaptivity (rel. error tolerance between the
+const double ERR_STOP = 0.01;                     // Stopping criterion for adaptivity (rel. error tolerance between the
                                                   // reference mesh and coarse mesh solution in percent).
 const int NDOF_STOP = 60000;                      // Adaptivity process stops when the number of degrees of freedom grows
                                                   // over this limit. This is to prevent h-adaptivity to go on forever.
@@ -52,8 +52,8 @@ MatrixSolverType matrix_solver = SOLVER_UMFPACK;  // Possibilities: SOLVER_UMFPA
                                                   // SOLVER_MUMPS, and more are coming.
 
 // Problem parameters.                      
-double ALPHA = 1000;                        // This problem has and exponential peak in the interior of the domain.
-double X_LOC = 0.5;                         // (X_LOC, Y_LOC) is the location of the peak, and ALPHA determines the strenghth of the peak.
+double ALPHA = 1000;      // This problem has and exponential peak in the interior of the domain.
+double X_LOC = 0.5;       // (X_LOC, Y_LOC) is the location of the peak, and ALPHA determines the strenghth of the peak.
 double Y_LOC = 0.5;
 
  
@@ -79,7 +79,7 @@ int main(int argc, char* argv[])
   Mesh mesh;
   H2DReader mloader;
   mloader.load("square_quad.mesh", &mesh);     // quadrilaterals
-  // mloader.load("square_tri.mesh", &mesh);   // triangles
+  //mloader.load("square_tri.mesh", &mesh);   // triangles
 
   // Perform initial mesh refinements.
   for (int i=0; i<INIT_REF_NUM; i++) mesh.refine_all_elements();
@@ -103,8 +103,8 @@ int main(int argc, char* argv[])
   Solution *sln = new Solution();
   Solution *ref_sln = new Solution();
   ExactSolution exact(&mesh, fndd);
-  WinGeom* sln_win_geom = new WinGeom{0, 0, 440, 350};
-  WinGeom* mesh_win_geom = new WinGeom{450, 0, 400, 350};
+  WinGeom* sln_win_geom = new WinGeom(0, 0, 440, 350);
+  WinGeom* mesh_win_geom = new WinGeom(450, 0, 400, 350);
   bool verbose = true;     // Prinf info during adaptivity.
   solve_linear_adapt(&space, &wf, H2D_H1_NORM, sln, matrix_solver, ref_sln, 
                      &selector, &apt, sln_win_geom, mesh_win_geom, verbose, &exact);
