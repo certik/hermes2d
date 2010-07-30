@@ -77,10 +77,10 @@ const double E_FIELD = VOLTAGE / height;    // Boundary condtion for positive vo
 const int PROJ_TYPE = 1;              // For the projection of the initial condition 
                                       // on the initial mesh: 1 = H1 projection, 0 = L2 projection
 const double TAU = 0.05;              // Size of the time step
-const int T_FINAL = 3.5;              // Final time
+const int T_FINAL = 2;              // Final time
 const int P_INIT = 2;       	        // Initial polynomial degree of all mesh elements.
 const int REF_INIT = 1;     	        // Number of initial refinements
-const bool MULTIMESH = false;	        // Multimesh?
+const bool MULTIMESH = true;	        // Multimesh?
 const int TIME_DISCR = 2;             // 1 for implicit Euler, 2 for Crank-Nicolson
 
 /* Adaptive solution parameters */
@@ -326,14 +326,7 @@ int main (int argc, char* argv[]) {
         rs.project_global(Tuple<MeshFunction*>(&Csln_fine, &phisln_fine), 
                           Tuple<Solution*>(&C_prev_newton, &phi_prev_newton));
       }
-  
-      sprintf(title, "phi after projection on fine");
-      phiview.set_title(title);
-      phiview.show(&phi_prev_newton);
-      sprintf(title, "C after projection on fine");
-      Cview.set_title(title);
-      Cview.show(&C_prev_newton);
-
+      
       //Time measruement
       cpu_time.tick();
       rs.solve_newton(Tuple<Solution*>(&C_prev_newton, &phi_prev_newton), 
@@ -341,15 +334,6 @@ int main (int argc, char* argv[]) {
       
       Csln_fine.copy(&C_prev_newton);
       phisln_fine.copy(&phi_prev_newton);
-      
-      // ERROR occurs here
-      sprintf(title, "phi after solving fine, PRESS SPACE");
-      phiview.set_title(title);
-      phiview.show(&phi_prev_newton);
-      sprintf(title, "C after solving fine, PRESS SPACE");
-      Cview.set_title(title);
-      Cview.show(&C_prev_newton);
-      View::wait(H2DV_WAIT_KEYPRESS);
       
       //Time measurement
       cpu_time.tick(HERMES_SKIP);
