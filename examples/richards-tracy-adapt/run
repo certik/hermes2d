@@ -1,4 +1,4 @@
 rm *~ 
-./richards-adapt
+./richards-tracy-adapt
 python plot_graph.py &
 

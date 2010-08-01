@@ -128,13 +128,11 @@ LinSystem::LinSystem(WeakForm* wf_, CommonSolver* solver_, Space* space1_, Space
 
 LinSystem::~LinSystem()
 {
-  /* FIXME - this should be uncommented but then it gives double-free
-             segfaults in adaptive examples.
-  free();
+  // FIXME: this is a huge memory leak. 
+  //free();
   if (this->sp_seq != NULL) delete [] this->sp_seq;
   if (this->pss != NULL) delete [] this->pss;
-  if (this->solver != NULL) this->solver->free_context(this->slv_ctx);
-  */
+
   //printf("Destructor of LinSystem called.\n");
   free_vectors();
   delete this->solver_default;

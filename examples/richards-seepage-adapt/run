@@ -1,4 +1,4 @@
 rm *~ 
-./richards-adapt-2
+./richards-seepage-adapt
 python plot_graph.py &
 
