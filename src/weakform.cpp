@@ -194,28 +194,24 @@ void WeakForm::get_stages(Space** spaces, std::vector<WeakForm::Stage>& stages, 
   unsigned i;
   stages.clear();
 
-  if (!rhsonly)
+  // process volume jacforms
+  for (i = 0; i < jfvol.size(); i++)
   {
+    int ii = jfvol[i].i, jj = jfvol[i].j;
+    Mesh* m1 = spaces[ii]->get_mesh();
+    Mesh* m2 = spaces[jj]->get_mesh();
+    Stage* s = find_stage(stages, ii, jj, m1, m2, jfvol[i].ext);
+    s->jfvol.push_back(&jfvol[i]);
+  }
 
-    // process volume jacforms
-    for (i = 0; i < jfvol.size(); i++)
-    {
-      int ii = jfvol[i].i, jj = jfvol[i].j;
-      Mesh* m1 = spaces[ii]->get_mesh();
-      Mesh* m2 = spaces[jj]->get_mesh();
-      Stage* s = find_stage(stages, ii, jj, m1, m2, jfvol[i].ext);
-      s->jfvol.push_back(&jfvol[i]);
-    }
-
-    // process surface jacforms
-    for (i = 0; i < jfsurf.size(); i++)
-    {
-      int ii = jfsurf[i].i, jj = jfsurf[i].j;
-      Mesh* m1 = spaces[ii]->get_mesh();
-      Mesh* m2 = spaces[jj]->get_mesh();
-      Stage* s = find_stage(stages, ii, jj, m1, m2, jfsurf[i].ext);
-      s->jfsurf.push_back(&jfsurf[i]);
-    }
+  // process surface jacforms
+  for (i = 0; i < jfsurf.size(); i++)
+  {
+    int ii = jfsurf[i].i, jj = jfsurf[i].j;
+    Mesh* m1 = spaces[ii]->get_mesh();
+    Mesh* m2 = spaces[jj]->get_mesh();
+    Stage* s = find_stage(stages, ii, jj, m1, m2, jfsurf[i].ext);
+    s->jfsurf.push_back(&jfsurf[i]);
   }
 
   // process volume res forms
