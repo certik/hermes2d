@@ -1742,3 +1742,30 @@ Example coming soon.
 
 
 
+Richards Equation I
+-------------------
+
+**Git reference:** Example `linear-advection-diffusion 
+<http://git.hpfem.org/hermes2d.git/tree/HEAD:/examples/richards>`_.
+
+Description coming soon.
+
+
+Richards Equation II
+--------------------
+
+**Git reference:** Example `linear-advection-diffusion 
+<http://git.hpfem.org/hermes2d.git/tree/HEAD:/examples/richards-tracy-adapt>`_.
+
+Description coming soon.
+
+
+
+Richards Equation III
+---------------------
+
+**Git reference:** Example `linear-advection-diffusion 
+<http://git.hpfem.org/hermes2d.git/tree/HEAD:/examples/richards-seepage-adapt>`_.
+
+Description coming soon.
+
