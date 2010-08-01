@@ -27,7 +27,7 @@ using namespace RefinementSelectors;
 // If this is defined, use van Genuchten's constitutive relations, otherwise use Gardner's.
 // #define CONSTITUTIVE_GENUCHTEN
 
-const int P_INIT = 1;                      // Initial polynomial degree of all mesh elements.
+const int P_INIT = 2;                      // Initial polynomial degree of all mesh elements.
 const int INIT_REF_NUM = 0;                // Number of initial uniform mesh refinements.
 const int INIT_REF_NUM_BDY = 0;            // Number of initial mesh refinements towards the top edge.
 
@@ -56,7 +56,7 @@ const int MESH_REGULARITY = -1;            // Maximum allowed level of hanging n
                                            // their notoriously bad performance.
 const double CONV_EXP = 1.0;               // Default value is 1.0. This parameter influences the selection of
                                            // cancidates in hp-adaptivity. See get_optimal_refinement() for details.
-const double ERR_STOP = 0.1;               // Stopping criterion for adaptivity (rel. error tolerance between the
+const double ERR_STOP = 0.25;               // Stopping criterion for adaptivity (rel. error tolerance between the
                                            // fine mesh and coarse mesh solution in percent).
 const int NDOF_STOP = 60000;               // Adaptivity process stops when the number of degrees of freedom grows
                                            // over this limit. This is to prevent h-adaptivity to go on forever.
@@ -67,8 +67,8 @@ const double NEWTON_TOL_FINE = 0.0005;     // Stopping criterion for Newton on f
 const int NEWTON_MAX_ITER = 50;            // Maximum allowed number of Newton iterations.
 
 // Problem parameters.
-const double TAU = 1e-2;                   // Time step.
-const double STARTUP_TIME = 1.0/24.0;          // Start-up time for time-dependent Dirichlet boundary condition.
+const double TAU = 5e-3;                   // Time step.
+const double STARTUP_TIME = 1e-2;          // Start-up time for time-dependent Dirichlet boundary condition.
 const double T_FINAL = 5.0;                // Time interval length.
 double TIME = 0;                           // Global time variable initialized with first time step.
 double H_INIT = -9.5;                      // Initial pressure head.
@@ -80,7 +80,7 @@ double H_ELEVATION = 5.2;
 //double K_S_4 = 41.143; 
 //double K_S_4 = 0.8143; 
 double K_S_1 = 0.108;
-double K_S_3 = 0.00048;
+double K_S_3 = 0.0048;
 double K_S_2 = 0.0168;
 //double K_S_4 = 41.143; 
 double K_S_4 = 1.061;
@@ -110,7 +110,7 @@ double THETA_R_4 = 0.08590;
 
 double THETA_S_1 = 0.4570;
 double THETA_S_2 = 0.4510;
-double THETA_S_3 = 0.1;
+double THETA_S_3 = 0.4650;
 double THETA_S_4 = 0.5650;
 
 double N_1 = 1.982;
@@ -123,7 +123,7 @@ double M_2 = 0.38726;
 double M_3 = 0.8;
 double M_4 = 0.8;
 
-double Q_MAX_VALUE = 0.2;         // Maximum value, used in function q_function(); 
+double Q_MAX_VALUE = 0.07;         // Maximum value, used in function q_function(); 
 double q_function() {
   if (STARTUP_TIME > TIME) return Q_MAX_VALUE * TIME / STARTUP_TIME;
   else return Q_MAX_VALUE;
@@ -395,23 +395,19 @@ int main(int argc, char* argv[])
     }
     while (!done);
 
-    // write solution into file
-    // create filename
-    char* filenamecoarse = new char[100];
-//    char* filenamefine = new char[100];
-//    char* filefinemesh = new char[100];
- //   char* fielcoarsemesh = new char[100];
-    sprintf(filenamecoarse, "coarse_%g.dat", TIME);
-//    sprintf(filenamefine, "fine_%g.dat", TIME);
-
-
- //   sprintf(filefinemesh, "mesh_%g.dat", TIME);
-
+    /*
+    //Write solution data into file.
     bool compress = false ;
+    char* filenamecoarse = new char[100];
+    sprintf(filenamecoarse, "coarse_%g.dat", TIME);
     sln_coarse.save(  filenamecoarse,  compress );
- //   sln_fine.save(  filenamefine , compress );
-
-  //  mesh.save( filefinemesh ) ;
+    //char* filenamefine = new char[100];
+    //sprintf(filenamefine, "fine_%g.dat", TIME);
+    //sln_fine.save(filenamefine , compress );
+    //char* filefinemesh = new char[100];
+    //sprintf(filefinemesh, "mesh_%g.dat", TIME);
+    //mesh.save( filefinemesh ) ;
+    */
 
     // Add entries to convergence graphs.
     graph_time_err_est.add_values(ts*TAU, space_err_est);
