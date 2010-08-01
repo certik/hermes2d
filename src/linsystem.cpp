@@ -128,8 +128,7 @@ LinSystem::LinSystem(WeakForm* wf_, CommonSolver* solver_, Space* space1_, Space
 
 LinSystem::~LinSystem()
 {
-  // FIXME: this is a huge memory leak. 
-  //free();
+  free();
   if (this->sp_seq != NULL) delete [] this->sp_seq;
   if (this->pss != NULL) delete [] this->pss;
 
@@ -151,7 +150,8 @@ void LinSystem::free_spaces()
     }
     for (int i = 0; i < this->wf->neq; i++) {
       if (this->spaces[i] != NULL) {
-        delete this->spaces[i];
+        // FIXME: this is a huge memory leak.
+        //delete this->spaces[i];
         this->spaces[i] = NULL;
       }
     }
