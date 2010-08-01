@@ -1,0 +1,34 @@
+./neutronics-2-group-adapt
+
+if [ ! -d "res/$1" ]; then
+	mkdir "res/$1"
+fi
+
+for bmp in "*.bmp" ; do                      
+		echo converting "$bmp" ...                 
+    png="${bmp%.bmp}.png"                    
+    if convert "$bmp" -transparent "#ffffff" bmp.to.png ; then
+        mv bmp.to.png "$png"                
+    else                                    
+        echo 'error in converting to transparent png' 1>&2
+        exit 1
+    fi                                       
+done                                         
+echo conversion to png successful, removing bitmaps              
+rm *.bmp 
+
+if [ -f "mesh_$1-1.png" && "mesh_$1-2.png" ]; then
+  echo combine order plots for different meshes into a single file
+  montage -label 'Group-1 neutron flux' "mesh_$1-1.png" -label 'Group-2 neutron flux' "mesh_$1-2.png" -tile x1 -geometry +36+0 -gravity south -pointsize 14 "mesh_$1.png"
+fi
+
+echo trim the white space around images
+for png in "*.png"; do
+  convert "$png" -trim "$png"
+done
+
+gnuplot *.gp
+mv *.dat "res/$1"
+mv *.gp "res/$1"
+mv *.eps "res/$1"
+mv *.png "res/$1"

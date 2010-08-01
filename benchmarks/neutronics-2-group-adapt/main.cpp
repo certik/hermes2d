@@ -30,43 +30,45 @@ using namespace RefinementSelectors;
 // Adaptivity control:
 
 const int P_INIT[2] =
-  {1, 1};                                  // Initial polynomial orders for the individual solution components.
+  {1, 1};                                   // Initial polynomial orders for the individual solution components.
 const int INIT_REF_NUM[2] =
-  {1, 1};                                  // Initial uniform mesh refinement for the individual solution components.
-
-const double THRESHOLD = 0.3;              // This is a quantitative parameter of the adapt(...) function and
-                                           // it has different meanings for various adaptive strategies (see below).
-const int STRATEGY = 0;                    // Adaptive strategy:
-                                           // STRATEGY = 0 ... refine elements until sqrt(THRESHOLD) times total
-                                           //   error is processed. If more elements have similar errors, refine
-                                           //   all to keep the mesh symmetric.
-                                           // STRATEGY = 1 ... refine all elements whose error is larger
-                                           //   than THRESHOLD times maximum element error.
-                                           // STRATEGY = 2 ... refine all elements whose error is larger
-                                           //   than THRESHOLD.
-                                           // More adaptive strategies can be created in adapt_ortho_h1.cpp.
-const CandList CAND_LIST = H2D_HP_ANISO_P; // Predefined list of element refinement candidates. Possible values are
-                                           // H2D_P_ISO, H2D_P_ANISO, H2D_H_ISO, H2D_H_ANISO, H2D_HP_ISO,
-                                           // H2D_HP_ANISO_H, H2D_HP_ANISO_P, H2D_HP_ANISO.
-                                           // See User Documentation for details.
-const int MESH_REGULARITY = -1;            // Maximum allowed level of hanging nodes:
-                                           // MESH_REGULARITY = -1 ... arbitrary level hangning nodes (default),
-                                           // MESH_REGULARITY = 1 ... at most one-level hanging nodes,
-                                           // MESH_REGULARITY = 2 ... at most two-level hanging nodes, etc.
-                                           // Note that regular meshes are not supported, this is due to
-                                           // their notoriously bad performance.
-const double CONV_EXP = 1.0;               // Default value is 1.0. This parameter influences the selection of
-                                           // candidates in hp-adaptivity. See get_optimal_refinement() for details.
-const double ERR_STOP = 0.01;              // Stopping criterion for adaptivity (rel. error tolerance between the
-                                           // reference mesh and coarse mesh solution in percent).
-const int NDOF_STOP = 60000;               // Adaptivity process stops when the number of degrees of freedom grows over
-                                           // this limit. This is mainly to prevent h-adaptivity to go on forever.
-const int MAX_ADAPT_NUM = 30;              // Adaptivity process stops when the number of adaptation steps grows over
-                                           // this limit.
-const int ADAPTIVITY_NORM = 2;             // Specifies the norm used by H1Adapt to calculate the error and norm.
-                                           // ADAPTIVITY_NORM = 0 ... H1 norm.
-                                           // ADAPTIVITY_NORM = 1 ... norm defined by the diagonal parts of the bilinear form.
-                                           // ADAPTIVITY_NORM = 2 ... energy norm defined by the full (non-symmetric) bilinear form.
+  {1, 1};                                   // Initial uniform mesh refinement for the individual solution components.
+const int STRATEGY = 0;                     // Adaptive strategy:
+                                            // STRATEGY = 0 ... refine elements until sqrt(THRESHOLD) times total
+                                            //   error is processed. If more elements have similar errors, refine
+                                            //   all to keep the mesh symmetric.
+                                            // STRATEGY = 1 ... refine all elements whose error is larger
+                                            //   than THRESHOLD times maximum element error.
+                                            // STRATEGY = 2 ... refine all elements whose error is larger
+                                            //   than THRESHOLD.
+                                            // More adaptive strategies can be created in adapt_ortho_h1.cpp.
+const bool MULTIMESH = true;                // true = use multi-mesh, false = use single-mesh.
+                                            // Note: in the single mesh option, the meshes are forced to be geometrically
+                                            // the same but the polynomial degrees can still vary.
+const double THRESHOLD_MULTI = 0.3;         // error threshold for element refinement (multi-mesh)
+const double THRESHOLD_SINGLE = 0.7;        // error threshold for element refinement (single-mesh)                                         
+const CandList CAND_LIST = H2D_HP_ANISO_P;  // Predefined list of element refinement candidates. Possible values are
+                                            // H2D_P_ISO, H2D_P_ANISO, H2D_H_ISO, H2D_H_ANISO, H2D_HP_ISO,
+                                            // H2D_HP_ANISO_H, H2D_HP_ANISO_P, H2D_HP_ANISO.
+                                            // See User Documentation for details.
+const int MESH_REGULARITY = -1;             // Maximum allowed level of hanging nodes:
+                                            // MESH_REGULARITY = -1 ... arbitrary level hangning nodes (default),
+                                            // MESH_REGULARITY = 1 ... at most one-level hanging nodes,
+                                            // MESH_REGULARITY = 2 ... at most two-level hanging nodes, etc.
+                                            // Note that regular meshes are not supported, this is due to
+                                            // their notoriously bad performance.
+const double CONV_EXP = 1.0;                // Default value is 1.0. This parameter influences the selection of
+                                            // candidates in hp-adaptivity. See get_optimal_refinement() for details.
+const double ERR_STOP = 0.1;                // Stopping criterion for adaptivity (rel. error tolerance between the
+                                            // reference mesh and coarse mesh solution in percent).
+const int NDOF_STOP = 60000;                // Adaptivity process stops when the number of degrees of freedom grows over
+                                            // this limit. This is mainly to prevent h-adaptivity to go on forever.
+const int MAX_ADAPT_NUM = 30;               // Adaptivity process stops when the number of adaptation steps grows over
+                                            // this limit.
+const int ADAPTIVITY_NORM = 2;              // Specifies the norm used by H1Adapt to calculate the error and norm.
+                                            // ADAPTIVITY_NORM = 0 ... H1 norm.
+                                            // ADAPTIVITY_NORM = 1 ... norm defined by the diagonal parts of the bilinear form.
+                                            // ADAPTIVITY_NORM = 2 ... energy norm defined by the full (non-symmetric) bilinear form.
 
 // Variables used for reporting of results
 TimePeriod cpu_time;            // Time measurements.
@@ -223,6 +225,47 @@ double error_total(double (*efn)(MeshFunction*, MeshFunction*, RefMap*, RefMap*)
   return (nfn ? sqrt(error/norm) : sqrt(error));
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Other utility functions:
+
+// Construct a string representing the globally set adaptivity options.
+void make_str_from_adapt_opts(std::stringstream& str)
+{    
+  switch (CAND_LIST) {
+    case H2D_H_ANISO:
+    case H2D_H_ISO:
+      str << "h" << P_INIT;
+      break;
+    case H2D_P_ANISO:
+    case H2D_P_ISO:
+      str << "p" << INIT_REF_NUM;
+      break;
+    default:
+      str << "hp";
+      break;
+  }
+  switch (CAND_LIST) {
+    case H2D_H_ANISO:
+    case H2D_P_ANISO:
+    case H2D_HP_ANISO:
+      str << "_aniso";
+      break;
+    case H2D_H_ISO:
+    case H2D_P_ISO:
+    case H2D_HP_ISO:
+      str << "_iso";
+      break;
+    case H2D_HP_ANISO_H:
+      str << "_anisoh";
+      break;
+    case H2D_HP_ANISO_P:
+      str << "_anisop";
+      break;
+  }
+  
+  str << (MULTIMESH ? "_multi" : "_single");
+}
+
 int main(int argc, char* argv[])
 {
   // Load the mesh.
@@ -230,12 +273,17 @@ int main(int argc, char* argv[])
   H2DReader mloader;
   mloader.load("square.mesh", &mesh1);
 
-  // Obtain meshes for the 2nd group by cloning the mesh loaded for the 1st group.
-  mesh2.copy(&mesh1);
-
-  // Initial uniform refinements.
-  for (int i = 0; i < INIT_REF_NUM[0]; i++) mesh1.refine_all_elements();
-  for (int i = 0; i < INIT_REF_NUM[1]; i++) mesh2.refine_all_elements();
+  if (MULTIMESH) 
+  {
+    // Obtain meshes for the 2nd group by cloning the mesh loaded for the 1st group.
+    mesh2.copy(&mesh1);
+    
+    // Initial uniform refinements.
+    for (int i = 0; i < INIT_REF_NUM[0]; i++) mesh1.refine_all_elements();
+    for (int i = 0; i < INIT_REF_NUM[1]; i++) mesh2.refine_all_elements();
+  } 
+  else // Use just one mesh for both groups.
+    for (int i = 0; i < INIT_REF_NUM[0]; i++) mesh1.refine_all_elements();
 
   // Solution variables.
   Solution sln1, sln2;          // Coarse mesh solution.
@@ -243,7 +291,7 @@ int main(int argc, char* argv[])
 
   // Create H1 space with default shapesets.
   H1Space space1(&mesh1, bc_types, essential_bc_values_1, P_INIT[0]);
-  H1Space space2(&mesh2, bc_types, essential_bc_values_2, P_INIT[1]);
+  H1Space space2(MULTIMESH ? &mesh2 : &mesh1, bc_types, essential_bc_values_2, P_INIT[1]);
 
   // Initialize the weak formulation.
   WeakForm wf(2);
@@ -257,27 +305,34 @@ int main(int argc, char* argv[])
   wf.add_matrix_form_surf(1, 1, callback(biform_surf_1_1), bc_gamma);
 
   // Initialize views.
-  ScalarView view1("Neutron flux 1", 0, 0, 500, 460);
-  ScalarView view2("Neutron flux 2", 510, 0, 500, 460);
+//  ScalarView view1("Neutron flux 1", 0, 0, 500, 460);
+//  ScalarView view2("Neutron flux 2", 510, 0, 500, 460);
   ScalarView view3("Error in neutron flux 1", 0, 0, 500, 460);
   ScalarView view4("Error in neutron flux 2", 510, 0, 500, 460);
-  OrderView oview1("Mesh for group 1", 0, 520, 360, 300);
-  OrderView oview2("Mesh for group 2", 360, 520, 360, 300);
+  OrderView oview1("Mesh and orders for group 1", 0, 520, 360, 300);
+  OrderView oview2("Mesh and orders for group 2", 360, 520, 360, 300);
 
   // Show meshes.
-  view1.show_mesh(false); view1.set_3d_mode(true);
-  view2.show_mesh(false); view2.set_3d_mode(true);
+//  view1.show_mesh(false); view1.set_3d_mode(true);
+//  view2.show_mesh(false); view2.set_3d_mode(true);
   view3.show_mesh(false); view3.set_3d_mode(true);
   view4.show_mesh(false); view4.set_3d_mode(true);
 
   // DOF and CPU convergence graphs.
-  PNGGraph graph_dof("Error convergence", "Degrees of freedom", "Error [%]");
+  SimpleGraph graph_dof("Error convergence", "Degrees of freedom", "Error [%]");
   graph_dof.add_row("exact error (H1)", "b", "-", "o");
   graph_dof.add_row("est.  error (H1)", "r", "-", "s");
   graph_dof.set_log_y();
   graph_dof.show_legend();
   graph_dof.show_grid();
 
+  SimpleGraph graph_cpu("Error convergence", "CPU time [s]", "Error [%]");
+  graph_cpu.add_row("exact error (H1)", "b", "-", "o");
+  graph_cpu.add_row("est.  error (H1)", "r", "-", "s");
+  graph_cpu.set_log_y();
+  graph_cpu.show_legend();
+  graph_cpu.show_grid();
+  
   PNGGraph graph_dof_evol("Evolution of NDOF", "Adaptation step", "Num. DOF");
   graph_dof_evol.add_row("group 1", "b", "-", "o");
   graph_dof_evol.add_row("group 2", "r", "-", "s");
@@ -285,18 +340,12 @@ int main(int argc, char* argv[])
   graph_dof_evol.show_legend();
   graph_dof_evol.set_legend_pos("bottom right");
   graph_dof_evol.show_grid();
-
-  GnuplotGraph graph_cpu("Error convergence", "CPU time [s]", "Error [%]");
-  graph_cpu.add_row("exact error (H1)", "b", "-", "o");
-  graph_cpu.add_row("est.  error (H1)", "r", "-", "s");
-  graph_cpu.set_log_y();
-  graph_cpu.show_legend();
-  graph_cpu.show_grid();
+  
 
   // Initialize refinement selector.
   H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
-  //selector.set_option(H2D_PREFER_SYMMETRIC_MESH, false);
-  //selector.set_error_weights(2.25, 1, sqrt(2.0));
+  //selector.set_error_weights(2.1, 0.9, sqrt(2.0));
+  
 
   //////////////////////////////  Adaptivity loop  /////////////////////////////
 
@@ -320,14 +369,17 @@ int main(int argc, char* argv[])
     // Construct globally refined reference meshes.
     Mesh ref_mesh1, ref_mesh2;
     ref_mesh1.copy(&mesh1);
-    ref_mesh2.copy(&mesh2);
     ref_mesh1.refine_all_elements();
-    ref_mesh2.refine_all_elements();
-
+    if (MULTIMESH) {
+      ref_mesh2.copy(&mesh2);
+      ref_mesh2.refine_all_elements();
+    }
+    
     // Setup spaces for the reference solution.
-    Space *ref_space1 = space1.dup(&ref_mesh1);
-    Space *ref_space2 = space2.dup(&ref_mesh2);
     int order_increase = 1;
+    Space *ref_space1 = space1.dup(&ref_mesh1);
+    Space *ref_space2 = space2.dup(MULTIMESH ? &ref_mesh2 : &ref_mesh1);
+    
     ref_space1->copy_orders(&space1, order_increase);
     ref_space2->copy_orders(&space2, order_increase);
 
@@ -335,7 +387,7 @@ int main(int argc, char* argv[])
     int ref_ndof = ref_space1->get_num_dofs() + ref_space2->get_num_dofs();
     info("---------- Reference mesh solution; NDOF=%d ----------------", ndof);
     cpu_time.tick(HERMES_SKIP);
-
+                            
     // Solve the reference problem.
     solve_linear(Tuple<Space *>(ref_space1, ref_space2), &wf,
                  Tuple<Solution *>(&ref_sln1, &ref_sln2), SOLVER_UMFPACK);
@@ -378,7 +430,7 @@ int main(int argc, char* argv[])
     oview2.show(&space2);
 
     // Error w.r.t. the exact solution.
-    ExactSolution ex1(&mesh1, exact_flux1), ex2(&mesh2, exact_flux2);
+    ExactSolution ex1(&mesh1, exact_flux1), ex2(MULTIMESH ? &mesh2 : &mesh1, exact_flux2);
     DiffFilter err_distrib_1(&ex1, &sln1);
     DiffFilter err_distrib_2(&ex2, &sln2);
 
@@ -393,8 +445,8 @@ int main(int argc, char* argv[])
     info("Total error wrt. ref. solution  (H1 norm): %g%%", err_est_h1);
     info("Total error wrt. ref. solution  (E norm):  %g%%", err_est);
 
-    view1.show(&sln1);
-    view2.show(&sln2);
+    //view1.show(&sln1);
+    //view2.show(&sln2);
     view3.show(&err_distrib_1);
     view4.show(&err_distrib_2);
 
@@ -421,19 +473,32 @@ int main(int argc, char* argv[])
   cta = cpu_time.accumulated();
   verbose("Total running time: %g s", cta);
 
+  ////////////////////////  Save plots with results.  //////////////////////////
+  
+  std::stringstream str;
+  make_str_from_adapt_opts(str);
+    
+  // Save plots of final distribution of polynomial orders over each mesh.
+  
+  std::stringstream o1;
+  o1 << "mesh_" << str;
+  if (MULTIMESH) {
+    o1 << "-1.bmp";
+    std::stringstream o2;
+    o2 << "mesh_" << str << "-2.bmp";
+    oview2.save_screenshot(o2.str().c_str(), true);
+  }
+  oview1.save_screenshot(o1.str().c_str(), true);
+  
+  
   // Save convergence graphs.
-  std::stringstream sstm;
-  sstm << "conv_dof.gp";
-
-  switch (CAND_LIST) {
-    case H2D_H_ANISO :
-    case H2D_H_ISO :
-      
-  switch (CAND_LIST) {
-    case H2D_H_ANISO :
-      
-  graph_dof.save("conv_dof.gp");
-  graph_cpu.save("conv_cpu.gp");
+  
+  std::stringstream ccfile, cdfile;
+  cdfile << "conv_dof_" << str << ".dat";
+  ccfile << "conv_cpu_" << str << ".dat";
+    
+  graph_dof.save(ccfile.str().c_str());
+  graph_cpu.save(cdfile.str().c_str());  
   graph_dof_evol.save("dof_evol.gp");
 
   // Wait for all views to be closed.
