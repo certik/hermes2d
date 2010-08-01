@@ -1177,7 +1177,7 @@ The corresponding code snippet is shown below:
     return L + Sr[q][1]*exfl2 - Ss[q][1][0]*exfl1;
   }
 
-where the function *get_material* is used to obtain the material marker given the physical coordinates (see the file 
+where the function *get_material* is used to obtain the material marker given the physical coordinates (see 
 `main.cpp <http://git.hpfem.org/hermes2d.git/blob/HEAD:/benchmarks/neutronics-2-group-adapt/main.cpp>`_). 
 The following picture shows the two right-hand side functions (distribution of neutron sources/sinks) - :math:`Q_1` is plotted on the left, :math:`Q_2` on the right.
 
@@ -1204,30 +1204,20 @@ Weak formulation of the present two-group neutron diffusion problem with fixed s
 
 The following figures show the computed distributions of neutron flux for both neutron groups.
 
-.. image:: img/neutronics-2-group-adapt/solution1.png
-   :align: left
-   :width: 480
-   :height: 340
-   :alt: Solution - `1`\ :sup:\`st` component.
-   
-.. image:: img/neutronics-2-group-adapt/solution2.png
-   :align: right
-   :width: 480
-   :height: 340
-   :alt: Solution - `2`\ :sup:\`nd` component.
+.. image:: img/neutronics-2-group-adapt/solution12.png
+   :align: center
+   :width: 1024
+   :height: 360
+   :alt: Both components of solution.
 
-.. raw:: html
-
-   <hr style="clear: both; visibility: hidden;">   
-
-Notice the largely different behavior of the two solution components, where the first one is quite smooth while the other more oscillating. It reflects the typical behavior observed in real cases, which arises from the different rate of interactions of fast (`1`\ :sup:`st` group) and slow (`2`\ :sup:`nd` group) neutrons with surrounding nuclei. This makes `multimesh <http://hpfem.org/hermes2d/doc/src/tutorial-2.html#adaptivity-in-the-multimesh-hp-fem>`_ a preferred choice for automatic adaptivity, as can be clearly seen from the first of the series of convergence comparisons presented below. The reported error is the true approximation error calculated wrt. the exact solution given above.
+Notice the largely different behavior of the two solution components, where the first one is quite smooth while the other one more oscillating. It reflects the typical behavior observed in real cases, which arises from the different rate of interactions of fast (`1`\ :sup:`st` group) and slow (`2`\ :sup:`nd` group) neutrons with surrounding nuclei. This makes `multimesh <http://hpfem.org/hermes2d/doc/src/tutorial-2.html#multimesh-hp-fem>`_ a preferred choice for automatic adaptivity, as can be clearly seen from the first of the series of convergence comparisons presented below. The reported error is the true approximation error calculated wrt. the exact solution given above.
 
 Comparison of single/multi-mesh hp-FEM 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Final mesh (hp-FEM, single-mesh): DOF, error = %
 
-.. image:: img/neutronics-2-group-adapt/mesh_hp_single.png
+.. image:: img/neutronics-2-group-adapt/mesh_hp_anisoh_single.png
    :align: center
    :width: 500
    :height: 400
@@ -1235,7 +1225,7 @@ Final mesh (hp-FEM, single-mesh): DOF, error = %
 
 Final mesh (hp-FEM, multi-mesh): DOF, error = %
 
-.. image:: img/neutronics-2-group-adapt/mesh_hp_multi.png
+.. image:: img/neutronics-2-group-adapt/mesh_hp_anisoh_multi.png
    :align: center
    :width: 500
    :height: 400
@@ -1265,7 +1255,7 @@ Now, with multimesh enabled, we proceed to compare h-adaptivity with fixed order
 
 Final mesh (h-FEM, p=1, anisotropic refinements): DOF, error = %
 
-.. image:: img/neutronics-2-group-adapt/mesh_h1_aniso.png
+.. image:: img/neutronics-2-group-adapt/mesh_h1_aniso_multi.png
    :align: center
    :width: 500
    :height: 400
@@ -1273,7 +1263,7 @@ Final mesh (h-FEM, p=1, anisotropic refinements): DOF, error = %
    
 Final mesh (h-FEM, p=2, anisotropic refinements): DOF, error = %
 
-.. image:: img/neutronics-2-group-adapt/mesh_h2_aniso.png
+.. image:: img/neutronics-2-group-adapt/mesh_h2_aniso_multi.png
    :align: center
    :width: 500
    :height: 400
@@ -1281,7 +1271,7 @@ Final mesh (h-FEM, p=2, anisotropic refinements): DOF, error = %
 
 Final mesh (hp-FEM, h-anisotropic refinements):  DOF, error = %
 
-.. image:: img/neutronics-2-group-adapt/mesh_hp_anisoh.png
+.. image:: img/neutronics-2-group-adapt/mesh_hp_anisoh_multi.png
    :align: center
    :width: 600
    :height: 400
@@ -1310,7 +1300,7 @@ Although there are more strategies for capturing solution anisotropy during hp-a
 
 Final mesh (hp-FEM, isotropic refinements):  DOF, error = %
 
-.. image:: img/neutronics-2-group-adapt/mesh_hp_iso.png
+.. image:: img/neutronics-2-group-adapt/mesh_hp_iso_multi.png
    :align: center
    :width: 500
    :height: 400
@@ -1318,7 +1308,7 @@ Final mesh (hp-FEM, isotropic refinements):  DOF, error = %
 
 Final mesh (hp-FEM, h-anisotropic refinements): DOF, error = %
 
-.. image:: img/neutronics-2-group-adapt/mesh_hp_anisoh.png
+.. image:: img/neutronics-2-group-adapt/mesh_hp_anisoh_multi.png
    :align: center
    :width: 500
    :height: 400
@@ -1326,7 +1316,7 @@ Final mesh (hp-FEM, h-anisotropic refinements): DOF, error = %
    
 Final mesh (hp-FEM, p-anisotropic refinements): DOF, error = %
 
-.. image:: img/neutronics-2-group-adapt/mesh_hp_anisop.png
+.. image:: img/neutronics-2-group-adapt/mesh_hp_anisop_multi.png
    :align: center
    :width: 500
    :height: 400
@@ -1334,7 +1324,7 @@ Final mesh (hp-FEM, p-anisotropic refinements): DOF, error = %
 
 Final mesh (hp-FEM, hp-anisotropic refinements):  DOF, error = %
 
-.. image:: img/neutronics-2-group-adapt/mesh_hp_aniso.png
+.. image:: img/neutronics-2-group-adapt/mesh_hp_aniso_multi.png
    :align: center
    :width: 500
    :height: 400
