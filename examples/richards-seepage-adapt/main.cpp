@@ -27,7 +27,7 @@ using namespace RefinementSelectors;
 // If this is defined, use van Genuchten's constitutive relations, otherwise use Gardner's.
 // #define CONSTITUTIVE_GENUCHTEN
 
-const int P_INIT = 2;                      // Initial polynomial degree of all mesh elements.
+const int P_INIT = 1;                      // Initial polynomial degree of all mesh elements.
 const int INIT_REF_NUM = 0;                // Number of initial uniform mesh refinements.
 const int INIT_REF_NUM_BDY = 0;            // Number of initial mesh refinements towards the top edge.
 
@@ -56,7 +56,7 @@ const int MESH_REGULARITY = -1;            // Maximum allowed level of hanging n
                                            // their notoriously bad performance.
 const double CONV_EXP = 1.0;               // Default value is 1.0. This parameter influences the selection of
                                            // cancidates in hp-adaptivity. See get_optimal_refinement() for details.
-const double ERR_STOP = 0.25;               // Stopping criterion for adaptivity (rel. error tolerance between the
+const double ERR_STOP = 0.1;               // Stopping criterion for adaptivity (rel. error tolerance between the
                                            // fine mesh and coarse mesh solution in percent).
 const int NDOF_STOP = 60000;               // Adaptivity process stops when the number of degrees of freedom grows
                                            // over this limit. This is to prevent h-adaptivity to go on forever.
@@ -68,35 +68,16 @@ const int NEWTON_MAX_ITER = 50;            // Maximum allowed number of Newton i
 
 // Problem parameters.
 const double TAU = 5e-3;                   // Time step.
-const double STARTUP_TIME = 1e-2;          // Start-up time for time-dependent Dirichlet boundary condition.
+const double STARTUP_TIME = 1.1e-2;        // Start-up time for time-dependent Dirichlet boundary condition.
 const double T_FINAL = 5.0;                // Time interval length.
 double TIME = 0;                           // Global time variable initialized with first time step.
 double H_INIT = -9.5;                      // Initial pressure head.
 double H_ELEVATION = 5.2;
 
-//double K_S_1 = 0.789; 
-//double K_S_2 = 0.469; 
-//double K_S_3 = 1e-2; 
-//double K_S_4 = 41.143; 
-//double K_S_4 = 0.8143; 
 double K_S_1 = 0.108;
 double K_S_3 = 0.0048;
 double K_S_2 = 0.0168;
-//double K_S_4 = 41.143; 
 double K_S_4 = 1.061;
-
-
-// double K_S_1 = 1.0; 
-// double K_S_2 = 1.0; 
-// double K_S_3 = 1.0; 
-// //double K_S_4 = 41.143; 
-// double K_S_4 = 1.0; 
-
-//double ALPHA_1 = 0.05;
-//double ALPHA_2 = 0.05;
-//double ALPHA_3 = 0.05;
-//double ALPHA_4 = 0.05;
-
 
 double ALPHA_1 = 0.01;
 double ALPHA_3 = 0.005;
@@ -208,8 +189,6 @@ int main(int argc, char* argv[])
 
   // Initialize refinement selector.
   H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
-  //selector.set_error_weights(2.0, 1.0, sqrt(2.0));
-  //selector.set_error_weights(1.0, 1.0, 1.0);
 
   // Solutions for the time stepping and the Newton's method.
   Solution u_prev_time, u_prev_newton;
@@ -225,15 +204,9 @@ int main(int argc, char* argv[])
 	                  use_projection, verbose0, visualization, &u_prev_time);
 
   // Initialize views.
-  ScalarView sview_coarse("Solution", 0, 0, 350, 340);
-  OrderView oview_coarse("Mesh", 360, 0, 350, 340);
-  ScalarView sview_fine("Solution", 720, 0, 350, 340);
-  OrderView oview_fine("Mesh", 1080, 0, 350, 340);
-
-  // Show initial condition.
-  //oview_coarse.show(&space);
-  //sview_coarse.show(&u_prev_time);
-  //View::wait(H2DV_WAIT_KEYPRESS);
+  ScalarView sview("Solution", 0, 0, 500, 350);
+  sview.set_min_max_range(-9.5, 2.2);
+  OrderView oview("Mesh", 510, 0, 500, 350);
 
   // Initialize the weak formulation.
   WeakForm wf;
@@ -274,11 +247,6 @@ int main(int argc, char* argv[])
   Solution sln_coarse, sln_fine;
   sln_coarse.copy(&u_prev_newton);
 
-  // Show the coarse mesh solution.
-  oview_coarse.show(&space);
-  sview_coarse.show(&sln_coarse);
-  //View::wait(H2DV_WAIT_KEYPRESS);
-
   // Time stepping loop.
   int num_time_steps = (int)(T_FINAL/TAU + 0.5);
   for(int ts = 1; ts <= num_time_steps; ts++)
@@ -293,24 +261,13 @@ int main(int argc, char* argv[])
       for(int i = 0; i < INIT_REF_NUM; i++) mesh.refine_all_elements();
       mesh.refine_towards_boundary(3, INIT_REF_NUM_BDY);
   
-      // cleaning the old vectors
-      //nls.free_vectors();
-      //nls.alloc_and_zero_vectors();
-
       // Project fine mesh solution on the globally derefined mesh.
       info("---- Time step %d:", ts);
       info("Projecting fine mesh solution on globally derefined mesh for error calculation.");
       nls.project_global(&sln_fine, &u_prev_newton);
 
-      //if (!nls.solve_newton(&u_prev_newton, NEWTON_TOL_COARSE, NEWTON_MAX_ITER, verbose))
-      //  error("Newton's method did not converge.");
-
       // Store the result in sln_coarse.
       sln_coarse.copy(&u_prev_newton);
-
-      sview_coarse.show(&sln_coarse);
-      oview_coarse.show(&space);
-      //View::wait(H2DV_WAIT_KEYPRESS);
     }
 
     // Adaptivity loop (in space):
@@ -334,20 +291,10 @@ int main(int argc, char* argv[])
         rnls.project_global(&sln_fine, &u_prev_newton);
       }
 
-      // debug
-      //sview_fine.show(&u_prev_newton);
-      //oview_fine.show(rnls.get_space(0));
-      //View::wait(H2DV_WAIT_KEYPRESS);
-
       // Newton's method (one time step) on fine mesh
       info("Solving on fine mesh.");
       if (!rnls.solve_newton(&u_prev_newton, NEWTON_TOL_FINE, NEWTON_MAX_ITER, verbose))
         error("Newton's method did not converge.");
-
-      // debug
-      sview_fine.show(&u_prev_newton);
-      oview_fine.show(rnls.get_space(0));
-      //View::wait(H2DV_WAIT_KEYPRESS);
 
       // Store the result in sln_fine.
       sln_fine.copy(&u_prev_newton);
@@ -378,22 +325,20 @@ int main(int argc, char* argv[])
         // Store the result in sln_coarse.
         sln_coarse.copy(&u_prev_newton);
 
-        // Show the new time level solution.
-        char title[100];
-        sprintf(title, "Solution, t = %g", TIME);
-        sview_coarse.set_title(title);
-        sview_coarse.show(&sln_coarse);
-        oview_coarse.show(&space);
-        sprintf(title, "Reference solution, t = %g", TIME);
-        sview_fine.set_title(title);
-        sview_fine.show(&sln_fine);
-        oview_fine.show(rnls.get_space(0));
-
         as++;
 
       }
     }
     while (!done);
+
+    // Show the new time level solution.
+    char title[100];
+    sprintf(title, "Solution, t = %g", TIME);
+    sview.set_title(title);
+    sview.show(&sln_coarse);
+    sprintf(title, "Mesh, t = %g", TIME);
+    oview.set_title(title);
+    oview.show(&space);
 
     /*
     //Write solution data into file.
