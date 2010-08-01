@@ -216,7 +216,7 @@ double error_total(double (*efn)(MeshFunction*, MeshFunction*, RefMap*, RefMap*)
 
   for (it1=slns1.begin(), it2=slns2.begin(); it1 < slns1.end(); it1++, it2++) {
     assert(it2 < slns2.end());
-    error += sqr(calc_error(efn, *it1, *it2));
+    error += sqr(calc_abs_error(efn, *it1, *it2));
     if (nfn) norm += sqr(calc_norm(nfn, *it2));
   }
 
@@ -237,18 +237,13 @@ int main(int argc, char* argv[])
   for (int i = 0; i < INIT_REF_NUM[0]; i++) mesh1.refine_all_elements();
   for (int i = 0; i < INIT_REF_NUM[1]; i++) mesh2.refine_all_elements();
 
-  // Initialize the shapeset and the cache.
-  H1Shapeset shapeset;
-  PrecalcShapeset pss1(&shapeset);
-  PrecalcShapeset pss2(&shapeset);
-
   // Solution variables.
-  Solution sln1, sln2;		  // Coarse mesh solution.
-  Solution ref_sln1, ref_sln2;	  // Reference solution.
+  Solution sln1, sln2;          // Coarse mesh solution.
+  Solution ref_sln1, ref_sln2;  // Reference solution.
 
   // Create H1 space with default shapesets.
   H1Space space1(&mesh1, bc_types, essential_bc_values_1, P_INIT[0]);
-  H1Space space2(&mesh2, bc_types, essential_bc_values_2, P_INIT[0]);
+  H1Space space2(&mesh2, bc_types, essential_bc_values_2, P_INIT[1]);
 
   // Initialize the weak formulation.
   WeakForm wf(2);
@@ -299,7 +294,7 @@ int main(int argc, char* argv[])
   graph_cpu.show_grid();
 
   // Initialize refinement selector.
-  H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER, &shapeset);
+  H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
   //selector.set_option(H2D_PREFER_SYMMETRIC_MESH, false);
   //selector.set_error_weights(2.25, 1, sqrt(2.0));
 
@@ -349,23 +344,21 @@ int main(int argc, char* argv[])
     cpu_time.tick();
     info("---- Projecting reference mesh solution on new coarse mesh -----------------");
     cpu_time.tick(HERMES_SKIP);
-    project_global(Tuple<Space *>(&space1, &space2),
+    project_global(Tuple<Space *>(&space1, &space2), &wf,
                    Tuple<MeshFunction*>(&ref_sln1, &ref_sln2),
                    Tuple<Solution*>(&sln1, &sln2));
 
     // Calculate element errors and total error estimate.
 
-    H1Adapt hp(Tuple<Space *>(&space1, &space2));
+    Adapt hp(Tuple<Space*>(&space1, &space2), Tuple<int>(H2D_H1_NORM, H2D_H1_NORM));
     if (ADAPTIVITY_NORM == 2) {
       hp.set_error_form(0, 0, callback(biform_0_0));
       hp.set_error_form(0, 1, callback(biform_0_1));
       hp.set_error_form(1, 0, callback(biform_1_0));
       hp.set_error_form(1, 1, callback(biform_1_1));
-    } else {
-      if (ADAPTIVITY_NORM == 1) {
-        hp.set_error_form(0, 0, callback(biform_0_0));
-        hp.set_error_form(1, 1, callback(biform_1_1));
-      }
+    } else if (ADAPTIVITY_NORM == 1) {
+      hp.set_error_form(0, 0, callback(biform_0_0));
+      hp.set_error_form(1, 1, callback(biform_1_1));
     }
 
     Tuple<Solution*> slns(&sln1, &sln2);
@@ -373,7 +366,7 @@ int main(int argc, char* argv[])
 
     hp.set_solutions(slns, slns_ref);
 
-    double err_est = hp.calc_error(H2D_TOTAL_ERROR_REL | H2D_ELEMENT_ERROR_REL) * 100;
+    double err_est = hp.calc_elem_errors(H2D_TOTAL_ERROR_REL | H2D_ELEMENT_ERROR_REL) * 100;
     double err_est_h1 = error_total(error_fn_h1, norm_fn_h1, slns, slns_ref) * 100;
 
     // Report results.
@@ -389,8 +382,8 @@ int main(int argc, char* argv[])
     DiffFilter err_distrib_1(&ex1, &sln1);
     DiffFilter err_distrib_2(&ex2, &sln2);
 
-    double err_exact_h1_1 = h1_error(&ex1, &sln1) * 100;
-    double err_exact_h1_2 = h1_error(&ex2, &sln2) * 100;
+    double err_exact_h1_1 = calc_rel_error(&ex1, &sln1, H2D_H1_NORM)) * 100;
+    double err_exact_h1_2 = calc_rel_error(&ex2, &sln2, H2D_H1_NORM) * 100;
 
     Tuple<Solution*> exslns(&ex1, &ex2);
     double error_h1 = error_total(error_fn_h1, norm_fn_h1, slns, exslns) * 100;
@@ -418,10 +411,10 @@ int main(int argc, char* argv[])
     }
 
     cpu_time.tick(HERMES_SKIP);
-
+    
     // If err_est too large, adapt the mesh.
     if (err_est < ERR_STOP) break;
-    else hp.adapt(&selector, THRESHOLD, STRATEGY,  MESH_REGULARITY);
+    else hp.adapt(Tuple<RefinementSelectors::Selector*>(&selector,&selector), MULTIMESH ? THRESHOLD_MULTI : THRESHOLD_SINGLE, STRATEGY,  MESH_REGULARITY);
   }
 
   cpu_time.tick();
