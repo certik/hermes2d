@@ -18,7 +18,9 @@
 
 #define TINY 1e-20
 
-
+//Visual Studio can not have two definitions of the same global function.
+#ifdef _MSC_VER
+#ifdef __HERMES_COMMON_MATRIX_H
 void ludcmp(double** a, int n, int* indx, double* d)
 {
   int i, imax = 0, j, k;
@@ -76,7 +78,8 @@ void ludcmp(double** a, int n, int* indx, double* d)
   }
   delete [] vv;
 }
-
+#endif
+#endif
 
 void choldc(double **a, int n, double p[])
 {

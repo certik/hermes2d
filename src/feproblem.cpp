@@ -778,7 +778,7 @@ scalar* Projection::project()
   memcpy(vec, sln_vec, ndofs * sizeof(scalar));
   return vec;
   */
-
+#ifdef _MSC_VER
+  return new scalar(0.0);
+#endif
 }
-
-

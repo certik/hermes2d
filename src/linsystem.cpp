@@ -1195,6 +1195,7 @@ bool LinSystem::solve2(int n, ...)
 	solve(s);
 	
 	va_end(vl);
+	return true;
 }
 
 // single equation case
