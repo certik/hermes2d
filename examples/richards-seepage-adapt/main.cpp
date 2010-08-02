@@ -8,8 +8,8 @@ using namespace RefinementSelectors;
 
 //  This example uses adaptivity with dynamical meshes to solve
 //  the time-dependent Richard's equation. The time discretization 
-//  is backward Euler, and the Newton's method is applied to solve 
-//  the nonlinear problem in each time step. 
+//  is backward Euler or Crank-Nicolson, and the Newton's method 
+//  is applied to solve the nonlinear problem in each time step. 
 //
 //  PDE: C(h)dh/dt - div(K(h)grad(h)) - (dK/dh)*(dh/dy) = 0
 //  where K(h) = K_S*exp(alpha*h)                          for h < 0,
@@ -30,6 +30,7 @@ using namespace RefinementSelectors;
 const int P_INIT = 1;                      // Initial polynomial degree of all mesh elements.
 const int INIT_REF_NUM = 0;                // Number of initial uniform mesh refinements.
 const int INIT_REF_NUM_BDY = 0;            // Number of initial mesh refinements towards the top edge.
+const int TIME_INTEGRATION = 2;            // 1... implicit Euler, 2... Crank-Nicolson.
 
 // Adaptivity
 const int UNREF_FREQ = 1;                  // Every UNREF_FREQth time step the mesh is unrefined.
@@ -210,22 +211,42 @@ int main(int argc, char* argv[])
 
   // Initialize the weak formulation.
   WeakForm wf;
-  wf.add_matrix_form(jac_form_vol, jac_form_vol_ord, H2D_UNSYM, H2D_ANY, 
-                     Tuple<MeshFunction*>(&u_prev_newton, &u_prev_time));
-  wf.add_matrix_form_surf(jac_form_surf_1, jac_form_surf_1_ord, BDY_1, 
-                     Tuple<MeshFunction*>(&u_prev_newton));
-  wf.add_matrix_form_surf(jac_form_surf_4, jac_form_surf_4_ord, BDY_4, 
-                     Tuple<MeshFunction*>(&u_prev_newton));
-  wf.add_matrix_form_surf(jac_form_surf_6, jac_form_surf_6_ord, BDY_6, 
-                     Tuple<MeshFunction*>(&u_prev_newton));
-  wf.add_vector_form(res_form_vol, res_form_vol_ord, H2D_ANY, 
-                     Tuple<MeshFunction*>(&u_prev_newton, &u_prev_time));
-  wf.add_vector_form_surf(res_form_surf_1, res_form_surf_1_ord, BDY_1, 
-                     Tuple<MeshFunction*>(&u_prev_newton));
-  wf.add_vector_form_surf(res_form_surf_4, res_form_surf_4_ord, BDY_4, 
-                     Tuple<MeshFunction*>(&u_prev_newton));
-  wf.add_vector_form_surf(res_form_surf_6, res_form_surf_6_ord, BDY_6, 
-                     Tuple<MeshFunction*>(&u_prev_newton));
+  if (TIME_INTEGRATION == 1) {
+    wf.add_matrix_form(jac_form_vol_euler, jac_form_vol_ord, H2D_UNSYM, H2D_ANY, 
+                       Tuple<MeshFunction*>(&u_prev_newton, &u_prev_time));
+    wf.add_matrix_form_surf(jac_form_surf_1_euler, jac_form_surf_1_ord, BDY_1, 
+                       &u_prev_newton);
+    wf.add_matrix_form_surf(jac_form_surf_4_euler, jac_form_surf_4_ord, BDY_4, 
+                       &u_prev_newton);
+    wf.add_matrix_form_surf(jac_form_surf_6_euler, jac_form_surf_6_ord, BDY_6, 
+                       &u_prev_newton);
+    wf.add_vector_form(res_form_vol_euler, res_form_vol_ord, H2D_ANY, 
+                       Tuple<MeshFunction*>(&u_prev_newton, &u_prev_time));
+    wf.add_vector_form_surf(res_form_surf_1_euler, res_form_surf_1_ord, BDY_1, 
+                       &u_prev_newton);
+    wf.add_vector_form_surf(res_form_surf_4_euler, res_form_surf_4_ord, BDY_4, 
+                       &u_prev_newton);
+    wf.add_vector_form_surf(res_form_surf_6_euler, res_form_surf_6_ord, BDY_6, 
+                       &u_prev_newton);
+  }
+  else {
+    wf.add_matrix_form(jac_form_vol_cranic, jac_form_vol_ord, H2D_UNSYM, H2D_ANY, 
+                       Tuple<MeshFunction*>(&u_prev_newton, &u_prev_time));
+    wf.add_matrix_form_surf(jac_form_surf_1_cranic, jac_form_surf_1_ord, BDY_1, 
+                       &u_prev_newton);
+    wf.add_matrix_form_surf(jac_form_surf_4_cranic, jac_form_surf_4_ord, BDY_4, 
+                       &u_prev_newton);
+    wf.add_matrix_form_surf(jac_form_surf_6_cranic, jac_form_surf_6_ord, BDY_6, 
+                       &u_prev_newton);
+    wf.add_vector_form(res_form_vol_cranic, res_form_vol_ord, H2D_ANY, 
+                       Tuple<MeshFunction*>(&u_prev_newton, &u_prev_time));
+    wf.add_vector_form_surf(res_form_surf_1_cranic, res_form_surf_1_ord, BDY_1, 
+			    Tuple<MeshFunction*>(&u_prev_newton, &u_prev_time));
+    wf.add_vector_form_surf(res_form_surf_4_cranic, res_form_surf_4_ord, BDY_4, 
+			    Tuple<MeshFunction*>(&u_prev_newton, &u_prev_time));
+    wf.add_vector_form_surf(res_form_surf_6_cranic, res_form_surf_6_ord, BDY_6, 
+			    Tuple<MeshFunction*>(&u_prev_newton, &u_prev_time));
+  }
   
   // Initialize the nonlinear system.
   NonlinSystem nls(&wf, &space);
