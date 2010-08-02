@@ -573,7 +573,7 @@ void LinSystem::assemble(bool rhsonly)
               // should be passed there.
               bi = eval_form(jfv, NULL, fu, fv, &refmap[n], &refmap[m]) * an->coef[j] * am->coef[i];
               if (an->dof[j] < 0) Dir[k] -= bi; 
-              else {
+              else if(rhsonly == false){
                 mat[i][j] = bi;
                 //if (an->dof[j] == 68 || an->dof[i] == 68) printf("vbf add to matrix %d %d %g\n", i, j, bi);
               }
@@ -588,7 +588,7 @@ void LinSystem::assemble(bool rhsonly)
               // should be passed there.
               bi = eval_form(jfv, NULL, fu, fv, &refmap[n], &refmap[m]) * an->coef[j] * am->coef[i];
               if (an->dof[j] < 0) Dir[k] -= bi; 
-              else {
+              else if(rhsonly == false){
                 mat[i][j] = mat[j][i] = bi;
                 //if (an->dof[j] == 68 || an->dof[i] == 68) printf("vbf add to matrix %d %d %g\n", i, j, bi);
               }
@@ -597,14 +597,16 @@ void LinSystem::assemble(bool rhsonly)
         }
 
         // insert the local stiffness matrix into the global one
-        insert_block(mat, am->dof, an->dof, am->cnt, an->cnt);
+				if(rhsonly == false)
+					insert_block(mat, am->dof, an->dof, am->cnt, an->cnt);
 
         // insert also the off-diagonal (anti-)symmetric block, if required
         if (tra)
         {
           if (jfv->sym < 0) chsgn(mat, am->cnt, an->cnt);
           transpose(mat, am->cnt, an->cnt);
-          insert_block(mat, an->dof, am->dof, an->cnt, am->cnt);
+					if(rhsonly == false)
+						insert_block(mat, an->dof, am->dof, an->cnt, am->cnt);
 
           // we also need to take care of the RHS...
           for (int j = 0; j < am->cnt; j++)
@@ -684,7 +686,7 @@ void LinSystem::assemble(bool rhsonly)
               // FIXME - the NULL on the following line is temporary, an array of solutions 
               // should be passed there.
               bi = eval_form(jfs, NULL, fu, fv, &refmap[n], &refmap[m], &(ep[edge])) * an->coef[j] * am->coef[i];
-              if (an->dof[j] >= 0) {
+              if (an->dof[j] >= 0 && (rhsonly == false)) {
                 mat[i][j] = bi;
                 //if (am->dof[i] == 68) printf("sbf add to matrix %d %d %g\n", am->dof[i], am->dof[j], bi);
               } 
@@ -695,7 +697,8 @@ void LinSystem::assemble(bool rhsonly)
               //printf("%d %d %g\n", i, j, bi);
             }
           }
-          insert_block(mat, am->dof, an->dof, am->cnt, an->cnt);
+					if(rhsonly == false)
+						insert_block(mat, am->dof, an->dof, am->cnt, an->cnt);
         }
 
         // assemble surface linear forms /////////////////////////////////////
