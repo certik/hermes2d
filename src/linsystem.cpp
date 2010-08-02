@@ -150,12 +150,11 @@ void LinSystem::free_spaces()
     }
     for (int i = 0; i < this->wf->neq; i++) {
       if (this->spaces[i] != NULL) {
-        // FIXME: this is a huge memory leak.
-        //delete this->spaces[i];
+        this->spaces[i]->free();
         this->spaces[i] = NULL;
       }
     }
-    delete this->spaces;
+    delete [] this->spaces;
     this->spaces = NULL;
   }
 }
