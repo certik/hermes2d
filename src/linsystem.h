@@ -87,7 +87,7 @@ public:
 
   /// Helps to determine if linear or nonlinear class instance is used
   /// similar to Java instance of functionality
-  virtual bool set_linearity() { this->linear = true; }
+  virtual bool set_linearity() { return this->linear = true; }
 
   /// Assembles the stiffness matrix and load vector. Vectors Vec, Dir and
   /// RHS must be allocated when assemble() is called.
