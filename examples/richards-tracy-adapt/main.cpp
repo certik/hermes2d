@@ -31,7 +31,7 @@ using namespace RefinementSelectors;
 // Note: Exact solution makes sense for Gardner's relations only.
 //#define CONSTITUTIVE_GENUCHTEN
 
-const double TIME_INIT = 1e-4;             // Initial time.
+const double TIME_INIT = 1e-3;             // Initial time.
 const int INIT_REF_NUM = 0;                // Number of initial uniform mesh refinements.
 const int INIT_REF_NUM_BDY = 8;            // Number of initial mesh refinements towards the top edge.
 const int P_INIT = 2;                      // Initial polynomial degree of all mesh elements.
@@ -98,12 +98,12 @@ double TIME = TIME_INIT;
 #include "exact_solution.cpp"
 
 // Boundary condition types.
-BCType bc_types_dirichlet(int marker)
+BCType bc_types(int marker)
 {
   return BC_ESSENTIAL;
 }
 
-// Boundary and initial conditions for debugging purposes.
+// Boundary and initial conditions.
 int Y_POWER = 5;
 double bdy_cond(double x, double y, double& dx, double& dy) 
 {
@@ -114,11 +114,11 @@ double bdy_cond(double x, double y, double& dx, double& dy)
 }
 double init_cond(double x, double y, double& dx, double& dy) 
 {
-  //return exact_sol(x, y, dx, dy);
+  return exact_sol(x, y, dx, dy);
 
-  dx = 0;
-  dy = 0;
-  return -1000;
+  //dx = 0;
+  //dy = 0;
+  //return -1000;
 }
 
 // Essential (Dirichlet) boundary condition markers.
@@ -148,26 +148,19 @@ int main(int argc, char* argv[])
   mesh.refine_towards_boundary(2, INIT_REF_NUM_BDY);
 
   // Create an H1 space with default shapeset.
-  H1Space space(&mesh, bc_types_dirichlet, essential_bc_values, P_INIT);
+  H1Space space(&mesh, bc_types, essential_bc_values, P_INIT);
 
   // Initialize refinement selector.
   H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
-  //selector.set_error_weights(2.0, 1.0, sqrt(2.0));
-  //selector.set_error_weights(1.0, 1.0, 1.0);
 
-  // THIS IS A NEW FUNCTIONALITY THAT STILL NEEDS TO BE TESTED.
   // Adapt mesh to represent initial condition with given accuracy.
-  int proj_norm = 1;  // H1 norm.
-  bool verbose0 = true, debug = false;
-  bool project_on_fine_mesh = true;
+  int proj_norm = 1;           // 0... L2 norm, 1... H1 norm.
+  bool verbose0 = true;        // Report results.
+  bool visualization = false;  // Show intermediate results.
+  double err_stop_temp = 5.0;  // 
   adapt_to_exact_function(&space, init_cond, &selector, THRESHOLD, STRATEGY, 
-                          MESH_REGULARITY, ERR_STOP, NDOF_STOP, proj_norm, 
-                          project_on_fine_mesh, verbose0, debug);
-
-  // Set Dirichlet boundary conditions.
-  space.set_bc_types(bc_types_dirichlet);   
-
-  info("Initial mesh: ndof = %d", space.get_num_dofs());
+                          MESH_REGULARITY, err_stop_temp, NDOF_STOP, proj_norm, 
+                          verbose0, visualization);
 
   // Solutions for the time stepping and the Newton's method.
   Solution u_prev_time, u_prev_newton;

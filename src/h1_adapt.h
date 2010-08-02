@@ -35,8 +35,7 @@ void adapt_to_exact_function(Space *space, ExactFunction exactfn,
 			     RefinementSelectors::Selector* selector, 
                              double threshold, int strategy, 
                              int mesh_regularity, double err_stop, int ndof_stop, 
-			     int proj_norm = 1, 
-                             bool project_on_fine_mesh = false, bool verbose = false,
+			     int proj_norm = 1, bool verbose = false,
                              bool visualization = false, Solution* sln = NULL);
 
 // Mesh is adapted to represent a given reference solution with given accuracy

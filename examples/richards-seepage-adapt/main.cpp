@@ -197,12 +197,11 @@ int main(int argc, char* argv[])
   // Adapt mesh to represent initial condition with given accuracy.
   int proj_norm = 1;  // H1 norm.
   bool verbose0 = true; 
-  bool use_projection = true;
   bool visualization = false;
   double err_stop_init_cond = 0.1 * ERR_STOP; 
   adapt_to_exact_function(&space, init_cond, &selector, THRESHOLD, STRATEGY, 
                           MESH_REGULARITY, ERR_STOP, NDOF_STOP, proj_norm, 
-	                  use_projection, verbose0, visualization, &u_prev_time);
+	                  verbose0, visualization, &u_prev_time);
 
   // Initialize views.
   ScalarView sview("Solution", 0, 0, 500, 350);

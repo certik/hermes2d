@@ -48,7 +48,7 @@ void adapt_to_exact_function(Space *space, ExactFunction exactfn,
                              double threshold, int strategy, 
                              int mesh_regularity, double err_stop, 
                              int ndof_stop, int proj_norm, 
-                             bool use_projection, bool verbose, 
+                             bool verbose, 
                              bool visualization, Solution* sln) 
 {
   if (verbose == true) printf("Mesh adaptivity to given exact function:\n");
@@ -61,7 +61,7 @@ void adapt_to_exact_function(Space *space, ExactFunction exactfn,
 
   // Initialize views.
   ScalarView* view_c = new ScalarView("Coarse mesh projection", 0, 0, 410, 300);
-  ScalarView* view_f = new ScalarView("Fine mesh projection", 420, 0, 410, 300);
+  ScalarView* view_f = new ScalarView("Exact function on fine mesh", 420, 0, 410, 300);
   OrderView* ordview_c = new OrderView("Coarse mesh", 840, 0, 350, 300);
   OrderView* ordview_f = new OrderView("Fine mesh", 1200, 0, 350, 300);
   ScalarView* view_e = new ScalarView("Error estimate", 0, 360, 410, 300);
@@ -75,9 +75,8 @@ void adapt_to_exact_function(Space *space, ExactFunction exactfn,
     // Refine mesh uniformly.
     RefSystem rs(&ls);
 
-    // Assign the function f() to the fine mesh exactly or use global projection.
-    if (use_projection == true) rs.project_global(exactfn, sln_fine, proj_norm);
-    else sln_fine->set_exact(rs.get_mesh(0), exactfn);
+    // Assign the function f() to the fine mesh.
+    sln_fine->set_exact(rs.get_mesh(0), exactfn);
 
     // Project the function f() on the coarse mesh.
     ls.project_global(exactfn, sln_coarse, proj_norm);
@@ -104,7 +103,7 @@ void adapt_to_exact_function(Space *space, ExactFunction exactfn,
     H1Adapt hp(&ls);
     hp.set_solutions(sln_coarse, sln_fine);
     double err_est = hp.calc_error() * 100;
-    if (verbose ==  true) printf("Step %d, ndof_coarse %d, ndof_fine %d, proj_error %g%%\n", 
+    if (verbose == true) printf("Step %d, ndof_coarse %d, ndof_fine %d, proj_error %g%%\n", 
                                  as, ls.get_num_dofs(), rs.get_num_dofs(), err_est);
 
     // If err_est too large, adapt the mesh.

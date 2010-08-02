@@ -103,7 +103,6 @@ int main(int argc, char* argv[])
 
   // Initialize the nonlinear system.
   NonlinSystem nls(&wf, &space);
-  info("ndof = %d\n", space.get_num_dofs());
 
   // Project the function init_cond() on the FE space
   // to obtain initial coefficient vector for the Newton's method.

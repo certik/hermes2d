@@ -62,14 +62,14 @@ int main(int argc, char* argv[])
   // Initialize refinement selector.
   H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
 
-  // Adapt mesh to represent initial condition with given accuracy.
-  int proj_norm = 1; // H1 norm.
-  bool verbose = true, debug = false;
-  bool project_on_fine_mesh = true;
+  // Adapt mesh to represent the exact function f(x, y) with given accuracy.
+  int proj_norm = 1;               // H1 norm.
+  bool verbose = true;             // Report results. 
+  bool visualization = false;      // Show intermediate results.
   Solution sln;
   adapt_to_exact_function(&space, f, &selector, THRESHOLD, STRATEGY, 
                           MESH_REGULARITY, ERR_STOP, NDOF_STOP, proj_norm,
-                          project_on_fine_mesh, verbose, debug, &sln);   
+                          verbose, visualization, &sln);   
   info("Final mesh: ndof = %d", space.get_num_dofs());
 
   // Visualization.
