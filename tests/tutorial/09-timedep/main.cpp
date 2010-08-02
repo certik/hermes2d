@@ -123,7 +123,7 @@ int main(int argc, char* argv[])
   // current shapeset. If you change the shapeset,
   // you need to correct this number.
   int success = 1;
-  if (fabs(sum - 9122.66) > 1e-1) success = 0;
+  if (fabs(sum - 8508.36) > 1e-1) success = 0;
 
 #define ERROR_SUCCESS                               0
 #define ERROR_FAILURE                               -1
