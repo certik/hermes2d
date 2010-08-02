@@ -83,9 +83,10 @@ DiscreteProblem::DiscreteProblem(WeakForm* wf_, Space* s_)
 
 DiscreteProblem::~DiscreteProblem()
 {
-  // FIXME: more things should be deleted here
-  // to avoid memory leaks.
-  delete this->solver_default;
+  free();
+  if (this->sp_seq != NULL) delete [] this->sp_seq;
+  if (this->pss != NULL) delete [] this->pss;
+  if (this->solver_default != NULL) delete this->solver_default;
 }
 
 void DiscreteProblem::free_spaces()
@@ -101,7 +102,8 @@ void DiscreteProblem::free_spaces()
     }
     for (int i = 0; i < this->wf->neq; i++) {
       if (this->spaces[i] != NULL) {
-        delete this->spaces[i];
+        this->spaces[i]->free();
+        //delete this->spaces[i];
         this->spaces[i] = NULL;
       }
     }
@@ -177,8 +179,6 @@ void DiscreteProblem::copy(DiscreteProblem* sys)
 
 void DiscreteProblem::free()
 {
-  free_spaces();
-
   this->struct_changed = this->values_changed = true;
   memset(this->sp_seq, -1, sizeof(int) * this->wf->neq);
   this->wf_seq = -1;
@@ -357,8 +357,6 @@ void DiscreteProblem::assemble(Vector* init_vec, Matrix* mat_ext, Vector* dir_ex
           {
             for (int j = 0; j < an->cnt; j++) {
               fu->set_active_shape(an->idx[j]);
-              // FIXME - the NULL on the following eval_forms is temporary, an array of solutions 
-              // should be passed there.
               if (an->dof[j] < 0) {
                 if (dir_ext != NULL) {
                   scalar val = eval_form(mfv, u_ext, fu, fv, &refmap[n], &refmap[m]) * an->coef[j] * am->coef[i];
@@ -376,8 +374,6 @@ void DiscreteProblem::assemble(Vector* init_vec, Matrix* mat_ext, Vector* dir_ex
             for (int j = 0; j < an->cnt; j++) {
               if (j < i && an->dof[j] >= 0) continue;
               fu->set_active_shape(an->idx[j]);
-              // FIXME - the NULL on the following eval_forms is temporary, an array of solutions 
-              // should be passed there.
               if (an->dof[j] < 0) {
                 if (dir_ext != NULL) {
                   scalar val = eval_form(mfv, u_ext, fu, fv, &refmap[n], &refmap[m]) * an->coef[j] * am->coef[i];
@@ -431,8 +427,6 @@ void DiscreteProblem::assemble(Vector* init_vec, Matrix* mat_ext, Vector* dir_ex
         {
           if (am->dof[i] < 0) continue;
           fv->set_active_shape(am->idx[i]);
-          // FIXME - the NULL on the following line is temporary, an array of solutions 
-          // should be passed there.
           scalar val = eval_form(vfv, u_ext, fv, &refmap[m]) * am->coef[i];
           rhs_ext->add(am->dof[i], val);
         }
@@ -475,8 +469,6 @@ void DiscreteProblem::assemble(Vector* init_vec, Matrix* mat_ext, Vector* dir_ex
             for (int j = 0; j < an->cnt; j++)
             {
               fu->set_active_shape(an->idx[j]);
-              // FIXME - the NULL on the following eval_forms is temporary, an array of solutions 
-              // should be passed there.
               if (an->dof[j] < 0) {
                 if (dir_ext != NULL) {
                   scalar val = eval_form(mfs, u_ext, fu, fv, &refmap[n], &refmap[m], &(ep[edge])) 
@@ -512,8 +504,6 @@ void DiscreteProblem::assemble(Vector* init_vec, Matrix* mat_ext, Vector* dir_ex
           {
             if (am->dof[i] < 0) continue;
             fv->set_active_shape(am->idx[i]);
-            // FIXME - the NULL on the following line is temporary, an array of solutions 
-            // should be passed there.
             scalar val = eval_form(vfs, u_ext, fv, &refmap[m], &(ep[edge])) * am->coef[i];
             rhs_ext->add(am->dof[i], val);
           }
