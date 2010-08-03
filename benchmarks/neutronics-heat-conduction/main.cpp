@@ -194,7 +194,7 @@ int main(int argc, char* argv[])
   wf.add_vector_form(0, res_T, res_T_ord, H2D_ANY, &T_prev_time);
   wf.add_matrix_form(1, 0, jac_phiT, jac_phiT_ord);
   wf.add_matrix_form(1, 1, jac_phiphi, jac_phiphi_ord);
-  wf.add_vector_form(1, res_phi, res_phi_ord, H2D_ANY, &T_prev_time);
+  wf.add_vector_form(1, res_phi, res_phi_ord, H2D_ANY, &phi_prev_time);
   
   // Initialize the nonlinear system.
   DiscreteProblem dp(&wf, spaces);
@@ -253,7 +253,7 @@ int main(int argc, char* argv[])
     T_prev_time.copy(&T_prev_newton);
     phi_prev_time.copy(&phi_prev_newton);
   }
-  while (t_step < TIME_MAX_ITER);
+  while (t_step <= TIME_MAX_ITER);
 
   // Wait for all views to be closed.
   View::wait();
