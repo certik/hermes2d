@@ -434,7 +434,7 @@ int main(int argc, char* argv[])
     DiffFilter err_distrib_1(&ex1, &sln1);
     DiffFilter err_distrib_2(&ex2, &sln2);
 
-    double err_exact_h1_1 = calc_rel_error(&ex1, &sln1, H2D_H1_NORM)) * 100;
+    double err_exact_h1_1 = calc_rel_error(&ex1, &sln1, H2D_H1_NORM) * 100;
     double err_exact_h1_2 = calc_rel_error(&ex2, &sln2, H2D_H1_NORM) * 100;
 
     Tuple<Solution*> exslns(&ex1, &ex2);
