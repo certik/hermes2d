@@ -1314,7 +1314,7 @@ bool solve_newton(Tuple<Space *> spaces, WeakForm* wf, Tuple<int>proj_norms,
   // the NULL means we do not want the resulting Solution, just the coeff. vector
   // in order to pass the sanity checks in project_global, a Tuple of NULL pointers to Solution of the same length as init_meshfns must be supplied
   //TODO: figure out a less ugly way of doing it
-  Tuple<Solution*> *p_null_slns = static_cast<Tuple<Solution*> *>( new std::vector<Solution*>(num_comps, NULL) );
+  Tuple<Solution*> *p_null_slns = static_cast<Tuple<Solution*> *>( new std::vector<Solution*>(num_comps, static_cast<Solution*>(NULL)) );
   project_global(spaces, proj_norms, init_meshfns, *p_null_slns, init_coeff_vec, is_complex); 
 
   bool flag;
