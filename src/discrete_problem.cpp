@@ -1036,7 +1036,10 @@ void project_global(Tuple<Space *> spaces, WeakForm *wf, Tuple<MeshFunction*> so
   // Calculate the Newton coefficient vector.
   solver.solve(&mat, rhs);
 
-  // If the user wants the resulting Solutions. 
+  // If the user wants the resulting Solutions.
+  // TODO: Wouldn't it be easier (and unnoticeably, but still faster) to check whether target_slns.size > 0?
+  // Anyway, if target_slns.size == 0 then the last sanity check would fail unless n == target_slns.size() == 0, which would however fail the first sanity check.
+  // IMHO The following if condition is thus not neccessary.
   if(target_slns != Tuple<Solution *>()) {
     for (int i=0; i < wf->neq; i++) {
       if (target_slns[i] != NULL) target_slns[i]->set_fe_solution(spaces[i], rhs);
@@ -1301,13 +1304,18 @@ bool solve_newton(Tuple<Space *> spaces, WeakForm* wf, Tuple<int>proj_norms,
   // Project init_meshfns on the FE space
   // to obtain initial coefficient vector for the Newton's method.
   if (verbose) info("Projecting to obtain initial vector for the Newton'w method.");
+  
+  //TODO: Are the next 2 lines really neccessary?
   Tuple<Solution *> init_slns;
   for (int i = 0; i < num_comps; i++) init_slns.push_back(new Solution());
     
   Vector* init_coeff_vec = new AVector(ndof);
 
   // the NULL means we do not want the resulting Solution, just the coeff. vector
-  project_global(spaces, proj_norms, init_meshfns, NULL, init_coeff_vec, is_complex); 
+  // in order to pass the sanity checks in project_global, a Tuple of NULL pointers to Solution of the same length as init_meshfns must be supplied
+  //TODO: figure out a less ugly way of doing it
+  Tuple<Solution*> *p_null_slns = static_cast<Tuple<Solution*> *>( new std::vector<Solution*>(num_comps, NULL) );
+  project_global(spaces, proj_norms, init_meshfns, *p_null_slns, init_coeff_vec, is_complex); 
 
   bool flag;
   flag = solve_newton(spaces, wf, init_coeff_vec, matrix_solver, 

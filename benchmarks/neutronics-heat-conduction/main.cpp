@@ -30,13 +30,15 @@
 // The following parameters can be changed:
 //
 
-const int INIT_GLOB_REF_NUM = 4;                // Number of initial uniform mesh refinements.
-const int INIT_BDY_REF_NUM = 0;                 // Number of initial refinements towards boundary.
-const int P_INIT = 2;                           // Initial polynomial degree of all mesh elements.
-const double TAU = 0.1;                         // Time step.
-const double T_FINAL = 10.0;                    // Time interval length.
-const double NEWTON_TOL = 1e-6;                 // Stopping criterion for the Newton's method.
-const int NEWTON_MAX_ITER = 100;                // Maximum allowed number of Newton iterations.
+const int INIT_GLOB_REF_NUM = 4;                  // Number of initial uniform mesh refinements.
+const int INIT_BDY_REF_NUM = 0;                   // Number of initial refinements towards boundary.
+const int P_INIT = 2;                             // Initial polynomial degree of all mesh elements.
+const double TAU = 0.1;                           // Time step.
+const double T_FINAL = 10.0;                      // Time interval length.
+const double NEWTON_TOL = 1e-6;                   // Stopping criterion for the Newton's method.
+const int NEWTON_MAX_ITER = 100;                  // Maximum allowed number of Newton iterations.
+MatrixSolverType matrix_solver = SOLVER_UMFPACK;  // Possibilities: SOLVER_UMFPACK, SOLVER_PETSC,
+                                                  // SOLVER_MUMPS, and more are coming.
 
 // Problem parameters.
 
@@ -161,6 +163,7 @@ int main(int argc, char* argv[])
   // Create H1 spaces with default shapesets.
   H1Space space_T(&mesh, bc_types_T, essential_bc_values_T, P_INIT);
   H1Space space_phi(&mesh, bc_types_phi, essential_bc_values_phi, P_INIT);
+  Tuple<Space*> spaces(&space_T, &space_phi);
 
   // Exact solutions for error evaluation.
   ExactSolution T_solution(&mesh, T_exact),
@@ -175,31 +178,34 @@ int main(int argc, char* argv[])
   ScalarView sview_T_exact("Solution for the temperature T", 550, 0, 500, 400);
   ScalarView sview_phi_exact("Solution for the neutron flux phi", 550, 500, 500, 400);
 
-  // Solutions.
-  Solution T_prev_time, phi_prev_time, T_prev_newton, phi_prev_newton;
+  // Solutions in the previous time step.
+  Solution T_prev_time, phi_prev_time;
+  Tuple<MeshFunction*> time_iterates(&T_prev_time, &phi_prev_time);
+  
+  // Solutions in the previous Newton's iteration.
+  Solution T_prev_newton, phi_prev_newton;
+  Tuple<Solution*> newton_iterates(&T_prev_newton, &phi_prev_newton);
 
   // Initialize the weak formulation.
   WeakForm wf(2);
-  wf.add_matrix_form(0, 0, jac_TT, jac_TT_ord, H2D_UNSYM, H2D_ANY, &T_prev_newton);
-  wf.add_matrix_form(0, 1, jac_Tphi, jac_Tphi_ord, H2D_UNSYM, H2D_ANY, 0);
-  wf.add_vector_form(0, res_T, res_T_ord, H2D_ANY, 
-                Tuple<MeshFunction*>(&T_prev_newton, &T_prev_time, &phi_prev_newton));
-  wf.add_matrix_form(1, 0, jac_phiT, jac_phiT_ord, H2D_UNSYM, H2D_ANY, 
-                Tuple<MeshFunction*>(&phi_prev_newton, &T_prev_newton));
-  wf.add_matrix_form(1, 1, jac_phiphi, jac_phiphi_ord, H2D_UNSYM, H2D_ANY, &T_prev_newton);
-  wf.add_vector_form(1, res_phi, res_phi_ord, H2D_ANY, 
-                Tuple<MeshFunction*>(&phi_prev_newton, &phi_prev_time, &T_prev_newton));
+  wf.add_matrix_form(0, 0, jac_TT, jac_TT_ord);
+  wf.add_matrix_form(0, 1, jac_Tphi, jac_Tphi_ord);
+  wf.add_vector_form(0, res_T, res_T_ord, H2D_ANY, &T_prev_time);
+  wf.add_matrix_form(1, 0, jac_phiT, jac_phiT_ord);
+  wf.add_matrix_form(1, 1, jac_phiphi, jac_phiphi_ord);
+  wf.add_vector_form(1, res_phi, res_phi_ord, H2D_ANY, &T_prev_time);
+  
+  // Initialize the nonlinear system.
+  DiscreteProblem dp(&wf, spaces);
 
-  // Initialize nonlinear system.
-  NonlinSystem nls(&wf, Tuple<Space*>(&space_T, &space_phi));
-
-  // Project initial conditions on FE spaces to obtain initial 
-  // vector for the Newton's method.
-  info("Projecting initial conditions to obtain initial vector for the Newton's method.");
+  // Set initial conditions.
   T_prev_time.set_exact(&mesh, T_exact);
   phi_prev_time.set_exact(&mesh, phi_exact);
-  nls.project_global(Tuple<MeshFunction*>(&T_prev_time, &phi_prev_time), 
-                     Tuple<Solution*>(&T_prev_newton, &phi_prev_newton));
+  
+  // Project initial conditions on FE spaces to obtain initial vector for the Newton's method.
+  info("Projecting initial conditions to obtain initial vector for the Newton's method.");
+  Tuple<int> proj_norms(H2D_H1_NORM, H2D_H1_NORM);
+  project_global(spaces, proj_norms, time_iterates, newton_iterates);
 
   // Time stepping.
   int t_step = 1;
@@ -211,8 +217,10 @@ int main(int argc, char* argv[])
     // Newton's method.
     info("Newton's iteration...");
     bool verbose = true; // Default is false.
-    if (!nls.solve_newton(Tuple<Solution*>(&T_prev_newton, &phi_prev_newton), 
-                          NEWTON_TOL, NEWTON_MAX_ITER, verbose)) 
+    bool did_converge = solve_newton( spaces, &wf, proj_norms, 
+                                      time_iterates, newton_iterates, 
+                                      matrix_solver, NEWTON_TOL, NEWTON_MAX_ITER, verbose); 
+    if (!did_converge)
       error("Newton's method did not converge.");
 
     // Update previous time level solution.
@@ -242,8 +250,8 @@ int main(int argc, char* argv[])
 
     // Calculate exact error.
     info("Calculating error (exact).");
-    T_error = h1_error(&T_prev_time, &T_solution) * 100;
-    phi_error = h1_error(&phi_prev_time, &phi_solution) * 100;
+    T_error = calc_rel_error(&T_prev_time, &T_solution, H2D_H1_NORM) * 100;
+    phi_error = calc_rel_error(&phi_prev_time, &phi_solution, H2D_H1_NORM) * 100;
     error = std::max(T_error, phi_error);
     info("Exact solution error for T (H1 norm): %g %%", T_error);
     info("Exact solution error for phi (H1 norm): %g %%", phi_error);
