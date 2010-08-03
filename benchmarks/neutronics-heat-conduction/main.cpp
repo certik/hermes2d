@@ -166,17 +166,18 @@ int main(int argc, char* argv[])
   Tuple<Space*> spaces(&space_T, &space_phi);
 
   // Exact solutions for error evaluation.
-  ExactSolution T_solution(&mesh, T_exact),
-                phi_solution(&mesh, phi_exact);
+  ExactSolution T_exact_solution(&mesh, T_exact),
+                phi_exact_solution(&mesh, phi_exact);
 
   // Exact errors.
   double T_error, phi_error, error;
 
-  // Initialize views.
-  ScalarView sview_T("Solution for the temperature T", 0, 0, 500, 400);
-  ScalarView sview_phi("Solution for the neutron flux phi", 0, 500, 500, 400);
-  ScalarView sview_T_exact("Solution for the temperature T", 550, 0, 500, 400);
-  ScalarView sview_phi_exact("Solution for the neutron flux phi", 550, 500, 500, 400);
+  // Initialize solution views (their titles will be updated in each time step).
+  ScalarView sview_T("", 0, 0, 500, 400);
+  ScalarView sview_phi("", 0, 500, 500, 400);
+  ScalarView sview_T_exact("", 550, 0, 500, 400);
+  ScalarView sview_phi_exact("", 550, 500, 500, 400);
+  char title[100]; // Character array to store the title for an actual view and time step.
 
   // Solutions in the previous time step.
   Solution T_prev_time, phi_prev_time;
@@ -197,15 +198,11 @@ int main(int argc, char* argv[])
   
   // Initialize the nonlinear system.
   DiscreteProblem dp(&wf, spaces);
+  Tuple<int> proj_norms(H2D_H1_NORM, H2D_H1_NORM);
 
   // Set initial conditions.
   T_prev_time.set_exact(&mesh, T_exact);
   phi_prev_time.set_exact(&mesh, phi_exact);
-  
-  // Project initial conditions on FE spaces to obtain initial vector for the Newton's method.
-  info("Projecting initial conditions to obtain initial vector for the Newton's method.");
-  Tuple<int> proj_norms(H2D_H1_NORM, H2D_H1_NORM);
-  project_global(spaces, proj_norms, time_iterates, newton_iterates);
 
   // Time stepping.
   int t_step = 1;
@@ -222,40 +219,39 @@ int main(int argc, char* argv[])
                                       matrix_solver, NEWTON_TOL, NEWTON_MAX_ITER, verbose); 
     if (!did_converge)
       error("Newton's method did not converge.");
-
-    // Update previous time level solution.
-    T_prev_time.copy(&T_prev_newton);
-    phi_prev_time.copy(&phi_prev_newton);
-
+    
     // Show the new time level solution.
-    char title[100];
-    sprintf(title, "Approx. solution for T, t = %g s", TIME);
-    sview_T.set_title(title);
     sview_T.show(&T_prev_newton);
+    sprintf(title, "Approx. solution for T, t = %g s", TIME);
+    sview_T.set_title(title);   // This has to be called after show(), otherwise the title for t = 0.1s is not updated.
+    sview_phi.show(&phi_prev_newton);
     sprintf(title, "Approx. solution for phi, t = %g s", TIME);
     sview_phi.set_title(title);
-    sview_phi.show(&phi_prev_newton);
 
     // Exact solution for comparison with computational results.
-    T_solution.update(&mesh, T_exact);
-    phi_solution.update(&mesh, phi_exact);
+    T_exact_solution.update(&mesh, T_exact);
+    phi_exact_solution.update(&mesh, phi_exact);
 
     // Show exact solution.
+    sview_T_exact.show(&T_exact_solution);
     sprintf(title, "Exact solution for T, t = %g s", TIME);
     sview_T_exact.set_title(title);
-    sview_T_exact.show(&T_solution);
+    sview_phi_exact.show(&phi_exact_solution);
     sprintf(title, "Exact solution for phi, t = %g s", TIME);
     sview_phi_exact.set_title(title);
-    sview_phi_exact.show(&phi_solution);
 
     // Calculate exact error.
     info("Calculating error (exact).");
-    T_error = calc_rel_error(&T_prev_time, &T_solution, H2D_H1_NORM) * 100;
-    phi_error = calc_rel_error(&phi_prev_time, &phi_solution, H2D_H1_NORM) * 100;
+    T_error = calc_rel_error(&T_prev_newton, &T_exact_solution, H2D_H1_NORM) * 100;
+    phi_error = calc_rel_error(&phi_prev_newton, &phi_exact_solution, H2D_H1_NORM) * 100;
     error = std::max(T_error, phi_error);
     info("Exact solution error for T (H1 norm): %g %%", T_error);
     info("Exact solution error for phi (H1 norm): %g %%", phi_error);
     info("Exact solution error (maximum): %g %%", error);
+    
+    // Prepare previous time level solution for the next time step.
+    T_prev_time.copy(&T_prev_newton);
+    phi_prev_time.copy(&phi_prev_newton);
   }
   while (t_step < TIME_MAX_ITER);
 

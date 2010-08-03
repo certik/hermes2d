@@ -1303,7 +1303,7 @@ bool solve_newton(Tuple<Space *> spaces, WeakForm* wf, Tuple<int>proj_norms,
 
   // Project init_meshfns on the FE space
   // to obtain initial coefficient vector for the Newton's method.
-  if (verbose) info("Projecting to obtain initial vector for the Newton'w method.");
+  if (verbose) info("Projecting to obtain initial vector for the Newton's method.");
   
   //TODO: Are the next 2 lines really neccessary?
   Tuple<Solution *> init_slns;
@@ -1432,7 +1432,7 @@ bool solve_newton_adapt(Tuple<Space *> spaces, WeakForm* wf, Tuple<int>proj_norm
   // Number of physical fields in the problem.
   int num_comps = spaces.size();
 
-  // Number of degreeso of freedom 
+  // Number of degrees of freedom 
   int ndof = get_num_dofs(spaces);
 
   // Number of exact solutions given.
@@ -1525,7 +1525,7 @@ bool solve_newton_adapt(Tuple<Space *> spaces, WeakForm* wf, Tuple<int>proj_norm
 
     // Construct globally refined reference mesh(es)
     // and setup reference space(s).
-    int num_comps = 1;
+    int num_comps = 1; //FIXME: Make this function work for problems with multi-component solution.
     Tuple<Space *> ref_spaces;
     for (int i = 0; i < num_comps; i++) {
       Mesh *ref_mesh = new Mesh();
