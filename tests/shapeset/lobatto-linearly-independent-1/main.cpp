@@ -4,8 +4,8 @@
 
 int P_INIT = 10;
 double EPS = 10e-14;
-// This test make sure the Lobatto shape 
-// function is linearly independent.
+// This test makes sure the Lobatto shape 
+// functions are linearly independent.
 
 int main(int argc, char* argv[])
 {
@@ -17,11 +17,10 @@ int main(int argc, char* argv[])
 
   // Create an H1 space with default shapeset,
   // natural BC, and linear elements.
-  H1Space space(&mesh);
+  H1Space space(&mesh, NULL, NULL, P_INIT);
   // The type of element, mesh_mode = 4 means a rectangle element.
   int mesh_mode = 4;
-  space.set_uniform_order(P_INIT);
-  int n = space.get_num_dofs();
+  int n = get_num_dofs(&space);
 
   printf("\n.........................\n");
 
@@ -62,12 +61,7 @@ int main(int argc, char* argv[])
   Vector* rhs = new AVector(n);
   CommonSolverSciPyUmfpack solver;
 
-  info("Get the (n x n)  matrix"); 
-  for (int i = 0; i < n; i++)
-    for (int j = 0; j < n; j++)
-      mat.add(i, j, 0.0);
-
-  info("DOFs = %d", n);
+  info("ndof = %d", n);
   for (int i = 0; i < n; i++)
   {
     for (int j = 0; j < order; j++)
