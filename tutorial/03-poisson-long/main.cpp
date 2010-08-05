@@ -60,9 +60,22 @@ int main(int argc, char* argv[])
   wf.add_matrix_form(callback(bilinear_form));
   wf.add_vector_form(callback(linear_form));
 
-  // Solve the linear problem.
+  // Initialize the linear problem.
+  LinearProblem lp(&wf, &space);
+
+  // Select matrix solver.
+  Matrix* mat; Vector* rhs; CommonSolver* solver;
+  init_matrix_solver(matrix_solver, ndof, mat, rhs, solver);
+
+  // Assemble stiffness matrix and rhs.
+  lp.assemble(mat, rhs);
+
+  // Solve the matrix problem.
+  if (!solver->solve(mat, rhs)) error ("Matrix solver failed.\n");
+
+  // Convert coefficient vector into a Solution.
   Solution sln;
-  solve_linear(&space, &wf, &sln, matrix_solver);
+  sln.set_fe_solution(&space, rhs);
 
   // Visualize the solution.
   WinGeom* sln_win_geom = new WinGeom(0, 0, 440, 350);

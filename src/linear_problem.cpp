@@ -77,7 +77,8 @@ bool solve_linear(Tuple<Space *> spaces, WeakForm* wf, Tuple<Solution *> solutio
   for (int i=0; i<solutions.size(); i++) {
     solutions[i]->set_fe_solution(spaces[i], rhs);
   }
-	return true;
+	
+  return true;
 }
 
 // Solve a typical linear problem using automatic adaptivity.
@@ -313,7 +314,8 @@ bool solve_linear_adapt(Tuple<Space *> spaces, WeakForm* wf, Tuple<int> proj_nor
   while (done == false);
 
   if (verbose) info("Total running time: %g s", cpu_time.accumulated());
-	return true;
+	
+  return true;
 }
 
 
