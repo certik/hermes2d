@@ -221,3 +221,17 @@ The projection (note that this is a discontinuous function):
    :width: 400
    :alt: Projection
 
+Adapting Mesh to an Exact Function (33)
+---------------------------------------
+
+**Git reference:** Tutorial example `33-exact-adapt <http://git.hpfem.org/hermes2d.git/tree/HEAD:/tutorial/33-exact-adapt>`_. 
+
+Description coming soon.
+
+Remote Computing (34)
+---------------------------------------
+
+**Git reference:** Tutorial example `34-remote-computing <http://git.hpfem.org/hermes2d.git/tree/HEAD:/tutorial/34-remote-computing>`_. 
+
+Description coming soon.
+

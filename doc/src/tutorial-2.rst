@@ -858,3 +858,275 @@ Convergence comparison in terms of CPU time.
    :height: 400
    :alt: CPU convergence graph for tutorial example 12-general-adapt.
 
+Complex-Valued Problem (13)
+---------------------------
+
+**Git reference:** Tutorial example `13-complex-adapt <http://git.hpfem.org/hermes2d.git/tree/HEAD:/tutorial/13-complex-adapt>`_. 
+
+This example solves a complex-valued vector potential problem
+
+.. math::
+
+    -\Delta A + j \omega \gamma \mu A = \mu J_{ext}
+
+in a two-dimensional cross-section containing a conductor and an iron object as
+shown in the following schematic picture:
+
+.. image:: img/example-13/domain.png
+   :align: center
+   :height: 500
+   :alt: Domain.
+
+The computational domain is a rectangle of height 0.003 and width 0.004. 
+Different material markers are used for the wire, air, and iron 
+(see mesh file `domain2.mesh <http://git.hpfem.org/hermes2d.git/blob/HEAD:/tutorial/13-complex-adapt/domain2.mesh>`_).
+
+Boundary conditions are zero Dirichlet on the top and right edges, and zero Neumann
+elsewhere.
+
+Solution:
+
+.. image:: img/example-13/solution.png
+   :align: center
+   :height: 400
+   :alt: Solution.
+
+Complex-valued weak forms:
+
+::
+
+    template<typename Real, typename Scalar>
+    Scalar bilinear_form_iron(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+    {
+      scalar ii = cplx(0.0, 1.0);
+      return 1./mu_iron * int_grad_u_grad_v<Real, Scalar>(n, wt, u, v) + ii*omega*gamma_iron*int_u_v<Real, Scalar>(n, wt, u, v);
+    }
+
+    template<typename Real, typename Scalar>
+    Scalar bilinear_form_wire(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+    {
+      return 1./mu_0 * int_grad_u_grad_v<Real, Scalar>(n, wt, u, v);
+    }
+
+    template<typename Real, typename Scalar>
+    Scalar bilinear_form_air(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+    {
+      return 1./mu_0 * int_grad_u_grad_v<Real, Scalar>(n, wt, u, v); // conductivity gamma is zero
+    }
+
+    template<typename Real, typename Scalar>
+    Scalar linear_form_wire(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+    {
+      return J_wire * int_v<Real, Scalar>(n, wt, v);
+    }
+
+After loading the mesh and performing initial mesh refinements, we create an H1 space:
+
+::
+
+    // Create an H1 space with default shapeset.
+    H1Space space(&mesh, bc_types, essential_bc_values, P_INIT);
+
+
+The weak forms are registered as follows:
+
+::
+
+    // Initialize the weak formulation.
+    WeakForm wf;
+    wf.add_matrix_form(callback(bilinear_form_iron), H2D_SYM, 3);
+    wf.add_matrix_form(callback(bilinear_form_wire), H2D_SYM, 2);
+    wf.add_matrix_form(callback(bilinear_form_air), H2D_SYM, 1);
+    wf.add_vector_form(callback(linear_form_wire), 2);
+
+Let us compare adaptive $h$-FEM with linear and quadratic elements and the $hp$-FEM.
+
+Final mesh for $h$-FEM with linear elements: 18694 DOF, error = 1.02 \%
+
+
+.. image:: img/example-13/mesh-h1.png
+   :align: center
+   :height: 400
+   :alt: Mesh.
+
+Final mesh for $h$-FEM with quadratic elements: 46038 DOF, error = 0.018 \%
+
+.. image:: img/example-13/mesh-h2.png
+   :align: center
+   :height: 400
+   :alt: Mesh.
+
+Final mesh for $hp$-FEM: 4787 DOF, error = 0.00918 \%
+
+.. image:: img/example-13/mesh-hp.png
+   :align: center
+   :height: 400
+   :alt: Mesh.
+
+Convergence graphs of adaptive h-FEM with linear elements, h-FEM with quadratic elements
+and hp-FEM are shown below.
+
+.. image:: img/example-13/conv_compar_dof.png
+   :align: center
+   :width: 600
+   :height: 400
+   :alt: DOF convergence graph.
+
+Time-Harmonic Maxwell's Equations (14)
+--------------------------------------
+
+**Git reference:** Tutorial example `14-hcurl-adapt <http://git.hpfem.org/hermes2d.git/tree/HEAD:/tutorial/14-hcurl-adapt>`_. 
+
+This example solves time-harmonic Maxwell's equations in an L-shaped domain and it 
+describes the diffraction of an electromagnetic wave from a re-entrant corner. It comes with an 
+exact solution that contains singularity.
+
+Equation solved: Time-harmonic Maxwell's equations
+
+.. math::
+    :label: example-14
+
+    \frac{1}{\mu_r} \nabla \times \nabla \times E - \kappa^2 \epsilon_r E = \Phi.
+
+Domain of interest is the square $(-10, 10)^2$ missing the quarter lying in the 
+fourth quadrant. It is filled with air:
+
+.. image:: img/example-14/domain.png
+   :align: center
+   :width: 490
+   :height: 490
+   :alt: Computational domain.
+
+Boundary conditions: Combined essential and natural, see the 
+`main.cpp <http://git.hpfem.org/hermes2d.git/blob/HEAD:/tutorial/14-hcurl-adapt/main.cpp>`_ file.
+
+Exact solution:
+
+.. math::
+    :label: example-14-exact
+
+    E(x, y) = \nabla \times J_{\alpha} (r) \cos(\alpha \theta)
+
+where $J_{\alpha}$ is the Bessel function of the first kind, 
+$(r, \theta)$ the polar coordinates and $\alpha = 2/3$. In 
+computer code, this reads:
+
+::
+
+    void exact_sol(double x, double y, scalar& e0, scalar& e1)
+    {
+      double t1 = x*x;
+      double t2 = y*y;
+      double t4 = sqrt(t1+t2);
+      double t5 = jv(-1.0/3.0,t4);
+      double t6 = 1/t4;
+      double t7 = jv(2.0/3.0,t4);
+      double t11 = (t5-2.0/3.0*t6*t7)*t6;
+      double t12 = atan2(y,x);
+      if (t12 < 0) t12 += 2.0*M_PI;
+      double t13 = 2.0/3.0*t12;
+      double t14 = cos(t13);
+      double t17 = sin(t13);
+      double t18 = t7*t17;
+      double t20 = 1/t1;
+      double t23 = 1/(1.0+t2*t20);
+      e0 = t11*y*t14-2.0/3.0*t18/x*t23;
+      e1 = -t11*x*t14-2.0/3.0*t18*y*t20*t23;
+    }  
+
+Here jv() is the Bessel function $\bfJ_{\alpha}$. For its source code see the 
+`forms.cpp <http://git.hpfem.org/hermes2d.git/blob/HEAD:/tutorial/14-hcurl-adapt/forms.cpp>`_ file.
+
+Code for the weak forms:
+
+::
+
+    template<typename Real, typename Scalar>
+    Scalar bilinear_form(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+    {
+    return 1.0/mu_r * int_curl_e_curl_f<Real, Scalar>(n, wt, u, v) -
+           sqr(kappa) * int_e_f<Real, Scalar>(n, wt, u, v);
+    }
+   
+    template<typename Real, typename Scalar>
+    Scalar bilinear_form_surf(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+    {
+      cplx ii = cplx(0.0, 1.0);
+      return ii * (-kappa) * int_e_tau_f_tau<Real, Scalar>(n, wt, u, v, e);
+    }
+   
+    scalar linear_form_surf(int n, double *wt, Func<scalar> *u_ext[], Func<double> *v, Geom<double> *e, ExtData<scalar> *ext)
+    {
+      scalar result = 0;
+      for (int i = 0; i < n; i++)
+      {
+        double r = sqrt(e->x[i] * e->x[i] + e->y[i] * e->y[i]);
+        double theta = atan2(e->y[i], e->x[i]);
+        if (theta < 0) theta += 2.0*M_PI;
+        double j13    = jv(-1.0/3.0, r),    j23    = jv(+2.0/3.0, r);
+        double cost   = cos(theta),         sint   = sin(theta);
+        double cos23t = cos(2.0/3.0*theta), sin23t = sin(2.0/3.0*theta);
+   
+        double Etau = e->tx[i] * (cos23t*sint*j13 - 2.0/(3.0*r)*j23*(cos23t*sint + sin23t*cost)) +
+                      e->ty[i] * (-cos23t*cost*j13 + 2.0/(3.0*r)*j23*(cos23t*cost - sin23t*sint));
+  
+        result += wt[i] * cplx(cos23t*j23, -Etau) * ((v->val0[i] * e->tx[i] + v->val1[i] * e->ty[i]));
+      }
+      return result;
+    }
+
+    // Maximal polynomial order to integrate surface linear form.
+    Ord linear_form_surf_ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext)
+    {  return Ord(v->val[0].get_max_order());  }
+
+Solution:
+
+.. image:: img/example-14/solution.png
+   :align: center
+   :width: 500
+   :height: 420
+   :alt: Solution.
+
+Final mesh (h-FEM with linear elements):
+
+.. image:: img/example-14/mesh-h1.png
+   :align: center
+   :width: 460
+   :height: 390
+   :alt: Final mesh (h-FEM with linear elements).
+
+Note that the polynomial order indicated corresponds to the tangential components 
+of approximation on element interfaces, not to polynomial degrees inside the elements
+(those are one higher).
+
+Final mesh (h-FEM with quadratic elements):
+
+.. image:: img/example-14/mesh-h2.png
+   :align: center
+   :width: 460
+   :height: 390
+   :alt: Final mesh (h-FEM with quadratic elements).
+
+Final mesh (hp-FEM):
+
+.. image:: img/example-14/mesh-hp.png
+   :align: center
+   :width: 460
+   :height: 390
+   :alt: Final mesh (hp-FEM).
+
+DOF convergence graphs:
+
+.. image:: img/example-14/conv_dof.png
+   :align: center
+   :width: 600
+   :height: 400
+   :alt: DOF convergence graph.
+
+CPU time convergence graphs:
+
+.. image:: img/example-14/conv_cpu.png
+   :align: center
+   :width: 600
+   :height: 400
+   :alt: CPU convergence graph.
