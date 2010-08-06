@@ -1,19 +1,7 @@
 #define H2D_REPORT_INFO
 #include "hermes2d.h"
 
-// This example shows how to define Neumann boundary conditions. In addition,
-// you will see how a Filter is used to visualize gradient of the solution
-//
-// PDE: Poisson equation -Laplace u = f, where f = CONST_F
-//
-// BC: u = 0 on Gamma_4 (edges meeting at the re-entrant corner)
-//     du/dn = CONST_GAMMA_1 on Gamma_1 (bottom edge)
-//     du/dn = CONST_GAMMA_2 on Gamma_2 (top edge, circular arc, and right-most edge)
-//     du/dn = CONST_GAMMA_3 on Gamma_3 (left-most edge)
-//
-// You can play with the parameters below. For most choices of the four constants,
-// the solution has a singular (infinite) gradient at the re-entrant corner.
-// Therefore we visualize not only the solution but also its gradient.
+// This is a long version of example 05-bc-neumann: function solve_linear() is not used.
 
 int P_INIT = 4;                                   // Initial polynomial degree in all elements.
 int CORNER_REF_LEVEL = 12;                        // Number of mesh refinements towards the re-entrant corner.
@@ -63,9 +51,22 @@ int main(int argc, char* argv[])
   wf.add_vector_form(callback(linear_form));
   wf.add_vector_form_surf(callback(linear_form_surf));
 
-  // Solve the linear problem.
+  // Initialize the linear problem.
+  LinearProblem lp(&wf, &space);
+
+  // Select matrix solver.
+  Matrix* mat; Vector* rhs; CommonSolver* solver;
+  init_matrix_solver(matrix_solver, ndof, mat, rhs, solver);
+
+  // Assemble stiffness matrix and rhs.
+  lp.assemble(mat, rhs);
+
+  // Solve the matrix problem.
+  if (!solver->solve(mat, rhs)) error ("Matrix solver failed.\n");
+
+  // Convert coefficient vector into a Solution.
   Solution sln;
-  solve_linear(&space, &wf, &sln, matrix_solver);
+  sln.set_fe_solution(&space, rhs);
 
   // Visualize the approximation.
   WinGeom* sln_win_geom = new WinGeom(0, 0, 440, 350);

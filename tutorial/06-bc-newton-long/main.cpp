@@ -1,43 +1,30 @@
 #define H2D_REPORT_INFO
 #include "hermes2d.h"
 
-// This example shows how to define Neumann boundary conditions. In addition,
-// you will see how a Filter is used to visualize gradient of the solution
-//
-// PDE: Poisson equation -Laplace u = f, where f = CONST_F
-//
-// BC: u = 0 on Gamma_4 (edges meeting at the re-entrant corner)
-//     du/dn = CONST_GAMMA_1 on Gamma_1 (bottom edge)
-//     du/dn = CONST_GAMMA_2 on Gamma_2 (top edge, circular arc, and right-most edge)
-//     du/dn = CONST_GAMMA_3 on Gamma_3 (left-most edge)
-//
-// You can play with the parameters below. For most choices of the four constants,
-// the solution has a singular (infinite) gradient at the re-entrant corner.
-// Therefore we visualize not only the solution but also its gradient.
+// This is a long version of example 06-bc-newton: function solve_linear() is not used.
 
-int P_INIT = 4;                                   // Initial polynomial degree in all elements.
+
+int P_INIT = 6;                                   // Uniform polynomial degree of all mesh elements.
+int UNIFORM_REF_LEVEL = 2;                        // Number of initial uniform mesh refinements.
 int CORNER_REF_LEVEL = 12;                        // Number of mesh refinements towards the re-entrant corner.
 MatrixSolverType matrix_solver = SOLVER_UMFPACK;  // Possibilities: SOLVER_UMFPACK, SOLVER_PETSC,
                                                   // SOLVER_MUMPS, and more are coming.
 
-
 // Problem parameters.
-double CONST_F = -1.0;                            // Right-hand side.
-double CONST_GAMMA[3] = {-0.5, 1.0, -0.5};        // Outer normal derivative on Gamma_1,2,3.
+double T1 = 30.0;            // Prescribed temperature on Gamma_3.
+double T0 = 20.0;            // Outer temperature on Gamma_1.
+double H  = 0.05;            // Heat flux on Gamma_1.
+
+// Boundary markers.
+const int NEWTON_BDY = 1;
 
 // Boundary condition types.
-// Note: "natural" boundary condition means that 
-// the solution value is not prescribed.
 BCType bc_types(int marker)
-{
-  return (marker == 4) ? BC_ESSENTIAL : BC_NATURAL;
-}
+  { return (marker == 3) ? BC_ESSENTIAL : BC_NATURAL; }
 
 // Essential (Dirichlet) boundary condition values.
 scalar essential_bc_values(int ess_bdy_marker, double x, double y)
-{
-  return 0.0;
-}
+  { return T1; }
 
 // Weak forms.
 #include "forms.cpp"
@@ -50,6 +37,7 @@ int main(int argc, char* argv[])
   mloader.load("domain.mesh", &mesh);
 
   // Perform initial mesh refinements.
+  for(int i=0; i<UNIFORM_REF_LEVEL; i++) mesh.refine_all_elements();
   mesh.refine_towards_vertex(3, CORNER_REF_LEVEL);
 
   // Create an H1 space with default shapeset.
@@ -60,27 +48,40 @@ int main(int argc, char* argv[])
   // Initialize the weak formulation.
   WeakForm wf;
   wf.add_matrix_form(callback(bilinear_form));
-  wf.add_vector_form(callback(linear_form));
-  wf.add_vector_form_surf(callback(linear_form_surf));
+  wf.add_matrix_form_surf(callback(bilinear_form_surf), NEWTON_BDY);
+  wf.add_vector_form_surf(callback(linear_form_surf), NEWTON_BDY);
 
-  // Solve the linear problem.
+  // Initialize the linear problem.
+  LinearProblem lp(&wf, &space);
+
+  // Select matrix solver.
+  Matrix* mat; Vector* rhs; CommonSolver* solver;
+  init_matrix_solver(matrix_solver, ndof, mat, rhs, solver);
+
+  // Assemble stiffness matrix and rhs.
+  lp.assemble(mat, rhs);
+
+  // Solve the matrix problem.
+  if (!solver->solve(mat, rhs)) error ("Matrix solver failed.\n");
+
+  // Convert coefficient vector into a Solution.
   Solution sln;
-  solve_linear(&space, &wf, &sln, matrix_solver);
+  sln.set_fe_solution(&space, rhs);
 
-  // Visualize the approximation.
+  // Visualize the solution.
   WinGeom* sln_win_geom = new WinGeom(0, 0, 440, 350);
-  WinGeom* grad_win_geom = new WinGeom(450, 0, 400, 350);
   ScalarView view("Solution", sln_win_geom);
   view.show(&sln);
 
   // Compute and show gradient magnitude.
   // (Note that the gradient at the re-entrant
   // corner needs to be truncated for visualization purposes.)
+  WinGeom* grad_win_geom = new WinGeom(450, 0, 400, 350);
   ScalarView gradview("Gradient", grad_win_geom);
   MagFilter grad(&sln, &sln, H2D_FN_DX, H2D_FN_DY);
   gradview.show(&grad);
 
-  // Wait for the views to be closed.
+  // Wait for all views to be closed.
   View::wait();
   return 0;
 }

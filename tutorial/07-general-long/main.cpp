@@ -2,20 +2,7 @@
 #define H2D_REPORT_FILE "application.log"
 #include "hermes2d.h"
 
-//  This example solves a general second-order linear equation with non-constant
-//  coefficients, and shows how integration orders in linear and bilinear forms
-//  can be defined manually.
-//
-//  PDE: -d/dx(a_11(x,y)du/dx) - d/dx(a_12(x,y)du/dy) - d/dy(a_21(x,y)du/dx) - d/dy(a_22(x,y)du/dy)
-//       + a_1(x,y)du/dx + a_21(x,y)du/dy + a_0(x,y)u = rhs(x,y)
-//
-//  Domain: arbitrary
-//
-//  BC:  Dirichlet for boundary marker 1: u = g_D(x,y)
-//       Natural for any other boundary marker:   (a_11(x,y)*nu_1 + a_21(x,y)*nu_2) * dudx
-//                                              + (a_12(x,y)*nu_1 + s_22(x,y)*nu_2) * dudy = g_N(x,y)
-//
-//  The following parameters can be changed:
+// This is a long version of example 07-general: function solve_linear() is not used.
 
 const int P_INIT = 2;                             // Initial polynomial degree of all mesh elements.
 const int INIT_REF_NUM = 3;                       // Number of initial uniform refinements.
@@ -106,9 +93,22 @@ int main(int argc, char* argv[])
   wf.add_vector_form(linear_form, linear_form_ord);
   wf.add_vector_form_surf(linear_form_surf, linear_form_surf_ord, 2);
 
-  // Solve the linear problem.
+  // Initialize the linear problem.
+  LinearProblem lp(&wf, &space);
+
+  // Select matrix solver.
+  Matrix* mat; Vector* rhs; CommonSolver* solver;
+  init_matrix_solver(matrix_solver, ndof, mat, rhs, solver);
+
+  // Assemble stiffness matrix and rhs.
+  lp.assemble(mat, rhs);
+
+  // Solve the matrix problem.
+  if (!solver->solve(mat, rhs)) error ("Matrix solver failed.\n");
+
+  // Convert coefficient vector into a Solution.
   Solution sln;
-  solve_linear(&space, &wf, &sln, matrix_solver);
+  sln.set_fe_solution(&space, rhs);
 
   // Time measurement.
   cpu_time.tick();

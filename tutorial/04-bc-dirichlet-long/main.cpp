@@ -1,22 +1,7 @@
 #define H2D_REPORT_INFO
 #include "hermes2d.h"
 
-// This example illustrates how to use nonhomogeneous (nonzero)
-// Dirichlet boundary conditions.
-//
-// PDE: Poisson equation -Laplace u = CONST_F, where CONST_F is
-// a constant right-hand side. It is not difficult to see that
-// the function u(x,y) = (-CONST_F/4)*(x^2 + y^2) satisfies the
-// above PDE. Since also the Dirichlet boundary conditions
-// are chosen to match u(x,y), this function is the exact
-// solution.
-//
-// Note that since the exact solution is a quadratic polynomial,
-// Hermes will compute it exactly if all mesh elements are quadratic
-// or higher (then the exact solution lies in the finite element space).
-// If some elements in the mesh are linear, Hermes will only find
-// an approximation, Below you can play with the parameters CONST_F,
-// P_INIT, and INIT_REF_NUM.
+// This is a long version of example 04-bc-dirichlet: function solve_linear() is not used.
 
 int P_INIT = 2;                                   // Initial polynomial degree in all elements.
 int INIT_REF_NUM = 2;                             // Number of initial uniform mesh refinements.
@@ -62,9 +47,22 @@ int main(int argc, char* argv[])
   wf.add_matrix_form(callback(bilinear_form));
   wf.add_vector_form(callback(linear_form));
 
-  // Solve the linear problem.
+  // Initialize the linear problem.
+  LinearProblem lp(&wf, &space);
+
+  // Select matrix solver.
+  Matrix* mat; Vector* rhs; CommonSolver* solver;
+  init_matrix_solver(matrix_solver, ndof, mat, rhs, solver);
+
+  // Assemble stiffness matrix and rhs.
+  lp.assemble(mat, rhs);
+
+  // Solve the matrix problem.
+  if (!solver->solve(mat, rhs)) error ("Matrix solver failed.\n");
+
+  // Convert coefficient vector into a Solution.
   Solution sln;
-  solve_linear(&space, &wf, &sln, matrix_solver);
+  sln.set_fe_solution(&space, rhs);
 
   // Visualize the solution.
   WinGeom* sln_win_geom = new WinGeom(0, 0, 440, 350);
