@@ -1,6 +1,6 @@
 IF(H2D_COMPLEX)
 
-project(bessel)
+project(hcurl-adapt)
 
 # use the complex version of the library:
 set(HERMES ${HERMES_CPLX_BIN})

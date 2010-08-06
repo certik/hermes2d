@@ -1,4 +1,4 @@
 rm *~  
-./wire
+./complex-adapt
 python plot_graph.py &
 

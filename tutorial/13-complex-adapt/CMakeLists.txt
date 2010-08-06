@@ -3,7 +3,7 @@ if(NOT H2D_COMPLEX)
 endif(NOT H2D_COMPLEX)
 
 
-project(wire)
+project(complex-adapt)
 
 set(HERMES ${HERMES_CPLX_BIN})
 
