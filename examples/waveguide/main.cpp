@@ -66,6 +66,8 @@ const double ERR_STOP = 2.0;             // Stopping criterion for adaptivity (r
                                          // reference mesh and coarse mesh solution in percent).
 const int NDOF_STOP = 60000;             // Adaptivity process stops when the number of degrees of freedom grows
                                          // over this limit. This is to prevent h-adaptivity to go on forever.
+MatrixSolverType matrix_solver = SOLVER_UMFPACK;  // Possibilities: SOLVER_UMFPACK, SOLVER_PETSC,
+                                                  // SOLVER_MUMPS, and more are coming.
 
 // Problem parameters.
 const double e_0   = 8.8541878176 * 1e-12;
@@ -177,7 +179,7 @@ int main(int argc, char* argv[])
   // Initialize matrix solver.
   Matrix* mat; Vector* rhs; CommonSolver* solver;  
   bool is_complex = true; 
-  init_matrix_solver(SOLVER_UMFPACK, space.get_num_dofs(), mat, rhs, solver, is_complex);
+  init_matrix_solver(matrix_solver, space.get_num_dofs(), mat, rhs, solver, is_complex);
 
   // Adaptivity loop:
   Solution sln, ref_sln;
@@ -198,12 +200,12 @@ int main(int argc, char* argv[])
     ref_space->copy_orders(&space, order_increase);
  
     // Solve the reference problem.
-    solve_linear(ref_space, &wf, &ref_sln, SOLVER_UMFPACK, is_complex);
+    solve_linear(ref_space, &wf, &ref_sln, matrix_solver, is_complex);
 
     // Project the reference solution on the coarse mesh.
     info("Projecting reference solution on coarse mesh.");
-    int proj_type = 2;    // Hcurl projection.
-    project_global(&space, &ref_sln, &sln, proj_type);
+    // NULL means that we do not want to know the resulting coefficient vector.
+    project_global(&space, H2D_HCURL_NORM, &ref_sln, &sln, NULL, is_complex);
 
     // Time measurement.
     cpu_time.tick();
@@ -219,26 +221,28 @@ int main(int argc, char* argv[])
 
     // Calculate error estimate wrt. reference solution.
     info("Calculating error.");
-    HcurlAdapt hp(&space);
+    Adapt hp(&space, H2D_HCURL_NORM);
     hp.set_solutions(&sln, &ref_sln);
     hp.set_error_form(callback(hcurl_form_kappa));  // Adaptivity is done using an "energetic norm".
-    double err_est_adapt = hp.calc_error() * 100;
-    double err_est_hcurl = hcurl_error(&sln, &ref_sln) * 100;
+    double err_est_adapt = hp.calc_elem_errors() * 100;
+    double err_est_hcurl = calc_abs_error(&sln, &ref_sln, H2D_HCURL_NORM);
+    double norm_est = calc_norm(&ref_sln, H2D_HCURL_NORM); 
+    double err_est_hcurl_rel = err_est_hcurl / norm_est * 100;
 
     // Report results.
     info("ndof: %d, ref_ndof: %d, err_est: %g%%", 
-         space.get_num_dofs(), ref_space->get_num_dofs(), err_est_hcurl);
+         space.get_num_dofs(), ref_space->get_num_dofs(), err_est_hcurl_rel);
 
     // Add entries to DOF convergence graphs.
-    graph_dof_est.add_values(space.get_num_dofs(), err_est_hcurl);
+    graph_dof_est.add_values(space.get_num_dofs(), err_est_hcurl_rel);
     graph_dof_est.save("conv_dof_est.dat");
 
     // Add entries to CPU convergence graphs.
-    graph_cpu_est.add_values(cpu_time.accumulated(), err_est_hcurl);
+    graph_cpu_est.add_values(cpu_time.accumulated(), err_est_hcurl_rel);
     graph_cpu_est.save("conv_cpu_est.dat");
 
     // If err_est_adapt too large, adapt the mesh.
-    if (err_est_hcurl < ERR_STOP) done = true;
+    if (err_est_hcurl_rel < ERR_STOP) done = true;
     else {
       info("Adapting coarse mesh.");
       done = hp.adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY);

@@ -12,6 +12,8 @@ const double f_1  = 1e4;                                   // external force in 
 const double lambda = (E * nu) / ((1 + nu) * (1 - 2*nu));  // first Lame constant
 const double mu = E / (2*(1 + nu));                        // second Lame constant
 const int P_INIT = 8;                                      // Initial polynomial degree of all elements.
+MatrixSolverType matrix_solver = SOLVER_UMFPACK;           // Possibilities: SOLVER_UMFPACK, SOLVER_PETSC,
+                                                           // SOLVER_MUMPS, and more are coming.
 
 // Boundary marker (external force).
 const int GAMMA_3_BDY = 3;
@@ -73,8 +75,8 @@ int main(int argc, char* argv[])
 
 
   // Create the x- and y-displacement spaces.
-  H1Space xdisp(&mesh, bc_types, essential_bc_values, P_INIT);
-  H1Space ydisp(&mesh, bc_types, essential_bc_values, P_INIT);
+  H1Space* u_space = new H1Space(&mesh, bc_types, essential_bc_values, P_INIT);
+  H1Space* v_space = new H1Space(&mesh, bc_types, essential_bc_values, P_INIT);
 
   // Initialize the weak formulation.
   WeakForm wf(2);
@@ -84,28 +86,33 @@ int main(int argc, char* argv[])
   wf.add_vector_form_surf(0, callback(linear_form_surf_0), GAMMA_3_BDY);
   wf.add_vector_form_surf(1, callback(linear_form_surf_1), GAMMA_3_BDY);
 
-  // Initialize the linear system.
-  LinearProblem sys(&wf, Tuple<Space*>(&xdisp, &ydisp));
-
   // Testing n_dof and correctness of solution vector
   // for p_init = 1, 2, ..., 10
   int success = 1;
   Solution xsln, ysln;
   for (int p_init = 1; p_init <= 10; p_init++) {
     printf("********* p_init = %d *********\n", p_init);
-    xdisp.set_uniform_order(p_init);
-    ydisp.set_uniform_order(p_init);
+    u_space->set_uniform_order(p_init);
+    v_space->set_uniform_order(p_init);
 
-    // Assemble and solve the matrix problem.
-    sys.assemble();
-    sys.solve(Tuple<Solution*>(&xsln, &ysln));
+    // Initialize the linear problem.
+    LinearProblem lp(&wf, Tuple<Space *>(u_space, v_space));
 
-    scalar *sol_vector;
-    int n_dof;
-    sys.get_solution_vector(sol_vector, n_dof);
-    printf("n_dof = %d\n", n_dof);
+    // Select matrix solver.
+    Matrix* mat; Vector* rhs; CommonSolver* solver;
+    init_matrix_solver(matrix_solver, get_num_dofs(Tuple<Space *>(u_space, v_space)), mat, rhs, solver);
+
+    // Assemble stiffness matrix and rhs.
+    bool rhsonly = false;
+    lp.assemble(mat, rhs, rhsonly);
+
+    // Solve the matrix problem.
+    if (!solver->solve(mat, rhs)) error ("Matrix solver failed.\n");
+
+    int ndof = get_num_dofs(Tuple<Space *>(u_space, v_space));
+    printf("ndof = %d\n", ndof);
     double sum = 0;
-    for (int i=0; i < n_dof; i++) sum += sol_vector[i];
+    for (int i=0; i < ndof; i++) sum += rhs->get(i);
     printf("coefficient sum = %g\n", sum);
 
     // Actual test. The values of 'sum' depend on the

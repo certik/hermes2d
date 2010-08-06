@@ -8,7 +8,7 @@ double dUdt(double t) {
 double ddUdtt(double t) {
   return -cos(M_PI*t/2)*(M_PI/2.)*(M_PI/2.);
 }
-static double u_exact(double x, double y, double& dx, double& dy)
+static double uexact(double x, double y, double& dx, double& dy)
 {
   dx = dUdt(x)*U(y);
   dy = U(x)*dUdt(y);
@@ -25,7 +25,7 @@ double dVdt(double t) {
 double ddVdtt(double t) {
   return -K*K*(exp(K*t) + exp(-K*t))/(exp(K) + exp(-K));
 }
-static double v_exact(double x, double y, double& dx, double& dy)
+static double vexact(double x, double y, double& dx, double& dy)
 {
   dx = dVdt(x)*V(y);
   dy = V(x)*dVdt(y);

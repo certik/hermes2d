@@ -7,8 +7,10 @@
 double CONST_F = -1.0;        // right-hand side
 double CONST_GAMMA[3] = {-0.5, 1.0, -0.5}; // outer normal derivative on Gamma_1,2,3
 
-int CORNER_REF_LEVEL = 3;     // number of mesh refinements towards the re-entrant corner.
-int P_INIT = 4;               // Initial polynomial degree in all elements.
+int CORNER_REF_LEVEL = 3;                         // number of mesh refinements towards the re-entrant corner.
+int P_INIT = 4;                                   // Initial polynomial degree in all elements.
+MatrixSolverType matrix_solver = SOLVER_UMFPACK;  // Possibilities: SOLVER_UMFPACK, SOLVER_PETSC,
+                                                  // SOLVER_MUMPS, and more are coming.
 
 // boundary condition types
 // Note: natural means Neumann, Newton, or any other type of condition
@@ -25,19 +27,22 @@ scalar essential_bc_values(int ess_bdy_marker, double x, double y)
 }
 
 template<typename Real, typename Scalar>
-Scalar bilinear_form(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+Scalar bilinear_form(int n, double *wt, Func<Scalar> *u_ext[], 
+Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
   return int_grad_u_grad_v<Real, Scalar>(n, wt, u, v);
 }
 
 template<typename Real, typename Scalar>
-Scalar linear_form(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+Scalar linear_form(int n, double *wt, Func<Scalar> *u_ext[], 
+Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
   return CONST_F*int_v<Real, Scalar>(n, wt, v);
 }
 
 template<typename Real, typename Scalar>
-Scalar linear_form_surf(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+Scalar linear_form_surf(int n, double *wt, Func<Scalar> *u_ext[], 
+Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
   return CONST_GAMMA[e->marker - 1] * int_v<Real, Scalar>(n, wt, v);
 }
@@ -53,7 +58,7 @@ int main(int argc, char* argv[])
   mesh.refine_towards_vertex(3, CORNER_REF_LEVEL);
 
   // Create an H1 space.
-  H1Space space(&mesh, bc_types, essential_bc_values, P_INIT);
+  H1Space* space = new H1Space(&mesh, bc_types, essential_bc_values, P_INIT);
 
   // Initialize the weak formulation.
   WeakForm wf;
@@ -61,27 +66,33 @@ int main(int argc, char* argv[])
   wf.add_vector_form(callback(linear_form));
   wf.add_vector_form_surf(callback(linear_form_surf));
 
-  // Initialize the linear system.
-  LinearProblem ls(&wf, &space);
-
   // Testing n_dof and correctness of solution vector
   // for p_init = 1, 2, ..., 10
   int success = 1;
   Solution sln;
   for (int p_init = 1; p_init <= 10; p_init++) {
+
     printf("********* p_init = %d *********\n", p_init);
-    space.set_uniform_order(p_init);
+    space->set_uniform_order(p_init);
 
-    // Assemble and solve the matrix problem.
-    ls.assemble();
-    ls.solve(&sln);
+    // Initialize the linear problem.
+    LinearProblem lp(&wf, space);
 
-    scalar *sol_vector;
-    int n_dof;
-    ls.get_solution_vector(sol_vector, n_dof);
-    printf("n_dof = %d\n", n_dof);
+    // Select matrix solver.
+    Matrix* mat; Vector* rhs; CommonSolver* solver;
+    init_matrix_solver(matrix_solver, get_num_dofs(space), mat, rhs, solver);
+
+    // Assemble stiffness matrix and rhs.
+    bool rhsonly = false;
+    lp.assemble(mat, rhs, rhsonly);
+
+    // Solve the matrix problem.
+    if (!solver->solve(mat, rhs)) error ("Matrix solver failed.\n");
+
+    int ndof = get_num_dofs(space);
+    printf("ndof = %d\n", ndof);
     double sum = 0;
-    for (int i=0; i < n_dof; i++) sum += sol_vector[i];
+    for (int i=0; i < ndof; i++) sum += rhs->get(i);
     printf("coefficient sum = %g\n", sum);
 
     // Actual test. The values of 'sum' depend on the

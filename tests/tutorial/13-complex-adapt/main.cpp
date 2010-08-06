@@ -6,10 +6,11 @@
 
 using namespace RefinementSelectors;
 
-// This test makes sure that example 12-adapt-general works correctly.
+// This test makes sure that example 13-complex-adapt works correctly.
 
-const int P_INIT = 2;                    // Initial polynomial degree of all mesh elements.
-const double THRESHOLD = 0.6;            // This is a quantitative parameter of the adapt(...) function and
+const int INIT_REF_NUM = 1;              // Number of initial uniform mesh refinements.
+const int P_INIT = 1;                    // Initial polynomial degree of all mesh elements.
+const double THRESHOLD = 0.3;            // This is a quantitative parameter of the adapt(...) function and
                                          // it has different meanings for various adaptive strategies (see below).
 const int STRATEGY = 0;                  // Adaptive strategy:
                                          // STRATEGY = 0 ... refine elements until sqrt(THRESHOLD) times total
@@ -23,80 +24,44 @@ const int STRATEGY = 0;                  // Adaptive strategy:
 const CandList CAND_LIST = H2D_HP_ANISO; // Predefined list of element refinement candidates. Possible values are
                                          // H2D_P_ISO, H2D_P_ANISO, H2D_H_ISO, H2D_H_ANISO, H2D_HP_ISO,
                                          // H2D_HP_ANISO_H, H2D_HP_ANISO_P, H2D_HP_ANISO.
-                                         // See the User Documentation for details.
-const int MESH_REGULARITY = -1;   // Maximum allowed level of hanging nodes:
-                                  // MESH_REGULARITY = -1 ... arbitrary level hangning nodes (default),
-                                  // MESH_REGULARITY = 1 ... at most one-level hanging nodes,
-                                  // MESH_REGULARITY = 2 ... at most two-level hanging nodes, etc.
-                                  // Note that regular meshes are not supported, this is due to
-                                  // their notoriously bad performance.
-const double CONV_EXP = 1.0;      // Default value is 1.0. This parameter influences the selection of
-                                  // cancidates in hp-adaptivity. See get_optimal_refinement() for details.
-const double ERR_STOP = 0.1;      // Stopping criterion for adaptivity (rel. error tolerance between the
-                                  // fine mesh and coarse mesh solution in percent).
-const int NDOF_STOP = 60000;      // Adaptivity process stops when the number of degrees of freedom grows
-                                  // over this limit. This is to prevent h-adaptivity to go on forever.
+                                         // See User Documentation for details.
+const int MESH_REGULARITY = -1;          // Maximum allowed level of hanging nodes:
+                                         // MESH_REGULARITY = -1 ... arbitrary level hangning nodes (default),
+                                         // MESH_REGULARITY = 1 ... at most one-level hanging nodes,
+                                         // MESH_REGULARITY = 2 ... at most two-level hanging nodes, etc.
+                                         // Note that regular meshes are not supported, this is due to
+                                         // their notoriously bad performance.
+const double CONV_EXP = 1.0;             // Default value is 1.0. This parameter influences the selection of
+                                         // cancidates in hp-adaptivity. See get_optimal_refinement() for details.
+const double ERR_STOP = 1.0;             // Stopping criterion for adaptivity (rel. error tolerance between the
+                                         // reference mesh and coarse mesh solution in percent).
+const int NDOF_STOP = 60000;             // Adaptivity process stops when the number of degrees of freedom grows
+                                         // over this limit. This is to prevent h-adaptivity to go on forever.
 MatrixSolverType matrix_solver = SOLVER_UMFPACK;  // Possibilities: SOLVER_UMFPACK, SOLVER_PETSC,
                                                   // SOLVER_MUMPS, and more are coming.
 
-// Boundary markers.
-const int BDY_DIRICHLET = 1;
-const int BDY_NEUMANN = 2;
 
 // Problem parameters.
-double a_11(double x, double y) {
-  if (y > 0) return 1 + x*x + y*y;
-  else return 1;
-}
-
-double a_22(double x, double y) {
-  if (y > 0) return 1;
-  else return 1 + x*x + y*y;
-}
-
-double a_12(double x, double y) {
-  return 1;
-}
-
-double a_21(double x, double y) {
-  return 1;
-}
-
-double a_1(double x, double y) {
-  return 0.0;
-}
-
-double a_2(double x, double y) {
-  return 0.0;
-}
-
-double a_0(double x, double y) {
-  return 0.0;
-}
-
-double rhs(double x, double y) {
-  return 1 + x*x + y*y;
-}
-
-double g_D(double x, double y) {
-  return -cos(M_PI*x);
-}
-
-double g_N(double x, double y) {
-  return 0;
-}
+double mu_0 = 4.0*3.141592654E-7;
+double J_wire = 5000000.0;
+double freq = 5E3;
+double omega = 2*3.141592654*freq;
+double gamma_iron = 6E6;
+double mu_iron = 1000*mu_0;
 
 // Boundary condition types.
 BCType bc_types(int marker)
 {
-  if (marker == 1) return BC_ESSENTIAL;
-  else return BC_NATURAL;
+  if (marker==1) {return BC_NATURAL;}
+  if (marker==2) {return BC_ESSENTIAL;}
+  if (marker==3) {return BC_ESSENTIAL;}
+  if (marker==4) {return BC_ESSENTIAL;}
 }
 
 // Essential (Dirichlet) boundary condition values.
 scalar essential_bc_values(int ess_bdy_marker, double x, double y)
 {
-  return g_D(x, y);
+  return cplx(0.0,0.0);
 }
 
 // Weak forms.
@@ -107,26 +72,28 @@ int main(int argc, char* argv[])
   // Load the mesh.
   Mesh mesh;
   H2DReader mloader;
-  mloader.load("domain.mesh", &mesh);
+  mloader.load("domain2.mesh", &mesh);
 
   // Perform initial mesh refinements.
-  mesh.refine_all_elements();
+  for (int i=0; i<INIT_REF_NUM; i++) mesh.refine_all_elements();
 
   // Create an H1 space with default shapeset.
   H1Space* space = new H1Space(&mesh, bc_types, essential_bc_values, P_INIT);
 
   // Initialize the weak formulation.
   WeakForm wf;
-  wf.add_matrix_form(bilinear_form, bilinear_form_ord, H2D_SYM);
-  wf.add_vector_form(linear_form, linear_form_ord);
-  wf.add_vector_form_surf(linear_form_surf, linear_form_surf_ord, BDY_NEUMANN);
+  wf.add_matrix_form(callback(bilinear_form_iron), H2D_SYM, 3);
+  wf.add_matrix_form(callback(bilinear_form_wire), H2D_SYM, 2);
+  wf.add_matrix_form(callback(bilinear_form_air), H2D_SYM, 1);
+  wf.add_vector_form(callback(linear_form_wire), 2);
 
-  // Initialize refinement selector. 
+  // Initialize refinement selector.
   H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
 
   // Initialize matrix solver.
+  bool is_complex = true;
   Matrix* mat; Vector* rhs; CommonSolver* solver;  
-  init_matrix_solver(matrix_solver, get_num_dofs(space), mat, rhs, solver);
+  init_matrix_solver(matrix_solver, get_num_dofs(space), mat, rhs, solver, is_complex);
 
   // Adaptivity loop.
   Solution *sln = new Solution();
@@ -147,12 +114,12 @@ int main(int argc, char* argv[])
     ref_space->copy_orders(space, order_increase);
 
     // Solve the reference problem.
-    solve_linear(ref_space, &wf, ref_sln, matrix_solver);
+    solve_linear(ref_space, &wf, ref_sln, matrix_solver, is_complex);
 
     // Project the reference solution on the coarse mesh.
     info("Projecting reference solution on coarse mesh.");
     // NULL means that we do not want to know the resulting coefficient vector.
-    project_global(space, H2D_H1_NORM, ref_sln, sln, NULL); 
+    project_global(space, H2D_H1_NORM, ref_sln, sln, NULL, is_complex); 
 
     // Calculate element errors.
     info("Calculating error (est).");
@@ -186,9 +153,9 @@ int main(int argc, char* argv[])
 
 #define ERROR_SUCCESS                               0
 #define ERROR_FAILURE                               -1
-  printf("ndof allowed = %d\n", 430);
+  printf("ndof allowed = %d\n", 650);
   printf("ndof actual = %d\n", ndof);
-  if (ndof < 430) {      // ndofs was 1108 atthe time this test was created
+  if (ndof < 650) {      // ndofs was 625 atthe time this test was created
     printf("Success!\n");
     return ERROR_SUCCESS;
   }
