@@ -1,4 +1,0 @@
-rm *~  
-./wire
-python plot_graph.py &
-

@@ -4,32 +4,7 @@
 
 using namespace RefinementSelectors;
 
-// This example shows how to run adaptive hp-FEM, h-FEM and p-FEM with
-// basic control parameters. The underlying problem is a planar model
-// of an electrostatic micromotor (MEMS). You may want to experiment with 
-// various types of adaptivity via the options H2D_P_ISO, H2D_P_ANISO, 
-// H2D_H_ISO, H2D_H_ANISO, H2D_HP_ISO, H2D_HP_ANISO_H, H2D_HP_ANISO_P, 
-// and H2D_HP_ANISO. See the User Documentation for more details. 
-//   Uniform initial polynomial degree of mesh elements can be set using
-// the variable P_INIT. Before using adaptivity, you have to define a refinement 
-// selector as shown below. The function adapt() takes the selector
-// as a parameter, along with THRESHOLD, STRATEGY, and MESH_REGULARITY. 
-//   Additional control parameters are available, these will be demonstrated
-// in the following tutorial examples. In this example, two types of convergence  
-// graphs are created -- error estimate wrt. the number of degrees of freedom 
-// (DOF), and error estimate wrt. CPU time. Later we will show how to output 
-// the error wrt. exact solution when exact solution is available. 
-//   This example also demonstrates how to define different material parameters
-// in various parts of the computational domain, and how to measure time. 
-//
-// PDE: -div[eps_r(x,y) grad phi] = 0
-//      eps_r = EPS_1 in Omega_1 (surrounding air)
-//      eps_r = EPS_2 in Omega_2 (moving part of the motor)
-//
-// BC: phi = 0 V on Gamma_1 (left edge and also the rest of the outer boundary
-//     phi = VOLTAGE on Gamma_2 (boundary of stator)
-//
-// The following parameters can be changed:
+// This is a long version of example 10-adapt: function solve_linear_adapt() is not used.
 
 const int P_INIT = 2;                             // Initial polynomial degree of all mesh elements.
 const double THRESHOLD = 0.2;                     // This is a quantitative parameter of the adapt(...) function and

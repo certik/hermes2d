@@ -1,21 +1,7 @@
 #define H2D_REPORT_INFO
 #include "hermes2d.h"
 
-// This example shows how to solve a first simple PDE:
-//   - load the mesh,
-//   - perform initial refinements
-//   - create a H1 space over the mesh
-//   - define weak formulation
-//   - initialize matrix solver
-//   - assemble and solve the matrix system
-//   - visualize the solution
-//
-// PDE: Poisson equation -Laplace u = CONST_F with homogeneous (zero)
-//      Dirichlet boundary conditions.
-//
-// You can change the constant right-hand side CONST_F, the
-// initial polynomial degree P_INIT, and play with various initial
-// mesh refinements at the beginning of the main() function.
+// This is a long version of example 03-poisson: function solve_linear() is not used.
 
 int P_INIT = 3;                                   // Uniform polynomial degree of mesh elements.
 MatrixSolverType matrix_solver = SOLVER_UMFPACK;  // Possibilities: SOLVER_UMFPACK, SOLVER_PETSC,

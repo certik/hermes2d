@@ -56,34 +56,27 @@ situation, however, can be handled routinely via the multimesh discretization
 method. In fact, the user does not have to worry about anything. The methodology is 
 illustrated below.
 
-Nonlinear Parabolic Problem (20)
+Nonlinear Parabolic Problem (22)
 --------------------------------
 
-**Git reference:** Tutorial example `20-newton-timedep-heat-adapt 
-<http://git.hpfem.org/hermes2d.git/tree/HEAD:/tutorial/20-newton-timedep-heat-adapt>`_.
+**Git reference:** Tutorial example `22-newton-timedep-heat-adapt 
+<http://git.hpfem.org/hermes2d.git/tree/HEAD:/tutorial/22-newton-timedep-heat-adapt>`_.
 
 Description coming soon.
 
-Flame Propagation Problem (21)
-------------------------------
 
-**Git reference:** Tutorial example `21-newton-timedep-flame-adapt 
-<http://git.hpfem.org/hermes2d.git/tree/HEAD:/tutorial/21-newton-timedep-flame-adapt>`_.
-
-Description coming soon.
-
-Heat and Moisture Transfer in Concrete (22)
+Heat and Moisture Transfer in Concrete (23)
 -------------------------------------------
 
-**Git reference:** Tutorial example `22-heat-and-moisture-adapt 
-<http://git.hpfem.org/hermes2d.git/tree/HEAD:/tutorial/22-heat-and-moisture-adapt>`_.
+**Git reference:** Tutorial example `23-heat-and-moisture-adapt 
+<http://git.hpfem.org/hermes2d.git/tree/HEAD:/tutorial/23-heat-and-moisture-adapt>`_.
 
 Description coming soon.
 
-Gross-Pitaevski Equation (23)
+Gross-Pitaevski Equation (24)
 -----------------------------
 
-**Git reference:** Tutorial example `23-newton-timedep-gp-adapt 
-<http://git.hpfem.org/hermes2d.git/tree/HEAD:/tutorial/23-newton-timedep-gp-adapt>`_.
+**Git reference:** Tutorial example `24-newton-timedep-gp-adapt 
+<http://git.hpfem.org/hermes2d.git/tree/HEAD:/tutorial/24-newton-timedep-gp-adapt>`_.
 
 Description coming soon.

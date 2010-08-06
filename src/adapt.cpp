@@ -78,6 +78,7 @@ bool Adapt::adapt(Tuple<RefinementSelectors::Selector *> refinement_selectors, d
 {
   error_if(!have_errors, "element errors have to be calculated first, call calc_elem_errors().");
   error_if(refinement_selectors == Tuple<RefinementSelectors::Selector *>(), "selector not provided");
+  if (spaces.size() != refinement_selectors.size()) error("Wrong number of refinement selectors.");
   TimePeriod cpu_time;
 
   //get meshes

@@ -116,11 +116,11 @@ The Newton's method is now
 Therefore, the Newton's method will converge in one iteration.
 
 
-Constant Initial Condition (13)
+Constant Initial Condition (15)
 -------------------------------
 
-**Git reference:** Tutorial example `13-newton-elliptic-1 
-<http://git.hpfem.org/hermes2d.git/tree/HEAD:/tutorial/13-newton-elliptic-1>`_.
+**Git reference:** Tutorial example `15-newton-elliptic-1 
+<http://git.hpfem.org/hermes2d.git/tree/HEAD:/tutorial/15-newton-elliptic-1>`_.
 
 Let us solve the nonlinear model problem from the previous section,
 
@@ -260,12 +260,12 @@ information is printed.
 
 Note that arbitrary Filters can be passed as additional optional parameters. 
 This will be shown in the tutorial example 
-`18-timedep-flame <http://hpfem.org/hermes2d/doc/src/tutorial-3.html#flame-propagation-problem-17>`_.
+`19-timedep-flame <http://hpfem.org/hermes2d/doc/src/tutorial-3.html#flame-propagation-problem-19>`_.
 Results for this example are shown below.
 
 Approximate solution $u$ for $\alpha = 2$: 
 
-.. image:: img/example-13/newton-ellipt-1-2.png
+.. image:: img/example-15/newton-ellipt-1-2.png
    :align: center
    :width: 600
    :height: 400
@@ -273,17 +273,17 @@ Approximate solution $u$ for $\alpha = 2$:
 
 Approximate solution $u$ for $\alpha = 4$: 
 
-.. image:: img/example-13/newton-ellipt-1-4.png
+.. image:: img/example-15/newton-ellipt-1-4.png
    :align: center
    :width: 600
    :height: 400
    :alt: result for alpha = 4
 
-General Initial Condition (14)
+General Initial Condition (16)
 ------------------------------
 
-**Git reference:** Tutorial example `14-newton-elliptic-2 
-<http://git.hpfem.org/hermes2d.git/tree/HEAD:/tutorial/14-newton-elliptic-2>`_.
+**Git reference:** Tutorial example `16-newton-elliptic-2 
+<http://git.hpfem.org/hermes2d.git/tree/HEAD:/tutorial/16-newton-elliptic-2>`_.
 
 We will solve the nonlinear model problem from the previous section again,
 
@@ -348,7 +348,7 @@ class using the method get_solution_vector().
 
 The following figure shows the $H^1$-projection of the initial condition init_cond():
 
-.. image:: img/example-14/proj-h1.png
+.. image:: img/example-16/proj-h1.png
    :align: center
    :width: 600
    :height: 350
@@ -366,17 +366,17 @@ The Newton's iteration is again performed using
 
 The converged solution looks as follows:
 
-.. image:: img/example-14/solution.png
+.. image:: img/example-16/solution.png
    :align: center
    :width: 600
    :height: 350
    :alt: approximate solution
 
-Newton's Method and Adaptivity (15)
+Newton's Method and Adaptivity (17)
 -----------------------------------
 
-**Git reference:** Tutorial example `15-newton-elliptic-adapt 
-<http://git.hpfem.org/hermes2d.git/tree/HEAD:/tutorial/15-newton-elliptic-adapt>`_.
+**Git reference:** Tutorial example `17-newton-elliptic-adapt 
+<http://git.hpfem.org/hermes2d.git/tree/HEAD:/tutorial/17-newton-elliptic-adapt>`_.
 
 We will still keep the simple model problem
 
@@ -510,19 +510,19 @@ following convergence comparison:
 
 Convergence in the number of DOF (with and without Newton solve on the new coarse mesh):
 
-.. image:: img/example-15/conv_dof_compar.png
+.. image:: img/example-17/conv_dof_compar.png
    :align: center
    :width: 600
    :height: 400
-   :alt: DOF convergence graph for tutorial example 15.
+   :alt: DOF convergence graph for tutorial example 17.
 
 Convergence in CPU time (with and without Newton solve on coarse mesh):
 
-.. image:: img/example-15/conv_cpu_compar.png
+.. image:: img/example-17/conv_cpu_compar.png
    :align: center
    :width: 600
    :height: 400
-   :alt: CPU convergence graph for tutorial example 15.
+   :alt: CPU convergence graph for tutorial example 17.
 
 In the following we show the resulting meshes (corresponding to 
 SOLVE_ON_COARSE_MESH = false). The solution itself is not 
@@ -530,7 +530,7 @@ shown since the reader knows it from the previous example.
 
 Resulting coarse mesh.
 
-.. image:: img/example-15/mesh_coarse.png
+.. image:: img/example-17/mesh_coarse.png
    :align: center
    :width: 500
    :height: 400
@@ -538,17 +538,17 @@ Resulting coarse mesh.
 
 Resulting fine mesh.
 
-.. image:: img/example-15/mesh_fine.png
+.. image:: img/example-17/mesh_fine.png
    :align: center
    :width: 500
    :height: 400
    :alt: fine mesh
 
-Nonlinear Parabolic Problem (16)
+Nonlinear Parabolic Problem (18)
 --------------------------------
 
-**Git reference:** Tutorial example `16-newton-timedep-heat 
-<http://git.hpfem.org/hermes2d.git/tree/HEAD:/tutorial/16-newton-timedep-heat>`_.
+**Git reference:** Tutorial example `18-newton-timedep-heat 
+<http://git.hpfem.org/hermes2d.git/tree/HEAD:/tutorial/18-newton-timedep-heat>`_.
 
 We will employ the Newton's method to solve a nonlinear parabolic PDE discretized 
 in time by the implicit Euler method. To keep things simple, our model problem is 
@@ -645,18 +645,18 @@ The entire time-stepping loop (minus visualization) looks as follows::
 The stationary solution is not shown here since we already saw it 
 in the previous sections.
 
-Flame Propagation Problem (17)
+Flame Propagation Problem (19)
 ------------------------------
 
-**Git reference:** Tutorial example `17-newton-timedep-flame 
-<http://git.hpfem.org/hermes2d.git/tree/HEAD:/tutorial/17-newton-timedep-flame>`_.
+**Git reference:** Tutorial example `19-newton-timedep-flame 
+<http://git.hpfem.org/hermes2d.git/tree/HEAD:/tutorial/19-newton-timedep-flame>`_.
 
 We will employ the Newton's method to solve a nonlinear system of two parabolic equations 
 describing a very simple flame propagation model (laminar flame, no fluid mechanics involved).
 The computational domain shown below contains in the middle a narrow portion (cooling rods) 
 whose purpose is to slow down the chemical reaction:
 
-.. image:: img/example-17/domain.png
+.. image:: img/example-19/domain.png
    :align: center
    :width: 760
    :alt: computational domain
@@ -749,7 +749,7 @@ via Filters::
 
 Details on the functions omega_fn, omega_dt_fn, omega_dy_fn and the weak 
 forms can be found in the file `forms.cpp 
-<http://git.hpfem.org/hermes2d.git/blob/HEAD:/tutorial/17-newton-timedep-flame/forms.cpp>`_
+<http://git.hpfem.org/hermes2d.git/blob/HEAD:/tutorial/19-newton-timedep-flame/forms.cpp>`_
 Here is how we register the weak forms,
 
 ::
@@ -817,31 +817,31 @@ through a DXDYFilter::
 
 A few snapshots of the reaction rate $\omega$ at various times are shown below:
 
-.. image:: img/example-17/sol1.png
+.. image:: img/example-19/sol1.png
    :align: center
    :width: 800
    :alt: solution
 
-.. image:: img/example-17/sol2.png
+.. image:: img/example-19/sol2.png
    :align: center
    :width: 800
    :alt: solution
 
-.. image:: img/example-17/sol3.png
+.. image:: img/example-19/sol3.png
    :align: center
    :width: 800
    :alt: solution
 
-.. image:: img/example-17/sol4.png
+.. image:: img/example-19/sol4.png
    :align: center
    :width: 800
    :alt: solution
 
-Navier-Stokes Equations (18)
+Navier-Stokes Equations (20)
 ----------------------------
 
-**Git reference:** Tutorial example `18-newton-timedep-ns 
-<http://git.hpfem.org/hermes2d.git/tree/HEAD:/tutorial/18-newton-timedep-ns>`_.
+**Git reference:** Tutorial example `20-newton-timedep-ns 
+<http://git.hpfem.org/hermes2d.git/tree/HEAD:/tutorial/20-newton-timedep-ns>`_.
 
 In this example, the time-dependent laminar incompressible Navier-Stokes equations are
 discretized in time via the implicit Euler method. If NEWTON == true,
@@ -857,7 +857,7 @@ pressure with the standard (continuous) Taylor-Hood elements is shown.
 The computational domain is a rectangular channel containing a 
 circular obstacle: 
 
-.. image:: img/example-18/domain.png
+.. image:: img/example-20/domain.png
    :align: center
    :width: 760
    :alt: computational domain
@@ -998,74 +998,74 @@ should definitely use the option (3).
 
 Time t = 10 s:
 
-.. image:: img/example-18/sol_no_newton_10.png
+.. image:: img/example-20/sol_no_newton_10.png
    :align: center
    :width: 840
    :alt: solution
 
-.. image:: img/example-18/sol_newton_10.png
+.. image:: img/example-20/sol_newton_10.png
    :align: center
    :width: 840
    :alt: solution
 
-.. image:: img/example-18/sol_l2_newton_10.png
+.. image:: img/example-20/sol_l2_newton_10.png
    :align: center
    :width: 840
    :alt: solution
 
 Time t = 15 s:
 
-.. image:: img/example-18/sol_no_newton_15.png
+.. image:: img/example-20/sol_no_newton_15.png
    :align: center
    :width: 840
    :alt: solution
 
-.. image:: img/example-18/sol_newton_15.png
+.. image:: img/example-20/sol_newton_15.png
    :align: center
    :width: 840
    :alt: solution
 
-.. image:: img/example-18/sol_l2_newton_15.png
+.. image:: img/example-20/sol_l2_newton_15.png
    :align: center
    :width: 840
    :alt: solution
 
 Time t = 20 s:
 
-.. image:: img/example-18/sol_no_newton_20.png
+.. image:: img/example-20/sol_no_newton_20.png
    :align: center
    :width: 840
    :alt: solution
 
-.. image:: img/example-18/sol_newton_20.png
+.. image:: img/example-20/sol_newton_20.png
    :align: center
    :width: 840
    :alt: solution
 
-.. image:: img/example-18/sol_l2_newton_20.png
+.. image:: img/example-20/sol_l2_newton_20.png
    :align: center
    :width: 840
    :alt: solution
 
 Snapshot of a continuous pressure approximation (t = 20 s):
 
-.. image:: img/example-18/p_no_newton_20.png
+.. image:: img/example-20/p_no_newton_20.png
    :align: center
    :width: 840
    :alt: solution
 
 Snapshot of a discontinuous pressure approximation (t = 20 s):
 
-.. image:: img/example-18/p_l2_newton_20.png
+.. image:: img/example-20/p_l2_newton_20.png
    :align: center
    :width: 840
    :alt: solution
 
-Gross-Pitaevski Equation (19)
+Gross-Pitaevski Equation (21)
 -----------------------------
 
-**Git reference:** Tutorial example `19-newton-timedep-gp 
-<http://git.hpfem.org/hermes2d.git/tree/HEAD:/tutorial/19-newton-timedep-gp>`_.
+**Git reference:** Tutorial example `21-newton-timedep-gp 
+<http://git.hpfem.org/hermes2d.git/tree/HEAD:/tutorial/21-newton-timedep-gp>`_.
 
 In this example we use the Newton's method to solve the nonlinear complex-valued 
 time-dependent Gross-Pitaevski equation. This equation describes the ground state of 
@@ -1207,21 +1207,21 @@ Sample solution snapshots are shown below:
 
 Snapshot 1:
 
-.. image:: img/example-19/sol_1.png
+.. image:: img/example-21/sol_1.png
    :align: center
    :width: 600
    :alt: solution
 
 Snapshot 2:
 
-.. image:: img/example-19/sol_2.png
+.. image:: img/example-21/sol_2.png
    :align: center
    :width: 600
    :alt: solution
 
 Snapshot 3:
 
-.. image:: img/example-19/sol_3.png
+.. image:: img/example-21/sol_3.png
    :align: center
    :width: 600
    :alt: solution
