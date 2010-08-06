@@ -251,30 +251,30 @@ void init_matrix_solver(MatrixSolverType matrix_solver, int ndof,
 /// Global orthogonal projection of multiple solution components.
 /// Calls assign_dofs() at the beginning.
 void project_global(Tuple<Space *> spaces, WeakForm *wf, Tuple<MeshFunction*> source_meshfns, 
-                    Tuple<Solution*> target_slns, Vector* target_vec = NULL, bool is_complex = false);
+                    Tuple<Solution*> target_slns = Tuple<Solution*>(), Vector* target_vec = NULL, bool is_complex = false);
 
 void project_global(Tuple<Space *> spaces, Tuple<int> proj_norms, Tuple<MeshFunction*> source_meshfns, 
-                    Tuple<Solution*> target_slns, Vector* target_vec = NULL, bool is_complex = false);
+                    Tuple<Solution*> target_slns = Tuple<Solution*>(), Vector* target_vec = NULL, bool is_complex = false);
 
 void project_global(Tuple<Space *> spaces, matrix_forms_tuple_t proj_biforms, 
                     vector_forms_tuple_t proj_liforms, Tuple<MeshFunction*> source_meshfns, 
-                    Tuple<Solution*> target_slns,
+                    Tuple<Solution*> target_slns = Tuple<Solution*>(),
                     Vector* target_vec = NULL, bool is_complex = false);
 
-void project_global(Space *space, int proj_norm, ExactFunction source_fn, Solution* target_sln, 
+void project_global(Space *space, int proj_norm, ExactFunction source_fn, Solution* target_sln = NULL, 
                     Vector* target_vec = NULL, bool is_complex = false);
 
 void project_global(Space *space, 
                     std::pair<WeakForm::matrix_form_val_t, WeakForm::matrix_form_ord_t> proj_biform,
                     std::pair<WeakForm::vector_form_val_t, WeakForm::vector_form_ord_t> proj_liform,
-                    ExactFunction source_fn, Solution* target_sln,
+                    ExactFunction source_fn, Solution* target_sln = NULL,
                     Vector* target_vec = NULL, bool is_complex = false);
 
-void project_global(Space *space, ExactFunction2 source_fn, Solution* target_sln, Vector* target_vec = NULL, 
+void project_global(Space *space, ExactFunction2 source_fn, Solution* target_sln = NULL, Vector* target_vec = NULL, 
                     bool is_complex = false);
 
 void project_local(Space *space, int proj_norm, ExactFunction source_fn, Mesh* mesh,
-                   Solution* target_sln, Vector* target_vec = NULL, 
+                   Solution* target_sln = NULL, Vector* target_vec = NULL, 
                    bool is_complex = false);
 
 /// Newton's loop. Takes a Tuple of MeshFunctions, projects them on "spaces" to

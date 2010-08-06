@@ -5,17 +5,7 @@
 #include "hermes2d.h"
 #include "function.h"
 
-//  This example shows how to set an arbitrary initial guess for the
-//  Newton's method, and nonzero Dirichlet boundary conditions.
-//
-//  PDE: stationary heat transfer equation with nonlinear thermal
-//  conductivity, - div[lambda(u)grad u] = 0
-//
-//  Domain: unit square (-10,10)^2
-//
-//  BC: Dirichlet, see function dir_lift() below.
-//
-//  The following parameters can be changed:
+// This is a long version of example 16-newton-elliptic-2: function solve_newton() is not used.
 
 const int P_INIT = 2;                             // Initial polynomial degree
 const double NEWTON_TOL = 1e-6;                   // Stopping criterion for the Newton's method
@@ -91,22 +81,31 @@ int main(int argc, char* argv[])
 
   // Create an H1 space with default shapeset.
   H1Space* space = new H1Space(&mesh, bc_types, essential_bc_values, P_INIT);
+  int ndof = get_num_dofs(space);
 
   // Initialize the weak formulation
   WeakForm wf;
   wf.add_matrix_form(callback(jac), H2D_UNSYM, H2D_ANY);
   wf.add_vector_form(callback(res), H2D_ANY);
 
+  // Project the initial condition on the FE space to obtain initial 
+  // coefficient vector for the Newton's method.
+  info("Projecting to obtain initial vector for the Newton's method.");
+  Vector* init_coeff_vec = new AVector(ndof);
+  // The NULL means that we do not want the resulting Solution, just the vector.
+  project_global(space, H2D_H1_NORM, init_cond, NULL, init_coeff_vec); 
+
   // Perform Newton's iteration.
-  Solution sln; 
   info("Performing Newton's iteration.");
-  bool verbose = true; // Default is false.
-  Solution* init_sln = new Solution();
-  init_sln->set_exact(&mesh, init_cond);
-  if (!solve_newton(space, &wf, H2D_H1_NORM, init_sln, &sln, 
-                    matrix_solver, NEWTON_TOL, NEWTON_MAX_ITER, verbose)) {
+  bool verbose = true;
+  if (!solve_newton(space, &wf, init_coeff_vec, matrix_solver, 
+		    NEWTON_TOL, NEWTON_MAX_ITER, verbose)) {
     error("Newton's method did not converge.");
-  }
+  };
+
+  // Translate the resulting coefficient vector into a Solution.
+  Solution sln; 
+  sln.set_fe_solution(space, init_coeff_vec);
 
   // Visualise the solution and mesh.
   WinGeom* sln_win_geom = new WinGeom(0, 0, 440, 350);
