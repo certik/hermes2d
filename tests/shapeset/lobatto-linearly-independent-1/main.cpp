@@ -114,7 +114,7 @@ int main(int argc, char* argv[])
       bubble++;
   }
 
-  info("DOFs = %d", n);
+  info("ndof = %d", n);
 
   printf("Adding the rhs\n");
   for (int i = 0; i < n; i++)
