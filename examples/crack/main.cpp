@@ -55,6 +55,8 @@ const double CONV_EXP = 1.0;             // Default value is 1.0. This parameter
 const double ERR_STOP = 0.5;             // Stopping criterion for adaptivity (rel. error tolerance between the
                                          // reference mesh and coarse mesh solution in percent).
 const int NDOF_STOP = 60000;             // Adaptivity process stops when the number of degrees of freedom grows.
+MatrixSolverType matrix_solver = SOLVER_UMFPACK;  // Possibilities: SOLVER_UMFPACK, SOLVER_PETSC,
+                                                  // SOLVER_MUMPS, and more are coming.
 
 // Problem parameters.
 const double E  = 200e9;                 // Young modulus for steel: 200 GPa.
@@ -122,7 +124,7 @@ int main(int argc, char* argv[])
 
   // Initialize matrix solver.
   Matrix* mat; Vector* rhs; CommonSolver* solver;  
-  init_matrix_solver(SOLVER_UMFPACK, u_space.get_num_dofs() + v_space.get_num_dofs(), 
+  init_matrix_solver(matrix_solver, u_space.get_num_dofs() + v_space.get_num_dofs(), 
                      mat, rhs, solver);
 
   // Adaptivity loop:
@@ -149,11 +151,12 @@ int main(int argc, char* argv[])
  
     // Solve the reference problem.
     solve_linear(Tuple<Space *>(ref_u_space, ref_v_space), &wf, 
-                 Tuple<Solution *>(&ref_u_sln, &ref_v_sln), SOLVER_UMFPACK);
+                 Tuple<Solution *>(&ref_u_sln, &ref_v_sln), matrix_solver);
 
     // Project the reference solutions on the coarse meshes.
     info("Projecting reference solutions on coarse meshes.");
     project_global(Tuple<Space *>(&u_space, &v_space), 
+                   Tuple<int>(H2D_H1_NORM, H2D_H1_NORM),
                    Tuple<MeshFunction*>(&ref_u_sln, &ref_v_sln), 
                    Tuple<Solution*>(&u_sln, &v_sln));
 
@@ -172,14 +175,14 @@ int main(int argc, char* argv[])
 
     // Calculate error estimate wrt. reference solution in energy norm.
     info("Calculating error (est).");
-    H1Adapt hp(Tuple<Space *>(&u_space, &v_space));
+    Adapt hp(Tuple<Space *>(&u_space, &v_space), Tuple<int>(H2D_H1_NORM, H2D_H1_NORM));
     hp.set_solutions(Tuple<Solution*>(&u_sln, &v_sln), 
                      Tuple<Solution*>(&ref_u_sln, &ref_v_sln));
     hp.set_error_form(0, 0, bilinear_form_0_0<scalar, scalar>, bilinear_form_0_0<Ord, Ord>);
     hp.set_error_form(0, 1, bilinear_form_0_1<scalar, scalar>, bilinear_form_0_1<Ord, Ord>);
     hp.set_error_form(1, 0, bilinear_form_1_0<scalar, scalar>, bilinear_form_1_0<Ord, Ord>);
     hp.set_error_form(1, 1, bilinear_form_1_1<scalar, scalar>, bilinear_form_1_1<Ord, Ord>);
-    double err_est = hp.calc_error(H2D_TOTAL_ERROR_REL | H2D_ELEMENT_ERROR_REL) * 100;
+    double err_est = hp.calc_elem_errors(H2D_TOTAL_ERROR_REL | H2D_ELEMENT_ERROR_REL) * 100;
 
     // Time measurement.
     cpu_time.tick();
@@ -201,7 +204,8 @@ int main(int argc, char* argv[])
     if (err_est < ERR_STOP || u_space.get_num_dofs() + v_space.get_num_dofs() >= NDOF_STOP) done = true;
     else {
       info("Adapting the coarse mesh.");
-      done = hp.adapt(&selector, MULTI ? THRESHOLD_MULTI : THRESHOLD_SINGLE, STRATEGY, MESH_REGULARITY);
+      done = hp.adapt(Tuple<RefinementSelectors::Selector *>(&selector, &selector), 
+                      MULTI ? THRESHOLD_MULTI : THRESHOLD_SINGLE, STRATEGY, MESH_REGULARITY);
       if (u_space.get_num_dofs() + v_space.get_num_dofs() >= NDOF_STOP) done = true;
     }
 
