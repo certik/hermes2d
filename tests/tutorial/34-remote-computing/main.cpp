@@ -2,18 +2,7 @@
 #define H2D_REPORT_FILE "application.log"
 #include "hermes2d.h"
 
-//  This example shows how to save visualization data if you are working 
-//  on a distant computer and cannot use ScalarView, OrderView, or 
-//  related classes directly. The two basic ways are:
-//    * to use the methods Solution::save(), which saves a complete 
-//      Solution including Mesh and element orders. Then you can fetch the 
-//      file and use Solution::load() to restore the Solution completely 
-//      in the memory of your local machine. 
-//    * Linearizer::save_data() which only saves linearized data for direct 
-//      OpenGL processing. After fetching the file, you can use the methods
-//      ScalarView::Linearizer::load_data() and ScalarView::show_linearizer_data()
-//      on your local machine.
-//  The underlying model for computation is the tutorial example 09-timedep. 
+// This test makes sure that example 34-remote-computing works correctly.
 
 int OUTPUT_FREQUENCY = 20;                        // Number of time steps between saving data.
 
@@ -132,6 +121,7 @@ int main(int argc, char* argv[])
       bool compress = false;   // Gzip compression not used as it only works on Linux.
       tsln.save(filename, compress);
       info("Complete Solution saved to file %s.", filename);
+      delete [] filename;
     }
 
     // Update the time variable.
@@ -170,6 +160,27 @@ int main(int argc, char* argv[])
   oview.show(&space_from_file);
 
   // Wait for the view to be closed.
-  View::wait();
-  return 0;
+  // View::wait();
+
+  // It will "Exception: SegFault" if we do not use View::wait() or View::close(). 
+  sview_1.close(); 
+  sview_2.close(); 
+  oview.close(); 
+
+  bool success = true;
+
+#define ERROR_SUCCESS                               0
+#define ERROR_FAILURE                               -1
+  if (success == true) {
+    printf("Success!\n");
+    return ERROR_SUCCESS;
+  }
+  else {
+    printf("Failure!\n");
+    return ERROR_FAILURE;
+  }
+
+  delete win_geom_1;
+  delete win_geom_2;
+  delete win_geom_3;
 }
