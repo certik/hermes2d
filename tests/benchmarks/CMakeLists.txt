@@ -11,6 +11,5 @@ add_subdirectory(smooth-aniso-x)
 add_subdirectory(smooth-aniso-y)
 
 #if(NOT WITH_TRILINOS)
-  add_subdirectory(bessel)
   add_subdirectory(screen)
 #endif(NOT WITH_TRILINOS)
