@@ -1,6 +1,6 @@
 #include "hermes2d.h"
 
-// This test makes sure that example 30-space-hcurl works correctly.
+// This test makes sure that example 31-space-hdiv works correctly.
 
 int INIT_REF_NUM = 2;      // Initial uniform mesh refinement.
 int P_INIT = 3;            // Polynomial degree of mesh elements.
@@ -15,15 +15,16 @@ int main(int argc, char* argv[])
   // Initial mesh refinement.
   for (int i = 0; i < INIT_REF_NUM; i++) mesh.refine_all_elements();
 
-  // Create an Hcurl space with default shapeset.
+  // Create an Hdiv space with default shapeset.
   // (BC types and essential BC values not relevant.)
-  HcurlSpace space(&mesh, NULL, NULL, P_INIT);
+  HdivSpace space(&mesh, NULL, NULL, P_INIT);
 
-  // Visualize FE basis.
-  // VectorBaseView bview("VectorBaseView", 0, 0, 700, 600);
+  // Visualise the FE basis.
+  // VectorBaseView bview("BaseView", 0, 0, 700, 600);
   // bview.show(&space);
 
-  // View::wait(H2DV_WAIT_KEYPRESS);
+  // Wait for all views to be closed.
+  // View::wait();
 
   bool success = true;
 
@@ -37,5 +38,6 @@ int main(int argc, char* argv[])
     printf("Failure!\n");
     return ERROR_FAILURE;
   }
+
 }
 
