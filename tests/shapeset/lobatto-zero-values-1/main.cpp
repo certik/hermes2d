@@ -4,8 +4,8 @@
 
 int P_INIT = 10;
 double EPS = 10e-14;
-// This test testing zero lobatto shape functions 
-// values at vertices, on edges and bubbles.
+// This test checks that the hierarchic shape functions 
+// on the reference domain have the correct structure. 
 
 int main(int argc, char* argv[])
 {
