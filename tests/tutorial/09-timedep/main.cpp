@@ -5,8 +5,10 @@
 // are made, but it is easy to fix (see below).
 
 const int P_INIT = 3;            // initial polynomial degree in elements
-const int INIT_REF_NUM = 1;      // number of initial uniform refinements
+const int INIT_REF_NUM = 0;      // number of initial uniform refinements
 const double TAU = 200.0;        // time step in seconds
+MatrixSolverType matrix_solver = SOLVER_UMFPACK;  // Possibilities: SOLVER_UMFPACK, SOLVER_PETSC,
+                                                  // SOLVER_MUMPS, and more are coming.
 
 // Problem constants
 const double T_INIT = 10;        // temperature of the ground (also initial temperature)
@@ -42,26 +44,30 @@ scalar essential_bc_values(int ess_bdy_marker, double x, double y)
 }
 
 template<typename Real, typename Scalar>
-Scalar bilinear_form(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+Scalar bilinear_form(int n, double *wt, Func<Scalar> *u_ext[], 
+Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
   return HEATCAP * RHO * int_u_v<Real, Scalar>(n, wt, u, v) / TAU +
          LAMBDA * int_grad_u_grad_v<Real, Scalar>(n, wt, u, v);
 }
 
 template<typename Real, typename Scalar>
-Scalar linear_form(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+Scalar linear_form(int n, double *wt, Func<Scalar> *u_ext[], 
+Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
   return HEATCAP * RHO * int_u_v<Real, Scalar>(n, wt, ext->fn[0], v) / TAU;
 }
 
 template<typename Real, typename Scalar>
-Scalar bilinear_form_surf(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+Scalar bilinear_form_surf(int n, double *wt, Func<Scalar> *u_ext[], 
+Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
   return LAMBDA * ALPHA * int_u_v<Real, Scalar>(n, wt, u, v);
 }
 
 template<typename Real, typename Scalar>
-Scalar linear_form_surf(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+Scalar linear_form_surf(int n, double *wt, Func<Scalar> *u_ext[], 
+Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
   return LAMBDA * ALPHA * temp_ext(TIME) * int_v<Real, Scalar>(n, wt, v);
 }
@@ -79,7 +85,9 @@ int main(int argc, char* argv[])
   mesh.refine_towards_boundary(2, 5);
 
   // Initialize an H1 space.
-  H1Space space(&mesh, bc_types, essential_bc_values, P_INIT);
+  H1Space* space = new H1Space(&mesh, bc_types, essential_bc_values, P_INIT);
+  int ndof = get_num_dofs(space);
+  printf("ndof = %d\n", ndof);
 
   // Set initial condition.
   Solution tsln;
@@ -93,7 +101,11 @@ int main(int argc, char* argv[])
   wf.add_vector_form_surf(linear_form_surf<double, double>, linear_form_surf<Ord, Ord>, marker_air);
 
   // Initialize linear system.
-  LinearProblem ls(&wf, &space);
+  LinearProblem lp(&wf, space);
+
+  // Initialize matrix solver.
+  Matrix* mat; Vector* rhs; CommonSolver* solver;  
+  init_matrix_solver(matrix_solver, ndof, mat, rhs, solver);
 
   // time stepping
   int nsteps = (int)(FINAL_TIME/TAU + 0.5);
@@ -102,28 +114,29 @@ int main(int argc, char* argv[])
   {
     info("---- Time step %d, time %3.5f, ext_temp %g", ts, TIME, temp_ext(TIME));
 
-    // Assemble and solve.
-    ls.assemble(rhsonly);
+    // Assemble stiffness matrix and rhs.
+    lp.assemble(mat, rhs, rhsonly);
     rhsonly = true;
-    ls.solve(&tsln);
+
+    // Solve the matrix problem.
+    if (!solver->solve(mat, rhs)) error ("Matrix solver failed.\n");
+
+    // Update tsln.
+    tsln.set_fe_solution(space, rhs);
 
     // Update the time variable.
     TIME += TAU;
   }
 
-  scalar *sol_vector;
-  int n_dof;
-  ls.get_solution_vector(sol_vector, n_dof);
-  printf("n_dof = %d\n", n_dof);
   double sum = 0;
-  for (int i=0; i < n_dof; i++) sum += sol_vector[i];
+  for (int i=0; i < ndof; i++) sum += rhs->get(i);
   printf("coefficient sum = %g\n", sum);
 
   // Actual test. The value of 'sum' depend on the
   // current shapeset. If you change the shapeset,
   // you need to correct this number.
   int success = 1;
-  if (fabs(sum - 9122.66) > 1e-1) success = 0;
+  if (fabs(sum - 4737.73) > 1e-1) success = 0;
 
 #define ERROR_SUCCESS                               0
 #define ERROR_FAILURE                               -1

@@ -6,6 +6,8 @@
 
 const int P_INIT = 2;             // Initial polynomial degree of all mesh elements.
 const int INIT_REF_NUM = 1;       // Number of initial uniform refinements
+MatrixSolverType matrix_solver = SOLVER_UMFPACK;  // Possibilities: SOLVER_UMFPACK, SOLVER_PETSC,
+                                                  // SOLVER_MUMPS, and more are coming.
 
 // Problem parameters
 double a_11(double x, double y) {
@@ -67,7 +69,8 @@ scalar essential_bc_values(int ess_bdy_marker, double x, double y)
 
 // (Volumetric) bilinear form
 template<typename Real, typename Scalar>
-Scalar bilinear_form(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+Scalar bilinear_form(int n, double *wt, Func<Scalar> *u_ext[], 
+Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
   Scalar result = 0;
   for (int i=0; i < n; i++) {
@@ -95,28 +98,32 @@ Scalar bilinear_form_ord(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *u
 
 // Surface linear form (natural boundary conditions)
 template<typename Real, typename Scalar>
-Scalar linear_form_surf(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+Scalar linear_form_surf(int n, double *wt, Func<Scalar> *u_ext[], 
+Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
   return int_F_v<Real, Scalar>(n, wt, g_N, v, e);
 }
 
 // Integration order for surface linear form
 template<typename Real, typename Scalar>
-Scalar linear_form_surf_ord(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+Scalar linear_form_surf_ord(int n, double *wt, Func<Scalar> *u_ext[], 
+Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
   return v->val[0] * e->x[0] * e->x[0];  // returning the polynomial degree of the test function plus two
 }
 
 // Volumetric linear form (right-hand side)
 template<typename Real, typename Scalar>
-Scalar linear_form(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+Scalar linear_form(int n, double *wt, Func<Scalar> *u_ext[], 
+Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
   return int_F_v<Real, Scalar>(n, wt, rhs, v, e);
 }
 
 // Integration order for the volumetric linear form
 template<typename Real, typename Scalar>
-Scalar linear_form_ord(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+Scalar linear_form_ord(int n, double *wt, Func<Scalar> *u_ext[], 
+Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
   return v->val[0] * e->x[0] * e->x[0];  // returning the polynomial degree of the test function plus two
 }
@@ -129,8 +136,8 @@ int main(int argc, char* argv[])
   mloader.load("domain.mesh", &mesh);
   for (int i=0; i < INIT_REF_NUM; i++) mesh.refine_all_elements();
 
-    // Create an H1 space.
-  H1Space space(&mesh, bc_types, essential_bc_values, P_INIT);
+  // Create an H1 space.
+  H1Space* space = new H1Space(&mesh, bc_types, essential_bc_values, P_INIT);
 
   // Initialize the weak formulation.
   WeakForm wf;
@@ -138,27 +145,33 @@ int main(int argc, char* argv[])
   wf.add_vector_form(linear_form, linear_form_ord);
   wf.add_vector_form_surf(linear_form_surf, linear_form_surf_ord, 2);
 
-  // Solve the problem.
-  LinearProblem ls(&wf, &space);
-
   // Testing n_dof and correctness of solution vector
   // for p_init = 1, 2, ..., 10
   int success = 1;
   Solution sln;
   for (int p_init = 1; p_init <= 10; p_init++) {
+
     printf("********* p_init = %d *********\n", p_init);
-    space.set_uniform_order(p_init);
+    space->set_uniform_order(p_init);
 
-    // Solve the problem.
-    ls.assemble();
-    ls.solve(&sln);
+    // Initialize the linear problem.
+    LinearProblem lp(&wf, space);
 
-    scalar *sol_vector;
-    int n_dof;
-    ls.get_solution_vector(sol_vector, n_dof);
-    printf("n_dof = %d\n", n_dof);
+    // Select matrix solver.
+    Matrix* mat; Vector* rhs; CommonSolver* solver;
+    init_matrix_solver(matrix_solver, get_num_dofs(space), mat, rhs, solver);
+
+    // Assemble stiffness matrix and rhs.
+    bool rhsonly = false;
+    lp.assemble(mat, rhs, rhsonly);
+
+    // Solve the matrix problem.
+    if (!solver->solve(mat, rhs)) error ("Matrix solver failed.\n");
+
+    int ndof = get_num_dofs(space);
+    printf("ndof = %d\n", ndof);
     double sum = 0;
-    for (int i=0; i < n_dof; i++) sum += sol_vector[i];
+    for (int i=0; i < ndof; i++) sum += rhs->get(i);
     printf("coefficient sum = %g\n", sum);
 
     // Actual test. The values of 'sum' depend on the
