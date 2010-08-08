@@ -48,22 +48,22 @@ sample basis functions (higher-order bubble functions) are
 shown below. The color shows magnitude of the vector field, 
 arrows show its direction.
 
-.. image:: img/example-30/fn0.png
+.. image:: img/tutorial-30/fn0.png
    :align: center
    :width: 300
    :alt: Sample basis function
 
-.. image:: img/example-30/fn1.png
+.. image:: img/tutorial-30/fn1.png
    :align: center
    :width: 300
    :alt: Sample basis function
 
-.. image:: img/example-30/fn2.png
+.. image:: img/tutorial-30/fn2.png
    :align: center
    :width: 300
    :alt: Sample basis function
 
-.. image:: img/example-30/fn3.png
+.. image:: img/tutorial-30/fn3.png
    :align: center
    :width: 300
    :alt: Sample basis function
@@ -113,22 +113,22 @@ its basis functions:
 Sample edge functions of polynomial degrees 1, 2, 3, and 4 
 corresponding to a boundary edge are shown below:
 
-.. image:: img/example-31/fn0.png
+.. image:: img/tutorial-31/fn0.png
    :align: center
    :width: 300
    :alt: Sample basis function
 
-.. image:: img/example-31/fn1.png
+.. image:: img/tutorial-31/fn1.png
    :align: center
    :width: 300
    :alt: Sample basis function
 
-.. image:: img/example-31/fn2.png
+.. image:: img/tutorial-31/fn2.png
    :align: center
    :width: 300
    :alt: Sample basis function
 
-.. image:: img/example-31/fn3.png
+.. image:: img/tutorial-31/fn3.png
    :align: center
    :width: 300
    :alt: Sample basis function
@@ -194,29 +194,29 @@ function onto the FE space::
 
 Sample basis functions:
 
-.. image:: img/example-32/fn0.png
+.. image:: img/tutorial-32/fn0.png
    :align: center
    :width: 400
    :alt: Sample basis function
 
-.. image:: img/example-32/fn1.png
+.. image:: img/tutorial-32/fn1.png
    :align: center
    :width: 400
    :alt: Sample basis function
 
-.. image:: img/example-32/fn2.png
+.. image:: img/tutorial-32/fn2.png
    :align: center
    :width: 400
    :alt: Sample basis function
 
-.. image:: img/example-32/fn3.png
+.. image:: img/tutorial-32/fn3.png
    :align: center
    :width: 400
    :alt: Sample basis function
 
 The projection (note that this is a discontinuous function):
 
-.. image:: img/example-32/sol.png
+.. image:: img/tutorial-32/sol.png
    :align: center
    :width: 400
    :alt: Projection

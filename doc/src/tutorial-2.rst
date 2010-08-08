@@ -34,7 +34,7 @@ This is illustrated in the following graph that compares a typical convergence o
 adaptive FEM with linear elements, adaptive FEM with quadratic elements, and 
 adaptive hp-FEM:
 
-.. image:: img/lshape/conv_dof.png
+.. image:: img/benchmark-lshape/conv_dof.png
    :align: center
    :width: 600
    :height: 400
@@ -80,7 +80,7 @@ Automatic adaptivity in the *hp*-FEM is substantially different from adaptivity
 in low-order FEM, since every element can be refined in many different ways.
 The following figure shows several illustrative refinement candidates for a fourth-order element.
 
-.. image:: img/refinements.png
+.. image:: img/conv-intro/refinements.png
    :align: center
    :width: 650
    :height: 300
@@ -229,7 +229,7 @@ exact and estimated error can be significant. This is illustrated in the
 following graph that belongs to the benchmark 
 `kellogg <http://hpfem.org/hermes2d/doc/src/benchmarks.html#kellogg-elliptic>`_.
 
- .. image:: img/conv-intro/kellogg.png
+ .. image:: img/benchmark-kellogg/kellogg.png
    :align: center
    :width: 600
    :height: 450
@@ -248,7 +248,7 @@ strong electromagnetic waves (as opposed to classical electromotors).
 The following figure shows one half of the domain $\Omega$
 (dimensions need to be scaled with $10^{-5}$ and are in meters):
 
-.. image:: img/micromotor.png
+.. image:: img/tutorial-10/micromotor.png
    :align: center
    :width: 550
    :height: 400
@@ -316,7 +316,7 @@ where $e$ and $d$ are an estimated error and an estimated number of DOF of a can
 
 The first parameter ``CAND_LIST`` specifies which candidates are generated. In a case of quadrilaterals, all possible values and considered candidates are summarized in the following table:
 
-.. image:: img/cand_list.quads.*
+.. image:: img/tutorial-10/cand_list.quads.*
    :align: center
    :alt: Candidates generated for a given candidate list.
 
@@ -479,13 +479,13 @@ components, but specify that its derivatives should be used:
 
     gview.show(&sln, &sln, H2D_EPS_NORMAL, H2D_FN_DX_0, H2D_FN_DY_0);
 
-.. image:: img/motor-sln.png
+.. image:: img/tutorial-10/motor-sln.png
    :align: left
    :width: 300
    :height: 300
    :alt: Solution - electrostatic potential $\varphi$ (zoomed).
 
-.. image:: img/motor-grad.png
+.. image:: img/tutorial-10/motor-grad.png
    :align: right
    :width: 300
    :height: 300
@@ -495,7 +495,7 @@ components, but specify that its derivatives should be used:
 
    <hr style="clear: both; visibility: hidden;">
 
-.. image:: img/motor-orders.png
+.. image:: img/tutorial-10/motor-orders.png
    :align: center
    :width: 300
    :height: 300
@@ -504,7 +504,7 @@ components, but specify that its derivatives should be used:
 Convergence graphs of adaptive h-FEM with linear elements, h-FEM with quadratic elements
 and hp-FEM are shown below.
 
-.. image:: img/example-10/conv_dof.png
+.. image:: img/tutorial-10/conv_dof.png
    :align: center
    :width: 600
    :height: 400
@@ -512,7 +512,7 @@ and hp-FEM are shown below.
 
 The following graph shows convergence in terms of CPU time. 
 
-.. image:: img/example-10/conv_cpu.png
+.. image:: img/tutorial-10/conv_cpu.png
    :align: center
    :width: 600
    :height: 400
@@ -541,7 +541,7 @@ This is illustrated in the following figure, where (A) is the master mesh,
 (B) - (D) three different meshes (say, for a coupled problem with three
 equations), and (E) is the virtual *union mesh* that is used for assembling.
 
-.. image:: img/multimesh/multimesh.png
+.. image:: img/tutorial-11/multimesh.png
    :align: center
    :width: 750
    :alt: Multimesh
@@ -553,7 +553,7 @@ The following figure shows the integration over an element $Q_k$ of the
 virtual union mesh, and what are the appropriate subelements of the 
 existing elements where this integration is performed:
 
-.. image:: img/multimesh/multimesh2.png
+.. image:: img/tutorial-11/multimesh2.png
    :align: center
    :width: 600
    :alt: Multimesh
@@ -760,13 +760,13 @@ The following two figures show the solutions $u$ and $v$. Notice their
 large qualitative differences: While $u$ is smooth in the entire domain, 
 $v$ has a thin boundary layer along the boundary:
 
-.. image:: img/example-11/solution_u.png
+.. image:: img/tutorial-11/solution_u.png
    :align: center
    :width: 465
    :height: 400
    :alt: Solution
 
-.. image:: img/example-11/solution_v.png
+.. image:: img/tutorial-11/solution_v.png
    :align: center
    :width: 465
    :height: 400
@@ -775,7 +775,7 @@ $v$ has a thin boundary layer along the boundary:
 Resulting mesh for $u$ and $v$ obtained using conventional (single-mesh) hp-FEM: 12026 DOF
 (6013 for each solution). 
 
-.. image:: img/example-11/mesh_single.png
+.. image:: img/tutorial-11/mesh_single.png
    :align: center
    :width: 465
    :height: 400
@@ -783,7 +783,7 @@ Resulting mesh for $u$ and $v$ obtained using conventional (single-mesh) hp-FEM:
 
 Resulting mesh for $u$ obtained using the multimesh hp-FEM: 169 DOF
 
-.. image:: img/example-11/mesh_multi_u.png
+.. image:: img/tutorial-11/mesh_multi_u.png
    :align: center
    :width: 465
    :height: 400
@@ -791,7 +791,7 @@ Resulting mesh for $u$ obtained using the multimesh hp-FEM: 169 DOF
 
 Resulting mesh for $v$ obtained using the multimesh hp-FEM: 3565 DOF
 
-.. image:: img/example-11/mesh_multi_v.png
+.. image:: img/tutorial-11/mesh_multi_v.png
    :align: center
    :width: 465
    :height: 400
@@ -799,7 +799,7 @@ Resulting mesh for $v$ obtained using the multimesh hp-FEM: 3565 DOF
 
 DOF convergence graphs:
 
-.. image:: img/example-11/conv_dof.png
+.. image:: img/tutorial-11/conv_dof.png
    :align: center
    :width: 600
    :height: 400
@@ -807,7 +807,7 @@ DOF convergence graphs:
 
 CPU time convergence graphs:
 
-.. image:: img/example-11/conv_cpu.png
+.. image:: img/tutorial-11/conv_cpu.png
    :align: center
    :width: 600
    :height: 400
@@ -827,7 +827,7 @@ file for your own applications.
 
 Solution:
 
-.. image:: img/example-12/12-solution.png
+.. image:: img/tutorial-12/12-solution.png
    :align: center
    :width: 465
    :height: 400
@@ -835,7 +835,7 @@ Solution:
 
 Final hp-mesh:
 
-.. image:: img/example-12/12-mesh.png
+.. image:: img/tutorial-12/12-mesh.png
    :align: center
    :width: 450
    :height: 400
@@ -844,7 +844,7 @@ Final hp-mesh:
 Convergence graphs of adaptive h-FEM with linear elements, h-FEM with quadratic elements
 and hp-FEM.
 
-.. image:: img/example-12/conv_dof.png
+.. image:: img/tutorial-12/conv_dof.png
    :align: center
    :width: 600
    :height: 400
@@ -852,7 +852,7 @@ and hp-FEM.
 
 Convergence comparison in terms of CPU time. 
 
-.. image:: img/example-12/conv_cpu.png
+.. image:: img/tutorial-12/conv_cpu.png
    :align: center
    :width: 600
    :height: 400
@@ -872,7 +872,7 @@ This example solves a complex-valued vector potential problem
 in a two-dimensional cross-section containing a conductor and an iron object as
 shown in the following schematic picture:
 
-.. image:: img/example-13/domain.png
+.. image:: img/tutorial-13/domain.png
    :align: center
    :height: 500
    :alt: Domain.
@@ -886,7 +886,7 @@ elsewhere.
 
 Solution:
 
-.. image:: img/example-13/solution.png
+.. image:: img/tutorial-13/solution.png
    :align: center
    :height: 400
    :alt: Solution.
@@ -944,21 +944,21 @@ Let us compare adaptive $h$-FEM with linear and quadratic elements and the $hp$-
 Final mesh for $h$-FEM with linear elements: 18694 DOF, error = 1.02 \%
 
 
-.. image:: img/example-13/mesh-h1.png
+.. image:: img/tutorial-13/mesh-h1.png
    :align: center
    :height: 400
    :alt: Mesh.
 
 Final mesh for $h$-FEM with quadratic elements: 46038 DOF, error = 0.018 \%
 
-.. image:: img/example-13/mesh-h2.png
+.. image:: img/tutorial-13/mesh-h2.png
    :align: center
    :height: 400
    :alt: Mesh.
 
 Final mesh for $hp$-FEM: 4787 DOF, error = 0.00918 \%
 
-.. image:: img/example-13/mesh-hp.png
+.. image:: img/tutorial-13/mesh-hp.png
    :align: center
    :height: 400
    :alt: Mesh.
@@ -966,7 +966,7 @@ Final mesh for $hp$-FEM: 4787 DOF, error = 0.00918 \%
 Convergence graphs of adaptive h-FEM with linear elements, h-FEM with quadratic elements
 and hp-FEM are shown below.
 
-.. image:: img/example-13/conv_compar_dof.png
+.. image:: img/tutorial-13/conv_compar_dof.png
    :align: center
    :width: 600
    :height: 400
@@ -991,7 +991,7 @@ Equation solved: Time-harmonic Maxwell's equations
 Domain of interest is the square $(-10, 10)^2$ missing the quarter lying in the 
 fourth quadrant. It is filled with air:
 
-.. image:: img/example-14/domain.png
+.. image:: img/tutorial-14/domain.png
    :align: center
    :width: 490
    :height: 490
@@ -1081,7 +1081,7 @@ Code for the weak forms:
 
 Solution:
 
-.. image:: img/example-14/solution.png
+.. image:: img/tutorial-14/solution.png
    :align: center
    :width: 500
    :height: 420
@@ -1089,7 +1089,7 @@ Solution:
 
 Final mesh (h-FEM with linear elements):
 
-.. image:: img/example-14/mesh-h1.png
+.. image:: img/tutorial-14/mesh-h1.png
    :align: center
    :width: 460
    :height: 390
@@ -1101,7 +1101,7 @@ of approximation on element interfaces, not to polynomial degrees inside the ele
 
 Final mesh (h-FEM with quadratic elements):
 
-.. image:: img/example-14/mesh-h2.png
+.. image:: img/tutorial-14/mesh-h2.png
    :align: center
    :width: 460
    :height: 390
@@ -1109,7 +1109,7 @@ Final mesh (h-FEM with quadratic elements):
 
 Final mesh (hp-FEM):
 
-.. image:: img/example-14/mesh-hp.png
+.. image:: img/tutorial-14/mesh-hp.png
    :align: center
    :width: 460
    :height: 390
@@ -1117,7 +1117,7 @@ Final mesh (hp-FEM):
 
 DOF convergence graphs:
 
-.. image:: img/example-14/conv_dof.png
+.. image:: img/tutorial-14/conv_dof.png
    :align: center
    :width: 600
    :height: 400
@@ -1125,7 +1125,7 @@ DOF convergence graphs:
 
 CPU time convergence graphs:
 
-.. image:: img/example-14/conv_cpu.png
+.. image:: img/tutorial-14/conv_cpu.png
    :align: center
    :width: 600
    :height: 400

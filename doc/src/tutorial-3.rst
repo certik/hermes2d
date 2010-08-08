@@ -265,7 +265,7 @@ Results for this example are shown below.
 
 Approximate solution $u$ for $\alpha = 2$: 
 
-.. image:: img/example-15/newton-ellipt-1-2.png
+.. image:: img/tutorial-15/newton-ellipt-1-2.png
    :align: center
    :width: 600
    :height: 400
@@ -273,7 +273,7 @@ Approximate solution $u$ for $\alpha = 2$:
 
 Approximate solution $u$ for $\alpha = 4$: 
 
-.. image:: img/example-15/newton-ellipt-1-4.png
+.. image:: img/tutorial-15/newton-ellipt-1-4.png
    :align: center
    :width: 600
    :height: 400
@@ -348,7 +348,7 @@ class using the method get_solution_vector().
 
 The following figure shows the $H^1$-projection of the initial condition init_cond():
 
-.. image:: img/example-16/proj-h1.png
+.. image:: img/tutorial-16/proj-h1.png
    :align: center
    :width: 600
    :height: 350
@@ -366,7 +366,7 @@ The Newton's iteration is again performed using
 
 The converged solution looks as follows:
 
-.. image:: img/example-16/solution.png
+.. image:: img/tutorial-16/solution.png
    :align: center
    :width: 600
    :height: 350
@@ -510,7 +510,7 @@ following convergence comparison:
 
 Convergence in the number of DOF (with and without Newton solve on the new coarse mesh):
 
-.. image:: img/example-17/conv_dof_compar.png
+.. image:: img/tutorial-17/conv_dof_compar.png
    :align: center
    :width: 600
    :height: 400
@@ -518,7 +518,7 @@ Convergence in the number of DOF (with and without Newton solve on the new coars
 
 Convergence in CPU time (with and without Newton solve on coarse mesh):
 
-.. image:: img/example-17/conv_cpu_compar.png
+.. image:: img/tutorial-17/conv_cpu_compar.png
    :align: center
    :width: 600
    :height: 400
@@ -530,7 +530,7 @@ shown since the reader knows it from the previous example.
 
 Resulting coarse mesh.
 
-.. image:: img/example-17/mesh_coarse.png
+.. image:: img/tutorial-17/mesh_coarse.png
    :align: center
    :width: 500
    :height: 400
@@ -538,7 +538,7 @@ Resulting coarse mesh.
 
 Resulting fine mesh.
 
-.. image:: img/example-17/mesh_fine.png
+.. image:: img/tutorial-17/mesh_fine.png
    :align: center
    :width: 500
    :height: 400
@@ -656,7 +656,7 @@ describing a very simple flame propagation model (laminar flame, no fluid mechan
 The computational domain shown below contains in the middle a narrow portion (cooling rods) 
 whose purpose is to slow down the chemical reaction:
 
-.. image:: img/example-19/domain.png
+.. image:: img/tutorial-19/domain.png
    :align: center
    :width: 760
    :alt: computational domain
@@ -817,22 +817,22 @@ through a DXDYFilter::
 
 A few snapshots of the reaction rate $\omega$ at various times are shown below:
 
-.. image:: img/example-19/sol1.png
+.. image:: img/tutorial-19/sol1.png
    :align: center
    :width: 800
    :alt: solution
 
-.. image:: img/example-19/sol2.png
+.. image:: img/tutorial-19/sol2.png
    :align: center
    :width: 800
    :alt: solution
 
-.. image:: img/example-19/sol3.png
+.. image:: img/tutorial-19/sol3.png
    :align: center
    :width: 800
    :alt: solution
 
-.. image:: img/example-19/sol4.png
+.. image:: img/tutorial-19/sol4.png
    :align: center
    :width: 800
    :alt: solution
@@ -857,7 +857,7 @@ pressure with the standard (continuous) Taylor-Hood elements is shown.
 The computational domain is a rectangular channel containing a 
 circular obstacle: 
 
-.. image:: img/example-20/domain.png
+.. image:: img/tutorial-20/domain.png
    :align: center
    :width: 760
    :alt: computational domain
@@ -998,65 +998,65 @@ should definitely use the option (3).
 
 Time t = 10 s:
 
-.. image:: img/example-20/sol_no_newton_10.png
+.. image:: img/tutorial-20/sol_no_newton_10.png
    :align: center
    :width: 840
    :alt: solution
 
-.. image:: img/example-20/sol_newton_10.png
+.. image:: img/tutorial-20/sol_newton_10.png
    :align: center
    :width: 840
    :alt: solution
 
-.. image:: img/example-20/sol_l2_newton_10.png
+.. image:: img/tutorial-20/sol_l2_newton_10.png
    :align: center
    :width: 840
    :alt: solution
 
 Time t = 15 s:
 
-.. image:: img/example-20/sol_no_newton_15.png
+.. image:: img/tutorial-20/sol_no_newton_15.png
    :align: center
    :width: 840
    :alt: solution
 
-.. image:: img/example-20/sol_newton_15.png
+.. image:: img/tutorial-20/sol_newton_15.png
    :align: center
    :width: 840
    :alt: solution
 
-.. image:: img/example-20/sol_l2_newton_15.png
+.. image:: img/tutorial-20/sol_l2_newton_15.png
    :align: center
    :width: 840
    :alt: solution
 
 Time t = 20 s:
 
-.. image:: img/example-20/sol_no_newton_20.png
+.. image:: img/tutorial-20/sol_no_newton_20.png
    :align: center
    :width: 840
    :alt: solution
 
-.. image:: img/example-20/sol_newton_20.png
+.. image:: img/tutorial-20/sol_newton_20.png
    :align: center
    :width: 840
    :alt: solution
 
-.. image:: img/example-20/sol_l2_newton_20.png
+.. image:: img/tutorial-20/sol_l2_newton_20.png
    :align: center
    :width: 840
    :alt: solution
 
 Snapshot of a continuous pressure approximation (t = 20 s):
 
-.. image:: img/example-20/p_no_newton_20.png
+.. image:: img/tutorial-20/p_no_newton_20.png
    :align: center
    :width: 840
    :alt: solution
 
 Snapshot of a discontinuous pressure approximation (t = 20 s):
 
-.. image:: img/example-20/p_l2_newton_20.png
+.. image:: img/tutorial-20/p_l2_newton_20.png
    :align: center
    :width: 840
    :alt: solution
@@ -1207,21 +1207,21 @@ Sample solution snapshots are shown below:
 
 Snapshot 1:
 
-.. image:: img/example-21/sol_1.png
+.. image:: img/tutorial-21/sol_1.png
    :align: center
    :width: 600
    :alt: solution
 
 Snapshot 2:
 
-.. image:: img/example-21/sol_2.png
+.. image:: img/tutorial-21/sol_2.png
    :align: center
    :width: 600
    :alt: solution
 
 Snapshot 3:
 
-.. image:: img/example-21/sol_3.png
+.. image:: img/tutorial-21/sol_3.png
    :align: center
    :width: 600
    :alt: solution

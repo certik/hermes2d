@@ -91,7 +91,7 @@ Code for the exact solution and the weak forms:
 
 Solution:
 
-.. image:: img/smooth-iso/sol_3d_view.png
+.. image:: img/benchmark-smooth-iso/sol_3d_view.png
    :align: center
    :width: 500
    :height: 300
@@ -105,7 +105,7 @@ Convergence graphs for all cases are shown at the end of this section.
 
 Final mesh (h-FEM, p=1): 27469 DOF, error 0.39173795799476 %
 
-.. image:: img/smooth-iso/mesh-h1.png
+.. image:: img/benchmark-smooth-iso/mesh-h1.png
    :align: center
    :width: 500
    :height: 400
@@ -113,7 +113,7 @@ Final mesh (h-FEM, p=1): 27469 DOF, error 0.39173795799476 %
 
 Final mesh (h-FEM, p=2): 39185 DOF, error 0.0022127484879974 %
 
-.. image:: img/smooth-iso/mesh-h2.png
+.. image:: img/benchmark-smooth-iso/mesh-h2.png
    :align: center
    :width: 500
    :height: 400
@@ -121,7 +121,7 @@ Final mesh (h-FEM, p=2): 39185 DOF, error 0.0022127484879974 %
 
 Final mesh (hp-FEM): 49 DOF, error 4.2775412425017e-05 %
 
-.. image:: img/smooth-iso/mesh-hp.png
+.. image:: img/benchmark-smooth-iso/mesh-hp.png
    :align: center
    :width: 500
    :height: 400
@@ -129,7 +129,7 @@ Final mesh (hp-FEM): 49 DOF, error 4.2775412425017e-05 %
 
 DOF convergence graphs:
 
-.. image:: img/smooth-iso/conv_dof.png
+.. image:: img/benchmark-smooth-iso/conv_dof.png
    :align: center
    :width: 600
    :height: 400
@@ -137,7 +137,7 @@ DOF convergence graphs:
 
 CPU time convergence graphs:
 
-.. image:: img/smooth-iso/conv_cpu.png
+.. image:: img/benchmark-smooth-iso/conv_cpu.png
    :align: center
    :width: 600
    :height: 400
@@ -178,7 +178,7 @@ Exact solution:
 
 Solution:
 
-.. image:: img/smooth-aniso-x/sol_3d_view.png
+.. image:: img/benchmark-smooth-aniso-x/sol_3d_view.png
    :align: center
    :width: 600
    :height: 400
@@ -192,7 +192,7 @@ Convergence graphs for all cases are shown at the end of this section.
 
 Final mesh (h-FEM, p=1, isotropic refinements): 41033 DOF, error 0.22875054074711 %
 
-.. image:: img/smooth-aniso-x/mesh-h1-iso.png
+.. image:: img/benchmark-smooth-aniso-x/mesh-h1-iso.png
    :align: center
    :width: 500
    :height: 400
@@ -200,7 +200,7 @@ Final mesh (h-FEM, p=1, isotropic refinements): 41033 DOF, error 0.2287505407471
 
 Final mesh (h-FEM, p=1, anisotropic refinements): 39594 DOF, error 0.0039444224349215 %
 
-.. image:: img/smooth-aniso-x/mesh-h1-aniso.png
+.. image:: img/benchmark-smooth-aniso-x/mesh-h1-aniso.png
    :align: center
    :width: 500
    :height: 400
@@ -208,7 +208,7 @@ Final mesh (h-FEM, p=1, anisotropic refinements): 39594 DOF, error 0.00394442243
 
 Final mesh (h-FEM, p=2, isotropic refinements): 54627 DOF, error 0.0017755772528929 %
 
-.. image:: img/smooth-aniso-x/mesh-h2-iso.png
+.. image:: img/benchmark-smooth-aniso-x/mesh-h2-iso.png
    :align: center
    :width: 500
    :height: 400
@@ -216,7 +216,7 @@ Final mesh (h-FEM, p=2, isotropic refinements): 54627 DOF, error 0.0017755772528
 
 Final mesh (h-FEM, p=2, anisotropic refinements): 3141 DOF, error 9.3084842840514e-05 %
 
-.. image:: img/smooth-aniso-x/mesh-h2-aniso.png
+.. image:: img/benchmark-smooth-aniso-x/mesh-h2-aniso.png
    :align: center
    :width: 500
    :height: 400
@@ -224,7 +224,7 @@ Final mesh (h-FEM, p=2, anisotropic refinements): 3141 DOF, error 9.308484284051
 
 Final mesh (hp-FEM, isotropic refinements): 63 DOF, error = 3.6797337289125e-05 %
 
-.. image:: img/smooth-aniso-x/mesh-hp-iso.png
+.. image:: img/benchmark-smooth-aniso-x/mesh-hp-iso.png
    :align: center
    :width: 500
    :height: 400
@@ -234,7 +234,7 @@ Final mesh (hp-FEM, anisotropic refinements): 14 DOF, error 3.6797337292196e-05 
 color pattern means that the polynomial degrees are one and eight in the vertical and 
 horizontal directions, respectively.
 
-.. image:: img/smooth-aniso-x/mesh-hp-aniso.png
+.. image:: img/benchmark-smooth-aniso-x/mesh-hp-aniso.png
    :align: center
    :width: 500
    :height: 400
@@ -242,7 +242,7 @@ horizontal directions, respectively.
 
 DOF convergence graphs:
 
-.. image:: img/smooth-aniso-x/conv_dof.png
+.. image:: img/benchmark-smooth-aniso-x/conv_dof.png
    :align: center
    :width: 600
    :height: 400
@@ -250,7 +250,7 @@ DOF convergence graphs:
 
 CPU time convergence graphs:
 
-.. image:: img/smooth-aniso-x/conv_cpu.png
+.. image:: img/benchmark-smooth-aniso-x/conv_cpu.png
    :align: center
    :width: 600
    :height: 400
@@ -283,7 +283,7 @@ Equation solved: Laplace equation
 
 Domain of interest:
 
-.. image:: img/lshape/domain.png
+.. image:: img/benchmark-lshape/domain.png
    :align: center
    :width: 470
    :height: 470
@@ -341,7 +341,7 @@ Code for the exact solution, bundary conditions, and weak forms:
 
 Solution:
 
-.. image:: img/lshape/sol_3d_view.png
+.. image:: img/benchmark-lshape/sol_3d_view.png
    :align: center
    :width: 600
    :height: 400
@@ -349,7 +349,7 @@ Solution:
 
 Final mesh (h-FEM with linear elements):
 
-.. image:: img/lshape/mesh-h1.png
+.. image:: img/benchmark-lshape/mesh-h1.png
    :align: center
    :width: 500
    :height: 400
@@ -357,7 +357,7 @@ Final mesh (h-FEM with linear elements):
 
 Final mesh (h-FEM with quadratic elements):
 
-.. image:: img/lshape/mesh-h2.png
+.. image:: img/benchmark-lshape/mesh-h2.png
    :align: center
    :width: 500
    :height: 400
@@ -365,7 +365,7 @@ Final mesh (h-FEM with quadratic elements):
 
 Final mesh (hp-FEM):
 
-.. image:: img/lshape/mesh-hp.png
+.. image:: img/benchmark-lshape/mesh-hp.png
    :align: center
    :width: 500
    :height: 400
@@ -373,7 +373,7 @@ Final mesh (hp-FEM):
 
 DOF convergence graphs:
 
-.. image:: img/lshape/conv_dof.png
+.. image:: img/benchmark-lshape/conv_dof.png
    :align: center
    :width: 600
    :height: 400
@@ -381,23 +381,23 @@ DOF convergence graphs:
 
 CPU time convergence graphs:
 
-.. image:: img/lshape/conv_cpu.png
+.. image:: img/benchmark-lshape/conv_cpu.png
    :align: center
    :width: 600
    :height: 400
    :alt: CPU convergence graph.
 
-Internal Layer (Elliptic)
+Interior Layer (Elliptic)
 -------------------------
 
-**Git reference:** Benchmark `layer <http://git.hpfem.org/hermes2d.git/tree/HEAD:/benchmarks/layer>`_.
+**Git reference:** Benchmark `layer-interior <http://git.hpfem.org/hermes2d.git/tree/HEAD:/benchmarks/layer-interior>`_.
 
-This example has a smooth solution that exhibits a steep internal layer inside the domain.
+This example has a smooth solution that exhibits a steep interior layer.
 
 Equation solved: Poisson equation 
 
 .. math::
-    :label: layer
+    :label: layer-interior
 
        -\Delta u = f.
 
@@ -406,7 +406,7 @@ Domain of interest: Unit square $(0, 1)^2$.
 Right-hand side:
 
 .. math::
-    :label: layer-rhs
+    :label: layer-interior-rhs
  
     f(x, y) = \frac{27}{2} (2y + 0.5)^2 (\pi - 3t) \frac{S^3}{u^2 t_2} +
     \frac{27}{2} (2x - 2.5)^2 (\pi - 3t) \frac{S^3}{u^2 t_2}
@@ -417,7 +417,7 @@ Right-hand side:
 Exact solution:
 
 .. math::
-    :label: layer-exact
+    :label: layer-interior-exact
 
     u(x, y) = \mbox{atan}\left(S \sqrt{(x-1.25)^2 + (y+0.25)^2} - \pi/3\right).
 
@@ -485,7 +485,7 @@ Code for the exact solution and the weak forms:
 
 Solution:
 
-.. image:: img/layer/sol_3d_view.png
+.. image:: img/benchmark-layer-interior/sol_3d_view.png
    :align: center
    :width: 600
    :height: 400
@@ -493,7 +493,7 @@ Solution:
 
 Final mesh (h-FEM with linear elements):
 
-.. image:: img/layer/mesh-h1.png
+.. image:: img/benchmark-layer-interior/mesh-h1.png
    :align: center
    :width: 500
    :height: 400
@@ -501,7 +501,7 @@ Final mesh (h-FEM with linear elements):
 
 Final mesh (h-FEM with quadratic elements):
 
-.. image:: img/layer/mesh-h2.png
+.. image:: img/benchmark-layer-interior/mesh-h2.png
    :align: center
    :width: 500
    :height: 400
@@ -509,7 +509,7 @@ Final mesh (h-FEM with quadratic elements):
 
 Final mesh (hp-FEM):
 
-.. image:: img/layer/mesh-hp.png
+.. image:: img/benchmark-layer-interior/mesh-hp.png
    :align: center
    :width: 500
    :height: 400
@@ -517,7 +517,7 @@ Final mesh (hp-FEM):
 
 DOF convergence graphs:
 
-.. image:: img/layer/conv_dof.png
+.. image:: img/benchmark-layer-interior/conv_dof.png
    :align: center
    :width: 600
    :height: 400
@@ -525,7 +525,7 @@ DOF convergence graphs:
 
 CPU time convergence graphs:
 
-.. image:: img/layer/conv_cpu.png
+.. image:: img/benchmark-layer-interior/conv_cpu.png
    :align: center
    :width: 600
    :height: 400
@@ -534,7 +534,7 @@ CPU time convergence graphs:
 Boundary Layer (Elliptic)
 -------------------------
 
-**Git reference:** Benchmark `layer-2 <http://git.hpfem.org/hermes2d.git/tree/HEAD:/benchmarks/layer-2>`_.
+**Git reference:** Benchmark `layer-boundary <http://git.hpfem.org/hermes2d.git/tree/HEAD:/benchmarks/layer-boundary>`_.
 
 This example is a singularly perturbed problem with known exact solution that exhibits a thin boundary layer, that 
 the reader can use to perform various experiments with adaptivity for problems with boundary layers. The sample 
@@ -547,7 +547,7 @@ numerical results presented below imply that:
 Equation solved: Poisson equation 
 
 .. math::
-    :label: layer-2
+    :label: layer-boundary
 
        -\Delta u + K^2 u = f.
 
@@ -629,7 +629,7 @@ The numerical results follow:
 
 Solution:
 
-.. image:: img/layer-2/solution.png
+.. image:: img/benchmark-layer-boundary/solution.png
    :align: center
    :width: 600
    :height: 400
@@ -645,7 +645,7 @@ Let us first compare the performance of h-FEM (p=1), h-FEM (p=2) and hp-FEM with
 
 Final mesh (h-FEM, p=1, isotropic refinements):
 
-.. image:: img/layer-2/mesh_h1_iso.png
+.. image:: img/benchmark-layer-boundary/mesh_h1_iso.png
    :align: center
    :width: 500
    :height: 400
@@ -653,7 +653,7 @@ Final mesh (h-FEM, p=1, isotropic refinements):
 
 Final mesh (h-FEM, p=2, isotropic refinements):
 
-.. image:: img/layer-2/mesh_h2_iso.png
+.. image:: img/benchmark-layer-boundary/mesh_h2_iso.png
    :align: center
    :width: 500
    :height: 400
@@ -661,7 +661,7 @@ Final mesh (h-FEM, p=2, isotropic refinements):
 
 Final mesh (hp-FEM, isotropic refinements):
 
-.. image:: img/layer-2/mesh_hp_iso.png
+.. image:: img/benchmark-layer-boundary/mesh_hp_iso.png
    :align: center
    :width: 500
    :height: 400
@@ -669,7 +669,7 @@ Final mesh (hp-FEM, isotropic refinements):
 
 DOF convergence graphs:
 
-.. image:: img/layer-2/conv_compar_dof_iso.png
+.. image:: img/benchmark-layer-boundary/conv_compar_dof_iso.png
    :align: center
    :width: 600
    :height: 400
@@ -677,7 +677,7 @@ DOF convergence graphs:
 
 CPU convergence graphs:
 
-.. image:: img/layer-2/conv_compar_cpu_iso.png
+.. image:: img/benchmark-layer-boundary/conv_compar_cpu_iso.png
    :align: center
    :width: 600
    :height: 400
@@ -690,7 +690,7 @@ Next we compare the performance of h-FEM (p=1), h-FEM (p=2) and hp-FEM with **an
 
 Final mesh (h-FEM, p=1, anisotropic refinements):
 
-.. image:: img/layer-2/mesh_h1_aniso.png
+.. image:: img/benchmark-layer-boundary/mesh_h1_aniso.png
    :align: center
    :width: 500
    :height: 400
@@ -698,7 +698,7 @@ Final mesh (h-FEM, p=1, anisotropic refinements):
 
 Final mesh (h-FEM, p=2, anisotropic refinements):
 
-.. image:: img/layer-2/mesh_h2_aniso.png
+.. image:: img/benchmark-layer-boundary/mesh_h2_aniso.png
    :align: center
    :width: 500
    :height: 400
@@ -706,7 +706,7 @@ Final mesh (h-FEM, p=2, anisotropic refinements):
 
 Final mesh (hp-FEM, anisotropic refinements):
 
-.. image:: img/layer-2/mesh_hp_aniso.png
+.. image:: img/benchmark-layer-boundary/mesh_hp_aniso.png
    :align: center
    :width: 500
    :height: 400
@@ -714,7 +714,7 @@ Final mesh (hp-FEM, anisotropic refinements):
 
 DOF convergence graphs:
 
-.. image:: img/layer-2/conv_compar_dof_aniso.png
+.. image:: img/benchmark-layer-boundary/conv_compar_dof_aniso.png
    :align: center
    :width: 600
    :height: 400
@@ -722,7 +722,7 @@ DOF convergence graphs:
 
 CPU convergence graphs:
 
-.. image:: img/layer-2/conv_compar_cpu_aniso.png
+.. image:: img/benchmark-layer-boundary/conv_compar_cpu_aniso.png
    :align: center
    :width: 600
    :height: 400
@@ -733,7 +733,7 @@ h-FEM (p=1): comparison of isotropic and anisotropic refinements
 
 DOF convergence graphs:
 
-.. image:: img/layer-2/conv_compar_dof_h1.png
+.. image:: img/benchmark-layer-boundary/conv_compar_dof_h1.png
    :align: center
    :width: 600
    :height: 400
@@ -741,7 +741,7 @@ DOF convergence graphs:
 
 CPU convergence graphs:
 
-.. image:: img/layer-2/conv_compar_cpu_h1.png
+.. image:: img/benchmark-layer-boundary/conv_compar_cpu_h1.png
    :align: center
    :width: 600
    :height: 400
@@ -752,7 +752,7 @@ h-FEM (p=2): comparison of isotropic and anisotropic refinements
 
 DOF convergence graphs:
 
-.. image:: img/layer-2/conv_compar_dof_h2.png
+.. image:: img/benchmark-layer-boundary/conv_compar_dof_h2.png
    :align: center
    :width: 600
    :height: 400
@@ -760,7 +760,7 @@ DOF convergence graphs:
 
 CPU convergence graphs:
 
-.. image:: img/layer-2/conv_compar_cpu_h2.png
+.. image:: img/benchmark-layer-boundary/conv_compar_cpu_h2.png
    :align: center
    :width: 600
    :height: 400
@@ -775,7 +775,7 @@ In the hp-FEM one has two kinds of anisotropy -- spatial and polynomial. In the 
 
 DOF convergence graphs (hp-FEM):
 
-.. image:: img/layer-2/conv_compar_dof_hp.png
+.. image:: img/benchmark-layer-boundary/conv_compar_dof_hp.png
    :align: center
    :width: 600
    :height: 400
@@ -783,7 +783,7 @@ DOF convergence graphs (hp-FEM):
 
 CPU convergence graphs (hp-FEM):
 
-.. image:: img/layer-2/conv_compar_cpu_hp.png
+.. image:: img/benchmark-layer-boundary/conv_compar_cpu_hp.png
    :align: center
    :width: 600
    :height: 400
@@ -834,7 +834,7 @@ The corresponding code snippet is shown below:
 
 Solution for $K = \pi/2$ and $\alpha = 2.01$:
 
-.. image:: img/line-singularity/solution.png
+.. image:: img/benchmark-line-singularity/solution.png
    :align: center
    :width: 600
    :height: 400
@@ -845,28 +845,28 @@ Comparison of h-FEM (p=1), h-FEM (p=2) and hp-FEM with anisotropic refinements
 
 Final mesh (h-FEM, p=1, anisotropic refinements):
 
-.. image:: img/line-singularity/mesh_h1_aniso.png
+.. image:: img/benchmark-line-singularity/mesh_h1_aniso.png
    :align: center
    :width: 450
    :alt: Final mesh.
 
 Final mesh (h-FEM, p=2, anisotropic refinements):
 
-.. image:: img/line-singularity/mesh_h2_aniso.png
+.. image:: img/benchmark-line-singularity/mesh_h2_aniso.png
    :align: center
    :width: 450
    :alt: Final mesh.
 
 Final mesh (hp-FEM, h-anisotropic refinements):
 
-.. image:: img/line-singularity/mesh_hp_anisoh.png
+.. image:: img/benchmark-line-singularity/mesh_hp_anisoh.png
    :align: center
    :width: 450
    :alt: Final mesh.
 
 DOF convergence graphs:
 
-.. image:: img/line-singularity/conv_dof_aniso.png
+.. image:: img/benchmark-line-singularity/conv_dof_aniso.png
    :align: center
    :width: 600
    :height: 400
@@ -874,7 +874,7 @@ DOF convergence graphs:
 
 CPU convergence graphs:
 
-.. image:: img/line-singularity/conv_cpu_aniso.png
+.. image:: img/benchmark-line-singularity/conv_cpu_aniso.png
    :align: center
    :width: 600
    :height: 400
@@ -885,21 +885,21 @@ hp-FEM with iso, h-aniso and hp-aniso refinements
 
 Final mesh (hp-FEM, isotropic refinements):
 
-.. image:: img/line-singularity/mesh_hp_iso.png
+.. image:: img/benchmark-line-singularity/mesh_hp_iso.png
    :align: center
    :width: 450
    :alt: Final mesh.
 
 Final mesh (hp-FEM, h-anisotropic refinements):
 
-.. image:: img/line-singularity/mesh_hp_anisoh.png
+.. image:: img/benchmark-line-singularity/mesh_hp_anisoh.png
    :align: center
    :width: 450
    :alt: Final mesh.
 
 Final mesh (hp-FEM, hp-anisotropic refinements):
 
-.. image:: img/line-singularity/mesh_hp_aniso.png
+.. image:: img/benchmark-line-singularity/mesh_hp_aniso.png
    :align: center
    :width: 450
    :alt: Final mesh.
@@ -911,7 +911,7 @@ These results will be updated soon.
 
 DOF convergence graphs:
 
-.. image:: img/line-singularity/conv_dof_hp.png
+.. image:: img/benchmark-line-singularity/conv_dof_hp.png
    :align: center
    :width: 600
    :height: 400
@@ -919,7 +919,7 @@ DOF convergence graphs:
 
 CPU convergence graphs:
 
-.. image:: img/line-singularity/conv_cpu_hp.png
+.. image:: img/benchmark-line-singularity/conv_cpu_hp.png
    :align: center
    :width: 600
    :height: 400
@@ -1008,35 +1008,35 @@ The weak forms are as follows:
 
 Solution:
 
-.. image:: img/kellogg/solution.png
+.. image:: img/benchmark-kellogg/solution.png
    :align: center
    :width: 600
    :alt: Solution.
 
 Final mesh (h-FEM with linear elements):
 
-.. image:: img/kellogg/mesh-h1.png
+.. image:: img/benchmark-kellogg/mesh-h1.png
    :align: center
    :width: 600
    :alt: Mesh.
 
 Final mesh (h-FEM with quadratic elements):
 
-.. image:: img/kellogg/mesh-h2.png
+.. image:: img/benchmark-kellogg/mesh-h2.png
    :align: center
    :width: 600
    :alt: Mesh.
 
 Final mesh (hp-FEM):
 
-.. image:: img/kellogg/mesh-hp.png
+.. image:: img/benchmark-kellogg/mesh-hp.png
    :align: center
    :width: 600
    :alt: Mesh.
 
 DOF convergence graphs:
 
-.. image:: img/kellogg/conv_dof.png
+.. image:: img/benchmark-kellogg/conv_dof.png
    :align: center
    :width: 600
    :height: 400
@@ -1044,7 +1044,7 @@ DOF convergence graphs:
 
 CPU time convergence graphs:
 
-.. image:: img/kellogg/conv_cpu.png
+.. image:: img/benchmark-kellogg/conv_cpu.png
    :align: center
    :width: 600
    :height: 400
@@ -1052,7 +1052,7 @@ CPU time convergence graphs:
 
 
 2-Group Neutronics (Neutronics)
----------------------------------------
+-------------------------------
 
 **Git reference:** Benchmark `neutronics-2-group-adapt <http://git.hpfem.org/hermes2d.git/tree/HEAD:/benchmarks/neutronics-2-group-adapt>`_.
 
@@ -1071,7 +1071,7 @@ For physical meaning of the various material parameters, see the example `4-Grou
 
 Domain of interest: 
 
-.. image:: img/neutronics-2-group-adapt/domain.png
+.. image:: img/benchmark-neutronics-2-group-adapt/domain.png
    :align: center
    :width: 400
    :height: 400
@@ -1181,7 +1181,7 @@ where the function *get_material* is used to obtain the material marker given th
 `main.cpp <http://git.hpfem.org/hermes2d.git/blob/HEAD:/benchmarks/neutronics-2-group-adapt/main.cpp>`_). 
 The following picture shows the two right-hand side functions (distribution of neutron sources/sinks) - :math:`Q_1` is plotted on the left, :math:`Q_2` on the right.
 
-.. image:: img/neutronics-2-group-adapt/rhs.png
+.. image:: img/benchmark-neutronics-2-group-adapt/rhs.png
    :align: center
    :width: 700
    :height: 275
@@ -1204,7 +1204,7 @@ Weak formulation of the present two-group neutron diffusion problem with fixed s
 
 The following figures show the computed distributions of neutron flux for both neutron groups.
 
-.. image:: img/neutronics-2-group-adapt/solution12.png
+.. image:: img/benchmark-neutronics-2-group-adapt/solution12.png
    :align: center
    :width: 1024
    :height: 360
@@ -1217,7 +1217,7 @@ Comparison of single/multi-mesh hp-FEM
 
 Final mesh (hp-FEM, single-mesh): DOF, error = %
 
-.. image:: img/neutronics-2-group-adapt/mesh_hp_anisoh_single.png
+.. image:: img/benchmark-neutronics-2-group-adapt/mesh_hp_anisoh_single.png
    :align: center
    :width: 500
    :height: 400
@@ -1225,7 +1225,7 @@ Final mesh (hp-FEM, single-mesh): DOF, error = %
 
 Final mesh (hp-FEM, multi-mesh): DOF, error = %
 
-.. image:: img/neutronics-2-group-adapt/mesh_hp_anisoh_multi.png
+.. image:: img/benchmark-neutronics-2-group-adapt/mesh_hp_anisoh_multi.png
    :align: center
    :width: 500
    :height: 400
@@ -1233,7 +1233,7 @@ Final mesh (hp-FEM, multi-mesh): DOF, error = %
 
 DOF convergence graphs:
 
-.. image:: img/neutronics-2-group-adapt/conv_dof_multimesh.png
+.. image:: img/benchmark-neutronics-2-group-adapt/conv_dof_multimesh.png
    :align: center
    :width: 600
    :height: 400
@@ -1241,7 +1241,7 @@ DOF convergence graphs:
 
 CPU convergence graphs:
 
-.. image:: img/neutronics-2-group-adapt/conv_cpu_multimesh.png
+.. image:: img/benchmark-neutronics-2-group-adapt/conv_cpu_multimesh.png
    :align: center
    :width: 600
    :height: 400
@@ -1255,7 +1255,7 @@ Now, with multimesh enabled, we proceed to compare h-adaptivity with fixed order
 
 Final mesh (h-FEM, p=1, anisotropic refinements): DOF, error = %
 
-.. image:: img/neutronics-2-group-adapt/mesh_h1_aniso_multi.png
+.. image:: img/benchmark-neutronics-2-group-adapt/mesh_h1_aniso_multi.png
    :align: center
    :width: 500
    :height: 400
@@ -1263,7 +1263,7 @@ Final mesh (h-FEM, p=1, anisotropic refinements): DOF, error = %
    
 Final mesh (h-FEM, p=2, anisotropic refinements): DOF, error = %
 
-.. image:: img/neutronics-2-group-adapt/mesh_h2_aniso_multi.png
+.. image:: img/benchmark-neutronics-2-group-adapt/mesh_h2_aniso_multi.png
    :align: center
    :width: 500
    :height: 400
@@ -1271,7 +1271,7 @@ Final mesh (h-FEM, p=2, anisotropic refinements): DOF, error = %
 
 Final mesh (hp-FEM, h-anisotropic refinements):  DOF, error = %
 
-.. image:: img/neutronics-2-group-adapt/mesh_hp_anisoh_multi.png
+.. image:: img/benchmark-neutronics-2-group-adapt/mesh_hp_anisoh_multi.png
    :align: center
    :width: 600
    :height: 400
@@ -1279,7 +1279,7 @@ Final mesh (hp-FEM, h-anisotropic refinements):  DOF, error = %
 
 DOF convergence graphs:
 
-.. image:: img/neutronics-2-group-adapt/conv_dof_aniso.png
+.. image:: img/benchmark-neutronics-2-group-adapt/conv_dof_aniso.png
    :align: center
    :width: 600
    :height: 400
@@ -1287,7 +1287,7 @@ DOF convergence graphs:
 
 CPU convergence graphs:
 
-.. image:: img/neutronics-2-group-adapt/conv_cpu_aniso.png
+.. image:: img/benchmark-neutronics-2-group-adapt/conv_cpu_aniso.png
    :align: center
    :width: 600
    :height: 400
@@ -1300,7 +1300,7 @@ Although there are more strategies for capturing solution anisotropy during hp-a
 
 Final mesh (hp-FEM, isotropic refinements):  DOF, error = %
 
-.. image:: img/neutronics-2-group-adapt/mesh_hp_iso_multi.png
+.. image:: img/benchmark-neutronics-2-group-adapt/mesh_hp_iso_multi.png
    :align: center
    :width: 500
    :height: 400
@@ -1308,7 +1308,7 @@ Final mesh (hp-FEM, isotropic refinements):  DOF, error = %
 
 Final mesh (hp-FEM, h-anisotropic refinements): DOF, error = %
 
-.. image:: img/neutronics-2-group-adapt/mesh_hp_anisoh_multi.png
+.. image:: img/benchmark-neutronics-2-group-adapt/mesh_hp_anisoh_multi.png
    :align: center
    :width: 500
    :height: 400
@@ -1316,7 +1316,7 @@ Final mesh (hp-FEM, h-anisotropic refinements): DOF, error = %
    
 Final mesh (hp-FEM, p-anisotropic refinements): DOF, error = %
 
-.. image:: img/neutronics-2-group-adapt/mesh_hp_anisop_multi.png
+.. image:: img/benchmark-neutronics-2-group-adapt/mesh_hp_anisop_multi.png
    :align: center
    :width: 500
    :height: 400
@@ -1324,7 +1324,7 @@ Final mesh (hp-FEM, p-anisotropic refinements): DOF, error = %
 
 Final mesh (hp-FEM, hp-anisotropic refinements):  DOF, error = %
 
-.. image:: img/neutronics-2-group-adapt/mesh_hp_aniso_multi.png
+.. image:: img/benchmark-neutronics-2-group-adapt/mesh_hp_aniso_multi.png
    :align: center
    :width: 500
    :height: 400
@@ -1332,7 +1332,7 @@ Final mesh (hp-FEM, hp-anisotropic refinements):  DOF, error = %
 
 DOF convergence graphs:
 
-.. image:: img/neutronics-2-group-adapt/conv_dof_hp.png
+.. image:: img/benchmark-neutronics-2-group-adapt/conv_dof_hp.png
    :align: center
    :width: 600
    :height: 400
@@ -1340,169 +1340,7 @@ DOF convergence graphs:
 
 CPU convergence graphs:
 
-.. image:: img/neutronics-2-group-adapt/conv_cpu_hp.png
-   :align: center
-   :width: 600
-   :height: 400
-   :alt: CPU convergence graph.
-
-
-
-
-Bessel (Maxwell's Equations)
-----------------------------
-
-**Git reference:** Benchmark `bessel <http://git.hpfem.org/hermes2d.git/tree/HEAD:/benchmarks/bessel>`_.
-
-This example solves time-harmonic Maxwell's equations in an L-shaped domain and it 
-describes the diffraction of an electromagnetic wave from a re-entrant corner. It comes with an 
-exact solution that contains singularity.
-
-Equation solved: Time-harmonic Maxwell's equations
-
-.. math::
-    :label: bessel
-
-    \frac{1}{\mu_r} \nabla \times \nabla \times E - \kappa^2 \epsilon_r E = \Phi.
-
-Domain of interest is the square $(-10, 10)^2$ missing the quarter lying in the 
-fourth quadrant. It is filled with air:
-
-.. image:: img/bessel/domain.png
-   :align: center
-   :width: 490
-   :height: 490
-   :alt: Computational domain.
-
-Boundary conditions: Combined essential and natural, see the 
-`main.cpp <http://git.hpfem.org/hermes2d.git/blob/HEAD:/benchmarks/bessel/main.cpp>`_ file.
-
-Exact solution:
-
-.. math::
-    :label: bessel-exact
-
-    E(x, y) = \nabla \times J_{\alpha} (r) \cos(\alpha \theta)
-
-where $J_{\alpha}$ is the Bessel function of the first kind, 
-$(r, \theta)$ the polar coordinates and $\alpha = 2/3$. In 
-computer code, this reads:
-
-::
-
-    void exact_sol(double x, double y, scalar& e0, scalar& e1)
-    {
-      double t1 = x*x;
-      double t2 = y*y;
-      double t4 = sqrt(t1+t2);
-      double t5 = jv(-1.0/3.0,t4);
-      double t6 = 1/t4;
-      double t7 = jv(2.0/3.0,t4);
-      double t11 = (t5-2.0/3.0*t6*t7)*t6;
-      double t12 = atan2(y,x);
-      if (t12 < 0) t12 += 2.0*M_PI;
-      double t13 = 2.0/3.0*t12;
-      double t14 = cos(t13);
-      double t17 = sin(t13);
-      double t18 = t7*t17;
-      double t20 = 1/t1;
-      double t23 = 1/(1.0+t2*t20);
-      e0 = t11*y*t14-2.0/3.0*t18/x*t23;
-      e1 = -t11*x*t14-2.0/3.0*t18*y*t20*t23;
-    }  
-
-Here jv() is the Bessel function $\bfJ_{\alpha}$. For its source code see the 
-`forms.cpp <http://git.hpfem.org/hermes2d.git/blob/HEAD:/benchmarks/bessel/forms.cpp>`_ file.
-
-Code for the weak forms:
-
-::
-
-    template<typename Real, typename Scalar>
-    Scalar bilinear_form(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
-    {
-    return 1.0/mu_r * int_curl_e_curl_f<Real, Scalar>(n, wt, u, v) -
-           sqr(kappa) * int_e_f<Real, Scalar>(n, wt, u, v);
-    }
-   
-    template<typename Real, typename Scalar>
-    Scalar bilinear_form_surf(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
-    {
-      cplx ii = cplx(0.0, 1.0);
-      return ii * (-kappa) * int_e_tau_f_tau<Real, Scalar>(n, wt, u, v, e);
-    }
-   
-    scalar linear_form_surf(int n, double *wt, Func<scalar> *u_ext[], Func<double> *v, Geom<double> *e, ExtData<scalar> *ext)
-    {
-      scalar result = 0;
-      for (int i = 0; i < n; i++)
-      {
-        double r = sqrt(e->x[i] * e->x[i] + e->y[i] * e->y[i]);
-        double theta = atan2(e->y[i], e->x[i]);
-        if (theta < 0) theta += 2.0*M_PI;
-        double j13    = jv(-1.0/3.0, r),    j23    = jv(+2.0/3.0, r);
-        double cost   = cos(theta),         sint   = sin(theta);
-        double cos23t = cos(2.0/3.0*theta), sin23t = sin(2.0/3.0*theta);
-   
-        double Etau = e->tx[i] * (cos23t*sint*j13 - 2.0/(3.0*r)*j23*(cos23t*sint + sin23t*cost)) +
-                      e->ty[i] * (-cos23t*cost*j13 + 2.0/(3.0*r)*j23*(cos23t*cost - sin23t*sint));
-  
-        result += wt[i] * cplx(cos23t*j23, -Etau) * ((v->val0[i] * e->tx[i] + v->val1[i] * e->ty[i]));
-      }
-      return result;
-    }
-
-    // Maximal polynomial order to integrate surface linear form.
-    Ord linear_form_surf_ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext)
-    {  return Ord(v->val[0].get_max_order());  }
-
-Solution:
-
-.. image:: img/bessel/solution.png
-   :align: center
-   :width: 500
-   :height: 420
-   :alt: Solution.
-
-Final mesh (h-FEM with linear elements):
-
-.. image:: img/bessel/mesh-h1.png
-   :align: center
-   :width: 460
-   :height: 390
-   :alt: Final mesh (h-FEM with linear elements).
-
-Note that the polynomial order indicated corresponds to the tangential components 
-of approximation on element interfaces, not to polynomial degrees inside the elements
-(those are one higher).
-
-Final mesh (h-FEM with quadratic elements):
-
-.. image:: img/bessel/mesh-h2.png
-   :align: center
-   :width: 460
-   :height: 390
-   :alt: Final mesh (h-FEM with quadratic elements).
-
-Final mesh (hp-FEM):
-
-.. image:: img/bessel/mesh-hp.png
-   :align: center
-   :width: 460
-   :height: 390
-   :alt: Final mesh (hp-FEM).
-
-DOF convergence graphs:
-
-.. image:: img/bessel/conv_dof.png
-   :align: center
-   :width: 600
-   :height: 400
-   :alt: DOF convergence graph.
-
-CPU time convergence graphs:
-
-.. image:: img/bessel/conv_cpu.png
+.. image:: img/benchmark-neutronics-2-group-adapt/conv_cpu_hp.png
    :align: center
    :width: 600
    :height: 400
@@ -1527,7 +1365,7 @@ Equation solved: Time-harmonic Maxwell's equations
 Domain of interest is the square $(-1,1)^2$ missing the edge that connects the center with 
 the midpoint of the left side. It is filled with air:
 
-.. image:: img/screen/domain.png
+.. image:: img/benchmark-screen/domain.png
    :align: center
    :width: 490
    :height: 490
@@ -1553,7 +1391,7 @@ Code for the weak forms:
 
 Solution (real part of $E_1$):
 
-.. image:: img/screen/sol1.png
+.. image:: img/benchmark-screen/sol1.png
    :align: center
    :width: 510
    :height: 470
@@ -1561,7 +1399,7 @@ Solution (real part of $E_1$):
 
 Solution (real part of $E_2$):
 
-.. image:: img/screen/sol2.png
+.. image:: img/benchmark-screen/sol2.png
    :align: center
    :width: 510
    :height: 470
@@ -1569,7 +1407,7 @@ Solution (real part of $E_2$):
 
 Solution (imaginary part of $E_1$):
 
-.. image:: img/screen/sol3.png
+.. image:: img/benchmark-screen/sol3.png
    :align: center
    :width: 510
    :height: 470
@@ -1577,7 +1415,7 @@ Solution (imaginary part of $E_1$):
 
 Solution (imaginary part of $E_2$):
 
-.. image:: img/screen/sol4.png
+.. image:: img/benchmark-screen/sol4.png
    :align: center
    :width: 510
    :height: 470
@@ -1585,7 +1423,7 @@ Solution (imaginary part of $E_2$):
 
 Final mesh (h-FEM with linear elements):
 
-.. image:: img/screen/mesh-h1.png
+.. image:: img/benchmark-screen/mesh-h1.png
    :align: center
    :width: 460
    :height: 410
@@ -1597,7 +1435,7 @@ of approximation on element interfaces, not to polynomial degrees inside the ele
 
 Final mesh (h-FEM with quadratic elements):
 
-.. image:: img/screen/mesh-h2.png
+.. image:: img/benchmark-screen/mesh-h2.png
    :align: center
    :width: 460
    :height: 410
@@ -1605,7 +1443,7 @@ Final mesh (h-FEM with quadratic elements):
 
 Final mesh (hp-FEM):
 
-.. image:: img/screen/mesh-hp.png
+.. image:: img/benchmark-screen/mesh-hp.png
    :align: center
    :width: 460
    :height: 410
@@ -1613,7 +1451,7 @@ Final mesh (hp-FEM):
 
 DOF convergence graphs:
 
-.. image:: img/screen/conv_dof.png
+.. image:: img/benchmark-screen/conv_dof.png
    :align: center
    :width: 600
    :height: 400
@@ -1621,7 +1459,7 @@ DOF convergence graphs:
 
 CPU time convergence graphs:
 
-.. image:: img/screen/conv_cpu.png
+.. image:: img/benchmark-screen/conv_cpu.png
    :align: center
    :width: 600
    :height: 400

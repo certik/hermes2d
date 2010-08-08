@@ -101,7 +101,7 @@ Same graphs as above but now in terms of CPU time:
    :alt: Illustration of arbitrary-level hanging nodes.
 
 .. ######
-    .. image:: img/mixer-mesh.png
+    .. image:: img/intro/mixer-mesh.png
        :align: right
        :width: 300
        :height: 300
@@ -140,11 +140,7 @@ Same graphs as above but now in terms of CPU time:
 Interactive Web Accessibility
 -----------------------------
 
-* **Interactive web usage**. You can use Hermes (and other major open source FEM codes) 
-remotely via any web browser, using the `FEMhub Online Numerical Methods Laboratory <http://lab.femhub.org/>`_. 
-Your hardware will not be used as the online lab is powered by the University of Nevada, Reno 
-(UNR) high-performance computing facility (`Research Grid <http://hpc.unr.edu/wiki/index.php/Main_Page>`_). 
-You can compute with Hermes using an iPhone if you like.
+* **Interactive web usage**. You can use Hermes (and other major open source FEM codes) remotely via any web browser, using the `FEMhub Online Numerical Methods Laboratory <http://lab.femhub.org/>`_. Your hardware will not be used as the online lab is powered by the University of Nevada, Reno (UNR) high-performance computing facility (`Research Grid <http://hpc.unr.edu/wiki/index.php/Main_Page>`_). You can compute with Hermes using an iPhone if you like.
 
 .. image:: img/intro/iphone_large.png
    :align: center
@@ -180,6 +176,7 @@ Monographs:
        publisher = {J. Wiley & Sons},
        year = {2005}
     }
+
 Reference to the Hermes open-source project:
 
 ::

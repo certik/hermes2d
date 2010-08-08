@@ -19,7 +19,7 @@ displacement component is approximated on an individual mesh.
 The computational domain is a $1.5 \times 0.3$ m rectangle containing two horizontal 
 cracks, as shown in the following figure:
 
-.. image:: img/crack/domain.png
+.. image:: img/example-crack/domain.png
    :align: center
    :width: 780
    :alt: Domain.
@@ -165,50 +165,50 @@ The rest is straightforward and details can be found in the
 
 Detail of singularity in Von Mises stress at the left end of the left crack:
 
-.. image:: img/crack/sol.png
+.. image:: img/example-crack/sol.png
    :align: center
    :width: 700
    :alt: Solution.
 
 Final meshes for $u_1$ and $u_2$ (h-FEM with linear elements):
 
-.. image:: img/crack/mesh-x-h1.png
+.. image:: img/example-crack/mesh-x-h1.png
    :align: center
    :width: 800
    :alt: Solution.
 
-.. image:: img/crack/mesh-y-h1.png
+.. image:: img/example-crack/mesh-y-h1.png
    :align: center
    :width: 800
    :alt: Solution.
 
 Final meshes for $u_1$ and $u_2$ (h-FEM with quadratic elements):
 
-.. image:: img/crack/mesh-x-h2.png
+.. image:: img/example-crack/mesh-x-h2.png
    :align: center
    :width: 800
    :alt: Solution.
 
-.. image:: img/crack/mesh-x-h2.png
+.. image:: img/example-crack/mesh-x-h2.png
    :align: center
    :width: 800
    :alt: Solution.
 
 Final meshes for $u_1$ and $u_2$ (hp-FEM):
 
-.. image:: img/crack/mesh-x-hp.png
+.. image:: img/example-crack/mesh-x-hp.png
    :align: center
    :width: 800
    :alt: Solution.
 
-.. image:: img/crack/mesh-y-hp.png
+.. image:: img/example-crack/mesh-y-hp.png
    :align: center
    :width: 800
    :alt: Solution.
 
 DOF convergence graphs:
 
-.. image:: img/crack/conv_dof.png
+.. image:: img/example-crack/conv_dof.png
    :align: center
    :width: 600
    :height: 400
@@ -216,7 +216,7 @@ DOF convergence graphs:
 
 CPU time convergence graphs:
 
-.. image:: img/crack/conv_cpu.png
+.. image:: img/example-crack/conv_cpu.png
    :align: center
    :width: 600
    :height: 400
@@ -224,7 +224,7 @@ CPU time convergence graphs:
 
 Next let us compare the multimesh hp-FEM with the standard (single-mesh) hp-FEM:
 
-.. image:: img/crack/conv_dof_compar.png
+.. image:: img/example-crack/conv_dof_compar.png
    :align: center
    :width: 600
    :height: 400
@@ -232,7 +232,7 @@ Next let us compare the multimesh hp-FEM with the standard (single-mesh) hp-FEM:
 
 The same comparison in terms of CPU time:
 
-.. image:: img/crack/conv_cpu_compar.png
+.. image:: img/example-crack/conv_cpu_compar.png
    :align: center
    :width: 600
    :height: 400
@@ -256,7 +256,7 @@ Our domain is a bracket loaded on its top edge and fixed to the wall:
 
 The dimensions are L = 0.7 m, T = 0.1 m and the force $f = 10^3$ N.
 
-.. image:: img/bracket.png
+.. image:: img/example-bracket/bracket.png
    :align: center
    :width: 400
    :height: 400
@@ -304,13 +304,13 @@ The selector is created outside the adaptivity loop. We have two equations in th
 The following figures show the two meshes and their polynomial
 degrees after several adaptive steps: 
 
-.. image:: img/sys-xorders.png
+.. image:: img/example-bracket/sys-xorders.png
    :align: left
    :width: 300
    :height: 300
    :alt: $x$ displacement -- mesh and polynomial degrees.
 
-.. image:: img/sys-yorders.png
+.. image:: img/example-bracket/sys-yorders.png
    :align: right
    :width: 300
    :height: 300
@@ -330,7 +330,7 @@ substantially different behavior, one may even obtain completely different meshe
 Convergence graphs of adaptive h-FEM with linear elements, h-FEM with quadratic elements
 and hp-FEM are shown below.
 
-.. image:: img/bracket/conv_dof.png
+.. image:: img/example-bracket/conv_dof.png
    :align: center
    :width: 600
    :height: 400
@@ -338,7 +338,7 @@ and hp-FEM are shown below.
 
 The following graph shows convergence in terms of CPU time. 
 
-.. image:: img/bracket/conv_cpu.png
+.. image:: img/example-bracket/conv_cpu.png
    :align: center
    :width: 600
    :height: 400
@@ -346,13 +346,13 @@ The following graph shows convergence in terms of CPU time.
 
 Comparison of the multimesh and single-mesh hp-FEM: 
 
-.. image:: img/bracket/conv_compar_dof.png
+.. image:: img/example-bracket/conv_compar_dof.png
    :align: center
    :width: 600
    :height: 400
    :alt: comparison of multimesh and single mesh hp-FEM
 
-.. image:: img/bracket/conv_compar_cpu.png
+.. image:: img/example-bracket/conv_compar_cpu.png
    :align: center
    :width: 600
    :height: 400
@@ -395,7 +395,7 @@ It is worth mentioning how the circular arcs are defined via NURBS:
 The triplet on each line consists of two boundary vertex indices and 
 the angle of the circular arc.
 
-.. image:: img/thermoelasticity/domain.png
+.. image:: img/example-thermoelasticity/domain.png
    :align: center
    :width: 700
    :alt: Domain.
@@ -558,72 +558,72 @@ Sample snapshot of solutions, meshes and convergence graphs are below.
 
 Solution (Von Mises stress):
 
-.. image:: img/thermoelasticity/mises.png
+.. image:: img/example-thermoelasticity/mises.png
    :align: center
    :width: 790
    :alt: Solution.
 
 Solution (temperature):
 
-.. image:: img/thermoelasticity/temp.png
+.. image:: img/example-thermoelasticity/temp.png
    :align: center
    :width: 780
    :alt: Solution.
 
 Final meshes for $u_1$, $u_2$ and $T$ (h-FEM with linear elements):
 
-.. image:: img/thermoelasticity/x-mesh-h1.png
+.. image:: img/example-thermoelasticity/x-mesh-h1.png
    :align: center
    :width: 760
    :alt: Solution.
 
-.. image:: img/thermoelasticity/y-mesh-h1.png
+.. image:: img/example-thermoelasticity/y-mesh-h1.png
    :align: center
    :width: 760
    :alt: Solution.
 
-.. image:: img/thermoelasticity/t-mesh-h1.png
-   :align: center
-   :width: 760
-   :alt: Solution.
-
-Final meshes for $u_1$, $u_2$ and $T$ (h-FEM with quadratic elements):
-
-.. image:: img/thermoelasticity/x-mesh-h2.png
-   :align: center
-   :width: 760
-   :alt: Solution.
-
-.. image:: img/thermoelasticity/y-mesh-h2.png
-   :align: center
-   :width: 760
-   :alt: Solution.
-
-.. image:: img/thermoelasticity/t-mesh-h2.png
+.. image:: img/example-thermoelasticity/t-mesh-h1.png
    :align: center
    :width: 760
    :alt: Solution.
 
 Final meshes for $u_1$, $u_2$ and $T$ (h-FEM with quadratic elements):
 
-.. image:: img/thermoelasticity/x-mesh-hp.png
+.. image:: img/example-thermoelasticity/x-mesh-h2.png
    :align: center
    :width: 760
    :alt: Solution.
 
-.. image:: img/thermoelasticity/y-mesh-hp.png
+.. image:: img/example-thermoelasticity/y-mesh-h2.png
    :align: center
    :width: 760
    :alt: Solution.
 
-.. image:: img/thermoelasticity/t-mesh-hp.png
+.. image:: img/example-thermoelasticity/t-mesh-h2.png
+   :align: center
+   :width: 760
+   :alt: Solution.
+
+Final meshes for $u_1$, $u_2$ and $T$ (h-FEM with quadratic elements):
+
+.. image:: img/example-thermoelasticity/x-mesh-hp.png
+   :align: center
+   :width: 760
+   :alt: Solution.
+
+.. image:: img/example-thermoelasticity/y-mesh-hp.png
+   :align: center
+   :width: 760
+   :alt: Solution.
+
+.. image:: img/example-thermoelasticity/t-mesh-hp.png
    :align: center
    :width: 760
    :alt: Solution.
 
 DOF convergence graphs:
 
-.. image:: img/thermoelasticity/conv_dof.png
+.. image:: img/example-thermoelasticity/conv_dof.png
    :align: center
    :width: 600
    :height: 400
@@ -631,7 +631,7 @@ DOF convergence graphs:
 
 CPU time convergence graphs:
 
-.. image:: img/thermoelasticity/conv_cpu.png
+.. image:: img/example-thermoelasticity/conv_cpu.png
    :align: center
    :width: 600
    :height: 400
@@ -640,7 +640,7 @@ CPU time convergence graphs:
 Next let us compare, for example, multimesh h-FEM with linear elements with the standard (single-mesh)
 h-FEM:
 
-.. image:: img/thermoelasticity/conv_compar_dof.png
+.. image:: img/example-thermoelasticity/conv_compar_dof.png
    :align: center
    :width: 600
    :height: 400
@@ -662,7 +662,7 @@ neutron diffusion approximation
 
 The domain of interest is a 96 x 86 cm rectangle consisting of five regions:
 
-.. image:: img/saphir/saphir.png
+.. image:: img/example-saphir/saphir.png
    :align: center
    :width: 400
    :height: 400
@@ -765,7 +765,7 @@ Sample results of this computation are shown below.
 
 Solution:
 
-.. image:: img/saphir/saphir-sol.png
+.. image:: img/example-saphir/saphir-sol.png
    :align: center
    :width: 600
    :height: 400
@@ -773,7 +773,7 @@ Solution:
 
 Final mesh (h-FEM with linear elements):
 
-.. image:: img/saphir/saphir-mesh-h1.png
+.. image:: img/example-saphir/saphir-mesh-h1.png
    :align: center
    :width: 440
    :height: 400
@@ -781,7 +781,7 @@ Final mesh (h-FEM with linear elements):
 
 Final mesh (h-FEM with quadratic elements):
 
-.. image:: img/saphir/saphir-mesh-h2.png
+.. image:: img/example-saphir/saphir-mesh-h2.png
    :align: center
    :width: 440
    :height: 400
@@ -789,7 +789,7 @@ Final mesh (h-FEM with quadratic elements):
 
 Final mesh (hp-FEM):
 
-.. image:: img/saphir/saphir-mesh-hp.png
+.. image:: img/example-saphir/saphir-mesh-hp.png
    :align: center
    :width: 440
    :height: 400
@@ -797,7 +797,7 @@ Final mesh (hp-FEM):
 
 DOF convergence graphs:
 
-.. image:: img/saphir/conv_dof.png
+.. image:: img/example-saphir/conv_dof.png
    :align: center
    :width: 600
    :height: 400
@@ -805,7 +805,7 @@ DOF convergence graphs:
 
 CPU time convergence graphs:
 
-.. image:: img/saphir/conv_cpu.png
+.. image:: img/example-saphir/conv_cpu.png
    :align: center
    :width: 600
    :height: 400
@@ -852,7 +852,7 @@ A uniform volumetric source is placed in water in the lower-left corner
 of the domain, surrounded with a layer of water, a layer of iron, and finally
 another layer of water:
 
-.. image:: img/iron-water/iron-water.png
+.. image:: img/example-iron-water/iron-water.png
    :align: center
    :width: 400
    :height: 400
@@ -866,7 +866,7 @@ and zero Neumann (bottom and left edges). Sample results of this computation are
 
 Solution:
 
-.. image:: img/iron-water/iron-water-sol.png
+.. image:: img/example-iron-water/iron-water-sol.png
    :align: center
    :width: 600
    :height: 400
@@ -875,7 +875,7 @@ Solution:
 
 Final mesh (h-FEM with linear elements):
 
-.. image:: img/iron-water/iron-water-mesh-h1.png
+.. image:: img/example-iron-water/iron-water-mesh-h1.png
    :align: center
    :width: 440
    :height: 400
@@ -883,7 +883,7 @@ Final mesh (h-FEM with linear elements):
 
 Final mesh (h-FEM with quadratic elements):
 
-.. image:: img/iron-water/iron-water-mesh-h2.png
+.. image:: img/example-iron-water/iron-water-mesh-h2.png
    :align: center
    :width: 440
    :height: 400
@@ -891,7 +891,7 @@ Final mesh (h-FEM with quadratic elements):
 
 Final mesh (hp-FEM):
 
-.. image:: img/iron-water/iron-water-mesh-hp.png
+.. image:: img/example-iron-water/iron-water-mesh-hp.png
    :align: center
    :width: 440
    :height: 400
@@ -899,7 +899,7 @@ Final mesh (hp-FEM):
 
 DOF convergence graphs:
 
-.. image:: img/iron-water/conv_dof.png
+.. image:: img/example-iron-water/conv_dof.png
    :align: center
    :width: 600
    :height: 400
@@ -907,7 +907,7 @@ DOF convergence graphs:
 
 CPU time convergence graphs:
 
-.. image:: img/iron-water/conv_cpu.png
+.. image:: img/example-iron-water/conv_cpu.png
    :align: center
    :width: 600
    :height: 400
@@ -1028,7 +1028,7 @@ where $C_{anion}$ is a constant and equals anion concentration. Apparently
 for IPMC, the initial spatial concentration of anions and cations are equal.
 The inital configuration is shown:
 
-.. image:: img/IPMC.png
+.. image:: img/example-np/IPMC.png
 	:align: center
 	:width: 377
 	:height: 173
@@ -1037,7 +1037,7 @@ The inital configuration is shown:
 The purploe dots are mobile cations. When a voltage is applied, the anions
 drift:
 
-.. image:: img/IPMC_bent.png
+.. image:: img/example-np/IPMC_bent.png
 	:align: center
 	:width: 385
 	:height: 290
@@ -1053,7 +1053,7 @@ To solve equations :eq:`nernstplanck` and :eq:`poisson` boundary conditions must
 When solving in 2D, just a cross section is considered. The boundaries are
 shown in: 
 
-.. image:: img/IPMC_schematic.png
+.. image:: img/example-np/IPMC_schematic.png
 	:align: center
 	:width: 409 
 	:height: 140
@@ -1329,7 +1329,7 @@ Non adaptive solution
 
 The following figure shows the calculated concentration $C$ inside the IPMC.
 
-.. image:: img/nonadapt_conc.png
+.. image:: img/example-np/nonadapt_conc.png
 	:align: center
 	:alt: Calculated concentration
 
@@ -1338,7 +1338,7 @@ concentration gradient is near the electrodes, within 5...10% of the total thick
 
 The voltage inside the IPMC forms as follows:
 
-.. image:: img/nonadapt_phi.png
+.. image:: img/example-np/nonadapt_phi.png
 	:align: center
 	:alt: Calculated voltage inside the IPMC
 
@@ -1373,7 +1373,7 @@ important to perform initial refinements towards the boundary, thus providing a 
 initial mesh for adaptivity. One does not have to do this, but then the convergence is slower. 
 The solution is shown in the following figure:
 
-.. image:: img/singular-perturbation/sol_3d_view.png
+.. image:: img/example-singular-perturbation/sol_3d_view.png
    :align: center
    :width: 500
    :alt: Domain.
@@ -1385,7 +1385,7 @@ Convergence graphs for all cases are shown at the end of this section.
 
 Final mesh (h-FEM, p=1, anisotropic refinements): 34833 DOF, error 0.3495973568992 %
 
-.. image:: img/singular-perturbation/mesh-h1-aniso.png
+.. image:: img/example-singular-perturbation/mesh-h1-aniso.png
    :align: center
    :width: 500
    :height: 400
@@ -1393,7 +1393,7 @@ Final mesh (h-FEM, p=1, anisotropic refinements): 34833 DOF, error 0.34959735689
 
 Final mesh (h-FEM, p=2, anisotropic refinements): 37097 DOF, error 0.014234904418008 %
 
-.. image:: img/singular-perturbation/mesh-h2-aniso.png
+.. image:: img/example-singular-perturbation/mesh-h2-aniso.png
    :align: center
    :width: 500
    :height: 400
@@ -1401,7 +1401,7 @@ Final mesh (h-FEM, p=2, anisotropic refinements): 37097 DOF, error 0.01423490441
 
 Final mesh (hp-FEM, anisotropic refinements): 6821 DOF, error 7.322784149253e-05 %
 
-.. image:: img/singular-perturbation/mesh-hp-aniso.png
+.. image:: img/example-singular-perturbation/mesh-hp-aniso.png
    :align: center
    :width: 500
    :height: 400
@@ -1410,7 +1410,7 @@ Final mesh (hp-FEM, anisotropic refinements): 6821 DOF, error 7.322784149253e-05
 DOF convergence graphs for h-FEM with linear and quadratic elements and the hp-FEM (anisotropic 
 refinements enabled):
 
-.. image:: img/singular-perturbation/conv_dof_compar.png
+.. image:: img/example-singular-perturbation/conv_dof_compar.png
    :align: center
    :width: 600
    :height: 400
@@ -1418,7 +1418,7 @@ refinements enabled):
 
 Corresponding CPU time convergence graphs:
 
-.. image:: img/singular-perturbation/conv_cpu_compar.png
+.. image:: img/example-singular-perturbation/conv_cpu_compar.png
    :align: center
    :width: 600
    :height: 400
@@ -1426,7 +1426,7 @@ Corresponding CPU time convergence graphs:
 
 And at the end let us compare hp-FEM with isotropic and anisotropic refinements:
 
-.. image:: img/singular-perturbation/conv_dof_hp.png
+.. image:: img/example-singular-perturbation/conv_dof_hp.png
    :align: center
    :width: 600
    :height: 400
@@ -1434,7 +1434,7 @@ And at the end let us compare hp-FEM with isotropic and anisotropic refinements:
 
 Corresponding CPU time convergence graphs:
 
-.. image:: img/singular-perturbation/conv_cpu_hp.png
+.. image:: img/example-singular-perturbation/conv_cpu_hp.png
    :align: center
    :width: 600
    :height: 400
@@ -1476,7 +1476,7 @@ and right edges of $\Omega$.
 
 Solution for $\epsilon = 0.01$. Note - view selected to show the boundary layer:
 
-.. image:: img/linear-advection-diffusion/solution.png
+.. image:: img/example-linear-advection-diffusion/solution.png
    :align: center
    :height: 400
    :alt: Solution.
@@ -1501,7 +1501,7 @@ Bilinear weak form corresponding to the left-hand side of the equation:
 
 Initial mesh for automatic adaptivity: 
 
-.. image:: img/linear-advection-diffusion/mesh_init.png
+.. image:: img/example-linear-advection-diffusion/mesh_init.png
    :align: center
    :height: 400
    :alt: Mesh.
@@ -1509,7 +1509,7 @@ Initial mesh for automatic adaptivity:
 This mesh is not fine enough in the boundary layer region to 
 prevent the solution from oscillating:
 
-.. image:: img/linear-advection-diffusion/sol_init.png
+.. image:: img/example-linear-advection-diffusion/sol_init.png
    :align: center
    :height: 400
    :alt: Solution.
@@ -1518,7 +1518,7 @@ Here we use the same view as for the solution above.
 As you can see, this approximation is not very close to the final solution. The oscillations 
 can be suppressed by applying the multiscale stabilization (STABILIZATION_ON = true):
 
-.. image:: img/linear-advection-diffusion/sol_init_2.png
+.. image:: img/example-linear-advection-diffusion/sol_init_2.png
    :align: center
    :height: 400
    :alt: Solution.
@@ -1591,21 +1591,21 @@ Let us compare adaptive $h$-FEM with linear and quadratic elements and the $hp$-
 
 Final mesh for $h$-FEM with linear elements: 57495 DOF, error = 0.66 \%
 
-.. image:: img/linear-advection-diffusion/mesh-h1.png
+.. image:: img/example-linear-advection-diffusion/mesh-h1.png
    :align: center
    :height: 400
    :alt: Mesh.
 
 Final mesh for $h$-FEM with quadratic elements: 4083 DOF, error = 0.37 \%
 
-.. image:: img/linear-advection-diffusion/mesh-h2.png
+.. image:: img/example-linear-advection-diffusion/mesh-h2.png
    :align: center
    :height: 400
    :alt: Mesh.
 
 Final mesh for $hp$-FEM: 1854 DOF, error = 0.28 \%
 
-.. image:: img/linear-advection-diffusion/mesh-hp.png
+.. image:: img/example-linear-advection-diffusion/mesh-hp.png
    :align: center
    :height: 400
    :alt: Mesh.
@@ -1613,17 +1613,14 @@ Final mesh for $hp$-FEM: 1854 DOF, error = 0.28 \%
 Convergence graphs of adaptive h-FEM with linear elements, h-FEM with quadratic elements
 and hp-FEM are shown below.
 
-.. image:: img/linear-advection-diffusion/conv_compar_dof.png
+.. image:: img/example-linear-advection-diffusion/conv_compar_dof.png
    :align: center
    :width: 600
    :height: 400
    :alt: DOF convergence graph.
 
 
-Simplified Flame Propagation
-----------------------------
 
-Example coming soon.
 
 
 

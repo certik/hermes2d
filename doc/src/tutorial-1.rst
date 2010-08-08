@@ -25,7 +25,7 @@ need to do is partition the domain very coarsely into several large elements.
 Then you can use a number of elementary mesh refinement functions and/or
 let the automatic adaptivity algorithm take care of the rest. 
 
-.. image:: img/simplemesh.png
+.. image:: img/tutorial-01/simplemesh.png
    :align: center
    :width: 400
    :height: 400
@@ -210,7 +210,7 @@ The following code illustrates how to visualize the mesh using the class MeshVie
 You can initialize it by supplying the title of the window and its initial position and size (all of these
 parameters are optional). The class MeshView provides the method show() that displays a window showing the mesh:
 
-.. image:: img/meshview2.png
+.. image:: img/tutorial-01/meshview2.png
    :align: center
    :width: 400
    :height: 400
@@ -249,7 +249,7 @@ polynomials along mesh edges, and *bubble functions* that complete the higher-or
 approximation in element interiors. Edge functions are associated with mesh edges,
 and bubble functions with element interiors. The next figure shows a patch consisting of two triangular elements. An edge function is shown on the left, and a bubble function on one of the triangles on the right:
 
-.. image:: img/basisfn.jpg
+.. image:: img/tutorial-02/basisfn.jpg
    :align: center
    :width: 600
    :height: 200
@@ -438,7 +438,7 @@ provided by the LinSystem class, see the file `linsystem.h <http://git.hpfem.org
 
 The following figure shows the output of this example (again, press '3' for 3D view).
 
-.. image:: img/poisson.png
+.. image:: img/tutorial-03/poisson.png
    :align: center
    :width: 400
    :height: 350
@@ -504,7 +504,7 @@ It is easy to see that the solution to this problem is the function
 
 For the value $CONST_F = -4$, the output is shown below:
 
-.. image:: img/dirichlet.png
+.. image:: img/tutorial-04/dirichlet.png
    :align: center
    :width: 400
    :height: 350
@@ -589,13 +589,13 @@ The approximate solution for the values $C_1 = -1/2$, $C_2 = 1$, $C_3 = -1/2$,
 along with the singularity of gradient at the re-entrant corner are
 shown in the following figures:
 
-.. image:: img/neumann2.png
+.. image:: img/tutorial-05/neumann2.png
    :align: left
    :width: 530
    :height: 400
    :alt: Solution of the Neumann problem.
 
-.. image:: img/neumann3.png
+.. image:: img/tutorial-05/neumann3.png
    :align: right
    :width: 400
    :height: 400
@@ -667,13 +667,13 @@ The above forms are registered using::
 Here NEWTON_BDY is the boundary marker for the Newton boundary. The following figures 
 show the solution and singularity of gradient at the re-entrant corner:
 
-.. image:: img/newton1.png
+.. image:: img/tutorial-06/newton1.png
    :align: left
    :width: 530
    :height: 400
    :alt: Solution of the Newton problem.
 
-.. image:: img/newton2.png
+.. image:: img/tutorial-06/newton2.png
    :align: right
    :width: 400
    :height: 400
@@ -914,7 +914,7 @@ all bilinear forms on the left.
 
 The output of this example is shown below:
 
-.. image:: img/general.png
+.. image:: img/tutorial-07/general.png
    :align: center
    :width: 500
    :height: 400
@@ -954,7 +954,7 @@ Let us illustrate this by solving a simple problem of linear elasticity. Conside
 two-dimensional elastic body shown in the following figure (the bottom edge is
 axis of planar symmetry):
 
-.. image:: img/elastsample.png
+.. image:: img/tutorial-08/elastsample.png
    :align: center
    :width: 500
    :height: 300
@@ -1140,7 +1140,7 @@ Here the fourth and fifth parameters are the displacement components used to
 distort the domain geometry, and the sixth parameter is a scaling factor to multiply the 
 displacements. Of course, the color map still shows the Von Mises stress as before. 
 
-.. image:: img/mises.png
+.. image:: img/tutorial-08/mises.png
    :align: center
    :width: 550
    :height: 300
@@ -1157,7 +1157,7 @@ heat transfer model that describes, in a naive approximation, how the St. Vitus 
 in Prague responds to changes in the surrounding air temperature
 during one 24-hour cycle. The geometry is shown below:
 
-.. image:: img/vitus1.png
+.. image:: img/tutorial-09/vitus1.png
    :align: center
    :width: 400
    :height: 500

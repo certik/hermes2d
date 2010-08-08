@@ -622,7 +622,7 @@ You can get an overview of existing branches by typing
 
 This will show you something like this:
 
-  .. image:: img/terminal-git.png
+  .. image:: img/intro/terminal-git.png
    :align: center
    :width: 600
    :alt: Terminal screenshot
@@ -701,7 +701,7 @@ Before changing to a different branch, type
 This stands for 'git status'. You will see 
 something like this:
 
-  .. image:: img/terminal-git-2.png
+  .. image:: img/intro/terminal-git-2.png
    :align: center
    :width: 600
    :alt: Terminal screenshot
@@ -721,7 +721,7 @@ typing
 
 you will see
 
-  .. image:: img/terminal-git-3.png
+  .. image:: img/intro/terminal-git-3.png
    :align: center
    :width: 600
    :alt: Terminal screenshot
@@ -752,7 +752,7 @@ This tells git where to download the git repository from
     git pull origin master
 
 Special Note on Sphinx Docs
--------------------------
+---------------------------
 
 The Sphinx documentation you are just reading is also 
 part of the Hermes2D git repository and can be developed
@@ -775,7 +775,7 @@ After it finishes, type
 This will open a new tab in your Firefox where you will
 see something like 
 
-  .. image:: img/firefox.png
+  .. image:: img/intro/firefox.png
    :align: center
    :width: 600
    :alt: Firefox screenshot
