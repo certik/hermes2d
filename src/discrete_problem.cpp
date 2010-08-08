@@ -1403,7 +1403,7 @@ bool solve_newton(Tuple<Space *> spaces, WeakForm* wf, Vector* init_coeff_vec,
 bool solve_newton_adapt(Tuple<Space *> spaces, WeakForm* wf, Tuple<int>proj_norms, 
                         Tuple<Solution *> slns, 
                         MatrixSolverType matrix_solver,  Tuple<Solution *> ref_slns, 
-                        RefinementSelectors::Selector* selector, AdaptivityParamType* apt,
+                        Tuple<RefinementSelectors::Selector *> selectors, AdaptivityParamType* apt,
                         Tuple<WinGeom *> sln_win_geom, Tuple<WinGeom *> mesh_win_geom, 
                         double newton_tol_coarse, double newton_tol_fine, int newton_max_iter, 
                         bool verbose, Tuple<ExactSolution *> exact_slns, bool is_complex) 
@@ -1492,7 +1492,7 @@ bool solve_newton_adapt(Tuple<Space *> spaces, WeakForm* wf, Tuple<int>proj_norm
   }
 
   // Newton's loop on the coarse mesh.
-  info("Solving on coarse mesh.");
+  info("Solving on coarse mesh:");
   Tuple<Solution *> u_prev;
   for (int i = 0; i < num_comps; i++) u_prev.push_back(new Solution);
 
@@ -1513,6 +1513,18 @@ bool solve_newton_adapt(Tuple<Space *> spaces, WeakForm* wf, Tuple<int>proj_norm
     // Time measurement..
     cpu_time.tick();
 
+    // View the coarse mesh solution(s).
+    for (int i = 0; i < num_comps; i++) {
+      if (proj_norms[i] == H2D_H1_NORM || proj_norms[i] == H2D_L2_NORM) {
+        printf("Updating coarse mesh solution.\n");
+        if (s_view[i] != NULL) s_view[i]->show(slns[i]);
+      }
+      if (proj_norms[i] == H2D_HCURL_NORM || proj_norms[i] == H2D_HDIV_NORM) {
+        if (v_view[i] != NULL) v_view[i]->show(slns[i]);
+      }
+      if (o_view[i] != NULL) o_view[i]->show(spaces[i]);
+    }
+
     // Skip visualization.
     cpu_time.tick(HERMES_SKIP);
 
@@ -1531,33 +1543,20 @@ bool solve_newton_adapt(Tuple<Space *> spaces, WeakForm* wf, Tuple<int>proj_norm
 
     // Newton's loop on the fine mesh.
     if (as == 1) {
-      info("Solving on fine mesh, starting from previous coarse mesh solution.");
+      info("Solving on fine mesh, starting from previous coarse mesh solution:");
       if (!solve_newton(ref_spaces, wf, proj_norms, slns_mf, u_prev, matrix_solver, 
                         newton_tol_fine, newton_max_iter, verbose)) 
         error("Newton's method did not converge.");
     }
     else {
-      info("Solving on fine mesh, starting from previous fine mesh solution.");
+      info("Solving on fine mesh, starting from previous fine mesh solution:");
       if (!solve_newton(ref_spaces, wf, proj_norms, ref_slns_mf, u_prev, matrix_solver, 
                         newton_tol_fine, newton_max_iter, verbose)) 
         error("Newton's method did not converge.");
     }
 
-    // Store the fine mesh solution in ref_sln.
+    // Store the new fine mesh solution in ref_sln.
     for (int i = 0; i < num_comps; i++) ref_slns[i]->copy(u_prev[i]);
-
-    // Time measurement.
-    cpu_time.tick();
-
-    // View the coarse mesh solution(s).
-    for (int i = 0; i < num_comps; i++) {
-      if (proj_norms[i] == H2D_H1_NORM || proj_norms[i] == H2D_L2_NORM) if (s_view[i] != NULL) s_view[i]->show(slns[i]);
-      if (proj_norms[i] == H2D_HCURL_NORM || proj_norms[i] == H2D_HDIV_NORM) if (v_view[i] != NULL) v_view[i]->show(slns[i]);
-      if (o_view[i] != NULL) o_view[i]->show(spaces[i]);
-    }
-
-    // Skip visualization time.
-    cpu_time.tick(HERMES_SKIP);
 
     // Calculate element errors.
     if (verbose) info("Calculating error.");
@@ -1642,23 +1641,24 @@ bool solve_newton_adapt(Tuple<Space *> spaces, WeakForm* wf, Tuple<int>proj_norm
     if (err_est_rel_total < err_stop) done = true;
     else {
       if (verbose) info("Adapting the coarse mesh.");
-      done = hp.adapt(selector, threshold, strategy, mesh_regularity, to_be_processed);
+      done = hp.adapt(selectors, threshold, strategy, mesh_regularity, to_be_processed);
 
-      if (get_num_dofs(spaces) >= ndof_stop) done = true;
+      if (get_num_dofs(spaces) >= ndof_stop) {
+        done = true;
+        break;
+      }
+      
+      // Project last fine mesh solution on the new coarse mesh
+      // to obtain new coars emesh solution.
+      if (verbose) info("Projecting reference solution on new coarse mesh.");
+      // NULL means that we do not want to know the resulting coefficient vector.
+      project_global(spaces, proj_norms, ref_slns_mf, slns, NULL, is_complex); 
     }
 
     as++;
   }
   while (done == false);
 
-  // Close visualization windows.
-  /* FIXME: this should be uncommented but it causes segfaults
-  for (int i = 0; i < num_comps; i++) {
-    if (sview[i] != NULL) sview[i]->close(); 
-    if (oview[i] != NULL) oview[i]->close(); 
-  }
-  */
-
   if (verbose) info("Total running time: %g s", cpu_time.accumulated());
-	return true;
+  return true;
 }

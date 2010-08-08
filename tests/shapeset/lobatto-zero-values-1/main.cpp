@@ -301,7 +301,7 @@ int main(int argc, char* argv[])
       // Edge 1.
       if (m%mesh_mode == 0)
       {
-        printf("Egde  1.");
+        printf("Edge  1.");
         // Check edge 2.
         for (int j = 0; j < order-1; j++)
         {
@@ -347,7 +347,7 @@ int main(int argc, char* argv[])
       // Edge 2.
       if (m%mesh_mode == 1)
       {
-        printf("Egde  2.");
+        printf("Edge  2.");
         // Check edge 1.
         for (int j = 0; j < order-1; j++)
         {
@@ -393,7 +393,7 @@ int main(int argc, char* argv[])
       // Edge 3.
       if (m%mesh_mode == 2)
       {
-        printf("Egde  3.");
+        printf("Edge  3.");
         // Check edge 2.
         for (int j = 0; j < order-1; j++)
         {
@@ -439,7 +439,7 @@ int main(int argc, char* argv[])
       // Edge 4.
       if (m%mesh_mode == 3)
       {
-        printf("Egde  4.");
+        printf("Edge  4.");
         // Check edge 1.
         for (int j = 0; j < order-1; j++)
         {
@@ -493,7 +493,7 @@ int main(int argc, char* argv[])
     fn_idx[m] = bubble_idx[i];
     info("Check bubble function [%d]", m);
 
-    printf("Egde 1 and vertex 1.");
+    printf("Edge 1 and vertex 1.");
     // Check edge 1 and vertex 1.
     for (int j = 0; j < order; j++)
     {
@@ -509,7 +509,7 @@ int main(int argc, char* argv[])
     }
     printf("... Ok\n");
 
-    printf("Egde 2 and vertex 2.");
+    printf("Edge 2 and vertex 2.");
     // Check edge 2 and vertex 2.
     for (int j = 0; j < order; j++)
     {
@@ -525,7 +525,7 @@ int main(int argc, char* argv[])
     }
     printf("... Ok\n");
 
-    printf("Egde 3 and vertex 3.");
+    printf("Edge 3 and vertex 3.");
     // Check edge 3 and vertex 3.
     for (int j = 0; j < order; j++)
     {
@@ -541,7 +541,7 @@ int main(int argc, char* argv[])
     }
     printf("... Ok\n");
 
-    printf("Egde 4 and vertex 4.");
+    printf("Edge 4 and vertex 4.");
     // Check edge 4 and vertex 4.
     for (int j = 0; j < order; j++)
     {
