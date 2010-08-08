@@ -1516,7 +1516,6 @@ bool solve_newton_adapt(Tuple<Space *> spaces, WeakForm* wf, Tuple<int>proj_norm
     // View the coarse mesh solution(s).
     for (int i = 0; i < num_comps; i++) {
       if (proj_norms[i] == H2D_H1_NORM || proj_norms[i] == H2D_L2_NORM) {
-        printf("Updating coarse mesh solution.\n");
         if (s_view[i] != NULL) s_view[i]->show(slns[i]);
       }
       if (proj_norms[i] == H2D_HCURL_NORM || proj_norms[i] == H2D_HDIV_NORM) {
