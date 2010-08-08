@@ -1,12 +1,6 @@
 #include "hermes2d.h"
 
-// This example shows how to use the L2 finite element space and L2 shapeset.
-// As a sample problem, a continuous function x^3 + y^3 is projected onto the
-// L2 finite element space in the L2 norm. When zero-order is used, the result
-// is a piecewice constant function. The class BaseView will show you the basis
-// functions.
-//
-// The following parameters can be changed:
+// This test makes sure that example 32-space-l2 works correctly.
 
 const int INIT_REF_NUM = 1;    // Number of initial uniform mesh refinements.
 const int P_INIT = 3;          // Polynomial degree of mesh elements.
@@ -37,7 +31,7 @@ int main(int argc, char* argv[])
   // View basis functions.
   BaseView bview("BaseView", 0, 0, 600, 500);
   bview.show(&space);
-  View::wait(H2DV_WAIT_KEYPRESS);
+  //View::wait(H2DV_WAIT_KEYPRESS);
 
   // Assemble and solve the finite element problem.
   WeakForm wf_dummy;
@@ -46,11 +40,20 @@ int main(int argc, char* argv[])
   project_global(&space, H2D_L2_NORM, F, &sln);
 
   // Visualize the solution.
-  ScalarView view1("Projection", 610, 0, 600, 500);
-  view1.show(&sln);
+  //ScalarView view1("Projection", 610, 0, 600, 500);
+  //view1.show(&sln);
 
-  // Wait for all views to be closed.
-  View::wait();
-  return 0;
+  bool success = true;
+
+#define ERROR_SUCCESS                               0
+#define ERROR_FAILURE                               -1
+  if (success == true) {
+    printf("Success!\n");
+    return ERROR_SUCCESS;
+  }
+  else {
+    printf("Failure!\n");
+    return ERROR_FAILURE;
+  }
 }
 

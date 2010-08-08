@@ -1,15 +1,6 @@
 #include "hermes2d.h"
 
-// This example shows how to use the Hcurl space and
-// visualize finite element basis functions. Note that 
-// higher-order basis functions in this space comprise 
-// edge functions associated with mesh edges (tangential 
-// component is zero on the boundary of the element patch
-// associated with the edge), and bubble functions 
-// associated with elements (tangential component is 
-// zero on the element boundary).
-//
-// The following parameters can be changed:
+// This test makes sure that example 30-space-hcurl works correctly.
 
 int INIT_REF_NUM = 2;      // Initial uniform mesh refinement.
 int P_INIT = 3;            // Polynomial degree of mesh elements.
@@ -32,8 +23,19 @@ int main(int argc, char* argv[])
   VectorBaseView bview("VectorBaseView", 0, 0, 700, 600);
   bview.show(&space);
 
-  // Wait for all views to be closed.
-  View::wait();
-  return 0;
+  //View::wait(H2DV_WAIT_KEYPRESS);
+
+  bool success = true;
+
+#define ERROR_SUCCESS                               0
+#define ERROR_FAILURE                               -1
+  if (success == true) {
+    printf("Success!\n");
+    return ERROR_SUCCESS;
+  }
+  else {
+    printf("Failure!\n");
+    return ERROR_FAILURE;
+  }
 }
 
