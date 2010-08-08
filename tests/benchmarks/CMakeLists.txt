@@ -2,6 +2,7 @@ find_package(JUDY REQUIRED)
 include_directories(${JUDY_INCLUDE_DIR})
 
 # examples
+add_subdirectory(nist-4) 
 add_subdirectory(nist-1) 
 add_subdirectory(layer)
 add_subdirectory(neutronics-2-group-adapt)
