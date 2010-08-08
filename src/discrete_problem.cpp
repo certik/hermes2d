@@ -1553,12 +1553,11 @@ bool solve_newton_adapt(Tuple<Space *> spaces, WeakForm* wf, Tuple<int>proj_norm
       if (o_view[i] != NULL) o_view[i]->show(spaces[i]);
     }
 
-    // Skip visualization.
+    // Skip visualization time.
     cpu_time.tick(HERMES_SKIP);
 
     // Construct globally refined reference mesh(es)
     // and setup reference space(s).
-    int num_comps = 1; //FIXME: Make this function work for problems with multi-component solution.
     Tuple<Space *> ref_spaces;
     for (int i = 0; i < num_comps; i++) {
       Mesh *ref_mesh = new Mesh();

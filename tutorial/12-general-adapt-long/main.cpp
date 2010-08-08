@@ -150,13 +150,8 @@ int main(int argc, char* argv[])
     info("Calculating error (est).");
     Adapt hp(space, H2D_H1_NORM);
     hp.set_solutions(sln, ref_sln);
-    hp.calc_elem_errors(H2D_TOTAL_ERROR_REL | H2D_ELEMENT_ERROR_REL);
+    double err_est_rel = hp.calc_elem_errors(H2D_TOTAL_ERROR_REL | H2D_ELEMENT_ERROR_REL) * 100.;
  
-    // Calculate error estimate for each solution component.
-    double err_est_abs = calc_abs_error(sln, ref_sln, H2D_H1_NORM);
-    double norm_est = calc_norm(ref_sln, H2D_H1_NORM);
-    double err_est_rel = err_est_abs / norm_est * 100.;
-
     // Report results.
     info("ndof: %d, ref_ndof: %d, err_est_rel_total: %g%%", 
          get_num_dofs(space), get_num_dofs(ref_space), err_est_rel);

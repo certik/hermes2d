@@ -32,6 +32,8 @@ add_subdirectory(15-newton-elliptic-1-long)
 add_subdirectory(16-newton-elliptic-2)
 add_subdirectory(16-newton-elliptic-2-long)
 add_subdirectory(17-newton-elliptic-adapt)
+add_subdirectory(17-newton-elliptic-adapt-long)
+
 add_subdirectory(18-newton-timedep-heat)
 add_subdirectory(19-newton-timedep-flame)
 add_subdirectory(20-newton-timedep-ns)
