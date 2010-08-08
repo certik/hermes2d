@@ -13,11 +13,11 @@ using namespace RefinementSelectors;
 ///  - CAND_LIST=HP_ANISO
 ///  - MESH_REGULARITY=-1
 ///  - CONV_EXP=1.0
-///  - ERR_STOP=0.001
+///  - ERR_STOP=0.1
 ///  - NDOF_STOP=100000
 ///
 ///  Results for given parameters
-///  - DOFs: 3081
+///  - DOFs: 729
 
 const int INIT_REF_NUM = 1;              // Number of initial mesh refinements (the original mesh is just one element)
 const int INIT_REF_NUM_BDY = 3;          // Number of initial mesh refinements towards the boundary
@@ -45,10 +45,12 @@ const int MESH_REGULARITY = -1;          // Maximum allowed level of hanging nod
                                          // their notoriously bad performance.
 const double CONV_EXP = 1.0;             // Default value is 1.0. This parameter influences the selection of
                                          // cancidates in hp-adaptivity. See get_optimal_refinement() for details.
-const double ERR_STOP = 0.001;           // Stopping criterion for adaptivity (rel. error tolerance between the
-                                         // fine mesh and coarse mesh solution in percent).
+const double ERR_STOP = 0.1;             // Stopping criterion for adaptivity (rel. error tolerance between the
+                                         // reference mesh and coarse mesh solution in percent).
 const int NDOF_STOP = 100000;            // Adaptivity process stops when the number of degrees of freedom grows
                                          // over this limit. This is to prevent h-adaptivity to go on forever.
+MatrixSolverType matrix_solver = SOLVER_UMFPACK;  // Possibilities: SOLVER_UMFPACK, SOLVER_PETSC,
+                                                  // SOLVER_MUMPS, and more are coming.
 
 // Problem parameters.
 const double K_squared = 1e4;    
@@ -66,27 +68,10 @@ scalar essential_bc_values(int ess_bdy_marker, double x, double y)
 }
 
 // Weak forms.
-template<typename Real, typename Scalar>
-Scalar bilinear_form(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
-{
-  return int_grad_u_grad_v<Real, Scalar>(n, wt, u, v) + K_squared * int_u_v<Real, Scalar>(n, wt, u, v);
-}
-
-template<typename Real, typename Scalar>
-Scalar linear_form(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
-{
-  return K_squared * int_v<Real, Scalar>(n, wt, v);
-}
+#include "forms.cpp"
 
 int main(int argc, char* argv[])
 {
-  // Check input parameters.
-  // If true, coarse mesh FE problem is solved in every adaptivity step.
-  // If false, projection of the fine mesh solution on the coarse mesh is used. 
-  bool SOLVE_ON_COARSE_MESH = false;
-  if (argc > 1 && strcmp(argv[1], "-coarse_mesh") == 0)
-    SOLVE_ON_COARSE_MESH = true;
-
   // Time measurement.
   TimePeriod cpu_time;
   cpu_time.tick();
@@ -111,64 +96,24 @@ int main(int argc, char* argv[])
   // Initialize refinement selector.
   H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
 
-  // Initialize the coarse mesh problem.
-  LinSystem ls(&wf, &space);
+  // Initialize adaptivity parameters.
+  AdaptivityParamType apt(ERR_STOP, NDOF_STOP, THRESHOLD, STRATEGY, 
+                          MESH_REGULARITY);
 
-  // Adaptivity loop:
-  int as = 1; bool done = false;
-  Solution sln_coarse, sln_fine;
-  do
-  {
-    info("---- Adaptivity step %d:", as); 
+  // Adaptivity loop.
+  Solution *sln = new Solution();
+  Solution *ref_sln = new Solution();
+  bool verbose = true;     // Prinf info during adaptivity.
+  solve_linear_adapt(&space, &wf, H2D_H1_NORM, sln, matrix_solver, ref_sln, 
+                     &selector, &apt, NULL, NULL, verbose);
 
-    // Assemble and solve the fine mesh problem.
-    info("Solving on fine mesh.");
-    RefSystem rs(&ls);
-    rs.assemble();
-    rs.solve(&sln_fine);
-
-    // Either solve on coarse mesh or project the fine mesh solution 
-    // on the coarse mesh.
-    if (SOLVE_ON_COARSE_MESH) {
-      info("Solving on coarse mesh.");
-      ls.assemble();
-      ls.solve(&sln_coarse);
-    }
-    else {
-      info("Projecting fine mesh solution on coarse mesh.");
-      ls.project_global(&sln_fine, &sln_coarse);
-    }
-
-    // Calculate error estimate wrt. fine mesh solution.
-    info("Calculating error (est).");
-    H1Adapt hp(&ls);
-    hp.set_solutions(&sln_coarse, &sln_fine);
-    double err_est = hp.calc_error() * 100;
-
-    // Report results.
-    info("ndof_coarse: %d, ndof_fine: %d, err_est: %g%%", 
-         ls.get_num_dofs(), rs.get_num_dofs(), err_est);
-
-    // If err_est too large, adapt the mesh.
-    if (err_est < ERR_STOP) done = true;
-    else {
-      info("Adapting the coarse mesh.");
-      done = hp.adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY);
-      if (ls.get_num_dofs() >= NDOF_STOP) done = true;
-    }
-
-    as++;
-  }
-  while (done == false);
-  verbose("Total running time: %g s", cpu_time.accumulated());
-
-  int ndof = ls.get_num_dofs();
+  int ndof = get_num_dofs(&space);
 
 #define ERROR_SUCCESS                               0
 #define ERROR_FAILURE                               -1
-  int n_dof_allowed = 3300;
+  int n_dof_allowed = 750;
   printf("n_dof_actual = %d\n", ndof);
-  printf("n_dof_allowed = %d\n", n_dof_allowed);// ndofs was 625 at the time this test was created
+  printf("n_dof_allowed = %d\n", n_dof_allowed);// ndofs was 729 at the time this test was created
   if (ndof <= n_dof_allowed) {
     printf("Success!\n");
     return ERROR_SUCCESS;
