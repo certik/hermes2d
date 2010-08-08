@@ -24,9 +24,9 @@ using namespace RefinementSelectors;
 //
 // The following parameters can be changed:
 
-const bool SOLVE_ON_COARSE_MESH = true;   // true... Newton is done on coarse mesh in every adaptivity step.
+const bool SOLVE_ON_COARSE_MESH = false;   // true... Newton is done on coarse mesh in every adaptivity step.
                                            // false...Newton is done on coarse mesh only once, then projection
-                                           // of the fine mesh solution to coarse mesh is used.
+                                           //         of the fine mesh solution to coarse mesh is used.
 const int INIT_GLOB_REF_NUM = 2;           // Number of initial uniform mesh refinements.
 const int INIT_BDY_REF_NUM = 0;            // Number of initial refinements towards boundary.
 const int P_INIT = 2;                      // Initial polynomial degree of all mesh elements
@@ -69,9 +69,11 @@ const int NDOF_STOP = 10000;               // Adaptivity process stops when the 
 
 
 // Newton's method:
-const double NEWTON_TOL_COARSE = 1.0e-2;   // Stopping criterion for Newton on coarse mesh.
-const double NEWTON_TOL_FINE = 5.0e-2;     // Stopping criterion for Newton on fine mesh.
-const int NEWTON_MAX_ITER = 20;            // Maximum allowed number of Newton iterations.
+const double NEWTON_TOL_COARSE = 1.0e-2;          // Stopping criterion for Newton on coarse mesh.
+const double NEWTON_TOL_FINE = 5.0e-2;            // Stopping criterion for Newton on fine mesh.
+const int NEWTON_MAX_ITER = 20;                   // Maximum allowed number of Newton iterations.
+MatrixSolverType matrix_solver = SOLVER_UMFPACK;  // Possibilities: SOLVER_UMFPACK, SOLVER_PETSC, SOLVER_MUMPS
+                                                  // and more are coming.
 
 // Problem parameters.
 const double CT = 1.0;
@@ -178,42 +180,58 @@ int main(int argc, char* argv[])
   mloader.load("domain.mesh", &basemesh);
 
   // Perform initial mesh refinements.
-  for (int i=0; i < INIT_GLOB_REF_NUM; i++)
-    basemesh.refine_all_elements();
+  for (int i=0; i < INIT_GLOB_REF_NUM; i++)  basemesh.refine_all_elements();
   basemesh.refine_towards_boundary(1, INIT_BDY_REF_NUM);
+  
+  // Create a special mesh for each physical field.
   mesh_T.copy(&basemesh);
   mesh_phi.copy(&basemesh);
 
   // Create H1 spaces with default shapesets.
   H1Space space_T(&mesh_T, bc_types_T, essential_bc_values_T, P_INIT);
   H1Space space_phi(&mesh_phi, bc_types_phi, essential_bc_values_phi, P_INIT);
-
-  // Solutions for the Newton's iteration and time stepping.
-  Solution T_prev_newton, T_prev_time, phi_prev_newton, phi_prev_time;
-
+  Tuple<Space*> spaces(&space_T, &space_phi);
+  
+  // Solutions in the previous time step (converging within the time stepping loop).
+  Solution T_prev_time, phi_prev_time;
+  Tuple<MeshFunction*> prev_time_meshfns(&T_prev_time, &phi_prev_time);
+  
+  // Solutions on the coarse and refined meshes in current time step (converging within the Newton's loop).
+  Solution T_coarse, phi_coarse, T_fine, phi_fine;
+  Tuple<MeshFunction*> coarse_mesh_meshfns(&T_coarse, &phi_coarse);
+  Tuple<MeshFunction*> fine_mesh_meshfns(&T_fine, &phi_fine);
+  Tuple<Solution*> coarse_mesh_solutions(&T_coarse, &phi_coarse);
+  Tuple<Solution*> fine_mesh_solutions(&T_fine, &phi_fine);
+  
   // Initialize the weak formulation.
   WeakForm wf(2);
-  wf.add_matrix_form(0, 0, jac_TT, jac_TT_ord, H2D_UNSYM, H2D_ANY, &T_prev_newton);
-  wf.add_matrix_form(0, 1, jac_Tphi, jac_Tphi_ord, H2D_UNSYM, H2D_ANY, 0);
-  wf.add_vector_form(0, res_T, res_T_ord, H2D_ANY, 
-                Tuple<MeshFunction*>(&T_prev_newton, &T_prev_time, &phi_prev_newton));
-  wf.add_matrix_form(1, 0, jac_phiT, jac_phiT_ord, H2D_UNSYM, H2D_ANY, 
-                Tuple<MeshFunction*>(&phi_prev_newton, &T_prev_newton));
-  wf.add_matrix_form(1, 1, jac_phiphi, jac_phiphi_ord, H2D_UNSYM, H2D_ANY, &T_prev_newton);
-  wf.add_vector_form(1, res_phi, res_phi_ord, H2D_ANY, 
-                Tuple<MeshFunction*>(&phi_prev_newton, &phi_prev_time, &T_prev_newton));
-
-  // Initialize solution views.
+  wf.add_matrix_form(0, 0, jac_TT, jac_TT_ord);
+  wf.add_matrix_form(0, 1, jac_Tphi, jac_Tphi_ord);
+  wf.add_vector_form(0, res_T, res_T_ord, H2D_ANY, &T_prev_time);
+  wf.add_matrix_form(1, 0, jac_phiT, jac_phiT_ord);
+  wf.add_matrix_form(1, 1, jac_phiphi, jac_phiphi_ord);
+  wf.add_vector_form(1, res_phi, res_phi_ord, H2D_ANY, &phi_prev_time);
+  /*
+  wf.add_matrix_form(0, 0, jac_TT, jac_TT_ord, H2D_UNSYM, H2D_ANY, &T_fine);
+  wf.add_matrix_form(0, 1, jac_Tphi, jac_Tphi_ord);
+  wf.add_vector_form(0, res_T, res_T_ord, H2D_ANY, Tuple<MeshFunction*>(&T_fine, &phi_fine, &T_prev_time));
+  wf.add_matrix_form(1, 0, jac_phiT, jac_phiT_ord, H2D_UNSYM, H2D_ANY, Tuple<MeshFunction*>(&T_fine, &phi_fine));
+  wf.add_matrix_form(1, 1, jac_phiphi, jac_phiphi_ord, H2D_UNSYM, H2D_ANY, &T_fine);
+  wf.add_vector_form(1, res_phi, res_phi_ord, H2D_ANY, Tuple<MeshFunction*>(&T_fine, &phi_fine, &phi_prev_time));
+  */
+  // Initialize solution views (their titles will be updated in each time step).
   ScalarView view_T("", 360, 0, 350, 250);
   view_T.fix_scale_width(80);
   ScalarView view_T_exact("", 0, 0, 350, 250);
   view_T_exact.fix_scale_width(80);
+  view_T_exact.show_mesh(false);
   ScalarView view_phi("", 360, 300, 350, 250);
   view_phi.fix_scale_width(80);
   ScalarView view_phi_exact("", 0, 300, 350, 250);
   view_phi_exact.fix_scale_width(80);
+  view_phi_exact.show_mesh(false);
 
-  // Initialize mesh views.
+  // Initialize mesh views (their titles will be updated in each time step).
   OrderView ordview_T_coarse("", 720, 0, 350, 250);
   ordview_T_coarse.fix_scale_width(80);
   OrderView ordview_T_fine("", 1080, 0, 350, 250);
@@ -222,39 +240,43 @@ int main(int argc, char* argv[])
   ordview_phi_coarse.fix_scale_width(80);
   OrderView ordview_phi_fine("", 1080, 300, 350, 250);
   ordview_phi_fine.fix_scale_width(80);
-
-  // Initialize the nonlinear system.
-  NonlinSystem nls(&wf, Tuple<Space*>(&space_T, &space_phi));
-
-  // Project initial conditions on FE spaces to obtain initial 
-  // vector for the Newton's method.
-  info("Projecting initial conditions to obtain initial vector for the Newton's method.");
-  T_prev_time.set_exact(&mesh_T, T_exact);
-  phi_prev_time.set_exact(&mesh_phi, phi_exact);
-  nls.project_global(Tuple<MeshFunction*>(&T_prev_time, &phi_prev_time), 
-                     Tuple<Solution*>(&T_prev_newton, &phi_prev_newton));
-
-  // Newton's loop on the coarse mesh.
-  info("Solving on coarse meshes.");
-  bool verbose = true; // Default is false.
-  if (!nls.solve_newton(Tuple<Solution*>(&T_prev_newton, &phi_prev_newton), 
-                        NEWTON_TOL_COARSE, NEWTON_MAX_ITER, verbose))
-    error("Newton's method did not converge.");
-
-  // Store the result in T_coarse, phi_coarse.
-  Solution T_coarse, phi_coarse;
-  T_coarse.copy(&T_prev_newton);
-  phi_coarse.copy(&phi_prev_newton);
-
+  
+  char title[100]; // Character array to store the title for an actual view and time step.
+  
   // Exact solutions for error evaluation.
-  ExactSolution T_solution(&mesh_T, T_exact);
-  ExactSolution phi_solution(&mesh_phi, phi_exact);
+  ExactSolution T_exact_solution(&mesh_T, T_exact);
+  ExactSolution phi_exact_solution(&mesh_phi, phi_exact);
 
   // Initialize refinement selector.
   H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
 
+  // Initialize the nonlinear system.
+  DiscreteProblem dp(&wf, spaces);
+  Tuple<int> proj_norms(H2D_H1_NORM, H2D_H1_NORM);
+  
+  // Set initial conditions.
+  T_prev_time.set_exact(&mesh_T, T_exact);
+  phi_prev_time.set_exact(&mesh_phi, phi_exact);
+  
+  // Newton's loop on the initial coarse meshes.
+  info("Solving on coarse meshes.");
+  bool verbose = true; // Default is false.
+  bool did_converge = solve_newton( spaces, &wf, proj_norms, 
+                                    prev_time_meshfns, coarse_mesh_solutions, 
+                                    matrix_solver, NEWTON_TOL_COARSE, NEWTON_MAX_ITER, verbose); 
+  if (!did_converge)
+    error("Newton's method did not converge.");
+
+  // Update the time iterates.
+  T_prev_time.copy(&T_coarse);
+  phi_prev_time.copy(&phi_coarse);
+  
+  /*
+  T_fine.copy(&T_coarse);
+  phi_fine.copy(&phi_coarse);
+  */
+  
   // Time stepping loop:
-  Solution T_fine, phi_fine;
   int nstep = (int)(T_FINAL/TAU + 0.5);
   for(int ts = 1; ts <= nstep; ts++)
   {
@@ -262,165 +284,167 @@ int main(int argc, char* argv[])
     TIME = ts*TAU;
 
     // Update time-dependent exact solutions.
-    T_solution.update(&mesh_T, T_exact);
-    phi_solution.update(&mesh_phi, phi_exact);
-
+    T_exact_solution.update(&mesh_T, T_exact);
+    phi_exact_solution.update(&mesh_phi, phi_exact);
+   
     // Show exact solution.
-    char title[100];
+    view_T_exact.show(&T_exact_solution);
     sprintf(title, "T (exact), t = %g s", TIME);
-    view_T_exact.set_title(title);
-    view_T_exact.show_mesh(false);
-    view_T_exact.show(&T_solution);
+    view_T_exact.set_title(title);    
+    view_phi_exact.show(&phi_exact_solution);
     sprintf(title, "phi (exact), t = %g s", TIME);
     view_phi_exact.set_title(title);
-    view_phi_exact.show_mesh(false);
-    view_phi_exact.show(&phi_solution);
 
     // Periodic global derefinement.
-    if (ts > 1 && ts % UNREF_FREQ == 0) {
-      info("---- Time step %d - prior to adaptivity:", ts);
-      info("Global mesh derefinement.");
-      mesh_T.copy(&basemesh);
-      mesh_phi.copy(&basemesh);
-      space_T.set_uniform_order(P_INIT);
-      space_phi.set_uniform_order(P_INIT);
-
-      // Project fine mesh solutions on globally derefined meshes.
-      if (SOLVE_ON_COARSE_MESH) 
-        info("Projecting fine mesh solution to obtain initial vector on globally derefined mesh.");
-      else 
-        info("Projecting fine mesh solution on globally derefined mesh for error calculation.");
-      nls.project_global(Tuple<MeshFunction*>(&T_fine, &phi_fine), 
-                         Tuple<Solution*>(&T_prev_newton, &phi_prev_newton));
-
-      if (SOLVE_ON_COARSE_MESH) {
-        // Newton's loop on the globally derefined mesh.
-        info("Solving on globally derefined meshes.", ts);
-        if (!nls.solve_newton(Tuple<Solution*>(&T_prev_newton, &phi_prev_newton), 
-                              NEWTON_TOL_COARSE, NEWTON_MAX_ITER, verbose))
-          error("Newton's method did not converge.");
+    if (ts > 1) {
+      if (ts % UNREF_FREQ == 0) {
+        info("---- Time step %d - prior to adaptivity:", ts);
+        info("Global mesh derefinement.");
+        mesh_T.copy(&basemesh);
+        mesh_phi.copy(&basemesh);
+        space_T.set_uniform_order(P_INIT);
+        space_phi.set_uniform_order(P_INIT);
+        
+        if (SOLVE_ON_COARSE_MESH) {
+          // Newton's loop on the globally derefined meshes.
+          info("Solving on globally derefined meshes, starting from the latest fine mesh solutions.");
+          did_converge = solve_newton( spaces, &wf, proj_norms, 
+                                      fine_mesh_meshfns, coarse_mesh_solutions, 
+                                      matrix_solver, NEWTON_TOL_COARSE, NEWTON_MAX_ITER, verbose); 
+          if (!did_converge)
+            error("Newton's method did not converge.");
+        } else {
+          // Projection onto the globally derefined meshes.
+          info("Projecting the latest fine mesh solution onto globally derefined meshes.");
+          project_global(spaces, proj_norms, fine_mesh_meshfns, coarse_mesh_solutions); 
+        }
+      } else {
+        T_coarse.copy(&T_fine);
+        phi_coarse.copy(&phi_fine);
       }
-
-      // Store the result in T_coarse, phi_coarse.
-      T_coarse.copy(&T_prev_newton);
-      phi_coarse.copy(&phi_prev_newton);
     }
+      
 
     // Adaptivity loop:
+    
     bool done = false;
-    double err_est;
-    int as = 1;
+    int as = 0;
     do {
+      as++;
+      
       info("---- Time step %d, adaptivity step %d:", ts, as);
 
-      // Initialize reference nonlinear system.
-      RefSystem rnls(&nls);
+      // Construct globally refined reference meshes and setup reference spaces.
+      int num_fields = 2;         // Number of physical fields being solved for (T, phi).
+      int order_increase = 1;     // Increase in polynomial orders for the reference spaces.
+      Tuple<Space *> ref_spaces;  // Resulting reference spaces.
+      for (int i = 0; i < num_fields; i++) {
+        Mesh *ref_mesh = new Mesh();
+        ref_mesh->copy(spaces[i]->get_mesh());
+        ref_mesh->refine_all_elements();
+        ref_spaces.push_back(spaces[i]->dup(ref_mesh));
+        ref_spaces[i]->copy_orders(spaces[i], order_increase);
+      }
 
-      // Set initial condition for the Newton's method on the fine mesh.
+      // Newton's loop on the refined meshes.
       if (as == 1) {
-        info("Projecting coarse mesh solution to obtain initial vector on new fine mesh.");
-        rnls.project_global(Tuple<MeshFunction*>(&T_coarse, &phi_coarse), 
-                            Tuple<Solution*>(&T_prev_newton, &phi_prev_newton));
+        info("Solving on fine meshes, starting from previous coarse mesh solutions.");
+        did_converge = solve_newton( ref_spaces, &wf, proj_norms, 
+                                     coarse_mesh_meshfns, fine_mesh_solutions, 
+                                     matrix_solver, NEWTON_TOL_FINE, NEWTON_MAX_ITER, verbose);
+      } else {
+        info("Solving on fine meshes, starting from previous fine mesh solutions.");
+        did_converge = solve_newton( ref_spaces, &wf, proj_norms, 
+                                     fine_mesh_meshfns, fine_mesh_solutions, 
+                                     matrix_solver, NEWTON_TOL_FINE, NEWTON_MAX_ITER, verbose);
       }
-      else {
-        info("Projecting previous fine mesh solution to obtain initial vector on new fine mesh.");
-        rnls.project_global(Tuple<MeshFunction*>(&T_fine, &phi_fine), 
-                            Tuple<Solution*>(&T_prev_newton, &phi_prev_newton));
+      if (!did_converge)
+        error("Newton's method did not converge.");     
+      
+      if (SOLVE_ON_COARSE_MESH) {
+        // Newton's loop on the previous coarse meshes (before their global refinement).
+        info("Solving on coarse meshes, starting from the latest fine mesh solutions.");
+        did_converge = solve_newton( spaces, &wf, proj_norms, 
+                                     fine_mesh_meshfns, coarse_mesh_solutions, 
+                                     matrix_solver, NEWTON_TOL_COARSE, NEWTON_MAX_ITER, verbose); 
+        if (!did_converge)
+          error("Newton's method did not converge.");
+      } else {
+        // Projection onto the previous coarse meshes.
+        info("Projecting the latest fine mesh solution onto the coarse meshes.");
+        project_global(spaces, proj_norms, fine_mesh_meshfns, coarse_mesh_solutions); 
       }
-
-      // Newton's loop on the fine meshes.
-      info("Solving on fine meshes.");
-      if (!rnls.solve_newton(Tuple<Solution*>(&T_prev_newton, &phi_prev_newton), 
-                             NEWTON_TOL_FINE, NEWTON_MAX_ITER, verbose))
-        error("Newton's method did not converge.");
-
-      // Store the result in T_fine, phi_fine.
-      T_fine.copy(&T_prev_newton);
-      phi_fine.copy(&phi_prev_newton);
-
-      // Visualize intermediate solutions and mesh during adaptivity.
+      
+      // Visualize intermediate solutions and mesh during adaptivity.  
+      view_T.show(&T_fine);
       sprintf(title, "T (fine mesh), t = %g s, adapt step %d", TIME, as);
       view_T.set_title(title);
-      view_T.show(&T_fine);
+      
+      view_phi.show(&phi_fine);
       sprintf(title, "phi (fine mesh), t = %g s, adapt step %d", TIME, as);
       view_phi.set_title(title);
-      view_phi.show(&phi_fine);
+      
+      ordview_T_coarse.show(&space_T);
       sprintf(title, "T mesh (coarse), t = %g, adapt step %d", TIME, as);
       ordview_T_coarse.set_title(title);
-      ordview_T_coarse.show(&space_T);
+      
+      ordview_T_fine.show(ref_spaces[0]);
       sprintf(title, "T mesh (fine), t = %g, adapt step %d", TIME, as);
       ordview_T_fine.set_title(title);
-      ordview_T_fine.show(rnls.get_space(0));
+      
+      ordview_phi_coarse.show(&space_phi);
       sprintf(title, "phi mesh (coarse), t = %g, adapt step %d", TIME, as);
       ordview_phi_coarse.set_title(title);
-      ordview_phi_coarse.show(&space_phi);
+      
+      ordview_phi_fine.show(ref_spaces[1]);
       sprintf(title, "phi mesh (fine), t = %g, adapt step %d", TIME, as);
       ordview_phi_fine.set_title(title);
-      ordview_phi_fine.show(rnls.get_space(1));
 
       // Calculate error estimates and exact errors.
       info("Calculating errors.");
-      double T_err_est = h1_error(&T_coarse, &T_fine) * 100;
-      double phi_err_est = h1_error(&phi_coarse, &phi_fine) * 100;
-      double T_err_exact = h1_error(&T_coarse, &T_solution) * 100;
-      double phi_err_exact = h1_error(&phi_coarse, &phi_solution) * 100;
+      double T_err_est = calc_rel_error(&T_coarse, &T_fine, H2D_H1_NORM) * 100;
+      double phi_err_est = calc_rel_error(&phi_coarse, &phi_fine, H2D_H1_NORM) * 100;
+      double T_err_exact = calc_rel_error(&T_coarse, &T_exact_solution, H2D_H1_NORM) * 100;
+      double phi_err_exact = calc_rel_error(&phi_coarse, &phi_exact_solution, H2D_H1_NORM) * 100;
       info("T: ndof_coarse: %d, ndof_fine: %d, err_est: %g %%, err_exact: %g %%", 
-	   nls.get_num_dofs(0), rnls.get_num_dofs(0), T_err_est, T_err_exact);
+            space_T.get_num_dofs(), ref_spaces[0]->get_num_dofs(), T_err_est, T_err_exact);
       info("phi: ndof_coarse: %d, ndof_fine: %d, err_est: %g %%, err_exact: %g %%", 
-	   nls.get_num_dofs(1), rnls.get_num_dofs(1), phi_err_est, phi_err_exact);
+            space_phi.get_num_dofs(), ref_spaces[1]->get_num_dofs(), phi_err_est, phi_err_exact);
  
-      // Calculate element errors and total error estimate for adaptivity.
-      H1Adapt hp(&nls);
-      hp.set_solutions(Tuple<Solution*>(&T_coarse, &phi_coarse), 
-                       Tuple<Solution*>(&T_fine, &phi_fine));
-      err_est = hp.calc_error() * 100;
+      // Calculate element errors and total error estimate for adaptivity.      
+      Adapt hp(spaces, proj_norms);
+      hp.set_solutions(coarse_mesh_solutions, fine_mesh_solutions);
+      hp.calc_elem_errors(H2D_TOTAL_ERROR_REL | H2D_ELEMENT_ERROR_ABS) * 100;
 
+      double err_est, norm_est;
+      for (int i = 0; i < num_fields; i++) {
+        double cur_field_err_est = calc_abs_error( coarse_mesh_solutions[i], fine_mesh_solutions[i], proj_norms[i] );
+        double cur_field_norm_est = calc_norm( fine_mesh_solutions[i], proj_norms[i] );
+        err_est += sqr(cur_field_err_est);
+        norm_est += sqr(cur_field_norm_est);
+      }
+      err_est /= norm_est * 100.;  // Get the percentual relative error estimate.
+      
       // If err_est too large, adapt the mesh.
       if (err_est < ERR_STOP) done = true;
       else {
         info("Adapting the coarse meshes.");
-        done = hp.adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY);
-        if (nls.get_num_dofs() >= NDOF_STOP) {
-          done = true; 
-          break;
-        }
-
-        // Project the fine mesh solutions on the new coarse meshes.
-        if (SOLVE_ON_COARSE_MESH) 
-          info("Projecting fine mesh solution to obtain initial vector on new coarse mesh.");
-        else 
-          info("Projecting fine mesh solution on coarse mesh for error calculation.");
-        nls.project_global(Tuple<MeshFunction*>(&T_fine, &phi_fine), 
-                           Tuple<Solution*>(&T_prev_newton, &phi_prev_newton));
-
-        if (SOLVE_ON_COARSE_MESH) {
-          // Newton's loop on the coarse meshes.
-          info("Solving on coarse meshes.");
-          if (!nls.solve_newton(Tuple<Solution*>(&T_prev_newton, &phi_prev_newton), 
-                                NEWTON_TOL_COARSE, NEWTON_MAX_ITER, verbose))
-            error("Newton's method did not converge.");
-        }
-
-        // Store the results in T_coarse, phi_coarse.
-        T_coarse.copy(&T_prev_newton);
-        phi_coarse.copy(&phi_prev_newton);
-
-        as++;
+        done = hp.adapt(Tuple<RefinementSelectors::Selector*> (&selector, &selector), THRESHOLD, STRATEGY, MESH_REGULARITY);
+        if (get_num_dofs(spaces) >= NDOF_STOP) done = true; 
       }
     }
     while (!done);
 
-    // Copy new time level solutions into T_prev_time, phi_prev_time.
+    // Make the fine mesh solution at current time level the previous time level solution in the following time step.
     T_prev_time.copy(&T_fine);
     phi_prev_time.copy(&phi_fine);
-
+    
     // Compute exact error.
-    double T_error = h1_error(&T_prev_time, &T_solution) * 100;
-    double phi_error = h1_error(&phi_prev_time, &phi_solution) * 100;
+    double T_error = calc_rel_error(&T_prev_time, &T_exact_solution, H2D_H1_NORM) * 100;
+    double phi_error = calc_rel_error(&phi_prev_time, &phi_exact_solution, H2D_H1_NORM) * 100;
     info("Exact solution error for T (H1 norm): %g %%", T_error);
     info("Exact solution error for phi (H1 norm): %g %%", phi_error);
   }
-
 
   // Wait for all views to be closed.
   View::wait();

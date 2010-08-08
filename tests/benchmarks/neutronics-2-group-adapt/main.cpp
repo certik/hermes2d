@@ -202,14 +202,14 @@ scalar essential_bc_values_2(int marker, double x, double y)
 // Functions for calculating errors:
 
 double error_total(double (*efn)(MeshFunction*, MeshFunction*, RefMap*, RefMap*),
-		   double (*nfn)(MeshFunction*, RefMap*), Tuple<Solution*>& slns1, Tuple<Solution*>& slns2	)
+       double (*nfn)(MeshFunction*, RefMap*), Tuple<Solution*>& slns1, Tuple<Solution*>& slns2  )
 {
   Tuple<Solution*>::iterator it1, it2;
   double error = 0.0, norm = 0.0;
 
   for (it1=slns1.begin(), it2=slns2.begin(); it1 < slns1.end(); it1++, it2++) {
     assert(it2 < slns2.end());
-    error += sqr(calc_error(efn, *it1, *it2));
+    error += sqr(calc_abs_error(efn, *it1, *it2));
     if (nfn) norm += sqr(calc_norm(nfn, *it2));
   }
 
@@ -337,13 +337,13 @@ int main(int argc, char* argv[])
     cpu_time.tick();
     info("---- Projecting reference mesh solution on new coarse mesh -----------------");
     cpu_time.tick(HERMES_SKIP);
-    project_global(Tuple<Space *>(&space1, &space2),
+    project_global(Tuple<Space *>(&space1, &space2), &wf,
                    Tuple<MeshFunction*>(&ref_sln1, &ref_sln2),
                    Tuple<Solution*>(&sln1, &sln2));
 
     // Calculate element errors and total error estimate.
 
-    H1Adapt hp(Tuple<Space *>(&space1, &space2));
+    Adapt hp(Tuple<Space*>(&space1, &space2), Tuple<int>(H2D_H1_NORM, H2D_H1_NORM));  
     if (ADAPTIVITY_NORM == 2) {
       hp.set_error_form(0, 0, callback(biform_0_0));
       hp.set_error_form(0, 1, callback(biform_0_1));
@@ -361,7 +361,7 @@ int main(int argc, char* argv[])
 
     hp.set_solutions(slns, slns_ref);
 
-    double err_est = hp.calc_error(H2D_TOTAL_ERROR_REL | H2D_ELEMENT_ERROR_REL) * 100;
+    double err_est = hp.calc_elem_errors(H2D_TOTAL_ERROR_REL | H2D_ELEMENT_ERROR_REL) * 100;
     double err_est_h1 = error_total(error_fn_h1, norm_fn_h1, slns, slns_ref) * 100;
 
     // Report results.
@@ -373,8 +373,8 @@ int main(int argc, char* argv[])
     DiffFilter err_distrib_1(&ex1, &sln1);
     DiffFilter err_distrib_2(&ex2, &sln2);
 
-    double err_exact_h1_1 = h1_error(&ex1, &sln1) * 100;
-    double err_exact_h1_2 = h1_error(&ex2, &sln2) * 100;
+    double err_exact_h1_1 = calc_rel_error(&ex1, &sln1, H2D_H1_NORM) * 100;
+    double err_exact_h1_2 = calc_rel_error(&ex2, &sln2, H2D_H1_NORM) * 100;;
 
     Tuple<Solution*> exslns(&ex1, &ex2);
     error_h1 = error_total(error_fn_h1, norm_fn_h1, slns, exslns) * 100;
@@ -391,7 +391,7 @@ int main(int argc, char* argv[])
 
     // If err_est too large, adapt the mesh.
     if (err_est < ERR_STOP) break;
-    else hp.adapt(&selector, THRESHOLD, STRATEGY,  MESH_REGULARITY);
+    else hp.adapt(Tuple<RefinementSelectors::Selector*>(&selector,&selector), THRESHOLD, STRATEGY,  MESH_REGULARITY);
   }
 
   cpu_time.tick();
