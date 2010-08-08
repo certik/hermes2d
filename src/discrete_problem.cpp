@@ -197,57 +197,70 @@ void DiscreteProblem::assemble(Vector* init_vec, Matrix* mat_ext, Vector* dir_ex
   // sanity checks
   if (this->have_spaces == false)
     error("Before assemble(), you need to initialize spaces.");
-  if (this->wf == NULL) error("this->wf = NULL in DiscreteProblem::assemble().");
-  if (this->spaces == NULL) error("this->spaces = NULL in DiscreteProblem::assemble().");
+  if (this->wf == NULL) 
+		error("this->wf = NULL in DiscreteProblem::assemble().");
+  if (this->spaces == NULL) 
+		error("this->spaces = NULL in DiscreteProblem::assemble().");
   int n = this->wf->neq;
-  for (int i = 0; i < n; i++) {
-    if (this->spaces[i] == NULL) error("this->spaces[%d] is NULL in DiscreteProblem::assemble().", i);
+  for (int i = 0; i < n; i++) 
+	{
+    if (this->spaces[i] == NULL) 
+			error("this->spaces[%d] is NULL in DiscreteProblem::assemble().", i);
   }
-  if (rhs_ext == NULL) error("rhs_ext == NULL in DiscreteProblem::assemble().");
-  if (rhsonly == false) {
-    if (mat_ext == NULL) error("mat_ext == NULL in DiscreteProblem::assemble().");
-    if (mat_ext->get_size() != rhs_ext->get_size()) {
-	printf("mat_ext matrix size = %d\n", mat_ext->get_size());
-	printf("rhs_ext vector size = %d\n", rhs_ext->get_size());
-        error("Mismatched mat_ext and rhs_ext vector sizes in DiscreteProblem::assemble().");
+  if (rhs_ext == NULL) 
+		error("rhs_ext == NULL in DiscreteProblem::assemble().");
+  if (rhsonly == false) 
+	{
+    if (mat_ext == NULL) 
+			error("mat_ext == NULL in DiscreteProblem::assemble().");
+    if (mat_ext->get_size() != rhs_ext->get_size()) 
+		{
+			printf("mat_ext matrix size = %d\n", mat_ext->get_size());
+			printf("rhs_ext vector size = %d\n", rhs_ext->get_size());
+      error("Mismatched mat_ext and rhs_ext vector sizes in DiscreteProblem::assemble().");
     }
   }
 
   // Assign dof in all spaces. 
-  // Realloc mat_ext, dir_ext and rhs_ext if ndof changed, 
+	int ndof = this->assign_dofs();
+	if (ndof == 0) 
+		error("ndof = 0 in DiscreteProblem::assemble().");
+	//printf("ndof = %d\n", ndof);
+  
+	// Realloc mat_ext, dir_ext and rhs_ext if ndof changed, 
   // and clear dir_ext and rhs_ext. 
-  //Do not touch the matrix if rhsonly == true. 
-  int ndof = this->assign_dofs();
-  //printf("ndof = %d\n", ndof);
-  if (ndof == 0) error("ndof = 0 in DiscreteProblem::assemble().");
-  if (rhsonly == false) {
-    if (mat_ext->get_size() != ndof) {
-      mat_ext->init();
-    }
-  }
-  if (dir_ext != NULL) {
-    if (dir_ext->get_size() != ndof) {
+  // Do not touch the matrix if rhsonly == true. 
+ 	if (rhsonly == false) 
+		if (mat_ext->get_size() != ndof)
+			mat_ext->init();
+  if (dir_ext != NULL) 
+	{
+    if (dir_ext->get_size() != ndof) 
+		{
       dir_ext->free_data();
       dir_ext->init(ndof);
     }
     else dir_ext->set_zero();
   }
-  if (rhs_ext->get_size() != ndof) {
+  if (rhs_ext->get_size() != ndof) 
+	{
     rhs_ext->free_data();
     rhs_ext->init(ndof);
   }
-  else rhs_ext->set_zero();
+  else 
+		rhs_ext->set_zero();
 
   // If init_vec != NULL, convert it to a Tuple of solutions u_ext.
   Tuple<Solution*> u_ext;
-  for (int i = 0; i < wf->neq; i++) {
-    if (init_vec != NULL) {
+  for (int i = 0; i < wf->neq; i++) 
+	{
+    if (init_vec != NULL) 
+		{
       u_ext.push_back(new Solution(spaces[i]->get_mesh()));
       u_ext[i]->set_fe_solution(spaces[i], this->pss[i], init_vec);
     }
-    else {
+    else
       u_ext.push_back(NULL);
-    }
   }
 
   int k, m, marker;
@@ -258,7 +271,8 @@ void DiscreteProblem::assemble(Vector* init_vec, Matrix* mat_ext, Vector* dir_ex
   EdgePos ep[4];
   reset_warn_order();
 
-  if (rhsonly == false) {
+  if (rhsonly == false) 
+	{
     trace("Creating matrix sparse structure...");
     mat_ext->free_data();
   }
@@ -287,6 +301,7 @@ void DiscreteProblem::assemble(Vector* init_vec, Matrix* mat_ext, Vector* dir_ex
 
   // obtain a list of assembling stages
   std::vector<WeakForm::Stage> stages;
+	// Returns assembling stages with correct meshes, ext_functions that are needed in a particular stage.
   wf->get_stages(spaces, stages, rhsonly);
 
   // Loop through all assembling stages -- the purpose of this is increased performance
@@ -298,24 +313,30 @@ void DiscreteProblem::assemble(Vector* init_vec, Matrix* mat_ext, Vector* dir_ex
   for (unsigned int ss = 0; ss < stages.size(); ss++)
   {
     WeakForm::Stage* s = &stages[ss];
-    for (unsigned int i = 0; i < s->idx.size(); i++) s->fns[i] = pss[s->idx[i]];
-    for (unsigned int i = 0; i < s->ext.size(); i++) s->ext[i]->set_quad_2d(&g_quad_2d_std);
+		// Fills the solution and test functions into the stage s.
+    for (unsigned int i = 0; i < s->idx.size(); i++)
+			s->fns[i] = pss[s->idx[i]];
+    for (unsigned int i = 0; i < s->ext.size(); i++)
+			s->ext[i]->set_quad_2d(&g_quad_2d_std);
+		// Tests whether the meshes in this stage are compatible and initializes the traverse process.
     trav.begin(s->meshes.size(), &(s->meshes.front()), &(s->fns.front()));
 
-    // assemble one stage
+    // Assemble one stage.
     Element** e;
+		// See Traverse::get_next_state for explanation.
     while ((e = trav.get_next_state(bnd, ep)) != NULL)
     {
-      // find a non-NULL e[i]
+      // Checking if at least on one mesh in this stage the element over which we are assembling is used.
+			// If not, we continue with another state.
       Element* e0 = NULL;
       for (unsigned int i = 0; i < s->idx.size(); i++)
         if ((e0 = e[i]) != NULL) break;
       if (e0 == NULL) continue;
 
-      // set maximum integration order for use in integrals, see limit_order()
+      // Set maximum integration order for use in integrals, see limit_order().
       update_limit_table(e0->get_mode());
 
-      // obtain assembly lists for the element at all spaces, set appropriate mode for each pss
+      // Obtain assembly lists for the element at all spaces of the stage, set appropriate mode for each pss.
       std::fill(isempty.begin(), isempty.end(), false);
       for (unsigned int i = 0; i < s->idx.size(); i++)
       {
@@ -324,14 +345,22 @@ void DiscreteProblem::assemble(Vector* init_vec, Matrix* mat_ext, Vector* dir_ex
         // FIXME: Do not retrieve assembly list again if the element has not changed.
         spaces[j]->get_element_assembly_list(e[i], &al[j]);
 
+				// Set active element to all test function PrecalcShapesets.
         spss[j]->set_active_element(e[i]);
+				// Set the subelement transformation as it is set on all the appropriate solution function PrecalcShapeset.
         spss[j]->set_master_transform();
+				// Set the active element to the reference mapping.
         refmap[j].set_active_element(e[i]);
+				// Important : the reference mapping gets the same subelement transformation as the
+				// appropriate PrecalcShapeset (~test function). This is used in eval_form functions.
         refmap[j].force_transform(pss[j]->get_transform(), pss[j]->get_ctm());
-
-        if (u_ext[j] != NULL) u_ext[j]->set_active_element(e[i]);
-        if (u_ext[j] != NULL) u_ext[j]->force_transform(pss[j]->get_transform(), pss[j]->get_ctm());
+        // The same is done for all external functions.
+				if (u_ext[j] != NULL) 
+					u_ext[j]->set_active_element(e[i]);
+        if (u_ext[j] != NULL) 
+					u_ext[j]->force_transform(pss[j]->get_transform(), pss[j]->get_ctm());
       }
+			// Boundary marker.
       marker = e0->marker;
 
       init_cache();

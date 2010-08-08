@@ -201,59 +201,79 @@ Element** Traverse::get_next_state(bool* bnd, EdgePos* ep)
   while (1)
   {
     int i, j, son;
-
-    // if the top state was visited already, we are returning through it:
+		// When the stack of states is not empty (i.e. not at the beginning) the function starts here.
+    // If the top state was visited already, we are returning through it:
     // undo all its transformations, pop it and continue with a non-visited one
     State* s;
     while (top > 0 && (s = stack + top-1)->visited)
     {
       if (fn != NULL)
       {
+				// For every mesh.
         for (i = 0; i < num; i++)
           if (s->e[i] != NULL)
           {
+						// If the element on i-th mesh is transformed to a subelement.
             if (s->trans[i] > 0)
             {
               if (fn[i]->get_transform() == subs[i])
                 fn[i]->pop_transform();
               subs[i] = fn[i]->get_transform();
             }
+						// If the element on the i-th mesh is active, we have to reset i-th mesh's PrecalcShapeset's transformation.
             else if (s->trans[i] < 0)
               fn[i]->reset_transform();
           }
       }
+			// Since we are about to process this state and return its elements, we want to take it out of the stack,
+			// i.e. to lower the stack's top.
       top--;
     }
 
-    // the stack is empty, take next base element
+    // The stack is empty, take next base element
+		// The process starts here (at the beginning the stack is always empty, i.e. top == 0)
     if (top <= 0)
     {
-      // push the state of a new base element
+      // Push the state of a new base element.
+			// This function only allocates memory for the new state, 
+			// with as many Elements* as there are meshes in this stage.
+			// (Traverse knows what stage it is, because it is being initialized by calling trav.begin(..)).
       s = push_state();
       static const Rect H2D_UNITY = { 0, 0, ONE, ONE };
       s->cr = H2D_UNITY;
       while (1)
       {
-        // no more base elements? we're finished
+        // No more base elements? we're finished.
+				// Id is set to zero at the beginning by the function trav.begin(..).
         if (id >= meshes[0]->get_num_base_elements())
           return NULL;
-
         int nused = 0;
+				// The variable num is the number of meshes in the stage
         for (i = 0; i < num; i++)
         {
+					// Retrieve the Element with this id on the i-th mesh.
           s->e[i] = meshes[i]->get_element(id);
-          if (!s->e[i]->used) { s->e[i] = NULL; continue; }
-          if (s->e[i]->active && fn != NULL) fn[i]->set_active_element(s->e[i]);
+          if (!s->e[i]->used) 
+					{ 
+						s->e[i] = NULL; 
+						continue; 
+					}
+          if (s->e[i]->active && fn != NULL)
+						// Important, sets the active element for the i-th test function (i-th PrecalcShapeset)
+						fn[i]->set_active_element(s->e[i]);
           s->er[i] = H2D_UNITY;
           subs[i] = 0;
           nused++;
           base = s->e[i];
         }
-
-        if (nused) break;
+				// If there is any used element in this stage we continue with the calculation 
+				// (break this cycle looking for such an element id).
+        if (nused) 
+					break;
         id++;
       }
 
+			// Sets necessary things for when the new base element is a triangle.
       tri = base->is_triangle();
       id++;
 
@@ -268,33 +288,42 @@ Element** Traverse::get_next_state(bool* bnd, EdgePos* ep)
       }
     }
 
-    // entering a new state: perform the transformations for it
+    // Entering a new state: perform the transformations for it
     s->visited = true;
     if (fn != NULL)
     {
+			// For every mesh of this stage..
       for (i = 0; i < num; i++)
+				// ..where the element is used ..
         if (s->e[i] != NULL)
         {
+					// ..if the element on i-th mesh is inactive (we have to go down)..
           if (s->trans[i] > 0)
           {
             if (fn[i]->get_transform() == subs[i])
               fn[i]->push_transform(s->trans[i]-1);
             subs[i] = fn[i]->get_transform();
           }
+					// ..and when it is active we have to set it active to the i-th PrecalcShapeset (~test function)
           else if (s->trans[i] < 0)
           {
             fn[i]->set_active_element(s->e[i]);
-            if (!tri) init_transforms(fn[i], &s->cr, s->er + i);
+            if (!tri) 
+							init_transforms(fn[i], &s->cr, s->er + i);
             subs[i] = fn[i]->get_transform();
           }
         }
     }
 
-    // is this the leaf state?
+    // Is this the leaf state?
     bool leaf = true;
     for (i = 0; i < num; i++)
       if (s->e[i] != NULL)
-        if (!s->e[i]->active) { leaf = false; break; }
+        if (!s->e[i]->active) 
+				{ 
+					leaf = false; 
+					break; 
+				}
 
     // if yes, set boundary flags and return the state
     if (leaf)
@@ -304,31 +333,38 @@ Element** Traverse::get_next_state(bool* bnd, EdgePos* ep)
       return s->e;
     }
 
-    // triangle: push son states
+    // Triangle: push son states
     if (tri)
     {
+			// Triangle always has 4 sons.
       for (son = 0; son <= 3; son++)
       {
         State* ns = push_state();
+				// For every mesh..
         for (i = 0; i < num; i++)
         {
+					// ..if the element is not used.
           if (s->e[i] == NULL)
           {
             ns->e[i] = NULL;
           }
+					// ..if the current element is active.
           else if (s->e[i]->active)
           {
             ns->e[i] = s->e[i];
             ns->trans[i] = son+1;
           }
+					// ..we move to the son.
           else
           {
             ns->e[i] = s->e[i]->sons[son];
-            if (ns->e[i]->active) ns->trans[i] = -1;
+						// If the son's element is active.
+            if (ns->e[i]->active)
+							ns->trans[i] = -1;
           }
         }
 
-        // determine boundary flags and positions for the new state
+        // Determine boundary flags and positions for the new state.
         if (son < 3)
         {
           memcpy(ns->bnd, s->bnd, sizeof(ns->bnd));
@@ -349,21 +385,22 @@ Element** Traverse::get_next_state(bool* bnd, EdgePos* ep)
         }
       }
     }
-    // quad: this is a little more complicated, same principle, though
+    // Quad: this is a little more complicated, same principle, though.
     else
     {
-      // obtain split types and son numbers for the current rectangle on all elements
+      // Obtain split types and son numbers for the current rectangle on all elements.
       int split = 0;
       for (i = 0; i < num; i++)
         if (s->e[i] != NULL && !s->e[i]->active)
           split |= get_split_and_sons(s->e[i], &s->cr, s->er + i, sons[i]);
 
-      // both splits: recur to four sons
+      // Both splits: recur to four sons, similar to triangles.
       if (split == 3)
       {
         for (son = 0; son <= 3; son++)
         {
           State* ns = push_state();
+					// Sets the son's "base" rectangle to the correct one.
           move_to_son(&ns->cr, &s->cr, son);
 
           for (i = 0; i < num; i++)
@@ -380,13 +417,15 @@ Element** Traverse::get_next_state(bool* bnd, EdgePos* ep)
             else
             {
               ns->e[i] = s->e[i]->sons[sons[i][son] & 3];
+							// Sets the son's "current mesh" rectangle correctly.
               move_to_son(ns->er + i, s->er + i, sons[i][son]);
-              if (ns->e[i]->active) ns->trans[i] = -1;
+              if (ns->e[i]->active) 
+								ns->trans[i] = -1;
             }
           }
         }
       }
-      // v or h split, recur to two sons
+      // V or h split, recur to two sons.
       else if (split > 0)
       {
         int son0 = 4, son1 = 5;
@@ -418,7 +457,7 @@ Element** Traverse::get_next_state(bool* bnd, EdgePos* ep)
           }
         }
       }
-      // no splits, recur to one son
+      // No splits, recur to one son.
       else
       {
         State* ns = push_state();
