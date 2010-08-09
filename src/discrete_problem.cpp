@@ -1084,8 +1084,32 @@ void project_global(Tuple<Space *> spaces, WeakForm *wf, Tuple<MeshFunction*> so
   delete dir;
 }
 
+void project_global(Tuple<Space *> spaces, WeakForm *wf, Tuple<Solution *> source_slns, 
+                    Tuple<Solution*> target_slns, Vector* target_vec, bool is_complex)
+{
+  Tuple<MeshFunction *> source_meshfns;
+  for (int i = 0; i < source_slns.size(); i++) {
+    source_meshfns.push_back((MeshFunction*)source_slns[i]);
+  }
+
+  project_global(spaces, wf, source_meshfns, target_slns, target_vec, is_complex);
+}
+
+void project_global(Tuple<Space *> spaces, WeakForm *wf, Tuple<ExactFunction> source_exactfns, 
+                    Tuple<Solution*> target_slns, Vector* target_vec, bool is_complex)
+{
+  Tuple<Solution *> source_slns;
+  for (int i = 0; i < source_exactfns.size(); i++) {
+    source_slns.push_back(new Solution());
+    Mesh *mesh = spaces[i]->get_mesh();
+    source_slns[i]->set_exact(mesh, source_exactfns[i]);
+  }
+
+  project_global(spaces, wf, source_slns, target_slns, target_vec, is_complex);
+}
+
 // global orthogonal projection
-void project_global(Tuple<Space *> spaces, Tuple<int>proj_norms, Tuple<MeshFunction*> source_meshfns, 
+void project_global(Tuple<Space *> spaces, Tuple<int> proj_norms, Tuple<MeshFunction*> source_meshfns, 
                     Tuple<Solution*> target_slns, Vector* target_vec, bool is_complex)
 {
   int n = spaces.size();  
@@ -1126,6 +1150,31 @@ void project_global(Tuple<Space *> spaces, Tuple<int>proj_norms, Tuple<MeshFunct
 
   project_global(spaces, &wf, source_meshfns, target_slns, target_vec, is_complex);
 }
+
+void project_global(Tuple<Space *> spaces, Tuple<int> proj_norms, Tuple<Solution *> source_slns, 
+                    Tuple<Solution*> target_slns, Vector* target_vec, bool is_complex)
+{
+  Tuple<MeshFunction *> source_meshfns;
+  for (int i = 0; i < source_slns.size(); i++) {
+    source_meshfns.push_back((MeshFunction*)source_slns[i]);
+  }
+
+  project_global(spaces, proj_norms, source_meshfns, target_slns, target_vec, is_complex);
+}
+
+void project_global(Tuple<Space *> spaces, Tuple<int> proj_norms, Tuple<ExactFunction> source_exactfns, 
+                    Tuple<Solution*> target_slns, Vector* target_vec, bool is_complex)
+{
+  Tuple<Solution *> source_slns;
+  for (int i = 0; i < source_exactfns.size(); i++) {
+    source_slns.push_back(new Solution());
+    source_slns[i]->set_exact(spaces[i]->get_mesh(), source_exactfns[i]);
+  }
+
+  project_global(spaces, proj_norms, source_slns, target_slns, target_vec, is_complex);
+}
+
+
 
 void project_global(Tuple<Space *> spaces, matrix_forms_tuple_t proj_biforms, 
                     vector_forms_tuple_t proj_liforms, Tuple<MeshFunction*> source_meshfns, 
@@ -1171,9 +1220,7 @@ void project_global(Space *space, int proj_norm, ExactFunction source_meshfn, So
   if (proj_norm != 0 && proj_norm != 1) error("Wrong norm used in orthogonal projection (scalar case).");
   Mesh *mesh = space->get_mesh();
   if (mesh == NULL) error("Mesh is NULL in project_global().");
-  Solution source_sln;
-  source_sln.set_exact(mesh, source_meshfn);
-  project_global(space, proj_norm, &source_sln, target_sln, target_vec, is_complex);
+  project_global(space, proj_norm, source_meshfn, target_sln, target_vec, is_complex);
 };
 
 /// Global orthogonal projection of one scalar ExactFunction -- user specified projection bi/linear forms.
@@ -1200,7 +1247,7 @@ void project_global(Space *space, ExactFunction2 source_fn, Solution* target_sln
   if (mesh == NULL) error("Mesh is NULL in project_global().");
   Solution source_sln;
   source_sln.set_exact(mesh, source_fn);
-  project_global(space, proj_norm, &source_sln, target_sln, target_vec, is_complex);
+  project_global(space, proj_norm, (MeshFunction*)&source_sln, target_sln, target_vec, is_complex);
 };
 
 /// Projection-based interpolation of an exact function. This is faster than the
@@ -1329,29 +1376,31 @@ bool solve_newton(Tuple<Space *> spaces, WeakForm* wf, Tuple<int>proj_norms,
   for (int i=0; i<n_mesh_fns; i++) {
     if (mesh_fns[i] == NULL) error("a filter is NULL in solve_newton().");
   }
-  if (spaces.size() != init_meshfns.size()) error("The number of spaces and initial functions must be the same in newton_solve.");
-  if (init_meshfns.size() != target_slns.size()) error("The number of initial functions and target solutions must be the same in newton_solve.");
+  if (spaces.size() != init_meshfns.size()) 
+    error("The number of spaces and initial functions must be the same in newton_solve.");
+  if (init_meshfns.size() != target_slns.size()) 
+    error("The number of initial functions and target solutions must be the same in newton_solve.");
 
   // Project init_meshfns on the FE space
   // to obtain initial coefficient vector for the Newton's method.
   if (verbose) info("Projecting to obtain initial vector for the Newton's method.");
   
   // Allocate the coefficient vector.
-  Vector* init_coeff_vec = new AVector(ndof);
+  Vector* coeff_vec = new AVector(ndof);
 
   // Project to obtain the initial coefficient vector for the Newton's method.
   // The empty solution Tuple means that we do not want the resulting Solution, just the vector
-  project_global(spaces, proj_norms, init_meshfns, Tuple<Solution *>(), init_coeff_vec, is_complex); 
+  project_global(spaces, proj_norms, init_meshfns, Tuple<Solution *>(), coeff_vec, is_complex); 
 
   // Perform the Newton's loop.
   bool flag;
-  flag = solve_newton(spaces, wf, init_coeff_vec, matrix_solver, 
+  flag = solve_newton(spaces, wf, coeff_vec, matrix_solver, 
                       newton_tol, newton_max_iter, verbose, mesh_fns, is_complex);
 
   // If the user wants target_slns, convert coefficient vector into Solution(s).
   if (target_slns != Tuple<Solution *>()) {
     for (int i=0; i<target_slns.size(); i++) {
-      if (target_slns[i] != NULL) target_slns[i]->set_fe_solution(spaces[i], init_coeff_vec);
+      if (target_slns[i] != NULL) target_slns[i]->set_fe_solution(spaces[i], coeff_vec);
     }
   }
 
@@ -1359,7 +1408,7 @@ bool solve_newton(Tuple<Space *> spaces, WeakForm* wf, Tuple<int>proj_norms,
 }
 
 // Basic Newton's method, takes a coefficient vector and returns a coefficient vector. 
-bool solve_newton(Tuple<Space *> spaces, WeakForm* wf, Vector* init_coeff_vec, 
+bool solve_newton(Tuple<Space *> spaces, WeakForm* wf, Vector* coeff_vec, 
                   MatrixSolverType matrix_solver, double newton_tol, 
                   int newton_max_iter, bool verbose, Tuple<MeshFunction*> mesh_fns, 
                   bool is_complex) 
@@ -1369,14 +1418,14 @@ bool solve_newton(Tuple<Space *> spaces, WeakForm* wf, Vector* init_coeff_vec,
   if (mesh_fns != Tuple<MeshFunction*>()) n_mesh_fns = mesh_fns.size();
 
   // sanity checks
-  if (init_coeff_vec == NULL) error("init_coeff_vec == NULL in solve_newton().");
+  if (coeff_vec == NULL) error("coeff_vec == NULL in solve_newton().");
   int n = spaces.size();
   if (spaces.size() != wf->neq) 
     error("The number of spaces in newton_solve() must match the number of equation in the PDE system.");
   for (int i=0; i < n; i++) {
     if (spaces[i] == NULL) error("spaces[%d] is NULL in solve_newton().", i);
   }
-  if (init_coeff_vec->get_size() != ndof) error("Bad vector size in solve_newton().");
+  if (coeff_vec->get_size() != ndof) error("Bad vector size in solve_newton().");
 
   // Initialize the discrete problem.
   DiscreteProblem dp(wf, spaces);
@@ -1396,7 +1445,7 @@ bool solve_newton(Tuple<Space *> spaces, WeakForm* wf, Vector* init_coeff_vec,
     // Assemble the Jacobian matrix and residual vector.
     bool rhsonly = false;
     // the NULL stands for the dir vector which is not needed here
-    dp.assemble(init_coeff_vec, mat, NULL, rhs, rhsonly, is_complex);
+    dp.assemble(coeff_vec, mat, NULL, rhs, rhsonly, is_complex);
 
     // Multiply the residual vector with -1 since the matrix 
     // equation reads J(Y^n) \deltaY^{n+1} = -F(Y^n).
@@ -1415,7 +1464,7 @@ bool solve_newton(Tuple<Space *> spaces, WeakForm* wf, Vector* init_coeff_vec,
     if (!solver->solve(mat, rhs)) error ("Matrix solver failed.\n");
 
     // Add \deltaY^{n+1} to Y^n.
-    for (int i = 0; i < ndof; i++) init_coeff_vec->add(i, rhs->get(i));
+    for (int i = 0; i < ndof; i++) coeff_vec->add(i, rhs->get(i));
     
     it++;
   };
@@ -1436,7 +1485,7 @@ bool solve_newton(Tuple<Space *> spaces, WeakForm* wf, Vector* init_coeff_vec,
 // automatic adaptivity. 
 // Feel free to adjust this function for more advanced applications.
 bool solve_newton_adapt(Tuple<Space *> spaces, WeakForm* wf, Tuple<int>proj_norms, 
-                        Tuple<Solution *> slns, 
+                        Tuple<ExactFunction> init_exactfns, Tuple<Solution *> slns, 
                         MatrixSolverType matrix_solver,  Tuple<Solution *> ref_slns, 
                         Tuple<RefinementSelectors::Selector *> selectors, AdaptivityParamType* apt,
                         Tuple<WinGeom *> sln_win_geom, Tuple<WinGeom *> mesh_win_geom, 
@@ -1471,8 +1520,8 @@ bool solve_newton_adapt(Tuple<Space *> spaces, WeakForm* wf, Tuple<int>proj_norm
   else is_exact_solution = false;
 
   // Initialize matrix solver.
-  Matrix* mat; Vector* rhs; CommonSolver* solver;  
-  init_matrix_solver(matrix_solver, ndof, mat, rhs, solver, is_complex);
+  Matrix* mat; Vector* coeff_vec; CommonSolver* solver;  
+  init_matrix_solver(matrix_solver, ndof, mat, coeff_vec, solver, is_complex);
 
   // Initialize views.
   ScalarView* s_view[H2D_MAX_COMPONENTS];
@@ -1516,28 +1565,20 @@ bool solve_newton_adapt(Tuple<Space *> spaces, WeakForm* wf, Tuple<int>proj_norm
   // DOF and CPU convergence graphs.
   SimpleGraph graph_dof_est, graph_cpu_est, graph_dof_exact, graph_cpu_exact;
 
-  // Conversion from Tuple<Solution *> to Tuple<MeshFunction *>
-  // so that project_global() below compiles. 
-  // FIXME: this should be solved more elegantly
-  Tuple<MeshFunction *> slns_mf;
-  Tuple<MeshFunction *> ref_slns_mf;
-  for (int i = 0; i < num_comps; i++) {
-    slns_mf.push_back((MeshFunction*)slns[i]);
-    ref_slns_mf.push_back((MeshFunction*)ref_slns[i]);
-  }
+  // Project the initial condition on the FE space(s) to obtain initial 
+  // coefficient vector for the Newton's method.
+  info("Projecting initial condition to obtain initial vector on the coarse mesh.");
+  project_global(spaces, proj_norms, init_exactfns, Tuple<Solution *>(), coeff_vec, is_complex); 
 
   // Newton's loop on the coarse mesh.
   info("Solving on coarse mesh:");
-  Tuple<Solution *> u_prev;
-  for (int i = 0; i < num_comps; i++) u_prev.push_back(new Solution);
-
-  if (!solve_newton(spaces, wf, proj_norms, slns_mf, u_prev, 
+  if (!solve_newton(spaces, wf, coeff_vec,
                     matrix_solver, newton_tol_coarse, newton_max_iter, verbose)) {
     error("Newton's method did not converge.");
   }
 
   // Store the result in sln.
-  for (int i = 0; i < num_comps; i++) slns[i]->copy(u_prev[i]);
+  for (int i = 0; i < num_comps; i++) slns[i]->set_fe_solution(spaces[i], coeff_vec);
 
   // Adaptivity loop:
   bool done = false; int as = 1;
@@ -1574,29 +1615,31 @@ bool solve_newton_adapt(Tuple<Space *> spaces, WeakForm* wf, Tuple<int>proj_norm
       ref_spaces[i]->copy_orders(spaces[i], order_increase);
     }
 
-    // Newton's loop on the fine mesh.
+    // Calculate initial coefficient vector for Newton on the fine mesh.
     if (as == 1) {
-      info("Solving on fine mesh, starting from previous coarse mesh solution:");
-      if (!solve_newton(ref_spaces, wf, proj_norms, slns_mf, u_prev, matrix_solver, 
-                        newton_tol_fine, newton_max_iter, verbose)) 
-        error("Newton's method did not converge.");
+      info("Projecting coarse mesh solution to obtain initial vector on new fine mesh.");
+      project_global(ref_spaces, proj_norms, slns, Tuple<Solution*>(), coeff_vec);
     }
     else {
-      info("Solving on fine mesh, starting from previous fine mesh solution:");
-      if (!solve_newton(ref_spaces, wf, proj_norms, ref_slns_mf, u_prev, matrix_solver, 
-                        newton_tol_fine, newton_max_iter, verbose)) 
-        error("Newton's method did not converge.");
+      info("Projecting previous fine mesh solution to obtain initial vector on new fine mesh.");
+      project_global(ref_spaces, proj_norms, ref_slns, Tuple<Solution*>(), coeff_vec);
     }
 
-    // Store the new fine mesh solution in ref_sln.
-    for (int i = 0; i < num_comps; i++) ref_slns[i]->copy(u_prev[i]);
+    // Newton's method on fine mesh
+    info("Solving on fine mesh.");
+    if (!solve_newton(ref_spaces, wf, coeff_vec, matrix_solver, newton_tol_fine, newton_max_iter, verbose))
+      error("Newton's method did not converge.");
+
+    // Store the result in ref_sln.
+    for (int i = 0; i < num_comps; i++) ref_slns[i]->set_fe_solution(ref_spaces[i], coeff_vec);
 
     // Calculate element errors.
     if (verbose) info("Calculating error.");
     Adapt hp(spaces, proj_norms);
     // Pass special error forms if any.
     for (int k = 0; k < apt->error_form_val.size(); k++) {
-      hp.set_error_form(apt->error_form_i[k], apt->error_form_j[k], apt->error_form_val[k], apt->error_form_ord[k]);
+      hp.set_error_form(apt->error_form_i[k], apt->error_form_j[k], 
+                        apt->error_form_val[k], apt->error_form_ord[k]);
     }
     // Pass coarse mesh and reference solutions for error estimation.
     hp.set_solutions(slns, ref_slns);
@@ -1684,8 +1727,8 @@ bool solve_newton_adapt(Tuple<Space *> spaces, WeakForm* wf, Tuple<int>proj_norm
       // Project last fine mesh solution on the new coarse mesh
       // to obtain new coars emesh solution.
       if (verbose) info("Projecting reference solution on new coarse mesh.");
-      // NULL means that we do not want to know the resulting coefficient vector.
-      project_global(spaces, proj_norms, ref_slns_mf, slns, NULL, is_complex); 
+      // The NULL means that we do not want the coefficient vector.
+      project_global(spaces, proj_norms, ref_slns, slns, NULL, is_complex); 
     }
 
     as++;

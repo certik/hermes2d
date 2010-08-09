@@ -246,7 +246,7 @@ int main(int argc, char* argv[])
       int order_increase = 1;
       ref_space->copy_orders(space, order_increase);
 
-      // Set initial condition for the Newton's method on the fine mesh.
+      // Calculate initial coefficient vector for Newton on the fine mesh.
       if (as == 1 && ts == 1) {
         info("Projecting coarse mesh solution to obtain initial vector on new fine mesh.");
         // The NULL means that we do not want the result as a Solution.

@@ -86,10 +86,6 @@ scalar essential_bc_values(int ess_bdy_marker, double x, double y)
   return dir_lift(x, y, dx, dy);
 }
 
-// Heat sources (can be a general function of 'x' and 'y').
-template<typename Real>
-Real heat_src(Real x, Real y) { return 1.0;}
-
 // Weak forms.
 #include "forms.cpp"
 
@@ -119,8 +115,8 @@ int main(int argc, char* argv[])
   int ndof = get_num_dofs(space);
 
   // Initialize matrix solver.
-  Matrix* mat; Vector* rhs; CommonSolver* solver;  
-  init_matrix_solver(matrix_solver, ndof, mat, rhs, solver);
+  Matrix* mat; Vector* coeff_vec; CommonSolver* solver;  
+  init_matrix_solver(matrix_solver, ndof, mat, coeff_vec, solver);
 
   // Initialize views.
   WinGeom* sln_win_geom = new WinGeom(0, 0, 440, 350);
@@ -135,20 +131,24 @@ int main(int argc, char* argv[])
   TimePeriod cpu_time;
   cpu_time.tick();
 
+  // Project the initial condition on the FE space to obtain initial 
+  // coefficient vector for the Newton's method.
+  info("Projecting initial condition to obtain initial vector on the coarse mesh.");
+  // The NULL means that we do not want the resulting Solution, just the vector.
+  project_global(space, H2D_H1_NORM, init_cond, NULL, coeff_vec); 
+
   // Newton's loop on the coarse mesh.
   info("Solving on coarse mesh:");
-  Solution* u_prev = new Solution();
   Solution* sln = new Solution();
   Solution* ref_sln = new Solution();
-  sln->set_exact(&mesh, init_cond);
   bool verbose = true;
-  if (!solve_newton(space, &wf, H2D_H1_NORM, sln, u_prev, 
-                    matrix_solver, NEWTON_TOL_COARSE, NEWTON_MAX_ITER, verbose)) {
+  if (!solve_newton(space, &wf, coeff_vec, matrix_solver, 
+		    NEWTON_TOL_COARSE, NEWTON_MAX_ITER, verbose)) {
     error("Newton's method did not converge.");
   }
 
   // Store the result in sln.
-  sln->copy(u_prev);
+  sln->set_fe_solution(space, coeff_vec);
 
   // Adaptivity loop:
   bool done = false; int as = 1;
@@ -176,22 +176,25 @@ int main(int argc, char* argv[])
     int order_increase = 1;
     ref_space->copy_orders(space, order_increase);
 
-    // Newton's loop on the fine mesh.
+    // Calculate initial coefficient vector for Newton on the fine mesh.
     if (as == 1) {
-      info("Solving on fine mesh, starting from previous coarse mesh solution:");
-      if (!solve_newton(ref_space, &wf, H2D_H1_NORM, sln, u_prev, matrix_solver, 
-                        NEWTON_TOL_FINE, NEWTON_MAX_ITER, verbose)) 
-        error("Newton's method did not converge.");
+      info("Projecting coarse mesh solution to obtain initial vector on new fine mesh.");
+      // The NULL means that we do not want the result as a Solution.
+      project_global(ref_space, H2D_H1_NORM, sln, NULL, coeff_vec);
     }
     else {
-      info("Solving on fine mesh, starting from previous fine mesh solution:");
-      if (!solve_newton(ref_space, &wf, H2D_H1_NORM, ref_sln, u_prev, matrix_solver, 
-                        NEWTON_TOL_FINE, NEWTON_MAX_ITER, verbose)) 
-        error("Newton's method did not converge.");
+      info("Projecting previous fine mesh solution to obtain initial vector on new fine mesh.");
+      // The NULL means that we do not want the result as a Solution.
+      project_global(ref_space, H2D_H1_NORM, ref_sln, NULL, coeff_vec);
     }
 
-    // Store the new fine mesh solution in ref_sln.
-    ref_sln->copy(u_prev);
+    // Newton's method on fine mesh
+    info("Solving on fine mesh.");
+    if (!solve_newton(ref_space, &wf, coeff_vec, matrix_solver, NEWTON_TOL_FINE, NEWTON_MAX_ITER, verbose))
+      error("Newton's method did not converge.");
+
+    // Store the result in ref_sln.
+    ref_sln->set_fe_solution(ref_space, coeff_vec);
 
     // Calculate element errors.
     info("Calculating error (est).");
@@ -223,7 +226,7 @@ int main(int argc, char* argv[])
       
       // Project last fine mesh solution on the new coarse mesh
       // to obtain new coars emesh solution.
-      info("Projecting reference solution on new coarse mesh.");
+      info("Projecting reference solution on new coarse mesh for error calculation.");
       // NULL means that we do not want to know the resulting coefficient vector.
       project_global(space, H2D_H1_NORM, ref_sln, sln, NULL); 
     }

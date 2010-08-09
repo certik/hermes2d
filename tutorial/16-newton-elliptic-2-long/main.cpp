@@ -91,21 +91,21 @@ int main(int argc, char* argv[])
   // Project the initial condition on the FE space to obtain initial 
   // coefficient vector for the Newton's method.
   info("Projecting to obtain initial vector for the Newton's method.");
-  Vector* init_coeff_vec = new AVector(ndof);
+  Vector* coeff_vec = new AVector(ndof);
   // The NULL means that we do not want the resulting Solution, just the vector.
-  project_global(space, H2D_H1_NORM, init_cond, NULL, init_coeff_vec); 
+  project_global(space, H2D_H1_NORM, init_cond, NULL, coeff_vec); 
 
   // Perform Newton's iteration.
   info("Performing Newton's iteration.");
   bool verbose = true;
-  if (!solve_newton(space, &wf, init_coeff_vec, matrix_solver, 
+  if (!solve_newton(space, &wf, coeff_vec, matrix_solver, 
 		    NEWTON_TOL, NEWTON_MAX_ITER, verbose)) {
     error("Newton's method did not converge.");
   };
 
   // Translate the resulting coefficient vector into a Solution.
   Solution sln; 
-  sln.set_fe_solution(space, init_coeff_vec);
+  sln.set_fe_solution(space, coeff_vec);
 
   // Visualise the solution and mesh.
   WinGeom* sln_win_geom = new WinGeom(0, 0, 440, 350);
