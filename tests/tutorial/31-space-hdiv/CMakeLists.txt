@@ -1,7 +1,7 @@
-project(tutorial-30-space-hdiv)
+project(tutorial-31-space-hdiv)
 
 add_executable(${PROJECT_NAME} main.cpp)
 include (../../../examples/CMake.common)
 
 set(BIN ${PROJECT_BINARY_DIR}/${PROJECT_NAME})
-add_test(tutorial-30-space-hdiv ${BIN})
+add_test(tutorial-31-space-hdiv ${BIN})

@@ -23,8 +23,6 @@ int main(int argc, char* argv[])
   VectorBaseView bview("BaseView", 0, 0, 700, 600);
   bview.show(&space);
 
-  //View::wait(H2DV_WAIT_KEYPRESS);
-
   bool success = true;
 
 #define ERROR_SUCCESS                               0
@@ -37,5 +35,9 @@ int main(int argc, char* argv[])
     printf("Failure!\n");
     return ERROR_FAILURE;
   }
+<<<<<<< HEAD
+=======
+
+>>>>>>> ma/add_test_31
 }
 
