@@ -32,7 +32,7 @@ using namespace RefinementSelectors;
 //#define CONSTITUTIVE_GENUCHTEN
 
 const double TIME_INIT = 1e-3;             // Initial time.
-const int INIT_REF_NUM = 1;                // Number of initial uniform mesh refinements.
+const int INIT_REF_NUM = 0;                // Number of initial uniform mesh refinements.
 const int INIT_REF_NUM_BDY = 8;            // Number of initial mesh refinements towards the top edge.
 const int P_INIT = 2;                      // Initial polynomial degree of all mesh elements.
 const double TAU = 0.001;                  // Time step.
@@ -159,7 +159,7 @@ int main(int argc, char* argv[])
   H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
 
   // Solutions for the time stepping and the Newton's method.
-  Solution u_prev_time, u_prev_newton;
+  Solution u_prev_time;
 
   // Adapt mesh to represent initial condition with given accuracy.
   bool verbose = true;        // Report results.
@@ -189,15 +189,13 @@ int main(int argc, char* argv[])
   // Project the initial condition on the FE space
   // to obtain initial coefficient vector for the Newton's method.
   info("Projecting initial condition to obtain initial vector for the Newton'w method.");
-  project_global(space, H2D_H1_NORM, init_cond, &u_prev_newton);
+  // The NULL means that we do not want the result as a Solution.
+  project_global(space, H2D_H1_NORM, init_cond, NULL, coeff_vec);
 
-  // View the projection of the initial condition.
+  // Initialize views.
   ScalarView view("Projection of initial condition", 0, 0, 410, 300);
   OrderView ordview("Initial mesh", 420, 0, 350, 300);
   view.fix_scale_width(80);
-  view.show(&u_prev_newton);
-  ordview.show(space);
-  //View::wait(H2DV_WAIT_KEYPRESS);
 
   // Newton's loop on the coarse mesh.
   info("Solving on coarse mesh.");
