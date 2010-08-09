@@ -732,7 +732,7 @@ void Adapt::fill_regular_queue(Mesh** meshes, Mesh** ref_meshes) {
 
 // Mesh is adapted to represent a given function with given accuracy
 // in a given projection norm.
-void adapt_to_exact(Space *space, int proj_norm, ExactFunction exactfn,
+void adapt_to_exact_function(Space *space, int proj_norm, ExactFunction exactfn,
                     RefinementSelectors::Selector* selector, double threshold, int strategy,
                     int mesh_regularity, double err_stop, int ndof_stop, bool verbose,
                     Solution* sln)
@@ -801,3 +801,4 @@ void adapt_to_exact(Space *space, int proj_norm, ExactFunction exactfn,
 
   if (sln != NULL) sln->copy(sln_coarse);
 }
+

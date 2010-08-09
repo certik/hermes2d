@@ -103,6 +103,7 @@ public:
     inline virtual int get_size() { return this->size; }
     inline bool is_complex() { return this->complex; }
     virtual void set_zero() = 0;
+    virtual void change_size(int new_size) {_error("Vector::change_size() called.");};
     virtual void free_data() = 0;
     virtual void print() = 0;
 
@@ -141,6 +142,15 @@ public:
     {
         _error("internal error: get_c_array_cplx() not implemented.");
     }
+    virtual void set_c_array(double* ptr, int size)
+    {
+        _error("internal error: set_c_array() not implemented.");
+    }
+    virtual void set_c_array_cplx(cplx* ptr, int size)
+    {
+        _error("internal error: set_c_array_cplx() not implemented.");
+    }
+
 protected:
     int size;
     bool complex;
@@ -182,6 +192,17 @@ public:
         for (int i=0; i < this->size; i++) this->v[i] = 0;
       }
     };
+    virtual void change_size(int new_length) {
+      if (complex) {
+        this->v_cplx = (cplx*)realloc(this->v_cplx, new_length*sizeof(cplx));
+        if (this->v_cplx == NULL) _error("AVector::change_length() failed.");
+        this->size = new_length;
+      } else {
+        this->v = (double*)realloc(this->v, new_length*sizeof(double));
+        if (this->v == NULL) _error("AVector::change_length() failed.");
+        this->size = new_length;
+      }
+    }
 
     virtual void free_data() {
       if (complex) {
@@ -244,6 +265,17 @@ public:
     {
         return this->v_cplx;
     }
+    virtual void set_c_array(double* ptr, int size)
+    {
+        this->v = ptr;
+        this->size = size;
+    }
+    virtual void set_c_array_cplx(cplx* ptr, int size)
+    {
+        this->v_cplx = ptr;
+        this->size = size;
+    }
+
 private:
     double *v;
     cplx *v_cplx;

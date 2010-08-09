@@ -1073,9 +1073,14 @@ void project_global(Tuple<Space *> spaces, WeakForm *wf, Tuple<MeshFunction*> so
   }
 
   // If the user wants the resulting coefficient vector
-  if (target_vec != NULL) for (int i = 0; i < ndof; i++) target_vec->set(i, rhs->get(i));
+  // NOTE: this may change target_vector length.
+  // NOTE: the rhs vector must not be deleted at the end of this function.
+  if (target_vec != NULL) {
+    target_vec->free_data();
+    target_vec->set_c_array(rhs->get_c_array(), rhs->get_size());
+    target_vec->set_c_array_cplx(rhs->get_c_array_cplx(), rhs->get_size());
+  }
 
-  delete rhs;
   delete dir;
 }
 
@@ -1364,13 +1369,14 @@ bool solve_newton(Tuple<Space *> spaces, WeakForm* wf, Vector* init_coeff_vec,
   if (mesh_fns != Tuple<MeshFunction*>()) n_mesh_fns = mesh_fns.size();
 
   // sanity checks
-  if (init_coeff_vec->get_size() != ndof) error("Bad vector length in solve_newton().");
+  if (init_coeff_vec == NULL) error("init_coeff_vec == NULL in solve_newton().");
   int n = spaces.size();
   if (spaces.size() != wf->neq) 
     error("The number of spaces in newton_solve() must match the number of equation in the PDE system.");
   for (int i=0; i < n; i++) {
     if (spaces[i] == NULL) error("spaces[%d] is NULL in solve_newton().", i);
   }
+  if (init_coeff_vec->get_size() != ndof) error("Bad vector size in solve_newton().");
 
   // Initialize the discrete problem.
   DiscreteProblem dp(wf, spaces);

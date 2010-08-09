@@ -111,9 +111,6 @@ int main(int argc, char* argv[])
     wf.add_vector_form(res_cranic, res_ord, H2D_ANY, &u_prev_time);
   }
 
-  // Initialize the linear problem.
-  LinearProblem lp(&wf, &space);
-
   // Initialize matrix solver.
   Matrix* mat; Vector* coeff_vec; CommonSolver* solver;  
   init_matrix_solver(matrix_solver, ndof, mat, coeff_vec, solver);

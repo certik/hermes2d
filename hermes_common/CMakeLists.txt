@@ -38,12 +38,7 @@ set(SRC
     common_time_period.cpp
     )
 
-if(MSVC)
-	add_library(${HERMES_COMMON} STATIC ${SRC})
-else(MSVC)
-	add_library(${HERMES_COMMON} SHARED ${SRC})
-endif(MSVC)
-
+add_library(${HERMES_COMMON} SHARED ${SRC})
 set_property(TARGET ${HERMES_COMMON} PROPERTY COMPILE_FLAGS "-g")
 
 set(SPARSELIB_LIBRARIES mv sparse spblas)
@@ -66,35 +61,6 @@ add_custom_command(
 cython_add_module(_hermes_common stdcython.cpp)
 target_link_libraries(_hermes_common ${HERMES_COMMON})
 set_property(TARGET _hermes_common PROPERTY COMPILE_FLAGS "-g")
-
-
-if(MSVC)
-    IF(NOT PYTHON_VERSION)
-        execute_process(COMMAND python -c "import sys;print '%d.%d' % sys.version_info[:2]" OUTPUT_VARIABLE PYTHON_VERSION)
-        string(STRIP ${PYTHON_VERSION} PYTHON_VERSION)
-    ENDIF(NOT PYTHON_VERSION)
-
-    get_filename_component(THIS_DIR . ABSOLUTE) 
-
-    STRING(REPLACE "/" "\\" THIS_DIR ${THIS_DIR})   #function get_filename_component returns the path in Unix format, so we need to adjust it
-
-    add_custom_command(
-	TARGET _hermes_common
-	POST_BUILD
-
-	#needed so that the function PyImport_Import can find the _hermes_common library
-	COMMAND if exist Debug\\_hermes_common.dll copy /Y Debug\\_hermes_common.dll Debug\\_hermes_common.pyd 
-	COMMAND if exist Release\\_hermes_common.dll copy /Y Release\\_hermes_common.dll Release\\_hermes_common.pyd
-
-	#this is a very tricky thing on windows, we set the varible after build, but the variable's value is not updated in the current process
-	#and for the same reason it is not possible to set it completely using cmake
-        COMMAND setx PYTHONPATH \"%PYTHONPATH%\;${THIS_DIR}\\Debug\;${THIS_DIR}\\Release\" /M
-    )
-    #if the variable exists, set it empty
-    execute_process(COMMAND if defined PYTHONPATH set PYTHONPATH=)
-    #fill the variable from windows registry
-    execute_process(COMMAND setx PYTHONPATH /K HKEY_LOCAL_MACHINE\\SOFTWARE\\Python\\PythonCore\\${PYTHON_VERSION}\\PythonPath /M)
-endif(MSVC)
 
 if(COMMON_WITH_SCIPY)
     add_definitions(-DCOMMON_WITH_SCIPY)
