@@ -26,6 +26,8 @@ const double TAU = 0.2;                // Time step.
 const double T_FINAL = 10.0;           // Time interval length.
 const double NEWTON_TOL = 1e-6;        // Stopping criterion for the Newton's method.
 const int NEWTON_MAX_ITER = 100;       // Maximum allowed number of Newton iterations.
+MatrixSolverType matrix_solver = SOLVER_UMFPACK;  // Possibilities: SOLVER_UMFPACK, SOLVER_PETSC,
+                                                  // SOLVER_MUMPS, and more are coming.
 
 // Thermal conductivity (temperature-dependent).
 // Note: for any u, this function has to be positive.
@@ -90,45 +92,47 @@ int main(int argc, char* argv[])
   mesh.refine_towards_boundary(1, INIT_BDY_REF_NUM);
 
   // Create an H1 space with default shapeset.
-  H1Space space(&mesh, bc_types, essential_bc_values, P_INIT);
+  H1Space* space = new H1Space(&mesh, bc_types, essential_bc_values, P_INIT);
+  int ndof = get_num_dofs(space);
+  info("ndof = %d.", ndof);
 
-  // Solutions for the Newton's iteration and
-  // time stepping.
-  Solution u_prev_newton, u_prev_time;
+  // Solutions for the time stepping and the Newton's method.
+  Solution u_prev_time;
 
   // Initialize the weak formulation.
   WeakForm wf;
-  wf.add_matrix_form(callback(jac), H2D_UNSYM, H2D_ANY, &u_prev_newton);
-  wf.add_vector_form(callback(res), H2D_ANY, Tuple<MeshFunction*>(&u_prev_newton, &u_prev_time));
+  wf.add_matrix_form(callback(jac), H2D_UNSYM, H2D_ANY);
+  wf.add_vector_form(callback(res), H2D_ANY, &u_prev_time);
 
-  // Initialize the nonlinear system.
-  NonlinSystem nls(&wf, &space);
+  // Initialize matrix solver.
+  Matrix* mat; Vector* coeff_vec; CommonSolver* solver;  
+  init_matrix_solver(matrix_solver, ndof, mat, coeff_vec, solver);
 
-  // Project the function init_cond() on the FE space
+  // Project the initial condition on the FE space
   // to obtain initial coefficient vector for the Newton's method.
   info("Projecting initial condition to obtain initial vector for the Newton'w method.");
-  u_prev_time.set_exact(&mesh, init_cond);         // u_prev_time set equal to init_cond(). 
-  nls.project_global(init_cond, &u_prev_newton);   // Initial vector calculated here.
+  // The NULL means that we do not want the result as a Solution.
+  project_global(space, H2D_H1_NORM, init_cond, NULL, coeff_vec);
 
   // Initialize views.
   ScalarView sview("Solution", 0, 0, 500, 400);
   OrderView oview("Mesh", 520, 0, 450, 400);
-  oview.show(&space);
+  oview.show(space);
 
   // Time stepping loop:
   double current_time = 0.0;
-  int t_step = 1;
+  int ts = 1;
   do {
-    info("---- Time step %d, t = %g s.", t_step, current_time); t_step++;
+    info("---- Time step %d, t = %g s.", ts, current_time); ts++;
 
     // Newton's method.
     info("Performing Newton's method.");
     bool verbose = true; // Default is false.
-    if (!nls.solve_newton(&u_prev_newton, NEWTON_TOL, NEWTON_MAX_ITER, verbose)) 
+    if (!solve_newton(space, &wf, coeff_vec, matrix_solver, NEWTON_TOL, NEWTON_MAX_ITER, verbose))
       error("Newton's method did not converge.");
 
     // Update previous time level solution.
-    u_prev_time.copy(&u_prev_newton);
+    u_prev_time.set_fe_solution(space, coeff_vec);
 
     // Update time.
     current_time += TAU;

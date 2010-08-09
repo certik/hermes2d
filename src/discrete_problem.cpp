@@ -1174,8 +1174,6 @@ void project_global(Tuple<Space *> spaces, Tuple<int> proj_norms, Tuple<ExactFun
   project_global(spaces, proj_norms, source_slns, target_slns, target_vec, is_complex);
 }
 
-
-
 void project_global(Tuple<Space *> spaces, matrix_forms_tuple_t proj_biforms, 
                     vector_forms_tuple_t proj_liforms, Tuple<MeshFunction*> source_meshfns, 
                     Tuple<Solution*> target_slns, Vector* target_vec, bool is_complex)
@@ -1214,13 +1212,15 @@ void project_global(Tuple<Space *> spaces, matrix_forms_tuple_t proj_biforms,
 }
 
 /// Global orthogonal projection of one scalar ExactFunction.
-void project_global(Space *space, int proj_norm, ExactFunction source_meshfn, Solution* target_sln, 
+void project_global(Space *space, int proj_norm, ExactFunction source_exactfn, Solution* target_sln, 
                     Vector* target_vec, bool is_complex)
 {
   if (proj_norm != 0 && proj_norm != 1) error("Wrong norm used in orthogonal projection (scalar case).");
   Mesh *mesh = space->get_mesh();
   if (mesh == NULL) error("Mesh is NULL in project_global().");
-  project_global(space, proj_norm, source_meshfn, target_sln, target_vec, is_complex);
+  Solution sln;
+  sln.set_exact(mesh, source_exactfn);
+  project_global(space, proj_norm, (MeshFunction*)&sln, target_sln, target_vec, is_complex);
 };
 
 /// Global orthogonal projection of one scalar ExactFunction -- user specified projection bi/linear forms.
@@ -1425,7 +1425,7 @@ bool solve_newton(Tuple<Space *> spaces, WeakForm* wf, Vector* coeff_vec,
   for (int i=0; i < n; i++) {
     if (spaces[i] == NULL) error("spaces[%d] is NULL in solve_newton().", i);
   }
-  if (coeff_vec->get_size() != ndof) error("Bad vector size in solve_newton().");
+  if (coeff_vec->get_size() != ndof) error("Bad vector length in solve_newton().");
 
   // Initialize the discrete problem.
   DiscreteProblem dp(wf, spaces);
