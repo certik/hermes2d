@@ -40,8 +40,8 @@ int main(int argc, char* argv[])
   project_global(&space, H2D_L2_NORM, F, &sln);
 
   // Visualize the solution.
-  //ScalarView view1("Projection", 610, 0, 600, 500);
-  //view1.show(&sln);
+  ScalarView view1("Projection", 610, 0, 600, 500);
+  view1.show(&sln);
 
   bool success = true;
 

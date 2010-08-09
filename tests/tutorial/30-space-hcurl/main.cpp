@@ -20,8 +20,8 @@ int main(int argc, char* argv[])
   HcurlSpace space(&mesh, NULL, NULL, P_INIT);
 
   // Visualize FE basis.
-  // VectorBaseView bview("VectorBaseView", 0, 0, 700, 600);
-  // bview.show(&space);
+  VectorBaseView bview("VectorBaseView", 0, 0, 700, 600);
+  bview.show(&space);
 
   // View::wait(H2DV_WAIT_KEYPRESS);
 

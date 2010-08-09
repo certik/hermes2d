@@ -20,7 +20,7 @@ int main(int argc, char* argv[])
   HdivSpace space(&mesh, NULL, NULL, P_INIT);
 
   // Visualise the FE basis.
-  VectorBaseView bview("BaseView", 0, 0, 700, 600);
+  VectorBaseView bview("VectorBaseView", 0, 0, 700, 600);
   bview.show(&space);
 
   bool success = true;
@@ -35,9 +35,5 @@ int main(int argc, char* argv[])
     printf("Failure!\n");
     return ERROR_FAILURE;
   }
-<<<<<<< HEAD
-=======
-
->>>>>>> ma/add_test_31
 }
 
