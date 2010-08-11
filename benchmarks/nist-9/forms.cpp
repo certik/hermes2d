@@ -10,12 +10,12 @@ Real rhs(Real x, Real y)
   Real a = pow(x - X_LOC, 2);
   Real b = pow(y - Y_LOC, 2);
   Real c = sqrt(a + b);
-  Real d = ((2 * x - 1) * (ALPHA * x - 25));
-  Real e = ((2 * y - 1) * (ALPHA * y - 25));
+  Real d = ((2 * x - 1.0) * (ALPHA * x - 25.0));
+  Real e = ((2 * y - 1.0) * (ALPHA * y - 25.0));
   Real f = (pow(ALPHA * c - 12.5, 2) + 1);
 
-  return (ALPHA/(f * c)) - (d/(2 * f * pow(a + b, 3/2))) - ((ALPHA * (ALPHA * c - 12.5) * d)/ (pow(f, 2) * (a + b))) +
-         (ALPHA/(f * c)) - (e/(2 * f * pow(a + b, 3/2))) - ((ALPHA * (ALPHA * c - 12.5) * e)/ (pow(f, 2) * (a + b)));
+  return ((ALPHA/(f * c)) - (d/(2 * f * pow(a + b, 1.5))) - ((ALPHA * (ALPHA * c - 12.5) * d)/ (pow(f, 2) * (a + b))) +
+         (ALPHA/(f * c)) - (e/(2 * f * pow(a + b, 1.5))) - ((ALPHA * (ALPHA * c - 12.5) * e)/ (pow(f, 2) * (a + b))));
 }
 
 template<typename Real, typename Scalar>
