@@ -86,10 +86,6 @@ scalar essential_bc_values(int ess_bdy_marker, double x, double y)
   return dir_lift(x, y, dx, dy);
 }
 
-// Heat sources (can be a general function of 'x' and 'y').
-template<typename Real>
-Real heat_src(Real x, Real y) { return 1.0;}
-
 // Weak forms.
 #include "forms.cpp"
 
@@ -105,118 +101,35 @@ int main(int argc, char* argv[])
   mesh.refine_towards_boundary(1, INIT_BDY_REF_NUM);
 
   // Create an H1 space with default shapeset.
-  H1Space* space = new H1Space(&mesh, bc_types, essential_bc_values, P_INIT);
+  H1Space space(&mesh, bc_types, essential_bc_values, P_INIT);
 
   // Initialize the weak formulation.
   WeakForm wf;
   wf.add_matrix_form(callback(jac), H2D_UNSYM, H2D_ANY);
   wf.add_vector_form(callback(res), H2D_ANY);
 
+  // Initialize adaptivity parameters.
+  AdaptivityParamType apt(ERR_STOP, NDOF_STOP, THRESHOLD, STRATEGY, 
+                          MESH_REGULARITY);
+
   // Create a selector which will select optimal candidate.
   H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
 
-  // Number of degrees of freedom 
-  int ndof = get_num_dofs(space);
+  // Adaptivity loop.
+  Solution *sln = new Solution();
+  Solution *ref_sln = new Solution();
+  bool verbose = true;     // Print info during adaptivity.
+  solve_newton_adapt(&space, &wf, H2D_H1_NORM, init_cond, sln, matrix_solver, ref_sln,
+                     &selector, &apt, NULL, NULL, 
+                     NEWTON_TOL_COARSE, NEWTON_TOL_FINE, NEWTON_MAX_ITER, verbose);
 
-  // Initialize matrix solver.
-  Matrix* mat; Vector* coeff_vec; CommonSolver* solver;  
-  init_matrix_solver(matrix_solver, ndof, mat, coeff_vec, solver);
+  int ndof = get_num_dofs(&space);
 
-  // Project the initial condition on the FE space to obtain initial 
-  // coefficient vector for the Newton's method.
-  info("Projecting initial condition to obtain initial vector on the coarse mesh.");
-  // The NULL means that we do not want the resulting Solution, just the vector.
-  project_global(space, H2D_H1_NORM, init_cond, NULL, coeff_vec); 
-
-  // Newton's loop on the coarse mesh.
-  info("Solving on coarse mesh:");
-  Solution* sln = new Solution();
-  Solution* ref_sln = new Solution();
-  bool verbose = true;
-  if (!solve_newton(space, &wf, coeff_vec, matrix_solver, 
-		    NEWTON_TOL_COARSE, NEWTON_MAX_ITER, verbose)) {
-    error("Newton's method did not converge.");
-  }
-
-  // Store the result in sln.
-  sln->set_fe_solution(space, coeff_vec);
-
-  // Adaptivity loop:
-  bool done = false; int as = 1;
-  double err_est;
-  do {
-    info("---- Adaptivity step %d:", as);
-
-    // Construct globally refined reference mesh
-    // and setup reference space.
-    Space* ref_space;
-    Mesh *ref_mesh = new Mesh();
-    ref_mesh->copy(space->get_mesh());
-    ref_mesh->refine_all_elements();
-    ref_space = space->dup(ref_mesh);
-    int order_increase = 1;
-    ref_space->copy_orders(space, order_increase);
-
-    // Calculate initial coefficient vector for Newton on the fine mesh.
-    if (as == 1) {
-      info("Projecting coarse mesh solution to obtain initial vector on new fine mesh.");
-      // The NULL means that we do not want the result as a Solution.
-      project_global(ref_space, H2D_H1_NORM, sln, NULL, coeff_vec);
-    }
-    else {
-      info("Projecting previous fine mesh solution to obtain initial vector on new fine mesh.");
-      // The NULL means that we do not want the result as a Solution.
-      project_global(ref_space, H2D_H1_NORM, ref_sln, NULL, coeff_vec);
-    }
-
-    // Newton's method on fine mesh
-    info("Solving on fine mesh.");
-    if (!solve_newton(ref_space, &wf, coeff_vec, matrix_solver, NEWTON_TOL_FINE, NEWTON_MAX_ITER, verbose))
-      error("Newton's method did not converge.");
-
-    // Store the result in ref_sln.
-    ref_sln->set_fe_solution(ref_space, coeff_vec);
-
-    // Calculate element errors.
-    info("Calculating error (est).");
-    Adapt hp(space, H2D_H1_NORM);
-    // Pass coarse mesh and reference solutions for error estimation.
-    hp.set_solutions(sln, ref_sln);
-    double err_est_rel_total = hp.calc_elem_errors(H2D_TOTAL_ERROR_REL | H2D_ELEMENT_ERROR_REL) * 100.;
-
-    // Report results.
-    info("ndof: %d, ref_ndof: %d, err_est_rel: %g%%", 
-         get_num_dofs(space), get_num_dofs(ref_space), err_est_rel_total);
-
-    // If err_est too large, adapt the mesh.
-    if (err_est_rel_total < ERR_STOP) done = true;
-    else {
-      if (verbose) info("Adapting the coarse mesh.");
-      done = hp.adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY);
-
-      if (get_num_dofs(space) >= NDOF_STOP) {
-        done = true;
-        break;
-      }
-      
-      // Project last fine mesh solution on the new coarse mesh
-      // to obtain new coars emesh solution.
-      info("Projecting reference solution on new coarse mesh for error calculation.");
-      // NULL means that we do not want to know the resulting coefficient vector.
-      project_global(space, H2D_H1_NORM, ref_sln, sln, NULL); 
-    }
-
-    as++;
-  }
-  while (done == false);
-
-  ndof = get_num_dofs(space);
-
-#define ERROR_SUCCESS                               0
+#define ERROR_SUCCESS                                0
 #define ERROR_FAILURE                               -1
   printf("ndof allowed = %d\n", 400);
   printf("ndof actual = %d\n", ndof);
-  if (ndof < 950) {      // ndofs was 389 at the time this test was created
+  if (ndof < 400) {      // ndofs was 389 at the time this test was created.
     printf("Success!\n");
     return ERROR_SUCCESS;
   }
