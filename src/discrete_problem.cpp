@@ -1027,10 +1027,10 @@ int DiscreteProblem::assign_dofs()
 }
 
 // global orthogonal projection
-void project_global(Tuple<Space *> spaces, WeakForm *wf, Tuple<MeshFunction*> source_meshfns, 
+void project_global(Tuple<Space *> spaces, WeakForm *wf, 
                     Tuple<Solution*> target_slns, Vector* target_vec, bool is_complex)
 {
-  int n = source_meshfns.size();
+  int n = spaces.size();
 
   // sanity checks
   if (n <= 0 || n > 10) error("Wrong number of projected functions in project_global().");
@@ -1084,30 +1084,6 @@ void project_global(Tuple<Space *> spaces, WeakForm *wf, Tuple<MeshFunction*> so
   delete dir;
 }
 
-void project_global(Tuple<Space *> spaces, WeakForm *wf, Tuple<Solution *> source_slns, 
-                    Tuple<Solution*> target_slns, Vector* target_vec, bool is_complex)
-{
-  Tuple<MeshFunction *> source_meshfns;
-  for (int i = 0; i < source_slns.size(); i++) {
-    source_meshfns.push_back((MeshFunction*)source_slns[i]);
-  }
-
-  project_global(spaces, wf, source_meshfns, target_slns, target_vec, is_complex);
-}
-
-void project_global(Tuple<Space *> spaces, WeakForm *wf, Tuple<ExactFunction> source_exactfns, 
-                    Tuple<Solution*> target_slns, Vector* target_vec, bool is_complex)
-{
-  Tuple<Solution *> source_slns;
-  for (int i = 0; i < source_exactfns.size(); i++) {
-    source_slns.push_back(new Solution());
-    Mesh *mesh = spaces[i]->get_mesh();
-    source_slns[i]->set_exact(mesh, source_exactfns[i]);
-  }
-
-  project_global(spaces, wf, source_slns, target_slns, target_vec, is_complex);
-}
-
 // global orthogonal projection
 void project_global(Tuple<Space *> spaces, Tuple<int> proj_norms, Tuple<MeshFunction*> source_meshfns, 
                     Tuple<Solution*> target_slns, Vector* target_vec, bool is_complex)
@@ -1148,30 +1124,103 @@ void project_global(Tuple<Space *> spaces, Tuple<int> proj_norms, Tuple<MeshFunc
     }
   }
 
-  project_global(spaces, &wf, source_meshfns, target_slns, target_vec, is_complex);
+  project_global(spaces, &wf, target_slns, target_vec, is_complex);
 }
 
-void project_global(Tuple<Space *> spaces, Tuple<int> proj_norms, Tuple<Solution *> source_slns, 
+/*
+// global orthogonal projection
+void project_global(Tuple<Space *> spaces, Tuple<int> proj_norms, Tuple<Solution*> source_slns, 
                     Tuple<Solution*> target_slns, Vector* target_vec, bool is_complex)
 {
-  Tuple<MeshFunction *> source_meshfns;
-  for (int i = 0; i < source_slns.size(); i++) {
-    source_meshfns.push_back((MeshFunction*)source_slns[i]);
+  int n = spaces.size();  
+
+  // define temporary projection weak form
+  WeakForm wf(n);
+  int found[100];
+  for (int i = 0; i < 100; i++) found[i] = 0;
+  for (int i = 0; i < n; i++) {
+    int norm;
+    if (proj_norms == Tuple<int>()) norm = 1;
+    else norm = proj_norms[i];
+    if (norm == 0) {
+      found[i] = 1;
+      wf.add_matrix_form(i, i, L2projection_biform<double, scalar>, L2projection_biform<Ord, Ord>);
+      wf.add_vector_form(i, L2projection_liform<double, scalar>, L2projection_liform<Ord, Ord>,
+                     H2D_ANY, source_slns[i]);
+    }
+    if (norm == 1) {
+      found[i] = 1;
+      wf.add_matrix_form(i, i, H1projection_biform<double, scalar>, H1projection_biform<Ord, Ord>);
+      wf.add_vector_form(i, H1projection_liform<double, scalar>, H1projection_liform<Ord, Ord>,
+                     H2D_ANY, source_slns[i]);
+    }
+    if (norm == 2) {
+      found[i] = 1;
+      wf.add_matrix_form(i, i, Hcurlprojection_biform<double, scalar>, Hcurlprojection_biform<Ord, Ord>);
+      wf.add_vector_form(i, Hcurlprojection_liform<double, scalar>, Hcurlprojection_liform<Ord, Ord>,
+                     H2D_ANY, source_slns[i]);
+    }
+  }
+  for (int i=0; i < n; i++) {
+    if (found[i] == 0) {
+      warn("index of component: %d\n", i);
+      error("Wrong projection norm in project_global().");
+    }
   }
 
-  project_global(spaces, proj_norms, source_meshfns, target_slns, target_vec, is_complex);
+  project_global(spaces, &wf, target_slns, target_vec, is_complex);
 }
+*/
 
+// global orthogonal projection
 void project_global(Tuple<Space *> spaces, Tuple<int> proj_norms, Tuple<ExactFunction> source_exactfns, 
                     Tuple<Solution*> target_slns, Vector* target_vec, bool is_complex)
 {
+  int n = spaces.size();  
+
+  // Convert exact functions into solutions.
   Tuple<Solution *> source_slns;
   for (int i = 0; i < source_exactfns.size(); i++) {
     source_slns.push_back(new Solution());
-    source_slns[i]->set_exact(spaces[i]->get_mesh(), source_exactfns[i]);
+    Mesh *mesh = spaces[i]->get_mesh();
+    source_slns[i]->set_exact(mesh, source_exactfns[i]);
   }
 
-  project_global(spaces, proj_norms, source_slns, target_slns, target_vec, is_complex);
+  // Define temporary projection weak form.
+  WeakForm wf(n);
+  int found[100];
+  for (int i = 0; i < 100; i++) found[i] = 0;
+  for (int i = 0; i < n; i++) {
+    int norm;
+    if (proj_norms == Tuple<int>()) norm = 1;
+    else norm = proj_norms[i];
+    if (norm == 0) {
+      found[i] = 1;
+      wf.add_matrix_form(i, i, L2projection_biform<double, scalar>, L2projection_biform<Ord, Ord>);
+      wf.add_vector_form(i, L2projection_liform<double, scalar>, L2projection_liform<Ord, Ord>,
+                     H2D_ANY, source_slns[i]);
+    }
+    if (norm == 1) {
+      found[i] = 1;
+      wf.add_matrix_form(i, i, H1projection_biform<double, scalar>, H1projection_biform<Ord, Ord>);
+      wf.add_vector_form(i, H1projection_liform<double, scalar>, H1projection_liform<Ord, Ord>,
+                     H2D_ANY, source_slns[i]);
+    }
+    if (norm == 2) {
+      found[i] = 1;
+      wf.add_matrix_form(i, i, Hcurlprojection_biform<double, scalar>, Hcurlprojection_biform<Ord, Ord>);
+      wf.add_vector_form(i, Hcurlprojection_liform<double, scalar>, Hcurlprojection_liform<Ord, Ord>,
+                     H2D_ANY, source_slns[i]);
+    }
+  }
+  for (int i=0; i < n; i++) {
+    if (found[i] == 0) {
+      warn("index of component: %d\n", i);
+      error("Wrong projection norm in project_global().");
+    }
+  }
+
+  project_global(spaces, &wf, target_slns, target_vec, is_complex);
 }
 
 void project_global(Tuple<Space *> spaces, matrix_forms_tuple_t proj_biforms, 
@@ -1208,7 +1257,7 @@ void project_global(Tuple<Space *> spaces, matrix_forms_tuple_t proj_biforms,
     }
   }
 
-  project_global(spaces, &wf, source_meshfns, target_slns, target_vec, is_complex);
+  project_global(spaces, &wf, target_slns, target_vec, is_complex);
 }
 
 /// Global orthogonal projection of one scalar ExactFunction.
@@ -1615,14 +1664,22 @@ bool solve_newton_adapt(Tuple<Space *> spaces, WeakForm* wf, Tuple<int>proj_norm
       ref_spaces[i]->copy_orders(spaces[i], order_increase);
     }
 
+    // FIXME: this needs to be solved more elegantly.
+    Tuple<MeshFunction*> slns_mf = Tuple<MeshFunction*>();
+    Tuple<MeshFunction*> ref_slns_mf = Tuple<MeshFunction*>();
+    for (int i = 0; i < num_comps; i++) {
+      slns_mf.push_back((MeshFunction*)slns[i]);
+      ref_slns_mf.push_back((MeshFunction*)ref_slns[i]);
+    }
+    
     // Calculate initial coefficient vector for Newton on the fine mesh.
     if (as == 1) {
       info("Projecting coarse mesh solution to obtain initial vector on new fine mesh.");
-      project_global(ref_spaces, proj_norms, slns, Tuple<Solution*>(), coeff_vec);
+      project_global(ref_spaces, proj_norms, slns_mf, Tuple<Solution*>(), coeff_vec);
     }
     else {
       info("Projecting previous fine mesh solution to obtain initial vector on new fine mesh.");
-      project_global(ref_spaces, proj_norms, ref_slns, Tuple<Solution*>(), coeff_vec);
+      project_global(ref_spaces, proj_norms, ref_slns_mf, Tuple<Solution*>(), coeff_vec);
     }
 
     // Newton's method on fine mesh
@@ -1728,7 +1785,7 @@ bool solve_newton_adapt(Tuple<Space *> spaces, WeakForm* wf, Tuple<int>proj_norm
       // to obtain new coars emesh solution.
       if (verbose) info("Projecting reference solution on new coarse mesh.");
       // The NULL means that we do not want the coefficient vector.
-      project_global(spaces, proj_norms, ref_slns, slns, NULL, is_complex); 
+      project_global(spaces, proj_norms, ref_slns_mf, slns, NULL, is_complex); 
     }
 
     as++;

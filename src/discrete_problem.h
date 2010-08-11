@@ -250,22 +250,18 @@ void init_matrix_solver(MatrixSolverType matrix_solver, int ndof,
 
 /// Global orthogonal projection of multiple solution components.
 /// Calls assign_dofs() at the beginning.
-void project_global(Tuple<Space *> spaces, WeakForm *wf, Tuple<MeshFunction *> source_meshfns, 
-                    Tuple<Solution*> target_slns = Tuple<Solution*>(), Vector* target_vec = NULL, bool is_complex = false);
-
-void project_global(Tuple<Space *> spaces, WeakForm *wf, Tuple<Solution *> source_slns, 
+void project_global(Tuple<Space *> spaces, WeakForm *wf, 
                     Tuple<Solution*> target_slns = Tuple<Solution*>(), Vector* target_vec = NULL, bool is_complex = false);
 
 void project_global(Tuple<Space *> spaces, Tuple<int> proj_norms, Tuple<MeshFunction *> source_meshfns, 
                     Tuple<Solution*> target_slns = Tuple<Solution*>(), Vector* target_vec = NULL, bool is_complex = false);
 
-void project_global(Tuple<Space *> spaces, Tuple<int> proj_norms, Tuple<Solution *> source_meshfns, 
+/*
+void project_global(Tuple<Space *> spaces, Tuple<int> proj_norms, Tuple<Solution *> source_slns, 
                     Tuple<Solution*> target_slns = Tuple<Solution*>(), Vector* target_vec = NULL, bool is_complex = false);
+*/
 
 void project_global(Tuple<Space *> spaces, Tuple<int> proj_norms, Tuple<ExactFunction> source_exactfns, 
-                    Tuple<Solution*> target_slns, Vector* target_vec, bool is_complex);
-
-void project_global(Tuple<Space *> spaces, WeakForm *wf, Tuple<ExactFunction> source_exactfns, 
                     Tuple<Solution*> target_slns, Vector* target_vec, bool is_complex);
 
 void project_global(Tuple<Space *> spaces, matrix_forms_tuple_t proj_biforms, 
