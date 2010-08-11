@@ -69,20 +69,20 @@ int main(int argc, char* argv[])
 
   // Adapt mesh to represent the exact function f(x, y) with given accuracy.
   int proj_norm = 1;               // H1 norm.
-  bool verbose = true;             // Report results. 
+  bool verbose = false;             // Report results. 
   Solution *sln = new Solution();
   adapt_to_exact_function(&space, proj_norm, f, &selector, THRESHOLD, STRATEGY,
                           MESH_REGULARITY, ERR_STOP, NDOF_STOP, verbose, sln);
   int ndof = get_num_dofs(&space);
   info("Final mesh: ndof = %d", ndof);
-  // Wait for all views to be closed.
-  // View::wait();
 
-  bool success = true;
+  ndof = get_num_dofs(&space);
 
 #define ERROR_SUCCESS                               0
 #define ERROR_FAILURE                               -1
-  if (success == true) {
+  printf("ndof allowed = %d\n", 270);
+  printf("ndof actual = %d\n", ndof);
+  if (ndof < 270) {      // ndof was 259 at the time this test was created
     printf("Success!\n");
     return ERROR_SUCCESS;
   }
