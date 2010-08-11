@@ -107,6 +107,8 @@ public:
   /// \brief Returns the number of components of the function being represented by the class.
   int get_num_components() const { return num_components; }
 
+  /// Checks whether the function is ready to use.
+  bool initialized() {return nodes != NULL;};
 
   /// Activates an integration rule of the specified order. Subsequent calls to
   /// get_values(), get_dx_values() etc. will be returning function values at these points.

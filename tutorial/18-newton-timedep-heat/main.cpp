@@ -23,7 +23,7 @@ const int INIT_GLOB_REF_NUM = 3;       // Number of initial uniform mesh refinem
 const int INIT_BDY_REF_NUM = 4;        // Number of initial refinements towards boundary.
 const int P_INIT = 2;                  // Initial polynomial degree.
 const double TAU = 0.2;                // Time step.
-const double T_FINAL = 10.0;           // Time interval length.
+const double T_FINAL = 5.0;            // Time interval length.
 const double NEWTON_TOL = 1e-6;        // Stopping criterion for the Newton's method.
 const int NEWTON_MAX_ITER = 100;       // Maximum allowed number of Newton iterations.
 MatrixSolverType matrix_solver = SOLVER_UMFPACK;  // Possibilities: SOLVER_UMFPACK, SOLVER_PETSC,
@@ -104,15 +104,11 @@ int main(int argc, char* argv[])
   wf.add_matrix_form(callback(jac), H2D_UNSYM, H2D_ANY);
   wf.add_vector_form(callback(res), H2D_ANY, &u_prev_time);
 
-  // Initialize matrix solver.
-  Matrix* mat; Vector* coeff_vec; CommonSolver* solver;  
-  init_matrix_solver(matrix_solver, ndof, mat, coeff_vec, solver);
-
   // Project the initial condition on the FE space
   // to obtain initial coefficient vector for the Newton's method.
+  Vector* coeff_vec = new AVector(ndof); 
   info("Projecting initial condition to obtain initial vector for the Newton'w method.");
-  // The NULL means that we do not want the result as a Solution.
-  project_global(space, H2D_H1_NORM, init_cond, NULL, coeff_vec);
+  project_global(space, H2D_H1_NORM, init_cond, &u_prev_time, coeff_vec);
 
   // Initialize views.
   ScalarView sview("Solution", 0, 0, 500, 400);
