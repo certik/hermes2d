@@ -6,7 +6,7 @@
 
 using namespace RefinementSelectors;
 
-// This test makes sure that example 32-space-l2 works correctly.
+// This test makes sure that example 33-exact-adapt works correctly.
 
 const int P_INIT = 2;                      // Initial polynomial degree of all mesh elements.
 const double THRESHOLD = 0.2;              // This is a quantitative parameter of the adapt(...) function and

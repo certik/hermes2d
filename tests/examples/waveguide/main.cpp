@@ -155,62 +155,20 @@ int main(int argc, char* argv[])
   // Initialize refinements selector.
   HcurlProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
 
-  // Initialize matrix solver.
-  Matrix* mat; Vector* rhs; CommonSolver* solver;  
-  bool is_complex = true; 
-  init_matrix_solver(matrix_solver, space.get_num_dofs(), mat, rhs, solver, is_complex);
+  // Initialize adaptivity parameters.
+  double to_be_processed = 0;
+  AdaptivityParamType apt(ERR_STOP, NDOF_STOP, THRESHOLD, STRATEGY,
+                          MESH_REGULARITY, to_be_processed, H2D_TOTAL_ERROR_REL, 
+                          H2D_ELEMENT_ERROR_REL);
 
-  // Adaptivity loop:
-  Solution sln, ref_sln;
-  int as = 1; bool done = false;
-  do
-  {
-    info("---- Adaptivity step %d:", as);
-    info("Solving on reference mesh.");
-
-    // Construct the globally refined reference mesh.
-    Mesh ref_mesh;
-    ref_mesh.copy(&mesh);
-    ref_mesh.refine_all_elements();
-
-    // Setup space for the reference solution.
-    Space *ref_space = space.dup(&ref_mesh);
-    int order_increase = 1;
-    ref_space->copy_orders(&space, order_increase);
- 
-    // Solve the reference problem.
-    solve_linear(ref_space, &wf, &ref_sln, matrix_solver, is_complex);
-
-    // Project the reference solution on the coarse mesh.
-    info("Projecting reference solution on coarse mesh.");
-    // NULL means that we do not want to know the resulting coefficient vector.
-    project_global(&space, H2D_HCURL_NORM, &ref_sln, &sln, NULL, is_complex);
-
-    // Calculate error estimate wrt. reference solution.
-    info("Calculating error.");
-    Adapt hp(&space, H2D_HCURL_NORM);
-    hp.set_solutions(&sln, &ref_sln);
-    hp.set_error_form(callback(hcurl_form_kappa));  // Adaptivity is done using an "energetic norm".
-    double err_est_adapt = hp.calc_elem_errors() * 100;
-    double err_est_hcurl = calc_abs_error(&sln, &ref_sln, H2D_HCURL_NORM);
-    double norm_est = calc_norm(&ref_sln, H2D_HCURL_NORM); 
-    double err_est_hcurl_rel = err_est_hcurl / norm_est * 100;
-
-    // Report results.
-    info("ndof: %d, ref_ndof: %d, err_est: %g%%", 
-         space.get_num_dofs(), ref_space->get_num_dofs(), err_est_hcurl_rel);
-
-    // If err_est_adapt too large, adapt the mesh.
-    if (err_est_hcurl_rel < ERR_STOP) done = true;
-    else {
-      info("Adapting coarse mesh.");
-      done = hp.adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY);
-      if (space.get_num_dofs() >= NDOF_STOP) done = true;
-    }
-
-    as++;
-  }
-  while (done == false);
+  // Adaptivity loop.
+  Solution *sln = new Solution();
+  Solution *ref_sln = new Solution();
+  bool verbose = true;  // Print info during adaptivity.
+  bool is_complex = true;
+  solve_linear_adapt(&space, &wf, H2D_HCURL_NORM, sln, matrix_solver,
+                     ref_sln, &selector, &apt, NULL, NULL, verbose, 
+                     Tuple<ExactSolution *>(), is_complex);
 
   int ndof = get_num_dofs(&space);
 

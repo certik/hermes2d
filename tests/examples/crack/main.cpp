@@ -95,72 +95,29 @@ int main(int argc, char* argv[])
   // Initialize refinement selector.
   H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
 
-  // Initialize matrix solver.
-  Matrix* mat; Vector* rhs; CommonSolver* solver;  
-  init_matrix_solver(matrix_solver, u_space.get_num_dofs() + v_space.get_num_dofs(), 
-                     mat, rhs, solver);
+  // Initialize adaptivity parameters.
+  double to_be_processed = 0;
+  AdaptivityParamType apt(ERR_STOP, NDOF_STOP, 
+                          MULTI ? THRESHOLD_MULTI : THRESHOLD_SINGLE, STRATEGY,
+                          MESH_REGULARITY, to_be_processed, H2D_TOTAL_ERROR_REL, H2D_ELEMENT_ERROR_REL);
+  apt.set_error_form(0, 0, bilinear_form_0_0<scalar, scalar>, bilinear_form_0_0<Ord, Ord>);
+  apt.set_error_form(0, 1, bilinear_form_0_1<scalar, scalar>, bilinear_form_0_1<Ord, Ord>);
+  apt.set_error_form(1, 0, bilinear_form_1_0<scalar, scalar>, bilinear_form_1_0<Ord, Ord>);
+  apt.set_error_form(1, 1, bilinear_form_1_1<scalar, scalar>, bilinear_form_1_1<Ord, Ord>);
 
-  // Adaptivity loop:
-  Solution u_sln, v_sln, ref_u_sln, ref_v_sln;
-  int as = 1; bool done = false;
-  do
-  {
-    info("---- Adaptivity step %d:", as);
-    info("Solving on reference mesh.");
-
-    // Construct globally refined reference meshes.
-    Mesh ref_u_mesh, ref_v_mesh;
-    ref_u_mesh.copy(&u_mesh);
-    ref_v_mesh.copy(&v_mesh);
-    ref_u_mesh.refine_all_elements();
-    ref_v_mesh.refine_all_elements();
-
-    // Setup spaces for the reference solution.
-    Space *ref_u_space = u_space.dup(&ref_u_mesh);
-    Space *ref_v_space = v_space.dup(&ref_v_mesh);
-    int order_increase = 1;
-    ref_u_space->copy_orders(&u_space, order_increase);
-    ref_v_space->copy_orders(&v_space, order_increase);
- 
-    // Solve the reference problem.
-    solve_linear(Tuple<Space *>(ref_u_space, ref_v_space), &wf, 
-                 Tuple<Solution *>(&ref_u_sln, &ref_v_sln), matrix_solver);
-
-    // Project the reference solutions on the coarse meshes.
-    info("Projecting reference solutions on coarse meshes.");
-    project_global(Tuple<Space *>(&u_space, &v_space), 
-                   Tuple<int>(H2D_H1_NORM, H2D_H1_NORM),
-                   Tuple<MeshFunction*>(&ref_u_sln, &ref_v_sln), 
-                   Tuple<Solution*>(&u_sln, &v_sln));
-
-    // Calculate error estimate wrt. reference solution in energy norm.
-    info("Calculating error (est).");
-    Adapt hp(Tuple<Space *>(&u_space, &v_space), Tuple<int>(H2D_H1_NORM, H2D_H1_NORM));
-    hp.set_solutions(Tuple<Solution*>(&u_sln, &v_sln), 
-                     Tuple<Solution*>(&ref_u_sln, &ref_v_sln));
-    hp.set_error_form(0, 0, bilinear_form_0_0<scalar, scalar>, bilinear_form_0_0<Ord, Ord>);
-    hp.set_error_form(0, 1, bilinear_form_0_1<scalar, scalar>, bilinear_form_0_1<Ord, Ord>);
-    hp.set_error_form(1, 0, bilinear_form_1_0<scalar, scalar>, bilinear_form_1_0<Ord, Ord>);
-    hp.set_error_form(1, 1, bilinear_form_1_1<scalar, scalar>, bilinear_form_1_1<Ord, Ord>);
-    double err_est = hp.calc_elem_errors(H2D_TOTAL_ERROR_REL | H2D_ELEMENT_ERROR_REL) * 100;
-
-    // Report results.
-    info("u_ndof: %d, ref_u_ndof: %d", u_space.get_num_dofs(), ref_u_space->get_num_dofs());
-    info("v_ndof: %d, ref_v_ndof: %d", v_space.get_num_dofs(), ref_v_space->get_num_dofs());
-    info("ndof: %d, err_est: %g%%", u_space.get_num_dofs() + v_space.get_num_dofs(), err_est);
-
-    // If err_est too large, adapt the mesh.
-    if (err_est < ERR_STOP || u_space.get_num_dofs() + v_space.get_num_dofs() >= NDOF_STOP) done = true;
-    else {
-      info("Adapting the coarse mesh.");
-      done = hp.adapt(Tuple<RefinementSelectors::Selector *>(&selector, &selector), 
-                      MULTI ? THRESHOLD_MULTI : THRESHOLD_SINGLE, STRATEGY, MESH_REGULARITY);
-      if (u_space.get_num_dofs() + v_space.get_num_dofs() >= NDOF_STOP) done = true;
-    }
-
-    as++;
-  }
-  while (!done);
+  // Adaptivity loop.
+  Solution *u_sln = new Solution();
+  Solution *v_sln = new Solution();
+  Solution *ref_u_sln = new Solution();
+  Solution *ref_v_sln = new Solution();
+  bool verbose = true;  // Print info during adaptivity.
+  solve_linear_adapt(Tuple<Space *>(&u_space, &v_space), &wf,
+                     Tuple<int>(H2D_H1_NORM, H2D_H1_NORM),
+                     Tuple<Solution *>(u_sln, v_sln), matrix_solver,
+                     Tuple<Solution *>(ref_u_sln, ref_v_sln),
+                     Tuple<RefinementSelectors::Selector *> (&selector, &selector), &apt,
+                     Tuple<WinGeom *>(),
+                     Tuple<WinGeom *>(), verbose);
 
   int ndof = get_num_dofs(Tuple<Space *>(&u_space, &v_space));
 
