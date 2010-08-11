@@ -265,7 +265,7 @@ int main(int argc, char* argv[])
   PrecalcShapeset pss2(&shapeset);
 
   // Solution variables.
-  Solution sln1, sln2;		      // Coarse mesh solution.
+  Solution sln1, sln2;		 // Coarse mesh solution.
   Solution ref_sln1, ref_sln2;	// Reference solution.
 
   // Create H1 space with default shapesets.
@@ -337,7 +337,7 @@ int main(int argc, char* argv[])
     cpu_time.tick();
     info("---- Projecting reference mesh solution on new coarse mesh -----------------");
     cpu_time.tick(HERMES_SKIP);
-    project_global(Tuple<Space *>(&space1, &space2), &wf,
+    project_global(Tuple<Space *>(&space1, &space2), Tuple<int>(H2D_H1_NORM, H2D_H1_NORM),
                    Tuple<MeshFunction*>(&ref_sln1, &ref_sln2),
                    Tuple<Solution*>(&sln1, &sln2));
 
