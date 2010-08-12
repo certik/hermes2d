@@ -18,9 +18,15 @@ extern void (*numpy2c_double_inplace)(PyObject *, double **, int *);
 extern void (*numpy2c_int_inplace)(PyObject *, int **, int *);
 extern PyObject *(*c2py_AVector)(struct AVector *);
 extern PyObject *(*c2py_DenseMatrix)(struct DenseMatrix *);
-extern PyObject *(*c2py_CooMatrix)(struct CooMatrix *);
-extern PyObject *(*c2py_CSRMatrix)(struct CSRMatrix *);
-extern PyObject *(*c2py_CSCMatrix)(struct CSCMatrix *);
+#ifndef _MSC_VER
+ extern PyObject *(*c2py_CooMatrix)(struct CooMatrix *);
+ extern PyObject *(*c2py_CSRMatrix)(struct CSRMatrix *);
+ extern PyObject *(*c2py_CSCMatrix)(struct CSCMatrix *);
+#else
+ extern PyObject *(*c2py_CooMatrix)(class CooMatrix *);
+ extern PyObject *(*c2py_CSRMatrix)(class CSRMatrix *);
+ extern PyObject *(*c2py_CSCMatrix)(class CSCMatrix *);
+#endif
 extern PyObject *(*namespace_create)(void);
 extern void (*namespace_push)(PyObject *, const char*, PyObject *);
 extern void (*namespace_print)(PyObject *);

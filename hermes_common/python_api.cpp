@@ -18,7 +18,11 @@ Python::Python(int argc, char* argv[])
 void Python::_init(int argc, char* argv[])
 {
     python_count++;
-    if (python_count == 1) {
+//For MSVC this is not necessary.
+
+    if (python_count == 1) 
+		{
+#ifndef _MSC_VER
         char *PYTHONPATH = getenv("PYTHONPATH");
         // (If PYTHONPATH is not defined, it will be NULL)
         int max_len = 10000;
@@ -31,6 +35,7 @@ void Python::_init(int argc, char* argv[])
         // We have to make a copy of the string, because new_path[] will get
         // deallocated:
         putenv(strdup(new_path));
+#endif
         Py_Initialize();
         if (argc >= 0)
             PySys_SetArgv(argc, argv);
