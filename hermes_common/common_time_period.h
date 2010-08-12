@@ -6,6 +6,11 @@
 #ifndef __HERMES_COMMON_TIME_PERIOD_H
 #define __HERMES_COMMON_TIME_PERIOD_H
 
+// For uint64_t type on windows.
+#ifdef _MSC_VER
+#include <inttypes.h>
+#endif
+
 /// Tick type. Used by the class TimePeriod.
 enum TimerPeriodTickType {
   HERMES_ACCUMULATE, ///< Accumulate a period between ticks.
