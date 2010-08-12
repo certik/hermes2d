@@ -222,45 +222,37 @@ void DiscreteProblem::assemble(Vector* init_vec, Matrix* mat_ext, Vector* dir_ex
   }
 
   // Assign dof in all spaces. 
-	int ndof = this->assign_dofs();
-	if (ndof == 0) 
-		error("ndof = 0 in DiscreteProblem::assemble().");
-	//printf("ndof = %d\n", ndof);
+  int ndof = this->assign_dofs();
+  if (ndof == 0) error("ndof = 0 in DiscreteProblem::assemble().");
+  //printf("ndof = %d\n", ndof);
   
-	// Realloc mat_ext, dir_ext and rhs_ext if ndof changed, 
+  // Realloc mat_ext, dir_ext and rhs_ext if ndof changed, 
   // and clear dir_ext and rhs_ext. 
   // Do not touch the matrix if rhsonly == true. 
- 	if (rhsonly == false) 
-		if (mat_ext->get_size() != ndof)
-			mat_ext->init();
-  if (dir_ext != NULL) 
-	{
-    if (dir_ext->get_size() != ndof) 
-		{
+  if (rhsonly == false) {
+    if (mat_ext->get_size() != ndof) mat_ext->init();
+  }
+  if (dir_ext != NULL) {
+    if (dir_ext->get_size() != ndof) {
       dir_ext->free_data();
       dir_ext->init(ndof);
     }
     else dir_ext->set_zero();
   }
-  if (rhs_ext->get_size() != ndof) 
-	{
+  if (rhs_ext->get_size() != ndof) {
     rhs_ext->free_data();
     rhs_ext->init(ndof);
   }
-  else 
-		rhs_ext->set_zero();
+  else rhs_ext->set_zero();
 
   // If init_vec != NULL, convert it to a Tuple of solutions u_ext.
   Tuple<Solution*> u_ext;
-  for (int i = 0; i < wf->neq; i++) 
-	{
-    if (init_vec != NULL) 
-		{
+  for (int i = 0; i < wf->neq; i++) {
+    if (init_vec != NULL) {
       u_ext.push_back(new Solution(spaces[i]->get_mesh()));
       u_ext[i]->set_fe_solution(spaces[i], this->pss[i], init_vec);
     }
-    else
-      u_ext.push_back(NULL);
+    else u_ext.push_back(NULL);
   }
 
   int k, m, marker;
@@ -271,8 +263,7 @@ void DiscreteProblem::assemble(Vector* init_vec, Matrix* mat_ext, Vector* dir_ex
   EdgePos ep[4];
   reset_warn_order();
 
-  if (rhsonly == false) 
-	{
+  if (rhsonly == false) {
     trace("Creating matrix sparse structure...");
     mat_ext->free_data();
   }
@@ -301,7 +292,7 @@ void DiscreteProblem::assemble(Vector* init_vec, Matrix* mat_ext, Vector* dir_ex
 
   // obtain a list of assembling stages
   std::vector<WeakForm::Stage> stages;
-	// Returns assembling stages with correct meshes, ext_functions that are needed in a particular stage.
+  // Returns assembling stages with correct meshes, ext_functions that are needed in a particular stage.
   wf->get_stages(spaces, stages, rhsonly);
 
   // Loop through all assembling stages -- the purpose of this is increased performance
@@ -313,24 +304,24 @@ void DiscreteProblem::assemble(Vector* init_vec, Matrix* mat_ext, Vector* dir_ex
   for (unsigned int ss = 0; ss < stages.size(); ss++)
   {
     WeakForm::Stage* s = &stages[ss];
-		// Fills the solution and test functions into the stage s.
+    // Fills the solution and test functions into the stage s.
     for (unsigned int i = 0; i < s->idx.size(); i++)
 			s->fns[i] = pss[s->idx[i]];
     for (unsigned int i = 0; i < s->ext.size(); i++)
 			s->ext[i]->set_quad_2d(&g_quad_2d_std);
-		// Tests whether the meshes in this stage are compatible and initializes the traverse process.
+    // Tests whether the meshes in this stage are compatible and initializes the traverse process.
     trav.begin(s->meshes.size(), &(s->meshes.front()), &(s->fns.front()));
 
     // Assemble one stage.
     Element** e;
-		// See Traverse::get_next_state for explanation.
+    // See Traverse::get_next_state for explanation.
     while ((e = trav.get_next_state(bnd, ep)) != NULL)
     {
       // Checking if at least on one mesh in this stage the element over which we are assembling is used.
-			// If not, we continue with another state.
+      // If not, we continue with another state.
       Element* e0 = NULL;
       for (unsigned int i = 0; i < s->idx.size(); i++)
-        if ((e0 = e[i]) != NULL) break;
+      if ((e0 = e[i]) != NULL) break;
       if (e0 == NULL) continue;
 
       // Set maximum integration order for use in integrals, see limit_order().
@@ -345,22 +336,22 @@ void DiscreteProblem::assemble(Vector* init_vec, Matrix* mat_ext, Vector* dir_ex
         // FIXME: Do not retrieve assembly list again if the element has not changed.
         spaces[j]->get_element_assembly_list(e[i], &al[j]);
 
-				// Set active element to all test function PrecalcShapesets.
+	// Set active element to all test function PrecalcShapesets.
         spss[j]->set_active_element(e[i]);
-				// Set the subelement transformation as it is set on all the appropriate solution function PrecalcShapeset.
+	// Set the subelement transformation as it is set on all the appropriate solution function PrecalcShapeset.
         spss[j]->set_master_transform();
-				// Set the active element to the reference mapping.
+	// Set the active element to the reference mapping.
         refmap[j].set_active_element(e[i]);
-				// Important : the reference mapping gets the same subelement transformation as the
-				// appropriate PrecalcShapeset (~test function). This is used in eval_form functions.
+	// Important : the reference mapping gets the same subelement transformation as the
+	// appropriate PrecalcShapeset (~test function). This is used in eval_form functions.
         refmap[j].force_transform(pss[j]->get_transform(), pss[j]->get_ctm());
         // The same is done for all external functions.
-				if (u_ext[j] != NULL) 
-					u_ext[j]->set_active_element(e[i]);
-        if (u_ext[j] != NULL) 
-					u_ext[j]->force_transform(pss[j]->get_transform(), pss[j]->get_ctm());
+	if (u_ext[j] != NULL) {
+          u_ext[j]->set_active_element(e[i]);
+          u_ext[j]->force_transform(pss[j]->get_transform(), pss[j]->get_ctm());
+        }
       }
-			// Boundary marker.
+      // Boundary marker.
       marker = e0->marker;
 
       init_cache();
@@ -571,13 +562,13 @@ ExtData<scalar>* DiscreteProblem::init_ext_fns(std::vector<MeshFunction *> &ext,
 {
   ExtData<scalar>* ext_data = new ExtData<scalar>;
   Func<scalar>** ext_fn = new Func<scalar>*[ext.size()];
-  for (unsigned int i = 0; i < ext.size(); i++)
+  for (unsigned int i = 0; i < ext.size(); i++) {
     ext_fn[i] = init_fn(ext[i], rm, order);
+  }
   ext_data->nf = ext.size();
   ext_data->fn = ext_fn;
 
   return ext_data;
-
 }
 
 // Initialize shape function values and derivatives (fill in the cache)
@@ -682,7 +673,7 @@ scalar DiscreteProblem::eval_form(WeakForm::MatrixFormVol *mfv, Tuple<Solution *
   //for (int i = 0; i < wf->neq; i++) prev[i]  = init_fn(sln[i], rv, order);
   if (sln != Tuple<Solution *>()) {
     for (int i = 0; i < wf->neq; i++) {
-      if (sln[i] != NULL) prev[i]  = init_fn(sln[i], rv, order);
+      if (sln[i] != NULL) prev[i] = init_fn(sln[i], rv, order);
       else prev[i] = NULL;
     }
   }
@@ -1373,14 +1364,14 @@ bool solve_newton(Tuple<Space *> spaces, WeakForm* wf, Tuple<int>proj_norms,
   int ndof = get_num_dofs(spaces);
 
   // sanity checks
-  int num_comps = target_slns.size();
+  int num_comps = spaces.size();
   int n_mesh_fns;
   if (mesh_fns == Tuple<MeshFunction*>()) n_mesh_fns = 0;
   else n_mesh_fns = mesh_fns.size();
   for (int i=0; i<n_mesh_fns; i++) {
     if (mesh_fns[i] == NULL) error("a filter is NULL in solve_newton().");
   }
-  if (spaces.size() != init_meshfns.size()) 
+  if (num_comps != init_meshfns.size()) 
     error("The number of spaces and initial functions must be the same in newton_solve.");
   if (init_meshfns.size() != target_slns.size()) 
     error("The number of initial functions and target solutions must be the same in newton_solve.");

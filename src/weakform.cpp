@@ -29,7 +29,8 @@ WeakForm::WeakForm(int neq, bool mat_free)
   this->is_matfree = mat_free;
 }
 
-void WeakForm::add_matrix_form(int i, int j, matrix_form_val_t fn, matrix_form_ord_t ord, SymFlag sym, int area, Tuple<MeshFunction*>ext)
+void WeakForm::add_matrix_form(int i, int j, matrix_form_val_t fn, 
+                               matrix_form_ord_t ord, SymFlag sym, int area, Tuple<MeshFunction*>ext)
 {
   if (i < 0 || i >= neq || j < 0 || j >= neq)
     error("Invalid equation number.");
@@ -267,8 +268,11 @@ WeakForm::Stage* WeakForm::find_stage(std::vector<WeakForm::Stage>& stages, int 
   std::set<unsigned> seq;
   seq.insert(m1->get_seq());
   seq.insert(m2->get_seq());
-  for (unsigned i = 0; i < ext.size(); i++)
-    seq.insert(ext[i]->get_mesh()->get_seq());
+  for (unsigned i = 0; i < ext.size(); i++) {
+    Mesh *mmm = ext[i]->get_mesh();
+    if (mmm == NULL) error("NULL Mesh pointer detected in ExtData during assembling.\n  Have you initialized all external functions?");
+    seq.insert(mmm->get_seq());
+  }
 
   // find a suitable existing stage for the form
   Stage* s = NULL;

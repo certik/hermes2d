@@ -115,8 +115,7 @@ int main(int argc, char* argv[])
   int ndof = get_num_dofs(space);
 
   // Initialize matrix solver.
-  Matrix* mat; Vector* coeff_vec; CommonSolver* solver;  
-  init_matrix_solver(matrix_solver, ndof, mat, coeff_vec, solver);
+  Vector* coeff_vec = new AVector(ndof);
 
   // Initialize views.
   WinGeom* sln_win_geom = new WinGeom(0, 0, 440, 350);
