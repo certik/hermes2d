@@ -1026,8 +1026,12 @@ int DiscreteProblem::assign_dofs()
   return ndof;
 }
 
-// global orthogonal projection
-void project_global(Tuple<Space *> spaces, WeakForm *wf, 
+// Underlying function for global orthogonal projection.
+// Not intended for the user. NOTE: the weak form here must be 
+// a special projection weak form, which is different from 
+// the weak form of the PDE. If you supply a weak form of the 
+// PDE, the PDE will just be solved. 
+void project_internal(Tuple<Space *> spaces, WeakForm *wf, 
                     Tuple<Solution*> target_slns, Vector* target_vec, bool is_complex)
 {
   int n = spaces.size();
@@ -1091,7 +1095,7 @@ void project_global(Tuple<Space *> spaces, Tuple<int> proj_norms, Tuple<MeshFunc
   int n = spaces.size();  
 
   // define temporary projection weak form
-  WeakForm wf(n);
+  WeakForm proj_wf(n);
   int found[100];
   for (int i = 0; i < 100; i++) found[i] = 0;
   for (int i = 0; i < n; i++) {
@@ -1100,20 +1104,20 @@ void project_global(Tuple<Space *> spaces, Tuple<int> proj_norms, Tuple<MeshFunc
     else norm = proj_norms[i];
     if (norm == 0) {
       found[i] = 1;
-      wf.add_matrix_form(i, i, L2projection_biform<double, scalar>, L2projection_biform<Ord, Ord>);
-      wf.add_vector_form(i, L2projection_liform<double, scalar>, L2projection_liform<Ord, Ord>,
+      proj_wf.add_matrix_form(i, i, L2projection_biform<double, scalar>, L2projection_biform<Ord, Ord>);
+      proj_wf.add_vector_form(i, L2projection_liform<double, scalar>, L2projection_liform<Ord, Ord>,
                      H2D_ANY, source_meshfns[i]);
     }
     if (norm == 1) {
       found[i] = 1;
-      wf.add_matrix_form(i, i, H1projection_biform<double, scalar>, H1projection_biform<Ord, Ord>);
-      wf.add_vector_form(i, H1projection_liform<double, scalar>, H1projection_liform<Ord, Ord>,
+      proj_wf.add_matrix_form(i, i, H1projection_biform<double, scalar>, H1projection_biform<Ord, Ord>);
+      proj_wf.add_vector_form(i, H1projection_liform<double, scalar>, H1projection_liform<Ord, Ord>,
                      H2D_ANY, source_meshfns[i]);
     }
     if (norm == 2) {
       found[i] = 1;
-      wf.add_matrix_form(i, i, Hcurlprojection_biform<double, scalar>, Hcurlprojection_biform<Ord, Ord>);
-      wf.add_vector_form(i, Hcurlprojection_liform<double, scalar>, Hcurlprojection_liform<Ord, Ord>,
+      proj_wf.add_matrix_form(i, i, Hcurlprojection_biform<double, scalar>, Hcurlprojection_biform<Ord, Ord>);
+      proj_wf.add_vector_form(i, Hcurlprojection_liform<double, scalar>, Hcurlprojection_liform<Ord, Ord>,
                      H2D_ANY, source_meshfns[i]);
     }
   }
@@ -1124,53 +1128,8 @@ void project_global(Tuple<Space *> spaces, Tuple<int> proj_norms, Tuple<MeshFunc
     }
   }
 
-  project_global(spaces, &wf, target_slns, target_vec, is_complex);
+  project_internal(spaces, &proj_wf, target_slns, target_vec, is_complex);
 }
-
-/*
-// global orthogonal projection
-void project_global(Tuple<Space *> spaces, Tuple<int> proj_norms, Tuple<Solution*> source_slns, 
-                    Tuple<Solution*> target_slns, Vector* target_vec, bool is_complex)
-{
-  int n = spaces.size();  
-
-  // define temporary projection weak form
-  WeakForm wf(n);
-  int found[100];
-  for (int i = 0; i < 100; i++) found[i] = 0;
-  for (int i = 0; i < n; i++) {
-    int norm;
-    if (proj_norms == Tuple<int>()) norm = 1;
-    else norm = proj_norms[i];
-    if (norm == 0) {
-      found[i] = 1;
-      wf.add_matrix_form(i, i, L2projection_biform<double, scalar>, L2projection_biform<Ord, Ord>);
-      wf.add_vector_form(i, L2projection_liform<double, scalar>, L2projection_liform<Ord, Ord>,
-                     H2D_ANY, source_slns[i]);
-    }
-    if (norm == 1) {
-      found[i] = 1;
-      wf.add_matrix_form(i, i, H1projection_biform<double, scalar>, H1projection_biform<Ord, Ord>);
-      wf.add_vector_form(i, H1projection_liform<double, scalar>, H1projection_liform<Ord, Ord>,
-                     H2D_ANY, source_slns[i]);
-    }
-    if (norm == 2) {
-      found[i] = 1;
-      wf.add_matrix_form(i, i, Hcurlprojection_biform<double, scalar>, Hcurlprojection_biform<Ord, Ord>);
-      wf.add_vector_form(i, Hcurlprojection_liform<double, scalar>, Hcurlprojection_liform<Ord, Ord>,
-                     H2D_ANY, source_slns[i]);
-    }
-  }
-  for (int i=0; i < n; i++) {
-    if (found[i] == 0) {
-      warn("index of component: %d\n", i);
-      error("Wrong projection norm in project_global().");
-    }
-  }
-
-  project_global(spaces, &wf, target_slns, target_vec, is_complex);
-}
-*/
 
 // global orthogonal projection
 void project_global(Tuple<Space *> spaces, Tuple<int> proj_norms, Tuple<ExactFunction> source_exactfns, 
@@ -1187,7 +1146,7 @@ void project_global(Tuple<Space *> spaces, Tuple<int> proj_norms, Tuple<ExactFun
   }
 
   // Define temporary projection weak form.
-  WeakForm wf(n);
+  WeakForm proj_wf(n);
   int found[100];
   for (int i = 0; i < 100; i++) found[i] = 0;
   for (int i = 0; i < n; i++) {
@@ -1196,20 +1155,20 @@ void project_global(Tuple<Space *> spaces, Tuple<int> proj_norms, Tuple<ExactFun
     else norm = proj_norms[i];
     if (norm == 0) {
       found[i] = 1;
-      wf.add_matrix_form(i, i, L2projection_biform<double, scalar>, L2projection_biform<Ord, Ord>);
-      wf.add_vector_form(i, L2projection_liform<double, scalar>, L2projection_liform<Ord, Ord>,
+      proj_wf.add_matrix_form(i, i, L2projection_biform<double, scalar>, L2projection_biform<Ord, Ord>);
+      proj_wf.add_vector_form(i, L2projection_liform<double, scalar>, L2projection_liform<Ord, Ord>,
                      H2D_ANY, source_slns[i]);
     }
     if (norm == 1) {
       found[i] = 1;
-      wf.add_matrix_form(i, i, H1projection_biform<double, scalar>, H1projection_biform<Ord, Ord>);
-      wf.add_vector_form(i, H1projection_liform<double, scalar>, H1projection_liform<Ord, Ord>,
+      proj_wf.add_matrix_form(i, i, H1projection_biform<double, scalar>, H1projection_biform<Ord, Ord>);
+      proj_wf.add_vector_form(i, H1projection_liform<double, scalar>, H1projection_liform<Ord, Ord>,
                      H2D_ANY, source_slns[i]);
     }
     if (norm == 2) {
       found[i] = 1;
-      wf.add_matrix_form(i, i, Hcurlprojection_biform<double, scalar>, Hcurlprojection_biform<Ord, Ord>);
-      wf.add_vector_form(i, Hcurlprojection_liform<double, scalar>, Hcurlprojection_liform<Ord, Ord>,
+      proj_wf.add_matrix_form(i, i, Hcurlprojection_biform<double, scalar>, Hcurlprojection_biform<Ord, Ord>);
+      proj_wf.add_vector_form(i, Hcurlprojection_liform<double, scalar>, Hcurlprojection_liform<Ord, Ord>,
                      H2D_ANY, source_slns[i]);
     }
   }
@@ -1220,7 +1179,7 @@ void project_global(Tuple<Space *> spaces, Tuple<int> proj_norms, Tuple<ExactFun
     }
   }
 
-  project_global(spaces, &wf, target_slns, target_vec, is_complex);
+  project_internal(spaces, &proj_wf, target_slns, target_vec, is_complex);
 }
 
 void project_global(Tuple<Space *> spaces, matrix_forms_tuple_t proj_biforms, 
@@ -1231,33 +1190,29 @@ void project_global(Tuple<Space *> spaces, matrix_forms_tuple_t proj_biforms,
   matrix_forms_tuple_t::size_type n_biforms = proj_biforms.size();
   if (n_biforms != proj_liforms.size())
     error("Mismatched numbers of projection forms in project_global().");
-  if (n_biforms > 0) {
-    if (n != n_biforms)
-      error("Mismatched numbers of projected functions and projection forms in project_global().");
-  }
-  else
-    warn("project_global() expected %d user defined biform(s) & liform(s); ordinary H1 projection will be performed", n);
+  if (n != n_biforms)
+    error("Mismatched numbers of projected functions and projection forms in project_global().");
 
   // this is needed since spaces may have their DOFs enumerated only locally
   // when they come here.
   int ndof = assign_dofs(spaces);
 
   // define projection weak form
-  WeakForm wf(n);
+  WeakForm proj_wf(n);
   for (int i = 0; i < n; i++) {
     if (n_biforms == 0) {
-      wf.add_matrix_form(i, i, H1projection_biform<double, scalar>, H1projection_biform<Ord, Ord>);
-      wf.add_vector_form(i, H1projection_liform<double, scalar>, H1projection_liform<Ord, Ord>,
+      proj_wf.add_matrix_form(i, i, H1projection_biform<double, scalar>, H1projection_biform<Ord, Ord>);
+      proj_wf.add_vector_form(i, H1projection_liform<double, scalar>, H1projection_liform<Ord, Ord>,
                      H2D_ANY, source_meshfns[i]);
     }
     else {
-      wf.add_matrix_form(i, i, proj_biforms[i].first, proj_biforms[i].second);
-      wf.add_vector_form(i, proj_liforms[i].first, proj_liforms[i].second,
+      proj_wf.add_matrix_form(i, i, proj_biforms[i].first, proj_biforms[i].second);
+      proj_wf.add_vector_form(i, proj_liforms[i].first, proj_liforms[i].second,
                      H2D_ANY, source_meshfns[i]);
     }
   }
 
-  project_global(spaces, &wf, target_slns, target_vec, is_complex);
+  project_internal(spaces, &proj_wf, target_slns, target_vec, is_complex);
 }
 
 /// Global orthogonal projection of one scalar ExactFunction.

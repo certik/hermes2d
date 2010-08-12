@@ -60,7 +60,7 @@ const int MESH_REGULARITY = -1;             // Maximum allowed level of hanging 
 const double CONV_EXP = 1.0;                // Default value is 1.0. This parameter influences the selection of
                                             // candidates in hp-adaptivity. See get_optimal_refinement() for details.
 const double ERR_STOP = 0.1;                // Stopping criterion for adaptivity (rel. error tolerance between the
-                                            // reference mesh and coarse mesh solution in percent).
+                                            // reference and coarse mesh solution in percent).
 const int NDOF_STOP = 60000;                // Adaptivity process stops when the number of degrees of freedom grows over
                                             // this limit. This is mainly to prevent h-adaptivity to go on forever.
 const int MAX_ADAPT_NUM = 30;               // Adaptivity process stops when the number of adaptation steps grows over
@@ -74,8 +74,8 @@ const int ADAPTIVITY_NORM = 2;              // Specifies the norm used by H1Adap
 TimePeriod cpu_time;            // Time measurements.
 const int ERR_PLOT = 0;         // Row in the convergence graphs for exact errors .
 const int ERR_EST_PLOT = 1;     // Row in the convergence graphs for error estimates.
-const int GROUP_1 = 0;          // Row in the NDOFs evolution graph for group 1.
-const int GROUP_2 = 1;          // Row in the NDOFs evolution graph for group 2.
+const int GROUP_1 = 0;          // Row in the DOF evolution graph for group 1.
+const int GROUP_2 = 1;          // Row in the DOF evolution graph for group 2.
 
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -354,12 +354,12 @@ int main(int argc, char* argv[])
 
   // Initialize matrix solver.
   Matrix* mat; Vector* rhs; CommonSolver* solver;
-  init_matrix_solver(SOLVER_UMFPACK, space1.get_num_dofs() + space2.get_num_dofs(), mat, rhs, solver);
+  init_matrix_solver(SOLVER_UMFPACK, get_num_dofs(Tuple<Space *>(&space1, &space2)), mat, rhs, solver);
 
   double cta;
   for (int iadapt = 0; iadapt < MAX_ADAPT_NUM; iadapt++) {
 
-    int ndof = space1.get_num_dofs() + space2.get_num_dofs();
+    int ndof = get_num_dofs(Tuple<Space *>(&space1, &space2));
     if (ndof >= NDOF_STOP) break;
 
     cpu_time.tick();
@@ -384,8 +384,8 @@ int main(int argc, char* argv[])
     ref_space2->copy_orders(&space2, order_increase);
 
     cpu_time.tick();
-    int ref_ndof = ref_space1->get_num_dofs() + ref_space2->get_num_dofs();
-    info("---------- Reference mesh solution; NDOF=%d ----------------", ndof);
+    int ref_ndof = get_num_dofs(Tuple<Space *>(ref_space1, ref_space2));
+    info("---------- Reference solution; NDOF=%d ----------------", ndof);
     cpu_time.tick(HERMES_SKIP);
                             
     // Solve the reference problem.
@@ -394,9 +394,9 @@ int main(int argc, char* argv[])
 
     // Project the reference solution on the new coarse mesh.
     cpu_time.tick();
-    info("---- Projecting reference mesh solution on new coarse mesh -----------------");
+    info("---- Projecting reference solution on new coarse mesh -----------------");
     cpu_time.tick(HERMES_SKIP);
-    project_global(Tuple<Space *>(&space1, &space2), &wf,
+    project_global(Tuple<Space *>(&space1, &space2), Tuple<int>(H2D_H1_NORM, H2D_H1_NORM), 
                    Tuple<MeshFunction*>(&ref_sln1, &ref_sln2),
                    Tuple<Solution*>(&sln1, &sln2));
 
@@ -425,7 +425,7 @@ int main(int argc, char* argv[])
     cpu_time.tick();
     cta = cpu_time.accumulated();
 
-    info("flux1_dof=%d, flux2_dof=%d", space1.get_num_dofs(), space2.get_num_dofs());
+    info("flux1_dof=%d, flux2_dof=%d", get_num_dofs(&space1), get_num_dofs(&space2));
     oview1.show(&space1);
     oview2.show(&space2);
 
@@ -455,8 +455,8 @@ int main(int argc, char* argv[])
       graph_dof.add_values(ERR_PLOT, ndof, error_h1);
       graph_dof.add_values(ERR_EST_PLOT, ndof, err_est_h1);
       // Add entry to DOF evolution graphs.
-      graph_dof_evol.add_values(GROUP_1, iadapt, space1.get_num_dofs());
-      graph_dof_evol.add_values(GROUP_2, iadapt, space2.get_num_dofs());
+      graph_dof_evol.add_values(GROUP_1, iadapt, get_num_dofs(&space1));
+      graph_dof_evol.add_values(GROUP_2, iadapt, get_num_dofs(&space2));
       // Add entry to CPU convergence graphs.
       graph_cpu.add_values(ERR_PLOT, cta, error_h1);
       graph_cpu.add_values(ERR_EST_PLOT, cta, err_est_h1);
@@ -466,7 +466,8 @@ int main(int argc, char* argv[])
     
     // If err_est too large, adapt the mesh.
     if (err_est < ERR_STOP) break;
-    else hp.adapt(Tuple<RefinementSelectors::Selector*>(&selector,&selector), MULTIMESH ? THRESHOLD_MULTI : THRESHOLD_SINGLE, STRATEGY,  MESH_REGULARITY);
+    else hp.adapt(Tuple<RefinementSelectors::Selector*>(&selector,&selector), 
+         MULTIMESH ? THRESHOLD_MULTI : THRESHOLD_SINGLE, STRATEGY,  MESH_REGULARITY);
   }
 
   cpu_time.tick();

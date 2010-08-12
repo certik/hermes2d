@@ -248,18 +248,16 @@ void init_matrix_solver(MatrixSolverType matrix_solver, int ndof,
                         Matrix* &mat, Vector* &rhs, 
                         CommonSolver* &solver, bool is_complex = false);
 
-/// Global orthogonal projection of multiple solution components.
-/// Calls assign_dofs() at the beginning.
-void project_global(Tuple<Space *> spaces, WeakForm *wf, 
+// Underlying function for global orthogonal projection.
+// Not intended for the user. NOTE: the weak form here must be 
+// a special projection weak form, which is different from 
+// the weak form of the PDE. If you supply a weak form of the 
+// PDE, the PDE will just be solved. 
+void project_internal(Tuple<Space *> spaces, WeakForm *proj_wf, 
                     Tuple<Solution*> target_slns = Tuple<Solution*>(), Vector* target_vec = NULL, bool is_complex = false);
 
 void project_global(Tuple<Space *> spaces, Tuple<int> proj_norms, Tuple<MeshFunction *> source_meshfns, 
                     Tuple<Solution*> target_slns = Tuple<Solution*>(), Vector* target_vec = NULL, bool is_complex = false);
-
-/*
-void project_global(Tuple<Space *> spaces, Tuple<int> proj_norms, Tuple<Solution *> source_slns, 
-                    Tuple<Solution*> target_slns = Tuple<Solution*>(), Vector* target_vec = NULL, bool is_complex = false);
-*/
 
 void project_global(Tuple<Space *> spaces, Tuple<int> proj_norms, Tuple<ExactFunction> source_exactfns, 
                     Tuple<Solution*> target_slns, Vector* target_vec, bool is_complex);
