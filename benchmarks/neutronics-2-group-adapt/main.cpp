@@ -385,7 +385,7 @@ int main(int argc, char* argv[])
 
     cpu_time.tick();
     int ref_ndof = get_num_dofs(Tuple<Space *>(ref_space1, ref_space2));
-    info("---------- Reference solution; NDOF=%d ----------------", ndof);
+    info("------------------ Reference solution; NDOF=%d -------------------", ref_ndof);
     cpu_time.tick(HERMES_SKIP);
                             
     // Solve the reference problem.
@@ -394,7 +394,7 @@ int main(int argc, char* argv[])
 
     // Project the reference solution on the new coarse mesh.
     cpu_time.tick();
-    info("---- Projecting reference solution on new coarse mesh -----------------");
+    info("---- Projecting reference solution on new coarse mesh; NDOF=%d ----", ndof);
     cpu_time.tick(HERMES_SKIP);
     project_global(Tuple<Space *>(&space1, &space2), Tuple<int>(H2D_H1_NORM, H2D_H1_NORM), 
                    Tuple<MeshFunction*>(&ref_sln1, &ref_sln2),
