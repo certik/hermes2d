@@ -4,7 +4,6 @@
 #define H2D_REPORT_FILE "application.log"
 #include "hermes2d.h"
 
-
 using namespace RefinementSelectors;
 
 // A massive hollow conductor is heated by induction and cooled by water running inside.
@@ -52,10 +51,12 @@ const int MESH_REGULARITY = -1;          // Maximum allowed level of hanging nod
                                          // their notoriously bad performance.
 const double CONV_EXP = 1.0;             // Default value is 1.0. This parameter influences the selection of
                                          // cancidates in hp-adaptivity. See get_optimal_refinement() for details.
-const double ERR_STOP = 0.01;            // Stopping criterion for adaptivity (rel. error tolerance between the
+const double ERR_STOP = 3.0;            // Stopping criterion for adaptivity (rel. error tolerance between the
                                          // fine mesh and coarse mesh solution in percent).
 const int NDOF_STOP = 60000;             // Adaptivity process stops when the number of degrees of freedom grows over
                                          // this limit. This is mainly to prevent h-adaptivity to go on forever.
+MatrixSolverType matrix_solver = SOLVER_UMFPACK;  // Possibilities: SOLVER_UMFPACK, SOLVER_PETSC,
+                                                  // SOLVER_MUMPS, and more are coming.
 
 // Problem parameters.
 double HEAT_SRC = 10000.0;               // Heat source in the material (caused by induction heating).
@@ -125,109 +126,53 @@ int main(int argc, char* argv[])
   wf.add_vector_form(2, callback(linear_form_2));
   wf.add_vector_form_surf(2, callback(linear_form_surf_2));
 
-  // Initialize views.
-  OrderView xord("X displacement mesh", 0, 0, 600, 300);
-  OrderView yord("Y displacement mesh", 0, 350, 600, 300);
-  OrderView tord("Temperature mesh", 0, 675, 600, 300);
-  ScalarView sview("Von Mises stress [Pa]", 610, 0, 600, 300);
-  ScalarView tview("Temperature [deg C]", 610, 350, 600, 300);
-
-  // DOF and CPU convergence graphs.
-  SimpleGraph graph_dof, graph_cpu;
-
   // Initialize refinement selector.
   H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
 
-  // Initialize the coarse mesh problem.
-  LinSystem ls(&wf, Tuple<Space*>(&xdisp, &ydisp, &temp));
+  // Initialize adaptivity parameters.
+  double to_be_processed = 0;
+  AdaptivityParamType apt(ERR_STOP, NDOF_STOP, THRESHOLD, STRATEGY,
+                          MESH_REGULARITY, to_be_processed, H2D_TOTAL_ERROR_REL, H2D_ELEMENT_ERROR_REL);
 
-  // Adaptivity loop:
-  int as = 1; bool done = false;
-  Solution x_sln_coarse, y_sln_coarse, t_sln_coarse;
-  Solution x_sln_fine, y_sln_fine, t_sln_fine;
-  do
-  {
-    info("---- Adaptivity step %d:", as);
+  apt.set_error_form(0, 0, bilinear_form_0_0<scalar, scalar>, bilinear_form_0_0<Ord, Ord>);
+  apt.set_error_form(0, 1, bilinear_form_0_1<scalar, scalar>, bilinear_form_0_1<Ord, Ord>);
+  apt.set_error_form(0, 2, bilinear_form_0_2<scalar, scalar>, bilinear_form_0_2<Ord, Ord>);
+  apt.set_error_form(1, 0, bilinear_form_1_0<scalar, scalar>, bilinear_form_1_0<Ord, Ord>);
+  apt.set_error_form(1, 1, bilinear_form_1_1<scalar, scalar>, bilinear_form_1_1<Ord, Ord>);
+  apt.set_error_form(1, 2, bilinear_form_1_2<scalar, scalar>, bilinear_form_1_2<Ord, Ord>);
+  apt.set_error_form(2, 2, bilinear_form_2_2<scalar, scalar>, bilinear_form_2_2<Ord, Ord>);
 
-    // Solve the fine mesh problems.
-    RefSystem rs(&ls);
-    rs.assemble();
-    rs.solve(Tuple<Solution*>(&x_sln_fine, &y_sln_fine, &t_sln_fine));
+  // Geometry and position of visualization windows.
+  WinGeom* u_sln_win_geom = new WinGeom(0, 355, 900, 300);
+  WinGeom* u_mesh_win_geom = new WinGeom(0, 355, 900, 300);
+  WinGeom* v_sln_win_geom = new WinGeom(0, 0, 900, 300);
+  WinGeom* v_mesh_win_geom = new WinGeom(0, 0, 900, 300);
+  WinGeom* t_sln_win_geom = new WinGeom(0, 0, 900, 300);
+  WinGeom* t_mesh_win_geom = new WinGeom(0, 0, 900, 300);
 
-    // Either solve on coarse meshes or project the fine mesh solutions
-    // on the coarse mesh.
-    if (SOLVE_ON_COARSE_MESH) {
-      info("Solving on coarse mesh.");
-      ls.assemble();
-      ls.solve(Tuple<Solution*>(&x_sln_coarse, &y_sln_coarse, &t_sln_coarse));
-    }
-    else {
-      info("Projecting fine mesh solution on coarse mesh.");
-      ls.project_global(Tuple<MeshFunction*>(&x_sln_fine, &y_sln_fine, &t_sln_fine), 
-                        Tuple<Solution*>(&x_sln_coarse, &y_sln_coarse, &t_sln_coarse));
-    }
+  // Adaptivity loop.
+  Solution *xdisp_sln = new Solution();
+  Solution *ydisp_sln = new Solution();
+  Solution *temp_sln = new Solution();
+  Solution *ref_xdisp_sln = new Solution();
+  Solution *ref_ydisp_sln = new Solution();
+  Solution *ref_temp_sln = new Solution();
+  bool verbose = true;  // Print info during adaptivity.
+  solve_linear_adapt(Tuple<Space *>(&xdisp, &ydisp, &temp), &wf,
+                     Tuple<int>(H2D_H1_NORM, H2D_H1_NORM, H2D_H1_NORM),
+                     Tuple<Solution *>(xdisp_sln, ydisp_sln, temp_sln), matrix_solver,
+                     Tuple<Solution *>(ref_xdisp_sln, ref_ydisp_sln, ref_temp_sln),
+                     Tuple<RefinementSelectors::Selector *> (&selector, &selector, &selector), &apt,
+                     Tuple<WinGeom *>(u_sln_win_geom, v_sln_win_geom, t_sln_win_geom),
+                     Tuple<WinGeom *>(u_mesh_win_geom, v_mesh_win_geom, t_mesh_win_geom), verbose);
 
-    // Time measurement.
-    cpu_time.tick();
-
-    // View the solutions.
-    xord.show(&xdisp);
-    yord.show(&ydisp);
-    tord.show(&temp);
-    VonMisesFilter mises(&x_sln_coarse, &y_sln_coarse, mu, lambda);
-    sview.set_min_max_range(0, 4e9);
-    sview.show(&mises, H2D_EPS_HIGH);
-    tview.show(&t_sln_coarse, H2D_EPS_HIGH);
-
-    // Skip visualization time.
-    cpu_time.tick(H2D_SKIP);
-
-    // Calculate element errors and total error estimate.
-    H1Adapt hp(&ls);
-    hp.set_solutions(Tuple<Solution*>(&x_sln_coarse, &y_sln_coarse, &t_sln_coarse), 
-                     Tuple<Solution*>(&x_sln_fine, &y_sln_fine, &t_sln_fine));
-    hp.set_error_form(0, 0, bilinear_form_0_0<scalar, scalar>, bilinear_form_0_0<Ord, Ord>);
-    hp.set_error_form(0, 1, bilinear_form_0_1<scalar, scalar>, bilinear_form_0_1<Ord, Ord>);
-    hp.set_error_form(0, 2, bilinear_form_0_2<scalar, scalar>, bilinear_form_0_2<Ord, Ord>);
-    hp.set_error_form(1, 0, bilinear_form_1_0<scalar, scalar>, bilinear_form_1_0<Ord, Ord>);
-    hp.set_error_form(1, 1, bilinear_form_1_1<scalar, scalar>, bilinear_form_1_1<Ord, Ord>);
-    hp.set_error_form(1, 2, bilinear_form_1_2<scalar, scalar>, bilinear_form_1_2<Ord, Ord>);
-    hp.set_error_form(2, 2, bilinear_form_2_2<scalar, scalar>, bilinear_form_2_2<Ord, Ord>);
-    double err_est = hp.calc_error(H2D_TOTAL_ERROR_REL | H2D_ELEMENT_ERROR_ABS) * 100;
-
-    // Report results.
-    info("ndof_x_coarse: %d, ndof_y_coarse: %d, ndof_t_coarse: %d", 
-      ls.get_num_dofs(0), ls.get_num_dofs(1), ls.get_num_dofs(2));
-    info("ndof_x_fine: %d, ndof_y_fine: %d, ndof_t_fine: %d", 
-      rs.get_num_dofs(0), rs.get_num_dofs(1), rs.get_num_dofs(2));
-    info("err_est: %g%%", err_est);
-
-    // Add entry to DOF convergence graph.
-    graph_dof.add_values(ls.get_num_dofs(), err_est);
-    graph_dof.save("conv_dof.dat");
-
-    // Add entry to CPU convergence graph.
-    graph_cpu.add_values(cpu_time.accumulated(), err_est);
-    graph_cpu.save("conv_cpu.dat");
-
-    // If err_est too large, adapt the mesh.
-    if (err_est < ERR_STOP) done = true;
-    else {
-      done = hp.adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY);
-      if (ls.get_num_dofs() >= NDOF_STOP) done = true;
-    }
-
-    as++;
-  }
-  while (!done);
-  verbose("Total running time: %g s", cpu_time.accumulated());
-
-  // Show the fine solution - the final result.
-  VonMisesFilter stress_fine(&x_sln_fine, &y_sln_fine, mu, lambda);
-  sview.set_title("Final solution");
-  sview.show_mesh(false);
+  // Show the Von Mises stress on the reference mesh.
+  WinGeom* stress_win_geom = new WinGeom(910, 0, 900, 300);
+  ScalarView sview("Final solution", stress_win_geom);
+  VonMisesFilter ref_stress((MeshFunction*)ref_xdisp_sln, (MeshFunction*)ref_ydisp_sln, mu, lambda);
   sview.set_min_max_range(0, 3e4);
-  sview.show(&stress_fine);
+  sview.show_mesh(false);
+  sview.show(&ref_stress, H2D_EPS_HIGH);
 
   // Wait for all views to be closed.
   View::wait();
