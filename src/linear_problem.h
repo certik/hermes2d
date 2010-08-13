@@ -55,7 +55,7 @@ public:
 
 };
 
-bool solve_linear(Tuple<Space *> spaces, WeakForm* wf, Tuple<Solution *> solutions, 
+H2D_API bool solve_linear(Tuple<Space *> spaces, WeakForm* wf, Tuple<Solution *> solutions, 
                   MatrixSolverType matrix_solver, bool is_complex = false);
 
 // Solve a typical linear problem (without automatic adaptivity).
