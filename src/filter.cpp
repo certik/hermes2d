@@ -7,11 +7,11 @@
 //
 // Hermes2D is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with Hermes2D.  If not, see <http://www.gnu.org/licenses/>.
+// along with Hermes2D. If not, see <http://www.gnu.org/licenses/>.
 
 #include "common.h"
 #include "filter.h"
@@ -22,48 +22,71 @@
 
 Filter::Filter(MeshFunction* sln1) : MeshFunction()
 {
-  this->num = 1;
-  this->sln[0] = sln1;
+  this->init(sln1);
   this->init();
 }
 
 Filter::Filter(MeshFunction* sln1, MeshFunction* sln2) : MeshFunction()
 {
-  this->num = 2;
-  this->sln[0] = sln1;  
-  this->sln[1] = sln2;
+  this->init(sln1, sln2);
   this->init();
 }
 
 Filter::Filter(MeshFunction* sln1, MeshFunction* sln2, MeshFunction* sln3) : MeshFunction()
 {
-  this->num = 3;
-  this->sln[0] = sln1;  
-  this->sln[1] = sln2;  
-  this->sln[2] = sln3;
+  this->init(sln1, sln2, sln3);
   this->init();
 }
 
 Filter::Filter(MeshFunction* sln1, MeshFunction* sln2, MeshFunction* sln3, MeshFunction* sln4) : MeshFunction()
 {
-  this->num = 4;
-  this->sln[0] = sln1;  
-  this->sln[1] = sln2;  
-  this->sln[2] = sln3;  
-  this->sln[3] = sln4;
+  this->init(sln1, sln2, sln3, sln4);
   this->init();
 }
 
+void Filter::init(MeshFunction* sln1) 
+{
+  this->num = 1;
+  this->sln[0] = sln1;
+  this->init();
+}
+
+void Filter::init(MeshFunction* sln1, MeshFunction* sln2) 
+{
+  this->num = 2;
+  this->sln[0] = sln1;
+  this->sln[1] = sln2;
+  this->init();
+}
+
+void Filter::init(MeshFunction* sln1, MeshFunction* sln2, MeshFunction* sln3) 
+{
+  this->num = 3;
+  this->sln[0] = sln1;
+  this->sln[1] = sln2;
+  this->sln[2] = sln3;
+  this->init();
+}
+
+void Filter::init(MeshFunction* sln1, MeshFunction* sln2, MeshFunction* sln3, MeshFunction* sln4) 
+{
+  this->num = 4;
+  this->sln[0] = sln1;
+  this->sln[1] = sln2;
+  this->sln[2] = sln3;
+  this->sln[3] = sln4;
+  this->init();
+}
 
 void Filter::init()
 {
   // create the array sln_nodup, which is the array sln with duplicities removed
   /*sln_nodup[0] = sln[0]; nnd = 1;
-  if (num > 1 && sln[1] != sln[0]) sln_nodup[nnd++] = sln[1];
-  if (num > 2 && sln[2] != sln[0] && sln[2] != sln[1]) sln_nodup[nnd++] = sln[2];*/
+if (num > 1 && sln[1] != sln[0]) sln_nodup[nnd++] = sln[1];
+if (num > 2 && sln[2] != sln[0] && sln[2] != sln[1]) sln_nodup[nnd++] = sln[2];*/
 
   // construct the union mesh, if necessary
-  Mesh* meshes[4] = {              sln[0]->get_mesh(),
+  Mesh* meshes[4] = { sln[0]->get_mesh(),
                       (num >= 2) ? sln[1]->get_mesh() : NULL,
                       (num >= 3) ? sln[2]->get_mesh() : NULL,
                       (num >= 4) ? sln[3]->get_mesh() : NULL };
@@ -354,6 +377,34 @@ void DXDYFilter::init_components()
       error("Filter: Solutions do not have the same number of components!");
 }
 
+void DXDYFilter::init(filter_fn_1_t fn, MeshFunction* sln1) 
+{
+  Filter::init(sln1);
+  filter_fn_1 = fn;
+  init_components();
+}
+
+void DXDYFilter::init(filter_fn_2_t fn, MeshFunction* sln1, MeshFunction* sln2) 
+{
+  Filter::init(sln1, sln2);
+  filter_fn_2 = fn;
+  init_components();
+}
+
+void DXDYFilter::init(filter_fn_3_t fn, MeshFunction* sln1, MeshFunction* sln2, MeshFunction* sln3) 
+{
+  Filter::init(sln1, sln2, sln3);
+  filter_fn_3 = fn;
+  init_components();
+}
+
+void DXDYFilter::init(filter_fn_4_t fn, MeshFunction* sln1, MeshFunction* sln2, 
+                      MeshFunction* sln3, MeshFunction* sln4) 
+{
+  Filter::init(sln1, sln2, sln3, sln4);
+  filter_fn_4 = fn;
+  init_components();
+}
 
 void DXDYFilter::precalculate(int order, int mask)
 {
@@ -372,8 +423,8 @@ void DXDYFilter::precalculate(int order, int mask)
     for (int i = 0; i < num; i++)
     {
       val[i] = sln[i]->get_fn_values(j);
-      dx[i]  = sln[i]->get_dx_values(j);
-      dy[i]  = sln[i]->get_dy_values(j);
+      dx[i] = sln[i]->get_dx_values(j);
+      dy[i] = sln[i]->get_dy_values(j);
     }
 
     // apply the filter
@@ -520,9 +571,9 @@ AngleFilter::AngleFilter(MeshFunction* sln1, int item1)
 //// VonMisesFilter ////////////////////////////////////////////////////////////////////////////////
 
 #ifndef H2D_COMPLEX
-  #define getval(exp) (exp)
+#define getval(exp) (exp)
 #else
-  #define getval(exp) (exp.real())
+#define getval(exp) (exp.real())
 #endif
 
 
@@ -595,15 +646,15 @@ void LinearFilter::precalculate(int order, int mask)
     for (int i = 0; i < num; i++)
     {
       val[i] = sln[i]->get_fn_values(j);
-      dx[i]  = sln[i]->get_dx_values(j);
-      dy[i]  = sln[i]->get_dy_values(j);
+      dx[i] = sln[i]->get_dx_values(j);
+      dy[i] = sln[i]->get_dy_values(j);
     }
     if (num == 2)
       for (int i = 0; i < np; i++)
       {
         node->values[j][0][i] = tau_frac * (val[1][i] - val[0][i]) + val[1][i];
-        node->values[j][1][i] = tau_frac * (dx[1][i]  - dx[0][i])  + dx[1][i];
-        node->values[j][2][i] = tau_frac * (dy[1][i]  - dy[0][i])  + dy[1][i];
+        node->values[j][1][i] = tau_frac * (dx[1][i] - dx[0][i]) + dx[1][i];
+        node->values[j][2][i] = tau_frac * (dy[1][i] - dy[0][i]) + dy[1][i];
       }
     else
       for (int i = 0; i < np; i++)

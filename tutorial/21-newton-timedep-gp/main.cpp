@@ -28,6 +28,8 @@ const double T_FINAL = 2;        // Time interval length.
 const int TIME_DISCR = 2;        // 1 for implicit Euler, 2 for Crank-Nicolson.
 const double NEWTON_TOL = 1e-5;  // Stopping criterion for the Newton's method.
 const int NEWTON_MAX_ITER = 100; // Maximum allowed number of Newton iterations.
+MatrixSolverType matrix_solver = SOLVER_UMFPACK;  // Possibilities: SOLVER_UMFPACK, SOLVER_PETSC,
+                                                  // SOLVER_MUMPS, and more are coming.
 
 // Problem constants
 const double H = 1;              // Planck constant 6.626068e-34.
@@ -70,56 +72,57 @@ int main(int argc, char* argv[])
   for(int i = 0; i < INIT_REF_NUM; i++) mesh.refine_all_elements();
 
   // Create an H1 space.
-  H1Space space(&mesh, bc_types, essential_bc_values, P_INIT);
+  H1Space* space = new H1Space(&mesh, bc_types, essential_bc_values, P_INIT);
+  int ndof = get_num_dofs(space);
+  info("ndof = %d.", ndof);
 
-  // Solutions for the Newton's iteration and time stepping.
-  Solution Psi_prev_time, Psi_prev_newton;
+  // Previous time level solution.
+  Solution psi_prev_time;
 
   // Initialize the weak formulation.
   WeakForm wf;
   if(TIME_DISCR == 1) {
-    wf.add_matrix_form(callback(J_euler), H2D_UNSYM, H2D_ANY, &Psi_prev_newton);
-    wf.add_vector_form(callback(F_euler), H2D_ANY, Tuple<MeshFunction*>(&Psi_prev_newton, &Psi_prev_time));
+    wf.add_matrix_form(callback(J_euler), H2D_UNSYM, H2D_ANY);
+    wf.add_vector_form(callback(F_euler), H2D_ANY, &psi_prev_time);
   }
   else {
-    wf.add_matrix_form(callback(J_cranic), H2D_UNSYM, H2D_ANY, &Psi_prev_newton);
-    wf.add_vector_form(callback(F_cranic), H2D_ANY, Tuple<MeshFunction*>(&Psi_prev_newton, &Psi_prev_time));
+    wf.add_matrix_form(callback(J_cranic), H2D_UNSYM, H2D_ANY);
+    wf.add_vector_form(callback(F_cranic), H2D_ANY, &psi_prev_time);
   }
-
-  // Initialize the nonlinear system.
-  NonlinSystem nls(&wf, &space);
 
   // Initialize views.
   ScalarView view("", 0, 0, 600, 500);
   view.fix_scale_width(80);
 
-  // Project initial conditions on FE spaces to obtain initial coefficient 
-  // vector for the Newton's method.
+  // Project the initial condition on the FE space
+  // to obtain initial coefficient vector for the Newton's method.
+  bool is_complex = true;
+  Vector* coeff_vec = new AVector(ndof, is_complex); 
   info("Projecting initial condition to obtain initial vector for the Newton'w method.");
-  Psi_prev_time.set_exact(&mesh, init_cond);              // Psi_prev_time is set equal to init_cond().
-  nls.project_global(&Psi_prev_time, &Psi_prev_newton);   // Initial vector calculated here. 
+  project_global(space, H2D_H1_NORM, init_cond, &psi_prev_time, coeff_vec, is_complex);
 
   // Time stepping loop:
   int nstep = (int)(T_FINAL/TAU + 0.5);
   for(int ts = 1; ts <= nstep; ts++)
   {
 
-    info("---- Time step %d:", ts);
+    info("Time step %d:", ts);
 
     // Newton's method.
     info("Performing Newton's method.");
     bool verbose = true; // Default is false.
-    if (!nls.solve_newton(&Psi_prev_newton, NEWTON_TOL, NEWTON_MAX_ITER, verbose)) 
+    if (!solve_newton(space, &wf, coeff_vec, matrix_solver, 
+		      NEWTON_TOL, NEWTON_MAX_ITER, verbose, Tuple<MeshFunction *>(), is_complex))
       error("Newton's method did not converge.");
+
+    // Update previous time level solution.
+    psi_prev_time.set_fe_solution(space, coeff_vec);
 
     // Show the new time level solution.
     char title[100];
     sprintf(title, "Time step %d", ts);
     view.set_title(title);
-    view.show(&Psi_prev_newton);
-
-    // Copy result of the Newton's iteration into Psi_prev_time.
-    Psi_prev_time.copy(&Psi_prev_newton);
+    view.show(&psi_prev_time);
   }
 
   // Wait for all views to be closed.

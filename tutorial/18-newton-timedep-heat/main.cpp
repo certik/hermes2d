@@ -96,7 +96,7 @@ int main(int argc, char* argv[])
   int ndof = get_num_dofs(space);
   info("ndof = %d.", ndof);
 
-  // Solutions for the time stepping and the Newton's method.
+  // Previous time level solution.
   Solution u_prev_time;
 
   // Initialize the weak formulation.
@@ -116,8 +116,7 @@ int main(int argc, char* argv[])
   oview.show(space);
 
   // Time stepping loop:
-  double current_time = 0.0;
-  int ts = 1;
+  double current_time = 0.0; int ts = 1;
   do {
     info("---- Time step %d, t = %g s.", ts, current_time); ts++;
 

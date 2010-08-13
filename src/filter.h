@@ -7,11 +7,11 @@
 //
 // Hermes2D is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with Hermes2D.  If not, see <http://www.gnu.org/licenses/>.
+// along with Hermes2D. If not, see <http://www.gnu.org/licenses/>.
 
 #ifndef __H2D_FILTER_H
 #define __H2D_FILTER_H
@@ -31,6 +31,7 @@ class H2D_API Filter : public MeshFunction
 {
 public:
 
+  Filter() {};
   Filter(MeshFunction* sln1);
   Filter(MeshFunction* sln1, MeshFunction* sln2);
   Filter(MeshFunction* sln1, MeshFunction* sln2, MeshFunction* sln3);
@@ -46,6 +47,10 @@ public:
   virtual void pop_transform();
 
   virtual void init();
+  virtual void init(MeshFunction* sln1);
+  virtual void init(MeshFunction* sln1, MeshFunction* sln2);
+  virtual void init(MeshFunction* sln1, MeshFunction* sln2, MeshFunction* sln3);
+  virtual void init(MeshFunction* sln1, MeshFunction* sln2, MeshFunction* sln3, MeshFunction* sln4);
 
 protected:
 
@@ -81,6 +86,8 @@ class H2D_API SimpleFilter : public Filter
 {
 public:
 
+  SimpleFilter() {};
+
   SimpleFilter(void (*filter_fn)(int n, scalar* val1, scalar* result),
                MeshFunction* sln1, int item1 = H2D_FN_VAL);
 
@@ -94,7 +101,6 @@ public:
   SimpleFilter(void (*filter_fn)(int n, scalar* val1, scalar* val2, scalar* val3, scalar* val4, scalar* result),
                MeshFunction* sln1, MeshFunction* sln2, MeshFunction* sln3, MeshFunction* sln4,
                int item1 = H2D_FN_VAL, int item2 = H2D_FN_VAL, int item3 = H2D_FN_VAL, int item4 = H2D_FN_VAL);
-
 
   virtual scalar get_pt_value(double x, double y, int item = H2D_FN_VAL_0);
 
@@ -143,11 +149,16 @@ public:
                                        scalar* val3, scalar* val3_dx, scalar* val3_dy,
                                        scalar* val4, scalar* val4_dx, scalar* val4_dy,
                                        scalar* rslt, scalar* rslt_dx, scalar* rslt_dy);
-
+  DXDYFilter() {};
   DXDYFilter(filter_fn_1_t fn, MeshFunction* sln1);
   DXDYFilter(filter_fn_2_t fn, MeshFunction* sln1, MeshFunction* sln2);
   DXDYFilter(filter_fn_3_t fn, MeshFunction* sln1, MeshFunction* sln2, MeshFunction* sln3);
   DXDYFilter(filter_fn_4_t fn, MeshFunction* sln1, MeshFunction* sln2, MeshFunction* sln3, MeshFunction* sln4);
+
+  void init(filter_fn_1_t fn, MeshFunction* sln1);
+  void init(filter_fn_2_t fn, MeshFunction* sln1, MeshFunction* sln2);
+  void init(filter_fn_3_t fn, MeshFunction* sln1, MeshFunction* sln2, MeshFunction* sln3);
+  void init(filter_fn_4_t fn, MeshFunction* sln1, MeshFunction* sln2, MeshFunction* sln3, MeshFunction* sln4);
 
   virtual scalar get_pt_value(double x, double y, int item = H2D_FN_VAL_0)
   { error("Not implemented yet"); return 0; }
@@ -277,3 +288,4 @@ class H2D_API LinearFilter : public Filter
 
 
 #endif
+
