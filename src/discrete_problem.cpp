@@ -1336,7 +1336,7 @@ void init_matrix_solver(MatrixSolverType matrix_solver, int ndof,
   }
 }
 
-double get_l2_norm(Vector* vec) 
+double get_l2_norm_real(Vector* vec) 
 {
   double val = 0;
   for (int i = 0; i < vec->get_size(); i++) val += vec->get(i)*vec->get(i);
@@ -1346,8 +1346,9 @@ double get_l2_norm(Vector* vec)
 
 double get_l2_norm_cplx(Vector* vec) 
 {
-  double val = 0;
-  for (int i = 0; i < vec->get_size(); i++) val += vec->get(i)*conj(vec->get(i));
+  cplx val_0 = cplx(0, 0);
+  for (int i = 0; i < vec->get_size(); i++) val_0 = val_0 + vec->get_cplx(i)*conj(vec->get_cplx(i));
+  double val = magn(val_0);
   val = sqrt(val);
   return val;
 }
@@ -1431,7 +1432,6 @@ bool solve_newton(Tuple<Space *> spaces, WeakForm* wf, Vector* coeff_vec,
   init_matrix_solver(matrix_solver, ndof, mat, rhs, solver, is_complex);
 
   int it = 1;
-  double res_l2_norm;
   while (1)
   {
     // reinitialize filters
@@ -1444,10 +1444,14 @@ bool solve_newton(Tuple<Space *> spaces, WeakForm* wf, Vector* coeff_vec,
 
     // Multiply the residual vector with -1 since the matrix 
     // equation reads J(Y^n) \deltaY^{n+1} = -F(Y^n).
-    for (int i = 0; i < ndof; i++) rhs->set(i, -rhs->get(i));
+    if (is_complex)
+      for (int i = 0; i < ndof; i++) rhs->set(i, -rhs->get_cplx(i));
+    else
+      for (int i = 0; i < ndof; i++) rhs->set(i, -rhs->get(i));
 
     // Calculate the l2-norm of residual vector.
-    if (!is_complex) res_l2_norm = get_l2_norm(rhs);
+    double res_l2_norm;
+    if (!is_complex) res_l2_norm = get_l2_norm_real(rhs);
     else res_l2_norm = get_l2_norm_cplx(rhs);
     if (verbose) info("---- Newton iter %d, ndof %d, res. l2 norm %g", 
                         it, get_num_dofs(spaces), res_l2_norm);
@@ -1459,7 +1463,11 @@ bool solve_newton(Tuple<Space *> spaces, WeakForm* wf, Vector* coeff_vec,
     if (!solver->solve(mat, rhs)) error ("Matrix solver failed.\n");
 
     // Add \deltaY^{n+1} to Y^n.
-    for (int i = 0; i < ndof; i++) coeff_vec->add(i, rhs->get(i));
+    if (is_complex)
+      for (int i = 0; i < ndof; i++) coeff_vec->add(i, rhs->get_cplx(i));
+    else
+      for (int i = 0; i < ndof; i++) coeff_vec->add(i, rhs->get(i));
+      
     
     it++;
   };
