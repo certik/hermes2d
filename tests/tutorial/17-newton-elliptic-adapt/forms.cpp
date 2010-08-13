@@ -1,3 +1,7 @@
+// Heat sources (can be a general function of 'x' and 'y').
+template<typename Real>
+Real heat_src(Real x, Real y) { return 1.0;}
+
 // Jacobian matrix
 template<typename Real, typename Scalar>
 Scalar jac(int n, double *wt, Func<Real> *u_ext[], Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)

@@ -5,8 +5,8 @@ Scalar F_euler(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *v, Geom<Rea
   scalar ii = cplx(0.0, 1.0);  // imaginary unit, ii^2 = -1
 
   Scalar result = 0;
-  Func<Scalar>* psi_prev_newton = ext->fn[0];
-  Func<Scalar>* psi_prev_time = ext->fn[1];
+  Func<Scalar>* psi_prev_newton = u_ext[0];
+  Func<Scalar>* psi_prev_time = ext->fn[0];
   for (int i = 0; i < n; i++)
     result += wt[i] * (ii * H * (psi_prev_newton->val[i] - psi_prev_time->val[i]) * v->val[i] / TAU
             - H*H/(2*M) * (psi_prev_newton->dx[i] * v->dx[i] + psi_prev_newton->dy[i] * v->dy[i])
@@ -23,7 +23,7 @@ Scalar J_euler(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *u, Func<Rea
   scalar ii = cplx(0.0, 1.0);  // imaginary unit, ii^2 = -1
 
   Scalar result = 0;
-  Func<Scalar>* psi_prev_newton = ext->fn[0];
+  Func<Scalar>* psi_prev_newton = u_ext[0];
   for (int i = 0; i < n; i++)
     result += wt[i] * (ii * H * u->val[i] * v->val[i] / TAU
                      - H*H/(2*M) * (u->dx[i] * v->dx[i] + u->dy[i] * v->dy[i])
@@ -40,8 +40,8 @@ Scalar F_cranic(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *v, Geom<Re
   scalar ii = cplx(0.0, 1.0);  // imaginary unit, ii^2 = -1
 
   Scalar result = 0;
-  Func<Scalar>* psi_prev_newton = ext->fn[0];
-  Func<Scalar>* psi_prev_time = ext->fn[1];
+  Func<Scalar>* psi_prev_newton = u_ext[0];
+  Func<Scalar>* psi_prev_time = ext->fn[0];
   for (int i = 0; i < n; i++)
     result += wt[i] * (ii * H * (psi_prev_newton->val[i] - psi_prev_time->val[i]) * v->val[i] / TAU
             - 0.5*H*H/(2*M) * (psi_prev_newton->dx[i] * v->dx[i] + psi_prev_newton->dy[i] * v->dy[i])
@@ -60,7 +60,7 @@ Scalar J_cranic(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *u, Func<Re
   scalar ii = cplx(0.0, 1.0);  // imaginary unit, ii^2 = -1
 
   Scalar result = 0;
-  Func<Scalar>* psi_prev_newton = ext->fn[0];
+  Func<Scalar>* psi_prev_newton = u_ext[0];
   for (int i = 0; i < n; i++)
     result += wt[i] * (ii * H * u->val[i] * v->val[i] / TAU
                      - 0.5*H*H/(2*M) * (u->dx[i] * v->dx[i] + u->dy[i] * v->dy[i])

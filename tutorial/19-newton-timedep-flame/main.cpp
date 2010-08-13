@@ -19,7 +19,7 @@
 //       dT/dn = - kappa T on cooled rods,
 //       dT/dn = 0, dY/dn = 0 elsewhere.
 //
-//  Time-stepping: second order BDF formula.
+//  Time-stepping: a second order BDF formula.
 
 const int INIT_REF_NUM = 2;            // Number of initial uniform mesh refinements.
 const int P_INIT = 1;                  // Initial polynomial degree.
@@ -27,6 +27,8 @@ const double TAU = 0.5;                // Time step.
 const double T_FINAL = 60.0;           // Time interval length.
 const double NEWTON_TOL = 1e-4;        // Stopping criterion for the Newton's method.
 const int NEWTON_MAX_ITER = 50;        // Maximum allowed number of Newton iterations.
+MatrixSolverType matrix_solver = SOLVER_UMFPACK;  // Possibilities: SOLVER_UMFPACK, SOLVER_PETSC,
+                                                  // SOLVER_MUMPS, and more are coming.
 
 // Problem constants.
 const double Le    = 1.0;
@@ -69,25 +71,17 @@ int main(int argc, char* argv[])
   for(int i = 0; i < INIT_REF_NUM; i++) mesh.refine_all_elements();
 
   // Create H1 spaces with default shapesets.
-  H1Space tspace(&mesh, bc_types, essential_bc_values_t, P_INIT);
-  H1Space cspace(&mesh, bc_types, essential_bc_values_c, P_INIT);
+  H1Space* tspace = new H1Space(&mesh, bc_types, essential_bc_values_t, P_INIT);
+  H1Space* cspace = new H1Space(&mesh, bc_types, essential_bc_values_c, P_INIT);
+  int ndof = get_num_dofs(Tuple<Space *>(tspace, cspace));
+  info("ndof = %d.", ndof);
 
-  // Solutions for the Newton's iteration and time stepping.
-  Solution t_prev_time_1, c_prev_time_1, t_prev_time_2, 
-           c_prev_time_2, t_prev_newton, c_prev_newton, tsln, csln;
+  // Previous time level solutions.
+  Solution t_prev_time_1, c_prev_time_1, t_prev_time_2, c_prev_time_2, 
+           t_prev_newton, c_prev_newton;
 
-  // Set initial conditions.
-  t_prev_time_1.set_exact(&mesh, temp_ic); c_prev_time_1.set_exact(&mesh, conc_ic);
-  t_prev_time_2.set_exact(&mesh, temp_ic); c_prev_time_2.set_exact(&mesh, conc_ic);
-  t_prev_newton.set_exact(&mesh, temp_ic);  c_prev_newton.set_exact(&mesh, conc_ic);
-
-  // Define filters for the reaction rate omega.
-  DXDYFilter omega(omega_fn, &t_prev_newton, &c_prev_newton);
-  DXDYFilter omega_dt(omega_dt_fn, &t_prev_newton, &c_prev_newton);
-  DXDYFilter omega_dc(omega_dc_fn, &t_prev_newton, &c_prev_newton);
-
-  // Initialize view.
-  ScalarView rview("Reaction rate", 0, 0, 800, 230);
+  // Filters for the reaction rate omega and its derivatives.
+  DXDYFilter omega, omega_dt, omega_dc;
 
   // Initialize the weak formulation.
   WeakForm wf(2);
@@ -97,19 +91,31 @@ int main(int argc, char* argv[])
   wf.add_matrix_form(1, 0, callback(newton_bilinear_form_1_0), H2D_UNSYM, H2D_ANY, &omega_dt);
   wf.add_matrix_form(1, 1, callback(newton_bilinear_form_1_1), H2D_UNSYM, H2D_ANY, &omega_dc);
   wf.add_vector_form(0, callback(newton_linear_form_0), H2D_ANY, 
-                     Tuple<MeshFunction*>(&t_prev_newton, &t_prev_time_1, &t_prev_time_2, &omega));
-  wf.add_vector_form_surf(0, callback(newton_linear_form_0_surf), 3, &t_prev_newton);
+                     Tuple<MeshFunction*>(&t_prev_time_1, &t_prev_time_2, &omega));
+  wf.add_vector_form_surf(0, callback(newton_linear_form_0_surf), 3);
   wf.add_vector_form(1, callback(newton_linear_form_1), H2D_ANY, 
-                     Tuple<MeshFunction*>(&c_prev_newton, &c_prev_time_1, &c_prev_time_2, &omega));
-
-  // Initialize the nonlinear system.
-  NonlinSystem nls(&wf, Tuple<Space*>(&tspace, &cspace));
+                     Tuple<MeshFunction*>(&c_prev_time_1, &c_prev_time_2, &omega));
 
   // Project temp_ic() and conc_ic() onto the FE spaces to obtain initial 
   // coefficient vector for the Newton's method.   
   info("Projecting initial conditions to obtain initial vector for the Newton'w method.");
-  nls.project_global(Tuple<MeshFunction*>(&t_prev_newton, &c_prev_newton), 
-                     Tuple<Solution*>(&t_prev_newton, &c_prev_newton));
+  Vector* coeff_vec = new AVector(ndof); 
+  project_global(Tuple<Space *>(tspace, cspace), Tuple<int>(H2D_H1_NORM, H2D_H1_NORM),
+		 //Tuple<MeshFunction *>(&t_prev_time_1, &c_prev_time_1), 
+		 Tuple<ExactFunction>(temp_ic, conc_ic), 
+                 Tuple<Solution*>(&t_prev_newton, &c_prev_newton), coeff_vec);
+  t_prev_time_1.copy(&t_prev_newton);
+  t_prev_time_2.copy(&t_prev_newton);
+  c_prev_time_1.copy(&c_prev_newton);
+  c_prev_time_2.copy(&c_prev_newton);
+
+  // Initialize filters.
+  omega.init(omega_fn, &t_prev_newton, &c_prev_newton);
+  omega_dt.init(omega_dt_fn, &t_prev_newton, &c_prev_newton);
+  omega_dc.init(omega_dc_fn, &t_prev_newton, &c_prev_newton);
+
+  // Initialize view.
+  ScalarView rview("Reaction rate", 0, 0, 800, 230);
 
   // Time stepping loop:
   double current_time = 0.0; int ts = 1;
@@ -117,10 +123,13 @@ int main(int argc, char* argv[])
     info("---- Time step %d, t = %g s.", ts, current_time);
 
     // Newton's method.
-    info("Performing Newton's iteration.");
+    info("Performing Newton's method.");
     bool verbose = true; // Default is false.
-    if (!nls.solve_newton(Tuple<Solution*>(&t_prev_newton, &c_prev_newton), NEWTON_TOL, NEWTON_MAX_ITER, verbose,
-			  Tuple<MeshFunction*>(&omega, &omega_dt, &omega_dc))) error("Newton's method did not converge.");
+    if (!solve_newton(Tuple<Space *>(tspace, cspace), &wf, coeff_vec, matrix_solver, 
+                      NEWTON_TOL, NEWTON_MAX_ITER, verbose, Tuple<MeshFunction*>(&omega, &omega_dt, &omega_dc)))
+      error("Newton's method did not converge.");
+    t_prev_newton.set_fe_solution(tspace, coeff_vec);
+    c_prev_newton.set_fe_solution(cspace, coeff_vec);
 
     // Visualization.
     DXDYFilter omega_view(omega_fn, &t_prev_newton, &c_prev_newton);
@@ -136,8 +145,8 @@ int main(int argc, char* argv[])
     // Store two time levels of previous solutions.
     t_prev_time_2.copy(&t_prev_time_1);
     c_prev_time_2.copy(&c_prev_time_1);
-    t_prev_time_1.copy(&t_prev_newton);
-    c_prev_time_1.copy(&c_prev_newton);
+    t_prev_time_1.set_fe_solution(tspace, coeff_vec);
+    c_prev_time_1.set_fe_solution(cspace, coeff_vec);
 
     ts++;
   } while (current_time <= T_FINAL);

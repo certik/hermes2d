@@ -5,19 +5,7 @@
 #include "hermes2d.h"
 #include "function.h"
 
-//  This example shows how the Newton's method is used for
-//  a simple nonlinear parabolic PDE discretized in time
-//  via the implicit Euler method.
-//
-//  PDE: time-dependent heat transfer equation with nonlinear thermal
-//  conductivity, du/dt - div[lambda(u)grad u] = f.
-//
-//  Domain: square (-10,10)^2.
-//
-//  BC: Dirichlet, given by the function dir_lift() below.
-//  IC: Same function dir_lift().
-//
-//  The following parameters can be changed:
+// This test makes sure that example 18-newton-timedep-heat works correctly.
 
 const int INIT_GLOB_REF_NUM = 3;       // Number of initial uniform mesh refinements.
 const int INIT_BDY_REF_NUM = 4;        // Number of initial refinements towards boundary.
@@ -96,7 +84,7 @@ int main(int argc, char* argv[])
   int ndof = get_num_dofs(space);
   info("ndof = %d.", ndof);
 
-  // Previous time level solution.
+  // Solutions for the time stepping and the Newton's method.
   Solution u_prev_time;
 
   // Initialize the weak formulation.
@@ -116,7 +104,8 @@ int main(int argc, char* argv[])
   oview.show(space);
 
   // Time stepping loop:
-  double current_time = 0.0; int ts = 1;
+  double current_time = 0.0;
+  int ts = 1;
   do {
     info("---- Time step %d, t = %g s.", ts, current_time); ts++;
 
@@ -139,8 +128,19 @@ int main(int argc, char* argv[])
     sview.show(&u_prev_time);
   } while (current_time < T_FINAL);
 
-  // Wait for all views to be closed.
-  View::wait();
-  return 0;
+  ndof = get_num_dofs(space);
+
+#define ERROR_SUCCESS                                0
+#define ERROR_FAILURE                               -1
+  printf("ndof allowed = %d\n", 1000);
+  printf("ndof actual = %d\n", ndof);
+  if (ndof < 1000) {      // ndofs was 961 at the time this test was created.
+    printf("Success!\n");
+    return ERROR_SUCCESS;
+  }
+  else {
+    printf("Failure!\n");
+    return ERROR_FAILURE;
+  }
 }
 
