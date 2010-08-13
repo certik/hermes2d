@@ -50,7 +50,8 @@ void omega_dc_fn(int n, scalar* a, scalar* dadx, scalar* dady, scalar* b, scalar
 // weak forms for the Newton's method
 
 template<typename Real, typename Scalar>
-Scalar newton_bilinear_form_0_0(int n, double *wt, Func<Real> *u_ext[], Func<Real> *vj, Func<Real> *vi, Geom<Real> *e, ExtData<Scalar> *ext)
+Scalar newton_bilinear_form_0_0(int n, double *wt, Func<Real> *u_ext[], 
+                                Func<Real> *vj, Func<Real> *vi, Geom<Real> *e, ExtData<Scalar> *ext)
 {
   Scalar result = 0;
   Func<Real>* domegadt = ext->fn[0];
@@ -62,7 +63,8 @@ Scalar newton_bilinear_form_0_0(int n, double *wt, Func<Real> *u_ext[], Func<Rea
 }
 
 template<typename Real, typename Scalar>
-Scalar newton_bilinear_form_0_0_surf(int n, double *wt, Func<Real> *u_ext[], Func<Real> *vj, Func<Real> *vi, Geom<Real> *e, ExtData<Scalar> *ext)
+Scalar newton_bilinear_form_0_0_surf(int n, double *wt, Func<Real> *u_ext[], 
+                                     Func<Real> *vj, Func<Real> *vi, Geom<Real> *e, ExtData<Scalar> *ext)
 {
   Scalar result = 0;
   for (int i = 0; i < n; i++)
@@ -71,7 +73,8 @@ Scalar newton_bilinear_form_0_0_surf(int n, double *wt, Func<Real> *u_ext[], Fun
 }
 
 template<typename Real, typename Scalar>
-Scalar newton_bilinear_form_0_1(int n, double *wt, Func<Real> *u_ext[], Func<Real> *vj, Func<Real> *vi, Geom<Real> *e, ExtData<Scalar> *ext)
+Scalar newton_bilinear_form_0_1(int n, double *wt, Func<Real> *u_ext[], 
+                                Func<Real> *vj, Func<Real> *vi, Geom<Real> *e, ExtData<Scalar> *ext)
 {
   Scalar result = 0;
   Func<Real>* domegady = ext->fn[0];
@@ -81,7 +84,8 @@ Scalar newton_bilinear_form_0_1(int n, double *wt, Func<Real> *u_ext[], Func<Rea
 }
 
 template<typename Real, typename Scalar>
-Scalar newton_bilinear_form_1_0(int n, double *wt, Func<Real> *u_ext[], Func<Real> *vj, Func<Real> *vi, Geom<Real> *e, ExtData<Scalar> *ext)
+Scalar newton_bilinear_form_1_0(int n, double *wt, Func<Real> *u_ext[], 
+                                Func<Real> *vj, Func<Real> *vi, Geom<Real> *e, ExtData<Scalar> *ext)
 {
   Scalar result = 0;
   Func<Real>* domegadt = ext->fn[0];
@@ -91,7 +95,8 @@ Scalar newton_bilinear_form_1_0(int n, double *wt, Func<Real> *u_ext[], Func<Rea
 }
 
 template<typename Real, typename Scalar>
-Scalar newton_bilinear_form_1_1(int n, double *wt, Func<Real> *u_ext[], Func<Real> *vj, Func<Real> *vi, Geom<Real> *e, ExtData<Scalar> *ext)
+Scalar newton_bilinear_form_1_1(int n, double *wt, Func<Real> *u_ext[], 
+                                Func<Real> *vj, Func<Real> *vi, Geom<Real> *e, ExtData<Scalar> *ext)
 {
   Scalar result = 0;
   Func<Real>* domegady = ext->fn[0];
@@ -104,7 +109,8 @@ Scalar newton_bilinear_form_1_1(int n, double *wt, Func<Real> *u_ext[], Func<Rea
 
 
 template<typename Real, typename Scalar>
-Scalar newton_linear_form_0(int n, double *wt, Func<Real> *u_ext[], Func<Real> *vi, Geom<Real> *e, ExtData<Scalar> *ext)
+Scalar newton_linear_form_0(int n, double *wt, Func<Real> *u_ext[], 
+                            Func<Real> *vi, Geom<Real> *e, ExtData<Scalar> *ext)
 {
   Scalar result = 0;
   Func<Real>* titer = u_ext[0];
@@ -112,14 +118,16 @@ Scalar newton_linear_form_0(int n, double *wt, Func<Real> *u_ext[], Func<Real> *
   Func<Real>* t_prev_time_2 = ext->fn[1];
   Func<Real>* omega = ext->fn[2];
   for (int i = 0; i < n; i++)
-    result += wt[i] * ( (3.0 * titer->val[i] - 4.0 * t_prev_time_1->val[i] + t_prev_time_2->val[i]) * vi->val[i] / (2.0 * TAU) +
+    result += wt[i] * ( (3.0 * titer->val[i] - 4.0 * t_prev_time_1->val[i] 
+                         + t_prev_time_2->val[i]) * vi->val[i] / (2.0 * TAU) +
                         (titer->dx[i] * vi->dx[i] + titer->dy[i] * vi->dy[i]) -
                         omega->val[i] * vi->val[i]);
   return result;
 }
 
 template<typename Real, typename Scalar>
-Scalar newton_linear_form_0_surf(int n, double *wt, Func<Real> *u_ext[], Func<Real> *vi, Geom<Real> *e, ExtData<Scalar> *ext)
+Scalar newton_linear_form_0_surf(int n, double *wt, Func<Real> *u_ext[], 
+                                 Func<Real> *vi, Geom<Real> *e, ExtData<Scalar> *ext)
 {
   Scalar result = 0;
   for (int i = 0; i < n; i++)
@@ -128,7 +136,8 @@ Scalar newton_linear_form_0_surf(int n, double *wt, Func<Real> *u_ext[], Func<Re
 }
 
 template<typename Real, typename Scalar>
-Scalar newton_linear_form_1(int n, double *wt, Func<Real> *u_ext[], Func<Real> *vi, Geom<Real> *e, ExtData<Scalar> *ext)
+Scalar newton_linear_form_1(int n, double *wt, Func<Real> *u_ext[], 
+                            Func<Real> *vi, Geom<Real> *e, ExtData<Scalar> *ext)
 {
   Scalar result = 0;
   Func<Real>* c_prev_newton = u_ext[0];

@@ -78,7 +78,7 @@ int main(int argc, char* argv[])
 
   // Previous time level solutions.
   Solution t_prev_time_1, c_prev_time_1, t_prev_time_2, c_prev_time_2, 
-    t_prev_newton, c_prev_newton;
+           t_prev_newton, c_prev_newton;
 
   // Filters for the reaction rate omega and its derivatives.
   DXDYFilter omega, omega_dt, omega_dc;
