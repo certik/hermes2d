@@ -107,10 +107,10 @@ template<typename Real, typename Scalar>
 Scalar newton_linear_form_0(int n, double *wt, Func<Real> *u_ext[], Func<Real> *vi, Geom<Real> *e, ExtData<Scalar> *ext)
 {
   Scalar result = 0;
-  Func<Real>* titer = ext->fn[0];
-  Func<Real>* t_prev_time_1 = ext->fn[1];
-  Func<Real>* t_prev_time_2 = ext->fn[2];
-  Func<Real>* omega = ext->fn[3];
+  Func<Real>* titer = u_ext[0];
+  Func<Real>* t_prev_time_1 = ext->fn[0];
+  Func<Real>* t_prev_time_2 = ext->fn[1];
+  Func<Real>* omega = ext->fn[2];
   for (int i = 0; i < n; i++)
     result += wt[i] * ( (3.0 * titer->val[i] - 4.0 * t_prev_time_1->val[i] + t_prev_time_2->val[i]) * vi->val[i] / (2.0 * TAU) +
                         (titer->dx[i] * vi->dx[i] + titer->dy[i] * vi->dy[i]) -
@@ -123,7 +123,7 @@ Scalar newton_linear_form_0_surf(int n, double *wt, Func<Real> *u_ext[], Func<Re
 {
   Scalar result = 0;
   for (int i = 0; i < n; i++)
-    result += wt[i] * (kappa * ext->fn[0]->val[i] * vi->val[i]);
+    result += wt[i] * (kappa * u_ext[0]->val[i] * vi->val[i]);
   return result;
 }
 
@@ -131,10 +131,10 @@ template<typename Real, typename Scalar>
 Scalar newton_linear_form_1(int n, double *wt, Func<Real> *u_ext[], Func<Real> *vi, Geom<Real> *e, ExtData<Scalar> *ext)
 {
   Scalar result = 0;
-  Func<Real>* c_prev_newton = ext->fn[0];
-  Func<Real>* c_prev_time_1 = ext->fn[1];
-  Func<Real>* c_prev_time_2 = ext->fn[2];
-  Func<Real>* omega = ext->fn[3];
+  Func<Real>* c_prev_newton = u_ext[0];
+  Func<Real>* c_prev_time_1 = ext->fn[0];
+  Func<Real>* c_prev_time_2 = ext->fn[1];
+  Func<Real>* omega = ext->fn[2];
   for (int i = 0; i < n; i++)
     result += wt[i] * ( (3.0 * c_prev_newton->val[i] - 4.0 * c_prev_time_1->val[i] + c_prev_time_2->val[i])
                          * vi->val[i] / (2.0 * TAU) +

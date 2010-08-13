@@ -1453,7 +1453,7 @@ bool solve_newton(Tuple<Space *> spaces, WeakForm* wf, Vector* coeff_vec,
                         it, get_num_dofs(spaces), res_l2_norm);
 
     // If l2 norm of the residual vector is in tolerance, quit.
-    if (res_l2_norm < newton_tol || it > newton_max_iter) break;
+    if (res_l2_norm < newton_tol|| it > newton_max_iter) break;
 
     // Solve the matrix problem.
     if (!solver->solve(mat, rhs)) error ("Matrix solver failed.\n");
