@@ -43,6 +43,9 @@ int main(int argc, char* argv[])
   ScalarView view1("Projection", 610, 0, 600, 500);
   view1.show(&sln);
 
+  // It will "Exception: SegFault" if we do not use View::wait() or View::close(). 
+  view1.close();
+
   bool success = true;
 
 #define ERROR_SUCCESS                               0

@@ -118,7 +118,6 @@ int main(int argc, char* argv[])
   wf.add_matrix_form(callback(jac), H2D_UNSYM, H2D_ANY);
   wf.add_vector_form(callback(res), H2D_ANY);
 
-
   // Initialize adaptivity parameters.
   AdaptivityParamType apt(ERR_STOP, NDOF_STOP, THRESHOLD, STRATEGY, 
                           MESH_REGULARITY);
@@ -131,7 +130,7 @@ int main(int argc, char* argv[])
   Solution *ref_sln = new Solution();
   WinGeom* sln_win_geom = new WinGeom(0, 0, 440, 350);
   WinGeom* mesh_win_geom = new WinGeom(450, 0, 400, 350);
-  bool verbose = true;     // Prinf info during adaptivity.
+  bool verbose = true;     // Print info during adaptivity.
   solve_newton_adapt(&space, &wf, H2D_H1_NORM, init_cond, sln, matrix_solver, ref_sln,
                      &selector, &apt, sln_win_geom, mesh_win_geom, 
                      NEWTON_TOL_COARSE, NEWTON_TOL_FINE, NEWTON_MAX_ITER, verbose);
