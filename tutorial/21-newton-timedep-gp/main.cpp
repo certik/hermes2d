@@ -106,7 +106,7 @@ int main(int argc, char* argv[])
   for(int ts = 1; ts <= nstep; ts++)
   {
 
-    info("---- Time step %d:", ts);
+    info("Time step %d:", ts);
 
     // Newton's method.
     info("Performing Newton's method.");

@@ -1348,7 +1348,7 @@ double get_l2_norm_cplx(Vector* vec)
 {
   cplx val_0 = cplx(0, 0);
   for (int i = 0; i < vec->get_size(); i++) val_0 = val_0 + vec->get_cplx(i)*conj(vec->get_cplx(i));
-  double val = magn(val_0);
+  double val = std::abs(val_0);
   val = sqrt(val);
   return val;
 }
