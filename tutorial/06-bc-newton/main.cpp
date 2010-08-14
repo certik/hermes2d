@@ -77,7 +77,7 @@ int main(int argc, char* argv[])
   // corner needs to be truncated for visualization purposes.)
   WinGeom* grad_win_geom = new WinGeom(450, 0, 400, 350);
   ScalarView gradview("Gradient", grad_win_geom);
-  MagFilter grad(&sln, &sln, H2D_FN_DX, H2D_FN_DY);
+  MagFilter grad(Tuple<MeshFunction>(&sln, &sln), Tuple<int>(H2D_FN_DX, H2D_FN_DY));
   gradview.show(&grad);
 
   // Wait for all views to be closed.

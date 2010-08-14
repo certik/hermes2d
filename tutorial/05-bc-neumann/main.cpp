@@ -77,7 +77,7 @@ int main(int argc, char* argv[])
   // (Note that the gradient at the re-entrant
   // corner needs to be truncated for visualization purposes.)
   ScalarView gradview("Gradient", grad_win_geom);
-  MagFilter grad(&sln, &sln, H2D_FN_DX, H2D_FN_DY);
+  MagFilter grad(Tuple<MeshFunction>(&sln, &sln), Tuple<int>(H2D_FN_DX, H2D_FN_DY));
   gradview.show(&grad);
 
   // Wait for the views to be closed.

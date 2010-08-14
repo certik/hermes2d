@@ -174,7 +174,7 @@ int main(int argc, char* argv[])
     xord.show(&xdisp);
     yord.show(&ydisp);
     tord.show(&temp);
-    VonMisesFilter mises(&x_sln_coarse, &y_sln_coarse, mu, lambda);
+    VonMisesFilter mises(Tuple<MeshFunction*>(&x_sln_coarse, &y_sln_coarse), mu, lambda);
     sview.set_min_max_range(0, 4e9);
     sview.show(&mises, H2D_EPS_HIGH);
     tview.show(&t_sln_coarse, H2D_EPS_HIGH);
@@ -223,7 +223,7 @@ int main(int argc, char* argv[])
   verbose("Total running time: %g s", cpu_time.accumulated());
 
   // Show the fine solution - the final result.
-  VonMisesFilter stress_fine(&x_sln_fine, &y_sln_fine, mu, lambda);
+  VonMisesFilter stress_fine(Tuple<MeshFunction*>(&x_sln_fine, &y_sln_fine), mu, lambda);
   sview.set_title("Final solution");
   sview.show_mesh(false);
   sview.set_min_max_range(0, 3e4);

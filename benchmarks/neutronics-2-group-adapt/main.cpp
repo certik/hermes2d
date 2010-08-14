@@ -431,8 +431,8 @@ int main(int argc, char* argv[])
 
     // Error w.r.t. the exact solution.
     ExactSolution ex1(&mesh1, exact_flux1), ex2(MULTIMESH ? &mesh2 : &mesh1, exact_flux2);
-    DiffFilter err_distrib_1(&ex1, &sln1);
-    DiffFilter err_distrib_2(&ex2, &sln2);
+    DiffFilter err_distrib_1(Tuple<MeshFunction*>(&ex1, &sln1));
+    DiffFilter err_distrib_2(Tuple<MeshFunction*>(&ex2, &sln2));
 
     double err_exact_h1_1 = calc_rel_error(&ex1, &sln1, H2D_H1_NORM) * 100;
     double err_exact_h1_2 = calc_rel_error(&ex2, &sln2, H2D_H1_NORM) * 100;

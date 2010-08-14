@@ -72,7 +72,7 @@ int main(int argc, char* argv[])
   // Visualize the solution.
   WinGeom* sln_win_geom = new WinGeom(0, 0, 800, 400);
   ScalarView view("Von Mises stress [Pa]", sln_win_geom);
-  VonMisesFilter stress(&u_sln, &v_sln, lambda, mu);
+  VonMisesFilter stress(Tuple<MeshFunction*>(&u_sln, &v_sln), lambda, mu);
   view.show_mesh(false);
   view.show(&stress, H2D_EPS_HIGH, H2D_FN_VAL_0, &u_sln, &v_sln, 1.5e5);
 

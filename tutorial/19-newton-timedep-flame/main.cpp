@@ -110,9 +110,9 @@ int main(int argc, char* argv[])
   c_prev_time_2.copy(&c_prev_newton);
 
   // Initialize filters.
-  omega.init(omega_fn, &t_prev_newton, &c_prev_newton);
-  omega_dt.init(omega_dt_fn, &t_prev_newton, &c_prev_newton);
-  omega_dc.init(omega_dc_fn, &t_prev_newton, &c_prev_newton);
+  omega.init(omega_fn, Tuple<MeshFunction*>(&t_prev_newton, &c_prev_newton));
+  omega_dt.init(omega_dt_fn, Tuple<MeshFunction*>(&t_prev_newton, &c_prev_newton));
+  omega_dc.init(omega_dc_fn, Tuple<MeshFunction*>(&t_prev_newton, &c_prev_newton));
 
   // Initialize view.
   ScalarView rview("Reaction rate", 0, 0, 800, 230);
@@ -132,7 +132,7 @@ int main(int argc, char* argv[])
     c_prev_newton.set_fe_solution(cspace, coeff_vec);
 
     // Visualization.
-    DXDYFilter omega_view(omega_fn, &t_prev_newton, &c_prev_newton);
+    DXDYFilter omega_view(omega_fn, Tuple<MeshFunction*>(&t_prev_newton, &c_prev_newton));
     rview.set_min_max_range(0.0,2.0);
     char title[100];
     sprintf(title, "Reaction rate, t = %g", current_time);

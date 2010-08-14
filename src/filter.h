@@ -32,13 +32,13 @@ class H2D_API Filter : public MeshFunction
 public:
 
   Filter() {};
-  Filter(MeshFunction* sln1);
-  Filter(MeshFunction* sln1, MeshFunction* sln2);
-  Filter(MeshFunction* sln1, MeshFunction* sln2, MeshFunction* sln3);
-  Filter(MeshFunction* sln1, MeshFunction* sln2, MeshFunction* sln3, MeshFunction* sln4);
-  virtual ~Filter();
 
-  virtual void set_quad_2d(Quad2D* quad_2d);
+  Filter(Tuple<MeshFunction*> solutions);
+  virtual ~Filter();
+	
+	void init(Tuple<MeshFunction*> solutions);
+  
+	virtual void set_quad_2d(Quad2D* quad_2d);
   virtual void set_active_element(Element* e);
   virtual void free();
   virtual void reinit();
@@ -47,17 +47,13 @@ public:
   virtual void pop_transform();
 
   virtual void init();
-  virtual void init(MeshFunction* sln1);
-  virtual void init(MeshFunction* sln1, MeshFunction* sln2);
-  virtual void init(MeshFunction* sln1, MeshFunction* sln2, MeshFunction* sln3);
-  virtual void init(MeshFunction* sln1, MeshFunction* sln2, MeshFunction* sln3, MeshFunction* sln4);
 
 protected:
 
   int num;
-  MeshFunction* sln[4];
-  uint64_t sln_sub[4];
-  void* tables[4];
+  MeshFunction* sln[10];
+  uint64_t sln_sub[10];
+  void* tables[10];
 
   bool unimesh;
   UniData** unidata;
@@ -88,19 +84,9 @@ public:
 
   SimpleFilter() {};
 
-  SimpleFilter(void (*filter_fn)(int n, scalar* val1, scalar* result),
-               MeshFunction* sln1, int item1 = H2D_FN_VAL);
+  SimpleFilter(void (*filter_fn)(int n, Tuple<scalar*> values, scalar* result),
+               Tuple<MeshFunction*> solutions, Tuple<int> items = *(new Tuple<int>));
 
-  SimpleFilter(void (*filter_fn)(int n, scalar* val1, scalar* val2, scalar* result),
-               MeshFunction* sln1, MeshFunction* sln2, int item1 = H2D_FN_VAL, int item2 = H2D_FN_VAL);
-
-  SimpleFilter(void (*filter_fn)(int n, scalar* val1, scalar* val2, scalar* val3, scalar* result),
-               MeshFunction* sln1, MeshFunction* sln2, MeshFunction* sln3,
-               int item1 = H2D_FN_VAL, int item2 = H2D_FN_VAL, int item3 = H2D_FN_VAL);
-
-  SimpleFilter(void (*filter_fn)(int n, scalar* val1, scalar* val2, scalar* val3, scalar* val4, scalar* result),
-               MeshFunction* sln1, MeshFunction* sln2, MeshFunction* sln3, MeshFunction* sln4,
-               int item1 = H2D_FN_VAL, int item2 = H2D_FN_VAL, int item3 = H2D_FN_VAL, int item4 = H2D_FN_VAL);
 
   virtual scalar get_pt_value(double x, double y, int item = H2D_FN_VAL_0);
 
@@ -108,10 +94,7 @@ protected:
 
   int item[3];
 
-  void (*filter_fn_1)(int n, scalar*, scalar*);
-  void (*filter_fn_2)(int n, scalar*, scalar*, scalar*);
-  void (*filter_fn_3)(int n, scalar*, scalar*, scalar*, scalar*);
-  void (*filter_fn_4)(int n, scalar*, scalar*, scalar*, scalar*, scalar*);
+  void (*filter_fn)(int n, Tuple<scalar*>, scalar*);
 
   void init_components();
   virtual void precalculate(int order, int mask);
@@ -128,47 +111,20 @@ class H2D_API DXDYFilter : public Filter
 {
 public:
 
-  // one input (val1), one result (rslt), all including derivatives
-  typedef void (*filter_fn_1_t)(int n, scalar* val1, scalar* val1_dx, scalar* val1_dy,
-                                       scalar* rslt, scalar* rslt_dx, scalar* rslt_dy);
+  // one result (rslt), all inputs and result including derivatives
+  typedef void (*filter_fn_)(int n, Tuple<scalar *> values, Tuple<scalar *> dx, Tuple<scalar *> dy, scalar* rslt, scalar* rslt_dx, scalar* rslt_dy);
 
-  // two inputs (val1, val2), one result (rslt), all including derivatives
-  typedef void (*filter_fn_2_t)(int n, scalar* val1, scalar* val1_dx, scalar* val1_dy,
-                                       scalar* val2, scalar* val2_dx, scalar* val2_dy,
-                                       scalar* rslt, scalar* rslt_dx, scalar* rslt_dy);
-
-  // three inputs (val1, val2, val3), one result (rslt), all including derivatives
-  typedef void (*filter_fn_3_t)(int n, scalar* val1, scalar* val1_dx, scalar* val1_dy,
-                                       scalar* val2, scalar* val2_dx, scalar* val2_dy,
-                                       scalar* val3, scalar* val3_dx, scalar* val3_dy,
-                                       scalar* rslt, scalar* rslt_dx, scalar* rslt_dy);
-
-  // four inputs (val1, val2, val3, val4), one result (rslt), all including derivatives
-  typedef void (*filter_fn_4_t)(int n, scalar* val1, scalar* val1_dx, scalar* val1_dy,
-                                       scalar* val2, scalar* val2_dx, scalar* val2_dy,
-                                       scalar* val3, scalar* val3_dx, scalar* val3_dy,
-                                       scalar* val4, scalar* val4_dx, scalar* val4_dy,
-                                       scalar* rslt, scalar* rslt_dx, scalar* rslt_dy);
-  DXDYFilter() {};
-  DXDYFilter(filter_fn_1_t fn, MeshFunction* sln1);
-  DXDYFilter(filter_fn_2_t fn, MeshFunction* sln1, MeshFunction* sln2);
-  DXDYFilter(filter_fn_3_t fn, MeshFunction* sln1, MeshFunction* sln2, MeshFunction* sln3);
-  DXDYFilter(filter_fn_4_t fn, MeshFunction* sln1, MeshFunction* sln2, MeshFunction* sln3, MeshFunction* sln4);
-
-  void init(filter_fn_1_t fn, MeshFunction* sln1);
-  void init(filter_fn_2_t fn, MeshFunction* sln1, MeshFunction* sln2);
-  void init(filter_fn_3_t fn, MeshFunction* sln1, MeshFunction* sln2, MeshFunction* sln3);
-  void init(filter_fn_4_t fn, MeshFunction* sln1, MeshFunction* sln2, MeshFunction* sln3, MeshFunction* sln4);
-
-  virtual scalar get_pt_value(double x, double y, int item = H2D_FN_VAL_0)
+	DXDYFilter() {};
+  DXDYFilter(filter_fn_ filter_fn, Tuple<MeshFunction*> solutions);
+	
+	void init(filter_fn_ filter_fn, Tuple<MeshFunction*> solutions);
+  
+		virtual scalar get_pt_value(double x, double y, int item = H2D_FN_VAL_0)
   { error("Not implemented yet"); return 0; }
 
 protected:
 
-  filter_fn_1_t filter_fn_1;
-  filter_fn_2_t filter_fn_2;
-  filter_fn_3_t filter_fn_3;
-  filter_fn_4_t filter_fn_4;
+  filter_fn_ filter_fn;
 
   void init_components();
   virtual void precalculate(int order, int mask);
@@ -181,36 +137,38 @@ protected:
 /// \brief Calculates the magnitude of a vector function.
 class H2D_API MagFilter : public SimpleFilter
 {
-  public: MagFilter(MeshFunction* sln1, MeshFunction* sln2, int item1 = H2D_FN_VAL, int item2 = H2D_FN_VAL);
-          MagFilter(MeshFunction* sln1, int item1 = H2D_FN_VAL); // for vector-valued sln1
+  public: 
+		MagFilter() {};
+		MagFilter(Tuple<MeshFunction*> solutions, Tuple<int> items = *(new Tuple<int>));
+		MagFilter(MeshFunction* sln1, int item1 = H2D_FN_VAL); // for vector-valued sln1
 };
 
 
 /// Calculates the difference of two functions.
 class H2D_API DiffFilter : public SimpleFilter
 {
-  public: DiffFilter(MeshFunction* sln1, MeshFunction* sln2, int item1 = H2D_FN_VAL, int item2 = H2D_FN_VAL);
+  public: DiffFilter(Tuple<MeshFunction*> solutions, Tuple<int> items = *(new Tuple<int>));
 };
 
 
 /// Calculates the sum of two functions.
 class H2D_API SumFilter : public SimpleFilter
 {
-  public: SumFilter(MeshFunction* sln1, MeshFunction* sln2, int item1 = H2D_FN_VAL, int item2 = H2D_FN_VAL);
+  public: SumFilter(Tuple<MeshFunction*> solutions, Tuple<int> items = *(new Tuple<int>));
 };
 
 
 /// Calculates the square of a function.
 class H2D_API SquareFilter : public SimpleFilter
 {
-  public: SquareFilter(MeshFunction* sln1, int item1 = H2D_FN_VAL);
+  public: SquareFilter(Tuple<MeshFunction*> solutions, Tuple<int> items = *(new Tuple<int>));
 };
 
 
 /// Removes the imaginary part from a function.
 class H2D_API RealFilter : public SimpleFilter
 {
-  public: RealFilter(MeshFunction* sln1, int item1 = H2D_FN_VAL);
+  public: RealFilter(Tuple<MeshFunction*> solutions, Tuple<int> items = *(new Tuple<int>));
 };
 
 
@@ -218,20 +176,20 @@ class H2D_API RealFilter : public SimpleFilter
 /// output, allowing it to be visualized.
 class H2D_API ImagFilter : public SimpleFilter
 {
-  public: ImagFilter(MeshFunction* sln1, int item1 = H2D_FN_VAL);
+  public: ImagFilter(Tuple<MeshFunction*> solutions, Tuple<int> items = *(new Tuple<int>));
 };
 
 
 /// Computes the absolute value of a complex solution.
 class H2D_API AbsFilter : public SimpleFilter
 {
-  public: AbsFilter(MeshFunction* sln1, int item1 = H2D_FN_VAL);
+  public: AbsFilter(Tuple<MeshFunction*> solutions, Tuple<int> items = *(new Tuple<int>));
 };
 
 /// Computes the angle of a complex solution.
 class H2D_API AngleFilter : public SimpleFilter
 {
-  public: AngleFilter(MeshFunction* sln1, int item1 = H2D_FN_VAL);
+  public: AngleFilter(Tuple<MeshFunction*> solutions, Tuple<int> items = *(new Tuple<int>));
 };
 
 
@@ -243,7 +201,7 @@ class H2D_API VonMisesFilter : public Filter
 {
 public: // TODO: cylindrical coordinates
 
-  VonMisesFilter(MeshFunction* sln1, MeshFunction* sln2, double lambda, double mu,
+  VonMisesFilter(Tuple<MeshFunction*> solutions, double lambda, double mu,
                  int cyl = 0, int item1 = H2D_FN_VAL, int item2 = H2D_FN_VAL);
 
   virtual scalar get_pt_value(double x, double y, int item = H2D_FN_VAL_0)
