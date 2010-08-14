@@ -242,9 +242,9 @@ protected:
   bool struct_changed;
 };
 
-int get_num_dofs(Tuple<Space *> spaces);
+H2D_API int get_num_dofs(Tuple<Space *> spaces);
 
-void init_matrix_solver(MatrixSolverType matrix_solver, int ndof, 
+H2D_API void init_matrix_solver(MatrixSolverType matrix_solver, int ndof, 
                         Matrix* &mat, Vector* &rhs, 
                         CommonSolver* &solver, bool is_complex = false);
 
@@ -256,30 +256,30 @@ void init_matrix_solver(MatrixSolverType matrix_solver, int ndof,
 void project_internal(Tuple<Space *> spaces, WeakForm *proj_wf, 
                     Tuple<Solution*> target_slns = Tuple<Solution*>(), Vector* target_vec = NULL, bool is_complex = false);
 
-void project_global(Tuple<Space *> spaces, Tuple<int> proj_norms, Tuple<MeshFunction *> source_meshfns, 
+H2D_API void project_global(Tuple<Space *> spaces, Tuple<int> proj_norms, Tuple<MeshFunction *> source_meshfns, 
                     Tuple<Solution*> target_slns = Tuple<Solution*>(), Vector* target_vec = NULL, bool is_complex = false);
 
-void project_global(Tuple<Space *> spaces, Tuple<int> proj_norms, Tuple<ExactFunction> source_exactfns, 
+H2D_API void project_global(Tuple<Space *> spaces, Tuple<int> proj_norms, Tuple<ExactFunction> source_exactfns, 
                     Tuple<Solution*> target_slns, Vector* target_vec, bool is_complex = false);
 
-void project_global(Tuple<Space *> spaces, matrix_forms_tuple_t proj_biforms, 
+H2D_API void project_global(Tuple<Space *> spaces, matrix_forms_tuple_t proj_biforms, 
                     vector_forms_tuple_t proj_liforms, Tuple<MeshFunction*> source_meshfns, 
                     Tuple<Solution*> target_slns = Tuple<Solution*>(),
                     Vector* target_vec = NULL, bool is_complex = false);
 
-void project_global(Space *space, int proj_norm, ExactFunction source_fn, Solution* target_sln = NULL, 
+H2D_API void project_global(Space *space, int proj_norm, ExactFunction source_fn, Solution* target_sln = NULL, 
                     Vector* target_vec = NULL, bool is_complex = false);
 
-void project_global(Space *space, 
+H2D_API void project_global(Space *space, 
                     std::pair<WeakForm::matrix_form_val_t, WeakForm::matrix_form_ord_t> proj_biform,
                     std::pair<WeakForm::vector_form_val_t, WeakForm::vector_form_ord_t> proj_liform,
                     ExactFunction source_fn, Solution* target_sln = NULL,
                     Vector* target_vec = NULL, bool is_complex = false);
 
-void project_global(Space *space, ExactFunction2 source_fn, Solution* target_sln = NULL, Vector* target_vec = NULL, 
+H2D_API void project_global(Space *space, ExactFunction2 source_fn, Solution* target_sln = NULL, Vector* target_vec = NULL, 
                     bool is_complex = false);
 
-void project_local(Space *space, int proj_norm, ExactFunction source_fn, Mesh* mesh,
+H2D_API void project_local(Space *space, int proj_norm, ExactFunction source_fn, Mesh* mesh,
                    Solution* target_sln = NULL, Vector* target_vec = NULL, 
                    bool is_complex = false);
 
@@ -287,7 +287,7 @@ void project_local(Space *space, int proj_norm, ExactFunction source_fn, Mesh* m
 /// obtain a coefficient vector. Then it employs the function solve_newton() below
 /// that takes a coefficient vector and delivers a coefficient vector. The resulting
 /// coefficient vector is translated into resulting Solutions. 
-bool solve_newton(Tuple<Space *> spaces, WeakForm* wf, Tuple<int>proj_norms,  
+H2D_API bool solve_newton(Tuple<Space *> spaces, WeakForm* wf, Tuple<int>proj_norms,  
                   Tuple<MeshFunction *> init_meshfns, Tuple<Solution *> target_slns, 
                   MatrixSolverType matrix_solver, double newton_tol = 1e-5, 
                   int newton_max_iter = 100, bool verbose = false, 
@@ -296,7 +296,7 @@ bool solve_newton(Tuple<Space *> spaces, WeakForm* wf, Tuple<int>proj_norms,
 
 /// Basic Newton's loop. Takes a coefficient vector, delivers a coefficient vector (in the 
 /// same variable "init_coeff_vector").
-bool solve_newton(Tuple<Space *> spaces, WeakForm* wf, Vector* init_coeff_vec,
+H2D_API bool solve_newton(Tuple<Space *> spaces, WeakForm* wf, Vector* init_coeff_vec,
                   MatrixSolverType matrix_solver, double newton_tol = 1e-5, 
                   int newton_max_iter = 100, bool verbose = false, 
                   Tuple<MeshFunction*> mesh_fns = Tuple<MeshFunction*>(), 
@@ -306,7 +306,7 @@ bool solve_newton(Tuple<Space *> spaces, WeakForm* wf, Vector* init_coeff_vec,
 // Solve a typical nonlinear problem using the Newton's method and 
 // automatic adaptivity. 
 // Feel free to adjust this function for more advanced applications.
-bool solve_newton_adapt(Tuple<Space *> spaces, WeakForm* wf, Tuple<int>proj_norms, 
+H2D_API bool solve_newton_adapt(Tuple<Space *> spaces, WeakForm* wf, Tuple<int>proj_norms, 
                         Tuple<MeshFunction *> init_meshfns, Tuple<Solution *> slns, 
                         MatrixSolverType matrix_solver,  Tuple<Solution *> ref_slns, 
                         Tuple<RefinementSelectors::Selector *> selectors, AdaptivityParamType* apt,
@@ -315,7 +315,7 @@ bool solve_newton_adapt(Tuple<Space *> spaces, WeakForm* wf, Tuple<int>proj_norm
                         bool verbose = false, Tuple<ExactSolution *> exact_slns = Tuple<ExactSolution *>(), 
                         bool is_complex = false);
 
-bool solve_newton_adapt(Tuple<Space *> spaces, WeakForm* wf, Tuple<int>proj_norms, 
+H2D_API bool solve_newton_adapt(Tuple<Space *> spaces, WeakForm* wf, Tuple<int>proj_norms, 
                         Tuple<ExactFunction> init_exactfns, Tuple<Solution *> slns, 
                         MatrixSolverType matrix_solver,  Tuple<Solution *> ref_slns, 
                         Tuple<RefinementSelectors::Selector *> selectors, AdaptivityParamType* apt,

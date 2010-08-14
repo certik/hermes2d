@@ -6,14 +6,7 @@
 
 using namespace RefinementSelectors;
 
-// This example solves adaptively the electric field in a simplified microwave oven.
-// The waves are generated using a harmonic surface current on the right-most edge.
-// (Such small cavity is present in every microwave oven). There is a circular
-// load located in the middle of the main cavity, defined through a different
-// permittivity -- see function in_load(...). One can either use a mesh that is
-// aligned to the load via curvilinear elements (ALIGN_MESH = true), or an unaligned
-// mesh (ALIGN_MESH = false). Convergence graphs are saved both wrt. the dof number
-// and cpu time.
+// This is a long version of example "waveguide": function solve_linear_adapt() is not used.
 //
 // PDE: time-harmonic Maxwell's equations;
 //      there is circular load in the middle of the large cavity, whose permittivity
