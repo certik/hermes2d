@@ -32,7 +32,7 @@ const int STRATEGY = 0;                           // Adaptive strategy:
                                                   // STRATEGY = 2 ... refine all elements whose error is larger
                                                   //   than THRESHOLD.
                                                   // More adaptive strategies can be created in adapt_ortho_h1.cpp.
-const CandList CAND_LIST = H2D_HP_ANISO_H;          // Predefined list of element refinement candidates. Possible values are
+const CandList CAND_LIST = H2D_HP_ANISO_H;        // Predefined list of element refinement candidates. Possible values are
                                                   // H2D_P_ISO, H2D_P_ANISO, H2D_H_ISO, H2D_H_ANISO, H2D_HP_ISO,
                                                   // H2D_HP_ANISO_H, H2D_HP_ANISO_P, H2D_HP_ANISO.
                                                   // See User Documentation for details.
@@ -44,7 +44,7 @@ const int MESH_REGULARITY = -1;                   // Maximum allowed level of ha
                                                   // their notoriously bad performance.
 const double CONV_EXP = 1.0;                      // Default value is 1.0. This parameter influences the selection of
                                                   // cancidates in hp-adaptivity. See get_optimal_refinement() for details.
-const double ERR_STOP = 1.0;                     // Stopping criterion for adaptivity (rel. error tolerance between the
+const double ERR_STOP = 1.0;                      // Stopping criterion for adaptivity (rel. error tolerance between the
                                                   // reference mesh and coarse mesh solution in percent).
 const int NDOF_STOP = 60000;                      // Adaptivity process stops when the number of degrees of freedom grows
                                                   // over this limit. This is to prevent h-adaptivity to go on forever.
@@ -52,10 +52,17 @@ MatrixSolverType matrix_solver = SOLVER_UMFPACK;  // Possibilities: SOLVER_UMFPA
                                                   // SOLVER_MUMPS, and more are coming.
 
 // Problem parameters.
-double ALPHA = 50;           // (X_LOC, Y_LOC) is the center of the circular wave front, R_ZERO is the distance from the 
-double X_LOC = 0.5;          // wave front to the center of the circle, and ALPHA gives the steepness of the wave front.
-double Y_LOC = 0.5;
-double R_ZERO = 0.25;
+double ALPHA;          // (X_LOC, Y_LOC) is the center of the circular wave front, R_ZERO is the distance from the 
+double X_LOC;          // wave front to the center of the circle, and ALPHA gives the steepness of the wave front.
+double Y_LOC;
+double R_ZERO;
+
+int PROB_PARAM = 0;    // PROB_PARAM destermines which parameter values you wish to use for the steepness and location of the wave front. 
+                       //    name		ALPHA	X_LOC	Y_LOC	R_ZERO
+                       // 0: mild		20	-0.05	-0.05	0.7
+                       // 1: steep		1000	-0.05	-0.05	0.7
+                       // 2: asymmetric         1000	 1.5	 0.25	0.92
+                       // 3: well		50	 0.5	 0.5	0.25
 
 // Exact solution.
 #include "exact_solution.cpp"
