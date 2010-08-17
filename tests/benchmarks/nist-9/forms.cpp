@@ -6,7 +6,7 @@ Scalar bilinear_form(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *u, Fu
 
 template<typename Real>
 Real rhs(Real x, Real y)
-{  
+{
   if (PROB_PARAM == 0){
    ALPHA = 20;
    X_LOC = -0.05;
@@ -40,7 +40,7 @@ else{
   Real f = (pow(ALPHA*c - (ALPHA * R_ZERO), 2) + 1.0);
   Real g = (ALPHA * c - (ALPHA * R_ZERO));
 
-  return ((ALPHA/(c * f)) - (d/(2 * pow(a + b, 1.5) * f)) - ((ALPHA * d * g)/((a + b) * pow(f, 2))) + 
+  return ((ALPHA/(c * f)) - (d/(2 * pow(a + b, 1.5) * f)) - ((ALPHA * d * g)/((a + b) * pow(f, 2))) +
          (ALPHA/(c * f)) - (e/(2 * pow(a + b, 1.5) * f)) - ((ALPHA * e * g)/((a + b) * pow(f, 2))));
 }
 

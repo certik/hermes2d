@@ -6,14 +6,7 @@
 
 using namespace RefinementSelectors;
 
-// This example solves adaptively the electric field in a simplified microwave oven.
-// The waves are generated using a harmonic surface current on the right-most edge.
-// (Such small cavity is present in every microwave oven). There is a circular
-// load located in the middle of the main cavity, defined through a different
-// permittivity -- see function in_load(...). One can either use a mesh that is
-// aligned to the load via curvilinear elements (ALIGN_MESH = true), or an unaligned
-// mesh (ALIGN_MESH = false). Convergence graphs are saved both wrt. the dof number
-// and cpu time.
+// This is a long version of example "waveguide": function solve_linear_adapt() is not used.
 //
 // PDE: time-harmonic Maxwell's equations;
 //      there is circular load in the middle of the large cavity, whose permittivity
@@ -138,6 +131,10 @@ double er(int marker, Ord x, Ord y)
 
 int main(int argc, char* argv[])
 {
+  // Time measurement.
+  TimePeriod cpu_time;
+  cpu_time.tick();
+
   // Load the mesh.
   Mesh mesh;
   H2DReader mloader;
@@ -155,27 +152,103 @@ int main(int argc, char* argv[])
   wf.add_matrix_form(callback(bilinear_form));
   wf.add_vector_form_surf(callback(linear_form_surf));
 
+  // Initialize views.
+  VectorView eview("Electric field", 0, 0, 580, 400);
+  OrderView ord("Order", 590, 0, 550, 400);
+
+  /*
+  // View the basis functions.
+  VectorBaseView bview;
+  vbview.show(&space);
+  */
+
+  // DOF and CPU convergence graphs.
+  SimpleGraph graph_dof_est, graph_cpu_est;
+
   // Initialize refinements selector.
   HcurlProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
 
-  // Initialize adaptivity parameters.
-  double to_be_processed = 0;
-  AdaptivityParamType apt(ERR_STOP, NDOF_STOP, THRESHOLD, STRATEGY,
-                          MESH_REGULARITY, to_be_processed, H2D_TOTAL_ERROR_REL, 
-                          H2D_ELEMENT_ERROR_REL);
-  // Geometry and position of visualization windows.
-  WinGeom* sln_win_geom = new WinGeom(0, 355, 900, 300);
-  WinGeom* mesh_win_geom = new WinGeom(0, 0, 900, 300);
+  // Initialize matrix solver.
+  Matrix* mat; Vector* rhs; CommonSolver* solver;  
+  bool is_complex = true; 
+  init_matrix_solver(matrix_solver, space.get_num_dofs(), mat, rhs, solver, is_complex);
 
-  // Adaptivity loop.
-  Solution *sln = new Solution();
-  Solution *ref_sln = new Solution();
-  bool verbose = true;  // Print info during adaptivity.
-  bool is_complex = true;
-  solve_linear_adapt(&space, &wf, H2D_HCURL_NORM, sln, matrix_solver,
-                     ref_sln, &selector, &apt, 
-                     Tuple<WinGeom *>(sln_win_geom), Tuple<WinGeom *>(mesh_win_geom),
-                     verbose, Tuple<ExactSolution *>(), is_complex);
+  // Adaptivity loop:
+  Solution sln, ref_sln;
+  int as = 1; bool done = false;
+  do
+  {
+    info("---- Adaptivity step %d:", as);
+    info("Solving on reference mesh.");
+
+    // Construct the globally refined reference mesh.
+    Mesh ref_mesh;
+    ref_mesh.copy(&mesh);
+    ref_mesh.refine_all_elements();
+
+    // Setup space for the reference solution.
+    Space *ref_space = space.dup(&ref_mesh);
+    int order_increase = 1;
+    ref_space->copy_orders(&space, order_increase);
+ 
+    // Solve the reference problem.
+    solve_linear(ref_space, &wf, &ref_sln, matrix_solver, is_complex);
+
+    // Project the reference solution on the coarse mesh.
+    info("Projecting reference solution on coarse mesh.");
+    // NULL means that we do not want to know the resulting coefficient vector.
+    project_global(&space, H2D_HCURL_NORM, &ref_sln, &sln, NULL, is_complex);
+
+    // Time measurement.
+    cpu_time.tick();
+
+    // Show real part of the solution.
+    AbsFilter abs(&sln);
+    eview.set_min_max_range(0, 4e3);
+    eview.show(&abs);
+    ord.show(&space);
+
+    // Skip visualization time. 
+    cpu_time.tick(HERMES_SKIP);
+
+    // Calculate error estimate wrt. reference solution.
+    info("Calculating error.");
+    Adapt hp(&space, H2D_HCURL_NORM);
+    hp.set_solutions(&sln, &ref_sln);
+    hp.set_error_form(callback(hcurl_form_kappa));  // Adaptivity is done using an "energetic norm".
+    double err_est_adapt = hp.calc_elem_errors() * 100;
+    double err_est_hcurl = calc_abs_error(&sln, &ref_sln, H2D_HCURL_NORM);
+    double norm_est = calc_norm(&ref_sln, H2D_HCURL_NORM); 
+    double err_est_hcurl_rel = err_est_hcurl / norm_est * 100;
+
+    // Report results.
+    info("ndof: %d, ref_ndof: %d, err_est: %g%%", 
+         space.get_num_dofs(), ref_space->get_num_dofs(), err_est_hcurl_rel);
+
+    // Add entries to DOF convergence graphs.
+    graph_dof_est.add_values(space.get_num_dofs(), err_est_hcurl_rel);
+    graph_dof_est.save("conv_dof_est.dat");
+
+    // Add entries to CPU convergence graphs.
+    graph_cpu_est.add_values(cpu_time.accumulated(), err_est_hcurl_rel);
+    graph_cpu_est.save("conv_cpu_est.dat");
+
+    // If err_est_adapt too large, adapt the mesh.
+    if (err_est_hcurl_rel < ERR_STOP) done = true;
+    else {
+      info("Adapting coarse mesh.");
+      done = hp.adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY);
+      if (space.get_num_dofs() >= NDOF_STOP) done = true;
+    }
+
+    as++;
+  }
+  while (done == false);
+  verbose("Total running time: %g s", cpu_time.accumulated());
+
+  // Show the fine mesh solution - the final result.
+  eview.set_title("Final solution");
+  eview.show(&ref_sln);
 
   // Wait for all views to be closed.
   View::wait();

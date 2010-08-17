@@ -1,26 +1,37 @@
-#define H2D_REPORT_WARN
-#define H2D_REPORT_INFO
-#define H2D_REPORT_VERBOSE
-#define H2D_REPORT_FILE "application.log"
 #include "hermes2d.h"
 
 using namespace RefinementSelectors;
 
-//  This is the fourth in the series of NIST benchmarks with known exact solutions.
-//
-//  Reference: W. Mitchell, A Collection of 2D Elliptic Problems for Testing Adaptive Algorithms, 
-//                          NIST Report 7668, February 2010.
-//
-//  PDE: -Laplace u = f.
-//
-//  Known exact solution: exp(-ALPHA*(pow(x - X_LOC, 2) + pow(y - Y_LOC, 2))).
-//  See functions fn() and fndd() in "exact_solution.cpp".
-//
-//  Domain: unit square (0, 1)x(0, 1), see the file "square.mesh".
-//
-//  BC:  Dirichlet, given by exact solution.
-//
-//  The following parameters can be changed:
+/** \addtogroup t_bench_nist-9 benchmarks/nist-9
+ *  \{
+ *  \brief This test makes sure that the benchmark nist-9 works correctly.
+ *  (Testing version NIST-9 "well")
+ *
+ *  \section s_params Parameters
+ *   - PROB_PARAM = 3
+ *   - INIT_REF_NUM=2
+ *   - P_INIT=1
+ *   - THRESHOLD=0.3
+ *   - STRATEGY=0
+ *   - CAND_LIST=H2D_HP_ANISO_H;
+ *   - MESH_REGULARITY=-1
+ *   - CONV_EXP=1.0
+ *   - ERR_STOP=1.0
+ *   - NDOF_STOP=60000
+ *   - matrix_solver = SOLVER_UMFPACK
+ *
+ *
+ *  \section s_res Results
+ *   - DOFs: 1573
+ *   - Adaptivity steps: 14
+ */
+
+int PROB_PARAM = 3;    // PROB_PARAM determines which parameter values you wish to use for the steepness and location of the wave front. 
+                       //    name               ALPHA   X_LOC   Y_LOC   R_ZERO
+                       // 0: mild               20      -0.05   -0.05   0.7
+                       // 1: steep              1000    -0.05   -0.05   0.7
+                       // 2: asymmetric         1000     1.5     0.25   0.92
+                       // 3: well               50       0.5     0.5    0.25
 
 const int P_INIT = 1;                             // Initial polynomial degree of all mesh elements.
 const int INIT_REF_NUM = 2;                       // Number of initial uniform mesh refinements.
@@ -35,7 +46,7 @@ const int STRATEGY = 0;                           // Adaptive strategy:
                                                   // STRATEGY = 2 ... refine all elements whose error is larger
                                                   //   than THRESHOLD.
                                                   // More adaptive strategies can be created in adapt_ortho_h1.cpp.
-const CandList CAND_LIST = H2D_HP_ANISO;          // Predefined list of element refinement candidates. Possible values are
+const CandList CAND_LIST = H2D_HP_ANISO_H;        // Predefined list of element refinement candidates. Possible values are
                                                   // H2D_P_ISO, H2D_P_ANISO, H2D_H_ISO, H2D_H_ANISO, H2D_HP_ISO,
                                                   // H2D_HP_ANISO_H, H2D_HP_ANISO_P, H2D_HP_ANISO.
                                                   // See User Documentation for details.
@@ -45,29 +56,36 @@ const int MESH_REGULARITY = -1;                   // Maximum allowed level of ha
                                                   // MESH_REGULARITY = 2 ... at most two-level hanging nodes, etc.
                                                   // Note that regular meshes are not supported, this is due to
                                                   // their notoriously bad performance.
-const double CONV_EXP = 0.5;                      // Default value is 1.0. This parameter influences the selection of
+const double CONV_EXP = 1.0;                      // Default value is 1.0. This parameter influences the selection of
                                                   // cancidates in hp-adaptivity. See get_optimal_refinement() for details.
-const double ERR_STOP = 0.01;                     // Stopping criterion for adaptivity (rel. error tolerance between the
+const double ERR_STOP = 1.0;                      // Stopping criterion for adaptivity (rel. error tolerance between the
                                                   // reference mesh and coarse mesh solution in percent).
 const int NDOF_STOP = 60000;                      // Adaptivity process stops when the number of degrees of freedom grows
                                                   // over this limit. This is to prevent h-adaptivity to go on forever.
 MatrixSolverType matrix_solver = SOLVER_UMFPACK;  // Possibilities: SOLVER_UMFPACK, SOLVER_PETSC,
                                                   // SOLVER_MUMPS, and more are coming.
 
-// Problem parameters.                      
-double ALPHA = 1000;      // This problem has and exponential peak in the interior of the domain.
-double X_LOC = 0.5;       // (X_LOC, Y_LOC) is the location of the peak, and ALPHA determines the strenghth of the peak.
-double Y_LOC = 0.5;
+// Problem parameters.
+double ALPHA;          // (X_LOC, Y_LOC) is the center of the circular wave front, R_ZERO is the distance from the 
+double X_LOC;          // wave front to the center of the circle, and ALPHA gives the steepness of the wave front.
+double Y_LOC;
+double R_ZERO;
 
- 
+
 // Exact solution.
 #include "exact_solution.cpp"
 
 // Boundary condition types.
-BCType bc_types(int marker) { return BC_ESSENTIAL;}
+BCType bc_types(int marker)
+{
+  return BC_ESSENTIAL;
+}
 
 // Essential (Dirichlet) boundary condition values.
-scalar essential_bc_values(int ess_bdy_marker, double x, double y) { return fn(x, y);}
+scalar essential_bc_values(int ess_bdy_marker, double x, double y)
+{
+  return fn(x, y);
+}
 
 // Weak forms.
 #include "forms.cpp"
@@ -82,7 +100,7 @@ int main(int argc, char* argv[])
   Mesh mesh;
   H2DReader mloader;
   mloader.load("square_quad.mesh", &mesh);     // quadrilaterals
-  //mloader.load("square_tri.mesh", &mesh);   // triangles
+  // mloader.load("square_tri.mesh", &mesh);   // triangles
 
   // Perform initial mesh refinements.
   for (int i=0; i<INIT_REF_NUM; i++) mesh.refine_all_elements();
@@ -106,13 +124,24 @@ int main(int argc, char* argv[])
   Solution *sln = new Solution();
   Solution *ref_sln = new Solution();
   ExactSolution exact(&mesh, fndd);
-  WinGeom* sln_win_geom = new WinGeom(0, 0, 440, 350);
-  WinGeom* mesh_win_geom = new WinGeom(450, 0, 400, 350);
   bool verbose = true;     // Prinf info during adaptivity.
   solve_linear_adapt(&space, &wf, H2D_H1_NORM, sln, matrix_solver, ref_sln, 
-                     &selector, &apt, sln_win_geom, mesh_win_geom, verbose, &exact);
+                     &selector, &apt, NULL, NULL, verbose, &exact);
 
-  // Wait for all views to be closed.
-  View::wait();
-  return 0;
+  int ndof = get_num_dofs(&space);
+
+#define ERROR_SUCCESS                               0
+#define ERROR_FAILURE                               -1
+  int n_dof_allowed = 1580;
+  printf("n_dof_actual = %d\n", ndof);
+  printf("n_dof_allowed = %d\n", n_dof_allowed);
+  if (ndof <= n_dof_allowed) {
+    printf("Success!\n");
+    return ERROR_SUCCESS;
+  }
+  else {
+    printf("Failure!\n");
+    return ERROR_FAILURE;
+  }
 }
+

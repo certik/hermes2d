@@ -6,11 +6,7 @@
 
 using namespace RefinementSelectors;
 
-// This example uses adaptive multimesh hp-FEM to solve a simple problem
-// of linear elasticity. Note that since both displacement components
-// have similar qualitative behavior, the advantage of the multimesh 
-// discretization is less striking than for example in the tutorial 
-// example 11-adapt-system.
+// This is a long version of example "crack": function solve_linear_adapt() is not used.
 //
 // PDE: Lame equations of linear elasticity.
 //
@@ -84,6 +80,10 @@ scalar essential_bc_values(int ess_bdy_marker, double x, double y)
 
 int main(int argc, char* argv[])
 {
+  // Time measurement.
+  TimePeriod cpu_time;
+  cpu_time.tick();
+
   // Load the mesh.
   Mesh u_mesh, v_mesh;
   H2DReader mloader;
@@ -107,43 +107,112 @@ int main(int argc, char* argv[])
   wf.add_matrix_form(1, 1, callback(bilinear_form_1_1), H2D_SYM);
   wf.add_vector_form_surf(1, callback(linear_form_surf_1), BDY_TOP);
 
+  // Initialize views.
+  ScalarView sview("Von Mises stress [Pa]", 0, 355, 900, 300);
+  OrderView  xoview("X polynomial orders", 0, 0, 900, 300);
+  OrderView  yoview("Y polynomial orders", 910, 0, 900, 300);
+
+  // DOF and CPU convergence graphs.
+  SimpleGraph graph_dof, graph_cpu;
+
   // Initialize refinement selector.
   H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
 
-  // Initialize adaptivity parameters.
-  double to_be_processed = 0;
-  AdaptivityParamType apt(ERR_STOP, NDOF_STOP, 
-                          MULTI ? THRESHOLD_MULTI : THRESHOLD_SINGLE, STRATEGY,
-                          MESH_REGULARITY, to_be_processed, H2D_TOTAL_ERROR_REL, H2D_ELEMENT_ERROR_REL);
-  apt.set_error_form(0, 0, bilinear_form_0_0<scalar, scalar>, bilinear_form_0_0<Ord, Ord>);
-  apt.set_error_form(0, 1, bilinear_form_0_1<scalar, scalar>, bilinear_form_0_1<Ord, Ord>);
-  apt.set_error_form(1, 0, bilinear_form_1_0<scalar, scalar>, bilinear_form_1_0<Ord, Ord>);
-  apt.set_error_form(1, 1, bilinear_form_1_1<scalar, scalar>, bilinear_form_1_1<Ord, Ord>);
+  // Initialize matrix solver.
+  Matrix* mat; Vector* rhs; CommonSolver* solver;  
+  init_matrix_solver(matrix_solver, u_space.get_num_dofs() + v_space.get_num_dofs(), 
+                     mat, rhs, solver);
 
-  // Geometry and position of visualization windows.
-  WinGeom* u_sln_win_geom = new WinGeom(0, 0, 900, 300);
-  WinGeom* u_mesh_win_geom = new WinGeom(0, 355, 900, 300);
-  WinGeom* v_sln_win_geom = new WinGeom(910, 0, 900, 300);
-  WinGeom* v_mesh_win_geom = new WinGeom(910, 355, 900, 300);
+  // Adaptivity loop:
+  Solution u_sln, v_sln, ref_u_sln, ref_v_sln;
+  int as = 1; bool done = false;
+  do
+  {
+    info("---- Adaptivity step %d:", as);
+    info("Solving on reference mesh.");
 
-  // Adaptivity loop.
-  Solution *u_sln = new Solution();
-  Solution *v_sln = new Solution();
-  Solution *ref_u_sln = new Solution();
-  Solution *ref_v_sln = new Solution();
-  bool verbose = true;  // Print info during adaptivity.
-  solve_linear_adapt(Tuple<Space *>(&u_space, &v_space), &wf,
-                     Tuple<int>(H2D_H1_NORM, H2D_H1_NORM),
-                     Tuple<Solution *>(u_sln, v_sln), matrix_solver,
-                     Tuple<Solution *>(ref_u_sln, ref_v_sln),
-                     Tuple<RefinementSelectors::Selector *> (&selector, &selector), &apt,
-                     Tuple<WinGeom *>(u_sln_win_geom, v_sln_win_geom),
-                     Tuple<WinGeom *>(u_mesh_win_geom, v_mesh_win_geom), verbose);
+    // Construct globally refined reference meshes.
+    Mesh ref_u_mesh, ref_v_mesh;
+    ref_u_mesh.copy(&u_mesh);
+    ref_v_mesh.copy(&v_mesh);
+    ref_u_mesh.refine_all_elements();
+    ref_v_mesh.refine_all_elements();
 
-  // Show the Von Mises stress on the reference mesh.
-  WinGeom* stress_win_geom = new WinGeom(950, 0, 900, 300);
-  ScalarView sview("Von Mises stress [Pa]", stress_win_geom);
-  VonMisesFilter ref_stress((MeshFunction*)ref_u_sln, (MeshFunction*)ref_v_sln, mu, lambda);
+    // Setup spaces for the reference solution.
+    Space *ref_u_space = u_space.dup(&ref_u_mesh);
+    Space *ref_v_space = v_space.dup(&ref_v_mesh);
+    int order_increase = 1;
+    ref_u_space->copy_orders(&u_space, order_increase);
+    ref_v_space->copy_orders(&v_space, order_increase);
+ 
+    // Solve the reference problem.
+    solve_linear(Tuple<Space *>(ref_u_space, ref_v_space), &wf, 
+                 Tuple<Solution *>(&ref_u_sln, &ref_v_sln), matrix_solver);
+
+    // Project the reference solutions on the coarse meshes.
+    info("Projecting reference solutions on coarse meshes.");
+    project_global(Tuple<Space *>(&u_space, &v_space), 
+                   Tuple<int>(H2D_H1_NORM, H2D_H1_NORM),
+                   Tuple<MeshFunction*>(&ref_u_sln, &ref_v_sln), 
+                   Tuple<Solution*>(&u_sln, &v_sln));
+
+    // Time measurement.
+    cpu_time.tick();
+
+    // Visualize the solution and meshes.
+    VonMisesFilter stress(&u_sln, &v_sln, mu, lambda);
+    sview.set_min_max_range(0, 2e5);
+    sview.show(&stress, H2D_EPS_HIGH);
+    xoview.show(&u_space);
+    yoview.show(&v_space);
+
+    // Skip visualization time. 
+    cpu_time.tick(HERMES_SKIP);
+
+    // Calculate error estimate wrt. reference solution in energy norm.
+    info("Calculating error (est).");
+    Adapt hp(Tuple<Space *>(&u_space, &v_space), Tuple<int>(H2D_H1_NORM, H2D_H1_NORM));
+    hp.set_solutions(Tuple<Solution*>(&u_sln, &v_sln), 
+                     Tuple<Solution*>(&ref_u_sln, &ref_v_sln));
+    hp.set_error_form(0, 0, bilinear_form_0_0<scalar, scalar>, bilinear_form_0_0<Ord, Ord>);
+    hp.set_error_form(0, 1, bilinear_form_0_1<scalar, scalar>, bilinear_form_0_1<Ord, Ord>);
+    hp.set_error_form(1, 0, bilinear_form_1_0<scalar, scalar>, bilinear_form_1_0<Ord, Ord>);
+    hp.set_error_form(1, 1, bilinear_form_1_1<scalar, scalar>, bilinear_form_1_1<Ord, Ord>);
+    double err_est = hp.calc_elem_errors(H2D_TOTAL_ERROR_REL | H2D_ELEMENT_ERROR_REL) * 100;
+
+    // Time measurement.
+    cpu_time.tick();
+
+    // Report results.
+    info("u_ndof: %d, ref_u_ndof: %d", u_space.get_num_dofs(), ref_u_space->get_num_dofs());
+    info("v_ndof: %d, ref_v_ndof: %d", v_space.get_num_dofs(), ref_v_space->get_num_dofs());
+    info("ndof: %d, err_est: %g%%", u_space.get_num_dofs() + v_space.get_num_dofs(), err_est);
+
+    // Add entry to DOF convergence graph.
+    graph_dof.add_values(u_space.get_num_dofs() + v_space.get_num_dofs(), err_est);
+    graph_dof.save("conv_dof.dat");
+
+    // Add entry to CPU convergence graph.
+    graph_cpu.add_values(cpu_time.accumulated(), err_est);
+    graph_cpu.save("conv_cpu.dat");
+
+    // If err_est too large, adapt the mesh.
+    if (err_est < ERR_STOP || u_space.get_num_dofs() + v_space.get_num_dofs() >= NDOF_STOP) done = true;
+    else {
+      info("Adapting the coarse mesh.");
+      done = hp.adapt(Tuple<RefinementSelectors::Selector *>(&selector, &selector), 
+                      MULTI ? THRESHOLD_MULTI : THRESHOLD_SINGLE, STRATEGY, MESH_REGULARITY);
+      if (u_space.get_num_dofs() + v_space.get_num_dofs() >= NDOF_STOP) done = true;
+    }
+
+    as++;
+  }
+  while (!done);
+  verbose("Total running time: %g s", cpu_time.accumulated());
+
+  // Show the reference solution - the final result.
+  VonMisesFilter ref_stress(&ref_u_sln, &ref_v_sln, mu, lambda);
+  sview.set_title("Reference solution");
   sview.set_min_max_range(0, 2e5);
   sview.show_mesh(false);
   sview.show(&ref_stress);
