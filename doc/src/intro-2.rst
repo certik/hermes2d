@@ -328,7 +328,7 @@ This list works for 32-bit version of Hermes2D. If you intend to cross-compile 6
 
     - Download Python 2.6.5 windows installer (http://www.python.org/ftp/python/2.6.5/python-2.6.5.msi) and run it. 
     - If you Python installation path is 'C:\\Python26', add it to System Path variable. You may need to reboot to have the Path variable updated. 
-    - Open a command prompt, excute python, you will see something similar as:
+    - Open a command prompt, execute python, and you will see something like:
 
       ::
 
@@ -501,7 +501,7 @@ This list works for 32-bit version of Hermes2D. If you intend to cross-compile 6
             PROJECT(Exodusii)
             SET(NETCDF_INCLUDE_DIR "my_netcdf_root/libsrc4")    # add this line; 
 
-        be sure to use a slash '/' instead of a backslash '\'. 
+        be sure to use a slash '/' instead of a backslash '\\'. 
 
       - Generate MSVC project files using CMAKE in command prompt as:
 

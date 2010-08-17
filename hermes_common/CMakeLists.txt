@@ -47,6 +47,28 @@ endif(MSVC)
 set_property(TARGET ${HERMES_COMMON} PROPERTY COMPILE_FLAGS "-g")
 
 
+set(SPARSELIB_LIBRARIES mv sparse spblas)
+set(SPARSELIB_INCLUDE_DIRS sparselib sparselib/mv sparselib/iml)
+set(SPARSELIB_DEFINITIONS -DCOMPLEX=std::complex<double>)
+
+add_subdirectory(sparselib)
+add_definitions(${SPARSELIB_DEFINITIONS})
+include_directories(${SPARSELIB_INCLUDE_DIRS})
+
+target_link_libraries(${HERMES_COMMON} ${PYTHON_LIBRARIES} ${SPARSELIB_LIBRARIES})
+set_source_files_properties(matrix.cpp PROPERTIES
+    OBJECT_DEPENDS ${hermes_common_SOURCE_DIR}/_hermes_common_api_new.h
+    )
+add_custom_command(
+    OUTPUT _hermes_common_api.h
+    COMMAND cython _hermes_common.pyx
+    )
+
+cython_add_module(_hermes_common stdcython.cpp)
+target_link_libraries(_hermes_common ${HERMES_COMMON})
+set_property(TARGET _hermes_common PROPERTY COMPILE_FLAGS "-g")
+
+
 if(MSVC)
     IF(NOT PYTHON_VERSION)
         execute_process(COMMAND python -c "import sys;print '%d.%d' % sys.version_info[:2]" OUTPUT_VARIABLE PYTHON_VERSION)
@@ -74,27 +96,6 @@ if(MSVC)
     #fill the variable from windows registry
     execute_process(COMMAND setx PYTHONPATH /K HKEY_LOCAL_MACHINE\\SOFTWARE\\Python\\PythonCore\\${PYTHON_VERSION}\\PythonPath /M)
 endif(MSVC)
-
-set(SPARSELIB_LIBRARIES mv sparse spblas)
-set(SPARSELIB_INCLUDE_DIRS sparselib sparselib/mv sparselib/iml)
-set(SPARSELIB_DEFINITIONS -DCOMPLEX=std::complex<double>)
-
-add_subdirectory(sparselib)
-add_definitions(${SPARSELIB_DEFINITIONS})
-include_directories(${SPARSELIB_INCLUDE_DIRS})
-
-target_link_libraries(${HERMES_COMMON} ${PYTHON_LIBRARIES} ${SPARSELIB_LIBRARIES})
-set_source_files_properties(matrix.cpp PROPERTIES
-    OBJECT_DEPENDS ${hermes_common_SOURCE_DIR}/_hermes_common_api_new.h
-    )
-add_custom_command(
-    OUTPUT _hermes_common_api.h
-    COMMAND cython _hermes_common.pyx
-    )
-
-cython_add_module(_hermes_common stdcython.cpp)
-target_link_libraries(_hermes_common ${HERMES_COMMON})
-set_property(TARGET _hermes_common PROPERTY COMPILE_FLAGS "-g")
 
 if(COMMON_WITH_SCIPY)
     add_definitions(-DCOMMON_WITH_SCIPY)

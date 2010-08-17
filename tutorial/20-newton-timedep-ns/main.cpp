@@ -138,7 +138,6 @@ int main(int argc, char* argv[])
   // Solutions for the Newton's iteration and time stepping.
   info("Setting initial conditions.");
   Solution xvel_prev_time, yvel_prev_time, p_prev_time; 
-  Solution xvel_prev_newton, yvel_prev_newton, p_prev_newton;
   xvel_prev_time.set_zero(&mesh);
   yvel_prev_time.set_zero(&mesh);
   p_prev_time.set_zero(&mesh);
@@ -191,7 +190,7 @@ int main(int argc, char* argv[])
     project_global(Tuple<Space *>(xvel_space, yvel_space, p_space), 
                    Tuple<int>(vel_proj_norm, vel_proj_norm, p_proj_norm),
                    Tuple<MeshFunction*>(&xvel_prev_time, &yvel_prev_time, &p_prev_time),
-                   Tuple<Solution*>(&xvel_prev_newton, &yvel_prev_newton, &p_prev_newton),
+                   Tuple<Solution*>(&xvel_prev_time, &yvel_prev_time, &p_prev_time),
                    coeff_vec);  
   }
   else coeff_vec = NULL;
@@ -227,22 +226,16 @@ int main(int argc, char* argv[])
       // Linear solve.  
       info("Assembling and solving linear problem.");
       solve_linear(Tuple<Space *>(xvel_space, yvel_space, p_space), &wf, 
-                   Tuple<Solution*>(&xvel_prev_newton, &yvel_prev_newton, &p_prev_newton), matrix_solver);
+                   Tuple<Solution*>(&xvel_prev_time, &yvel_prev_time, &p_prev_time), matrix_solver);
     }
 
     // Show the solution at the end of time step.
     sprintf(title, "Velocity, time %g", TIME);
     vview.set_title(title);
-    vview.show(&xvel_prev_newton, &yvel_prev_newton, H2D_EPS_LOW);
+    vview.show(&xvel_prev_time, &yvel_prev_time, H2D_EPS_LOW);
     sprintf(title, "Pressure, time %g", TIME);
     pview.set_title(title);
-    pview.show(&p_prev_newton);
-
-    // Copy the result of the Newton's iteration into the
-    // previous time level solutions.
-    xvel_prev_time.copy(&xvel_prev_newton);
-    yvel_prev_time.copy(&yvel_prev_newton);
-    p_prev_time.copy(&p_prev_newton);
+    pview.show(&p_prev_time);
  }
 
   // Wait for all views to be closed.

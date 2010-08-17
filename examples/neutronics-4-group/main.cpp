@@ -92,14 +92,14 @@ double k_eff = 1.0;
 #include "forms.cpp"
 
 // Source function.
-void source_fn(int n, scalar* a, scalar* b, scalar* c, scalar* d, scalar* out)
+void source_fn(int n, Tuple<scalar*> values, scalar* out)
 {
   for (int i = 0; i < n; i++)
   {
-    out[i] = (nu[1][0] * Sf[1][0] * a[i] +
-        nu[1][1] * Sf[1][1] * b[i] +
-        nu[1][2] * Sf[1][2] * c[i] +
-        nu[1][3] * Sf[1][3] * d[i]);
+		out[i] = (nu[1][0] * Sf[1][0] * values.at(0)[i] +
+        nu[1][1] * Sf[1][1] * values.at(1)[i] +
+        nu[1][2] * Sf[1][2] * values.at(2)[i] +
+        nu[1][3] * Sf[1][3] * values.at(3)[i]);
   }
 }
 
@@ -211,8 +211,8 @@ int main(int argc, char* argv[])
     view3.show(&sln3);    
     view4.show(&sln4);
 
-    SimpleFilter source(source_fn, &sln1, &sln2, &sln3, &sln4);
-    SimpleFilter source_prev(source_fn, &iter1, &iter2, &iter3, &iter4);
+    SimpleFilter source(source_fn, Tuple<Solution*>(&sln1, &sln2, &sln3, &sln4));
+    SimpleFilter source_prev(source_fn, Tuple<Solution*>(&iter1, &iter2, &iter3, &iter4));
 
     // Compute eigenvalue.
     double k_new = k_eff * (integrate(&source, MAT_CORE) / integrate(&source_prev, MAT_CORE));

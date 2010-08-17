@@ -98,11 +98,6 @@ int main(int argc, char* argv[])
   info("Projecting initial condition to obtain initial vector for the Newton'w method.");
   project_global(space, H2D_H1_NORM, init_cond, &u_prev_time, coeff_vec);
 
-  // Initialize views.
-  ScalarView sview("Solution", 0, 0, 500, 400);
-  OrderView oview("Mesh", 520, 0, 450, 400);
-  oview.show(space);
-
   // Time stepping loop:
   double current_time = 0.0;
   int ts = 1;
@@ -121,11 +116,6 @@ int main(int argc, char* argv[])
     // Update time.
     current_time += TAU;
 
-    // Show the new time level solution.
-    char title[100];
-    sprintf(title, "Solution, t = %g", current_time);
-    sview.set_title(title);
-    sview.show(&u_prev_time);
   } while (current_time < T_FINAL);
 
   ndof = get_num_dofs(space);

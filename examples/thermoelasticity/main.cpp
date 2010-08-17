@@ -129,6 +129,7 @@ int main(int argc, char* argv[])
   // Initialize refinement selector.
   H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
 
+
   // Initialize adaptivity parameters.
   double to_be_processed = 0;
   AdaptivityParamType apt(ERR_STOP, NDOF_STOP, THRESHOLD, STRATEGY,

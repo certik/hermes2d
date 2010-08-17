@@ -7,9 +7,8 @@ be able to create your own applications and/or adjust existing Hermes examples f
 purposes. At the beginning of every section we give a reference to the corresponding example in the 
 Hermes git repository -- there you will always find the corresponding main.cpp file, mesh file(s) etc.
 
-This document is under active development. If you find bugs, typos, dead links or such, or have 
-a nice example to add to the tutorial or to the Hermes repository, please 
-do us a favor and let us know through the `mailing list <http://groups.google.com/group/hermes2d/>`_.
+This document is under continuous development. If you find bugs, typos, dead links or such,
+let us know through the `mailing list <http://groups.google.com/group/hermes2d/>`_.
 
 Finite Element Mesh (01)
 --------------------------------
@@ -394,47 +393,29 @@ int_grad_u_grad_v and int_v:
       return CONST_F * int_v<Real, Scalar>(n, wt, v);
     }
 
-Later we will learn how to compose arbitrary integrals using function values and derivatives,
-and integration points and weights. The weak forms are registered as follows::
+Later we will learn how to compose arbitrary integrals using function values and derivatives, and integration points and weights. The weak forms are registered as follows::
 
     // Initialize the weak formulation.
     WeakForm wf();
     wf.add_matrix_form(callback(bilinear_form));
     wf.add_vector_form(callback(linear_form));
 
-Later we will learn how to register Jacobian and residual forms for nonlinear problems. 
-If the PDE is more complicated, we can add multiple matrix and vector forms.
+Later we will learn how to register Jacobian and residual forms for nonlinear problems. If the PDE is more complicated, we can add multiple matrix and vector forms.
 
-With the space and weak formulation in hand, we can initialize the LinSystem class::
+With the space and weak formulation in hand, the problem is solved via::
 
-    // Initialize the linear system.
-    LinSystem ls(&wf, &space);
-
-The stiffness matrix and load vector are assembled as follows::
-
-    // Assemble and solve the matrix problem.
+    // Solve the linear problem.
     Solution sln;
-    ls.assemble();
-    ls.solve(&sln);
+    solve_linear(&space, &wf, &sln, SOLVER_UMFPACK);
 
-Here the function assemble() constructs the stiffness matrix and load vector. If called 
-as assemble(rhs_only = true), it only assembles the right-hand side. This option is useful 
-for linear time-dependent problems where the stiffness matrix remains unchanged for
-multiple time steps. During matrix assembly, the values of shape functions are cached 
-for better performance.
+The parameter SOLVER_UMFPACK indicates that we are using the direct sparse matrix solver UMFpack. Other options include SOLVER_PETSC, SOLVER_MUMPS, a variety of SciPy matrix solvers and others - the choice of matrix solvers will be discussed in more detail later. 
 
-The function solve() uses a matrix solver (default is UMFpack) to solve the matrix 
-problem, and uses the resulting coefficient vector to define a Solution that can be 
-visualized via the ScalarView class::
+The solution can be visualized via the ScalarView class::
 
     // Visualize the solution.
-    ScalarView view("Solution");
+    WinGeom* sln_win_geom = new WinGeom(0, 0, 440, 350);
+    ScalarView view("Solution", sln_win_geom);
     view.show(&sln);
-
-Later we will learn how to change the matrix solver. The matrix, right-hand side vector, and coefficient vector can be retrieved from 
-the LinSystem class via the methods get_matrix(), get_rhs() and get_solution_vector(),
-respectively. For the exact usage of these methods, as well as for other useful methods 
-provided by the LinSystem class, see the file `linsystem.h <http://git.hpfem.org/hermes2d.git/blob/HEAD:/src/linsystem.h>`_.
 
 The following figure shows the output of this example (again, press '3' for 3D view).
 
@@ -443,6 +424,46 @@ The following figure shows the output of this example (again, press '3' for 3D v
    :width: 400
    :height: 350
    :alt: Solution of the Poisson equation.
+
+Short and Long Versions of Examples
+-----------------------------------
+
+Most tutorial examples come in two versions: A short one that is intended for effortless basic use, and a long one that is more explicit and thus more convenient for development. The first example with a long version is 03-poisson.
+
+**Git reference:** Tutorial example `03-poisson-long <http://git.hpfem.org/hermes2d.git/tree/HEAD:/tutorial/03-poisson-long>`_. 
+
+The long version does not employ the function solve_linear(). Instead, after initializing the weak formulation, one initializes the LinearProblem class::
+
+      // Initialize the linear problem.
+      LinearProblem lp(&wf, &space);
+
+This class is a descendant of a more general DiscreteProblem class that handles nonlinear problems. Next we initialize the matrix solver and the corresponding matrix and vector structures::
+
+      // Select matrix solver.
+      Matrix* mat; Vector* rhs; CommonSolver* solver;
+      init_matrix_solver(SOLVER_UMFPACK, ndof, mat, rhs, solver);
+
+Again, other matrix solvers besides SOLVER_UMFPACK can be used. The variable ndof stands for the number of degrees of greedom (unknowns in the discrete problem) that can be calculated after initializing a Space::
+
+      int ndof = get_num_dofs(&space);
+
+Assembling is done into the user-provided data structures::
+
+      // Assemble stiffness matrix and rhs.
+      lp.assemble(mat, rhs);
+
+After this, the matrix problem is solved::
+
+      // Solve the matrix problem.
+      if (!solver->solve(mat, rhs)) error ("Matrix solver failed.\n");
+
+And finally, the solution vector is translated into a Solution::
+
+      // Convert coefficient vector into a Solution.
+      Solution sln;
+      sln.set_fe_solution(&space, rhs);
+
+Visualization and the rest of the main() function are the same as in the short version.
 
 Boundary Conditions (04, 05, 06)
 --------------------------------
@@ -453,10 +474,12 @@ space while natural conditions do not - they are incorporated into boundary inte
 In the context of elliptic problems, Dirichlet conditions are essential and Neumann/Newton
 conditions are natural.
 
+Examples 04, 05 and 06 also come in long versions but we will not discuss them explicitly since they are analogous to the long version of example 03.
+
 Dirichlet BC
 ~~~~~~~~~~~~
 
-**Git reference:** Tutorial example `04-bc-dirichlet <http://git.hpfem.org/hermes2d.git/tree/HEAD:/tutorial/04-bc-dirichlet>`_. 
+**Git reference:** Tutorial example `04-bc-dirichlet <http://git.hpfem.org/hermes2d.git/tree/HEAD:/tutorial/04-bc-dirichlet>`_. Long version: `04-bc-dirichlet-long <http://git.hpfem.org/hermes2d.git/tree/HEAD:/tutorial/04-bc-dirichlet-long>`_. 
 
 Since essential boundary conditions eliminate degrees of freedom (DOF) from the FE space, 
 they need to be incorporated while the space is set up.
@@ -513,7 +536,7 @@ For the value $CONST_F = -4$, the output is shown below:
 Neumann BC
 ~~~~~~~~~~
 
-**Git reference:** Tutorial example `05-bc-neumann <http://git.hpfem.org/hermes2d.git/tree/HEAD:/tutorial/05-bc-neumann>`_. 
+**Git reference:** Tutorial example `05-bc-neumann <http://git.hpfem.org/hermes2d.git/tree/HEAD:/tutorial/05-bc-neumann>`_. Long version: `05-bc-neumann-long <http://git.hpfem.org/hermes2d.git/tree/HEAD:/tutorial/05-bc-neumann-long>`_.
 
 Next, let us consider Neumann boundary conditions. The new model problem
 will have the form
@@ -581,9 +604,17 @@ The gradient magnitude can be visualized via a MagFilter::
     // Compute and show gradient magnitude
     // (note that the infinite gradient at the re-entrant
     // corner will be truncated for visualization purposes)
-    ScalarView gradview("Gradient", 650, 0, 600, 600);
-    MagFilter grad(&sln, &sln, H2D_FN_DX, H2D_FN_DY);
+    ScalarView gradview("Gradient", grad_win_geom);
+    MagFilter grad(Tuple<MeshFunction>(&sln, &sln), Tuple<int>(H2D_FN_DX, H2D_FN_DY));
     gradview.show(&grad);
+
+Here we first meet Tuple - a construction designed to avoid variable argument 
+lists. The first Tuple is used to pass a pair of pointers to the same MeshFunction,
+and the next Tuple says that the vector components for the magnitude calculation 
+are the x- and y- partial derivatives. The class Solution that represents a piecewise-polynomial
+finite element function on a Mesh, is descendant of a more general class MeshFunction
+that can represent constants, general functions given via an analytic formula, 
+finite element solutions, etc. 
 
 The approximate solution for the values $C_1 = -1/2$, $C_2 = 1$, $C_3 = -1/2$,
 along with the singularity of gradient at the re-entrant corner are
@@ -608,7 +639,7 @@ shown in the following figures:
 Newton BC
 ~~~~~~~~~
 
-**Git reference:** Tutorial example `06-bc-newton <http://git.hpfem.org/hermes2d.git/tree/HEAD:/tutorial/06-bc-newton>`_. 
+**Git reference:** Tutorial example `06-bc-newton <http://git.hpfem.org/hermes2d.git/tree/HEAD:/tutorial/06-bc-newton>`_. Long version: `06-bc-newton-long <http://git.hpfem.org/hermes2d.git/tree/HEAD:/tutorial/06-bc-newton-long>`_.
 
 Another common natural boundary condition is the Newton (sometimes called Robin) condition
 of the form
@@ -823,8 +854,7 @@ The following example handles quadrature orders manually.
 General 2nd-Order Linear Equation (07)
 --------------------------------------
 
-**Git reference:** Tutorial example `07-general <http://git.hpfem.org/hermes2d.git/tree/HEAD:/tutorial/07-general>`_. 
-
+**Git reference:** Tutorial example `07-general <http://git.hpfem.org/hermes2d.git/tree/HEAD:/tutorial/07-general>`_. Long version: `07-general-long <http://git.hpfem.org/hermes2d.git/tree/HEAD:/tutorial/07-general-long>`_.
 
 This example deals with a linear second-order equation of the form 
 
@@ -909,8 +939,7 @@ additional function are not used for computation.
       return v->val[0] * e->x[0] * e->x[0];  // returning the polynomial degree of the test function plus two
     }
 
-Note the sign of the surface linear form - all linear forms have to be on the right-hand side,
-all bilinear forms on the left. 
+Note the sign of the surface linear form - when using the LinearProblem class, all linear forms have to be on the right-hand side and all bilinear forms on the left. 
 
 The output of this example is shown below:
 
@@ -923,15 +952,14 @@ The output of this example is shown below:
 Systems of Equations (08)
 -------------------------
 
-**Git reference:** Tutorial example `08-system <http://git.hpfem.org/hermes2d.git/tree/HEAD:/tutorial/08-system>`_. 
+**Git reference:** Tutorial example `08-system <http://git.hpfem.org/hermes2d.git/tree/HEAD:/tutorial/08-system>`_. Long version `08-system-long <http://git.hpfem.org/hermes2d.git/tree/HEAD:/tutorial/08-system-long>`_.
 
-So far we always have solved a single linear PDE with the weak formulation
+So far we have just solved single linear PDE problems with a weak formulation
 of the form $a(u,v) = l(v)$, where $u, v$ were continuous approximations in the
-$H^1$ space. Analogously one can handle equations whose solutions lie in the spaces
-$Hcurl$, $Hdiv$ or $L^2$.
+$H^1$ space. One can also solve equations whose solutions lie in the spaces
+$Hcurl$, $Hdiv$ or $L^2$, and one can combine these spaces for PDE systems.
 
-Hermes also can handle systems of linear PDE, provided that the weak formulation 
-can be written as
+Here we show how to handle systems of linear PDE whose weak formulation is written as
 
 .. math::
     :label: weaksystem
@@ -1014,8 +1042,7 @@ steel, we have $E = 200$ GPa and $\nu = 0.3$. The load is $f = (0, 10^4)^T$ N.
 
 We begin with defining the function spaces for the two solution
 components, $u_1$ and $u_2$ (the $x$ and $y$ displacement). The boundary
-conditions can be implemented as
-::
+conditions can be implemented as follows::
 
     // Boundary condition types.
     BCType bc_types(int marker)
@@ -1072,32 +1099,52 @@ It is recommended that you start with the default (and safe) H2D_UNSYM flag for 
 forms when developing your project, and only optimize the evaluation of the forms when
 the code works well.
 
-When the spaces and weak forms are ready, we can initialize the linear system::
+When the spaces and weak forms are ready, one can use the function solve_linear() to
+assemble and solve the discrete problem::
 
-    // Initialize the linear system.
-    LinSystem ls(&wf, &solver, Tuple<Space*>(&xdisp, &ydisp));
+    // Solve the linear problem.
+    Solution u_sln, v_sln;
+    solve_linear(Tuple<Space *>(&u_space, &v_space), &wf, 
+                 Tuple<Solution*>(&u_sln, &v_sln), matrix_solver);
 
-Here we first meet Tuple - a construction designed to avoid variable argument 
-lists. In this case, we are passing a pair of pointers to Space, so the type
-of the Tuple is Space*. 
+Von Mises stress can be visualized via the VonMises filter as follows::
 
-The discrete matrix problem is assembled as before,  
-and another Tuple is used to pass two Solution pointers to the solve() method::
+    // Visualize the solution.
+    WinGeom* sln_win_geom = new WinGeom(0, 0, 800, 400);
+    ScalarView view("Von Mises stress [Pa]", sln_win_geom);
+    VonMisesFilter stress(Tuple<MeshFunction*>(&u_sln, &v_sln), lambda, mu);
+    view.show_mesh(false);
+    view.show(&stress, H2D_EPS_HIGH, H2D_FN_VAL_0, &u_sln, &v_sln, 1.5e5);
 
-  // Assemble and solve the matrix problem.
-  Solution xsln, ysln;
-  ls.assemble();
-  ls.solve(Tuple<Solution*>(&xsln, &ysln));
+We will say more about visualization and Filters in a moment, after showing the long version of this example.
 
-The displacement components can be visualized as
+Long Version of Example 08
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-::
+**Git reference:** Tutorial example `08-system-long <http://git.hpfem.org/hermes2d.git/tree/HEAD:/tutorial/08-system-long>`_.
 
-    ScalarView view("y displacement [m]");
-    view.show(&ysln);
+As in example 03, the long version of this example does not employ the function solve_linear(). Instead, after initializing the weak formulation, one initializes the LinearProblem class, selects a matrix solver, assembles the matrix problem, solves it, and translates the resulting coefficient vector into Solutions::
 
-More on visualization and Filters
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    // Initialize the linear problem.
+    LinearProblem lp(&wf, Tuple<Space *>(&u_space, &v_space));
+
+    // Select matrix solver.
+    Matrix* mat; Vector* rhs; CommonSolver* solver;
+    init_matrix_solver(matrix_solver, ndof, mat, rhs, solver);
+
+    // Assemble stiffness matrix and rhs.
+    lp.assemble(mat, rhs);
+
+    // Solve the matrix problem.
+    if (!solver->solve(mat, rhs)) error ("Matrix solver failed.\n");
+
+    // Convert coefficient vector into a Solution.
+    Solution u_sln, v_sln;
+    u_sln.set_fe_solution(&u_space, rhs);
+    v_sln.set_fe_solution(&v_space, rhs);
+
+Visualization and Filters
+-------------------------
 
 In elasticity problems one often wants to see the material
 stress, which is obtained by a formula that combines the derivatives 
@@ -1108,7 +1155,7 @@ as another Solution (which can be visualized, passed into another Filter,
 passed into a weak form, etc.). More advanced usage of Filters will be discussed 
 later. In elasticity examples we typically use the predefined VonMisesFilter::
 
-    VonMisesFilter stress(&xsln, &ysln, lambda, mu);
+    VonMisesFilter stress(&u_sln, &v_sln, lambda, mu);
     view.show_mesh(false);
     view.show(&stress, H2D_EPS_HIGH);
 
@@ -1133,8 +1180,8 @@ Finally, in elasticity problems it may be desirable to deform the computational
 domain according to the calculated displacements. The method View::show() has
 additional three optional parameters for this::
 
-    VonMisesFilter stress(&xsln, &ysln, mu, lambda);
-    view.show(&stress, H2D_EPS_HIGH, H2D_FN_VAL_0, &xsln, &ysln, 1.5e5);
+    VonMisesFilter stress(Tuple<MeshFunction*>(&u_sln, &v_sln), mu, lambda);
+    view.show(&stress, H2D_EPS_HIGH, H2D_FN_VAL_0, &u_sln, &v_sln, 1.5e5);
 
 Here the fourth and fifth parameters are the displacement components used to 
 distort the domain geometry, and the sixth parameter is a scaling factor to multiply the 
@@ -1150,7 +1197,6 @@ Time-Dependent Problems (09)
 ----------------------------
 
 **Git reference:** Tutorial example `09-timedep <http://git.hpfem.org/hermes2d.git/tree/HEAD:/tutorial/09-timedep>`_. 
-
 
 This section describes the implementation of a simple time-dependent
 heat transfer model that describes, in a naive approximation, how the St. Vitus cathedral
@@ -1239,9 +1285,9 @@ Then the space for the temperature $T$ is set up::
 
     // Initialize an H1 space with default shepeset.
     H1Space space(&mesh, bc_types, essential_bc_values, P_INIT);
-    info("ndof = %d", space.get_num_dofs());
+    info("ndof = %d", get_num_dofs(&space));
 
-Then bilinear and linear forms are defined::
+Bilinear and linear forms are defined as follows::
 
     template<typename Real, typename Scalar>
     Scalar bilinear_form(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
@@ -1268,17 +1314,7 @@ Then bilinear and linear forms are defined::
       return LAMBDA * ALPHA * temp_ext(TIME) * int_v<Real, Scalar>(n, wt, v);
     }
 
-These forms are registered as follows::
-
-    // Initialize weak formulation.
-    WeakForm wf();
-    wf.add_matrix_form(bilinear_form<double, double>, bilinear_form<Ord, Ord>);
-    wf.add_matrix_form_surf(bilinear_form_surf<double, double>, bilinear_form_surf<Ord, Ord>, marker_air);
-    wf.add_vector_form(linear_form<double, double>, linear_form<Ord, Ord>, H2D_ANY, 1, &tsln);
-    wf.add_vector_form_surf(linear_form_surf<double, double>, linear_form_surf<Ord, Ord>, marker_air);
-
-Before entering the main iteration loop, we need to initialize the previous solution
-tsln with the initial condition $T_{init}$.
+Next we need to initialize the previous solution tsln with the initial condition $T_{init}$.
 Besides holding the finite element solution, the Solution class
 can be forced to return zero, to return a constant, or to return an arbitrary function
 using the methods set_zero(), set_const() and set_exact(), respectively.
@@ -1287,17 +1323,57 @@ Here we simply call set_const() and supply the initial temperature::
     // Set constant initial condition.
     Solution tsln;
     tsln.set_const(&mesh, T_INIT);
- 
+
+The weak forms are registered as follows::
+
+    // Initialize weak formulation.
+    WeakForm wf();
+    wf.add_matrix_form(bilinear_form<double, double>, bilinear_form<Ord, Ord>);
+    wf.add_matrix_form_surf(bilinear_form_surf<double, double>, bilinear_form_surf<Ord, Ord>, marker_air);
+    wf.add_vector_form(linear_form<double, double>, linear_form<Ord, Ord>, H2D_ANY, 1, &tsln);
+    wf.add_vector_form_surf(linear_form_surf<double, double>, linear_form_surf<Ord, Ord>, marker_air);
+
+Next, the LinearProblem class and the matrix solver structures are initialized::
+
+    // Initialize the linear problem.
+    LinearProblem lp(&wf, &space);
+
+    // Initialize matrix solver.
+    Matrix* mat; Vector* rhs; CommonSolver* solver;  
+    init_matrix_solver(matrix_solver, ndof, mat, rhs, solver);
+
 We are now ready to start the iterative process. Since the stiffness matrix does
 not depend on the solution, it only needs to be assembled once in the first time
 step. For all remaining time steps it will be the same, and we just need to
 re-construct the load vector. This is done via the Boolean variable rhsonly
-which is set to false before the time stepping begins::
+which is set to false before the time stepping begins. For completeness, we show 
+the entire time stepping loop below::
 
-    // Assemble and solve.
-    ls.assemble(rhsonly);   // Stiffness matrix assembled only the first time.
-    rhsonly = true;
-    ls.solve(&tsln);
+    // Time stepping:
+    int nsteps = (int)(FINAL_TIME/TAU + 0.5);
+    bool rhsonly = false;
+    for(int ts = 1; ts <= nsteps; ts++)
+    {
+      info("---- Time step %d, time %3.5f, ext_temp %g", ts, TIME, temp_ext(TIME));
+
+      // Assemble stiffness matrix and rhs.
+      lp.assemble(mat, rhs, rhsonly);
+      rhsonly = true;
+
+      // Solve the matrix problem.
+      if (!solver->solve(mat, rhs)) error ("Matrix solver failed.\n");
+
+      // Update tsln.
+      tsln.set_fe_solution(&space, rhs);
+
+      // Update the time variable.
+      TIME += TAU;
+
+      // Visualize the solution.
+      sprintf(title, "Time %3.2f, exterior temperature %3.5f", TIME, temp_ext(TIME));
+      Tview.set_title(title);
+      Tview.show(&tsln);
+    }
 
 
 

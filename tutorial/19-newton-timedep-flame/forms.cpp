@@ -1,43 +1,43 @@
 // definition of reaction rate omega
 
-void omega_fn(int n, scalar* a, scalar* dadx, scalar* dady, scalar* b, scalar* dbdx, scalar* dbdy,
+void omega_fn(int n, Tuple<scalar*> values, Tuple<scalar*> dx, Tuple<scalar*> dy,
                       scalar* out, scalar* outdx, scalar* outdy)
 {
   for (int i = 0; i < n; i++)
   {
-    scalar t1 = a[i] - 1.0;
+		scalar t1 = values.at(0)[i] - 1.0;
     scalar t2 = t1 * beta;
     scalar t3 = 1.0 + t1 * alpha;
     scalar t4 = sqr(beta) / (2.0*Le) * exp(t2 / t3);
-    scalar t5 = (beta / (t3 * t3)) * b[i];
-    out[i] = t4 * b[i];
-    outdx[i] = t4 * (dbdx[i] + dadx[i] * t5);
-    outdy[i] = t4 * (dbdy[i] + dady[i] * t5);
+    scalar t5 = (beta / (t3 * t3)) * values.at(1)[i];
+    out[i] = t4 * values.at(1)[i];
+    outdx[i] = t4 * (dx.at(1)[i] + dx.at(0)[i] * t5);
+    outdy[i] = t4 * (dy.at(1)[i] + dy.at(0)[i] * t5);
   }
 }
 
-void omega_dt_fn(int n, scalar* a, scalar* dadx, scalar* dady, scalar* b, scalar* dbdx, scalar* dbdy,
+void omega_dt_fn(int n, Tuple<scalar*> values, Tuple<scalar*> dx, Tuple<scalar*> dy,
                         scalar* out, scalar* outdx, scalar* outdy)
 {
   for (int i = 0; i < n; i++)
   {
-    scalar t1 = a[i] - 1.0;
+    scalar t1 = values.at(0)[i] - 1.0;
     scalar t2 = t1 * beta;
     scalar t3 = 1.0 + t1 * alpha;
     scalar t4 = sqr(beta) / (2.0*Le) * exp(t2 / t3);
     scalar t5 = (beta / (t3 * t3));
-    out[i] = t4 * t5 * b[i];
+    out[i] = t4 * t5 * values.at(1)[i];
     outdx[i] = 0.0;
     outdy[i] = 0.0; // not important
   }
 }
 
-void omega_dc_fn(int n, scalar* a, scalar* dadx, scalar* dady, scalar* b, scalar* dbdx, scalar* dbdy,
+void omega_dc_fn(int n, Tuple<scalar*> values, Tuple<scalar*> dx, Tuple<scalar*> dy,
                         scalar* out, scalar* outdx, scalar* outdy)
 {
   for (int i = 0; i < n; i++)
   {
-    scalar t1 = a[i] - 1.0;
+    scalar t1 = values.at(0)[i] - 1.0;
     scalar t2 = t1 * beta;
     scalar t3 = 1.0 + t1 * alpha;
     scalar t4 = sqr(beta) / (2.0*Le) * exp(t2 / t3);
