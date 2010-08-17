@@ -9,4 +9,3 @@ include (../../CMake.common)
 
 set(BIN ${PROJECT_BINARY_DIR}/${PROJECT_NAME})
 add_test(integrals-domain-perimeter ${BIN})
->>>>>>> ma/update_three_examples
