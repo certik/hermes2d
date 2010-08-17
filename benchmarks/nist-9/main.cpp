@@ -6,7 +6,11 @@
 
 using namespace RefinementSelectors;
 
-//  This is the ninth in the series of NIST benchmarks with known exact solutions.
+//  This is the nineth in the series of NIST benchmarks with known exact solutions. This benchmark
+//  has four different versions, use the global variable PROB_PARAM below to switch among them.
+//
+//  Reference: W. Mitchell, A Collection of 2D Elliptic Problems for Testing Adaptive Algorithms, 
+//                          NIST Report 7668, February 2010.
 //
 //  PDE: -Laplace u = f
 //
@@ -18,6 +22,13 @@ using namespace RefinementSelectors;
 //  BC:  Dirichlet, given by exact solution.
 //
 //  The following parameters can be changed:
+
+int PROB_PARAM = 3;    // PROB_PARAM determines which parameter values you wish to use for the steepness and location of the wave front. 
+                       //    name		ALPHA	X_LOC	Y_LOC	R_ZERO
+                       // 0: mild		20	-0.05	-0.05	0.7
+                       // 1: steep		1000	-0.05	-0.05	0.7
+                       // 2: asymmetric         1000	 1.5	 0.25	0.92
+                       // 3: well		50	 0.5	 0.5	0.25
 
 const int P_INIT = 1;                             // Initial polynomial degree of all mesh elements.
 const int INIT_REF_NUM = 2;                       // Number of initial uniform mesh refinements.
@@ -56,13 +67,6 @@ double ALPHA;          // (X_LOC, Y_LOC) is the center of the circular wave fron
 double X_LOC;          // wave front to the center of the circle, and ALPHA gives the steepness of the wave front.
 double Y_LOC;
 double R_ZERO;
-
-int PROB_PARAM = 0;    // PROB_PARAM destermines which parameter values you wish to use for the steepness and location of the wave front. 
-                       //    name		ALPHA	X_LOC	Y_LOC	R_ZERO
-                       // 0: mild		20	-0.05	-0.05	0.7
-                       // 1: steep		1000	-0.05	-0.05	0.7
-                       // 2: asymmetric         1000	 1.5	 0.25	0.92
-                       // 3: well		50	 0.5	 0.5	0.25
 
 // Exact solution.
 #include "exact_solution.cpp"
