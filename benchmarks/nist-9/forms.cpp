@@ -6,16 +6,42 @@ Scalar bilinear_form(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *u, Fu
 
 template<typename Real>
 Real rhs(Real x, Real y)
-{
+{  
+  if (PROB_PARAM == 0){
+   ALPHA = 20;
+   X_LOC = -0.05;
+   Y_LOC = -0.05;
+   R_ZERO = 0.7;
+   }
+else if (PROB_PARAM == 1){
+   ALPHA = 1000;
+   X_LOC = -0.05;
+   Y_LOC = -0.05;
+   R_ZERO = 0.7;
+   }
+else if (PROB_PARAM == 2){
+   ALPHA = 1000;
+   X_LOC = 1.5;
+   Y_LOC = 0.25;
+   R_ZERO = 0.92;
+   }
+else{
+   ALPHA = 50;
+   X_LOC = 0.5;
+   Y_LOC = 0.5;
+   R_ZERO = 0.25;
+   }
+
   Real a = pow(x - X_LOC, 2);
   Real b = pow(y - Y_LOC, 2);
   Real c = sqrt(a + b);
-  Real d = ((2 * x - 1.0) * (ALPHA * x - 25.0));
-  Real e = ((2 * y - 1.0) * (ALPHA * y - 25.0));
-  Real f = (pow(ALPHA * c - 12.5, 2) + 1);
+  Real d = ((ALPHA*x - (ALPHA * X_LOC)) * (2*x - (2 * X_LOC)));
+  Real e = ((ALPHA*y - (ALPHA * Y_LOC)) * (2*y - (2 * Y_LOC)));
+  Real f = (pow(ALPHA*c - (ALPHA * R_ZERO), 2) + 1.0);
+  Real g = (ALPHA * c - (ALPHA * R_ZERO));
 
-  return ((ALPHA/(f * c)) - (d/(2 * f * pow(a + b, 1.5))) - ((ALPHA * (ALPHA * c - 12.5) * d)/ (pow(f, 2) * (a + b))) +
-         (ALPHA/(f * c)) - (e/(2 * f * pow(a + b, 1.5))) - ((ALPHA * (ALPHA * c - 12.5) * e)/ (pow(f, 2) * (a + b))));
+  return ((ALPHA/(c * f)) - (d/(2 * pow(a + b, 1.5) * f)) - ((ALPHA * d * g)/((a + b) * pow(f, 2))) + 
+         (ALPHA/(c * f)) - (e/(2 * pow(a + b, 1.5) * f)) - ((ALPHA * e * g)/((a + b) * pow(f, 2))));
 }
 
 template<typename Real, typename Scalar>

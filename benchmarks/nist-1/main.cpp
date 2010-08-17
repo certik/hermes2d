@@ -8,6 +8,9 @@ using namespace RefinementSelectors;
 
 //  This is the first of the series of NIST benchmarks with known exact solutions.
 //
+//  Reference: W. Mitchell, A Collection of 2D Elliptic Problems for Testing Adaptive Algorithms, 
+//                          NIST Report 7668, February 2010.
+//
 //  PDE: -Laplace u = f.
 //
 //  Known exact solution; pow(2, 4*p) * pow(x, p) * pow(1-x, p) * pow(y, p) * pow(1-y, p).
