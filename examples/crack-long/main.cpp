@@ -6,11 +6,7 @@
 
 using namespace RefinementSelectors;
 
-// This example uses adaptive multimesh hp-FEM to solve a simple problem
-// of linear elasticity. Note that since both displacement components
-// have similar qualitative behavior, the advantage of the multimesh 
-// discretization is less striking than for example in the tutorial 
-// example 11-adapt-system.
+// This is a long version of example "crack": function solve_linear_adapt() is not used.
 //
 // PDE: Lame equations of linear elasticity.
 //
