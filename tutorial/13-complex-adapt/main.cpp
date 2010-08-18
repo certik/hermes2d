@@ -115,7 +115,7 @@ int main(int argc, char* argv[])
   Solution *ref_sln = new Solution();
   WinGeom* sln_win_geom = new WinGeom(0, 0, 600, 350);
   WinGeom* mesh_win_geom = new WinGeom(610, 0, 520, 350);
-  bool verbose = true;     // Prinf info during adaptivity.
+  bool verbose = true;     // Print info during adaptivity.
   bool is_complex = true;
   solve_linear_adapt(&space, &wf, H2D_H1_NORM, sln, matrix_solver, ref_sln,  
                      &selector, &apt, sln_win_geom, mesh_win_geom, verbose,

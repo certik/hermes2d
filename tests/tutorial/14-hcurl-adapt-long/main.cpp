@@ -6,23 +6,8 @@
 
 using namespace RefinementSelectors;
 
-//  This example comes with an exact solution, and it describes the diffraction
-//  of an electromagnetic wave from a re-entrant corner. Convergence graphs saved
-//  (both exact error and error estimate, and both wrt. dof number and cpu time).
-//
-//  PDE: time-harmonic Maxwell's equations
-//
-//  Known exact solution, see functions exact_sol_val(), exact_sol(), exact()
-//
-//  Domain: L-shape domain
-//
-//  Meshes: you can use either "lshape3q.mesh" (quadrilateral mesh) or
-//          "lshape3t.mesh" (triangular mesh). See the mesh.load(...) command below.
-//
-//  BC: perfect conductor on boundary markers 1 and 6 (essential BC)
-//      impedance boundary condition on rest of boundary (natural BC)
-//
-//  The following parameters can be changed:
+// This is a long version of test example "14-hcurl-adapt-long": function solve_linear_adapt() is not used.
+// This test makes sure that example 14-hcurl-adapt-long works correctly.
 
 const int P_INIT = 2;                             // Initial polynomial degree. NOTE: The meaning is different from
                                                   // standard continuous elements in the space H1. Here, P_INIT refers
@@ -85,10 +70,6 @@ scalar essential_bc_values(int ess_bdy_marker, double x, double y)
 
 int main(int argc, char* argv[])
 {
-  // Time measurement
-  TimePeriod cpu_time;
-  cpu_time.tick();
-
   // Load the mesh.
   Mesh mesh;
   H2DReader mloader;
@@ -99,7 +80,7 @@ int main(int argc, char* argv[])
   for (int i=0; i < INIT_REF_NUM; i++)  mesh.refine_all_elements();
 
   // Create an Hcurl space with default shapeset.
-  HcurlSpace space(&mesh, bc_types, essential_bc_values, P_INIT);
+  HcurlSpace* space = new HcurlSpace(&mesh, bc_types, essential_bc_values, P_INIT);
 
   // Initialize the weak formulation.
   WeakForm wf;
@@ -110,23 +91,77 @@ int main(int argc, char* argv[])
   // Initialize refinement selector.
   HcurlProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
 
-  // Initialize adaptivity parameters.
-  AdaptivityParamType apt(ERR_STOP, NDOF_STOP, THRESHOLD, STRATEGY, 
-                          MESH_REGULARITY);
+  // Initialize matrix solver.
+  bool is_complex = true;
+  Matrix* mat; Vector* rhs; CommonSolver* solver;  
+  init_matrix_solver(matrix_solver, get_num_dofs(space), mat, rhs, solver, is_complex);
 
   // Adaptivity loop.
   Solution *sln = new Solution();
   Solution *ref_sln = new Solution();
-  ExactSolution exact_sln(&mesh, exact);
-  WinGeom* sln_win_geom = new WinGeom(0, 0, 440, 350);
-  WinGeom* mesh_win_geom = new WinGeom(450, 0, 400, 350);
-  bool verbose = true;     // Print info during adaptivity.
-  bool is_complex = true;
-  solve_linear_adapt(&space, &wf, H2D_HCURL_NORM, sln, matrix_solver, ref_sln,  
-                     &selector, &apt, sln_win_geom, mesh_win_geom, verbose, &exact_sln, is_complex);
+  int as = 1; bool done = false;
+  do
+  {
+    info("---- Adaptivity step %d:", as);
+    info("Solving on reference mesh.");
 
-  // Wait for all views to be closed.
-  View::wait();
-  return 0;
+    // Construct globally refined reference mesh
+    // and setup reference space.
+    Mesh *ref_mesh = new Mesh();
+    ref_mesh->copy(space->get_mesh());
+    ref_mesh->refine_all_elements();
+    Space* ref_space = space->dup(ref_mesh);
+    int order_increase = 1;
+    ref_space->copy_orders(space, order_increase);
+
+    // Solve the reference problem.
+    solve_linear(ref_space, &wf, ref_sln, matrix_solver, is_complex);
+
+    // Project the reference solution on the coarse mesh.
+    info("Projecting reference solution on coarse mesh.");
+    // NULL means that we do not want to know the resulting coefficient vector.
+    project_global(space, H2D_HCURL_NORM, ref_sln, sln, NULL, is_complex); 
+
+    // Calculate element errors.
+    info("Calculating error (est).");
+    Adapt hp(space, H2D_HCURL_NORM);
+    hp.set_solutions(sln, ref_sln);
+    hp.calc_elem_errors(H2D_TOTAL_ERROR_REL | H2D_ELEMENT_ERROR_REL);
+ 
+    // Calculate error estimate for each solution component.
+    double err_est_abs = calc_abs_error(sln, ref_sln, H2D_HCURL_NORM);
+    double norm_est = calc_norm(ref_sln, H2D_HCURL_NORM);
+    double err_est_rel = err_est_abs / norm_est * 100.;
+
+    // Report results.
+    info("ndof: %d, ref_ndof: %d, err_est_rel_total: %g%%", 
+         get_num_dofs(space), get_num_dofs(ref_space), err_est_rel);
+
+    // If err_est too large, adapt the mesh.
+    if (err_est_rel < ERR_STOP) done = true;
+    else {
+      info("Adapting the coarse mesh.");
+      done = hp.adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY);
+
+      if (get_num_dofs(space) >= NDOF_STOP) done = true;
+    }
+
+    as++;
+  }
+  while (done == false);
+
+  int ndof = get_num_dofs(space);
+
+#define ERROR_SUCCESS                               0
+#define ERROR_FAILURE                               -1
+  printf("ndof allowed = %d\n", 1400);
+  printf("ndof actual = %d\n", ndof);
+  if (ndof < 1400) {      // ndofs was 1384 atthe time this test was created
+    printf("Success!\n");
+    return ERROR_SUCCESS;
+  }
+  else {
+    printf("Failure!\n");
+    return ERROR_FAILURE;
+  }
 }
-

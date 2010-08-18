@@ -6,7 +6,8 @@
 
 using namespace RefinementSelectors;
 
-// This test makes sure that example 13-complex-adapt works correctly.
+// This is a long version of test example "13-complex-adapt-long": function solve_linear_adapt() is not used.
+// This test makes sure that example 13-complex-adapt-long works correctly.
 
 const int INIT_REF_NUM = 1;              // Number of initial uniform mesh refinements.
 const int P_INIT = 1;                    // Initial polynomial degree of all mesh elements.
@@ -78,7 +79,7 @@ int main(int argc, char* argv[])
   for (int i=0; i<INIT_REF_NUM; i++) mesh.refine_all_elements();
 
   // Create an H1 space with default shapeset.
-  H1Space space(&mesh, bc_types, essential_bc_values, P_INIT);
+  H1Space* space = new H1Space(&mesh, bc_types, essential_bc_values, P_INIT);
 
   // Initialize the weak formulation.
   WeakForm wf;
@@ -90,21 +91,68 @@ int main(int argc, char* argv[])
   // Initialize refinement selector.
   H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
 
-  // Initialize adaptivity parameters.
-  AdaptivityParamType apt(ERR_STOP, NDOF_STOP, THRESHOLD, STRATEGY,
-                          MESH_REGULARITY);
+  // Initialize matrix solver.
+  bool is_complex = true;
+  Matrix* mat; Vector* rhs; CommonSolver* solver;  
+  init_matrix_solver(matrix_solver, get_num_dofs(space), mat, rhs, solver, is_complex);
+
   // Adaptivity loop.
   Solution *sln = new Solution();
   Solution *ref_sln = new Solution();
-  bool verbose = true;     // Print info during adaptivity.
-  bool is_complex = true;
-  solve_linear_adapt(&space, &wf, H2D_H1_NORM, sln, matrix_solver, ref_sln,
-                     &selector, &apt, Tuple<WinGeom *>(), Tuple<WinGeom *>(), verbose,
-                     Tuple<ExactSolution *>(), is_complex); // Do not use NULL to pass an empty Tuple.
+  int as = 1; bool done = false;
+  do
+  {
+    info("---- Adaptivity step %d:", as);
+    info("Solving on reference mesh.");
 
-  int ndof = get_num_dofs(&space);
+    // Construct globally refined reference mesh
+    // and setup reference space.
+    Mesh *ref_mesh = new Mesh();
+    ref_mesh->copy(space->get_mesh());
+    ref_mesh->refine_all_elements();
+    Space* ref_space = space->dup(ref_mesh);
+    int order_increase = 1;
+    ref_space->copy_orders(space, order_increase);
 
-#define ERROR_SUCCESS                                0
+    // Solve the reference problem.
+    solve_linear(ref_space, &wf, ref_sln, matrix_solver, is_complex);
+
+    // Project the reference solution on the coarse mesh.
+    info("Projecting reference solution on coarse mesh.");
+    // NULL means that we do not want to know the resulting coefficient vector.
+    project_global(space, H2D_H1_NORM, ref_sln, sln, NULL, is_complex); 
+
+    // Calculate element errors.
+    info("Calculating error (est).");
+    Adapt hp(space, H2D_H1_NORM);
+    hp.set_solutions(sln, ref_sln);
+    hp.calc_elem_errors(H2D_TOTAL_ERROR_REL | H2D_ELEMENT_ERROR_REL);
+ 
+    // Calculate error estimate for each solution component.
+    double err_est_abs = calc_abs_error(sln, ref_sln, H2D_H1_NORM);
+    double norm_est = calc_norm(ref_sln, H2D_H1_NORM);
+    double err_est_rel = err_est_abs / norm_est * 100.;
+
+    // Report results.
+    info("ndof: %d, ref_ndof: %d, err_est_rel_total: %g%%", 
+         get_num_dofs(space), get_num_dofs(ref_space), err_est_rel);
+
+    // If err_est too large, adapt the mesh.
+    if (err_est_rel < ERR_STOP) done = true;
+    else {
+      info("Adapting the coarse mesh.");
+      done = hp.adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY);
+
+      if (get_num_dofs(space) >= NDOF_STOP) done = true;
+    }
+
+    as++;
+  }
+  while (done == false);
+
+  int ndof = get_num_dofs(space);
+
+#define ERROR_SUCCESS                               0
 #define ERROR_FAILURE                               -1
   printf("ndof allowed = %d\n", 650);
   printf("ndof actual = %d\n", ndof);
