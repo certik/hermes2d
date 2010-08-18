@@ -119,12 +119,12 @@ int main(int argc, char* argv[])
   } while (current_time < T_FINAL);
 
   ndof = get_num_dofs(space);
-  info("Coordinate (-10, -10) value = %lf",u_prev_time.get_pt_value(-10.0, -10.0));
-  info("Coordinate ( -6,  -6) value = %lf",u_prev_time.get_pt_value(-6.0, -6.0));
-  info("Coordinate ( -2,  -2) value = %lf",u_prev_time.get_pt_value(-2.0, -2.0));
-  info("Coordinate (  2,   2) value = %lf",u_prev_time.get_pt_value(2.0, 2.0));
-  info("Coordinate (  6,   6) value = %lf",u_prev_time.get_pt_value(6.0, 6.0));
-  info("Coordinate ( 10,  10) value = %lf",u_prev_time.get_pt_value(10.0, 10.0));
+  info("Coordinate (-10, -10) value = %lf", u_prev_time.get_pt_value(-10.0, -10.0));
+  info("Coordinate ( -6,  -6) value = %lf", u_prev_time.get_pt_value(-6.0, -6.0));
+  info("Coordinate ( -2,  -2) value = %lf", u_prev_time.get_pt_value(-2.0, -2.0));
+  info("Coordinate (  2,   2) value = %lf", u_prev_time.get_pt_value(2.0, 2.0));
+  info("Coordinate (  6,   6) value = %lf", u_prev_time.get_pt_value(6.0, 6.0));
+  info("Coordinate ( 10,  10) value = %lf", u_prev_time.get_pt_value(10.0, 10.0));
 
 
 #define ERROR_SUCCESS                                0
@@ -133,25 +133,16 @@ int main(int argc, char* argv[])
   double value[6] = {0.000000, 2.311376, 2.748304, 2.919943, 3.146120, 4.000000};
   for (int i = 0; i < 6; i++)
   {
-    if ((value[i] - u_prev_time.get_pt_value(coor_x_y[i], coor_x_y[i])) < 1E-10)
+    if ((value[i] - u_prev_time.get_pt_value(coor_x_y[i], coor_x_y[i])) < 1E-6)
     {
-      break;
+      printf("Success!\n");
+      return ERROR_SUCCESS;
     }
     else
     {
       printf("Failure!\n");
       return ERROR_FAILURE;
     }
-  }
-  printf("ndof allowed = %d\n", 1000);
-  printf("ndof actual = %d\n", ndof);
-  if (ndof < 1000) {      // ndofs was 961 at the time this test was created.
-    printf("Success!\n");
-    return ERROR_SUCCESS;
-  }
-  else {
-    printf("Failure!\n");
-    return ERROR_FAILURE;
   }
 }
 
