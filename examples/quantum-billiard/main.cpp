@@ -22,10 +22,10 @@
 //
 //  IC: Gaussian distribution \Psi(0, x, y) = 
 
-const int INIT_REF_NUM = 2;      // Number of initial uniform refinements.
-const int P_INIT = 4;            // Initial polynomial degree.
-const double TAU = 0.005;        // Time step.
-const double T_FINAL = 2;        // Time interval length.
+const int INIT_REF_NUM = 5;      // Number of initial uniform refinements.
+const int P_INIT = 1;            // Initial polynomial degree.
+const double TAU = 0.05;          // Time step.
+const double T_FINAL = 1000;     // Time interval length.
 const int TIME_DISCR = 2;        // 1 for implicit Euler, 2 for Crank-Nicolson.
 MatrixSolverType matrix_solver = SOLVER_UMFPACK;  // Possibilities: SOLVER_UMFPACK, SOLVER_PETSC,
                                                   // SOLVER_MUMPS, and more are coming.
@@ -41,8 +41,8 @@ scalar ii = cplx(0.0, 1.0);
 scalar init_cond_psi(double x, double y, scalar& dx, scalar& dy)
 {
   scalar val = exp(-(x*x + y*y)/(2.*C*C)) * exp(C2 * ii * x);
-  dx = 0;
-  dy = 0;
+  dx = (-x/(C*C)+ii*C2)*val;
+  dy = (-y/(C*C))*val;
   return val;
 }
 
@@ -50,8 +50,8 @@ scalar init_cond_psi(double x, double y, scalar& dx, scalar& dy)
 scalar init_cond_phi(double x, double y, scalar& dx, scalar& dy)
 {
   scalar val = ii * C2 * exp(-(x*x + y*y)/(2.*C*C)) * exp(C2 * ii * x);
-  dx = 0;
-  dy = 0;
+  dx = (-x/(C*C)+ii*C2)*val;
+  dy = (-y/(C*C))*val;
   return val;
 }
 
