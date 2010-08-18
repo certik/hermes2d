@@ -6,18 +6,28 @@ About Hermes2D
 --------------
 
 Hermes2D is a free C++/Python library for rapid development of
-adaptive FEM and *hp*-FEM solvers for partial differential equations (PDE),
-developed by the `hp-FEM group <http://hpfem.org/>`_ at the University of 
-Nevada, Reno. The library is available under the GPL license (Version 2, 1991).
-Although Hermes is much younger than other FEM packages, it is loaded with 
-unique technology and its user base is growing fast. In the following, 
-we will abbreviate Hermes2D with Hermes. 
+adaptive *hp*-FEM and *hp*-DG solvers for partial differential equations (PDE)
+and multiphysics PDE systems. The developer team includes the 
+`hp-FEM group <http://hpfem.org/>`_ at the `University of Nevada, Reno <http://www.unr.edu>`_ 
+and their `collaborators <http://git.hpfem.org/git/hermes2d.git/tree/HEAD:/AUTHORS>`_ 
+from numerous places around the globe.
 
-For those who speak other languages than C++, there is an **interactive 
-GUI** `Agros2D <http://hpfem.org/agros2d/>`_. We also provide 
-an **interactive online lab** (`accessible here <http://nb.femhub.org/>`_) where
-you can compute with Hermes and other FEM codes in `FEMhub <http://femhub.org>`_ 
-via any web browser without even installing it (the CPU time is on us). 
+The standard way to use Hermes2D is to write short C++ user programs, but for 
+those who prefer to use a graphical interface, there is an 
+`interactive GUI Agros2D <http://hpfem.org/agros2d/>`_. We also provide 
+an `interactive online lab <http://nb.femhub.org/>`_ where
+the user can compute with Hermes2D and other FEM codes in `FEMhub <http://femhub.org>`_ 
+via any web browser without having to install anything (CPU time is on us). 
+
+Although Hermes2D is much younger than major FEM packages, it is loaded with 
+unique technology and its user base is growing fast. We hope that you will 
+enjoy the software and that you will find this documentation useful. Let us know if 
+you find mistakes or with any improvement suggestions. Anyone who contributes
+a patch becomes automatically a 
+`co-author <http://git.hpfem.org/git/hermes2d.git/tree/HEAD:/AUTHORS>`_ of the code.
+
+The library is available under the GPL license (Version 2, 1991). In the following, we will
+abbreviate Hermes2D with Hermes. 
 
 About this Document
 -------------------
@@ -25,7 +35,9 @@ About this Document
 Prior to reading this document, we recommend that you install Hermes using instructions on 
 its `home page <http://hpfem.org/hermes2d/>`_, and subscribe to the `mailing list 
 <http://groups.google.com/group/hermes2d/>`_. Our mailing list is a very active place where 
-you should get all answers quickly. 
+you will get any questions answered quickly. You can also follow the development 
+via the `group activity list <http://groups.google.com/group/hpfem-group/>`_ 
+that contains a weekly log of all core team members.
 
 The best way of reading this tutorial is to run the code at the same time. 
 After making your way through the tutorial, you may want to browse the directories 
@@ -59,15 +71,15 @@ and http://hpfem.org/hermes2d/doc.cpp/h2d-cplx/html/index.html, respectively.
 Mathematical Background
 -----------------------
 
-Main strengths of Hermes are **adaptive hp-FEM methods**,
-adaptivity for time-dependent problems on **dynamical hp-meshes**, and
-monolithic discretization of arbitrary multiphysics problems via a novel **multimesh hp-FEM**.
-The following list gives more details so that you can decide whether Hermes 
-may be the library that you are looking for: 
+Main strengths of Hermes are 
 
-* **Mature hp-adaptivity algorithms**. Hermes puts a major emphasis on credibility of results, i.e., on error control and automatic adaptivity. Practitioners know well how painful it is to use automatic adaptivity in conjunction with standard lower-order approximations such as linear or quadratic elements - the error decreases somehow during a few initial adaptivity steps, but then it slows down and it does not help to invest more unknowns or CPU time. This is typical for low-order methods. In contrast to this, the exponentially-convergent adaptive *hp*-FEM and *hp*-DG do not have this problem - the error drops steadily and fast during adaptivity all the way to the desired accuracy. 
+ * adaptive *hp*-FEM and *hp*-DG methods, 
+ * adaptivity for time-dependent problems on dynamically-changing *hp*-meshes, and
+ * monolithic discretization of multiphysics problems via multimesh *hp*-FEM/*hp*-DG. 
 
-Typical convergence comparison of h-FEM with linear and quadratic elements, and the hp-FEM on a log-log scale:
+The following list describes the above in more detail:
+
+* **Mature hp-adaptivity algorithms**. Hermes puts a major emphasis on error control and automatic adaptivity. Practitioners know well how painful it is to use automatic adaptivity in conjunction with standard lower-order approximations such as linear or quadratic elements - the error decreases somehow during a few initial adaptivity steps, but then it slows down and it does not help to invest more unknowns or CPU time. This is typical for low-order methods. In contrast to this, the exponentially-convergent adaptive *hp*-FEM and *hp*-DG do not have this problem - the error drops steadily and fast during adaptivity all the way to the desired accuracy. The following graph shows typical convergence rates of *h*-FEM with linear elements, *h*-FEM with quadratic elements, and *hp*-FEM on a log-log scale:
 
 .. image:: img/intro/conv_dof.png
    :align: center
@@ -83,7 +95,7 @@ Same graphs as above but now in terms of CPU time:
    :height: 400
    :alt: CPU convergence graph.
 
-* **Wide applicability**. Hermes is completely PDE-independent. Many FEM codes are designed to solve some narrow class of PDE problems (such as elliptic equations, fluid dynamics, electromagnetics etc.). In contrast to that, Hermes does not employ any technique or algorithm that would only work for some particular class of PDE problems. Automatic adaptivity is guided by a universal computational a-posteriori error estimate that works in the same way for any PDE. Of course this does not mean that it performs equally well on all PDE - some equations simply are more difficult to solve than others. However, Hermes allows you to tackle an arbitrary PDE or multiphysics PDE system. Visit the `hp-FEM group home page <http://hpfem.org/>`_ and especially the `gallery <http://hpfem.org/gallery/>`_ to see numerous examples.
+* **Wide applicability**. Hermes is PDE-independent. Standard FEM codes are designed to solve some narrow class(es) of PDE problems (such as elliptic equations, fluid dynamics, electromagnetics etc.). Hermes does not employ any technique or algorithm that would limit its applicability to some particular class(es) of PDE problems. Automatic adaptivity is guided by a universal computational a-posteriori error estimate that works in the same way for any PDE. Of course this does not mean that the algorithms perform equally well on all PDE - some equations simply are more difficult to solve than others. However, Hermes allows you to tackle an arbitrary PDE or multiphysics PDE system and add your own equation-specific extensions if necessary. Visit the `hp-FEM group home page <http://hpfem.org/>`_ and especially the `gallery <http://hpfem.org/gallery/>`_ to see numerous examples.
 
 .. image:: img/intro/ns.jpg
    :align: center
@@ -92,7 +104,7 @@ Same graphs as above but now in terms of CPU time:
    :alt: Image of incompressible viscous flow.
 
 
-* **Arbitrary-level hanging nodes**. Hermes has a unique original methodology for handling arbitrary-level hanging nodes. This means that extremely small elements can be adjacent to very large ones. When an element is refined, its neighbors are never split forcefully as in conventional adaptivity algorithms. It is well known that approximations with one-level hanging nodes are more efficient compared to regular meshes. However, the technique of arbitrary-level hanging nodes brings this to a perfection.
+* **Arbitrary-level hanging nodes**. Hermes has a unique original methodology for handling irregular meshes with arbitrary-level hanging nodes. This means that extremely small elements can be adjacent to very large ones. When an element is refined, its neighbors are never split forcefully as in conventional adaptivity algorithms. It is well known that approximations with one-level hanging nodes are more efficient compared to regular meshes. However, the technique of arbitrary-level hanging nodes brings this to a perfection.
 
 .. image:: img/intro/ord_2d_c.png
    :align: center
@@ -140,7 +152,7 @@ Same graphs as above but now in terms of CPU time:
 Interactive Web Accessibility
 -----------------------------
 
-* **Interactive web usage**. You can use Hermes (and other major open source FEM codes) remotely via any web browser, using the `FEMhub Online Numerical Methods Laboratory <http://lab.femhub.org/>`_. Your hardware will not be used as the online lab is powered by the University of Nevada, Reno (UNR) high-performance computing facility (`Research Grid <http://hpc.unr.edu/wiki/index.php/Main_Page>`_). You can compute with Hermes using an iPhone if you like.
+* **Interactive web usage**. You can use Hermes (and other major open source FEM codes) remotely via any web browser, using the `FEMhub Online Numerical Methods Laboratory <http://lab.femhub.org/>`_. Your hardware will not be used as the online lab is powered by the University of Nevada, Reno (UNR) high-performance computing facility (`Research Grid <http://hpc.unr.edu/wiki/index.php/Main_Page>`_). In this way you can compute with Hermes using any platform that supports web browsing, such as an iPhone:
 
 .. image:: img/intro/iphone_large.png
    :align: center
@@ -268,6 +280,6 @@ Topical papers from various application areas:
       pages = {677 - 680}
     }
 
-Other papers that may be even closer to what you do can be found in the `publications section  <http://hpfem.org/publications/>`_ of the hp-FEM group home page.
+Other papers that may be still closer to what you need can be found in the `publications section  <http://hpfem.org/publications/>`_ of the hp-FEM group home page or on `Pavel Solin's home page <http://hpfem.org/~pavel>`_.
 
  
