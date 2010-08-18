@@ -45,7 +45,7 @@ void Filter::init()
   // construct the union mesh, if necessary
   Mesh* meshes[10];
 	for(int i = 0; i < this->num; i++)
-		meshes[i] = num > i ? this->sln[i]->get_mesh() : NULL;
+		meshes[i] = this->sln[i]->get_mesh();
   mesh = meshes[0];
   unimesh = false;
 
@@ -339,6 +339,7 @@ static void magnitude_fn(int n, Tuple<scalar*> values, scalar* result)
 {
   for (int i = 0; i < n; i++)
 	{
+		result[i] = 0;
 		for(int j = 0; j < values.size(); j++)
 			result[i] += sqr(values.at(j)[i]);
 		result[i] = sqrt(result[i]);
