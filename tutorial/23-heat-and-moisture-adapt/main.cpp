@@ -34,7 +34,7 @@ const int STRATEGY = 1;                  // Adaptive strategy:
                                          // STRATEGY = 2 ... refine all elements whose error is larger
                                          //   than THRESHOLD.
                                          // More adaptive strategies can be created in adapt_ortho_h1.cpp.
-const CandList CAND_LIST = H2D_HP_ANISO_H; // Predefined list of element refinement candidates. Possible values are
+const CandList CAND_LIST = H2D_HP_ANISO; // Predefined list of element refinement candidates. Possible values are
                                          // H2D_P_ISO, H2D_P_ANISO, H2D_H_ISO, H2D_H_ANISO, H2D_HP_ISO,
                                          // H2D_HP_ANISO_H, H2D_HP_ANISO_P, H2D_HP_ANISO.
                                          // See User Documentation for details.
@@ -48,7 +48,7 @@ const double CONV_EXP = 1.0;             // Default value is 1.0. This parameter
                                          // cancidates in hp-adaptivity. See get_optimal_refinement() for details.
 const double ERR_STOP = 0.5;             // Stopping criterion for adaptivity (rel. error tolerance between the
                                          // fine mesh and coarse mesh solution in percent).
-const int NDOF_STOP = 60000;             // Adaptivity process stops when the number of degrees of freedom grows over
+const int NDOF_STOP = 100000;            // Adaptivity process stops when the number of degrees of freedom grows over
                                          // this limit. This is mainly to prevent h-adaptivity to go on forever.
 MatrixSolverType matrix_solver = SOLVER_UMFPACK;  // Possibilities: SOLVER_UMFPACK, SOLVER_PETSC,
                                                   // SOLVER_MUMPS, and more are coming.
@@ -112,26 +112,24 @@ scalar essential_bc_values_T(int ess_bdy_marker, double x, double y)
 int main(int argc, char* argv[])
 {
   // Load the mesh.
-  Mesh basemesh, mesh_T, mesh_M;
+  Mesh basemesh, T_mesh, M_mesh;
   H2DReader mloader;
   mloader.load("domain2.mesh", &basemesh);
 
   // Create temperature and moisture meshes.
   // This also initializes the multimesh hp-FEM.
-  mesh_T.copy(&basemesh);
-  mesh_M.copy(&basemesh);
+  T_mesh.copy(&basemesh);
+  M_mesh.copy(&basemesh);
 
   // Create H1 spaces with default shapesets.
-  H1Space space_T(&mesh_T, temp_bc_type, essential_bc_values_T, P_INIT);
-  H1Space space_M(MULTI ? &mesh_M : &mesh_T, moist_bc_type, NULL, P_INIT);
-  int ndof = get_num_dofs(Tuple<Space*>(&space_T, &space_M));
-  info("ndof = %d.", ndof);
+  H1Space T_space(&T_mesh, temp_bc_type, essential_bc_values_T, P_INIT);
+  H1Space M_space(MULTI ? &M_mesh : &T_mesh, moist_bc_type, NULL, P_INIT);
 
   // Define constant initial conditions.
   info("Setting initial conditions.");
   Solution T_prev, M_prev;
-  T_prev.set_const(&mesh_T, TEMP_INITIAL);
-  M_prev.set_const(&mesh_M, MOIST_INITIAL);
+  T_prev.set_const(&T_mesh, TEMP_INITIAL);
+  M_prev.set_const(&M_mesh, MOIST_INITIAL);
 
   // Initialize the weak formulation.
   WeakForm wf(2);
@@ -162,46 +160,69 @@ int main(int argc, char* argv[])
   Solution T_coarse, M_coarse, T_fine, M_fine;
 
   // Geometry and position of visualization windows.
-  WinGeom* u_sln_win_geom = new WinGeom(0, 0, 450, 350);
-  WinGeom* u_mesh_win_geom = new WinGeom(0, 360, 450, 350);
-  WinGeom* v_sln_win_geom = new WinGeom(460, 0, 450, 350);
-  WinGeom* v_mesh_win_geom = new WinGeom(460, 360, 450, 350);
+  WinGeom* T_sln_win_geom = new WinGeom(0, 0, 300, 450);
+  WinGeom* M_sln_win_geom = new WinGeom(310, 0, 300, 450);
+  WinGeom* T_mesh_win_geom = new WinGeom(620, 0, 280, 450);
+  WinGeom* M_mesh_win_geom = new WinGeom(910, 0, 280, 450);
 
+  // Initialize views.
+  ScalarView T_sln_view("Temperature", T_sln_win_geom);
+  ScalarView M_sln_view("Moisture", M_sln_win_geom);
+  OrderView T_order_view("Temperature mesh", T_mesh_win_geom);
+  OrderView M_order_view("Moisture mesh", M_mesh_win_geom);
+
+  // Show initial conditions.
+  T_sln_view.show(&T_prev);
+  M_sln_view.show(&M_prev);
+  T_order_view.show(&T_space);
+  M_order_view.show(&M_space);
+
+  // Time stepping loop:
   bool verbose = true;  // Print info during adaptivity.
   double comp_time = 0.0;
   static int ts = 1;
-  // Time stepping loop:
   while (CURRENT_TIME < SIMULATION_TIME)
   {
-    info("Physical time = %g s (%d h, %d d, %d y)",
+    info("Simulation time = %g s (%d h, %d d, %d y)",
         (CURRENT_TIME + TAU), (int) (CURRENT_TIME + TAU) / 3600,
         (int) (CURRENT_TIME + TAU) / (3600*24), (int) (CURRENT_TIME + TAU) / (3600*24*364));
 
     // Uniform mesh derefinement.
-    mesh_T.copy(&basemesh);
-    mesh_M.copy(&basemesh);
-    space_T.set_uniform_order(P_INIT);
-    space_M.set_uniform_order(P_INIT);
+    if (ts > 1) {
+      T_mesh.copy(&basemesh);
+      M_mesh.copy(&basemesh);
+      T_space.set_uniform_order(P_INIT);
+      M_space.set_uniform_order(P_INIT);
+    }
 
     // Adaptivity loop.
-    solve_linear_adapt(Tuple<Space *>(&space_T, &space_M), &wf,
+    solve_linear_adapt(Tuple<Space *>(&T_space, &M_space), &wf,
                        Tuple<int>(H2D_H1_NORM, H2D_H1_NORM),
                        Tuple<Solution *>(&T_coarse, &M_coarse), matrix_solver,
                        Tuple<Solution *>(&T_fine, &M_fine),
                        Tuple<RefinementSelectors::Selector *> (&selector, &selector), &apt,
-                       Tuple<WinGeom *>(u_sln_win_geom, v_sln_win_geom),
-                       Tuple<WinGeom *>(u_mesh_win_geom, v_mesh_win_geom), verbose);
+                       Tuple<WinGeom *>(), Tuple<WinGeom *>(), // Do not show solutions or meshes.
+                       verbose);
 
     // Update time.
     CURRENT_TIME += TAU;
 
-    // Save solutions for the next time step.
-    T_prev = T_fine;
-    M_prev = M_fine;
+    // Show new coarse meshes and solutions.
+    char title[100];
+    sprintf(title, "Temperature, t = %g days", CURRENT_TIME/3600./24);
+    T_sln_view.set_title(title);
+    T_sln_view.show(&T_coarse);
+    sprintf(title, "Moisture, t = %g days", CURRENT_TIME/3600./24);
+    M_sln_view.set_title(title);
+    M_sln_view.show(&M_coarse);
+    T_order_view.show(&T_space);
+    M_order_view.show(&M_space);
+
+    // Save fine mesh solutions for the next time step.
+    T_prev.copy(&T_fine);
+    M_prev.copy(&M_fine);
 
     ts++;
-    // Wait for all views to be closed.
-    View::wait();
   }
 
   // Wait for all views to be closed.
