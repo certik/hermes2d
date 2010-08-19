@@ -143,7 +143,7 @@ int main(int argc, char* argv[])
   // Show the Von Mises stress on the reference mesh.
   WinGeom* stress_win_geom = new WinGeom(950, 0, 900, 300);
   ScalarView sview("Von Mises stress [Pa]", stress_win_geom);
-  VonMisesFilter ref_stress((MeshFunction*)ref_u_sln, (MeshFunction*)ref_v_sln, mu, lambda);
+  VonMisesFilter ref_stress(Tuple<MeshFunction*>(ref_u_sln, ref_v_sln), lambda, mu);
   sview.set_min_max_range(0, 2e5);
   sview.show_mesh(false);
   sview.show(&ref_stress);

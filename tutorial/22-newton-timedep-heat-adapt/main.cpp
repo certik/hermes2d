@@ -150,7 +150,7 @@ int main(int argc, char* argv[])
 
   // Project the function init_cond() on the FE space
   // to obtain initial coefficient vector for the Newton's method.
-  info("Projecting initial condition to obtain initial vector for the Newton'w method.");
+  info("Projecting initial condition to obtain initial vector for the Newton's method.");
   u_prev_time.set_exact(&mesh, init_cond);            // u_prev_time set equal to init_cond().
   nls.project_global(&u_prev_time, &u_prev_newton);   // Initial vector calculated here.
 

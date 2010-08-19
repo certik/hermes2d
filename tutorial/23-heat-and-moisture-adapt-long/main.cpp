@@ -124,8 +124,6 @@ int main(int argc, char* argv[])
   // Create H1 spaces with default shapesets.
   H1Space space_T(&mesh_T, temp_bc_type, essential_bc_values_T, P_INIT);
   H1Space space_M(MULTI ? &mesh_M : &mesh_T, moist_bc_type, NULL, P_INIT);
-  int ndof = get_num_dofs(Tuple<Space*>(&space_T, &space_M));
-  info("ndof = %d.", ndof);
 
   // Define constant initial conditions.
   info("Setting initial conditions.");
@@ -149,28 +147,31 @@ int main(int argc, char* argv[])
   // Initialize refinement selector.
   H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
 
-  // Initialize adaptivity parameters.
-  double to_be_processed = 0;
-  AdaptivityParamType apt(ERR_STOP, NDOF_STOP, THRESHOLD, STRATEGY,
-                          MESH_REGULARITY, to_be_processed, H2D_TOTAL_ERROR_REL, H2D_ELEMENT_ERROR_REL);
-  apt.set_error_form(0, 0, callback(bilinear_form_sym_0_0));
-  apt.set_error_form(0, 1, callback(bilinear_form_sym_0_1));
-  apt.set_error_form(1, 0, callback(bilinear_form_sym_1_0));
-  apt.set_error_form(1, 1, callback(bilinear_form_sym_1_1));
+  // Initialize views.
+  ScalarView temp_view("Temperature [K]", 0, 0, 280, 400);
+  OrderView temp_ord("Temperature mesh", 300, 0, 280, 400);
+  ScalarView moist_view("Moisture [-]", 600, 0, 280, 400);
+  OrderView moist_ord("Moisture mesh", 900, 0, 280, 400);
+  temp_view.set_min_max_range(TEMP_INITIAL, TEMP_REACTOR_MAX);
+  moist_view.set_min_max_range(MOIST_EXTERIOR, MOIST_INITIAL);
+  temp_view.show_mesh(false);
+  moist_view.show_mesh(false);
+
+  // Error estimate and discrete problem size as a function of physical time.
+  SimpleGraph graph_time_err, graph_time_dof;
+
+  // Initialize the coarse mesh problem.
+  LinearProblem ls(&wf, Tuple<Space*>(&space_T, &space_M));
 
   // Solutions.
   Solution T_coarse, M_coarse, T_fine, M_fine;
 
-  // Geometry and position of visualization windows.
-  WinGeom* u_sln_win_geom = new WinGeom(0, 0, 450, 350);
-  WinGeom* u_mesh_win_geom = new WinGeom(0, 360, 450, 350);
-  WinGeom* v_sln_win_geom = new WinGeom(460, 0, 450, 350);
-  WinGeom* v_mesh_win_geom = new WinGeom(460, 360, 450, 350);
+  // Initialize refinement selector.
+  H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
 
-  bool verbose = true;  // Print info during adaptivity.
+  // Time stepping loop:
   double comp_time = 0.0;
   static int ts = 1;
-  // Time stepping loop:
   while (CURRENT_TIME < SIMULATION_TIME)
   {
     info("Physical time = %g s (%d h, %d d, %d y)",
@@ -183,14 +184,87 @@ int main(int argc, char* argv[])
     space_T.set_uniform_order(P_INIT);
     space_M.set_uniform_order(P_INIT);
 
-    // Adaptivity loop.
-    solve_linear_adapt(Tuple<Space *>(&space_T, &space_M), &wf,
-                       Tuple<int>(H2D_H1_NORM, H2D_H1_NORM),
-                       Tuple<Solution *>(&T_coarse, &M_coarse), matrix_solver,
-                       Tuple<Solution *>(&T_fine, &M_fine),
-                       Tuple<RefinementSelectors::Selector *> (&selector, &selector), &apt,
-                       Tuple<WinGeom *>(u_sln_win_geom, v_sln_win_geom),
-                       Tuple<WinGeom *>(u_mesh_win_geom, v_mesh_win_geom), verbose);
+    // Adaptivity loop (in space):
+    bool done = false;
+    double space_err_est;
+    int as = 1;
+    do
+    {
+      info("---- Time step %d, adaptivity step %d:", ts, as);
+
+      // Update time-dependent Dirichlet BCs.
+      ls.update_essential_bc_values();
+
+      // Solve the fine mesh problem.
+      RefSystem rs(&ls);
+      info("Solving on fine meshes.");
+      rs.assemble();
+      rs.solve(Tuple<Solution*>(&T_fine, &M_fine));
+
+      // Either solve on coarse mesh or project the fine mesh solution 
+      // on the coarse mesh.
+      if (SOLVE_ON_COARSE_MESH) {
+        info("Solving on coarse meshes.");
+        ls.assemble();
+        ls.solve(Tuple<Solution*>(&T_coarse, &M_coarse));
+      }
+      else {
+        info("Projecting fine mesh solutions on coarse meshes.");
+        ls.project_global(Tuple<MeshFunction*>(&T_fine, &M_fine), 
+                          Tuple<Solution*>(&T_coarse, &M_coarse));
+      }
+
+      // Calculate error estimates.
+      info("Calculating errors.");
+      double T_err_est = h1_error(&T_coarse, &T_fine) * 100;
+      double M_err_est = h1_error(&M_coarse, &M_fine) * 100;
+      info("T: ndof_coarse: %d, ndof_fine: %d, err_est: %g %%", 
+	   ls.get_num_dofs(0), rs.get_num_dofs(0), T_err_est);
+      info("M: ndof_coarse: %d, ndof_fine: %d, err_est: %g %%", 
+	   ls.get_num_dofs(1), rs.get_num_dofs(1), M_err_est);
+
+      // Calculate errors for adaptivity.
+      H1Adapt hp(&ls);
+      hp.set_solutions(Tuple<Solution*>(&T_coarse, &M_coarse), 
+                       Tuple<Solution*>(&T_fine, &M_fine));
+      hp.set_error_form(0, 0, callback(bilinear_form_sym_0_0));
+      hp.set_error_form(0, 1, callback(bilinear_form_sym_0_1));
+      hp.set_error_form(1, 0, callback(bilinear_form_sym_1_0));
+      hp.set_error_form(1, 1, callback(bilinear_form_sym_1_1));
+      space_err_est = hp.calc_error(H2D_TOTAL_ERROR_REL | H2D_ELEMENT_ERROR_REL) * 100;
+
+      // If err_est too large, adapt the mesh.
+      if (space_err_est > SPACE_ERR_STOP) {
+        info("Adapting coarse meshes.");
+        done = hp.adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY);
+        if (ls.get_num_dofs() >= NDOF_STOP) done = true;
+      }
+      else done = true;
+
+      as++;
+    }
+    while (!done);
+
+    // Visualize the solution and meshes.
+    char title[100];
+    sprintf(title, "T mesh, time = %g days", CURRENT_TIME/86400.);
+    temp_ord.set_title(title);
+    temp_ord.show(&space_T);
+    sprintf(title, "M mesh, time = %g days", CURRENT_TIME/86400.);
+    moist_ord.set_title(title);
+    moist_ord.show(&space_M);
+    sprintf(title, "T, time = %g days", CURRENT_TIME/86400.);
+    temp_view.set_title(title);
+    temp_view.show(&T_coarse, H2D_EPS_HIGH);
+    sprintf(title, "M, time = %g days", CURRENT_TIME/86400.);
+    moist_view.set_title(title);
+    moist_view.show(&M_coarse, H2D_EPS_HIGH);
+
+    // Add entries to convergence graphs.
+    graph_time_err.add_values(ts*TAU, space_err_est);
+    graph_time_err.save("time_error.dat");
+    graph_time_dof.add_values(ts*TAU, ls.get_num_dofs());
+    graph_time_dof.save("time_dof.dat");
 
     // Update time.
     CURRENT_TIME += TAU;
@@ -200,8 +274,6 @@ int main(int argc, char* argv[])
     M_prev = M_fine;
 
     ts++;
-    // Wait for all views to be closed.
-    View::wait();
   }
 
   // Wait for all views to be closed.

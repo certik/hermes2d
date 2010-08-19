@@ -98,7 +98,7 @@ int main(int argc, char* argv[])
 
   // Project temp_ic() and conc_ic() onto the FE spaces to obtain initial 
   // coefficient vector for the Newton's method.   
-  info("Projecting initial conditions to obtain initial vector for the Newton'w method.");
+  info("Projecting initial conditions to obtain initial vector for the Newton's method.");
   Vector* coeff_vec = new AVector(ndof); 
   project_global(Tuple<Space *>(tspace, cspace), Tuple<int>(H2D_H1_NORM, H2D_H1_NORM),
 		 //Tuple<MeshFunction *>(&t_prev_time_1, &c_prev_time_1), 

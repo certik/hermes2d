@@ -185,7 +185,7 @@ int main(int argc, char* argv[])
   // vector for the Newton's method.
   Vector* coeff_vec;
   if (NEWTON) {
-    info("Projecting initial conditions to obtain initial vector for the Newton'w method.");
+    info("Projecting initial conditions to obtain initial vector for the Newton's method.");
     coeff_vec = new AVector(ndof); 
     project_global(Tuple<Space *>(xvel_space, yvel_space, p_space), 
                    Tuple<int>(vel_proj_norm, vel_proj_norm, p_proj_norm),

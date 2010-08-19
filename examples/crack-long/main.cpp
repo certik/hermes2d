@@ -160,7 +160,7 @@ int main(int argc, char* argv[])
     cpu_time.tick();
 
     // Visualize the solution and meshes.
-    VonMisesFilter stress(&u_sln, &v_sln, mu, lambda);
+    VonMisesFilter stress(Tuple<MeshFunction*>(&u_sln, &v_sln), lambda, mu);
     sview.set_min_max_range(0, 2e5);
     sview.show(&stress, H2D_EPS_HIGH);
     xoview.show(&u_space);
@@ -211,7 +211,7 @@ int main(int argc, char* argv[])
   verbose("Total running time: %g s", cpu_time.accumulated());
 
   // Show the reference solution - the final result.
-  VonMisesFilter ref_stress(&ref_u_sln, &ref_v_sln, mu, lambda);
+  VonMisesFilter ref_stress(Tuple<MeshFunction*>(&ref_u_sln, &ref_v_sln), lambda, mu);
   sview.set_title("Reference solution");
   sview.set_min_max_range(0, 2e5);
   sview.show_mesh(false);

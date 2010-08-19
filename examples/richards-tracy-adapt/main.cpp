@@ -188,7 +188,7 @@ int main(int argc, char* argv[])
 
   // Project the initial condition on the FE space
   // to obtain initial coefficient vector for the Newton's method.
-  info("Projecting initial condition to obtain initial vector for the Newton'w method.");
+  info("Projecting initial condition to obtain initial vector for the Newton's method.");
   // The NULL means that we do not want the result as a Solution.
   project_global(space, H2D_H1_NORM, init_cond, NULL, coeff_vec);
 
