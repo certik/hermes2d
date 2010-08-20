@@ -20,7 +20,7 @@ using namespace RefinementSelectors;
 //
 //  The following parameters can be changed:
 
-const bool SOLVE_ON_COARSE_MESH = false;   // true... Newton is done on coarse mesh in every adaptivity step.
+//const bool SOLVE_ON_COARSE_MESH = false;   // true... Newton is done on coarse mesh in every adaptivity step.
                                            // false...Newton is done on coarse mesh only once, then projection
                                            // of the fine mesh solution to coarse mesh is used.
 const int INIT_REF_NUM = 2;                // Number of initial uniform mesh refinements.
@@ -58,6 +58,8 @@ const double ERR_STOP = 3.0;               // Stopping criterion for adaptivity 
                                            // fine mesh and coarse mesh solution in percent).
 const int NDOF_STOP = 60000;               // Adaptivity process stops when the number of degrees of freedom grows
                                            // over this limit. This is to prevent h-adaptivity to go on forever.
+MatrixSolverType matrix_solver = SOLVER_UMFPACK;  // Possibilities: SOLVER_UMFPACK, SOLVER_PETSC,
+                                                  // SOLVER_MUMPS, and more are coming.
 
 // Newton's method
 const double NEWTON_TOL_COARSE = 0.01;     // Stopping criterion for Newton on coarse mesh.
@@ -127,6 +129,7 @@ int main(int argc, char* argv[])
 
   // Create an H1 space with default shapeset.
   H1Space space(&mesh, bc_types, essential_bc_values, P_INIT);
+  int ndof = get_num_dofs(&space);
 
   // Solutions for the time stepping and the Newton's method.
   Solution u_prev_time, u_prev_newton;
@@ -142,135 +145,50 @@ int main(int argc, char* argv[])
     wf.add_vector_form(callback(F_cranic), H2D_ANY, Tuple<MeshFunction*>(&u_prev_newton, &u_prev_time));
   }
 
-  // Initialize the nonlinear system.
-  NonlinSystem nls(&wf, &space);
+  // Initialize adaptivity parameters.
+  AdaptivityParamType apt(ERR_STOP, NDOF_STOP, THRESHOLD, STRATEGY, 
+                          MESH_REGULARITY);
 
-  // Error estimate and discrete problem size as a function of physical time.
-  SimpleGraph graph_time_err, graph_time_dof;
+  // Create a selector which will select optimal candidate.
+  H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
 
   // Project the function init_cond() on the FE space
   // to obtain initial coefficient vector for the Newton's method.
   info("Projecting initial condition to obtain initial vector for the Newton's method.");
-  u_prev_time.set_exact(&mesh, init_cond);            // u_prev_time set equal to init_cond().
-  nls.project_global(&u_prev_time, &u_prev_newton);   // Initial vector calculated here.
+  Vector* coeff_vec = new AVector(ndof);
+  project_global(&space, H2D_H1_NORM, init_cond, &u_prev_newton, coeff_vec);
+  u_prev_time.copy(&u_prev_newton);
 
   // View the projection of the initial condition.
-  ScalarView view("Projection of initial condition", 0, 0, 410, 300);
-  view.fix_scale_width(80);
-  OrderView ordview("Initial mesh", 420, 0, 350, 300);
-  view.show(&u_prev_newton);
-  ordview.show(&space);
-
-  // Newton's loop on the coarse mesh.
-  info("Solving on coarse mesh.");
-  bool verbose = true; // Default is false.
-  if (!nls.solve_newton(&u_prev_newton, NEWTON_TOL_COARSE, NEWTON_MAX_ITER, verbose))
-    error("Newton's method did not converge.");
+  WinGeom* sln_win_geom = new WinGeom(0, 0, 440, 350);
+  WinGeom* mesh_win_geom = new WinGeom(450, 0, 400, 350);
+  ScalarView view("Projection of initial condition", sln_win_geom);
+  OrderView ordview("Initial mesh", mesh_win_geom);
 
   // Store the result in sln_coarse.
-  Solution sln_coarse, sln_fine;
-  sln_coarse.copy(&u_prev_newton);
-
-  // Initialize refinement selector.
-  H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
+  Solution sln_coarse;
 
   // Time stepping loop.
   int num_time_steps = (int)(T_FINAL/TAU + 0.5);
   for(int ts = 1; ts <= num_time_steps; ts++)
   {
+    // Project fine mesh solution on the globally derefined mesh.
+    info("---- Time step %d:", ts);
+
     // Periodic global derefinements.
     if (ts > 1 && ts % UNREF_FREQ == 0) {
       info("Global mesh derefinement.");
       mesh.copy(&basemesh);
       space.set_uniform_order(P_INIT);
-
-      // Project fine mesh solution on the globally derefined mesh.
-      info("---- Time step %d:", ts);
-      if (SOLVE_ON_COARSE_MESH) 
-        info("Projecting fine mesh solution to obtain initial vector on globally derefined mesh.");
-      else 
-        info("Projecting fine mesh solution on globally derefined mesh for error calculation.");
-      nls.project_global(&sln_fine, &u_prev_newton);
-
-      if (SOLVE_ON_COARSE_MESH) {
-        // Newton's loop on the globally derefined mesh.
-        info("Solving on globally derefined mesh.", ts);
-        if (!nls.solve_newton(&u_prev_newton, NEWTON_TOL_COARSE, NEWTON_MAX_ITER, verbose))
-          error("Newton's method did not converge.");
-      }
-
-      // Store the result in sln_coarse.
-      sln_coarse.copy(&u_prev_newton);
     }
 
     // Adaptivity loop (in space):
-    bool done = false;
-    double space_err_est;
-    int as = 1;
-    do
-    {
-      info("---- Time step %d, adaptivity step %d:", ts, as);
-
-      // Initialize reference nonlinear system.
-      RefSystem rnls(&nls);
-
-      // Set initial condition for the Newton's method on the fine mesh.
-      if (as == 1) {
-        info("Projecting coarse mesh solution to obtain initial vector on new fine mesh.");
-        rnls.project_global(&sln_coarse, &u_prev_newton);
-      }
-      else {
-        info("Projecting previous fine mesh solution to obtain initial vector on new fine mesh.");
-        rnls.project_global(&sln_fine, &u_prev_newton);
-      }
-
-      // Newton's method on fine mesh
-      info("Solving on fine mesh.");
-      if (!rnls.solve_newton(&u_prev_newton, NEWTON_TOL_FINE, NEWTON_MAX_ITER, verbose))
-        error("Newton's method did not converge.");
-
-      // Store the result in sln_fine.
-      sln_fine.copy(&u_prev_newton);
-
-      // Calculate error estimate wrt. fine mesh solution.
-      info("Calculating error.");
-      H1Adapt hp(&nls);
-      hp.set_solutions(&sln_coarse, &sln_fine);
-      space_err_est = hp.calc_error() * 100;
-      info("ndof_coarse: %d, ndof_fine: %d, space_err_est: %g%%", 
-        nls.get_num_dofs(), rnls.get_num_dofs(), space_err_est);
-
-      // If space_err_est too large, adapt the mesh.
-      if (space_err_est < ERR_STOP) done = true;
-      else {
-        info("Adapting coarse mesh.");
-        done = hp.adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY);
-        if (nls.get_num_dofs() >= NDOF_STOP) {
-          done = true;
-          break;
-        }
-
-        // Project the fine mesh solution on the new coarse mesh.
-        if (SOLVE_ON_COARSE_MESH) 
-          info("Projecting fine mesh solution to obtain initial vector on new coarse mesh.");
-        else 
-          info("Projecting fine mesh solution on coarse mesh for error calculation.");
-        nls.project_global(&sln_fine, &u_prev_newton);
-
-        if (SOLVE_ON_COARSE_MESH) {
-          // Newton's loop on the coarse mesh.
-          info("---- Time step %d, adaptivity step %d, solving on new coarse mesh.", ts, as);
-          if (!nls.solve_newton(&u_prev_newton, NEWTON_TOL_COARSE, NEWTON_MAX_ITER, verbose))
-            error("Newton's method did not converge.");
-        }
-
-        // Store the result in sln_coarse.
-        sln_coarse.copy(&u_prev_newton);
-
-        as++;
-      }
-    }
-    while (!done);
+    // Initialize reference nonlinear system.
+    bool verbose = true;     // Print info during adaptivity.
+    info("Projecting coarse mesh solution to obtain initial vector on new fine mesh.");
+    solve_newton_adapt(&space, &wf, H2D_H1_NORM, init_cond, &sln_coarse, matrix_solver, &u_prev_newton,
+                       &selector, &apt, sln_win_geom, mesh_win_geom,
+                       NEWTON_TOL_COARSE, NEWTON_TOL_FINE, NEWTON_MAX_ITER, verbose);
 
     // Visualize the solution and mesh.
     char title[100];
@@ -281,14 +199,8 @@ int main(int argc, char* argv[])
     ordview.set_title(title);
     ordview.show(&space);
 
-    // Add entries to convergence graphs.
-    graph_time_err.add_values(ts*TAU, space_err_est);
-    graph_time_err.save("time_error.dat");
-    graph_time_dof.add_values(ts*TAU, nls.get_num_dofs());
-    graph_time_dof.save("time_dof.dat");
-
     // Copy new time level solution into u_prev_time.
-    u_prev_time.copy(&sln_fine);
+    u_prev_time.copy(&sln_coarse);
   }
 
   // Wait for all views to be closed.
