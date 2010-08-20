@@ -208,7 +208,7 @@ int main(int argc, char* argv[])
 
       // Solve the reference problem.
       solve_linear(Tuple<Space *>(T_ref_space, M_ref_space), &wf,
-                 Tuple<Solution *>(&T_fine, &M_fine), matrix_solver);
+                   Tuple<Solution *>(&T_fine, &M_fine), matrix_solver);
 
       // Project the reference solution on the coarse mesh.
       info("Projecting reference solution on coarse mesh.");
@@ -222,25 +222,28 @@ int main(int argc, char* argv[])
       cpu_time.tick();
 
       // View the coarse mesh solution.
-      temp_view.show(&T_coarse);
-      temp_ord.show(&T_space);
-      moist_view.show(&M_coarse);
-      moist_ord.show(&M_space);
+      //temp_view.show(&T_coarse);
+      //temp_ord.show(&T_space);
+      //moist_view.show(&M_coarse);
+      //moist_ord.show(&M_space);
 
       // Skip visualization time.
       cpu_time.tick(HERMES_SKIP);
 
-      // Calculate element errors.
-      info("Calculating error (est).");
+      // Initialize the adaptivity module, set the coarse and fine mesh 
+      // solutions, and set the error form.
       Adapt hp(Tuple<Space *>(&T_space, &M_space),
                Tuple<int>(H2D_H1_NORM, H2D_H1_NORM));
       hp.set_solutions(Tuple<Solution *>(&T_coarse, &M_coarse),
                        Tuple<Solution *>(&T_fine, &M_fine));
-      hp.calc_elem_errors(H2D_TOTAL_ERROR_REL | H2D_ELEMENT_ERROR_REL);
       hp.set_error_form(0, 0, callback(bilinear_form_sym_0_0));
       hp.set_error_form(0, 1, callback(bilinear_form_sym_0_1));
       hp.set_error_form(1, 0, callback(bilinear_form_sym_1_0));
       hp.set_error_form(1, 1, callback(bilinear_form_sym_1_1));
+
+      // Calculate element errors.
+      info("Calculating error (est).");
+      hp.calc_elem_errors(H2D_TOTAL_ERROR_REL | H2D_ELEMENT_ERROR_REL);
 
       // Calculate error estimate for each solution component.
       double T_err_est_abs = calc_abs_error(&T_coarse, &T_fine, H2D_H1_NORM);
