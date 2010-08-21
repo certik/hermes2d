@@ -86,10 +86,8 @@ int main(int argc, char* argv[])
   init_matrix_solver(matrix_solver, get_num_dofs(space), mat, rhs, solver);
 
   // Initialize views.
-  WinGeom* sln_win_geom = new WinGeom(0, 0, 400, 600);
-  WinGeom* mesh_win_geom = new WinGeom(410, 0, 400, 600);
-  ScalarView s_view("Solution", sln_win_geom);
-  OrderView  o_view("Mesh", mesh_win_geom);
+  ScalarView s_view("Solution", new WinGeom(0, 0, 400, 600));
+  OrderView  o_view("Mesh", new WinGeom(410, 0, 400, 600));
 
   // DOF and CPU convergence graphs.
   SimpleGraph graph_dof_est, graph_cpu_est;
@@ -113,7 +111,7 @@ int main(int argc, char* argv[])
     ref_space->copy_orders(space, order_increase);
 
     // Solve the reference problem.
-    solve_linear(ref_space, &wf, ref_sln, matrix_solver);
+    solve_linear(ref_space, &wf, matrix_solver, ref_sln);
 
     // Project the reference solution on the coarse mesh.
     info("Projecting reference solution on coarse mesh.");
@@ -154,6 +152,9 @@ int main(int argc, char* argv[])
 
       if (get_num_dofs(space) >= NDOF_STOP) done = true;
     }
+
+    // Free reference space and mesh.
+    ref_space->free();
 
     as++;
   }

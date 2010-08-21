@@ -65,18 +65,16 @@ int main(int argc, char* argv[])
 
   // Solve the linear problem.
   Solution sln;
-  solve_linear(&space, &wf, &sln, matrix_solver);
+  solve_linear(&space, &wf, matrix_solver, &sln);
 
   // Visualize the approximation.
-  WinGeom* sln_win_geom = new WinGeom(0, 0, 440, 350);
-  WinGeom* grad_win_geom = new WinGeom(450, 0, 400, 350);
-  ScalarView view("Solution", sln_win_geom);
+  ScalarView view("Solution", new WinGeom(0, 0, 440, 350));
   view.show(&sln);
 
   // Compute and show gradient magnitude.
   // (Note that the gradient at the re-entrant
   // corner needs to be truncated for visualization purposes.)
-  ScalarView gradview("Gradient", grad_win_geom);
+  ScalarView gradview("Gradient", new WinGeom(450, 0, 400, 350));
   MagFilter grad(Tuple<MeshFunction *>(&sln, &sln), 
                  Tuple<int>(H2D_FN_DX, H2D_FN_DY));
   gradview.show(&grad);

@@ -64,8 +64,7 @@ int main(int argc, char* argv[])
   sln.set_fe_solution(&space, rhs);
 
   // Visualize the solution.
-  WinGeom* sln_win_geom = new WinGeom(0, 0, 440, 350);
-  ScalarView view("Solution", sln_win_geom);
+  ScalarView view("Solution", new WinGeom(0, 0, 440, 350));
   view.show(&sln);
 
   // Wait for the view to be closed.

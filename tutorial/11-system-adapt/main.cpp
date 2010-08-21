@@ -147,14 +147,15 @@ int main(int argc, char* argv[])
   ExactSolution u_exact(&u_mesh, uexact);
   ExactSolution v_exact(&v_mesh, vexact);
   bool verbose = true;  // Print info during adaptivity.
-  solve_linear_adapt(Tuple<Space *>(&u_space, &v_space), &wf, 
+  // The NULL pointer means that we do not want the resulting coefficient vector.
+  solve_linear_adapt(Tuple<Space *>(&u_space, &v_space), &wf, NULL, matrix_solver,
                      Tuple<int>(H2D_H1_NORM, H2D_H1_NORM), 
-                     Tuple<Solution *>(u_sln, v_sln), matrix_solver, 
+                     Tuple<Solution *>(u_sln, v_sln), 
                      Tuple<Solution *>(ref_u_sln, ref_v_sln), 
-                     Tuple<RefinementSelectors::Selector *> (&selector, &selector), &apt, 
                      Tuple<WinGeom *>(u_sln_win_geom, v_sln_win_geom), 
-                     Tuple<WinGeom *>(u_mesh_win_geom, v_mesh_win_geom), verbose,
-                     Tuple<ExactSolution *>(&u_exact, &v_exact));
+                     Tuple<WinGeom *>(u_mesh_win_geom, v_mesh_win_geom), 
+                     Tuple<RefinementSelectors::Selector *> (&selector, &selector), &apt, 
+                     verbose, Tuple<ExactSolution *>(&u_exact, &v_exact));
 
   // Wait for all views to be closed.
   View::wait();

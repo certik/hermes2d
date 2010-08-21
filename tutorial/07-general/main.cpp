@@ -108,17 +108,15 @@ int main(int argc, char* argv[])
 
   // Solve the linear problem.
   Solution sln;
-  solve_linear(&space, &wf, &sln, matrix_solver);
+  solve_linear(&space, &wf, matrix_solver, &sln);
 
   // Time measurement.
   cpu_time.tick();
 
   // View the solution and mesh.
-  WinGeom* sln_win_geom = new WinGeom(0, 0, 440, 350);
-  ScalarView sview("Coarse solution", sln_win_geom);
+  ScalarView sview("Coarse solution", new WinGeom(0, 0, 440, 350));
   sview.show(&sln);
-  WinGeom* mesh_win_geom = new WinGeom(450, 0, 400, 350);
-  OrderView  oview("Polynomial orders", mesh_win_geom);
+  OrderView  oview("Polynomial orders", new WinGeom(450, 0, 400, 350));
   oview.show(&space);
 
   // Skip visualization time.

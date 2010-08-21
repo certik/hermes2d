@@ -105,16 +105,12 @@ int main(int argc, char* argv[])
   init_matrix_solver(matrix_solver, get_num_dofs(Tuple<Space *>(u_space, v_space)), mat, rhs, solver);
 
   // Initialize views.
-  WinGeom* u_sln_win_geom = new WinGeom(0, 0, 360, 300);
-  WinGeom* u_mesh_win_geom = new WinGeom(370, 0, 360, 300);
-  WinGeom* v_sln_win_geom = new WinGeom(740, 0, 400, 300);
-  WinGeom* v_mesh_win_geom = new WinGeom(1150, 0, 400, 300);
-  ScalarView s_view_0("Solution[0]", u_sln_win_geom);
+  ScalarView s_view_0("Solution[0]", new WinGeom(0, 0, 360, 300));
   s_view_0.show_mesh(false);
-  ScalarView s_view_1("Solution[1]", v_sln_win_geom);
+  ScalarView s_view_1("Solution[1]", new WinGeom(740, 0, 400, 300));
   s_view_1.show_mesh(false);
-  OrderView  o_view_0("Mesh[0]", u_mesh_win_geom);
-  OrderView  o_view_1("Mesh[1]", v_mesh_win_geom);
+  OrderView  o_view_0("Mesh[0]", new WinGeom(370, 0, 360, 300));
+  OrderView  o_view_1("Mesh[1]", new WinGeom(1150, 0, 400, 300));
 
   // DOF and CPU convergence graphs.
   SimpleGraph graph_dof_est, graph_cpu_est, 
@@ -148,8 +144,9 @@ int main(int argc, char* argv[])
     v_ref_space->copy_orders(v_space, order_increase);
 
     // Solve the reference problem.
-    solve_linear(Tuple<Space *>(u_ref_space, v_ref_space), &wf, 
-                 Tuple<Solution *>(u_ref_sln, v_ref_sln), matrix_solver);
+    // The NULL pointer means that we do not want the resulting coefficient vector. 
+    solve_linear(Tuple<Space *>(u_ref_space, v_ref_space), &wf, matrix_solver,
+                 Tuple<Solution *>(u_ref_sln, v_ref_sln), NULL);
 
     // Project the reference solution on the coarse mesh.
     info("Projecting reference solution on coarse mesh.");
@@ -235,6 +232,10 @@ int main(int argc, char* argv[])
 
       if (get_num_dofs(Tuple<Space *>(u_space, v_space)) >= NDOF_STOP) done = true;
     }
+
+    // Free reference meshes and spaces.
+    u_ref_space->free();
+    v_ref_space->free();
 
     as++;
   }

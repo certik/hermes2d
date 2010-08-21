@@ -53,16 +53,17 @@ void LinearProblem::assemble(Matrix* mat_ext, Vector* rhs_ext, bool rhsonly, boo
 
 // Solve a typical linear problem (without automatic adaptivity).
 // Feel free to adjust this function for more advanced applications.
-bool solve_linear(Tuple<Space *> spaces, WeakForm* wf, Tuple<Solution *> solutions, 
-                  MatrixSolverType matrix_solver, bool is_complex) 
+bool solve_linear(Tuple<Space *> spaces, WeakForm* wf, MatrixSolverType matrix_solver, 
+                  Tuple<Solution *> solutions, Vector* coeff_vec, bool is_complex) 
 {
   // Initialize the linear problem.
   LinearProblem lp(wf, spaces);
-  //info("ndof = %d", lp.get_num_dofs());
+  int ndof = get_num_dofs(spaces);
+  //info("ndof = %d", ndof);
 
   // Select matrix solver.
   Matrix* mat; Vector* rhs; CommonSolver* solver;
-  init_matrix_solver(matrix_solver, get_num_dofs(spaces), mat, rhs, solver, is_complex);
+  init_matrix_solver(matrix_solver, ndof, mat, rhs, solver, is_complex);
 
   // Assemble stiffness matrix and rhs.
   bool rhsonly = false;
@@ -74,20 +75,34 @@ bool solve_linear(Tuple<Space *> spaces, WeakForm* wf, Tuple<Solution *> solutio
   if (!solver->solve(mat, rhs)) error ("Matrix solver failed.\n");
 
   // Convert coefficient vector into a Solution.
-  for (int i=0; i<solutions.size(); i++) {
+  for (int i=0; i < solutions.size(); i++) {
     solutions[i]->set_fe_solution(spaces[i], rhs);
   }
 	
+  // Copy the coefficient vector into coeff_vec.
+  if (coeff_vec != NULL) {
+    if (coeff_vec->get_size() != rhs->get_size()) error("Mismatched vector lengths in solve_linear().");
+    if (is_complex)
+      for (int i = 0; i < ndof; i++) coeff_vec->set(i, rhs->get_cplx(i));
+    else
+      for (int i = 0; i < ndof; i++) coeff_vec->set(i, rhs->get(i));
+  }
+
+  // Free memory.
+  mat->free_data();
+  rhs->free_data();
+  //solver->free_data();  // FIXME: to be implemented.
+
   return true;
 }
 
 // Solve a typical linear problem using automatic adaptivity.
 // Feel free to adjust this function for more advanced applications.
-bool solve_linear_adapt(Tuple<Space *> spaces, WeakForm* wf, Tuple<int> proj_norms, 
-                        Tuple<Solution *> slns, 
-                        MatrixSolverType matrix_solver, Tuple<Solution *> ref_slns, 
-                        Tuple<RefinementSelectors::Selector *> selectors, AdaptivityParamType* apt,
+bool solve_linear_adapt(Tuple<Space *> spaces, WeakForm* wf, Vector* coeff_vec, 
+                        MatrixSolverType matrix_solver, Tuple<int> proj_norms, 
+                        Tuple<Solution *> slns, Tuple<Solution *> ref_slns, 
                         Tuple<WinGeom *> sln_win_geom, Tuple<WinGeom *> mesh_win_geom, 
+                        Tuple<RefinementSelectors::Selector *> selectors, AdaptivityParamType* apt,
                         bool verbose, Tuple<ExactSolution *> exact_slns, bool is_complex) 
 {
   // sanity checks
@@ -173,8 +188,7 @@ bool solve_linear_adapt(Tuple<Space *> spaces, WeakForm* wf, Tuple<int> proj_nor
   // so that project_global() below compiles. 
   Tuple<MeshFunction *> ref_slns_mf;
   for (int i = 0; i < num_comps; i++) {
-    MeshFunction *s = (MeshFunction*)ref_slns[i];
-    ref_slns_mf.push_back(s);
+    ref_slns_mf.push_back((MeshFunction*)ref_slns[i]);
   }
 
   int as = 1; bool done = false;
@@ -198,12 +212,12 @@ bool solve_linear_adapt(Tuple<Space *> spaces, WeakForm* wf, Tuple<int> proj_nor
     }
 
     // Solve the reference problem.
-    solve_linear(ref_spaces, wf, ref_slns, matrix_solver, is_complex);
+    // The NULL pointer means that we do not want the resulting coefficient vector.
+    solve_linear(ref_spaces, wf, matrix_solver, ref_slns, NULL, is_complex);
 
     // Project the reference solution on the coarse mesh.
     if (verbose) info("Projecting reference solution on coarse mesh.");
-    // NULL means that we do not want to know the resulting coefficient vector.
-    project_global(spaces, proj_norms, ref_slns_mf, slns, NULL, is_complex); 
+    project_global(spaces, proj_norms, ref_slns_mf, slns, coeff_vec, is_complex); 
 
     // Time measurement.
     cpu_time.tick();
@@ -227,7 +241,8 @@ bool solve_linear_adapt(Tuple<Space *> spaces, WeakForm* wf, Tuple<int> proj_nor
     Adapt hp(spaces, proj_norms);
     // Pass special error forms if any.
     for (int k = 0; k < apt->error_form_val.size(); k++) {
-      hp.set_error_form(apt->error_form_i[k], apt->error_form_j[k], apt->error_form_val[k], apt->error_form_ord[k]);
+      hp.set_error_form(apt->error_form_i[k], apt->error_form_j[k], 
+                        apt->error_form_val[k], apt->error_form_ord[k]);
     }
     hp.set_solutions(slns, ref_slns);
     // Below, apt->total_error_flag = H2D_TOTAL_ERROR_REL or H2D_TOTAL_ERROR_ABS
@@ -281,7 +296,8 @@ bool solve_linear_adapt(Tuple<Space *> spaces, WeakForm* wf, Tuple<int> proj_nor
           info("ndof[%d]: %d, ref_ndof[%d]: %d, err_est_rel[%d]: %g%%", 
                i, spaces[i]->get_num_dofs(), i, ref_spaces[i]->get_num_dofs(),
                i, err_est_abs[i]/norm_est[i]*100);
-          if (is_exact_solution == true) info("err_exact_rel[%d]: %g%%", i, err_exact_abs[i]/norm_exact[i]*100);
+          if (is_exact_solution == true) info("err_exact_rel[%d]: %g%%", 
+                                              i, err_exact_abs[i]/norm_exact[i]*100);
         }
         info("ndof: %d, ref_ndof: %d, err_est_rel_total: %g%%", 
              get_num_dofs(spaces), get_num_dofs(ref_spaces), err_est_rel_total);
@@ -307,6 +323,11 @@ bool solve_linear_adapt(Tuple<Space *> spaces, WeakForm* wf, Tuple<int> proj_nor
       done = hp.adapt(selectors, threshold, strategy, mesh_regularity, to_be_processed);
 
       if (get_num_dofs(spaces) >= ndof_stop) done = true;
+    }
+
+    // Free reference meshes and spaces.
+    for (int i = 0; i < num_comps; i++) {
+      ref_spaces[i]->free();
     }
 
     as++;

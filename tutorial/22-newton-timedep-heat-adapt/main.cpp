@@ -128,8 +128,8 @@ int main(int argc, char* argv[])
   H1Space space(&mesh, bc_types, essential_bc_values, P_INIT);
   int ndof = get_num_dofs(&space);
 
-  // Solutions for the time stepping.
-  Solution u_prev_time;
+  // Solutions.
+  Solution sln, ref_sln, u_prev_time;
 
   // Initialize the weak formulation.
   WeakForm wf;
@@ -148,40 +148,20 @@ int main(int argc, char* argv[])
   // Create a selector which will select optimal candidate.
   H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
 
-  // Project the function init_cond() on the FE space
-  // to obtain initial coefficient vector for the Newton's method.
-  info("Projecting initial condition to obtain initial vector for the Newton's method.");
-  Vector* coeff_vec = new AVector(ndof);
-  project_global(&space, H2D_H1_NORM, init_cond, &u_prev_time, coeff_vec);
+  // Assign initial condition to mesh.
+  u_prev_time.set_exact(&space, init_cond);
+  Vector *coeff_vec = new AVector(ndof);
 
-  // View the projection of the initial condition.
-  WinGeom* sln_win_geom = new WinGeom(0, 0, 440, 350);
-  WinGeom* mesh_win_geom = new WinGeom(450, 0, 400, 350);
-  ScalarView view("Projection of initial condition", sln_win_geom);
-  OrderView ordview("Initial mesh", mesh_win_geom);
-
-  // Store the result in sln_coarse.
-  Solution sln, ref_sln;
-
-  // Newton's loop on the coarse mesh.
-  info("Solving on coarse mesh:");
-  Solution* sln = new Solution();
-  Solution* ref_sln = new Solution();
-  bool verbose = true;
-  Vector* coeff_vec = new AVector(ndof);
-  if (!solve_newton(space, &wf, coeff_vec, matrix_solver, 
-		    NEWTON_TOL_COARSE, NEWTON_MAX_ITER, verbose)) {
-    error("Newton's method did not converge.");
-  }
-
-  // Store the result in sln.
-  sln.set_fe_solution(space, coeff_vec);
+  // Visualize the projection and mesh.
+  ScalarView view("Initial condition", new WinGeom(0, 0, 440, 350));
+  OrderView ordview("Initial mesh", new WinGeom(450, 0, 400, 350));
+  view.show(&u_prev_time);
+  ordview.show(&space);
 
   // Time stepping loop.
   int num_time_steps = (int)(T_FINAL/TAU + 0.5);
   for(int ts = 1; ts <= num_time_steps; ts++)
   {
-    // Project fine mesh solution on the globally derefined mesh.
     info("---- Time step %d:", ts);
 
     // Periodic global derefinements.
@@ -191,12 +171,16 @@ int main(int argc, char* argv[])
       space.set_uniform_order(P_INIT);
     }
 
+    // Update the coefficient vector and u_prev_time.
+    info("Projecting to obtain coefficient vector on coarse mesh.");
+    project_global(&space, H2D_H1_NORM, &u_prev_time, NULL, coeff_vec);
+
     // Adaptivity loop (in space):
-    // Initialize reference nonlinear system.
     bool verbose = true;     // Print info during adaptivity.
     info("Projecting coarse mesh solution to obtain initial vector on new fine mesh.");
-    solve_newton_adapt(&space, &wf, H2D_H1_NORM, &u_prev_time, &sln, matrix_solver, &ref_sln,
-                       &selector, &apt, sln_win_geom, mesh_win_geom,
+    // The NULL pointers mean that we are not interested in visualization during the Newton's loop.
+    solve_newton_adapt(&space, &wf, coeff_vec, matrix_solver, &sln, &ref_sln, H2D_H1_NORM, 
+                       &selector, &apt, NULL, NULL,
                        NEWTON_TOL_COARSE, NEWTON_TOL_FINE, NEWTON_MAX_ITER, verbose);
 
     // Visualize the solution and mesh.
@@ -209,7 +193,7 @@ int main(int argc, char* argv[])
     ordview.show(&space);
 
     // Copy new time level reference solution into u_prev_time.
-    u_prev_time.copy(&ref_sln);
+    u_prev_time.set_fe_solution(&space, coeff_vec);
   }
 
   // Wait for all views to be closed.

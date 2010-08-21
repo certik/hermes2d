@@ -55,16 +55,18 @@ public:
 
 };
 
-H2D_API bool solve_linear(Tuple<Space *> spaces, WeakForm* wf, Tuple<Solution *> solutions, 
-                  MatrixSolverType matrix_solver, bool is_complex = false);
+H2D_API bool solve_linear(Tuple<Space *> spaces, WeakForm* wf, MatrixSolverType matrix_solver, 
+                          Tuple<Solution *> solutions, Vector *coeff_vec = NULL, bool is_complex = false);
 
 // Solve a typical linear problem (without automatic adaptivity).
 // Feel free to adjust this function for more advanced applications.
-bool solve_linear_adapt(Tuple<Space *> spaces, WeakForm* wf, Tuple<int> proj_norms, Tuple<Solution *> slns, 
-                        MatrixSolverType matrix_solver, Tuple<Solution *> ref_slns, 
-                        Tuple<RefinementSelectors::Selector *> selectors, AdaptivityParamType* apt,
+bool solve_linear_adapt(Tuple<Space *> spaces, WeakForm* wf, Vector* coeff_vec, 
+                        MatrixSolverType matrix_solver, Tuple<int> proj_norms, 
+                        Tuple<Solution *> slns, Tuple<Solution *> ref_slns, 
                         Tuple<WinGeom *> sln_win_geom = Tuple<WinGeom *>(), 
                         Tuple<WinGeom *> mesh_win_geom = Tuple<WinGeom *>(), 
+                        Tuple<RefinementSelectors::Selector *> selectors = Tuple<RefinementSelectors::Selector *>(), 
+                        AdaptivityParamType* apt = NULL,
                         bool verbose = false, 
                         Tuple<ExactSolution *> exact_slns = Tuple<ExactSolution *>(), 
                         bool is_complex = false);

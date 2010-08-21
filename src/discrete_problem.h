@@ -292,11 +292,11 @@ H2D_API bool solve_newton(Tuple<Space *> spaces, WeakForm* wf, Vector* init_coef
 // Solve a typical nonlinear problem using the Newton's method and 
 // automatic adaptivity. 
 // Feel free to adjust this function for more advanced applications.
-H2D_API bool solve_newton_adapt(Tuple<Space *> spaces, WeakForm* wf, Tuple<int>proj_norms, 
-                        Tuple<MeshFunction *> init_meshfns, Tuple<Solution *> slns, 
-                        MatrixSolverType matrix_solver,  Tuple<Solution *> ref_slns, 
-                        Tuple<RefinementSelectors::Selector *> selectors, AdaptivityParamType* apt,
+H2D_API bool solve_newton_adapt(Tuple<Space *> spaces, WeakForm* wf, Vector *coeff_vec, 
+                        MatrixSolverType matrix_solver, Tuple<int>proj_norms, 
+                        Tuple<Solution *> slns, Tuple<Solution *> ref_slns, 
                         Tuple<WinGeom *> sln_win_geom, Tuple<WinGeom *> mesh_win_geom, 
+                        Tuple<RefinementSelectors::Selector *> selectors, AdaptivityParamType* apt,
                         double newton_tol_coarse, double newton_tol_fine, int newton_max_iter, 
                         bool verbose = false, Tuple<ExactSolution *> exact_slns = Tuple<ExactSolution *>(), 
                         bool is_complex = false);

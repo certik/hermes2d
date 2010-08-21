@@ -112,8 +112,9 @@ int main(int argc, char* argv[])
   WinGeom* sln_win_geom = new WinGeom(0, 0, 400, 600);
   WinGeom* mesh_win_geom = new WinGeom(410, 0, 400, 600);
   bool verbose = true;     // Print info during adaptivity.
-  solve_linear_adapt(&space, &wf, H2D_H1_NORM, sln, matrix_solver, ref_sln, 
-                     &selector, &apt, sln_win_geom, mesh_win_geom, verbose);
+  // The NULL pointer means that we do not want the resulting coefficient vector.
+  solve_linear_adapt(&space, &wf, NULL, matrix_solver, H2D_H1_NORM, sln, ref_sln, 
+                     sln_win_geom, mesh_win_geom, &selector, &apt, verbose);
 
   // Wait for all views to be closed.
   View::wait();

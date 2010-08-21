@@ -111,8 +111,8 @@ int main(int argc, char* argv[])
   project_global(space, H2D_H1_NORM, init_cond, &u_prev_time, coeff_vec);
 
   // Initialize views.
-  ScalarView sview("Solution", 0, 0, 500, 400);
-  OrderView oview("Mesh", 520, 0, 450, 400);
+  ScalarView sview("Solution", new WinGeom(0, 0, 500, 400));
+  OrderView oview("Mesh", new WinGeom(520, 0, 450, 400));
   oview.show(space);
 
   // Time stepping loop:

@@ -100,10 +100,8 @@ int main(int argc, char* argv[])
   init_matrix_solver(matrix_solver, get_num_dofs(space), mat, rhs, solver, is_complex);
 
   // Initialize views.
-  WinGeom* sln_win_geom = new WinGeom(0, 0, 440, 350);
-  WinGeom* mesh_win_geom = new WinGeom(450, 0, 400, 350);
-  VectorView v_view("Solution (magnitude)", sln_win_geom);
-  OrderView  o_view("Mesh", mesh_win_geom);
+  VectorView v_view("Solution (magnitude)", new WinGeom(0, 0, 440, 350));
+  OrderView  o_view("Mesh", new WinGeom(450, 0, 400, 350));
 
   // DOF and CPU convergence graphs.
   SimpleGraph graph_dof_est, graph_cpu_est;
@@ -127,7 +125,8 @@ int main(int argc, char* argv[])
     ref_space->copy_orders(space, order_increase);
 
     // Solve the reference problem.
-    solve_linear(ref_space, &wf, ref_sln, matrix_solver, is_complex);
+    // The NULL pointer means that we do not want the resulting coefficient vector.
+    solve_linear(ref_space, &wf, matrix_solver, ref_sln, NULL, is_complex);
 
     // Project the reference solution on the coarse mesh.
     info("Projecting reference solution on coarse mesh.");

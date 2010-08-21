@@ -66,12 +66,11 @@ int main(int argc, char* argv[])
 
   // Solve the linear problem.
   Solution u_sln, v_sln;
-  solve_linear(Tuple<Space *>(&u_space, &v_space), &wf, 
-               Tuple<Solution*>(&u_sln, &v_sln), matrix_solver);
+  solve_linear(Tuple<Space *>(&u_space, &v_space), &wf, matrix_solver,
+               Tuple<Solution*>(&u_sln, &v_sln));
 
   // Visualize the solution.
-  WinGeom* sln_win_geom = new WinGeom(0, 0, 800, 400);
-  ScalarView view("Von Mises stress [Pa]", sln_win_geom);
+  ScalarView view("Von Mises stress [Pa]", new WinGeom(0, 0, 800, 400));
   VonMisesFilter stress(Tuple<MeshFunction*>(&u_sln, &v_sln), lambda, mu);
   view.show_mesh(false);
   view.show(&stress, H2D_EPS_HIGH, H2D_FN_VAL_0, &u_sln, &v_sln, 1.5e5);

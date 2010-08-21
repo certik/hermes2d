@@ -118,10 +118,9 @@ int main(int argc, char* argv[])
   Vector* coeff_vec = new AVector(ndof);
 
   // Initialize views.
-  WinGeom* sln_win_geom = new WinGeom(0, 0, 440, 350);
-  WinGeom* mesh_win_geom = new WinGeom(450, 0, 400, 350);
-  ScalarView s_view("Solution", sln_win_geom);
-  OrderView o_view("Mesh", mesh_win_geom);
+  ScalarView s_view("Solution", new WinGeom(0, 0, 440, 350));
+  s_view.show_mesh(false);
+  OrderView o_view("Mesh", new WinGeom(450, 0, 400, 350));
 
   // DOF and CPU convergence graphs.
   SimpleGraph graph_dof_est, graph_cpu_est;
@@ -133,7 +132,7 @@ int main(int argc, char* argv[])
   // Project the initial condition on the FE space to obtain initial 
   // coefficient vector for the Newton's method.
   info("Projecting initial condition to obtain initial vector on the coarse mesh.");
-  // The NULL means that we do not want the resulting Solution, just the vector.
+  // The NULL pointer means that we do not want the projection result as a Solution.
   project_global(space, H2D_H1_NORM, init_cond, NULL, coeff_vec); 
 
   // Newton's loop on the coarse mesh.
@@ -229,6 +228,9 @@ int main(int argc, char* argv[])
       // NULL means that we do not want to know the resulting coefficient vector.
       project_global(space, H2D_H1_NORM, ref_sln, sln, NULL); 
     }
+
+    // Free the reference space and mesh.
+    ref_space->free();
 
     as++;
   }

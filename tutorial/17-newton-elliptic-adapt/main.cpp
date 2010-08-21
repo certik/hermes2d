@@ -125,14 +125,18 @@ int main(int argc, char* argv[])
   // Create a selector which will select optimal candidate.
   H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
 
+  // Projecting to obtain initial coefficient vector for the Newton's method.
+  Vector *coeff_vec = new AVector(get_num_dofs(&space));
+  // The NULL pointer means that we do not want the projection result as a Solution.
+  project_global(&space, H2D_H1_NORM, init_cond, NULL, coeff_vec);
+
   // Adaptivity loop.
-  Solution init_sln, sln, ref_sln;
-  init_sln.set_exact(&mesh, init_cond);
   WinGeom* sln_win_geom = new WinGeom(0, 0, 440, 350);
   WinGeom* mesh_win_geom = new WinGeom(450, 0, 400, 350);
   bool verbose = true;     // Print info during adaptivity.
-  solve_newton_adapt(&space, &wf, H2D_H1_NORM, &init_sln, &sln, matrix_solver, &ref_sln,
-                     &selector, &apt, sln_win_geom, mesh_win_geom, 
+  // The empty Tuples mean that we do not want the resulting coarse and fine mesh solutions.
+  solve_newton_adapt(&space, &wf, coeff_vec, matrix_solver, H2D_H1_NORM, Tuple<Solution *>(), 
+                     Tuple<Solution *> (), sln_win_geom, mesh_win_geom, &selector, &apt,  
                      NEWTON_TOL_COARSE, NEWTON_TOL_FINE, NEWTON_MAX_ITER, verbose);
 
   // Wait for keyboard or mouse input.

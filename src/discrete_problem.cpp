@@ -1435,13 +1435,14 @@ bool solve_newton(Tuple<Space *> spaces, WeakForm* wf, Vector* coeff_vec,
 // mesh, and finally solves the fine mesh problem using Newton.
 // So, this is not suitable for time-dependent problems.
 // Feel free to adjust this function for more advanced applications.
-bool solve_newton_adapt(Tuple<Space *> spaces, WeakForm* wf, Tuple<int>proj_norms, 
-                        Tuple<MeshFunction*> init_meshfns, Tuple<Solution *> slns, 
-                        MatrixSolverType matrix_solver,  Tuple<Solution *> ref_slns, 
-                        Tuple<RefinementSelectors::Selector *> selectors, AdaptivityParamType* apt,
+H2D_API bool solve_newton_adapt(Tuple<Space *> spaces, WeakForm* wf, Vector *coeff_vec, 
+                        MatrixSolverType matrix_solver, Tuple<int>proj_norms, 
+                        Tuple<Solution *> target_slns, Tuple<Solution *> target_ref_slns, 
                         Tuple<WinGeom *> sln_win_geom, Tuple<WinGeom *> mesh_win_geom, 
+                        Tuple<RefinementSelectors::Selector *> selectors, AdaptivityParamType* apt,
                         double newton_tol_coarse, double newton_tol_fine, int newton_max_iter, 
-                        bool verbose, Tuple<ExactSolution *> exact_slns, bool is_complex) 
+                        bool verbose, Tuple<ExactSolution *> exact_slns, 
+                        bool is_complex)
 {
   // Time measurement.
   TimePeriod cpu_time;
@@ -1471,8 +1472,11 @@ bool solve_newton_adapt(Tuple<Space *> spaces, WeakForm* wf, Tuple<int>proj_norm
   else is_exact_solution = false;
 
   // Initialize matrix solver.
-  Matrix* mat; Vector* coeff_vec; CommonSolver* solver;  
-  init_matrix_solver(matrix_solver, ndof, mat, coeff_vec, solver, is_complex);
+  Matrix* mat; Vector *coeff_vec_dummy; CommonSolver* solver;  
+  init_matrix_solver(matrix_solver, ndof, mat, coeff_vec_dummy, solver, is_complex);
+  if (coeff_vec->get_size() != coeff_vec_dummy->get_size()) 
+    error("Mismatched matrix and vector size in solve_newton_adapt().");
+  coeff_vec_dummy->free_data();
 
   // Initialize views.
   ScalarView* s_view[H2D_MAX_COMPONENTS];
@@ -1516,10 +1520,6 @@ bool solve_newton_adapt(Tuple<Space *> spaces, WeakForm* wf, Tuple<int>proj_norm
   // DOF and CPU convergence graphs.
   SimpleGraph graph_dof_est, graph_cpu_est, graph_dof_exact, graph_cpu_exact;
 
-  // Project the initial condition on the FE space(s) to obtain initial 
-  // coefficient vector for the Newton's method.
-  info("Projecting initial condition to obtain initial vector on the coarse mesh.");
-  project_global(spaces, proj_norms, init_meshfns, Tuple<Solution *>(), coeff_vec, is_complex); 
 
   // Newton's loop on the coarse mesh.
   info("Solving on coarse mesh:");
@@ -1528,8 +1528,24 @@ bool solve_newton_adapt(Tuple<Space *> spaces, WeakForm* wf, Tuple<int>proj_norm
     error("Newton's method did not converge.");
   }
 
+  // Temporary coarse and reference mesh solutions, and reference spaces.
+  Tuple<Solution *> slns = Tuple<Solution *>();
+  Tuple<Solution *> ref_slns = Tuple<Solution *>();
+  for (int i = 0; i < num_comps; i++) {
+    slns.push_back(new Solution);
+    ref_slns.push_back(new Solution);
+  }
+
   // Store the result in sln.
   for (int i = 0; i < num_comps; i++) slns[i]->set_fe_solution(spaces[i], coeff_vec);
+    
+  // FIXME: this needs to be solved more elegantly.
+  Tuple<MeshFunction*> slns_mf = Tuple<MeshFunction*>();
+  Tuple<MeshFunction*> ref_slns_mf = Tuple<MeshFunction*>();
+  for (int i = 0; i < num_comps; i++) {
+    slns_mf.push_back((MeshFunction*)slns[i]);
+    ref_slns_mf.push_back((MeshFunction*)ref_slns[i]);
+  }
 
   // Adaptivity loop:
   bool done = false; int as = 1;
@@ -1566,14 +1582,6 @@ bool solve_newton_adapt(Tuple<Space *> spaces, WeakForm* wf, Tuple<int>proj_norm
       ref_spaces[i]->copy_orders(spaces[i], order_increase);
     }
 
-    // FIXME: this needs to be solved more elegantly.
-    Tuple<MeshFunction*> slns_mf = Tuple<MeshFunction*>();
-    Tuple<MeshFunction*> ref_slns_mf = Tuple<MeshFunction*>();
-    for (int i = 0; i < num_comps; i++) {
-      slns_mf.push_back((MeshFunction*)slns[i]);
-      ref_slns_mf.push_back((MeshFunction*)ref_slns[i]);
-    }
-    
     // Calculate initial coefficient vector for Newton on the fine mesh.
     if (as == 1) {
       info("Projecting coarse mesh solution to obtain initial vector on new fine mesh.");
@@ -1686,13 +1694,44 @@ bool solve_newton_adapt(Tuple<Space *> spaces, WeakForm* wf, Tuple<int>proj_norm
       // Project last fine mesh solution on the new coarse mesh
       // to obtain new coars emesh solution.
       if (verbose) info("Projecting reference solution on new coarse mesh.");
-      // The NULL means that we do not want the coefficient vector.
+      // The NULL pointer means that we do not want the resulting coefficient vector.
       project_global(spaces, proj_norms, ref_slns_mf, slns, NULL, is_complex); 
+    }
+
+    // FIXME: Does this also free the corresponding meshes?
+    for (int i = 0; i < num_comps; i++) {
+      ref_spaces[i]->free();
     }
 
     as++;
   }
   while (done == false);
+
+  // Obtain the coefficient vector on the coarse mesh.
+  project_global(spaces, proj_norms, ref_slns_mf, NULL, coeff_vec);
+
+  // If the user wants, give him the coarse mesh solutions.
+  if (target_slns != Tuple<Solution *>()) {
+    if (slns.size() != target_slns.size()) error("Mismatched solution Tuple length in solve_newton_adapt().");
+    for (int i = 0; i < num_comps; i++) {
+      target_slns[i]->copy(slns[i]);
+    }
+  }
+
+  // If the user wants, give him the reference mesh solutions.
+  if (target_ref_slns != Tuple<Solution *>()) {
+    if (ref_slns.size() != target_ref_slns.size()) 
+      error("Mismatched reference solution Tuple length in solve_newton_adapt().");
+    for (int i = 0; i < num_comps; i++) {
+      target_ref_slns[i]->copy(ref_slns[i]);
+    }
+  }
+
+  // Free temporary solutions.
+  for (int i = 0; i < num_comps; i++) {
+    slns[i]->free();
+    ref_slns[i]->free();
+  }
 
   if (verbose) info("Total running time: %g s", cpu_time.accumulated());
   return true;

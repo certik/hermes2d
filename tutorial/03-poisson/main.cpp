@@ -62,11 +62,11 @@ int main(int argc, char* argv[])
 
   // Solve the linear problem.
   Solution sln;
-  solve_linear(&space, &wf, &sln, matrix_solver);
+  // The NULL pointer means that we do not want the coefficient vector.
+  solve_linear(&space, &wf, matrix_solver, &sln);
 
   // Visualize the solution.
-  WinGeom* sln_win_geom = new WinGeom(0, 0, 440, 350);
-  ScalarView view("Solution", sln_win_geom);
+  ScalarView view("Solution", new WinGeom(0, 0, 440, 350));
   view.show(&sln);
 
   // Wait for the view to be closed.
