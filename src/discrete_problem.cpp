@@ -1353,49 +1353,6 @@ double get_l2_norm_cplx(Vector* vec)
   return val;
 }
 
-// Solve a typical nonlinear problem (without automatic adaptivity)
-// using the Newton's method. 
-// Feel free to adjust this function for more advanced applications.
-bool solve_newton(Tuple<Space *> spaces, WeakForm* wf, Tuple<int>proj_norms, 
-                  Tuple<MeshFunction *> init_meshfns, Tuple<Solution *> target_slns, 
-                  MatrixSolverType matrix_solver, double newton_tol, 
-                  int newton_max_iter, bool verbose, bool is_complex) 
-{
-  int ndof = get_num_dofs(spaces);
-
-  // sanity checks
-  int num_comps = spaces.size();
-  if (num_comps != init_meshfns.size()) 
-    error("The number of spaces and initial functions must be the same in newton_solve.");
-  if (init_meshfns.size() != target_slns.size()) 
-    error("The number of initial functions and target solutions must be the same in newton_solve.");
-
-  // Project init_meshfns on the FE space
-  // to obtain initial coefficient vector for the Newton's method.
-  if (verbose) info("Projecting to obtain initial vector for the Newton's method.");
-  
-  // Allocate the coefficient vector.
-  Vector* coeff_vec = new AVector(ndof);
-
-  // Project to obtain the initial coefficient vector for the Newton's method.
-  // The empty solution Tuple means that we do not want the resulting Solution, just the vector
-  project_global(spaces, proj_norms, init_meshfns, Tuple<Solution *>(), coeff_vec, is_complex); 
-
-  // Perform the Newton's loop.
-  bool flag;
-  flag = solve_newton(spaces, wf, coeff_vec, matrix_solver, 
-                      newton_tol, newton_max_iter, verbose, is_complex);
-
-  // If the user wants target_slns, convert coefficient vector into Solution(s).
-  if (target_slns != Tuple<Solution *>()) {
-    for (int i=0; i<target_slns.size(); i++) {
-      if (target_slns[i] != NULL) target_slns[i]->set_fe_solution(spaces[i], coeff_vec);
-    }
-  }
-
-  return flag;
-}
-
 // Basic Newton's method, takes a coefficient vector and returns a coefficient vector. 
 bool solve_newton(Tuple<Space *> spaces, WeakForm* wf, Vector* coeff_vec, 
                   MatrixSolverType matrix_solver, double newton_tol, 
@@ -1471,11 +1428,15 @@ bool solve_newton(Tuple<Space *> spaces, WeakForm* wf, Vector* coeff_vec,
   return true;
 }
 
-// Solve a typical nonlinear problem using the Newton's method and 
-// automatic adaptivity. 
+// Solves a typical nonlinear problem using the Newton's method and 
+// automatic adaptivity. This function projects the init_meshfns
+// to the coarse mesh(es), then solves the coarse mesh problem 
+// using Newton, then projects the coarse mesh solution to the fine 
+// mesh, and finally solves the fine mesh problem using Newton.
+// So, this is not suitable for time-dependent problems.
 // Feel free to adjust this function for more advanced applications.
 bool solve_newton_adapt(Tuple<Space *> spaces, WeakForm* wf, Tuple<int>proj_norms, 
-                        Tuple<ExactFunction> init_exactfns, Tuple<Solution *> slns, 
+                        Tuple<MeshFunction*> init_meshfns, Tuple<Solution *> slns, 
                         MatrixSolverType matrix_solver,  Tuple<Solution *> ref_slns, 
                         Tuple<RefinementSelectors::Selector *> selectors, AdaptivityParamType* apt,
                         Tuple<WinGeom *> sln_win_geom, Tuple<WinGeom *> mesh_win_geom, 
@@ -1558,7 +1519,7 @@ bool solve_newton_adapt(Tuple<Space *> spaces, WeakForm* wf, Tuple<int>proj_norm
   // Project the initial condition on the FE space(s) to obtain initial 
   // coefficient vector for the Newton's method.
   info("Projecting initial condition to obtain initial vector on the coarse mesh.");
-  project_global(spaces, proj_norms, init_exactfns, Tuple<Solution *>(), coeff_vec, is_complex); 
+  project_global(spaces, proj_norms, init_meshfns, Tuple<Solution *>(), coeff_vec, is_complex); 
 
   // Newton's loop on the coarse mesh.
   info("Solving on coarse mesh:");

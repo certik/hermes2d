@@ -283,21 +283,11 @@ H2D_API void project_local(Space *space, int proj_norm, ExactFunction source_fn,
                    Solution* target_sln = NULL, Vector* target_vec = NULL, 
                    bool is_complex = false);
 
-/// Newton's loop. Takes a Tuple of MeshFunctions, projects them on "spaces" to
-/// obtain a coefficient vector. Then it employs the function solve_newton() below
-/// that takes a coefficient vector and delivers a coefficient vector. The resulting
-/// coefficient vector is translated into resulting Solutions. 
-H2D_API bool solve_newton(Tuple<Space *> spaces, WeakForm* wf, Tuple<int>proj_norms,  
-                  Tuple<MeshFunction *> init_meshfns, Tuple<Solution *> target_slns, 
-                  MatrixSolverType matrix_solver, double newton_tol = 1e-5, 
-                  int newton_max_iter = 100, bool verbose = false, bool is_complex = false);
-
 /// Basic Newton's loop. Takes a coefficient vector, delivers a coefficient vector (in the 
 /// same variable "init_coeff_vector").
 H2D_API bool solve_newton(Tuple<Space *> spaces, WeakForm* wf, Vector* init_coeff_vec,
                   MatrixSolverType matrix_solver, double newton_tol = 1e-5, 
                   int newton_max_iter = 100, bool verbose = false, bool is_complex = false);
-
 
 // Solve a typical nonlinear problem using the Newton's method and 
 // automatic adaptivity. 
@@ -310,15 +300,5 @@ H2D_API bool solve_newton_adapt(Tuple<Space *> spaces, WeakForm* wf, Tuple<int>p
                         double newton_tol_coarse, double newton_tol_fine, int newton_max_iter, 
                         bool verbose = false, Tuple<ExactSolution *> exact_slns = Tuple<ExactSolution *>(), 
                         bool is_complex = false);
-
-H2D_API bool solve_newton_adapt(Tuple<Space *> spaces, WeakForm* wf, Tuple<int>proj_norms, 
-                        Tuple<ExactFunction> init_exactfns, Tuple<Solution *> slns, 
-                        MatrixSolverType matrix_solver,  Tuple<Solution *> ref_slns, 
-                        Tuple<RefinementSelectors::Selector *> selectors, AdaptivityParamType* apt,
-                        Tuple<WinGeom *> sln_win_geom, Tuple<WinGeom *> mesh_win_geom, 
-                        double newton_tol_coarse, double newton_tol_fine, int newton_max_iter, 
-                        bool verbose = false, Tuple<ExactSolution *> exact_slns = Tuple<ExactSolution *>(), 
-                        bool is_complex = false);
-
 
 #endif

@@ -20,9 +20,6 @@ using namespace RefinementSelectors;
 //
 //  The following parameters can be changed:
 
-//const bool SOLVE_ON_COARSE_MESH = false;   // true... Newton is done on coarse mesh in every adaptivity step.
-                                           // false...Newton is done on coarse mesh only once, then projection
-                                           // of the fine mesh solution to coarse mesh is used.
 const int INIT_REF_NUM = 2;                // Number of initial uniform mesh refinements.
 const int P_INIT = 2;                      // Initial polynomial degree of all mesh elements.
 const int TIME_DISCR = 2;                  // 1 for implicit Euler, 2 for Crank-Nicolson.
@@ -54,7 +51,7 @@ const int MESH_REGULARITY = -1;            // Maximum allowed level of hanging n
                                            // their notoriously bad performance.
 const double CONV_EXP = 1.0;               // Default value is 1.0. This parameter influences the selection of
                                            // cancidates in hp-adaptivity. See get_optimal_refinement() for details.
-const double ERR_STOP = 3.0;               // Stopping criterion for adaptivity (rel. error tolerance between the
+const double ERR_STOP = 1.0;               // Stopping criterion for adaptivity (rel. error tolerance between the
                                            // fine mesh and coarse mesh solution in percent).
 const int NDOF_STOP = 60000;               // Adaptivity process stops when the number of degrees of freedom grows
                                            // over this limit. This is to prevent h-adaptivity to go on forever.
@@ -64,7 +61,7 @@ MatrixSolverType matrix_solver = SOLVER_UMFPACK;  // Possibilities: SOLVER_UMFPA
 // Newton's method
 const double NEWTON_TOL_COARSE = 0.01;     // Stopping criterion for Newton on coarse mesh.
 const double NEWTON_TOL_FINE = 0.05;       // Stopping criterion for Newton on fine mesh.
-const int NEWTON_MAX_ITER = 20;            // Maximum allowed number of Newton iterations.
+const int NEWTON_MAX_ITER = 100;            // Maximum allowed number of Newton iterations.
 
 // Thermal conductivity (temperature-dependent).
 // Note: for any u, this function has to be positive.
@@ -131,23 +128,22 @@ int main(int argc, char* argv[])
   H1Space space(&mesh, bc_types, essential_bc_values, P_INIT);
   int ndof = get_num_dofs(&space);
 
-  // Solutions for the time stepping and the Newton's method.
-  Solution u_prev_time, u_prev_newton;
+  // Solutions for the time stepping.
+  Solution u_prev_time;
 
   // Initialize the weak formulation.
   WeakForm wf;
   if(TIME_DISCR == 1) {
-    wf.add_matrix_form(callback(J_euler), H2D_UNSYM, H2D_ANY, &u_prev_newton);
-    wf.add_vector_form(callback(F_euler), H2D_ANY, Tuple<MeshFunction*>(&u_prev_newton, &u_prev_time));
+    wf.add_matrix_form(callback(J_euler), H2D_UNSYM, H2D_ANY);
+    wf.add_vector_form(callback(F_euler), H2D_ANY, &u_prev_time);
   }
   else {
-    wf.add_matrix_form(callback(J_cranic), H2D_UNSYM, H2D_ANY, &u_prev_newton);
-    wf.add_vector_form(callback(F_cranic), H2D_ANY, Tuple<MeshFunction*>(&u_prev_newton, &u_prev_time));
+    wf.add_matrix_form(callback(J_cranic), H2D_UNSYM, H2D_ANY);
+    wf.add_vector_form(callback(F_cranic), H2D_ANY, &u_prev_time);
   }
 
   // Initialize adaptivity parameters.
-  AdaptivityParamType apt(ERR_STOP, NDOF_STOP, THRESHOLD, STRATEGY, 
-                          MESH_REGULARITY);
+  AdaptivityParamType apt(ERR_STOP, NDOF_STOP, THRESHOLD, STRATEGY, MESH_REGULARITY);
 
   // Create a selector which will select optimal candidate.
   H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
@@ -156,8 +152,7 @@ int main(int argc, char* argv[])
   // to obtain initial coefficient vector for the Newton's method.
   info("Projecting initial condition to obtain initial vector for the Newton's method.");
   Vector* coeff_vec = new AVector(ndof);
-  project_global(&space, H2D_H1_NORM, init_cond, &u_prev_newton, coeff_vec);
-  u_prev_time.copy(&u_prev_newton);
+  project_global(&space, H2D_H1_NORM, init_cond, &u_prev_time, coeff_vec);
 
   // View the projection of the initial condition.
   WinGeom* sln_win_geom = new WinGeom(0, 0, 440, 350);
@@ -166,7 +161,21 @@ int main(int argc, char* argv[])
   OrderView ordview("Initial mesh", mesh_win_geom);
 
   // Store the result in sln_coarse.
-  Solution sln_coarse;
+  Solution sln, ref_sln;
+
+  // Newton's loop on the coarse mesh.
+  info("Solving on coarse mesh:");
+  Solution* sln = new Solution();
+  Solution* ref_sln = new Solution();
+  bool verbose = true;
+  Vector* coeff_vec = new AVector(ndof);
+  if (!solve_newton(space, &wf, coeff_vec, matrix_solver, 
+		    NEWTON_TOL_COARSE, NEWTON_MAX_ITER, verbose)) {
+    error("Newton's method did not converge.");
+  }
+
+  // Store the result in sln.
+  sln.set_fe_solution(space, coeff_vec);
 
   // Time stepping loop.
   int num_time_steps = (int)(T_FINAL/TAU + 0.5);
@@ -186,7 +195,7 @@ int main(int argc, char* argv[])
     // Initialize reference nonlinear system.
     bool verbose = true;     // Print info during adaptivity.
     info("Projecting coarse mesh solution to obtain initial vector on new fine mesh.");
-    solve_newton_adapt(&space, &wf, H2D_H1_NORM, init_cond, &sln_coarse, matrix_solver, &u_prev_newton,
+    solve_newton_adapt(&space, &wf, H2D_H1_NORM, &u_prev_time, &sln, matrix_solver, &ref_sln,
                        &selector, &apt, sln_win_geom, mesh_win_geom,
                        NEWTON_TOL_COARSE, NEWTON_TOL_FINE, NEWTON_MAX_ITER, verbose);
 
@@ -194,13 +203,13 @@ int main(int argc, char* argv[])
     char title[100];
     sprintf(title, "Solution, time level %d", ts);
     view.set_title(title);
-    view.show(&sln_coarse);
+    view.show(&sln);
     sprintf(title, "Mesh, time level %d", ts);
     ordview.set_title(title);
     ordview.show(&space);
 
-    // Copy new time level solution into u_prev_time.
-    u_prev_time.copy(&sln_coarse);
+    // Copy new time level reference solution into u_prev_time.
+    u_prev_time.copy(&ref_sln);
   }
 
   // Wait for all views to be closed.

@@ -126,12 +126,12 @@ int main(int argc, char* argv[])
   H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
 
   // Adaptivity loop.
-  Solution *sln = new Solution();
-  Solution *ref_sln = new Solution();
+  Solution init_sln, sln, ref_sln;
+  init_sln.set_exact(&mesh, init_cond);
   WinGeom* sln_win_geom = new WinGeom(0, 0, 440, 350);
   WinGeom* mesh_win_geom = new WinGeom(450, 0, 400, 350);
   bool verbose = true;     // Print info during adaptivity.
-  solve_newton_adapt(&space, &wf, H2D_H1_NORM, init_cond, sln, matrix_solver, ref_sln,
+  solve_newton_adapt(&space, &wf, H2D_H1_NORM, &init_sln, &sln, matrix_solver, &ref_sln,
                      &selector, &apt, sln_win_geom, mesh_win_geom, 
                      NEWTON_TOL_COARSE, NEWTON_TOL_FINE, NEWTON_MAX_ITER, verbose);
 
