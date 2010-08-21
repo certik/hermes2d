@@ -3,7 +3,6 @@
 #define H2D_REPORT_VERBOSE
 #define H2D_REPORT_FILE "application.log"
 #include "hermes2d.h"
-
 //  This example is a very simple flame propagation model (laminar flame,
 //  zero flow velocity), and its purpose is to show how the Newton's method
 //  is applied to a time-dependent two-equation system.
@@ -80,56 +79,112 @@ int main(int argc, char* argv[])
   Solution t_prev_time_1, c_prev_time_1, t_prev_time_2, c_prev_time_2, 
            t_prev_newton, c_prev_newton;
 
+	// And their initial exact setting.
+	t_prev_time_1.set_exact(&mesh, temp_ic); c_prev_time_1.set_exact(&mesh, conc_ic);
+  t_prev_time_2.set_exact(&mesh, temp_ic); c_prev_time_2.set_exact(&mesh, conc_ic);
+  t_prev_newton.set_exact(&mesh, temp_ic);  c_prev_newton.set_exact(&mesh, conc_ic);
+
+	// Projecting initial conditions to obtain initial vector for the Newton's method.
+  info("Projecting initial conditions to obtain initial vector for the Newton's method.");
+  Vector* coeff_vec = new AVector(ndof); 
+	project_global(Tuple<Space *>(tspace, cspace), Tuple<int>(H2D_H1_NORM, H2D_H1_NORM),
+		Tuple<MeshFunction*>(&t_prev_newton, &c_prev_newton),Tuple<Solution*>(&t_prev_newton, &c_prev_newton), coeff_vec);
+
   // Filters for the reaction rate omega and its derivatives.
-  DXDYFilter omega, omega_dt, omega_dc;
+	DXDYFilter omega(omega_fn, Tuple<MeshFunction*>(&t_prev_newton, &c_prev_newton));
+  DXDYFilter omega_dt(omega_dt_fn, Tuple<MeshFunction*>(&t_prev_newton, &c_prev_newton));
+  DXDYFilter omega_dc(omega_dc_fn, Tuple<MeshFunction*>(&t_prev_newton, &c_prev_newton));
 
   // Initialize the weak formulation.
   WeakForm wf(2);
-  wf.add_matrix_form(0, 0, callback(newton_bilinear_form_0_0), H2D_UNSYM, H2D_ANY, &omega_dt);
+  
+	wf.add_matrix_form(0, 0, callback(newton_bilinear_form_0_0), H2D_UNSYM, H2D_ANY, &omega_dt);
   wf.add_matrix_form_surf(0, 0, callback(newton_bilinear_form_0_0_surf), 3);
-  wf.add_matrix_form(0, 1, callback(newton_bilinear_form_0_1), H2D_UNSYM, H2D_ANY, &omega_dc);
-  wf.add_matrix_form(1, 0, callback(newton_bilinear_form_1_0), H2D_UNSYM, H2D_ANY, &omega_dt);
-  wf.add_matrix_form(1, 1, callback(newton_bilinear_form_1_1), H2D_UNSYM, H2D_ANY, &omega_dc);
-  wf.add_vector_form(0, callback(newton_linear_form_0), H2D_ANY, 
-                     Tuple<MeshFunction*>(&t_prev_time_1, &t_prev_time_2, &omega));
+  
+	wf.add_matrix_form(0, 1, callback(newton_bilinear_form_0_1), H2D_UNSYM, H2D_ANY, &omega_dc);
+  
+	wf.add_matrix_form(1, 0, callback(newton_bilinear_form_1_0), H2D_UNSYM, H2D_ANY, &omega_dt);
+  
+	wf.add_matrix_form(1, 1, callback(newton_bilinear_form_1_1), H2D_UNSYM, H2D_ANY, &omega_dc);
+  
+	wf.add_vector_form(0, callback(newton_linear_form_0), H2D_ANY, Tuple<MeshFunction*>(&t_prev_time_1, &t_prev_time_2, &omega));
   wf.add_vector_form_surf(0, callback(newton_linear_form_0_surf), 3);
-  wf.add_vector_form(1, callback(newton_linear_form_1), H2D_ANY, 
-                     Tuple<MeshFunction*>(&c_prev_time_1, &c_prev_time_2, &omega));
-
-  // Project temp_ic() and conc_ic() onto the FE spaces to obtain initial 
-  // coefficient vector for the Newton's method.   
-  info("Projecting initial conditions to obtain initial vector for the Newton'w method.");
-  Vector* coeff_vec = new AVector(ndof); 
-  project_global(Tuple<Space *>(tspace, cspace), Tuple<int>(H2D_H1_NORM, H2D_H1_NORM),
-		 //Tuple<MeshFunction *>(&t_prev_time_1, &c_prev_time_1), 
-		 Tuple<ExactFunction>(temp_ic, conc_ic), 
-                 Tuple<Solution*>(&t_prev_newton, &c_prev_newton), coeff_vec);
-  t_prev_time_1.copy(&t_prev_newton);
-  t_prev_time_2.copy(&t_prev_newton);
-  c_prev_time_1.copy(&c_prev_newton);
-  c_prev_time_2.copy(&c_prev_newton);
-
-  // Initialize filters.
-  omega.init(omega_fn, Tuple<MeshFunction*>(&t_prev_newton, &c_prev_newton));
-  omega_dt.init(omega_dt_fn, Tuple<MeshFunction*>(&t_prev_newton, &c_prev_newton));
-  omega_dc.init(omega_dc_fn, Tuple<MeshFunction*>(&t_prev_newton, &c_prev_newton));
+  
+	wf.add_vector_form(1, callback(newton_linear_form_1), H2D_ANY, Tuple<MeshFunction*>(&c_prev_time_1, &c_prev_time_2, &omega));
 
   // Initialize view.
   ScalarView rview("Reaction rate", 0, 0, 800, 230);
 
   // Time stepping loop:
   double current_time = 0.0; int ts = 1;
-  do {
+  do 
+	{
     info("---- Time step %d, t = %g s.", ts, current_time);
 
     // Newton's method.
     info("Performing Newton's method.");
-    bool verbose = true; // Default is false.
-    if (!solve_newton(Tuple<Space *>(tspace, cspace), &wf, coeff_vec, matrix_solver, 
-                      NEWTON_TOL, NEWTON_MAX_ITER, verbose, Tuple<MeshFunction*>(&omega, &omega_dt, &omega_dc)))
-      error("Newton's method did not converge.");
-    t_prev_newton.set_fe_solution(tspace, coeff_vec);
-    c_prev_newton.set_fe_solution(cspace, coeff_vec);
+   
+		bool verbose = true; // Default is false.
+
+		int ndof = get_num_dofs(Tuple<Space *>(tspace, cspace));
+		int n_mesh_fns = 3;
+
+		// Initialize the discrete problem.
+		DiscreteProblem dp(&wf, Tuple<Space *>(tspace, cspace));
+		//info("ndof = %d", dp.get_num_dofs());
+
+		// Select matrix solver.
+		Matrix* mat; Vector* rhs; CommonSolver* solver;
+		
+		init_matrix_solver(matrix_solver, ndof, mat, rhs, solver, false);
+		
+		// Newton's loop.
+		int it = 1;
+		for (; it <= NEWTON_MAX_ITER; it++)
+		{
+			// Reinitialize filters and previous Newton solutions these filters use.
+			t_prev_newton.set_fe_solution(tspace, coeff_vec);
+			c_prev_newton.set_fe_solution(cspace, coeff_vec);
+			omega.reinit();
+			omega_dt.reinit();
+			omega_dc.reinit();
+
+			// Assemble the Jacobian matrix and residual vector.
+			bool rhsonly = false;
+
+			// the NULL stands for the dir vector which is not needed here
+			dp.assemble(coeff_vec, mat, NULL, rhs, rhsonly, false);
+			
+			// Multiply the residual vector with -1 since the matrix 
+			// equation reads J(Y^n) \deltaY^{n+1} = -F(Y^n).
+			for (int i = 0; i < ndof; i++) rhs->set(i, -rhs->get(i));
+			
+			// Calculate the l2-norm of residual vector.
+			double res_l2_norm = 0;
+			for (int i = 0; i < ndof; i++) res_l2_norm += rhs->get(i)*rhs->get(i);
+			res_l2_norm = sqrt(res_l2_norm);
+
+			if (verbose) info("---- Newton iter %d, ndof %d, res. l2 norm %g", it, ndof, res_l2_norm);
+
+			// If l2 norm of the residual vector is in tolerance, quit.
+			if (res_l2_norm < NEWTON_TOL) 
+				break;
+
+			// Solve the matrix problem.
+			if (!solver->solve(mat, rhs)) 
+				error ("Matrix solver failed.\n");
+
+			// Add \deltaY^{n+1} to Y^n.
+			for (int i = 0; i < ndof; i++) coeff_vec->add(i, rhs->get(i));
+		};
+
+		delete rhs;
+		delete mat;
+		delete solver;
+
+		// If we have not reached the desired tolerance.
+		if(it == NEWTON_MAX_ITER)
+			 error("Newton's method did not converge.");
 
     // Visualization.
     DXDYFilter omega_view(omega_fn, Tuple<MeshFunction*>(&t_prev_newton, &c_prev_newton));
@@ -149,7 +204,8 @@ int main(int argc, char* argv[])
     c_prev_time_1.set_fe_solution(cspace, coeff_vec);
 
     ts++;
-  } while (current_time <= T_FINAL);
+  } 
+	while (current_time <= T_FINAL);
 
   // Wait for all views to be closed.
   View::wait();

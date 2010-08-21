@@ -112,7 +112,7 @@ int main(int argc, char* argv[])
     info("Performing Newton's method.");
     bool verbose = true; // Default is false.
     if (!solve_newton(space, &wf, coeff_vec, matrix_solver, 
-		      NEWTON_TOL, NEWTON_MAX_ITER, verbose, Tuple<MeshFunction *>(), is_complex))
+		      NEWTON_TOL, NEWTON_MAX_ITER, verbose, is_complex))
       error("Newton's method did not converge.");
 
     // Update previous time level solution.
