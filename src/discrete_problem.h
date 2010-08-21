@@ -290,17 +290,13 @@ H2D_API void project_local(Space *space, int proj_norm, ExactFunction source_fn,
 H2D_API bool solve_newton(Tuple<Space *> spaces, WeakForm* wf, Tuple<int>proj_norms,  
                   Tuple<MeshFunction *> init_meshfns, Tuple<Solution *> target_slns, 
                   MatrixSolverType matrix_solver, double newton_tol = 1e-5, 
-                  int newton_max_iter = 100, bool verbose = false, 
-                  Tuple<MeshFunction*> mesh_fns = Tuple<MeshFunction*>(), 
-                  bool is_complex = false);
+                  int newton_max_iter = 100, bool verbose = false, bool is_complex = false);
 
 /// Basic Newton's loop. Takes a coefficient vector, delivers a coefficient vector (in the 
 /// same variable "init_coeff_vector").
 H2D_API bool solve_newton(Tuple<Space *> spaces, WeakForm* wf, Vector* init_coeff_vec,
                   MatrixSolverType matrix_solver, double newton_tol = 1e-5, 
-                  int newton_max_iter = 100, bool verbose = false, 
-                  Tuple<MeshFunction*> mesh_fns = Tuple<MeshFunction*>(), 
-                  bool is_complex = false);
+                  int newton_max_iter = 100, bool verbose = false, bool is_complex = false);
 
 
 // Solve a typical nonlinear problem using the Newton's method and 

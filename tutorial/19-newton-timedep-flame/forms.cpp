@@ -130,8 +130,9 @@ Scalar newton_linear_form_0_surf(int n, double *wt, Func<Real> *u_ext[],
                                  Func<Real> *vi, Geom<Real> *e, ExtData<Scalar> *ext)
 {
   Scalar result = 0;
+  Func<Real>* t_prev_newton = u_ext[0];
   for (int i = 0; i < n; i++)
-    result += wt[i] * (kappa * u_ext[0]->val[i] * vi->val[i]);
+    result += wt[i] * (kappa * t_prev_newton->val[i] * vi->val[i]);
   return result;
 }
 
@@ -140,12 +141,12 @@ Scalar newton_linear_form_1(int n, double *wt, Func<Real> *u_ext[],
                             Func<Real> *vi, Geom<Real> *e, ExtData<Scalar> *ext)
 {
   Scalar result = 0;
-  Func<Real>* c_prev_newton = u_ext[0];
+  Func<Real>* c_prev_newton = u_ext[1];
   Func<Real>* c_prev_time_1 = ext->fn[0];
   Func<Real>* c_prev_time_2 = ext->fn[1];
   Func<Real>* omega = ext->fn[2];
   for (int i = 0; i < n; i++)
-    result += wt[i] * ( (3.0 * c_prev_newton->val[i] - 4.0 * c_prev_time_1->val[i] + c_prev_time_2->val[i])
+		result += wt[i] * ( (3.0 * c_prev_newton->val[i] - 4.0 * c_prev_time_1->val[i] + c_prev_time_2->val[i])
                          * vi->val[i] / (2.0 * TAU) +
                         (c_prev_newton->dx[i] * vi->dx[i] + c_prev_newton->dy[i] * vi->dy[i]) / Le +
                         omega->val[i] * vi->val[i]);

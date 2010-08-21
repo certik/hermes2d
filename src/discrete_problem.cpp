@@ -1359,19 +1359,12 @@ double get_l2_norm_cplx(Vector* vec)
 bool solve_newton(Tuple<Space *> spaces, WeakForm* wf, Tuple<int>proj_norms, 
                   Tuple<MeshFunction *> init_meshfns, Tuple<Solution *> target_slns, 
                   MatrixSolverType matrix_solver, double newton_tol, 
-                  int newton_max_iter, bool verbose, Tuple<MeshFunction*> mesh_fns, 
-                  bool is_complex) 
+                  int newton_max_iter, bool verbose, bool is_complex) 
 {
   int ndof = get_num_dofs(spaces);
 
   // sanity checks
   int num_comps = spaces.size();
-  int n_mesh_fns;
-  if (mesh_fns == Tuple<MeshFunction*>()) n_mesh_fns = 0;
-  else n_mesh_fns = mesh_fns.size();
-  for (int i=0; i<n_mesh_fns; i++) {
-    if (mesh_fns[i] == NULL) error("a filter is NULL in solve_newton().");
-  }
   if (num_comps != init_meshfns.size()) 
     error("The number of spaces and initial functions must be the same in newton_solve.");
   if (init_meshfns.size() != target_slns.size()) 
@@ -1391,7 +1384,7 @@ bool solve_newton(Tuple<Space *> spaces, WeakForm* wf, Tuple<int>proj_norms,
   // Perform the Newton's loop.
   bool flag;
   flag = solve_newton(spaces, wf, coeff_vec, matrix_solver, 
-                      newton_tol, newton_max_iter, verbose, mesh_fns, is_complex);
+                      newton_tol, newton_max_iter, verbose, is_complex);
 
   // If the user wants target_slns, convert coefficient vector into Solution(s).
   if (target_slns != Tuple<Solution *>()) {
@@ -1406,13 +1399,10 @@ bool solve_newton(Tuple<Space *> spaces, WeakForm* wf, Tuple<int>proj_norms,
 // Basic Newton's method, takes a coefficient vector and returns a coefficient vector. 
 bool solve_newton(Tuple<Space *> spaces, WeakForm* wf, Vector* coeff_vec, 
                   MatrixSolverType matrix_solver, double newton_tol, 
-                  int newton_max_iter, bool verbose, Tuple<MeshFunction*> mesh_fns, 
-                  bool is_complex) 
+                  int newton_max_iter, bool verbose, bool is_complex) 
 {
   int ndof = get_num_dofs(spaces);
-  int n_mesh_fns = 0;
-  if (mesh_fns != Tuple<MeshFunction*>()) n_mesh_fns = mesh_fns.size();
-
+  
   // sanity checks
   if (coeff_vec == NULL) error("coeff_vec == NULL in solve_newton().");
   int n = spaces.size();
@@ -1434,9 +1424,6 @@ bool solve_newton(Tuple<Space *> spaces, WeakForm* wf, Vector* coeff_vec,
   int it = 1;
   while (1)
   {
-    // reinitialize filters
-    for (int i=0; i < n_mesh_fns; i++) mesh_fns[i]->reinit();
-
     // Assemble the Jacobian matrix and residual vector.
     bool rhsonly = false;
     // the NULL stands for the dir vector which is not needed here
