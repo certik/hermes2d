@@ -113,13 +113,15 @@ int main(int argc, char* argv[])
   ExactSolution u_exact(&u_mesh, uexact);
   ExactSolution v_exact(&v_mesh, vexact);
   bool verbose = true;  // Print info during adaptivity.
-  solve_linear_adapt(Tuple<Space *>(&u_space, &v_space), &wf,
-                     Tuple<int>(H2D_H1_NORM, H2D_H1_NORM),
-                     Tuple<Solution *>(u_sln, v_sln), matrix_solver,
-                     Tuple<Solution *>(ref_u_sln, ref_v_sln),
-                     Tuple<RefinementSelectors::Selector *> (&selector, &selector), &apt,
-                     Tuple<WinGeom *>(), Tuple<WinGeom *>(), verbose,
-                     Tuple<ExactSolution *>(&u_exact, &v_exact));
+  // The NULL pointer means that we do not want the resulting coefficient vector.
+  solve_linear_adapt(Tuple<Space *>(&u_space, &v_space), &wf, NULL, matrix_solver,
+                     Tuple<int>(H2D_H1_NORM, H2D_H1_NORM), 
+                     Tuple<Solution *>(u_sln, v_sln), 
+                     Tuple<Solution *>(ref_u_sln, ref_v_sln), 
+                     Tuple<WinGeom *>(), 
+                     Tuple<WinGeom *>(), 
+                     Tuple<RefinementSelectors::Selector *> (&selector, &selector), &apt, 
+                     verbose, Tuple<ExactSolution *>(&u_exact, &v_exact));
 
   int ndof = get_num_dofs(Tuple<Space *>(&u_space, &v_space));
 

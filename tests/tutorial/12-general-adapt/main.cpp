@@ -131,8 +131,9 @@ int main(int argc, char* argv[])
   Solution *sln = new Solution();
   Solution *ref_sln = new Solution();
   bool verbose = true;     // Print info during adaptivity.
-  solve_linear_adapt(&space, &wf, H2D_H1_NORM, sln, matrix_solver, ref_sln,
-                     &selector, &apt, Tuple<WinGeom *>(), Tuple<WinGeom *>(), verbose);
+  // The NULL pointer means that we do not want the resulting coefficient vector.
+  solve_linear_adapt(&space, &wf, NULL, matrix_solver, H2D_H1_NORM, sln, ref_sln, 
+                     Tuple<WinGeom *>(), Tuple<WinGeom *>(), &selector, &apt, verbose);
 
   int ndof = get_num_dofs(&space);
 

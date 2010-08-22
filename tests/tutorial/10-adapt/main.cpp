@@ -104,7 +104,7 @@ int main(int argc, char* argv[])
     ref_space->copy_orders(space, order_increase);
 
     // Solve the reference problem.
-    solve_linear(ref_space, &wf, ref_sln, matrix_solver);
+    solve_linear(ref_space, &wf, matrix_solver, ref_sln);
 
     // Project the reference solution on the coarse mesh.
     info("Projecting reference solution on coarse mesh.");

@@ -134,8 +134,8 @@ int main(int argc, char* argv[])
     v_ref_space->copy_orders(v_space, order_increase);
 
     // Solve the reference problem.
-    solve_linear(Tuple<Space *>(u_ref_space, v_ref_space), &wf, 
-                 Tuple<Solution *>(u_ref_sln, v_ref_sln), matrix_solver);
+    solve_linear(Tuple<Space *>(u_ref_space, v_ref_space), &wf, matrix_solver, 
+                 Tuple<Solution *>(u_ref_sln, v_ref_sln));
 
     // Project the reference solution on the coarse mesh.
     info("Projecting reference solution on coarse mesh.");

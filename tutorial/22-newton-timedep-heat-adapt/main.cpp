@@ -149,7 +149,7 @@ int main(int argc, char* argv[])
   H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
 
   // Assign initial condition to mesh.
-  u_prev_time.set_exact(&space, init_cond);
+  u_prev_time.set_exact(&mesh, init_cond);
   Vector *coeff_vec = new AVector(ndof);
 
   // Visualize the projection and mesh.
@@ -179,8 +179,8 @@ int main(int argc, char* argv[])
     bool verbose = true;     // Print info during adaptivity.
     info("Projecting coarse mesh solution to obtain initial vector on new fine mesh.");
     // The NULL pointers mean that we are not interested in visualization during the Newton's loop.
-    solve_newton_adapt(&space, &wf, coeff_vec, matrix_solver, &sln, &ref_sln, H2D_H1_NORM, 
-                       &selector, &apt, NULL, NULL,
+    solve_newton_adapt(&space, &wf, coeff_vec, matrix_solver, H2D_H1_NORM, &sln, &ref_sln, 
+                       NULL, NULL, &selector, &apt, 
                        NEWTON_TOL_COARSE, NEWTON_TOL_FINE, NEWTON_MAX_ITER, verbose);
 
     // Visualize the solution and mesh.

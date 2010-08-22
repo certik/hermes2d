@@ -173,8 +173,8 @@ int main(int argc, char* argv[])
   }
 
   // Initialize views.
-  VectorView vview("velocity [m/s]", 0, 0, 750, 240);
-  ScalarView pview("pressure [Pa]", 0, 290, 750, 240);
+  VectorView vview("velocity [m/s]", new WinGeom(0, 0, 750, 240));
+  ScalarView pview("pressure [Pa]", new WinGeom(0, 290, 750, 240));
   vview.set_min_max_range(0, 1.6);
   vview.fix_scale_width(80);
   //pview.set_min_max_range(-0.9, 1.0);
@@ -225,8 +225,8 @@ int main(int argc, char* argv[])
     else {
       // Linear solve.  
       info("Assembling and solving linear problem.");
-      solve_linear(Tuple<Space *>(xvel_space, yvel_space, p_space), &wf, 
-                   Tuple<Solution*>(&xvel_prev_time, &yvel_prev_time, &p_prev_time), matrix_solver);
+      solve_linear(Tuple<Space *>(xvel_space, yvel_space, p_space), &wf, matrix_solver,
+                   Tuple<Solution*>(&xvel_prev_time, &yvel_prev_time, &p_prev_time));
     }
 
     // Show the solution at the end of time step.
