@@ -6,24 +6,7 @@
 
 using namespace RefinementSelectors;
 
-//  This example shows how to combine automatic adaptivity with the Newton's
-//  method for a nonlinear complex-valued time-dependent PDE (the Gross-Pitaevski
-//  equation describing the behavior of Einstein-Bose quantum gases)
-//  discretized implicitly in time (via implicit Euler or Crank-Nicolson).
-//
-//  PDE: non-stationary complex Gross-Pitaevski equation
-//  describing resonances in Bose-Einstein condensates.
-//
-//  ih \partial \psi/\partial t = -h^2/(2m) \Delta \psi +
-//  g \psi |\psi|^2 + 1/2 m \omega^2 (x^2 + y^2) \psi.
-//
-//  Domain: square (-1, 1)^2.
-//
-//  BC:  homogeneous Dirichlet everywhere on the boundary.
-//
-//  Time-stepping: either implicit Euler or Crank-Nicolson.
-//
-//  The following parameters can be changed:
+// This test makes sure that example 24-newton-timedep-gp-adapt works correctly.
 
 const bool SOLVE_ON_COARSE_MESH = false;   // true... Newton is done on coarse mesh in every adaptivity step,
                                            // false...Newton is done on coarse mesh only once, then projection
@@ -120,7 +103,12 @@ int main(int argc, char* argv[])
   int ndof = get_num_dofs(&space);
 
   // Solutions for the Newton's iteration and adaptivity.
-  Solution sln, ref_sln, Psi_prev_time;//, Psi_prev_newton;
+  Solution sln, ref_sln, Psi_prev_time;
+
+  // Assign initial condition to mesh.
+  bool is_complex = true; 
+  Psi_prev_time.set_exact(&mesh, init_cond);// Psi_prev_time set equal to init_cond().
+  Vector *coeff_vec = new AVector(ndof);
 
   // Initialize the weak formulation.
   WeakForm wf;
@@ -139,10 +127,6 @@ int main(int argc, char* argv[])
   // Create a selector which will select optimal candidate.
   H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
 
-  // Assign initial condition to mesh.
-  Psi_prev_time.set_exact(&mesh, init_cond);// Psi_prev_time set equal to init_cond().
-  Vector *coeff_vec = new AVector(ndof);
-
   // Visualize the projection and mesh.
   ScalarView view("Initial condition", new WinGeom(0, 0, 440, 350));
   OrderView ordview("Initial mesh", new WinGeom(450, 0, 400, 350));
@@ -151,7 +135,6 @@ int main(int argc, char* argv[])
 
   // Time stepping loop.
   int num_time_steps = (int)(T_FINAL/TAU + 0.5);
-  bool is_complex = true; 
   for(int ts = 1; ts <= num_time_steps; ts++)
   {
     info("---- Time step %d:", ts);
@@ -165,7 +148,7 @@ int main(int argc, char* argv[])
 
     // Update the coefficient vector and Psi_prev_time.
     info("Projecting to obtain coefficient vector on coarse mesh.");
-    project_global(&space, H2D_H1_NORM, &Psi_prev_time, NULL, coeff_vec, is_complex);
+    project_global(&space, H2D_H1_NORM, &Psi_prev_time, &Psi_prev_time, coeff_vec, is_complex);
 
     // Adaptivity loop (in space):
     bool verbose = true;     // Print info during adaptivity.

@@ -5,7 +5,22 @@
 #include "hermes2d.h"
 #include "function.h"
 
-// This is a long version of example 15-newton-elliptic-1: function solve_newton() is not used.
+using namespace RefinementSelectors;
+
+//  This example shows an introductory application of the Newton's
+//  method to a nonlinear elliptic problem. We use zero Dirichlet boundary
+//  conditions and a constant initial guess for the Newton's method.
+//  The treatment of nonzero Dirichlet BC and a more general initial guess
+//  will be shown in the next example newton-elliptic-2.
+//
+//  PDE: stationary heat transfer equation with nonlinear thermal
+//  conductivity, - div[lambda(u)grad u] = 0
+//
+//  Domain: unit square (-10,10)^2
+//
+//  BC: Zero Dirichlet
+//
+//  The following parameters can be changed:
 
 const int P_INIT = 2;                             // Initial polynomial degree.
 const int INIT_GLOB_REF_NUM = 3;                  // Number of initial uniform mesh refinements.

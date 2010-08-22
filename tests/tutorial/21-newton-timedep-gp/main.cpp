@@ -7,21 +7,7 @@
 
 using namespace RefinementSelectors;
 
-//  This example uses the Newton's method to solve a nonlinear complex-valued
-//  time-dependent PDE (the Gross-Pitaevski equation describing the behavior
-//  of Einstein-Bose quantum gases). For time-discretization one can use either
-//  the first-order implicit Euler method or the second-order Crank-Nicolson
-//  method.
-//
-//  PDE: non-stationary complex Gross-Pitaevski equation
-//  describing resonances in Bose-Einstein condensates.
-//
-//  ih \partial \psi/\partial t = -h^2/(2m) \Delta \psi +
-//  g \psi |\psi|^2 + 1/2 m \omega^2 (x^2 + y^2) \psi.
-//
-//  Domain: square (-1, 1)^2.
-//
-//  BC:  homogeneous Dirichlet everywhere on the boundary
+// This test makes sure that example 21-newton-timedep-gp works correctly.
 
 const int INIT_REF_NUM = 2;      // Number of initial uniform refinements.
 const int P_INIT = 4;            // Initial polynomial degree.
@@ -93,8 +79,8 @@ int main(int argc, char* argv[])
   }
 
   // Initialize views.
-  ScalarView view("", new WinGeom(0, 0, 600, 500));
-  view.fix_scale_width(80);
+//  ScalarView view("", new WinGeom(0, 0, 600, 500));
+//  view.fix_scale_width(80);
 
   // Project the initial condition on the FE space
   // to obtain initial coefficient vector for the Newton's method.
@@ -119,15 +105,10 @@ int main(int argc, char* argv[])
 
     // Update previous time level solution.
     psi_prev_time.set_fe_solution(space, coeff_vec);
-
-    // Show the new time level solution.
-    char title[100];
-    sprintf(title, "Time step %d", ts);
-    view.set_title(title);
-    view.show(&psi_prev_time);
   }
 
-  // Wait for all views to be closed.
-  View::wait();
-  return 0;
+#define ERROR_SUCCESS                                0
+#define ERROR_FAILURE                               -1
+  printf("Success!\n");
+  return ERROR_SUCCESS;
 }

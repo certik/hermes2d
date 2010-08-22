@@ -5,7 +5,19 @@
 #include "hermes2d.h"
 #include "function.h"
 
-// This is a long version of example 16-newton-elliptic-2: function solve_newton() is not used.
+using namespace RefinementSelectors;
+
+//  This example shows how to set an arbitrary initial guess for the
+//  Newton's method, and nonzero Dirichlet boundary conditions.
+//
+//  PDE: stationary heat transfer equation with nonlinear thermal
+//  conductivity, - div[lambda(u)grad u] = 0
+//
+//  Domain: unit square (-10,10)^2
+//
+//  BC: Dirichlet, see function dir_lift() below.
+//
+//  The following parameters can be changed:
 
 const int P_INIT = 2;                             // Initial polynomial degree
 const double NEWTON_TOL = 1e-6;                   // Stopping criterion for the Newton's method

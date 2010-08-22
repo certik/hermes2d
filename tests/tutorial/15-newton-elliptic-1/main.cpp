@@ -5,6 +5,8 @@
 #include "hermes2d.h"
 #include "function.h"
 
+using namespace RefinementSelectors;
+
 //  This test makes sure that example 15-newton-elliptic-1 works correctly.
 
 const int P_INIT = 2;                             // Initial polynomial degree.

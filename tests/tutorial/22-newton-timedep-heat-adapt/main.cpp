@@ -6,19 +6,7 @@
 
 using namespace RefinementSelectors;
 
-//  This example shows how to combine automatic adaptivity with the Newton's
-//  method for a nonlinear time-dependent PDE discretized implicitly in time
-//  using implicit Euler or Crank-Nicolson.
-//
-//  PDE: time-dependent heat transfer equation with nonlinear thermal
-//  conductivity, du/dt - div[lambda(u)grad u] = f.
-//
-//  Domain: square (-10,10)^2.
-//
-//  BC:  Dirichlet, given by the function dir_lift() below.
-//  IC: Same function dir_lift().
-//
-//  The following parameters can be changed:
+// This test makes sure that example 22-newton-timedep-heat-adapt works correctly.
 
 const int INIT_REF_NUM = 2;                // Number of initial uniform mesh refinements.
 const int P_INIT = 2;                      // Initial polynomial degree of all mesh elements.
@@ -152,12 +140,6 @@ int main(int argc, char* argv[])
   u_prev_time.set_exact(&mesh, init_cond);
   Vector *coeff_vec = new AVector(ndof);
 
-  // Visualize the projection and mesh.
-  ScalarView view("Initial condition", new WinGeom(0, 0, 440, 350));
-  OrderView ordview("Initial mesh", new WinGeom(450, 0, 400, 350));
-  view.show(&u_prev_time);
-  ordview.show(&space);
-
   // Time stepping loop.
   int num_time_steps = (int)(T_FINAL/TAU + 0.5);
   for(int ts = 1; ts <= num_time_steps; ts++)
@@ -183,20 +165,22 @@ int main(int argc, char* argv[])
                        NULL, NULL, &selector, &apt, 
                        NEWTON_TOL_COARSE, NEWTON_TOL_FINE, NEWTON_MAX_ITER, verbose);
 
-    // Visualize the solution and mesh.
-    char title[100];
-    sprintf(title, "Solution, time level %d", ts);
-    view.set_title(title);
-    view.show(&sln);
-    sprintf(title, "Mesh, time level %d", ts);
-    ordview.set_title(title);
-    ordview.show(&space);
-
     // Copy new time level reference solution into u_prev_time.
     u_prev_time.set_fe_solution(&space, coeff_vec);
   }
 
-  // Wait for all views to be closed.
-  View::wait();
-  return 0;
+  ndof = get_num_dofs(&space);
+
+#define ERROR_SUCCESS                               0
+#define ERROR_FAILURE                               -1
+  printf("ndof allowed = %d\n", 1100);
+  printf("ndof actual = %d\n", ndof);
+  if (ndof < 1100) {      // ndofs was 1038 at the time this test was created
+    printf("Success!\n");
+    return ERROR_SUCCESS;
+  }
+  else {
+    printf("Failure!\n");
+    return ERROR_FAILURE;
+  }
 }

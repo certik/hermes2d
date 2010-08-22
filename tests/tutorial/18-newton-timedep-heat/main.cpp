@@ -5,6 +5,8 @@
 #include "hermes2d.h"
 #include "function.h"
 
+using namespace RefinementSelectors;
+
 // This test makes sure that example 18-newton-timedep-heat works correctly.
 
 const int INIT_GLOB_REF_NUM = 3;       // Number of initial uniform mesh refinements.
@@ -136,7 +138,6 @@ int main(int argc, char* argv[])
     if ((value[i] - u_prev_time.get_pt_value(coor_x_y[i], coor_x_y[i])) < 1E-6)
     {
       printf("Success!\n");
-      return ERROR_SUCCESS;
     }
     else
     {
@@ -144,5 +145,6 @@ int main(int argc, char* argv[])
       return ERROR_FAILURE;
     }
   }
+  return ERROR_SUCCESS;
 }
 

@@ -6,31 +6,22 @@
 
 using namespace RefinementSelectors;
 
-//  This example shows how to combine automatic adaptivity with the Newton's
-//  method for a nonlinear time-dependent PDE discretized implicitly in time
-//  using implicit Euler or Crank-Nicolson.
-//
-//  PDE: time-dependent heat transfer equation with nonlinear thermal
-//  conductivity, du/dt - div[lambda(u)grad u] = f.
-//
-//  Domain: square (-10,10)^2.
-//
-//  BC:  Dirichlet, given by the function dir_lift() below.
-//  IC: Same function dir_lift().
-//
-//  The following parameters can be changed:
+// This test makes sure that example 24-newton-timedep-gp-adapt works correctly.
 
-const int INIT_REF_NUM = 2;                // Number of initial uniform mesh refinements.
-const int P_INIT = 2;                      // Initial polynomial degree of all mesh elements.
+const bool SOLVE_ON_COARSE_MESH = false;   // true... Newton is done on coarse mesh in every adaptivity step,
+                                           // false...Newton is done on coarse mesh only once, then projection
+                                           // of the fine mesh solution to coarse mesh is used.
+const int INIT_REF_NUM = 2;                // Number of initial uniform refinements.
+const int P_INIT = 2;                      // Initial polynomial degree.
 const int TIME_DISCR = 2;                  // 1 for implicit Euler, 2 for Crank-Nicolson.
-const double TAU = 0.5;                    // Time step.
-const double T_FINAL = 5.0;                // Time interval length.
+const double T_FINAL = 200.0;              // Time interval length.
+const double TAU = 0.005;                  // Time step.
 
-// Adaptivity
-const int UNREF_FREQ = 1;                  // Every UNREF_FREQth time step the mesh is unrefined.
+// Adaptivity.
+const int UNREF_FREQ = 1;                  // Every UNREF_FREQ time step the mesh is unrefined.
 const double THRESHOLD = 0.3;              // This is a quantitative parameter of the adapt(...) function and
                                            // it has different meanings for various adaptive strategies (see below).
-const int STRATEGY = 0;                    // Adaptive strategy:
+const int STRATEGY = 1;                    // Adaptive strategy:
                                            // STRATEGY = 0 ... refine elements until sqrt(THRESHOLD) times total
                                            //   error is processed. If more elements have similar errors, refine
                                            //   all to keep the mesh symmetric.
@@ -39,7 +30,7 @@ const int STRATEGY = 0;                    // Adaptive strategy:
                                            // STRATEGY = 2 ... refine all elements whose error is larger
                                            //   than THRESHOLD.
                                            // More adaptive strategies can be created in adapt_ortho_h1.cpp.
-const CandList CAND_LIST = H2D_HP_ANISO_H;  // Predefined list of element refinement candidates. Possible values are
+const CandList CAND_LIST = H2D_HP_ANISO;   // Predefined list of element refinement candidates. Possible values are
                                            // H2D_P_ISO, H2D_P_ANISO, H2D_H_ISO, H2D_H_ANISO, H2D_HP_ISO,
                                            // H2D_HP_ANISO_H, H2D_HP_ANISO_P, H2D_HP_ANISO.
                                            // See the User Documentation for details.
@@ -51,43 +42,34 @@ const int MESH_REGULARITY = -1;            // Maximum allowed level of hanging n
                                            // their notoriously bad performance.
 const double CONV_EXP = 1.0;               // Default value is 1.0. This parameter influences the selection of
                                            // cancidates in hp-adaptivity. See get_optimal_refinement() for details.
-const double ERR_STOP = 1.0;               // Stopping criterion for adaptivity (rel. error tolerance between the
-                                           // fine mesh and coarse mesh solution in percent).
+const int MAX_ORDER = 5;                   // Maximum polynomial order allowed in hp-adaptivity
+                                           // had to be limited due to complicated integrals
+const double ERR_STOP = 5.0;               // Stopping criterion for hp-adaptivity
+                                           // (relative error between reference and coarse solution in percent)
 const int NDOF_STOP = 60000;               // Adaptivity process stops when the number of degrees of freedom grows
                                            // over this limit. This is to prevent h-adaptivity to go on forever.
 MatrixSolverType matrix_solver = SOLVER_UMFPACK;  // Possibilities: SOLVER_UMFPACK, SOLVER_PETSC,
                                                   // SOLVER_MUMPS, and more are coming.
 
-// Newton's method
+// Newton's method.
 const double NEWTON_TOL_COARSE = 0.01;     // Stopping criterion for Newton on coarse mesh.
 const double NEWTON_TOL_FINE = 0.05;       // Stopping criterion for Newton on fine mesh.
-const int NEWTON_MAX_ITER = 100;            // Maximum allowed number of Newton iterations.
+const int NEWTON_MAX_ITER = 20;            // Maximum allowed number of Newton iterations.
 
-// Thermal conductivity (temperature-dependent).
-// Note: for any u, this function has to be positive.
-template<typename Real>
-Real lam(Real u)
-{
-  return 1 + pow(u, 4);
-}
+// Problem parameters.
+const double H = 1;                      // Planck constant 6.626068e-34.
+const double M = 1;                      // Mass of boson.
+const double G = 1;                      // Coupling constant.
+const double OMEGA = 1;                  // Frequency.
 
-// Derivative of the thermal conductivity with respect to 'u'.
-template<typename Real>
-Real dlam_du(Real u) {
-  return 4*pow(u, 3);
-}
-
-// This function is used to define Dirichlet boundary conditions.
-double dir_lift(double x, double y, double& dx, double& dy) {
-  dx = (y+10)/10.;
-  dy = (x+10)/10.;
-  return (x+10)*(y+10)/100.;
-}
 
 // Initial condition.
-scalar init_cond(double x, double y, double& dx, double& dy)
+scalar init_cond(double x, double y, scalar& dx, scalar& dy)
 {
-  return dir_lift(x, y, dx, dy);
+  scalar val = exp(-20*(x*x + y*y));
+  dx = val * (-40.0*x);
+  dy = val * (-40.0*y);
+  return val;
 }
 
 // Boundary condition types.
@@ -99,15 +81,7 @@ BCType bc_types(int marker)
 // Essential (Dirichlet) boundary condition values.
 scalar essential_bc_values(int ess_bdy_marker, double x, double y)
 {
-  double dx, dy;
-  return dir_lift(x, y, dx, dy);
-}
-
-// Heat sources (can be a general function of 'x' and 'y').
-template<typename Real>
-Real heat_src(Real x, Real y)
-{
-  return 1.0;
+  return 0;
 }
 
 // Weak forms.
@@ -120,7 +94,7 @@ int main(int argc, char* argv[])
   H2DReader mloader;
   mloader.load("square.mesh", &basemesh);
 
-  // Perform initial mesh refinements.
+  // Initial mesh refinements.
   for(int i = 0; i < INIT_REF_NUM; i++) basemesh.refine_all_elements();
   mesh.copy(&basemesh);
 
@@ -128,18 +102,23 @@ int main(int argc, char* argv[])
   H1Space space(&mesh, bc_types, essential_bc_values, P_INIT);
   int ndof = get_num_dofs(&space);
 
-  // Solutions.
-  Solution sln, ref_sln, u_prev_time;
+  // Solutions for the Newton's iteration and adaptivity.
+  Solution sln, ref_sln, Psi_prev_time;
+
+  // Assign initial condition to mesh.
+  bool is_complex = true; 
+  Psi_prev_time.set_exact(&mesh, init_cond);// Psi_prev_time set equal to init_cond().
+  Vector *coeff_vec = new AVector(ndof);
 
   // Initialize the weak formulation.
   WeakForm wf;
   if(TIME_DISCR == 1) {
     wf.add_matrix_form(callback(J_euler), H2D_UNSYM, H2D_ANY);
-    wf.add_vector_form(callback(F_euler), H2D_ANY, &u_prev_time);
+    wf.add_vector_form(callback(F_euler), H2D_ANY, Tuple<MeshFunction*>(&Psi_prev_time));
   }
   else {
     wf.add_matrix_form(callback(J_cranic), H2D_UNSYM, H2D_ANY);
-    wf.add_vector_form(callback(F_cranic), H2D_ANY, &u_prev_time);
+    wf.add_vector_form(callback(F_cranic), H2D_ANY, Tuple<MeshFunction*>(&Psi_prev_time));
   }
 
   // Initialize adaptivity parameters.
@@ -148,16 +127,12 @@ int main(int argc, char* argv[])
   // Create a selector which will select optimal candidate.
   H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
 
-  // Assign initial condition to mesh.
-  u_prev_time.set_exact(&mesh, init_cond);
-  Vector *coeff_vec = new AVector(ndof);
-
-  // Visualize the projection and mesh.
+/*  // Visualize the projection and mesh.
   ScalarView view("Initial condition", new WinGeom(0, 0, 440, 350));
   OrderView ordview("Initial mesh", new WinGeom(450, 0, 400, 350));
-  view.show(&u_prev_time);
+  view.show(&Psi_prev_time);
   ordview.show(&space);
-
+*/
   // Time stepping loop.
   int num_time_steps = (int)(T_FINAL/TAU + 0.5);
   for(int ts = 1; ts <= num_time_steps; ts++)
@@ -171,19 +146,20 @@ int main(int argc, char* argv[])
       space.set_uniform_order(P_INIT);
     }
 
-    // Update the coefficient vector and u_prev_time.
+    // Update the coefficient vector and Psi_prev_time.
     info("Projecting to obtain coefficient vector on coarse mesh.");
-    project_global(&space, H2D_H1_NORM, &u_prev_time, &u_prev_time, coeff_vec);
+    project_global(&space, H2D_H1_NORM, &Psi_prev_time, &Psi_prev_time, coeff_vec, is_complex);
 
     // Adaptivity loop (in space):
     bool verbose = true;     // Print info during adaptivity.
     info("Projecting coarse mesh solution to obtain initial vector on new fine mesh.");
     // The NULL pointers mean that we are not interested in visualization during the Newton's loop.
-    solve_newton_adapt(&space, &wf, coeff_vec, matrix_solver, H2D_H1_NORM, &sln, &ref_sln, 
-                       NULL, NULL, &selector, &apt, 
-                       NEWTON_TOL_COARSE, NEWTON_TOL_FINE, NEWTON_MAX_ITER, verbose);
+    solve_newton_adapt(&space, &wf, coeff_vec, matrix_solver, H2D_H1_NORM, &sln, &ref_sln,
+                       NULL, NULL, &selector, &apt,
+                       NEWTON_TOL_COARSE, NEWTON_TOL_FINE, NEWTON_MAX_ITER, verbose, 
+                       Tuple<ExactSolution *>(), is_complex);
 
-    // Visualize the solution and mesh.
+/*    // Visualize the solution and mesh.
     char title[100];
     sprintf(title, "Solution, time level %d", ts);
     view.set_title(title);
@@ -191,12 +167,14 @@ int main(int argc, char* argv[])
     sprintf(title, "Mesh, time level %d", ts);
     ordview.set_title(title);
     ordview.show(&space);
-
-    // Copy new time level reference solution into u_prev_time.
-    u_prev_time.set_fe_solution(&space, coeff_vec);
+*/
+    // Copy new time level reference solution into Psi_prev_time.
+    Psi_prev_time.set_fe_solution(&space, coeff_vec);
   }
 
-  // Wait for all views to be closed.
-  View::wait();
-  return 0;
+#define ERROR_SUCCESS                                0
+#define ERROR_FAILURE                               -1
+  printf("Success!\n");
+  return ERROR_SUCCESS;
+
 }

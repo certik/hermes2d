@@ -5,6 +5,8 @@
 #include "hermes2d.h"
 #include "function.h"
 
+using namespace RefinementSelectors;
+
 //  This example shows how the Newton's method is used for
 //  a simple nonlinear parabolic PDE discretized in time
 //  via the implicit Euler method.
