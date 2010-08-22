@@ -110,8 +110,8 @@ int main(int argc, char* argv[])
   WinGeom* sln_win_geom = new WinGeom(0, 0, 440, 350);
   WinGeom* mesh_win_geom = new WinGeom(450, 0, 400, 350);
   bool verbose = true;     // Print info during adaptivity.
-  solve_linear_adapt(&space, &wf, H2D_H1_NORM, sln, matrix_solver, ref_sln, 
-                     &selector, &apt, NULL, NULL, verbose);
+  solve_linear_adapt(&space, &wf, NULL, matrix_solver, H2D_H1_NORM, sln, ref_sln, 
+                     NULL, NULL, &selector, &apt, verbose);
 
   int ndof = get_num_dofs(&space);
 
