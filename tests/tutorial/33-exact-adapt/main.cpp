@@ -36,10 +36,6 @@ const double CONV_EXP = 1.0;      // Default value is 1.0. This parameter influe
 const int NDOF_STOP = 60000;      // Adaptivity process stops when the number of degrees of freedom grows
                                   // over this limit. This is to prevent h-adaptivity to go on forever.
 
-MatrixSolverType matrix_solver = SOLVER_UMFPACK;           // Possibilities: SOLVER_UMFPACK, SOLVER_PETSC,
-                                                           // SOLVER_MUMPS, and more are coming.
-
-
 // This function can be modified.
 scalar f(double x, double y, double& dx, double& dy)
 {

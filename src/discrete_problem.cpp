@@ -1520,11 +1520,10 @@ H2D_API bool solve_newton_adapt(Tuple<Space *> spaces, WeakForm* wf, Vector *coe
   // DOF and CPU convergence graphs.
   SimpleGraph graph_dof_est, graph_cpu_est, graph_dof_exact, graph_cpu_exact;
 
-
   // Newton's loop on the coarse mesh.
   info("Solving on coarse mesh:");
-  if (!solve_newton(spaces, wf, coeff_vec,
-                    matrix_solver, newton_tol_coarse, newton_max_iter, verbose)) {
+  if (!solve_newton(spaces, wf, coeff_vec, matrix_solver, 
+                    newton_tol_coarse, newton_max_iter, verbose, is_complex)) {
     error("Newton's method did not converge.");
   }
 

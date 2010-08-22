@@ -126,7 +126,7 @@ int main(int argc, char* argv[])
   bool verbose = true;     // Print info during adaptivity.
   // The empty Tuples mean that we do not want the resulting coarse and fine mesh solutions.
   solve_newton_adapt(&space, &wf, coeff_vec, matrix_solver, H2D_H1_NORM, Tuple<Solution *>(), 
-                     Tuple<Solution *> (), Tuple<WinGeom *>(), Tuple<WinGeom *>(), &selector, &apt,  
+                     Tuple<Solution *> (), NULL, NULL, &selector, &apt,  
                      NEWTON_TOL_COARSE, NEWTON_TOL_FINE, NEWTON_MAX_ITER, verbose);
   
   int ndof = get_num_dofs(&space);
