@@ -11,8 +11,8 @@ const int P_INIT = 2;                             // Initial polynomial degree.
 const int INIT_GLOB_REF_NUM = 3;                  // Number of initial uniform mesh refinements.
 const int INIT_BDY_REF_NUM = 5;                   // Number of initial refinements towards boundary.
 const double NEWTON_TOL = 1e-6;                   // Stopping criterion for the Newton's method.
-const int NEWTON_MAX_ITER = 7;                  // Maximum allowed number of Newton iterations.
-const double INIT_COND_CONST = 3.0;               // COnstant initial condition.
+const int NEWTON_MAX_ITER = 7;                    // Maximum allowed number of Newton iterations.
+const double INIT_COND_CONST = 3.0;               // Constant initial condition.
 MatrixSolverType matrix_solver = SOLVER_UMFPACK;  // Possibilities: SOLVER_UMFPACK, SOLVER_PETSC,
                                                   // SOLVER_MUMPS, and more are coming.
 

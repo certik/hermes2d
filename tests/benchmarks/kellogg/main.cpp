@@ -108,9 +108,9 @@ int main(int argc, char* argv[])
   Solution *sln = new Solution();
   Solution *ref_sln = new Solution();
   ExactSolution exact(&mesh, fndd);
-  bool verbose = true;     // Prinf info during adaptivity.
-  solve_linear_adapt(&space, &wf, H2D_H1_NORM, sln, matrix_solver, ref_sln, 
-                     &selector, &apt, NULL, NULL, verbose, &exact);
+  bool verbose = true;     // Print info during adaptivity.
+  solve_linear_adapt(&space, &wf, NULL, matrix_solver, H2D_H1_NORM, sln, ref_sln,
+                     Tuple<WinGeom *>(), Tuple<WinGeom *>(), &selector, &apt, verbose, &exact);
 
   int ndof = get_num_dofs(&space);
 

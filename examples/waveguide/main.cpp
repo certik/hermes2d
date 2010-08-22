@@ -172,10 +172,9 @@ int main(int argc, char* argv[])
   Solution *ref_sln = new Solution();
   bool verbose = true;  // Print info during adaptivity.
   bool is_complex = true;
-  solve_linear_adapt(&space, &wf, H2D_HCURL_NORM, sln, matrix_solver,
-                     ref_sln, &selector, &apt, 
+  solve_linear_adapt(&space, &wf, NULL, matrix_solver, H2D_HCURL_NORM, sln, ref_sln, 
                      Tuple<WinGeom *>(sln_win_geom), Tuple<WinGeom *>(mesh_win_geom),
-                     verbose, Tuple<ExactSolution *>(), is_complex);
+                     &selector, &apt, verbose, Tuple<ExactSolution *>(), is_complex);
 
   // Wait for all views to be closed.
   View::wait();

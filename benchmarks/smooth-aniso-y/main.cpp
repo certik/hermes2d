@@ -123,13 +123,12 @@ int main(int argc, char* argv[])
   ExactSolution exact(&mesh, fndd);
   WinGeom* sln_win_geom = new WinGeom(0, 0, 440, 350);
   WinGeom* mesh_win_geom = new WinGeom(450, 0, 400, 350);
-  bool verbose = true;     // Prinf info during adaptivity.
-  solve_linear_adapt(&space, &wf, H2D_H1_NORM, sln, matrix_solver, ref_sln, 
-                     &selector, &apt, sln_win_geom, mesh_win_geom, verbose, &exact);
+  bool verbose = true;     // Print info during adaptivity.
+  solve_linear_adapt(&space, &wf, NULL, matrix_solver, H2D_H1_NORM, sln, ref_sln, 
+                     sln_win_geom, mesh_win_geom, &selector, &apt, verbose, &exact);
 
   // Wait for all views to be closed.
   View::wait();
   return 0;
 }
-
 

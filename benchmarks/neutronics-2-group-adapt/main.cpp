@@ -390,7 +390,7 @@ int main(int argc, char* argv[])
                             
     // Solve the reference problem.
     solve_linear(Tuple<Space *>(ref_space1, ref_space2), &wf,
-                 Tuple<Solution *>(&ref_sln1, &ref_sln2), SOLVER_UMFPACK);
+                 SOLVER_UMFPACK, Tuple<Solution *>(&ref_sln1, &ref_sln2));
 
     // Project the reference solution on the new coarse mesh.
     cpu_time.tick();

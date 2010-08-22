@@ -114,8 +114,8 @@ int main(int argc, char* argv[])
     // Newton's method.
     info("Solving linear system.");
     Solution phi, psi; bool is_complex = true;
-    if (!solve_linear(Tuple<Space *>(phi_space, psi_space), &wf, 
-                      Tuple<Solution *>(&phi, &psi), matrix_solver, is_complex))
+    if (!solve_linear(Tuple<Space *>(phi_space, psi_space), &wf, matrix_solver,
+                      Tuple<Solution *>(&phi, &psi), NULL, is_complex))
       error("Linear solve failed.");
 
     // Update previous time level solution.

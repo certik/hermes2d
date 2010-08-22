@@ -135,13 +135,13 @@ int main(int argc, char* argv[])
   Solution *ref_u_sln = new Solution();
   Solution *ref_v_sln = new Solution();
   bool verbose = true;  // Print info during adaptivity.
-  solve_linear_adapt(Tuple<Space *>(&u_space, &v_space), &wf, 
+  solve_linear_adapt(Tuple<Space *>(&u_space, &v_space), &wf, NULL, matrix_solver,
                      Tuple<int>(H2D_H1_NORM, H2D_H1_NORM), 
-                     Tuple<Solution *>(u_sln, v_sln), matrix_solver, 
-                     Tuple<Solution *>(ref_u_sln, ref_v_sln), 
-                     Tuple<RefinementSelectors::Selector *> (&selector, &selector), &apt, 
+                     Tuple<Solution *>(u_sln, v_sln), Tuple<Solution *>(ref_u_sln, ref_v_sln), 
                      Tuple<WinGeom *>(u_sln_win_geom, v_sln_win_geom), 
-                     Tuple<WinGeom *>(u_mesh_win_geom, v_mesh_win_geom), verbose);
+                     Tuple<WinGeom *>(u_mesh_win_geom, v_mesh_win_geom), 
+                     Tuple<RefinementSelectors::Selector *> (&selector, &selector), 
+                     &apt, verbose);
 
   // Show the Von Mises stress on the reference mesh.
   WinGeom* stress_win_geom = new WinGeom(0, 355, 360, 300);

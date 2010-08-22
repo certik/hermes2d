@@ -166,9 +166,9 @@ int main(int argc, char* argv[])
   Solution *ref_sln = new Solution();
   bool verbose = true;  // Print info during adaptivity.
   bool is_complex = true;
-  solve_linear_adapt(&space, &wf, H2D_HCURL_NORM, sln, matrix_solver,
-                     ref_sln, &selector, &apt, NULL, NULL, verbose, 
-                     Tuple<ExactSolution *>(), is_complex);
+  solve_linear_adapt(&space, &wf, NULL, matrix_solver, H2D_HCURL_NORM, sln, ref_sln,
+                     Tuple<WinGeom *> (), Tuple<WinGeom *> (),
+                     &selector, &apt, verbose, Tuple<ExactSolution *>(), is_complex);
 
   int ndof = get_num_dofs(&space);
 

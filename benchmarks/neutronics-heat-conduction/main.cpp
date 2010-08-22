@@ -37,6 +37,7 @@ const double TAU = 0.1;                           // Time step.
 const double T_FINAL = 10.0;                      // Time interval length.
 const double NEWTON_TOL = 1e-6;                   // Stopping criterion for the Newton's method.
 const int NEWTON_MAX_ITER = 100;                  // Maximum allowed number of Newton iterations.
+const double INIT_COND_CONST = 3.0;               // Constant initial condition.
 MatrixSolverType matrix_solver = SOLVER_UMFPACK;  // Possibilities: SOLVER_UMFPACK, SOLVER_PETSC,
                                                   // SOLVER_MUMPS, and more are coming.
 
@@ -164,6 +165,7 @@ int main(int argc, char* argv[])
   H1Space space_T(&mesh, bc_types_T, essential_bc_values_T, P_INIT);
   H1Space space_phi(&mesh, bc_types_phi, essential_bc_values_phi, P_INIT);
   Tuple<Space*> spaces(&space_T, &space_phi);
+  int ndof = get_num_dofs(spaces);
 
   // Exact solutions for error evaluation.
   ExactSolution T_exact_solution(&mesh, T_exact),
@@ -200,6 +202,16 @@ int main(int argc, char* argv[])
   DiscreteProblem dp(&wf, spaces);
   Tuple<int> proj_norms(H2D_H1_NORM, H2D_H1_NORM);
 
+  // Project the initial condition on the FE space to obtain initial 
+  // coefficient vector for the Newton's method.
+/*  info("Projecting to obtain initial vector for the Newton's method.");
+  Vector* init_coeff_vec = new AVector(ndof);
+  Solution* init_sln = new Solution();
+  init_sln->set_const(&mesh, INIT_COND_CONST);
+
+  // The NULL means that we do not want the resulting Solution, just the vector.
+  project_global(space, H2D_H1_NORM, init_sln, NULL, init_coeff_vec);
+*/
   // Set initial conditions.
   T_prev_time.set_exact(&mesh, T_exact);
   phi_prev_time.set_exact(&mesh, phi_exact);
@@ -211,12 +223,19 @@ int main(int argc, char* argv[])
 
     info("---- Time step %d, t = %g s:", t_step, TIME); t_step++;
 
+    info("Projecting to obtain initial vector for the Newton's method.");
+    Vector* init_coeff_vec = new AVector(ndof);
+    Solution* init_sln = new Solution();
+    init_sln->set_const(&mesh, INIT_COND_CONST);
+
+    // The NULL means that we do not want the resulting Solution, just the vector.
+    project_global(spaces, H2D_H1_NORM, init_sln, NULL, init_coeff_vec);
+
     // Newton's method.
     info("Newton's iteration...");
     bool verbose = true; // Default is false.
-    bool did_converge = solve_newton( spaces, &wf, proj_norms, 
-                                      time_iterates, newton_iterates, 
-                                      matrix_solver, NEWTON_TOL, NEWTON_MAX_ITER, verbose); 
+    bool did_converge = solve_newton( spaces, &wf, init_coeff_vec, matrix_solver,
+                                      NEWTON_TOL, NEWTON_MAX_ITER, verbose); 
     if (!did_converge)
       error("Newton's method did not converge.");
     

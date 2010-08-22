@@ -140,13 +140,14 @@ int main(int argc, char* argv[])
   Solution *ref_ydisp_sln = new Solution();
   Solution *ref_temp_sln = new Solution();
   bool verbose = true;  // Print info during adaptivity.
-  solve_linear_adapt(Tuple<Space *>(&xdisp, &ydisp, &temp), &wf,
+  solve_linear_adapt(Tuple<Space *>(&xdisp, &ydisp, &temp), &wf, NULL, matrix_solver,
                      Tuple<int>(H2D_H1_NORM, H2D_H1_NORM, H2D_H1_NORM),
-                     Tuple<Solution *>(xdisp_sln, ydisp_sln, temp_sln), matrix_solver,
+                     Tuple<Solution *>(xdisp_sln, ydisp_sln, temp_sln),
                      Tuple<Solution *>(ref_xdisp_sln, ref_ydisp_sln, ref_temp_sln),
-                     Tuple<RefinementSelectors::Selector *> (&selector, &selector, &selector), &apt,
-                     Tuple<WinGeom *>(),
-                     Tuple<WinGeom *>(), verbose);
+                     Tuple<WinGeom *> (),
+                     Tuple<WinGeom *> (),
+                     Tuple<RefinementSelectors::Selector *> (&selector, &selector, &selector),
+                     &apt, verbose);
 
   int ndof = get_num_dofs(Tuple<Space *>(&xdisp, &ydisp, &temp));
 

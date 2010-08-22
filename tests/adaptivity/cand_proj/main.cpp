@@ -349,7 +349,7 @@ bool test(bool tri, const std::string& space_name, int min_order, int max_order 
     ref_space->copy_orders(space, order_increase);
 
     // Solve the reference problem.
-    solve_linear(ref_space, weakform, &rsln, matrix_solver);
+    solve_linear(ref_space, weakform, matrix_solver, &rsln);
 
     // Check projected functions.
     if (test_ref_solution(rsln))

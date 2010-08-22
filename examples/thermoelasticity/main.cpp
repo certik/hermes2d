@@ -129,7 +129,6 @@ int main(int argc, char* argv[])
   // Initialize refinement selector.
   H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
 
-
   // Initialize adaptivity parameters.
   double to_be_processed = 0;
   AdaptivityParamType apt(ERR_STOP, NDOF_STOP, THRESHOLD, STRATEGY,
@@ -159,13 +158,14 @@ int main(int argc, char* argv[])
   Solution *ref_ydisp_sln = new Solution();
   Solution *ref_temp_sln = new Solution();
   bool verbose = true;  // Print info during adaptivity.
-  solve_linear_adapt(Tuple<Space *>(&xdisp, &ydisp, &temp), &wf,
+  solve_linear_adapt(Tuple<Space *>(&xdisp, &ydisp, &temp), &wf, NULL, matrix_solver,
                      Tuple<int>(H2D_H1_NORM, H2D_H1_NORM, H2D_H1_NORM),
-                     Tuple<Solution *>(xdisp_sln, ydisp_sln, temp_sln), matrix_solver,
+                     Tuple<Solution *>(xdisp_sln, ydisp_sln, temp_sln),
                      Tuple<Solution *>(ref_xdisp_sln, ref_ydisp_sln, ref_temp_sln),
-                     Tuple<RefinementSelectors::Selector *> (&selector, &selector, &selector), &apt,
                      Tuple<WinGeom *>(u_sln_win_geom, v_sln_win_geom, t_sln_win_geom),
-                     Tuple<WinGeom *>(u_mesh_win_geom, v_mesh_win_geom, t_mesh_win_geom), verbose);
+                     Tuple<WinGeom *>(u_mesh_win_geom, v_mesh_win_geom, t_mesh_win_geom), 
+                     Tuple<RefinementSelectors::Selector *> (&selector, &selector, &selector), 
+                     &apt, verbose);
 
   // Show the Von Mises stress on the reference mesh.
   WinGeom* stress_win_geom = new WinGeom(0, 0, 450, 350);
