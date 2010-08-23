@@ -59,7 +59,7 @@ Geom<double>* init_geom_surf(RefMap *rm, EdgePos* ep, const int order)
 	e->x = rm->get_phys_x(order);
 	e->y = rm->get_phys_y(order);
 	double3 *tan;
-  tan = rm->get_tangent(ep->edge);
+  tan = rm->get_tangent(ep->edge, order);
 
   Quad2D* quad = rm->get_quad_2d();
   int np = quad->get_num_points(order);

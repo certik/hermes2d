@@ -293,10 +293,9 @@ void RefMap::calc_phys_y(int order)
 }
 
 
-void RefMap::calc_tangent(int edge)
+void RefMap::calc_tangent(int edge, int eo)
 {
   int i, j;
-  int eo = quad_2d->get_edge_points(edge);
   int np = quad_2d->get_num_points(eo);
   double3* tan = cur_node->tan[edge] = new double3[np];
   int a = edge, b = element->next_vert(edge);
