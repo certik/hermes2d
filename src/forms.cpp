@@ -106,8 +106,8 @@ Func<double>* init_fn(PrecalcShapeset *fu, RefMap *rm, const int order)
   int np = quad->get_num_points(order);
   Func<double>* u = new Func<double>(np, nc);
 
-  // H1 space
-  if (space_type == 0)
+  // H1 or L2 space
+  if (space_type == 0 || space_type == 3)
   {
 		u->val = new double [np];
 		u->dx  = new double [np];
@@ -181,12 +181,6 @@ Func<double>* init_fn(PrecalcShapeset *fu, RefMap *rm, const int order)
       u->val0[i] = (  fn0[i] * (*m)[1][1] - fn1[i] * (*m)[1][0]);
       u->val1[i] = (- fn0[i] * (*m)[0][1] + fn1[i] * (*m)[0][0]);
     }
-  }
-  // L2 space
-  else if (space_type == 3)
-  {
-    u->val = new double [np];
-    memcpy(u->val, fu->get_fn_values(), np * sizeof(double));
   }
   else
     error("Wrong space type - space has to be either H1, Hcurl, Hdiv or L2");
