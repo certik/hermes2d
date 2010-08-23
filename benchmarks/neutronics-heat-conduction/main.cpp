@@ -174,7 +174,7 @@ int main(int argc, char* argv[])
   // Exact errors.
   double T_error, phi_error, error;
 
-  // Initialize solution views (their titles will be updated in each time step).
+  // Initialize solution views (their titles will be2 updated in each time step).
   ScalarView sview_T("", 0, 0, 500, 400);
   ScalarView sview_phi("", 0, 500, 500, 400);
   ScalarView sview_T_exact("", 550, 0, 500, 400);
@@ -202,34 +202,20 @@ int main(int argc, char* argv[])
   DiscreteProblem dp(&wf, spaces);
   Tuple<int> proj_norms(H2D_H1_NORM, H2D_H1_NORM);
 
-  // Project the initial condition on the FE space to obtain initial 
-  // coefficient vector for the Newton's method.
-/*  info("Projecting to obtain initial vector for the Newton's method.");
-  Vector* init_coeff_vec = new AVector(ndof);
-  Solution* init_sln = new Solution();
-  init_sln->set_const(&mesh, INIT_COND_CONST);
-
-  // The NULL means that we do not want the resulting Solution, just the vector.
-  project_global(space, H2D_H1_NORM, init_sln, NULL, init_coeff_vec);
-*/
   // Set initial conditions.
   T_prev_time.set_exact(&mesh, T_exact);
   phi_prev_time.set_exact(&mesh, phi_exact);
 
   // Time stepping.
+  Vector* init_coeff_vec = new AVector(ndof);
   int t_step = 1;
   do {
     TIME += TAU;
 
     info("---- Time step %d, t = %g s:", t_step, TIME); t_step++;
-
     info("Projecting to obtain initial vector for the Newton's method.");
-    Vector* init_coeff_vec = new AVector(ndof);
-    Solution* init_sln = new Solution();
-    init_sln->set_const(&mesh, INIT_COND_CONST);
-
     // The NULL means that we do not want the resulting Solution, just the vector.
-    project_global(spaces, H2D_H1_NORM, init_sln, NULL, init_coeff_vec);
+    project_global(spaces, proj_norms, time_iterates, newton_iterates, init_coeff_vec);
 
     // Newton's method.
     info("Newton's iteration...");

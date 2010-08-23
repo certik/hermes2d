@@ -191,7 +191,8 @@ int main(int argc, char* argv[])
   H1Space space_T(&mesh_T, bc_types_T, essential_bc_values_T, P_INIT);
   H1Space space_phi(&mesh_phi, bc_types_phi, essential_bc_values_phi, P_INIT);
   Tuple<Space*> spaces(&space_T, &space_phi);
-  
+  int ndof = get_num_dofs(spaces); 
+ 
   // Solutions in the previous time step (converging within the time stepping loop).
   Solution T_prev_time, phi_prev_time;
   Tuple<MeshFunction*> prev_time_meshfns(&T_prev_time, &phi_prev_time);
@@ -260,10 +261,11 @@ int main(int argc, char* argv[])
   
   // Newton's loop on the initial coarse meshes.
   info("Solving on coarse meshes.");
+  Vector* init_coeff_vec = new AVector(ndof);
+  project_global(spaces, proj_norms, prev_time_meshfns, coarse_mesh_solutions, init_coeff_vec);
   bool verbose = true; // Default is false.
-  bool did_converge = solve_newton( spaces, &wf, proj_norms, 
-                                    prev_time_meshfns, coarse_mesh_solutions, 
-                                    matrix_solver, NEWTON_TOL_COARSE, NEWTON_MAX_ITER, verbose); 
+  bool did_converge = solve_newton(spaces, &wf, init_coeff_vec, matrix_solver, 
+                                   NEWTON_TOL_COARSE, NEWTON_MAX_ITER, verbose); 
   if (!did_converge)
     error("Newton's method did not converge.");
 
@@ -308,9 +310,9 @@ int main(int argc, char* argv[])
         if (SOLVE_ON_COARSE_MESH) {
           // Newton's loop on the globally derefined meshes.
           info("Solving on globally derefined meshes, starting from the latest fine mesh solutions.");
-          did_converge = solve_newton( spaces, &wf, proj_norms, 
-                                      fine_mesh_meshfns, coarse_mesh_solutions, 
-                                      matrix_solver, NEWTON_TOL_COARSE, NEWTON_MAX_ITER, verbose); 
+          project_global(spaces, proj_norms, fine_mesh_meshfns, coarse_mesh_solutions, init_coeff_vec);
+          did_converge = solve_newton(spaces, &wf, init_coeff_vec, matrix_solver, 
+                                      NEWTON_TOL_COARSE, NEWTON_MAX_ITER, verbose); 
           if (!did_converge)
             error("Newton's method did not converge.");
         } else {
@@ -345,18 +347,19 @@ int main(int argc, char* argv[])
         ref_spaces.push_back(spaces[i]->dup(ref_mesh));
         ref_spaces[i]->copy_orders(spaces[i], order_increase);
       }
-
+      ndof = get_num_dofs(ref_spaces);
+      Vector* init_coeff_vec = new AVector(ndof);
       // Newton's loop on the refined meshes.
       if (as == 1) {
         info("Solving on fine meshes, starting from previous coarse mesh solutions.");
-        did_converge = solve_newton( ref_spaces, &wf, proj_norms, 
-                                     coarse_mesh_meshfns, fine_mesh_solutions, 
-                                     matrix_solver, NEWTON_TOL_FINE, NEWTON_MAX_ITER, verbose);
+        project_global(spaces, proj_norms, coarse_mesh_meshfns, fine_mesh_solutions, init_coeff_vec);
+        did_converge = solve_newton(ref_spaces, &wf, init_coeff_vec, matrix_solver, 
+                                    NEWTON_TOL_FINE, NEWTON_MAX_ITER, verbose);
       } else {
         info("Solving on fine meshes, starting from previous fine mesh solutions.");
-        did_converge = solve_newton( ref_spaces, &wf, proj_norms, 
-                                     fine_mesh_meshfns, fine_mesh_solutions, 
-                                     matrix_solver, NEWTON_TOL_FINE, NEWTON_MAX_ITER, verbose);
+        project_global(spaces, proj_norms, fine_mesh_meshfns, fine_mesh_solutions, init_coeff_vec);
+        did_converge = solve_newton(ref_spaces, &wf,init_coeff_vec, matrix_solver, 
+                                    NEWTON_TOL_FINE, NEWTON_MAX_ITER, verbose);
       }
       if (!did_converge)
         error("Newton's method did not converge.");     
@@ -364,9 +367,9 @@ int main(int argc, char* argv[])
       if (SOLVE_ON_COARSE_MESH) {
         // Newton's loop on the previous coarse meshes (before their global refinement).
         info("Solving on coarse meshes, starting from the latest fine mesh solutions.");
-        did_converge = solve_newton( spaces, &wf, proj_norms, 
-                                     fine_mesh_meshfns, coarse_mesh_solutions, 
-                                     matrix_solver, NEWTON_TOL_COARSE, NEWTON_MAX_ITER, verbose); 
+        project_global(spaces, proj_norms, fine_mesh_meshfns, coarse_mesh_solutions, init_coeff_vec);
+        did_converge = solve_newton(spaces, &wf, init_coeff_vec, matrix_solver, 
+                                    NEWTON_TOL_COARSE, NEWTON_MAX_ITER, verbose); 
         if (!did_converge)
           error("Newton's method did not converge.");
       } else {
