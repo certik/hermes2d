@@ -35,6 +35,7 @@ MeshView::MeshView(const char* title, int x, int y, int width, int height)
   b_scale = false;
   b_ids = false;
   b_markers = true;
+  b_elem_mrk = false;
 }
 
 #ifndef _MSC_VER
@@ -45,6 +46,7 @@ MeshView::MeshView(const char* title, WinGeom* wg)
   b_scale = false;
   b_ids = false;
   b_markers = true;
+  b_elem_mrk = false;
 }
 #endif
 
@@ -168,8 +170,7 @@ void MeshView::on_display()
   }
   glLineWidth(1.0);
 
-  // draw element ids
-  if (b_ids)
+  if (b_ids)  // draw element ids
   {
     glColor3f(0, 0, 0);
     for (i = 0; i < ne; i++)
@@ -179,10 +180,8 @@ void MeshView::on_display()
       sprintf(text, "#%d", elems[i].id);
       draw_text(transform_x(elems[i].x), transform_y(elems[i].y), text, 0);
     }
-  }
-  
-  // draw element markers
-  if (b_elem_mrk)
+  } 
+  else if (b_elem_mrk)  // draw element markers
   {
     glColor3f(0, 0, 0);
     for (i = 0; i < ne; i++)
@@ -214,11 +213,13 @@ void MeshView::on_key_down(unsigned char key, int x, int y)
       break;
 
     case 'i':
+      if (b_elem_mrk) b_elem_mrk = false;
       b_ids = !b_ids;
       refresh();
       break;
       
     case 'm':
+      if (b_ids) b_ids = false;
       b_elem_mrk = !b_elem_mrk;
       refresh();
       break;
