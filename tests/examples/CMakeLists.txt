@@ -16,4 +16,3 @@ add_subdirectory(optimal-meshes)
 add_subdirectory(quantum-billiard)
 add_subdirectory(richards)
 add_subdirectory(richards-tracy-adapt)
-
