@@ -137,7 +137,7 @@ public:
   void set_uniform_order_internal(int order, int marker = H2D_ANY);
   /// Sets the order automatically assigned to all newly created elements.
   /// (The order of these is normally undefined and has to be set explicitly.)
-  void set_default_order(int tri_order, int quad_order = 0);
+  void set_default_order(int tri_order, int quad_order = -1);
 
   /// Copies element orders from another space. 'inc' is an optional order
   /// increase. If the source space has a coarser mesh, the orders are distributed

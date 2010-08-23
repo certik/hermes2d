@@ -106,14 +106,15 @@ void Space::set_element_order(int id, int order)
 // just sets the element order without enumerating dof
 void Space::set_element_order_internal(int id, int order)
 {
-  assert_msg(mesh->get_element(id)->is_triangle() || H2D_GET_V_ORDER(order) != 0, "Element #%d is quad but given vertical order is zero", id);
+  //NOTE: We need to take into account that L2 and Hcurl may use zero orders. The latter has its own version of this method, however.
+  assert_msg(mesh->get_element(id)->is_triangle() || get_type() == 3 || H2D_GET_V_ORDER(order) != 0, "Element #%d is quad but given vertical order is zero", id);
   assert_msg(mesh->get_element(id)->is_quad() || H2D_GET_V_ORDER(order) == 0, "Element #%d is triangle but vertical is not zero", id);
   if (id < 0 || id >= mesh->get_max_element_id())
     error("Invalid element id.");
   H2D_CHECK_ORDER(order);
 
   resize_tables();
-  if (mesh->get_element(id)->is_quad() && H2D_GET_V_ORDER(order) == 0) //FIXME: Hcurl uses zero orders
+  if (mesh->get_element(id)->is_quad() && get_type() != 3 && H2D_GET_V_ORDER(order) == 0) 
      order = H2D_MAKE_QUAD_ORDER(order, order);
   edata[id].order = order;
   seq++;
@@ -176,7 +177,7 @@ void Space::set_element_orders(int* elem_orders_)
 
 void Space::set_default_order(int tri_order, int quad_order)
 {
-  if (quad_order == 0) quad_order = H2D_MAKE_QUAD_ORDER(tri_order, tri_order);
+  if (quad_order == -1) quad_order = H2D_MAKE_QUAD_ORDER(tri_order, tri_order);
   default_tri_order = tri_order;
   default_quad_order = quad_order;
 }
@@ -203,8 +204,9 @@ void Space::copy_orders(Space* space, int inc)
     if (oo < 0) error("Source space has an uninitialized order (element id = %d)", e->id);
 
     int mo = shapeset->get_max_order();
-    int ho = std::max(1, std::min(H2D_GET_H_ORDER(oo) + inc, mo));
-    int vo = std::max(1, std::min(H2D_GET_V_ORDER(oo) + inc, mo));
+    int lower_limit = (get_type() == 3 || get_type() == 1) ? 0 : 1; // L2 and Hcurl may use zero orders.
+    int ho = std::max(lower_limit, std::min(H2D_GET_H_ORDER(oo) + inc, mo));
+    int vo = std::max(lower_limit, std::min(H2D_GET_V_ORDER(oo) + inc, mo));
     oo = e->is_triangle() ? ho : H2D_MAKE_QUAD_ORDER(ho, vo);
 
     H2D_CHECK_ORDER(oo);
