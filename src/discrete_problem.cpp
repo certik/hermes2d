@@ -557,6 +557,19 @@ ExtData<Ord>* DiscreteProblem::init_ext_fns_ord(std::vector<MeshFunction *> &ext
   return fake_ext;
 }
 
+// Initialize integration order on a given edge for external functions
+ExtData<Ord>* DiscreteProblem::init_ext_fns_ord(std::vector<MeshFunction *> &ext, int edge)
+{
+  ExtData<Ord>* fake_ext = new ExtData<Ord>;
+  fake_ext->nf = ext.size();
+  Func<Ord>** fake_ext_fn = new Func<Ord>*[fake_ext->nf];
+  for (int i = 0; i < fake_ext->nf; i++)
+    fake_ext_fn[i] = init_fn_ord(ext[i]->get_edge_fn_order(edge));
+  fake_ext->fn = fake_ext_fn;
+  
+  return fake_ext;
+}
+
 // Initialize external functions (obtain values, derivatives,...)
 ExtData<scalar>* DiscreteProblem::init_ext_fns(std::vector<MeshFunction *> &ext, RefMap *rm, const int order)
 {
@@ -614,8 +627,10 @@ void DiscreteProblem::delete_cache()
 scalar DiscreteProblem::eval_form(WeakForm::MatrixFormVol *mfv, Tuple<Solution *> sln, 
                         PrecalcShapeset *fu, PrecalcShapeset *fv, RefMap *ru, RefMap *rv)
 {
-  // determine the integration order
+  // Determine the integration order.
   int inc = (fu->get_num_components() == 2) ? 1 : 0;
+  
+  // Order of solutions from the previous iteration level.
   AUTOLA_OR(Func<Ord>*, oi, wf->neq);
   //for (int i = 0; i < wf->neq; i++) oi[i] = init_fn_ord(sln[i]->get_fn_order() + inc);
   if (sln != Tuple<Solution *>()) {
@@ -627,18 +642,28 @@ scalar DiscreteProblem::eval_form(WeakForm::MatrixFormVol *mfv, Tuple<Solution *
   else {
     for (int i = 0; i < wf->neq; i++) oi[i] = init_fn_ord(0);
   }
-
+  
+  // Order of shape functions.
   Func<Ord>* ou = init_fn_ord(fu->get_fn_order() + inc);
   Func<Ord>* ov = init_fn_ord(fv->get_fn_order() + inc);
+  
+  // Order of additional external functions.
   ExtData<Ord>* fake_ext = init_ext_fns_ord(mfv->ext);
-
+  
+  // Order of geometric attributes (eg. for multiplication of a solution with coordinates, normals, etc.).
   double fake_wt = 1.0;
   Geom<Ord>* fake_e = init_geom_ord();
+  
+  // Total order of the matrix form.
   Ord o = mfv->ord(1, &fake_wt, oi, ou, ov, fake_e, fake_ext);
+  
+  // Increase due to reference map.
   int order = ru->get_inv_ref_order();
+  
   order += o.get_order();
   limit_order_nowarn(order);
-
+  
+  // Clean up.
   for (int i = 0; i < wf->neq; i++) {  
     if (oi[i] != NULL) { oi[i]->free_ord(); delete oi[i]; }
   }
@@ -650,13 +675,13 @@ scalar DiscreteProblem::eval_form(WeakForm::MatrixFormVol *mfv, Tuple<Solution *
   }
   if (fake_e != NULL) delete fake_e;
   if (fake_ext != NULL) {fake_ext->free_ord(); delete fake_ext;}
-
-  // eval the form
+  
+  // Eval the form using the quadrature of the just calculated order.
   Quad2D* quad = fu->get_quad_2d();
   double3* pt = quad->get_points(order);
   int np = quad->get_num_points(order);
 
-  // init geometry and jacobian*weights
+  // Init geometry and jacobian*weights.
   if (cache_e[order] == NULL)
   {
     cache_e[order] = init_geom_vol(ru, order);
@@ -668,7 +693,7 @@ scalar DiscreteProblem::eval_form(WeakForm::MatrixFormVol *mfv, Tuple<Solution *
   Geom<double>* e = cache_e[order];
   double* jwt = cache_jwt[order];
 
-  // function values and values of external functions
+  // Function values and values of external functions.
   AUTOLA_OR(Func<scalar>*, prev, wf->neq);
   //for (int i = 0; i < wf->neq; i++) prev[i]  = init_fn(sln[i], rv, order);
   if (sln != Tuple<Solution *>()) {
@@ -687,6 +712,7 @@ scalar DiscreteProblem::eval_form(WeakForm::MatrixFormVol *mfv, Tuple<Solution *
 
   scalar res = mfv->fn(np, jwt, prev, u, v, e, ext);
 
+  // Clean up.
   for (int i = 0; i < wf->neq; i++) {  
     if (prev[i] != NULL) prev[i]->free_fn(); delete prev[i]; 
   }
@@ -698,8 +724,10 @@ scalar DiscreteProblem::eval_form(WeakForm::MatrixFormVol *mfv, Tuple<Solution *
 // Actual evaluation of volume vector form (calculates integral)
 scalar DiscreteProblem::eval_form(WeakForm::VectorFormVol *vfv, Tuple<Solution *> sln, PrecalcShapeset *fv, RefMap *rv)
 {
-  // determine the integration order
+  // Determine the integration order.
   int inc = (fv->get_num_components() == 2) ? 1 : 0;
+  
+  // Order of solutions from the previous iteration level.
   AUTOLA_OR(Func<Ord>*, oi, wf->neq);
   //for (int i = 0; i < wf->neq; i++) oi[i] = init_fn_ord(sln[i]->get_fn_order() + inc);
   if (sln != Tuple<Solution *>()) {
@@ -711,16 +739,27 @@ scalar DiscreteProblem::eval_form(WeakForm::VectorFormVol *vfv, Tuple<Solution *
   else {
     for (int i = 0; i < wf->neq; i++) oi[i] = init_fn_ord(0);
   }
+  
+  // Order of the shape function.
   Func<Ord>* ov = init_fn_ord(fv->get_fn_order() + inc);
+  
+  // Order of additional external functions.
   ExtData<Ord>* fake_ext = init_ext_fns_ord(vfv->ext);
-
+  
+  // Order of geometric attributes (eg. for multiplication of a solution with coordinates, normals, etc.).
   double fake_wt = 1.0;
   Geom<Ord>* fake_e = init_geom_ord();
+  
+  // Total order of the vector form.
   Ord o = vfv->ord(1, &fake_wt, oi, ov, fake_e, fake_ext);
+  
+  // Increase due to reference map.
   int order = rv->get_inv_ref_order();
+  
   order += o.get_order();
   limit_order_nowarn(order);
 
+  // Clean up.
   for (int i = 0; i < wf->neq; i++) { 
     if (oi[i] != NULL) {
       oi[i]->free_ord(); delete oi[i]; 
@@ -730,12 +769,12 @@ scalar DiscreteProblem::eval_form(WeakForm::VectorFormVol *vfv, Tuple<Solution *
   if (fake_e != NULL) delete fake_e;
   if (fake_ext != NULL) {fake_ext->free_ord(); delete fake_ext;}
 
-  // eval the form
+  // Eval the form using the quadrature of the just calculated order.
   Quad2D* quad = fv->get_quad_2d();
   double3* pt = quad->get_points(order);
   int np = quad->get_num_points(order);
 
-  // init geometry and jacobian*weights
+  // Init geometry and jacobian*weights.
   if (cache_e[order] == NULL)
   {
     cache_e[order] = init_geom_vol(rv, order);
@@ -747,7 +786,7 @@ scalar DiscreteProblem::eval_form(WeakForm::VectorFormVol *vfv, Tuple<Solution *
   Geom<double>* e = cache_e[order];
   double* jwt = cache_jwt[order];
 
-  // function values and values of external functions
+  // Function values and values of external functions.
   AUTOLA_OR(Func<scalar>*, prev, wf->neq);
   //for (int i = 0; i < wf->neq; i++) prev[i]  = init_fn(sln[i], rv, order);
   if (sln != Tuple<Solution *>()) {
@@ -765,32 +804,82 @@ scalar DiscreteProblem::eval_form(WeakForm::VectorFormVol *vfv, Tuple<Solution *
 
   scalar res = vfv->fn(np, jwt, prev, v, e, ext);
 
+  // Clean up.
   for (int i = 0; i < wf->neq; i++) { 
     if (prev[i] != NULL) {
       prev[i]->free_fn(); delete prev[i]; 
     }
   }
   if (ext != NULL) {ext->free(); delete ext;}
+  
   return res;
-
 }
 
 // Actual evaluation of surface Jacobian form (calculates integral)
 scalar DiscreteProblem::eval_form(WeakForm::MatrixFormSurf *mfs, Tuple<Solution *> sln, 
                         PrecalcShapeset *fu, PrecalcShapeset *fv, RefMap *ru, RefMap *rv, EdgePos* ep)
 {
-  // eval the form
+  // Determine the integration order.
+  int inc = (fu->get_num_components() == 2) ? 1 : 0;
+  
+  // Order of solutions from the previous iteration level.
+  AUTOLA_OR(Func<Ord>*, oi, wf->neq);
+  //for (int i = 0; i < wf->neq; i++) oi[i] = init_fn_ord(sln[i]->get_fn_order() + inc);
+  if (sln != Tuple<Solution *>()) {
+    for (int i = 0; i < wf->neq; i++) {
+      if (sln[i] != NULL) oi[i] = init_fn_ord(sln[i]->get_edge_fn_order(ep->edge) + inc);
+      else oi[i] = init_fn_ord(0);
+    }
+  }
+  else {
+    for (int i = 0; i < wf->neq; i++) oi[i] = init_fn_ord(0);
+  }
+  
+  // Order of shape functions.
+  Func<Ord>* ou = init_fn_ord(fu->get_edge_fn_order(ep->edge) + inc);
+  Func<Ord>* ov = init_fn_ord(fv->get_edge_fn_order(ep->edge) + inc);
+  
+  // Order of additional external functions.
+  ExtData<Ord>* fake_ext = init_ext_fns_ord(mfs->ext, ep->edge);
+  
+  // Order of geometric attributes (eg. for multiplication of a solution with coordinates, normals, etc.).
+  double fake_wt = 1.0;
+  Geom<Ord>* fake_e = init_geom_ord();
+  
+  // Total order of the matrix form.
+  Ord o = mfs->ord(1, &fake_wt, oi, ou, ov, fake_e, fake_ext);
+  
+  // Increase due to reference map.
+  int order = ru->get_inv_ref_order();
+  
+  order += o.get_order();
+  limit_order_nowarn(order);
+  
+  // Clean up.
+  for (int i = 0; i < wf->neq; i++) {  
+    if (oi[i] != NULL) { oi[i]->free_ord(); delete oi[i]; }
+  }
+  if (ou != NULL) {
+    ou->free_ord(); delete ou;
+  }
+  if (ov != NULL) {
+    ov->free_ord(); delete ov;
+  }
+  if (fake_e != NULL) delete fake_e;
+  if (fake_ext != NULL) {fake_ext->free_ord(); delete fake_ext;}
+  
+  // Eval the form using the quadrature of the just calculated order.
   Quad2D* quad = fu->get_quad_2d();
-  // FIXME - this needs to be order-dependent
-  int eo = quad->get_edge_points(ep->edge);
+  
+  int eo = quad->get_edge_points(ep->edge, order);
   double3* pt = quad->get_points(eo);
   int np = quad->get_num_points(eo);
 
-  // init geometry and jacobian*weights
+  // Init geometry and jacobian*weights.
   if (cache_e[eo] == NULL)
   {
     cache_e[eo] = init_geom_surf(ru, ep, eo);
-    double3* tan = ru->get_tangent(ep->edge);
+    double3* tan = ru->get_tangent(ep->edge, eo);
     cache_jwt[eo] = new double[np];
     for(int i = 0; i < np; i++)
       cache_jwt[eo][i] = pt[i][2] * tan[i][2];
@@ -798,7 +887,7 @@ scalar DiscreteProblem::eval_form(WeakForm::MatrixFormSurf *mfs, Tuple<Solution 
   Geom<double>* e = cache_e[eo];
   double* jwt = cache_jwt[eo];
 
-  // function values and values of external functions
+  // Function values and values of external functions.
   AUTOLA_OR(Func<scalar>*, prev, wf->neq);
   //for (int i = 0; i < wf->neq; i++) prev[i]  = init_fn(sln[i], rv, eo);
   if (sln != Tuple<Solution *>()) {
@@ -817,12 +906,14 @@ scalar DiscreteProblem::eval_form(WeakForm::MatrixFormSurf *mfs, Tuple<Solution 
 
   scalar res = mfs->fn(np, jwt, prev, u, v, e, ext);
 
+  // Clean up.
   for (int i = 0; i < wf->neq; i++) { 
     if (prev[i] != NULL) {
       prev[i]->free_fn(); delete prev[i]; 
     }
   }
   if (ext != NULL) {ext->free(); delete ext;}
+  
   return 0.5 * res; // Edges are parameterized from 0 to 1 while integration weights
                     // are defined in (-1, 1). Thus multiplying with 0.5 to correct
                     // the weights.
@@ -833,18 +924,63 @@ scalar DiscreteProblem::eval_form(WeakForm::MatrixFormSurf *mfs, Tuple<Solution 
 scalar DiscreteProblem::eval_form(WeakForm::VectorFormSurf *vfs, Tuple<Solution *> sln, 
                         PrecalcShapeset *fv, RefMap *rv, EdgePos* ep)
 {
-  // eval the form
+  // Determine the integration order.
+  int inc = (fv->get_num_components() == 2) ? 1 : 0;
+  
+  // Order of solutions from the previous iteration level.
+  AUTOLA_OR(Func<Ord>*, oi, wf->neq);
+  //for (int i = 0; i < wf->neq; i++) oi[i] = init_fn_ord(sln[i]->get_fn_order() + inc);
+  if (sln != Tuple<Solution *>()) {
+    for (int i = 0; i < wf->neq; i++) {
+      if (sln[i] != NULL) oi[i] = init_fn_ord(sln[i]->get_edge_fn_order(ep->edge) + inc);
+      else oi[i] = init_fn_ord(0);
+    }
+  }
+  else {
+    for (int i = 0; i < wf->neq; i++) oi[i] = init_fn_ord(0);
+  }
+  
+  // Order of the shape function.
+  Func<Ord>* ov = init_fn_ord(fv->get_edge_fn_order(ep->edge) + inc);
+  
+  // Order of additional external functions.
+  ExtData<Ord>* fake_ext = init_ext_fns_ord(vfs->ext, ep->edge);
+  
+  // Order of geometric attributes (eg. for multiplication of a solution with coordinates, normals, etc.).
+  double fake_wt = 1.0;
+  Geom<Ord>* fake_e = init_geom_ord();
+  
+  // Total order of the vector form.
+  Ord o = vfs->ord(1, &fake_wt, oi, ov, fake_e, fake_ext);
+  
+  // Increase due to reference map.
+  int order = rv->get_inv_ref_order();
+  
+  order += o.get_order();
+  limit_order_nowarn(order);
+  
+  // Clean up.
+  for (int i = 0; i < wf->neq; i++) { 
+    if (oi[i] != NULL) {
+      oi[i]->free_ord(); delete oi[i]; 
+    }
+  }
+  if (ov != NULL) {ov->free_ord(); delete ov;}
+  if (fake_e != NULL) delete fake_e;
+  if (fake_ext != NULL) {fake_ext->free_ord(); delete fake_ext;}
+  
+  // Eval the form using the quadrature of the just calculated order.
   Quad2D* quad = fv->get_quad_2d();
-  // FIXME - this needs to be order-dependent
-  int eo = quad->get_edge_points(ep->edge);
+  
+  int eo = quad->get_edge_points(ep->edge, order);
   double3* pt = quad->get_points(eo);
   int np = quad->get_num_points(eo);
 
-  // init geometry and jacobian*weights
+  // Init geometry and jacobian*weights.
   if (cache_e[eo] == NULL)
   {
     cache_e[eo] = init_geom_surf(rv, ep, eo);
-    double3* tan = rv->get_tangent(ep->edge);
+    double3* tan = rv->get_tangent(ep->edge, eo);
     cache_jwt[eo] = new double[np];
     for(int i = 0; i < np; i++)
       cache_jwt[eo][i] = pt[i][2] * tan[i][2];
@@ -852,7 +988,7 @@ scalar DiscreteProblem::eval_form(WeakForm::VectorFormSurf *vfs, Tuple<Solution 
   Geom<double>* e = cache_e[eo];
   double* jwt = cache_jwt[eo];
 
-  // function values and values of external functions
+  // Function values and values of external functions.
   AUTOLA_OR(Func<scalar>*, prev, wf->neq);
   //for (int i = 0; i < wf->neq; i++) prev[i]  = init_fn(sln[i], rv, eo);
   if (sln != Tuple<Solution *>()) {
@@ -874,6 +1010,8 @@ scalar DiscreteProblem::eval_form(WeakForm::VectorFormSurf *vfs, Tuple<Solution 
     if (prev[i] != NULL) {prev[i]->free_fn(); delete prev[i]; }
   }
   if (ext != NULL) {ext->free(); delete ext;}
+  
+  // Clean up.
   return 0.5 * res; // Edges are parameterized from 0 to 1 while integration weights
                     // are defined in (-1, 1). Thus multiplying with 0.5 to correct
                     // the weights.
