@@ -207,23 +207,27 @@ int main(int argc, char* argv[])
   phi_prev_time.set_exact(&mesh, phi_exact);
 
   // Time stepping.
-  Vector* init_coeff_vec = new AVector(ndof);
+  Vector* coeff_vec = new AVector(ndof);
   int t_step = 1;
   do {
     TIME += TAU;
 
     info("---- Time step %d, t = %g s:", t_step, TIME); t_step++;
     info("Projecting to obtain initial vector for the Newton's method.");
-    // The NULL means that we do not want the resulting Solution, just the vector.
-    project_global(spaces, proj_norms, time_iterates, newton_iterates, init_coeff_vec);
+
+    project_global(spaces, proj_norms, time_iterates, newton_iterates, coeff_vec);
 
     // Newton's method.
     info("Newton's iteration...");
     bool verbose = true; // Default is false.
-    bool did_converge = solve_newton( spaces, &wf, init_coeff_vec, matrix_solver,
+    bool did_converge = solve_newton( spaces, &wf, coeff_vec, matrix_solver,
                                       NEWTON_TOL, NEWTON_MAX_ITER, verbose); 
     if (!did_converge)
       error("Newton's method did not converge.");
+    
+    // Translate the resulting coefficient vector into the actual solutions. 
+    T_prev_newton.set_fe_solution(&space_T, coeff_vec);
+    phi_prev_newton.set_fe_solution(&space_phi, coeff_vec);
     
     // Show the new time level solution.
     sview_T.show(&T_prev_newton);
