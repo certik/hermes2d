@@ -140,18 +140,6 @@ int main(int argc, char* argv[])
   // Initialize refinement selector.
   H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
 
-/*  // Geometry and position of visualization windows.
-  WinGeom* T_sln_win_geom = new WinGeom(0, 0, 300, 450);
-  WinGeom* M_sln_win_geom = new WinGeom(310, 0, 300, 450);
-  WinGeom* T_mesh_win_geom = new WinGeom(620, 0, 280, 450);
-  WinGeom* M_mesh_win_geom = new WinGeom(910, 0, 280, 450);
-
-  // Initialize views.
-  ScalarView temp_view("Temperature [K]", T_sln_win_geom);
-  OrderView temp_ord("Temperature mesh", T_mesh_win_geom);
-  ScalarView moist_view("Moisture [-]", M_sln_win_geom);
-  OrderView moist_ord("Moisture mesh", M_mesh_win_geom);
-*/
   // Error estimate and discrete problem size as a function of physical time.
   SimpleGraph graph_time_err, graph_time_dof;
 
@@ -223,12 +211,6 @@ int main(int argc, char* argv[])
       // Time measurement.
       cpu_time.tick();
 
-      // View the coarse mesh solution.
-      //temp_view.show(&T_coarse);
-      //temp_ord.show(&T_space);
-      //moist_view.show(&M_coarse);
-      //moist_ord.show(&M_space);
-
       // Skip visualization time.
       cpu_time.tick(HERMES_SKIP);
 
@@ -281,21 +263,6 @@ int main(int argc, char* argv[])
     }
     while (!done);
 
-/*    // Visualize the solution and meshes.
-    char title[100];
-    sprintf(title, "T mesh, time = %g days", CURRENT_TIME/86400.);
-    temp_ord.set_title(title);
-    temp_ord.show(&T_space);
-    sprintf(title, "M mesh, time = %g days", CURRENT_TIME/86400.);
-    moist_ord.set_title(title);
-    moist_ord.show(&M_space);
-    sprintf(title, "T, time = %g days", CURRENT_TIME/86400.);
-    temp_view.set_title(title);
-    temp_view.show(&T_coarse, H2D_EPS_HIGH);
-    sprintf(title, "M, time = %g days", CURRENT_TIME/86400.);
-    moist_view.set_title(title);
-    moist_view.show(&M_coarse, H2D_EPS_HIGH);
-*/
     // Add entries to convergence graphs.
     graph_time_err.add_values(ts*TAU, space_err_est);
     graph_time_err.save("time_error.dat");

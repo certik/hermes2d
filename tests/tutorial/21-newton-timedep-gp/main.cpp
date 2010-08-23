@@ -78,10 +78,6 @@ int main(int argc, char* argv[])
     wf.add_vector_form(callback(F_cranic), H2D_ANY, &psi_prev_time);
   }
 
-  // Initialize views.
-//  ScalarView view("", new WinGeom(0, 0, 600, 500));
-//  view.fix_scale_width(80);
-
   // Project the initial condition on the FE space
   // to obtain initial coefficient vector for the Newton's method.
   bool is_complex = true;

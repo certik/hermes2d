@@ -12,3 +12,8 @@ add_subdirectory(saphir)
 add_subdirectory(singular-perturbation)
 add_subdirectory(waveguide)
 add_subdirectory(thermoelasticity)
+add_subdirectory(optimal-meshes)
+add_subdirectory(quantum-billiard)
+add_subdirectory(richards)
+add_subdirectory(richards-tracy-adapt)
+

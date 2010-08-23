@@ -150,24 +150,6 @@ int main(int argc, char* argv[])
   // Solutions.
   Solution T_coarse, M_coarse, T_fine, M_fine;
 
-/*  // Geometry and position of visualization windows.
-  WinGeom* T_sln_win_geom = new WinGeom(0, 0, 300, 450);
-  WinGeom* M_sln_win_geom = new WinGeom(310, 0, 300, 450);
-  WinGeom* T_mesh_win_geom = new WinGeom(620, 0, 280, 450);
-  WinGeom* M_mesh_win_geom = new WinGeom(910, 0, 280, 450);
-
-  // Initialize views.
-  ScalarView T_sln_view("Temperature", T_sln_win_geom);
-  ScalarView M_sln_view("Moisture", M_sln_win_geom);
-  OrderView T_order_view("Temperature mesh", T_mesh_win_geom);
-  OrderView M_order_view("Moisture mesh", M_mesh_win_geom);
-
-  // Show initial conditions.
-  T_sln_view.show(&T_prev);
-  M_sln_view.show(&M_prev);
-  T_order_view.show(&T_space);
-  M_order_view.show(&M_space);
-*/
   // Time stepping loop:
   bool verbose = true;  // Print info during adaptivity.
   double comp_time = 0.0;
@@ -198,17 +180,6 @@ int main(int argc, char* argv[])
     // Update time.
     CURRENT_TIME += TAU;
 
-/*    // Show new coarse meshes and solutions.
-    char title[100];
-    sprintf(title, "Temperature, t = %g days", CURRENT_TIME/3600./24);
-    T_sln_view.set_title(title);
-    T_sln_view.show(&T_coarse);
-    sprintf(title, "Moisture, t = %g days", CURRENT_TIME/3600./24);
-    M_sln_view.set_title(title);
-    M_sln_view.show(&M_coarse);
-    T_order_view.show(&T_space);
-    M_order_view.show(&M_space);
-*/
     // Save fine mesh solutions for the next time step.
     T_prev.copy(&T_fine);
     M_prev.copy(&M_fine);
