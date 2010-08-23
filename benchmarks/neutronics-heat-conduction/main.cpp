@@ -230,12 +230,13 @@ int main(int argc, char* argv[])
     phi_prev_newton.set_fe_solution(&space_phi, coeff_vec);
     
     // Show the new time level solution.
-    sview_T.show(&T_prev_newton);
     sprintf(title, "Approx. solution for T, t = %g s", TIME);
-    sview_T.set_title(title);   // This has to be called after show(), otherwise the title for t = 0.1s is not updated.
-    sview_phi.show(&phi_prev_newton);
+    sview_T.set_title(title); 
+    sview_T.show(&T_prev_newton);
+    
     sprintf(title, "Approx. solution for phi, t = %g s", TIME);
     sview_phi.set_title(title);
+    sview_phi.show(&phi_prev_newton);
 
     // Exact solution for comparison with computational results.
     T_exact_solution.update(&mesh, T_exact);
@@ -245,10 +246,11 @@ int main(int argc, char* argv[])
     sview_T_exact.show(&T_exact_solution);
     sprintf(title, "Exact solution for T, t = %g s", TIME);
     sview_T_exact.set_title(title);
+    
     sview_phi_exact.show(&phi_exact_solution);
     sprintf(title, "Exact solution for phi, t = %g s", TIME);
     sview_phi_exact.set_title(title);
-
+    
     // Calculate exact error.
     info("Calculating error (exact).");
     T_error = calc_rel_error(&T_prev_newton, &T_exact_solution, H2D_H1_NORM) * 100;
