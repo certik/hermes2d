@@ -92,6 +92,8 @@ const int H2D_DEFAULT_PROJ_TYPE = 1;
 #define H2D_GET_V_ORDER(order) ((order) >> H2D_ORDER_BITS)
 extern H2D_API const std::string get_quad_order_str(const int quad_order); ///< Returns string representation of the quad order: used for debugging purposses.
 
+extern H2D_API int make_edge_order(int edge, int encoded_order, int mode); ///< Returns the correct axial order for given edge.
+
 #include "scalar.h"
 
 typedef int int2[2];

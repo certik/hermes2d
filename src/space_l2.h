@@ -32,7 +32,10 @@ public:
 
   virtual Space* dup(Mesh* mesh) const;
 
-  virtual int get_edge_order(Element* e, int edge) { return 0;}
+  virtual int get_edge_order(Element* e, int edge) { 
+    // There are no continuity constraints on shape functions in L2.
+    return make_edge_order( e->get_mode(), edge, edata[e->id].order ); 
+  }
 
   virtual int get_type() const { return 3; }
 

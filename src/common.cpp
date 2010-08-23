@@ -26,6 +26,16 @@ H2D_API const std::string get_quad_order_str(const int quad_order) {
   return str.str();
 }
 
+H2D_API int make_edge_order(int mode, int edge, int encoded_order)
+{
+  assert(edge < 4);
+  
+  if (mode == H2D_MODE_TRIANGLE || edge == 0 || edge == 2)
+    return H2D_GET_H_ORDER(encoded_order);
+  else
+    return H2D_GET_V_ORDER(encoded_order);
+}
+
 H2D_API void hermes2d_exit_if(bool cond, int code) {
   if (cond)
     exit(code);

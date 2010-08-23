@@ -832,6 +832,17 @@ void Solution::transform_values(int order, Node* node, int newmask, int oldmask,
   }
 }
 
+int Solution::get_edge_fn_order(int edge, Space* space, Element* e)
+{
+  if (e == NULL) e = element;
+  
+  if (type == SLN && space != NULL) {
+    return space->get_edge_order(e, edge); 
+  } else {
+    return ScalarFunction::get_edge_fn_order(edge);
+  }
+}
+
 
 void Solution::precalculate(int order, int mask)
 {

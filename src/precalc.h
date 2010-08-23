@@ -84,7 +84,9 @@ public:
 
   void dump_info(int quad, const char* filename); // debug
 
-
+  /// Returns the polynomial order of the active shape function on given edge. 
+  int get_edge_fn_order(int edge) { return make_edge_order(mode, edge, shapeset->get_order(index)); }
+  
 protected:
 
   Shapeset* shapeset;

@@ -347,7 +347,7 @@ struct EdgePos
 {
   int v1, v2; ///< edge endpoint vertex id numbers
   int marker; ///< edge marker
-  int edge;   ///< element edge number (0..3 for triangles, 0..4 for quads)
+  int edge;   ///< element edge number (0..2 for triangles, 0..3 for quads)
   double t;   ///< position between v1 and v2 in the range [0..1]
 
   double lo, hi; ///< for internal use
