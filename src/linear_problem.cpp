@@ -202,8 +202,10 @@ bool solve_linear_adapt(Tuple<Space *> spaces, WeakForm* wf, Vector* coeff_vec,
     // Construct globally refined reference mesh(es)
     // and setup reference space(s).
     Tuple<Space *> ref_spaces;
+    Tuple<Mesh *> ref_meshes;
     for (int i = 0; i < num_comps; i++) {
-      Mesh *ref_mesh = new Mesh();
+      ref_meshes.push_back(new Mesh());
+      Mesh *ref_mesh = ref_meshes.back();
       ref_mesh->copy(spaces[i]->get_mesh());
       ref_mesh->refine_all_elements();
       ref_spaces.push_back(spaces[i]->dup(ref_mesh));
@@ -327,7 +329,8 @@ bool solve_linear_adapt(Tuple<Space *> spaces, WeakForm* wf, Vector* coeff_vec,
 
     // Free reference meshes and spaces.
     for (int i = 0; i < num_comps; i++) {
-      ref_spaces[i]->free();
+      ref_spaces[i]->free(); // This does not free the associated mesh, we must do it separately.
+      ref_meshes[i]->free();
     }
 
     as++;
