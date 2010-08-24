@@ -8,46 +8,7 @@
 
 using namespace RefinementSelectors;
 
-/** \addtogroup e_newton_np_timedep_adapt_system Newton Time-dependant System with Adaptivity
- \{
- \brief This example shows how to combine the automatic adaptivity with the Newton's method for a nonlinear time-dependent PDE system.
-
- This example shows how to combine the automatic adaptivity with the
- Newton's method for a nonlinear time-dependent PDE system.
- The time discretization is done using implicit Euler or
- Crank Nicholson method (see parameter TIME_DISCR).
- The following PDE's are solved:
- Nernst-Planck (describes the diffusion and migration of charged particles):
- \f[dC/dt - D*div[grad(C)] - K*C*div[grad(\phi)]=0,\f]
- where D and K are constants and C is the cation concentration variable,
- phi is the voltage variable in the Poisson equation:
- \f[ - div[grad(\phi)] = L*(C - C_0),\f]
- where \f$C_0\f$, and L are constant (anion concentration). \f$C_0\f$ is constant
- anion concentration in the domain and L is material parameter.
- So, the equation variables are phi and C and the system describes the
- migration/diffusion of charged particles due to applied voltage.
- The simulation domain looks as follows:
- \verbatim
-      2
-  +----------+
-  |          |
- 1|          |1
-  |          |
-  +----------+
-      3
- \endverbatim
- For the Nernst-Planck equation, all the boundaries are natural i.e. Neumann.
- Which basically means that the normal derivative is 0:
- \f[ BC: -D*dC/dn - K*C*d\phi/dn = 0 \f]
- For Poisson equation, boundary 1 has a natural boundary condition
- (electric field derivative is 0).
- The voltage is applied to the boundaries 2 and 3 (Dirichlet boundaries)
- It is possible to adjust system paramter VOLT_BOUNDARY to apply
- Neumann boundary condition to 2 (instead of Dirichlet). But by default:
-  - BC 2: \f$\phi = VOLTAGE\f$
-  - BC 3: \f$\phi = 0\f$
-  - BC 1: \f$\frac{d\phi}{dn} = 0\f$
- */
+// This test makes sure that the example "newton-np-timedep-adapt-system" works correctly.
 
 #define SIDE_MARKER 1
 #define TOP_MARKER 2
@@ -186,16 +147,11 @@ int main (int argc, char* argv[]) {
   H1Space phi(MULTIMESH ? &phimesh : &Cmesh, phi_bc_types, phi_essential_bc_values, P_INIT);
   int ndof = get_num_dofs(Tuple<Space*>(&C, &phi));
 
+  Solution C_sln, C_ref_sln,C_prev_time,
+           phi_sln, phi_ref_sln, phi_prev_time;
+
   // The weak form for 2 equations.
   WeakForm wf(2);
-
-  Solution C_prev_time,    // Previous time step solution, for the time integration.
-//    C_prev_newton,         // Solution converging during the Newton's iteration.
-    phi_prev_time,
-//    phi_prev_newton,
-    C_sln, C_ref_sln,
-    phi_sln, phi_ref_sln;
-
   // Add the bilinear and linear forms.
   wf.add_matrix_form(0, 0, callback(J_euler_DFcDYc), H2D_UNSYM, H2D_ANY, &phi_prev_time);
   wf.add_matrix_form(0, 1, callback(J_euler_DFcDYphi), H2D_UNSYM, H2D_ANY, &C_prev_time);
@@ -257,6 +213,5 @@ int main (int argc, char* argv[]) {
                        NULL, NULL, &selector, &apt,
                        NEWTON_TOL_COARSE, NEWTON_TOL_FINE, NEWTON_MAX_ITER, verbose);
   }
-
+  // waiting for test.
 }
-/// \}
