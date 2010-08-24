@@ -6,26 +6,7 @@
 
 using namespace RefinementSelectors;
 
-//  This example uses adaptivity with dynamical meshes to solve
-//  the time-dependent Richard's equation. The time discretization 
-//  is backward Euler or Crank-Nicolson, and the Newton's method 
-//  is applied to solve the nonlinear problem in each time step. 
-//
-//  PDE: C(h)dh/dt - div(K(h)grad(h)) - (dK/dh)*(dh/dy) = 0
-//  where K(h) = K_S*exp(alpha*h)                          for h < 0,
-//        K(h) = K_S                                       for h >= 0,
-//        C(h) = alpha*(theta_s - theta_r)*exp(alpha*h)    for h < 0,
-//        C(h) = alpha*(theta_s - theta_r)                 for h >= 0.
-//
-//  Domain: rectangle (0, 8) x (0, 6.5).
-//
-//  BC: Dirichlet, given by the initial condition.
-//  IC: See the function init_cond().
-//
-//  The following parameters can be changed:
-
-// If this is defined, use van Genuchten's constitutive relations, otherwise use Gardner's.
-// #define CONSTITUTIVE_GENUCHTEN
+// This test makes sure that example "richards-seepage-adapt" works correctly.
 
 const int P_INIT = 1;                      // Initial polynomial degree of all mesh elements.
 const int INIT_REF_NUM = 0;                // Number of initial uniform mesh refinements.
@@ -296,7 +277,5 @@ int main(int argc, char* argv[])
     u_prev_time.set_fe_solution(&space, coeff_vec);
   }
 
-  // Wait for all views to be closed.
-  View::wait();
-  return 0;
+  // Waiting for test.
 }

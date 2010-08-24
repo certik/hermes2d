@@ -15,6 +15,8 @@ add_subdirectory(nist-1)
 add_subdirectory(smooth-aniso-x)
 add_subdirectory(smooth-aniso-y)
 add_subdirectory(smooth-iso)
+add_subdirectory(neutronics-heat-conduction)
+add_subdirectory(neutronics-heat-conduction-adapt)
 
 #if(NOT WITH_TRILINOS)
   add_subdirectory(screen)
