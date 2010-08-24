@@ -26,7 +26,6 @@ const double CONV_EXP = 1.0;
 const double THRESHOLD = 0.3;
 const bool MULTI = true; 
 const int STRATEGY = 1; 
-MatrixSolverType matrix_solver = SOLVER_UMFPACK;  
 
 const int P_INIT_XVEL = 2;
 const int P_INIT_YVEL = 2;
@@ -364,13 +363,13 @@ int main(int argc, char* argv[])
   lprev.set_exact(&mesh2, exactfn); 
 
   // Reference solution
-//  Mesh rmesh1, rmesh2;
+  Mesh rmesh1, rmesh2;
 
   // FIXME: 
-//  H1Space rspace1(&rmesh1, xvel_bc_types, NULL, P_INIT_XVEL);
-//  H1Space rspace2(&rmesh1, yvel_bc_types, NULL, P_INIT_YVEL);
-//  H1Space rspace3(&rmesh1, press_bc_types, NULL, P_INIT_PRESS);
-//  H1Space rspace4(&rmesh2, lset_bc_types, essential_bc_values_lset, P_INIT_LSET);
+  H1Space rspace1(&rmesh1, xvel_bc_types, NULL, P_INIT_XVEL);
+  H1Space rspace2(&rmesh1, yvel_bc_types, NULL, P_INIT_YVEL);
+  H1Space rspace3(&rmesh1, press_bc_types, NULL, P_INIT_PRESS);
+  H1Space rspace4(&rmesh2, lset_bc_types, essential_bc_values_lset, P_INIT_LSET);
 
   // problem initalization
   WeakForm wf(4);
@@ -413,61 +412,84 @@ int main(int argc, char* argv[])
 //  wf.add_liform(3, linear_form_3, 0, 1, &lprev);
   wf.add_vector_form(3, callback(linear_form_3), H2D_ANY, &lprev);
 
+  // DOF and CPU convergence graphs.
+  SimpleGraph graph_dof, graph_cpu;
+
   H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
+  // Initialize linear system.
+  LinSystem sys(&wf, Tuple<Space*>(&xvel, &yvel, &press, &lset));
 
   Solution u1, u2, u3, u4;
   Solution r1, r2, r3, r4;
 
-  // Initialize adaptivity parameters.
-  double to_be_processed = 0;
-  AdaptivityParamType apt(ERR_STOP, NDOF_STOP, THRESHOLD, STRATEGY,
-                          MESH_REGULARITY, to_be_processed, H2D_TOTAL_ERROR_REL, H2D_ELEMENT_ERROR_REL);
-  apt.set_error_form(0, 0, bilinear_form_0_0<scalar, scalar>, bilinear_form_0_0<Ord, Ord>);
-  apt.set_error_form(0, 2, bilinear_form_0_2<scalar, scalar>, bilinear_form_0_2<Ord, Ord>);
-  apt.set_error_form(1, 2, bilinear_form_1_2<scalar, scalar>, bilinear_form_1_2<Ord, Ord>);
-  apt.set_error_form(2, 0, bilinear_form_2_0<scalar, scalar>, bilinear_form_2_0<Ord, Ord>);
-  apt.set_error_form(2, 1, bilinear_form_2_1<scalar, scalar>, bilinear_form_2_1<Ord, Ord>);
-  apt.set_error_form(3, 3, bilinear_form_3_3<scalar, scalar>, bilinear_form_3_3<Ord, Ord>);
+  // Visualization.
+  // TODO: define the visual functions.
 
-  // Geometry and position of visualization windows.
-  WinGeom* u1_sln_win_geom = new WinGeom(0, 0, 300, 450);
-  WinGeom* u2_sln_win_geom = new WinGeom(0, 0, 300, 450);
-  WinGeom* u3_sln_win_geom = new WinGeom(310, 0, 300, 450);
-  WinGeom* u4_sln_win_geom = new WinGeom(310, 0, 300, 450);
-  WinGeom* u1_mesh_win_geom = new WinGeom(620, 0, 280, 450);
-  WinGeom* u2_mesh_win_geom = new WinGeom(620, 0, 280, 450);
-  WinGeom* u3_mesh_win_geom = new WinGeom(910, 0, 280, 450);
-  WinGeom* u4_mesh_win_geom = new WinGeom(910, 0, 280, 450);
+  bool done = false;
+  int as = 0;
+  do // adaptivity
+  {
+    info("---- Adaptivity step %d:", as);
 
-  // Initialize views.
-  ScalarView u1_sln_view("[1]", u1_sln_win_geom);
-  ScalarView u2_sln_view("[2]", u2_sln_win_geom);
-  ScalarView u3_sln_view("[3]", u3_sln_win_geom);
-  ScalarView u4_sln_view("[4]", u4_sln_win_geom);
-  OrderView u1_order_view("[1]", u1_mesh_win_geom);
-  OrderView u2_order_view("[2]", u2_mesh_win_geom);
-  OrderView u3_order_view("[3]", u3_mesh_win_geom);
-  OrderView u4_order_view("[4]", u4_mesh_win_geom);
+    sys.assemble();
+    sys.solve(Tuple<Solution*>(&u1, &u2, &u3, &u4));
 
-  bool verbose = true; 
-  solve_linear_adapt(Tuple<Space *>(&xvel, &yvel, &press, &lset), &wf, NULL, matrix_solver,
-                     Tuple<int>(H2D_H1_NORM, H2D_H1_NORM, H2D_H1_NORM, H2D_H1_NORM),
-                     Tuple<Solution *>(&u1, &u2, &u3, &u4),
-                     Tuple<Solution *>(&r1, &r2, &r3, &r4),
-                     Tuple<WinGeom *>(), Tuple<WinGeom *>(),// Do not show solutions or meshes.
-                     Tuple<RefinementSelectors::Selector *> (&selector, &selector, &selector, &selector), 
-                     &apt, verbose);
+    // Assemble and solve the fine mesh problem.    
+    info("Solving on fine mesh.");
+    RefSystem rs(&sys);
+    rs.assemble();
+    rs.solve(Tuple<Solution*>(&r1, &r2, &r3, &r4));
 
-  u1_sln_view.show(&u1);
-  u2_sln_view.show(&u2);
-  u3_sln_view.show(&u3);
-  u4_sln_view.show(&u4);
-  u1_order_view.show(&xvel);
-  u2_order_view.show(&yvel);
-  u3_order_view.show(&press);
-  u4_order_view.show(&lset);
+    // Time measurement.
+    cpu_time.tick();
+ 
+    // visualization
+    // TODO: show the visualization.    
+ 
+    // Skip visualization time. 
+    cpu_time.tick(H2D_SKIP);
 
-  // Wait for all views to be closed.
-  View::wait();
-  return 0;
+    // Calculate element errors and total error estimate.
+    info("Calculating error (est).");
+    H1Adapt hp(&sys);
+    hp.set_solutions(Tuple<Solution*>(&u1, &u2, &u3, &u4), Tuple<Solution*>(&r1, &r2, &r3, &r4));
+    hp.set_error_form(0, 0, bilinear_form_0_0<scalar, scalar>, bilinear_form_0_0<Ord, Ord>);
+    hp.set_error_form(0, 2, bilinear_form_0_2<scalar, scalar>, bilinear_form_0_2<Ord, Ord>);
+    hp.set_error_form(1, 2, bilinear_form_1_2<scalar, scalar>, bilinear_form_1_2<Ord, Ord>);
+    hp.set_error_form(2, 0, bilinear_form_2_0<scalar, scalar>, bilinear_form_2_0<Ord, Ord>);
+    hp.set_error_form(2, 1, bilinear_form_2_1<scalar, scalar>, bilinear_form_2_1<Ord, Ord>);
+    hp.set_error_form(3, 3, bilinear_form_3_3<scalar, scalar>, bilinear_form_3_3<Ord, Ord>);
+    double err_est = hp.calc_error(H2D_TOTAL_ERROR_REL | H2D_ELEMENT_ERROR_REL) * 100;
+
+  // Report results.
+  // FIXME:
+    info("ndof_x_coarse: %d, ndof_x_fine: %d",
+      sys.get_num_dofs(0), rs.get_num_dofs(0));
+    info("ndof_y_coarse: %d, ndof_y_fine: %d",
+      sys.get_num_dofs(1), rs.get_num_dofs(1));
+    info("ndof: %d, err_est: %g%%", sys.get_num_dofs(), err_est);
+
+    // Add entry to DOF convergence graph.
+    graph_dof.add_values(sys.get_num_dofs(), err_est);
+    graph_dof.save("conv_dof.dat");
+
+    // Add entry to CPU convergence graph.
+    graph_cpu.add_values(cpu_time.accumulated(), err_est);
+    graph_cpu.save("conv_cpu.dat");
+
+    // If err_est too large, adapt the mesh.
+    if (err_est < ERR_STOP) done = true;
+    else {
+      info("Adapting the coarse mesh.");
+      done = hp.adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY);
+      if (sys.get_num_dofs() >= NDOF_STOP) done = true;
+    }
+
+    as++;
+    }
+    while (!done);
+    verbose("Total running time: %g s", cpu_time.accumulated());
+
+    View::wait();
+    return 0;
 }

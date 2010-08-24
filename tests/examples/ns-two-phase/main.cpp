@@ -6,6 +6,8 @@
 
 using namespace RefinementSelectors;
 
+// This test makes sure that example "ns-two-phase" works correctly.
+
 const double tau = 0.05;   // Time step.
 //const double Ro2 = 1000.0; // The density, water.
 const double Ro1 = 1000.0; // The density.
@@ -429,7 +431,7 @@ int main(int argc, char* argv[])
   apt.set_error_form(2, 1, bilinear_form_2_1<scalar, scalar>, bilinear_form_2_1<Ord, Ord>);
   apt.set_error_form(3, 3, bilinear_form_3_3<scalar, scalar>, bilinear_form_3_3<Ord, Ord>);
 
-  // Geometry and position of visualization windows.
+/*  // Geometry and position of visualization windows.
   WinGeom* u1_sln_win_geom = new WinGeom(0, 0, 300, 450);
   WinGeom* u2_sln_win_geom = new WinGeom(0, 0, 300, 450);
   WinGeom* u3_sln_win_geom = new WinGeom(310, 0, 300, 450);
@@ -448,7 +450,7 @@ int main(int argc, char* argv[])
   OrderView u2_order_view("[2]", u2_mesh_win_geom);
   OrderView u3_order_view("[3]", u3_mesh_win_geom);
   OrderView u4_order_view("[4]", u4_mesh_win_geom);
-
+*/
   bool verbose = true; 
   solve_linear_adapt(Tuple<Space *>(&xvel, &yvel, &press, &lset), &wf, NULL, matrix_solver,
                      Tuple<int>(H2D_H1_NORM, H2D_H1_NORM, H2D_H1_NORM, H2D_H1_NORM),
@@ -458,7 +460,7 @@ int main(int argc, char* argv[])
                      Tuple<RefinementSelectors::Selector *> (&selector, &selector, &selector, &selector), 
                      &apt, verbose);
 
-  u1_sln_view.show(&u1);
+/*  u1_sln_view.show(&u1);
   u2_sln_view.show(&u2);
   u3_sln_view.show(&u3);
   u4_sln_view.show(&u4);
@@ -466,8 +468,7 @@ int main(int argc, char* argv[])
   u2_order_view.show(&yvel);
   u3_order_view.show(&press);
   u4_order_view.show(&lset);
+*/
+  // Waiting for tests.
 
-  // Wait for all views to be closed.
-  View::wait();
-  return 0;
 }

@@ -18,3 +18,5 @@ add_subdirectory(richards)
 add_subdirectory(richards-tracy-adapt)
 add_subdirectory(richards-seepage-adapt)
 add_subdirectory(ns-bearing)
+add_subdirectory(ns-two-phase)
+
