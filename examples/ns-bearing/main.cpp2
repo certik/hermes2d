@@ -58,8 +58,6 @@ const double TAU = 0.1;              // Time step.
 const double T_FINAL = 30000.0;      // Time interval length.
 const double NEWTON_TOL = 1e-5;      // Stopping criterion for the Newton's method.
 const int NEWTON_MAX_ITER = 10;      // Maximum allowed number of Newton iterations.
-MatrixSolverType matrix_solver = SOLVER_UMFPACK;  // Possibilities: SOLVER_UMFPACK, SOLVER_PETSC,
-                                                  // SOLVER_MUMPS, and more are coming.
 
 // Boundary markers.
 int bdy_inner = 1;
@@ -157,50 +155,53 @@ int main(int argc, char* argv[])
   mesh.refine_towards_boundary(bdy_inner, INIT_BDY_REF_NUM_INNER, false);  // true for anisotropic refinements
   mesh.refine_towards_boundary(bdy_outer, INIT_BDY_REF_NUM_OUTER, false);  // false for isotropic refinements
 
+  // View the mesh.
+  //MeshView mv("Mesh", 0, 0, 500, 500);
+  //mv.show(&mesh);
+  //View::wait();
+
   // Create spaces with default shapesets. 
-  H1Space* xvel_space = new H1Space(&mesh, xvel_bc_type, essential_bc_values_xvel, P_INIT_VEL);
-  H1Space* yvel_space = new H1Space(&mesh, yvel_bc_type, essential_bc_values_yvel, P_INIT_VEL);
+  H1Space xvel_space(&mesh, xvel_bc_type, essential_bc_values_xvel, P_INIT_VEL);
+  H1Space yvel_space(&mesh, yvel_bc_type, essential_bc_values_yvel, P_INIT_VEL);
 #ifdef PRESSURE_IN_L2
-  L2Space* p_space = new L2Space(&mesh, P_INIT_PRESSURE);
+  L2Space p_space(&mesh, P_INIT_PRESSURE);
 #else
-  H1Space* p_space = new H1Space(&mesh, NULL, NULL, P_INIT_PRESSURE);
+  H1Space p_space(&mesh, NULL, NULL, P_INIT_PRESSURE);
 #endif
 
-  // Calculate and report the number of degrees of freedom.
-  int ndof = get_num_dofs(Tuple<Space *>(xvel_space, yvel_space, p_space));
-  info("ndof = %d.", ndof);
-
   // Define projection norms.
-  int vel_proj_norm = H2D_H1_NORM;
+  int vel_proj_norm = 1;
 #ifdef PRESSURE_IN_L2
-  int p_proj_norm = H2D_L2_NORM;
+  int p_proj_norm = 0;
 #else
-  int p_proj_norm = H2D_H1_NORM;
+  int p_proj_norm = 1;
 #endif
 
   // Solutions for the Newton's iteration and time stepping.
-  info("Setting initial conditions.");
   Solution xvel_prev_time, yvel_prev_time, p_prev_time;
-  xvel_prev_time.set_zero(&mesh);
-  yvel_prev_time.set_zero(&mesh);
-  p_prev_time.set_zero(&mesh);
+  Solution xvel_prev_newton, yvel_prev_newton, p_prev_newton;
 
   // Initialize weak formulation.
   WeakForm wf(3);
   if (NEWTON) {
     wf.add_matrix_form(0, 0, callback(bilinear_form_sym_0_0_1_1), H2D_SYM);
-    wf.add_matrix_form(0, 0, callback(newton_bilinear_form_unsym_0_0), H2D_UNSYM, H2D_ANY);
-    wf.add_matrix_form(0, 1, callback(newton_bilinear_form_unsym_0_1), H2D_UNSYM, H2D_ANY);
+    wf.add_matrix_form(0, 0, callback(newton_bilinear_form_unsym_0_0), 
+                  H2D_UNSYM, H2D_ANY, Tuple<MeshFunction*>(&xvel_prev_newton, &yvel_prev_newton));
+    wf.add_matrix_form(0, 1, callback(newton_bilinear_form_unsym_0_1), 
+                  H2D_UNSYM, H2D_ANY, &xvel_prev_newton);
     wf.add_matrix_form(0, 2, callback(bilinear_form_unsym_0_2), H2D_ANTISYM);
-    wf.add_matrix_form(1, 0, callback(newton_bilinear_form_unsym_1_0), H2D_UNSYM, H2D_ANY);
+    wf.add_matrix_form(1, 0, callback(newton_bilinear_form_unsym_1_0), 
+                  H2D_UNSYM, H2D_ANY, &yvel_prev_newton);
     wf.add_matrix_form(1, 1, callback(bilinear_form_sym_0_0_1_1), H2D_SYM);
-    wf.add_matrix_form(1, 1, callback(newton_bilinear_form_unsym_1_1), H2D_UNSYM, H2D_ANY);
+    wf.add_matrix_form(1, 1, callback(newton_bilinear_form_unsym_1_1), 
+                  H2D_UNSYM, H2D_ANY, Tuple<MeshFunction*>(&xvel_prev_newton, &yvel_prev_newton));
     wf.add_matrix_form(1, 2, callback(bilinear_form_unsym_1_2), H2D_ANTISYM);
-    wf.add_vector_form(0, callback(newton_F_0), H2D_ANY, 
-                       Tuple<MeshFunction*>(&xvel_prev_time, &yvel_prev_time));
-    wf.add_vector_form(1, callback(newton_F_1), H2D_ANY, 
-                       Tuple<MeshFunction*>(&xvel_prev_time, &yvel_prev_time));
-    wf.add_vector_form(2, callback(newton_F_2), H2D_ANY);
+    wf.add_vector_form(0, callback(newton_F_0), H2D_ANY, Tuple<MeshFunction*>(&xvel_prev_time, 
+		  &yvel_prev_time, &xvel_prev_newton, &yvel_prev_newton, &p_prev_newton));
+    wf.add_vector_form(1, callback(newton_F_1), H2D_ANY, Tuple<MeshFunction*>(&xvel_prev_time, 
+		  &yvel_prev_time, &xvel_prev_newton, &yvel_prev_newton, &p_prev_newton));
+    wf.add_vector_form(2, callback(newton_F_2), H2D_ANY, Tuple<MeshFunction*>(&xvel_prev_newton, 
+                  &yvel_prev_newton));
   }
   else {
     wf.add_matrix_form(0, 0, callback(bilinear_form_sym_0_0_1_1), H2D_SYM);
@@ -216,27 +217,38 @@ int main(int argc, char* argv[])
   }
 
   // Initialize views.
-  VectorView vview("velocity [m/s]", new WinGeom(0, 0, 600, 500));
-  ScalarView pview("pressure [Pa]", new WinGeom(610, 0, 600, 500));
-  vview.set_min_max_range(0, 1.6);
+  VectorView vview("velocity [m/s]", 0, 0, 600, 500);
+  ScalarView pview("pressure [Pa]", 610, 0, 600, 500);
+  //vview.set_min_max_range(0, 1.6);
   vview.fix_scale_width(80);
   //pview.set_min_max_range(-0.9, 1.0);
   pview.fix_scale_width(80);
   pview.show_mesh(true);
 
-  // Project initial conditions on FE spaces to obtain initial coefficient 
-  // vector for the Newton's method.
-  Vector* coeff_vec;
-  if (NEWTON) {
-    info("Projecting initial conditions to obtain initial vector for the Newton's method.");
-    coeff_vec = new AVector(ndof);
-    project_global(Tuple<Space *>(xvel_space, yvel_space, p_space),
-                   Tuple<int>(vel_proj_norm, vel_proj_norm, p_proj_norm),
-                   Tuple<MeshFunction*>(&xvel_prev_time, &yvel_prev_time, &p_prev_time),
-                   Tuple<Solution*>(&xvel_prev_time, &yvel_prev_time, &p_prev_time),
-                   coeff_vec);
-  }
-  else coeff_vec = NULL;
+  // Initialize linear system.
+  LinSystem ls(&wf, Tuple<Space*>(&xvel_space, &yvel_space, &p_space));
+
+  // Initialize nonlinear system.
+  NonlinSystem nls(&wf, Tuple<Space*>(&xvel_space, &yvel_space, &p_space));
+
+  // Set initial conditions.
+  info("Setting initial conditions.");
+  xvel_prev_time.set_zero(&mesh);
+  yvel_prev_time.set_zero(&mesh);
+  p_prev_time.set_zero(&mesh);
+
+  // Update time-dependent essential BC.
+  info("Updating time-dependent essential BC.");
+  TIME += TAU;
+  if (NEWTON) nls.update_essential_bc_values();
+  else ls.update_essential_bc_values();
+
+  // Project initial conditions on the FE spaces
+  // to obtain initial coefficient vector for the Newton's method.
+  info("Projecting initial conditions to obtain initial vector for the Newton'w method.");
+  nls.project_global(Tuple<MeshFunction*>(&xvel_prev_time, &yvel_prev_time, &p_prev_time),
+                     Tuple<Solution*>(&xvel_prev_newton, &yvel_prev_newton, &p_prev_newton),
+                     Tuple<int>(vel_proj_norm, vel_proj_norm, p_proj_norm));  
 
   // Time-stepping loop:
   char title[100];
@@ -246,40 +258,59 @@ int main(int argc, char* argv[])
     TIME += TAU;
     info("---- Time step %d, time = %g:", ts, TIME);
 
-    // Update time-dependent essential BC are used.
-    if (TIME <= STARTUP_TIME) {
-      info("Updating time-dependent essential BC.");
-      update_essential_bc_values(Tuple<Space *>(xvel_space, yvel_space, p_space));
-    }
-
     if (NEWTON) {
       // Newton's method.
       info("Performing Newton's method.");
       bool verbose = true; // Default is false.
-      if (!solve_newton(Tuple<Space *>(xvel_space, yvel_space, p_space), &wf, coeff_vec,
-          matrix_solver, NEWTON_TOL, NEWTON_MAX_ITER, verbose))
+      if (!nls.solve_newton(Tuple<Solution*>(&xvel_prev_newton, &yvel_prev_newton, &p_prev_newton), 
+                            NEWTON_TOL, NEWTON_MAX_ITER, verbose)) {
         error("Newton's method did not converge.");
-
-      // Update previous time level solutions.
-      xvel_prev_time.set_fe_solution(xvel_space, coeff_vec);
-      yvel_prev_time.set_fe_solution(yvel_space, coeff_vec);
-      p_prev_time.set_fe_solution(p_space, coeff_vec);
+      }
     }
     else {
-      // Linear solve.  
+      // Assemble and solve.
       info("Assembling and solving linear problem.");
-      solve_linear(Tuple<Space *>(xvel_space, yvel_space, p_space), &wf, matrix_solver,
-                   Tuple<Solution*>(&xvel_prev_time, &yvel_prev_time, &p_prev_time));
+      ls.assemble();
+      ls.solve(Tuple<Solution*>(&xvel_prev_newton, &yvel_prev_newton, &p_prev_newton));
     }
 
+    // Calculate an estimate of the temporal change of the velocity.
+    H1Adapt hp(&nls);
+    hp.set_solutions(Tuple<Solution*>(&xvel_prev_time, &yvel_prev_time, &p_prev_time), 
+                     Tuple<Solution*>(&xvel_prev_newton, &yvel_prev_newton, &p_prev_newton));
+    hp.set_error_form(0, 0, callback(h1_form));
+    hp.set_error_form(1, 1, callback(h1_form));
+    double err_est = hp.calc_error(H2D_TOTAL_ERROR_ABS | H2D_ELEMENT_ERROR_ABS) / TAU;
+    info("x_vel temporal change: %g", err_est);
     // Show the solution at the end of time step.
     sprintf(title, "Velocity, time %g", TIME);
     vview.set_title(title);
-    vview.show(&xvel_prev_time, &yvel_prev_time, H2D_EPS_LOW);
+    vview.show(&xvel_prev_newton, &yvel_prev_newton, H2D_EPS_LOW);
     sprintf(title, "Pressure, time %g", TIME);
     pview.set_title(title);
-    pview.show(&p_prev_time);
- }
+    pview.show(&p_prev_newton);
+
+    // Calculate pressure integral over inner circle.
+    // (To be replaced with drag coefficient calculation later.)
+    double val = integrate_over_wall(&p_prev_newton, bdy_inner);    
+    printf("Pressure integral: %g\n", val);
+
+    // Copy the result of the Newton's iteration into the
+    // previous time level solutions.
+    xvel_prev_time.copy(&xvel_prev_newton);
+    yvel_prev_time.copy(&yvel_prev_newton);
+    p_prev_time.copy(&p_prev_newton);
+
+    // Update global time.
+    TIME += TAU;
+
+    // Update time dependent essential BC.
+    if (TIME <= STARTUP_TIME) {
+      info("Updating time-dependent essential BC.");
+      if (NEWTON) nls.update_essential_bc_values();
+      else ls.update_essential_bc_values();
+    }
+  }
 
   // Wait for all views to be closed.
   View::wait();

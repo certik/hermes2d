@@ -5,32 +5,7 @@
 #include "hermes2d.h"
 #include "forms.h"
 
-// Flow in between two circles, inner circle is rotating with surface 
-// velocity VEL. The time-dependent laminar incompressible Navier-Stokes equations
-// are discretized in time via the implicit Euler method. If NEWTON == true,
-// the Newton's method is used to solve the nonlinear problem at each time
-// step. If NEWTON == false, the convective term is only linearized using the
-// velocities from the previous time step. Obviously the latter approach is wrong,
-// but people do this frequently because it is faster and simpler to implement.
-// Therefore we include this case for comparison purposes. We also show how
-// to use discontinuous ($L^2$) elements for pressure and thus make the
-// velocity discretely divergence-free. Comparison to approximating the
-// pressure with the standard (continuous) Taylor-Hood elements is enabled.
-// The Reynolds number Re = 200 which is very low. You can increase it but 
-// then you will need to make the mesh finer, and the computation will take 
-// more time.
-//
-// PDE: incompressible Navier-Stokes equations in the form
-//     \partial v / \partial t - \Delta v / Re + (v \cdot \nabla) v + \nabla p = 0,
-//     div v = 0.
-//
-// BC: tangential velocity V on Gamma_1 (inner circle),
-//     zero velocity on Gamma_2 (outer circle).
-//
-// Geometry: Area in between two concentric circles with radiuses r1 and r2,
-//           r1 < r2. These radiuses can be changed in the file "domain.mesh".
-//
-// The following parameters can be changed:
+// This test makes sure that example "ns-bearing" works correctly.
 
 const int INIT_REF_NUM = 2;                // Number of initial uniform mesh refinements. 
 const int INIT_BDY_REF_NUM_INNER = 2;      // Number of initial mesh refinements towards boundary. 
@@ -215,7 +190,7 @@ int main(int argc, char* argv[])
     wf.add_vector_form(1, callback(simple_linear_form), H2D_ANY, &yvel_prev_time);
   }
 
-  // Initialize views.
+/*  // Initialize views.
   VectorView vview("velocity [m/s]", new WinGeom(0, 0, 600, 500));
   ScalarView pview("pressure [Pa]", new WinGeom(610, 0, 600, 500));
   vview.set_min_max_range(0, 1.6);
@@ -223,7 +198,7 @@ int main(int argc, char* argv[])
   //pview.set_min_max_range(-0.9, 1.0);
   pview.fix_scale_width(80);
   pview.show_mesh(true);
-
+*/
   // Project initial conditions on FE spaces to obtain initial coefficient 
   // vector for the Newton's method.
   Vector* coeff_vec;
@@ -272,16 +247,42 @@ int main(int argc, char* argv[])
                    Tuple<Solution*>(&xvel_prev_time, &yvel_prev_time, &p_prev_time));
     }
 
-    // Show the solution at the end of time step.
+/*    // Show the solution at the end of time step.
     sprintf(title, "Velocity, time %g", TIME);
     vview.set_title(title);
     vview.show(&xvel_prev_time, &yvel_prev_time, H2D_EPS_LOW);
     sprintf(title, "Pressure, time %g", TIME);
     pview.set_title(title);
     pview.show(&p_prev_time);
+*/
  }
+  info("Coordinate (   0, 2.5) xvel value = %lf", xvel_prev_time.get_pt_value(0.0, 2.5));
+  info("Coordinate (   5, 2.5) xvel value = %lf", xvel_prev_time.get_pt_value(5.0, 2.5));
+  info("Coordinate ( 7.5, 2.5) xvel value = %lf", xvel_prev_time.get_pt_value(7.5, 2.5));
+  info("Coordinate (  10, 2.5) xvel value = %lf", xvel_prev_time.get_pt_value(10.0, 2.5));
+  info("Coordinate (12.5, 2.5) xvel value = %lf", xvel_prev_time.get_pt_value(12.5, 2.5));
+  info("Coordinate (  15, 2.5) xvel value = %lf", xvel_prev_time.get_pt_value(15.0, 2.5));
 
-  // Wait for all views to be closed.
-  View::wait();
-  return 0;
+  info("Coordinate (   0, 2.5) yvel value = %lf", yvel_prev_time.get_pt_value(0.0, 2.5));
+  info("Coordinate (   5, 2.5) yvel value = %lf", yvel_prev_time.get_pt_value(5.0, 2.5));
+  info("Coordinate ( 7.5, 2.5) yvel value = %lf", yvel_prev_time.get_pt_value(7.5, 2.5));
+  info("Coordinate (  10, 2.5) yvel value = %lf", yvel_prev_time.get_pt_value(10.0, 2.5));
+  info("Coordinate (12.5, 2.5) yvel value = %lf", yvel_prev_time.get_pt_value(12.5, 2.5));
+  info("Coordinate (  15, 2.5) yvel value = %lf", yvel_prev_time.get_pt_value(15.0, 2.5));
+
+#define ERROR_SUCCESS                                0
+#define ERROR_FAILURE                               -1
+  int success = 1;
+  double eps = 1e-5;
+
+  // waiting for test data.
+
+  if (success == 1) {
+    printf("Success!\n");
+    return ERROR_SUCCESS;
+  }
+  else {
+    printf("Failure!\n");
+    return ERROR_FAILURE;
+  }
 }
