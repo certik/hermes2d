@@ -1317,28 +1317,23 @@ void project_global(Tuple<Space *> spaces, matrix_forms_tuple_t proj_biforms,
 {
   int n = spaces.size();
   matrix_forms_tuple_t::size_type n_biforms = proj_biforms.size();
+  if (n_biforms == 0)
+    error("Please use the simpler version of project_global with the argument Tuple<int> proj_norms if you do not provide your own projection norm.");
   if (n_biforms != proj_liforms.size())
     error("Mismatched numbers of projection forms in project_global().");
   if (n != n_biforms)
     error("Mismatched numbers of projected functions and projection forms in project_global().");
 
-  // this is needed since spaces may have their DOFs enumerated only locally
+  // This is needed since spaces may have their DOFs enumerated only locally
   // when they come here.
   int ndof = assign_dofs(spaces);
 
-  // define projection weak form
+  // Define projection weak form.
   WeakForm proj_wf(n);
   for (int i = 0; i < n; i++) {
-    if (n_biforms == 0) {
-      proj_wf.add_matrix_form(i, i, H1projection_biform<double, scalar>, H1projection_biform<Ord, Ord>);
-      proj_wf.add_vector_form(i, H1projection_liform<double, scalar>, H1projection_liform<Ord, Ord>,
-                     H2D_ANY, source_meshfns[i]);
-    }
-    else {
-      proj_wf.add_matrix_form(i, i, proj_biforms[i].first, proj_biforms[i].second);
-      proj_wf.add_vector_form(i, proj_liforms[i].first, proj_liforms[i].second,
-                     H2D_ANY, source_meshfns[i]);
-    }
+    proj_wf.add_matrix_form(i, i, proj_biforms[i].first, proj_biforms[i].second);
+    proj_wf.add_vector_form(i, proj_liforms[i].first, proj_liforms[i].second,
+                    H2D_ANY, source_meshfns[i]);
   }
 
   project_internal(spaces, &proj_wf, target_slns, target_vec, is_complex);
