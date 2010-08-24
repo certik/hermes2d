@@ -26,7 +26,7 @@ const double VEL_INLET = 1.0;        // Inlet velocity (reached after STARTUP_TI
 const double STARTUP_TIME = 1.0;     // During this time, inlet velocity increases gradually
                                      // from 0 to VEL_INLET, then it stays constant.
 const double TAU = 0.1;              // Time step.
-const double T_FINAL = 30000.0;      // Time interval length.
+const double T_FINAL = 0.21;         // Time interval length.
 const double NEWTON_TOL = 1e-3;      // Stopping criterion for the Newton's method.
 const int NEWTON_MAX_ITER = 10;      // Maximum allowed number of Newton iterations.
 const double H = 5;                  // Domain height (necessary to define the parabolic
@@ -197,23 +197,80 @@ int main(int argc, char* argv[])
     }
   }
 
-  info("Coordinate (   0, 2.5) value = %lf", xvel_prev_time.get_pt_value(0.0, 2.5));
-  info("Coordinate (   5, 2.5) value = %lf", xvel_prev_time.get_pt_value(5.0, 2.5));
-  info("Coordinate ( 7.5, 2.5) value = %lf", xvel_prev_time.get_pt_value(7.5, 2.5));
-  info("Coordinate (  10, 2.5) value = %lf", xvel_prev_time.get_pt_value(10.0, 2.5));
-  info("Coordinate (12.5, 2.5) value = %lf", xvel_prev_time.get_pt_value(12.5, 2.5));
-  info("Coordinate (  15, 2.5) value = %lf", xvel_prev_time.get_pt_value(15.0, 2.5));
+  info("Coordinate (   0, 2.5) xvel value = %lf", xvel_prev_time.get_pt_value(0.0, 2.5));
+  info("Coordinate (   5, 2.5) xvel value = %lf", xvel_prev_time.get_pt_value(5.0, 2.5));
+  info("Coordinate ( 7.5, 2.5) xvel value = %lf", xvel_prev_time.get_pt_value(7.5, 2.5));
+  info("Coordinate (  10, 2.5) xvel value = %lf", xvel_prev_time.get_pt_value(10.0, 2.5));
+  info("Coordinate (12.5, 2.5) xvel value = %lf", xvel_prev_time.get_pt_value(12.5, 2.5));
+  info("Coordinate (  15, 2.5) xvel value = %lf", xvel_prev_time.get_pt_value(15.0, 2.5));
 
-  info("Coordinate (   0, 2.5) value = %lf", yvel_prev_time.get_pt_value(0.0, 2.5));
-  info("Coordinate (   5, 2.5) value = %lf", yvel_prev_time.get_pt_value(5.0, 2.5));
-  info("Coordinate ( 7.5, 2.5) value = %lf", yvel_prev_time.get_pt_value(7.5, 2.5));
-  info("Coordinate (  10, 2.5) value = %lf", yvel_prev_time.get_pt_value(10.0, 2.5));
-  info("Coordinate (12.5, 2.5) value = %lf", yvel_prev_time.get_pt_value(12.5, 2.5));
-  info("Coordinate (  15, 2.5) value = %lf", yvel_prev_time.get_pt_value(15.0, 2.5));
+  info("Coordinate (   0, 2.5) yvel value = %lf", yvel_prev_time.get_pt_value(0.0, 2.5));
+  info("Coordinate (   5, 2.5) yvel value = %lf", yvel_prev_time.get_pt_value(5.0, 2.5));
+  info("Coordinate ( 7.5, 2.5) yvel value = %lf", yvel_prev_time.get_pt_value(7.5, 2.5));
+  info("Coordinate (  10, 2.5) yvel value = %lf", yvel_prev_time.get_pt_value(10.0, 2.5));
+  info("Coordinate (12.5, 2.5) yvel value = %lf", yvel_prev_time.get_pt_value(12.5, 2.5));
+  info("Coordinate (  15, 2.5) yvel value = %lf", yvel_prev_time.get_pt_value(15.0, 2.5));
 
 #define ERROR_SUCCESS                                0
 #define ERROR_FAILURE                               -1
-  printf("Success!\n");
-  return ERROR_SUCCESS;
+  int success = 1;
+  double eps = 1e-5;
+  if (fabs(xvel_prev_time.get_pt_value(0.0, 2.5) - 0.200000) > eps) {
+    printf("Coordinate (   0, 2.5) xvel value is %g\n", xvel_prev_time.get_pt_value(0.0, 2.5));
+    success = 0;
+  }
+  if (fabs(xvel_prev_time.get_pt_value(5, 2.5) - 0.130866) > eps) {
+    printf("Coordinate (   5, 2.5) xvel value is %g\n", xvel_prev_time.get_pt_value(5, 2.5));
+    success = 0;
+  }
+  if (fabs(xvel_prev_time.get_pt_value(7.5, 2.5) - 0.134637) > eps) {
+    printf("Coordinate ( 7.5, 2.5) xvel value is %g\n", xvel_prev_time.get_pt_value(7.5, 2.5));
+    success = 0;
+  }
+  if (fabs(xvel_prev_time.get_pt_value(10, 2.5) - 0.134801) > eps) {
+    printf("Coordinate (  10, 2.5) xvel value is %g\n", xvel_prev_time.get_pt_value(10, 2.5));
+    success = 0;
+  }
+  if (fabs(xvel_prev_time.get_pt_value(12.5, 2.5) - 0.134826) > eps) {
+    printf("Coordinate (12.5, 2.5) xvel value is %g\n", xvel_prev_time.get_pt_value(12.5, 2.5));
+    success = 0;
+  }
+  if (fabs(xvel_prev_time.get_pt_value(15, 2.5) - 0.134840) > eps) {
+    printf("Coordinate (  15, 2.5) xvel value is %g\n", xvel_prev_time.get_pt_value(15, 2.5));
+    success = 0;
+  }
 
+  if (fabs(yvel_prev_time.get_pt_value(0.0, 2.5) - 0.000000) > eps) {
+    printf("Coordinate (   0, 2.5) yvel value is %g\n", yvel_prev_time.get_pt_value(0.0, 2.5));
+    success = 0;
+  }
+  if (fabs(yvel_prev_time.get_pt_value(5, 2.5) - 0.000584) > eps) {
+    printf("Coordinate (   5, 2.5) yvel value is %g\n", yvel_prev_time.get_pt_value(5, 2.5));
+    success = 0;
+  }
+  if (fabs(yvel_prev_time.get_pt_value(7.5, 2.5) - 0.000101) > eps) {
+    printf("Coordinate ( 7.5, 2.5) yvel value is %g\n", yvel_prev_time.get_pt_value(7.5, 2.5));
+    success = 0;
+  }
+  if (fabs(yvel_prev_time.get_pt_value(10, 2.5) - 0.000029) > eps) {
+    printf("Coordinate (  10, 2.5) yvel value is %g\n", yvel_prev_time.get_pt_value(10, 2.5));
+    success = 0;
+  }
+  if (fabs(yvel_prev_time.get_pt_value(12.5, 2.5) - 0.000013) > eps) {
+    printf("Coordinate (12.5, 2.5) yvel value is %g\n", yvel_prev_time.get_pt_value(12.5, 2.5));
+    success = 0;
+  }
+  if (fabs(yvel_prev_time.get_pt_value(15, 2.5) - 0.000009) > eps) {
+    printf("Coordinate (  15, 2.5) yvel value is %g\n", yvel_prev_time.get_pt_value(15, 2.5));
+    success = 0;
+  }
+
+  if (success == 1) {
+    printf("Success!\n");
+    return ERROR_SUCCESS;
+  }
+  else {
+    printf("Failure!\n");
+    return ERROR_FAILURE;
+  }
 }
