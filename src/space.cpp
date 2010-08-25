@@ -47,8 +47,8 @@ Space::~Space()
 void Space::free()
 {
   free_extra_data();
-  if (nsize) { ::free(ndata); nsize = 0; }
-  if (esize) { ::free(edata); esize = 0; }
+  if (nsize) { ::free(ndata); ndata=NULL; nsize = 0; }
+  if (esize) { ::free(edata); edata=NULL; esize = 0; }
 }
 
 
