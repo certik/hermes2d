@@ -84,8 +84,14 @@ DiscreteProblem::DiscreteProblem(WeakForm* wf_, Space* s_)
 DiscreteProblem::~DiscreteProblem()
 {
   free();
+  delete this->spaces; // This only frees the pointers; to delete the actual Spaces, 
+                       // either use free_spaces beforehand or do it outside of DiscreteProblem.
   if (this->sp_seq != NULL) delete [] this->sp_seq;
-  if (this->pss != NULL) delete [] this->pss;
+  if (this->pss != NULL) {
+    for (int i = 0; i < this->wf->neq; i++)
+      if (this->pss[i] != NULL) delete this->pss[i];
+    delete [] this->pss;
+  }
   if (this->solver_default != NULL) delete this->solver_default;
 }
 
@@ -1207,11 +1213,13 @@ void project_internal(Tuple<Space *> spaces, WeakForm *wf,
 
   // If the user wants the resulting coefficient vector
   // NOTE: this may change target_vector length.
-  // NOTE: the rhs vector must not be deleted at the end of this function.
   if (target_vec != NULL) {
     target_vec->free_data();
     target_vec->set_c_array(rhs->get_c_array(), rhs->get_size());
     target_vec->set_c_array_cplx(rhs->get_c_array_cplx(), rhs->get_size());
+    // NOTE: rhs must not be deleted beyond this point.
+  } else {
+    delete rhs;
   }
 
   delete dir;
@@ -1551,7 +1559,7 @@ bool solve_newton(Tuple<Space *> spaces, WeakForm* wf, Vector* coeff_vec,
 
   delete rhs;
   delete mat;
-  
+  delete solver; // TODO: Create destructors for solvers.
   return (it <= newton_max_iter);
 }
 
