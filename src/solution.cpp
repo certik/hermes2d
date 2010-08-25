@@ -197,7 +197,7 @@ Solution::Solution(Mesh *mesh) : MeshFunction(mesh)
   set_quad_2d(&g_quad_2d_std);
 }
 
-Solution::Solution(Space* s, Vector* vec) : MeshFunction(mesh) 
+Solution::Solution(Space* s, Vector* vec) : MeshFunction(s->get_mesh()) 
 {
   memset(tables, 0, sizeof(tables));
   memset(elems,  0, sizeof(elems));

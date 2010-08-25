@@ -126,6 +126,14 @@ double calc_norm(double (*fn)(MeshFunction*, RefMap*), MeshFunction* sln)
   return sqrt(norm);
 }
 
+double calc_rel_error(MeshFunction* sln, MeshFunction* ref_sln, int norm_type)
+{
+  double error = calc_abs_error(sln, ref_sln, norm_type);
+  double norm = calc_norm(ref_sln, norm_type);
+  
+  return error/norm;
+}
+
 
 //// H1 space //////////////////////////////////////////////////////////////////////////////////////
 
@@ -170,15 +178,6 @@ double norm_fn_h1(MeshFunction* sln, RefMap* ru)
   h1_integrate_expression(sqr(uval[i]) + sqr(dudx[i]) + sqr(dudy[i]));
   return result;
 }
-
-double calc_rel_error(MeshFunction* sln, MeshFunction* ref_sln, int norm_type)
-{
-  double error = calc_abs_error(sln, ref_sln, norm_type);
-  double norm = calc_norm(ref_sln, norm_type);
-
-  return error/norm;
-}
-
 
 // function used to calculate error in L2 norm
 double error_fn_l2(MeshFunction* sln1, MeshFunction* sln2, RefMap* ru, RefMap* rv)

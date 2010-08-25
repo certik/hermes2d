@@ -35,7 +35,8 @@ using namespace std;
 Adapt::Adapt(Tuple<Space *> spaces_, Tuple<int> proj_norms) : num_act_elems(-1), have_solutions(false), have_errors(false) 
 {
   // sanity check
-  if (spaces_.size() != proj_norms.size()) error("Mismatched numbers of spaces and projection types in Adapt::Adapt().");
+  if (proj_norms.size() > 0 && spaces_.size() != proj_norms.size()) 
+    error("Mismatched numbers of spaces and projection types in Adapt::Adapt().");
 
   this->neq = spaces_.size();
 
@@ -54,13 +55,15 @@ Adapt::Adapt(Tuple<Space *> spaces_, Tuple<int> proj_norms) : num_act_elems(-1),
   memset(sln, 0, sizeof(sln));
   memset(rsln, 0, sizeof(rsln));
 
-  for (int i = 0; i < this->neq; i++) {
-    switch (proj_norms[i]) {
-      case H2D_L2_NORM: form[i][i] = l2_form<double, scalar>; ord[i][i]  = l2_form<Ord, Ord>; break;
-      case H2D_H1_NORM: form[i][i] = h1_form<double, scalar>; ord[i][i]  = h1_form<Ord, Ord>; break;
-      case H2D_HCURL_NORM: form[i][i] = hcurl_form<double, scalar>; ord[i][i]  = hcurl_form<Ord, Ord>; break;
-      case H2D_HDIV_NORM: form[i][i] = hdiv_form<double, scalar>; ord[i][i]  = hdiv_form<Ord, Ord>; break;
-      default: error("Unknown projection type in Adapt::Adapt().");
+  if (proj_norms.size() > 0) {
+    for (int i = 0; i < this->neq; i++) {
+      switch (proj_norms[i]) {
+        case H2D_L2_NORM: form[i][i] = l2_form<double, scalar>; ord[i][i]  = l2_form<Ord, Ord>; break;
+        case H2D_H1_NORM: form[i][i] = h1_form<double, scalar>; ord[i][i]  = h1_form<Ord, Ord>; break;
+        case H2D_HCURL_NORM: form[i][i] = hcurl_form<double, scalar>; ord[i][i]  = hcurl_form<Ord, Ord>; break;
+        case H2D_HDIV_NORM: form[i][i] = hdiv_form<double, scalar>; ord[i][i]  = hdiv_form<Ord, Ord>; break;
+        default: error("Unknown projection type in Adapt::Adapt().");
+      }
     }
   }
 }

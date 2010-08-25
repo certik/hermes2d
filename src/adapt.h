@@ -128,9 +128,10 @@ struct AdaptivityParamType {
 class H2D_API Adapt
 {
 public:
-  Adapt(Tuple<Space *> spaces_, Tuple<int> proj_norms); ///< Constructor. Suitable for problems where various solution components 
-                                 ///< belong to different spaces (L2, H1, Hcurl, Hdiv). 
-  virtual ~Adapt();              ///< Destructor. Deallocates allocated private data.
+  /// Constructor. Suitable for problems where various solution components belong to different spaces (L2, H1, Hcurl, 
+  /// Hdiv). If proj_norms are not specified, they are expected to be set later by set_error_form.
+  Adapt(Tuple<Space *> spaces_, Tuple<int> proj_norms = Tuple<int>()); 
+  virtual ~Adapt();  ///< Destructor. Deallocates allocated private data.
 
   /// Sets user defined bilinear form which is used to calculate error.
   /** By default, all inherited class should set default bilinear forms for each element (i.e. i = j).
