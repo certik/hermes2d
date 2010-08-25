@@ -50,12 +50,12 @@ const int P_INIT_VEL = 2;            // Initial polynomial degree for velocity c
 const int P_INIT_PRESSURE = 1;       // Initial polynomial degree for pressure.
                                      // Note: P_INIT_VEL should always be greater than
                                      // P_INIT_PRESSURE because of the inf-sup condition.
-const double RE = 200.0;             // Reynolds number.
+const double RE = 5000.0;            // Reynolds number.
 const double VEL = 0.1;              // Surface velocity of inner circle.
 const double STARTUP_TIME = 1.0;     // During this time, surface velocity of the inner circle increases 
                                      // gradually from 0 to VEL, then it stays constant.
-const double TAU = 0.1;              // Time step.
-const double T_FINAL = 30000.0;      // Time interval length.
+const double TAU = 10.0;             // Time step.
+const double T_FINAL = 3600.0;       // Time interval length.
 const double NEWTON_TOL = 1e-5;      // Stopping criterion for the Newton's method.
 const int NEWTON_MAX_ITER = 10;      // Maximum allowed number of Newton iterations.
 MatrixSolverType matrix_solver = SOLVER_UMFPACK;  // Possibilities: SOLVER_UMFPACK, SOLVER_PETSC,
@@ -218,7 +218,7 @@ int main(int argc, char* argv[])
   // Initialize views.
   VectorView vview("velocity [m/s]", new WinGeom(0, 0, 600, 500));
   ScalarView pview("pressure [Pa]", new WinGeom(610, 0, 600, 500));
-  vview.set_min_max_range(0, 1.6);
+  //vview.set_min_max_range(0, 1.6);
   vview.fix_scale_width(80);
   //pview.set_min_max_range(-0.9, 1.0);
   pview.fix_scale_width(80);
