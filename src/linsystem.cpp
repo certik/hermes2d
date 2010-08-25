@@ -302,19 +302,19 @@ void LinSystem::copy(LinSystem* sys)
 void LinSystem::free_vectors()
 {
   if (this->RHS != NULL) {
-    delete [] this->RHS;
+    ::free(this->RHS);
     this->RHS = NULL;
     this->RHS_length = 0;
     //printf("Freeing RHS.\n");
   }
   if (this->Dir != NULL) {
-    delete [] this->Dir;
+    ::free(this->Dir);
     this->Dir = NULL;
     this->Dir_length = 0;
     //printf("Freeing Dir.\n");
   }
   if (this->Vec != NULL) {
-    delete [] this->Vec;
+    ::free(this->Vec);
     this->Vec = NULL;
     this->Vec_length = 0;
     //printf("Freeing Vec.\n");
