@@ -54,6 +54,7 @@ void VectorBaseView::update_solution()
 
   VectorView::show(sln,  sln, 0.001, H2D_FN_VAL_0, H2D_FN_VAL_1);
   update_title();
+  delete vec;
 }
 
 
