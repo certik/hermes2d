@@ -542,7 +542,10 @@ void DiscreteProblem::assemble(Vector* init_vec, Matrix* mat_ext, Vector* dir_ex
 
   verbose("Stiffness matrix assembled (stages: %d)", stages.size());
   report_time("Stiffness matrix assembled in %g s", cpu_time.tick().last());
-  for (int i = 0; i < wf->neq; i++) delete spss[i];
+  for (int i = 0; i < wf->neq; i++) { 
+    delete spss[i];
+    if (u_ext[i] != NULL) delete u_ext[i];
+  }
   delete [] buffer;
 
   if (rhsonly == false) values_changed = true;
