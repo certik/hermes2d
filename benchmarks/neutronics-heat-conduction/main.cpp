@@ -165,7 +165,6 @@ int main(int argc, char* argv[])
   H1Space space_T(&mesh, bc_types_T, essential_bc_values_T, P_INIT);
   H1Space space_phi(&mesh, bc_types_phi, essential_bc_values_phi, P_INIT);
   Tuple<Space*> spaces(&space_T, &space_phi);
-  int ndof = get_num_dofs(spaces);
 
   // Exact solutions for error evaluation.
   ExactSolution T_exact_solution(&mesh, T_exact),
@@ -207,7 +206,7 @@ int main(int argc, char* argv[])
   phi_prev_time.set_exact(&mesh, phi_exact);
 
   // Time stepping.
-  Vector* coeff_vec = new AVector(ndof);
+  Vector* coeff_vec = new AVector();
   int t_step = 1;
   do {
     TIME += TAU;

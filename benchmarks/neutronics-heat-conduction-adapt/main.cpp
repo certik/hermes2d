@@ -261,7 +261,7 @@ int main(int argc, char* argv[])
   
   // Newton's loop on the initial coarse meshes.
   info("Solving on coarse meshes.");
-  Vector* coeff_vec = new AVector(ndof);
+  Vector* coeff_vec = new AVector();
   project_global(spaces, proj_norms, prev_time_meshfns, coarse_mesh_solutions, coeff_vec);
   bool verbose = true; // Default is false.
   bool did_converge = solve_newton(spaces, &wf, coeff_vec, matrix_solver, 
@@ -312,10 +312,6 @@ int main(int argc, char* argv[])
         space_phi.set_uniform_order(P_INIT);
         
         if (SOLVE_ON_COARSE_MESH) {
-          ndof = get_num_dofs(spaces);
-          delete coeff_vec;
-          coeff_vec = new AVector(ndof);
-          
           // Newton's loop on the globally derefined meshes.
           info("Solving on globally derefined meshes, starting from the latest fine mesh solutions.");
           project_global(spaces, proj_norms, fine_mesh_meshfns, coarse_mesh_solutions, coeff_vec);
@@ -361,11 +357,8 @@ int main(int argc, char* argv[])
         ref_mesh->refine_all_elements();
         ref_spaces.push_back(spaces[i]->dup(ref_mesh));
         ref_spaces[i]->copy_orders(spaces[i], order_increase);
-      }
-      
-      ndof = get_num_dofs(ref_spaces);      
-      delete coeff_vec;
-      coeff_vec = new AVector(ndof);
+      }     
+
       // Newton's loop on the refined meshes.
       if (as == 1) {
         info("Solving on fine meshes, starting from previous coarse mesh solutions.");
@@ -386,11 +379,7 @@ int main(int argc, char* argv[])
       phi_fine.set_fe_solution(ref_spaces[1], coeff_vec);
       
       
-      if (SOLVE_ON_COARSE_MESH) {
-        ndof = get_num_dofs(spaces);      
-        delete coeff_vec;
-        coeff_vec = new AVector(ndof);
-        
+      if (SOLVE_ON_COARSE_MESH) {        
         // Newton's loop on the previous coarse meshes (before their global refinement).
         info("Solving on coarse meshes, starting from the latest fine mesh solutions.");
         project_global(spaces, proj_norms, fine_mesh_meshfns, coarse_mesh_solutions, coeff_vec);
@@ -485,6 +474,8 @@ int main(int argc, char* argv[])
     info("Exact solution error for T (H1 norm): %g %%", T_error);
     info("Exact solution error for phi (H1 norm): %g %%", phi_error);
   }
+  
+  delete coeff_vec;
 
   // Wait for all views to be closed.
   View::wait();

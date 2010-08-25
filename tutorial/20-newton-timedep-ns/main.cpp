@@ -188,7 +188,7 @@ int main(int argc, char* argv[])
   Vector* coeff_vec;
   if (NEWTON) {
     info("Projecting initial conditions to obtain initial vector for the Newton's method.");
-    coeff_vec = new AVector(ndof); 
+    coeff_vec = new AVector(); 
     project_global(Tuple<Space *>(xvel_space, yvel_space, p_space), 
                    Tuple<int>(vel_proj_norm, vel_proj_norm, p_proj_norm),
                    Tuple<MeshFunction*>(&xvel_prev_time, &yvel_prev_time, &p_prev_time),
@@ -240,6 +240,8 @@ int main(int argc, char* argv[])
     pview.show(&p_prev_time);
  }
 
+  if (NEWTON) delete coeff_vec;
+  
   // Wait for all views to be closed.
   View::wait();
   return 0;

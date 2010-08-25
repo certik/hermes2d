@@ -95,9 +95,9 @@ int main(int argc, char* argv[])
   wf.add_vector_form(callback(res), H2D_ANY, &u_prev_time);
 
   // Project the initial condition on the FE space
-  // to obtain initial coefficient vector for the Newton's method.
-  Vector* coeff_vec = new AVector(ndof); 
+  // to obtain initial coefficient vector for the Newton's method. 
   info("Projecting initial condition to obtain initial vector for the Newton'w method.");
+  Vector* coeff_vec = new AVector();
   project_global(space, H2D_H1_NORM, init_cond, &u_prev_time, coeff_vec);
 
   // Time stepping loop:
@@ -120,6 +120,8 @@ int main(int argc, char* argv[])
 
   } while (current_time < T_FINAL);
 
+  delete coeff_vec;
+  
   ndof = get_num_dofs(space);
   info("Coordinate (-10, -10) value = %lf", u_prev_time.get_pt_value(-10.0, -10.0));
   info("Coordinate ( -6,  -6) value = %lf", u_prev_time.get_pt_value(-6.0, -6.0));

@@ -108,8 +108,8 @@ int main(int argc, char* argv[])
 
   // Project the initial condition on the FE space
   // to obtain initial coefficient vector for the Newton's method.
-  Vector* coeff_vec = new AVector(ndof); 
   info("Projecting initial condition to obtain initial vector for the Newton'w method.");
+  Vector* coeff_vec = new AVector(); 
   project_global(space, H2D_H1_NORM, init_cond, &u_prev_time, coeff_vec);
 
   // Initialize views.
@@ -141,6 +141,8 @@ int main(int argc, char* argv[])
     sview.show(&u_prev_time);
   } while (current_time < T_FINAL);
 
+  delete coeff_vec;
+  
   // Wait for all views to be closed.
   View::wait();
   return 0;

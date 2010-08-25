@@ -83,7 +83,6 @@ int main(int argc, char* argv[])
 
   // Create an H1 space with default shapeset.
   H1Space* space = new H1Space(&mesh, bc_types, essential_bc_values, P_INIT);
-  int ndof = get_num_dofs(space);
 
   // Initialize the weak formulation
   WeakForm wf;
@@ -93,7 +92,7 @@ int main(int argc, char* argv[])
   // Project the initial condition on the FE space to obtain initial 
   // coefficient vector for the Newton's method.
   info("Projecting to obtain initial vector for the Newton's method.");
-  Vector* init_coeff_vec = new AVector(ndof);
+  Vector* init_coeff_vec = new AVector();
   // The NULL means that we do not want the resulting Solution, just the vector.
   project_global(space, H2D_H1_NORM, init_cond, NULL, init_coeff_vec); 
 
@@ -103,6 +102,8 @@ int main(int argc, char* argv[])
   bool success = solve_newton(space, &wf, init_coeff_vec, matrix_solver, 
 		              NEWTON_TOL, NEWTON_MAX_ITER, verbose);
 
+  delete init_coeff_vec;
+  
 #define ERROR_SUCCESS                               0
 #define ERROR_FAILURE                               -1
   if (success) {  // should pass with NEWTON_MAX_ITER = 8 and fail with NEWTON_MAX_ITER = 7

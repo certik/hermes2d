@@ -89,7 +89,7 @@ int main(int argc, char* argv[])
 
   // Projecting initial conditions to obtain initial vector for the Newton's method.
   info("Projecting initial conditions to obtain initial vector for the Newton's method.");
-  Vector* coeff_vec = new AVector(ndof); 
+  Vector* coeff_vec = new AVector(); 
   project_global(Tuple<Space *>(tspace, cspace), Tuple<int>(H2D_H1_NORM, H2D_H1_NORM),
   Tuple<MeshFunction*>(&t_prev_newton, &c_prev_newton),Tuple<Solution*>(&t_prev_newton, &c_prev_newton), coeff_vec);
 
@@ -204,6 +204,8 @@ int main(int argc, char* argv[])
   } 
   while (current_time <= T_FINAL);
 
+  delete coeff_vec;
+  
   // Wait for all views to be closed.
   View::wait();
   return 0;

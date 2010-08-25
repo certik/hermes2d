@@ -98,9 +98,9 @@ int main(int argc, char* argv[])
 
   // Project the initial condition on the FE space
   // to obtain initial coefficient vector for the Newton's method.
-  bool is_complex = true;
-  Vector* coeff_vec = new AVector(ndof, is_complex); 
   info("Projecting initial condition to obtain initial vector for the Newton's method.");
+  Vector* coeff_vec = new AVector(); 
+  bool is_complex = true;
   project_global(space, H2D_H1_NORM, init_cond, &psi_prev_time, coeff_vec, is_complex);
 
   // Time stepping loop:
@@ -127,6 +127,8 @@ int main(int argc, char* argv[])
     view.show(&psi_prev_time);
   }
 
+  delete coeff_vec;
+  
   // Wait for all views to be closed.
   View::wait();
   return 0;

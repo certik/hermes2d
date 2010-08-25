@@ -111,12 +111,6 @@ int main(int argc, char* argv[])
   // Create a selector which will select optimal candidate.
   H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
 
-  // Number of degrees of freedom 
-  int ndof = get_num_dofs(space);
-
-  // Initialize matrix solver.
-  Vector* coeff_vec = new AVector(ndof);
-
   // Initialize views.
   ScalarView s_view("Solution", new WinGeom(0, 0, 440, 350));
   s_view.show_mesh(false);
@@ -133,6 +127,7 @@ int main(int argc, char* argv[])
   // coefficient vector for the Newton's method.
   info("Projecting initial condition to obtain initial vector on the coarse mesh.");
   // The NULL pointer means that we do not want the projection result as a Solution.
+  Vector* coeff_vec = new AVector();
   project_global(space, H2D_H1_NORM, init_cond, NULL, coeff_vec); 
 
   // Newton's loop on the coarse mesh.
@@ -231,12 +226,15 @@ int main(int argc, char* argv[])
 
     // Free the reference space and mesh.
     ref_space->free();
+    ref_mesh->free();
 
     as++;
   }
   while (done == false);
   if (verbose) info("Total running time: %g s", cpu_time.accumulated());
 
+  delete coeff_vec;
+  
   // Wait for keyboard or mouse input.
   View::wait();
   return true;
