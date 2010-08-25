@@ -1549,16 +1549,10 @@ bool solve_newton(Tuple<Space *> spaces, WeakForm* wf, Vector* coeff_vec,
     it++;
   };
 
-  if (it > newton_max_iter) {
-    delete rhs;
-    delete mat;
-    return false;
-  }
-
   delete rhs;
   delete mat;
-
-  return true;
+  
+  return (it <= newton_max_iter);
 }
 
 // Solves a typical nonlinear problem using the Newton's method and 
