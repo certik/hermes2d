@@ -237,17 +237,6 @@ int main(int argc, char* argv[])
       solve_linear(Tuple<Space *>(xvel_space, yvel_space, p_space), &wf, matrix_solver,
                    Tuple<Solution*>(&xvel_prev_time, &yvel_prev_time, &p_prev_time));
     }
-  info("Coordinate ( 0.1, 0.0) xvel value = %lf", xvel_prev_time.get_pt_value(0.1, 0.0));
-  info("Coordinate ( 0.5, 0.0) xvel value = %lf", xvel_prev_time.get_pt_value(0.5, 0.0));
-  info("Coordinate ( 0.9, 0.0) xvel value = %lf", xvel_prev_time.get_pt_value(0.9, 0.0));
-  info("Coordinate ( 1.3, 0.0) xvel value = %lf", xvel_prev_time.get_pt_value(1.3, 0.0));
-  info("Coordinate ( 1.7, 0.0) xvel value = %lf", xvel_prev_time.get_pt_value(1.7, 0.0));
-
-  info("Coordinate ( 0.1, 0.0) yvel value = %lf", yvel_prev_time.get_pt_value(0.1, 0.0));
-  info("Coordinate ( 0.5, 0.0) yvel value = %lf", yvel_prev_time.get_pt_value(0.5, 0.0));
-  info("Coordinate ( 0.9, 0.0) yvel value = %lf", yvel_prev_time.get_pt_value(0.9, 0.0));
-  info("Coordinate ( 1.3, 0.0) yvel value = %lf", yvel_prev_time.get_pt_value(1.3, 0.0));
-  info("Coordinate ( 1.7, 0.0) yvel value = %lf", yvel_prev_time.get_pt_value(1.7, 0.0));
  }
   info("Coordinate ( 0.1, 0.0) xvel value = %lf", xvel_prev_time.get_pt_value(0.1, 0.0));
   info("Coordinate ( 0.5, 0.0) xvel value = %lf", xvel_prev_time.get_pt_value(0.5, 0.0));
@@ -265,8 +254,47 @@ int main(int argc, char* argv[])
 #define ERROR_FAILURE                               -1
   int success = 1;
   double eps = 1e-5;
+  if (fabs(xvel_prev_time.get_pt_value(0.1, 0.0) - (0.000000)) > eps) {
+    printf("Coordinate ( 0.1, 0.0) xvel value = %lf\n", xvel_prev_time.get_pt_value(0.1, 0.0));
+    success = 0;
+  }
+  if (fabs(xvel_prev_time.get_pt_value(0.5, 0.0) - (-0.002035)) > eps) {
+    printf("Coordinate ( 0.5, 0.0) xvel value = %lf\n", xvel_prev_time.get_pt_value(0.5, 0.0));
+    success = 0;
+  }
+  if (fabs(xvel_prev_time.get_pt_value(0.9, 0.0) - (-0.000340)) > eps) {
+    printf("Coordinate ( 0.9, 0.0) xvel value = %lf\n", xvel_prev_time.get_pt_value(0.9, 0.0));
+    success = 0;
+  }
+  if (fabs(xvel_prev_time.get_pt_value(1.3, 0.0) - (-0.000059)) > eps) {
+    printf("Coordinate ( 1.3, 0.0) xvel value = %lf\n", xvel_prev_time.get_pt_value(1.3, 0.0));
+    success = 0;
+  }
+  if (fabs(xvel_prev_time.get_pt_value(1.7, 0.0) - (-0.000006)) > eps) {
+    printf("Coordinate ( 1.7, 0.0) xvel value = %lf\n", xvel_prev_time.get_pt_value(1.7, 0.0));
+    success = 0;
+  }
 
-  // waiting for test data.
+  if (fabs(yvel_prev_time.get_pt_value(0.1, 0.0) - (-0.100000)) > eps) {
+    printf("Coordinate ( 0.1, 0.0) yvel value = %lf\n", yvel_prev_time.get_pt_value(0.1, 0.0));
+    success = 0;
+  }
+  if (fabs(yvel_prev_time.get_pt_value(0.5, 0.0) - (0.003068)) > eps) {
+    printf("Coordinate ( 0.5, 0.0) yvel value = %lf\n", yvel_prev_time.get_pt_value(0.5, 0.0));
+    success = 0;
+  }
+  if (fabs(yvel_prev_time.get_pt_value(0.9, 0.0) - (0.001457)) > eps) {
+    printf("Coordinate ( 0.9, 0.0) yvel value = %lf\n", yvel_prev_time.get_pt_value(0.9, 0.0));
+    success = 0;
+  }
+  if (fabs(yvel_prev_time.get_pt_value(1.3, 0.0) - (0.000749)) > eps) {
+    printf("Coordinate ( 1.3, 0.0) yvel value = %lf\n", yvel_prev_time.get_pt_value(1.3, 0.0));
+    success = 0;
+  }
+  if (fabs(yvel_prev_time.get_pt_value(1.7, 0.0) - (0.000356)) > eps) {
+    printf("Coordinate ( 1.7, 0.0) yvel value = %lf\n", yvel_prev_time.get_pt_value(1.7, 0.0));
+    success = 0;
+  }
 
   if (success == 1) {
     printf("Success!\n");
