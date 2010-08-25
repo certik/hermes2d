@@ -11,17 +11,16 @@ double error_total(	double (*efn)(MeshFunction*, MeshFunction*, RefMap*, RefMap*
 
   for (it1=slns1.begin(), it2=slns2.begin(); it1 < slns1.end(); it1++, it2++) {
     assert(it2 < slns2.end());
-    error += sqr(calc_error(efn, *it1, *it2));
+    error += sqr(calc_abs_error(efn, *it1, *it2));
     if (nfn) norm += sqr(calc_norm(nfn, *it2));
   }
 
   return (nfn ? sqrt(error/norm) : sqrt(error));
 }
 
-
 //// H1 space //////////////////////////////////////////////////////////////////////////////////////
 
-// function used to calculate error in H1 norm
+// Function used to calculate error in H1 norm.
 double error_fn_h1_axisym(MeshFunction* sln1, MeshFunction* sln2, RefMap* ru, RefMap* rv)
 {
   Quad2D* quad = sln1->get_quad_2d();
@@ -45,7 +44,7 @@ double error_fn_h1_axisym(MeshFunction* sln1, MeshFunction* sln2, RefMap* ru, Re
   return 2*M_PI*result;
 }
 
-// function used to calculate H1 norm of the solution
+// Function used to calculate H1 norm of the solution.
 double norm_fn_h1_axisym(MeshFunction* sln, RefMap* ru)
 {
   Quad2D* quad = sln->get_quad_2d();
@@ -65,10 +64,9 @@ double norm_fn_h1_axisym(MeshFunction* sln, RefMap* ru)
   return 2*M_PI*result;
 }
 
-
 double h1_error_axisym(MeshFunction* sln1, MeshFunction* sln2)
 {
-  double error = calc_error(error_fn_h1_axisym, sln1, sln2);
+  double error = calc_abs_error(error_fn_h1_axisym, sln1, sln2);
   double norm = calc_norm(norm_fn_h1_axisym, sln2);
   return error/norm;
 }
@@ -123,7 +121,7 @@ double norm_fn_l2_axisym(MeshFunction* sln, RefMap* ru)
 
 double l2_error_axisym(MeshFunction* sln1, MeshFunction* sln2)
 {
-  double error = calc_error(error_fn_l2_axisym, sln1, sln2);
+  double error = calc_abs_error(error_fn_l2_axisym, sln1, sln2);
   double norm = calc_norm(norm_fn_l2_axisym, sln2);
   return error/norm;
 }

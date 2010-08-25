@@ -25,12 +25,12 @@ const int P_INIT_VEL = 2;            // Initial polynomial degree for velocity c
 const int P_INIT_PRESSURE = 1;       // Initial polynomial degree for pressure.
                                      // Note: P_INIT_VEL should always be greater than
                                      // P_INIT_PRESSURE because of the inf-sup condition.
-const double RE = 200.0;             // Reynolds number.
+const double RE = 5000.0;            // Reynolds number.
 const double VEL = 0.1;              // Surface velocity of inner circle.
 const double STARTUP_TIME = 1.0;     // During this time, surface velocity of the inner circle increases 
                                      // gradually from 0 to VEL, then it stays constant.
-const double TAU = 0.1;              // Time step.
-const double T_FINAL = 30000.0;      // Time interval length.
+const double TAU = 10.0;             // Time step.
+const double T_FINAL = 3600.0;       // Time interval length.
 const double NEWTON_TOL = 1e-5;      // Stopping criterion for the Newton's method.
 const int NEWTON_MAX_ITER = 10;      // Maximum allowed number of Newton iterations.
 MatrixSolverType matrix_solver = SOLVER_UMFPACK;  // Possibilities: SOLVER_UMFPACK, SOLVER_PETSC,
@@ -190,15 +190,6 @@ int main(int argc, char* argv[])
     wf.add_vector_form(1, callback(simple_linear_form), H2D_ANY, &yvel_prev_time);
   }
 
-/*  // Initialize views.
-  VectorView vview("velocity [m/s]", new WinGeom(0, 0, 600, 500));
-  ScalarView pview("pressure [Pa]", new WinGeom(610, 0, 600, 500));
-  vview.set_min_max_range(0, 1.6);
-  vview.fix_scale_width(80);
-  //pview.set_min_max_range(-0.9, 1.0);
-  pview.fix_scale_width(80);
-  pview.show_mesh(true);
-*/
   // Project initial conditions on FE spaces to obtain initial coefficient 
   // vector for the Newton's method.
   Vector* coeff_vec;
@@ -246,29 +237,29 @@ int main(int argc, char* argv[])
       solve_linear(Tuple<Space *>(xvel_space, yvel_space, p_space), &wf, matrix_solver,
                    Tuple<Solution*>(&xvel_prev_time, &yvel_prev_time, &p_prev_time));
     }
+  info("Coordinate ( 0.1, 0.0) xvel value = %lf", xvel_prev_time.get_pt_value(0.1, 0.0));
+  info("Coordinate ( 0.5, 0.0) xvel value = %lf", xvel_prev_time.get_pt_value(0.5, 0.0));
+  info("Coordinate ( 0.9, 0.0) xvel value = %lf", xvel_prev_time.get_pt_value(0.9, 0.0));
+  info("Coordinate ( 1.3, 0.0) xvel value = %lf", xvel_prev_time.get_pt_value(1.3, 0.0));
+  info("Coordinate ( 1.7, 0.0) xvel value = %lf", xvel_prev_time.get_pt_value(1.7, 0.0));
 
-/*    // Show the solution at the end of time step.
-    sprintf(title, "Velocity, time %g", TIME);
-    vview.set_title(title);
-    vview.show(&xvel_prev_time, &yvel_prev_time, H2D_EPS_LOW);
-    sprintf(title, "Pressure, time %g", TIME);
-    pview.set_title(title);
-    pview.show(&p_prev_time);
-*/
+  info("Coordinate ( 0.1, 0.0) yvel value = %lf", yvel_prev_time.get_pt_value(0.1, 0.0));
+  info("Coordinate ( 0.5, 0.0) yvel value = %lf", yvel_prev_time.get_pt_value(0.5, 0.0));
+  info("Coordinate ( 0.9, 0.0) yvel value = %lf", yvel_prev_time.get_pt_value(0.9, 0.0));
+  info("Coordinate ( 1.3, 0.0) yvel value = %lf", yvel_prev_time.get_pt_value(1.3, 0.0));
+  info("Coordinate ( 1.7, 0.0) yvel value = %lf", yvel_prev_time.get_pt_value(1.7, 0.0));
  }
-  info("Coordinate (   0, 2.5) xvel value = %lf", xvel_prev_time.get_pt_value(0.0, 2.5));
-  info("Coordinate (   5, 2.5) xvel value = %lf", xvel_prev_time.get_pt_value(5.0, 2.5));
-  info("Coordinate ( 7.5, 2.5) xvel value = %lf", xvel_prev_time.get_pt_value(7.5, 2.5));
-  info("Coordinate (  10, 2.5) xvel value = %lf", xvel_prev_time.get_pt_value(10.0, 2.5));
-  info("Coordinate (12.5, 2.5) xvel value = %lf", xvel_prev_time.get_pt_value(12.5, 2.5));
-  info("Coordinate (  15, 2.5) xvel value = %lf", xvel_prev_time.get_pt_value(15.0, 2.5));
+  info("Coordinate ( 0.1, 0.0) xvel value = %lf", xvel_prev_time.get_pt_value(0.1, 0.0));
+  info("Coordinate ( 0.5, 0.0) xvel value = %lf", xvel_prev_time.get_pt_value(0.5, 0.0));
+  info("Coordinate ( 0.9, 0.0) xvel value = %lf", xvel_prev_time.get_pt_value(0.9, 0.0));
+  info("Coordinate ( 1.3, 0.0) xvel value = %lf", xvel_prev_time.get_pt_value(1.3, 0.0));
+  info("Coordinate ( 1.7, 0.0) xvel value = %lf", xvel_prev_time.get_pt_value(1.7, 0.0));
 
-  info("Coordinate (   0, 2.5) yvel value = %lf", yvel_prev_time.get_pt_value(0.0, 2.5));
-  info("Coordinate (   5, 2.5) yvel value = %lf", yvel_prev_time.get_pt_value(5.0, 2.5));
-  info("Coordinate ( 7.5, 2.5) yvel value = %lf", yvel_prev_time.get_pt_value(7.5, 2.5));
-  info("Coordinate (  10, 2.5) yvel value = %lf", yvel_prev_time.get_pt_value(10.0, 2.5));
-  info("Coordinate (12.5, 2.5) yvel value = %lf", yvel_prev_time.get_pt_value(12.5, 2.5));
-  info("Coordinate (  15, 2.5) yvel value = %lf", yvel_prev_time.get_pt_value(15.0, 2.5));
+  info("Coordinate ( 0.1, 0.0) yvel value = %lf", yvel_prev_time.get_pt_value(0.1, 0.0));
+  info("Coordinate ( 0.5, 0.0) yvel value = %lf", yvel_prev_time.get_pt_value(0.5, 0.0));
+  info("Coordinate ( 0.9, 0.0) yvel value = %lf", yvel_prev_time.get_pt_value(0.9, 0.0));
+  info("Coordinate ( 1.3, 0.0) yvel value = %lf", yvel_prev_time.get_pt_value(1.3, 0.0));
+  info("Coordinate ( 1.7, 0.0) yvel value = %lf", yvel_prev_time.get_pt_value(1.7, 0.0));
 
 #define ERROR_SUCCESS                                0
 #define ERROR_FAILURE                               -1

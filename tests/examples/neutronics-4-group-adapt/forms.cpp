@@ -1,5 +1,7 @@
 //////  Bilinear and linear forms - axisymmetric arrangement  ////////////////////////////////////////////////
 
+// NOTE: The global variable 'k_eff' from main.cpp is used in the linear forms.
+
 template<typename Real, typename Scalar>
 Scalar int_x_u_v(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e)
 {
