@@ -56,7 +56,7 @@ void Space::free()
 
 void Space::resize_tables()
 {
-  if (nsize < mesh->get_max_node_id())
+  if (nsize < mesh->get_max_node_id() || (ndata == NULL))
   {
     //HACK: definition of allocated size and the result number of elements
     nsize = mesh->get_max_node_id();
