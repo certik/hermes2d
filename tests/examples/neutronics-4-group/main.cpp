@@ -4,42 +4,7 @@
 #define H2D_REPORT_FILE "application.log"
 #include "hermes2d.h"
 
-// This example solves a 4-group neutron diffusion equation in the reactor core.
-// The eigenproblem is solved using power interations.
-//
-// The reactor neutronics is given by the following eigenproblem:
-//
-//  - \nabla \cdot D_g \nabla \phi_g + \Sigma_{Rg}\phi_g - \sum_{g' \neq g} \Sigma_s^{g'\to g} \phi_{g'} =
-//  = \frac{\chi_g}{k_{eff}} \sum_{g'} \nu_{g'} \Sigma_{fg'}\phi_{g'}
-//
-// where 1/k_{eff} is eigenvalue and \phi_g, g = 1,...,4 are eigenvectors (neutron fluxes). The current problem
-// is posed in a 3D cylindrical axisymmetric geometry, leading to a 2D problem with r-z as the independent spatial 
-// coordinates. The corresponding diffusion operator is given by (r = x, z = y):
-//
-//	\nabla \cdot D \nabla \phi = \frac{1}{x} (x D \phi_x)_x  + (D \phi_y)_y 
-//
-// BC:
-//
-// Homogeneous neumann on symmetry axis,
-// d \phi_g / d n = - 0.5 \phi_g   elsewhere
-//
-// The eigenproblem is numerically solved using common technique known as the power method (power iterations):
-//
-//  1) Make an initial estimate of \phi_g and k_{eff}
-//  2) For n = 1, 2,...
-//         solve for \phi_g using previous k_prev
-//         solve for new k_{eff}
-//                                \int_{Active Core} \sum^4_{g = 1} \nu_{g} \Sigma_{fg}\phi_{g}_{new}
-//               k_new =  k_prev -------------------------------------------------------------------------
-//                                \int_{Active Core} \sum^4_{g = 1} \nu_{g} \Sigma_{fg}\phi_{g}_{prev}
-//  3) Stop iterations when
-//
-//     |   k_new - k_prev  |
-//     | ----------------- |  < epsilon
-//     |       k_new       |
-//
-//
-//  The following parameters can be changed:
+// This test makes sure that example "neutronics-4-group" works correctly.
 
 const int INIT_REF_NUM = 2;                  // Number of initial uniform mesh refinements.
 const int P_INIT = 2;                        // Initial polynomial degree of all mesh elements.
@@ -186,23 +151,10 @@ int main(int argc, char* argv[])
   // Initialize coarse mesh problem.
   LinearProblem ls(&wf, Tuple<Space*>(&space1, &space2, &space3, &space4));
 
-
   // Initialize matrix solver.
   Matrix* mat; Vector* rhs; CommonSolver* solver;
   init_matrix_solver(matrix_solver, ndof, mat, rhs, solver);
   bool rhsonly = false;
-
-  // Initialize views.
-  ScalarView view1("Neutron flux 1", 0, 0, 320, 600);
-  ScalarView view2("Neutron flux 2", 350, 0, 320, 600);
-  ScalarView view3("Neutron flux 3", 700, 0, 320, 600);
-  ScalarView view4("Neutron flux 4", 1050, 0, 320, 600);
-
-  // Do not show meshes.
-  view1.show_mesh(false); //view1.set_3d_mode(true);
-  view2.show_mesh(false); //view2.set_3d_mode(true);
-  view3.show_mesh(false); //view3.set_3d_mode(true);
-  view4.show_mesh(false); //view4.set_3d_mode(true);
 
   // Main power iteration loop:
   int iter = 0; bool done = false; 
@@ -222,12 +174,6 @@ int main(int argc, char* argv[])
     sln2.set_fe_solution(&space2, rhs);
     sln3.set_fe_solution(&space3, rhs);
     sln4.set_fe_solution(&space4, rhs);
-
-    // Show solutions.
-    view1.show(&sln1);    
-    view2.show(&sln2);
-    view3.show(&sln3);    
-    view4.show(&sln4);
 
     SimpleFilter source(source_fn, Tuple<MeshFunction*>(&sln1, &sln2, &sln3, &sln4));
     SimpleFilter source_prev(source_fn, Tuple<MeshFunction*>(&iter1, &iter2, &iter3, &iter4));
@@ -258,7 +204,5 @@ int main(int argc, char* argv[])
   }
   while (!done);
 
-  // Wait for all views to be closed.
-  View::wait();
-  return 0;
+  // Waiting for tests.
 }

@@ -177,9 +177,9 @@ int main (int argc, char* argv[]) {
   
   // When nonadaptive solution, refine the mesh.
   basemesh.refine_towards_boundary(TOP_MARKER,
-      adaptive ? REF_INIT : REF_INIT * 25);
+           adaptive ? REF_INIT : REF_INIT * 25);
   basemesh.refine_towards_boundary(BOT_MARKER,
-    adaptive ? REF_INIT - 1 : (REF_INIT * 25) - 1);
+           adaptive ? REF_INIT - 1 : (REF_INIT * 25) - 1);
   Cmesh.copy(&basemesh);
   phimesh.copy(&basemesh);
 
@@ -195,19 +195,16 @@ int main (int argc, char* argv[]) {
   WeakForm wf(2);
   // Add the bilinear and linear forms.
   if (TIME_DISCR == 1) {  // Implicit Euler.
-    wf.add_vector_form(0, callback(Fc_euler), H2D_ANY,
-		  Tuple<MeshFunction*>(&C_prev_time));
+    wf.add_vector_form(0, callback(Fc_euler), H2D_ANY, Tuple<MeshFunction*>(&C_prev_time));
     wf.add_vector_form(1, callback(Fphi_euler), H2D_ANY);
     wf.add_matrix_form(0, 0, callback(J_euler_DFcDYc), H2D_UNSYM, H2D_ANY);
     wf.add_matrix_form(0, 1, callback(J_euler_DFcDYphi), H2D_UNSYM, H2D_ANY);
     wf.add_matrix_form(1, 0, callback(J_euler_DFphiDYc), H2D_UNSYM);
     wf.add_matrix_form(1, 1, callback(J_euler_DFphiDYphi), H2D_UNSYM);
   } else {
-    wf.add_vector_form(0, callback(Fc_cranic), H2D_ANY, 
-		  Tuple<MeshFunction*>(&C_prev_time, &phi_prev_time));
+    wf.add_vector_form(0, callback(Fc_cranic), H2D_ANY, Tuple<MeshFunction*>(&C_prev_time, &phi_prev_time));
     wf.add_vector_form(1, callback(Fphi_cranic), H2D_ANY);
-    wf.add_matrix_form(0, 0, callback(J_cranic_DFcDYc), H2D_UNSYM, H2D_ANY, 
-                       Tuple<MeshFunction*>(&phi_prev_time));
+    wf.add_matrix_form(0, 0, callback(J_cranic_DFcDYc), H2D_UNSYM, H2D_ANY, Tuple<MeshFunction*>(&phi_prev_time));
     wf.add_matrix_form(0, 1, callback(J_cranic_DFcDYphi), H2D_UNSYM, H2D_ANY, Tuple<MeshFunction*>(&C_prev_time));
     wf.add_matrix_form(1, 0, callback(J_cranic_DFphiDYc), H2D_UNSYM);
     wf.add_matrix_form(1, 1, callback(J_cranic_DFphiDYphi), H2D_UNSYM);
@@ -268,10 +265,12 @@ int main (int argc, char* argv[]) {
     bool verbose = true;     // Print info during adaptivity.
     info("Projecting coarse mesh solution to obtain initial vector on new fine mesh.");
     // The NULL pointers mean that we are not interested in visualization during the Newton's loop.
-    solve_newton_adapt(Tuple<Space*>(&C, &phi), &wf, coeff_vec, matrix_solver,                                                        Tuple<int>(H2D_H1_NORM, H2D_H1_NORM),
+    solve_newton_adapt(Tuple<Space*>(&C, &phi), &wf, coeff_vec, matrix_solver,
+                       Tuple<int>(H2D_H1_NORM, H2D_H1_NORM),
                        Tuple<Solution*>(&C_sln, &phi_sln),
                        Tuple<Solution*>(&C_ref_sln, &phi_ref_sln),
-                       NULL, NULL, &selector, &apt,
+                       NULL, NULL, 
+                       Tuple<Selector *>(&selector, &selector), &apt,
                        NEWTON_TOL_COARSE, NEWTON_TOL_FINE, NEWTON_MAX_ITER, verbose);
 
     Cview.show(&C_prev_time);  

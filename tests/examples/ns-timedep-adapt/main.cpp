@@ -6,29 +6,7 @@
 
 using namespace RefinementSelectors;
 
-// The time-dependent laminar incompressible Navier-Stokes equations are
-// discretized in time via the implicit Euler method. The Newton's method 
-// is used to solve the nonlinear problem at each time step. We show how
-// to use discontinuous ($L^2$) elements for pressure and thus make the
-// velocity discreetely divergence free. Comparison to approximating the
-// pressure with the standard (continuous) Taylor-Hood elements is enabled.
-// The Reynolds number Re = 200 which is embarrassingly low. You
-// can increase it but then you will need to make the mesh finer, and the
-// computation will take more time.
-//
-// PDE: incompressible Navier-Stokes equations in the form
-// \partial v / \partial t - \Delta v / Re + (v \cdot \nabla) v + \nabla p = 0,
-// div v = 0
-//
-// BC: u_1 is a time-dependent constant and u_2 = 0 on Gamma_4 (inlet)
-//     u_1 = u_2 = 0 on Gamma_1 (bottom), Gamma_3 (top) and Gamma_5 (obstacle)
-//     "do nothing" on Gamma_2 (outlet)
-//
-// Geometry: Rectangular channel containing an off-axis circular obstacle. The
-//           radius and position of the circle, as well as other geometry
-//           parameters can be changed in the mesh file "domain.mesh".
-//
-// The following parameters can be changed:
+// This test makes sure that example "ns-timedep-adapt" works correctly.
 
 const bool SOLVE_ON_COARSE_MESH = false; // true... Newton is done on coarse mesh in every adaptivity step.
                                          // false...Newton is done on coarse mesh only once, then projection
@@ -213,13 +191,6 @@ int main(int argc, char* argv[])
   wf.add_vector_form(1, callback(newton_F_1), H2D_ANY, Tuple<MeshFunction*>(&xvel_prev_time, &yvel_prev_time));
   wf.add_vector_form(2, callback(newton_F_2), H2D_ANY);
 
-  // Initialize views.
-  VectorView vview("velocity [m/s]", new WinGeom(0, 0, 600, 500));
-  ScalarView pview("pressure [Pa]", new WinGeom(610, 0, 600, 500));
-  vview.fix_scale_width(80);
-  pview.fix_scale_width(80);
-  pview.show_mesh(true);
-
   // Initialize adaptivity parameters.
   AdaptivityParamType apt(ERR_STOP, NDOF_STOP, THRESHOLD, STRATEGY, MESH_REGULARITY);
   // Create a selector which will select optimal candidate.
@@ -267,20 +238,10 @@ int main(int argc, char* argv[])
     xvel_prev_time.set_fe_solution(xvel_space, coeff_vec);
     yvel_prev_time.set_fe_solution(yvel_space, coeff_vec);
     p_prev_time.set_fe_solution(p_space, coeff_vec);
-
-    // Show the solution at the end of time step.
-    sprintf(title, "Velocity, time %g", TIME);
-    vview.set_title(title);
-    vview.show(&xvel_prev_time, &yvel_prev_time, H2D_EPS_LOW);
-    sprintf(title, "Pressure, time %g", TIME);
-    pview.set_title(title);
-    pview.show(&p_prev_time);
   }
 
   ndof = get_num_dofs(Tuple<Space *>(xvel_space, yvel_space, p_space));
   info("ndof = %d", ndof);
 
-  // Wait for all views to be closed.
-  View::wait();
-  return 0;
+  // Waiting for tests.
 }

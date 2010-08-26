@@ -1,7 +1,5 @@
 //////  Bilinear and linear forms - axisymmetric arrangement  ////////////////////////////////////////////////
 
-// NOTE: The global variable 'k_eff' from main.cpp is used in the linear forms.
-
 template<typename Real, typename Scalar>
 Scalar int_x_u_v(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom<Real> *e)
 {
@@ -18,18 +16,6 @@ Scalar int_x_grad_u_grad_v(int n, double *wt, Func<Real> *u, Func<Real> *v, Geom
   for (int i = 0; i < n; i++)
     result += wt[i] * e->x[i] * (u->dx[i] * v->dx[i] + u->dy[i] * v->dy[i]);
   return result;
-}
-
-template<typename Real, typename Scalar>
-Scalar projection_biform(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
-{
-  return int_x_u_v<Real, Scalar>(n, wt, u, v, e) + int_x_grad_u_grad_v<Real, Scalar>(n, wt, u, v, e);
-}
-
-template<typename Real, typename Scalar>
-Scalar projection_liform(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
-{
-  return int_x_u_v<Real, Scalar>(n, wt, ext->fn[0], v, e) + int_x_grad_u_grad_v<Real, Scalar>(n, wt, ext->fn[0], v, e);
 }
 
 //////////   Eq 1   /////////////////////////////////////////////////////////////////////////////////////////

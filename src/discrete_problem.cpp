@@ -1622,7 +1622,7 @@ H2D_API bool solve_newton_adapt(Tuple<Space *> spaces, WeakForm* wf, Vector *coe
   OrderView*  o_view[H2D_MAX_COMPONENTS];
   for (int i = 0; i < num_comps; i++) {
     char* title = (char*)malloc(100*sizeof(char));
-    if (sln_win_geom[i] != NULL) {
+    if (sln_win_geom != Tuple<WinGeom *>() && sln_win_geom[i] != NULL) {
       if (num_comps == 1) sprintf(title, "Solution", i); 
       else sprintf(title, "Solution[%d]", i); 
       switch (proj_norms[i]) {
@@ -1647,7 +1647,7 @@ H2D_API bool solve_newton_adapt(Tuple<Space *> spaces, WeakForm* wf, Vector *coe
       s_view[i] = NULL;
       v_view[i] = NULL;
     }
-    if (mesh_win_geom[i] != NULL) {
+    if (mesh_win_geom != Tuple<WinGeom *>() && mesh_win_geom[i] != NULL) {
       if (num_comps == 1) sprintf(title, "Mesh", i); 
       else sprintf(title, "Mesh[%d]", i); 
       o_view[i] = new OrderView(title, mesh_win_geom[i]);
