@@ -171,8 +171,9 @@ int main(int argc, char* argv[])
     }
 
     // Update the coefficient vector and u_prev_time.
-    info("Projecting to obtain coefficient vector on coarse mesh.");
-    project_global(&space, H2D_H1_NORM, &u_prev_time, &u_prev_time, coeff_vec);
+    if (ts == 1) info("Projecting initial condition to obtain coefficient vector on coarse mesh.");
+    else info("Projecting fine mesh solution to obtain coefficient vector on coarse mesh.");
+    project_global(&space, H2D_H1_NORM, &u_prev_time, NULL, coeff_vec);
 
     // Adaptivity loop (in space):
     bool verbose = true;     // Print info during adaptivity.
@@ -192,7 +193,8 @@ int main(int argc, char* argv[])
     ordview.show(&space);
 
     // Copy new time level reference solution into u_prev_time.
-    u_prev_time.set_fe_solution(&space, coeff_vec);
+    //u_prev_time.set_fe_solution(&space, coeff_vec);
+    u_prev_time.copy(&ref_sln);
   }
 
   delete coeff_vec;

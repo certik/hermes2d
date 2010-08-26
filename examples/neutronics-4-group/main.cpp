@@ -53,9 +53,6 @@ const MatrixSolverType matrix_solver = SOLVER_UMFPACK;    // Possibilities: SOLV
 // Initial eigenvalue approximation.
 double k_eff = 1.0;         
 
-MatrixSolverType matrix_solver = SOLVER_UMFPACK;  // Possibilities: SOLVER_UMFPACK, SOLVER_PETSC,
-                                                  // SOLVER_MUMPS, and more are coming.
-
 // Element markers.
 const int marker_reflector = 1;
 const int marker_core = 2;
