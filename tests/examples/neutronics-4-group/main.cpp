@@ -2,24 +2,32 @@
 #define H2D_REPORT_INFO
 #define H2D_REPORT_VERBOSE
 #define H2D_REPORT_FILE "application.log"
+
 #include "hermes2d.h"
 
 // This test makes sure that example "neutronics-4-group" works correctly.
 
-const int INIT_REF_NUM = 2;                  // Number of initial uniform mesh refinements.
-const int P_INIT = 2;                        // Initial polynomial degree of all mesh elements.
-const double ERROR_STOP = 1e-5;              // Tolerance for the eigenvalue.
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-MatrixSolverType matrix_solver = SOLVER_UMFPACK;  // Possibilities: SOLVER_UMFPACK, SOLVER_PETSC,
-                                                  // SOLVER_MUMPS, and more are coming.
+const int INIT_REF_NUM = 2;                               // Number of initial uniform mesh refinements.
+const int P_INIT_1 = 2,                                   // Initial polynomial degree for approximation of group 1 fluxes.
+          P_INIT_2 = 3,                                   // Initial polynomial degree for approximation of group 2 fluxes.
+          P_INIT_3 = 3,                                   // Initial polynomial degree for approximation of group 3 fluxes.
+          P_INIT_4 = 4;                                   // Initial polynomial degree for approximation of group 4 fluxes.
+const double ERROR_STOP = 1e-5;                           // Tolerance for the eigenvalue.
+const MatrixSolverType matrix_solver = SOLVER_UMFPACK;    // Possibilities: SOLVER_UMFPACK, SOLVER_PETSC,
+                                                          // SOLVER_MUMPS, and more are coming.
+
+// Initial eigenvalue approximation.
+double k_eff = 1.0;         
 
 // Element markers.
-const int MAT_REFLECTOR = 1;
-const int MAT_CORE = 2;
+const int marker_reflector = 1;
+const int marker_core = 2;
 
-// Boundary merkers.
-const int BDY_VACUUM = 1;
-const int BDY_SYMMETRY = 2;
+// Boundary markers.
+const int bc_vacuum = 1;
+const int bc_sym = 2;
 
 // Boundary condition types.
 BCType bc_types(int marker)
@@ -33,30 +41,12 @@ scalar essential_bc_values(int ess_bdy_marker, double x, double y)
   return 0;
 }
 
-// Reflector properties (0) core properties (1).
-const double D[2][4] = {{0.0164, 0.0085, 0.00832, 0.00821},
-                        {0.0235, 0.0121, 0.0119, 0.0116}};
-const double Sa[2][4] = {{0.00139, 0.000218, 0.00197, 0.0106},
-                         {0.00977, 0.162, 0.156, 0.535}};
-const double Sr[2][4] = {{1.77139, 0.533218, 3.31197, 0.0106},
-                         {1.23977, 0.529, 2.436, 0.535}};
-const double Sf[2][4] = {{0.0, 0.0, 0.0, 0.0}, {0.00395, 0.0262, 0.0718, 0.346}};
-const double nu[2][4] = {{0.0, 0.0, 0.0, 0.0}, {2.49, 2.43, 2.42, 2.42}};
-const double chi[2][4] = {{0.0, 0.0, 0.0, 0.0}, {0.9675, 0.03250, 0.0, 0.0}};
-const double Ss[2][4][4] = {{{ 0.0,   0.0,  0.0, 0.0},
-                             {1.77,   0.0,  0.0, 0.0},
-                             { 0.0, 0.533,  0.0, 0.0},
-                             { 0.0,   0.0, 3.31, 0.0}},
-                            {{ 0.0,   0.0,  0.0, 0.0},
-                             {1.23,   0.0,  0.0, 0.0},
-                             { 0.0, 0.367,  0.0, 0.0},
-                             { 0.0,   0.0, 2.28, 0.0}}};
-
-// Initial eigenvalue approximation.
-double k_eff = 1.0;
-
+// Physical data of the problem for the 4 energy groups.
+#include "physical_parameters.cpp"
 // Weak forms.
 #include "forms.cpp"
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // Source function.
 void source_fn(int n, Tuple<scalar*> values, scalar* out)
@@ -101,6 +91,100 @@ double integrate(MeshFunction* sln, int marker)
   return 2.0 * M_PI * integral;
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// General testing class. It can test
+//   > if the computed and expected results agree to within a specified tolerance (allowed_delta),
+//   > if the computed results do not overshoot the expected results by more than allowed_delta,
+//   > if the computed results do not undershoot the expected results by more than allowed_delta.
+// When, for the first time, the expected behavior is not achieved, 'passed' is set to false and nothing more is tested.
+// If used with a user-defined type, its class must overload all operators appearing in the intended test method.
+template<typename T>
+struct TestSubject
+{
+  T allowed_delta;
+  bool passed;
+  
+  TestSubject(T allowed_delta) : allowed_delta(allowed_delta), passed(true) {};
+  
+  void test_equality(const T& computed, const T& expected) { 
+    if(passed) passed = (computed <= expected + allowed_delta && computed >= expected - allowed_delta);
+  }
+  void test_overshoot(const T& computed, const T& expected) { 
+    if(passed) passed = (computed <= expected + allowed_delta);
+  }
+  void test_undershoot(const T& computed, const T& expected) { 
+    if(passed) passed = (computed >= expected - allowed_delta);
+  }
+};
+
+// Structure that contains information about an extremum. It will be used
+// for testing the equality of computed and expected maxima, therefore it
+// overloads operators +,-,>=,<=..
+struct Extremum
+{
+  double val, x, y;
+  
+  Extremum(double val, double x, double y) : val(val), x(x), y(y) {};
+  
+  inline Extremum operator+ (const Extremum &ex) const {
+    return Extremum(val + ex.val, x + ex.x, y + ex.y);
+  }
+  inline Extremum operator- (const Extremum &ex) const {
+    return Extremum(val - ex.val, x - ex.x, y - ex.y);
+  }
+  inline bool operator>= (const Extremum &ex) const {
+    return (val >= ex.val && x >= ex.x && y >= ex.y);
+  }
+  inline bool operator<= (const Extremum &ex) const {
+    return (val <= ex.val && x <= ex.x && y <= ex.y);
+  }
+  
+  std::string str() { 
+    char ret[50];
+    sprintf(ret, "%lf, at (%lf,%lf)", val, x, y);
+    return std::string(ret);
+  }
+};
+
+// Calculates maximum of a given function, including its coordinates.
+Extremum get_peak(MeshFunction *sln)
+{
+  Quad2D* quad = &g_quad_2d_std;
+  sln->set_quad_2d(quad);
+  Element* e;
+  Mesh* mesh = sln->get_mesh();
+  
+  scalar peak = 0.0;
+  double pos_x = 0.0;
+  double pos_y = 0.0;
+  
+  for_all_active_elements(e, mesh)
+  {
+    update_limit_table(e->get_mode());
+    sln->set_active_element(e);
+    RefMap* ru = sln->get_refmap();
+    int o = sln->get_fn_order() + ru->get_inv_ref_order();
+    limit_order(o);
+    sln->set_quad_order(o, H2D_FN_VAL);
+    scalar *uval = sln->get_fn_values();
+    int np = quad->get_num_points(o);
+    double* x = ru->get_phys_x(o);
+    double* y = ru->get_phys_y(o);
+    
+    for (int i = 0; i < np; i++)
+      if (uval[i] > peak) {
+        peak = uval[i];
+        pos_x = x[i];
+        pos_y = y[i];
+      }
+  }
+  
+  return Extremum(peak, pos_x, pos_y);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 int main(int argc, char* argv[])
 {
   // Load the mesh.
@@ -123,39 +207,39 @@ int main(int argc, char* argv[])
   iter4.set_const(&mesh, 1.00);
 
   // Create H1 spaces with default shapesets.
-  H1Space space1(&mesh, bc_types, essential_bc_values, P_INIT);
-  H1Space space2(&mesh, bc_types, essential_bc_values, P_INIT); 
-  H1Space space3(&mesh, bc_types, essential_bc_values, P_INIT); 
-  H1Space space4(&mesh, bc_types, essential_bc_values, P_INIT); 
+  H1Space space1(&mesh, bc_types, essential_bc_values, P_INIT_1);
+  H1Space space2(&mesh, bc_types, essential_bc_values, P_INIT_2);
+  H1Space space3(&mesh, bc_types, essential_bc_values, P_INIT_3);
+  H1Space space4(&mesh, bc_types, essential_bc_values, P_INIT_4);
+  
   int ndof = get_num_dofs(Tuple<Space*>(&space1, &space2, &space3, &space4));
   info("ndof = %d.", ndof);
-
+  
   // Initialize the weak formulation.
   WeakForm wf(4);
-  wf.add_matrix_form(0, 0, callback(biform_0_0));
-  wf.add_matrix_form(1, 1, callback(biform_1_1));
+  wf.add_matrix_form(0, 0, callback(biform_0_0), H2D_SYM);
+  wf.add_matrix_form(1, 1, callback(biform_1_1), H2D_SYM);
   wf.add_matrix_form(1, 0, callback(biform_1_0));
-  wf.add_matrix_form(2, 2, callback(biform_2_2));
+  wf.add_matrix_form(2, 2, callback(biform_2_2), H2D_SYM);
   wf.add_matrix_form(2, 1, callback(biform_2_1));
-  wf.add_matrix_form(3, 3, callback(biform_3_3));
+  wf.add_matrix_form(3, 3, callback(biform_3_3), H2D_SYM);
   wf.add_matrix_form(3, 2, callback(biform_3_2));
-  wf.add_vector_form(0, callback(liform_0), MAT_CORE, Tuple<MeshFunction*>(&iter1, &iter2, &iter3, &iter4));
-  wf.add_vector_form(1, callback(liform_1), MAT_CORE, Tuple<MeshFunction*>(&iter1, &iter2, &iter3, &iter4));
-  wf.add_vector_form(2, callback(liform_2), MAT_CORE, Tuple<MeshFunction*>(&iter1, &iter2, &iter3, &iter4));
-  wf.add_vector_form(3, callback(liform_3), MAT_CORE, Tuple<MeshFunction*>(&iter1, &iter2, &iter3, &iter4));
-  wf.add_matrix_form_surf(0, 0, callback(biform_surf_0_0), BDY_VACUUM);
-  wf.add_matrix_form_surf(1, 1, callback(biform_surf_1_1), BDY_VACUUM);
-  wf.add_matrix_form_surf(2, 2, callback(biform_surf_2_2), BDY_VACUUM);
-  wf.add_matrix_form_surf(3, 3, callback(biform_surf_3_3), BDY_VACUUM);
+  wf.add_vector_form(0, callback(liform_0), marker_core, Tuple<MeshFunction*>(&iter1, &iter2, &iter3, &iter4));
+  wf.add_vector_form(1, callback(liform_1), marker_core, Tuple<MeshFunction*>(&iter1, &iter2, &iter3, &iter4));
+  wf.add_vector_form(2, callback(liform_2), marker_core, Tuple<MeshFunction*>(&iter1, &iter2, &iter3, &iter4));
+  wf.add_vector_form(3, callback(liform_3), marker_core, Tuple<MeshFunction*>(&iter1, &iter2, &iter3, &iter4));
+  wf.add_matrix_form_surf(0, 0, callback(biform_surf_0_0), bc_vacuum);
+  wf.add_matrix_form_surf(1, 1, callback(biform_surf_1_1), bc_vacuum);
+  wf.add_matrix_form_surf(2, 2, callback(biform_surf_2_2), bc_vacuum);
+  wf.add_matrix_form_surf(3, 3, callback(biform_surf_3_3), bc_vacuum);
 
-  // Initialize coarse mesh problem.
-  LinearProblem ls(&wf, Tuple<Space*>(&space1, &space2, &space3, &space4));
-
-  // Initialize matrix solver.
+  // Initialize the linear problem.
+  LinearProblem lp(&wf, Tuple<Space *>(&space1, &space2, &space3, &space4));
+  
+  // Select matrix solver.
   Matrix* mat; Vector* rhs; CommonSolver* solver;
   init_matrix_solver(matrix_solver, ndof, mat, rhs, solver);
-  bool rhsonly = false;
-
+  
   // Main power iteration loop:
   int iter = 0; bool done = false; 
   bool rhs_only = false;
@@ -164,25 +248,23 @@ int main(int argc, char* argv[])
     info("------------ Power iteration %d:", iter);
 
     // Assemble stiffness matrix and rhs.
-    ls.assemble(mat, rhs, rhsonly);
-
+    lp.assemble(mat, rhs, rhs_only);
+    
     // Solve the matrix problem.
     if (!solver->solve(mat, rhs)) error ("Matrix solver failed.\n");
 
-    // Update sln.
+    // Convert coefficient vector into Solutions.
     sln1.set_fe_solution(&space1, rhs);
     sln2.set_fe_solution(&space2, rhs);
     sln3.set_fe_solution(&space3, rhs);
     sln4.set_fe_solution(&space4, rhs);
-
+    
     SimpleFilter source(source_fn, Tuple<MeshFunction*>(&sln1, &sln2, &sln3, &sln4));
     SimpleFilter source_prev(source_fn, Tuple<MeshFunction*>(&iter1, &iter2, &iter3, &iter4));
 
     // Compute eigenvalue.
-    double k_new = k_eff * (integrate(&source, MAT_CORE) / integrate(&source_prev, MAT_CORE));
-    info("ndof: %d, %d, %d, %d", space1.get_num_dofs(),space2.get_num_dofs(), 
-                                  space3.get_num_dofs(), space4.get_num_dofs());
-    info("Largest eigenvalue: (%.8g, %.8g), rel error: %g", k_eff, k_new, fabs((k_eff - k_new) / k_new));
+    double k_new = k_eff * (integrate(&source, marker_core) / integrate(&source_prev, marker_core));
+    info("Largest eigenvalue: %.8g, rel. difference from previous it.: %g", k_eff, fabs((k_eff - k_new) / k_new));
 
     // Stopping criterion.
     if (fabs((k_eff - k_new) / k_new) < ERROR_STOP) done = true;
@@ -203,6 +285,47 @@ int main(int argc, char* argv[])
     iter++;
   }
   while (!done);
-
-  // Waiting for tests.
+  
+  delete mat; delete rhs; delete solver;
+  
+  // Calculation results for testing.
+  info("Number of iterations: %d", iter);
+  
+  // Pointwise results.
+  Extremum max1 = get_peak(&sln1); 
+  Extremum max2 = get_peak(&sln2);
+  Extremum max3 = get_peak(&sln3);
+  Extremum max4 = get_peak(&sln4);
+  
+  info("Peak flux in group 1: %s", max1.str().c_str()); 
+  info("Peak flux in group 2: %s", max2.str().c_str());
+  info("Peak flux in group 3: %s", max3.str().c_str());
+  info("Peak flux in group 4: %s", max4.str().c_str());
+  
+  // Integral results.
+  info("Core eigenvalue: %lf", k_eff);
+  
+  #define ERROR_SUCCESS                                0
+  #define ERROR_FAILURE                               -1
+  
+  TestSubject<int> num_iter(2);
+  num_iter.test_overshoot(iter, 48);
+  
+  TestSubject<Extremum> peak(Extremum(1e-3, 1e-3, 1e-3));
+  peak.test_equality(max1, Extremum(1.030123,1.665339,5.445262));
+  peak.test_equality(max2, Extremum(2.262864,1.764661,5.445262));
+  peak.test_equality(max3, Extremum(0.335336,1.764661,5.445262));
+  peak.test_equality(max4, Extremum(4.565734,1.151700,5.494142));
+  
+  TestSubject<double> eigenvalue(1e-5);
+  eigenvalue.test_equality(k_eff, 1.140916);
+  
+  if (num_iter.passed && peak.passed && eigenvalue.passed) {
+    printf("Success!\n");
+    return ERROR_SUCCESS;
+  }
+  else {
+    printf("Failure!\n");
+    return ERROR_FAILURE;
+  }
 }
