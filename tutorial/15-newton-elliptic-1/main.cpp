@@ -68,7 +68,6 @@ int main(int argc, char* argv[])
 
   // Create an H1 space with default shapeset.
   H1Space* space = new H1Space(&mesh, bc_types, essential_bc_values, P_INIT);
-  int ndof = get_num_dofs(space);
 
   // Initialize the weak formulation.
   WeakForm wf;
@@ -78,11 +77,12 @@ int main(int argc, char* argv[])
   // Project the initial condition on the FE space to obtain initial 
   // coefficient vector for the Newton's method.
   info("Projecting to obtain initial vector for the Newton's method.");
-  Vector* coeff_vec = new AVector(ndof);
+  Vector* coeff_vec = new AVector();
   Solution* init_sln = new Solution();
   init_sln->set_const(&mesh, INIT_COND_CONST);
   // The NULL means that we do not want the resulting Solution, just the vector.
   project_global(space, H2D_H1_NORM, init_sln, NULL, coeff_vec); 
+  delete init_sln;
 
   // Perform Newton's iteration.
   info("Performing Newton's iteration.");
@@ -95,6 +95,7 @@ int main(int argc, char* argv[])
   // Translate the resulting coefficient vector into a Solution.
   Solution sln; 
   sln.set_fe_solution(space, coeff_vec);
+  delete coeff_vec;
 
   // Visualise the solution and mesh.
   ScalarView s_view("Solution", new WinGeom(0, 0, 440, 350));

@@ -114,7 +114,6 @@ int main(int argc, char* argv[])
 
   // Create an H1 space with default shapeset.
   H1Space space(&mesh, bc_types, essential_bc_values, P_INIT);
-  int ndof = get_num_dofs(&space);
 
   // Solutions.
   Solution sln, ref_sln, u_prev_time;
@@ -138,7 +137,7 @@ int main(int argc, char* argv[])
 
   // Assign initial condition to mesh.
   u_prev_time.set_exact(&mesh, init_cond);
-  Vector *coeff_vec = new AVector(ndof);
+  Vector *coeff_vec = new AVector();
 
   // Time stepping loop.
   int num_time_steps = (int)(T_FINAL/TAU + 0.5);
@@ -169,7 +168,7 @@ int main(int argc, char* argv[])
     u_prev_time.set_fe_solution(&space, coeff_vec);
   }
 
-  ndof = get_num_dofs(&space);
+  int ndof = get_num_dofs(&space);
 
 #define ERROR_SUCCESS                               0
 #define ERROR_FAILURE                               -1

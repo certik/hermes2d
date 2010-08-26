@@ -187,6 +187,7 @@ int main(int argc, char* argv[])
 
     // Uniform mesh derefinement.
     if (ts > 1) {
+      info("Global mesh derefinement.");
       T_mesh.copy(&basemesh);
       M_mesh.copy(&basemesh);
       T_space.set_uniform_order(P_INIT);

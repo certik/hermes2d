@@ -100,15 +100,15 @@ int main(int argc, char* argv[])
 
   // Create an H1 space with default shapeset.
   H1Space space(&mesh, bc_types, essential_bc_values, P_INIT);
-  int ndof = get_num_dofs(&space);
 
   // Solutions for the Newton's iteration and adaptivity.
   Solution sln, ref_sln, Psi_prev_time;
 
   // Assign initial condition to mesh.
-  bool is_complex = true; 
   Psi_prev_time.set_exact(&mesh, init_cond);// Psi_prev_time set equal to init_cond().
-  Vector *coeff_vec = new AVector(ndof);
+  
+  Vector *coeff_vec = new AVector();
+  bool is_complex = true; 
 
   // Initialize the weak formulation.
   WeakForm wf;

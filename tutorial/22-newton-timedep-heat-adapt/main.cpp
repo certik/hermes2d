@@ -126,7 +126,6 @@ int main(int argc, char* argv[])
 
   // Create an H1 space with default shapeset.
   H1Space space(&mesh, bc_types, essential_bc_values, P_INIT);
-  int ndof = get_num_dofs(&space);
 
   // Solutions.
   Solution sln, ref_sln, u_prev_time;
@@ -150,7 +149,7 @@ int main(int argc, char* argv[])
 
   // Assign initial condition to mesh.
   u_prev_time.set_exact(&mesh, init_cond);
-  Vector *coeff_vec = new AVector(ndof);
+  Vector *coeff_vec = new AVector();
 
   // Visualize the projection and mesh.
   ScalarView view("Initial condition", new WinGeom(0, 0, 440, 350));
@@ -172,8 +171,9 @@ int main(int argc, char* argv[])
     }
 
     // Update the coefficient vector and u_prev_time.
-    info("Projecting to obtain coefficient vector on coarse mesh.");
-    project_global(&space, H2D_H1_NORM, &u_prev_time, &u_prev_time, coeff_vec);
+    if (ts == 1) info("Projecting initial condition to obtain coefficient vector on coarse mesh.");
+    else info("Projecting fine mesh solution to obtain coefficient vector on coarse mesh.");
+    project_global(&space, H2D_H1_NORM, &u_prev_time, NULL, coeff_vec);
 
     // Adaptivity loop (in space):
     bool verbose = true;     // Print info during adaptivity.
@@ -193,9 +193,12 @@ int main(int argc, char* argv[])
     ordview.show(&space);
 
     // Copy new time level reference solution into u_prev_time.
-    u_prev_time.set_fe_solution(&space, coeff_vec);
+    //u_prev_time.set_fe_solution(&space, coeff_vec);
+    u_prev_time.copy(&ref_sln);
   }
 
+  delete coeff_vec;
+  
   // Wait for all views to be closed.
   View::wait();
   return 0;

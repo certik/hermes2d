@@ -274,7 +274,8 @@ int power_iteration(Tuple<Space *>& spaces, WeakForm *wf,
   for_each_group(g) delete slptr_new_solution[g];
   mat->free_data();
   rhs->free_data();
-  //solver->free_data();  // FIXME: to be implemented.
+  //solver->free_data();  // FIXME: to be implemented. Default destructor is used now.
+  delete solver;
 
   return it;
 }

@@ -98,7 +98,7 @@ protected:
 class Vector {
 public:
     virtual void init(int n, bool is_complex=false) = 0; 
-    Vector() {};
+    Vector() : size(-1), complex(false) {};
     virtual ~Vector() {};
     inline virtual int get_size() { return this->size; }
     inline bool is_complex() { return this->complex; }
@@ -181,6 +181,12 @@ public:
                 this->v[i] = 0;
         }
     }
+    
+    // Creates a non-initialized vector. A non-NULL pointer to it can then be defined and passed to functions that use 
+    // this argument both to decide whether to initialize a new vector or not (if it were NULL),
+    // and as a means of returning a pointer to the possibly created vector. See e.g. project_global. 
+    AVector() : v(NULL), v_cplx(NULL) {};
+    
     AVector(int n, bool is_complex=false) {
         this->init(n, is_complex);
     }

@@ -91,7 +91,8 @@ bool solve_linear(Tuple<Space *> spaces, WeakForm* wf, MatrixSolverType matrix_s
   // Free memory.
   mat->free_data();
   rhs->free_data();
-  //solver->free_data();  // FIXME: to be implemented.
+  //solver->free_data();  // FIXME: to be implemented. A default destructor is called for the time being.
+  delete solver;
 
   return true;
 }

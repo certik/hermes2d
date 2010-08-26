@@ -145,7 +145,6 @@ int main (int argc, char* argv[]) {
   // Spaces for concentration and the voltage.
   H1Space C(&Cmesh, C_bc_types, C_essential_bc_values, P_INIT);
   H1Space phi(MULTIMESH ? &phimesh : &Cmesh, phi_bc_types, phi_essential_bc_values, P_INIT);
-  int ndof = get_num_dofs(Tuple<Space*>(&C, &phi));
 
   Solution C_sln, C_ref_sln,C_prev_time,
            phi_sln, phi_ref_sln, phi_prev_time;
@@ -175,7 +174,7 @@ int main (int argc, char* argv[]) {
 
 //  C_prev_time.set_const(&Cmesh, C0);
 //  phi_prev_time.set_const(MULTIMESH ? &phimesh : &Cmesh, 0);
-  Vector *coeff_vec = new AVector(ndof);
+  Vector *coeff_vec = new AVector();
 
   // Time stepping loop.
   int ts = 1; //for saving screenshot
@@ -213,5 +212,6 @@ int main (int argc, char* argv[]) {
                        NULL, NULL, &selector, &apt,
                        NEWTON_TOL_COARSE, NEWTON_TOL_FINE, NEWTON_MAX_ITER, verbose);
   }
-  // waiting for test.
+  delete coeff_vec;
+
 }

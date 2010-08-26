@@ -116,8 +116,8 @@ int main(int argc, char* argv[])
   H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
 
   // Projecting to obtain initial coefficient vector for the Newton's method.
-  Vector *coeff_vec = new AVector(get_num_dofs(&space));
   // The NULL pointer means that we do not want the projection result as a Solution.
+  Vector *coeff_vec = new AVector();
   project_global(&space, H2D_H1_NORM, init_cond, NULL, coeff_vec);
 
   // Adaptivity loop.
@@ -130,6 +130,7 @@ int main(int argc, char* argv[])
                      NEWTON_TOL_COARSE, NEWTON_TOL_FINE, NEWTON_MAX_ITER, verbose);
   
   int ndof = get_num_dofs(&space);
+  delete coeff_vec;
 
 #define ERROR_SUCCESS                                0
 #define ERROR_FAILURE                               -1
