@@ -221,7 +221,7 @@ void FeProblem::assemble(_Vector *rhs, _Matrix *jac, _Vector *x)
           }
           else u_ext.push_back(NULL);
 	}
-	if (x != NULL) delete [] vv;
+	if (x != NULL) delete vv;
 
         // Perform assembling.
         this->assemble(rhs, jac, u_ext);
