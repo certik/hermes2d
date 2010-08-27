@@ -26,6 +26,8 @@ const bool JFNK = true;          // true = Jacobian-free method,
                                  // false = Newton.
 const bool PRECOND = true;       // Preconditioning by jacobian in case of jfnk,
                                  // default ML preconditioner in case of Newton.
+MatrixSolverType matrix_solver = SOLVER_UMFPACK;  // Possibilities: SOLVER_UMFPACK, SOLVER_PETSC,
+                                                  // SOLVER_MUMPS, and more are coming.
 
 // Boundary condition types.
 BCType bc_types(int marker)
@@ -37,6 +39,14 @@ BCType bc_types(int marker)
 scalar essential_bc_values(int ess_bdy_marker, double x, double y)
 {
   return x*x + y*y;
+}
+
+// Initial condition.
+double init_cond(double x, double y, double &dx, double &dy)
+{
+	dx = 0;
+	dy = 0;
+	return 0;
 }
 
 // Exact solution.
@@ -66,7 +76,8 @@ int main(int argc, char **argv)
  
   // Create an H1 space with default shapeset.
   H1Space space(&mesh, bc_types, essential_bc_values, P_INIT);
-  info("Number of DOF: %d", space.get_num_dofs());
+  int ndof = get_num_dofs(&space);
+  info("Number of DOF: %d", ndof);
 
   // Solutions.
   Solution prev, sln1, sln2;
@@ -74,20 +85,18 @@ int main(int argc, char **argv)
   info("---- Using LinSystem, solving by UMFpack:");
 
   // Time measurement.
-  cpu_time.tick(H2D_SKIP);
+  cpu_time.tick(HERMES_SKIP);
 
   // Initialize weak formulation.
   WeakForm wf1;
   wf1.add_matrix_form(callback(bilinear_form));
   wf1.add_vector_form(callback(linear_form));
 
-  // Initialize the linear system.
-  LinSystem ls(&wf1, &space);
-
-  // Assemble and solve.
-  info("Assembling by LinSystem, solving by UMFpack.");
-  ls.assemble();
-  ls.solve(&sln1);
+  // Solve the linear problem.
+  Solution sln;
+  info("Assembling by LinearProblem, solving by UMFpack.");
+  // The NULL pointer means that we do not want the coefficient vector.
+  solve_linear(&space, &wf1, matrix_solver, &sln, NULL);
 
   // CPU time needed by UMFpack.
   double umf_time = cpu_time.tick().last();
@@ -95,19 +104,17 @@ int main(int argc, char **argv)
   info("---- Using FeProblem, solving by NOX:");
 
   // Time measurement.
-  cpu_time.tick(H2D_SKIP);
- 
-  // Define zero function.
-  prev.set_zero(&mesh);
+  cpu_time.tick(HERMES_SKIP);
   
+  // Select matrix solver.
+  Matrix* mat; Vector* vec; CommonSolver* common_solver;
+  init_matrix_solver(matrix_solver, ndof, mat, vec, common_solver);
+
   // Project the function "prev" on the FE space 
   // in order to obtain initial vector for NOX. 
   info("Projecting initial solution on the FE mesh.");
-  ls.project_global(&prev, &prev);
+  project_global(&space, H2D_H1_NORM, init_cond, &prev, vec);
 
-  // Get the coefficient vector.
-  scalar *vec = ls.get_solution_vector();
-  
   // Measure the projection time.
   double proj_time = cpu_time.tick().last();
   
@@ -127,28 +134,31 @@ int main(int argc, char **argv)
 
   // Initialize the NOX solver with the vector "vec".
   info("Initializing NOX.");
-  NoxSolver solver(&fep);
-  solver.set_init_sln(vec);
+  NoxSolver nox_solver(&fep);
+  nox_solver.set_init_sln(vec->get_c_array());
 
   // Choose preconditioning.
   MlPrecond pc("sa");
   if (PRECOND)
   {
-    if (JFNK) solver.set_precond(&pc);
-    else solver.set_precond("ML");
+    if (JFNK) nox_solver.set_precond(&pc);
+    else nox_solver.set_precond("ML");
   }
 
   // Solve the matrix problem using NOX.
   info("Assembling by FeProblem, solving by NOX.");
-  bool solved = solver.solve();
+  bool solved = nox_solver.solve();
   if (solved)
   {
-    double *s = solver.get_solution_vector();
-    sln2.set_fe_solution(&space, &pss, s);
+    double *s = nox_solver.get_solution_vector();
+    AVector *tmp_vector = new AVector(ndof);
+    tmp_vector->set_c_array(s, ndof);
+    sln2.set_fe_solution(&space, tmp_vector);
+    delete tmp_vector;
     info("Number of nonlin iterations: %d (norm of residual: %g)", 
-      solver.get_num_iters(), solver.get_residual());
+      nox_solver.get_num_iters(), nox_solver.get_residual());
     info("Total number of iterations in linsolver: %d (achieved tolerance in the last step: %g)", 
-      solver.get_num_lin_iters(), solver.get_achieved_tol());
+      nox_solver.get_num_lin_iters(), nox_solver.get_achieved_tol());
   }
   else
     error("NOX failed");
@@ -159,10 +169,14 @@ int main(int argc, char **argv)
   // Calculate exact errors.
   Solution ex;
   ex.set_exact(&mesh, &exact);
-  info("Solution 1 (LinSystem - UMFpack): exact H1 error: %g (time %g s)", 
-    100 * h1_error(&sln1, &ex), umf_time);
+  Adapt hp(&space, H2D_H1_NORM);
+  hp.set_solutions(&sln1, &ex);
+  double err_est_rel_1 = hp.calc_elem_errors(H2D_TOTAL_ERROR_REL | H2D_ELEMENT_ERROR_REL) * 100;
+  hp.set_solutions(&sln2, &ex);
+  double err_est_rel_2 = hp.calc_elem_errors(H2D_TOTAL_ERROR_REL | H2D_ELEMENT_ERROR_REL) * 100;
+  info("Solution 1 (LinSystem - UMFpack): exact H1 error: %g (time %g s)", err_est_rel_1, umf_time);
   info("Solution 2 (FeProblem - NOX):  exact H1 error: %g (time %g + %g s)", 
-    100 * h1_error(&sln2, &ex), proj_time, nox_time);
+    err_est_rel_2, proj_time, nox_time);
 
   // Show both solutions.
   ScalarView view1("Solution 1", 0, 0, 500, 400);
