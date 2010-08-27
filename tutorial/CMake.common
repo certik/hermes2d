@@ -28,4 +28,5 @@ target_link_libraries(${PROJECT_NAME} hermes_common ${HERMES}
         ${PYTHON_LIBRARIES}
         ${UMFPACK_LIBRARY}
         ${AMD_LIBRARY} ${BLAS_LIBRARIES} ${LAPACK_LIBRARIES} ${TRILINOS_LIBRARIES})
+set_property(TARGET ${PROJECT_NAME} PROPERTY COMPILE_FLAGS "-g -fPIC")
 add_dependencies(${PROJECT_NAME} ${HERMES})
