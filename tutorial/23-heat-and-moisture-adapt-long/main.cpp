@@ -46,7 +46,7 @@ MatrixSolverType matrix_solver = SOLVER_UMFPACK;  // Possibilities: SOLVER_UMFPA
 
 // Time step and simulation time.
 const double TAU = 5.*24*60*60;                 // time step: 120 hours
-const double SIMULATION_TIME = TAU + 0.001;     // (seconds) physical time
+const double SIMULATION_TIME = 100*TAU + 0.001;     // (seconds) physical time
 
 // Equation parameters.
 const double c_TT = 2.18e+6;
