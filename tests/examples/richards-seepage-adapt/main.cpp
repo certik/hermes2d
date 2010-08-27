@@ -237,8 +237,6 @@ int main(int argc, char* argv[])
   // Visualize the projection and mesh.
   ScalarView view("Initial condition", new WinGeom(0, 0, 440, 350));
   OrderView ordview("Initial mesh", new WinGeom(450, 0, 400, 350));
-  view.show(&u_prev_time);
-  ordview.show(&space);
 
   // Time stepping loop.
   int num_time_steps = (int)(T_FINAL/TAU + 0.5);
@@ -268,10 +266,8 @@ int main(int argc, char* argv[])
     char title[100];
     sprintf(title, "Solution, time level %d", ts);
     view.set_title(title);
-    view.show(&sln);
     sprintf(title, "Mesh, time level %d", ts);
     ordview.set_title(title);
-    ordview.show(&space);
 
     // Copy new time level reference solution into u_prev_time.
     u_prev_time.set_fe_solution(&space, coeff_vec);

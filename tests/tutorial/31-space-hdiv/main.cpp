@@ -21,7 +21,6 @@ int main(int argc, char* argv[])
 
   // Visualise the FE basis.
   VectorBaseView bview("VectorBaseView", 0, 0, 700, 600);
-  bview.show(&space);
 
   bool success = true;
 

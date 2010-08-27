@@ -460,15 +460,6 @@ int main(int argc, char* argv[])
                      Tuple<RefinementSelectors::Selector *> (&selector, &selector, &selector, &selector), 
                      &apt, verbose);
 
-/*  u1_sln_view.show(&u1);
-  u2_sln_view.show(&u2);
-  u3_sln_view.show(&u3);
-  u4_sln_view.show(&u4);
-  u1_order_view.show(&xvel);
-  u2_order_view.show(&yvel);
-  u3_order_view.show(&press);
-  u4_order_view.show(&lset);
-*/
   // Waiting for tests.
 
 }

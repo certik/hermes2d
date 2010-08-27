@@ -30,8 +30,6 @@ int main(int argc, char* argv[])
 
   // View basis functions.
   BaseView bview("BaseView", 0, 0, 600, 500);
-  bview.show(&space);
-  //View::wait(H2DV_WAIT_KEYPRESS);
 
   // Assemble and solve the finite element problem.
   WeakForm wf_dummy;
@@ -41,7 +39,6 @@ int main(int argc, char* argv[])
 
   // Visualize the solution.
   ScalarView view1("Projection", 610, 0, 600, 500);
-  view1.show(&sln);
 
   // It will "Exception: SegFault" if we do not use View::wait() or View::close(). 
   view1.close();

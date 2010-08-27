@@ -137,7 +137,7 @@ int main(int argc, char* argv[])
   sview_1.lin.load_data("tsln_40.lin");
   sview_1.set_min_max_range(0,20);
   sview_1.fix_scale_width(3);
-  sview_1.show_linearizer_data();
+  //sview_1.show_linearizer_data();
 
   info("Visualizing Solution from file tsln_60.dat.");
 
@@ -147,7 +147,6 @@ int main(int argc, char* argv[])
   ScalarView sview_2("Saved Solution data", win_geom_2);
   sview_2.set_min_max_range(0,20);
   sview_2.fix_scale_width(3);
-  sview_2.show(&sln_from_file);
 
   info("Visualizing Mesh and Orders extracted from the Solution.");
  
@@ -157,7 +156,6 @@ int main(int argc, char* argv[])
   space_from_file.set_element_orders(sln_from_file.get_element_orders());
   WinGeom* win_geom_3 = new WinGeom(920, 0, 450, 600);
   OrderView oview("Saved Solution -> Space", win_geom_3);
-  oview.show(&space_from_file);
 
   // Wait for the view to be closed.
   // View::wait();
