@@ -3,7 +3,11 @@
 template<typename Real, typename Scalar>
 Scalar bilinear_form_sym_0_0_1_1(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
-  return int_grad_u_grad_v<Real, Scalar>(n, wt, u, v) / RE + int_u_v<Real, Scalar>(n, wt, u, v) / TAU;
+  return int_grad_u_grad_v<Real, Scalar>(n, wt, u, v) / RE 
+#ifndef STOKES
+    + int_u_v<Real, Scalar>(n, wt, u, v) / TAU
+#endif
+    ;
 }
 
 template<typename Real, typename Scalar>
@@ -21,17 +25,19 @@ Scalar simple_bilinear_form_unsym_0_0_1_1(int n, double *wt, Func<Scalar> *u_ext
 template<typename Real, typename Scalar>
 Scalar simple_linear_form(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
+  Scalar result = 0;
+#ifndef STOKES
   Func<Scalar>* vel_prev_time = ext->fn[0]; // this form is used with both velocity components
-  return int_u_v<Real, Scalar>(n, wt, vel_prev_time, v) / TAU;
+  result = int_u_v<Real, Scalar>(n, wt, vel_prev_time, v) / TAU;
+#endif
+  return result;
 }
 
 template<typename Real, typename Scalar>
 Scalar bilinear_form_unsym_0_2(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *p, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
   Scalar result = 0;
-#ifndef STOKES
   result = - int_u_dvdx<Real, Scalar>(n, wt, p, v);
-#endif
   return result;
 }
 
@@ -39,9 +45,7 @@ template<typename Real, typename Scalar>
 Scalar bilinear_form_unsym_1_2(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *p, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {
   Scalar result = 0;
-#ifndef STOKES
   result = - int_u_dvdy<Real, Scalar>(n, wt, p, v);
-#endif
   return result;
 }
 
@@ -108,9 +112,10 @@ Scalar newton_F_0(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *v, Geom<
   Func<Scalar>* yvel_prev_newton = u_ext[1];  
   Func<Scalar>* p_prev_newton = u_ext[2];
   for (int i = 0; i < n; i++)
-    result += wt[i] * ((xvel_prev_newton->val[i] - xvel_prev_time->val[i]) * v->val[i] / TAU +
+    result += wt[i] * (
                        (xvel_prev_newton->dx[i] * v->dx[i] + xvel_prev_newton->dy[i] * v->dy[i]) / RE 
 #ifndef STOKES
+		       + (xvel_prev_newton->val[i] - xvel_prev_time->val[i]) * v->val[i] / TAU 
                        + (xvel_prev_newton->val[i] * xvel_prev_newton->dx[i] + yvel_prev_newton->val[i] * xvel_prev_newton->dy[i]) * v->val[i] 
 #endif
                        - (p_prev_newton->val[i] * v->dx[i]));
@@ -123,13 +128,14 @@ Scalar newton_F_1(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *v, Geom<
   Scalar result = 0;
   Func<Scalar>* xvel_prev_time = ext->fn[0];  
   Func<Scalar>* yvel_prev_time = ext->fn[1];
-  Func<Scalar>* xvel_prev_newton = u_ext[0];
-  Func<Scalar>* yvel_prev_newton = u_ext[1];
+  Func<Scalar>* xvel_prev_newton = u_ext[0];  
+  Func<Scalar>* yvel_prev_newton = u_ext[1];  
   Func<Scalar>* p_prev_newton = u_ext[2];
   for (int i = 0; i < n; i++)
-    result += wt[i] * ((yvel_prev_newton->val[i] - yvel_prev_time->val[i]) * v->val[i] / TAU +
+    result += wt[i] * (
                        (yvel_prev_newton->dx[i] * v->dx[i] + yvel_prev_newton->dy[i] * v->dy[i]) / RE 
 #ifndef STOKES
+                       + (yvel_prev_newton->val[i] - yvel_prev_time->val[i]) * v->val[i] / TAU
                        + (xvel_prev_newton->val[i] * yvel_prev_newton->dx[i] + yvel_prev_newton->val[i] * yvel_prev_newton->dy[i]) * v->val[i] 
 #endif
                        - (p_prev_newton->val[i] * v->dy[i]));
