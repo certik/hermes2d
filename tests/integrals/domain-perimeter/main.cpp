@@ -10,7 +10,11 @@ using std::cout;
 using std::endl;
 
 //******************************************************************************
-//  This is an very basic test for computing the perimeter of a domain. 
+//  This is a very basic test for computing the perimeter of a domain. 
+//  The user can experiment with existing cases or contribute a new case.
+//  The latter may require an additional mesh file to be named adomain.meshX 
+//  where X should an integer following the largest already available. The
+//  header in the existing mesh files should be helpful in this case.
 
 // If you add a new domain case, put its name here. In addition, create a 
 // domain.meshX file and read the existing files to help you create yours.
