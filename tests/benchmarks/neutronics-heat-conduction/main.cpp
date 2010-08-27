@@ -144,7 +144,6 @@ int main(int argc, char* argv[])
   H1Space space_T(&mesh, bc_types_T, essential_bc_values_T, P_INIT);
   H1Space space_phi(&mesh, bc_types_phi, essential_bc_values_phi, P_INIT);
   Tuple<Space*> spaces(&space_T, &space_phi);
-  int ndof = get_num_dofs(spaces);
 
   // Exact solutions for error evaluation.
   ExactSolution T_exact_solution(&mesh, T_exact),
@@ -171,7 +170,6 @@ int main(int argc, char* argv[])
   wf.add_vector_form(1, res_phi, res_phi_ord, H2D_ANY, &phi_prev_time);
   
   // Initialize the nonlinear system.
-//  DiscreteProblem dp(&wf, spaces);
   Tuple<int> proj_norms(H2D_H1_NORM, H2D_H1_NORM);
 
   // Set initial conditions.
@@ -179,7 +177,7 @@ int main(int argc, char* argv[])
   phi_prev_time.set_exact(&mesh, phi_exact);
 
   // Time stepping.
-  Vector* coeff_vec = new AVector(ndof);
+  Vector* coeff_vec = new AVector();
   int t_step = 1;
   do {
     TIME += TAU;
@@ -220,6 +218,8 @@ int main(int argc, char* argv[])
   }
   while (t_step <= TIME_MAX_ITER);
 
+  delete coeff_vec;
+  
   info("Coordinate (  0,  0) T value = %lf", T_prev_time.get_pt_value(0.0, 0.0));
   info("Coordinate ( 25, 25) T value = %lf", T_prev_time.get_pt_value(25.0, 25.0));
   info("Coordinate ( 75, 25) T value = %lf", T_prev_time.get_pt_value(75.0, 25.0));

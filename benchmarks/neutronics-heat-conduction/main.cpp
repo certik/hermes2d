@@ -198,7 +198,6 @@ int main(int argc, char* argv[])
   wf.add_vector_form(1, res_phi, res_phi_ord, H2D_ANY, &phi_prev_time);
   
   // Initialize the nonlinear system.
-  DiscreteProblem dp(&wf, spaces);
   Tuple<int> proj_norms(H2D_H1_NORM, H2D_H1_NORM);
 
   // Set initial conditions.
