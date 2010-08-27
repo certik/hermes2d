@@ -158,7 +158,7 @@ int main(int argc, char* argv[])
 
   // Time stepping loop.
   int num_time_steps = (int)(T_FINAL/TAU + 0.5);
-  Vector *ref_coeff_vec = new AVector();
+  Vector *coeff_vec = new AVector();
   for(int ts = 1; ts <= num_time_steps; ts++)
   {
     // Periodic global derefinements.
@@ -191,22 +191,22 @@ int main(int argc, char* argv[])
       if (ts == 1 && as == 1) {
         info("Projecting coarse mesh solution to obtain coefficient vector on new fine mesh.");
         // The NULL means that we do not want the result as a Solution.
-        project_global(ref_space, H2D_H1_NORM, &sln, NULL, ref_coeff_vec);
+        project_global(ref_space, H2D_H1_NORM, &sln, NULL, coeff_vec);
       }
       else {
         info("Projecting previous fine mesh solution to obtain coefficient vector on new fine mesh.");
         // The NULL means that we do not want the result as a Solution.
-        project_global(ref_space, H2D_H1_NORM, &ref_sln, NULL, ref_coeff_vec);
+        project_global(ref_space, H2D_H1_NORM, &ref_sln, NULL, coeff_vec);
       }
 
       // Newton's method on fine mesh
       info("Solving on fine mesh.");
       bool verbose = true; // Default is false.
-      if (!solve_newton(ref_space, &wf, ref_coeff_vec, matrix_solver, NEWTON_TOL_FINE, NEWTON_MAX_ITER, verbose))
+      if (!solve_newton(ref_space, &wf, coeff_vec, matrix_solver, NEWTON_TOL_FINE, NEWTON_MAX_ITER, verbose))
         error("Newton's method did not converge.");
 
       // Store the result in ref_sln.
-      ref_sln.set_fe_solution(ref_space, ref_coeff_vec);
+      ref_sln.set_fe_solution(ref_space, coeff_vec);
 
       // Calculate element errors.
       info("Calculating error (est).");
@@ -256,7 +256,7 @@ int main(int argc, char* argv[])
     sln_prev_time.copy(&ref_sln);
   }
 
-  delete ref_coeff_vec;
+  delete coeff_vec;
   
   // Wait for all views to be closed.
   View::wait();
