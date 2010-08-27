@@ -134,6 +134,7 @@ ENDIF(EPETRA_FOUND AND TEUCHOS_FOUND)
 IF(H2D_COMPLEX)
 	# Komplex is a crucial for compiling complex version of H3D with Trilinos support
 	IF(NOT KOMPLEX_FOUND)
+        MESSAGE(STATUS "Komplex not found.")
 		SET(TRILINOS_FOUND FALSE)
 	ENDIF(NOT KOMPLEX_FOUND)
 ENDIF(H2D_COMPLEX)
