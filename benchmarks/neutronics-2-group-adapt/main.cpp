@@ -234,11 +234,11 @@ void make_str_from_adapt_opts(std::stringstream& str)
   switch (CAND_LIST) {
     case H2D_H_ANISO:
     case H2D_H_ISO:
-      str << "h" << P_INIT;
+      str << "h" << P_INIT[0] << "_" << P_INIT[1];
       break;
     case H2D_P_ANISO:
     case H2D_P_ISO:
-      str << "p" << INIT_REF_NUM;
+      str << "p" << INIT_REF_NUM[0] << "_" << INIT_REF_NUM[1];
       break;
     default:
       str << "hp";
@@ -482,12 +482,14 @@ int main(int argc, char* argv[])
   // Save plots of final distribution of polynomial orders over each mesh.
   
   std::stringstream o1;
-  o1 << "mesh_" << str;
+  o1 << "mesh_" << str.str();
   if (MULTIMESH) {
     o1 << "-1.bmp";
     std::stringstream o2;
-    o2 << "mesh_" << str << "-2.bmp";
+    o2 << "mesh_" << str.str() << "-2.bmp";
     oview2.save_screenshot(o2.str().c_str(), true);
+  } else {
+    o1 << ".bmp";
   }
   oview1.save_screenshot(o1.str().c_str(), true);
   
@@ -495,12 +497,12 @@ int main(int argc, char* argv[])
   // Save convergence graphs.
   
   std::stringstream ccfile, cdfile;
-  cdfile << "conv_dof_" << str << ".dat";
-  ccfile << "conv_cpu_" << str << ".dat";
+  cdfile << "conv_dof_" << str.str() << ".dat";
+  ccfile << "conv_cpu_" << str.str() << ".dat";
     
-  graph_dof.save(ccfile.str().c_str());
-  graph_cpu.save(cdfile.str().c_str());  
   graph_dof_evol.save("dof_evol.gp");
+  graph_dof.save(cdfile.str().c_str());
+  graph_cpu.save(ccfile.str().c_str());  
 
   // Wait for all views to be closed.
   View::wait();
