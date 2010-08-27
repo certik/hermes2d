@@ -172,7 +172,6 @@ int main (int argc, char* argv[]) {
   basemesh.refine_towards_boundary(TOP_MARKER, 2);
   basemesh.refine_towards_boundary(BOT_MARKER, 4);
   MeshView mview("Mesh", 0, 600, 400, 400);
-  mview.show(&basemesh);
 #else
   mloader.load("small.mesh", &basemesh);
   basemesh.refine_all_elements(1);
@@ -240,10 +239,6 @@ int main (int argc, char* argv[]) {
   OrderView Cordview("C order", 0, 450, 400, 400);
   OrderView phiordview("Phi order", 400, 450, 400, 400);
   
-//  phiview.show(&phi_prev_newton);
-//  Cview.show(&C_prev_newton);
-//  Cordview.show(&Cspace);
-//  phiordview.show(&phispace);
 
   // convergence graph, error graph
   SimpleGraph graph_time_err, graph_time_dof, graph_time_cpu;
@@ -267,10 +262,9 @@ int main (int argc, char* argv[]) {
 
   sprintf(title, "phi initial coarse mesh solution");
   phiview.set_title(title);
-  phiview.show(&phi_prev_newton);
   sprintf(title, "C initial coarse mesh solution");
   Cview.set_title(title);
-  Cview.show(&C_prev_newton);*/
+  */
 
   // Initialize view.
   ScalarView rview("Reaction rate", 0, 0, 800, 230);
@@ -338,7 +332,6 @@ int main (int argc, char* argv[]) {
     char title[100];
     sprintf(title, "Reaction rate, t = %g", current_time);
     rview.set_title(title);
-    rview.show(&C_prev_newton);
 
     // Update current time.
     current_time += TAU;
@@ -488,10 +481,6 @@ int main (int argc, char* argv[]) {
       Cordview.set_title(title);
       sprintf(title, "hp-mesh (phi), time level %d, adaptivity %d", n, as);
       phiordview.set_title(title);
-      Cordview.show(&Cspace);
-      phiordview.show(&phispace);
-      Cview.show(&C_prev_newton);
-      phiview.show(&phi_prev_newton);
       #ifdef SCREENSHOT
       Cordview.save_numbered_screenshot("screenshots/Cord%03d.bmp", at_index, true);
       phiordview.save_numbered_screenshot("screenshots/phiord%03d.bmp", at_index, true);
@@ -511,14 +500,12 @@ int main (int argc, char* argv[]) {
       sprintf(title, "phi after time step %d", n);
     }
     phiview.set_title(title);
-    phiview.show(&phi_prev_newton);
     if (n == 1) {
       sprintf(title, "C after time step %d, adjust the graph and PRESS ANY KEY", n);
     } else {
       sprintf(title, "C after time step %d", n);
     }
     Cview.set_title(title);
-    Cview.show(&C_prev_newton);
     #ifdef SCREENSHOT
     Cview.save_numbered_screenshot("screenshots/C%03d.bmp", n, true);
     phiview.save_numbered_screenshot("screenshots/phi%03d.bmp", n, true);
