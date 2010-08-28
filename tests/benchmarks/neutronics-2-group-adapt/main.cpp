@@ -10,18 +10,18 @@ using namespace RefinementSelectors;
  *  - P_INIT=1 for both solution components
  *  - INIT_REF_NUM=1 for both solution components
  *  - THERSHOLD=0.3
- *  - STRATEGY=0
- *  - CAND_LIST=HP_ANISO_P
+ *  - STRATEGY=1
+ *  - CAND_LIST=HP_ISO
  *  - MESH_REGULARITY=-1
- *  - ERR_STOP=4
+ *  - ERR_STOP=0.01
  *  - CONV_EXP=1.0
  *  - NDOF_STOP=40000
  *  - ERROR_WEIGHTS=default values
  *
  *  \section s_res Expected results
- *  - DOFs: 331, 2876   (for the two solution components)
- *  - Iterations: 19    (the last iteration at which ERR_STOP is fulfilled)
- *  - Error:  4.33036%  (H1 norm of error with respect to the exact solution)
+ *  - DOFs: 446, 2682   (for the two solution components)
+ *  - Iterations: 15    (the last iteration at which ERR_STOP is fulfilled)
+ *  - Error:  3.46614%  (H1 norm of error with respect to the exact solution)
  *  - Negatives: 0      (number of negative values) 
  */
  
@@ -36,7 +36,7 @@ const int INIT_REF_NUM[2] =
 
 const double THRESHOLD = 0.3;              // This is a quantitative parameter of the adapt(...) function and
                                            // it has different meanings for various adaptive strategies (see below).
-const int STRATEGY = 0;                    // Adaptive strategy:
+const int STRATEGY = 1;                    // Adaptive strategy:
                                            // STRATEGY = 0 ... refine elements until sqrt(THRESHOLD) times total
                                            //   error is processed. If more elements have similar errors, refine
                                            //   all to keep the mesh symmetric.
@@ -45,7 +45,7 @@ const int STRATEGY = 0;                    // Adaptive strategy:
                                            // STRATEGY = 2 ... refine all elements whose error is larger
                                            //   than THRESHOLD.
                                            // More adaptive strategies can be created in adapt_ortho_h1.cpp.
-const CandList CAND_LIST = H2D_HP_ANISO_P; // Predefined list of element refinement candidates. Possible values are
+const CandList CAND_LIST = H2D_HP_ISO;        // Predefined list of element refinement candidates. Possible values are
                                            // H2D_P_ISO, H2D_P_ANISO, H2D_H_ISO, H2D_H_ANISO, H2D_HP_ISO,
                                            // H2D_HP_ANISO_H, H2D_HP_ANISO_P, H2D_HP_ANISO.
                                            // See User Documentation for details.
@@ -57,7 +57,7 @@ const int MESH_REGULARITY = -1;            // Maximum allowed level of hanging n
                                            // their notoriously bad performance.
 const double CONV_EXP = 1.0;               // Default value is 1.0. This parameter influences the selection of
                                            // candidates in hp-adaptivity. See get_optimal_refinement() for details.
-const double ERR_STOP = 4;                 // Stopping criterion for adaptivity (rel. error tolerance between the
+const double ERR_STOP = 0.01;                 // Stopping criterion for adaptivity (rel. error tolerance between the
                                            // reference and coarse mesh solution in percent).
 const int NDOF_STOP = 40000;               // Adaptivity process stops when the number of degrees of freedom grows over
                                            // this limit. This is mainly to prevent h-adaptivity to go on forever.
@@ -393,22 +393,25 @@ int main(int argc, char* argv[])
   cpu_time.tick();
   cta = cpu_time.accumulated();
   info("Total running time: %g s", cta);
+  
+  info("Number of iterations: %d", iadapt);
+  info("NDOF: %d, %d", space1.get_num_dofs(), space2.get_num_dofs());
 
 #define ERROR_SUCCESS                               0
 #define ERROR_FAILURE                               -1
   int n_dof_1 = space1.get_num_dofs(), 
       n_dof_2 = space2.get_num_dofs();
-  int n_dof_1_allowed = 400, 
-      n_dof_2_allowed = 2900;
+  int n_dof_1_allowed = 500, 
+      n_dof_2_allowed = 2800;
       
   int n_neg = get_num_of_neg(&sln1) + get_num_of_neg(&sln2);
   int n_neg_allowed = 0;
   
   int n_iter = iadapt;
-  int n_iter_allowed = 20;
+  int n_iter_allowed = 17;
 
   double error = error_h1;
-  double error_allowed = 4.5;
+  double error_allowed = 3.55;
   
   printf("n_dof_actual  = %d,%d\n", n_dof_1, n_dof_2);
   printf("n_dof_allowed = %d,%d\n", n_dof_1_allowed, n_dof_2_allowed);
