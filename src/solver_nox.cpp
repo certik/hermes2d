@@ -243,79 +243,78 @@ bool NoxSolver::set_init_sln(EpetraVector *ic)
 bool NoxSolver::solve()
 {
 #ifdef HAVE_NOX
-	if (interface->fep.get_num_dofs() == 0) return false;
+   if (interface->fep.get_num_dofs() == 0) return false;
 
-	// start from the initial solution
-	NOX::Epetra::Vector nox_sln(*interface->get_init_sln()->vec);
+   // start from the initial solution
+   NOX::Epetra::Vector nox_sln(*interface->get_init_sln()->vec);
 
-	// Create the top level parameter list
-	Teuchos::RCP<Teuchos::ParameterList> nl_pars_ptr = Teuchos::rcp(new Teuchos::ParameterList);
-	Teuchos::ParameterList &nl_pars = *nl_pars_ptr.get();
+   // Create the top level parameter list
+   Teuchos::RCP<Teuchos::ParameterList> nl_pars_ptr = Teuchos::rcp(new Teuchos::ParameterList);
+   Teuchos::ParameterList &nl_pars = *nl_pars_ptr.get();
 
-	// Set the nonlinear solver method
-	nl_pars.set("Nonlinear Solver", "Line Search Based");
+   // Set the nonlinear solver method
+   nl_pars.set("Nonlinear Solver", "Line Search Based");
 
-	// Set the printing parameters in the "Printing" sublist
-	Teuchos::ParameterList &print_pars = nl_pars.sublist("Printing");
-	print_pars.set("Output Information", output_flags);
+   // Set the printing parameters in the "Printing" sublist
+   Teuchos::ParameterList &print_pars = nl_pars.sublist("Printing");
+   print_pars.set("Output Information", output_flags);
 
-	// Sublist for line search
-	Teuchos::ParameterList &search_pars = nl_pars.sublist("Line Search");
-	search_pars.set("Method", "Full Step");
+   // Sublist for line search
+   Teuchos::ParameterList &search_pars = nl_pars.sublist("Line Search");
+   search_pars.set("Method", "Full Step");
 
-	// Sublist for direction
-	Teuchos::ParameterList &dir_pars = nl_pars.sublist("Direction");
-	dir_pars.set("Method", nl_dir);
-	Teuchos::ParameterList &newton_pars = dir_pars.sublist(nl_dir);
-	if (strcmp(nl_dir, "Newton") == 0) {
-		// TODO: parametrize me
-		newton_pars.set("Forcing Term Method", "Constant");
-	}
-	else if (strcmp(nl_dir, "Modified-Newton") == 0) {
-		// TODO: parametrize me
-		newton_pars.set("Max Age of Jacobian", 2);
-	}
+   // Sublist for direction
+   Teuchos::ParameterList &dir_pars = nl_pars.sublist("Direction");
+   dir_pars.set("Method", nl_dir);
+   Teuchos::ParameterList &newton_pars = dir_pars.sublist(nl_dir);
+   if (strcmp(nl_dir, "Newton") == 0) {
+     // TODO: parametrize me
+     newton_pars.set("Forcing Term Method", "Constant");
+   }
+   else if (strcmp(nl_dir, "Modified-Newton") == 0) {
+     // TODO: parametrize me
+     newton_pars.set("Max Age of Jacobian", 2);
+   }
 
-	// Sublist for linear solver for the Newton method
-	Teuchos::ParameterList &ls_pars = newton_pars.sublist("Linear Solver");
-	ls_pars.set("Aztec Solver", ls_type);
-	ls_pars.set("Max Iterations", ls_max_iters);
-	ls_pars.set("Tolerance", ls_tolerance);
-	ls_pars.set("Size of Krylov Subspace", ls_sizeof_krylov_subspace);
-	// precond stuff
-	Precond *precond = interface->get_precond();
-	if (precond_yes == false)
-   	ls_pars.set("Preconditioner", "None");
-  else
-    if (interface->fep.is_matrix_free())
-		  ls_pars.set("Preconditioner", "User Defined");
-    else
-    {
-      if (strcasecmp(precond_type, "ML") == 0)
-        ls_pars.set("Preconditioner", "ML");
-      else if (strcasecmp(precond_type, "Ifpack") == 0)
-        ls_pars.set("Preconditioner", "Ifpack");
-      else
-      {
-        warn("Unsupported type of preconditioner.");
-        ls_pars.set("Preconditioner", "None");
-      }
-    }
-	ls_pars.set("Max Age Of Prec", 5);
+   // Sublist for linear solver for the Newton method
+   Teuchos::ParameterList &ls_pars = newton_pars.sublist("Linear Solver");
+   ls_pars.set("Aztec Solver", ls_type);
+   ls_pars.set("Max Iterations", ls_max_iters);
+   ls_pars.set("Tolerance", ls_tolerance);
+   ls_pars.set("Size of Krylov Subspace", ls_sizeof_krylov_subspace);
+   // precond stuff
+   Precond *precond = interface->get_precond();
+   if (precond_yes == false) {
+     ls_pars.set("Preconditioner", "None");
+   }
+   else
+     if (interface->fep.is_matrix_free()) ls_pars.set("Preconditioner", "User Defined");
+     else {
+       if (strcasecmp(precond_type, "ML") == 0) {
+         ls_pars.set("Preconditioner", "ML");
+       }
+       else if (strcasecmp(precond_type, "Ifpack") == 0)
+         ls_pars.set("Preconditioner", "Ifpack");
+       else {
+         warn("Unsupported type of preconditioner.");
+         ls_pars.set("Preconditioner", "None");
+       }
+     }
+     ls_pars.set("Max Age Of Prec", 5);
 
-	Teuchos::RCP<NOX::Epetra::Interface::Required> i_req = interface;
-	Teuchos::RCP<NOX::Epetra::Interface::Jacobian> i_jac;
-	Teuchos::RCP<NOX::Epetra::Interface::Preconditioner> i_prec = interface;
-	Teuchos::RCP<NOX::Epetra::MatrixFree> mf;
-	Teuchos::RCP<Epetra_RowMatrix> jac_mat;
-	Teuchos::RCP<NOX::Epetra::LinearSystemAztecOO> lin_sys;
+     Teuchos::RCP<NOX::Epetra::Interface::Required> i_req = interface;
+     Teuchos::RCP<NOX::Epetra::Interface::Jacobian> i_jac;
+     Teuchos::RCP<NOX::Epetra::Interface::Preconditioner> i_prec = interface;
+     Teuchos::RCP<NOX::Epetra::MatrixFree> mf;
+     Teuchos::RCP<Epetra_RowMatrix> jac_mat;
+     Teuchos::RCP<NOX::Epetra::LinearSystemAztecOO> lin_sys;
 	if (interface->fep.is_matrix_free()) {
 		// Matrix-Free (Epetra_Operator)
 		if (precond == NULL) {
 			mf = Teuchos::rcp(new NOX::Epetra::MatrixFree(print_pars, interface, nox_sln));
 			i_jac = mf;
 			lin_sys = Teuchos::rcp(new NOX::Epetra::LinearSystemAztecOO(print_pars, ls_pars, i_req,
-																		i_jac, mf, nox_sln));
+                                                                i_jac, mf, nox_sln));
 		}
 		else {
 			const Teuchos::RCP<Epetra_Operator> pc = Teuchos::RCP<Epetra_Operator>(precond);
@@ -399,11 +398,19 @@ bool NoxSolver::solve()
 		f_sln.ExtractCopy(sln);
 #else
 #endif
-		return true;
+
+          // debug
+          printf("n = %d\nvec = ", n);
+          for (int i=0; i < n; i++) printf("%g ", sln[i]);
+          printf("\n");
+
+          info("NOX solver: returning 'true'.");
+          return true;
 	}
 	else {
-		num_iters = -1;
-		return false;
+	  info("NOX solver: returning 'false'.");
+	  num_iters = -1;
+	  return false;
 	}
 
 #else

@@ -16,11 +16,11 @@
 //
 //  BC: Nonhomogeneous Dirichlet, see the function essential_bc_values() below.
 //
-//  Exact solution: sqr(x) + sqr(y).
+//  Exact solution: x*x + y*y.
 //
 //  The following parameters can be changed:
 
-const int INIT_REF_NUM = 4;      // Number of initial uniform mesh refinements.
+const int INIT_REF_NUM = 1;      // Number of initial uniform mesh refinements.
 const int P_INIT = 2;            // Initial polynomial degree of all mesh elements.
 const bool JFNK = true;          // true = Jacobian-free method,
                                  // false = Newton.
@@ -82,7 +82,7 @@ int main(int argc, char **argv)
   // Solutions.
   Solution prev, sln1, sln2;
 
-  info("---- Using LinSystem, solving by UMFpack:");
+  info("---- Assembling by LinearProblem, solving by UMFpack:");
 
   // Time measurement.
   cpu_time.tick(HERMES_SKIP);
@@ -92,24 +92,40 @@ int main(int argc, char **argv)
   wf1.add_matrix_form(callback(bilinear_form));
   wf1.add_vector_form(callback(linear_form));
 
-  // Solve the linear problem.
-  Solution sln;
-  info("Assembling by LinearProblem, solving by UMFpack.");
-  // The NULL pointer means that we do not want the coefficient vector.
-  solve_linear(&space, &wf1, matrix_solver, &sln, NULL);
+  // Initialize the linear problem.
+  LinearProblem lp(&wf1, &space);
 
-  // CPU time needed by UMFpack.
-  double umf_time = cpu_time.tick().last();
-
-  info("---- Using FeProblem, solving by NOX:");
-
-  // Time measurement.
-  cpu_time.tick(HERMES_SKIP);
-  
   // Select matrix solver.
   Matrix* mat; Vector* vec; CommonSolver* common_solver;
   init_matrix_solver(matrix_solver, ndof, mat, vec, common_solver);
 
+  // Assemble stiffness matrix and rhs.
+  lp.assemble(mat, vec);
+
+  // Solve the matrix problem.
+  if (!common_solver->solve(mat, vec)) error ("Matrix solver failed.\n");
+
+  // Convert coefficient vector into a Solution.
+  Solution sln;
+  sln.set_fe_solution(&space, vec);
+    
+  // debug: output of solution vector
+  printf("ndof = %d\nvec = ", ndof);
+  for (int i=0; i < ndof; i++) printf("%g ", vec->get(i));
+  printf("\n");
+
+  // Show the solution and mesh.
+  ScalarView sv("Solution", 0, 0, 440, 350);
+  sv.show(&sln);
+
+  // CPU time needed by UMFpack.
+  double umf_time = cpu_time.tick().last();
+
+  info("---- Assembling by FeProblem, solving by NOX:");
+
+  // Time measurement.
+  cpu_time.tick(HERMES_SKIP);
+  
   // Project the function "prev" on the FE space 
   // in order to obtain initial vector for NOX. 
   info("Projecting initial solution on the FE mesh.");
@@ -124,7 +140,7 @@ int main(int argc, char **argv)
   wf2.add_vector_form(callback(residual_form));
 
   // FIXME: The entire FeProblem should be removed
-  // and functionality merged into LinSystem.
+  // and functionality merged into LinearProblem.
   // Initialize FeProblem.
   H1Shapeset shapeset;
   FeProblem fep(&wf2);
@@ -151,6 +167,7 @@ int main(int argc, char **argv)
   if (solved)
   {
     double *s = nox_solver.get_solution_vector();
+    printf("here\n");
     AVector *tmp_vector = new AVector(ndof);
     tmp_vector->set_c_array(s, ndof);
     sln2.set_fe_solution(&space, tmp_vector);
