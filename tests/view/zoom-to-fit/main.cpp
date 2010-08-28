@@ -1,5 +1,4 @@
 #include "hermes2d.h"
-#include "views/view_support.h"
 #include <GL/glew.h>
 #include <GL/freeglut.h>
 
@@ -37,6 +36,8 @@
 
 #define ERROR_SUCCESS       0
 #define ERROR_FAILURE       -1
+
+extern void init_glut();
 
 int main(int argc, char* argv[])
 {
