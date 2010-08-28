@@ -9,13 +9,7 @@ if(NOT CYTHON_INCLUDE_DIRECTORIES)
     set(CYTHON_INCLUDE_DIRECTORIES .)
 endif(NOT CYTHON_INCLUDE_DIRECTORIES)
 
-macro(CYTHON_ADD_MODULE name)
-    add_custom_command(
-        OUTPUT ${name}.cpp
-        COMMAND cython
-        ARGS -I ${CYTHON_INCLUDE_DIRECTORIES} -o ${name}.cpp ${CMAKE_CURRENT_SOURCE_DIR}/${name}.pyx
-        DEPENDS ${name}.pyx ${name}.pxd
-        COMMENT "Cythonizing ${name}.pyx")
+macro(CYTHON_ADD_MODULE_COMPILE name)
     # When linking Python extension modules, a special care must be taken about
     # the link flags, which is platform dependent:
     IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
@@ -36,4 +30,14 @@ macro(CYTHON_ADD_MODULE name)
             target_link_libraries(${name} ${PYTHON_LIBRARY})
     ENDIF(${CMAKE_SYSTEM_NAME} STREQUAL "CYGWIN")
     include_directories(${CMAKE_CURRENT_SOURCE_DIR})
+endmacro(CYTHON_ADD_MODULE_COMPILE)
+
+macro(CYTHON_ADD_MODULE name)
+    add_custom_command(
+        OUTPUT ${name}.cpp
+        COMMAND cython
+        ARGS -I ${CYTHON_INCLUDE_DIRECTORIES} -o ${name}.cpp ${CMAKE_CURRENT_SOURCE_DIR}/${name}.pyx
+        DEPENDS ${name}.pyx ${name}.pxd
+        COMMENT "Cythonizing ${name}.pyx")
+    CYTHON_ADD_MODULE_COMPILE(${name} ${ARGN})
 endmacro(CYTHON_ADD_MODULE)
