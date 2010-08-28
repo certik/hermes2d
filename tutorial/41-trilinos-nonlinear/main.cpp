@@ -22,7 +22,7 @@
 //
 //  The following parameters can be changed:
 
-const int INIT_REF_NUM = 4;       // Number of initial uniform mesh refinements.
+const int INIT_REF_NUM = 1;       // Number of initial uniform mesh refinements.
 const int P_INIT = 3;             // Initial polynomial degree of all mesh elements.
 const double NEWTON_TOL = 1e-6;   // Stopping criterion for the Newton's method.
 const int NEWTON_MAX_ITER = 100;  // Maximum allowed number of Newton iterations.
@@ -32,11 +32,21 @@ const bool JFNK = false;          // true = jacobian-free method,
 const int PRECOND = 2;            // Preconditioning by jacobian (1) or approximation of jacobian (2)
                                   // in case of JFNK,
                                   // Default ML proconditioner in case of Newton.
+MatrixSolverType matrix_solver = SOLVER_UMFPACK;  // Possibilities: SOLVER_UMFPACK, SOLVER_PETSC,
+                                                  // SOLVER_MUMPS, and more are coming.
 
 // Boundary condition types.
 BCType bc_types(int marker)
 {
   return BC_ESSENTIAL;
+}
+
+// Initial condition.
+double init_cond(double x, double y, double &dx, double &dy)
+{
+	dx = 0;
+	dy = 0;
+	return 0;
 }
 
 // Exact solution.
@@ -59,60 +69,67 @@ int main(int argc, char* argv[])
   // Perform initial mesh refinements.
   for (int i=0; i < INIT_REF_NUM; i++)  mesh.refine_all_elements();
 
-  // Solutions.
-  Solution prev, sln1, sln2;
+  // Solutions for UMFpack and NOX.
+  Solution sln1, sln2;
 
   // Create an H1 space with default shapeset.
   H1Space space(&mesh, bc_types, NULL, P_INIT);
-  info("Number of DOF: %d",  space.get_num_dofs());
+  int ndof = get_num_dofs(&space);
+  info("ndof: %d", ndof);
 
-  info("---- Using NonlinSystem, solving by Umfpack:");
+  info("Assembling by DiscreteProblem, solving by Umfpack:");
 
   // Time measurement.
-  cpu_time.tick(H2D_SKIP);
-
-  // Define zero function on the mesh
-  prev.set_zero(&mesh);
+  cpu_time.tick(HERMES_SKIP);
 
   // Initialize weak formulation,
   WeakForm wf1;
-  wf1.add_matrix_form(callback(jacobian_form_hermes), H2D_UNSYM, H2D_ANY, &prev);
-  wf1.add_vector_form(callback(residual_form_hermes), H2D_ANY, &prev);
+  wf1.add_matrix_form(callback(jacobian_form_hermes), H2D_UNSYM, H2D_ANY);
+  wf1.add_vector_form(callback(residual_form_hermes), H2D_ANY);
 
   // Initialize NonlinSystem,
-  NonlinSystem nls(&wf1, &space);
+  DiscreteProblem dp(&wf1, &space);
 
-  // Project the function "prev" on the FE space "space".
+  // Select matrix solver.
+  Matrix* mat; Vector* coeff_vec; CommonSolver* common_solver;
+  init_matrix_solver(matrix_solver, ndof, mat, coeff_vec, common_solver);
+
+  // Project the initial condition on the FE space.
   info("Projecting initial condition on the FE space.");
-  nls.project_global(&prev, &prev);
+  // The NULL pointer means that we do not want the projection result as a Solution.
+  project_global(&space, H2D_H1_NORM, init_cond, NULL, coeff_vec);
 
   // Perform Newton's iteration,
   info("Performing Newton's method.");
-  if (!nls.solve_newton(&prev, NEWTON_TOL, NEWTON_MAX_ITER)) 
+  bool verbose = true;
+  if (!solve_newton(&space, &wf1, coeff_vec, matrix_solver, 
+		    NEWTON_TOL, NEWTON_MAX_ITER, verbose)) {
     error("Newton's method did not converge.");
+  };
 
-  // Storing the solution in "sln1"
-  sln1.copy(&prev);
+  // Store the solution in "sln1".
+  sln1.set_fe_solution(&space, coeff_vec);
+
+  // debug: output of solution vector
+  printf("ndof = %d\nvec = ", ndof);
+  for (int i=0; i < ndof; i++) printf("%g ", coeff_vec->get(i));
+  printf("\n");
 
   // CPU time needed by UMFpack
   double umf_time = cpu_time.tick().last();
 
-  info("---- Using FeProblem, solving by NOX:");
+  info("Assembling by FeProblem, solving by NOX:");
 
   // Time measurement.
-  cpu_time.tick(H2D_SKIP);
+  cpu_time.tick(HERMES_SKIP);
  
-  // Define zero function (again)
-  prev.set_zero(&mesh);
+  // TRILINOS PART:
 
-  // Project the function "prev" on the FE space 
-  // in order to obtain initial vector for NOX. 
-  info("Projecting initial solution on the FE space.");
-  nls.project_global(&prev, &prev);
+  // Project the initial condition on the FE space.
+  info("Projecting initial condition on the FE space.");
+  // The NULL pointer means that we do not want the projection result as a Solution.
+  project_global(&space, H2D_H1_NORM, init_cond, NULL, coeff_vec);
 
-  // Get the coefficient vector.
-  scalar *vec = nls.get_solution_vector();
-  
   // Measure the projection time.
   double proj_time = cpu_time.tick().last();
 
@@ -129,30 +146,33 @@ int main(int argc, char* argv[])
   PrecalcShapeset pss(&shapeset);
   //fep.set_pss(1, &pss);
 
-  // Initialize the NOX solver with the vector "vec".
+  // Initialize the NOX solver with the vector "coeff_vec".
   info("Initializing NOX.");
-  NoxSolver solver(&fep);
-  solver.set_init_sln(vec);
+  NoxSolver nox_solver(&fep);
+  nox_solver.set_init_sln(coeff_vec->get_c_array());
 
   // Choose preconditioning.
   MlPrecond pc("sa");
   if (PRECOND)
   {
-    if (JFNK) solver.set_precond(&pc);
-    else solver.set_precond("ML");
+    if (JFNK) nox_solver.set_precond(&pc);
+    else nox_solver.set_precond("ML");
   }
 
   // Solve the matrix problem using NOX.
   info("Assembling by FeProblem, solving by NOX.");
-  bool solved = solver.solve();
+  bool solved = nox_solver.solve();
   if (solved)
   {
-    vec = solver.get_solution_vector();
-    sln2.set_fe_solution(&space, &pss, vec);
+    double *s = nox_solver.get_solution_vector();
+    AVector *tmp_vector = new AVector(ndof);
+    tmp_vector->set_c_array(s, ndof);
+    sln2.set_fe_solution(&space, tmp_vector);
 
-    info("Number of nonlin iterations: %d (norm of residual: %g)", solver.get_num_iters(), solver.get_residual());
+    info("Number of nonlin iterations: %d (norm of residual: %g)", 
+         nox_solver.get_num_iters(), nox_solver.get_residual());
     info("Total number of iterations in linsolver: %d (achieved tolerance in the last step: %g)", 
-         solver.get_num_lin_iters(), solver.get_achieved_tol());
+         nox_solver.get_num_lin_iters(), nox_solver.get_achieved_tol());
   }
   else
     error("NOX failed.");
@@ -163,15 +183,18 @@ int main(int argc, char* argv[])
   // Calculate exact errors.
   Solution ex;
   ex.set_exact(&mesh, &exact);
-  info("Solution 1 (NonlinSystem - UMFpack): exact H1 error: %g (time %g s)", 
-    100 * h1_error(&sln1, &ex), umf_time);
-  info("Solution 2 (FeProblem - NOX):  exact H1 error: %g (time %g + %g s)", 
-    100 * h1_error(&sln2, &ex), proj_time, nox_time);
+  Adapt hp(&space, H2D_H1_NORM);
+  hp.set_solutions(&sln1, &ex);
+  double err_est_rel_1 = hp.calc_elem_errors(H2D_TOTAL_ERROR_REL | H2D_ELEMENT_ERROR_REL) * 100;
+  hp.set_solutions(&sln2, &ex);
+  double err_est_rel_2 = hp.calc_elem_errors(H2D_TOTAL_ERROR_REL | H2D_ELEMENT_ERROR_REL) * 100;
+  info("Solution 1 (DiscreteProblem + UMFpack): exact H1 error: %g (time %g s)", err_est_rel_1, umf_time);
+  info("Solution 2 (FeProblem + NOX):  exact H1 error: %g (time %g + %g s)", err_est_rel_2, proj_time, nox_time);
 
   // Show both solutions.
   ScalarView view1("Solution 1", 0, 0, 500, 400);
   view1.show(&sln1);
-  ScalarView view2("Solution 2", 600, 0, 500, 400);
+  ScalarView view2("Solution 2", 510, 0, 500, 400);
   view2.show(&sln2);
 
   // Wait for all views to be closed.

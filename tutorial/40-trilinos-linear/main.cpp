@@ -77,10 +77,10 @@ int main(int argc, char **argv)
   // Create an H1 space with default shapeset.
   H1Space space(&mesh, bc_types, essential_bc_values, P_INIT);
   int ndof = get_num_dofs(&space);
-  info("Number of DOF: %d", ndof);
+  info("ndof: %d", ndof);
 
-  // Solutions.
-  Solution prev, sln1, sln2;
+  // Solutions for UMFpack and NOX.
+  Solution sln1, sln2;
 
   info("---- Assembling by LinearProblem, solving by UMFpack:");
 
@@ -96,22 +96,22 @@ int main(int argc, char **argv)
   LinearProblem lp(&wf1, &space);
 
   // Select matrix solver.
-  Matrix* mat; Vector* vec; CommonSolver* common_solver;
-  init_matrix_solver(matrix_solver, ndof, mat, vec, common_solver);
+  Matrix* mat; Vector* coeff_vec; CommonSolver* common_solver;
+  init_matrix_solver(matrix_solver, ndof, mat, coeff_vec, common_solver);
 
   // Assemble stiffness matrix and rhs.
-  lp.assemble(mat, vec);
+  lp.assemble(mat, coeff_vec);
 
   // Solve the matrix problem.
-  if (!common_solver->solve(mat, vec)) error ("Matrix solver failed.\n");
+  if (!common_solver->solve(mat, coeff_vec)) error ("Matrix solver failed.\n");
 
   // Convert coefficient vector into a Solution.
   Solution sln;
-  sln.set_fe_solution(&space, vec);
+  sln.set_fe_solution(&space, coeff_vec);
     
   // debug: output of solution vector
   printf("ndof = %d\nvec = ", ndof);
-  for (int i=0; i < ndof; i++) printf("%g ", vec->get(i));
+  for (int i=0; i < ndof; i++) printf("%g ", coeff_vec->get(i));
   printf("\n");
 
   // Show the solution and mesh.
@@ -126,10 +126,10 @@ int main(int argc, char **argv)
   // Time measurement.
   cpu_time.tick(HERMES_SKIP);
   
-  // Project the function "prev" on the FE space 
-  // in order to obtain initial vector for NOX. 
+  // Project the initial condition on the FE space. 
   info("Projecting initial solution on the FE mesh.");
-  project_global(&space, H2D_H1_NORM, init_cond, &prev, vec);
+  // The NULL pointer means that we do not want the projection result as a Solution.
+  project_global(&space, H2D_H1_NORM, init_cond, NULL, coeff_vec);
 
   // Measure the projection time.
   double proj_time = cpu_time.tick().last();
@@ -148,10 +148,10 @@ int main(int argc, char **argv)
   PrecalcShapeset pss(&shapeset);
   //fep.set_pss(Tuple<PrecalcShapeset*>(&pss));
 
-  // Initialize the NOX solver with the vector "vec".
+  // Initialize the NOX solver with the vector "coeff_vec".
   info("Initializing NOX.");
   NoxSolver nox_solver(&fep);
-  nox_solver.set_init_sln(vec->get_c_array());
+  nox_solver.set_init_sln(coeff_vec->get_c_array());
 
   // Choose preconditioning.
   MlPrecond pc("sa");
@@ -167,7 +167,6 @@ int main(int argc, char **argv)
   if (solved)
   {
     double *s = nox_solver.get_solution_vector();
-    printf("here\n");
     AVector *tmp_vector = new AVector(ndof);
     tmp_vector->set_c_array(s, ndof);
     sln2.set_fe_solution(&space, tmp_vector);
@@ -199,7 +198,7 @@ int main(int argc, char **argv)
   ScalarView view1("Solution 1", 0, 0, 500, 400);
   view1.set_min_max_range(0, 2);
   view1.show(&sln1);
-  ScalarView view2("Solution 2", 600, 0, 500, 400);
+  ScalarView view2("Solution 2", 510, 0, 500, 400);
   view2.set_min_max_range(0, 2);
   view2.show(&sln2);
 

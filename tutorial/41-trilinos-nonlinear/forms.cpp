@@ -1,8 +1,11 @@
+// FIXME: Jacobian forms and residual forms for Hermes and NOX are the same,
+// so duplication should be fixed.
+
 template<typename Real, typename Scalar>
 Scalar jacobian_form_hermes(int n, double *wt, Func<Real> *u_ext[], Func<Real> *vi, Func<Real> *vj, 
                             Geom<Real> *e, ExtData<Scalar> *ext)
 {
-  Func<Scalar>* u = ext->fn[0];
+  Func<Scalar>* u = u_ext[0];
   Scalar result = 0;
   for (int i = 0; i < n; i++)
     result += wt[i] * ( -0.5 * pow(1.0 + sqr(u->dx[i]) + sqr(u->dy[i]), -1.5) * 
@@ -16,7 +19,7 @@ Scalar jacobian_form_hermes(int n, double *wt, Func<Real> *u_ext[], Func<Real> *
 template<typename Real, typename Scalar>
 Scalar residual_form_hermes(int n, double *wt, Func<Real> *u_ext[], Func<Real> *vj, Geom<Real> *e, ExtData<Scalar> *ext)
 {
-  Func<Scalar>* u = ext->fn[0];
+  Func<Scalar>* u = u_ext[0];
   Scalar result = 0;
   for (int i = 0; i < n; i++)
     result += wt[i] * ((pow(1.0 + sqr(u->dx[i]) + sqr(u->dy[i]), -0.5)) * (u->dx[i] * vj->dx[i] + u->dy[i] * vj->dy[i])
