@@ -42,13 +42,13 @@ public:
 	virtual bool solve();
 
 	int get_num_iters() { return num_iters; }
-  double get_residual()  { return residual;}
-  int get_num_lin_iters() { return num_lin_iters; }
-  double get_achieved_tol()  { return achieved_tol;}
+        double get_residual()  { return residual;}
+        int get_num_lin_iters() { return num_lin_iters; }
+        double get_achieved_tol()  { return achieved_tol;}
 
 	// settings for the solver
 	void set_nl_method(const char *par);
-  void set_output_flags(int flags) { output_flags = flags; }
+        void set_output_flags(int flags) { output_flags = flags; }
 
 	// linear solver setters
 	void set_ls_type(const char *type) { ls_type = type; }
@@ -58,10 +58,10 @@ public:
 
 	// convergence params
 #ifdef HAVE_NOX
-  void set_norm_type(NOX::Abstract::Vector::NormType type)  { conv.norm_type = type; }
-  void set_scale_type(NOX::StatusTest::NormF::ScaleType type)  { conv.stype = type; }
+        void set_norm_type(NOX::Abstract::Vector::NormType type)  { conv.norm_type = type; }
+        void set_scale_type(NOX::StatusTest::NormF::ScaleType type)  { conv.stype = type; }
 #endif
-  void set_conv_iters(int iters)        { conv.max_iters = iters; }
+        void set_conv_iters(int iters)        { conv.max_iters = iters; }
 	void set_conv_abs_resid(double resid) { conv_flag.absresid = 1; conv.abs_resid = resid; }
 	void set_conv_rel_resid(double resid) { conv_flag.relresid = 1; conv.rel_resid = resid; }
 	void set_conv_update(double update)   { conv_flag.update = 1; conv.update = update; }
@@ -72,26 +72,26 @@ public:
 	}
 
 	void set_precond(Precond *pc);
-  void set_precond(const char *pc);
+        void set_precond(const char *pc);
 
 protected:
 #ifdef HAVE_NOX
 	Teuchos::RCP<NoxProblemInterface> interface;
 #endif
 	int num_iters;
-  double residual;
-  int num_lin_iters;
-  double achieved_tol;
+        double residual;
+        int num_lin_iters;
+        double achieved_tol;
 
 	const char *nl_dir;
 
-  int output_flags;
+        int output_flags;
 	const char *ls_type;
 	int ls_max_iters;
 	double ls_tolerance;
 	int ls_sizeof_krylov_subspace;
-  bool precond_yes;
-  const char* precond_type;
+        bool precond_yes;
+        const char* precond_type;
 	// convergence params
 	struct conv_t {
 		int max_iters;
