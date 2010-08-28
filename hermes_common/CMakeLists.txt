@@ -59,12 +59,12 @@ target_link_libraries(${HERMES_COMMON} ${PYTHON_LIBRARIES} ${SPARSELIB_LIBRARIES
 set_source_files_properties(matrix.cpp PROPERTIES
     OBJECT_DEPENDS ${hermes_common_SOURCE_DIR}/_hermes_common_api_new.h
     )
-add_custom_command(
-    OUTPUT _hermes_common_api.h
-    COMMAND cython _hermes_common.pyx
-    )
+#add_custom_command(
+#    OUTPUT _hermes_common_api.h
+#    COMMAND cython _hermes_common.pyx
+#    )
 
-cython_add_module(_hermes_common stdcython.cpp)
+cython_add_module_compile(_hermes_common stdcython.cpp)
 target_link_libraries(_hermes_common ${HERMES_COMMON})
 set_property(TARGET _hermes_common PROPERTY COMPILE_FLAGS "-g")
 
