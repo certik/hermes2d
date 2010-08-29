@@ -1645,16 +1645,16 @@ H2D_API bool solve_newton_adapt(Tuple<Space *> spaces, WeakForm* wf, Vector *coe
     // Calculate initial coefficient vector for Newton on the fine mesh.
     if (as == 1) {
       info("Projecting coarse mesh solution to obtain initial vector on new fine mesh.");
-      project_global(ref_spaces, proj_norms, slns_mf, Tuple<Solution*>(), coeff_vec);
+      project_global(ref_spaces, proj_norms, slns_mf, Tuple<Solution*>(), coeff_vec, is_complex);
     }
     else {
       info("Projecting previous fine mesh solution to obtain initial vector on new fine mesh.");
-      project_global(ref_spaces, proj_norms, ref_slns_mf, Tuple<Solution*>(), coeff_vec);
+      project_global(ref_spaces, proj_norms, ref_slns_mf, Tuple<Solution*>(), coeff_vec, is_complex);
     }
 
     // Newton's method on fine mesh
     info("Solving on fine mesh.");
-    if (!solve_newton(ref_spaces, wf, coeff_vec, matrix_solver, newton_tol_fine, newton_max_iter, verbose))
+    if (!solve_newton(ref_spaces, wf, coeff_vec, matrix_solver, newton_tol_fine, newton_max_iter, verbose, is_complex))
       error("Newton's method did not converge.");
 
     // Store the result in ref_sln.
@@ -1768,7 +1768,7 @@ H2D_API bool solve_newton_adapt(Tuple<Space *> spaces, WeakForm* wf, Vector *coe
   while (done == false);
 
   // Obtain the coefficient vector on the coarse mesh.
-  project_global(spaces, proj_norms, ref_slns_mf, NULL, coeff_vec);
+  project_global(spaces, proj_norms, ref_slns_mf, NULL, coeff_vec, is_complex);
 
   // If the user wants, give him the coarse mesh solutions.
   if (target_slns != Tuple<Solution *>()) {
