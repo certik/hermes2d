@@ -37,94 +37,109 @@ Ord int_sign_u_v(double a, double b, Func<Ord>* l, Func<Ord>* fu, Func<Ord>* fv)
 */
 
 template<typename Real, typename Scalar>
-double int_sign_u_v(double a, double b, Func<Real>* l, Func<Real>* fu, Func<Real>* fv)
+double int_sign_u_v(int n, double *wt, double a, double b, Func<double>* l, Func<double>* fu, Func<double>* fv)
 {
-  Quad2D* quad = fu->get_quad_2d();
+//  Quad2D* quad = fu->get_quad_2d();
 
-  int o = 5;
-  limit_order(o);
+//  int o = 5;
+//  limit_order(o);
 
-  l->set_quad_order(o, H2D_FN_VAL); 
-  fu->set_quad_order(o);
-  fv->set_quad_order(o);
+//  l->set_quad_order(o, H2D_FN_VAL); 
+//  fu->set_quad_order(o);
+//  fv->set_quad_order(o);
 
-  double* uval = fu->get_fn_values();
-  double* vval = fv->get_fn_values();
-  double* lval = l->get_fn_values();
+//  double* uval = fu->get_fn_values();
+//  double* vval = fv->get_fn_values();
+//  double* lval = l->get_fn_values();
 
   // FIXME
   //h1_integrate_expression(((lval[i] < 0.0) ? b : a) * uval[i] * vval[i]);
   double result = 0;
+  for (int i = 0; i < n; i++)
+  {
+    result += wt[i] * (((l->val[i] < 0.0) ? b : a) * fu->val[i] * fv->val[i]);
+  }
   return result;
 }
 
 template<typename Real, typename Scalar>
-double int_sign_grad_u_grad_v(double nu1, double nu2, Func<Real>* l, Func<Real>* fu, Func<Real>* fv)
+double int_sign_grad_u_grad_v(int n, double *wt, double a, double b, Func<double>* l, Func<double>* fu, Func<double>* fv)
 {
-  Quad2D* quad = fu->get_quad_2d();
+//  Quad2D* quad = fu->get_quad_2d();
 
-  int o = 5;
-  limit_order(o);
-  l->set_quad_order(o, H2D_FN_VAL);
-  fu->set_quad_order(o);
-  fv->set_quad_order(o);
+//  int o = 5;
+//  limit_order(o);
+//  l->set_quad_order(o, H2D_FN_VAL);
+//  fu->set_quad_order(o);
+//  fv->set_quad_order(o);
 
-  double *dudx, *dudy, *dvdx, *dvdy;
-  fu->get_dx_dy_values(dudx, dudy);
-  fv->get_dx_dy_values(dvdx, dvdy);
-  double* lval = l->get_fn_values();
+//  double *dudx, *dudy, *dvdx, *dvdy;
+//  fu->get_dx_dy_values(dudx, dudy);
+//  fv->get_dx_dy_values(dvdx, dvdy);
+//  double* lval = l->get_fn_values();
 
   // FIXME: Where is number i in lval[i]?
   //h1_integrate_dd_expression(((lval[i] < 0.0) ? nu2 : nu1) * (t_dudx * t_dvdx + t_dudy * t_dvdy));
   double result = 0;
+  for (int i = 0; i < n; i++)
+   {
+     result += wt[i] * (((l->val[i] < 0.0) ? b : a) * (fu->dx[i] * fv->dx[i] + fu->dy[i] * fv->dy[i]));
+   }
   return result;
 }
 
 template<typename Real, typename Scalar>
-double int_sign_w_nabla_u_v(double ro1, double ro2, Func<Real>* l, Func<Real>* w1, Func<Real>* w2,
-			    Func<Real>* fu, Func<Real>* fv)
+double int_sign_w_nabla_u_v(int n, double *wt, double a, double b, Func<double>* l, Func<double>* w1, Func<double>* w2, Func<double>* fu, Func<double>* fv)
 {
-  Quad2D* quad = fu->get_quad_2d();
+//  Quad2D* quad = fu->get_quad_2d();
 
-  int o = 5;
-  limit_order(o);
+//  int o = 5;
+//  limit_order(o);
 
-  l->set_quad_order(o, H2D_FN_VAL);
-  w1->set_quad_order(o, H2D_FN_VAL);
-  w2->set_quad_order(o, H2D_FN_VAL);
-  fu->set_quad_order(o);
-  fv->set_quad_order(o);
+//  l->set_quad_order(o, H2D_FN_VAL);
+//  w1->set_quad_order(o, H2D_FN_VAL);
+//  w2->set_quad_order(o, H2D_FN_VAL);
+//  fu->set_quad_order(o);
+//  fv->set_quad_order(o);
 
-  double *dudx, *dudy;
-  fu->get_dx_dy_values(dudx, dudy);
-  double* lval = l->get_fn_values();
-  double* vval = fv->get_fn_values();
-  double* w1val = w1->get_fn_values();
-  double* w2val = w2->get_fn_values();
+//  double *dudx, *dudy;
+//  fu->get_dx_dy_values(dudx, dudy);
+//  double* lval = l->get_fn_values();
+//  double* vval = fv->get_fn_values();
+//  double* w1val = w1->get_fn_values();
+//  double* w2val = w2->get_fn_values();
 
   // FIXME: the same as above, could not find the define of number 'i'.
   //h1_integrate_dd_expression(((lval[i] < 0.0) ? ro2 : ro1) * (w1val[i] * t_dudx + w2val[i] * t_dudy) * vval[i]);
   double result = 0;
+  for (int i = 0; i < n; i++)
+  {
+    result += wt[i] * (((l->val[i] < 0.0) ? b : a) * (w1->val[i] * fu->dx[i] + w2->val[i] * fu->dy[i]) * fv->val[i]);
+  }
   return result;
 }
 
 template<typename Real, typename Scalar>
-double int_sign_v(double a, double b, Func<Real>* l, Func<Real>* fu)
+double int_sign_v(int n, double *wt, double a, double b, Func<double>* l, Func<double>* fu)
 {
-  Quad2D* quad = fu->get_quad_2d();
+//  Quad2D* quad = fu->get_quad_2d();
 
-  int o = 5;
-  limit_order(o);
+//  int o = 5;
+//  limit_order(o);
  
-  l->set_quad_order(o, H2D_FN_VAL);  
-  fu->set_quad_order(o);
+//  l->set_quad_order(o, H2D_FN_VAL);  
+//  fu->set_quad_order(o);
 
-  double* uval = fu->get_fn_values(); 
-  double* lval = l->get_fn_values();
+//  double* uval = fu->get_fn_values(); 
+//  double* lval = l->get_fn_values();
 
   // FIXME: the same as above, could not find the define of number 'i'.
   //h1_integrate_expression(((lval[i] < 0.0) ? b : a) * uval[i]);)
   double result = 0;
+  for (int i = 0; i < n; i++)
+  {
+    result += wt[i] * (((l->val[i] < 0.0) ? b : a) * fu->val[i]);
+  }
   return result;
 }
 
