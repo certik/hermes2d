@@ -103,7 +103,7 @@ int main(int argc, char* argv[])
 {
   if (argc != 3)
   {
-    printf("Missing mesh filename and domain length as command-line parameters.");
+    printf("Missing mesh filename and domain perimeter as command-line parameters.");
     return ERROR_FAILURE;
   }
 
@@ -122,7 +122,7 @@ int main(int argc, char* argv[])
   View::wait();
 */
 
-  double length = atof(argv[2]);
+  double bdryLengthInput = atof(argv[2]);
 
   // Perform initial mesh refinements.
   for (int i=0; i<INIT_REF_NUM; i++) mesh.refine_all_elements();
@@ -153,9 +153,9 @@ int main(int argc, char* argv[])
   info("Computed perimeter = %10.15f\n", perimeter);
 
   // Set exact value from CMakeLists.txt file
-  info("Exact perimeter = %g\n", length);
+  info("Exact perimeter = %g\n", bdryLengthInput);
 
-  if (fabs(perimeter - length) < 1e-6) {
+  if (fabs(perimeter - bdryLengthInput) < 1e-6) {
     printf("Success!\n");
     return ERROR_SUCCESS;
   }
