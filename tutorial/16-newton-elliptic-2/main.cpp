@@ -104,7 +104,9 @@ int main(int argc, char* argv[])
   info("Projecting to obtain initial vector for the Newton's method.");
   // The NULL means that we do not want the resulting Solution, just the vector.
   Vector* coeff_vec = new AVector();
-  project_global(space, H2D_H1_NORM, init_cond, NULL, coeff_vec); 
+  Solution* sln_tmp = new Solution(&mesh, init_cond);
+  project_global(space, H2D_H1_NORM, sln_tmp, NULL, coeff_vec); 
+  delete sln_tmp;
 
   // Perform Newton's iteration.
   info("Performing Newton's iteration.");
@@ -115,14 +117,12 @@ int main(int argc, char* argv[])
   };
 
   // Translate the resulting coefficient vector into a Solution.
-  Solution sln; 
-  sln.set_fe_solution(space, coeff_vec);
-  delete coeff_vec;
+  Solution* sln = new Solution(space, coeff_vec);
 
   // Visualise the solution and mesh.
   ScalarView s_view("Solution", new WinGeom(0, 0, 440, 350));
   s_view.show_mesh(false);
-  s_view.show(&sln);
+  s_view.show(sln);
   OrderView o_view("Mesh", new WinGeom(450, 0, 400, 350));
   o_view.show(space);
 

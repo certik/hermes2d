@@ -66,12 +66,11 @@ int main(int argc, char* argv[])
 
   // Create an H1 space with default shapeset.
   H1Space space(&mesh, bc_types, essential_bc_values, P_INIT);
-  info("Number of DOF: %d", space.get_num_dofs());
-
-  // Solutions.
-  Solution tprev, titer, tsln;
+  int ndof = get_num_dofs(&space);
+  info("ndof: %d", ndof);
 
   // Define constant initial condition. 
+  Solution tprev, titer, tsln;
   tprev.set_const(&mesh, 20.0);
   titer.set_const(&mesh, 20.0);
 
@@ -83,21 +82,14 @@ int main(int argc, char* argv[])
   wf.add_vector_form_surf(callback(residual_surf));
 
   // Initialize the finite element problem.
-  H1Shapeset shapeset;
-  FeProblem fep(&wf);
-  fep.set_spaces(&space);
-  PrecalcShapeset pss(&shapeset);
-  //fep.set_pss(1, &pss);
+  FeProblem fep(&wf, &space);
 
   // Project the function "titer" on the FE space 
   // in order to obtain initial vector for NOX. 
   info("Projecting initial solution on the FE mesh.");
 
-  LinSystem ls(&wf, &space);
-  ls.project_global(&tprev, &tprev);
-
-  // Get the coefficient vector.
-  scalar *vec = ls.get_solution_vector();
+  Vector* coeff_vec = new AVector(ndof);
+  project_global(&space, H2D_H1_NORM, &tprev, &tprev, coeff_vec);
 
   // Measure the projection time.
   double proj_time = cpu_time.tick().last();
@@ -125,12 +117,15 @@ int main(int argc, char* argv[])
     info("---- Time step %d, t = %g s", ts, total_time += TAU);
 
     info("Assembling by FeProblem, solving by NOX.");
-    solver.set_init_sln(vec);
+    solver.set_init_sln(coeff_vec->get_c_array());
     bool solved = solver.solve();
     if (solved)
     {
-      vec = solver.get_solution_vector();
-      tsln.set_fe_solution(&space, &pss, vec);
+      double *s = solver.get_solution_vector();
+      AVector *tmp_vector = new AVector(ndof);
+      tmp_vector->set_c_array(s, ndof);
+      tsln.set_fe_solution(&space, tmp_vector);
+      delete tmp_vector;
       Tview.show(&tsln);
       tprev = tsln;
     }

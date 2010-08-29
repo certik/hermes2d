@@ -68,15 +68,14 @@ int main(int argc, char* argv[])
   if (!solver->solve(mat, rhs)) error ("Matrix solver failed.\n");
 
   // Convert coefficient vector into a Solution.
-  Solution u_sln, v_sln;
-  u_sln.set_fe_solution(&u_space, rhs);
-  v_sln.set_fe_solution(&v_space, rhs);
+  Solution* u_sln = new Solution(&u_space, rhs);
+  Solution* v_sln = new Solution(&v_space, rhs);
 
   // Visualize the solution.
   ScalarView view("Von Mises stress [Pa]", new WinGeom(0, 0, 800, 400));
-  VonMisesFilter stress(Tuple<MeshFunction*>(&u_sln, &v_sln), lambda, mu);
+  VonMisesFilter stress(Tuple<MeshFunction*>(u_sln, v_sln), lambda, mu);
   view.show_mesh(false);
-  view.show(&stress, H2D_EPS_HIGH, H2D_FN_VAL_0, &u_sln, &v_sln, 1.5e5);
+  view.show(&stress, H2D_EPS_HIGH, H2D_FN_VAL_0, u_sln, v_sln, 1.5e5);
 
   // Wait for the view to be closed.
   View::wait();

@@ -152,8 +152,7 @@ public:
 //   'n' is the polynomial degree.)
 //
 
-Solution::Solution()
-        : MeshFunction()
+void Solution::init()
 {
   memset(tables, 0, sizeof(tables));
   memset(elems,  0, sizeof(elems));
@@ -173,51 +172,34 @@ Solution::Solution()
   num_dofs = -1;
 
   set_quad_2d(&g_quad_2d_std);
+}
+
+Solution::Solution()
+        : MeshFunction()
+{
+  this->init();
 }
 
 Solution::Solution(Mesh *mesh) : MeshFunction(mesh) 
 {
-  memset(tables, 0, sizeof(tables));
-  memset(elems,  0, sizeof(elems));
-  memset(oldest, 0, sizeof(oldest));
-  transform = true;
-  type = UNDEF;
-  own_mesh = false;
-  num_components = 0;
-  e_last = NULL;
-  exact_mult = 1.0;
+  this->init();
+  this->mesh = mesh;
+  this->own_mesh = false;
+}
 
-  mono_coefs = NULL;
-  elem_coefs[0] = elem_coefs[1] = NULL;
-  elem_orders = NULL;
-  dxdy_buffer = NULL;
-  num_coefs = num_elems = 0;
-  num_dofs = -1;
-
-  set_quad_2d(&g_quad_2d_std);
+Solution::Solution(Mesh *mesh, ExactFunction exactfn) : MeshFunction(mesh) 
+{
+  this->init();
+  this->mesh = mesh;
+  this->own_mesh = false;
+  this->set_exact(mesh, exactfn);
 }
 
 Solution::Solution(Space* s, Vector* vec) : MeshFunction(s->get_mesh()) 
 {
-  memset(tables, 0, sizeof(tables));
-  memset(elems,  0, sizeof(elems));
-  memset(oldest, 0, sizeof(oldest));
-  transform = true;
-  type = UNDEF;
-  own_mesh = false;
-  num_components = 0;
-  e_last = NULL;
-  exact_mult = 1.0;
-
-  mono_coefs = NULL;
-  elem_coefs[0] = elem_coefs[1] = NULL;
-  elem_orders = NULL;
-  dxdy_buffer = NULL;
-  num_coefs = num_elems = 0;
-  num_dofs = -1;
-
-  set_quad_2d(&g_quad_2d_std);
-
+  this->init();
+  this->mesh = s->get_mesh();
+  this->own_mesh = false;
   this->set_fe_solution(s, vec);
 }
 

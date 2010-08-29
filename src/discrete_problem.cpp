@@ -84,8 +84,8 @@ DiscreteProblem::DiscreteProblem(WeakForm* wf_, Space* s_)
 DiscreteProblem::~DiscreteProblem()
 {
   free();
-  delete this->spaces; // This only frees the pointers; to delete the actual Spaces, 
-                       // either use free_spaces beforehand or do it outside of DiscreteProblem.
+  free_spaces();
+
   if (this->sp_seq != NULL) delete [] this->sp_seq;
   if (this->pss != NULL) {
     for (int i = 0; i < this->wf->neq; i++)
@@ -98,7 +98,7 @@ DiscreteProblem::~DiscreteProblem()
 void DiscreteProblem::free_spaces()
 {
   // free spaces, making sure that duplicated ones do not get deleted twice
-  if (this->spaces != NULL)
+  if (this->spaces != Tuple<Space *>())
   {
     for (int i = 0; i < this->wf->neq; i++) {
       // this loop skipped if there is only one space
@@ -113,25 +113,23 @@ void DiscreteProblem::free_spaces()
         this->spaces[i] = NULL;
       }
     }
-    delete this->spaces;
-    this->spaces = NULL;
+    this->spaces = Tuple<Space *>();
   }
 }
 
 // Should not be called by the user.
-void DiscreteProblem::init_spaces(Tuple<Space*> sp)
+void DiscreteProblem::init_spaces(Tuple<Space*> spaces)
 {
-  int n = sp.size();
+  int n = spaces.size();
   if (n != this->wf->neq)
     error("Number of spaces does not match number of equations in DiscreteProblem::init_spaces().");
 
   // initialize spaces
-  this->spaces = new Space*[this->wf->neq];
-  for (int i = 0; i < this->wf->neq; i++) this->spaces[i] = sp[i];
+  this->spaces = spaces;
   this->sp_seq = new int[this->wf->neq];
   memset(sp_seq, -1, sizeof(int) * this->wf->neq);
-  this->assign_dofs(); // Create global enumeration of DOF in all spacesin the system. NOTE: this
-                       // overwrites possible existing local enumeration of DOF in the spaces
+  this->assign_dofs(); // Create global enumeration of DOF in all spaces in the system. NOTE: this
+                       // overwrites possible existing local enumeration of DOF in the spaces.
   this->have_spaces = true;
 
   // initialize precalc shapesets
@@ -205,8 +203,8 @@ void DiscreteProblem::assemble(Vector* init_vec, Matrix* mat_ext, Vector* dir_ex
     error("Before assemble(), you need to initialize spaces.");
   if (this->wf == NULL) 
 		error("this->wf = NULL in DiscreteProblem::assemble().");
-  if (this->spaces == NULL) 
-		error("this->spaces = NULL in DiscreteProblem::assemble().");
+  if (this->spaces == Tuple<Space*>()) 
+		error("this->spaces is empty in DiscreteProblem::assemble().");
   int n = this->wf->neq;
   for (int i = 0; i < n; i++) 
 	{
@@ -252,7 +250,7 @@ void DiscreteProblem::assemble(Vector* init_vec, Matrix* mat_ext, Vector* dir_ex
   else rhs_ext->set_zero();
 
   // If init_vec != NULL, convert it to a Tuple of solutions u_ext.
-  Tuple<Solution*> u_ext;
+  Tuple<Solution*> u_ext = Tuple<Solution*>();
   for (int i = 0; i < wf->neq; i++) {
     if (init_vec != NULL) {
       u_ext.push_back(new Solution(spaces[i]->get_mesh()));
@@ -1153,7 +1151,7 @@ int DiscreteProblem::assign_dofs()
   if (this->wf == NULL) error("this->wf = NULL in DiscreteProblem::assign_dofs().");
 
   // assigning dofs to each space
-  if (this->spaces == NULL) error("this->spaces is NULL in DiscreteProblem::assign_dofs().");
+  if (this->spaces == Tuple<Space *>()) error("this->spaces is empty in DiscreteProblem::assign_dofs().");
   int ndof = 0;
   for (int i = 0; i < this->wf->neq; i++) {
     if (this->spaces[i] == NULL) error("this->spaces[%d] is NULL in assign_dofs().", i);
@@ -1181,8 +1179,7 @@ void project_internal(Tuple<Space *> spaces, WeakForm *wf,
   if (target_slns.size() != n && target_slns.size() != 0) 
     error("Mismatched numbers of projected functions and solutions in project_global().");
 
-  // this is needed since spaces may have their DOFs enumerated only locally
-  // when they come here.
+  // this is needed since spaces may have their DOFs enumerated only locally.
   int ndof = assign_dofs(spaces);
 
   // FIXME: enable other types of matrices and vectors.
@@ -1220,7 +1217,7 @@ void project_internal(Tuple<Space *> spaces, WeakForm *wf,
     target_vec->free_data();
     target_vec->set_c_array(rhs->get_c_array(), rhs->get_size());
     target_vec->set_c_array_cplx(rhs->get_c_array_cplx(), rhs->get_size());
-    // NOTE: rhs must not be deleted beyond this point.
+    // NOTE: rhs must not be deleted.
   } else {
     delete rhs;
   }
@@ -1271,57 +1268,6 @@ void project_global(Tuple<Space *> spaces, Tuple<int> proj_norms, Tuple<MeshFunc
   project_internal(spaces, &proj_wf, target_slns, target_vec, is_complex);
 }
 
-// global orthogonal projection
-void project_global(Tuple<Space *> spaces, Tuple<int> proj_norms, Tuple<ExactFunction> source_exactfns, 
-                    Tuple<Solution*> target_slns, Vector* target_vec, bool is_complex)
-{
-  int n = spaces.size();  
-
-  // Convert exact functions into solutions.
-  Tuple<Solution *> source_slns;
-  for (int i = 0; i < source_exactfns.size(); i++) {
-    source_slns.push_back(new Solution());
-    Mesh *mesh = spaces[i]->get_mesh();
-    source_slns[i]->set_exact(mesh, source_exactfns[i]);
-  }
-
-  // Define temporary projection weak form.
-  WeakForm proj_wf(n);
-  int found[100];
-  for (int i = 0; i < 100; i++) found[i] = 0;
-  for (int i = 0; i < n; i++) {
-    int norm;
-    if (proj_norms == Tuple<int>()) norm = 1;
-    else norm = proj_norms[i];
-    if (norm == 0) {
-      found[i] = 1;
-      proj_wf.add_matrix_form(i, i, L2projection_biform<double, scalar>, L2projection_biform<Ord, Ord>);
-      proj_wf.add_vector_form(i, L2projection_liform<double, scalar>, L2projection_liform<Ord, Ord>,
-                     H2D_ANY, source_slns[i]);
-    }
-    if (norm == 1) {
-      found[i] = 1;
-      proj_wf.add_matrix_form(i, i, H1projection_biform<double, scalar>, H1projection_biform<Ord, Ord>);
-      proj_wf.add_vector_form(i, H1projection_liform<double, scalar>, H1projection_liform<Ord, Ord>,
-                     H2D_ANY, source_slns[i]);
-    }
-    if (norm == 2) {
-      found[i] = 1;
-      proj_wf.add_matrix_form(i, i, Hcurlprojection_biform<double, scalar>, Hcurlprojection_biform<Ord, Ord>);
-      proj_wf.add_vector_form(i, Hcurlprojection_liform<double, scalar>, Hcurlprojection_liform<Ord, Ord>,
-                     H2D_ANY, source_slns[i]);
-    }
-  }
-  for (int i=0; i < n; i++) {
-    if (found[i] == 0) {
-      warn("index of component: %d\n", i);
-      error("Wrong projection norm in project_global().");
-    }
-  }
-
-  project_internal(spaces, &proj_wf, target_slns, target_vec, is_complex);
-}
-
 void project_global(Tuple<Space *> spaces, matrix_forms_tuple_t proj_biforms, 
                     vector_forms_tuple_t proj_liforms, Tuple<MeshFunction*> source_meshfns, 
                     Tuple<Solution*> target_slns, Vector* target_vec, bool is_complex)
@@ -1349,33 +1295,6 @@ void project_global(Tuple<Space *> spaces, matrix_forms_tuple_t proj_biforms,
 
   project_internal(spaces, &proj_wf, target_slns, target_vec, is_complex);
 }
-
-/// Global orthogonal projection of one scalar ExactFunction.
-void project_global(Space *space, int proj_norm, ExactFunction source_exactfn, Solution* target_sln, 
-                    Vector* target_vec, bool is_complex)
-{
-  if (proj_norm != 0 && proj_norm != 1) error("Wrong norm used in orthogonal projection (scalar case).");
-  Mesh *mesh = space->get_mesh();
-  if (mesh == NULL) error("Mesh is NULL in project_global().");
-  Solution sln;
-  sln.set_exact(mesh, source_exactfn);
-  project_global(space, proj_norm, (MeshFunction*)&sln, target_sln, target_vec, is_complex);
-};
-
-/// Global orthogonal projection of one scalar ExactFunction -- user specified projection bi/linear forms.
-void project_global(Space *space, ExactFunction source_fn, Solution* target_sln,
-                    std::pair<WeakForm::matrix_form_val_t, WeakForm::matrix_form_ord_t> proj_biform,
-                    std::pair<WeakForm::vector_form_val_t, WeakForm::vector_form_ord_t> proj_liform,
-                    Vector* target_vec, bool is_complex)
-{
-  // todo: check that supplied forms take scalar valued functions
-  Mesh *mesh = space->get_mesh();
-  if (mesh == NULL) error("Mesh is NULL in project_global().");
-  Solution source_sln;
-  source_sln.set_exact(mesh, source_fn);
-  project_global(space, matrix_forms_tuple_t(proj_biform), vector_forms_tuple_t(proj_liform), 
-                 &source_sln, target_sln, target_vec, is_complex);
-};
 
 /// Global orthogonal projection of one vector-valued ExactFunction.
 void project_global(Space *space, ExactFunction2 source_fn, Solution* target_sln, 
@@ -1411,7 +1330,7 @@ int DiscreteProblem::get_num_dofs()
   // sanity checks
   if (this->wf == NULL) error("this->wf is NULL in DiscreteProblem::get_num_dofs().");
   if (this->wf->neq == 0) error("this->wf->neq is 0 in DiscreteProblem::get_num_dofs().");
-  if (this->spaces == NULL) error("this->spaces[%d] is NULL in DiscreteProblem::get_num_dofs().");
+  if (this->spaces == Tuple<Space *>()) error("this->spaces is empty in DiscreteProblem::get_num_dofs().");
 
   int ndof = 0;
   for (int i = 0; i < this->wf->neq; i++) {
@@ -1709,8 +1628,8 @@ H2D_API bool solve_newton_adapt(Tuple<Space *> spaces, WeakForm* wf, Vector *coe
 
     // Construct globally refined reference mesh(es)
     // and setup reference space(s).
-    Tuple<Space *> ref_spaces;
-    Tuple<Mesh *> ref_meshes;
+    Tuple<Space *> ref_spaces = Tuple<Space *>();
+    Tuple<Mesh *> ref_meshes = Tuple<Mesh *>();
     for (int i = 0; i < num_comps; i++) {
       ref_meshes.push_back(new Mesh());
       Mesh *ref_mesh = ref_meshes.back();

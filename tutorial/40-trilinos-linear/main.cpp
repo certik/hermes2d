@@ -22,9 +22,9 @@
 
 const int INIT_REF_NUM = 1;      // Number of initial uniform mesh refinements.
 const int P_INIT = 2;            // Initial polynomial degree of all mesh elements.
-const bool JFNK = true;          // true = Jacobian-free method,
-                                 // false = Newton.
-const bool PRECOND = true;       // Preconditioning by jacobian in case of jfnk,
+const bool JFNK = false;         // true = Jacobian-free method (for NOX),
+                                 // false = Newton (for NOX).
+const bool PRECOND = true;       // Preconditioning by jacobian in case of JFNK (for NOX),
                                  // default ML preconditioner in case of Newton.
 MatrixSolverType matrix_solver = SOLVER_UMFPACK;  // Possibilities: SOLVER_UMFPACK, SOLVER_PETSC,
                                                   // SOLVER_MUMPS, and more are coming.
@@ -67,15 +67,15 @@ int main(int argc, char **argv)
   cpu_time.tick();
 
   // Load the mesh.
-  Mesh mesh;
+  Mesh* mesh = new Mesh();
   H2DReader mloader;
-  mloader.load("square.mesh", &mesh);
+  mloader.load("square.mesh", mesh);
 
   // Perform initial mesh refinemets.
-  for (int i=0; i < INIT_REF_NUM; i++)  mesh.refine_all_elements();
+  for (int i=0; i < INIT_REF_NUM; i++) mesh->refine_all_elements();
  
   // Create an H1 space with default shapeset.
-  H1Space space(&mesh, bc_types, essential_bc_values, P_INIT);
+  H1Space space(mesh, bc_types, essential_bc_values, P_INIT);
   int ndof = get_num_dofs(&space);
   info("ndof: %d", ndof);
 
@@ -108,28 +108,39 @@ int main(int argc, char **argv)
   // Convert coefficient vector into a Solution.
   Solution sln;
   sln.set_fe_solution(&space, coeff_vec);
-    
-  // debug: output of solution vector
-  printf("ndof = %d\nvec = ", ndof);
-  for (int i=0; i < ndof; i++) printf("%g ", coeff_vec->get(i));
-  printf("\n");
 
-  // Show the solution and mesh.
+  // Show the UMFpack solution.
   ScalarView sv("Solution", 0, 0, 440, 350);
   sv.show(&sln);
 
+  // debug: output of solution vector
+  //printf("ndof = %d\nvec = ", ndof);
+  //for (int i=0; i < ndof; i++) printf("%g ", coeff_vec->get(i));
+  //printf("\n");
+
   // CPU time needed by UMFpack.
   double umf_time = cpu_time.tick().last();
+
+  // TRILINOS PART:
 
   info("---- Assembling by FeProblem, solving by NOX:");
 
   // Time measurement.
   cpu_time.tick(HERMES_SKIP);
-  
+
   // Project the initial condition on the FE space. 
   info("Projecting initial solution on the FE mesh.");
+  if (mesh == NULL) printf("MESH IS NULL\n");
   // The NULL pointer means that we do not want the projection result as a Solution.
-  project_global(&space, H2D_H1_NORM, init_cond, NULL, coeff_vec);
+  Solution* sln_tmp = new Solution(mesh, init_cond);
+  project_global(&space, H2D_H1_NORM, sln_tmp, NULL, coeff_vec);
+  delete sln_tmp;
+
+
+
+  OrderView ov("", 0, 0, 400, 400);
+  ov.show(&space);
+  View::wait();
 
   // Measure the projection time.
   double proj_time = cpu_time.tick().last();
@@ -142,49 +153,50 @@ int main(int argc, char **argv)
   // FIXME: The entire FeProblem should be removed
   // and functionality merged into LinearProblem.
   // Initialize FeProblem.
-  H1Shapeset shapeset;
-  FeProblem fep(&wf2);
-  fep.set_spaces(&space);
-  PrecalcShapeset pss(&shapeset);
-  //fep.set_pss(Tuple<PrecalcShapeset*>(&pss));
+  FeProblem* fep = new FeProblem(&wf2, &space);
 
   // Initialize the NOX solver with the vector "coeff_vec".
   info("Initializing NOX.");
-  NoxSolver nox_solver(&fep);
-  nox_solver.set_init_sln(coeff_vec->get_c_array());
+  NoxSolver* nox_solver = new NoxSolver(fep);
+  nox_solver->set_init_sln(coeff_vec->get_c_array());
 
   // Choose preconditioning.
   MlPrecond pc("sa");
   if (PRECOND)
   {
-    if (JFNK) nox_solver.set_precond(&pc);
-    else nox_solver.set_precond("ML");
+    if (JFNK) nox_solver->set_precond(&pc);
+    else nox_solver->set_precond("ML");
   }
 
   // Solve the matrix problem using NOX.
   info("Assembling by FeProblem, solving by NOX.");
-  bool solved = nox_solver.solve();
+  bool solved = nox_solver->solve();
   if (solved)
   {
-    double *s = nox_solver.get_solution_vector();
+    double *s = nox_solver->get_solution_vector();
     AVector *tmp_vector = new AVector(ndof);
     tmp_vector->set_c_array(s, ndof);
     sln2.set_fe_solution(&space, tmp_vector);
     delete tmp_vector;
     info("Number of nonlin iterations: %d (norm of residual: %g)", 
-      nox_solver.get_num_iters(), nox_solver.get_residual());
+      nox_solver->get_num_iters(), nox_solver->get_residual());
     info("Total number of iterations in linsolver: %d (achieved tolerance in the last step: %g)", 
-      nox_solver.get_num_lin_iters(), nox_solver.get_achieved_tol());
+      nox_solver->get_num_lin_iters(), nox_solver->get_achieved_tol());
   }
-  else
-    error("NOX failed");
+  else error("NOX failed");
 
   // CPU time needed by NOX.
   double nox_time = cpu_time.tick().last();
 
+  // Show the NOX solution.
+  ScalarView view2("Solution 2", 450, 0, 440, 350);
+  view2.set_min_max_range(0, 2);
+  view2.show(&sln2);
+  View::wait();
+
   // Calculate exact errors.
   Solution ex;
-  ex.set_exact(&mesh, &exact);
+  ex.set_exact(mesh, &exact);
   Adapt hp(&space, H2D_H1_NORM);
   hp.set_solutions(&sln1, &ex);
   double err_est_rel_1 = hp.calc_elem_errors(H2D_TOTAL_ERROR_REL | H2D_ELEMENT_ERROR_REL) * 100;
@@ -193,14 +205,6 @@ int main(int argc, char **argv)
   info("Solution 1 (LinSystem - UMFpack): exact H1 error: %g (time %g s)", err_est_rel_1, umf_time);
   info("Solution 2 (FeProblem - NOX):  exact H1 error: %g (time %g + %g s)", 
     err_est_rel_2, proj_time, nox_time);
-
-  // Show both solutions.
-  ScalarView view1("Solution 1", 0, 0, 500, 400);
-  view1.set_min_max_range(0, 2);
-  view1.show(&sln1);
-  ScalarView view2("Solution 2", 510, 0, 500, 400);
-  view2.set_min_max_range(0, 2);
-  view2.show(&sln2);
 
   // Wait for all views to be closed.
   View::wait();

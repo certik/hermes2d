@@ -189,8 +189,10 @@ int main(int argc, char* argv[])
   // Project the initial condition on the FE space
   // to obtain initial coefficient vector for the Newton's method.
   info("Projecting initial condition to obtain initial vector for the Newton's method.");
+  Solution* sln_tmp = new Solution(&mesh, init_cond);
   // The NULL means that we do not want the result as a Solution.
-  project_global(space, H2D_H1_NORM, init_cond, NULL, coeff_vec);
+  project_global(space, H2D_H1_NORM, sln_tmp, NULL, coeff_vec);
+  delete sln_tmp;
 
   // Initialize views.
   ScalarView view("Projection of initial condition", 0, 0, 410, 300);

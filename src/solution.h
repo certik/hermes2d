@@ -88,8 +88,10 @@ class H2D_API Solution : public MeshFunction
 {
 public:
 
+  void init();
   Solution();
   Solution(Mesh *mesh);
+  Solution(Mesh *mesh, ExactFunction exactfn);
   Solution (Space* s, Vector* vec);
   virtual ~Solution();
   virtual void free();

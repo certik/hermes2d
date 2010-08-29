@@ -94,7 +94,9 @@ int main(int argc, char* argv[])
   info("Projecting to obtain initial vector for the Newton's method.");
   Vector* init_coeff_vec = new AVector();
   // The NULL means that we do not want the resulting Solution, just the vector.
-  project_global(space, H2D_H1_NORM, init_cond, NULL, init_coeff_vec); 
+  Solution* sln_tmp = new Solution(&mesh, init_cond);
+  project_global(space, H2D_H1_NORM, sln_tmp, NULL, init_coeff_vec); 
+  delete sln_tmp;
 
   // Perform Newton's iteration.
   info("Performing Newton's iteration.");

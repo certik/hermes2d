@@ -85,7 +85,7 @@ int main(int argc, char* argv[])
   // And their initial exact setting.
   t_prev_time_1.set_exact(&mesh, temp_ic); c_prev_time_1.set_exact(&mesh, conc_ic);
   t_prev_time_2.set_exact(&mesh, temp_ic); c_prev_time_2.set_exact(&mesh, conc_ic);
-  t_prev_newton.set_exact(&mesh, temp_ic);  c_prev_newton.set_exact(&mesh, conc_ic);
+  t_prev_newton.set_exact(&mesh, temp_ic); c_prev_newton.set_exact(&mesh, conc_ic);
 
   // Projecting initial conditions to obtain initial vector for the Newton's method.
   info("Projecting initial conditions to obtain initial vector for the Newton's method.");
@@ -105,12 +105,14 @@ int main(int argc, char* argv[])
   wf.add_matrix_form(0, 1, callback(newton_bilinear_form_0_1), H2D_UNSYM, H2D_ANY, &omega_dc);
   wf.add_matrix_form(1, 0, callback(newton_bilinear_form_1_0), H2D_UNSYM, H2D_ANY, &omega_dt);
   wf.add_matrix_form(1, 1, callback(newton_bilinear_form_1_1), H2D_UNSYM, H2D_ANY, &omega_dc);
-  wf.add_vector_form(0, callback(newton_linear_form_0), H2D_ANY, Tuple<MeshFunction*>(&t_prev_time_1, &t_prev_time_2, &omega));
+  wf.add_vector_form(0, callback(newton_linear_form_0), H2D_ANY, 
+                     Tuple<MeshFunction*>(&t_prev_time_1, &t_prev_time_2, &omega));
   wf.add_vector_form_surf(0, callback(newton_linear_form_0_surf), 3);
-  wf.add_vector_form(1, callback(newton_linear_form_1), H2D_ANY, Tuple<MeshFunction*>(&c_prev_time_1, &c_prev_time_2, &omega));
+  wf.add_vector_form(1, callback(newton_linear_form_1), H2D_ANY, 
+                     Tuple<MeshFunction*>(&c_prev_time_1, &c_prev_time_2, &omega));
 
   // Initialize view.
-  ScalarView rview("Reaction rate", 0, 0, 800, 230);
+  ScalarView rview("Reaction rate", new WinGeom(0, 0, 800, 230));
 
   // Time stepping loop:
   double current_time = 0.0; int ts = 1;

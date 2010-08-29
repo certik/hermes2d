@@ -139,7 +139,7 @@ protected:
     std::set<MeshFunction*> ext_set;
   };
 
-  void get_stages(Space** spaces, std::vector<Stage>& stages, bool rhsonly);
+  void get_stages(Tuple<Space*> spaces, std::vector<Stage>& stages, bool rhsonly);
   bool** get_blocks();
 
   bool is_in_area(int marker, int area) const

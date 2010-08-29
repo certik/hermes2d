@@ -7,9 +7,9 @@
 //  The purpose of this example is to show how to use Trilinos for nonlinear time-dependent coupled PDE systems.
 //  Solved by NOX solver via Newton, or JFNK with or without preconditioning.
 //
-//  PDE: Flame propagation (same as tutorial example 17-newton-timedep-flame).
+//  PDE: Flame propagation (same as tutorial example 19-newton-timedep-flame).
 //
-//  Domain: Same as in tutorial example 17-newton-timedep-flame.
+//  Domain: Same as in tutorial example 19-newton-timedep-flame.
 //
 //  The following parameters can be changed:
 
@@ -31,13 +31,19 @@ const double beta  = 10.0;
 const double kappa = 0.1;
 const double x1    = 9.0;
 
+// Boundary markers.
+int bdy_left = 1;
+
 // Boundary condition types.
 BCType bc_types(int marker)
   { return (marker == 1) ? BC_ESSENTIAL : BC_NATURAL; }
 
 // Essential (Dirichlet) boundary condition values.
-scalar essential_bc_values(int ess_bdy_marker, double x, double y)
-  { return (ess_bdy_marker == 1) ? 1.0 : 0; }
+scalar essential_bc_values_t(int ess_bdy_marker, double x, double y)
+  { return (ess_bdy_marker == bdy_left) ? 1.0 : 0; }
+
+scalar essential_bc_values_c(int ess_bdy_marker, double x, double y)
+  { return 0; }
 
 // Initial conditions.
 scalar temp_ic(double x, double y, scalar& dx, scalar& dy)
@@ -64,64 +70,63 @@ int main(int argc, char* argv[])
   for (int i=0; i < INIT_REF_NUM; i++)  mesh.refine_all_elements();
 
   // Create H1 spaces with default shapesets.
-  H1Space tspace(&mesh, bc_types, essential_bc_values, P_INIT);
-  H1Space cspace(&mesh, bc_types, NULL, P_INIT);
-  info("Number of DOF: %d", tspace.get_num_dofs() + cspace.get_num_dofs());
+  H1Space* t_space = new H1Space(&mesh, bc_types, essential_bc_values_t, P_INIT);
+  H1Space* c_space = new H1Space(&mesh, bc_types, essential_bc_values_c, P_INIT);
+  int ndof = get_num_dofs(Tuple<Space *>(t_space, c_space));
+  info("ndof = %d.", ndof);
 
   // Define initial conditions.
-  Solution tprev1, cprev1, tprev2, cprev2, titer, citer, tsln, csln;
-  tprev1.set_exact(&mesh, temp_ic);  
-  cprev1.set_exact(&mesh, conc_ic);
-  tprev2.set_exact(&mesh, temp_ic);  
-  cprev2.set_exact(&mesh, conc_ic);
-  titer.set_exact(&mesh, temp_ic);   
-  citer.set_exact(&mesh, conc_ic);
-  DXDYFilter omega_dt(omega_dt_fn, &tprev1, &cprev1);
-  DXDYFilter omega_dc(omega_dc_fn, &tprev1, &cprev1);
+  Solution t_prev_time_1, c_prev_time_1, t_prev_time_2, 
+           c_prev_time_2, t_iter, c_iter, t_prev_newton, c_prev_newton;
+  t_prev_time_1.set_exact(&mesh, temp_ic);  
+  c_prev_time_1.set_exact(&mesh, conc_ic);
+  t_prev_time_2.set_exact(&mesh, temp_ic);  
+  c_prev_time_2.set_exact(&mesh, conc_ic);
+  t_iter.set_exact(&mesh, temp_ic);   
+  c_iter.set_exact(&mesh, conc_ic);
+
+  // Filters for the reaction rate omega and its derivatives.
+  DXDYFilter omega(omega_fn, Tuple<MeshFunction*>(&t_prev_time_1, &c_prev_time_1));
+  DXDYFilter omega_dt(omega_dt_fn, Tuple<MeshFunction*>(&t_prev_time_1, &c_prev_time_1));
+  DXDYFilter omega_dc(omega_dc_fn, Tuple<MeshFunction*>(&t_prev_time_1, &c_prev_time_1));
 
   // Initialize visualization.
-  ScalarView rview("Reaction rate", 0, 0, 1600, 460);
-  rview.set_min_max_range(0.0,2.0);
+  ScalarView rview("Reaction rate", new WinGeom(0, 0, 800, 230));
 
   // Initialize weak formulation.
   WeakForm wf(2, JFNK ? true : false);
   if (!JFNK || (JFNK && PRECOND == 1))
   {
-    wf.add_matrix_form(0, 0, callback(jacobian_0_0));
-    wf.add_matrix_form_surf(0, 0, callback(jacobian_0_0_surf));
-    wf.add_matrix_form(1, 1, callback(jacobian_1_1));
-    wf.add_matrix_form(0, 1, callback(jacobian_0_1));
-    wf.add_matrix_form(1, 0, callback(jacobian_1_0));
+    wf.add_matrix_form(callback(newton_bilinear_form_0_0), H2D_UNSYM, H2D_ANY, &omega_dt);
+    wf.add_matrix_form_surf(0, 0, callback(newton_bilinear_form_0_0_surf), 3);
+    wf.add_matrix_form(1, 1, callback(newton_bilinear_form_1_1), H2D_UNSYM, H2D_ANY, &omega_dc);
+    wf.add_matrix_form(0, 1, callback(newton_bilinear_form_0_1), H2D_UNSYM, H2D_ANY, &omega_dc);
+    wf.add_matrix_form(1, 0, callback(newton_bilinear_form_1_0), H2D_UNSYM, H2D_ANY, &omega_dt);
   }
   else if (PRECOND == 2)
   {
     wf.add_matrix_form(0, 0, callback(precond_0_0));
     wf.add_matrix_form(1, 1, callback(precond_1_1));
   }
-  wf.add_vector_form(0, callback(residual_0), H2D_ANY, Tuple<MeshFunction*>(&tprev1, &tprev2));
-  wf.add_vector_form_surf(0, callback(residual_0_surf), 3);
-  wf.add_vector_form(1, callback(residual_1), H2D_ANY, Tuple<MeshFunction*>(&cprev1, &cprev2));
+  wf.add_vector_form(0, callback(newton_linear_form_0), H2D_ANY, 
+                     Tuple<MeshFunction*>(&t_prev_time_1, &t_prev_time_2, &omega));
+  wf.add_vector_form_surf(0, callback(newton_linear_form_0_surf), 3);
+  wf.add_vector_form(1, callback(newton_linear_form_1), H2D_ANY, 
+                     Tuple<MeshFunction*>(&c_prev_time_1, &c_prev_time_2, &omega));
 
-  // Project the functions "titer" and "citer" on the FE space 
+  // Project the functions "t_iter" and "c_iter" on the FE space 
   // in order to obtain initial vector for NOX. 
   info("Projecting initial solutions on the FE meshes.");
-
-  LinSystem ls(&wf, Tuple<Space*>(&tspace, &cspace));
-  ls.project_global(Tuple<MeshFunction*>(&tprev1, &cprev1), 
-                    Tuple<Solution*>(&tprev1, &cprev1));
-
-  // Get the coefficient vector.
-  scalar *vec = ls.get_solution_vector();
+  Vector* coeff_vec = new AVector(ndof);
+  project_global(Tuple<Space *>(t_space, c_space), Tuple<int>(H2D_H1_NORM, H2D_H1_NORM), 
+                 Tuple<MeshFunction*>(&t_prev_time_1, &c_prev_time_1), Tuple<Solution*>(&t_prev_time_1, &c_prev_time_1),
+                 coeff_vec);
 
   // Measure the projection time.
   double proj_time = cpu_time.tick().last();
 
   // Initialize finite element problem.
-  H1Shapeset shapeset;
-  FeProblem fep(&wf);
-  fep.set_spaces(Tuple<Space*>(&tspace, &cspace));
-  PrecalcShapeset pss(&shapeset);
-  //fep.set_pss(1, &pss);
+  FeProblem fep(&wf, Tuple<Space*>(t_space, c_space));
 
   // Initialize NOX solver and preconditioner.
   NoxSolver solver(&fep);
@@ -143,14 +148,17 @@ int main(int argc, char* argv[])
   {
     info("---- Time step %d, t = %g s", ts, total_time + TAU);
 
-    cpu_time.tick(H2D_SKIP);
-    solver.set_init_sln(vec);
+    cpu_time.tick(HERMES_SKIP);
+    solver.set_init_sln(coeff_vec->get_c_array());
     bool solved = solver.solve();
     if (solved)
     {
-      vec = solver.get_solution_vector();
-      tsln.set_fe_solution(&tspace, &pss, vec);
-      csln.set_fe_solution(&cspace, &pss, vec);
+      double* s = solver.get_solution_vector();
+      AVector *tmp_vector = new AVector(ndof);
+      tmp_vector->set_c_array(s, ndof);
+      t_prev_newton.set_fe_solution(t_space, tmp_vector);
+      c_prev_newton.set_fe_solution(c_space, tmp_vector);
+      delete tmp_vector;
 
       cpu_time.tick();
       info("Number of nonlin iterations: %d (norm of residual: %g)",
@@ -159,24 +167,24 @@ int main(int argc, char* argv[])
           solver.get_num_lin_iters(), solver.get_achieved_tol());
 
       // Time measurement.
-      cpu_time.tick(H2D_SKIP);
+      cpu_time.tick(HERMES_SKIP);
 
       // Visualization.
-      DXDYFilter omega_view(omega_fn, &tsln, &csln);
-      rview.show(&omega_view);
-      cpu_time.tick(H2D_SKIP);
+      DXDYFilter omega_view(omega_fn, Tuple<MeshFunction*>(&t_prev_newton, &c_prev_newton));
+      rview.set_min_max_range(0.0,2.0);
+      cpu_time.tick(HERMES_SKIP);
 			
       // Skip visualization time.
-      cpu_time.tick(H2D_SKIP);
+      cpu_time.tick(HERMES_SKIP);
 
       // Update global time.
       total_time += TAU;
 
       // Saving solutions for the next time step.
-      tprev2.copy(&tprev1);
-      cprev2.copy(&cprev1);
-      tprev1 = tsln;
-      cprev1 = csln;
+      t_prev_time_2.copy(&t_prev_time_1);
+      c_prev_time_2.copy(&c_prev_time_1);
+      t_prev_time_1 = t_prev_newton;
+      c_prev_time_1 = c_prev_newton;
     }
     else
       error("NOX failed.");

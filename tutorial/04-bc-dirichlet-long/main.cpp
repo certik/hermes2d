@@ -61,12 +61,11 @@ int main(int argc, char* argv[])
   if (!solver->solve(mat, rhs)) error ("Matrix solver failed.\n");
 
   // Convert coefficient vector into a Solution.
-  Solution sln;
-  sln.set_fe_solution(&space, rhs);
+  Solution* sln = new Solution(&space, rhs);
 
   // Visualize the solution.
   ScalarView view("Solution", new WinGeom(0, 0, 440, 350));
-  view.show(&sln);
+  view.show(sln);
 
   // Wait for the view to be closed.
   View::wait();

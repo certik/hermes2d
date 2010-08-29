@@ -5,7 +5,7 @@ void omega_fn(int n, Tuple<scalar*> values, Tuple<scalar*> dx, Tuple<scalar*> dy
 {
   for (int i = 0; i < n; i++)
   {
-		scalar t1 = std::max(values.at(0)[i],0.0) - 1.0;
+    scalar t1 = std::max(values.at(0)[i],0.0) - 1.0;
     scalar t2 = t1 * beta;
     scalar t3 = 1.0 + t1 * alpha;
     scalar t4 = sqr(beta) / (2.0*Le) * exp(t2 / t3);
@@ -21,7 +21,7 @@ void omega_dt_fn(int n, Tuple<scalar*> values, Tuple<scalar*> dx, Tuple<scalar*>
 {
   for (int i = 0; i < n; i++)
   {
-		scalar t1 = std::max(values.at(0)[i],0.0) - 1.0;
+    scalar t1 = std::max(values.at(0)[i],0.0) - 1.0;
     scalar t2 = t1 * beta;
     scalar t3 = 1.0 + t1 * alpha;
     scalar t4 = sqr(beta) / (2.0*Le) * exp(t2 / t3);
@@ -37,7 +37,7 @@ void omega_dc_fn(int n, Tuple<scalar*> values, Tuple<scalar*> dx, Tuple<scalar*>
 {
   for (int i = 0; i < n; i++)
   {
-		scalar t1 = std::max(values.at(0)[i],0.0) - 1.0;
+    scalar t1 = std::max(values.at(0)[i],0.0) - 1.0;
     scalar t2 = t1 * beta;
     scalar t3 = 1.0 + t1 * alpha;
     scalar t4 = sqr(beta) / (2.0*Le) * exp(t2 / t3);

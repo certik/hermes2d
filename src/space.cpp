@@ -305,8 +305,6 @@ void Space::distribute_orders(Mesh* mesh, int* parents)
 
 int Space::assign_dofs(int first_dof, int stride)
 {
-  //warn("Deprecated function used. Please update your code to use assign_dofs(Space *s) or assign_dofs(int n, Space *s1, Space *s2, ..., Space *sn).");
-
   if (first_dof < 0) error("Invalid first_dof.");
   if (stride < 1)    error("Invalid stride.");
 
@@ -346,6 +344,7 @@ int Space::assign_dofs(int first_dof, int stride)
   mesh_seq = mesh->get_seq();
   was_assigned = true;
   this->ndof = (next_dof - first_dof) / stride;
+
   return this->ndof;
 }
 
@@ -622,10 +621,6 @@ H2D_API int assign_dofs(Tuple<Space*> spaces)
   }
 
   return ndof;
-}
-
-H2D_API int assign_dofs(Space *s) {
-  return assign_dofs(Tuple<Space*>(s));
 }
 
 // updating time-dependent essential BC

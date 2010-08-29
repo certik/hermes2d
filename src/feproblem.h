@@ -36,12 +36,10 @@ class Solver;
 ///
 class FeProblem {
 public:
-  FeProblem(WeakForm *wf);
+  FeProblem(WeakForm *wf, Tuple<Space *> spaces);
   virtual ~FeProblem();
   void free();
 
-  void set_spaces(Tuple<Space*>spaces);
-  //void set_pss(Tuple<PrecalcShapeset*>pss);
   Space* get_space(int n) {  return this->spaces[n];  }
   PrecalcShapeset* get_pss(int n) {  return this->pss[n];  }
 
@@ -60,7 +58,7 @@ protected:
   int ndof;
   int *sp_seq;
   int wf_seq;
-  Space **spaces;
+  Tuple<Space *> spaces;
   PrecalcShapeset** pss;
 
   int num_user_pss;

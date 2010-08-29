@@ -83,7 +83,9 @@ int main(int argc, char* argv[])
   info("Projecting initial condition to obtain initial vector for the Newton's method.");
   Vector* coeff_vec = new AVector(); 
   bool is_complex = true;
-  project_global(space, H2D_H1_NORM, init_cond, &psi_prev_time, coeff_vec, is_complex);
+  Solution* sln_tmp = new Solution(&mesh, init_cond);
+  project_global(space, H2D_H1_NORM, sln_tmp, &psi_prev_time, coeff_vec, is_complex);
+  delete sln_tmp;
 
   // Time stepping loop:
   int nstep = (int)(T_FINAL/TAU + 0.5);

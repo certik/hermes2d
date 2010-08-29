@@ -24,11 +24,16 @@
 #include "config.h"
 #include "discrete_problem.h"
 
-FeProblem::FeProblem(WeakForm* wf)
+FeProblem::FeProblem(WeakForm* wf, Tuple<Space *> spaces)
 {
+  // sanity checks
+  int n = spaces.size();
   this->wf = wf;
+  if (n != wf->neq) error("Bad number of spaces in FeProblem.");
 
-  spaces = new Space*[wf->neq];
+  this->wf = wf;
+  this->spaces = spaces;
+
   sp_seq = new int[wf->neq];
   memset(sp_seq, -1, sizeof(int) * wf->neq);
   wf_seq = -1;
@@ -40,32 +45,14 @@ FeProblem::FeProblem(WeakForm* wf)
 
   values_changed = true;
   struct_changed = true;
-  have_spaces = false;
   have_matrix = false;
-}
 
-
-FeProblem::~FeProblem()
-{
-  free();
-  if (spaces != NULL) delete [] spaces;
-  if (sp_seq != NULL) delete [] sp_seq;
-  if (pss != NULL) delete [] pss;
-}
-
-
-void FeProblem::set_spaces(Tuple<Space*>spaces)
-{
-  int n = spaces.size();
-  if (n != this->wf->neq) error("Bad number of spaces in FeProblem.");
-  for (int i = 0; i < wf->neq; i++)
-    this->spaces[i] = spaces[i];
   memset(sp_seq, -1, sizeof(int) * wf->neq);
   have_spaces = true;
 
   // initialize precalc shapesets
   this->pss = new PrecalcShapeset*[this->wf->neq];
-  for (int i=0; i<this->wf->neq; i++) this->pss[i] = NULL;
+  for (int i=0; i < n; i++) this->pss[i] = NULL;
   this->num_user_pss = 0;
   for (int i = 0; i < n; i++){
     Shapeset *shapeset = spaces[i]->get_shapeset();
@@ -75,6 +62,16 @@ void FeProblem::set_spaces(Tuple<Space*>spaces)
     this-> pss[i] = p;
     this->num_user_pss++;
   }  
+
+  // Create global enumeration of dof.
+  assign_dofs(this->spaces);
+}
+
+FeProblem::~FeProblem()
+{
+  free();
+  if (sp_seq != NULL) delete [] sp_seq;
+  if (pss != NULL) delete [] pss;
 }
 
 /*
@@ -96,12 +93,9 @@ void FeProblem::free()
 
 int FeProblem::get_num_dofs()
 {
-  if (!is_up_to_date())
-  {
-    ndof = 0;
-    for (int i = 0; i < wf->neq; i++)
-      ndof += spaces[i]->get_num_dofs();
-  }
+  ndof = 0;
+  for (int i = 0; i < wf->neq; i++)
+    ndof += spaces[i]->get_num_dofs();
   return ndof;
 }
 

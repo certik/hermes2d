@@ -93,14 +93,12 @@ int main(int argc, char* argv[])
   };
 
   // Translate the resulting coefficient vector into a Solution.
-  Solution sln; 
-  sln.set_fe_solution(space, coeff_vec);
-  delete coeff_vec;
+  Solution* sln = new Solution(space, coeff_vec);
 
   // Visualise the solution and mesh.
   ScalarView s_view("Solution", new WinGeom(0, 0, 440, 350));
   s_view.show_mesh(false);
-  s_view.show(&sln);
+  s_view.show(sln);
   OrderView o_view("Mesh", new WinGeom(450, 0, 400, 350));
   o_view.show(space);
 

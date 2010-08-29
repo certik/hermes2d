@@ -141,28 +141,19 @@ int main(int argc, char* argv[])
   // DOF convergence graphs.
   SimpleGraph graph_dof_est, graph_dof_exact;
 
-  // Initialize the coarse mesh problem.
-  LinSystem ls(&wf, &space);
-
   // Initialize refinement selector.
   H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
 
   // Adaptivity loop:
   int as = 1;
   bool done = false;
-  double err_exact;
-  Solution sln_coarse, sln_fine;
-  double *s;
+  Solution sln, ref_sln;
   do
   {
     info("---- Adaptivity step %d:", as);
    
     // Initialize finite element problem.
-    H1Shapeset shapeset;
-    FeProblem fep(&wf);
-    fep.set_spaces(&space);
-    PrecalcShapeset pss(&shapeset);
-    //fep.set_pss(1, &pss);
+    FeProblem fep(&wf, &space);
 
     // Initialize NOX solver.
     NoxSolver solver(&fep);
@@ -180,8 +171,12 @@ int main(int argc, char* argv[])
     bool solved = solver.solve();
     if (solved)
     {
-      s = solver.get_solution_vector();
-      sln_coarse.set_fe_solution(&space, &pss, s);
+      double* s = solver.get_solution_vector();
+      int ndof = get_num_dofs(&space);
+      AVector* tmp_vector = new AVector(ndof);
+      tmp_vector->set_c_array(s, ndof);
+      sln.set_fe_solution(&space, tmp_vector);
+      delete tmp_vector;
 
       info("Coarse Solution info:");
       info(" Number of nonlin iterations: %d (norm of residual: %g)", 
@@ -193,25 +188,22 @@ int main(int argc, char* argv[])
       cpu_time.tick();
 
       // View the solution and mesh.
-      sview.show(&sln_coarse);
+      sview.show(&sln);
       oview.show(&space);
 
       // Skip visualization time.
-      cpu_time.tick(H2D_SKIP);
+      cpu_time.tick(HERMES_SKIP);
     }
 
-    // FIXME: RefSystem should be used instead of the following:
-        // Create uniformly refined reference mesh.
-        Mesh rmesh; rmesh.copy(&mesh); 
-        rmesh.refine_all_elements();
-        // Reference FE space.
-        H1Space rspace(&rmesh, bc_types, essential_bc_values, 1);
-        int order_increase = 1;
-        rspace.copy_orders(&space, order_increase); // increase orders by one
-        // Initialize FE problem on reference mesh.
-        FeProblem ref_fep(&wf);
-        ref_fep.set_spaces(&rspace);
-        //ref_fep.set_pss(1, &pss);
+    // Create uniformly refined reference mesh.
+    Mesh rmesh; rmesh.copy(&mesh); 
+    rmesh.refine_all_elements();
+    // Reference FE space.
+    H1Space rspace(&rmesh, bc_types, essential_bc_values, 1);
+    int order_increase = 1;
+    rspace.copy_orders(&space, order_increase); // increase orders by one
+    // Initialize FE problem on reference mesh.
+    FeProblem ref_fep(&wf, &rspace);
 
     // Initialize NOX solver.
     NoxSolver ref_solver(&ref_fep);
@@ -226,8 +218,12 @@ int main(int argc, char* argv[])
     solved = ref_solver.solve();
     if (solved)
     {
-      s = ref_solver.get_solution_vector();
-      sln_fine.set_fe_solution(&rspace, &pss, s);
+      double* s = ref_solver.get_solution_vector();
+      int ndof = get_num_dofs(&rspace);
+      AVector* tmp_vector = new AVector(ndof);
+      tmp_vector->set_c_array(s, ndof);
+      ref_sln.set_fe_solution(&rspace, tmp_vector);
+      delete tmp_vector;
 
       info("Reference solution info:");
       info(" Number of nonlin iterations: %d (norm of residual: %g)",
@@ -238,29 +234,33 @@ int main(int argc, char* argv[])
     else
       error("NOX failed.");
 
-    // Calculate error estimate wrt. fine mesh solution.
-    info("Calculating error.");
-    H1Adapt hp(&ls);
-    hp.set_solutions(&sln_coarse, &sln_fine);
-    double err_est = hp.calc_error() * 100;
-    ExactSolution exact(&mesh, fndd);
-    err_exact = h1_error(&sln_coarse, &exact) * 100;
+    // Calculate element errors.
+    info("Calculating error (est).");
+    Adapt hp(&space, H2D_H1_NORM);
+    hp.set_solutions(&sln, &ref_sln);
+    double err_est_rel = hp.calc_elem_errors(H2D_TOTAL_ERROR_REL | H2D_ELEMENT_ERROR_REL) * 100;
+ 
+    // Calculate exact error.
+    Solution* exact = new Solution(&mesh, fndd);
+    double err_exact_rel = hp.calc_elem_errors(H2D_TOTAL_ERROR_REL | H2D_ELEMENT_ERROR_REL) * 100;
+
+    // Report results.
     info("ndof_coarse: %d, ndof_fine: %d, err_est: %g%%, err_exact: %g%%", 
-	 space.get_num_dofs(), rspace.get_num_dofs(), err_est, err_exact);
+	 get_num_dofs(&space), get_num_dofs(&rspace), err_est_rel, err_exact_rel);
 
     // Add entries to DOF convergence graphs.
-    graph_dof_exact.add_values(space.get_num_dofs(), err_exact);
+    graph_dof_exact.add_values(space.get_num_dofs(), err_exact_rel);
     graph_dof_exact.save("conv_dof_exact.dat");
-    graph_dof_est.add_values(space.get_num_dofs(), err_est);
+    graph_dof_est.add_values(space.get_num_dofs(), err_est_rel);
     graph_dof_est.save("conv_dof_est.dat");
 
     // If err_est too large, adapt the mesh.
-    if (err_est < ERR_STOP) done = true;
+    if (err_est_rel < ERR_STOP) done = true;
     else {
       info("Adapting the coarse mesh.");
       done = hp.adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY);
 
-      if (space.get_num_dofs() >= NDOF_STOP) done = true;
+      if (get_num_dofs(&space) >= NDOF_STOP) done = true;
     }
 
     as++;

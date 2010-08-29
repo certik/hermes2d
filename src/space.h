@@ -306,8 +306,7 @@ public:
 };
 
 // new way of enumerating degrees of freedom
-extern H2D_API int assign_dofs(Tuple<Space*> spaces);  // multiple spaces
-extern H2D_API int assign_dofs(Space* s);    // one space
+extern H2D_API int assign_dofs(Tuple<Space*> spaces);
 
 // updating time-dependent essential (Dirichlet) boundary conditions
 extern H2D_API void update_essential_bc_values(Tuple<Space*> spaces);  // multiple spaces

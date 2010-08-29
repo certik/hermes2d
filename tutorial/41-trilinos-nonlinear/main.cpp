@@ -97,7 +97,9 @@ int main(int argc, char* argv[])
   // Project the initial condition on the FE space.
   info("Projecting initial condition on the FE space.");
   // The NULL pointer means that we do not want the projection result as a Solution.
-  project_global(&space, H2D_H1_NORM, init_cond, NULL, coeff_vec);
+  Solution* sln_tmp = new Solution(&mesh, init_cond);
+  project_global(&space, H2D_H1_NORM, sln_tmp, NULL, coeff_vec);
+  delete sln_tmp;
 
   // Perform Newton's iteration,
   info("Performing Newton's method.");
@@ -128,7 +130,9 @@ int main(int argc, char* argv[])
   // Project the initial condition on the FE space.
   info("Projecting initial condition on the FE space.");
   // The NULL pointer means that we do not want the projection result as a Solution.
-  project_global(&space, H2D_H1_NORM, init_cond, NULL, coeff_vec);
+  sln_tmp = new Solution(&mesh, init_cond);
+  project_global(&space, H2D_H1_NORM, sln_tmp, NULL, coeff_vec);
+  delete sln_tmp;
 
   // Measure the projection time.
   double proj_time = cpu_time.tick().last();
@@ -140,11 +144,7 @@ int main(int argc, char* argv[])
   wf2.add_vector_form(callback(residual_form_nox));
 
   // Initialize FeProblem.
-  H1Shapeset shapeset;
-  FeProblem fep(&wf2);
-  fep.set_spaces(&space);
-  PrecalcShapeset pss(&shapeset);
-  //fep.set_pss(1, &pss);
+  FeProblem fep(&wf2, &space);
 
   // Initialize the NOX solver with the vector "coeff_vec".
   info("Initializing NOX.");

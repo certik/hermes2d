@@ -110,7 +110,9 @@ int main(int argc, char* argv[])
   // to obtain initial coefficient vector for the Newton's method.
   info("Projecting initial condition to obtain initial vector for the Newton'w method.");
   Vector* coeff_vec = new AVector(); 
-  project_global(space, H2D_H1_NORM, init_cond, &u_prev_time, coeff_vec);
+  Solution* sln_tmp = new Solution(&mesh, init_cond);
+  project_global(space, H2D_H1_NORM, sln_tmp, &u_prev_time, coeff_vec);
+  delete sln_tmp;
 
   // Initialize views.
   ScalarView sview("Solution", new WinGeom(0, 0, 500, 400));

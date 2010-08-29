@@ -190,7 +190,7 @@ void WeakForm::set_ext_fns(void* fn, Tuple<MeshFunction*>ext)
 /// that share the same meshes. Each stage is then assembled separately. This
 /// improves the performance of multi-mesh assembling.
 ///
-void WeakForm::get_stages(Space** spaces, std::vector<WeakForm::Stage>& stages, bool rhsonly)
+void WeakForm::get_stages(Tuple<Space *> spaces, std::vector<WeakForm::Stage>& stages, bool rhsonly)
 {
   unsigned i;
   stages.clear();

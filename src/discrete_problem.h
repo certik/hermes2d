@@ -140,7 +140,7 @@ public:
   /// Frees spaces. Called automatically on destruction.
   void free_spaces();
 
-  Space** spaces;
+  Tuple<Space *> spaces;
   WeakForm* wf;
   bool have_spaces;
 
@@ -259,15 +259,9 @@ void project_internal(Tuple<Space *> spaces, WeakForm *proj_wf,
 H2D_API void project_global(Tuple<Space *> spaces, Tuple<int> proj_norms, Tuple<MeshFunction *> source_meshfns, 
                     Tuple<Solution*> target_slns = Tuple<Solution*>(), Vector* target_vec = NULL, bool is_complex = false);
 
-H2D_API void project_global(Tuple<Space *> spaces, Tuple<int> proj_norms, Tuple<ExactFunction> source_exactfns, 
-                    Tuple<Solution*> target_slns, Vector* target_vec, bool is_complex = false);
-
 H2D_API void project_global(Tuple<Space *> spaces, matrix_forms_tuple_t proj_biforms, 
                     vector_forms_tuple_t proj_liforms, Tuple<MeshFunction*> source_meshfns, 
                     Tuple<Solution*> target_slns = Tuple<Solution*>(),
-                    Vector* target_vec = NULL, bool is_complex = false);
-
-H2D_API void project_global(Space *space, int proj_norm, ExactFunction source_fn, Solution* target_sln = NULL, 
                     Vector* target_vec = NULL, bool is_complex = false);
 
 H2D_API void project_global(Space *space, 
@@ -278,10 +272,6 @@ H2D_API void project_global(Space *space,
 
 H2D_API void project_global(Space *space, ExactFunction2 source_fn, Solution* target_sln = NULL, Vector* target_vec = NULL, 
                     bool is_complex = false);
-
-H2D_API void project_local(Space *space, int proj_norm, ExactFunction source_fn, Mesh* mesh,
-                   Solution* target_sln = NULL, Vector* target_vec = NULL, 
-                   bool is_complex = false);
 
 /// Basic Newton's loop. Takes a coefficient vector, delivers a coefficient vector (in the 
 /// same variable "init_coeff_vector").

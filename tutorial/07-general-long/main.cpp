@@ -107,15 +107,14 @@ int main(int argc, char* argv[])
   if (!solver->solve(mat, rhs)) error ("Matrix solver failed.\n");
 
   // Convert coefficient vector into a Solution.
-  Solution sln;
-  sln.set_fe_solution(&space, rhs);
+  Solution* sln = new Solution(&space, rhs);
 
   // Time measurement.
   cpu_time.tick();
 
   // View the solution and mesh.
   ScalarView sview("Coarse solution", new WinGeom(0, 0, 440, 350));
-  sview.show(&sln);
+  sview.show(sln);
   OrderView  oview("Polynomial orders", new WinGeom(450, 0, 400, 350));
   oview.show(&space);
 

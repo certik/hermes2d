@@ -128,7 +128,9 @@ int main(int argc, char* argv[])
   // Projecting to obtain initial coefficient vector for the Newton's method.
   // The NULL pointer means that we do not want the projection result as a Solution.
   Vector *coeff_vec = new AVector();
-  project_global(&space, H2D_H1_NORM, init_cond, NULL, coeff_vec);
+  Solution* sln_tmp = new Solution(&mesh, init_cond);
+  project_global(&space, H2D_H1_NORM, sln_tmp, NULL, coeff_vec);
+  delete sln_tmp;
 
   // Adaptivity loop.
   WinGeom* sln_win_geom = new WinGeom(0, 0, 440, 350);
