@@ -12,12 +12,14 @@ using std::endl;
 //******************************************************************************
 //  This is a very basic test for computing the perimeter of a domain. 
 //  The user can experiment with existing cases or contribute a new case.
-//  The latter may require an additional mesh file to be named adomain.meshX 
-//  where X should an integer following the largest already available. The
-//  header in the existing mesh files should be helpful in this case.
+//  The latter may require an additional mesh file to be created and named 
+//  domain.meshX where X should be an integer following the largest already 
+//  used in the provided set of domain.meshX files in this directory. The
+//  header in the existing mesh files should be helpful.
 
-// If you add a new domain case, put its name here. In addition, create a 
-// domain.meshX file and read the existing files to help you create yours.
+// If you add a new domain case, put its name in the enum type below. 
+// In addition, create a domain.meshX file; read the existing files to help 
+// you create yours.
 
 enum Cases { SQUARE, QUAD, ANNULUS };
 
@@ -27,15 +29,15 @@ enum Cases { SQUARE, QUAD, ANNULUS };
 //  The following parameters can be changed:
 //
 
-const int P_INIT = 1;        // Initial polynomial degree of all mesh elements.
-const int INIT_REF_NUM = 2;  // Number of initial uniform mesh refinements.
-const Cases CASE = SQUARE;  // pick the case from the enum above
+const int P_INIT = 1;       // Initial polynomial degree of all mesh elements.
+const int INIT_REF_NUM = 2; // Number of initial uniform mesh refinements.
+const Cases CASE = ANNULUS;  // Pick the case from the enum above
 
 //******************************************************************************
 // Helper functions
 
 //------------------------------------------------------------------------------
-// Boundary condition types
+// Boundary condition types; this does not really affect the testing
 // Set your bc_types() according to the CASE
 //
 BCType bc_types(int marker)
@@ -79,8 +81,9 @@ double BdryLength(MeshFunction* meshfn, int bdryMarker)
         double3* pt  = quad->get_points(eo);
 
 //      Need the magnitude of the spatial tangent vector
-//      Get spatial edge tangent data
+//      Get spatial edge tangent data:
 //      tan[i][0], tan[i][1] are the x,y components; tan[i][2] is the norm
+
         double3* tan = mu->get_tangent(edge);
 
         for (int i = 0; i < quad->get_num_points(eo); i++)
@@ -133,7 +136,6 @@ int main(int argc, char* argv[])
  double perimeter = 0.0;
  double exactPerimeter = 0.0;
  double l1,l2,l3,l4 = 0.0;
- const double pi = 4.0 * atan(1.0);
 
  switch (CASE)
  {
@@ -194,17 +196,32 @@ int main(int argc, char* argv[])
    perimeter = l1+l2;
    info("Computed perimeter = %g\n", perimeter);
 
-   // Set exact value from domain.mesh1 file
+   // Set exact value from domain.mesh2 file
    exactPerimeter = 2.0 * PI * 1.7;
    info("Exact perimeter = %g\n", exactPerimeter);
 
    break;
 
   default:
-   cout << " A CASE has not been set " << endl;
-   cout << " Bailing out. " << endl; exit(1);
+   // The annulus is the default case
+   // Calculate the length of the four boundaries segments.
+   l1 = BdryLength(&sln, 1);
+   info("Length of bdry 1 = %g\n", l1);
+
+   l2 = BdryLength(&sln, 2);
+   info("Length of bdry 2 = %g\n", l2);
+
+   perimeter = l1+l2;
+   info("Computed perimeter = %g\n", perimeter);
+
+   // Set exact value from domain.mesh2 file
+   exactPerimeter = 2.0 * PI * 1.7;
+   info("Exact perimeter = %g\n", exactPerimeter);
+
+   break;
  }
  
+/* Graphics not allowed on test versions; user may uncomment for debugging; vfda
  // Display the mesh.
  // (100, 0) is the upper left corner position, 600 x 500 is the window size
  MeshView mview("Mesh", 100, 0, 600, 500);
@@ -212,6 +229,7 @@ int main(int argc, char* argv[])
 
  // Wait for the view to be closed.
  View::wait();
+*/
 
 #define ERROR_SUCCESS                               0
 #define ERROR_FAILURE                               -1
