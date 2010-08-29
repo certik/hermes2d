@@ -173,7 +173,7 @@ int main(int argc, char* argv[])
     {
       double* s = solver.get_solution_vector();
       int ndof = get_num_dofs(&space);
-      AVector* tmp_vector = new AVector(ndof);
+      Vector* tmp_vector = new AVector(ndof);
       tmp_vector->set_c_array(s, ndof);
       sln.set_fe_solution(&space, tmp_vector);
       delete tmp_vector;
