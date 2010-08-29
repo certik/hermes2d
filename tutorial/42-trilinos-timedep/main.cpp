@@ -11,16 +11,16 @@ using namespace RefinementSelectors;
 //  NOX solver is used, either using Newton's method or JFNK and
 //  with or without preconditioning,
 //
-//  PDE: Heat transfer.
+//  PDE: Heat transfer: HEATCAP*RHO*du/dt - div(LAMBDA * grad u) = 0.
 //
 //  Domain: Unit square.
 //
-//  BC: Dirichlet at the bottom, Newton elsewhere.
+//  BC: Dirichlet at the bottom, Newton du/dn = ALPHA*(TEMP_EXT - u) elsewhere.
 //
 
 const int INIT_REF_NUM = 4;       // Number of initial uniform mesh refinements.
 const int P_INIT = 1;             // Initial polynomial degree of all mesh elements.
-const double ALPHA = 10.0;
+const double ALPHA = 10.0;        // Coefficient for the Nwwton boundary condition.
 const double LAMBDA = 1e5;
 const double HEATCAP = 1e6;
 const double RHO = 3000.0;
@@ -62,7 +62,7 @@ int main(int argc, char* argv[])
   mloader.load("square.mesh", &mesh);
 
   // Perform initial mesh refinemets.
-  for (int i=0; i < INIT_REF_NUM; i++)  mesh.refine_all_elements();
+  for (int i=0; i < INIT_REF_NUM; i++) mesh.refine_all_elements();
 
   // Create an H1 space with default shapeset.
   H1Space space(&mesh, bc_types, essential_bc_values, P_INIT);
@@ -70,15 +70,14 @@ int main(int argc, char* argv[])
   info("ndof: %d", ndof);
 
   // Define constant initial condition. 
-  Solution tprev, titer, tsln;
-  tprev.set_const(&mesh, 20.0);
-  titer.set_const(&mesh, 20.0);
+  Solution t_prev_time;
+  t_prev_time.set_const(&mesh, 20.0);
 
   // Initialize the weak formulation.
   WeakForm wf(1, JFNK ? true : false);
   wf.add_matrix_form(callback(jacobian));
   wf.add_matrix_form_surf(callback(jacobian_surf));
-  wf.add_vector_form(callback(residual), H2D_ANY, &tprev);
+  wf.add_vector_form(callback(residual), H2D_ANY, &t_prev_time);
   wf.add_vector_form_surf(callback(residual_surf));
 
   // Initialize the finite element problem.
@@ -87,9 +86,8 @@ int main(int argc, char* argv[])
   // Project the function "titer" on the FE space 
   // in order to obtain initial vector for NOX. 
   info("Projecting initial solution on the FE mesh.");
-
   Vector* coeff_vec = new AVector(ndof);
-  project_global(&space, H2D_H1_NORM, &tprev, &tprev, coeff_vec);
+  project_global(&space, H2D_H1_NORM, &t_prev_time, &t_prev_time, coeff_vec);
 
   // Measure the projection time.
   double proj_time = cpu_time.tick().last();
@@ -124,13 +122,14 @@ int main(int argc, char* argv[])
       double *s = solver.get_solution_vector();
       AVector *tmp_vector = new AVector(ndof);
       tmp_vector->set_c_array(s, ndof);
-      tsln.set_fe_solution(&space, tmp_vector);
+      t_prev_time.set_fe_solution(&space, tmp_vector);
       delete tmp_vector;
-      Tview.show(&tsln);
-      tprev = tsln;
     }
     else
       error("NOX failed.");
+
+    // Show the new solution.
+    Tview.show(&t_prev_time);
 
     info("Number of nonlin iterations: %d (norm of residual: %g)", 
       solver.get_num_iters(), solver.get_residual());

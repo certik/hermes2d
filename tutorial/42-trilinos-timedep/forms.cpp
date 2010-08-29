@@ -13,7 +13,7 @@ Scalar jacobian_surf(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *vi, F
 {
   Scalar result = 0;
   for (int i = 0; i < n; i++)
-    result += wt[i] *(LAMBDA * ALPHA * vi->val[i] * vj->val[i]);
+    result += wt[i] * ALPHA * LAMBDA * vi->val[i] * vj->val[i];
   return result;
 }
 
@@ -23,7 +23,7 @@ Scalar residual(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *vj, Geom<R
   Scalar result = 0;
   for (int i = 0; i < n; i++)
     result += wt[i] * (HEATCAP * RHO * (u_ext[0]->val[i] - ext->fn[0]->val[i]) * vj->val[i] / TAU
-                     + LAMBDA * (u_ext[0]->dx[i] * vj->dx[i] + u_ext[0]->dy[i] * vj->dy[i]));
+		       + LAMBDA * (u_ext[0]->dx[i] * vj->dx[i] + u_ext[0]->dy[i] * vj->dy[i]));
   return result;
 }
 
@@ -32,6 +32,6 @@ Scalar residual_surf(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *vj, G
 {
   Scalar result = 0;
   for (int i = 0; i < n; i++)
-    result += wt[i] * (LAMBDA * ALPHA * (u_ext[0]->val[i] - TEMP_EXT) * vj->val[i]);
+    result += wt[i] * ALPHA * LAMBDA * (u_ext[0]->val[i] - TEMP_EXT) * vj->val[i];
   return result;
 }
