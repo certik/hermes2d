@@ -84,7 +84,6 @@ DiscreteProblem::DiscreteProblem(WeakForm* wf_, Space* s_)
 DiscreteProblem::~DiscreteProblem()
 {
   free();
-  free_spaces();
 
   if (this->sp_seq != NULL) delete [] this->sp_seq;
   if (this->pss != NULL) {
@@ -95,6 +94,9 @@ DiscreteProblem::~DiscreteProblem()
   if (this->solver_default != NULL) delete this->solver_default;
 }
 
+// NOTE: This should not be called in the destructor to DiscreteProblem
+// since Discrete Problems are used for intermediary operations such as 
+// projections, and thustheir destruction should not destruct their spaces. 
 void DiscreteProblem::free_spaces()
 {
   // free spaces, making sure that duplicated ones do not get deleted twice
@@ -1168,7 +1170,7 @@ int DiscreteProblem::assign_dofs()
 // the weak form of the PDE. If you supply a weak form of the 
 // PDE, the PDE will just be solved. 
 void project_internal(Tuple<Space *> spaces, WeakForm *wf, 
-                    Tuple<Solution*> target_slns, Vector* target_vec, bool is_complex)
+                      Tuple<Solution*> target_slns, Vector* target_vec, bool is_complex)
 {
   int n = spaces.size();
 
@@ -1232,7 +1234,7 @@ void project_global(Tuple<Space *> spaces, Tuple<int> proj_norms, Tuple<MeshFunc
   int n = spaces.size();  
 
   // define temporary projection weak form
-  WeakForm proj_wf(n);
+  WeakForm* proj_wf = new WeakForm(n);
   int found[100];
   for (int i = 0; i < 100; i++) found[i] = 0;
   for (int i = 0; i < n; i++) {
@@ -1241,20 +1243,20 @@ void project_global(Tuple<Space *> spaces, Tuple<int> proj_norms, Tuple<MeshFunc
     else norm = proj_norms[i];
     if (norm == 0) {
       found[i] = 1;
-      proj_wf.add_matrix_form(i, i, L2projection_biform<double, scalar>, L2projection_biform<Ord, Ord>);
-      proj_wf.add_vector_form(i, L2projection_liform<double, scalar>, L2projection_liform<Ord, Ord>,
+      proj_wf->add_matrix_form(i, i, L2projection_biform<double, scalar>, L2projection_biform<Ord, Ord>);
+      proj_wf->add_vector_form(i, L2projection_liform<double, scalar>, L2projection_liform<Ord, Ord>,
                      H2D_ANY, source_meshfns[i]);
     }
     if (norm == 1) {
       found[i] = 1;
-      proj_wf.add_matrix_form(i, i, H1projection_biform<double, scalar>, H1projection_biform<Ord, Ord>);
-      proj_wf.add_vector_form(i, H1projection_liform<double, scalar>, H1projection_liform<Ord, Ord>,
+      proj_wf->add_matrix_form(i, i, H1projection_biform<double, scalar>, H1projection_biform<Ord, Ord>);
+      proj_wf->add_vector_form(i, H1projection_liform<double, scalar>, H1projection_liform<Ord, Ord>,
                      H2D_ANY, source_meshfns[i]);
     }
     if (norm == 2) {
       found[i] = 1;
-      proj_wf.add_matrix_form(i, i, Hcurlprojection_biform<double, scalar>, Hcurlprojection_biform<Ord, Ord>);
-      proj_wf.add_vector_form(i, Hcurlprojection_liform<double, scalar>, Hcurlprojection_liform<Ord, Ord>,
+      proj_wf->add_matrix_form(i, i, Hcurlprojection_biform<double, scalar>, Hcurlprojection_biform<Ord, Ord>);
+      proj_wf->add_vector_form(i, Hcurlprojection_liform<double, scalar>, Hcurlprojection_liform<Ord, Ord>,
                      H2D_ANY, source_meshfns[i]);
     }
   }
@@ -1265,7 +1267,7 @@ void project_global(Tuple<Space *> spaces, Tuple<int> proj_norms, Tuple<MeshFunc
     }
   }
 
-  project_internal(spaces, &proj_wf, target_slns, target_vec, is_complex);
+  project_internal(spaces, proj_wf, target_slns, target_vec, is_complex);
 }
 
 void project_global(Tuple<Space *> spaces, matrix_forms_tuple_t proj_biforms, 

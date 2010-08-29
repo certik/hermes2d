@@ -5,7 +5,7 @@
 #include "hermes2d.h"
 
 //  The purpose of this example is to show how to use Trilinos
-//  for linear PDE problems. It compares performance of the LinSystem 
+//  for linear PDE problems. It compares performance of the LinearProblem 
 //  class in Hermes using the UMFpack matrix solver with the performance
 //  of the Trilinos NOX solver (using Newton's method or JFNK, with or 
 //  without preconditioning).
@@ -136,12 +136,6 @@ int main(int argc, char **argv)
   project_global(&space, H2D_H1_NORM, sln_tmp, NULL, coeff_vec);
   delete sln_tmp;
 
-
-
-  OrderView ov("", 0, 0, 400, 400);
-  ov.show(&space);
-  View::wait();
-
   // Measure the projection time.
   double proj_time = cpu_time.tick().last();
   
@@ -171,6 +165,7 @@ int main(int argc, char **argv)
   // Solve the matrix problem using NOX.
   info("Assembling by FeProblem, solving by NOX.");
   bool solved = nox_solver->solve();
+
   if (solved)
   {
     double *s = nox_solver->get_solution_vector();
@@ -192,17 +187,29 @@ int main(int argc, char **argv)
   ScalarView view2("Solution 2", 450, 0, 440, 350);
   view2.set_min_max_range(0, 2);
   view2.show(&sln2);
-  View::wait();
 
   // Calculate exact errors.
   Solution ex;
   ex.set_exact(mesh, &exact);
+
   Adapt hp(&space, H2D_H1_NORM);
   hp.set_solutions(&sln1, &ex);
   double err_est_rel_1 = hp.calc_elem_errors(H2D_TOTAL_ERROR_REL | H2D_ELEMENT_ERROR_REL) * 100;
+  info("Solution 1 (LinearProblem - UMFpack): exact H1 error: %g (time %g s)", err_est_rel_1, umf_time);
+
+
+
+  MeshView mv("", 0, 0, 400, 400);
+  mv.show(mesh);
+  View::wait();
+
+
+
+
+
+
   hp.set_solutions(&sln2, &ex);
   double err_est_rel_2 = hp.calc_elem_errors(H2D_TOTAL_ERROR_REL | H2D_ELEMENT_ERROR_REL) * 100;
-  info("Solution 1 (LinSystem - UMFpack): exact H1 error: %g (time %g s)", err_est_rel_1, umf_time);
   info("Solution 2 (FeProblem - NOX):  exact H1 error: %g (time %g + %g s)", 
     err_est_rel_2, proj_time, nox_time);
 

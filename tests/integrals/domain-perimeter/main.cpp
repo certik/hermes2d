@@ -47,50 +47,36 @@ BCType bc_types(int marker)
 //------------------------------------------------------------------------------
 // Compute marked boundary length 
 //
-double CalculateBoundaryLength(MeshFunction* meshfn, int bdryMarker)
+double CalculateBoundaryLength(Mesh* mesh, int bdryMarker)
 {
-  Quad2D* quad = &g_quad_2d_std;
-  meshfn->set_quad_2d(quad);
-
+  // Variables declaration.
   Element* e;
-  Mesh* mesh = meshfn->get_mesh();
-
   double length = 0;
-  for_all_active_elements(e, mesh) // vfda:  how about something like
-  {                                // for_all_active_bdry_elements(e,mesh,bdryMrk)
-    for(int edge = 0; edge < e->nvert; ++edge) 
-    {
-      if ((e->en[edge]->bnd) && (e->en[edge]->marker == bdryMarker)) 
-      {
-        update_limit_table(e->get_mode());
-        RefMap* mu = meshfn->get_refmap();
+  RefMap rm;
+  rm.set_quad_2d(&g_quad_2d_std);
+  Quad2D * quad = rm.get_quad_2d();
+  int points_location;
+  double3* points;
+  int np;
+  double3* tangents;
 
-        meshfn->set_active_element(e); // vfda: should this be here? 
-        int eo = quad->get_edge_points(edge);
-        meshfn->set_quad_order(eo, H2D_FN_VAL); // vfda: is this needed? 
-
-//      Need quadrature weights...
-//      Get quadrature points data for this element order:
-//      pt[i][0], pt[i][1] are coordinates; p[i][2] are quadrature weights
-
-        double3* pt  = quad->get_points(eo);
-
-//      Need the magnitude of the spatial tangent vector
-//      Get spatial edge tangent data:
-//      tan[i][0], tan[i][1] are the x,y components; tan[i][2] is the norm
-
-        double3* tan = mu->get_tangent(edge);
-
-        for (int i = 0; i < quad->get_num_points(eo); i++)
-        {
-          length += pt[i][2] * tan[i][2];
+  // Loop through all boundary faces of all active elements.
+  for_all_active_elements(e, mesh) {
+    for(int edge = 0; edge < e->nvert; ++edge) {
+      if ((e->en[edge]->bnd) && (e->en[edge]->marker == bdryMarker)) {
+        rm.set_active_element(e);
+        points_location = quad->get_edge_points(edge);
+        points = quad->get_points(points_location);
+        np = quad->get_num_points(points_location);
+        tangents = rm.get_tangent(edge, points_location);
+        for(int i = 0; i < np; i++) {
+          // Weights sum up to two on every edge, therefore the division by two must be present.
+          length +=  0.5 * points[i][2] * tangents[i][2];
         }
       }
     }
   }
-  
-  return 0.5 * length; 
-
+  return length;
 } // end of CalculateBoundaryLength()
 
 #define ERROR_SUCCESS                               0
@@ -112,15 +98,15 @@ int main(int argc, char* argv[])
   H2DReader mloader;
   mloader.load(argv[1], &mesh);
 
-/* Graphics not allowed on test versions; user may uncomment for debugging; vfda
+  /*
+  //Graphics not allowed on test versions; user may uncomment for debugging; vfda
   // Display the mesh.
   // (100, 0) is the upper left corner position, 600 x 500 is the window size
   MeshView mview("Mesh", 100, 0, 600, 500);
   mview.show(&mesh);
-
   // Wait for the view to be closed.
   View::wait();
-*/
+  */
 
   double bdryLengthInput = atof(argv[2]);
 
@@ -133,20 +119,20 @@ int main(int argc, char* argv[])
   // FIXME: This Solution is artificial here and it should be removed. The 
   // function CalculateBoundaryLength() should only take a pointer to Mesh and 
   // a boundary marker as parameters.
-  Solution sln;
-  sln.set_zero(&mesh);
+  //Solution sln;
+  //sln.set_zero(&mesh);
 
   // Calculate the length of the four boundaries segments.
-  double l1 = CalculateBoundaryLength(&sln, 1);
+  double l1 = CalculateBoundaryLength(&mesh, 1);
   info("Length of boundary 1 = %g\n", l1);
 
-  double l2 = CalculateBoundaryLength(&sln, 2);
+  double l2 = CalculateBoundaryLength(&mesh, 2);
   info("Length of boundary 2 = %g\n", l2);
 
-  double l3 = CalculateBoundaryLength(&sln, 3);
+  double l3 = CalculateBoundaryLength(&mesh, 3);
   info("Length of boundary 3 = %g\n", l3);
 
-  double l4 = CalculateBoundaryLength(&sln, 4);
+  double l4 = CalculateBoundaryLength(&mesh, 4);
   info("Length of boundary 4 = %g\n", l4);
   
   double perimeter = l1 + l2 + l3 + l4;

@@ -138,17 +138,17 @@ bool NoxProblemInterface::computePreconditioner(const Epetra_Vector &x, Epetra_O
                                                 Teuchos::ParameterList *precParams)
 {
   assert(precond != NULL);
-	EpetraVector xx(x);			// wrap our structures around core Epetra objects
+  EpetraVector xx(x);			// wrap our structures around core Epetra objects
 
-	jacobian.zero();
-	fep->assemble(NULL, &jacobian, &xx);
-	jacobian.finish();
+  jacobian.zero();
+  fep->assemble(NULL, &jacobian, &xx);
+  jacobian.finish();
 
-	precond->create(&jacobian);
-	precond->compute();
-	m = *precond->get_obj();
+  precond->create(&jacobian);
+  precond->compute();
+  m = *precond->get_obj();
 
-	return true;
+  return true;
 }
 
 #endif
@@ -158,37 +158,37 @@ bool NoxProblemInterface::computePreconditioner(const Epetra_Vector &x, Epetra_O
 NoxSolver::NoxSolver(FeProblem* problem)
 {
 #ifdef HAVE_NOX
-	// default values
-	nl_dir = "Newton";
-        output_flags = NOX::Utils::Error;
-	// linear solver settings
-	ls_type = "GMRES";
-	ls_max_iters = 800;
-	ls_tolerance = 1e-10;
-	ls_sizeof_krylov_subspace = 50;
-        precond_yes = false;
-        precond_type = "None";
-	// convergence test
-	conv.max_iters = 10;
-	conv.abs_resid = 1.0e-8;
-	conv.rel_resid = 1.0e-2;
-        conv.norm_type = NOX::Abstract::Vector::TwoNorm;
-        conv.stype = NOX::StatusTest::NormF::Scaled;
-	conv.update = 1.0e-5;
-	conv.wrms_rtol = 1.0e-2;
-	conv.wrms_atol = 1.0e-8;
+  // default values
+  nl_dir = "Newton";
+  output_flags = NOX::Utils::Error;
+  // linear solver settings
+  ls_type = "GMRES";
+  ls_max_iters = 800;
+  ls_tolerance = 1e-10;
+  ls_sizeof_krylov_subspace = 50;
+  precond_yes = false;
+  precond_type = "None";
+  // convergence test
+  conv.max_iters = 10;
+  conv.abs_resid = 1.0e-8;
+  conv.rel_resid = 1.0e-2;
+  conv.norm_type = NOX::Abstract::Vector::TwoNorm;
+  conv.stype = NOX::StatusTest::NormF::Scaled;
+  conv.update = 1.0e-5;
+  conv.wrms_rtol = 1.0e-2;
+  conv.wrms_atol = 1.0e-8;
 
-	conv_flag.absresid = 1;
-	conv_flag.relresid = 0;
-	conv_flag.update = 0;
-	conv_flag.wrms = 0;
+  conv_flag.absresid = 1;
+  conv_flag.relresid = 0;
+  conv_flag.update = 0;
+  conv_flag.wrms = 0;
 
-	// Create the interface between the test problem and the nonlinear solver
-	// This is created by the user using inheritance of the abstract base class:
-	// NOX_Epetra_Interface
-	interface = Teuchos::rcp(new NoxProblemInterface(problem));
+  // Create the interface between the test problem and the nonlinear solver
+  // This is created by the user using inheritance of the abstract base class:
+  // NOX_Epetra_Interface
+  interface = Teuchos::rcp(new NoxProblemInterface(problem));
 #else
-	error(NOX_NOT_COMPILED);
+  error(NOX_NOT_COMPILED);
 #endif
 }
 

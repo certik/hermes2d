@@ -839,6 +839,7 @@ void check_quad(int i, Node *&v0, Node *&v1, Node *&v2, Node *&v3)
 void Mesh::create(int nv, double2* verts, int nt, int4* tris,
                   int nq, int5* quads, int nm, int3* mark)
 {
+  printf("Calling Mesh::free() in Mesh::create().\n");
   free();
 
   // initialize hash table
@@ -894,6 +895,7 @@ void Mesh::copy(const Mesh* mesh)
 {
   int i;
 
+  printf("Calling Mesh::free() in Mesh::copy().\n");
   free();
 
   // copy nodes and elements
@@ -959,6 +961,7 @@ Node* Mesh::get_base_edge_node(Element* base, int edge)
 
 void Mesh::copy_base(Mesh* mesh)
 {
+  printf("Calling Mesh::free() in Mesh::copy_base().\n");
   free();
   HashTable::init();
 
@@ -1007,6 +1010,7 @@ void Mesh::copy_base(Mesh* mesh)
 
 void Mesh::free()
 {
+  printf("Inside Mesh::free().\n");
   Element* e;
   for_all_elements(e, this)
     if (e->cm != NULL)
@@ -1021,6 +1025,7 @@ void Mesh::free()
 
 void Mesh::copy_converted(Mesh* mesh)
 {
+  printf("Calling Mesh::free() in Mesh::copy_converted().\n");
   free();
   HashTable::copy(mesh);
  // clear refernce for all nodes
@@ -1759,6 +1764,7 @@ void Mesh::load_raw(FILE* f)
   #define input(n, type) \
     hermes2d_fread(&(n), sizeof(type), 1, f)
 
+  printf("Calling Mesh::free() in Mesh::load_raw().\n");
   free();
 
   input(nbase, int);

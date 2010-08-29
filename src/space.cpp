@@ -47,10 +47,9 @@ Space::~Space()
 void Space::free()
 {
   free_extra_data();
-  if (nsize) { ::free(ndata); ndata=NULL; }
-  if (esize) { ::free(edata); edata=NULL; }
+  if (nsize != 0) { ::free(ndata); ndata=NULL; nsize = 0;}
+  if (esize != 0) { ::free(edata); edata=NULL; esize = 0;}
 }
-
 
 //// element orders ///////////////////////////////////////////////////////////////////////////////
 
@@ -123,7 +122,13 @@ void Space::set_element_order_internal(int id, int order)
 
 int Space::get_element_order(int id) const
 {
-  if (id >= esize) return 0;
+  // sanity checks (for internal purposes)
+  if (this->mesh == NULL) error("NULL Mesh pointer detected in Space::get_element_order().");
+  if(edata == NULL) error("NULL edata detected in Space::get_element_order().");
+  if (id >= esize) {
+    warn("Element index %d in Space::get_element_order() while maximum is %d.", id, esize);
+    error("Wring element index in Space::get_element_order().");
+  }
   return edata[id].order;
 }
 

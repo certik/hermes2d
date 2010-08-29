@@ -292,8 +292,9 @@ void Solution::free()
     if (elem_coefs[i] != NULL)
       { delete [] elem_coefs[i];  elem_coefs[i] = NULL; }
 
-  if (own_mesh && mesh != NULL)
+  if (own_mesh == true && mesh != NULL)
   {
+    printf("Deleting mesh in Solution.\n");
     delete mesh;
     own_mesh = false;
   }

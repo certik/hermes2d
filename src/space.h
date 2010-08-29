@@ -252,7 +252,7 @@ protected: //debugging support
   /// tables with FEM-related information. The first one, 'ndata', contains DOF numbers
   /// and other things for each node. The second table, 'edata', holds element orders
   /// and bubble DOF numbers. Both tables are directly indexed by the node and element
-  /// id's. The function resize_tables() is called to check whether the tables are large
+  /// IDs. The function resize_tables() is called to check whether the tables are large
   /// enough to contain all node and element id's, and to reallocate them if not.
   virtual void resize_tables();
 

@@ -152,7 +152,11 @@ class H2D_API Mesh : public HashTable
 public:
 
   Mesh();
-  ~Mesh() { free(); dump_hash_stat(); }
+  ~Mesh() { 
+    printf("Calling Mesh::free() in ~Mesh().\n");
+    free(); 
+    dump_hash_stat(); 
+  }
   /// Creates a copy of another mesh.
   void copy(const Mesh* mesh);
   /// Copies the coarsest elements of another mesh.
@@ -185,13 +189,25 @@ public:
   Element* get_element(int id) const;
 
   /// Returns the total number of elements stored.
-  int get_num_elements() const { return elements.get_num_items(); }
+  int get_num_elements() const { 
+    if (this == NULL) error("this == NULL in Mesh::get_num_elements()."); 
+    return elements.get_num_items(); 
+  }
   /// Returns the number of coarse mesh elements.
-  int get_num_base_elements() const { return nbase; }
+  int get_num_base_elements() const { 
+    if (this == NULL) error("this == NULL in Mesh::get_num_base_elements()."); 
+    return nbase; 
+  }
   /// Returns the current number of active elements in the mesh.
-  int get_num_active_elements() const { return nactive; }
+  int get_num_active_elements() const { 
+    if (this == NULL) error("this == NULL in Mesh::get_num_active_elements()."); 
+    return nactive; 
+  }
   /// Returns the maximum node id number plus one.
-  int get_max_element_id() const { return elements.get_size(); }
+  int get_max_element_id() const { 
+    if (this == NULL) error("this == NULL in Mesh::get_max_element_id()."); 
+    return elements.get_size(); 
+  }
 
   /// Refines an element.
   /// \param id [in] Element id number.
