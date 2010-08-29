@@ -1193,12 +1193,12 @@ Weak formulation of the present two-group neutron diffusion problem with fixed s
 
   Ord liform_0_ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext)
   {
-    return 10+v->val[0].get_order(); 
+    return Ord(20+v->val[0].get_order()); 
   }
 
   Ord liform_1_ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext)
   {
-    return 20+v->val[0].get_order(); 
+    return Ord(30+v->val[0].get_order()); 
   }
 
 
@@ -1206,28 +1206,28 @@ The following figures show the computed distributions of neutron flux for both n
 
 .. image:: img/benchmark-neutronics-2-group-adapt/solution12.png
    :align: center
-   :width: 1024
-   :height: 360
+   :height: 415
    :alt: Both components of solution.
 
-Notice the largely different behavior of the two solution components, where the first one is quite smooth while the other one more oscillating. It reflects the typical behavior observed in real cases, which arises from the different rate of interactions of fast (`1`\ :sup:`st` group) and slow (`2`\ :sup:`nd` group) neutrons with surrounding nuclei. This makes `multimesh <http://hpfem.org/hermes2d/doc/src/tutorial-2.html#multimesh-hp-fem>`_ a preferred choice for automatic adaptivity, as can be clearly seen from the first of the series of convergence comparisons presented below. The reported error is the true approximation error calculated wrt. the exact solution given above.
+Notice the largely different behavior of the two solution components, where the first one is quite smooth while the other one more oscillating. It reflects the typical behavior observed in real cases, which arises from the different rate of interactions of fast (`1`\ :sup:`st` group) and slow (`2`\ :sup:`nd` group) neutrons with surrounding nuclei. This makes `multimesh <http://hpfem.org/hermes2d/doc/src/tutorial-2.html#multimesh-hp-fem>`_ a preferred choice for automatic adaptivity, as can be clearly seen from the first of the series of convergence comparisons presented below. 
+
+In each convergence comparison, the reported error is the true approximation error calculated wrt. the exact solution given above and measured in a `H`\ :sup:`1` norm. The calculation was ended when the energy error estimate (often used to guide adaptivity in real multiphysics problems where exact solution is not known) became lower than 0.1%.
 
 Comparison of single/multi-mesh hp-FEM 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Final mesh (hp-FEM, single-mesh): DOF, error = %
+Final mesh (hp-FEM, single-mesh): 2590 DOF, error = 3.46787%
 
-.. image:: img/benchmark-neutronics-2-group-adapt/mesh_hp_anisoh_single.png
+.. image:: img/benchmark-neutronics-2-group-adapt/mesh_hp_iso_single.png
    :align: center
    :width: 500
    :height: 400
    :alt: Final mesh
 
-Final mesh (hp-FEM, multi-mesh): DOF, error = %
+Final mesh (hp-FEM, multi-mesh): 1724 DOF, error = 3.46713%
 
-.. image:: img/benchmark-neutronics-2-group-adapt/mesh_hp_anisoh_multi.png
+.. image:: img/benchmark-neutronics-2-group-adapt/mesh_hp_iso_multi.png
    :align: center
-   :width: 500
    :height: 400
    :alt: Final mesh
 
@@ -1251,35 +1251,32 @@ CPU convergence graphs:
 Comparison of h-FEM (p=1), h-FEM (p=2) and hp-FEM with h-anisotropic refinements
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Now, with multimesh enabled, we proceed to compare h-adaptivity with fixed order of approximation with hp-adaptivity.
+Now, with multimesh enabled, we proceed to compare h-adaptivity with fixed order of approximation with hp-adaptivity. Note that in the first case of linear elements, the calculation had to be ended prematurely because of insufficient memory for reference calculation (the energy error estimate was 1.24495%).
 
-Final mesh (h-FEM, p=1, anisotropic refinements): DOF, error = %
+Final mesh (h-FEM, p=1): 31441 DOF, error = 3.69096%
 
-.. image:: img/benchmark-neutronics-2-group-adapt/mesh_h1_aniso_multi.png
+.. image:: img/benchmark-neutronics-2-group-adapt/mesh_h1_1_iso_multi.png
    :align: center
-   :width: 500
    :height: 400
    :alt: Final mesh
    
-Final mesh (h-FEM, p=2, anisotropic refinements): DOF, error = %
+Final mesh (h-FEM, p=2): 27824 DOF, error = 3.46712%
 
-.. image:: img/benchmark-neutronics-2-group-adapt/mesh_h2_aniso_multi.png
+.. image:: img/benchmark-neutronics-2-group-adapt/mesh_h2_2_iso_multi.png
    :align: center
-   :width: 500
    :height: 400
    :alt: Final mesh.
 
-Final mesh (hp-FEM, h-anisotropic refinements):  DOF, error = %
+Final mesh (hp-FEM): 1724 DOF, error = 3.46713%
 
-.. image:: img/benchmark-neutronics-2-group-adapt/mesh_hp_anisoh_multi.png
+.. image:: img/benchmark-neutronics-2-group-adapt/mesh_hp_iso_multi.png
    :align: center
-   :width: 600
    :height: 400
    :alt: Final mesh.
 
 DOF convergence graphs:
 
-.. image:: img/benchmark-neutronics-2-group-adapt/conv_dof_aniso.png
+.. image:: img/benchmark-neutronics-2-group-adapt/conv_dof_iso.png
    :align: center
    :width: 600
    :height: 400
@@ -1287,7 +1284,7 @@ DOF convergence graphs:
 
 CPU convergence graphs:
 
-.. image:: img/benchmark-neutronics-2-group-adapt/conv_cpu_aniso.png
+.. image:: img/benchmark-neutronics-2-group-adapt/conv_cpu_iso.png
    :align: center
    :width: 600
    :height: 400
@@ -1296,37 +1293,33 @@ CPU convergence graphs:
 Comparison of hp-FEM with iso, p-aniso, h-aniso and hp-aniso refinements
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Although there are more strategies for capturing solution anisotropy during hp-adaptivity than the h-anisotropic one used in previous comparisons, they are also generally more expensive. Since the solution is only slightly anisotropic here, using them may not neccessarily result in better meshes (and errors) but it may cost more computation time. These strategies are compared below, together with just the isotropic refinements. Results of the h-anisotropic refinements, already reported above, have been repeated for the sake of completeness.
+The solution is almost isotropic in this case and using the generally more expensive anisotropic refinements may not neccessarily result in better meshes (and errors). The possible strategies for capturing anisotropy are compared below. Note that only the p-anisotropic refinements produced better mesh (with a lower number of DOF) than the simple isotropic refinements, but took more time than would be justified for the increase in accuracy. 
 
-Final mesh (hp-FEM, isotropic refinements):  DOF, error = %
+Final mesh (hp-FEM, isotropic refinements): 1724 DOF, error = 3.46713%
 
 .. image:: img/benchmark-neutronics-2-group-adapt/mesh_hp_iso_multi.png
    :align: center
-   :width: 500
    :height: 400
    :alt: Final mesh.
 
-Final mesh (hp-FEM, h-anisotropic refinements): DOF, error = %
+Final mesh (hp-FEM, h-anisotropic refinements): 1768 DOF, error = 3.46731%
 
 .. image:: img/benchmark-neutronics-2-group-adapt/mesh_hp_anisoh_multi.png
    :align: center
-   :width: 500
    :height: 400
    :alt: Final mesh
    
-Final mesh (hp-FEM, p-anisotropic refinements): DOF, error = %
+Final mesh (hp-FEM, p-anisotropic refinements): 1584 DOF, error = 3.46668%
 
 .. image:: img/benchmark-neutronics-2-group-adapt/mesh_hp_anisop_multi.png
    :align: center
-   :width: 500
    :height: 400
    :alt: Final mesh.
 
-Final mesh (hp-FEM, hp-anisotropic refinements):  DOF, error = %
+Final mesh (hp-FEM, hp-anisotropic refinements): 1926 DOF, error = 3.46626%
 
 .. image:: img/benchmark-neutronics-2-group-adapt/mesh_hp_aniso_multi.png
    :align: center
-   :width: 500
    :height: 400
    :alt: Final mesh.
 
