@@ -33,7 +33,7 @@ const int P_INIT[2] =
   {1, 1};                                   // Initial polynomial orders for the individual solution components.
 const int INIT_REF_NUM[2] =
   {1, 1};                                   // Initial uniform mesh refinement for the individual solution components.
-const int STRATEGY = 0;                     // Adaptive strategy:
+const int STRATEGY = 1;                     // Adaptive strategy:
                                             // STRATEGY = 0 ... refine elements until sqrt(THRESHOLD) times total
                                             //   error is processed. If more elements have similar errors, refine
                                             //   all to keep the mesh symmetric.
@@ -47,7 +47,7 @@ const bool MULTIMESH = true;                // true = use multi-mesh, false = us
                                             // the same but the polynomial degrees can still vary.
 const double THRESHOLD_MULTI = 0.3;         // error threshold for element refinement (multi-mesh)
 const double THRESHOLD_SINGLE = 0.7;        // error threshold for element refinement (single-mesh)                                         
-const CandList CAND_LIST = H2D_HP_ANISO_P;  // Predefined list of element refinement candidates. Possible values are
+const CandList CAND_LIST = H2D_HP_ISO;      // Predefined list of element refinement candidates. Possible values are
                                             // H2D_P_ISO, H2D_P_ANISO, H2D_H_ISO, H2D_H_ANISO, H2D_HP_ISO,
                                             // H2D_HP_ANISO_H, H2D_HP_ANISO_P, H2D_HP_ANISO.
                                             // See User Documentation for details.
@@ -61,9 +61,9 @@ const double CONV_EXP = 1.0;                // Default value is 1.0. This parame
                                             // candidates in hp-adaptivity. See get_optimal_refinement() for details.
 const double ERR_STOP = 0.1;                // Stopping criterion for adaptivity (rel. error tolerance between the
                                             // reference and coarse mesh solution in percent).
-const int NDOF_STOP = 60000;                // Adaptivity process stops when the number of degrees of freedom grows over
+const int NDOF_STOP = 1000000;                // Adaptivity process stops when the number of degrees of freedom grows over
                                             // this limit. This is mainly to prevent h-adaptivity to go on forever.
-const int MAX_ADAPT_NUM = 30;               // Adaptivity process stops when the number of adaptation steps grows over
+const int MAX_ADAPT_NUM = 60;               // Adaptivity process stops when the number of adaptation steps grows over
                                             // this limit.
 const int ADAPTIVITY_NORM = 2;              // Specifies the norm used by H1Adapt to calculate the error and norm.
                                             // ADAPTIVITY_NORM = 0 ... H1 norm.
@@ -305,16 +305,16 @@ int main(int argc, char* argv[])
   wf.add_matrix_form_surf(1, 1, callback(biform_surf_1_1), bc_gamma);
 
   // Initialize views.
-//  ScalarView view1("Neutron flux 1", 0, 0, 500, 460);
-//  ScalarView view2("Neutron flux 2", 510, 0, 500, 460);
-  ScalarView view3("Error in neutron flux 1", 0, 0, 500, 460);
-  ScalarView view4("Error in neutron flux 2", 510, 0, 500, 460);
-  OrderView oview1("Mesh and orders for group 1", 0, 520, 360, 300);
-  OrderView oview2("Mesh and orders for group 2", 360, 520, 360, 300);
+  ScalarView view1("Neutron flux 1", 0, 0, 500, 460);
+  ScalarView view2("Neutron flux 2", 510, 0, 500, 460);
+  ScalarView view3("Error in neutron flux 1", 280, 0, 500, 460);
+  ScalarView view4("Error in neutron flux 2", 780, 0, 500, 460);
+  OrderView oview1("Mesh and orders for group 1", 275, 0, 500, 460);
+  OrderView oview2("Mesh and orders for group 2", 780, 0, 500, 460);
 
   // Show meshes.
-//  view1.show_mesh(false); view1.set_3d_mode(true);
-//  view2.show_mesh(false); view2.set_3d_mode(true);
+  view1.show_mesh(false); view1.set_3d_mode(true);
+  view2.show_mesh(false); view2.set_3d_mode(true);
   view3.show_mesh(false); view3.set_3d_mode(true);
   view4.show_mesh(false); view4.set_3d_mode(true);
 
@@ -360,7 +360,6 @@ int main(int argc, char* argv[])
   for (int iadapt = 0; iadapt < MAX_ADAPT_NUM; iadapt++) {
 
     int ndof = get_num_dofs(Tuple<Space *>(&space1, &space2));
-    if (ndof >= NDOF_STOP) break;
 
     cpu_time.tick();
     info("!---- Adaptivity step %d ---------------------------------------------", iadapt);
@@ -388,6 +387,8 @@ int main(int argc, char* argv[])
     info("------------------ Reference solution; NDOF=%d -------------------", ref_ndof);
     cpu_time.tick(HERMES_SKIP);
                             
+    if (ref_ndof >= NDOF_STOP) break;
+
     // Solve the reference problem.
     solve_linear(Tuple<Space *>(ref_space1, ref_space2), &wf,
                  SOLVER_UMFPACK, Tuple<Solution *>(&ref_sln1, &ref_sln2));
@@ -445,8 +446,8 @@ int main(int argc, char* argv[])
     info("Total error wrt. ref. solution  (H1 norm): %g%%", err_est_h1);
     info("Total error wrt. ref. solution  (E norm):  %g%%", err_est);
 
-    //view1.show(&sln1);
-    //view2.show(&sln2);
+    view1.show(&sln1);
+    view2.show(&sln2);
     view3.show(&err_distrib_1);
     view4.show(&err_distrib_2);
 
