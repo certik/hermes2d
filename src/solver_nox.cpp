@@ -87,49 +87,49 @@ NoxProblemInterface::~NoxProblemInterface()
 
 void NoxProblemInterface::prealloc_jacobian()
 {
-	// preallocate jacobian structure
-	fep->create(&jacobian);
-	jacobian.finish();
+  // preallocate jacobian structure
+  fep->create(&jacobian);
+  jacobian.finish();
 }
 
 void NoxProblemInterface::set_precond(Precond *pc)
 {
-	precond = pc;
-	prealloc_jacobian();
+  precond = pc;
+  prealloc_jacobian();
 }
 
 void NoxProblemInterface::set_init_sln(double *ic)
 {
-	int size = fep->get_num_dofs();
-	int *idx = new int [size];
-	for (int i = 0; i < size; i++)
-		init_sln.set(i, ic[i]);
-	delete [] idx;
+  int size = fep->get_num_dofs();
+  int *idx = new int[size];
+  for (int i = 0; i < size; i++) init_sln.set(i, ic[i]);
+  delete [] idx;
 }
 
 bool NoxProblemInterface::computeF(const Epetra_Vector &x, Epetra_Vector &f, FillType flag)
 {
-	EpetraVector xx(x);			// wrap our structures around core Epetra objects
-	EpetraVector rhs(f);
+  EpetraVector xx(x);  // wrap our structures around core Epetra objects
+  EpetraVector rhs(f);
 
-	rhs.zero();
-	fep->assemble(&rhs, NULL, &xx);
-	return true;
+  rhs.zero();
+  fep->assemble(&rhs, NULL, &xx);
+
+  return true;
 }
 
 bool NoxProblemInterface::computeJacobian(const Epetra_Vector &x, Epetra_Operator &op)
 {
-	Epetra_RowMatrix *jac = dynamic_cast<Epetra_RowMatrix *>(&op);
-	assert(jac != NULL);
+  Epetra_RowMatrix *jac = dynamic_cast<Epetra_RowMatrix *>(&op);
+  assert(jac != NULL);
 
-	EpetraVector xx(x);			// wrap our structures around core Epetra objects
-	EpetraMatrix jacobian(*jac);
+  EpetraVector xx(x);			// wrap our structures around core Epetra objects
+  EpetraMatrix jacobian(*jac);
 
-	jacobian.zero();
-	fep->assemble(NULL, &jacobian, &xx);
-	jacobian.finish();
+  jacobian.zero();
+  fep->assemble(NULL, &jacobian, &xx);
+  jacobian.finish();
 
-	return true;
+  return true;
 }
 
 /// Computes a user supplied preconditioner based on input vector x.
@@ -192,10 +192,11 @@ NoxSolver::NoxSolver(FeProblem* problem)
 #endif
 }
 
-
 NoxSolver::~NoxSolver()
 {
 #ifdef HAVE_NOX
+  // FIXME: this does not destroy the "interface", and Trilinos 
+  // complains at closing main.cpp.
   interface->fep->invalidate_matrix();
 #endif
 }
@@ -204,7 +205,7 @@ void NoxSolver::set_precond(Precond *pc)
 {
 #ifdef HAVE_NOX
   precond_yes = true;
-	interface->set_precond(pc);
+  interface->set_precond(pc);
 #endif
 }
 

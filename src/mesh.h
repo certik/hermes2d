@@ -153,7 +153,7 @@ public:
 
   Mesh();
   ~Mesh() { 
-    printf("Calling Mesh::free() in ~Mesh().\n");
+    //printf("Calling Mesh::free() in ~Mesh().\n");
     free(); 
     dump_hash_stat(); 
   }

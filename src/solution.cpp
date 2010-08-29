@@ -238,6 +238,7 @@ void Solution::copy(const Solution* sln)
   free();
 
   mesh = new Mesh;
+  //printf("Copying mesh from Solution and setting own_mesh = true.\n");
   mesh->copy(sln->mesh);
   own_mesh = true;
 
@@ -294,7 +295,7 @@ void Solution::free()
 
   if (own_mesh == true && mesh != NULL)
   {
-    printf("Deleting mesh in Solution.\n");
+    //printf("Deleting mesh in Solution (own_mesh == true).\n");
     delete mesh;
     own_mesh = false;
   }
@@ -377,7 +378,7 @@ void Solution::set_fe_solution(Space* space, Vector* vec, double dir)
     PrecalcShapeset *pss = new PrecalcShapeset(shapeset);
     if (pss == NULL) error("PrecalcShapeset could not be allocated in Solution::set_fe_solution().");
     
-    this-> set_fe_solution(space, pss, vec, dir);
+    this->set_fe_solution(space, pss, vec, dir);
 }
 
 // for internal use
@@ -405,6 +406,7 @@ void Solution::set_fe_solution(Space* space, PrecalcShapeset* pss, Vector* vec, 
 
   // copy the mesh   TODO: share meshes between solutions
   mesh = new Mesh;
+  //printf("Copying mesh from Space and setting own_mesh = true.\n");
   mesh->copy(space->get_mesh());
   own_mesh = true;
 
@@ -1134,6 +1136,7 @@ void Solution::load(const char* filename)
   // load the mesh
   mesh = new Mesh;
   mesh->load_raw(f);
+  //printf("Loading mesh from file and setting own_mesh = true.\n");
   own_mesh = true;
 
   if (compressed) pclose(f); else fclose(f);

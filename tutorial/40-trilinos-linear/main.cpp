@@ -20,8 +20,8 @@
 //
 //  The following parameters can be changed:
 
-const int INIT_REF_NUM = 1;      // Number of initial uniform mesh refinements.
-const int P_INIT = 2;            // Initial polynomial degree of all mesh elements.
+const int INIT_REF_NUM = 6;      // Number of initial uniform mesh refinements.
+const int P_INIT = 3;            // Initial polynomial degree of all mesh elements.
 const bool JFNK = false;         // true = Jacobian-free method (for NOX),
                                  // false = Newton (for NOX).
 const bool PRECOND = true;       // Preconditioning by jacobian in case of JFNK (for NOX),
@@ -79,9 +79,6 @@ int main(int argc, char **argv)
   int ndof = get_num_dofs(&space);
   info("ndof: %d", ndof);
 
-  // Solutions for UMFpack and NOX.
-  Solution sln1, sln2;
-
   info("---- Assembling by LinearProblem, solving by UMFpack:");
 
   // Time measurement.
@@ -105,18 +102,10 @@ int main(int argc, char **argv)
   // Solve the matrix problem.
   if (!common_solver->solve(mat, coeff_vec)) error ("Matrix solver failed.\n");
 
-  // Convert coefficient vector into a Solution.
-  Solution sln;
-  sln.set_fe_solution(&space, coeff_vec);
-
   // Show the UMFpack solution.
+  Solution sln_hermes(&space, coeff_vec);
   ScalarView sv("Solution", 0, 0, 440, 350);
-  sv.show(&sln);
-
-  // debug: output of solution vector
-  //printf("ndof = %d\nvec = ", ndof);
-  //for (int i=0; i < ndof; i++) printf("%g ", coeff_vec->get(i));
-  //printf("\n");
+  sv.show(&sln_hermes);
 
   // CPU time needed by UMFpack.
   double umf_time = cpu_time.tick().last();
@@ -128,13 +117,18 @@ int main(int argc, char **argv)
   // Time measurement.
   cpu_time.tick(HERMES_SKIP);
 
+  // Set initial vector for NOX to zero. Alternatively, you can obtain 
+  // an initial vector by projecting init_cond() on the FE space, see below.
+  coeff_vec->set_zero();
+
+  /* // Generate an initial vector for NOX by projecting init_cond().
   // Project the initial condition on the FE space. 
   info("Projecting initial solution on the FE mesh.");
-  if (mesh == NULL) printf("MESH IS NULL\n");
   // The NULL pointer means that we do not want the projection result as a Solution.
   Solution* sln_tmp = new Solution(mesh, init_cond);
   project_global(&space, H2D_H1_NORM, sln_tmp, NULL, coeff_vec);
   delete sln_tmp;
+  */
 
   // Measure the projection time.
   double proj_time = cpu_time.tick().last();
@@ -162,16 +156,16 @@ int main(int argc, char **argv)
     else nox_solver->set_precond("ML");
   }
 
-  // Solve the matrix problem using NOX.
-  info("Assembling by FeProblem, solving by NOX.");
+  // Assemble and solve using NOX.
   bool solved = nox_solver->solve();
 
+  Solution sln_nox;
   if (solved)
   {
     double *s = nox_solver->get_solution_vector();
-    AVector *tmp_vector = new AVector(ndof);
+    Vector *tmp_vector = new AVector(ndof);
     tmp_vector->set_c_array(s, ndof);
-    sln2.set_fe_solution(&space, tmp_vector);
+    sln_nox.set_fe_solution(&space, tmp_vector);
     delete tmp_vector;
     info("Number of nonlin iterations: %d (norm of residual: %g)", 
       nox_solver->get_num_iters(), nox_solver->get_residual());
@@ -186,29 +180,16 @@ int main(int argc, char **argv)
   // Show the NOX solution.
   ScalarView view2("Solution 2", 450, 0, 440, 350);
   view2.set_min_max_range(0, 2);
-  view2.show(&sln2);
+  view2.show(&sln_nox);
 
-  // Calculate exact errors.
+  // Calculate errors.
   Solution ex;
   ex.set_exact(mesh, &exact);
-
   Adapt hp(&space, H2D_H1_NORM);
-  hp.set_solutions(&sln1, &ex);
+  hp.set_solutions(&sln_hermes, &ex);
   double err_est_rel_1 = hp.calc_elem_errors(H2D_TOTAL_ERROR_REL | H2D_ELEMENT_ERROR_REL) * 100;
   info("Solution 1 (LinearProblem - UMFpack): exact H1 error: %g (time %g s)", err_est_rel_1, umf_time);
-
-
-
-  MeshView mv("", 0, 0, 400, 400);
-  mv.show(mesh);
-  View::wait();
-
-
-
-
-
-
-  hp.set_solutions(&sln2, &ex);
+  hp.set_solutions(&sln_nox, &ex);
   double err_est_rel_2 = hp.calc_elem_errors(H2D_TOTAL_ERROR_REL | H2D_ELEMENT_ERROR_REL) * 100;
   info("Solution 2 (FeProblem - NOX):  exact H1 error: %g (time %g + %g s)", 
     err_est_rel_2, proj_time, nox_time);
