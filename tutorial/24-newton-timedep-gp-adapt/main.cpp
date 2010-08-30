@@ -6,11 +6,25 @@
 
 using namespace RefinementSelectors;
 
-// This test makes sure that example 24-newton-timedep-gp-adapt works correctly.
+//  This example shows how to combine automatic adaptivity with the Newton's
+//  method for a nonlinear complex-valued time-dependent PDE (the Gross-Pitaevski
+//  equation describing the behavior of Einstein-Bose quantum gases)
+//  discretized implicitly in time (via implicit Euler or Crank-Nicolson).
+//
+//  PDE: non-stationary complex Gross-Pitaevski equation
+//  describing resonances in Bose-Einstein condensates.
+//
+//  ih \partial \psi/\partial t = -h^2/(2m) \Delta \psi +
+//  g \psi |\psi|^2 + 1/2 m \omega^2 (x^2 + y^2) \psi.
+//
+//  Domain: square (-1, 1)^2.
+//
+//  BC:  homogeneous Dirichlet everywhere on the boundary.
+//
+//  Time-stepping: either implicit Euler or Crank-Nicolson.
+//
+//  The following parameters can be changed:
 
-const bool SOLVE_ON_COARSE_MESH = false;   // true... Newton is done on coarse mesh in every adaptivity step,
-                                           // false...Newton is done on coarse mesh only once, then projection
-                                           // of the fine mesh solution to coarse mesh is used.
 const int INIT_REF_NUM = 2;                // Number of initial uniform refinements.
 const int P_INIT = 2;                      // Initial polynomial degree.
 const int TIME_DISCR = 2;                  // 1 for implicit Euler, 2 for Crank-Nicolson.
@@ -54,13 +68,13 @@ MatrixSolverType matrix_solver = SOLVER_UMFPACK;  // Possibilities: SOLVER_UMFPA
 // Newton's method.
 const double NEWTON_TOL_COARSE = 0.01;     // Stopping criterion for Newton on coarse mesh.
 const double NEWTON_TOL_FINE = 0.05;       // Stopping criterion for Newton on fine mesh.
-const int NEWTON_MAX_ITER = 20;            // Maximum allowed number of Newton iterations.
+const int NEWTON_MAX_ITER = 50;            // Maximum allowed number of Newton iterations.
 
 // Problem parameters.
-const double H = 1;                      // Planck constant 6.626068e-34.
-const double M = 1;                      // Mass of boson.
-const double G = 1;                      // Coupling constant.
-const double OMEGA = 1;                  // Frequency.
+const double H = 1;                        // Planck constant 6.626068e-34.
+const double M = 1;                        // Mass of boson.
+const double G = 1;                        // Coupling constant.
+const double OMEGA = 1;                    // Frequency.
 
 
 // Initial condition.
@@ -99,27 +113,19 @@ int main(int argc, char* argv[])
   mesh.copy(&basemesh);
 
   // Create an H1 space with default shapeset.
-  H1Space space(&mesh, bc_types, essential_bc_values, P_INIT);
-  int ndof = get_num_dofs(&space);
-
-  // Solutions for the Newton's iteration and adaptivity.
-  Solution sln, ref_sln, Psi_prev_time;
-
-  // Assign initial condition to mesh.
-  Psi_prev_time.set_exact(&mesh, init_cond);// Psi_prev_time set equal to init_cond().
-  
-  bool is_complex = true; 
-  Vector *coeff_vec = new AVector(ndof, is_complex);
+  H1Space* space  =new H1Space(&mesh, bc_types, essential_bc_values, P_INIT);
+  int ndof = get_num_dofs(space);
 
   // Initialize the weak formulation.
   WeakForm wf;
+  Solution sln_prev_time;
   if(TIME_DISCR == 1) {
     wf.add_matrix_form(callback(J_euler), H2D_UNSYM, H2D_ANY);
-    wf.add_vector_form(callback(F_euler), H2D_ANY, &Psi_prev_time);
+    wf.add_vector_form(callback(F_euler), H2D_ANY, &sln_prev_time);
   }
   else {
     wf.add_matrix_form(callback(J_cranic), H2D_UNSYM, H2D_ANY);
-    wf.add_vector_form(callback(F_cranic), H2D_ANY, &Psi_prev_time);
+    wf.add_vector_form(callback(F_cranic), H2D_ANY, &sln_prev_time);
   }
 
   // Initialize adaptivity parameters.
@@ -128,49 +134,141 @@ int main(int argc, char* argv[])
   // Create a selector which will select optimal candidate.
   H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
 
-  // Visualize the projection and mesh.
-  ScalarView view("Initial condition", new WinGeom(0, 0, 440, 350));
+  // Project initial condition to coarse mesh.
+  bool is_complex = true; 
+  Vector *coeff_vec = new AVector(ndof, is_complex);
+  info("Projecting initial condition to obtain coefficient vector on coarse mesh.");
+  Solution* sln_init = new Solution(&mesh, init_cond);
+  project_global(space, H2D_H1_NORM, sln_init, &sln_prev_time, coeff_vec, is_complex);
+  delete sln_init;
+
+  // Show the projection of the initial condition.
+  char title[100];
+  ScalarView magview("Projection of initial condition", new WinGeom(0, 0, 440, 350));
+  magview.fix_scale_width(60);
+  AbsFilter mag(&sln_prev_time);
+  magview.show(&mag);
   OrderView ordview("Initial mesh", new WinGeom(450, 0, 400, 350));
-  view.show(&Psi_prev_time);
-  ordview.show(&space);
+  ordview.show(space);
+
+  // Newton's method on coarse mesh (moving one time step forward)
+  info("Solving on coarse mesh.");
+  bool verbose = true; // Default is false.
+  if (!solve_newton(space, &wf, coeff_vec, matrix_solver, 
+                    NEWTON_TOL_COARSE, NEWTON_MAX_ITER, verbose, is_complex))
+    error("Newton's method did not converge.");
+  sln_prev_time.set_fe_solution(space, coeff_vec);
 
   // Time stepping loop.
+  Solution sln, ref_sln;
+  sln.copy(&sln_prev_time);
   int num_time_steps = (int)(T_FINAL/TAU + 0.5);
   for(int ts = 1; ts <= num_time_steps; ts++)
   {
-    info("---- Time step %d:", ts);
-
     // Periodic global derefinements.
     if (ts > 1 && ts % UNREF_FREQ == 0) {
       info("Global mesh derefinement.");
       mesh.copy(&basemesh);
-      space.set_uniform_order(P_INIT);
+      space->set_uniform_order(P_INIT);
+
+      // Project on globally derefined mesh.
+      info("Projecting previous fine mesh solution on derefined mesh.");
+      project_global(space, H2D_H1_NORM, &ref_sln, NULL, coeff_vec, is_complex);
+
+      // Newton's method on derefined mesh (moving one time step forward).
+      info("Solving on derefined mesh.");
+      bool verbose = true; // Default is false.
+      if (!solve_newton(space, &wf, coeff_vec, matrix_solver, 
+                        NEWTON_TOL_COARSE, NEWTON_MAX_ITER, verbose, is_complex))
+        error("Newton's method did not converge.");
+      sln.set_fe_solution(space, coeff_vec);
     }
 
-    // Update the coefficient vector and Psi_prev_time.
-    info("Projecting to obtain coefficient vector on coarse mesh.");
-    project_global(&space, H2D_H1_NORM, &Psi_prev_time, &Psi_prev_time, coeff_vec, is_complex);
+    // Adaptivity loop:
+    bool done = false; int as = 1;
+    double err_est;
+    do {
+      info("Time step %d, adaptivity step %d:", ts, as);
 
-    // Adaptivity loop (in space):
-    bool verbose = true;     // Print info during adaptivity.
-    info("Projecting coarse mesh solution to obtain initial vector on new fine mesh.");
-    // The NULL pointers mean that we are not interested in visualization during the Newton's loop.
-    solve_newton_adapt(&space, &wf, coeff_vec, matrix_solver, H2D_H1_NORM, &sln, &ref_sln,
-                       NULL, NULL, &selector, &apt,
-                       NEWTON_TOL_COARSE, NEWTON_TOL_FINE, NEWTON_MAX_ITER, verbose, 
-                       Tuple<ExactSolution *>(), is_complex);
+      // Construct globally refined reference mesh
+      // and setup reference space.
+      Space* ref_space;
+      Mesh *ref_mesh = new Mesh();
+      ref_mesh->copy(space->get_mesh());
+      ref_mesh->refine_all_elements();
+      ref_space = space->dup(ref_mesh);
+      int order_increase = 1;
+      ref_space->copy_orders(space, order_increase);
+
+      // Calculate initial coefficient vector for Newton on the fine mesh.
+      if (as == 1) {
+        info("Projecting coarse mesh solution to obtain coefficient vector on new fine mesh.");
+        // The NULL means that we do not want the result as a Solution.
+        project_global(ref_space, H2D_H1_NORM, &sln, NULL, coeff_vec, is_complex);
+      }
+      else {
+        info("Projecting previous fine mesh solution to obtain coefficient vector on new fine mesh.");
+        // The NULL means that we do not want the result as a Solution.
+        project_global(ref_space, H2D_H1_NORM, &ref_sln, NULL, coeff_vec, is_complex);
+      }
+
+      // Newton's method on fine mesh
+      info("Solving on fine mesh.");
+      bool verbose = true; // Default is false.
+      if (!solve_newton(ref_space, &wf, coeff_vec, matrix_solver, 
+                        NEWTON_TOL_FINE, NEWTON_MAX_ITER, verbose, is_complex))
+        error("Newton's method did not converge.");
+
+      // Store the result in ref_sln.
+      ref_sln.set_fe_solution(ref_space, coeff_vec);
+
+      // Calculate element errors.
+      info("Calculating error (est).");
+      Adapt hp(space, H2D_H1_NORM);
+      // Pass coarse mesh and reference solutions for error estimation.
+      hp.set_solutions(&sln, &ref_sln);
+      double err_est_rel_total = hp.calc_elem_errors(H2D_TOTAL_ERROR_REL | H2D_ELEMENT_ERROR_REL) * 100.;
+
+      // Report results.
+      info("ndof: %d, ref_ndof: %d, err_est_rel: %g%%", 
+           get_num_dofs(space), get_num_dofs(ref_space), err_est_rel_total);
+
+      // If err_est too large, adapt the mesh.
+      if (err_est_rel_total < ERR_STOP) done = true;
+      else {
+        if (verbose) info("Adapting the coarse mesh.");
+        done = hp.adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY);
+
+        if (get_num_dofs(space) >= NDOF_STOP) {
+          done = true;
+          break;
+        }
+
+        info("Projecting fine mesh solution on new coarse mesh.");
+        // The NULL pointer means that we do not want the resulting coefficient vector.
+        project_global(space, H2D_H1_NORM, &ref_sln, &sln, NULL, is_complex);
+      }
+
+      // Free the reference space and mesh.
+      ref_space->free();
+      ref_mesh->free();
+
+      as++;
+    }
+    while (done == false);
 
     // Visualize the solution and mesh.
     char title[100];
     sprintf(title, "Solution, time level %d", ts);
-    view.set_title(title);
-    view.show(&sln);
+    magview.set_title(title);
+    AbsFilter mag(&sln);
+    magview.show(&mag);
     sprintf(title, "Mesh, time level %d", ts);
     ordview.set_title(title);
-    ordview.show(&space);
+    ordview.show(space);
 
-    // Copy new time level reference solution into Psi_prev_time.
-    Psi_prev_time.set_fe_solution(&space, coeff_vec);
+    // Copy last reference solution into sln_prev_time.
+    sln_prev_time.copy(&ref_sln);
   }
 
   // Wait for all views to be closed.

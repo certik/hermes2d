@@ -6,9 +6,9 @@ Scalar F_euler(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *v, Geom<Rea
 
   Scalar result = 0;
   Func<Scalar>* psi_iter = u_ext[0];
-  Func<Scalar>* psi_prev = ext->fn[0];
+  Func<Scalar>* sln_prev_time = ext->fn[0];
   for (int i = 0; i < n; i++)
-    result += wt[i] * (ii * H * (psi_iter->val[i] - psi_prev->val[i]) * v->val[i] / TAU
+    result += wt[i] * (ii * H * (psi_iter->val[i] - sln_prev_time->val[i]) * v->val[i] / TAU
             - H*H/(2*M) * (psi_iter->dx[i] * v->dx[i] + psi_iter->dy[i] * v->dy[i])
             - G * psi_iter->val[i] *  psi_iter->val[i] * conj(psi_iter->val[i]) * v->val[i]
             - .5*M*OMEGA*OMEGA * (e->x[i] * e->x[i] + e->y[i] * e->y[i]) * psi_iter->val[i] * v->val[i]);
@@ -39,14 +39,14 @@ Scalar F_cranic(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *v, Geom<Re
 
   Scalar result = 0;
   Func<Scalar>* psi_iter = u_ext[0];
-  Func<Scalar>* psi_prev = ext->fn[0];
+  Func<Scalar>* sln_prev_time = ext->fn[0];
   for (int i = 0; i < n; i++)
-    result += wt[i] * (ii * H * (psi_iter->val[i] - psi_prev->val[i]) * v->val[i] / TAU
+    result += wt[i] * (ii * H * (psi_iter->val[i] - sln_prev_time->val[i]) * v->val[i] / TAU
             - 0.5*H*H/(2*M) * (psi_iter->dx[i] * v->dx[i] + psi_iter->dy[i] * v->dy[i])
-            - 0.5*H*H/(2*M) * (psi_prev->dx[i] * v->dx[i] + psi_prev->dy[i] * v->dy[i])
+            - 0.5*H*H/(2*M) * (sln_prev_time->dx[i] * v->dx[i] + sln_prev_time->dy[i] * v->dy[i])
             - 0.5*G * psi_iter->val[i] *  psi_iter->val[i] * conj(psi_iter->val[i]) * v->val[i]
-            - 0.5*G * psi_prev->val[i] *  psi_prev->val[i] * conj(psi_prev->val[i]) * v->val[i]
-            - 0.5*0.5*M*OMEGA*OMEGA * (e->x[i] * e->x[i] + e->y[i] * e->y[i]) * (psi_iter->val[i] + psi_prev->val[i]) * v->val[i]);
+            - 0.5*G * sln_prev_time->val[i] *  sln_prev_time->val[i] * conj(sln_prev_time->val[i]) * v->val[i]
+            - 0.5*0.5*M*OMEGA*OMEGA * (e->x[i] * e->x[i] + e->y[i] * e->y[i]) * (psi_iter->val[i] + sln_prev_time->val[i]) * v->val[i]);
 
   return result;
 }
@@ -67,18 +67,3 @@ Scalar J_cranic(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *u, Func<Re
   return result;
 }
 
-// Implicit Euler method (1st-order in time)
-template<typename Real, typename Scalar>
-Scalar residual_euler(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
-{  return F_euler(n, wt, v, e, ext);  }
-template<typename Real, typename Scalar>
-Scalar jacobian_euler(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
-{  return J_euler(n, wt, u, v, e, ext);  }
-
-// Crank-Nicolson (2nd-order in time)
-template<typename Real, typename Scalar>
-Scalar residual_cranic(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
-{  return F_cranic(n, wt, v, e, ext);  }
-template<typename Real, typename Scalar>
-Scalar jacobian_cranic(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
-{  return J_cranic(n, wt, u, v, e, ext);  }
