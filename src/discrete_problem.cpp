@@ -299,7 +299,7 @@ void DiscreteProblem::assemble(Vector* init_vec, Matrix* mat_ext, Vector* dir_ex
   // obtain a list of assembling stages
   std::vector<WeakForm::Stage> stages;
   // Returns assembling stages with correct meshes, ext_functions that are needed in a particular stage.
-  wf->get_stages(spaces, stages, rhsonly);
+  wf->get_stages(spaces, u_ext, stages, rhsonly);
 
   // Loop through all assembling stages -- the purpose of this is increased performance
   // in multi-mesh calculations, where, e.g., only the right hand side uses two meshes.

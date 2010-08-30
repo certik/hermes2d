@@ -190,7 +190,7 @@ void WeakForm::set_ext_fns(void* fn, Tuple<MeshFunction*>ext)
 /// that share the same meshes. Each stage is then assembled separately. This
 /// improves the performance of multi-mesh assembling.
 ///
-void WeakForm::get_stages(Tuple<Space *> spaces, std::vector<WeakForm::Stage>& stages, bool rhsonly)
+void WeakForm::get_stages(Tuple<Space *> spaces, Tuple<Solution *> u_ext, std::vector<WeakForm::Stage>& stages, bool rhsonly)
 {
   unsigned i;
   stages.clear();
@@ -201,7 +201,7 @@ void WeakForm::get_stages(Tuple<Space *> spaces, std::vector<WeakForm::Stage>& s
     int ii = mfvol[i].i, jj = mfvol[i].j;
     Mesh* m1 = spaces[ii]->get_mesh();
     Mesh* m2 = spaces[jj]->get_mesh();
-    Stage* s = find_stage(stages, ii, jj, m1, m2, mfvol[i].ext);
+    Stage* s = find_stage(stages, ii, jj, m1, m2, mfvol[i].ext, u_ext);
     s->mfvol.push_back(&mfvol[i]);
   }
 
@@ -211,7 +211,7 @@ void WeakForm::get_stages(Tuple<Space *> spaces, std::vector<WeakForm::Stage>& s
     int ii = mfsurf[i].i, jj = mfsurf[i].j;
     Mesh* m1 = spaces[ii]->get_mesh();
     Mesh* m2 = spaces[jj]->get_mesh();
-    Stage* s = find_stage(stages, ii, jj, m1, m2, mfsurf[i].ext);
+    Stage* s = find_stage(stages, ii, jj, m1, m2, mfsurf[i].ext, u_ext);
     s->mfsurf.push_back(&mfsurf[i]);
   }
 
@@ -219,7 +219,7 @@ void WeakForm::get_stages(Tuple<Space *> spaces, std::vector<WeakForm::Stage>& s
   for (unsigned i = 0; i < vfvol.size(); i++) {
     int ii = vfvol[i].i;
     Mesh *m = spaces[ii]->get_mesh();
-    Stage *s = find_stage(stages, ii, ii, m, m, vfvol[i].ext);
+    Stage *s = find_stage(stages, ii, ii, m, m, vfvol[i].ext, u_ext);
     s->vfvol.push_back(&vfvol[i]);
   }
 
@@ -227,7 +227,7 @@ void WeakForm::get_stages(Tuple<Space *> spaces, std::vector<WeakForm::Stage>& s
   for (unsigned i = 0; i < vfsurf.size(); i++) {
     int ii = vfsurf[i].i;
     Mesh *m = spaces[ii]->get_mesh();
-    Stage *s = find_stage(stages, ii, ii, m, m, vfsurf[i].ext);
+    Stage *s = find_stage(stages, ii, ii, m, m, vfsurf[i].ext, u_ext);
     s->vfsurf.push_back(&vfsurf[i]);
   }
 
@@ -258,22 +258,31 @@ void WeakForm::get_stages(Tuple<Space *> spaces, std::vector<WeakForm::Stage>& s
 }
 
 
-/// Finds an assembling stage with the same set of meshes as [m1, m2, ext]. If no such
+/// Finds an assembling stage with the same set of meshes as [m1, m2, ext, u_ext]. If no such
 /// stage can be found, a new one is created and returned.
 ///
 WeakForm::Stage* WeakForm::find_stage(std::vector<WeakForm::Stage>& stages, int ii, int jj,
-                                      Mesh* m1, Mesh* m2, std::vector<MeshFunction*>& ext)
+                                      Mesh* m1, Mesh* m2, 
+                                      std::vector<MeshFunction*>& ext, std::vector<Solution*>& u_ext)
 {
   // first create a list of meshes the form uses
   std::set<unsigned> seq;
   seq.insert(m1->get_seq());
   seq.insert(m2->get_seq());
+  Mesh *mmm;
   for (unsigned i = 0; i < ext.size(); i++) {
-    Mesh *mmm = ext[i]->get_mesh();
+    mmm = ext[i]->get_mesh();
     if (mmm == NULL) error("NULL Mesh pointer detected in ExtData during assembling.\n  Have you initialized all external functions?");
     seq.insert(mmm->get_seq());
   }
-
+  for (unsigned i = 0; i < u_ext.size(); i++) {
+    if (u_ext[i] != NULL) {
+      mmm = u_ext[i]->get_mesh();
+      if (mmm == NULL) error("NULL Mesh pointer detected in u_ext during assembling.");
+      seq.insert(mmm->get_seq());
+    }
+  }
+  
   // find a suitable existing stage for the form
   Stage* s = NULL;
   for (unsigned i = 0; i < stages.size(); i++)
