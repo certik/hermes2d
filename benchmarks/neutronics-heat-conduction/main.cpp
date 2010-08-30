@@ -14,7 +14,7 @@
 //
 // PDE:
 //
-// 1/v1 d/dt phi_1 = div(D_1 grad phi_1) + (nu Sigma_f1 - Sigma_r1) phi_1 + Sigma_f2 phi_2 
+// 1/v1 d/dt phi_1 = div(D_1 grad phi_1) + (nu Sigma_f1 - Sigma_r1) phi_1 + nu Sigma_f2 phi_2 
 //                        + lambda_1 C1 + lambda_2 C2 + Q_1
 //
 // 1/v2 d/dt phi_2 = div(D_2 grad phi_2) - Sigma_r2 phi_2 + Sigma_12 phi_1 + Q_2
