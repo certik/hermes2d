@@ -322,10 +322,7 @@ int main(int argc, char* argv[])
           info("Projecting the latest fine mesh solution onto globally derefined meshes.");
           project_global(spaces, proj_norms, fine_mesh_meshfns, coarse_mesh_solutions); 
         }
-      } else {
-        T_coarse.copy(&T_fine);
-        phi_coarse.copy(&phi_fine);
-      }
+      } 
     }
       
 
@@ -426,22 +423,24 @@ int main(int argc, char* argv[])
         done = hp.adapt(Tuple<RefinementSelectors::Selector*> (&selector, &selector), THRESHOLD, STRATEGY, MESH_REGULARITY);
         if (get_num_dofs(spaces) >= NDOF_STOP) done = true; 
         
-        if (SOLVE_ON_COARSE_MESH) {        
-          // Newton's loop on the new coarse meshes.
-          info("Solving on coarse meshes, starting from the latest fine mesh solutions.");
-          project_global(spaces, proj_norms, fine_mesh_meshfns, Tuple<Solution*>(), coeff_vec);
-          did_converge = solve_newton(spaces, &wf, coeff_vec, matrix_solver, 
-                                      NEWTON_TOL_COARSE, NEWTON_MAX_ITER, verbose); 
-          if (!did_converge)
-            error("Newton's method did not converge.");
-          
-          // Translate the resulting coefficient vector into the actual solutions. 
-          T_coarse.set_fe_solution(&space_T, coeff_vec);
-          phi_coarse.set_fe_solution(&space_phi, coeff_vec);
-        } else {
-          // Projection onto the new coarse meshes.
-          info("Projecting the latest fine mesh solution onto new coarse meshes.");
-          project_global(spaces, proj_norms, fine_mesh_meshfns, coarse_mesh_solutions, NULL); 
+        if (!done) {
+          if (SOLVE_ON_COARSE_MESH) {        
+            // Newton's loop on the new coarse meshes.
+            info("Solving on coarse meshes, starting from the latest fine mesh solutions.");
+            project_global(spaces, proj_norms, fine_mesh_meshfns, Tuple<Solution*>(), coeff_vec);
+            did_converge = solve_newton(spaces, &wf, coeff_vec, matrix_solver, 
+                                        NEWTON_TOL_COARSE, NEWTON_MAX_ITER, verbose); 
+            if (!did_converge)
+              error("Newton's method did not converge.");
+            
+            // Translate the resulting coefficient vector into the actual solutions. 
+            T_coarse.set_fe_solution(&space_T, coeff_vec);
+            phi_coarse.set_fe_solution(&space_phi, coeff_vec);
+          } else {
+            // Projection onto the new coarse meshes.
+            info("Projecting the latest fine mesh solution onto new coarse meshes.");
+            project_global(spaces, proj_norms, fine_mesh_meshfns, coarse_mesh_solutions, NULL); 
+          }
         }
       }
       
