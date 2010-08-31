@@ -111,7 +111,7 @@ Real heat_src(Real x, Real y)
 }
 
 // Weak forms.
-# include "forms.cpp"
+#include "forms.cpp"
 
 int main(int argc, char* argv[])
 {
@@ -152,11 +152,11 @@ int main(int argc, char* argv[])
   // Project initial condition to coarse mesh. 
   Vector *coeff_vec = new AVector();
   info("Projecting initial condition to obtain coefficient vector on coarse mesh.");
-  Solution* sln_init = new Solution(&mesh, init_cond);
-  project_global(space, H2D_H1_NORM, sln_init, &sln_prev_time, coeff_vec);
-  delete sln_init;
+
+  project_global(space, H2D_H1_NORM, &sln_prev_time, Tuple<Solution*>(), coeff_vec);
 
   // Visualize initial condition.
+  char title[100];
   ScalarView view("Initial condition", new WinGeom(0, 0, 440, 350));
   OrderView ordview("Initial mesh", new WinGeom(450, 0, 400, 350));
   view.show(&sln_prev_time);
@@ -168,11 +168,12 @@ int main(int argc, char* argv[])
   if (!solve_newton(space, &wf, coeff_vec, matrix_solver, 
                     NEWTON_TOL_COARSE, NEWTON_MAX_ITER, verbose))
     error("Newton's method did not converge.");
-  sln_prev_time.set_fe_solution(space, coeff_vec);
-
-  // Time stepping loop.
+  
+  // Set initial coarse mesh solution, create variable for the reference solution.
   Solution sln, ref_sln;
-  sln.copy(&sln_prev_time);
+  sln.set_fe_solution(space, coeff_vec);
+  
+  // Time stepping loop.
   int num_time_steps = (int)(T_FINAL/TAU + 0.5);
   for(int ts = 1; ts <= num_time_steps; ts++)
   {
@@ -186,12 +187,16 @@ int main(int argc, char* argv[])
       info("Projecting previous fine mesh solution on derefined mesh.");
       project_global(space, H2D_H1_NORM, &ref_sln, Tuple<Solution *>(), coeff_vec);
 
+      
+      /*
       // Newton's method on derefined mesh (moving one time step forward).
       info("Solving on derefined mesh.");
       bool verbose = true; // Default is false.
       if (!solve_newton(space, &wf, coeff_vec, matrix_solver, 
                         NEWTON_TOL_COARSE, NEWTON_MAX_ITER, verbose))
         error("Newton's method did not converge.");
+      */
+      
       sln.set_fe_solution(space, coeff_vec);
     }
 
@@ -204,7 +209,7 @@ int main(int argc, char* argv[])
       // Construct globally refined reference mesh
       // and setup reference space.
       Space* ref_space;
-      Mesh *ref_mesh = new Mesh();
+      Mesh* ref_mesh = new Mesh();
       ref_mesh->copy(space->get_mesh());
       ref_mesh->refine_all_elements();
       ref_space = space->dup(ref_mesh);
