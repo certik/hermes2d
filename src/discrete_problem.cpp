@@ -236,18 +236,18 @@ void DiscreteProblem::assemble(Vector* init_vec, Matrix* mat_ext, Vector* dir_ex
   // and clear dir_ext and rhs_ext. 
   // Do not touch the matrix if rhsonly == true. 
   if (rhsonly == false) {
-    if (mat_ext->get_size() != ndof) mat_ext->init();
+    if (mat_ext->get_size() != ndof) mat_ext->init(is_complex);
   }
   if (dir_ext != NULL) {
     if (dir_ext->get_size() != ndof) {
       dir_ext->free_data();
-      dir_ext->init(ndof);
+      dir_ext->init(ndof, is_complex);
     }
     else dir_ext->set_zero();
   }
   if (rhs_ext->get_size() != ndof) {
     rhs_ext->free_data();
-    rhs_ext->init(ndof);
+    rhs_ext->init(ndof, is_complex);
   }
   else rhs_ext->set_zero();
 
@@ -1411,11 +1411,9 @@ double get_l2_norm_real(Vector* vec)
 
 double get_l2_norm_cplx(Vector* vec) 
 {
-  cplx val_0 = cplx(0, 0);
-  for (int i = 0; i < vec->get_size(); i++) val_0 = val_0 + vec->get_cplx(i)*conj(vec->get_cplx(i));
-  double val = std::abs(val_0);
-  val = sqrt(val);
-  return val;
+  double val = 0;
+  for (int i = 0; i < vec->get_size(); i++) val += std::norm(vec->get_cplx(i));
+  return sqrt(val);
 }
 
 // Basic Newton's method, takes a coefficient vector and returns a coefficient vector. 
