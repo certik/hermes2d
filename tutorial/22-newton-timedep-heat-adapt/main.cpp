@@ -39,7 +39,7 @@ const int STRATEGY = 0;                    // Adaptive strategy:
                                            // STRATEGY = 2 ... refine all elements whose error is larger
                                            //   than THRESHOLD.
                                            // More adaptive strategies can be created in adapt_ortho_h1.cpp.
-const CandList CAND_LIST = H2D_HP_ANISO;   // Predefined list of element refinement candidates. Possible values are
+const CandList CAND_LIST = H2D_HP_ANISO_H; // Predefined list of element refinement candidates. Possible values are
                                            // H2D_P_ISO, H2D_P_ANISO, H2D_H_ISO, H2D_H_ANISO, H2D_HP_ISO,
                                            // H2D_HP_ANISO_H, H2D_HP_ANISO_P, H2D_HP_ANISO.
                                            // See the User Documentation for details.
@@ -51,7 +51,7 @@ const int MESH_REGULARITY = -1;            // Maximum allowed level of hanging n
                                            // their notoriously bad performance.
 const double CONV_EXP = 1.0;               // Default value is 1.0. This parameter influences the selection of
                                            // cancidates in hp-adaptivity. See get_optimal_refinement() for details.
-const double ERR_STOP = 1.0;               // Stopping criterion for adaptivity (rel. error tolerance between the
+const double ERR_STOP = 3.0;               // Stopping criterion for adaptivity (rel. error tolerance between the
                                            // fine mesh and coarse mesh solution in percent).
 const int NDOF_STOP = 60000;               // Adaptivity process stops when the number of degrees of freedom grows
                                            // over this limit. This is to prevent h-adaptivity to go on forever.
@@ -61,7 +61,7 @@ MatrixSolverType matrix_solver = SOLVER_UMFPACK;  // Possibilities: SOLVER_UMFPA
 // Newton's method
 const double NEWTON_TOL_COARSE = 0.01;     // Stopping criterion for Newton on fine mesh.
 const double NEWTON_TOL_FINE = 0.05;       // Stopping criterion for Newton on fine mesh.
-const int NEWTON_MAX_ITER = 100;           // Maximum allowed number of Newton iterations.
+const int NEWTON_MAX_ITER = 20;           // Maximum allowed number of Newton iterations.
 
 // Thermal conductivity (temperature-dependent).
 // Note: for any u, this function has to be positive.
@@ -150,7 +150,7 @@ int main(int argc, char* argv[])
   H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
 
   // Project initial condition to coarse mesh. 
-  Vector *coeff_vec = new AVector(ndof);
+  Vector *coeff_vec = new AVector();
   info("Projecting initial condition to obtain coefficient vector on coarse mesh.");
   Solution* sln_init = new Solution(&mesh, init_cond);
   project_global(space, H2D_H1_NORM, sln_init, &sln_prev_time, coeff_vec);
@@ -184,7 +184,7 @@ int main(int argc, char* argv[])
 
       // Project on globally derefined mesh.
       info("Projecting previous fine mesh solution on derefined mesh.");
-      project_global(space, H2D_H1_NORM, &ref_sln, NULL, coeff_vec);
+      project_global(space, H2D_H1_NORM, &ref_sln, Tuple<Solution *>(), coeff_vec);
 
       // Newton's method on derefined mesh (moving one time step forward).
       info("Solving on derefined mesh.");
@@ -214,13 +214,11 @@ int main(int argc, char* argv[])
       // Calculate initial coefficient vector for Newton on the fine mesh.
       if (as == 1) {
         info("Projecting coarse mesh solution to obtain coefficient vector on new fine mesh.");
-        // The NULL means that we do not want the result as a Solution.
-        project_global(ref_space, H2D_H1_NORM, &sln, NULL, coeff_vec);
+        project_global(ref_space, H2D_H1_NORM, &sln, Tuple<Solution*>(), coeff_vec);
       }
       else {
         info("Projecting previous fine mesh solution to obtain coefficient vector on new fine mesh.");
-        // The NULL means that we do not want the result as a Solution.
-        project_global(ref_space, H2D_H1_NORM, &ref_sln, NULL, coeff_vec);
+        project_global(ref_space, H2D_H1_NORM, &ref_sln, Tuple<Solution*>(), coeff_vec);
       }
 
       // Newton's method on fine mesh
