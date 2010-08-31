@@ -334,6 +334,9 @@ void DiscreteProblem::assemble(Vector* init_vec, Matrix* mat_ext, Vector* dir_ex
       update_limit_table(e0->get_mode());
 
       // Obtain assembly lists for the element at all spaces of the stage, set appropriate mode for each pss.
+      // NOTE: Active elements and transformations for external functions (including the solutions from previous
+      // Newton's iteration) as well as basis functions (master PrecalcShapesets) have already been set in 
+      // trav.get_next_state(...).
       std::fill(isempty.begin(), isempty.end(), false);
       for (unsigned int i = 0; i < s->idx.size(); i++)
       {
@@ -351,11 +354,6 @@ void DiscreteProblem::assemble(Vector* init_vec, Matrix* mat_ext, Vector* dir_ex
 	// Important : the reference mapping gets the same subelement transformation as the
 	// appropriate PrecalcShapeset (~test function). This is used in eval_form functions.
         refmap[j].force_transform(pss[j]->get_transform(), pss[j]->get_ctm());
-        // The same is done for all external functions.
-	if (u_ext[j] != NULL) {
-          u_ext[j]->set_active_element(e[i]);
-          u_ext[j]->force_transform(pss[j]->get_transform(), pss[j]->get_ctm());
-        }
       }
       // Boundary marker.
       marker = e0->marker;

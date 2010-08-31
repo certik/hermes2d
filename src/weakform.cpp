@@ -239,18 +239,26 @@ void WeakForm::get_stages(Tuple<Space *> spaces, Tuple<Solution *> u_ext, std::v
   for (i = 0; i < stages.size(); i++)
   {
     Stage* s = &stages[i];
+    
+    // First, initialize arrays for the test functions. A pointer to the PrecalcShapeset 
+    // corresponding to each space will be assigned to s->fns later during assembling.
     set_for_each(s->idx_set, int)
     {
       s->idx.push_back(*it);
       s->meshes.push_back(spaces[*it]->get_mesh());
       s->fns.push_back(NULL);
     }
+    
+    // Next, append to the existing arrays the external functions (including the solutions
+    // from previous Newton iteration) and their meshes. Also fill in a special array with
+    // these external functions only.
     set_for_each(s->ext_set, MeshFunction*)
     {
       s->ext.push_back(*it);
       s->meshes.push_back((*it)->get_mesh());
       s->fns.push_back(*it);
     }
+    
     s->idx_set.clear();
     s->seq_set.clear();
     s->ext_set.clear();
@@ -302,6 +310,10 @@ WeakForm::Stage* WeakForm::find_stage(std::vector<WeakForm::Stage>& stages, int 
   // update and return the stage
   for (unsigned int i = 0; i < ext.size(); i++)
     s->ext_set.insert(ext[i]);
+  for (unsigned int i = 0; i < u_ext.size(); i++)
+    if (u_ext[i] != NULL)
+      s->ext_set.insert(u_ext[i]);
+  
   s->idx_set.insert(ii);
   s->idx_set.insert(jj);
   return s;
