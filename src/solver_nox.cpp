@@ -82,7 +82,7 @@ NoxProblemInterface::NoxProblemInterface(FeProblem* problem)
 
 NoxProblemInterface::~NoxProblemInterface()
 {
-
+  init_sln.free();
 }
 
 void NoxProblemInterface::prealloc_jacobian()

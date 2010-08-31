@@ -173,7 +173,7 @@ int main(int argc, char* argv[])
 
       // Project on globally derefined mesh.
       info("Projecting previous fine mesh solution on derefined mesh.");
-      project_global(space, H2D_H1_NORM, &ref_sln, NULL, coeff_vec, is_complex);
+      project_global(space, H2D_H1_NORM, &ref_sln, &sln_prev_time, coeff_vec, is_complex);
 
       // Newton's method on derefined mesh (moving one time step forward).
       info("Solving on derefined mesh.");
