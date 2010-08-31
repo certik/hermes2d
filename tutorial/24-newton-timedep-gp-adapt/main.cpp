@@ -158,12 +158,15 @@ int main(int argc, char* argv[])
   if (!solve_newton(space, &wf, coeff_vec, matrix_solver, 
                     NEWTON_TOL_COARSE, NEWTON_MAX_ITER, verbose, is_complex))
     error("Newton's method did not converge.");
-  // Time stepping loop.
+  
+  // Set initial coarse mesh solution, create a variable for reference solutions.
   Solution sln, ref_sln;
   sln.set_fe_solution(space, coeff_vec);
+  
+  // Time stepping loop.
   int num_time_steps = (int)(T_FINAL/TAU + 0.5);
   for(int ts = 1; ts <= num_time_steps; ts++)
-  {
+  {    
     // Periodic global derefinements.
     if (ts > 1 && ts % UNREF_FREQ == 0) {
       info("Global mesh derefinement.");
@@ -173,12 +176,18 @@ int main(int argc, char* argv[])
       // Project on globally derefined mesh.
       info("Projecting previous fine mesh solution on derefined mesh.");
       project_global(space, H2D_H1_NORM, &ref_sln, Tuple<Solution*>(), coeff_vec, is_complex);
+      
+      // FIXME: Error "Invalid element ID ..." is thrown when this is uncommented.
+      /*
       // Newton's method on derefined mesh (moving one time step forward).
-      info("Solving on derefined mesh.");
+      info("Solving on derefined mesh.");     
+      
       bool verbose = true; // Default is false.
       if (!solve_newton(space, &wf, coeff_vec, matrix_solver, 
                         NEWTON_TOL_COARSE, NEWTON_MAX_ITER, verbose, is_complex))
         error("Newton's method did not converge.");
+      */
+      
       sln.set_fe_solution(space, coeff_vec);
     }
 
@@ -187,15 +196,11 @@ int main(int argc, char* argv[])
     double err_est;
     do {
       info("Time step %d, adaptivity step %d:", ts, as);
-      // Visualize the solution and mesh.
-      ordview.show(space);
-      AbsFilter mag(&sln);
-      magview.show(&mag);
 
       // Construct globally refined reference mesh
       // and setup reference space.
       Space* ref_space;
-      Mesh *ref_mesh = new Mesh();
+      Mesh* ref_mesh = new Mesh();
       ref_mesh->copy(space->get_mesh());
       ref_mesh->refine_all_elements();
       ref_space = space->dup(ref_mesh);
@@ -259,6 +264,15 @@ int main(int argc, char* argv[])
     }
     while (done == false);
 
+    // Visualize the solution and mesh.
+    sprintf(title, "Solution, time level %d", ts);
+    magview.set_title(title);
+    AbsFilter mag(&sln);
+    magview.show(&mag);
+    sprintf(title, "Mesh, time level %d", ts);
+    ordview.set_title(title);
+    ordview.show(space);
+    
     // Copy last reference solution into sln_prev_time.
     sln_prev_time.copy(&ref_sln);
   }
