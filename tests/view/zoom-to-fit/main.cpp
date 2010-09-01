@@ -126,16 +126,16 @@ int main(int argc, char* argv[])
     // Test the behaviour when user enters bigger lower bound.
     view.set_min_max_range(1, 0.5);
     // Show the function.
-    view.show(&fn);
+    //view.show(&fn);
     // Wait for the view to be closed.
-    View::wait();
+    //View::wait();
 
     // Test the behaviour when user enters both bounds the same.
     view.set_min_max_range(0.5, 0.5);
     // Show the function.
-    view.show(&fn);
+    //view.show(&fn);
     // Wait for the view to be closed.
-    View::wait();
+    //View::wait();
 
   } else { // Test model positioning.
 
@@ -144,7 +144,7 @@ int main(int argc, char* argv[])
       view.set_3d_mode(true);
 
       // Show the function.
-      view.show(&fn);
+      //view.show(&fn);
       // Wait for the view to be closed.
       View::wait();
 
@@ -157,7 +157,7 @@ int main(int argc, char* argv[])
         view.show_bounding_box();
 
         // Show the function.
-        view.show(&fn);
+        //view.show(&fn);
         // Wait for the view to be closed.
         View::wait();
       }
