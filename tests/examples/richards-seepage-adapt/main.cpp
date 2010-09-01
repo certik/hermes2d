@@ -182,16 +182,11 @@ int main(int argc, char* argv[])
 
   // Adapt mesh to represent initial condition with given accuracy.
   int proj_norm = 1;  // H1 norm.
-  bool verbose = true; 
+  bool verbose = false; 
   double err_stop_init_cond = 0.1 * ERR_STOP; 
   adapt_to_exact_function(&space, proj_norm, init_cond, &selector, THRESHOLD, STRATEGY, 
                           MESH_REGULARITY, ERR_STOP, NDOF_STOP, 
                           verbose, &u_prev_time);
-
-  // Initialize views.
-  ScalarView sview("Solution", 0, 0, 500, 350);
-  sview.set_min_max_range(-9.5, 2.2);
-  OrderView oview("Mesh", 510, 0, 500, 350);
 
   // Assign initial condition to mesh.
   u_prev_time.set_exact(&mesh, init_cond);
@@ -234,10 +229,6 @@ int main(int argc, char* argv[])
   // Initialize adaptivity parameters.
   AdaptivityParamType apt(ERR_STOP, NDOF_STOP, THRESHOLD, STRATEGY, MESH_REGULARITY);
 
-  // Visualize the projection and mesh.
-  ScalarView view("Initial condition", new WinGeom(0, 0, 440, 350));
-  OrderView ordview("Initial mesh", new WinGeom(450, 0, 400, 350));
-
   // Time stepping loop.
   int num_time_steps = (int)(T_FINAL/TAU + 0.5);
   for(int ts = 1; ts <= num_time_steps; ts++)
@@ -255,19 +246,12 @@ int main(int argc, char* argv[])
     info("Projecting to obtain coefficient vector on coarse mesh.");
     project_global(&space, H2D_H1_NORM, &u_prev_time, &u_prev_time, coeff_vec);
 
-    bool verbose = true;     // Print info during adaptivity.
+    bool verbose = false;     // Print info during adaptivity.
     info("Projecting coarse mesh solution to obtain initial vector on new fine mesh.");
     // The NULL pointers mean that we are not interested in visualization during the Newton's loop.
     solve_newton_adapt(&space, &wf, coeff_vec, matrix_solver, H2D_H1_NORM, &sln, &ref_sln,
-                       NULL, NULL, &selector, &apt,
+                       Tuple<WinGeom *>(), Tuple<WinGeom *>(), &selector, &apt,
                        NEWTON_TOL_COARSE, NEWTON_TOL_FINE, NEWTON_MAX_ITER, verbose);
-
-    // Visualize the solution and mesh.
-    char title[100];
-    sprintf(title, "Solution, time level %d", ts);
-    view.set_title(title);
-    sprintf(title, "Mesh, time level %d", ts);
-    ordview.set_title(title);
 
     // Copy new time level reference solution into u_prev_time.
     u_prev_time.set_fe_solution(&space, coeff_vec);
