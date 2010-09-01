@@ -81,8 +81,6 @@ void ludcmp(double** a, int n, int* indx, double* d)
 #endif
 #endif
 
-#endif
-#endif
 void choldc(double **a, int n, double p[])
 {
   int i, j, k;
