@@ -33,15 +33,15 @@
 # Import modules
 from hermes2d import Mesh, MeshView, VectorView, OrderView, H1Shapeset, PrecalcShapeset, H1Space, \
         WeakForm, Solution, ScalarView, LinSystem, DummySolver, RefSystem, \
-	H1Adapt, H1ProjBasedSelector, CandList, \
+    H1Adapt, H1ProjBasedSelector, CandList, \
         H2D_EPS_HIGH, H2D_FN_DX, H2D_FN_DY
 
 from hermes2d.examples.c10 import set_bc, set_forms
 from hermes2d.examples import get_motor_mesh
 
 # The following parameters can be changed:
-
-P_INIT = 1              # Initial polynomial degree of all mesh elements.
+SOLVE_ON_COARSE_MESH = True   # If true, coarse mesh FE problem is solved in every adaptivity step
+P_INIT = 2              # Initial polynomial degree of all mesh elements.
 THRESHOLD = 0.2         # This is a quantitative parameter of the adapt(...) function and
                         # it has different meanings for various adaptive strategies (see below).
 
@@ -55,10 +55,10 @@ STRATEGY = 1            # Adaptive strategy:
                         #   than THRESHOLD.
                         # More adaptive strategies can be created in adapt_ortho_h1.cpp.
 
-CAND_LIST = CandList.HP_ANISO  # Predefined list of element refinement candidates.
+CAND_LIST = CandList.H2D_HP_ANISO_H  # Predefined list of element refinement candidates.
                         # Possible values are are attributes of the class CandList:
-                        # P_ISO, P_ANISO, H_ISO, H_ANISO, HP_ISO, HP_ANISO_H, HP_ANISO_P, HP_ANISO
-			# See the Sphinx tutorial (http://hpfem.org/hermes2d/doc/src/tutorial-2.html#adaptive-h-fem-and-hp-fem) for details.											   
+                        # H2D_P_ISO, H2D_P_ANISO, H2D_H_ISO, H2D_H_ANISO, H2D_HP_ISO, H2D_HP_ANISO_H, H2D_HP_ANISO_P, H2D_HP_ANISO
+                        # See User Documentation for details.                      
 
 MESH_REGULARITY = -1    # Maximum allowed level of hanging nodes:
                         # MESH_REGULARITY = -1 ... arbitrary level hangning nodes (default),
@@ -67,77 +67,72 @@ MESH_REGULARITY = -1    # Maximum allowed level of hanging nodes:
                         # Note that regular meshes are not supported, this is due to
                         # their notoriously bad performance.
 
-ERR_STOP = 0.1          # Stopping criterion for adaptivity (rel. error tolerance between the
+ERR_STOP = 1.0          # Stopping criterion for adaptivity (rel. error tolerance between the
                         # fine mesh and coarse mesh solution in percent).
-
-NDOF_STOP = 40000       # Adaptivity process stops when the number of degrees of freedom grows
+CONV_EXP = 1.0;         # Default value is 1.0. This parameter influences the selection of
+                        # cancidates in hp-adaptivity. See get_optimal_refinement() for details.
+                        # fine mesh and coarse mesh solution in percent).
+NDOF_STOP = 60000       # Adaptivity process stops when the number of degrees of freedom grows
                         # over this limit. This is to prevent h-adaptivity to go on forever.
+
+H2DRS_DEFAULT_ORDER = -1 # A default order. Used to indicate an unkonwn order or a maximum support order
 
 # Load the mesh
 mesh = Mesh()
 mesh.load(get_motor_mesh())
 
-# Initialize the shapeset and the cache
-shapeset = H1Shapeset()
-pss = PrecalcShapeset(shapeset)
-
-# Create finite element space
-space = H1Space(mesh, shapeset)
+# Create an H1 space with default shapeset
+space = H1Space(mesh, P_INIT)
 set_bc(space)
-space.set_uniform_order(P_INIT)
-
-# Enumerate basis functions
-space.assign_dofs()
 
 # Initialize the discrete problem
-wf = WeakForm(1)
+wf = WeakForm()
 set_forms(wf)
 
-# Visualize solution, gradient, and mesh
+# Initialize views
 sview = ScalarView("Coarse solution", 0, 0, 600, 1000)
-gview = VectorView("Gradient", 610, 0, 600, 1000)
+#gview = VectorView("Gradient", 610, 0, 600, 1000)
 oview = OrderView("Polynomial orders", 1220, 0, 600, 1000)
 
-# Matrix solver
-solver = DummySolver()
+# Initialize refinement selector.
+selector = H1ProjBasedSelector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER)
 
-# Adaptivity loop
-it = 1
-ndofs = 0
+# Initialize the linear system.
+ls = LinSystem(wf)
+ls.set_spaces(space)
 
-done = False
-cpu = 0.0
-
+# Adaptivity loop:
 sln_coarse = Solution()
 sln_fine = Solution()
-
-selector = H1ProjBasedSelector(CAND_LIST, 1.0, -1, shapeset)
+done = False
+it = 1
 
 while(not done):
 
     print("\n---- Adaptivity step %d ---------------------------------------------\n" % it)
     it += 1
-
-    # Solve the coarse mesh problem
-    ls = LinSystem(wf, solver)
-    ls.set_spaces(space)
-    ls.set_pss(pss)
-    ls.assemble()
-    ls.solve_system(sln_coarse)
-
-    # View the solution
+    
+    # Assemble and solve the fine mesh problem
+    rs = RefSystem(ls)
+    rs.assemble()
+    rs.solve_system(sln_fine)
+    
+    # Either solve on coarse mesh or project the fine mesh solution 
+    # on the coarse mesh.
+    if SOLVE_ON_COARSE_MESH:
+        ls.assemble()
+        ls.solve_system(sln_coarse)
+    else:
+        ls.project_global(sln_fine, sln_coarse)
+        
+    # View the coarse mesh solution
     sview.show(sln_coarse)
 
     # View the mesh
     mesh.plot()
 
-    # Solve the fine mesh problem
-    rs = RefSystem(ls)
-    rs.assemble()
-    rs.solve_system(sln_fine)
-
     # Calculate element errors and total error estimate
-    hp = H1Adapt([space])
+    hp = H1Adapt(ls)
     hp.set_solutions([sln_coarse], [sln_fine])
     err_est = hp.calc_error() * 100
     print("Error estimate: %d" % err_est)
@@ -146,15 +141,14 @@ while(not done):
     if (err_est < ERR_STOP):
         done = True
     else:
-        hp.adapt(selector, THRESHOLD, STRATEGY, MESH_REGULARITY)
-        ndofs = space.assign_dofs()
+        done = hp.adapt(selector, THRESHOLD, STRATEGY, MESH_REGULARITY)
 
-        if (ndofs >= NDOF_STOP):
+        if (ls.get_num_dofs() >= NDOF_STOP):
             done = True
 
-print ("Total running time: %d sec" % cpu)
+#print ("Total running time: %d sec" % cpu)
 
 # Show the fine solution - this is the final result
 sview.show(sln_fine)
-gview.show(sln_fine, sln_fine, H2D_EPS_HIGH)
+#gview.show(sln_fine, sln_fine, H2D_EPS_HIGH, H2D_FN_DX_0, H2D_FN_DY_0)
 

@@ -26,17 +26,16 @@ from hermes2d.examples import get_bracket_mesh
 # The following parameters can be changed: In particular, compare hp- and
 # h-adaptivity via the CAND_LIST option, and compare the multi-mesh vs. single-mesh
 # using the MULTI parameter.
-P_INIT = 1               # Initial polynomial degree of all mesh elements.
+
+SOLVE_ON_COARSE_MESH = True  # If true, coarse mesh FE problem is solved in every adaptivity step.
+P_INIT_U = 2             # Initial polynomial degree for u
+P_INIT_V = 2             # Initial polynomial degree for v
+INIT_REF_BDY = 3         # Number of initial boundary refinements
 MULTI = True             # MULTI = true  ... use multi-mesh,
                             # MULTI = false ... use single-mesh.
                             # Note: In the single mesh option, the meshes are
                             # forced to be geometrically the same but the
                             # polynomial degrees can still vary.
-SAME_ORDERS = True       # SAME_ORDERS = true ... when single-mesh is used,
-                            # this forces the meshes for all components to be
-                            # identical, including the polynomial degrees of
-                            # corresponding elements. When multi-mesh is used,
-                            # this parameter is ignored.
 THRESHOLD = 0.3          # This is a quantitative parameter of the adapt(...) function and
                                  # it has different meanings for various adaptive strategies (see below).
 STRATEGY = 1             # Adaptive strategy:
@@ -49,7 +48,7 @@ STRATEGY = 1             # Adaptive strategy:
                             #   than THRESHOLD.
                             # More adaptive strategies can be created in adapt_ortho_h1.cpp.
 
-CAND_LIST = CandList.HP_ANISO  # Predefined list of element refinement candidates.
+CAND_LIST = CandList.H2D_HP_ANISO  # Predefined list of element refinement candidates.
                         # Possible values are are attributes of the class CandList:
                         # P_ISO, P_ANISO, H_ISO, H_ANISO, HP_ISO, HP_ANISO_H, HP_ANISO_P, HP_ANISO
                         # See the Sphinx tutorial (http://hpfem.org/hermes2d/doc/src/tutorial-2.html#adaptive-h-fem-and-hp-fem) for details.
@@ -60,124 +59,101 @@ MESH_REGULARITY = -1     # Maximum allowed level of hanging nodes:
                             # MESH_REGULARITY = 2 ... at most two-level hanging nodes, etc.
                             # Note that regular meshes are not supported, this is due to
                             # their notoriously bad performance.
+CONV_EXP = 1             # Default value is 1.0. This parameter influences the selection of
+                            # cancidates in hp-adaptivity. See get_optimal_refinement() for details.
 MAX_ORDER = 10           # Maximum allowed element degree
 ERR_STOP = 0.5           # Stopping criterion for adaptivity (rel. error tolerance between the
                             # fine mesh and coarse mesh solution in percent).
-NDOF_STOP = 40000        # Adaptivity process stops when the number of degrees of freedom grows over
+NDOF_STOP = 60000        # Adaptivity process stops when the number of degrees of freedom grows over
                             # this limit. This is mainly to prevent h-adaptivity to go on forever.
 
-# Problem constants
-E  = 200e9               # Young modulus for steel: 200 GPa
-nu = 0.3                 # Poisson ratio
-lamda = (E * nu) / ((1 + nu) * (1 - 2*nu))
-mu = E / (2*(1 + nu))
+H2DRS_DEFAULT_ORDER = -1 # A default order. Used to indicate an unkonwn order or a maximum support order
 
 # Load the mesh
-xmesh = Mesh()
-ymesh = Mesh()
-xmesh.load(get_bracket_mesh())
+umesh = Mesh()
+vmesh = Mesh()
+umesh.load(get_bracket_mesh())
+if MULTI == False:
+    umesh.refine_towards_boundary(1, INIT_REF_BDY)
+    
+# Create initial mesh (master mesh).
+vmesh.copy(umesh)
 
-# Create initial mesh for the vertical displacement component,
-# identical to the mesh for the horizontal displacement
-# (bracket.mesh becomes a master mesh)
-ymesh.copy(xmesh)
-
-# Initialize the shapeset and the cache
-shapeset = H1Shapeset()
-xpss = PrecalcShapeset(shapeset)
-ypss = PrecalcShapeset(shapeset)
-
-# Create the x displacement space
-xdisp = H1Space(xmesh, shapeset)
-set_bc(xdisp)
-xdisp.set_uniform_order(P_INIT)
+# Initial mesh refinements in the vmesh towards the boundary
+if MULTI == True:
+    vmesh.refine_towards_boundary(1, INIT_REF_BDY)
 
 # Create the x displacement space
-ydisp = H1Space(ymesh, shapeset)
-set_bc(ydisp)
-ydisp.set_uniform_order(P_INIT)
-
-# Enumerate basis functions
-ndofs = xdisp.assign_dofs()
-ydisp.assign_dofs(ndofs)
+uspace = H1Space(umesh, P_INIT_U)
+vspace = H1Space(vmesh, P_INIT_V)
 
 # Initialize the weak formulation
 wf = WeakForm(2)
 set_wf_forms(wf)
 
-# Visualization of solution and meshes
-xoview = OrderView("X polynomial orders", 0, 0, 500, 500)
-yoview = OrderView("Y polynomial orders", 510, 0, 500, 500)
-sview = ScalarView("Von Mises stress [Pa]", 1020, 0, 500, 500)
+# Initialize views
+uoview = OrderView("Coarse mesh for u", 0, 0, 360, 300)
+voview = OrderView("Coarse mesh for v", 370, 0, 360, 300)
+uview = ScalarView("Coarse mesh solution u", 740, 0, 400, 300)
+vview = ScalarView("Coarse mesh solution v", 1150, 0, 400, 300)
 
-# Matrix solver
-solver = DummySolver()
+# Initialize refinement selector
+selector = H1ProjBasedSelector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER)
+
+# Initialize the coarse mesh problem
+ls = LinSystem(wf)
+ls.set_spaces(uspace, vspace)
 
 # adaptivity loop
 it = 1
 done = False
-cpu = 0.0
-
-x_sln_coarse = Solution()
-y_sln_coarse = Solution()
-
-x_sln_fine = Solution()
-y_sln_fine = Solution()
-
-selector = H1ProjBasedSelector(CAND_LIST, 1.0, MAX_ORDER, shapeset)
+u_sln_coarse = Solution()
+v_sln_coarse = Solution()
+u_sln_fine = Solution()
+v_sln_fine = Solution()
 
 while(not done):
 
     print ("\n---- Adaptivity step %d ---------------------------------------------\n" % it)
     it += 1
-
-    # Calculating the number of degrees of freedom
-    ndofs = xdisp.assign_dofs()
-    ndofs += ydisp.assign_dofs(ndofs)
-
-    print("xdof=%d, ydof=%d\n" % (xdisp.get_num_dofs(), ydisp.get_num_dofs()) )
-
-    # Solve the coarse mesh problem
-    ls = LinSystem(wf, solver)
-    ls.set_spaces(xdisp, ydisp)
-    ls.set_pss(xpss, ypss)
-    ls.assemble()
-    ls.solve_system(x_sln_coarse, y_sln_coarse, lib="scipy")
-
-    # View the solution -- this can be slow; for illustration only
-    stress_coarse = VonMisesFilter(x_sln_coarse, y_sln_coarse, mu, lamda)
-    #sview.set_min_max_range(0, 3e4)
-    sview.show(stress_coarse)
-    #xoview.show(xdisp)
-    #yoview.show(ydisp)
-    xmesh.plot(space=xdisp)
-    ymesh.plot(space=ydisp)
-
-    # Solve the fine mesh problem
+    
+    # Assemble and Solve the fine mesh problem
     rs = RefSystem(ls)
     rs.assemble()
-    rs.solve_system(x_sln_fine, y_sln_fine, lib="scipy")
+    rs.solve_system(u_sln_fine, v_sln_fine, lib="scipy")
+
+    # Either solve on coarse mesh or project the fine mesh solution 
+    # on the coarse mesh.
+    if SOLVE_ON_COARSE_MESH:
+        ls.assemble()
+        ls.solve_system(u_sln_coarse, v_sln_coarse, lib="scipy")
+    else:
+        ls.project_global()
+
+    # View the solution and meshes
+    uview.show(u_sln_coarse)
+    vview.show(v_sln_coarse)
+    umesh.plot(space=uspace)
+    vmesh.plot(space=vspace)
 
     # Calculate element errors and total error estimate
-    hp = H1Adapt([xdisp, ydisp])
-    hp.set_solutions([x_sln_coarse, y_sln_coarse], [x_sln_fine, y_sln_fine]);
+    hp = H1Adapt(ls)
+    hp.set_solutions([u_sln_coarse, v_sln_coarse], [u_sln_fine, v_sln_fine]);
     set_hp_forms(hp)
     err_est = hp.calc_error() * 100
 
     print("Error estimate: %s" % err_est)
 
-# If err_est too large, adapt the mesh
+    # If err_est too large, adapt the mesh
     if err_est < ERR_STOP:
         done = True
     else:
-        hp.adapt(selector, THRESHOLD, STRATEGY, MESH_REGULARITY, SAME_ORDERS)
-        ndofs = xdisp.assign_dofs()
-        ndofs += ydisp.assign_dofs(ndofs)
-
-        if ndofs >= NDOF_STOP:
+        MULTI = False if MULTI == True else True
+        hp.adapt(selector, THRESHOLD, STRATEGY, MESH_REGULARITY, MULTI) 
+        if ls.get_num_dofs() >= NDOF_STOP:
             done = True
-
+    
 
 # Show the fine solution - this is the final result
-stress_fine = VonMisesFilter(x_sln_fine, y_sln_fine, mu, lamda)
-sview.show(stress_fine)
+uview.show(u_sln_fine)
+vview.show(v_sln_fine)

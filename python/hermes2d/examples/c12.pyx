@@ -44,7 +44,7 @@ cdef double g_N(double x, double y):
     return 0
 
 # (Volumetric) bilinear form
-cdef scalar bilinear_form(int n, double *wt, FuncReal *u, FuncReal *v, GeomReal *e, ExtDataReal *ext):
+cdef scalar bilinear_form(int n, double *wt, FuncReal **t, FuncReal *u, FuncReal *v, GeomReal *e, ExtDataReal *ext):
     result = 0
     for i in range(n):
         x = e.x[i]
@@ -54,25 +54,25 @@ cdef scalar bilinear_form(int n, double *wt, FuncReal *u, FuncReal *v, GeomReal 
     return result
 
 # Integration order for the bilinear form
-cdef c_Ord bilinear_form_ord(int n, double *wt, FuncOrd *u, FuncOrd *v, GeomOrd *e, ExtDataOrd *ext):
+cdef c_Ord bilinear_form_ord(int n, double *wt, FuncOrd **t, FuncOrd *u, FuncOrd *v, GeomOrd *e, ExtDataOrd *ext):
     #return u.val[0] * v.val[0] * e.x[0] * e.x[0]
     return create_Ord(20)
 
 # Surface linear form (natural boundary conditions)
-cdef scalar linear_form_surf(int n, double *wt, FuncReal *v, GeomReal *e, ExtDataReal *ext):
+cdef scalar linear_form_surf(int n, double *wt, FuncReal **t, FuncReal *v, GeomReal *e, ExtDataReal *ext):
     return int_F_v(n, wt, g_N, v, e)
 
 # Integration order for surface linear form
-cdef c_Ord linear_form_surf_ord(int n, double *wt, FuncOrd *v, GeomOrd *e, ExtDataOrd *ext):
+cdef c_Ord linear_form_surf_ord(int n, double *wt, FuncOrd **t, FuncOrd *v, GeomOrd *e, ExtDataOrd *ext):
     #return v.val[0] * e.x[0] * e.x[0]  
     return create_Ord(20)
 
 # Volumetric linear form (right-hand side)
-cdef scalar linear_form(int n, double *wt, FuncReal *v, GeomReal *e, ExtDataReal *ext):
+cdef scalar linear_form(int n, double *wt, FuncReal **t, FuncReal *v, GeomReal *e, ExtDataReal *ext):
     return int_F_v(n, wt, rhs, v, e)
 
 # Integration order for the volumetric linear form
-cdef c_Ord linear_form_ord(int n, double *wt, FuncOrd *v, GeomOrd *e, ExtDataOrd *ext):
+cdef c_Ord linear_form_ord(int n, double *wt, FuncOrd **t, FuncOrd *v, GeomOrd *e, ExtDataOrd *ext):
     #return v.val[0] * e.x[0] * e.x[0]
     return create_Ord(20)
 
@@ -90,8 +90,8 @@ def set_bc(H1Space space):
     space.thisptr.set_essential_bc_values(&essential_bc_values)
 
 def set_forms(WeakForm wf):
-    wf.thisptr.add_biform(0, 0, &bilinear_form, &bilinear_form_ord, H2D_SYM);
-    wf.thisptr.add_liform(0, &linear_form, &linear_form_ord);
-    wf.thisptr.add_liform_surf(0, &linear_form_surf, &linear_form_surf_ord, 2);
+    wf.thisptr.add_matrix_form(0, 0, &bilinear_form, &bilinear_form_ord, H2D_SYM);
+    wf.thisptr.add_vector_form(0, &linear_form, &linear_form_ord);
+    wf.thisptr.add_vector_form_surf(0, &linear_form_surf, &linear_form_surf_ord, 2);
     
 

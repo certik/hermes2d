@@ -13,11 +13,11 @@ cdef double rhs(double x, double y):
     return -(240 * (t2 + 5849 - 400*c_pi*c_pi)) / (t1 * c_sqr(5851 + t2 - \
               600*t1*c_pi + 400*c_pi*c_pi))
 
-cdef scalar bilinear_form(int n, double *wt, FuncReal *u, FuncReal *v, GeomReal
+cdef scalar bilinear_form(int n, double *wt, FuncReal **t, FuncReal *u, FuncReal *v, GeomReal
         *e, ExtDataReal *ext):
     return int_grad_u_grad_v(n, wt, u, v)
 
-cdef scalar linear_form(int n, double *wt, FuncReal *u, GeomReal
+cdef scalar linear_form(int n, double *wt, FuncReal **t, FuncReal *u, GeomReal
         *e, ExtDataReal *ext):
     return -int_F_v(n, wt, rhs, u, e)
 
@@ -27,19 +27,19 @@ cdef c_BCType bc_type(int marker):
 cdef scalar essential_bc_values(int ess_bdy_marker, double x, double y):
     return fn(x, y)
 
-cdef c_Ord _order_bf(int n, double *wt, FuncOrd *u, FuncOrd *v, GeomOrd
+cdef c_Ord _order_bf(int n, double *wt, FuncOrd **t, FuncOrd *u, FuncOrd *v, GeomOrd
         *e, ExtDataOrd *ext):
     return int_grad_u_grad_v_ord(n, wt, u, v)
 
-cdef c_Ord _order_lf(int n, double *wt, FuncOrd *u, GeomOrd
+cdef c_Ord _order_lf(int n, double *wt, FuncOrd **t, FuncOrd *u, GeomOrd
             *e, ExtDataOrd *ext):
     # this doesn't work, unless we redefine rhs using Ord:
     #return int_F_v_ord(n, wt, rhs, u, e).mul_double(-1)
     return create_Ord(20)
 
 def set_forms(WeakForm dp):
-    dp.thisptr.add_biform(0, 0, &bilinear_form, &_order_bf)
-    dp.thisptr.add_liform(0, &linear_form, &_order_lf)
+    dp.thisptr.add_matrix_form(0, 0, &bilinear_form, &_order_bf)
+    dp.thisptr.add_vector_form(0, &linear_form, &_order_lf)
 
 def set_bc(H1Space space):
     space.thisptr.set_bc_types(&bc_type)

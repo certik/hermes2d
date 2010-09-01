@@ -19,24 +19,22 @@ from hermes2d import Mesh, H1Shapeset, PrecalcShapeset, H1Space, \
 from hermes2d.forms import set_forms
 from hermes2d.examples import get_example_mesh
 
-P_INIT = 1
+P_INIT = 3
 
 # Load the mesh file
 domain_mesh = get_example_mesh()    # Original L-shape domain
 mesh = Mesh()
 mesh.load(domain_mesh)
 
-mesh.refine_element(0)
+# Refine all elements (optional)
+mesh.refine_all_elements()
 
 # Create a shapeset and an H1 space
-shapeset = H1Shapeset()
-pss = PrecalcShapeset(shapeset)
-space = H1Space(mesh, shapeset)
+space = H1Space(mesh)
 
 # Assign element orders and initialize the space
 space.set_uniform_order(P_INIT)    # Set uniform polynomial order
                                    # P_INIT to all mesh elements.
-space.assign_dofs();               # Enumerate basis functions.
 
 # View the basis functions
 bview = BaseView()

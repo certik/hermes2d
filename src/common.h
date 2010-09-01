@@ -79,6 +79,12 @@ enum ElementMode { // element modes
   H2D_MODE_QUAD = 1
 };
 
+// default projection norm is H1 norm
+// FIXME: this global variable should be declared here but 
+// doing so leads to compilation problems. That's why it 
+// is temporarily in linsystem.cpp.
+//const int H2D_DEFAULT_PROJ_NORM = 1;
+
 const int H2D_ANY = -1234;
 
 // how many bits the order number takes

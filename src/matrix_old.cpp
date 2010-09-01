@@ -78,7 +78,8 @@ void ludcmp(double** a, int n, int* indx, double* d)
   }
   delete [] vv;
 }
-
+#endif
+#endif
 
 #endif
 #endif

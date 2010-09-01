@@ -25,7 +25,7 @@ include_directories(${hermes2d_SOURCE_DIR}/hermes_common/)
 include_directories(${PYTHON_INCLUDE_PATH} ${NUMPY_INCLUDE_PATH})
 include_directories(${TRILINOS_INCLUDE_DIR})
 target_link_libraries(${PROJECT_NAME} hermes_common ${HERMES}
-    ${PYTHON_LIBRARIES}
-    ${UMFPACK_LIBRARY} ${AMD_LIBRARY} ${BLAS_LIBRARIES} ${LAPACK_LIBRARIES}
-    ${TRILINOS_LIBRARIES})
+        ${PYTHON_LIBRARIES}
+        ${UMFPACK_LIBRARY}
+        ${AMD_LIBRARY} ${BLAS_LIBRARIES} ${LAPACK_LIBRARIES} ${TRILINOS_LIBRARIES})
 add_dependencies(${PROJECT_NAME} ${HERMES})

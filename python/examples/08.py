@@ -18,43 +18,33 @@ from hermes2d.examples.c08 import set_bc, set_forms
 from hermes2d.examples import get_sample_mesh
 
 # The following parameter can be changed:
-P_INIT = 8
+P_INIT = 4
 
 # Load the mesh file
 mesh = Mesh()
 mesh.load(get_sample_mesh())
 
-# Initialize the shapeset and the cache
-shapeset = H1Shapeset()
-pss = PrecalcShapeset(shapeset)
+# Perform uniform mesh refinement
+mesh.refine_all_elements()
 
-# Create the x displacement space
-xdisp = H1Space(mesh, shapeset)
-xdisp.set_uniform_order(P_INIT)
-
-# Create the y displacement space
-ydisp = H1Space(mesh, shapeset)
-ydisp.set_uniform_order(P_INIT)
-
+# Create the x- and y- displacement space using the default H1 shapeset
+xdisp = H1Space(mesh, P_INIT)
+ydisp = H1Space(mesh, P_INIT)
 set_bc(xdisp, ydisp)
-ndofs = xdisp.assign_dofs(0)
-ndofs += ydisp.assign_dofs(ndofs)
 
 # Initialize the weak formulation
 wf = WeakForm(2)
 set_forms(wf)
 
-# Initialize the linear system and solver
-solver = DummySolver()
-sys = LinSystem(wf, solver)
-sys.set_spaces(xdisp, ydisp)
-sys.set_pss(pss)
+# Initialize the linear system.
+ls = LinSystem(wf)
+ls.set_spaces(xdisp, ydisp)
 
-# Assemble the stiffness matrix and solve the system
+# Assemble and solve the matrix problem
 xsln = Solution()
 ysln = Solution()
-sys.assemble()
-sys.solve_system(xsln, ysln, lib="scipy")
+ls.assemble()
+ls.solve_system(xsln, ysln, lib="scipy")
 
 # Visualize the solution
 view = ScalarView("Von Mises stress [Pa]", 50, 50, 1200, 600)

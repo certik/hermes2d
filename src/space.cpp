@@ -47,15 +47,15 @@ Space::~Space()
 void Space::free()
 {
   free_extra_data();
-  if (nsize != 0) { ::free(ndata); ndata=NULL; nsize = 0;}
-  if (esize != 0) { ::free(edata); edata=NULL; esize = 0;}
+  if (nsize) { ::free(ndata); ndata=NULL; }
+  if (esize) { ::free(edata); edata=NULL; }
 }
 
 //// element orders ///////////////////////////////////////////////////////////////////////////////
 
 void Space::resize_tables()
 {
-  if (nsize < mesh->get_max_node_id() || (ndata == NULL))
+  if ((nsize < mesh->get_max_node_id()) || (ndata == NULL))
   {
     //HACK: definition of allocated size and the result number of elements
     nsize = mesh->get_max_node_id();
