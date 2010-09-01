@@ -7,12 +7,26 @@
 
 using namespace RefinementSelectors;
 
-// This test makes sure that example 21-newton-timedep-gp works correctly.
+//  This example uses the Newton's method to solve a nonlinear complex-valued
+//  time-dependent PDE (the Gross-Pitaevski equation describing the behavior
+//  of Einstein-Bose quantum gases). For time-discretization one can use either
+//  the first-order implicit Euler method or the second-order Crank-Nicolson
+//  method.
+//
+//  PDE: non-stationary complex Gross-Pitaevski equation
+//  describing resonances in Bose-Einstein condensates.
+//
+//  ih \partial \psi/\partial t = -h^2/(2m) \Delta \psi +
+//  g \psi |\psi|^2 + 1/2 m \omega^2 (x^2 + y^2) \psi.
+//
+//  Domain: square (-1, 1)^2.
+//
+//  BC:  homogeneous Dirichlet everywhere on the boundary
 
 const int INIT_REF_NUM = 2;      // Number of initial uniform refinements.
 const int P_INIT = 4;            // Initial polynomial degree.
 const double TAU = 0.005;        // Time step.
-const double T_FINAL = 2;        // Time interval length.
+const double T_FINAL = 2*TAU + 1e-4;        // Time interval length.
 const int TIME_DISCR = 2;        // 1 for implicit Euler, 2 for Crank-Nicolson.
 const double NEWTON_TOL = 1e-5;  // Stopping criterion for the Newton's method.
 const int NEWTON_MAX_ITER = 100; // Maximum allowed number of Newton iterations.
@@ -65,7 +79,7 @@ int main(int argc, char* argv[])
   info("ndof = %d.", ndof);
 
   // Previous time level solution.
-  Solution psi_prev_time;
+  Solution psi_prev_time(&mesh, init_cond);
 
   // Initialize the weak formulation.
   WeakForm wf;
@@ -81,11 +95,9 @@ int main(int argc, char* argv[])
   // Project the initial condition on the FE space
   // to obtain initial coefficient vector for the Newton's method.
   info("Projecting initial condition to obtain initial vector for the Newton's method.");
-  Vector* coeff_vec = new AVector(); 
   bool is_complex = true;
-  Solution* sln_tmp = new Solution(&mesh, init_cond);
-  project_global(space, H2D_H1_NORM, sln_tmp, &psi_prev_time, coeff_vec, is_complex);
-  delete sln_tmp;
+  Vector* coeff_vec = new AVector(0, is_complex); 
+  project_global(space, H2D_H1_NORM, &psi_prev_time, Tuple<Solution*>(), coeff_vec, is_complex);
 
   // Time stepping loop:
   int nstep = (int)(T_FINAL/TAU + 0.5);
@@ -104,11 +116,11 @@ int main(int argc, char* argv[])
     // Update previous time level solution.
     psi_prev_time.set_fe_solution(space, coeff_vec);
   }
-  
+
   delete coeff_vec;
 
-#define ERROR_SUCCESS                                0
-#define ERROR_FAILURE                               -1
+  #define ERROR_SUCCESS                                0
+  #define ERROR_FAILURE                               -1
   printf("Success!\n");
   return ERROR_SUCCESS;
 }
