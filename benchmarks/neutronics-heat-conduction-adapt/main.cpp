@@ -27,7 +27,7 @@ using namespace RefinementSelectors;
 const bool SOLVE_ON_COARSE_MESH = false;   // true... Newton is done on coarse mesh in every adaptivity step.
                                            // false...Newton is done on coarse mesh only once, then projection
                                            //         of the fine mesh solution to coarse mesh is used.
-const int INIT_GLOB_REF_NUM = 3;           // Number of initial uniform mesh refinements.
+const int INIT_GLOB_REF_NUM = 2;           // Number of initial uniform mesh refinements.
 const int INIT_BDY_REF_NUM = 0;            // Number of initial refinements towards boundary.
 const int P_INIT = 2;                      // Initial polynomial degree of all mesh elements
 
@@ -36,7 +36,7 @@ const double TAU = 0.1;                    // Time step.
 const double T_FINAL = 10.0;               // Time interval length.
 
 // Adaptivity:
-const int UNREF_FREQ = 2;                  // Every UNREF_FREQ time step the mesh is unrefined.
+const int UNREF_FREQ = 1;                  // Every UNREF_FREQ time step the mesh is unrefined.
 const double THRESHOLD = 0.3;              // This is a quantitative parameter of the adapt(...) function and
                                            // it has different meanings for various adaptive strategies (see below).
 const int STRATEGY = 1;                    // Adaptive strategy:
@@ -48,7 +48,7 @@ const int STRATEGY = 1;                    // Adaptive strategy:
                                            // STRATEGY = 2 ... refine all elements whose error is larger
                                            //   than THRESHOLD.
                                            // More adaptive strategies can be created in adapt_ortho_h1.cpp.
-const CandList CAND_LIST = H2D_HP_ISO;   // Predefined list of element refinement candidates. Possible values are
+const CandList CAND_LIST = H2D_HP_ANISO;   // Predefined list of element refinement candidates. Possible values are
                                            // H2D_P_ISO, H2D_P_ANISO, H2D_H_ISO, H2D_H_ANISO, H2D_HP_ISO,
                                            // H2D_HP_ANISO_H, H2D_HP_ANISO_P, H2D_HP_ANISO.
                                            // See User Documentation for details.
@@ -165,7 +165,7 @@ scalar essential_bc_values_phi(int ess_bdy_marker, double x, double y)
 }
 
 // Weak forms.
-# include "forms.cpp"
+#include "forms.cpp"
 
 // Exact solutions.
 #include "exact_solution.cpp"
@@ -210,14 +210,7 @@ int main(int argc, char* argv[])
   wf.add_matrix_form(1, 0, jac_phiT, jac_phiT_ord);
   wf.add_matrix_form(1, 1, jac_phiphi, jac_phiphi_ord);
   wf.add_vector_form(1, res_phi, res_phi_ord, H2D_ANY, &phi_prev_time);
-  /*
-  wf.add_matrix_form(0, 0, jac_TT, jac_TT_ord, H2D_UNSYM, H2D_ANY, &T_fine);
-  wf.add_matrix_form(0, 1, jac_Tphi, jac_Tphi_ord);
-  wf.add_vector_form(0, res_T, res_T_ord, H2D_ANY, Tuple<MeshFunction*>(&T_fine, &phi_fine, &T_prev_time));
-  wf.add_matrix_form(1, 0, jac_phiT, jac_phiT_ord, H2D_UNSYM, H2D_ANY, Tuple<MeshFunction*>(&T_fine, &phi_fine));
-  wf.add_matrix_form(1, 1, jac_phiphi, jac_phiphi_ord, H2D_UNSYM, H2D_ANY, &T_fine);
-  wf.add_vector_form(1, res_phi, res_phi_ord, H2D_ANY, Tuple<MeshFunction*>(&T_fine, &phi_fine, &phi_prev_time));
-  */
+
   // Initialize solution views (their titles will be updated in each time step).
   ScalarView view_T("", 460, 0, 450, 350);
   view_T.fix_scale_width(80);
@@ -233,12 +226,8 @@ int main(int argc, char* argv[])
   // Initialize mesh views (their titles will be updated in each time step).
   OrderView ordview_T_coarse("", 920, 0, 450, 350);
   ordview_T_coarse.fix_scale_width(80);
-  OrderView ordview_T_fine("", 1380, 0, 450, 350);
-  ordview_T_fine.fix_scale_width(80);
   OrderView ordview_phi_coarse("", 920, 400, 450, 350);
   ordview_phi_coarse.fix_scale_width(80);
-  OrderView ordview_phi_fine("", 1380, 400, 450, 350);
-  ordview_phi_fine.fix_scale_width(80);
   
   char title[100]; // Character array to store the title for an actual view and time step.
   
@@ -260,7 +249,7 @@ int main(int argc, char* argv[])
   // Newton's loop on the initial coarse meshes.
   info("Solving on coarse meshes.");
   Vector* coeff_vec = new AVector();
-  project_global(spaces, proj_norms, prev_time_meshfns, coarse_mesh_solutions, coeff_vec);
+  project_global(spaces, proj_norms, prev_time_meshfns, Tuple<Solution*>(), coeff_vec);
   bool verbose = true; // Default is false.
   bool did_converge = solve_newton(spaces, &wf, coeff_vec, matrix_solver, 
                                    NEWTON_TOL_COARSE, NEWTON_MAX_ITER, verbose); 
@@ -271,9 +260,6 @@ int main(int argc, char* argv[])
   T_coarse.set_fe_solution(&space_T, coeff_vec);
   phi_coarse.set_fe_solution(&space_phi, coeff_vec);
   
-  // Update the time iterates.
-  T_prev_time.copy(&T_coarse);
-  phi_prev_time.copy(&phi_coarse);
   
   // Time stepping loop:
   int nstep = (int)(T_FINAL/TAU + 0.5);
@@ -334,6 +320,23 @@ int main(int argc, char* argv[])
       as++;
       
       info("---- Time step %d, adaptivity step %d:", ts, as);
+      
+      // Visualize intermediate solutions and mesh during adaptivity.  
+      view_T.show(&T_coarse);
+      sprintf(title, "T (fine mesh), t = %g s, adapt step %d", TIME, as);
+      view_T.set_title(title);
+      
+      view_phi.show(&phi_coarse);
+      sprintf(title, "phi (fine mesh), t = %g s, adapt step %d", TIME, as);
+      view_phi.set_title(title);
+      
+      ordview_T_coarse.show(&space_T);
+      sprintf(title, "T mesh (coarse), t = %g, adapt step %d", TIME, as);
+      ordview_T_coarse.set_title(title);
+      
+      ordview_phi_coarse.show(&space_phi);
+      sprintf(title, "phi mesh (coarse), t = %g, adapt step %d", TIME, as);
+      ordview_phi_coarse.set_title(title);
 
       // Construct globally refined reference meshes and setup reference spaces.
       int num_fields = 2;         // Number of physical fields being solved for (T, phi).
@@ -364,31 +367,6 @@ int main(int argc, char* argv[])
       // Translate the resulting coefficient vector into the actual solutions. 
       T_fine.set_fe_solution(ref_spaces[0], coeff_vec);
       phi_fine.set_fe_solution(ref_spaces[1], coeff_vec);
-      
-      // Visualize intermediate solutions and mesh during adaptivity.  
-      view_T.show(&T_fine);
-      sprintf(title, "T (fine mesh), t = %g s, adapt step %d", TIME, as);
-      view_T.set_title(title);
-      
-      view_phi.show(&phi_fine);
-      sprintf(title, "phi (fine mesh), t = %g s, adapt step %d", TIME, as);
-      view_phi.set_title(title);
-      
-      ordview_T_coarse.show(&space_T);
-      sprintf(title, "T mesh (coarse), t = %g, adapt step %d", TIME, as);
-      ordview_T_coarse.set_title(title);
-      
-      ordview_T_fine.show(ref_spaces[0]);
-      sprintf(title, "T mesh (fine), t = %g, adapt step %d", TIME, as);
-      ordview_T_fine.set_title(title);
-      
-      ordview_phi_coarse.show(&space_phi);
-      sprintf(title, "phi mesh (coarse), t = %g, adapt step %d", TIME, as);
-      ordview_phi_coarse.set_title(title);
-      
-      ordview_phi_fine.show(ref_spaces[1]);
-      sprintf(title, "phi mesh (fine), t = %g, adapt step %d", TIME, as);
-      ordview_phi_fine.set_title(title);
 
       // Calculate error estimates and exact errors.
       info("Calculating errors.");
