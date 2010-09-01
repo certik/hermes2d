@@ -30,7 +30,7 @@ const double VEL = 0.1;              // Surface velocity of inner circle.
 const double STARTUP_TIME = 1.0;     // During this time, surface velocity of the inner circle increases 
                                      // gradually from 0 to VEL, then it stays constant.
 const double TAU = 10.0;             // Time step.
-const double T_FINAL = 3600.0;       // Time interval length.
+const double T_FINAL = 2*TAU + 1e-4;       // Time interval length.
 const double NEWTON_TOL = 1e-5;      // Stopping criterion for the Newton's method.
 const int NEWTON_MAX_ITER = 10;      // Maximum allowed number of Newton iterations.
 MatrixSolverType matrix_solver = SOLVER_UMFPACK;  // Possibilities: SOLVER_UMFPACK, SOLVER_PETSC,
@@ -258,19 +258,19 @@ int main(int argc, char* argv[])
     printf("Coordinate ( 0.1, 0.0) xvel value = %lf\n", xvel_prev_time.get_pt_value(0.1, 0.0));
     success = 0;
   }
-  if (fabs(xvel_prev_time.get_pt_value(0.5, 0.0) - (-0.002035)) > eps) {
+  if (fabs(xvel_prev_time.get_pt_value(0.5, 0.0) - (-0.000403)) > eps) {
     printf("Coordinate ( 0.5, 0.0) xvel value = %lf\n", xvel_prev_time.get_pt_value(0.5, 0.0));
     success = 0;
   }
-  if (fabs(xvel_prev_time.get_pt_value(0.9, 0.0) - (-0.000340)) > eps) {
+  if (fabs(xvel_prev_time.get_pt_value(0.9, 0.0) - (-0.000057)) > eps) {
     printf("Coordinate ( 0.9, 0.0) xvel value = %lf\n", xvel_prev_time.get_pt_value(0.9, 0.0));
     success = 0;
   }
-  if (fabs(xvel_prev_time.get_pt_value(1.3, 0.0) - (-0.000059)) > eps) {
+  if (fabs(xvel_prev_time.get_pt_value(1.3, 0.0) - (-0.000006)) > eps) {
     printf("Coordinate ( 1.3, 0.0) xvel value = %lf\n", xvel_prev_time.get_pt_value(1.3, 0.0));
     success = 0;
   }
-  if (fabs(xvel_prev_time.get_pt_value(1.7, 0.0) - (-0.000006)) > eps) {
+  if (fabs(xvel_prev_time.get_pt_value(1.7, 0.0) - (-0.000001)) > eps) {
     printf("Coordinate ( 1.7, 0.0) xvel value = %lf\n", xvel_prev_time.get_pt_value(1.7, 0.0));
     success = 0;
   }
@@ -279,19 +279,19 @@ int main(int argc, char* argv[])
     printf("Coordinate ( 0.1, 0.0) yvel value = %lf\n", yvel_prev_time.get_pt_value(0.1, 0.0));
     success = 0;
   }
-  if (fabs(yvel_prev_time.get_pt_value(0.5, 0.0) - (0.003068)) > eps) {
+  if (fabs(yvel_prev_time.get_pt_value(0.5, 0.0) - (0.001486)) > eps) {
     printf("Coordinate ( 0.5, 0.0) yvel value = %lf\n", yvel_prev_time.get_pt_value(0.5, 0.0));
     success = 0;
   }
-  if (fabs(yvel_prev_time.get_pt_value(0.9, 0.0) - (0.001457)) > eps) {
+  if (fabs(yvel_prev_time.get_pt_value(0.9, 0.0) - (0.000577)) > eps) {
     printf("Coordinate ( 0.9, 0.0) yvel value = %lf\n", yvel_prev_time.get_pt_value(0.9, 0.0));
     success = 0;
   }
-  if (fabs(yvel_prev_time.get_pt_value(1.3, 0.0) - (0.000749)) > eps) {
+  if (fabs(yvel_prev_time.get_pt_value(1.3, 0.0) - (0.000299)) > eps) {
     printf("Coordinate ( 1.3, 0.0) yvel value = %lf\n", yvel_prev_time.get_pt_value(1.3, 0.0));
     success = 0;
   }
-  if (fabs(yvel_prev_time.get_pt_value(1.7, 0.0) - (0.000356)) > eps) {
+  if (fabs(yvel_prev_time.get_pt_value(1.7, 0.0) - (0.000170)) > eps) {
     printf("Coordinate ( 1.7, 0.0) yvel value = %lf\n", yvel_prev_time.get_pt_value(1.7, 0.0));
     success = 0;
   }
