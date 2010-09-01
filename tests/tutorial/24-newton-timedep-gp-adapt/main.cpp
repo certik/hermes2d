@@ -279,7 +279,38 @@ int main(int argc, char* argv[])
     sln_prev_time.copy(&ref_sln);
   }
 
-  // Wait for all views to be closed.
-  View::wait();
-  return 0;
+  AbsFilter mag2(&sln);
+#define ERROR_SUCCESS                                0
+#define ERROR_FAILURE                               -1
+  int success = 1;
+  double eps = 1e-5;
+  double val = std::abs(mag2.get_pt_value(0.1, 0.1));
+  info("Coordinate ( 0.1, 0.1) xvel value = %lf", val);
+  if (fabs(val - (0.655698)) > eps) {
+    printf("Coordinate ( 0.1, 0.1) xvel value = %lf\n", val);
+    success = 0;
+  }
+
+  val = std::abs(mag2.get_pt_value(0.1, -0.1));
+  info("Coordinate ( 0.1, -0.1) xvel value = %lf", val);
+  if (fabs(val - (0.655698)) > eps) {
+    printf("Coordinate ( 0.1, -0.1) xvel value = %lf\n", val);
+    success = 0;
+  }
+
+  val = std::abs(mag2.get_pt_value(0.2, 0.1));
+  info("Coordinate ( 0.2, 0.1) xvel value = %lf", val);
+  if (fabs(val - (0.391485)) > eps) {
+    printf("Coordinate ( 0.2, 0.1) xvel value = %lf\n", val);
+    success = 0;
+  }
+
+  if (success == 1) {
+    printf("Success!\n");
+    return ERROR_SUCCESS;
+  }
+  else {
+    printf("Failure!\n");
+    return ERROR_FAILURE;
+  }
 }
