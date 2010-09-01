@@ -91,7 +91,7 @@ int main(int argc, char* argv[])
   info("Projecting initial conditions to obtain initial vector for the Newton's method.");
   Vector* coeff_vec = new AVector(); 
   project_global(Tuple<Space *>(tspace, cspace), Tuple<int>(H2D_H1_NORM, H2D_H1_NORM),
-  Tuple<MeshFunction*>(&t_prev_newton, &c_prev_newton),Tuple<Solution*>(&t_prev_newton, &c_prev_newton), coeff_vec);
+  Tuple<MeshFunction*>(&t_prev_newton, &c_prev_newton),Tuple<Solution*>(), coeff_vec);
 
   // Filters for the reaction rate omega and its derivatives.
   DXDYFilter omega(omega_fn, Tuple<MeshFunction*>(&t_prev_newton, &c_prev_newton));
@@ -141,13 +141,6 @@ int main(int argc, char* argv[])
     int it = 1;
     for (; it <= NEWTON_MAX_ITER; it++)
     {
-      // Reinitialize filters and previous Newton solutions these filters use.
-      t_prev_newton.set_fe_solution(tspace, coeff_vec);
-      c_prev_newton.set_fe_solution(cspace, coeff_vec);
-      omega.reinit();
-      omega_dt.reinit();
-      omega_dc.reinit();
-
       // Assemble the Jacobian matrix and residual vector.
       bool rhsonly = false;
 
@@ -175,6 +168,13 @@ int main(int argc, char* argv[])
 
       // Add \deltaY^{n+1} to Y^n.
       for (int i = 0; i < ndof; i++) coeff_vec->add(i, rhs->get(i));
+      
+      // Set current solutions to the latest Newton iterate and reinitialize filters of these solutions.
+      t_prev_newton.set_fe_solution(tspace, coeff_vec);
+      c_prev_newton.set_fe_solution(cspace, coeff_vec);
+      omega.reinit();
+      omega_dt.reinit();
+      omega_dc.reinit();
     };
 
     delete rhs;

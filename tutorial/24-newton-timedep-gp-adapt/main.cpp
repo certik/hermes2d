@@ -176,9 +176,11 @@ int main(int argc, char* argv[])
       // Project on globally derefined mesh.
       info("Projecting previous fine mesh solution on derefined mesh.");
       project_global(space, H2D_H1_NORM, &ref_sln, Tuple<Solution*>(), coeff_vec, is_complex);
-     
-      // FIXME: Error "Invalid element ID ..." is thrown when this is uncommented.
-      /*
+      
+      // TODO: Find out if the following code makes any notable difference (it is taken from the master
+      // version of the tutorial, with SOLVE_ON_COARSE_MESH == true, but seems not to be necessary 
+      // in the new version any more.
+      
       // Newton's method on derefined mesh (moving one time step forward).
       info("Solving on derefined mesh.");     
       
@@ -186,7 +188,7 @@ int main(int argc, char* argv[])
       if (!solve_newton(space, &wf, coeff_vec, matrix_solver, 
                         NEWTON_TOL_COARSE, NEWTON_MAX_ITER, verbose, is_complex))
         error("Newton's method did not converge.");
-      */
+      
       
       sln.set_fe_solution(space, coeff_vec);
     }

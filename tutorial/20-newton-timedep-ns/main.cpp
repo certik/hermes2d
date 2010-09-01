@@ -192,7 +192,7 @@ int main(int argc, char* argv[])
     project_global(Tuple<Space *>(xvel_space, yvel_space, p_space), 
                    Tuple<int>(vel_proj_norm, vel_proj_norm, p_proj_norm),
                    Tuple<MeshFunction*>(&xvel_prev_time, &yvel_prev_time, &p_prev_time),
-                   Tuple<Solution*>(&xvel_prev_time, &yvel_prev_time, &p_prev_time),
+                   Tuple<Solution*>(),
                    coeff_vec);  
   }
   else coeff_vec = NULL;

@@ -79,7 +79,7 @@ int main(int argc, char* argv[])
   info("ndof = %d.", ndof);
 
   // Previous time level solution.
-  Solution psi_prev_time;
+  Solution psi_prev_time(&mesh, init_cond);
 
   // Initialize the weak formulation.
   WeakForm wf;
@@ -99,11 +99,9 @@ int main(int argc, char* argv[])
   // Project the initial condition on the FE space
   // to obtain initial coefficient vector for the Newton's method.
   info("Projecting initial condition to obtain initial vector for the Newton's method.");
-  Vector* coeff_vec = new AVector(); 
   bool is_complex = true;
-  Solution* sln_tmp = new Solution(&mesh, init_cond);
-  project_global(space, H2D_H1_NORM, sln_tmp, &psi_prev_time, coeff_vec, is_complex);
-  delete sln_tmp;
+  Vector* coeff_vec = new AVector(0, is_complex); 
+  project_global(space, H2D_H1_NORM, &psi_prev_time, Tuple<Solution*>(), coeff_vec, is_complex);
 
   // Time stepping loop:
   int nstep = (int)(T_FINAL/TAU + 0.5);

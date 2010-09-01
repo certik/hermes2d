@@ -98,8 +98,8 @@ int main(int argc, char* argv[])
   int ndof = get_num_dofs(space);
   info("ndof = %d.", ndof);
 
-  // Previous time level solution.
-  Solution u_prev_time;
+  // Previous time level solution (initialized by the initial condition).
+  Solution u_prev_time(&mesh, init_cond);
 
   // Initialize the weak formulation.
   WeakForm wf;
@@ -108,11 +108,9 @@ int main(int argc, char* argv[])
 
   // Project the initial condition on the FE space
   // to obtain initial coefficient vector for the Newton's method.
-  info("Projecting initial condition to obtain initial vector for the Newton'w method.");
+  info("Projecting initial condition to obtain initial vector for the Newton's method.");
   Vector* coeff_vec = new AVector(); 
-  Solution* sln_tmp = new Solution(&mesh, init_cond);
-  project_global(space, H2D_H1_NORM, sln_tmp, &u_prev_time, coeff_vec);
-  delete sln_tmp;
+  project_global(space, H2D_H1_NORM, &u_prev_time, Tuple<Solution*>(), coeff_vec);
 
   // Initialize views.
   ScalarView sview("Solution", new WinGeom(0, 0, 500, 400));
