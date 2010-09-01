@@ -220,7 +220,7 @@ Element** Traverse::get_next_state(bool* bnd, EdgePos* ep)
                 fn[i]->pop_transform();
               subs[i] = fn[i]->get_transform();
             }
-						// If the element on the i-th mesh is active, we have to reset i-th mesh's PrecalcShapeset's transformation.
+            // If the element on the i-th mesh is active, we have to reset transformation for all functions on the i-th mesh.
             else if (s->trans[i] < 0)
               fn[i]->reset_transform();
           }
@@ -259,7 +259,8 @@ Element** Traverse::get_next_state(bool* bnd, EdgePos* ep)
 						continue; 
 					}
           if (s->e[i]->active && fn != NULL)
-						// Important, sets the active element for the i-th test function (i-th PrecalcShapeset)
+						// Important, sets the active element for all functions that share the i-th mesh 
+            // (PrecalcShapesets, Solutions from previous time/Newton iterations)
 						fn[i]->set_active_element(s->e[i]);
           s->er[i] = H2D_UNITY;
           subs[i] = 0;
@@ -304,7 +305,8 @@ Element** Traverse::get_next_state(bool* bnd, EdgePos* ep)
               fn[i]->push_transform(s->trans[i]-1);
             subs[i] = fn[i]->get_transform();
           }
-					// ..and when it is active we have to set it active to the i-th PrecalcShapeset (~test function)
+					// ..and when it is active we have to activate on it all functions on i-th mesh 
+          // (PrecalcShapesets, Solutions from previous time/Newton iterations)
           else if (s->trans[i] < 0)
           {
             fn[i]->set_active_element(s->e[i]);

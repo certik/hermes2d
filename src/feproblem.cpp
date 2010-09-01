@@ -265,7 +265,7 @@ void FeProblem::assemble(_Vector *rhs, _Matrix *jac, Tuple<Solution*> u_ext)
 
   // obtain a list of assembling stages
   std::vector<WeakForm::Stage> stages;
-  wf->get_stages(spaces, stages, jac == NULL);
+  wf->get_stages(spaces, NULL, stages, jac == NULL);
 
   // Loop through all assembling stages -- the purpose of this is increased performance
   // in multi-mesh calculations, where, e.g., only the right hand side uses two meshes.

@@ -18,6 +18,7 @@
 #define __H2D_WEAKFORM_H
 
 #include "function.h"
+#include "solution.h"
 
 class RefMap;
 class DiscreteProblem;
@@ -139,7 +140,7 @@ protected:
     std::set<MeshFunction*> ext_set;
   };
 
-  void get_stages(Tuple<Space*> spaces, std::vector<Stage>& stages, bool rhsonly);
+  void get_stages(Tuple< Space* > spaces, Tuple< Solution* > u_ext, std::vector< WeakForm::Stage >& stages, bool rhsonly);
   bool** get_blocks();
 
   bool is_in_area(int marker, int area) const
@@ -156,8 +157,9 @@ protected:
 
 private:
 
-  Stage* find_stage(std::vector<Stage>& stages, int ii, int jj,
-                    Mesh* m1, Mesh* m2, std::vector<MeshFunction*>& ext);
+  Stage* find_stage(std::vector<WeakForm::Stage>& stages, int ii, int jj,
+                    Mesh* m1, Mesh* m2, 
+                    std::vector<MeshFunction*>& ext, std::vector<Solution*>& u_ext);
 
   bool is_in_area_2(int marker, int area) const;
 };

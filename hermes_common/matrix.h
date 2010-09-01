@@ -49,7 +49,7 @@ public:
     Matrix() {}
     virtual ~Matrix() {}
 
-    inline virtual void init() { this->complex = false; free_data(); }
+    inline virtual void init(bool is_complex = false) { this->complex = is_complex; free_data(); }
     virtual void free_data() = 0;
 
     virtual void set_zero() = 0;
@@ -299,7 +299,7 @@ public:
     CooMatrix(CSCMatrix *m);
     ~CooMatrix();
 
-    inline virtual void init() { this->complex = false; free_data(); }
+    inline virtual void init(bool is_complex = false) { this->complex = is_complex; free_data(); }
     virtual void free_data();
 
     virtual void set_zero();
@@ -319,6 +319,7 @@ public:
     virtual void copy_into(Matrix *m);
 
     inline virtual double get(int m, int n) { return A[m][n]; }
+    inline virtual cplx get_cplx(int m, int n) { return A_cplx[m][n]; }
 
     virtual void times_vector(double* vec, double* result, int rank);
 

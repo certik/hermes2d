@@ -236,18 +236,18 @@ void DiscreteProblem::assemble(Vector* init_vec, Matrix* mat_ext, Vector* dir_ex
   // and clear dir_ext and rhs_ext. 
   // Do not touch the matrix if rhsonly == true. 
   if (rhsonly == false) {
-    if (mat_ext->get_size() != ndof) mat_ext->init();
+    if (mat_ext->get_size() != ndof) mat_ext->init(is_complex);
   }
   if (dir_ext != NULL) {
     if (dir_ext->get_size() != ndof) {
       dir_ext->free_data();
-      dir_ext->init(ndof);
+      dir_ext->init(ndof, is_complex);
     }
     else dir_ext->set_zero();
   }
   if (rhs_ext->get_size() != ndof) {
     rhs_ext->free_data();
-    rhs_ext->init(ndof);
+    rhs_ext->init(ndof, is_complex);
   }
   else rhs_ext->set_zero();
 
@@ -299,7 +299,7 @@ void DiscreteProblem::assemble(Vector* init_vec, Matrix* mat_ext, Vector* dir_ex
   // obtain a list of assembling stages
   std::vector<WeakForm::Stage> stages;
   // Returns assembling stages with correct meshes, ext_functions that are needed in a particular stage.
-  wf->get_stages(spaces, stages, rhsonly);
+  wf->get_stages(spaces, u_ext, stages, rhsonly);
 
   // Loop through all assembling stages -- the purpose of this is increased performance
   // in multi-mesh calculations, where, e.g., only the right hand side uses two meshes.
@@ -334,6 +334,9 @@ void DiscreteProblem::assemble(Vector* init_vec, Matrix* mat_ext, Vector* dir_ex
       update_limit_table(e0->get_mode());
 
       // Obtain assembly lists for the element at all spaces of the stage, set appropriate mode for each pss.
+      // NOTE: Active elements and transformations for external functions (including the solutions from previous
+      // Newton's iteration) as well as basis functions (master PrecalcShapesets) have already been set in 
+      // trav.get_next_state(...).
       std::fill(isempty.begin(), isempty.end(), false);
       for (unsigned int i = 0; i < s->idx.size(); i++)
       {
@@ -351,11 +354,6 @@ void DiscreteProblem::assemble(Vector* init_vec, Matrix* mat_ext, Vector* dir_ex
 	// Important : the reference mapping gets the same subelement transformation as the
 	// appropriate PrecalcShapeset (~test function). This is used in eval_form functions.
         refmap[j].force_transform(pss[j]->get_transform(), pss[j]->get_ctm());
-        // The same is done for all external functions.
-	if (u_ext[j] != NULL) {
-          u_ext[j]->set_active_element(e[i]);
-          u_ext[j]->force_transform(pss[j]->get_transform(), pss[j]->get_ctm());
-        }
       }
       // Boundary marker.
       marker = e0->marker;
@@ -1411,11 +1409,9 @@ double get_l2_norm_real(Vector* vec)
 
 double get_l2_norm_cplx(Vector* vec) 
 {
-  cplx val_0 = cplx(0, 0);
-  for (int i = 0; i < vec->get_size(); i++) val_0 = val_0 + vec->get_cplx(i)*conj(vec->get_cplx(i));
-  double val = std::abs(val_0);
-  val = sqrt(val);
-  return val;
+  double val = 0;
+  for (int i = 0; i < vec->get_size(); i++) val += std::norm(vec->get_cplx(i));
+  return sqrt(val);
 }
 
 // Basic Newton's method, takes a coefficient vector and returns a coefficient vector. 
