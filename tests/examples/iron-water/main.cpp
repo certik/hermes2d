@@ -107,8 +107,6 @@ int main(int argc, char* argv[])
   // Adaptivity loop.
   Solution *sln = new Solution();
   Solution *ref_sln = new Solution();
-  WinGeom* sln_win_geom = new WinGeom(0, 0, 440, 350);
-  WinGeom* mesh_win_geom = new WinGeom(450, 0, 400, 350);
   bool verbose = true;     // Print info during adaptivity.
   solve_linear_adapt(&space, &wf, NULL, matrix_solver, H2D_H1_NORM, sln, ref_sln, 
                      NULL, NULL, &selector, &apt, verbose);
